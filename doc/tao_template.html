@@ -1,0 +1,83 @@
+<html>
+<head>
+</head>
+
+<!-- ============================================================ -->
+
+<body>
+
+<center>
+<h1>Tao: The Tool for Accelerator Optics</h1>
+</center>
+
+
+Many simulation problems fall into one of three categories: 
+
+<ul>
+
+<li> You want to design a lattice subject to various constraints.
+
+<li> You have some measured data and you want to make a correction. For
+example, you want to know what steering strength changes will make an orbit
+flat.
+
+<li> You want to simulate what happens to the orbit, beta function,
+etc., when you change something in the machine.
+
+</ul>
+
+
+<p>
+Programs that are written to solve these types of problems have common
+elements: You have variables you want to vary in your model of your
+machine, you have "data" that you want to view, and, in the first two
+categories above, you want to match the machine model to the data (in
+designing a lattice the constraints correspond to the data).
+
+<p>
+Because of this commonality of design, the Tao program was developed
+to reduce the time needed to develop working programs. Tao is a
+machine independent program that implements the essential ingredients
+needed to solve simulation problems. To make the
+connection, Tao uses configuration input files that can be tailored to
+specific machines. Additionally, Tao has been built
+to be easily customizable so that extending Tao to solve new and
+different problems is relatively straight forward.
+
+<p>
+The Tao manual covers the physics, input file formats, and programing
+of Tao. The Tao manual comes in PS and PDF versions:
+<ul> 
+<li> <a href = "tao-manual-RRR.pdf">tao-manual-RRR.pdf</a> -- Revised: DDD
+<li> <a href = "tao-manual-RRR.ps">tao-manual-RRR.ps</a> -- Revised: DDD
+</ul> 
+
+<p>
+<h3>Running Tao:</h3> 
+
+For Non-Cornell people, Tao comes with the Bmad
+distribution (see the <a href = "obtaining.html">Obtaining Bmad</a>
+web page).
+
+<p>
+At Wilson Lab, each software <a href = "overview.html">release</a>
+contains an executable. See the <a href =
+"local_setup.html">Local_Setup</a> page on how to run Tao.
+
+<p>
+To get example input files for Tao use the command:
+<pre>
+  svn co https://accserv.lepp.cornell.edu/svn/trunk/src/tao/program
+</pre>
+This will create a sub-directory called <b>program</b> in your local
+directory which contains the input files. Go to that directory and
+run Tao:
+<pre>
+  cd program
+  $ACC_EXE/tao
+</pre>
+
+
+</body>
+</html>
+
