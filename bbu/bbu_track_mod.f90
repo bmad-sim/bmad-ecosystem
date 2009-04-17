@@ -387,7 +387,7 @@ end subroutine bbu_track_all
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine write_homs (lat)
+subroutine write_homs (lat, bunch_freq, currth)
 
 ! Write out information on lattice and HOMs
 ! Adapted from Changsheng's Get_Info.f90
@@ -395,6 +395,8 @@ subroutine write_homs (lat)
 ! 19 March 2009 J.A.Crittenden
 
 implicit none
+
+type (bbu_param_struct) bbu_param
 
 type (lat_struct) lat
 
@@ -410,7 +412,7 @@ real(rp)  time, Vz, P0i, P0f, gamma, cavity_i
 logical judge
 integer :: matrixsize = 4
 real(rp) cnumerator,currth,currthc,rovq,matc,poltheta
-
+real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
 
@@ -479,7 +481,7 @@ kk=1
 judge =.false.
 
       write(6,2000)
-2000  format(' Cavity    HOM       Ith(A)   Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr')
+2000  format(' Cavity    HOM       Ith(A)   Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr    tr/tb')
 
 do i=0, lat%n_ele_track
    
@@ -528,6 +530,7 @@ do i=0, lat%n_ele_track
       if(k.gt.1.and.erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
         do j=1, size(lat%ele(i)%wake%lr)
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
+           print *,' RovQ in Ohms',rovq
            cnumerator = -2  * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
 ! Threshold current
            currth = cnumerator / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
@@ -539,7 +542,7 @@ do i=0, lat%n_ele_track
            write(6,3000) kk, j, currth, currthc, erltime(k), &
                            lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
-                           sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k))
+                           sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),erltime(k)*bunch_freq
 3000       format(i4,i9,3x,20(1x,e11.3))
         enddo
         kk=kk+1
