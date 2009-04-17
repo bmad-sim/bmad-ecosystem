@@ -50,8 +50,9 @@ close (1)
 ! Define distance between bunches
 beam_init%ds_bunch = c_light / bbu_param%bunch_freq
 
-! Open output file for threshold current calculation comparison
 if (bbu_param%prstab2004) then
+! Open PRSTAB 2004 output file 
+! for threshold current calculation comparison
  open (50, file = 'prstab2004.out', status = 'unknown') 
  nstep = bbu_param%nstep
 else
@@ -84,9 +85,9 @@ if (bbu_param%hybridize) then
   allocate (keep_ele(lat_in%n_ele_max))
   keep_ele = .false.
   do i = 1, lat_in%n_ele_max
-!    if (lat_in%ele(i)%key /= lcavity$) cycle
-    !! if (.not. associated (lat_in%ele(i)%wake)) cycle
-    !! if (size(lat_in%ele(i)%wake%lr) == 0) cycle
+    if (lat_in%ele(i)%key /= lcavity$) cycle
+    if (.not. associated (lat_in%ele(i)%wake)) cycle
+    if (size(lat_in%ele(i)%wake%lr) == 0) cycle
     keep_ele(i) = .true.
     call update_hybrid_list (lat_in, i, keep_ele)
   enddo
