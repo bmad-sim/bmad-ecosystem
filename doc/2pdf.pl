@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-`scp dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad/manual.html .`;
-
 $found = 0;
 open (FC, "cover-page.tex") || die ("Cannot open File: cover-page.tex\n");
 while (<FC>) {
