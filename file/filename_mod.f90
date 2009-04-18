@@ -485,7 +485,7 @@ end subroutine
 !     UNIX       "abc"      "/def"      "abc/def"
 !     UNIX       "abc/"     "def"       "abc/def"
 !     UNIX       "abc/"     "/def"      "abc/def"
-!     VMS        "[abc]"    "[def]"     ""  (Error)
+!     VMS        "[abc]"    "[def]"     "[abc.def]" 
 !     VMS        "[abc]"    "[.def]"    "[abc.def]"
 !     VMS        "[abc]"    "def"       "[abc]def"
 !     VMS        ""         "[.def]"    "[.def]"
@@ -510,7 +510,7 @@ implicit none
 
 character(*) dir, sub_dir, dir_out
 character(len(dir_out)) temp
-character(24) :: r_name = 'AppendSubDirectory'
+character(24) :: r_name = 'Append_SubDirectory'
 
 integer n_dir
 
@@ -543,12 +543,11 @@ if (dir(n_dir:n_dir) /= ']') then
 endif
 
 if (sub_dir(1:1) == '[') then
-  if (sub_dir(2:2) /= '.') then
-    call out_io (s_fatal$, r_name, 'BAD SUB-DIRECTORY STRUCTURE: ' // sub_dir)
-    dir_out = 'XXX'
-    return
+  if (sub_dir(2:2) == '.') then
+    temp = dir(:n_dir-1) // sub_dir(2:)
+  else
+    temp = dir(:n_dir-1) // '.' // sub_dir(2:)
   endif
-  temp = dir(:n_dir-1) // sub_dir(2:)
 else
   temp = dir(:n_dir) // sub_dir(:)
 endif
