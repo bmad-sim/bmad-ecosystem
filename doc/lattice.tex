@@ -348,12 +348,12 @@ different sequences of random numbers will be generated each time a
 program is run.  The default behavior if \vn{parameter[ran_seed]} is
 not present is to use the system clock for the seed.
 
-\index{expand_lattice statement}
+\index{expand_lattice}
 If an element is used multiple times in a lattice, and if \vn{ran} or
 \vn{gauss_ran} is used to set an attribute value of this element, then
 to have all instances of the element have different attribute values
 the setting of the attribute must be after the lattice has been
-expanded. For example:
+expanded (\sref{s:expand}). For example:
 \begin{example}
   a: quad 
   a[x_offset] = 0.001*ran_gauss()
@@ -368,7 +368,7 @@ On the other hand if the attribute is set after lattice expansion:
   a: quad 
   my_line: line = (a, a)
   use, my_line
-  expand_line
+  expand_lattice
   a[x_offset] = 0.001*ran_gauss()
 \end{example}
 Here the two \vn{a} elements in the lattice get different values for

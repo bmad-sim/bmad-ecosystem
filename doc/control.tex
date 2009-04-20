@@ -340,6 +340,34 @@ For example
   q2: quad, l = 2, superposition, ref = dft1   ! ERROR! 
 \end{example}
 
+\index{overlay}
+\index{group}
+\index{expand_lattice}
+When the lattice is constructed, superposition of elements is done
+before the addition of any \vn{group} or \vn{overlay} elements. This
+is done since \vn{overlay}s and \vn{group}s are allowed to refer
+to elements that are superimposed. This can lead to some unexpected
+results. For example:
+\begin{example}
+  q1: quad, l = 10
+  q2: quad, l = 10
+  lat: line = (q1, q2)
+  use, lat
+  o: overlay = {q1}, l = 12
+  m: marker, superimpose, offset = 15
+\end{example} 
+The application of the overlay will increase the length of \vn{q1} by
+2~meters which will put the marker \vn{m} at 17~meters instead of the
+expected 15. To avoid this problem, an \vn{expand_lattice} statement
+(\sref{s:expand}) can be placed after the overlay, but before the
+superimpose, statement
+\begin{example}
+  ...
+  o: overlay = {q1}, l = 12
+  expand_lattice
+  m: marker, superimpose, offset = 15
+\end{example} 
+
 %-----------------------------------------------------------------------------
 \section{Multipass}
 \label{s:multipass}
@@ -350,7 +378,7 @@ multiple times. For example, an Energy Recovery Linac (ERL) will
 circulate the beam back through the LINAC part to retrieve the energy
 in the beam. In \bmad this situation can simulated using the
 \vn{multipass} attribute. A simple example shows how this works.
-\index{expand_lattice!statement}
+\index{expand_lattice}
 \begin{example}
   A: lcavity
   linac_part: line[multipass] = (A, ...)
