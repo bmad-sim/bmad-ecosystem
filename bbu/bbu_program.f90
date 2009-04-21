@@ -32,11 +32,12 @@ bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
 bbu_param%init_hom_amp = 1e-6        ! Initial wake amplitude        
 bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
 bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
+bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
 bbu_param%current = 20e-3            ! Starting current (amps)
 bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
 bbu_param%num_stages_tracked_per_power_calc = 100 
-bbu_param%prstab2004 = .true.        ! If true, produce PRSTAB 7 (2004) Fig. 3. Use lattice prstab2004.lat.
+bbu_param%prstab2004 = .true.        ! If true, produce PRSTAB 7 (2004) Fig. 3.
 bbu_param%nstep = 100
 bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
@@ -50,13 +51,12 @@ close (1)
 ! Define distance between bunches
 beam_init%ds_bunch = c_light / bbu_param%bunch_freq
 
+nstep = 1
 if (bbu_param%prstab2004) then
-! Open PRSTAB 2004 output file 
-! for threshold current calculation comparison
- open (50, file = 'prstab2004.out', status = 'unknown') 
- nstep = bbu_param%nstep
-else
- nstep = 1
+  ! Open PRSTAB 2004 output file 
+  ! for threshold current calculation comparison
+  open (50, file = 'prstab2004.out', status = 'unknown') 
+  nstep = bbu_param%nstep
 endif
 
 ! Init
@@ -65,118 +65,114 @@ print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 
-do istep=1,nstep
+do istep = 1, nstep
 
-if (bbu_param%prstab2004) then
-! Change length of taylor element
- if(nstep.ge.1)then
-  deldr = (bbu_param%enddr - bbu_param%begdr)/(nstep-1)
- else
-  deldr = 0.
- endif
- dr = bbu_param%begdr+(istep-1)*deldr
- lat_in%ele(6)%value(l$) = dr*c_light/bbu_param%bunch_freq
- print *,' PRSTAB2004 analysis step: tr/tb, taylor length = ',dr,lat_in%ele(6)%value(l$)
- call lattice_bookkeeper(lat_in)
-endif
-
-if (bbu_param%hybridize) then
-  print *, 'Note: Hybridizing lattice...'
-  allocate (keep_ele(lat_in%n_ele_max))
-  keep_ele = .false.
-  do i = 1, lat_in%n_ele_max
-    if (lat_in%ele(i)%key /= lcavity$) cycle
-    if (.not. associated (lat_in%ele(i)%wake)) cycle
-    if (size(lat_in%ele(i)%wake%lr) == 0) cycle
-    keep_ele(i) = .true.
-    call update_hybrid_list (lat_in, i, keep_ele)
-  enddo
-  call make_hybrid_lat (lat_in, keep_ele, .true., lat)
-  deallocate (keep_ele)
-else
-  lat = lat_in
-endif
-
-lat0 = lat
-
-call bbu_setup (lat, beam_init%ds_bunch, bbu_param%init_hom_amp, bbu_beam)
-call bbu_hom_power_calc (lat, bbu_beam, hom_power0)
-
-bbu_param%high_power_lim = hom_power0 * bbu_param%limit_factor
-bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
-
-! Print some information
-
-if (bbu_param%write_hom_info) call write_homs(lat,bbu_param%bunch_freq,currth)
-
-! Update starting current according to analytic approximation
-if (currth.gt.0.)bbu_param%current = currth
-
-print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
-
-n_ele = 0
-do i = 1, size(bbu_beam%stage)
-  call multipass_chain (bbu_beam%stage(i)%ix_ele_lr_wake, lat, ix_pass, n_links = n)
-  if (ix_pass /= 1 .and. n /= 0) cycle
-  n_ele = n_ele + 1
-enddo
-
-print *, 'Number of physical lr wake elements:', n_ele
-
-! Track to find upper limit
-
-beam_init%bunch_charge = bbu_param%current * beam_init%ds_bunch / c_light
-charge0 = 0
-
-Print *, 'Searching for a current where the tracking is unstable...'
-
-do
-  lat = lat0 ! Restore lr wakes
-  call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power1, lost)
-  if (hom_power1 > hom_power0) exit
-  if (lost) then
-    print *, 'Particle(s) lost stopping here.'
-    stop
+  if (bbu_param%prstab2004) then
+    ! Change length of taylor element
+    deldr = 0.0
+    if(nstep > 1) deldr = (bbu_param%enddr - bbu_param%begdr)/(nstep-1)
+    dr = bbu_param%begdr + (istep-1) * deldr
+    lat_in%ele(6)%value(l$) = dr * c_light / bbu_param%bunch_freq
+    print *,' PRSTAB2004 analysis step: tr/tb, taylor length = ', dr, lat_in%ele(6)%value(l$)
+    call lattice_bookkeeper(lat_in)
   endif
-  charge0 = beam_init%bunch_charge
-  print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
-  print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
-  beam_init%bunch_charge = beam_init%bunch_charge * 2
-enddo
 
-charge1 = beam_init%bunch_charge
-print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
-print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
-
-! Track to bracket threshold
-
-print *, 'Now converging on the threshold...'
-
-do
-  beam_init%bunch_charge = (charge0 + charge1) / 2
-  lat = lat0 ! Restore lr wakes
-  call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power1, lost)
-  if (lost) then
-    print *, 'Particle(s) lost stopping here.'
-    stop
-  endif
-  if (hom_power1 > hom_power0) then
-    charge1 = beam_init%bunch_charge
-    print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
-    print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+  if (bbu_param%hybridize) then
+    print *, 'Note: Hybridizing lattice...'
+    allocate (keep_ele(lat_in%n_ele_max))
+    keep_ele = .false.
+    do i = 1, lat_in%n_ele_max
+      if (lat_in%ele(i)%key /= lcavity$) cycle
+      if (.not. associated (lat_in%ele(i)%wake)) cycle
+      if (size(lat_in%ele(i)%wake%lr) == 0) cycle
+      call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
+    enddo
+    call make_hybrid_lat (lat_in, keep_ele, .true., lat)
+    deallocate (keep_ele)
   else
+    lat = lat_in
+  endif
+
+  lat0 = lat
+
+  call bbu_setup (lat, beam_init%ds_bunch, bbu_param%init_hom_amp, bbu_beam)
+  call bbu_hom_power_calc (lat, bbu_beam, hom_power0)
+
+  bbu_param%high_power_lim = hom_power0 * bbu_param%limit_factor
+  bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
+
+  ! Print some information
+
+  if (bbu_param%write_hom_info) call write_homs(lat,bbu_param%bunch_freq,currth)
+
+  ! Update starting current according to analytic approximation
+  if (currth.gt.0.)bbu_param%current = currth
+
+  print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
+
+  n_ele = 0
+  do i = 1, size(bbu_beam%stage)
+    call multipass_chain (bbu_beam%stage(i)%ix_ele_lr_wake, lat, ix_pass, n_links = n)
+    if (ix_pass /= 1 .and. n /= 0) cycle
+    n_ele = n_ele + 1
+  enddo
+
+  print *, 'Number of physical lr wake elements:', n_ele
+
+  ! Track to find upper limit
+
+  beam_init%bunch_charge = bbu_param%current * beam_init%ds_bunch / c_light
+  charge0 = 0
+
+  Print *, 'Searching for a current where the tracking is unstable...'
+
+  do
+    lat = lat0 ! Restore lr wakes
+    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power1, lost)
+    if (hom_power1 > hom_power0) exit
+    if (lost) then
+      print *, 'Particle(s) lost stopping here.'
+      stop
+    endif
     charge0 = beam_init%bunch_charge
     print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
     print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
-  endif
+    beam_init%bunch_charge = beam_init%bunch_charge * 2
+  enddo
 
-  if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
-enddo
+  charge1 = beam_init%bunch_charge
+  print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
+  print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
 
-beam_init%bunch_charge = (charge0 + charge1) / 2
-print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  ! Track to bracket threshold
 
- if(bbu_param%prstab2004)write(50,*)dr,currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  print *, 'Now converging on the threshold...'
+
+  do
+    beam_init%bunch_charge = (charge0 + charge1) / 2
+    lat = lat0 ! Restore lr wakes
+    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power1, lost)
+    if (lost) then
+      print *, 'Particle(s) lost stopping here.'
+      stop
+    endif
+    if (hom_power1 > hom_power0) then
+      charge1 = beam_init%bunch_charge
+      print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
+      print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+    else
+      charge0 = beam_init%bunch_charge
+      print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
+      print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+    endif
+
+    if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
+  enddo
+
+  beam_init%bunch_charge = (charge0 + charge1) / 2
+  print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+
+  if (bbu_param%prstab2004) write(50,*) dr, currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
 enddo
 
