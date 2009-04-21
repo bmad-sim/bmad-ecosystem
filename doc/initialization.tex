@@ -740,6 +740,12 @@ distribution is to be saved at. Each element in the \vn{save_beam_at}
 array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
+\begin{example}
+  &tao_beam_init
+    save_beam_at(1) = "marker:m*" ! Save beam at all markers starting with "m".
+    save_beam_at(2) = "*34w*"     ! And all elements that have "34w" in their name. 
+  /
+\end{example}
 
 The three random number generator parameters (\vn{%random_engine},
 \vn{%random_gauss_converter}, and \vn{%random_sigma_cutoff}) used for

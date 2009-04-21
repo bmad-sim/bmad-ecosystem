@@ -427,8 +427,8 @@ if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
 endif
 
-! Draw the shape. Since the conversion from floor coords and screen pixels can
-! be different along x and y we convert to pixels to make sure that rectangles
+! Draw the shape. Since the conversion from floor coords to screen coords can
+! be different along x and y, we convert to screen coords to make sure that rectangles
 ! remain rectangular.
 
 call qp_convert_point_abs (end1%x, end1%y, 'DATA', end1%x, end1%y, 'POINTS')
