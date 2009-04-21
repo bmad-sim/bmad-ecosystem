@@ -159,11 +159,11 @@ A drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a drift is
 \Endeq
 This gives the map
 \begin{align}
-  x   &\rightarrow x + \frac{L \, p_x}{1 + p_{z1}} \CRNO
-  p_x &\rightarrow p_x  \CRNO
-  y   &\rightarrow y + \frac{L \, p_y}{1 + p_{z1}} \CRNO
-  p_y &\rightarrow p_y  \\
-  z   &\rightarrow z - \frac{L \, (p_x^2 + p_y^2)}{2 (1 + p_{z1})^2} \CRNO
+  x_2    &= x_1 + \frac{L \, p_{x1}}{1 + p_{z1}} \CRNO
+  p_{x2} &= p_{x1}  \CRNO
+  y_2    &= y_1 + \frac{L \, p_{y1}}{1 + p_{z1}} \CRNO
+  p_{y2} &= p_{y1}  \\
+  z_2    &= z_1 - \frac{L \, (p_{x1}^2 + p_{y1}^2)}{2 (1 + p_{z1})^2} \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 
@@ -175,6 +175,20 @@ This gives the map
 \index{vkicker}
 \index{elseparator}
 
+The Hamiltonian for a horizontally deflecting kicker or separator is
+\Begineq
+  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} - k_0 \, x 
+\Endeq
+This gives the map
+\begin{align}
+  x_2    &= x_1 + \frac{1}{1 + p_{z1}} \, \left( L \, p_{x1} + \frac{1}{2} k_0 \, L^2 \right) \CRNO
+  p_{x2} &= p_{x1} + k_0 \, L \CRNO
+  y_2    &= y_1 + \frac{L \, p_{y1}}{1 + p_{z1}} \CRNO
+  p_{y2} &= p_{y1}  \\
+  z_2    &= z_1 - \frac{L}{2 (1 + p_{z1})^2} \, 
+    \left( p_{x1}^2 + p_{y1}^2 + p_{x1} \, k_0 \, L + \frac{1}{3} k_0^2 \, L^2 \right) \CRNO
+  p_{z2} &= p_{z1} \nonumber
+\end{align}
 
 %-----------------------------------------
 \subsection{LCavity}
@@ -233,6 +247,35 @@ where
   \frac{dcP_2}{dz_1}        &= m(6,5) \, cP_{02}  \nonumber
 \end{align}
 
+The transverse trajectory through an \vn{Lcavity} is modeled using equations
+developed by Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) with
+\Begineqs
+  b_0 &= 1 \CRNO
+  b_{-1} &= 1 \nonumber
+\Endeqs
+and all other $b_n$ set to zero.
+
+The transport through the body (R\&S Eq.~(9)) has been modified to give the 
+correct phase-space area at non ultra-relativistic energies:
+\Begineq
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_2 = 
+  \begin{pmatrix}
+    m_{11}                      & \beta_1 \, m_{12} \\
+    \frac{1}{\beta_2} \, m_{21} & \frac{\beta_1}{\beta_2} \, m_{22} 
+  \end{pmatrix}
+  \,
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_1
+\Endeq
+where the $m_{ij}$ are the matrix elements from R\&S Eq.~(9) and the 
+$\beta$ are the standard relativistic factors. With this, the determinate 
+of the matrix is $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$.
+
 %-----------------------------------------
 \subsection{Octupole}
 \label{s:octupole.standard}
@@ -252,12 +295,12 @@ The Hamiltonian for an upright quadrupole is
 \Endeq
 This is simply solved
 \begin{align}
-  x   &\rightarrow c_x \, x + s_x \, \frac{p_x}{1 + p_{z1}} \CRNO
-  p_x &\rightarrow \tau_x \, \om^2 \, \, (1 + p_{z1}) \, s_x \, x + c_x \, p_x \CRNO
-  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_{z1}} \CRNO
-  p_y &\rightarrow \tau_y \, \om^2 \, \, (1 + p_{z1}) \, s_y \, y + c_y \, p_y \CRNO
-  z   &\rightarrow z + m_{511} \, x^2 + m_{512} \, x \, p_x + m_{522} \, p_x^2 + 
-                   m_{533} \, y^2 + m_{534} \, y \, p_y + m_{544} \, p_y^2 \CRNO
+  x_2    &= c_x \, x_1 + s_x \, \frac{p_{x1}}{1 + p_{z1}} \CRNO
+  p_{x2} &= \tau_x \, \om^2 \, \, (1 + p_{z1}) \, s_x \, x_1 + c_x \, p_{x1} \CRNO
+  y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
+  p_{y2} &= \tau_y \, \om^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \CRNO
+  z_2    &= z_1 + m_{511} \, x_1^2 + m_{512} \, x_1 \, p_{x1} + m_{522} \, p_{x1}^2 + 
+                   m_{533} \, y_1^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 where 
@@ -310,13 +353,13 @@ The Hamiltonian is
 
 This is simply solved
 \begin{align}
-  x   &\rightarrow c_x \, (x - x_c) + s_x \, \frac{p_x}{1 + p_{z1}} + x_c \CRNO
-  p_x &\rightarrow \tau_x \, \om_x^2 \, \, (1 + p_{z1}) \, s_x \, (x -x_c) + c_x \, p_x \CRNO
-  y   &\rightarrow c_y \, y + s_y \, \frac{p_y}{1 + p_{z1}} \CRNO
-  p_y &\rightarrow \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y + c_y \, p_y \CRNO
-  z   &\rightarrow z + m_5 + m_{51} (x - x_c) + m_{52} p_x + \CRNO
-      &\hspace*{20ex} m_{511} \, (x-x_c)^2 + m_{512} \, (x-x_c) \, p_x + m_{522} \, p_x^2 + 
-                   m_{533} \, y^2 + m_{534} \, y \, p_y + m_{544} \, p_y^2 \CRNO
+  x_2    &= c_x \, (x - x_c) + s_x \, \frac{p_{x1}}{1 + p_{z1}} + x_c \CRNO
+  p_{x2} &= \tau_x \, \om_x^2 \, \, (1 + p_{z1}) \, s_x \, (x -x_c) + c_x \, p_{x1} \CRNO
+  y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
+  p_{y2} &= \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \CRNO
+  z_2    &= z_1 + m_5 + m_{51} (x - x_c) + m_{52} p_{x1} + \CRNO
+         &\hspace*{20ex} m_{511} \, (x-x_c)^2 + m_{512} \, (x-x_c) \, p_{x1} + m_{522} \, p_{x1}^2 + 
+                   m_{533} \, y^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 where 
@@ -367,11 +410,11 @@ The Hamiltonian is
 \Endeq
 Solving the equations of motion gives
 \begin{align}
-  x   &\rightarrow m_{11} \, x + m_{12} \, p_x + m_{13} \, y + m_{14} \, p_y \CRNO
-  p_x &\rightarrow m_{21} \, x + m_{22} \, p_x + m_{23} \, y + m_{24} \, p_y \CRNO
-  y   &\rightarrow m_{31} \, x + m_{32} \, p_x + m_{33} \, y + m_{34} \, p_y \CRNO
-  p_y &\rightarrow m_{41} \, x + m_{42} \, p_x + m_{43} \, y + m_{44} \, p_y \CRNO
-  z   &\rightarrow z + \sum_{j = 1}^4 \sum_{k = j}^4 m_{5jk} \, r_j \, r_k  \CRNO
+  x_2    &= m_{11} \, x_1 + m_{12} \, p_{x1} + m_{13} \, y_1 + m_{14} \, p_{y1} \CRNO
+  p_{x2} &= m_{21} \, x_1 + m_{22} \, p_{x1} + m_{23} \, y_1 + m_{24} \, p_{y1} \CRNO
+  y_2    &= m_{31} \, x_1 + m_{32} \, p_{x1} + m_{33} \, y_1 + m_{34} \, p_{y1} \CRNO
+  p_{y2} &= m_{41} \, x_1 + m_{42} \, p_{x1} + m_{43} \, y_1 + m_{44} \, p_{y1} \CRNO
+  z_2    &= z_1 + \sum_{j = 1}^4 \sum_{k = j}^4 m_{5jk} \, r_j \, r_k  \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 where
@@ -454,17 +497,17 @@ The Hamiltonian is
 \Endeq
 The solution is
 \begin{align}
-  x   &\rightarrow \frac{1 + c}{2} \, x + \frac{s}{k_s} \, p_x +
-           \frac{s}{2} \, y + \frac{1 - c}{k_s} \, p_y \CRNO
-  p_x &\rightarrow \frac{-k_s \, s}{4} \, x + \frac{1 + c}{2} \, p_x - 
-           \frac{k_s \, (1 - c)}{4} \, y + \frac{s}{2} \, p_y \CRNO
-  y   &\rightarrow \frac{-s}{2} \, x - \frac{1 - c}{k_s} \, p_x +
-           \frac{1 + c}{2} \, y + \frac{s}{k_s} \, p_y \\      
-  p_y &\rightarrow \frac{k_s \, (1 - c)}{4} \, x + \frac{-s}{2} \, p_x -
-            \frac{k_s \, s}{4} \, y + \frac{1 + c}{2} \, p_y \CRNO 
-  z   &\rightarrow z + \frac{L}{2 \, (1 + p_{z1})^2} \, 
-                   \left[ \left( p_x + \frac{k_s}{2} \, y \right)^2 +
-                          \left( p_y - \frac{k_s}{2} \, x \right)^2 \right] \CRNO
+  x_2    &= \frac{1 + c}{2} \, x_1 + \frac{s}{k_s} \, p_{x1} +
+           \frac{s}{2} \, y_1 + \frac{1 - c}{k_s} \, p_{y1} \CRNO
+  p_{x2} &= \frac{-k_s \, s}{4} \, x_1 + \frac{1 + c}{2} \, p_{x1} - 
+           \frac{k_s \, (1 - c)}{4} \, y_1 + \frac{s}{2} \, p_{y1} \CRNO
+  y_2    &= \frac{-s}{2} \, x_1 - \frac{1 - c}{k_s} \, p_{x1} +
+           \frac{1 + c}{2} \, y_1 + \frac{s}{k_s} \, p_{y1} \\      
+  p_{y2} &= \frac{k_s \, (1 - c)}{4} \, x_1 + \frac{-s}{2} \, p_{x1} -
+            \frac{k_s \, s}{4} \, y_1 + \frac{1 + c}{2} \, p_{y1} \CRNO 
+  z_2    &= z_1 + \frac{L}{2 \, (1 + p_{z1})^2} \, 
+                   \left[ \left( p_{x1} + \frac{k_s}{2} \, y_1 \right)^2 +
+                          \left( p_{y1} - \frac{k_s}{2} \, x_1 \right)^2 \right] \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 where
@@ -477,6 +520,43 @@ where
 \subsection{Wiggler, Map\_type}
 \label{s:wiggler.map.standard}
 \index{wiggler}
+
+\index{wiggler}
+As discussed in \sref{s:wiggler}, \bmad wiggler elements are
+split into two classes: \vn{map type} and \vn{periodic type}. The 
+\vn{map type} wigglers are modeled using the method of Sagan, Crittenden,
+and Rubin\cite{b:wiggler}. In this model the magnetic field is written
+as a sum of terms $B_i$
+\Begineq
+  B(x,y,s) = \sum_i B_i(x, y, s; C, k_x, k_y, k_s, \phi_s)
+\Endeq 
+Each term $B_i$ is specified using five numbers: 
+$(C, k_x, k_y, k_s, \phi_s)$. A term can take one of three forms: The first
+form is
+\begin{alignat}{4}
+  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \label{f1}
+\end{alignat}
+The second form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \label{f2}
+\end{alignat}
+The third form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
+\end{alignat}
+The relationship between $k_x$, $k_y$, and $k_s$ ensures that
+Maxwell's equations are satisfied.
+
+
 
 
 
@@ -491,6 +571,48 @@ of periods in the oscillation so that the exit horizontal coordinates
 can be calculated from the initial coordinates using the equations for
 a drift. The vertical motion is a quadratic superimposed with a
 octupole. Vertical motion is calculated using a kick-drift-kick model.
+
+\vn{Periodic type} wigglers use a simplified model where the magnetic
+field components are
+\begin{alignat}{1}
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_s \, y) \, \cos(ksss) \CRNO
+  B_s &= -B_{\max} \, \sinh(k_s \, y) \, \sin(ksss) 
+  \label{bbkyks}
+\end{alignat}
+where $B_{\max}$ is the maximum field on the centerline and $k$ is
+given in terms of the pole length (\vn{l_pole}) by
+\Begineq
+  k_s = \frac{\pi}{l_{\mbox{pole}}}
+\Endeq
+This type of wiggler has infinitely wide poles. With
+\vn{bmad_standard} tracking and transfer matrix calculations the
+vertical focusing is assumed small so averaged over a period the
+horizontal motion looks like a drift and the vertical motion is
+modeled as a combination focusing quadrupole and focusing octupole
+giving a kick\cite{b:corbett}
+\Begineq
+  \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_s^2 \, y^3 \right)
+\Endeq
+where
+\begin{alignat}{1}
+  k_1 &= \frac{-1}{2} \, \left( \frac{c \, B_{\max}}{P_0 \, (1 + p_s)} \right)^2 
+\end{alignat}
+with $k_1$ being the linear focusing constant. For radiation
+calculations the true horizontal trajectory with $y = 0$ is needed
+\Begineq
+  x = \frac{\sqrt{2 \, |k_1|}}{k_s^2} \, \cos (k_s \, s)
+\Endeq
+
+With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
+phase $\phi_s$ in \Eqs{bbkyks} is irrelevant. When the tracking
+involves Taylor maps and symplectic integration, the phase is
+important. Here the phase is chosen so that $B_y$ is symmetric about
+the center of the wiggler
+\Begineq
+  \phi_s = \frac{-k_y \, L}{2}
+\Endeq
+With this choice, a particle that enters the wiggler on-axis will
+leave the wiggler on-axis provided there is an even number of poles.
 
 
 \end{document}

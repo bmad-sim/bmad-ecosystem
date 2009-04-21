@@ -1086,12 +1086,13 @@ interface
 end interface
 
 interface
-  recursive subroutine update_hybrid_list (lat, n_in, use_ele)
+  recursive subroutine update_hybrid_list (lat, n_in, use_ele, keep_overlays_and_groups)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
     logical use_ele(:)
     integer n_in
+    logical, optional :: keep_overlays_and_groups
   end subroutine
 end interface
 
