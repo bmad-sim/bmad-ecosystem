@@ -1,3 +1,36 @@
+controller:
+	cc: control = {q[k1]=2.7*#, ...}, attrib = k1, absolute = T
+
+0) Just add nonlinearities to overlay/group ????!!!
+
+1) Add structure to control_struct:
+
+type eval_stack_struct
+	integer type
+	real(rp) value
+end type
+
+type control_struct
+	type (eval_stack_struct), allocatable :: stk(:)
+	... etc ...
+end type
+
+
+2) lat_equal_lat needs to be modified
+3) read/write_bmad_digested_file
+4) version number increase
+5) type2_ele
+6) bmad_parser
+7) a) Split off stack evaluation from evaluate_value
+	 b) Pass value of "#"
+8) controller bookkeeper
+9) controller_lord
+10) overlay_slave$ -> controller_slave$ (but retain overlay_slave$ for back compatability?)
+11) Save defined variables in lat_struct? Yes!
+
+
+----------------------------------
+
 Symplectic integration for lcav !?
 
 implement bmad_standard bend_sol_quad
