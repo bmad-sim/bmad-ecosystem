@@ -929,12 +929,12 @@ do i = 1, lat%n_ele_max
   if (ele%slave_status == super_slave$) cycle
   if (abs(mod(ele%value(n_pole$) / 2, 1.0_rp)) > 0.01) then
     call out_io (s_warn$, r_name, (/ &
-          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
           '!!!!! WARNING! WIGGLER: ' // ele%name, &
-          '!!!!! DOES NOT HAVE AN EVEN NUMBER OF POLES!                ', &
-          '!!!!! THIS WILL BE PROBLEMATIC IF YOU ARE USING TAYLOR MAPS!', &
-          '!!!!! SEE THE BMAD MANUAL FOR MORE DETAILS!                 ', &
-          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' /) )
+          '!!!!! DOES NOT HAVE AN EVEN NUMBER OF POLES!                    ', &
+          '!!!!! THIS WILL BE PROBLEMATIC IF YOU ARE USING TAYLOR MAPS!    ', &
+          '!!!!! SEE THE BMAD MANUAL FOR MORE DETAILS!                     ', &
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' /) )
   endif
 enddo
 
