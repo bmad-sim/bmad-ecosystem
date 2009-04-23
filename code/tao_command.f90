@@ -460,8 +460,8 @@ case ('scale')
 
   do 
     if (cmd_word(1) /= '-') exit
-    call match_word (cmd_word(1), (/ '-y     ', 'y2    ', '-nogang', '-gang  ' /), &
-                ix, .true., switch)
+    call match_word (cmd_word(1), (/ '-y     ', 'y2     ', &
+                          '-nogang', '-gang  ' /), ix, .true., switch)
 
     select case (switch)
     case ('-y', '-y2') 
