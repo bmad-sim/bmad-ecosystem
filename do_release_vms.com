@@ -82,8 +82,8 @@ $!--------------------------------------------------
 $! building bmadz
 $!--------------------------------------------------
 $!  
-$ write sys$output "========== Building bmadz =========="
-$ gmake --directory=[.src.bmadz] "''par1'" "''par2'"
+$! write sys$output "========== Building bmadz =========="
+$! gmake --directory=[.src.bmadz] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
 $! building odysseus
