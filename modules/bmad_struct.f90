@@ -167,7 +167,7 @@ type ele_struct
   type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
   type (xy_disp_struct) x, y           ! Projected dispersions.
   type (floor_position_struct) floor   ! Global floor position at end of ele.
-  type (mode3_struct), pointer :: mode3
+  type (mode3_struct), pointer :: mode3 => null()
   type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
   type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
   type (genfield), pointer :: gen_field => null() ! For symp_map$
