@@ -48,7 +48,7 @@ real(rp) value(n_attrib_maxx)
 integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
-integer stat_b(12), idate_old, n_branch, n, control_type
+integer stat_b(13), idate_old, n_branch, n, control_type
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
