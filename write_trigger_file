@@ -4,17 +4,35 @@ then
 	echo "Invalid number or arguments. Sample usage: write_trigger_file cesr_2008_1023_d"
 	exit 1
 fi
-ssh -T -t lnx190c << EOI
-echo "$1" > /nfs/cesr/mnt/bctl/cesr_vms_builds.flag
+ssh -T -t lnx180c << EOI
+echo "$1"$'\n' > /nfs/cesr/libs_vms/flags/cesr_vms_builds.flag
 exit
 EOI
-SIGNAL="/nfs/cesr/mnt/bctl/buildstarted.flag"
-echo "Please wait 1 minute..."
-sleep 60
-if [ -f $SIGNAL ];
-then 
-  echo "The VMS build has started successfully"
-else 
-  echo "The VMS build is not responding"
-fi
+SIGNAL="/nfs/cesr/libs_vms/flags/buildstarted.flag"
+SIGNAL_NOTENOUGHSPACE="/nfs/cesr/libs_vms/flags/notenoughspace.flag"
+echo "Please wait..."
+sleep 5
+STARTTIME=$(date +%s)
+STARTTIME=$(( $STARTTIME + 40 )) #allow 40 seconds before deciding that it timed out
+while [ $STARTTIME -gt $(date +%s) ]
+do
+  if [ -f $SIGNAL ];
+  then 
+    echo "The VMS build has started successfully"
+    exit
+  else 
+    if [ -f $SIGNAL_NOTENOUGHSPACE ];
+    then 
+      echo "There is not enough space on the partition. Delete something and try again"
+      sleep 2
+      ssh -T -t lnx190c << EOI
+rm "$SIGNAL_NOTENOUGHSPACE"      
 exit
+EOI
+      exit
+    fi
+  fi
+done
+echo "The response from VMS build has timed out"
+exit
+
