@@ -353,11 +353,11 @@ if (allocated(outside%pt)) deallocate(outside%pt, inside%pt)
 allocate (outside%pt(0:ix_out), inside%pt(0:ix_in))
 
 outside%pt(0)%s = 0.0
-outside%pt%name = '????????'
+outside%pt%name = '???????? '
 ix_out = -1
 
 inside%pt(0)%s = 0.0
-inside%pt%name = '????????'
+inside%pt%name = '???????? '
 ix_in = -1
 
 !--------------------------------
