@@ -1,7 +1,6 @@
 module synrad_write_power_mod
 
 use synrad_mod
-use synrad_window_mod
 
 contains
 
