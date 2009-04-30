@@ -74,6 +74,13 @@ $ write sys$output "========== Building cesr_utils =========="
 $ gmake --directory=[.src.cesr_utils] "''par1'" "''par2'"
 $!
 $!--------------------------------------------------
+$! building mpm_utils
+$!--------------------------------------------------
+$!  
+$ write sys$output "========== Building mpm_utils =========="
+$ gmake --directory=[.src.mpm_utils] "''par1'" "''par2'"
+$!
+$!--------------------------------------------------
 $! building nonlin_bpm
 $!--------------------------------------------------
 $!  
