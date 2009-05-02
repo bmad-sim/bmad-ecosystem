@@ -889,6 +889,7 @@ if (allocated (in_indexx))       deallocate (in_indexx, in_name)
 if (allocated (in_lat%control))  deallocate (in_lat%control)
 if (allocated (in_lat%ic))       deallocate (in_lat%ic)
 if (allocated (used_line))       deallocate (used_line)
+if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
 
 ! error check
 

@@ -91,8 +91,8 @@ do ie = 1, lat%n_ele_max
   if (ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
   if (ele%wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
 enddo
-call re_allocate(sr_wake_name, n_sr, 200)
-call re_allocate(lr_wake_name, n_lr, 200)
+call re_allocate(sr_wake_name, n_sr)
+call re_allocate(lr_wake_name, n_lr)
 
 n_sr = 0
 n_lr = 0

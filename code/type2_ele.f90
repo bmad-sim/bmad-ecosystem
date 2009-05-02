@@ -441,7 +441,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
                           'map_with_offsets: ', ele%map_with_offsets
     if (logic_option(.false., type_taylor)) then
       call type2_taylors (ele%taylor, li2, nt)
-      call re_associate (li,  len(li(1)), nl+nt+100)
+      call re_associate (li, nl+nt+100)
       li(1+nl:nt+nl) = li2(1:nt)
       deallocate (li2)
       nl = nl + nt
@@ -463,7 +463,7 @@ if (associated(ele%wake)) then
   if (size(ele%wake%sr_table) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li,  len(li(1)), nl+size(ele%wake%sr_table)+100)
+      call re_associate (li, nl+size(ele%wake%sr_table)+100)
       nl=nl+1; li(nl) = 'Short-range wake table:'
       nl=nl+1; li(nl) = &
             '   #           Z   Longitudinal     Transverse'

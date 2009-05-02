@@ -142,7 +142,7 @@ type bp_common_struct
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
-  character(200) lat_file_names(100)   ! List of all files used to create lat
+  character, allocatable :: lat_file_names(:)   ! List of all files used to create lat
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
@@ -762,7 +762,7 @@ implicit none
 character(1) delim
 character(*) call_file
 
-integer ix_word, ix
+integer ix_word, ix, n
 logical delim_found, finished, xsif_called, err
 
 !
@@ -811,6 +811,9 @@ endif
 
 if (call_file(1:6) == 'xsif::') then
   call_file = call_file(7:)
+  n = size(bp_com%lat_file_names)
+  if (n < bp_com%num_lat_files + 1) &
+              call re_allocate (bp_com%lat_file_names, n + 100)
   bp_com%num_lat_files = bp_com%num_lat_files + 1 
   inquire (file = call_file, name = bp_com%lat_file_names(bp_com%num_lat_files))
   xsif_called = .true.
@@ -949,7 +952,7 @@ integer, parameter :: f_maxx = 20
 type (stack_file_struct), save, target :: file(0:f_maxx)
 
 integer, save :: i_level
-integer i, ix, ios
+integer i, ix, ios, n
 
 character(*) how
 character(*), optional :: file_name_in
@@ -968,6 +971,7 @@ if (how == 'init') then
   file(:)%dir = file_name
   if (present(err)) err = .false.
   return
+  if (.not. allocated(bp_com%lat_file_names)) allocate(bp_com%lat_file_names(100))
 endif
 
 ! "push" means open a file and put its name on the stack.
@@ -1034,6 +1038,8 @@ if (how == 'push') then
 
   bp_com%current_file%i_line = 0
 
+  n = size(bp_com%lat_file_names)
+  if (n < bp_com%num_lat_files + 1) call re_allocate (bp_com%lat_file_names, n + 100)
   bp_com%num_lat_files = bp_com%num_lat_files + 1 
   inquire (file = file_name, name = bp_com%lat_file_names(bp_com%num_lat_files))
 
@@ -2094,6 +2100,8 @@ endif
 ! If we have not read in this file before then add this to the list of files
 ! that are used to create the lattice.
 
+n = size(bp_com%lat_file_names)
+if (n < bp_com%num_lat_files + 1) call re_allocate (bp_com%lat_file_names, n + 100)
 n = bp_com%num_lat_files
 inquire (file = full_file_name, name = bp_com%lat_file_names(n+1))
 if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &

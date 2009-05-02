@@ -422,7 +422,7 @@ do i = 1, 6
 
 enddo
 
-call re_allocate (lines, len(lines(1)), nl)
+call re_allocate (lines, nl)
 n_lines = nl
 
 end subroutine
