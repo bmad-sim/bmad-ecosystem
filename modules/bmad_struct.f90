@@ -376,55 +376,58 @@ integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 !          phase_x$ = 16, phase_y$ = 17, &
 !          c11$ = 18, c12$ = 19, c21$ = 20, c22$ = 21
 
-integer, parameter :: l$=1
+integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
-integer, parameter :: direction$=3
+integer, parameter :: direction$=3, graze_angle$=3
 integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4
+integer, parameter ::       graze_angle_err$ = 4
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
+integer, parameter ::       critical_angle$ = 5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
-integer, parameter ::        dks_ds$=6, lrad$=6   ! lrad -> felv testing.
+integer, parameter ::       dks_ds$=6, lrad$=6   ! lrad -> felv testing.
 integer, parameter :: g$=7, ks$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
-integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8
+integer, parameter ::       g_graze$ = 7
+integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8, g_trans$=8
 integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9
 integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11
 integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12
 integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
-integer, parameter :: de_eta_meas$=14
+integer, parameter ::       de_eta_meas$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, delta_ref_time$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18
-integer, parameter :: x_pitch$=19
-integer, parameter :: y_pitch$=20
-integer, parameter :: hkick$=21
-integer, parameter :: vkick$=22
-integer, parameter :: BL_hkick$=23  
-integer, parameter :: BL_vkick$=24
-integer, parameter :: x_offset$=25
-integer, parameter :: y_offset$=26
-integer, parameter :: s_offset$=27, z_offset$=27
+integer, parameter :: x_pitch$=19  ! Assumed unique. Do not overload.
+integer, parameter :: y_pitch$=20  ! Assumed unique. Do not overload.
+integer, parameter :: hkick$=21    ! Assumed unique. Do not overload.
+integer, parameter :: vkick$=22    ! Assumed unique. Do not overload.
+integer, parameter :: BL_hkick$=23 ! Assumed unique. Do not overload.  
+integer, parameter :: BL_vkick$=24 ! Assumed unique. Do not overload.
+integer, parameter :: x_offset$=25 ! Assumed unique. Do not overload.
+integer, parameter :: y_offset$=26 ! Assumed unique. Do not overload.
+integer, parameter :: s_offset$=27, z_offset$=27 ! Assumed unique. Do not overload further.
 integer, parameter :: B_field_err$=28, BL_kick$ = 28
 integer, parameter :: radius$=29
-integer, parameter :: n_ref_pass$=30
-! 31 Free...                    
-integer, parameter :: p0c$=32
-integer, parameter :: e_tot$=33
+integer, parameter :: n_ref_pass$=30  ! Assumed unique. Do not overload.
+integer, parameter :: tilt_err$=31    ! Assumed unique. Do not overload.
+integer, parameter :: p0c$=32         ! Assumed unique. Do not overload.
+integer, parameter :: e_tot$=33       ! Assumed unique. Do not overload.
 integer, parameter :: Bs_field$=34
 integer, parameter :: B_field$=35, E_field$=35
 integer, parameter :: B_gradient$=36, E_gradient$=36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
 integer, parameter :: B2_gradient$=38, E2_gradient$=38
 integer, parameter :: B3_gradient$=39, E3_gradient$=39
-integer, parameter :: tilt_tot$=40
-integer, parameter :: x_pitch_tot$=41
-integer, parameter :: y_pitch_tot$=42
-integer, parameter :: x_offset_tot$=43
-integer, parameter :: y_offset_tot$=44
-integer, parameter :: s_offset_tot$=45
+integer, parameter :: tilt_tot$=40      ! Assumed unique. Do not overload.
+integer, parameter :: x_pitch_tot$=41   ! Assumed unique. Do not overload.
+integer, parameter :: y_pitch_tot$=42   ! Assumed unique. Do not overload.
+integer, parameter :: x_offset_tot$=43  ! Assumed unique. Do not overload.
+integer, parameter :: y_offset_tot$=44  ! Assumed unique. Do not overload.
+integer, parameter :: s_offset_tot$=45  ! Assumed unique. Do not overload.
 integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
 integer, parameter :: coupler_phase$ = 47, c_12$ = 47
 integer, parameter :: coupler_angle$ = 48, c_21$ = 48
@@ -435,11 +438,11 @@ integer, parameter :: general2$ = 52   ! For general use
 integer, parameter :: general3$ = 53   ! For general use
 integer, parameter :: general4$ = 54   ! For general use
 integer, parameter :: general5$ = 55   ! For general use
-integer, parameter :: x1_limit$ = 56
-integer, parameter :: x2_limit$ = 57
-integer, parameter :: y1_limit$ = 58
-integer, parameter :: y2_limit$ = 59
-integer, parameter :: check_sum$ = 60 
+integer, parameter :: x1_limit$ = 56   ! Assumed unique. Do not overload.
+integer, parameter :: x2_limit$ = 57   ! Assumed unique. Do not overload.
+integer, parameter :: y1_limit$ = 58   ! Assumed unique. Do not overload.
+integer, parameter :: y2_limit$ = 59   ! Assumed unique. Do not overload.
+integer, parameter :: check_sum$ = 60  ! Assumed unique. Do not overload.
 
 integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
 integer, parameter :: ref_orbit$ = 62
@@ -720,7 +723,7 @@ type bmad_common_struct
   real(rp) :: abs_tol_adaptive_tracking = 1e-7  ! Adaptive tracking absolute tolerance.
   integer :: taylor_order = 3                ! 3rd order is default
   integer :: default_integ_order = 2         ! PTC integration order
-  logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
+  logical :: canonical_coords = .true.       ! NOT USED.
   logical :: use_liar_lcavity = .false.      ! Liar like tracking?
   logical :: sr_wakes_on = .true.            ! Short range wakefields?
   logical :: lr_wakes_on = .true.            ! Long range wakefields

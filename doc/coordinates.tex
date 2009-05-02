@@ -111,8 +111,8 @@ follows the reference orbit when going through a horizontal bend with
 a positive bending angle. This corresponds to $x$ pointing radially
 outward. Without any vertical bends, the $Y$ and $y$ axes will
 coincide, and $\phi$ and $\psi$ will both be zero. The \vn{beginning}
-statement (\sref{s:beginning}) in a lattice file can be use to override
-this default.
+statement (\sref{s:beginning}) in a lattice file can be use to
+override these defaults.
 
 \index{MAD}
 Following \mad, the global position of an element is characterized by
@@ -180,10 +180,12 @@ $\Bf R$ and $\Bf S$ are
 \Endeq
 
 \index{rbend}\index{sbend}
+\index{rho}\index{tilt}\index{angle}
 For a \vn{bend}, $\Bf R$ and $\Bf S$ are given by
 \Begineq
   \Bf R = \Bf T \, \Bf R_0, \quad
   \Bf S = \Bf T \, \Bf S_0 \, \Bf T^{-1}
+  \label{r00ls}
 \Endeq
 where
 \Begineq
@@ -206,15 +208,63 @@ where
     0            &  0            & 1                
   \end{pmatrix}
 \Endeq
-\index{rho}\index{tilt}\index{angle}
-where $\rho$ is bend radius (\vn{rho}), $\alpha$ is the bend
+with $\rho$ being the bend radius (\vn{rho}), $\alpha$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
 (\sref{s:offset}). Without a tilt, $\Bf T$ is the unit matrix
 resulting in $\Bf R = \Bf R_0$ and $\Bf S = \Bf S_0$.
 
+The bend transformation (\Eq{r00ls}) is so constructed that the
+transformation is equivalent to rotating the local coordinate system
+around an axis that is perpendicular to the plane of the bend. This
+rotation axis is invariant under the bend transformation. For example,
+for $\theta_t = 0$ (or $\pi$) the $y$-axis is the rotation axis and
+the $y$-axis of the local coordinates before the bend will be parallel
+to the $y$-axis of the local ooordinates after the bend. That is, a
+lattice with only bends with $\theta_t = 0$ or $\pi$ will lie in the
+horizontal plane (this assuming that the $y$-axis starts out pointing
+along the $Y$-axis as it does by default).  For $\theta_t = \pm\pi/2$,
+the bend axis is the $x$-axis. A value of $\theta_t = +\pi/2$
+represents a downward pointing bend.
+
+\begin{figure}
+\centering \includegraphics{mirror.eps} \caption[Reflection by a
+mirror] {Reflection by a mirror. The geometry shown here is
+appropriate for a tilt angle of $\theta_t = 0$.  $theta_g$ is the
+graze angle, $alpha$ is the bend angle of the coordinates.  Point
+$\cal O$ is the origin of both the local coordinates just before and
+just after the reflection.}  \label{f:mirror}
+\end{figure}
+
+%-----------------------------------------------------------------------------
+\subsection{Mirror Element}
+\label{s:mirror.coords}
+
+\index{mirror}\index{tilt}
+A \vn{mirror} element (\sref{s:mirror}) reflects photons. The change
+in the local coordinates is modeled as a zero length bend with the
+total bend angle being twice the graze angle. The orientation of the
+local coordinates after a mirror are only affected by the mirror's
+tilt and graze angle parameters and is independent of all other mirror
+parameters such as the radius of curvature of the mirror surface. The
+local $z$-axis before the mirror along with the $z$-axis after the
+mirror form a plane which is called the mirror's \vn{bend plane}.
+
+An example is shown in Fig.~\ref{f:mirror}. This example is
+appropriate for a tilt angle of $\theta_t = 0$ (the rotation axis is
+here the $y$-axis). Since the mirror is modeled to be of zero length,
+$\Bf R_0 = (0, 0, 0)$, and so the origin (marked $\cal O$ in the
+figure) of the local coordinates is the same just before and just
+after the reflection.
+
+
+%-----------------------------------------------------------------------------
+\subsection{Patch Element}
+\label{s:patch.coords}
+
 \index{patch}\index{tilt}
-For a \vn{patch} element, the $\Bf S$ matrix corresponding to a
-non--zero \vn{tilt} is
+A \vn{patch} element shifts the reference orbit (\sref{s:patch}).
+the $\Bf S$ matrix corresponding to a
+non--zero \vn{tilt} of a \vn{patch} element is
 \Begineq
   \Bf S = 
   \begin{pmatrix}
@@ -224,7 +274,8 @@ non--zero \vn{tilt} is
   \end{pmatrix}
 \Endeq
 \index{x_pitch}
-The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} is
+The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} of a
+\vn{patch} element is
 \Begineq
   \Bf S = 
   \begin{pmatrix}
@@ -234,7 +285,8 @@ The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} is
   \end{pmatrix}
 \Endeq
 \index{y_pitch}
-Finally, the $\Bf S$ matrix corresponding to a non-zero \vn{y_pitch} is
+Finally, the $\Bf S$ matrix corresponding to a non-zero \vn{y_pitch}
+of a \nv{patch} element is
 \Begineq
   \Bf S = 
   \begin{pmatrix}

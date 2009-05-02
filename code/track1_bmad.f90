@@ -406,7 +406,22 @@ case (match$)
   end%vec = matmul (mat6, end%vec) + vec0
 
 !-----------------------------------------------
-! multipole
+! mirror
+
+case (mirror$)
+
+  call offset_photon (ele, param, end, set$)
+
+  end%vec(1:4) = (/ &
+        -end%vec(1), &
+        -end%vec(2) + 2 * end%vec(1) * ele%value(g_graze$) / sin(ele%value(graze_angle$)), &
+         end%vec(3), &
+         end%vec(4) - 2 * end%vec(3) * ele%value(g_trans$) /)
+
+  call offset_photon (ele, param, end, unset$)
+
+!-----------------------------------------------
+! multipole, ab_multipole
 
 case (multipole$, ab_multipole$) 
 

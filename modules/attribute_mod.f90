@@ -801,8 +801,18 @@ attrib_array(hybrid$, l$)              = 'L'
 attrib_array(hybrid$, delta_e$)        = 'DELTA_E'
 attrib_array(hybrid$, delta_ref_time$) = 'DELTA_REF_TIME'
 
-attrib_array(mirror$, angle$)          = 'ANGLE'
-attrib_array(mirror$, tilt$)           = 'TILT'
+attrib_array(mirror$, graze_angle$)     = 'GRAZE_ANGLE'
+attrib_array(mirror$, graze_angle_err$) = 'GRAZE_ANGLE_ERR'
+attrib_array(mirror$, critical_angle$)  = 'CRITICAL_ANGLE'
+attrib_array(mirror$, tilt$)            = 'TILT'
+attrib_array(mirror$, tilt_err$)        = 'TILT_ERR'
+attrib_array(mirror$, x_offset$)        = 'X_OFFSET'   
+attrib_array(mirror$, y_offset$)        = 'Y_OFFSET'   
+attrib_array(mirror$, s_offset$)        = 'S_OFFSET'   
+attrib_array(mirror$, x_pitch$)         = 'X_PITCH'
+attrib_array(mirror$, y_pitch$)         = 'Y_PITCH'
+attrib_array(mirror$, g_graze$)         = 'G_GRAZE'
+attrib_array(mirror$, g_trans$)         = 'G_TRANS'
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster

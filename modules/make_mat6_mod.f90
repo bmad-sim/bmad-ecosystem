@@ -773,6 +773,17 @@ end subroutine
 ! Subroutine drift_mat6_calc (mat6, length, start, end)
 !
 ! Subroutine to calculate a drift transfer matrix with a possible kick.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!  length   -- Real(rp): Drift length
+!  start(6) -- Real(rp): Starting coords
+!  end(6)   -- Real(rp), optional: Ending coords. Only needed if there is a kick.
+!
+! Output:
+!   mat6(6,6) -- Real(rp): Transfer matrix
 !-
 
 subroutine drift_mat6_calc (mat6, length, start, end)

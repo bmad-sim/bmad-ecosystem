@@ -209,7 +209,7 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
 
   case (mirror$)
     
-    angle = ele%value(angle$)
+    angle = 2 * ele%value(graze_angle$)
     tlt = ele%value(tilt_tot$)
     s_ang = sin(angle); c_ang = cos(angle)
 
@@ -275,11 +275,23 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
   ! if there has been a rotation calculate new theta, phi, and psi
 
   if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
-    theta = atan2 (w_mat(1,3), w_mat(3,3))
-    theta = theta - twopi_dp * &
+    if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then ! special degenerate case
+      ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
+      theta = floor0%theta  
+      if (w_mat(2,3) > 0) then
+        phi = pi/2
+        psi = atan2(-w_mat(3,1), w_mat(1,1)) - theta
+      else
+        phi = -pi/2
+        psi = atan2(w_mat(3,1), w_mat(1,1)) + theta
+      endif
+    else  ! normal case
+      theta = atan2 (w_mat(1,3), w_mat(3,3))
+      theta = theta - twopi_dp * &
                        nint((theta - floor0%theta) / twopi_dp)
-    phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
-    psi = atan2 (w_mat(2,1), w_mat(2,2))
+      phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
+      psi = atan2 (w_mat(2,1), w_mat(2,2))
+    endif
   endif
 
   old_theta = theta

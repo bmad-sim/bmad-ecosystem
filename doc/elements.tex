@@ -11,9 +11,17 @@ discussed \cref{c:control}
 Most element classes available in \mad are provided in \bmad.
 Additionally, \bmad provides a number of element classes that are not
 available in \mad.  A word of caution: In some cases where both \mad
-and \bmad provide the same element class, there will be an overlap of 
-the attributes available but the two sets of attributes will not be the same.
-The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
+and \bmad provide the same element class, there will be an overlap of
+the attributes available but the two sets of attributes will not be
+the same.  The list of element classes known to \bmad is shown in
+Table~\ref{t:particle.classes}, \ref{t:photon.classes}, and
+\ref{t:control.classes}.  Table~\ref{t:particle.classes} lists the
+elements suitable for use with relativistic particles,
+Table~\ref{t:photon.classes} which lists the elements suitable for use
+with photons, and finally Table~\ref{t:control.classes} lists the
+element classes that can be used for parameter control of other
+elements.  Note that some classes are suitable for both particle and
+photon use.
 
 \begin{table}[h]
 \centering
@@ -23,25 +31,52 @@ The list of element classes known to \bmad is shown in Table~\ref{t:elements}.
   AB_Multipole   & \ref{s:ab.m}      &  Multipole     & \ref{s:mult}     \HH
   BeamBeam       & \ref{s:bbi}       &  Null_Ele      & \ref{s:null.ele} \HH
   Bend_Sol_Quad  & \ref{s:bsq}       &  Octupole      & \ref{s:oct}      \HH
-  Branch         & \ref{s:branch}    &  Overlay       & \ref{s:overlay}  \HH
-  Custom         & \ref{s:custom}    &  Patch         & \ref{s:patch}    \HH
-  Drift          & \ref{s:drift}     &  Photon_Branch & \ref{s:branch}   \HH
-  Ecollimator    & \ref{s:col}       &  Quadrupole    & \ref{s:quad}     \HH
-  ElSeparator    & \ref{s:elsep}     &  Rbend         & \ref{s:bend}     \HH
-  Group          & \ref{s:group}     &  Rcollimator   & \ref{s:col}      \HH
+  Branch         & \ref{s:branch}    &  Patch         & \ref{s:patch}    \HH
+  Custom         & \ref{s:custom}    &  Photon_Branch & \ref{s:branch}   \HH
+  Drift          & \ref{s:drift}     &  Quadrupole    & \ref{s:quad}     \HH
+  Ecollimator    & \ref{s:col}       &  Rbend         & \ref{s:bend}     \HH
+  ElSeparator    & \ref{s:elsep}     &  Rcollimator   & \ref{s:col}      \HH
   HKicker        & \ref{s:hvkicker}  &  RFcavity      & \ref{s:rfcav}    \HH
   Hybrid         & \ref{s:hybrid}    &  Sbend         & \ref{s:bend}     \HH
-  Girder         & \ref{s:girder}    &  Sextupole     & \ref{s:sex}      \HH
-  Instrument     & \ref{s:monitor}   &  Solenoid      & \ref{s:sol}      \HH
-  Kicker         & \ref{s:kicker}    &  Sol_Quad      & \ref{s:sq}       \HH
-  Lcavity        & \ref{s:lcav}      &  Taylor        & \ref{s:tay}      \HH
-  Marker         & \ref{s:mark}      &  VKicker       & \ref{s:hvkicker} \HH  
-  Match          & \ref{s:match}     &  Wiggler       & \ref{s:wiggler}  \HH
-  Monitor        & \ref{s:monitor}   &                &                  \HH  
+  Instrument     & \ref{s:monitor}   &  Sextupole     & \ref{s:sex}      \HH
+  Kicker         & \ref{s:kicker}    &  Solenoid      & \ref{s:sol}      \HH
+  Lcavity        & \ref{s:lcav}      &  Sol_Quad      & \ref{s:sq}       \HH
+  Marker         & \ref{s:mark}      &  Taylor        & \ref{s:tay}      \HH
+  Match          & \ref{s:match}     &  VKicker       & \ref{s:hvkicker} \HH  
+  Monitor        & \ref{s:monitor}   &  Wiggler       & \ref{s:wiggler}  \HH
 \end{tabular}
 }
-\caption{Table of \bmad element classes.}
-\label{t:elements}\center
+\caption{Table of element classes suitable for use with relativistic particles.}
+\label{t:particle.classes}\center
+\end{table}
+
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
+  Crystal        & \ref{s:crystal}   &  Match         & \ref{s:match}    \HH
+  Custom         & \ref{s:custom}    &  Monitor       & \ref{s:monitor}  \HH 
+  Drift          & \ref{s:drift}     &  Mirror        & \ref{s:mirror}   \HH
+  Instrument     & \ref{s:monitor}   &  Patch         & \ref{s:patch}    \HH
+  Marker         & \ref{s:mark}      &                &                  \HH
+\end{tabular}
+}
+\caption{Table of element classes suitable for use with photons.}
+\label{t:photon.classes}\center
+\end{table}
+
+\begin{table}[h]
+\centering
+{\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
+  Group          & \ref{s:group}     &   Overlay      & \ref{s:overlay}  \HH
+  Girder         & \ref{s:girder}    &
+\end{tabular}
+}
+\caption{Table of element classes used for parameter control of other elements.)
+\label{t:control.classes}\center
 \end{table}
 
 \vfil
@@ -278,7 +313,7 @@ Example:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -400,7 +435,7 @@ The roll angle about the longitudinal axis at the entrance face of the
 bend is given by \vn{tilt}.  \vn{tilt} = 0 bends the reference
 trajectory in the $-x$ direction.  If the \vn{tilt} attribute is given
 without any value then the value $\pi/2$ will be used. This makes for
-a downward vertical ($-y$) bend.
+a \vn{downward} pointing vertical bend.
   \end{description}
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
@@ -504,6 +539,13 @@ Example:
 \begin{example}
   d21: ecollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2
 \end{example}
+
+%-----------------------------------------------------------------
+\section{Crystal}
+\label{s:crystal}
+\index{crystal|hyperbf}
+
+This section under construction...
 
 %-----------------------------------------------------------------
 \section{Custom}
@@ -1129,6 +1171,61 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Mirror}
+\label{s:mirror}
+\index{mirror|hyperbf}
+
+\begin{center}
+\tt 
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:string}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   &                            &                 \HH
+\end{tabular}
+\end{center}
+\toffset
+
+Attributes specific to a \vn{Mirror} element are:
+\begin{example}
+  graze_angle     = <Real>    ! Angle between incoming beam and mirror surface.
+  graze_angle_err = <Real>    ! Error in the graze angle.
+  critical_angle  = <Real>    ! Critical angle.
+  tilt_err        = <Real>    ! Error in the tilt angle.
+  g_graze         = <Real>    ! 1/Radius-of-curvature in the bend plane.
+  g_trans         = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+\end{example}
+
+A \vn{Mirror} reflects photons. The reference trajectory for a
+\vn{mirror} is that of a zero length bend (\sref{s:mirror.coords}) and
+hence the length (\vn{l}) parameter of a mirror is fixed at zero. The
+reference trajectory is determined by the values of the
+\vn{graze_angle} and \vn{tilt} parameters. A positive \vn{graze_angle}
+bends the reference trajectory in the same direction as a positive
+\vn{g} for a bend element. The \vn{graze_angle_err} and \vn{tilt_err}
+parameters affect the orientation of the \vn{mirror} in the global
+reference system but do not affect the reference trajectory.
+
+The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
+\vn{R_graze} is the radius of curvature of the mirror surface in the
+bend plane as shown in Fig.~\ref{s:mirror}. A positive \vn{g_graze}
+indicates that the mirror is concave from the point of view of the
+photons. Similarly, the \vn{g_trans} parameter is equal to
+1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
+mirror surface in the plane transverse to the bend plane. Again, a
+positive \vn{g_trans} indicates that the mirror is concave from the
+point of view of the photons.
+
+A \vn{mirror} may be offset and pitched (\ref{s:offset}). The incoming
+local reference coordinates are used for these misalignments. The
+\vn{x_pitch} and \vn{y_pitch} parameters can be related to the
+\vn{graze-angle_err} and \vn{tilt_err} parameters. For example, with
+zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
+\vn{graze_angle_err} of the same magnitude, and a positive
+\vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
+magnitude.
+
+%-----------------------------------------------------------------
 \section{Multipole}
 \label{s:mult}
 \index{multipole|hyperbf}
@@ -1244,12 +1341,14 @@ Attributes specific to a \vn{Patch} elements are:
 \end{example}
 
 \index{x_offset}
-A \vn{Patch} offsets the reference orbit. This is a generalization of
-\mad's \vn{yrot} and \vn{srot} elements. For example, a positive
-\vn{x_offset} offsets the reference orbit after the \vn{patch} in the
-positive $x$--direction relative to the reference orbit before the
-\vn{patch}. Hence, the \vn{x} coordinate of a particle going through a
-patch with a positive \vn{x_offset} will be decreased.
+A \vn{patch} element shifts the reference orbit. This is a
+generalization of \mad's \vn{yrot} and \vn{srot} elements. For
+example, a positive \vn{x_offset} offsets the reference orbit after
+the \vn{patch} in the positive $x$--direction relative to the
+reference orbit before the \vn{patch}. Hence, the \vn{x} coordinate of
+a particle going through a patch with a positive \vn{x_offset} will be
+decreased. See \sref{s:patch.coords} for formulas for the reference
+orbit transformation with a \vn{patch}.
 
 The \vn{l} length attribute is used to set the longitudinal $s$
 distance between the previous and next elements and a program can, for

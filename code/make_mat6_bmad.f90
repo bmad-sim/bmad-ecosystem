@@ -118,347 +118,66 @@ if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
 select case (key)
 
 !--------------------------------------------------------
-! Marker, photon_branch, branch
+! beam-beam interaction
 
-case (marker$, branch$, photon_branch$) 
-  return
+case (beambeam$)
 
-!--------------------------------------------------------
-! Match
+ call offset_particle (ele, param, c00, set$)
+ call offset_particle (ele, param, c11, set$, s_pos = length)
 
-case (match$)
-  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
-  if (present(err)) err = err_flag
-
-!--------------------------------------------------------
-! Patch
-
-case (patch$) 
-
-  mat6(2,6) = -ele%value(x_pitch_tot$)
-  mat6(4,6) = -ele%value(y_pitch_tot$)
-  mat6(5,1) =  ele%value(x_pitch_tot$)
-  mat6(5,3) =  ele%value(y_pitch_tot$)
-
-  if (ele%value(tilt_tot$) /= 0) then
-    cos_a = cos(ele%value(tilt_tot$)) ; sin_a = sin(ele%value(tilt_tot$))
-    mat6(1,1) =  cos_a ; mat6(2,2) =  cos_a
-    mat6(1,3) =  sin_a ; mat6(2,4) =  sin_a
-    mat6(3,1) = -sin_a ; mat6(4,2) = -sin_a
-    mat6(3,3) =  cos_a ; mat6(4,4) =  cos_a
+  n_slice = nint(ele%value(n_slice$))
+  if (n_slice < 1) then
+    print *, 'ERROR IN MAKE_MAT6_BMAD: N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE'
+    call type_ele (ele, .true., 0, .false., 0, .false.)
+    stop
   endif
 
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  if (ele%value(charge$) == 0 .or. param%n_part == 0) return
 
-!--------------------------------------------------------
-! sbend
+  ! factor of 2 in orb%vec(5) since relative motion of the two beams is 2*c_light
 
-case (sbend$)
+  if (n_slice == 1) then
+    call bbi_kick_matrix (ele, param, c00, 0.0_rp, mat6)
+  else
+    call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
 
-  k1 = ele%value(k1$)
-  g = ele%value(g$)
-  g_err = ele%value(g_err$)
-  g_tot = g + g_err
+    s_pos = 0          ! start at IP
+    orb = c00
+    orb%vec(2) = c00%vec(2) - ele%value(x_pitch_tot$)
+    orb%vec(4) = c00%vec(4) - ele%value(y_pitch_tot$)
+    call mat_make_unit (mat4)
 
-  if (g_tot == 0) then
-    call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-    return
-  endif
+    do i = 1, n_slice + 1
+      s_pos_old = s_pos  ! current position
+      s_pos = (z_slice(i) + c00%vec(5)) / 2 ! position of slice relative to IP
+      del_l = s_pos - s_pos_old
+      mat4(1,1:4) = mat4(1,1:4) + del_l * mat4(2,1:4)
+      mat4(3,1:4) = mat4(3,1:4) + del_l * mat4(4,1:4)
+      if (i == n_slice + 1) exit
+      orb%vec(1) = c00%vec(1) + s_pos * orb%vec(2)
+      orb%vec(3) = c00%vec(3) + s_pos * orb%vec(4)
+      call bbi_kick_matrix (ele, param, orb, s_pos, kmat6)
+      mat4(2,1:4) = mat4(2,1:4) + kmat6(2,1) * mat4(1,1:4) + &
+                                  kmat6(2,3) * mat4(3,1:4)
+      mat4(4,1:4) = mat4(4,1:4) + kmat6(4,1) * mat4(1,1:4) + &
+                                  kmat6(4,3) * mat4(3,1:4)
+    enddo
 
-  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
-  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
-  call track_bend_edge (c00, ele, .true., .false., kx_1, ky_1)
-  call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  ! track backwards
+    mat6(1:4,1:4) = mat4
 
-  ! Body
-
-  if (k1 /= 0) then
-    call sbend_body_with_k1_map (g, g_err, length, k1, c00%vec, mat6 = mat6)
-
-  elseif (length /= 0) then
-
-    ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
-
-    x  = c00%vec(1)
-    px = c00%vec(2)
-    y  = c00%vec(3)
-    py = c00%vec(4)
-    z  = c00%vec(5)
-    pz = c00%vec(6)
- 
-    b1 = g_tot
-    angle = g * length
-    rel_p  = 1 + pz
-    rel_p2 = rel_p**2
-
-    ct = cos(angle)
-    st = sin(angle)
-
-    pxy2 = px**2 + py**2
-    Dxy = sqrt(rel_p2 - pxy2)
-    Dy  = sqrt(rel_p2 - py**2)
-
-    if (ele%value(g$) == 0) then
-      px_t = px - b1 * length
-      dpx_t = -px*length - b1
-    else
-      rho = 1 / ele%value(g$)
-      if (pxy2 < 1e-5) then
-        f = pxy2 / (2 * rel_p)
-        f = pz - f - f*f/2 - g_err*rho - b1*x
-      else
-        f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
-      endif
-      px_t = px*ct + f*st
-      dpx_t = -px*st/rho + f*ct/rho
-    endif
-
-    Dxy_t = sqrt(rel_p2 - px_t**2 - py**2)
-    factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
-    df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
-    df_dp = rel_p * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
-
-    mat6(1,1) = px_t * st / Dxy_t + ct
-    mat6(1,2) = -px_t * (ct - px*st/Dxy) / (b1 * Dxy_t) + st/b1 + px*ct/(b1*Dxy)
-    mat6(1,4) = (-py + px_t*py*st/Dxy) / (b1 * Dxy_t) + py*ct/(b1*Dxy)
-    mat6(1,6) = (rel_p - px_t*rel_p*st/Dxy) / (b1 * Dxy_t) - rel_p*ct/(b1*Dxy)
-    mat6(2,1) = -b1 * st
-    mat6(2,2) = ct - px * st / Dxy
-    mat6(2,4) = -py * st / Dxy
-    mat6(2,6) = rel_p * st / Dxy
-    mat6(3,1) = py * st / Dxy_t
-    mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
-    mat6(3,3) = 1
-    mat6(3,4) = factor + py**2 * df_dpy / b1
-    mat6(3,6) = py * df_dp / b1
-    mat6(5,1) = -rel_p * st / Dxy_t
-    mat6(5,2) = -rel_p * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
-    mat6(5,4) = -rel_p * py * df_dpy / b1
-    mat6(5,6) = -factor - rel_p * df_dp / b1
-
-  endif
-
-  ! edge focusing terms
-
-  mat6(1:6,1) = mat6(1:6,1) + mat6(1:6,2) * kx_1
-  mat6(1:6,3) = mat6(1:6,3) + mat6(1:6,4) * ky_1
-
-  mat6(2,1:6) = mat6(2,1:6) + kx_2 * mat6(1,1:6) 
-  mat6(4,1:6) = mat6(4,1:6) + ky_2 * mat6(3,1:6)
-
-  if (ele%value(k2$) /= 0) then
-    k2l = ele%value(k2$) * ele%value(l$) / 2
-    call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, mat6_m(1:4,1:4))
-    mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
-    mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    call mat4_multipole (k2l, 0.0_rp, 2, c11%vec, mat6_m(1:4,1:4))
-    mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
-    mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
-  endif
-
-  if (ele%value(tilt_tot$)+ele%value(roll$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
   endif
 
   call add_multipoles_and_s_offset
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! quadrupole
+! Custom
 
-case (quadrupole$)
+case (custom$)
 
-  call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
-
-  k1 = ele%value(k1$) / rel_p
-
-  call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, ddz_y)
-
-  mat6(1,2) = mat6(1,2) / rel_p
-  mat6(2,1) = mat6(2,1) * rel_p
-
-  mat6(3,4) = mat6(3,4) / rel_p
-  mat6(4,3) = mat6(4,3) * rel_p
-
-  ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
-
-  if (any(c00%vec(1:4) /= 0)) then
-    mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
-    mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_p
-    mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
-    mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_p
-    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) / rel_p + &
-                c00%vec(1)*c1%vec(2) * ddz_x(2) / rel_p + &
-                c00%vec(2)**2 * ddz_x(3) / rel_p + &
-                c00%vec(3)**2 * ddz_y(1) / rel_p + &
-                c00%vec(3)*c1%vec(4) * ddz_y(2) / rel_p + &
-                c00%vec(4)**2 * ddz_y(3) / rel_p 
-  endif
-
-  if (any(mat6(5,1:4) /= 0)) then
-    mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2)
-    mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2)
-    mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4)
-    mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
-  endif
-
-  ! tilt and multipoles
-
-  if (ele%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  endif
-
-  call add_multipoles_and_s_offset
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
-! Sextupole.
-! the sextupole is modeled as kick-drift-kick
-
-case (sextupole$)
-
-
-  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
-  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
-
-  k2l = ele%value(k2$) * length 
-  call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat1)
-  call mat4_multipole (k2l/2, 0.0_rp, 2, c11%vec, kmat2)
-
-  c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
-  call drift_mat6_calc (drift, length, c00%vec)
-
-  mat6 = drift
-  mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
-  mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
-  mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
-  mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
-  mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
-
-  if (ele%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  endif
-
-  call add_multipoles_and_s_offset
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
-! octupole
-! the octupole is modeled as kick-drift-kick
-
-case (octupole$)
-
-  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
-  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
-
-  k3l = ele%value(k3$) * length 
-  call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat1)
-  call mat4_multipole (k3l/2, 0.0_rp, 3, c11%vec, kmat2)
-
-  c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
-  call drift_mat6_calc (drift, length, c00%vec)
-
-  mat6 = drift
-  mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
-  mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
-  mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
-  mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
-  mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
-
-  if (ele%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  endif
-
-  call add_multipoles_and_s_offset
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
-! solenoid
-
-case (solenoid$)
-
-  call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
-
-  ks = ele%value(ks$) / rel_p
-
-  call solenoid_mat_calc (ks, length, mat6(1:4,1:4))
-
-  mat6(1,2) = mat6(1,2) / rel_p
-  mat6(1,4) = mat6(1,4) / rel_p
-
-  mat6(2,1) = mat6(2,1) * rel_p
-  mat6(2,3) = mat6(2,3) * rel_p
-
-  mat6(3,2) = mat6(3,2) / rel_p
-  mat6(3,4) = mat6(3,4) / rel_p
-
-  mat6(4,1) = mat6(4,1) * rel_p
-  mat6(4,3) = mat6(4,3) * rel_p
-
-
-  c2 = mat6(1,1)
-  s2 = mat6(1,4) * ks / 2
-  cs = mat6(1,3)
-
-  lcs = length * cs
-  lc2s2 = length * (c2 - s2) / 2
-
-  t1_16 =  lcs * ks
-  t1_26 = -lc2s2 * 2
-  t1_36 = -lc2s2 * ks
-  t1_46 = -lcs * 2
-
-  t2_16 =  lc2s2 * ks**2 / 2
-  t2_26 =  lcs * ks
-  t2_36 =  lcs * ks**2 / 2
-  t2_46 = -lc2s2 * ks
-
-  t3_16 =  lc2s2 * ks
-  t3_26 =  lcs * 2
-  t3_36 =  lcs * ks
-  t3_46 = -lc2s2 * 2
-
-  t4_16 = -lcs * ks**2 / 2
-  t4_26 =  lc2s2 * ks
-  t4_36 =  t2_16
-  t4_46 =  lcs * ks
-
-  arg = length / 2
-  t5_11 = -arg * (ks/2)**2
-  t5_14 =  arg * ks
-  t5_22 = -arg
-  t5_23 = -arg * ks
-  t5_33 = -arg * (ks/2)**2
-  t5_44 = -arg
-
-  ! the mat6(i,6) terms are constructed so that mat6 is sympelctic
-
-  mat6(5,1) =  2 * c00%vec(1) * t5_11 + c00%vec(4) * t5_14
-  mat6(5,2) = (2 * c00%vec(2) * t5_22 + c00%vec(3) * t5_23) / rel_p
-  mat6(5,3) =  2 * c00%vec(3) * t5_33 + c00%vec(2) * t5_23
-  mat6(5,4) = (2 * c00%vec(4) * t5_44 + c00%vec(1) * t5_14) / rel_p
-
-  mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
-                  mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
-  mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
-                  mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
-  mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
-                  mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
-  mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
-                  mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
-
-  ! mat6(5,6) 
-
-  ks2 = ele%value(ks$) / 2
-  xp_start = (c0%vec(2) + ks2 * c0%vec(3)) 
-  yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
-  mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
-
-  call add_multipoles_and_s_offset
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  print *, 'ERROR IN MAKE_MAT6_BMAD: MAT6_CALC_METHOD = BMAD_STANDARD IS NOT'
+  print *, '      ALLOWED FOR A CUSTOM ELEMENT: ', ele%name
+  call err_exit
 
 !--------------------------------------------------------
 ! LCavity: Linac rf cavity
@@ -621,6 +340,162 @@ case (lcavity$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
+! Marker, branch, photon_branch
+
+case (marker$, branch$, photon_branch$) 
+  return
+
+!--------------------------------------------------------
+! Match
+
+case (match$)
+  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
+  if (present(err)) err = err_flag
+
+!--------------------------------------------------------
+! Mirror
+
+case (mirror$)
+
+  mat6(1, 1) = -1
+  mat6(2, 1) =  2 * ele%value(g_graze$) / sin(ele%value(graze_angle$))
+  mat6(2, 2) = -1
+  mat6(4, 3) = -2 * ele%value(g_trans$)  
+
+  call tilt_mat6 (mat6, ele%value(tilt_tot$) + ele%value(tilt_err$))
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! Multipole, AB_Multipole
+
+case (multipole$, ab_multipole$)
+
+  if (.not. ele%multipoles_on) return
+
+  call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
+  call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
+
+  ! if knl(0) is non-zero then the reference orbit itself is bent
+  ! and we need to account for this.
+
+  if (knl(0) /= 0) then
+    ele%mat6(2,6) = knl(0) * cos(tilt(0))
+    ele%mat6(4,6) = knl(0) * sin(tilt(0))
+    ele%mat6(5,1) = -ele%mat6(2,6)
+    ele%mat6(5,3) = -ele%mat6(4,6)
+  endif
+
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! Octupole
+! the octupole is modeled as kick-drift-kick
+
+case (octupole$)
+
+  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
+  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
+
+  k3l = ele%value(k3$) * length 
+  call mat4_multipole (k3l/2, 0.0_rp, 3, c00%vec, kmat1)
+  call mat4_multipole (k3l/2, 0.0_rp, 3, c11%vec, kmat2)
+
+  c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
+  call drift_mat6_calc (drift, length, c00%vec)
+
+  mat6 = drift
+  mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
+  mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
+  mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
+  mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
+  mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
+
+  if (ele%value(tilt_tot$) /= 0) then
+    call tilt_mat6 (mat6, ele%value(tilt_tot$))
+  endif
+
+  call add_multipoles_and_s_offset
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! Patch
+
+case (patch$) 
+
+  mat6(2,6) = -ele%value(x_pitch_tot$)
+  mat6(4,6) = -ele%value(y_pitch_tot$)
+  mat6(5,1) =  ele%value(x_pitch_tot$)
+  mat6(5,3) =  ele%value(y_pitch_tot$)
+
+  if (ele%value(tilt_tot$) /= 0) then
+    cos_a = cos(ele%value(tilt_tot$)) ; sin_a = sin(ele%value(tilt_tot$))
+    mat6(1,1) =  cos_a ; mat6(2,2) =  cos_a
+    mat6(1,3) =  sin_a ; mat6(2,4) =  sin_a
+    mat6(3,1) = -sin_a ; mat6(4,2) = -sin_a
+    mat6(3,3) =  cos_a ; mat6(4,4) =  cos_a
+  endif
+
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! quadrupole
+
+case (quadrupole$)
+
+  call offset_particle (ele, param, c00, set$)
+  call offset_particle (ele, param, c11, set$, s_pos = length)
+
+  k1 = ele%value(k1$) / rel_p
+
+  call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, ddz_x)
+  call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, ddz_y)
+
+  mat6(1,2) = mat6(1,2) / rel_p
+  mat6(2,1) = mat6(2,1) * rel_p
+
+  mat6(3,4) = mat6(3,4) / rel_p
+  mat6(4,3) = mat6(4,3) * rel_p
+
+  ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
+
+  if (any(c00%vec(1:4) /= 0)) then
+    mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
+    mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_p
+    mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
+    mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_p
+    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) / rel_p + &
+                c00%vec(1)*c1%vec(2) * ddz_x(2) / rel_p + &
+                c00%vec(2)**2 * ddz_x(3) / rel_p + &
+                c00%vec(3)**2 * ddz_y(1) / rel_p + &
+                c00%vec(3)*c1%vec(4) * ddz_y(2) / rel_p + &
+                c00%vec(4)**2 * ddz_y(3) / rel_p 
+  endif
+
+  if (any(mat6(5,1:4) /= 0)) then
+    mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2)
+    mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2)
+    mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4)
+    mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
+  endif
+
+  ! tilt and multipoles
+
+  if (ele%value(tilt_tot$) /= 0) then
+    call tilt_mat6 (mat6, ele%value(tilt_tot$))
+  endif
+
+  call add_multipoles_and_s_offset
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! rbends are not allowed internally
+
+case (rbend$)
+
+  print *, 'ERROR IN MAKE_MAT6_BMAD: RBEND ELEMENTS NOT ALLOWED INTERNALLY!'
+  call err_exit
+
+!--------------------------------------------------------
 ! rf cavity
 ! Calculation Uses a 3rd order map assuming a linearized rf voltage vs time.
 
@@ -678,53 +553,247 @@ case (rfcavity$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! beam-beam interaction
+! sbend
 
-case (beambeam$)
+case (sbend$)
 
- call offset_particle (ele, param, c00, set$)
- call offset_particle (ele, param, c11, set$, s_pos = length)
+  k1 = ele%value(k1$)
+  g = ele%value(g$)
+  g_err = ele%value(g_err$)
+  g_tot = g + g_err
 
-  n_slice = nint(ele%value(n_slice$))
-  if (n_slice < 1) then
-    print *, 'ERROR IN MAKE_MAT6_BMAD: N_SLICE FOR BEAMBEAM ELEMENT IS NEGATIVE'
-    call type_ele (ele, .true., 0, .false., 0, .false.)
-    stop
+  if (g_tot == 0) then
+    call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
+    return
   endif
 
-  if (ele%value(charge$) == 0 .or. param%n_part == 0) return
+  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
+  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
+  call track_bend_edge (c00, ele, .true., .false., kx_1, ky_1)
+  call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  ! track backwards
 
-  ! factor of 2 in orb%vec(5) since relative motion of the two beams is 2*c_light
+  ! Body
 
-  if (n_slice == 1) then
-    call bbi_kick_matrix (ele, param, c00, 0.0_rp, mat6)
-  else
-    call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
+  if (k1 /= 0) then
+    call sbend_body_with_k1_map (g, g_err, length, k1, c00%vec, mat6 = mat6)
 
-    s_pos = 0          ! start at IP
-    orb = c00
-    orb%vec(2) = c00%vec(2) - ele%value(x_pitch_tot$)
-    orb%vec(4) = c00%vec(4) - ele%value(y_pitch_tot$)
-    call mat_make_unit (mat4)
+  elseif (length /= 0) then
 
-    do i = 1, n_slice + 1
-      s_pos_old = s_pos  ! current position
-      s_pos = (z_slice(i) + c00%vec(5)) / 2 ! position of slice relative to IP
-      del_l = s_pos - s_pos_old
-      mat4(1,1:4) = mat4(1,1:4) + del_l * mat4(2,1:4)
-      mat4(3,1:4) = mat4(3,1:4) + del_l * mat4(4,1:4)
-      if (i == n_slice + 1) exit
-      orb%vec(1) = c00%vec(1) + s_pos * orb%vec(2)
-      orb%vec(3) = c00%vec(3) + s_pos * orb%vec(4)
-      call bbi_kick_matrix (ele, param, orb, s_pos, kmat6)
-      mat4(2,1:4) = mat4(2,1:4) + kmat6(2,1) * mat4(1,1:4) + &
-                                  kmat6(2,3) * mat4(3,1:4)
-      mat4(4,1:4) = mat4(4,1:4) + kmat6(4,1) * mat4(1,1:4) + &
-                                  kmat6(4,3) * mat4(3,1:4)
-    enddo
+    ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
-    mat6(1:4,1:4) = mat4
+    x  = c00%vec(1)
+    px = c00%vec(2)
+    y  = c00%vec(3)
+    py = c00%vec(4)
+    z  = c00%vec(5)
+    pz = c00%vec(6)
+ 
+    b1 = g_tot
+    angle = g * length
+    rel_p  = 1 + pz
+    rel_p2 = rel_p**2
 
+    ct = cos(angle)
+    st = sin(angle)
+
+    pxy2 = px**2 + py**2
+    Dxy = sqrt(rel_p2 - pxy2)
+    Dy  = sqrt(rel_p2 - py**2)
+
+    if (ele%value(g$) == 0) then
+      px_t = px - b1 * length
+      dpx_t = -px*length - b1
+    else
+      rho = 1 / ele%value(g$)
+      if (pxy2 < 1e-5) then
+        f = pxy2 / (2 * rel_p)
+        f = pz - f - f*f/2 - g_err*rho - b1*x
+      else
+        f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
+      endif
+      px_t = px*ct + f*st
+      dpx_t = -px*st/rho + f*ct/rho
+    endif
+
+    Dxy_t = sqrt(rel_p2 - px_t**2 - py**2)
+    factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
+    df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
+    df_dp = rel_p * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
+
+    mat6(1,1) = px_t * st / Dxy_t + ct
+    mat6(1,2) = -px_t * (ct - px*st/Dxy) / (b1 * Dxy_t) + st/b1 + px*ct/(b1*Dxy)
+    mat6(1,4) = (-py + px_t*py*st/Dxy) / (b1 * Dxy_t) + py*ct/(b1*Dxy)
+    mat6(1,6) = (rel_p - px_t*rel_p*st/Dxy) / (b1 * Dxy_t) - rel_p*ct/(b1*Dxy)
+    mat6(2,1) = -b1 * st
+    mat6(2,2) = ct - px * st / Dxy
+    mat6(2,4) = -py * st / Dxy
+    mat6(2,6) = rel_p * st / Dxy
+    mat6(3,1) = py * st / Dxy_t
+    mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+    mat6(3,3) = 1
+    mat6(3,4) = factor + py**2 * df_dpy / b1
+    mat6(3,6) = py * df_dp / b1
+    mat6(5,1) = -rel_p * st / Dxy_t
+    mat6(5,2) = -rel_p * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+    mat6(5,4) = -rel_p * py * df_dpy / b1
+    mat6(5,6) = -factor - rel_p * df_dp / b1
+
+  endif
+
+  ! edge focusing terms
+
+  mat6(1:6,1) = mat6(1:6,1) + mat6(1:6,2) * kx_1
+  mat6(1:6,3) = mat6(1:6,3) + mat6(1:6,4) * ky_1
+
+  mat6(2,1:6) = mat6(2,1:6) + kx_2 * mat6(1,1:6) 
+  mat6(4,1:6) = mat6(4,1:6) + ky_2 * mat6(3,1:6)
+
+  if (ele%value(k2$) /= 0) then
+    k2l = ele%value(k2$) * ele%value(l$) / 2
+    call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, mat6_m(1:4,1:4))
+    mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
+    mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
+    call mat4_multipole (k2l, 0.0_rp, 2, c11%vec, mat6_m(1:4,1:4))
+    mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
+    mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
+  endif
+
+  if (ele%value(tilt_tot$)+ele%value(roll$) /= 0) then
+    call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
+  endif
+
+  call add_multipoles_and_s_offset
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! Sextupole.
+! the sextupole is modeled as kick-drift-kick
+
+case (sextupole$)
+
+
+  call offset_particle (ele, param, c00, set$, set_canonical = .false.)
+  call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
+
+  k2l = ele%value(k2$) * length 
+  call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat1)
+  call mat4_multipole (k2l/2, 0.0_rp, 2, c11%vec, kmat2)
+
+  c00%vec(1:4) = matmul(kmat1, c00%vec(1:4))
+  call drift_mat6_calc (drift, length, c00%vec)
+
+  mat6 = drift
+  mat6(1:4,1:4) = matmul(kmat2, matmul(drift(1:4,1:4), kmat1))
+  mat6(5,1) = drift(5,2) * kmat1(2,1) + drift(5,4) * kmat1(4,1)
+  mat6(5,3) = drift(5,2) * kmat1(2,3) + drift(5,4) * kmat1(4,3)
+  mat6(2,6) = kmat2(2,1) * drift(1,6) + kmat2(2,3) * drift(3,6)
+  mat6(4,6) = kmat2(4,1) * drift(1,6) + kmat2(4,3) * drift(3,6)
+
+  if (ele%value(tilt_tot$) /= 0) then
+    call tilt_mat6 (mat6, ele%value(tilt_tot$))
+  endif
+
+  call add_multipoles_and_s_offset
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! solenoid
+
+case (solenoid$)
+
+  call offset_particle (ele, param, c00, set$)
+  call offset_particle (ele, param, c11, set$, s_pos = length)
+
+  ks = ele%value(ks$) / rel_p
+
+  call solenoid_mat_calc (ks, length, mat6(1:4,1:4))
+
+  mat6(1,2) = mat6(1,2) / rel_p
+  mat6(1,4) = mat6(1,4) / rel_p
+
+  mat6(2,1) = mat6(2,1) * rel_p
+  mat6(2,3) = mat6(2,3) * rel_p
+
+  mat6(3,2) = mat6(3,2) / rel_p
+  mat6(3,4) = mat6(3,4) / rel_p
+
+  mat6(4,1) = mat6(4,1) * rel_p
+  mat6(4,3) = mat6(4,3) * rel_p
+
+
+  c2 = mat6(1,1)
+  s2 = mat6(1,4) * ks / 2
+  cs = mat6(1,3)
+
+  lcs = length * cs
+  lc2s2 = length * (c2 - s2) / 2
+
+  t1_16 =  lcs * ks
+  t1_26 = -lc2s2 * 2
+  t1_36 = -lc2s2 * ks
+  t1_46 = -lcs * 2
+
+  t2_16 =  lc2s2 * ks**2 / 2
+  t2_26 =  lcs * ks
+  t2_36 =  lcs * ks**2 / 2
+  t2_46 = -lc2s2 * ks
+
+  t3_16 =  lc2s2 * ks
+  t3_26 =  lcs * 2
+  t3_36 =  lcs * ks
+  t3_46 = -lc2s2 * 2
+
+  t4_16 = -lcs * ks**2 / 2
+  t4_26 =  lc2s2 * ks
+  t4_36 =  t2_16
+  t4_46 =  lcs * ks
+
+  arg = length / 2
+  t5_11 = -arg * (ks/2)**2
+  t5_14 =  arg * ks
+  t5_22 = -arg
+  t5_23 = -arg * ks
+  t5_33 = -arg * (ks/2)**2
+  t5_44 = -arg
+
+  ! the mat6(i,6) terms are constructed so that mat6 is sympelctic
+
+  mat6(5,1) =  2 * c00%vec(1) * t5_11 + c00%vec(4) * t5_14
+  mat6(5,2) = (2 * c00%vec(2) * t5_22 + c00%vec(3) * t5_23) / rel_p
+  mat6(5,3) =  2 * c00%vec(3) * t5_33 + c00%vec(2) * t5_23
+  mat6(5,4) = (2 * c00%vec(4) * t5_44 + c00%vec(1) * t5_14) / rel_p
+
+  mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
+                  mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
+  mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
+                  mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
+  mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
+                  mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
+  mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
+                  mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
+
+  ! mat6(5,6) 
+
+  ks2 = ele%value(ks$) / 2
+  xp_start = (c0%vec(2) + ks2 * c0%vec(3)) 
+  yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
+  mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
+
+  call add_multipoles_and_s_offset
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+
+!--------------------------------------------------------
+! solenoid/quad
+
+case (sol_quad$)
+
+  call offset_particle (ele, param, c00, set$)
+  call offset_particle (ele, param, c11, set$, s_pos = length)
+
+  call sol_quad_mat6_calc (ele%value(ks$), ele%value(k1$), length, mat6, c00%vec)
+
+  if (ele%value(tilt_tot$) /= 0) then
+    call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
   call add_multipoles_and_s_offset
@@ -801,45 +870,6 @@ case (wiggler$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! solenoid/quad
-
-case (sol_quad$)
-
-  call offset_particle (ele, param, c00, set$)
-  call offset_particle (ele, param, c11, set$, s_pos = length)
-
-  call sol_quad_mat6_calc (ele%value(ks$), ele%value(k1$), length, mat6, c00%vec)
-
-  if (ele%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  endif
-
-  call add_multipoles_and_s_offset
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
-! multipole
-
-case (multipole$, ab_multipole$)
-
-  if (.not. ele%multipoles_on) return
-
-  call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
-  call mat6_multipole (knl, tilt, c0%vec, 1.0_rp, ele%mat6)
-
-  ! if knl(0) is non-zero then the reference orbit itself is bent
-  ! and we need to account for this.
-
-  if (knl(0) /= 0) then
-    ele%mat6(2,6) = knl(0) * cos(tilt(0))
-    ele%mat6(4,6) = knl(0) * sin(tilt(0))
-    ele%mat6(5,1) = -ele%mat6(2,6)
-    ele%mat6(5,3) = -ele%mat6(4,6)
-  endif
-
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
 ! accelerating solenoid with steerings
 ! WARNING: This 6x6 matrix may produce bad results at low energies!
 
@@ -879,23 +909,6 @@ case (accel_sol$)
 
   call add_multipoles_and_s_offset
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
-! rbends are not allowed internally
-
-case (rbend$)
-
-  print *, 'ERROR IN MAKE_MAT6_BMAD: RBEND ELEMENTS NOT ALLOWED INTERNALLY!'
-  call err_exit
-
-!--------------------------------------------------------
-! Custom
-
-case (custom$)
-
-  print *, 'ERROR IN MAKE_MAT6_BMAD: MAT6_CALC_METHOD = BMAD_STANDARD IS NOT'
-  print *, '      ALLOWED FOR A CUSTOM ELEMENT: ', ele%name
-  call err_exit
 
 !--------------------------------------------------------
 ! unrecognized element

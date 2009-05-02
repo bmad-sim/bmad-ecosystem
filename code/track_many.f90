@@ -42,7 +42,7 @@
 !                         aperture limit on.
 !     %param%ix_lost -- Integer: Index of element where particle is lost.
 !     %param%end_lost_at -- Either entrance_end$ or exit_end$.
-!   orbit(:)      -- Coord_struct: Orbit. In particular orbit(ix_end) is
+!   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
 !                       the coordinates at the end of tracking. 
 !-
 

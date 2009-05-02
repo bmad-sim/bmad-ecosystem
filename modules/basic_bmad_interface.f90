@@ -505,6 +505,17 @@ interface
 end interface
 
 interface
+  subroutine offset_photon (ele, param, coord, set)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+    implicit none
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    type (coord_struct) :: coord
+    logical :: set
+  end subroutine
+end interface
+
+interface
   subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
     use bmad_struct, only: lat_struct, rp
     implicit none
