@@ -107,7 +107,7 @@ mfit = count(mask)
 if (alamda < 0.0) then
   call re_allocate(atry, ma)
   call re_allocate(beta, ma)
-  call re_allocate (da, ma, 1)
+  call re_allocate2d (da, ma, 1)
   alamda=0.001_rp
   call super_mrqcof(a, y, alpha, beta, weight, chisq, funcs, status, mask)
   if (status /= 0) then

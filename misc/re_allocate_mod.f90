@@ -6,7 +6,7 @@ use sim_utils_struct
 !+
 ! Subroutine re_allocate
 !
-! Subroutine to reallocate a 1-dim and 2-dim allocatable array.
+! Subroutine to reallocate a 1-dim allocatable array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
 ! Note: The data of the array is preserved but data at the end of the
 ! array will be lost if n is less than the original size of the array
@@ -17,52 +17,32 @@ use sim_utils_struct
 ! preventing unneccessary deallocations/reallocations.
 !
 ! This routine is an overloaded name for: 
-!   Subroutine re_allocate_string (str, l_str, n, exact)
+!   Subroutine re_allocate_string (str, n, exact)
 !   Subroutine re_allocate_integer (inte, n, exact)
 !   Subroutine re_allocate_real (re, n, exact)
 !   Subroutine re_allocate_logical (logic, n, exact)
 !   Subroutine re_allocate_real_pointer (re_ptr, n, exact)
-!   Subroutine re_allocate2_string (str, l_str, n_min, n_max, exact)
-!   Subroutine re_allocate2_integer (inte, n_min, n_max, exact)
-!   Subroutine re_allocate2_real (re, n_min, n_max, exact)
-!   Subroutine re_allocate2_logical (logic, n_min, n_max, exact)
-!   Subroutine re_allocate_string2 (str2, l_str, n1, n2, exact)
-!   Subroutine re_allocate_integer2 (inte2, n1, n2, exact)
-!   Subroutine re_allocate_real2 (re2, n1, n2, exact)
-!   Subroutine re_allocate_logical2 (logic2, n1, n2, exact)
 !
 ! Modules needed:
 !   use re_allocate_mod
 !
 ! Input:
-!   str(:)      -- Character(l_str), allocatable: String array.
+!   str(:)      -- Character(*), allocatable: String array.
 !   inte(:)     -- Integer, allocatable: Integer array.
 !   re(:)       -- Real(rp), Allocatable: Real array.
 !   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
 !   logic(:)    -- Logical, allocatable: Logical array.
-!   str2(:)     -- Character(l_str), allocatable: String array.
-!   inte2(:)    -- Integer, allocatable: Integer array.
-!   re2(:)      -- Real(rp), Allocatable: Real array.
-!   logic2(:)   -- Logical, allocatable: Logical array.
-!   l_str       -- Integer: Character length of all str(i).
 !   n           -- Integer: Minimum size needed for 1-dimensional arrays.
-!   n_min       -- Integer: Desired lower bound.
-!   n_max       -- Integer: Desired upper bound.
-!   n1, n2      -- Integer: Minimum size needed for 2-dimensional arrays.
 !   exact       -- Logical, optional: If present and False then the size of 
 !                    the output array is permitted to be larger than n. 
 !                    Default is True.
 !
 ! Output:
-!   str(:)      -- Character(l_str), allocatable: Allocated array. 
+!   str(:)      -- Character(*), allocatable: Allocated array. 
 !   inte(:)     -- Integer, allocatable: Allocated array. 
 !   re(:)       -- Real(rp), Allocatable: Allocated array. 
 !   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
 !   logic(:)    -- Logical, allocatable: Allocated array.
-!   str2(:,:)   -- Character(l_str), allocatable: Allocated array ,
-!   inte2(:,:)  -- Integer, allocatable: Allocated array.
-!   re2(:,:)    -- Real(rp), Allocatable: Allocated array.
-!   logic2(:,:) -- Logical, allocatable: Allocated array. 
 !-
 
 interface re_allocate
@@ -71,14 +51,101 @@ interface re_allocate
   module procedure re_allocate_logical
   module procedure re_allocate_real
   module procedure re_allocate_real_pointer
+end interface
+
+!+
+! Subroutine re_allocate2
+!
+! Subroutine to reallocate a 1-dim allocatable array.
+! This is modeled after the reallocate functions in Numerical Recipes.
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+! 
+! Note: For pointers to an array use the re_associate routine.
+! 
+! Note: using exact = False can increase computation speed by
+! preventing unneccessary deallocations/reallocations.
+!
+! This routine is an overloaded name for: 
+!   Subroutine re_allocate2_string (str, n_min, n_max, exact)
+!   Subroutine re_allocate2_integer (inte, n_min, n_max, exact)
+!   Subroutine re_allocate2_real (re, n_min, n_max, exact)
+!   Subroutine re_allocate2_logical (logic, n_min, n_max, exact)
+!
+! Modules needed:
+!   use re_allocate_mod
+!
+! Input:
+!   str(:)      -- Character(*), allocatable: String array.
+!   inte(:)     -- Integer, allocatable: Integer array.
+!   re(:)       -- Real(rp), Allocatable: Real array.
+!   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   logic(:)    -- Logical, allocatable: Logical array.
+!   n_min       -- Integer: Desired lower bound.
+!   n_max       -- Integer: Desired upper bound.
+!   exact       -- Logical, optional: If present and False then the size of 
+!                    the output array is permitted to be larger than n. 
+!                    Default is True.
+!
+! Output:
+!   str(:)      -- Character(*), allocatable: Allocated array. 
+!   inte(:)     -- Integer, allocatable: Allocated array. 
+!   re(:)       -- Real(rp), Allocatable: Allocated array. 
+!   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   logic(:)    -- Logical, allocatable: Allocated array.
+!-
+
+interface re_allocate2
   module procedure re_allocate2_string
   module procedure re_allocate2_integer
   module procedure re_allocate2_logical
   module procedure re_allocate2_real
-  module procedure re_allocate_string2
-  module procedure re_allocate_integer2
-  module procedure re_allocate_logical2
-  module procedure re_allocate_real2
+end interface
+
+!+
+! Subroutine re_allocate2d
+!
+! Subroutine to reallocate a 2-dim allocatable array.
+! This is modeled after the reallocate functions in Numerical Recipes.
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+! 
+! Note: For pointers to an array use the re_associate routine.
+! 
+! Note: using exact = False can increase computation speed by
+! preventing unneccessary deallocations/reallocations.
+!
+! This routine is an overloaded name for: 
+!   Subroutine re_allocate_string2d (str2, n1, n2, exact)
+!   Subroutine re_allocate_integer2d (inte2, n1, n2, exact)
+!   Subroutine re_allocate_real2d (re2, n1, n2, exact)
+!   Subroutine re_allocate_logical2d (logic2, n1, n2, exact)
+!
+! Modules needed:
+!   use re_allocate_mod
+!
+! Input:
+!   str2(:,:)   -- Character(*), allocatable: String array.
+!   inte2(:,:)  -- Integer, allocatable: Integer array.
+!   re2(:,:)    -- Real(rp), Allocatable: Real array.
+!   logic2(:,:) -- Logical, allocatable: Logical array.
+!   n1, n2      -- Integer: Minimum size needed for 2-dimensional arrays.
+!   exact       -- Logical, optional: If present and False then the size of 
+!                    the output array is permitted to be larger than n. 
+!                    Default is True.
+!
+! Output:
+!   str2(:,:)   -- Character(*), allocatable: Allocated array ,
+!   inte2(:,:)  -- Integer, allocatable: Allocated array.
+!   re2(:,:)    -- Real(rp), Allocatable: Allocated array.
+!   logic2(:,:) -- Logical, allocatable: Allocated array. 
+!-
+
+interface re_allocate2d
+  module procedure re_allocate_string2d
+  module procedure re_allocate_integer2d
+  module procedure re_allocate_logical2d
+  module procedure re_allocate_real2d
 end interface
 
 !-----------------------------------------
@@ -96,7 +163,7 @@ end interface
 ! preventing unneccessary deallocations/reallocations.
 !
 ! This routine is an overloaded name for: 
-!   Subroutine re_associate_string (str, l_str, n, exact)
+!   Subroutine re_associate_string (str, n, exact)
 !   Subroutine re_associate_integer (inte, n, exact)
 !   Subroutine re_associate_real (re, n, exact)
 !   Subroutine re_associate_logical (logic, n, exact)
@@ -105,18 +172,17 @@ end interface
 !   use re_allocate_mod
 !
 ! Input:
-!   str(:)   -- Character(l_str), pointer: String array.
+!   str(:)   -- Character(*), pointer: String array.
 !   inte(:)  -- Integer, pointer: Integer array.
 !   re(:)    -- Real(rp), Pointer: Real array.
 !   logic(:) -- Logical, pointer: Logical array.
-!   l_str    -- Integer: Character length of all str(i).
 !   n        -- Integer: Minimum size needed.
 !   exact    -- Logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   str(:)   -- Character(l_str), pointer: Associated array with size(str) >= n.
+!   str(:)   -- Character(*), pointer: Associated array with size(str) >= n.
 !   inte(:)  -- Integer, pointer: Associated array with size(inte) >= n.
 !   re(:)    -- Real(rp), Pointer: Associated array with size(re) >= n.
 !   logic(:) -- Logical, pointer: Associated array with size(logic) >= n.
@@ -135,7 +201,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_string (str, l_str, n, exact)
+! Subroutine re_allocate_string (str, n, exact)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -143,24 +209,23 @@ contains
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   str(:) -- Character(l_str), allocatable: String array.
-!   l_str  -- Integer: Character length of all str(i).
+!   str(:) -- Character(*), allocatable: String array.
 !   n      -- Integer: Size wanted.
 !   exact  -- Logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   str(:) -- Character(l_str), allocatable: Allocated array with size(str) >= n.
+!   str(:) -- Character(*), allocatable: Allocated array with size(str) >= n.
 !-
 
-subroutine re_allocate_string (str, l_str, n, exact)
+subroutine re_allocate_string (str, n, exact)
 
   implicit none
 
-  integer n, n_old, n_save, l_str
-  character(l_str), allocatable :: str(:)
-  character(l_str), allocatable :: temp_str(:)
+  integer n, n_old, n_save
+  character(*), allocatable :: str(:)
+  character(len(str)), allocatable :: temp_str(:)
 
   logical, optional :: exact
 
@@ -396,7 +461,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_string (str, l_str, n1, n2, exact)
+! Subroutine re_allocate2_string (str, n1, n2, exact)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -404,8 +469,7 @@ end subroutine
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   str(:) -- Character(l_str), allocatable: String array.
-!   l_str  -- Integer: Character length of all str(i).
+!   str(:) -- Character(*), allocatable: String array.
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact  -- Logical, optional: If present and False then the size of 
@@ -413,17 +477,17 @@ end subroutine
 !                 Default is True.
 !
 ! Output:
-!   str(:) -- Character(l_str), allocatable: Allocated array with 
+!   str(:) -- Character(*), allocatable: Allocated array with 
 !               bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_string (str, l_str, n1, n2, exact)
+subroutine re_allocate2_string (str, n1, n2, exact)
 
   implicit none
 
-  integer n1, n2, n1_old, n2_old, n1_save, n2_save, l_str
-  character(l_str), allocatable :: str(:)
-  character(l_str), allocatable :: temp_str(:)
+  integer n1, n2, n1_old, n2_old, n1_save, n2_save
+  character(*), allocatable :: str(:)
+  character(len(str)), allocatable :: temp_str(:)
 
   logical, optional :: exact
 
@@ -612,7 +676,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_string2 (str2, l_str, n1, n2, exact)
+! Subroutine re_allocate_string2d (str2, n1, n2, exact)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -620,25 +684,24 @@ end subroutine
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   str2(:,:) -- Character(l_str), allocatable: String array.
-!   l_str     -- Integer: Character length of all str(i).
+!   str2(:,:) -- Character(*), allocatable: String array.
 !   n1, n2    -- Integer: Size wanted.
 !   exact     -- Logical, optional: If present and False then the size of 
 !                  the output array is permitted to be larger than n. 
 !                  Default is True.
 !
 ! Output:
-!   str2(:,:) -- Character(l_str), allocatable: Allocated array with 
+!   str2(:,:) -- Character(*), allocatable: Allocated array with 
 !                  bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_string2 (str2, l_str, n1, n2, exact)
+subroutine re_allocate_string2d (str2, n1, n2, exact)
 
   implicit none
 
-  integer n1, n2, n1_old, n2_old, n1_save, n2_save, l_str
-  character(l_str), allocatable :: str2(:,:)
-  character(l_str), allocatable :: temp_str2(:,:)
+  integer n1, n2, n1_old, n2_old, n1_save, n2_save
+  character(*), allocatable :: str2(:,:)
+  character(len(str2)), allocatable :: temp_str2(:,:)
 
   logical, optional :: exact
 
@@ -665,7 +728,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_integer2 (inte2, n1, n2, exact)
+! Subroutine re_allocate_integer2d (inte2, n1, n2, exact)
 !
 ! Routine to reallocate an array of integers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -684,7 +747,7 @@ end subroutine
 !                   bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_integer2 (inte2, n1, n2, exact)
+subroutine re_allocate_integer2d (inte2, n1, n2, exact)
 
   implicit none
 
@@ -718,7 +781,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_real2 (re2, n1, n2, exact)
+! Subroutine re_allocate_real2d (re2, n1, n2, exact)
 !
 ! Routine to reallocate an array of reals.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -737,7 +800,7 @@ end subroutine
 !                 bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_real2 (re2, n1, n2, exact)
+subroutine re_allocate_real2d (re2, n1, n2, exact)
 
   implicit none
 
@@ -771,7 +834,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_logical2 (logic2, n1, n2, exact)
+! Subroutine re_allocate_logical2d (logic2, n1, n2, exact)
 !
 ! Routine to reallocate a logical array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -790,7 +853,7 @@ end subroutine
 !                    bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_logical2 (logic2, n1, n2, exact)
+subroutine re_allocate_logical2d (logic2, n1, n2, exact)
 
   implicit none
 
@@ -824,7 +887,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_associate_string (str, l_str, n, exact)
+! Subroutine re_associate_string (str, n, exact)
 !
 ! Routine to reassociate an array of strings.
 ! This is modeled after the reassociate functions in Numerical Recipes.
@@ -832,23 +895,23 @@ end subroutine
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   str(:) -- Character(l_str), pointer: String array.
-!   l_str  -- Integer: Character length of all str(i).
+!   str(:) -- Character(*), pointer: String array.
 !   n      -- Integer: Size wanted.
 !   exact  -- Logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
 !
 ! Output:
-!   str(:) -- Character(l_str), pointer: Allocated array with size(str) >= n.
+!   str(:) -- Character(*), pointer: Allocated array with size(str) >= n.
 !-
 
-subroutine re_associate_string (str, l_str, n, exact)
+subroutine re_associate_string (str, n, exact)
 
   implicit none
 
-  integer n, n_old, n_save, l_str
-  character(l_str), pointer :: str(:), temp_str(:)
+  integer n, n_old, n_save
+  character(*), pointer :: str(:)
+  character(len(str)), pointer :: temp_str(:)
 
   logical, optional :: exact
 
