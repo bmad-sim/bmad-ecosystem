@@ -110,13 +110,13 @@ else
   fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
 endif
 
-call re_allocate (lines, 200, 200)
+call re_allocate (lines, 200)
 nl = 0
 l1 = '     Index     Old_Model       New_Model       Delta  Old-Design  New-Design'
 nl=nl+1; lines(nl) = l1
 
 n = size(v_array)
-call re_allocate (lines, len(lines(1)), n+100)
+call re_allocate (lines, n+100)
 
 do i = 1, size(v_array)
   var => v_array(i)%v
@@ -197,7 +197,7 @@ logical, allocatable, save :: this_u(:)
 !-------------------------------------------------
 
 if (tao_com%common_lattice) then
-  call re_allocate (this_u, lbound(s%u, 1), ubound(s%u, 1))
+  call re_allocate2 (this_u, lbound(s%u, 1), ubound(s%u, 1))
   this_u = .false.
   this_u(ix_common_uni$) = .true.
   e_name = ele_name
@@ -216,7 +216,7 @@ call str_upcase (a_name, a_name)
 
 etc_added = .false.
 nl = 0
-call re_allocate (lines, len_lines, 100)
+call re_allocate (lines, 100)
 nl=nl+1;write (lines(nl), '(11x, a)') &
                   'Old           New    Old-Design    New-Design         Delta'
 

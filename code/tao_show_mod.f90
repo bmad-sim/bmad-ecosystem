@@ -213,7 +213,7 @@ namelist / custom_show_list / column
 !
 
 call re_allocate (ix_eles, 1)
-call re_allocate (lines, n_char, 200)
+call re_allocate (lines, 200)
 
 err = .false.
 
@@ -267,7 +267,7 @@ select case (show_what)
 
 case ('alias')
 
-  call re_allocate (lines, len(lines(1)), tao_com%n_alias+10, .false.)
+  call re_allocate (lines, tao_com%n_alias+10, .false.)
   lines(1) = 'Aliases:'
   nl = 1
   do i = 1, tao_com%n_alias
@@ -500,7 +500,7 @@ case ('curve')
     
     if (show_sym) then
       n = nl + size(c1%x_symb) + 10
-      if (n > size(lines)) call re_allocate(lines, len(lines(1)), n, .false.)
+      if (n > size(lines)) call re_allocate(lines, n, .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Symbol points:'
       nl=nl+1; lines(nl) = '      i  index             x             y'
@@ -532,7 +532,7 @@ case ('curve')
         endif
       enddo
       if (.not. err) then
-        call re_allocate (lines, len(lines(1)), nl+size(c1%x_line)+100, .false.)
+        call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
         do i = 1, size(c1%x_line)
           nl=nl+1; write (lines(nl), '(10es14.6)') c1%x_line(i), &
                                         (/ (curve(j)%c%y_line(i), j = 1, size(curve)) /)
@@ -686,7 +686,7 @@ case ('data')
 
     ! if a range is specified, show the data range   
 
-    call re_allocate (lines, len(lines(1)), nl+100+size(d_array), .false.)
+    call re_allocate (lines, nl+100+size(d_array), .false.)
 
     fmt2 = '(i4, 2x, a, 3es14.4, 2l6)'
     fmt  = '(i4, 2x, a, 2x, a, 2x, a, 3es14.4, 2l6)'
@@ -714,12 +714,12 @@ case ('data')
 
   elseif (associated(d2_ptr)) then
 
-    call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%d1), .false.)
+    call re_allocate (lines, nl+100+size(d2_ptr%d1), .false.)
 
     nl=nl+1; write(lines(nl), '(t40, a)')     'Using' 
 
     do i = 1, size(d2_ptr%d1)
-      if (size(lines) > nl + 50) call re_allocate (lines, len(lines(1)), nl+100, .false.)
+      if (size(lines) > nl + 50) call re_allocate (lines, nl+100, .false.)
       call location_encode(line, d2_ptr%d1(i)%d%useit_opt, &
                       d2_ptr%d1(i)%d%exists, lbound(d2_ptr%d1(i)%d, 1))
       nl=nl+1; write(lines(nl), '(2x, 2a, i0, a, i0, a, t40, a)') &
@@ -728,7 +728,7 @@ case ('data')
     enddo
 
     if (any(d2_ptr%descrip /= ' ')) then
-      call re_allocate (lines, len(lines(1)), nl+100+size(d2_ptr%descrip), .false.)
+      call re_allocate (lines, nl+100+size(d2_ptr%descrip), .false.)
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Descrip:'
       do i = 1, size(d2_ptr%descrip)
@@ -824,7 +824,7 @@ case ('element')
       n_tot = n_tot + size(ix_eles)
       do i = 1, size(ix_eles)
         loc = ix_eles(i)
-        if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
+        if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
         if (count(picked_uni) > 1) then
           nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') &
                                                 loc, i_uni, '@', lat%ele(loc)%name
@@ -869,7 +869,7 @@ case ('element')
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
             .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms)
 
-  if (size(lines) < nl+n+100) call re_allocate (lines, len(lines(1)), nl+n+100, .false.)
+  if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)
   nl = nl + n
   deallocate (ptr_lines)
@@ -890,7 +890,7 @@ case ('element')
   found = .false.
   do i = loc + 1, lat%n_ele_max
     if (lat%ele(i)%name /= ele_name) cycle
-    if (size(lines) < nl+2) call re_allocate (lines, len(lines(1)), nl+10, .false.)
+    if (size(lines) < nl+2) call re_allocate (lines, nl+10, .false.)
     if (found) then
       nl=nl+1; lines(nl) = ''
       found = .true.
@@ -1160,7 +1160,7 @@ case ('lattice')
   
   ! Find elements to use
 
-  call re_allocate (picked_ele, 0, lat%n_ele_max)
+  call re_allocate2 (picked_ele, 0, lat%n_ele_max)
 
   if (ele_name /= '') then
     call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
@@ -1290,7 +1290,7 @@ case ('lattice')
 
   do ie = 0, lat%n_ele_track
     if (.not. picked_ele(ie)) cycle
-    if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
+    if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
     line = ''
     nc = 1
     ele => u%model%lat%ele(ie)
@@ -1354,7 +1354,7 @@ case ('lattice')
     first_time = .true.  
     do ie = lat%n_ele_track+1, lat%n_ele_max
       if (.not. picked_ele(ie)) cycle
-      if (size(lines) < nl+100) call re_allocate (lines, len(lines(1)), nl+200, .false.)
+      if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
       ele => lat%ele(ie)
       if (first_time) then
         nl=nl+1; lines(nl) = ' '
@@ -1436,7 +1436,7 @@ case ('particle')
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
     do i = 1, size(bunch%particle)
       if (bunch%particle(i)%ix_lost == not_lost$) cycle
-      if (nl == size(lines)) call re_allocate (lines, len(lines(1)), nl+100, .false.)
+      if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
       ie = bunch%particle(i)%ix_lost
       nl=nl+1; write (lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
     enddo
@@ -1716,7 +1716,7 @@ case ('taylor_map')
   if (n_order > -1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
   call type2_taylors (taylor, alloc_lines, nl)
-  if (size(lines) < nl) call re_allocate (lines, len(lines(1)), nl, .false.)
+  if (size(lines) < nl) call re_allocate (lines, nl, .false.)
   lines(1:nl) = ptr_lines(1:nl)
   deallocate (ptr_lines)
 
@@ -1894,7 +1894,7 @@ case ('use')
   do i = lbound(s%u, 1), ubound(s%u, 1)
     do j = 1, s%u(i)%n_d2_data_used
       d2_ptr => s%u(i)%d2_data(j)
-      call re_allocate (lines, n_char, nl+size(d2_ptr%d1)+10, .false.)
+      call re_allocate (lines, nl+size(d2_ptr%d1)+10, .false.)
       do k = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
         d1_ptr => d2_ptr%d1(k)
         call location_encode(line, d1_ptr%d%useit_opt, &
@@ -1907,11 +1907,11 @@ case ('use')
   enddo
   nl=nl+1; lines(nl) = ''
 
-  call re_allocate (lines, n_char, nl+size(s%v1_var)+10, .false.)
+  call re_allocate (lines, nl+size(s%v1_var)+10, .false.)
   do i = 1, size(s%v1_var)
     v1_ptr => s%v1_var(i)
     if (v1_ptr%name == ' ') cycle
-    call re_allocate (lines, len(lines(1)), nl+200, .false.)
+    call re_allocate (lines, nl+200, .false.)
     call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
     nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
   enddo
@@ -1988,7 +1988,7 @@ case ('variable')
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
-      call re_allocate (lines, len(lines(1)), nl+200, .false.)
+      call re_allocate (lines, nl+200, .false.)
       call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
       nl=nl+1; write(lines(nl), '(i5, 2x, 2a, i0, a, i0, a, t50, a)') v1_ptr%ix_v1, &
                       trim(v1_ptr%name), '[', lbound(v1_ptr%v, 1), ':', &
@@ -2100,7 +2100,7 @@ case ('variable')
     do i = 1, size(v_array)
       v_ptr => v_array(i)%v
       if (.not. v_ptr%exists) cycle
-      call re_allocate (lines, len(lines(1)), nl+200, .false.)
+      call re_allocate (lines, nl+200, .false.)
       nl=nl+1
       write(lines(nl), '(i6, 2x, a)') v_ptr%ix_v1, tao_var_attrib_name(v_ptr)
       write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, &

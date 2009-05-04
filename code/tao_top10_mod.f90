@@ -307,7 +307,7 @@ type (constraint_struct), allocatable, save :: con(:)
 
 ! Init
  
-call re_allocate (line, 200, 100)
+call re_allocate (line, 100)
 this_merit = tao_merit()
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
@@ -440,7 +440,7 @@ nl=nl+1; line(nl) = l1
 fmt  = '(a, 2x, a, 2x, a, 2x, a, es11.3, es12.3, es10.2, 2x, a)'
 fmt2 =               '(a, 2x, a, es11.3, es12.3, es10.2, 2x, a)'
 
-call re_allocate (line, 200, nl+n_max+100)
+call re_allocate (line, nl+n_max+100)
 do j = 1, n_max
   i = ixm(j)
   if (con(i)%expression) then

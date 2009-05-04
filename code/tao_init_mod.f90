@@ -1261,7 +1261,7 @@ do
   if (ios < 0) exit
   n = n + 1
   if (n >= size(default_key_b)) then
-    call re_allocate (default_key_b, len(default_key_b(1)), 2*size(default_key_b))
+    call re_allocate (default_key_b, 2*size(default_key_b))
     call re_allocate (default_key_d, 2*size(default_key_d))
   endif
   default_key_b(n) = default_key_bound
@@ -1564,7 +1564,7 @@ if (search_for_lat_eles /= '') then
         call find_indexx(ele_name, ele_names, an_indexx, num_ele, ixm, ix2m)
         if (ixm == 0) then
           if (num_ele+1 > size(ele_names)) then
-            call re_allocate(ele_names, len(ele_names(1)), size(ele_names) + 100)
+            call re_allocate(ele_names, size(ele_names) + 100)
             call re_allocate(an_indexx, size(an_indexx) + 100)
           endif
           an_indexx(ix2m+1:num_ele+1) = an_indexx(ix2m:num_ele)

@@ -179,8 +179,8 @@ logical err
 
 ! Init
 
-call re_allocate(picked, lbound(s%u, 1), ubound(s%u, 1))
-call re_allocate(p, -1, ubound(s%u, 1))
+call re_allocate2 (picked, lbound(s%u, 1), ubound(s%u, 1))
+call re_allocate2 (p, -1, ubound(s%u, 1))
 
 err = .false.
 picked = .false.
