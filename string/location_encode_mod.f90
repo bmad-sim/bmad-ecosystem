@@ -11,7 +11,7 @@ module location_encode_mod
 ! Modules needed:
 !   use location_encode_mod
 ! 
-! Input (for location_decode1):
+! Input (for location_encode1):
 !   loc(ix_min:)    -- logcial: Array of locations.
 !                        loc(I) = True means include in the location string
 !   exists(ix_min:) -- logical: Array of locations that are relavent.
@@ -21,7 +21,7 @@ module location_encode_mod
 !   separator       -- Character(*), optional: Separator string between numbers.
 !                       Default is a space: " ".
 !
-! Input (for location_decode2):
+! Input (for location_encode2):
 !   loc_array(:) -- Integer: Array of locations. 
 !                     It is assumed that loc_array(i) is in increasing order.
 !   separator       -- Character(*), optional: Separator string between numbers.
