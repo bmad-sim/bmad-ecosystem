@@ -808,6 +808,7 @@ do
   do i = 1, branch0%n_ele_track
     if (branch0%ele(i)%key /= photon_branch$ .and. branch0%ele(i)%key /= branch$) cycle
     n = n + 1
+    branch0%ele(i)%value(ix_branch_to$) = n
     call allocate_branch_array (lat%branch, n)
     branch0 => lat%branch(n0)
     branch => lat%branch(n)
@@ -860,6 +861,25 @@ endif
 
 if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
+if (.not. bp_com%error_flag) then
+            
+  call check_lat_controls (lat, .true.)
+
+  ! write to digested file
+
+  bp_com%write_digested = bp_com%write_digested .and. &
+                                  digested_version <= bmad_inc_version$
+  if (bp_com%write_digested) call write_digested_bmad_file (digested_file, &
+                              lat, bp_com%num_lat_files, bp_com%lat_file_names)
+endif
+
+call parser_end_stuff ()
+
+!---------------------------------------------------------------------
+contains
+
+subroutine parser_end_stuff ()
+
 ! deallocate pointers
 
 do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
@@ -890,28 +910,6 @@ if (allocated (in_lat%control))  deallocate (in_lat%control)
 if (allocated (in_lat%ic))       deallocate (in_lat%ic)
 if (allocated (used_line))       deallocate (used_line)
 if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
-
-! error check
-
-if (bp_com%error_flag) then
-  call parser_end_stuff
-  return
-endif
-            
-call check_lat_controls (lat, .true.)
-
-! write to digested file
-
-bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
-if (bp_com%write_digested) call write_digested_bmad_file (digested_file, &
-                              lat, bp_com%num_lat_files, bp_com%lat_file_names)
-
-call parser_end_stuff
-
-!---------------------------------------------------------------------
-contains
-
-subroutine parser_end_stuff ()
 
 if (bp_com%error_flag) then
   if (bmad_status%exit_on_error) then

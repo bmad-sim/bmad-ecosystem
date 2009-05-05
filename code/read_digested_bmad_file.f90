@@ -120,7 +120,7 @@ do i = 1, n_files
   new_time_stamp = ''
   stat_b = 0
 
-  read (d_unit, err = 9020) fname_read, idate_old
+  read (d_unit, err = 9020, end = 9020) fname_read, idate_old
 
 #if defined (CESR_VMS) 
   ix = index(fname_read, '@')

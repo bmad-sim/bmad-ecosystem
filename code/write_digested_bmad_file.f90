@@ -10,9 +10,9 @@
 !
 ! Input:
 !     digested_name -- Character(*): Name for the digested file.
-!     lat          -- lat_struct: Input lat structure.
+!     lat           -- lat_struct: Input lat structure.
 !     n_files       -- Integer, optional: Number of original files
-!     file_names(*) -- Character(*), optional: Names of the original 
+!     file_names(:) -- Character(*), optional: Names of the original 
 !                       files used to create the lat structure.
 !-
 

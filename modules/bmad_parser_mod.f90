@@ -142,7 +142,7 @@ type bp_common_struct
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
-  character, allocatable :: lat_file_names(:)   ! List of all files used to create lat
+  character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
@@ -970,8 +970,8 @@ if (how == 'init') then
   bp_com%dirs(2) = file_name
   file(:)%dir = file_name
   if (present(err)) err = .false.
-  return
   if (.not. allocated(bp_com%lat_file_names)) allocate(bp_com%lat_file_names(100))
+  return
 endif
 
 ! "push" means open a file and put its name on the stack.

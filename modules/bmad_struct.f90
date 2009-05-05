@@ -142,6 +142,13 @@ type xy_disp_struct
   real(rp) eta, etap
 end type
 
+! Structure to encode the location of an element in a lat_struct
+
+type lat_ele_loc_struct
+  integer ix_branch
+  integer ix_ele
+end type
+
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct
@@ -377,7 +384,7 @@ integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 !          c11$ = 18, c12$ = 19, c21$ = 20, c22$ = 21
 
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
-integer, parameter :: tilt$=2, command$=2
+integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
 integer, parameter :: direction$=3, graze_angle$=3
 integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4

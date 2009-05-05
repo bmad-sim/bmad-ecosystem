@@ -1,6 +1,9 @@
 !+
 ! Subroutine elements_locator (ele_name, lat, indx, err)
 !
+! NOTE: THIS ROUTINE IS DEPRECATED SINCE IT DOES NOT WORK WITH BRANCHES.
+! USE LAT_ELEMENT_LOCATOR INSTEAD.
+!
 ! Subroutine to locate all the elements of a certain key 
 ! and certain name. ele_name is of the form:
 !   <key>:<name> 

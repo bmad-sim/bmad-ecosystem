@@ -107,6 +107,14 @@ type_zero = logic_option(.false., type_zero_attrib)
 ! Encode element name and type
 
 nl = 0  
+
+if (ele%ix_branch /= 0) then
+  if (present(lattice)) then
+    nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch, ': ', lattice%branch(ele%ix_branch)%name
+  else
+    nl=nl+1; write (li(nl), *) 'Branch #', ele%ix_branch
+  endif
+endif
 nl=nl+1; write (li(nl), *) 'Element #', ele%ix_ele
 nl=nl+1; write (li(nl), *) 'Element Name: ', ele%name
 
@@ -311,6 +319,23 @@ if (ele%n_lord /= ele%ic2_lord - ele%ic1_lord + 1) then
   nl = nl + 3
 endif
 
+! Encode branch info
+
+if (ele%key == branch$ .or. ele%key == photon_branch$) then
+  
+  if (li(nl) /= '') then
+    nl=nl+1; li(nl) = ' '
+  endif
+
+  n = nint(ele%value(ix_branch_to$))
+  if (present(lattice)) then
+    nl=nl+1; write (li(nl), *) 'Branch to:', n, ' (', trim(lattice%branch(n)%name), ')'
+  else
+    nl=nl+1; write (li(nl), *) 'Branch to:', n
+  endif
+
+endif
+
 ! Encode slave info.
 ! For super_lords there is no attribute_name associated with a slave.
 ! For slaves who are overlay_lords then the attribute_name is obtained by
@@ -324,7 +349,7 @@ if (logic_option(present(lattice), type_control)) then
   endif
 
   if (li(nl) /= '') then
-    nl=nl+1; write (li(nl), *) ' '
+    nl=nl+1; li(nl) = ' '
   endif
 
   if (ele%lord_status <= 0) then
