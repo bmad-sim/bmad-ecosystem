@@ -105,7 +105,7 @@ if (bmad_status%ok) then
   call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
   if (lat%input_taylor_order == bmad_com%taylor_order) then
     if (present(digested_read_ok)) digested_read_ok = .true.
-    call parser_end_stuff ()
+    call parser_end_stuff (.false.)
     return
   else
     if (bmad_status%type_out) then
@@ -221,7 +221,7 @@ parsing_loop: do
     call get_next_word(word_2, ix_word, ':(=,)', delim, delim_found, .true.)
     if (ix_word == 0) then 
       call warning ('NO BEAM LINE SPECIFIED WITH "USE"', ' ')
-      call parser_end_stuff
+      call parser_end_stuff ()
       return
     endif
     call verify_valid_name(word_2, ix_word)
@@ -416,7 +416,7 @@ parsing_loop: do
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
     call warning ('NO NAME FOUND AFTER: ' // word_1, ' ')
-    call parser_end_stuff
+    call parser_end_stuff 
     return
   endif
 
@@ -609,7 +609,7 @@ enddo
 if (present (use_line)) call str_upcase (lat%name, use_line)
 if (lat%name == blank_name$) then
   call warning ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
-  call parser_end_stuff
+  call parser_end_stuff ()
   return
 endif
 
@@ -619,7 +619,7 @@ call parser_expand_line (0, lat, lat%name, sequence, in_name, in_indexx, &
                 seq_name, seq_indexx, in_lat%ele, used_line, n_ele_use)
 
 if (bp_com%error_flag) then
-  call parser_end_stuff
+  call parser_end_stuff ()
   return
 endif
 
@@ -878,38 +878,44 @@ call parser_end_stuff ()
 !---------------------------------------------------------------------
 contains
 
-subroutine parser_end_stuff ()
+subroutine parser_end_stuff (do_dealloc)
+
+logical, optional :: do_dealloc
 
 ! deallocate pointers
 
-do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
-  if (associated (plat%ele(i)%name)) then
-    deallocate(plat%ele(i)%name)
-    deallocate(plat%ele(i)%attrib_name)
-    deallocate(plat%ele(i)%coef)
-  endif
-enddo
+if (logic_option (.true., do_dealloc)) then
 
-do i = 1, size(sequence(:))
-  if (associated (sequence(i)%dummy_arg)) &
-            deallocate(sequence(i)%dummy_arg, sequence(i)%corresponding_actual_arg)
-  if (associated (sequence(i)%ele)) then
-    do j = 1, size(sequence(i)%ele)
-      if (associated (sequence(i)%ele(j)%actual_arg)) &
-                            deallocate(sequence(i)%ele(j)%actual_arg)
-    enddo
-    deallocate(sequence(i)%ele)
-  endif
-enddo
+  do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
+    if (associated (plat%ele(i)%name)) then
+      deallocate(plat%ele(i)%name)
+      deallocate(plat%ele(i)%attrib_name)
+      deallocate(plat%ele(i)%coef)
+    endif
+  enddo
 
-if (associated (in_lat%ele))     call deallocate_lat_pointers (in_lat)
-if (associated (plat%ele))       deallocate (plat%ele)
-if (allocated (seq_indexx))      deallocate (seq_indexx, seq_name)
-if (allocated (in_indexx))       deallocate (in_indexx, in_name)
-if (allocated (in_lat%control))  deallocate (in_lat%control)
-if (allocated (in_lat%ic))       deallocate (in_lat%ic)
-if (allocated (used_line))       deallocate (used_line)
-if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
+  do i = 1, size(sequence(:))
+    if (associated (sequence(i)%dummy_arg)) &
+              deallocate(sequence(i)%dummy_arg, sequence(i)%corresponding_actual_arg)
+    if (associated (sequence(i)%ele)) then
+      do j = 1, size(sequence(i)%ele)
+        if (associated (sequence(i)%ele(j)%actual_arg)) &
+                              deallocate(sequence(i)%ele(j)%actual_arg)
+      enddo
+      deallocate(sequence(i)%ele)
+    endif
+  enddo
+
+  if (associated (in_lat%ele))     call deallocate_lat_pointers (in_lat)
+  if (associated (plat%ele))       deallocate (plat%ele)
+  if (allocated (seq_indexx))      deallocate (seq_indexx, seq_name)
+  if (allocated (in_indexx))       deallocate (in_indexx, in_name)
+  if (allocated (in_lat%control))  deallocate (in_lat%control)
+  if (allocated (in_lat%ic))       deallocate (in_lat%ic)
+  if (allocated (used_line))       deallocate (used_line)
+  if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
+
+endif
 
 if (bp_com%error_flag) then
   if (bmad_status%exit_on_error) then
