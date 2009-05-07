@@ -81,10 +81,10 @@ interface
 end interface
  
 interface
-  function even (num)
+  function even (num) result (is_even)
     implicit none
     integer num
-    logical even
+    logical is_even
   end function
 end interface
  
@@ -185,27 +185,27 @@ interface
 end interface
  
 interface
-  function index_nocase(string1, string2)
+  function index_nocase(string1, string2) result (indx)
     implicit none
-    integer index_nocase
+    integer indx
     character(*) string1
     character(*) string2
   end function
 end interface
  
 interface
-  function integer_read(error_message)
+  function integer_read(error_message) result (int_read)
     implicit none
-    integer integer_read
+    integer int_read
     character(*) error_message
   end function
 end interface
  
 interface
-  function inverse (funct, y, x1, x2, tol)
+  function inverse (funct, y, x1, x2, tol) result (x)
     use precision_def
     implicit none
-    real(rp) inverse 
+    real(rp) x 
     real(rp) y, x1, x2, tol
     interface
       function funct(x)
@@ -217,10 +217,10 @@ interface
 end interface
  
 interface
-  function inverse_prob (val)
+  function inverse_prob (val) result (prob)
     use precision_def
     implicit none
-    real(rp) inverse_prob 
+    real(rp) prob 
     real(rp) val
   end function
 end interface
@@ -304,8 +304,9 @@ interface
 end interface
  
 interface
-  logical function match_wild (string, template)
+  function match_wild (string, template) result (is_match)
     implicit none
+    logical is_match
     character(*) string
     character(*) template
   end function
@@ -371,18 +372,18 @@ interface
 end interface
  
 interface
-  function odd (num)
+  function odd (num) result (is_odd)
     implicit none
     integer num
-    logical odd
+    logical is_odd
   end function
 end interface
  
 interface
-  function probability_funct(x)
+  function probability_funct(x) result (prob)
     use precision_def
     implicit none
-    real(rp) probability_funct
+    real(rp) prob
     real(rp) x
   end function
 end interface
@@ -506,9 +507,9 @@ interface
 end interface
  
 interface
-  function word_len (wording)
+  function word_len (wording) result (wlen)
     implicit none
-    integer word_len 
+    integer wlen 
     character(*) wording
   end function
 end interface
@@ -566,9 +567,9 @@ interface
 end interface
 
 interface
-   function match_reg(str, pat)
+   function match_reg(str, pat) result (is_match)
      implicit none
-     logical match_reg
+     logical is_match
      character(*) str, pat
    end function match_reg
 end interface
