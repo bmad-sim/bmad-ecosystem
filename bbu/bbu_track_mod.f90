@@ -30,7 +30,9 @@ type bbu_param_struct
   real(rp) current
   real(rp) rel_tol
   integer num_stages_tracked_per_power_calc
-  logical prstab2004
+  logical drscan
+  integer elindex
+  character*40 elname
   integer nstep
   real(rp) begdr
   real(rp) enddr

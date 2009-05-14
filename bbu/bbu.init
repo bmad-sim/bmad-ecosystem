@@ -4,15 +4,20 @@
   bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
   bbu_param%init_hom_amp = 1e-6        ! Initial wake amplitude        
   bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
-  bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
+  bbu_param%hybridize = .false.         ! Combine non-hom elements to speed up simulation?
   bbu_param%current = 20e-3            ! Starting current (amps)
   bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
   bbu_param%write_hom_info = .true.  
   bbu_param%num_stages_tracked_per_power_calc = 100 
-  bbu_param%prstab2004 = .false.        ! If true, produce PRSTAB 7 (2004) Fig. 3. Use lattice prstab2004.lat.
-  bbu_param%nstep = 10
-  bbu_param%begdr = 5.234
-  bbu_param%enddr = 6.135
+  bbu_param%drscan = .true.        ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
+  bbu_param%elname = 'T1'
+  bbu_param%nstep = 50
+! PRSTAB 2004
+!  bbu_param%begdr = 5.234
+!  bbu_param%enddr = 6.135
+  bbu_param%begdr = 3.
+  bbu_param%enddr = 4.
 
   beam_init%n_particle = 1
 /
+  bbu_param%lat_file_name = 'cerl7.4_1hom_1cav_taylor.bmad'  ! Bmad lattice file name

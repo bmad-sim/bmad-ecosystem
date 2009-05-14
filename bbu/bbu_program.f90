@@ -37,7 +37,7 @@ bbu_param%current = 20e-3            ! Starting current (amps)
 bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
 bbu_param%num_stages_tracked_per_power_calc = 100 
-bbu_param%prstab2004 = .true.        ! If true, produce PRSTAB 7 (2004) Fig. 3.
+bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
 bbu_param%nstep = 100
 bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
@@ -51,29 +51,44 @@ close (1)
 ! Define distance between bunches
 beam_init%ds_bunch = c_light / bbu_param%bunch_freq
 
-nstep = 1
-if (bbu_param%prstab2004) then
-  ! Open PRSTAB 2004 output file 
-  ! for threshold current calculation comparison
-  open (50, file = 'prstab2004.out', status = 'unknown') 
-  nstep = bbu_param%nstep
-endif
-
 ! Init
 
 print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
 
+! Initialize DR scan
+
+nstep = 1
+if (bbu_param%drscan) then
+! Determine element index of variable-length element
+  do i = 1, lat_in%n_ele_max
+    if (lat_in%ele(i)%name .eq. bbu_param%elname)then
+      bbu_param%elindex = i
+      write(6,'(a,i6,a,a40)')&
+            ' Element index ',i,' found for DR scan element ',bbu_param%elname
+! Open DRSCAN output file for threshold current calculation comparison
+      open (50, file = 'drscan.out', status = 'unknown') 
+      nstep = bbu_param%nstep
+      exit  ! Exit loop over elements
+    else
+      cycle ! Continue loop over elements
+    endif
+    print *,' No DR scan element found, disabling scan'
+    bbu_param%drscan = .false.
+  enddo
+endif
+
 do istep = 1, nstep
 
-  if (bbu_param%prstab2004) then
+  if (bbu_param%drscan) then
     ! Change length of taylor element
     deldr = 0.0
     if(nstep > 1) deldr = (bbu_param%enddr - bbu_param%begdr)/(nstep-1)
     dr = bbu_param%begdr + (istep-1) * deldr
-    lat_in%ele(6)%value(l$) = dr * c_light / bbu_param%bunch_freq
-    print *,' PRSTAB2004 analysis step: tr/tb, taylor length = ', dr, lat_in%ele(6)%value(l$)
+    lat_in%ele(bbu_param%elindex)%value(l$) = dr * c_light / bbu_param%bunch_freq
+    write(6,'(a,2f8.3)')' DRSCAN analysis step: tr/tb, scan element length = ', &
+                 dr, lat_in%ele(bbu_param%elindex)%value(l$)
     call lattice_bookkeeper(lat_in)
   endif
 
@@ -172,10 +187,10 @@ do istep = 1, nstep
   beam_init%bunch_charge = (charge0 + charge1) / 2
   print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
-  if (bbu_param%prstab2004) write(50,*) dr, currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  if (bbu_param%drscan) write(50,*) dr, currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
 enddo
 
-if(bbu_param%prstab2004)close(50)
+if(bbu_param%drscan)close(50)
 
 end program
