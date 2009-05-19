@@ -48,7 +48,7 @@ sigma curr1=log(curr1)
 sigma curr2=log(curr2)
 *
 *title_g 'BBU Threshold Current: Comparison of Analytic Approximation to BMAD Tracking'
-title_g 'BBU Threshold Current: CERL7.4 Single HOM in One Cavity'
+title_g 'BBU Threshold Current - Job'//[jobid]//' - CERL7.4 Single HOM in One Cavity'
 
 
 *null 5.2 6.14 -3.2 4
