@@ -159,7 +159,7 @@ logical, allocatable, save :: action_logic(:)
         endif
         if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1) .and. action_logic(j)) then
           call find_ele_and_ref_ele (wrt_what, i, j, ref_ele, ele)
-          if (.not. attribute_free (j, ix_attrib, s%u(i)%model%lat)) cycle
+          if (.not. attribute_free (j, ele_attrib, s%u(i)%model%lat)) cycle
           if (rel_error) then
             if (rel_sbend_error_flag) then
               ele%value(ix_attrib) = ref_ele%value(g$) * gauss_err() * misalign_value_num

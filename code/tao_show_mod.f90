@@ -143,7 +143,6 @@ type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
-type (branch_struct), pointer :: branch
 type (beam_struct), pointer :: beam
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
@@ -154,6 +153,8 @@ type (ele_struct), target :: ele3
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (branch_struct), pointer :: branch
 
 type show_lat_column_struct
   character(80) name
@@ -194,11 +195,10 @@ character(n_char) line, line1, line2, line3
 character(n_char) stuff2
 character(9) angle
 
-integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2
+integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1, n_tot, ix_p, ix_word
-integer, allocatable, save :: ix_eles(:)
 
 logical bmad_format, good_opt_only
 logical err, found, at_ends, first_time, by_s, print_header_lines
@@ -212,7 +212,6 @@ namelist / custom_show_list / column
 
 !
 
-call re_allocate (ix_eles, 1)
 call re_allocate (lines, 200)
 
 err = .false.
@@ -354,9 +353,9 @@ case ('beam')
     call tao_pick_universe (word1, word1, picked_uni, err, ix_u)
     if (err) return
     u => s%u(ix_u)
-    call tao_locate_elements (word1, ix_u, ix_eles)
-    ix_ele = ix_eles(1)
-    if (ix_ele < 0) return
+    call tao_locate_elements (word1, ix_u, locs, err)
+    if (err .or. size(locs) == 0) return
+    ix_ele = locs(1)%ix_ele
     n = s%global%bunch_to_plot
     bunch_p => u%model%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
@@ -478,6 +477,7 @@ case ('curve')
     nl=nl+1; write (lines(nl), amt)  'data_type            = ', c1%data_type
     nl=nl+1; write (lines(nl), amt)  'legend_text          = ', c1%legend_text
     nl=nl+1; write (lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
+    nl=nl+1; write (lines(nl), imt)  'ix_branch            = ', c1%ix_branch
     nl=nl+1; write (lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
     nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
     nl=nl+1; write (lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
@@ -607,6 +607,7 @@ case ('data')
     nl=nl+1; write(lines(nl), amt)  '%ele_name          = ', d_ptr%ele_name
     nl=nl+1; write(lines(nl), amt)  '%data_type         = ', d_ptr%data_type
     nl=nl+1; write(lines(nl), amt)  '%data_source       = ', d_ptr%data_source
+    nl=nl+1; write(lines(nl), imt)  '%ix_branch         = ', d_ptr%ix_branch
     nl=nl+1; write(lines(nl), imt)  '%ix_ele0           = ', d_ptr%ix_ele0
     nl=nl+1; write(lines(nl), imt)  '%ix_ele            = ', d_ptr%ix_ele
     nl=nl+1; write(lines(nl), imt)  '%ix_ele_merit      = ', d_ptr%ix_ele_merit
@@ -818,23 +819,23 @@ case ('element')
     n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
-      call tao_ele_locations_given_name (s%u(i_uni), ele_name, ix_eles, err, .true.)
+      call tao_locate_elements (ele_name, i_uni,locs, err, .true.)
       if (err) return
       lat => s%u(i_uni)%model%lat
-      n_tot = n_tot + size(ix_eles)
-      do i = 1, size(ix_eles)
-        loc = ix_eles(i)
+      n_tot = n_tot + size(locs)
+      do i = 1, size(locs)
+        ele => pointer_to_ele (lat, locs(i))
         if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
         if (count(picked_uni) > 1) then
           nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') &
-                                                loc, i_uni, '@', lat%ele(loc)%name
+                                                locs(i)%ix_ele, i_uni, '@', ele%name
         else
-          nl=nl+1; write (lines(nl), '(i8, 2x, a)') loc, lat%ele(loc)%name
+          nl=nl+1; write (lines(nl), '(i8, 2x, a)') locs(i)%ix_ele, ele%name
         endif
       enddo
     enddo
 
-    deallocate(ix_eles)
+    deallocate(locs)
     nl=nl+1; write (lines(nl), '(a, i0)') 'Number of Matches: ', n_tot
 
     if (nl == 0) then
@@ -850,15 +851,14 @@ case ('element')
   ! No wildcard case...
   ! Normal: Show the element info
 
-  call tao_locate_elements (ele_name, ix_u, ix_eles)
-  loc = ix_eles(1)
-  if (loc < 0) return
-  ele => s%u(ix_u)%model%lat%ele(loc)
+  call tao_locate_elements (ele_name, ix_u, locs, err)
+  if (err) return
+  ele => pointer_to_ele (s%u(ix_u)%model%lat, locs(1))
 
   ! Show data associated with this element
 
   if (print_data) then
-    call show_ele_data (u, loc, lines, nl)
+    call show_ele_data (u, locs(1), lines, nl)
     result_id = 'element:data'
     return
   endif
@@ -878,7 +878,7 @@ case ('element')
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
   endif
 
-  orb = u%model%orb(loc)
+  orb = u%model%orb_branch(locs(1)%ix_branch)%orbit(locs(1)%ix_ele)
   fmt = '(2x, a, 3p2f15.8)'
   lines(nl+1) = ' '
   lines(nl+2) = 'Orbit: [mm, mrad]'
@@ -888,14 +888,21 @@ case ('element')
   nl = nl + 5
 
   found = .false.
-  do i = loc + 1, lat%n_ele_max
-    if (lat%ele(i)%name /= ele_name) cycle
+  do i = 2, size(locs)
     if (size(lines) < nl+2) call re_allocate (lines, nl+10, .false.)
     if (found) then
       nl=nl+1; lines(nl) = ''
       found = .true.
-    endif 
-    nl=nl+1;  write (lines(nl), '(a, i0)') 'Note: Found another element with same name at: ', i
+    endif
+    nl=nl+1
+    if (locs(i)%ix_branch == 0) then
+      write (lines(nl), '(a, i0)') &
+              'Note: Found another element with same name at: ', locs(i)%ix_ele
+    else
+      write (lines(nl), '(a, i0, a,i0)') &
+              'Note: Found another element with same name at: ', &
+              locs(i)%ix_branch, '.', locs(i)%ix_ele
+    endif
   enddo
 
   result_id = show_what
@@ -1111,8 +1118,7 @@ case ('lattice')
   by_s = .false.
   print_header_lines = .true.
   ele_name = ''
-  if (allocated (picked_ele)) deallocate (picked_ele)
-  allocate (picked_ele(0:lat%n_ele_max))
+  ix_branch = 0
 
   ! get command line switches
 
@@ -1120,7 +1126,15 @@ case ('lattice')
   do
     if (ix <= 1) exit
 
-    if (index('-middle', stuff2(1:ix)) == 1) then
+    if (index('-branch', stuff2(1:ix)) == 1) then
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      read (stuff2(1:ix), *, iostat = ios) ix_branch
+      if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
+        nl=1; lines(1) = ''
+        return
+      endif
+
+    elseif (index('-middle', stuff2(1:ix)) == 1) then
       at_ends = .false.
 
     elseif (index('-no_header', stuff2(1:ix)) == 1) then
@@ -1158,15 +1172,18 @@ case ('lattice')
     call string_trim(stuff2(ix+1:), stuff2, ix)
   enddo
   
+  branch => lat%branch(ix_branch)
+
   ! Find elements to use
 
-  call re_allocate2 (picked_ele, 0, lat%n_ele_max)
+  if (allocated (picked_ele)) deallocate (picked_ele)
+  allocate (picked_ele(0:branch%n_ele_max))
 
   if (ele_name /= '') then
-    call tao_ele_locations_given_name (u, ele_name, ix_eles, err, .true.)
+    call tao_locate_elements (ele_name, u%ix_uni, locs, err, .true.)
     if (err) return
     picked_ele = .false.
-    picked_ele(ix_eles) = .true.
+    picked_ele(locs%ix_ele) = .true.
 
   elseif (ix == 0 .or. stuff2(1:ix) == 'all') then
     picked_ele = .true.
@@ -1185,11 +1202,11 @@ case ('lattice')
     endif
 
     picked_ele = .false.
-    do ie = 1, lat%n_ele_track
+    do ie = 1, branch%n_ele_track
       if (at_ends) then;
-        s_ele = lat%ele(ie)%s
+        s_ele = branch%ele(ie)%s
       else
-        s_ele = (lat%ele(ie-1)%s + lat%ele(ie)%s) / 2
+        s_ele = (branch%ele(ie-1)%s + branch%ele(ie)%s) / 2
       endif
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
@@ -1219,10 +1236,10 @@ case ('lattice')
     column(i)%format = '(' // trim(column(i)%format) // ')'
 
     if (column(i)%name == 'ele::#[name]' .and. column(i)%field_width == 0) then
-      do ie = 0, lat%n_ele_track
+      do ie = 0, branch%n_ele_track
         if (.not. picked_ele(ie)) cycle
         column(i)%field_width = &
-                  max(column(i)%field_width, len_trim(lat%ele(ie)%name)+1)
+                  max(column(i)%field_width, len_trim(branch%ele(ie)%name)+1)
       enddo
     endif
 
@@ -1288,12 +1305,12 @@ case ('lattice')
     endif
   endif
 
-  do ie = 0, lat%n_ele_track
+  do ie = 0, branch%n_ele_track
     if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
     line = ''
     nc = 1
-    ele => u%model%lat%ele(ie)
+    ele => branch%ele(ie)
     do i = 1, size(column)
       name = column(i)%name
       if (name == '') cycle
@@ -1405,10 +1422,11 @@ case ('optimizer')
 
 case ('orbit')
 
-  read (word1, *, iostat = ios) ix
-  nl=nl+1; write (lines(nl), imt) '  Orbit at Element:', ix
+  call tao_locate_elements (word1, u%ix_uni, locs, err)
+  if (err) return
   do i = 1, 6
-    nl=nl+1; write (lines(nl), rmt) '     ', u%model%orb(ix)%vec(i)
+    nl=nl+1; write (lines(nl), rmt) '     ', &
+                u%model%orb_branch(locs(1)%ix_branch)%orbit%vec(locs(1)%ix_ele)
   enddo
 
   result_id = show_what
@@ -1466,17 +1484,16 @@ case ('particle')
   if (ele_name /= '') then
     call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
-    call tao_locate_elements (ele_name, ix_u, ix_eles)
-    ix_ele = ix_eles(1)
-    if (ix_ele < 0) return
+    call tao_locate_elements (ele_name, ix_u, locs, err)
+    if (err) return
   endif
 
-  if (.not. allocated(u%ele(ix_ele)%beam%bunch)) then
+  if (.not. allocated(u%ele(locs(1)%ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
     return
   endif
 
-  if (nb < 1 .or. nb > size(u%ele(ix_ele)%beam%bunch)) then
+  if (nb < 1 .or. nb > size(u%ele(locs(1)%ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = (/ nb /))
     return
   endif
@@ -1690,26 +1707,25 @@ case ('taylor_map')
     ix2 = lat%n_ele_track
     ix1 = 0
   else
-    call tao_locate_elements (ele1, u%ix_uni, ix_eles)
-    if (size(ix_eles) > 1) then
+    call tao_locate_elements (ele1, u%ix_uni, locs, err)
+    if (size(locs) > 1) then
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
       return
     endif
-    ix1 = ix_eles(1)
-    if (ix1 < 0) return
+    if (err) return
+    ix1 = locs(1)%ix_ele
   endif
 
   if (ele2 == '') then
     ix2 = ix1
     ix1 = 0
   else
-    call tao_locate_elements (ele2, u%ix_uni, ix_eles)
-    if (size(ix_eles) > 1) then
+    call tao_locate_elements (ele2, u%ix_uni, locs, err)
+    if (size(locs) > 1) then
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
       return
     endif
-    ix2 = ix_eles(1)
-    if (ix2 < 0) return
+    if (err .or. size(locs) == 0) return
   endif
 
   call transfer_map_calc (lat, taylor, ix1, ix2)
@@ -1819,9 +1835,9 @@ case ('universe')
   endif
  
   call radiation_integrals (lat, &
-                                u%model%orb, u%model%modes, u%ix_rad_int_cache)
+                     u%model%orb_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, &
-                                u%design%orb, u%design%modes, u%ix_rad_int_cache)
+                     u%design%orb_branch(0)%orbit, u%design%modes, u%ix_rad_int_cache)
   if (lat%param%lattice_type == circular_lattice$) then
     call chrom_calc (lat, delta_e, &
                         u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
@@ -2028,6 +2044,7 @@ case ('variable')
       do i = 1, size(v_ptr%this)
         nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_uni:        ', &
                                                             v_ptr%this(i)%ix_uni
+        nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_branch:     ', v_ptr%this(i)%ix_branch
         nl=nl+1; write(lines(nl), iimt)  '%this(', i, ')%ix_ele:        ', v_ptr%this(i)%ix_ele
         if (associated (v_ptr%this(i)%model_value)) then
           nl=nl+1; write(lines(nl), irmt)  '%this(', i, ')%Model_value: ', &
@@ -2127,15 +2144,17 @@ end select
 !----------------------------------------------------------------------
 contains
 
-subroutine show_ele_data (u, i_ele, lines, nl)
+subroutine show_ele_data (u, loc, lines, nl)
 
 implicit none
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct), pointer :: datum
+type (lat_ele_loc_struct) loc
+
 character(*) :: lines(:)
 character(100) l1
-integer i_ele, nl, i
+integer nl, i
 
 logical found_one
 
@@ -2148,7 +2167,7 @@ nl=nl+1; lines(nl) = l1
 
 found_one = .false.
 do i = 1, size(u%data)
-  if (u%data(i)%ix_ele .eq. i_ele) then
+  if (u%data(i)%ix_ele == loc%ix_ele .and. u%data(i)%ix_branch == loc%ix_branch) then
     found_one = .true.
     datum => u%data(i)
     nl=nl+1; write (lines(nl), "(a, t30, a20, 3(1x, es15.5))") &

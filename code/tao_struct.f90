@@ -105,6 +105,7 @@ type tao_curve_struct
   type (qp_symbol_struct) symbol   ! Symbol attributes
   integer :: ix_universe = -1      ! Universe where data is. -1 => use s%global%u_view
   integer :: symbol_every = 1      ! Symbol every how many points.
+  integer :: ix_branch = 0
   integer :: ix_ele_ref = -1       ! Index in lattice of reference element.
   integer :: ix_ele_ref_track = -1 ! = ix_ele_ref except for super_lord elements.
   integer :: ix_bunch = 0          ! Bunch to plot.
@@ -246,13 +247,14 @@ type tao_data_struct
   character(100) data_type   ! Type of data: "orbit.x", etc.
   character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
   character(20) data_source  ! 'lattice', or 'beam'
+  integer ix_bunch           ! Bunch number to get the data from.
+  integer ix_branch          ! Index of the lattice branch of the element
   integer ix_ele             ! Index of the element in the lattice element array.
   integer ix_ele0            ! Index of lattice elment when there is a range or reference.
   integer ix_ele_merit       ! Index of lattice elment where merit is evaluated.
   integer ix_d1              ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer ix_data            ! Index of this datum in the u%data(:) array of data_structs.
   integer ix_dModel          ! Row number in the dModel_dVar derivative matrix.
-  integer ix_bunch           ! Bunch number to get the data from.
   real(rp) meas_value        ! Measured datum value. 
   real(rp) ref_value         ! Measured datum value from the reference data set.
   real(rp) model_value       ! Datum value as calculated from the model.
@@ -328,6 +330,7 @@ end type
 
 type tao_this_var_struct
   integer ix_uni            ! universe index.
+  integer :: ix_branch = 0
   integer ix_ele            ! Index of element in the u%lattice%ele(:) array.
   real(rp), pointer :: model_value => null() ! Pointer to the variable in the model lat.
   real(rp), pointer :: base_value => null()  ! Pointer to the variable in the base lat.
@@ -563,7 +566,7 @@ end type
 
 type tao_lattice_struct
   type (lat_struct) lat                           ! lattice structures
-  type (coord_struct), allocatable :: orb(:)
+  type (coord_array_struct), allocatable :: orb_branch(:)
   type (normal_modes_struct) modes                ! Synchrotron integrals stuff
   type (rad_int_common_struct) rad_int
   type (tao_lat_mode_struct) a, b
@@ -655,11 +658,11 @@ integer ix2
 !
 
 lat1%lat   = lat2%lat
-lat1%orb   = lat2%orb
 lat1%modes = lat2%modes
 lat1%a     = lat2%a
 lat1%b     = lat2%b
 lat1%bunch_params = lat2%bunch_params
+lat1%orb_branch   = lat2%orb_branch
 
 if (allocated(lat2%bunch_params2)) then
   ix2 = size(lat2%bunch_params2)

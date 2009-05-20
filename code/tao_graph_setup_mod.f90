@@ -501,13 +501,13 @@ type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_var_struct), pointer :: v_ptr
 type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_data_var_component_struct), allocatable, save :: comp(:)
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min
 real(rp), allocatable :: value(:)
 
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this
-integer, allocatable, save :: ix_ele(:)
 
 logical err, smooth_curve, found, zero_average_phase, ok, ref_or_meas, valid
 logical, allocatable, save :: good(:)
@@ -519,7 +519,7 @@ character(30) :: r_name = 'tao_data_graph_setup'
 !
 
 graph%valid = .false.
-call re_allocate (ix_ele, 1)
+call re_allocate_locs (locs, 1)
 
 graph%title_suffix = '[' // trim(graph%component) // ']'
 
@@ -559,16 +559,16 @@ do k = 1, size(graph%curve)
     curve%ix_ele_ref_track = 0
   else
     zero_average_phase = .false.
-    call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, ix_ele, .true.)
-    if (ix_ele(1) < 0) then
+    call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, locs, err, .true.)
+    if (err) then
       graph%why_invalid = 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name)
       return
     endif
-    curve%ix_ele_ref = ix_ele(1)
-    call tao_ele_ref_to_ele_ref_track(curve%ix_universe, ix_ele(1), curve%ix_ele_ref_track)
+    curve%ix_branch  = locs(1)%ix_branch
+    curve%ix_ele_ref = locs(1)%ix_ele
+    call tao_ele_to_ele_track(curve%ix_universe, locs(1)%ix_branch, &
+                                      locs(1)%ix_ele, curve%ix_ele_ref_track)
   endif
-
-
 
   !----------------------------------------------------------------------------
   ! Calculate where the symbols are to be drawn on the graph.
@@ -781,18 +781,21 @@ do k = 1, size(graph%curve)
         x_max = min(x_max, graph%x%max)
       endif 
       n_dat = max(0, nint(x_max+1-x_min))
-      call re_allocate (ix_ele, n_dat)
-      if (n_dat > 0) ix_ele = (/ (i, i = nint(x_min), nint(x_max)) /)
+      call re_allocate_locs (locs, n_dat)
+      if (n_dat > 0) then
+        locs%ix_ele    = (/ (i, i = nint(x_min), nint(x_max)) /)
+        locs%ix_branch = curve%ix_branch
+      endif
 
     elseif (plot%x_axis_type == 's') then
-      call re_allocate (ix_ele, 0)
+      call re_allocate_locs (locs, 0)
 
     else
       call out_io (s_error$, r_name, 'BAD PLOT%X_AXIS_TYPE: ' // plot%x_axis_type)
       call err_exit
     endif
 
-    call tao_curve_datum_calc (ix_ele, curve, 'SYMBOL', valid)
+    call tao_curve_datum_calc (locs, curve, 'SYMBOL', valid)
     if (.not. valid) return
 
   !----------------------------------------------------------------------------
@@ -890,21 +893,21 @@ do k = 1, size(graph%curve)
         endif
       enddo
       n_dat = count (model_lat%ele(:)%logic)
-      call re_allocate (ix_ele, n_dat)
-      ix_ele = pack(model_lat%ele(:)%ix_ele, mask = model_lat%ele(:)%logic)
+      call re_allocate_locs (locs, n_dat)
+      locs%ix_ele = pack(model_lat%ele(:)%ix_ele, mask = model_lat%ele(:)%logic)
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat
-        if (model_lat%ele(ix_ele(i))%s - l_tot > graph%x%min) then
-          ix_ele = (/ ix_ele(i:), ix_ele(:i-1) /)
+        if (model_lat%ele(locs(i)%ix_ele)%s - l_tot > graph%x%min) then
+          locs = (/ locs(i:), locs(:i-1) /)
           exit
         endif
       enddo
 
-      call tao_curve_datum_calc (ix_ele, curve, 'LINE', graph%valid)
+      call tao_curve_datum_calc (locs, curve, 'LINE', graph%valid)
       if (.not. graph%valid) return
 
       do i = 1, size(curve%x_line)
-        curve%x_line(i) = model_lat%ele(ix_ele(i))%s
+        curve%x_line(i) = model_lat%branch(locs(i)%ix_branch)%ele(locs(i)%ix_ele)%s
       enddo
 
     ! For all else just draw straight lines through the symbols.
@@ -973,7 +976,7 @@ logical err, good(:)
 data_type = curve%data_type
 
 lat => tao_lat%lat
-orb => tao_lat%orb
+orb => tao_lat%orb_branch(curve%ix_branch)%orbit
 ix0 = curve%ix_ele_ref_track
 if (ix0 < 0) ix0 = 0
 
@@ -1272,11 +1275,12 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_curve_datum_calc (ix_ele, curve, who, valid)
+! Subroutine tao_curve_datum_calc (locs, curve, who, valid)
 !
 ! Input:
-!   curve -- Tao_curve_struct:
-!   who   -- Character(*): Where to put the data. 
+!   locs(:)   -- lat_ele_loc_struct: Array of element indexes.
+!   curve     -- Tao_curve_struct:
+!   who       -- Character(*): Where to put the data. 
 !               Either: "SYMBOL" or "LINE".
 !
 ! Output:
@@ -1284,7 +1288,7 @@ end subroutine
 !   valid -- Logical: 
 !-
 
-subroutine tao_curve_datum_calc (ix_ele, curve, who, valid)
+subroutine tao_curve_datum_calc (locs, curve, who, valid)
 
 implicit none
 
@@ -1293,8 +1297,8 @@ type (tao_data_var_component_struct), allocatable, save :: comp(:)
 type (tao_universe_struct), pointer :: u
 type (tao_data_struct) datum
 type (taylor_struct) t_map(6)
+type (lat_ele_loc_struct), allocatable :: locs(:)
 
-integer, allocatable :: ix_ele(:)
 real(rp), allocatable, save :: y_value(:)
 real(rp) y_val
 
@@ -1310,7 +1314,7 @@ integer m, ie, n_dat
 ! calculate the y-axis data point values.
 
 u => tao_pointer_to_universe (curve%ix_universe)
-n_dat = size(ix_ele)
+n_dat = size(locs)
 
 call re_allocate (good, n_dat)   ! allocate space for the data
 call re_allocate (y_value, n_dat) ! allocate space for the data
@@ -1323,6 +1327,7 @@ datum%merit_type  = 'target'
 datum%data_type   = curve%data_type
 datum%ele0_name   = curve%ele_ref_name
 datum%data_source = curve%data_source
+datum%ix_branch   = curve%ix_branch
 
 call tao_split_component (curve%g%component, comp, err)
 if (err) return
@@ -1330,7 +1335,8 @@ do m = 1, size(comp)
 
   do ie = 1, n_dat
 
-    datum%ix_ele = ix_ele(ie)
+    datum%ix_ele = locs(ie)%ix_ele
+    datum%ix_branch = locs(ie)%ix_branch
 
     select case (comp(m)%name)
     case (' ') 
@@ -1374,16 +1380,16 @@ if (who == 'SYMBOL') then
   call re_allocate (curve%x_symb, n_dat) ! allocate space for the data
   call re_allocate (curve%y_symb, n_dat) ! allocate space for the data
   call re_allocate (curve%ix_symb, n_dat)
-  curve%x_symb  = pack(ix_ele, mask = good)
+  curve%x_symb  = pack(locs%ix_ele, mask = good)
   curve%y_symb  = pack(y_value, mask = good)
   curve%ix_symb = curve%x_symb
 else
   call re_allocate (curve%x_line, n_dat) ! allocate space for the data
   call re_allocate (curve%y_line, n_dat) ! allocate space for the data
-  curve%x_line  = pack(ix_ele, mask = good)
+  curve%x_line  = pack(locs%ix_ele, mask = good)
   curve%y_line  = pack(y_value, mask = good)
-  ix_ele(1:n_dat) = pack(ix_ele, mask = good)
-  call re_allocate (ix_ele, n_dat)
+  locs(1:n_dat) = pack(locs, mask = good)
+  call re_allocate_locs (locs, n_dat, .true.)
 endif
 
 valid = .true.

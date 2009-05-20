@@ -23,6 +23,7 @@ type (tao_curve_struct), pointer :: c
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
 type (tao_universe_struct), pointer :: u
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
 
 real(rp) scale
 
@@ -41,7 +42,6 @@ character(20) :: names(14) = (/ &
 
 integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam
-integer, allocatable, save :: ix_ele_at(:)
 
 logical is_open, ascii, ok, err, good_opt_only
 
@@ -83,10 +83,9 @@ case ('beam')
     if (switch == '') exit
     if (switch == '-ascii') ascii = .true.
     if (switch == '-at') then
-      call tao_locate_elements (what2(1:ix), s%global%u_view, ix_ele_at)
+      call tao_locate_elements (what2(1:ix), s%global%u_view, locs, err)
       what2 = what2(ix+1:)
-      loc = ix_ele_at(1)
-      if (loc < 0) return
+      if (err .or. size(locs) == 0) return
     endif
   enddo
 
@@ -109,7 +108,7 @@ case ('beam')
   ! Write file
 
     do j = lbound(u%ele, 1), ubound(u%ele, 1)
-      if (loc > -1 .and. loc /= j) cycle
+      if (locs(1)%ix_ele /= j) cycle
       beam => u%ele(j)%beam
       if (.not. allocated(beam%bunch)) cycle
 

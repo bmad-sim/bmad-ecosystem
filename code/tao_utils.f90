@@ -10,6 +10,7 @@ use tao_struct
 use tao_interface
 use bmad
 use output_mod
+use lat_ele_loc_mod
 
 contains
 
@@ -238,7 +239,7 @@ end subroutine tao_pick_universe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_elements (string, ix_universe, ix_ele, ignore_blank) 
+! Subroutine tao_locate_elements (string, ix_universe, locs, err, ignore_blank) 
 !
 ! Subroutine to find the lattice elements corresponding to the string argument.
 !
@@ -249,34 +250,35 @@ end subroutine tao_pick_universe
 !     string is blank. otherwise treated as an error.
 !
 ! Output:
-!   ix_ele  -- Integer(:), allocatable: Index array of elements. 
-!                         ix_ele(1) = -1 if element not found.
+!   locs  -- lat_ele_loc_struct(:), allocatable: Array of elements. 
+!   err   -- Logical: Set true on error.
 !-
 
-subroutine tao_locate_elements (string, ix_universe, ix_ele, ignore_blank)
+subroutine tao_locate_elements (string, ix_universe, locs, err, ignore_blank)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (lat_ele_loc_struct), allocatable :: locs(:)
 
 integer ios, ix, ix_universe, num, i, i_ix_ele
-integer, allocatable :: ix_ele(:)
 
 character(*) string
 character(40) ele_name
 character(20) :: r_name = 'tao_locate_elements'
 
+logical err
 logical, optional :: ignore_blank
 logical, allocatable, save :: here(:)
-logical error
 
 ! If it is a number translate it:
+
+err = .true.
 
 call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
 
-call re_allocate (ix_ele, 1)
-ix_ele = -1
+call re_allocate_locs (locs, 0)
 
 if (ix == 0 .and. logic_option(.false., ignore_blank)) return
 
@@ -288,28 +290,14 @@ endif
 u => tao_pointer_to_universe (ix_universe)
 if (.not. associated(u)) return
 
-if (is_integer(ele_name(1:1))) then ! must be an array of numbers
-  if (allocated (here)) deallocate(here)
-  allocate(here(0:u%model%lat%n_ele_max))
-  call location_decode(ele_name, here, 0, num) 
-  if (num < 0) then
-    call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE: ' // ele_name)
-    return
-  endif
-  call re_allocate (ix_ele, num)
-  i_ix_ele = 1
-  do i = 0, ubound(here,1)
-    if (here(i)) then
-      ix_ele(i_ix_ele) = i
-      i_ix_ele = i_ix_ele + 1
-    endif
-  enddo
+call lat_ele_locator (ele_name, u%model%lat, locs, err)
+if (err) return
+
+if (size(locs) == 0) then
+  call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
+  err = .true.
   return
 endif
-
-call element_locator (ele_name, u%model%lat, ix_ele(1))
-
-if (ix_ele(1) < 0) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
 
 end subroutine tao_locate_elements
 
@@ -670,6 +658,8 @@ type (lat_struct), pointer :: lat
 type (ele_struct) ele3
 type (coord_struct), pointer :: this_orb(:)
 type (coord_struct) orb
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (branch_struct), pointer :: branch
 
 character(*) param_name
 character(60) name, class_ele, parameter, component
@@ -679,7 +669,6 @@ real(rp), allocatable :: values(:)
 real(rp), pointer :: real_ptr
 
 integer i, j, num, ixe, ix1, ios, n_tot
-integer, allocatable, save :: ix_ele(:)
 
 logical err, printit, valid, middle
 logical, optional :: print_err
@@ -733,12 +722,12 @@ n_tot = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   u => s%u(i)
-  call elements_locator (class_ele, u%model%lat, ix_ele, err)
+  call tao_locate_elements (class_ele, u%ix_uni, locs, err)
   if (err) return
-  call re_allocate (values, n_tot + size(ix_ele))
+  call re_allocate (values, n_tot + size(locs))
 
-  do j = 1, size(ix_ele)
-    ixe = ix_ele(j)
+  do j = 1, size(locs)
+    ixe = locs(j)%ix_ele
 
     if (parameter == 'index') then
       values(n_tot+j) = ixe
@@ -748,21 +737,24 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (component)
     case ('model')   
       lat => u%model%lat
-      this_orb => u%model%orb
+      this_orb => u%model%orb_branch(locs(j)%ix_branch)%orbit
+      branch => u%model%lat%branch(locs(j)%ix_branch)
     case ('base')  
       lat => u%base%lat
-      this_orb => u%base%orb
+      this_orb => u%base%orb_branch(locs(j)%ix_branch)%orbit
+      branch => u%base%lat%branch(locs(j)%ix_branch)
     case ('design')
       lat => u%design%lat
-      this_orb => u%design%orb
+      this_orb => u%design%orb_branch(locs(j)%ix_branch)%orbit
+      branch => u%design%lat%branch(locs(j)%ix_branch)
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
       return
     end select
 
     if (middle) then
-      call twiss_and_track_partial (lat%ele(ixe-1), lat%ele(ixe), &
-                lat%param, lat%ele(ixe)%value(l$)/2, ele3, this_orb(ixe-1), orb)
+      call twiss_and_track_partial (branch%ele(ixe-1), branch%ele(ixe), &
+                lat%param, branch%ele(ixe)%value(l$)/2, ele3, this_orb(ixe-1), orb)
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       else
@@ -772,7 +764,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
       else
-        call pointer_to_attribute (lat%ele(ixe), parameter, .true., real_ptr, err, printit)
+        call pointer_to_attribute (branch%ele(ixe), parameter, .true., real_ptr, err, printit)
       endif
     endif
 
@@ -1857,6 +1849,7 @@ implicit none
 
 type (tao_var_struct), target :: var
 type (tao_this_var_struct), pointer :: t
+type (ele_struct), pointer :: ele
 
 real(rp) value
 integer i
@@ -1880,7 +1873,8 @@ var%model_value = value
 do i = 1, size(var%this)
   t => var%this(i)
   t%model_value = value
-  call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, t%ix_ele, t%model_value)
+  ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
+  call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, ele, t%model_value)
   if (tao_com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
     s%u(:)%universe_recalc = .true.
   else
@@ -2472,29 +2466,30 @@ end function tao_pointer_to_universe
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_ele_ref_to_ele_ref_track (ix_universe, ix_ele_ref, ix_ele_ref_track)
+! Subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
 !
-! Subroutine to compute ix_ele_ref_track:
-!   = ix_ele_ref             if ix_ele_ref <= lat%n_ele_track
-!   = ix_slave_at_exit_end   if ix_ele_ref is a super_lord  
+! Subroutine to compute ix_ele_track:
+!   = ix_ele                 if ix_ele <= lat%n_ele_track
+!   = ix_slave_at_exit_end   if ix_ele is a super_lord  
 !   = -1                     otherwise
 !
 ! Input:
 !   ix_universe -- Integer: Universe index.
-!   ix_ele_ref  -- Integer: Element index
+!   ix_branch   -- Integer: Branch index.
+!   ix_ele      -- Integer: Element index
 !
 ! Output:
-!   ix_ele_ref_track -- Integer: Corresponding element in the tracking 
+!   ix_ele_track -- Integer: Corresponding element in the tracking 
 !                         part of the lattice.
 !-
 
-subroutine tao_ele_ref_to_ele_ref_track (ix_universe, ix_ele_ref, ix_ele_ref_track)
+subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
 
 implicit none
 
 type (lat_struct), pointer :: lat
 
-integer ix_universe, ix_ele_ref, ix_ele_ref_track
+integer ix_universe, ix_branch, ix_ele, ix_ele_track
 integer i_uni, ix_c
 
 !
@@ -2502,85 +2497,21 @@ integer i_uni, ix_c
 i_uni = tao_universe_number(ix_universe)
 lat => s%u(i_uni)%model%lat
 
-if (ix_ele_ref < 0) then
-  ix_ele_ref_track = -1
+if (ix_ele < 0) then
+  ix_ele_track = -1
 
-elseif (ix_ele_ref <= lat%n_ele_track) then
-  ix_ele_ref_track = ix_ele_ref
+elseif (ix_ele <= lat%branch(ix_branch)%n_ele_track) then
+  ix_ele_track = ix_ele
 
-elseif (lat%ele(ix_ele_ref)%lord_status == super_lord$) then
-  ix_c = lat%ele(ix_ele_ref)%ix2_slave
-  ix_ele_ref_track = lat%control(ix_c)%ix_slave ! element at exit end.
+elseif (lat%ele(ix_ele)%lord_status == super_lord$) then
+  ix_c = lat%ele(ix_ele)%ix2_slave
+  ix_ele_track = lat%control(ix_c)%ix_slave ! element at exit end.
 
 else  ! overlays, multipass_lords, etc.
-  ix_ele_ref_track = -1
+  ix_ele_track = -1
 endif
 
-end subroutine tao_ele_ref_to_ele_ref_track
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Subroutine tao_ele_locations_given_name (u, name, loc, err, print_err)
-!
-! Subroutine to find the locations of all elements in lat%ele(:)
-! that match name where name is in the form "class:ele_name".
-!
-! Input:
-!   u         -- Universe_struct: Universe with lattice.
-!   name      -- Character(*): Name in the form "class:ele_name".
-!   print_err -- Logical, optional: If True then print an error message if 
-!                 there is a problem. Default is True.
-!
-! Output:
-!   loc(:)  -- Integer, allocatable: indexes of elements whose
-!                lat%ele(i)%name corresponds to name. 
-!                loc will be allocated  as needed.
-!                If there is an error size(loc) = 0.
-!   err     -- Logical: Set True if format of name is bad. 
-!                Set False otherwise.
-!-
-
-subroutine tao_ele_locations_given_name (u, name, loc, err, print_err)
-
-implicit none
-
-type (tao_universe_struct), target :: u
-type (lat_struct), pointer :: lat
-
-integer i, n, ix_class
-
-character(*) name
-character(40) ele_name
-
-integer, allocatable :: loc(:)
-logical, optional :: print_err
-logical err
-
-!
-
-call tao_string_to_element_id (name, ix_class, ele_name, err, print_err)
-if (err) then
-  call re_allocate (loc, 0)
-  return
-endif
-
-n = 0
-lat => u%design%lat
-do i = 0, lat%n_ele_max
-  if (ix_class /= 0 .and. ix_class /= lat%ele(i)%key) cycle
-  if (.not. match_wild(lat%ele(i)%name, ele_name)) cycle
-  n = n + 1
-  u%ele(n)%ixx = i
-enddo
-
-call re_allocate (loc, n)
-do i = 1, n
-  loc(i) = u%ele(i)%ixx
-enddo
-
-end subroutine tao_ele_locations_given_name
+end subroutine tao_ele_to_ele_track
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

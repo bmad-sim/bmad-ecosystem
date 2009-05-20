@@ -46,12 +46,12 @@ type (tao_ele_shape_struct) ele_shape(20)
 type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
 
 real(rp) shape_height_max, y1, y2
 
 integer iu, i, j, k, ix, ip, n, ng, ios, i_uni
 integer graph_index, color, i_graph
-integer, allocatable, save :: ix_ele(:)
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
@@ -65,6 +65,9 @@ namelist / tao_template_graph / graph, graph_index, curve
 namelist / element_shapes / shape
 namelist / element_shapes_floor_plan / ele_shape
 namelist / element_shapes_lat_layout / ele_shape
+
+
+logical err
 
 ! See if this routine has been called before
 
@@ -365,7 +368,6 @@ do  ! Loop over plot files
       curve(:)%data_type   = ''
       curve(:)%x_axis_scale_factor = 1
       curve(:)%y_axis_scale_factor = 1
-      curve(:)%ix_bunch = 0
       curve(:)%symbol_every = 1
       curve(:)%ix_universe = -1
       curve(:)%draw_line = .true.
@@ -375,6 +377,7 @@ do  ! Loop over plot files
       curve(:)%symbol = default_symbol
       curve(:)%line   = default_line
       curve(:)%ele_ref_name   = ' '
+      curve(:)%ix_branch = 0
       curve(:)%ix_ele_ref = -1
       curve(:)%smooth_line_calc = .true.
       curve(:)%draw_interpolated_curve = .true.
@@ -630,8 +633,9 @@ do  ! Loop over plot files
           crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
         ! if ele_ref_name has been set ...
         elseif (crv%ele_ref_name /= ' ') then
-          call tao_locate_elements (crv%ele_ref_name, i_uni, ix_ele, .true.) ! find the index
-          crv%ix_ele_ref = ix_ele(1)
+          call tao_locate_elements (crv%ele_ref_name, i_uni, locs, err, .true.) ! find the index
+          crv%ix_ele_ref = locs(1)%ix_ele
+          crv%ix_branch  = locs(1)%ix_branch
         elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
                 crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
           crv%ix_ele_ref = 0
@@ -646,7 +650,7 @@ do  ! Loop over plot files
           plt%x_axis_type = 'floor'
         endif
 
-        call tao_ele_ref_to_ele_ref_track (i_uni, crv%ix_ele_ref, crv%ix_ele_ref_track)
+        call tao_ele_to_ele_track (i_uni, crv%ix_branch, crv%ix_ele_ref, crv%ix_ele_ref_track)
 
       enddo  ! curve
 

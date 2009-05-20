@@ -102,7 +102,7 @@ select case (source_lat)
 end select
 
 dest1_lat%lat          = source1_lat%lat
-dest1_lat%orb          = source1_lat%orb
+dest1_lat%orb_branch   = source1_lat%orb_branch
 dest1_lat%modes        = source1_lat%modes
 dest1_lat%a            = source1_lat%a
 dest1_lat%b            = source1_lat%b
@@ -397,6 +397,8 @@ subroutine set_this_curve (this_curve)
 type (tao_curve_struct) this_curve
 type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
+type (lat_ele_loc_struct), allocatable :: locs(:)
+
 integer ix
 logical error
 
@@ -411,28 +413,30 @@ select case (component)
 
 case ('ele_ref_name')
   this_curve%ele_ref_name = set_value
-  call tao_locate_elements (this_curve%ele_ref_name, i_uni, ix_ele, .true.)
-  if (ix_ele(1) < 0) return
-  this_curve%ix_ele_ref = ix_ele(1)
-  call tao_ele_ref_to_ele_ref_track (this_curve%ix_universe, this_curve%ix_ele_ref, &
-                                                                 this_curve%ix_ele_ref_track)
+  call tao_locate_elements (this_curve%ele_ref_name, i_uni, locs, error, .true.)
+  if (size(locs) == 0) return
+  this_curve%ix_ele_ref = locs(1)%ix_ele
+  this_curve%ix_branch  = locs(1)%ix_branch
+  call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
+                                this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
   
 case ('ix_ele_ref')
   call tao_integer_set_value (this_curve%ix_ele_ref, component, &
                                  set_value, error, 0, s%u(i_uni)%model%lat%n_ele_max)
   this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
-  call tao_ele_ref_to_ele_ref_track (this_curve%ix_universe, this_curve%ix_ele_ref, &
-                                                                 this_curve%ix_ele_ref_track)
+  call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
+                                this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
   call tao_integer_set_value (this_curve%ix_universe, component, &
                                             set_value, error, 0, ubound(s%u, 1))
   if (error) return
-  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, ix_ele, .true.)
-  if (ix_ele(1) < 0) return
-  this_curve%ix_ele_ref = ix_ele(1)
-  call tao_ele_ref_to_ele_ref_track (this_curve%ix_universe, this_curve%ix_ele_ref, &
-                                                                 this_curve%ix_ele_ref_track)
+  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, locs, error, .true.)
+  if (size(locs) == 0) return
+  this_curve%ix_ele_ref = locs(1)%ix_ele
+  this_curve%ix_branch  = locs(1)%ix_branch
+  call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
+                                     this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_bunch')
   u => tao_pointer_to_universe (this_curve%ix_universe)

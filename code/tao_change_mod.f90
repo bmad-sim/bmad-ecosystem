@@ -3,6 +3,7 @@ module tao_change_mod
 use tao_mod
 use tao_data_and_eval_mod
 use quick_plot
+use lat_ele_loc_mod
 
 contains
 
@@ -174,12 +175,13 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (real_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_struct), pointer :: ele
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta
 
-integer i, ix, ix_a, iu, nl, len_name
-integer, allocatable, save :: ix_ele(:)
+integer i, ix, iu, nl, len_name
 integer, parameter :: len_lines = 200
 
 character(*) ele_name
@@ -226,11 +228,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(iu)
 
   call pointers_to_attribute (u%design%lat, e_name, a_name, .true., &
-                                                  d_ptr, err, .true., ix_ele, ix_a)
+                                                  d_ptr, err, .true., locs)
   if (err) return
 
   call pointers_to_attribute (u%model%lat, e_name, a_name, .true., &
-                                                  m_ptr, err, .true., ix_ele, ix_a)
+                                                  m_ptr, err, .true., locs)
   if (err) return
 
   ! Count to see if any of the attributes are free
@@ -240,8 +242,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   good = .false.
   do i = 1, size(d_ptr)
-    if (ix_ele(i) > -1) then  ! bunch_start variables are always free
-      if (.not. attribute_free (ix_ele(i), ix_a, u%model%lat, .false.)) cycle
+    if (size(locs) > 0) then  ! bunch_start variables are always free
+      if (.not. attribute_free (locs(i)%ix_branch, locs(i)%ix_ele, a_name, &
+                                                         u%model%lat, .false.)) cycle
     endif
     good(i) = .true.
   end do
@@ -282,7 +285,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       u%init_beam0 = .true.
     endif
 
-    call changed_attribute_bookkeeper (u%model%lat, ix_ele(i), m_ptr(i)%r)
+    if (size(locs) > 0) then
+      ele => pointer_to_ele (u%model%lat, locs(i))
+      call changed_attribute_bookkeeper (u%model%lat, ele, m_ptr(i)%r)
+    endif
 
     fmt = '(5f14.6, 4x, a)'
     if (max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) > 100) &
@@ -292,7 +298,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     if (nl < 11) then
       name = 'BEAM_START'
-      if (ix_ele(i) > -1) name = u%design%lat%ele(ix_ele(i))%name
+      if (size(locs) > 0) name = ele%name
       nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
                               old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
                               m_ptr(i)%r-old_value(i), trim(name)

@@ -384,6 +384,9 @@ type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
+type (coord_struct), pointer :: orbit(:)
+type (branch_struct), pointer :: branch
+type (lat_ele_loc_struct) loc0, loc1
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
@@ -413,27 +416,33 @@ data_source = datum%data_source
 data_type = datum%data_type
 lat => tao_lat%lat
 
-ix0 = datum%ix_ele0
-ix1 = datum%ix_ele
+loc0 = lat_ele_loc_struct(datum%ix_branch, datum%ix_ele0)
+loc1 = lat_ele_loc_struct(datum%ix_branch, datum%ix_ele)
 
 if (datum%ele_name /= '') then
-  ix1 = tao_valid_datum_index (lat, ix1, datum, valid_value)
+  loc1 = tao_valid_datum_index (lat, datum%ix_ele, datum, valid_value)
   if (.not. valid_value) return
 endif
 
 if (datum%ele0_name == '') then
-  if (ix0 == -1) ix0 = 0 ! Default if not set
+  if (loc0%ix_ele == -1) loc0 = lat_ele_loc_struct(loc1%ix_branch, 0) ! Default if not set
 else
-  ix0 = tao_valid_datum_index (lat, ix0, datum, valid_value)
+  loc0 = tao_valid_datum_index (lat, datum%ix_ele0, datum, valid_value)
   if (.not. valid_value) return
 endif
 
+ix0 = loc0%ix_ele
+ix1 = loc1%ix_ele
+
 !
+
+branch => lat%branch(datum%ix_branch)
+orbit => tao_lat%orb_branch(datum%ix_branch)%orbit
 
 valid_value = .false.
 
-n_track = tao_lat%lat%n_ele_track
-n_max   = tao_lat%lat%n_ele_max
+n_track = branch%n_ele_track
+n_max   = branch%n_ele_max
 
 datum_value = 0           ! default
 datum%ix_ele_merit = -1   ! default
@@ -474,29 +483,29 @@ select case (data_type)
 
 case ('alpha.a')
   if (data_source == 'lattice') then
-    call load_it (lat%ele(:)%a%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%a%alpha, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%a%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%a%alpha, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
 case ('alpha.b')
   if (data_source == 'lattice') then
-    call load_it (lat%ele(:)%b%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%b%alpha, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%b%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%b%alpha, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('alpha.z')
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%z%alpha, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%z%alpha, loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('beta.x')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%x%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%x%beta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%x%norm_emitt /= 0)
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
@@ -506,7 +515,7 @@ case ('beta.x')
     
 case ('beta.y')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%y%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%y%beta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%y%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   else
@@ -517,116 +526,116 @@ case ('beta.y')
 
 case ('beta.z')
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%z%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%z%beta, loc0, loc1, datum_value, valid_value, datum, lat)
   valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%z%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
 
 case ('beta.a')
   if (data_source == 'lattice') then
-    call load_it (lat%ele(:)%a%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%a%beta, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%a%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%a%beta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
     
 case ('beta.b')
   if (data_source == 'lattice') then
-    call load_it (lat%ele(:)%b%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%b%beta, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%b%beta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%b%beta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('bpm_orbit.x')
   if (data_source == 'beam') return ! bad
-  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), x_plane$, datum_value, err)
+  call to_orbit_reading (orbit(ix1), branch%ele(ix1), x_plane$, datum_value, err)
   valid_value = .not. err
 
 case ('bpm_orbit.y')
   if (data_source == 'beam') return ! bad
-  call to_orbit_reading (tao_lat%orb(ix1), lat%ele(ix1), y_plane$, datum_value, err)
+  call to_orbit_reading (orbit(ix1), branch%ele(ix1), y_plane$, datum_value, err)
   valid_value = .not. err
 
 case ('bpm_eta.x')
   if (data_source == 'beam') return ! bad
-  vec = (/ lat%ele(ix1)%x%eta, lat%ele(ix1)%y%eta /)
-  call to_eta_reading (vec, lat%ele(ix1), x_plane$, datum_value, err)
+  vec = (/ branch%ele(ix1)%x%eta, branch%ele(ix1)%y%eta /)
+  call to_eta_reading (vec, branch%ele(ix1), x_plane$, datum_value, err)
   valid_value = .not. err
 
 case ('bpm_eta.y')
   if (data_source == 'beam') return ! bad
-  vec = (/ lat%ele(ix1)%x%eta, lat%ele(ix1)%y%eta /)
-  call to_eta_reading (vec, lat%ele(ix1), y_plane$, datum_value, err)
+  vec = (/ branch%ele(ix1)%x%eta, branch%ele(ix1)%y%eta /)
+  call to_eta_reading (vec, branch%ele(ix1), y_plane$, datum_value, err)
   valid_value = .not. err
 
 case ('bpm_phase.a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%phi_a
 
 case ('bpm_phase.b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%phi_b
 
 case ('bpm_k.22a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_22a
 
 case ('bpm_k.12a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_12a
 
 case ('bpm_k.11b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_11b
 
 case ('bpm_k.12b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_12b
 
 case ('bpm_cbar.22a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_22a
 
 case ('bpm_cbar.12a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_12a
 
 case ('bpm_cbar.11b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_11b
 
 case ('bpm_cbar.12b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (lat%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
   datum_value = bpm_data%k_12b
 
 case ('cbar.11')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(1,1), ix0, ix1, datum_value, valid_value, &
-                                     datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%cbar(1,1), loc0, loc1, datum_value, valid_value, &
+                                     datum, lat, orbit)
 case ('cbar.12')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(1,2), ix0, ix1, datum_value, valid_value, &
-                                     datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%cbar(1,2), loc0, loc1, datum_value, valid_value, &
+                                     datum, lat, orbit)
 case ('cbar.21')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(2,1), ix0, ix1, datum_value, valid_value, &
-                                     datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%cbar(2,1), loc0, loc1, datum_value, valid_value, &
+                                     datum, lat, orbit)
 case ('cbar.22')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(2,2), ix0, ix1, datum_value, valid_value, &
-                                     datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%cbar(2,2), loc0, loc1, datum_value, valid_value, &
+                                     datum, lat, orbit)
 
 case ('chrom.a')
   if (data_source == 'beam') return
@@ -655,47 +664,47 @@ case ('dpz_dz')
 
 case ('e_tot')
   if (data_source == 'beam') return
-  call load_it (lat%ele(0:n_track)%value(E_TOT$) * (1+tao_lat%orb(0:n_track)%vec(6)), &
-                                     ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (branch%ele(0:n_track)%value(E_TOT$) * (1+orbit(0:n_track)%vec(6)), &
+                                     loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('%e_tot')
   if (data_source == 'beam') return
-  call load_it (tao_lat%orb(0:n_track)%vec(6), ix0, ix1, &
-                                            datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(0:n_track)%vec(6), loc0, loc1, &
+                                            datum_value, valid_value, datum, lat)
   
 case ('element_param.')
   if (data_source == 'beam') return ! bad
   call str_upcase (name, datum%data_type(15:))
-  ix = attribute_index (lat%ele(ix1), name)
+  ix = attribute_index (branch%ele(ix1), name)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type)
     call err_exit
   endif
-  call load_it (lat%ele(0:n_max)%value(ix), &
-                                     ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (branch%ele(0:n_max)%value(ix), &
+                                     loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('emit.x', 'norm_emit.x')
-  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%x%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%x%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.y', 'norm_emit.y')  
-  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%y%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%y%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.z', 'norm_emit.z')
-  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%z%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%z%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.a', 'norm_emit.a')
-  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%a%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%a%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'lattice') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
@@ -703,7 +712,7 @@ case ('emit.a', 'norm_emit.a')
         return
       endif
       call load_it (tao_lat%rad_int%lin_norm_emit_a, &
-                              ix0, ix1, datum_value, valid_value, datum, tao_lat)
+                              loc0, loc1, datum_value, valid_value, datum, lat)
     else
       datum_value = gamma * tao_lat%modes%a%emittance  
     endif
@@ -712,9 +721,9 @@ case ('emit.a', 'norm_emit.a')
   valid_value = .true.
   
 case ('emit.b', 'norm_emit.b')  
-  call convert_total_energy_to (lat%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%b%norm_emitt, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%b%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'lattice') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
@@ -723,7 +732,7 @@ case ('emit.b', 'norm_emit.b')
         return
       endif
       call load_it (tao_lat%rad_int%lin_norm_emit_b, &
-                              ix0, ix1, datum_value, valid_value, datum, tao_lat)
+                              loc0, loc1, datum_value, valid_value, datum, lat)
     else
       datum_value = gamma * tao_lat%modes%b%emittance
     endif
@@ -733,66 +742,66 @@ case ('emit.b', 'norm_emit.b')
 
 case ('eta.x')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%x%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%x%eta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%x%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%x%eta, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('eta.y')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%y%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%y%eta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%y%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%y%eta, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('etap.x')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%x%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%x%etap, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%x%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%x%etap, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('etap.y')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%y%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%y%etap, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%y%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%y%etap, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('eta.a')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%a%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%a%eta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%a%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%a%eta, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('eta.b')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%b%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%b%eta, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%b%eta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%b%eta, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('etap.a')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%a%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%a%etap, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%a%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%a%etap, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('etap.b')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%b%etap, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = .true.
   else
-    call load_it (lat%ele(:)%b%etap, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%b%etap, loc0, loc1, datum_value, valid_value, datum, lat)
   endif
 
 case ('expression:')
@@ -826,46 +835,46 @@ case ('expression:')
   endif
 
 case ('floor.x')
-  datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
+  datum_value = branch%ele(ix1)%floor%x - branch%ele(ix0)%floor%x
   valid_value = .true.
 
 case ('floor.y')
-  datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
+  datum_value = branch%ele(ix1)%floor%y - branch%ele(ix0)%floor%y
   valid_value = .true.
 
 case ('floor.z')
-  datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
+  datum_value = branch%ele(ix1)%floor%z - branch%ele(ix0)%floor%z
   valid_value = .true.
 
 case ('floor.theta')
-  datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
+  datum_value = branch%ele(ix1)%floor%theta - branch%ele(ix0)%floor%theta
   valid_value = .true.
 
 case ('floor.phi')
-  datum_value = lat%ele(ix1)%floor%phi - lat%ele(ix0)%floor%phi
+  datum_value = branch%ele(ix1)%floor%phi - branch%ele(ix0)%floor%phi
   valid_value = .true.
 
 case ('gamma.a')
   if (data_source == 'lattice') then
-    call load_it (lat%ele(:)%a%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%a%gamma, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%a%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%a%gamma, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%a%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
 case ('gamma.b')
   if (data_source == 'lattice') then
-    call load_it (lat%ele(:)%b%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (branch%ele(:)%b%gamma, loc0, loc1, datum_value, valid_value, datum, lat)
   elseif (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%b%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%b%gamma, loc0, loc1, datum_value, valid_value, datum, lat)
     valid_value = valid_value .and. (tao_lat%bunch_params(ix1)%b%norm_emitt /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('gamma.z')
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%z%gamma, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%z%gamma, loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('i5a_e6')
   if (data_source == 'beam') return
@@ -899,26 +908,26 @@ case ('i5b_e6')
 
 case ('k.11b')
   if (data_source == 'beam') return
-  call load_it (cc%k_11a, ix0, ix1, datum_value, valid_value, &
-                                  datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%k_11a, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 case ('k.12a')
   if (data_source == 'beam') return
-  call load_it (cc%k_12a, ix0, ix1, datum_value, valid_value, &
-                                  datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%k_12a, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 case ('k.12b')
   if (data_source == 'beam') return
-  call load_it (cc%k_12b, ix0, ix1, datum_value, valid_value, &
-                                 datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%k_12b, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 case ('k.22a')
   if (data_source == 'beam') return
-  call load_it (cc%k_22b, ix0, ix1, datum_value, valid_value, &
-                                 datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%k_22b, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 
 case ('momentum_compaction')
   if (data_source == 'beam') return
+  if (loc1%ix_branch /= 0 .or. loc1%ix_branch /= 0) then
+    call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALC NOT YET MODIFIED FOR BRANCHES.')
+    call err_exit
+  endif
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
-  ele0 => lat%ele(ix0)
-  orb0 => tao_lat%orb(ix0)
+  ele0 => branch%ele(ix0)
+  orb0 => orbit(ix0)
   call make_v_mats (ele0, v_mat, v_inv_mat)
   eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
   eta_vec = matmul (v_mat, eta_vec)
@@ -939,43 +948,43 @@ case ('n_particle_loss')
 
 case ('orbit.x')
   if (data_source == 'beam') return ! bad
-  call load_it (tao_lat%orb(:)%vec(1), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(:)%vec(1), loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('orbit.y')
   if (data_source == 'beam') return ! bad
-  call load_it (tao_lat%orb(:)%vec(3), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(:)%vec(3), loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('orbit.z')
   if (data_source == 'beam') return ! bad
-  call load_it (tao_lat%orb(:)%vec(5), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(:)%vec(5), loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('orbit.px')
   if (data_source == 'beam') return ! bad
-  call load_it (tao_lat%orb(:)%vec(2), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(:)%vec(2), loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('orbit.py')
   if (data_source == 'beam') return ! bad
-  call load_it (tao_lat%orb(:)%vec(4), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(:)%vec(4), loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('orbit.pz')
   if (data_source == 'beam') return ! bad
-  call load_it (tao_lat%orb(:)%vec(6), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (orbit(:)%vec(6), loc0, loc1, datum_value, valid_value, datum, lat)
 
 case ('orbit.amp_a')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_a, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%amp_a, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 
 case ('orbit.amp_b')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_b, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%amp_b, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 
 case ('orbit.norm_amp_a')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_na, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%amp_na, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 
 case ('orbit.norm_amp_b')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_nb, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed = .true.)
+  call load_it (cc%amp_nb, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 
 case ('periodic.tt.')
   if (data_source == 'beam') return
@@ -1004,40 +1013,44 @@ case ('periodic.tt.')
 
 case ('phase.a')
   if (data_source == 'beam') return ! bad
-  datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
-  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
+  datum_value = branch%ele(ix1)%a%phi - branch%ele(ix0)%a%phi
+  if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
   valid_value = .true.
 
 case ('phase.b')
   if (data_source == 'beam') return ! bad
-  datum_value = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
-  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
+  datum_value = branch%ele(ix1)%b%phi - branch%ele(ix0)%b%phi
+  if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
   valid_value = .true.
 
 case ('phase_frac.a')
   if (data_source == 'beam') return ! bad
-  datum_value = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
-  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
+  datum_value = branch%ele(ix1)%a%phi - branch%ele(ix0)%a%phi
+  if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
   datum_value = modulo2(datum_value, pi)
   valid_value = .true.
 
 case ('phase_frac.b')
   if (data_source == 'beam') return ! bad
-  datum_value = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
-  if (ix0 > ix1) datum_value = datum_value - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
+  datum_value = branch%ele(ix1)%b%phi - branch%ele(ix0)%b%phi
+  if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
   datum_value = modulo2(datum_value, pi)
   valid_value = .true.
 
 case ('phase_frac_diff')
   if (data_source == 'beam') return ! bad
-  px = lat%ele(ix1)%a%phi - lat%ele(ix0)%a%phi
-  if (ix0 > ix1) px = px - lat%ele(0)%a%phi + lat%ele(n_track)%a%phi 
-  py = lat%ele(ix1)%b%phi - lat%ele(ix0)%b%phi
-  if (ix0 > ix1) py = py - lat%ele(0)%b%phi + lat%ele(n_track)%b%phi 
+  px = branch%ele(ix1)%a%phi - branch%ele(ix0)%a%phi
+  if (ix0 > ix1) px = px - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
+  py = branch%ele(ix1)%b%phi - branch%ele(ix0)%b%phi
+  if (ix0 > ix1) py = py - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
   datum_value = modulo2 (px - py, pi)
   valid_value = .true.
 
 case ('r.')
+  if (loc1%ix_branch /= 0 .or. loc1%ix_branch /= 0) then
+    call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALC NOT YET MODIFIED FOR BRANCHES.')
+    call err_exit
+  endif
   if (data_source == 'beam') return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
@@ -1050,86 +1063,86 @@ case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z', 'rel_floor.theta', 'rel_floor
 
   if (ix1 > ix0) then
     do i = ix0+1, ix1
-      call ele_geometry (floor, lat%ele(i), floor)
+      call ele_geometry (floor, branch%ele(i), floor)
     enddo
   else
     do i = ix0+1, lat%n_ele_track
-      call ele_geometry (floor, lat%ele(i), floor)
+      call ele_geometry (floor, branch%ele(i), floor)
     enddo
     do i = 1, ix1
-      call ele_geometry (floor, lat%ele(i), floor)
+      call ele_geometry (floor, branch%ele(i), floor)
     enddo
   endif
 
   select case (data_type)
   case ('rel_floor.x')
-    datum_value = lat%ele(ix1)%floor%x - lat%ele(ix0)%floor%x
+    datum_value = branch%ele(ix1)%floor%x - branch%ele(ix0)%floor%x
   case ('rel_floor.y')
-    datum_value = lat%ele(ix1)%floor%y - lat%ele(ix0)%floor%y
+    datum_value = branch%ele(ix1)%floor%y - branch%ele(ix0)%floor%y
   case ('rel_floor.z')
-    datum_value = lat%ele(ix1)%floor%z - lat%ele(ix0)%floor%z
+    datum_value = branch%ele(ix1)%floor%z - branch%ele(ix0)%floor%z
   case ('rel_floor.theta')
-    datum_value = lat%ele(ix1)%floor%theta - lat%ele(ix0)%floor%theta
+    datum_value = branch%ele(ix1)%floor%theta - branch%ele(ix0)%floor%theta
   case ('rel_floor.phi')
-    datum_value = lat%ele(ix1)%floor%phi - lat%ele(ix0)%floor%phi
+    datum_value = branch%ele(ix1)%floor%phi - branch%ele(ix0)%floor%phi
   end select
   valid_value = .true.
 
 case ('sigma.x')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s11$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s11$), loc0, loc1, datum_value, valid_value, datum, lat)
   datum_value = sqrt(datum_value)
 
 case ('sigma.px')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s22$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s22$), loc0, loc1, datum_value, valid_value, datum, lat)
   datum_value = sqrt(datum_value)
   
 case ('sigma.y')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s33$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s33$), loc0, loc1, datum_value, valid_value, datum, lat)
   datum_value = sqrt(datum_value)
   
 case ('sigma.py')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s44$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s44$), loc0, loc1, datum_value, valid_value, datum, lat)
   datum_value = sqrt(datum_value)
   
 case ('sigma.z')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s55$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s55$), loc0, loc1, datum_value, valid_value, datum, lat)
   datum_value = sqrt(datum_value)
   
 case ('sigma.pz')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s66$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s66$), loc0, loc1, datum_value, valid_value, datum, lat)
   datum_value = sqrt(datum_value)
   
 case ('sigma.xy')  
   if (data_source == 'lattice') return
-  call load_it (tao_lat%bunch_params(:)%sigma(s13$), ix0, ix1, datum_value, valid_value, datum, tao_lat)
+  call load_it (tao_lat%bunch_params(:)%sigma(s13$), loc0, loc1, datum_value, valid_value, datum, lat)
   
 case ('spin.theta')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%spin%theta, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%spin%theta, loc0, loc1, datum_value, valid_value, datum, lat)
   else
-    call spinor_to_polar (tao_lat%orb(ix1), polar)
+    call spinor_to_polar (orbit(ix1), polar)
     datum_value = polar%theta
   endif
   valid_value = .true.
   
 case ('spin.phi')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%spin%phi, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%spin%phi, loc0, loc1, datum_value, valid_value, datum, lat)
   else
-    call spinor_to_polar (tao_lat%orb(ix1), polar)
+    call spinor_to_polar (orbit(ix1), polar)
     datum_value = polar%phi
   endif
   valid_value = .true.
   
 case ('spin.polarity')
   if (data_source == 'beam') then
-    call load_it (tao_lat%bunch_params(:)%spin%polarization, ix0, ix1, datum_value, valid_value, datum, tao_lat)
+    call load_it (tao_lat%bunch_params(:)%spin%polarization, loc0, loc1, datum_value, valid_value, datum, lat)
   else
     datum_value = 1.0
   endif
@@ -1138,9 +1151,9 @@ case ('spin.polarity')
 case ('s_position') 
   if (data_source == 'beam') return
   if (ix0 >= 0) then
-    datum_value = lat%ele(ix1)%s - lat%ele(ix0)%s
+    datum_value = branch%ele(ix1)%s - branch%ele(ix0)%s
   else
-    datum_value = lat%ele(ix1)%s 
+    datum_value = branch%ele(ix1)%s 
   endif
   valid_value = .true.
 
@@ -1155,6 +1168,10 @@ case ('tune.b')
   valid_value = .true.
 
 case ('t.', 'tt.')
+  if (loc1%ix_branch /= 0 .or. loc1%ix_branch /= 0) then
+    call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
+    call err_exit
+  endif
   if (data_source == 'beam') return
   expnt = 0
   if (data_type == 't.') then
@@ -1213,7 +1230,7 @@ case ('wall')
 case ('wire.')  
   if (data_source == 'lattice') return
   read (data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (lat%ele(ix1), angle, u%current_beam)
+  datum_value = tao_do_wire_scan (branch%ele(ix1), angle, u%current_beam)
   valid_value = .true.
   
 case default
@@ -1228,60 +1245,65 @@ end subroutine tao_evaluate_a_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine load_it (vec, ix0, ix1, datum_value, valid_value, datum, tao_lat, calc_needed)
+subroutine load_it (vec, loc0, loc1, datum_value, valid_value, datum, lat, orbit)
 
 implicit none
 
 type (tao_data_struct) datum
-type (tao_lattice_struct) tao_lat
+type (lat_struct) lat
+type (ele_struct), pointer :: ele1, ele0
+type (lat_ele_loc_struct) loc0, loc1
+type (coord_struct), optional :: orbit(0:)
 
 real(rp) vec(0:)
 real(rp) datum_value
 
 character(20) :: r_name = 'tao_evaluate_a_datum'
 
-integer ix_m, i, ix0, ix1, n_track, ix_m2
+integer ix_m, i, n_track, ix_m2, ix0, ix1
+
 logical valid_value
-logical, optional :: calc_needed
 
 !
 
-if (ix1 < ix0 .and. tao_lat%lat%param%lattice_type == linear_lattice$) then
+ele0 => pointer_to_ele (lat, loc0)
+ele1 => pointer_to_ele (lat, loc1)
+n_track = lat%branch(datum%ix_branch)%n_ele_track
+ix0 = loc0%ix_ele
+ix1 = loc1%ix_ele
+
+if (ix1 < ix0 .and. lat%param%lattice_type == linear_lattice$) then
   if (datum%useit_opt) call out_io (s_error$, r_name, &
                 'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
-                'STARTING ELEMENT: ' // tao_lat%lat%ele(ix0)%name, &
-                'IS AFTER ENDING ELEMENT: ' // tao_lat%lat%ele(ix1)%name)
+                'STARTING ELEMENT: ' // ele0%name, &
+                'IS AFTER ENDING ELEMENT: ' // ele1%name)
   valid_value = .false.
   return
 endif
  
 !
 
-n_track = tao_lat%lat%n_ele_track
-
 if (datum%ele0_name == ' ') then
-  ix_m = ix1
-  if (present(calc_needed)) call data_calc (ix_m, datum, tao_lat)
-  datum_value = vec(ix_m)
-  if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ix_m))
+  if (present(orbit)) call data_calc (loc1%ix_ele, datum, lat, orbit)
+  datum_value = vec(loc1%ix_ele)
+  if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(loc1%ix_ele))
 
 elseif (datum%merit_type == 'match') then
 
-  ix_m = ix1
-  if (present(calc_needed)) call data_calc (ix0, datum, tao_lat)
-  if (present(calc_needed)) call data_calc (ix1, datum, tao_lat)
+  if (present(orbit)) call data_calc (ix0, datum, lat, orbit)
+  if (present(orbit)) call data_calc (ix1, datum, lat, orbit)
   datum_value = vec(ix1) - vec(ix0)
 
 else
 
   if (ix1 < ix0) then   ! wrap around
 
-    if (present(calc_needed)) then
+    if (present(orbit)) then
       do i = ix0, n_track
-        call data_calc (i, datum, tao_lat)
+        call data_calc (i, datum, lat, orbit)
       enddo
       do i = 0, ix1
-        call data_calc (i, datum, tao_lat)
+        call data_calc (i, datum, lat, orbit)
       enddo
     endif
   
@@ -1312,13 +1334,13 @@ else
 
     case ('int_min')
       datum_value = 0; ix_m = -1
-      call integrate_min (ix1, tao_lat%lat%n_ele_track, datum_value, ix_m, tao_lat%lat, vec, datum)
-      call integrate_min (0, ix0, datum_value, ix_m, tao_lat%lat, vec, datum)
+      call integrate_min (ix1, n_track, datum_value, ix_m, lat, vec, datum)
+      call integrate_min (0, ix0, datum_value, ix_m, lat, vec, datum)
 
     case ('int_max')
       datum_value = 0; ix_m = -1
-      call integrate_max (ix1, tao_lat%lat%n_ele_track, datum_value, ix_m, tao_lat%lat, vec, datum)
-      call integrate_max (0, ix0, datum_value, ix_m, tao_lat%lat, vec, datum)
+      call integrate_max (ix1, n_track, datum_value, ix_m, lat, vec, datum)
+      call integrate_max (0, ix0, datum_value, ix_m, lat, vec, datum)
 
     case default
       call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
@@ -1327,9 +1349,9 @@ else
     end select
 
   else
-    if (present(calc_needed)) then
+    if (present(orbit)) then
       do i = ix0, ix1
-        call data_calc (i, datum, tao_lat)
+        call data_calc (i, datum, lat, orbit)
       enddo
     endif
 
@@ -1352,11 +1374,11 @@ else
 
     case ('int_min')
       datum_value = 0; ix_m = -1
-      call integrate_min (ix0, ix1, datum_value, ix_m, tao_lat%lat, vec, datum)
+      call integrate_min (ix0, ix1, datum_value, ix_m, lat, vec, datum)
 
     case ('int_max')
       datum_value = 0; ix_m = -1
-      call integrate_max (ix0, ix1, datum_value, ix_m, tao_lat%lat, vec, datum)
+      call integrate_max (ix0, ix1, datum_value, ix_m, lat, vec, datum)
 
     case default
       call out_io (s_abort$, r_name, &
@@ -1459,14 +1481,15 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine data_calc (ixd, datum, tao_lat)
+subroutine data_calc (ixd, datum, lat, orbit)
 
 implicit none
 
 type (ele_struct), pointer :: ele
 type (this_array_struct), pointer :: cc_p
 type (tao_data_struct) datum
-type (tao_lattice_struct) tao_lat
+type (lat_struct) lat
+type (coord_struct) orbit(0:)
 
 integer ie, ixd
 real(rp) f, f1, f2
@@ -1475,8 +1498,7 @@ real(rp) f, f1, f2
 
 cc_p => cc(ixd)
 ie = datum%ix_ele
-ele => tao_lat%lat%ele(ie)
-
+ele => lat%ele(ie)
 
 select case (datum%data_type)
 case ('k.11b', 'k.12a', 'k.12b', 'k.22a', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar.22')
@@ -1497,8 +1519,8 @@ case ('k.11b', 'k.12a', 'k.12b', 'k.22a', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar
 
 case ('orbit.amp_a', 'orbit.amp_b', 'orbit.norm_amp_a', 'orbit.norm_amp_b')
   if (cc_p%amp_calc_done) return
-  call orbit_amplitude_calc (ele, tao_lat%orb(ie), cc_p%amp_a, cc_p%amp_b, &
-                           cc_p%amp_na, cc_p%amp_nb, tao_lat%lat%param%particle)
+  call orbit_amplitude_calc (ele, orbit(ie), cc_p%amp_a, cc_p%amp_b, &
+                           cc_p%amp_na, cc_p%amp_nb, lat%param%particle)
   cc_p%amp_calc_done = .true.
 end select
 
@@ -1588,25 +1610,33 @@ end function tao_do_wire_scan
 !   datum  -- Tao_data_struct: Used for error messages
 !   valid  -- Logical: Set False if element does not have a definite location.
 !               Set True otherwise
-!   ix_loc -- Integer: Location of element in the tracking part of the lat%ele(:) array.
+!   loc    -- Lat_ele_loc_struct: Location of element in the tracking part of the latticed.
 !-
 
-function tao_valid_datum_index (lat, ix_ele, datum, valid) result (ix_loc)
+function tao_valid_datum_index (lat, ix_ele, datum, valid) result (loc)
 
 implicit none
 
 type (lat_struct) lat
 type (tao_data_struct) datum
-integer ix_ele, ix_loc, ixc
+type (ele_struct), pointer :: ele
+type (lat_ele_loc_struct) :: loc
+
+integer ix_ele, ixc, n_track, n_max
 logical valid
 character(40) :: r_name = 'tao_valid_datum_index'
+ele => pointer_to_ele (lat, datum%ix_branch, ix_ele)
 
 !
 
-ix_loc = ix_ele
-valid = .true.
+loc%ix_ele = ix_ele
+loc%ix_branch = datum%ix_branch
 
-if (ix_ele < 0 .or. ix_ele > lat%n_ele_max) then
+valid = .true.
+n_track = lat%branch(datum%ix_branch)%n_ele_track
+n_max   = lat%branch(datum%ix_branch)%n_ele_max
+
+if (ix_ele < 0 .or. ix_ele > n_max) then
   call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE! \i5\ ', ix_ele)
   valid = .false.
   return
@@ -1614,11 +1644,12 @@ endif
 
 if (datum%data_type(1:14) == 'element_param.') return
 
-if (ix_ele <= lat%n_ele_track) return
+if (ix_ele <= n_track) return
 
-if (lat%ele(ix_ele)%lord_status == super_lord$) then
-  ixc = lat%ele(ix_ele)%ix2_slave
-  ix_loc = lat%control(ixc)%ix_slave
+if (ele%lord_status == super_lord$) then
+  ixc = ele%ix2_slave
+  loc%ix_ele    = lat%control(ixc)%ix_slave
+  loc%ix_branch = lat%control(ixc)%ix_branch
   return
 endif
 

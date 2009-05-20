@@ -90,6 +90,7 @@ type tao_curve_input
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
   character(40) ele_ref_name
+  integer ix_branch
   integer ix_ele_ref
   integer ix_bunch
 end type

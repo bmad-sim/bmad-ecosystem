@@ -974,7 +974,7 @@ Format:
   show hom
   show key_bindings
   show lattice \{-no_header\} \{-middle\} \{-custom <file_name>\} 
-                            \{-s\} \{-elements <name>\} \{<location_range>\}
+                 \{-branch <branch>\} \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
   show particle -lost \{<bunch_index>\}
@@ -1164,8 +1164,8 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-        show lattice \{-no\_header\} \{-middle\} \{-custom <file\_name>\} \\ 
-        \hspace*{2in} \{-s\} \{-elements <name>\} \{<location\_range>\}}] \Newline
+    show lattice \{-no\_header\} \{-middle\} \{-custom <file\_name>\} \{-branch <branch>\} \\ 
+    \hspace*{2in} \{-s\} \{-elements <name>\} \{<location\_range>\}}] \Newline
 
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
@@ -1175,6 +1175,9 @@ end of the elements. To show the parameters in the middle use the
 If present, the \vn{-no_header} switch will prevent the printing of
 the header lines. This is useful when the output needs to be read in
 by another program.
+
+The \vn{-branch} can be used to specify the branch of the lattice.
+The default is the main branch (\# 0).
 
 The locations to show can either be specified using the \vn{-elements}
 switch, or by specifying a longitudinal position range with \vn{-s},

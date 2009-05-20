@@ -28,7 +28,7 @@ character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 character(16) aperture_limit_on
 
-integer i, j, n, iu, ios, version, taylor_order, ix, key, n_universes
+integer i, j, k, n, iu, ios, version, taylor_order, ix, key, n_universes
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice
@@ -216,10 +216,21 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Init model, base, and u%ele
 
   n = ubound(u%design%lat%ele, 1)
-  allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
-  allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
-  allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
+  allocate (u%model%bunch_params(0:n))
+  allocate (u%design%bunch_params(0:n))
+  allocate (u%base%bunch_params(0:n))
   allocate (u%ele(0:n))
+
+  n = ubound(u%design%lat%branch, 1)
+  allocate (u%model%orb_branch(0:n), u%base%orb_branch(0:n), u%design%orb_branch(0:n))
+
+  do k = 0, ubound(u%design%lat%branch, 1)
+    n = ubound(u%design%lat%branch(k)%ele, 1)
+    allocate (u%model%orb_branch(k)%orbit(0:n))
+    allocate (u%design%orb_branch(k)%orbit(0:n))
+    allocate (u%base%orb_branch(k)%orbit(0:n))
+  enddo
+
   u%model = u%design
   u%base  = u%design
 
@@ -236,11 +247,22 @@ if (tao_com%common_lattice) then
   u%design%lat = u%common%design%lat
   u%base%lat   = u%common%base%lat
   u%model%lat  = u%common%model%lat
+
   n = ubound(u%design%lat%ele, 1)
-  allocate (u%model%orb(0:n), u%model%bunch_params(0:n))
-  allocate (u%design%orb(0:n), u%design%bunch_params(0:n))
-  allocate (u%base%orb(0:n), u%base%bunch_params(0:n))
+  allocate (u%model%bunch_params(0:n))
+  allocate (u%design%bunch_params(0:n))
+  allocate (u%base%bunch_params(0:n))
   allocate (u%ele(0:n))
+
+  n = ubound(u%design%lat%branch, 1)
+  allocate (u%model%orb_branch(0:n), u%base%orb_branch(0:n), u%design%orb_branch(0:n))
+
+  do k = 0, ubound(u%design%lat%branch, 1)
+    n = ubound(u%design%lat%branch(k)%ele, 1)
+    allocate (u%model%orb_branch(k)%orbit(0:n))
+    allocate (u%design%orb_branch(k)%orbit(0:n))
+    allocate (u%base%orb_branch(k)%orbit(0:n))
+  enddo
 
   ! If unified then point back to the common universe (#1) and the working universe (#2)
 

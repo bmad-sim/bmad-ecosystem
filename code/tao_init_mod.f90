@@ -351,11 +351,11 @@ implicit none
 
 type (tao_universe_struct), target :: u
 type (lat_struct), pointer :: lat
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
 
 real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
 character(60) at, class, ele_name, line
-integer, allocatable, save :: ix_eles(:)
 
 ! Set tracking start/stop
 
@@ -383,7 +383,7 @@ endif
 u%beam_init = beam_init
 u%beam0_file = beam0_file
 u%beam_all_file = beam_all_file
-u%design%orb(0)%vec = beam_init%center
+u%design%orb_branch(0)%orbit(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice
 if (u%design%lat%param%lattice_type == circular_lattice$) return
@@ -396,14 +396,13 @@ u%ele(u%design%lat%n_ele_track)%save_beam = .true.
 
 do i = 1, size(save_beam_at)
   if (save_beam_at(i) == '') exit
-  call tao_ele_locations_given_name(u, save_beam_at(i), ix_eles, err, .false.)
+  call tao_locate_elements (save_beam_at(i), u%ix_uni, locs, err, .false.)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SAVE_BEAM_AT ELEMENT: ' // save_beam_at(i))
     cycle
   endif
-  do k = 1, size(ix_eles)
-    j = ix_eles(k)
-    u%ele(j)%save_beam = .true.
+  do k = 1, size(locs)
+    u%ele(locs(k)%ix_ele)%save_beam = .true.
   enddo
 enddo
   
@@ -430,7 +429,7 @@ if (u%beam_all_file /= '') then
 endif
 
 if (u%connect%connected) u%connect%injecting_beam = u%current_beam
-if (allocated(ix_eles)) deallocate (ix_eles)
+if (allocated(locs)) deallocate (locs)
 
 end subroutine init_beam
 
@@ -665,6 +664,7 @@ subroutine d1_data_stuffit (i_d1, u, n_d2)
 type (tao_universe_struct), target :: u
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
@@ -672,7 +672,6 @@ integer i_d1
 
 character(20) fmt
 
-integer, allocatable, save :: ix_eles(:)
 logical emit_here
 
 !
@@ -689,8 +688,8 @@ endif
 ! and record the element names in the data structs.
     
 if (search_for_lat_eles /= '') then
-  call tao_find_elements (u, search_for_lat_eles, ix_eles)
-  if (size(ix_eles) == 0) then
+  call tao_init_find_elements (u, search_for_lat_eles, locs)
+  if (size(locs) == 0) then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
       'WHILE SETTING UP DATA ARRAY: ' // tao_d2_d1_name(d1_this))
@@ -698,7 +697,7 @@ if (search_for_lat_eles /= '') then
   endif
   ! finish finding data array limits
   n1 = u%n_data_used + 1
-  n2 = u%n_data_used + size(ix_eles)
+  n2 = u%n_data_used + size(locs)
   u%n_data_used = n2
   call tao_allocate_data_array (u, n2)
 
@@ -708,15 +707,15 @@ if (search_for_lat_eles /= '') then
 
   ! get element names
   jj = n1
-  do k = lbound(ix_eles, 1), ubound(ix_eles, 1)
-    j = ix_eles(k)
+  do k = lbound(locs, 1), ubound(locs, 1)
     if (jj .gt. n2) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    u%data(jj)%ele_name = u%design%lat%ele(j)%name
-    u%data(jj)%ix_ele   = j
-    u%data(jj)%exists   = .true.
+    u%data(jj)%ele_name  = u%design%lat%ele(j)%name
+    u%data(jj)%ix_ele    = locs(k)%ix_ele
+    u%data(jj)%ix_branch = locs(k)%ix_branch
+    u%data(jj)%exists    = .true.
     jj = jj + 1
   enddo
 
@@ -1430,6 +1429,7 @@ type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: var_ptr
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
 
 character(20) fmt
 character(40) ele_name
@@ -1438,7 +1438,7 @@ character(60) search_string
 
 integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
-integer, allocatable, save :: ix_eles(:), an_indexx(:)
+integer, allocatable, save :: an_indexx(:)
 
 logical searching, grouping, found_one, bound
 
@@ -1556,10 +1556,10 @@ if (search_for_lat_eles /= '') then
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_find_elements (s%u(iu), search_string, ix_eles, default_attribute)
+    call tao_init_find_elements (s%u(iu), search_string, locs, default_attribute)
     if (grouping) then
-      do kk = 1, size(ix_eles)
-        ix_ele = ix_eles(kk)
+      do kk = 1, size(locs)
+        ix_ele = locs(kk)%ix_ele
         ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
         call find_indexx(ele_name, ele_names, an_indexx, num_ele, ixm, ix2m)
         if (ixm == 0) then
@@ -1574,7 +1574,7 @@ if (search_for_lat_eles /= '') then
         endif
       enddo
     else
-      num_ele = num_ele + size(ix_eles)
+      num_ele = num_ele + size(locs)
     endif
   enddo
   deallocate(ele_names, an_indexx)
@@ -1596,9 +1596,9 @@ if (search_for_lat_eles /= '') then
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_find_elements (s%u(iu), search_string, ix_eles, default_attribute)
-    kk_loop: do kk = 1, size(ix_eles)
-      ix_ele = ix_eles(kk)
+    call tao_init_find_elements (s%u(iu), search_string, locs, default_attribute)
+    kk_loop: do kk = 1, size(locs)
+      ix_ele = locs(kk)%ix_ele
       ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
       ! If the name matches an existing variable then use that variable
       if (grouping) then
@@ -1820,28 +1820,28 @@ enddo
 
 end subroutine
 
-!-----------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------
-! This searches the lattice for the specified element and flags ix_eles(:)
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+! This searches the lattice for the specified element and flags locs(:)
 
-subroutine tao_find_elements (u, search_string, ix_eles, attribute)
+subroutine tao_init_find_elements (u, search_string, locs, attribute)
 
 implicit none
 
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer :: ele
+type (lat_ele_loc_struct), allocatable :: locs(:)
 
 character(*) search_string
 character(*), optional :: attribute
 character(80) string
 character(40) ele_name, key_name_in
-character(20) :: r_name = 'tao_find_elements'
+character(20) :: r_name = 'tao_init_find_elements'
 
 integer key, found_key, ix_attrib, t
 integer i, k, ix, ii, j, ix0, ix1, ix2, n_ele
 
-integer, allocatable :: ix_eles(:)
 logical no_slaves, no_lords, err, warn_given
 
 ! Sort switches
@@ -1871,32 +1871,32 @@ enddo
 
 ! Find elements
 
-call tao_ele_locations_given_name (u, string, ix_eles, err)
+call tao_locate_elements (string, u%ix_uni, locs, err)
 
 warn_given = .false.
 n_ele = 0
-do j = 1, size(ix_eles)
-  ele => u%design%lat%ele(ix_eles(j))
+do j = 1, size(locs)
+  ele => pointer_to_ele (u%design%lat, locs(j))
   t = ele%slave_status
   if ((t == multipass_slave$ .or. t == super_slave$) .and. no_slaves) cycle
   t = ele%lord_status 
   if ((t == girder_lord$ .or. t == overlay_lord$ .or. t == super_lord$) .and. no_lords) cycle
   ! If attribute is not free then don't count it
   if (present(attribute)) then
-    ix_attrib = attribute_index(u%model%lat%ele(ix_eles(j)), attribute)
+    ix_attrib = attribute_index(ele, attribute)
     if (ix_attrib < 1) then
       call out_io (s_error$, r_name, &
                       'BAD ATTRIBUTE: ' // attribute, &
                       'FOR VARIABLE SEARCH: ' // search_string, &
-                      'FOR ELEMENT: ' // u%model%lat%ele(ix_eles(j))%name)
+                      'FOR ELEMENT: ' // ele%name)
       return
     endif
-    if (.not. attribute_free (ix_eles(j), ix_attrib, u%model%lat, .false.)) then
+    if (.not. attribute_free (locs(j), attribute, u%model%lat, .false.)) then
       if (.not. warn_given) then
         call out_io (s_info$, r_name, &
                   'Non-free attribute ' // attribute, &
                   'For variable search: ' // search_string, &
-                  'For element: ' // u%model%lat%ele(ix_eles(j))%name)
+                  'For element: ' // ele%name)
         warn_given = .true.
       endif
       cycle
@@ -1904,12 +1904,12 @@ do j = 1, size(ix_eles)
   endif
   ! Passes test so add it to the list
   n_ele = n_ele + 1
-  ix_eles(n_ele) = ix_eles(j)
+  locs(n_ele) = locs(j)
 enddo
 
-call re_allocate (ix_eles, n_ele)
+call re_allocate_locs (locs, n_ele, .true.)
 
-end subroutine tao_find_elements
+end subroutine tao_init_find_elements
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

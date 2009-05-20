@@ -133,7 +133,7 @@ do i = 1, size(s%var)
   do j = 1, size(var%this)
     this => var%this(j)
     u => s%u(this%ix_uni)
-    if (.not. attribute_free (this%ix_ele, var%ix_attrib, u%model%lat)) then
+    if (.not. attribute_free (this%ix_ele, var%attrib_name, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
                 '       VARIABLE:  ' // tao_var1_name(var), &
@@ -183,11 +183,11 @@ call tao_lattice_calc (calc_ok, init_design = .true.)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model
-  s%u(i)%design%orb = s%u(i)%model%orb
-  s%u(i)%base  = s%u(i)%design
-  s%u(i)%base%orb  = s%u(i)%design%orb
+  s%u(i)%base = s%u(i)%design
+  s%u(i)%design%orb_branch = s%u(i)%model%orb_branch
+  s%u(i)%base%orb_branch   = s%u(i)%design%orb_branch
   s%u(i)%data%design_value = s%u(i)%data%model_value
-  s%u(i)%data%base_value = s%u(i)%data%model_value
+  s%u(i)%data%base_value   = s%u(i)%data%model_value
 enddo
 
 ! tao_hook_init2 is for custom setup after the regular setup
@@ -303,9 +303,9 @@ if (allocated (s%u)) then
 
     ! Orbits
 
-    deallocate(u%model%orb, stat=istat)
-    deallocate(u%design%orb, stat=istat)
-    deallocate(u%base%orb, stat=istat)
+    deallocate(u%model%orb_branch, stat=istat)
+    deallocate(u%design%orb_branch, stat=istat)
+    deallocate(u%base%orb_branch, stat=istat)
     
     deallocate(u%model%bunch_params, stat=istat)
     deallocate(u%design%bunch_params, stat=istat)

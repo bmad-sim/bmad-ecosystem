@@ -56,7 +56,7 @@ type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
 integer, optional :: ix_uni, who
-integer i, j, ix, n_max, it, id, this_who
+integer i, j, k, ix, n_max, it, id, this_who
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -120,7 +120,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! 
 
   do j = 1, 6
-    tao_lat%orb%vec(j) = 0.0
+    do k = 0, ubound(tao_lat%lat%branch, 1)
+      tao_lat%orb_branch(k)%orbit%vec(j) = 0.0
+    enddo
   enddo
 
   ! set up matching element
@@ -144,7 +146,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (this_calc_ok) then
     if (u%do_synch_rad_int_calc) then
-      call radiation_integrals (tao_lat%lat, tao_lat%orb, tao_lat%modes, u%ix_rad_int_cache)
+      call radiation_integrals (tao_lat%lat, tao_lat%orb_branch(0)%orbit, tao_lat%modes, u%ix_rad_int_cache)
       call transfer_rad_int_struct (ric, tao_lat%rad_int)
     endif
     if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
@@ -241,22 +243,22 @@ lat%param%lost = .false.
 ! Track
 
 if (lat%param%lattice_type == circular_lattice$) then
-  call closed_orbit_calc (lat, tao_lat%orb, 4, exit_on_error = .false.)
+  call closed_orbit_calc (lat, tao_lat%orb_branch(0)%orbit, 4, exit_on_error = .false.)
   if (.not. bmad_status%ok) then
     calc_ok = .false.
-    do i = 0, ubound(tao_lat%orb, 1)
-      tao_lat%orb(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+    do i = 0, ubound(tao_lat%orb_branch(0)%orbit, 1)
+      tao_lat%orb_branch(0)%orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
     enddo
   endif
-  u%model_orb0 = tao_lat%orb(0)   ! Save beginning orbit
+  u%model_orb0 = tao_lat%orb_branch(0)%orbit(0)   ! Save beginning orbit
 
 else
-  call track_all (lat, tao_lat%orb)
+  call track_all (lat, tao_lat%orb_branch(0)%orbit)
   if (lat%param%lost) then
     calc_ok = .false.
     ix_lost = lat%param%ix_lost
     do ii = ix_lost+1, lat%n_ele_track
-      tao_lat%orb(ii)%vec = 0
+      tao_lat%orb_branch(0)%orbit(ii)%vec = 0
     enddo
     call out_io (s_blank$, r_name, &
             "particle lost at element \I0\: " // lat%ele(ix_lost)%name, ix_lost)
@@ -270,7 +272,7 @@ if (u%mat6_recalc_on) then
     if (lat%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i)
     else
-      call lat_make_mat6 (lat, i, tao_lat%orb)
+      call lat_make_mat6 (lat, i, tao_lat%orb_branch(0)%orbit)
     endif
   enddo
   if (lat%param%lattice_type == circular_lattice$) then
@@ -381,9 +383,9 @@ if (.not. u%connect%connected) then
     call tao_single_track (u, tao_lat, who, calc_ok) 
     if (extract_at_ix_ele /= -1) then
       if (u%calc_beam_emittance) then
-        call radiation_integrals (lat, tao_lat%orb, modes)
+        call radiation_integrals (lat, tao_lat%orb_branch(0)%orbit, modes)
         f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
-             (1+tao_lat%orb(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+             (1+tao_lat%orb_branch(0)%orbit(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
@@ -441,7 +443,7 @@ do j = ie1, ie2
 
   ! compute centroid orbit
 
-  call tao_find_beam_centroid (beam, tao_lat%orb(j), too_many_lost, u, j, lat%ele(j))
+  call tao_find_beam_centroid (beam, tao_lat%orb_branch(0)%orbit(j), too_many_lost, u, j, lat%ele(j))
   if (too_many_lost .and. .not. lost) then
     ix_lost = j
     lost = .true.
@@ -601,15 +603,15 @@ type (spin_polar_struct) :: polar
 character(20) :: r_name = "inject_particle"
 
 ! In u%model_orb0 is saved the last computed orbit. 
-! This is important with common_lattice since tao_lat%orb(0) has been overwritten.
+! This is important with common_lattice since tao_lat%orb_branch(0)%orbit(0) has been overwritten.
 
 if (model%lat%param%lattice_type == linear_lattice$) then
-  model%orb(0) = model%lat%beam_start
+  model%orb_branch(0)%orbit(0) = model%lat%beam_start
 else
-  model%orb(0) = u%model_orb0
+  model%orb_branch(0)%orbit(0) = u%model_orb0
 endif
 
-orb0 => model%orb(0)
+orb0 => model%orb_branch(0)%orbit(0)
 
 ! Not connected case is easy.
 
@@ -635,7 +637,7 @@ call init_ele (extract_ele)
 
 call twiss_and_track_at_s (s%u(u%connect%from_uni)%model%lat, &
                              u%connect%from_uni_s, extract_ele, &
-                             s%u(u%connect%from_uni)%model%orb, pos)
+                             s%u(u%connect%from_uni)%model%orb_branch(0)%orbit, pos)
 
 ! track through connect element
 
@@ -699,7 +701,7 @@ logical too_many_lost, err
 
 if (tao_com%use_saved_beam_in_tracking) return
 
-orb0 => model%orb(0)
+orb0 => model%orb_branch(0)%orbit(0)
 model%lat%beam_start%vec = u%beam_init%center
 
 ! If there is an init file then read from the file
@@ -842,7 +844,7 @@ if (u%connect%match_to_design) then
   if (s%global%track_type == 'single') then
     call twiss_and_track_at_s (s%u(u%connect%from_uni)%design%lat, &
                      u%connect%from_uni_s, extract_ele, &
-                     s%u(u%connect%from_uni)%design%orb, extract_pos)
+                     s%u(u%connect%from_uni)%design%orb_branch(0)%orbit, extract_pos)
   elseif (s%global%track_type == 'beam') then
     extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
   endif

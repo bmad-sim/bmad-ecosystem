@@ -297,6 +297,14 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Input:
+!   plot
+!   graph
+!   lat
+!   ele
+!   ix_shape
+!-
 
 recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
 
@@ -323,7 +331,7 @@ real(rp) x_inch, y_inch, x1, x2, y1, y2
 character(80) str
 character(40) name
 character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
-character(16) this_shape
+character(16) shape
 character(2) justify
 
 !
@@ -398,11 +406,12 @@ endif
 ! Here if element is to be drawn...
 
 ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
+shape = ele_shape%shape
 
-select case (ele_shape%shape)
-case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
+select case (shape)
+case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE')
 case default
-  print *, 'ERROR: UNKNOWN SHAPE: ', ele_shape%shape
+  print *, 'ERROR: UNKNOWN SHAPE: ', shape
   call err_exit
 end select
 
@@ -411,7 +420,7 @@ call qp_translate_to_color_index (ele_shape%color, icol)
 off = ele_shape%dy_pix
 off1 = off
 off2 = off
-if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
+if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
   select case (ele%key)
   case (quadrupole$)
     off1 = off * ele%value(k1$)
@@ -424,7 +433,7 @@ if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   end select
   off1 = max(-s%plot_page%shape_height_max, min(off1, s%plot_page%shape_height_max))
   off2 = off1
-  if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
+  if (shape == 'ASYM_VAR_BOX') off1 = 0
 endif
 
 ! Draw the shape. Since the conversion from floor coords to screen coords can
@@ -456,7 +465,7 @@ endif
 ! Draw the element...
 ! Draw top and bottom
 
-if (ele_shape%shape /= 'DIAMOND') then
+if (shape /= 'DIAMOND' .and. shape /= 'CIRCLE') then
   if (ele%key == sbend$) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
                           y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
@@ -471,7 +480,7 @@ if (ele_shape%shape /= 'DIAMOND') then
   endif
 endif
 
-if (ele_shape%shape == 'DIAMOND') then
+if (shape == 'DIAMOND') then
   if (ele%key == sbend$) then
     n = n_bend / 2
     x1 = (x_bend(n) + dx_bend(n)) / 2
@@ -489,7 +498,7 @@ if (ele_shape%shape == 'DIAMOND') then
   call qp_draw_line (end2%x, x1, end2%y, y1, units = 'POINTS', color = icol)
   call qp_draw_line (end2%x, x2, end2%y, y2, units = 'POINTS', color = icol)
 
-elseif (ele_shape%shape /= 'BOW_TIE') then
+elseif (shape /= 'BOW_TIE' .and. shape /= 'CIRCLE') then
   ! Draw sides
   call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
                                                   units = 'POINTS', color = icol)
@@ -499,10 +508,17 @@ endif
 
 ! Draw X for xbox or bow_tie
 
-if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
+if (shape == 'XBOX' .or. shape == 'BOW_TIE') then
   call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
                                                   units = 'POINTS', color = icol)
   call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
+                                                  units = 'POINTS', color = icol)
+endif
+
+! Draw a circle.
+
+if (shape == 'CIRCLE') then
+  call qp_draw_circle ((end1%x+end2%x)/2, (end1%y+end2%y)/2, off, &
                                                   units = 'POINTS', color = icol)
 endif
 
@@ -550,7 +566,7 @@ if (ele_shape%label_type /= 'none') then
                                height = height, justify = justify, ANGLE = theta)    
 endif
 
-end subroutine
+end subroutine tao_draw_ele_for_floor_plan
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -796,7 +812,7 @@ if (s%global%label_keys) then
   enddo
 endif
 
-end subroutine
+end subroutine tao_plot_lat_layout
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -903,7 +919,7 @@ endif
 
 deallocate (text, symbol, line)
 
-end subroutine
+end subroutine tao_plot_data
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -949,6 +965,6 @@ do k = 1, size(ele_shapes)
   return
 enddo
 
-end subroutine
+end subroutine tao_find_ele_shape
 
 end module
