@@ -9,7 +9,7 @@
 ! Note: Lat_out must not be the same actual argument as lat_in.
 !
 ! Note: The routine update_hybrid_list can be useful in constructing the keep_ele array.
- 
+!
 ! Note: For hybrid elements lat_out%ele(i)%tracking_method and 
 ! lat_out%ele(i)%mat6_calc_method are set as follows:
 !
@@ -18,6 +18,12 @@
 !   False         linear$             no_method$
 !   True          taylor$             taylor$
 !
+! The hybrid elements will have the following parameters defined:
+!   L                 Length of the combinded elements.
+!   E_TOT_START       Starting energy.
+!   DELTA_E           Change in energy through the hybrid.
+!   DELTA_REF_TIME    Time needed for the reference particle to transverse the hybrid.
+!
 ! Note: For use_taylor = .false. You need to have made the 
 ! lat_in%ele(:)%mat6 matrices before you call this routine.
 !
@@ -25,7 +31,7 @@
 !   use bmad
 !
 ! Input:
-!   lat_in         -- lat_struct: Input lat.
+!   lat_in         -- lat_struct: Input lattice.
 !   keep_ele(lat_in%n_ele_max) 
 !                  -- Logical array: keep_ele(I) = True indicates an element
 !                        that is NOT to be concatenated. That is, there will be
@@ -42,7 +48,7 @@
 !   orb0(0:)       -- Coord_struct, optional: Central orbit for taylor stuff.
 !
 ! Output:
-!   lat_out   -- lat_struct: Lat with hybrid elements. 
+!   lat_out   -- lat_struct: Lattice with hybrid elements. 
 !                  Note: Lat_out must not be the same actual argument as lat_in.
 !   ix_out(lat_in%n_ele_max) 
 !             -- Integer, optional: Ix_out(i) is the index for lat_in%ele(i) 

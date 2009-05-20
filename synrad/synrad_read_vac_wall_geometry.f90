@@ -56,6 +56,8 @@ namelist / concat_element / concat
 
 ! init
 
+type_warning = .true.
+
 outside => walls%positive_x_wall
 inside  => walls%negative_x_wall
 

@@ -851,6 +851,7 @@ attrib_array(custom$, delta_e$)      = 'DELTA_E'
 attrib_array(hybrid$, l$)              = 'L'
 attrib_array(hybrid$, delta_e$)        = 'DELTA_E'
 attrib_array(hybrid$, delta_ref_time$) = 'DELTA_REF_TIME'
+attrib_array(hybrid$, e_tot_start$)    = 'E_TOT_START'
 
 attrib_array(mirror$, graze_angle$)     = 'GRAZE_ANGLE'
 attrib_array(mirror$, graze_angle_err$) = 'GRAZE_ANGLE_ERR'
