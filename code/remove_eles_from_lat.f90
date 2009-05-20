@@ -75,7 +75,7 @@ if (i2 == lat%n_ele_max) then
 endif
 
 do i = i2+1, lat%n_ele_max
-  call init_ele(lat%ele(i))
+  call init_ele(lat%ele(i), ix_ele = i)
 enddo
 
 lat%n_ele_max = i2

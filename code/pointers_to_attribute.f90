@@ -1,6 +1,6 @@
 !+
 ! Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,
-!                     ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
+!                     ptr_array, err_flag, err_print_flag, locs, ix_attrib)
 !
 ! Returns an array of pointers to an attribute with name attrib_name within 
 ! elements with name ele_name.
@@ -32,8 +32,8 @@
 !                     Pointer will be deassociated if there is a problem.
 !   err_flag     -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
-!   ix_eles(:)   -- Integer, optional, allocatable: List of element indexes 
-!                     in lat%ele(:) array. Set to -1 if not applicable.
+!   locs(:)      -- Lat_ele_loc_struct, optional, allocatable: List of element locations
+!                     in lat%branch(:)%ele(:) matrix.
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
 !-
@@ -41,10 +41,11 @@
 #include "CESR_platform.inc"
 
 Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
-                        ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
+                        ptr_array, err_flag, err_print_flag, locs, ix_attrib)
 
 use bmad_struct
 use bmad_interface, except_dummy => pointers_to_attribute
+use lat_ele_loc_mod
 
 implicit none
 
@@ -52,10 +53,10 @@ type (lat_struct), target :: lat
 type (ele_struct), target :: beam_start
 type (real_pointer_struct), allocatable :: ptr_array(:)
 type (real_pointer_struct), allocatable, save :: ptrs(:)
+type (lat_ele_loc_struct), optional, allocatable :: locs(:)
+type (lat_ele_loc_struct), allocatable, save :: locs2(:)
 
 integer, optional :: ix_attrib
-integer, optional, allocatable :: ix_eles(:)
-integer, allocatable, save :: i_eles(:)
 integer n, i, ix, key, ix_a
 
 character(*) ele_name
@@ -75,9 +76,8 @@ do_print = logic_option (.true., err_print_flag)
 
 if (ele_name == 'BEAM_START') then
 
-  if (present(ix_eles)) then
-    call re_allocate (ix_eles, 1)
-    ix_eles(1) = -1
+  if (present(locs)) then
+    call re_allocate_locs (locs, 0)
   endif
 
   call re_allocate (ptr_array, 1)
@@ -105,8 +105,8 @@ endif
 
 ! Locate elements
 
-call elements_locator (ele_name, lat, i_eles, err_flag)
-if (size(i_eles) == 0) then
+call lat_ele_locator (ele_name, lat, locs2, err_flag)
+if (size(locs2) == 0) then
   if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
   if (allocated(ptr_array)) deallocate (ptr_array)
   err_flag = .true.
@@ -115,11 +115,11 @@ endif
 
 ! Locate attributes
 
-call re_allocate (ptrs, size(i_eles))
+call re_allocate (ptrs, size(locs2))
 n = 0
-do i = 1, size(i_eles)
-  call pointer_to_attribute (lat%ele(i_eles(i)), attrib_name, do_allocation, &
-                            ptrs(n+1)%r, err_flag, .false., ix_a)
+do i = 1, size(locs2)
+  call pointer_to_attribute (lat%branch(locs2(i)%ix_branch)%ele(locs2(i)%ix_ele), &
+          attrib_name, do_allocation, ptrs(n+1)%r, err_flag, .false., ix_a)
   if (.not. err_flag) then
     n = n + 1
     if (present(ix_attrib)) ix_attrib = ix_a
@@ -136,9 +136,9 @@ endif
 
 ! Transfer pointers to ptr_array
 
-if (present(ix_eles)) then
-  call re_allocate (ix_eles, n)
-  ix_eles = i_eles(1:n)
+if (present(locs)) then
+  call re_allocate_locs (locs, n)
+  locs = locs2(1:n)
 endif
 
 call re_allocate (ptr_array, n)

@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module attribute_mod
 
 use bmad_struct
@@ -13,7 +11,60 @@ integer, private, save :: attrib_num(n_key)
 integer, private, save :: attrib_ix(n_key, n_attrib_special_maxx)
 logical, private, save :: init_needed = .true.
 
-private init_attribute_name_array
+type(ele_struct), private, pointer, save :: ele0 ! For Error message purposes
+character(40), private, save :: attrib_name0     ! For Error message purposes
+
+private init_attribute_name_array, check_this_attribute_free, print_error
+
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_free
+!
+! Overloaded function for:
+!   Function attribute_free1 (ix_ele, attrib_name, lat,
+!                                err_print_flag, except_overlay) result (free)
+!   Function attribute_free2 (ix_branch, ix_ele, attrib_name, lat, 
+!                                err_print_flag, except_overlay) result (free)
+!   Function attribute_free3 (loc, attrib_name, lat, 
+!                                err_print_flag, except_overlay) result (free)
+!
+! Subroutine to check if an attribute is free to vary.
+!
+! Attributes that cannot be changed directly include super_slave attributes (since
+! these attributes are controlled by their super_lords) and attributes that
+! are controlled by an overlay_lord.
+!
+! Also dependent variables such as the angle of a bend cannot be 
+!   freely variable.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   loc             -- Lat_ele_loc_struct: Element location.
+!   ix_branch       -- Integer: Branch index. Default is 0.
+!   ix_ele          -- Integer: Index of element in lat%ele(:) array.
+!   attrib_name     -- Character(*): Name of the attribute. Assumed upper case.
+!   lat             -- lat_struct: Lattice structure.
+!   err_print_flag  -- Logical, optional: If present and False then supress
+!                       printing of an error message if attribute is not free.
+!   except_overlay  -- Logical, optional: If present and True then an attribute that
+!                       is an overlay_slave will be treated as free. This is used by,
+!                       for example, the create_overlay routine.
+!
+! Output:
+!   free   -- Logical: Set True if attribtute not found or attriubte
+!                     cannot be changed directly.
+!-
+
+interface attribute_free
+  module procedure attribute_free1
+  module procedure attribute_free2
+  module procedure attribute_free3
+end interface
 
 contains
 
@@ -814,6 +865,29 @@ attrib_array(mirror$, y_pitch$)         = 'Y_PITCH'
 attrib_array(mirror$, g_graze$)         = 'G_GRAZE'
 attrib_array(mirror$, g_trans$)         = 'G_TRANS'
 
+attrib_array(init_ele$, x_position$)      = 'X_POSITION'
+attrib_array(init_ele$, y_position$)      = 'Y_POSITION'
+attrib_array(init_ele$, z_position$)      = 'Z_POSITION'
+attrib_array(init_ele$, theta_position$)  = 'THETA_POSITION'
+attrib_array(init_ele$, phi_position$)    = 'PHI_POSITION'
+attrib_array(init_ele$, psi_position$)    = 'PSI_POSITION'
+attrib_array(init_ele$, beta_a$)          = 'BETA_A'
+attrib_array(init_ele$, beta_b$)          = 'BETA_B'
+attrib_array(init_ele$, alpha_a$)         = 'ALPHA_A'
+attrib_array(init_ele$, alpha_b$)         = 'ALPHA_B'
+attrib_array(init_ele$, eta_a$)           = 'ETA_A'
+attrib_array(init_ele$, eta_b$)           = 'ETA_B'
+attrib_array(init_ele$, etap_a$)          = 'ETAP_A'
+attrib_array(init_ele$, etap_b$)          = 'ETAP_B'
+attrib_array(init_ele$, phi_a$)           = 'PHI_A'
+attrib_array(init_ele$, phi_b$)           = 'PHI_B'
+attrib_array(init_ele$, cmat_11$)         = 'CMAT_11'
+attrib_array(init_ele$, cmat_12$)         = 'CMAT_12'
+attrib_array(init_ele$, cmat_21$)         = 'CMAT_21'
+attrib_array(init_ele$, cmat_22$)         = 'CMAT_22'
+attrib_array(init_ele$, s_long$)          = 'S'
+attrib_array(init_ele$, ref_time$)        = 'REF_TIME'
+
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster
 
@@ -858,8 +932,345 @@ max_len = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_special_maxx)))
 
 end function
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_free1 (ix_ele, attrib_name, 
+!                                 lat, err_print_flag, except_overlay) result (free)
+!
+! This function overloaded by attribute_free. See attribute_free for more details.
+!-
+
+function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
+
+implicit none
+
+type (lat_struct) :: lat
+
+integer ix_ele
+
+character(*) attrib_name
+
+logical free, do_print, do_except_overlay
+logical, optional :: err_print_flag, except_overlay
+
+!
+
+do_print = logic_option (.true., err_print_flag)
+do_except_overlay = logic_option(.false., except_overlay)
+
+ele0 => lat%ele(ix_ele)
+attrib_name0 = attrib_name
+
+call check_this_attribute_free (ele0, attrib_name, lat, do_print, do_except_overlay, free)
+
+end function attribute_free1
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_free2 (ix_branch, ix_ele, attrib_name, 
+!                                 lat, err_print_flag, except_overlay) result (free)
+!
+! This function overloaded by attribute_free. See attribute_free for more details.
+!-
+
+function attribute_free2 (ix_branch, ix_ele, attrib_name, lat, &
+                                        err_print_flag, except_overlay) result (free)
+
+implicit none
+
+type (lat_struct), target :: lat
+
+integer ix_branch, ix_ele, ix_ele0
+
+character(*) attrib_name
+
+logical free, do_print, do_except_overlay
+logical, optional :: err_print_flag, except_overlay
+
+character(16) :: r_name = 'attribute_free'
+
+! init & check
+
+do_print = logic_option (.true., err_print_flag)
+do_except_overlay = logic_option(.false., except_overlay)
+
+ele0 => lat%branch(ix_branch)%ele(ix_ele)
+attrib_name0 = attrib_name
+
+call check_this_attribute_free (ele0, attrib_name, lat, do_print, do_except_overlay, free)
+
+end function attribute_free2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_free3 (loc, lat, err_print_flag, except_overlay) result (free)
+!
+! This function overloaded by attribute_free. See attribute_free for more details.
+!-
+
+function attribute_free3 (loc, attrib_name, lat, err_print_flag, except_overlay) result (free)
+
+implicit none
+
+type (lat_struct) :: lat
+type (lat_ele_loc_struct) loc
+
+character(*) attrib_name
+
+logical free, do_print, do_except_overlay
+logical, optional :: err_print_flag, except_overlay
+
+!
+
+do_print = logic_option (.true., err_print_flag)
+do_except_overlay = logic_option(.false., except_overlay)
+
+ele0 => lat%branch(loc%ix_branch)%ele(loc%ix_ele)
+attrib_name0 = attrib_name
+
+call check_this_attribute_free (ele0, attrib_name, lat, do_print, do_except_overlay, free)
+
+end function attribute_free3
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+recursive subroutine check_this_attribute_free (ele, attrib_name, lat, &
+                                          do_print, do_except_overlay, free, ix_lord)
+
+type (ele_struct) :: ele
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_p
+
+integer ix_branch, i, ir, ix_attrib, ix
+integer, optional :: ix_lord
+
+character(*) attrib_name
+
+logical free, do_print, do_except_overlay
+
+! super_slaves attributes cannot be varied
+
+free = .false.
+
+ix_attrib = attribute_index(ele, attrib_name)
+if (ix_attrib < 1) then
+  if (do_print) call print_error (ele, ix_attrib, &
+          'THIS ATTRIBUTE INDEX DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
+  return
+endif
 
 
 
+! If the attribute is controled by an overlay lord then it cannot be varied.
+! Exception: Multiple overlays can control the same attribute.
+
+if (.not. do_except_overlay) then
+  do i = ele%ic1_lord, ele%ic2_lord
+    ix = lat%ic(i)
+    ir = lat%control(ix)%ix_lord
+    if (present(ix_lord)) then
+      if (ix_lord == ir) cycle
+      if (lat%ele(ix_lord)%lord_status == overlay_lord$) cycle
+    endif
+    if (lat%ele(ir)%lord_status == overlay_lord$) then
+      if (lat%control(ix)%ix_attrib == ix_attrib) then 
+        if (do_print) call print_error (ele, ix_attrib, & 
+           'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele(ir)%name)
+        return
+      endif
+    endif
+  enddo
+endif
+
+! Check for a super_slave
+
+if (ele%slave_status == super_slave$) then
+  if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
+  return
+endif
+
+! Check for a multipass_slave.
+! Exception: dphi0 can be varied for lcavity and rfcavity slaves.
+
+if (ele%slave_status == multipass_slave$) then
+  if ((ele%key /= lcavity$ .and. ele%key /= rfcavity$) .or. ix_attrib /= dphi0$) then
+    if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
+    return
+  endif
+endif
+
+! only one particular attribute of an overlay lord is allowed to be adjusted
+
+if (ele%lord_status == overlay_lord$) then
+  if (ix_attrib /= ele%ix_value) then
+    if (do_print) call print_error (ele, ix_attrib, &
+           'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%attribute_name)
+    return
+  endif
+endif
+
+if (ele%lord_status == group_lord$) then
+  if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
+    if (do_print) call print_error (ele, ix_attrib, &
+          'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
+    return
+  endif
+endif
+
+! check if it is a dependent variable.
+
+free = .true.
+
+select case (ele%key)
+case (sbend$)
+  if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .false.
+case (rfcavity$)
+  if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
+case (beambeam$)
+  if (ix_attrib == bbi_const$) free = .false.
+case (wiggler$)
+  if (ix_attrib == k1$ .or. ix_attrib == rho$) free = .false. 
+case (lcavity$)
+  if (any(ix_attrib == (/ delta_e$, p0c_start$, e_tot_start$ /))) free = .false.
+case (elseparator$)
+  if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
+end select
+
+if (ix_attrib == tilt_tot$) free = .false.
+if (ix_attrib == x_pitch_tot$) free = .false.
+if (ix_attrib == y_pitch_tot$) free = .false.
+if (ix_attrib == x_offset_tot$) free = .false.
+if (ix_attrib == y_offset_tot$) free = .false.
+if (ix_attrib == s_offset_tot$) free = .false.
+if (ix_attrib == e_tot$) free = .false.
+if (ix_attrib == p0c$) free = .false.
+
+if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
+    ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.
+
+if (.not.free) then
+  if (do_print) call print_error (ele, ix_attrib, 'THE ATTRIBUTE IS A DEPENDENT VARIABLE.')
+  return
+endif
+
+! field_master on means that the b_field and bn_gradient values control
+! the strength.
+
+if (ele%field_master) then
+  select case (ele%key)
+  case (quadrupole$)
+    if (ix_attrib == k1$) free = .false.
+  case (sextupole$)
+    if (ix_attrib == k2$) free = .false.
+  case (octupole$)
+    if (ix_attrib == k3$) free = .false.
+  case (solenoid$)
+    if (ix_attrib == ks$) free = .false.
+  case (sol_quad$)
+    if (ix_attrib == ks$) free = .false.
+    if (ix_attrib == k1$) free = .false.
+    if (ix_attrib == k2$) free = .false.
+  case (sbend$)
+    if (ix_attrib == g$) free = .false.
+    if (ix_attrib == g_err$) free = .false.
+  case (hkicker$, vkicker$)
+    if (ix_attrib == kick$) free = .false.
+  end select
+
+  if (ix_attrib == hkick$) free = .false.
+  if (ix_attrib == vkick$) free = .false.
+
+else
+  select case (ele%key)
+  case (quadrupole$)
+    if (ix_attrib == b1_gradient$) free = .false.
+  case (sextupole$)
+    if (ix_attrib == b2_gradient$) free = .false.
+  case (octupole$)
+    if (ix_attrib == b3_gradient$) free = .false.
+  case (solenoid$)
+    if (ix_attrib == bs_field$) free = .false.
+  case (sol_quad$)
+    if (ix_attrib == bs_field$) free = .false.
+    if (ix_attrib == b1_gradient$) free = .false.
+  case (sbend$)
+    if (ix_attrib == b_field$) free = .false.
+    if (ix_attrib == b_field_err$) free = .false.
+    if (ix_attrib == b1_gradient$) free = .false.
+    if (ix_attrib == b2_gradient$) free = .false.
+  case (hkicker$, vkicker$)
+    if (ix_attrib == bl_kick$) free = .false.
+  end select
+
+  if (ix_attrib == bl_hkick$) free = .false.
+  if (ix_attrib == bl_vkick$) free = .false.
+
+endif
+
+if (.not. free) then
+  if (do_print) call print_error (ele, ix_attrib, &
+       "THE ATTRIBUTE IS A DEPENDENT VARIABLE SINCE", &
+       "THE ELEMENT'S FIELD_MASTER IS " // on_off_logic (ele%field_master))
+  return
+endif
+
+! check slaves
+
+if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
+  do i = ele%ix1_slave, ele%ix2_slave
+    ele_p => lat%ele(lat%control(i)%ix_slave)
+    call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(i)%ix_attrib), &
+                                    lat, do_print, do_except_overlay, free, ele%ix_ele)
+    if (.not. free) return
+  enddo
+endif
+
+end subroutine
+
+!-------------------------------------------------------
+
+subroutine print_error (ele, ix_attrib, l1, l2)
+
+type (ele_struct) ele
+
+integer ix_attrib, nl
+
+character(*) l1
+character(*), optional :: l2
+character(100) li(8)
+character (20) :: r_name = 'attribute_free'
+
+!
+
+nl = 0
+
+nl=nl+1; li(nl) =   'THE ATTRIBUTE: ' // attrib_name0
+nl=nl+1; li(nl) =   'OF THE ELEMENT: ' // ele0%name
+
+if (ele%ix_branch == 0 .and. ele%ix_ele == ele0%ix_ele) then
+  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE:'
+else 
+  nl=nl+1; li(nl) = 'IS NOT FREE TO VARY SINCE IT IS TRYING TO CONTROL:'
+  nl=nl+1; li(nl) = 'THE ATTRIBUTE: ' // attrib_name0
+  nl=nl+1; li(nl) = 'OF THE ELEMENT: ' // ele%name
+  nl=nl+1; li(nl) = 'AND THIS IS NOT FREE TO VARY SINCE'
+endif
+
+nl=nl+1; li(nl) = l1
+if (present(l2)) then
+  nl=nl+1; li(nl) = l2
+endif
+
+call out_io (s_error$, r_name, li(1:nl))   
+
+end subroutine
 
 end module

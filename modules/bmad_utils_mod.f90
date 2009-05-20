@@ -68,46 +68,6 @@ end subroutine check_controller_controls
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine pointer_to_ele (lat, ix_line, ix_ele, ele)
-! 
-! Subroutine to point to a given element.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   lat     -- Lat_struct: Structure holding the element.
-!   ix_line -- Integer: Line number. 0 => main lattice.
-!   ix_ele  -- Integer: Element index in the line.
-!
-! Output:
-!   ele   -- Ele_struct, pointer: Pointer to the element. Null if does not exist
-!-
-
-subroutine pointer_to_ele (lat, ix_line, ix_ele, ele)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
-
-integer ix_line, ix_ele
-
-!
-
-nullify(ele)
-
-if (ix_line < 0 .or. ix_line > ubound(lat%branch, 1)) return
-if (ix_ele < 0 .or. ix_ele > lat%branch(ix_line)%n_ele_max) return
-
-ele => lat%branch(ix_line)%ele(ix_ele)
-
-end subroutine pointer_to_ele
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
 ! Subroutine init_coord (orb, vec)
 ! 
 ! Subroutine to initialize a coord_struct.
@@ -1175,7 +1135,7 @@ end subroutine kill_gen_field
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine init_ele (ele, key, sub_key)
+! Subroutine init_ele (ele, key, sub_key, ix_branch, ix_ele)
 !
 ! Subroutine to initialize a Bmad element. Element is initialized to be free
 ! (not a lord or slave) and all %values set to zero.
@@ -1185,18 +1145,21 @@ end subroutine kill_gen_field
 !
 ! Input:
 !   key     -- Integer, optional: Key to initialize to. EG: quadrupole$, etc.
-!   sub_key -- Integer, optional: Sub-key to initialize to. 
+!   sub_key -- Integer, optional: Sub-key to initialize to.
+!   ix_branch  -- Integer, optional: Branch index to initalize to. Default = 0.
+!   ix_ele     -- Integer, optional: ix_ele index to initalize to. Default = -1.
 !
 ! Output:
 !   ele -- Ele_struct: Initialized element.
 !-
 
-subroutine init_ele (ele, key, sub_key)
+subroutine init_ele (ele, key, sub_key, ix_branch, ix_ele)
 
 implicit none
 
 type (ele_struct)  ele
 integer, optional :: key, sub_key
+integer, optional :: ix_branch, ix_ele
 
 !
 
@@ -1226,6 +1189,10 @@ ele%ix_pointer = 0
 ele%s = 0
 ele%ref_time = 0
 ele%ix_branch = 0
+ele%ix_ele = -1
+
+if (present(ix_branch)) ele%ix_branch = ix_branch
+if (present(ix_ele)) ele%ix_ele = ix_ele
 
 call init_floor (ele%floor)
 

@@ -36,6 +36,10 @@ type coord_struct            ! Particle coordinates at a single point
   complex(rp) :: spin(2) = 0 ! Spin in spinor notation
 end type
 
+type coord_array_struct
+  type (coord_struct), allocatable :: orbit(:)
+end type
+
 ! Coupling structure
 
 type bpm_phase_coupling_struct
@@ -49,7 +53,6 @@ type bpm_phase_coupling_struct
   real(rp) Cbar12_b ! Cbar12 as calculated from K_12b.
   real(rp) phi_a    ! a-mode betatron phase.
   real(rp) phi_b    ! b-mode betatron phase.
-  
 end type
 
 ! Wiggler structures
@@ -376,13 +379,6 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 
-!  integer, parameter :: x_position$ = 2, y_position$ = 3, z_position$ = 4, &
-!          theta_position$ = 5, phi_position$ = 6, psi_position$ = 7, &
-!          beta_a$ = 8, beta_b$ = 9, alpha_a$ = 10, alpha_b$ = 11, &
-!          eta_a$ = 12, eta_b$ = 13, etap_a$ = 14, etap_b$ = 15, &
-!          phase_x$ = 16, phase_y$ = 17, &
-!          c11$ = 18, c12$ = 19, c21$ = 20, c22$ = 21
-
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
@@ -451,29 +447,31 @@ integer, parameter :: y1_limit$ = 58   ! Assumed unique. Do not overload.
 integer, parameter :: y2_limit$ = 59   ! Assumed unique. Do not overload.
 integer, parameter :: check_sum$ = 60  ! Assumed unique. Do not overload.
 
-integer, parameter :: term$ = 61       ! 61 = 1 + n_attrib_maxx
-integer, parameter :: ref_orbit$ = 62
-integer, parameter :: symplectify$ = 63
-integer, parameter :: descrip$ = 64
-integer, parameter :: is_on$ = 65
-integer, parameter :: field_calc$ = 66
-integer, parameter :: type$ = 67
-integer, parameter :: aperture_at$ = 68
-integer, parameter :: ran_seed$ = 69
-integer, parameter :: sr_wake_file$ = 70 
-integer, parameter :: lr_wake_file$ = 71
-integer, parameter :: alias$ =72
-integer, parameter :: start_edge$ =73
-integer, parameter :: end_edge$ =74
-integer, parameter :: accordion_edge$ =75
-integer, parameter :: lattice$ = 76
-integer, parameter :: coupler_at$ = 77
-integer, parameter :: map_with_offsets$ = 78
-integer, parameter :: csr_calc_on$ = 79
-integer, parameter :: symmetric_edge$ = 80 
-integer, parameter :: mat6_calc_method$ = 81
-integer, parameter :: tracking_method$  = 82
-integer, parameter :: num_steps$ = 83
+!! 61 = 1 + n_attrib_maxx
+
+integer, parameter :: term$ = 61
+integer, parameter :: ref_orbit$ = 62, x_position$ = 62
+integer, parameter :: symplectify$ = 63, y_position$ = 63
+integer, parameter :: descrip$ = 64, z_position$ = 64
+integer, parameter :: is_on$ = 65, theta_position$ = 65
+integer, parameter :: field_calc$ = 66, phi_position$ = 66
+integer, parameter :: type$ = 67, psi_position$ = 67
+integer, parameter :: aperture_at$ = 68, beta_a$ = 68
+integer, parameter :: ran_seed$ = 69, beta_b$ = 69
+integer, parameter :: sr_wake_file$ = 70, alpha_a$ = 70
+integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
+integer, parameter :: alias$ =72, eta_a$ = 72
+integer, parameter :: start_edge$ =73, eta_b$ = 73
+integer, parameter :: end_edge$ =74, etap_a$ = 74
+integer, parameter :: accordion_edge$ =75, etap_b$ = 75
+integer, parameter :: lattice$ = 76, phi_a$ = 76
+integer, parameter :: coupler_at$ = 77, phi_b$ = 77
+integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78
+integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
+integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80
+integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
+integer, parameter :: tracking_method$  = 82, s_long$ = 82
+integer, parameter :: num_steps$ = 83, ref_time$ = 83
 integer, parameter :: integrator_order$ = 84
 integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86

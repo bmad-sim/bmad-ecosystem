@@ -24,18 +24,17 @@
 !       %psi              -- Roll angle.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine lat_geometry (lat)
 
 use bmad_struct
 use bmad_interface, except_dummy => lat_geometry
+use lat_ele_loc_mod
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (branch_struct), pointer :: line
+type (branch_struct), pointer :: branch
 
 integer i, n, ix2, ie
 
@@ -46,20 +45,20 @@ do i = 1, lat%n_ele_track
 enddo
 
 do n = 1, ubound(lat%branch, 1)
-  line => lat%branch(n)
+  branch => lat%branch(n)
 
-  call pointer_to_ele (lat, line%ix_from_branch, line%ix_from_ele, ele)
-  line%ele(0)%floor = ele%floor
+  ele => pointer_to_ele (lat, branch%ix_from_branch, branch%ix_from_ele)
+  branch%ele(0)%floor = ele%floor
 
   if (ele%key == photon_branch$ .or. ele%key == photon_branch$) then
     if (nint(ele%value(direction$)) == -1) then
-      line%ele(0)%floor%theta = -line%ele(0)%floor%theta
-      line%ele(0)%floor%phi   = -line%ele(0)%floor%phi
+      branch%ele(0)%floor%theta = -branch%ele(0)%floor%theta
+      branch%ele(0)%floor%phi   = -branch%ele(0)%floor%phi
     endif
   endif
 
-  do i = 1, line%n_ele_track
-    call ele_geometry (line%ele(i-1)%floor, line%ele(i), lat%ele(i)%floor)
+  do i = 1, branch%n_ele_track
+    call ele_geometry (branch%ele(i-1)%floor, branch%ele(i), branch%ele(i)%floor)
   enddo
 
 enddo

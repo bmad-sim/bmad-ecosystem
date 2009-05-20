@@ -27,6 +27,7 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
   use bmad_struct
   use bmad_interface, except_dummy => find_element_ends
   use nr, only: indexx
+  use lat_ele_loc_mod
 
   implicit none
                                                          
@@ -45,12 +46,12 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
   ix2 = ele%ix2_slave
 
   if (ele%n_slave == 0) then
-    call pointer_to_ele (lat, ele%ix_branch, ix_ele-1, ele1)
+    ele1 => pointer_to_ele (lat, ele%ix_branch, ix_ele-1)
     ele2 => ele
 
   elseif (ele%lord_status == super_lord$) then
-    call pointer_to_ele (lat, ele%ix_branch, lat%control(ix1)%ix_slave - 1, ele1)
-    call pointer_to_ele (lat, ele%ix_branch, lat%control(ix2)%ix_slave, ele2)
+    ele1 => pointer_to_ele (lat, ele%ix_branch, lat%control(ix1)%ix_slave - 1)
+    ele2 => pointer_to_ele (lat, ele%ix_branch, lat%control(ix2)%ix_slave)
 
   ! For overlays and groups: The idea is to look at all the slave elements in the tracking 
   ! part of the lattice and find the minimum and maximum element indexes.
@@ -97,8 +98,8 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
       endif
     enddo
 
-    call pointer_to_ele (lat, ix_start_branch, ix_start, ele1)
-    call pointer_to_ele (lat, ix_end_branch, ix_end, ele2)
+    ele1 => pointer_to_ele (lat, ix_start_branch, ix_start)
+    ele2 => pointer_to_ele (lat, ix_end_branch, ix_end)
 
   endif
 

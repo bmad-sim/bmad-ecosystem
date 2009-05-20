@@ -5,6 +5,7 @@ use bmad_interface
 use multipole_mod
 use multipass_mod
 use element_modeling_mod
+use lat_ele_loc_mod
 
 private str, rchomp, write_out, bmad_to_mad_or_xsif
 
@@ -60,7 +61,7 @@ real(rp) s0, x_lim, y_lim
 character(*) bmad_file
 character(4000) line
 character(4) last
-character(40) name, look_for
+character(40) name, look_for, attrib_name
 character(200) wake_name, file_name
 character(40), allocatable :: names(:)
 character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
@@ -227,7 +228,7 @@ ele_loop: do ie = 1, lat%n_ele_max
     endif
     j_loop: do j = ele%ix1_slave, ele%ix2_slave
       ctl = lat%control(j)
-      call pointer_to_ele (lat, ctl%ix_branch, ctl%ix_slave, slave)
+      slave => pointer_to_ele (lat, ctl%ix_branch, ctl%ix_slave)
       do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
         if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) cycle j_loop
       enddo
@@ -406,23 +407,21 @@ ele_loop: do ie = 1, lat%n_ele_max
   ! Print the element attributes.
 
   do j = 1, n_attrib_maxx
-
+    attrib_name = attribute_name(ele, j)
     if (ele%value(j) == 0) cycle
     if (j == check_sum$) cycle
     if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
     if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
-    if (.not. attribute_free (ie, j, lat, .false., .true.)) cycle
-    if (attribute_name(ele, j) == 'DS_STEP' .and. &
-                                    ele%value(j) == bmad_com%default_ds_step) cycle
-    if (attribute_name(ele, j) == null_name$) then
+    if (.not. attribute_free (ie, attrib_name, lat, .false., .true.)) cycle
+    if (attrib_name == 'DS_STEP' .and. ele%value(j) == bmad_com%default_ds_step) cycle
+    if (attrib_name == null_name$) then
       print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
       print *, '      ELEMENT: ', ele%name
       print *, '      HAS AN UNKNOWN ATTRIBUTE INDEX:', j
       stop
     endif
 
-    line = trim(line) // ', ' // trim(attribute_name(ele, j)) // &
-                                                  ' = ' // str(ele%value(j))
+    line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(ele%value(j))
   enddo ! attribute loop
 
   ! Print the combined limits if needed.

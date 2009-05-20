@@ -5,15 +5,16 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"re_allocate_logical2d"} = "re_allocate_mod.f90";
+$pl_hash{"re_allocate_string2d"} = "re_allocate_mod.f90";
+$pl_hash{"re_allocate_integer2d"} = "re_allocate_mod.f90";
+$pl_hash{"re_allocate_real_pointer"} = "re_allocate_mod.f90";
+$pl_hash{"re_allocate_real2d"} = "re_allocate_mod.f90";
 $pl_hash{"add_taylor_term1"} = "bmad_taylor_mod.f90";
 $pl_hash{"add_taylor_term2"} = "bmad_taylor_mod.f90";
 $pl_hash{"lsc_y0_kick_calc"} = "csr_mod.f90";
 $pl_hash{"test_f_xy_disp"} = "test_f_side.f90";
 $pl_hash{"re_allocate2_real"} = "re_allocate_mod.f90";
-$pl_hash{"re_allocate_integer2"} = "re_allocate_mod.f90";
-$pl_hash{"re_allocate_string2"} = "re_allocate_mod.f90";
-$pl_hash{"re_allocate_real2"} = "re_allocate_mod.f90";
-$pl_hash{"re_allocate_logical2"} = "re_allocate_mod.f90";
 $pl_hash{"this_bookkeeper"} = "bookkeeper_mod.f90";
 $pl_hash{"re_allocate2_integer"} = "re_allocate_mod.f90";
 $pl_hash{"xy_disp_to_f2"} = "bmad_and_cpp.f90";
@@ -155,7 +156,6 @@ $pl_hash{"order_macroparticles_in_z"} = "macro_particle_mod.f90";
 $pl_hash{"integration_timer_ele"} = "integration_timer_mod.f90";
 $pl_hash{"lr_wake_add_to"} = "wake_mod.f90";
 $pl_hash{"word_read"} =               "word_read.f90";
-$pl_hash{"goodbye_exit"} =            "goodbye_exit.f90";
 $pl_hash{"calc_file_number"} =        "calc_file_number.f90";
 $pl_hash{"odd"} =                     "odd.f90";
 $pl_hash{"fdjac2"} =                  "lmdif_mod.f90";
@@ -164,7 +164,6 @@ $pl_hash{"get_file_number"} =         "get_file_number.f90";
 $pl_hash{"doubleup_quotes"} =         "doubleup_quotes.f90";
 $pl_hash{"qrsolv"} =                  "lmdif_mod.f90";
 $pl_hash{"change_file_number"} =      "change_file_number.f90";
-$pl_hash{"settled_test"} =            "settled_test.f90";
 $pl_hash{"to_node_name"} =            "to_node_name.f90";
 $pl_hash{"file_get_open"} =           "file_get_open.f90";
 $pl_hash{"file_directorizer"} =       "file_directorizer.f90";
@@ -280,7 +279,7 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in bmad but not in subroutines.tex:\n\n";
 
 find (\&searchit, '..');
-find (\&searchit, '../../dcslib');
+find (\&searchit, '../../sim_utils');
 find (\&searchit, '../../cesr_utils');
 
 #---------------------------------------------------------

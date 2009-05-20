@@ -20,6 +20,7 @@ subroutine s_calc (lat)
 
 use bmad_struct
 use bmad_interface, except_dummy => s_calc
+use lat_ele_loc_mod
 
 implicit none
 
@@ -56,7 +57,7 @@ do i = 1, ubound(lat%branch, 1)
   line => lat%branch(i)
   line%ele(0)%s = 0
   if (line%ix_from_branch /= 0) then
-    call pointer_to_ele (lat, line%ix_from_branch, line%ix_from_ele, ele)
+    ele => pointer_to_ele (lat, line%ix_from_branch, line%ix_from_ele)
     line%ele(0)%s = ele%s
   endif
   do n = 1, line%n_ele_track

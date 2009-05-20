@@ -252,7 +252,8 @@ do i = 1, n_control
       call multipole_init(lat%ele(ix_slave))
     endif
 
-    free = attribute_free (ix_slave, ix_attrib, lat, err_print_flag)
+    free = attribute_free (ix_slave, attribute_name(lat%ele(ix_slave), ix_attrib), &
+                                                                      lat, err_print_flag)
     if (.not. free) then
       if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
             'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lat%ele(ix_lord)%name)

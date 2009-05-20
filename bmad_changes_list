@@ -1,3 +1,15 @@
+f90: Warning: cpp_interface/bmad_and_cpp.f90, line 619: Variable T_REF is used before its value has been defined
+                                   n_sin, n_cos, s_cos, s_sin, t_ref, m, polarized)
+---------------------------------------------------------------^
+f90: Warning: cpp_interface/bmad_and_cpp.f90, line 1621: Variable SIGMA is used before its value has been defined
+f_mode_info = mode_info_struct(tune, emit, chrom, sigma, sigmap)
+--------------------------------------------------^
+f90: Warning: cpp_interface/bmad_and_cpp.f90, line 1621: Variable SIGMAP is used before its value has been defined
+f_mode_info = mode_info_struct(tune, emit, chrom, sigma, sigmap)
+---------------------------------------------------------^
+Compiling:  custom/custom_emit_calc.f90 --> ../lib/libbmad_g.a(custom_emit_calc_DBL_g.o)
+C
+
 controller:
 	cc: control = {q[k1]=2.7*#, ...}, attrib = k1, absolute = T
 

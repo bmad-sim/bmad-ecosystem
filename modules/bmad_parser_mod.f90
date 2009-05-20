@@ -340,7 +340,7 @@ if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
   endif
 
   r_ptrs(1)%r = value
-  call changed_attribute_bookkeeper (lat, ele%ix_ele, r_ptrs(1)%r)
+  call changed_attribute_bookkeeper (lat, ele, r_ptrs(1)%r)
   return
 endif
 

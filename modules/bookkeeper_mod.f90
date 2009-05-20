@@ -1633,7 +1633,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine changed_attribute_bookkeeper (lat, ix_ele, a_ptr)
+! Subroutine changed_attribute_bookkeeper (lat, ele, a_ptr)
 !
 ! Subroutine to do bookkeeping when a particular attribute has been altered.
 !
@@ -1642,81 +1642,72 @@ end subroutine
 !
 ! Input:
 !   lat    -- lat_struct: Lattice with the changed attribute.
-!   ix_ele -- Integer: Index of element if an element attribute is being modified.
-!               Otherwise should be set to -1.
+!   ele    -- ele_struct: Element being modified.
 !   a_ptr  -- Real(rp), pointer: Pointer to the changed attribute.
 !
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
 !-
 
-subroutine changed_attribute_bookkeeper (lat, ix_ele, a_ptr)
+subroutine changed_attribute_bookkeeper (lat, ele, a_ptr)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), target :: ele
 
 real(rp), pointer :: a_ptr
 real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4)
-
-integer ix_ele
 
 logical coupling_change
 
 !
 
-if (ix_ele > -1) then
+if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
 
-  ele => lat%ele(ix_ele)
+if (ele%ix_ele == 0) then
+  coupling_change = .false.
 
-  if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
+  if (associated(a_ptr, ele%a%beta) .or. associated(a_ptr, ele%a%alpha)) then
+    if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
+    return
+  endif
 
-  if (ele%ix_ele == 0) then
-    coupling_change = .false.
+  if (associated(a_ptr, ele%b%beta) .or. associated(a_ptr, ele%b%alpha)) then
+    if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
+    return
+  endif
 
-    if (associated(a_ptr, ele%a%beta) .or. associated(a_ptr, ele%a%alpha)) then
-      if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
-      return
-    endif
+  if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
+          associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
+    ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
+                                                ele%c_mat(1,2)*ele%c_mat(2,1))
+    coupling_change = .true.
+  endif
 
-    if (associated(a_ptr, ele%b%beta) .or. associated(a_ptr, ele%b%alpha)) then
-      if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
-      return
-    endif
+  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
+      associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
+      coupling_change) then 
+    call make_v_mats (ele, v_mat, v_inv_mat)
+    eta_xy_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+    eta_vec = matmul (v_inv_mat, eta_xy_vec)
+    ele%a%eta  = eta_vec(1)
+    ele%a%etap = eta_vec(2)
+    ele%b%eta  = eta_vec(3)
+    ele%b%etap = eta_vec(4)
+    return
+  endif
 
-    if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
-            associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
-      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
-                                                  ele%c_mat(1,2)*ele%c_mat(2,1))
-      coupling_change = .true.
-    endif
-
-    if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
-        associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
-        coupling_change) then 
-      call make_v_mats (ele, v_mat, v_inv_mat)
-      eta_xy_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
-      eta_vec = matmul (v_inv_mat, eta_xy_vec)
-      ele%a%eta  = eta_vec(1)
-      ele%a%etap = eta_vec(2)
-      ele%b%eta  = eta_vec(3)
-      ele%b%etap = eta_vec(4)
-      return
-    endif
-
-    if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
-        associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
-      call make_v_mats (ele, v_mat, v_inv_mat)
-      eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
-      eta_xy_vec = matmul (v_mat, eta_vec)
-      ele%x%eta  = eta_xy_vec(1)
-      ele%x%etap = eta_xy_vec(2)
-      ele%y%eta  = eta_xy_vec(3)
-      ele%y%etap = eta_xy_vec(4)
-      return
-    endif
-
+  if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
+      associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
+    call make_v_mats (ele, v_mat, v_inv_mat)
+    eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
+    eta_xy_vec = matmul (v_mat, eta_vec)
+    ele%x%eta  = eta_xy_vec(1)
+    ele%x%etap = eta_xy_vec(2)
+    ele%y%eta  = eta_xy_vec(3)
+    ele%y%etap = eta_xy_vec(4)
+    return
   endif
 
 endif

@@ -17,6 +17,7 @@ module bmad
   use bookkeeper_mod
   use radiation_mod
   use symp_lie_mod
+  use lat_ele_loc_mod
 
   ! This is to suppress the ranlib "has no symbols" message
   integer, private :: private_dummy

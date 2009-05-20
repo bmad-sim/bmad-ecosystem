@@ -104,7 +104,8 @@ do j = 1, n_slave
     if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
       call multipole_init(lat%ele(ix_slave))
     endif
-    free = attribute_free (ix_slave, ix_attrib, lat, err_print_flag, .true.)
+    free = attribute_free (ix_slave, attribute_name(lat%ele(ix_slave), ix_attrib), &
+                                                                 lat, err_print_flag, .true.)
     err = err .or. .not. free
     lat%control(nc2+1) = contl(j)
     lat%control(nc2+1)%ix_lord = ix_overlay
