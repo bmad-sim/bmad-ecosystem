@@ -71,11 +71,12 @@ contains
     type(coord_struct), allocatable :: co(:)
     type(ele_struct), pointer :: ele, ma_ele
     integer i_ele, i_det_grp, i_cor_grp, i_det, i, i_ele2
+    integer size_y, iy, iter, ip
     real(rp) harvest(7), cbar(2,2), chisq, alamda, old_chisq, d_chisq
     real(rp), allocatable, dimension(:) :: x, y, sig, a
-    logical, allocatable, dimension(:) :: maska
     real(rp), allocatable, dimension(:,:) :: alpha, covar
-    integer size_y, iy, iter, ip
+    logical, allocatable, dimension(:) :: maska
+    character(40) attrib_name
 
     ! Locate detectors
     n_det  = 0
@@ -118,7 +119,8 @@ contains
        ele_loop2: do i_ele = 1, ring%n_ele_max
           if (match_reg(ring%ele(i_ele)%name, correct%cor(i_cor_grp)%mask)) then
              if (correct%cor(i_cor_grp)%param > 0) then
-                if (.not. attribute_free(i_ele, correct%cor(i_cor_grp)%param, ring, .false.)) cycle
+                attrib_name = attribute_name(ring%ele(i_ele), correct%cor(i_cor_grp)%param)
+                if (.not. attribute_free(i_ele, attrib_name, ring, .false.)) cycle
              end if
 
              ! Check for duplicates. We don't skip zero-length elements, so you can never
