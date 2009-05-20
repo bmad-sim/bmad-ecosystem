@@ -1486,14 +1486,15 @@ case ('particle')
     if (err) return
     call tao_locate_elements (ele_name, ix_u, locs, err)
     if (err) return
+    ix_ele = locs(1)%ix_ele
   endif
 
-  if (.not. allocated(u%ele(locs(1)%ix_ele)%beam%bunch)) then
+  if (.not. allocated(u%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
     return
   endif
 
-  if (nb < 1 .or. nb > size(u%ele(locs(1)%ix_ele)%beam%bunch)) then
+  if (nb < 1 .or. nb > size(u%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = (/ nb /))
     return
   endif

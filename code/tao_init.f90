@@ -174,6 +174,12 @@ enddo
 
 call tao_init_plotting (plot_file)
   
+! Close the log file and route all messages back to the terminal.
+! Need to do this before calling tao_lattice_calc since we don't want to supress messages.
+
+close (iu_log)
+call output_direct (0, .true.)
+
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
@@ -235,11 +241,6 @@ endif
 call tao_set_data_useit_opt()
 call tao_set_var_useit_opt()
 if (present(err_flag)) err_flag = .false.
-
-! Close the log file and route all messages back to the terminal
-
-close (iu_log)
-call output_direct (0, .true.)
 
 contains
 !------------------------------------------------------------------------------
