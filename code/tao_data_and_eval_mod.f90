@@ -296,10 +296,11 @@ do i = 1, size(ix_datum)
   datum => u%data(ix_datum(i))
 
   select case (who_dat)
-  case (model$) 
+  case (model$)
     call tao_evaluate_a_datum (datum, u, u%model, datum%model_value, datum%good_model)
-    if (datum%ix_ele_merit > -1) datum%s = &
-                                    u%model%lat%ele(datum%ix_ele_merit)%s
+    if (datum%ix_ele_merit > -1) then
+      datum%s = u%model%lat%ele(datum%ix_ele_merit)%s
+    endif
   case (design$)
     call tao_evaluate_a_datum (datum, u, u%design, datum%design_value, good)
   case (base$)
@@ -1281,121 +1282,128 @@ if (ix1 < ix0 .and. lat%param%lattice_type == linear_lattice$) then
   return
 endif
  
-!
+! If ele0 does not exist
 
 if (datum%ele0_name == ' ') then
   if (present(orbit)) call data_calc (loc1%ix_ele, datum, lat, orbit)
   datum_value = vec(loc1%ix_ele)
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(loc1%ix_ele))
+  datum%ix_ele_merit = ix1
+  valid_value = .true.
+  return
+endif
 
-elseif (datum%merit_type == 'match') then
+! If match type merit
 
+if (datum%merit_type == 'match') then
   if (present(orbit)) call data_calc (ix0, datum, lat, orbit)
   if (present(orbit)) call data_calc (ix1, datum, lat, orbit)
   datum_value = vec(ix1) - vec(ix0)
+  datum%ix_ele_merit = ix1
+  valid_value = .true.
+  return
+endif
+
+! Normal case
+
+if (ix1 < ix0) then   ! wrap around
+
+  if (present(orbit)) then
+    do i = ix0, n_track
+      call data_calc (i, datum, lat, orbit)
+    enddo
+    do i = 0, ix1
+      call data_calc (i, datum, lat, orbit)
+    enddo
+  endif
+
+  select case (datum%merit_type)
+  case ('min')
+    ix_m = minloc (vec(0:ix1), 1) - 1
+    ix_m2 = minloc (vec(ix0:n_track), 1) + ix0 - 1
+    if (vec(ix_m2) < vec(ix_m2)) ix_m = ix_m2
+    datum_value = vec(ix_m)
+
+  case ('max')
+    ix_m = maxloc (vec(0:ix1), 1) - 1
+    ix_m2 = maxloc (vec(ix0:n_track), 1) + ix0 - 1
+    if (vec(ix_m2) > vec(ix_m2)) ix_m = ix_m2
+    datum_value = vec(ix_m)
+
+  case ('abs_min')
+    ix_m = minloc (abs(vec(0:ix1)), 1) - 1
+    ix_m2 = minloc (abs(vec(ix0:n_track)), 1) + ix0 - 1
+    if (abs(vec(ix_m2)) < abs(vec(ix_m2))) ix_m = ix_m2
+    datum_value = abs(vec(ix_m))
+
+  case ('abs_max')
+    ix_m = maxloc (abs(vec(0:ix1)), 1) - 1
+    ix_m2 = maxloc (abs(vec(ix0:n_track)), 1) + ix0 - 1
+    if (abs(vec(ix_m2)) > abs(vec(ix_m2))) ix_m = ix_m2
+    datum_value = abs(vec(ix_m))
+
+  case ('int_min')
+    datum_value = 0; ix_m = -1
+    call integrate_min (ix1, n_track, datum_value, ix_m, lat, vec, datum)
+    call integrate_min (0, ix0, datum_value, ix_m, lat, vec, datum)
+
+  case ('int_max')
+    datum_value = 0; ix_m = -1
+    call integrate_max (ix1, n_track, datum_value, ix_m, lat, vec, datum)
+    call integrate_max (0, ix0, datum_value, ix_m, lat, vec, datum)
+
+  case default
+    call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
+                                 'FOR DATUM: ' // tao_datum_name(datum))
+    call err_exit
+  end select
 
 else
-
-  if (ix1 < ix0) then   ! wrap around
-
-    if (present(orbit)) then
-      do i = ix0, n_track
-        call data_calc (i, datum, lat, orbit)
-      enddo
-      do i = 0, ix1
-        call data_calc (i, datum, lat, orbit)
-      enddo
-    endif
-  
-    select case (datum%merit_type)
-    case ('min')
-      ix_m = minloc (vec(0:ix1), 1) - 1
-      ix_m2 = minloc (vec(ix0:n_track), 1) + ix0 - 1
-      if (vec(ix_m2) < vec(ix_m2)) ix_m = ix_m2
-      datum_value = vec(ix_m)
-
-    case ('max')
-      ix_m = maxloc (vec(0:ix1), 1) - 1
-      ix_m2 = maxloc (vec(ix0:n_track), 1) + ix0 - 1
-      if (vec(ix_m2) > vec(ix_m2)) ix_m = ix_m2
-      datum_value = vec(ix_m)
-
-    case ('abs_min')
-      ix_m = minloc (abs(vec(0:ix1)), 1) - 1
-      ix_m2 = minloc (abs(vec(ix0:n_track)), 1) + ix0 - 1
-      if (abs(vec(ix_m2)) < abs(vec(ix_m2))) ix_m = ix_m2
-      datum_value = abs(vec(ix_m))
-
-    case ('abs_max')
-      ix_m = maxloc (abs(vec(0:ix1)), 1) - 1
-      ix_m2 = maxloc (abs(vec(ix0:n_track)), 1) + ix0 - 1
-      if (abs(vec(ix_m2)) > abs(vec(ix_m2))) ix_m = ix_m2
-      datum_value = abs(vec(ix_m))
-
-    case ('int_min')
-      datum_value = 0; ix_m = -1
-      call integrate_min (ix1, n_track, datum_value, ix_m, lat, vec, datum)
-      call integrate_min (0, ix0, datum_value, ix_m, lat, vec, datum)
-
-    case ('int_max')
-      datum_value = 0; ix_m = -1
-      call integrate_max (ix1, n_track, datum_value, ix_m, lat, vec, datum)
-      call integrate_max (0, ix0, datum_value, ix_m, lat, vec, datum)
-
-    case default
-      call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
-                                   'FOR DATUM: ' // tao_datum_name(datum))
-      call err_exit
-    end select
-
-  else
-    if (present(orbit)) then
-      do i = ix0, ix1
-        call data_calc (i, datum, lat, orbit)
-      enddo
-    endif
-
-    select case (datum%merit_type)
-    case ('min')
-      ix_m = minloc (vec(ix0:ix1), 1) + ix0 - 1
-      datum_value = vec(ix_m)
-
-    case ('max')
-      ix_m = maxloc (vec(ix0:ix1), 1) + ix0 - 1
-      datum_value = vec(ix_m)
-
-    case ('abs_min')
-      ix_m = minloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
-      datum_value = abs(vec(ix_m))
-
-    case ('abs_max')
-      ix_m = maxloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
-      datum_value = abs(vec(ix_m))
-
-    case ('int_min')
-      datum_value = 0; ix_m = -1
-      call integrate_min (ix0, ix1, datum_value, ix_m, lat, vec, datum)
-
-    case ('int_max')
-      datum_value = 0; ix_m = -1
-      call integrate_max (ix0, ix1, datum_value, ix_m, lat, vec, datum)
-
-    case default
-      call out_io (s_abort$, r_name, &
-                    'SINCE THIS DATUM: ' // tao_datum_name(datum), &
-                    'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
-                    'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
-      call err_exit
-    end select
-
+  if (present(orbit)) then
+    do i = ix0, ix1
+      call data_calc (i, datum, lat, orbit)
+    enddo
   endif
+
+  select case (datum%merit_type)
+  case ('min')
+    ix_m = minloc (vec(ix0:ix1), 1) + ix0 - 1
+    datum_value = vec(ix_m)
+
+  case ('max')
+    ix_m = maxloc (vec(ix0:ix1), 1) + ix0 - 1
+    datum_value = vec(ix_m)
+
+  case ('abs_min')
+    ix_m = minloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
+    datum_value = abs(vec(ix_m))
+
+  case ('abs_max')
+    ix_m = maxloc (abs(vec(ix0:ix1)), 1) + ix0 - 1
+    datum_value = abs(vec(ix_m))
+
+  case ('int_min')
+    datum_value = 0; ix_m = -1
+    call integrate_min (ix0, ix1, datum_value, ix_m, lat, vec, datum)
+
+  case ('int_max')
+    datum_value = 0; ix_m = -1
+    call integrate_max (ix0, ix1, datum_value, ix_m, lat, vec, datum)
+
+  case default
+    call out_io (s_abort$, r_name, &
+                  'SINCE THIS DATUM: ' // tao_datum_name(datum), &
+                  'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
+                  'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
+    call err_exit
+  end select
 
 endif
 
-!
-
 datum%ix_ele_merit = ix_m
 valid_value = .true.
+
+!
 
 end subroutine
 
