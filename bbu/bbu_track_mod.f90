@@ -415,7 +415,7 @@ real(rp), Dimension(:),     allocatable :: erltime
 
 
 integer i, j, k, kk, l, u
-real(rp)  time, Vz, P0i, P0f, gamma, cavity_i
+real(rp)  time, Vz, P0i, P0f, gamma
 logical judge
 integer :: matrixsize = 4
 real(rp) cnumerator,currth,currthc,rovq,matc,poltheta
@@ -433,46 +433,36 @@ allocate(erltime(800))
 ! Initialize the identity matrix
 call mat_make_unit(imat)
 
-!Find the time between each cavity in the low energy lattice
-time=0
-cavity_i=lat%ele(0)%s
-
+! Find the time between each cavity in the low energy lattice
 ! The time between two cavities is stored in erltime(k)
 
+time=0
 k=1     
-judge=.false.  ! True if the rf cavity has wake fields
 
-do i=1, lat%n_ele_track
+do i = 1, lat%n_ele_track
+
+  gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
+  Vz=c_light*sqrt(1.-1./gamma**2)
    
-   gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
-   Vz=c_light*sqrt(1.-1./gamma**2)
-   
-   if (lat%ele(i)%key == LCAVITY$ ) then
-      time=time+(lat%ele(i)%s-cavity_i)/c_light*(1+0.5/(gamma*lat%ele(i-1)%value(E_TOT$)/m_electron))
-!      print *,' Incrementing time for passage through cavity',i,lat%ele(i)%name,time
-      if(associated(lat%ele(i)%wake)) then
-        do j=1, size(lat%ele(i)%wake%lr)
-          if(lat%ele(i)%wake%lr(j)%R_over_Q >1E-10) then            
-          judge=.true.
-          endif
-        enddo
-      endif
-      if (judge) then
-
-
-
+  if (lat%ele(i)%key == LCAVITY$ ) then
+    time=time+(lat%ele(i)%value(l$))/c_light*(1+0.5/(gamma*lat%ele(i-1)%value(E_TOT$)/m_electron))
+    judge=.false.  ! True if the rf cavity has wake fields
+    if (associated(lat%ele(i)%wake)) then
+      do j=1, size(lat%ele(i)%wake%lr)
+        if (lat%ele(i)%wake%lr(j)%R_over_Q > 1E-10) judge=.true.
+      enddo
+    endif
+    if (judge) then
       print *, ' Storing time for HOM cavity',k,time
       erltime(k)=time
       time=0
       k=k+1       
-      endif
-   else
-      time=time+(lat%ele(i)%s-cavity_i)/Vz
-!      print *,' Incrementing time for passage through element',i,lat%ele(i)%name,time
-   endif
-   
-   cavity_i=lat%ele(i)%s
-   judge=.false.
+    endif
+  elseif (lat%ele(i)%key == hybrid$) then
+    time = time + lat%ele(i)%value(delta_ref_time$)
+  else
+    time=time+(lat%ele(i)%value(l$)) / Vz
+  endif
    
 enddo
 
@@ -523,7 +513,6 @@ do i=0, lat%n_ele_track
            erlmat(k,l,u)=mat(l,u)
         enddo
       enddo
-
 
 ! This code uses the "linac definition" of R/Q, which is
 ! a factor of two larger than the "circuit definition." 
