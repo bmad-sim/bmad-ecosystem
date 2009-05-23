@@ -59,7 +59,7 @@ do i = lat%ele(n_in)%ic1_lord, lat%ele(n_in)%ic2_lord
   if (keep_ele(ix)) cycle  ! If already set then don't need to do it again
   if (.not. logic_option(.true., keep_overlays_and_groups) .and. &
                     (lat%ele(ix)%lord_status == overlay_lord$ .or. &
-                    lat%ele(ix)%lord_status == overlay_lord$)) cycle
+                    lat%ele(ix)%lord_status == group_lord$)) cycle
 
   call update_hybrid_list (lat, ix, keep_ele)
 enddo
