@@ -24,6 +24,7 @@ type bbu_param_struct
   logical hybridize
   logical write_hom_info
   logical keep_overlays_and_groups  ! Keep when hybridizing?
+  logical keep_all_lcavities        ! Keep when hybridizing?
   real(rp) limit_factor
   real(rp) low_power_lim, high_power_lim
   real(rp) simulation_time, bunch_freq, init_hom_amp

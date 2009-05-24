@@ -33,6 +33,7 @@ bbu_param%init_hom_amp = 1e-6        ! Initial wake amplitude
 bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
 bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
 bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
+bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
 bbu_param%current = 20e-3            ! Starting current (amps)
 bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
@@ -98,8 +99,10 @@ do istep = 1, nstep
     keep_ele = .false.
     do i = 1, lat_in%n_ele_max
       if (lat_in%ele(i)%key /= lcavity$) cycle
-      if (.not. associated (lat_in%ele(i)%wake)) cycle
-      if (size(lat_in%ele(i)%wake%lr) == 0) cycle
+      if (.not. bbu_param%keep_all_lcavities) then
+        if (.not. associated (lat_in%ele(i)%wake)) cycle
+        if (size(lat_in%ele(i)%wake%lr) == 0) cycle
+      endif
       call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
     enddo
     call make_hybrid_lat (lat_in, keep_ele, .true., lat)
