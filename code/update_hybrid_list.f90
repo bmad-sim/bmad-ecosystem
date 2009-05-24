@@ -61,7 +61,7 @@ do i = lat%ele(n_in)%ic1_lord, lat%ele(n_in)%ic2_lord
                     (lat%ele(ix)%lord_status == overlay_lord$ .or. &
                     lat%ele(ix)%lord_status == group_lord$)) cycle
 
-  call update_hybrid_list (lat, ix, keep_ele)
+  call update_hybrid_list (lat, ix, keep_ele, keep_overlays_and_groups)
 enddo
 
 end subroutine

@@ -74,7 +74,7 @@ type (ele_struct), pointer :: ele_in, ele_out
 real(rp) e_vec(4), ref_time0
 
 integer j_in, i_out, k, n
-integer n_ele, j, ix, ic, o_key, n_con, n_ic
+integer j, ix, ic, o_key, n_con, n_ic, n_lord
 integer, allocatable, save :: ica(:)
 integer, optional :: ix_out(:)
 
@@ -103,15 +103,14 @@ i_out = 0                        ! index for current out lat
 r_out%ele(0) = r_in%ele(0)     !
 init_hybrid_needed = .true.         ! we need to init out lat element
 
-n_ele = r_in%n_ele_track
-if (n_ele == 0) then
+if (r_in%n_ele_track == 0) then
   print *, 'ERROR IN make_hybrid_lat: LAT_IN%n_ele_track = 0!'
   call err_exit
 endif
 
 ! loop over all in lat elements
 
-do j_in = 1, n_ele
+do j_in = 1, r_in%n_ele_track
 
   ele_in => r_in%ele(j_in)
 
@@ -278,12 +277,13 @@ do j_in = r_in%n_ele_track+1, r_in%n_ele_max
 enddo
 r_out%n_ele_max = i_out
 
-! update control pointers
+!--------------------------------
+! Construct control info...
+! First construct r_out%control(:) array
 
-n_con = 0
-n_ic = 0
 allocate (ica(size(r_in%control)))
 
+n_con = 0
 do i_out = 1, r_out%n_ele_max
 
   ele_out => r_out%ele(i_out)
@@ -316,7 +316,8 @@ enddo
 
 r_out%n_control_max = n_con
 
-! correct r_out%ic array
+! Second construct r_out%ic array
+! Some lords might not exist so we need to be carful.
 
 n_ic = 0
 
@@ -325,12 +326,14 @@ do i_out = 1, r_out%n_ele_max
   ele_out => r_out%ele(i_out)
   if (ele_out%n_lord == 0) cycle
 
-  n_ic = n_ic + ele_out%n_lord
-
+  n_lord = 0  ! Actual number of lords
   do j = ele_out%ic1_lord, ele_out%ic2_lord
-    k = n_ic + j - ele_out%ic2_lord
-    r_out%ic(k) = ica(r_in%ic(j))
-    ic = r_out%ic(k)
+    ix = r_in%control(r_in%ic(j))%ix_lord
+    if (.not. keep_ele(ix)) cycle
+    n_ic = n_ic + 1
+    n_lord = n_lord + 1
+    r_out%ic(n_ic) = ica(r_in%ic(j))
+    ic = r_out%ic(n_ic)
     ix = r_in%control(ic)%ix_lord
     if (ix == 0) then
       print *, 'WARNING IN make_hybrid_lat: LORD ELEMENT ',  &
@@ -338,7 +341,8 @@ do i_out = 1, r_out%n_ele_max
     endif
   enddo
 
-  ele_out%ic1_lord = n_ic - ele_out%n_lord + 1
+  ele_out%n_lord = n_lord
+  ele_out%ic1_lord = n_ic - n_lord + 1
   ele_out%ic2_lord = n_ic
 
 enddo
