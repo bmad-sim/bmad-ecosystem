@@ -17,7 +17,7 @@ real(rp) deldr,dr
 
 real(rp) hom_power0, hom_power1, charge0, charge1
 
-real(rp) currth
+real(rp) trtb,currth
 
 logical lost
 logical, allocatable :: keep_ele(:)
@@ -88,7 +88,7 @@ do istep = 1, nstep
     if(nstep > 1) deldr = (bbu_param%enddr - bbu_param%begdr)/(nstep-1)
     dr = bbu_param%begdr + (istep-1) * deldr
     lat_in%ele(bbu_param%elindex)%value(l$) = dr * c_light / bbu_param%bunch_freq
-    write(6,'(a,2f8.3)')' DRSCAN analysis step: tr/tb, scan element length = ', &
+    write(6,'(a,2f8.3)')' DRSCAN analysis step: dr, scan element length = ', &
                  dr, lat_in%ele(bbu_param%elindex)%value(l$)
     call lattice_bookkeeper(lat_in)
   endif
@@ -119,9 +119,9 @@ do istep = 1, nstep
   bbu_param%high_power_lim = hom_power0 * bbu_param%limit_factor
   bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
 
-  ! Print some information
+  ! Print some information and get the analytic approximation result for the threshold current
 
-  if (bbu_param%write_hom_info) call write_homs(lat,bbu_param%bunch_freq,currth)
+  if (bbu_param%write_hom_info) call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
 
   ! Update starting current according to analytic approximation
   if (currth.gt.0.)bbu_param%current = currth
@@ -190,7 +190,7 @@ do istep = 1, nstep
   beam_init%bunch_charge = (charge0 + charge1) / 2
   print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
-  if (bbu_param%drscan) write(50,*) dr, currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  if (bbu_param%drscan) write(50,*) trtb, currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
 enddo
 

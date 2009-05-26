@@ -395,7 +395,7 @@ end subroutine bbu_track_all
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine write_homs (lat, bunch_freq, currth)
+subroutine write_homs (lat, bunch_freq, trtb, currth)
 
 ! Write out information on lattice and HOMs
 ! Adapted from Changsheng's Get_Info.f90
@@ -419,7 +419,7 @@ integer i, j, k, kk, l, u
 real(rp)  time, Vz, P0i, P0f, gamma
 logical judge
 integer :: matrixsize = 4
-real(rp) cnumerator,currth,currthc,rovq,matc,poltheta
+real(rp) cnumerator,trtb,currth,currthc,rovq,matc,poltheta
 real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
@@ -478,7 +478,7 @@ k=1
 kk=1
 judge =.false.
 
-write(6, '(a)') ' Cavity    HOM       Ith(A)   Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr    tr/tb'
+write(6, '(a)') ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
 do i=0, lat%n_ele_track
    
@@ -534,12 +534,12 @@ do i=0, lat%n_ele_track
            poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
            matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
            currthc = currth * mat(1,2) / matc
+           trtb = erltime(k)*bunch_freq
 
-           write(6, '(i4, i9, 3x, 20es12.3)') kk, j, currth, currthc, erltime(k), &
+           write(6, '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)') kk, j, currth, currthc, erltime(k), &
                            lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
-                           sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),erltime(k)*bunch_freq
-
+                           sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
         enddo
         kk=kk+1
 

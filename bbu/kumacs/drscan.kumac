@@ -48,25 +48,64 @@ sigma curr1=log(curr1)
 sigma curr2=log(curr2)
 *
 *title_g 'BBU Threshold Current: Comparison of Analytic Approximation to BMAD Tracking'
-title_g 'BBU Threshold Current - Job'//[jobid]//' - CERL7.4 Single HOM in One Cavity'
+*title_g 'BBU Threshold Current - Job'//[jobid]//' - CERL7.4 Single HOM in One Cavity'
+title_g 'BBU Threshold Current - Job'//[jobid]
 
 
-*null 5.2 6.14 -3.2 4
-* job 25
-*null 0.8 8.2 -1.5 2
-*job 26
-null 2.8 4.2 -1.5 2
+len=$vlen(curr1)
+v/copy dr(1:[len]) temp
+v/del dr
+v/copy temp dr
+v/del temp
+v/copy curr1(1:[len]) temp
+v/del curr1
+v/copy temp curr1
+v/del temp
+v/copy curr2(1:[len]) temp
+v/del curr2
+v/copy temp curr2
 
 
+* Get histo limits
+imi=$sigma(lvmin(dr))
+xmi=dr([imi])
+ima=$sigma(lvmax(dr))
+xma=dr([ima])
+
+imi=$sigma(lvmin(curr1))
+ymi1=curr1([imi])
+ima=$sigma(lvmax(curr1))
+yma1=curr1([ima])
+imi=$sigma(lvmin(curr2))
+ymi2=curr2([imi])
+ima=$sigma(lvmax(curr2))
+yma2=curr2([ima])
+
+ymi=[ymi1]
+if [ymi2]<[ymi1] then
+ ymi=[ymi2]
+endif
+yma=[yma1]
+if [yma2]>[yma1] then
+ yma=[yma2]
+endif
+
+xmin = 1.05*[xmi] - 0.05*[xma]
+xmax = 1.05*[xma] - 0.05*[xmi]
+ymin = 1.05*[ymi] - 0.05*[yma]
+ymax = 1.05*[yma] - 0.05*[ymi]
+
+mess [xmin] [xmax] [ymin] [ymax]
+null [xmin] [xmax] [ymin] [ymax]
 
 set plci 2
 set pmci 2
 set mscf 1.2
-v/pl curr1(1:[len])%dr ! s
+v/pl curr1%dr ! s
 set plci 4
 set pmci 4
-set mscf 0.6
-v/pl curr2(1:[len])%dr ! sl
+set mscf 0.2
+v/pl curr2%dr ! sl
 set asiz 0.4
 atit 'Ratio of Revolution Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
 *
