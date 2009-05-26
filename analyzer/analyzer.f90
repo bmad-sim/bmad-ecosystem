@@ -1,7 +1,7 @@
 program anaylzer
 
   use bmadz_interface
-  use sim_utils
+  use cesr_utils
   use cbar_mod
   use bookkeeper_mod
   use bsim_interface
@@ -51,13 +51,17 @@ program anaylzer
   integer l
   integer ix_start/1/, ix_end/1/
   integer io_stat
+  integer ncross, cross(1000)
 
   real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
   real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
+
   real*4 width/7./, aspect/1.4/
   real*4 xmax/0./, ymax/0./, xmax0, ymax0
   real*4 xscale, yscale, x_low, y_low
+  real*4 xa(4), za(4)
   real*4 xdet(1000), ydet(1000), zdet(1000)
+
   real(rp) cbar_mat(2,2), cbar_mat1(2,2), cbar_mat2(2,2)
   real(rp) de/8e-4/
   real(rp) rms_x, rms_y
@@ -289,6 +293,18 @@ program anaylzer
      endif
 
     exit
+   endif
+
+   if(line(1:4) == 'PRET')then
+      call string_trim(line(ix+1:),line,ix)
+        if(ix == 0)then
+          print '(a)',' type "PRETZ <trains> <bunches> <spacing>" or "PRETZ <filename>"'
+          cycle
+        endif
+     line = 'PRET'//' '//line
+     call get_crossings(ring,line, ncross, cross)
+     call plot_pretz(ring, ncross, cross)
+     exit
    endif
 
    if(line(1:2) == 'PS' .or.  line(1:3) == 'GIF')exit
@@ -831,10 +847,21 @@ program anaylzer
 
        do j =1,n
          call pgsci(j)
-         forall(i=1:n_ele(j))z(i)=zz(i,j)
-         forall(i=1:n_ele(j))x(i)=xx(i,j)
+         do i=1,n_ele(j) 
+          z(i)=zz(i,j)
+          x(i)=xx(i,j)
+         end do
          if(plot_flag == rad_int$)then
-            call pgpt(n_ele(j), z,x,-4)
+!            call pgpt(n_ele(j), z,x,-4)
+            do i=1,n_ele(j)
+             if(xx(i,j) /= 0.)then
+              za(1:2)=z(i-1)
+              za(3:4)=z(i)
+              xa(1:4)=0.
+              xa(2:3)=x(i)
+              call pgline(4, za,xa)
+             endif
+            end do
           else
            call pgline(n_ele(j), z, x)
          endif
@@ -911,7 +938,16 @@ program anaylzer
          forall(i=1:n_ele(j))z(i)=zz(i,j)
          forall(i=1:n_ele(j))y(i)=yy(i,j)
          if(plot_flag == rad_int$)then
-           call pgpt(n_ele(j),z,y,-4)
+!           call pgpt(n_ele(j),z,y,-4)
+            do i=1,n_ele(j)
+             if(xx(i,j) /= 0.)then
+              za(1:2)=z(i-1)
+              za(3:4)=z(i)
+              xa(1:4)=0.
+              xa(2:3)=y(i)
+              call pgline(4, za,xa)
+             endif
+            end do
           else
            call pgline(n_ele(j), z, y)
          endif
@@ -1018,6 +1054,20 @@ program anaylzer
     print *,'  6D <delta f_rf (Hz)> < f_rf (Hz)> '
     print *,' "4D   Delta E/E" :compute 4-dimensional closed orbit with energy offset'
     print *,' "TRACK" :track and plot phase space'
+    print *,' "PRETZ" :write orbit and crossing point data for PRETZEL plot'
+    print *,'           fort.35 - Electron and positron orbits'
+    print *,'           fort.37 - Origin and Injection point'
+    print *,'           fort.40 - Separators'
+    print *,'           fort.36 - parasitic crossing points' 
+    print *,'           fort.39 - Location of feedback kickers'
+    print *,'           fort.38 - hard bends and xray wigglers '
+    print *,'           fort.41 - Location and outline of quadrupoles, bends and wigglers'
+    print *,'           Use "/home/dlr/gnuplot_macro/plot_pretz.gnu" to plot' 
+    print *,'                                            pretzel and crossing points'
+    print *,'           Use "/home/dlr/gnuplot_macro/plot_hb.gnu" to plot'
+    print *,'                                            layout of hard bends'
+    print *,'           Use "/home/dlr/gnuplot_macro/plot_hb_compare.gnu" to plot'
+    print *,'                                            two hard bend layouts' 
     print *,' At <Plot> prompt:'
     print *,'                  print "PS" or "GIF" for hardcopy of last plot'
     print *,'                  type "<data_type>  X  <x_min>  <x_max> " to'
