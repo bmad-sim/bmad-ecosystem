@@ -117,32 +117,35 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     u%data%design_value = tiny(1.0_rp)
   end select
 
-  ! 
-
-  do j = 1, 6
-    do k = 0, ubound(tao_lat%lat%branch, 1)
-      tao_lat%orb_branch(k)%orbit%vec(j) = 0.0
-    enddo
-  enddo
-
   ! set up matching element
+
   if (initing_design) call tao_match_lats_init (u)
 
   call tao_lat_bookkeeper (u, tao_lat)
 
-  select case (s%global%track_type)
-  case ('single') 
-    call tao_inject_particle (u, tao_lat)
-    call tao_single_track (u, tao_lat, this_who, this_calc_ok)
-  case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
-    call tao_inject_particle (u, tao_lat)
-    call tao_single_track (u, tao_lat, this_who, this_calc_ok)
-    call tao_inject_beam (u, tao_lat)
-    call tao_beam_track (u, tao_lat, this_who, this_calc_ok)
-  case default
-    call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
-    call err_exit
-  end select
+  ! 
+
+  do k = 0, ubound(tao_lat%lat%branch, 1)
+ 
+    do j = 1, 6
+      tao_lat%orb_branch(k)%orbit%vec(j) = 0.0
+    enddo
+
+    select case (s%global%track_type)
+    case ('single') 
+      call tao_inject_particle (u, tao_lat, k)
+      call tao_single_track (u, tao_lat, this_who, this_calc_ok, k)
+    case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
+      call tao_inject_particle (u, tao_lat, k)
+      call tao_single_track (u, tao_lat, this_who, this_calc_ok, k)
+      call tao_inject_beam (u, tao_lat, k)
+      call tao_beam_track (u, tao_lat, this_who, this_calc_ok, k)
+    case default
+      call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
+      call err_exit
+    end select
+
+  enddo
 
   if (this_calc_ok) then
     if (u%do_synch_rad_int_calc) then
@@ -219,21 +222,24 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_single_track (u, tao_lat, who, calc_ok)
+subroutine tao_single_track (u, tao_lat, who, calc_ok, ix_branch)
 
 implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (tao_universe_struct) u
+type (coord_struct), pointer :: orbit(:)
 
-integer i, ii, who, ix_lost
+integer i, ii, who, ix_lost, ix_branch
 
 character(20) :: r_name = "tao_single_track"
 
 logical calc_ok, err
 
 !
+
+orbit => tao_lat%orb_branch(ix_branch)%orbit
 
 lat => tao_lat%lat
 calc_ok = .true.
@@ -242,23 +248,23 @@ lat%param%lost = .false.
 
 ! Track
 
-if (lat%param%lattice_type == circular_lattice$) then
+if (ix_branch == 0 .and. lat%param%lattice_type == circular_lattice$) then
   call closed_orbit_calc (lat, tao_lat%orb_branch(0)%orbit, 4, exit_on_error = .false.)
   if (.not. bmad_status%ok) then
     calc_ok = .false.
-    do i = 0, ubound(tao_lat%orb_branch(0)%orbit, 1)
-      tao_lat%orb_branch(0)%orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+    do i = 0, ubound(orbit, 1)
+      orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
     enddo
   endif
-  u%model_orb0 = tao_lat%orb_branch(0)%orbit(0)   ! Save beginning orbit
+  u%model_orb0 = orbit(0)   ! Save beginning orbit
 
 else
-  call track_all (lat, tao_lat%orb_branch(0)%orbit)
+  call track_all (lat, tao_lat%orb_branch(ix_branch)%orbit)
   if (lat%param%lost) then
     calc_ok = .false.
     ix_lost = lat%param%ix_lost
     do ii = ix_lost+1, lat%n_ele_track
-      tao_lat%orb_branch(0)%orbit(ii)%vec = 0
+      orbit(ii)%vec = 0
     enddo
     call out_io (s_blank$, r_name, &
             "particle lost at element \I0\: " // lat%ele(ix_lost)%name, ix_lost)
@@ -272,7 +278,7 @@ if (u%mat6_recalc_on) then
     if (lat%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i)
     else
-      call lat_make_mat6 (lat, i, tao_lat%orb_branch(0)%orbit)
+      call lat_make_mat6 (lat, i, orbit)
     endif
   enddo
   if (lat%param%lattice_type == circular_lattice$) then
@@ -298,7 +304,7 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in circular lattices. 
 ! If extracting from a lat then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (u, tao_lat, who, calc_ok)
+subroutine tao_beam_track (u, tao_lat, who, calc_ok, ix_branch)
 
 implicit none
 
@@ -310,11 +316,12 @@ type (beam_init_struct), pointer :: beam_init
 type (normal_modes_struct) :: modes
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
+type (coord_struct), pointer :: orbit(:)
 
 integer what_lat, who, n_alive, n_alive_old
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_lost
-integer extract_at_ix_ele, n_lost
+integer extract_at_ix_ele, n_lost, ix_branch
 integer, allocatable, save :: ix_ele(:)
 
 character(20) :: r_name = "tao_beam_track"
@@ -343,6 +350,7 @@ lat%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
 ix_lost = not_lost$
 lost = .false.
 too_many_lost = .false.
+orbit => tao_lat%orb_branch(ix_branch)%orbit
 
 u%ele(:)%n_particle_lost_here = 0
 
@@ -379,13 +387,13 @@ enddo
 ! If beam is injected into this lattice then no initialization wanted.
 
 if (.not. u%connect%connected) then
-  if (lat%param%lattice_type == circular_lattice$) then
-    call tao_single_track (u, tao_lat, who, calc_ok) 
+  if (ix_branch == 0 .and. lat%param%lattice_type == circular_lattice$) then
+    call tao_single_track (u, tao_lat, who, calc_ok, ix_branch) 
     if (extract_at_ix_ele /= -1) then
       if (u%calc_beam_emittance) then
-        call radiation_integrals (lat, tao_lat%orb_branch(0)%orbit, modes)
+        call radiation_integrals (lat, tao_lat%orb_branch(ix_branch)%orbit, modes)
         f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
-             (1+tao_lat%orb_branch(0)%orbit(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+             (1+orbit(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
@@ -443,7 +451,7 @@ do j = ie1, ie2
 
   ! compute centroid orbit
 
-  call tao_find_beam_centroid (beam, tao_lat%orb_branch(0)%orbit(j), too_many_lost, u, j, lat%ele(j))
+  call tao_find_beam_centroid (beam, orbit(j), too_many_lost, u, j, lat%ele(j))
   if (too_many_lost .and. .not. lost) then
     ix_lost = j
     lost = .true.
@@ -587,23 +595,25 @@ end subroutine tao_find_beam_centroid
 ! whatever the user has specified. As always, tracking only occure in the model
 ! lattice.
 
-subroutine tao_inject_particle (u, model)
+subroutine tao_inject_particle (u, model, ix_branch)
 
 implicit none
 
 type (tao_universe_struct) u
 type (tao_lattice_struct), target :: model
-
 type (ele_struct), save :: extract_ele
 type (coord_struct) pos
 type (coord_struct), pointer :: orb0
-
 type (spin_polar_struct) :: polar
+
+integer ix_branch
 
 character(20) :: r_name = "inject_particle"
 
 ! In u%model_orb0 is saved the last computed orbit. 
 ! This is important with common_lattice since tao_lat%orb_branch(0)%orbit(0) has been overwritten.
+
+if (ix_branch /= 0) return
 
 if (model%lat%param%lattice_type == linear_lattice$) then
   model%orb_branch(0)%orbit(0) = model%lat%beam_start
@@ -676,7 +686,7 @@ end subroutine tao_inject_particle
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_beam (u, model)
+subroutine tao_inject_beam (u, model, ix_branch)
 
 use tao_read_beam_mod
 
@@ -690,7 +700,7 @@ type (coord_struct), pointer :: orb0
 type (lat_param_struct), pointer :: param
 
 real(rp) v(6)
-integer i, j, iu, ios, n_in_file, n_in
+integer i, j, iu, ios, n_in_file, n_in, ix_branch
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line

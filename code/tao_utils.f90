@@ -919,10 +919,10 @@ character(16), parameter :: integer_components(4) = &
 character(16), parameter :: string_components(1) = (/ 'merit_type' /)
 
 integer, optional :: ix_uni
-integer :: data_num, ios
+integer :: data_num, ios, n_found
 integer i, ix, iu
 
-logical err, component_here, this_err, print_error, error
+logical err, component_here, this_err, print_error, error, found_data
 logical, optional :: print_err
 logical, allocatable, save :: picked(:)
 
@@ -953,6 +953,7 @@ if (present(str_array)) then
 endif
 
 err = .true.
+found_data = .false.
 
 if (data_name == '') then
   if (print_error) call out_io (s_error$, r_name, 'DATA NAME IS BLANK')
@@ -1005,7 +1006,7 @@ endif
 
 ! error check
 
-if (this_err) then
+if (this_err .or. .not. found_data) then
   if (print_error) call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
   return
 endif
@@ -1192,6 +1193,7 @@ endif
 
 err = .false.
 nl = count(list)
+if (nl > 0) found_data = .true.
 
 ! data array
 
