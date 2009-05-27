@@ -712,7 +712,7 @@ if (search_for_lat_eles /= '') then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    u%data(jj)%ele_name  = u%design%lat%ele(j)%name
+    u%data(jj)%ele_name  = u%design%lat%ele(jj)%name
     u%data(jj)%ix_ele    = locs(k)%ix_ele
     u%data(jj)%ix_branch = locs(k)%ix_branch
     u%data(jj)%exists    = .true.
