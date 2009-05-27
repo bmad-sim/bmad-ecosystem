@@ -1,5 +1,5 @@
 #!/home/cesrulib/EXT/Python-2.5.1/Linux/python
-##############################################
+#-*-python-*-  ###############################
 # Runs once a minute via cron, determines
 # if any fix-build control files exist in the
 # Fixes/control area.
