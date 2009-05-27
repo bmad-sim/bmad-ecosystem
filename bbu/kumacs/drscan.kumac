@@ -36,20 +36,35 @@ if $fexist([fname])=0 then
  goto QUIT
 endif
 * 
-vec/cr dr(100) r    5.2  5.3  5.4  5.5
-vec/cr curr1(100) r 0.15 0.04 0.06 0.1
-vec/cr curr2(100) r 0.15 0.04 0.06 0.1
+vec/cr dr(100) r    100*0.
+vec/cr curr1(100) r 100*0.
+vec/cr curr2(100) r 100*0.
 *
 vec/read dr,curr1,curr2 [fname]
 *
 len=$vlen(curr1,1)
 *
-sigma curr1=log(curr1)
-sigma curr2=log(curr2)
+if [len]=0 then
+ mess No data found in file [fname], quitting
+ goto QUIT
+endif
+*
+* Make two plots, one log, one linear
+do i=1,2
+*
+if [i]=1 then
+ opt logy
+ set xval 0.4
+else
+ sigma curr1=log(curr1)
+ sigma curr2=log(curr2)
+ opt liny
+ set xval 0.2
+endif
 *
 *title_g 'BBU Threshold Current: Comparison of Analytic Approximation to BMAD Tracking'
-*title_g 'BBU Threshold Current - Job'//[jobid]//' - CERL7.4 Single HOM in One Cavity'
-title_g 'BBU Threshold Current - Job'//[jobid]
+*title_g 'BBU Threshold Current - Job '//[jobid]//' - CERL7.4 Single HOM in One Cavity'
+title_g 'BBU Threshold Current - Job '//[jobid]
 
 
 len=$vlen(curr1)
@@ -107,22 +122,31 @@ set pmci 4
 set mscf 0.2
 v/pl curr2%dr ! sl
 set asiz 0.4
-atit 'Ratio of Revolution Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
+
+if [i]=1 then
+ atit 'Ratio of Revolution Time to Bunch Spacing' 'I?th! (A)' ' ' 222
+else
+ atit 'Ratio of Revolution Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
+endif
 *
 selnt 1
 set pmci 2
 set ksiz 0.25
-set csiz 0.36
-key 11.7 17. 20 'Analytic Approximation' 
-key 11.7 16. 1 'New BMAD Tracking' ! L
+set csiz 0.28
+key 2.9 17. 20 'Analytic Approximation' 
+key 2.9 16. 1 'BMAD Tracking' 0.4 L
 *
 set chhe 0.2
 set txfp -30
 set txci 1
-itx 2.7 17 'See Beam-breakup instability theory for energy recovery linacs'
-itx 2.7 16.5 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
-itx 2.7 16 'Fig. 3'
+
+*itx 2.7 17 'See Beam-breakup instability theory for energy recovery linacs'
+*itx 2.7 16.5 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
+*itx 2.7 16 'Fig. 3'
+itx 2.65 18.15 'Beam-breakup instability theory for energy recovery linacs,'
+itx 10.2 18.15 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
 *
+enddo
 *
 psname = 'drscan_'//[jobid]//'.ps'
 exec ~/.pawlogon#makeps file=[psname] type=-111
