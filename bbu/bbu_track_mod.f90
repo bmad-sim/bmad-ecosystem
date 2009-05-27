@@ -420,6 +420,8 @@ real(rp)  time, Vz, P0i, P0f, gamma
 logical judge
 integer :: matrixsize = 4
 real(rp) cnumerator,trtb,currth,currthc,rovq,matc,poltheta
+real(rp) epsilon,kappa
+integer nr
 real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
@@ -527,14 +529,29 @@ do i=0, lat%n_ele_track
         do j=1, size(lat%ele(i)%wake%lr)
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
            print *,' RovQ in Ohms',rovq
-           cnumerator = -2  * c_light / (rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq)
+           cnumerator = -2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
 ! Threshold current
            currth = cnumerator / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
+           if (currth.le.0.)then
+             nr = int(erltime(k)*bunch_freq)
+             epsilon =  2*pi*lat%ele(i)%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%wake%lr(j)%Q )
+             currth = ( currth / epsilon ) * sqrt ( epsilon**2 + ( mod( erltime(k)*lat%ele(i)%wake%lr(j)%freq,pi ) / nr )**2 )
+             currth = abs(currth)
+           endif
+
+
 ! Threshold current for coupling
            poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
            matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
-           currthc = currth * mat(1,2) / matc
+           currthc = currth * abs ( mat(1,2) / matc )
            trtb = erltime(k)*bunch_freq
+
+
+! Follow PRSTAB 7, 054401 (2004) (some bug here)
+           kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
+
+           print *,' epsilon, kappa = ',epsilon, kappa
+!           currth = -2 * ( epsilon / kappa ) / ( mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) )
 
            write(6, '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)') kk, j, currth, currthc, erltime(k), &
                            lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
