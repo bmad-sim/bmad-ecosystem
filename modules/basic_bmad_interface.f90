@@ -778,16 +778,17 @@ interface
 end interface
 
 interface
-  subroutine track_all (lat, orbit)
+  subroutine track_all (lat, orbit, ix_branch)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
     type (coord_struct), allocatable :: orbit(:)
+    integer, optional :: ix_branch
   end subroutine
 end interface
 
 interface
-  subroutine track_many (lat, orbit, ix_start, ix_end, direction)
+  subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct)  lat
@@ -795,6 +796,7 @@ interface
     integer ix_start
     integer ix_end
     integer direction
+    integer, optional :: ix_branch
   end subroutine
 end interface
 
