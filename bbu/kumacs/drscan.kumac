@@ -1,4 +1,4 @@
-macro drscan [jobid]
+macro drscan jobid=0
 *
 * Make plots of bbu current thresholds
 * obtained from tracking and analytic approximation
@@ -25,10 +25,14 @@ set vsiz 0.3
 set xlab 1.0
 set ylab 1.2
 *
-if [jobid]<17 then
- fname='../jobs/job'//[jobid]//'/prstab2004.out'
+if [jobid]=0 then
+  fname='../drscan.out'
 else
- fname='../jobs/job'//[jobid]//'/drscan.out'
+ if [jobid]<17 then
+  fname='../jobs/job'//[jobid]//'/prstab2004.out'
+ else
+  fname='../jobs/job'//[jobid]//'/drscan.out'
+ endif
 endif
 *
 if $fexist([fname])=0 then
@@ -42,7 +46,7 @@ vec/cr curr2(100) r 100*0.
 *
 vec/read dr,curr1,curr2 [fname]
 *
-len=$vlen(curr1,1)
+len=$vlen(dr,1)
 *
 if [len]=0 then
  mess No data found in file [fname], quitting
@@ -67,7 +71,6 @@ endif
 title_g 'BBU Threshold Current - Job '//[jobid]
 
 
-len=$vlen(curr1)
 v/copy dr(1:[len]) temp
 v/del dr
 v/copy temp dr
