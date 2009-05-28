@@ -417,10 +417,12 @@ real(rp), Dimension(:),     allocatable :: erltime
 
 integer i, j, k, kk, l, u
 real(rp)  time, Vz, P0i, P0f, gamma
+logical anavalid
 logical judge
 integer :: matrixsize = 4
 real(rp) cnumerator,trtb,currth,currthc,rovq,matc,poltheta
 real(rp) epsilon,kappa
+real(rp) stest
 integer nr
 real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
@@ -479,6 +481,7 @@ P0i=lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
 k=1
 kk=1
 judge =.false.
+anavalid = .true.
 
 write(6, '(a)') ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
@@ -525,18 +528,37 @@ do i=0, lat%n_ele_track
 ! Don't print k=1, which is just the interval from the beginning
 ! of the lattice to the first cavity with a HOM
 
-      if(k.gt.1.and.erltime(k).gt.0..and.lat%ele(i)%key == LCAVITY$)then
+      if(k.gt.1.and.erltime(k).gt.0.)then
+
         do j=1, size(lat%ele(i)%wake%lr)
+
+! Analytic approximation is not valid if any cavity has more than one HOM
+           if (j.gt.1)anavalid=.false.
+
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
            print *,' RovQ in Ohms',rovq
+
            cnumerator = -2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
-! Threshold current
-           currth = cnumerator / ( mat(1,2) * sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)))
-           if (currth.le.0.)then
-             nr = int(erltime(k)*bunch_freq)
-             epsilon =  2*pi*lat%ele(i)%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%wake%lr(j)%Q )
-             currth = ( currth / epsilon ) * sqrt ( epsilon**2 + ( mod( erltime(k)*lat%ele(i)%wake%lr(j)%freq,pi ) / nr )**2 )
-             currth = abs(currth)
+
+           stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) 
+
+           epsilon =  2*pi*lat%ele(i)%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%wake%lr(j)%Q )
+           nr = int(erltime(k)*bunch_freq) + 1
+
+           if (nr*epsilon.lt.0.5)then
+            if (stest.le.0.)then
+! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr < 0
+              currth = cnumerator / stest
+            else
+! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr > 0
+              currth = cnumerator / ( epsilon * abs(mat(1,2)) )
+              currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) / nr )**2 )
+            endif
+           elseif (nr*epsilon.gt.2.)then
+! Threshold current for case epsilon * nr >> 1
+             currth = abs ( cnumerator / mat(1,2) )
+           else
+            currth=0.
            endif
 
 
@@ -550,7 +572,7 @@ do i=0, lat%n_ele_track
 ! Follow PRSTAB 7, 054401 (2004) (some bug here)
            kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
 
-           print *,' epsilon, kappa = ',epsilon, kappa
+           print *,' nr, epsilon, kappa = ',nr,epsilon, kappa
 !           currth = -2 * ( epsilon / kappa ) / ( mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) )
 
            write(6, '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)') kk, j, currth, currthc, erltime(k), &
@@ -558,13 +580,13 @@ do i=0, lat%n_ele_track
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
                            sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
         enddo
-        kk=kk+1
+        kk=kk+1 ! Count nr of cavities for which analytic approximations are calculated
 
-      endif
+      endif   
 
       
-      mat=imat                                 ! Re-initialize the transfer matrix
-      k=k+1
+      mat=imat     ! Re-initialize the transfer matrix
+      k=k+1        ! Count cavities with HOMs
       P0i=P0f 
 
       endif ! End of judge selection
@@ -574,6 +596,11 @@ do i=0, lat%n_ele_track
    oldmat = mat
   
 enddo
+
+! Analytic approxmation is valid only for a single HOM in a single cavity
+if (anavalid.eq..false.)then
+ currth = 0.
+endif
 
 deallocate (erlmat, erltime)
 
