@@ -15,7 +15,7 @@ integer istep
 integer nstep /100/
 real(rp) deldr,dr
 
-real(rp) hom_power0, hom_power1, charge0, charge1
+real(rp) hom_power_gain, charge0, charge1
 
 real(rp) trtb,currth
 
@@ -27,9 +27,10 @@ namelist / bbu_params / bbu_param, beam_init
 ! Read in parameters
 
 bbu_param%lat_file_name = 'erl.lat'  ! Bmad lattice file name
-bbu_param%simulation_time = 1e-4     ! Time in sec.
+bbu_param%simulation_turns_max = 100 ! 
 bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
-bbu_param%init_hom_amp = 1e-6        ! Initial wake amplitude        
+bbu_param%init_particle_offset = 1e-8  ! Initial particle offset for particles born 
+                                       !  in the first turn period.
 bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
 bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
 bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
@@ -37,7 +38,7 @@ bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
 bbu_param%current = 20e-3            ! Starting current (amps)
 bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
-bbu_param%num_stages_tracked_per_power_calc = 100 
+bbu_param%num_stages_tracked_per_power_calc = 1
 bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
 bbu_param%nstep = 100
 bbu_param%begdr = 5.234
@@ -113,12 +114,6 @@ do istep = 1, nstep
 
   lat0 = lat
 
-  call bbu_setup (lat, beam_init%ds_bunch, bbu_param%init_hom_amp, bbu_beam)
-  call bbu_hom_power_calc (lat, bbu_beam, hom_power0)
-
-  bbu_param%high_power_lim = hom_power0 * bbu_param%limit_factor
-  bbu_param%low_power_lim  = hom_power0 / bbu_param%limit_factor
-
   ! Print some information and get the analytic approximation result for the threshold current
 
   if (bbu_param%write_hom_info) call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
@@ -146,8 +141,8 @@ do istep = 1, nstep
 
   do
     lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power1, lost)
-    if (hom_power1 > hom_power0) exit
+    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost)
+    if (hom_power_gain > 1) exit
     if (lost) then
       print *, 'Particle(s) lost stopping here.'
       stop
@@ -169,12 +164,12 @@ do istep = 1, nstep
   do
     beam_init%bunch_charge = (charge0 + charge1) / 2
     lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power1, lost)
+    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost)
     if (lost) then
       print *, 'Particle(s) lost stopping here.'
       stop
     endif
-    if (hom_power1 > hom_power0) then
+    if (hom_power_gain > 1) then
       charge1 = beam_init%bunch_charge
       print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
       print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
@@ -190,7 +185,7 @@ do istep = 1, nstep
   beam_init%bunch_charge = (charge0 + charge1) / 2
   print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
-  if (bbu_param%drscan) write(50,*) trtb, currth,beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge * c_light / beam_init%ds_bunch 
 
 enddo
 

@@ -17,6 +17,8 @@ type bbu_beam_struct
   integer ix_bunch_end        ! Index of the end bunch(:). -1 -> no bunches.
   integer n_bunch_in_lat      ! Number of bunches transversing the lattice.
   type (bbu_stage_struct), allocatable :: stage(:)
+  real(rp) time_now
+  real(rp) one_turn_time
 end type
 
 type bbu_param_struct
@@ -26,8 +28,8 @@ type bbu_param_struct
   logical keep_overlays_and_groups  ! Keep when hybridizing?
   logical keep_all_lcavities        ! Keep when hybridizing?
   real(rp) limit_factor
-  real(rp) low_power_lim, high_power_lim
-  real(rp) simulation_time, bunch_freq, init_hom_amp
+  real(rp) simulation_turns_max, bunch_freq
+  real(rp) init_particle_offset
   real(rp) current
   real(rp) rel_tol
   integer num_stages_tracked_per_power_calc
@@ -45,18 +47,19 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_setup (lat, ds_bunch, init_hom_amp, bbu_beam)
+subroutine bbu_setup (lat, ds_bunch, bbu_param, bbu_beam)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (beam_init_struct) beam_init
+type (bbu_param_struct) bbu_param
 type (ele_struct), pointer :: ele
 
 integer i, j, ih, ix_pass, n_links
 
-real(rp) ds_bunch, init_hom_amp, rr(4)
+real(rp) ds_bunch, rr(4)
 
 character(16) :: r_name = 'bbu_setup'
 
@@ -68,6 +71,7 @@ if (ds_bunch == 0) then
 endif
 
 bbu_beam%n_bunch_in_lat = (lat%param%total_length / ds_bunch) + 1
+bbu_beam%one_turn_time = lat%ele(lat%n_ele_track)%ref_time
 
 if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
 allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+1))
@@ -84,13 +88,6 @@ do i = 1, lat%n_ele_track
   if (.not. associated(ele%wake)) cycle
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
-  do ih = 1, size(ele%wake%lr)
-    ele%wake%lr%b_sin = 0
-    ele%wake%lr%b_cos = init_hom_amp 
-    ele%wake%lr%a_sin = 0
-    ele%wake%lr%a_cos = init_hom_amp
-    ele%wake%lr%t_ref = 0
-  enddo
 enddo
 
 if (j == 0) then
@@ -143,7 +140,7 @@ type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (lr_wake_struct), pointer :: lr
 
-real(rp) best_finish_time, finish_time
+real(rp) min_time_at_wake_ele, time_at_wake_ele
 
 integer i_stage, i_stage_track, ix_bunch, ix_ele
 integer ix_ele_start, ix_ele_end, j, ib, ib2
@@ -154,7 +151,7 @@ logical err, lost
 
 ! Look at each stage track the bunch with the earliest time to finish.
 
-best_finish_time = 1e30 ! Something large
+min_time_at_wake_ele = 1e30 ! Something large
 i_stage_track = -1
 
 do i_stage = 1, size(bbu_beam%stage)
@@ -165,13 +162,13 @@ do i_stage = 1, size(bbu_beam%stage)
   ix_bunch = bbu_beam%stage(i_stage)%ix_head_bunch
   if (ix_bunch < 0) cycle
 
-  ! ix_ele is the index of the element at the end of the stage.
+  ! ix_ele is the index of the wake element.
 
   ix_ele = bbu_beam%stage(i_stage)%ix_ele_lr_wake
-  finish_time = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
+  time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
 
-  if (finish_time < best_finish_time) then
-    best_finish_time = finish_time
+  if (time_at_wake_ele < min_time_at_wake_ele) then
+    min_time_at_wake_ele = time_at_wake_ele
     i_stage_track = i_stage
   endif
 
@@ -183,6 +180,8 @@ if (i_stage_track == -1) then
 endif
 
 ! The bunch is now cleared for tracking through this stage
+
+bbu_beam%time_now = min_time_at_wake_ele
 
 ix_ele_end = bbu_beam%stage(i_stage_track)%ix_ele_lr_wake
 if (i_stage_track == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
@@ -196,12 +195,6 @@ do j = ix_ele_start+1, ix_ele_end
     lost = .true.
     return
   endif
-  !do i_stage = 1, size(bbu_beam%stage)
-  !  ix_ele = bbu_beam%stage(i_stage)%ix_ele_lr_wake
-  !  lr => lat%ele(ix_ele)%wake%lr(1)
-  !  bbu_beam%stage(i_stage)%amp = sqrt(lr%b_sin**2 + lr%b_cos**2)
-  !  bbu_beam%stage(i_stage)%phase = lr%t_ref * lr%freq + atan2(lr%b_sin, lr%b_cos) / twopi
-  !enddo
 enddo
 
 ! If the next stage does not have any bunches waiting to go through then the
@@ -233,15 +226,18 @@ end subroutine bbu_track_a_stage
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_add_a_bunch (lat, bbu_beam, beam_init)
+subroutine bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
 
 implicit none
 
 type (lat_struct) lat
-type (bbu_beam_struct) bbu_beam
+type (bbu_beam_struct), target :: bbu_beam
 type (beam_init_struct) beam_init
+type (bunch_struct), pointer :: bunch
+type (bbu_param_struct) bbu_param
 
-integer ixb, ix0
+integer i, ixb, ix0
+real(rp) r(2)
 
 character(20) :: r_name = 'bbu_add_a_bunch'
 
@@ -257,19 +253,30 @@ else
   endif
 endif
 
-call init_bunch_distribution (lat%ele(0), beam_init, bbu_beam%bunch(ixb))
+bunch => bbu_beam%bunch(ixb)
+call init_bunch_distribution (lat%ele(0), beam_init, bunch)
 
 ! If this is not the first bunch need to correct some of the bunch information
 
 if (ixb /= bbu_beam%ix_bunch_head) then
   ix0 = bbu_beam%ix_bunch_end
-  bbu_beam%bunch(ixb)%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
-  bbu_beam%bunch(ixb)%z_center = bbu_beam%bunch(ix0)%z_center - beam_init%ds_bunch
-  bbu_beam%bunch(ixb)%t_center = -bbu_beam%bunch(ixb)%z_center * &
+  bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
+  bunch%z_center = bbu_beam%bunch(ix0)%z_center - beam_init%ds_bunch
+  bunch%t_center = -bunch%z_center * &
                          lat%ele(0)%value(p0c$) / (c_light * lat%ele(0)%value(e_tot$))
 endif
 
 bbu_beam%ix_bunch_end = ixb
+
+! Offset particles if the particle is born within the first turn period.
+
+if (bunch%t_center < bbu_beam%one_turn_time) then
+  do i = 1, size(bunch%particle)
+    call ran_gauss (r)
+    bunch%particle%r%vec(1) = bbu_param%init_particle_offset * r(1)
+    bunch%particle%r%vec(3) = bbu_param%init_particle_offset * r(2)
+  enddo
+endif
 
 end subroutine bbu_add_a_bunch
 
@@ -338,7 +345,7 @@ end subroutine bbu_hom_power_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power, lost) 
+subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost) 
 
 implicit none
 
@@ -347,46 +354,77 @@ type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
 
-real(rp) hom_power
+real(rp) hom_power0, hom_power_sum, r_period, power, hom_power_gain
 
-integer i, n_loop
+integer i, n_period, n_stage, n_count, n_period_old
 
 logical lost
 
+character(16) :: r_name = 'bbu_track_all'
+
 ! Setup.
 
-call bbu_setup (lat, beam_init%ds_bunch, bbu_param%init_hom_amp, bbu_beam)
+call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
 
 do i = 1, size(bbu_beam%bunch)
-  call bbu_add_a_bunch (lat, bbu_beam, beam_init)
+  call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
 enddo
 
-! Track
+! Track...
+! To decide whether things are stable or unstable we look at the HOM power integrated
+! over one turn period. The power is integrated over one period since there can 
+! be a large variation in HOM power within a period.
+! And since it is in the first period that all the stages are getting populated with bunches,
+! We don't start integrating until the second period.
 
-n_loop = 0
+n_stage = 0
+n_period_old = 0
+
 do
 
   call bbu_track_a_stage (lat, bbu_beam, lost)
   if (lost) return
 
+  r_period = bbu_beam%time_now / bbu_beam%one_turn_time
+  n_period = int(r_period)
+
   ! If the head bunch is finished then remove it and seed a new one.
 
   if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track) then
     call bbu_remove_head_bunch (bbu_beam)
-    call bbu_add_a_bunch (lat, bbu_beam, beam_init)
-    if (bbu_beam%bunch(bbu_beam%ix_bunch_end)%t_center > bbu_param%simulation_time) return
+    call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
+    if (r_period > bbu_param%simulation_turns_max) then
+      call out_io (s_warn$, r_name, 'SIMULATION_TRUNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
+                                                                          r_array = (/ hom_power_gain /) )
+      return
+    endif
   endif
 
-  ! Compute average power. This can actually take a fair amount of time so only do
-  ! this so oftem
+  ! Compute integrated power. 
+  ! Since the power calc can take some time, num_stages_tracked_per_power_calc is used
+  ! to reduce the number of integration points.
 
-  n_loop = modulo(n_loop + 1, bbu_param%num_stages_tracked_per_power_calc)
-  if (n_loop == 0) then
-    call bbu_hom_power_calc (lat, bbu_beam, hom_power)
-    if (hom_power < bbu_param%low_power_lim) return
-    if (hom_power > bbu_param%high_power_lim) return
+  if (n_period == 0) cycle
+  n_stage = modulo(n_stage + 1, bbu_param%num_stages_tracked_per_power_calc)
+  if (n_stage /= 0) cycle
+
+  if (n_period /= n_period_old) then
+    if (n_period == 3) then
+      hom_power0 = hom_power_sum / n_count
+    elseif (n_period > 3) then
+      hom_power_gain = (hom_power_sum / n_count) / hom_power0
+      if (hom_power_gain < 1/bbu_param%limit_factor) return
+      if (hom_power_gain > bbu_param%limit_factor) return      
+    endif
+    hom_power_sum = 0
+    n_count = 0
+    n_period_old = n_period
   endif
 
+  call bbu_hom_power_calc (lat, bbu_beam, power)
+  hom_power_sum = hom_power_sum + power
+  n_count = n_count + 1
+  
 enddo
 
 end subroutine bbu_track_all
@@ -428,12 +466,12 @@ real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
 
-      write(6,1000)lat%input_file_name,lat%lattice,lat%n_ele_track,lat%ele(0)%value(e_tot$)
-1000  format(' Lattice File: ',a80/ & 
-             ' Lattice Name: ',a40/ &
-             ' Nr Tracking Elements: ',i7/ &
-             ' Beam Energy: ',e10.5// &
-            )
+!
+
+print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
+print '(2a)', ' Lattice Name: ', trim(lat%lattice)
+print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
+print '(a, es10.5)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
 
 ! Initialize the identity matrix
 call mat_make_unit(imat)
@@ -483,7 +521,7 @@ kk=1
 judge =.false.
 anavalid = .true.
 
-write(6, '(a)') ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
+print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
 do i=0, lat%n_ele_track
    
@@ -520,13 +558,13 @@ do i=0, lat%n_ele_track
         enddo
       enddo
 
-! This code uses the "linac definition" of R/Q, which is
-! a factor of two larger than the "circuit definition." 
-! The HOM files are in the "circuit definition" and
-! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
+      ! This code uses the "linac definition" of R/Q, which is
+      ! a factor of two larger than the "circuit definition." 
+      ! The HOM files are in the "circuit definition" and
+      ! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
 
-! Don't print k=1, which is just the interval from the beginning
-! of the lattice to the first cavity with a HOM
+      ! Don't print k=1, which is just the interval from the beginning
+      ! of the lattice to the first cavity with a HOM
 
       if(k.gt.1.and.erltime(k).gt.0.)then
 
@@ -559,18 +597,20 @@ do i=0, lat%n_ele_track
              currth = abs ( cnumerator / mat(1,2) )
            else
             currth=0.
-           endif
+          endif
 
 
-! Threshold current for coupling
-           poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
-           matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
-           currthc = currth * abs ( mat(1,2) / matc )
-           trtb = erltime(k)*bunch_freq
+          ! Threshold current for coupling
+          poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
+          matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
+          currthc = currth * abs ( mat(1,2) / matc )
+          trtb = erltime(k)*bunch_freq
 
+          ! Follow PRSTAB 7, 054401 (2004) (some bug here)
+          kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
 
-! Follow PRSTAB 7, 054401 (2004) (some bug here)
-           kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
+          print *,' epsilon, kappa = ',epsilon, kappa
+          !           currth = -2 * ( epsilon / kappa ) / ( mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) )
 
            print *,' nr, epsilon, kappa = ',nr,epsilon, kappa
 !           currth = -2 * ( epsilon / kappa ) / ( mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) )
