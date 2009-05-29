@@ -1,9 +1,5 @@
 &bbu_params
-<<<<<<< .mine
   bbu_param%lat_file_name = 'erl.lat'         ! Bmad lattice file name
-=======
-  bbu_param%lat_file_name = 'prstab2004.lat'         ! Bmad lattice file name
->>>>>>> .r11304
   bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
   bbu_param%limit_factor = 1e1                ! Init_hom_amp * limit_factor = simulation unstable limit
   bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
