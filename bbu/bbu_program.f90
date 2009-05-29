@@ -121,6 +121,8 @@ do istep = 1, nstep
   ! Update starting current according to analytic approximation
   if (currth.gt.0.)bbu_param%current = currth
 
+  call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
+
   print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
   n_ele = 0

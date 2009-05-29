@@ -471,7 +471,7 @@ allocate(erltime(800))
 print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
 print '(2a)', ' Lattice Name: ', trim(lat%lattice)
 print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
-print '(a, es10.5)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
+print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
 
 ! Initialize the identity matrix
 call mat_make_unit(imat)
@@ -576,6 +576,9 @@ do i=0, lat%n_ele_track
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
            print *,' RovQ in Ohms',rovq
 
+          ! Follow PRSTAB 7, 054401 (2004) (some bug here)
+ !          kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
+
            cnumerator = 2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
 
            stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) 
@@ -591,9 +594,11 @@ do i=0, lat%n_ele_track
 ! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr > 0
               currth = cnumerator / ( epsilon * abs(mat(1,2)) )
               if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) .le. pi/2 )then
-               currth = currth * sqrt ( epsilon**2 + (  ( nr )**-2 * mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )**2  ) )
+               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) / nr )**2 )
+!               print *,' First half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )
               else
-               currth = currth * sqrt ( epsilon**2 + (  ( nr )**-2 * ( pi/2 - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi) )**2  ) )
+               currth = currth * sqrt ( epsilon**2 + ( (pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )) / nr )**2 )
+!               print *,' Second half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )
               endif
             endif
            elseif (nr*epsilon.gt.2.)then
@@ -610,16 +615,7 @@ do i=0, lat%n_ele_track
           currthc = currth * abs ( mat(1,2) / matc )
           trtb = erltime(k)*bunch_freq
 
-          ! Follow PRSTAB 7, 054401 (2004) (some bug here)
-          kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
-
-          print *,' epsilon, kappa = ',epsilon, kappa
-          !           currth = -2 * ( epsilon / kappa ) / ( mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) )
-
-           print *,' nr, epsilon, kappa = ',nr,epsilon, kappa
-!           currth = -2 * ( epsilon / kappa ) / ( mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) )
-
-           write(6, '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)') kk, j, currth, currthc, erltime(k), &
+          write(6, '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)') kk, j, currth, currthc, erltime(k), &
                            lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
                            sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
