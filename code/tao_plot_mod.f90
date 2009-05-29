@@ -606,6 +606,7 @@ key_number_height = 10
 ! Setup the placement of the graph on the plot page.
 ! Without labels: Vertically Center the graph.
 ! With labels: Shift the graph up to give room for the labels.
+! Center line is at y = 0
 
 call qp_set_layout (x_axis = graph%x, box = graph%box, margin = graph%margin)
 
@@ -782,6 +783,17 @@ do i = 1, lat%n_ele_max
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
 enddo
+
+! Draw min max
+
+if (graph%x%draw_numbers) then
+  call qp_to_axis_number_text (graph%x, 0, str)
+  call qp_convert_point_abs (graph%x%min-2, 0.0_rp, 'DATA', x1, y1, 'POINTS')
+  call qp_draw_text (trim(str), x1, y1, 'POINTS', justify = 'RC')
+  call qp_to_axis_number_text (graph%x, graph%x%major_div, str)
+  call qp_convert_point_abs (graph%x%max+2, 0.0_rp, 'DATA', x1, y1, 'POINTS')
+  call qp_draw_text (trim(str), x1, y1, 'POINTS', justify = 'LC')
+endif
 
 ! This is for drawing the key numbers under the appropriate elements
 
