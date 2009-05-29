@@ -54,7 +54,7 @@ if [len]=0 then
 endif
 *
 * Make two plots, one log, one linear
-do i=1,2
+do i=2,2
 *
 if [i]=1 then
  opt logy
@@ -151,8 +151,8 @@ itx 10.2 18.15 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
 *
 enddo
 *
-psname = 'drscan_'//[jobid]//'.ps'
-exec ~/.pawlogon#makeps file=[psname] type=-111
+psname = 'drscan_'//[jobid]//'.eps'
+exec ~/.pawlogon#makeps file=[psname] type=-113
 *
 QUIT:
 *
