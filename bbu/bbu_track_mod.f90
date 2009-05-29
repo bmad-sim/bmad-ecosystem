@@ -576,7 +576,7 @@ do i=0, lat%n_ele_track
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
            print *,' RovQ in Ohms',rovq
 
-           cnumerator = -2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
+           cnumerator = 2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
 
            stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) 
 
@@ -586,11 +586,15 @@ do i=0, lat%n_ele_track
            if (nr*epsilon.lt.0.5)then
             if (stest.le.0.)then
 ! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr < 0
-              currth = cnumerator / stest
+              currth = - cnumerator / stest
             else
 ! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr > 0
               currth = cnumerator / ( epsilon * abs(mat(1,2)) )
-              currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) / nr )**2 )
+              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi ) .le. pi/2 )then
+               currth = currth * sqrt ( epsilon**2 + (  ( nr )**-2 * mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi )**2  ) )
+              else
+               currth = currth * sqrt ( epsilon**2 + (  ( nr )**-2 * ( pi/2 - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k), pi) )**2  ) )
+              endif
             endif
            elseif (nr*epsilon.gt.2.)then
 ! Threshold current for case epsilon * nr >> 1
