@@ -8,7 +8,7 @@
   bbu_param%current = 20e-3                   ! Starting current (amps)
   bbu_param%rel_tol = 1e-3                    ! Final threshold current accuracy.
   bbu_param%write_hom_info = .false.  
-  bbu_param%drscan = .true.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
+  bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
   bbu_param%elname = 'T1'
   bbu_param%nstep = 50
 ! PRSTAB 2004
