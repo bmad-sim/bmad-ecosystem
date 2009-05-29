@@ -460,10 +460,10 @@ integer, parameter :: aperture_at$ = 68, beta_a$ = 68
 integer, parameter :: ran_seed$ = 69, beta_b$ = 69
 integer, parameter :: sr_wake_file$ = 70, alpha_a$ = 70
 integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
-integer, parameter :: alias$ =72, eta_a$ = 72
-integer, parameter :: start_edge$ =73, eta_b$ = 73
-integer, parameter :: end_edge$ =74, etap_a$ = 74
-integer, parameter :: accordion_edge$ =75, etap_b$ = 75
+integer, parameter :: alias$ =72, eta_x$ = 72
+integer, parameter :: start_edge$ =73, eta_y$ = 73
+integer, parameter :: end_edge$ =74, etap_x$ = 74
+integer, parameter :: accordion_edge$ =75, etap_y$ = 75
 integer, parameter :: lattice$ = 76, phi_a$ = 76
 integer, parameter :: coupler_at$ = 77, phi_b$ = 77
 integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78
