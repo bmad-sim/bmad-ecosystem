@@ -47,7 +47,7 @@ shows:
     var_array(8:11) = 34             ! Only sets var_array(8)
     var_array(8:11) = 34 34 81 81    ! OK. Sets all 4 values
     var_array(8:11) = 34, 34, 81, 81 ! OK. Same as above
-    var_array(8:11) = 34, 34,        ! Lines may be continuated ...
+    var_array(8:11) = 34, 34,        ! Lines may be continued ...
                       81, 81         !   ... like this.
     var_array(8:11) = 2*34 2*81      ! Equivalent to the preceding examples
     var_array(8:)   = 2*34 2*81      ! Also equivalent
@@ -1387,6 +1387,10 @@ the plot. It is important that this name not contain any blank spaces since
     "s"          ! Longitudinal position in the lattice.
     "data"       ! From a data array
 \end{example}
+The \vn{ele_index} switch is used when plotting data arrays. In this
+case the \vn{index} switch refers to the index of the data array and
+\vn{ele_index} refers to the index of the lattice element that the
+datum was evaluated at.
 
 \vn{n_graph} sets the number of graphs associated with the plot and
 each one needs a \vn{tao_template_graph} namelist to define it. These

@@ -417,8 +417,8 @@ data_source = datum%data_source
 data_type = datum%data_type
 lat => tao_lat%lat
 
-loc0 = lat_ele_loc_struct(datum%ix_branch, datum%ix_ele0)
-loc1 = lat_ele_loc_struct(datum%ix_branch, datum%ix_ele)
+loc0 = lat_ele_loc_struct(datum%ix_ele0, datum%ix_branch)
+loc1 = lat_ele_loc_struct(datum%ix_ele, datum%ix_branch)
 
 if (datum%ele_name /= '') then
   loc1 = tao_valid_datum_index (lat, datum%ix_ele, datum, valid_value)
@@ -426,7 +426,7 @@ if (datum%ele_name /= '') then
 endif
 
 if (datum%ele0_name == '') then
-  if (loc0%ix_ele == -1) loc0 = lat_ele_loc_struct(loc1%ix_branch, 0) ! Default if not set
+  if (loc0%ix_ele == -1) loc0 = lat_ele_loc_struct(0, loc1%ix_branch) ! Default if not set
 else
   loc0 = tao_valid_datum_index (lat, datum%ix_ele0, datum, valid_value)
   if (.not. valid_value) return
@@ -1633,7 +1633,7 @@ type (lat_ele_loc_struct) :: loc
 integer ix_ele, ixc, n_track, n_max
 logical valid
 character(40) :: r_name = 'tao_valid_datum_index'
-ele => pointer_to_ele (lat, datum%ix_branch, ix_ele)
+ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
 
 !
 

@@ -243,8 +243,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   good = .false.
   do i = 1, size(d_ptr)
     if (size(locs) > 0) then  ! bunch_start variables are always free
-      if (.not. attribute_free (locs(i)%ix_branch, locs(i)%ix_ele, a_name, &
-                                                         u%model%lat, .false.)) cycle
+      if (.not. attribute_free (locs(i), a_name, u%model%lat, .false.)) cycle
     endif
     good(i) = .true.
   end do

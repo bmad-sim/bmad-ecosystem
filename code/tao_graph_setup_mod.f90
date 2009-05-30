@@ -523,15 +523,19 @@ call re_allocate_locs (locs, 1)
 
 graph%title_suffix = '[' // trim(graph%component) // ']'
 
-! attach x-axis type to title suffix 
+! Attach x-axis type to title suffix if needed.
+! Needed %label is blank and %draw_label = F.
+! Note: if %label is blank and %draw_label = T then the x-axis_type is printed elsewhere.
  
- if (plot%x_axis_type == 'index') then
-   graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: index'
- elseif (plot%x_axis_type == 'ele_index') then
-   graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: ele_index'
- elseif (plot%x_axis_type == 's') then
-   graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: s'
- endif  
+if (graph%x%label == '' .and. .not. graph%x%draw_label) then
+  if (plot%x_axis_type == 'index') then
+    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: index'
+  elseif (plot%x_axis_type == 'ele_index') then
+    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: ele_index'
+  elseif (plot%x_axis_type == 's') then
+    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: s'
+  endif  
+endif
 
 !-------------------------------------------------------------------------------
 ! Loop over all curves in the graph

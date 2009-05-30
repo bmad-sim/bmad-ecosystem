@@ -784,15 +784,15 @@ do i = 1, lat%n_ele_max
 
 enddo
 
-! Draw min max
+! Draw x-axis min max
 
 if (graph%x%draw_numbers) then
   call qp_to_axis_number_text (graph%x, 0, str)
-  call qp_convert_point_abs (graph%x%min-2, 0.0_rp, 'DATA', x1, y1, 'POINTS')
-  call qp_draw_text (trim(str), x1, y1, 'POINTS', justify = 'RC')
+  call qp_convert_point_abs (graph%x%min, -10.0_rp, 'DATA', x1, y1, 'POINTS')
+  call qp_draw_text (trim(str) // '-|', x1, y1, 'POINTS', justify = 'RT')
   call qp_to_axis_number_text (graph%x, graph%x%major_div, str)
-  call qp_convert_point_abs (graph%x%max+2, 0.0_rp, 'DATA', x1, y1, 'POINTS')
-  call qp_draw_text (trim(str), x1, y1, 'POINTS', justify = 'LC')
+  call qp_convert_point_abs (graph%x%max, -10.0_rp, 'DATA', x1, y1, 'POINTS')
+  call qp_draw_text ('|-' // trim(str), x1, y1, 'POINTS', justify = 'LT')
 endif
 
 ! This is for drawing the key numbers under the appropriate elements
@@ -843,6 +843,8 @@ type (qp_symbol_struct), allocatable :: symbol(:)
 
 integer i, j, k, n
 logical have_data
+real(rp) x, y, x1
+
 character(16) num_str
 character(100), allocatable :: text(:)
 
@@ -858,6 +860,17 @@ else
   call qp_set_graph (title = trim(graph%title) // ' ' // graph%title_suffix)
 endif
 call qp_draw_axes
+
+! Draw the default x-axis label if there is none. 
+
+if (graph%x%draw_label .and. graph%x%label == '') then
+  call qp_to_inch_rel (1.0_rp, 0.0_rp, x1, y, '%GRAPH')
+  x = x1 * (graph%x%major_div - 0.5) / graph%x%major_div
+  y = -graph%x%number_offset
+  call qp_draw_text (plot%x_axis_type, x, y, 'INCH', justify = 'CT')
+endif
+
+!
 
 if (.not. graph%valid) return
 
