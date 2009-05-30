@@ -46,12 +46,12 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
   ix2 = ele%ix2_slave
 
   if (ele%n_slave == 0) then
-    ele1 => pointer_to_ele (lat, ele%ix_branch, ix_ele-1)
+    ele1 => pointer_to_ele (lat, ix_ele-1, ele%ix_branch)
     ele2 => ele
 
   elseif (ele%lord_status == super_lord$) then
-    ele1 => pointer_to_ele (lat, ele%ix_branch, lat%control(ix1)%ix_slave - 1)
-    ele2 => pointer_to_ele (lat, ele%ix_branch, lat%control(ix2)%ix_slave)
+    ele1 => pointer_to_ele (lat, lat%control(ix1)%ix_slave - 1, ele%ix_branch)
+    ele2 => pointer_to_ele (lat, lat%control(ix2)%ix_slave, ele%ix_branch)
 
   ! For overlays and groups: The idea is to look at all the slave elements in the tracking 
   ! part of the lattice and find the minimum and maximum element indexes.
@@ -98,8 +98,8 @@ subroutine find_element_ends (lat, ele, ele1, ele2)
       endif
     enddo
 
-    ele1 => pointer_to_ele (lat, ix_start_branch, ix_start)
-    ele2 => pointer_to_ele (lat, ix_end_branch, ix_end)
+    ele1 => pointer_to_ele (lat, ix_start, ix_start_branch)
+    ele2 => pointer_to_ele (lat, ix_end, ix_end_branch)
 
   endif
 

@@ -17,7 +17,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lattice, ix_ele, wiggler_only)
+! Subroutine control_bookkeeper (lattice, ix_ele, ix_branch, wiggler_only)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -32,17 +32,18 @@ contains
 !   ix_ele    -- Integer, optional: Index of element whose attribute values 
 !                  have been changed. If not present bookkeeping will be done 
 !                  for all elements.
+!   ix_branch -- Integer, optional: Branch index. Default is 0.
 !   wiggler_only -- Logical, optional: If True then only do bookkeeping for 
 !                     wiggler elements. Default is False.
 !-
 
-subroutine control_bookkeeper (lattice, ix_ele, wiggler_only)
+subroutine control_bookkeeper (lattice, ix_ele, ix_branch, wiggler_only)
 
 implicit none
 
 type (lat_struct), target :: lattice
 
-integer, optional :: ix_ele
+integer, optional :: ix_ele, ix_branch
 integer ie
 
 logical, optional :: wiggler_only

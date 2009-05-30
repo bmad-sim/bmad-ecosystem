@@ -13,7 +13,7 @@ use bmad_interface
 !
 ! Overloaded function for:
 !   Function pointer_to_ele1 (lat, loc) result (ele_ptr)
-!   Function pointer_to_ele2 (lat, ix_branch, ix_ele) result (ele_ptr)
+!   Function pointer_to_ele2 (lat, ix_ele, ix_branch) result (ele_ptr)
 !
 ! Modules Needed:
 !   use lat_ele_loc_mod
@@ -21,8 +21,8 @@ use bmad_interface
 ! Input:
 !   lat       -- Lat_struct: Lattice.
 !   loc       -- lat_ele_loc_struct: Location of element.
-!   ix_branch -- Integer: Branch index.
 !   ix_ele    -- Integer: element index in the branch.
+!   ix_branch -- Integer: Branch index.
 !
 ! Output:
 !   ele_ptr -- Ele_struct, pointer: Pointer to the element. 
@@ -125,7 +125,7 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
   do i = 0, lat%branch(k)%n_ele_max
     if (.not. lat%branch(k)%ele(i)%bmad_logic) cycle
     j = j + 1
-    locs(j) = lat_ele_loc_struct(k, i)
+    locs(j) = lat_ele_loc_struct(i, k)
   enddo
 enddo
 
@@ -277,7 +277,7 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
   do i = 0, lat%branch(k)%n_ele_max
     if (.not. lat%branch(k)%ele(i)%bmad_logic) cycle
     j = j + 1
-    locs(j) = lat_ele_loc_struct(k, i)
+    locs(j) = lat_ele_loc_struct(i, k)
   enddo
 enddo
 
@@ -370,13 +370,13 @@ end function
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_ele2 (lat, ix_branch, ix_ele) result (ele_ptr)
+! Function pointer_to_ele2 (lat, ix_ele, ix_branch) result (ele_ptr)
 !
 ! Function to return a pointer to an element in a lattice.
 ! See pointer_to_ele for more details.
 !-
 
-function pointer_to_ele2 (lat, ix_branch, ix_ele) result (ele_ptr)
+function pointer_to_ele2 (lat, ix_ele, ix_branch) result (ele_ptr)
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr

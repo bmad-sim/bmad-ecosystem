@@ -1,7 +1,7 @@
 !+
-! Subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
+! Subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch)
 !
-! Subroutine to make the first order transfer map for an element:
+! Subroutine to make the first order transfer map for an element or elements:
 !   r_out = M * r_in + vec0
 ! M is the 6x6 linear transfer matrix (Jacobian) about the 
 ! reference orbit ref_orb.
@@ -22,6 +22,7 @@
 !   ref_orb(0:) -- Coord_struct, optional: Coordinates of the reference orbit
 !                   around which the matrix is calculated. If not present 
 !                   then the referemce is taken to be the origin.
+!   ix_branch   -- Integer, optional: Branch index. Default is 0 (main lattice).
 !
 ! Output:
 !   lat        -- lat_struct:
@@ -29,158 +30,160 @@
 !     ele(:)%vec0  -- Real(rp): 0th order transfer vector.
 !-
 
-#include "CESR_platform.inc"
+recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch)
 
-recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb)
+use bmad_struct
+use bmad_utils_mod
+use bmad_interface, except_dummy => lat_make_mat6
+use bookkeeper_mod, only: control_bookkeeper
 
-  use bmad_struct
-  use bmad_utils_mod
-  use bmad_interface, except_dummy => lat_make_mat6
-  use bookkeeper_mod, only: control_bookkeeper
+implicit none
+                                       
+type (lat_struct), target :: lat
+type (coord_struct), optional, volatile :: ref_orb(0:)
+type (coord_struct) orb_start, orb_end
+type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
 
-  implicit none
-                                         
-  type (lat_struct), target :: lat
-  type (coord_struct), optional, volatile :: ref_orb(0:)
-  type (coord_struct) orb_start, orb_end
-  type (ele_struct), pointer :: ele
+integer, optional :: ix_ele, ix_branch
+integer i, j, ie, i1, n_taylor, i_ele, i_branch
+integer, save, allocatable :: ix_taylor(:)
 
-  integer, optional :: ix_ele
-  integer i, j, ie, i1, n_taylor, i_ele
-  integer, save, allocatable :: ix_taylor(:)
-
-  logical transferred, want_taylor, zero_orbit
+logical transferred, want_taylor, zero_orbit
 
 ! Error check
 
-  if (.not. allocated(ix_taylor)) allocate(ix_taylor(200))
+if (.not. allocated(ix_taylor)) allocate(ix_taylor(200))
 
-  i_ele = integer_option (-1, ix_ele)
+i_ele = integer_option (-1, ix_ele)
+i_branch = integer_option (0, ix_branch)
 
-  if (i_ele == 0 .or. i_ele > lat%n_ele_max) then
-    print *, 'ERROR IN lat_make_mat6: ELEMENT INDEX OUT OF BOUNDS:', i_ele
-    if (bmad_status%exit_on_error) call err_exit
-    return
+branch => lat%branch(i_branch)
+
+if (i_ele == 0 .or. i_ele > branch%n_ele_max) then
+  print *, 'ERROR IN lat_make_mat6: ELEMENT INDEX OUT OF BOUNDS:', i_ele
+  if (bmad_status%exit_on_error) call err_exit
+  return
+endif
+
+if (present(ref_orb)) then
+  if (ubound(ref_orb, 1) < branch%n_ele_track) then
+    print *, 'ERROR IN lat_make_mat6: ref_orb(:) ARGUMENT SIZE IS TOO SMALL!'
+    call err_exit
   endif
+endif
 
-  if (present(ref_orb)) then
-    if (ubound(ref_orb, 1) < lat%n_ele_track) then
-      print *, 'ERROR IN lat_make_mat6: ref_orb(:) ARGUMENT SIZE IS TOO SMALL!'
-      call err_exit
-    endif
-  endif
-
-  if (bmad_com%auto_bookkeeper) call compute_reference_energy (lat)
+if (bmad_com%auto_bookkeeper) call compute_reference_energy (lat)
 
 ! Is the reference orbit zero?
 
-  zero_orbit = .true.
-  if (present(ref_orb)) then
-    do i = 0, lat%n_ele_track
-      if (any(ref_orb(i)%vec /= 0)) then
-        zero_orbit = .false.
-        exit
-      endif
-    enddo
-  endif
+zero_orbit = .true.
+if (present(ref_orb)) then
+  do i = 0, branch%n_ele_track
+    if (any(ref_orb(i)%vec /= 0)) then
+      zero_orbit = .false.
+      exit
+    endif
+  enddo
+endif
 
 !--------------------------------------------------------------
 ! Make entire lat if i_ele < 0.
 ! First do the inter-element bookkeeping.
 
-  if (i_ele < 0) then         
+if (i_ele < 0) then         
 
-    if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
+  if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
-    ! Now make the transfer matrices.
-    ! For speed if a element needs a taylor series then check if we can use
-    ! one from a previous element.
+  ! Now make the transfer matrices.
+  ! For speed if a element needs a taylor series then check if we can use
+  ! one from a previous element.
 
-    ! For consistancy, if no orbit is given, the starting coords in a super_slave
-    ! will be taken as the ending coords of the previous super_slave.
+  ! For consistancy, if no orbit is given, the starting coords in a super_slave
+  ! will be taken as the ending coords of the previous super_slave.
 
-    n_taylor = 0  ! number of taylor series found
-    call init_coord (orb_end)
+  n_taylor = 0  ! number of taylor series found
+  call init_coord (orb_end)
 
-    do i = 1, lat%n_ele_track
+  do i = 1, branch%n_ele_track
 
-      ele => lat%ele(i)
-      want_taylor = (ele%mat6_calc_method == taylor$) .or. &
-                    (ele%mat6_calc_method == symp_map$) .or. &
-                    (ele%tracking_method == taylor$) .or. &
-                    (ele%tracking_method == symp_map$)
+    ele => branch%ele(i)
+    want_taylor = (ele%mat6_calc_method == taylor$) .or. &
+                  (ele%mat6_calc_method == symp_map$) .or. &
+                  (ele%tracking_method == taylor$) .or. &
+                  (ele%tracking_method == symp_map$)
 
-      transferred = .false.
-      if (want_taylor) then
-        if (.not. associated(ele%taylor(1)%term)) then
-          do j = 1, n_taylor
-            ie = ix_taylor(j)
-            if (.not. equivalent_taylor_attributes (ele, lat%ele(ie))) cycle
-            if (present(ref_orb)) then
-              if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
-            endif
-            call transfer_ele_taylor (lat%ele(ie), ele, &
-                                                 lat%ele(ie)%taylor_order)
-            transferred = .true.
-            exit
-          enddo
-        endif
+    transferred = .false.
+    if (want_taylor) then
+      if (.not. associated(ele%taylor(1)%term)) then
+        do j = 1, n_taylor
+          ie = ix_taylor(j)
+          if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle
+          if (present(ref_orb)) then
+            if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
+          endif
+          call transfer_ele_taylor (branch%ele(ie), ele, &
+                                               branch%ele(ie)%taylor_order)
+          transferred = .true.
+          exit
+        enddo
       endif
+    endif
 
-      if (zero_orbit) then 
-        if (ele%slave_status == super_slave$) then
-          orb_start = orb_end
-          call make_mat6(ele, lat%param, orb_start, orb_end)
-        else
-          call make_mat6(ele, lat%param)
-          ! Reset orb_end if not in a superposition block.
-          if (ele%value(l$) /= 0) orb_end%vec = 0  
-        endif
-      else  ! else ref_orb must be present
-        call make_mat6(ele, lat%param, ref_orb(i-1), ref_orb(i), .true.)
+    if (zero_orbit) then 
+      if (ele%slave_status == super_slave$) then
+        orb_start = orb_end
+        call make_mat6(ele, lat%param, orb_start, orb_end)
+      else
+        call make_mat6(ele, lat%param)
+        ! Reset orb_end if not in a superposition block.
+        if (ele%value(l$) /= 0) orb_end%vec = 0  
       endif
+    else  ! else ref_orb must be present
+      call make_mat6(ele, lat%param, ref_orb(i-1), ref_orb(i), .true.)
+    endif
 
-      ! save this taylor in the list if it is a new one. 
+    ! save this taylor in the list if it is a new one. 
 
-      if (associated(ele%taylor(1)%term) .and. .not. transferred) then
-        n_taylor = n_taylor + 1
-        if (n_taylor > size(ix_taylor)) call re_allocate (ix_taylor, 2*size(ix_taylor))
-        ix_taylor(n_taylor) = i
-      endif
+    if (associated(ele%taylor(1)%term) .and. .not. transferred) then
+      n_taylor = n_taylor + 1
+      if (n_taylor > size(ix_taylor)) call re_allocate (ix_taylor, 2*size(ix_taylor))
+      ix_taylor(n_taylor) = i
+    endif
 
-    enddo
+  enddo
 
-    return
+  return
 
-  endif
+endif
 
 !-----------------------------------------------------------
 ! otherwise make a single element
 
-  call control_bookkeeper (lat, i_ele)
+call control_bookkeeper (lat, i_ele, ix_branch)
 
 ! For an element in the tracking part of the lattice
 
-  if (i_ele <= lat%n_ele_track) then
-     if (present(ref_orb)) then
-        call make_mat6(lat%ele(i_ele), lat%param, &
-                                  ref_orb(i_ele-1), ref_orb(i_ele), .true.)
-     else
-        call make_mat6(lat%ele(i_ele), lat%param)
-     endif
+if (i_ele <= branch%n_ele_track) then
+   if (present(ref_orb)) then
+      call make_mat6(branch%ele(i_ele), lat%param, &
+                                ref_orb(i_ele-1), ref_orb(i_ele), .true.)
+   else
+      call make_mat6(branch%ele(i_ele), lat%param)
+   endif
 
-    return
-  endif                        
+  return
+endif                        
 
 ! for a control element
 
-  do i1 = lat%ele(i_ele)%ix1_slave, lat%ele(i_ele)%ix2_slave
-    i = lat%control(i1)%ix_slave
-     if (present(ref_orb)) then
-        call lat_make_mat6 (lat, i, ref_orb)
-     else
-        call lat_make_mat6 (lat, i)
-     endif
-  enddo
+do i1 = branch%ele(i_ele)%ix1_slave, branch%ele(i_ele)%ix2_slave
+  i = lat%control(i1)%ix_slave
+   if (present(ref_orb)) then
+      call lat_make_mat6 (lat, i, ref_orb)
+   else
+      call lat_make_mat6 (lat, i)
+   endif
+enddo
 
 end subroutine

@@ -1135,7 +1135,7 @@ end subroutine kill_gen_field
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine init_ele (ele, key, sub_key, ix_branch, ix_ele)
+! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch)
 !
 ! Subroutine to initialize a Bmad element. Element is initialized to be free
 ! (not a lord or slave) and all %values set to zero.
@@ -1146,14 +1146,14 @@ end subroutine kill_gen_field
 ! Input:
 !   key     -- Integer, optional: Key to initialize to. EG: quadrupole$, etc.
 !   sub_key -- Integer, optional: Sub-key to initialize to.
-!   ix_branch  -- Integer, optional: Branch index to initalize to. Default = 0.
 !   ix_ele     -- Integer, optional: ix_ele index to initalize to. Default = -1.
+!   ix_branch  -- Integer, optional: Branch index to initalize to. Default = 0.
 !
 ! Output:
 !   ele -- Ele_struct: Initialized element.
 !-
 
-subroutine init_ele (ele, key, sub_key, ix_branch, ix_ele)
+subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch)
 
 implicit none
 

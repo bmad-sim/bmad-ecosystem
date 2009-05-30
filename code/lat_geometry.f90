@@ -47,7 +47,7 @@ enddo
 do n = 1, ubound(lat%branch, 1)
   branch => lat%branch(n)
 
-  ele => pointer_to_ele (lat, branch%ix_from_branch, branch%ix_from_ele)
+  ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
   branch%ele(0)%floor = ele%floor
 
   if (ele%key == photon_branch$ .or. ele%key == photon_branch$) then

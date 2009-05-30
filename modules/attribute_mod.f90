@@ -26,7 +26,7 @@ private init_attribute_name_array, check_this_attribute_free, print_error
 ! Overloaded function for:
 !   Function attribute_free1 (ix_ele, attrib_name, lat,
 !                                err_print_flag, except_overlay) result (free)
-!   Function attribute_free2 (ix_branch, ix_ele, attrib_name, lat, 
+!   Function attribute_free2 (ix_ele, ix_branch, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
 !   Function attribute_free3 (loc, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
@@ -45,8 +45,8 @@ private init_attribute_name_array, check_this_attribute_free, print_error
 !
 ! Input:
 !   loc             -- Lat_ele_loc_struct: Element location.
-!   ix_branch       -- Integer: Branch index. Default is 0.
 !   ix_ele          -- Integer: Index of element in lat%ele(:) array.
+!   ix_branch       -- Integer: Branch index. Default is 0.
 !   attrib_name     -- Character(*): Name of the attribute. Assumed upper case.
 !   lat             -- lat_struct: Lattice structure.
 !   err_print_flag  -- Logical, optional: If present and False then supress
@@ -972,13 +972,13 @@ end function attribute_free1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free2 (ix_branch, ix_ele, attrib_name, 
+! Function attribute_free2 (ix_ele, ix_branch, attrib_name, 
 !                                 lat, err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free2 (ix_branch, ix_ele, attrib_name, lat, &
+function attribute_free2 (ix_ele, ix_branch, attrib_name, lat, &
                                         err_print_flag, except_overlay) result (free)
 
 implicit none

@@ -696,12 +696,12 @@ interface
 end interface
 
 interface
-  recursive subroutine lat_make_mat6 (lat, ix_ele, coord)
+  recursive subroutine lat_make_mat6 (lat, ix_ele, coord, ix_branch)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     type (lat_struct), target :: lat
     type (coord_struct), optional :: coord(0:)
-    integer, optional :: ix_ele
+    integer, optional :: ix_ele, ix_branch
   end subroutine
 end interface
 

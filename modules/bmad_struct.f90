@@ -148,8 +148,8 @@ end type
 ! Structure to encode the location of an element in a lat_struct
 
 type lat_ele_loc_struct
-  integer ix_branch
   integer ix_ele
+  integer ix_branch
 end type
 
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
