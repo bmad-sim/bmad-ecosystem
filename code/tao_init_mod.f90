@@ -37,7 +37,7 @@ type (beam_init_struct) beam_init
 type (tao_connected_uni_input) connect
 type (spin_polar_struct) spin
 
-integer ios, iu, i, j, k, ix, n_uni, num
+integer ios, iu, i, j, k, ib, ix, n_uni, num, ix_branch
 integer n_data_max, n_var_max, ix_track_start, ix_track_end
 integer n_d2_data_max, n_v1_var_max ! Deprecated variables
 integer n, iostat, ix_universe, to_universe
@@ -57,7 +57,7 @@ namelist / tao_params / global, bmad_com, csr_param, &
   
 namelist / tao_connected_uni_init / to_universe, connect
   
-namelist / tao_beam_init / ix_universe, beam0_file, &
+namelist / tao_beam_init / ix_universe, ix_branch, beam0_file, &
   ix_track_start, ix_track_end, beam_all_file, beam_init, save_beam_at
          
 !-----------------------------------------------------------------------
@@ -178,13 +178,16 @@ if (s%global%track_type == 'beam') then
     call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
     do i = lbound(s%u, 1), ubound(s%u, 1)
-      s%u(i)%beam0_file = ''
+      do ib = 0, ubound(s%u(i)%uni_branch, 1)
+        s%u(i)%uni_branch(ib)%beam0_file = ''
+      enddo
     enddo
 
     do 
 
       ! defaults
       ix_universe = -1
+      ix_branch   = 0
       beam_init%a_norm_emitt  = 0.0
       beam_init%b_norm_emitt  = 0.0
       beam_init%dPz_dz = 0.0
@@ -350,8 +353,10 @@ use tao_read_beam_mod
 implicit none
 
 type (tao_universe_struct), target :: u
-type (lat_struct), pointer :: lat
 type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (tao_universe_branch_struct), pointer :: uni_branch
+type (branch_struct), pointer :: branch
+!! type (lat_struct), pointer :: lat
 
 real(rp) v(6), bunch_charge, gamma
 integer i, ix, iu, n_part, ix_class, n_bunch, n_particle
@@ -359,40 +364,26 @@ character(60) at, class, ele_name, line
 
 ! Set tracking start/stop
 
-u%ix_track_start = ix_track_start
-u%ix_track_end   = ix_track_end
+uni_branch => u%uni_branch(ix_branch)
+branch => u%design%lat%branch(ix_branch)
 
-! The emittance set in the tao init file takes priority over the emittance set
-! in the lattice file.
+uni_branch%ix_track_start = ix_track_start
+uni_branch%ix_track_end   = ix_track_end
 
-lat => u%design%lat
-call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma)
-
-if (beam_init%a_norm_emitt /= 0) then
-  lat%a%emit = beam_init%a_norm_emitt / gamma
-else
-  beam_init%a_norm_emitt = lat%a%emit * gamma
-endif
-
-if (beam_init%b_norm_emitt /= 0) then
-  lat%b%emit = beam_init%b_norm_emitt / gamma
-else
-  beam_init%b_norm_emitt = lat%b%emit * gamma
-endif
-
-u%beam_init = beam_init
-u%beam0_file = beam0_file
-u%beam_all_file = beam_all_file
-u%design%orb_branch(0)%orbit(0)%vec = beam_init%center
+uni_branch%beam_init = beam_init
+uni_branch%beam0_file = beam0_file
+uni_branch%beam_all_file = beam_all_file
+u%design%lat_branch(0)%orbit(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice
-if (u%design%lat%param%lattice_type == circular_lattice$) return
+
+if (branch%param%lattice_type == circular_lattice$) return
 
 ! Find where to save the beam at
 
-u%ele%save_beam = .false.
-u%ele(0)%save_beam = .true.
-u%ele(u%design%lat%n_ele_track)%save_beam = .true.
+uni_branch%ele%save_beam = .false.
+uni_branch%ele(0)%save_beam = .true.
+uni_branch%ele(u%design%lat%n_ele_track)%save_beam = .true.
 
 do i = 1, size(save_beam_at)
   if (save_beam_at(i) == '') exit
@@ -402,7 +393,7 @@ do i = 1, size(save_beam_at)
     cycle
   endif
   do k = 1, size(locs)
-    u%ele(locs(k)%ix_ele)%save_beam = .true.
+    uni_branch%ele(locs(k)%ix_ele)%save_beam = .true.
   enddo
 enddo
   
@@ -410,22 +401,21 @@ if (allocated (u%save_beam_at)) deallocate (u%save_beam_at)
 allocate (u%save_beam_at(i-1))
 if (i > 1) u%save_beam_at(1:i-1) = save_beam_at(1:i-1)
 
-! If beam_all_file is set then read in the beam distributions.
+! If beam_all_file is set, read in the beam distributions.
 
-if (u%beam_all_file /= '') then
+if (uni_branch%beam_all_file /= '') then
   tao_com%use_saved_beam_in_tracking = .true.
   call tao_open_beam_file (beam_all_file)
-  call tao_read_beam_file_header (j, u%beam_init%n_bunch, u%beam_init%n_particle, err)  
+  call tao_read_beam_file_header (j, uni_branch%beam_init%n_bunch, &
+                                             uni_branch%beam_init%n_particle, err)  
   if (err) call err_exit
   do
     if (j == -1) exit
-    call tao_read_beam (u%ele(j)%beam, err)
+    call tao_read_beam (uni_branch%ele(j)%beam, err)
     if (err) call err_exit
   enddo  
-
-  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam_all_file)
+  call out_io (s_info$, r_name, 'Read beam_all file: ' // uni_branch%beam_all_file)
   call tao_close_beam_file ()
-
 endif
 
 if (u%connect%connected) u%connect%injecting_beam = u%current_beam

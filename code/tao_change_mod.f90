@@ -280,8 +280,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     delta = m_ptr(i)%r - old_value(i)
 
     if (e_name == 'BEAM_START') then
-      u%beam_init%center = u%model%lat%beam_start%vec
-      u%init_beam0 = .true.
+      u%uni_branch(0)%beam_init%center = u%model%lat%beam_start%vec
+      u%uni_branch(0)%init_beam0 = .true.
     endif
 
     if (size(locs) > 0) then

@@ -172,7 +172,7 @@ type (tao_curve_struct), pointer :: curve
 type (floor_position_struct) end
 type (lat_struct), pointer :: lat
 
-integer i, j, k, n, p1, p2, iu, ix
+integer i, j, k, n, p1, p2, iu, ix, ib
 real(rp) x_min, x_max
 real(rp) this_min, this_max
 logical curve_here
@@ -197,26 +197,36 @@ endif
 
 ! Auto scale
 
-this_min =  1e20
-this_max = -1e20
+this_min =  1e30
+this_max = -1e30
 curve_here = .false.
 
 if (graph%type == 'floor_plan') then
   ix = tao_universe_number(graph%ix_universe)
   lat => s%u(ix)%model%lat
-  this_min = 1e30
-  this_max = -1e30
-  do i = 0, lat%n_ele_track
-    call floor_to_screen_coords (lat%ele(i)%floor, end)
-    this_min = min(this_min, end%x)
-    this_max = max(this_max, end%x)
+  do ib = 0, ubound(lat%branch, 1)
+    do i = 0, lat%branch(ib)%n_ele_track
+      call floor_to_screen_coords (lat%branch(ib)%ele(i)%floor, end)
+      this_min = min(this_min, end%x)
+      this_max = max(this_max, end%x)
+    enddo
   enddo
   curve_here = .true.
 else if (graph%p%x_axis_type == 's') then
-  iu = tao_universe_number(graph%ix_universe)
-  this_min = min (this_min, s%u(iu)%model%lat%ele(0)%s)
-  ix = s%u(iu)%model%lat%n_ele_track
-  this_max = max (this_max, s%u(iu)%model%lat%ele(ix)%s)
+  if (allocated(graph%curve)) then
+    do i = 1, size(graph%curve)
+      iu = tao_universe_number(graph%curve(i)%ix_universe)
+      ib = graph%curve(i)%ix_branch
+      this_min = min (this_min, s%u(iu)%model%lat%branch(ib)%ele(0)%s)
+      ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
+      this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
+    enddo
+  else
+    ib = graph%ix_branch
+    this_min = min (this_min, s%u(iu)%model%lat%branch(ib)%ele(0)%s)
+    ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
+    this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
+  endif
   curve_here = .true.
 else
   if (.not. allocated(graph%curve)) return

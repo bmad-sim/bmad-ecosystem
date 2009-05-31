@@ -209,6 +209,7 @@ type (lat_struct), pointer :: lat
 type (floor_position_struct) end1, end2, floor
 type (tao_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
 
 real(rp) theta, v_vec(3)
 real(rp) x_bend(0:1000), y_bend(0:1000)
@@ -246,15 +247,16 @@ if (.not. graph%valid) return
 ! loop over all elements in the lattice. 
 
 do n = 0, ubound(lat%branch, 1)
-  lat%branch(n)%ele%logic = .false.  ! Used to mark as drawn.
-  do i = 1, lat%branch(n)%n_ele_max
-    ele => lat%branch(n)%ele(i)
-    call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, lat%n_ele_track, ix_shape)
+  branch => lat%branch(n)
+  branch%ele%logic = .false.  ! Used to mark as drawn.
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, branch%n_ele_track, ix_shape)
     if (ele%ix_ele > lat%n_ele_track .and. ix_shape == 0) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave
-        call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%branch(n)%ele(ic), ix_shape)
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), ix_shape)
       enddo
     else
       call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
@@ -581,6 +583,7 @@ type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape(:)
+type (branch_struct), pointer :: branch
 
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
 real(rp) lat_len, height, dy, key_number_height
@@ -599,7 +602,9 @@ if (.not. graph%valid) return
 
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
-lat_len = lat%param%total_length
+branch => lat%branch(graph%ix_branch)
+
+lat_len = branch%param%total_length
 key_number_height = 10
   
 ! Each graph is a separate lattice layout (presumably for different universes). 
@@ -652,21 +657,21 @@ endif
 ele_shape => tao_com%ele_shape_lat_layout
 height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
-do i = 1, lat%n_ele_max
+do i = 1, branch%n_ele_max
 
-  ele => lat%ele(i)
-  call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, lat%n_ele_track, ix_shape)
+  ele => branch%ele(i)
+  call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, branch%n_ele_track, ix_shape)
 
   if (ele%lord_status == multipass_lord$) cycle
   if (ele%slave_status == super_slave$) cycle
-  if (i > lat%n_ele_track .and. ix_shape < 1) cycle
+  if (i > branch%n_ele_track .and. ix_shape < 1) cycle
 
   if (plot%x_axis_type == 's') then
     call find_element_ends (lat, ele, ele1, ele2)
     x1 = ele1%s
     x2 = ele2%s
     ! If out of range then try a negative position
-    if (lat%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
+    if (branch%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
       x1 = x1 - lat_len
       x2 = x2 - lat_len
     endif
@@ -807,8 +812,8 @@ if (s%global%label_keys) then
       if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
       ix = s%var(ix_var)%this(ixv)%ix_ele
       write (str, '(i1)') mod(kk, 10)
-      if (ix > lat%n_ele_track) then
-        do j = lat%ele(ix)%ix1_slave, lat%ele(ix)%ix2_slave
+      if (ix > branch%n_ele_track) then
+        do j = branch%ele(ix)%ix1_slave, branch%ele(ix)%ix2_slave
           ix1 = lat%control(j)%ix_slave
           s_pos = ele1%s - ele1%value(l$)/2
           if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
@@ -816,7 +821,7 @@ if (s%global%label_keys) then
                               justify = 'CT', height = key_number_height)  
         enddo
       else
-        s_pos = lat%ele(ix)%s - lat%ele(ix)%value(l$)/2
+        s_pos = branch%ele(ix)%s - branch%ele(ix)%value(l$)/2
         call qp_draw_text (trim(str), s_pos, y_top, &
                                 justify = 'CT', height = key_number_height)  
       endif

@@ -24,6 +24,8 @@ use tao_top10_mod
 implicit none
 
 type (lat_struct), pointer :: lat
+type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (tao_universe_struct), pointer :: u
 
 integer i, j, ix, ix2, ix_plot, ie, iv, factor, ix_key, ios, ir
 integer n1, n2, i_ele, ix_var
@@ -453,50 +455,24 @@ case ('/')
 
   select case (char)
 
-! '/e' Element
+  ! '/e' Element
 
   case ('e')
     write (*, '(/, a)', advance = "NO") ' Element Name or Index: '
     read (*, '(a)', iostat = ios) str
-    if (ios /= 0) return
-    call string_trim (str, str, ix) 
-    call str_upcase (str, str)
-    if (ix == 0) return
-    ix = len_trim(str)
-
-    if (str(2:2) == ':') then
-      read (str(1:1), *, iostat = ios) n1
-      if (n1 > ubound(s%u, 1) .or. n1 < 1) then
-        write (*, *) 'ERROR: LAT INDEX NOT VALID.'
-        return
-      endif
-      n2 = n1
-      str = str(2:)
-    else
-      n1 = 1
-      n2 = ubound(s%u, 1)
-    endif
-
-    ie = -1
-    if (index ('01234567890', str(1:1)) /= 0) then
-      read (str, *, iostat = ios) ie
-      if (ios /= 0) ie = -1
-    endif
-
-    found = .false.
-    do i = n1, n2
-      lat => s%u(i)%model%lat
-      do j = 0, lat%n_ele_max
-        if (lat%ele(j)%name /= str .and. j /= ie) cycle
-        write (*, *) '!---------------------------------------------------'
-        write (*, *) '! Lat:', i, ':  ', trim(lat%lattice)
-        write (*, *) '! Element Index:', j
-        call type_ele (lat%ele(j), .false., 6, .true., radians$, .true., lat)
-        found = .true.
-      enddo
+    if (ios /= 0 .or. str == '') return
+    call tao_locate_elements (str, 0, locs, err)
+    u => tao_pointer_to_universe(0)  
+    lat => u%model%lat
+    do i = 1, size(locs)
+      write (*, *) '!---------------------------------------------------'
+      write (*, *) '! Branch Index: ', locs(i)%ix_branch
+      write (*, *) '! Element Index:', locs(i)%ix_ele
+      call type_ele (lat%branch(locs(i)%ix_branch)%ele(locs(i)%ix_ele), &
+                                      .false., 6, .true., radians$, .true., lat)
     enddo
 
-    if (.not. found) write (*, *) 'Element not found.'
+    if (size(locs) == 0) write (*, *) 'Element not found.'
 
   ! '/l' Lattice list
 

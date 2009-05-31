@@ -296,7 +296,7 @@ do k = 1, size(graph%curve)
   if (allocated (curve%x_line))  deallocate (curve%x_line, curve%y_line)
 
   if (curve%data_source == 'beam') then
-    beam => u%ele(curve%ix_ele_ref_track)%beam
+    beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
     if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
@@ -502,6 +502,7 @@ type (tao_var_struct), pointer :: v_ptr
 type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_data_var_component_struct), allocatable, save :: comp(:)
 type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (branch_struct), pointer :: branch
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min
 real(rp), allocatable :: value(:)
@@ -556,6 +557,7 @@ do k = 1, size(graph%curve)
 
   model_lat => u%model%lat
   base_lat => u%base%lat
+  branch => model_lat%branch(curve%ix_branch)
 
   if (curve%ele_ref_name == ' ') then
     zero_average_phase = .true.
@@ -617,8 +619,8 @@ do k = 1, size(graph%curve)
       else ! s
         where (d1_ptr%d%s > graph%x%min-eps .and. &
                d1_ptr%d%s < graph%x%max+eps) d1_ptr%d%good_plot = .true.
-        if (model_lat%param%lattice_type == circular_lattice$) then 
-          l_tot = model_lat%param%total_length
+        if (branch%param%lattice_type == circular_lattice$) then 
+          l_tot = branch%param%total_length
           where (d1_ptr%d%s-l_tot > graph%x%min-eps .and. &
                  d1_ptr%d%s-l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
         endif
@@ -631,10 +633,11 @@ do k = 1, size(graph%curve)
     call tao_data_useit_plot_calc (graph, d1_ptr%d) 
     if (plot%x_axis_type == 's') then
       ! veto non-regular elements when plotting s
-      forall (m = lbound(d1_ptr%d,1):ubound(d1_ptr%d,1), &
-                     d1_ptr%d(m)%ix_ele > model_lat%n_ele_track)
-        d1_ptr%d(m)%useit_plot = .false.
-      end forall
+      do m = lbound(d1_ptr%d,1), ubound(d1_ptr%d,1)
+        if (d1_ptr%d(m)%ix_ele > model_lat%branch(d1_ptr%d(m)%ix_branch)%n_ele_track) then
+          d1_ptr%d(m)%useit_plot = .false.
+        endif
+      enddo
     endif
     n_dat = count (d1_ptr%d%useit_plot)       
 
@@ -653,9 +656,9 @@ do k = 1, size(graph%curve)
     elseif (plot%x_axis_type == 'ele_index') then
       curve%x_symb = d1_ptr%d(curve%ix_symb)%ix_ele
     elseif (plot%x_axis_type == 's') then
-      curve%x_symb = model_lat%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
+      curve%x_symb = branch%ele(d1_ptr%d(curve%ix_symb)%ix_ele)%s
       ! If there is a wrap-around then reorder data
-      if (model_lat%param%lattice_type == circular_lattice$) then
+      if (branch%param%lattice_type == circular_lattice$) then
         do i = 1, n_dat
           if (curve%x_symb(i) > graph%x%max+eps .and. & 
                         curve%x_symb(i)-l_tot > graph%x%min-eps) then
@@ -755,7 +758,7 @@ do k = 1, size(graph%curve)
       enddo
     elseif (plot%x_axis_type == 's') then
       do jj = lbound(curve%ix_symb,1), ubound(curve%ix_symb,1)
-        curve%x_symb(jj) = model_lat%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
+        curve%x_symb(jj) = branch%ele(v1_ptr%v(curve%ix_symb(jj))%this(ix_this)%ix_ele)%s
       enddo
     endif
 
@@ -779,7 +782,7 @@ do k = 1, size(graph%curve)
 
     if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
       x_min = 1
-      x_max = model_lat%n_ele_track
+      x_max = branch%n_ele_track
       if (graph%x%min /= graph%x%max) then
         x_min = max(x_min, graph%x%min)
         x_max = min(x_max, graph%x%max)
@@ -883,25 +886,25 @@ do k = 1, size(graph%curve)
     else if (plot%x_axis_type == 's' .and. .not. ref_or_meas) then
 
       eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
-      l_tot = model_lat%param%total_length
-      model_lat%ele%logic = .false.
-      do i = 1, model_lat%n_ele_track
-        ele => model_lat%ele(i)
+      l_tot = branch%param%total_length
+      branch%ele%logic = .false.
+      do i = 1, branch%n_ele_track
+        ele => branch%ele(i)
         if (graph%x%min == graph%x%max) cycle
         s0 = ele%s - ele%value(l$)
         s1 = ele%s
         ele%logic = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
-        if (model_lat%param%lattice_type == circular_lattice$) then
+        if (branch%param%lattice_type == circular_lattice$) then
           ele%logic = ele%logic .or. &
                      ((s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps))
         endif
       enddo
-      n_dat = count (model_lat%ele(:)%logic)
+      n_dat = count (branch%ele(:)%logic)
       call re_allocate_locs (locs, n_dat)
-      locs%ix_ele = pack(model_lat%ele(:)%ix_ele, mask = model_lat%ele(:)%logic)
+      locs%ix_ele = pack(branch%ele(:)%ix_ele, mask = branch%ele(:)%logic)
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat
-        if (model_lat%ele(locs(i)%ix_ele)%s - l_tot > graph%x%min) then
+        if (branch%ele(locs(i)%ix_ele)%s - l_tot > graph%x%min) then
           locs = (/ locs(i:), locs(:i-1) /)
           exit
         endif
@@ -911,7 +914,7 @@ do k = 1, size(graph%curve)
       if (.not. graph%valid) return
 
       do i = 1, size(curve%x_line)
-        curve%x_line(i) = model_lat%branch(locs(i)%ix_branch)%ele(locs(i)%ix_ele)%s
+        curve%x_line(i) = branch%ele(locs(i)%ix_ele)%s
       enddo
 
     ! For all else just draw straight lines through the symbols.
@@ -963,12 +966,13 @@ type (ele_struct) ele
 type (ele_struct), pointer :: ele0
 type (coord_struct) here
 type (taylor_struct) t_map(6)
+type (branch_struct), pointer :: branch
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign
 
-integer i, ii, ix, j, k, expnt(6), ix_ele, ix0
+integer i, ii, ix, j, k, expnt(6), ix_ele, ix0, ix_branch
 
 character(40) data_type
 character(40) data_type_select, data_source
@@ -979,8 +983,11 @@ logical err, good(:)
 
 data_type = curve%data_type
 
+ix_branch = curve%ix_branch
 lat => tao_lat%lat
-orb => tao_lat%orb_branch(curve%ix_branch)%orbit
+orb => tao_lat%lat_branch(ix_branch)%orbit
+branch => lat%branch(ix_branch)
+
 ix0 = curve%ix_ele_ref_track
 if (ix0 < 0) ix0 = 0
 
@@ -1003,19 +1010,19 @@ endif
 
 ! x1 and x2 are the longitudinal end points of the plot
 
-x1 = lat%ele(0)%s
-x2 = lat%ele(lat%n_ele_track)%s
-len_tot = lat%param%total_length
+x1 = branch%ele(0)%s
+x2 = branch%ele(branch%n_ele_track)%s
+len_tot = x2 - x1
 if (curve%g%x%min /= curve%g%x%max) then
-  if (lat%param%lattice_type == circular_lattice$) then
-    x1 = min(lat%ele(lat%n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
-    x2 = min(x2, max(curve%g%x%max, lat%ele(0)%s-len_tot))
+  if (branch%param%lattice_type == circular_lattice$) then
+    x1 = min(branch%ele(branch%n_ele_track)%s, max(curve%g%x%min, x1-len_tot))
+    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s-len_tot))
   else
-    x1 = min(lat%ele(lat%n_ele_track)%s, max(curve%g%x%min, x1))
-    x2 = min(x2, max(curve%g%x%max, lat%ele(0)%s))
+    x1 = min(branch%ele(branch%n_ele_track)%s, max(curve%g%x%min, x1))
+    x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s))
   endif
 endif
-ele0 => lat%ele(ix0)
+ele0 => branch%ele(ix0)
 orb0 => orb(ix0)
 s_last = ele0%s
 
@@ -1031,13 +1038,13 @@ do ii = 1, size(curve%x_line)
   if (.not. good(ii)) cycle
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
-  if (s_now > lat%ele(lat%n_ele_track)%s) s_now = lat%ele(lat%n_ele_track)%s
+  if (s_now > branch%ele(branch%n_ele_track)%s) s_now = branch%ele(branch%n_ele_track)%s
   curve%x_line(ii) = s_now
   value = 0
 
   select case (curve%data_source)
   case ('lattice')   
-    call twiss_and_track_at_s (lat, s_now, ele, orb, here, err)
+    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err)
     if (err) then
       good(ii:) = .false.
       return
@@ -1057,7 +1064,7 @@ do ii = 1, size(curve%x_line)
     endif
 
     call ele_at_s (lat, s_now, ix_ele)
-    ele = lat%ele(ix_ele)
+    ele = branch%ele(ix_ele)
     here = bunch_params%centroid
 
   case default
@@ -1176,12 +1183,12 @@ do ii = 1, size(curve%x_line)
   case ('emit.a')
     value = bunch_params%a%norm_emitt
     call convert_total_energy_to (ele%value(E_tot$), &
-                                              lat%param%particle, gamma)
+                                              branch%param%particle, gamma)
     value = value / gamma
   case ('emit.b')
     value = bunch_params%b%norm_emitt
     call convert_total_energy_to (ele%value(E_tot$), &
-                                              lat%param%particle, gamma)
+                                              branch%param%particle, gamma)
     value = value / gamma
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)

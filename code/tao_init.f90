@@ -190,8 +190,8 @@ call tao_lattice_calc (calc_ok, init_design = .true.)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model
   s%u(i)%base = s%u(i)%design
-  s%u(i)%design%orb_branch = s%u(i)%model%orb_branch
-  s%u(i)%base%orb_branch   = s%u(i)%design%orb_branch
+  s%u(i)%design%lat_branch = s%u(i)%model%lat_branch
+  s%u(i)%base%lat_branch   = s%u(i)%design%lat_branch
   s%u(i)%data%design_value = s%u(i)%data%model_value
   s%u(i)%data%base_value   = s%u(i)%data%model_value
 enddo
@@ -304,17 +304,9 @@ if (allocated (s%u)) then
 
     ! Orbits
 
-    deallocate(u%model%orb_branch, stat=istat)
-    deallocate(u%design%orb_branch, stat=istat)
-    deallocate(u%base%orb_branch, stat=istat)
-    
-    deallocate(u%model%bunch_params, stat=istat)
-    deallocate(u%design%bunch_params, stat=istat)
-    deallocate(u%base%bunch_params, stat=istat)
-    
-    deallocate(u%model%bunch_params, stat=istat)
-    deallocate(u%design%bunch_params, stat=istat)
-    deallocate(u%base%bunch_params, stat=istat)
+    deallocate(u%model%lat_branch, stat=istat)
+    deallocate(u%design%lat_branch, stat=istat)
+    deallocate(u%base%lat_branch, stat=istat)
     
     deallocate(u%model%bunch_params2, stat=istat)
     deallocate(u%design%bunch_params2, stat=istat)
@@ -323,10 +315,11 @@ if (allocated (s%u)) then
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 
     if (i == 0 .or. .not. tao_com%common_lattice) then
-      do j = lbound(u%ele, 1), ubound(u%ele, 1)
-        call reallocate_beam(u%ele(j)%beam, 0, 0)
+      do ib = 0, ubound(u%uni_branch, 1)
+        deallocate (u%uni_branch(ib)%ele)
+        call reallocate_beam(u%uni_branch(ib)%beam0, 0, 0)
       enddo
-      deallocate (u%ele)
+      deallocate (u%uni_branch)
     endif
 
     call reallocate_beam(u%current_beam, 0, 0)

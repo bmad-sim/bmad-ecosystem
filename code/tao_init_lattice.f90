@@ -215,20 +215,18 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Init model, base, and u%ele
 
-  n = ubound(u%design%lat%ele, 1)
-  allocate (u%model%bunch_params(0:n))
-  allocate (u%design%bunch_params(0:n))
-  allocate (u%base%bunch_params(0:n))
-  allocate (u%ele(0:n))
-
   n = ubound(u%design%lat%branch, 1)
-  allocate (u%model%orb_branch(0:n), u%base%orb_branch(0:n), u%design%orb_branch(0:n))
+  allocate (u%model%lat_branch(0:n))
+  allocate (u%design%lat_branch(0:n))
+  allocate (u%base%lat_branch(0:n))
+  allocate (u%uni_branch(0:n))
 
   do k = 0, ubound(u%design%lat%branch, 1)
     n = ubound(u%design%lat%branch(k)%ele, 1)
-    allocate (u%model%orb_branch(k)%orbit(0:n))
-    allocate (u%design%orb_branch(k)%orbit(0:n))
-    allocate (u%base%orb_branch(k)%orbit(0:n))
+    allocate (u%model%lat_branch(k)%orbit(0:n))
+    allocate (u%design%lat_branch(k)%orbit(0:n))
+    allocate (u%base%lat_branch(k)%orbit(0:n))
+    allocate (u%uni_branch(k)%ele(0:n))
   enddo
 
   u%model = u%design
@@ -241,27 +239,25 @@ enddo
 if (tao_com%common_lattice) then
 
   u => tao_com%u_working
-  u%common => s%u(ix_common_uni$)
-  u%ele    => s%u(ix_common_uni$)%ele
+  u%common     => s%u(ix_common_uni$)
+  u%uni_branch => s%u(ix_common_uni$)%uni_branch
   allocate (u%design, u%base, u%model)
   u%design%lat = u%common%design%lat
   u%base%lat   = u%common%base%lat
   u%model%lat  = u%common%model%lat
 
-  n = ubound(u%design%lat%ele, 1)
-  allocate (u%model%bunch_params(0:n))
-  allocate (u%design%bunch_params(0:n))
-  allocate (u%base%bunch_params(0:n))
-  allocate (u%ele(0:n))
-
   n = ubound(u%design%lat%branch, 1)
-  allocate (u%model%orb_branch(0:n), u%base%orb_branch(0:n), u%design%orb_branch(0:n))
+  allocate (u%model%lat_branch(0:n))
+  allocate (u%design%lat_branch(0:n))
+  allocate (u%base%lat_branch(0:n))
+  allocate (u%uni_branch(0:n))
 
   do k = 0, ubound(u%design%lat%branch, 1)
     n = ubound(u%design%lat%branch(k)%ele, 1)
-    allocate (u%model%orb_branch(k)%orbit(0:n))
-    allocate (u%design%orb_branch(k)%orbit(0:n))
-    allocate (u%base%orb_branch(k)%orbit(0:n))
+    allocate (u%model%lat_branch(k)%orbit(0:n))
+    allocate (u%design%lat_branch(k)%orbit(0:n))
+    allocate (u%base%lat_branch(k)%orbit(0:n))
+    allocate (u%uni_branch(k)%ele(0:n))
   enddo
 
   ! If unified then point back to the common universe (#1) and the working universe (#2)
@@ -269,8 +265,8 @@ if (tao_com%common_lattice) then
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (i == ix_common_uni$) cycle
     u => s%u(i)
-    u%common => s%u(ix_common_uni$)
-    u%ele    => s%u(ix_common_uni$)%ele
+    u%common     => s%u(ix_common_uni$)
+    u%uni_branch => s%u(ix_common_uni$)%uni_branch
     u%design => s%u(ix_common_uni$)%design
     u%base   => s%u(ix_common_uni$)%model  ! Base is identical to common model
     u%model  => tao_com%u_working%model

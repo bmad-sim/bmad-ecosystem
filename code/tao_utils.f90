@@ -737,15 +737,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (component)
     case ('model')   
       lat => u%model%lat
-      this_orb => u%model%orb_branch(locs(j)%ix_branch)%orbit
+      this_orb => u%model%lat_branch(locs(j)%ix_branch)%orbit
       branch => u%model%lat%branch(locs(j)%ix_branch)
     case ('base')  
       lat => u%base%lat
-      this_orb => u%base%orb_branch(locs(j)%ix_branch)%orbit
+      this_orb => u%base%lat_branch(locs(j)%ix_branch)%orbit
       branch => u%base%lat%branch(locs(j)%ix_branch)
     case ('design')
       lat => u%design%lat
-      this_orb => u%design%orb_branch(locs(j)%ix_branch)%orbit
+      this_orb => u%design%lat_branch(locs(j)%ix_branch)%orbit
       branch => u%design%lat%branch(locs(j)%ix_branch)
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
@@ -2471,7 +2471,7 @@ end function tao_pointer_to_universe
 ! Subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
 !
 ! Subroutine to compute ix_ele_track:
-!   = ix_ele                 if ix_ele <= lat%n_ele_track
+!   = ix_ele                 if ix_ele <= lat%branch(ix)branch)%n_ele_track
 !   = ix_slave_at_exit_end   if ix_ele is a super_lord  
 !   = -1                     otherwise
 !

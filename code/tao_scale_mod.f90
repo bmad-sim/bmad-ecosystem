@@ -155,7 +155,7 @@ type (floor_position_struct) end
 
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 
-integer i, ix
+integer i, ix, ib
 character(*), optional :: axis
 character(4) this_axis
 logical found_data, found_data2
@@ -192,11 +192,13 @@ if (graph%type == 'floor_plan') then
   lat => s%u(ix)%model%lat
   this_min = 1e30
   this_max = -1e30
-  do i = 0, lat%n_ele_track
-    call floor_to_screen_coords (lat%ele(i)%floor, end)
-    if (end%x > graph%p%x%max .or. end%x < graph%p%x%min) cycle
-    this_min = min(this_min, end%y)
-    this_max = max(this_max, end%y)
+  do ib = 0, ubound(lat%branch, 1)
+    do i = 0, lat%branch(ib)%n_ele_track
+      call floor_to_screen_coords (lat%branch(ib)%ele(i)%floor, end)
+      if (end%x > graph%p%x%max .or. end%x < graph%p%x%min) cycle
+      this_min = min(this_min, end%y)
+      this_max = max(this_max, end%y)
+    enddo
   enddo
   call qp_calc_axis_scale (this_min, this_max, graph%y)
   return

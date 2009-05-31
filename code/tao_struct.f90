@@ -138,6 +138,7 @@ type tao_graph_struct
   type (qp_rect_struct) margin  ! Margin around the graph.
   logical clip                  ! Clip plot at graph boundary.
   integer box(4)                ! Defines which box the plot is put in.
+  integer :: ix_branch = 0
   integer :: ix_universe = -1   ! Used for lat_layout plots.
   logical valid                 ! valid if all curve y_dat computed OK.
   logical y2_mirrors_y          ! Y2-axis same as Y-axis?
@@ -564,14 +565,18 @@ end type
 ! The %bunch_params2(:) array, if used, is for drawing smooth data lines and has 
 ! a lot more elements than the %bunch_params(:) array
 
+type tao_lattice_branch_struct
+  type (bunch_params_struct), allocatable :: bunch_params(:)
+  type (coord_struct), allocatable :: orbit(:)
+end type
+
 type tao_lattice_struct
   type (lat_struct) lat                           ! lattice structures
-  type (coord_array_struct), allocatable :: orb_branch(:)
+  type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
+  type (bunch_params_struct), allocatable :: bunch_params2(:)
   type (normal_modes_struct) modes                ! Synchrotron integrals stuff
   type (rad_int_common_struct) rad_int
   type (tao_lat_mode_struct) a, b
-  type (bunch_params_struct), allocatable :: bunch_params(:)
-  type (bunch_params_struct), allocatable :: bunch_params2(:)
   integer n_bunch_params2                          ! bunch_params2 array size.
 end type
 
@@ -585,38 +590,42 @@ type tao_element_struct
   integer ixx                     ! Scratch variable
 end type
 
+type tao_universe_branch_struct
+  type (tao_element_struct), allocatable :: ele(:) ! Per element information
+  type (beam_struct) beam0                         ! Beam at the beginning of lattice
+  type (beam_init_struct) :: beam_init             ! Beam distrubution
+                                                   !  at beginning of lattice
+  integer ix_track_start                 ! Element start index of tracking
+  integer ix_track_end                   ! Element end index of tracking
+  logical :: init_beam0 = .false.        ! Init beam
+  character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
+  character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
+end type
+
 !-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
 
 type tao_universe_struct
   type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
-  type (tao_element_struct), pointer :: ele(:)     ! Element information
+  type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
   type (beam_struct) current_beam                  ! Beam at the current position
-  type (beam_struct) beam0                         ! Beam at the beginning of lattice
-  type (beam_init_struct) :: beam_init             ! Beam distrubution
-                                                   !  at beginning of lattice
   type (tao_connected_uni_struct)   :: connect     ! Connection data put in "to" uni.
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (coord_struct) model_orb0                         ! For saving beginning orbit
   type (tao_ix_data_struct), allocatable :: ix_data(:)   ! which data to evaluate at this ele
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
-  character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
-  character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
   character(60), allocatable :: save_beam_at(:)
   integer ix_uni                         ! Universe index.
   integer n_d2_data_used
   integer n_data_used
   integer ix_rad_int_cache
-  integer ix_track_start                 ! Element start index of tracking
-  integer ix_track_end                   ! Element end index of tracking
   logical do_synch_rad_int_calc
   logical do_chrom_calc
   logical is_on                          ! universe turned on
   logical calc_beam_emittance            ! for a lat calculate emittance
   logical universe_recalc                ! Allows for fine control of lattice calculations
-  logical :: init_beam0 = .false.        ! Init beam
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
   logical picked_uni                     ! Scratch logical.
 end type
@@ -657,12 +666,12 @@ integer ix2
 
 !
 
-lat1%lat   = lat2%lat
-lat1%modes = lat2%modes
-lat1%a     = lat2%a
-lat1%b     = lat2%b
-lat1%bunch_params = lat2%bunch_params
-lat1%orb_branch   = lat2%orb_branch
+lat1%lat          = lat2%lat
+lat1%lat_branch   = lat2%lat_branch
+lat1%modes        = lat2%modes
+lat1%rad_int      = lat2%rad_int
+lat1%a            = lat2%a
+lat1%b            = lat2%b
 
 if (allocated(lat2%bunch_params2)) then
   ix2 = size(lat2%bunch_params2)

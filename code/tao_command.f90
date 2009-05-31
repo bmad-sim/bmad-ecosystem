@@ -352,7 +352,9 @@ case ('reinitialize')
   select case (cmd_word(1))
 
   case ('beam') 
-    s%u%init_beam0 = .true.
+    do i = lbound(s%u, 1), ubound(s%u, 1)
+      s%u(i)%uni_branch(:)%init_beam0 = .true.
+    enddo
     tao_com%lattice_recalc = .true.
 
   case ('data') 
@@ -434,7 +436,7 @@ case ('set')
   case ('global')
     call tao_set_global_cmd (cmd_word(2), cmd_word(4))
   case ('beam_init')
-    call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4))
+    call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4), 0)
   case ('plot_page')
     call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
   case ('graph')

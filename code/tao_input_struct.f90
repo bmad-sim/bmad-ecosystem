@@ -102,6 +102,7 @@ type tao_graph_input
   character(60) component
   integer box(4)
   integer ix_universe
+  integer ix_branch
   integer n_curve
   type (qp_point_struct) legend_origin  ! For backwards compatibility
   type (qp_point_struct) text_legend_origin

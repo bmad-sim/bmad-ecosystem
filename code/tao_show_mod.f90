@@ -155,6 +155,7 @@ type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
 type (lat_ele_loc_struct), allocatable, save :: locs(:)
 type (branch_struct), pointer :: branch
+type (tao_universe_branch_struct), pointer :: uni_branch
 
 type show_lat_column_struct
   character(80) name
@@ -285,34 +286,37 @@ case ('beam')
 
   if (word1 == '') then
 
+    ix_branch = 0
+    uni_branch => u%uni_branch(ix_branch)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', u%ix_uni
+    nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam0_file
-    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam_all_file
-    beam => u%ele(0)%beam
+    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', uni_branch%beam0_file
+    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', uni_branch%beam_all_file
+    beam => uni_branch%ele(0)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge                = ', beam%bunch(1)%charge
     endif
-    if (u%beam_all_file == '' .and. u%beam0_file == '') then
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', u%beam_init%center
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_init%a_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_init%b_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam_init%dPz_dz
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%ds_bunch          = ', u%beam_init%ds_bunch
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', u%beam_init%sig_z
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', u%beam_init%sig_e
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', u%beam_init%center_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', u%beam_init%emitt_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', u%beam_init%sig_z_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', u%beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', u%beam_init%spin%polarization
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', u%beam_init%spin%theta
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', u%beam_init%spin%phi
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', u%beam_init%renorm_center
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', u%beam_init%renorm_sigma
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', u%beam_init%init_spin
+    if (uni_branch%beam_all_file == '' .and. uni_branch%beam0_file == '') then
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', uni_branch%beam_init%center
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', uni_branch%beam_init%a_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', uni_branch%beam_init%b_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', uni_branch%beam_init%dPz_dz
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%ds_bunch          = ', uni_branch%beam_init%ds_bunch
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', uni_branch%beam_init%sig_z
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', uni_branch%beam_init%sig_e
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', uni_branch%beam_init%center_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', uni_branch%beam_init%emitt_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', uni_branch%beam_init%sig_z_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', uni_branch%beam_init%sig_e_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', uni_branch%beam_init%spin%polarization
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', uni_branch%beam_init%spin%theta
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', uni_branch%beam_init%spin%phi
+      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', uni_branch%beam_init%renorm_center
+      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', uni_branch%beam_init%renorm_sigma
+      nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', uni_branch%beam_init%init_spin
     endif
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), lmt) 'bmad_com%sr_wakes_on               = ', bmad_com%sr_wakes_on
@@ -340,8 +344,8 @@ case ('beam')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt)  'global%track_type          = ', s%global%track_type
     nl=nl+1; write(lines(nl), lmt)  'global%beam_timer_on       = ', s%global%beam_timer_on
-    nl=nl+1; write (lines(nl), imt) 'u%ix_track_start           = ', u%ix_track_start 
-    nl=nl+1; write (lines(nl), imt) 'u%ix_track_end             = ', u%ix_track_end
+    nl=nl+1; write (lines(nl), imt) 'ix_track_start             = ', uni_branch%ix_track_start 
+    nl=nl+1; write (lines(nl), imt) 'ix_track_end               = ', uni_branch%ix_track_end
     nl=nl+1; write(lines(nl), amt)  'u%save_beam_at:'
     do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
       nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
@@ -357,7 +361,7 @@ case ('beam')
     if (err .or. size(locs) == 0) return
     ix_ele = locs(1)%ix_ele
     n = s%global%bunch_to_plot
-    bunch_p => u%model%bunch_params(ix_ele)
+    bunch_p => u%model%lat_branch(locs(1)%ix_branch)%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
@@ -369,7 +373,7 @@ case ('beam')
     nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emitt, bunch_p%y%beta
     nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emitt, bunch_p%z%beta
 
-    beam => u%ele(ix_ele)%beam
+    beam => u%uni_branch(locs(1)%ix_branch)%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
       call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params, err)
@@ -878,7 +882,7 @@ case ('element')
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
   endif
 
-  orb = u%model%orb_branch(locs(1)%ix_branch)%orbit(locs(1)%ix_ele)
+  orb = u%model%lat_branch(locs(1)%ix_branch)%orbit(locs(1)%ix_ele)
   fmt = '(2x, a, 3p2f15.8)'
   lines(nl+1) = ' '
   lines(nl+2) = 'Orbit: [mm, mrad]'
@@ -1426,7 +1430,7 @@ case ('orbit')
   if (err) return
   do i = 1, 6
     nl=nl+1; write (lines(nl), rmt) '     ', &
-                u%model%orb_branch(locs(1)%ix_branch)%orbit%vec(locs(1)%ix_ele)
+                u%model%lat_branch(locs(1)%ix_branch)%orbit%vec(locs(1)%ix_ele)
   enddo
 
   result_id = show_what
@@ -1437,6 +1441,7 @@ case ('orbit')
 case ('particle')
 
   nb = s%global%bunch_to_plot
+  ix_branch = 0
 
   if (index('-lost', word1) == 1) then
     call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
@@ -1448,7 +1453,7 @@ case ('particle')
         return
       endif
     endif
-    bunch => u%ele(lat%n_ele_track)%beam%bunch(nb)
+    bunch => u%uni_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
     nl=nl+1; write (lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
@@ -1487,19 +1492,22 @@ case ('particle')
     call tao_locate_elements (ele_name, ix_u, locs, err)
     if (err) return
     ix_ele = locs(1)%ix_ele
+    ix_branch = locs(2)%ix_ele
   endif
 
-  if (.not. allocated(u%ele(ix_ele)%beam%bunch)) then
+  uni_branch => u%uni_branch(ix_branch)
+
+  if (.not. allocated(uni_branch%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
     return
   endif
 
-  if (nb < 1 .or. nb > size(u%ele(ix_ele)%beam%bunch)) then
+  if (nb < 1 .or. nb > size(uni_branch%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = (/ nb /))
     return
   endif
 
-  bunch => u%ele(ix_ele)%beam%bunch(nb)
+  bunch => uni_branch%ele(ix_ele)%beam%bunch(nb)
 
   if (ix_p < 1 .or. ix_p > size(bunch%particle)) then
     call out_io (s_error$, r_name, 'PARTICLE INDEX OUT OF RANGE: \i0\ ', i_array = (/ ix_p /))
@@ -1787,17 +1795,21 @@ case ('universe')
   endif
 
   u => s%u(ix_u)
+  ix_branch = 0
+  uni_branch => u%uni_branch(ix_branch)
+  branch => lat%branch(ix_branch)
 
   nl = 0
   nl=nl+1; write (lines(nl), imt) 'Universe: ', ix_u
+  nl=nl+1; write (lines(nl), imt) 'Branch:   ', ix_branch
   nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
   nl=nl+1; write (lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam0_file)
-  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_all_file)
+  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(uni_branch%beam0_file)
+  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(uni_branch%beam_all_file)
   nl=nl+1; write (lines(nl), amt) '%save_beam_at:'
   do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
     nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
@@ -1805,40 +1817,38 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:    ', lat%lattice
   nl=nl+1; write(lines(nl), amt) 'Input_file_name: ', lat%input_file_name
-  nl=nl+1; lines(nl) =           'Lattice Type:    ' // lattice_type(u%model%lat%param%lattice_type)
+  nl=nl+1; lines(nl) =           'Lattice Type:    ' // lattice_type(branch%param%lattice_type)
   nl=nl+1; write (lines(nl), imt) &
-                'Elements used in tracking: From 1 through ', lat%n_ele_track
-  if (lat%n_ele_max .gt. lat%n_ele_track) then
+                'Elements used in tracking: From 1 through ', branch%n_ele_track
+  if (branch%n_ele_max .gt. branch%n_ele_track) then
     nl=nl+1; write (lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
-                      lat%n_ele_track+1, '  through ', lat%n_ele_max
+                      branch%n_ele_track+1, '  through ', branch%n_ele_max
   else
     nl=nl+1; write (lines(nl), '(a)') 'There are NO Lord elements'
   endif
 
-  nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', lat%param%total_length
-  nl=nl+1; write (lines(nl), lmt)           'Aperture limits on?:        ', lat%param%aperture_limit_on
+  nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
+  nl=nl+1; write (lines(nl), lmt)           'Aperture limits on?:        ', branch%param%aperture_limit_on
 
-  if (lat%param%lattice_type == linear_lattice$ .and. lat%param%ix_lost /= not_lost$) then
+  if (branch%param%lattice_type == linear_lattice$ .and. branch%param%ix_lost /= not_lost$) then
     if (s%global%track_type == 'beam') then
-      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat%param%ix_lost
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', branch%param%ix_lost
     else
-      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', lat%param%ix_lost
+      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', branch%param%ix_lost
     endif
   endif
 
-  if (.not. lat%param%stable) then
-    nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', &
-                                                          lat%param%stable
-    nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', &
-                                                          u%design%lat%param%stable
+  if (.not. branch%param%stable) then
+    nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', branch%param%stable
+    nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', u%design%lat%param%stable
     result_id = 'universe:unstable'
     return
   endif
  
   call radiation_integrals (lat, &
-                     u%model%orb_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
+                     u%model%lat_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, &
-                     u%design%orb_branch(0)%orbit, u%design%modes, u%ix_rad_int_cache)
+                     u%design%lat_branch(0)%orbit, u%design%modes, u%ix_rad_int_cache)
   if (lat%param%lattice_type == circular_lattice$) then
     call chrom_calc (lat, delta_e, &
                         u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)

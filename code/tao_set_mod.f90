@@ -32,7 +32,7 @@ character(*) dest_lat, source_lat
 character(16) dest1_name
 character(20) :: r_name = 'tao_set_lattice_cmd'
 
-integer i
+integer i, ib
 
 logical, allocatable, save :: this_u(:)
 logical err
@@ -102,14 +102,16 @@ select case (source_lat)
 end select
 
 dest1_lat%lat          = source1_lat%lat
-dest1_lat%orb_branch   = source1_lat%orb_branch
+dest1_lat%lat_branch   = source1_lat%lat_branch
 dest1_lat%modes        = source1_lat%modes
 dest1_lat%a            = source1_lat%a
 dest1_lat%b            = source1_lat%b
 dest1_lat%rad_int      = source1_lat%rad_int
 
-do j = lbound(dest1_lat%bunch_params,1), ubound(dest1_lat%bunch_params,1)
-  dest1_lat%bunch_params(j) = source1_lat%bunch_params(j)
+do ib = 0, ubound(dest1_lat%lat_branch, 1)
+  do j = lbound(dest1_lat%lat_branch(ib)%bunch_params, 1), ubound(dest1_lat%lat_branch(ib)%bunch_params, 1)
+    dest1_lat%lat_branch(ib)%bunch_params(j) = source1_lat%lat_branch(ib)%bunch_params(j)
+  enddo
 enddo
 
 if (allocated(source1_lat%bunch_params2)) then
@@ -210,7 +212,7 @@ end subroutine tao_set_global_cmd
 !    s%beam_init  -- Beam_init variables structure.
 !-
 
-subroutine tao_set_beam_init_cmd (who, set_value)
+subroutine tao_set_beam_init_cmd (who, set_value, ix_branch)
 
 implicit none
 
@@ -220,6 +222,7 @@ character(*) who, set_value
 character(40) who2
 character(20) :: r_name = 'tao_set_beam_init_cmd'
 
+integer ix_branch
 integer i, iu, ios
 logical err
 logical, allocatable :: picked_uni(:)
@@ -246,7 +249,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   write (iu, *) '/'
   rewind (iu)
   u => s%u(i)
-  beam_init = u%beam_init  ! set defaults
+  beam_init = u%uni_branch(ix_branch)%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
   close (iu)
 
@@ -254,7 +257,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (err) return
 
   if (ios == 0) then
-    u%beam_init = beam_init
+    u%uni_branch(ix_branch)%beam_init = beam_init
     tao_com%lattice_recalc = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -397,15 +400,18 @@ subroutine set_this_curve (this_curve)
 type (tao_curve_struct) this_curve
 type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
+type (tao_universe_branch_struct), pointer :: uni_branch
 type (lat_ele_loc_struct), allocatable :: locs(:)
 
-integer ix
+integer ix, ib, i_branch
 logical error
 
 !
 
-this_graph => this_curve%g
+i_branch = this_curve%ix_branch
 i_uni = tao_universe_number(this_curve%ix_universe)
+
+this_graph => this_curve%g
 
 ! if the universe is changed then need to check ele_ref
 
@@ -417,14 +423,13 @@ case ('ele_ref_name')
   if (size(locs) == 0) return
   this_curve%ix_ele_ref = locs(1)%ix_ele
   this_curve%ix_branch  = locs(1)%ix_branch
-  call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
-                                this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
+  call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
   
 case ('ix_ele_ref')
   call tao_integer_set_value (this_curve%ix_ele_ref, component, &
-                                 set_value, error, 0, s%u(i_uni)%model%lat%n_ele_max)
+                    set_value, error, 0, s%u(i_uni)%model%lat%branch(i_branch)%n_ele_max)
   this_curve%ele_ref_name = s%u(i_uni)%model%lat%ele(this_curve%ix_ele_ref)%name
-  call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
+  call tao_ele_to_ele_track (this_curve%ix_universe, ib, &
                                 this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
 case ('ix_universe')
@@ -438,11 +443,14 @@ case ('ix_universe')
   call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 
+case ('ix_branch') 
+  call tao_integer_set_value (this_curve%ix_branch, component, set_value, error)
+
 case ('ix_bunch')
   u => tao_pointer_to_universe (this_curve%ix_universe)
   if (.not. associated(u)) return
   call tao_integer_set_value (this_curve%ix_bunch, component, &
-                                              set_value, error, -1, u%beam_init%n_bunch)
+                        set_value, error, -1, u%uni_branch(i_branch)%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_integer_set_value (this_curve%symbol_every, component, &
@@ -473,10 +481,10 @@ end select
 ! Enable
 
 if (this_graph%type == 'phase_space') then
-  u => s%u(i_uni)
-  if (.not. u%ele(this_curve%ix_ele_ref)%save_beam) then
+  uni_branch => s%u(i_uni)%uni_branch(i_branch)
+  if (.not. uni_branch%ele(this_curve%ix_ele_ref)%save_beam) then
     tao_com%lattice_recalc = .true.
-    u%ele(this_curve%ix_ele_ref)%save_beam = .true.
+    uni_branch%ele(this_curve%ix_ele_ref)%save_beam = .true.
   endif
 endif
 

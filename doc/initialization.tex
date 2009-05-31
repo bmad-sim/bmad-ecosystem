@@ -1437,6 +1437,7 @@ namelists should be placed directly after their respective
     curve(i)%draw_symbols        = <logical>  ! Draw data symbols?
     curve(i)%draw_symbol_index   = <logical>  ! Draw data symbols?
     curve(i)%ix_universe         = <number>   ! Default = -1 => Use viewed universe
+    curve(i)%ix_branch           = <number>   ! Default = 0  => Use main lattice.  
     curve(i)%ix_bunch            = <integer>  ! Bunch index. Default = 0 (all bunches).
     curve(i)%line        = <qp_line_struct>   ! Line spec (color, width, etc.)
     curve(i)%symbol      = <qp_symbol_struct> ! Symbol spec (color size, etc.)
@@ -1736,6 +1737,7 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
     graph%title       = "Layout Title"
     plot%box          = <ix>, <iy>, <ix_tot>, <iy_tot>
     graph%ix_universe = <integer> ! -1 => use currently viewed universe
+    graph%ix_branch   = <integer> !  0 => use main lattice.
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%n_curve     = 0
   /

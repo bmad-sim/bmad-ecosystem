@@ -370,6 +370,7 @@ do  ! Loop over plot files
       curve(:)%y_axis_scale_factor = 1
       curve(:)%symbol_every = 1
       curve(:)%ix_universe = -1
+      curve(:)%ix_branch = 0
       curve(:)%draw_line = .true.
       curve(:)%draw_symbols = .true.
       curve(:)%draw_symbol_index = .false.
@@ -377,7 +378,6 @@ do  ! Loop over plot files
       curve(:)%symbol = default_symbol
       curve(:)%line   = default_line
       curve(:)%ele_ref_name   = ' '
-      curve(:)%ix_branch = 0
       curve(:)%ix_ele_ref = -1
       curve(:)%smooth_line_calc = .true.
       curve(:)%draw_interpolated_curve = .true.
@@ -444,6 +444,7 @@ do  ! Loop over plot files
       grph%y                     = graph%y
       grph%y2                    = graph%y2
       grph%ix_universe           = graph%ix_universe
+      grph%ix_branch             = graph%ix_branch
       grph%clip                  = graph%clip
       grph%draw_axes             = graph%draw_axes
       grph%correct_xy_distortion = graph%correct_xy_distortion
@@ -451,6 +452,11 @@ do  ! Loop over plot files
       grph%title_suffix          = ''
       grph%text_legend           = ''
       grph%y2_mirrors_y          = .true.
+
+      if (grph%type == 'lat_layout') then
+        grph%x%major_div = 1
+        grph%x%major_div_nominal = 1
+      endif
 
       call qp_calc_axis_places (grph%x)
 
@@ -524,6 +530,7 @@ do  ! Loop over plot files
         call str_upcase (crv%ele_ref_name, crv%ele_ref_name)
         crv%ix_ele_ref           = curve(j)%ix_ele_ref
         crv%ix_bunch             = curve(j)%ix_bunch
+        crv%ix_branch            = curve(j)%ix_branch
         crv%legend_text          = curve(j)%legend_text
 
         ! Old style

@@ -40,7 +40,7 @@ character(20) :: names(14) = (/ &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ' /)
 
-integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
+integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, ibr
 integer i_chan, ix_beam
 
 logical is_open, ascii, ok, err, good_opt_only
@@ -99,57 +99,63 @@ case ('beam')
 
   iu = lunget()
 
-  do i = lbound(s%u, 1), ubound(s%u, 1)
+  uni_loop: do i = lbound(s%u, 1), ubound(s%u, 1)
 
     u => s%u(i)
+
     if (.not. subin_uni_number (file_name0, i, file_name)) return
     call fullfilename (file_name, file_name)
 
-  ! Write file
+    do ibr = 0, ubound(u%uni_branch, 1)
 
-    do j = lbound(u%ele, 1), ubound(u%ele, 1)
-      if (locs(1)%ix_ele /= j) cycle
-      beam => u%ele(j)%beam
-      if (.not. allocated(beam%bunch)) cycle
+      ! Write file
 
-      if (.not. is_open) then
-        if (ascii) then
-          open (iu, file = file_name)
-        else
-          open (iu, file = file_name, form = 'unformatted')
-          write (iu) '!BINARY'
+      do j = lbound(u%uni_branch(ibr)%ele, 1), ubound(u%uni_branch(ibr)%ele, 1)
+
+        if (locs(1)%ix_ele /= j .or. locs(1)%ix_branch /= ibr) cycle
+        beam => u%uni_branch(ibr)%ele(j)%beam
+        if (.not. allocated(beam%bunch)) cycle
+
+        if (.not. is_open) then
+          if (ascii) then
+            open (iu, file = file_name)
+          else
+            open (iu, file = file_name, form = 'unformatted')
+            write (iu) '!BINARY'
+          endif
+          is_open = .true.
         endif
-        is_open = .true.
-      endif
 
-      if (ascii) then
-        write (iu, *) 'BEGIN_BUNCH'
-        write (iu, *) j, '  ! ix_ele' 
-        write (iu, *) size(beam%bunch), '  ! n_bunch'
-        write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
-        do ib = 1, size(beam%bunch)
-          bunch => beam%bunch(ib)
-          write (iu, *) bunch%charge, '  ! bunch_charge'
-          write (iu, *) bunch%z_center, '  ! z_center'
-          write (iu, *) bunch%t_center, '  ! t_center'
-          do ip = 1, size(bunch%particle)
-            write (iu, '(6es19.10, es14.5, i6, 4es19.10)') &
-                          bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
-                          bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin 
+        if (ascii) then
+          write (iu, *) 'BEGIN_BUNCH'
+          write (iu, *) j, '  ! ix_ele' 
+          write (iu, *) size(beam%bunch), '  ! n_bunch'
+          write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
+          do ib = 1, size(beam%bunch)
+            bunch => beam%bunch(ib)
+            write (iu, *) bunch%charge, '  ! bunch_charge'
+            write (iu, *) bunch%z_center, '  ! z_center'
+            write (iu, *) bunch%t_center, '  ! t_center'
+            do ip = 1, size(bunch%particle)
+              write (iu, '(6es19.10, es14.5, i6, 4es19.10)') &
+                            bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
+                            bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin 
+            enddo
+            write (iu, *) 'END_BUNCH'
           enddo
-          write (iu, *) 'END_BUNCH'
-        enddo
-      else
-        write (iu) j, size(beam%bunch), size(beam%bunch(1)%particle)
-        do ib = 1, size(beam%bunch)
-          bunch => beam%bunch(ib)
-          write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
-          do ip = 1, size(bunch%particle)
-            write (iu) bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
-                               bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin
+        else
+          write (iu) j, size(beam%bunch), size(beam%bunch(1)%particle)
+          do ib = 1, size(beam%bunch)
+            bunch => beam%bunch(ib)
+            write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
+            do ip = 1, size(bunch%particle)
+              write (iu) bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
+                                 bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin
+            enddo
           enddo
-        enddo
-      endif
+        endif
+
+      enddo
 
     enddo 
 
@@ -160,7 +166,7 @@ case ('beam')
       call out_io (s_error$, r_name, 'NO ALLOCATED BEAM FOUND!')
     endif
 
-  enddo
+  enddo uni_loop
 
 !---------------------------------------------------
 ! bmad_lattice
@@ -251,7 +257,7 @@ case ('curve')
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
     if (i_uni == 0) i_uni = s%global%u_view
-    beam => s%u(i_uni)%ele(c%ix_ele_ref_track)%beam
+    beam => s%u(i_uni)%uni_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)
     write (iu, '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
@@ -448,8 +454,7 @@ case ('orbit')
 
   do i = 0, u%model%lat%n_ele_track
     select case (action)
-    case ('-beam_index') 
-      
+    case ('-beam_index')       
     case ('-design')
     case ('-base')
     end select
