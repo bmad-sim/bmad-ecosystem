@@ -28,7 +28,7 @@ use bmad_parser_mod, except_dummy => write_digested_bmad_file
 implicit none
 
 type (lat_struct), target, intent(in) :: lat
-type (branch_struct), pointer :: line
+type (branch_struct), pointer :: branch
   
 real(rp) value(n_attrib_maxx)
 
@@ -132,11 +132,12 @@ write (d_unit) lat%beam_start
 
 write (d_unit) ubound(lat%branch, 1)
 do i = 1, ubound(lat%branch, 1)
-  line => lat%branch(i)
-  write (d_unit) line%key, line%ix_from_branch, line%ix_from_ele, &
-                                      line%n_ele_track, line%n_ele_max
-  do j = 0, line%n_ele_max
-    call write_this_ele(line%ele(j))
+  branch => lat%branch(i)
+  write (d_unit) branch%param
+  write (d_unit) branch%key, branch%ix_from_branch, branch%ix_from_ele, &
+                                      branch%n_ele_track, branch%n_ele_max
+  do j = 0, branch%n_ele_max
+    call write_this_ele(branch%ele(j))
   enddo
 enddo
 

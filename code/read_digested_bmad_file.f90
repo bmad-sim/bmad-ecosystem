@@ -227,6 +227,7 @@ if (version > 86) then
   do i = 1, n_branch
     branch => lat%branch(i)
     branch%ix_branch = i
+    read (d_unit) branch%param
     read (d_unit) branch%key, branch%ix_from_branch, branch%ix_from_ele, &
                                       branch%n_ele_track, branch%n_ele_max
     call allocate_ele_array (branch%ele, branch%n_ele_max)

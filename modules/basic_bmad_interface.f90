@@ -932,7 +932,7 @@ interface
 end interface
 
 interface
-  subroutine twiss_and_track_at_s (lat, s, ele, orb, here, err)
+  subroutine twiss_and_track_at_s (lat, s, ele, orb, here, ix_branch, err)
     use bmad_struct, only: lat_struct, ele_struct, rp, coord_struct
     implicit none
     type (lat_struct) :: lat
@@ -940,6 +940,7 @@ interface
     real(rp) s
     type (coord_struct), optional :: orb(0:)
     type (coord_struct), optional :: here
+    integer, optional :: ix_branch
     logical, optional :: err
   end subroutine
 end interface
@@ -994,21 +995,23 @@ interface
 end interface
 
 interface
-  subroutine twiss_propagate_all (lat)
+  subroutine twiss_propagate_all (lat, ix_branch)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
+    integer, optional :: ix_branch
   end subroutine
 end interface
 
 interface
-  subroutine twiss_propagate_many (lat, ix_start, ix_end, direction)
+  subroutine twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) :: lat
     integer, intent(in) :: ix_start
     integer, intent(in) :: ix_end
     integer, intent(in) :: direction
+    integer, optional :: ix_branch
   end subroutine
 end interface
 

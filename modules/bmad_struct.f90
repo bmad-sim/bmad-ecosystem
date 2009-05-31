@@ -282,6 +282,7 @@ type branch_struct
   integer, pointer :: n_ele_track
   integer, pointer :: n_ele_max
   type (ele_struct), pointer :: ele(:) => null()
+  type (lat_param_struct), pointer :: param => null()
 end type
 
 type dummy_parameter_struct

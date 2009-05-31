@@ -284,13 +284,7 @@ Branches are named after the setting of the \vn{alias} attribute of
 the branch element. In the above example, the branch line would be
 named \vn{DUMP}. If the \vn{alias} attribute is not set, the name of
 the branch line (\vn{B_LINE} in the above example) is used instead.
-To syntax for specifying a particular element in a branch line is
-\begin{example}
-  <branch_line_name>%<element_name>
-\end{example}
-Thus, in the above example, the syntax for specifying the \vn{Q3D}
-element is \vn{DUMP%Q3D}. The main lattice specified by the \vn{use}
-statement can be considered to be a branch and automatically has the
-name \vn{MAIN}. Like the main lattice, \bmad always automatically
-creates an element at the beginning of the branch called
-\vn{BEGINNING}.
+Like the main lattice, \bmad always automatically creates a zeroth
+element at the beginning of the branch called \vn{BEGINNING}. The
+longitudinal \vn{s} position of an element in a branch is determined
+by the distance from the beginning of the branch.

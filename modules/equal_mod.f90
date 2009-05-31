@@ -388,6 +388,7 @@ branch1%n_ele_track  = branch2%n_ele_track
 branch1%n_ele_max    = branch2%n_ele_max
 call allocate_ele_array (branch1%ele, ubound(branch2%ele, 1))
 branch1%ele          = branch2%ele
+branch1%param        = branch2%param
 
 end subroutine
 

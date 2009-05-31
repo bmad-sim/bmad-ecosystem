@@ -812,6 +812,7 @@ do
     call allocate_branch_array (lat%branch, n)
     branch0 => lat%branch(n0)
     branch => lat%branch(n)
+    branch%param%lattice_type = linear_lattice$
     branch%key = branch0%ele(i)%key
     branch%ix_branch = n
     branch%ix_from_branch = 0

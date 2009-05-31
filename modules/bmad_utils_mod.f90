@@ -1295,13 +1295,11 @@ end subroutine init_floor
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_lat_ele_array (lat, upper_bound)
+! Subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch)
 !
 ! Subroutine to allocate or re-allocate an element array.
 ! The old information is saved.
 ! The lower bound is always 0.
-! Note: Use this routine for the lat%ele(:) array and
-!   allocate_ele_array for lat%branch%ele(:) arrays.
 !
 ! Modules needed:
 !   use bmad
@@ -1311,23 +1309,32 @@ end subroutine init_floor
 !     %ele(:)      -- Ele_struct, pointer: Element array to reallocate.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
 !                    Default: 1.3*ubound(ele(:)) or 100 if ele is not allocated.
+!   ix_branch   -- Integer, optional: Branch index. Default is 0.
 !
 ! Output:
 !   lat         -- Lat_struct: Lattice with element array.
-!     %ele(:)      -- Ele_struct, pointer: Resized element array.
+!     %branch(ix_branch)%ele(:) -- Ele_struct, pointer: Resized element array.
 !-
 
-subroutine allocate_lat_ele_array (lat, upper_bound)
+subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch)
 
 implicit none
 
 type (lat_struct), target :: lat
 integer, optional :: upper_bound
+integer, optional :: ix_branch
+integer i_branch
 
 !
 
-call allocate_ele_array (lat%ele, upper_bound)
-if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
+i_branch = integer_option (0, ix_branch)
+
+if (i_branch == 0) then
+  call allocate_ele_array (lat%ele, upper_bound)
+  if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
+else
+  call allocate_ele_array (lat%branch(i_branch)%ele, upper_bound)
+endif
 
 end subroutine allocate_lat_ele_array
 
@@ -1459,6 +1466,7 @@ else
     call err_exit
   endif
   lat%branch(0)%ele => lat%ele
+  lat%branch(0)%param => lat%param
   lat%branch(0)%n_ele_track => lat%n_ele_track
   lat%branch(0)%n_ele_max => lat%n_ele_max
 endif
@@ -1470,6 +1478,7 @@ do i = curr_ub+1, ub
   if (i == 0) cycle
   allocate(branch(i)%n_ele_track)
   allocate(branch(i)%n_ele_max)
+  allocate(branch(i)%param)
 end do
 
 end subroutine allocate_branch_array
@@ -1545,6 +1554,7 @@ integer i
 if (allocated (branch)) then
   do i = 1, ubound(branch, 1)
     call deallocate_ele_array_pointers (branch(i)%ele)
+    deallocate (branch(i)%param)
   enddo
   deallocate (branch)
 endif
