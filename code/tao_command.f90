@@ -222,9 +222,13 @@ case ('end-file')
 
 case ('exit', 'quit')
 
-  quit_tao = .false.
-  call tao_query_logical ('y', 'n', 'Quit?', quit_tao)
-  if (.not. quit_tao) return
+  call string_trim (command_line, cmd_line, ix)
+  if (ix < 3) then
+    call out_io (s_error$, r_name, &
+            'SAFETY FEATURE: YOU NEED TO TYPE AT LEAST THREE CHARACTERS TO QUIT.')
+    return
+  endif
+
   if (s%global%plot_on) call tao_destroy_plot_window
   call out_io (s_dinfo$, r_name, "Stopping.")
   stop
