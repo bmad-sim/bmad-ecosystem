@@ -164,7 +164,7 @@ do i_t = 1, lat%n_ele_max
 
   if (s_stat == super_slave$ .and. ele%n_lord == 0) then
     call out_io (s_fatal$, r_name, &
-              'OVERLAY_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
+              'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
               'HAS ZERO LORDS!', i_array = (/ i_t /) )
     found_err = .true.
   endif

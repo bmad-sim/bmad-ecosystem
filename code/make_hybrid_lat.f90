@@ -344,6 +344,7 @@ do i_out = 1, r_out%n_ele_max
   ele_out%n_lord = n_lord
   ele_out%ic1_lord = n_ic - n_lord + 1
   ele_out%ic2_lord = n_ic
+  if (ele_out%n_lord == 0) ele_out%slave_status = free$
 
 enddo
 
