@@ -8,6 +8,7 @@ type bbu_stage_struct
   integer :: ix_pass          ! Pass index when in multipass section
   integer :: ix_head_bunch
   real(rp) :: amp, phase
+  real(rp) time_at_wake_ele 
 end type
 
 type bbu_beam_struct
@@ -142,51 +143,22 @@ type (lr_wake_struct), pointer :: lr
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
 
-integer i_stage, i_stage_track, ix_bunch, ix_ele
+integer i, i_stage_min, ix_bunch, ix_ele
 integer ix_ele_start, ix_ele_end, j, ib, ib2
 
 character(20) :: r_name = 'bbu_track_a_stage'
 
 logical err, lost
 
-! Look at each stage track the bunch with the earliest time to finish.
+! Look at each stage track the bunch with the earliest time to finish and track this stage.
 
-min_time_at_wake_ele = 1e30 ! Something large
-i_stage_track = -1
+i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
+bbu_beam%time_now = bbu_beam%stage(i_stage_min)%time_at_wake_ele
 
-do i_stage = 1, size(bbu_beam%stage)
+ix_ele_end = bbu_beam%stage(i_stage_min)%ix_ele_lr_wake
+if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
 
-  ! ix_bunch is the bunch index of the next bunch waiting to go through.
-  ! If no bunch is waiting to do this stage then cycle to the next stage
-
-  ix_bunch = bbu_beam%stage(i_stage)%ix_head_bunch
-  if (ix_bunch < 0) cycle
-
-  ! ix_ele is the index of the wake element.
-
-  ix_ele = bbu_beam%stage(i_stage)%ix_ele_lr_wake
-  time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
-
-  if (time_at_wake_ele < min_time_at_wake_ele) then
-    min_time_at_wake_ele = time_at_wake_ele
-    i_stage_track = i_stage
-  endif
-
-enddo
-
-if (i_stage_track == -1) then
-  call out_io (s_fatal$, r_name, 'NO BUNCHES TO PROPAGATE!')
-  call err_exit
-endif
-
-! The bunch is now cleared for tracking through this stage
-
-bbu_beam%time_now = min_time_at_wake_ele
-
-ix_ele_end = bbu_beam%stage(i_stage_track)%ix_ele_lr_wake
-if (i_stage_track == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
-
-ib = bbu_beam%stage(i_stage_track)%ix_head_bunch
+ib = bbu_beam%stage(i_stage_min)%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
 do j = ix_ele_start+1, ix_ele_end
@@ -200,9 +172,9 @@ enddo
 ! If the next stage does not have any bunches waiting to go through then the
 ! tracked bunch becomes the head bunch for that stage.
 
-if (i_stage_track /= size(bbu_beam%stage)) then  ! If not last stage
-  if (bbu_beam%stage(i_stage_track+1)%ix_head_bunch == -1) &
-                      bbu_beam%stage(i_stage_track+1)%ix_head_bunch = ib
+if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
+  if (bbu_beam%stage(i_stage_min+1)%ix_head_bunch == -1) &
+                      bbu_beam%stage(i_stage_min+1)%ix_head_bunch = ib
 endif
 
 ! If the bunch upstream from the tracked bunch is at the same stage as was tracked through,
@@ -212,10 +184,28 @@ endif
 if (ib /= bbu_beam%ix_bunch_end) then
   ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
   if (bbu_beam%bunch(ib2)%ix_ele == ix_ele_start) then
-    bbu_beam%stage(i_stage_track)%ix_head_bunch = ib2
+    bbu_beam%stage(i_stage_min)%ix_head_bunch = ib2
   else
-    bbu_beam%stage(i_stage_track)%ix_head_bunch = -1  ! No one waiting to go through this stage
+    bbu_beam%stage(i_stage_min)%ix_head_bunch = -1  ! No one waiting to go through this stage
   endif
+endif
+
+! Now correct min_time array
+
+ix_bunch = bbu_beam%stage(i_stage_min)%ix_head_bunch
+if (ix_bunch < 0) then
+  bbu_beam%stage(i_stage_min)%time_at_wake_ele = 1e30  ! something large
+else
+  ix_ele = bbu_beam%stage(i_stage_min)%ix_ele_lr_wake
+  bbu_beam%stage(i_stage_min)%time_at_wake_ele = &
+                    bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
+endif
+
+if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
+  i = i_stage_min + 1
+  ix_bunch = bbu_beam%stage(i)%ix_head_bunch
+  ix_ele = bbu_beam%stage(i)%ix_ele_lr_wake
+  bbu_beam%stage(i)%time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
 endif
 
 lost = .false.
@@ -356,7 +346,7 @@ type (beam_init_struct) beam_init
 
 real(rp) hom_power0, hom_power_sum, r_period, power, hom_power_gain
 
-integer i, n_period, n_stage, n_count, n_period_old
+integer i, n_period, n_stage, n_count, n_period_old, ix_ele
 
 logical lost
 
@@ -372,6 +362,12 @@ bmad_com%auto_bookkeeper = .false. ! To speed things up.
 do i = 1, size(bbu_beam%bunch)
   call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
 enddo
+
+! init time at hom
+
+bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
+ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
+bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele)%ref_time
 
 ! Track...
 ! To decide whether things are stable or unstable we look at the HOM power integrated
