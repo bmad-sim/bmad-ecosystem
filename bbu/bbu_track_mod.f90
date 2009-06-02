@@ -366,6 +366,9 @@ character(16) :: r_name = 'bbu_track_all'
 
 call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
 
+call lattice_bookkeeper (lat)
+bmad_com%auto_bookkeeper = .false. ! To speed things up.
+
 do i = 1, size(bbu_beam%bunch)
   call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
 enddo
@@ -383,7 +386,7 @@ n_period_old = 0
 do
 
   call bbu_track_a_stage (lat, bbu_beam, lost)
-  if (lost) return
+  if (lost) exit
 
   r_period = bbu_beam%time_now / bbu_beam%one_turn_time
   n_period = int(r_period)
@@ -396,7 +399,7 @@ do
     if (r_period > bbu_param%simulation_turns_max) then
       call out_io (s_warn$, r_name, 'SIMULATION_TRUNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
                                                                           r_array = (/ hom_power_gain /) )
-      return
+      exit
     endif
   endif
 
@@ -413,8 +416,8 @@ do
       hom_power0 = hom_power_sum / n_count
     elseif (n_period > 3) then
       hom_power_gain = (hom_power_sum / n_count) / hom_power0
-      if (hom_power_gain < 1/bbu_param%limit_factor) return
-      if (hom_power_gain > bbu_param%limit_factor) return      
+      if (hom_power_gain < 1/bbu_param%limit_factor) exit
+      if (hom_power_gain > bbu_param%limit_factor) exit      
     endif
     hom_power_sum = 0
     n_count = 0
@@ -426,6 +429,11 @@ do
   n_count = n_count + 1
   
 enddo
+
+! Finalize
+
+bmad_com%auto_bookkeeper = .true.
+
 
 end subroutine bbu_track_all
 
