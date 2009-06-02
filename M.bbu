@@ -129,10 +129,10 @@ PKG_OBJS   :=
 # LOCAL_CXXFLAGS Additional C++     compiler flags
 # LOCAL_LFLAGS   Additional         linker   flags
 #------------------------------------------------------------------------------
-LOCAL_FFLAGS   :=
+LOCAL_FFLAGS   := -p
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
-LOCAL_LFLAGS   := 
+LOCAL_LFLAGS   := -p
 
 
 #--------------------------------------------------------------
