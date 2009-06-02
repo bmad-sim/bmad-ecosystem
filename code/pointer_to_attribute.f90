@@ -124,6 +124,10 @@ case ('ALPHA_A')
   ptr_attrib => ele%a%alpha
 case ('PHI_A')
   ptr_attrib => ele%a%phi
+case ('ETA_A')
+  ptr_attrib => ele%x%eta
+case ('ETAP_A')
+  ptr_attrib => ele%x%etap
 case ('ETA_X')
   ptr_attrib => ele%x%eta
 case ('ETAP_X')
@@ -134,6 +138,10 @@ case ('ALPHA_B')
   ptr_attrib => ele%b%alpha
 case ('PHI_B')
   ptr_attrib => ele%b%phi
+case ('ETA_B')
+  ptr_attrib => ele%y%eta
+case ('ETAP_B')
+  ptr_attrib => ele%y%etap
 case ('ETA_Y')
   ptr_attrib => ele%y%eta
 case ('ETAP_Y')
