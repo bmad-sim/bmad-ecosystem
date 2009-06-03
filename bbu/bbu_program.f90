@@ -38,7 +38,6 @@ bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
 bbu_param%current = 20e-3            ! Starting current (amps)
 bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
-bbu_param%num_stages_tracked_per_power_calc = 1
 bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
 bbu_param%nstep = 100
 bbu_param%begdr = 5.234
@@ -133,6 +132,7 @@ do istep = 1, nstep
   enddo
 
   print *, 'Number of physical lr wake elements:', n_ele
+  print *, 'Number of elements in lattice:      ', lat%n_ele_track
 
   ! Track to find upper limit
 

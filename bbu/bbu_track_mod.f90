@@ -6,8 +6,9 @@ use beam_mod
 type bbu_stage_struct
   integer :: ix_ele_lr_wake   ! Element index of element with the wake 
   integer :: ix_pass          ! Pass index when in multipass section
+  integer :: ix_stage_pass1   ! Index of corresponding stage on first pass
   integer :: ix_head_bunch
-  real(rp) :: amp, phase
+  real(rp) :: hom_power
   real(rp) time_at_wake_ele 
 end type
 
@@ -17,7 +18,10 @@ type bbu_beam_struct
   integer ix_bunch_head       ! Index to head bunch(:)
   integer ix_bunch_end        ! Index of the end bunch(:). -1 -> no bunches.
   integer n_bunch_in_lat      ! Number of bunches transversing the lattice.
+  integer ix_stage_power_max
+  integer ix_last_stage_tracked
   type (bbu_stage_struct), allocatable :: stage(:)
+  real(rp) hom_power_max
   real(rp) time_now
   real(rp) one_turn_time
 end type
@@ -33,7 +37,6 @@ type bbu_param_struct
   real(rp) init_particle_offset
   real(rp) current
   real(rp) rel_tol
-  integer num_stages_tracked_per_power_calc
   logical drscan
   integer elindex
   character*40 elname
@@ -58,7 +61,8 @@ type (beam_init_struct) beam_init
 type (bbu_param_struct) bbu_param
 type (ele_struct), pointer :: ele
 
-integer i, j, ih, ix_pass, n_links
+integer i, j, k, ih, ix_pass, n_links
+integer, allocatable, save :: ix_chain(:)
 
 real(rp) ds_bunch, rr(4)
 
@@ -122,11 +126,126 @@ do i = 1, lat%n_ele_track
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
   bbu_beam%stage(j)%ix_ele_lr_wake = i
-  call multipass_chain (i, lat, ix_pass, n_links)
+  call multipass_chain (i, lat, ix_pass, n_links, ix_chain)
   bbu_beam%stage(j)%ix_pass = ix_pass
+  if (ix_pass > 0) then
+    do k = 1, j
+      if (bbu_beam%stage(k)%ix_ele_lr_wake == ix_chain(1)) then
+        bbu_beam%stage(j)%ix_stage_pass1 = k
+        exit
+      endif
+    enddo
+    if (k > j) then
+      call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR.')
+      stop
+    endif
+  else
+    bbu_beam%stage(j)%ix_stage_pass1 = j
+  endif
 enddo
 
 end subroutine bbu_setup
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost) 
+
+implicit none
+
+type (lat_struct) lat
+type (bbu_beam_struct) bbu_beam
+type (bbu_param_struct) bbu_param
+type (beam_init_struct) beam_init
+
+real(rp) hom_power0, hom_power_sum, r_period, power, hom_power_gain
+
+integer i, n_period, n_count, n_period_old, ix_ele
+
+logical lost
+
+character(16) :: r_name = 'bbu_track_all'
+
+! Setup.
+
+call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
+
+call lattice_bookkeeper (lat)
+bmad_com%auto_bookkeeper = .false. ! To speed things up.
+
+do i = 1, size(bbu_beam%bunch)
+  call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
+enddo
+
+! init time at hom and hom_power
+
+bbu_beam%stage%hom_power = 0
+bbu_beam%hom_power_max = 0
+bbu_beam%ix_stage_power_max = 1
+
+bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
+ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
+bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele)%ref_time
+
+! Track...
+! To decide whether things are stable or unstable we look at the HOM power integrated
+! over one turn period. The power is integrated over one period since there can 
+! be a large variation in HOM power within a period.
+! And since it is in the first period that all the stages are getting populated with bunches,
+! We don't start integrating until the second period.
+
+n_period_old = 0
+
+do
+
+  call bbu_track_a_stage (lat, bbu_beam, lost)
+  if (lost) exit
+
+  r_period = bbu_beam%time_now / bbu_beam%one_turn_time
+  n_period = int(r_period)
+
+  ! If the head bunch is finished then remove it and seed a new one.
+
+  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track) then
+    call bbu_remove_head_bunch (bbu_beam)
+    call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
+    if (r_period > bbu_param%simulation_turns_max) then
+      call out_io (s_warn$, r_name, 'SIMULATION_TRUNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
+                                                                          r_array = (/ hom_power_gain /) )
+      exit
+    endif
+  endif
+
+  ! Compute integrated power. 
+  ! The baseline hom power is computed over the 2nd period after the offset bunches 
+  ! have passed through the lattice.
+
+  if (n_period /= n_period_old) then
+    if (n_period == 3) then
+      hom_power0 = hom_power_sum / n_count
+    elseif (n_period > 3) then
+      hom_power_gain = (hom_power_sum / n_count) / hom_power0
+      if (hom_power_gain < 1/bbu_param%limit_factor) exit
+      if (hom_power_gain > bbu_param%limit_factor) exit      
+    endif
+    hom_power_sum = 0
+    n_count = 0
+    n_period_old = n_period
+  endif
+
+  call bbu_hom_power_calc (lat, bbu_beam)
+  hom_power_sum = hom_power_sum + bbu_beam%hom_power_max
+  n_count = n_count + 1
+  
+enddo
+
+! Finalize
+
+bmad_com%auto_bookkeeper = .true.
+
+
+end subroutine bbu_track_all
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -211,6 +330,9 @@ if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
   bbu_beam%stage(i)%time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
 endif
 
+! Misc.
+
+bbu_beam%ix_last_stage_tracked = i_stage_min
 lost = .false.
 
 end subroutine bbu_track_a_stage
@@ -305,7 +427,7 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 ! Calculates power in mode with maximal amplitude
 
-subroutine bbu_hom_power_calc (lat, bbu_beam, hom_power)
+subroutine bbu_hom_power_calc (lat, bbu_beam)
 
 implicit none
 
@@ -315,126 +437,37 @@ type (lr_wake_struct), pointer :: lr
 
 real(rp) hom_power
 
-integer i, j, ix
+integer i, j, i1, ixm, ix
 
-!
+! Only need to update the last stage tracked
 
 hom_power = 0
-
-do i = 1, size(bbu_beam%stage)
-  if (bbu_beam%stage(i)%ix_pass > 1) cycle  ! Skip if already considered.
-  ix = bbu_beam%stage(i)%ix_ele_lr_wake
-  do j = 1, size(lat%ele(ix)%wake%lr)
-    lr => lat%ele(ix)%wake%lr(j)
-    hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
-  enddo
+i = bbu_beam%ix_last_stage_tracked
+i1 = bbu_beam%stage(i)%ix_stage_pass1
+ix = bbu_beam%stage(i1)%ix_ele_lr_wake
+do j = 1, size(lat%ele(ix)%wake%lr)
+  lr => lat%ele(ix)%wake%lr(j)
+  hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
 enddo
+
+! Update the new hom power.
 
 hom_power = sqrt(hom_power)
+bbu_beam%stage(i1)%hom_power = hom_power
+
+! Find the maximum hom power in any element.
+
+if (hom_power > bbu_beam%hom_power_max) then
+  bbu_beam%ix_stage_power_max = i1
+  bbu_beam%hom_power_max = hom_power
+
+elseif (i1 == bbu_beam%ix_stage_power_max) then
+  ixm = maxloc(bbu_beam%stage%hom_power, 1)
+  bbu_beam%ix_stage_power_max = ixm
+  bbu_beam%hom_power_max = bbu_beam%stage(ixm)%hom_power
+endif
 
 end subroutine bbu_hom_power_calc
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-
-subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost) 
-
-implicit none
-
-type (lat_struct) lat
-type (bbu_beam_struct) bbu_beam
-type (bbu_param_struct) bbu_param
-type (beam_init_struct) beam_init
-
-real(rp) hom_power0, hom_power_sum, r_period, power, hom_power_gain
-
-integer i, n_period, n_stage, n_count, n_period_old, ix_ele
-
-logical lost
-
-character(16) :: r_name = 'bbu_track_all'
-
-! Setup.
-
-call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
-
-call lattice_bookkeeper (lat)
-bmad_com%auto_bookkeeper = .false. ! To speed things up.
-
-do i = 1, size(bbu_beam%bunch)
-  call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
-enddo
-
-! init time at hom
-
-bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
-ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
-bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele)%ref_time
-
-! Track...
-! To decide whether things are stable or unstable we look at the HOM power integrated
-! over one turn period. The power is integrated over one period since there can 
-! be a large variation in HOM power within a period.
-! And since it is in the first period that all the stages are getting populated with bunches,
-! We don't start integrating until the second period.
-
-n_stage = 0
-n_period_old = 0
-
-do
-
-  call bbu_track_a_stage (lat, bbu_beam, lost)
-  if (lost) exit
-
-  r_period = bbu_beam%time_now / bbu_beam%one_turn_time
-  n_period = int(r_period)
-
-  ! If the head bunch is finished then remove it and seed a new one.
-
-  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track) then
-    call bbu_remove_head_bunch (bbu_beam)
-    call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
-    if (r_period > bbu_param%simulation_turns_max) then
-      call out_io (s_warn$, r_name, 'SIMULATION_TRUNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
-                                                                          r_array = (/ hom_power_gain /) )
-      exit
-    endif
-  endif
-
-  ! Compute integrated power. 
-  ! Since the power calc can take some time, num_stages_tracked_per_power_calc is used
-  ! to reduce the number of integration points.
-
-  if (n_period == 0) cycle
-  n_stage = modulo(n_stage + 1, bbu_param%num_stages_tracked_per_power_calc)
-  if (n_stage /= 0) cycle
-
-  if (n_period /= n_period_old) then
-    if (n_period == 3) then
-      hom_power0 = hom_power_sum / n_count
-    elseif (n_period > 3) then
-      hom_power_gain = (hom_power_sum / n_count) / hom_power0
-      if (hom_power_gain < 1/bbu_param%limit_factor) exit
-      if (hom_power_gain > bbu_param%limit_factor) exit      
-    endif
-    hom_power_sum = 0
-    n_count = 0
-    n_period_old = n_period
-  endif
-
-  call bbu_hom_power_calc (lat, bbu_beam, power)
-  hom_power_sum = hom_power_sum + power
-  n_count = n_count + 1
-  
-enddo
-
-! Finalize
-
-bmad_com%auto_bookkeeper = .true.
-
-
-end subroutine bbu_track_all
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
