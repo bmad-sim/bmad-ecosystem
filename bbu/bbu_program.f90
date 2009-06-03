@@ -146,8 +146,8 @@ do istep = 1, nstep
     call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost)
     if (hom_power_gain > 1) exit
     if (lost) then
-      print *, 'Particle(s) lost stopping here.'
-      stop
+      print *, 'Particle(s) lost. Assuming unstable...'
+      exit
     endif
     charge0 = beam_init%bunch_charge
     print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
@@ -167,11 +167,8 @@ do istep = 1, nstep
     beam_init%bunch_charge = (charge0 + charge1) / 2
     lat = lat0 ! Restore lr wakes
     call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost)
-    if (lost) then
-      print *, 'Particle(s) lost stopping here.'
-      stop
-    endif
-    if (hom_power_gain > 1) then
+    if (lost) print *, 'Particle(s) lost. Assuming unstable...'
+    if (lost .or. hom_power_gain > 1) then
       charge1 = beam_init%bunch_charge
       print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
       print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
