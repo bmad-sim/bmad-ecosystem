@@ -1,7 +1,9 @@
-macro drscan jobid=0
+macro drscan jobid1=0 jobid2=-1
 *
 * Make plots of bbu current thresholds
 * obtained from tracking and analytic approximation
+*
+* If two JOBS specified, compare the tracking threshold calculations
 *
 * jac 16 April 2009
 *
@@ -22,8 +24,202 @@ set pmci 2
 set plci 2
 set lwid 5.
 set vsiz 0.3
-set xlab 1.0
-set ylab 1.2
+set xlab 1.4
+set ylab 1.1
+*
+global/create bbujobtxt
+global/create bbujobtxt1,bbujobtxt2
+do j=1,2
+ exec bbujob [jobid[j]]
+ bbujobtxt[j]=[bbujobtxt]
+enddo
+*
+if [jobid2]<0 then
+ exec anacompare [jobid1]
+else
+ exec trcompare [jobid1] [jobid2]
+endif
+*
+return
+macro trcompare jobid1 jobid2
+*
+* Compare bbu tracking threshold for two jobs
+*
+* 2 June 2009 jac
+*
+global/import bbujobtxt1,bbujobtxt2
+* 
+vec/cr dr1(100) r    100*0.
+vec/cr dr2(100) r    100*0.
+vec/cr curr1(100) r 100*0.
+vec/cr curr2(100) r 100*0.
+vec/cr dum(100) r    100*0.
+*
+do i=1,2
+ fname='../jobs/job'//[jobid[i]]//'/drscan.out'
+ if $fexist([fname])=0 then
+  mess Macro DRSCAN cannot find file [fname], quitting
+  goto QUIT
+ endif
+ vec/read dr[i],dum,curr[i] [fname]
+ len=$vlen(dr[i],1)
+ if [len]=0 then
+  mess No data found in file [fname], quitting
+  goto QUIT
+ endif
+*
+enddo
+*
+* Make two plots, one log, one linear
+do i=1,2
+*
+if [i]=1 then
+ opt logy
+ set xval 0.4
+else
+ sigma curr1=log(curr1)
+ sigma curr2=log(curr2)
+ opt liny
+ set xval 0.2
+endif
+*
+*title_g 'BBU Threshold Current - Jobs '//[jobid1]//' and '//[jobid2]
+*
+* Get plot scales
+* X scale is different. Y scale is the same.
+do j=1,2
+ len=$vlen(dr[j],1)
+ v/copy dr[j](1:[len]) temp
+ v/del dr[j]
+ v/copy temp dr[j]
+ v/del temp
+
+ imi=$sigma(lvmin(dr[j]))
+ xmi[j]=dr[j]([imi])
+ ima=$sigma(lvmax(dr[j]))
+ xma[j]=dr[j]([ima])
+enddo
+
+v/copy curr1(1:[len]) temp
+v/del curr1
+v/copy temp curr1
+v/del temp
+v/copy curr2(1:[len]) temp
+v/del curr2
+v/copy temp curr2
+
+len1=$vlen(curr1,1)
+len2=$vlen(curr2,1)
+slen=[len1]+[len2]
+
+imi=$sigma(lvmin(curr1))
+ymi1=curr1([imi])
+ima=$sigma(lvmax(curr1))
+yma1=curr1([ima])
+imi=$sigma(lvmin(curr2))
+ymi2=curr2([imi])
+ima=$sigma(lvmax(curr2))
+yma2=curr2([ima])
+
+if [slen]=0 then
+ mess Both current vectors zero, skip this plot
+ goto SKIP
+elseif [len1]=0 then
+ ymi=[ymi2]
+ yma=[yma2]
+elseif [len2]=0 then
+ ymi=[ymi1]
+ yma=[yma1]
+else
+ ymi=[ymi1]
+ if [ymi2]<[ymi1] then
+  ymi=[ymi2]
+ endif
+ yma=[yma1]
+ if [yma2]>[yma1] then
+  yma=[yma2]
+ endif
+endif
+
+* Protect against ranges of less than one order of magnitude
+*if [yma]<[ymi]*2 then
+* yma=2*[ymi]
+*endif
+
+dy = [yma] - [ymi]
+ymin = [ymi] - 0.1*[dy]
+ymax = [yma] + 0.1*[dy]
+
+* Adjust vertical scale for log 
+if [i]=1 then
+ fac=[yma]/[ymi]
+ mess YMA/YMI ratio is [fac]
+ ymin=[ymi]/([fac]/10.)
+ ymax=([fac]/10.)*[yma]
+else
+ dy = [yma] - [ymi]
+ ymin = [ymi] - 0.1*[dy]
+ ymax = [yma] + 0.1*[dy]
+endif
+
+zone 1 2
+set ywin 0.6
+
+do j=1,2
+xmin = 1.05*[xmi[j]] - 0.05*[xma[j]]
+xmax = 1.05*[xma[j]] - 0.05*[xmi[j]]
+
+mess [xmin] [xmax] [ymin] [ymax]
+null [xmin] [xmax] [ymin] [ymax]
+
+set plci 2
+set pmci 2
+set mscf 0.2
+v/pl curr[j]%dr[j] ! sl
+
+set asiz 0.4
+if [j]=2 then
+ if [i]=1 then
+  atit 'Ratio of Revolution Time to Bunch Spacing' 'I?th! (A)' ' ' 222
+ else
+  atit 'Ratio of Revolution Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
+ endif
+else
+ if [i]=1 then
+  atit ' ' 'I?th! (A)' ' ' 222
+ else
+  atit ' ' 'ln ( I?th! (A) )' ' ' 222
+ endif
+endif
+*
+enddo 
+*
+selnt 1
+set pmci 2
+set ksiz 0.25
+set csiz 0.45
+txt1='Job '//[jobid1]
+txt2='Job '//[jobid2]
+key 12. 12. 1 [bbujobtxt1] 1.0 L
+key 12. 8. 1 [bbujobtxt2] 1.0 L
+*
+SKIP:
+*
+psname = 'drscan_'//[jobid1]//'_'//[jobid2]//'_'//[i]//'.eps'
+exec ~/.pawlogon#makeps file=[psname] type=-113
+*
+enddo
+*
+QUIT:
+*
+return
+macro anacompare jobid
+*
+* Compare bbu threshold from tracking to analytica approximation
+*
+* 2 June 2009 jac
+*
+global/import bbujobtxt1,bbujobtxt2
 *
 if [jobid]=0 then
   fname='../drscan.out'
@@ -54,7 +250,7 @@ if [len]=0 then
 endif
 *
 * Make two plots, one log, one linear
-do i=2,2
+do i=1,2
 *
 if [i]=1 then
  opt logy
@@ -68,7 +264,9 @@ endif
 *
 *title_g 'BBU Threshold Current: Comparison of Analytic Approximation to BMAD Tracking'
 *title_g 'BBU Threshold Current - Job '//[jobid]//' - CERL7.4 Single HOM in One Cavity'
-title_g 'BBU Threshold Current - Job '//[jobid]
+*title_g 'BBU Threshold Current - Job '//[jobid]
+*title_g 'BBU Threshold Current - '//[bbujobtxt1]
+title_g ' '
 
 
 v/copy dr(1:[len]) temp
@@ -90,6 +288,10 @@ xmi=dr([imi])
 ima=$sigma(lvmax(dr))
 xma=dr([ima])
 
+len1=$vlen(curr1,1)
+len2=$vlen(curr2,1)
+slen=[len1]+[len2]
+
 imi=$sigma(lvmin(curr1))
 ymi1=curr1([imi])
 ima=$sigma(lvmax(curr1))
@@ -99,19 +301,40 @@ ymi2=curr2([imi])
 ima=$sigma(lvmax(curr2))
 yma2=curr2([ima])
 
-ymi=[ymi1]
-if [ymi2]<[ymi1] then
+if [slen]=0 then
+ mess Both current vectors zero, skip this plot
+ goto SKIP
+elseif [len1]=0 then
  ymi=[ymi2]
-endif
-yma=[yma1]
-if [yma2]>[yma1] then
  yma=[yma2]
+elseif [len2]=0 then
+ ymi=[ymi1]
+ yma=[yma1]
+else
+ ymi=[ymi1]
+ if [ymi2]<[ymi1] then
+  ymi=[ymi2]
+ endif
+ yma=[yma1]
+ if [yma2]>[yma1] then
+  yma=[yma2]
+ endif
+endif
+
+* Adjust vertical scale for log 
+if [i]=1 then
+ fac=[yma]/[ymi]
+ mess YMA/YMI ratio is [fac]
+ ymin=[ymi]/([fac]/200.)
+ ymax=([fac]/200.)*[yma]
+else
+ dy = [yma] - [ymi]
+ ymin = [ymi] - 0.1*[dy]
+ ymax = [yma] + 0.1*[dy]
 endif
 
 xmin = 1.05*[xmi] - 0.05*[xma]
 xmax = 1.05*[xma] - 0.05*[xmi]
-ymin = 1.05*[ymi] - 0.05*[yma]
-ymax = 1.05*[yma] - 0.05*[ymi]
 
 mess [xmin] [xmax] [ymin] [ymax]
 null [xmin] [xmax] [ymin] [ymax]
@@ -119,13 +342,17 @@ null [xmin] [xmax] [ymin] [ymax]
 set plci 2
 set pmci 2
 set mscf 1.2
-v/pl curr1%dr ! s
+if [len1]>0 then
+ v/pl curr1%dr ! s
+endif
 set plci 4
 set pmci 4
 set mscf 0.2
-v/pl curr2%dr ! sl
-set asiz 0.4
+if [len2]>0 then
+ v/pl curr2%dr ! sl
+endif
 
+set asiz 0.4
 if [i]=1 then
  atit 'Ratio of Revolution Time to Bunch Spacing' 'I?th! (A)' ' ' 222
 else
@@ -149,10 +376,11 @@ set txci 1
 itx 2.65 18.15 'Beam-breakup instability theory for energy recovery linacs,'
 itx 10.2 18.15 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
 *
-enddo
-*
-psname = 'drscan_'//[jobid]//'.eps'
+psname = 'drscan_'//[jobid]//'_'//[i]//'.eps'
 exec ~/.pawlogon#makeps file=[psname] type=-113
+*
+SKIP:
+enddo
 *
 QUIT:
 *
