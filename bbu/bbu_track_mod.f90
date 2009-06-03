@@ -666,6 +666,7 @@ do i=0, lat%n_ele_track
 
         enddo
         kk=kk+1 ! Count nr of cavities for which analytic approximations are calculated
+        if(kk.gt.1)anavalid=.false.
 
       endif   
 
