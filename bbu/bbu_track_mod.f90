@@ -75,11 +75,11 @@ bbu_beam%n_bunch_in_lat = (lat%param%total_length / ds_bunch) + 1
 bbu_beam%one_turn_time = lat%ele(lat%n_ele_track)%ref_time
 
 if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
-allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+1))
+allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
 bbu_beam%ix_bunch_head = 1
 bbu_beam%ix_bunch_end = -1  ! Indicates No bunches
 
-call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+1)
+call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
 
 ! Find all elements that have a lr wake.
 
@@ -181,7 +181,10 @@ endif
 ! then this bunch becomes the new head bunch for the stage. Otherwise there is no head bunch
 ! for the stage.
 
-if (ib /= bbu_beam%ix_bunch_end) then
+if (ib == bbu_beam%ix_bunch_end) then
+  call out_io (s_fatal$, r_name, 'NO BUNCHES FOR THE FIRST STAGE. GET HELP!')
+  stop
+else
   ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
   if (bbu_beam%bunch(ib2)%ix_ele == ix_ele_start) then
     bbu_beam%stage(i_stage_min)%ix_head_bunch = ib2
