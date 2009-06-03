@@ -120,10 +120,14 @@ do istep = 1, nstep
   print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
   print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
 
-  if (bbu_param%write_hom_info) call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
-
+  if (bbu_param%write_hom_info) then
+   call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
   ! Update starting current according to analytic approximation
-  if (currth.gt.0.)bbu_param%current = currth
+   if (currth.gt.0.)bbu_param%current = currth
+  else
+   trtb=dr
+  endif
+
 
   call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
 
