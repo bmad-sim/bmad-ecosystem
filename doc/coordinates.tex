@@ -162,7 +162,8 @@ equations
 \Endeq
 $\Bf R_i$ is the displacement vector for the $i$\Th element and matrix
 $\Bf S_i$ is the rotation of the local reference system of the exit
-end with respect to the entrance end. For all elements whose
+end with respect to the entrance end. For clarity, the subscript $i$ in 
+the equations below will be dripped. For all elements whose
 reference orbit through them is a straight line, the corresponding
 $\Bf R$ and $\Bf S$ are
 \Begineq
@@ -181,20 +182,21 @@ $\Bf R$ and $\Bf S$ are
 
 \index{rbend}\index{sbend}
 \index{rho}\index{tilt}\index{angle}
-For a \vn{bend}, $\Bf R$ and $\Bf S$ are given by
+Where $L$ is the length of the element. For a \vn{bend}, $\Bf R$ and
+$\Bf S$ are given by
 \Begineq
-  \Bf R = \Bf T \, \Bf R_0, \quad
-  \Bf S = \Bf T \, \Bf S_0 \, \Bf T^{-1}
+  \Bf R = \Bf T \, \widetilde \Bf \widetilda R, \quad
+  \Bf S = \Bf T \, \widetilde \Bf S \, \Bf T^{-1}
   \label{r00ls}
 \Endeq
 where
 \Begineq
-  \Bf R_0 = 
+  \widetilde \Bf R = 
   \begin{pmatrix}
     \rho (\cos\alpha - 1) \\ 0 \\ \rho \, \sin\alpha
   \end{pmatrix}, 
   \quad
-  \Bf S_0 = 
+  \widetilde \Bf S = 
   \begin{pmatrix}
     \cos\alpha & 0 & -\sin\alpha \\
     0          & 1 & 0           \\
@@ -211,7 +213,7 @@ where
 with $\rho$ being the bend radius (\vn{rho}), $\alpha$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
 (\sref{s:offset}). Without a tilt, $\Bf T$ is the unit matrix
-resulting in $\Bf R = \Bf R_0$ and $\Bf S = \Bf S_0$.
+resulting in $\Bf R = \widetilde \Bf R$ and $\Bf S = \widetilde \Bf S$.
 
 The bend transformation (\Eq{r00ls}) is so constructed that the
 transformation is equivalent to rotating the local coordinate system
@@ -252,7 +254,7 @@ mirror form a plane which is called the mirror's \vn{bend plane}.
 An example is shown in Fig.~\ref{f:mirror}. This example is
 appropriate for a tilt angle of $\theta_t = 0$ (the rotation axis is
 here the $y$-axis). Since the mirror is modeled to be of zero length,
-$\Bf R_0 = (0, 0, 0)$, and so the origin (marked $\cal O$ in the
+$\widetilde \Bf R = (0, 0, 0)$, and so the origin (marked $\cal O$ in the
 figure) of the local coordinates is the same just before and just
 after the reflection.
 
