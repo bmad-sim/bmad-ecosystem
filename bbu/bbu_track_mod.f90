@@ -525,7 +525,8 @@ kk=1
 judge =.false.
 anavalid = .true.
 
-print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
+!print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
+print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq    R/Q(ohms/m^2)   Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
 do i=0, lat%n_ele_track
    
@@ -562,10 +563,6 @@ do i=0, lat%n_ele_track
         enddo
       enddo
 
-      ! This code uses the "linac definition" of R/Q, which is
-      ! a factor of two larger than the "circuit definition." 
-      ! The HOM files are in the "circuit definition" and
-      ! the R/Q values are Ohms/m^2, whereas R_over_Q is in Ohms.
 
       ! Don't print k=1, which is just the interval from the beginning
       ! of the lattice to the first cavity with a HOM
@@ -577,8 +574,12 @@ do i=0, lat%n_ele_track
 ! Analytic approximation is not valid if any cavity has more than one HOM
            if (j.gt.1)anavalid=.false.
 
+           ! This code uses the "linac definition" of R/Q, which is
+           ! a factor of two larger than the "circuit definition." 
+           ! The HOM files are in the "circuit definition" and
+           ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%wake%lr(j)%R_over_Q is in Ohms.
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
-           print *,' RovQ in Ohms',rovq
+!           print *,' RovQ in Ohms',rovq
 
           ! Follow PRSTAB 7, 054401 (2004) (some bug here)
  !          kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
@@ -589,6 +590,7 @@ do i=0, lat%n_ele_track
 
            epsilon =  2*pi*lat%ele(i)%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%wake%lr(j)%Q )
            nr = int(erltime(k)*bunch_freq) + 1
+
 
            if (nr*epsilon.lt.0.5)then
             if (stest.le.0.)then
@@ -619,10 +621,13 @@ do i=0, lat%n_ele_track
           currthc = currth * abs ( mat(1,2) / matc )
           trtb = erltime(k)*bunch_freq
 
-          write(6, '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)') kk, j, currth, currthc, erltime(k), &
+          print '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', kk, j, currth, currthc, erltime(k), &
                            lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
                            sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
+
+          print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, 'epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
+
         enddo
         kk=kk+1 ! Count nr of cavities for which analytic approximations are calculated
 
