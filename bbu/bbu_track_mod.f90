@@ -211,7 +211,7 @@ do
     call bbu_remove_head_bunch (bbu_beam)
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
     if (r_period > bbu_param%simulation_turns_max) then
-      call out_io (s_warn$, r_name, 'SIMULATION_TRUNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
+      call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
                                                                           r_array = (/ hom_power_gain /) )
       exit
     endif
