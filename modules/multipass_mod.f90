@@ -238,7 +238,7 @@ end function
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine multipass_chain (ix_ele, lat, ix_pass, ix_chain)
+! Subroutine multipass_chain (ix_ele, lat, ix_pass, n_links, ix_chain)
 !
 ! Routine to return the chain of elements that represent the same physical element
 ! when there is multipass.
