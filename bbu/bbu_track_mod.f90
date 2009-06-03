@@ -529,7 +529,7 @@ judge =.false.
 anavalid = .true.
 
 !print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq      RoverQ        Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
-print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq    R/Q(ohms/m^2)   Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
+print '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq  R/Q(ohms/m^2)     Q       Pol Angle       T12         T14         T32        T34   sin omega*tr     tr/tb'
 
 do i=0, lat%n_ele_track
    
