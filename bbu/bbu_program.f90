@@ -115,6 +115,11 @@ do istep = 1, nstep
 
   ! Print some information and get the analytic approximation result for the threshold current
 
+  print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
+  print '(2a)', ' Lattice Name: ', trim(lat%lattice)
+  print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
+  print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
+
   if (bbu_param%write_hom_info) call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
 
   ! Update starting current according to analytic approximation

@@ -508,11 +508,6 @@ allocate(erltime(800))
 
 !
 
-print '(2a)', ' Lattice File: ', trim(lat%input_file_name)
-print '(2a)', ' Lattice Name: ', trim(lat%lattice)
-print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
-print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
-
 ! Initialize the identity matrix
 call mat_make_unit(imat)
 
