@@ -664,9 +664,10 @@ do i=0, lat%n_ele_track
 
           print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, 'epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
 
+          if(kk.ne.1)anavalid=.false.
+
         enddo
         kk=kk+1 ! Count nr of cavities for which analytic approximations are calculated
-        if(kk.gt.1)anavalid=.false.
 
       endif   
 
