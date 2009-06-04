@@ -623,6 +623,7 @@ do i=0, lat%n_ele_track
 
            epsilon =  2*pi*lat%ele(i)%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%wake%lr(j)%Q )
            nr = int(erltime(k)*bunch_freq) + 1
+           trtb = erltime(k)*bunch_freq
 
 
            if (nr*epsilon.lt.0.5)then
@@ -642,7 +643,24 @@ do i=0, lat%n_ele_track
             endif
            elseif (nr*epsilon.gt.2.)then
 ! Threshold current for case epsilon * nr >> 1
-             currth = abs ( cnumerator / mat(1,2) )
+              currth = cnumerator / ( epsilon * abs(mat(1,2)) )
+!
+!              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )  .le. pi )then
+!               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi ) / nr )**2 )
+!               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
+!              else
+!               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )) / nr )**2 )
+!               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
+!              endif
+!
+              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
+               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi ) / nr )**2 )
+               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+              else
+               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )) / nr )**2 )
+               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+              endif
+!!!!!!!!             currth = abs ( cnumerator / mat(1,2) )
            else
             currth=0.
           endif
@@ -652,14 +670,13 @@ do i=0, lat%n_ele_track
           poltheta = 2*pi*lat%ele(i)%wake%lr(j)%angle
           matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
           currthc = currth * abs ( mat(1,2) / matc )
-          trtb = erltime(k)*bunch_freq
 
           print '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', kk, j, currth, currthc, erltime(k), &
                            lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
                            sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
 
-          print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, 'epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
+          print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, ' Ohms  epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
 
           if(kk.ne.1)anavalid=.false.
 

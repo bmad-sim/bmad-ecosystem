@@ -159,6 +159,7 @@ do istep = 1, nstep
       exit
     endif
     charge0 = beam_init%bunch_charge
+!    print *,' Inputs for initial current:',charge0, c_light, beam_init%ds_bunch
     print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
     print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
     beam_init%bunch_charge = beam_init%bunch_charge * 2
