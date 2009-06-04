@@ -196,6 +196,8 @@ bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele
 ! We don't start integrating until the second period.
 
 n_period_old = 0
+hom_power_sum = 0
+n_count = 0
 
 do
 
