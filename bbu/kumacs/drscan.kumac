@@ -91,23 +91,26 @@ endif
 * Get plot scales
 * X scale is different. Y scale is the same.
 do j=1,2
- len=$vlen(dr[j],1)
- v/copy dr[j](1:[len]) temp
+ len[j]=$vlen(dr[j],1)
+  v/copy dr[j](1:[len[j]]) temp
  v/del dr[j]
+ v/cr dr[j]([len[j]])
  v/copy temp dr[j]
  v/del temp
 
+ mess Length of DR[j] is [len[j]]
+ 
  imi=$sigma(lvmin(dr[j]))
  xmi[j]=dr[j]([imi])
  ima=$sigma(lvmax(dr[j]))
  xma[j]=dr[j]([ima])
 enddo
 
-v/copy curr2_1(1:[len]) temp
+v/copy curr2_1(1:[len1]) temp
 v/del curr2_1
 v/copy temp curr2_1
 v/del temp
-v/copy curr2_2(1:[len]) temp
+v/copy curr2_2(1:[len2]) temp
 v/del curr2_2
 v/copy temp curr2_2
 
@@ -175,7 +178,7 @@ do j=1,2
 xmin = 1.05*[xmi[j]] - 0.05*[xma[j]]
 xmax = 1.05*[xma[j]] - 0.05*[xmi[j]]
 
-mess [xmin] [xmax] [ymin] [ymax]
+*mess [xmin] [xmax] [ymin] [ymax]
 null [xmin] [xmax] [ymin] [ymax]
 
 len=$vlen(curr1_[j],1)
