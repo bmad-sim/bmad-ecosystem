@@ -142,7 +142,7 @@ case ('change')
     call tao_change_ele (word, cmd_word(1), cmd_word(2))
   else
     call out_io (s_error$, r_name, &
-             'Error: Change who? (should be: "ele", "bunch_start", or "var")')
+             'Error: Change who? (should be: "ele", "beam_start", or "var")')
   endif
 
 

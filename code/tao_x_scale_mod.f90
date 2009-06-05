@@ -223,6 +223,7 @@ else if (graph%p%x_axis_type == 's') then
     enddo
   else
     ib = graph%ix_branch
+    iu = tao_universe_number(graph%ix_universe)
     this_min = min (this_min, s%u(iu)%model%lat%branch(ib)%ele(0)%s)
     ix = s%u(iu)%model%lat%branch(ib)%n_ele_track
     this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
