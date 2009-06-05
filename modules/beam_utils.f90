@@ -142,7 +142,7 @@ rf_ele%value(e_loss$) = 0
 call zero_ele_offsets (rf_ele)
 rf_ele%value(hkick$) = 0.0
 rf_ele%value(vkick$) = 0.0
-if (associated(ele%a_pole)) deallocate(ele%a_pole)
+if (associated(rf_ele%a_pole)) deallocate(rf_ele%a_pole)
     
 ! Track half way through. This includes the sr longitudinal wakes 
 
