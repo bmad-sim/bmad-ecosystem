@@ -1023,6 +1023,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
     nl=nl+1; write (lines(nl), imt) 'x%major_div           = ', g%x%major_div
+    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal   = ', g%x%major_div_nominal
     nl=nl+1; write (lines(nl), imt) 'x%places              = ', g%x%places
     nl=nl+1; write (lines(nl), lmt) 'x%draw_label          = ', g%x%draw_label
     nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers        = ', g%x%draw_numbers
@@ -1031,6 +1032,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
     nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
     nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
+    nl=nl+1; write (lines(nl), imt) 'y%major_div_nominal   = ', g%y%major_div_nominal
     nl=nl+1; write (lines(nl), imt) 'y%places              = ', g%y%places
     nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
     nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
@@ -1038,6 +1040,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
     nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
     nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
+    nl=nl+1; write (lines(nl), imt) 'y2%major_div_nominal  = ', g%y2%major_div_nominal
     nl=nl+1; write (lines(nl), imt) 'y2%places             = ', g%y2%places
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
     nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
@@ -1647,8 +1650,8 @@ case ('plot')
     nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
     nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
-    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
     nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
+    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
     nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
     nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
     nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers

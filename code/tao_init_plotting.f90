@@ -97,30 +97,33 @@ default_plot%name = ' '
 default_plot%x_axis_type = 'index'
 default_plot%x = init_axis
 default_plot%x%minor_div_max = 6
-default_plot%x%major_div = 6
+default_plot%x%major_div_nominal = -1
+default_plot%x%major_div = -1
 default_plot%independent_graphs = .false.
 default_plot%autoscale_gang_x = .true.
 default_plot%autoscale_gang_y = .true.
 default_plot%n_graph = 0
 
-default_graph%title           = ''
-default_graph%type            = 'data'
-default_graph%text_legend_origin   = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
-default_graph%curve_legend_origin  = qp_point_struct(5.0_rp, -2.0_rp, 'POINTS/GRAPH/LT')
-default_graph%y               = init_axis
-default_graph%y%major_div     = 4
-default_graph%y2              = init_axis
-default_graph%y2%major_div    = 4
-default_graph%y2%label_color  = blue$
-default_graph%y2%draw_numbers = .false.
-default_graph%ix_universe     = -1
-default_graph%clip            = .true.
-default_graph%draw_axes       = .true.
+default_graph%title                 = ''
+default_graph%type                  = 'data'
+default_graph%text_legend_origin    = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
+default_graph%curve_legend_origin   = qp_point_struct(5.0_rp, -2.0_rp, 'POINTS/GRAPH/LT')
+default_graph%y                     = init_axis
+default_graph%y%major_div           = -1
+default_graph%y%major_div_nominal   = -1
+default_graph%y2                    = init_axis
+default_graph%y2%major_div          = -1
+default_graph%y2%major_div_nominal  = -1
+default_graph%y2%label_color        = blue$
+default_graph%y2%draw_numbers       = .false.
+default_graph%ix_universe           = -1
+default_graph%clip                  = .true.
+default_graph%draw_axes             = .true.
 default_graph%correct_xy_distortion = .false.
 default_graph%draw_curve_legend     = .true.
-default_graph%component       = 'model'
-default_graph%who%name        = ''
-default_graph%who%sign        = 1
+default_graph%component             = 'model'
+default_graph%who%name              = ''
+default_graph%who%sign              = 1
 default_graph%box     = (/ 1, 1, 1, 1 /)
 default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 default_graph%n_curve = 0
@@ -319,9 +322,9 @@ do  ! Loop over plot files
     plt%name                 = plot%name
     plt%x_axis_type          = plot%x_axis_type
     plt%x                    = plot%x
-    plt%x%major_div_nominal  = plot%x%major_div
-    plt%autoscale_gang_x = plot%autoscale_gang_x 
-    plt%autoscale_gang_y = plot%autoscale_gang_y 
+    plt%autoscale_gang_x     = plot%autoscale_gang_x 
+    plt%autoscale_gang_y     = plot%autoscale_gang_y 
+    if (plt%x%major_div < 0 .and. plt%x%major_div_nominal < 0) plt%x%major_div_nominal = 6
 
     if (plot%independent_graphs) then  ! Old style
       call out_io (s_error$, r_name, (/ &
@@ -452,10 +455,12 @@ do  ! Loop over plot files
       grph%title_suffix          = ''
       grph%text_legend           = ''
       grph%y2_mirrors_y          = .true.
+      if (grph%x%major_div < 0 .and. grph%x%major_div_nominal < 0) grph%x%major_div_nominal = 6
+      if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
+      if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4
 
       if (grph%type == 'lat_layout') then
         grph%x%major_div = 1
-        grph%x%major_div_nominal = 1
       endif
 
       call qp_calc_axis_places (grph%x)
@@ -772,9 +777,8 @@ allocate (plt%graph(2)%curve(1))
 plt%name                 = 'beta'
 plt%x_axis_type          = 's'
 plt%x                    = init_axis
-plt%x%major_div_nominal  = 10
+plt%x%major_div_nominal  = 8
 plt%x%minor_div_max = 6
-plt%x%major_div = 6
 plt%autoscale_gang_x = .true.
 plt%autoscale_gang_y = .true.
 
@@ -787,7 +791,7 @@ grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%box           = (/ 1, 2, 1, 2 /)
 grph%y             = init_axis
 grph%y%label       = '\gb\dA\u'
-grph%y%major_div   = 4
+grph%y%major_div_nominal   = 4
 grph%y2%draw_numbers = .false.
 grph%component     = 'model'
 crv => grph%curve(1)
@@ -822,7 +826,7 @@ grph => plt%graph(1)
 grph%name          = 'x'
 grph%title         = 'Horizontal Eta'
 grph%y%label       = '\gy\dX\u'
-grph%y%major_div   = 4
+grph%y%major_div_nominal   = 4
 crv => grph%curve(1)
 crv%data_type = 'eta.x'
 
@@ -852,7 +856,7 @@ grph => plt%graph(1)
 grph%name          = 'x'
 grph%title         = 'Horizontal Orbit'
 grph%y%label       = 'X'
-grph%y%major_div   = 4
+grph%y%major_div_nominal   = 4
 crv => grph%curve(1)
 crv%data_type = 'orbit.x'
 

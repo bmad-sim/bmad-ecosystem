@@ -1328,13 +1328,13 @@ Template plots are defined using namelists with a name of
 For example:
 \begin{example}
   &tao_template_plot
-    plot%name        = "orbit"
-    plot%x%min       =   0
-    plot%x%max       = 100
-    plot%x%major_div = 10
-    plot%x%label     = "Index"
-    plot%n_graph     = 2
-    default_graph%y%max = 10
+    plot%name                = "orbit"
+    plot%x%min               =   0
+    plot%x%max               = 100
+    plot%x%major_div_nominal = 10
+    plot%x%label             = "Index"
+    plot%n_graph             = 2
+    default_graph%y%max      = 10
   /
 \end{example}
 
@@ -1351,6 +1351,7 @@ information see the \vn{Quick Plot} documentation on the
 \vn{qp_axis_struct} in the Bmad manual. The major components are
 \index{qp_axis_struct!min}
 \index{qp_axis_struct!max}
+\index{qp_axis_struct!major_div_nominal}
 \index{qp_axis_struct!major_div}
 \index{qp_axis_struct!minor_div}
 \index{qp_axis_struct!label}
@@ -1359,6 +1360,7 @@ information see the \vn{Quick Plot} documentation on the
   max        ! Right edge value.
   major_div  ! Number of major divisions. 
              !  Number of major tick marks is one less.
+  major_div_nominal ! Nominal number of major divisions
   minor_div  ! Number of minor divisions. 0 = auto choose.
   label      ! Axis label.
 \end{example}
@@ -1366,6 +1368,16 @@ If \vn{min} and \vn{max} are absent, then \tao will autoscale the
 axis.  If it is desired to have differing scales for different graphs,
 the \vn{graph%x} component can be used (see below).
 
+Both \vn{major_div} and \vn{major_div_nominal} set the number of major
+divisions in the plot. The difference between the two is that with
+\vn{major_div} the number of major divisions is fixed at the set value
+and with \vn{major_div_nominal} the number of major divisions can vary
+from the set value when \tao scales a graph. If
+\vn{major_div_nominal} is set, this will override any setting of
+\vn{major_div}. If neither \vn{major_div} nor \vn{major_div_nominal}
+is set, a value will be choisen for \vn{major_div_nominal} by \tao. If
+you are unsure which to set, it is recommended that
+\vn{major_div_nominal} be used.
 
 The \vn{plot%autoscale_gang_x} and \vn{plot%autoscale_gang_y}
 components set how the \vn{x-scale} (\sref{s:x.scale}) and \vn{scale}
@@ -1450,22 +1462,22 @@ namelists should be placed directly after their respective
 For example:
 \begin{example}
   &tao_template_graph
-    graph_index           = 1
-    graph%name            = "x"
-    graph%type            = "data"
-    graph%box             = 1, 1, 1, 2
-    graph%title           = "Horizontal Orbit (mm)"
-    graph%margin          =  60, 200, 30, 30, "POINTS"
-    graph%y%label         = "X"
-    graph%y%max           =  4
-    graph%y%min           = -4
-    graph%y%major_div     = 4
-    graph%n_curve         = 1
-    graph%component       = "model - design"
-    curve(1)%data_source  = "data_array"
-    curve(1)%data_type    = "orbit.x"
-    curve(1)%units_factor = 1000
-    curve(1)%use_y2       = F
+    graph_index               = 1
+    graph%name                = "x"
+    graph%type                = "data"
+    graph%box                 = 1, 1, 1, 2
+    graph%title               = "Horizontal Orbit (mm)"
+    graph%margin              =  60, 200, 30, 30, "POINTS"
+    graph%y%label             = "X"
+    graph%y%max               =  4
+    graph%y%min               = -4
+    graph%y%major_div_nominal = 4
+    graph%n_curve             = 1
+    graph%component           = "model - design"
+    curve(1)%data_source      = "data_array"
+    curve(1)%data_type        = "orbit.x"
+    curve(1)%units_factor     = 1000
+    curve(1)%use_y2           = F
   /
 \end{example}
 
@@ -1847,7 +1859,7 @@ Example Floor Plan template:
     plot%name = "floor"
     plot%x%min = -12  
     plot%x%max = 0    
-    plot%x%major_div = 4
+    plot%x%major_div_nominal = 4
     plot%x%minor_div = 3
     plot%x%label = "Meters"
     plot%n_graph = 1
@@ -1977,7 +1989,7 @@ Example Phase Space template:
     plot%name = "zphase"
     plot%x%min =   -10e-3
     plot%x%max = 10e-3
-    plot%x%major_div = 4
+    plot%x%major_div_nominal = 4
     plot%x%label = "z"
     plot%n_graph = 1
   /
@@ -1992,7 +2004,7 @@ Example Phase Space template:
     graph%y%label = "Pz"
     graph%y%max = 3
     graph%y%min = -3
-    graph%y%major_div = 4
+    graph%y%major_div_nominal = 4
     graph%n_curve = 1
     curve(1)%data_type_x = "z" 
     curve(1)%data_type = "pz" 

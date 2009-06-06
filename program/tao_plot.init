@@ -34,7 +34,7 @@ Templates define the basics of, say, how to display an orbit.
   plot%name = 'orbit'
   plot%x%min =   0
   plot%x%max = 100
-  plot%x%major_div = 10
+  plot%x%major_div_nominal = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 2
@@ -78,7 +78,7 @@ Templates define the basics of, say, how to display an orbit.
   plot%name = 'phase'
   plot%x%min =   0
   plot%x%max = 100
-  plot%x%major_div = 10
+  plot%x%major_div_nominal = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 2
@@ -122,7 +122,7 @@ Templates define the basics of, say, how to display an orbit.
   plot%name = 'beta'
   plot%x%min =   0
   plot%x%max = 100
-  plot%x%major_div = 10
+  plot%x%major_div_nominal = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 2
@@ -166,7 +166,7 @@ Templates define the basics of, say, how to display an orbit.
   plot%name = 'eta'
   plot%x%min =   0
   plot%x%max = 100
-  plot%x%major_div = 10
+  plot%x%major_div_nominal = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 2
@@ -208,7 +208,7 @@ Templates define the basics of, say, how to display an orbit.
   plot%name = 'cbar'
   plot%x%min =   0
   plot%x%max = 100
-  plot%x%major_div = 10
+  plot%x%major_div_nominal = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 3
@@ -265,7 +265,7 @@ Templates define the basics of, say, how to display an orbit.
   plot%name = 'quad_k1'
   plot%x%min =   0
   plot%x%max = 120
-  plot%x%major_div = 10
+  plot%x%major_div_nominal = 10
   plot%x%label = ' '
   plot%x_axis_type = 'index'
   plot%n_graph = 1

@@ -10,22 +10,22 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_cmd (where, x_min, x_max, err, gang)
+! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
-!   where -- Character(*): Region to scale. Eg: "top"
-!   x_min -- Real(rp): Plot x-axis min value.
-!   x_max -- Real(rp): Plot x-axis max value.
-!   gang  -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   where    -- Character(*): Region to scale. Eg: "top"
+!   x_min_in -- Real(rp): Plot x-axis min value.
+!   x_max_in -- Real(rp): Plot x-axis max value.
+!   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
 !
 !  Output:
 !   err -- Logical: Set to True if the plot cannot be found. False otherwise.
 !-
 
-subroutine tao_x_scale_cmd (where, x_min, x_max, err, gang)
+subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang)
 
 implicit none
 
@@ -33,7 +33,7 @@ type (tao_plot_struct), pointer :: p, p2
 type (tao_plot_array_struct), allocatable, save :: plot(:)
 type (tao_graph_array_struct), allocatable, save :: graph(:)
 
-real(rp) x_min, x_max
+real(rp) x_min_in, x_max_in, x_min, x_max
 
 integer i, j, n, ix, places, im
 
@@ -42,6 +42,11 @@ character(*), optional :: gang
 character(20) :: r_name = 'tao_x_scale_cmd'
 
 logical err, all_same
+
+! Use local vars in case the actual args are something like graph%x%min, etc.
+
+x_min = x_min_in
+x_max = x_max_in
 
 ! find plots to scale
 
@@ -97,24 +102,24 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_plot (plot, x_min, x_max, gang)
+! Subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
 ! 
 ! Input:
-!   plot  -- Tao_plot_struct: Plot to scale. Eg: "top"
-!   x_min -- Real(rp): Plot x-axis min value.
-!   x_max -- Real(rp): Plot x-axis max value.
-!   gang  -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   plot     -- Tao_plot_struct: Plot to scale. Eg: "top"
+!   x_min_in -- Real(rp): Plot x-axis min value.
+!   x_max_in -- Real(rp): Plot x-axis max value.
+!   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
 !-
 
-subroutine tao_x_scale_plot (plot, x_min, x_max, gang)
+subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
 
-real(rp) x_min, x_max, this_min, this_max, major_div_nominal
+real(rp) x_min_in, x_max_in, x_min, x_max, this_min, this_max, major_div_nominal
 integer i, j, p1, p2
 character(*), optional :: gang
 character(16) :: r_name = 'tao_x_scale_plot'
@@ -124,6 +129,11 @@ logical do_gang
 
 if (.not. allocated (plot%graph)) return
 if (size(plot%graph) == 0) return
+
+! Use local vars in case the actual args are something like graph%x%min, etc.
+
+x_min = x_min_in
+x_max = x_max_in
 
 !
 
@@ -147,8 +157,13 @@ if (x_min == x_max .and. do_gang) then
   this_min = minval (plot%graph(:)%x%min)
   this_max = maxval (plot%graph(:)%x%max)
   major_div_nominal = real(sum(plot%graph(:)%x%major_div_nominal)) / size(plot%graph)
-  p1 = nint(0.7 * major_div_nominal)  
-  p2 = nint(1.3 * major_div_nominal)
+  if (major_div_nominal > 0) then
+    p1 = nint(0.7 * major_div_nominal)  
+    p2 = nint(1.3 * major_div_nominal)
+  else
+    p1 = real(sum(plot%graph(:)%x%major_div)) / size(plot%graph)
+    p2 = p1
+  endif
   do i = 1, size(plot%graph)
     graph => plot%graph(i)
     call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
@@ -183,8 +198,13 @@ if (graph%type == 'key_table') return
 
 if (x_max /= x_min) then
 
-  p1 = nint(0.6 * graph%x%major_div_nominal)  
-  p2 = nint(1.4 * graph%x%major_div_nominal)  
+  if (graph%x%major_div_nominal> 0) then
+    p1 = nint(0.7 * graph%x%major_div_nominal)  
+    p2 = nint(1.3 * graph%x%major_div_nominal)  
+  else
+    p1 = graph%x%major_div
+    p2 = p1
+  endif
   graph%x%min = x_min
   graph%x%max = x_max
   call qp_calc_axis_divisions (x_min, x_max, p1, p2, graph%x%major_div)
@@ -256,11 +276,17 @@ if (.not. curve_here) then
   this_min = 0
 endif
 
-p1 = nint(0.7 * graph%x%major_div_nominal)  
-p2 = nint(1.3 * graph%x%major_div_nominal)
+if (graph%x%major_div_nominal > 0) then
+  p1 = nint(0.7 * graph%x%major_div_nominal)  
+  p2 = nint(1.3 * graph%x%major_div_nominal)
+else
+  p1 = graph%x%major_div
+  p2 = p1
+endif
+
 call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
 call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
-  
+
 end subroutine 
 
 end module
