@@ -582,12 +582,12 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_pointer_to_axis (axis, axis_ptr)
+! Subroutine qp_pointer_to_axis (axis_str, axis_ptr)
 !   
 ! Subroutine to return a pointer to an common block axis.
 !
 ! Input:
-!   axis -- Character(*): 
+!   axis_str -- Character(*): 
 !                 'X' to set the Left x-axis
 !                 'Y' to set the Bottom y-axis.
 !                 'X2' to set the Right x-axis
@@ -597,27 +597,27 @@ end subroutine
 !   axis_ptr -- Qp_axis_struct, pointer: Pointer to the common block axis.
 !-
 
-subroutine qp_pointer_to_axis (axis, axis_ptr)
+subroutine qp_pointer_to_axis (axis_str, axis_ptr)
 
 implicit none
 
 type (qp_axis_struct), pointer :: axis_ptr
 
-character(*) axis
+character(*) axis_str
 character(20) :: r_name = 'qp_pointer_to_axis'
 
 !
 
-if (axis == 'X') then
+if (axis_str == 'X') then
   axis_ptr => qp_com%plot%x
-elseif (axis == 'Y') then
+elseif (axis_str == 'Y') then
   axis_ptr => qp_com%plot%y
-elseif (axis == 'X2') then
+elseif (axis_str == 'X2') then
   axis_ptr => qp_com%plot%x2
-elseif (axis == 'Y2') then
+elseif (axis_str == 'Y2') then
   axis_ptr => qp_com%plot%y2
 else
-  call out_io (s_fatal$, r_name, 'INVALID AXIS: ' // axis)
+  call out_io (s_fatal$, r_name, 'INVALID AXIS: ' // axis_str)
   call err_exit
 endif
 
@@ -677,7 +677,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_axis (axis, a_min, a_max, div, places, label, draw_label, 
+! Subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, 
 !               draw_numbers, minor_div, minor_div_max, mirror,
 !               number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)
 !   
@@ -685,7 +685,7 @@ end subroutine
 ! X and Y axes. 
 !
 ! Input:
-!   axis      -- Character(*): 
+!   axis_str  -- Character(*): 
 !                 'X' to set the Left x-axis
 !                 'Y' to set the Bottom y-axis.
 !                 'X2' to set the Right x-axis
@@ -718,7 +718,7 @@ end subroutine
 !   ax_type           -- Character(16): Axis type. 'LINEAR', or 'LOG'.
 !-
 
-subroutine qp_set_axis (axis, a_min, a_max, div, places, label, draw_label, &
+subroutine qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
                   draw_numbers, minor_div, minor_div_max, mirror, &
                   number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)
 
@@ -732,11 +732,11 @@ integer, optional :: div, places, minor_div, minor_div_max
 logical, optional :: draw_label, draw_numbers, mirror
 
 character(*), optional :: label, ax_type
-character(*) axis
+character(*) axis_str
 
 !
 
-call qp_pointer_to_axis (axis, this_axis)
+call qp_pointer_to_axis (axis_str, this_axis)
 
 if (present(a_min))  this_axis%min = a_min
 if (present(a_max))  this_axis%max = a_max
@@ -752,17 +752,17 @@ if (present(minor_div_max)) then
   this_axis%minor_div = 0
 endif
 
-if (axis == 'X2') then
+if (axis_str == 'X2') then
   if (present(a_min) .or. present(a_max)) qp_com%plot%x2_mirrors_x = .false.
 endif
 
-if (axis == 'Y2') then
+if (axis_str == 'Y2') then
   if (present(a_min) .or. present(a_max)) qp_com%plot%y2_mirrors_y = .false.
 endif
 
 if (present(mirror)) then
-  if (axis(1:1) == 'X') qp_com%plot%x2_mirrors_x = mirror
-  if (axis(1:1) == 'Y') qp_com%plot%y2_mirrors_y = mirror
+  if (axis_str(1:1) == 'X') qp_com%plot%x2_mirrors_x = mirror
+  if (axis_str(1:1) == 'Y') qp_com%plot%y2_mirrors_y = mirror
 endif
 
 
@@ -778,14 +778,14 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_get_axis (axis, a_min, a_max, div, places, label, 
+! Subroutine qp_get_axis (axis_str, a_min, a_max, div, places, label, 
 !               draw_label, draw_numbers, minor_div, mirror, number_offset, 
 !               label_offset, major_tick_len, minor_tick_len, ax_type)
 !   
 ! Subroutine to get the min, max, divisions etc. for the X and Y axes.  
 !
 ! Input:
-!   axis      -- Character(*): 
+!   axis_str  -- Character(*): 
 !                 'X' to set the Left x-axis
 !                 'Y' to set the Bottom y-axis.
 !                 'X2' to set the Right x-axis
@@ -811,7 +811,7 @@ end subroutine
 !   ax_type        -- Character(16): Axis type. 'LINEAR', or 'LOG'.
 !-
 
-subroutine qp_get_axis (axis, a_min, a_max, div, places, label, draw_label, &
+subroutine qp_get_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
                 draw_numbers, minor_div, mirror, number_offset, &
                 label_offset, major_tick_len, minor_tick_len, ax_type)
 
@@ -825,11 +825,11 @@ integer, optional :: div, places, minor_div
 logical, optional :: draw_label, draw_numbers, mirror
 
 character(*), optional :: label, ax_type
-character(*) axis
+character(*) axis_str
 
 !
 
-call qp_pointer_to_axis (axis, this_axis)
+call qp_pointer_to_axis (axis_str, this_axis)
 
 if (present(a_min))  a_min  = this_axis%min  
 if (present(a_max))  a_max  = this_axis%max  
@@ -842,8 +842,8 @@ if (present(draw_numbers)) draw_numbers = this_axis%draw_numbers
 if (present(minor_div))    minor_div    = this_axis%minor_div  
 
 if (present(mirror)) then
-  if (axis(1:1) == 'X') mirror = qp_com%plot%x2_mirrors_x
-  if (axis(1:1) == 'Y') mirror = qp_com%plot%y2_mirrors_y
+  if (axis_str(1:1) == 'X') mirror = qp_com%plot%x2_mirrors_x
+  if (axis_str(1:1) == 'Y') mirror = qp_com%plot%y2_mirrors_y
 endif
 
 if (present(number_offset))  number_offset  = this_axis%number_offset   
@@ -858,7 +858,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_calc_and_set_axis (axis, data_min, data_max, 
+! Subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, 
 !                         div_min, div_max, bounds, axis_type, slop_factor)
 !
 ! Subroutine to calculate a "nice" plot scale given the minimum and maximum
@@ -867,7 +867,7 @@ end subroutine
 ! Note: If data_min > data_max then on output axis%min > axis%max
 !
 ! Input:
-!   axis        -- Character(*): 
+!   axis_str    -- Character(*): 
 !                   'X' to set the Left x-axis
 !                   'Y' to set the Bottom y-axis.
 !                   'X2' to set the Right x-axis
@@ -894,7 +894,7 @@ end subroutine
 !   divisions = 4
 !-
 
-subroutine qp_calc_and_set_axis (axis, data_min, data_max, &
+subroutine qp_calc_and_set_axis (axis_str, data_min, data_max, &
                       div_min, div_max, bounds, axis_type, slop_factor)
 
 implicit none
@@ -907,12 +907,12 @@ integer div_min, div_max
 real(rp) data_max, data_min, axis_max, axis_min
 real(rp), optional :: slop_factor
 
-character(*) axis, bounds
+character(*) axis_str, bounds
 character(*), optional :: axis_type
 
 !
 
-call qp_pointer_to_axis (axis, ax)
+call qp_pointer_to_axis (axis_str, ax)
 ax%bounds = bounds
 ax%type = 'LINEAR'
 if (present(axis_type)) ax%type = axis_type
