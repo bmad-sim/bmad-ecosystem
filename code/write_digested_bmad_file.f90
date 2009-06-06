@@ -134,8 +134,8 @@ write (d_unit) ubound(lat%branch, 1)
 do i = 1, ubound(lat%branch, 1)
   branch => lat%branch(i)
   write (d_unit) branch%param
-  write (d_unit) branch%key, branch%ix_from_branch, branch%ix_from_ele, &
-                                      branch%n_ele_track, branch%n_ele_max
+  write (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
@@ -168,6 +168,8 @@ subroutine write_this_ele (ele)
 type (ele_struct), target :: ele
 type (taylor_struct), pointer :: tt(:)
 type (wake_struct), pointer :: wake
+
+integer j
 
 !
 

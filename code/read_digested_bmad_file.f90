@@ -228,8 +228,8 @@ if (version > 86) then
     branch => lat%branch(i)
     branch%ix_branch = i
     read (d_unit) branch%param
-    read (d_unit) branch%key, branch%ix_from_branch, branch%ix_from_ele, &
-                                      branch%n_ele_track, branch%n_ele_max
+    read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
     call allocate_ele_array (branch%ele, branch%n_ele_max)
     do j = 0, branch%n_ele_max
       call read_this_ele (branch%ele(j), j, error)
@@ -323,7 +323,7 @@ contains
 subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct) ele
-integer ix_ele
+integer j, ix_ele
 logical error
 
 !

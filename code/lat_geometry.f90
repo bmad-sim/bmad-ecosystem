@@ -146,6 +146,7 @@ endif
 ! General case where layout is not in the horizontal plane
 
 if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
+             (key == mirror$  .and. ele%value(tilt_tot$) /= 0) .or. &
              (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0) .or. &
              (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
 
@@ -273,7 +274,7 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
 
   ! if there has been a rotation calculate new theta, phi, and psi
 
-  if (key == sbend$ .or. key == patch$ .or. key == multipole$) then
+  if (key == sbend$ .or. key == patch$ .or. key == multipole$ .or. key == mirror$) then
     if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then ! special degenerate case
       ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
       theta = floor0%theta  
@@ -303,10 +304,13 @@ else
 
   select case (key)
   case (sbend$)
-    angle = leng * dble(ele%value(g$))
+    angle = leng * ele%value(g$)
     chord_len = 2 * leng * sin(angle/2) / angle
   case (multipole$)
     angle = knl(0)
+    chord_len = 0
+  case (mirror$)
+    angle = 2 * ele%value(graze_angle$)
     chord_len = 0
   case default
     angle = 0
