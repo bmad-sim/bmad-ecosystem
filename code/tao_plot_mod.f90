@@ -465,22 +465,7 @@ if (ele%key == sbend$) then
 endif
 
 ! Draw the element...
-! Draw top and bottom
-
-if (shape /= 'DIAMOND' .and. shape /= 'CIRCLE') then
-  if (ele%key == sbend$) then
-    call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                          y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
-    call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                          y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
-
-  else
-    call qp_draw_line (end1%x+dx1, end2%x+dx2, end1%y+dy1, end2%y+dy2, &
-                                                    units = 'POINTS', color = icol)
-    call qp_draw_line (end1%x-dx1, end2%x-dx2, end1%y-dy1, end2%y-dy2, &
-                                                    units = 'POINTS', color = icol)
-  endif
-endif
+! Draw diamond
 
 if (shape == 'DIAMOND') then
   if (ele%key == sbend$) then
@@ -499,12 +484,38 @@ if (shape == 'DIAMOND') then
   call qp_draw_line (end1%x, x2, end1%y, y2, units = 'POINTS', color = icol)
   call qp_draw_line (end2%x, x1, end2%y, y1, units = 'POINTS', color = icol)
   call qp_draw_line (end2%x, x2, end2%y, y2, units = 'POINTS', color = icol)
+endif
 
-elseif (shape /= 'BOW_TIE' .and. shape /= 'CIRCLE') then
-  ! Draw sides
-  call qp_draw_line (end1%x+dx1, end1%x-dx1, end1%y+dy1, end1%y-dy1, &
+! Draw a circle.
+
+if (shape == 'CIRCLE') then
+  call qp_draw_circle ((end1%x+end2%x)/2, (end1%y+end2%y)/2, off, &
                                                   units = 'POINTS', color = icol)
-  call qp_draw_line (end2%x+dx2, end2%x-dx2, end2%y+dy2, end2%y-dy2, &
+endif
+
+! Draw top and bottom
+
+if (shape /= 'DIAMOND' .and. shape /= 'CIRCLE') then
+  if (ele%key == sbend$) then
+    call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
+                          y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
+    call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
+                          y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
+
+  else
+    call qp_draw_line (end1%x+dx1, end2%x+dx1, end1%y+dy1, end2%y+dy1, &
+                                                    units = 'POINTS', color = icol)
+    call qp_draw_line (end1%x-dx2, end2%x-dx2, end1%y-dy2, end2%y-dy2, &
+                                                    units = 'POINTS', color = icol)
+  endif
+endif
+
+! Draw sides
+
+if (shape /= 'BOW_TIE' .and. shape /= 'CIRCLE' .and. shape /= 'DIAMOND') then
+  call qp_draw_line (end1%x+dx1, end1%x-dx2, end1%y+dy1, end1%y-dy2, &
+                                                  units = 'POINTS', color = icol)
+  call qp_draw_line (end2%x+dx1, end2%x-dx2, end2%y+dy1, end2%y-dy2, &
                                                   units = 'POINTS', color = icol)
 endif
 
@@ -513,14 +524,7 @@ endif
 if (shape == 'XBOX' .or. shape == 'BOW_TIE') then
   call qp_draw_line (end1%x+dx1, end2%x-dx2, end1%y+dy1, end2%y-dy2, &
                                                   units = 'POINTS', color = icol)
-  call qp_draw_line (end1%x-dx1, end2%x+dx2, end1%y-dy1, end2%y+dy2, &
-                                                  units = 'POINTS', color = icol)
-endif
-
-! Draw a circle.
-
-if (shape == 'CIRCLE') then
-  call qp_draw_circle ((end1%x+end2%x)/2, (end1%y+end2%y)/2, off, &
+  call qp_draw_line (end1%x-dx2, end2%x+dx1, end1%y-dy1, end2%y+dy2, &
                                                   units = 'POINTS', color = icol)
 endif
 
