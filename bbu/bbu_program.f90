@@ -61,6 +61,7 @@ call twiss_propagate_all (lat_in)
 ! Initialize DR scan
 
 nstep = 1
+dr=0
 if (bbu_param%drscan) then
 ! Determine element index of variable-length element
   do i = 1, lat_in%n_ele_max
