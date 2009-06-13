@@ -50,7 +50,7 @@ read (1, nml = bbu_params)
 close (1)
 
 ! Define distance between bunches
-beam_init%ds_bunch = c_light / bbu_param%bunch_freq
+beam_init%dt_bunch = 1 / bbu_param%bunch_freq
 
 ! Init
 
@@ -130,7 +130,7 @@ do istep = 1, nstep
   endif
 
 
-  call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
+  call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
   print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
@@ -146,7 +146,7 @@ do istep = 1, nstep
 
   ! Track to find upper limit
 
-  beam_init%bunch_charge = bbu_param%current * beam_init%ds_bunch / c_light
+  beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
   charge0 = 0
 
   Print *, 'Searching for a current where the tracking is unstable...'
@@ -160,14 +160,13 @@ do istep = 1, nstep
       exit
     endif
     charge0 = beam_init%bunch_charge
-!    print *,' Inputs for initial current:',charge0, c_light, beam_init%ds_bunch
-    print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
+    print *, '  Stable at (mA):', 1e3 * charge0 * beam_init%dt_bunch 
     print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
     beam_init%bunch_charge = beam_init%bunch_charge * 2
   enddo
 
   charge1 = beam_init%bunch_charge
-  print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
+  print *, '  Unstable at (mA):', 1e3 * charge1 * beam_init%dt_bunch 
   print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
 
   ! Track to bracket threshold
@@ -181,11 +180,11 @@ do istep = 1, nstep
     if (lost) print *, 'Particle(s) lost. Assuming unstable...'
     if (lost .or. hom_power_gain > 1) then
       charge1 = beam_init%bunch_charge
-      print *, '  Unstable at (mA):', 1e3 * charge1 * c_light / beam_init%ds_bunch 
+      print *, '  Unstable at (mA):', 1e3 * charge1 * beam_init%dt_bunch 
       print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
     else
       charge0 = beam_init%bunch_charge
-      print *, '  Stable at (mA):', 1e3 * charge0 * c_light / beam_init%ds_bunch 
+      print *, '  Stable at (mA):', 1e3 * charge0 * beam_init%dt_bunch 
       print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
     endif
 
@@ -193,9 +192,9 @@ do istep = 1, nstep
   enddo
 
   beam_init%bunch_charge = (charge0 + charge1) / 2
-  print *, 'Threshold Current (A):', beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  print *, 'Threshold Current (A):', beam_init%bunch_charge * beam_init%dt_bunch 
 
-  if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge * c_light / beam_init%ds_bunch 
+  if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge * beam_init%dt_bunch 
 
 enddo
 

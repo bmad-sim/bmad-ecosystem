@@ -51,7 +51,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_setup (lat, ds_bunch, bbu_param, bbu_beam)
+subroutine bbu_setup (lat, dt_bunch, bbu_param, bbu_beam)
 
 implicit none
 
@@ -64,18 +64,18 @@ type (ele_struct), pointer :: ele
 integer i, j, k, ih, ix_pass, n_links
 integer, allocatable, save :: ix_chain(:)
 
-real(rp) ds_bunch, rr(4)
+real(rp) dt_bunch, rr(4)
 
 character(16) :: r_name = 'bbu_setup'
 
 ! Size bbu_beam%bunch
 
-if (ds_bunch == 0) then
-  call out_io (s_fatal$, r_name, 'DS_BUNCH IS ZERO!')
+if (dt_bunch == 0) then
+  call out_io (s_fatal$, r_name, 'DT_BUNCH IS ZERO!')
   call err_exit
 endif
 
-bbu_beam%n_bunch_in_lat = (lat%param%total_length / ds_bunch) + 1
+bbu_beam%n_bunch_in_lat = (lat%ele(lat%n_ele_track)%ref_time / dt_bunch) + 1
 bbu_beam%one_turn_time = lat%ele(lat%n_ele_track)%ref_time
 
 if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
@@ -137,7 +137,7 @@ do i = 1, lat%n_ele_track
     enddo
     if (k > j) then
       call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR.')
-      stop
+      call err_exit
     endif
   else
     bbu_beam%stage(j)%ix_stage_pass1 = j
@@ -169,7 +169,7 @@ character(16) :: r_name = 'bbu_track_all'
 
 ! Setup.
 
-call bbu_setup (lat, beam_init%ds_bunch, bbu_param, bbu_beam)
+call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
 call lattice_bookkeeper (lat)
 bmad_com%auto_bookkeeper = .false. ! To speed things up.
@@ -304,7 +304,7 @@ endif
 
 if (ib == bbu_beam%ix_bunch_end) then
   call out_io (s_fatal$, r_name, 'NO BUNCHES FOR THE FIRST STAGE. GET HELP!')
-  stop
+  call err_exit
 else
   ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
   if (bbu_beam%bunch(ib2)%ix_ele == ix_ele_start) then
@@ -378,9 +378,8 @@ call init_bunch_distribution (lat%ele(0), beam_init, bunch)
 if (ixb /= bbu_beam%ix_bunch_head) then
   ix0 = bbu_beam%ix_bunch_end
   bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
-  bunch%z_center = bbu_beam%bunch(ix0)%z_center - beam_init%ds_bunch
-  bunch%t_center = -bunch%z_center * &
-                         lat%ele(0)%value(p0c$) / (c_light * lat%ele(0)%value(e_tot$))
+  bunch%t_center = bbu_beam%bunch(ix0)%t_center + beam_init%dt_bunch
+  bunch%z_center = -bunch%t_center * c_light * lat%ele(0)%value(e_tot$) / lat%ele(0)%value(p0c$)
 endif
 
 bbu_beam%ix_bunch_end = ixb
