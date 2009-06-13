@@ -43,7 +43,7 @@ type beam_init_struct
   real(rp) b_norm_emitt     ! b-mode emittance
   real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
-  real(rp) ds_bunch         ! Distance between bunches.
+  real(rp) dt_bunch         ! Time between bunches.
   real(rp) sig_z            ! Z sigma in m.
   real(rp) sig_e            ! e_sigma in dE/E.
   real(rp) bunch_charge     ! charge in a bunch.

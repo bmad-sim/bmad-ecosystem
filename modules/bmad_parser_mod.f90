@@ -2731,126 +2731,123 @@ do
     if (ref_ele%lord_status == group_lord$ .or. ref_ele%slave_status == super_slave$) cycle
     if (ref_ele%lord_status == girder_lord$) cycle
     if (ref_ele%old_is_on) cycle
+    if (.not. match_wild(ref_ele%name, pele%ref_name)) cycle
 
-    if (match_wild(ref_ele%name, pele%ref_name)) then
+    do i = 1, n_inserted
+      if (ref_ele%name == matched_name(i)) cycle ele_loop
+    enddo
+   
+    ref_ele%old_is_on = .true.
 
-      do i = 1, n_inserted
-        if (ref_ele%name == matched_name(i)) cycle ele_loop
+    ! If superimposing on a multipass_lord then the superposition
+    ! must be done at all multipass locations.
+
+    if (ref_ele%lord_status == multipass_lord$) then
+      allocate (ixs(ref_ele%n_slave), multi_name(ref_ele%n_slave))
+      do i = ref_ele%ix1_slave, ref_ele%ix2_slave  
+        ix = lat%control(i)%ix_slave 
+        lat%ele(ix)%ix_pointer = i + 1 - ref_ele%ix1_slave  ! tag ref element
       enddo
-     
-      ref_ele%old_is_on = .true.
+      call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+      super_ele%name = super_ele_saved%name(:ix)
 
-      ! If superimposing on a multipass_lord then the superposition
-      ! must be done at all multipass locations.
+      ! Put in the superposition at the multipass locations.
+      ! Since elements get shuffled around tag the superimposed elements 
+      !     with a dummy name to identify them later.
 
-      if (ref_ele%lord_status == multipass_lord$) then
-        allocate (ixs(ref_ele%n_slave), multi_name(ref_ele%n_slave))
-        do i = ref_ele%ix1_slave, ref_ele%ix2_slave  
-          ix = lat%control(i)%ix_slave 
-          lat%ele(ix)%ix_pointer = i + 1 - ref_ele%ix1_slave  ! tag ref element
-        enddo
-        call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-        super_ele%name = super_ele_saved%name(:ix)
-
-        ! Put in the superposition at the multipass locations.
-        ! Since elements get shuffled around tag the superimposed elements 
-        !     with a dummy name to identify them later.
-
-        i = 0  ! Element index
-        j = 0  ! Number of superpositions done.
-        do while (i < lat%n_ele_max)
-          i = i + 1
-          if (lat%ele(i)%ix_pointer /= j+1) cycle
-          j = j + 1
-          call compute_super_lord_s (lat, i, super_ele, pele)
-          call add_superimpose (lat, super_ele, i_sup)
-          lat%ele(i_sup)%name = 'dummy name'
-        enddo
-
-        ! Remove any multipass_lord drifts that no longer do anything.
-        ! We can recognize these elements since they control super_slaves.
-        ! Also mark any of their lords for deletion.
-
-        call multipass_all_info (lat, m_info) ! Save multipass info for later.
-
-        do i = lat%n_ele_track+1, lat%n_ele_max 
-          ele => lat%ele(i)
-          if (ele%key /= drift$) cycle
-          ix = lat%control(ele%ix1_slave)%ix_slave
-          if (lat%ele(ix)%slave_status /= super_slave$) cycle
-          ele%key = -1 ! mark for deletion
-          do j = ele%ic1_lord, ele%ic2_lord
-            ix = lat%control(lat%ic(j))%ix_lord
-            lat%ele(ix)%key = -1  ! Mark lord for deletion
-          enddo
-        enddo
-        call remove_eles_from_lat (lat, .false.) ! and delete
-
-        ! Add a multipass_lord to control the created super_lords.
-        ! If the super_lords have a single super_slave and the super_slave
-        ! has only a single super_lord, the super_lords
-        ! can be eliminated and the created multipass_lord can control the
-        ! super_slaves directly
-
-        j = 0
-        do i = 1, lat%n_ele_max
-          if (lat%ele(i)%name == 'dummy name') then
-            lat%ele(i)%name = super_ele_saved%name
-            j = j + 1
-            ixs(j) = i
-          endif
-        enddo
-
-        ele => lat%ele(ixs(1))
-        if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
-          ix = lat%control(ele%ix1_slave)%ix_slave
-          if (lat%ele(ix)%n_lord == 1) then
-            do i = 1, size(ixs)
-              ele => lat%ele(ixs(i))
-              ele%key = -1 ! Mark for deletion
-              ixs(i) = lat%control(ele%ix1_slave)%ix_slave ! point to super_slave
-              lat%ele(ixs(i))%name = super_ele_saved%name
-            enddo
-            call remove_eles_from_lat (lat, .false.)
-          endif
-        endif
-
-        call add_this_multipass (lat, ixs)    
-        super_ele%name = super_ele_saved%name
-
-        ! Reconnect drifts that were part of the multipass region.
-
-        do i = 1, size(m_info%top)
-          do j = 1, size(m_info%top(i)%ix_slave, 2)
-            ix = m_info%top(i)%ix_slave(1, j)
-            if (lat%ele(ix)%key /= drift$) cycle
-            if (lat%ele(ix)%slave_status == multipass_slave$) cycle
-            ixs = m_info%top(i)%ix_slave(:, j)
-            do k = 1, size(ixs)
-              ele => lat%ele(ixs(k))
-              ib = index(ele%name, '\') ! '
-              if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
-            enddo
-            call add_this_multipass (lat, ixs)
-          enddo
-        enddo
-
-      ! Else not superimposing on a multipass_lord ...
-
-      else
-        call compute_super_lord_s (lat, i_ele, super_ele, pele)
-        call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
-        super_ele%name = super_ele_saved%name(:ix)            
+      i = 0  ! Element index
+      j = 0  ! Number of superpositions done.
+      do while (i < lat%n_ele_max)
+        i = i + 1
+        if (lat%ele(i)%ix_pointer /= j+1) cycle
+        j = j + 1
+        call compute_super_lord_s (lat, i, super_ele, pele)
         call add_superimpose (lat, super_ele, i_sup)
+        lat%ele(i_sup)%name = 'dummy name'
+      enddo
+
+      ! Remove any multipass_lord drifts that no longer do anything.
+      ! We can recognize these elements since they control super_slaves.
+      ! Also mark any of their lords for deletion.
+
+      call multipass_all_info (lat, m_info) ! Save multipass info for later.
+
+      do i = lat%n_ele_track+1, lat%n_ele_max 
+        ele => lat%ele(i)
+        if (ele%key /= drift$) cycle
+        ix = lat%control(ele%ix1_slave)%ix_slave
+        if (lat%ele(ix)%slave_status /= super_slave$) cycle
+        ele%key = -1 ! mark for deletion
+        do j = ele%ic1_lord, ele%ic2_lord
+          ix = lat%control(lat%ic(j))%ix_lord
+          lat%ele(ix)%key = -1  ! Mark lord for deletion
+        enddo
+      enddo
+      call remove_eles_from_lat (lat, .false.) ! and delete
+
+      ! Add a multipass_lord to control the created super_lords.
+      ! If the super_lords have a single super_slave and the super_slave
+      ! has only a single super_lord, the super_lords
+      ! can be eliminated and the created multipass_lord can control the
+      ! super_slaves directly
+
+      j = 0
+      do i = 1, lat%n_ele_max
+        if (lat%ele(i)%name == 'dummy name') then
+          lat%ele(i)%name = super_ele_saved%name
+          j = j + 1
+          ixs(j) = i
+        endif
+      enddo
+
+      ele => lat%ele(ixs(1))
+      if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
+        ix = lat%control(ele%ix1_slave)%ix_slave
+        if (lat%ele(ix)%n_lord == 1) then
+          do i = 1, size(ixs)
+            ele => lat%ele(ixs(i))
+            ele%key = -1 ! Mark for deletion
+            ixs(i) = lat%control(ele%ix1_slave)%ix_slave ! point to super_slave
+            lat%ele(ixs(i))%name = super_ele_saved%name
+          enddo
+          call remove_eles_from_lat (lat, .false.)
+        endif
       endif
 
-      call s_calc (lat)
+      call add_this_multipass (lat, ixs)    
+      super_ele%name = super_ele_saved%name
 
-      n_inserted = n_inserted + 1
-      matched_name(n_inserted) = super_ele%name
-      have_inserted = .true.   
+      ! Reconnect drifts that were part of the multipass region.
 
+      do i = 1, size(m_info%top)
+        do j = 1, size(m_info%top(i)%ix_slave, 2)
+          ix = m_info%top(i)%ix_slave(1, j)
+          if (lat%ele(ix)%key /= drift$) cycle
+          if (lat%ele(ix)%slave_status == multipass_slave$) cycle
+          ixs = m_info%top(i)%ix_slave(:, j)
+          do k = 1, size(ixs)
+            ele => lat%ele(ixs(k))
+            ib = index(ele%name, '\') ! '
+            if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
+          enddo
+          call add_this_multipass (lat, ixs)
+        enddo
+      enddo
+
+    ! Else not superimposing on a multipass_lord ...
+
+    else
+      call compute_super_lord_s (lat, i_ele, super_ele, pele)
+      call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
+      super_ele%name = super_ele_saved%name(:ix)            
+      call add_superimpose (lat, super_ele, i_sup)
     endif
+
+    call s_calc (lat)
+
+    n_inserted = n_inserted + 1
+    matched_name(n_inserted) = super_ele%name
+    have_inserted = .true.   
 
   enddo ele_loop
 
@@ -3321,7 +3318,6 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%ele_pt  = center$
   plat%ele(i)%s       = 0
   plat%ele(i)%common_lord = .false.
-
   lat%ele(i)%ixx = i
 enddo
 

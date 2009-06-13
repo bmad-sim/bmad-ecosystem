@@ -750,8 +750,8 @@ do i_bunch = 1, size(beam%bunch)
   bunch => beam%bunch(i_bunch)
   call init_bunch_distribution (ele, beam_init, bunch)
 
-  bunch%z_center = (1-i_bunch) * beam_init%ds_bunch
-  bunch%t_center = -bunch%z_center * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
+  bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
   bunch%ix_bunch = i_bunch
 
 enddo
