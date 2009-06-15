@@ -449,10 +449,6 @@ contains
        bpm1 = bpm_pairs(i)%bpm_pntr(1)
        bpm2 = bpm_pairs(i)%bpm_pntr(2)
 
-!      bpm1b = bpm_pairs(i)%bpm_pntr(1)           !B mode BPM pair    
-!      bpm2b = bpm_pairs(i)%bpm_pntr(2)
-       !BPM1A = BPM1B, BPM2A = BPM2B (why have A and B?)
-
        if (abs(data_struc%loc(bpm2)%a%d_phase_adv) < 0.01) cycle
        if (abs(data_struc%loc(bpm2)%b%d_phase_adv) < 0.01) cycle
 
@@ -504,18 +500,18 @@ contains
           !Checking Inv Gamma Cbar Consistency
           !
           !*Check this
-          ring(i)%loc(bpm1)%inv_gamma_cbar_check(1) =  &
-               (ca * ring(i)%loc(bpm2)%inv_gamma_cbar(1,2) + &
-               sa * ring(i)%loc(bpm2)%inv_gamma_cbar(2,2) - &
-               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,1) - &
-               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,2))
+!          ring(i)%loc(bpm1)%inv_gamma_cbar_check(1) =  &
+!               (ca * ring(i)%loc(bpm2)%inv_gamma_cbar(1,2) + &
+!               sa * ring(i)%loc(bpm2)%inv_gamma_cbar(2,2) - &
+!               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,1) - &
+!               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,2))
 !          Print *, "Inv gamma cbar check: ", &
 !               ring(i)%loc(bpm1)%inv_gamma_cbar_check(1)
-          ring(i)%loc(bpm1)%inv_gamma_cbar_check(2) =  &
-               (-sa * ring(i)%loc(bpm2)%inv_gamma_cbar(1,1) + &
-               ca * ring(i)%loc(bpm2)%inv_gamma_cbar(2,1) - &
-               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,1) + &
-               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,2))
+!          ring(i)%loc(bpm1)%inv_gamma_cbar_check(2) =  &
+!               (-sa * ring(i)%loc(bpm2)%inv_gamma_cbar(1,1) + &
+!               ca * ring(i)%loc(bpm2)%inv_gamma_cbar(2,1) - &
+!               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,1) + &
+!               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,2))
           !          Print *, "Inv gamma cbar check: ", &
           !               ring(i)%loc(bpm1)%inv_gamma_cbar_check(2)
 
@@ -559,7 +555,7 @@ contains
        !
        do j = 1, NUM_BPMS
        !***This is always true. Does it have a purpose or should it be .and.?
-          if (j /= bpm1 .or. j /= bpm2) then 
+!          if (j /= bpm1 .or. j /= bpm2) then 
 
              !
              !Compute Gamma**2 Beta (pg 17) +
@@ -617,7 +613,7 @@ contains
              ring(i)%loc(j)%sqrt_beta_cbar(2,2) = &
                   sqrt(data_struc%loc(j)%a%magnitude2(2) / &
                   ring(i)%j_amp_ave(1)) * sin(0.-data_struc%loc(j)%a%d_delta)
-          end if
+ !         end if
        end do
     end do
 
@@ -677,7 +673,7 @@ contains
           !
           !Compute Beta
           !
-          !***Does not compute beta.
+          !***Does not compute beta. In general, this does nothing.
           data_struc%loc(jm)%a%beta = ring(ik)%loc(jm)%a%beta + &
                data_struc%loc(jm)%a%beta
           data_struc%loc(jm)%b%beta = ring(ik)%loc(jm)%b%beta + &
@@ -747,16 +743,17 @@ contains
             iostat = openstatus)
        if (openstatus > 0) print *, "*** Cannot open output file ***",&
             openstatus
-       open (unit = 29, file = "./data/out.beta", &
-            action = "write", position = "rewind",&
-            iostat = openstatus)
-       if (openstatus > 0) print *, "*** Cannot open output file ***",&
-            openstatus
-       open (unit = 31, file = "./data/out.cbar", &
-            action = "write", position = "rewind",&
-            iostat = openstatus)
-       if (openstatus > 0) print *, "*** Cannot open output file ***",&
-            openstatus
+!*For easy analysis of beta/cbar error with a plethora of files:
+!*      open (unit = 29, file = "./data/out.beta", &
+!            action = "write", position = "rewind",&
+!            iostat = openstatus)
+!       if (openstatus > 0) print *, "*** Cannot open output file ***",&
+!            openstatus
+!       open (unit = 31, file = "./data/out.cbar", &
+!            action = "write", position = "rewind",&
+!            iostat = openstatus)
+!       if (openstatus > 0) print *, "*** Cannot open output file ***",&
+!*            openstatus
 !    else
 !       open (unit = 27, file = trim(outname), &
 !            action = "write", position = "rewind",&
@@ -789,15 +786,15 @@ contains
     write (27, *), "Phi(t) A = ", data_struc%phi_t(1)
     write (27, *), "Phi(t) B = ", data_struc%phi_t(2)
     !Probably don't want lambda in final output...
-    write (27, *), " Values of Lambda"
-    write (29, *) "Tune A: ", data_struc%tune(1)
-    write (29, *), "Tune B: ", data_struc%tune(2)
-    write (31, *) "Tune A: ", data_struc%tune(1)
-    write (31, *), "Tune B: ", data_struc%tune(2)
+!    write (27, *), " Values of Lambda"
+!*    write (29, *) "Tune A: ", data_struc%tune(1)
+!   write (29, *), "Tune B: ", data_struc%tune(2)
+!   write (31, *) "Tune A: ", data_struc%tune(1)
+!*   write (31, *), "Tune B: ", data_struc%tune(2)
 
-    do i=1, 2*NUM_BPMS
-       write (27, *), data(1)%lambda(i), " , ", data(2)%lambda(i)
-    enddo
+!    do i=1, 2*NUM_BPMS
+!       write (27, *), data(1)%lambda(i), " , ", data(2)%lambda(i)
+!    enddo
 
     do i=1, n_pairs
        do j=1, 2
@@ -822,11 +819,12 @@ contains
             data_struc%loc(i)%a%phi, ",", data_struc%loc(i)%b%phi
     enddo
 
-    write (27, "(8x, a12)") "d_delta"
-    do i = 1, NUM_BPMS
-       write (27, 11) data_struc%loc(i)%a%d_delta, &
-            ",", data_struc%loc(i)%b%d_delta
-    enddo
+!Haven't used this data...disabled output for now.
+!-    write (27, "(8x, a12)") "d_delta"
+!    do i = 1, NUM_BPMS
+!       write (27, 11) data_struc%loc(i)%a%d_delta, &
+!            ",", data_struc%loc(i)%b%d_delta
+!-    enddo
 
     write (27,"(10x, a12)") "Gamma^2 Beta"
     do i = 1, NUM_BPMS
@@ -834,11 +832,11 @@ contains
             data_struc%loc(i)%b%gam2_beta
     enddo
 
-    write (29,"(10x, a12)") "Gamma^2 Beta"
-    do i = 1, NUM_BPMS
-       write (29,11) data_struc%loc(i)%a%gam2_beta, ",", &
-            data_struc%loc(i)%b%gam2_beta
-    enddo
+!*    write (29,"(10x, a12)") "Gamma^2 Beta"
+!    do i = 1, NUM_BPMS
+!       write (29,11) data_struc%loc(i)%a%gam2_beta, ",", &
+!            data_struc%loc(i)%b%gam2_beta
+!*    enddo
 
     write (27,"(20x, a15)") "1/gamma * Cbar"
     write (27,12) "(1,1)", "(1,2)", "(2,2)"
@@ -848,14 +846,14 @@ contains
             data_struc%loc(i)%inv_gamma_cbar(1,2), ",", &
             data_struc%loc(i)%inv_gamma_cbar(2,2)
     enddo
-    write (31,"(20x, a15)") "1/gamma * Cbar"
-    write (31,12) "(1,1)", "(1,2)", "(2,2)"
-
-    do i = 1, NUM_BPMS
-       write (31,34) data_struc%loc(i)%inv_gamma_cbar(1,1), ",", &
-            data_struc%loc(i)%inv_gamma_cbar(1,2), ",", &
-            data_struc%loc(i)%inv_gamma_cbar(2,2)
-    enddo
+!*    write (31,"(20x, a15)") "1/gamma * Cbar"
+!    write (31,12) "(1,1)", "(1,2)", "(2,2)"
+!
+!    do i = 1, NUM_BPMS
+!       write (31,34) data_struc%loc(i)%inv_gamma_cbar(1,1), ",", &
+!            data_struc%loc(i)%inv_gamma_cbar(1,2), ",", &
+!            data_struc%loc(i)%inv_gamma_cbar(2,2)
+!*    enddo
 
     write (27,"(4x, a22)") "<J>"
     do i=1, 2
@@ -865,8 +863,8 @@ contains
     enddo
 
     close(27)
-    close(29)
-    close(31)
+!*    close(29)
+!*    close(31)
 
   end subroutine output
 

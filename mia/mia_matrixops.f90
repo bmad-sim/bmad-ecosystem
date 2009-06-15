@@ -10,7 +10,6 @@ contains
     !Calls SVD and FFT funtions
     !
     type(data_set) :: data 
-
     call svd(data)
     call fft(data)
   end subroutine svd_fft
@@ -18,8 +17,8 @@ contains
   subroutine svd(data)
 
     !		      
-    !This routine executes the SVD and uses the nr and precision_def modules
-    !**Using LAPACK instead.
+    !This routine executes an SVD of the position history matrix using
+    !LAPACK subroutine dgesdd.
     !
 
     implicit none
@@ -28,6 +27,7 @@ contains
     real(rp), allocatable :: work(:), A(:,:), temp(:,:)
     integer, allocatable :: iwork(:)
     real(rp) :: q(1,1)
+
     allocate(data%tau_mat(NUM_TURNS, 2*NUM_BPMS))    
     allocate(data%lambda(2*NUM_BPMS))
     allocate(data%pi_mat(2*NUM_BPMS, 2*NUM_BPMS)) 
@@ -37,8 +37,6 @@ contains
     !Allocates the pi, tau and lambda matrices based on turns and active
     !processors
 
-!    data%tau_mat = data%poshis  
-
     info = 0
     do i=1, 2*NUM_BPMS
        data%lambda(i) = 0.0_rp
@@ -47,36 +45,32 @@ contains
           data%tau_mat(i,j) = 0.0
        enddo
     enddo
-    NUM_TURNS = 256
+
     A = data%poshis(1:NUM_TURNS,1:2*NUM_BPMS)
-    call out(data%poshis, "poshis")
-    lwork = 22*NUM_BPMS**2 + 8*NUM_BPMS
-    allocate(work(lwork))
+!I don't know what this is:
+!    call out(data%poshis, "poshis")
+    lwork = -1
+    allocate(work(7883))
+    !The first call to dgesdddetermines the ideal length of temporary array 
+    !'work'; the SVD is not done until the second call.
     call dgesdd('S', NUM_TURNS, 2*NUM_BPMS, A, NUM_TURNS, data%lambda, &
          data%tau_mat, NUM_TURNS, data%pi_mat, 2*NUM_BPMS, work, lwork, &
          iwork, info)
-!    call svdcmp(data%tau_mat, data%lambda, data%pi_mat)
+    !Reallocate work to the ideal size
+    lwork = work(1)
+    deallocate(work)
+    allocate(work(lwork))
+    !Now do the SVD...
+    call dgesdd('S', NUM_TURNS, 2*NUM_BPMS, A, NUM_TURNS, data%lambda, &
+         data%tau_mat, NUM_TURNS, data%pi_mat, 2*NUM_BPMS, work, lwork, &
+         iwork, info)
+
     if (.not.(info==0)) then
        Print *, "Error in column", info
     endif
 
-!    Print *, "Lambda: ", data%lambda
     call transpose(data%pi_mat,2*NUM_BPMS, 2*NUM_BPMS)
 
-
-! Error
-!    call ddisna('L', NUM_TURNS, 2*NUM_BPMS, data%lambda, septau, info)
-!    call ddisna('R', NUM_TURNS, 2*NUM_BPMS, data%lambda, seppi, info)
-
-!    do i=1, NUM_TURNS
-!       tauerr(i) = (10**-8) / septau(i)
-!       pierr(i) = (10**-8) / seppi(i)
-!    enddo
-!    Print *, "Tau error: ", tauerr(1:10)
-!    Print *, "Pi error: ", pierr(1:10)
-
-!Regen doesn't work, so it is disabled.
-!    call regen(data)
     deallocate(work)
     deallocate(iwork)
   end subroutine svd
@@ -104,7 +98,6 @@ contains
     real(rp), allocatable :: arr(:), temp(:)
     integer :: i, j, length
 
-!    NUM_TURNS = turns
     allocate(temp(length))
     do i=1, length
        temp(i) = arr(i)
@@ -117,6 +110,11 @@ contains
   end subroutine gullotine
 
   subroutine powerof2(n)
+    !
+    !Determines the highest power of two which is less than or equal to n
+    !Used to truncate arrays with NUM_TURNS not equal to a power of two
+    !for FFT.
+    !
     integer :: i, power, length, n
     logical :: goOn
     length =  NUM_TURNS
@@ -147,7 +145,11 @@ contains
          fr_peak                !Frequency peak 
     real(rp), allocatable :: a(:), & !Col of tau_mat to be analyzed
          p(:)                   !Column of phi_spec   
+    integer :: n_eigen          !Number of eigenvectors to do fft on
+                                !It saves time to do the calculation only for
+                                !the top 5-6 eigenmodes.
 
+    n_eigen = 6
     call powerof2(n)            !Make n the next smaller power of 2
                                 !if n is not a power of 2 already.
     allocate(data%spectrum(n,2*data%bpmproc))
@@ -155,7 +157,8 @@ contains
     allocate(p(n))
     allocate(data%fr_peak(2*data%bpmproc))
 
-    do i = 1, 2*NUM_BPMS
+
+    do i = 1, n_eigen
 
        allocate(a(n))
        a(:) = data%tau_mat(1:n,i)
@@ -333,7 +336,8 @@ contains
          noise_sum(2), &          !Sum of filtered noise (last 5 lambda values)
          sum_a(4), &              !Sum of odd rows of pi matrix
          sum_b(4)                 !Sum of even rows of pi matrix
-    logical :: mode(2), more
+    logical :: mode(2), &         !True if a file has not been found for that
+         more                     ! mode yet. 1 is A, 2 is B
 
     mode(1) = .true.
     mode(2) = .true.
@@ -451,8 +455,8 @@ contains
 
     !Check for files that only have excitation in a single mode
     if (col_counta > 2 .or. col_countb > 2) then
-       Print *, "counta: ", col_counta
-       Print *, "countb: ", col_countb
+!       Print *, "counta: ", col_counta
+!       Print *, "countb: ", col_countb
        Print *, "Excitation for both files appears to be in the same plane."
        Print *, "Try again with different files."
        STOP

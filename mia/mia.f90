@@ -4,6 +4,7 @@ program mia
   use mia_plot
   use mia_input
   use mia_matrixops
+  use mia_parse
 
   implicit none
 
@@ -12,22 +13,12 @@ program mia
   logical :: good_input, more_files, first_run
 
   type(data_set), allocatable :: data(:)
+  integer :: time(8)
+  real :: startTime, endTime
 
-  !Check for bad input.
-!  good_input = .false.
-
-  !MIA gives errors if you want to use a number other than 2,
-  !so there's no reason to ask for a number.
-!  do while (good_input == .false.)
-!     istat=in4get1('Number of files to read?',nset) 
-!     write (*, "(a)") " Number of files to read? "        
-!     accept "(i)", nset
-!    if (nset < 1 .or. nset > 2) then
-!        print *, "Input must be 1 or 2."
-!     else
-!        good_input = .true.
-!     endif
-!  enddo
+  call date_and_time(values=time)
+  startTime = time(5) * 3600 + time(6) * 60 &
+       + time(7) + 0.001 * time(8)
 
   nset = 2
   more_files = .true.
@@ -36,30 +27,25 @@ program mia
      allocate (data(nset))
 
      do i_set = 1, nset             !Do for first input data 
+        !See if there are any command line arguments:
         if (i_set==1) then
            narg = IARGC()
-           Print *, "narg", narg
-           PRINT *, IARGC()
-           do b = 1, nset
-              if (narg .ge. b ) then
-                 call GETARG(b, data(b)%shortName)
-                 Print *, data(b)%shortName
-                 fileread(b) = .true.
-              endif
-           enddo
+           if (narg>0) then
+              call get_args(data)
+           endif
         endif
-
+        
         call read_bpm_data(data(i_set),i_set,nset)
-
+        
         if (i_set==1) then
            call initialize_structures(data(1), nset)
         endif
-        
+       
         call svd_fft(data(i_set))
 !Just plot at end; if you want to plot for individual files, uncomment this.
 !        call plots(data, 1, i_set)      !Use plot_it
-     end do
 
+     end do
      do i_set =1, nset
         call bpm_ops(data,i_set, nset, first_run)
      end do
@@ -68,16 +54,27 @@ program mia
      call match_tau_column(nset,data)
      call convert_data_from_pi_matrix(data)
      call calculate_with_known_spacing(data)
-     call plots(data, 2, 2)         !Use plot_it2
+     if (.not. silentMode) then
+        call plots(data, 2, 2)         !Use plot_it2
+     end if
      call output (data)
 
-
-     call logic_get('Y', 'N', 'Repeat calculations with different files?',&
-          more_files)
+!Disabled for testing.
+!     if (.not. silentMode) then
+!        call logic_get('Y', 'N', 'Repeat calculations with different files?',&
+!             more_files)
+!     else
+        more_files = .false.
+ !    endif
 
      deallocate (data)
      call clean (more_files)
   enddo
+  call date_and_time(values=time)
+  endTime = time(5) * 3600 + time(6) * 60 &
+       + time(7) + 0.001 * time(8) - startTime
+  Print *, "MIA ran in ", endTime, "seconds."
+
 end program mia
 
 

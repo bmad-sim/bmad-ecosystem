@@ -19,235 +19,406 @@ contains
     Integer :: iset               !File number
     logical :: printit = .false.  !To print or not to print
     logical :: plot_more          !To plot or not to plot
-
-!    call logic_get( 'Y', 'N', 'Plot data? (Y/N) ', plot_more)
+    character(15) :: input         !User input for plotting options
+    integer :: col                !Keeps track of columns to plot
+    integer :: graph_set, &       !Which set of graphs to use for debug_plots
+         old_set                  !Previous value of graph_set
+    logical :: gif, gifOpen       !gif is true if a GIF file is to be plotted
+    character(15) :: gifName      !Filename for a gif file
+    integer ::numGif             !Number of GIF files (used for filenames)
+    if (postScript) then
+       gif = .true.
+    else
+       gif = .false.
+    end if
+    col = 1
     plot_more = .true.
-    !Only opens a new page on the first call of the subroutine.
-!    if (plot_more .and. windowOpen == .false.) then
-       !Following calls open the digital displays
-       call qp_open_page ("X", id, 600.0_rp, 470.0_rp, "POINTS")
-       call qp_set_page_border (0.02_rp, 0.02_rp, 0.035_rp, 0.035_rp, "%PAGE")
-       call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
-       windowOpen = .true.
-!    endif
+    windowOpen = .false.    
+    graph_set = 3
+    old_set = 3
+    gifOpen = .false.
+    numGif=1
+54  format (i)
 
     do while(plot_more)
-       call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT") 
-       if (plot == 2) then
-          call plot_it2 (data)
-       else
-          !Calls plot_it by default
-          call plot_it(data(iset), iset)
-       endif             
-
-       !    write (*, "(a)") " Hit any key to continue: "
-       !    accept "(a)", ans
-       !    call qp_close_page
-
-       call logic_get('Y', 'N', 'Plot more data? (Y/N) ', plot_more) 
-
-       if (plot_more) then
-          call logic_get('P','C',' (P)rint a plot or (C)ontinue',printit)
-          if (printit) then
-             !       call qp_close_page 
-             call qp_open_page ("PS-L")    !Generates a PS file
-             if (plot == 2) then
-                call plot_it2(data)
-             else
-                call plot_it(data(iset), iset)
-                !Generates the plot in ps file
-             endif
-             call qp_close_page    !Closes and names PS file as quick_plot.ps
+       if (.not. windowOpen) then
+          !Following calls open the digital displays
+          if (gif) then
+             write (gifName,54), numGif
+             if (numGif < 10) then
+                gifName = "0" // adjustl(gifName)
+             end if
+             gifName = "mia" // adjustl(gifName) // ".gif"
+             print *, gifName
+             numGif = numGif+1
+             call qp_open_page ("GIF-L", id, 600.0_rp, 550.0_rp, "POINTS",&
+                  plot_file=gifName)
+             gifOpen = .true.
+          else
+             call qp_open_page ("X", id, 600.0_rp, 550.0_rp, "POINTS")
           end if
+          call qp_set_page_border (0.02_rp,0.02_rp,0.035_rp,0.035_rp,"%PAGE")
+          call qp_set_margin (0.07_rp, 0.01_rp, 0.01_rp, 0.05_rp, "%PAGE")
+          call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT") 
+          windowOpen = .true.
        endif
-       call qp_clear_page
+
+
+
+                           !!!!ZOMBIES!!!!!
+       if (debugMode) then
+          !Plot first, then ask questions.
+          if (graph_set<7) then
+             call debug_plots(data,graph_set, col)
+          else
+             call plot_it2(data)
+          end if
+176       write (*,*), "Plotting options:"
+          write (*,'(4x,a)')  "1 - Beta Ratios (A Mode)", &
+               "2 - Beta Ratios (B Mode)",&
+               "3 - Pi eigenvectors and SVD eigenvalues (A Mode file)",&
+               "4 - Pi eigenvectors and SVD eigenvalues (B Mode file)",&
+               "5 - Tau eigenvectors and their fft (A Mode file)",&
+               "6 - Tau eigenvectors and their fft (B Mode file)",&
+               "7 - Beta and coupling",&
+               "8 - Phase advance and coupling",&
+               "col n - Plot column n of the current set",&
+               " help - Print this message", &
+               " print - Make a postscript file of the current plot"
+          write (*,*), "Type anything else to continue"
+          accept "(a)", input
+
+          old_set = graph_set
+          call lowerCase(input)
+          select case(input)
+          case('help')
+             goto 176
+          case('q')
+             plot_more = .false.
+          case('quit')
+             plot_more = .false.
+          case('print')
+             !Generate a GIF file
+             if (gif) then
+                gif=.false.
+             else
+                gif = .true.
+             end if
+          case ('1')
+             graph_set = 1
+          case ('2')
+             graph_set = 2
+          case ('3')
+             graph_set = 3
+          case ('4')
+             graph_set = 4
+          case ('5')
+             graph_set = 5
+          case ('6')
+             graph_set = 6
+          case ('7')
+             phase = .false.
+             graph_set = 7
+          case ('8')
+             phase = .true.
+             graph_set = 8             
+          case default
+             select case(input(1:3))
+             case('col')
+12              format (i)
+                !Read column number
+                read (input(5:len_trim(input)),*), col
+             case default
+                plot_more = .false.
+             end select
+          end select
+          !Reset column to 1 when plotting something different
+          !Also reset it once the last columns are reached
+          if (old_set .ne. graph_set) then
+             col = 1
+          else if (col+1 > 2*NUM_BPMS .and. graph_set>4 .or. &
+               col+3 > 2*NUM_BPMS .and. graph_set <5) then
+             col = 1
+          end if
+          !*End debug mode case
+       else
+          !Default plots
+          call plot_it2 (data)
+177       write (*,*), "Plotting options:"
+          write (*,'(2x,a)')  " phase - Plot phase advance", &
+               " beta - Plot betas"," help - Print this message", &
+               " print - Make a postscript file of the current plot"
+          write (*,*), "Type anything else to continue"
+          accept "(a)", input
+         
+          call lowerCase(input)
+          
+          Select case(input)
+          case ('phase')
+             phase = .true.
+          case('print')
+             if (gif) then
+                gif = .false.
+             else
+                gif = .true.
+             end if
+          case('beta')
+             phase = .false.
+          case('help')
+             goto 177     !Go reprint the options
+          case default
+             plot_more = .false.
+          end select
+
+       end if
+
+       !GIF files are written when the page is closed
+       !If an X window is being used instead, then the page is
+       !cleared for the next set of plots.
+       if (gifOpen) then
+          call qp_close_page
+          gifOpen = .false.
+          windowOpen = .false.
+       else
+          if (gif) then
+             call qp_close_page
+             windowOpen = .false.
+             gifOpen = .false.
+          else
+             call qp_clear_page
+          end if
+       end if
     end do
 
-    if (windowOpen .and. plot == 2) then
+    !Close plot window
+    if (windowOpen) then
        call qp_close_page
-       windowOpen = .false.   
+       windowOpen = .false.
     endif
 
   end subroutine plots
 
-  subroutine plot_it (data, iset)
+  subroutine debug_plots(data,graph_set,col)
+    !
+    !This subroutine provides plots of SVD results and other intermediates
+    !for use in diagnosing problems with MIA or input files. For example,
+    !looking at the graphs of the eigenvalues and tau matrix will tell you
+    !if noise has drowned out your signal.
+    !
+    !*Programmers beware: there is danger ahead. Please wear eye protection.
+    !
 
-    IMPLICIT NONE
-
-    type(data_set)data              !Data from file
-    integer ::  xdiv, &             !# Divisions in x
-         graph,&                    !What to plot
-         istat,in4get1, &           !Status and get input
-         ix, iy, &                  !Place in x and y in the window
-         ix_tot, iy_tot,&           !Total number of divisions in x and y
-         count, i, &                !Counters
-         divisions, &
-         icolumn, arr_length, iset
-    real(rp) xlength, &             !Length of X axis (# data points)
-         miny, maxy                 !Min and max y values
-    real(rp), allocatable :: xcoord(:), &  !Xcoordinates to be plotted
-         lam_log(:), &              !Log of lambda (for plotting)
-         ycoord(:)                  !Y coordinates to be plotted
-    character(80) title, titl       !Titles of graph
-    logical graph_more              !To graph more
-    real(rp), allocatable ::  b(:), & !X values for plotting (num. BPMs)
-          nt(:)                     !X values for plotting (num. turns)
-
+    type(data_set) :: data(*)          !Data from file
+    integer :: i, &                    !Counter
+         xdiv, &                       !Divisions of x axis
+         graph, &                      !Choice to graph
+         arr_length, iset, icolumn, count, nset, n_graphs,&
+         graph_set, &                  !User choice for sets of data to plot
+         format_num, &
+         col, &                        !Column of pi or tau matrix to plot
+         A_file, B_file                !Which file number is A or B mode
+    real(rp) xlength, &                !Length of x axis (# values)
+         miny, maxy                    !Min and max y values
+    real(rp), allocatable :: xcoord(:), & !X coordinates to plot
+         ycoord(:,:), &                  !Y coordinates to plot
+         sPos(:)                       !Array of S positions for plotting
+    character(40) :: title
+    character(40),allocatable :: titl(:)    !Titles
+    logical :: graph_more              !To graph more
+    integer :: ix, iy, ix_tot, iy_tot  !Number of plots in X and y directions
+    real(rp), allocatable :: b(:), &   !Number of BPMs (for plotting)
+         nt(:), &                      !Number of turns
+         lam_log(:)                    !Log of lambda (for plotting)
+    real(rp) :: xmin, xmax             !X min and max for qplot
+    character(10) :: tempChar(4)       !Holds column # to use in plot titles
+    logical :: sPoss
     allocate (b(2*NUM_BPMS))
     allocate (nt(NUM_TURNS))
-
-
-    do i=1,NUM_TURNS
-       nt(i) = i
-    end do
+    allocate (sPos(NUM_BPMS))
+    nset = 2                 !Make nset a global variable
+    A_file = data_struc%set_num_a
+    B_file = data_struc%set_num_b
 
     do i=1,2*NUM_BPMS
        b(i) = i
     end do
+    do i=1,NUM_TURNS
+       nt(i) = i
+    end do
 
+!*******************************Zombie Invasion Starts Here******************
+
+    ix_tot = 1
+    ix = 1                         
     graph_more = .true.
-    ix_tot = 1                           !Graphs are stacked vertically,
-    ix = ix_tot                          !Change ix_tot to plot side-by-side
 
-    Print *, "How many graphs do you want?"
-    PRINT *, "Enter a number between 0 and 5"
-    Read *, iy_tot
-
-    If (iy_tot>5) then
-       print *, "Changing number of graphs to 5 (maximum)."
-       iy_tot = 5
-    endif
-    if (iy_tot<=0) then
-       print *, "Number of graphs 0 or less--nothing is being plotted."
-       graph_more = .false.
-    endif
-
-    iy = iy_tot                             !Graph position 1 is the bottom 
-
-    DO WHILE (graph_more)        !Plot graphs as long as the user wants more.
-
+    graph = 1
+    DO WHILE (graph_more)
        IF (ALLOCATED(xcoord)) DEALLOCATE(xcoord)  
        IF (ALLOCATED(ycoord)) DEALLOCATE(ycoord)
-
-98     write (*,'(1x,a)') "For Pi, enter 1","For Frequency Peak, &
-            enter 2",  "For Lambda, enter 3", "For Spectrum, enter 4", &
-            "For Tau, enter 5"
-       write (*, "(a)") " Enter choice "        
-       accept "(i)", graph
-
-       if (graph<=0 .or. graph>5) then
-          PRINT *, "Enter a number between 1 and 5."
-          goto 98
-       else if (graph ==1 .or. graph > 3) then
-          !Column is needed for choices 1, 4, and 5
-99        write (*, "(a)") " Which column should be plotted? "        
-          accept "(i)", icolumn
-          if (icolumn < 1 .or. icolumn > 2*NUM_BPMS)then
-             Print *, "Column should be between 1 and ", 2*NUM_BPMS
-             goto 99
-          endif
-       endif
-
-       call qp_set_box (ix, iy, ix_tot, iy_tot)
-
-       !Allocate or assign variables common to all options if input is valid:
-       if (graph<=3) then
-          arr_length = 2*NUM_BPMS
-          allocate(xcoord(arr_length))
-          allocate(ycoord(arr_length))
-          xlength = 2.0*NUM_BPMS
-          xdiv = 2*NUM_BPMS
-          xcoord = b
-       else
+       if (ALLOCATED(titl)) DEALLOCATE(titl)
+       sPoss=.false.
+       if (graph_set > 4) then
+          n_graphs = 4
           arr_length = NUM_TURNS
           allocate(xcoord(arr_length))
-          allocate(ycoord(arr_length))
-          xdiv = 16
-          xcoord = nt
-          xlength = NUM_TURNS
-       endif
-
-       !Graph stuff
-       if (graph == 1) then
-          call min_max_y(data%pi_mat(:,icolumn), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,22) iset, icolumn, data%shortName
-22        format('PI - Iset =',i2,'  Column = ',i3, '  File = ', a)
-       else if (graph == 2) then
-          !nmax is an integer; all others are real(rp)
-          !Can't use a generic statement because of the type of nmax??
-          !call min_max_y(data%fr_peak(:))
-          miny = minval(data%fr_peak(:))
-          maxy = maxval(data%fr_peak(:))
-          ycoord(:) = data%fr_peak(:)
-          write(titl,23) iset, data%shortName     
-23        format('FR_PEAK - Iset =',i2,'  File = ', a)
-       else if (graph == 3) then
-          !Logarithmic scale option on qplot is not available yet
-          !(See documentation)
-          !Plots lambda on a logarithmic scale
-          IF (ALLOCATED(lam_log)) DEALLOCATE(lam_log)    
-          allocate (lam_log(arr_length))
-          count = 1
-          do while (count<=arr_length)
-             lam_log(count) = log10(data%lambda(count))
-             count = count+1
-          enddo
-          !LAPACK sorts lambdas
-          !          call sort_l(lam_log, 2*NUM_BPMS)
-          call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
-          write(titl,24) iset,  data%shortName
-24        format('Lambda (log10) - Iset =',i2,'  File = ', a)
-       else if (graph == 4) then
-          call min_max_y(data%spectrum(:,icolumn), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,25) iset,icolumn, data%shortName
-25        format('Spectrum - Iset =',i2,'  Column = ',i2, '  File = ', a)
-       else if (graph == 5) then
-          call min_max_y(data%tau_mat(:,icolumn), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,21) iset, icolumn, data%shortName
-21        format('TAU - Iset =',i2,'  Column = ',i3, '  File = ', a)
+          xcoord = nt(1:NUM_TURNS)
+          allocate (titl(4))
+       else if (graph_set > 2) then
+          n_graphs  = 5 
+          arr_length = 2*NUM_BPMS
+          allocate(xcoord(arr_length))
+          xcoord = b
+          allocate (titl(5))
+       else
+          n_graphs  = 5
+          arr_length = NUM_BPMS
+          allocate(xcoord(arr_length))
+          xcoord = b(1:NUM_BPMS)
+          allocate (titl(5))
+          sPoss = .true.
        end if
+       allocate(ycoord(n_graphs,arr_length))
+       xlength = arr_length
+      !Spacing is arbitrary. Chose 8 divisions to make graphs look reasonable.
+!       xdiv = sqrt(maxval(xcoord))
+       iy_tot = n_graphs
+       iy = iy_tot                           !Graph position 1 is the bottom 
+
+       call qp_set_box(ix, iy, ix_tot, iy_tot)
+
+                      !!!!ZOMBIES INVADE!!!!!
+             !!!They bring with them six plotting options!!!
+       select case (graph_set)
+       case(1)
+          titl =(/"\gg\u2\d \gb Ratio - A Mode","\gg\u2\d\gb Ratio - B Mode",&
+               "<J\dt\u>\gD\u2\d - A Mode","<J\dt\u>\gD\u2\d - B Mode",&
+               "Angle - A Mode"/)
+          do i=1, NUM_BPMS
+             ycoord(1,i) = data_struc%loc(i)%a%gam2_beta_ratio
+             ycoord(2,i) = data_struc%loc(i)%b%gam2_beta_ratio
+             ycoord(3,i) = data_struc%loc(i)%a%magnitude2(1)
+             ycoord(4,i) = data_struc%loc(i)%b%magnitude2(1)
+             ycoord(5,i) = atan(data_struc%loc(i)%a%ratio(1))
+          end do
+       case (2)
+          titl =(/'\gg\u2\d\gb Ratio - A Mode','\gg\u2\d\gb Ratio - B Mode',&
+               '<J\dt\u>\gD\u2\d - A Mode','<J\dt\u>\gD\u2\d - B Mode',&
+               'Angle - B Mode'/)
+          do i=1, NUM_BPMS
+             ycoord(1,i) = data_struc%loc(i)%a%gam2_beta_ratio
+             ycoord(2,i) = data_struc%loc(i)%b%gam2_beta_ratio
+             ycoord(3,i) = data_struc%loc(i)%a%magnitude2(2)
+             ycoord(4,i) = data_struc%loc(i)%b%magnitude2(2)
+             ycoord(5,i) = atan(data_struc%loc(i)%b%ratio(2))
+          end do
+       case (3)
+!          Print *, 'Welcome to case 3. Watch out for the soul train.'
+          do i=1,4
+             call intToChar((col+i-1),tempChar(i))
+          end do
+          titl = (/('A Mode \gP Column       '//trim(tempChar(1))), &
+               ('A Mode \gP Column       '//trim(tempChar(2))),&
+               ('A Mode \gP Column       '//trim(tempChar(3))),&
+               ('A Mode \gP Column       '//trim(tempChar(4))),&
+               'Log of Eignenvalues, A Mode'/)
+          do i=1, 2*NUM_BPMS
+             ycoord(1,i) = data(A_file)%pi_mat(i,col)
+             ycoord(2,i) = data(A_file)%pi_mat(i,col+1)
+             ycoord(3,i) = data(A_file)%pi_mat(i,col+2)
+             ycoord(4,i) = data(A_file)%pi_mat(i,col+3)
+             ycoord(5,i) = log10(data(A_file)%lambda(i))
+          end do
+          col = col+4
+       case(4)
+          do i=1,4
+             call intToChar((col+i-1),tempChar(i))
+          end do
+          titl = (/('B Mode \gP Column      '//trim(tempChar(1))), &
+               ('B Mode \gP Column      '//trim(tempChar(2))),&
+               ('B Mode \gP Column      '//trim(tempChar(3))),&
+               ('B Mode \gP Column      '//trim(tempChar(4))),&
+               'Log of Eignenvalues, B Mode'/)
+          do i=1, 2*NUM_BPMS
+             ycoord(1,i) = data(B_file)%pi_mat(i,col)
+             ycoord(2,i) = data(B_file)%pi_mat(i,col+1)
+             ycoord(3,i) = data(B_file)%pi_mat(i,col+2)
+             ycoord(4,i) = data(B_file)%pi_mat(i,col+3)
+             ycoord(5,i) = log10(data(B_file)%lambda(i))
+          end do
+          col = col+4
+       case(5)
+          do i=1,2
+             call intToChar((col+i-1),tempChar(i))
+          end do
+          titl = (/('\gt Column         '//trim(tempChar(1))), &
+               ('FFT Spectrum Column'//trim(tempChar(1))),&
+               ('\gt Column         '//trim(tempChar(2))),&
+               ('FFT Spectrum Column'//trim(tempChar(2))),&
+               ('he   l0000lo'//trim(tempChar(2)))/)
+          do i=1, NUM_TURNS
+             ycoord(1,i) = data(A_file)%tau_mat(i,col)
+             ycoord(2,i) = data(A_file)%spectrum(i,col)
+             ycoord(3,i) = data(A_file)%tau_mat(i,col+1)
+             ycoord(4,i) = data(A_file)%spectrum(i,col+1)
+          end do
+          col = col+2
+       case(6)
+          do i=1,2
+             call intToChar((col+i-1),tempChar(i))
+          end do
+          titl = (/('\gt Column         '//trim(tempChar(1))), &
+               ('FFT Spectrum Column'//trim(tempChar(1))),&
+               ('\gt Column         '//trim(tempChar(2))),&
+               ('FFT Spectrum Column'//trim(tempChar(2))),&
+               ('y0000000 00o'//trim(tempChar(2)))/)
+          do i=1, NUM_TURNS
+             ycoord(1,i) = data(B_file)%tau_mat(i,col)
+             ycoord(2,i) = data(B_file)%spectrum(i,col)
+             ycoord(3,i) = data(B_file)%tau_mat(i,col+1)
+             ycoord(4,i) = data(B_file)%spectrum(i,col+1)
+          end do
+          col = col+2
+       end select
 
 
-       divisions = ceiling(10.0 - (iy_tot/10.0))
-       !Draws graph
-       call qp_save_state(.true.)
-       call qp_set_box (ix, iy, ix_tot, iy_tot)
-       !  call qp_set_graph_attrib (draw_grid = .true.)
-       call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
-       call qp_set_axis ("X", 0.0_rp, xlength, div = xdiv)
-       !call qp_set_axis ("Y", miny, maxy, places = 4, draw_numbers = .true., &
-       !div = divisions)
-       call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
+       do graph = 1,n_graphs
+!          tempTitle = trim(titl(graph))
+          call min_max_y(ycoord(graph,:), miny, maxy, ycoord(graph,:),&
+               arr_length)
+          if (sPoss) then
+             call sortsPos(xcoord, ycoord(graph,:))
+          end if
 
-       !**********************************************************
-       !There are issues with overlapping text. This may be an
-       !issue in quick_plot, not this program.
-       !**********************************************************
-       !place = 1-(1.0/iy_tot*iy)
-       !  call qp_draw_text (titl, 1.0_rp, place, "%PAGE", "LT", 12.0_rp)
-
-       call qp_draw_graph (xcoord, ycoord(:),title = titl)
-       call qp_restore_state
-
-       IF (iy == 1) THEN
-          graph_more = .false.
-       ENDIF
-
-       iy = iy-1
-
-    ENDDO
-    !Formats
+          !Draws a single graph
+          call qp_save_state(.true.)
+          call qp_set_box (ix, iy, ix_tot, iy_tot)
+          call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
+          call qp_set_axis ("X", xmin, xmax, div=xdiv)
+          call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
+          call qp_draw_graph (xcoord,ycoord(graph,:),title=titl(graph))
+          if (sPoss) then
+             !Line at IP (s=0):
+             call qp_draw_line(0.0_rp,0.0_rp, miny,maxy,width=5, color = 2,&
+                  style=4)
+             !Line at L3 (if plot goes that far):
+             if (maxval(xcoord) > endLoc/2) then
+                call qp_draw_line(endLoc/2,endLoc/2,miny,maxy,width=5,&
+                     color=3,style=4)
+             end if
+          end if
+          call qp_restore_state
+          iy = iy-1
+          ix = 1
+       end do
+       graph_more = .false.
+    end do
 
     deallocate (b)
     deallocate (nt)
-    if (allocated(ycoord)) deallocate (ycoord)
     if (allocated(xcoord)) deallocate (xcoord)
-    if (allocated(lam_log)) deallocate (lam_log)
-  end subroutine plot_it
-
+    if (allocated(ycoord)) deallocate (ycoord)
+  end subroutine debug_plots
 
   subroutine min_max_y(vector, miny, maxy, ycoord, arr_length)
 
@@ -302,21 +473,25 @@ contains
   end subroutine rounding
 
   subroutine plot_it2 (data)
-    !routine can be used to plot data from different matrices
-    !can use digital display but also writes a postscript
-    !that can be printed for a hard copy
+    !
+    !Depending upon settings in the plots() subroutine, plots will either be
+    !generated on the display or in a postscript file. By default, 
+    !beta and cbar are plotted. There is an option to replace beta
+    !with phase advance and replot. 
+    !Other plotting options are available through the debug option in 
+    !subroutine debug_plots().
+    !
 
     type(data_set) :: data(*)          !Data from file
     integer :: i, &                    !Counter
          xdiv, &                       !Divisions of x axis
          graph, &                      !Choice to graph
-         istat,&                       !Status
-         in4get1,reaget1 , &           !Get input
          arr_length, iset, icolumn, count, nset
     real(rp) xlength, &                !Length of x axis (# values)
          miny, maxy                    !Min and max y values
     real(rp), allocatable :: xcoord(:), &  !X coordinates to plot
-         ycoord(:)                     !Y coordinates to plot
+         ycoord(:), &                  !Y coordinates to plot
+         sPos(:)                       !Array of S positions for plotting
     real(rp) :: sf2                    !Factor
     character(80) title, titl          !Titles
     logical :: graph_more              !To graph more
@@ -325,313 +500,120 @@ contains
          phi(:), &                     !Phi (for x-value plotting)
          nt(:), &                      !Number of turns
          lam_log(:)                    !Log of lambda (for plotting)
-    real(rp) :: xmin, xmax
-    logical :: badFile, badColumn
+    real(rp) :: xmin, xmax             !X min and max for qplot
+    logical :: badFile, badColumn      !Errors in user input
+    real (rp):: sMax   !Will be global soon
+    logical :: sPoss
+    sPoss = .true.
+    sMax = endLoc/2
 
-    allocate (b(2*NUM_BPMS))
-    allocate (phi(2*NUM_BPMS))
+    allocate (b(NUM_BPMS))
+    allocate (phi(NUM_BPMS))
     allocate (nt(NUM_TURNS))
-    nset = 2                 !Make nset a global variable
+    allocate (sPos(NUM_BPMS))
 
-    do i=1,2*NUM_BPMS
+    do i=1,NUM_BPMS
        b(i) = i
     end do
     do i=1,NUM_TURNS
        nt(i) = i
     end do
 
-    ix_tot = 1                           !Graphs are stacked vertically,
-    ix = ix_tot                          !Change ix_tot to plot side-by-side
-    graph_more = .true.
 
-    Print *, "How many graphs do you want?"
-    PRINT *, "Enter a number between 0 and 5"
-    Read *, iy_tot
+!*******************************Zombie Invasion Stops Here******************
 
-    If (iy_tot>5) then
-       print *, "Changing number of graphs to 5 (maximum)."
-       iy_tot = 5
-    endif
-    if (iy_tot<=0) then
-       print *, "Number of graphs 0 or less--nothing is being plotted."
-       graph_more = .false.
-    endif
+    ix_tot = 1
+    ix = 1                         
 
+!    graph_more = .true.
+
+    iy_tot = 5        !Graph 5 plots by default
     iy = iy_tot                             !Graph position 1 is the bottom 
-
-    DO WHILE (graph_more)
+    DO graph = 1, 5
        IF (ALLOCATED(xcoord)) DEALLOCATE(xcoord)  
        IF (ALLOCATED(ycoord)) DEALLOCATE(ycoord)
-       !Some of these options should be removed.
-       write (*,'(1x,a)') "For A mode Beta Ratio (X), enter 1", &
-            "For A mode Beta Ratio (Y), enter 2", &
-            "For B mode Beta Ratio (X), enter 3", &
-            "For B mode Beta Ratio (Y), enter 4", &
-            "For A mode Magnitude**2 (X), enter 5", &
-            "For A mode Magnitude**2 (Y), enter 6", &
-            "For B mode Magnitude**2 (X), enter 7", &
-            "For B mode Magnitude**2 (Y), enter 8", &
-            "For A mode Gam**2 Beta Ratio, enter 9", &
-            "For B mode Gam**2 Beta Ratio, enter 10", & 
-            "For A mode Phase Advance, enter 11", &
-            "For B mode Phase Advance, enter 12", &
-            "For A mode Gamma**2 Beta, enter 13", &
-            "For B mode Gamma**2 Beta, enter 14", &
-            "For Sqrt(Beta) Cbar (1,1), enter 15", &
-            "For Sqrt(Beta) Cbar (1,2), enter 16", &
-            "For Sqrt(Beta) Cbar (2,2), enter 17", &
-            "For Inv Gamma Cbar (1,1), enter 18", &
-            "For Inv Gamma Cbar (1,2), enter 19", &
-            "For Inv Gamma Cbar (2,2), enter 20", & 
-            "For Pi, enter 21", &
-            "For Frequency Peak,enter 22", &
-            "For Lambda, enter 23", &
-            "For Spectrum, enter 24", &
-            "For Tau, enter 25"
-       write (*, "(a)") " Enter choice "        
-       accept "(i)", graph
 
-       if (graph <= 8 .and. graph >= 5) then
-          Write (*, '(1x,a)') "Type Magnitude**2 Scale Factor"
-          write (*, "(a)") " Factor = "        
-          accept "(f)", sf2
-       end if
-
-       if (graph >=21 .and. graph<=23) then
-          arr_length = 2*NUM_BPMS
-          allocate(xcoord(arr_length))
-          allocate(ycoord(arr_length))
-          xlength = 2.0*NUM_BPMS
-          xdiv = 2*NUM_BPMS
-          xcoord = b
-       else if (graph>23) then
-          arr_length = NUM_TURNS
-          allocate(xcoord(arr_length))
-          allocate(ycoord(arr_length))
-          xdiv = 16
-          xcoord = nt
-          xlength = NUM_TURNS
-       else
-          arr_length = NUM_BPMS
-          allocate (xcoord(arr_length))
-          allocate (ycoord(arr_length))
-          xlength = NUM_BPMS
-          xdiv = NUM_BPMS
-          xcoord = b
-          call sortSPos(xcoord)
-       endif
-       xmin = 1
-       xmax = maxval(xcoord)
-
-       badFile = .true.
-       if (graph > 20) then
-          do while (badFile)
-             write (*, "(a)") "Which file should be used?"
-             accept "(i)", iset
-             
-             if (graph ==21 .or. graph > 23) then
-                badColumn = .true.
-                do while (badColumn)
-                   !Column is needed for choices 21, 24, and 25
-                   write (*, "(a)") " Which column should be plotted? "        
-                   accept "(i)", icolumn
-                   if (icolumn > 0 .and. icolumn < 2*NUM_BPMS) then
-                      badColumn = .false.
-                   else
-                      Print *, "Bad column--choose a number between 1 and", &
-                           2*NUM_BPMS
-                   endif
-                enddo
-             endif
-             if (iset >0 .and. iset <= nset) then
-                badFile = .false.
-             else
-                print *, "Bad input--choose 1 or 2."
-             endif
-          enddo
-       endif
-
-
+       arr_length = NUM_BPMS
+       allocate(xcoord(NUM_BPMS))
+       allocate(ycoord(NUM_BPMS))
+       xlength = NUM_BPMS
+       xdiv = 16
        call qp_set_box(ix, iy, ix_tot, iy_tot)
 
        !
        !Formats
        !
-26     format('(X) Ratio - A Mode')
-27     format('(Y) Ratio - A Mode')
-28     format('(X) Ratio - B Mode')
-29     format('(Y) Ratio - B Mode')
-30     format('(X) Magnitude**2 - A Mode')
-31     format('(Y) Magnitude**2 - A Mode')
-32     format('(X) Magnitude**2 - B Mode')
-33     format('(Y) Magnitude**2 - B Mode')
-34     format('Gam**2 Beta Ratio - A Mode')
-35     format('Gam**2 Beta Ratio - B Mode')
 36     format('Phase Advance - A Mode')
 37     format('Phase Advance - B Mode')
 38     format('Gamma**2 Beta - A Mode')
 39     format('Gamma**2 Beta - B Mode')
-40     format('Sqrt(Beta-A) Cbar (1,1)')
-41     format('Sqrt(Aver-Beta) Cbar (1,2)')
-42     format('Sqrt(Beta-B) Cbar(2,2)')
 43     format('Inv Gamma Cbar (1,1)')  
 44     format('Inv Gamma Cbar (1,2)')
 45     format('Inv Gamma Cbar (2,2)')
 
-       if (graph == 1) then
-          call min_max_y(data_struc%loc(:)%a%ratio(1), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,26)
-       else if (graph == 2) then
-          call min_max_y(data_struc%loc(:)%a%ratio(2), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,27)
-       else if (graph == 3) then
-          call min_max_y(data_struc%loc(:)%b%ratio(1), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,28)
-       else if (graph == 4) then
-          call min_max_y(data_struc%loc(:)%b%ratio(2), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,29)
-       else if (graph == 5) then
-          call min_max_y(data_struc%loc(:)%a%magnitude2(1), &
-               miny, maxy, ycoord(:), arr_length)
-          ycoord(:) = data_struc%loc(:)%a%magnitude2(1) / maxy *sf2
-          maxy = sf2
-          write(titl,30)
-       else if (graph == 6) then
-          call min_max_y(data_struc%loc(:)%a%magnitude2(2), &
-               miny, maxy, ycoord(:), arr_length)
-          ycoord(:) = data_struc%loc(:)%a%magnitude2(2) / maxy * sf2
-          maxy = sf2
-          write(titl,31)
-       else if (graph == 7) then
-          call min_max_y(data_struc%loc(:)%b%magnitude2(1), &
-               miny, maxy, ycoord(:), arr_length)
-          ycoord(:) = data_struc%loc(:)%b%magnitude2(1) / maxy * sf2
-          maxy = sf2
-          write(titl,32)
-       else if (graph == 8) then
-          call min_max_y(data_struc%loc(:)%b%magnitude2(2), &
-               miny, maxy, ycoord(:), arr_length)
-          ycoord(:) = data_struc%loc(:)%b%magnitude2(2) / maxy * sf2
-          maxy = sf2
-          write(titl,33)
-       else if (graph == 9) then
-          call min_max_y(data_struc%loc(:)%a%gam2_beta_ratio, &
-               miny, maxy, ycoord(:), arr_length)
-          write(titl,34)
-       else if (graph == 10) then
-          call min_max_y(data_struc%loc(:)%b%gam2_beta_ratio, &
-               miny, maxy, ycoord(:), arr_length)
-          write(titl,35)
-       else if (graph == 11) then
-          phi(:) = data_struc%loc(:)%a%phi
-          call arrange_phi(phi(:), xcoord(:))
-          call min_max_y(phi(:), miny, maxy, ycoord(:),&
-               arr_length)
+  
+       if (graph == 1 .and. phase) then
+          ycoord(:) = data_struc%loc(:)%a%phi
+          call phase_bound(ycoord,miny,maxy)
           write(titl,36)
-          xmax = maxval(xcoord)
-          xmin = minval(xcoord)
-       else if (graph == 12) then
-          phi(:) = data_struc%loc(:)%b%phi
-          call arrange_phi(phi(:), xcoord(:))
-          call min_max_y(phi(:), miny, maxy, ycoord(:),&
-               arr_length)
+       else if (graph == 2 .and. phase) then
+          ycoord(:) = data_struc%loc(:)%b%phi
+          call phase_bound(ycoord,miny,maxy)
           write(titl,37)
-          xmax = maxval(xcoord)
-          xmin = minval(xcoord)
-       else if (graph == 13) then
+       else if (graph == 1 .and. .not. phase) then
           call min_max_y(data_struc%loc(:)%a%gam2_beta, miny, maxy, &
                ycoord(:), arr_length)
           write(titl,38)
-       else if (graph == 14) then
+       else if (graph == 2 .and. .not. phase) then
           call min_max_y(data_struc%loc(:)%b%gam2_beta, miny, maxy, &
                ycoord(:), arr_length)
           write(titl,39)
-       else if (graph == 15) then
-          call min_max_y(data_struc%loc(:)%sqrt_beta_cbar(1,1),&
-               miny, maxy, ycoord(:), arr_length)
-          write(titl,40)
-       else if (graph == 16) then
-          call min_max_y(data_struc%loc(:)%sqrt_beta_cbar(1,2), &
-               miny, maxy, ycoord(:), arr_length)
-          write(titl,41)
-       else if (graph == 17) then
-          call min_max_y(data_struc%loc(:)%sqrt_beta_cbar(2,2), &
-               miny, maxy, ycoord(:), arr_length)
-          write(titl,42)
-       else if (graph == 18) then
+       else if (graph == 3) then
           call min_max_y(data_struc%loc(:)%inv_gamma_cbar(1,1), &
                miny, maxy, ycoord(:), arr_length)
           write(titl,43)
-       else if (graph == 19) then
+       else if (graph == 4) then
           call min_max_y(data_struc%loc(:)%inv_gamma_cbar(1,2), &
                miny, maxy, ycoord(:), arr_length)
           write(titl,44)
-       else if (graph == 20) then
+       else if (graph == 5) then
           call min_max_y(data_struc%loc(:)%inv_gamma_cbar(2,2), &
                miny, maxy, ycoord(:), arr_length)
           write(titl,45)
-       else if (graph == 21) then
-          call min_max_y(data(iset)%pi_mat(:,icolumn), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,22) iset, icolumn, data(iset)%shortName
-22        format('PI - Iset =',i2,'  Column = ',i3, '  File = ', a)
-       else if (graph == 22) then
-          !nmax is an integer; all others are real(rp)
-          !Can't use a generic statement because of the type of nmax??
-          !call min_max_y(data%fr_peak(:))
-          miny = minval(data(iset)%fr_peak(:))
-          maxy = maxval(data(iset)%fr_peak(:))
-          ycoord(:) = data(iset)%fr_peak(:)
-          write(titl,23) iset, data(iset)%shortName     
-23        format('FR_PEAK - Iset =',i2,'  File = ', a)
-       else if (graph == 23) then
-          !Logarithmic scale option on qplot is not available yet
-          !(See documentation)
-          !Plots lambda on a logarithmic scale
-          IF (ALLOCATED(lam_log)) DEALLOCATE(lam_log)    
-          allocate (lam_log(arr_length))
-          do count=1, arr_length
-             lam_log(count) = log10(data(iset)%lambda(count))
-          enddo
-!          call sort_l(lam_log, 2*NUM_BPMS)
-          call min_max_y(lam_log(:), miny, maxy, ycoord(:), arr_length)   
-          write(titl,24) iset,  data(iset)%shortName
-24        format('Lambda (log10) - Iset =',i2,'  File = ', a)
-       else if (graph == 24) then
-          call min_max_y(data(iset)%spectrum(:,icolumn), miny, maxy,&
-               ycoord(:), arr_length)
-          write(titl,25) iset,icolumn, data(iset)%shortName
-25        format('Spectrum - Iset =',i2,'  Column = ',i2, '  File = ', a)
-       else if (graph == 25) then
-          call min_max_y(data(iset)%tau_mat(:,icolumn), miny, maxy, ycoord(:),&
-               arr_length)
-          write(titl,21) iset, icolumn, data(iset)%shortName
-21        format('TAU - Iset =',i2,'  Column = ',i3, '  File = ', a)
        end if
-
+       if (sPoss) then
+          call sortsPos(xcoord, ycoord)
+       else
+          xcoord = b(1:NUM_BPMS)
+       end if
+       xmax = maxval(xcoord)
+       xmin = minval(xcoord)
+       call calcAxes(xmin,xmax,xdiv)
        !Draws graph
        call qp_save_state(.true.)
        call qp_set_box (ix, iy, ix_tot, iy_tot)
-       !call qp_set_graph_attrib (draw_grid = .true.)
        call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
-!       call qp_set_axis ("X", 0.0_rp, xlength, div = xdiv)
-       !call qp_set_axis ("Y", miny, maxy, places = 4, draw_numbers = .true., &
-       !div = 10)
-       call qp_set_axis ("X", 0.0_rp, xlength, div = xdiv)
-!       call qp_calc_and_set_axis("X", xmin, xmax, 4, 6, "GENERAL")
-       call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
+       call qp_set_axis ("X", xmin, xmax, div = xdiv)
+       call qp_calc_and_set_axis("Y", miny, maxy, &
+            4, 6, "GENERAL")
        call qp_draw_graph (xcoord, ycoord(:),title = titl)
+       !Line at IP (s=0):
+       call qp_draw_line(0.0_rp,0.0_rp, miny,maxy,width=5, color = 2,&
+            style=4)
+       !Line at L3 (if plot goes that far):
+       if (maxval(xcoord) > endLoc/2) then
+          call qp_draw_line(endLoc/2,endLoc/2, miny,maxy,width=5, color = 3,&
+               style=4)
+       end if
        call qp_restore_state
 
        IF (iy <= 1) THEN
           graph_more = .false.
        ENDIF
 
+       !ZOMBIES
        iy = iy-1
+       ix = 1
 
     enddo
 
@@ -674,19 +656,165 @@ contains
     deallocate(phi_old)
   end subroutine arrange_phi
 
-
-  subroutine sortsPos(xcoord)
+  subroutine sortsPos(xcoord,ycoord)
     !
     !Set S position for the x coordinates when plotting.
+    !Also sets a division point for a large gap between east and west
+    !bpms. Otherwise, plots by S position can be difficult to read.
+    !Coordinates are reorganized so east BPMs come before west.
     !
 
-    integer :: i
-    real(rp) :: xcoord(:)
+    integer :: i,j, break, numEast
+    real(rp) :: xcoord(:),ycoord(:), div
+    real(rp), allocatable :: tempy(:),sPos(:)
+    logical :: east !Becomes true when east BPMs are found
+    logical :: twice !True if xcoord contains x*NUM_BPMS elements
+    allocate (tempy(num_bpms))
+    allocate(sPos(num_bpms))
 
+    numEast=0
     do i=1, num_bpms
-       xcoord(i) = data_struc%proc(i)%sPos
+       sPos(i) = data_struc%proc(i)%sPos
+       if ( .not. data_struc%proc(i)%is_west) then
+          if (.not.east) then
+             break = i-1 !Index of last west detector
+             east = .true.
+          end if
+          numEast = numEast + 1
+          sPos(i) = sPos(i) - endLoc
+          xcoord(i-break) = sPos(i)
+          tempy(i-break) = ycoord(i)
+       end if
     end do
 
+    do i=1,break
+       xcoord(numEast+i) = sPos(i)
+       tempy(numEast+i) = ycoord(i)
+    end do
+
+    ycoord = tempy
+
   end subroutine sortsPos
+
+  subroutine rearrange(arr,break)
+
+    real(rp) :: arr(:)
+    real(rp),allocatable :: temp(:)
+    integer :: break, numEast, i
+
+    allocate(temp(size(arr)))
+    numEast = num_bpms-break
+
+    do i=break+1,num_bpms
+       temp(i-break+1) = arr(i)
+    end do
+
+
+    do i=1,break
+       temp(i+numEast) = arr(i)
+    end do
+
+    arr = temp
+  end subroutine rearrange
+
+  subroutine superSize(half, double)
+
+    real(rp) :: half(:),double(:)
+    integer :: i
+    do i=1,num_bpms
+       Print *, "I am:", i
+       double(2*i-1) = half(i)
+       double(2*i) = half(i)
+    end do
+
+  end subroutine superSize
+
+  subroutine lowerCase(string)
+    !Modified from Fortran 90/95 for Scientists and Engineers
+    !Originally written by S.J. Chapman
+    
+    !Shifts a string to all lowercase letters
+    
+    character(5) :: string
+    integer :: i
+    
+    do i=1, 5
+       if ( LGE(string(i:i), 'A') .and. LLE(string(i:i),'Z')) then
+          string(i:i) = ACHAR( IACHAR ( string(i:i)) - 32)
+       end if
+    end do
+  end subroutine lowerCase
+
+  subroutine intToChar(int,char)
+    !
+    !Converts an integer into a character string.
+    !
+    integer :: int
+    character(3) :: char
+
+    write (char,'(i3)'),int
+    char = trim(char)
+
+  end subroutine intToChar
+
+
+  subroutine phase_bound(array, miny, maxy)
+    !
+    !Adjusts phase range from -pi to +pi for plotting
+    !
+    real(rp) :: array(:), miny, maxy
+    integer :: i
+
+    do i=1, NUM_BPMS
+       array(i) = modulo(array(i)+pi,2*pi)-pi
+    end do
+    miny = minval(array)
+    maxy = maxval(array)
+  end subroutine phase_bound
+
+  subroutine calcAxes(xmin,xmax,xdiv)
+    real (rp) :: xmin,xmax
+    integer :: xdiv, range,modterm,modx
+    real :: interval
+
+    interval = 6 !Try six divisions first
+    xmin = floor(xmin/10)*10
+    xmax = ceiling(xmax/10)*10 
+   !Move xmin from 1 to 0 for markers to be at 0,5,etc instead of 1,6,...
+    if (mod(xmin,10.0_rp) == 1) then
+       xmin = xmin-1
+    end if
+    range = ceiling(xmax-xmin)
+    xdiv=ceiling(range/interval)
+
+    if (mod(xdiv,5) == 0) then
+       goto 511
+    end if
+    !For xmax < 5, this algorithm must be modified.
+    if (xdiv .ge. 50) then
+       modterm = 50
+    else if(xdiv .ge. 25) then
+       modterm = 25
+    else if (xdiv .ge. 10) then
+       modterm = 10
+    else
+       modterm = 5
+    end if
+
+    modx = mod(xdiv,modterm)
+    if (modx>0) then
+       if (modx .ge. (modterm/2)) then
+          xdiv = xdiv + (modterm-modx)
+       else
+          xdiv = xdiv - modx
+          interval = interval + 1
+       end if
+       xmax = xdiv * interval+xmin
+       xdiv=interval
+    end if
+
+511 continue
+    xdiv = interval
+  end subroutine calcAxes
 
 end module mia_plot

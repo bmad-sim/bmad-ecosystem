@@ -69,15 +69,12 @@ contains
           if (scan(data%filename, "/")>0) then
              data%shortname = data%filename(scan(data%filename, &
                   "/", .true.)+1:len_trim(data%filename))
-             Print *, data%shortName
-             Print *, scan(data%shortName, "/", .true.)
           endif
        endif
 
        open (unit = 1, file = data%filename, status = "old", &
             iostat = openstatus)
 
-       !       Print *, data%filename
        !Check for bad filenames
        if (openstatus > 0) then
           print *, "*** Cannot open file ", data%filename, " ***"
@@ -99,7 +96,7 @@ contains
 
 10  format (/ 1x, t28, i3)   !reads in number of processors
 
-40  format (10x, a14,  t29, f10.7, t41, f10.7, t125, i5) 
+40  format (10x, a14,  t29, f10.7, t41, f10.7, t125, i6) 
     !reads in number of 
     !turns and the first 
     !values for x and y
@@ -131,7 +128,7 @@ contains
                                      !first posisitions
        data%cdata(proc)%y(0) = tempy !of the x and y arrays
 
-       turn: do turns = 1, 1023!data%numturns-1
+       turn: do turns = 1, data%numturns-1
           !starts at 1 and goes
           !to turns-1 because
           !temps are read and 
@@ -360,7 +357,7 @@ contains
     character(7) :: detName
     integer :: eleNum, openstatus, i, inStat, iset, bpmInt
     real(rp) :: sPos, bpmNum
-    logical :: continue
+    logical :: continue, theEnd
     open (unit = 273, file = "./data/one_ring.det", &
          status = "old", iostat = openstatus)
     if (openstatus > 0) Stop "*** Cannot open file one_ring.det ***"
@@ -368,6 +365,7 @@ contains
 188 format (1x,a7,5x,f10.6,5x,i3)
 56  format (2x,i2)
 
+    theEnd=.false. !It's just the beginning
     continue = .true.
 
     do while (continue)
@@ -379,27 +377,37 @@ contains
           cycle
        endif
        detName = trim(adjustL(detName))
-       read (detName,56) bpmInt
-       bpmNum = bpmInt
-       if (detName(5:5) == "A" .or. detName(6:6) == "2") then
-          bpmNum = bpmNum+0.5
-       endif
-       if ( detName(4:4) == "E" .or. detName(5:5) == "E") then
-          bpmNum  = -bpmNum
-          if (bpmNum == 0) then
-             bpmNum = -0.000001      !Since there is no -0...something close.
+       
+       select case(detName(1:2))
+       case ('EN')
+          !Location of the end of the ring: the length of the machine
+          theEnd=.true.
+          endLoc=sPos
+       case ('DT')
+          read (detName,56) bpmInt
+          bpmNum = bpmInt
+          if (detName(5:5) == "A" .or. detName(6:6) == "2") then
+             bpmNum = bpmNum+0.5
           endif
-       endif
+          if ( detName(4:4) == "E" .or. detName(5:5) == "E") then
+             bpmNum  = -bpmNum
+             if (bpmNum == 0) then
+                bpmNum = -0.000001 !Since there is no -0...something close.
+             endif
+          endif
+       case default
+          Print *, "Error in reading BPM S Positions"
+          exit
+       end select
 
-       do i=1,num_bpms
-          if (file(iset)%proc(i)%number == bpmNum) then
-             file(iset)%proc(i)%sPos = sPos
-             file(iset)%proc(i)%eleNum = eleNum
-             Print *, "Input ", file(iset)%proc(i)%label, " matches ", detName
-          else
-!             Print *, "Input ", file(iset)%proc(i)%number, " /match ", bpmNum
-          end if
-       end do
+       if (.not. theEnd) then
+          do i=1,num_bpms
+             if (file(iset)%proc(i)%number == bpmNum) then
+                file(iset)%proc(i)%sPos = sPos
+                file(iset)%proc(i)%eleNum = eleNum
+             end if
+          end do
+       end if
     end do
 
   end subroutine get_ele_sPos

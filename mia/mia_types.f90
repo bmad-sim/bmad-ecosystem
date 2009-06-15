@@ -103,6 +103,13 @@ module mia_types
   character(100) :: outname              !Name of output file
   logical :: fileread(2)                 !True if filename has been read
   character (120) :: xfile,yfile         !Filenames for X and Y modes
+  logical :: debugMode, &                !Enables special plots for diagnosing
+                                         !problems with input files
+       silentMode,&                      !MIA runs without plotting
+       phase,&                           !Plot phase advance instead of beta
+       postScript                        !Print postscript plot only
+  real(rp) :: endLoc                     !Location of the end of the machine
+                                         !Used in plotting east before west
 contains
 
   subroutine initialize_structures(data, nset)
