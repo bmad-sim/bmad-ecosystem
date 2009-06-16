@@ -193,7 +193,7 @@ if (s%global%track_type == 'beam') then
       beam_init%dPz_dz = 0.0
       beam_init%center(:) = 0.0
       beam_init%bunch_charge = 0.0
-      beam_init%ds_bunch = 1
+      beam_init%dt_bunch = 0
       beam_init%sig_z   = 0.0
       beam_init%sig_e   = 0.0
       beam_init%renorm_center = .true.

@@ -513,10 +513,18 @@ endif
 ! Draw sides
 
 if (shape /= 'BOW_TIE' .and. shape /= 'CIRCLE' .and. shape /= 'DIAMOND') then
-  call qp_draw_line (end1%x+dx1, end1%x-dx2, end1%y+dy1, end1%y-dy2, &
+  if (ele%key == sbend$) then
+    call qp_draw_line (x_bend(1)-dx_bend(1), x_bend(1)+dx_bend(1), &
+                       y_bend(1)-dy_bend(1), y_bend(1)+dy_bend(1), units = 'POINTS', color = icol)
+    n = n_bend
+    call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
+                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = 'POINTS', color = icol)
+  else
+    call qp_draw_line (end1%x+dx1, end1%x-dx2, end1%y+dy1, end1%y-dy2, &
                                                   units = 'POINTS', color = icol)
-  call qp_draw_line (end2%x+dx1, end2%x-dx2, end2%y+dy1, end2%y-dy2, &
+    call qp_draw_line (end2%x+dx1, end2%x-dx2, end2%y+dy1, end2%y-dy2, &
                                                   units = 'POINTS', color = icol)
+  endif
 endif
 
 ! Draw X for xbox or bow_tie

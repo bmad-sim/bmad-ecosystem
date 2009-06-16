@@ -304,7 +304,7 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', uni_branch%beam_init%a_norm_emitt
       nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', uni_branch%beam_init%b_norm_emitt
       nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', uni_branch%beam_init%dPz_dz
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%ds_bunch          = ', uni_branch%beam_init%ds_bunch
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%dt_bunch          = ', uni_branch%beam_init%dt_bunch
       nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', uni_branch%beam_init%sig_z
       nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', uni_branch%beam_init%sig_e
       nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', uni_branch%beam_init%center_jitter
