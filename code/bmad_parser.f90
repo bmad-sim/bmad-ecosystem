@@ -800,6 +800,7 @@ enddo
 call remove_eles_from_lat (lat)  ! remove all null_ele elements.
 
 ! Add branch lines
+! Branch lines may have superposition so this is an iterative process
 
 n0 = 0
 n = 0
@@ -826,8 +827,10 @@ do
     branch%n_ele_track = n_ele_use
     branch%n_ele_max   = n_ele_use
   enddo
+
   n0 = n0 + 1
   if (n0 > n) exit
+
 enddo
 
 ! Now put in the overlay_lord, girder, and group elements
