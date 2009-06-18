@@ -555,21 +555,30 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   if (page_type == 'X') then
 #if defined (CESR_WINCVF)
- iw = pgopen ('/WV')
+    iw = pgopen ('/WV')
 #else
     iw = pgopen ('/XWINDOW')
 #endif
-    if (iw.LE.0) stop
+    if (iw <= 0) stop
     call pgscr (0, 1.0, 1.0, 1.0)    ! white background
     call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+
   elseif (page_type == 'PS') then
     iw = pgopen (trim(plot_file) // '/VCPS')
+
   elseif (page_type == 'PS-L') then
     iw = pgopen (trim(plot_file) // '/CPS')
+
   elseif (page_type == 'GIF') then
     iw = pgopen (trim(plot_file) // '/GIF')
+    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
+    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+
   elseif (page_type == 'GIF-L') then
     iw = pgopen (trim(plot_file) // '/VGIF')
+    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
+    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+
   else
     call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
     call err_exit
