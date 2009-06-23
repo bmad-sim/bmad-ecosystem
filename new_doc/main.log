@@ -1,13 +1,20 @@
-This is TeX, Version 3.14159 (Web2C 7.4.5) (format=latex 2007.11.14)  4 JUN 2009 11:15
+This is pdfTeXk, Version 3.141592-1.40.3 (Web2C 7.5.6) (format=latex 2007.2.11)  23 JUN 2009 13:07
+entering extended mode
+ %&-line parsing enabled.
 **main
 (./main.tex
-LaTeX2e <2001/06/01>
-Babel <v3.7h> and hyphenation patterns for american, french, german, ngerman, n
-ohyphenation, loaded.
-(/usr/share/texmf/tex/latex/base/book.cls
-Document Class: book 2001/04/21 v1.4e Standard LaTeX document class
-(/usr/share/texmf/tex/latex/base/bk10.clo
-File: bk10.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
+LaTeX2e <2005/12/01>
+Babel <v3.8h> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, arabic, basque, bulgarian, coptic, welsh, czech, slovak, german, ng
+erman, danish, esperanto, spanish, catalan, galician, estonian, farsi, finnish,
+ french, greek, monogreek, ancientgreek, croatian, hungarian, interlingua, ibyc
+us, indonesian, icelandic, italian, latin, mongolian, dutch, norsk, polish, por
+tuguese, pinyin, romanian, russian, slovenian, uppersorbian, serbian, swedish, 
+turkish, ukenglish, ukrainian, loaded.
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/book.cls
+Document Class: book 2005/09/16 v1.4f Standard LaTeX document class
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/bk10.clo
+File: bk10.clo 2005/09/16 v1.4f Standard LaTeX file (size option)
 )
 \c@part=\count79
 \c@chapter=\count80
@@ -22,35 +29,35 @@ File: bk10.clo 2001/04/21 v1.4e Standard LaTeX file (size option)
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
 )
-(/usr/share/texmf/tex/latex/graphics/graphicx.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 
-(/usr/share/texmf/tex/latex/graphics/keyval.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 \KV@toks@=\toks14
 )
-(/usr/share/texmf/tex/latex/graphics/graphics.sty
-Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2006/02/20 v1.0o Standard LaTeX Graphics (DPC,SPQR)
 
-(/usr/share/texmf/tex/latex/graphics/trig.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
 )
-(/usr/share/texmf/tex/latex/config/graphics.cfg
-File: graphics.cfg 2001/08/31 v1.1 graphics configuration of teTeX/TeXLive
+(/usr/local/texlive/2007/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
 )
-Package graphics Info: Driver file: dvips.def on input line 80.
+Package graphics Info: Driver file: dvips.def on input line 90.
 
-(/usr/share/texmf/tex/latex/graphics/dvips.def
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/dvips.def
 File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
 ))
 \Gin@req@height=\dimen103
 \Gin@req@width=\dimen104
 )
-(/home/dcs/dcs/latex/moreverb.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/moreverb/moreverb.sty
 Package: moreverb 1997/12/07 v2.2d.2 `more' verbatim facilities
 
-(/usr/share/texmf/tex/latex/tools/verbatim.sty
-Package: verbatim 2001/03/12 v1.5p LaTeX2e package for verbatim enhancements
+(/usr/local/texlive/2007/texmf-dist/tex/latex/tools/verbatim.sty
+Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
 \every@verbatim=\toks15
 \verbatim@line=\toks16
 \verbatim@in@stream=\read1
@@ -60,24 +67,24 @@ Package: verbatim 2001/03/12 v1.5p LaTeX2e package for verbatim enhancements
 \tab@size=\count89
 \listing@line=\count90
 )
-(/usr/share/texmf/tex/latex/amsmath/amsmath.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2000/07/18 v2.13 AMS math features
 \@mathmargin=\skip43
 
 For additional information on amsmath, use the `?' option.
-(/usr/share/texmf/tex/latex/amsmath/amstext.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/amsmath/amstext.sty
 Package: amstext 2000/06/29 v2.01
 
-(/usr/share/texmf/tex/latex/amsmath/amsgen.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0
 \@emptytoks=\toks17
 \ex@=\dimen105
 ))
-(/usr/share/texmf/tex/latex/amsmath/amsbsy.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d
 \pmbraise@=\dimen106
 )
-(/usr/share/texmf/tex/latex/amsmath/amsopn.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 1999/12/14 v2.01 operator names
 )
 \inf@bad=\count91
@@ -118,20 +125,20 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
 LaTeX Info: Redefining \[ on input line 2666.
 LaTeX Info: Redefining \] on input line 2667.
 )
-(/usr/share/texmf/tex/latex/base/alltt.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/alltt.sty
 Package: alltt 1997/06/16 v2.0g defines alltt environment
 )
-(/usr/share/texmf/tex/latex/misc/rotating.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/rotating/rotating.sty
 Package: rotating 1997/09/26, v2.13 Rotation package
 
-(/usr/share/texmf/tex/latex/base/ifthen.sty
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/ifthen.sty
 Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
 )
 \c@r@tfl@t=\count103
 \rot@float@box=\box28
 )
-(/usr/share/texmf/tex/latex/misc/subfigure.sty
-Package: subfigure 2002/07/30 v2.1.4 subfigure package
+(/usr/local/texlive/2007/texmf-dist/tex/latex/subfigure/subfigure.sty
+Package: subfigure 2002/03/15 v2.1.5 subfigure package
 \subfigtopskip=\skip46
 \subfigcapskip=\skip47
 \subfigcaptopadj=\dimen114
@@ -142,88 +149,88 @@ Package: subfigure 2002/07/30 v2.1.4 subfigure package
 \c@lofdepth=\count105
 \c@subtable=\count106
 \c@lotdepth=\count107
+
+****************************************
+* Local config file subfigure.cfg used *
+****************************************
+(/usr/local/texlive/2007/texmf-dist/tex/latex/subfigure/subfigure.cfg)
 \subfig@top=\skip50
 \subfig@bottom=\skip51
-) (./toc.sty)
-(/usr/share/texmf/tex/latex/tools/xspace.sty
-Package: xspace 1997/10/13 v1.06 Space after command names (DPC)
 )
-(/usr/share/texmf/tex/latex/base/makeidx.sty
+(./toc.sty) (/usr/local/texlive/2007/texmf-dist/tex/latex/tools/xspace.sty
+Package: xspace 2006/05/08 v1.12 Space after command names (DPC,MH)
+)
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/makeidx.sty
 Package: makeidx 2000/03/29 v1.0m Standard LaTeX package
 )
-(/usr/share/texmf/tex/latex/base/fontenc.sty
-Package: fontenc 2001/06/05 v1.94 Standard LaTeX package
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/fontenc.sty
+Package: fontenc 2005/09/27 v1.99g Standard LaTeX package
 
-(/usr/share/texmf/tex/latex/base/t1enc.def
-File: t1enc.def 2001/06/05 v1.94 Standard LaTeX file
-LaTeX Font Info:    Redeclaring font encoding T1 on input line 38.
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/t1enc.def
+File: t1enc.def 2005/09/27 v1.99g Standard LaTeX file
+LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
 ))
-
-! LaTeX Error: File `underscore.sty' not found.
-
-Type X to quit or <RETURN> to proceed,
-or enter new name. (Default extension: sty)
-
-Enter file name: 
-
-! LaTeX Error: Unknown option `strings' for package `underscore'.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.16 \usepackage
-                [dvips,colorlinks=true]{hyperref}   % Must be last package!
-? q
-OK, entering \batchmode...
- (/usr/share/texmf/tex/latex/hyperref/hyperref.sty
-Package: hyperref 2003/01/22 v6.73n Hypertext links for LaTeX
+(/usr/local/texlive/2007/texmf-dist/tex/latex/ltxmisc/underscore.sty
+Package: underscore 2006/09/13
+LaTeX Info: Redefining \_ on input line 42.
+)
+(/usr/local/texlive/2007/texmf-dist/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2007/02/07 v6.75r Hypertext links for LaTeX
 \@linkdim=\dimen116
 \Hy@linkcounter=\count108
 \Hy@pagecounter=\count109
- (/usr/share/texmf/tex/latex/hyperref/pd1enc.def
-File: pd1enc.def 2003/01/22 v6.73n Hyperref: PDFDocEncoding definition (HO)
-) (/usr/share/texmf/tex/latex/config/hyperref.cfg
-File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive and teTeX
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2007/02/07 v6.75r Hyperref: PDFDocEncoding definition (HO)
 )
-Package hyperref Info: Option `colorlinks' set `true' on input line 1744.
-Package hyperref Info: Hyper figures OFF on input line 1792.
-Package hyperref Info: Link nesting OFF on input line 1797.
-Package hyperref Info: Hyper index ON on input line 1800.
-Package hyperref Info: Plain pages ON on input line 1805.
-Package hyperref Info: Backreferencing OFF on input line 1812.
+(/usr/local/texlive/2007/texmf/tex/latex/config/hyperref.cfg
+File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
+)
+(/usr/local/texlive/2007/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2006/08/22 v2.4 Connects package keyval with LaTeX options (
+HO)
+)
+Package hyperref Info: Option `colorlinks' set `true' on input line 2238.
+Package hyperref Info: Hyper figures OFF on input line 2288.
+Package hyperref Info: Link nesting OFF on input line 2293.
+Package hyperref Info: Hyper index ON on input line 2296.
+Package hyperref Info: Plain pages OFF on input line 2303.
+Package hyperref Info: Backreferencing OFF on input line 2308.
+
 Implicit mode ON; LaTeX internals redefined
-Package hyperref Info: Bookmarks ON on input line 1916.
- (/usr/share/texmf/tex/latex/html/url.sty
-Package: url 1999/03/02  ver 1.4  Verb mode for urls, email addresses, and file
- names
+Package hyperref Info: Bookmarks ON on input line 2444.
+(/usr/local/texlive/2007/texmf-dist/tex/latex/ltxmisc/url.sty
+\Urlmuskip=\muskip11
+Package: url 2005/06/27  ver 3.2  Verb mode for urls, etc.
 )
-LaTeX Info: Redefining \url on input line 2055.
+LaTeX Info: Redefining \url on input line 2599.
 \Fld@menulength=\count110
 \Field@Width=\dimen117
 \Fld@charsize=\dimen118
 \Choice@toks=\toks22
 \Field@toks=\toks23
-Package hyperref Info: Hyper figures OFF on input line 2513.
-Package hyperref Info: Link nesting OFF on input line 2518.
-Package hyperref Info: Hyper index ON on input line 2521.
-Package hyperref Info: backreferencing OFF on input line 2528.
-Package hyperref Info: Link coloring ON on input line 2531.
-\c@Item=\count111
-\c@Hfootnote=\count112
+Package hyperref Info: Hyper figures OFF on input line 3102.
+Package hyperref Info: Link nesting OFF on input line 3107.
+Package hyperref Info: Hyper index ON on input line 3110.
+Package hyperref Info: backreferencing OFF on input line 3117.
+Package hyperref Info: Link coloring ON on input line 3120.
+\Hy@abspage=\count111
+\c@Item=\count112
+\c@Hfootnote=\count113
 )
 *hyperref using driver hdvips*
- (/usr/share/texmf/tex/latex/hyperref/hdvips.def
-File: hdvips.def 2003/01/22 v6.73n Hyperref driver for dvips
- (/usr/share/texmf/tex/latex/hyperref/pdfmark.def
-File: pdfmark.def 2003/01/22 v6.73n Hyperref definitions for pdfmark specials
+(/usr/local/texlive/2007/texmf-dist/tex/latex/hyperref/hdvips.def
+File: hdvips.def 2007/02/07 v6.75r Hyperref driver for dvips
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/hyperref/pdfmark.def
+File: pdfmark.def 2007/02/07 v6.75r Hyperref definitions for pdfmark specials
 \pdf@docset=\toks24
 \pdf@box=\box29
 \pdf@toks=\toks25
 \pdf@defaulttoks=\toks26
-\Fld@listcount=\count113
-\@outlinefile=\write4
-)) (./macros.tex
+\Fld@listcount=\count114
+))
+(./macros.tex
 \dPar=\skip52
 \ExBeg=\skip53
 \ExEnd=\skip54
@@ -244,125 +251,102 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
 LaTeX Font Info:    ... okay on input line 27.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 27.
 LaTeX Font Info:    ... okay on input line 27.
- (/usr/share/texmf/tex/latex/graphics/color.sty
-Package: color 1999/02/16 v1.0i Standard LaTeX Color (DPC)
- (/usr/share/texmf/tex/latex/config/color.cfg
-File: color.cfg 2001/08/31 v1.1 color configuration of teTeX/TeXLive
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/color.sty
+Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
+
+(/usr/local/texlive/2007/texmf/tex/latex/config/color.cfg
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
 )
-Package color Info: Driver file: dvips.def on input line 125.
- (/usr/share/texmf/tex/latex/graphics/dvipsnam.def
+Package color Info: Driver file: dvips.def on input line 130.
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/graphics/dvipsnam.def
 File: dvipsnam.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
 ))
 Package hyperref Info: Link coloring ON on input line 27.
- (/usr/share/texmf/tex/latex/hyperref/nameref.sty
-Package: nameref 2001/01/27 v2.19 Cross-referencing by name of section
-\c@section@level=\count114
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/hyperref/nameref.sty
+Package: nameref 2006/12/27 v2.28 Cross-referencing by name of section
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/oberdiek/refcount.sty
+Package: refcount 2006/02/20 v3.0 Data extraction from references (HO)
+)
+\c@section@level=\count115
 )
 LaTeX Info: Redefining \ref on input line 27.
 LaTeX Info: Redefining \pageref on input line 27.
- (./main.out) (./main.out)
+
+(./main.out) (./main.out)
+\@outlinefile=\write4
 \openout4 = `main.out'.
+
+
+
+Package hyperref Warning: Rerun to get /PageLabels entry.
 
 \openout2 = `ellipses.aux'.
 
- (./ellipses.tex
+(./ellipses.tex
 Chapter 1.
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.17 ...nical because the Jacobian matrix $\mathbb
-                                                  {M} = \frac{\partial(x,x')...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
 
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.17 ...\partial(J,\phi)}$ is symplectic ($\mathbb
-                                                  {M}\mathbb{J}\mathbb{M}^T ...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.17 ...,\phi)}$ is symplectic ($\mathbb{M}\mathbb
-                                                  {J}\mathbb{M}^T = \mathbb{...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.17 ...s symplectic ($\mathbb{M}\mathbb{J}\mathbb
-                                                  {M}^T = \mathbb{J}$ for $\...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.17 ...\mathbb{M}\mathbb{J}\mathbb{M}^T = \mathbb
-                                                  {J}$ for $\mathbb{J} = (\b...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.17 ...{J}\mathbb{M}^T = \mathbb{J}$ for $\mathbb
-                                                  {J} = (\begin{smallmatrix}...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+LaTeX Warning: File `phaseellipse.eps' not found on input line 21.
 
 
-! LaTeX Error: Cannot determine size of graphic in phaseellipse.png (no Boundin
+! LaTeX Error: File `phaseellipse.eps' not found.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.21 ...ludegraphics[scale=0.75]{phaseellipse.eps}
+                                                  
+? 
+
+! LaTeX Error: Cannot determine size of graphic in phaseellipse.eps (no Boundin
 gBox).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.21 ...ludegraphics[scale=0.75]{phaseellipse.png}
+l.21 ...ludegraphics[scale=0.75]{phaseellipse.eps}
                                                   
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-File: phaseellipse.png Graphic file (type eps)
- <phaseellipse.png> [1
+? 
+File: phaseellipse.eps Graphic file (type eps)
+<phaseellipse.eps> [1
 
 
 
 ]
 
-! LaTeX Error: Cannot determine size of graphic in filledellipse.png (no Boundi
+LaTeX Warning: File `filledellipse.eps' not found on input line 66.
+
+
+! LaTeX Error: File `filledellipse.eps' not found.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.66 ...udegraphics[scale=0.75]{filledellipse.eps}
+                                                  
+? 
+
+! LaTeX Error: Cannot determine size of graphic in filledellipse.eps (no Boundi
 ngBox).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.66 ...udegraphics[scale=0.75]{filledellipse.png}
+l.66 ...udegraphics[scale=0.75]{filledellipse.eps}
                                                   
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-File: filledellipse.png Graphic file (type eps)
- <filledellipse.png>
+? 
+File: filledellipse.eps Graphic file (type eps)
+<filledellipse.eps>
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 72.
- (/usr/share/texmf/tex/latex/base/omscmr.fd
+
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
@@ -373,13 +357,13 @@ Overfull \hbox (196.31348pt too wide) has occurred while \output is active
 USSIAN PHASE SPACE DISTRIBUTION BY CONCENTRIC ELLIPSES OF MACROPARTICLES
  []
 
- [2] [3])
+[2] [3])
 Overfull \hbox (196.31348pt too wide) has occurred while \output is active
 [][][][][][]\T1/cmr/m/n/10 4 \T1/cmr/m/sl/10 CHAPTER 1.  REPRESENTATION OF A GA
 USSIAN PHASE SPACE DISTRIBUTION BY CONCENTRIC ELLIPSES OF MACROPARTICLES
  []
 
- [4]
+[4]
 \openout2 = `kv.aux'.
 
  (./kv.tex
@@ -396,7 +380,7 @@ Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
 Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
 (hyperref)                removing `math shift' on input line 5.
 
- [5
+[5
 
 
 
@@ -407,127 +391,61 @@ PCHINSKY-VLADIMIRSKY (K-V) PHASE SPACE DISTRIBUTION BY CONCENTRIC ELLIPSES OF M
 ACROPARTICLES
  []
 
- [6]
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.65 ...coordinates is canonical, because $\mathbb
-                                                  {M}\mathbb{J}\mathbb{M}^T ...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+[6]
 
-! Undefined control sequence.
-l.65 ...s is canonical, because $\mathbb{M}\mathbb
-                                                  {J}\mathbb{M}^T = \mathbb{...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.65 ...ical, because $\mathbb{M}\mathbb{J}\mathbb
-                                                  {M}^T = \mathbb{J}$ for th...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.65 ...\mathbb{M}\mathbb{J}\mathbb{M}^T = \mathbb
-                                                  {J}$ for the Jacobian matr...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.65 ...athbb{J}$ for the Jacobian matrix $\mathbb
-                                                  {M} = \frac{\partial(I_1,I...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.65 ...tial(J_x,J_y,\phi_x,\phi_y)}$ and $\mathbb
-                                                  {J} = (\begin{smallmatrix}...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.65 ...hbb{J} = (\begin{smallmatrix} 0 && \mathbb
-                                                  {I} \\ -\mathbb{I} && 0 \e...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-l.65 ...n{smallmatrix} 0 && \mathbb{I} \\ -\mathbb
-                                                  {I} && 0 \end{smallmatrix}...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-! Undefined control sequence.
-<recently read> \mathbb 
-                        
-l.65 ...I} && 0 \end{smallmatrix})$ where $\mathbb
-                                                  {I}$ is the 2x2 identity m...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
+LaTeX Warning: File `phiblock.eps' not found on input line 71.
 
 
-! LaTeX Error: Cannot determine size of graphic in phiblock.png (no BoundingBox
+! LaTeX Error: File `phiblock.eps' not found.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.71 	\includegraphics[scale=0.6]{phiblock.eps}
+                                                & \includegraphics[scale=0.6...
+
+? 
+
+! LaTeX Error: Cannot determine size of graphic in phiblock.eps (no BoundingBox
 ).
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.71 ^^I\includegraphics[scale=0.6]{phiblock.png}
-                                                  & \includegraphics[scale=0...
+l.71 	\includegraphics[scale=0.6]{phiblock.eps}
+                                                & \includegraphics[scale=0.6...
 
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+? 
+File: phiblock.eps Graphic file (type eps)
+<phiblock.eps>
 
-File: phiblock.png Graphic file (type eps)
- <phiblock.png>
+LaTeX Warning: File `psiblock.eps' not found on input line 71.
 
-! LaTeX Error: Cannot determine size of graphic in psiblock.png (no BoundingBox
-).
+
+! LaTeX Error: File `psiblock.eps' not found.
 
 See the LaTeX manual or LaTeX Companion for explanation.
 Type  H <return>  for immediate help.
  ...                                              
                                                   
-l.71 ... \includegraphics[scale=0.6]{psiblock.png}
+l.71 ... \includegraphics[scale=0.6]{psiblock.eps}
                                                    \\
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+? 
 
-File: psiblock.png Graphic file (type eps)
- <psiblock.png>) [7]
+! LaTeX Error: Cannot determine size of graphic in psiblock.eps (no BoundingBox
+).
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.71 ... \includegraphics[scale=0.6]{psiblock.eps}
+                                                   \\
+? 
+File: psiblock.eps Graphic file (type eps)
+<psiblock.eps>) [7]
 \openout2 = `regular.aux'.
 
  (./regular.tex
@@ -537,7 +455,7 @@ PCHINSKY-VLADIMIRSKY (K-V) PHASE SPACE DISTRIBUTION BY CONCENTRIC ELLIPSES OF M
 ACROPARTICLES
  []
 
- [8
+[8
 
 
 
@@ -615,20 +533,22 @@ Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
 Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
 (hyperref)                removing `\T1/cmr/m/sl/10' on input line 1.
 
+LaTeX Font Info:    Try loading font information for T1+cmtt on input line 6.
+(/usr/local/texlive/2007/texmf-dist/tex/latex/base/t1cmtt.fd
+File: t1cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+) [9]) [10]
+(./main.aux (./ellipses.aux) (./kv.aux) (./regular.aux))
 
-! Interruption.
-extract@font ...ont font@name external@font relax 
-                                                  font@name relax csname f@e...
-l.1 ...regular initial beam distribution in \bmad}
-                                                  
-? x
- 
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
- 3658 strings out of 95847
- 45671 string characters out of 1195947
- 107780 words of memory out of 1000001
- 6532 multiletter control sequences out of 10000+50000
- 14507 words of font info for 32 fonts, out of 500000 for 1000
- 14 hyphenation exceptions out of 1000
- 27i,19n,41p,1324b,417s stack positions out of 1500i,500n,5000p,200000b,5000s
-Output written on main.dvi (8 pages, 41808 bytes).
+ 4073 strings out of 94074
+ 54512 string characters out of 1163007
+ 117293 words of memory out of 1500000
+ 7273 multiletter control sequences out of 10000+50000
+ 16054 words of font info for 37 fonts, out of 1200000 for 2000
+ 645 hyphenation exceptions out of 8191
+ 27i,19n,41p,768b,373s stack positions out of 5000i,500n,6000p,200000b,5000s
+
+Output written on main.dvi (10 pages, 49284 bytes).
