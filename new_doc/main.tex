@@ -1,0 +1,37 @@
+\documentclass{book}
+
+\usepackage{graphicx}
+\usepackage{moreverb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage{rotating}
+\usepackage{subfigure}
+\usepackage{toc}
+\usepackage{xspace}
+\usepackage{makeidx}
+
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[dvips,colorlinks=true]{hyperref}   % Must be last package!
+
+\input{macros.tex}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\begin{document}
+
+%----------------------------------------------------------------
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+\include{ellipses}
+\include{kv}
+\include{regular}
+
+\end{document}

@@ -1,0 +1,171 @@
+\newcommand{\calh}{{\cal H}}
+\newcommand{\two}{}
+\newcommand{\bM}{{\Bf M}}
+\newcommand{\bN}{{\Bf N}}
+\newcommand{\bT}{{\Bf T}}
+\newcommand{\bV}{{\Bf V}}
+\newcommand{\bA}{{\Bf A}}
+\newcommand{\bB}{{\Bf B}}
+\newcommand{\bJ}{{\Bf J}}
+\newcommand{\bS}{{\Bf S}}
+\newcommand{\bC}{{\Bf C}}
+\newcommand{\bfeta}{{\mbox{\large$\eta$}}}
+\newcommand{\vdot}[2]{\Bigl[ #1, \, #2 \Bigr]}
+\newcommand{\eff}{{\mbox{\scriptsize eff}}}
+\newcommand{\mss}[1]{{\mbox{\scriptsize #1}}}
+\newcommand{\comma}{\> ,}
+\newcommand{\period}{\> .}
+
+\newcommand{\hyperbf}[1]{\textbf{\hyperpage{#1}}}
+
+\newcommand{\om}{\omega}
+\newcommand{\qqquad}{\qquad \qquad}
+\newcommand{\ks}{\widetilde k_s}
+\newcommand{\kone}{\widetilde k_1}
+
+\newcommand{\Begineqs}{\begin{eqnarray}}
+\newcommand{\Endeqs}{\end{eqnarray}}
+\newcommand{\AND}{&& \hskip -17pt\relax}
+\newcommand{\CR}{\\}
+\newcommand{\CRNO}{\nonumber \\}
+\newcommand{\dstyle}{\displaystyle}
+
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+
+\newcommand{\pow}[1]{\cdot 10^{#1}}
+\newcommand{\Bf}[1]{{\bf #1}}
+
+\newcommand{\tao}{{\sl Tao}\xspace}
+\newcommand{\bmad}{{\sl Bmad}\xspace}
+\newcommand{\mad}{{\sl MAD}\xspace}
+\newcommand{\quickplot}{{\sl Quick Plot}\xspace}
+\newcommand{\cpp}{$C$\hskip-0.3ex\protect\raisebox{0.2ex}{\scriptsize ++}\xspace}
+\newcommand{\CPP}{$C$\hskip-0.3ex{\protect\raisebox{.3ex}{\large {+}+}}\xspace}
+%%\newcommand{\CPP}{$C${\small ++}\xspace}
+
+\newcommand{\eq}[1]{{(\protect\ref{#1})}}
+\newcommand{\Eq}[1]{{Eq.~(\protect\ref{#1})}}
+\newcommand{\Eqs}[1]{{Eqs.~(\protect\ref{#1})}}
+
+\newcommand{\svn}{\vn{Subversion}\xspace}
+\newcommand{\HH}{\\ \hline}
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\cref}[1]{Chapter~\ref{#1}}
+\newcommand{\s}{$\S$}
+
+\newcommand{\toffset}{\vskip 0.01in}
+\newcommand{\rot}[1]{\begin{rotate}{-45}#1\end{rotate}}
+
+\newcommand{\Out}{\mbox{out}}
+\newcommand{\In}{\mbox{in}}
+\newcommand{\ave}[1]{\left\langle #1 \right\rangle}
+
+\newcommand{\vn}{\ttcmd}           % For variable names
+\newcommand{\cs}{\ttcmd}           % For code source
+\newcommand{\rn}{\ttcmd}           % For Routine names
+\newcommand{\vnf}{\ttcmd}        % For functions/subroutines
+
+\newcommand{\vnr}{\ttcmdz{Routine}}
+
+
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+
+\newcommand\ttcmdz{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmdz}
+\newcommand\dottcmdz[2]{\texttt{#2}\endgroup\index{#1!#2}}
+
+%\newcommand\ttverb{
+%  \bgroup\let\do\@makeother\dospecials\catcode`{=1 \catcode`}=2 \DSAcode}
+%\newcommand*\DSAcode[1]{\texttt{#1}\egroup}
+
+\newcommand{\kxn}{k_{xn}}
+\newcommand{\kyn}{k_{yn}}
+\newcommand{\ksn}{k_{sn}}
+\newcommand{\kxx}{k_{x} x}
+\newcommand{\kyy}{k_{y} y}
+\newcommand{\kss}{k_{s} s}
+\newcommand{\ksss}{\kss + \phi_s}   
+\newcommand{\CRNEG}{\nonumber \\*[-1.5\jot]}
+\newcommand{\CRneg}{\nonumber \\*[-1\jot]}
+\newcommand{\Newline}{\hfil \\}
+
+\newcommand{\plus}{\; + \;}
+
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Nd}{$^{nd}$\xspace}
+\newcommand{\Rd}{$^{rd}$\xspace}
+\newcommand{\St}{$^{st}$\xspace}
+\newcommand{\B}{$\backslash$}
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-1.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-1.0ex}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
+
+\newenvironment{Example}{\vspace{-1.5ex} \begin{alltt}}{\end{alltt}}
+
+\newenvironment{Itemize}
+  {\begin{list}{$\bullet$}
+    {\addtolength{\topsep}{-1.5ex} 
+     \addtolength{\itemsep}{-1ex}
+    }
+  }
+  {\end{list} \vspace*{1ex}}
+
+\newcommand{\Section}[1]{\section{#1}\indent\vspace{-3ex}}
+
+\newcommand{\SECTION}[1]{\section*{#1}\indent\vspace{-3ex}}
+
+% From pg 64 of The LaTex Companion.
+
+\newenvironment{ventry}[1]
+  {\begin{list}{}
+    {\renewcommand{\makelabel}[1]{\textsf{##1}\hfil}
+     \settowidth{\labelwidth}{\textsf{#1}}
+     \addtolength{\itemsep}{-1.5ex}
+     \addtolength{\topsep}{-1.0ex} 
+     \setlength{\leftmargin}{5em}
+    }
+  }
+  {\end{list}}
+
+\newcommand{\bfsig}{\boldsymbol{\sigma}}
+\newcommand{\bfsigb}{\boldsymbol{\sigma}_\beta}
+\newcommand{\bfrbar}{\overline{\Bf r}}
+\newcommand{\bfr}{{\Bf r}}
+
+\newcommand{\BAR}[1]{\overline{#1}}
+%%\newcommand{\bfeta}{\boldsymbol{\eta}}
+\newcommand{\bfa}{\Bf a}
+\newcommand{\bfA}{\Bf A}
+\newcommand{\bfB}{\Bf B}
+\newcommand{\bfC}{\Bf C}
+\newcommand{\Abar}{\overline{\Bf A}}
+\newcommand{\Bbar}{\overline{\Bf B}}
+\newcommand{\Tbar}{\overline{\Bf T}}
+\newcommand{\Cbar}{\overline{\bfC}}
+\newcommand{\gam}{\gamma}                                     
+\newcommand{\bfT}{\Bf T}
+\newcommand{\bfG}{\Bf G}
+\newcommand{\bfV}{\Bf V}
+\newcommand{\bfx}{\Bf x}
+\newcommand{\bfU}{\Bf U}
+\newcommand{\inv}{^{-1}}
+\newcommand{\bfI}{\Bf I}
+\newcommand{\tstyle}{\textstyle}
+\newcommand{\tWl}{\widetilde{W}^{SR}_\parallel}
+\newcommand{\WlS}{W^{SR}_\parallel}
+\newcommand{\WtS}{W^{SR}_\perp}
+\newcommand{\WtL}{W^{LR}_\perp}
+
+\newcommand{\DAG}{$^\dagger$}
+\newcommand{\DDAG}{$^\ddagger$}
