@@ -14,11 +14,11 @@ The transformation from an action-angle variable representation $(J,\phi)$ to ph
 \Endeq
 where $\beta$, $\alpha = -\frac{\beta'}{2}$, and $\gamma = \frac{1+\alpha^2}{\beta}$ are the Twiss parameters.  Holding these parameters and $J$ constant and iterating $\phi$ between $0$ and $2\pi$ defines an ellipse centered at the origin.  $J = \frac{1}{2}[\gamma x^2 + 2 \alpha x x' + \beta x'^2]$ is called the Courant-Snyder invariant, and it is proportional to the internal area of the ellipse: $A = 2\pi J$. 
 
-\textit{Sidenote}: it can be shown that this transformation is canonical because the Jacobian matrix $\mathbb{M} = \frac{\partial(x,x')}{\partial(J,\phi)}$ is symplectic ($\mathbb{M}\mathbb{J}\mathbb{M}^T = \mathbb{J}$ for $\mathbb{J} = (\begin{smallmatrix} 0 && 1 \\ -1 && 0 \end{smallmatrix})$).
+\textit{Sidenote}: it can be shown that this transformation is canonical because the Jacobian matrix $\mathbf{M} = \frac{\partial(x,x')}{\partial(J,\phi)}$ is symplectic ($\mathbf{M}\mathbf{J}\mathbf{M}^T = \mathbf{J}$ for $\mathbf{J} = (\begin{smallmatrix} 0 && 1 \\ -1 && 0 \end{smallmatrix})$).
 
 
 \begin{figure}[htp]
-	\centering \includegraphics[scale=0.75]{phaseellipse.png}
+	\centering \includegraphics[scale=0.75]{phaseellipse.eps}
 	\caption{Anatomy of a phase space ellipse.  Modified from: H. Wiedemann, Particle Accelerator Physics I, 2nd ed., p.152.}
 	\label{fig:ellipse}
 \end{figure}
@@ -63,7 +63,7 @@ So, the distribution can be written
 
 \subsection{Implementation}
 \begin{figure}[htp]
-	\centering \includegraphics[scale=0.75]{filledellipse.png}
+	\centering \includegraphics[scale=0.75]{filledellipse.eps}
 	\caption{We partition the phase space into regions bounded by ellipses (solid ellipses in red), and then calculate where to place the particles (dots in blue).  The red ellipses are placed so that their $\sqrt{J}$ increases by regular steps.  A number of blue ellipses of particles cover the region inside a certain cutoff radius, and one blue ellipse covers the region outside the largest red ellipse.  For this example, we set the cutoff at 3$\sigma$, have 3 ellipses in the inner region, and have 50 particles per ellipse.}
 	\label{fig:finishedellipse}
 \end{figure}

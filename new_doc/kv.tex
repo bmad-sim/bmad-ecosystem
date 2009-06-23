@@ -62,13 +62,13 @@ To create a canonical transformation, new angle coordinates must also be defined
 	\psi_2 & = \left( -\frac{\phi_x}{\varepsilon_y} + \frac{\phi_y}{\varepsilon_x} \right) \varepsilon
 \end{align}
 
-Transforming both action and angle coordinates is canonical, because $\mathbb{M}\mathbb{J}\mathbb{M}^T = \mathbb{J}$ for the Jacobian matrix $\mathbb{M} = \frac{\partial(I_1,I_2,\psi_1,\psi_2)}{\partial(J_x,J_y,\phi_x,\phi_y)}$ and $\mathbb{J} = (\begin{smallmatrix} 0 && \mathbb{I} \\ -\mathbb{I} && 0 \end{smallmatrix})$ where $\mathbb{I}$ is the 2x2 identity matrix.
+Transforming both action and angle coordinates is canonical, because $\mathbf{M}\mathbf{J}\mathbf{M}^T = \mathbf{J}$ for the Jacobian matrix $\mathbf{M} = \frac{\partial(I_1,I_2,\psi_1,\psi_2)}{\partial(J_x,J_y,\phi_x,\phi_y)}$ and $\mathbf{J} = (\begin{smallmatrix} 0 && \mathbf{I} \\ -\mathbf{I} && 0 \end{smallmatrix})$ where $\mathbf{I}$ is the 2x2 identity matrix.
 
 While the limits of iteration for $I_2$ stays the same, the limits for $\psi_1$ and $\psi_2$ are more complicated, since they are constrained by $\phi_1,\phi_2 \in [0,2\pi]$.  The $\lbrace\phi\rbrace \rightarrow \lbrace\psi\rbrace$ transformation rotates the axes, so that the range to iterate over in $\psi_2$ is dependent on the value of $\psi_1$, which is not fixed, and vice versa.  
 \begin{figure}[htp]
 	\centering
 	\begin{tabular}{c c}
-	\includegraphics[scale=0.6]{phiblock.png} & \includegraphics[scale=0.6]{psiblock.png} \\
+	\includegraphics[scale=0.6]{phiblock.eps} & \includegraphics[scale=0.6]{psiblock.eps} \\
 	(a) & (b)
 	\end{tabular}
 	\caption{The region to iterate over in $\lbrace\phi\rbrace$-space (a) is subject to a rotation of axes to $\lbrace\psi\rbrace$-space (b).}
