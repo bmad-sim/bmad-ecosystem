@@ -130,13 +130,13 @@ case ('change')
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
   endif
 
-  if (index ('variable', cmd_word(1)) == 1) then
+  if (index ('variable', trim(cmd_word(1))) == 1) then
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
     call tao_change_var (cmd_word(1), cmd_word(2), silent)
-  elseif (index('element', cmd_word(1)) == 1) then
+  elseif (index('element', trim(cmd_word(1))) == 1) then
     call tao_cmd_split (cmd_word(2), 3, cmd_word, .false., err); if (err) return
     call tao_change_ele (cmd_word(1), cmd_word(2), cmd_word(3))
-  elseif (index(cmd_word(1), 'beam_start') /= 0) then     ! Could be "2@beam_start"
+  elseif (index(trim(cmd_word(1)), 'beam_start') /= 0) then     ! Could be "2@beam_start"
     word = cmd_word(1)
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
     call tao_change_ele (word, cmd_word(1), cmd_word(2))
