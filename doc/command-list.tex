@@ -125,8 +125,8 @@ In the above example the argument ``abc'' is substituted for any
 The \vn{change} command changes element attribute values or variable
 values in the \vn{model} lattice. Format:
 \begin{example}
-  change ele \{n@\}<name_or_number> <attribute> <number>
-  change \{-silent\} var <name> <locations> <number>
+  change element \{n@\}<name_or_number> <attribute> <number>
+  change \{-silent\} variable <name> <locations> <number>
   change  \{n@\}beam_start <coordinate> <number>
 \end{example}
 
@@ -151,12 +151,12 @@ If "\%" is prepended to \vn{<number>} then the final value will be
   final_model_value = initial_model_value * (1 + <number> / 100)
 \end{example}
 
-For \vn{change ele}, the \vn{<name_or_number>} may be a name, an element number or
+For \vn{change element}, the \vn{<name_or_number>} may be a name, an element number or
 list of numbers, or an element class (EG: \vn{"quadrupole"}). Element names
 may contain the wild cards \vn{"*"} which represents any number of characters
 or can be \vn{"\%"} which represents any single character. 
 
-For \vn{change ele}, and \vn{change beam_start}, The optional \vn{n@}
+For \vn{change element}, and \vn{change beam_start}, The optional \vn{n@}
 universe specification (\sref{s:universe}) may be used to specify the
 universe or universes to apply the change command to.
 
@@ -166,7 +166,7 @@ can be used to vary the starting coordinates where \vn{<coordinate>} is one of:
   (x, px, y, py, z, pz)
 \end{example}
 For circular lattices only the \vn{pz} component is applicable. 
-Also for linear lattices, \vn{change ele beginning <twiss>} can be used to
+Also for linear lattices, \vn{change element beginning <twiss>} can be used to
 vary the starting Twiss parameters where \vn{<twiss>} is one of:  
 \begin{example}
   beta_a, beta_b, alpha_a, alpha_b 
