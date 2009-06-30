@@ -150,7 +150,7 @@ end subroutine bbu_setup
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost) 
+subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost) 
 
 implicit none
 
@@ -159,7 +159,8 @@ type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
 
-real(rp) hom_power0, hom_power_sum, r_period, power, hom_power_gain
+real(rp) hom_power0, hom_power_sum, r_period, r_period0, power
+real(rp) hom_power_gain, growth_rate
 
 integer i, n_period, n_count, n_period_old, ix_ele
 
@@ -226,11 +227,15 @@ do
   if (n_period /= n_period_old) then
     if (n_period == 3) then
       hom_power0 = hom_power_sum / n_count
+      r_period0 = r_period
+
     elseif (n_period > 3) then
       hom_power_gain = (hom_power_sum / n_count) / hom_power0
+      growth_rate = log(hom_power_gain) / (r_period - r_period0)
       if (hom_power_gain < 1/bbu_param%limit_factor) exit
       if (hom_power_gain > bbu_param%limit_factor) exit      
     endif
+
     hom_power_sum = 0
     n_count = 0
     n_period_old = n_period

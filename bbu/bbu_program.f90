@@ -15,9 +15,8 @@ integer istep
 integer nstep /100/
 real(rp) deldr,dr
 
-real(rp) hom_power_gain, charge0, charge1
-
-real(rp) trtb,currth
+real(rp) hom_power_gain, charge0, charge1, charge_old, charge_new, charge_threshold
+real(rp) trtb, currth, growth_rate, growth_rate_old, growth_rate_new
 
 logical lost
 logical, allocatable :: keep_ele(:)
@@ -148,26 +147,25 @@ do istep = 1, nstep
 
   beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
   charge0 = 0
+  charge_new = -1
 
   Print *, 'Searching for a current where the tracking is unstable...'
 
   do
     lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost)
+    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
     if (hom_power_gain > 1) exit
     if (lost) then
       print *, 'Particle(s) lost. Assuming unstable...'
       exit
     endif
     charge0 = beam_init%bunch_charge
-    print *, '  Stable at (mA):', 1e3 * charge0 / beam_init%dt_bunch 
-    print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+    call print_info
     beam_init%bunch_charge = beam_init%bunch_charge * 2
   enddo
 
   charge1 = beam_init%bunch_charge
-  print *, '  Unstable at (mA):', 1e3 * charge1 / beam_init%dt_bunch 
-  print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+  call print_info
 
   ! Track to bracket threshold
 
@@ -176,18 +174,14 @@ do istep = 1, nstep
   do
     beam_init%bunch_charge = (charge0 + charge1) / 2
     lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, lost)
+    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
     if (lost) print *, 'Particle(s) lost. Assuming unstable...'
     if (lost .or. hom_power_gain > 1) then
       charge1 = beam_init%bunch_charge
-      print *, '  Unstable at (mA):', 1e3 * charge1 / beam_init%dt_bunch 
-      print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
     else
       charge0 = beam_init%bunch_charge
-      print *, '  Stable at (mA):', 1e3 * charge0 / beam_init%dt_bunch 
-      print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
     endif
-
+    call print_info
     if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
   enddo
 
@@ -198,6 +192,36 @@ do istep = 1, nstep
 
 enddo
 
-if(bbu_param%drscan)close(50)
+if (bbu_param%drscan) close(50)
+
+!-------------------------------------------------------------------------------
+contains
+
+subroutine print_info()
+
+if (growth_rate > 0 .or. lost) then
+  print *, '  Unstable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
+else
+  print *, '  Stable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
+endif
+
+print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
+print *, '         Growth rate: ', growth_rate
+
+charge_old = charge_new
+growth_rate_old = growth_rate_new
+
+charge_new = beam_init%bunch_charge
+growth_rate_new = growth_rate
+
+! Cannot print prediction until there are two trackings.
+
+if (charge_old > 0) then  ! If we have two trackings.
+  charge_threshold = (charge_old * growth_rate_new - charge_new * growth_rate_old) / &
+                                                         (growth_rate_new - growth_rate_old)
+  print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
+endif
+
+end subroutine
 
 end program
