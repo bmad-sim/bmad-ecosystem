@@ -41,6 +41,7 @@ bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (200
 bbu_param%nstep = 100
 bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
+bbu_param%use_interpolated_threshold = .false.
 
   beam_init%n_particle = 1
 
@@ -148,6 +149,7 @@ do istep = 1, nstep
   beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
   charge0 = 0
   charge_new = -1
+  charge_threshold = -1
 
   Print *, 'Searching for a current where the tracking is unstable...'
 
@@ -161,7 +163,11 @@ do istep = 1, nstep
     endif
     charge0 = beam_init%bunch_charge
     call print_info
-    beam_init%bunch_charge = beam_init%bunch_charge * 2
+    if (bbu_param%use_interpolated_threshold .and. charge_threshold > 0) then
+      beam_init%bunch_charge = charge_threshold
+    else
+      beam_init%bunch_charge = beam_init%bunch_charge * 2
+    endif
   enddo
 
   charge1 = beam_init%bunch_charge
@@ -172,7 +178,11 @@ do istep = 1, nstep
   print *, 'Now converging on the threshold...'
 
   do
-    beam_init%bunch_charge = (charge0 + charge1) / 2
+    if (bbu_param%use_interpolated_threshold .and. charge_threshold > 0) then
+      beam_init%bunch_charge = charge_threshold
+    else
+      beam_init%bunch_charge = (charge0 + charge1) / 2
+    endif
     lat = lat0 ! Restore lr wakes
     call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
     if (lost) print *, 'Particle(s) lost. Assuming unstable...'

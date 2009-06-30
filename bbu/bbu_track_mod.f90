@@ -38,6 +38,7 @@ type bbu_param_struct
   real(rp) current
   real(rp) rel_tol
   logical drscan
+  logical use_interpolated_threshold
   integer elindex
   character*40 elname
   integer nstep
