@@ -15,8 +15,8 @@ integer istep
 integer :: nstep = 100
 
 real(rp) deldr,dr, charge_try
-real(rp) hom_power_gain, charge0, charge1, charge_old, charge_new, charge_threshold
-real(rp) trtb, currth, growth_rate, growth_rate_old, growth_rate_new
+real(rp) hom_power_gain, charge0, charge1, charge_old, charge_threshold
+real(rp) trtb, currth, growth_rate, growth_rate0, growth_rate1, growth_rate_old
 
 logical lost
 logical, allocatable :: keep_ele(:)
@@ -148,51 +148,32 @@ do istep = 1, nstep
 
   beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
   charge0 = 0
-  charge_new = -1
-  charge_threshold = -1
-  charge_try = -1
+  charge1 = -1      ! Mark as not set yet 
+  charge_old = -1   ! Mark as not set yet 
+  charge_try = -1   ! Mark as not set yet 
 
   Print *, 'Searching for a current where the tracking is unstable...'
 
   do
     lat = lat0 ! Restore lr wakes
     call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+    call calc_next_charge_try
     if (hom_power_gain > 1) exit
     if (lost) then
       print *, 'Particle(s) lost. Assuming unstable...'
       exit
     endif
-    charge0 = beam_init%bunch_charge
-    call print_info
-    if (bbu_param%use_interpolated_threshold .and. charge_try > 0) then
-      beam_init%bunch_charge = charge_try
-    else
-      beam_init%bunch_charge = beam_init%bunch_charge * 2
-    endif
   enddo
-
-  charge1 = beam_init%bunch_charge
-  call print_info
 
   ! Track to bracket threshold
 
   print *, 'Now converging on the threshold...'
 
   do
-    if (bbu_param%use_interpolated_threshold .and. charge_try > 0) then
-      beam_init%bunch_charge = charge_try
-    else
-      beam_init%bunch_charge = (charge0 + charge1) / 2
-    endif
     lat = lat0 ! Restore lr wakes
     call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
     if (lost) print *, 'Particle(s) lost. Assuming unstable...'
-    if (lost .or. hom_power_gain > 1) then
-      charge1 = beam_init%bunch_charge
-    else
-      charge0 = beam_init%bunch_charge
-    endif
-    call print_info
+    call calc_next_charge_try
     if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
   enddo
 
@@ -208,11 +189,11 @@ if (bbu_param%drscan) close(50)
 !-------------------------------------------------------------------------------
 contains
 
-subroutine print_info()
+subroutine calc_next_charge_try()
 
-real(rp) c, min_delta, d_old, d_new
+real(rp) c, min_delta, dc0, dc1, c0, c1, g0, g1
 
-!
+! Print info
 
 if (growth_rate > 0 .or. lost) then
   print *, '  Unstable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
@@ -223,51 +204,87 @@ endif
 print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
 print *, '         Growth rate: ', growth_rate
 
-charge_old = charge_new
-growth_rate_old = growth_rate_new
+!
 
-charge_new = beam_init%bunch_charge
-growth_rate_new = growth_rate
+if (growth_rate > 0) then  ! unstable
+  charge1 = beam_init%bunch_charge
+  growth_rate1 = growth_rate
+
+else
+  charge0 = beam_init%bunch_charge
+  growth_rate0 = growth_rate
+endif
+
 
 ! Cannot print threshold prediction until there are two trackings.
 
 if (charge_old > 0) then  ! If we have two trackings.
-  charge_threshold = (charge_old * growth_rate_new - charge_new * growth_rate_old) / &
-                                                         (growth_rate_new - growth_rate_old)
 
-  ! current to use in the next tracking must be significantly different from 
-  ! charge_old and charge_new.
+  ! Need to decide which two data points to use for the interpolation
+
+  if (charge0 > 0 .and. charge1 > 0) then  ! Have bracked the threshold
+    c0 = charge0;  g0 = growth_rate0
+    c1 = charge1;  g1 = growth_rate1
+  elseif (charge1 < 0) then  ! Have stable points but not unstable
+    c0 = charge0;  g0 = growth_rate0
+    c1 = charge_old;  g1 = growth_rate_old
+  else                       ! Have unstable points but not stable
+    c0 = charge_old;  g0 = growth_rate_old
+    c1 = charge1;  g1 = growth_rate1
+  endif
+
+  charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+
+  ! current to use in the next tracking must be significantly different from c0 and c1.
 
   charge_try = charge_threshold
 
-  min_delta = max(charge_old, charge_new) * bbu_param%rel_tol
-  d_old = abs(charge_threshold - charge_old)
-  d_new = abs(charge_threshold - charge_new)
+  min_delta = max(c0, c1) * bbu_param%rel_tol
+  dc0 = charge_threshold - c0
+  dc1 = charge_threshold - c1
 
-  ! If closer to old...
-  if (d_old < d_new .and. d_old < min_delta) then
-    c = charge_threshold + sign(min_delta, charge_new-charge_old)
-    if (abs(c-charge_new) < abs(c-charge_old)) then
-      charge_try = (charge_new + charge_old) / 2
+  ! If closer to c0...
+  if (abs(dc0) < abs(dc1) .and. abs(dc0) < min_delta) then
+    c = charge_threshold + sign(min_delta, dc0)
+    if (abs(c-c1) < abs(c-c0)) then ! If moved closer to c1 then just use the average
+      charge_try = (c1 + c0) / 2
     else
       charge_try = c
     endif
 
-  ! If closer to new...
-  else if (d_new < d_old .and. d_new < min_delta) then
-    c = charge_threshold + sign(min_delta, charge_old-charge_new)
-    if (abs(c-charge_old) < abs(c-charge_new)) then
-      charge_try = (charge_new + charge_old) / 2
+  ! If closer to c1...
+  else if (dc1 < dc0 .and. dc1 < min_delta) then
+    c = charge_threshold + sign(min_delta, dc1)
+    if (abs(c-c0) < abs(c-c1)) then  ! If moved closer to c0 then just use the average
+      charge_try = (c1 + c0) / 2
     else
       charge_try = c
     endif
   endif
+
+  ! If negative (can happen if we are extrapolating using two unstable points) just set to 0.
+  if (charge_try < 0) charge_try = 0
 
   print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
   print *, '         Current to try next:', 1d3 * charge_try / beam_init%dt_bunch 
 
 endif
 
+charge_old = beam_init%bunch_charge
+growth_rate_old = growth_rate
+
+! Set new try value
+
+if (bbu_param%use_interpolated_threshold .and. charge_try > 0) then
+  beam_init%bunch_charge = charge_try
+
+else
+  if (charge1 > 0) then  ! Has been set so have stable and unstable points
+    beam_init%bunch_charge = (charge0 + charge1) / 2
+  else                   ! Still searching for an unstable point.
+    beam_init%bunch_charge = beam_init%bunch_charge * 2
+  endif
+endif
 
 
 end subroutine
