@@ -12,9 +12,9 @@ type (beam_init_struct) beam_init
 integer i, ix, j, n_hom, n, n_ele, ix_pass
 
 integer istep
-integer nstep /100/
-real(rp) deldr,dr
+integer :: nstep = 100
 
+real(rp) deldr,dr, charge_try
 real(rp) hom_power_gain, charge0, charge1, charge_old, charge_new, charge_threshold
 real(rp) trtb, currth, growth_rate, growth_rate_old, growth_rate_new
 
@@ -150,6 +150,7 @@ do istep = 1, nstep
   charge0 = 0
   charge_new = -1
   charge_threshold = -1
+  charge_try = -1
 
   Print *, 'Searching for a current where the tracking is unstable...'
 
@@ -163,8 +164,8 @@ do istep = 1, nstep
     endif
     charge0 = beam_init%bunch_charge
     call print_info
-    if (bbu_param%use_interpolated_threshold .and. charge_threshold > 0) then
-      beam_init%bunch_charge = charge_threshold
+    if (bbu_param%use_interpolated_threshold .and. charge_try > 0) then
+      beam_init%bunch_charge = charge_try
     else
       beam_init%bunch_charge = beam_init%bunch_charge * 2
     endif
@@ -178,8 +179,8 @@ do istep = 1, nstep
   print *, 'Now converging on the threshold...'
 
   do
-    if (bbu_param%use_interpolated_threshold .and. charge_threshold > 0) then
-      beam_init%bunch_charge = charge_threshold
+    if (bbu_param%use_interpolated_threshold .and. charge_try > 0) then
+      beam_init%bunch_charge = charge_try
     else
       beam_init%bunch_charge = (charge0 + charge1) / 2
     endif
@@ -209,6 +210,10 @@ contains
 
 subroutine print_info()
 
+real(rp) c, min_delta, d_old, d_new
+
+!
+
 if (growth_rate > 0 .or. lost) then
   print *, '  Unstable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
 else
@@ -224,13 +229,46 @@ growth_rate_old = growth_rate_new
 charge_new = beam_init%bunch_charge
 growth_rate_new = growth_rate
 
-! Cannot print prediction until there are two trackings.
+! Cannot print threshold prediction until there are two trackings.
 
 if (charge_old > 0) then  ! If we have two trackings.
   charge_threshold = (charge_old * growth_rate_new - charge_new * growth_rate_old) / &
                                                          (growth_rate_new - growth_rate_old)
+
+  ! current to use in the next tracking must be significantly different from 
+  ! charge_old and charge_new.
+
+  charge_try = charge_threshold
+
+  min_delta = max(charge_old, charge_new) * bbu_param%rel_tol
+  d_old = abs(charge_threshold - charge_old)
+  d_new = abs(charge_threshold - charge_new)
+
+  ! If closer to old...
+  if (d_old < d_new .and. d_old < min_delta) then
+    c = charge_threshold + sign(min_delta, charge_new-charge_old)
+    if (abs(c-charge_new) < abs(c-charge_old)) then
+      charge_try = (charge_new + charge_old) / 2
+    else
+      charge_try = c
+    endif
+
+  ! If closer to new...
+  else if (d_new < d_old .and. d_new < min_delta) then
+    c = charge_threshold + sign(min_delta, charge_old-charge_new)
+    if (abs(c-charge_old) < abs(c-charge_new)) then
+      charge_try = (charge_new + charge_old) / 2
+    else
+      charge_try = c
+    endif
+  endif
+
   print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
+  print *, '         Current to try next:', 1d3 * charge_try / beam_init%dt_bunch 
+
 endif
+
+
 
 end subroutine
 
