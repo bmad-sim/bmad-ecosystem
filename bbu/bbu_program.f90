@@ -206,7 +206,7 @@ print *, '         Growth rate: ', growth_rate
 
 !
 
-if (growth_rate > 0) then  ! unstable
+if (growth_rate > 0 .or. lost) then  ! unstable
   charge1 = beam_init%bunch_charge
   growth_rate1 = growth_rate
 
@@ -227,7 +227,15 @@ if (charge_old > 0) then  ! If we have two trackings.
 
     c0 = charge0;  g0 = growth_rate0
     c1 = charge1;  g1 = growth_rate1
-    charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+
+    ! the tracking may not have calculated a valid growth rate. 
+    ! If so, use the average current as the threshold
+
+    if (g0 == real_garbage$ .or. g1 == real_garbage$ .or. g0 == g1) then
+      charge_threshold = (c0 + c1) / 2
+    else
+      charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+    endif
 
     ! current to use in the next tracking must be significantly different from c0 and c1.
 
@@ -262,10 +270,20 @@ if (charge_old > 0) then  ! If we have two trackings.
   elseif (charge1 < 0) then  
     c0 = charge0;  g0 = growth_rate0
     c1 = charge_old;  g1 = growth_rate_old
-    charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+
+    ! the tracking may not have calculated a valid growth rate. 
+    ! If so, use twice the last current as the threshold
+
+    if (g0 == real_garbage$ .or. g1 == real_garbage$ .or. g0 == g1) then
+      charge_threshold = 2 * c0   
+    else
+      charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+    endif
+
     ! If the threshold is less than charge0 then there must be a lot of noise so
     ! assume we are far from the threshold and increase the current by a factor of 10.
     ! In any case, Demand at least a 10% change.
+
     if (charge_threshold < c0) then
       charge_try = 10 * c0
     else
@@ -278,8 +296,18 @@ if (charge_old > 0) then  ! If we have two trackings.
   else                       
     c0 = charge_old;  g0 = growth_rate_old
     c1 = charge1;  g1 = growth_rate1
-    charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+
+    ! the tracking may not have calculated a valid growth rate. 
+    ! If so, use half the last current as the threshold
+
+    if (g0 == real_garbage$ .or. g1 == real_garbage$ .or. g0 == g1) then
+      charge_threshold = c0 / 2   
+    else
+      charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+    endif
+
     ! Demand at least a 10% change but if negative just set to 0.
+
     charge_try = min(charge_threshold, 0.9 * c1)
     if (charge_try < 0) charge_try = 0
   endif

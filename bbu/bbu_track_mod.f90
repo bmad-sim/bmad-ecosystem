@@ -185,6 +185,8 @@ enddo
 bbu_beam%stage%hom_power = 0
 bbu_beam%hom_power_max = 0
 bbu_beam%ix_stage_power_max = 1
+growth_rate = real_garbage$
+
 
 bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
 ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
