@@ -71,6 +71,11 @@ if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 intel
 endif
 
+if ( "${PLATFORM_TAG}" == "Linux_athlon" ) then
+  if ( $?BMADF90    == 0 ) setenv BMADF90 intel
+  set PLATFORM_TAG="Linux_i686"
+endif
+
 if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 hp
 endif

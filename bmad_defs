@@ -72,15 +72,24 @@ if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
      export BMAD_PD=w
      export LOCAL_PD=c
 fi
+
 if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
   BMADF90=${BMADF90:-intel}
 fi
+
+if ( [ "${PLATFORM_TAG}" = "Linux_athlon" ] ) then 
+  BMADF90=${BMADF90:-intel}
+  PLATFORM_TAG="Linux_i686"
+fi
+
 if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   BMADF90=${BMADF90:-hp}
 fi
+
 if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
   BMADF90=${BMADF90:-g95}
 fi
+
 #
 # Export the BMAD environment variable structure
 #
