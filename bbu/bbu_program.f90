@@ -220,50 +220,70 @@ endif
 
 if (charge_old > 0) then  ! If we have two trackings.
 
-  ! Need to decide which two data points to use for the interpolation
+  !---------------------------------------------------
+  ! If Have bracked the threshold
 
-  if (charge0 > 0 .and. charge1 > 0) then  ! Have bracked the threshold
+  if (charge0 > 0 .and. charge1 > 0) then  
+
     c0 = charge0;  g0 = growth_rate0
     c1 = charge1;  g1 = growth_rate1
-  elseif (charge1 < 0) then  ! Have stable points but not unstable
+    charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+
+    ! current to use in the next tracking must be significantly different from c0 and c1.
+
+    charge_try = charge_threshold
+
+    min_delta = max(c0, c1) * bbu_param%rel_tol
+    dc0 = charge_threshold - c0
+    dc1 = charge_threshold - c1
+
+    ! If closer to c0...
+    if (abs(dc0) < abs(dc1) .and. abs(dc0) < min_delta) then
+      c = charge_threshold + sign(min_delta, dc0)
+      if (abs(c-c1) < abs(c-c0)) then ! If moved closer to c1 then just use the average
+        charge_try = (c1 + c0) / 2
+      else
+        charge_try = c
+      endif
+
+    ! If closer to c1...
+    else if (dc1 < dc0 .and. dc1 < min_delta) then
+      c = charge_threshold + sign(min_delta, dc1)
+      if (abs(c-c0) < abs(c-c1)) then  ! If moved closer to c0 then just use the average
+        charge_try = (c1 + c0) / 2
+      else
+        charge_try = c
+      endif
+    endif
+
+  !---------------------------------------------------
+  ! If Have stable points but no unstable point
+
+  elseif (charge1 < 0) then  
     c0 = charge0;  g0 = growth_rate0
     c1 = charge_old;  g1 = growth_rate_old
-  else                       ! Have unstable points but not stable
+    charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+    ! If the threshold is less than charge0 then there must be a lot of noise so
+    ! assume we are far from the threshold and increase the current by a factor of 10.
+    ! In any case, Demand at least a 10% change.
+    if (charge_threshold < c0) then
+      charge_try = 10 * c0
+    else
+      charge_try = max(charge_threshold, 1.1 * c0)
+    endif
+
+  !---------------------------------------------------
+  ! If Have unstable points but no stable point
+
+  else                       
     c0 = charge_old;  g0 = growth_rate_old
     c1 = charge1;  g1 = growth_rate1
+    charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
+    ! Demand at least a 10% change but if negative just set to 0.
+    charge_try = min(charge_threshold, 0.9 * c1)
+    if (charge_try < 0) charge_try = 0
   endif
 
-  charge_threshold = (c0 * g1 - c1 * g0) / (g1 - g0)
-
-  ! current to use in the next tracking must be significantly different from c0 and c1.
-
-  charge_try = charge_threshold
-
-  min_delta = max(c0, c1) * bbu_param%rel_tol
-  dc0 = charge_threshold - c0
-  dc1 = charge_threshold - c1
-
-  ! If closer to c0...
-  if (abs(dc0) < abs(dc1) .and. abs(dc0) < min_delta) then
-    c = charge_threshold + sign(min_delta, dc0)
-    if (abs(c-c1) < abs(c-c0)) then ! If moved closer to c1 then just use the average
-      charge_try = (c1 + c0) / 2
-    else
-      charge_try = c
-    endif
-
-  ! If closer to c1...
-  else if (dc1 < dc0 .and. dc1 < min_delta) then
-    c = charge_threshold + sign(min_delta, dc1)
-    if (abs(c-c0) < abs(c-c1)) then  ! If moved closer to c0 then just use the average
-      charge_try = (c1 + c0) / 2
-    else
-      charge_try = c
-    endif
-  endif
-
-  ! If negative (can happen if we are extrapolating using two unstable points) just set to 0.
-  if (charge_try < 0) charge_try = 0
 
   print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
   print *, '         Current to try next:', 1d3 * charge_try / beam_init%dt_bunch 
@@ -275,7 +295,7 @@ growth_rate_old = growth_rate
 
 ! Set new try value
 
-if (bbu_param%use_interpolated_threshold .and. charge_try > 0) then
+if (bbu_param%use_interpolated_threshold .and. charge_try >= 0) then
   beam_init%bunch_charge = charge_try
 
 else
