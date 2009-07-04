@@ -112,7 +112,8 @@ end subroutine init_coord
 ! Input:
 !   key_str        -- Character(*): Name of the key. Result is case insensitive.
 !   abbrev_allowed -- Logical, optional: Abbreviations (eg: "quad") allowed?
-!                       Default is False. At least 3 characters are needed if True.
+!                       Default is False. At least 3 characters are needed 
+!                       (except for rfcavity elements) if True.
 !
 ! Output:
 !   key_index -- Integer: Index of the key. Set to -1 if key_name not recognized.
@@ -143,7 +144,7 @@ call string_trim (name, name, n_name)
 abbrev = logic_option(.false., abbrev_allowed)
 
 do i = 1, n_key
-  if (abbrev .and. n_name > 2) then
+  if (abbrev .and. (n_name > 2 .or. name(1:2) == "RF")) then
     if (name(:n_name) == key_name(i)(1:n_name)) then
       key_index = i
       n_match = n_match + 1

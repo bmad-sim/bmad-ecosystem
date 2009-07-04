@@ -2319,42 +2319,6 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine preparse_element_init (ele)
-
-implicit none
-
-type (ele_struct) ele
-
-!
-
-if (ele%key == wiggler$) then
-  ele%sub_key = periodic_type$   ! default
-  ele%value(polarity$) = 1.0     ! default
-endif
-
-if (ele%key == taylor$) then
-  ele%tracking_method = taylor$  ! default
-  ele%mat6_calc_method = taylor$ ! default
-  ele%taylor_order = 999         ! make large.
-  call add_this_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /))
-  call add_this_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /))
-  call add_this_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /))
-  call add_this_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /))
-  call add_this_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /))
-  call add_this_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /))
-endif
-
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
 subroutine error_exit (what1, what2)
 
 implicit none
@@ -3583,9 +3547,11 @@ subroutine parser_set_ele_defaults (ele)
 
 type (ele_struct) ele
 
-!
-
 select case (ele%key)
+
+case (wiggler$) 
+  ele%sub_key = periodic_type$   ! default
+  ele%value(polarity$) = 1.0     ! default
 
 case (custom$)  ! set defaults
   ele%mat6_calc_method = custom$
@@ -3597,12 +3563,10 @@ case (bend_sol_quad$) ! set defaults
   ele%tracking_method  = symp_lie_bmad$
 
 case (taylor$)   ! start with unit matrix
-  call add_this_taylor_term (ele, 1, 1.0_rp, (/ 1, 0, 0, 0, 0, 0 /)) 
-  call add_this_taylor_term (ele, 2, 1.0_rp, (/ 0, 1, 0, 0, 0, 0 /)) 
-  call add_this_taylor_term (ele, 3, 1.0_rp, (/ 0, 0, 1, 0, 0, 0 /)) 
-  call add_this_taylor_term (ele, 4, 1.0_rp, (/ 0, 0, 0, 1, 0, 0 /)) 
-  call add_this_taylor_term (ele, 5, 1.0_rp, (/ 0, 0, 0, 0, 1, 0 /)) 
-  call add_this_taylor_term (ele, 6, 1.0_rp, (/ 0, 0, 0, 0, 0, 1 /)) 
+  ele%tracking_method = taylor$  ! default
+  ele%mat6_calc_method = taylor$ ! default
+  ele%taylor_order = 999         ! make large.
+  call taylor_make_unit (ele%taylor)
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$

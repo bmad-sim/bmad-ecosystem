@@ -500,7 +500,7 @@ parsing_loop: do
     if (.not. found) then
       in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
       if (in_lat%ele(n_max)%key > 0) then
-        call preparse_element_init (in_lat%ele(n_max))
+        call parser_set_ele_defaults (in_lat%ele(n_max))
         found = .true.
       endif
     endif
@@ -513,8 +513,6 @@ parsing_loop: do
 
     ! Element definition...
     ! First: set defaults.
-
-    call parser_set_ele_defaults (in_lat%ele(n_max))
 
     key = in_lat%ele(n_max)%key
     if (key == overlay$ .or. key == group$ .or. key == girder$) then

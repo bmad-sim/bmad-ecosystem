@@ -485,7 +485,6 @@ logical, optional :: replace
 
 ! Search for an existing term of the same type
 
-if (coef == 0) return
 n = size(bmad_taylor%term)
 
 do i = 1, n
@@ -590,11 +589,6 @@ integer n
 logical, optional :: save
 
 !
-
-if (n_term == 0) then
-  if (associated (bmad_taylor%term)) deallocate (bmad_taylor%term)
-  return
-endif
 
 if (.not. associated (bmad_taylor%term)) then
   allocate (bmad_taylor%term(n_term))
