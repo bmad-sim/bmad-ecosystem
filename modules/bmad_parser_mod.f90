@@ -1644,11 +1644,16 @@ if (attrib_name == 'S' .and. bp_com%parser_name /= 'BMAD_PARSER2') then
 endif
 
 call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
-if (err_flag .or. size(ptr) /= 1) then
+if (err_flag .or. size(ptr) == 0) then
   call warning('BAD ATTRIBUTE: ' // word)
 else
   value = ptr(1)%r
 endif
+
+! If size(ptr) > 1 then there must be more than one element of the same name.
+
+if (size(ptr) > 1) call warning (&
+            'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word)
 
 return
 

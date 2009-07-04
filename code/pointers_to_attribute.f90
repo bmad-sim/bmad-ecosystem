@@ -57,7 +57,7 @@ type (lat_ele_loc_struct), optional, allocatable :: locs(:)
 type (lat_ele_loc_struct), allocatable, save :: locs2(:)
 
 integer, optional :: ix_attrib
-integer n, i, ix, key, ix_a
+integer n, i, ix, key, ix_a, n_loc
 
 character(*) ele_name
 character(100) ele_name_temp
@@ -105,8 +105,8 @@ endif
 
 ! Locate elements
 
-call lat_ele_locator (ele_name, lat, locs2, err_flag)
-if (size(locs2) == 0) then
+call lat_ele_locator (ele_name, lat, locs2, n_loc, err_flag)
+if (n_loc == 0) then
   if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
   if (allocated(ptr_array)) deallocate (ptr_array)
   err_flag = .true.
@@ -115,9 +115,9 @@ endif
 
 ! Locate attributes
 
-call re_allocate (ptrs, size(locs2))
+call re_allocate (ptrs, n_loc)
 n = 0
-do i = 1, size(locs2)
+do i = 1, n_loc
   call pointer_to_attribute (lat%branch(locs2(i)%ix_branch)%ele(locs2(i)%ix_ele), &
           attrib_name, do_allocation, ptrs(n+1)%r, err_flag, .false., ix_a)
   if (.not. err_flag) then

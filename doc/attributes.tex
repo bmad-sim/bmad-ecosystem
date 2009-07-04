@@ -243,7 +243,6 @@ point. In terms of rotation angle
   x_pitch =  dtheta
   y_pitch = -dphi
 \end{example}
-In both \bmad and \mad offsets are applied before pitches.
 \begin{figure}[ht]
   \centering
   \includegraphics{pitch.eps}
@@ -258,23 +257,26 @@ In both \bmad and \mad offsets are applied before pitches.
   \label{f:tilt}
 \end{figure}
 
-The tilt attribute rotates the element in the $(x, y)$ plane as
-shown in figure~\ref{f:tilt}. For a bend the rotation axis is the
-$z$-axis at the entrance face. The reference orbit is also rotated
-with the element. A bend with a tilt of $\pi/2$ will bend a beam
-upward vertically. The \vn{hkick} and \vn{vkick} attributes are
+The tilt attribute rotates the element in the $(x, y)$ plane as shown
+in figure~\ref{f:tilt}. The rotation axis is the $z$-axis at the
+entrance face. The reference orbit is also rotated for any element
+who's exit coordinates are not colinear with the entrance
+coordinates. For example, a \vn{bend} or \vn{mirror} with a tilt of $\pi/2$ will bend a
+beam vertically upward. The \vn{hkick} and \vn{vkick} attributes are
 not affected by \vn{tilt} except for \vn{Kicker} and \vn{ElSeparator}
-elements
-Like MAD, \bmad allows the use of the \vn{tilt} attribute without
-a value to designate a skew element. For example
+elements. Like MAD, \bmad allows the use of the \vn{tilt} attribute
+without a value to designate a skew element. For example
 \begin{example}
   q1: quad, l = 0.6, x_offset = 0.03, y_pitch = 0.001, tilt
 \end{example}
 Default tilts can be used for \vn{rbend}, \vn{sbend}, \vn{sol_quad},
 \vn{quadrupole}, \vn{sextupole}, and \vn{octupole} elements.
-The default tilt is $\pi/n$ where $n$ is the number of poles of the
-element (bends have 2, quadrupoles have 4, etc.) 
+The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the 
+element (n = 0 for bends, n = 1 for quadrupoles etc.) 
 
+For all elements, offsets, pitches, and tilts are with
+respect to the entrance coordinates (the local coorindates just before
+the element.
 
 The \vn{roll} attribute is only used for bends
 and rotates the bend, along an axis that runs through the entrance

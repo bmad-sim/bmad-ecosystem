@@ -360,21 +360,21 @@ parsing_loop: do
 
     found = .false.  ! found a match?
 
-    lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
-    if (lat%ele(n_max)%key > 0) then
-      call preparse_element_init (lat%ele(n_max))
-      found = .true.
-    endif
+    do i = 1, n_max-1
+      if (word_2 == lat%ele(i)%name) then
+        lat%ele(n_max) = lat%ele(i)
+        lat%ele(n_max)%name = word_1
+        found = .true.
+        exit
+      endif
+    enddo
 
     if (.not. found) then
-      do i = 1, n_max-1
-        if (word_2 == lat%ele(i)%name) then
-          lat%ele(n_max) = lat%ele(i)
-          lat%ele(n_max)%name = word_1
-          found = .true.
-          exit
-        endif
-      enddo
+      lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
+      if (lat%ele(n_max)%key > 0) then
+        call preparse_element_init (lat%ele(n_max))
+        found = .true.
+      endif
     endif
 
     if (.not. found) then

@@ -40,7 +40,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele_locator (loc_str, lat, locs, err)
+! Subroutine lat_ele_locator (loc_str, lat, locs, n_loc, err)
 !
 ! Routine to locate all the elements of a certain key 
 ! and certain name. loc_str is of the form:
@@ -67,13 +67,14 @@ contains
 !
 ! Output:
 !   locs(:) -- Lat_ele_loc_struct, allocatable: Array of matching element locations.
-!              The size of locs will be zero if no elements are found.
 !              Note: This routine does not try to deallocate locs.
 !               It is up to you to deallocate locs if needed.
+!   n_loc   -- Integer: Number of locations found.
+!                Set to zero if no elements are found.
 !   err     -- Logical: Set True if there is a decode error.
 !-
 
-subroutine lat_ele_locator (loc_str, lat, locs, err)
+subroutine lat_ele_locator (loc_str, lat, locs, n_loc, err)
 
 implicit none
 
@@ -82,8 +83,8 @@ type (lat_struct) lat
 character(*) loc_str
 character(40) name
 type (lat_ele_loc_struct), allocatable :: locs(:)
-integer i, j, k, ix, num, key
-logical err
+integer i, j, k, ix, key, n_loc
+logical err, do_match_wild
 
 ! index array
 
@@ -106,26 +107,26 @@ else
   call str_upcase (name, loc_str(ix+1:))
 endif
 
-num = 0
+! Save time by deciding if we need to call match_wild or not.
+
+do_match_wild = .false.  
+if (index(loc_str, "*") /= 0 .or. index(loc_str, "%") /= 0) do_match_wild = .true.
+
+! search for matches
+
+n_loc = 0
 do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
-  lat%branch(k)%ele(:)%bmad_logic = .false.
   do i = 0, lat%branch(k)%n_ele_max
     if (key /= 0 .and. lat%branch(k)%ele(i)%key /= key) cycle
-    if (.not. match_wild(lat%branch(k)%ele(i)%name, name)) cycle
-    lat%branch(k)%ele(i)%bmad_logic = .true.
-    num = num + 1
-  enddo
-enddo
-
-! Fill in locs array
-
-call re_allocate_locs (locs, num)
-j = 0
-do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
-  do i = 0, lat%branch(k)%n_ele_max
-    if (.not. lat%branch(k)%ele(i)%bmad_logic) cycle
-    j = j + 1
-    locs(j) = lat_ele_loc_struct(i, k)
+    if (do_match_wild) then
+      if (.not. match_wild(lat%branch(k)%ele(i)%name, name)) cycle
+    else
+      if (lat%branch(k)%ele(i)%name /= name) cycle
+    endif
+    n_loc = n_loc + 1
+    if (.not. allocated(locs)) call re_allocate_locs (locs, 1, .true.)
+    if (size(locs) < n_loc) call re_allocate_locs (locs, 2*n_loc, .true.)
+    locs(n_loc) = lat_ele_loc_struct(i, k)
   enddo
 enddo
 
@@ -316,18 +317,21 @@ logical, optional :: save
 
 !
 
-if (allocated(locs)) then
-  if  (size(locs) == n) return
-  if (logic_option (.false., save)) then
-    n_old = min(size(locs), n)
-    allocate (l_temp(n_old))
-    l_temp = locs(1:n_old)
-  endif
-  deallocate (locs)
+if (.not. allocated(locs)) then
+  allocate (locs(n))
+  return
 endif
 
-allocate (locs(n))
+if  (size(locs) == n) return
 
+if (logic_option (.false., save)) then
+  n_old = min(size(locs), n)
+  allocate (l_temp(n_old))
+  l_temp = locs(1:n_old)
+endif
+
+deallocate (locs)
+allocate (locs(n))
 
 if (logic_option (.false., save)) then
   locs(1:n_old) = l_temp
