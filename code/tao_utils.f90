@@ -261,7 +261,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (lat_ele_loc_struct), allocatable :: locs(:)
 
-integer ios, ix, ix_universe, num, i, i_ix_ele
+integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc
 
 character(*) string
 character(40) ele_name
@@ -290,14 +290,16 @@ endif
 u => tao_pointer_to_universe (ix_universe)
 if (.not. associated(u)) return
 
-call lat_ele_locator (ele_name, u%model%lat, locs, err)
+call lat_ele_locator (ele_name, u%model%lat, locs, n_loc, err)
 if (err) return
 
-if (size(locs) == 0) then
+if (n_loc == 0) then
   call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // string)
   err = .true.
   return
 endif
+
+call re_allocate_locs (locs, n_loc, .true.)
 
 end subroutine tao_locate_elements
 
