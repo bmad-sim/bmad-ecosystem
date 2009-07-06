@@ -85,6 +85,7 @@ if (ele_name == 'BEAM_START') then
   select case(attrib_name)
   case ('EMITTANCE_A'); ptr_array(1)%r => lat%a%emit 
   case ('EMITTANCE_B'); ptr_array(1)%r => lat%b%emit
+  case ('EMITTANCE_Z'); ptr_array(1)%r => lat%z%emit
   case default
     beam_start%key = def_beam_start$
     ix = attribute_index (beam_start, attrib_name)
