@@ -92,6 +92,7 @@ err = .true.
 
 if (is_integer(loc_str(1:1))) then
   call lat_location_decode (loc_str, lat, locs, err)
+  n_loc = size(locs)
   return
 endif
 
