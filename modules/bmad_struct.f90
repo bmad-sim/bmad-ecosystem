@@ -702,6 +702,8 @@ real(rp), parameter :: rad_fluct_const = 1.3231 * r_e * h_bar_planck * &
 
 integer, parameter :: not_lost$ = -1
 
+integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3
+
 !------------------------------------------------------------------------------
 ! common stuff
 

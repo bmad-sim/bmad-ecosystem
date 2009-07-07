@@ -421,7 +421,15 @@ ele_loop: do ie = 1, lat%n_ele_max
       stop
     endif
 
-    line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(ele%value(j))
+    select case (attribute_type(attrib_name))
+    case (is_logical$)
+      write (line, '(4a, l1)') trim(line), ', ', trim(attrib_name), ' = ', (ele%value(j) /= 0)
+    case (is_integer$)
+      write (line, '(4a, i0)') trim(line), ', ', trim(attrib_name), ' = ', int(ele%value(j))
+    case (is_real$)
+      line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(ele%value(j))
+    end select
+
   enddo ! attribute loop
 
   ! Print the combined limits if needed.

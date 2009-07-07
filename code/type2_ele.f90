@@ -67,7 +67,7 @@ type (sr_mode_wake_struct), pointer :: sr_m
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
-integer i, j, n, ix, iv, ic, nl2, l_status
+integer i, j, n, ix, iv, ic, nl2, l_status, a_type
 integer nl, nt, n_max, particle, n_term, n_att
 integer pos_tot(n_attrib_maxx)
 
@@ -94,12 +94,12 @@ allocate (li(300))
 
 pos_tot = 0
 if (ele%lord_status /= group_lord$  .and. ele%lord_status /= overlay_lord$) then
-  pos_tot(x_offset$) = x_offset_tot$
-  pos_tot(y_offset$) = y_offset_tot$
-  pos_tot(s_offset$) = s_offset_tot$
-  pos_tot(tilt$)     = tilt_tot$
-  pos_tot(x_pitch$)  = x_pitch_tot$
-  pos_tot(y_pitch$)  = y_pitch_tot$
+  if (attribute_name(ele, x_offset$) == 'X_OFFSET') pos_tot(x_offset$) = x_offset_tot$
+  IF (attribute_name(ele, y_offset$) == 'Y_OFFSET') pos_tot(y_offset$) = y_offset_tot$
+  IF (attribute_name(ele, s_offset$) == 'S_OFFSET') pos_tot(s_offset$) = s_offset_tot$
+  IF (attribute_name(ele, tilt$)     == 'TILT')    pos_tot(tilt$)      = tilt_tot$
+  IF (attribute_name(ele, x_pitch$)  == 'X_PITCH') pos_tot(x_pitch$)   = x_pitch_tot$
+  IF (attribute_name(ele, y_pitch$)  == 'Y_PITCH') pos_tot(y_pitch$)   = y_pitch_tot$
 endif
 
 type_zero = logic_option(.false., type_zero_attrib)
@@ -168,8 +168,14 @@ else
     ix = pos_tot(i)
     if (ix == 0) then
       if (ele%value(i) == 0 .and. .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7)')  i, &
-                                      a_name(1:n_att), '=', ele%value(i)
+      select case (attribute_type(a_name))
+      case (is_logical$)
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, l1)')  i, a_name(1:n_att), '= ', (ele%value(i) /= 0)
+      case (is_integer$)
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', int(ele%value(i))
+      case (is_real$)
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, a_name(1:n_att), '=', ele%value(i)
+      end select
     else
       if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
                                                .not. type_zero) cycle

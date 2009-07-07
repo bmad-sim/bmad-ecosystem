@@ -44,7 +44,7 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := code custom modules cpp_interface synrad
+LIB_SRC_DIRS := code custom modules cpp_interface synrad photon
 OBJ_SRC_DIRS := test_jobs simple_program
 
 CONFIG_DIRS  :=

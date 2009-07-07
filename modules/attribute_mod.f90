@@ -160,13 +160,13 @@ endif
 err_flag = .false.
 return
 
-end subroutine
+end subroutine pointer_to_indexed_attribute 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index (ele, name)
+! Function attribute_index (ele, name) result (attrib_index)
 !
 ! Function to return the index of a attribute for a given BMAD element type
 ! and the name of the attribute.
@@ -181,7 +181,7 @@ end subroutine
 !   name -- Character(40): Attribute name. Must be uppercase.
 !
 ! Output:
-!   attribute_index -- Integer: Index of the attribute. If the attribute name
+!   attrib_index -- Integer: Index of the attribute. If the attribute name
 !                            is not appropriate then 0 will be returned.
 !
 ! Example:
@@ -191,14 +191,14 @@ end subroutine
 !     ix -> k1$
 !-
 
-function attribute_index (ele, name) result (at_index)
+function attribute_index (ele, name) result (attrib_index)
 
 implicit none
 
 type (ele_struct) ele
 
 integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev
-integer at_index
+integer attrib_index
 
 character(*) name
 character(40) name40
@@ -209,7 +209,7 @@ if (init_needed) call init_attribute_name_array
 
 name40 = name          ! make sure we have 40 characters
 key = ele%key
-at_index = 0           ! match not found
+attrib_index = 0           ! match not found
 
 ilen = len_trim(name)
 if (ilen == 0) return
@@ -221,7 +221,7 @@ n_abbrev = 0            ! number of abbreviation matches
 if (name == 'B_GRADIENT') then
   select case (key)
   case (quadrupole$, sextupole$, octupole$, sol_quad$, overlay$, group$)
-    at_index = b_gradient$
+    attrib_index = b_gradient$
   end select
   return
 endif
@@ -235,7 +235,7 @@ if (key == overlay$) then
   do k = 1, n_key
     do i = 1, attrib_num(k)
       if (short_attrib_array(k, i) == name40) then
-        at_index = attrib_ix(k, i)
+        attrib_index = attrib_ix(k, i)
         return
       endif
       if (short_attrib_array(k, i)(1:ilen) == name40(1:ilen)) then
@@ -246,7 +246,7 @@ if (key == overlay$) then
   enddo
 
   if (name40 == 'CURRENT') then
-    at_index = current$
+    attrib_index = current$
     return
   endif
 
@@ -255,7 +255,7 @@ if (key == overlay$) then
 elseif (key > 0 .and. key <= n_key) then
   do i = 1, attrib_num(key)
     if (short_attrib_array(key, i) == name40) then
-      at_index = attrib_ix(key, i)
+      attrib_index = attrib_ix(key, i)
       return
     endif
     if (short_attrib_array(key, i)(1:ilen) == name40(1:ilen)) then
@@ -265,7 +265,7 @@ elseif (key > 0 .and. key <= n_key) then
   enddo      
 
   if (key == rfcavity$ .and. name40 == 'LAG') then
-    at_index = phi0$
+    attrib_index = phi0$
     return
   endif
 
@@ -278,15 +278,15 @@ endif
 
 ! If there is one unique abbreviation then use it.
 
-if (n_abbrev == 1) at_index = ix_abbrev
+if (n_abbrev == 1) attrib_index = ix_abbrev
 
-end function
+end function attribute_index 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_name (ele, ix_att)
+! Function attribute_name (ele, ix_att) result (attrib_name)
 !
 ! Function to return the name of an attribute for a particular type of 
 ! BMAD element. 
@@ -300,7 +300,7 @@ end function
 !   ix_att -- Integer: Index of attribute (e.g. k1$)
 !
 ! Output:
-!   attribute_name -- Character(40): Name of attribute. 
+!   attrib_name -- Character(40): Name of attribute. 
 !              If %key is invalid then                   attribute_name = "!BAD ELE KEY"
 !              If ix_att is invalid then                 attribute_name = "!BAD INDEX"
 !              If ix_att is invalid for an overlay then  attribute_name = "!INVALID INDEX"
@@ -344,19 +344,19 @@ else
   at_name = attrib_array(key, ix_att)
 endif
 
-end function
+end function attribute_name 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_attribute_name_array()
+! Subroutine init_attribute_name_array ()
 !
 ! Private routine to initialize the attribute name array used by routines
 ! in attribute_mod. Not meant for general use.
 !-
 
-subroutine init_attribute_name_array()
+subroutine init_attribute_name_array ()
 
 implicit none
 
@@ -906,7 +906,45 @@ enddo
 
 init_needed = .false.
 
-end subroutine
+end subroutine init_attribute_name_array
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_type (attrib_name) result (attrib_type)
+!
+! Routine to return the type (logical, integer, or real) of an attribute.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   attrib_name -- Character(*): Name of the attribute. Must be upper case.
+!
+! Output:
+!   attrib_type  -- Integer: is_logical$, is_integer$, or is_real$
+!-
+
+function attribute_type (attrib_name) result (attrib_type)
+
+implicit none
+
+character(*) attrib_name
+integer attrib_type
+
+!
+
+select case (attrib_name)
+case ('MATCH_END')
+  attrib_type = is_logical$
+case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'N_POLE', 'DIRECTION', 'IX_BRANCH_TO')
+  attrib_type = is_integer$
+case default
+  attrib_type = is_real$
+end select
+
+end function attribute_type 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
