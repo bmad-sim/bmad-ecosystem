@@ -973,7 +973,7 @@ Format:
   show graph <graph_name>
   show hom
   show key_bindings
-  show lattice \{-no_header\} \{-middle\} \{-custom <file_name>\} 
+  show lattice \{-no_header\} \{-middle\} \{-0undef\} \{-custom <file_name>\} 
                  \{-branch <branch>\} \{-s\} \{-elements <name>\} \{<location_range>\}
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
@@ -1164,7 +1164,7 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-    show lattice \{-no\_header\} \{-middle\} \{-custom <file\_name>\} \{-branch <branch>\} \\ 
+    show lattice \{-no\_header\} \{-middle\} \{-0undef\} \{-custom <file\_name>\} \{-branch <branch>\} \\ 
     \hspace*{2in} \{-s\} \{-elements <name>\} \{<location\_range>\}}] \Newline
 
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
@@ -1229,10 +1229,13 @@ recognized:
   ele::#[name]                ! Name of element.
   ele::#[key]                 ! Type of element (quadrupole, etc.)
 \end{example}
-If an attribute is does not exist for a given element then the
-attribute will be assigned a value of zero. For example, \vn{voltage}
-for a \vn{quadrupole} is taken to be zero. Also a divide by zero will
-give a value of zero.
+If an attribute does not exist for a given element (for example,
+\vn{quadrupole}s do not have a \vn{voltage}), a series of dashes,
+``----'', will be placed in the approprite spot in the table.
+Additionally, an arithmetic expression that results in a divide by
+zero will result in dashes being printed. This behavior is changed if
+the \vn{-0undef} switch is present. In this case, a zero, ``0'', will
+be printed.
 
 Note: Data can be used in custom output but data is always evaluated at
 the exit end of an element even when the \vn{-middle} switch is used.

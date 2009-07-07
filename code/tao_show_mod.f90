@@ -202,7 +202,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1, n_tot, ix_p, ix_word
 
 logical bmad_format, good_opt_only
-logical err, found, at_ends, first_time, by_s, print_header_lines
+logical err, found, at_ends, first_time, by_s, print_header_lines, zero_undef
 logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
@@ -1126,6 +1126,7 @@ case ('lattice')
   print_header_lines = .true.
   ele_name = ''
   ix_branch = 0
+  zero_undef = .false.
 
   ! get command line switches
 
@@ -1143,6 +1144,9 @@ case ('lattice')
 
     elseif (index('-middle', stuff2(1:ix)) == 1) then
       at_ends = .false.
+
+    elseif (index('-0undef', stuff2(1:ix)) == 1) then
+      zero_undef = .true.
 
     elseif (index('-no_header', stuff2(1:ix)) == 1) then
       print_header_lines = .false.
@@ -1339,7 +1343,11 @@ case ('lattice')
         call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           j = nc + column(i)%field_width - 5
-          line(j:) = '-----'
+          if (zero_undef) then
+            line(j:) = '    0'
+          else
+            line(j:) = '-----'
+          endif
         else
           if (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
             write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
