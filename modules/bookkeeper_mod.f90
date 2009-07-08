@@ -1666,7 +1666,7 @@ logical coupling_change
 
 if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
 
-if (ele%ix_ele == 0) then
+if (ele%key == init_ele$) then
   coupling_change = .false.
 
   if (associated(a_ptr, ele%a%beta) .or. associated(a_ptr, ele%a%alpha)) then

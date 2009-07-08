@@ -101,9 +101,9 @@ else
   write (lines(4), '(a11, 2f20.8)') 'Gamma (1/m)   ', ele%a%gamma, ele%b%gamma
   write (lines(5), '(a11, 2f20.8)') freq_str(:14),    ele%a%phi*coef, ele%b%phi*coef
   lines(6) = ''
-  write (lines(7), '(9x, 2(19x, a))') 'X', 'Y'  
-  write (lines(8), '(a11, 2f20.8)') 'Eta (m)       ', ele%x%eta, ele%y%eta
-  write (lines(9), '(a11, 2f20.8)') 'Etap (-)      ', ele%x%etap, ele%y%etap
+  write (lines(7), '(9x, 4(19x, a))') 'X', 'Y','A','B'  
+  write (lines(8), '(a11, 4f20.8)') 'Eta (m)       ', ele%x%eta,  ele%y%eta,  ele%a%eta,  ele%b%eta
+  write (lines(9), '(a11, 4f20.8)') 'Etap (-)      ', ele%x%etap, ele%y%etap, ele%a%etap, ele%b%etap
   n_lines = 9
 endif
 

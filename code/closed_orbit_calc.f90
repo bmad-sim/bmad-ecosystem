@@ -6,10 +6,10 @@
 ! solution. 
 !
 ! For i_dim = 4 this routine tracks through the lattice with the RF turned off.
-! This means that if lat has RFcavities turned on, the closed orbit as computed
-! from this routine, will not correspond to the actual closed orbit. The
-! z component (closed_orb(i)%vec(5)) will be set to zero at i = 0 and will generally
-! not be zero at the end of the lattice.
+! and the particle energy will be determined by closed_orb(0)%vec(6) for direction = 1
+! and closed_orb(n0)%vec(6) with n0 = lat%n_ele_track for direction = -1.
+! The z component (closed_orb(i)%vec(5)) will be set to zero at the beginning
+! of tracking and will generally not be zero at the end.
 !
 ! i_dim = 5 simulates the affect of the RF that makes the beam change 
 ! its energy until the change of path length in the closed orbit over 
