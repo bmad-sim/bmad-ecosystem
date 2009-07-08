@@ -465,9 +465,10 @@ case ('scale')
   gang_str = ''
 
   do 
-    if (cmd_word(1) /= '-') exit
-    call match_word (cmd_word(1), (/ '-y     ', 'y2     ', &
-                          '-nogang', '-gang  ' /), ix, .true., switch)
+    word = cmd_word(1)
+    if (word(1:1) /= '-') exit
+    call match_word (word, (/ '-y     ', '-y2    ', &
+                              '-nogang', '-gang  ' /), ix, .true., switch)
 
     select case (switch)
     case ('-y', '-y2') 

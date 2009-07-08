@@ -90,6 +90,7 @@ subroutine tao_scale_plot (plot, y_min_in, y_max_in, axis, gang)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
+type (qp_axis_struct) axis_save
 
 real(rp) y_min_in, y_max_in, y_min, y_max, this_min, this_max
 
@@ -121,9 +122,11 @@ call string_option (this_axis, '', axis)
 
 do_gang = plot%autoscale_gang_y
 if (present(gang)) then
-  if (gang == 'gang') do_gang = .true.
-  if (gang == 'nogang') do_gang = .false.
-  if (gang /= '') then
+  if (gang == 'gang') then
+    do_gang = .true.
+  elseif (gang == 'nogang') then
+    do_gang = .false.
+  elseif (gang /= '') then
     call out_io (s_error$, r_name, 'BAD GANG SWITCH: ' // gang)
     call err_exit
   endif
@@ -152,14 +155,22 @@ if (y_min == y_max .and. do_gang) then
     this_max = maxval (plot%graph(:)%y2%max)
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
-      call qp_calc_axis_scale (this_min, this_max, graph%y2)
-      if (graph%y2%major_div_nominal > 0) then
-        p1 = nint(0.7 * graph%y2%major_div_nominal)  
-        p2 = nint(1.3 * graph%y2%major_div_nominal)
-        call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y2%type)
-        call qp_get_axis ('Y', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
+      if (graph%y2_mirrors_y) then
+        axis_save = graph%y2
+        graph%y2 = graph%y
+        graph%y2%label        = axis_save%label
+        graph%y2%draw_label   = axis_save%draw_label
+        graph%y2%draw_numbers = axis_save%draw_numbers
       else
         call qp_calc_axis_scale (this_min, this_max, graph%y2)
+        if (graph%y2%major_div_nominal > 0) then
+          p1 = nint(0.7 * graph%y2%major_div_nominal)  
+          p2 = nint(1.3 * graph%y2%major_div_nominal)
+          call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y2%type)
+          call qp_get_axis ('Y', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
+        else
+          call qp_calc_axis_scale (this_min, this_max, graph%y2)
+        endif
       endif
     enddo
   endif
@@ -177,6 +188,7 @@ subroutine tao_scale_graph (graph, y_min, y_max, axis)
 type (tao_graph_struct) graph
 type (lat_struct), pointer :: lat
 type (floor_position_struct) end
+type (qp_axis_struct) axis_save
 
 real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2
 
@@ -191,7 +203,7 @@ call string_option (this_axis, '', axis)
 
 if (y_min /= y_max) then
 
-  if (this_axis == '' .or. this_axis == 'y') then
+  if (this_axis == '' .or. this_axis == 'y' .or. graph%y2_mirrors_y) then
     graph%y%min = y_min
     graph%y%max = y_max
     if (graph%y%major_div_nominal> 0) then
@@ -207,7 +219,16 @@ if (y_min /= y_max) then
     call qp_calc_axis_places (graph%y)
   endif
 
-  if (this_axis == '' .or. this_axis == 'y2') then
+  ! y2
+
+  if (graph%y2_mirrors_y) then
+    axis_save = graph%y2
+    graph%y2 = graph%y
+    graph%y2%label        = axis_save%label
+    graph%y2%draw_label   = axis_save%draw_label
+    graph%y2%draw_numbers = axis_save%draw_numbers
+
+  elseif (this_axis == '' .or. this_axis == 'y2') then
     graph%y2%min = y_min
     graph%y2%max = y_max
     if (graph%y2%major_div_nominal> 0) then
@@ -317,12 +338,21 @@ else
   p2 = p1
 endif
 
-if (axis == '' .or. axis == 'y') then
+if (axis == '' .or. axis == 'y' .or. graph%y2_mirrors_y) then
   call qp_calc_and_set_axis ('Y', this_min, this_max, p1, p2, 'GENERAL', graph%y%type)
   call qp_get_axis ('Y', graph%y%min, graph%y%max, graph%y%major_div, graph%y%places)
 endif
 
-if (axis == '' .or. axis == 'y2') then
+! y2
+
+if (graph%y2_mirrors_y) then
+  axis_save = graph%y2
+  graph%y2 = graph%y
+  graph%y2%label        = axis_save%label
+  graph%y2%draw_label   = axis_save%draw_label
+  graph%y2%draw_numbers = axis_save%draw_numbers
+
+elseif (axis == '' .or. axis == 'y2') then
   call qp_calc_and_set_axis ('Y2', this_min, this_max, p1, p2, 'GENERAL', graph%y2%type)
   call qp_get_axis ('Y2', graph%y2%min, graph%y2%max, graph%y2%major_div, graph%y2%places)
 endif
