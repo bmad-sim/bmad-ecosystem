@@ -68,7 +68,7 @@ type (sr_mode_wake_struct), pointer :: sr_m
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
 integer i, j, n, ix, iv, ic, nl2, l_status, a_type
-integer nl, nt, n_max, particle, n_term, n_att
+integer nl, nt, n_max, particle, n_term, n_att, attrib_type
 integer pos_tot(n_attrib_maxx)
 
 real(rp) coef
@@ -167,12 +167,15 @@ else
     if (a_name == null_name$) cycle
     ix = pos_tot(i)
     if (ix == 0) then
-      if (ele%value(i) == 0 .and. .not. type_zero) cycle
-      select case (attribute_type(a_name))
+      attrib_type = attribute_type(a_name)
+      if (ele%value(i) == 0 .and. .not. type_zero .and. attrib_type /= is_logical$) cycle
+      select case (attrib_type)
       case (is_logical$)
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, l1)')  i, a_name(1:n_att), '= ', (ele%value(i) /= 0)
+        if (ele%value(i) /= 0) ele%value(i) = 1
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, l1, a, i0, a)')  i, a_name(1:n_att), '=  ', &
+                                    (ele%value(i) /= 0), ' (', nint(ele%value(i)), ')'
       case (is_integer$)
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', int(ele%value(i))
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
       case (is_real$)
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, a_name(1:n_att), '=', ele%value(i)
       end select
