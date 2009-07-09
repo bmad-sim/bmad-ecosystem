@@ -395,6 +395,19 @@ case (marker$, branch$, photon_branch$)
 
 case (match$)
 
+  if (ele%value(match_end_orbit$) /= 0) then
+    ele%value(x0$)  = start%vec(1)
+    ele%value(px0$) = start%vec(2)
+    ele%value(y0$)  = start%vec(3)
+    ele%value(py0$) = start%vec(4)
+    ele%value(z0$)  = start%vec(5)
+    ele%value(pz0$) = start%vec(6)
+    end%vec = (/ ele%value(x1$), ele%value(px1$), &
+                 ele%value(y1$), ele%value(py1$), &
+                 ele%value(z1$), ele%value(pz1$) /)
+    return
+  endif
+
   if (all (end%vec(1:4) == 0)) return ! Special case: 0 -> 0
 
   call match_ele_to_mat6 (ele, vec0, mat6, err)

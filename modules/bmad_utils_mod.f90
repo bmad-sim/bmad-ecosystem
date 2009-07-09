@@ -1734,7 +1734,6 @@ endif
 
 err_flag = .false.
 
-vec0 = 0
 v => ele%value
 
 ele0%a%beta   = v(beta_a0$)
@@ -1772,6 +1771,11 @@ ele0%name = ele%name
 ele1%name = ele%name
 
 call transfer_mat_from_twiss (ele0, ele1, mat6)
+
+! Kick part
+
+vec0 = (/ v(x1$), v(px1$), v(y1$), v(py1$), v(z1$), v(pz1$) /) - &
+       matmul (mat6, (/ v(x0$), v(px0$), v(y0$), v(py0$), v(z0$), v(pz0$) /))
 
 end subroutine match_ele_to_mat6
 

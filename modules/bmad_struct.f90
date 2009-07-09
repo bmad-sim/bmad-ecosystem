@@ -376,7 +376,10 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           alpha_b1$ = 9, dphi_a$ = 10, dphi_b$ = 11, &
           eta_x0$ = 12, etap_x0$ = 13, eta_y0$ = 14, etap_y0$ = 15, &
           eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19, &
-          match_end$ = 20
+          match_end$ = 20, &
+          x0$ = 21, px0$ = 22, y0$ = 23, py0$ = 24, z0$ = 25, pz0$ = 26, &
+          x1$ = 27, px1$ = 28, y1$ = 29, py1$ = 30, z1$ = 31, pz1$ = 32, &
+          match_end_orbit$ = 33
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 

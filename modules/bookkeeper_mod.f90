@@ -414,17 +414,28 @@ slave%field_master          = .true.
 ! A match element with match_end$: Restore initial Twiss parameters (which
 ! are calculated in twiss_propagate1).
 
-if (lord%key == match$ .and. lord%value(match_end$) /= 0) then
-  slave%value(beta_a0$)    = slave_val(beta_a0$)
-  slave%value(beta_b0$)    = slave_val(beta_b0$)
-  slave%value(alpha_a0$)   = slave_val(alpha_a0$)
-  slave%value(alpha_b0$)   = slave_val(alpha_b0$)
-  slave%value(eta_x0$)     = slave_val(eta_x0$)
-  slave%value(eta_y0$)     = slave_val(eta_y0$)
-  slave%value(etap_x0$)    = slave_val(etap_x0$)
-  slave%value(etap_y0$)    = slave_val(etap_y0$)
-  slave%value(c_11$:c_22$) = slave_val(c_11$:c_22$)
-  slave%value(gamma_c$)    = slave_val(gamma_c$)
+if (lord%key == match$) then
+  if (lord%value(match_end$) /= 0) then
+    slave%value(beta_a0$)    = slave_val(beta_a0$)
+    slave%value(beta_b0$)    = slave_val(beta_b0$)
+    slave%value(alpha_a0$)   = slave_val(alpha_a0$)
+    slave%value(alpha_b0$)   = slave_val(alpha_b0$)
+    slave%value(eta_x0$)     = slave_val(eta_x0$)
+    slave%value(eta_y0$)     = slave_val(eta_y0$)
+    slave%value(etap_x0$)    = slave_val(etap_x0$)
+    slave%value(etap_y0$)    = slave_val(etap_y0$)
+    slave%value(c_11$:c_22$) = slave_val(c_11$:c_22$)
+    slave%value(gamma_c$)    = slave_val(gamma_c$)
+  endif
+
+  if (lord%value(match_end_orbit$) /= 0) then
+    slave%value(x0$)  = slave_val(x0$)
+    slave%value(px0$) = slave_val(px0$)
+    slave%value(y0$)  = slave_val(y0$)
+    slave%value(py0$) = slave_val(py0$)
+    slave%value(z0$)  = slave_val(z0$)
+    slave%value(pz0$) = slave_val(pz0$)
+  endif
 endif
 
 ! An sbend is tricky since the reference orbit changes with energy.

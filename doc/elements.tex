@@ -1129,32 +1129,73 @@ Attributes specific to a \vn{Match} element are:
   etap_x0   = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
   etap_x1   = <Real>,  etap_y1  = <Real>   ! Ending eta'
   dphi_a    = <Real>,  dphi_b   = <Real>   ! Phase advances
-  match_end = <Logical>            ! See below. Default is False.
+  match_end = <Logical>                    ! See below. Default is False.
+  x0, px0, y0, py0, z0, pz0 = <Real>       ! Beginning coordinates
+  x1, px1, y1, py1, z1, pz1 = <Real>       ! Ending coordinates
+  match_end_orbit = <Logical>              ! See below. Default is False.
 \end{example}
 
-\index{beta_a0}
-\index{beta_b0}
-\index{beta_a1}
-\index{beta_b1}
-\index{dphi_x}
-\index{dphi_y}
+\index{beta_a0}\index{beta_b0}
+\index{beta_a1}\index{beta_b1}
+\index{eta_x0}\index{etap_x0}
+\index{eta_y0}\index{etap_y0}
+\index{dphi_a}\index{dphi_b}
 A \vn{Match} element is used to match the Twiss parameters between two
 points. That is, the transfer map for a match element, which is just a
 linear matrix, is calculated such that if the Twiss parameters at the
 exit end of the element preceding the \vn{match} element are given by
 \vn{beta_a0}, \vn{beta_b0}, etc., then the computed Twiss parameters
 at the exit end of the \vn{match} element will be \vn{beta_a1},
-\vn{beta_b1}, etc. \vn{dphi_x} and \vn{dphi_y} are the phase advances
+\vn{beta_b1}, etc. \vn{dphi_a} and \vn{dphi_b} are the phase advances
 in radians.
 
 \index{linear_lattice}
+\index{match_end}
 If the \vn{match_end} attribute is set to True then the beginning
 Twiss parameters are ignored and the transfer matrix matrix is
 calculated using the Twiss parameters from the exit end of the
 previous element.  That is, the actual Twiss parameters at the exit
 end of the match element will be the Twiss parameters as set in the
 element. The \vn{match_end} attribute may only be used with
-\vn{linear_lattice} lattices (\sref{s:param}).
+\vn{linear_lattice} lattices (\sref{s:param}). 
+
+When running a program, if a \vn{match} element has it's
+\vn{match_end} attribute is set to True, the beginning Twiss and
+dispersion parameters (\beta_a0}, \vn{eta_x0}, etc.)  of the
+\vn{match} element are continuously updated to be equal to the Twiss
+and dispersion parameters at the end of the the element before it. As
+a consequence, if \vn{match_end} for the \vn{match} element is toggled
+to False, the values of the elements in the transfer matrix through
+the \vn{match} element are frozen in place.
+
+\index{match_end_orbit}
+\index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
+\index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}
+The coordinate parameters (\vn{x0}, \vn{x1}, etc.) add a constant term
+(a ``kick'') to the transfer map through a \vn{match} element:
+\Begineq
+  r_1 = \Bf M \, r_0 + \Bf V 
+\Endeq
+where $r_1$ is the output coordinates, $r_0$ are the input
+coordinates, $\Bf M$ is the transfer matrix determined by the settings
+of the beginning and ending twiss and dispersion parameters, and the
+kick term, $\Bf V$ is given by
+\Begineq
+  \Bf V = 
+    \begin{pmatrix} 
+    \mbox{x1} \\ \mbox{px1} \\ \mbox{y1} \\ \mbox{py1} \\ \mbox{z1} \\ \mbox{pz1} 
+    \end{pmatrix} -
+    \Bf M \, \begin{pmatrix} 
+    \mbox{x0} \\ \mbox{px0} \\ \mbox{y0} \\ \mbox{py0} \\ \mbox{z0} \\ \mbox{pz0} 
+    \end{pmatrix}
+\Endeq
+If \vn{match_end_orbit} is set to True, a particle tracked through the
+\vn{match} element will have its ending coordinates equal to \vn{(x1,
+px1, y1, py1, z1, pz1)} and the the beginning coordinate parameters
+\vn{(x0, px0, y0, py0, z0, pz0)} will be set to the particle's
+coordinates at the beginning of the match element. Similar to
+\vn{match_end}, if \vn{match_end_orbit} for the \vn{match} element is
+toggled to False, the $Bf V$ vector will become fixed.
 
 \index{l}
 The attribute \vn{l} is not used in the transfer matrix
@@ -1525,7 +1566,7 @@ Attributes specific to an \vn{Solenoid} element are:
 A \vn{Solenoid} is an element with a longitudinal magnetic field.
 Example:
 \begin{example}
-  cleo_sol: solenoid, l = 2.6, ks = 1.5*beam[energy]
+  cleo_sol: solenoid, l = 2.6, ks = 1.5*beam[energy]Q
 \end{example}
 
 %-----------------------------------------------------------------
