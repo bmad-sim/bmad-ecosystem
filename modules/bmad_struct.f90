@@ -378,8 +378,8 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19, &
           match_end$ = 20, &
           x0$ = 21, px0$ = 22, y0$ = 23, py0$ = 24, z0$ = 25, pz0$ = 26, &
-          x1$ = 27, px1$ = 28, y1$ = 29, py1$ = 30, z1$ = 31, pz1$ = 32, &
-          match_end_orbit$ = 33
+          x1$ = 34, px1$ = 35, y1$ = 36, py1$ = 37, z1$ = 38, pz1$ = 39, &
+          match_end_orbit$ = 40
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 
