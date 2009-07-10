@@ -23,7 +23,7 @@ element classes that can be used for parameter control of other
 elements.  Note that some classes are suitable for both particle and
 photon use.
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
@@ -50,7 +50,7 @@ photon use.
 \label{t:particle.classes}\center
 \end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
@@ -66,7 +66,7 @@ photon use.
 \label{t:photon.classes}\center
 \end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
@@ -1040,12 +1040,12 @@ uses Fortran90 namelist syntax: The data begins with the string
 ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
 index. An example input file is:
 \begin{example}
-              Freq       R/Q      Q       m  Polarization  b_sin  b_cos a_sin  a_cos  t_ref 
-                                             Angle 
-              [Hz]  [Ohm/m^(2m)]             [Rad/2pi]
+              Freq      R/Q      Q    m   Polar   b_sin  b_cos a_sin  a_cos  t_ref 
+                      [Ohm/               Angle 
+              [Hz]     m^(2m)]           [Rad/2pi]
   &long_range_modes
-    lr(1) = 1.6506e9    0.76    7.0e4     1     unpol
-    lr(2) = 1.6991e9   11.21    5.0e4     1     0.15
+    lr(1) = 1.650e9    0.76    7.0e4  1    unpol
+    lr(2) = 1.699e9   11.21    5.0e4  1    0.15
   /
 \end{example}
 If ``\vn{unpolarized}'' is used for the polarization angle, the mode
@@ -1161,7 +1161,7 @@ element. The \vn{match_end} attribute may only be used with
 
 When running a program, if a \vn{match} element has it's
 \vn{match_end} attribute is set to True, the beginning Twiss and
-dispersion parameters (\beta_a0}, \vn{eta_x0}, etc.)  of the
+dispersion parameters (\vn{beta_a0}, \vn{eta_x0}, etc.)  of the
 \vn{match} element are continuously updated to be equal to the Twiss
 and dispersion parameters at the end of the the element before it. As
 a consequence, if \vn{match_end} for the \vn{match} element is toggled
