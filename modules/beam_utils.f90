@@ -87,10 +87,10 @@ implicit none
 
 type (bunch_struct) bunch_start, bunch_end
 type (ele_struct) ele
-type (ele_struct), save :: rf_ele
 type (lat_param_struct) param
 
-real(rp) charge
+real(rp), pointer :: a_pole_save(:)
+real(rp) charge, value_save(n_attrib_maxx)
 integer i, j, n, ix_z
 
 character(20) :: r_name = 'track1_bunch_hom'
@@ -129,29 +129,34 @@ do i = 1, size(bunch_end%particle)
       set_canonical = .false.)
 enddo
 
-! rf_ele is half the cavity
+! Modify ele temporarily so we can track through half the cavity.
 
-rf_ele = ele
-rf_ele%value(l$)      = ele%value(l$) / 2
-rf_ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
-rf_ele%value(p0c$)    = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
-rf_ele%value(e_loss$) = 0
+value_save = ele%value
+ele%value(l$)      = ele%value(l$) / 2
+ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
+ele%value(p0c$)    = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
+ele%value(e_loss$) = 0
 
 ! zero all offsets and kicks (offsetting already performed above)
 
-call zero_ele_offsets (rf_ele)
-rf_ele%value(hkick$) = 0.0
-rf_ele%value(vkick$) = 0.0
-if (associated(rf_ele%a_pole)) deallocate(rf_ele%a_pole)
-    
+call zero_ele_offsets (ele)
+ele%value(hkick$) = 0.0
+ele%value(vkick$) = 0.0
+if (associated(ele%a_pole)) then
+  a_pole_save => ele%a_pole
+  nullify(ele%a_pole)
+else
+  nullify(a_pole_save)
+endif
+
 ! Track half way through. This includes the sr longitudinal wakes 
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (rf_ele, bunch_end, j-1, ix_z)
-  call track1_particle (bunch_end%particle(ix_z), rf_ele, param, bunch_end%particle(ix_z))
+  call add_sr_long_wake (ele, bunch_end, j-1, ix_z)
+  call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -163,17 +168,17 @@ call track1_lr_wake (bunch_end, ele)
 
 ! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
-rf_ele%value(e_tot_start$)  = rf_ele%value(e_tot$)
-rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
-rf_ele%value(e_tot$)        = ele%value(e_tot$)
-rf_ele%value(p0c$)          = ele%value(p0c$)
+ele%value(e_tot_start$)  = ele%value(e_tot$)
+ele%value(p0c_start$)    = ele%value(p0c$)
+ele%value(e_tot$)        = value_save(e_tot$)
+ele%value(p0c$)          = value_save(p0c$)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (rf_ele, bunch_end, j-1, ix_z)
-  call track1_particle (bunch_end%particle(ix_z), rf_ele, param, bunch_end%particle(ix_z))
+  call add_sr_long_wake (ele, bunch_end, j-1, ix_z)
+  call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -189,6 +194,10 @@ do i = 1, size(bunch_end%particle)
       set_canonical = .false.)
 enddo
 
+! Unmodify ele
+
+ele%value = value_save
+if (associated(a_pole_save)) ele%a_pole => a_pole_save
       
 end subroutine track1_bunch_hom
 
