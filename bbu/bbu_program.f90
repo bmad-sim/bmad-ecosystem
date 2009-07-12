@@ -9,7 +9,7 @@ type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 
-integer i, ix, j, n_hom, n, n_ele, ix_pass
+integer i, ix, j, n_hom, n, n_ele, ix_pass, ie, ie2, i_lr
 
 integer istep
 integer :: nstep = 100
@@ -17,6 +17,7 @@ integer :: nstep = 100
 real(rp) deldr,dr, charge_try
 real(rp) hom_power_gain, charge0, charge1, charge_old, charge_threshold
 real(rp) trtb, currth, growth_rate, growth_rate0, growth_rate1, growth_rate_old
+real(rp) time
 
 logical lost
 logical, allocatable :: keep_ele(:)
@@ -26,22 +27,22 @@ namelist / bbu_params / bbu_param, beam_init
 ! Read in parameters
 
 bbu_param%lat_file_name = 'erl.lat'  ! Bmad lattice file name
-bbu_param%simulation_turns_max = 100 ! 
+bbu_param%simulation_turns_max = 20 ! 
 bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
 bbu_param%init_particle_offset = 1e-8  ! Initial particle offset for particles born 
                                        !  in the first turn period.
-bbu_param%limit_factor = 1e1         ! Init_hom_amp * limit_factor = simulation unstable limit
+bbu_param%limit_factor = 2           ! Init_hom_amp * limit_factor = simulation unstable limit
 bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
 bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
 bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
 bbu_param%current = 20e-3            ! Starting current (amps)
-bbu_param%rel_tol = 1e-3             ! Final threshold current accuracy.
+bbu_param%rel_tol = 1e-2             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
 bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
 bbu_param%nstep = 100
 bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
-bbu_param%use_interpolated_threshold = .false.
+bbu_param%use_interpolated_threshold = .true.
 
   beam_init%n_particle = 1
 
@@ -57,6 +58,7 @@ beam_init%dt_bunch = 1 / bbu_param%bunch_freq
 print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
+call run_timer ('START')
 
 ! Initialize DR scan
 
@@ -179,6 +181,21 @@ do istep = 1, nstep
 
   beam_init%bunch_charge = (charge0 + charge1) / 2
   print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
+  i = bbu_beam%ix_stage_power_max
+  ie = bbu_beam%stage(i)%ix_ele_lr_wake
+  ie2 = ie
+  if (lat%ele(ie)%slave_status == multipass_slave$) ie2 = multipass_lord_index(ie, lat)
+  i_lr = bbu_beam%stage(i)%ix_hom_max
+  print *, 'Element with critical HOM:', ie2, ':   ', lat%ele(ie2)%name
+  print *, 'Critical HOM: Input Frequency: ', lat%ele(ie)%wake%lr(i_lr)%freq_in 
+  print *, 'Critical HOM: Actual Frequency:', lat%ele(ie)%wake%lr(i_lr)%freq
+  print *, 'Critical HOM: R_overQ:         ', lat%ele(ie)%wake%lr(i_lr)%r_over_q
+  print *, 'Critical HOM: Q:               ', lat%ele(ie)%wake%lr(i_lr)%q
+  print *, 'Critical HOM: Angle:           ', lat%ele(ie)%wake%lr(i_lr)%angle
+
+  call run_timer ('STOP', time)
+  print *
+  print *, 'Time for calculation (min): ', time/60
 
   if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge / beam_init%dt_bunch 
 
@@ -314,7 +331,6 @@ if (charge_old > 0) then  ! If we have two trackings.
 
 
   print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
-  print *, '         Current to try next:', 1d3 * charge_try / beam_init%dt_bunch 
 
 endif
 
@@ -334,6 +350,7 @@ else
   endif
 endif
 
+print *, '         Current to try next:', 1d3 * beam_init%bunch_charge / beam_init%dt_bunch 
 
 end subroutine
 

@@ -8,7 +8,8 @@ type bbu_stage_struct
   integer :: ix_pass          ! Pass index when in multipass section
   integer :: ix_stage_pass1   ! Index of corresponding stage on first pass
   integer :: ix_head_bunch
-  real(rp) :: hom_power
+  integer :: ix_hom_max
+  real(rp) :: hom_power_max
   real(rp) time_at_wake_ele 
 end type
 
@@ -182,7 +183,7 @@ enddo
 
 ! init time at hom and hom_power
 
-bbu_beam%stage%hom_power = 0
+bbu_beam%stage%hom_power_max = 0
 bbu_beam%hom_power_max = 0
 bbu_beam%ix_stage_power_max = 1
 growth_rate = real_garbage$
@@ -444,36 +445,40 @@ type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (lr_wake_struct), pointer :: lr
 
-real(rp) hom_power
+real(rp) hom_power_max, hom_power2
 
 integer i, j, i1, ixm, ix
 
 ! Only need to update the last stage tracked
 
-hom_power = 0
+hom_power_max = 0
 i = bbu_beam%ix_last_stage_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1
 ix = bbu_beam%stage(i1)%ix_ele_lr_wake
 do j = 1, size(lat%ele(ix)%wake%lr)
   lr => lat%ele(ix)%wake%lr(j)
-  hom_power = max(hom_power, lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
+  hom_power2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
+  if (hom_power_max < hom_power2) then
+    hom_power_max = hom_power2
+    bbu_beam%stage(i1)%ix_hom_max = j
+  endif
 enddo
 
 ! Update the new hom power.
 
-hom_power = sqrt(hom_power)
-bbu_beam%stage(i1)%hom_power = hom_power
+hom_power_max = sqrt(hom_power_max)
+bbu_beam%stage(i1)%hom_power_max = hom_power_max
 
 ! Find the maximum hom power in any element.
 
-if (hom_power > bbu_beam%hom_power_max) then
+if (hom_power_max > bbu_beam%hom_power_max) then
   bbu_beam%ix_stage_power_max = i1
-  bbu_beam%hom_power_max = hom_power
+  bbu_beam%hom_power_max = hom_power_max
 
 elseif (i1 == bbu_beam%ix_stage_power_max) then
-  ixm = maxloc(bbu_beam%stage%hom_power, 1)
+  ixm = maxloc(bbu_beam%stage%hom_power_max, 1)
   bbu_beam%ix_stage_power_max = ixm
-  bbu_beam%hom_power_max = bbu_beam%stage(ixm)%hom_power
+  bbu_beam%hom_power_max = bbu_beam%stage(ixm)%hom_power_max
 endif
 
 end subroutine bbu_hom_power_calc
