@@ -320,12 +320,13 @@ interface
 end interface
  
 interface
-  subroutine tao_open_file (logical_dir, file, iunit, file_name)
+  subroutine tao_open_file (logical_dir, file, iunit, file_name, print_failure)
     implicit none
     character(*) logical_dir
     character(*) file
     character(*) file_name
     integer iunit
+    logical, optional :: print_failure
   end subroutine
 end interface
  

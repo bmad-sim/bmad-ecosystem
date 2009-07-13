@@ -655,6 +655,7 @@ type (tao_universe_struct), target :: u
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_struct), pointer :: ele
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
@@ -702,7 +703,8 @@ if (search_for_lat_eles /= '') then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    u%data(jj)%ele_name  = u%design%lat%ele(jj)%name
+    ele => pointer_to_ele (u%design%lat, locs(k))
+    u%data(jj)%ele_name  = ele%name
     u%data(jj)%ix_ele    = locs(k)%ix_ele
     u%data(jj)%ix_branch = locs(k)%ix_branch
     u%data(jj)%exists    = .true.

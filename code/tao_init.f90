@@ -228,7 +228,7 @@ enddo
 
 ! Look for a startup file
 
-call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name)
+call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name, .false.)
 if (iu /= 0) then
   call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
   tao_com%cmd_from_cmd_file = .false.

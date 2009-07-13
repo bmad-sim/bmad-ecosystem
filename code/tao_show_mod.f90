@@ -676,7 +676,7 @@ case ('data')
     enddo
 
     n_tot = max(n_tot, n_name + n_e0 + n_e1 + 4)
-    n_e1 = n_tot - n_e0 - n_e1 - 4
+    n_e1 = n_tot - n_name - n_e0 - 4
 
     ! Write header
 

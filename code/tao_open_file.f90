@@ -1,20 +1,22 @@
 !+
-! Subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name)
+! Subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name, print_failure)
 !
 ! Subroutine to open a file for reading.
 ! This subroutine will first look for a file in the current directory before
 ! it looks in the logical_dir directory.
 !
 ! Input:
-!   logical_dir -- Character(*): Logical directory.
-!   file_name   -- Character(*): File name.
+!   logical_dir   -- Character(*): Logical directory.
+!   file_name     -- Character(*): File name.
+!   print_failure -- Logical, optional: If present and False: Suppress printing of
+!                       the file-not-found message.
 !
 ! Output:
 !   iunit          -- Integer: Logical unit number. Set to 0 if file not openable.
 !   full_file_name -- Character(*): File name of found file.
 !-
 
-subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name)
+subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name, print_failure)
 
   use tao_mod
 
@@ -25,6 +27,7 @@ subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name)
 
   integer iunit, ios
   logical valid
+  logical, optional :: print_failure
 
 ! open file
 
@@ -46,11 +49,13 @@ subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name)
     ! If still nothing then this is an error.
 
     if (ios /= 0) then
-      if (valid) then
-         call out_io (s_blank$, r_name, 'File not found: ' // file_name, &
-                                       '           Nor: ' // full_file_name)
-      else
-         call out_io (s_blank$, r_name, 'File not found: ' // file_name)
+      if (logic_option(.true., print_failure)) then
+        if (valid) then
+           call out_io (s_blank$, r_name, 'File not found: ' // file_name, &
+                                         '           Nor: ' // full_file_name)
+        else
+           call out_io (s_blank$, r_name, 'File not found: ' // file_name)
+        endif
       endif
       iunit = 0
     endif
