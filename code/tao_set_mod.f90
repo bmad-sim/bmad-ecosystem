@@ -789,7 +789,7 @@ elseif (size(s_dat) /= 0) then
   ! If value_string has "|" then it must be a datum array
 
   if (index(value_str, '|') == 0) then
-    if (all (who_str == 'merit_type' .and. value_str /= merit_type_names)) then
+    if (all (component == 'merit_type' .and. value_str /= merit_type_names)) then
       call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
       return
     endif
@@ -814,7 +814,7 @@ elseif (size(s_dat) /= 0) then
 
   endif
 
-  if (who_str == 'ele_name' .or. who_str == 'ele0_name') then
+  if (component == 'ele_name' .or. component == 'ele0_name') then
     do i = 1, size(d_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
       call element_locator (s_dat(i)%s, u%design%lat, ix)
@@ -822,7 +822,7 @@ elseif (size(s_dat) /= 0) then
         call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
         cycle
       endif
-      if (who_str == 'ele_name') then
+      if (component == 'ele_name') then
         d_dat(i)%d%ix_ele = ix
       else
         d_dat(i)%d%ix_ele0 = ix

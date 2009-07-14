@@ -1394,9 +1394,9 @@ if (present(str_array) .and. any(component_name == string_components)) then
       case ('merit_type')
         str_array(j)%s => d1%d(i)%merit_type
       case ('ele_name')
-        str_array(j)%s => d1%d(i)%merit_type
+        str_array(j)%s => d1%d(i)%ele_name
       case ('ele0_name')
-        str_array(j)%s => d1%d(i)%merit_type
+        str_array(j)%s => d1%d(i)%ele0_name
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING DATA")
         call err_exit
