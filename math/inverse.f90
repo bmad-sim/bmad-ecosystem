@@ -9,13 +9,11 @@
 !   funct(x) -- Function: Function to be inverted.
 !   y        -- Real(rp): Value to be inverted.
 !   x1, x2   -- Real(rp): X must lie between: X1 < X < X2.
-!   tol      -- Real(rp): Accuracy for X.
+!   tol      -- Real(rp): Absolute accuracy for X.
 !
 ! Output:
 !   x -- Real(rp): Inverted function.
 !-
-
-#include "CESR_platform.inc"
 
 function inverse(funct, y, x1, x2, tol) result (x)
 
