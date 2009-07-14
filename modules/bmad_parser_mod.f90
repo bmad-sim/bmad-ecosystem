@@ -2429,7 +2429,7 @@ integer nn, nt, i
 
 ! 
 
-nn = 20  ! number of "constant" variables
+nn = 21  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
                     ubound(ref_orbit_name, 1) + ubound(element_end_name, 1)
 bp_com%ivar_tot = bp_com%ivar_init
@@ -2449,7 +2449,7 @@ bp_com%var_value(3) = 180 / pi
 bp_com%var_name(4)  = 'RADDEG'
 bp_com%var_value(4) = pi / 180
 
-bp_com%var_name(5)  = 'E'
+bp_com%var_name(5)  = 'E_LOG'
 bp_com%var_value(5) = 2.718281828459
 
 bp_com%var_name(6)  = 'E_MASS'
@@ -2496,6 +2496,9 @@ bp_com%var_value(19) = m_electron
 
 bp_com%var_name(20)  = 'M_PROTON'
 bp_com%var_value(20) = m_proton
+
+bp_com%var_name(20)  = 'DEGREES'
+bp_com%var_value(20) = 180 / pi
 
 do i = 1, ubound(calc_method_name, 1)
   nn = nn + 1
