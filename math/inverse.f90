@@ -49,6 +49,7 @@ function inverse(funct, y, x1, x2, tol) result (x)
     call err_exit
   endif
 
+  C=B
   FC=FB
   DO 11 ITER=1,ITMAX
     IF(FB*FC>0.) THEN
