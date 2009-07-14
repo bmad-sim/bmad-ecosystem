@@ -788,8 +788,7 @@ else
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design%lat, ix)
     if (ix < 0) then
-      call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // &
-                                                       u%data(j)%ele_name)
+      call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // u%data(j)%ele_name)
       u%data(j)%exists = .false.
       cycle
     endif
@@ -801,8 +800,7 @@ else
     call str_upcase (u%data(j)%ele0_name, u%data(j)%ele0_name)
     call element_locator (u%data(j)%ele0_name, u%design%lat, ix)
     if (ix < 0) then
-      call out_io (s_error$, r_name, 'ELEMENT2 NOT LOCATED: ' // &
-                                                       u%data(j)%ele0_name)
+      call out_io (s_error$, r_name, 'ELE0 NOT LOCATED: ' // u%data(j)%ele0_name)
       u%data(j)%exists = .false.
       cycle
     endif
@@ -1872,7 +1870,8 @@ do j = 1, size(locs)
   t = ele%slave_status
   if ((t == multipass_slave$ .or. t == super_slave$) .and. no_slaves) cycle
   t = ele%lord_status 
-  if ((t == girder_lord$ .or. t == overlay_lord$ .or. t == super_lord$) .and. no_lords) cycle
+  if ((t == girder_lord$ .or. t == overlay_lord$ .or. t == group_lord$ .or. &
+       t == super_lord$ .or. t == multipass_lord$) .and. no_lords) cycle
   ! If attribute is not free then don't count it
   if (present(attribute)) then
     ix_attrib = attribute_index(ele, attribute)

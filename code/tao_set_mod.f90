@@ -743,9 +743,10 @@ type (tao_real_pointer_struct), allocatable, save    :: r_dat(:), r_set(:)
 type (tao_data_array_struct), allocatable, save    :: d_dat(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
+type (tao_universe_struct), pointer :: u
 
 real(rp), allocatable, save :: r_value(:)
-integer i
+integer i, ix
 
 character(*) who_str, value_str
 character(20) component
@@ -781,12 +782,14 @@ if (size(l_dat) /= 0) then
     enddo
   endif
 
-! Must be merit_type for a string.
-! If value_string has "|" then it must be a datum array
+! A string:
 
 elseif (size(s_dat) /= 0) then
+
+  ! If value_string has "|" then it must be a datum array
+
   if (index(value_str, '|') == 0) then
-    if (all (value_str /= merit_type_names)) then
+    if (all (who_str == 'merit_type' .and. value_str /= merit_type_names)) then
       call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
       return
     endif
@@ -796,16 +799,38 @@ elseif (size(s_dat) /= 0) then
 
   else
     call tao_find_data (err, value_str, str_array=s_set)
-    if (size(l_set) /= size(l_dat)) then
+    if (size(s_set) /= size(s_dat) .and. size(s_set) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
+
     do i = 1, size(s_dat)
-      s_dat(i)%s = s_set(i)%s
+      if (size(s_set) == 1) then
+        s_dat(i)%s = s_set(1)%s
+      else
+        s_dat(i)%s = s_set(i)%s
+      endif
+    enddo
+
+  endif
+
+  if (who_str == 'ele_name' .or. who_str == 'ele0_name') then
+    do i = 1, size(d_dat)
+      u => s%u(d_dat(i)%d%d1%d2%ix_uni)
+      call element_locator (s_dat(i)%s, u%design%lat, ix)
+      if (ix < 0) then
+        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
+        cycle
+      endif
+      if (who_str == 'ele_name') then
+        d_dat(i)%d%ix_ele = ix
+      else
+        d_dat(i)%d%ix_ele0 = ix
+      endif
     enddo
   endif
 
-! Only possibility left is real/ The value_str might be a number or it might 
+! Only possibility left is real. The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
 elseif (size(r_dat) /= 0) then

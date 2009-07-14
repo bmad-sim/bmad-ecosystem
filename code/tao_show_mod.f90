@@ -183,12 +183,12 @@ character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
 
-character(16) :: show_what, show_names(23) = (/ &
+character(16) :: show_what, show_names(24) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'key_bindings', 'universe    ', 'orbit       ', 'derivative  ', &
-   'branches    ', 'use         ', 'taylor_map  ' /)
+   'branches    ', 'use         ', 'taylor_map  ', 'value       ' /)
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -1953,6 +1953,24 @@ case ('use')
     call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
     nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
   enddo
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! variable
+
+case ('value')
+
+  call tao_evaluate_expression (stuff2, 0, .false., value, good, err)
+  if (err) return
+
+  if (size(value) == 1) then
+    nl=nl+1; write (lines(nl), '(3x, es17.8)') value(1)
+  else
+    do i = 1, size(value)
+      nl=nl+1; write (lines(nl), '(i4, a, es17.8)') i, ':  ', value(i)
+    enddo
+  endif
 
   result_id = show_what
 

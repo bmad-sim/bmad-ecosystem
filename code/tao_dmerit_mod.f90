@@ -125,8 +125,8 @@ do j = 1, s%n_var_used
   merit_value = tao_merit (calc_ok)
 
   if (.not. calc_ok) then
-    call out_io (s_error$, r_name, &
-         'VARIABLE STEP SIZE IS TOO LARGE FOR: ' // tao_var1_name(s%var(j)), ' ')
+    call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
+                      'VARIABLE STEP SIZE IS TOO LARGE(?) FOR: ' // tao_var1_name(s%var(j)))
   endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)

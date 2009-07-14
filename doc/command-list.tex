@@ -987,6 +987,7 @@ Format:
   show universe \{universe_number\}
   show universe -connections
   show use
+  show value <expression>
   show variable \{<var_name>\}
   show variable <universe_number>@
   show variable -bmad_format \{-good_opt_only\}
@@ -1365,6 +1366,17 @@ displayed include tune, chromaticity, radiation integrals, etc.
 
 Shows what data and variables are used in a format that, if saved to a file, can
 be read in with a \vn{call} command.
+
+%% show value --------------------------------------------------------------
+
+\item[show value <expression>]
+
+Shows the value of an expression. Examples:
+\begin{example}
+  show value 3@dat::orbit.x[34]   ! Value of a datum-on-the-fly
+  show value sin(0.35)
+\end{example}
+
 
 %% show variable --------------------------------------------------------------
 

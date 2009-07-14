@@ -918,7 +918,7 @@ character(16), parameter :: logic_components(6) = &
              'good_plot' /)
 character(16), parameter :: integer_components(4) = &
           (/ 'ix_ele ', 'ix_ele0', 'ix_d1  ', 'ix_uni ' /)
-character(16), parameter :: string_components(1) = (/ 'merit_type' /)
+character(16), parameter :: string_components(3) = (/ 'merit_type', 'ele_name', 'ele0_name' /)
 
 integer, optional :: ix_uni
 integer :: data_num, ios, n_found
@@ -1392,6 +1392,10 @@ if (present(str_array) .and. any(component_name == string_components)) then
       j = j + 1
       select case (component_name)
       case ('merit_type')
+        str_array(j)%s => d1%d(i)%merit_type
+      case ('ele_name')
+        str_array(j)%s => d1%d(i)%merit_type
+      case ('ele0_name')
         str_array(j)%s => d1%d(i)%merit_type
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING DATA")
