@@ -386,7 +386,7 @@ type (ele_struct), pointer :: lord, slave
 real(rp) s, slave_val(n_attrib_maxx)
 real(rp) d, e, r_lord, r_slave, cos_lord, cos_lorde, sin_lord, sin_lorde
 real(rp) ang_slave, ang_lord, ang_slave_old
-integer j, ix_slave
+integer i, j, ix_slave
 character(40) :: r_name = 'makeup_multipass_slave'
 
 !
@@ -511,6 +511,9 @@ if (associated (slave%wake)) then
   slave%wake%sr_mode_long  = lord%wake%sr_mode_long
   slave%wake%sr_mode_trans = lord%wake%sr_mode_trans
   slave%wake%lr            = lord%wake%lr
+  do i = 1, size(lord%wake%lr)
+    slave%wake%lr(i)%t_ref = lord%wake%lr(i)%t_ref - slave%ref_time
+  enddo
 endif
 
 slave%mat6_calc_method = lord%mat6_calc_method

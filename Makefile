@@ -69,6 +69,8 @@ M_FILE_LIST  := M.simple_program
 # EXTRA_LFLAGS   - extra linker flags
 #-----------------------------------------------------------------------------
 
+EXTRA_FFLAGS := -p
+
 #------------------------------------------------
 # Name of local libraries (standard and debug) 
 #------------------------------------------------

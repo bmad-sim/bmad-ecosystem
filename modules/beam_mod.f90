@@ -191,7 +191,7 @@ type (ele_struct), pointer :: ele, lord
 type (ele_struct), save :: rf_ele
 type (lr_wake_struct), pointer :: lr, lr_chain
 
-integer i, j, n, ix_ele, ix_pass, ixs, ix, n_links
+integer i, j, n, im, ix_ele, ix_pass, ixs, ix, n_links
 integer, save, allocatable :: ix_chain(:)
 
 logical csr_on, err
@@ -223,9 +223,11 @@ call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end)
 bunch_end%ix_ele = ix_ele
 
 ! If there are wakes...
-! If a super_slave, the lr wake in the lord is the sum of the slaves.
 
 if (associated(ele%wake)) then
+
+  ! If a super_slave, the lr wake in the lord is the sum of the slaves.
+
   if (ele%slave_status == super_slave$) then
     do i = ele%ic1_lord, ele%ic2_lord
       ixs = lat%control(lat%ic(i))%ix_lord
@@ -260,6 +262,19 @@ if (associated(ele%wake)) then
       lr_chain%t_ref = lr%t_ref - (lat%ele(ix_chain(i))%ref_time - ele%ref_time)
     enddo
   enddo
+
+  im = multipass_lord_index(ix_ele, lat)
+  if (im > 0) then 
+    do j = 1, size(ele%wake%lr)
+      lr       => ele%wake%lr(j)
+      lr_chain => lat%ele(im)%wake%lr(j)
+      lr_chain%b_sin = lr%b_sin
+      lr_chain%b_cos = lr%b_cos
+      lr_chain%a_sin = lr%a_sin
+      lr_chain%a_cos = lr%a_cos
+      lr_chain%t_ref = lr%t_ref + ele%ref_time
+    enddo
+  endif
 
 endif
 
