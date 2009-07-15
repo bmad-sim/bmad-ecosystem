@@ -9,6 +9,7 @@ type this_array_struct
   real(rp) cbar(2,2)
   real(rp) k_11a, k_12a, k_12b, k_22b
   real(rp) amp_a, amp_b, amp_na, amp_nb
+  real(rp) :: one = 1.0
   logical :: coupling_calc_done = .false.
   logical :: amp_calc_done = .false.
 end type
@@ -397,7 +398,7 @@ real(rp) gamma, one_pz, vec(2)
 real(rp), allocatable, save ::value1(:)
 
 integer, save :: ix_save = -1
-integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_track, n_max
+integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_track, n_max, iz
 
 character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_evaluate_a_datum'
@@ -1222,9 +1223,10 @@ case ('unstable_orbit')
   else
     !! if (lat%param%ix_lost == not_lost$) return
     !! datum_value = max(0, 1 + ix1 - lat%param%ix_lost)
-    if (lat%param%ix_lost /= not_lost$ .and. lat%param%ix_lost < ix1) then
-      datum_value = sum(cc(0:lat%param%ix_lost)%amp_a) + &
-                    sum(cc(0:lat%param%ix_lost)%amp_b) + (ix1 - lat%param%ix_lost) * 1e6
+    iz = lat%param%ix_lost
+    if (iz /= not_lost$ .and. iz < ix1) then
+      datum_value = sum(min(cc(0:iz)%amp_a, cc(0:iz)%one)) + &
+                    sum(min(cc(0:iz)%amp_b, cc(0:iz)%one)) + (ix1 - iz)
     else
       datum_value = sum(cc(0:ix1)%amp_a) + sum(cc(0:ix1)%amp_b) 
     endif
