@@ -1220,8 +1220,14 @@ case ('unstable_orbit')
     enddo
     datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
   else
-    if (lat%param%ix_lost == not_lost$) return
-    datum_value = max(0, 1 + ix1 - lat%param%ix_lost)
+    !! if (lat%param%ix_lost == not_lost$) return
+    !! datum_value = max(0, 1 + ix1 - lat%param%ix_lost)
+    if (lat%param%ix_lost /= not_lost$ .and. lat%param%ix_lost < ix1) then
+      datum_value = sum(cc(0:lat%param%ix_lost)%amp_a) + &
+                    sum(cc(0:lat%param%ix_lost)%amp_b) + (ix1 - lat%param%ix_lost) * 1e6
+    else
+      datum_value = sum(cc(0:ix1)%amp_a) + sum(cc(0:ix1)%amp_b) 
+    endif
   endif
 
 case ('unstable_ring')
