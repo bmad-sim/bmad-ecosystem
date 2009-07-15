@@ -5,26 +5,29 @@ use beam_mod
 
 type bbu_stage_struct
   integer :: ix_ele_lr_wake   ! Element index of element with the wake 
+  integer :: ix_ele_start     ! Exit end of this element is beginning of stage.
   integer :: ix_pass          ! Pass index when in multipass section
   integer :: ix_stage_pass1   ! Index of corresponding stage on first pass
   integer :: ix_head_bunch
   integer :: ix_hom_max
+  integer :: ix_stage_to_track ! Ordered (in time) list of which stages to track. 
   real(rp) :: hom_power_max
-  real(rp) time_at_wake_ele 
 end type
 
 type bbu_beam_struct
   type (bunch_struct), allocatable :: bunch(:)  ! Bunches in the lattice
-  integer, allocatable :: ix_ele_bunch(:)       ! element where bunch is 
   integer ix_bunch_head       ! Index to head bunch(:)
-  integer ix_bunch_end        ! Index of the end bunch(:). -1 -> no bunches.
+  integer ix_bunch_end        ! Index of the end bunch(:)
   integer n_bunch_in_lat      ! Number of bunches transversing the lattice.
   integer ix_stage_power_max
+  integer n_stage_to_track
   integer ix_last_stage_tracked
   type (bbu_stage_struct), allocatable :: stage(:)
   real(rp) hom_power_max
   real(rp) time_now
   real(rp) one_turn_time
+  real(rp) dt_bunch
+  real(rp) bunch_charge
 end type
 
 type bbu_param_struct
@@ -35,7 +38,7 @@ type bbu_param_struct
   logical keep_all_lcavities        ! Keep when hybridizing?
   real(rp) limit_factor
   real(rp) simulation_turns_max, bunch_freq
-  real(rp) init_particle_offset
+  real(rp) init_hom_amp
   real(rp) current
   real(rp) rel_tol
   logical drscan
@@ -53,39 +56,36 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_setup (lat, dt_bunch, bbu_param, bbu_beam)
+subroutine bbu_setup (lat, bbu_param, bbu_beam)
+
+use nr
 
 implicit none
 
 type (lat_struct), target :: lat
-type (bbu_beam_struct) bbu_beam
-type (beam_init_struct) beam_init
+type (bbu_beam_struct), target :: bbu_beam
 type (bbu_param_struct) bbu_param
 type (ele_struct), pointer :: ele
+type (lr_wake_struct), pointer :: lr
+type (bunch_struct), pointer :: bunch
 
-integer i, j, k, ih, ix_pass, n_links
+integer i, j, k, ib, ix_pass, n_links, ix_ele, n_bunch
 integer, allocatable, save :: ix_chain(:)
 
-real(rp) dt_bunch, rr(4)
+real(rp), allocatable :: time_at_wake_ele(:)
+real(rp) rr(4)
 
 character(16) :: r_name = 'bbu_setup'
 
 ! Size bbu_beam%bunch
 
-if (dt_bunch == 0) then
+if (bbu_beam%dt_bunch == 0) then
   call out_io (s_fatal$, r_name, 'DT_BUNCH IS ZERO!')
   call err_exit
 endif
 
-bbu_beam%n_bunch_in_lat = (lat%ele(lat%n_ele_track)%ref_time / dt_bunch) + 1
+bbu_beam%n_bunch_in_lat = (lat%ele(lat%n_ele_track)%ref_time / bbu_beam%dt_bunch) + 1
 bbu_beam%one_turn_time = lat%ele(lat%n_ele_track)%ref_time
-
-if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
-allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
-bbu_beam%ix_bunch_head = 1
-bbu_beam%ix_bunch_end = -1  ! Indicates No bunches
-
-call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
 
 ! Find all elements that have a lr wake.
 
@@ -103,7 +103,7 @@ if (j == 0) then
 endif
 
 if (allocated(bbu_beam%stage)) deallocate (bbu_beam%stage)
-allocate (bbu_beam%stage(j))
+allocate (bbu_beam%stage(j), time_at_wake_ele(j))
 
 ! Bunches have to go through a given physical lcavity in the correct order. 
 ! To do this correctly, the lattice is divided up into stages.
@@ -118,9 +118,6 @@ allocate (bbu_beam%stage(j))
 ! bunch for the i^th stage.
 ! The head bunch is the next bunch that will be propagated through the stage.
 
-bbu_beam%stage%ix_head_bunch = -1    ! Indicates there are no bunches ready for a stage.
-bbu_beam%stage(1)%ix_head_bunch = 1
-
 j = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
@@ -128,6 +125,14 @@ do i = 1, lat%n_ele_track
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
   bbu_beam%stage(j)%ix_ele_lr_wake = i
+  time_at_wake_ele(j) = modulo(lat%ele(i)%ref_time, bbu_beam%dt_bunch)
+  do k = 1, size(lat%ele(i)%wake%lr)
+    lr => lat%ele(i)%wake%lr(k)
+    lr%a_sin = bbu_param%init_hom_amp
+    lr%a_cos = bbu_param%init_hom_amp
+    lr%b_sin = bbu_param%init_hom_amp
+    lr%b_cos = bbu_param%init_hom_amp
+  enddo
   call multipass_chain (i, lat, ix_pass, n_links, ix_chain)
   bbu_beam%stage(j)%ix_pass = ix_pass
   if (ix_pass > 0) then
@@ -144,7 +149,51 @@ do i = 1, lat%n_ele_track
   else
     bbu_beam%stage(j)%ix_stage_pass1 = j
   endif
+
+  if (j == 1) then
+    bbu_beam%stage(j)%ix_ele_start = 0
+  else
+    bbu_beam%stage(j)%ix_ele_start = bbu_beam%stage(j-1)%ix_ele_lr_wake
+  endif
+
 enddo
+
+! which stage to track through next is determined by the time
+
+call indexx (time_at_wake_ele, bbu_beam%stage%ix_stage_to_track)
+bbu_beam%n_stage_to_track = 1
+bbu_beam%time_now = 0
+
+! bunch setup: Start at t = 0
+
+if (allocated(bbu_beam%bunch)) deallocate (bbu_beam%bunch)
+allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
+
+bbu_beam%stage%ix_head_bunch = -1    ! Indicates there are no bunches ready for a stage.
+
+j = size(bbu_beam%stage)
+ix_ele = bbu_beam%stage(j)%ix_ele_lr_wake
+n_bunch = int(lat%ele(ix_ele)%ref_time / bbu_beam%dt_bunch) + 1
+
+j = 1
+do i = -1, -n_bunch, -1
+  ib = i + 1 + n_bunch
+  bunch => bbu_beam%bunch(ib)
+  allocate (bunch%particle(1))
+  bunch%particle(1)%charge = bbu_beam%bunch_charge
+  bunch%ix_bunch = i
+  bunch%t_center = (i+1) * bbu_beam%dt_bunch 
+  do
+    ix_ele = bbu_beam%stage(j)%ix_ele_lr_wake
+    if (bunch%t_center + lat%ele(ix_ele)%ref_time > 0) exit
+    j = j + 1
+  enddo
+  bunch%ix_ele = bbu_beam%stage(j)%ix_ele_start
+  bbu_beam%stage(j)%ix_head_bunch = ib
+enddo
+
+bbu_beam%ix_bunch_head = 1
+bbu_beam%ix_bunch_end = n_bunch 
 
 end subroutine bbu_setup
 
@@ -152,14 +201,13 @@ end subroutine bbu_setup
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost) 
+subroutine bbu_track_all (lat, bbu_beam, bbu_param, hom_power_gain, growth_rate, lost) 
 
 implicit none
 
 type (lat_struct) lat
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
-type (beam_init_struct) beam_init
 
 real(rp) hom_power0, hom_power_sum, r_period, r_period0, power
 real(rp) hom_power_gain, growth_rate
@@ -172,14 +220,10 @@ character(16) :: r_name = 'bbu_track_all'
 
 ! Setup.
 
-call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
+call bbu_setup (lat, bbu_param, bbu_beam)
 
 call lattice_bookkeeper (lat)
 bmad_com%auto_bookkeeper = .false. ! To speed things up.
-
-do i = 1, size(bbu_beam%bunch)
-  call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
-enddo
 
 ! init time at hom and hom_power
 
@@ -187,11 +231,6 @@ bbu_beam%stage%hom_power_max = 0
 bbu_beam%hom_power_max = 0
 bbu_beam%ix_stage_power_max = 1
 growth_rate = real_garbage$
-
-
-bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
-ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
-bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele)%ref_time
 
 ! Track...
 ! To decide whether things are stable or unstable we look at the HOM power integrated
@@ -212,16 +251,10 @@ do
   r_period = bbu_beam%time_now / bbu_beam%one_turn_time
   n_period = int(r_period)
 
-  ! If the head bunch is finished then remove it and seed a new one.
-
-  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track) then
-    call bbu_remove_head_bunch (bbu_beam)
-    call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
-    if (r_period > bbu_param%simulation_turns_max) then
-      call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
-                                                                          r_array = (/ hom_power_gain /) )
-      exit
-    endif
+  if (r_period > bbu_param%simulation_turns_max) then
+    call out_io (s_warn$, r_name, 'Simulation_turns_max exceeded. ending tracking. \f10.2\ ', &
+                                                                        r_array = (/ hom_power_gain /) )
+    exit
   endif
 
   ! Compute integrated power. 
@@ -229,11 +262,11 @@ do
   ! have passed through the lattice.
 
   if (n_period /= n_period_old) then
-    if (n_period == 3) then
+    if (n_period == 2) then
       hom_power0 = hom_power_sum / n_count
       r_period0 = r_period
 
-    elseif (n_period > 3) then
+    elseif (n_period > 2) then
       hom_power_gain = (hom_power_sum / n_count) / hom_power0
       growth_rate = log(hom_power_gain) / (r_period - r_period0)
       if (hom_power_gain < 1/bbu_param%limit_factor) exit
@@ -271,9 +304,9 @@ type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (lr_wake_struct), pointer :: lr
 
-real(rp) min_time_at_wake_ele, time_at_wake_ele
+real(rp) time_now
 
-integer i, i_stage_min, ix_bunch, ix_ele
+integer i, ix_stage, ix_bunch, ix_ele
 integer ix_ele_start, ix_ele_end, j, ib, ib2
 
 character(20) :: r_name = 'bbu_track_a_stage'
@@ -282,13 +315,26 @@ logical err, lost
 
 ! Look at each stage track the bunch with the earliest time to finish and track this stage.
 
-i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
-bbu_beam%time_now = bbu_beam%stage(i_stage_min)%time_at_wake_ele
+ix_stage = bbu_beam%stage(bbu_beam%n_stage_to_track)%ix_stage_to_track
+bbu_beam%n_stage_to_track = modulo (bbu_beam%n_stage_to_track, size(bbu_beam%stage)) + 1 
 
-ix_ele_end = bbu_beam%stage(i_stage_min)%ix_ele_lr_wake
-if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
+ib = bbu_beam%stage(ix_stage)%ix_head_bunch
+if (ib == -1) then
+  call out_io (s_fatal$, r_name, 'NO BUNCHES FOR THE TRACKING A STAGE. GET HELP!')
+  call err_exit
+endif
 
-ib = bbu_beam%stage(i_stage_min)%ix_head_bunch
+ix_ele_end = bbu_beam%stage(ix_stage)%ix_ele_lr_wake
+
+time_now = bbu_beam%bunch(ib)%t_center + lat%ele(ix_ele_end)%ref_time
+if (time_now < bbu_beam%time_now) then
+  call out_io (s_fatal$, r_name, 'TIME ORDERING PROBLEM. GET HELP!')
+  call err_exit
+endif
+bbu_beam%time_now = time_now
+
+! Track
+
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
 do j = ix_ele_start+1, ix_ele_end
@@ -299,51 +345,41 @@ do j = ix_ele_start+1, ix_ele_end
   endif
 enddo
 
-! If the next stage does not have any bunches waiting to go through then the
-! tracked bunch becomes the head bunch for that stage.
+! If the bunch tracked is the last bunch in the train, we need to add a new bunch for
+! The next time this stage (which must have been stage #1) is tracked.
 
-if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
-  if (bbu_beam%stage(i_stage_min+1)%ix_head_bunch == -1) &
-                      bbu_beam%stage(i_stage_min+1)%ix_head_bunch = ib
+if (ib == bbu_beam%ix_bunch_end) then
+  if (ix_stage /= 1) then
+    call out_io (s_fatal$, r_name, 'TRACKING BOOKKEEPING PROBLEM. GET HELP!')
+    call err_exit
+  endif
+  call bbu_add_a_bunch (lat, bbu_beam)
+endif
+
+! If this is the last stage then remove the bunch.
+! Otherwiese, if the next stage does not have any bunches waiting to go 
+! through then the tracked bunch becomes the head bunch for that stage.
+
+if (ix_stage == size(bbu_beam%stage)) then  ! If last stage
+  call bbu_remove_head_bunch (bbu_beam)
+elseif (bbu_beam%stage(ix_stage+1)%ix_head_bunch == -1) then
+  bbu_beam%stage(ix_stage+1)%ix_head_bunch = ib
 endif
 
 ! If the bunch upstream from the tracked bunch is at the same stage as was tracked through,
 ! then this bunch becomes the new head bunch for the stage. Otherwise there is no head bunch
 ! for the stage.
 
-if (ib == bbu_beam%ix_bunch_end) then
-  call out_io (s_fatal$, r_name, 'NO BUNCHES FOR THE FIRST STAGE. GET HELP!')
-  call err_exit
+ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
+if (bbu_beam%bunch(ib2)%ix_ele == ix_ele_start) then
+  bbu_beam%stage(ix_stage)%ix_head_bunch = ib2
 else
-  ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
-  if (bbu_beam%bunch(ib2)%ix_ele == ix_ele_start) then
-    bbu_beam%stage(i_stage_min)%ix_head_bunch = ib2
-  else
-    bbu_beam%stage(i_stage_min)%ix_head_bunch = -1  ! No one waiting to go through this stage
-  endif
-endif
-
-! Now correct min_time array
-
-ix_bunch = bbu_beam%stage(i_stage_min)%ix_head_bunch
-if (ix_bunch < 0) then
-  bbu_beam%stage(i_stage_min)%time_at_wake_ele = 1e30  ! something large
-else
-  ix_ele = bbu_beam%stage(i_stage_min)%ix_ele_lr_wake
-  bbu_beam%stage(i_stage_min)%time_at_wake_ele = &
-                    bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
-endif
-
-if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
-  i = i_stage_min + 1
-  ix_bunch = bbu_beam%stage(i)%ix_head_bunch
-  ix_ele = bbu_beam%stage(i)%ix_ele_lr_wake
-  bbu_beam%stage(i)%time_at_wake_ele = bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
+  bbu_beam%stage(ix_stage)%ix_head_bunch = -1  ! No one waiting to go through this stage
 endif
 
 ! Misc.
 
-bbu_beam%ix_last_stage_tracked = i_stage_min
+bbu_beam%ix_last_stage_tracked = ix_stage
 lost = .false.
 
 end subroutine bbu_track_a_stage
@@ -352,15 +388,13 @@ end subroutine bbu_track_a_stage
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
+subroutine bbu_add_a_bunch (lat, bbu_beam)
 
 implicit none
 
 type (lat_struct) lat
 type (bbu_beam_struct), target :: bbu_beam
-type (beam_init_struct) beam_init
 type (bunch_struct), pointer :: bunch
-type (bbu_param_struct) bbu_param
 
 integer i, ixb, ix0
 real(rp) r(2)
@@ -369,39 +403,24 @@ character(20) :: r_name = 'bbu_add_a_bunch'
 
 ! Init bunch
 
-if (bbu_beam%ix_bunch_end == -1) then ! if no bunches
-  ixb = bbu_beam%ix_bunch_head
-else
-  ixb = modulo (bbu_beam%ix_bunch_end, size(bbu_beam%bunch)) + 1 ! Next empty slot
-  if (ixb == bbu_beam%ix_bunch_head) then
-    call out_io (s_fatal$, r_name, 'BBU_BEAM%BUNCH ARRAY OVERFLOW')
-    call err_exit
-  endif
+ixb = modulo (bbu_beam%ix_bunch_end, size(bbu_beam%bunch)) + 1 ! Next empty slot
+if (ixb == bbu_beam%ix_bunch_head) then
+  call out_io (s_fatal$, r_name, 'BBU_BEAM%BUNCH ARRAY OVERFLOW')
+  call err_exit
 endif
 
 bunch => bbu_beam%bunch(ixb)
-call init_bunch_distribution (lat%ele(0), beam_init, bunch)
+if (.not. allocated(bunch%particle)) allocate (bunch%particle(1))
+bunch%particle(1)%charge = bbu_beam%bunch_charge
+bunch%ix_ele = 0
 
 ! If this is not the first bunch need to correct some of the bunch information
 
-if (ixb /= bbu_beam%ix_bunch_head) then
-  ix0 = bbu_beam%ix_bunch_end
-  bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
-  bunch%t_center = bbu_beam%bunch(ix0)%t_center + beam_init%dt_bunch
-  bunch%z_center = -bunch%t_center * c_light * lat%ele(0)%value(e_tot$) / lat%ele(0)%value(p0c$)
-endif
+ix0 = bbu_beam%ix_bunch_end  ! Old bunch end
+bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
+bunch%t_center = bbu_beam%bunch(ix0)%t_center + bbu_beam%dt_bunch
 
 bbu_beam%ix_bunch_end = ixb
-
-! Offset particles if the particle is born within the first turn period.
-
-if (bunch%t_center < bbu_beam%one_turn_time) then
-  do i = 1, size(bunch%particle)
-    call ran_gauss (r)
-    bunch%particle%r%vec(1) = bbu_param%init_particle_offset * r(1)
-    bunch%particle%r%vec(3) = bbu_param%init_particle_offset * r(2)
-  enddo
-endif
 
 end subroutine bbu_add_a_bunch
 
@@ -424,7 +443,9 @@ endif
 
 ! mark ix_bunch_end if we are poping the last bunch.
 
-if (bbu_beam%ix_bunch_end == bbu_beam%ix_bunch_head) bbu_beam%ix_bunch_end = -1
+if (bbu_beam%ix_bunch_end == bbu_beam%ix_bunch_head) then
+  call out_io (s_fatal$, r_name, 'BOOKKEEPING PROBLEM. PLEASE GET HELP!')
+endif
 
 ! Update ix_bunch_head 
 

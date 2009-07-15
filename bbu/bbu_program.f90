@@ -7,7 +7,6 @@ implicit none
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
-type (beam_init_struct) beam_init
 
 integer i, ix, j, n_hom, n, n_ele, ix_pass, ie, ie2, i_lr
 
@@ -22,21 +21,20 @@ real(rp) time
 logical lost
 logical, allocatable :: keep_ele(:)
 
-namelist / bbu_params / bbu_param, beam_init 
+namelist / bbu_params / bbu_param
 
 ! Read in parameters
 
-bbu_param%lat_file_name = 'erl.lat'  ! Bmad lattice file name
-bbu_param%simulation_turns_max = 20 ! 
-bbu_param%bunch_freq = 1.3e9         ! Freq in Hz.
-bbu_param%init_particle_offset = 1e-8  ! Initial particle offset for particles born 
-                                       !  in the first turn period.
-bbu_param%limit_factor = 2           ! Init_hom_amp * limit_factor = simulation unstable limit
-bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
+bbu_param%lat_file_name = 'erl.lat'   ! Bmad lattice file name
+bbu_param%simulation_turns_max = 20   ! 
+bbu_param%bunch_freq = 1.3e9          ! Freq in Hz.
+bbu_param%init_hom_amp = 1e-20        ! Initial particle offset for particles born 
+bbu_param%limit_factor = 2            ! Init_hom_amp * limit_factor = simulation unstable limit
+bbu_param%hybridize = .true.          ! Combine non-hom elements to speed up simulation?
 bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
 bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
-bbu_param%current = 20e-3            ! Starting current (amps)
-bbu_param%rel_tol = 1e-2             ! Final threshold current accuracy.
+bbu_param%current = 20e-3             ! Starting current (amps)
+bbu_param%rel_tol = 1e-2              ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
 bbu_param%drscan = .true.        ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
 bbu_param%nstep = 100
@@ -44,14 +42,13 @@ bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
 bbu_param%use_interpolated_threshold = .true.
 
-  beam_init%n_particle = 1
-
 open (1, file = 'bbu.init', status = 'old')
 read (1, nml = bbu_params)
 close (1)
 
 ! Define distance between bunches
-beam_init%dt_bunch = 1 / bbu_param%bunch_freq
+bbu_beam%dt_bunch = 1 / bbu_param%bunch_freq
+
 
 ! Init
 
@@ -132,7 +129,7 @@ do istep = 1, nstep
   endif
 
 
-  call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
+  call bbu_setup (lat, bbu_param, bbu_beam)
 
   print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
@@ -148,7 +145,7 @@ do istep = 1, nstep
 
   ! Track to find upper limit
 
-  beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
+  bbu_beam%bunch_charge = bbu_param%current * bbu_beam%dt_bunch
   charge0 = 0
   charge1 = -1      ! Mark as not set yet 
   charge_old = -1   ! Mark as not set yet 
@@ -158,7 +155,7 @@ do istep = 1, nstep
 
   do
     lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+    call bbu_track_all (lat, bbu_beam, bbu_param, hom_power_gain, growth_rate, lost)
     call calc_next_charge_try
     if (hom_power_gain > 1) exit
     if (lost) then
@@ -173,14 +170,14 @@ do istep = 1, nstep
 
   do
     lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+    call bbu_track_all (lat, bbu_beam, bbu_param, hom_power_gain, growth_rate, lost)
     if (lost) print *, 'Particle(s) lost. Assuming unstable...'
     call calc_next_charge_try
     if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
   enddo
 
-  beam_init%bunch_charge = (charge0 + charge1) / 2
-  print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
+  bbu_beam%bunch_charge = (charge0 + charge1) / 2
+  print *, 'Threshold Current (A):', bbu_beam%bunch_charge / bbu_beam%dt_bunch 
   i = bbu_beam%ix_stage_power_max
   ie = bbu_beam%stage(i)%ix_ele_lr_wake
   ie2 = ie
@@ -197,7 +194,7 @@ do istep = 1, nstep
   print *
   print *, 'Time for calculation (min): ', time/60
 
-  if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge / beam_init%dt_bunch 
+  if (bbu_param%drscan) write(50,*) trtb, currth, bbu_beam%bunch_charge / bbu_beam%dt_bunch 
 
 enddo
 
@@ -213,9 +210,9 @@ real(rp) c, min_delta, dc0, dc1, c0, c1, g0, g1
 ! Print info
 
 if (growth_rate > 0 .or. lost) then
-  print *, '  Unstable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
+  print *, '  Unstable at (mA):', 1e3 * bbu_beam%bunch_charge / bbu_beam%dt_bunch 
 else
-  print *, '  Stable at (mA):', 1e3 * beam_init%bunch_charge / beam_init%dt_bunch 
+  print *, '  Stable at (mA):', 1e3 * bbu_beam%bunch_charge / bbu_beam%dt_bunch 
 endif
 
 print *, '         Head bunch index: ', bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_bunch
@@ -224,11 +221,11 @@ print *, '         Growth rate: ', growth_rate
 !
 
 if (growth_rate > 0 .or. lost) then  ! unstable
-  charge1 = beam_init%bunch_charge
+  charge1 = bbu_beam%bunch_charge
   growth_rate1 = growth_rate
 
 else
-  charge0 = beam_init%bunch_charge
+  charge0 = bbu_beam%bunch_charge
   growth_rate0 = growth_rate
 endif
 
@@ -330,27 +327,27 @@ if (charge_old > 0) then  ! If we have two trackings.
   endif
 
 
-  print *, '         Predicted threshold:', 1d3 * charge_threshold / beam_init%dt_bunch 
+  print *, '         Predicted threshold:', 1d3 * charge_threshold / bbu_beam%dt_bunch 
 
 endif
 
-charge_old = beam_init%bunch_charge
+charge_old = bbu_beam%bunch_charge
 growth_rate_old = growth_rate
 
 ! Set new try value
 
 if (bbu_param%use_interpolated_threshold .and. charge_try >= 0) then
-  beam_init%bunch_charge = charge_try
+  bbu_beam%bunch_charge = charge_try
 
 else
   if (charge1 > 0) then  ! Has been set so have stable and unstable points
-    beam_init%bunch_charge = (charge0 + charge1) / 2
+    bbu_beam%bunch_charge = (charge0 + charge1) / 2
   else                   ! Still searching for an unstable point.
-    beam_init%bunch_charge = beam_init%bunch_charge * 2
+    bbu_beam%bunch_charge = bbu_beam%bunch_charge * 2
   endif
 endif
 
-print *, '         Current to try next:', 1d3 * beam_init%bunch_charge / beam_init%dt_bunch 
+print *, '         Current to try next:', 1d3 * bbu_beam%bunch_charge / bbu_beam%dt_bunch 
 
 end subroutine
 
