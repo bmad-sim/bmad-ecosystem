@@ -55,6 +55,7 @@ contains
 !   <indexes> = List of indexes in the lat%ele list.
 ! Example:
 !   "quad:q*"    All quadrupoles whose name begins with "q"
+!   "*:*"        All elements.
 !   "3,5:7"      Elements with index 3, 5, 6, and 7 in branch 0.
 !   "1.45:51"    Elements 45 through 51 of branch 1.
 ! 
@@ -89,6 +90,7 @@ logical err, do_match_wild
 ! index array
 
 err = .true.
+n_loc = 0
 
 if (is_integer(loc_str(1:1))) then
   call lat_location_decode (loc_str, lat, locs, err)
@@ -103,15 +105,19 @@ if (ix == 0) then
   key = 0
   call str_upcase (name, loc_str)
 else
-  key = key_name_to_key_index (loc_str(:ix-1), .true.)
-  if (key < 1) return
+  if (loc_str(:ix-1) == "*") then
+    key = 0
+  else
+    key = key_name_to_key_index (loc_str(:ix-1), .true.)
+    if (key < 1) return
+  endif
   call str_upcase (name, loc_str(ix+1:))
 endif
 
 ! Save time by deciding if we need to call match_wild or not.
 
 do_match_wild = .false.  
-if (index(loc_str, "*") /= 0 .or. index(loc_str, "%") /= 0) do_match_wild = .true.
+if (index(name, "*") /= 0 .or. index(name, "%") /= 0) do_match_wild = .true.
 
 ! search for matches
 
