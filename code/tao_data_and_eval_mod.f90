@@ -1252,7 +1252,6 @@ case ('t.', 'tt.')
   valid_value = .true.
 
 case ('unstable_orbit')
-  valid_value = .true.
   if (lat%param%lattice_type /= linear_lattice$) return
   if (datum%ele_name == '') ix1 = branch%n_ele_track
   if (data_source == 'beam') then
@@ -1261,16 +1260,10 @@ case ('unstable_orbit')
     enddo
     datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
   else
-    !! if (lat%param%ix_lost == not_lost$) return
-    !! datum_value = max(0, 1 + ix1 - lat%param%ix_lost)
     iz = lat%param%ix_lost
-    if (iz /= not_lost$ .and. iz < ix1) then
-      datum_value = sum(min(cc(0:iz)%amp_a, cc(0:iz)%one)) + &
-                    sum(min(cc(0:iz)%amp_b, cc(0:iz)%one)) + 2 * (ix1 - iz)
-    else
-      datum_value = sum(cc(0:ix1)%amp_a) + sum(cc(0:ix1)%amp_b) 
-    endif
+    if (iz /= not_lost$) datum_value = max(0, 1 + ix1 - iz)
   endif
+  valid_value = .true.
 
 case ('unstable_ring')
   if (data_source == 'beam') return
