@@ -220,26 +220,28 @@ end type
 ! one datum point.
 ! The universe_struct will hold an array of data_struct structures: u%data(:).
 !
-! %exists     -- The datum can exist. Non-existent datums can serve 
-!                  as place holders in the u%data array.
-! %good_model -- A valid model value was computed. For example, good_model would 
-!                  be False for some orbit data if the particle being tracked is lost.
-! %good_meas  -- Set by the routine that reads in a data set. Good_meas may be 
-!                  false, say, if a detector amplifyer is overloaded.
-! %good_ref   -- Like good_meas this is set for a reference data set.
-! %good_user  -- What the user has selected using the use, veto, and restore 
-!                  commands.
-! %good_opt   -- Not modified by Tao proper and reserved for use by extension code.
-! %good_plot  -- Not modified by Tao proper and reserved for use by extension code.
-! %useit_plot -- Datum is valid for plotting:
-!                  = %exists & %good_plot (w/o measured & reference data)
-!                  = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
-!                  = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
-!                  = %exists & %good_plot & %good_user & %good_meas & %good_ref 
-!                                                        (w/ measured & reference data)
-! %useit_opt  -- Datum is possibly valid for optimization (minimizing the merit function):
-!                  = %exists & %good_user & %good_opt (w/o reference data)
-!                  = %exists & %good_user & %good_opt & %good_ref (w/ ref data)
+! %exists       -- The datum can exist. Non-existent datums can serve 
+!                    as place holders in the u%data array.
+! %good_model   -- A valid model value was computed. For example, good_model would 
+!                    be False for some orbit data if the particle being tracked is lost.
+! %good_base    -- A valid base value was computed. 
+! %good_design  -- A valid design value was computed. 
+! %good_meas    -- Set by the routine that reads in a data set. Good_meas may be 
+!                    false, say, if a detector amplifyer is overloaded.
+! %good_ref     -- Like good_meas this is set for a reference data set.
+! %good_user    -- What the user has selected using the use, veto, and restore 
+!                    commands.
+! %good_opt     -- Not modified by Tao proper and reserved for use by extension code.
+! %good_plot    -- Not modified by Tao proper and reserved for use by extension code.
+! %useit_plot   -- Datum is valid for plotting:
+!                    = %exists & %good_plot (w/o measured & reference data)
+!                    = %exists & %good_plot & %good_user & %good_meas (w/ meas data)
+!                    = %exists & %good_plot & %good_user & %good_ref (w/ reference data)
+!                    = %exists & %good_plot & %good_user & %good_meas & %good_ref 
+!                                                          (w/ measured & reference data)
+! %useit_opt    -- Datum is possibly valid for optimization (minimizing the merit function):
+!                    = %exists & %good_user & %good_opt (w/o reference data)
+!                    = %exists & %good_user & %good_opt & %good_ref (w/ ref data)
 ! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
@@ -265,11 +267,14 @@ type tao_data_struct
   real(rp) fit_value         ! The value as calculated from a fitting procedure.
   real(rp) delta_merit       ! Diff used to calculate the merit function term 
   real(rp) weight            ! Weight for the merit function term
+  real(rp) invalid_value     ! Value used in merit calc if good_model = False.
   real(rp) merit             ! Merit function term value: weight * delta^2
   real(rp) s                 ! longitudinal position of ele.
   logical relative           ! Value is relative to value at ele0?
   logical exists             ! See above
   logical good_model         ! See above
+  logical good_base          ! See above
+  logical good_design        ! See above
   logical good_meas          ! See above
   logical good_ref           ! See above
   logical good_user          ! See above

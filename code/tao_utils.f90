@@ -910,9 +910,9 @@ character(*) :: data_name
 character(*), optional :: component
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
-character(16), parameter :: real_components(8) = &
-          (/ 'model ', 'base  ', 'design', 'meas  ', 'ref   ', &
-             'old   ', 'fit   ', 'weight' /)
+character(16), parameter :: real_components(9) = &
+          (/ 'model  ', 'base   ', 'design ', 'meas   ', 'ref    ', &
+             'old    ', 'fit    ', 'weight ', 'invalid' /)
 character(16), parameter :: logic_components(6) = &
           (/ 'exists   ', 'good_meas', 'good_ref ', 'good_user', 'good_opt ', &
              'good_plot' /)
@@ -1287,35 +1287,39 @@ if (present(re_array) .and.  any(component_name == real_components)) then
       select case (component_name)
       case ('model')
         re_array(j)%r => d1%d(i)%model_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_model
       case ('base')
         re_array(j)%r => d1%d(i)%base_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_model
       case ('design')
         re_array(j)%r => d1%d(i)%design_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_model
       case ('meas')
         re_array(j)%r => d1%d(i)%meas_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_meas
       case ('ref')
         re_array(j)%r => d1%d(i)%ref_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => d1%d(i)%good_ref
       case ('old')
         re_array(j)%r => d1%d(i)%old_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => forever_true$
       case ('fit')
         re_array(j)%r => d1%d(i)%fit_value
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
+        re_array(j)%good_value => forever_true$
+      case ('invalid')
+        re_array(j)%r => d1%d(i)%invalid_value
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => forever_true$
       case ('weight')
         re_array(j)%r => d1%d(i)%weight
-        re_array(j)%good_user => d1%d(i)%good_user
+        re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => forever_true$
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL DATA")

@@ -30,9 +30,9 @@ type tao_data_input
   real(rp) :: weight
   logical :: good_user
   character(20) data_source
+  real(rp) :: invalid_value
   integer ix_bunch
   character(8) relative
-  character(40) :: name
 end type
 
 !-------------------------------------------------------------
@@ -52,7 +52,6 @@ type tao_var_input
   real(rp) high_lim
   character(40) :: merit_type
   character(8) :: good_user
-  character(40) :: name
   character(8) key_bound
   real(rp) key_delta
 end type

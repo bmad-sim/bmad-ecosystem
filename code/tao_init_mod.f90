@@ -567,26 +567,26 @@ do
   enddo uni_loop
 
   do k = 1, n_d1_data
-    use_same_lat_eles_as = ''
-    search_for_lat_eles  = ''
-    d1_data%name        = ''
-    default_weight      = 0      ! set default
-    default_data_type   = ''
-    default_data_source = 'lattice'
-    data(:)%data_type   = ''
-    data(:)%merit_type  = default_merit_type 
-    data(:)%name        = ''
-    data(:)%merit_type  = ''
-    data(:)%ele_name    = ''
-    data(:)%ele0_name   = ''
-    data(:)%meas        = real_garbage$  ! used to tag when %meas_value is set in file
-    data(:)%weight      = 0.0
-    data(:)%ix_bunch    = 0
-    data(:)%data_source = ''
-    data(:)%good_user   = .true.
-    data(:)%relative    = ''
-    ix_min_data         = int_garbage$
-    ix_max_data         = int_garbage$
+    use_same_lat_eles_as  = ''
+    search_for_lat_eles   = ''
+    d1_data%name          = ''
+    default_weight        = 0      ! set default
+    default_data_type     = ''
+    default_data_source   = 'lattice'
+    data(:)%data_type     = ''
+    data(:)%merit_type    = default_merit_type 
+    data(:)%merit_type    = ''
+    data(:)%ele_name      = ''
+    data(:)%ele0_name     = ''
+    data(:)%meas          = real_garbage$  ! used to tag when %meas_value is set in file
+    data(:)%weight        = 0.0
+    data(:)%invalid_value = 0.0
+    data(:)%ix_bunch      = 0
+    data(:)%data_source   = ''
+    data(:)%good_user     = .true.
+    data(:)%relative      = ''
+    ix_min_data           = int_garbage$
+    ix_max_data           = int_garbage$
 
     read (iu, nml = tao_d1_data, iostat = ios)
     if (ios > 0) then
@@ -711,11 +711,12 @@ if (search_for_lat_eles /= '') then
     jj = jj + 1
   enddo
 
-  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
-  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
+  u%data(n1:n2)%good_user     = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight        = data(ix1:ix2)%weight
+  u%data(n1:n2)%invalid_value = data(ix1:ix2)%invalid_value
+  u%data(n1:n2)%ele0_name     = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch      = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source   = data(ix1:ix2)%data_source
 
 ! use_same_lat_eles_as
 
@@ -735,13 +736,14 @@ elseif (use_same_lat_eles_as /= '') then
   ix1 = ix_min_data
   ix2 = ix1 + (n2 - n1)
 
-  u%data(n1:n2)%ele_name    = d1_array(1)%d1%d%ele_name
-  u%data(n1:n2)%ix_ele      = d1_array(1)%d1%d%ix_ele
-  u%data(n1:n2)%ele0_name   = d1_array(1)%d1%d%ele0_name
-  u%data(n1:n2)%ix_ele0     = d1_array(1)%d1%d%ix_ele0
-  u%data(n1:n2)%exists      = d1_array(1)%d1%d%exists
-  u%data(n1:n2)%data_source = d1_array(1)%d1%d%data_source
-  u%data(n1:n2)%relative    = d1_array(1)%d1%d%relative
+  u%data(n1:n2)%ele_name      = d1_array(1)%d1%d%ele_name
+  u%data(n1:n2)%ix_ele        = d1_array(1)%d1%d%ix_ele
+  u%data(n1:n2)%ele0_name     = d1_array(1)%d1%d%ele0_name
+  u%data(n1:n2)%ix_ele0       = d1_array(1)%d1%d%ix_ele0
+  u%data(n1:n2)%exists        = d1_array(1)%d1%d%exists
+  u%data(n1:n2)%data_source   = d1_array(1)%d1%d%data_source
+  u%data(n1:n2)%relative      = d1_array(1)%d1%d%relative
+  u%data(n1:n2)%invalid_value = d1_array(1)%d1%d%invalid_value
 
 ! Not SEARCH or SAME:
 
@@ -771,12 +773,13 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%good_user   = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight      = data(ix1:ix2)%weight
-  u%data(n1:n2)%ele_name    = data(ix1:ix2)%ele_name
-  u%data(n1:n2)%ele0_name   = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch    = data(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source = data(ix1:ix2)%data_source
+  u%data(n1:n2)%good_user     = data(ix1:ix2)%good_user
+  u%data(n1:n2)%weight        = data(ix1:ix2)%weight
+  u%data(n1:n2)%ele_name      = data(ix1:ix2)%ele_name
+  u%data(n1:n2)%invalid_value = data(ix1:ix2)%invalid_value
+  u%data(n1:n2)%ele0_name     = data(ix1:ix2)%ele0_name
+  u%data(n1:n2)%ix_bunch      = data(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source   = data(ix1:ix2)%data_source
 
   ! Find elements associated with the data
 
@@ -812,9 +815,10 @@ endif
 !-----------------------------------------------------------
 ! If %meas_value was set then %good_meas is set to True
 
-u%data(n1:n2)%data_type   = data(ix1:ix2)%data_type
-u%data(n1:n2)%merit_type  = data(ix1:ix2)%merit_type
-u%data(n1:n2)%weight      = data(ix1:ix2)%weight
+u%data(n1:n2)%data_type     = data(ix1:ix2)%data_type
+u%data(n1:n2)%merit_type    = data(ix1:ix2)%merit_type
+u%data(n1:n2)%weight        = data(ix1:ix2)%weight
+u%data(n1:n2)%invalid_value = data(ix1:ix2)%invalid_value
 
 u%data(n1:n2)%meas_value = data(ix1:ix2)%meas
 where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
@@ -1283,7 +1287,6 @@ do
   default_high_lim   = 1e30
   ix_min_var         = 1
   ix_max_var         = 0
-  var%name           = ''
   var%ele_name       = ''
   var%merit_type     = ''
   var%weight         = 0         ! set default

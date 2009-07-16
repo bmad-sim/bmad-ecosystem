@@ -58,6 +58,7 @@ type (tao_lattice_struct), pointer :: dest1_lat
 type (tao_lattice_struct), pointer :: source1_lat
 real(rp), pointer :: dest_data(:)
 real(rp), pointer :: source_data(:)
+logical, pointer :: dest_good(:), source_good(:)
 logical calc_ok
 
 integer j
@@ -70,12 +71,11 @@ select case (dest1_name)
   case ('model')
     dest1_lat => u%model
     dest_data => u%data%model_value
+    dest_good => u%data%good_model
   case ('base')
     dest1_lat => u%base
     dest_data => u%data%base_value
-  case ('design')
-    dest1_lat => u%design
-    dest_data => u%data%design_value
+    dest_good => u%data%good_base
   case default
     call out_io (s_error$, r_name, 'BAD LATTICE: ' // dest_lat)
     err = .true.
@@ -89,12 +89,15 @@ select case (source_lat)
     call tao_lattice_calc (calc_ok)
     source1_lat => u%model
     source_data => u%data%model_value
+    source_good => u%data%good_model
   case ('base')
     source1_lat => u%base
     source_data => u%data%base_value
+    source_good => u%data%good_base
   case ('design')
     source1_lat => u%design
     source_data => u%data%design_value
+    source_good => u%data%good_design
   case default
     call out_io (s_error$, r_name, 'BAD LATTICE: ' // source_lat)
     err = .true.
@@ -132,6 +135,7 @@ endif
 ! Transfer the data
 
 dest_data = source_data
+dest_good = source_good
 
 end subroutine set_lat
 

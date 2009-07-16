@@ -23,7 +23,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok, ix_uni, who, init_design)
+! Subroutine tao_lattice_calc (calc_ok, ix_uni, init_design)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
@@ -32,18 +32,17 @@ contains
 ! design lattices.
 ! 
 ! Input:
-!   init_design -- Logical, optional: Set this True to initialize design lattices
 !   ix_uni      -- Integer, optional: If present then calculation is restricted to
 !                   the universe with this index.
 !                   If present, tao_com%lattice_recalc will be ignored.
-!   who         -- Integer, optional: Either: model$, base$, or design$. Default is model$.
+!   init_design -- Logical, optional: Set this True to initialize design lattices
 !
 ! Output:
 !   calc_ok -- Logical: Set False if there was an error in the 
 !                calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok, ix_uni, who, init_design)
+subroutine tao_lattice_calc (calc_ok, ix_uni, init_design)
 
 implicit none
 
@@ -55,8 +54,8 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
-integer, optional :: ix_uni, who
-integer i, j, k, ix, n_max, it, id, this_who
+integer, optional :: ix_uni
+integer i, j, k, ix, n_max, it, id
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -103,19 +102,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Pointer to appropriate lattice and zero data array
 
-  this_who = integer_option(model$, who)
-  select case (this_who)
-  case (model$)
-    tao_lat => u%model
-    u%data(:)%good_model = .false. ! reset
-    u%data%model_value = tiny(1.0_rp)
-  case (base$) 
-    tao_lat => u%base
-    u%data%base_value = tiny(1.0_rp)
-  case (design$)
-    tao_lat => u%design
-    u%data%design_value = tiny(1.0_rp)
-  end select
+  tao_lat => u%model  ! In the past tao_lat could point to design or base but no more.
+  u%data(:)%good_model = .false. ! reset
+  u%data%model_value = tiny(1.0_rp)
 
   ! set up matching element
 
@@ -134,12 +123,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (s%global%track_type)
     case ('single') 
       call tao_inject_particle (u, tao_lat, k)
-      call tao_single_track (u, tao_lat, this_who, this_calc_ok, k)
+      call tao_single_track (u, tao_lat, this_calc_ok, k)
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, k)
-      call tao_single_track (u, tao_lat, this_who, this_calc_ok, k)
+      call tao_single_track (u, tao_lat, this_calc_ok, k)
       call tao_inject_beam (u, tao_lat, k)
-      call tao_beam_track (u, tao_lat, this_who, this_calc_ok, k)
+      call tao_beam_track (u, tao_lat, this_calc_ok, k)
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
       call err_exit
@@ -158,7 +147,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     calc_ok = .false.
   endif
 
-  call tao_load_data_array (u, -1, this_who)
+  call tao_load_data_array (u, -1, model$)
 
   ! do multi-turn tracking if needed. This is always the main lattice. 
 
@@ -196,7 +185,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If calc is on common model then transfer data to base of all other universes
 
-  if (tao_com%common_lattice .and. this_who == model$ .and. i == ix_common_uni$) then
+  if (tao_com%common_lattice .and. i == ix_common_uni$) then
     do j = lbound(s%u, 1), ubound(s%u, 1)
       if (j == ix_common_uni$) cycle
       s%u(j)%data(:)%base_value = u%data(:)%model_value
@@ -222,7 +211,7 @@ end subroutine tao_lattice_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine tao_single_track (u, tao_lat, who, calc_ok, ix_branch)
+subroutine tao_single_track (u, tao_lat, calc_ok, ix_branch)
 
 implicit none
 
@@ -233,7 +222,7 @@ type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
 
-integer i, ii, who, ix_lost, ix_branch
+integer i, ii, ix_lost, ix_branch
 
 character(20) :: r_name = "tao_single_track"
 
@@ -297,7 +286,7 @@ if (u%mat6_recalc_on) then
 endif
 
 do i = 0, branch%n_ele_track
-  call tao_load_data_array (u, i, who)
+  call tao_load_data_array (u, i, model$)
 enddo
 
 end subroutine tao_single_track
@@ -309,7 +298,7 @@ end subroutine tao_single_track
 ! Right now, there is no beam tracking in circular lattices. 
 ! If extracting from a lat then the beam is generated at the extraction point.
 
-subroutine tao_beam_track (u, tao_lat, who, calc_ok, ix_branch)
+subroutine tao_beam_track (u, tao_lat, calc_ok, ix_branch)
 
 implicit none
 
@@ -327,7 +316,7 @@ type (tao_lattice_branch_struct), pointer :: lat_branch
 type (tao_element_struct), pointer :: uni_ele(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
 
-integer what_lat, who, n_alive, n_alive_old
+integer what_lat, n_alive, n_alive_old
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_lost
 integer extract_at_ix_ele, n_lost, ix_branch
@@ -401,7 +390,7 @@ enddo
 
 if (.not. u%connect%connected) then
   if (branch%param%lattice_type == circular_lattice$) then
-    call tao_single_track (u, tao_lat, who, calc_ok, ix_branch) 
+    call tao_single_track (u, tao_lat, calc_ok, ix_branch) 
     if (extract_at_ix_ele /= -1) then
       if (u%calc_beam_emittance) then
         call radiation_integrals (lat, lat_branch%orbit, modes)
@@ -482,7 +471,7 @@ do j = ie1, ie2
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
                              lat%ele(j), lat_branch%bunch_params(j), err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
-  call tao_load_data_array (u, j, who) 
+  call tao_load_data_array (u, j, model$) 
 
   if (s%global%beam_timer_on) then
     call run_timer ('READ', time)

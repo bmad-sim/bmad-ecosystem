@@ -134,15 +134,18 @@ Each datum has a number of quantities associated with it:
   old               ! Real: The model at some previous time.
   base              ! Real: The value as calculated from the base model.
   fit               ! Real: The value as calculated from a fitting procedure.
+  invalid           ! Real: The value used for delta_merit if good_model = False.
   delta_merit       ! Real: Diff used to calculate the merit function term 
   weight            ! Real: Weight for the merit function term
   merit             ! Real: Merit function term value: weight * delta^2
   s                 ! Real: longitudinal position of ele.
   relative          ! Logical: Is this a relative datum?
   exists            ! Logical: Does the datum exist?
-  good_model        ! Logical: Does the model component contain a valid value?
-  good_meas         ! Logical: Does the meas component contain a valid value?
-  good_ref          ! Logical: Does the ref component contain a valid value?
+  good_model        ! Logical: Does the model  component contain a valid value?
+  good_design       ! Logical: Does the design component contain a valid value?
+  good_base         ! Logical: Does the base   component contain a valid value?
+  good_meas         ! Logical: Does the meas   component contain a valid value?
+  good_ref          ! Logical: Does the ref    component contain a valid value?
   good_user         ! Logical: Does the user want this datum used in optimization?
   good_opt          ! Logical: Can be used in Tao extensions.
   good_plot         ! Logical: Can be used in Tao extensions.
@@ -198,23 +201,34 @@ When using optimization to do lattice correction or design
 using the \vn{veto} (\sref{s:veto}), \vn{restore} (\sref{s:restore}),
 and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user}
 component of a datum. This, combined with the setting \vn{exists},
-\vn{good_model}, \vn{good_meas}, \vn{good_ref}, and \vn{good_opt}
+\vn{good_meas}, \vn{good_ref}, and \vn{good_opt}
 determine the setting of \vn{useit_opt} which is the component that
 determines if the datum is used in the computation of the merit
 function. The settings of everything but \vn{good_user} is determined
 by \tao
 
-\vn{exists} is set by \tao to True if the datum exists and False
-otherwise. A datum may not exist if the type of datum requires the
-designation of an associated element but the \vn{ele_name} component
-is blank. For example, a \vn{d1_data} array set up to hold orbit data
-may use a numbering scheme that fits the lattice so that , say, datum
-number 34 in the array does not correspond to an existing BPM.
+The \vn{exists} component is set by \tao to True if the datum exists
+and False otherwise. A datum may not exist if the type of datum
+requires the designation of an associated element but the
+\vn{ele_name} component is blank. For example, a \vn{d1_data} array
+set up to hold orbit data may use a numbering scheme that fits the
+lattice so that , say, datum number 34 in the array does not
+correspond to an existing BPM.
 
-\vn{good_model} is set according to whether a datum value can be
-computed from the \vn{model} lattice. For example, If a circular
-lattice is unstable, the beta function and the closed orbit cannot be
-computed.
+The \vn{good_model} component is set according to whether a datum
+value can be computed from the \vn{model} lattice. For example, If a
+circular lattice is unstable, the beta function and the closed orbit
+cannot be computed. Similarly, the \vn{good_design} and \vn{good_base}
+components mark whether the \vn{design} and \vn{base} values
+respectively are valid.
+
+When doing optimization, the \vn{delta_merit} component is set to the
+\vn{delta} value used in computing the contribution to the merit
+function (\sref{s:generalized.design}). If the datum's value cannot be
+computed, that is, \vn{good_model} is False, or, if the design or base
+values are being used in the merit calculation, \vn{good_base} or
+\vn{good_design} is False, then the \vn{invalid} component is used for
+\vn{delta_merit}.
 
 \vn{good_meas} is set True if the \vn{meas} component value is set in
 the data initialization file (\sref{s:init.data}) or is set using the
@@ -697,7 +711,7 @@ size squared.
 \section{Referencing Datums on the Fly}
 \label{s:data.on.the.fly}
 
-An expression like "orbit.x[2]|model" referrs to an existing datum
+An expression like "orbit.x[2]|model" refers to an existing datum
 that has been set up in the \tao initialization file.  It is sometimes
 useful, however, in \tao commands to be able to refer to \vn{data-on-the-fly}
 that have not been so initialized. The syntax for this is:
@@ -725,7 +739,7 @@ Example:
 Notice the difference between referring to a datum, for example
 \vn{orbit.x[22]} and constructing a datum-on-the-fly, for
 example\vn{dat::orbit.x[10]}. In the first example, the ``\vn{[22]}''
-referrs to the 22nd element in the data array which may or may not
+refers to the 22nd element in the data array which may or may not
 correspond to the 22nd lattice element. With data-on-the-fly example,
 the index in the brackets, \vn{[10]}, does indeed refer to the 10th
 lattice element.

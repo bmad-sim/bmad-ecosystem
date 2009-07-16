@@ -552,7 +552,7 @@ do k = 1, size(graph%curve)
   endif
 
   if (tao_com%common_lattice) then
-    call tao_lattice_calc (ok, u%ix_uni, model$)
+    call tao_lattice_calc (ok, u%ix_uni)
   endif
 
   model_lat => u%model%lat

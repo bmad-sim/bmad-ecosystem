@@ -194,6 +194,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%base%lat_branch   = s%u(i)%design%lat_branch
   s%u(i)%data%design_value = s%u(i)%data%model_value
   s%u(i)%data%base_value   = s%u(i)%data%model_value
+  s%u(i)%data%good_design  = s%u(i)%data%good_model
+  s%u(i)%data%good_base    = s%u(i)%data%good_base
 enddo
 
 ! tao_hook_init2 is for custom setup after the regular setup

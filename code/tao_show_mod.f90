@@ -626,6 +626,7 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
     nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
     nl=nl+1; write(lines(nl), rmt)  '%fit               = ', d_ptr%fit_value
+    nl=nl+1; write(lines(nl), rmt)  '%invalid           = ', d_ptr%invalid_value
     nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
     nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type
     nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
@@ -634,6 +635,8 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)  '%relative          = ', d_ptr%relative
     nl=nl+1; write(lines(nl), lmt)  '%exists            = ', d_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%good_model        = ', d_ptr%good_model
+    nl=nl+1; write(lines(nl), lmt)  '%good_design       = ', d_ptr%good_design
+    nl=nl+1; write(lines(nl), lmt)  '%good_base         = ', d_ptr%good_base 
     nl=nl+1; write(lines(nl), lmt)  '%good_meas         = ', d_ptr%good_meas
     nl=nl+1; write(lines(nl), lmt)  '%good_ref          = ', d_ptr%good_ref
     nl=nl+1; write(lines(nl), lmt)  '%good_user         = ', d_ptr%good_user
@@ -868,7 +871,7 @@ case ('element')
   endif
 
   if (tao_com%common_lattice) then
-    call tao_lattice_calc (ok, ix_u, model$)
+    call tao_lattice_calc (ok, ix_u)
   endif
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
             .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms)

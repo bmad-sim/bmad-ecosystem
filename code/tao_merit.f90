@@ -131,7 +131,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
-    if (.not. data(j)%good_model) cycle
+
+    if (.not. data(j)%good_model .or. (opt_with_ref .and. .not. data(j)%good_design) .or. &
+                                      (opt_with_base .and. .not. data(j)%good_base)) then
+      data(j)%delta_merit = data(j)%invalid_value
+      cycle
+    endif
 
     if (data(j)%merit_type(1:4) == 'abs_') then
       model_value = abs(data(j)%model_value)
@@ -178,8 +183,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     end select
   enddo
 
-  where (data%useit_opt .and. data%good_model) data%merit = data%weight * data%delta_merit**2
-  this_merit = this_merit + sum (data%merit, mask = data%useit_opt .and. data%good_model)
+  where (data%useit_opt) data%merit = data%weight * data%delta_merit**2
+  this_merit = this_merit + sum (data%merit, mask = data%useit_opt)
 
 enddo
 
