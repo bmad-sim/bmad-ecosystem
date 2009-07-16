@@ -562,12 +562,12 @@ case ('beta.b')
 case ('bpm_orbit.x')
   if (data_source == 'beam') return ! bad
   call to_orbit_reading (orbit(ix1), branch%ele(ix1), x_plane$, datum_value, err)
-  valid_value = .not. err
+  valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost))
 
 case ('bpm_orbit.y')
   if (data_source == 'beam') return ! bad
   call to_orbit_reading (orbit(ix1), branch%ele(ix1), y_plane$, datum_value, err)
-  valid_value = .not. err
+  valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost))
 
 case ('bpm_eta.x')
   if (data_source == 'beam') return ! bad
@@ -959,42 +959,82 @@ case ('n_particle_loss')
 case ('orbit.x')
   if (data_source == 'beam') return ! bad
   call load_it (orbit(:)%vec(1), loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.y')
   if (data_source == 'beam') return ! bad
   call load_it (orbit(:)%vec(3), loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.z')
   if (data_source == 'beam') return ! bad
   call load_it (orbit(:)%vec(5), loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.px')
   if (data_source == 'beam') return ! bad
   call load_it (orbit(:)%vec(2), loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.py')
   if (data_source == 'beam') return ! bad
   call load_it (orbit(:)%vec(4), loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.pz')
   if (data_source == 'beam') return ! bad
   call load_it (orbit(:)%vec(6), loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.amp_a')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_a, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.amp_b')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_b, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.norm_amp_a')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_na, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('orbit.norm_amp_b')
   if (data_source == 'beam') return ! bad
   call load_it (cc%amp_nb, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  if (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+  endif
 
 case ('periodic.tt.')
   if (data_source == 'beam') return
@@ -1226,7 +1266,7 @@ case ('unstable_orbit')
     iz = lat%param%ix_lost
     if (iz /= not_lost$ .and. iz < ix1) then
       datum_value = sum(min(cc(0:iz)%amp_a, cc(0:iz)%one)) + &
-                    sum(min(cc(0:iz)%amp_b, cc(0:iz)%one)) + (ix1 - iz)
+                    sum(min(cc(0:iz)%amp_b, cc(0:iz)%one)) + 2 * (ix1 - iz)
     else
       datum_value = sum(cc(0:ix1)%amp_a) + sum(cc(0:ix1)%amp_b) 
     endif
@@ -1556,7 +1596,7 @@ end subroutine data_calc
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine tao_do_wire_scane (ele, wire_params, theta, beam) result (moment)
+! Subroutine tao_do_wire_scan (ele, wire_params, theta, beam) result (moment)
 !
 ! Returns the beam's second moment using the wire along the specified angle.
 ! Keep in mind that the actual correlation axis is 90 degrees off of the 

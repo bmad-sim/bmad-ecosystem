@@ -51,6 +51,10 @@ character(20) :: r_name = 'tao_lm_optimizer'
 character(80) line
 character(1) char
 
+! Calc derivative matrix
+
+call tao_dModel_dVar_calc (s%global%derivative_recalc, .true.)
+
 ! setup
 
 a_lambda = -1
@@ -91,8 +95,6 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-call tao_dModel_dVar_calc (s%global%derivative_recalc)
-
 ! run optimizer mrqmin from Numerical Recipes.
 
 finished = .false.
@@ -128,7 +130,7 @@ do i = 1, s%global%n_opti_cycles+1
     abort = .true.
   endif
 
-  if (finished .or. status /= 0) return
+  if (finished .or. status /= 0) exit
 
   ! look for keyboard input to end optimization
 
@@ -153,6 +155,11 @@ do i = 1, s%global%n_opti_cycles+1
   endif
 
 enddo
+
+! Cleanup
+
+s%var(:)%good_var = .true.  ! Reinstate
+call tao_set_var_useit_opt()
 
 end subroutine
 

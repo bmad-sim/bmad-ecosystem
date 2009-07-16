@@ -1980,6 +1980,7 @@ case ('value')
 case ('variable')
 
   good_opt_only = .false.
+  bmad_format = .false.
   do
     call tao_next_switch (stuff2, (/ '-bmad_format  ', '-good_opt_only' /), switch, err, ix)
     if (err) return

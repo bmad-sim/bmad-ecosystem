@@ -342,16 +342,16 @@ end type
 !
 ! %exists     -- The variable exists. Non-existent variables can serve as place
 !                  holders in the s%var array.
-! %good_var   -- The variable can be varied. Eg: Permanent magnet quads are 
-!                  generally considered not to be variables.
+! %good_var   -- The variable can be varied. Used by the lm optimizer to
+!                  veto variables that do not change the merit function.
 ! %good_user  -- What the user has selected using the use, veto, and restore 
 !                  commands.
 ! %good_opt   -- Not modified by Tao proper and reserved for use by extension code.
 ! %good_plot  -- Not modified by Tao proper and reserved for use by extension code.
 ! %useit_opt  -- Variable is to be used for optimizing:
-!                  = %exists & %good_user & %good_opt
+!                  = %exists & %good_user & %good_opt & %good_var
 ! %useit_plot -- Variable value to be plotted:
-!                  = %exists & %good_plot
+!                  = %exists & %good_plot & %good_user
 !
 ! With common_lattice = True => var%this(:)%model_value will point to the working universe.
 

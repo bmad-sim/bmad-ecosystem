@@ -8,7 +8,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_dModel_dVar_calc (force_calc)
+! Subroutine tao_dModel_dVar_calc (force_calc, veto_vars_with_zero_dmodel)
 !
 ! Subroutine to calculate the dModel_dVar derivative matrix.
 !
@@ -16,23 +16,31 @@ contains
 !   s          -- Super_universe_struct:
 !   force_calc -- Logical: If true then force recalculation of the matrix.
 !                  If False then only calculate matrix if it doesn't exist.
+!   veto_vars_with_zero_dmodel 
+!              -- Logical, optional (default False): Veto variables where
+!                  all dModel_dvar for that var are zero.
+!                  Sets the var%good_var logical to False.
 !
 ! Output:
 !   s       -- Super_universe_struct.
 !    %u(:)%dModel_dVar(:,:)  -- Derivative matrix
 !-
 
-subroutine tao_dmodel_dvar_calc (force_calc)
+subroutine tao_dmodel_dvar_calc (force_calc, veto_vars_with_zero_dmodel)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
 
 real(rp) model_value, merit_value
+
 integer i, j, k
 integer n_data, n_var, nd, nv
+
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
-logical reinit, force_calc, calc_ok
+
+logical, optional :: veto_vars_with_zero_dmodel
+logical reinit, force_calc, calc_ok, err_message_out, zero_dmodel
 
 ! make sure size of matrices are correct.
 ! We only compute the derivitive matrix if needed or if force_calc is set.
@@ -124,11 +132,9 @@ do j = 1, s%n_var_used
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
   merit_value = tao_merit (calc_ok)
 
-  if (.not. calc_ok) then
-    call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
-                      'VARIABLE STEP SIZE IS TOO LARGE(?) FOR: ' // tao_var1_name(s%var(j)))
-  endif
 
+  zero_dmodel = .true.
+  err_message_out = .false.   ! Want to print the error message only once per variable.
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
     do k = 1, size(u%data)
@@ -136,11 +142,22 @@ do j = 1, s%n_var_used
       nd = u%data(k)%ix_dmodel
       if (u%data(k)%good_model .and. u%data(k)%old_value /= real_garbage$) then
         u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
+        zero_dmodel = .false.
       else
         u%dModel_dVar(nd,nv) = real_garbage$
-      endif
+        if (.not. err_message_out) then
+          call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
+                      'VARIABLE STEP SIZE IS TOO LARGE(?) FOR: ' // tao_var1_name(s%var(j)))
+          err_message_out = .true.
+        endif
+     endif
     enddo
   enddo
+
+  if (zero_dmodel .and. logic_option(.false., veto_vars_with_zero_dmodel)) then
+    s%var(j)%good_var = .false.
+    call out_io (s_info$, r_name, 'Data is independent of Variable: ' // tao_var1_name(s%var(j)))
+  endif
 
   call tao_set_var_model_value (s%var(j), model_value)
 
@@ -148,6 +165,7 @@ enddo
 
 ! End
 
+call tao_set_var_useit_opt()
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 merit_value = tao_merit () ! to reset all values
 

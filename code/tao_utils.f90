@@ -1864,7 +1864,7 @@ integer i
 
 !
 
-if (.not. (var%exists .and. var%good_var)) return
+if (.not. var%exists) return
 
 ! check if hit variable limit
 if (s%global%var_limits_on) then

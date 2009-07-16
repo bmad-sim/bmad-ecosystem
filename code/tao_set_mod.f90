@@ -741,25 +741,29 @@ implicit none
 
 type (tao_real_pointer_struct), allocatable, save    :: r_dat(:), r_set(:)
 type (tao_data_array_struct), allocatable, save    :: d_dat(:)
+type (tao_integer_array_struct), allocatable, save :: int_dat(:), int_set(:)
 type (tao_logical_array_struct), allocatable, save :: l_dat(:), l_set(:)
 type (tao_string_array_struct), allocatable, save :: s_dat(:), s_set(:)
 type (tao_universe_struct), pointer :: u
+type (branch_struct), pointer :: branch
 
 real(rp), allocatable, save :: r_value(:)
-integer i, ix
+integer i, ix, int_value
+
+integer, allocatable :: i_save(:)
 
 character(*) who_str, value_str
 character(20) component
 character(20) :: r_name = 'tao_set_data_cmd'
 character(40) :: merit_type_names(5) = &
               (/ 'target ', 'min    ', 'max    ', 'abs_min', 'abs_max' /)
-logical err, l_value
+logical err, l_value, valid_value
 logical, allocatable :: good(:)
 
 ! Decode data component to set.
 
 call tao_find_data (err, who_str, d_array = d_dat, re_array=r_dat, &
-          log_array=l_dat, str_array = s_dat, component = component)
+          log_array=l_dat, str_array = s_dat, int_array = int_dat, component = component)
 if (err) return
 
 ! A logical value_str is either a logical or an array of datum values.
@@ -781,6 +785,49 @@ if (size(l_dat) /= 0) then
       l_dat(i)%l = l_set(i)%l
     enddo
   endif
+
+! An integer value_str is either an integer or an array of datum values.
+
+elseif (size(int_dat) /= 0) then
+
+  allocate (i_save(size(int_dat)))
+
+  if (is_integer(value_str)) then
+    read (value_str, *) int_value
+    do i = 1, size(int_dat)
+      i_save(i) = int_dat(i)%i
+      int_dat(i)%i = int_value
+    enddo
+
+  else
+    call tao_find_data (err, value_str, int_array=int_set)
+    if (size(int_set) /= size(int_dat)) then
+      call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
+      return
+    endif
+    do i = 1, size(int_dat)
+      i_save(i) = int_dat(i)%i
+      int_dat(i)%i = int_set(i)%i
+    enddo
+  endif
+
+  if (component == 'ix_ele' .or. component == 'ix_ele0') then
+    do i = 1, size(int_dat)
+      u => s%u(d_dat(i)%d%d1%d2%ix_uni)
+      branch => u%design%lat%branch(d_dat(i)%d%ix_branch)
+      if (int_dat(i)%i < 0 .or. int_dat(i)%i > branch%n_ele_max) then
+        int_dat(i)%i = i_save(i)
+      else
+        if (component == 'ix_ele') then
+          d_dat(i)%d%ele_name = branch%ele(int_dat(i)%i)%name
+        else
+          d_dat(i)%d%ele0_name = branch%ele(int_dat(i)%i)%name
+        endif
+      endif
+    enddo
+  endif
+
+  deallocate (i_save)
 
 ! A string:
 
@@ -847,6 +894,11 @@ elseif (size(r_dat) /= 0) then
   enddo
 
 endif
+
+do i = 1, size(d_dat)
+  u => s%u(d_dat(i)%d%d1%d2%ix_uni)  
+  call tao_evaluate_a_datum (d_dat(i)%d, u, u%model, d_dat(i)%d%model_value, valid_value)
+enddo
 
 call tao_set_data_useit_opt()
 
