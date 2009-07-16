@@ -459,10 +459,6 @@ do  ! Loop over plot files
       if (grph%y%major_div < 0 .and. grph%y%major_div_nominal < 0) grph%y%major_div_nominal = 4
       if (grph%y2%major_div < 0 .and. grph%y2%major_div_nominal < 0) grph%y2%major_div_nominal = 4
 
-      if (grph%type == 'lat_layout') then
-        grph%x%major_div = 1
-      endif
-
       call qp_calc_axis_places (grph%x)
 
       do
