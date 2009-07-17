@@ -260,8 +260,9 @@ else
     do ii = ix_lost+1, branch%n_ele_track
       orbit(ii)%vec = 0
     enddo
-    call out_io (s_blank$, r_name, &
-            "particle lost at element \I0\: " // lat%ele(ix_lost)%name, ix_lost)
+    call out_io (s_blank$, r_name, "particle lost at element \I0\: " // &
+            trim(lat%ele(ix_lost)%name) // '  [s =\F9.2\]', &
+            r_array = (/ lat%ele(ix_lost)%s /), i_array = (/ ix_lost /))
   endif
 endif
 
