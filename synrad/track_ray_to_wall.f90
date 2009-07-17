@@ -79,17 +79,17 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
                 max(s_next, ray%now%vec(5) - (1.0001 * track_max - ray%track_len))
     endif
 
-    call propagate_ray (ray, s_next, lat, .true.,walls%circular)
+    call propagate_ray (ray, s_next, lat, .true.)
 
   
 ! See if we are positive_x_wall the beam pipe.
 ! If so we calculate the exact hit spot where the ray crossed the
 ! wall boundry and return
 
-    call hit_spot_calc (ray, negative_x_wall, ix_neg, is_hit, lat, walls%circular)
+    call hit_spot_calc (ray, negative_x_wall, ix_neg, is_hit, lat)
     if (is_hit) return
 
-    call hit_spot_calc (ray, positive_x_wall, ix_pos, is_hit, lat, walls%circular)
+    call hit_spot_calc (ray, positive_x_wall, ix_pos, is_hit, lat)
     if (is_hit) return
 
     if (present(track_max)) then
@@ -100,11 +100,11 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
     endif
 
     if (ray%now%vec(5) == negative_x_wall%pt(ix_neg)%s) then
-      call next_pt (ray, negative_x_wall, ix_neg, walls%circular, passed_end)
+      call next_pt (ray, negative_x_wall, ix_neg, passed_end)
     endif
 
     if (ray%now%vec(5) == positive_x_wall%pt(ix_pos)%s) then
-      call next_pt (ray, positive_x_wall, ix_pos, walls%circular, passed_end)
+      call next_pt (ray, positive_x_wall, ix_pos, passed_end)
     endif
 
   enddo

@@ -275,7 +275,7 @@ do i = 2, i_ray
     ! lattice should not wrap around
 
     ws => wall%seg(is)
-    if (.not. walls%circular) then
+    if (lat%param%lattice_type == linear_lattice$) then
       if ( (fan(i)%direction == 1) .and. (iss > wall%n_seg_tot) ) then
         ws =>walls%final_end
       else if ( (fan(i)%direction == -1) .and. (iss <= wall%n_seg_tot) ) then

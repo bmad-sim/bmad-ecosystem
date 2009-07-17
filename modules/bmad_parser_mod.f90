@@ -12,6 +12,7 @@ module bmad_parser_mod
 
 use ptc_interface_mod
 use bookkeeper_mod
+use wake_mod
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -3611,7 +3612,7 @@ type (ele_struct) ele
 
 real(rp) angle, rr
 integer n
-logical kick_set, length_set
+logical kick_set, length_set, set_done
 
 !
 
@@ -3701,14 +3702,9 @@ case (lcavity$)
     ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
   endif
 
-  if (ele%value(lr_freq_spread$) /= 0 .and. associated(ele%wake)) then
-    do n = 1, size(ele%wake%lr)
-      call ran_gauss (rr)
-      bp_com%ran_function_was_called = .true.
-      ele%wake%lr(n)%freq = ele%wake%lr(n)%freq * (1 + ele%value(lr_freq_spread$) * rr)
-    enddo
-  endif
-
+  call randomize_lr_wake_frequencies (ele, set_done)
+  if (set_done) bp_com%ran_function_was_called = .true.
+  
 ! for a periodic_type wiggler n_pole is a dependent attribute
 
 case (wiggler$)

@@ -1,4 +1,4 @@
-subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
+subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
 
   use synrad_struct
   use synrad_interface, except => propagate_ray
@@ -11,7 +11,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
   real(rp) s_end, s_next, del_s, s_target
   real(rp) g, new_x, theta0, theta1, c_t0, c_t1
 
-  logical stop_at_extremum, circular
+  logical stop_at_extremum
 
 ! find the target
 
@@ -126,7 +126,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum, circular)
     ray%track_len = ray%track_len + abs(del_s)
     ray%now%vec(5) = s_next
 
-    if (ray%crossed_end .and. .not. circular) return
+    if (ray%crossed_end .and. lat%param%lattice_type == linear_lattice$) return
 
     if (s_next == s_target) return
 

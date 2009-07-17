@@ -1,20 +1,18 @@
 !+
 ! subroutine get_initial_pt (ray, wall, ix_wall, lat)
 !
-! subroutine to
-!  
+! Routine to get the initial point on the wall to track the ray to.
 !
 ! Modules needed:
 !   use synrad_mod
 !
 ! Input:
 !   ray    -- ray_struct:
-!   wall   -- wall_struct: negative_x_wall side with outline ready
-!   ix_wall -- integer:
-!   lat   -- lat_struct with twiss propagated and mat6s made
+!   wall   -- wall_struct: An outside or inside wall.
+!   lat    -- lat_struct: Lattice.
 !
 ! Output:
-!                         
+!   ix_wall -- Integer: wall%pt(:) index.
 !-
 
 subroutine get_initial_pt (ray, wall, ix_wall, lat)

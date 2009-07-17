@@ -1,4 +1,4 @@
-subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
+subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
 
   use synrad_struct
   use synrad_interface, except => hit_spot_calc
@@ -16,7 +16,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
   real(rp) dx_wall, ds_wall, del_s, s1, denom
   real(rp) del0, del1, del2, x, r_wall
 
-  logical has_hit, circular
+  logical has_hit
 
   ! init
 
@@ -178,7 +178,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat, circular)
     else
       ray1%direction = +1
     endif
-    call propagate_ray (ray1, s1, lat, .false.,circular)
+    call propagate_ray (ray1, s1, lat, .false.)
 
     del1 = (dx_wall*(ray1%now%vec(5) - pt(ix0)%s) - &
                         ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom

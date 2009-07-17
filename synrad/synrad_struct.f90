@@ -74,7 +74,6 @@ end type wall_struct
 type walls_struct
   type (wall_struct) :: positive_x_wall, negative_x_wall
   type (wall_seg_struct) :: initial_end, final_end
-  logical circular
 end type walls_struct
 
 ! The computation tracks a set of synchrotron light rays from their source

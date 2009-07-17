@@ -52,14 +52,14 @@ interface
 end interface
 
 interface
-  subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat,circular)
+  subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
     use synrad_struct
     implicit none
     type (lat_struct) lat
     type (ray_struct) :: ray
     type (wall_struct), target :: wall
     integer ix_wall
-    logical has_hit,circular
+    logical has_hit
   end subroutine
 end interface
 
@@ -144,13 +144,13 @@ interface
 end interface
 
 interface
-  subroutine propagate_ray (ray, s_end, lat, stop_at_extremum,circular)
+  subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
     use synrad_struct
     implicit none
     type (lat_struct), target :: lat
     type (ray_struct), target :: ray
     real(rp) s_end
-    logical stop_at_extremum,circular
+    logical stop_at_extremum
   end subroutine
 end interface
 
@@ -206,13 +206,12 @@ interface
 end interface
 
 interface
-  subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
+  subroutine next_pt (ray, wall, ix_wall, passed_end)
     use synrad_struct
     implicit none
     type (ray_struct) ray
     type (wall_struct) wall
     integer ix_wall
-    logical circular
 	  logical passed_end
   end subroutine
 end interface

@@ -3,8 +3,56 @@ module wake_mod
 use bmad_struct
 use bmad_interface
 use multipole_mod, only: ab_multipole_kick
+use random_mod
 
 contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine randomize_lr_wake_frequencies (ele, set_done)
+! 
+! Routine to randomize the frequencies of the lr wake HOMs according to:
+!   freq = freq_in * (1 + lr_freq_spread) * rr)
+! where rr is a Gaussian distributed random number with unit variance.
+!
+! Modules needed:
+!   use wake_mod
+!
+! Input:
+!   ele -- ele_struct: Element with wake. If no wake then nothing is done.
+!      %value(freq_in$)        -- Frequency.
+!      %value(lr_freq_spread$) -- Fractional RMS frequency spread.
+!
+! Output:
+!   ele      -- ele_struct: Element with wake frequencies set.
+!     %wake%lr(:)%freq -- Set frequency.
+!   set_done -- Logical, optional: Set True if there where lr wakes to be set.
+!                 False otherwise.
+!-
+
+subroutine randomize_lr_wake_frequencies (ele, set_done)
+
+implicit none
+
+type (ele_struct) ele
+logical, optional :: set_done
+integer n
+real(rp) rr
+
+!
+
+if (present(set_done)) set_done = .false.
+if (ele%value(lr_freq_spread$) == 0 .or. .not. associated(ele%wake)) return
+
+do n = 1, size(ele%wake%lr)
+  call ran_gauss (rr)
+  ele%wake%lr(n)%freq = ele%wake%lr(n)%freq_in * (1 + ele%value(lr_freq_spread$) * rr)
+  if (present(set_done)) set_done = .true.
+enddo
+
+end subroutine
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

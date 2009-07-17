@@ -2,7 +2,7 @@
 ! Gets next point in increasing or decreasing s depending upon ray%direction.
 ! -
 
-subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
+subroutine next_pt (ray, wall, ix_wall, passed_end)
 
   use synrad_struct
   use synrad_interface, except => next_pt
@@ -13,10 +13,9 @@ subroutine next_pt (ray, wall, ix_wall, circular, passed_end)
   type (wall_struct) wall
 
   integer ix_wall
-  logical circular
   logical passed_end
   
-  real(rp) direct
+  integer direct
 
 ! check
 
