@@ -82,11 +82,6 @@ program synrad
 
   negative_x_wall%side = negative_x$
   positive_x_wall%side = positive_x$
-  if (lat%param%lattice_type == circular_lattice$) then
-    walls%circular = .true.
-  else
-    walls%circular = .false.
-  endif
 
   if (wall_file == 'NONE') then
 
