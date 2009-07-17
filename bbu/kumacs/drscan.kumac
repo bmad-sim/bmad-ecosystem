@@ -196,9 +196,9 @@ v/pl curr2_[j]%dr[j] ! sl
 set asiz 0.4
 if [j]=2 then
  if [i]=1 then
-  atit 'Ratio of Revolution Time to Bunch Spacing' 'I?th! (A)' ' ' 222
+  atit 'Ratio of Return Time to Bunch Spacing' 'I?th! (A)' ' ' 222
  else
-  atit 'Ratio of Revolution Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
+  atit 'Ratio of Return Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
  endif
 else
  if [i]=1 then
@@ -293,8 +293,8 @@ endif
 *title_g 'BBU Threshold Current: Comparison of Analytic Approximation to BMAD Tracking'
 *title_g 'BBU Threshold Current - Job '//[jobid]//' - CERL7.4 Single HOM in One Cavity'
 *title_g 'BBU Threshold Current - Job '//[jobid]
-*title_g 'BBU Threshold Current - '//[bbujobtxt1]
-title_g ' '
+title_g 'BBU Threshold Current - '//[bbujobtxt1]
+*title_g ' '
 
 
 v/copy dr(1:[len]) temp
@@ -354,10 +354,12 @@ if [i]=1 then
  fac=[yma]/[ymi]
  mess YMA/YMI ratio is [fac]
  if [fac]<2 then
-  fac=2
- endif
- ymin=[ymi]/[fac]
- ymax=[fac]*[yma]
+  ymin=[ymi]/1.5
+  ymax=[yma]*1.5
+else
+  ymin=[ymi]/([fac]/200.)
+  ymax=([fac]/200.)*[yma]
+endif
 else
  dy = [yma] - [ymi]
  ymin = [ymi] - 0.1*[dy]
@@ -385,9 +387,9 @@ endif
 
 set asiz 0.4
 if [i]=1 then
- atit 'Ratio of Revolution Time to Bunch Spacing' 'I?th! (A)' ' ' 222
+ atit 'Ratio of Return Time to Bunch Spacing' 'I?th! (A)' ' ' 222
 else
- atit 'Ratio of Revolution Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
+ atit 'Ratio of Return Time to Bunch Spacing' 'ln ( I?th! (A) )' ' ' 222
 endif
 *
 selnt 1
@@ -404,8 +406,9 @@ set txci 1
 *itx 2.7 17 'See Beam-breakup instability theory for energy recovery linacs'
 *itx 2.7 16.5 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
 *itx 2.7 16 'Fig. 3'
-itx 2.65 18.15 'Beam-breakup instability theory for energy recovery linacs,'
-itx 10.2 18.15 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
+
+*itx 2.65 18.15 'Beam-breakup instability theory for energy recovery linacs,'
+*itx 10.2 18.15 'G.H.Hoffstaetter and I.Bazarov, PRSTAB 7, 054401 (2004)'
 *
 SKIP:
 enddo

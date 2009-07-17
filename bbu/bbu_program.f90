@@ -8,11 +8,14 @@ type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
+type (ele_struct), pointer :: ele
 
 integer i, ix, j, n_hom, n, n_ele, ix_pass, ie, ie2, i_lr
 
 integer istep
 integer :: nstep = 100
+
+integer irep
 
 real(rp) deldr,dr, charge_try
 real(rp) hom_power_gain, charge0, charge1, charge_old, charge_threshold
@@ -43,6 +46,7 @@ bbu_param%nstep = 100
 bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
 bbu_param%use_interpolated_threshold = .true.
+bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
 
   beam_init%n_particle = 1
 
@@ -65,6 +69,8 @@ call run_timer ('START')
 nstep = 1
 dr=0
 if (bbu_param%drscan) then
+! If DRSCAN requested, set number of calculation repetitions to 1
+  bbu_param%nrep = 1
 ! Determine element index of variable-length element
   do i = 1, lat_in%n_ele_max
     if (lat_in%ele(i)%name .eq. bbu_param%elname)then
@@ -83,6 +89,14 @@ if (bbu_param%drscan) then
   enddo
 endif
 
+! Open file for storing output of repeated threshold calculations
+if (bbu_param%nrep.gt.1)then
+  write(6,'(a,i10,a)')&
+        ' Opening output file for',bbu_param%nrep,' repetitions'
+  open (55, file = 'rep.out', status = 'unknown')
+endif
+
+! DRSCAN loop. NSTEP=1 if no DRSCAN.
 do istep = 1, nstep
 
   if (bbu_param%drscan) then
@@ -146,6 +160,9 @@ do istep = 1, nstep
   print *, 'Number of physical lr wake elements:', n_ele
   print *, 'Number of elements in lattice:      ', lat%n_ele_track
 
+! Loop over calculation repetitions
+  do irep = 1,bbu_param%nrep
+
   ! Track to find upper limit
 
   beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
@@ -193,15 +210,26 @@ do istep = 1, nstep
   print *, 'Critical HOM: Q:               ', lat%ele(ie)%wake%lr(i_lr)%q
   print *, 'Critical HOM: Angle:           ', lat%ele(ie)%wake%lr(i_lr)%angle
 
-  call run_timer ('STOP', time)
-  print *
-  print *, 'Time for calculation (min): ', time/60
+  if (bbu_param%nrep.gt.1)write(55,*) irep, beam_init%bunch_charge / beam_init%dt_bunch 
+
+! Re-randomize HOM frequencies
+  do i = 1, lat%n_ele_max
+    ele => lat%ele(i)
+    call randomize_lr_wake_frequencies (ele)
+  enddo
+
+enddo  ! End of repetition loop
 
   if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge / beam_init%dt_bunch 
 
-enddo
+enddo  ! End of DRSCAN loop
 
 if (bbu_param%drscan) close(50)
+if (bbu_param%nrep.gt.1)close(55)
+
+call run_timer ('STOP', time)
+print *
+print *, 'Time for calculation (min): ', time/60
 
 !-------------------------------------------------------------------------------
 contains

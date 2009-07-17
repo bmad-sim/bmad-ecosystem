@@ -1,0 +1,81 @@
+macro rep jobid=0
+*
+* Make plot of BBU threshold current distribution
+* from BBU_PROGRAM runs with randomized HOM frequency spread
+*
+* jac 17 July 2009
+*
+v/del *
+h/del *
+pic/del *
+*
+exec ~/.pawlogon
+opt zfl
+set stat 1110
+opt stat
+opt ndat
+opt utit
+set gsiz 0.5
+set asiz 0.45
+set vsiz 0.4
+set ygti 1.0
+set mtyp 20
+set mscf 0.24
+set hcol 1102
+set pmci 2
+set plci 2
+set lwid 5.
+set xlab 1.4
+set ylab 1.1
+*
+global/create bbujobtxt
+*
+exec bbujob [jobid]
+title_g [bbujobtxt]
+*
+vec/cr irep(2000) r 2000*0
+vec/cr curr(2000) r 2000*0.
+*
+if [jobid]=0 then
+  fname='../local/rep.out'
+  if $fexist([fname])=0 then
+   mess Macro REP cannot find file [fname], quitting
+   goto QUIT
+  endif
+else
+*
+ fname='../jobs/job'//[jobid]//'/rep.out'
+ if $fexist([fname])=0 then
+  mess Macro REP cannot find file [fname],quitting
+  goto QUIT
+ endif
+endif
+*
+vec/read irep,curr [fname]
+len=$vlen(irep,1)
+if [len]=0 then
+ mess No data found in file [fname], quitting
+ goto QUIT
+endif
+*
+v/copy curr(1:[len]) currt
+v/oper/vscale currt 1000. currt
+*
+x1=$sigma(vmin(currt))
+x2=$sigma(vmax(currt))
+xmi=1.1*[x1]-0.1*[x2]
+xma=1.1*[x2]-.1*[x1]
+mess 'xmi,xma=' [xmi] [xma]
+*
+1d 100 ' ' 40 [xmi] [xma] 0.
+v/hfill currt(1:[len]) 100
+h/pl 100
+atit 'Threshold Current (mA)' ' ' ' ' 222
+h/del 100
+*
+psname = 'rep_'//[jobid]//'.ps'
+exec ~/.pawlogon#makeps file=[psname] type=-111
+*
+QUIT:
+*
+return

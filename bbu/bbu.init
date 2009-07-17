@@ -1,25 +1,28 @@
 &bbu_params
   bbu_param%lat_file_name = 'erl.lat'         ! Bmad lattice file name
   bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
-  bbu_param%limit_factor = 1e1                ! Init_hom_amp * limit_factor = simulation unstable limit
+  bbu_param%limit_factor = 5                ! Init_hom_amp * limit_factor = simulation unstable limit
                                               ! Must be greater than 2
   bbu_param%simulation_turns_max = 10         ! Must be greater than 10
   bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
   bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
 !  bbu_param%keep_all_lcavities = .true.      ! Keep when hybridizing?
   bbu_param%current = 20e-3                   ! Starting current (amps)
-  bbu_param%rel_tol = 1e-3                    ! Final threshold current accuracy.
-  bbu_param%write_hom_info = .true.  
-  bbu_param%drscan = .true.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
+  bbu_param%rel_tol = 1e-1                    ! Final threshold current accuracy.
+  bbu_param%write_hom_info = .false.  
+  bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
   bbu_param%elname = 'T1'
   bbu_param%nstep = 50
 ! PRSTAB 2004
   bbu_param%begdr = 5.234
   bbu_param%enddr = 6.135
 ! CERL7.4
-  bbu_param%begdr = 3.
-  bbu_param%enddr = 4.5
+!  bbu_param%begdr = 3.
+!  bbu_param%enddr = 4.5
 
-  beam_init%n_particle = 1
+  bbu_param%use_interpolated_threshold = .true.
+
+  bbu_param%nrep = 1500   ! Number of times to repeat threshold calculation
+
 /
   bbu_param%lat_file_name = 'cerl7.4_1hom_1cav_taylor.bmad'  ! Bmad lattice file name

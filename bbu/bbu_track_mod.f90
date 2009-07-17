@@ -45,6 +45,7 @@ type bbu_param_struct
   integer nstep
   real(rp) begdr
   real(rp) enddr
+  integer nrep
 end type
 
 contains
