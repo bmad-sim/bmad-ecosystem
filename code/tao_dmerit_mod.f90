@@ -144,7 +144,7 @@ do j = 1, s%n_var_used
         u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
         zero_dmodel = .false.
       else
-        u%dModel_dVar(nd,nv) = real_garbage$
+        u%dModel_dVar(nd,nv) = 0
         if (.not. err_message_out) then
           call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
                       'VARIABLE STEP SIZE IS TOO LARGE(?) FOR: ' // tao_var1_name(s%var(j)))
