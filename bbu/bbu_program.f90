@@ -8,7 +8,6 @@ type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
-type (ele_struct), pointer :: ele
 
 integer i, ix, j, n_hom, n, n_ele, ix_pass, ie, ie2, i_lr
 
@@ -48,7 +47,7 @@ bbu_param%enddr = 6.135
 bbu_param%use_interpolated_threshold = .true.
 bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
 
-  beam_init%n_particle = 1
+beam_init%n_particle = 1
 
 open (1, file = 'bbu.init', status = 'old')
 read (1, nml = bbu_params)
@@ -145,7 +144,6 @@ do istep = 1, nstep
    trtb=dr
   endif
 
-
   call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
   print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
@@ -160,65 +158,65 @@ do istep = 1, nstep
   print *, 'Number of physical lr wake elements:', n_ele
   print *, 'Number of elements in lattice:      ', lat%n_ele_track
 
-! Loop over calculation repetitions
+  ! Loop over calculation repetitions
   do irep = 1,bbu_param%nrep
 
   ! Track to find upper limit
 
-  beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
-  charge0 = 0
-  charge1 = -1      ! Mark as not set yet 
-  charge_old = -1   ! Mark as not set yet 
-  charge_try = -1   ! Mark as not set yet 
+    beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
+    charge0 = 0
+    charge1 = -1      ! Mark as not set yet 
+    charge_old = -1   ! Mark as not set yet 
+    charge_try = -1   ! Mark as not set yet 
 
-  Print *, 'Searching for a current where the tracking is unstable...'
+    Print *, 'Searching for a current where the tracking is unstable...'
 
-  do
-    lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
-    call calc_next_charge_try
-    if (hom_power_gain > 1) exit
-    if (lost) then
-      print *, 'Particle(s) lost. Assuming unstable...'
-      exit
-    endif
-  enddo
+    do
+      lat = lat0 ! Restore lr wakes
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+      call calc_next_charge_try
+      if (hom_power_gain > 1) exit
+      if (lost) then
+        print *, 'Particle(s) lost. Assuming unstable...'
+        exit
+      endif
+    enddo
 
-  ! Track to bracket threshold
+    ! Track to bracket threshold
 
-  print *, 'Now converging on the threshold...'
+    print *, 'Now converging on the threshold...'
 
-  do
-    lat = lat0 ! Restore lr wakes
-    call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
-    if (lost) print *, 'Particle(s) lost. Assuming unstable...'
-    call calc_next_charge_try
-    if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
-  enddo
+    do
+      lat = lat0 ! Restore lr wakes
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+      if (lost) print *, 'Particle(s) lost. Assuming unstable...'
+      call calc_next_charge_try
+      if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
+    enddo
 
-  beam_init%bunch_charge = (charge0 + charge1) / 2
-  print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
-  i = bbu_beam%ix_stage_power_max
-  ie = bbu_beam%stage(i)%ix_ele_lr_wake
-  ie2 = ie
-  if (lat%ele(ie)%slave_status == multipass_slave$) ie2 = multipass_lord_index(ie, lat)
-  i_lr = bbu_beam%stage(i)%ix_hom_max
-  print *, 'Element with critical HOM:', ie2, ':   ', lat%ele(ie2)%name
-  print *, 'Critical HOM: Input Frequency: ', lat%ele(ie)%wake%lr(i_lr)%freq_in 
-  print *, 'Critical HOM: Actual Frequency:', lat%ele(ie)%wake%lr(i_lr)%freq
-  print *, 'Critical HOM: R_overQ:         ', lat%ele(ie)%wake%lr(i_lr)%r_over_q
-  print *, 'Critical HOM: Q:               ', lat%ele(ie)%wake%lr(i_lr)%q
-  print *, 'Critical HOM: Angle:           ', lat%ele(ie)%wake%lr(i_lr)%angle
+    beam_init%bunch_charge = (charge0 + charge1) / 2
+    print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
+    i = bbu_beam%ix_stage_power_max
+    ie = bbu_beam%stage(i)%ix_ele_lr_wake
+    ie2 = ie
+    if (lat%ele(ie)%slave_status == multipass_slave$) ie2 = multipass_lord_index(ie, lat)
+    i_lr = bbu_beam%stage(i)%ix_hom_max
+    print *, 'Element with critical HOM:', ie2, ':   ', lat%ele(ie2)%name
+    print *, 'Critical HOM: Input Frequency: ', lat%ele(ie)%wake%lr(i_lr)%freq_in 
+    print *, 'Critical HOM: Actual Frequency:', lat%ele(ie)%wake%lr(i_lr)%freq
+    print *, 'Critical HOM: R_overQ:         ', lat%ele(ie)%wake%lr(i_lr)%r_over_q
+    print *, 'Critical HOM: Q:               ', lat%ele(ie)%wake%lr(i_lr)%q
+    print *, 'Critical HOM: Angle:           ', lat%ele(ie)%wake%lr(i_lr)%angle
 
-  if (bbu_param%nrep.gt.1)write(55,*) irep, beam_init%bunch_charge / beam_init%dt_bunch 
+    if (bbu_param%nrep.gt.1)write(55,*) irep, beam_init%bunch_charge / beam_init%dt_bunch 
 
-! Re-randomize HOM frequencies
-  do i = 1, lat%n_ele_max
-    ele => lat%ele(i)
-    call randomize_lr_wake_frequencies (ele)
-  enddo
+    ! Re-randomize HOM frequencies
 
-enddo  ! End of repetition loop
+    do i = 1, lat%n_ele_max
+      call randomize_lr_wake_frequencies (lat0%ele(i))
+    enddo
+
+  enddo  ! End of repetition loop
 
   if (bbu_param%drscan) write(50,*) trtb, currth, beam_init%bunch_charge / beam_init%dt_bunch 
 
