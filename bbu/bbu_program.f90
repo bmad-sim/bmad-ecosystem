@@ -212,7 +212,7 @@ do istep = 1, nstep
 
     ! Re-randomize HOM frequencies
 
-    do i = 1, lat%n_ele_max
+    do i = 1, lat0%n_ele_max
       call randomize_lr_wake_frequencies (lat0%ele(i))
     enddo
 
