@@ -52,9 +52,12 @@ call bmad_parser (file_name, lat)
 
 ix = splitfilename (file_name, dir, file_name, is_rel)
 call file_suffixer (file_name, file_name, 'xsif', .true.)
-call bmad_to_xsif (file_name, lat)
+call bmad_to_mad_or_xsif ('XSIF', file_name, lat)
 
-call file_suffixer (file_name, file_name, 'mad', .true.)
-call bmad_to_mad (file_name, lat)
+call file_suffixer (file_name, file_name, 'mad8', .true.)
+call bmad_to_mad_or_xsif ('MAD-8', file_name, lat)
+
+call file_suffixer (file_name, file_name, 'madx', .true.)
+call bmad_to_mad_or_xsif ('MAD-X', file_name, lat)
 
 end program
