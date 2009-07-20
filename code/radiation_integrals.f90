@@ -1,5 +1,5 @@
 !+
-! Subroutine radiation_integrals (lat, orbit, mode, ix_cache)
+! Subroutine radiation_integrals (lat, orbit, mode, ix_cache, rad_int_by_ele)
 !
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
@@ -45,7 +45,7 @@
 !                 If not present, a temperary cache for wigglers will be used.
 !
 ! Output:
-!   mode -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
+!   mode     -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
 !     %synch_int(1:3) -- Synchrotron integrals.
 !     %sigE_E         -- Sigma_E/E energy spread
@@ -67,40 +67,37 @@
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
+!   rad_int_by_ele
+!            -- Rad_int_common_struct, optional: Radiation integrals element by element. 
+!       %i1(0:)              -- I1 integral for each element.
+!       %i2(0:)              -- I2 integral for each element.
+!       %i3(0:)              -- I3 integral for each element.
+!       %i4a(0:)             -- "A" mode I4 integral for each element.
+!       %i4b(0:)             -- "B" mode I4 integral for each element.
+!       %i5a(0:)             -- "A" mode I5 integral for each element.
+!       %i5b(0:)             -- "B" mode I5 integral for each element.
+!       %lin_i2_E4(0:)       -- I2 * gamma^4 integral
+!       %lin_i3_E7(0:)       -- I3 * gamma^7 integral
+!       %lin_i5a_E6(0:)      -- I5a * gamma^6 integral
+!       %lin_i5b_E6(0:)      -- I5b * gamma^6 integral
+!       %lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
+!       %lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
+!
 !
 ! Notes:
 !
 ! 1) %synch_int(1) = momentum_compaction * lat_length
 !
-! 2) There is a common block structure "ric" where the integrals for the individual 
-!    elements are saved. To access this common block a use statement is needed:
-!       use rad_int_common
-!    In the common block:
-!       ric%i1(0:)              -- I1 integral for each element.
-!       ric%i2(0:)              -- I2 integral for each element.
-!       ric%i3(0:)              -- I3 integral for each element.
-!       ric%i4a(0:)             -- "A" mode I4 integral for each element.
-!       ric%i4b(0:)             -- "B" mode I4 integral for each element.
-!       ric%i5a(0:)             -- "A" mode I5 integral for each element.
-!       ric%i5b(0:)             -- "B" mode I5 integral for each element.
-!       ric%lin_i2_E4(0:)       -- I2 * gamma^4 integral
-!       ric%lin_i3_E7(0:)       -- I3 * gamma^7 integral
-!       ric%lin_i5a_E6(0:)      -- I5a * gamma^6 integral
-!       ric%lin_i5b_E6(0:)      -- I5b * gamma^6 integral
-!       ric%lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
-!       ric%lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
+! 2) The lin_norm_emit values are running sums from the beginning of the 
+!    lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
 !
-!   Note: "ric" is of type rad_int_common_struct. To transfer the data from one
-!   rad_int_common_struct block to another use the routine:
-!          transfer_rad_int_struct
-!
-!   Note: The lin_norm_emit values are running sums from the beginning 
-!   of the lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
+! 3) To transfer the data from one rad_int_common_struct block to another 
+!    use the routine: transfer_rad_int_struct
 !-       
 
 #include "CESR_platform.inc"
 
-subroutine radiation_integrals (lat, orbit, mode, ix_cache)
+subroutine radiation_integrals (lat, orbit, mode, ix_cache, rad_int_by_ele)
 
 use rad_int_common, except_dummy => radiation_integrals
 use radiation_mod, except_dummy2 => radiation_integrals
@@ -109,6 +106,7 @@ use symp_lie_mod, only: symp_lie_bmad
 implicit none
 
 type (lat_struct), target :: lat
+type (rad_int_common_struct), optional :: rad_int_by_ele
 type (ele_struct), pointer :: ele
 type (ele_struct), save :: ele2, runt
 type (coord_struct), target :: orbit(0:), start, end, end1
@@ -585,5 +583,7 @@ endif
 mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
+
+if (present(rad_int_by_ele)) call transfer_rad_int_struct (ric, rad_int_by_ele)
 
 end subroutine

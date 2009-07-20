@@ -10,6 +10,7 @@ type photon_coord_struct
   real(rp) track_len      ! length of the track from the start
   type (coord_struct) start, old, now  ! coords
   logical crossed_end     ! photon crossed through the lattice end?
+  integer n_reflect
 end type
 
 !--------------
@@ -22,7 +23,7 @@ end type
 
 type wall_2d_struct
   type (wall_2d_pt_struct), allocatable :: pt(:)
-  integer n_pt_tot
+  integer n_pt_max
 end type
 
 end module

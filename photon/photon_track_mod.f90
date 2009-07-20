@@ -1,6 +1,6 @@
 module photon_track_mod
 
-use photon_struct
+use photon_utils
 
 type stop_pt_struct
   real(rp) s      ! Longitudinal position.
@@ -15,9 +15,51 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! subroutine track_photon_to_wall (photon, lat, wall)
+! Subroutine photon_specular_reflect (photon, wall_pt)
 !
-! subroutine to propagate a synch radiation photon until it hits a wall.
+! Routine to specularly reflect a photon off of the wall.
+!-
+
+subroutine photon_specular_reflect (photon, wall_pt)
+
+implicit none
+
+type (photon_coord_struct) photon
+type (wall_2d_pt_struct) wall_pt
+
+real(rp) dx_parallel, dy_parallel, dx_perp, dy_perp, denom
+
+! The wall is assumed elliptical and that the photon is at the wall
+! (dx_parallel, dy_parallel) is the normalized vector parallel to the wall
+! at the photon hit point.
+
+dx_parallel =  wall_pt%width2**2 * photon%now%vec(3)
+dy_parallel = -wall_pt%height2**2 * photon%now%vec(1)
+
+denom = sqrt(dx_parallel**2 + dy_parallel**2)
+dx_parallel = dx_parallel / denom
+dy_parallel = dy_parallel / denom
+
+! (dx_perp, dy_perp) is the normalized vector perpendicular to the wall
+! at the photon hit point.
+
+dx_perp = -dy_parallel
+dy_perp =  dx_parallel
+
+! The perpendicular component gets reflected and the parallel component is invarient.
+
+photon%now%vec(1) = (dx_parallel - dx_perp) * photon%now%vec(1)
+photon%now%vec(3) = (dy_parallel - dy_perp) * photon%now%vec(3)
+
+end subroutine
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine track_photon_to_wall (photon, lat, wall)
+!
+! Routine to propagate a synch radiation photon until it hits a wall.
 !
 ! Modules needed:
 !   use photon_mod
@@ -101,7 +143,7 @@ integer ix0, ix1, ix2
 
 ! Error check
 
-if (wall%n_pt_tot == 0) then
+if (wall%n_pt_max == 0) then
   print *, 'THE WALL HAS NOT BEEN DEFINED!'
   call err_exit
 endif
@@ -113,7 +155,7 @@ endif
 
 if (photon%now%vec(5) == lat%param%total_length) then
   stop_pt%s = lat%param%total_length
-  stop_pt%ix_wall = wall%n_pt_tot
+  stop_pt%ix_wall = wall%n_pt_max
   if (photon%direction == 1) then
     stop_pt%ix_ele = 1
   else
@@ -146,7 +188,7 @@ endif
 ! Calc next wall s 
 
 ix0 = 0
-ix2 = wall%n_pt_tot
+ix2 = wall%n_pt_max
 
 do
   ix1 = (ix2 + ix0) / 2
@@ -220,7 +262,7 @@ s_now = photon%now%vec(5)
 
 if (stop_pt%s == 0 .and. direct == -1) then
   stop_pt%s = lat%param%total_length
-  stop_pt%ix_wall = wall%n_pt_tot
+  stop_pt%ix_wall = wall%n_pt_max
   stop_pt%ix_ele = lat%n_ele_track 
   return
 endif
@@ -300,7 +342,7 @@ logical has_hit, circular
 has_hit = .false.  ! assume no hit
 
 s_now = photon%now%vec(5)
-call chamber_at_s (wall, s_now, wall_pt)
+call wall_at_s (wall, s_now, wall_pt)
 r_now = (photon%now%vec(1)/wall_pt%width2)**2 + (photon%now%vec(3)/wall_pt%height2)**2
 if (r_now < 1) return
 
@@ -308,7 +350,7 @@ if (r_now < 1) return
 ! we need to iterate in a bend since the wall is actually curved.
 
 s_old = photon%old%vec(5)
-call chamber_at_s (wall, s_old, wall_pt)
+call wall_at_s (wall, s_old, wall_pt)
 r_old = (photon%old%vec(1)/wall_pt%width2)**2 + (photon%old%vec(3)/wall_pt%height2)**2
 
 photon0 = photon; r0 = r_now
@@ -351,7 +393,7 @@ do i = 1, 20
   endif
   call propagate_photon (photon1, s1, lat, .false.)
 
-  call chamber_at_s (wall, s1, wall_pt)
+  call wall_at_s (wall, s1, wall_pt)
 	r1 = (photon1%now%vec(1)/wall_pt%width2)**2 + (photon1%now%vec(3)/wall_pt%height2)**2
   del1 = sqrt(r1) - 1
 
