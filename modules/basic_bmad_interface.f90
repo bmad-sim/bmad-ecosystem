@@ -648,10 +648,11 @@ interface
 end interface
 
 interface
-  subroutine radiation_integrals (lat, orb, mode, ix_cache)
-    use bmad_struct, only: lat_struct, coord_struct, normal_modes_struct
+  subroutine radiation_integrals (lat, orb, mode, ix_cache, rad_int_by_ele)
+    use bmad_struct, only: lat_struct, coord_struct, normal_modes_struct, rad_int_common_struct
     implicit none
     type (lat_struct), target :: lat
+    type (rad_int_common_struct), optional :: rad_int_by_ele
     type (coord_struct), target :: orb(0:)
     type (normal_modes_struct) mode
     integer, optional :: ix_cache

@@ -50,26 +50,6 @@ type rad_int_info_struct
   integer ix_ele
 end type
 
-! This structure stores the radiation integrals for the individual elements except
-! lin_norm_emittance_a and lin_norm_emittance_b are running sums.
-
-type rad_int_common_struct
-  real(rp), allocatable :: i1(:)          ! Noe: All arrays are indexed from 0
-  real(rp), allocatable :: i2(:) 
-  real(rp), allocatable :: i3(:) 
-  real(rp), allocatable :: i4a(:)
-  real(rp), allocatable :: i4b(:)
-  real(rp), allocatable :: i5a(:) 
-  real(rp), allocatable :: i5b(:) 
-  real(rp), allocatable :: lin_i2_E4(:) 
-  real(rp), allocatable :: lin_i3_E7(:) 
-  real(rp), allocatable :: lin_i5a_E6(:) 
-  real(rp), allocatable :: lin_i5b_E6(:) 
-  real(rp), allocatable :: lin_norm_emit_a(:)  ! Running sum
-  real(rp), allocatable :: lin_norm_emit_b(:)  ! Running sum
-  real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
-end type
-
 type (rad_int_common_struct), target, save :: ric
 type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
 
