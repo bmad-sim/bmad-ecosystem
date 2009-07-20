@@ -7,7 +7,7 @@ use multipass_mod
 use element_modeling_mod
 use lat_ele_loc_mod
 
-private str, rchomp, write_out, bmad_to_mad_or_xsif
+private str, rchomp, write_out
 
 contains
 
@@ -482,10 +482,10 @@ ele_loop: do ie = 1, lat%n_ele_max
           write_term = .true.
         endif
         if (write_term) write (line, '(2a, i1, 3a, 6i2, a)') &
-              trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', unit, '}'
-        if (.not. unit_found) write (line, '(2a, i1, a, 6i2, a)') &
-              trim(line), ', {', j, ': 0,', unit, '}'
+              trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%exp, '}'
       enddo
+      if (.not. unit_found) write (line, '(2a, i1, a, 6i2, a)') &
+              trim(line), ', {', j, ': 0,', tm%exp, '}'
     enddo
   endif
 
@@ -961,14 +961,14 @@ enddo
 
 end subroutine
 
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
 !+ 
-! Subroutine bmad_to_mad (mad_file, lat, use_matrix_model, &
-!                                           ix_start, ix_end, converted_lat, err)
+! Subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, &
+!                           use_matrix_model, ix_start, ix_end, converted_lat, err)
 !
-! Subroutine to write a mad lattice file using the information in
+! Subroutine to write a MAD-8, MAD-X, or XSIF lattice file using the information in
 ! a lat_struct. Optionally only part of the lattice can be generated.
 !
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
@@ -978,14 +978,15 @@ end subroutine
 !   use write_lat_file_mod
 !
 ! Input:
-!   mad_file    -- Character(*): Name of the mad output lattice file.
-!   lat         -- lat_struct: Holds the lattice information.
+!   out_type      -- Character(*): Either 'XSIF', 'MAD-8' or 'MAD-X'.
+!   out_file_name -- Character(*): Name of the mad output lattice file.
+!   lat           -- lat_struct: Holds the lattice information.
 !   use_matrix_model
-!               -- Logical, optional: Use a drift-matrix_drift model for wigglers
+!                 -- Logical, optional: Use a drift-matrix_drift model for wigglers
 !                       and sol_quad elements? Default is False.
-!   ix_start    -- Integer, optional: Starting index of lat%ele(i)
+!   ix_start      -- Integer, optional: Starting index of lat%ele(i)
 !                       used for output.
-!   ix_end      -- Integer, optional: Ending index of lat%ele(i)
+!   ix_end        -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !
 ! Output:
@@ -993,76 +994,6 @@ end subroutine
 !                       sol_quad elements replaced by their respective models.
 !   err           -- Logical, optional: Set True if, say a file could not be opened.
 !-
-
-subroutine bmad_to_mad (mad_file, lat, use_matrix_model, &
-                                                ix_start, ix_end, converted_lat, err)
-
-implicit none
-
-type (lat_struct)  lat
-type (lat_struct), optional :: converted_lat
-integer, optional :: ix_start, ix_end
-character(*) mad_file 
-logical, optional :: use_matrix_model, err
-
-!
-
-call bmad_to_mad_or_xsif ('MAD', mad_file, lat, use_matrix_model, &
-                                             ix_start, ix_end, converted_lat, err)
-
-end subroutine
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+ 
-! Subroutine bmad_to_xsif (xsif_file, lat, use_matrix_model, 
-!                                             ix_start, ix_end, converted_lat, err)
-!
-! Subroutine to write a xsif lattice file using the information in
-! a lat_struct. Optionally only part of the lattice can be generated.
-!
-! Modules needed:
-!   use write_lat_file_mod
-!
-! Input:
-!   xsif_file   -- Character(*): Name of the xsif output lattice file.
-!   lat         -- lat_struct: Holds the lattice information.
-!   use_matrix_model
-!               -- Logical, optional: Use a drift-matrix_drift model for wigglers
-!                       and sol_quad elements? Default is False.
-!   ix_start    -- Integer, optional: Starting index of lat%ele(i)
-!                       used for output.
-!   ix_end      -- Integer, optional: Ending index of lat%ele(i)
-!                       used for output.
-!
-! Output:
-!   converted_lat -- Lat_struct, optional: Equivalent Bmad lattice with wiggler and 
-!                       sol_quad elements replaced by their respective models.
-!   err    -- Logical: Set True if, say a file could not be opened.
-!-
-
-subroutine bmad_to_xsif (xsif_file, lat, use_matrix_model, ix_start, ix_end, converted_lat, err)
-
-implicit none
-
-type (lat_struct)  lat
-type (lat_struct), optional :: converted_lat
-
-integer, optional :: ix_start, ix_end
-character(*) xsif_file 
-logical, optional :: use_matrix_model, err
-
-! 
-
-call bmad_to_mad_or_xsif ('XSIF', xsif_file, lat, use_matrix_model, &
-                                        ix_start, ix_end, converted_lat, err)
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
 
 subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, &
                           use_matrix_model, ix_start, ix_end, converted_lat, err)
@@ -1079,14 +1010,15 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
 
 integer, optional :: ix_start, ix_end
 integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
-integer ie1, ie2, ios
+integer ie1, ie2, ios, t_count
 
 character(*) out_type, out_file_name
 character(300) line
 character(40), allocatable :: name_list(:)
 character(1000) line_out
 character(8) str
-character(20) :: r_name = "write_lattice_line"
+character(20) :: r_name = "bmad_to_mad_or_xsif"
+character(2) continue_char, eol_char
 
 logical init_needed
 logical parsing
@@ -1105,6 +1037,17 @@ endif
 
 ! Init
 
+if (out_type == 'MAD-X') then
+  continue_char = ''
+  eol_char = ';'
+elseif (out_type == 'MAD-8' .or. out_type == 'XSIF') then
+  continue_char = ' &'
+  eol_char = ''
+else
+  call out_io (s_error$, r_name, 'BAD OUT_TYPE: ' // out_type)
+  return
+endif
+
 call init_ele (drift_ele, drift$)
 call init_ele (taylor_ele, taylor$)
 call init_ele (ab_ele, ab_multipole$)
@@ -1122,6 +1065,7 @@ allocate (name_list(3*(ie2-ie1+1))) ! list of element names
 
 lat_out = lat
 j_count = 0    ! drift around solenoid or sol_quad index
+t_count = 0    ! taylor element count.
 i_unique = 1000
 
 ix_ele = ie1 
@@ -1164,9 +1108,10 @@ do
   endif
 
   ! Convert sol_quad_and wiggler elements.
+  ! NOTE: FOR NOW SOL_QUAD  USES DRIFT-MATRIX-DRIFT MODEL!
 
   if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
-    if (logic_option(.false., use_matrix_model)) then
+    if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
 
       drift_ele%value(l$) = -ele%value(l$) / 2
       call make_mat6 (drift_ele, lat_out%param)
@@ -1175,8 +1120,12 @@ do
 
       ! Add drifts before and after wigglers and sol_quads so total length is invariant
       j_count = j_count + 1
+      t_count = t_count + 1
       write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
+      write (taylor_ele%name, '(a, i3.3)') 'SOL_QUAD', j_count
       drift_ele%value(l$) = ele%value(l$) / 2
+      ele%key = -1 ! Mark for deletion
+      call remove_eles_from_lat (lat_out)
       call insert_element (lat_out, drift_ele, ix_ele)
       call insert_element (lat_out, taylor_ele, ix_ele+1)
       call insert_element (lat_out, drift_ele, ix_ele+2)
@@ -1188,7 +1137,7 @@ do
       if (ele%key == wiggler$) then
         call create_wiggler_model (ele, lat_model)
       else
-        call create_sol_quad_model (ele, lat_model)
+        call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
       endif
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
@@ -1204,18 +1153,18 @@ enddo
 
 ! lat lattice name
 
-write (iu, '(2a)') '! File generated by BMAD_TO_', out_type
-write (iu, '(2a)') '! Bmad Lattice File: ', trim(lat_out%input_file_name)
-write (iu, '(2a)') '! Bmad Lattice: ', trim(lat_out%lattice)
+write (iu, '(2a)') '! File generated by BMAD_TO_MAD/BMAD_TO_XSIF', trim(eol_char)
+write (iu, '(3a)') '! Bmad Lattice File: ', trim(lat_out%input_file_name), trim(eol_char)
+write (iu, '(3a)') '! Bmad Lattice: ', trim(lat_out%lattice), trim(eol_char)
 write (iu, *)
 
 ! beam definition
 
 ele => lat_out%ele(ie1-1)
 
-write (iu, '(2a, 2(a, es12.5))')  &
+write (iu, '(2a, 2(a, es12.5), a)')  &
       'beam_def: Beam, Particle = ', trim(particle_name(lat_out%param%particle)),  &
-      ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat_out%param%n_part
+      ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat_out%param%n_part, trim(eol_char)
 
 write (iu, *)
 
@@ -1270,7 +1219,11 @@ do ix_ele = ie1, ie2
 
       ix = len_trim(line_out) + 1
       field = 1.0e3 * sqrt(hk**2 + vk**2) * val(E_TOT$) / val(l$)
-      write (line_out(ix:), '(a, es13.5)') ', e =', field
+      if (out_type == 'MAD-X') then
+        write (line_out(ix:), '(a, es13.5)') ', ey =', field
+      else
+        write (line_out(ix:), '(a, es13.5)') ', e =', field
+      endif
 
       if (lat_out%param%particle == positron$) then
         tilt = -atan2(hk, vk) + val(tilt$)
@@ -1329,7 +1282,7 @@ do ix_ele = ie1, ie2
 
   case (quadrupole$)
 
-    write (line_out, '(a, es13.5)') trim(ele%name) // ': quad, l =', val(l$)
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
     call value_to_line (line_out, val(k1$), 'k1', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
@@ -1366,8 +1319,10 @@ do ix_ele = ie1, ie2
         select case (sum(term%exp))
         case (1)
           j = maxloc(term%exp, 1)
-          if (out_type == 'MAD') then
+          if (out_type == 'MAD-8') then
             write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
+          elseif (out_type == 'MAD-X') then
+            write (str, '(a, 2i0)') 'rm', i, j
           elseif (out_type == 'XSIF') then
             write (str, '(a, 2i0)') 'r', i, j
           endif
@@ -1377,8 +1332,10 @@ do ix_ele = ie1, ie2
           j = maxloc(term%exp, 1)
           term%exp(j) = term%exp(j) - 1
           j2 = maxloc(term%exp, 1)
-          if (out_type == 'MAD') then
+          if (out_type == 'MAD-8') then
             write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
+          elseif (out_type == 'MAD-X') then
+            write (str, '(a, 3i0)') 'tm', i, j, j2
           elseif (out_type == 'XSIF') then
             write (str, '(a, 3i0)') 't', i, j, j2
           endif
@@ -1395,8 +1352,10 @@ do ix_ele = ie1, ie2
       enddo
 
       if (ele%mat6(i,i) == 0) then
-        if (out_type == 'MAD') then
+        if (out_type == 'MAD-8') then
           write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', i, ')'
+        elseif (out_type == 'MAD-X') then
+          write (str, '(a, 2i0)') 'rm', i, i
         elseif (out_type == 'XSIF') then
           write (str, '(a, 2i0)') 'r', i, i
         endif
@@ -1459,11 +1418,11 @@ do ix_ele = ie1, ie2
   do
     if (len_trim(line_out) < 76) exit
     ix = index(line_out(61:), ' ')
-    write (iu, '(2a)') line_out(:60+ix), '&'
+    write (iu, '(2a)') line_out(:60+ix), trim(continue_char)
     line_out = '    ' // line_out(60+ix:)
   enddo
 
-  write (iu, '(a)') trim(line_out(:75))
+  write (iu, '(2a)') trim(line_out(:75)), trim(eol_char)
 
 enddo
 
@@ -1485,18 +1444,18 @@ do n = ie1, ie2
     if (iout >= 50 .or. n == ie2) then
       i = len_trim(ele%name)
       line(ix+1:) = ', ' // ele%name(:i) // ')'
-      write (iu, '(2a)') trim(line)
+      write (iu, '(2a)') trim(line), trim(eol_char)
       line = ' '
       init_needed = .true.
     else
-      write (iu, '(2a)') trim(line(:ix)), ', &'
+      write (iu, '(3a)') trim(line(:ix)), ',', trim(continue_char)
       iout = iout + 1
       line = '   ' // ele%name
     endif
 
   elseif (init_needed) then
     write (iu, *)
-    write (iu, *) '!---------------------------------'
+    write (iu, *) '!---------------------------------', trim(eol_char)
     write (iu, *)
     i_line = i_line + 1
     write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
@@ -1510,31 +1469,31 @@ do n = ie1, ie2
 enddo
 
 write (iu, *)
-write (iu, *) '!---------------------------------'
+write (iu, *) '!---------------------------------', trim(eol_char)
 write (iu, *)
 line = 'lat: line = (line_1'
 do i = 2, i_line
   write (line, '(2a, i0)') trim(line), ', line_', i
 enddo
 line = trim(line) // ')'
-write (iu, *) trim(line)
-write (iu, *) 'use, lat'
+write (iu, *) trim(line), trim(eol_char)
+if (out_type == 'MAD-X') then
+  write (iu, *) 'use, period=lat;'
+else
+  write (iu, *) 'use, lat'
+endif
 
 ! Write twiss parameters for a linear lattice.
 
 ele => lat_out%ele(ie1-1)
 if (lat_out%param%lattice_type /= circular_lattice$) then
   write (iu, *)
-  write (iu, *) '!---------------------------------'
+  write (iu, *) '!---------------------------------', trim(eol_char)
   write (iu, *)
-  write (iu, '(3(a, es12.5))') &
-      'TWISS, betx =', ele%a%beta, ', bety =', ele%b%beta, ', &'
-  write (iu, '(5x, 3(a, es12.5))') &
-      'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ', &'
-  write (iu, '(5x, 3(a, es12.5))') &
-      'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ', &'
-  write (iu, '(5x, 3(a, es12.5))') &
-      'dy =', ele%b%eta, ', dpy = ', ele%b%etap
+  write (iu, '(2(a, es12.5), 2a)') 'TWISS, betx =', ele%a%beta, ', bety =', ele%b%beta, ',', trim(continue_char)
+  write (iu, '(5x, 2(a, es12.5), 2a)') 'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ',', trim(continue_char)
+  write (iu, '(5x, 2(a, es12.5), 2a)') 'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ',', trim(continue_char)
+  write (iu, '(5x, 2(a, es12.5), a)') 'dy =', ele%b%eta, ', dpy = ', ele%b%etap, trim(eol_char)
 endif
 
 !
@@ -1545,7 +1504,17 @@ call out_io (s_info$, r_name, 'Written ' // trim(out_type) // &
 deallocate (name_list)
 if (present(err)) err = .false.
 
-if (present(converted_lat)) converted_lat = lat_out
+if (present(converted_lat)) then
+  converted_lat = lat_out
+  converted_lat%n_ele_max = converted_lat%n_ele_track
+  do i = 1, converted_lat%n_ele_track
+    converted_lat%ele(i)%slave_status = free$
+    converted_lat%ele(i)%n_lord = 0
+    converted_lat%ele(i)%ic2_lord = converted_lat%ele(i)%ic1_lord - 1
+  enddo
+  converted_lat%n_control_max = 0
+  converted_lat%n_ic_max = 0
+endif
 
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)
