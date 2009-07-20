@@ -463,6 +463,17 @@ ele_loop: do ie = 1, lat%n_ele_max
                  trim(line) // ', integrator_order = ', ele%integrator_order
   if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
 
+  ! Multipass lord 
+
+  if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
+    select case (ele%key)
+      case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+            hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
+      line = trim(line) // ', e_tot = ' // str(ele%value(e_tot$))
+    end select
+  endif
+
+
   call write_out (line, iu, .false.)  
 
   ! Encode taylor
