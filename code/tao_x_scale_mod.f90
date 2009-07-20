@@ -43,7 +43,8 @@ character(20) :: r_name = 'tao_x_scale_cmd'
 
 logical err, all_same
 
-! Use local vars in case the actual args are something like graph%x%min, etc.
+! Use local vars for x_min and x_max in case the actual args are something 
+! like graph%x%min, etc.
 
 x_min = x_min_in
 x_max = x_max_in
@@ -94,7 +95,8 @@ endif
 ! Issue warning if not all plots have the same scale
 
 if (.not. all_same) call out_io (s_warn$, r_name, &
-      'Note: Not all plots have the same min/max due to different x-axis major_div values.')
+      'Note: Not all plots have the same min/max due to different ', &
+      '      x-axis major_div or major_div_nominal values.')
 
 end subroutine
 

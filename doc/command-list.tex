@@ -409,7 +409,8 @@ Format:
   output gif \{<file_name>\}          ! create a gif file of the plot window.
   output hard                       ! Print the plot window to a printer.
   output hard-l                     ! Like "hard" except use landscape orientation. 
-  output mad_lattice \{<file_name>\}  ! Write a Mad lattice file of the model
+  output mad8_lattice \{<file_name>\}  ! Write a MAD-8 lattice file of the model
+  output madx_lattice \{<file_name>\}  ! Write a MAD-X lattice file of the model
   output ps \{-scale <scale>\} \{<file_name>\}      ! Create a postscript file of the plot window.
   output ps-l \{-scale <scale>\} \{<file_name>\}    ! Like "ps" except use landscape orientation.
   output variable \{-good_var_only\} \{<file_name>\} ! Write a Bmad file of variable values.
@@ -427,7 +428,8 @@ If \vn{<file_name>} is not given then the defaults are:
   output derivative_mat           derivative_matrix.dat              
   output digested                 digested8_lat_universe_#.bmad
   output gif                      tao.gif
-  output mad_lattice              lat_#.mad
+  output mad8_lattice             lat_#.mad8
+  output madx_lattice             lat_#.madx
   output ps                       tao.ps
   output variable                 global%var_out_file
 \end{example}

@@ -49,12 +49,13 @@ if (present(axis)) then
   endif
 endif
 
-! Use local vars in case the actual args are something like graph%y%min, etc.
+! Use local vars for y_min and y_max in case the actual args are something 
+! like graph%y%min, etc.
 
 y_min = y_min_in
 y_max = y_max_in
 
-! If the where argument is blank or 'all' then scale all plots.
+! If the where argument is blank or 'all', then scale all plots.
 
 if (len_trim(where) == 0 .or. where == 'all') then
   do j = 1, size(s%plot_region)
@@ -64,8 +65,8 @@ if (len_trim(where) == 0 .or. where == 'all') then
   return
 endif
 
-! locate the plot by the region name given by the where argument.
-!If no graph is specified then we scale all the graphs of the plot.
+! Locate the plot by the region name given by the where argument.
+! If no graph is specified then we scale all the graphs of the plot.
 
 call tao_find_plots (err, where, 'REGION', plot, graph)
 if (err) return

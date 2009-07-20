@@ -34,11 +34,11 @@ character(20) :: r_name = 'tao_output_cmd'
 character(100) file_name0, file_name, what2
 character(80) :: word(10)
 
-character(20) :: names(14) = (/ &
+character(20) :: names(16) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
-      'covariance_matrix', 'orbit            ' /)
+      'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ' /)
 
 integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, ibr
 integer i_chan, ix_beam
@@ -387,16 +387,31 @@ case ('hard', 'hard-l')
                                               s%global%print_command)
 
 !---------------------------------------------------
-! mad_lattice
+! mad8_lattice
 
-case ('mad_lattice')
+case ('mad_lattice', 'mad8_lattice')
 
   file_name0 = word(1)
-  if (file_name0 == ' ') file_name0 = 'lat_#.mad'
+  if (file_name0 == ' ') file_name0 = 'lat_#.mad8'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. subin_uni_number (file_name0, i, file_name)) return
-    call bmad_to_mad (file_name, s%u(i)%model%lat, err = err)
+    call bmad_to_mad_or_xsif ('MAD-8', file_name, s%u(i)%model%lat, err = err)
+    if (err) return
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  enddo
+
+!---------------------------------------------------
+! mad8_lattice
+
+case ('madx_lattice')
+
+  file_name0 = word(1)
+  if (file_name0 == ' ') file_name0 = 'lat_#.madx'
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. subin_uni_number (file_name0, i, file_name)) return
+    call bmad_to_mad_or_xsif ('MAD-X', file_name, s%u(i)%model%lat, err = err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
