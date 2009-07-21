@@ -4,6 +4,7 @@ use tao_mod
 use spin_mod
 use utilities_mod
 use measurement_mod
+use lat_geometry_mod
 
 type this_array_struct
   real(rp) cbar(2,2)
@@ -381,7 +382,7 @@ type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
 type (spin_polar_struct) polar
-type (ele_struct), pointer :: ele, ele0
+type (ele_struct), pointer :: ele1, ele0
 type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor(6) ! Saved taylor map
@@ -394,8 +395,9 @@ type (tao_element_struct), pointer :: uni_ele(:)
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
-real(rp) gamma, one_pz, vec(2)
+real(rp) gamma, one_pz, vec(2), w0_mat(3,3), w_mat(3,3), vec3(3)
 real(rp), allocatable, save ::value1(:)
+real(rp) theta, phi, psi
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix1, ix0, expnt(6), n_track, n_max, iz
@@ -443,6 +445,8 @@ branch => lat%branch(datum%ix_branch)
 orbit => tao_lat%lat_branch(datum%ix_branch)%orbit
 bunch_params => tao_lat%lat_branch(datum%ix_branch)%bunch_params
 uni_ele => u%uni_branch(datum%ix_branch)%ele
+ele1 => branch%ele(ix1)
+ele0 => branch%ele(ix0)
 
 valid_value = .false.
 
@@ -561,74 +565,74 @@ case ('beta.b')
 
 case ('bpm_orbit.x')
   if (data_source == 'beam') return ! bad
-  call to_orbit_reading (orbit(ix1), branch%ele(ix1), x_plane$, datum_value, err)
+  call to_orbit_reading (orbit(ix1), ele1, x_plane$, datum_value, err)
   valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost))
 
 case ('bpm_orbit.y')
   if (data_source == 'beam') return ! bad
-  call to_orbit_reading (orbit(ix1), branch%ele(ix1), y_plane$, datum_value, err)
+  call to_orbit_reading (orbit(ix1), ele1, y_plane$, datum_value, err)
   valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix1 > lat%param%ix_lost))
 
 case ('bpm_eta.x')
   if (data_source == 'beam') return ! bad
-  vec = (/ branch%ele(ix1)%x%eta, branch%ele(ix1)%y%eta /)
-  call to_eta_reading (vec, branch%ele(ix1), x_plane$, datum_value, err)
+  vec = (/ ele1%x%eta, ele1%y%eta /)
+  call to_eta_reading (vec, ele1, x_plane$, datum_value, err)
   valid_value = .not. err
 
 case ('bpm_eta.y')
   if (data_source == 'beam') return ! bad
-  vec = (/ branch%ele(ix1)%x%eta, branch%ele(ix1)%y%eta /)
-  call to_eta_reading (vec, branch%ele(ix1), y_plane$, datum_value, err)
+  vec = (/ ele1%x%eta, ele1%y%eta /)
+  call to_eta_reading (vec, ele1, y_plane$, datum_value, err)
   valid_value = .not. err
 
 case ('bpm_phase.a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%phi_a
 
 case ('bpm_phase.b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%phi_b
 
 case ('bpm_k.22a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_22a
 
 case ('bpm_k.12a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_12a
 
 case ('bpm_k.11b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_11b
 
 case ('bpm_k.12b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_12b
 
 case ('bpm_cbar.22a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_22a
 
 case ('bpm_cbar.12a')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_12a
 
 case ('bpm_cbar.11b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_11b
 
 case ('bpm_cbar.12b')
   if (data_source == 'beam') return ! bad
-  call tao_to_phase_and_coupling_reading (branch%ele(ix1), bpm_data, valid_value)
+  call tao_to_phase_and_coupling_reading (ele1, bpm_data, valid_value)
   datum_value = bpm_data%k_12b
 
 case ('cbar.11')
@@ -685,7 +689,7 @@ case ('%e_tot')
 case ('element_param.')
   if (data_source == 'beam') return ! bad
   call str_upcase (name, datum%data_type(15:))
-  ix = attribute_index (branch%ele(ix1), name)
+  ix = attribute_index (ele1, name)
   if (ix < 1) then
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type)
     call err_exit
@@ -694,25 +698,25 @@ case ('element_param.')
                                      loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('emit.x', 'norm_emit.x')
-  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%x%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.y', 'norm_emit.y')  
-  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%y%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.z', 'norm_emit.z')
-  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%z%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.a', 'norm_emit.a')
-  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     call load_it (bunch_params(:)%a%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'lattice') then
@@ -731,7 +735,7 @@ case ('emit.a', 'norm_emit.a')
   valid_value = .true.
   
 case ('emit.b', 'norm_emit.b')  
-  call convert_total_energy_to (branch%ele(ix1)%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     call load_it (bunch_params(:)%b%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'lattice') then
@@ -845,23 +849,23 @@ case ('expression:')
   endif
 
 case ('floor.x')
-  datum_value = branch%ele(ix1)%floor%x - branch%ele(ix0)%floor%x
+  datum_value = ele1%floor%x - ele0%floor%x
   valid_value = .true.
 
 case ('floor.y')
-  datum_value = branch%ele(ix1)%floor%y - branch%ele(ix0)%floor%y
+  datum_value = ele1%floor%y - ele0%floor%y
   valid_value = .true.
 
 case ('floor.z')
-  datum_value = branch%ele(ix1)%floor%z - branch%ele(ix0)%floor%z
+  datum_value = ele1%floor%z - ele0%floor%z
   valid_value = .true.
 
 case ('floor.theta')
-  datum_value = branch%ele(ix1)%floor%theta - branch%ele(ix0)%floor%theta
+  datum_value = ele1%floor%theta - ele0%floor%theta
   valid_value = .true.
 
 case ('floor.phi')
-  datum_value = branch%ele(ix1)%floor%phi - branch%ele(ix0)%floor%phi
+  datum_value = ele1%floor%phi - ele0%floor%phi
   valid_value = .true.
 
 case ('gamma.a')
@@ -936,7 +940,6 @@ case ('momentum_compaction')
     call err_exit
   endif
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
-  ele0 => branch%ele(ix0)
   orb0 => orbit(ix0)
   call make_v_mats (ele0, v_mat, v_inv_mat)
   eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
@@ -1063,35 +1066,35 @@ case ('periodic.tt.')
 
 case ('phase.a')
   if (data_source == 'beam') return ! bad
-  datum_value = branch%ele(ix1)%a%phi - branch%ele(ix0)%a%phi
+  datum_value = ele1%a%phi - ele0%a%phi
   if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
   valid_value = .true.
 
 case ('phase.b')
   if (data_source == 'beam') return ! bad
-  datum_value = branch%ele(ix1)%b%phi - branch%ele(ix0)%b%phi
+  datum_value = ele1%b%phi - ele0%b%phi
   if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
   valid_value = .true.
 
 case ('phase_frac.a')
   if (data_source == 'beam') return ! bad
-  datum_value = branch%ele(ix1)%a%phi - branch%ele(ix0)%a%phi
+  datum_value = ele1%a%phi - ele0%a%phi
   if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
   datum_value = modulo2(datum_value, pi)
   valid_value = .true.
 
 case ('phase_frac.b')
   if (data_source == 'beam') return ! bad
-  datum_value = branch%ele(ix1)%b%phi - branch%ele(ix0)%b%phi
+  datum_value = ele1%b%phi - ele0%b%phi
   if (ix0 > ix1) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
   datum_value = modulo2(datum_value, pi)
   valid_value = .true.
 
 case ('phase_frac_diff')
   if (data_source == 'beam') return ! bad
-  px = branch%ele(ix1)%a%phi - branch%ele(ix0)%a%phi
+  px = ele1%a%phi - ele0%a%phi
   if (ix0 > ix1) px = px - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
-  py = branch%ele(ix1)%b%phi - branch%ele(ix0)%b%phi
+  py = ele1%b%phi - ele0%b%phi
   if (ix0 > ix1) py = py - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
   datum_value = modulo2 (px - py, pi)
   valid_value = .true.
@@ -1108,33 +1111,33 @@ case ('r.')
   datum_value = mat6(i, j)
   valid_value = .true.
 
-case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z', 'rel_floor.theta', 'rel_floor.phi')
-  call init_floor (floor)
-
-  if (ix1 > ix0) then
-    do i = ix0+1, ix1
-      call ele_geometry (floor, branch%ele(i), floor)
-    enddo
-  else
-    do i = ix0+1, branch%n_ele_track
-      call ele_geometry (floor, branch%ele(i), floor)
-    enddo
-    do i = 1, ix1
-      call ele_geometry (floor, branch%ele(i), floor)
-    enddo
-  endif
-
+case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
+  
+  call make_floor_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
+  vec3 = (/ ele1%floor%x - ele0%floor%x, ele1%floor%y - ele0%floor%y, ele1%floor%z - ele0%floor%z /)
+  vec3 = matmul (w0_mat, vec3)
   select case (data_type)
   case ('rel_floor.x')
-    datum_value = branch%ele(ix1)%floor%x - branch%ele(ix0)%floor%x
+    datum_value = vec3(1)
   case ('rel_floor.y')
-    datum_value = branch%ele(ix1)%floor%y - branch%ele(ix0)%floor%y
+    datum_value = vec3(2)
   case ('rel_floor.z')
-    datum_value = branch%ele(ix1)%floor%z - branch%ele(ix0)%floor%z
+    datum_value = vec3(3)
+  end select
+
+case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
+  call make_floor_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
+  call make_floor_w_mat (ele1%floor%theta, ele1%floor%phi, ele1%floor%psi, w_mat)
+  w_mat = matmul (w0_mat, w_mat)
+  call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi)
+
+  select case (data_type)
   case ('rel_floor.theta')
-    datum_value = branch%ele(ix1)%floor%theta - branch%ele(ix0)%floor%theta
+    datum_value = theta
   case ('rel_floor.phi')
-    datum_value = branch%ele(ix1)%floor%phi - branch%ele(ix0)%floor%phi
+    datum_value = phi
+  case ('rel_floor.psi')
+    datum_value = psi
   end select
   valid_value = .true.
 
@@ -1201,9 +1204,9 @@ case ('spin.polarity')
 case ('s_position') 
   if (data_source == 'beam') return
   if (ix0 >= 0) then
-    datum_value = branch%ele(ix1)%s - branch%ele(ix0)%s
+    datum_value = ele1%s - ele0%s
   else
-    datum_value = branch%ele(ix1)%s 
+    datum_value = ele1%s 
   endif
   valid_value = .true.
 
@@ -1280,7 +1283,7 @@ case ('wall')
 case ('wire.')  
   if (data_source == 'lattice') return
   read (data_type(6:), '(a)') angle
-  datum_value = tao_do_wire_scan (branch%ele(ix1), angle, u%current_beam)
+  datum_value = tao_do_wire_scan (ele1, angle, u%current_beam)
   valid_value = .true.
   
 case default
