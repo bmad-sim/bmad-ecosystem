@@ -909,23 +909,24 @@ Example:
         set universe <what\_universe> recalculate \\
         set universe <what\_universe> mat6\_recalc}] \Newline
 
-The \vn{set <what_universe> on/off} command will turn the specified universe(s) on or
-off. Turning a universe off is useful to speed up lattice calculations
-when this universe is not being used. Or, if many changes are to be
-performed to a universe and there is no need to do any lattice
-calculations between commands then turning off all universes will
-speed things up. To specify the currently viewed universe, you can use
-\vn{-1} as an index.  To specify all universes, use \vn{*}.
+The \vn{set universe <what_universe> on/off} command will turn the
+specified universe(s) on or off. Turning a universe off is useful to
+speed up lattice calculations when this universe is not being
+used. Or, if many changes are to be performed to a universe and there
+is no need to do any lattice calculations between commands then
+turning off all universes will speed things up. To specify the
+currently viewed universe, you can use \vn{-1} as an index.  To
+specify all universes, use \vn{*}.
 
 If optimizing while one or more universes are turned off, the
 variables associated with that universe will still be included in the
 merit function but not the data for that universe. The variables will
 still vary in the turned off universe.
 
-The \vn{set <what_universe> recalculate} command will recalcuate the
+The \vn{set universe <what_universe> recalculate} command will recalcuate the
 lattice parameters for that universe.
 
-The \vn{set <what_universe> mat6_recalc} command will toggle whether
+The \vn{set universe <what_universe> mat6_recalc} command will toggle whether
 the 6x6 transfer matrices are calculated for a given universe. Turning
 this off is useful in speeding up calculations in the case where the
 transfer matrices are not being used (Warning: The transfer matrices
