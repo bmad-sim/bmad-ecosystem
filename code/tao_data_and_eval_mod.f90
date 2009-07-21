@@ -1113,7 +1113,7 @@ case ('r.')
 
 case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
   
-  call make_floor_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
+  call floor_angles_to_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
   vec3 = (/ ele1%floor%x - ele0%floor%x, ele1%floor%y - ele0%floor%y, ele1%floor%z - ele0%floor%z /)
   vec3 = matmul (w0_mat, vec3)
   select case (data_type)
@@ -1126,8 +1126,8 @@ case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
   end select
 
 case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
-  call make_floor_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
-  call make_floor_w_mat (ele1%floor%theta, ele1%floor%phi, ele1%floor%psi, w_mat)
+  call floor_angles_to_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
+  call floor_angles_to_w_mat (ele1%floor%theta, ele1%floor%phi, ele1%floor%psi, w_mat)
   w_mat = matmul (w0_mat, w_mat)
   call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi)
 
