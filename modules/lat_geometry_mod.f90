@@ -1,3 +1,14 @@
+module lat_geometry_mod
+
+use bmad_struct
+use bmad_interface
+use lat_ele_loc_mod
+
+contains
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
 !+
 ! Subroutine lat_geometry (lat)
 !
@@ -25,10 +36,6 @@
 !-
 
 subroutine lat_geometry (lat)
-
-use bmad_struct
-use bmad_interface, except_dummy => lat_geometry
-use lat_ele_loc_mod
 
 implicit none
 
@@ -104,15 +111,12 @@ end subroutine
 
 subroutine ele_geometry (floor0, ele, floor)
 
-use bmad_struct
-use bmad_interface, except => ele_geometry
 use multipole_mod
 
 implicit none
 
 type (ele_struct) ele
 type (floor_position_struct) floor0, floor
-
 integer i, key
 
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -120,7 +124,7 @@ real(dp) chord_len, angle, leng, rho
 real(dp) pos(3), theta, phi, psi, tlt
 real(dp), save :: old_theta = 100  ! garbage number
 real(dp), save :: old_phi, old_psi
-real(dp), save :: s_ang, c_ang, s_the, c_the, s_phi, c_phi, s_psi, c_psi
+real(dp), save :: s_ang, c_ang
 real(dp), save :: w_mat(3,3), s_mat(3,3), r_mat(3), t_mat(3,3)
 real(dp), parameter :: twopi_dp = 2 * 3.14159265358979
 
@@ -151,18 +155,7 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
              (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
 
   if (old_theta /= theta .or. old_phi /= phi .or. old_psi /= psi) then
-    s_the = sin(theta); c_the = cos(theta)
-    s_phi = sin(phi);   c_phi = cos(phi)
-    s_psi = sin(psi);   c_psi = cos(psi)
-    w_mat(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
-    w_mat(1,2) = -c_the * s_psi - s_the * s_phi * c_psi
-    w_mat(1,3) =  s_the * c_phi
-    w_mat(2,1) =  c_phi * s_psi
-    w_mat(2,2) =  c_phi * c_psi
-    w_mat(2,3) =  s_phi 
-    w_mat(3,1) = -s_the * c_psi - c_the * s_phi * s_psi
-    w_mat(3,2) =  s_the * s_psi - c_the * s_phi * c_psi 
-    w_mat(3,3) =  c_the * c_phi
+    call floor_angles_to_w_mat (theta, phi, psi, w_mat)
   endif
 
   !
@@ -275,23 +268,7 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
   ! if there has been a rotation calculate new theta, phi, and psi
 
   if (key == sbend$ .or. key == patch$ .or. key == multipole$ .or. key == mirror$) then
-    if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then ! special degenerate case
-      ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
-      theta = floor0%theta  
-      if (w_mat(2,3) > 0) then
-        phi = pi/2
-        psi = atan2(-w_mat(3,1), w_mat(1,1)) - theta
-      else
-        phi = -pi/2
-        psi = atan2(w_mat(3,1), w_mat(1,1)) + theta
-      endif
-    else  ! normal case
-      theta = atan2 (w_mat(1,3), w_mat(3,3))
-      theta = theta - twopi_dp * &
-                       nint((theta - floor0%theta) / twopi_dp)
-      phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
-      psi = atan2 (w_mat(2,1), w_mat(2,2))
-    endif
+    call floor_w_mat_to_angles (w_mat, floor0%theta, theta, phi, psi)
   endif
 
   old_theta = theta
@@ -331,5 +308,101 @@ floor%y = pos(2)
 floor%z = pos(3)
 floor%theta = theta
 floor%phi   = phi
+floor%psi   = psi
 
 end subroutine
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat)
+!
+! Routine to construct the W matrix that specifies the orientation of an element
+! in the global "floor" coordinates. See the Bmad manual for more details.
+!
+! Modules needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   theta -- Real(rp): Azimuth angle.
+!   phi   -- Real(rp): Pitch angle.
+!   psi   -- Real(rp): Roll angle.
+!
+! Output:
+!   w_mat(3,3) -- Real(rp): Orientation matrix.
+!-
+
+subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat)
+
+implicit none
+
+real(rp) theta, phi, psi, w_mat(3,3)
+real(rp) s_the, c_the, s_phi, c_phi, s_psi, c_psi
+
+!
+
+s_the = sin(theta); c_the = cos(theta)
+s_phi = sin(phi);   c_phi = cos(phi)
+s_psi = sin(psi);   c_psi = cos(psi)
+w_mat(1,1) =  c_the * c_psi - s_the * s_phi * s_psi
+w_mat(1,2) = -c_the * s_psi - s_the * s_phi * c_psi
+w_mat(1,3) =  s_the * c_phi
+w_mat(2,1) =  c_phi * s_psi
+w_mat(2,2) =  c_phi * c_psi
+w_mat(2,3) =  s_phi 
+w_mat(3,1) = -s_the * c_psi - c_the * s_phi * s_psi
+w_mat(3,2) =  s_the * s_psi - c_the * s_phi * c_psi 
+w_mat(3,3) =  c_the * c_phi
+
+end subroutine
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! subroutine floor_w_mat_to_angles (theta, theta0, phi, psi, w_mat)
+!
+! Routine to construct the angles that define the orientation of an element
+! in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
+!
+! Modules needed:
+!   use lat_geometry_mod
+!
+! Input:
+!   w_mat(3,3) -- Real(rp): Orientation matrix.
+!   theta0     -- Real(rp): The output theta will be in the range:
+!                   [theta0 - pi, theta + pi].
+!
+! Output:
+!   theta -- Real(rp): Azimuth angle.
+!   phi   -- Real(rp): Pitch angle.
+!   psi   -- Real(rp): Roll angle.
+!-
+
+subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)
+
+implicit none
+
+real(rp) theta0, theta, phi, psi, w_mat(3,3)
+
+if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then ! special degenerate case
+  ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
+  theta = theta0  
+  if (w_mat(2,3) > 0) then
+    phi = pi/2
+    psi = atan2(-w_mat(3,1), w_mat(1,1)) - theta
+  else
+    phi = -pi/2
+    psi = atan2(w_mat(3,1), w_mat(1,1)) + theta
+  endif
+else  ! normal case
+  theta = atan2 (w_mat(1,3), w_mat(3,3))
+  theta = theta - twopi * nint((theta - theta0) / twopi)
+  phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
+  psi = atan2 (w_mat(2,1), w_mat(2,2))
+endif
+
+end subroutine
+
+end module

@@ -266,14 +266,6 @@ interface
 end interface
 
 interface
-  subroutine ele_geometry (floor0, ele, floor)
-    use bmad_struct, only: floor_position_struct, ele_struct
-    type (ele_struct) ele
-    type (floor_position_struct) floor0, floor
-  end subroutine
-end interface
-
-interface
   subroutine emit_calc (lat, what, mode)
     use bmad_struct, only: lat_struct, normal_modes_struct
     implicit none
@@ -686,14 +678,6 @@ interface
     type (ele_struct) ele1
     type (ele_struct) ele2
   end function
-end interface
-
-interface
-  subroutine lat_geometry (lat)
-    use bmad_struct, only: lat_struct
-    implicit none
-    type (lat_struct) lat
-  end subroutine
 end interface
 
 interface

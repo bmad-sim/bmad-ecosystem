@@ -5,6 +5,7 @@ module bookkeeper_mod
 use bmad_interface
 use bmad_utils_mod
 use multipole_mod
+use lat_geometry_mod
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4

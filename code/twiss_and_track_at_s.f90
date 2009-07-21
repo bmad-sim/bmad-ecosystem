@@ -33,6 +33,7 @@ subroutine twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, ix_branch, err)
 
 use bmad_struct
 use bmad_interface, except_dummy => twiss_and_track_at_s
+use lat_geometry_mod
 
 implicit none
 
