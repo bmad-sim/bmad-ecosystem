@@ -1124,6 +1124,7 @@ case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
   case ('rel_floor.z')
     datum_value = vec3(3)
   end select
+  valid_value = .true.
 
 case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
   call floor_angles_to_w_mat (-ele0%floor%theta, -ele0%floor%phi, -ele0%floor%psi, w0_mat)
