@@ -316,12 +316,13 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct) :: lat
 type (ele_struct) :: ele
+type (ele_struct) :: drift
 type (ele_struct), pointer :: ele1, ele2
-type (floor_position_struct) end1, end2, floor
+type (floor_position_struct) end1, end2, floor, x_ray
 type (tao_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape
 
-integer i, j, k, ix_shape, icol, isu, n_bend, n, ix
+integer i, j, k, ix_shape, icol, isu, n_bend, n, ix, ixs, ic
 
 real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
@@ -438,6 +439,20 @@ if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
   if (shape == 'ASYM_VAR_BOX') off1 = 0
 endif
 
+! x-ray line parameters if present
+
+if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
+  call init_ele(drift)
+  drift%key = drift$
+  drift%value(l$) = ele%value(x_ray_line_len$)
+  call ele_geometry (ele1%floor, drift, drift%floor) 
+  drift%floor%x = drift%floor%x + (ele2%floor%x - ele1%floor%x) / 2
+  drift%floor%y = drift%floor%y + (ele2%floor%y - ele1%floor%y) / 2
+  drift%floor%z = drift%floor%z + (ele2%floor%z - ele1%floor%z) / 2
+  call floor_to_screen_coords (drift%floor, x_ray)
+  call qp_convert_point_abs (x_ray%x, x_ray%y, 'DATA', x_ray%x, x_ray%y, 'POINTS')
+endif
+
 ! Draw the shape. Since the conversion from floor coords to screen coords can
 ! be different along x and y, we convert to screen coords to make sure that rectangles
 ! remain rectangular.
@@ -465,6 +480,19 @@ if (ele%key == sbend$) then
 endif
 
 ! Draw the element...
+
+! Draw x-ray line
+
+if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
+  drift%key = photon_branch$
+  drift%name = ele%name
+  call tao_find_ele_shape (drift, tao_com%ele_shape_floor_plan, ele%ix_ele, ixs)
+  if (ixs > 0) then
+    call qp_translate_to_color_index (tao_com%ele_shape_floor_plan(ixs)%color, ic)
+    call qp_draw_line (x_ray%x, end2%x, x_ray%y, end2%y, units = 'POINTS', color = ic)
+  endif
+endif
+
 ! Draw diamond
 
 if (shape == 'DIAMOND') then

@@ -345,6 +345,7 @@ type tao_global_struct
   real(rp) y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
+  real(rp) floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   integer u_view = 1                  ! Which universe we are viewing.
   integer n_opti_cycles = 20          ! number of optimization cycles
   integer n_opti_cycles = 1           ! number of optimization loops
@@ -1903,6 +1904,9 @@ The namelist syntax is the same for both:
   &element_shapes_lat_layout
     ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
   /
+  &element_shapes_floor_plan
+    ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+  /
 \end{example}
 For Example:                 
 \begin{example}
@@ -1915,12 +1919,16 @@ For Example:
   /
 \end{example}
 A figure is drawn for each element in the lattice that matches a
-\vn{<class:name>} (\sref{s:class:name}) of any \vn{ele_shape(:)}. 
-Thus, in the
-example above, \vn{ele_shape(1)} will match to all quadrupoles whose name
-begins with ``q'' and \vn{ele_shape(2)} will match all quadrupoles. If an
-element matches more than one shape the last shape matched will be
-used. \vn{<shape>} is the shape of the figure drawn. Valid Shapes are:
+\vn{<class:name>} (\sref{s:class:name}) of any \vn{ele_shape(:)}.
+Thus, in the example above, \vn{ele_shape(1)} will match to all
+quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
+match all quadrupoles. If an element matches more than one shape the
+last shape matched will be used. For a floor plan, for \vn{wiggler}s that have an
+\vn{x_ray_line_len} attribute, The X-ray line will be drawn if an
+ele_shape for a \vn{photon_branch} is present.
+
+The \vn{<shape>} parameter is the shape of the figure
+drawn. Valid Shapes are:
 \index{Box}\index{Xbox}
 \begin{example}
   "box"             -- Rectangular box

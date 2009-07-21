@@ -2611,7 +2611,7 @@ type (floor_position_struct) floor, screen
 !
 
 call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
-screen%theta = pi + floor%theta
+screen%theta = pi + floor%theta + twopi * s%global%floor_plan_rotation
 
 end subroutine floor_to_screen_coords
 
@@ -2624,14 +2624,28 @@ subroutine floor_to_screen (x_floor, y_floor, z_floor, x_screen, y_screen)
 implicit none
 
 real(rp) x_floor, y_floor, z_floor, x_screen, y_screen
+real(rp), save :: t, old_t = 0
+real(rp), save :: cc, ss
 
 ! Mapping from floor coords to screen coords is:
 !   Floor   Screen 
 !    z   ->  -x
 !    x   ->  -y
 
-x_screen = -z_floor
-y_screen = -x_floor
+t = s%global%floor_plan_rotation
+
+if (t == 0) then
+  x_screen = -z_floor
+  y_screen = -x_floor
+else
+  if (t /= old_t) then
+    cc = cos(twopi * t)
+    ss = sin(twopi * t)
+    old_t = t
+  endif
+  x_screen = -z_floor * cc - x_floor * ss
+  y_screen =  z_floor * ss - x_floor * cc 
+endif
 
 end subroutine floor_to_screen
 

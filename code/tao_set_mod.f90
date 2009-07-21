@@ -918,7 +918,7 @@ end subroutine tao_set_data_cmd
 !
 ! Input:
 !  uni       -- Character(*): which universe; 0 => current viewed universe
-!  what      -- Character(*): "on", "off", or "recalculate"
+!  what      -- Character(*): "on", "off", "recalculate", or mat6_recalc
 !
 ! Output:
 !  s%u(uni)%is_on
@@ -934,11 +934,37 @@ integer i, n_uni
 character(*) uni, what
 character(20) :: r_name = "tao_set_universe_cmd"
 
-logical is_on, err, recalc
+logical is_on, err, recalc, mat6_toggle
+
+
+! Pick universe
+
+if (uni /= '*') then
+  call tao_to_int (uni, n_uni, err)
+  if (err) return
+  if (n_uni < -1 .or. n_uni > ubound(s%u, 1)) then
+    call out_io (s_warn$, r_name, "Invalid Universe specifier")
+    return 
+  endif
+  n_uni = tao_universe_number (n_uni)
+endif
 
 !
 
+if (index('mat6_recalc', trim(what)) == 1) then
+  if (uni == '*') then
+    s%u(:)%mat6_recalc_on = .not. s%u(:)%mat6_recalc_on
+  else
+    s%u(n_uni)%mat6_recalc_on = .not. s%u(n_uni)%mat6_recalc_on
+  endif
+  tao_com%lattice_recalc = .true.
+  return
+endif
+  
+!
+
 recalc = .false.
+
 if (what(1:2) == 'on') then
   is_on = .true.
   recalc = .true.
@@ -947,7 +973,7 @@ elseif (what(1:3) == 'off') then
 elseif (index('recalculate', trim(what)) == 1) then
   recalc = .true.
 else
-  call out_io (s_error$, r_name, "Choices are: 'on', 'off', or 'recalculate'")
+  call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', or 'mat6_recalc")
   return
 endif
 
@@ -957,13 +983,6 @@ if (uni == '*') then
   call out_io (s_blank$, r_name, "Setting all universes to: " // on_off_logic(is_on))
   s%u(:)%is_on = is_on
 else
-  call tao_to_int (uni, n_uni, err)
-  if (err) return
-  if (n_uni < -1 .or. n_uni > ubound(s%u, 1)) then
-    call out_io (s_warn$, r_name, "Invalid Universe specifier")
-    return 
-  endif
-  n_uni = tao_universe_number (n_uni)
   s%u(n_uni)%is_on = is_on
   call out_io (s_blank$, r_name, "Setting universe \i0\ to: " // on_off_logic(is_on), n_uni)
 endif

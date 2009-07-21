@@ -1821,6 +1821,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
+  nl=nl+1; write (lines(nl), lmt) '%mat6_recalc_on        = ', u%mat6_recalc_on
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(uni_branch%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(uni_branch%beam_all_file)
