@@ -33,9 +33,6 @@ global/create bbujobtxt
 exec bbujob [jobid]
 title_g [bbujobtxt]
 *
-vec/cr irep(2000) r 2000*0
-vec/cr curr(2000) r 2000*0.
-*
 if [jobid]=0 then
   fname='../local/rep.out'
   if $fexist([fname])=0 then
@@ -51,27 +48,36 @@ else
  endif
 endif
 *
-vec/read irep,curr [fname]
-len=$vlen(irep,1)
-if [len]=0 then
+*
+ntid=11
+*
+ntunit=61
+h/file [ntunit] rep.rz 1024 N
+rzpath='//lun'//[ntunit]
+*
+if [jobid].lt.163 then
+ nt/create [ntid] 'BBU Data' 2 [rzpath] ! irep curr
+else
+ nt/create [ntid] 'BBU Data' 10 [rzpath] ! irep curr ie ie2 s freqin freq roq q angle
+endif
+
+* Limit the number of events read in order to avoid memory error
+*nt/read [ntid] [fname] ! ! 100000
+nt/read [ntid] [fname] 
+
+nent=$hinfo([ntid],'ENTRIES'
+mess Macro REP finds [nent] entries
+if [nent]=0 then
  mess No data found in file [fname], quitting
  goto QUIT
 endif
 *
-v/copy curr(1:[len]) currt
-v/oper/vscale currt 1000. currt
-*
-x1=$sigma(vmin(currt))
-x2=$sigma(vmax(currt))
-xmi=1.1*[x1]-0.1*[x2]
-xma=1.1*[x2]-.1*[x1]
-mess 'xmi,xma=' [xmi] [xma]
-*
-1d 100 ' ' 40 [xmi] [xma] 0.
-v/hfill currt(1:[len]) 100
-h/pl 100
+zone 1 2
+nt/pl [ntid].1000*curr
 atit 'Threshold Current (mA)' ' ' ' ' 222
-h/del 100
+opt nstat
+nt/pl [ntid].s
+atit 'Critical Cavity S Position (m)' ' ' ' ' 222
 *
 psname = 'rep_'//[jobid]//'.ps'
 exec ~/.pawlogon#makeps file=[psname] type=-111

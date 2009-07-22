@@ -208,9 +208,9 @@ do istep = 1, nstep
     print *, 'Critical HOM: Q:               ', lat%ele(ie)%wake%lr(i_lr)%q
     print *, 'Critical HOM: Angle:           ', lat%ele(ie)%wake%lr(i_lr)%angle
 
-    if (bbu_param%nrep.gt.1)write(55,*) &
+    if (bbu_param%nrep.gt.1)write(55,'(i6,e14.6,2i7,6(e14.6,1x))') &
         irep, beam_init%bunch_charge / beam_init%dt_bunch , &
-        ie2, lat%ele(ie2)%s, lat%ele(ie)%wake%lr(i_lr)%freq_in, &
+        ie, ie2, lat%ele(ie)%s, lat%ele(ie)%wake%lr(i_lr)%freq_in, &
         lat%ele(ie)%wake%lr(i_lr)%freq, lat%ele(ie)%wake%lr(i_lr)%r_over_q, &
         lat%ele(ie)%wake%lr(i_lr)%q, lat%ele(ie)%wake%lr(i_lr)%angle
 
