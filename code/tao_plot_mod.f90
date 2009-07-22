@@ -374,8 +374,8 @@ if (ele%key == sbend$) then
 
     rho = ele%value(rho$)
 
-    n_bend = abs(int(100 * ele%value(angle$))) + 1
-     do j = 0, n_bend
+    n_bend = min(abs(int(100 * ele%value(angle$))) + 1, ubound(x_bend, 1))
+    do j = 0, n_bend
       angle = j * ele%value(angle$) / n_bend
       cos_t = cos(ele%value(tilt$))
       sin_t = sin(ele%value(tilt$))
