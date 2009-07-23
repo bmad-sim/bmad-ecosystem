@@ -445,10 +445,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   call init_ele(drift)
   drift%key = drift$
   drift%value(l$) = ele%value(x_ray_line_len$)
-  call ele_geometry (ele1%floor, drift, drift%floor) 
-  drift%floor%x = drift%floor%x + (ele2%floor%x - ele1%floor%x) / 2
-  drift%floor%y = drift%floor%y + (ele2%floor%y - ele1%floor%y) / 2
-  drift%floor%z = drift%floor%z + (ele2%floor%z - ele1%floor%z) / 2
+  call ele_geometry (ele2%floor, drift, drift%floor) 
   call floor_to_screen_coords (drift%floor, x_ray)
   call qp_convert_point_abs (x_ray%x, x_ray%y, 'DATA', x_ray%x, x_ray%y, 'POINTS')
 endif
