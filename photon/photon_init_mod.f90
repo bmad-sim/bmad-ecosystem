@@ -8,24 +8,42 @@ use nr, only: erf_s
 integer, private, parameter :: sigma_cut = 5, n_pts_per_sigma = 20
 integer, private, parameter :: n_g = sigma_cut*n_pts_per_sigma
 
-
 contains
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_init (rho, E_beam)
+! Subroutine photon_init (g_bend, gamma, orbit)
 !
-! Routine to 
+! Routine to initalize a photon
+!
+! Modules needed:
+!   use photon_init_mod
+!
+! Input:
+!   g_bend -- Real(rp): Bending 1/rho.
+!   gamma  -- Real(rp): Relativistic beam gamma factor.
+!
+! output:
+!   orbit(6) -- Real(rp): Orbit at the emission point.
+!-
 
-Subroutine photon_init (rho, E_beam)
+subroutine photon_init (g_bend, gamma, orbit)
 
 implicit none
 
-real(rp) rho, E_beam
+real(rp) g_bend, gamma, orbit(6)
+real(rp) E_rel, gamma_phi
 
-!call ran_uniform(r)
+!
+
+call photon_energy_init (E_rel)
+call photon_vert_angle_init (E_rel, gamma_phi)
+
+orbit = 0
+orbit(4) = gamma_phi / gamma
+orbit(6) = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / (2 * e_charge)
 
 end subroutine
 
@@ -33,7 +51,7 @@ end subroutine
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_vert_angle_init (r_in, E_rel, gamma_phi)
+! Subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
 !
 ! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
 ! angle for a simple bend.
@@ -44,7 +62,8 @@ end subroutine
 !   use photon_init_mod
 !
 ! Input:
-!   r_in  -- Real(rp): Random number in the range [0,1].
+!   r_in  -- Real(rp), optional: number in the range [0,1].
+!             If not present, a random number will be used.
 !   E_rel -- Real(rp): Relative photon energy E/E_crit. 
 ! 
 ! Output:
@@ -52,15 +71,14 @@ end subroutine
 !                 phi is the vertical photon angle (in radians).
 !-
 
-subroutine photon_vert_angle_init (r_in, E_rel, gamma_phi)
+subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
 
 implicit none
 
-real(rp) s1, s2, r_in, e_rel, gamma_phi
+real(rp), optional :: r_in
+real(rp) s1, s2, rr, e_rel, gamma_phi
 real(rp), save :: g1(0:n_g), g2(0:n_g)
 real(rp) r, ss, x, log_E, frac, c1, c2
-integer i, ix
-logical, save :: init_needed = .true.
 
 real(rp) :: rel_amp(0:32) = (/ &
                   0.249546, 0.249383, 0.249162, 0.248862, 0.248454, &
@@ -70,6 +88,9 @@ real(rp) :: rel_amp(0:32) = (/ &
                   0.120465, 0.0974421, 0.0755035, 0.0560654, 0.0400306, &
                   0.0276386, 0.018578, 0.0122386, 0.00794693, 0.00510924, &
                   0.00326308, 0.00207494, 0.0013157 /)
+
+integer i, ix
+logical, save :: init_needed = .true.
 
 ! Init
 
@@ -119,11 +140,17 @@ c2 = r / (1 + r)
 
 ! Now use this to generate a Gaussian
 
-if (r_in > 0.5) then
-  r = r_in - 0.5
+if (present(r_in)) then
+  rr = r_in
+else
+  call ran_uniform(rr)
+endif
+
+if (rr > 0.5) then
+  r = rr - 0.5
   ss = 1
 else
-  r = 0.5 - r_in
+  r = 0.5 - rr
   ss = -1
 endif
 
@@ -169,7 +196,7 @@ end subroutine
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_energy_init (r_in, E_rel)
+! Subroutine photon_energy_init (E_rel, r_in)
 !
 ! Routine to convert a random number in the interval [0,1] to a photon energy.
 ! The photon probability spectrum is:
@@ -184,18 +211,20 @@ end subroutine
 !   use photon_init_mod
 !
 ! Input:
-!   r_in  -- Real(rp): Random number in the range [0,1].
+!   r_in  -- Real(rp), optional: Number in the range [0,1].
+!             If not present, a random number will be used.
 !
 ! Output:
 !   E_rel -- Real(rp): Relative photon energy E/E_crit. 
 !-
 
-subroutine photon_energy_init (r_in, E_rel)
+subroutine photon_energy_init (E_rel, r_in)
 
 implicit none
 
-real(rp) r_in, E_rel
-real(rp) a, b2, t, r, r_rel
+real(rp) E_rel
+real(rp), optional :: r_in
+real(rp) a, b2, t, rr, r, r_rel
 
 real(rp), parameter :: f2(0:100) = (/ &
               0.0, 5.35337e-7, 4.28341e-6, 0.0000144605, &
@@ -233,25 +262,31 @@ real(rp), parameter :: f7(0:11) = (/ 11.1934, 11.2942, 11.4069, 11.5347, &
 
 integer i
 
-! f2 maps r_in in the range [0, 0.99] to E_rel in steps of 0.01.
-! f3 maps r_in in the range [0.99, 0.999] to E_rel in steps of 0.001.
-! f4 maps r_in in the range [0.999, 0.9999] to E_rel in steps of 0.0001.
-! f5 maps r_in in the range [0.9999, 0.99999] to E_rel in steps of 0.00001.
-! f6 maps r_in in the range [0.99999, 0.999999] to E_rel in steps of 1E-6.
-! f7 maps r_in in the range [0.999999, 1.0] to E_rel in steps of 1E-7.
+! f2 maps rr in the range [0, 0.99] to E_rel in steps of 0.01.
+! f3 maps rr in the range [0.99, 0.999] to E_rel in steps of 0.001.
+! f4 maps rr in the range [0.999, 0.9999] to E_rel in steps of 0.0001.
+! f5 maps rr in the range [0.9999, 0.99999] to E_rel in steps of 0.00001.
+! f6 maps rr in the range [0.99999, 0.999999] to E_rel in steps of 1E-6.
+! f7 maps rr in the range [0.999999, 1.0] to E_rel in steps of 1E-7.
 ! Things are smooth enough to use a simple linear interpolation.
 ! Note: all the arrays are paded with an extra value to prevent
 ! array out of bounds problems due to rounding.
 ! The very last bin is a fudge but the width of this bin is 1e-7.
 
-if (r_in < 0  .or. r_in > 1) then
-  print *, 'ERROR: R_IN IS OUT OF RANGE: ', r_in
+if (present(r_in)) then
+  rr = r_in
+else
+  call ran_uniform(rr)
+endif
+
+if (rr < 0  .or. rr > 1) then
+  print *, 'ERROR: RR IS OUT OF RANGE: ', rr
   stop
 endif
 
 ! If in range of f2:
 
-r_rel = 100 * r_in
+r_rel = 100 * rr
 if (r_rel <= 99) then 
   i = int(r_rel)
   r = r_rel - i
