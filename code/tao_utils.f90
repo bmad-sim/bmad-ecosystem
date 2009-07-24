@@ -918,7 +918,7 @@ character(16), parameter :: logic_components(6) = &
              'good_plot' /)
 character(16), parameter :: integer_components(4) = &
           (/ 'ix_ele ', 'ix_ele0', 'ix_d1  ', 'ix_uni ' /)
-character(16), parameter :: string_components(3) = (/ 'merit_type', 'ele_name', 'ele0_name' /)
+character(16), parameter :: string_components(3) = (/ 'merit_type', 'ele_name  ', 'ele0_name ' /)
 
 integer, optional :: ix_uni
 integer :: data_num, ios, n_found
