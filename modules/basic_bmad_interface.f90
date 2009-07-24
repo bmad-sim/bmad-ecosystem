@@ -439,8 +439,8 @@ interface
     use bmad_struct, only: ele_struct, rp
     implicit none
     type (ele_struct) ele
-    real(rp) v_mat(4,4)
-    real(rp) v_inv_mat(4,4)
+    real(rp), optional :: v_mat(4,4)
+    real(rp), optional :: v_inv_mat(4,4)
   end subroutine
 end interface
 
