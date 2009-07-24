@@ -1092,7 +1092,7 @@ implicit none
 integer ix_cmd, ix
 
 character(*) how
-character(n_parse_line+20) line, pending_line
+character(n_parse_line+20), save :: line, pending_line
 
 logical :: cmd_pending = .false., file_end
 
