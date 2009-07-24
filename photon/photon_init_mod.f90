@@ -6,6 +6,8 @@ use nr, only: erf_s
 
 integer, private, parameter :: sigma_cut = 5, n_pts_per_sigma = 20
 integer, private, parameter :: n_g = sigma_cut*n_pts_per_sigma
+real(rp), private, save :: s1, s2, c1, c2
+real(rp), private, save :: g1(0:n_g), g2(0:n_g)
 
 contains
 
@@ -75,9 +77,8 @@ subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
 implicit none
 
 real(rp), optional :: r_in
-real(rp) s1, s2, rr, e_rel, gamma_phi
-real(rp), save :: g1(0:n_g), g2(0:n_g)
-real(rp) r, ss, x, log_E, frac, c1, c2
+real(rp) e_rel, gamma_phi
+real(rp) rr, r, ss, x, log_E, frac
 
 real(rp) :: rel_amp(0:32) = (/ &
                   0.249546, 0.249383, 0.249162, 0.248862, 0.248454, &
@@ -155,8 +156,11 @@ endif
 
 gamma_phi = ss * inverse (g_tot, r, 0.0_rp, sigma_cut * max(s1, s2), 0.0001_rp)
 
-!-------------------------------------------------------------
-contains
+end subroutine
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
 
 function g_tot(x) result (g)
 
@@ -188,8 +192,6 @@ else
 endif
 
 end function
-
-end subroutine
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
