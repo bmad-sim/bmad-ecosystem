@@ -2741,6 +2741,7 @@ do i = 1, size(s%plot_region)
   if (.not. s%plot_region(i)%visible) cycle
   do j = 1, size(s%plot_region(i)%plot%graph)
     graph => s%plot_region(i)%plot%graph(j)
+    if (.not. allocated(graph%curve)) cycle
     do k = 1, size(graph%curve)
       curve => graph%curve(k)
       u => tao_pointer_to_universe(curve%ix_universe)

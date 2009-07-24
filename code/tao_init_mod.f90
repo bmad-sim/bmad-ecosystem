@@ -1019,17 +1019,21 @@ if (.not. logic_option(.false., exact) .and. n_data < size(u%data)) return
 ! If not exact then allocate more space than needed to reduce the number
 ! of times we need to reallocate stuff.
 
-n0 = min(n_data, size(u%data))
-allocate (data(n0))
-data = u%data(1:n0)
-deallocate (u%data)
-if (logic_option(.false., exact)) then
-  allocate (u%data(n_data))
+if (allocated(u%data)) then
+  n0 = min(n_data, size(u%data))
+  allocate (data(n0))
+  data = u%data(1:n0)
+  deallocate (u%data)
+  if (logic_option(.false., exact)) then
+    allocate (u%data(n_data))
+  else
+    allocate (u%data(2*n_data))
+  endif
+  u%data(1:n0) = data
+  deallocate (data)
 else
-  allocate (u%data(2*n_data))
+  allocate(u%data(n_data))
 endif
-u%data(1:n0) = data
-deallocate (data)
 
 ! Since the data array gets reallocated the pointer from d1 to the datums must 
 ! be reestablished.
@@ -1063,6 +1067,7 @@ do i = n0+1, size(u%data)
   u%data(i)%ele0_name  = ''
   u%data(i)%ix_ele0    = -1 
   u%data(i)%ix_data    = i
+  u%data(i)%ix_branch  = 0
 enddo
   
 end subroutine tao_allocate_data_array

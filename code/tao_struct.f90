@@ -183,8 +183,6 @@ end type
 ! plot page info.
 
 type tao_plot_page_struct               
-  type (tao_title_struct) title(2)   ! Titles at top of page.
-  type (qp_rect_struct) border       ! Border around plots edge of page.
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) :: shape_height_max = 40  ! maximum half height for drawing elements.
   real(rp) size(2)                   ! width and height of window in pixels.
@@ -199,6 +197,8 @@ type tao_plot_page_struct
   real(rp) :: curve_legend_text_offset = 10 ! Points
   integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
   integer id_window                  ! X window id number.
+  type (tao_title_struct) title(2)   ! Titles at top of page.
+  type (qp_rect_struct) border       ! Border around plots edge of page.
 end type
 
 ! Arrays of structures

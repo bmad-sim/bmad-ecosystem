@@ -86,12 +86,12 @@ type tao_curve_input
   logical use_y2
   logical draw_interpolated_curve
   logical smooth_line_calc
-  type (qp_line_struct) line
-  type (qp_symbol_struct) symbol
   character(40) ele_ref_name
   integer ix_branch
   integer ix_ele_ref
   integer ix_bunch
+  type (qp_line_struct) line
+  type (qp_symbol_struct) symbol
 end type
 
 type tao_graph_input
@@ -103,6 +103,10 @@ type tao_graph_input
   integer ix_universe
   integer ix_branch
   integer n_curve
+  logical clip
+  logical draw_axes
+  logical correct_xy_distortion
+  logical draw_curve_legend     ! For identifying curves. 
   type (qp_point_struct) legend_origin  ! For backwards compatibility
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
@@ -111,20 +115,16 @@ type tao_graph_input
   type (qp_axis_struct) x
   type (qp_axis_struct) y
   type (qp_axis_struct) y2
-  logical clip
-  logical draw_axes
-  logical correct_xy_distortion
-  logical draw_curve_legend     ! For identifying curves. 
 end type 
 
 type tao_plot_input
   character(40) name
-  type (qp_axis_struct) x
   character(16) x_axis_type
   integer n_graph
   logical independent_graphs
   logical autoscale_gang_x      ! scale cmd scales graphs independently?
   logical autoscale_gang_y      ! scale cmd scales graphs independently?
+  type (qp_axis_struct) x
 end type
 
 !-------------------------------------------------------------
