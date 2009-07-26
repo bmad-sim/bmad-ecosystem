@@ -1,12 +1,12 @@
 !+
-! Program photoelectron
+! Program synrad3d
 !
 ! Program to calculate photoelectron distributions in a lattice
 !-
 
-program photoelectron
+program synrad3d
 
-use photon_mod
+use synrad_3d
 
 implicit none
 
@@ -16,11 +16,11 @@ type (lat_struct), target :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orbit_here
 type (rad_int_common_struct) rad_int_ele
-type (photon_coord_struct), allocatable :: photons(:)
+type (photon_track_struct), allocatable :: photons(:)
 
 real(rp) ds_step_min, d_i2, i2_tot, ds, gx, gy
 
-integer i
+integer ix_ele
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_pt
 
@@ -59,13 +59,13 @@ d_i2 = i2_tot / num_photons
 n_photon_tot = 0
 allocate (photons(1.1*num_photons))   ! Allow for some slop
 
-i = ix_ele_track_start
+ix_ele = ix_ele_track_start
 do 
 
-  i = i + 1
-  if (i > lat%n_ele_track) i = 1
+  ix_ele = ix_ele + 1
+  if (ix_ele > lat%n_ele_track) ix_ele = 1
 
-  ele => lat%ele(i)
+  ele => lat%ele(ix_ele)
 
   n_pt = nint(rad_int_ele(i)%i2 / d_i2)
   if (n_pt == 0) cycle
@@ -85,7 +85,9 @@ do
     n_photon_here = nint((gx**2 + gy**2) * ds / d_i2)
     do j = 1, n_photon_here
       photon => photons(n_photon_tot + j)
-      call emit_photon (ele_here, orb_here, gx, gy, photon_direction, photon)
+      call emit_photon (ele_here, orb_here, gx, gy, &
+                             gx, gy, emit_a, emit_b, photon_direction, photon%init)
+      photon%ix_source = i
       call track_photon (photon, lat)
     enddo
     n_photon_tot = n_photon_tot + n_photon_here
@@ -95,7 +97,7 @@ do
 
   enddo
 
-  if (i == ix_ele_track_end) exit
+  if (ix_ele == ix_ele_track_end) exit
 
 enddo
 

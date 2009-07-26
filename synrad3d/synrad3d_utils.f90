@@ -131,19 +131,21 @@ end subroutine
 !   photon    -- photon_coord_struct: Generated photon.
 !-
 
-subroutine emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, photon_direction, photon)
+subroutine emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon)
 
 implicit none
 
-type (ele_struct) :: ele_here
+type (ele_struct), target :: ele_here
 type (coord_struct) :: orb_here
 type (photon3d_coord_struct) :: photon
+type (twiss_struct), pointer :: t
 
-real(rp) orb(6)
+real(rp) emit_a, emit_b, sig_e
+real(rp) orb(6), r(3), vec(4)
 
 integer photon_direction
 
-! Get photon energy and "vertical angle"
+! Get photon energy and "vertical angle".
 
 g_tot = sqrt(gx**2 + gy**2)
 convert_total_energy_to (ele_here%value(E_tot$), electron$, gamma) 
@@ -151,7 +153,6 @@ call photon_init (g_tot, gamma, orb)
 photon%energy = orb(6)
 photon%vec = 0
 photon%vec(4) = orb(4) / sqrt(orb(4)**2 + 1)
-photon%vec(6) = direction / sqrt(orb(4)**2 + 1)
 
 ! rotate photon if gy is non-zero
 
@@ -162,11 +163,32 @@ endif
 
 ! Offset due to finite beam size
 
+call ran_gauss(r)
+t => ele_here%a
+vec(1:2) = (/ sqrt(t%beta*emit_a) * r(1)                   + t%eta  * sig_e * r(3), &
+              sqrt(emit_a/t%beta) * (r(2) + t%alpha * r(1) + t%etap * sig_e * r(3) /)
 
+call ran_gauss(r)
+t => ele_here%b
+vec(3:4) = (/ sqrt(t%beta*emit_b) * r(1)                   + t%eta  * sig_e * r(3), &
+              sqrt(emit_b/t%beta) * (r(2) + t%alpha * r(1) + t%etap * sig_e * r(3) /)
+
+call make_v_mats (ele_here, v_mat)
+
+photon_vec(1:4) = photon%vec(1:4) + matmul(v_mat, vec)
 
 ! Offset due to non-zero orbit.
 
 photon%vec(1:4) = photon%vec(1:4) + orb_here(1:4)
+
+! Longitudinal position
+
+photon%vec(5) = ele_here%s
+
+! Note: phase space coords here are different from the normal beam and photon coords.
+! Here vec(2)^2 + vec(4)^2 + vec(6)^2 = 1
+
+photon%vec(6) = direction / sqrt(orb(2)**2 + orb(4)**2 + 1)
 
 end subroutine
 
@@ -174,42 +196,68 @@ end subroutine
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine wall_at_s (wall, s, wall_pt)
+! Subroutine photon_radius (wall, photon)
 !
-! Routine to calculate the wall dimensions at a given longitudinal point s.
+! Routine to calculate the normalized transverse position of the photon 
+! relative to the wall: 
+!     radius = 0 => Center of the beam pipe 
+!     radius = 1 => at wall.
+!     radius > 1 => Outside the beam pipe.
+! Actually what is computed is radius2, the radius squared, which avoids a potentially
+! needless sqrt evaluation.
 !
 ! Modules needed:
 !   use photon_utils
 !
 ! Input:
-!   wall -- wall_2d_struct: Wall
+!   wall -- wall_3d_struct: Wall
 !   s    -- Real(rp): Longitudinal position.
 !
 ! Output:
-!   wall_pt -- wall_2d_pt_struct: Wall dimensions at s.
+!   wall_pt -- wall_3d_pt_struct: Wall dimensions at s.
 !-
 
-subroutine wall_at_s (wall, s, wall_pt)
+subroutine photon_radius (wall, p_orb)
 
 implicit none
 
-type (wall_2d_struct) wall
-type (wall_2d_pt_struct) wall_pt
+type (wall_3d_struct) wall
 
-real(rp) s, r
+real(rp) r0, r1, f
 integer ix
 
 !
 
-call bracket_index (wall%pt%s, 0, wall%n_pt_max, s, ix)
+vec => p_orb%vec
+call bracket_index (wall%pt%s, 0, wall%n_pt_max, vec(5), ix)
+if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
 
-if (ix == wall%n_pt_max) then
-  wall_pt = wall%pt(ix)
+!
+
+wall0 => wall%pt(ix)
+if (wall0%type == rectangular$) then
+  if (abs(vec(1)/wall0%width2) > abs(vec(3)/wall0%height2)) then
+    r0 = vec(1)/wall0%width2
+  else
+    r0 = vec(3)/wall0%height2
+  endif
 else
-  wall_pt%s = s
-  r = (s - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
-  wall_pt%width2 = (1 - r) * wall%pt(ix)%width2 + r * wall%pt(ix)%width2
+  r0 = sqrt((vec(1)/wall0%width2)**2 + (vec(3)/wall0%height2)**2)
 endif
+
+wall1 => wall%pt(ix+1)
+if (wall1%type == rectangular$) then
+  if (abs(vec(1)/wall1%width2) > abs(vec(3)/wall1%height2)) then
+    r1 = vec(1)/wall1%width2
+  else
+    r1 = vec(3)/wall1%height2
+  endif
+else
+  r1 = sqrt((vec(1)/wall1%width2)**2 + (vec(3)/wall1%height2)**2)
+endif
+
+f = (vec(5) - wall0%s) / (wall1%s - wall0%s)
+p_orb%radius = (1 - f) * r0 + f * r1
 
 end subroutine
 
