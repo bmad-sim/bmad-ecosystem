@@ -81,7 +81,7 @@ if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
 endif
 
 if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
-  if ( $?BMADF90    == 0 ) setenv BMADF90 g95
+  if ( $?BMADF90    == 0 ) setenv BMADF90 gfortran
 endif
 
 #
