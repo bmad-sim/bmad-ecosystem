@@ -94,7 +94,7 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   enddo
 
   call suggest_lmdif (var_value, merit_vec, s%global%lmdif_eps, s%global%n_opti_cycles, at_end)
-  call tao_set_vars (var_value)
+  call tao_set_vars (var_value, s%global%optimizer_var_limit_warn)
   merit = tao_merit()
   if (merit < merit_at_min) then
     merit_at_min = merit
@@ -131,7 +131,7 @@ endif
 
 if (merit > merit_at_min) then
   call out_io (s_blank$, r_name, 'Setting to minimum.')
-  call tao_set_vars (var_at_min)
+  call tao_set_vars (var_at_min, .true.)
   merit = tao_merit()
   write (line, '(i5, es14.4, es10.2)') i+1, merit
   call out_io (s_blank$, r_name, line)

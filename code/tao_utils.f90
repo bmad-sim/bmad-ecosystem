@@ -1846,16 +1846,21 @@ end subroutine tao_var_target_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_var_model_value (var, value)
+! Subroutine tao_set_var_model_value (var, value, print_limit_warning)
 !
 ! Subroutine to set the value for a model variable and do the necessary bookkeeping.
+! If value is past the variable's limit, and s%global%var_limits_on = True, the
+! variable will be set to the limit value.
 !
 ! Input:
 !   var   -- Tao_var_struct: Variable to set
 !   value -- Real(rp): Value to set to
+!   print_limit_warning
+!         -- Logical, optional: Print a warning if the value is past the variable's limits.
+!             Default is True.
 !-
 
-subroutine tao_set_var_model_value (var, value)
+subroutine tao_set_var_model_value (var, value, print_limit_warning)
 
 implicit none
 
@@ -1865,6 +1870,7 @@ type (ele_struct), pointer :: ele
 
 real(rp) value
 integer i
+logical, optional :: print_limit_warning
 
 !
 
@@ -1873,10 +1879,12 @@ if (.not. var%exists) return
 ! check if hit variable limit
 if (s%global%var_limits_on) then
   if (value .lt. var%low_lim) then
-    call out_io (s_blank$, ' ', "Hit lower limit of variable: " // tao_var1_name(var))
+    if (logic_option (.true., print_limit_warning)) &
+          call out_io (s_blank$, ' ', "Hit lower limit of variable: " // tao_var1_name(var))
     value = var%low_lim
   elseif (value .gt. var%high_lim) then
-    call out_io (s_blank$, ' ', "Hit upper limit of variable: " // tao_var1_name(var))
+    if (logic_option (.true., print_limit_warning)) &
+          call out_io (s_blank$, ' ', "Hit upper limit of variable: " // tao_var1_name(var))
     value = var%high_lim
   endif
 endif

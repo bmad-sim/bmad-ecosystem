@@ -55,7 +55,7 @@ merit = opti_de (var_vec, s%global%n_opti_cycles, population, &
 
 ! cleanup after the optimizer
 
-call tao_set_vars (var_vec)
+call tao_set_vars (var_vec, s%global%optimizer_var_limit_warn)
 merit_end = tao_merit ()
 
 write (line, '(a, es14.6)') 'Merit start:', merit_start
@@ -136,7 +136,7 @@ enddo
 
 stars = '****************************************************'
 
-call tao_set_vars (var_vec)
+call tao_set_vars (var_vec, s%global%optimizer_var_limit_warn)
 
 this_merit = tao_merit ()
 merit_min = min(merit_min, this_merit)

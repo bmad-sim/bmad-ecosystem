@@ -193,7 +193,7 @@ character(80) line
 
 ! transfer "a" array to model
 
-call tao_set_vars (a)
+call tao_set_vars (a, s%global%optimizer_var_limit_warn)
 
 ! if limited then set y_fit to something large so merit calc gives a large number.
 

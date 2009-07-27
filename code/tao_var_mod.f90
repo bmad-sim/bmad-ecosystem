@@ -61,7 +61,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_vars (var_vec)
+! Subroutine tao_set_vars (var_vec, print_limit_warning)
 !
 ! Subrutine to set variable values from a vector of values. 
 ! This routine is used with optimization since optimimizers
@@ -72,17 +72,20 @@ end subroutine
 !
 ! Input:
 !   var_vec(:) -- Real(rp): Vector of variables. 
+!   print_limit_warning
+!         -- Logical, optional: Print a warning if the value is past the variable's limits.
+!             Default is True.
 !
 ! Output:
 !-
 
-subroutine tao_set_vars (var_vec)
+subroutine tao_set_vars (var_vec, print_limit_warning)
 
 implicit none
 
 real(rp) var_vec(:)
-
 integer i, j, k
+logical, optional :: print_limit_warning
 
 ! Transfer the values from var_vec to the variables of each universe.
 
@@ -90,7 +93,7 @@ integer i, j, k
   do i = 1, size(s%var)
     if (.not. s%var(i)%useit_opt) cycle
     j = j + 1
-    call tao_set_var_model_value (s%var(i), var_vec(j))
+    call tao_set_var_model_value (s%var(i), var_vec(j), print_limit_warning)
   enddo
 
 end subroutine

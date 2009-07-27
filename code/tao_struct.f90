@@ -481,6 +481,7 @@ type tao_global_struct
   logical :: command_file_print_on = .true.     ! print to terminal when using a cmd file?
   logical :: box_plots = .false.                ! For debugging plot layout issues.
   logical :: beam_timer_on = .false.            ! For timing the beam tracking calculation.
+  logical :: optimizer_var_limit_warn = .true.  ! Warn when vars reach a limit with optimization.
 end type
 
 !
