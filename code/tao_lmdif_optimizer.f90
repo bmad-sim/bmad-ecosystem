@@ -103,8 +103,6 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
   write (line, '(i5, es14.4, es10.2)') i, merit
   call out_io (s_blank$, r_name, line)
 
-  if (at_end) exit
-
 #ifndef CESR_WINCVF
   ! look for keyboard input to end optimization
 
@@ -120,6 +118,8 @@ cycle_loop: do i = 1, s%global%n_opti_cycles
     if (char == achar(0)) exit   ! only exit if there is no more input
   enddo
 #endif
+
+  if (at_end) exit
 
 enddo cycle_loop
 

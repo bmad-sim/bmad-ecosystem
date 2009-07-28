@@ -130,8 +130,6 @@ do i = 1, s%global%n_opti_cycles+1
     abort = .true.
   endif
 
-  if (finished .or. status /= 0) exit
-
   ! look for keyboard input to end optimization
 
 #ifndef CESR_WINCVF
@@ -146,6 +144,8 @@ do i = 1, s%global%n_opti_cycles+1
     if (char == achar(0)) exit   ! only exit if there is no more input
   enddo
 #endif
+
+  if (finished .or. status /= 0) exit
 
   ! reinit the derivative matrix 
 

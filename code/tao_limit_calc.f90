@@ -40,6 +40,7 @@ call tao_var_target_calc ()
 do j = 1, size(s%var)
 
   var => s%var(j)
+  if (.not. var%exists) cycle
 
   if (var%model_value > var%high_lim) then
     write (line, '(1pe13.4)') var%high_lim
@@ -50,6 +51,7 @@ do j = 1, size(s%var)
     value = var%high_lim
     call tao_set_var_model_value (var, value) 
     var%good_user = .false.
+    call tao_set_var_useit_opt
     limited = .true.
   endif
 
@@ -62,6 +64,7 @@ do j = 1, size(s%var)
     value = var%low_lim
     call tao_set_var_model_value (var, value) 
     var%good_user = .false.
+    call tao_set_var_useit_opt
     limited = .true.
   endif
 
