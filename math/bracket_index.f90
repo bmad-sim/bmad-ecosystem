@@ -3,9 +3,10 @@
 !
 ! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
 ! If s <  s_arr(i_min) then ix = i_min - 1
-! If s >= s_arr(i_max) then ix = i_max  [where i_max = ubound(s_arr)]
+! If s >= s_arr(i_max) then ix = i_max
 !
 ! This routine assumes that s_arr is in assending order.
+! Also see bracket_index2
 !
 ! Modules needed:
 !   use sim_utils

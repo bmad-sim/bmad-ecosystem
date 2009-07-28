@@ -93,7 +93,7 @@ integer, private, save :: engine = pseudo_random$
 integer, parameter :: limited_gaussian$ = 3, exact_gaussian$ = 4
 integer, private, save :: gauss_converter = exact_gaussian$
 real(rp), save :: gauss_sigma_cut = 4.0
-integer :: n_pts_per_sigma = 20
+integer, private :: n_pts_per_sigma = 20
 
 contains
 
