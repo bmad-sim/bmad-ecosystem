@@ -157,17 +157,17 @@ where
 at the first element of the lattice and iteratively using the
 equations
 \Begineq
-  \Bf V_i = \Bf W_{i-1} \, \Bf R_i + \Bf V_{i-1}, \quad 
+  \Bf V_i = \Bf W_{i-1} \, \Bf L_i + \Bf V_{i-1}, \quad 
   \Bf W_i = \Bf W_{i-1} \, \Bf S_i
 \Endeq
-$\Bf R_i$ is the displacement vector for the $i$\Th element and matrix
+$\Bf L_i$ is the displacement vector for the $i$\Th element and matrix
 $\Bf S_i$ is the rotation of the local reference system of the exit
 end with respect to the entrance end. For clarity, the subscript $i$ in 
 the equations below will be dripped. For all elements whose
 reference orbit through them is a straight line, the corresponding
-$\Bf R$ and $\Bf S$ are
+$\Bf L$ and $\Bf S$ are
 \Begineq
-  \Bf R = 
+  \Bf L = 
   \begin{pmatrix}
       0 \\ 0 \\ L
   \end{pmatrix},
@@ -182,16 +182,16 @@ $\Bf R$ and $\Bf S$ are
 
 \index{rbend}\index{sbend}
 \index{rho}\index{tilt}\index{angle}
-Where $L$ is the length of the element. For a \vn{bend}, $\Bf R$ and
+Where $L$ is the length of the element. For a \vn{bend}, $\Bf L$ and
 $\Bf S$ are given by
 \Begineq
-  \Bf R = \Bf T \, \widetilde \Bf R, \quad
+  \Bf L = \Bf T \, \widetilde \Bf L, \quad
   \Bf S = \Bf T \, \widetilde \Bf S \, \Bf T^{-1}
   \label{r00ls}
 \Endeq
 where
 \Begineq
-  \widetilde \Bf R = 
+  \widetilde \Bf L = 
   \begin{pmatrix}
     \rho (\cos\alpha - 1) \\ 0 \\ \rho \, \sin\alpha
   \end{pmatrix}, 
@@ -213,7 +213,7 @@ where
 with $\rho$ being the bend radius (\vn{rho}), $\alpha$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
 (\sref{s:offset}). Without a tilt, $\Bf T$ is the unit matrix
-resulting in $\Bf R = \widetilde \Bf R$ and $\Bf S = \widetilde \Bf S$.
+resulting in $\Bf L = \widetilde \Bf L$ and $\Bf S = \widetilde \Bf S$.
 
 The bend transformation (\Eq{r00ls}) is so constructed that the
 transformation is equivalent to rotating the local coordinate system
@@ -243,7 +243,7 @@ just after the reflection.}  \label{f:mirror}
 
 \index{mirror}\index{tilt}
 A \vn{mirror} element (\sref{s:mirror}) reflects photons.  A mirror
-can be thought of as a zero length bend ($\widetilde \Bf R = (0, 0,
+can be thought of as a zero length bend ($\widetilde \Bf L = (0, 0,
 0)$) with the total bend angle being twice the graze angle. The
 orientation of the exit coordinates (the local coordinates after the
 reflection) are only affected by the mirror's tilt and graze angle

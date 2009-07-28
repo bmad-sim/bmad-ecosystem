@@ -46,7 +46,6 @@ type (coord_struct), allocatable :: orb(:)
 integer i
 
 logical, optional :: ok
-logical has_match
 
 !
 
@@ -66,15 +65,15 @@ if (lat%param%lattice_type == circular_lattice$) then
   call lat_make_mat6 (lat, -1)
   call twiss_at_start (lat)
   if (.not. bmad_status%ok) return
-  if (has_match) call twiss_propagate_all (lat)
   call closed_orbit_calc (lat, orb, 4)
   if (.not. bmad_status%ok) return
 else
-  has_match = .false.
   do i = 1, lat%n_ele_track
-    if (lat%ele(i)%key == match$ .and. lat%ele(i)%value(match_end$) /= 0) has_match = .true.
+    if (lat%ele(i)%key == match$ .and. lat%ele(i)%value(match_end$) /= 0) then
+      call twiss_propagate_all (lat)
+      exit
+    endif
   enddo
-  if (has_match) call twiss_propagate_all (lat)
   call track_all (lat, orb)
 endif
 

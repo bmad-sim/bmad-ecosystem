@@ -3,6 +3,7 @@ module photon_init_mod
 use bmad_struct
 use bmad_interface
 use nr, only: erf_s
+use random_mod
 
 integer, private, parameter :: sigma_cut = 5, n_pts_per_sigma = 20
 integer, private, parameter :: n_g = sigma_cut*n_pts_per_sigma
