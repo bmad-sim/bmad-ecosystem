@@ -92,10 +92,11 @@ implicit none
 
 type (bunch_struct) bunch_start, bunch_end
 type (ele_struct) ele
-type (ele_struct), save :: rf_ele
+
 type (lat_param_struct) param
 
-real(rp) charge
+real(rp), pointer :: a_pole_save(:)
+real(rp) charge, value_save(n_attrib_maxx)
 integer i, j, n, ix_z
 
 character(20) :: r_name = 'track1_bunch_hom'
@@ -134,20 +135,25 @@ do i = 1, size(bunch_end%particle)
       set_canonical = .false.)
 enddo
 
-! rf_ele is half the cavity
+! Modify ele temporarily so we can track through half the cavity.
 
-rf_ele = ele
-rf_ele%value(l$)      = ele%value(l$) / 2
-rf_ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
-rf_ele%value(p0c$)    = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
-rf_ele%value(e_loss$) = 0
+value_save = ele%value
+ele%value(l$)      = ele%value(l$) / 2
+ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
+ele%value(p0c$)    = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
+ele%value(e_loss$) = 0
 
 ! zero all offsets and kicks (offsetting already performed above)
 
-call zero_ele_offsets (rf_ele)
-rf_ele%value(hkick$) = 0.0
-rf_ele%value(vkick$) = 0.0
-if (associated(ele%a_pole)) deallocate(ele%a_pole)
+call zero_ele_offsets (ele)
+ele%value(hkick$) = 0.0
+ele%value(vkick$) = 0.0
+if (associated(ele%a_pole)) then
+   a_pole_save => ele%a_pole
+   nullify(ele%a_pole)
+else
+   nullify(a_pole_save)
+endif
     
 ! Track half way through. This includes the sr longitudinal wakes 
 
@@ -155,8 +161,8 @@ call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (rf_ele, bunch_end, j-1, ix_z)
-  call track1_particle (bunch_end%particle(ix_z), rf_ele, param, bunch_end%particle(ix_z))
+  call add_sr_long_wake (ele, bunch_end, j-1, ix_z)
+  call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -168,17 +174,17 @@ call track1_lr_wake (bunch_end, ele)
 
 ! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
 
-rf_ele%value(e_tot_start$)  = rf_ele%value(e_tot$)
-rf_ele%value(p0c_start$)    = rf_ele%value(p0c$)
-rf_ele%value(e_tot$)        = ele%value(e_tot$)
-rf_ele%value(p0c$)          = ele%value(p0c$)
+ele%value(e_tot_start$)  = ele%value(e_tot$)
+ele%value(p0c_start$)    = ele%value(p0c$)
+ele%value(e_tot$)        = value_save(e_tot$)
+ele%value(p0c$)          = value_save(p0c$)
 
 call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (rf_ele, bunch_end, j-1, ix_z)
-  call track1_particle (bunch_end%particle(ix_z), rf_ele, param, bunch_end%particle(ix_z))
+  call add_sr_long_wake (ele, bunch_end, j-1, ix_z)
+  call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
 bmad_com%grad_loss_sr_wake = 0.0
@@ -194,6 +200,10 @@ do i = 1, size(bunch_end%particle)
       set_canonical = .false.)
 enddo
 
+! Unmodify ele
+
+ele%value = value_save
+if (associated(a_pole_save)) ele%a_pole => a_pole_save
       
 end subroutine track1_bunch_hom
 
@@ -680,11 +690,11 @@ end subroutine
 !+
 ! Subroutine init_beam_distribution (ele, beam_init, beam)
 !
-! Subroutine to initialize either a random or regular distribution of particles.  
+! Subroutine to initialize either a random or tail-weighted distribution of particles.  
 !
-! There are three regular distributions available: rectangular grid, Gaussian
-! represented by concentric ellipses, and Kapchinsky-Vladimirsky (KV).  See
-! manual for more information.
+! There are three tail-weighted distributions available: rectangular grid, 
+! Gaussian represented by concentric ellipses, and Kapchinsky-Vladimirsky (KV).
+! See manual for more information.
 !
 ! The distribution is matched to the Twiss parameters, centroid position,
 ! and Energy - z correlation as specified. Coupling in the element ele is 
@@ -722,9 +732,9 @@ end subroutine
 !       %random_engine          -- Character: "pseudo" (default) or "quasi".
 !       %random_gauss_converter -- Character: "exact" (default) or "limited".
 !       %random_sigma_cutoff    -- Real: Used with "limited" converter. Default is 4.0.
-!     For regular distributions:
-!       %regular_beam_init -- regular_beam_init_struct: Use "getf regular_beam_init_struct"
-!                          for more details.
+!     For tail-weighted distributions:
+!       %tw_beam_init  -- tail_weighted_beam_init_struct: 
+!                         Use "getf tail_weighted_beam_init_struct" for more details.
 !
 ! Output:
 !   beam        -- Beam_struct: Structure with initialized particles.
@@ -739,7 +749,7 @@ implicit none
 
 type (ele_struct) ele
 type (beam_init_struct), target :: beam_init
-type (regular_beam_init_struct), pointer :: reg_init
+type (tail_weighted_beam_init_struct), pointer :: tw_init
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
   
@@ -750,21 +760,21 @@ real(rp) old_cutoff
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_beam_distribution"
 
-! If we are making a regular distribution, we must compute the number of particles
+! If we are making a tail-weighted distribution, we must compute the number of particles
 if (.not. beam_init%is_random) then
    beam_init%n_particle = 1
-   reg_init => beam_init%regular_beam_init
+   tw_init => beam_init%tw_beam_init
    do i = 1, 3
-      select case (reg_init%type(i))
+      select case (tw_init%type(i))
       case (ellipse$)
-         beam_init%n_particle = beam_init%n_particle * (reg_init%n_interior(i) + 1) * reg_init%part_per_ellipse(i)
+         beam_init%n_particle = beam_init%n_particle * tw_init%n_ellipse(i) * tw_init%part_per_ellipse(i)
       case (grid$)
-         beam_init%n_particle = beam_init%n_particle * reg_init%n_x(i) * reg_init%n_px(i)
+         beam_init%n_particle = beam_init%n_particle * tw_init%n_x(i) * tw_init%n_px(i)
       case (KV$)
          is_KV = .true.
-         beam_init%n_particle = beam_init%n_particle * reg_init%part_per_ellipse(i)
+         beam_init%n_particle = beam_init%n_particle * tw_init%part_per_ellipse(i)
       case default
-         call out_io (s_abort$, "init_regular_bunch", &
+         call out_io (s_abort$, "init_beam_distribution", &
               'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
          call err_exit
       end select
@@ -773,7 +783,7 @@ endif
 
 ! number of particles for a 4D KV distribution = n_I2 * n_phi1 * n_phi2
 if (is_KV) then
-   beam_init%n_particle = beam_init%n_particle * reg_init%n_I2
+   beam_init%n_particle = beam_init%n_particle * tw_init%n_I2
 endif
 
 ! resize the beam to the number of particles and the number of bunches.
@@ -795,11 +805,11 @@ do i_bunch = 1, size(beam%bunch)
   if (beam_init%is_random) then
      call init_random_bunch (ele, beam_init, bunch)
   else
-     call init_regular_bunch (ele, beam_init, bunch)
+     call init_tail_weighted_bunch (ele, beam_init, bunch)
   endif
 
-  bunch%z_center = (1-i_bunch) * beam_init%ds_bunch
-  bunch%t_center = -bunch%z_center * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
+  bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
   bunch%ix_bunch = i_bunch
 
 enddo
@@ -1055,17 +1065,17 @@ end subroutine init_random_bunch
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_regular_bunch (ele, beam_init, bunch)
+! Subroutine init_tail_weighted_bunch (ele, beam_init, bunch)
 !
-! Subroutine to initialize a regular bunch of particles.
+! Subroutine to initialize a tail_weighted bunch of particles.
 !
 ! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!     %regular_beam_init -- regular_beam_init_struct: Use "getf regular_beam_init_struct"
-!                        for more details.
+!     %tw_beam_init -- tail_weighted_beam_init_struct: 
+!                      Use "getf tail_weighted_beam_init_struct" for more details.
 !
 ! Output:
 !   bunch       -- Bunch_struct: Structure with initialized particles.
@@ -1080,14 +1090,14 @@ end subroutine init_random_bunch
 !
 !-
 
-subroutine init_regular_bunch (ele, beam_init, bunch)
+subroutine init_tail_weighted_bunch (ele, beam_init, bunch)
 
 implicit none
 
 type (ele_struct) ele
 
 type (beam_init_struct), target :: beam_init
-type (regular_beam_init_struct), pointer :: reg_init
+type (tail_weighted_beam_init_struct), pointer :: tw_init
 
 type (bunch_struct), target :: bunch
 type (particle_struct), pointer :: p
@@ -1100,9 +1110,9 @@ integer i,j,k
 integer :: KV_counter = 0     ! counts how many phase planes are of KV type
 integer :: KV_indices(2) = 0  ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
-character(22) :: r_name = "init_regular_bunch"
+character(22) :: r_name = "init_tail_weighted_bunch"
 
-reg_init => beam_init%regular_beam_init
+tw_init => beam_init%tw_beam_init
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
@@ -1128,11 +1138,11 @@ alpha(3) = - covar / emitt(3)
 
 ! Fill the corresponding struct and generate the distribution for each phase plane
 do i = 1, 3
-   select case (reg_init%type(i))
+   select case (tw_init%type(i))
    case (ellipse$)
-      call init_ellipse_distribution (reg_init%n_interior(i), reg_init%part_per_ellipse(i), reg_init%sigma_cutoff(i), beta(i), alpha(i), emitt(i), space2D(i))
+      call init_ellipse_distribution (tw_init%n_ellipse(i), tw_init%part_per_ellipse(i), tw_init%sigma_cutoff(i), beta(i), alpha(i), emitt(i), space2D(i))
    case (grid$)
-      call init_grid_distribution (reg_init%n_x(i), reg_init%n_px(i), reg_init%minima(2*i-1), reg_init%maxima(2*i-1), reg_init%minima(2*i), reg_init%maxima(2*i), space2D(i))
+      call init_grid_distribution (tw_init%n_x(i), tw_init%n_px(i), tw_init%minima(2*i-1), tw_init%maxima(2*i-1), tw_init%minima(2*i), tw_init%maxima(2*i), space2D(i))
    case (KV$) 
       KV_counter = KV_counter + 1
       ! If we are doing KV, we keep track of which phase planes are KV.
@@ -1142,10 +1152,10 @@ do i = 1, 3
          KV_indices(1) = i
       else if (KV_counter .eq. 2) then
          KV_indices(2) = i
-         call init_KV_distribution (reg_init%n_I2, reg_init%part_per_ellipse(KV_indices(1)), reg_init%part_per_ellipse(i), reg_init%A, beta(KV_indices(1)), beta(i), alpha(KV_indices(1)), alpha(i), emitt(KV_indices(1)), emitt(i), space4D)
+         call init_KV_distribution (tw_init%n_I2, tw_init%part_per_ellipse(KV_indices(1)), tw_init%part_per_ellipse(i), tw_init%A, beta(KV_indices(1)), beta(i), alpha(KV_indices(1)), alpha(i), emitt(KV_indices(1)), emitt(i), space4D)
       endif
    case default
-      call out_io (s_abort$, "init_regular_bunch", &
+      call out_io (s_abort$, r_name, &
            'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
       call err_exit
    end select
@@ -1153,7 +1163,7 @@ enddo
 
 ! Check that there are either 0 or 2 planes involved in KV
 if (KV_counter .ne. 0 .and. KV_counter .ne. 2) then
-   call out_io (s_abort$, "init_regular_bunch", &
+   call out_io (s_abort$, r_name, &
         'KV DISTRIBUTION TYPE REQUIRES 2 PHASE PLANES')
    call err_exit
 endif
@@ -1187,7 +1197,7 @@ bunch%ix_bunch = 1  ! Default
 
 call init_spin_distribution (beam_init, bunch)
 
-end subroutine init_regular_bunch
+end subroutine init_tail_weighted_bunch
 
 
 !----------------------------------------------------------
@@ -1261,14 +1271,14 @@ end subroutine init_grid_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_ellipse_distribution (n_interior, part_per_ellipse, sigma_cutoff,
+! Subroutine init_ellipse_distribution (n_ellipse, part_per_ellipse, sigma_cutoff,
 !                                       beta, alpha, emitt, space2D)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Gaussian distribution.
 !
 ! Input:
-!   n_interior        -- number of interior ellipses (total # - 1)
+!   n_ellipse        -- number of ellipses (>= 1)
 !   part_per_ellipse  -- number of particles per ellipse
 !   sigma_cutoff      -- sigma cutoff of the representation
 !   beta, alpha       -- Twiss parameters
@@ -1280,38 +1290,38 @@ end subroutine init_grid_distribution
 ! See manual for more details.
 !-
 
-subroutine init_ellipse_distribution (n_interior, part_per_ellipse, sigma_cutoff, beta, alpha, emitt, space2D)
+subroutine init_ellipse_distribution (n_ellipse, part_per_ellipse, sigma_cutoff, beta, alpha, emitt, space2D)
 
 implicit none
 
-integer n_interior, part_per_ellipse
+integer n_ellipse, part_per_ellipse        ! N and M in the bmad manual
 real(rp) sigma_cutoff
 real(rp) beta, alpha, emitt
 
 type (phase_space_struct) space2D
 
-integer i, m     ! counters for the J and phi directions
+integer n, m     ! counters for the J and phi directions
 integer k        ! particle counter
 
-real(rp) b_inner, b_outer
+real(rp) b_inner, b_outer                  ! B_{n-1}/epsilon  and B_{n}/epsilon in the bmad manual
 
 real(rp) J, phi
 real(rp) x, px, charge
 
-space2D%n_particle = (n_interior + 1) * part_per_ellipse
+space2D%n_particle = n_ellipse * part_per_ellipse
 
 if (allocated(space2D%vec)) deallocate(space2D%vec)
 allocate (space2D%vec(space2D%n_particle, 3))
 
 k = 1
 
-do i = 1, n_interior + 1
-   if (i == n_interior + 1) then
-      J = emitt * (sigma_cutoff**2/2.0 + 1)                     ! J_out
-      charge = exp(-sigma_cutoff**2/(2.0 * part_per_ellipse))   ! q_out
+do n = 1, n_ellipse
+   if (n == n_ellipse) then
+      J = emitt * (sigma_cutoff**2/2.0 + 1)                     ! J_N    this is the ellipse that represents
+      charge = exp(-sigma_cutoff**2/(2.0 * part_per_ellipse))   ! q_N    the distribution out to infinity
    else
-      b_inner = sigma_cutoff**2/2.0 * (real(i - 1)/n_interior)**2
-      b_outer = sigma_cutoff**2/2.0 * (real(i)/n_interior)**2
+      b_inner = sigma_cutoff**2/2.0 * (real(n - 1)/(n_ellipse - 1))**2
+      b_outer = sigma_cutoff**2/2.0 * (real(n)/(n_ellipse - 1))**2
 
       J = emitt * ((b_inner + 1.0) * exp(-b_inner) - (b_outer + 1.0) * exp(-b_outer)) / (exp(-b_inner) - exp(-b_outer))   ! J_n
       charge = exp(-b_inner) - exp(-b_outer)   ! q_n
@@ -1424,7 +1434,7 @@ end subroutine init_KV_distribution
 !
 ! This subroutine multiplies three 2D phase planes by outputting a 6D
 ! phase_space_struct with all possible combinations of 2D phase space positions.
-! Particle charges are conferred accordingly.
+! Particle weights are conferred accordingly.
 !
 ! Input:
 !   space2D(3) -- three 2D phase_space_struct objects representing planes x, y, and z
@@ -1473,7 +1483,7 @@ end subroutine multiply_3planes
 !
 ! This subroutine multiplies a 4D phase plane with a 2D phase plane by 
 ! outputting a 6D phase_space_struct with all possible combinations of 
-! positions between the two planes.  Particle charges are conferred accordingly.
+! positions between the two planes.  Particle weights are conferred accordingly.
 !
 ! Input:
 !   index4D(2) -- tells which indices of the final 6D phase space should be from

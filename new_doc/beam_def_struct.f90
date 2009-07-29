@@ -43,14 +43,14 @@ type beam_struct
   type (bunch_struct), allocatable :: bunch(:)
 end type
 
-type regular_beam_init_struct
+type tail_weighted_beam_init_struct
    integer :: type(3) = 0              ! distribution type (in x-px, y-py, and z-pz planes)
    
                                        ! Params for ellipse$ and KV$
    integer :: part_per_ellipse(3) = 0    ! number of particles per ellipse
    
                                        ! Params for ellipse$
-   integer :: n_interior(3) = 0          ! number of ellipses in the interior (total - 1)
+   integer :: n_ellipse(3) = 1           ! number of ellipses (>= 1)
    real(rp) :: sigma_cutoff(3) = 0       ! sigma cutoff of the representation
 
                                        ! Params for KV$
@@ -69,7 +69,7 @@ type beam_init_struct
   real(rp) b_norm_emitt     ! b-mode emittance
   real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
-  real(rp) ds_bunch         ! Distance between bunches.
+  real(rp) dt_bunch         ! Time between bunches.
   real(rp) sig_z            ! Z sigma in m.
   real(rp) sig_e            ! e_sigma in dE/E.
   real(rp) bunch_charge     ! charge in a bunch.
@@ -79,17 +79,17 @@ type beam_init_struct
   real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
   type(beam_spin_struct)  spin       ! Initialize the spin
   integer :: n_particle = 0          ! Number of simulated particles per bunch.
-  integer :: n_bunch = 0             ! Number of bunches.
+  integer :: n_bunch = 1             ! Number of bunches.
   logical :: renorm_center = .true.  ! Renormalize centroid?
   logical :: renorm_sigma = .true.   ! Renormalize sigma?
   logical :: init_spin     = .false. ! initialize beam spinors
-  logical :: is_random = .true.      ! Random distribution?  Or a regular distribution?
+  logical :: is_random = .true.      ! Random distribution?  Or a tail-weighted distribution?
   character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  
                                             ! Or 'limited'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = 4.0     ! Used with 'limited' converter. Cut-off in sigmas.
 
-  type (regular_beam_init_struct) regular_beam_init ! Parameters for a regular beam distribution
+  type (tail_weighted_beam_init_struct) tw_beam_init ! Parameters for a tail-weighted beam distribution
 end type
 
 type bunch_lat_param_struct
