@@ -18,8 +18,8 @@ real(rp), parameter :: r_e = 2.8179380d-15      ! classical electron radius
 real(rp), parameter :: r_p = r_e * m_electron / m_proton  ! proton radius
 real(rp), parameter :: e_charge = 1.6021892d-19 ! electron charge
 
-real(rp), parameter :: h_planck = 6.626196d-34  ! J*sec Planck's constant
-real(rp), parameter :: h_bar_planck = h_planck / twopi
+real(rp), parameter :: h_planck = 4.13566733d-15      ! eV*sec Planck's constant
+real(rp), parameter :: h_bar_planck = 6.58211899d-16  ! eV*sec h_planck/twopi
 
 ! Anomalous gyro-magnetic moment
 
