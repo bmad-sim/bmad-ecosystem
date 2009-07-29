@@ -1,0 +1,34 @@
+\section{Creating a tail-weighted initial beam distribution in \bmad}
+
+\textit{Written by Michael Saelim}
+
+\subsection{Introduction}
+This addition to \bmad allows the initialization of beam distributions where the points are not selected randomly in phase space.  Three distributions are available: 
+\begin{itemize}
+\item \vn{grid} places a non-Gaussian, rectangular grid of points on a 2D phase plane.  This can also be uesd to create a line of points or a single point.  
+\item \vn{ellipse} represents a 2D Gaussian distribution by concentric ellipses of macroparticles.
+\item \vn{KV} represents a 4D Kapchinsky-Vladimirsky distribution, which presents a constant density at all points.  This phase space is also represented by a series of concentric ellipses of macroparticles.  
+\end{itemize}
+\vn{ellipse} and \vn{KV} especially help visualize nonlinear effects on the beam's transverse phase planes, as they are most visible on the tails of the distribution, which are usually underrepresented in a distribution where points are selected randomly.
+
+\subsection{General settings}
+As with random distributions, the beam is initialized with the \vn{init_beam_distribution} subroutine, but now \vn{%beam_init_struct} contains two new members: \vn{%is_random} and \vn{%tw_beam_init}.
+
+The trigger \vn{%is_random} determines whether \vn{init_beam_distribution} randomly generates points in a Gaussian distribution or generates tail-weighted distributions.  It is set to \vn{.true.} by default.
+
+\vn{%tw_beam_init} is itself a struct containing all the pertinent information for constructing a tail-weighted beam distribution, with members that hold information for every type of distribution.  Many of these members are arrays, whose three components correspond to the phase planes $(x,p_x)$, $(y,p_y)$, and $(z,p_z)$.  All members of the struct are initialized to zero.  Also, \vn{%n_particle} is now automatically calculated from parameters contained in \vn{%tw_beam_init}.  
+
+The following sections enumerate the different distributions available and explain their settings in \vn{%tw_beam_init}.
+
+\subsection{The grid distribution}
+The \vn{grid} distribution is triggered by setting \vn{tw_beam_init%type} to \vn{grid\$}.  \vn{%n_x} and \vn{%n_px} set the number of columns and rows, respectively, and \vn{%minima} and \vn{%maxima} set the lower and upper limits in the directions $(x,p_x,y,p_y,z,p_z)$.  This distribution can also be used to specify a single point in the plane by setting both \vn{%n_x} and \vn{%n_px} to 1.
+
+\subsection{The ellipse distribution}
+For a 2D Gaussian distribution, the contours of constant density form concentric ellipses.  The \vn{ellipse} distribution represents this using concentric ellipses of uniformly-spaced macroparticles.  A region out to \vn{%sigma_cutoff} standard deviations is represented by \vn{%n_ellipse}$-1$ ellipses, and the region outside this cutoff is represented a single ellipse.  Each ellipse is then uniformly populated with \vn{%part_per_ellipse} appropriately-weighted macroparticles.  Twiss parameters, emittances, and other parameters for the beam are derived from the \vn{ele_struct} and \vn{beam_init_struct}.
+
+For more information, see the theoretical discussion on this distribution.
+
+\subsection{The K-V distribution}
+The 4D Kapchinsky-Vladimirsky distribution exhibits a constant density profile, represented using concentric ellipses of uniformly-spaced macroparticles with equal weight.  Using the K-V distribution requires that two phase planes be marked with \vn{%type} $=$ \vn{KV\$}.  The program iterates over \vn{%n_I2} equally-spaced steps in the I2-direction, populating each ring with \vn{%part_per_ellipse} equally-weighted macroparticles.  \vn{%A} $= \frac{I_1}{\varepsilon}$ must also be set.  Explanations of what these quantities are can be found in the theoretical discussion of the K-V distribution.  Twiss parameters, emittances, and other parameters for the beam are derived from the \vn{ele_struct} and \vn{beam_init_struct}.
+
+For more information, see the theoretical discussion on this distribution.
