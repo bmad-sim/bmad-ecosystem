@@ -47,7 +47,7 @@
 ! Output:
 !   mode     -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
 !                              ("vertical like") b-mode, and the z-mode
-!     %synch_int(1:3) -- Synchrotron integrals.
+!     %synch_int(0:3) -- Synchrotron integrals. See Bmad manual
 !     %sigE_E         -- Sigma_E/E energy spread
 !     %sig_z          -- Bunch Length
 !     %e_loss         -- Energy loss in eV per turn
@@ -69,6 +69,7 @@
 !                   is not changed.
 !   rad_int_by_ele
 !            -- Rad_int_common_struct, optional: Radiation integrals element by element. 
+!       %i0(0:)              -- I0 integral for each element. See the Bmad manual.
 !       %i1(0:)              -- I1 integral for each element.
 !       %i2(0:)              -- I2 integral for each element.
 !       %i3(0:)              -- I3 integral for each element.
@@ -119,7 +120,9 @@ type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 type (rad_int_track_point_struct), pointer :: c_pt
 type (rad_int_track_point_struct) pt
 
-real(rp) :: int_tot(7)
+integer, parameter :: num_int = 8
+
+real(rp) :: int_tot(num_int)
 real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
@@ -145,6 +148,7 @@ bmad_com%trans_space_charge_on = .false.
 
 if (allocated(ric%i1)) then
   if (ubound(ric%i1, 1) < lat%n_ele_max) then 
+    deallocate (ric%i0)
     deallocate (ric%i1)
     deallocate (ric%i2)
     deallocate (ric%i3)
@@ -168,6 +172,7 @@ else
 endif
 
 if (do_alloc) then
+  allocate (ric%i0(0:lat%n_ele_max))
   allocate (ric%i1(0:lat%n_ele_max))
   allocate (ric%i2(0:lat%n_ele_max))
   allocate (ric%i3(0:lat%n_ele_max))
@@ -415,6 +420,7 @@ do ir = 1, lat%n_ele_track
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)
+    ric%i0(ir) = 2 * G_max / 3
     ric%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
     ric%i2(ir) = ll * G_max**2 / 2
     ric%i3(ir) = ll * g3_ave
@@ -423,7 +429,7 @@ do ir = 1, lat%n_ele_track
 
     pt%g_x0 = g3_ave**(1.0/3)
 
-    call qromb_rad_int ((/ F, F, F, F, F, T, T /), pt, ri_info, int_tot)
+    call qromb_rad_int ((/ F, F, F, F, F, T, T, F /), pt, ri_info, int_tot)
     cycle
 
   endif
@@ -463,7 +469,7 @@ do ir = 1, lat%n_ele_track
 
   ! Integrate for quads, bends and nonzero kicks
 
-  call qromb_rad_int ((/ T, T, T, T, T, T, T /), pt, ri_info, int_tot)
+  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot)
 
 enddo
 
@@ -488,7 +494,7 @@ do ir = 1, lat%n_ele_track
   if (ll == 0) cycle
 
   ri_info%ix_ele = ir
-  call qromb_rad_int ((/ T, T, T, T, T, T, T /), pt, ri_info, int_tot) 
+  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot) 
 
 enddo
 
@@ -543,6 +549,7 @@ energy = lat%ele(0)%value(E_TOT$)
 gamma2_factor = (energy * 1956.95e-9)**2
 energy_loss = 1e9 * c_gam * (1e-9 * mc2)**4 * mode%lin%i2_E4 / pi
 
+mode%synch_int(0) = int_tot(8)
 mode%synch_int(1) = i1
 mode%synch_int(2) = i2
 mode%synch_int(3) = i3

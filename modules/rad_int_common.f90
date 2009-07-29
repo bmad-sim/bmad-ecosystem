@@ -89,22 +89,23 @@ type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
 
+integer, parameter :: num_int = 8
 integer, parameter :: jmax = 14
 integer j, j0, n, n_pts, ix_ele
 
-real(rp) :: int_tot(7)
+real(rp) :: int_tot(num_int)
 real(rp) :: eps_int, eps_sum
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
-real(rp) i_sum(7), rad_int(7)
+real(rp) i_sum(num_int), rad_int(num_int)
 
-logical do_int(7), complete
+logical do_int(num_int), complete
 
 type ri_struct
   real(rp) h(0:jmax)
   real(rp) sum(0:jmax)
 end type
 
-type (ri_struct) ri(7)
+type (ri_struct) ri(num_int)
 
 !
 
@@ -138,8 +139,8 @@ do j = 1, jmax
 
   ri(:)%h(j) = ri(:)%h(j-1) / 4
 
-!---------------
-! This is trapzd from Numerical Recipes
+  !---------------
+  ! This is trapzd from Numerical Recipes
 
   if (j == 1) then
     n_pts = 2
@@ -174,15 +175,16 @@ do j = 1, jmax
                   info%g2 * info%g * (info%b%gamma * info%b%eta**2 + &
                   2 * info%b%alpha * info%b%eta * info%b%etap + &
                   info%b%beta * info%b%etap**2)
+    i_sum(8) = i_sum(8) + info%g
   enddo
 
   ri(:)%sum(j) = (ri(:)%sum(j-1) + del_z * i_sum(:)) / 2
 
-!--------------
-! Back to qromb.
-! For j >= 3 we test if the integral calculation has converged.
-! Exception: Since wigglers have a periodic field, the calculation can 
-! fool itself if we stop before j = 5.
+  !--------------
+  ! Back to qromb.
+  ! For j >= 3 we test if the integral calculation has converged.
+  ! Exception: Since wigglers have a periodic field, the calculation can 
+  ! fool itself if we stop before j = 5.
 
   if (j < 3) cycle
   if (ele%key == wiggler$ .and. j < 5) cycle
@@ -192,7 +194,7 @@ do j = 1, jmax
   complete = .true.
   d_max = 0
 
-  do n = 1, 7
+  do n = 1, num_int
     if (.not. do_int(n)) cycle
     call polint (ri(n)%h(j0:j), ri(n)%sum(j0:j), 0.0_rp, rad_int(n), dint)
     d0 = eps_int * abs(rad_int(n)) + eps_sum * abs(int_tot(n))
@@ -200,8 +202,8 @@ do j = 1, jmax
     if (d0 /= 0) d_max = abs(dint) / d0
   enddo
 
-! If we have convergance or we are giving up (when j = jmax) then 
-! stuff the results in the proper places.
+  ! If we have convergance or we are giving up (when j = jmax) then 
+  ! stuff the results in the proper places.
 
   if (complete .or. j == jmax) then
 
@@ -217,6 +219,7 @@ do j = 1, jmax
     ric%i4b(ix_ele) = ric%i4b(ix_ele) + rad_int(5)
     ric%i5a(ix_ele) = ric%i5a(ix_ele) + rad_int(6)
     ric%i5b(ix_ele) = ric%i5b(ix_ele) + rad_int(7)
+    ric%i0(ix_ele)  = ric%i0(ix_ele)  + rad_int(8)
 
     int_tot(1) = int_tot(1) + ric%i1(ix_ele)
     int_tot(2) = int_tot(2) + ric%i2(ix_ele)
@@ -225,6 +228,7 @@ do j = 1, jmax
     int_tot(5) = int_tot(5) + ric%i4b(ix_ele)
     int_tot(6) = int_tot(6) + ric%i5a(ix_ele)
     int_tot(7) = int_tot(7) + ric%i5b(ix_ele)
+    int_tot(8) = int_tot(8) + ric%i0(ix_ele)
 
   endif
 
@@ -453,6 +457,7 @@ integer n
 
 n = ubound(rad_int_in%i1, 1)
 
+call re_allocate2 (rad_int_out%i0, 0, n)
 call re_allocate2 (rad_int_out%i1, 0, n)
 call re_allocate2 (rad_int_out%i2, 0, n)
 call re_allocate2 (rad_int_out%i3, 0, n)

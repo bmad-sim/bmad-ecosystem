@@ -615,11 +615,11 @@ type linac_normal_mode_struct
 end type
 
 type normal_modes_struct
-  real(rp) synch_int(3)  ! Synchrotron integrals I1, I2, and I3
-  real(rp) sigE_E        ! SigmaE/E
-  real(rp) sig_z         ! Sigma_Z
-  real(rp) e_loss        ! Energy loss / turn (eV)
-  real(rp) pz_aperture   ! pz aperture limit
+  real(rp) synch_int(0:3) ! Synchrotron integrals I0, I1, I2, and I3
+  real(rp) sigE_E         ! SigmaE/E
+  real(rp) sig_z          ! Sigma_Z
+  real(rp) e_loss         ! Energy loss / turn (eV)
+  real(rp) pz_aperture    ! pz aperture limit
   type (anormal_mode_struct)  a, b, z
   type (linac_normal_mode_struct) lin
 end type
@@ -760,6 +760,7 @@ type (coord_struct), pointer :: multi_turn_func_common(:)
 ! lin_norm_emittance_a and lin_norm_emittance_b are running sums.
 
 type rad_int_common_struct
+  real(rp), allocatable :: i0(:)          ! Noe: All arrays are indexed from 0
   real(rp), allocatable :: i1(:)          ! Noe: All arrays are indexed from 0
   real(rp), allocatable :: i2(:) 
   real(rp), allocatable :: i3(:) 

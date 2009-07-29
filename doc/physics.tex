@@ -1584,9 +1584,10 @@ Figure~\ref{f:local.coords}), does not lie in the horizontal
 plane. $\Bf G$ has a magnitude $G = 1/\rho$ and a positive $G_y$
 indicates a downward bend in the negative $y$ direction.  Similarly,
 the dispersion $\bfeta\two = (\eta_x, \eta_y)$ will not lie in the
-horizontal plane. With this notation, the synchrotron Integrals for the
-$a$ and $b$ normal modes are:
+horizontal plane. With this notation, the synchrotron Integrals for coupled
+motion are:
   \Begineqs
+    I_0 &=& \oint ds \, G \\
     I_1 &=& \oint ds \, \Bf G \cdot \bfeta 
          \equiv \oint ds \, (G_x \, \eta_x + G_y \, \eta_y) \\
     I_2 &=& \oint ds \, G^2 \\
@@ -1621,6 +1622,9 @@ Using this gives on--axis ($x = y = 0$)
     \nabla G^2 = 2 \left( G_x k_1 + G_y s_1, \, G_x s_1 - G_y k_1 \right)
     \label{g2gkg}
   \Endeq
+
+Note: $I_0$ is not a standard radiation integral. It is useful,
+though, in calculating the average number of photons emitted.
 
 In a dipole a non--zero $e_1$ or $e_2$ gives a contribution to $I_4$
 via the $\nabla G^2 \cdot \bfeta$ term. The edge field is modeled as a
