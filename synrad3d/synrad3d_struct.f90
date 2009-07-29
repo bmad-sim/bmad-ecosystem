@@ -9,38 +9,38 @@ integer, parameter :: elliptical$ = 1, rectangular$ = 2
 type photon3d_coord_struct
   real(rp) vec(6)             ! Position: (x, vx/c, y, vy/c, z, vz/c)
   real(rp) energy             ! eV
-  real(rp) intensity          ! Watts
-  real(rp) radius             ! Normalized transverse position of the photon 
-                              ! relative to the wall. 1 => at wall.
+  real(rp) intensity          ! Intensity of this macro-photon in Photons/turn
+  real(rp) track_len          ! length of the track from the start
+  integer ix_ele              ! index of element we are in.
+  integer ix_wall             ! Index to wall segment
 end type
 
 type photon3d_track_struct
-  integer ix_ele          ! index of element we are now tracking through
-  integer ix_source       ! element index at source of ray
-  real(rp) track_len      ! length of the track from the start
-  type (synrad3d_coord_struct) start, old, now  ! coords
-  logical crossed_end     ! photon crossed through the lattice end?
+  type (photon3d_coord_struct) start, old, now  ! coords
+  logical crossed_end         ! photon crossed through the lattice end?
   integer n_reflect
 end type
 
 !--------------
+! The wall is specified by an array of points as given s locations.
+! The wall between point i-1 and i is associated with 
 
-type wall_3d_pt_struct
-  integer type         ! elliptical$ or rectangular$
+type wall3d_pt_struct
+  real(rp) s           ! Longitudinal position.
+  character(16) type   ! elliptical or rectangular
   real(rp) width2      ! half width
   real(rp) height2     ! half height
-  real(rp) s           ! Longitudinal position.
 end type
 
-type wall_3d_struct
-  type (wall_3d_pt_struct), allocatable :: pt(:)
+type wall3d_struct
+  type (wall3d_pt_struct), allocatable :: pt(:)
   integer n_pt_max
 end type
 
 !
 
 type synrad3d_params_struct
-  real(rp) :: ds_track_step_max = 10
+  real(rp) :: ds_track_step_max = 3
   real(rp) :: dr_track_step_max = 0.1
 end type
 
