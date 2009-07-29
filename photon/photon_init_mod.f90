@@ -45,7 +45,7 @@ call photon_vert_angle_init (E_rel, gamma_phi)
 
 orbit = 0
 orbit(4) = gamma_phi / gamma
-orbit(6) = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / (2 * e_charge)
+orbit(6) = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2
 
 end subroutine
 
@@ -125,12 +125,12 @@ endif
 
 log_E = log10(E_rel)
 
-if (log_E <= 4) then
+if (log_E <= -4) then
   r = 0.25
 elseif (log_E >= 2.4) then
   r = 0
 else
-  x = (log_E - 4) / 0.2
+  x = (log_E + 4) / 0.2
   i = int(x)
   frac = x - i
   r = (1 - frac) * rel_amp(i) + frac * rel_amp(i+1)

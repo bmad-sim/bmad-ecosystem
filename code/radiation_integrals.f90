@@ -192,7 +192,7 @@ endif
 ri_info%lat => lat
 ri_info%orbit => orbit
 
-ric%i1 = 0;   ric%i2 = 0;  ric%i3 = 0
+ric%i0 = 0;  ric%i1 = 0;   ric%i2 = 0;  ric%i3 = 0
 ric%i4a = 0;  ric%i4b = 0
 ric%i5a = 0;  ric%i5b = 0
 ric%n_steps = 0
@@ -420,7 +420,7 @@ do ir = 1, lat%n_ele_track
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)
-    ric%i0(ir) = 2 * G_max / 3
+    ric%i0(ir) = (ele%value(e_tot$) / mass_of(lat%param%particle)) * 2 * G_max / 3
     ric%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
     ric%i2(ir) = ll * G_max**2 / 2
     ric%i3(ir) = ll * g3_ave

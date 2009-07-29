@@ -551,7 +551,7 @@ real(rp) sin_n, cos_n, a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), t(0:n_pole_maxx), value(n_attrib_maxx)
 real(rp) a_tot(0:n_pole_maxx), b_tot(0:n_pole_maxx)
 real(rp) sum_1, sum_2, sum_3, sum_4, ks_sum, ks_xp_sum, ks_xo_sum
-real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng
+real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
@@ -598,128 +598,14 @@ if (slave%n_lord == 1) then
 
   !
 
-  value = lord%value
-  value(l$) = slave%value(l$)                 ! do not change slave length
-  if (lord%key == wiggler$) then
-    value(z_patch$) = slave%value(z_patch$)
-  endif
-  if (lord%key == hkicker$ .or. lord%key == vkicker$) then
-    value(kick$) = lord%value(kick$) * coef
-  else
-    value(hkick$) = lord%value(hkick$) * coef
-    value(vkick$) = lord%value(vkick$) * coef
-  endif
-  if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
+  offset = 0 ! length of all slaves before this one
+  do i = lord%ix1_slave, ix_con-1
+    j = lattice%control(i)%ix_slave
+    offset = offset + lattice%ele(j)%value(l$)
+  enddo
 
-  slave%aperture_at = no_end$
-  call compute_slave_aperture (value, slave, lord, ix_con)
-
-  if (slave%key == lcavity$) then
-    slave%coupler_at = no_end$
-    call compute_slave_coupler (value, slave, lord, ix_con)
-  endif
-
-  ! s_del is the distance between lord and slave centers
-
-  s_del = (slave%s - slave%value(l$)/2) - &
-                (lord%s + lord%value(s_offset$) - lord%value(l$)/2)
-  s_del = modulo2 (s_del, lattice%param%total_length/2)
-  value(x_pitch$)  = value(x_pitch_tot$)
-  value(y_pitch$)  = value(y_pitch_tot$)
-  value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
-  value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
-  value(tilt$)     = value(tilt_tot$)
-
-  slave%value = value
-  slave%is_on = lord%is_on
-  slave%mat6_calc_method = lord%mat6_calc_method
-  slave%tracking_method  = lord%tracking_method
-
-  ! If a wiggler: 
-  ! must keep track of where we are in terms of the unsplit wiggler.
-  ! This is for anything which does not try to make a homogeneous approximation.
-  ! l_original is the length of the unsplit original wiggler.
-  ! l_start is the starting point with respect to the original wiggler.
-  ! l_end is the ending point with respect to the original wiggler.
-
-  if (slave%key == wiggler$) then
-    slave%value(n_pole$) = lord%value(n_pole$) * coef
-    slave%value(l_original$) = lord%value(l$)
-
-    leng = 0 ! length of all slaves before this one
-    do i = lord%ix1_slave, ix_con-1
-      j = lattice%control(i)%ix_slave
-      leng = leng + lattice%ele(j)%value(l$)
-    enddo
-    slave%value(l_start$)    = leng
-    slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
-
-    if (associated(lord%wig_term)) then
-      if (.not. associated (slave%wig_term) .or. &
-              size(slave%wig_term) /= size(lord%wig_term)) then
-        if (associated (slave%wig_term)) deallocate (slave%wig_term)
-        allocate (slave%wig_term(size(lord%wig_term)))
-      endif
-      do i = 1, size(lord%wig_term)
-        slave%wig_term(i) = lord%wig_term(i)
-        slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + &
-                             lord%wig_term(i)%kz * slave%value(l_start$)
-      enddo
-    else
-      if (associated (slave%wig_term)) deallocate (slave%wig_term)
-    endif
-
-  endif
-
-  ! If a custom element: 
-  ! Must keep track of where we are in terms of the unsplit element.
-  ! See wiggler above for more details.
-
-  if (slave%key == custom$) then
-    slave%value(l_original$) = lord%value(l$)
-    slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
-                                                 (lord%s - lord%value(l$))
-    slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
-  endif
-
-  ! If an sbend:
-  !     1) renormalize the angles
-  !     2) zero the face angles next to the split
-
-  if (slave%key == sbend$) then
-    if (ix_con == lord%ix1_slave) then   ! first slave bend
-      slave%value(e2$)    = 0
-      slave%value(h2$)    = 0
-      slave%value(fintx$) = 0
-      slave%value(hgapx$) = 0
-    elseif (ix_con == lord%ix2_slave) then 
-      slave%value(e1$)    = 0
-      slave%value(h1$)    = 0
-      slave%value(fint$)  = 0
-      slave%value(hgap$)  = 0
-    else
-      slave%value(e1$)    = 0
-      slave%value(h1$)    = 0
-      slave%value(fint$)  = 0
-      slave%value(hgap$)  = 0
-      slave%value(e2$)    = 0
-      slave%value(h2$)    = 0
-      slave%value(fintx$) = 0
-      slave%value(hgapx$) = 0
-    endif
-  endif                       
-
-  ! If there are long range wakes they must be scaled.
-
-  if (associated (slave%wake)) then
-    slave%wake%lr%freq_in   = lord%wake%lr%freq_in
-    slave%wake%lr%freq      = lord%wake%lr%freq
-    slave%wake%lr%Q         = lord%wake%lr%Q
-    slave%wake%lr%angle     = lord%wake%lr%angle
-    slave%wake%lr%m         = lord%wake%lr%m
-    slave%wake%lr%polarized = lord%wake%lr%polarized
-    slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
-  endif
+  call makeup_super_slave1 (slave, lord, offset, coef, &
+                               ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
 
   return
 
@@ -790,8 +676,11 @@ do j = slave%ic1_lord, slave%ic2_lord
 
   ! Coupler and aperture calc.
 
-  call compute_slave_aperture (value, slave, lord, ix_con)
-  if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, ix_con)
+  call compute_slave_aperture (value, slave, lord, &
+                               ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
+
+  if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, &
+                               ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
 
   ! Methods
 
@@ -1115,32 +1004,180 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine compute_slave_aperture (value, slave, lord, ix_con)
+! Subroutine makeup_super_slave1 (slave, lord, offset, coef, at_entrance_end, at_exit_end)
+!
+! Routine to transfer the %value, %wig_term, and %wake%lr information from a 
+! superposition lord to a slave when the slave has only one lord.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   slave  -- Ele_struct: Slave element.
+!     %s     -- Longitudinal position.
+!   lord   -- Ele_struct: Lord element.
+!   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
+!   coef   -- Real(rp) Scaling coefficient. Generally slave%value(l$)/lord%value(l$).
+!   at_entrance_end -- Logical: Slave contains the lord's entrance end?
+!   at_exit_end     -- Logical: Slave contains the lord's exit end?
+!
+! Output:
+!   slave -- Ele_struct: Slave element with appropriate values set.
+!-
+
+subroutine makeup_super_slave1 (slave, lord, offset, coef, at_entrance_end, at_exit_end)
+
+implicit none
+
+type (ele_struct), target :: slave, lord
+
+real(rp) coef, offset, s_del
+real(rp) value(n_attrib_maxx)
+integer i
+logical at_entrance_end, at_exit_end
+
+!
+
+value = lord%value
+value(l$) = slave%value(l$)                 ! do not change slave length
+if (lord%key == wiggler$) then
+  value(z_patch$) = slave%value(z_patch$)
+endif
+if (lord%key == hkicker$ .or. lord%key == vkicker$) then
+  value(kick$) = lord%value(kick$) * coef
+else
+  value(hkick$) = lord%value(hkick$) * coef
+  value(vkick$) = lord%value(vkick$) * coef
+endif
+if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
+
+slave%aperture_at = no_end$
+call compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
+
+if (slave%key == lcavity$) then
+  slave%coupler_at = no_end$
+  call compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
+endif
+
+! s_del is the distance between lord and slave centers
+
+s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
+value(x_pitch$)  = value(x_pitch_tot$)
+value(y_pitch$)  = value(y_pitch_tot$)
+value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
+value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
+value(tilt$)     = value(tilt_tot$)
+
+slave%value = value
+slave%is_on = lord%is_on
+slave%mat6_calc_method = lord%mat6_calc_method
+slave%tracking_method  = lord%tracking_method
+
+! If a wiggler: 
+! must keep track of where we are in terms of the unsplit wiggler.
+! This is for anything which does not try to make a homogeneous approximation.
+! l_original is the length of the unsplit original wiggler.
+! l_start is the starting point with respect to the original wiggler.
+! l_end is the ending point with respect to the original wiggler.
+
+if (slave%key == wiggler$) then
+  slave%value(n_pole$) = lord%value(n_pole$) * coef
+  slave%value(l_original$) = lord%value(l$)
+
+  slave%value(l_start$) = offset
+  slave%value(l_end$)   = slave%value(l_start$) + slave%value(l$)
+
+  if (associated(lord%wig_term)) then
+    if (.not. associated (slave%wig_term) .or. &
+            size(slave%wig_term) /= size(lord%wig_term)) then
+      if (associated (slave%wig_term)) deallocate (slave%wig_term)
+      allocate (slave%wig_term(size(lord%wig_term)))
+    endif
+    do i = 1, size(lord%wig_term)
+      slave%wig_term(i) = lord%wig_term(i)
+      slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + &
+                             lord%wig_term(i)%kz * slave%value(l_start$)
+    enddo
+  else
+    if (associated (slave%wig_term)) deallocate (slave%wig_term)
+  endif
+
+endif
+
+! If a custom element: 
+! Must keep track of where we are in terms of the unsplit element.
+! See wiggler above for more details.
+
+if (slave%key == custom$) then
+  slave%value(l_original$) = lord%value(l$)
+  slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
+                                               (lord%s - lord%value(l$))
+  slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
+endif
+
+! If an sbend:
+!     1) renormalize the angles
+!     2) zero the face angles next to the split
+
+if (slave%key == sbend$) then
+  if (.not. at_entrance_end) then 
+    slave%value(e1$)    = 0
+    slave%value(h1$)    = 0
+    slave%value(fint$)  = 0
+    slave%value(hgap$)  = 0
+  endif
+  if (.not. at_exit_end) then   ! first slave bend
+    slave%value(e2$)    = 0
+    slave%value(h2$)    = 0
+    slave%value(fintx$) = 0
+    slave%value(hgapx$) = 0
+  endif
+endif                       
+
+! If there are long range wakes they must be scaled.
+
+if (associated (slave%wake)) then
+  slave%wake%lr%freq_in   = lord%wake%lr%freq_in
+  slave%wake%lr%freq      = lord%wake%lr%freq
+  slave%wake%lr%Q         = lord%wake%lr%Q
+  slave%wake%lr%angle     = lord%wake%lr%angle
+  slave%wake%lr%m         = lord%wake%lr%m
+  slave%wake%lr%polarized = lord%wake%lr%polarized
+  slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
+endif
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine compute_slave_aperture (value, slave, lord, ix_con)
+subroutine compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
 
 implicit none
 
 type (ele_struct) slave, lord
 real(rp) value(n_attrib_maxx)
-integer ix_con
+logical at_entrance_end, at_exit_end
 
 !
 
 select case (lord%aperture_at)
 case (exit_end$) 
-  if (ix_con == lord%ix2_slave) slave%aperture_at = exit_end$
+  if (at_exit_end) slave%aperture_at = exit_end$
 case (entrance_end$)
-  if (ix_con == lord%ix1_slave) slave%aperture_at = entrance_end$
+  if (at_entrance_end) slave%aperture_at = entrance_end$
 case (both_ends$)
-  if (ix_con == lord%ix1_slave .and. ix_con == lord%ix2_slave) then
+  if (at_entrance_end .and. at_exit_end) then
     slave%aperture_at = both_ends$
-  elseif (ix_con == lord%ix1_slave) then
+  elseif (at_entrance_end) then
     slave%aperture_at = entrance_end$
-  elseif (ix_con == lord%ix2_slave) then 
+  elseif (at_exit_end) then 
     slave%aperture_at = exit_end$
   endif
 end select
@@ -1158,32 +1195,32 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine compute_slave_coupler (value, slave, lord, ix_con)
+! Subroutine compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine compute_slave_coupler (value, slave, lord, ix_con)
+subroutine compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
 
 implicit none
 
 type (ele_struct) slave, lord
 real(rp) value(n_attrib_maxx)
-integer ix_con
+logical at_entrance_end, at_exit_end
 
 !
 
 select case (lord%coupler_at)
 case (exit_end$) 
-  if (ix_con == lord%ix2_slave) slave%coupler_at = exit_end$
+  if (at_exit_end) slave%coupler_at = exit_end$
 case (entrance_end$)
-  if (ix_con == lord%ix1_slave) slave%coupler_at = entrance_end$
+  if (at_entrance_end) slave%coupler_at = entrance_end$
 case (both_ends$)
-  if (ix_con == lord%ix1_slave .and. ix_con == lord%ix2_slave) then
+  if (at_entrance_end .and. at_exit_end) then
     slave%coupler_at = both_ends$
-  elseif (ix_con == lord%ix1_slave) then
+  elseif (at_entrance_end) then
     slave%coupler_at = entrance_end$
-  elseif (ix_con == lord%ix2_slave) then 
+  elseif (at_exit_end) then 
     slave%coupler_at = exit_end$
   endif
 end select

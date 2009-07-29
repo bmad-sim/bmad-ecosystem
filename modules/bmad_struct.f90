@@ -700,8 +700,7 @@ end type
 
 type (synch_rad_common_struct), save :: synch_rad_com
 
-real(rp), parameter :: rad_fluct_const = 1.3231 * r_e * h_bar_planck * &
-                                                       c_light / (m_electron * e_charge)
+real(rp), parameter :: rad_fluct_const = 1.3231 * r_e * h_bar_planck * c_light / m_electron
 
 integer, parameter :: not_lost$ = -1
 

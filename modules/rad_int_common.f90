@@ -94,7 +94,7 @@ integer, parameter :: jmax = 14
 integer j, j0, n, n_pts, ix_ele
 
 real(rp) :: int_tot(num_int)
-real(rp) :: eps_int, eps_sum
+real(rp) :: eps_int, eps_sum, gamma
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
 real(rp) i_sum(num_int), rad_int(num_int)
 
@@ -120,9 +120,10 @@ rad_int = 0
 
 ll = ele%value(l$)
 
-    ix_ele = info%ix_ele
+ix_ele = info%ix_ele
 start = info%orbit(ix_ele-1)
 end   = info%orbit(ix_ele)
+gamma = ele%value(e_tot$) / mass_of(info%lat%param%particle)
 
 ! Go to the local element frame if there has been caching.
 if (associated(info%cache_ele)) then
@@ -175,7 +176,7 @@ do j = 1, jmax
                   info%g2 * info%g * (info%b%gamma * info%b%eta**2 + &
                   2 * info%b%alpha * info%b%eta * info%b%etap + &
                   info%b%beta * info%b%etap**2)
-    i_sum(8) = i_sum(8) + info%g
+    i_sum(8) = i_sum(8) + gamma * info%g
   enddo
 
   ri(:)%sum(j) = (ri(:)%sum(j-1) + del_z * i_sum(:)) / 2

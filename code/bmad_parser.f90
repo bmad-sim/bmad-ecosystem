@@ -775,7 +775,7 @@ elseif (lat%ele(0)%value(p0c$) /= 0) then  ! beginning[p0c] = ...
                                            e_tot = lat%ele(0)%value(e_tot$))
 elseif (lat%ele(0)%value(e_tot$) == 0) then
   call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET! WILL USE SOMETHING LARGE!')
-  lat%ele(0)%value(e_tot$) = 1000 * rest_energy(lat%param%particle)
+  lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
 endif
 
 call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &

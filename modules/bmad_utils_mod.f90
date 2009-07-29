@@ -297,7 +297,7 @@ character(20) :: r_name = 'convert_total_energy_to'
 
 !
 
-mc2 = rest_energy(particle)
+mc2 = mass_of(particle)
 if (E_tot < mc2) then
   call out_io (s_abort$, r_name, &
             'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
@@ -349,7 +349,7 @@ character(20) :: r_name = 'convert_pc_to'
 
 !
 
-mc2 = rest_energy(particle)
+mc2 = mass_of(particle)
 E_tot_new = sqrt(pc**2 + mc2**2)
 
 if (present(E_tot))   E_tot   = E_tot_new
@@ -359,45 +359,6 @@ if (present(brho))    brho    = pc / c_light
 if (present(gamma))   gamma   = E_tot_new / mc2
 
 end subroutine convert_pc_to
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Function rest_energy (particle) result (energy)
-!
-! Routine to return the rest energy in eV of a particle.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   particle -- Integer: Type of particle. positron$, etc.
-!
-! Output:
-!   energy -- Real(rp): Rest energy.
-!-
-
-function rest_energy (particle) result (energy)
-
-implicit none
-
-integer particle
-real(rp) energy
-character(16) :: r_name = 'rest_energy'
-
-!
-
-if (particle == positron$ .or. particle == electron$) then
-  energy = m_electron
-elseif (particle == proton$ .or. particle == antiproton$) then
-  energy = m_proton
-else
-  call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PARTICLE TYPE: \i0\ ', particle)
-  call err_exit
-endif
-
-end function rest_energy
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

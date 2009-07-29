@@ -54,12 +54,12 @@ compatibility with \mad.
   degrees       & 180 / pi               &        &                   \\
   m_electron    & $0.51099906 \pow{6}$   & eV     & Electron mass     \\
   m_proton      & $0.938271998 \pow{9}$  & eV     & Proton mass       \\
-  c_light       & $2.99792458 \pow{8}$   & m/s    & Speed of light    \\
+  c_light       & $2.99792458 \pow{8}$   & m/sec  & Speed of light    \\
   r_e           & $2.8179380 \pow{-15}$  & m      & Electron radius   \\
   r_p           & $1.5346980 \pow{-18}$  & m      & Proton radius     \\
   e_charge      & $1.6021892 \pow{-19}$  & C      & Electron charge   \\
-  h_planck      & $6.626196 \pow{-34}$   & J/Hz   & Planck's constant \\
-  h_bar_planck  & $1.054591 \pow{-34}$   & J s    & Planck / $2\pi$   \\
+  h_planck      & $4.13566733 \pow{-15}$ & eV*sec & Planck's constant \\
+  h_bar_planck  & $6.58211899 \pow{-16}$ & eV*sec & Planck / $2\pi$   \\
   e_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
   p_mass        & $0.938271998$          & GeV    & Proton mass       \\ \hline
 \end{tabular}
@@ -1587,7 +1587,7 @@ the dispersion $\bfeta\two = (\eta_x, \eta_y)$ will not lie in the
 horizontal plane. With this notation, the synchrotron Integrals for coupled
 motion are:
   \Begineqs
-    I_0 &=& \oint ds \, G \\
+    I_0 &=& \oint ds \, \gamma_0 \, G \\
     I_1 &=& \oint ds \, \Bf G \cdot \bfeta 
          \equiv \oint ds \, (G_x \, \eta_x + G_y \, \eta_y) \\
     I_2 &=& \oint ds \, G^2 \\
@@ -1601,7 +1601,7 @@ motion are:
     I_{5a} &=& \oint ds \, G^3 \, \calh_a \\
     I_{5b} &=& \oint ds \, G^3 \, \calh_b
   \Endeqs
-where $\calh_a$ is 
+where $gamma_0$ is that usual relativistic factor and $\calh_a$ is 
   \Begineq
     \calh_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
       \beta_a \eta_a'^2 
