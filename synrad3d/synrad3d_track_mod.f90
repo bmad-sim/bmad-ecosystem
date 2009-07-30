@@ -44,6 +44,7 @@ do
   call track_photon_to_wall (photon, lat, wall)
   call reflect_photon (photon, wall, adsorbed)
   if (adsorbed) return
+  photon%n_reflect = photon%n_reflect + 1
 enddo
 
 end subroutine
