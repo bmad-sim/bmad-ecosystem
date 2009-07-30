@@ -264,7 +264,7 @@ is modified do not have any effect on the lattice elements.
 Lines that branch off from the main lattice can be defined in
 \bmad. There are two types of branch elements. \vn{Branch} elements define
 where the particle beam can branch off, say to a beam dump.
-\vn{Photon_Branch} elements define the source point for photon beams.
+\vn{Photon_Branch} elements define the source point for X-ray beams.
 Example:
 \begin{example}
   erl: line = (..., b_mark, ...)             ! Define the main lattice with a branch 
@@ -277,8 +277,8 @@ Example:
 Branch lines can themselves have branch elements. A branch line always
 starts out tangential to the line it is branching from. The
 \vn{direction} attribute of the branch element indicates whether the
-branch line is oriented in the forward or backward direction with
-respect to the line being branched from. 
+branch line is outgoing in the forward direction (direction = +1) or
+incoming (direction = -1).
 
 Branches are named after the setting of the \vn{alias} attribute of
 the branch element. In the above example, the branch line would be

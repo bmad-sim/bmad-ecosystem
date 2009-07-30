@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module bookkeeper_mod
 
 use bmad_interface
