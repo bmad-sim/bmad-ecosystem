@@ -445,8 +445,8 @@ branch => lat%branch(datum%ix_branch)
 orbit => tao_lat%lat_branch(datum%ix_branch)%orbit
 bunch_params => tao_lat%lat_branch(datum%ix_branch)%bunch_params
 uni_ele => u%uni_branch(datum%ix_branch)%ele
-ele1 => branch%ele(ix1)
-ele0 => branch%ele(ix0)
+if (ix1 >= 0) ele1 => branch%ele(ix1)
+if (ix0 >= 0) ele0 => branch%ele(ix0)
 
 valid_value = .false.
 
@@ -716,7 +716,7 @@ case ('emit.z', 'norm_emit.z')
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.a', 'norm_emit.a')
-  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     call load_it (bunch_params(:)%a%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'lattice') then
@@ -735,7 +735,7 @@ case ('emit.a', 'norm_emit.a')
   valid_value = .true.
   
 case ('emit.b', 'norm_emit.b')  
-  call convert_total_energy_to (ele1%value(E_tot$), lat%param%particle, gamma)
+  call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     call load_it (bunch_params(:)%b%norm_emitt, loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'lattice') then
