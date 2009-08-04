@@ -169,7 +169,8 @@ end subroutine pointer_to_indexed_attribute
 ! Function attribute_index (ele, name) result (attrib_index)
 !
 ! Function to return the index of a attribute for a given BMAD element type
-! and the name of the attribute.
+! and the name of the attribute. Abbreviations are permitted but must be at 
+! least 3 characters.
 !
 ! Modules Needed:
 !   use bmad
@@ -207,13 +208,14 @@ character(40) name40
 
 if (init_needed) call init_attribute_name_array
 
-name40 = name          ! make sure we have 40 characters
+name40 = name           ! make sure we have 40 characters
 key = ele%key
-attrib_index = 0           ! match not found
+attrib_index = 0        ! match not found
 
 ilen = len_trim(name)
 if (ilen == 0) return
-n_abbrev = 0            ! number of abbreviation matches
+if (ilen < 3) ilen = 3  ! Need at least three characters.
+n_abbrev = 0            ! number of abbreviation matches.
 
 !-----------------------------------------------------------------------
 ! Support old "B_GRADIENT" notation

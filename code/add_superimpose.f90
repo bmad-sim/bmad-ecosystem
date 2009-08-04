@@ -93,6 +93,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     ix_super = ix1_split + 1
     lat%ele(ix_super)%lord_status  = free$
     lat%ele(ix_super)%slave_status = free$
+    call adjust_slave_names ()
     return
   endif
 
@@ -302,28 +303,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
   call order_super_lord_slaves (lat, ix_super)
-
-  ! Adjust the names of the slaves
-
-  do i = n_ele_max_old+1, lat%n_ele_max
-    lord => lat%ele(i)
-    if (lord%lord_status /= super_lord$) cycle
-    ix_1lord = 0
-    do j = lord%ix1_slave, lord%ix2_slave
-      slave => lat%ele(lat%control(j)%ix_slave)
-      if (slave%n_lord == 1) then
-        ix_1lord = ix_1lord + 1
-        write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
-      else
-        name = ''
-        do k = slave%ic1_lord, slave%ic2_lord
-          ix = lat%control(lat%ic(k))%ix_lord
-          name = trim(name) //  '\' // lat%ele(ix)%name !'
-        enddo
-        slave%name = name(2:len(slave%name))
-      endif
-    enddo
-  enddo
+  call adjust_slave_names
 
 !------------------------------------------------------------------------------
 contains
@@ -345,6 +325,35 @@ subroutine delete_underscore(ele)
 
   ix = index(ele%name, '##')
   if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
+
+end subroutine
+
+!------------------------------------------------------------------------------
+! contains
+
+! Adjust the names of the slaves
+
+subroutine adjust_slave_names ()
+
+do i = n_ele_max_old+1, lat%n_ele_max
+  lord => lat%ele(i)
+  if (lord%lord_status /= super_lord$) cycle
+  ix_1lord = 0
+  do j = lord%ix1_slave, lord%ix2_slave
+    slave => lat%ele(lat%control(j)%ix_slave)
+    if (slave%n_lord == 1) then
+      ix_1lord = ix_1lord + 1
+      write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
+    else
+      name = ''
+      do k = slave%ic1_lord, slave%ic2_lord
+        ix = lat%control(lat%ic(k))%ix_lord
+        name = trim(name) //  '\' // lat%ele(ix)%name !'
+      enddo
+      slave%name = name(2:len(slave%name))
+    endif
+  enddo
+enddo
 
 end subroutine
 
