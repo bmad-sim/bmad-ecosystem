@@ -446,7 +446,7 @@ case ('set')
   case ('graph')
     call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('universe')    
-    call tao_set_uni_cmd (cmd_word(2), cmd_word(3))
+    call tao_set_uni_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
   end select
 
 !--------------------------------

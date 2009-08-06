@@ -912,26 +912,24 @@ end subroutine tao_set_data_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_uni_cmd (uni, what)
+! Subroutine tao_set_uni_cmd (uni, who, what)
 !
-! turns a universe of or off
+! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals
 !
 ! Input:
-!  uni       -- Character(*): which universe; 0 => current viewed universe
-!  what      -- Character(*): "on", "off", "recalculate", or mat6_recalc
-!
-! Output:
-!  s%u(uni)%is_on
+!   uni     -- Character(*): which universe; 0 => current viewed universe
+!   who     -- Character(*): "on", "off", "recalculate", or "mat6_recalc"
+!   what    -- Character(*): "on" or "off" for who = "mat6_recalc".
 !
 !-
 
-subroutine tao_set_uni_cmd (uni, what)
+subroutine tao_set_uni_cmd (uni, who, what)
 
 implicit none
 
 integer i, n_uni
 
-character(*) uni, what
+character(*) uni, who, what
 character(20) :: r_name = "tao_set_universe_cmd"
 
 logical is_on, err, recalc, mat6_toggle
@@ -951,11 +949,19 @@ endif
 
 !
 
-if (index('mat6_recalc', trim(what)) == 1) then
-  if (uni == '*') then
-    s%u(:)%mat6_recalc_on = .not. s%u(:)%mat6_recalc_on
+if (index('mat6_recalc', trim(who)) == 1) then
+  if (what == 'on') then
+    is_on = .true.
+  elseif (what == 'off') then
+    is_on = .false.
   else
-    s%u(n_uni)%mat6_recalc_on = .not. s%u(n_uni)%mat6_recalc_on
+    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> mat6_recalc on/off"')
+    return
+  endif
+  if (uni == '*') then
+    s%u(:)%mat6_recalc_on = is_on
+  else
+    s%u(n_uni)%mat6_recalc_on = is_on
   endif
   tao_com%lattice_recalc = .true.
   return
@@ -963,14 +969,20 @@ endif
   
 !
 
+if (what /= '') then
+  call out_io (s_error$, r_name, 'Extra stuff on line. Nothing done.')
+  return
+endif
+
+
 recalc = .false.
 
-if (what(1:2) == 'on') then
+if (who == 'on') then
   is_on = .true.
   recalc = .true.
-elseif (what(1:3) == 'off') then
+elseif (who == 'off') then
   is_on = .false.
-elseif (index('recalculate', trim(what)) == 1) then
+elseif (index('recalculate', trim(who)) == 1) then
   recalc = .true.
 else
   call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', or 'mat6_recalc")

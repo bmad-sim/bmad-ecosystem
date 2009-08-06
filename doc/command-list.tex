@@ -726,7 +726,7 @@ variables, etc. Format:
   set plot_page <component> = <value1> \{<value2>\}
   set universe <what_universe> on/off 
   set universe <what_universe> recalculate
-  set universe <what_universe> mat6_recalc
+  set universe <what_universe> mat6_recalc on/off
   set var <var_name>|<component> = <value>
 \end{example}
 
@@ -907,7 +907,7 @@ Example:
 \item[\protect\parbox{6in}{
         set universe <what\_universe> on/off \\ 
         set universe <what\_universe> recalculate \\
-        set universe <what\_universe> mat6\_recalc}] \Newline
+        set universe <what\_universe> mat6\_recalc on/off}] \Newline
 
 The \vn{set universe <what_universe> on/off} command will turn the
 specified universe(s) on or off. Turning a universe off is useful to
@@ -923,14 +923,14 @@ variables associated with that universe will still be included in the
 merit function but not the data for that universe. The variables will
 still vary in the turned off universe.
 
-The \vn{set universe <what_universe> recalculate} command will recalcuate the
+The \vn{set universe <what_universe> recalculate} command will recalculate the
 lattice parameters for that universe.
 
-The \vn{set universe <what_universe> mat6_recalc} command will toggle whether
+The \vn{set universe <what_universe> mat6_recalc} command will set whether
 the 6x6 transfer matrices are calculated for a given universe. Turning
 this off is useful in speeding up calculations in the case where the
 transfer matrices are not being used (Warning: The transfer matrices
-are needed to computer the Twiss parameters). Use the \vn{show
+are needed to compute the Twiss parameters). Use the \vn{show
 universe} command to see the state of the \vn{mat6_recalc_on} switch.
 
 Example:
@@ -1247,7 +1247,7 @@ recognized:
 \end{example}
 If an attribute does not exist for a given element (for example,
 \vn{quadrupole}s do not have a \vn{voltage}), a series of dashes,
-``----'', will be placed in the approprite spot in the table.
+``----'', will be placed in the appropriate spot in the table.
 Additionally, an arithmetic expression that results in a divide by
 zero will result in dashes being printed. This behavior is changed if
 the \vn{-0undef} switch is present. In this case, a zero, ``0'', will
@@ -1350,7 +1350,7 @@ by \vn{loc1} to the exit end of the element given by \vn{loc2} where
 \vn{loc1} and \vn{loc2} are element names or indexes. The exception is
 that if \vn{loc1} is present but \vn{loc2} is not then the map is from
 the beginning of the lattice to the exit end of \vn{loc2}. If neither
-\vn{loc1} nor \vn{loc2} are pesent, the transfer map is computed for
+\vn{loc1} nor \vn{loc2} are present, the transfer map is computed for
 the entire lattice.
 
 The \vn{-order} switch, if present, gives the limiting order to
@@ -1404,7 +1404,7 @@ Shows variable information. If \vn{<var_name>} is not
 present,  a list of all \vn{v1_var} classes is printed. To show variables
 associated with the \vn{n}th universe use the syntax \vn{show var n@}.
 
-If the \vn{-bmad_format} switch is usedthen the Bmad lattice parameters that
+If the \vn{-bmad_format} switch is used then the Bmad lattice parameters that
 the \tao variables control will be printed in Bmad lattice
 format. This is the same syntax used in generating the variable files
 when an optimizer is run. If \vn{-good_opt_only} is used in conjunction with
