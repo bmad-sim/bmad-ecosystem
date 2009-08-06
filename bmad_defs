@@ -51,9 +51,7 @@ BMAD_BIN=${BMAD_}/bin
 #
 
 PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
-#if ( [ PLATFORM_TAG = "Darwin_Power Macintosh" ] ) then
-#  PLATFORM_TAG="Darwin_Power_Macintosh"
-#fi
+SYSTEM_TAG="`uname -s | cut -d- -f1`"
 
 #
 # Set BMAD fortran compiler:
@@ -63,7 +61,7 @@ PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 # hp      -- f77/f90/f95  default on OSF1_alpha
 # ibm     -- xlf
 # absoft  -- f95          default on Darwin_powerpc
-# gnu     -- g77/g95
+# gnu     -- gfortran
 #
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
   BMADF90=${BMADF90:-intel}
@@ -86,8 +84,8 @@ if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   BMADF90=${BMADF90:-hp}
 fi
 
-if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
-  BMADF90=${BMADF90:-g95}
+if ( [ "${SYSTEM_TAG}" = "Darwin" ] ) then 
+  BMADF90=${BMADF90:-gfortran}
 fi
 
 #

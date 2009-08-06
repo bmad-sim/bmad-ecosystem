@@ -11,6 +11,7 @@
 #
 setenv BMAD_DIST     TRUE
 setenv BMAD_PLATFORM $PLATFORM_TAG
+setenv BMAD_SYSTEM   $SYSTEM_TAG
 
 #
 #----  BMAD_BASE subtrees  ----
