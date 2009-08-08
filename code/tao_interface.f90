@@ -6,6 +6,8 @@
 
 module tao_interface
 
+integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbols
+
 interface
   function merit_wrapper (var_vec, status, iter_count) result (merit)
     use precision_def

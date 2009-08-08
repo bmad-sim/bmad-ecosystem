@@ -7,12 +7,14 @@
 
 module tao_mod
 
-  use bmad_struct
-  use bmad_interface
-  use sim_utils
-  use tao_struct
-  use tao_interface
-  use tao_utils
-  use beam_mod
+use bmad_struct
+use bmad_interface
+use sim_utils
+use tao_struct
+use tao_interface
+use tao_utils
+use beam_mod
+
+integer, private, save :: dummy = 0 ! So ranlib will not complain about no symbols
 
 end module
