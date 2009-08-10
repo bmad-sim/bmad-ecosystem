@@ -47,7 +47,7 @@ character(30) time_stamp
 
 logical write_wake, mode3
 
-external stat
+!! external stat ! Removed because it caused a mac link problem. DCS.
 
 ! Write input file names to the digested file
 ! The idea is that read_digested_bmad_file can look at these files and see
