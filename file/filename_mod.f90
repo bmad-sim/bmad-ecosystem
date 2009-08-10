@@ -80,7 +80,7 @@ subroutine FullFileName (filename, outfile, valid)
 
 #else
   Integer i
-  External GetEnv
+  !!External GetEnv ! Removed because it caused a mac link problem. DCS.
   integer explen
   logical, save :: rcsini = .true.
 #endif
