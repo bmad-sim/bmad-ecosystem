@@ -468,7 +468,8 @@ if (data_source /= "lattice" .and. data_source /= "beam") then
   call out_io (s_error$, r_name, &
           'UNKNOWN DATA_SOURCE: ' // data_source, &
           'FOR DATUM: ' // tao_datum_name(datum))
-  call err_exit
+  why_invalid = 'UNKNOWN DATA_SOURCE: ' // data_source
+  return
 endif
 
 
@@ -524,8 +525,8 @@ case ('beta.x')
     valid_value = valid_value .and. (bunch_params(ix1)%x%norm_emitt /= 0)
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
-                                   'WITH data_source: ' // data_source)
-    call err_exit
+                                   'WITH DATA_SOURCE: ' // data_source)
+    why_invalid = 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: beta.x DATA_TYPE'
   endif
     
 case ('beta.y')
@@ -536,7 +537,7 @@ case ('beta.y')
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
                                    'WITH data_source: ' // data_source)
-    call err_exit
+    why_invalid = 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: beta.y DATA_TYPE'
   endif
 
 case ('beta.z')
@@ -691,8 +692,8 @@ case ('element_param.')
   call str_upcase (name, datum%data_type(15:))
   ix = attribute_index (ele1, name)
   if (ix < 1) then
-    call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // datum%data_type)
-    call err_exit
+    call out_io (s_error$, r_name, 'BAD ELEMENT ATTRIBUTE : ' // datum%data_type)
+    why_invalid = 'BAD ELEMENT ATTRIBUTE : ' // datum%data_type
   endif
   call load_it (branch%ele(0:n_max)%value(ix), &
                                      loc0, loc1, datum_value, valid_value, datum, lat, why_invalid)
@@ -826,7 +827,7 @@ case ('expression:')
   ! datum%stack with tao_evaluate_stack.
   if (allocated (datum%stack)) then
     call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err, .true.)
-    if (err) call err_exit
+    if (err) return
     datum_value = value1(1)
     valid_value = good1(1)
 
@@ -840,12 +841,13 @@ case ('expression:')
       dp => d_array(1)%d
       if (dp%d1%d2%ix_uni < datum%d1%d2%ix_uni) cycle ! OK
       if (dp%d1%d2%ix_uni == datum%d1%d2%ix_uni .and. dp%ix_data < datum%ix_data) cycle
-      call out_io (s_fatal$, r_name, 'DATUM: ' // tao_datum_name(datum), &
+      call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
                                      'WHICH IS OF TYPE EXPRESSION:' // datum%data_type(12:), &
                                      'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
                                      'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!')
-      call err_exit
+      return
     enddo
+    valid_value = .true.
   endif
 
 case ('floor.x')
@@ -937,7 +939,7 @@ case ('momentum_compaction')
   if (data_source == 'beam') return
   if (loc1%ix_branch /= 0 .or. loc1%ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALC NOT YET MODIFIED FOR BRANCHES.')
-    call err_exit
+    return
   endif
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix0, ix1)
   orb0 => orbit(ix0)
@@ -1044,7 +1046,7 @@ case ('periodic.tt.')
   if (lat%param%lattice_type /= circular_lattice$) then
     call out_io (s_fatal$, r_name, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // &
                                                                         datum%data_type)
-    call err_exit
+    return
   endif
   
   call transfer_map_calc (lat, taylor, ix1, ix1, one_turn = .true.)
@@ -1102,7 +1104,7 @@ case ('phase_frac_diff')
 case ('r.')
   if (loc1%ix_branch /= 0 .or. loc1%ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALC NOT YET MODIFIED FOR BRANCHES.')
-    call err_exit
+    return
   endif
   if (data_source == 'beam') return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
@@ -1224,7 +1226,7 @@ case ('tune.b')
 case ('t.', 'tt.')
   if (loc1%ix_branch /= 0 .or. loc1%ix_branch /= 0) then
     call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
-    call err_exit
+    return
   endif
   if (data_source == 'beam') return
   expnt = 0
@@ -1279,7 +1281,7 @@ case ('unstable_ring')
 case ('wall')
   if (data_source == 'beam') return
   print *, 'NOT YET IMPLEMENTED...'
-  call err_exit
+  return
 
 case ('wire.')  
   if (data_source == 'lattice') return
@@ -1289,7 +1291,7 @@ case ('wire.')
   
 case default
   call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
-  call err_exit
+  return
 
 end select
 
@@ -1410,7 +1412,7 @@ if (ix1 < ix0) then   ! wrap around
   case default
     call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
                                  'FOR DATUM: ' // tao_datum_name(datum))
-    call err_exit
+    return
   end select
 
 else
@@ -1450,7 +1452,7 @@ else
                   'SINCE THIS DATUM: ' // tao_datum_name(datum), &
                   'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
                   'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
-    call err_exit
+    return
   end select
 
 endif
