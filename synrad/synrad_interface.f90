@@ -216,4 +216,7 @@ interface
   end subroutine
 end interface
 
+! This is to suppress the ranlib "has no symbols" message
+integer, private :: private_dummy
+
 end module
