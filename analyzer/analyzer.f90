@@ -40,7 +40,7 @@ program anaylzer
   integer nd
   integer plot_flag, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
-  integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9
+  integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9, sext$=10
   integer ix_cache
   integer, allocatable :: n_ele(:)
   integer i_dim/4/
@@ -368,10 +368,12 @@ program anaylzer
      call calc_z_tune (ring)
 
       call twiss_propagate_all(ring)
-
+       frev=c_light/ring%ele(ring%n_ele_track)%s
 !      print *,' Recompute tunes with new matrices'
       print '(23x,3a14)','  Horizontal  ','  Vertical    ',' Longitudinal '
       print '(a19,3f14.4)',' Fractional Tune   ',ring%a%tune/twopi,ring%b%tune/twopi,ring%z%tune/twopi
+      print '(a19,3f14.4)',' Tune (kHz)        ',ring%a%tune/twopi*frev/1000,ring%b%tune/twopi*frev/1000, &
+                                                             ring%z%tune/twopi*frev/1000
       print '(a19,2f14.4)','  Beta*            ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
       print '(a19,2f14.4)','  Alpha*           ',ring%ele(0)%a%alpha, ring%ele(0)%b%alpha
       print '(a19,2f14.4)','   Eta*            ',ring%ele(0)%a%eta, ring%ele(0)%b%eta
@@ -478,7 +480,6 @@ program anaylzer
        print '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
                                     '    vertical emittance = ',mode%b%emittance
        print '(a17,e12.4,a18,e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z
-       frev=c_light/ring%ele(ring%n_ele_track)%s
        print '(a11,e12.4)',' Revolution freq    = ', frev
        if(mode%a%alpha_damp /= 0.)then
          print '(a22,e12.4)',' Horiz damping time = ',1/mode%a%alpha_damp/frev
@@ -518,7 +519,7 @@ program anaylzer
      diff=.false.
 
 20   print *, ' '
-     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, ETA, DCBAR/DE, RAD_INT, DIFF]) > '
+     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, ETA, DCBAR/DE, RAD_INT, DIFF, SEXT]) > '
      read(5, '(a)', err=20)answer
      save_answer = answer
 
@@ -546,6 +547,8 @@ program anaylzer
        plot_flag=de_cbar$
       elseif(index(answer(1:ix),'RAD') /=0)then
        plot_flag=rad_int$
+      elseif(index(answer(1:ix),'SEX') /=0)then
+       plot_flag=sext$
       elseif(index(answer,'DI') /= 0 .or. diff)then
        diff = .true.
       else
@@ -678,6 +681,20 @@ program anaylzer
          x(i) = ric%i5a(i)
          y(i) = ric%i5b(i)
        end do
+      endif
+
+      if(plot_flag == sext$)then
+        do i=0,n_all
+          x(i)=0
+          y(i)=0
+          if(ring%ele(i)%key == sextupole$)then
+            if(ring%ele(i)%a%beta > ring%ele(i)%b%beta)then
+              x(i) = ring%ele(i)%value(k2$)
+             else      
+              y(i) = ring%ele(i)%value(k2$) 
+            endif
+          endif
+        end do
       endif
 
       do i = 0,n_all
@@ -835,6 +852,12 @@ program anaylzer
          call pglab('z (m)','I5a[1/m]',' Radiation Integrals')
        endif
 
+       if(plot_flag == sext$)then
+         xscale=(int(xmax/0.1)+1)*0.1
+         call pgenv(start,end,-xscale,xscale,0,1)
+         call pglab('z (m)','k2',' Horizontal focus sextupole')
+       endif
+
 !       endif
 
 !       do i=1,ring%n_ele_track
@@ -851,7 +874,7 @@ program anaylzer
           z(i)=zz(i,j)
           x(i)=xx(i,j)
          end do
-         if(plot_flag == rad_int$)then
+         if(plot_flag == rad_int$ .or. plot_flag == sext$)then
 !            call pgpt(n_ele(j), z,x,-4)
             do i=1,n_ele(j)
              if(xx(i,j) /= 0.)then
@@ -927,6 +950,12 @@ program anaylzer
          call pglab('z (m)','I5b[1/m]',' Radiation Integrals')
        endif
 
+       if(plot_flag == sext$)then
+         yscale=(int(ymax/0.1)+1)*0.1
+         call pgenv(start,end,-yscale,yscale,0,1)
+         call pglab('z (m)','k2',' Vertical focus sextupole')
+       endif
+
 !       do i=1,ring%n_ele_track
        do i=1,l
          zz(i,n)=z(i)
@@ -937,10 +966,10 @@ program anaylzer
          call pgsci(j)
          forall(i=1:n_ele(j))z(i)=zz(i,j)
          forall(i=1:n_ele(j))y(i)=yy(i,j)
-         if(plot_flag == rad_int$)then
+         if(plot_flag == rad_int$ .or. plot_flag == sext$)then
 !           call pgpt(n_ele(j),z,y,-4)
             do i=1,n_ele(j)
-             if(xx(i,j) /= 0.)then
+             if(yy(i,j) /= 0.)then
               za(1:2)=z(i-1)
               za(3:4)=z(i)
               xa(1:4)=0.
