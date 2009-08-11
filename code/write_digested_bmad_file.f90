@@ -35,7 +35,7 @@ real(rp) value(n_attrib_maxx)
 integer, intent(in), optional :: n_files
 integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-integer stat_b(12), stat, n_wake
+integer stat_b(24), stat, n_wake
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr
 integer :: ix_wake(lat%n_ele_max)
 
