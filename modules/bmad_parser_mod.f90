@@ -1456,7 +1456,9 @@ parsing_loop: do
   case (',', '}', ':')
     i_delim = no_delim$
   case default
-      call error_exit ('INTERNAL ERROR #01: GET HELP')
+    call warning ('MALFORMED EXPRESSION')
+    bp_com%parse_line = ' '
+    return
   end select
 
 ! now see if there are operations on the OP stack that need to be transferred
