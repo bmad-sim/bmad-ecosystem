@@ -39,6 +39,13 @@ character(20) :: r_name = 'tao_place_cmd'
 ! Find the region where the plot is to be placed.
 ! The plot pointer will point to the plot associated with the region.
 
+if (where == '*' .and. who == 'none') then
+  do i = 1, size(s%plot_region)
+    s%plot_region(i)%visible = .false.
+  enddo
+  return
+endif
+
 call tao_find_plot_region (err, where, region)
 if (err) return
 

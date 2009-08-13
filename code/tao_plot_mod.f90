@@ -539,8 +539,8 @@ endif
 
 if (shape /= 'BOW_TIE' .and. shape /= 'CIRCLE' .and. shape /= 'DIAMOND') then
   if (ele%key == sbend$) then
-    call qp_draw_line (x_bend(1)-dx_bend(1), x_bend(1)+dx_bend(1), &
-                       y_bend(1)-dy_bend(1), y_bend(1)+dy_bend(1), units = 'POINTS', color = icol)
+    call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
+                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = 'POINTS', color = icol)
     n = n_bend
     call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
                        y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = 'POINTS', color = icol)
