@@ -260,7 +260,7 @@ point. In terms of rotation angle
 The tilt attribute rotates the element in the $(x, y)$ plane as shown
 in figure~\ref{f:tilt}. The rotation axis is the $z$-axis at the
 entrance face. The reference orbit is also rotated for any element
-who's exit coordinates are not colinear with the entrance
+who's exit coordinates are not collinear with the entrance
 coordinates. For example, a \vn{bend} or \vn{mirror} with a tilt of $\pi/2$ will bend a
 beam vertically upward. The \vn{hkick} and \vn{vkick} attributes are
 not affected by \vn{tilt} except for \vn{Kicker} and \vn{ElSeparator}
@@ -275,14 +275,19 @@ The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the
 element (n = 0 for bends, n = 1 for quadrupoles etc.) 
 
 For all elements, offsets, pitches, and tilts are with
-respect to the entrance coordinates (the local coorindates just before
+respect to the entrance coordinates (the local coordinates just before
 the element.
 
-The \vn{roll} attribute is only used for bends
-and rotates the bend, along an axis that runs through the entrance
-point and exit point as shown in figure~\ref{f:roll}. A \vn{roll} 
-does not affect the reference orbit. The major effect of a \vn{roll}
-is to give a vertical kick to the beam.
+The \vn{roll} attribute is only used for bends and rotates the bend,
+along an axis that runs through the entrance point and exit point as
+shown in figure~\ref{f:roll}. A \vn{roll} does not affect the
+reference orbit. The major effect of a \vn{roll} is to give a vertical
+kick to the beam. A positive \vn{roll} is similar to a positive
+\vn{tilt}. That is, with a bend with positive bend angle, a positive
+\vn{roll} will move the outside portion ($+x$ side) of the bend upward
+and the inside portion (-$x$ side) downward. Much like car racetracks
+which are typically slanted towards the inside of a turn.
+
 \begin{figure}[ht]
   \centering
   \includegraphics{roll.eps}
