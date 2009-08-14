@@ -990,8 +990,8 @@ Format:
   show graph <graph_name>
   show hom
   show key_bindings
-  show lattice \{-no_header\} \{-middle\} \{-0undef\} \{-custom <file_name>\} 
-                 \{-branch <branch>\} \{-s\} \{-elements <name>\} \{<location_range>\}
+  show lattice \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} \{-elements <name>\} 
+               \{-lords\} \{-middle\} \{-no_header\} \{-s\} \{<location_range>\}
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
   show particle -lost \{<bunch_index>\}
@@ -1182,8 +1182,8 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-    show lattice \{-no\_header\} \{-middle\} \{-0undef\} \{-custom <file\_name>\} \{-branch <branch>\} \\ 
-    \hspace*{2in} \{-s\} \{-elements <name>\} \{<location\_range>\}}] \Newline
+  show lattice \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} \{-elements <name>\} \\
+  \hspace*{2in} \{-lords\} \{-middle\} \{-no_header\} \{-s\} \{<location_range>\} }] \Newline
 
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
@@ -1193,6 +1193,8 @@ end of the elements. To show the parameters in the middle use the
 If present, the \vn{-no_header} switch will prevent the printing of
 the header lines. This is useful when the output needs to be read in
 by another program.
+
+If present, the \vn{-lords} switch will print a list of lord elements only.
 
 The \vn{-branch} can be used to specify the branch of the lattice.
 The default is the main branch (\# 0).
@@ -1262,9 +1264,10 @@ The second component is the Fortran edit descriptor. The third column
 is the total width of the field. Notice that strings (like the element
 name) are left justified and numbers are right justified. In the case
 of a number followed by a string, there will be no white space in
-between. The use of an "x" column can solve this problem. A field width
-of 0 for \vn{name} indicates that the field width will be taken to be
-one greater then the maximum characters of any element name.
+between. The use of an "x" column can solve this problem. A field
+width of 0, which can only be used for an \vn{ele::#[name]} column,
+indicates that the field width will be taken to be one greater then
+the maximum characters of any element name.
 
 The last component is column title name. This component is optional
 and if not present then \tao will choose something appropriate. The
@@ -1554,11 +1557,11 @@ for \vn{<axis_type>} are:
 Note that \vn{index} only makes sense for data that has an index
 associated with it. Also, if a data point has more that one element associated
 with it \vn{ele_index} will plot the first element index (\vn{ix_ele} not
-\vn{ix_ele0}).
+\vn{ix_ele0}). If \vn{<where>} is \vn{*} then all plots are set.
 
 Examples:
 \begin{example}
-  x-axis all s
+  x-axis * s
   x-axis top index
 \end{example}
 
@@ -1573,7 +1576,7 @@ Format:
 \end{example}
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If
-\vn{<where>} is not present or \vn{<where>} is \vn{all} then all
+\vn{<where>} is not present or \vn{<where>} is \vn{*} then all
 graphs are scaled. \vn{<where>} can be a plot name or the name of an
 individual graph withing a plot.  If \vn{<where>} is \vn{s} then the
 scaling is done only for the plots where the x--axis scale is the
@@ -1601,8 +1604,8 @@ command can produce differing results.
 
 Example:
 \begin{example}
-  x-scale                   ! Autoscale all x-axes.
-  x-scale all 0 100         ! Scale all x-axes to go from 0 to 100.
+  x-scale                 ! Autoscale all x-axes.
+  x-scale * 0 100         ! Scale all x-axes to go from 0 to 100.
 \end{example}
 
 %% xy-scale --------------------------------------------------------------
@@ -1617,7 +1620,7 @@ The \vn{xy-scale} command sets horizontal and vertical axis bounds. Format:
 \vn{xy-scale} is equivalent to an \vn{x-scale} followed by a \vn{y-scale}.
 
 Which graphs are scaled is determined by the \vn{<where>} switch. If
-\vn{<where>} is not present or \vn{<where>} is \vn{all} then all
+\vn{<where>} is not present or \vn{<where>} is \vn{*} then all
 graphs are scaled. \vn{<where>} can be a plot name or the name of an
 individual graph withing a plot. 
 
@@ -1635,7 +1638,7 @@ with the data.
 
 Example:
 \begin{example}
-  xy-scale            ! Autoscale all axes.
-  xy-scale all -1 1   ! Scale all axes to go from -1 to 1.
+  xy-scale          ! Autoscale all axes.
+  xy-scale * -1 1   ! Scale all axes to go from -1 to 1.
 \end{example}
 

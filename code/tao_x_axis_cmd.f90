@@ -35,7 +35,7 @@ endif
 
 ! If the where argument is blank then axis all graphs
 
-if (len_trim(where) == 0 .or. where == 'all') then
+if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
   do j = 1, size(s%plot_region)
     if (.not. s%plot_region(j)%visible) cycle
     s%plot_region(j)%plot%x_axis_type = what

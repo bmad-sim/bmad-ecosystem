@@ -54,7 +54,7 @@ x_max = x_max_in
 if (allocated(plot)) deallocate(plot)
 if (allocated(graph)) deallocate(graph)
 
-if (len_trim(where) == 0 .or. where == 'all' .or. where == 's') then
+if (len_trim(where) == 0 .or. where == '*' .or. where == 'all' .or. where == 's') then
   n = 0
   do j = 1, size(s%plot_region)
     if (.not. s%plot_region(j)%visible) cycle

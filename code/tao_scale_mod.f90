@@ -55,9 +55,9 @@ endif
 y_min = y_min_in
 y_max = y_max_in
 
-! If the where argument is blank or 'all', then scale all plots.
+! If the where argument is blank or '*', then scale all plots.
 
-if (len_trim(where) == 0 .or. where == 'all') then
+if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
   do j = 1, size(s%plot_region)
     if (.not. s%plot_region(j)%visible) cycle
     call tao_scale_plot (s%plot_region(j)%plot, y_min, y_max, axis, gang)

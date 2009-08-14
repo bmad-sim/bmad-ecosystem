@@ -242,7 +242,7 @@ convenient to plot the data versus longitudinal position. This is done
 by typing
 \index{Commands!x-axis}
 \begin{example}
-  x-axis all s
+  x-axis * s
 \end{example}
 
 The \cmd{all} will apply the change to all plot areas (both top and
@@ -420,10 +420,10 @@ change a quadrupole strength so we should plot the change in beta and phase.
 Type the following (everything after the `!' are just comments and can be
 omitted):
 \begin{example}
-  x-axis all index        ! let the data index be the x-axis
+  x-axis * index        ! let the data index be the x-axis
   place top beta          ! plot Beta data on top plot
   place bottom phase      ! plot phase data on bottom plot
-  plot all model - design ! plot the difference between model and design data
+  plot * model - design ! plot the difference between model and design data
   scale                   ! scale all plots
 \end{example}
 
@@ -521,7 +521,7 @@ plot beta and phase.
 \begin{example}
   place top beta
   place bottom phase
-  plot all meas - model
+  plot * meas - model
   change var quad\_k1[10] 0.001
   change var quad\_k1[21] -0.001
   change var quad\_k1[67] -0.005

@@ -30,7 +30,7 @@ logical err
 
 err = .true.
 
-if (where == 'all') then
+if (where == '*' .or. where == 'all') then
   do i = 1, size(s%plot_region)
     do j = 1, size(s%plot_region(i)%plot%graph)
       s%plot_region(i)%plot%graph(j)%component = component

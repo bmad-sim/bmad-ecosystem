@@ -84,7 +84,7 @@ case ('c')
   write (*, *)
   write (*, *) 's%global%optimizer:       ', trim(s%global%optimizer)
   write (*, *)
-  call tao_show_constraints (0, 'ALL')
+  call tao_show_constraints (0, '*')
   call tao_show_constraints (0, 'TOP10')
 
 case ('g')
@@ -529,14 +529,14 @@ case ('/')
     read '(a)', line
     call string_trim (line, line, ix)
     if (ix == 0) then
-      call tao_x_scale_cmd ('all', 0.0_rp, 0.0_rp, err)
+      call tao_x_scale_cmd ('*', 0.0_rp, 0.0_rp, err)
     else
       read (line, *, iostat = ios) m1, m2
       if (ios /= 0) then
         write (*, *) 'ERROR READING MIN/MAX.'
         return
       endif
-      call tao_x_scale_cmd ('all', m1, m2, err)
+      call tao_x_scale_cmd ('*', m1, m2, err)
     endif
 
   ! '/y' Scale y-axis
@@ -546,14 +546,14 @@ case ('/')
     read '(a)', line
     call string_trim (line, line, ix)
     if (ix == 0) then
-      call tao_scale_cmd ('all', 0.0_rp, 0.0_rp)
+      call tao_scale_cmd ('*', 0.0_rp, 0.0_rp)
     else
       read (line, *, iostat = ios) m1, m2
       if (ios /= 0) then
         write (*, *) 'ERROR READING MIN/MAX.'
         return
       endif
-      call tao_scale_cmd ('all', m1, m2)
+      call tao_scale_cmd ('*', m1, m2)
     endif
 
   ! '/' Error:

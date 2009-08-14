@@ -182,6 +182,7 @@ character(100) file_name, name
 character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
+character(5) undef_str
 
 character(16) :: show_what, show_names(24) = (/ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
@@ -202,7 +203,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_e0, n_e1, n_tot, ix_p, ix_word
 
 logical bmad_format, good_opt_only
-logical err, found, at_ends, first_time, by_s, print_header_lines, zero_undef
+logical err, found, at_ends, first_time, by_s, print_header_lines
 logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
@@ -436,7 +437,7 @@ case ('branches')
 
 case ('constraints')
 
-  call tao_show_constraints (0, 'ALL')
+  call tao_show_constraints (0, '*')
   call tao_show_constraints (0, 'TOP10')
   result_id = show_what
 
@@ -1129,15 +1130,15 @@ case ('lattice')
   print_header_lines = .true.
   ele_name = ''
   ix_branch = 0
-  zero_undef = .false.
+  undef_str = '-----'
 
   ! get command line switches
 
   call string_trim(stuff, stuff2, ix)
   do
-    if (ix <= 1) exit
+    if (stuff2(1:1) /= '-' .or. ix == 0) exit
 
-    if (index('-branch', stuff2(1:ix)) == 1) then
+    if (index('-branch', stuff2(1:ix)) == 1 .and. ix > 1) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       read (stuff2(1:ix), *, iostat = ios) ix_branch
       if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
@@ -1145,16 +1146,30 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-middle', stuff2(1:ix)) == 1) then
+    ! '-lords' just prints lor info
+
+    elseif (index('-lords', stuff2(1:ix)) == 1 .and. ix > 1) then
+      nl=nl+1; lines(nl) = 'Lord Elements:'
+      do ie = lat%n_ele_track+1, lat%n_ele_max
+        if (.not. picked_ele(ie)) cycle
+        if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
+        ele => lat%ele(ie)
+        nl=nl+1
+        write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
+              ie, ele%name, key_name(ele%key)
+      enddo
+      return
+
+    elseif (index('-middle', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       at_ends = .false.
 
-    elseif (index('-0undef', stuff2(1:ix)) == 1) then
-      zero_undef = .true.
+    elseif (index('-0undef', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+      undef_str = '    0'
 
-    elseif (index('-no_header', stuff2(1:ix)) == 1) then
+    elseif (index('-no_header', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       print_header_lines = .false.
 
-    elseif (index('-custom', stuff2(1:ix)) == 1) then
+    elseif (index('-custom', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
       iu = lunget()
@@ -1172,15 +1187,16 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-elements', stuff2(1:ix)) == 1) then
+    elseif (index('-elements', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       ele_name = stuff2(1:ix)
 
-    elseif (index('-s', stuff2(1:ix)) == 1) then
+    elseif (index('-s', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       by_s = .true.
 
     else
-      exit
+      call out_io (s_error$, r_name, 'BAD SWITCH: ' // stuff2(1:ix))
+      return
     endif
 
     call string_trim(stuff2(ix+1:), stuff2, ix)
@@ -1199,7 +1215,7 @@ case ('lattice')
     picked_ele = .false.
     picked_ele(locs%ix_ele) = .true.
 
-  elseif (ix == 0 .or. stuff2(1:ix) == 'all') then
+  elseif (ix == 0 .or. stuff2(1:ix) == '*' .or. stuff2(1:ix) == 'all') then
     picked_ele = .true.
 
   elseif (by_s) then
@@ -1249,7 +1265,12 @@ case ('lattice')
     if (column(i)%name == "") cycle
     column(i)%format = '(' // trim(column(i)%format) // ')'
 
-    if (column(i)%name == 'ele::#[name]' .and. column(i)%field_width == 0) then
+    if (column(i)%field_width == 0) then
+      if (column(i)%name /= 'ele::#[name]') then
+        call out_io (s_error$, r_name, &
+            'FIELD_WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
+        return
+      endif
       do ie = 0, branch%n_ele_track
         if (.not. picked_ele(ie)) cycle
         column(i)%field_width = &
@@ -1345,12 +1366,9 @@ case ('lattice')
         endif
         call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
-          j = nc + column(i)%field_width - 5
-          if (zero_undef) then
-            line(j:) = '    0'
-          else
-            line(j:) = '-----'
-          endif
+          j = nc + max(1, column(i)%field_width - 5)
+          k = max(5, 6 - min(5, column(i)%field_width - 1))
+          line(j:) = undef_str(k:5)
         else
           if (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
             write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
@@ -1381,25 +1399,6 @@ case ('lattice')
       nl=nl+1; lines(nl) = line3
     endif
     nl=nl+1; lines(nl) = line1
-  endif
-
-  ! Lord info
-
-  if (print_header_lines) then
-    first_time = .true.  
-    do ie = lat%n_ele_track+1, lat%n_ele_max
-      if (.not. picked_ele(ie)) cycle
-      if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
-      ele => lat%ele(ie)
-      if (first_time) then
-        nl=nl+1; lines(nl) = ' '
-        nl=nl+1; lines(nl) = 'Lord Elements:'
-        first_time = .false.
-      endif
-      nl=nl+1
-      write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
-            ie, ele%name, key_name(ele%key)
-    enddo
   endif
 
   deallocate(picked_ele)

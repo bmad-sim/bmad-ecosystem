@@ -34,7 +34,7 @@ contains
 !  Input:
 !      ele_type        -- character(*) : Element type to be misaligned
 !      where           -- character(*) : Ele index to search
-!                                        'ALL' means search all elements
+!                                        '*' means search all elements
 !                                        This isn't used with wrt_beam$
 !      ele_attrib      -- character(*) : Attribute to be misaligned
 !      misalign_value  -- character(*) : Spread of gaussian errors. 
