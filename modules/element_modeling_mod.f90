@@ -183,6 +183,14 @@ if (wiggler%sub_key == map_type$) then
 
   enddo
 
+  ! Need at least 3 poles for the model.
+
+  if (n_pole < 3) then
+    call out_io (s_fatal$, r_name, 'WIGGLER: ' // ele%name, &
+               'HAS LESS THAN 3 POLES. CANNOT CREATE A WIGGLER MODEL.')
+    call err_exit
+  endif
+
 ! Else it is a periodic type wiggler
 
 else

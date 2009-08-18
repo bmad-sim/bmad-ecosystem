@@ -1011,7 +1011,7 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, &
 
 type (lat_struct), target :: lat, lat_out, lat_model
 type (lat_struct), optional :: converted_lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele1, ele2, lord
 type (ele_struct), save :: drift_ele, ab_ele, taylor_ele
 type (taylor_term_struct) :: term
 
@@ -1021,7 +1021,8 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
 
 integer, optional :: ix_start, ix_end
 integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
-integer ie1, ie2, ios, t_count
+integer ie1, ie2, ios, t_count, ix_lord, ix1, ix2, n_lord
+integer, allocatable, save :: lord_list(:)
 
 character(*) out_type, out_file_name
 character(300) line
@@ -1143,10 +1144,36 @@ do
       ie2 = ie2 + 2
       cycle
 
-    ! non matrix model
+    ! Non matrix model...
+    ! If the wiggler has been sliced due to superposition, throw 
+    ! out the markers that caused the slicing.
+
     else
       if (ele%key == wiggler$) then
-        call create_wiggler_model (ele, lat_model)
+        if (ele%slave_status == super_slave$) then
+          ! Create the wiggler model using the super_lord
+          call get_element_lord_list (lat_out, ix_ele, lord_list, n_lord)
+          ix_lord = lord_list(1)
+          lord => lat_out%ele(ix_lord)
+          call create_wiggler_model (lord, lat_model)
+          ! Remove all the slave elements and markers in between.
+          call out_io (s_warn$, r_name, &
+              'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
+          lord%key = -1 ! mark for deletion
+          call find_element_ends (lat_out, lord, ele1, ele2)
+          ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
+          ! If the wiggler wraps around the origin we are in trouble.
+          if (ix2 < ix1) then 
+            call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
+            call err_exit
+          endif
+          do i = ix1+1, ix2
+            lat_out%ele(i)%key = -1  ! mark for deletion
+          enddo
+          ie2 = ie2 - (ix2 - ix1 - 1)
+        else
+          call create_wiggler_model (ele, lat_model)
+        endif
       else
         call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
       endif
@@ -1417,9 +1444,8 @@ do ix_ele = ie1, ie2
 
   case default
 
-    print *, 'ERROR: UNKNOWN ELEMENT: ', key_name(ele%key), ele%key
-    print *, '       CONVERTING TO MARKER'
-
+    call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+                                  'CONVERTING TO MARKER')
     line_out = trim(ele%name) // ': marker'
 
   end select
