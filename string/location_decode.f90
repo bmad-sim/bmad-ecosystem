@@ -8,7 +8,7 @@
 !                        "," or a space delimits location numbers 
 !                        A ":" is used for a range of locations. 
 !                        A second ":" specifies a step increment.
-!                        "ALL" Sets everything to True.
+!                        "*" or "ALL" Sets everything to True.
 !   ix_min         -- Integer: Array minimum.
 !   names(ix_min:) -- Character(*), optional: Array of location names that can be used
 !                       instead used of numbers. Names cannot contain blanks, or ":" 
@@ -68,7 +68,7 @@ do
 
   if (ix_word == 0) exit
 
-  if (str(:ix_word) == 'ALL' .or. str(:ix_word) == 'all') then
+  if (str(:ix_word) == 'ALL' .or. str(:ix_word) == 'all' .or. str(:ix_word) == '*') then
     array(:) = .true.
     if (ix_next == 0) exit
     cycle
