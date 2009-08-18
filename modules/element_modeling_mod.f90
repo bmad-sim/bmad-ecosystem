@@ -3,14 +3,16 @@ module element_modeling_mod
 use bmad
 
 type wiggler_modeling_common_struct
-  real(rp) :: integral_g2_wgt    = 1e4
-  real(rp) :: integral_g3_wgt    = 1e4
-  real(rp) :: x_wgt     = 1e10
-  real(rp) :: mat6_wgt  = 1e6
+  real(rp) :: integral_g2_wgt = 1e4
+  real(rp) :: integral_g3_wgt = 1e4
+  real(rp) :: x_wgt           = 1e10
+  real(rp) :: mat6_wgt        = 1e6
+  real(rp) :: drift_len_wgt     = 1e5 
   real(rp) :: g_step   = 1e-8  ! Step size for calculating derivatives
   real(rp) :: k_step   = 1e-7  ! Step size for calculating derivatives
   real(rp) :: len_step = 1e-6  ! Step size for calculating derivatives
   real(rp) :: integration_ds = 0.001 ! meters
+  real(rp) :: drift_len_min = .02
   logical :: print_results = .false.
 end type
 
@@ -319,16 +321,18 @@ call lattice_bookkeeper (lat)
 ! Possible:
 !   fint, hgap
 !
-! Data to fit:
-!   Difference: mat6(1:2,1:2), mat6(3:4,3:4), mat6(1,6), g2_int, g3_int
+! Data to fit (13 datums):
+!   Difference: g2_int, g3_int
 !   ele%floor%x = 0
+!   End drift length > 0
+!   Difference: mat6(1:2,1:2), mat6(3:4,3:4), mat6(1,6), 
 
 if (even_pole_num) then
   n_var = 5
 else
   n_var = 4
 endif
-n_data = 12
+n_data = 13
 
 allocate (y(n_data), yfit(n_data), weight(n_data))
 allocate (a(n_var), covar(n_var, n_var), alpha(n_var,n_var))
@@ -340,14 +344,16 @@ a_step = (/ c%g_step, c%k_step, c%len_step, c%len_step, c%len_step /)
 
 call make_mat6 (wiggler, lat%param)
 
-weight(1:3) = (/ c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt /)
-weight(4:)  = c%mat6_wgt
-y = (/ g2_int, g3_int, 0.0_rp, mat_flatten(wiggler%mat6) /)
+weight(1:3)  = (/ c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt /)
+weight(4)   = c%drift_len_wgt
+weight(5:13) = c%mat6_wgt
+
+y = (/ g2_int, g3_int, 0.0_rp, 0.0_rp, mat_flatten(wiggler%mat6) /)
 
 a_lambda = -1
 chisq_old = 1e10
 
-do i = 1, 10000
+do i = 1, 100
   call super_mrqmin (y, weight, a, covar, alpha, chisq, wig_func, a_lambda, status)
   if (c%print_results) then
     if (chisq/chisq_old < 0.90 .or. i == 10000 .or. a_lambda > 1e10) then
@@ -369,9 +375,10 @@ do i = 1, 10000
       print *, 'chi2_g2:   ', weight(1) * (yfit(1) - y(1))**2
       print *, 'chi2_g3:   ', weight(2) * (yfit(2) - y(2))**2
       print *, 'chi2_x:    ', weight(3) * (yfit(3) - y(3))**2
-      print *, 'chi2_m12:  ', weight(4) * sum((yfit(4: 7) - y(4: 7))**2)
-      print *, 'chi2_m34:  ', weight(8) * sum((yfit(8:11) - y(8:11))**2)
-      print *, 'chi2_m16:  ', weight(12)* (yfit(12) - y(12))**2
+      print *, 'chi2_len:  ', weight(4) * (yfit(4) - y(4))**2
+      print *, 'chi2_m12:  ', weight(4) * sum((yfit(5: 8) - y(5: 8))**2)
+      print *, 'chi2_m34:  ', weight(8) * sum((yfit(9:12) - y(9:12))**2)
+      print *, 'chi2_m16:  ', weight(12)* (yfit(13) - y(13))**2
       chisq_old = chisq
     endif
   endif
@@ -429,7 +436,7 @@ type (ele_struct), pointer :: ele
 real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: yfit(:)
 real(rp) g, g2_int, g3_int, len_bend, len_drift, k1, sum_angle, len_d_end2, len_d_end
-real(rp) mat6(6,6), vec0(6)
+real(rp) mat6(6,6), vec0(6), dft_len
 
 integer status
 integer i, n_pole
@@ -495,7 +502,8 @@ else
   g3_int = g**3 * (n_pole - 1) * len_bend
 endif
 
-yfit = (/ g2_int, g3_int, lat_com%ele(n_ele)%floor%x, mat_flatten(mat6) /)
+dft_len = max(0.0_rp, wig_model_com%drift_len_min - len_d_end)
+yfit = (/ g2_int, g3_int, lat_com%ele(n_ele)%floor%x, dft_len, mat_flatten(mat6) /)
 
 end subroutine
 
