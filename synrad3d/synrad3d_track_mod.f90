@@ -1,6 +1,7 @@
 module synrad3d_track_mod
 
 use synrad3d_utils
+use photon_reflection_mod
 
 contains
 
@@ -423,7 +424,7 @@ type (wall3d_pt_struct), pointer :: wall0, wall1
 
 real(rp) dx_parallel, dy_parallel, dx_perp0, dy_perp0
 real(rp) dx_perp1, dy_perp1, dx_perp, dy_perp, denom, f
-real(rp) dot_parallel, dot_perp
+real(rp) dot_parallel, dot_perp, r, graze_angle, reflectivity
 real(rp), pointer :: vec(:)
 
 integer ix
@@ -472,7 +473,7 @@ if (wall1%type == 'rectangular') then
   endif
 elseif (wall1%type == 'elliptical') then
   dx_perp1 = wall1%height2**2 * vec(1)
-  dy_perp1 = wall1%width2**2 * vec(3)
+  dy_perp1 = wall1%width2**2  * vec(3)
 else
   print *, 'BAD WALL%TYPE: ' // wall1%type, ix+1
   call err_exit
@@ -502,16 +503,18 @@ dy_parallel = -dx_perp
 ! The perpendicular component gets reflected and the parallel component is invarient.
 
 dot_parallel = dx_parallel * vec(2) + dy_parallel * vec(4)
-dot_perp     = dx_perp * vec(2)     + dy_perp * vec(4)
+dot_perp     = dx_perp     * vec(2) + dy_perp     * vec(4)
 
 vec(2) = dot_parallel * dx_parallel - dot_perp * dx_perp
 vec(4) = dot_parallel * dy_parallel - dot_perp * dy_perp
 
-! Temporary
+! absorbtion
 
-adsorbed = .true.
+graze_angle = pi - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
+call photon_reflectivity (vec(6), graze_angle, reflectivity)
+call ran_uniform(r)
+adsorbed = (r > reflectivity)
 
 end subroutine
-
 
 end module
