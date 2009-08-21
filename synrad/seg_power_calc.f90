@@ -1,5 +1,5 @@
 !+
-! subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
+! subroutine seg_power_calc (fan, i_ray, walls, wall_side, lat, gen, power)
 !
 ! Subroutine to calculate the synch radiation power hitting a wall.
 ! It is assumed that the radiation is hitting only one wall.
@@ -12,6 +12,7 @@
 !   i_ray  -- integer: index of highest ray used
 !   lat    -- lat_struct: with twiss propagated and mat6s made
 !   walls  -- walls_struct: Both walls and ends
+!   wall_side -- Integer: +x or -x side where rays are hitting.
 !   gen    -- synrad_param_struct: Contains lat name, vert emittance, and beam current.
 !
 ! Output:
@@ -19,7 +20,7 @@
 !   walls   -- wall_struct: both walls and ends with power information
 !-
 
-subroutine seg_power_calc (fan, i_ray, walls, lat, gen, power)
+subroutine seg_power_calc (fan, i_ray, walls, wall_side, lat, gen, power)
 
 use synrad_struct
 use synrad_interface, except => seg_power_calc
@@ -28,7 +29,6 @@ implicit none
 
 type (ray_struct) :: fan(:)
 type (walls_struct), target :: walls
-type (wall_struct), pointer :: negative_x_wall, positive_x_wall
 type (wall_struct), pointer :: wall
 type (ray_struct) :: ray
 type (synrad_param_struct) gen
@@ -39,28 +39,21 @@ type (ele_power_struct) power
 
 real(rp) energy
 real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
-real(rp) rr, dr2, dr1, theta, factor
+real(rp) rr, dr2, dr1, theta, factor, now(6)
 real(rp) dx_wall, ds_wall, r1, r2, dpower, track_len
 real(rp) r_i1, r_i2, frac_illum, gamma, end_s_scale, end_x_scale
 real(rp) theta_base, theta_floor1, theta_floor2, theta_floor_seg
-integer i_ray, iw, i, ip, is, iss
-integer type0, type1, i1_pt, i2_pt
+integer i_ray, iw, i, ip, is, iss, wall_side
+integer type0, type1, i_pt
 
 logical hit_flag
 
 type (source_struct), pointer :: temp_sources(:)
 integer temp_size
 
-! set pointers
-positive_x_wall => walls%positive_x_wall
-negative_x_wall => walls%negative_x_wall
-
-
-! calculate power radiated
-
 ! get energy from source element
-energy = lat%ele(fan(1)%ix_source)%value(E_TOT$)
 
+energy = lat%ele(fan(1)%ix_source)%value(E_TOT$)
 
 ! 14.1e3 [m (eV)^-3] (used below) is  Cgamma * 1e9 / (2 pi) 
 !    Cgamma is from Sands (p98) which is 8.85e-5 m (GeV)^-3 
@@ -83,8 +76,13 @@ if (power%radiated == 0) return
 
 
 ! wall is the side that is being hit by the radiation.
+! If wall_side = 0 (only hitting ends) then does not matter what wall is set to.
 
-wall => fan(1)%wall
+if (wall_side == positive_x$) then
+  wall => walls%positive_x_wall
+else
+  wall => walls%negative_x_wall
+endif
 
 ! calculate the power factors for each ray 
 do i = 1, i_ray
@@ -123,11 +121,27 @@ do i = 2, i_ray
   ! of rays fan(i-1) and fan(i). We must take into account rays that straddle
   ! the lattice ends for circular lattices.
 
-  i1_pt = fan(i-1)%ix_wall_pt
-  r1 = wall%pt(i1_pt)%ix_seg + fan(i-1)%r_wall * wall%pt(i1_pt)%n_seg + 1
+  if (fan(i-1)%wall_side == end_wall$) then
+    if (fan(i-1)%now%vec(5) == 0) then
+      r1 = 0
+    else
+      r1 = wall%n_seg_tot
+    endif
+  else
+    i_pt = fan(i-1)%ix_wall_pt
+    r1 = wall%pt(i_pt)%ix_seg + fan(i-1)%r_wall * wall%pt(i_pt)%n_seg + 1
+  endif
 
-  i2_pt = fan(i)%ix_wall_pt
-  r2 = wall%pt(i2_pt)%ix_seg + fan(i)%r_wall * wall%pt(i2_pt)%n_seg + 1
+  if (fan(i)%wall_side == end_wall$) then
+    if (fan(i)%now%vec(5) == 0) then
+      r1 = 0
+    else
+      r1 = wall%n_seg_tot
+    endif
+  else
+    i_pt = fan(i)%ix_wall_pt
+    r2 = wall%pt(i_pt)%ix_seg + fan(i)%r_wall * wall%pt(i_pt)%n_seg + 1
+  endif
 
   ! There is a complication if, for a circular lattice, the fan is 
   ! illuminating the lattice ends.
@@ -140,43 +154,43 @@ do i = 2, i_ray
     r_i2 = max(r1, r2)
   endif
 
+  ! theta_floor1 and theta_floor2 are the ray angles in the floor coordinate system.
+
+  theta_base = theta_floor(fan(i-1)%now%vec(5), lat) 
+  theta_floor1 = fan(i-1)%now%vec(2) + theta_base
+  theta_floor2 = fan(i)%now%vec(2) + theta_floor(fan(i)%now%vec(5), lat, theta_base)
+
   ! Loop over all segments that have light hitting it.
 
   do iss = int(r_i1), int(r_i2)
 
-    is = mod(iss-1, wall%n_seg_tot) + 1  ! segment index
+    if (lat%param%lattice_type == linear_lattice$ .and. iss > wall%n_seg_tot) exit
+
+    is = iss
+    if (is > wall%n_seg_tot) is = is - wall%n_seg_tot
+
     ip = wall%seg(is)%ix_pt              ! wall point associated with this segment
-
-    ! theta_floor1 and theta_floor2 are the ray angles in the floor coordinate system.
-
-    theta_base = theta_floor(fan(i-1)%now%vec(5), lat) 
-    theta_floor1 = fan(i-1)%now%vec(2) + theta_base
-    theta_floor2 = fan(i)%now%vec(2) + &
-                              theta_floor(fan(i)%now%vec(5), lat, theta_base)
 
     ! fan(j)%now is the point where the j^th ray hits the wall.
     ! dx, ds are the coordinates of the segment midpoint w.r.t the fan hit point
     ! dr1 is the perpendicular distance between the fan(i-1) ray and a parallel ray
     !  that is aimed to strike the segment midpoint.
 
-    dx = wall%seg(is)%x_mid - fan(i-1)%now%vec(1)
-    ds = wall%seg(is)%s_mid - fan(i-1)%now%vec(5)
-    if (ds >  lat%param%total_length/2) ds = ds - lat%param%total_length
-    if (ds < -lat%param%total_length/2) ds = ds + lat%param%total_length
-    dr1 = dx * cos(fan(i-1)%now%vec(2)) - ds * sin(fan(i-1)%now%vec(2))
+    now = fan(i-1)%now%vec
+    if (fan(i-1)%crossed_end) now(5) = now(5) + lat%param%total_length * fan(i-1)%direction
+    dx = wall%seg(is)%x_mid - now(1)
+    ds = wall%seg(is)%s_mid - now(5)
+    dr1 = dx * cos(now(2)) - ds * sin(now(2))
 
     ! dr2 is the perpendicular distance between the fan(i) ray and a parallel ray
     !  that is aimed to strike the segment midpoint.
     ! Notice that dr1 and/or dr2 can be negative.
 
-    dx = wall%seg(is)%x_mid - fan(i)%now%vec(1)
-    ds = wall%seg(is)%s_mid - fan(i)%now%vec(5)
-    if (ds >  lat%param%total_length/2) ds = ds - lat%param%total_length
-    if (ds < -lat%param%total_length/2) ds = ds + lat%param%total_length
-    dr2 = dx * cos(fan(i)%now%vec(2)) - ds * sin(fan(i)%now%vec(2))
-
-    ! theta_floor_seg is the ray angle averaged over theta_floor1 and theta_floor2.
-    ! The averaging factor is rr.
+    now = fan(i)%now%vec
+    if (fan(i)%crossed_end) now(5) = now(5) + lat%param%total_length * fan(i)%direction
+    dx = wall%seg(is)%x_mid - now(1)
+    ds = wall%seg(is)%s_mid - now(5)
+    dr2 = dx * cos(now(2)) - ds * sin(now(2))
 
     if ((dr1 - dr2) == 0) then ! If both rays hit the same spot...
       rr = 1  ! then just use theta_floor2
@@ -194,6 +208,9 @@ do i = 2, i_ray
     ! For the interpolation it is therefore better to use the floor angle.
     ! Note: Since increasing floor angle is opposite the bend angle, there is 
     ! a plus sign.
+
+    ! theta_floor_seg is the ray angle averaged over theta_floor1 and theta_floor2.
+    ! The averaging factor is rr.
 
     theta_floor_seg = (1 - rr) * theta_floor1 + rr * theta_floor2
     theta = theta_floor_seg - theta_floor(wall%seg(is)%s_mid, lat, theta_base)
@@ -251,9 +268,10 @@ do i = 2, i_ray
     ray%crossed_end = fan(i)%crossed_end
     track_len = abs((1 - rr)*fan(i-1)%start%vec(5) + &
                            rr*fan(i)%start%vec(5) - wall%seg(is)%s_mid)
-    ! We assume that the travel length cannot be greater then half the circumference.
-    if (abs(track_len) > lat%param%total_length / 2) &
-                                          track_len = lat%param%total_length - track_len 
+    ! Correct for segment being on the opposite side of the ip.
+    if ((wall%seg(is)%s_mid - fan(i)%start%vec(5)) * fan(i)%direction < 0) &
+                                      track_len = lat%param%total_length - track_len 
+
     call track_ray_to_wall (ray, lat, walls, hit_flag, track_len)
 
     ! Do not count if shadowed. 
@@ -282,8 +300,8 @@ do i = 2, i_ray
         ws =>walls%initial_end
       endif
 
-      if (  ((fan(i)%direction == 1) .and. (iss > wall%n_seg_tot)) .or.  &
-             ((fan(i)%direction == -1) .and. (iss <= wall%n_seg_tot))  ) then
+      if ( ((fan(i)%direction == 1) .and. (iss > wall%n_seg_tot)) .or.  &
+             ((fan(i)%direction == -1) .and. (iss <= wall%n_seg_tot)) ) then
         end_s_scale = (ws%s_mid - fan(i)%start%vec(5)) / &
                 (ws%s_mid - fan(i)%start%vec(5) + fan(i)%now%vec(5))
         end_x_scale = end_s_scale * (fan(i)%now%vec(1) - fan(i)%start%vec(1)) + fan(i)%start%vec(1)

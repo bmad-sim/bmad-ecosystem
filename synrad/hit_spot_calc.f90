@@ -212,8 +212,7 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
   ray%now = ray1%now
   ray%r_wall = r_wall
 
-  ! We assume that the travel length cannot be greater 
-  ! then half the circumference.
+  !
 
   del_s = ray%now%vec(5) - ray%start%vec(5)
   if (del_s*ray%direction < 0) then
@@ -225,6 +224,6 @@ subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
     ray%crossed_end = .false.
   endif
 
-  ray%wall => wall
+  ray%wall_side = wall%side
 
 end subroutine

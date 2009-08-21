@@ -93,7 +93,7 @@ type ray_struct       ! struct for a light ray
   real(rp) r_wall         !
   real(rp) g_bend         ! g = |1/rho|  bending radius inverse at source point
   type (twiss_struct) x_twiss, y_twiss    ! twiss at source point
-  type (wall_struct), pointer :: wall     ! points to which wall we hit
+  integer wall_side      ! points to which wall we hit
 end type ray_struct
 
 ! misc stuff
@@ -146,9 +146,9 @@ type concat_struct
   logical overlay
 end type concat_struct
 
-character(20) :: wall_name(-1:1) = (/ 'negative_x_side', '???            ', &
+character(20) :: wall_name(-1:1) = (/ 'negative_x_side', 'end_wall       ', &
                                       'positive_x_side' /)
-integer :: negative_x$ = -1, positive_x$ = 1
+integer :: negative_x$ = -1, positive_x$ = 1, end_wall$ = 0
 
 integer :: possible_alley$ = -1
 integer :: no_alley$ = 0, inner_wall$ = 1, open_end$ = 2 

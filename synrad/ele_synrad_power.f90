@@ -40,7 +40,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
   type (synrad_param_struct) gen
   type (ele_power_struct) power(:)
 
-  integer direction, ie, i_ray, n_slice, ns
+  integer direction, ie, i_ray, n_slice, ns, old_wall_side
 
   real(rp) l_off, del_l, l0, l1, l_try
 
@@ -94,6 +94,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
 
   ! each change in position is the element length / n_slice
 
+  old_wall_side = 0  ! Are we hitting +x or -x side? (ignore ends here)
   del_l = ele%value(l$) / n_slice
 
   do ns = 0, n_slice
@@ -106,49 +107,50 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
     ! track the ray until it hits something
     call track_ray_to_wall (fan(i_ray), lat, walls)
 
+    ! check if this ray hit a different wall than the previous rays
 
-    ! check if this ray hit a different wall than the previous ray
-    if (i_ray > 1) then
-      if (fan(i_ray)%wall%side /= fan(i_ray-1)%wall%side) then
-        ray_temp = fan(i_ray)
-        fan(i_ray) = fan(i_ray-1)
-        l0 = l_off - del_l
-        l1 = l_off
+    if (fan(i_ray)%wall_side /= 0 .and. old_wall_side /= 0 .and. &
+        fan(i_ray)%wall_side /= old_wall_side) then
 
-        ! binary search for transition point
-        do
-          l_try = (l0 + l1) / 2
-          call init_ray (ray, lat, ie, l_try, orb, direction)
-          call track_ray_to_wall (ray, lat, walls)
-          if (ray%wall%side == fan(i_ray)%wall%side) then
-            fan(i_ray) = ray
-            l0 = l_try
-          else
-            ray_temp = ray
-            l1 = l_try
-          endif
+      ray_temp = fan(i_ray)
+      fan(i_ray) = fan(i_ray-1)
+      l0 = l_off - del_l
+      l1 = l_off
 
-          ! if the transition point has been found to within 0.5 mm,
-          ! calc the first wall's power then reset the ray array 
-          ! for the second wall
-          if ((l1 - l0) .le. 5e-4) then
-            if (abs(fan(i_ray)%start%vec(5) - &
-                          fan(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
-            call seg_power_calc (fan, i_ray, walls, &
-                 lat, gen, power(ie))
-            fan(1) = ray_temp  ! Reset fan. First ray in fan is the transition ray.
-            i_ray = 1
-            exit
-          endif
-        enddo
-      endif
+      ! binary search for transition point
+      do
+        l_try = (l0 + l1) / 2
+        call init_ray (ray, lat, ie, l_try, orb, direction)
+        call track_ray_to_wall (ray, lat, walls)
+        if (ray%wall_side /= 0 .and. ray%wall_side == old_wall_side) then
+          fan(i_ray) = ray
+          l0 = l_try
+        else
+          ray_temp = ray
+          l1 = l_try
+        endif
+
+        ! if the transition point has been found to within 0.5 mm,
+        ! calc the first wall's power then reset the ray array 
+        ! for the second wall
+        if ((l1 - l0) .le. 5e-4) then
+          if (abs(fan(i_ray)%start%vec(5) - fan(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
+          call seg_power_calc (fan, i_ray, walls, old_wall_side, lat, gen, power(ie))
+          fan(1) = ray_temp  ! Reset fan. First ray in fan is the transition ray.
+          i_ray = 1
+          old_wall_side = 0
+          exit
+        endif
+      enddo
     endif
+
+    if (fan(i_ray)%wall_side /= 0) old_wall_side = fan(i_ray)%wall_side
+
   enddo
 
-! Final call to seg_power_calc to compute the power hitting the wall 
-! using the tracking results and interpolating in between.
+  ! Final call to seg_power_calc to compute the power hitting the wall 
+  ! using the tracking results and interpolating in between.
 
-  call seg_power_calc (fan, i_ray, walls, lat, gen, &
-       power(ie))
+  call seg_power_calc (fan, i_ray, walls, old_wall_side, lat, gen, power(ie))
 
 end subroutine ele_synrad_power

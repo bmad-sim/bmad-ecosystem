@@ -13,7 +13,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
 
   logical stop_at_extremum
 
-! find the target
+  ! find the target
 
   s_target = s_end
 
@@ -26,22 +26,22 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
     call err_exit
   endif
 
-! update old (but only if we have moved or gone through the IP)
+  ! update old (but only if we have moved or gone through the IP)
 
   if (s_target == ray%now%vec(5) .and. &
             abs(s_end - ray%now%vec(5)) /= lat%param%total_length) return
 
   ray%old = ray%now
 
-! propagate the ray until we get to s_end
+  ! propagate the ray until we get to s_end
 
   propagation_loop: do
 
-! If we are crossing over to a new element then update ray%ix_ele.
-! Additionally, if we cross the lat end we need to 
-! reset ray%now%vec(5) and ray%ix_ele.
-! Note: Since we can be going "backwards" to find a shadow then 
-! ray%crossed_end can toggle from true to false.
+    ! If we are crossing over to a new element then update ray%ix_ele.
+    ! Additionally, if we cross the lat end we need to 
+    ! reset ray%now%vec(5) and ray%ix_ele.
+    ! Note: Since we can be going "backwards" to find a shadow then 
+    ! ray%crossed_end can toggle from true to false.
 
     if (ray%direction == 1) then
       do
@@ -96,10 +96,10 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
 
     del_s = s_next - ray%now%vec(5)
     
-! In a bend: Exact formula is:
-! new_x = (rho * (cos(theta0) - cos(theta1)) + ray%now%vec(1) * cos(theta0)) /
-!                                                              cos(theta1)
-! We stop then theta = 0 since that is an extremum.
+    ! In a bend: Exact formula is:
+    ! new_x = (rho * (cos(theta0) - cos(theta1)) + ray%now%vec(1) * cos(theta0)) /
+    !                                                              cos(theta1)
+    ! We stop then theta = 0 since that is an extremum.
 
     if (lat%ele(ray%ix_ele)%key == sbend$ .and. lat%ele(ray%ix_ele)%value(g$) /= 0) then
       g = lat%ele(ray%ix_ele)%value(g$)

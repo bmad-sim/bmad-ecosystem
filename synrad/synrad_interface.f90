@@ -166,7 +166,7 @@ interface
 end interface
 
 interface
-  subroutine seg_power_calc (rays, i_ray, walls, lat, gen, power)
+  subroutine seg_power_calc (rays, i_ray, walls, wall_side, lat, gen, power)
     use synrad_struct
     implicit none
     type (ray_struct) :: rays(:)
@@ -174,7 +174,7 @@ interface
     type (synrad_param_struct) gen
     type (lat_struct)          lat
     type (ele_power_struct)     power
-    integer i_ray
+    integer i_ray, wall_side
   end subroutine
 end interface
 

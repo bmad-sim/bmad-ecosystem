@@ -42,55 +42,62 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
 
   logical is_hit, passed_end
 
-! set pointers
+  ! set pointers
   positive_x_wall => walls%positive_x_wall
   negative_x_wall => walls%negative_x_wall
 
-! init
+  ! init
 
   if (present(hit_flag)) hit_flag = .true.  ! assume that we will hit
   passed_end = .false.
 
-! ix_neg and ix_pos are the next negative_x_wall and 
-! positive_x_wall side points that
-! are at or just "downstream" of the ray.
+  ! ix_neg and ix_pos are the next negative_x_wall and 
+  ! positive_x_wall side points that
+  ! are at or just "downstream" of the ray.
 
   call get_initial_pt (ray, negative_x_wall, ix_neg, lat)
   call get_initial_pt (ray, positive_x_wall, ix_pos, lat)
 
-! propagation loop:
-! Propagate the ray. Figure out how far to advance in s.
-! Do not advance past the next wall point 
-! (either negative_x_wall or positive_x_wall).
-! Also since the next wall point may be a very long ways off, 
-!    do not propagate more than 1 meter.
+  ! propagation loop:
+  ! Propagate the ray. Figure out how far to advance in s.
+  ! Do not advance past the next wall point 
+  ! (either negative_x_wall or positive_x_wall).
+  ! Also since the next wall point may be a very long ways off, 
+  !    do not propagate more than 1 meter.
 
   do
 
     if (ray%direction == 1) then
-      s_next = min(negative_x_wall%pt(ix_neg)%s, &
-                positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) + 1.0)
+      s_next = min(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) + 1.0)
       if (present(track_max)) s_next = &
                 min(s_next, ray%now%vec(5) + (1.0001 * track_max - ray%track_len))
     else
-      s_next = max(negative_x_wall%pt(ix_neg)%s, &
-                positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) - 1.0)
+      s_next = max(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) - 1.0)
       if (present(track_max)) s_next = &
                 max(s_next, ray%now%vec(5) - (1.0001 * track_max - ray%track_len))
     endif
 
     call propagate_ray (ray, s_next, lat, .true.)
 
-  
-! See if we are positive_x_wall the beam pipe.
-! If so we calculate the exact hit spot where the ray crossed the
-! wall boundry and return
+    ! See if we have hit the end of the machine
+
+    if (lat%param%lattice_type == linear_lattice$) then
+      if ((ray%direction ==  1 .and. ray%now%vec(5) == lat%ele(lat%n_ele_track)%s) .or. &
+          (ray%direction == -1 .and. ray%now%vec(5) == lat%ele(0)%s)) then
+        ray%wall_side = end_wall$   ! End wall
+        return
+      endif
+    endif
+
+    ! See if we have hit the wall.
 
     call hit_spot_calc (ray, negative_x_wall, ix_neg, is_hit, lat)
     if (is_hit) return
 
     call hit_spot_calc (ray, positive_x_wall, ix_pos, is_hit, lat)
     if (is_hit) return
+
+    ! See if we have tracked as far as needed.
 
     if (present(track_max)) then
       if (ray%track_len .ge. track_max) then
