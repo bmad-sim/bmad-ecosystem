@@ -84,7 +84,11 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
     if (lat%param%lattice_type == linear_lattice$) then
       if ((ray%direction ==  1 .and. ray%now%vec(5) == lat%ele(lat%n_ele_track)%s) .or. &
           (ray%direction == -1 .and. ray%now%vec(5) == lat%ele(0)%s)) then
-        ray%wall_side = end_wall$   ! End wall
+        if (ray%direction == 1) then
+          ray%wall_side = exit_side$   ! End "wall" at end of lattice
+        else
+          ray%wall_side = start_side$  ! End "wall" at beginning of lattice
+        endif
         return
       endif
     endif

@@ -73,7 +73,7 @@ end type wall_struct
 ! (Radiation could escape out ends if lattice is not circular.)
 type walls_struct
   type (wall_struct) :: positive_x_wall, negative_x_wall
-  type (wall_seg_struct) :: initial_end, final_end
+  type (wall_seg_struct) :: start_end, exit_end
 end type walls_struct
 
 ! The computation tracks a set of synchrotron light rays from their source
@@ -93,7 +93,8 @@ type ray_struct       ! struct for a light ray
   real(rp) r_wall         !
   real(rp) g_bend         ! g = |1/rho|  bending radius inverse at source point
   type (twiss_struct) x_twiss, y_twiss    ! twiss at source point
-  integer wall_side      ! points to which wall we hit
+  integer wall_side       ! Which wall is hit: positive_x_side$, negative_x_side$, 
+                          !   start_side$, or exit_side$
 end type ray_struct
 
 ! misc stuff
@@ -146,9 +147,9 @@ type concat_struct
   logical overlay
 end type concat_struct
 
-character(20) :: wall_name(-1:1) = (/ 'negative_x_side', 'end_wall       ', &
-                                      'positive_x_side' /)
-integer :: negative_x$ = -1, positive_x$ = 1, end_wall$ = 0
+character(20) :: wall_name(-2:2) = (/ 'start_side     ', 'negative_x_side', '?????          ', &
+                                      'positive_x_side', 'exit_side      ' /)
+integer :: negative_x$ = -1, positive_x$ = 1, start_side$ = -2, exit_side$ = 2
 
 integer :: possible_alley$ = -1
 integer :: no_alley$ = 0, inner_wall$ = 1, open_end$ = 2 
