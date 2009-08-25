@@ -363,6 +363,7 @@ parsing_loop: do
     do i = 1, n_max-1
       if (word_2 == lat%ele(i)%name) then
         lat%ele(n_max) = lat%ele(i)
+        lat%ele(n_max)%ixx = n_max   ! Restore correct value
         lat%ele(n_max)%name = word_1
         found = .true.
         exit

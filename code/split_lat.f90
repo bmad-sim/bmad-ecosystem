@@ -13,8 +13,8 @@
 ! Input:
 !   lat            -- lat_struct: Original lat structure.
 !   s_split        -- Real(rp): Position at which lat is to be split.
-!   add_suffix     -- Logical, optional: If True (default) add '_1' and '_2" suffixes
-!                       to the split elements. If False then only do this with drifts.
+!   add_suffix     -- Logical, optional: If True (default) add '#1' and '#2" suffixes
+!                       to the split elements. 
 !   check_controls -- Logical, optional: If True (default) then call check_lat_controls
 !                       after the split to make sure everything is ok.
 !
@@ -92,7 +92,7 @@ call insert_element (lat, ele, ix_split)
 ele1 => lat%ele(ix_split)
 ele2 => lat%ele(ix_split+1)
 
-if (logic_option(.true., add_suffix) .or. ele1%key == drift$) then
+if (logic_option(.true., add_suffix)) then
   ix = len_trim(ele%name)
   ele1%name = ele%name(:ix) // '#1'
   ele2%name = ele%name(:ix) // '#2'
