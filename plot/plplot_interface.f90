@@ -496,7 +496,7 @@ end subroutine
 !
 ! Input:
 !   ix_color -- Integer: Color index (0 - 15).
-!   page_type -- Character(*): Type of page.
+!   page_type -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
 subroutine qp_set_color_basic (ix_color, page_type)  
@@ -560,7 +560,7 @@ end subroutine
 ! Input:
 !   x1, y1 -- Real(rp): Bottom left corner of box.
 !   x2, y2 -- Real(rp): Upper right corner of box.
-!   page_type -- Character(*): Type of page.
+!   page_type -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
 subroutine qp_clear_box_basic (x1, x2, y1, y2, page_type)

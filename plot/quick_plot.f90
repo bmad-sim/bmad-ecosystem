@@ -1492,6 +1492,25 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
+! Subroutine qp_clear_box
+!
+! Subroutine to clear the current box on the page.
+!-
+
+subroutine qp_clear_box
+
+! Clear the box
+
+call qp_paint_rectangle (qp_com%box%x1, qp_com%box%x2, &
+                         qp_com%box%y1, qp_com%box%y2, &
+                           color = white$, fill_pattern = solid_fill$)
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
 ! Subroutine qp_paint_rectangle (x1, x2, y1, y2, units, color, fill_pattern)
 !
 ! Subroutine to paint a rectangular region a specified color.
@@ -1523,8 +1542,10 @@ integer, optional :: color, fill_pattern
 
 if (x1 == x2 .or. y1 == y2) return
 
+qp_com%dflt_units = dflt_set$
 call qp_to_inch_abs (x1, y1, x1_inch, y1_inch, units)
 call qp_to_inch_abs (x2, y2, x2_inch, y2_inch, units)
+qp_com%dflt_units = dflt_draw$
  
 call qp_paint_rectangle_basic (x1_inch, x2_inch, y1_inch, y2_inch, &
               integer_option(qp_com%symbol%color, color), &
@@ -4302,11 +4323,10 @@ enddo
 ! axis label
 
 if (ax2%draw_label) then
-  call qp_set_text_attrib ('AXIS_LABEL')
   call qp_to_inch_rel (0.5_rp, y_pos, x0, y0, '%GRAPH')
   dy = ax1%number_side * who_sign * (ax1%number_offset + &
       ax1%label_offset + qp_text_height_to_inches(qp_com%axis_number%height))
-  call qp_set_text_attrib ('TEXT', color = ax2%label_color)
+  call qp_set_text_attrib ('AXIS_LABEL', color = ax2%label_color)
   call qp_draw_text_no_set (ax2%label, x0, y0+dy, 'INCH', justify)
 endif
 
@@ -4474,10 +4494,9 @@ enddo
 ! draw label
 
 if (ax2%draw_label) then
-  call qp_set_text_attrib ('AXIS_LABEL')
   call qp_to_inch_rel (x_pos, 0.5_rp, x0, y0, '%GRAPH')
   dx = number_side * (ax1%number_offset + ax1%label_offset + number_len)
-  call qp_set_text_attrib ('TEXT', color = ax2%label_color)
+  call qp_set_text_attrib ('AXIS_LABEL', color = ax2%label_color)
   call qp_draw_text_no_set (ax2%label, x0+dx, y0, 'INCH', 'CB', &
                                        angle = -90.0_rp * number_side)
 endif
