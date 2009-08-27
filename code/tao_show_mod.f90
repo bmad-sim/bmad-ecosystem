@@ -1111,19 +1111,20 @@ case ('lattice')
   
   column(:)%name = ""
   column(:)%label = ""
-  column(1)  = show_lat_column_struct('#',                 'i6',       6, '')
-  column(2)  = show_lat_column_struct('x',                 'x',        2, '')
-  column(3)  = show_lat_column_struct('ele::#[name]',      'a',        0, '')
-  column(4)  = show_lat_column_struct('ele::#[key]',       'a16',     16, '')
-  column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',   10, '')
-  column(6)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',     7, 'beta|  a')
-  column(7)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',     8, '')
-  column(8)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',     5, '')
-  column(9)  = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3', 8, '')
-  column(10) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',     7, '')
-  column(11) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',     8, '')
-  column(12) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',     5, '')
-  column(13) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3', 8, '')
+  column(1)  = show_lat_column_struct('#',                 'i6',        6, '')
+  column(2)  = show_lat_column_struct('x',                 'x',         2, '')
+  column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '')
+  column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '')
+  column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '')
+  column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '')
+  column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a')
+  column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '')
+  column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '')
+  column(10)  = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3', 8, '')
+  column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '')
+  column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '')
+  column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '')
+  column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
 
   at_ends = .true.
   by_s = .false.
