@@ -28,11 +28,11 @@ photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
-  AB_Multipole   & \ref{s:ab.m}      &  Multipole     & \ref{s:mult}     \HH
-  BeamBeam       & \ref{s:bbi}       &  Null_Ele      & \ref{s:null.ele} \HH
-  Bend_Sol_Quad  & \ref{s:bsq}       &  Octupole      & \ref{s:oct}      \HH
-  Branch         & \ref{s:branch}    &  Patch         & \ref{s:patch}    \HH
-  Custom         & \ref{s:custom}    &  Photon_Branch & \ref{s:branch}   \HH
+  AB_Multipole   & \ref{s:ab.m}      &  Null_Ele      & \ref{s:null.ele} \HH
+  BeamBeam       & \ref{s:bbi}       &  Octupole      & \ref{s:oct}      \HH
+  Bend_Sol_Quad  & \ref{s:bsq}       &  Patch         & \ref{s:patch}    \HH
+  Branch         & \ref{s:branch}    &  Photon_Branch & \ref{s:branch}   \HH
+  Custom         & \ref{s:custom}    &  Pipe          & \ref{s:monitor}  \HH
   Drift          & \ref{s:drift}     &  Quadrupole    & \ref{s:quad}     \HH
   Ecollimator    & \ref{s:col}       &  Rbend         & \ref{s:bend}     \HH
   ElSeparator    & \ref{s:elsep}     &  Rcollimator   & \ref{s:col}      \HH
@@ -44,6 +44,7 @@ photon use.
   Marker         & \ref{s:mark}      &  Taylor        & \ref{s:tay}      \HH
   Match          & \ref{s:match}     &  VKicker       & \ref{s:hvkicker} \HH  
   Monitor        & \ref{s:monitor}   &  Wiggler       & \ref{s:wiggler}  \HH
+  Multipole      & \ref{s:mult}      &  Wiggler       & \ref{s:wiggler}  \HH
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with relativistic particles.}
@@ -59,7 +60,7 @@ photon use.
   Custom         & \ref{s:custom}    &  Monitor       & \ref{s:monitor}  \HH 
   Drift          & \ref{s:drift}     &  Mirror        & \ref{s:mirror}   \HH
   Instrument     & \ref{s:monitor}   &  Patch         & \ref{s:patch}    \HH
-  Marker         & \ref{s:mark}      &                &                  \HH
+  Marker         & \ref{s:mark}      &  Pipe          & \ref{s:patch}    \HH
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with photons.}
@@ -773,10 +774,11 @@ stored in the element component \vn{%value(x_offset_tot\$)}. Similarly
 the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 
 %-----------------------------------------------------------------
-\section{Instrument and Monitor}
+\section{Instrument, Monitor, and Pipe}
 \label{s:monitor}
 \index{instrument|hyperbf}
 \index{monitor|hyperbf}
+\index{pipe|hyperbf}
 
 \begin{center}
 \tt
@@ -797,14 +799,24 @@ the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 \index{x_pitch}
 \index{y_pitch}
 \index{tilt}
-\bmad treats \vn{Instrument} and \vn{Monitor} elements exactly like a
-\vn{Drift}.  The \vn{offset}, \vn{pitch}, and \vn{tilt} attributes are
-not used by any \bmad routines. If these attributes are used by a
-program they are typically used to simulate such things as measurement
+\bmad treats \vn{instrument}, \vn{monitor}, and \vn{pipe} elements
+like a \vn{drift}. There is a difference, however, when superimposing
+elements (\sref{s:super}). For example, a \vn{quadrupole} superimposed
+on top of a \vn{drift} results in a free \vn{quadrupole} element in
+the tracking part of the lattice and no lord elements are created. On
+the other hand, a \vn{quadrupole} superimposed on top of a
+\vn{moditor} results in a \vn{quadrupole} element in the tracking part
+of the lattice and this \vn{quadrupole} element will have two lords: A
+\vn{quadrupole} superposition lord and a \vn{monitor} superposition
+lord.
+
+The \vn{offset}, \vn{pitch}, and \vn{tilt} attributes are not
+used by any \bmad routines. If these attributes are used by a program
+they are typically used to simulate such things as measurement
 offsets. The \vn{is_on} attribute is also not used by \bmad
 proper. Example:
 \begin{example}
-  d21: instr, l = 4.5
+  d21: instrum, l = 4.5
 \end{example}
 
 %-----------------------------------------------------------------

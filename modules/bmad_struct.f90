@@ -340,8 +340,9 @@ integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
+integer, parameter :: pipe$ = 44
 
-integer, parameter :: n_key = 43
+integer, parameter :: n_key = 44
 
 character(16) :: key_name(n_key) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
@@ -354,7 +355,7 @@ character(16) :: key_name(n_key) = (/ &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
     'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH', &
-    'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ' /)
+    'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ', 'PIPE         ' /)
 
 ! Attribute name logical definitions
 ! Note: The following attributes must have unique number assignments:

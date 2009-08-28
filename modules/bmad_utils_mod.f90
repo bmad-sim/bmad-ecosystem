@@ -1920,12 +1920,12 @@ if (key2 == drift$) then
   return
 endif
 
-if (any(key1 == (/ rcollimator$, monitor$, instrument$ /))) then
+if (any(key1 == (/ rcollimator$, monitor$, instrument$, pipe$ /))) then
   key3 = key2
   return
 endif
 
-if (any(key2 == (/ rcollimator$, monitor$, instrument$ /))) then
+if (any(key2 == (/ rcollimator$, monitor$, instrument$, pipe$ /))) then
   key3 = key1
   return
 endif

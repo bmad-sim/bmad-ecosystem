@@ -2047,7 +2047,7 @@ if (.not. ele%is_on) key = drift$
 
 select case (key)
 
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
   ptc_key%magnet = 'drift'
 
 case (quadrupole$) 

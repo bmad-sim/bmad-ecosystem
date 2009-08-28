@@ -502,11 +502,9 @@ integer key
 
 
 !-----------------------------------------------
-! drift
+! drift: no change to spin
 
-  case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
-
-    ! no change to spin
+  case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
     return
     

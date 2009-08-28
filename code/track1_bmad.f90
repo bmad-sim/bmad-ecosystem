@@ -163,7 +163,7 @@ case (bend_sol_quad$)
 !-----------------------------------------------
 ! drift
 
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$) 
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
   call track_a_drift (end%vec, length)

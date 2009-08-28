@@ -269,7 +269,7 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
 !------------------------------------------
 ! Drift, et. al.
 
-  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$)
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$)
 
 !------------------------------------------
 ! Quadrupole

@@ -103,7 +103,7 @@ c11 = c1
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
 if (any (key == (/ drift$, elseparator$, kicker$, rcollimator$, &
-        ecollimator$, monitor$, instrument$, hkicker$, vkicker$ /) )) then
+        ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ /) )) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
   call add_multipoles_and_s_offset
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)

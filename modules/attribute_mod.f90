@@ -370,7 +370,7 @@ attrib_array = null_name$
 
 do i = 1, n_key
                                 
-  if (i == monitor$ .or. i == instrument$ .or. i == marker$) then 
+  if (i == monitor$ .or. i == instrument$ .or. i == marker$ .or. i == pipe$) then 
     attrib_array(i, x_gain_err$)     = 'X_GAIN_ERR'
     attrib_array(i, y_gain_err$)     = 'Y_GAIN_ERR'
     attrib_array(i, crunch$)         = 'CRUNCH'
@@ -465,6 +465,7 @@ do i = 1, n_key
   if (i == kicker$)       cycle
   if (i == monitor$)      cycle
   if (i == instrument$)   cycle
+  if (i == pipe$)         cycle
 
   attrib_array(i, x_offset$) = 'X_OFFSET'
   attrib_array(i, y_offset$) = 'Y_OFFSET'
@@ -624,6 +625,7 @@ attrib_array(monitor$, y_pitch$)     = 'Y_PITCH'
 attrib_array(monitor$, tilt$)        = 'TILT'
 
 attrib_array(instrument$, :) = attrib_array(monitor$, :)
+attrib_array(pipe$, :)       = attrib_array(monitor$, :)
 
 attrib_array(marker$, x_offset$) = 'X_OFFSET'
 attrib_array(marker$, y_offset$) = 'Y_OFFSET'

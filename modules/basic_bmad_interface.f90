@@ -874,6 +874,21 @@ interface
 end interface
 
 interface
+  subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, &
+                              track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+    use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
+    implicit none
+    type (coord_struct), optional :: orbit_start, orbit_end
+    type (ele_struct), optional ::ele_start, ele_end
+    type (ele_struct) ele
+    type (lat_param_struct) param
+    real(rp) l_start, l_end
+    logical track_entrance, track_exit
+    logical, optional :: err
+  end subroutine
+end interface
+
+interface
   subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
                                                   start, end, body_only, err)
     use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
@@ -885,21 +900,6 @@ interface
     type (coord_struct), optional :: end
     type (lat_param_struct) param
     logical, optional :: body_only, err
-    real(rp) del_s
-  end subroutine
-end interface
-
-interface
-  subroutine twiss_and_track_body (ele1, ele2, param, del_s, ele3, &
-                                                                 start, end)
-    use bmad_struct, only: ele_struct, rp, coord_struct, lat_param_struct
-    implicit none
-    type (ele_struct), optional :: ele3
-    type (ele_struct) ele1
-    type (ele_struct) ele2
-    type (coord_struct), optional :: start
-    type (coord_struct), optional :: end
-    type (lat_param_struct) param
     real(rp) del_s
   end subroutine
 end interface
