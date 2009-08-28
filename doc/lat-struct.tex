@@ -290,12 +290,12 @@ attribute and the appropriate  coefficient
 Going backward from a slave to its lords goes through one level of
 indirection using the \vn{%ic_} array as shown in the next example
 \begin{example}
-  ix1 = lattice%ele(i_slave)%ic1_lord
-  ix2 = lattice%ele(i_slave)%ic2_lord
+  ic1 = lattice%ele(i_slave)%ic1_lord
+  ic2 = lattice%ele(i_slave)%ic2_lord
   print *, 'Lords for slave: ', lattice%ele(i_slave)%name
-  do i = ix1, ix2
-    ix = lattice%ic(i)
-    i_lord = lattice%control(ix)%ix_lord
+  do i = ic1, ic2
+    ic = lattice%ic(i)
+    i_lord = lattice%control(ic)%ix_lord
     print *, '  ', i, '  ', lattice%ele(i_lord)%name
   enddo
 \end{example}

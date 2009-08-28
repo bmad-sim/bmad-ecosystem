@@ -586,7 +586,6 @@ if (slave%n_lord == 1) then
   ix_con = lattice%ic(slave%ic1_lord)  
   ix = lattice%control(ix_con)%ix_lord
   lord => lattice%ele(ix)
-  coef = lattice%control(ix_con)%coef  ! = len_slave / len_lord
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
@@ -602,7 +601,7 @@ if (slave%n_lord == 1) then
     offset = offset + lattice%ele(j)%value(l$)
   enddo
 
-  call makeup_super_slave1 (slave, lord, offset, coef, &
+  call makeup_super_slave1 (slave, lord, offset, lattice%param, &
                                ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
 
   return
@@ -643,8 +642,8 @@ do j = slave%ic1_lord, slave%ic2_lord
 
   ix_con = lattice%ic(j)
   ix = lattice%control(ix_con)%ix_lord
-  coef = lattice%control(ix_con)%coef
   lord => lattice%ele(ix)
+  coef = slave%value(l$) / lord%value(l$)
 
   if (lord%lord_status /= super_lord$) then
     call out_io (s_abort$, r_name, &
@@ -1002,7 +1001,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave1 (slave, lord, offset, coef, at_entrance_end, at_exit_end)
+! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 !
 ! Routine to transfer the %value, %wig_term, and %wake%lr information from a 
 ! superposition lord to a slave when the slave has only one lord.
@@ -1012,10 +1011,10 @@ end subroutine
 !
 ! Input:
 !   slave  -- Ele_struct: Slave element.
-!     %s     -- Longitudinal position.
+!     %value(l$) -- Length of slave.
 !   lord   -- Ele_struct: Lord element.
 !   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
-!   coef   -- Real(rp) Scaling coefficient. Generally slave%value(l$)/lord%value(l$).
+!   param  -- Lat_param_struct: lattice paramters.
 !   at_entrance_end -- Logical: Slave contains the lord's entrance end?
 !   at_exit_end     -- Logical: Slave contains the lord's exit end?
 !
@@ -1023,30 +1022,35 @@ end subroutine
 !   slave -- Ele_struct: Slave element with appropriate values set.
 !-
 
-subroutine makeup_super_slave1 (slave, lord, offset, coef, at_entrance_end, at_exit_end)
+subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 
 implicit none
 
 type (ele_struct), target :: slave, lord
+type (lat_param_struct) param
 
-real(rp) coef, offset, s_del
+real(rp) offset, s_del, coef
 real(rp) value(n_attrib_maxx)
 integer i
 logical at_entrance_end, at_exit_end
 
 !
 
+coef = slave%value(l$) / lord%value(l$) 
 value = lord%value
 value(l$) = slave%value(l$)                 ! do not change slave length
+
 if (lord%key == wiggler$) then
   value(z_patch$) = slave%value(z_patch$)
 endif
+
 if (lord%key == hkicker$ .or. lord%key == vkicker$) then
   value(kick$) = lord%value(kick$) * coef
 else
   value(hkick$) = lord%value(hkick$) * coef
   value(vkick$) = lord%value(vkick$) * coef
 endif
+
 if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
 slave%aperture_at = no_end$
@@ -1108,8 +1112,7 @@ endif
 
 if (slave%key == custom$) then
   slave%value(l_original$) = lord%value(l$)
-  slave%value(l_start$)    = (slave%s - slave%value(l$)) - &
-                                               (lord%s - lord%value(l$))
+  slave%value(l_start$)    = offset
   slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
 endif
 
@@ -1143,6 +1146,10 @@ if (associated (slave%wake)) then
   slave%wake%lr%polarized = lord%wake%lr%polarized
   slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
 endif
+
+! lcavity energy bookkeeping
+
+if (slave%key == lcavity$) call attribute_bookkeeper (slave, param)
 
 end subroutine
 
@@ -1345,7 +1352,7 @@ end subroutine
 !
 ! LCAVITY:    
 !     delta_e$ = gradient$ * L$ 
-!     E_tot$   = E_tot$ + gradient$ * l$ * cos(phase)
+!     E_tot$   = E_tot_start$ + gradient$ * l$ * cos(phase)
 !     p0c$     = sqrt(E_tot$**2 - mc2^2)
 ! 
 ! RFCAVITY:   
@@ -1530,8 +1537,11 @@ case (lcavity$)
     phase = twopi * (val(phi0$) + val(dphi0$)) 
     E_tot = val(E_tot_start$) + val(gradient$) * val(l$) * cos(phase)
     E_tot = E_tot - val(e_loss$) * param%n_part * e_charge
-    val(E_tot$) = E_tot
-    call convert_total_energy_to (E_tot, param%particle, pc = val(p0c$))
+    if (e_tot /= val(e_tot$)) then ! Only do this if necessary
+      val(E_tot$) = E_tot
+      call convert_total_energy_to (E_tot, param%particle, pc = val(p0c$))
+      call convert_total_energy_to (val(e_tot_start$), param%particle, pc = val(p0c_start$))
+    endif
   endif
 
 ! RFcavity

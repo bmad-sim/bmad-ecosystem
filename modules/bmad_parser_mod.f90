@@ -4055,6 +4055,11 @@ allocate (ix_lat(n_max))
 ix_lat = -1
 sequence(:)%ix = 1  ! Init. Used for replacement list index
 
+if (stack(1)%multipass) then
+  call warning ('"USE"D LINE FOR LATTICE EXPANSION IS MARKED MULTIPASS!')
+  call err_exit
+endif
+
 ! Expand "used" line...
 
 line_expansion: do
@@ -4063,7 +4068,7 @@ line_expansion: do
   ! if we have got to the end of the current line then pop the stack back to
   ! the next lower level.
   ! Also check if we have gotten to level 0 which says that we are done.
-  ! If we have stepped out of a multipass line which has been trasversed in reverse
+  ! If we have stepped out of a multipass line which has been transversed in reverse
   !   then we need to do some bookkeeping to keep the elements straight.
 
   if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence

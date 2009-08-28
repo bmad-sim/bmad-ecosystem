@@ -14,8 +14,6 @@
 !   lat -- lat_struct:
 !-
 
-#include "CESR_platform.inc"
-
 subroutine s_calc (lat)
 
 use bmad_struct
@@ -42,9 +40,12 @@ enddo
 
 lat%param%total_length = ss - lat%ele(0)%s
 
-! now get fill in the positions of the super_lords
+! Now fill in the s positions of the super_lords and zero everyone else.
+! Exception: A null_ele lord element is the result of a superposition on a multipass section.
+! We need to preserve the s value of this element.
 
 do n = lat%n_ele_track+1, lat%n_ele_max
+  if (lat%ele(n)%key == null_ele$) cycle
   if (lat%ele(n)%lord_status == super_lord$) then
     ix2 = lat%control(lat%ele(n)%ix2_slave)%ix_slave
     lat%ele(n)%s = lat%ele(ix2)%s
@@ -52,6 +53,8 @@ do n = lat%n_ele_track+1, lat%n_ele_max
     lat%ele(n)%s = 0
   endif
 enddo
+
+! Now do the bookkeeping for any branches...
 
 do i = 1, ubound(lat%branch, 1)
   line => lat%branch(i)

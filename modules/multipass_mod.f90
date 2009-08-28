@@ -45,7 +45,7 @@ contains
 !+
 ! Subroutine multipass_all_info (lat, info)
 !
-! Subroutine to put multipass to a multipass_all_info_struct structure.
+! Subroutine to put multipass information into a multipass_all_info_struct structure.
 !
 ! Modules needed:
 !   use multipass_mod

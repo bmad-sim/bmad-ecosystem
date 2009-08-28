@@ -667,7 +667,7 @@ if (associated(param_ele%descrip)) then
   deallocate (param_ele%descrip)
 endif
 
-! Work on multipass before overlays, groups, and usuperimpose. 
+! Work on multipass before overlays, groups, and superimpose. 
 ! This is important since the elements in the lattice get
 ! renamed and if not done first would confuse any overlays, girders, etc.
 ! Multipass elements are paired by multipass index and multipass line name
@@ -677,12 +677,11 @@ do i = 1, lat%n_ele_track
   n_multi = 0  ! number of elements to slave together
   ix_multipass = used_line(i)%ix_multipass
   do j = i, lat%n_ele_track
-    if (used_line(j)%ix_multipass == ix_multipass .and. &
-        used_line(j)%multipass_line == used_line(i)%multipass_line) then
-      n_multi = n_multi + 1
-      ixm(n_multi) = j
-      used_line(j)%ix_multipass = 0  ! mark as taken care of
-    endif
+    if (used_line(j)%ix_multipass /= ix_multipass) cycle
+    if (used_line(j)%multipass_line /= used_line(i)%multipass_line) cycle
+    n_multi = n_multi + 1
+    ixm(n_multi) = j
+    used_line(j)%ix_multipass = 0  ! mark as taken care of
   enddo
   call add_this_multipass (lat, ixm(1:n_multi))
 enddo
@@ -785,18 +784,13 @@ call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
 call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
 ! Go through the IN_LAT elements and put in the superpositions, groups, etc.
-! First put in the superpositions and remove the null_ele elements
+! First put in the superpositions.
 
 call s_calc (lat)              ! calc longitudinal distances
 do i = 1, n_max
   if (in_lat%ele(i)%lord_status /= super_lord$) cycle
   call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i), in_lat)
 enddo
-
-do i = 1, lat%n_ele_max
-  if (lat%ele(i)%key == null_ele$) lat%ele(i)%key = -1 ! mark for deletion
-enddo
-call remove_eles_from_lat (lat)  ! remove all null_ele elements.
 
 ! Add branch lines
 ! Branch lines may have superposition so this is an iterative process
@@ -831,6 +825,18 @@ do
   if (n0 > n) exit
 
 enddo
+
+! Remove all null_ele elements.
+! Note: We tell remove_eles_from_lat to *not* call check_lat_controls since
+! the lattice is not fully formed.
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  do i = 1, lat%n_ele_max
+    if (branch%ele(i)%key == null_ele$) branch%ele(i)%key = -1 ! mark for deletion
+  enddo
+enddo
+call remove_eles_from_lat (lat, .false.)  
 
 ! Now put in the overlay_lord, girder, and group elements
 

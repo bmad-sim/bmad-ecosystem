@@ -30,7 +30,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   type (lat_struct), target :: lat
   type (ele_struct)  super_ele
-  type (ele_struct), save :: super_saved, slave_saved, drift
+  type (ele_struct), save :: super_saved, slave_saved, drift, null_ele
   type (ele_struct), pointer :: slave, lord
   type (control_struct)  sup_con(100)
 
@@ -140,6 +140,29 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   endif
 
+  ! If there are null_ele elements in the superimpose region then just move them
+  ! out of the way to the lord section of the lattice. This prevents unnecessary
+  ! splitting.
+
+  i = ix1_split
+  do
+    i = i + 1
+    if (i > lat%n_ele_track) i = 0
+    if (lat%ele(i)%key == null_ele$) then
+      call new_control (lat, ix)
+      lat%ele(ix) = lat%ele(i)  ! copy null_ele
+      do ic = lat%ele(i)%ic1_lord, lat%ele(i)%ic2_lord
+        j = lat%ic(ic)
+        lat%control(j)%ix_slave = ix ! point to new null_ele.
+      enddo
+      lat%ele(i)%key = -1  ! Mark old null_ele for deletion
+      call remove_eles_from_lat (lat)
+      i = i - 1
+      if (ix2_split > i) ix2_split = ix2_split - 1
+    endif
+    if (i == ix2_split) exit
+  enddo
+
   ! If element overlays only drifts then just 
   ! insert it in the tracking part of the lat list.
 
@@ -160,7 +183,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     lat%ele(ix_super)%lord_status  = free$
     lat%ele(ix_super)%slave_status = free$
     ! If a single drift was split give the runt drifts on either end 
-    ! Unique names by adding "1" and "2" suffixes.
+    ! Unique names by adding "#1" and "#2" suffixes.
     if (split1_done .and. split2_done) then
       if (lat%ele(ix_super-1)%name == lat%ele(ix_super+1)%name .and. &
                                     lat%ele(ix_super-1)%key == drift$) then
