@@ -362,7 +362,7 @@ case (mirror$)
   mat6(2, 2) = -1
   mat6(4, 3) = -2 * ele%value(g_trans$)  
 
-  call tilt_mat6 (mat6, ele%value(tilt_tot$) + ele%value(tilt_err$))
+  call offset_photon_mat6(mat6, ele)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -1008,3 +1008,156 @@ mat6(2,1) = coef * (k1_x - k0_x) / sig_x
 mat6(4,3) = coef * (k1_y - k0_y) / sig_y
 
 end subroutine
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+      
+! Subroutine offset_photon_mat6 (mat6, start, ele)
+!
+! Subroutine to transform a 6x6 transfer matrix to a new reference frame
+! with the given offsets, pitches and tilts of the given element.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   mat6(6,6) -- Real(rp): Untilted matrix.
+!   ele       -- Ele_struct: Mirror or equivalent.
+!   start     -- Coord_struct: Starting coords
+!
+! Output:
+!   mat6(6,6) -- Real(rp): Tilted matrix.
+!-
+
+subroutine offset_photon_mat6 (mat6, ele)
+
+use bmad_struct
+use bmad_interface
+
+implicit none
+
+type (ele_struct), target :: ele
+
+real(rp) mat6(6,6), mm(6,6)
+real(rp), pointer :: p(:)
+real(rp), save :: old_tilt = 0, ct, st
+real(rp) c2g, s2g, offset(6), tilt, graze
+real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3)
+
+!
+
+p => ele%value
+
+! Set: Work backward form element mat6 matrix...
+
+! Set: Graze angle error
+
+if (p(graze_angle_err$) /= 0) then
+  mat6(:,1) = mat6(:,1) + mat6(:,1) * p(graze_angle_err$) 
+endif
+
+! Set: Tilt
+
+tilt = p(tilt_tot$) + p(tilt_err$)
+
+if (tilt /= 0) then
+
+  if (tilt /= old_tilt) then
+    ct = cos(tilt)
+    st = sin(tilt)
+    old_tilt = tilt
+  endif
+
+  mm(:,1) = mat6(:,1) * ct - mat6(:,3) * st
+  mm(:,2) = mat6(:,2) * ct - mat6(:,4) * st
+  mm(:,3) = mat6(:,3) * ct + mat6(:,1) * st
+  mm(:,4) = mat6(:,4) * ct + mat6(:,2) * st
+  mm(:,5) = mat6(:,5)
+  mm(:,6) = mat6(:,6)
+
+else
+  mm = mat6
+endif
+
+! Set: transverse offsets and pitches
+
+mm(:,1) = mm(:,1) + mm(:,5) * p(x_pitch_tot$) 
+mm(:,3) = mm(:,3) + mm(:,5) + p(y_pitch_tot$)
+
+! Set: s_offset
+
+mm(:,2) = mm(:,2) + mm(:,1) * p(s_offset_tot$)
+mm(:,4) = mm(:,4) + mm(:,3) * p(s_offset_tot$)
+
+!------------------------------------------------------
+! Unset: 
+
+c2g = cos(2*p(graze_angle$)) 
+s2g = sin(2*p(graze_angle$))
+
+if (p(tilt_err$) /= 0) then
+  ct = cos(p(tilt$)) 
+  st = sin(p(tilt$))
+  old_tilt = p(tilt$)
+endif
+
+project_x = (/ c2g * ct**2 + st**2, -ct * st + c2g * ct * st, -ct * s2g /)
+project_y = (/ -ct * st + c2g * ct * st, ct**2 + c2g * st**2, -s2g * st /) 
+project_s = (/ ct * s2g, s2g * st, c2g /)
+
+! Unset: graze_angle_error
+
+if (p(graze_angle_err$) /= 0) then
+  mm(5,:) = mm(5,:) + p(graze_angle_err$) * mm(1,:)
+endif
+
+! Unset tilt
+
+if (p(tilt$) /= 0) then
+  mat6(1,:) = ct * mm(1,:) - st * mm(3,:)
+  mat6(2,:) = ct * mm(2,:) - st * mm(4,:)
+  mat6(3,:) = ct * mm(3,:) + st * mm(1,:)
+  mat6(4,:) = ct * mm(4,:) + st * mm(2,:)
+  mat6(5,:) =     mm(5,:)
+  mat6(6,:) =     mm(6,:)
+else
+  mat6 = mm
+endif
+
+! Unset: tilt_err
+
+if (p(tilt_err$) /= 0) then
+  rot = project_s * p(tilt_err$)
+
+  ct = cos(rot(3)) 
+  st = sin(rot(3))
+  old_tilt = rot(3)
+
+  mm(1,:) = ct * mat6(1,:) - st * mat6(3,:)
+  mm(2,:) = ct * mat6(2,:) - st * mat6(4,:)
+  mm(3,:) = ct * mat6(3,:) + st * mat6(1,:)
+  mm(4,:) = ct * mat6(4,:) + st * mat6(2,:)
+  mm(5,:) =     mat6(5,:)
+  mm(6,:) =     mat6(6,:)
+
+  mm(5,:) = mm(5,:) - rot(2) * mm(2,:) + rot(1) * mm(3,:)
+
+  mat6 = mm
+
+endif
+
+! Unset pitch
+
+rot = project_x * p(y_pitch_tot$) - project_y * p(x_pitch_tot$)
+mat6(5,:) = mat6(5,:) + rot(2) * mat6(2,:) - rot(1) * mat6(3,:)
+
+! Unset: offset
+
+off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * p(s_offset_tot$)
+
+mat6(1,:) = mat6(1,:) - off(3) * mat6(2,:)
+mat6(3,:) = mat6(3,:) - off(3) * mat6(4,:)
+
+end subroutine
+

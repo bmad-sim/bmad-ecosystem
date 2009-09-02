@@ -211,13 +211,15 @@ Element attributes can be set or used in an algebraic expression:
   my_const = b01[rho] / b01[l]      ! Use of attribute values in an expression.
 \end{example}
 Notice that there can be no space between the element name and the
-\vn{[} opening bracket.  When setting an attribute value if more than
+\vn{[} opening bracket.  When setting an attribute value, if more than
 one element has the \vn{element-name} then {\it all} such elements
-will be set.  When setting an attribute value if \vn{element-name} is
-the name of a type of element then all elements of that type will be
-set. For example
+will be set.  When setting an attribute value, if \vn{element-name} is
+the name of a type of element, all elements of that type will be
+set. Additionally, \vn{``*''} can be used to denote all elements. For
+example
 \begin{example}
-  rfcavity[tracking_method] = symp_lie_ptc ! Set all RFcavity elements.
+  rfcavity[voltage] = 3.7                ! Set all RFcavity elements.
+  *[tracking_method] = bmad_standard     ! Set for all elements
 \end{example}
 
 \cref{c:elements} gives a list of elements with their attributes.

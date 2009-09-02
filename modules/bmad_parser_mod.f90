@@ -167,7 +167,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
+! Subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag, print_err)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file.
@@ -175,7 +175,7 @@ contains
 ! This subroutine is not intended for general use.
 !-
 
-subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag)
+subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag, print_err)
 
 use random_mod
        
@@ -198,7 +198,7 @@ character(40) :: word, str_ix, attrib_word
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic
+logical delim_found, err_flag, logic, print_err
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -252,7 +252,7 @@ if (ele%key == overlay$) then
   else
 
     if (i < 1) then
-      call warning ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+      if (print_err) call warning ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
       return
     endif
 
@@ -297,7 +297,7 @@ if (ele%key == group$) then
   endif
 
   if (i < 1) then
-    call warning ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+    if (print_err) call warning ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
     return
   endif
 
@@ -335,8 +335,7 @@ if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
   if (err_flag) return
   call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
   if (err_flag .or. size(r_ptrs) /= 1) then
-    call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
-    bp_com%error_flag = .true.
+    if (print_err) call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
@@ -379,7 +378,7 @@ if (ix_word == 0) then  ! no word
   return
 endif
 if (ix_attrib < 1) then
-  call warning  ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
+  if (print_err) call warning  ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
   return
 endif
 
@@ -2253,6 +2252,10 @@ character(44) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
 character(1), parameter :: tab = achar(9)
 
 logical OK
+
+! Wild card
+
+if (name == '*') return
 
 ! check for blank spaces
 

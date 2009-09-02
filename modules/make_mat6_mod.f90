@@ -693,19 +693,19 @@ subroutine tilt_mat6 (mat6, tilt)
     old_tilt = tilt
   endif
 
-  mm(1,1:6) = c * mat6(1,1:6) - s * mat6(3,1:6)
-  mm(2,1:6) = c * mat6(2,1:6) - s * mat6(4,1:6)
-  mm(3,1:6) = c * mat6(3,1:6) + s * mat6(1,1:6)
-  mm(4,1:6) = c * mat6(4,1:6) + s * mat6(2,1:6)
-  mm(5,1:6) =     mat6(5,1:6)
-  mm(6,1:6) =     mat6(6,1:6)
+  mm(1,:) = c * mat6(1,:) - s * mat6(3,:)
+  mm(2,:) = c * mat6(2,:) - s * mat6(4,:)
+  mm(3,:) = c * mat6(3,:) + s * mat6(1,:)
+  mm(4,:) = c * mat6(4,:) + s * mat6(2,:)
+  mm(5,:) =     mat6(5,:)
+  mm(6,:) =     mat6(6,:)
 
-  mat6(1:6,1) = mm(1:6,1) * c - mm(1:6,3) * s
-  mat6(1:6,2) = mm(1:6,2) * c - mm(1:6,4) * s
-  mat6(1:6,3) = mm(1:6,3) * c + mm(1:6,1) * s
-  mat6(1:6,4) = mm(1:6,4) * c + mm(1:6,2) * s
-  mat6(1:6,5) = mm(1:6,5)
-  mat6(1:6,6) = mm(1:6,6)
+  mat6(:,1) = mm(:,1) * c - mm(:,3) * s
+  mat6(:,2) = mm(:,2) * c - mm(:,4) * s
+  mat6(:,3) = mm(:,3) * c + mm(:,1) * s
+  mat6(:,4) = mm(:,4) * c + mm(:,2) * s
+  mat6(:,5) = mm(:,5)
+  mat6(:,6) = mm(:,6)
                      
 end subroutine
 

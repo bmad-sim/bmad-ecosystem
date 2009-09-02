@@ -77,8 +77,8 @@ character(280) parse_line_save
 character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
-logical delim_found, arg_list_found, xsif_called, err
-logical file_end, found, err_flag, finished, exit_on_error
+logical delim_found, arg_list_found, xsif_called, err, print_err
+logical file_end, found, good_attrib, err_flag, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass
 
 ! see if digested file is open and current. If so read in and return.
@@ -272,7 +272,7 @@ parsing_loop: do
         call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call get_attribute (def$, beam_ele, in_lat, plat, delim, delim_found, err_flag)
+      call get_attribute (def$, beam_ele, in_lat, plat, delim, delim_found, err_flag, .true.)
     enddo
     cycle parsing_loop
   endif
@@ -323,7 +323,6 @@ parsing_loop: do
 
   ! if an element attribute redef
 
-  found = .false.
   if (delim == '[') then
 
     call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
@@ -348,21 +347,26 @@ parsing_loop: do
 
     ! Find associated element and evaluate the attribute value.
 
+    found = .false.
+    good_attrib = .false.
+
     do i = 0, n_max
 
       ele => in_lat%ele(i)
 
-      if (ele%name == word_1 .or. key_name(ele%key) == word_1) then
+      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. word_1 == '*') then
         bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
         if (found) then   ! if not first time
           bp_com%parse_line = parse_line_save
         else
           parse_line_save = bp_com%parse_line
         endif
-        call get_attribute (redef$, ele, in_lat, plat, &
-                                           delim, delim_found, err_flag)
-        if (delim_found) call warning ('BAD DELIMITER: ' // delim)
+        print_err = .true.
+        if (word_1 == '*') print_err = .false.
+        call get_attribute (redef$, ele, in_lat, plat, delim, delim_found, err_flag, print_err)
+        if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim)
         found = .true.
+        if (.not. err_flag) good_attrib = .true.
       endif
 
     enddo
@@ -371,6 +375,10 @@ parsing_loop: do
 
     if (.not. found .and. key_name_to_key_index (word_1, .false.) == -1) then
       call warning ('ELEMENT NOT FOUND: ' // word_1)
+    endif
+
+    if (found .and. .not. print_err .and. .not. good_attrib) then
+      call warning ('BAD ATTRIBUTE')
     endif
 
     cycle parsing_loop
@@ -393,8 +401,7 @@ parsing_loop: do
     allocate (sequence(iseq_tot+1)%corresponding_actual_arg(ix))
     if (err_flag) cycle parsing_loop
     arg_list_found = .true.
-    call get_next_word (word_2, ix_word, '(): =,', &
-                                               delim, delim_found, .true.)
+    call get_next_word (word_2, ix_word, '(): =,', delim, delim_found, .true.)
     if (word_2 /= ' ') call warning &
                 ('":" NOT FOUND AFTER REPLACEMENT LINE ARGUMENT LIST. ' // &
                 'FOUND: ' // word_2, 'FOR LINE: ' // word_1)
@@ -547,8 +554,7 @@ parsing_loop: do
                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
         exit
       endif
-      call get_attribute (def$, in_lat%ele(n_max), &
-                                in_lat, plat, delim, delim_found, err_flag)
+      call get_attribute (def$, in_lat%ele(n_max), in_lat, plat, delim, delim_found, err_flag, .true.)
       if (err_flag) cycle parsing_loop
     enddo
 

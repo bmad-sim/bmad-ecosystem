@@ -79,7 +79,7 @@ character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
 logical parsing, delim_found, found, xsif_called, err
-logical file_end, err_flag, finished
+logical file_end, err_flag, finished, print_err, good_attrib
 
 ! Init...
 
@@ -201,8 +201,7 @@ parsing_loop: do
         call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
-        call get_attribute (def$, beam_ele, lat, plat, &
-                                        delim, delim_found, err_flag)
+        call get_attribute (def$, beam_ele, lat, plat, delim, delim_found, err_flag, .true.)
         if (err_flag) cycle parsing_loop
       endif
     enddo
@@ -242,7 +241,6 @@ parsing_loop: do
 
   ! if an element attribute redef.
 
-  found = .false.
   if (delim == '[') then
 
     call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
@@ -267,19 +265,24 @@ parsing_loop: do
 
     ! find associated element and evaluate the attribute value
 
+    found = .false.
+    good_attrib = .false.
+
     do i = 0, n_max
-      if (lat%ele(i)%name == word_1 .or. &
-                        key_name(lat%ele(i)%key) == word_1) then
+      ele => lat%ele(i)
+      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. word_1 == '*') then
         bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
         if (found) then   ! if not first time
           bp_com%parse_line = parse_line_save
         else
           parse_line_save = bp_com%parse_line
         endif
-        call get_attribute (redef$, lat%ele(i), lat, plat, &
-                                             delim, delim_found, err_flag)
-        if (delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
+        print_err = .true.
+        if (word_1 == '*') print_err = .false.
+        call get_attribute (redef$, ele, lat, plat, delim, delim_found, err_flag, print_err)
+        if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
         found = .true.
+        if (.not. err_flag) good_attrib = .true.
       endif
     enddo
 
@@ -295,6 +298,10 @@ parsing_loop: do
         enddo
       endif
       call warning ('ELEMENT NOT FOUND: ' // word_1)
+    endif
+
+    if (found .and. .not. print_err .and. .not. good_attrib) then
+      call warning ('BAD ATTRIBUTE')
     endif
 
     cycle parsing_loop
@@ -418,8 +425,7 @@ parsing_loop: do
         n_max = n_max - 1
         cycle parsing_loop
       else
-        call get_attribute (def$, lat%ele(n_max), &
-                                lat, plat, delim, delim_found, err_flag)
+        call get_attribute (def$, lat%ele(n_max), lat, plat, delim, delim_found, err_flag, .true.)
         if (err_flag) then
           n_max = n_max - 1
           cycle parsing_loop
