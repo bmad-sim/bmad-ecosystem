@@ -1029,7 +1029,7 @@ implicit none
 type (ele_struct), target :: slave, lord
 type (lat_param_struct) param
 
-real(rp) offset, s_del, coef
+real(rp) offset, s_del, coef, r, e_tot_start
 real(rp) value(n_attrib_maxx)
 integer i
 logical at_entrance_end, at_exit_end
@@ -1149,7 +1149,14 @@ endif
 
 ! lcavity energy bookkeeping
 
-if (slave%key == lcavity$) call attribute_bookkeeper (slave, param)
+if (slave%key == lcavity$) then
+  slave%value(e_loss$) = lord%value(e_loss$) * coef
+  if (any(slave%value /= slave%old_value)) then ! Only do this if necessary
+    r = offset / lord%value(l$)
+    e_tot_start = (1-r) * lord%value(e_tot_start$) + r * lord%value(e_tot$) 
+    call attribute_bookkeeper (slave, param)
+  endif
+endif
 
 end subroutine
 
