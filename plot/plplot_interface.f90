@@ -8,9 +8,6 @@
 !   QUICK_PLOT subroutines start with "QP_"
 !   PLPLOT routines start with "PL" and do not have any "_".
 !
-! Note: PLPLOT uses real(4) units, QUICK_PLOT tries to interface between
-!       real(4) and real(rp). Watch out for mixed units in subroutines.
-!
 ! The correspondence between PAGE, BOX, and GRAPH and PLPLOT is:
 !   QUICK_PLOT    PLPLOT
 !   ----------    ------
@@ -23,6 +20,8 @@
 ! plot area. I'm not sure why PLPLOT makes a distinction, but VIEWPORT and 
 ! WINDOW always are the same region.
 !
+! Note: plwind is called to reset the plplot internal level to 3.
+!
 ! This is a list of all logicals which need to be set:
 !   'uniform_size' in 'qp_set_symbol_size_basic'
 !   'clip' in 'qp_set_clip_basic'
@@ -31,6 +30,7 @@
 module plplot_interface
 
 use output_mod
+use quick_plot_struct
 
 type viewport_size
   real(rp) :: x1 !in mm
@@ -78,6 +78,8 @@ subroutine qp_set_graph_position_basic (x1, x2, y1, y2)
   real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2, f
 
   !
+
+  if (x1 == x2 .or. y1 == y2) return
 
   f = 25.4 * pl_interface_com%page_scale
   x1m = x1 * f
@@ -196,31 +198,49 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_t
   implicit none
 
   real(rp) x1, x2, y1, y2
-  integer ci, fs
-  real  xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, f
+  real(rp) xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, f
   character(*) page_type
   integer color, fill_pattern
+  integer ci, fs
 
 !
+
+  if (x1 == x2 .or. y1 == y2) return
 
   call qp_save_state_basic              ! Buffer the following calls
 
   f = pl_interface_com%page_scale
 
-  call qp_set_color_basic(color, page_type) ! Set color index to background
-  call plsfs(fill_pattern)                         ! Set fill-area style to solid
+  call qp_set_color_basic(color, page_type)    ! Set color index to background
 
-  call plqwin (xw1, xw2, yw1, yw2)      ! get graph data min/max
-  call plqvp (0, xv1, xv2, yv1, yv2)    ! get viewport coords
+  select case (fill_pattern)
+  case (hatched$) 
+    call plpsty(1)
+  case (cross_hatched$)
+    call plpsty(5)
+  case (solid_fill$)
+    call plpsty(0)
+  end select
+
+  call plgdiplt (xw1, yw1, xw2, yw2)  ! get graph data min/max. Notice arg order.
+  call plgvpd (xv1, xv2, yv1, yv2)    ! get viewport coords
 
 ! set the viewport to the box
 
-  call plvsiz (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
+  call plsvpa (f*x1, f*x2, f*y1, f*y2)
+  call plwind (f*x1, f*x2, f*y1, f*y2)
 
-  call plrect (xw1, xw2, yw1, yw2)      ! color the box
-  call plsvp (xv1, xv2, yv1, yv2)       ! reset the viewport coords
+  if (fill_pattern == no_fill$) then
+    call plline (4, (/ xw1, xw2, xw2, xw1 /), &
+                    (/ yw1, yw1, yw2, yw2 /))      ! color the box
+  else
+    call plfill (4, (/ xw1, xw2, xw2, xw1 /), &
+                    (/ yw1, yw1, yw2, yw2 /))      ! color the box
+  endif
 
-  call qp_restore_state_basic           ! Flush the buffer.
+  call plsvpa (xv1, xv2, yv1, yv2)             ! reset the viewport coords
+
+  call qp_restore_state_basic                 ! Flush the buffer.
 
 end subroutine
 
@@ -517,18 +537,19 @@ subroutine qp_restore_state_basic ()
   color = pl_interface_save_com(i_save)%fg_color
   call plcol0(pl_interface_save_com(i_save)%fg_color)
 
-  a = pl_interface_save_com(i_save)%graph_pos%x1
-  b = pl_interface_save_com(i_save)%graph_pos%x2
-  c = pl_interface_save_com(i_save)%graph_pos%y1
-  d = pl_interface_save_com(i_save)%graph_pos%y2
-
   if (pl_interface_save_com(i_save)%clip) then
-     call plsvpa (a,b,c,d)
-     call plwind (0.0_rp, b-a, 0.0_rp, d-c)
+    a = pl_interface_save_com(i_save)%graph_pos%x1
+    b = pl_interface_save_com(i_save)%graph_pos%x2
+    c = pl_interface_save_com(i_save)%graph_pos%y1
+    d = pl_interface_save_com(i_save)%graph_pos%y2
+    if (a /= b .and. c /= d) then
+      call plsvpa (a,b,c,d)
+      call plwind (0.0_rp, b-a, 0.0_rp, d-c)
+    endif
   else
-     call plgspa(xp1, xp2, yp1, yp2)
-     call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)
-     call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1)
+    call plgspa(xp1, xp2, yp1, yp2)
+    call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)
+    call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1)
   endif
   
   pl_interface_com = pl_interface_save_com(i_save)
@@ -578,7 +599,7 @@ subroutine qp_set_color_basic (ix_color, page_type)
   !else
     call plcol0 (ix_color)
     !Save this state
-     pl_interface_com%fg_color = ix_color
+    pl_interface_com%fg_color = ix_color
   !endif
 
 end subroutine
@@ -794,20 +815,23 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
      call plschr(point_to_mm_conv, 1.0_rp)
   endif
 
-  call plgchr(d,h)
+  call plgchr(d, h)
 
 ! Remember plot area parameters
 
-  pl_interface_com%graph_pos%x1 = 0
-  pl_interface_com%graph_pos%x2 = x2i
-  pl_interface_com%graph_pos%y1 = 0
-  pl_interface_com%graph_pos%y2 = y2i
+  i_save = i_save + 1
+
+  pl_interface_save_com(i_save)%graph_pos%x1 = 0
+  pl_interface_save_com(i_save)%graph_pos%x2 = x2i
+  pl_interface_save_com(i_save)%graph_pos%y1 = 0
+  pl_interface_save_com(i_save)%graph_pos%y2 = y2i
+  pl_interface_save_com(i_save)%i_chan = iw
+  pl_interface_save_com(i_save)%char_size = d*h
   pl_interface_save_com(i_save)%page_scale = real_option(1.0_rp, page_scale)
 
-  call qp_set_clip_basic(.false.)
+  pl_interface_com = pl_interface_save_com(i_save)
 
-  pl_interface_com%i_chan = iw
-  pl_interface_com%char_size = d*h
+  call qp_set_clip_basic(.false.)
 
 end subroutine
 
