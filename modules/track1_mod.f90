@@ -63,6 +63,7 @@ type (lat_param_struct), intent(inout) :: param
 
 real(rp) x_lim, y_lim, x_beam, y_beam, s_here
 integer at
+logical do_tilt
 
 ! Check p_x and p_y
 
@@ -79,11 +80,13 @@ endif
 !
 
 if (ele%offset_moves_aperture) then
+  do_tilt = .false.
+  if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
   orb2 = orb
   s_here = 0
   if (at == exit_end$) s_here = ele%value(l$)
   call offset_particle (ele, param, orb2, set$, set_canonical = .false., &
-               set_tilt = .false., set_multipoles = .false., set_hvkicks = .false., &
+               set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
                s_pos = s_here)
   x_beam = orb2%vec(1)
   y_beam = orb2%vec(3)

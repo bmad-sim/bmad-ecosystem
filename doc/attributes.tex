@@ -395,15 +395,20 @@ an error:
 \index{x_pitch}
 \index{y_pitch}
 Normally, whether a particle hits an aperture or not is evaluated
-independent of any element offsets (\sref{s:offset}). This is equivalent
-to the situation where a beam pipe containing an aperture is
-independent of the element the beam pipe passes through. This can be
-changed by setting the \vn{offset_moves_aperture} attribute to
+independent of any element offsets (\sref{s:offset}). This is
+equivalent to the situation where a beam pipe containing an aperture
+is independent of the element the beam pipe passes through. This can
+be changed by setting the \vn{offset_moves_aperture} attribute to
 \vn{True}. In this case any offsets or pitches will be considered to
-have shifted the aperture boundary. Notice that even in this case
-\vn{tilt}s will not affect the aperture calculation. This is done, for
-example, so that the tilt of a skew quadrupole does not affect the
-aperture.
+have shifted the aperture boundary. The exception here is that the
+default for \vn{rcollimator} and \vn{ecollimator} elements is for
+\vn{offset_moves_aperture} to be \vn{True}.
+
+Even with \vn{offset_moves_aperture} set to \vn{True}, \vn{tilt}s will
+not affect the aperture calculation. This is done, for example, so
+that the tilt of a skew quadrupole does not affect the aperture. The
+exception here is that tilting an \vn{rcollimator} or \vn{ecollimator}
+element will tilt the aperture.
 
 \index{entrance_end|hyperbf}
 \index{exit_end|hyperbf}

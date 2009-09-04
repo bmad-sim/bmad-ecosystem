@@ -3591,6 +3591,9 @@ case (rbend$, sbend$)
 case (branch$, photon_branch$)
   ele%value(direction$) = 1
 
+case (rcollimator$, ecollimator$)
+  ele%offset_moves_aperture = .true.
+
 end select
 
 end subroutine

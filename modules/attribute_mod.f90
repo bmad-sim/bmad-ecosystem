@@ -632,8 +632,10 @@ attrib_array(marker$, y_offset$) = 'Y_OFFSET'
 attrib_array(marker$, tilt$)     = 'TILT'
 
 attrib_array(rcollimator$, l$)     = 'L'
+attrib_array(rcollimator$, tilt$)  = 'TILT'
 
 attrib_array(ecollimator$, l$)     = 'L'
+attrib_array(ecollimator$, tilt$)  = 'TILT'
 
 attrib_array(hkicker$, l$)            = 'L'
 attrib_array(hkicker$, tilt$)         = 'TILT'
