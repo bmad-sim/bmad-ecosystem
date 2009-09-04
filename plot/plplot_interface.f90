@@ -28,20 +28,15 @@
 !   'clip' in 'qp_set_clip_basic'
 !-
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! Note: Needs scaling for PS !!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 module plplot_interface
 
 use output_mod
 
 type viewport_size
-   real(rp) :: x1 !in mm
-   real(rp) :: x2
-   real(rp) :: y1
-   real(rp) :: y2
+  real(rp) :: x1 !in mm
+  real(rp) :: x2
+  real(rp) :: y1
+  real(rp) :: y2
 end type
 
 type pl_interface_struct
@@ -53,13 +48,13 @@ type pl_interface_struct
   real(rp) :: char_size
   integer :: fg_color
   logical :: clip
+  real(rp) page_scale
 end type
 
-type (pl_interface_struct), target, save :: pl_interface_com
-type (pl_interface_struct), save :: pl_interface_save_com(10)
-integer, save :: i_save = 0
-real(rp), parameter :: point_to_mm_conv = .25   !approximate
-private pl_interface_com, pl_interface_save_com, i_save
+type (pl_interface_struct), target, save, private :: pl_interface_com
+type (pl_interface_struct), save, private :: pl_interface_save_com(10)
+integer, save, private :: i_save = 0
+real(rp), parameter, private :: point_to_mm_conv = .25   !approximate
 
 contains
 
@@ -78,13 +73,17 @@ contains
 !+
 
 subroutine qp_set_graph_position_basic (x1, x2, y1, y2)
-  implicit none
-  real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2
 
-  x1m = x1 * 25.4
-  x2m = x2 * 25.4
-  y1m = y1 * 25.4
-  y2m = y2 * 25.4
+  implicit none
+  real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2, f
+
+  !
+
+  f = 25.4 * pl_interface_com%page_scale
+  x1m = x1 * f
+  x2m = x2 * f
+  y1m = y1 * f
+  y2m = y2 * f
 
   call plsvpa (x1m, x2m, y1m, y2m)
   call plwind (x1m, x2m, y1m, y2m)
@@ -133,7 +132,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
         
-  h = height !* pl_interface_com%qp_to_pl_text_height_factor
+  h = height * pl_interface_com%page_scale
 
   if (uniform_size) then
 
@@ -172,6 +171,56 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
 
   !Save this state
   pl_interface_com%char_size = h*d
+
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_type)
+!
+! Subroutine to fill a rectangle with a given color.
+! A color of white essentially eraces the rectangle.
+! Units are inches from lower left of page.
+!
+! Input:
+!   x1, y1       -- Real(rp): Bottom left corner of box.
+!   x2, y2       -- Real(rp): Upper right corner of box.
+!   color        -- Integer: Color of rectangle.
+!   fill_pattern -- Integer: Fill style.
+!   page_type    -- Character(*): Type of page.
+!-
+
+subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_type)
+
+  implicit none
+
+  real(rp) x1, x2, y1, y2
+  integer ci, fs
+  real  xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, f
+  character(*) page_type
+  integer color, fill_pattern
+
+!
+
+  call qp_save_state_basic              ! Buffer the following calls
+
+  f = pl_interface_com%page_scale
+
+  call qp_set_color_basic(color, page_type) ! Set color index to background
+  call plsfs(fill_pattern)                         ! Set fill-area style to solid
+
+  call plqwin (xw1, xw2, yw1, yw2)      ! get graph data min/max
+  call plqvp (0, xv1, xv2, yv1, yv2)    ! get viewport coords
+
+! set the viewport to the box
+
+  call plvsiz (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
+
+  call plrect (xw1, xw2, yw1, yw2)      ! color the box
+  call plsvp (xv1, xv2, yv1, yv2)       ! reset the viewport coords
+
+  call qp_restore_state_basic           ! Flush the buffer.
 
 end subroutine
 
@@ -326,7 +375,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function qp_text_len_basic (text, len_text)
+! Function qp_text_len_basic (text, len_text) result (t_len)
 !
 ! Function to find the length of a text string.
 !
@@ -334,7 +383,7 @@ end subroutine
 !   text -- Character(*): Text string.
 !
 ! Output:
-!   qp_text_len -- Real(rp): Length of text in inches.
+!   t_len -- Real(rp): Length of text in inches.
 !-
 
 function qp_text_len_basic (text, len_text) result (t_len)
@@ -345,10 +394,11 @@ function qp_text_len_basic (text, len_text) result (t_len)
   integer len_text
   character(*) text
 
+  ! This is kind-of a 1st order approx since there is no subroutine for this action
+
   call plgchr(d,h)
 
-  t_len = .8*.03937*len_trim(text)*h  !This is kind-of a 1st order approx.
-                            !since there is no subroutine for this action
+  t_len = 0.8 * 0.03937 * len_trim(text) * h  
 
 end function
 
@@ -380,8 +430,8 @@ subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   t_len = len_trim(text)*h
   dx = cos(angle*pi/180)
   dy = sin(angle*pi/180)
-  x0m = x0 * 25.4 - .5*h*dy  !x0, y0 specify coordinates of text baseline
-  y0m = y0 * 25.4 + .5*h*dx  !but plptex needs the coordinates of the midline
+  x0m = x0 * 25.4 - 0.5*h*dy  ! x0, y0 specify coordinates of text baseline
+  y0m = y0 * 25.4 + 0.5*h*dx  ! but plptex needs the coordinates of the midline
 
   call plptex (x0m, y0m, dx, dy, justify, trim(text))
 
@@ -632,7 +682,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !+                    
 ! Subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
-!                                                x_page, y_page, i_chan)
+!                                            x_page, y_page, i_chan, page_scale)
 !
 ! Subroutine to Initialize a page (window) for plotting.
 !
@@ -648,6 +698,8 @@ end subroutine
 !   y_len     -- Real(rp), optional: Vertical width in inches, Not used with PS.
 !   plot_file -- Character(*), optional: Name for the plot file.
 !                    Default is: 'quick_plot.ps' or 'quick_plot.gif'
+!   page_scale -- Real(rp), optional: Scale to expand or shrink the drawing.
+!                    Default is 1.0.
 !
 ! Output:
 !   x_page    -- Real(rp): Horizontal page size in inches.
@@ -658,11 +710,13 @@ end subroutine
 !-
 
 subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
-                                                       x_page, y_page, i_chan)
+                                             x_page, y_page, i_chan, page_scale)
 
   implicit none
 
   real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
+  real(rp), optional :: page_scale
+
   integer, optional :: i_chan
   integer plsdev, iw, ix, xp, yp
 
@@ -677,6 +731,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
                              127, 255, 255, 127, 85, 170/)
 
 ! set plot type
+
   if (page_type == 'X') then
     iw = plsdev ('xwin')
   elseif (page_type == 'PS') then
@@ -693,6 +748,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   endif
 
 ! Set output file name  
+
   if (page_type /= 'X') then
      call plsetopt('-o', trim(plot_file))
   endif
@@ -741,10 +797,12 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   call plgchr(d,h)
 
 ! Remember plot area parameters
+
   pl_interface_com%graph_pos%x1 = 0
   pl_interface_com%graph_pos%x2 = x2i
   pl_interface_com%graph_pos%y1 = 0
   pl_interface_com%graph_pos%y2 = y2i
+  pl_interface_save_com(i_save)%page_scale = real_option(1.0_rp, page_scale)
 
   call qp_set_clip_basic(.false.)
 
