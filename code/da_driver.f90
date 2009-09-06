@@ -239,13 +239,16 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 
      e_init = energy(i_e)
-     orb0%vec(6) = e_init+ co(0)%vec(6)
+
+     co(0)%vec(6) = e_init
+
+!     orb0%vec(6) = e_init+ co(0)%vec(6)
 
      aperture%closed_orbit = co(0)
 
-!     call closed_orbit_calc (ring, co, 4)  !add 4/18/08 to get reasonable start when there is finite dispersion
+     call closed_orbit_calc (ring, co, 4)  !add 4/18/08 to get reasonable start when there is finite dispersion
 
-!     orb0 = co(0)
+     orb0 = co(0)
 !     orb0%vec(6) = e_init
 
     call string_trim (in_file, in_file, ix)
@@ -279,7 +282,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
      theta = (i_xy - 1) * pi / max(1, n_xy_pts - 1)
 
-      call dynamic_aperture (ring, orb0, theta, track_input, aperture, e_init)
+      call dynamic_aperture (ring, orb0, theta, track_input, aperture)
 
 
 
