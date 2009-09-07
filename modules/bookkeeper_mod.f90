@@ -789,12 +789,12 @@ do j = slave%ic1_lord, slave%ic2_lord
 
   case (bend_sol_quad$)
     call out_io (s_abort$, r_name, &
-               'CODING NOT YET IMPLEMENTED FOR A: ' // key_name(slave%key))
+               'CODING NOT YET IMPLEMENTED FOR: ' // key_name(slave%key))
     call err_exit
 
-  ! hkicker, vkicker, kicker
+  ! hkicker, vkicker, kicker, etc. looks like drifts
 
-  case (hkicker$, vkicker$, kicker$)
+  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$)
 
   ! default
 
