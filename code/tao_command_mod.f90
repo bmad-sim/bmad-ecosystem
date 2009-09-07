@@ -204,11 +204,14 @@ end subroutine
 subroutine tao_cmd_split (cmd_line, n_word, cmd_word, no_extra_words, err, separator)
 
 integer i, ix, nw, n_word, ix_b1, ix_b2, ix_b3
+
 character(*) cmd_line
 character(*), optional :: separator
 character(*) cmd_word(:)
 character(16) :: r_name = 'tao_cmd_split'
 character(200) line
+character(1), parameter :: tab = char(9)
+
 logical err
 logical no_extra_words
 
@@ -268,7 +271,7 @@ nw_loop: do
       endif
     endif
 
-    if (line(i:i) == ' ') then
+    if (line(i:i) == ' ' .or. line(i:i) == tab) then
       nw=nw+1; cmd_word(nw) = line(1:i-1)
       line = line(i+1:)
       cycle nw_loop

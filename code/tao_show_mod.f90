@@ -1143,7 +1143,7 @@ case ('lattice')
       call string_trim(stuff2(ix+1:), stuff2, ix)
       read (stuff2(1:ix), *, iostat = ios) ix_branch
       if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
-        nl=1; lines(1) = ''
+        nl=1; write (lines(1), *) 'Branch index out of bounds:', ix_branch
         return
       endif
 
