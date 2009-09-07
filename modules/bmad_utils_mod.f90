@@ -1901,12 +1901,16 @@ key3 => ele3%key
 key3 = -1  ! Default if no superimpse possible
 ele3%sub_key = 0
 
+! Wiggler case
+
 if (key1 == key2) then
   if (key1 == wiggler$ .and. ele1%sub_key /= ele2%sub_key) return  ! Bad combo
   key3 = key1
   if (key1 == wiggler$) ele3%sub_key = ele1%sub_key
   return
 endif
+
+! If one element is a drift then key3 = key of other element.
 
 if (key1 == drift$) then
   key3 = key2
@@ -1920,15 +1924,31 @@ if (key2 == drift$) then
   return
 endif
 
-if (any(key1 == (/ rcollimator$, monitor$, instrument$, pipe$ /))) then
+! If one element is a pipe then key3 = key of other element.
+
+if (any(key1 == (/ pipe$ /))) then
   key3 = key2
   return
 endif
 
-if (any(key2 == (/ rcollimator$, monitor$, instrument$, pipe$ /))) then
+if (any(key2 == (/ pipe$ /))) then
   key3 = key1
   return
 endif
+
+! If one element is a rcollimator, monitor, or instrument then key3 = key of other element.
+
+if (any(key1 == (/ rcollimator$, monitor$, instrument$ /))) then
+  key3 = key2
+  return
+endif
+
+if (any(key2 == (/ rcollimator$, monitor$, instrument$ /))) then
+  key3 = key1
+  return
+endif
+
+! If one element is a kicker then key3 = key of other element.
 
 if (any(key1 == (/ kicker$, hkicker$, vkicker$ /))) then
   if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
@@ -1944,7 +1964,7 @@ if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
   return
 endif
 
-!
+! General case
 
 select case (key1)
 
