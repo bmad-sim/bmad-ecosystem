@@ -29,6 +29,7 @@
 module pgplot_interface
 
 use output_mod
+use quick_plot_struct
 
 type pg_interface_struct
   integer :: i_chan = -1

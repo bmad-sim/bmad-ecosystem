@@ -171,7 +171,7 @@ use physical_constants
 use sim_utils_interface
 use utilities_mod
 use output_mod
-use plplot_interface
+use pgplot_interface
 
 !------------------------------------
 
