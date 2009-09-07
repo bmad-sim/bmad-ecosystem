@@ -171,7 +171,12 @@ use physical_constants
 use sim_utils_interface
 use utilities_mod
 use output_mod
-use pgplot_interface
+
+#if defined (CESR_MACINTOSH) || defined (TEST_PLPLOT)
+  use plplot_interface
+#else
+  use pgplot_interface
+#endif
 
 !------------------------------------
 

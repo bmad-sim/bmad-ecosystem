@@ -209,36 +209,26 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_t
 
   call qp_save_state_basic              ! Buffer the following calls
 
-  f = pl_interface_com%page_scale
+!  f = pl_interface_com%page_scale
 
   call qp_set_color_basic(color, page_type)    ! Set color index to background
 
   select case (fill_pattern)
   case (hatched$) 
-    call plpsty(1)
+    call plpsty(3)
   case (cross_hatched$)
     call plpsty(5)
   case (solid_fill$)
     call plpsty(0)
   end select
 
-  call plgdiplt (xw1, yw1, xw2, yw2)  ! get graph data min/max. Notice arg order.
-  call plgvpd (xv1, xv2, yv1, yv2)    ! get viewport coords
-
-! set the viewport to the box
-
-  call plsvpa (f*x1, f*x2, f*y1, f*y2)
-  call plwind (f*x1, f*x2, f*y1, f*y2)
-
   if (fill_pattern == no_fill$) then
-    call plline (4, (/ xw1, xw2, xw2, xw1 /), &
-                    (/ yw1, yw1, yw2, yw2 /))      ! color the box
+    call plline (4, 25.4 * (/ x1, x2, x2, x1 /), &
+                    25.4 * (/ y1, y1, y2, y2 /))      ! No fill
   else
-    call plfill (4, (/ xw1, xw2, xw2, xw1 /), &
-                    (/ yw1, yw1, yw2, yw2 /))      ! color the box
+    call plfill (4, 25.4 * (/ x1, x2, x2, x1 /), &
+                    25.4 * (/ y1, y1, y2, y2 /))      ! color the box
   endif
-
-  call plsvpa (xv1, xv2, yv1, yv2)             ! reset the viewport coords
 
   call qp_restore_state_basic                 ! Flush the buffer.
 
@@ -441,19 +431,31 @@ end function
 subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   implicit none
   character(*) text
-  integer len_text, i
+  character(len(text)) text2
+  integer len_text, i, ix
   real(rp) x0, y0, angle, justify, dx, dy, x0m, y0m, d, h, x1,x2,y1,y2, t_len
   real(rp), parameter :: pi=3.141592
 
+  ! plplot uses '#' for the meta character instead of pgplot's '\'
+
+  text2 = text
+  do
+    ix = index(text2, '\') ! '
+    if (ix == 0) exit
+    text2(ix:ix) = '#'
+  enddo
+
+  !
+
   call plgvpw(x1,x2,y1,y2)
   call plgchr(d,h)
-  t_len = len_trim(text)*h
+  t_len = len_trim(text2)*h
   dx = cos(angle*pi/180)
   dy = sin(angle*pi/180)
   x0m = x0 * 25.4 - 0.5*h*dy  ! x0, y0 specify coordinates of text baseline
   y0m = y0 * 25.4 + 0.5*h*dx  ! but plptex needs the coordinates of the midline
 
-  call plptex (x0m, y0m, dx, dy, justify, trim(text))
+  call plptex (x0m, y0m, dx, dy, justify, trim(text2))
 
 end subroutine
 
@@ -554,6 +556,9 @@ subroutine qp_restore_state_basic ()
   
   pl_interface_com = pl_interface_save_com(i_save)
   i_save = i_save - 1
+
+  call plflush()
+
 end subroutine
 
 !-----------------------------------------------------------------------
