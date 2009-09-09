@@ -16,7 +16,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lattice, ix_ele, ix_branch, wiggler_only)
+! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, wiggler_only)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -27,7 +27,7 @@ contains
 !   use bmad
 !
 ! Input:
-!   lattice   -- lat_struct: lattice to be used
+!   lat       -- lat_struct: lattice to be used
 !   ix_ele    -- Integer, optional: Index of element whose attribute values 
 !                  have been changed. If not present bookkeeping will be done 
 !                  for all elements.
@@ -36,11 +36,11 @@ contains
 !                     wiggler elements. Default is False.
 !-
 
-subroutine control_bookkeeper (lattice, ix_ele, ix_branch, wiggler_only)
+subroutine control_bookkeeper (lat, ix_ele, ix_branch, wiggler_only)
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 
 integer, optional :: ix_ele, ix_branch
 integer ie
@@ -53,20 +53,20 @@ logical wig_only
 wig_only = logic_option (.false., wiggler_only)
 
 if (present(ix_ele)) then
-  call this_bookkeeper (lattice, lattice%ele(ix_ele), wig_only)
+  call this_bookkeeper (lat, lat%ele(ix_ele), wig_only)
 
 ! Else we need to make up all the lords. 
 ! The group lords must be done last since their slaves don't know about them.
 
 else
-  do ie = lattice%n_ele_track+1, lattice%n_ele_max
-    if (lattice%ele(ie)%lord_status /= group_lord$) &
-                         call this_bookkeeper (lattice, lattice%ele(ie), wig_only)
+  do ie = lat%n_ele_track+1, lat%n_ele_max
+    if (lat%ele(ie)%lord_status /= group_lord$) &
+                         call this_bookkeeper (lat, lat%ele(ie), wig_only)
   enddo
 
-  do ie = lattice%n_ele_track+1, lattice%n_ele_max
-    if (lattice%ele(ie)%lord_status == group_lord$) &
-                         call this_bookkeeper (lattice, lattice%ele(ie), wig_only)
+  do ie = lat%n_ele_track+1, lat%n_ele_max
+    if (lat%ele(ie)%lord_status == group_lord$) &
+                         call this_bookkeeper (lat, lat%ele(ie), wig_only)
   enddo
 
 endif
@@ -77,15 +77,15 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine this_bookkeeper (lattice, ele, wig_only)
+! Subroutine this_bookkeeper (lat, ele, wig_only)
 !
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-subroutine this_bookkeeper (lattice, ele, wig_only)
+subroutine this_bookkeeper (lat, ele, wig_only)
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 type (ele_struct) ele
 type (ele_struct), pointer :: lord, slave
 
@@ -100,13 +100,13 @@ if (wig_only) then
   if (ele%key == wiggler$ .and. ele%sub_key == map_type$) return
 endif
 
-call re_allocate (ix_slaves, lattice%n_ele_max, .false.)
-call re_allocate (ix_super, lattice%n_ele_max, .false.)
+call re_allocate (ix_slaves, lat%n_ele_max, .false.)
+call re_allocate (ix_super, lat%n_ele_max, .false.)
 ix_super = 0
 
 ! Attribute bookkeeping for this element
 
-call attribute_bookkeeper (ele, lattice%param)
+call attribute_bookkeeper (ele, lat%param)
 if (ele%n_slave == 0 .and. ele%n_lord == 0) return  ! nothing more to do
 
 ! Make a list of slave elements to update.
@@ -119,10 +119,10 @@ ix2 = 1   ! index for last element in list
 do
   ix1 = ix1 + 1
   ix_lord = ix_slaves(ix1)
-  lord => lattice%ele(ix_lord)
+  lord => lat%ele(ix_lord)
   do j = lord%ix1_slave, lord%ix2_slave
-    ix = lattice%control(j)%ix_slave
-    if (lord%lord_status == group_lord$ .and. lattice%ele(ix)%slave_status == free$) cycle
+    ix = lat%control(j)%ix_slave
+    if (lord%lord_status == group_lord$ .and. lat%ele(ix)%slave_status == free$) cycle
     if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
     ix2 = ix2 + 1
     if (ix2 > size(ix_slaves)) then
@@ -144,33 +144,33 @@ enddo
 do j = 1, ix2
 
   ix = ix_slaves(j)
-  slave => lattice%ele(ix)
+  slave => lat%ele(ix)
 
   if (slave%lord_status == group_lord$) then
-    call makeup_group_lord (lattice, ix)
-    call attribute_bookkeeper (slave, lattice%param)
+    call makeup_group_lord (lat, ix)
+    call attribute_bookkeeper (slave, lat%param)
 
   elseif (slave%lord_status == super_lord$) then
 
     if (slave%n_lord > 0) then
-      k =  lattice%ic(slave%ic1_lord)
-      lord => lattice%ele(lattice%control(k)%ix_lord)
+      k =  lat%ic(slave%ic1_lord)
+      lord => lat%ele(lat%control(k)%ix_lord)
       if (lord%lord_status == multipass_lord$) then
-        call makeup_multipass_slave (lattice, ix)
+        call makeup_multipass_slave (lat, ix)
       else
-        call adjust_super_lord_s_position (lattice, ix)
-        call makeup_overlay_and_girder_slave (lattice, ix)
+        call adjust_super_lord_s_position (lat, ix)
+        call makeup_overlay_and_girder_slave (lat, ix)
       endif
-      call attribute_bookkeeper (slave, lattice%param)
+      call attribute_bookkeeper (slave, lat%param)
     endif
 
   elseif (slave%lord_status == multipass_lord$ .and. slave%n_lord > 0) then
-    call makeup_overlay_and_girder_slave (lattice, ix)
-    call attribute_bookkeeper (slave, lattice%param)
+    call makeup_overlay_and_girder_slave (lat, ix)
+    call attribute_bookkeeper (slave, lat%param)
 
   elseif (slave%lord_status == overlay_lord$ .and. slave%n_lord > 0) then
-    call makeup_overlay_and_girder_slave (lattice, ix)
-    call attribute_bookkeeper (slave, lattice%param)
+    call makeup_overlay_and_girder_slave (lat, ix)
+    call attribute_bookkeeper (slave, lat%param)
 
   endif
 
@@ -181,19 +181,19 @@ enddo
 do j = 1, ix2
 
   ix = ix_slaves(j)
-  slave => lattice%ele(ix)       
+  slave => lat%ele(ix)       
 
   if (slave%slave_status == super_slave$) then
-    call makeup_super_slave (lattice, ix)
-    call attribute_bookkeeper (slave, lattice%param)
+    call makeup_super_slave (lat, ix)
+    call attribute_bookkeeper (slave, lat%param)
 
   elseif (slave%slave_status == overlay_slave$) then
-    call makeup_overlay_and_girder_slave (lattice, ix)
-    call attribute_bookkeeper (slave, lattice%param)
+    call makeup_overlay_and_girder_slave (lat, ix)
+    call attribute_bookkeeper (slave, lat%param)
 
   elseif (slave%slave_status == multipass_slave$) then
-    call makeup_multipass_slave (lattice, ix)
-    call attribute_bookkeeper (slave, lattice%param)
+    call makeup_multipass_slave (lat, ix)
+    call attribute_bookkeeper (slave, lat%param)
 
   endif
 
@@ -205,7 +205,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lattice_bookkeeper (lattice)
+! Subroutine lattice_bookkeeper (lat)
 !
 ! Subroutine to do a complete bookkeeping job on a lattice.
 !
@@ -217,38 +217,54 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   lattice   -- lat_struct: Lattice needing bookkeeping.
+!   lat   -- lat_struct: Lattice needing bookkeeping.
 !
 ! Output:
-!   lattice   -- lat_struct: Lattice with bookkeeping done.
+!   lat   -- lat_struct: Lattice with bookkeeping done.
 !-
 
-subroutine lattice_bookkeeper (lattice)
+subroutine lattice_bookkeeper (lat)
 
 implicit none
 
-type (lat_struct) lattice
+type (lat_struct) lat
 integer i, j
+logical found
 
 ! Control bookkeeper is called twice to make sure that the z_patch for a 
 ! wiggler super_lord is computed.
 
-call control_bookkeeper (lattice)
-call compute_reference_energy (lattice)
-call control_bookkeeper (lattice, wiggler_only = .true.)
+call control_bookkeeper (lat)
+call compute_reference_energy (lat)
+call control_bookkeeper (lat, wiggler_only = .true.)
 
-  ! Make sure attributes are updated
+! Make sure attributes are updated
 
-do i = 0, ubound(lattice%branch, 1)
-  do j = 1, lattice%branch(i)%n_ele_track
-    call attribute_bookkeeper (lattice%branch(i)%ele(j), lattice%param)
+do i = 0, ubound(lat%branch, 1)
+  do j = 1, lat%branch(i)%n_ele_track
+    call attribute_bookkeeper (lat%branch(i)%ele(j), lat%param)
   enddo
 enddo
 
 ! Global geometry
 
-call s_calc (lattice)
-call lat_geometry (lattice)
+call s_calc (lat)
+call lat_geometry (lat)
+
+! multipass slaves with ref_orbit == match_none$ depend upon the geometry so recalc.
+
+found = .false.
+do i = 1, lat%n_ele_track
+  if (lat%ele(i)%ref_orbit == match_none$) then
+    call makeup_multipass_slave (lat, i)
+    found = .true.
+  endif
+enddo
+
+if (found) then
+  call s_calc (lat)
+  call lat_geometry (lat)
+endif
 
 end subroutine
 
@@ -256,17 +272,17 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine adjust_super_lord_s_position (lattice, ix_lord)
+! Subroutine adjust_super_lord_s_position (lat, ix_lord)
 !
 ! Subroutine to adjust the positions of the slaves of a super_lord due
 ! to changes in the lord's s_offset.
 !-
 
-subroutine adjust_super_lord_s_position (lattice, ix_lord)
+subroutine adjust_super_lord_s_position (lat, ix_lord)
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave 
 
 integer ix_lord, ix
@@ -277,7 +293,7 @@ character(40) :: r_name = 'adjust_super_lord_s_position'
 
 !
 
-lord => lattice%ele(ix_lord)
+lord => lat%ele(ix_lord)
 
 if (lord%lord_status /= super_lord$) then
    call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
@@ -288,8 +304,8 @@ endif
 ! Adjust end position.
 
 s_end = lord%s + lord%value(s_offset$)
-ix = lattice%control(lord%ix2_slave)%ix_slave
-slave => lattice%ele(ix)
+ix = lat%control(lord%ix2_slave)%ix_slave
+slave => lat%ele(ix)
 s_start = slave%s - slave%value(l$)
 slave%value(l$) = s_end - s_start
 slave%s = s_end
@@ -297,11 +313,11 @@ slave%s = s_end
 ! Adjust start position
 
 s_start = s_end - lord%value(l$)
-if (s_start < 0) s_start = s_start + lattice%param%total_length
-ix = lattice%control(lord%ix1_slave)%ix_slave
-slave => lattice%ele(ix)
+if (s_start < 0) s_start = s_start + lat%param%total_length
+ix = lat%control(lord%ix1_slave)%ix_slave
+slave => lat%ele(ix)
 s_start2 = slave%s - slave%value(l$)
-if (s_start < 0) s_start = s_start + lattice%param%total_length 
+if (s_start < 0) s_start = s_start + lat%param%total_length 
 slave%value(l$) = slave%value(l$) + s_start2 - s_start
 
 end subroutine
@@ -310,16 +326,16 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_group_lord (lattice, ix_lord)
+! Subroutine makeup_group_lord (lat, ix_lord)
 !
 ! Subroutine to calculate the attributes of group slave elements
 !-
 
-Subroutine makeup_group_lord (lattice, ix_lord)   
+Subroutine makeup_group_lord (lat, ix_lord)   
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave
 
 real(rp) delta, coef
@@ -333,7 +349,7 @@ character(20) :: r_name = 'makeup_group_lord'
 
 !
 
-lord => lattice%ele(ix_lord)
+lord => lat%ele(ix_lord)
 
 delta = lord%value(command$) - lord%value(old_command$)    ! change
 lord%value(old_command$) = lord%value(command$) ! save old
@@ -342,10 +358,10 @@ moved = .false.   ! have we longitudinally moved an element?
 
 do i = lord%ix1_slave, lord%ix2_slave
 
-  ix = lattice%control(i)%ix_slave
-  iv = lattice%control(i)%ix_attrib
-  slave_stat = lattice%ele(ix)%slave_status
-  slave => lattice%ele(ix)
+  ix = lat%control(i)%ix_slave
+  iv = lat%control(i)%ix_attrib
+  slave_stat = lat%ele(ix)%slave_status
+  slave => lat%ele(ix)
 
   if (iv == l$) then
     moved = .true.
@@ -355,13 +371,13 @@ do i = lord%ix1_slave, lord%ix2_slave
       call err_exit
     endif
   endif
-  coef = lattice%control(i)%coef
+  coef = lat%control(i)%coef
   call pointer_to_indexed_attribute (slave, iv, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
   r_ptr = r_ptr + delta * coef
 enddo
 
-if (moved) call s_calc (lattice)       ! recompute s distances
+if (moved) call s_calc (lat)       ! recompute s distances
 
 end subroutine
 
@@ -369,30 +385,32 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_multipass_slave (lattice, ix_slave)
+! Subroutine makeup_multipass_slave (lat, ix_slave)
 !
 ! Subroutine to calcualte the attributes of multipass slave elements.
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_multipass_slave (lattice, ix_slave)
+subroutine makeup_multipass_slave (lat, ix_slave)
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave
+type (floor_position_struct), pointer :: f0, f1
 
 real(rp) s, slave_val(n_attrib_maxx)
-real(rp) d, e, r_lord, r_slave, cos_lord, cos_lorde, sin_lord, sin_lorde
-real(rp) ang_slave, ang_lord, ang_slave_old
-integer i, j, ix_slave
+real(rp) d, e, r_lord, r_slave, cos_lord, cos_e, sin_lord, sin_lorde
+real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2, del_e1
+
+integer i, j, ix_slave, ic, ix_s0
 character(40) :: r_name = 'makeup_multipass_slave'
 
 !
 
-slave => lattice%ele(ix_slave)
-j =  lattice%ic(slave%ic1_lord)
-lord => lattice%ele(lattice%control(j)%ix_lord)
+slave => lat%ele(ix_slave)
+j =  lat%ic(slave%ic1_lord)
+lord => lat%ele(lat%control(j)%ix_lord)
 
 slave_val = slave%value  ! save
 
@@ -437,17 +455,98 @@ if (lord%key == match$) then
   endif
 endif
 
+! multipoles
+
+if (associated (slave%a_pole)) then
+  slave%a_pole = lord%a_pole
+  slave%b_pole = lord%b_pole
+endif
+
+! wakes
+
+if (associated (slave%r)) slave%r = lord%r
+if (associated (slave%const)) slave%const = lord%const
+if (associated (slave%wake)) then
+  slave%wake%sr_table      = lord%wake%sr_table
+  slave%wake%sr_mode_long  = lord%wake%sr_mode_long
+  slave%wake%sr_mode_trans = lord%wake%sr_mode_trans
+  slave%wake%lr            = lord%wake%lr
+  do i = 1, size(lord%wake%lr)
+    slave%wake%lr(i)%t_ref = lord%wake%lr(i)%t_ref - slave%ref_time
+  enddo
+endif
+
+! methods
+
+slave%mat6_calc_method = lord%mat6_calc_method
+slave%tracking_method  = lord%tracking_method
+slave%is_on            = lord%is_on
+slave%aperture_at      = lord%aperture_at
+slave%coupler_at       = lord%coupler_at
+
 ! An sbend is tricky since the reference orbit changes with energy.
 
-if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
+if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) then
 
   select case (lord%ref_orbit)
+
   case (single_ref$)
     slave%value(b_field$)     = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$) 
     slave%value(b_field_err$) = lord%value(b_field$) + lord%value(b_field_err$) - &
                                                                    slave%value(b_field$)
     slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) * &
                                     lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
+
+
+  case (match_none$)
+
+    slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
+
+    ! e1 and e2 and l are determined by the reference orbit of this pass with respect
+    ! to the reference orbit of the reference pass. 
+    ! Assumption: the slave element lies in the (x, z) plane.
+
+    if (slave%floor%phi /= 0 .or. slave%floor%psi /= 0) then
+       call out_io (s_fatal$, r_name, 'MULTIPASS ELEMENT: ' // lord%name, &
+                     'WHICH HAS REF_ORBIT = MATCH_NONE DOES NOT LIE IN THE (X, Z) PLANE!')
+      call err_exit
+    endif
+
+    ! This calculation only makes sense if the reference trajectories through the element
+    ! are "close" to each other. If the reference trajectory of this slave is too far
+    ! from the base reference trajectory then the calculation is aborted as being unphysical.
+    ! This prevents wildly unphysical values for e1, e2, and the length.
+
+    ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
+    ix_s0 = lat%control(ic)%ix_slave
+    if (ix_s0 == ix_slave) return   ! Do not need calculation for ref slave.
+
+    f0 => lat%ele(ix_s0-1)%floor    ! Coords at ref slave entrance end.
+    f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
+
+    del_e1 = modulo2(f1%theta - f0%theta, pi)
+    if (abs(del_e1) > pi/4) return  ! Stop calc if too unphysical.
+
+    ! d1 is the distance between the reference trajectory entrance points between 
+    ! the slave and the lord.
+    d1 = ((f1%x - f0%x) * cos(f1%theta) - (f1%y - f0%y) * cos(f1%theta)) / &
+                                        cos(f1%theta - f0%theta + lord%value(e1$))
+    if (abs(d1 * slave%value(g$)) > 0.1) return  ! Stop calc if too unphysical.
+
+    ! Iterate to converge to a solution.
+
+    r_lord  = 1 / lord%value(g$)
+    r_slave = 1 / slave%value(g$)
+    ang_lord = lord%value(angle$)
+    cos_lord = cos(ang_lord)
+    sin_lord = sin(ang_lord)
+    ang_slave     = ang_lord
+    ang_slave_old = ang_slave
+    do
+    enddo
+
+    slave%value(e1$) = lord%value(e1$) + del_e1
+
 
   case (match_at_entrance$, match_at_exit$)
     slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
@@ -461,13 +560,15 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
       r_lord  = 1 / lord%value(g$)
       r_slave = 1 / slave%value(g$)
       ang_lord = lord%value(angle$)
-      cos_lord = cos(ang_lord); cos_lorde = cos(ang_lord - e)
+      cos_lord = cos(ang_lord); cos_e = cos(e)
       sin_lord = sin(ang_lord); sin_lorde = sin(ang_lord - e)
       ang_slave     = ang_lord
       ang_slave_old = ang_slave
+      ! d is the distance between the reference trajectory end points between the slave
+      ! and the lord at the opposite end of the match end.
       do
-        d = (r_lord * (1 - cos_lord) - r_slave * (1 - cos(ang_slave))) / cos_lorde
-        ang_slave = asin((r_lord * sin_lord + d * sin_lorde)/r_slave)
+        d = (r_lord * (cos_lord - 1) + r_slave * (cos(ang_lord - ang_slave) - cos_lord) ) / cos_e
+        ang_slave = asin((r_lord * sin_lord + d * sin_lorde) / r_slave)
         if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
         ang_slave_old = ang_slave
       enddo
@@ -475,9 +576,9 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
       slave%value(l$) = ang_slave * r_slave
       slave%value(rho$) = r_slave
       if (lord%ref_orbit == match_at_entrance$) then
-        slave%value(e2$) = e + ang_lord - ang_slave
+        slave%value(e2$) = e + ang_slave - ang_lord 
       else
-        slave%value(e1$) = e + ang_lord - ang_slave
+        slave%value(e1$) = e + ang_slave - ang_lord 
       endif
     endif
 
@@ -498,46 +599,23 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0) then
   end select
 endif
 
-if (associated (slave%a_pole)) then
-  slave%a_pole = lord%a_pole
-  slave%b_pole = lord%b_pole
-endif
-
-if (associated (slave%r)) slave%r = lord%r
-if (associated (slave%const)) slave%const = lord%const
-if (associated (slave%wake)) then
-  slave%wake%sr_table      = lord%wake%sr_table
-  slave%wake%sr_mode_long  = lord%wake%sr_mode_long
-  slave%wake%sr_mode_trans = lord%wake%sr_mode_trans
-  slave%wake%lr            = lord%wake%lr
-  do i = 1, size(lord%wake%lr)
-    slave%wake%lr(i)%t_ref = lord%wake%lr(i)%t_ref - slave%ref_time
-  enddo
-endif
-
-slave%mat6_calc_method = lord%mat6_calc_method
-slave%tracking_method  = lord%tracking_method
-slave%is_on            = lord%is_on
-slave%aperture_at      = lord%aperture_at
-slave%coupler_at       = lord%coupler_at
-
 end subroutine
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave (lattice, ix_slave)
+! Subroutine makeup_super_slave (lat, ix_slave)
 !
 ! Subroutine to calcualte the attributes of superposition slave elements.
 ! This routine is not meant for general use.
 !-
        
-subroutine makeup_super_slave (lattice, ix_slave)
+subroutine makeup_super_slave (lat, ix_slave)
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave
 type (ele_struct), save :: sol_quad
 
@@ -567,7 +645,7 @@ endif
 
 ! Super_slave:
 
-slave => lattice%ele(ix_slave)
+slave => lat%ele(ix_slave)
 
 if (slave%slave_status /= super_slave$) then
    call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
@@ -583,25 +661,25 @@ endif
 
 if (slave%n_lord == 1) then
 
-  ix_con = lattice%ic(slave%ic1_lord)  
-  ix = lattice%control(ix_con)%ix_lord
-  lord => lattice%ele(ix)
+  ix_con = lat%ic(slave%ic1_lord)  
+  ix = lat%control(ix_con)%ix_lord
+  lord => lat%ele(ix)
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (ix_con /= lord%ix1_slave) then
-    slave%map_ref_orb_in = lattice%ele(ix_slave-1)%map_ref_orb_out
+    slave%map_ref_orb_in = lat%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   !
 
   offset = 0 ! length of all slaves before this one
   do i = lord%ix1_slave, ix_con-1
-    j = lattice%control(i)%ix_slave
-    offset = offset + lattice%ele(j)%value(l$)
+    j = lat%control(i)%ix_slave
+    offset = offset + lat%ele(j)%value(l$)
   enddo
 
-  call makeup_super_slave1 (slave, lord, offset, lattice%param, &
+  call makeup_super_slave1 (slave, lord, offset, lat%param, &
                                ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
 
   return
@@ -640,9 +718,9 @@ slave%is_on = .false.
 
 do j = slave%ic1_lord, slave%ic2_lord
 
-  ix_con = lattice%ic(j)
-  ix = lattice%control(ix_con)%ix_lord
-  lord => lattice%ele(ix)
+  ix_con = lat%ic(j)
+  ix = lat%control(ix_con)%ix_lord
+  lord => lat%ele(ix)
   coef = slave%value(l$) / lord%value(l$)
 
   if (lord%lord_status /= super_lord$) then
@@ -663,7 +741,7 @@ do j = slave%ic1_lord, slave%ic2_lord
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (ix_con /= lord%ix1_slave) then
-    slave%map_ref_orb_in = lattice%ele(ix_slave-1)%map_ref_orb_out
+    slave%map_ref_orb_in = lat%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   ! Choose the smallest ds_step of all the lords.
@@ -686,15 +764,15 @@ do j = slave%ic1_lord, slave%ic2_lord
     slave%tracking_method  = lord%tracking_method
   else
     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-      ix = lattice%control(lattice%ic(slave%ic1_lord))%ix_lord
+      ix = lat%control(lat%ic(slave%ic1_lord))%ix_lord
       call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lattice%ele(ix)%name))
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lat%ele(ix)%name))
       call err_exit
     endif
     if (slave%tracking_method /= lord%tracking_method) then
-      ix = lattice%control(lattice%ic(slave%ic1_lord))%ix_lord
+      ix = lat%control(lat%ic(slave%ic1_lord))%ix_lord
       call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lattice%ele(ix)%name))
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lat%ele(ix)%name))
       call err_exit
     endif
   endif
@@ -761,7 +839,7 @@ do j = slave%ic1_lord, slave%ic2_lord
     y_p = lord%value(y_pitch_tot$);  y_o = lord%value(y_offset_tot$)
 
     s_del = s_slave - (lord%s + lord%value(s_offset_tot$) - lord%value(l$)/2)
-    s_del = modulo2 (s_del, lattice%param%total_length/2)
+    s_del = modulo2 (s_del, lat%param%total_length/2)
 
     ks = lord%value(ks$)
 
@@ -963,7 +1041,7 @@ case (solenoid$, sol_quad$, quadrupole$)
   sol_quad%value(ks$) = ks
   sol_quad%value(k1$) = k1
   sol_quad%value(l$)  = l_slave
-  call make_mat6 (sol_quad, lattice%param)
+  call make_mat6 (sol_quad, lat%param)
   T_tot = sol_quad%mat6(1:4,1:4)
 
   r_off = matmul (T_end, l_slave * t_1 / 2 - t_2) 
@@ -1247,16 +1325,16 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
+! Subroutine makeup_overlay_and_girder_slave (lat, ix_ele)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_overlay_and_girder_slave (lattice, ix_ele)
+subroutine makeup_overlay_and_girder_slave (lat, ix_ele)
 
 implicit none
 
-type (lat_struct), target :: lattice
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: slave, lord
 
 real(rp) value(n_attrib_special_maxx), coef, ds
@@ -1268,13 +1346,13 @@ character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 
 !
                              
-slave => lattice%ele(ix_ele)
+slave => lat%ele(ix_ele)
 l_stat = slave%lord_status
 
 if (l_stat /= super_lord$ .and. slave%slave_status /= overlay_slave$ .and. &
          l_stat /= overlay_lord$ .and. l_stat /= multipass_lord$) then
   call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. lattice INDEX: \i\ ', ix_ele)
-  call type_ele (slave, .true., 0, .false., 0, .true., lattice)
+  call type_ele (slave, .true., 0, .false., 0, .true., lat)
   call err_exit
 endif
 
@@ -1284,9 +1362,9 @@ multipole_set = .false.
 slave%on_a_girder = .false.
 
 do i = slave%ic1_lord, slave%ic2_lord
-  j = lattice%ic(i)
-  ix = lattice%control(j)%ix_lord
-  lord => lattice%ele(ix)
+  j = lat%ic(i)
+  ix = lat%control(j)%ix_lord
+  lord => lat%ele(ix)
 
   if (lord%lord_status == multipass_lord$) cycle
 
@@ -1306,12 +1384,12 @@ do i = slave%ic1_lord, slave%ic2_lord
 
   if (lord%lord_status /= overlay_lord$) then
     call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
-    call type_ele (slave, .true., 0, .false., 0, .true., lattice)
+    call type_ele (slave, .true., 0, .false., 0, .true., lat)
     call err_exit
   endif     
 
-  coef = lattice%control(j)%coef
-  iv = lattice%control(j)%ix_attrib
+  coef = lat%control(j)%coef
+  iv = lat%control(j)%ix_attrib
   call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
   value(iv) = value(iv) + r_ptr * coef
@@ -1786,8 +1864,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_lat_taylors (lattice_in, lattice_out, 
-!                                              type_out, transfered_all)
+! Subroutine transfer_lat_taylors (lat_in, lat_out, type_out, transfered_all)
 !
 ! Subroutine to transfer the taylor maps from the elements of one lattice to
 ! the elements of another. The elements are matched between the lattices so 
@@ -1802,26 +1879,27 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   lattice_in   -- lat_struct: Input lattice with Taylor maps.
+!   lat_in    -- lat_struct: Input lattice with Taylor maps.
 !   type_out  -- Logical: If True then print a message for each Taylor map
 !                 transfered.
 !
 ! Output:
-!   lattice_out  -- lat_struct: lattice to receive the Taylor maps.
-!   transfered_all -- Logical, optional: Set True if a Taylor map is found
+!   lat_out   -- lat_struct: lattice to receive the Taylor maps.
+!   transfered_all 
+!             -- Logical, optional: Set True if a Taylor map is found
 !                 for all elements in lattice_out that need one. False otherwise.
 !-
 
-subroutine transfer_lat_taylors (lattice_in, lattice_out, type_out, transfered_all)
+subroutine transfer_lat_taylors (lat_in, lat_out, type_out, transfered_all)
 
 implicit none
 
-type (lat_struct), target, intent(in) :: lattice_in
-type (lat_struct), target, intent(inout) :: lattice_out
+type (lat_struct), target, intent(in) :: lat_in
+type (lat_struct), target, intent(inout) :: lat_out
 type (ele_struct), pointer :: ele_in, ele_out
 
 integer i, j
-integer n_in, ix_in(ubound(lattice_in%ele, 1))
+integer n_in, ix_in(ubound(lat_in%ele, 1))
  
 logical, intent(in)  :: type_out
 logical, optional :: transfered_all
@@ -1832,8 +1910,7 @@ character(25) :: r_name = 'transfer_lat_taylors'
 
 if (present(transfered_all)) transfered_all = .true.
 
-if (lattice_in%ele(0)%value(E_tot$) /= &
-                            lattice_out%ele(0)%value(E_tot$)) then
+if (lat_in%ele(0)%value(E_tot$) /= lat_out%ele(0)%value(E_tot$)) then
   if (type_out) then
      call out_io (s_warn$, r_name, &
             'THE LATTICE ENERGIES ARE DIFFERENT. TAYLOR MAPS NOT TRANSFERED.')
@@ -1845,9 +1922,9 @@ endif
 ! Find the taylor series in the first lattice.
 
 n_in = 0
-do i = 1, lattice_in%n_ele_max
-  if (associated(lattice_in%ele(i)%taylor(1)%term)) then
-    if (bmad_com%taylor_order > lattice_in%ele(i)%taylor_order) cycle
+do i = 1, lat_in%n_ele_max
+  if (associated(lat_in%ele(i)%taylor(1)%term)) then
+    if (bmad_com%taylor_order > lat_in%ele(i)%taylor_order) cycle
     n_in = n_in + 1
     ix_in(n_in) = i
   endif
@@ -1858,18 +1935,18 @@ enddo
 ! Call attribute_bookkeeper before transfering the taylor map to make sure
 ! the ele_out%value(:) arry is correct. 
 
-out_loop: do i = 1, lattice_out%n_ele_max
+out_loop: do i = 1, lat_out%n_ele_max
 
-  ele_out => lattice_out%ele(i)
+  ele_out => lat_out%ele(i)
 
   do j = 1, n_in
 
-    ele_in => lattice_in%ele(ix_in(j))
+    ele_in => lat_in%ele(ix_in(j))
 
     if (equivalent_taylor_attributes (ele_in, ele_out)) then
       if (type_out) call out_io (s_info$, r_name, &
           ' Reusing Taylor from: ' // trim(ele_in%name) // '  to: ' //  ele_out%name)
-      call attribute_bookkeeper (ele_out, lattice_out%param)
+      call attribute_bookkeeper (ele_out, lat_out%param)
       call transfer_ele_taylor (ele_in, ele_out, bmad_com%taylor_order)
       cycle out_loop
     endif

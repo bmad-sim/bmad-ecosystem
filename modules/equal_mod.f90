@@ -303,6 +303,15 @@ do i = 1, n
   lat_out%branch(i) = lat_in%branch(i)
 enddo
 
+! Make sure ele%ix_ele is set correctly
+
+do i = 0, ubound(lat_out%branch, 1)
+  do n = 0, ubound(lat_out%branch(i)%ele, 1)
+    lat_out%branch(i)%ele(n)%ix_ele = n
+    lat_out%branch(i)%ele(n)%ix_branch = i
+  enddo
+enddo
+
 ! non-pointer transfer
 
 call transfer_lat_parameters (lat_in, lat_out)

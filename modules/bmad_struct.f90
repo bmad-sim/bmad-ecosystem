@@ -218,7 +218,8 @@ type ele_struct
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
   integer num_steps          ! number of slices for DA_maps
   integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
-  integer ref_orbit          ! For setting the ptc kind type.
+  integer ref_orbit          ! Multipass ref orb: single_ref$, match_none$, 
+                             !                    match_at_entrance$, match_at_exit$
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer coupler_at         ! Lcavity coupler location: exit_end$, ...
@@ -349,7 +350,7 @@ character(16) :: key_name(n_key) = (/ &
     'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
     'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
     'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
-    'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'ACCEL_SOL    ', &
+    'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'BEND_SOL_    ', &
     'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
     'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
@@ -590,8 +591,10 @@ character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
 ! ref_orbit values.
 
 integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
-character(20), parameter :: ref_orbit_name(0:3) = (/  "GARBAGE!         ", &
-            "Single_Ref       ", "Match_at_Entrance", "Match_at_Exit    " /)
+integer, parameter :: match_none$ = 4
+character(20), parameter :: ref_orbit_name(0:4) = (/  "GARBAGE!         ", &
+            "Single_Ref       ", "Match_at_Entrance", "Match_at_Exit    ", &
+            "Match_None       " /)
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.

@@ -514,8 +514,8 @@ parsing_loop: do
     endif
 
     if (.not. found) then
-      call warning ('KEY NAME NOT RECOGNIZED: ' // word_2,  &
-                     'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+      call warning ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+                    'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       cycle parsing_loop
     endif
 

@@ -134,8 +134,15 @@ do i_b = 0, ubound(lat%branch, 1)
       if (ele%value(p0c$) == 0 .and. ele%value(e_tot$) == 0) then
         call out_io (s_fatal$, r_name, &
                   'BEND: ' // ele%name, &
-                  'WITH LORD_STATUS: ' // control_name(l_stat), &
+                  'WHICH IS A: MULTIPASS_LORD', &
                   'DOES NOT HAVE A REFERENCE ENERGY DEFINED')
+        found_err = .true.
+      endif
+      if (ele%ref_orbit == match_none$ .and. ele%value(n_ref_pass$) == 0) then
+        call out_io (s_fatal$, r_name, &
+                  'BEND: ' // ele%name, &
+                  'WHICH IS A: MULTIPASS_LORD', &
+                  'HAS REF_ORBIT = MATCH_NONE BUT N_REF_PASS IS NOT SET!')
         found_err = .true.
       endif
     endif
