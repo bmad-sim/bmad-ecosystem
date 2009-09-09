@@ -72,7 +72,7 @@ subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture, e_init)
   type (aperture_struct)  aperture
   type (track_input_struct)  track_input
 
-  integer it, turn_lost, ixr
+  integer it, turn_lost
 
   real(rp) theta_xy, x0, x1, x2, y0, y1, y2
 
@@ -179,10 +179,6 @@ endif
   aperture%i_turn = turn_lost
   aperture%closed_orbit = orb0
   aperture%plane = lat%param%plane_lost_at
-
-  if (lat%ele(ixr)%key == drift$) ixr = ixr + 1
-
-!
 
   lat%param = param_save
 
