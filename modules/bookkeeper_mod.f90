@@ -251,11 +251,11 @@ enddo
 call s_calc (lat)
 call lat_geometry (lat)
 
-! multipass slaves with ref_orbit == match_none$ depend upon the geometry so recalc.
+! multipass slaves with ref_orbit == match_pass1$ depend upon the geometry so recalc.
 
 found = .false.
 do i = 1, lat%n_ele_track
-  if (lat%ele(i)%ref_orbit == match_none$) then
+  if (lat%ele(i)%ref_orbit == match_pass1$) then
     call makeup_multipass_slave (lat, i)
     found = .true.
   endif
@@ -499,7 +499,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
                                     lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
 
 
-  case (match_none$)
+  case (match_pass1$)
 
     slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
 
@@ -509,7 +509,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
 
     if (slave%floor%phi /= 0 .or. slave%floor%psi /= 0) then
        call out_io (s_fatal$, r_name, 'MULTIPASS ELEMENT: ' // lord%name, &
-                     'WHICH HAS REF_ORBIT = MATCH_NONE DOES NOT LIE IN THE (X, Z) PLANE!')
+                     'WHICH HAS REF_ORBIT = MATCH_PASS1 DOES NOT LIE IN THE (X, Z) PLANE!')
       call err_exit
     endif
 
