@@ -401,7 +401,8 @@ type (floor_position_struct), pointer :: f0, f1
 
 real(rp) s, slave_val(n_attrib_maxx)
 real(rp) d, e, r_lord, r_slave, cos_lord, cos_e, sin_lord, sin_lorde
-real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2, del_e1
+real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2
+real(rp) cos_e2, d_theta, ang_dlord, cos_lorde1, cos_dlord
 
 integer i, j, ix_slave, ic, ix_s0
 character(40) :: r_name = 'makeup_multipass_slave'
@@ -524,13 +525,13 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     f0 => lat%ele(ix_s0-1)%floor    ! Coords at ref slave entrance end.
     f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
 
-    del_e1 = modulo2(f1%theta - f0%theta, pi)
-    if (abs(del_e1) > pi/4) return  ! Stop calc if too unphysical.
+    d_theta = modulo2(f1%theta - f0%theta, pi)
+    if (abs(d_theta) > pi/4) return  ! Stop calc if too unphysical.
 
     ! d1 is the distance between the reference trajectory entrance points between 
     ! the slave and the lord.
     d1 = ((f1%x - f0%x) * cos(f1%theta) - (f1%y - f0%y) * cos(f1%theta)) / &
-                                        cos(f1%theta - f0%theta + lord%value(e1$))
+                                        cos(d_theta + lord%value(e1$))
     if (abs(d1 * slave%value(g$)) > 0.1) return  ! Stop calc if too unphysical.
 
     ! Iterate to converge to a solution.
@@ -538,14 +539,27 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     r_lord  = 1 / lord%value(g$)
     r_slave = 1 / slave%value(g$)
     ang_lord = lord%value(angle$)
-    cos_lord = cos(ang_lord)
-    sin_lord = sin(ang_lord)
-    ang_slave     = ang_lord
-    ang_slave_old = ang_slave
+    ang_dlord = d_theta + ang_lord
+    cos_lord = cos(ang_lord);   cos_lorde1 = cos(ang_lord - lord%value(e1$))
+    sin_lord = sin(ang_lord);   cos_dlord = cos(ang_dlord)
+    cos_e2 = cos(lord%value(e2$))
+    ang_slave     = ang_lord   ! Init guess
+    ang_slave_old = ang_slave  
     do
+      d2 = (r_lord * (cos_lord - 1) + d1 * cos_lorde1 + r_slave * &
+              (cos(ang_dlord - ang_slave) - cos_dlord)) / cos_e2
+      ang_slave = asin((r_lord * (sin(ang_dlord) - sin(d_theta)) - &
+                        d1 * sin(d_theta + lord%value(e1$)) + &
+                        d2 * sin(ang_dlord - lord%value(e2$))) / r_slave)
+      if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
+      ang_slave_old = ang_slave
     enddo
 
-    slave%value(e1$) = lord%value(e1$) + del_e1
+    slave%value(angle$) = ang_slave
+    slave%value(l$) = ang_slave * r_slave
+    slave%value(rho$) = r_slave
+    slave%value(e1$) = lord%value(e1$) + d_theta
+    slave%value(e2$) = lord%value(e2$) + ang_slave - ang_lord - d_theta
 
 
   case (match_at_entrance$, match_at_exit$)

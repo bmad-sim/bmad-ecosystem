@@ -267,7 +267,7 @@ if (n_out < n_in) call allocate_lat_ele_array(lat_out, n_in)
 
 lat_out%ele(0:n_in) = lat_in%ele(0:n_in)
 do i = n_in+1, n_out
-  call init_ele (lat_out%ele(i))
+  call init_ele (lat_out%ele(i), ix_ele = i, ix_branch = 0)
 enddo
 lat_out%ele_init = lat_in%ele_init
 
