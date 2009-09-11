@@ -54,14 +54,20 @@ set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 set SYSTEM_TAG="`uname -s | cut -d- -f1`"
 
 # Set BMAD fortran compiler:
-# BMADF90 = intel (or lahey, hp, absoft, ibm, gnu)
-# intel   -- ifort          default on Linux_i686
-# lahey   -- lf95           supported on Linux_i686
-# hp      -- f77/f90/f95    default on OSF1_alpha
-# ibm     -- xlf
-# absoft  -- f95            
-# gnu     -- gfortran
+# BMADF90 = intel (or lahey, hp, absoft, ibm, gfortran)
+# intel    -- ifort          default on Linux_i686
+# lahey    -- lf95           supported on Linux_i686
+# hp       -- f77/f90/f95    default on OSF1_alpha
+# ibm      -- xlf
+# absoft   -- f95
+# gfortran -- gfortran
 #
+
+# Uncomment a line here to change the platform specific default compiler
+#
+# if ( $?BMADF90    == 0 ) setenv BMADF90 gfortran
+# if ( $?BMADF90    == 0 ) setenv BMADF90 intel
+
 if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
   if ( $?BMADF90    == 0  ) then setenv BMADF90 intel
 endif
@@ -82,11 +88,6 @@ endif
 if ( "${SYSTEM_TAG}" == "Darwin" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 gfortran
 endif
-
-# Uncomment a line here to change the default compiler
-
-# setenv BMADF90 gfortran   
-# setenv BMADF90 intel
 
 #
 # Source the BMAD environment script
