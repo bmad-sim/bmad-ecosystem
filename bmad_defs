@@ -88,6 +88,11 @@ if ( [ "${SYSTEM_TAG}" = "Darwin" ] ) then
   BMADF90=${BMADF90:-gfortran}
 fi
 
+# Uncomment a line here to change the default compiler
+
+# BMADF90=gfortran   
+# BMADF90=intel
+
 #
 # Export the BMAD environment variable structure
 #

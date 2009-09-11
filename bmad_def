@@ -83,6 +83,11 @@ if ( "${SYSTEM_TAG}" == "Darwin" ) then
   if ( $?BMADF90    == 0 ) setenv BMADF90 gfortran
 endif
 
+# Uncomment a line here to change the default compiler
+
+# setenv BMADF90 gfortran   
+# setenv BMADF90 intel
+
 #
 # Source the BMAD environment script
 #
