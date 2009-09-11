@@ -460,12 +460,12 @@ defined by setting \vn{e_tot} or \vn{p0c}, or by setting
 \centering 
 \includegraphics{multipass_bend.eps} 
 \caption[The reference orbit with a multipass bend.]  
-{With \vn{ref_orbit} = \vn{match_at_entrance}, the reference orbits of
-different pass will be assumed, for the sake of calculating the slave bend parameters, 
-to be the same at the entrance end of the magnet.  If
+{A) With \vn{ref_orbit} = \vn{match_at_entrance}, the reference orbits of
+different pass will be taken
+to be the same at the entrance end of the magnet. If
 there is a variation of the reference energy through a bend from pass
-to pass, the assumed reference orbit through the bend will vary from pass to
-pass.}
+to pass, the reference orbit through the bend will vary from pass to
+pass. B) With \vn{ref_orbit} = \vn{match_global_coords}, the reference orbit}
 \label{f:multipass.bend}
 \end{figure}
 
@@ -481,12 +481,13 @@ A bend element has a \vn{ref_orbit} attribute that, when combined with
 the reference energy, define the reference orbit. \vn{ref_orbit} is a
 switch that can take the values:
 \begin{example}
-  single_ref            ! Default. Must be used with n_ref_pass.
+  single_ref            ! Default. 
+  match_global_coords   ! Must be used with n_ref_pass = 1
   match_at_entrance
   match_at_exit
 \end{example}
 A value of \vn{single_ref} (the default) means that the {\em same}
-reference orbit will be used for all passes. The
+reference orbit will be used for all passes. The \vn{match_global_coords},
 \vn{match_at_entrance} and \vn{match_at_exit} values are used when
 {\em separate} reference orbits are desired as described below.
 
@@ -494,52 +495,62 @@ To set the reference energy, one (and only one) of the attributes
 \vn{n_ref_pass}, \vn{e_tot} or \vn{p0c} needs to be
 set. \vn{n_ref_pass} is an integer indicating which pass is used to
 define the reference energy for the lord element. Note: If
-\vn{ref_orbit} is set to \vn{single_ref}, \vn{n_ref_pass} must be
-used.
+\vn{ref_orbit} is set to \vn{match_global_coords}, \vn{n_ref_pass} must be
+used and must be set to 1.
 
 An example will make this clear. Consider a bend defined by
 \begin{example} 
   B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = single_ref
 \end{example}
-Here the same reference orbit will be used for all passes.  Assume
-that positrons are being used and that the reference energy on the
-first pass is 5~GeV and on the second pass it is 10~GeV. Since
-\vn{n_ref_pass} has a value of \vn{1}, the first pass reference energy
-of 5~GeV will be used, along with the attribute values of \vn{B}, to
-define the reference orbit. In this case, this translates
-into a bending radius \vn{rho} of 16.7~m.  In the tracking lattice,
-the first pass element \vn{B\B1} will have a value for \vn{b_field} of
-\vn{1.0} just like its lord element. On the second pass, the reference
-orbit is the same so the bending radius of the reference orbit 
-is unchanged at 16.7~m. However, the bending radius is
-related to the \vn{b_field} by
+Here the same reference orbit will be used for all passes. Assume that
+the reference momentum \vn{p0c} on the first pass is 5~GeV (this is
+defermined by the reference momentum at the beginning of the lattice
+and any \vn{lcavity} elements in the lattice). Since \vn{n_ref_pass}
+is one, this fixes the momentum at which the reference orbit is
+calculated to be 5~GeV. The bending radius \vn{rho} of the reference
+orbit is related to the field and momentum by
 \begin{example}
   rho = p0c / (c_light * b_field)
 \end{example}
+In this case, this translates into a bending radius of 16.7~m.  In the
+tracking lattice, the first pass element \vn{B\B1} will have a value
+for \vn{b_field} of 1~Tesla just like its lord element. Also,
+like its lord element, \vn{B\B1} will have an error field,
+\vn{b_field_err}, of zero. The total field
+\begin{example}
+  b_field_tot = b_field + b_field_err
+\end{example}
+will be 1~Tesla. Additionally, the edge face angles \vn{e1} and
+\vn{e2} will be the same as \vn{B}. In this example both are
+zero. This is true for all passes.
+
+Now assume that on the second pass, the reference momentum is 10~GeV.
 Since, on the second pass, \vn{p0c} is a factor of 2 larger, to keep
-the bending radius invariant the value of \vn{b_field} for the second
+the bending radius invariant, the value of \vn{b_field} for the second
 pass element \vn{B\B2} will be a factor of 2 larger. That is, it will
-be \vn{2.0}. Since the total field must be the same on all passes
-(\vn{B\B1} and \vn{B\B2} represent the same physical element after
-all), and since the total field is the sum of \vn{b_field} and
-\vn{b_field_err}, \vn{B\B2} must have a value for \vn{b_field_err} of
-\vn{-1.0}.
+be 2~Tesla. However, the total field in the element must be the
+same on all passes (\vn{B\B1} and \vn{B\B2} represent the same
+physical element after all). Thus, \vn{B\B2} must have a value for
+\vn{b_field_err} of -1~Tesla.
 
 Now consider the same situation as above except that the value of
-\vn{ref_orbit} is changed:
+\vn{ref_orbit} is changed to \vn{match_at_entrance} and the reference
+momentom is set instead of \vn{n_ref_pass}:
 \begin{example} 
-  B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = match_at_entrance
+  B: sbend, l = 1, b_field = 1.0, p0c = 5e9, ref_orbit = match_at_entrance
 \end{example}
 Here the reference orbit will be different on the two passes. The two
 reference orbits will coincide at the entrance edge of the magnet.
-This is illustrated in Figure~\ref{f:multipass.bend}. In both
-\vn{B\B1} and \vn{B\B2} the value of \vn{b_field} will be \vn{1.0}
-giving bending radii of \vn{16.7}~m and \vn{33.4}~m
-respectively. In the second pass, the element length \vn{l} will be
-increased slightly to \vn{1.0000045}. There will also be a non-zero
-exit face angle \vn{e2} of \vn{0.003}. With the different reference
-orbit for the second pass, there is no good way to handle a non-zero
-multipole attribute so \bmad disallows them in this case.
+This is illustrated in Figure~\ref{f:multipass.bend}A. For both
+\vn{B\B1} and \vn{B\B2}, the value of \vn{b_field} will be 1~Tesla
+giving bending radii of \vn{16.7}~m and \vn{33.4}~m respectively. With
+\vn{B\B2}, the element length will be a slight bit larger than
+\vn{B\B1} with a value of \vn{1.0000045}. The entrance face angle
+\vn{e1} will always be the same on all passes (zero in this example)
+but \vn{e2} will vary. In this case \vn{e2} for \vn{B\B2} will be
+\vn{0.003}. With the different reference orbit for the second pass,
+there is no good way to handle a non-zero multipole attribute so \bmad
+disallows them in this case.
 
 \vn{match_at_exit} is similar to \vn{match_at_entrance} except that
 the different reference orbits will coincide at the exit edge of the
@@ -551,9 +562,47 @@ The \vn{match_at_entrance} value for \vn{ref_orbit} is useful
 for simulating a bend at the end of a multipass line that is used to
 separate the beams on the various passes. Notice that the next
 elements downstream (labeled \vn{Q1} and \vn{Q2} in
-Figure~\ref{f:multipass.bend}) will be physically separated in
+Figure~\ref{f:multipass.bend}A) will be physically separated in
 space. That is, it does not make sense to use \vn{match_at_entrance}
 for a bend that is {\em not} at the end of a multipass
 line. Similarly, the \vn{match_at_exit} value is useful for simulating
 a bend that combines beams of different energies. Such a bend should
 be placed at the beginning of a multipass line.
+
+With \vn{ref_orbit} set to \vn{match_global_coords} the reference
+orbit on a given pass is determined by the global coordinates
+(\sref{s:global}) of the reference trajectory. Example:
+\begin{example} 
+  B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = match_global_coords
+\end{example}
+As will be explained, when using \vn{match_global_coords},
+\vn{n_ref_pass} must be present and set to one. With
+\vn{match_global_coords}, \vn{B\B1} will have the same parameters as
+\vn{B} and this will determine the reference orbit for \vn{B\B1}. See
+Figure~\ref{f:multipass.bend}B). For the second pass, the reference
+trajectory at the entrance end of the bend is determined as follows:
+The calculation starts with the global coordinates of the reference
+orbit at the exit end of the element just before \vn{B\B2} (marked
+$r_0$ in Figure~\ref{f:multipass.bend}B)). To be physically correct,
+this point must lie on the entrance face of \vn{B\B2}. However, it is
+possible to have a lattice where this is not so and the calculation
+does not demand this. If $r_0$ does not lie on the entrance face, the
+reference orbit is extended (either forward or backward) in a straight
+line to a point where it intersects the entrance face (marked $r_1$ in
+Figure~\ref{f:multipass.bend}B)). The radius of curvature is
+calculated by scaling the radius as clculated from the first pass
+scaled by the change in reference momentum between the first and
+second passes. From the entrance point and the radius of curvature,
+the exit point (marked $r_1$ in Figure~\ref{f:multipass.bend}B)) can
+be calculated. The curve from $r_1$ to $r_2$ defines the reference
+trajectory through \vn{B\B2}. The face angles \vn{e1} and \vn{e2}, and
+the path length \vn{l} for \vn{B\B2} can be calculated from the
+geometry.
+
+Since the calculation with \vn{match_global_coordinates} is rather
+complicated, the use of \vn{match_global_coords} is restricted to
+lattices that lie horizontally in the global $X-Z$ plane. Also, the
+restriction to \vn{n_ref_pass = 1} is necessary since the calculation
+becomes nondeterministic otherwise. 
+
+

@@ -251,11 +251,11 @@ enddo
 call s_calc (lat)
 call lat_geometry (lat)
 
-! multipass slaves with ref_orbit == match_pass1$ depend upon the geometry so recalc.
+! multipass slaves with ref_orbit == match_global_coords$ depend upon the geometry so recalc.
 
 found = .false.
 do i = 1, lat%n_ele_track
-  if (lat%ele(i)%ref_orbit == match_pass1$) then
+  if (lat%ele(i)%ref_orbit == match_global_coords$) then
     call makeup_multipass_slave (lat, i)
     found = .true.
   endif
@@ -499,7 +499,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
                                     lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
 
 
-  case (match_pass1$)
+  case (match_global_coords$)
 
     slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
 
@@ -509,7 +509,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
 
     if (slave%floor%phi /= 0 .or. slave%floor%psi /= 0) then
        call out_io (s_fatal$, r_name, 'MULTIPASS ELEMENT: ' // lord%name, &
-                     'WHICH HAS REF_ORBIT = MATCH_PASS1 DOES NOT LIE IN THE (X, Z) PLANE!')
+                     'WHICH HAS REF_ORBIT = MATCH_GLOBAL_COORDS DOES NOT LIE IN THE (X, Z) PLANE!')
       call err_exit
     endif
 
@@ -526,13 +526,13 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
 
     d_theta = modulo2(f1%theta - f0%theta, pi)
-    if (abs(d_theta) > pi/4) return  ! Stop calc if too unphysical.
+    !! if (abs(d_theta) > pi/4) return  ! Stop calc if too unphysical.
 
     ! d1 is the distance between the reference trajectory entrance points between 
     ! the slave and the lord.
     d1 = ((f1%x - f0%x) * cos(f1%theta) - (f1%y - f0%y) * cos(f1%theta)) / &
                                         cos(d_theta + lord%value(e1$))
-    if (abs(d1 * slave%value(g$)) > 0.1) return  ! Stop calc if too unphysical.
+    !! if (abs(d1 * slave%value(g$)) > 0.1) return  ! Stop calc if too unphysical.
 
     ! Iterate to converge to a solution.
 
@@ -545,7 +545,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     cos_e2 = cos(lord%value(e2$))
     ang_slave     = ang_lord   ! Init guess
     ang_slave_old = ang_slave  
-    do
+    do i = 1, 10  ! limit interations in case of nonconvergance
       d2 = (r_lord * (cos_lord - 1) + d1 * cos_lorde1 + r_slave * &
               (cos(ang_dlord - ang_slave) - cos_dlord)) / cos_e2
       ang_slave = asin((r_lord * (sin(ang_dlord) - sin(d_theta)) - &

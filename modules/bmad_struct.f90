@@ -218,7 +218,7 @@ type ele_struct
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
   integer num_steps          ! number of slices for DA_maps
   integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
-  integer ref_orbit          ! Multipass ref orb: single_ref$, match_pass1$, 
+  integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, 
                              !                    match_at_entrance$, match_at_exit$
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
@@ -591,10 +591,10 @@ character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
 ! ref_orbit values.
 
 integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
-integer, parameter :: match_pass1$ = 4
+integer, parameter :: match_global_coords$ = 4
 character(20), parameter :: ref_orbit_name(0:4) = (/  "GARBAGE!         ", &
-            "Single_Ref       ", "Match_at_Entrance", "Match_at_Exit    ", &
-            "Match_Pass1      " /)
+            "Single_Ref         ", "Match_at_Entrance  ", "Match_at_Exit      ", &
+            "Match_Global_Coords" /)
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.
