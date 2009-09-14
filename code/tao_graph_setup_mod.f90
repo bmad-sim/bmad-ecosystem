@@ -595,7 +595,7 @@ do k = 1, size(graph%curve)
     endif
 
     if (d2_ptr%name == 'phase' .or. d2_ptr%name == 'bpm_phase') then
-      if (all(d1_array(1)%d1%d(:)%ele0_name == '')) then
+      if (all(d1_array(1)%d1%d(:)%ele_ref_name == '')) then
         zero_average_phase = .true.
       else
         zero_average_phase = .false.
@@ -960,10 +960,10 @@ type (tao_lattice_struct), target :: tao_lat
 type (tao_curve_struct) curve
 type (bunch_params_struct), pointer :: bunch_params
 type (coord_struct), pointer :: orb(:)
-type (coord_struct), pointer :: orb0
+type (coord_struct), pointer :: orb_ref
 type (lat_struct), pointer :: lat
 type (ele_struct) ele
-type (ele_struct), pointer :: ele0
+type (ele_struct), pointer :: ele_ref
 type (coord_struct) here
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
@@ -972,7 +972,7 @@ real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign
 
-integer i, ii, ix, j, k, expnt(6), ix_ele, ix0, ix_branch
+integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch
 
 character(40) data_type
 character(40) data_type_select, data_source
@@ -988,8 +988,8 @@ lat => tao_lat%lat
 orb => tao_lat%lat_branch(ix_branch)%orbit
 branch => lat%branch(ix_branch)
 
-ix0 = curve%ix_ele_ref_track
-if (ix0 < 0) ix0 = 0
+ix_ref = curve%ix_ele_ref_track
+if (ix_ref < 0) ix_ref = 0
 
 if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) then
   good = .false.
@@ -1022,9 +1022,9 @@ if (curve%g%x%min /= curve%g%x%max) then
     x2 = min(x2, max(curve%g%x%max, branch%ele(0)%s))
   endif
 endif
-ele0 => branch%ele(ix0)
-orb0 => orb(ix0)
-s_last = ele0%s
+ele_ref => branch%ele(ix_ref)
+orb_ref => orb(ix_ref)
+s_last = ele_ref%s
 
 data_type_select = data_type
 if (data_type_select(1:2) == 'r.') data_type_select = 'r.'
@@ -1220,12 +1220,12 @@ do ii = 1, size(curve%x_line)
   case ('momentum_compaction')
     if (ii == 1) call mat_make_unit (mat6)
     call mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
-    call make_v_mats (ele0, v_mat, v_inv_mat)
-    eta_vec = (/ ele0%a%eta, ele0%a%etap, ele0%b%eta, ele0%b%etap /)
+    call make_v_mats (ele_ref, v_mat, v_inv_mat)
+    eta_vec = (/ ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap /)
     eta_vec = matmul (v_mat, eta_vec)
-    one_pz = 1 + orb0%vec(6)
-    eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
-    eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
+    one_pz = 1 + orb_ref%vec(6)
+    eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
+    eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
     value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
   case default
@@ -1333,12 +1333,12 @@ call re_allocate (y_value, n_dat) ! allocate space for the data
 y_value = 0
 good = .true.
 
-datum%ix_ele0     = curve%ix_ele_ref_track
-datum%merit_type  = 'target'
-datum%data_type   = curve%data_type
-datum%ele0_name   = curve%ele_ref_name
-datum%data_source = curve%data_source
-datum%ix_branch   = curve%ix_branch
+datum%ix_ele_ref   = curve%ix_ele_ref_track
+datum%merit_type   = 'target'
+datum%data_type    = curve%data_type
+datum%ele_ref_name = curve%ele_ref_name
+datum%data_source  = curve%data_source
+datum%ix_branch    = curve%ix_branch
 
 call tao_split_component (curve%g%component, comp, err)
 if (err) return
@@ -1373,7 +1373,7 @@ do m = 1, size(comp)
     y_value(ie) = y_value(ie) + comp(m)%sign * y_val
     if (.not. valid) good(ie) = .false.
     if (datum%data_type(1:3) == 'tt.' .or. datum%data_type(1:2) == 't.') then
-      if (datum%ix_ele < datum%ix_ele0) datum%ix_ele0 = datum%ix_ele
+      if (datum%ix_ele < datum%ix_ele_ref) datum%ix_ele_ref = datum%ix_ele
     endif
 
   enddo

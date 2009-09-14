@@ -815,7 +815,7 @@ elseif (size(int_dat) /= 0) then
     enddo
   endif
 
-  if (component == 'ix_ele' .or. component == 'ix_ele0') then
+  if (component == 'ix_ele' .or. component == 'ix_ele_start' .or. component == 'ix_ele_ref') then
     do i = 1, size(int_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
       branch => u%design%lat%branch(d_dat(i)%d%ix_branch)
@@ -824,8 +824,10 @@ elseif (size(int_dat) /= 0) then
       else
         if (component == 'ix_ele') then
           d_dat(i)%d%ele_name = branch%ele(int_dat(i)%i)%name
+        elseif (component == 'ix_ele_start') then
+          d_dat(i)%d%ele_start_name = branch%ele(int_dat(i)%i)%name
         else
-          d_dat(i)%d%ele0_name = branch%ele(int_dat(i)%i)%name
+          d_dat(i)%d%ele_ref_name = branch%ele(int_dat(i)%i)%name
         endif
       endif
     enddo
@@ -865,7 +867,7 @@ elseif (size(s_dat) /= 0) then
 
   endif
 
-  if (component == 'ele_name' .or. component == 'ele0_name') then
+  if (component == 'ele_name' .or. component == 'ele_start_name' .or. component == 'ele_ref_name') then
     do i = 1, size(d_dat)
       u => s%u(d_dat(i)%d%d1%d2%ix_uni)
       call element_locator (s_dat(i)%s, u%design%lat, ix)
@@ -875,8 +877,10 @@ elseif (size(s_dat) /= 0) then
       endif
       if (component == 'ele_name') then
         d_dat(i)%d%ix_ele = ix
+      elseif (component == 'ele_start_name') then
+        d_dat(i)%d%ix_ele_start = ix
       else
-        d_dat(i)%d%ix_ele0 = ix
+        d_dat(i)%d%ix_ele_ref = ix
       endif
     enddo
   endif

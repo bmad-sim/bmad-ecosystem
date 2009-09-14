@@ -245,15 +245,17 @@ end type
 ! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
-  character(40) ele_name     ! Name of the element in the Lattice corresponding to the datum.
-  character(40) ele0_name    ! Name lattice element when there is a range 
+  character(40) ele_name        ! Name of the lattice element where datum is evaluated.
+  character(40) ele_start_name  ! Name of starting lattice element when there is a range 
+  character(40) ele_ref_name    ! Name of reference lattice element
   character(100) data_type   ! Type of data: "orbit.x", etc.
   character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
   character(20) data_source  ! 'lattice', or 'beam'
   integer ix_bunch           ! Bunch number to get the data from.
   integer ix_branch          ! Index of the lattice branch of the element
-  integer ix_ele             ! Index of the element in the lattice element array.
-  integer ix_ele0            ! Index of lattice elment when there is a range or reference.
+  integer ix_ele             ! Index of the lattice element corresponding to ele_name
+  integer ix_ele_start       ! Index of lattice elment when there is a range 
+  integer ix_ele_ref         ! Index of lattice elment when there is a reference.
   integer ix_ele_merit       ! Index of lattice elment where merit is evaluated.
   integer ix_d1              ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
   integer ix_data            ! Index of this datum in the u%data(:) array of data_structs.
@@ -270,7 +272,6 @@ type tao_data_struct
   real(rp) invalid_value     ! Value used in merit calc if good_model = False.
   real(rp) merit             ! Merit function term value: weight * delta^2
   real(rp) s                 ! longitudinal position of ele.
-  logical relative           ! Value is relative to value at ele0?
   logical exists             ! See above
   logical good_model         ! See above
   logical good_base          ! See above
@@ -511,7 +512,7 @@ type tao_common_struct
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
-  integer ix0_taylor, ix1_taylor         ! Taylor map end points
+  integer ix_ref_taylor, ix_ele_taylor         ! Taylor map end points
   integer :: n_alias = 0
   integer :: cmd_file_level = 0          ! For nested command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.

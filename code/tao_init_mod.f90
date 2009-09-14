@@ -454,7 +454,8 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_input) d2_data
 type (tao_d1_data_input) d1_data
-type (tao_data_input) data(n_data_minn:n_data_maxx) ! individual weight 
+type (tao_data_input) data(n_data_minn:n_data_maxx)
+type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
 
 real(rp) default_weight        ! default merit function weight
 
@@ -467,7 +468,7 @@ integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
 character(200) file_name
-character(40) name,  universe, default_universe, default_data_type
+character(40) name,  universe, default_universe, default_data_type, d_typ
 character(40) default_merit_type, default_attribute, data_type, default_data_source
 character(40) use_same_lat_eles_as, search_for_lat_eles
 
@@ -479,10 +480,9 @@ logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
 namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
 
-namelist / tao_d1_data / d1_data, data, ix_d1_data, ix_min_data, ix_max_data, &
-                   default_weight, default_data_type, default_data_source, &
-                   use_same_lat_eles_as, search_for_lat_eles
-                     
+namelist / tao_d1_data / d1_data, data, datum, ix_d1_data, &
+               default_weight, default_data_type, default_data_source, &
+               use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
 !-----------------------------------------------------------------------
 ! Find out how many d2_data structures we need for each universe
@@ -567,26 +567,39 @@ do
   enddo uni_loop
 
   do k = 1, n_d1_data
-    use_same_lat_eles_as  = ''
-    search_for_lat_eles   = ''
-    d1_data%name          = ''
-    default_weight        = 0      ! set default
-    default_data_type     = ''
-    default_data_source   = 'lattice'
-    data(:)%data_type     = ''
-    data(:)%merit_type    = default_merit_type 
-    data(:)%merit_type    = ''
-    data(:)%ele_name      = ''
-    data(:)%ele0_name     = ''
-    data(:)%meas          = real_garbage$  ! used to tag when %meas_value is set in file
-    data(:)%weight        = 0.0
-    data(:)%invalid_value = 0.0
-    data(:)%ix_bunch      = 0
-    data(:)%data_source   = ''
-    data(:)%good_user     = .true.
-    data(:)%relative      = ''
-    ix_min_data           = int_garbage$
-    ix_max_data           = int_garbage$
+    use_same_lat_eles_as   = ''
+    search_for_lat_eles    = ''
+    d1_data%name           = ''
+    default_weight         = 0      ! set default
+    default_data_type      = ''
+    default_data_source    = 'lattice'
+    ix_min_data            = int_garbage$
+    ix_max_data            = int_garbage$
+
+    data(:)%data_type      = ''
+    data(:)%merit_type     = default_merit_type 
+    data(:)%merit_type     = ''
+    data(:)%ele_name       = ''
+    data(:)%ele0_name      = ''
+    data(:)%meas           = real_garbage$  ! used to tag when %meas_value is set in file
+    data(:)%weight         = 0.0
+    data(:)%invalid_value  = 0.0
+    data(:)%ix_bunch       = 0
+    data(:)%data_source    = ''
+    data(:)%good_user      = .true.
+
+    datum(:)%data_type      = ''
+    datum(:)%merit_type     = default_merit_type 
+    datum(:)%merit_type     = ''
+    datum(:)%ele_name       = ''
+    datum(:)%ele_start_name = ''
+    datum(:)%ele_ref_name   = ''
+    datum(:)%meas           = real_garbage$  ! used to tag when %meas_value is set in file
+    datum(:)%weight         = 0.0
+    datum(:)%invalid_value  = 0.0
+    datum(:)%ix_bunch       = 0
+    datum(:)%data_source    = ''
+    datum(:)%good_user      = .true.
 
     read (iu, nml = tao_d1_data, iostat = ios)
     if (ios > 0) then
@@ -597,12 +610,40 @@ do
       enddo
     endif
 
+    ! Transfer data(:) to datum(:) if needed
+
+    if (any(data%data_type /= '') .or. any(data%ele_name /= '')) then
+      datum(:)%data_type      = data(:)%data_type
+      datum(:)%merit_type     = data(:)%merit_type
+      datum(:)%merit_type     = data(:)%merit_type
+      datum(:)%ele_name       = data(:)%ele_name
+      datum(:)%meas           = data(:)%meas
+      datum(:)%weight         = data(:)%weight
+      datum(:)%invalid_value  = data(:)%invalid_value
+      datum(:)%ix_bunch       = data(:)%ix_bunch
+      datum(:)%data_source    = data(:)%data_source
+      datum(:)%good_user      = data(:)%good_user
+      do i = lbound(datum, 1), ubound(datum, 1)
+        if (datum(i)%data_type == '') cycle
+        d_typ = datum(i)%data_type
+        if (d_typ(1:6) == 'floor.' .or. d_typ == 'momentum_compaction' .or. &
+            d_typ(1:12) == 'periodic.tt.' .or. d_typ(1:5) == 'phase' .or. &
+            d_typ(1:2) == 'r.' .or. d_typ(1:10) == 'rel_floor.' .or. &
+            d_typ == 's_position' .or. d_typ(1:2) == 't.' .or. &
+            d_typ(1:3) == 'tt.') then
+          datum(:)%ele_ref_name   = data(:)%ele0_name          
+        else
+          datum(:)%ele_start_name = data(:)%ele0_name          
+        endif
+      enddo
+    endif
+
     ! Convert old format to new
 
-    if (data(0)%ele_name(1:7) == 'SEARCH:') then
-      call string_trim(data(0)%ele_name(8:), search_for_lat_eles, ix)
-    elseif (data(0)%ele_name(1:5) == 'SAME:') then
-      call string_trim (data(0)%ele_name(6:), use_same_lat_eles_as, ix)
+    if (datum(0)%ele_name(1:7) == 'SEARCH:') then
+      call string_trim(datum(0)%ele_name(8:), search_for_lat_eles, ix)
+    elseif (datum(0)%ele_name(1:5) == 'SAME:') then
+      call string_trim (datum(0)%ele_name(6:), use_same_lat_eles_as, ix)
     endif
 
     ! Check that we read the correct namelist
@@ -617,13 +658,13 @@ do
                 i_array = (/ k, ix_d1_data /) )  
       call err_exit
     endif
-    do i = lbound(data, 1), ubound(data, 1)
+    do i = lbound(datum, 1), ubound(datum, 1)
       ! 'beam_tracking' is old syntax.
-      if (data(i)%data_source == 'beam_tracking') data(i)%data_source = 'beam'
-      if (data(i)%ele0_name /= '' .and. data(i)%ele_name == '') then
+      if (datum(i)%data_source == 'beam_tracking') datum(i)%data_source = 'beam'
+      if ((datum(i)%ele_ref_name /= '' .or. datum(i)%ele_start_name /= '') .and. datum(i)%ele_name == '') then
         write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
         call out_io (s_abort$, r_name, &
-              'ERROR: ELE_NAME IS BLANK BUT ELE0_NAME IS NOT FOR: ' // line)
+              'ERROR: ELE_NAME IS BLANK BUT ELE_REF_NAME OR ELE_START_NAME IS NOT FOR: ' // line)
         call err_exit
       endif
     enddo
@@ -711,12 +752,13 @@ if (search_for_lat_eles /= '') then
     jj = jj + 1
   enddo
 
-  u%data(n1:n2)%good_user     = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight        = data(ix1:ix2)%weight
-  u%data(n1:n2)%invalid_value = data(ix1:ix2)%invalid_value
-  u%data(n1:n2)%ele0_name     = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch      = data(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source   = data(ix1:ix2)%data_source
+  u%data(n1:n2)%good_user      = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%weight         = datum(ix1:ix2)%weight
+  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
+  u%data(n1:n2)%ele_ref_name   = datum(ix1:ix2)%ele_ref_name
+  u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
 
 ! use_same_lat_eles_as
 
@@ -736,14 +778,15 @@ elseif (use_same_lat_eles_as /= '') then
   ix1 = ix_min_data
   ix2 = ix1 + (n2 - n1)
 
-  u%data(n1:n2)%ele_name      = d1_array(1)%d1%d%ele_name
-  u%data(n1:n2)%ix_ele        = d1_array(1)%d1%d%ix_ele
-  u%data(n1:n2)%ele0_name     = d1_array(1)%d1%d%ele0_name
-  u%data(n1:n2)%ix_ele0       = d1_array(1)%d1%d%ix_ele0
-  u%data(n1:n2)%exists        = d1_array(1)%d1%d%exists
-  u%data(n1:n2)%data_source   = d1_array(1)%d1%d%data_source
-  u%data(n1:n2)%relative      = d1_array(1)%d1%d%relative
-  u%data(n1:n2)%invalid_value = d1_array(1)%d1%d%invalid_value
+  u%data(n1:n2)%ele_name        = d1_array(1)%d1%d%ele_name
+  u%data(n1:n2)%ix_ele          = d1_array(1)%d1%d%ix_ele
+  u%data(n1:n2)%ele_ref_name    = d1_array(1)%d1%d%ele_ref_name
+  u%data(n1:n2)%ix_ele_ref      = d1_array(1)%d1%d%ix_ele_ref
+  u%data(n1:n2)%ele_start_name  = d1_array(1)%d1%d%ele_start_name
+  u%data(n1:n2)%ix_ele_start    = d1_array(1)%d1%d%ix_ele_start
+  u%data(n1:n2)%exists          = d1_array(1)%d1%d%exists
+  u%data(n1:n2)%data_source     = d1_array(1)%d1%d%data_source
+  u%data(n1:n2)%invalid_value   = d1_array(1)%d1%d%invalid_value
 
 ! Not SEARCH or SAME:
 
@@ -751,8 +794,8 @@ else
 
   if (ix_min_data == int_garbage$) ix_min_data = 1
   if (ix_max_data == int_garbage$) then
-    do i = ubound(data, 1), lbound(data, 1), -1
-      if (data(i)%ele_name /= '' .or. data(i)%data_type /= '') then
+    do i = ubound(datum, 1), lbound(datum, 1), -1
+      if (datum(i)%ele_name /= '' .or. datum(i)%data_type /= '') then
         ix_max_data = i
         exit
       endif
@@ -773,13 +816,14 @@ else
 
   ! Transfer info from the input structure
 
-  u%data(n1:n2)%good_user     = data(ix1:ix2)%good_user
-  u%data(n1:n2)%weight        = data(ix1:ix2)%weight
-  u%data(n1:n2)%ele_name      = data(ix1:ix2)%ele_name
-  u%data(n1:n2)%invalid_value = data(ix1:ix2)%invalid_value
-  u%data(n1:n2)%ele0_name     = data(ix1:ix2)%ele0_name
-  u%data(n1:n2)%ix_bunch      = data(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source   = data(ix1:ix2)%data_source
+  u%data(n1:n2)%good_user      = datum(ix1:ix2)%good_user
+  u%data(n1:n2)%weight         = datum(ix1:ix2)%weight
+  u%data(n1:n2)%ele_name       = datum(ix1:ix2)%ele_name
+  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
+  u%data(n1:n2)%ele_ref_name   = datum(ix1:ix2)%ele_ref_name
+  u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
+  u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
+  u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
 
   ! Find elements associated with the data
 
@@ -799,15 +843,28 @@ else
     u%data(j)%ix_ele = ix
     u%data(j)%exists = .true.
 
-    if (u%data(j)%ele0_name == '') cycle
-    call str_upcase (u%data(j)%ele0_name, u%data(j)%ele0_name)
-    call element_locator (u%data(j)%ele0_name, u%design%lat, ix)
-    if (ix < 0) then
-      call out_io (s_error$, r_name, 'ELE0 NOT LOCATED: ' // u%data(j)%ele0_name)
-      u%data(j)%exists = .false.
-      cycle
+    if (u%data(j)%ele_ref_name /= '') then
+      call str_upcase (u%data(j)%ele_ref_name, u%data(j)%ele_ref_name)
+      call element_locator (u%data(j)%ele_ref_name, u%design%lat, ix)
+      if (ix < 0) then
+        call out_io (s_error$, r_name, 'ELE_REF NOT LOCATED: ' // u%data(j)%ele_ref_name)
+        u%data(j)%exists = .false.
+        cycle
+      endif
+      u%data(j)%ix_ele_ref = ix
     endif
-    u%data(j)%ix_ele0 = ix
+
+    if (u%data(j)%ele_start_name /= '') then
+      call str_upcase (u%data(j)%ele_start_name, u%data(j)%ele_start_name)
+      call element_locator (u%data(j)%ele_start_name, u%design%lat, ix)
+      if (ix < 0) then
+        call out_io (s_error$, r_name, 'ELE_START NOT LOCATED: ' // u%data(j)%ele_start_name)
+        u%data(j)%exists = .false.
+        cycle
+      endif
+      u%data(j)%ix_ele_start = ix
+    endif
+
   enddo
 
 endif
@@ -815,12 +872,12 @@ endif
 !-----------------------------------------------------------
 ! If %meas_value was set then %good_meas is set to True
 
-u%data(n1:n2)%data_type     = data(ix1:ix2)%data_type
-u%data(n1:n2)%merit_type    = data(ix1:ix2)%merit_type
-u%data(n1:n2)%weight        = data(ix1:ix2)%weight
-u%data(n1:n2)%invalid_value = data(ix1:ix2)%invalid_value
+u%data(n1:n2)%data_type     = datum(ix1:ix2)%data_type
+u%data(n1:n2)%merit_type    = datum(ix1:ix2)%merit_type
+u%data(n1:n2)%weight        = datum(ix1:ix2)%weight
+u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
 
-u%data(n1:n2)%meas_value = data(ix1:ix2)%meas
+u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
 where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
   u%data(n1:n2)%meas_value = 0  
 elsewhere
@@ -943,7 +1000,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ix_ele = -1
     elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
       ix_ele = -1
-    elseif (data%ix_ele0 > data%ix_ele) then
+    elseif (data%ix_ele_ref > data%ix_ele) then
       ix_ele = u%model%lat%n_ele_track
     else
       ix_ele = data%ix_ele
@@ -963,7 +1020,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     
   ! setup ix_ele array for each element
   ! This is the point where the datum is evaluated
-  ! if ix_ele0 > ix_ele then there is "wrap around"
+  ! if ix_ele_ref > ix_ele then there is "wrap around"
 
   do j = 1, size(u%data)
     data => u%data(j)
@@ -978,7 +1035,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ix_ele = -1
     elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
       ix_ele = -1
-    elseif (data%ix_ele0 > data%ix_ele) then
+    elseif (data%ix_ele_ref > data%ix_ele) then
       ix_ele = u%model%lat%n_ele_track
     else
       ix_ele = data%ix_ele
@@ -1055,19 +1112,20 @@ enddo
 ! set defaults
 
 do i = n0+1, size(u%data)
-  u%data(i)%exists = .false.       ! set default
-  u%data(i)%good_meas  = .false.   ! set default
-  u%data(i)%good_ref   = .false.   ! set default
-  u%data(i)%good_user  = .true.    ! set default
-  u%data(i)%good_opt   = .true.
-  u%data(i)%merit_type = 'target'  ! set default
-  u%data(i)%relative   = .false.
-  u%data(i)%ele_name   = ''
-  u%data(i)%ix_ele     = -1
-  u%data(i)%ele0_name  = ''
-  u%data(i)%ix_ele0    = -1 
-  u%data(i)%ix_data    = i
-  u%data(i)%ix_branch  = 0
+  u%data(i)%exists         = .false.       ! set default
+  u%data(i)%good_meas      = .false.   ! set default
+  u%data(i)%good_ref       = .false.   ! set default
+  u%data(i)%good_user      = .true.    ! set default
+  u%data(i)%good_opt       = .true.
+  u%data(i)%merit_type     = 'target'  ! set default
+  u%data(i)%ele_name       = ''
+  u%data(i)%ix_ele         = -1
+  u%data(i)%ele_ref_name   = ''
+  u%data(i)%ix_ele_ref     = -1 
+  u%data(i)%ele_start_name = ''
+  u%data(i)%ix_ele_start   = -1 
+  u%data(i)%ix_data        = i
+  u%data(i)%ix_branch      = 0
 enddo
   
 end subroutine tao_allocate_data_array

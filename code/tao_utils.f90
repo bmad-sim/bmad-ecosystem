@@ -916,9 +916,11 @@ character(16), parameter :: real_components(9) = &
 character(16), parameter :: logic_components(6) = &
           (/ 'exists   ', 'good_meas', 'good_ref ', 'good_user', 'good_opt ', &
              'good_plot' /)
-character(16), parameter :: integer_components(4) = &
-          (/ 'ix_ele ', 'ix_ele0', 'ix_d1  ', 'ix_uni ' /)
-character(16), parameter :: string_components(3) = (/ 'merit_type', 'ele_name  ', 'ele0_name ' /)
+character(16), parameter :: integer_components(5) = &
+          (/ 'ix_ele      ', 'ix_ele_start', 'ix_ele_ref  ', &
+             'ix_d1       ', 'ix_uni      ' /)
+character(16), parameter :: string_components(4) = (/ 'merit_type    ', 'ele_name      ', &
+                                                      'ele_start_name', 'ele_ref_name  ' /)
 
 integer, optional :: ix_uni
 integer :: data_num, ios, n_found
@@ -1248,8 +1250,10 @@ if (present(int_array) .and.  any(component_name == integer_components)) then
       select case (component_name)
       case ('ix_ele')
         int_array(j)%i => d1%d(i)%ix_ele
-      case ('ix_ele0')
-        int_array(j)%i => d1%d(i)%ix_ele0
+      case ('ix_ele_start')
+        int_array(j)%i => d1%d(i)%ix_ele_start
+      case ('ix_ele_ref')
+        int_array(j)%i => d1%d(i)%ix_ele_ref
       case ('ix_d1')
         int_array(j)%i => d1%d(i)%ix_d1
       case ('ix_uni')
@@ -1399,8 +1403,10 @@ if (present(str_array) .and. any(component_name == string_components)) then
         str_array(j)%s => d1%d(i)%merit_type
       case ('ele_name')
         str_array(j)%s => d1%d(i)%ele_name
-      case ('ele0_name')
-        str_array(j)%s => d1%d(i)%ele0_name
+      case ('ele_start_name')
+        str_array(j)%s => d1%d(i)%ele_start_name
+      case ('ele_ref_name')
+        str_array(j)%s => d1%d(i)%ele_ref_name
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING DATA")
         call err_exit

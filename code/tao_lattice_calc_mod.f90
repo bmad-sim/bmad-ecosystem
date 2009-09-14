@@ -82,7 +82,7 @@ if (.not. s%global%lattice_calc_on) return
 recalc = tao_com%lattice_recalc .or. present(ix_uni)
 if (.not. recalc) return
 
-tao_com%ix0_taylor = -1   ! Reset taylor map
+tao_com%ix_ref_taylor = -1   ! Reset taylor map
 call tao_hook_lattice_calc (calc_ok)
     
 ! Closed orbit and Twiss calculation.

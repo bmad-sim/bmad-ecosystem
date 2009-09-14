@@ -115,42 +115,43 @@ encompassed by a \vn{d1_data} structure, the \vn{[*]} can be omitted.
 
 Each datum has a number of quantities associated with it:
 \begin{example}
-  ele_name       ! Character: Name of "ele" element.
-  ele0_name      ! Character: Name of "ele0" range marker element.
-  data_type      ! Character: Type of data: "orbit.x", etc.
-  merit_type     ! Character: Type of constraint: "target", "max", etc.
-  data_source    ! Character: How the datum is calculated. "lattice", or "beam".
-  ix_ele            ! Integer: Index of "ele" in the element list.
-  ix_ele0           ! Integer: Index of "ele0" in the element list.
-  ix_ele_merit      ! Integer: Lattice index where merit is evaluated.
-  ix_d1             ! Integer: Index number in d1_data structure
-  ix_data           ! Integer: Index in the global data array
-  ix_dModel         ! Integer: Row number in the dModel_dVar derivative matrix.
-  ix_bunch          ! Integer: Bunch number to get the data from.
-  meas              ! Real: Measured datum value. 
-  ref               ! Real: Measured datum value from the reference data set.
-  model             ! Real: Datum value as calculated from the model.
-  design            ! Real: What the datum value is in the design lattice.
-  old               ! Real: The model at some previous time.
-  base              ! Real: The value as calculated from the base model.
-  fit               ! Real: The value as calculated from a fitting procedure.
-  invalid           ! Real: The value used for delta_merit if good_model = False.
-  delta_merit       ! Real: Diff used to calculate the merit function term 
-  weight            ! Real: Weight for the merit function term
-  merit             ! Real: Merit function term value: weight * delta^2
-  s                 ! Real: longitudinal position of ele.
-  relative          ! Logical: Is this a relative datum?
-  exists            ! Logical: Does the datum exist?
-  good_model        ! Logical: Does the model  component contain a valid value?
-  good_design       ! Logical: Does the design component contain a valid value?
-  good_base         ! Logical: Does the base   component contain a valid value?
-  good_meas         ! Logical: Does the meas   component contain a valid value?
-  good_ref          ! Logical: Does the ref    component contain a valid value?
-  good_user         ! Logical: Does the user want this datum used in optimization?
-  good_opt          ! Logical: Can be used in Tao extensions.
-  good_plot         ! Logical: Can be used in Tao extensions.
-  useit_plot        ! Logical: Is this datum to be used in plotting?
-  useit_opt         ! Logical: Is this datum to be used for optimization?
+  data_type        ! Character: Type of data: "orbit.x", etc.
+  ele_name         ! Character: Name of lattice element where datum is evaluated.
+  ele_start_name   ! Character: Name of starting lattice element when there is a range.
+  ele_ref_name     ! Character: Name of reference lattice element.
+  merit_type       ! Character: Type of constraint: "target", "max", etc.
+  data_source      ! Character: How the datum is calculated. "lattice", or "beam".
+  ix_ele           ! Integer: Index of "ele" in the lattice element list.
+  ix_ele_start     ! Integer: Index of "ele_start" in the lattice element list.
+  ix_ele_ref       ! Integer: Index of "ele_ref" in the lattice element list.
+  ix_ele_merit     ! Integer: Lattice index where merit is evaluated.
+  ix_d1            ! Integer: Index number in d1_data structure
+  ix_data          ! Integer: Index in the global data array
+  ix_dModel        ! Integer: Row number in the dModel_dVar derivative matrix.
+  ix_bunch         ! Integer: Bunch number to get the data from.
+  meas             ! Real: Measured datum value. 
+  ref              ! Real: Measured datum value from the reference data set.
+  model            ! Real: Datum value as calculated from the model.
+  design           ! Real: What the datum value is in the design lattice.
+  old              ! Real: The model at some previous time.
+  base             ! Real: The value as calculated from the base model.
+  fit              ! Real: The value as calculated from a fitting procedure.
+  invalid          ! Real: The value used for delta_merit if good_model = False.
+  delta_merit      ! Real: Diff used to calculate the merit function term 
+  weight           ! Real: Weight for the merit function term
+  merit            ! Real: Merit function term value: weight * delta^2
+  s                ! Real: longitudinal position of ele.
+  exists           ! Logical: Does the datum exist?
+  good_model       ! Logical: Does the model  component contain a valid value?
+  good_design      ! Logical: Does the design component contain a valid value?
+  good_base        ! Logical: Does the base   component contain a valid value?
+  good_meas        ! Logical: Does the meas   component contain a valid value?
+  good_ref         ! Logical: Does the ref    component contain a valid value?
+  good_user        ! Logical: Does the user want this datum used in optimization?
+  good_opt         ! Logical: Can be used in Tao extensions.
+  good_plot        ! Logical: Can be used in Tao extensions.
+  useit_plot       ! Logical: Is this datum to be used in plotting?
+  useit_opt        ! Logical: Is this datum to be used for optimization?
 \end{example}
 When running \tao, the \vn{show data}
 (\sref{s:show}) command can be used to view the components of a datum. 
@@ -246,11 +247,11 @@ in a datum:
   Tao> show data 3@beta[1]
 
   Universe:   3
-  %ele0_name         =
   %ele_name          = IP_L0
+  %ele_ref_name      =
+  %ele_start_name    =
   %data_type         = beta.a
       ... etc ...
-  %relative          =  F
   %exists            =  T
   %good_model        =  T
   %good_meas         =  F
@@ -297,60 +298,64 @@ name of \vn{orbit.x} to hold, say, global floor position data. In
 fact, the datums in a given \vn{d1} array do not all have to be of the
 same type. Thus the user is free to group data as s/he sees fit.
 
-\index{Data!Relative}
-Associated with a datum are two lattice elements called \vn{ele} and
-\vn{ele0}.  The names of these elements may be specified by setting
-the \vn{ele0_name} and \vn{ele_name} components of a
-datum. Alternatively, these elements may be specified by setting the
-\vn{ix_ele} and \vn{ix_ele0} components of a datum. \vn{ix_ele} and
-\vn{ix_ele0} are the index of the elements in the array of elements in
-the lattice. Using the element index over the element name is
-necessary when more than one element in the lattice has the same name.
+Associated with a datum are three lattice elements called \vn{ele},
+\vn{ele_ref}, and \vn{ele_start}.  The names of these elements may be
+specified by setting the \vn{ele_name} and \vn{ele_ref_name} and
+\vn{ele_start_name} components of a datum. Alternatively, these
+elements may be specified by setting the \vn{ix_ele} and
+\vn{ix_ele_ref} and \vn{ix_ele_start} components of a
+datum. \vn{ix_ele} and \vn{ix_ele_ref}, and \vn{ix_ele_start} are the
+index of the elements in the array of elements in the lattice. Using
+the element index over the element name is necessary when more than
+one element in the lattice has the same name.
 
-Datums can be divided up into four classes: \vn{Global} Datums, like
-the emittance in a circular ring, do not have associated lattice
-elements and their corresponding element names will be blank. Datums
-in the second class, like the beta function at a given point, will
-only have one associated lattice element given by \vn{ele_name} and
-\vn{ele0_name} will be blank.  Datums in the third class are
-associated with a section of the lattice. For example, the maximum of
-the beta function in a lattice region. In this case the \vn{ele0}
-element marks the beginning of the region and \vn{ele} marks the
-end. The final class of datums, called \vn{relative} datums, means
-that the datum value is set by the difference between the value at the
-lattice element at \vn{ele0} and the value at \vn{ele}. The betatron
-phase advance falls into this category:
+Some datums, like the emittance in a circular ring, do not have
+associated lattice elements and their corresponding element names will
+be blank. All other datums must have an associated \vn{ele} element
+that is specifed by \vn{ele_name} or \vn{ix_ele}. If a datum has an
+associated \vn{ele} but no associated \vn{ele_start} or \vn{ele_ref},
+the \vn{model} value of that datum is the value of the \vn{data_type}
+at that element. For example, if a datum has:
 \begin{example}
-  value = \(\phi\sb{x}\)(ele) - \(\phi\sb{x}\)(ele0)
+  data_type      = 'orbit.x'
+  ele_name       = 'q12'
 \end{example}
-If a relative datum has a blank \vn{ele0_name} then \vn{ele0} is taken
-to be the beginning element of the lattice. This element is a marker
-element with index 0 named \vn{BEGINNING}. The datum components
-\vn{ix_ele} and \vn{ix_ele0} are the index of \vn{ele} and \vn{ele0}
-in the list of lattice elements.
+then the \vn{model} value of this datum will be the horizontal orbit
+at the element with name \vn{q12}.
 
-For datums with \vni{non-relative} \vn{data_types} if there is also an
-associated \vni{ele0} element then the \vn{model} value is dependent
-upon the \vni{merit_type}. For example, with a \vn{beta.x}
-\vn{data_type} the model value is determined by Table~\ref{t:eval2}
-where \vn{i} goes from the \vn{ele} index to the \vn{ele0} index.
-\begin{table}[ht]
-\centering
-{\tt
-\begin{tabular}{|l|l|l|} \hline
-  {\it Merit\_Type}       & {\it Model Value} \\ \hline 
-  \vni{abs_max} & $\min |\beta_x(i)|$ \\ \hline 
-  \vni{abs_min} & $\min |\beta_x(i)|$ \\ \hline 
-  \vni{int_max} &                     \\ \hline
-  \vni{int_min} &                     \\ \hline
-  \vni{min}     & $\min \beta_x(i)$ \\ \hline 
-  \vni{max}     & $\min \beta_x(i)$ \\ \hline 
-  \vni{target}  & {\it Error}   \\ \hline 
-\end{tabular}
-}
-\caption{\vn{Model} evaluation.}
-\label{t:eval2}
-\end{table}
+If a datum has an associated \vn{ele_start} element, specified by
+either \vn{ele_start_name} or \vn{ix_ele_start}, the datum is
+evaluated over a region from the exit end of \vn{ele_start} to the
+exit end of \vn{ele}. For example, if a datum has:
+\begin{example}
+  data_type      = 'beta.a'
+  ele_name       = 'q12'
+  ele_start_name = 'q45'
+  merit_type     = 'max'
+\end{example}
+then the \vn{model} value of this datum will be the maximum value of the a-mode
+beta function in the region from the exit end of the element with name
+\vn{q12} to the exit end of the element with name \vn{q45}. Notice
+that when a range of elements is used, a \vn{merit_type} of
+\vn{target} does not make sense.
+
+If a datum has an associated \vn{ele_ref} element, specified by either
+\vn{ele_ref_name} or \vn{ix_ele_ref}, the \vn{model} value of the
+datum is the value at \vn{ele} (or the value over the range
+\vn{ele_start} to \vn{ele} if \vn{ele_start} is specified), minus the
+\vn{model} value at \vn{ele_ref}. For example, if a datum has:
+\begin{example}
+  data_type      = 'beta.a'
+  ele_name       = 'q12'
+  ele_start_name = 'q45'
+  ele_ref_name   = 'q1'
+  merit_type     = 'max'
+\end{example}
+then the \vn{model} value of the datum will be the same as the
+previous example minus the value of the a-mode beta function at the
+exit end of element \vn{q1}.
+
+%---------------------------------------------------------------------
 
   \begin{description}
 
@@ -367,7 +372,7 @@ Note: If the beta function is calculated from the beam distribution,
 the emittance must be non-zero.
 
   \index{element_param.*}
-  \item[element\_param.] \Newline
+  \item[element\_param.] \Newline 
 The \vn{element_param.<param_name>} data type is for using lattice
 element parameters. \vn{<param_name>} is the name of the
 parameter. See the \bmad manual for the names associated with each
@@ -423,19 +428,19 @@ datum should be in universe 2 or higher. Notice that while all datums
 must be assigned a universe, in this case the value of the datum will
 be independent of the universe it is in.
 
-  index{floor.*}
+  \index{floor.*}
   \item[floor.*]
-This is the global floor position at the exit end of \vn{ele} relative to
-the exit end of \vn{ele0}. See the \bmad manual for details on the global
-coordinate system. See also \vn{rel_floor.*}.
+This is the global floor position at the exit end of \vn{ele}. See the
+\bmad manual for details on the global coordinate system. See also
+\vn{rel_floor.*}.
 
   \index{n_particle_loss}
   \item[n\_particle\_loss] \Newline
-If \vn{ele0} is not specified, \vn{n_particle_loss} gives the number
-of particles lost at element \vn{ele}. If \vn{ele0} is specified,
+If \vn{ele_start} is not specified, \vn{n_particle_loss} gives the number
+of particles lost at element \vn{ele}. If \vn{ele_ref} is specified,
 \vn{n_particle_loss} gives the cumulative loss between the exit end of
-\vn{ele0} and the exit end of \vn{ele}. That is, this sum does not
-count any losses at \vn{ele0} itself.
+\vn{ele_ref} and the exit end of \vn{ele}. That is, this sum does not
+count any losses at \vn{ele_ref} itself.
 
   \index{periodic.tt.*}
   \item[periodic.tt.*] \Newline
@@ -462,11 +467,25 @@ The periodic map give information about the closed orbit, dispersion,
 etc. For example, the zeroth order terms are the closed orbit, the r16
 term gives the horizontal dispersion, etc.
 
+  \index{phase.*}
+  \item[phase.*]
+This is the betatron phase.  If a \vn{d1_data} array has a set of
+\vn{phase} datums, and if the \vn{ele_ref} element is {\em not}
+specified, the average phase used for optimizations ($D$ in
+\Eq{miwdjw}) and plotting for all the datums within a \vn{d1_data}
+array are set to zero by adding a fixed constant to all the datums.
+This is done since, without a reference point that defines a zero
+phase, the overall average phase is arbitrary and so the average phase
+is taken in \tao to be zero. This can be helpful in optimizations
+since one does not have to worry about arbitrary offsets between the
+\vn{model} and \vn{measured} values. If the \vn{ele_ref} element is
+specified then there is no arbitrary constant in the evalustion.
+
   \index{rel_floor.*}
   \item[rel\_floor.*]
 This is the global floor position at the exit end of \vn{ele} relative
-to the exit end of \vn{ele0} in a global coordinate system where the
-exit end of \vn{ele0} is taken to be at \vn{x = y = z = theta = phi =
+to the exit end of \vn{ele_ref} in a global coordinate system where the
+exit end of \vn{ele_ref} is taken to be at \vn{x = y = z = theta = phi =
 0}. See the \bmad manual for details on the global coordinate
 system. See also \vn{floor.*}.
 
@@ -540,39 +559,39 @@ size squared.
 \begin{table}[ht] 
 \centering 
 {\tt\small
-\begin{tabular}{|l|l|l|} \hline
+\begin{tabular}{|l|l|} \hline
 
-  beta.x, beta.y  beta.z      & Projected beta function             &          \\ \hline 
-  beta.a, beta.b              & Normal-mode beta function           &          \\ \hline 
+  beta.x, beta.y  beta.z      & Projected beta function             \\ \hline 
+  beta.a, beta.b              & Normal-mode beta function           \\ \hline 
 
-  dpx\_dx, dpx\_dy, etc.      & Bunch <x px> / <$x^2$> \& Etc...  &          \\ \hline 
+  dpx\_dx, dpx\_dy, etc.      & Bunch <x px> / <$x^2$> \& Etc...    \\ \hline 
 
   \begin{tabular}{@{}l}
     emit.x, emit.y, emit.z \\
     emit.a, emit.b, emit.c \\
-  \end{tabular}               & Emittance                           & global   \\ \hline
+  \end{tabular}               & Emittance (global)                  \\ \hline
 
-  eta.x, eta.y                & Projected dispersion                &          \\ \hline 
-  eta.a, eta.b                & Normal-Mode dispersion              &          \\ \hline 
-  etap.x, etap.y              & Projected dispersion derivative     &          \\ \hline 
-  etap.a, etap.b              & Normal-Mode dispersion derivative   &          \\ \hline 
+  eta.x, eta.y                & Projected dispersion                \\ \hline 
+  eta.a, eta.b                & Normal-Mode dispersion              \\ \hline 
+  etap.x, etap.y              & Projected dispersion derivative     \\ \hline 
+  etap.a, etap.b              & Normal-Mode dispersion derivative   \\ \hline 
 
-  n\_particle\_loss           & Number of particles lost            &          \\ \hline 
+  n\_particle\_loss           & Number of particles lost            \\ \hline 
 
   \begin{tabular}{@{}l}  
     norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
     norm\_emit.a, norm\_emit.b, norm\_emit.c 
-  \end{tabular}               & Normalized beam emittance           &          \\ \hline 
+  \end{tabular}               & Normalized beam emittance           \\ \hline 
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 
     sigma.px, sigma.py, sigma.pz
-  \end{tabular}               & Bunch size                          &          \\ \hline 
+  \end{tabular}               & Bunch size                          \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
-                              & Particle spin                       &          \\ \hline 
+                              & Particle spin                       \\ \hline 
 
-  wire.<angle>                & Wire scanner at wire angle <angle>  &          \\ \hline
+  wire.<angle>                & Wire scanner at wire angle <angle>  \\ \hline
 
 
 \end{tabular}
@@ -586,119 +605,111 @@ size squared.
 \begin{table}[ht] 
 \centering 
 {\tt\small
-\begin{tabular}{|l|l|l|} \hline
-  {\it Data\_Type}             & {\it Description}                  &          \\ \hline 
+\begin{tabular}{|l|l|} \hline
+  {\it Data\_Type}             & {\it Description}                  \\ \hline 
 
-  alpha.a, alpha.b             & Normal-Mode alpha function         &          \\ \hline 
-  beta.a, beta.b               & Normal-mode beta function          &          \\ \hline 
-  bpm\_orbit.x, bpm\_orbit.y   & Measured orbit                     &          \\ \hline
-  bpm\_phase.a, bpm\_phase.b   & Measured betatron phase            &          \\ \hline
-  bpm\_eta.x, bpm\_eta.y       & Measured dispersion                &          \\ \hline
+  alpha.a, alpha.b             & Normal-Mode alpha function         \\ \hline 
+  beta.a, beta.b               & Normal-mode beta function          \\ \hline 
+  bpm\_orbit.x, bpm\_orbit.y   & Measured orbit                     \\ \hline
+  bpm\_phase.a, bpm\_phase.b   & Measured betatron phase            \\ \hline
+  bpm\_eta.x, bpm\_eta.y       & Measured dispersion                \\ \hline
 
   \begin{tabular}{@{}l}
     bpm\_k.22a, bpm\_k.12a, \\
     bpm\_k.11b, bpm\_k12b
   \end{tabular}
-                               & Measured coupling                  &          \\ \hline
+                               & Measured coupling                  \\ \hline
 
   \begin{tabular}{@{}l}
     bpm\_cbar.22a, bpm\_cbar.12a, \\
     bpm\_cbar.11b, bpm\_cbar12b
   \end{tabular}
-                               & Measured coupling                  &          \\ \hline
+                               & Measured coupling                  \\ \hline
 
   cbar.11, cbar.12, cbar.21, cbar.22
-                               & Coupling                           &          \\ \hline 
+                               & Coupling                           \\ \hline 
 
-  chrom.a, chrom.b             & Chromaticity for a ring            & global   \\ \hline
+  chrom.a, chrom.b             & Chromaticity for a ring (global)   \\ \hline
 
-  e\_tot                       & Beam total energy                  &          \\ \hline
+  e\_tot                       & Beam total energy                  \\ \hline
 
-  element\_param.<param\_name> & Lattice element parameter          &          \\ \hline
+  element\_param.<param\_name> & Lattice element parameter          \\ \hline
 
-  emit.a, emit.b, emit.c       & Emittance                          & global   \\ \hline
+  emit.a, emit.b, emit.c       & Emittance (global)                 \\ \hline
 
-  eta.x, eta.y                 & Lab Frame dispersion               &          \\ \hline 
-  eta.a, eta.b                 & Normal-mode dispersion             &          \\ \hline 
-  etap.x, etap.y               & Lab Frame dispersion derivative    &          \\ \hline 
-  etap.a, etap.b               & Normal-mode dispersion derivative  &          \\ \hline 
+  eta.x, eta.y                 & Lab Frame dispersion               \\ \hline 
+  eta.a, eta.b                 & Normal-mode dispersion             \\ \hline 
+  etap.x, etap.y               & Lab Frame dispersion derivative    \\ \hline 
+  etap.a, etap.b               & Normal-mode dispersion derivative  \\ \hline 
 
   expression: <arithmetic expression>
-                               & See the text                       &          \\ \hline 
+                               & See the text                       \\ \hline 
 
   face1.offset, face2.offset   & Element offset with multipass      &          \\ \hline
 
   floor.x, floor.y, floor.z, floor.theta 
-                               & Global (``floor'') position        & relative \\ \hline 
+                               & Global (``floor'') position        \\ \hline 
 
-  gamma.a, gamma.b             & Normal-mode gamma function         &          \\ \hline 
+  gamma.a, gamma.b             & Normal-mode gamma function         \\ \hline 
 
-  i5a\_e6, i5b\_e6             & Normalized I5 radiation integral   &          \\ \hline
+  i5a\_e6, i5b\_e6             & Normalized I5 radiation integral   \\ \hline
 
-  k.11b, k.12a, k.12b, k.22a   & Coupling                           &          \\ \hline 
-  momentum\_compaction         & Momentum compaction factor         & relative \\ \hline
+  k.11b, k.12a, k.12b, k.22a   & Coupling                           \\ \hline 
+  momentum\_compaction         & Momentum compaction factor         \\ \hline
 
   \begin{tabular}{@{}l}   
     multi\_turn\_orbit.x, multi\_turn\_orbit.px \\ 
     multi\_turn\_orbit.y, multi\_turn\_orbit.py \\
     multi\_turn\_orbit.z, multi\_turn\_orbit.pz \\
-  \end{tabular}                & Bunch size                         &          \\ \hline 
+  \end{tabular}                & Bunch size                         \\ \hline 
 
   norm\_emit.a, norm\_emit.b, norm\_emit.c 
-                               & Normalized beam emittance          &          \\ \hline 
+                               & Normalized beam emittance          \\ \hline 
 
-  orbit.x, orbit.y             & Transverse orbit                   &          \\ \hline 
-  orbit.px, orbit.py           & Transverse momenta                 &          \\ \hline 
-  orbit.z, orbit.z\_p          & Longitudinal orbit and momenta     &          \\ \hline 
-  orbit.amp\_a, orbit.amp\_b   & ``Invariant'' amplitude            &          \\ \hline 
+  orbit.x, orbit.y             & Transverse orbit                   \\ \hline 
+  orbit.px, orbit.py           & Transverse momenta                 \\ \hline 
+  orbit.z, orbit.z\_p          & Longitudinal orbit and momenta     \\ \hline 
+  orbit.amp\_a, orbit.amp\_b   & ``Invariant'' amplitude            \\ \hline 
   orbit.norm\_amp\_a, orbit.norm\_amp\_b  
-                               & Energy normalized ``invariant'' amplitude &   \\ \hline 
+                               & Energy normalized ``invariant'' amplitude \\ \hline 
 
-  periodic.tt.$ijklm\ldots$    & \begin{tabular}{l}
-                                  Taylor term of the periodic map. \\
-                                  $1 \le i,j,k,\ldots \le 6$
-                                \end{tabular}                       & relative \\ \hline 
+  periodic.tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$   
+                               & Taylor term of the periodic map.   \\ \hline 
 
-  phase.a, phase.b             & Betatron phase                     & relative \\ \hline 
+  phase.a, phase.b             & Betatron phase                     \\ \hline 
 
   phase\_frac.a, phase\_frac.b            
                                & \begin{tabular}{l}
                                   Fractional betatron phase \\       
                                   $-\pi < \phi_{\mbox{frac}} < \pi$ \\
-                                \end{tabular}                       & relative \\ \hline 
+                                \end{tabular}                       \\ \hline 
 
   phase\_frac\_diff            & \begin{tabular}{l}
                                   Fractional betatron phase \\
                                   difference (a-b) $-\pi < d\phi_{\mbox{frac}} < \pi$
-                                \end{tabular}                       & relative \\ \hline 
+                                \end{tabular}                       \\ \hline 
 
-  r.$ij$                       & \begin{tabular}{l}
-                                  Term in linear transfer map \\
-                                  $1 \le i,j \le 6$
-                                \end{tabular}                       & relative \\ \hline 
+  r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
+                               & Term in linear transfer map        \\ \hline 
 
   \begin{tabular}{@{}l}   
     rel\_floor.x, rel\_floor.y, \\
     rel\_floor.z, rel\_floor.theta \\
-  \end{tabular}                & Relative global (``floor'') position & relative \\ \hline 
+  \end{tabular}                & Relative global (``floor'') position \\ \hline 
 
-  s\_position                  & longitudinal length constraint     & relative \\ \hline 
+  s\_position                  & longitudinal length constraint     \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
-                               & Particle spin                      &          \\ \hline 
+                               & Particle spin                      \\ \hline 
 
-  t.$ijk$                      & \begin{tabular}{l}
-                                  Term in 2\Nd order transfer map \\
-                                  $1 \le i,j,k \le 6$
-                                \end{tabular}                       & relative \\ \hline 
-  tt.$ijklm\ldots$             & \begin{tabular}{l}
-                                  Term in n\Th order transfer map \\
-                                  $1 \le i,j,k,\ldots \le 6$
-                                \end{tabular}                       & relative \\ \hline 
+  t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
+                               & Term in 2\Nd order transfer map    \\ \hline 
+  tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$
+                               & Term in n\Th order transfer map    \\ \hline 
 
-  tune.a, tune.b               & Tune                               &          \\ \hline 
+  tune.a, tune.b               & Tune                               \\ \hline 
   unstable\_orbit              & Nonzero if particles are lost in tracking &   \\ \hline
-  unstable\_ring               & Nonzero if a ring is unstable      & global   \\ \hline
+  unstable\_ring               & Nonzero if a ring is unstable (global)    \\ \hline
 
 \end{tabular}
 } 
@@ -718,7 +729,7 @@ that has been set up in the \tao initialization file.  It is sometimes
 useful, however, in \tao commands to be able to refer to \vn{data-on-the-fly}
 that have not been so initialized. The syntax for this is:
 \begin{example}
-  \{[<universe_range>]@\}dat:\{<source>\}:<datum_type>[\{<ix_ele0>&\}<ix_ele>]\{|<component>\}
+  \{[<universe_range>]@\}dat:\{<source>\}:<datum_type>[\{<ix_ele_start>&<ix_ele>]\{|<component>\}
 \end{example}
 The components of this syntax are:
 \begin{example}
@@ -726,7 +737,7 @@ The components of this syntax are:
   <source>               Optional source specification /
                             Possibilities are "lattice" (default) or "beam".
   <datum_type>           A data type defined in \sref{s:data.types}.
-  <ix_ele0>              Optional \vn{ele0} index number.
+  <ix_ele_start>         Optional \vn{ele_start} index number.
   <ix_ele>               \vn{ele} index number.
   <component>            Optional component. 
                             Possibilities are "model" (default), "base", or "design".

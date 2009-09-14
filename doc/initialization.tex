@@ -1000,29 +1000,30 @@ structure. For each \vn{n_d1_data} structure there must be a
 \index{tao_d1_data}\index{ix_d1_data}\index{d1_data!name}
 \index{default_data_type}\index{default_weight}\index{ix_min_data}
 \index{ix_max_data}\index{data!name}\index{data!data_type}
-\index{data!ele_name}\index{data!ele0_name}\index{data!merit_type}
+\index{data!ele_name}\index{data!ele_ref_name}\index{data!ele_start_name}\index{data!merit_type}
 \index{data!meas}\index{data!weight}\index{data!good_user}
 \index{data!ix_bunch}\index{use_same_lat_eles_as}\index{search_for_lat_eles}
 \begin{example}
   &tao_d1_data
-    ix_d1_data           = <integer>      ! d1_data index
-    use_same_lat_eles_as = "<d1_name>"    ! Reuse previous element list.
-    search_for_lat_eles  = "<class:name>" ! Find elements by name.
-    d1_data%name         = "<d1_name>"    ! d1_data name.
-    default_data_type    = <type_name>    ! Eg: orbit.x, e_tot, etc...
-    default_weight       = <number>       ! Merit function weight. Default = 0.0
-    default_data_source  = "<source>"     ! "lattice", or "beam". Default is "lattice".
-    ix_min_data          = <integer>      ! Minimum array index.
-    ix_max_data          = <integer>      ! Maximum array index.
-    data(j)%data_type    = "<type_name>"  ! Eg: "orbit.x", etc.
-    data(j)%ele_name     = "<ele_name>"   ! Lattice element names.
-    data(j)%ele0_name    = "<ele0_name>"  ! Reference lattice element names.
-    data(j)%merit_type   = "<merit_type>" ! Sets how the merit is calculated.
-    data(j)%meas         = "<number>"     ! Datum "measured" value
-    data(j)%weight       = "<weight>"     ! Merit function weight.
-    data(j)%good_user    = Logical        ! Use for optimization and plotting?
-    data(j)%data_source  = "<source>"     ! "lattice", or "beam"
-    data(j)%ix_bunch     = <integer>      ! Bunch index. Default = 0 (all bunches).
+    ix_d1_data             = <integer>          ! d1_data index
+    use_same_lat_eles_as   = "<d1_name>"        ! Reuse previous element list.
+    search_for_lat_eles    = "<class:name>"     ! Find elements by name.
+    d1_data%name           = "<d1_name>"        ! d1_data name.
+    default_data_type      = <type_name>        ! Eg: orbit.x, e_tot, etc...
+    default_weight         = <number>           ! Merit function weight. Default = 0.0
+    default_data_source    = "<source>"         ! "lattice", or "beam". Default is "lattice".
+    ix_min_data            = <integer>          ! Minimum array index.
+    ix_max_data            = <integer>          ! Maximum array index.
+    datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
+    datum(j)%ele_name       = "<ele_name>"       ! Lattice element names.
+    datum(j)%ele_start_name = "<ele_start_name>" ! Start element names.
+    datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference element names.
+    datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
+    datum(j)%meas           = "<number>"         ! Datum "measured" value
+    datum(j)%weight         = "<weight>"         ! Merit function weight.
+    datum(j)%good_user      = Logical            ! Use for optimization and plotting?
+    datum(j)%data_source    = "<source>"         ! "lattice", or "beam"
+    datum(j)%ix_bunch       = <integer>          ! Bunch index. Default = 0 (all bunches).
   /
 \end{example}
 For example:
@@ -1033,7 +1034,7 @@ For example:
     default_weight    = 1e6
     ix_min_data       = 0
     ix_max_data       = 99
-    data(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
+    datum(0:)%ele_name = "DET_00W", " ", "DET_02W", ...
   /
 \end{example}
 Alternatively, one can specify a datum in a single line. For example, 
@@ -1041,6 +1042,38 @@ Alternatively, one can specify a datum in a single line. For example,
   &tao_d1_data
     ix_d1_data        = 1 
     d1_data%name      = "t"  
+    !           data_      ele_ref_  ele_start_   ele_     merit_   meas_    weight good_
+    !           type       name      name         name     type     value           user
+    datum( 1) = "beta.a"   "S:12.3"   ""          "Q16_1"  "max"      30      0.1     T
+    datum( 2) = "phase.b"  "Q09_1"    "B22"       "Q16_1"  "max"      30      0.1     T
+    datum( 3) = "floor.x"  ""         ""          "end"    "target"    3      0.01    T       
+    datum( 4) = "floor.x"  "B1"       ""          "B2"     "target"    3      0.01    T       
+    ... etc. ...
+  /
+\end{example}
+
+\vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
+\vn{datum(i)} structure array that is associated with the \vn{d1_data}
+structure. \vn{datum(:)%ele_name} gives the lattice element names
+associated with the data points.
+
+A range of elements can be specified by giving an \vn{ele_start_name} that
+is not a blank string. Thus, in the above example, the value of
+\vn{datum(2)} is the maximum horizontal beta in the range between the
+end of element \vn{B22} to the end of element \vn{Q16_1}. Elements
+can be specified by name (Eg: \vn{Q16_1}) or by longitudinal position
+using the notation \vn{"S:<s_distance>"}. This will match to the
+element whose longitudinal position at the exit end is closest to
+\vn{<s_distance>}.
+
+In the present data format there are three elements that are
+associated with a given datum: \vn{ele_ref}, \vn{ele_start}, and
+\vn{ele}. There exists an old, deprecated, data format where only two
+elements are given for a given datum. These elements are called
+\vn{ele0} and \vn{ele}. In this old format, \vn{data} is used in place
+of \vn{datum}. For example:
+\begin{example}
+  &tao_d1_data
     !          data_      ele0_     ele_     merit_   meas_    weight good_
     !            type       name      name     type     value           user
     data( 1) = "beta.a"   "S:12.3"  "Q16_1"  "max"      30      0.1     T
@@ -1050,60 +1083,36 @@ Alternatively, one can specify a datum in a single line. For example,
     ... etc. ...
   /
 \end{example}
-
-\vn{ix_min_data} and \vn{ix_max_data} give the bounds for the
-\vn{data(i)} structure array that is associated with the \vn{d1_data}
-structure. \vn{data(:)%ele_name} gives the lattice element names
-associated with the data points.
-
-A range of elements can be specified by giving an \vn{ele0_name} that
-is not a blank string. Thus, in the above example, the value of
-\vn{data(2)} is the maximum horizontal beta in the range between the
-end of element \vn{Q09_1} to the end of element \vn{Q16_1}. Elements
-can be specified by name (Eg: \vn{Q16_1}) or by longitudinal position
-using the notation \vn{"S:<s_distance>"}. This will match to the
-element whose longitudinal position at the exit end is closest to
-\vn{<s_distance>}.
-
- Certain
-data types like the betatron \vn{phase} is measured with respect to a
-reference point and in the example above \vn{data(2)} is the phase
-advance from \vn{Q09_1} to \vn{Q16_1}.  Some data types can be either
-relative or absolute as in the above example where the value of
-\vn{data(3)} is the \vn{floor.x} position at element \vn{end} and the
-value of \vn{data(4)} is the \vn{floor.x} position at element \vn{B2}
-relative to element\vn{B1}.
-
-The relative data types are noted in Tables~\ref{t:data.beam} and
-\ref{t:data.lattice}. With
-these relative data types if \vn{ele0_name} is left blank then the
-beginning of the lattice is assumed. For the particular case when a
-\vn{d1_data} structure has a \vn{d2_data.d1_data} name of \vn{phase.a}
-or \vn{phase.b} there is a subtle difference between using a blank
-\vn{ele0_name} and specifying \vn{ele0_name} to be \vn{BEGINNING}
-which is the name of the first element that is automatically inserted
-in all lattices. With a blank \vn{ele0_name} the average phase or
-phase difference for all the datums within a \vn{d1_data} array are
-set to zero by adding a fixed constant to all the datums. For example,
-in Figure~\ref{f:plot.page1}, the average phase in either of the two
-bottom plots is zero. This is done since, without a reference point
-that defines a zero phase, the overall average phase is arbitrary and
-so the overall phase is taken in \tao to be zero. If the
-\vn{BEGINNING} element is explicitly chosen as the reference element
-then the average phase is not adjusted. This distinction must be kept
-in mind when optimizing since it will affect the merit function.
+The interpretation of \vn{ele0} was dependent upon the data type. With
+data types denoted as ``\vn{relative}'', \vn{ele0} was interpreted as
+\vn{ele_ref}. For non-relative data types, \vn{ele0} was interpreted
+as being equivalent to \vn{ele_start}. The relative data types where:
+\begin{example}
+  floor.x, floor.y, floor.z, floor.theta
+  momentum_compaction         
+  periodic.tt.$ijklm\ldots$    
+  phase.a, phase.b             
+  phase_frac.a, phase_frac.b            
+  phase_frac_diff            
+  r.$ij$                       
+  rel_floor.x, rel_floor.y,
+  rel_floor.z, rel_floor.theta
+  s_position                  
+  t.$ijk$                      
+  tt.$ijklm\ldots$
+\end{example}
 
 Certain data types like the \vn{emittance} along a Linac can be
 calculated from the lattice or can be calculated from the distribution
 of particles when \vn{"beam"} is performed. Which is
-calculation is performed is determined by the \vn{data(:)%data_source}
+calculation is performed is determined by the \vn{datum(:)%data_source}
 component. Possibilities are:
 \begin{example}
   "lattice"   ! (Default) Calculation using the lattice layout.
   "beam"      ! Calculation using the beam distribution.
 \end{example}
 \vn{"lattice"} is the default. With \vn{"beam"}, the particular
-bunch that the data is extracted from can be specified via \vn{data(:)%ix_bunch}.
+bunch that the data is extracted from can be specified via \vn{datum(:)%ix_bunch}.
 The default is \vn{0} which combines all the bunches for the datum calculation.
 
 If elements in the \vn{data} array do not exist the corresponding
@@ -1148,7 +1157,7 @@ with \vn{"B"} followed by any set of characters.
 together.
 
 \index{data!data_type}
-If \vn{data(j)%data_type} is not given, and \vni{default_data_type} is
+If \vn{datum(j)%data_type} is not given, and \vni{default_data_type} is
 not specified, then the \vni{d2_data} name and the \vni{d1_data} name
 are combined for each datum to form the datum's \vn{type}. Certain
 types are recognized by \tao. These are given by
@@ -1158,7 +1167,7 @@ must have a corresponding definition in
 Chapter~\ref{c:prog.customizing} for details.
 
 \index{data%weight}
-\vn{data(:)%weight} gives the weight coefficient for a datum in the
+\vn{datum(:)%weight} gives the weight coefficient for a datum in the
 merit function. If not present then the default weight of
 \vni{default_weight} is used. 
 

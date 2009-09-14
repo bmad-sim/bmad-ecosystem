@@ -34,7 +34,20 @@ type tao_data_input
   character(20) data_source
   real(rp) :: invalid_value
   integer ix_bunch
-  character(8) relative
+end type
+
+type tao_datum_input
+  character(100) :: data_type
+  character(40) :: ele_ref_name
+  character(40) :: ele_start_name
+  character(40) :: ele_name
+  character(20) :: merit_type
+  real(rp) :: meas
+  real(rp) :: weight
+  logical :: good_user
+  character(20) data_source
+  real(rp) :: invalid_value
+  integer ix_bunch
 end type
 
 !-------------------------------------------------------------

@@ -205,7 +205,7 @@ call tao_find_data (err, who, d1_array = d1_array, ix_uni = ix_uni, print_err = 
 if (err) return
 if (size(d1_array) == 0) return
 n = count(d1_array(1)%d1%d%useit_opt .and. d1_array(1)%d1%d%good_model)
-if (n /= 0 .and. all(d1_array(1)%d1%d%ele0_name == ' ')) then
+if (n /= 0 .and. all(d1_array(1)%d1%d%ele_ref_name == '')) then
   ave = sum(d1_array(1)%d1%d%delta_merit, &
                   mask = d1_array(1)%d1%d%useit_opt .and. d1_array(1)%d1%d%good_model) / n
   d1_array(1)%d1%d%delta_merit = d1_array(1)%d1%d%delta_merit - ave

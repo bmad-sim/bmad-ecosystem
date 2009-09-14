@@ -200,7 +200,7 @@ character(9) angle
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
-integer num_locations, ix_ele, n_name, n_e0, n_e1, n_tot, ix_p, ix_word
+integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
 logical bmad_format, good_opt_only
 logical err, found, at_ends, first_time, by_s, print_header_lines
@@ -608,13 +608,15 @@ case ('data')
     if (size(s%u) > 1) then
       nl=nl+1; write(lines(nl), '(a, i4)') 'Universe:', d_ptr%d1%d2%ix_uni
     endif
-    nl=nl+1; write(lines(nl), amt)  '%ele0_name         = ', d_ptr%ele0_name
     nl=nl+1; write(lines(nl), amt)  '%ele_name          = ', d_ptr%ele_name
+    nl=nl+1; write(lines(nl), amt)  '%ele_start_name    = ', d_ptr%ele_start_name
+    nl=nl+1; write(lines(nl), amt)  '%ele_ref_name      = ', d_ptr%ele_ref_name
     nl=nl+1; write(lines(nl), amt)  '%data_type         = ', d_ptr%data_type
     nl=nl+1; write(lines(nl), amt)  '%data_source       = ', d_ptr%data_source
     nl=nl+1; write(lines(nl), imt)  '%ix_branch         = ', d_ptr%ix_branch
-    nl=nl+1; write(lines(nl), imt)  '%ix_ele0           = ', d_ptr%ix_ele0
     nl=nl+1; write(lines(nl), imt)  '%ix_ele            = ', d_ptr%ix_ele
+    nl=nl+1; write(lines(nl), imt)  '%ix_ele_start      = ', d_ptr%ix_ele_start
+    nl=nl+1; write(lines(nl), imt)  '%ix_ele_ref        = ', d_ptr%ix_ele_ref
     nl=nl+1; write(lines(nl), imt)  '%ix_ele_merit      = ', d_ptr%ix_ele_merit
     nl=nl+1; write(lines(nl), imt)  '%ix_dmodel         = ', d_ptr%ix_dModel
     nl=nl+1; write(lines(nl), imt)  '%ix_d1             = ', d_ptr%ix_d1
@@ -633,7 +635,6 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%merit             = ', d_ptr%merit
     nl=nl+1; write(lines(nl), rmt)  '%delta_merit       = ', d_ptr%delta_merit
     nl=nl+1; write(lines(nl), rmt)  '%weight            = ', d_ptr%weight
-    nl=nl+1; write(lines(nl), lmt)  '%relative          = ', d_ptr%relative
     nl=nl+1; write(lines(nl), lmt)  '%exists            = ', d_ptr%exists
     nl=nl+1; write(lines(nl), lmt)  '%good_model        = ', d_ptr%good_model
     nl=nl+1; write(lines(nl), lmt)  '%good_design       = ', d_ptr%good_design
@@ -662,8 +663,9 @@ case ('data')
     ! the where0 and where fields
 
     n_name = 9
-    n_e0 = 8
-    n_e1 = 8
+    n_start = 10
+    n_ref = 8
+    n_ele = 8
     n_tot = 0
 
     do i = 1, size(d_array)
@@ -674,21 +676,23 @@ case ('data')
         n_tot = max(n_tot, len_trim(name))
       else
         n_name = max(n_name, len_trim(name))
-        n_e0 = max(n_e0, len_trim(d_ptr%ele0_name))
-        n_e1 = max(n_e1, len_trim(d_ptr%ele_name))
+        n_start = max(n_start, len_trim(d_ptr%ele_start_name))
+        n_ref = max(n_ref, len_trim(d_ptr%ele_ref_name))
+        n_ele = max(n_ele, len_trim(d_ptr%ele_name))
       endif
     enddo
 
-    n_tot = max(n_tot, n_name + n_e0 + n_e1 + 4)
-    n_e1 = n_tot - n_name - n_e0 - 4
+    n_tot = max(n_tot, n_name + n_ref + n_start + n_ele + 4)
+    n_ele = n_tot - n_name - n_ref - n_start - 4
 
     ! Write header
 
     line1 = ''; line2 = ''
-    n=9+n_name;               line2(n:) = 'Where0'
-    n=len_trim(line2)+n_e0-3; line2(n:) = 'Where'
-    n=len_trim(line2)+n_e1+4; line2(n:) = 'Meas         Model        Design    | Opt  Plot'
-                              line1(n:) = '                                    |   Useit'
+    n=9+n_name;                  line2(n:) = 'Ref_Ele'
+    n=len_trim(line2)+n_ref-3;   line2(n:) = 'Start_Ele'
+    n=len_trim(line2)+n_start-3; line2(n:) = 'Ele'
+    n=len_trim(line2)+n_ele+4;   line2(n:) = 'Meas         Model        Design    | Opt  Plot'
+                                 line1(n:) = '                                    |   Useit'
 
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
@@ -697,8 +701,8 @@ case ('data')
 
     call re_allocate (lines, nl+100+size(d_array), .false.)
 
-    fmt2 = '(i4, 2x, a, 3es14.4, 2l6)'
-    fmt  = '(i4, 2x, a, 2x, a, 2x, a, 3es14.4, 2l6)'
+    fmt2 = '(i4, 1(2x, a), 3es14.4, 2l6)'
+    fmt  = '(i4, 4(2x, a), 3es14.4, 2l6)'
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
@@ -709,8 +713,8 @@ case ('data')
                      d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
       else
-        nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), & 
-                     d_ptr%ele0_name(1:n_e0), d_ptr%ele_name(1:n_e1), &
+        nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), d_ptr%ele_ref_name(1:n_ref), & 
+                     d_ptr%ele_start_name(1:n_ref), d_ptr%ele_name(1:n_ele), &
                      d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
       endif

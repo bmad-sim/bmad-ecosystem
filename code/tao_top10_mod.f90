@@ -277,16 +277,17 @@ type (tao_top10_struct) top_merit(s%global%n_top10)
 type (tao_var_struct), pointer :: var
 type (tao_data_struct), pointer :: data
 type (tao_universe_struct), pointer :: u
+type (branch_struct), pointer :: branch
 
 real(rp) value, this_merit
 
 integer i, j, n, ix, iunit, nc, ir, n_max
 integer ir1, ir2, iu, ie, nl, ct
 integer, allocatable, save :: ixm(:)
-integer n_name, n_d2_d1_name, n_loc1, n_loc0, n_tot
+integer n_name, n_d2_d1_name, n_loc_ele, n_loc_start, n_loc_ref, n_tot
 
 character(*) form
-character(40) location, con_var, max_loc, loc1, loc0
+character(40) location, con_var, max_loc, loc_ele, loc_start, loc_ref
 character(80) fmt, fmt2
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
@@ -296,7 +297,7 @@ character(200) l1
 type constraint_struct
   character(40) d2_d1_name
   character(100) name
-  character(40) loc1, loc0, max_loc
+  character(40) loc_ele, loc_start, loc_ref, max_loc
   real(rp) target_value
   real(rp) actual_value
   real(rp) merit
@@ -330,18 +331,21 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (data%data_type(1:11) == 'expression:') con(nc)%expression = .true.
 
     if (data%ix_ele < 0) then
-      con(nc)%loc1 = ' '
+      con(nc)%loc_ele = ' '
     else
-      con(nc)%loc1 = data%ele_name  ! s%u(i)%model%lat%ele(data%ix_ele)%name
+      con(nc)%loc_ele = data%ele_name 
     endif
 
-    con(nc)%loc0 = data%ele0_name
+    con(nc)%loc_start = data%ele_start_name
+    con(nc)%loc_ref = data%ele_ref_name
 
+    branch => s%u(i)%model%lat%branch(data%ix_branch)
     ie = data%ix_ele_merit
+
     if (ie < 0) then
-      con(nc)%max_loc = ' '
+      con(nc)%max_loc = ''
     else
-      con(nc)%max_loc = s%u(i)%model%lat%ele(ie)%name
+      con(nc)%max_loc = branch%ele(ie)%name
     endif
 
     con(nc)%target_value = data%meas_value
@@ -360,12 +364,14 @@ do i = 1, size(s%var(:))
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
   u => s%u(var%this(1)%ix_uni)
-  ct = u%model%lat%ele(var%this(1)%ix_ele)%lord_status
-  con(nc)%loc0 = ''
-  con(nc)%loc1 = ''
+  branch => u%model%lat%branch(data%ix_branch)
+  ct = branch%ele(var%this(1)%ix_ele)%lord_status
+  con(nc)%loc_ref = ''
+  con(nc)%loc_start = ''
+  con(nc)%loc_ele = ''
   if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
-    write (con(nc)%loc1, '(f8.2)') u%model%lat%ele(var%this(1)%ix_ele)%s
-    call string_trim (con(nc)%loc1, con(nc)%loc1, ix)
+    write (con(nc)%loc_ele, '(f8.2)') branch%ele(var%this(1)%ix_ele)%s
+    call string_trim (con(nc)%loc_ele, con(nc)%loc_ele, ix)
   endif
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value
@@ -406,9 +412,9 @@ endif
 
 ! find string widths
 ! Expressions generally have very long strings so we let this spill over to
-! the where0 and where fields
+! the where_start, where_ref and where fields
 
-n_d2_d1_name = 9;  n_name = 1; n_loc1 = 8;  n_loc0 = 8; n_tot = 0
+n_d2_d1_name = 9;  n_name = 1; n_loc_ele = 8;  n_loc_start = 10; n_loc_ref = 8; n_tot = 0
 
 do j = 1, n_max
   i = ixm(j)
@@ -418,27 +424,29 @@ do j = 1, n_max
   else
     n_name = max(n_name, len_trim(con(i)%name))
   endif
-  n_loc1 = max(n_loc1, len_trim(con(i)%loc1))
-  n_loc0 = max(n_loc0, len_trim(con(i)%loc0))
+  n_loc_ele   = max(n_loc_ele, len_trim(con(i)%loc_ele))
+  n_loc_start = max(n_loc_start, len_trim(con(i)%loc_start))
+  n_loc_ref   = max(n_loc_ref, len_trim(con(i)%loc_ref))
 enddo
 
-n_tot = max(n_tot, n_name + n_loc0 + n_loc1 + 4)
-n_loc1 = n_tot - n_name - n_loc0 - 4
+n_tot = max(n_tot,  n_name + n_loc_ref + n_loc_start + n_loc_ele + 4)
+n_loc_ele = n_tot - n_name - n_loc_ref - n_loc_start - 4
 
 !
 
 l1 = 'Constraint'
-n=3+n_d2_d1_name+2+n_name; l1(n:) = 'Where0'
-n=len_trim(l1)+n_loc0-3;   l1(n:) = 'Where'
-n=len_trim(l1)+n_loc1-2;   l1(n:) = 'Target      Value      Merit     Max'
+n=3+n_d2_d1_name+2+n_name;    l1(n:) = 'Ref_Ele'
+n=len_trim(l1)+n_loc_ref-3;   l1(n:) = 'Start_Ele'
+n=len_trim(l1)+n_loc_start-3; l1(n:) = 'Ele'
+n=len_trim(l1)+n_loc_ele-2;   l1(n:) = 'Target      Value      Merit     Max'
 
 nl=nl+1; line(nl) = ' '
 nl=nl+1; line(nl) = l1
 
 !
 
-fmt  = '(a, 2x, a, 2x, a, 2x, a, es11.3, es12.3, es10.2, 2x, a)'
-fmt2 =               '(a, 2x, a, es11.3, es12.3, es10.2, 2x, a)'
+fmt  = '(a, 4(2x, a), es11.3, es12.3, es10.2, 2x, a)'
+fmt2 = '(a, 1(2x, a), es11.3, es12.3, es10.2, 2x, a)'
 
 call re_allocate (line, nl+n_max+100)
 do j = 1, n_max
@@ -449,8 +457,8 @@ do j = 1, n_max
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
   else
     nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), &
-            con(i)%name(1:n_name), &
-            con(i)%loc0(1:n_loc0), con(i)%loc1(1:n_loc1), con(i)%target_value, &
+            con(i)%name(1:n_name), con(i)%loc_start(1:n_loc_ref), &
+            con(i)%loc_start(1:n_loc_start), con(i)%loc_ele(1:n_loc_ele), con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
   endif
 end do
