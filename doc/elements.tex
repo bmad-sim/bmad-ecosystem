@@ -327,8 +327,8 @@ Example:
 Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
 \begin{example}
   g           = <Real>     ! Design bend strength (= 1/rho).
-  b_field     = <Real>     ! Field strength (= P_0 g / q) (\sref{s:depend}).
   g_err       = <Real>     ! Bend strength error (\sref{s:depend}).
+  b_field     = <Real>     ! Field strength (= P_0 g / q) (\sref{s:depend}).
   b_field_err = <Real>     ! Field strength error (\sref{s:depend}).
   angle       = <Real>     ! Bend angle. A settable dependent variable (\sref{s:depend}).
   rho         = <Real>     ! Bend radius. A settable dependent variable (\sref{s:depend}).
@@ -338,11 +338,11 @@ Attributes specific to a \vn{Rbend} and \vn{Sbend} elements are:
   h1, h2      = <Real>     ! Face curvature.
   roll        = <Real>     ! See \ref{s:offset}.
   k1          = <Real>     ! Quadrupole strength.
-  b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   k2          = <Real>     ! Sextupole strength (\sref{s:depend}).
+  b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
-  n_ref_pass  = <Int>      ! Multipass reference turn.
-  ref_orbit   = <Switch>   ! Multipass reference geometry switch.
+  n_ref_pass  = <Int>      ! Multipass reference turn (\sref{s:multipass}).
+  ref_orbit   = <Switch>   ! Multipass reference geometry switch (\sref{s:multipass}).
   l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
 \end{example}
 
@@ -371,16 +371,19 @@ this is done on using the following transformation on \vn{Rbend}s:
 \end{figure}
 
   \begin{description}
+  \index{l}\index{l_chord}
   \item[l, l_chord]  \Newline
 For a \vn{Rbend}, \vn{l} is the chord length and not the arc length as
 it is for a \vn{Sbend}.  However, after reading in a lattice, \bmad will
 internally convert all \vn{Rbend}s into \vn{Sbend}s, additionally, the
 \vn{l_chord} attribute will be set to the input \vn{l}, and \vn{l} 
 will be set to the true path length (see above).
+  \index{h1}\index{h2}
   \item[h1, h2] \Newline
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
 and exit pole faces. They are present for compatibility with MAD but
 are not yet implemented in terms of tracking and other calculations.
+  \index{e1}\index{e2}
   \item[e1, e2] \Newline
 the rotation angle of the entrance pole face is \vn{e1} and at the
 exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{Rbend}
@@ -389,34 +392,32 @@ for a \vn{Sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
 An \vn{Sbend} with an \vn{e1} = \vn{e2} =
 \vn{angle}/2 is equivalent to an \vn{Rbend} with \vn{e1} = \vn{e2} =
 0 (see above).
+  \index{angle}
   \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a
 bend towards negative $x$ values (see Figure~\ref{f:local.coords}).
+  \index{k1}\index{b1_gradient}
   \item[k1, b1_gradient] \Newline
-\index{k1}
 The normalized and unnormalized quadrupole strength.
+  \index{k2}\index{b2_gradient}
   \item[k2, b2_gradient] \Newline
-\index{k2}
 The normalized and unnormalized sextupole strength. 
+  \index{g}\index{rho}\index{g_err}
   \item[g, g_err, rho] \Newline
-\index{g}
-\index{rho}
-\index{g_err}
 The design bending radius which determines the reference coordinate
-system is \vn{rho} (see \sref{s:ref}).  \vn{g} = 1/\vn{rho} is
+system is \vn{rho} (see \sref{s:ref}). \vn{g} = 1/\vn{rho} is
 the curvature function and is proportional to the design dipole
 magnetic field. The true field strength is given by
 \vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
 unchanged but varies a particle's orbit.
-  \index{fint}\index{fintx}
-  \item[fint, fintx, hgap, hgapx] \Newline
+  \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
+  \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
   F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_0 - B_y(s))}
   {2 H_{gap} B_0^2}
 \Endeq
-\index{hgap}\index{hgapx}
 with a similar equation for \vn{fintx}. \vn{hgap} and \vn{hgapx} are
 the half gaps at the entrance and exit faces. If \vn{fint} or
 \vn{fintx} is given without a value then a value of 0.5 is used. If

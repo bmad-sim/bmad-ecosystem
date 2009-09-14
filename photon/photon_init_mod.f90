@@ -57,8 +57,11 @@ end subroutine
 !
 ! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
 ! angle for a simple bend.
-! The verital angle distribution is modeled to be of the form
-!  c1 * e^(-x^2/(2*s1^2)) + c2 * x^2 * e^(-x^2/(2*s2^2)).
+! The verital angle distribution is modeled to be of the form:
+!   Prob(x) =  c1 * e^(-x^2/(2*s1^2)) + c2 * x^2 * e^(-x^2/(2*s2^2))
+! where x = gamma * phi, and c1, c2, s1, and s2 are functions of E_rel.
+! The c1 * e^(-x^2/(2*s1^2)) term models the perpendicular radiation component.
+! The c2 * e^(-x^2/(2*s2^2)) term models the parallel radiation component.
 !
 ! Module needed:
 !   use photon_init_mod
