@@ -850,6 +850,10 @@ case ('expression:')
     valid_value = .true.
   endif
 
+case ('face1.offset')
+
+case ('face2.offset')
+
 case ('floor.x')
   datum_value = ele1%floor%x - ele0%floor%x
   valid_value = .true.
