@@ -21,6 +21,9 @@ real(rp), parameter :: e_charge = 1.6021892d-19 ! electron charge
 real(rp), parameter :: h_planck = 4.13566733d-15      ! eV*sec Planck's constant
 real(rp), parameter :: h_bar_planck = 6.58211899d-16  ! eV*sec h_planck/twopi
 
+real(rp), parameter :: mu_0_vac = fourpi * 1e-7                ! Permeability of free space
+real(rp), parameter :: eps_0_vac = 1 / (c_light**2 * mu_0_vac) ! Permittivity of free space
+
 ! Anomalous gyro-magnetic moment
 
 real(rp), parameter :: g_factor_electron = 0.001159652193
