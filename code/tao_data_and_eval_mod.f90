@@ -420,36 +420,17 @@ data_source = datum%data_source
 data_type = datum%data_type
 lat => tao_lat%lat
 
-loc_ref   = lat_ele_loc_struct(datum%ix_ele_ref, datum%ix_branch)
-loc_start = lat_ele_loc_struct(datum%ix_ele_start, datum%ix_branch)
-loc_ele   = lat_ele_loc_struct(datum%ix_ele, datum%ix_branch)
-
-if (datum%ele_name /= '') then
-  loc_ele = tao_valid_datum_index (lat, datum%ix_ele, datum, valid_value, why_invalid)
-  if (.not. valid_value) return
-endif
-
-if (datum%ele_ref_name == '') then
-  ! Default if not set
-  if (loc_ref%ix_ele == -1) loc_ref = lat_ele_loc_struct(0, loc_ref%ix_branch)
-else
-  loc_ref = tao_valid_datum_index (lat, datum%ix_ele_ref, datum, valid_value, why_invalid)
-  if (.not. valid_value) return
-endif
-
-if (datum%ele_start_name == '') then
-  ! Default if not set
-  if (loc_start%ix_ele == -1) loc_start = lat_ele_loc_struct(0, loc_start%ix_branch)
-else
-  loc_start = tao_valid_datum_index (lat, datum%ix_ele_start, datum, valid_value, why_invalid)
-  if (.not. valid_value) return
-endif
-
-ix_start = loc_start%ix_ele
+loc_ele = tao_valid_datum_index (lat, datum%ele_name, datum%ix_ele, datum, valid_value, why_invalid)
+if (.not. valid_value) return
 ix_ele   = loc_ele%ix_ele
 
+loc_ref = tao_valid_datum_index (lat, datum%ele_ref_name, datum%ix_ele_ref, datum, valid_value, why_invalid)
+if (.not. valid_value) return
 ix_ref   = loc_ref%ix_ele
-if (ix_ref < 0) ix_ref = 0
+
+loc_start = tao_valid_datum_index (lat, datum%ele_start_name, datum%ix_ele_start, datum, valid_value, why_invalid)
+if (.not. valid_value) return
+ix_start = loc_start%ix_ele
 
 !
 
@@ -460,11 +441,10 @@ uni_ele => u%uni_branch(datum%ix_branch)%ele
 
 ! ix_ref and ele_ref will point to the 0th element even if there is no refrence
 
-nullify(ele_start, ele)
+nullify(ele_start, ele_ref, ele)
+if (ix_ele >= 0)   ele       => branch%ele(ix_ele)
 if (ix_start >= 0) ele_start => branch%ele(ix_start)
-if (ix_ele >= 0)   ele     => branch%ele(ix_ele)
-
-ele_ref => branch%ele(ix_ref)
+if (ix_ref >= 0)   ele_ref   => branch%ele(ix_ref)
 
 valid_value = .false.
 
@@ -959,6 +939,11 @@ case ('momentum_compaction')
     return
   endif
 
+  if (ix_ref < 0) then
+    ix_ref = 0
+    ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
+  endif
+
   orb0 => orbit(ix_ref)
   call make_v_mats (ele_ref, v_mat, v_inv_mat)
   eta_vec = (/ ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap /)
@@ -979,7 +964,7 @@ case ('momentum_compaction')
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
-  if (datum%ele_ref_name == '' .and. datum%ix_ele_ref == -1) then
+  if (ix_start == -1) then
     datum_value = uni_ele(ix_ele)%n_particle_lost_here
   else
     datum_value = sum(uni_ele(ix_start:ix_ele)%n_particle_lost_here)
@@ -1091,38 +1076,39 @@ case ('periodic.tt.')
   datum_value = taylor_coef (taylor(i), expnt)
   valid_value = .true.
 
-case ('phase.a')
+case ('phase.a', 'phase_frac.a')
   if (data_source == 'beam') return ! bad
-  datum_value = ele%a%phi - ele_ref%a%phi
-  if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
+  if (ix_ref < 0) then
+    datum_value = ele%a%phi
+  else
+    datum_value = ele%a%phi - ele_ref%a%phi
+    if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
+  if (data_type == 'phase_frac.a') datum_value = modulo2(datum_value, pi)
+  endif
   valid_value = .true.
 
-case ('phase.b')
+case ('phase.b', 'phase_frac.b')
   if (data_source == 'beam') return ! bad
-  datum_value = ele%b%phi - ele_ref%b%phi
-  if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
-  valid_value = .true.
-
-case ('phase_frac.a')
-  if (data_source == 'beam') return ! bad
-  datum_value = ele%a%phi - ele_ref%a%phi
-  if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
-  datum_value = modulo2(datum_value, pi)
-  valid_value = .true.
-
-case ('phase_frac.b')
-  if (data_source == 'beam') return ! bad
-  datum_value = ele%b%phi - ele_ref%b%phi
-  if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
-  datum_value = modulo2(datum_value, pi)
+  if (ix_ref < 0) then
+    datum_value = ele%b%phi
+  else
+    datum_value = ele%b%phi - ele_ref%b%phi
+    if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
+  endif
+  if (data_type == 'phase_frac.b') datum_value = modulo2(datum_value, pi)
   valid_value = .true.
 
 case ('phase_frac_diff')
   if (data_source == 'beam') return ! bad
-  px = ele%a%phi - ele_ref%a%phi
-  py = ele%b%phi - ele_ref%b%phi
-  if (ix_ref > ix_ele) px = px - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
-  if (ix_ref > ix_ele) py = py - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
+  if (ix_ref < 0) then
+    px = ele%a%phi 
+    py = ele%b%phi 
+  else
+    px = ele%a%phi - ele_ref%a%phi
+    py = ele%b%phi - ele_ref%b%phi
+    if (ix_ref > ix_ele) px = px - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
+    if (ix_ref > ix_ele) py = py - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
+  endif
   datum_value = modulo2 (px - py, pi)
   valid_value = .true.
 
@@ -1136,6 +1122,7 @@ case ('r.')
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
 
   if (ix_start < 0) ix_start = ix_ele
+  if (ix_ref < 0) ix_ref = 0
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start)
 
   call re_allocate2 (value_vec, 0, branch%n_ele_track, .false.)
@@ -1146,7 +1133,11 @@ case ('r.')
   call load_it (value_vec, loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
-  
+
+  if (ix_ref < 0) then
+    ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
+  endif
+
   call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
   vec3 = (/ ele%floor%x - ele_ref%floor%x, ele%floor%y - ele_ref%floor%y, ele%floor%z - ele_ref%floor%z /)
   vec3 = matmul (w0_mat, vec3)
@@ -1161,6 +1152,11 @@ case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
   valid_value = .true.
 
 case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
+
+  if (ix_ref < 0) then
+    ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
+  endif
+
   call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
   call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)
   w_mat = matmul (w0_mat, w_mat)
@@ -1238,7 +1234,7 @@ case ('spin.polarity')
   
 case ('s_position') 
   if (data_source == 'beam') return
-  if (loc_ref%ix_ele >= 0) then
+  if (ix_ref >= 0) then
     datum_value = ele%s - ele_ref%s
   else
     datum_value = ele%s 
@@ -1276,6 +1272,8 @@ case ('t.', 'tt.')
       expnt(k) = expnt(k) + 1
     enddo
   endif
+
+  if (ix_ref < 0) ix_ref = 0
 
   if (tao_com%ix_ref_taylor /= ix_ref .or. tao_com%ix_ele_taylor /= ix_ele) then
     if (tao_com%ix_ref_taylor == ix_ref .and. ix_ele > tao_com%ix_ele_taylor) then
@@ -1715,13 +1713,13 @@ end function tao_do_wire_scan
 ! Input:
 !   lat    -- Lat_struct: Lattice
 !   ix_ele -- Integer: Index of element.
-!   datum  -- Tao_data_struct: Used for error messages
+!   datum  -- Tao_data_struct: Used for error messages and gives branch index.
 !   valid  -- Logical: Set False if element does not have a definite location.
 !               Set True otherwise
 !   loc    -- Lat_ele_loc_struct: Location of element in the tracking part of the latticed.
 !-
 
-function tao_valid_datum_index (lat, ix_ele, datum, valid, why_invalid) result (loc)
+function tao_valid_datum_index (lat, ele_name, ix_ele, datum, valid, why_invalid) result (loc)
 
 implicit none
 
@@ -1734,17 +1732,19 @@ integer ix_ele, ixc, n_track, n_max
 
 logical valid
 
+character(*) ele_name
 character(*), optional :: why_invalid
 character(40) :: r_name = 'tao_valid_datum_index'
 
 !
 
-ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
+valid = .true.
 
 loc%ix_ele = ix_ele
 loc%ix_branch = datum%ix_branch
 
-valid = .true.
+if (ele_name == '') return
+
 n_track = lat%branch(datum%ix_branch)%n_ele_track
 n_max   = lat%branch(datum%ix_branch)%n_ele_max
 
@@ -1756,8 +1756,9 @@ if (ix_ele < 0 .or. ix_ele > n_max) then
 endif
 
 if (datum%data_type(1:14) == 'element_param.') return
-
 if (ix_ele <= n_track) return
+
+ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
 
 if (ele%lord_status == super_lord$) then
   ixc = ele%ix2_slave
