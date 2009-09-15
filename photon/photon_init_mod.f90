@@ -231,6 +231,83 @@ real(rp) E_rel
 real(rp), optional :: r_in
 real(rp) a, b2, t, rr, r, r_rel
 
+real(rp), parameter :: e_rel_arr(0:91) = (/ &
+              0.0, 5.35337e-7, 4.28341e-6, 0.0000144605, &
+              0.0000342902, 0.0000670066, 0.000115858, 0.000184113, 0.000275057, &
+              0.000392008, 0.000538307, 0.000717333, 0.0009325, 0.00118727, &
+              0.00148513, 0.00182966, 0.00222445, 0.00267317, 0.00317957, &
+              0.00374744, 0.00438067, 0.00508322, 0.00585915, 0.0067126, &
+              0.00764782, 0.00866917, 0.00978112, 0.0109883, 0.0122954, 0.0137072, &
+              0.015229, 0.0168657, 0.0186228, 0.0205058, 0.0225205, 0.0246729, &
+              0.026969, 0.0294153, 0.0320186, 0.0347857, 0.037724, 0.040841, &
+              0.0441446, 0.0476431, 0.0513452, 0.0552601, 0.0593972, 0.0637666, &
+              0.0683791, 0.0732456, 0.0783781, 0.083789, 0.0894916, 0.0954998, &
+              0.101829, 0.108494, 0.115512, 0.122902, 0.130682, 0.138874, 0.147499, &
+              0.156581, 0.166146, 0.176222, 0.186838, 0.198027, 0.209825, 0.22227, &
+              0.235404, 0.249273, 0.263928, 0.279426, 0.295827, 0.313201, 0.331625, &
+              0.351184, 0.371975, 0.394107, 0.417703, 0.442906, 0.469878, 0.498807, &
+              0.529911, 0.563449, 0.599724, 0.639103, 0.682028, 0.72904, 0.780816, &
+              0.83821, 0.902325, 0.974622 /)
+
+
+integer i
+
+! e_rel_arr maps rr in the range [0, 0.90] to E_rel in steps of 0.01.
+! de_rel_arr is the derivative of e_rel_arr
+! Use a cubic spline fit.
+! Note: all the arrays are paded with an extra value to prevent
+! array out of bounds problems due to rounding.
+
+if (present(r_in)) then
+  rr = r_in
+else
+  call ran_uniform(rr)
+endif
+
+if (rr < 0  .or. rr > 1) then
+  print *, 'ERROR: RR IS OUT OF RANGE: ', rr
+  stop
+endif
+
+! If in range of [0, 0.90]:
+
+
+end subroutine
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
+! Subroutine photon_energy_init2 (E_rel, r_in)
+!
+! Routine to convert a random number in the interval [0,1] to a photon energy.
+! The photon probability spectrum is:
+!   P(E_rel) = 0.1909859 * Integral_{E_rel}^{Infty} K_{5/3}(x) dx
+! Where
+!   E_rel = Relative photon energy: E / E_crit, E_crit = Critical energy.
+!   K_{5/3} = Modified Bessel function.
+! There is a cut-off built into the calculation so that E_rel will be in the 
+! range [0, 16]
+!
+! Module needed:
+!   use photon_init_mod
+!
+! Input:
+!   r_in  -- Real(rp), optional: Number in the range [0,1].
+!             If not present, a random number will be used.
+!
+! Output:
+!   E_rel -- Real(rp): Relative photon energy E/E_crit. 
+!-
+
+subroutine photon_energy_init2 (E_rel, r_in)
+
+implicit none
+
+real(rp) E_rel
+real(rp), optional :: r_in
+real(rp) a, b2, t, rr, r, r_rel
+
 real(rp), parameter :: f2(0:100) = (/ &
               0.0, 5.35337e-7, 4.28341e-6, 0.0000144605, &
               0.0000342902, 0.0000670066, 0.000115858, 0.000184113, 0.000275057, &

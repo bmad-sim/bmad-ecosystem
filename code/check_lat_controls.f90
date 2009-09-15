@@ -131,7 +131,7 @@ do i_b = 0, ubound(lat%branch, 1)
     ! can have one zero and the other non-zero.
 
     if (ele%key == sbend$ .and. l_stat == multipass_lord$) then
-      if (ele%value(p0c$) == 0 .and. ele%value(e_tot$) == 0) then
+      if (ele%value(p0c$) == 0 .and. ele%value(e_tot$) == 0 .and. ele%value(n_ref_pass$) == 0) then
         call out_io (s_fatal$, r_name, &
                   'BEND: ' // ele%name, &
                   'WHICH IS A: MULTIPASS_LORD', &
@@ -151,7 +151,8 @@ do i_b = 0, ubound(lat%branch, 1)
     !   1) Have field_master = True or
     !   2) Have a defined reference energy.
 
-    if (l_stat == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0) then
+    if (l_stat == multipass_lord$ .and. .not. ele%field_master .and. ele%value(p0c$) == 0 .and. &
+        ele%value(e_tot$) == 0 .and. ele%value(n_ref_pass$) == 0) then
       select case (ele%key)
       case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
             hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
