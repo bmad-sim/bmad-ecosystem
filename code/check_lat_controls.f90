@@ -135,7 +135,7 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'BEND: ' // ele%name, &
                   'WHICH IS A: MULTIPASS_LORD', &
-                  'DOES NOT HAVE A REFERENCE ENERGY DEFINED')
+                  'DOES NOT HAVE A REFERENCE ENERGY OR N_REF_PASS DEFINED')
         found_err = .true.
       endif
       if (ele%ref_orbit == match_global_coords$ .and. ele%value(n_ref_pass$) /= 1) then
