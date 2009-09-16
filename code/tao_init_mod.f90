@@ -632,10 +632,10 @@ do
             d_typ == 's_position' .or. d_typ(1:2) == 't.' .or. &
             d_typ(1:3) == 'tt.') then
           datum(:)%ele_ref_name   = data(:)%ele0_name          
-          where (datum(:)%ele_ref_name == '' .and. datum(:)%ele_name /= '') &
-                                                       datum(:)%ele_ref_name = 'BEGINNING'
+          if (datum(i)%ele_ref_name == '' .and. datum(i)%ele_name /= '') &
+                                                       datum(i)%ele_ref_name = 'BEGINNING'
         else
-          datum(:)%ele_start_name = data(:)%ele0_name
+          datum(i)%ele_start_name = data(i)%ele0_name
         endif
       enddo
     endif

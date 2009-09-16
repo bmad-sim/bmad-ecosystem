@@ -29,14 +29,23 @@ subroutine tao_open_file (logical_dir, file_name, iunit, full_file_name, print_f
   logical valid
   logical, optional :: print_failure
 
-! open file
+  ! A blank file name does not give an open error so we check for this explicitly.
+
+  if (file_name == "") then
+    iunit = 0
+    if (logic_option(.true., print_failure)) then
+      call out_io (s_error$, r_name, 'Blank file name')
+    endif
+    return
+  endif
+
+  ! open file
 
   iunit = lunget()
   full_file_name = file_name
-  open (iunit, file = full_file_name, status = 'old', action = 'READ', &
-                                                       iostat = ios)
+  open (iunit, file = full_file_name, status = 'old', action = 'READ', iostat = ios)
 
-! If we cannot open a file then try the the logical_dir 
+  ! If we cannot open a file then try the the logical_dir 
 
   if (ios /= 0) then
 
