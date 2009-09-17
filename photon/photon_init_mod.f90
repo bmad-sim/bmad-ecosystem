@@ -211,10 +211,10 @@ end function
 !   E_rel     = Relative photon energy: E / E_crit, E_crit = Critical energy.
 !   K_{5/3}   = Modified Bessel function.
 ! There is a cut-off built into the calculation so that E_rel will be in the 
-! range [0, 20]. 
+! range [0, ~17]. The error in neglecting photons with E_rel > ~17 is very small. 
 ! If r_in is given: 
 !   r_in = 0 => E_rel = 0 
-!   r_in = 1 => E_rel = 20
+!   r_in = 1 => E_rel = ~17
 !
 ! Module needed:
 !   use photon_init_mod
