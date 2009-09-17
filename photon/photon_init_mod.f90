@@ -227,212 +227,139 @@ subroutine photon_energy_init (E_rel, r_in)
 
 implicit none
 
+! An init_spectrum_struct holds a spline fit of E_rel vs integrated probability
+! over a certain range. The spline is of the form:
+!   e_rel = c0 + c1 * r + cn * r^n
+
+type init_spectrum_struct
+  real(rp) del_p
+  real(rp) p_max
+  real(rp), allocatable :: c0(:), c1(:), cn(:), n(:) ! Spline fit coefs.
+end type
+
+type (init_spectrum_struct), save :: spec(4)
+
 real(rp) E_rel
 real(rp), optional :: r_in
-real(rp) a, b2, t, rr, r, r_rel
+real(rp) a, b2, t, rr, r, r_rel, b, c, rr0
 
-real(rp), parameter :: e_rel_arr(0:91) = (/ &
-              0.0, 5.35337e-7, 4.28341e-6, 0.0000144605, &
-              0.0000342902, 0.0000670066, 0.000115858, 0.000184113, 0.000275057, &
-              0.000392008, 0.000538307, 0.000717333, 0.0009325, 0.00118727, &
-              0.00148513, 0.00182966, 0.00222445, 0.00267317, 0.00317957, &
-              0.00374744, 0.00438067, 0.00508322, 0.00585915, 0.0067126, &
-              0.00764782, 0.00866917, 0.00978112, 0.0109883, 0.0122954, 0.0137072, &
-              0.015229, 0.0168657, 0.0186228, 0.0205058, 0.0225205, 0.0246729, &
-              0.026969, 0.0294153, 0.0320186, 0.0347857, 0.037724, 0.040841, &
-              0.0441446, 0.0476431, 0.0513452, 0.0552601, 0.0593972, 0.0637666, &
-              0.0683791, 0.0732456, 0.0783781, 0.083789, 0.0894916, 0.0954998, &
-              0.101829, 0.108494, 0.115512, 0.122902, 0.130682, 0.138874, 0.147499, &
-              0.156581, 0.166146, 0.176222, 0.186838, 0.198027, 0.209825, 0.22227, &
-              0.235404, 0.249273, 0.263928, 0.279426, 0.295827, 0.313201, 0.331625, &
-              0.351184, 0.371975, 0.394107, 0.417703, 0.442906, 0.469878, 0.498807, &
-              0.529911, 0.563449, 0.599724, 0.639103, 0.682028, 0.72904, 0.780816, &
-              0.83821, 0.902325, 0.974622 /)
+integer i, is
+
+logical, save :: init_needed = .true.
 
 
-integer i
-
-! e_rel_arr maps rr in the range [0, 0.90] to E_rel in steps of 0.01.
-! de_rel_arr is the derivative of e_rel_arr
-! Use a cubic spline fit.
 ! Note: all the arrays are paded with an extra value to prevent
 ! array out of bounds problems due to rounding.
 
 if (present(r_in)) then
   rr = r_in
+  if (rr < 0  .or. rr > 1) then
+    print *, 'ERROR: RR IS OUT OF RANGE: ', rr
+    stop
+  endif
 else
   call ran_uniform(rr)
 endif
 
-if (rr < 0  .or. rr > 1) then
-  print *, 'ERROR: RR IS OUT OF RANGE: ', rr
-  stop
+! Init
+
+if (init_needed) then
+
+  spec(:)%del_p = (/ 0.02, 0.01, 0.001, 0.0001 /)
+  spec(:)%p_max = (/ 0.8, 0.99, 0.999, 0.9999 /)
+
+  allocate (spec(1)%c0(0:41), spec(1)%c1(0:41), spec(1)%cn(0:41), spec(1)%n(0:41))
+  allocate (spec(2)%c0(0:20), spec(2)%c1(0:20), spec(2)%cn(0:20), spec(2)%n(0:20))
+  allocate (spec(3)%c0(0:10), spec(3)%c1(0:10), spec(3)%cn(0:10), spec(3)%n(0:10))
+  allocate (spec(4)%c0(0:10), spec(4)%c1(0:10), spec(4)%cn(0:10), spec(4)%n(0:10))
+
+  spec(1)%c0(:) = (/ 0.0, &
+              4.28341e-6, 0.0000342902, 0.000115858, &
+              0.000275057, 0.000538307, 0.0009325, 0.00148513, 0.00222445, &
+              0.00317957, 0.00438067, 0.00585915, 0.00764782, 0.00978112, &
+              0.0122954, 0.015229, 0.0186228, 0.0225205, 0.026969, 0.0320186, &
+              0.037724, 0.0441446, 0.0513452, 0.0593972, 0.0683791, 0.0783781, &
+              0.0894916, 0.101829, 0.115512, 0.130682, 0.147499, 0.166146, &
+              0.186838, 0.209825, 0.235404, 0.263928, 0.295827, 0.331625, 0.371975, &
+              0.417703, 0.469878, 0.0 /)
+
+  spec(1)%c1(:) = (/ 0.0, & 
+              0.000642606, 0.00257329, 0.00580068, 0.0103393, 0.0162097, 0.0234387, &
+              0.0320599, 0.042114, 0.0536493, 0.0667223, 0.081399, 0.097755, &
+              0.115877, 0.135866, 0.157835, 0.181913, 0.20825, 0.237015, 0.268401, &
+              0.302633, 0.339965, 0.380692, 0.425158, 0.473758, 0.526956, 0.585298, &
+              0.649425, 0.720102, 0.798242, 0.884947, 0.981556, 1.08971, 1.21146, &
+              1.34935, 1.50665, 1.68757, 1.89762, 2.1442, 2.43746, 2.79164, 0.0 /)
+
+  spec(2)%c0(:) = (/ &
+              0.469878, 0.498807, 0.529911, 0.563449, 0.599724, 0.639103, 0.682028, &
+              0.72904, 0.780816, 0.83821, 0.902325, 0.974622, 1.05709, 1.15252, 1.26503, &
+              1.40105, 1.57139, 1.79651, 2.12271, 2.69945, 0.0 /)
+
+  spec(2)%c1(:) = (/ & 
+              2.79164, 2.9977, 3.22744, 3.48512, 3.77607, 4.10707, 4.48684, 4.92685, &
+              5.44242, 6.05453, 6.79263, 7.69945, 8.83931, 10.3137, 12.2927, 15.0837, &
+              19.3053, 26.4104, 40.7923, 84.6624, 0.0 /)
+
+  spec(3)%c0(:) = (/ &
+              2.69945, 2.78886, 2.88928, 3.0037, 3.13651, 3.29451, 3.48916, 3.742, &
+              4.10159, 4.72378, 0.0 /)
+
+  spec(3)%c1(:) = (/ & 
+              84.6624, 94.5006, 106.83, 122.726, 143.986, 173.851, 218.823, 294.119, &
+              445.575, 903.65, 0.0 /)
+
+  spec(4)%c0(:) = (/ &
+              4.72378, 4.81908, 4.92582, 5.04708, 5.18739, 5.35376, 5.55797, 5.82214, &
+              6.19606, 6.83908, 0.0 /)
+
+  spec(4)%c1(:) = (/ & 
+              903.65, 1005.91, 1133.9, 1298.7, 1518.78, 1827.44, 2291.39, 3066.54, 4621.7, &
+              9308.58, 0.0 /)
+
+  ! Fill in rest of the spline fit coefs
+
+  do is = 1, 4
+    spec(is)%c1(:) = spec(is)%c1(:) * spec(is)%del_p
+    do i = 0, ubound(spec(is)%c0, 1) - 1
+      spec(is)%n(i) = (spec(is)%c1(i+1) - spec(is)%c1(i)) / &
+                            (spec(is)%c0(i+1) -spec(is)%c0(i) - spec(is)%c1(i))
+      spec(is)%cn(i) = spec(is)%c0(i+1) - spec(is)%c0(i) - spec(is)%c1(i)
+    enddo
+  enddo
+
+  ! In the range above rr = 0.9999: This is such a small part of the spectrum a crude
+  ! approximation is use here of the form a + b / (c-rr)
+  ! Want to match to the spline fits at rr = 0.9999
+
+  c = 1 + 1e-5
+  rr0 = 0.9999
+  b = 9308.58 * (c - rr0)**2
+  a = 6.83908 - b / (c - rr0)
+
+  init_needed = .false.
 endif
 
-! If in range of [0, 0.90]:
+! If in range of [0, 0.9999]: Use one of the four spline fits.
 
+do is = 1, 4
+  if (rr > spec(is)%p_max) cycle
+  if (is == 1) then
+    r_rel = rr / spec(is)%del_p
+  else
+    r_rel = (rr - spec(is-1)%p_max) / spec(is)%del_p
+  endif
+  i = int(r_rel)
+  r = r_rel - i
+  E_rel = spec(is)%c0(i) + spec(is)%c1(i) * r + spec(is)%cn(i) * r**spec(is)%n(i)
+  return
+enddo
+
+! In the range above rr = 0.9999: This is such a small part of the spectrum a crude
+! approximation is use here of the form a + b / (c-rr)
+
+E_rel = a + b / (c-rr)
 
 end subroutine
-
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-!+
-! Subroutine photon_energy_init2 (E_rel, r_in)
-!
-! Routine to convert a random number in the interval [0,1] to a photon energy.
-! The photon probability spectrum is:
-!   P(E_rel) = 0.1909859 * Integral_{E_rel}^{Infty} K_{5/3}(x) dx
-! Where
-!   E_rel = Relative photon energy: E / E_crit, E_crit = Critical energy.
-!   K_{5/3} = Modified Bessel function.
-! There is a cut-off built into the calculation so that E_rel will be in the 
-! range [0, 16]
-!
-! Module needed:
-!   use photon_init_mod
-!
-! Input:
-!   r_in  -- Real(rp), optional: Number in the range [0,1].
-!             If not present, a random number will be used.
-!
-! Output:
-!   E_rel -- Real(rp): Relative photon energy E/E_crit. 
-!-
-
-subroutine photon_energy_init2 (E_rel, r_in)
-
-implicit none
-
-real(rp) E_rel
-real(rp), optional :: r_in
-real(rp) a, b2, t, rr, r, r_rel
-
-real(rp), parameter :: f2(0:100) = (/ &
-              0.0, 5.35337e-7, 4.28341e-6, 0.0000144605, &
-              0.0000342902, 0.0000670066, 0.000115858, 0.000184113, 0.000275057, &
-              0.000392008, 0.000538307, 0.000717333, 0.0009325, 0.00118727, &
-              0.00148513, 0.00182966, 0.00222445, 0.00267317, 0.00317957, &
-              0.00374744, 0.00438067, 0.00508322, 0.00585915, 0.0067126, &
-              0.00764782, 0.00866917, 0.00978112, 0.0109883, 0.0122954, 0.0137072, &
-              0.015229, 0.0168657, 0.0186228, 0.0205058, 0.0225205, 0.0246729, &
-              0.026969, 0.0294153, 0.0320186, 0.0347857, 0.037724, 0.040841, &
-              0.0441446, 0.0476431, 0.0513452, 0.0552601, 0.0593972, 0.0637666, &
-              0.0683791, 0.0732456, 0.0783781, 0.083789, 0.0894916, 0.0954998, &
-              0.101829, 0.108494, 0.115512, 0.122902, 0.130682, 0.138874, 0.147499, &
-              0.156581, 0.166146, 0.176222, 0.186838, 0.198027, 0.209825, 0.22227, &
-              0.235404, 0.249273, 0.263928, 0.279426, 0.295827, 0.313201, 0.331625, &
-              0.351184, 0.371975, 0.394107, 0.417703, 0.442906, 0.469878, 0.498807, &
-              0.529911, 0.563449, 0.599724, 0.639103, 0.682028, 0.72904, 0.780816, &
-              0.83821, 0.902325, 0.974622, 1.05709, 1.15252, 1.26503, 1.40105, &
-              1.57139, 1.79651, 2.12271, 2.69945, 0.0 /)
-
-real(rp), parameter :: f3(0:10) = (/ 2.69945, 2.78886, 2.88928, 3.0037, &
-                    3.13651, 3.29451, 3.48916, 3.742, 4.10159, 4.72378, 0.0 /)
-
-real(rp), parameter :: f4(0:10) = (/ 4.72378, 4.81908, 4.92582, 5.04708, &
-                    5.18739, 5.35376, 5.55797, 5.82214, 6.19606, 6.83908, 0.0 /)
-
-real(rp), parameter :: f5(0:10) = (/ 6.83908, 6.93721, 7.04701, 7.17163, &
-                    7.31567, 7.48627, 7.6954, 7.96553, 8.34717, 9.00187, 0.0 /)
-
-real(rp), parameter :: f6(0:10) = (/ 9.00187, 9.10162, 9.2132, 9.33978, &
-                    9.48601, 9.65912, 9.87119, 10.1449, 10.5313, 11.1934, 0.0 /)
-
-real(rp), parameter :: f7(0:11) = (/ 11.1934, 11.2942, 11.4069, 11.5347, &
-                    11.6823, 11.8571, 18.7481, 12.3472, 12.7366, 13.4036, 16.0, 0.0 /)
-
-integer i
-
-! f2 maps rr in the range [0, 0.99] to E_rel in steps of 0.01.
-! f3 maps rr in the range [0.99, 0.999] to E_rel in steps of 0.001.
-! f4 maps rr in the range [0.999, 0.9999] to E_rel in steps of 0.0001.
-! f5 maps rr in the range [0.9999, 0.99999] to E_rel in steps of 0.00001.
-! f6 maps rr in the range [0.99999, 0.999999] to E_rel in steps of 1E-6.
-! f7 maps rr in the range [0.999999, 1.0] to E_rel in steps of 1E-7.
-! Things are smooth enough to use a simple linear interpolation.
-! Note: all the arrays are paded with an extra value to prevent
-! array out of bounds problems due to rounding.
-! The very last bin is a fudge but the width of this bin is 1e-7.
-
-if (present(r_in)) then
-  rr = r_in
-else
-  call ran_uniform(rr)
-endif
-
-if (rr < 0  .or. rr > 1) then
-  print *, 'ERROR: RR IS OUT OF RANGE: ', rr
-  stop
-endif
-
-! If in range of f2:
-
-r_rel = 100 * rr
-if (r_rel <= 99) then 
-  i = int(r_rel)
-  r = r_rel - i
-  E_rel = f2(i) * (1 - r) + f2(i+1) * r
-  return
-endif
-
-! If in f3:
-
-r_rel = 10 * r_rel - 990
-if (r_rel <= 9) then
-  i = int(r_rel)
-  if (i < 0) i = 0  ! to prevent array out of bounds problems
-  r = r_rel - i
-  E_rel = f3(i) * (1 - r) + f3(i+1) * r
-  return
-endif
- 
-! If in f4:
-
-r_rel = 10 * r_rel - 90
-if (r_rel <= 9) then
-  i = int(r_rel)
-  if (i < 0) i = 0  ! to prevent array out of bounds problems
-  r = r_rel - i
-  E_rel = f4(i) * (1 - r) + f4(i+1) * r
-  return
-endif
- 
-! If in f5:
-
-r_rel = 10 * r_rel - 90
-if (r_rel <= 9) then
-  i = int(r_rel)
-  if (i < 0) i = 0  ! to prevent array out of bounds problems
-  r = r_rel - i
-  E_rel = f5(i) * (1 - r) + f5(i+1) * r
-  return
-endif
- 
-! If in f6:
-
-r_rel = 10 * r_rel - 90
-if (r_rel <= 9) then
-  i = int(r_rel)
-  if (i < 0) i = 0  ! to prevent array out of bounds problems
-  r = r_rel - i
-  E_rel = f6(i) * (1 - r) + f6(i+1) * r
-  return
-endif
- 
-! Must be in f7:
-
-r_rel = 10 * r_rel - 90
-i = int(r_rel)
-if (i < 0) i = 0  ! to prevent array out of bounds problems
-r = r_rel - i
-E_rel = f7(i) * (1 - r) + f7(i+1) * r
- 
-end subroutine
-
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------
-
 
 end module
