@@ -450,7 +450,8 @@ ele_loop: do ie = 1, lat%n_ele_max
   if (ele%field_calc /= bmad_standard$) line = trim(line) // &
               ', field_calc = ' // calc_method_name(ele%field_calc)
   if (ele%symplectify) line = trim(line) // ', symplectify'
-  if (ele%field_master) line = trim(line) // ', field_master = True'
+  if (attribute_index(ele, 'FIELD_MASTER') /= 0 .and. ele%field_master) &
+              line = trim(line) // ', field_master = True'
   if (.not. ele%is_on) line = trim(line) // ', is_on = False'
   if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
   if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'

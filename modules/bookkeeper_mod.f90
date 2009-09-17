@@ -423,11 +423,12 @@ if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
 endif
 
 ! A slave's field_master = T irregardless of the lord's setting.
+! This is to make attribute_bookkeeper compute the correct normalized field strength.
 
 slave%value(e_tot$) = slave_val(e_tot$)
 slave%value(p0c$)   = slave_val(p0c$)
 slave%value(n_ref_pass$)    = 0
-slave%field_master          = .true.
+if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 
 ! A match element with match_end$: Restore initial Twiss parameters (which
 ! are calculated in twiss_propagate1).

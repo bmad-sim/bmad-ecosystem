@@ -617,12 +617,13 @@ attrib_array(drift$, is_on$)         =  null_name$
 attrib_array(drift$, field_calc$)    = 'FIELD_CALC'
 attrib_array(drift$, field_master$)  = 'FIELD_MASTER'
 
-attrib_array(monitor$, l$)           = 'L'
-attrib_array(monitor$, x_offset$)    = 'X_OFFSET'
-attrib_array(monitor$, y_offset$)    = 'Y_OFFSET'
-attrib_array(monitor$, x_pitch$)     = 'X_PITCH'
-attrib_array(monitor$, y_pitch$)     = 'Y_PITCH'
-attrib_array(monitor$, tilt$)        = 'TILT'
+attrib_array(monitor$, l$)             = 'L'
+attrib_array(monitor$, x_offset$)      = 'X_OFFSET'
+attrib_array(monitor$, y_offset$)      = 'Y_OFFSET'
+attrib_array(monitor$, x_pitch$)       = 'X_PITCH'
+attrib_array(monitor$, y_pitch$)       = 'Y_PITCH'
+attrib_array(monitor$, tilt$)          = 'TILT'
+attrib_array(monitor$, field_master$)  = 'FIELD_MASTER'
 
 attrib_array(instrument$, :) = attrib_array(monitor$, :)
 attrib_array(pipe$, :)       = attrib_array(monitor$, :)
