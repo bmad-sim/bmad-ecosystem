@@ -1387,7 +1387,6 @@ if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
   if (present(orbit)) call data_calc (ix_ele, datum, lat, orbit)
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(loc_ele%ix_ele))
-  datum%ix_ele_merit = ix_ele
   valid_value = .true.
   return
 endif
