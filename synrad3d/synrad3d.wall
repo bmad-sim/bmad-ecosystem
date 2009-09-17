@@ -1,0 +1,13 @@
+! format is:
+!		wall_pt(n) = z, shape, x_half_width, y_half_height
+!
+! Notes:
+!   For wall_pt(1): z must be 0.
+!		At the last point, the actual lattice length will be substituted for  z.
+!		Possible shapes: 'elliptical', 'rectangular'
+
+&synrad3d_wall
+   n_wall_pt_max = 1
+   wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
+   wall_pt(1) = 0.0, 'rectangular', 0.06, 0.03 
+/

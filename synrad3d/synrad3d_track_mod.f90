@@ -92,7 +92,7 @@ do
       synrad3d_params%ds_track_step_max * v_rad_max) then
     dlen = synrad3d_params%ds_track_step_max / abs(vec(6))
   else
-    dlen = synrad3d_params%ds_track_step_max / v_rad_max
+    dlen = synrad3d_params%dr_track_step_max / v_rad_max
   endif
 
   call propagate_photon_a_step (photon, dlen, lat, wall, .true.)
@@ -409,7 +409,7 @@ end subroutine
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_wall_reflect (photon, wall, adsorbed)
+! Subroutine reflect_photon (photon, wall, adsorbed)
 !
 ! Routine to reflect a photon off of the wall.
 !-

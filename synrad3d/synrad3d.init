@@ -1,0 +1,16 @@
+&synrad3d_parameters
+  ix_ele_track_start = 110 ! Radiation is produced from the *exit* end of this element...
+  ix_ele_track_end   = 130 !  ... to the exit end of this element. If = -1 -> Go to the end of the lattice
+  photon_direction = 1     ! 1 = Forward generation, -1 = Backward generation.
+  num_photons      = 100   ! Total number of photons generated. 
+  ds_step_min      = 0.01  ! Photons are generated at discrete points. 
+                           ! Multipole photons can be generated at each point.
+                           ! This is minimum distance between points.
+  emit_a           = 0     ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
+  emit_b           = 0     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
+  sig_e            = 0     ! Sig_E/E. If < 0 -> Use value from radiation integral calc.
+
+  lattice_file     = '../test_lat/bmad_L9A18A000-_MOVEREC.lat                        ' 
+  wall_file        = 'synrad3d.wall'                          ! File specifying the vacuum chamber wall
+  dat_file         = 'synrad3d.dat'
+/
