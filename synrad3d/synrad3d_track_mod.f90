@@ -409,12 +409,12 @@ end subroutine
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine reflect_photon (photon, wall, adsorbed)
+! Subroutine reflect_photon (photon, wall, absorbed)
 !
 ! Routine to reflect a photon off of the wall.
 !-
 
-subroutine reflect_photon (photon, wall, adsorbed)
+subroutine reflect_photon (photon, wall, absorbed)
 
 implicit none
 
@@ -429,7 +429,14 @@ real(rp), pointer :: vec(:)
 
 integer ix
 
-logical adsorbed
+logical absorbed
+
+! Check if reflections allowed
+
+if (.not. synrad3d_params%allow_reflections) then
+  absorbed = .true.
+  return
+endif
 
 ! Get the wall index for this section of the lattice
 
@@ -513,7 +520,7 @@ vec(4) = dot_parallel * dy_parallel - dot_perp * dy_perp
 graze_angle = pi - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
 call photon_reflectivity (vec(6), graze_angle, reflectivity)
 call ran_uniform(r)
-adsorbed = (r > reflectivity)
+absorbed = (r > reflectivity)
 
 end subroutine
 

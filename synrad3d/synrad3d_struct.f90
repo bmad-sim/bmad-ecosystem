@@ -42,6 +42,7 @@ end type
 type synrad3d_params_struct
   real(rp) :: ds_track_step_max = 3
   real(rp) :: dr_track_step_max = 0.1
+  logical :: allow_reflections = .true.
 end type
 
 type (synrad3d_params_struct) synrad3d_params
