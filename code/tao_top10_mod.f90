@@ -457,7 +457,7 @@ do j = 1, n_max
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
   else
     nl=nl+1; write (line(nl), fmt) con(i)%d2_d1_name(1:n_d2_d1_name), &
-            con(i)%name(1:n_name), con(i)%loc_start(1:n_loc_ref), &
+            con(i)%name(1:n_name), con(i)%loc_ref(1:n_loc_ref), &
             con(i)%loc_start(1:n_loc_start), con(i)%loc_ele(1:n_loc_ele), con(i)%target_value, &
             con(i)%actual_value, con(i)%merit, con(i)%max_loc
   endif
