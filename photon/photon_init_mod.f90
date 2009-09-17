@@ -207,16 +207,20 @@ end function
 ! The photon probability spectrum is:
 !   P(E_rel) = 0.1909859 * Integral_{E_rel}^{Infty} K_{5/3}(x) dx
 ! Where
-!   E_rel = Relative photon energy: E / E_crit, E_crit = Critical energy.
-!   K_{5/3} = Modified Bessel function.
+!   P(E_rel)) = Probability of finding a photon at relative energy E_rel.
+!   E_rel     = Relative photon energy: E / E_crit, E_crit = Critical energy.
+!   K_{5/3}   = Modified Bessel function.
 ! There is a cut-off built into the calculation so that E_rel will be in the 
-! range [0, 16]
+! range [0, 20]. 
+! If r_in is given: 
+!   r_in = 0 => E_rel = 0 
+!   r_in = 1 => E_rel = 20
 !
 ! Module needed:
 !   use photon_init_mod
 !
 ! Input:
-!   r_in  -- Real(rp), optional: Number in the range [0,1].
+!   r_in  -- Real(rp), optional: Integrated probability in the range [0,1].
 !             If not present, a random number will be used.
 !
 ! Output:
@@ -227,29 +231,35 @@ subroutine photon_energy_init (E_rel, r_in)
 
 implicit none
 
-! An init_spectrum_struct holds a spline fit of E_rel vs integrated probability
-! over a certain range. The spline is of the form:
-!   e_rel = c0 + c1 * r + cn * r^n
+! An init_spectrum_struct holds an array of spline fits of E_rel vs integrated probability
+! over a certain range. Each spline section is fit to the form:
+!   e_rel = c0 + c1 * x + cn * x^n
+! where x is in the range [0, 1].
+!   x = 0 at the start of the spline section.
+!   x = 1 at the end of the spline section.
 
 type init_spectrum_struct
-  real(rp) del_p
-  real(rp) p_max
+  real(rp) del_p    ! Spacing between integrated probability points.
+  real(rp) p_max    ! Upper bound of Region of validity of this spline fit.
+                    ! The lower bound is given by the upper bound of the previos struct.
   real(rp), allocatable :: c0(:), c1(:), cn(:), n(:) ! Spline fit coefs.
 end type
 
-type (init_spectrum_struct), save :: spec(4)
+! Four spline fit arrays are used. 
+! Each fit array has a different del_p and range of validity.
+
+type (init_spectrum_struct), save :: spec(4)  
 
 real(rp) E_rel
 real(rp), optional :: r_in
-real(rp) a, b2, t, rr, r, r_rel, b, c, rr0
+real(rp) rr, x, r_rel, rr0
+real(rp), save :: a, b, c
 
-integer i, is
+integer i, is, ns
 
 logical, save :: init_needed = .true.
 
-
-! Note: all the arrays are paded with an extra value to prevent
-! array out of bounds problems due to rounding.
+! Check for r_in
 
 if (present(r_in)) then
   rr = r_in
@@ -261,17 +271,18 @@ else
   call ran_uniform(rr)
 endif
 
-! Init
+! Init. 
+! The values for c0 and c1 were obtained from a Mathematica calculation.
 
 if (init_needed) then
 
   spec(:)%del_p = (/ 0.02, 0.01, 0.001, 0.0001 /)
   spec(:)%p_max = (/ 0.8, 0.99, 0.999, 0.9999 /)
 
-  allocate (spec(1)%c0(0:41), spec(1)%c1(0:41), spec(1)%cn(0:41), spec(1)%n(0:41))
-  allocate (spec(2)%c0(0:20), spec(2)%c1(0:20), spec(2)%cn(0:20), spec(2)%n(0:20))
-  allocate (spec(3)%c0(0:10), spec(3)%c1(0:10), spec(3)%cn(0:10), spec(3)%n(0:10))
-  allocate (spec(4)%c0(0:10), spec(4)%c1(0:10), spec(4)%cn(0:10), spec(4)%n(0:10))
+  allocate (spec(1)%c0(0:40), spec(1)%c1(0:40), spec(1)%cn(0:40), spec(1)%n(0:40))
+  allocate (spec(2)%c0(0:19), spec(2)%c1(0:19), spec(2)%cn(0:19), spec(2)%n(0:19))
+  allocate (spec(3)%c0(0:9), spec(3)%c1(0:9), spec(3)%cn(0:9), spec(3)%n(0:9))
+  allocate (spec(4)%c0(0:9), spec(4)%c1(0:9), spec(4)%cn(0:9), spec(4)%n(0:9))
 
   spec(1)%c0(:) = (/ 0.0, &
               4.28341e-6, 0.0000342902, 0.000115858, &
@@ -281,7 +292,7 @@ if (init_needed) then
               0.037724, 0.0441446, 0.0513452, 0.0593972, 0.0683791, 0.0783781, &
               0.0894916, 0.101829, 0.115512, 0.130682, 0.147499, 0.166146, &
               0.186838, 0.209825, 0.235404, 0.263928, 0.295827, 0.331625, 0.371975, &
-              0.417703, 0.469878, 0.0 /)
+              0.417703, 0.469878 /)
 
   spec(1)%c1(:) = (/ 0.0, & 
               0.000642606, 0.00257329, 0.00580068, 0.0103393, 0.0162097, 0.0234387, &
@@ -289,43 +300,46 @@ if (init_needed) then
               0.115877, 0.135866, 0.157835, 0.181913, 0.20825, 0.237015, 0.268401, &
               0.302633, 0.339965, 0.380692, 0.425158, 0.473758, 0.526956, 0.585298, &
               0.649425, 0.720102, 0.798242, 0.884947, 0.981556, 1.08971, 1.21146, &
-              1.34935, 1.50665, 1.68757, 1.89762, 2.1442, 2.43746, 2.79164, 0.0 /)
+              1.34935, 1.50665, 1.68757, 1.89762, 2.1442, 2.43746, 2.79164 /)
 
   spec(2)%c0(:) = (/ &
               0.469878, 0.498807, 0.529911, 0.563449, 0.599724, 0.639103, 0.682028, &
               0.72904, 0.780816, 0.83821, 0.902325, 0.974622, 1.05709, 1.15252, 1.26503, &
-              1.40105, 1.57139, 1.79651, 2.12271, 2.69945, 0.0 /)
+              1.40105, 1.57139, 1.79651, 2.12271, 2.69945 /)
 
   spec(2)%c1(:) = (/ & 
               2.79164, 2.9977, 3.22744, 3.48512, 3.77607, 4.10707, 4.48684, 4.92685, &
               5.44242, 6.05453, 6.79263, 7.69945, 8.83931, 10.3137, 12.2927, 15.0837, &
-              19.3053, 26.4104, 40.7923, 84.6624, 0.0 /)
+              19.3053, 26.4104, 40.7923, 84.6624 /)
 
   spec(3)%c0(:) = (/ &
               2.69945, 2.78886, 2.88928, 3.0037, 3.13651, 3.29451, 3.48916, 3.742, &
-              4.10159, 4.72378, 0.0 /)
+              4.10159, 4.72378 /)
 
   spec(3)%c1(:) = (/ & 
               84.6624, 94.5006, 106.83, 122.726, 143.986, 173.851, 218.823, 294.119, &
-              445.575, 903.65, 0.0 /)
+              445.575, 903.65 /)
 
   spec(4)%c0(:) = (/ &
               4.72378, 4.81908, 4.92582, 5.04708, 5.18739, 5.35376, 5.55797, 5.82214, &
-              6.19606, 6.83908, 0.0 /)
+              6.19606, 6.83908 /)
 
   spec(4)%c1(:) = (/ & 
               903.65, 1005.91, 1133.9, 1298.7, 1518.78, 1827.44, 2291.39, 3066.54, 4621.7, &
-              9308.58, 0.0 /)
+              9308.58 /)
 
-  ! Fill in rest of the spline fit coefs
+  ! Fill in rest of the spline fit coefs.
 
   do is = 1, 4
     spec(is)%c1(:) = spec(is)%c1(:) * spec(is)%del_p
-    do i = 0, ubound(spec(is)%c0, 1) - 1
+    ns = ubound(spec(is)%c0, 1) 
+    do i = 0, ns-1
       spec(is)%n(i) = (spec(is)%c1(i+1) - spec(is)%c1(i)) / &
                             (spec(is)%c0(i+1) -spec(is)%c0(i) - spec(is)%c1(i))
       spec(is)%cn(i) = spec(is)%c0(i+1) - spec(is)%c0(i) - spec(is)%c1(i)
     enddo
+    spec(is)%n(ns)  = 0  ! Need to set this due to roundoff errors
+    spec(is)%cn(ns) = 0  ! Need to set this due to roundoff errors
   enddo
 
   ! In the range above rr = 0.9999: This is such a small part of the spectrum a crude
@@ -349,9 +363,9 @@ do is = 1, 4
   else
     r_rel = (rr - spec(is-1)%p_max) / spec(is)%del_p
   endif
-  i = int(r_rel)
-  r = r_rel - i
-  E_rel = spec(is)%c0(i) + spec(is)%c1(i) * r + spec(is)%cn(i) * r**spec(is)%n(i)
+  i = int(r_rel)   ! Index of which spline section to use.
+  x = r_rel - i    ! Notice that x will be in the range [0, 1].
+  E_rel = spec(is)%c0(i) + spec(is)%c1(i) * x + spec(is)%cn(i) * x**spec(is)%n(i)
   return
 enddo
 
