@@ -165,7 +165,8 @@ are used).  This namelist contains the variables:
     lattice_file      = "<file_name>"  ! Default = Initialization file.
     data_file         = "<file_name>"  ! Default = Initialization file.
     var_file          = "<file_name>"  ! Default = Initialization file.
-    plot_file         = "<file_name1> \{<file_name2>\} ..."  ! Default = Initialization file.
+    plot_file         = "<file_name1> \{<file_name2>\} ..."  
+                                       ! Default = Initialization file.
     single_mode_file  = "<file_name>"  ! Default = Initialization file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
     init_name         = "<init_name>"  ! Default = "Tao"
@@ -375,7 +376,8 @@ type tao_global_struct
   logical lattice_calc_on = T           ! Master switch.
   logical command_file_print_on = T     ! Toggle printing when using a command file.
   logical beam_timer_on = F             ! For timing the beam tracking calculation.
-  logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit with optimization.
+  logical optimizer_var_limit_warn = T  ! Warn when variabless reach a limit when
+                                        !   optimizing.
 end type
 \end{example}
 
@@ -585,10 +587,10 @@ The syntax is as follows:
   &tao_beam_init
     ix_universe             = <integer>
     beam0_file              = <string>       ! File used in place of beam_init.
-    beam_all_file           = <string>       ! Data file used in place of beam tracking.
+    beam_all_file           = <string>       ! File used in place of beam tracking.
     save_beam_at(:)         = <element list> ! List of 
-    ix_track_start          = <integer>      ! Lattice element index to start tracking.
-    ix_track_end            = <integer>      ! Lattice element index to end   tracking.
+    ix_track_start          = <integer>      ! Lattice element start tracking index.
+    ix_track_end            = <integer>      ! Lattice element end tracking index.
     beam_init%a_norm_emitt  = <number>       ! A-mode emittance
     beam_init%b_norm_emitt  = <number>       ! B-mode emittance
     beam_init%dPz_dZ        = <number>       ! Energy-Z correlation
@@ -603,7 +605,7 @@ The syntax is as follows:
     beam_init%renorm_center = <logical>      ! Default is T
     beam_init%renorm_sigma  = <logical>      ! Default is F
     beam_init%center_jitter = <number>*6     ! Bunch center rms jitter (meters)
-    beam_init%emitt_jitter  = <bumber>*2     ! Emittance rms jitter (depsilon/epsilon)
+    beam_init%emitt_jitter  = <bumber>*2     ! Emittance rms jitter (\(d\epsilon/\epsilon\))
     beam_init%sig_z_jitter  = <number>       ! bunch length rms jitter (dz/z)
     beam_init%sig_e_jitter  = <number>       ! bunch energy spread rms jitter (dE/E)
     beam_init%spin%polarization = <number>   ! spin polarization (1.0 = 100%)
@@ -795,7 +797,8 @@ format for this is
     ix_max_var           = <integer>           ! Maximum array index.
     var(i)%ele_name      = "<ele_name>"        ! Element to be controlled.
     var(i)%attribute     = "<attrib_name>"     ! Attribute to be controlled.
-    var(i)%universe      = "<integer>"         ! Universe to be controlled. "*" => All.
+    var(i)%universe      = "<integer>"         ! Universe containing variable to 
+                                               !    be controlled. "*" => All.
     var(i)%weight        = <number>            ! Merit function weight.
     var(i)%step          = <number>            ! Small step size.
     var(i)%low_lim       = <number>            ! Lower variable value limit
@@ -847,7 +850,7 @@ For example:
 \begin{example}
   var(10)%universe = "2, 3"
 \end{example}
-If \vn{var(i)%universe} is not present or is blank,
+If \vn{var(i)%universe} is not present, or is blank, the value of
 \vn{default_universe} is used instead. If both \vn{var(i)%universe} and
 \vn{default_universe} are not present or blank then all universes are assumed.
 In addition to a number (or numbers), 
@@ -1010,20 +1013,22 @@ structure. For each \vn{n_d1_data} structure there must be a
     search_for_lat_eles    = "<class:name>"     ! Find elements by name.
     d1_data%name           = "<d1_name>"        ! d1_data name.
     default_data_type      = <type_name>        ! Eg: orbit.x, e_tot, etc...
-    default_weight         = <number>           ! Merit function weight. Default = 0.0
-    default_data_source    = "<source>"         ! "lattice", or "beam". Default is "lattice".
+    default_weight         = <number>           ! Merit function weight. 
+                                                !   Default = 0.0
+    default_data_source    = "<source>"         ! "lattice" (default), or "beam". 
     ix_min_data            = <integer>          ! Minimum array index.
     ix_max_data            = <integer>          ! Maximum array index.
     datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
-    datum(j)%ele_name       = "<ele_name>"       ! Lattice element names.
-    datum(j)%ele_start_name = "<ele_start_name>" ! Start element names.
+    datum(j)%ele_name       = "<ele_name>"       ! Lattice element name.
+    datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
     datum(j)%ele_ref_name   = "<ele_ref_name>"   ! Reference element names.
     datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
     datum(j)%meas           = "<number>"         ! Datum "measured" value
     datum(j)%weight         = "<weight>"         ! Merit function weight.
     datum(j)%good_user      = Logical            ! Use for optimization and plotting?
     datum(j)%data_source    = "<source>"         ! "lattice", or "beam"
-    datum(j)%ix_bunch       = <integer>          ! Bunch index. Default = 0 (all bunches).
+    datum(j)%ix_bunch       = <integer>          ! Bunch index. 
+                                                 !   0 (default) = all bunches.
   /
 \end{example}
 For example:
@@ -1042,12 +1047,12 @@ Alternatively, one can specify a datum in a single line. For example,
   &tao_d1_data
     ix_d1_data        = 1 
     d1_data%name      = "t"  
-    !           data_      ele_ref_  ele_start_   ele_     merit_   meas_    weight good_
-    !           type       name      name         name     type     value           user
-    datum( 1) = "beta.a"   "S:12.3"   ""          "Q16_1"  "max"      30      0.1     T
-    datum( 2) = "phase.b"  "Q09_1"    "B22"       "Q16_1"  "max"      30      0.1     T
-    datum( 3) = "floor.x"  ""         ""          "end"    "target"    3      0.01    T       
-    datum( 4) = "floor.x"  "B1"       ""          "B2"     "target"    3      0.01    T       
+    !           data_      ele_ref   ele_start  ele     merit    meas   weight good
+    !           type       name      name       name    type     value         user
+    datum( 1) = "beta.a"   "S:12.3"   ""       "Q16_1"  "max"      30    0.1     T
+    datum( 2) = "phase.b"  "Q09_1"    "B22"    "Q16_1"  "max"      30    0.1     T
+    datum( 3) = "floor.x"  ""         ""       "end"    "target"    3    0.01    T       
+    datum( 4) = "floor.x"  "B1"       ""       "B2"     "target"    3    0.01    T       
     ... etc. ...
   /
 \end{example}
@@ -1217,7 +1222,7 @@ plots go. The syntax of this block is:
                                              !   Def = 40
     plot_page%n_curve_pts            = <num> ! Num points used to construct a 
                                              !   smooth curve. Def = 401
-    plot_page%box_plots              = <T/F> ! For debugging layout problems. Def = F.
+    plot_page%box_plots              = <T/F> ! For debugging. Def = F.
     region(i) = "<region_name>" <l_x1>, <l_x2>, <l_y1>, <l_y2>  ! % plot area
     place(i)  = "<region_name>", "<template_name>"
     default_plot%...                         ! See below.
@@ -1293,10 +1298,10 @@ Section~\sref{s:lat.layout} for more details.
 
 \vn{place(i)} determines the initial placement of plots.
 
-\vn{default_plot} set defaults for the \vn{plot} structure that is
-defined in the \vn{tao_template_plot} namelist (\sref{s:template}).
-Similarly, \vn{default_graph} sets defaults for the \vn{graph}
-structure defined in the \vn{tao_template_graph} namelist
+\vn{default_plot} sets the defaults for any \vn{plot}s
+defined in the \vn{tao_template_plot} namelists
+(\sref{s:template}). Similarly, \vn{default_graph} sets defaults for the
+\vn{graph} structure defined in the \vn{tao_template_graph} namelist
 (\sref{s:template}). In the example above, the default x-axis min and
 max are set to 100 and 200 respectively.
 
@@ -1928,7 +1933,7 @@ For Example:
     ele_shape(4) = "wiggler:*"       "xbox"    "green"   20     name
   /
 \end{example}
-A figure is drawn for each element in the lattice that matches a
+A figure is drawn for each lattice element in the lattice that matches a
 \vn{<class:name>} (\sref{s:class:name}) of any \vn{ele_shape(:)}.
 Thus, in the example above, \vn{ele_shape(1)} will match to all
 quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
@@ -1952,7 +1957,7 @@ drawn. Valid Shapes are:
 \end{example}
 The height of a \vn{var_height_box} is proportional to the element
 strength. For example, for a quadrupole the height is proportional to
-the \vn{K1} focusing strength. Not all elements can be used with a
+the \vn{K1} focusing strength. Not all lattice elements can be used with a
 \vn{var_height_box}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:

@@ -401,19 +401,22 @@ Format:
   output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
   output beam \{-ascii\} \{-at <element_name_or_index>\} \{<file_name>\} 
                                           ! Write beam distribution data.
-  output covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices from 
-                                          !   the Levenburg-Marquardt (lm) optimization.
+  output covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
+                                          !   from the Levenburg (lm) optimization.
   output curve <curve_name> \{<file_name>\} ! Write the curve data
   output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
   output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
   output gif \{<file_name>\}          ! create a gif file of the plot window.
   output hard                       ! Print the plot window to a printer.
   output hard-l                     ! Like "hard" except use landscape orientation. 
-  output mad8_lattice \{<file_name>\}  ! Write a MAD-8 lattice file of the model
-  output madx_lattice \{<file_name>\}  ! Write a MAD-X lattice file of the model
-  output ps \{-scale <scale>\} \{<file_name>\}      ! Create a postscript file of the plot window.
-  output ps-l \{-scale <scale>\} \{<file_name>\}    ! Like "ps" except use landscape orientation.
-  output variable \{-good_var_only\} \{<file_name>\} ! Write a Bmad file of variable values.
+  output mad8_lattice \{<file_name>\} ! Write a MAD-8 lattice file of the model
+  output madx_lattice \{<file_name>\} ! Write a MAD-X lattice file of the model
+  output ps \{-scale <scale>\} \{<file_name>\}      
+                                    ! Create a PS file of the plot window.
+  output ps-l \{-scale <scale>\} \{<file_name>\}    
+                                    ! Create a PS file with landscape orientation.
+  output variable \{-good_var_only\} \{<file_name>\} 
+                                    ! Create a Bmad file of variable values.
 \end{example}
 
 \vskip 0.2in 
@@ -749,7 +752,6 @@ in place of \vn{<data_name>} or \vn{var_name}.
 \begin{description}
 
 \item[set beam\_init \{n@\}<component> = <value>] \Newline
-
 For \vn{set beam_init}, the \vn{<component>}s that can be set can be
 found in section~\sref{s:beam.init}. The optional \vn{n@} allows the
 specification of the universe or universes the set is applied to. The
@@ -767,7 +769,6 @@ Examples:
 %% set curve --------------------------------------------------------------
 
 \item[set curve <curve> <component> = <value>] \Newline
-
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
   ele_ref_name      = <string>  ! Name of reference element
@@ -790,7 +791,6 @@ Examples:
 %% set data --------------------------------------------------------------
 
 \item[set data <data\_name>|<component> = <value>] \Newline
-
 For \vn{set data}, the \vn{<component>}s that can be set are:
 \begin{example}
   base        ! Base model value
@@ -821,7 +821,6 @@ Examples:
 %% set global --------------------------------------------------------------
 
 \item[set global <component> = <value>] \Newline
-
 For \vn{set global}: The \vn{show global} command will give a list of 
 \vn{<component>}s.
 
@@ -833,7 +832,6 @@ Example:
 %% set graph --------------------------------------------------------------
 
 \item[set graph <graph> <component> = <value>] \Newline
-
 For \vn{set graph}, the \vn{component}s that can be set are:
 \begin{example}
   component   = <string>
@@ -854,7 +852,6 @@ Example:
 %% set lattice --------------------------------------------------------------
 
 \item[set lattice \{n@\}<destination\_lat> = <source\_lat>] \Newline
-
 The \vn{set lattice} command transfers lattice parameters (element
 strengths, etc., etc.) from one lattice (the \vn{source} lattice) to
 another (the \vn{destination} lattice). Both lattices are restricted
@@ -880,15 +877,15 @@ The source lattice can be:
 
 Example:
 \begin{example}
-  set lattice *@model = design   ! Reset the model lattice to the design in all universes.
-  set lattice base = model       ! Set the base lattice to the model lattice in 
-                                 !   the currently viewed universe.
+  set lattice *@model = design  ! Set the model lattice to the design in 
+                                !   all universes.
+  set lattice base = model      ! Set the base lattice to the model lattice in 
+                                !   the currently viewed universe.
 \end{example}
 
 %% set plot --------------------------------------------------------------
 
 \item[set plot\_page <component> = <value1> \{<value2>\}] \Newline
-
 For \vn{set plot_page}, the \vn{<component>}s that can be set are:
 \begin{example}
   title        = <string>          ! Set the plot title text
@@ -910,7 +907,6 @@ Example:
         set universe <what\_universe> on/off \\ 
         set universe <what\_universe> recalculate \\
         set universe <what\_universe> mat6\_recalc on/off}] \Newline
-
 The \vn{set universe <what_universe> on/off} command will turn the
 specified universe(s) on or off. Turning a universe off is useful to
 speed up lattice calculations when this universe is not being
@@ -945,7 +941,6 @@ Example:
 %% set var --------------------------------------------------------------
 
 \item[set var <var\_name>|<component> = <value>] \Newline
-
 For \vn{set var}, the \vn{<component>}s that can be set are:
 \begin{example}
   model       ! Model lattice value.
@@ -1038,7 +1033,6 @@ Example:
 \begin{description}
 
 \item[show alias] \Newline
-
 Shows a list of defined aliases. See the \vn{alias} command for more
 details.
 
@@ -1056,13 +1050,11 @@ of the \vn{beam_init} structure.
 %% show constraints --------------------------------------------------------------
 
 \item[show constraints] \Newline
-
 Lists data and variable constraints.
 
 %% show curve --------------------------------------------------------------
 
 \item[show curve \{-symbol\} \{-line\} <curve\_name>] \Newline
-
 Show information on a particular curve of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.  Use
 \vn{show plot} to get a list of plot names. The \vn{-symbol} switch
@@ -1081,14 +1073,13 @@ for all curves so the horizontal data values will be put in column 1.
 
 Example:
 \begin{example}
-  show curve r2.g1.c3         ! Show the attributes of a curve named "c3" which is 
-                              !   in the graph "g1" which is plotted in region "r2".
+  show curve r2.g1.c3     ! Show the attributes of a curve named "c3" which is 
+                          !   in the graph "g1" which is plotted in region "r2".
 \end{example}
 
 %% show data --------------------------------------------------------------
 
 \item[show data \{<data\_name>\}] \Newline
-
 Shows data information. If \vn{<data_name>} is not
 present then a list of all \vn{d2_data} names is printed.
 
@@ -1101,7 +1092,7 @@ Examples:
   show data orbit.x           ! list all orbit.x data elements.
   show data orbit.x[35]       ! Show details for orbit.x element 35
   show data orbit.x[35,86:95] ! list orbit.x elements 35 and 86 through 95
-  show data orbit.x[1:100:5]  ! list every fifth orbit.x element between 1 and 100  
+  show data orbit.x[1:99:5]   ! list every fifth orbit.x between 1 and 99  
 \end{example}
 
 %% show derivative --------------------------------------------------------------
@@ -1119,7 +1110,6 @@ Example:
 
 \item[show element \{-taylor\} \{-wig\_terms\} \{-data\} 
                      \{-all\_attributes\} <name>] \Newline
-
 This shows information on lattice elements. \vn{<name>} is in
 \vn{Class:Name} syntax as explained in \sref{s:class:name}. If
 \vn{<name>} contains a wild card or a class name then a list of
@@ -1155,7 +1145,6 @@ Shows information on the global parameter structure (\sref{s:globals}).
 %% show graph --------------------------------------------------------------
 
 \item[show graph <graph\_name>] \Newline
-
 Show information on a particular graph of a particular plot. See
 \sref{s:plotting} for the syntax on plot, graph, and curve names.
 Use \vn{show plot} to get a list of plot names.
@@ -1169,22 +1158,19 @@ Example:
 %% show hom --------------------------------------------------------------
 
 \item[show hom] \Newline
-
 Shows long--range higher order mode information for linac accelerating
 cavities.
 
 %% show key_bindings  --------------------------------------------------------------
 
 \item[show key\_bindings] \Newline
-
 Shows all key bindings.
 
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} \{-elements <name>\} \\
-  \hspace*{2in} \{-lords\} \{-middle\} \{-no_header\} \{-s\} \{<location_range>\} }] \Newline
-
+  show lattice \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
+  \hspace*{0.35in} \{-elements <name>\} \{-lords\} \{-middle\} \{-no\_header\} \{-s\} \{<location\_range>\} }] \Newline
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
@@ -1265,7 +1251,7 @@ is the total width of the field. Notice that strings (like the element
 name) are left justified and numbers are right justified. In the case
 of a number followed by a string, there will be no white space in
 between. The use of an "x" column can solve this problem. A field
-width of 0, which can only be used for an \vn{ele::#[name]} column,
+width of 0, which can only be used for an \vn{ele::\#[name]} column,
 indicates that the field width will be taken to be one greater then
 the maximum characters of any element name.
 
@@ -1281,7 +1267,6 @@ is:
 %% show optimizer --------------------------------------------------------------
 
 \item[show optimizer] \Newline
-
 Shows information pertinent to optimization: Data and variables used, etc.
 
 %% show opt_vars --------------------------------------------------------------
@@ -1295,10 +1280,9 @@ Bmad standard lattice input format.
 \item[\protect\parbox{6in}{
         show particle \{<bunch\_index>.\}<particle\_index> \{<element\_name\_or\_index>\} \\
         show particle -lost \{bunch\_index\}}] \Newline
-
 The command \vn{show particle \{<bunch_index>.\}<particle_index>}
 shows information on a particle at a given element. The default for
-the optional \vn{\{bunch_index\}} index is set by
+the optional \vn{\{bunch_index\}} index is set by the global variable
 \vn{global%bunch_to_plot}. The default \vn{<element_name_or_index>} is 0 (the
 starting position).  Also see \vn{show beam}.
 
@@ -1310,7 +1294,8 @@ for use with bunches with a small number of particles.
 
 Examples:
 \begin{example}
-  show part 3.47 8   ! Show information on particle 47 of bunch #3 at lattice element 8.
+  show part 3.47 8   ! Shows information on particle #47 of bunch #3 at 
+                     !   lattice element #8.
   show part 47 8     ! Same as above except the default bunch is used.
   show part -lost 3  ! Show lost particle positions for bunch #3
 \end{example}
@@ -1335,7 +1320,6 @@ If the \vn{-shapes} switch is present, the shapes used in drawing
 %% show top10 --------------------------------------------------------------
 
 \item[show top10 \{-derivative\}] \Newline
-
 If the \vn{-derivative} switch is present, this command shows top
 dMerit/dVariable derivatives, and Largest changes in variable value.
 If not present, this command
@@ -1348,7 +1332,6 @@ be shown.
 %% show taylor_map --------------------------------------------------------------
 
 \item[show taylor\_map \{-order <n\_order>\} \{loc1 \{loc2\}\}] \Newline
-
 Shows the Taylor transfer map for the \vn{model} lattice of the
 currently \vn{view}ed universe from the exit end of the element given
 by \vn{loc1} to the exit end of the element given by \vn{loc2} where
@@ -1364,8 +1347,8 @@ order set by the lattice file.
 
 Examples:
 \begin{example}
-  show taylor -order 1 q10e q10w  ! 0th and 1st order map from element q10e to q10w
-  show taylor 45                  ! Transfer map from element \# 0 to \# 45
+  show taylor -order 1 q10e q10w  ! 0th and 1st order maps from q10e to q10w
+  show taylor 45                  ! Transfer map from element \#0 to \#45
 \end{example} 
 
 %% show universe --------------------------------------------------------------
@@ -1373,7 +1356,6 @@ Examples:
 \item[\protect\parbox{6in}{ 
         show universe \{universe\_number\} \\
         show universe -connections}] \Newline
-
 If the \vn{-connections} switch is present, show information on the
 connections between various universes. Otherwise, shows various
 parameters associated with a given universe. If no universe is
@@ -1390,7 +1372,6 @@ be read in with a \vn{call} command.
 %% show value --------------------------------------------------------------
 
 \item[show value <expression>]
-
 Shows the value of an expression. Examples:
 \begin{example}
   show value 3@dat::orbit.x[34]   ! Value of a datum-on-the-fly
@@ -1402,9 +1383,8 @@ Shows the value of an expression. Examples:
 
 \item[\protect\parbox{6in}{
         show variable \{<var\_name> <locations>\} \\
-        show variable <universe\_number>@}
-        show variable -bmad\_format \{-good\_opt\_only\} ] \Newline
-
+        show variable <universe\_number>@  \\
+        show variable -bmad\_format \{-good\_opt\_only\} }] \Newline
 Shows variable information. If \vn{<var_name>} is not
 present,  a list of all \vn{v1_var} classes is printed. To show variables
 associated with the \vn{n}th universe use the syntax \vn{show var n@}.

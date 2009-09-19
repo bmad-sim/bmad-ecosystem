@@ -117,7 +117,7 @@ Each datum has a number of quantities associated with it:
 \begin{example}
   data_type        ! Character: Type of data: "orbit.x", etc.
   ele_name         ! Character: Name of lattice element where datum is evaluated.
-  ele_start_name   ! Character: Name of starting lattice element when there is a range.
+  ele_start_name   ! Character: Name of starting lattice element in a range.
   ele_ref_name     ! Character: Name of reference lattice element.
   merit_type       ! Character: Type of constraint: "target", "max", etc.
   data_source      ! Character: How the datum is calculated. "lattice", or "beam".
@@ -509,7 +509,7 @@ In this case, discrepancies between the plot and datum values may be observed.
 
   \index{unstable_orbit}
   \item[unstable\_orbit] \Newline
-\vn{unstable_orbit} is used for linear lattices. For single particle
+The \vn{unstable_orbit} datum is used for linear lattices. For single particle
 tracking, the value of an \vn{unstable_orbit} datum is zero if the
 tracked particle survives (has not been lost) up to the \vn{ele}
 element and, if it has been lost, is set to 
@@ -645,7 +645,7 @@ size squared.
   expression: <arithmetic expression>
                                & See the text                       \\ \hline 
 
-  face1.offset, face2.offset   & Element offset with multipass      &          \\ \hline
+  face1.offset, face2.offset   & Element offset with multipass      \\ \hline
 
   floor.x, floor.y, floor.z, floor.theta 
                                & Global (``floor'') position        \\ \hline 
@@ -708,7 +708,7 @@ size squared.
                                & Term in n\Th order transfer map    \\ \hline 
 
   tune.a, tune.b               & Tune                               \\ \hline 
-  unstable\_orbit              & Nonzero if particles are lost in tracking &   \\ \hline
+  unstable\_orbit              & Nonzero if particles are lost in tracking \\ \hline
   unstable\_ring               & Nonzero if a ring is unstable (global)    \\ \hline
 
 \end{tabular}
@@ -729,7 +729,8 @@ that has been set up in the \tao initialization file.  It is sometimes
 useful, however, in \tao commands to be able to refer to \vn{data-on-the-fly}
 that have not been so initialized. The syntax for this is:
 \begin{example}
-  \{[<universe_range>]@\}dat:\{<source>\}:<datum_type>[\{<ix_ele_start>&<ix_ele>]\{|<component>\}
+  \{[<universe_range>]@\}dat:\{<source>\}:
+                           <datum_type>[\{<ix_ele_start>&<ix_ele>]\{|<component>\}
 \end{example}
 The components of this syntax are:
 \begin{example}
