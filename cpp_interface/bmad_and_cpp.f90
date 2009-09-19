@@ -92,20 +92,22 @@ type (c_dummy_struct) c_twiss
 
 f => f_twiss
 call twiss_to_c2 (c_twiss, f%beta, f%alpha, f%gamma, &
-                             f%phi, f%eta, f%etap, f%sigma, f%sigma_p, f%emit)
+                    f%phi, f%eta, f%etap, f%sigma, f%sigma_p, f%emit, f%norm_emit)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
+! Subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, 
+!                                           sigma, sigma_p, emit, norm_emit)
 !
 ! Subroutine used by twiss_to_f to convert a C++ C_twiss into
 ! a Bmad twiss_struct. This routine is not for general use.
 !-
 
-subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
+subroutine twiss_to_f2 (f_twiss, beta, alpha, gamma, phi, eta, etap, &
+                                             sigma, sigma_p, emit, norm_emit)
 
 use fortran_and_cpp
 use bmad_struct
@@ -114,9 +116,10 @@ use bmad_interface
 implicit none
 
 type (twiss_struct) f_twiss
-real(rp) beta, alpha, gamma, phi, eta, etap, sigma, emit, sigma_p
+real(rp) beta, alpha, gamma, phi, eta, etap, sigma, emit, sigma_p, norm_emit
 
-f_twiss = twiss_struct(beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit)
+f_twiss = twiss_struct(beta, alpha, gamma, phi, eta, etap, &
+                                             sigma, sigma_p, emit, norm_emit)
 
 end subroutine
 

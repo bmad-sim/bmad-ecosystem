@@ -48,7 +48,8 @@ logical is_eq
 is_eq = (f1%beta == f2%beta) .and. (f1%alpha == f2%alpha) .and. &
           (f1%gamma == f2%gamma) .and. (f1%phi == f2%phi) .and. &
           (f1%eta == f2%eta) .and. (f1%etap == f2%etap) .and. &
-          (f1%sigma == f2%sigma) .and. (f1%emit == f2%emit)
+          (f1%sigma == f2%sigma) .and. (f1%emit == f2%emit) .and. &
+          (f1%norm_emit == f2%norm_emit)
 
 end function
 

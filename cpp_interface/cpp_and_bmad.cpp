@@ -84,15 +84,16 @@ void operator>> (coord_struct* f, C_coord& c) {
 //---------------------------------------------------------------------------
 // Twiss
 
-extern "C" void twiss_to_f2_(twiss_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void twiss_to_f2_(twiss_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void twiss_to_f_(const C_twiss& c, twiss_struct* f) {
-  twiss_to_f2_(f, c.beta, c.alpha, c.gamma, c.phi, c.eta, c.etap, c.sigma, c.sigma_p, c.emit);
+  twiss_to_f2_(f, c.beta, c.alpha, c.gamma, c.phi, c.eta, c.etap, 
+                  c.sigma, c.sigma_p, c.emit, c.norm_emit);
 }
 
 extern "C" void twiss_to_c2_(C_twiss& c, Re& beta, Re& alpha, Re& gamma, Re& phi, 
-                          Re& eta, Re& etap, Re& sigma, Re& sigma_p, Re& emit) {
-  c = C_twiss(beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit);
+                          Re& eta, Re& etap, Re& sigma, Re& sigma_p, Re& emit, Re& norm_emit) {
+  c = C_twiss(beta, alpha, gamma, phi, eta, etap, sigma, sigma_p, emit, norm_emit);
 }
 
 void operator>> (C_twiss& c, twiss_struct* f) {

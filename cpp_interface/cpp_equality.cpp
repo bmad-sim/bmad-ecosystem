@@ -61,7 +61,8 @@ bool operator== (const C_coord& x, const C_coord& y) {
 bool operator== (const C_twiss& x, const C_twiss& y) {
   return (x.beta == y.beta) && (x.alpha == y.alpha) && (x.gamma == y.gamma) &&
      (x.phi == y.phi) && (x.eta == y.eta) && (x.etap == y.etap) &&
-     (x.sigma == y.sigma) && (x.sigma_p == y.sigma_p) && (x.emit == y.emit);
+     (x.sigma == y.sigma) && (x.sigma_p == y.sigma_p) && (x.emit == y.emit) &&
+     (x.norm_emit == y.norm_emit);
 };
 
 bool operator== (const C_xy_disp& x, const C_xy_disp& y) {

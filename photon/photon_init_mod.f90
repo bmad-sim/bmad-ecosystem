@@ -53,6 +53,75 @@ end subroutine
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
+! Subroutine photon_vert_angle_init2 (E_rel, gamma_phi, r_in)
+!
+! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
+! angle for a simple bend.
+!
+! Module needed:
+!   use photon_init_mod
+!
+! Input:
+!   r_in  -- Real(rp), optional: number in the range [0,1].
+!             If not present, a random number will be used.
+!   E_rel -- Real(rp): Relative photon energy E/E_crit. 
+! 
+! Output:
+!   gamma_phi -- Real(rp): gamma * phi where gamma is the beam relativistic factor and
+!                 phi is the vertical photon angle (in radians).
+!-
+
+subroutine photon_vert_angle_init2 (E_rel, gamma_phi, r_in)
+
+use nr
+
+implicit none
+
+real(rp), optional :: r_in
+real(rp) e_rel, gamma_phi, w1, w2
+real(rp) rr, r, ss, x, log_E, frac
+
+real(rp) :: rel_amp(0:32) = (/ &
+                  0.249546, 0.249383, 0.249162, 0.248862, 0.248454, &
+                  0.247902, 0.247154, 0.246141, 0.244774, 0.242931, &
+                  0.240455, 0.237143, 0.232737, 0.226921, 0.219325, &
+                  0.209542, 0.197181, 0.181949, 0.163786, 0.143015, &
+                  0.120465, 0.0974421, 0.0755035, 0.0560654, 0.0400306, &
+                  0.0276386, 0.018578, 0.0122386, 0.00794693, 0.00510924, &
+                  0.00326308, 0.00207494, 0.0013157 /)
+
+integer i, ix
+logical, save :: init_needed = .true.
+
+! The following was derived from a fit to the standard synchrotron radiation emissian equation.
+! Parallel (w1) and perpendicular (w2) weights.
+! the array, rel_amp, gives the relative amplitude over the range [-4, 2.4] of log(E_rel)
+! in steps of 0.2. Use simple interpolation to get the rlative amplitude.
+
+log_E = log10(E_rel)
+
+if (log_E <= -4) then
+  w2 = 0.25
+elseif (log_E >= 2.4) then
+  w2 = 0
+else
+  x = (log_E + 4) / 0.2
+  i = int(x)
+  frac = x - i
+  w2 = (1 - frac) * rel_amp(i) + frac * rel_amp(i+1)
+endif
+
+w1 = 1 - w2
+
+!
+
+
+end subroutine
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!+
 ! Subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
 !
 ! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
@@ -139,8 +208,8 @@ else
   r = (1 - frac) * rel_amp(i) + frac * rel_amp(i+1)
 endif
 
-c1 = 1 / (1 + r)
-c2 = r / (1 + r)
+c1 = 1 - r
+c2 = r
 
 ! Now use this to generate a Gaussian
 

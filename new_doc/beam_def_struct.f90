@@ -45,22 +45,18 @@ end type
 
 type tail_weighted_beam_init_struct
    integer :: type(3) = 0              ! distribution type (in x-px, y-py, and z-pz planes)
-   
-                                       ! Params for ellipse$ and KV$
-   integer :: part_per_ellipse(3) = 0    ! number of particles per ellipse
-   
-                                       ! Params for ellipse$
-   integer :: n_ellipse(3) = 1           ! number of ellipses (>= 1)
-   real(rp) :: sigma_cutoff(3) = 0       ! sigma cutoff of the representation
-
-                                       ! Params for KV$
-   integer :: n_I2 = 0                   ! number of I2
-   real(rp) :: A = 0                     ! A = I1/e
-
-                                       ! Params for grid$
-   integer :: n_x(3) = 0                 ! number of columns
-   integer :: n_px(3) = 0                ! number of rows
-   real(rp) :: minima(6) = 0             ! upper and lower limits in (x,px,y,py,z,pz)
+   ! Params for ellipse$ and KV$
+   integer :: part_per_ellipse(3) = 0  ! number of particles per ellipse
+   ! Params for ellipse$
+   integer :: n_ellipse(3) = 1         ! number of ellipses (>= 1)
+   real(rp) :: sigma_cutoff(3) = 0     ! sigma cutoff of the representation
+   ! Params for KV$
+   integer :: n_I2 = 0                 ! number of I2
+   real(rp) :: A = 0                   ! A = I1/e
+   ! Params for grid$
+   integer :: n_x(3) = 0               ! number of columns
+   integer :: n_px(3) = 0              ! number of rows
+   real(rp) :: minima(6) = 0           ! upper and lower limits in (x,px,y,py,z,pz)
    real(rp) :: maxima(6) = 0
 end type
 
@@ -92,14 +88,8 @@ type beam_init_struct
   type (tail_weighted_beam_init_struct) tw_beam_init ! Parameters for a tail-weighted beam distribution
 end type
 
-type bunch_lat_param_struct
-   real(rp) beta, alpha, gamma
-   real(rp) eta, etap
-   real(rp) norm_emitt ! normalized emittance
-end type
-
 type bunch_params_struct
-  type (bunch_lat_param_struct) :: x, y, z, a, b, c
+  type (twiss_struct) :: x, y, z, a, b, c
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
   real(rp) sigma(21)               ! projected sigma matrix
@@ -107,11 +97,6 @@ type bunch_params_struct
   real(rp) charge_live             ! Charge of all non-lost particle
   integer n_live_particle          ! all non-lost particles
 end type
-
-! How close to polarization vector for particle to be polarized?	
-
- real(rp), parameter, private ::  sigma_theta = 1e-3 ! 1 milliradian
- real(rp), parameter, private ::  sigma_phi = 1e-3
 
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy

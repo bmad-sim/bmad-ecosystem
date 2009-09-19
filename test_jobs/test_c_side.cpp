@@ -32,8 +32,8 @@ extern "C" void test_f_lat_(C_lat& c1, C_lat& c2);
 
 C_coord           c_coord_in(101, 102, 103, 104, 105, 106);
 C_coord           c_coord_out(201, 202, 203, 204, 205, 206);
-C_twiss           c_twiss_in(1, 2, 3, 4, 5, 6, 7, 8, 9);
-C_twiss           c_twiss_out(9, 8, 7, 6, 5, 4, 3, 2, 1);
+C_twiss           c_twiss_in(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+C_twiss           c_twiss_out(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 C_xy_disp         c_xy_disp_in(1, 2);
 C_xy_disp         c_xy_disp_out(2, 1);
 C_floor_position  c_floor_position_in(1, 2, 3, 4, 5, 6);

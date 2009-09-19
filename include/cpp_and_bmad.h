@@ -100,16 +100,16 @@ class twiss_struct {};
 class C_twiss {
 public:
   double beta, alpha, gamma, phi, eta, etap;
-  double sigma, sigma_p, emit;
+  double sigma, sigma_p, emit, norm_emit;
 
   C_twiss(double b, double a, double g, double p, double e, double ep, 
-                                         double s, double sp, double em) : 
+                                  double s, double sp, double em, double n_em) : 
     beta(b), alpha(a), gamma(g), phi(p), eta(e), etap(ep), 
-    sigma(s), sigma_p(sp), emit(em) {}
+    sigma(s), sigma_p(sp), emit(em), norm_emit(n_em) {}
 
   C_twiss(double z = 0) : 
     beta(z), alpha(z), gamma(z), phi(z), eta(z), 
-    etap(z), sigma(z), sigma_p(z), emit(z) {}
+    etap(z), sigma(z), sigma_p(z), emit(z), norm_emit(z) {}
 
 };    // End Class
 

@@ -1837,9 +1837,9 @@ if (err) goto 999
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
 
-params%a%norm_emitt = d_i(1) * (avg_energy/m_electron)
-params%b%norm_emitt = d_i(3) * (avg_energy/m_electron)
-params%c%norm_emitt = d_i(5) * (avg_energy/m_electron)
+params%a%norm_emit = d_i(1) * (avg_energy/m_electron)
+params%b%norm_emit = d_i(3) * (avg_energy/m_electron)
+params%c%norm_emit = d_i(5) * (avg_energy/m_electron)
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! N = E.Q from eq. 44
@@ -1915,14 +1915,14 @@ subroutine zero_plane (param)
 
 implicit none
 
-type (bunch_lat_param_struct), intent(out) :: param
+type (twiss_struct), intent(out) :: param
 
 param%beta       = 0
 param%alpha      = 0
 param%gamma      = 0
 param%eta        = 0
 param%etap       = 0
-param%norm_emitt = 0
+param%norm_emit  = 0
 
 end subroutine zero_plane
   
@@ -1933,7 +1933,7 @@ subroutine projected_twiss_calc (plane, param, exp_x2, exp_px2, exp_x_px, exp_x_
 
 implicit none
 
-type (bunch_lat_param_struct) :: param
+type (twiss_struct) :: param
 
 real(rp), intent(in) :: exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) emitt, x2, x_px, px2

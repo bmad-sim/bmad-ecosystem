@@ -104,9 +104,9 @@ coord_in  = coord_struct(vec6_a, spinor2_a)
 coord_out = coord_struct(vec6_b, spinor2_b)
 
 twiss_in  = twiss_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, &
-                                      7.0_rp, 8.0_rp, 9.0_rp)
+                                      7.0_rp, 8.0_rp, 9.0_rp, 10.0_rp)
 twiss_out = twiss_struct(9.0_rp, 8.0_rp, 7.0_rp, 6.0_rp, 5.0_rp, &
-                                      4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp)
+                                      4.0_rp, 3.0_rp, 2.0_rp, 1.0_rp, 0.0_rp)
 
 xy_disp_in  = xy_disp_struct(1.0_rp, 2.0_rp)
 xy_disp_out = xy_disp_struct(2.0_rp, 1.0_rp)
