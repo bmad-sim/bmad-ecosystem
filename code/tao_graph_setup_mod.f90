@@ -1171,22 +1171,22 @@ do ii = 1, size(curve%x_line)
   case ('sigma.pz')
     value = sqrt(bunch_params%sigma(s66$))
   case ('norm_emit.a')
-    value = bunch_params%a%norm_emitt
+    value = bunch_params%a%norm_emit
   case ('norm_emit.b')
-    value = bunch_params%b%norm_emitt
+    value = bunch_params%b%norm_emit
   case ('norm_emit.x')
-    value = bunch_params%x%norm_emitt
+    value = bunch_params%x%norm_emit
   case ('norm_emit.y')
-    value = bunch_params%y%norm_emitt
+    value = bunch_params%y%norm_emit
   case ('norm_emit.z')
-    value = bunch_params%z%norm_emitt
+    value = bunch_params%z%norm_emit
   case ('emit.a')
-    value = bunch_params%a%norm_emitt
+    value = bunch_params%a%norm_emit
     call convert_total_energy_to (ele%value(E_tot$), &
                                               branch%param%particle, gamma)
     value = value / gamma
   case ('emit.b')
-    value = bunch_params%b%norm_emitt
+    value = bunch_params%b%norm_emit
     call convert_total_energy_to (ele%value(E_tot$), &
                                               branch%param%particle, gamma)
     value = value / gamma

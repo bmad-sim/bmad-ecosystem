@@ -368,11 +368,11 @@ case ('beam')
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
                               sqrt(bunch_p%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
     nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-    nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emitt, bunch_p%a%beta
-    nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emitt, bunch_p%b%beta
-    nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emitt, bunch_p%x%beta
-    nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emitt, bunch_p%y%beta
-    nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emitt, bunch_p%z%beta
+    nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta
+    nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta
+    nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta
+    nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta
+    nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
 
     beam => u%uni_branch(locs(1)%ix_branch)%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
@@ -392,15 +392,15 @@ case ('beam')
                          sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
       nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
       nl=nl+1; write (lines(nl), rmt) '  a:       ', &
-                                bunch_params%a%norm_emitt, bunch_params%a%beta
+                                bunch_params%a%norm_emit, bunch_params%a%beta
       nl=nl+1; write (lines(nl), rmt) '  b:       ', &
-                                bunch_params%b%norm_emitt, bunch_params%b%beta
+                                bunch_params%b%norm_emit, bunch_params%b%beta
       nl=nl+1; write (lines(nl), rmt) '  x:       ', &
-                                bunch_params%x%norm_emitt, bunch_params%x%beta
+                                bunch_params%x%norm_emit, bunch_params%x%beta
       nl=nl+1; write (lines(nl), rmt) '  y:       ', &
-                                bunch_params%y%norm_emitt, bunch_params%y%beta
+                                bunch_params%y%norm_emit, bunch_params%y%beta
       nl=nl+1; write (lines(nl), rmt) '  z:       ', &
-                                bunch_params%z%norm_emitt, bunch_params%z%beta
+                                bunch_params%z%norm_emit, bunch_params%z%beta
     else
       nl=nl+1; lines(nl) = 'No allocated beam at element.'
     endif
