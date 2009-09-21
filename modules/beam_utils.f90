@@ -740,8 +740,117 @@ end subroutine
 !   beam        -- Beam_struct: Structure with initialized particles.
 !
 !-
- 
+
 subroutine init_beam_distribution (ele, beam_init, beam)
+ 
+use random_mod
+
+implicit none
+
+type (ele_struct) ele
+type (beam_init_struct) beam_init
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+  
+integer i_bunch
+real(rp) old_cutoff
+
+character(16) old_engine, old_converter  
+character(22) :: r_name = "init_beam_distribution"
+
+! resize the beam to the number of particles and the number of bunches.
+
+call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
+
+! Set and save the random number generator parameters.
+
+if (beam_init%is_random) then
+  call ran_engine (beam_init%random_engine, old_engine)
+  call ran_gauss_converter (beam_init%random_gauss_converter, &
+                  beam_init%random_sigma_cutoff, old_converter, old_cutoff)
+endif
+
+! Loop over all bunches
+! Note z_center is negative and t_center is posive for trailing bunches.
+
+do i_bunch = 1, size(beam%bunch)
+
+  bunch => beam%bunch(i_bunch)
+  call init_bunch_distribution (ele, beam_init, bunch)
+
+  bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
+  bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
+  bunch%ix_bunch = i_bunch
+
+enddo
+  
+! Reset the random number generator parameters.
+
+if (beam_init%is_random) then
+  call ran_engine (old_engine)
+  call ran_gauss_converter (old_converter, old_cutoff)
+endif
+
+end subroutine init_beam_distribution
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine init_beam_distribution (ele, beam_init, beam)
+!
+! Subroutine to initialize either a random or tail-weighted distribution of particles.  
+!
+! There are three tail-weighted distributions available: rectangular grid, 
+! Gaussian represented by concentric ellipses, and Kapchinsky-Vladimirsky (KV).
+! See manual for more information.
+!
+! The distribution is matched to the Twiss parameters, centroid position,
+! and Energy - z correlation as specified. Coupling in the element ele is 
+! incorporated into the distribution.
+!
+! Note: Except for the random number seed, the random number generator 
+! parameters used for this routine are set from the beam_init argument.
+! That is, these parameters are independent of what is used everywhere else.
+!
+! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
+!
+! Note: To get good results, It is important to make sure that for 
+! circular rings that beam_init%center is the correct closed orbit. 
+! The closed orbit will shift if, for example, radiation damping is
+! turned on.
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   ele         -- Ele_struct: element to initialize distribution at
+!   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
+!     %is_random  -- Logical: If True then create a random distribution
+!                 (default is True)
+!     For random distributions:
+!       %renorm_center -- Logical: If True then distribution is rescaled to
+!                      the desired centroid (to take care of
+!                      possible statistical errors in distribution).
+!                      (default is True)
+!       %renorm_sigma  -- Logical: If True then rescale the distribution to the desired sigmas.
+!                      (default is True)
+!       %init_spin     -- Logical: If True then the particle spinors will be
+!                      initialized with the parameters in beam_init%spin
+!                      (default is False)
+!       %random_engine          -- Character: "pseudo" (default) or "quasi".
+!       %random_gauss_converter -- Character: "exact" (default) or "limited".
+!       %random_sigma_cutoff    -- Real: Used with "limited" converter. Default is 4.0.
+!     For tail-weighted distributions:
+!       %tw_beam_init  -- tail_weighted_beam_init_struct: 
+!                         Use "getf tail_weighted_beam_init_struct" for more details.
+!
+! Output:
+!   beam        -- Beam_struct: Structure with initialized particles.
+!
+!-
+
+subroutine init_bunch_distribution (ele, beam_init, bunch)
  
 use random_mod
 
@@ -750,17 +859,17 @@ implicit none
 type (ele_struct) ele
 type (beam_init_struct), target :: beam_init
 type (tail_weighted_beam_init_struct), pointer :: tw_init
-type (beam_struct), target :: beam
-type (bunch_struct), pointer :: bunch
+type (bunch_struct) :: bunch
   
 integer i_bunch, i
 logical :: is_KV = .false.
 real(rp) old_cutoff
 
 character(16) old_engine, old_converter  
-character(22) :: r_name = "init_beam_distribution"
+character(22) :: r_name = "init_bunch_distribution"
 
 ! If we are making a tail-weighted distribution, we must compute the number of particles
+
 if (.not. beam_init%is_random) then
    beam_init%n_particle = 1
    tw_init => beam_init%tw_beam_init
@@ -774,53 +883,27 @@ if (.not. beam_init%is_random) then
          is_KV = .true.
          beam_init%n_particle = beam_init%n_particle * tw_init%part_per_ellipse(i)
       case default
-         call out_io (s_abort$, "init_beam_distribution", &
-              'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
+         call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
          call err_exit
       end select
    enddo
 endif
 
 ! number of particles for a 4D KV distribution = n_I2 * n_phi1 * n_phi2
+
 if (is_KV) then
    beam_init%n_particle = beam_init%n_particle * tw_init%n_I2
 endif
 
-! resize the beam to the number of particles and the number of bunches.
-call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
+! Initialize the bunch.
 
-! If we want a random distribution, set and save the random number generator parameters.
 if (beam_init%is_random) then
-   call ran_engine (beam_init%random_engine, old_engine)
-   call ran_gauss_converter (beam_init%random_gauss_converter, &
-                  beam_init%random_sigma_cutoff, old_converter, old_cutoff)
+   call init_random_bunch (ele, beam_init, bunch)
+else
+   call init_tail_weighted_bunch (ele, beam_init, bunch)
 endif
 
-! Loop over all bunches
-! Note z_center is negative and t_center is positive for trailing bunches.
-
-do i_bunch = 1, size(beam%bunch)
-
-  bunch => beam%bunch(i_bunch)
-  if (beam_init%is_random) then
-     call init_random_bunch (ele, beam_init, bunch)
-  else
-     call init_tail_weighted_bunch (ele, beam_init, bunch)
-  endif
-
-  bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
-  bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
-  bunch%ix_bunch = i_bunch
-
-enddo
-  
-! If we made a random distribution, reset the random number generator parameters.
-if (beam_init%is_random) then
-   call ran_engine (old_engine)
-   call ran_gauss_converter (old_converter, old_cutoff)
-endif
-
-end subroutine init_beam_distribution
+end subroutine init_bunch_distribution
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
