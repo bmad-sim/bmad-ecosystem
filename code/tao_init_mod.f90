@@ -626,6 +626,7 @@ do
       do i = lbound(datum, 1), ubound(datum, 1)
         if (datum(i)%data_type == '') cycle
         d_typ = datum(i)%data_type
+        if (d_typ(1:2) == 'i5') datum(i)%data_type = 'rad_int.' // trim(d_typ) ! Convert old style
         if (d_typ(1:6) == 'floor.' .or. d_typ == 'momentum_compaction' .or. &
             d_typ(1:12) == 'periodic.tt.' .or. d_typ(1:5) == 'phase' .or. &
             d_typ(1:2) == 'r.' .or. d_typ(1:10) == 'rel_floor.' .or. &
@@ -920,12 +921,12 @@ do j = n1, n2
   data_type = u%data(j)%data_type
   emit_here = (index(data_type, 'emit.') /= 0)
   if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
-  if (data_type(1:2) == 'i5') u%do_synch_rad_int_calc = .true. 
+  if (data_type(1:8) == 'rad_int.') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
   if (data_type(1:11) == 'expression:' .or. data_type == 'unstable_orbit' .or. &
               u%design%lat%param%lattice_type == circular_lattice$ .and. &
-              (data_type(1:6)  == 'chrom.' .or. data_type(1:2) == 'i5' .or. &
+              (data_type(1:6)  == 'chrom.' .or. data_type(1:8) == 'rad_int.' .or. &
                data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
                data_type(1:17) == 'multi_turn_orbit.')) then
     u%data(j)%exists = .true.
@@ -994,7 +995,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. data%exists) cycle
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
       ix_ele = -2
-    elseif (data%data_type(1:2) == 'i5') then
+    elseif (data%data_type(1:8) == 'rad_int.') then
       ix_ele = -1
     elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
       ix_ele = -1
@@ -1029,7 +1030,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. data%exists) cycle
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
       ix_ele = -2
-    elseif (data%data_type(1:2) == 'i5') then
+    elseif (data%data_type(1:8) == 'rad_int.') then
       ix_ele = -1
     elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
       ix_ele = -1
