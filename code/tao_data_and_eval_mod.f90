@@ -461,7 +461,6 @@ if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
 if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
 if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
 if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
-if (data_type(1:2) == 'i5') data_type = 'rad_int.' // trim(data_type) ! Convert old style
 
 if (data_source /= "lattice" .and. data_source /= "beam") then
   call out_io (s_error$, r_name, &
