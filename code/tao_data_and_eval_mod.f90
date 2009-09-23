@@ -461,6 +461,7 @@ if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
 if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
 if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
 if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
+if (data_type(1:2) == 'i5') data_type = 'rad_int.' // trim(data_type) ! Convert old style
 
 if (data_source /= "lattice" .and. data_source /= "beam") then
   call out_io (s_error$, r_name, &
@@ -727,7 +728,7 @@ case ('emit.a', 'norm_emit.a')
       call load_it (tao_lat%rad_int%lin_norm_emit_a, &
                               loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      datum_value = gamma * tao_lat%modes%a%emittance  
+      datum_value = gamma * tao_lat%modes%a%emittance
     endif
   endif
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
@@ -889,7 +890,12 @@ case ('gamma.z')
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%z%gamma, loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
 
-case ('i5a_e6')
+case ('rad_int.i5a')
+  if (data_source == 'beam') return
+  datum_value = tao_lat%modes%a%synch_int(5)
+  valid_value = .true.
+
+case ('rad_int.i5a_e6')
   if (data_source == 'beam') return
   if (ix_start > 0 .or. ix_ele > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
@@ -904,7 +910,12 @@ case ('i5a_e6')
   endif
   valid_value = .true.
 
-case ('i5b_e6')
+case ('rad_int.i5b')
+  if (data_source == 'beam') return
+  datum_value = tao_lat%modes%b%synch_int(5)
+  valid_value = .true.
+
+case ('rad_int.i5b_e6')
   if (data_source == 'beam') return
   if (ix_start > 0 .or. ix_ele > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then

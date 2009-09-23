@@ -551,7 +551,7 @@ size squared.
 \index{unstable_orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
 \index{etap}\index{phase}\index{orbit}\index{wire}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
-\index{i5a_e6}\index{i5b_e6}\index{s_position}\index{e_tot}
+\index{rad_int.5a_e6}\index{rad_int.5b_e6}\index{s_position}\index{e_tot}
 \index{unstable_ring}\index{emittance}\index{chrom}\index{norm_emittance}
 \index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
 \index{dpb_db}
@@ -606,110 +606,111 @@ size squared.
 \centering 
 {\tt\small
 \begin{tabular}{|l|l|} \hline
-  {\it Data\_Type}             & {\it Description}                  \\ \hline 
+  {\it Data\_Type}               & {\it Description}                  \\ \hline 
 
-  alpha.a, alpha.b             & Normal-Mode alpha function         \\ \hline 
-  beta.a, beta.b               & Normal-mode beta function          \\ \hline 
-  bpm\_orbit.x, bpm\_orbit.y   & Measured orbit                     \\ \hline
-  bpm\_phase.a, bpm\_phase.b   & Measured betatron phase            \\ \hline
-  bpm\_eta.x, bpm\_eta.y       & Measured dispersion                \\ \hline
+  alpha.a, alpha.b               & Normal-Mode alpha function         \\ \hline 
+  beta.a, beta.b                 & Normal-mode beta function          \\ \hline 
+  bpm\_orbit.x, bpm\_orbit.y     & Measured orbit                     \\ \hline
+  bpm\_phase.a, bpm\_phase.b     & Measured betatron phase            \\ \hline
+  bpm\_eta.x, bpm\_eta.y         & Measured dispersion                \\ \hline
 
   \begin{tabular}{@{}l}
     bpm\_k.22a, bpm\_k.12a, \\
     bpm\_k.11b, bpm\_k12b
   \end{tabular}
-                               & Measured coupling                  \\ \hline
+                                 & Measured coupling                  \\ \hline
 
   \begin{tabular}{@{}l}
     bpm\_cbar.22a, bpm\_cbar.12a, \\
     bpm\_cbar.11b, bpm\_cbar12b
   \end{tabular}
-                               & Measured coupling                  \\ \hline
+                                 & Measured coupling                  \\ \hline
 
   cbar.11, cbar.12, cbar.21, cbar.22
-                               & Coupling                           \\ \hline 
+                                 & Coupling                           \\ \hline 
 
-  chrom.a, chrom.b             & Chromaticity for a ring (global)   \\ \hline
+  chrom.a, chrom.b               & Chromaticity for a ring (global)   \\ \hline
 
-  e\_tot                       & Beam total energy                  \\ \hline
+  e\_tot                         & Beam total energy                  \\ \hline
 
-  element\_param.<param\_name> & Lattice element parameter          \\ \hline
+  element\_param.<param\_name>   & Lattice element parameter          \\ \hline
 
-  emit.a, emit.b, emit.c       & Emittance (global)                 \\ \hline
+  emit.a, emit.b, emit.c         & Emittance (global)                 \\ \hline
 
-  eta.x, eta.y                 & Lab Frame dispersion               \\ \hline 
-  eta.a, eta.b                 & Normal-mode dispersion             \\ \hline 
-  etap.x, etap.y               & Lab Frame dispersion derivative    \\ \hline 
-  etap.a, etap.b               & Normal-mode dispersion derivative  \\ \hline 
+  eta.x, eta.y                   & Lab Frame dispersion               \\ \hline 
+  eta.a, eta.b                   & Normal-mode dispersion             \\ \hline 
+  etap.x, etap.y                 & Lab Frame dispersion derivative    \\ \hline 
+  etap.a, etap.b                 & Normal-mode dispersion derivative  \\ \hline 
 
   expression: <arithmetic expression>
-                               & See the text                       \\ \hline 
+                                 & See the text                       \\ \hline 
 
-  face1.offset, face2.offset   & Element offset with multipass      \\ \hline
+  face1.offset, face2.offset     & Element offset with multipass      \\ \hline
 
   floor.x, floor.y, floor.z, floor.theta 
-                               & Global (``floor'') position        \\ \hline 
+                                 & Global (``floor'') position        \\ \hline 
 
-  gamma.a, gamma.b             & Normal-mode gamma function         \\ \hline 
+  gamma.a, gamma.b               & Normal-mode gamma function         \\ \hline 
 
-  i5a\_e6, i5b\_e6             & Normalized I5 radiation integral   \\ \hline
+  rad_int.5a, rad_int.5b         & I5 radiation integral              \\ \hline
+  rad_int.5a\_e6, rad_int.5b\_e6 & Energy normalized I5 radiation integral   \\ \hline
 
-  k.11b, k.12a, k.12b, k.22a   & Coupling                           \\ \hline 
-  momentum\_compaction         & Momentum compaction factor         \\ \hline
+  k.11b, k.12a, k.12b, k.22a     & Coupling                           \\ \hline 
+  momentum\_compaction           & Momentum compaction factor         \\ \hline
 
   \begin{tabular}{@{}l}   
     multi\_turn\_orbit.x, multi\_turn\_orbit.px \\ 
     multi\_turn\_orbit.y, multi\_turn\_orbit.py \\
     multi\_turn\_orbit.z, multi\_turn\_orbit.pz \\
-  \end{tabular}                & Bunch size                         \\ \hline 
+  \end{tabular}                  & Bunch size                         \\ \hline 
 
   norm\_emit.a, norm\_emit.b, norm\_emit.c 
-                               & Normalized beam emittance          \\ \hline 
+                                 & Normalized beam emittance          \\ \hline 
 
-  orbit.x, orbit.y             & Transverse orbit                   \\ \hline 
-  orbit.px, orbit.py           & Transverse momenta                 \\ \hline 
-  orbit.z, orbit.z\_p          & Longitudinal orbit and momenta     \\ \hline 
-  orbit.amp\_a, orbit.amp\_b   & ``Invariant'' amplitude            \\ \hline 
+  orbit.x, orbit.y               & Transverse orbit                   \\ \hline 
+  orbit.px, orbit.py             & Transverse momenta                 \\ \hline 
+  orbit.z, orbit.z\_p            & Longitudinal orbit and momenta     \\ \hline 
+  orbit.amp\_a, orbit.amp\_b     & ``Invariant'' amplitude            \\ \hline 
   orbit.norm\_amp\_a, orbit.norm\_amp\_b  
-                               & Energy normalized ``invariant'' amplitude \\ \hline 
+                                 & Energy normalized ``invariant'' amplitude \\ \hline 
 
   periodic.tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$   
-                               & Taylor term of the periodic map.   \\ \hline 
+                                 & Taylor term of the periodic map.   \\ \hline 
 
-  phase.a, phase.b             & Betatron phase                     \\ \hline 
+  phase.a, phase.b               & Betatron phase                     \\ \hline 
 
   phase\_frac.a, phase\_frac.b            
-                               & \begin{tabular}{l}
+                                 & \begin{tabular}{l}
                                   Fractional betatron phase \\       
                                   $-\pi < \phi_{\mbox{frac}} < \pi$ \\
                                 \end{tabular}                       \\ \hline 
 
-  phase\_frac\_diff            & \begin{tabular}{l}
+  phase\_frac\_diff              & \begin{tabular}{l}
                                   Fractional betatron phase \\
                                   difference (a-b) $-\pi < d\phi_{\mbox{frac}} < \pi$
                                 \end{tabular}                       \\ \hline 
 
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
-                               & Term in linear transfer map        \\ \hline 
+                                 & Term in linear transfer map        \\ \hline 
 
   \begin{tabular}{@{}l}   
     rel\_floor.x, rel\_floor.y, \\
     rel\_floor.z, rel\_floor.theta \\
-  \end{tabular}                & Relative global (``floor'') position \\ \hline 
+  \end{tabular}                  & Relative global (``floor'') position \\ \hline 
 
-  s\_position                  & longitudinal length constraint     \\ \hline 
+  s\_position                    & longitudinal length constraint     \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
-                               & Particle spin                      \\ \hline 
+                                 & Particle spin                      \\ \hline 
 
   t.$ijk$ \hspace{10pt} $1 \le i,j,k \le 6$
-                               & Term in 2\Nd order transfer map    \\ \hline 
+                                 & Term in 2\Nd order transfer map    \\ \hline 
   tt.$ijklm\ldots$ \hspace{10pt} $1 \le i,j,k,\ldots \le 6$
-                               & Term in n\Th order transfer map    \\ \hline 
+                                 & Term in n\Th order transfer map    \\ \hline 
 
-  tune.a, tune.b               & Tune                               \\ \hline 
-  unstable\_orbit              & Nonzero if particles are lost in tracking \\ \hline
-  unstable\_ring               & Nonzero if a ring is unstable (global)    \\ \hline
+  tune.a, tune.b                 & Tune                               \\ \hline 
+  unstable\_orbit                & Nonzero if particles are lost in tracking \\ \hline
+  unstable\_ring                 & Nonzero if a ring is unstable (global)    \\ \hline
 
 \end{tabular}
 } 
