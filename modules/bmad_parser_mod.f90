@@ -2316,11 +2316,8 @@ endif
 
 ! check for more than 40 characters
 
-if (ix1 == 0 .and. ix_name > 40)  &
-          call warning ('NAME HAS > 40 CHARACTERS: ' // name)
-
-if (ix1 > 17 .or. ix2 - ix1 > 17)  &
-          call warning ('NAME HAS > 40 CHARACTERS: ' // name)
+if ((ix1 == 0 .and. ix_name > 40) .or. (ix1 > 41 .or. ix2 - ix1 > 41)) &
+                          call warning ('NAME HAS > 40 CHARACTERS: ' // name)
 
 end subroutine
 
