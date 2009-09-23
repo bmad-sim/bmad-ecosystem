@@ -1244,7 +1244,7 @@ real(rp) value
 
 character(*) err_str
 character(1) delim
-character(40) word, word2
+character(80) word, word2
 
 logical delim_found, split, ran_function_pending
 logical err_flag
