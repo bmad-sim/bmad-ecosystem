@@ -16,7 +16,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, wiggler_only)
+! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_lord_only)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -32,11 +32,11 @@ contains
 !                  have been changed. If not present bookkeeping will be done 
 !                  for all elements.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
-!   wiggler_only -- Logical, optional: If True then only do bookkeeping for 
+!   super_lord_only -- Logical, optional: If True then only do bookkeeping for 
 !                     wiggler elements. Default is False.
 !-
 
-subroutine control_bookkeeper (lat, ix_ele, ix_branch, wiggler_only)
+subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_lord_only)
 
 implicit none
 
@@ -45,15 +45,15 @@ type (lat_struct), target :: lat
 integer, optional :: ix_ele, ix_branch
 integer ie
 
-logical, optional :: wiggler_only
-logical wig_only
+logical, optional :: super_lord_only
+logical super_only
 
 ! If ix_ele is present we only do bookkeeping for this one element
 
-wig_only = logic_option (.false., wiggler_only)
+super_only = logic_option (.false., super_lord_only)
 
 if (present(ix_ele)) then
-  call this_bookkeeper (lat, lat%ele(ix_ele), wig_only)
+  call this_bookkeeper (lat, lat%ele(ix_ele), super_only)
 
 ! Else we need to make up all the lords. 
 ! The group lords must be done last since their slaves don't know about them.
@@ -61,12 +61,12 @@ if (present(ix_ele)) then
 else
   do ie = lat%n_ele_track+1, lat%n_ele_max
     if (lat%ele(ie)%lord_status /= group_lord$) &
-                         call this_bookkeeper (lat, lat%ele(ie), wig_only)
+                         call this_bookkeeper (lat, lat%ele(ie), super_only)
   enddo
 
   do ie = lat%n_ele_track+1, lat%n_ele_max
     if (lat%ele(ie)%lord_status == group_lord$) &
-                         call this_bookkeeper (lat, lat%ele(ie), wig_only)
+                         call this_bookkeeper (lat, lat%ele(ie), super_only)
   enddo
 
 endif
@@ -77,13 +77,13 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine this_bookkeeper (lat, ele, wig_only)
+! Subroutine this_bookkeeper (lat, ele, super_only)
 !
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-subroutine this_bookkeeper (lat, ele, wig_only)
+subroutine this_bookkeeper (lat, ele, super_only)
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
@@ -92,12 +92,12 @@ type (ele_struct), pointer :: lord, slave
 integer j, k, ix, ix1, ix2, ix_lord
 integer, allocatable, save :: ix_slaves(:), ix_super(:)
 
-logical wig_only
+logical super_only
 
 ! Init
 
-if (wig_only) then
-  if (ele%key == wiggler$ .and. ele%sub_key == map_type$) return
+if (super_only) then
+  if (ele%lord_status /= super_lord$ .and. ele%slave_status /= super_slave$) return
 endif
 
 call re_allocate (ix_slaves, lat%n_ele_max, .false.)
@@ -231,12 +231,12 @@ type (lat_struct) lat
 integer i, j
 logical found
 
-! Control bookkeeper is called twice to make sure that the z_patch for a 
-! wiggler super_lord is computed.
+! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
+! wiggler super_lord is computed. Other reasons include superimposed elements with multipass.
 
 call control_bookkeeper (lat)
 call compute_reference_energy (lat)
-call control_bookkeeper (lat, wiggler_only = .true.)
+call control_bookkeeper (lat, super_lord_only = .true.)
 
 ! Make sure attributes are updated
 
@@ -999,85 +999,87 @@ case (solenoid$, sol_quad$, quadrupole$)
   if (k_x == 0 .and. k_y == 0) then  ! pure solenoid
     slave%value(k1$) = 0
     slave%value(tilt$) = 0
-   deallocate (slave%a_pole, slave%b_pole, stat = ix)
+    deallocate (slave%a_pole, slave%b_pole, stat = ix)
     slave%value(x_offset$) = x_o_sol
     slave%value(y_offset$) = y_o_sol
     slave%value(x_pitch$)  = x_p_sol
     slave%value(y_pitch$)  = y_p_sol
-    return
   endif   
 
   ! here if have quadrupole component
 
-  k1 = sqrt(k_x**2 + k_y**2)
-  tilt = atan2(k_y, k_x) / 2
+  if (k_x /= 0 .or. k_y /= 0) then
+    k1 = sqrt(k_x**2 + k_y**2)
+    tilt = atan2(k_y, k_x) / 2
 
-  if (tilt > pi/4) then
-    k1 = -k1
-    tilt = tilt - pi/2
-  elseif (tilt < -pi/4) then
-    k1 = -k1
-    tilt = tilt + pi/2
+    if (tilt > pi/4) then
+      k1 = -k1
+      tilt = tilt - pi/2
+    elseif (tilt < -pi/4) then
+      k1 = -k1
+      tilt = tilt + pi/2
+    endif
+
+    slave%value(k1$) = k1
+    slave%value(tilt$) = tilt
+
+    cos_n = k_x / (k_x**2 + k_y**2)
+    sin_n = k_y / (k_x**2 + k_y**2)
+
+    slave%value(x_pitch$)  = cos_n * sum_1 + sin_n * sum_2
+    slave%value(y_pitch$)  = sin_n * sum_1 - cos_n * sum_2
+    slave%value(x_offset$) = cos_n * sum_3 + sin_n * sum_4
+    slave%value(y_offset$) = sin_n * sum_3 - cos_n * sum_4
   endif
-
-  slave%value(k1$) = k1
-  slave%value(tilt$) = tilt
-
-  cos_n = k_x / (k_x**2 + k_y**2)
-  sin_n = k_y / (k_x**2 + k_y**2)
-
-  slave%value(x_pitch$)  = cos_n * sum_1 + sin_n * sum_2
-  slave%value(y_pitch$)  = sin_n * sum_1 - cos_n * sum_2
-  slave%value(x_offset$) = cos_n * sum_3 + sin_n * sum_4
-  slave%value(y_offset$) = sin_n * sum_3 - cos_n * sum_4
 
   ! if ks /= 0 then we have to recalculate the offsets and pitches.
 
-  if (ks == 0) return
+  if (ks /= 0 .and. (k_x /= 0 .or. k_y /= 0)) then
 
-  x_p = slave%value(x_pitch$) - x_p_sol; x_o = slave%value(x_offset$) - x_o_sol
-  y_p = slave%value(y_pitch$) - y_p_sol; y_o = slave%value(y_offset$) - y_o_sol
+    x_p = slave%value(x_pitch$) - x_p_sol; x_o = slave%value(x_offset$) - x_o_sol
+    y_p = slave%value(y_pitch$) - y_p_sol; y_o = slave%value(y_offset$) - y_o_sol
 
-  if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) return
+    if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) return
 
-  t_2 = (/ x_o, x_p, y_o, y_p /)
-  call tilt_coords (tilt, t_2, .true.)  ! set
+    t_2 = (/ x_o, x_p, y_o, y_p /)
+    call tilt_coords (tilt, t_2, .true.)  ! set
 
-  l_slave = slave%value(l$)
+    l_slave = slave%value(l$)
 
-  t_1 = (/ t_2(2), 0.0_rp, t_2(4), 0.0_rp /)
-  t_2(1) = t_2(1) + ks * t_2(4) / k1 
-  t_2(3) = t_2(3) + ks * t_2(2) / k1
-           
-  call mat_make_unit (T_end)
-  T_end(4,1) =  ks / 2
-  T_end(2,3) = -ks / 2
+    t_1 = (/ t_2(2), 0.0_rp, t_2(4), 0.0_rp /)
+    t_2(1) = t_2(1) + ks * t_2(4) / k1 
+    t_2(3) = t_2(3) + ks * t_2(2) / k1
+             
+    call mat_make_unit (T_end)
+    T_end(4,1) =  ks / 2
+    T_end(2,3) = -ks / 2
 
-  sol_quad%value(ks$) = ks
-  sol_quad%value(k1$) = k1
-  sol_quad%value(l$)  = l_slave
-  call make_mat6 (sol_quad, lat%param)
-  T_tot = sol_quad%mat6(1:4,1:4)
+    sol_quad%value(ks$) = ks
+    sol_quad%value(k1$) = k1
+    sol_quad%value(l$)  = l_slave
+    call make_mat6 (sol_quad, lat%param)
+    T_tot = sol_quad%mat6(1:4,1:4)
 
-  r_off = matmul (T_end, l_slave * t_1 / 2 - t_2) 
-  r_off = matmul (T_tot, r_off) + matmul (T_end, l_slave * t_1 / 2 + t_2)
+    r_off = matmul (T_end, l_slave * t_1 / 2 - t_2) 
+    r_off = matmul (T_tot, r_off) + matmul (T_end, l_slave * t_1 / 2 + t_2)
 
-  call mat_make_unit (mat4)
-  mat4(:,2) = mat4(:,2) + l_slave * T_tot(:,1) / 2
-  mat4(:,4) = mat4(:,4) + l_slave * T_tot(:,3) / 2
-  mat4(1,2) = mat4(1,2) + l_slave / 2
-  mat4(3,4) = mat4(3,4) + l_slave / 2
-  mat4 = mat4 - T_tot
+    call mat_make_unit (mat4)
+    mat4(:,2) = mat4(:,2) + l_slave * T_tot(:,1) / 2
+    mat4(:,4) = mat4(:,4) + l_slave * T_tot(:,3) / 2
+    mat4(1,2) = mat4(1,2) + l_slave / 2
+    mat4(3,4) = mat4(3,4) + l_slave / 2
+    mat4 = mat4 - T_tot
 
-  call mat_inverse (mat4, mat4_inv)
-  beta = matmul (mat4_inv, r_off)
+    call mat_inverse (mat4, mat4_inv)
+    beta = matmul (mat4_inv, r_off)
 
-  call tilt_coords (tilt, beta, .false.)  ! unset
+    call tilt_coords (tilt, beta, .false.)  ! unset
 
-  slave%value(x_offset$) = beta(1) + x_o_sol
-  slave%value(x_pitch$)  = beta(2) + x_p_sol
-  slave%value(y_offset$) = beta(3) + y_o_sol
-  slave%value(y_pitch$)  = beta(4) + y_p_sol
+    slave%value(x_offset$) = beta(1) + x_o_sol
+    slave%value(x_pitch$)  = beta(2) + x_p_sol
+    slave%value(y_offset$) = beta(3) + y_o_sol
+    slave%value(y_pitch$)  = beta(4) + y_p_sol
+  endif
 
 ! bend_sol_quad
 
@@ -1087,6 +1089,15 @@ case (bend_sol_quad$)
   call err_exit
 
 end select
+
+! If the slave has %field_master = T then we need to convert k1, etc values to field quantities.
+
+if (slave%field_master) then
+  slave%field_master = .false.   ! So attribute_bookkeeper will do the right thing.
+  call attribute_bookkeeper (slave, lat%param)
+  slave%field_master = .true.
+endif
+
 
 end subroutine
 

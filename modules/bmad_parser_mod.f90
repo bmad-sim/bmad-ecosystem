@@ -2533,12 +2533,13 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_this_multipass (lat, ixm)
+subroutine add_this_multipass (lat, ixm, lord_in)
 
 implicit none
 
 type (lat_struct) lat
 type (ele_struct), pointer :: slave, lord, slave2
+type (ele_struct), optional :: lord_in
 
 integer i, j, k, n, ix, ixc, ixic, ix_lord, ix_slave
 integer n_multipass, ixm(:), ic, ix_l1, ix_l0
@@ -2554,7 +2555,12 @@ n_multipass = size(ixm)
 call new_control (lat, ix_lord)
 lord => lat%ele(ix_lord)
 
-lord = lat%ele(ixm(1))  ! Set attributes equal to first slave.
+if (present(lord_in)) then
+  lord = lord_in   ! Use lord_in as template
+else
+  lord = lat%ele(ixm(1))  ! Set attributes equal to first slave.
+endif
+
 lord%lord_status = multipass_lord$
 lord%n_slave = n_multipass
 lord%ix1_slave = 0
@@ -2796,8 +2802,7 @@ do
         endif
       endif
 
-      call add_this_multipass (lat, ixs)    
-      super_ele%name = super_ele_saved%name
+      call add_this_multipass (lat, ixs, super_ele_saved) 
 
       ! Reconnect drifts that were part of the multipass region.
 
