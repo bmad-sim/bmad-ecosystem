@@ -235,7 +235,7 @@ parsing_loop: do
     if (delim_found) then
       if (delim /= " " .and. delim /= ",") call warning &
                           ('BAD DELIMITOR IN "TITLE" COMMAND')
-      call type_get (this_ele, descrip$, delim, delim_found)
+      call bmad_parser_type_get (this_ele, 'DESCRIP', delim, delim_found)
       lat%title = this_ele%descrip
       deallocate (this_ele%descrip)
     else

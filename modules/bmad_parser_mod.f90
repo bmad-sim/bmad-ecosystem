@@ -247,7 +247,7 @@ if (ele%key == overlay$) then
   if (word == 'B_GRADIENT') call b_grad_warning(ele)
 
   if (i == type$ .or. i == alias$) then
-    call type_get (ele, i, delim, delim_found)
+    call bmad_parser_type_get (ele, word, delim, delim_found)
 
   else
 
@@ -302,7 +302,7 @@ if (ele%key == group$) then
   endif
 
   if (i == type$ .or. i == alias$) then
-    call type_get (ele, i, delim, delim_found)
+    call bmad_parser_type_get (ele, word, delim, delim_found)
   else
     if (how == def$) then
       ele%ix_value = i
@@ -590,8 +590,8 @@ case ('OFFSET')
   ic = ele%ixx
   plat%ele(ic)%s = value
 
-case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO')
-  call type_get (ele, ix_attrib, delim, delim_found)
+case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', 'REF_PATCH')
+  call bmad_parser_type_get (ele, attrib_word, delim, delim_found)
 
 case ('SYMPLECTIFY') 
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
@@ -1723,16 +1723,19 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine type_get (ele, ix_type, delim, delim_found)
+subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found)
 
 implicit none
 
 type (ele_struct)  ele
 
-integer ix, ix_word, ix_type
+integer ix, ix_word
+
+character(*) attrib_name
 character(40)  word
 character(1)   delim, str_end
 character(200) type_name
+
 logical delim_found
 
 !
@@ -1759,23 +1762,23 @@ else
   call get_next_word (type_name, ix_word, ',= ', delim, delim_found, .false.)
 endif
 
-select case (ix_type)
-case (type$)
+select case (attrib_name)
+case ('TYPE')
   ele%type = type_name
-case (alias$)
+case ('ALIAS')
   ele%alias = type_name
-case (descrip$, lattice$)
+case ('DESCRIP', 'LATTICE')
   if (.not. associated(ele%descrip)) allocate (ele%descrip) 
   ele%descrip = type_name
-case (sr_wake_file$) 
+case ('SR_WAKE_FILE') 
   call read_sr_wake (ele, type_name)
-case (lr_wake_file$) 
+case ('LR_WAKE_FILE') 
   call read_lr_wake (ele, type_name)
-case (to$)
+case ('TO', 'REF_PATCH')
   ele%component_name = type_name
   call upcase_string (ele%component_name)
 case default
-  print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
+  print *, 'INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!'
   call err_exit
 end select
 

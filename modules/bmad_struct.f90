@@ -464,7 +464,7 @@ integer, parameter :: field_calc$ = 66, phi_position$ = 66
 integer, parameter :: type$ = 67, psi_position$ = 67
 integer, parameter :: aperture_at$ = 68, beta_a$ = 68
 integer, parameter :: ran_seed$ = 69, beta_b$ = 69
-integer, parameter :: sr_wake_file$ = 70, alpha_a$ = 70
+integer, parameter :: sr_wake_file$ = 70, alpha_a$ = 70, ref_patch$ = 70
 integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
 integer, parameter :: alias$ =72, eta_x$ = 72
 integer, parameter :: start_edge$ =73, eta_y$ = 73
@@ -591,10 +591,10 @@ character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
 ! ref_orbit values.
 
 integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
-integer, parameter :: match_global_coords$ = 4
-character(20), parameter :: ref_orbit_name(0:4) = (/  "GARBAGE!         ", &
+integer, parameter :: match_global_coords$ = 4, patch_in$ = 5, patch_out$ = 6
+character(20), parameter :: ref_orbit_name(0:6) = (/  "GARBAGE!         ", &
             "Single_Ref         ", "Match_at_Entrance  ", "Match_at_Exit      ", &
-            "Match_Global_Coords" /)
+            "Match_Global_Coords", "Patch_In           ", "Patch_Out          " /)
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.

@@ -126,6 +126,11 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    if (ele%key == match$ .and. l_stat == multipass_lord$) then
+      if (ele%ref_orbit /= 0 .and. ele%value(n_ref_pass$) /= 1) then
+      endif
+    endif
+
     ! sbend multipass lord must have non-zero ref_energy.
     ! Check both p0c and e_tot since if this routine is called by bmad_parser we
     ! can have one zero and the other non-zero.

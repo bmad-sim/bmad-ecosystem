@@ -486,6 +486,20 @@ slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
 slave%coupler_at       = lord%coupler_at
 
+! patch element.
+! The reference energy may be zero while parsing in a lattice file so only do
+! the computation if we have a non-zero energy
+
+if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
+  select case (lord%ref_orbit)
+
+  case (patch_in$)
+    
+  case (patch_out$)
+
+  end select
+endif
+
 ! An sbend is tricky since the reference orbit changes with energy.
 
 if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) then
