@@ -333,7 +333,7 @@ error = .true.
 if (v86) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
           ele%is_on, ele%sub_key, control_type, ele%ix_value, &
@@ -350,7 +350,7 @@ if (v86) then
 elseif (v87 .or. v88) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
           ele%is_on, ele%sub_key, control_type, ele%ix_value, &
@@ -367,7 +367,7 @@ elseif (v87 .or. v88) then
 elseif (v89) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%attribute_name, ele%x, ele%y, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
           ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &

@@ -127,7 +127,7 @@ if (ix_attrib == 0) then
   print *, '      TRYING TO CREATE OVERLAY: ', lord%name
   call err_exit
 endif
-lord%attribute_name = at_name
+lord%component_name = at_name
 lord%ix_value = ix_attrib
 
 ! Loop over all slaves

@@ -258,13 +258,13 @@ if (ele%key == overlay$) then
 
     if (how == def$) then
       ele%ix_value = i
-      ele%attribute_name = word
+      ele%component_name = word
     endif
 
     if (ele%ix_value /= i) then
       call warning ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
             'YOU ARE TRYING TO SET: ' // word, &
-            'BUT YOU SHOULD BE SETTING: ' // ele%attribute_name)
+            'BUT YOU SHOULD BE SETTING: ' // ele%component_name)
       return
     endif
 
@@ -306,7 +306,7 @@ if (ele%key == group$) then
   else
     if (how == def$) then
       ele%ix_value = i
-      ele%attribute_name = word
+      ele%component_name = word
     endif
     if (delim == '=') then  ! value
       call evaluate_value (trim(ele%name) // ' ' // word, value, &
@@ -1772,8 +1772,8 @@ case (sr_wake_file$)
 case (lr_wake_file$) 
   call read_lr_wake (ele, type_name)
 case (to$)
-  ele%attribute_name = type_name
-  call upcase_string (ele%attribute_name)
+  ele%component_name = type_name
+  call upcase_string (ele%component_name)
 case default
   print *, 'INTERNAL ERROR IN TYPE_GET: I NEED HELP!'
   call err_exit
@@ -3412,7 +3412,7 @@ main_loop: do n = 1, n2
         cs(j)%ix_branch = lat%ele(k)%ix_branch
         cs(j)%ix_lord = -1             ! dummy value
         attrib_name = plat%ele(ixx)%attrib_name(i)
-        if (attrib_name == blank_name$) attrib_name = lord%attribute_name
+        if (attrib_name == blank_name$) attrib_name = lord%component_name
         ix = attribute_index(lat%ele(k), attrib_name)
         cs(j)%ix_attrib = ix
         if (ix < 1) then
@@ -3454,7 +3454,7 @@ main_loop: do n = 1, n2
 
     select case (lord%lord_status)
     case (overlay_lord$)
-      call create_overlay (lat, ix_lord, lord%attribute_name, cs(1:ns), err)
+      call create_overlay (lat, ix_lord, lord%component_name, cs(1:ns), err)
     case (group_lord$)
       call create_group (lat, ix_lord, cs(1:ns), err)
     end select

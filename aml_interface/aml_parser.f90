@@ -469,7 +469,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
 
   if (ele%lord_status == overlay_lord$) then
     call str_upcase (dflt_attrib, dflt_attrib)
-    ele%attribute_name = dflt_attrib
+    ele%component_name = dflt_attrib
     ele%ix_value = attribute_index(ele, dflt_attrib)
     if (ele%ix_value < 1) then
       call parser_error ('BAD ATTRIBUTE: ' // dflt_attrib, 'FOR CONTROLLER: ' // ele%name)

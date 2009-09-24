@@ -817,11 +817,11 @@ do
     branch%ix_branch = n
     branch%ix_from_branch = 0
     branch%ix_from_ele = i
-    call parser_expand_line (n, lat, lat%ele(i)%attribute_name, sequence, in_name, &
+    call parser_expand_line (n, lat, lat%ele(i)%component_name, sequence, in_name, &
       in_indexx, seq_name, seq_indexx, in_lat%ele, used_line, n_ele_use)
     branch%ele(0)%key = init_ele$
     branch%ele(0)%name = 'BEGINNING'
-    branch%name        = lat%ele(i)%attribute_name
+    branch%name        = lat%ele(i)%component_name
     if (lat%ele(i)%alias /= '') branch%name = lat%ele(i)%alias
     branch%n_ele_track = n_ele_use
     branch%n_ele_max   = n_ele_use

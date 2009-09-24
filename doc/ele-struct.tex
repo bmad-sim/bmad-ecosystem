@@ -16,9 +16,10 @@ generally hidden  by the \bmad bookkeeping routines.
 \small
 \begin{verbatim}
   type ele_struct
-    character(16) name                ! name of element
-    character(16) type                ! type name
-    character(16) alias               ! Another name
+    character(40) name                ! name of element
+    character(40) type                ! type name
+    character(40) alias               ! Another name
+    character(40) component_name      ! Used by overlays, multipass patch, etc.
     character(200), pointer :: descrip => null()     ! For general use
     type (twiss_struct)  a, b, z      ! Twiss parameters at end of element
     type (xy_disp_struct) x, y        ! Projected dispersion
@@ -290,7 +291,7 @@ way to obtain from an input string a pointer that points to the
 appropriate attribute. For example:
 \begin{example}
   type (lat_struct) lat
-  character(16) attrib_name, ele_name
+  character(40) attrib_name, ele_name
   real(rp), pointer :: attrib_ptr
   real(rp) set_value
   logical err_flag

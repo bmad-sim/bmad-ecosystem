@@ -1131,7 +1131,7 @@ integer, optional :: ix_branch, ix_ele
 ele%type = ' '
 ele%alias = ' '
 ele%name = '<Initialized>'
-ele%attribute_name = ' '
+ele%component_name = ' '
 
 ele%key = integer_option (0, key)
 ele%sub_key = integer_option (0, sub_key)

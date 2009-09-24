@@ -338,7 +338,7 @@ elseif (ix_att <= 0 .or. ix_att > n_attrib_special_maxx) then
   at_name = '!BAD INDEX'
 elseif (ele%lord_status == overlay_lord$) then
   if (ix_att == ele%ix_value) then
-    at_name = ele%attribute_name
+    at_name = ele%component_name
   else
     at_name = '!INVALID INDEX'
   endif
@@ -1158,7 +1158,7 @@ endif
 if (ele%lord_status == overlay_lord$) then
   if (ix_attrib /= ele%ix_value) then
     if (do_print) call print_error (ele, ix_attrib, &
-           'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%attribute_name)
+           'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
     return
   endif
 endif

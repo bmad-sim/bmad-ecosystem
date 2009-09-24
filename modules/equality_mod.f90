@@ -441,7 +441,7 @@ integer i, j
 
 is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%alias == f2%alias) .and. &
-    (f1%attribute_name == f2%attribute_name) .and. (f1%a == f2%a) .and. &
+    (f1%component_name == f2%component_name) .and. (f1%a == f2%a) .and. &
     (f1%b == f2%b) .and. &
     (f1%z == f2%z) .and. (f1%floor == f2%floor) .and. all(f1%value == f2%value) .and. &
     all(f1%gen0 == f2%gen0) .and. all(f1%vec0 == f2%vec0) .and. &
@@ -535,7 +535,7 @@ character(40) :: fmt = '(2x, a, 100f6.0)'
 print *
 print *, 'Fortran side:'
 print *, 'names:      ', (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
-    (f1%alias == f2%alias) .and. (f1%attribute_name == f2%attribute_name)
+    (f1%alias == f2%alias) .and. (f1%component_name == f2%component_name)
 print *, 'ints:       ', (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
     (f1%key == f2%key) .and. (f1%sub_key == f2%sub_key) .and. &
     (f1%lord_status == f2%lord_status) .and. (f1%slave_status == f2%slave_status) .and. &

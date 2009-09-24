@@ -172,7 +172,7 @@ type ele_struct
   character(40) name                   ! name of element.
   character(40) type                   ! type name.
   character(40) alias                  ! Another name.
-  character(40) attribute_name         ! Used by overlays.
+  character(40) component_name         ! Used by overlays, multipass patch, etc.
   character(200), pointer :: descrip => null() ! Description string.
   type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
   type (xy_disp_struct) x, y           ! Projected dispersions.

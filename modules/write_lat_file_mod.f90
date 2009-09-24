@@ -238,15 +238,15 @@ ele_loop: do ie = 1, lat%n_ele_max
         write (line, '(3a)') trim(line), ', ', trim(slave%name)
       endif
       name = attribute_name(slave, ctl%ix_attrib)  
-      if (name /= ele%attribute_name) &
+      if (name /= ele%component_name) &
               line = trim(line) // '[' // trim(name) // ']'
       if (ctl%coef /= 1) write (line, '(3a)') trim(line), '/', trim(str(ctl%coef))
     enddo j_loop
     line = trim(line) // '}'
-    if (ele%attribute_name == ' ') then
+    if (ele%component_name == ' ') then
       line = trim(line) // ', command'
     else
-      line = trim(line) // ', ' // ele%attribute_name
+      line = trim(line) // ', ' // ele%component_name
     endif
     if (ele%lord_status == overlay_lord$) then
       ix = ele%ix_value

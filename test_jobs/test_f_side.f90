@@ -201,7 +201,7 @@ call init_ele (ele_out)
 ele_in%name = "1234"
 ele_in%type = "abcd"
 ele_in%alias = "5678"
-ele_in%attribute_name = "efgh" 
+ele_in%component_name = "efgh" 
 ele_in%value(1) = -1
 ele_in%value(n_attrib_maxx) = -n_attrib_maxx
 ele_in%gen0 = vec6_a

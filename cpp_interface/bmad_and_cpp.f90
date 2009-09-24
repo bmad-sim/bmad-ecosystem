@@ -1338,7 +1338,7 @@ value(1:) = f%value
 
 
 call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
-      c_str(f%attribute_name), f%x, f%y, f%a, f%b, f%z, f%floor, value, f%gen0, &
+      c_str(f%component_name), f%x, f%y, f%a, f%b, f%z, f%floor, value, f%gen0, &
       f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
       r_arr, nr1, nr2, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
       c_str(descrip), f%gen_field, f%taylor(1), f%taylor(2), f%taylor(3), &
@@ -1420,7 +1420,7 @@ character(n_des)  des
 f%name  = nam
 f%type  = typ
 f%alias = ali
-f%attribute_name = attrib
+f%component_name = attrib
 
 call twiss_to_f (a, f%a)
 call twiss_to_f (b, f%b)

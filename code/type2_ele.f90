@@ -158,7 +158,7 @@ if (ele%lord_status == overlay_lord$) then
   i = ele%ix_value
   call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
-  name = ele%attribute_name
+  name = ele%component_name
   nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', r_ptr
 
 else
