@@ -2762,7 +2762,7 @@ do i = 1, size(s%plot_region)
       
       if ((index(curve%data_type, 'emit.') /= 0) .and. &
                         curve%data_source == 'lattice') do_synch = .true. 
-      if (curve%data_type(1:2) == 'i5') do_synch = .true.
+      if (curve%data_type(1:8) == 'rad_int.') do_synch = .true.
     enddo
   enddo
 enddo
