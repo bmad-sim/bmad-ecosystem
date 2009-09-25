@@ -232,11 +232,11 @@ center of \vn{S} coincides with the end of \vn{Q} (more on how
 superimposed elements get placed later). The tracking part of the
 lattice list (the part that one does tracking through) Looks like:
 \begin{example}
-        Element   Key         Length
-  1)    Q{\#}1       Quadrupole   7
-  2)    Q{\B}S       Sol_quad     3
-  3)    S{\#}1       Solenoid     3
-  4)    D{\#}2       Drift        1
+        Element   Key         Length  Total     
+  1)    Q{\#}1       Quadrupole   7        7
+  2)    Q{\B}S       Sol_quad     3       10
+  3)    S{\#}1       Solenoid     3       13
+  4)    D{\#}2       Drift        1       14
 \end{example}
 What \bmad has done is to split the original elements \vn{(Q, D)} at
 the edges of \vn{S}.  The first element \vn{Q\#1} is the part of \vn{Q}
@@ -340,6 +340,10 @@ For example
   q2: quad, l = 2, superposition, ref = dft1   ! ERROR! 
 \end{example}
 
+%-----------------------------------------------------------------------------
+\subsection{Changing Element Lengths when there is Superposition}
+\label{s:super.length}
+
 \index{overlay}
 \index{group}
 \index{expand_lattice}
@@ -356,9 +360,10 @@ results. For example:
   o: overlay = {q1}, l = 12
   m: marker, superimpose, offset = 15
 \end{example} 
+In this example, the marker is initially positioned at 15~meters.
 The application of the overlay will increase the length of \vn{q1} by
-2~meters which will put the marker \vn{m} at 17~meters instead of the
-expected 15. To avoid this problem, an \vn{expand_lattice} statement
+2~meters which will push the marker \vn{m} to 17~meters which is probably 
+not what was intended. To avoid this problem, an \vn{expand_lattice} statement
 (\sref{s:expand}) can be placed after the overlay, but before the
 superimpose, statement
 \begin{example}
@@ -367,6 +372,24 @@ superimpose, statement
   expand_lattice
   m: marker, superimpose, offset = 15
 \end{example} 
+
+If a program varies the length of a superimposed element after the
+lattice has been parsed, the starting longitudinal position of of the
+element will be kept fixed that the ending longitudinal position will
+be varied by varying the length of the last slave (the slave at the
+exit end of the lord element). For example, if the \vn{S} element in
+the first example of Section~\sref{s:super} is increased from 6~meters
+to 7~meters, The lattice would look like
+\begin{example}
+        Element   Key         Length  Total
+  1)    Q{\#}1       Quadrupole   7        7
+  2)    Q{\B}S       Sol_quad     3       10
+  3)    S{\#}1       Solenoid     4       14
+  4)    D{\#}2       Drift        1       15
+\end{example}
+The difference here is that \vn{S{\#}1} has increased by 1~meter and
+the overall length of the lattice has also increased by
+1~meter. Notice that in this example varying the if the length of \vn{S}
 
 %-----------------------------------------------------------------------------
 \section{Multipass}

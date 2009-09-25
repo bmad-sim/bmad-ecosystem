@@ -405,4 +405,42 @@ ele_ptr => lat%branch(ix_branch)%ele(ix_ele)
 
 end function
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_slave (lat, ix_lord, ix_slave) result (slave_ptr)
+!
+! Function to point to a slave of a lord.
+!
+! Modules Needed:
+!   use lat_ele_loc_mod
+!
+! Input:
+!   lat      -- lat_struct: Lattice containing the lord
+!   ix_lord  -- Integer: Index of lord in lat%ele(:) array
+!   ix_slave -- Integer: Index of the slave. 
+!                 ix_slave goes from 1 to lat%ele(ix_lord)n_lord
+!
+! Output:
+!   slave_pt -- Ele_struct, pointer: Pointer to the slave.
+!-
+
+function pointer_to_slave (lat, ix_lord, ix_slave) result (slave_ptr)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: slave_ptr
+type (control_struct), pointer :: con
+
+integer ix_lord, ix_slave
+
+!
+
+con => lat%control(lat%ele(ix_lord)%ix1_slave + ix_slave - 1)
+slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
+
+end function
+
 end module

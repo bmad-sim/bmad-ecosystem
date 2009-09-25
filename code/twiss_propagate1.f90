@@ -53,7 +53,8 @@ subroutine twiss_propagate1 (ele1, ele2, err)
   if (present(err)) err = .true.
 
   if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
-    print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED.'
+    print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED AT: ', trim(ele1%name)
+    print *, '      ELEMENT #', ele1%ix_ele
     if (bmad_status%exit_on_error) call err_exit
     bmad_status%ok = .false.
     return

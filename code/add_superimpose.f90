@@ -47,6 +47,16 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   character(20) :: r_name = "add_superimpose"
 
   !-------------------------------------------------------------------------
+  ! Check for negative length
+
+  if (super_ele%value(l$) < 0) then
+    call out_io (s_abort$, r_name, &
+                    'Superposition of element with negative length not allowed!', &
+                    'Element: ' // super_ele%name, &
+                    'Length: \es10.2\ ', r_array = (/ super_ele%value(l$) /) )
+    call err_exit
+  endif
+
   ! We need a copy of super_ele since the actual argument may be in the lat
   ! and split_lat can then overwrite it.
 

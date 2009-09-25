@@ -303,7 +303,7 @@ endif
 ! If a super lord is moved then we just need to adjust the start and end edges.
 ! Adjust end position.
 
-s_end = lord%s + lord%value(s_offset$)
+s_end = lord%s + lord%value(s_offset_tot$)
 ix = lat%control(lord%ix2_slave)%ix_slave
 slave => lat%ele(ix)
 s_start = slave%s - slave%value(l$)
@@ -645,10 +645,10 @@ subroutine makeup_super_slave (lat, ix_slave)
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave
+type (ele_struct), pointer :: lord, slave, slave0
 type (ele_struct), save :: sol_quad
 
-integer i, j, ix_con, ix, ix_slave
+integer i, j, ix_con, ix, ix_slave, ix_lord
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -700,7 +700,7 @@ if (slave%n_lord == 1) then
     slave%map_ref_orb_in = lat%ele(ix_slave-1)%map_ref_orb_out
   endif
 
-  !
+  ! Find the offset from the longitudinal start of the lord to the start of the slave
 
   offset = 0 ! length of all slaves before this one
   do i = lord%ix1_slave, ix_con-1
@@ -708,8 +708,13 @@ if (slave%n_lord == 1) then
     offset = offset + lat%ele(j)%value(l$)
   enddo
 
+  ! If this is the last slave, adjust it's length to be consistant with
+  ! The lord length. Then do the rest of the bookkeeping
+
+  if (ix_con == lord%ix2_slave) slave%value(l$) = lord%value(l$) - offset
+
   call makeup_super_slave1 (slave, lord, offset, lat%param, &
-                               ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
+                             (ix_con == lord%ix1_slave), (ix_con == lord%ix2_slave))
 
   return
 
@@ -735,6 +740,26 @@ ks_xo_sum = 0
 ks_yp_sum = 0
 ks_yo_sum = 0
 
+
+! The last super_slave (the super_slave at the exit end) of a super_lord
+! has it's length adjusted to be compatable with the length of the super_lord
+
+do j = slave%ic1_lord, slave%ic2_lord
+  ix_con = lat%ic(j)
+  ix_lord = lat%control(ix_con)%ix_lord
+  lord => lat%ele(ix_lord)
+  if (lord%ix2_slave == ix_con) then ! Slave is indeed the last one
+    offset = 0
+    do i = 1, lord%n_slave - 1
+      slave0 => pointer_to_slave(lat, ix_lord, i)
+      offset = offset + slave0%value(l$)
+    enddo
+    slave%value(l$) = lord%value(l$) - offset
+  endif
+enddo
+
+!
+
 value = 0
 value(l$) = slave%value(l$)
 value(E_tot$) = slave%value(E_tot$)
@@ -750,7 +775,15 @@ do j = slave%ic1_lord, slave%ic2_lord
   ix_con = lat%ic(j)
   ix = lat%control(ix_con)%ix_lord
   lord => lat%ele(ix)
-  coef = slave%value(l$) / lord%value(l$)
+
+  ! Physically, the lord length cannot be less than the slave length.
+  ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
+
+  if (abs(slave%value(l$)) > abs(lord%value(l$))) then
+    coef = 1
+  else
+    coef = slave%value(l$) / lord%value(l$) 
+  endif
 
   if (lord%lord_status /= super_lord$) then
     call out_io (s_abort$, r_name, &
@@ -1152,9 +1185,15 @@ real(rp) value(n_attrib_maxx)
 integer i
 logical at_entrance_end, at_exit_end
 
-!
+! Physically, the lord length cannot be less than the slave length.
+! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
 
-coef = slave%value(l$) / lord%value(l$) 
+if (abs(slave%value(l$)) > abs(lord%value(l$))) then
+  coef = 1
+else
+  coef = slave%value(l$) / lord%value(l$) 
+endif
+
 value = lord%value
 value(l$) = slave%value(l$)                 ! do not change slave length
 
