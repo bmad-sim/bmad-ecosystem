@@ -602,7 +602,7 @@ The \vn{reinitialize} command reinitializes various things. Format:
   reinitialize beam
   reinitialize data
   reinitialize tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
-                          \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
+           \{-beam0 <beam_file>\} \{-lat <lattice_file>\} \{-noplot\}
 \end{example}
 
 \vskip 0.2in 
@@ -630,6 +630,8 @@ reinitialization, what was used at startup.
 The \vn{-beam0} optional argument reads in a beam data file which is
 used to initialize the beam at the beginning of the lattice. This
 overrides the \vn{beam0_file} variable (\sref{s:beam.init}).
+
+The \vn{-noplot} optional argument surpresses the opening of the plot window.
 
 Examples:
 \begin{example}

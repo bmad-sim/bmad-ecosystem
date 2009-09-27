@@ -2390,6 +2390,9 @@ subroutine tao_parse_command_args (error, cmd_words)
     case ('-beam0')
       call get_next_arg (tao_com%beam0_file)
 
+    case ('-noplot')
+      s%global%plot_on = .false.
+
     case ('-lat')
       call get_next_arg (tao_com%init_lat_file)
 

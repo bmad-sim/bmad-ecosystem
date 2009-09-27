@@ -115,7 +115,7 @@ to using \vn{"*"} as the class.  Thus \vn{"*"} is equivalent to
 The syntax of the command line is:
 \begin{example}
   tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
-                          \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
+           \{-beam0 <beam_file>\} \{-lat <lattice_file>\} \{-noplot\}
 \end{example}
 
 The \vn{-init} optional argument can be used to replace the default
@@ -133,6 +133,8 @@ used to initialize the beam at the beginning of the lattice. This
 overrides the \vn{beam0_file} variable (\sref{s:beam.init}). The
 centroid of the particle distribution can be shifted using the
 \vn{change beam_start} command (\sref{s:change}).
+
+The \vn{-noplot} optional argument supresses the opening of the plot window.
 
 The \vn{-lat} switch is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
