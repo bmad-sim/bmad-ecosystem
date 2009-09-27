@@ -48,7 +48,7 @@ do i = 0, ubound(lat%branch, 1)
         if (ele1%ix_ele == n) then ! Is last super_slave
           s_end = ele0%s + lord%value(l$)
           ! If the super_lord wraps around the lattice ends then must adjust s_end
-          if (s_end > branch%ele(n)%s) s_end = s_end - (branch%ele(0)%s - branch%ele(n)%s) 
+          if (s_end > branch%ele(nt)%s) s_end = s_end - (branch%ele(0)%s - branch%ele(n)%s) 
           ele%value(l$) = s_end - branch%ele(n-1)%s
         endif
       enddo
