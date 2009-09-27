@@ -373,13 +373,18 @@ superimpose, statement
   m: marker, superimpose, offset = 15
 \end{example} 
 
+The length of a superimposed element must necessarily be equal to the
+sum of the lengths of its slave elements. For example, the element
+\vn{S} in the first example of Section~\sref{s:super} has a length of
+6~meters which is equal to the sum of the length of \vn{Q{\B}S}
+(3~meters) plus the length of \vn{S{\#1}} (also 3~meters).
+
 If a program varies the length of a superimposed element after the
-lattice has been parsed, the starting longitudinal position of of the
-element will be kept fixed that the ending longitudinal position will
-be varied by varying the length of the last slave (the slave at the
-exit end of the lord element). For example, if the \vn{S} element in
-the first example of Section~\sref{s:super} is increased from 6~meters
-to 7~meters, The lattice would look like
+lattice has been parsed, the length of the last slave (the slave at
+the exit end of the superimposed element) will be varied to keep
+things consistent. For example, if element \vn{S} in the first example
+of Section~\sref{s:super} is increased from 6~meters to 7~meters, The
+lattice would look like
 \begin{example}
         Element   Key         Length  Total
   1)    Q{\#}1       Quadrupole   7        7
@@ -389,7 +394,17 @@ to 7~meters, The lattice would look like
 \end{example}
 The difference here is that \vn{S{\#}1} has increased by 1~meter and
 the overall length of the lattice has also increased by
-1~meter. Notice that in this example varying the if the length of \vn{S}
+1~meter. Notice that in this example, Setting the length of \vn{S} to
+7~meters in the lattice file will give different results. In this
+case, the lattice would look like
+\begin{example}
+        Element   Key         Length  Total
+  1)    Q{\#}1       Quadrupole   6.5      6.5
+  2)    Q{\B}S       Sol_quad     3.5     10
+  3)    S{\#}1       Solenoid     3.5     13.5
+  4)    D{\#}2       Drift        0.5     14
+\end{example}
+
 
 %-----------------------------------------------------------------------------
 \section{Multipass}
@@ -527,7 +542,7 @@ An example will make this clear. Consider a bend defined by
 \end{example}
 Here the same reference orbit will be used for all passes. Assume that
 the reference momentum \vn{p0c} on the first pass is 5~GeV (this is
-defermined by the reference momentum at the beginning of the lattice
+determined by the reference momentum at the beginning of the lattice
 and any \vn{lcavity} elements in the lattice). Since \vn{n_ref_pass}
 is one, this fixes the momentum at which the reference orbit is
 calculated to be 5~GeV. The bending radius \vn{rho} of the reference
@@ -558,7 +573,7 @@ physical element after all). Thus, \vn{B\B2} must have a value for
 
 Now consider the same situation as above except that the value of
 \vn{ref_orbit} is changed to \vn{match_at_entrance} and the reference
-momentom is set instead of \vn{n_ref_pass}:
+momentum is set instead of \vn{n_ref_pass}:
 \begin{example} 
   B: sbend, l = 1, b_field = 1.0, p0c = 5e9, ref_orbit = match_at_entrance
 \end{example}
@@ -613,7 +628,7 @@ does not demand this. If $r_0$ does not lie on the entrance face, the
 reference orbit is extended (either forward or backward) in a straight
 line to a point where it intersects the entrance face (marked $r_1$ in
 Figure~\ref{f:multipass.bend}B)). The radius of curvature is
-calculated by scaling the radius as clculated from the first pass
+calculated by scaling the radius as calculated from the first pass
 scaled by the change in reference momentum between the first and
 second passes. From the entrance point and the radius of curvature,
 the exit point (marked $r_1$ in Figure~\ref{f:multipass.bend}B)) can

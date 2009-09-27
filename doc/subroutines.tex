@@ -179,7 +179,7 @@ Finds all bunch parameters for a slice through the beam distribution.
 
 \index{Routine!canonical_to_angle_coords}
 \item[canonical_to_angle_coords (particle, energy0)] \Newline 
-Subroutine to convert particleparticle coords from 
+Subroutine to convert particle coords from 
     (x, px, y, py, z, pz)
 
 \index{Routine!init_beam_distribution}
@@ -383,7 +383,7 @@ a C++ C_bmad_com.
 
 \index{Routine!c_logic}
 \item[c_logic (logic) result (c_log)] \Newline 
-Function to convert from a fortran logical to a C logical.
+Function to convert from a Fortran logical to a C logical.
 
 \index{Routine!c_str}
 \item[c_str (str) result (c_string)] \Newline 
@@ -408,7 +408,7 @@ Subroutine to convert a Bmad em_field_struct to a C++ C_em_field.
 
 \index{Routine!f_logic}
 \item[f_logic (logic) result (f_log)] \Newline 
-Function to convert from a fortran logical to a C logical.
+Function to convert from a Fortran logical to a C logical.
 
 \index{Routine!floor_position_to_c}
 \item[floor_position_to_c (f_floor_position, c_floor_position)] \Newline 
@@ -586,7 +586,7 @@ element.
 \index{Routine!g}
 \item[g(u)] \Newline 
  This is an 13-degree piecewise polynomial interpolation of the
- integral for the CIMP ibs formulation (equation 34 in "Intrabeam 
+ integral for the CIMP ibs formulation.
 
 \index{Routine!mtto}
 \item[mtto(lat, mode, rates)] \Newline 
@@ -780,7 +780,7 @@ Subroutine to split a lat at a point.
 \index{Routine!update_hybrid_list}
 \item[update_hybrid_list (lat, n_in, use_ele)] \Newline
 Subroutine used to specify a list of element that should not be
-hyberdized by \vn{make_hybrid_lat}.
+hybridized by \vn{make_hybrid_lat}.
 
 \end{description}
 
@@ -794,7 +794,7 @@ hyberdized by \vn{make_hybrid_lat}.
 \index{Routine!ele_geometry}
 \item[ele_geometry (ele0, ele, param)] \Newline 
 Subroutine to calculate the physical (floor) placement of an element given the
-placement of the preceeding element. This is the same as the MAD convention.
+placement of the preceding element. This is the same as the MAD convention.
 
 \index{Routine!init_floor}
 \item[init_floor (floor)] \Newline 
@@ -898,7 +898,7 @@ lattice. That is, only quadrupoles, bends and wigglers will be set on.
 \index{Routine!set_on_off}
 \item[set_on_off (key, lat, switch, orb)] \Newline
 Subroutine to turn on or off a set of elements (quadrupoles,
-rfcavities, etc.) in a lat.
+RF cavities, etc.) in a lat.
 
 \index{Routine!transfer_ele}
 \item[transfer_ele (ele1, ele2)] \Newline 
@@ -961,7 +961,7 @@ Dummy routine for the radiation_integrals calculation for CUSTOM elements.
 
 \index{Routine!convert_total_energy_to}
 \item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
-Subroutine to calculate the momentum, etc. from a particle's toal energy. 
+Subroutine to calculate the momentum, etc. from a particle's total energy. 
 
 \index{Routine!convert_pc_to}
 \item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)] \Newline

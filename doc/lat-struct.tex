@@ -318,11 +318,11 @@ routine \vn{lat_equal_lat} so that when one writes
     ! ... some calculations ...
     lattice1 = lattice2
 \end{example}
-the pointers in the \vn{lat_structs} will be handled properly. The
-result will be that lattice1 will hold the same information as
-\vn{lattice2} but the pointers in \vn{lattice1} will point to
-different locations in physical memory so that changes to one lattice
-will not affect the other.
+the pointers in the \vn{lat_struct} structures will be handled
+properly. The result will be that lattice1 will hold the same
+information as \vn{lattice2} but the pointers in \vn{lattice1} will
+point to different locations in physical memory so that changes to one
+lattice will not affect the other.
 
 Initial allocation of the pointers in a \vn{lat_struct} variable is
 generally handled by the \vnr{bmad_parser} and \vn{lat_equal_lat}
