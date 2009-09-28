@@ -193,6 +193,7 @@ do j = 1, ix2
 
   elseif (slave%slave_status == multipass_slave$) then
     call makeup_multipass_slave (lat, ix)
+    if (slave%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ix)
     call attribute_bookkeeper (slave, lat%param)
 
   endif
@@ -255,10 +256,11 @@ call lat_geometry (lat)
 
 found = .false.
 do i = 1, lat%n_ele_track
-  if (lat%ele(i)%ref_orbit == match_global_coords$) then
+  select case (lat%ele(i)%ref_orbit)
+  case (match_global_coords$, patch_in$, patch_out$)
     call makeup_multipass_slave (lat, i)
     found = .true.
-  endif
+  end select
 enddo
 
 if (found) then
@@ -396,15 +398,18 @@ subroutine makeup_multipass_slave (lat, ix_slave)
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave
+type (ele_struct), pointer :: lord, slave, patch_in_lord
 type (floor_position_struct), pointer :: f0, f1
+type (coord_struct) start, end
 
 real(rp) s, slave_val(n_attrib_maxx)
 real(rp) d, e, r_lord, r_slave, cos_lord, cos_e, sin_lord, sin_lorde
 real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2
 real(rp) cos_e2, d_theta, ang_dlord, cos_lorde1, cos_dlord
+real(rp) w0_mat(3,3), w1_mat(3,3), w1_inv_mat(3,3), offset(3)
+real(rp) theta, phi, psi
 
-integer i, j, ix_slave, ic, ix_s0
+integer i, j, ix_slave, ic, ix_s0, ix_patch_in_slave, n_pass
 character(40) :: r_name = 'makeup_multipass_slave'
 
 !
@@ -412,6 +417,7 @@ character(40) :: r_name = 'makeup_multipass_slave'
 slave => lat%ele(ix_slave)
 j =  lat%ic(slave%ic1_lord)
 lord => lat%ele(lat%control(j)%ix_lord)
+n_pass = j - lord%ix1_slave + 1  ! pass number for slave
 
 slave_val = slave%value  ! save
 
@@ -488,14 +494,61 @@ slave%coupler_at       = lord%coupler_at
 
 ! patch element.
 ! The reference energy may be zero while parsing in a lattice file so only do
-! the computation if we have a non-zero energy
+! the computation if we have a non-zero energy.
 
 if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
+
   select case (lord%ref_orbit)
 
   case (patch_in$)
-    
+    ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
+    ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
+
+    ! ref pass slave parameters are fixed.
+    if (ix_s0 == ix_slave) then
+      slave%value(x_offset$) = slave_val(x_offset$)
+      slave%value(y_offset$) = slave_val(y_offset$)
+      slave%value(z_offset$) = slave_val(z_offset$)
+      slave%value(x_pitch$)  = slave_val(x_pitch$)
+      slave%value(y_pitch$)  = slave_val(y_pitch$)
+      slave%value(tilt$)     = slave_val(tilt$)
+      return     
+    endif
+
+    f0 => lat%ele(ix_s0)%floor      ! Coords at ref slave exit end.
+    f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
+    call floor_angles_to_w_mat (f0%theta, f0%phi, f0%psi, w0_mat)
+    call floor_angles_to_w_mat (f1%theta, f1%phi, f1%psi, w1_mat)
+    offset = (/ f0%x-f1%x, f0%y-f1%y, f0%z-f1%z /)
+    offset = matmul(w1_mat, offset)
+    slave%value(x_offset$) = offset(1)
+    slave%value(y_offset$) = offset(2)
+    slave%value(z_offset$) = offset(3)
+    call mat_inverse (w1_mat, w1_inv_mat)
+    w1_mat = matmul (w1_inv_mat, w0_mat) 
+    call floor_w_mat_to_angles (w1_mat, 0.0_rp, theta, phi, psi)
+    slave%value(x_pitch$) = -theta
+    slave%value(y_pitch$) = phi
+    slave%value(tilt$) = psi
+
   case (patch_out$)
+    ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
+    ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
+
+    ic = nint(lord%value(ix_patch_control$))
+    patch_in_lord => lat%ele(lat%control(ic)%ix_lord)
+    ic = patch_in_lord%ix1_slave + n_pass - 1    
+    ix_patch_in_slave = lat%control(ic)%ix_slave
+    start%vec = 0
+    do i = ix_patch_in_slave, ix_slave - 1
+      call track1 (start, lat%ele(i), lat%param, end)
+      start = end
+    enddo
+    slave%value(x_offset$) = end%vec(1) 
+    slave%value(y_offset$) = end%vec(3)
+    slave%value(z_offset$) = end%vec(5)
+    slave%value(x_pitch$) = end%vec(2)
+    slave%value(y_pitch$) = end%vec(4)
 
   end select
 endif
@@ -528,14 +581,9 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
       call err_exit
     endif
 
-    ! This calculation only makes sense if the reference trajectories through the element
-    ! are "close" to each other. If the reference trajectory of this slave is too far
-    ! from the base reference trajectory then the calculation is aborted as being unphysical.
-    ! This prevents wildly unphysical values for e1, e2, and the length.
-
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
-    ix_s0 = lat%control(ic)%ix_slave
-    if (ix_s0 == ix_slave) return   ! Do not need calculation for ref slave.
+    ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
+    if (ix_s0 == ix_slave) return     ! Do not need calculation for ref slave.
 
     f0 => lat%ele(ix_s0-1)%floor    ! Coords at ref slave entrance end.
     f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
@@ -751,7 +799,7 @@ do j = slave%ic1_lord, slave%ic2_lord
   if (lord%ix2_slave == ix_con) then ! Slave is indeed the last one
     offset = 0
     do i = 1, lord%n_slave - 1
-      slave0 => pointer_to_slave(lat, ix_lord, i)
+      slave0 => pointer_to_slave(lat, lord, i)
       offset = offset + slave0%value(l$)
     enddo
     slave%value(l$) = lord%value(l$) - offset
@@ -1427,13 +1475,6 @@ character(40) :: r_name = 'makeup_overlay_and_girder_slave'
                              
 slave => lat%ele(ix_ele)
 l_stat = slave%lord_status
-
-if (l_stat /= super_lord$ .and. slave%slave_status /= overlay_slave$ .and. &
-         l_stat /= overlay_lord$ .and. l_stat /= multipass_lord$) then
-  call out_io(s_abort$, r_name, 'ELEMENT IS NOT OF PROPER TYPE. lattice INDEX: \i\ ', ix_ele)
-  call type_ele (slave, .true., 0, .false., 0, .true., lat)
-  call err_exit
-endif
 
 value = 0
 used = .false.

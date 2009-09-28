@@ -156,10 +156,12 @@ where
 \bmad, again following \mad, computes $\Bf V$ and $\Bf W$ by starting
 at the first element of the lattice and iteratively using the
 equations
-\Begineq
-  \Bf V_i = \Bf W_{i-1} \, \Bf L_i + \Bf V_{i-1}, \quad 
-  \Bf W_i = \Bf W_{i-1} \, \Bf S_i
-\Endeq
+\Begineqs
+  \Bf V_i &= \Bf W_{i-1} \, \Bf L_i + \Bf V_{i-1}, 
+    \nonumber
+  \Bf W_i &= \Bf W_{i-1} \, \Bf S_i
+    \label{wws}
+\Endeqs
 $\Bf L_i$ is the displacement vector for the $i$\Th element and matrix
 $\Bf S_i$ is the rotation of the local reference system of the exit
 end with respect to the entrance end. For clarity, the subscript $i$ in 
@@ -266,8 +268,18 @@ local coordinates is the same.
 
 \index{patch}\index{tilt}
 A \vn{patch} element shifts the reference orbit (\sref{s:patch}).
-the $\Bf S$ matrix corresponding to a
-non--zero \vn{tilt} of a \vn{patch} element is
+\Eqs{wws} are used to propagate the $\Bf W$ matrix through a
+\vn{patch}. The $\Bf L$ vector for a patch is
+\Begineq
+  \Bf L = 
+  \begin{pmatrix}
+    x_\mbox{offset}
+    y_\mbox{offset}
+    z_\mbox{offset}
+  \end{pmatrix}
+\Endeq
+The $\Bf S$ matrix corresponding to a
+non--zero \vn{tilt} for a \vn{patch} element is
 \Begineq
   \Bf S = 
   \begin{pmatrix}
@@ -288,8 +300,9 @@ The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} of a
   \end{pmatrix}
 \Endeq
 \index{y_pitch}
-Finally, the $\Bf S$ matrix corresponding to a non-zero \vn{y_pitch}
-of a \vn{patch} element is
+where $theta_x$ is the value of \vn{x_pitch}. Finally, the $\Bf S$
+matrix corresponding to a non-zero \vn{y_pitch} of a \vn{patch}
+element is
 \Begineq
   \Bf S = 
   \begin{pmatrix}
@@ -298,6 +311,7 @@ of a \vn{patch} element is
     0 & -\sin\theta_y & \cos\theta_y 
   \end{pmatrix}
 \Endeq
+where $theta_y$ is the value of \vn{y_pitch}. 
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}

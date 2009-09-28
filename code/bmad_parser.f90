@@ -692,6 +692,33 @@ do i = 1, lat%n_ele_track
   call add_this_multipass (lat, ixm(1:n_multi))
 enddo
 
+! A patch element with ref_orb = patch_out$ gets a lat%control element to keep
+! track of there the corresponding patch with ref_orb = patch_in$ is.
+
+do i = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(i)
+  if (ele%ref_orbit /= patch_out$) cycle
+  if (ele%component_name == '') then
+    call warning ('NO REF_PATCH ELEMENT GIVEN FOR PATCH: ' // ele%name)
+    cycle
+  endif
+  do j = lat%n_ele_track+1, lat%n_ele_max
+    if (lat%ele(j)%name == ele%component_name) then
+      call reallocate_control(lat, lat%n_control_max+1)
+      n = lat%n_control_max + 1
+      lat%n_control_max = n
+      lat%control(n)%ix_lord = j
+      lat%control(n)%ix_slave = i
+      ele%value(ix_patch_control$) = n
+      exit
+    endif
+  enddo
+  if (j == lat%n_ele_max + 1) then
+    call warning ('CANNOT FIND REF_PATCH FOR PATCH: ' // ele%name, &
+                  'CANNOT FIND: ' // ele%component_name)
+  endif
+enddo
+
 ! Make sure that taylor order and lattice_type are not being set via
 ! the old way of doing things.
 

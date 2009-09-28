@@ -676,17 +676,25 @@ expand_lat_out = .false.
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
   if (ele%slave_status == super_slave$) cycle
-  if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) cycle
-  if (ele%value(dphi0$) == 0) cycle
-  if (.not. expand_lat_out) then
+
+  if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
+    if (ele%value(dphi0$) == 0) cycle
+    if (.not. expand_lat_out) call write_expand_lat_header
     write (iu, *)
-    write (iu, '(a)') '!-------------------------------------------------------'
-    write (iu, *)
-    write (iu, '(a)') 'expand_lattice'
-    write (iu, *)
-    expand_lat_out = .true.
+    write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
   endif
-  write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
+
+  if (ele%key == patch$ .and. ele%ref_orbit /= 0) then
+    if (.not. expand_lat_out) call write_expand_lat_header
+    write (iu, *)
+    if (ele%value(x_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[x_offset] = ', trim(str(ele%value(x_offset$)))
+    if (ele%value(y_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[y_offset] = ', trim(str(ele%value(y_offset$)))
+    if (ele%value(z_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[z_offset] = ', trim(str(ele%value(z_offset$)))
+    if (ele%value(x_pitch$) /= 0)  write (iu, '(3a)') trim(ele%name), '[x_pitch] = ', trim(str(ele%value(x_pitch$)))
+    if (ele%value(y_pitch$) /= 0)  write (iu, '(3a)') trim(ele%name), '[y_pitch] = ', trim(str(ele%value(y_pitch$)))
+    if (ele%value(tilt$) /= 0)     write (iu, '(3a)') trim(ele%name), '[tilt]    = ', trim(str(ele%value(tilt$)))
+  endif
+
 enddo
 
 ! cleanup
@@ -696,6 +704,19 @@ deallocate (names)
 deallocate (multipass)
 deallocate (m_info%top, m_info%bottom)
 if (present(err)) err = .false.
+
+!--------------------------------------------------------------------------------
+contains
+
+subroutine write_expand_lat_header ()
+
+write (iu, *)
+write (iu, '(a)') '!-------------------------------------------------------'
+write (iu, *)
+write (iu, '(a)') 'expand_lattice'
+expand_lat_out = .true.
+
+end subroutine
 
 end subroutine
 

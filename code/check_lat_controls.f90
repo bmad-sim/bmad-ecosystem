@@ -15,13 +15,12 @@
 
 subroutine check_lat_controls (lat, exit_on_error)
 
-use bmad_struct
-use bmad_interface, except_dummy => check_lat_controls
+use lat_ele_loc_mod, except_dummy => check_lat_controls
 
 implicit none
      
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, slave, lord
+type (ele_struct), pointer :: ele, slave, lord, lord2
 type (branch_struct), pointer :: branch
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
@@ -126,8 +125,17 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    if (ele%key == match$ .and. l_stat == multipass_lord$) then
+    ! A patch element which is a multipass_lord and a ref_orbit specification must
+    ! have n_ref_pass = 1
+
+    if (ele%key == patch$ .and. l_stat == multipass_lord$) then
       if (ele%ref_orbit /= 0 .and. ele%value(n_ref_pass$) /= 1) then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'WHICH IS A PATCH ELEMENT AND A MULTIPASS_LORD.', &
+                  'HAS REF_ORBIT = ' // ref_orbit_name(ele%ref_orbit), &
+                  'BUT N_REF_PASS IS NOT 1! \i0\ ', i_array = (/ nint(ele%value(n_ref_pass$)) /))
+        found_err = .true.
       endif
     endif
 
@@ -166,6 +174,18 @@ do i_b = 0, ubound(lat%branch, 1)
               'N_REF_PASS, E_TOT, AND P0C ARE ALL ZERO AND FIELD_MASTER = FALSE!')
         found_err = .true.
       end select
+    endif
+
+    ! The first lord of a multipass_slave should be its multipass_lord
+
+    if (s_stat == multipass_slave$) then
+      lord2 => pointer_to_lord(lat, ele, 1)
+      if (lord2%lord_status /= multipass_lord$) then
+        call out_io (s_fatal$, r_name, &
+              'FOR MULTIPASS SLAVE: ' // ele%name, &
+              'FIRST LORD IS NOT A MULTIPASS_LORD! IT IS: ' // lord2%name)
+        found_err = .true.
+      endif
     endif
 
     ! check that element is in correct part of the ele(:) array
@@ -267,15 +287,14 @@ do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! The slaves of a multipass_lord cannot be controlled by anything else.
+    ! The slaves of a multipass_lord must must be in order
 
     if (l_stat == multipass_lord$) then
-      do i = ele%ix1_slave, ele%ix2_slave
-        ii = lat%control(i)%ix_slave
-        if (lat%ele(ii)%n_lord /= 1) then
+      do i = ele%ix1_slave+1, ele%ix2_slave
+        if (lat%control(i)%ix_slave <= lat%control(i-1)%ix_slave) then
           call out_io (s_fatal$, r_name, &
-                    'SLAVE OF A MULTIPASS_LORD: ' // trim(lat%ele(ii)%name) // '  (\i0\)', &
-                    'HAS MORE THAN ONE LORD.', &
+                    'SLAVE OF A MULTIPASS_LORD: ' // trim(lat%ele(i)%name) // '  (\i0\)', &
+                    'IS OUT OF ORDER IN THE LORD LIST', &
                     'FOR MULTIPASS_LORD: ' // trim(ele%name) // '  (\i0\)', &
                     i_array = (/ ii, i_t /) )
           found_err = .true.
@@ -344,7 +363,7 @@ do i_b = 0, ubound(lat%branch, 1)
         endif
       endif
 
-    enddo
+    enddo  ! j = ele%ix1_slave, ele%ix2_slave
 
     ! check lords
 

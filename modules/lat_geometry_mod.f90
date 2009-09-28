@@ -361,7 +361,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! subroutine floor_w_mat_to_angles (theta, theta0, phi, psi, w_mat)
+! subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)
 !
 ! Routine to construct the angles that define the orientation of an element
 ! in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
