@@ -100,6 +100,12 @@ do n = 0, ubound(erl%branch, 1)
                ele%value(x1_limit$)
     endif
 
+    if (ele%value(l$) < 0) then
+      print *, 'WARNING: Element has negative drift length!'
+      print *, '         Element: ', trim(ele%name)
+      print *, '         Length:', ele%value(l$)
+    endif
+
   end do ele_loop
 enddo
 
