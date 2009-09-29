@@ -96,7 +96,7 @@ private header_io, find_format, output_lines, insert_numbers
 !   l_num        -- Logical: Logical to print.
 !   r_array(:)   -- Real(rp), optional: Real numbers to print.
 !   i_array(:)   -- Integer, optional: Integer numbers to print.
-!   r_array(:)   -- Logical, optional: Logicals to print.
+!   l_array(:)   -- Logical, optional: Logicals to print.
 !-
 
 interface out_io
