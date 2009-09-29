@@ -153,6 +153,7 @@ type bp_common_struct
   logical error_flag     ! Needed since bmad_status%ok gets set by many routines.
   logical input_line_meaningful
   logical ran_function_was_called
+  logical do_superimpose
   logical write_digested      ! For bmad_parser
   logical write_digested2     ! For bmad_parser2
 end type
@@ -2680,6 +2681,8 @@ character(80) line
 logical have_inserted, found
 
 ! init
+
+if (.not. bp_com%do_superimpose) return
 
 call settable_dep_var_bookkeeping (super_ele_in)
 

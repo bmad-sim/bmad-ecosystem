@@ -86,6 +86,7 @@ logical file_end, err_flag, finished, print_err, good_attrib
 bmad_status%ok = .true.
 bp_com%write_digested2 = .false.
 bp_com%parser_name = 'BMAD_PARSER2'
+if (lat_file /= 'FROM: BMAD_PARSER') bp_com%do_superimpose = .true.
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
 ! bmad_parser (after an expand_lattice command). 

@@ -87,6 +87,7 @@ logical detected_expand_lattice_cmd, multipass
 bp_com%error_flag = .false.              ! set to true on an error
 bp_com%parser_name = 'BMAD_PARSER'       ! Used for error messages.
 bp_com%write_digested = .true.
+bp_com%do_superimpose = .true.
 debug_line = ''
 
 call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
@@ -204,6 +205,13 @@ parsing_loop: do
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested = .false.
     call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
+    cycle parsing_loop
+  endif
+
+  ! NO_SUPERIMPOSE
+
+  if (word_1(:ix_word) == 'NO_SUPERIMPOSE') then
+    bp_com%do_superimpose = .false.
     cycle parsing_loop
   endif
 

@@ -4,6 +4,9 @@
 ! Subroutine to make a superimposed element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
 !
+! Note: Transfer matrices for split elements and super_slave elements are
+!       *not* recomputed.
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -18,8 +21,6 @@
 !   lat      -- lat_struct: Modified lat.
 !   ix_super -- Integer: Index where element is put.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine add_superimpose (lat, super_ele, ix_super)
 

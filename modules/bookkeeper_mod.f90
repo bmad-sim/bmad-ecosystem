@@ -33,7 +33,7 @@ contains
 !                  for all elements.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
 !   super_lord_only -- Logical, optional: If True then only do bookkeeping for 
-!                     wiggler elements. Default is False.
+!                     wiggler elements. Default is False. This is used by lattice_bookkeeper.
 !-
 
 subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_lord_only)
@@ -43,14 +43,24 @@ implicit none
 type (lat_struct), target :: lat
 
 integer, optional :: ix_ele, ix_branch
-integer ie
+integer ie, ix0
 
 logical, optional :: super_lord_only
 logical super_only
 
-! If ix_ele is present we only do bookkeeping for this one element
+! Check that super_slave lengths add up to the super_lord_length.
+! With super_only (used by lattice_bookkeeper) this check has already been
+! done so don't do it again.
 
+ix0 = integer_option(0, ix_ele)
 super_only = logic_option (.false., super_lord_only)
+
+if (.not. super_only) then
+  if (.not. present(ix_ele) .or. lat%ele(ix0)%lord_status == super_lord$) &
+                                    call super_lord_length_bookkeeper (lat, ix_ele)
+endif
+
+! If ix_ele is present we only do bookkeeping for this one element
 
 if (present(ix_ele)) then
   call this_bookkeeper (lat, lat%ele(ix_ele), super_only)
@@ -68,7 +78,6 @@ else
     if (lat%ele(ie)%lord_status == group_lord$) &
                          call this_bookkeeper (lat, lat%ele(ie), super_only)
   enddo
-
 endif
 
 end subroutine
@@ -199,6 +208,268 @@ do j = 1, ix2
   endif
 
 enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine super_lord_length_bookkeeper (lat, ix_ele)
+!
+! Subroutine to make sure the length of the slaves of a super_lord add up to the
+! length of the lord. If not, make an adjustment to the slave length.
+!
+! Note: This routine is called by control_bookkeeper. Generally this
+! routine does not have to be called directly.
+!
+! Modules needed:
+!   use bookkeeper_mod
+!
+! Input:
+!   lat    -- Lat_struct: Lattice.
+!   ix_ele -- Integer, optional: Index of super_lord element to check.
+!                  If not present bookkeeping will be done for all super_lords.
+!
+! Output:
+!   lat  -- Lat_struct: Lattice with adjustments made.
+!-
+
+subroutine super_lord_length_bookkeeper (lat, ix_ele)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: lord0, lord2, slave, slave2
+type (branch_struct), pointer :: branch
+
+real(rp) length, coef, length_start, length_pos, length_neg
+real(rp) d_length, d_length_pos, d_length_neg
+
+integer, optional :: ix_ele
+integer j, k, ie, ix0, ixa_lord0, ixb_lord0, ixa_lord2, ixb_lord2
+integer ix_pos_edge, ix_neg_edge, ixa, ixb
+
+logical pos_extension_lord_exists, neg_extension_lord_exists, all_extension_lord_exists
+logical length_adjustment_made, overlap_a, overlap_b, overlap_all
+
+character(40) :: r_name = 'super_lord_length_bookkeeper'
+
+!
+
+length_adjustment_made = .false.
+ix0 = integer_option(0, ix_ele)
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+
+  lord0 => lat%ele(ie)
+
+  if (lord0%lord_status /= super_lord$) cycle
+  if (ix0 /= 0 .and. ix0 /= ie) cycle
+
+  length = 0
+  do j = 1, lord0%n_slave
+    slave => pointer_to_slave(lat, lord0, j)
+    length = length + slave%value(l$)
+  enddo
+
+  ! Nothing to be done if the lengths add up
+
+  if (abs(length - lord0%value(l$)) < 1e-10 * lord0%value(l$)) cycle
+
+  ! Now we need to adjust some super_slave lengths.
+  ! We try varying the length of all the slaves except
+  ! those that are part of a "contained" super_lord. A "contained" super_lord
+  ! is a super_lord that the present lord (lord0) completely overlaps.
+  ! This is necessary since otherwise the length of the contained super_lord
+  ! would not be consistant with the lengths of its slaves.
+
+  ! The complication here is that we will need to adjust the lengths
+  ! of the elements to either side of the lord0 to keep the lengths of other
+  ! super_lords consistant with their slaves. We need to know if these other
+  ! super_lords extend in the positive, negative or both directions past lord0.
+
+  length_adjustment_made = .true.
+
+  slave = pointer_to_slave(lat, lord0, 1)
+  ixa_lord0 = slave%ix_ele  ! Index at entrance end of lord0
+
+  slave = pointer_to_slave(lat, lord0, lord0%n_slave)
+  ixb_lord0 = slave%ix_ele  ! Index at exit end of lord0
+
+  pos_extension_lord_exists = .false.
+  neg_extension_lord_exists = .false.
+  all_extension_lord_exists = .false.
+
+  ix_pos_edge = lat%n_ele_max
+  ix_neg_edge = 0
+
+  length_start = 0
+  slave_loop: do j = 1, lord0%n_slave
+
+    slave => pointer_to_slave(lat, lord0, j)
+    slave%bmad_logic = .true. ! Can be varied.
+
+    do k = 1, slave%n_lord
+      lord2 => pointer_to_lord(lat, slave, k)
+      if (lord0%ix_ele == lord2%ix_ele) cycle  ! Ignore self
+      slave2 => pointer_to_slave(lat, lord2, 1)            ! Slave at entrance end
+      ixa_lord2 = slave2%ix_ele
+
+      slave2 => pointer_to_slave(lat, lord2, lord2%n_slave) ! Slave at exit end
+      ixb_lord2 = slave2%ix_ele
+
+      overlap_a = .false. ! entrance end of lord2 overlaps lord0?
+      overlap_b = .false. ! exit end of lord2 overlaps lord0?
+      overlap_all = .false.
+
+      ! Case where lord0 does not wrap around the IP
+
+      if (ixa_lord0 <= ixb_lord0) then
+        if (ixa_lord2 >= ixa_lord0 .and. ixa_lord2 <= ixb_lord0) overlap_a = .true.
+        if (ixb_lord2 >= ixa_lord0 .and. ixb_lord2 <= ixb_lord0) overlap_b = .true.
+        if (.not. overlap_a .and. .not. overlap_b) then
+          if (ixa_lord2 <= ixb_lord2) then           ! If lord2 does not wrap
+            if (ixa_lord2 < ixa_lord0 .and. ixb_lord2 > ixb_lord0) overlap_all = .true.
+          else                                       ! If lord2 does wrap
+            if (ixa_lord2 < ixa_lord0 .or. ixb_lord2 > ixb_lord0) overlap_all = .true.
+          endif
+        endif
+
+      ! Case where lord0 does wrap around the IP
+
+      else
+        if (ixa_lord2 >= ixa_lord0 .or. ixa_lord2 <= ixb_lord0) overlap_a = .true.
+        if (ixb_lord2 >= ixa_lord0 .or. ixb_lord2 <= ixb_lord0) overlap_b = .true.
+        if (.not. overlap_a .and. .not. overlap_b) then
+          if (ixa_lord2 > ixb_lord2) then ! and lord2 wraps also
+            if (ixa_lord2 < ixa_lord0 .and. ixb_lord2 > ixb_lord0) overlap_all = .true.
+          endif
+        endif
+      endif
+
+      ! Contained?
+
+      if (overlap_a .and. overlap_b) then  ! If contained
+        slave%bmad_logic = .false.
+      elseif (overlap_a) then
+        pos_extension_lord_exists = .true.
+        ix_pos_edge = min (ix_pos_edge, ixa_lord2)
+      elseif (overlap_b) then
+        neg_extension_lord_exists = .true.
+        ix_neg_edge = max (ix_neg_edge, ixb_lord2)
+      elseif (overlap_all) then
+        all_extension_lord_exists = .true.
+      endif
+
+    enddo
+
+    if (slave%bmad_logic) length_start = length_start + slave%value(l$)
+  enddo slave_loop
+
+  ! If we have not found any slaves to vary we are in trouble
+
+  if (length_start == 0) then
+    call out_io (s_fatal$, r_name, 'CANNOT VARY LENGTH OF SUPER_LORD: ' // lord0%name)
+    call err_exit
+  endif
+
+  ! Calculate positive and negative extension length changes
+
+  coef = lord0%value(l$) / length_start
+  d_length = lord0%value(l$) - length_start
+
+  if (pos_extension_lord_exists) then
+    length_pos = 0
+    do j = 1, lord0%n_slave
+      slave => pointer_to_slave(lat, lord0, j)
+      if (slave%ix_ele < ix_pos_edge) cycle
+      if (.not. slave%bmad_logic) cycle
+      length_pos = length_pos + slave%value(l$)
+    enddo
+    d_length_pos = length_pos * (coef - 1)
+  endif
+
+  if (neg_extension_lord_exists) then
+    length_neg = 0
+    do j = 1, lord0%n_slave
+      slave => pointer_to_slave(lat, lord0, j)
+      if (slave%ix_ele > ix_neg_edge) cycle
+      if (.not. slave%bmad_logic) cycle
+      length_neg = length_neg + slave%value(l$)
+    enddo    
+    d_length_neg = length_neg * (coef - 1)
+  endif
+
+  ! Vary the slave lengths
+
+  do j = 1, lord0%n_slave
+    slave => pointer_to_slave(lat, lord0, j)
+    if (.not. slave%bmad_logic) cycle
+    slave%value(l$) = slave%value(l$) * coef
+  enddo
+
+  ! Now to make the adjustments to either side of lord0.
+
+  branch => lat%branch(slave%ix_branch)
+
+  ixa = ixa_lord0 - 1
+  if (ixa == 0) ixa = branch%n_ele_track
+
+  ixb = ixb_lord0 + 1
+  if (ixb == branch%n_ele_track + 1) ixb = 1 
+
+  if (all_extension_lord_exists) then
+    if (pos_extension_lord_exists .and. neg_extension_lord_exists) then
+      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
+      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
+    elseif (pos_extension_lord_exists) then
+      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - (d_length - d_length_pos)
+      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
+    elseif (neg_extension_lord_exists) then
+      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
+      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - (d_length - d_length_neg)
+    else
+      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length / 2
+      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length / 2
+    endif
+
+  else ! An all_extension_lord does not exist
+    if (pos_extension_lord_exists .and. neg_extension_lord_exists) then
+      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
+      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
+    elseif (pos_extension_lord_exists) then
+      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
+    elseif (neg_extension_lord_exists) then
+      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
+    else  
+      ! No extensions -> Nothing to be done.
+    endif
+  endif
+
+enddo
+
+! If there has been a length adjustment then we need to make sure everything is ok.
+
+if (length_adjustment_made) then
+  do ie = lat%n_ele_track+1, lat%n_ele_max
+    lord0 => lat%ele(ie)
+    if (lord0%lord_status /= super_lord$) cycle
+    length = 0
+    do j = 1, lord0%n_slave
+      slave => pointer_to_slave(lat, lord0, j)
+      length = length + slave%value(l$)
+    enddo
+    if (abs(length - lord0%value(l$)) > 1e-10 * lord0%value(l$)) then
+      call out_io (s_fatal$, r_name, &
+              'INCONSISTANT SUPER_LORD/SUPER_SLAVE LENGTHS!', &
+              'LORD: ' // lord0%name, &
+              'LENGTH: \es14.6\ ', &
+              'SUM OF SLAVE LENGTHS: \es14.6\ ', r_array = (/ lord0%value(l$), length /) )
+      call err_exit
+    endif
+  enddo
+endif
 
 end subroutine
 
@@ -787,24 +1058,6 @@ ks_xp_sum = 0
 ks_xo_sum = 0
 ks_yp_sum = 0
 ks_yo_sum = 0
-
-
-! The last super_slave (the super_slave at the exit end) of a super_lord
-! has it's length adjusted to be compatable with the length of the super_lord
-
-do j = slave%ic1_lord, slave%ic2_lord
-  ix_con = lat%ic(j)
-  ix_lord = lat%control(ix_con)%ix_lord
-  lord => lat%ele(ix_lord)
-  if (lord%ix2_slave == ix_con) then ! Slave is indeed the last one
-    offset = 0
-    do i = 1, lord%n_slave - 1
-      slave0 => pointer_to_slave(lat, lord, i)
-      offset = offset + slave0%value(l$)
-    enddo
-    slave%value(l$) = lord%value(l$) - offset
-  endif
-enddo
 
 !
 
@@ -1615,11 +1868,11 @@ logical :: init_needed = .true.
 if (ele%key == taylor$) return
 
 val => ele%value
-ele%value(check_sum$) = 0
-if (associated(ele%a_pole)) ele%value(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
+val(check_sum$) = 0
+if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
 z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0)
 
-if (all(ele%value == ele%old_value) .and. .not. z_patch_calc_needed) return
+if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
 
 ! Transfer tilt to tilt_tot, etc.
 

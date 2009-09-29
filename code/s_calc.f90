@@ -30,8 +30,6 @@ integer i, j, n, ic, icon, ix2, nt
 real(8) ss, s_end
 
 ! Just go through all the elements and add up the lengths.
-! The last super_slave (the super_slave at the exit end) of a super_lord
-! has it's length adjusted to be compatable with the length of the super_lord
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
@@ -40,19 +38,6 @@ do i = 0, ubound(lat%branch, 1)
   nt = branch%n_ele_track
   do n = 1, nt
     ele => branch%ele(n)
-    if (ele%slave_status == super_slave$) then
-      do ic = ele%ic1_lord, ele%ic2_lord
-        icon = lat%ic(ic)
-        lord => lat%ele(lat%control(icon)%ix_lord)
-        call find_element_ends (lat, lord, ele0, ele1)
-        if (ele1%ix_ele == n) then ! Is last super_slave
-          s_end = ele0%s + lord%value(l$)
-          ! If the super_lord wraps around the lattice ends then must adjust s_end
-          if (s_end > branch%ele(nt)%s) s_end = s_end - (branch%ele(0)%s - branch%ele(n)%s) 
-          ele%value(l$) = s_end - branch%ele(n-1)%s
-        endif
-      enddo
-    endif
     ss = ss + ele%value(l$)
     lat%ele(n)%s = ss
   enddo

@@ -221,33 +221,34 @@ cases using what is called ``superposition''. A simple example shows
 how this works:
 \begin{example}
   Q: quad, l = 10
-  D: drift, l = 4
-  S: solenoid, l = 6, superimpose, ref = q, ref_end
+  D: drift, l = 10
+  S: solenoid, l = 6, superimpose, ref = q, ref_end, offset = -1
   lat: line = (Q, D)
   use, lat
 \end{example}
 The \vn{superimpose} attribute of element \vn{S} superimposes \vn{S}
 over the lattice \vn{(Q, D)}. The placement of \vn{S} is such that the
-center of \vn{S} coincides with the end of \vn{Q} (more on how
+center of \vn{S} is offset -1~meter from the end of \vn{Q} (more on how
 superimposed elements get placed later). The tracking part of the
 lattice list (the part that one does tracking through) Looks like:
 \begin{example}
         Element   Key         Length  Total     
-  1)    Q{\#}1       Quadrupole   7        7
-  2)    Q{\B}S       Sol_quad     3       10
-  3)    S{\#}1       Solenoid     3       13
-  4)    D{\#}2       Drift        1       14
+  1)    Q{\#}1       Quadrupole   6        6
+  2)    Q{\B}S       Sol_quad     4       10
+  3)    S{\#}1       Solenoid     2       12
+  4)    D{\#}2       Drift        8       20
 \end{example}
 What \bmad has done is to split the original elements \vn{(Q, D)} at
-the edges of \vn{S}.  The first element \vn{Q\#1} is the part of \vn{Q}
-that is outside of \vn{S}. Since this is only part of \vn{Q} \bmad
-has put a \vn{\#1} in the name so that there will be no confusion.
-(\vn{\#} has no special meaning other than the fact that \bmad uses
-it for mangling names). The next element, \vn{Q{\B}S}, is the part of
-\vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a combination
-solenoid/quadrupole element as one could expect. \vn{S{\#}1} is the part
-of \vn{S} that is outside \vn{Q} so this element is just a
-solenoid. Finally, \vn{D\#2} is the rest of the drift outside \vn{S}.
+the edges of \vn{S}.  The first element in the lattice, \vn{Q\#1}, is
+the part of \vn{Q} that is outside of \vn{S}. Since this is only part
+of \vn{Q}, \bmad has put a \vn{\#1} in the name so that there will be
+no confusion.  (\vn{\#} has no special meaning other than the fact
+that \bmad uses it for mangling names). The next element, \vn{Q{\B}S},
+is the part of \vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a
+combination solenoid/quadrupole element as one could
+expect. \vn{S{\#}1} is the part of \vn{S} that is outside \vn{Q} so
+this element is just a solenoid. Finally, \vn{D\#2} is the rest of the
+drift outside \vn{S}.
 
 \begin{figure}[tb]
 \centering 
@@ -380,30 +381,33 @@ sum of the lengths of its slave elements. For example, the element
 (3~meters) plus the length of \vn{S{\#1}} (also 3~meters).
 
 If a program varies the length of a superimposed element after the
-lattice has been parsed, the length of the last slave (the slave at
-the exit end of the superimposed element) will be varied to keep
-things consistent. For example, if element \vn{S} in the first example
-of Section~\sref{s:super} is increased from 6~meters to 7~meters, The
+lattice has been parsed, the length of the slaves will be adjusted
+accordingly. For example, if element \vn{S} in the first example
+of Section~\sref{s:super} is increased from 6~meters to 9~meters, The
 lattice would look like
 \begin{example}
         Element   Key         Length  Total
-  1)    Q{\#}1       Quadrupole   7        7
-  2)    Q{\B}S       Sol_quad     3       10
-  3)    S{\#}1       Solenoid     4       14
-  4)    D{\#}2       Drift        1       15
+  1)    Q{\#}1       Quadrupole   4        4
+  2)    Q{\B}S       Sol_quad     6       10
+  3)    S{\#}1       Solenoid     3       13
+  4)    D{\#}2       Drift        8       21
 \end{example}
-The difference here is that \vn{S{\#}1} has increased by 1~meter and
-the overall length of the lattice has also increased by
-1~meter. Notice that in this example, Setting the length of \vn{S} to
-7~meters in the lattice file will give different results. In this
-case, the lattice would look like
-\begin{example}
-        Element   Key         Length  Total
-  1)    Q{\#}1       Quadrupole   6.5      6.5
-  2)    Q{\B}S       Sol_quad     3.5     10
-  3)    S{\#}1       Solenoid     3.5     13.5
-  4)    D{\#}2       Drift        0.5     14
-\end{example}
+The length of \vn{Q{\B}S} has been increased from 4~meters to 6~meters
+and the length of \vn{S{\#}1} has been increased from 2~meters to
+3~meters to give the proper length for \vn{S}. Additionally, to keep
+the length of \vn{Q} at 10~meters, the length of \vn{Q{\#}1} has been
+decreased to 4~meters. Notice that the overall length of the lattice
+has increased by 1~meter. 
+
+Notice that this result is {\em not} what would be obtained if the
+length of the element \vn{S} is increased to 9~meters in the lattice
+file. The reason for this incompatibility stems from the fact that, in
+general, it is a complex problem to have length changes after parsing
+mirror what would happen if the lengths were changed in the lattice
+file itself. As a result, \bmad chooses to use a relatively simple
+algorithm. In practice, lattice layouts can be designed without
+superimpose, using the \vn{no_superimpose} command (\sref{s:no.superimpose}), and when the
+element lengths are fixed, superposition can be used.
 
 
 %-----------------------------------------------------------------------------
@@ -481,6 +485,9 @@ In this example the tracking part of the lattice is
 Here the 1\St and 6\Th elements are connected to a multipass lord and the
 2\Nd and 5\Th elements are connected to a different multipass lord.
 
+%-----------------------------------------------------------------------------
+\subsection{The Reference Orbit in a Multipass Line}
+
 \index{lcavity}
 \index{p0c}\index{e_tot}
 If there are \vn{lcavity} elements in the lattice then the reference
@@ -498,12 +505,14 @@ defined by setting \vn{e_tot} or \vn{p0c}, or by setting
 \centering 
 \includegraphics[width=6.2in]{multipass_bend.eps} 
 \caption[The reference orbit with a multipass bend.]  
-{A) With \vn{ref_orbit} = \vn{match_at_entrance}, the reference orbits of
-different pass will be taken
-to be the same at the entrance end of the magnet. If
-there is a variation of the reference energy through a bend from pass
-to pass, the reference orbit through the bend will vary from pass to
-pass. B) With \vn{ref_orbit} = \vn{match_global_coords}, the reference orbit}
+{A) With \vn{ref_orbit} = \vn{match_at_entrance}, the reference orbits
+of different pass will be taken to be the same at the entrance end of
+the magnet. If there is a variation of the reference energy through a
+bend from pass to pass, the reference orbit through the bend will vary
+from pass to pass. B) With \vn{ref_orbit} = \vn{match_global_coords},
+the reference orbit on the first pass establishes the position of the
+bend in the global coordinate system and the reference orbit on other
+passes is calculated with respect to this.}
 \label{f:multipass.bend}
 \end{figure}
 
@@ -523,6 +532,8 @@ switch that can take the values:
   match_global_coords   ! Must be used with n_ref_pass = 1
   match_at_entrance
   match_at_exit
+  patch_in              ! Used with patch elements.
+  patch_out             !   And must be used with n_ref_pass = 1.
 \end{example}
 A value of \vn{single_ref} (the default) means that the {\em same}
 reference orbit will be used for all passes. The \vn{match_global_coords},
@@ -643,4 +654,22 @@ lattices that lie horizontally in the global $X-Z$ plane. Also, the
 restriction to \vn{n_ref_pass = 1} is necessary since the calculation
 becomes nondeterministic otherwise. 
 
+%-----------------------------------------------------------------------------
+\subsection{Using Patch elements to Vary the Reference Orbit in a Multipass Line}
+
+\begin{figure}[tb]
+\centering 
+\includegraphics[width=6.2in]{multipass_patch.eps} 
+\caption[Using patch elements to vary the reference orbit in a multipass line.]
+{}
+\label{f:multipass.patch}
+\end{figure}
+
+There exist situations where it is desirable to have a different
+reference orbits for each pass through a non-bend element. Such a
+situation is illustrated in Figure~\ref{multipass.patch}. In this
+example, beams of differing energy pass through a quadrupole after
+being separated by a bend. The desired reference orbit for each pass
+follows the beam trajectories. This is achieved by placing patch
+elements just before and just after the quadrupole element.
 

@@ -224,6 +224,9 @@ Thus, in the above example, the first call will search for:
   1) ../layout/my_layout.bmad  (relative to the current directory)
 \end{example}
 
+\index{no_digested statement}
+\index{no_superimpose statement}
+\index{parser_debug statement}
 An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
 from within an \bmad lattice file by prepending \vn{"xsif::"} to the
 file name. Example:
@@ -231,11 +234,12 @@ file name. Example:
   call, filename = "xsif::my_lattice.xsif"
 \end{example}
 This statement must be the first statement in the \bmad lattice file
-except for any \vn{no_digested} or \vn{parser_debug} statements. The
-XSIF lattice file must define a complete lattice and cannot contain
-any \bmad specific statements. The call to the XSIF file automatically
-expands the lattice (\sref{s:expand}) and any additional statements in
-the \bmad lattice file operate on the expanded lattice.
+except for any \vn{no_digested}, \vn{parser_debug}, or
+\vn{no_superimpose} statements. The XSIF lattice file must define a
+complete lattice and cannot contain any \bmad specific statements. The
+call to the XSIF file automatically expands the lattice
+(\sref{s:expand}) and any additional statements in the \bmad lattice
+file operate on the expanded lattice.
 
 %--------------------------------------------------------------------------
 \section{Return and End_File statements}
@@ -342,6 +346,14 @@ slave may only be done after lattice expansion (\sref{s:multipass}).
 Setting individual element attributes for tagged elements can only be done
 after lattice expansion (\sref{s:tag}).
 \end{Itemize}
+
+%--------------------------------------------------------------------------
+\section{No_superimpose Statement}
+\index{No_superimpose statement}
+\label{s:no.superimpose}
+
+The \vn{no_superimpose} statement is used to supress superpositions
+(\sref{s:super}). 
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}
