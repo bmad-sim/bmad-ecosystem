@@ -704,17 +704,24 @@ attrib_array(bend_sol_quad$, radius$)       = 'RADIUS'
 attrib_array(bend_sol_quad$, field_calc$)   = 'FIELD_CALC'
 attrib_array(bend_sol_quad$, field_master$) = 'FIELD_MASTER'
 
-attrib_array(patch$, l$)              = 'L'
-attrib_array(patch$, x_pitch$)        = 'X_PITCH'
-attrib_array(patch$, y_pitch$)        = 'Y_PITCH'
-attrib_array(patch$, x_offset$)       = 'X_OFFSET'
-attrib_array(patch$, y_offset$)       = 'Y_OFFSET'
-attrib_array(patch$, z_offset$)       = 'Z_OFFSET'
-attrib_array(patch$, pz_offset$)      = 'PZ_OFFSET'
-attrib_array(patch$, tilt$)           = 'TILT'
-attrib_array(patch$, ref_orbit$)      = 'REF_ORBIT'
-attrib_array(patch$, ref_patch$)      = 'REF_PATCH'
-attrib_array(patch$, n_ref_pass$)     = 'N_REF_PASS'
+attrib_array(patch$, l$)               = 'L'
+attrib_array(patch$, x_pitch$)         = 'X_PITCH'
+attrib_array(patch$, y_pitch$)         = 'Y_PITCH'
+attrib_array(patch$, x_offset$)        = 'X_OFFSET'
+attrib_array(patch$, y_offset$)        = 'Y_OFFSET'
+attrib_array(patch$, z_offset$)        = 'Z_OFFSET'
+attrib_array(patch$, pz_offset$)       = 'PZ_OFFSET'
+attrib_array(patch$, tilt$)            = 'TILT'
+attrib_array(patch$, ref_orbit$)       = 'REF_ORBIT'
+attrib_array(patch$, ref_patch$)       = 'REF_PATCH'
+attrib_array(patch$, n_ref_pass$)      = 'N_REF_PASS'
+attrib_array(patch$, patch_end$)       = 'PATCH_END'
+attrib_array(patch$, x_position$)      = 'X_POSITION'
+attrib_array(patch$, y_position$)      = 'Y_POSITION'
+attrib_array(patch$, z_position$)      = 'Z_POSITION'
+attrib_array(patch$, theta_position$)  = 'THETA_POSITION'
+attrib_array(patch$, phi_position$)    = 'PHI_POSITION'
+attrib_array(patch$, psi_position$)    = 'PSI_POSITION'
 
 attrib_array(quadrupole$, l$)             = 'L'
 attrib_array(quadrupole$, tilt$)          = 'TILT'
@@ -946,7 +953,7 @@ integer attrib_type
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT')
+case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END')
   attrib_type = is_logical$
 case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'N_POLE', 'DIRECTION', 'IX_BRANCH_TO')
   attrib_type = is_integer$

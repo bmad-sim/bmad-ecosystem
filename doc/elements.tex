@@ -1388,7 +1388,15 @@ Attributes specific to a \vn{Patch} elements are:
   x_pitch   = <Real>  
   y_pitch   = <Real>  
   tilt      = <Real>        
-  pz_offset = <Real>  
+  pz_offset = <Real>
+
+  patch_end      = <Logical>
+  x_position     = <Real>
+  y_position     = <Real>
+  z_position     = <Real>
+  theta_position = <Real>
+  phi_position   = <Real>
+  psi_position   = <Real>
 \end{example}
 
 \index{x_offset}
@@ -1400,6 +1408,16 @@ reference orbit before the \vn{patch}. Hence, the \vn{x} coordinate of
 a particle going through a patch with a positive \vn{x_offset} will be
 decreased. See \sref{s:patch.coords} for formulas for the reference
 orbit transformation with a \vn{patch}.
+
+If the \vn{patch_end} logical is set to True, the \vn{patch} element
+will change its behavior. In this case, the setting of the offsets,
+pitches and tilt will be ignored, and the global position of the
+reference coordinates at the exit end of the \vn{patch} will be fixed
+by the setting of \vn{x_position}, \vn{y_position}, \vn{z_position},
+\vn{theta_position}, \vn{phi_position} and \vn{psi_position}. Here,
+the transfer map through the \vn{patch} will be the unit map. That is,
+the phase space coordinates of a particle will not change when
+tracking through such an element.
 
 The \vn{l} length attribute is used to set the longitudinal $s$
 distance between the previous and next elements and a program can, for

@@ -486,8 +486,11 @@ case (octupole$)
 
 !-----------------------------------------------
 ! patch
+! If patch_end is set then do nothing
 
 case (patch$)
+
+  if (ele%value(patch_end$) /= 0) return
 
   rel_pc = 1 + end%vec(6)
 

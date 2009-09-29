@@ -613,6 +613,13 @@ case ('MATCH_END')
   endif
   if (ios /= 0 .or. ix_word == 0) return
 
+case ('PATCH_END')
+  call get_logical ('PATCH_END', logic)
+  if (logic) then; ele%value(patch_end$) = 1
+  else;            ele%value(patch_end$) = 0
+  endif
+  if (ios /= 0 .or. ix_word == 0) return
+
 case ('MATCH_END_ORBIT')
   call get_logical ('MATCH_END_ORBIT', logic)
   if (logic) then; ele%value(match_end_orbit$) = 1

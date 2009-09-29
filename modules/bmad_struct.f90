@@ -439,7 +439,7 @@ integer, parameter :: y_offset_tot$=44  ! Assumed unique. Do not overload.
 integer, parameter :: s_offset_tot$=45  ! Assumed unique. Do not overload.
 integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
 integer, parameter :: coupler_phase$ = 47, c_12$ = 47, ix_patch_control$=47
-integer, parameter :: coupler_angle$ = 48, c_21$ = 48
+integer, parameter :: coupler_angle$ = 48, c_21$ = 48, patch_end$ = 48
 integer, parameter :: c_22$ = 49, pole_radius$ = 48
 integer, parameter :: ds_step$ = 50, gamma_c$ = 50
 integer, parameter :: general1$ = 51   ! For general use
