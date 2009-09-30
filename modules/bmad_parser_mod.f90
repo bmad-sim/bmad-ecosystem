@@ -832,6 +832,7 @@ if (call_file(1:6) == 'xsif::') then
   bp_com%num_lat_files = bp_com%num_lat_files + 1 
   inquire (file = call_file, name = bp_com%lat_file_names(bp_com%num_lat_files))
   xsif_called = .true.
+  err = .false.
   return
 endif
 
