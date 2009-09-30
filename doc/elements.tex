@@ -1382,21 +1382,22 @@ Example:
 \index{x_pitch}\index{y_pitch}\index{pz_offset}
 Attributes specific to a \vn{Patch} elements are:
 \begin{example}
-  x_offset  = <Real>  
-  y_offset  = <Real>  
-  z_offset  = <Real>  
-  x_pitch   = <Real>  
-  y_pitch   = <Real>  
-  tilt      = <Real>        
-  pz_offset = <Real>
+  x_offset        = <Real>  
+  y_offset        = <Real>  
+  z_offset        = <Real>  
+  x_pitch         = <Real>  
+  y_pitch         = <Real>  
+  tilt            = <Real>        
+  pz_offset       = <Real>
+  translate_after = <Logical>  ! Default: False.
 
-  patch_end      = <Logical>
-  x_position     = <Real>
-  y_position     = <Real>
-  z_position     = <Real>
-  theta_position = <Real>
-  phi_position   = <Real>
-  psi_position   = <Real>
+  patch_end       = <Logical>  ! Default: False.
+  x_position      = <Real>
+  y_position      = <Real>
+  z_position      = <Real>
+  theta_position  = <Real>
+  phi_position    = <Real>
+  psi_position    = <Real>
 \end{example}
 
 \index{x_offset}
@@ -1407,7 +1408,11 @@ the \vn{patch} in the positive $x$--direction relative to the
 reference orbit before the \vn{patch}. Hence, the \vn{x} coordinate of
 a particle going through a patch with a positive \vn{x_offset} will be
 decreased. See \sref{s:patch.coords} for formulas for the reference
-orbit transformation with a \vn{patch}.
+orbit transformation with a \vn{patch}. 
+
+Normally, for computing the change in the reference orbit, the offsets
+are applied before the pitches and tilts. If reverse is desired, the
+\vn{translate_after} logical can be set to True.
 
 If the \vn{patch_end} logical is set to True, the \vn{patch} element
 will change its behavior. In this case, the setting of the offsets,

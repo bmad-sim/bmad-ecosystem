@@ -716,6 +716,7 @@ attrib_array(patch$, ref_orbit$)       = 'REF_ORBIT'
 attrib_array(patch$, ref_patch$)       = 'REF_PATCH'
 attrib_array(patch$, n_ref_pass$)      = 'N_REF_PASS'
 attrib_array(patch$, patch_end$)       = 'PATCH_END'
+attrib_array(patch$, translate_after$) = 'TRANSLATE_AFTER'
 attrib_array(patch$, x_position$)      = 'X_POSITION'
 attrib_array(patch$, y_position$)      = 'Y_POSITION'
 attrib_array(patch$, z_position$)      = 'Z_POSITION'
@@ -953,7 +954,7 @@ integer attrib_type
 !
 
 select case (attrib_name)
-case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END')
+case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER')
   attrib_type = is_logical$
 case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'N_POLE', 'DIRECTION', 'IX_BRANCH_TO')
   attrib_type = is_integer$

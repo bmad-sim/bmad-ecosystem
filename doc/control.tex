@@ -1,4 +1,4 @@
-\chapter {Control Elements}
+\chapter {Control Elements: Overlays, Groups, Superpositions, and Multipass}
 \label{c:control}
 \index{Element!control}
 \index{Element!lord}
@@ -661,15 +661,66 @@ becomes nondeterministic otherwise.
 \centering 
 \includegraphics[width=6.2in]{multipass_patch.eps} 
 \caption[Using patch elements to vary the reference orbit in a multipass line.]
-{}
+{Using patch elements to vary the reference orbit in a multipass line. 
+The gap between \vn{patch} elements \vn{P1} and \vn{P2} and the element \vn{Q} 
+is for illustration purposes only.
+}
 \label{f:multipass.patch}
 \end{figure}
 
 There exist situations where it is desirable to have a different
-reference orbits for each pass through a non-bend element. Such a
+reference orbits for each pass through a non-bend elements. Such a
 situation is illustrated in Figure~\ref{f:multipass.patch}. In this
-example, beams of differing energy pass through a quadrupole after
-being separated by a bend. The desired reference orbit for each pass
-follows the beam trajectories. This is achieved by placing patch
-elements just before and just after the quadrupole element.
+example, beams of differing energy pass through an a section of the
+lattice labeled \vn{S}. This section may contain one or more
+elements. The desired reference orbit for each pass follows the beam
+trajectories. This is achieved by placing patch elements, called
+\vn{P1} and \vn{P2}, just before and just after \vn{S}. The
+corresponding lattice file would look like
+\begin{example}
+  p1: patch, ref_orbit = patch_in, n_ref_pass = 1, translate_after = True
+  p2: patch, ref_orbit = patch_out, n_ref_pass = 1, ref_patch = p1
 
+  m_line: line[multipass] = (p1, S, p2)
+  all_line: line = (..., m_line, ..., m_line, ...)
+  use, all_line
+  
+  expand_lattice
+  p1\B1[x_offset] = 0.05
+  p1\B1[x_pitch] = -0.0034
+\end{example}
+The \vn{ref_orbit} parameter for \vn{p1} and \vn{p2} indicate whether
+the patch is just before (\vn{patch_in}) or just after
+(\vn{patch_out}) the section of interest.  In this example,
+\vn{x_offset} and \vn{x_pitch} parameters for the first pass slave
+\vn{p1\B1} are set in the lattice file. This determines the
+orientation of the reference orbit through \vn{S} (labeled $b$-$c$ in
+the figure) with respect to the incoming first pass reference
+orbit. Point $a$ in the figure is the first pass reference orbit just
+before \vn{p1\B1} and point $b$ is the reference orbit just after. On
+the second pass, \bmad will calculate the patch parameters for
+\vn{p1\B2} so that the global coordinates of the reference orbit just
+after \vn{p1\B2} is the same as the reference orbit just after
+\vn{p1\B1}. That is, point $b$.
+
+The patch parameters for the \vn{p2\B1} first pass slave of \vn{p2},
+which has \vn{ref_orbit} set to \vn{patch_out}, the calculation is as
+follows: In the definition of \vn{p2} the \vn{ref_patch} parameter is
+set to \vn{p1}. \bmad uses this as the starting point for
+tracking. \bmad starts with a particle on the reference trajectory
+just {\em before} \vn{p1\B1} and tracks it to the end of \vn{S} (curve
+$a$-$d$ in the figure). \bmad then sets the parameters of \vn{p2\B1}
+so that the reference orbit after the patch (point $d$) coincides
+with the particle. The calculation of the second pass slave \vn{p2\B2}
+is analogously computed.
+
+The above procedure of defining the reference orbit using patches with
+\vn{ref_orbit} set to \vn{patch_in} and \vn{patch_out} is helpful in
+designing lattices. However, once a lattice is designed, there will be
+a problem for simulations of lattice errors since particle
+trajectories, and hence the reference orbit, will be affected by such
+errors. To avoid this, once the layout of the lattice has been settled
+on, the \vn{patch_in} and \vn{patch_out} patches should be removed and
+four new patches, to replace the four multipass slave patches, should
+be introduced outside of the multipass section with the patch
+parameters set to the appropriate values.

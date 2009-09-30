@@ -158,7 +158,7 @@ at the first element of the lattice and iteratively using the
 equations
 \Begineqs
   \Bf V_i &= \Bf W_{i-1} \, \Bf L_i + \Bf V_{i-1}, 
-    \nonumber
+    \label{vwlv} \\
   \Bf W_i &= \Bf W_{i-1} \, \Bf S_i
     \label{wws}
 \Endeqs
@@ -268,7 +268,7 @@ local coordinates is the same.
 
 \index{patch}\index{tilt}
 A \vn{patch} element shifts the reference orbit (\sref{s:patch}).
-\Eqs{wws} are used to propagate the $\Bf W$ matrix through a
+\Eqs{vwlv} and \eq{wws} are used to propagate the $\Bf W$ matrix through a
 \vn{patch}. The $\Bf L$ vector for a patch is
 \Begineq
   \Bf L = 
@@ -312,6 +312,14 @@ element is
   \end{pmatrix}
 \Endeq
 where $theta_y$ is the value of \vn{y_pitch}. 
+
+If a \vn{patch}'s \vn{translate_after} is set to True, the offsets are
+applied after the pitches and tilts. In this case, \Eq{vwlv} is
+replaced by
+\Begineq
+  \Bf V_i = \Bf W_{i} \, \Bf L_i + \Bf V_{i-1}, 
+\Endeq
+
 
 %-----------------------------------------------------------------------------
 \section{Phase Space Coordinate System}

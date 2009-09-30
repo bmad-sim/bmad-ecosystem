@@ -231,22 +231,9 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
 
   case (patch$)
 
-    angle = ele%value(x_pitch_tot$)            ! x_pitch is negative MAD yrot
-    if (angle /= 0) then
-      s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = (/  c_ang,  0.0_dp, s_ang /)
-      s_mat(2,:) = (/  0.0_dp, 1.0_dp, 0.0_dp /)
-      s_mat(3,:) = (/ -s_ang,  0.0_dp, c_ang /) 
-      w_mat = matmul(w_mat, s_mat)
-    endif
-     
-    angle = ele%value(y_pitch_tot$)           ! 
-    if (angle /= 0) then
-      s_ang = sin(angle); c_ang = cos(angle)
-      s_mat(1,:) = (/ 1.0_dp,  0.0_dp, 0.0_dp /)
-      s_mat(2,:) = (/ 0.0_dp,  c_ang,  s_ang /)
-      s_mat(3,:) = (/ 0.0_dp, -s_ang,  c_ang /) 
-      w_mat = matmul(w_mat, s_mat)
+    if (ele%value(translate_after$) == 0) then
+      r_mat = (/ ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) /)
+      pos = pos + matmul(w_mat, r_mat)
     endif
 
     angle = ele%value(tilt$)
@@ -258,9 +245,28 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
       w_mat = matmul(w_mat, s_mat)
     endif
 
-    r_mat = (/ ele%value(x_offset$), ele%value(y_offset$), &
-                                                    ele%value(z_offset$) /)
-    pos = pos + matmul(w_mat, r_mat)
+    angle = ele%value(y_pitch_tot$)           ! 
+    if (angle /= 0) then
+      s_ang = sin(angle); c_ang = cos(angle)
+      s_mat(1,:) = (/ 1.0_dp,  0.0_dp, 0.0_dp /)
+      s_mat(2,:) = (/ 0.0_dp,  c_ang,  s_ang /)
+      s_mat(3,:) = (/ 0.0_dp, -s_ang,  c_ang /) 
+      w_mat = matmul(w_mat, s_mat)
+    endif
+
+    angle = ele%value(x_pitch_tot$)            ! x_pitch is negative MAD yrot
+    if (angle /= 0) then
+      s_ang = sin(angle); c_ang = cos(angle)
+      s_mat(1,:) = (/  c_ang,  0.0_dp, s_ang /)
+      s_mat(2,:) = (/  0.0_dp, 1.0_dp, 0.0_dp /)
+      s_mat(3,:) = (/ -s_ang,  0.0_dp, c_ang /) 
+      w_mat = matmul(w_mat, s_mat)
+    endif
+     
+    if (ele%value(translate_after$) /= 0) then
+      r_mat = (/ ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$) /)
+      pos = pos + matmul(w_mat, r_mat)
+    endif
 
   ! everything else. Just a translation
 

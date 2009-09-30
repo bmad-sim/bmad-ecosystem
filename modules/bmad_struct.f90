@@ -429,8 +429,8 @@ integer, parameter :: Bs_field$=34
 integer, parameter :: B_field$=35, E_field$=35
 integer, parameter :: B_gradient$=36, E_gradient$=36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
-integer, parameter :: B2_gradient$=38, E2_gradient$=38
-integer, parameter :: B3_gradient$=39, E3_gradient$=39
+integer, parameter :: B2_gradient$=38, E2_gradient$=38, patch_end$ = 38
+integer, parameter :: B3_gradient$=39, E3_gradient$=39, translate_after$=39
 integer, parameter :: tilt_tot$=40      ! Assumed unique. Do not overload.
 integer, parameter :: x_pitch_tot$=41   ! Assumed unique. Do not overload.
 integer, parameter :: y_pitch_tot$=42   ! Assumed unique. Do not overload.
@@ -439,7 +439,7 @@ integer, parameter :: y_offset_tot$=44  ! Assumed unique. Do not overload.
 integer, parameter :: s_offset_tot$=45  ! Assumed unique. Do not overload.
 integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
 integer, parameter :: coupler_phase$ = 47, c_12$ = 47, ix_patch_control$=47
-integer, parameter :: coupler_angle$ = 48, c_21$ = 48, patch_end$ = 48
+integer, parameter :: coupler_angle$ = 48, c_21$ = 48
 integer, parameter :: c_22$ = 49, pole_radius$ = 48
 integer, parameter :: ds_step$ = 50, gamma_c$ = 50
 integer, parameter :: general1$ = 51   ! For general use
