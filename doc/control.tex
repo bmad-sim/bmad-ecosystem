@@ -1,4 +1,5 @@
-\chapter {Control Elements: Overlays, Groups, Superpositions, and Multipass}
+\chapter[Overlays, Groups, Superpositions, and Multipass]
+{Control Elements: Overlays, Groups, Superpositions, and Multipass}
 \label{c:control}
 \index{Element!control}
 \index{Element!lord}
@@ -582,8 +583,8 @@ same on all passes (\vn{B\B1} and \vn{B\B2} represent the same
 physical element after all). Thus, \vn{B\B2} must have a value for
 \vn{b_field_err} of -1~Tesla.
 
-Now consider the same situation as above except that the value of
-\vn{ref_orbit} is changed to \vn{match_at_entrance} and the reference
+Consider the case where the value of
+\vn{ref_orbit} is set to \vn{match_at_entrance} and the reference
 momentum is set instead of \vn{n_ref_pass}:
 \begin{example} 
   B: sbend, l = 1, b_field = 1.0, p0c = 5e9, ref_orbit = match_at_entrance
@@ -659,11 +660,11 @@ becomes nondeterministic otherwise.
 
 \begin{figure}[tb]
 \centering 
-\includegraphics[width=6.2in]{multipass_patch.eps} 
+\includegraphics[width=4in]{multipass_patch.eps} 
 \caption[Using patch elements to vary the reference orbit in a multipass line.]
 {Using patch elements to vary the reference orbit in a multipass line. 
-The gap between \vn{patch} elements \vn{P1} and \vn{P2} and the element \vn{Q} 
-is for illustration purposes only.
+The gap between \vn{patch} elements \vn{P1} and \vn{P2} and the lattice section 
+\vn{S} is for illustration purposes only.
 }
 \label{f:multipass.patch}
 \end{figure}
