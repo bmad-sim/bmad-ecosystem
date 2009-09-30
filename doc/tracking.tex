@@ -38,7 +38,7 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
   ...
   call bmad_parser ('this_lattice', lat)
   ...
-  call reallocate_coords (orbit, lat%n_ele_max)
+  call reallocate_coord (orbit, lat%n_ele_max)
   orbits(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
   do i = 1, n_turns
     call track_all (lat, orbit)
@@ -50,7 +50,7 @@ An example of how to do multi-turn tracking (assuming a circular lattice) is
 $n$\Th element. Since \vn{super_lord} (\sref{s:ele.control}) elements
 have an associated particle position, the upper bound of the
 \vn{orbit(:)} array must be at least \vn{lat%n_ele_max}
-(\sref{s:lat.struct}).  The call to \vn{reallocate_coords} does the
+(\sref{s:lat.struct}).  The call to \vn{reallocate_coord} does the
 allocation for the \vn{orbit(:)} array. Since \vn{lat%ele(0)} is
 essentially a marker element \vn{orbit(0)} is the orbit at the start
 of the lattice.  \vn{track_all} takes \vn{orbit(0)} and tracks through

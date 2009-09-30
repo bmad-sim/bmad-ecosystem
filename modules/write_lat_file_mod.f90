@@ -1236,6 +1236,10 @@ do ix_ele = ie1, ie2
 
   ele => lat_out%ele(ix_ele)
 
+  if (out_type == 'XSIF') then
+    if (ele%key == elseparator$) ele%key = drift$  ! XSIF does not have elsep elements.
+  endif
+
   ! do not make duplicate specs
 
   if (any (ele%name == name_list(1:n_list))) cycle
@@ -1497,22 +1501,7 @@ do n = ie1, ie2
 
   ele => lat_out%ele(n)
 
-  ix = len_trim(line)
-
-  if (ix > 60 .or. n == ie2) then
-    if (iout >= 50 .or. n == ie2) then
-      i = len_trim(ele%name)
-      line(ix+1:) = ', ' // ele%name(:i) // ')'
-      write (iu, '(2a)') trim(line), trim(eol_char)
-      line = ' '
-      init_needed = .true.
-    else
-      write (iu, '(3a)') trim(line(:ix)), ',', trim(continue_char)
-      iout = iout + 1
-      line = '   ' // ele%name
-    endif
-
-  elseif (init_needed) then
+  if (init_needed) then
     write (iu, *)
     write (iu, *) '!---------------------------------', trim(eol_char)
     write (iu, *)
@@ -1520,9 +1509,24 @@ do n = ie1, ie2
     write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
     iout = 0
     init_needed = .false.
+    cycle
+  endif
 
+  ix = len_trim(line) + len_trim(ele%name)
+
+  if (ix > 75) then
+    write (iu, '(3a)') trim(line), ',', trim(continue_char)
+    iout = iout + 1
+    line = '   ' // ele%name
   else
-    line(ix+1:) = ', ' // ele%name
+    line = trim(line) // ', ' // ele%name
+  endif
+
+  if (n == ie2 .or. iout > 48) then
+    line = trim(line) // ')'
+    write (iu, '(2a)') trim(line), trim(eol_char)
+    line = ' '
+    init_needed = .true.
   endif
 
 enddo

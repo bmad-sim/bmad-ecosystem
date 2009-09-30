@@ -20,32 +20,32 @@ program test
 
   use bmad                 ! Define the structures we need to know about.
   implicit none
-  type (lat_struct) lattice  ! This structure holds the lattice info
+  type (lat_struct) lat  ! This structure holds the lattice info
   integer i, ix
 
 ! Read in a lattice and calculate the twiss parameters.
 
-  call bmad_parser ("simple_program/lat.bmad", lattice) ! Read in a lattice.
-  call twiss_at_start (lattice)           ! Calculate starting Twiss params.
-  call twiss_propagate_all (lattice)      ! Propagate Twiss parameters
+  call bmad_parser ("simple_program/lat.bmad", lat) ! Read in a lattice.
+  call twiss_at_start (lat)           ! Calculate starting Twiss params.
+  call twiss_propagate_all (lat)      ! Propagate Twiss parameters
 
 ! Print info on the first 11 elements
 
   print *, ' Ix  Name              Ele_type                   S      Beta_a'
   do i = 0, 10
-    print '(i4, 2x, a16, 2x, a, 2f12.4)', i, lattice%ele(i)%name, &
-                    key_name(lattice%ele(i)%key), &
-                    lattice%ele(i)%s, lattice%ele(i)%a%beta
+    print '(i4, 2x, a16, 2x, a, 2f12.4)', i, lat%ele(i)%name, &
+                    key_name(lat%ele(i)%key), &
+                    lat%ele(i)%s, lat%ele(i)%a%beta
   enddo
 
 ! Find the CLEO_SOL element and print information on it.
 
-  call element_locator ('CLEO_SOL', lattice, ix)
+  call element_locator ('CLEO_SOL', lat, ix)
   print *
   print *, '!---------------------------------------------------------'
   print *, '! Information on element: CLEO_SOL', ix
   print *
-  call type_ele (lattice%ele(ix), .false., 0, .false., 0, .true., lattice)
+  call type_ele (lat%ele(ix), .false., 0, .false., 0, .true., lat)
 
 end program
 \end{listing}
@@ -166,7 +166,7 @@ Chapter~\ref{c:ele.struct}. \vn{lat%ele(0)} is basically a marker
 element to denote the beginning of the array. \vn{lat%ele(i)%key} is
 an integer denoting what type of element (quadrupole, wiggler, etc.)
 it is. \vn{key_name} is an array that translates the key of an element
-to a string. \vn{ring%ele(i)%s} is the longitudinal position at the
+to a string. \vn{lat%ele(i)%s} is the longitudinal position at the
 exit end of the i\Th\ element. \vn{lat%ele(i)%x%beta} is the
 $a$--mode (nearly horizontal mode) beta.
 
