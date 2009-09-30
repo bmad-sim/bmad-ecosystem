@@ -16,7 +16,7 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_lord_only)
+! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -32,11 +32,14 @@ contains
 !                  have been changed. If not present bookkeeping will be done 
 !                  for all elements.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
-!   super_lord_only -- Logical, optional: If True then only do bookkeeping for 
-!                     wiggler elements. Default is False. This is used by lattice_bookkeeper.
+!   super_and_multipass_only 
+!             -- Logical, optional: If True then only do bookkeeping for 
+!                  superposition and multipass elements only. Default is False. 
+!                  This argument is used by lattice_bookkeeper and should not
+!                  to set unless you know what you are doing.
 !-
 
-subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_lord_only)
+subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
 
 implicit none
 
@@ -45,17 +48,17 @@ type (lat_struct), target :: lat
 integer, optional :: ix_ele, ix_branch
 integer ie, ix0
 
-logical, optional :: super_lord_only
-logical super_only
+logical, optional :: super_and_multipass_only
+logical sm_only
 
 ! Check that super_slave lengths add up to the super_lord_length.
 ! With super_only (used by lattice_bookkeeper) this check has already been
 ! done so don't do it again.
 
 ix0 = integer_option(0, ix_ele)
-super_only = logic_option (.false., super_lord_only)
+sm_only = logic_option (.false., super_and_multipass_only)
 
-if (.not. super_only) then
+if (.not. sm_only) then
   if (.not. present(ix_ele) .or. lat%ele(ix0)%lord_status == super_lord$) &
                                     call super_lord_length_bookkeeper (lat, ix_ele)
 endif
@@ -63,7 +66,7 @@ endif
 ! If ix_ele is present we only do bookkeeping for this one element
 
 if (present(ix_ele)) then
-  call this_bookkeeper (lat, lat%ele(ix_ele), super_only)
+  call this_bookkeeper (lat, lat%ele(ix_ele), sm_only)
 
 ! Else we need to make up all the lords. 
 ! The group lords must be done last since their slaves don't know about them.
@@ -71,12 +74,12 @@ if (present(ix_ele)) then
 else
   do ie = lat%n_ele_track+1, lat%n_ele_max
     if (lat%ele(ie)%lord_status /= group_lord$) &
-                         call this_bookkeeper (lat, lat%ele(ie), super_only)
+                         call this_bookkeeper (lat, lat%ele(ie), sm_only)
   enddo
 
   do ie = lat%n_ele_track+1, lat%n_ele_max
     if (lat%ele(ie)%lord_status == group_lord$) &
-                         call this_bookkeeper (lat, lat%ele(ie), super_only)
+                         call this_bookkeeper (lat, lat%ele(ie), sm_only)
   enddo
 endif
 
@@ -86,13 +89,13 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine this_bookkeeper (lat, ele, super_only)
+! Subroutine this_bookkeeper (lat, ele, sm_only)
 !
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-subroutine this_bookkeeper (lat, ele, super_only)
+subroutine this_bookkeeper (lat, ele, sm_only)
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
@@ -101,12 +104,13 @@ type (ele_struct), pointer :: lord, slave
 integer j, k, ix, ix1, ix2, ix_lord
 integer, allocatable, save :: ix_slaves(:), ix_super(:)
 
-logical super_only
+logical sm_only
 
 ! Init
 
-if (super_only) then
-  if (ele%lord_status /= super_lord$ .and. ele%slave_status /= super_slave$) return
+if (sm_only) then
+  if (ele%lord_status /= super_lord$ .and. ele%slave_status /= super_slave$ .and. &
+      ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$) return
 endif
 
 call re_allocate (ix_slaves, lat%n_ele_max, .false.)
@@ -504,13 +508,13 @@ integer i, j
 logical found
 
 ! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
-! wiggler super_lord is computed. Other reasons include superimposed elements with multipass.
+! wiggler super_lord is computed. Other reasons include multipass bends.
 
 call control_bookkeeper (lat)
 call compute_reference_energy (lat)
-call control_bookkeeper (lat, super_lord_only = .true.)
+call control_bookkeeper (lat, super_and_multipass_only = .true.)
 
-! Make sure attributes are updated
+! Make sure attributes are updated in the tracking part of the lattice
 
 do i = 0, ubound(lat%branch, 1)
   do j = 1, lat%branch(i)%n_ele_track
@@ -523,15 +527,14 @@ enddo
 call s_calc (lat)
 call lat_geometry (lat)
 
-! multipass slaves with ref_orbit == match_global_coords$ depend upon the geometry so recalc.
+! multipass slaves with ref_orbit set may may depend upon the geometry so recalc.
 
 found = .false.
 do i = 1, lat%n_ele_track
-  select case (lat%ele(i)%ref_orbit)
-  case (match_global_coords$, patch_in$, patch_out$)
+  if (lat%ele(i)%slave_status == multipass_slave$ .and. lat%ele(i)%ref_orbit /= 0) then
     call makeup_multipass_slave (lat, i)
     found = .true.
-  end select
+  endif
 enddo
 
 if (found) then
