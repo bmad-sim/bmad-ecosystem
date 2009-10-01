@@ -2621,6 +2621,8 @@ do i = 1, n_multipass
   enddo
 enddo
 
+call control_bookkeeper (lat, ix_lord)
+
 end subroutine
 
 !-------------------------------------------------------------------------
@@ -2731,9 +2733,6 @@ do
   have_inserted = .false.
 
   ele_loop: do i_ele = 1, lat%n_ele_max
-
-    if (lat%ele(i_ele)%lord_status /= free$ .or. &
-        lat%ele(i_ele)%slave_status /= free$) call control_bookkeeper (lat, i_ele)
 
     ref_ele => lat%ele(i_ele)
      
@@ -2849,6 +2848,7 @@ do
       call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
       super_ele%name = super_ele_saved%name(:ix)            
       call add_superimpose (lat, super_ele, i_sup)
+      call control_bookkeeper (lat, i_sup)
     endif
 
     call s_calc (lat)
@@ -2897,7 +2897,7 @@ nn = lat%n_ele_max
 n_con = lat%n_control_max 
 lat%n_control_max = n_con + n_inserted
 if (lat%n_control_max > size(lat%control)) &
-           call reallocate_control(lat, lat%n_control_max+1000)
+              call reallocate_control(lat, lat%n_control_max+100)
 
 
 lat%ele(nn) = super_ele_saved

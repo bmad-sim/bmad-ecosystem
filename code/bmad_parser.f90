@@ -828,6 +828,8 @@ call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 ! First put in the superpositions.
 
 call s_calc (lat)              ! calc longitudinal distances
+call control_bookkeeper (lat)
+
 do i = 1, n_max
   if (in_lat%ele(i)%lord_status /= super_lord$) cycle
   call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i), in_lat)

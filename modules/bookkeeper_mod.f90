@@ -249,6 +249,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) length, coef, length_start, length_pos, length_neg
 real(rp) d_length, d_length_pos, d_length_neg
+real(rp) dl_tol
 
 integer, optional :: ix_ele
 integer j, k, ie, ix0, ixa_lord0, ixb_lord0, ixa_lord2, ixb_lord2
@@ -260,6 +261,8 @@ logical length_adjustment_made, overlap_a, overlap_b, overlap_all
 character(40) :: r_name = 'super_lord_length_bookkeeper'
 
 !
+
+dl_tol = 1e-6
 
 length_adjustment_made = .false.
 ix0 = integer_option(0, ix_ele)
@@ -279,7 +282,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   ! Nothing to be done if the lengths add up
 
-  if (abs(length - lord0%value(l$)) < 1e-10 * lord0%value(l$)) cycle
+  if (abs(length - lord0%value(l$)) < dl_tol * lord0%value(l$)) cycle
 
   ! Now we need to adjust some super_slave lengths.
   ! We try varying the length of all the slaves except
@@ -464,12 +467,12 @@ if (length_adjustment_made) then
       slave => pointer_to_slave(lat, lord0, j)
       length = length + slave%value(l$)
     enddo
-    if (abs(length - lord0%value(l$)) > 1e-10 * lord0%value(l$)) then
+    if (abs(length - lord0%value(l$)) > dl_tol * abs(lord0%value(l$))) then
       call out_io (s_fatal$, r_name, &
               'INCONSISTANT SUPER_LORD/SUPER_SLAVE LENGTHS!', &
               'LORD: ' // lord0%name, &
-              'LENGTH: \es14.6\ ', &
-              'SUM OF SLAVE LENGTHS: \es14.6\ ', r_array = (/ lord0%value(l$), length /) )
+              'LENGTH: \es16.9\ ', &
+              'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = (/ lord0%value(l$), length /) )
       call err_exit
     endif
   enddo

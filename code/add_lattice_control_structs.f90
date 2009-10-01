@@ -52,8 +52,7 @@ subroutine add_lattice_control_structs (lat, ix_ele)
     n_con = lat%n_control_max
     i2 = ele%ix2_slave
     n_con2 = lat%n_control_max + n_add
-    if (n_con2 > size(lat%control)) &
-                        call reallocate_control(lat, n_con2+500)
+    if (n_con2 > size(lat%control)) call reallocate_control(lat, nint(1.2*n_con2)+10)
     lat%control(lat%n_control_max+1:) = control_struct(0.0_rp, 0, 0, 0, 0)
 
     if (i2 < 0) then
@@ -65,10 +64,8 @@ subroutine add_lattice_control_structs (lat, ix_ele)
       lat%control(i2+1:i2+n_add)%ix_slave = 0
       lat%control(i2+1:i2+n_add)%ix_attrib = 0
       lat%control(i2+1:i2+n_add)%coef = 0
-      where (lat%ele%ix1_slave > i2) lat%ele%ix1_slave = &
-                                            lat%ele%ix1_slave + n_add
-      where (lat%ele%ix2_slave >= i2) lat%ele%ix2_slave = &
-                                            lat%ele%ix2_slave + n_add
+      where (lat%ele%ix1_slave > i2) lat%ele%ix1_slave = lat%ele%ix1_slave + n_add
+      where (lat%ele%ix2_slave >= i2) lat%ele%ix2_slave = lat%ele%ix2_slave + n_add
       where (lat%ic > i2) lat%ic = lat%ic + n_add
     endif
 
@@ -97,12 +94,11 @@ subroutine add_lattice_control_structs (lat, ix_ele)
       ele%ic1_lord = n_ic + 1
       ele%ic2_lord = n_ic + n_add
     else
+      if (n_ic+n_add > size(lat%ic)) call re_allocate (lat%ic, nint(1.2*(n_ic+n_add)) + 10)
       lat%ic(i2+1+n_add:n_ic+n_add) = lat%ic(i2+1:n_ic)
       lat%ic(i2+1:i2+n_add) = 0
-      where (lat%ele%ic1_lord > i2) lat%ele%ic1_lord = &
-                                            lat%ele%ic1_lord + n_add
-      where (lat%ele%ic2_lord >= i2) lat%ele%ic2_lord = &
-                                            lat%ele%ic2_lord + n_add
+      where (lat%ele%ic1_lord > i2) lat%ele%ic1_lord = lat%ele%ic1_lord + n_add
+      where (lat%ele%ic2_lord >= i2) lat%ele%ic2_lord = lat%ele%ic2_lord + n_add
     endif
 
     lat%n_ic_max = n_ic + n_add
