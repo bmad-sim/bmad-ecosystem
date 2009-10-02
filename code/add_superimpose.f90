@@ -104,7 +104,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     ix_super = ix1_split + 1
     lat%ele(ix_super)%lord_status  = free$
     lat%ele(ix_super)%slave_status = free$
-    call adjust_slave_names ()
+    call adjust_slave_names (lat, n_ele_max_old)
     return
   endif
 
@@ -337,15 +337,18 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
   call order_super_lord_slaves (lat, ix_super)
-  call adjust_slave_names
+  call adjust_slave_names (lat, n_ele_max_old)
+
+end subroutine
 
 !------------------------------------------------------------------------------
-contains
-
+!------------------------------------------------------------------------------
 ! Modify: "#\" -> "\"
 !         "##" -> "#"
 
 subroutine delete_underscore(ele)
+
+  use bmad_struct
 
   implicit none
 
@@ -363,11 +366,22 @@ subroutine delete_underscore(ele)
 end subroutine
 
 !------------------------------------------------------------------------------
-! contains
-
+!------------------------------------------------------------------------------
 ! Adjust the names of the slaves
 
-subroutine adjust_slave_names ()
+subroutine adjust_slave_names (lat, n_ele_max_old)
+
+use bmad_struct
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: lord, slave
+integer n_ele_max_old
+integer i, j, k, ix, ix_1lord
+character(40) name
+
+!
 
 do i = n_ele_max_old+1, lat%n_ele_max
   lord => lat%ele(i)
@@ -388,7 +402,5 @@ do i = n_ele_max_old+1, lat%n_ele_max
     endif
   enddo
 enddo
-
-end subroutine
 
 end subroutine

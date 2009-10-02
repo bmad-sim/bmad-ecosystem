@@ -956,7 +956,7 @@ end subroutine reallocate_coord
 ! Output:
 !   lat  -- Lat_struct: Lattice.
 !     %control(:) -- Control Array with size at least n.
-!     %ic(:)      -- Control Array with size at least n.
+!     %ic(:)      -- Control Array.
 !-
 
 subroutine reallocate_control (lat, n)
@@ -965,7 +965,6 @@ implicit none
 
 type (lat_struct) lat
 type (control_struct), allocatable :: control(:)
-real(rp), allocatable :: ic(:)
 integer, intent(in) :: n
 integer n_old
 
@@ -979,15 +978,15 @@ endif
 n_old = size(lat%control)
 if (n_old >= n) return
 
-allocate (control(n_old), ic(n_old))
+allocate (control(n_old))
 control = lat%control
-ic = lat%ic
-deallocate (lat%control, lat%ic)
-allocate (lat%control(n), lat%ic(n))
-lat%control(1:n_old) = control
-lat%ic(1:n_old) = ic
 
-deallocate (control, ic)
+deallocate (lat%control)
+allocate (lat%control(n))
+lat%control(1:n_old) = control
+deallocate (control)
+
+call re_allocate(lat%ic, max(n, size(lat%ic) + n - n_old))
 
 end subroutine reallocate_control
 
