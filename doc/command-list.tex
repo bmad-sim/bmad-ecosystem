@@ -987,8 +987,8 @@ Format:
   show graph <graph_name>
   show hom
   show key_bindings
-  show lattice \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} \{-elements <name>\} 
-               \{-lords\} \{-middle\} \{-no_header\} \{-s\} \{<location_range>\}
+  show lattice \{-all} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
+         \{-elements <name>\} \{-lords\} \{-middle\} \{-no_header\} \{-s\} \{<location_range>\} 
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
   show particle -lost \{<bunch_index>\}
@@ -1171,7 +1171,7 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
+  show lattice \{-all} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
   \hspace*{0.35in} \{-elements <name>\} \{-lords\} \{-middle\} \{-no\_header\} \{-s\} \{<location\_range>\} }] \Newline
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
@@ -1206,10 +1206,12 @@ used to separate the index. For example
   show lat -s  23.9:55.3       ! Show elements whose position is between 
                                !   23.9 meters and 55.3 meters .
 \end{example}
-If neither \vn{-elements} nor a range is given then the entire lattice
-will be shown. The \vn{element_list} is optional but if it is present
-it must be at the end of the command line.  If it is not present then
-the default is to show the entire lattice.
+The \vn{-all} switch can be used to show all the elements. The
+\vn{element_list} is optional but if it is present it must be at the
+end of the command line.
+
+If neither \vn{-elements}, \vn{-all}, nor a range is given, the first
+200 elements are shown.
 
 To customize the output use the command \vn{show lattice -custom
 <file_name>}. A customization file looks like:

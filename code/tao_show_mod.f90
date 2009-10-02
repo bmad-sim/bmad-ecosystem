@@ -203,7 +203,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
 logical bmad_format, good_opt_only
-logical err, found, at_ends, first_time, by_s, print_header_lines
+logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
@@ -1130,6 +1130,8 @@ case ('lattice')
   column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '')
   column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
 
+  limited = .false.
+  all_lat = .false.
   at_ends = .true.
   by_s = .false.
   print_header_lines = .true.
@@ -1167,6 +1169,9 @@ case ('lattice')
 
     elseif (index('-middle', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       at_ends = .false.
+
+    elseif (index('-all', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+      all_lat = .true. 
 
     elseif (index('-0undef', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       undef_str = '    0'
@@ -1220,8 +1225,13 @@ case ('lattice')
     picked_ele = .false.
     picked_ele(locs%ix_ele) = .true.
 
-  elseif (ix == 0 .or. stuff2(1:ix) == '*' .or. stuff2(1:ix) == 'all') then
+  elseif (stuff2(1:ix) == '*' .or. all_lat .or. stuff2(1:ix) == 'all') then
     picked_ele = .true.
+
+  elseif (ix == 0) then
+    picked_ele = .true.
+    if (size(picked_ele) > 200) picked_ele(201:) = .false.
+    limited = .true.
 
   elseif (by_s) then
     ix = index(stuff2, ':')
@@ -1404,6 +1414,11 @@ case ('lattice')
       nl=nl+1; lines(nl) = line3
     endif
     nl=nl+1; lines(nl) = line1
+  endif
+
+  if (limited) then
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'Note: Since no range is given, the number of elements shown is limited to 200.'
   endif
 
   deallocate(picked_ele)

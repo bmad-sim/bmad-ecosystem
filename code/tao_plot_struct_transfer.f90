@@ -34,4 +34,15 @@ endif
 
 plot_out = plot_in
 
+if (allocated(plot_out%graph)) then
+  do i = 1, size(plot_out%graph)
+    plot_out%graph(i)%p => plot_out
+    if (allocated (plot_out%graph(i)%curve)) then
+      do j = 1, size(plot_out%graph(i)%curve)
+        plot_out%graph(i)%curve(j)%g => plot_out%graph(i)
+      enddo
+    endif
+  enddo
+endif
+
 end subroutine
