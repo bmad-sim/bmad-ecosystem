@@ -93,7 +93,9 @@ do i = 1, size(s%plot_region)
   ! loop over all the graphs of the plot and draw them.
 
   g_loop: do j = 1, size(plot%graph)
+
     graph => plot%graph(j)
+    if (.not. graph%visible) cycle
 
     ! For a non-valid graph just print a message
 

@@ -7,12 +7,12 @@
 ! argument.
 !
 ! Input:
-!    %template_plot(i) -- template matched to who.
+!   s%template_plot(i) -- template matched to who.
 !   where -- Character(*): Region where the plot goes. Eg: 'top'.
 !   who   -- Character(*): Type of plot. Eg: 'orbit'.
 !
 ! Output
-!    %plot_page%plot(j) -- Plot matched to where.
+!   s%plot_page%plot(j) -- Plot matched to where.
 !-
 
 subroutine tao_place_cmd (where, who)

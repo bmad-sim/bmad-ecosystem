@@ -28,6 +28,7 @@ use tao_show_mod
 use tao_change_mod
 use tao_misalign_mod
 use tao_data_and_eval_mod
+use tao_wave_mod
 
 implicit none
 
@@ -44,14 +45,14 @@ character(80) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(32) = (/  &
+character(16) :: cmd_names(33) = (/  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
     'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
     'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
-    'pause       ', 'continue    ' /)
+    'pause       ', 'continue    ', 'wave        ' /)
 
 character(16) :: set_names(9) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
@@ -542,6 +543,14 @@ case ('view')
   call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
   call tao_to_int (cmd_word(1), int1, err); if (err) return
   call tao_view_cmd (int1)
+
+!--------------------------------
+! WAVE
+
+case ('wave')
+
+  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
+  call tao_wave_cmd (cmd_word(1), cmd_word(2))
 
 !--------------------------------
 ! X-AXIS

@@ -66,6 +66,22 @@ type tao_ele_shape_struct    ! for the element layout plot
   character(16) label_type 
 end type
 
+type tao_wave_kick_pt_struct
+  real(rp) :: phi_s, phi_r, phi, amp
+  integer :: ix_cross
+end type  
+
+type tao_wave_struct     ! Struct for wave analysis
+  real(rp) rms_a, rms_b
+  real(rp) rms_sa, rms_sb, rms_ra, rms_rb
+  real(rp) rms_k, rms_ks, rms_kr, rms_phi
+  real(rp) rms_sphi, rms_rphi
+  real(rp) amp_sba, amp_rba, chi_ba
+  integer ix_a1, ix_a2, ix_b1, ix_b2
+  integer n_kick
+  type (tao_wave_kick_pt_struct), allocatable :: kick(:)
+end type
+
 !-----------------------------------------------------------------------
 ! Plot structures.
 
@@ -111,7 +127,7 @@ type tao_curve_struct
   integer :: ix_bunch = 0          ! Bunch to plot.
   logical :: use_y2 = .false.      ! Use y2 axis?
   logical :: draw_line = .true.    ! Draw a line through the data points?
-  logical :: draw_symbols = .true. ! Draw a line through the data points?
+  logical :: draw_symbols = .true. ! Draw a symbol at the data points?
   logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
 end type
@@ -145,7 +161,8 @@ type tao_graph_struct
   logical limited               ! True if at least one data point past graph bounds.
   logical draw_axes             ! Draw axes, labels, etc?
   logical correct_xy_distortion ! T -> Shrink floor plan along one axis to give both axes the same scale.
-  logical draw_curve_legend     ! For identifying curves. 
+  logical draw_curve_legend     ! Legend for displaying curve info.
+  logical :: visible = .true.   ! To draw or not to draw. 
 end type
 
 ! A plot is collection of graphs.
@@ -162,6 +179,7 @@ type tao_plot_struct
                                               !         'floor', or 'phase_space'
   logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
   logical :: autoscale_gang_y = .true.        ! scale cmd scales graphs together?
+  type (tao_wave_struct), pointer :: wave => null()
 end type
 
 ! A region defines a plot and where to position the plot on the plot page

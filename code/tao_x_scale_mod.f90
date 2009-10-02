@@ -155,23 +155,28 @@ if (present(gang)) then
   endif
 endif
 
-if (x_min == x_max .and. do_gang) then
-  this_min = minval (plot%graph(:)%x%min)
-  this_max = maxval (plot%graph(:)%x%max)
-  major_div_nominal = real(sum(plot%graph(:)%x%major_div_nominal)) / size(plot%graph)
-  if (major_div_nominal > 0) then
-    p1 = nint(0.7 * major_div_nominal)  
-    p2 = nint(1.3 * major_div_nominal)
-  else
-    p1 = real(sum(plot%graph(:)%x%major_div)) / size(plot%graph)
-    p2 = p1
+if (do_gang) then
+
+  if (x_min == x_max) then
+    this_min = minval (plot%graph(:)%x%min)
+    this_max = maxval (plot%graph(:)%x%max)
+    major_div_nominal = real(sum(plot%graph(:)%x%major_div_nominal)) / size(plot%graph)
+    if (major_div_nominal > 0) then
+      p1 = nint(0.7 * major_div_nominal)  
+      p2 = nint(1.3 * major_div_nominal)
+    else
+      p1 = real(sum(plot%graph(:)%x%major_div)) / size(plot%graph)
+      p2 = p1
+    endif
+    do i = 1, size(plot%graph)
+      graph => plot%graph(i)
+      call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
+      call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
+    enddo
   endif
-  do i = 1, size(plot%graph)
-    graph => plot%graph(i)
-    call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
-    call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
-  enddo
-  plot%x = graph%x
+
+  plot%x = plot%graph(1)%x
+
 endif
 
 end subroutine

@@ -14,6 +14,8 @@ contains
 
 subroutine tao_graph_setup (plot, graph)
 
+use tao_wave_mod, only: tao_wave_analysis
+
 implicit none
 
 type (tao_universe_struct), pointer :: u
@@ -42,13 +44,18 @@ endif
 
 select case (graph%type)
 case ('phase_space')
-  call tao_phase_space_graph_setup (plot, graph)
+  call tao_graph_phase_space_setup (plot, graph)
+
 case ('data')
   if (plot%x_axis_type == 'data') then
-    call tao_data_slice_graph_setup(plot, graph)
+    call tao_graph_data_slice_setup(plot, graph)
   else
-    call tao_data_graph_setup(plot, graph)
+    call tao_graph_data_setup(plot, graph)
   endif
+
+case ('wave:0')  ! Everything done with 'wave:0' graph. 'wave:a' and 'wave:b' are ignored .
+  call tao_wave_analysis(plot)
+
 end select
 
 ! Renormalize
@@ -75,7 +82,7 @@ end subroutine tao_graph_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_data_slice_graph_setup (plot, graph)
+subroutine tao_graph_data_slice_setup (plot, graph)
 
 implicit none
 
@@ -90,7 +97,7 @@ real(rp) value
 integer i, j, k, m, n_symb, ix
 
 character(160) name
-character(40) :: r_name = 'tao_data_slice_graph_setup'
+character(40) :: r_name = 'tao_graph_data_slice_setup'
 
 logical err
 logical, allocatable, save :: gx(:), gy(:), gix(:)
@@ -181,7 +188,7 @@ enddo curve_loop
 
 graph%valid = .true.
 
-end subroutine tao_data_slice_graph_setup
+end subroutine tao_graph_data_slice_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -218,7 +225,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_phase_space_graph_setup (plot, graph)
+subroutine tao_graph_phase_space_setup (plot, graph)
 
 implicit none
 
@@ -240,7 +247,7 @@ integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 logical err, same_uni
 
 character(40) name
-character(40) :: r_name = 'tao_phase_space_graph_setup'
+character(40) :: r_name = 'tao_graph_phase_space_setup'
 
 ! Set up the graph suffix
 
@@ -445,7 +452,7 @@ enddo
 
 graph%valid = .true.
 
-end subroutine tao_phase_space_graph_setup
+end subroutine tao_graph_phase_space_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -481,7 +488,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_data_graph_setup (plot, graph)
+subroutine tao_graph_data_setup (plot, graph)
 
 use tao_data_and_eval_mod
 use nrutil, only: swap
@@ -515,7 +522,7 @@ logical, allocatable, save :: good(:)
 
 character(60) data_type
 character(12) :: u_view_char
-character(30) :: r_name = 'tao_data_graph_setup'
+character(30) :: r_name = 'tao_graph_data_setup'
 
 !
 
@@ -874,7 +881,7 @@ do k = 1, size(graph%curve)
         end select
       enddo
 
-      if (all(.not. good)) return
+      !! if (all(.not. good)) exit
       n_dat = count(good)
       curve%x_line(1:n_dat) = pack(curve%x_line, mask = good)
       curve%y_line(1:n_dat) = pack(curve%y_line, mask = good)
@@ -999,10 +1006,9 @@ endif
 if (curve%data_source == 'lattice') then
   select case (data_type(1:5))
   case ('sigma', 'emitt', 'norm_')
-    call out_io (s_fatal$, r_name, &
-              'CURVE%DATA_SOURCE = "lattice" IS NOT COMPATABLE WITH DATA_TYPE: ' &
-              // data_type)
-    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+    call out_io (s_warn$, r_name, &
+              'curve%data_source = "lattice" is not compatable with data_type: ' // data_type)
+    call out_io (s_blank$, r_name, "Will not perform any plot smoothing")
     good = .false.
     return
   end select 
@@ -1229,9 +1235,9 @@ do ii = 1, size(curve%x_line)
     value = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
 
   case default
-    call out_io (s_fatal$, r_name, &
-                  'DO NOT KNOW ABOUT THIS DATA_TYPE: ' // data_type)
-    call out_io (s_blank$, r_name, "Will not perfrom any plot smoothing")
+    call out_io (s_warn$, r_name, &
+                  'For the smooth curve calculation: I do not know about this data_type: ' // data_type)
+    call out_io (s_blank$, r_name, "Will not perform any smoothing.")
     good = .false.
     return
   end select

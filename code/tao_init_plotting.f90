@@ -324,6 +324,7 @@ do  ! Loop over plot files
     plt%x                    = plot%x
     plt%autoscale_gang_x     = plot%autoscale_gang_x 
     plt%autoscale_gang_y     = plot%autoscale_gang_y 
+
     if (plt%x%major_div < 0 .and. plt%x%major_div_nominal < 0) plt%x%major_div_nominal = 6
 
     if (plot%independent_graphs) then  ! Old style
