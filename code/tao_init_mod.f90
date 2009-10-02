@@ -926,7 +926,7 @@ do j = n1, n2
 
   if (data_type(1:11) == 'expression:' .or. data_type == 'unstable_orbit' .or. &
               u%design%lat%param%lattice_type == circular_lattice$ .and. &
-              (data_type(1:6)  == 'chrom.' .or. data_type(1:8) == 'rad_int.' .or. &
+              (data_type(1:6)  == 'chrom.' .or. &
                data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
                data_type(1:17) == 'multi_turn_orbit.')) then
     u%data(j)%exists = .true.

@@ -896,14 +896,14 @@ case ('rad_int.i5a')
 
 case ('rad_int.i5a_e6')
   if (data_source == 'beam') return
-  if (ix_start > 0 .or. ix_ele > 0) then
+  if (ix_ref > 0 .or. ix_ele > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
       call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
       return
     endif
-    ix_start = max(1, ix_start)
+    ix_ref = max(1, ix_ref)
     if (ix_ele < 1) ix_ele = branch%n_ele_track
-    datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix_start:ix_ele))
+    datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix_ref:ix_ele))
   else
     datum_value = tao_lat%modes%lin%i5a_e6
   endif
@@ -916,14 +916,14 @@ case ('rad_int.i5b')
 
 case ('rad_int.i5b_e6')
   if (data_source == 'beam') return
-  if (ix_start > 0 .or. ix_ele > 0) then
+  if (ix_ref > 0 .or. ix_ele > 0) then
     if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then
       call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
       return
     endif
-    ix_start = max(1, ix_start)
+    ix_ref = max(1, ix_ref)
     if (ix_ele < 1) ix_ele = branch%n_ele_track
-    datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix_start:ix_ele))
+    datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix_ref:ix_ele))
   else
     datum_value = tao_lat%modes%lin%i5b_e6
   endif
