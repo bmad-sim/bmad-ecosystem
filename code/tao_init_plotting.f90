@@ -362,6 +362,7 @@ do  ! Loop over plot files
       graph_index = 0         ! setup defaults
       graph = default_graph
       graph%x = plot%x
+      graph%x_axis_scale_factor = 1
       write (graph%name, '(a, i0)') 'g', i_graph
       do j = 1, size(curve)
         write (curve(j)%name, '(a, i0)') 'c', j
@@ -370,7 +371,6 @@ do  ! Loop over plot files
       curve(:)%data_index  = ''
       curve(:)%data_type_x = ''
       curve(:)%data_type   = ''
-      curve(:)%x_axis_scale_factor = 1
       curve(:)%y_axis_scale_factor = 1
       curve(:)%symbol_every = 1
       curve(:)%ix_universe = -1
@@ -409,6 +409,7 @@ do  ! Loop over plot files
       grph%name          = graph%name
       grph%type          = graph%type
       grph%component     = graph%component
+      grph%x_axis_scale_factor = graph%x_axis_scale_factor 
       if (graph%who(1)%name /= '') then  ! Old style
         call out_io (s_error$, r_name, (/ &
             '**********************************************************', &
@@ -516,7 +517,6 @@ do  ! Loop over plot files
         crv%data_index           = curve(j)%data_index
         crv%data_type_x          = curve(j)%data_type_x
         crv%data_type            = curve(j)%data_type
-        crv%x_axis_scale_factor  = curve(j)%x_axis_scale_factor
         crv%y_axis_scale_factor  = curve(j)%y_axis_scale_factor
         crv%symbol_every         = curve(j)%symbol_every
         crv%ix_universe          = curve(j)%ix_universe

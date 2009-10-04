@@ -114,6 +114,8 @@ do i = 1, size(s%plot_region)
     select case (graph%type)
     case ('data', 'phase_space', 'data_slice')
       call tao_plot_data (plot, graph)
+    case ('wave.0', 'wave.a', 'wave.b')
+      call tao_plot_wave (plot, graph)
      case ('lat_layout')
       call tao_plot_lat_layout (plot, graph)
     case ('key_table')
@@ -134,6 +136,36 @@ do i = 1, size(s%plot_region)
   enddo g_loop
 
 enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine tao_plot_wave (plot, graph)
+
+type (tao_plot_struct) :: plot
+type (tao_graph_struct), target :: graph
+type (qp_axis_struct), pointer :: y
+
+real(rp) y0, y1
+
+!
+
+call tao_plot_data (plot, graph)
+
+y => graph%y
+y0 = y%min + 0.1 * (y%max - y%min)
+y1 = y%max - 0.1 * (y%max - y%min)
+
+if (graph%type == 'wave.0' .or. graph%type == 'wave.a') then
+  call qp_draw_rectangle (1.0_rp * s%wave%ix_a1, 1.0_rp * s%wave%ix_a2, y0, y1)
+endif
+
+if (graph%type == 'wave.0' .or. graph%type == 'wave.b') then
+  call qp_draw_rectangle (1.0_rp * s%wave%ix_b1, 1.0_rp * s%wave%ix_b2, y0, y1)
+endif
 
 end subroutine
 

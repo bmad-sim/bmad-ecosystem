@@ -1453,6 +1453,7 @@ namelists should be placed directly after their respective
     graph%draw_axes        = <logical>        ! Default = T
     graph%component        = "<string>"       ! Eg: "model - design"
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
+    graph%x_axis_scale_factor = <factor>      ! Scale the x-axis by this.
     curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
     curve(i)%data_source         = "<string>" ! Source for the data curve points
     curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data".
@@ -1460,7 +1461,6 @@ namelists should be placed directly after their respective
     curve(i)%data_index          = "<string>" ! Index number for data points.
     curve(i)%legend_text         = "<string>" ! Text for curve legend. 
                                               !   Default is the data_type.
-    curve(i)%x_axis_scale_factor = <factor>   ! Scale the x-axis by this.
     curve(i)%y_axis_scale_factor = <factor>   ! Scale the y-axis by this.
     curve(i)%use_y2              = <logical>  ! Use left-axis scale?
     curve(i)%draw_line           = <logical>  ! Connect data with lines?
@@ -1684,12 +1684,12 @@ place holder for the \vn{graph%component} Example:
   	graph%component = "meas - ref"
   	graph%type = "data"
     graph%n_curve = 1
+    graph%x_axis_scale_factor = 1000
     curve(1)%data_source = "data_array"
     curve(1)%data_type_x = "[2:57]@orbit.x[#ref]|#comp"
     curve(1)%data_type   = "[2:57]@orbit.y[#ref]|#comp"
     curve(1)%data_index  = "[2:57]@orbit.y[#ref]|ix_uni"
     curve(1)%y_axis_scale_factor = 1000
-    curve(1)%x_axis_scale_factor = 1000
   	curve(1)%ele_ref_name = "23"
   	curve(1)%draw_line = F
   /

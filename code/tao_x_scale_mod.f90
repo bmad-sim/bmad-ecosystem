@@ -170,6 +170,7 @@ if (do_gang) then
     endif
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
+      if (.not. graph%visible) cycle
       call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
       call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
     enddo
@@ -202,6 +203,7 @@ logical curve_here
 ! If specific min/max values are given then life is easy.
 
 if (graph%type == 'key_table') return
+if (.not. graph%visible) return
 
 if (x_max /= x_min) then
 

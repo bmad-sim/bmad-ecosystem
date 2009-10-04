@@ -54,9 +54,9 @@ character(16) :: cmd_names(33) = (/  &
     'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
     'pause       ', 'continue    ', 'wave        ' /)
 
-character(16) :: set_names(9) = (/ &
+character(16) :: set_names(10) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
-    'universe    ', 'curve       ', 'graph       ', 'beam_init   ' /)
+    'universe    ', 'curve       ', 'graph       ', 'beam_init   ', 'wave        ' /)
 
 
 
@@ -400,57 +400,6 @@ case ('run', 'flatten')
   call tao_run_cmd (cmd_word(1), abort)
 
 !--------------------------------
-! SET
-
-case ('set')
-
-  call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
-
-  call match_word (cmd_word(1), set_names, ix, .true.)
-  if (ix == 0) then
-    call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
-    return
-  endif
-
-  set_word = set_names(ix)
-
-  if ( (set_word == 'curve'     .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'data'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'beam_init' .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'graph'     .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'lattice'   .and. cmd_word(3) /= '=')) then
-    call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
-    return
-  endif
-
-  select case (set_word)
-  case ('data')
-    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
-    call tao_set_data_cmd (cmd_word(2), cmd_word(4))
-  case ('var')
-    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
-    call tao_set_var_cmd (cmd_word(2), cmd_word(4))
-  case ('lattice')
-    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
-    call tao_set_lattice_cmd (cmd_word(2), cmd_word(4)) 
-  case ('curve')
-    call tao_set_curve_cmd (cmd_word(2), cmd_word(3), cmd_word(5)) 
-  case ('global')
-    call tao_set_global_cmd (cmd_word(2), cmd_word(4))
-  case ('beam_init')
-    call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4), 0)
-  case ('plot_page')
-    call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
-  case ('graph')
-    call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
-  case ('universe')    
-    call tao_set_uni_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
-  end select
-
-!--------------------------------
 ! SCALE
 
 case ('scale')
@@ -495,6 +444,60 @@ case ('scale')
     endif
     call tao_scale_cmd (cmd_word(1), value1, value2, axis_name, gang_str)
   endif
+
+!--------------------------------
+! SET
+
+case ('set')
+
+  call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
+
+  call match_word (cmd_word(1), set_names, ix, .true.)
+  if (ix == 0) then
+    call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
+    return
+  endif
+
+  set_word = set_names(ix)
+
+  if ( (set_word == 'curve'     .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'data'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'wave'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'beam_init' .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'graph'     .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'lattice'   .and. cmd_word(3) /= '=')) then
+    call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
+    return
+  endif
+
+  select case (set_word)
+  case ('data')
+    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
+    call tao_set_data_cmd (cmd_word(2), cmd_word(4))
+  case ('var')
+    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
+    call tao_set_var_cmd (cmd_word(2), cmd_word(4))
+  case ('lattice')
+    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
+    call tao_set_lattice_cmd (cmd_word(2), cmd_word(4)) 
+  case ('curve')
+    call tao_set_curve_cmd (cmd_word(2), cmd_word(3), cmd_word(5)) 
+  case ('global')
+    call tao_set_global_cmd (cmd_word(2), cmd_word(4))
+  case ('beam_init')
+    call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4), 0)
+  case ('plot_page')
+    call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
+  case ('graph')
+    call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
+  case ('universe')    
+    call tao_set_uni_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
+  case ('wave')
+    call tao_set_wave_cmd (cmd_word(2), cmd_word(4) // ' ' // cmd_word(5))
+  end select
 
 !--------------------------------
 ! SHOW
@@ -551,6 +554,9 @@ case ('wave')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
   call tao_wave_cmd (cmd_word(1), cmd_word(2))
+  call tao_cmd_end_calc
+  call tao_show_cmd ('wave', '')
+  return
 
 !--------------------------------
 ! X-AXIS
@@ -638,6 +644,7 @@ end select
 
 !------------------------------------------------------------------------
 ! Do the standard calculations and plotting after command
+! Note: wave command bypasses this.
 
 call tao_cmd_end_calc
 

@@ -53,7 +53,7 @@ case ('data')
     call tao_graph_data_setup(plot, graph)
   endif
 
-case ('wave:0')  ! Everything done with 'wave:0' graph. 'wave:a' and 'wave:b' are ignored .
+case ('wave.0')  ! Everything done with 'wave.0' graph. 'wave.a' and 'wave.b' are ignored .
   call tao_wave_analysis(plot)
 
 end select
@@ -64,11 +64,11 @@ if (allocated (graph%curve)) then
   do i = 1, size(graph%curve)
     curve => graph%curve(i)
     if (allocated(curve%x_symb)) then
-        curve%x_symb = curve%x_symb * curve%x_axis_scale_factor
+        curve%x_symb = curve%x_symb * curve%g%x_axis_scale_factor
         curve%y_symb = curve%y_symb * curve%y_axis_scale_factor
     endif
     if (allocated(curve%x_line)) then
-      curve%x_line = curve%x_line * curve%x_axis_scale_factor
+      curve%x_line = curve%x_line * curve%g%x_axis_scale_factor
       curve%y_line = curve%y_line * curve%y_axis_scale_factor
     endif
   enddo

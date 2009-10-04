@@ -26,10 +26,6 @@ integer i, j, n
 
 if (allocated(plot_out%graph)) deallocate (plot_out%graph)
 
-if (associated(plot_out%wave)) then
-  if (allocated (plot_out%wave%kick)) deallocate (plot_out%wave%kick)
-endif
-
 ! Set plot_out = plot_in. 
 
 plot_out = plot_in

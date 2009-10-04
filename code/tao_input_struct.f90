@@ -91,7 +91,6 @@ type tao_curve_input
   character(100) data_type
   character(100) data_index
   character(40) legend_text
-  real(rp) x_axis_scale_factor
   real(rp) y_axis_scale_factor
   integer symbol_every
   integer ix_universe
@@ -118,6 +117,7 @@ type tao_graph_input
   integer ix_universe
   integer ix_branch
   integer n_curve
+  real(rp) x_axis_scale_factor
   logical clip
   logical draw_axes
   logical correct_xy_distortion

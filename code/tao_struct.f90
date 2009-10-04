@@ -68,16 +68,23 @@ end type
 
 type tao_wave_kick_pt_struct
   real(rp) :: phi_s, phi_r, phi, amp
-  integer :: ix_cross
+  integer :: ix_dat
 end type  
 
 type tao_wave_struct     ! Struct for wave analysis
-  real(rp) rms_a, rms_b
-  real(rp) rms_sa, rms_sb, rms_ra, rms_rb
-  real(rp) rms_k, rms_ks, rms_kr, rms_phi
+  character(40) data_type
+  real(rp) rms_rel_a, rms_rel_b
+  real(rp) rms_rel_sa, rms_rel_sb, rms_rel_ra, rms_rel_rb
+  real(rp) rms_rel_k, rms_rel_ks, rms_rel_kr, rms_phi
   real(rp) rms_sphi, rms_rphi
   real(rp) amp_sba, amp_rba, chi_ba
+  real(rp) coef_a(4), coef_b(4), coef_ba(4)
+  real(rp) amp_a(2), amp_b(2), amp_ba(2)
+  integer n_func   ! Number of functions used in the fit.
   integer ix_a1, ix_a2, ix_b1, ix_b2
+  integer i_a1, i_a2, i_b1, i_b2, n_a, n_b
+  integer i_wrap_pt      ! Index of last point before wrap in curve array. 
+  integer, allocatable :: ix_data(:) ! Translates from plot point to datum index
   integer n_kick
   type (tao_wave_kick_pt_struct), allocatable :: kick(:)
 end type
@@ -115,7 +122,6 @@ type tao_curve_struct
   real(rp), allocatable :: x_symb(:)       ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
   integer, allocatable :: ix_symb(:)       ! Corresponding index in d1_data%d(:) array.
-  real(rp) :: x_axis_scale_factor = 1  ! x-axis conversion from internal to plotting units.
   real(rp) :: y_axis_scale_factor = 1  ! y-axis conversion from internal to plotting units.
   type (qp_line_struct) line       ! Line attributes
   type (qp_symbol_struct) symbol   ! Symbol attributes
@@ -152,10 +158,11 @@ type tao_graph_struct
   type (qp_axis_struct) y       ! Y-axis attributes.
   type (qp_axis_struct) y2      ! Y-axis attributes.
   type (qp_rect_struct) margin  ! Margin around the graph.
-  logical clip                  ! Clip plot at graph boundary.
+  real(rp) :: x_axis_scale_factor = 1  ! x-axis conversion from internal to plotting units.
   integer box(4)                ! Defines which box the plot is put in.
   integer :: ix_branch = 0
   integer :: ix_universe = -1   ! Used for lat_layout plots.
+  logical clip                  ! Clip plot at graph boundary.
   logical valid                 ! valid if all curve y_dat computed OK.
   logical y2_mirrors_y          ! Y2-axis same as Y-axis?
   logical limited               ! True if at least one data point past graph bounds.
@@ -179,7 +186,6 @@ type tao_plot_struct
                                               !         'floor', or 'phase_space'
   logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
   logical :: autoscale_gang_y = .true.        ! scale cmd scales graphs together?
-  type (tao_wave_struct), pointer :: wave => null()
 end type
 
 ! A region defines a plot and where to position the plot on the plot page
@@ -669,6 +675,7 @@ type tao_super_universe_struct
   type (tao_universe_struct), allocatable :: u(:)          ! array of universes.
   integer, allocatable :: key(:)
   type (tao_wall_struct), allocatable :: wall(:)
+  type (tao_wave_struct) :: wave 
   integer n_var_used
   integer n_v1_var_used
 end type

@@ -204,6 +204,70 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_wave_cmd (who, set_value)
+!
+! Routine to set wave variables
+! 
+! Input:
+!   who       -- Character(*): which wave variable to set
+!   set_value -- Character(*): Value to set to.
+!
+! Output:
+!    s%wave  -- Wave variables structure.
+!-
+
+subroutine tao_set_wave_cmd (who, set_value)
+
+implicit none
+
+type (tao_wave_struct) wave
+
+character(*) who, set_value
+character(20) :: r_name = 'tao_set_wave_cmd'
+
+real(rp) ix_a(2), ix_b(2)
+
+integer iu, ios
+logical err
+
+namelist / params / ix_a, ix_b
+
+! open a scratch file for a namelist read
+
+iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+ix_a = [s%wave%ix_a1, s%wave%ix_a2]
+ix_b = [s%wave%ix_b1, s%wave%ix_b2]
+
+write (iu, *) '&params'
+write (iu, *) trim(who) // ' = ' // trim(set_value)
+write (iu, *) '/'
+rewind (iu)
+wave = s%wave  ! set defaults
+read (iu, nml = params, iostat = ios)
+close (iu)
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+  return
+endif
+
+s%wave%ix_a1 = ix_a(1)
+s%wave%ix_a2 = ix_a(2)
+s%wave%ix_b1 = ix_b(1)
+s%wave%ix_b2 = ix_b(2)
+
+end subroutine tao_set_wave_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_beam_init_cmd (who, set_value)
 !
 ! Routine to set beam_init variables

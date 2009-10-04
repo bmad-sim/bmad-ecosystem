@@ -184,12 +184,12 @@ character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
 character(5) undef_str
 
-character(16) :: show_what, show_names(24) = (/ &
+character(16) :: show_what, show_names(25) = [ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
    'optimizer   ', 'element     ', 'lattice     ', 'constraints ', 'plot        ', &
    'beam        ', 'tune        ', 'graph       ', 'curve       ', 'particle    ', &
    'hom         ', 'key_bindings', 'universe    ', 'orbit       ', 'derivative  ', &
-   'branches    ', 'use         ', 'taylor_map  ', 'value       ' /)
+   'branches    ', 'use         ', 'taylor_map  ', 'value       ', 'wave        ' ]
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -488,7 +488,6 @@ case ('curve')
     nl=nl+1; write (lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
     nl=nl+1; write (lines(nl), imt)  'ix_universe          = ', c1%ix_universe
     nl=nl+1; write (lines(nl), imt)  'symbol_every         = ', c1%symbol_every
-    nl=nl+1; write (lines(nl), rmt)  'x_axis_scale_factor  = ', c1%x_axis_scale_factor
     nl=nl+1; write (lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
     nl=nl+1; write (lines(nl), lmt)  'use_y2               = ', c1%use_y2
     nl=nl+1; write (lines(nl), lmt)  'draw_line            = ', c1%draw_line
@@ -1028,6 +1027,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
     nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
 
+    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
     nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
     nl=nl+1; write (lines(nl), imt) 'x%major_div           = ', g%x%major_div
@@ -2196,6 +2196,41 @@ case ('variable')
   endif
 
   result_id = show_what
+
+!----------------------------------------------------------------------
+! wave
+
+case ('wave')
+
+  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_a1, ix_a2:', s%wave%ix_a1, s%wave%ix_a2
+  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_b1, ix_b2:', s%wave%ix_b1, s%wave%ix_b2
+
+  select case (s%wave%data_type)
+  case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y')
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sig/A:', s%wave%rms_rel_a
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sig/A:', s%wave%rms_rel_b
+    nl=nl+1; write(lines(nl), '(2(a, f8.3, 5x))') &
+                'Kick   Sig_K/K:', s%wave%rms_rel_k, 'Sig_phi:', s%wave%rms_phi
+    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = 'Normalized Kick = kick * sqrt(beta)  [urad * sqrt(m)]'
+    nl=nl+1; lines(nl) = 'After Dat#      Kick       phi'
+    do i = 1, min(s%wave%n_kick, 10)
+      nl=nl+1; write (lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, &
+                  1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
+    enddo
+    if (s%wave%n_kick > 10) then
+      nl=nl+1; lines(nl) = ' etc...'
+    endif
+
+  case ('phase.a', 'phase.b')
+
+
+
+  case ('cbar.11', 'cbar.12', 'cbar.22')
+
+  result_id = show_what
+
+  end select
 
 !----------------------------------------------------------------------
 
