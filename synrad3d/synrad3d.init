@@ -15,5 +15,5 @@
   dat_file         = 'synrad3d.dat'
 
 	synrad3d_params%allow_reflections = .false.  ! For testing purposes.
-
+	random_seed = 123456   ! 0 -> Use sys clock.
 /

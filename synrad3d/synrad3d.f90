@@ -26,7 +26,7 @@ type (wall3d_pt_struct) wall_pt(0:100)
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma
 
-integer i, j, n_wall_pt_max
+integer i, j, n_wall_pt_max, random_seed
 integer ix_ele, n_photon_tot, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_pt
@@ -38,13 +38,14 @@ logical ok
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
-            emit_a, emit_b, sig_e, synrad3d_params, wall_file, dat_file
+            emit_a, emit_b, sig_e, synrad3d_params, wall_file, dat_file, random_seed
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
 ! Get parameters.
 ! Radiation is produced from the end of ix_ele_track_start to the end of ix_ele_track_end.
 
+random_seed = 0
 ix_ele_track_start = 0    ! defaults
 ix_ele_track_end = -1
 ds_step_min = 0.01
@@ -75,6 +76,8 @@ allocate (wall%pt(0:n_wall_pt_max))
 wall%pt = wall_pt(0:n_wall_pt_max)
 wall%n_pt_max = n_wall_pt_max
 wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
+
+call ran_seed_put (random_seed)
 
 ! Find out much radiation is produced
 
@@ -141,6 +144,7 @@ do
       photon => photons(n_photon_tot + j)
       call emit_photon (ele_here, orbit_here, gx, gy, &
                              emit_a, emit_b, sig_e, photon_direction, photon%start)
+      photon%n_reflect = 0
       photon%start%ix_ele = ix_ele
       photon%start%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
                                                       (4 * h_bar_planck * c_light * num_photons)
