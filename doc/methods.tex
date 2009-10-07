@@ -536,3 +536,9 @@ include the extra computation involving the effect of the
 orientation. Thus if an element's orientation is fixed it is faster to
 set \vn{map_with_offsets} to \vn{True} and if the orientation is
 varying it is faster to set \vn{map_with_offsets} to \vn{False}.
+
+If the global parameter \vn{bmad_com%conserve_taylor_maps}
+(\sref{s.bmad.params}) is set to True (the default), then, if an
+element is offset within a program, and if \vn{map_with_offset} is set
+to True for that element, \bmad will toggle \vn{map_with_offset} to
+False to conserve the map.

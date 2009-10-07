@@ -2129,8 +2129,10 @@ if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
         offset_nonzero .and. bmad_com%conserve_taylor_maps .and. &
         .not. non_offset_changed) then
   ele%map_with_offsets = .false.
-  call out_io (s_info$, r_name, 'Element has been offset: ' // ele%name, &
-                                'Will set ele%map_with_offsets = F')
+  call out_io (s_info$, r_name, &
+      'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &
+      'But: Element has just been offset: ' // ele%name, &
+      "To conserve the element's Taylor map, I will set ele%map_with_offsets = False.")
 endif
 
 ! Kill the taylor map and gen_field if necessary.

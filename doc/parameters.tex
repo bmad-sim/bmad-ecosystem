@@ -44,7 +44,6 @@ this structure are:
     real(rp) :: abs_tolerance = 1e-8           ! Runge-Kutta: Absolute tolerance.
     integer :: taylor_order = 3                ! 3rd order is default
     integer :: default_integ_order = 2         ! PTC integration order
-    logical :: canonical_coords = .true.       ! Use (x, px) [not (x, x')]
     logical :: use_liar_lcavity = .false.      ! Liar like tracking?
     logical :: sr_wakes_on = .true.            ! Short range wake fields?
     logical :: lr_wakes_on = .true.            ! Long range wake fields
@@ -56,6 +55,8 @@ this structure are:
     logical :: radiation_damping_on = .false.       ! Damping toggle.
     logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
     logical :: compute_ref_energy = .true.          ! Enable recomputation?
+    logical :: conserve_taylor_maps = .true.        ! Enable bookkeeper to set
+                                                    ! ele%map_with_offsets = F?
   end type
 \end{example}
 
