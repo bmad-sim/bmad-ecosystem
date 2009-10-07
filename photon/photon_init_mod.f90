@@ -57,6 +57,7 @@ contains
 !   gamma  -- Real(rp): Relativistic beam gamma factor.
 !
 ! output:
+!   orbit(4) -- Real(rp): Vertical angle. Limited to be less than 0.1
 !   orbit(6) -- Real(rp): Orbit at the emission point.
 !-
 
@@ -73,7 +74,10 @@ call photon_energy_init (E_rel)
 call photon_vert_angle_init (E_rel, gamma_phi)
 
 orbit = 0
+
 orbit(4) = gamma_phi / gamma
+if (abs(orbit(4)) > 0.1) orbit(4) = sign(0.1_rp, orbit(4))
+
 orbit(6) = E_rel * 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2
 
 end subroutine photon_init
