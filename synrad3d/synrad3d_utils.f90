@@ -248,11 +248,7 @@ if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
 
 wall0 => wall%pt(ix)
 if (wall0%type == 'rectangular') then
-  if (abs(vec(1)/wall0%width2) > abs(vec(3)/wall0%height2)) then
-    r0 = vec(1)/wall0%width2
-  else
-    r0 = vec(3)/wall0%height2
-  endif
+  r0 = max(abs(vec(1)/wall0%width2), abs(vec(3)/wall0%height2)) 
 elseif (wall0%type == 'elliptical') then
   r0 = sqrt((vec(1)/wall0%width2)**2 + (vec(3)/wall0%height2)**2)
 else
@@ -262,11 +258,7 @@ endif
 
 wall1 => wall%pt(ix+1)
 if (wall1%type == 'rectangular') then
-  if (abs(vec(1)/wall1%width2) > abs(vec(3)/wall1%height2)) then
-    r1 = vec(1)/wall1%width2
-  else
-    r1 = vec(3)/wall1%height2
-  endif
+  r1 = max(abs(vec(1)/wall1%width2), abs(vec(3)/wall1%height2)) 
 elseif (wall1%type == 'elliptical') then
   r1 = sqrt((vec(1)/wall1%width2)**2 + (vec(3)/wall1%height2)**2)
 else
