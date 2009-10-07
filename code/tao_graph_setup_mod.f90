@@ -1339,12 +1339,14 @@ call re_allocate (y_value, n_dat) ! allocate space for the data
 y_value = 0
 good = .true.
 
-datum%ix_ele_ref   = curve%ix_ele_ref_track
-datum%merit_type   = 'target'
-datum%data_type    = curve%data_type
-datum%ele_ref_name = curve%ele_ref_name
-datum%data_source  = curve%data_source
-datum%ix_branch    = curve%ix_branch
+datum%ix_ele_ref     = curve%ix_ele_ref_track
+datum%ix_ele_start   = -1
+datum%ele_start_name = ''
+datum%merit_type     = 'target'
+datum%data_type      = curve%data_type
+datum%ele_ref_name   = curve%ele_ref_name
+datum%data_source    = curve%data_source
+datum%ix_branch      = curve%ix_branch
 
 call tao_split_component (curve%g%component, comp, err)
 if (err) return
