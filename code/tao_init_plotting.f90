@@ -387,6 +387,7 @@ do  ! Loop over plot files
       curve(:)%draw_interpolated_curve = .true.
       curve(:)%line%width = -1
       curve(:)%legend_text = ''
+      curve(:)%x_axis_scale_factor = 0  ! This is old syntax. Not used.
       curve(2:7)%symbol%type = &
                   (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
       curve(2:7)%symbol%color = &
@@ -536,6 +537,22 @@ do  ! Loop over plot files
         crv%legend_text          = curve(j)%legend_text
 
         ! Old style
+
+        if (curve(j)%x_axis_scale_factor /= 0) then
+          call out_io (s_error$, r_name, (/ &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '***** SYNTAX CHANGE:                                 *****', &
+            '*****         CURVE%X_AXIS_SCALE_FACTOR              *****', &
+            '***** NEEDS TO BE CHANGED TO:                        *****', &
+            '*****         GRAPH%X_AXIS_SCALE_FACTOR              *****', &
+            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
+            '**********************************************************', &
+            '**********************************************************', &
+            '**********************************************************' /) )
+          crv%smooth_line_calc = .false.
+        endif
 
         if (.not. curve(j)%draw_interpolated_curve) then
           call out_io (s_error$, r_name, (/ &

@@ -2206,31 +2206,70 @@ case ('wave')
   nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_b1, ix_b2:', s%wave%ix_b1, s%wave%ix_b2
 
   select case (s%wave%data_type)
-  case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y')
-    nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sig/A:', s%wave%rms_rel_a
-    nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sig/A:', s%wave%rms_rel_b
-    nl=nl+1; write(lines(nl), '(2(a, f8.3, 5x))') &
-                'Kick   Sig_K/K:', s%wave%rms_rel_k, 'Sig_phi:', s%wave%rms_phi
+  case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b')
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_a
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_b
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_Kick/Kick: ', s%wave%rms_rel_k
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_phi:       ', s%wave%rms_phi
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; lines(nl) = 'Normalized Kick = kick * sqrt(beta)  [urad * sqrt(m)]'
-    nl=nl+1; lines(nl) = 'After Dat#      Kick       phi'
+    if (s%wave%data_type(1:4) == 'beta') then
+      nl=nl+1; lines(nl) = 'Normalized Kick = kick * beta  [urad * meter]'
+    else
+      nl=nl+1; lines(nl) = 'Normalized Kick = kick * sqrt(beta)  [urad * sqrt(meter)]'
+    endif
+    nl=nl+1; lines(nl) = 'After Dat#    Norm_K       phi'
     do i = 1, min(s%wave%n_kick, 10)
       nl=nl+1; write (lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, &
                   1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
-    if (s%wave%n_kick > 10) then
-      nl=nl+1; lines(nl) = ' etc...'
-    endif
 
   case ('phase.a', 'phase.b')
-
-
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_a
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit:  ', s%wave%rms_rel_b
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_Kick/Kick: ', s%wave%rms_rel_k
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_phi:       ', s%wave%rms_phi
+    nl=nl+1; write(lines(nl), '(a, f8.3, a)') &
+                                    'Chi_a:           ', s%wave%chi_a, ' [Figure of Merit]'
+    nl=nl+1; lines(nl) = ' '
+    nl=nl+1; lines(nl) = 'Normalized Kick = k * l * beta [dimensionless]'
+    nl=nl+1; lines(nl) = '   where k = quadrupole gradient [rad/m^2].'
+    nl=nl+1; lines(nl) = 'After Dat#    Norm_K       phi'
+    do i = 1, min(s%wave%n_kick, 10)
+      nl=nl+1; write (lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, &
+                  s%wave%kick(i)%amp, s%wave%kick(i)%phi
+    enddo
 
   case ('cbar.11', 'cbar.12', 'cbar.22')
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+:  ', s%wave%rms_rel_as
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-:  ', s%wave%rms_rel_ar
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+:  ', s%wave%rms_rel_bs
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'B Region Sigma_-/Amp_-:  ', s%wave%rms_rel_br
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Kick |K+|   = ', 2*s%wave%amp_ba_s
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_K+/K+ = ', 2*s%wave%rms_rel_ks
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Kick |K-|   = ', 2*s%wave%amp_ba_r
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_K-/K- = ', 2*s%wave%rms_rel_kr
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_phi+:      ', s%wave%rms_phi_s
+    nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_phi-:      ', s%wave%rms_phi_r
+    nl=nl+1; write(lines(nl), '(a, f8.3, a)') &
+                                    'Chi_a:           ', s%wave%chi_a, ' [Figure of Merit]'
 
-  result_id = show_what
+    nl=nl+1; lines(nl) = 'After Dat#     Norm_K    phi+    phi-   phi_a   phi_b'
+    do i = 1, min(s%wave%n_kick, 10)
+      nl=nl+1; write (lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') &
+            s%wave%kick(i)%ix_dat, &
+            s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
+            (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
+            (s%wave%kick(i)%phi_s-s%wave%kick(i)%phi_r)/2
+    enddo
 
   end select
+
+  if (s%wave%n_kick > 10) then
+    nl=nl+1; lines(nl) = ' etc...'
+  endif
+
+
+  result_id = show_what
 
 !----------------------------------------------------------------------
 

@@ -496,7 +496,10 @@ case ('set')
   case ('universe')    
     call tao_set_uni_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
   case ('wave')
-    call tao_set_wave_cmd (cmd_word(2), cmd_word(4) // ' ' // cmd_word(5))
+    call tao_set_wave_cmd (cmd_word(2), cmd_word(4) // ' ' // cmd_word(5), err)
+    if (err) return
+    call tao_cmd_end_calc
+    call tao_show_cmd ('wave', '')
   end select
 
 !--------------------------------
@@ -553,7 +556,7 @@ case ('view')
 case ('wave')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
-  call tao_wave_cmd (cmd_word(1), cmd_word(2))
+  call tao_wave_cmd (cmd_word(1), cmd_word(2), err); if (err) return
   call tao_cmd_end_calc
   call tao_show_cmd ('wave', '')
   return

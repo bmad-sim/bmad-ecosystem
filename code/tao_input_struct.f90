@@ -104,6 +104,7 @@ type tao_curve_input
   integer ix_branch
   integer ix_ele_ref
   integer ix_bunch
+  real(rp) x_axis_scale_factor
   type (qp_line_struct) line
   type (qp_symbol_struct) symbol
 end type

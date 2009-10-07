@@ -43,9 +43,10 @@ of the line is ignored.  Example:
   history    & \sref{s:history}  & use          & \sref{s:use}      \\ \hline 
   misalign   & \sref{s:misalign} & veto         & \sref{s:veto}     \\ \hline 
   output     & \sref{s:output}   & view         & \sref{s:view}     \\ \hline 
-  pause      & \sref{s:pause}    & x-axis       & \sref{s:x.axis}   \\ \hline 
-  place      & \sref{s:place}    & x-scale      & \sref{s:x.scale}  \\ \hline 
-  plot       & \sref{s:plot}     & xy-scale     & \sref{s:xy.scale} \\ \hline
+  pause      & \sref{s:pause}    & wave         & \sref{s:wave}     \\ \hline
+  place      & \sref{s:place}    & x-axis       & \sref{s:x.axis}   \\ \hline 
+  plot       & \sref{s:plot}     & x-scale      & \sref{s:x.scale}  \\ \hline 
+             &                   & xy-scale     & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -1479,7 +1480,7 @@ The \vn{veto} command vetoes data or variables. Format:
   veto var <var_name> <locations>
 \end{example}
 
-\vskip 0.2in 
+\vskip 0.1in 
 
 See also the \vn{restore} and \vn{use} commands.
 
@@ -1517,6 +1518,31 @@ the absence of a universe prefix (\sref{s:universe}).
 Examples:
 \begin{example}
   view 2   ! Make universe #2 the default.
+\end{example}
+
+%% wave --------------------------------------------------------------
+\section{x-axis}\index{Commands!wave}
+\label{s:wave}
+
+The \vn{wave} command sets what data is to be used for the wave
+analysis (\sref{c:wave}). Format:
+\begin{example}
+  wave <curve> \{<plot_location>\}
+\end{example}
+\vskip 0.1in
+
+The \vn{<curve>} argument specifies what plot curve is to be used in
+the analysis. The specified curve must be visible in the plot window.
+The \vn{<plot_location>} argument specifies the plot region where the
+results of the wave analysis is to be plotted. If not present, the
+region defaults to the region of the plot containing the curve used
+for the analysis.
+
+Examples:
+\begin{example}
+  wave orbit.x      ! Use the orbit.x curve for the wave analysis.
+  wave top.x bottom ! Use the curve in top.x and the results of the 
+                    !  wave analysis are put in the bottom region.
 \end{example}
 
 %% x-axis --------------------------------------------------------------

@@ -204,7 +204,7 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_wave_cmd (who, set_value)
+! Subroutine tao_set_wave_cmd (who, set_value, err)
 !
 ! Routine to set wave variables
 ! 
@@ -216,7 +216,7 @@ end subroutine tao_set_global_cmd
 !    s%wave  -- Wave variables structure.
 !-
 
-subroutine tao_set_wave_cmd (who, set_value)
+subroutine tao_set_wave_cmd (who, set_value, err)
 
 implicit none
 
@@ -233,6 +233,8 @@ logical err
 namelist / params / ix_a, ix_b
 
 ! open a scratch file for a namelist read
+
+err = .true.
 
 iu = lunget()
 open (iu, status = 'scratch', iostat = ios)
@@ -261,6 +263,8 @@ s%wave%ix_a1 = ix_a(1)
 s%wave%ix_a2 = ix_a(2)
 s%wave%ix_b1 = ix_b(1)
 s%wave%ix_b2 = ix_b(2)
+
+err = .false.
 
 end subroutine tao_set_wave_cmd
 
