@@ -29,9 +29,9 @@ real(rp) emit_a, emit_b, sig_e, g, gamma
 integer i, j, n_wall_pt_max, random_seed
 integer ix_ele, n_photon_tot, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end
-integer photon_direction, num_photons, n_pt
+integer photon_direction, num_photons, n_phot
 
-character(100) lattice_file, dat_file, wall_file
+character(100) lattice_file, dat_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
 logical ok
@@ -41,6 +41,16 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             emit_a, emit_b, sig_e, synrad3d_params, wall_file, dat_file, random_seed
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
+
+! Get parameter file name
+
+if (cesr_iargc() > 1) then
+  print *, 'TOO MANY ARGUMENTS ON THE COMMAND LINE!'
+  stop
+endif
+
+param_file = 'synrad3d.init'
+if (cesr_iargc() == 1) call cesr_getarg(1, param_file)
 
 ! Get parameters.
 ! Radiation is produced from the end of ix_ele_track_start to the end of ix_ele_track_end.
@@ -56,7 +66,8 @@ dat_file = 'synrad3d.dat'
 wall_file = 'synrad3d.wall'
 photon_direction = 1
 
-open (1, file = 'synrad3d.init', status = 'old')
+print *, 'Input parameter file: ', trim(param_file)
+open (1, file = param_file, status = 'old')
 read (1, nml = synrad3d_parameters)
 close (1)
 
@@ -122,10 +133,11 @@ do
 
   ele => lat%ele(ix_ele)
 
-  n_pt = nint(rad_int_ele%i0(ix_ele) / d_i0)
-  if (n_pt == 0) cycle
+  n_phot = nint(rad_int_ele%i0(ix_ele) / d_i0)
+  if (n_phot == 0) cycle
 
-  ds = max(ds_step_min, ele%value(l$) / n_pt)
+  ds = ele%value(l$) / n_phot
+  if (ds < ds_step_min) ds = (1+int(ds_step_min/ds)) * ds
 
   ! Loop over all photon generating points
 
