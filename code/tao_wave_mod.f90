@@ -377,10 +377,11 @@ do i = 1, n_curve_pt
     sin_phi(i) = sin(2*phi(i)) * beta
     cos_phi(i) = cos(2*phi(i)) * beta
     phi(i) = 2 * phi(i)
-    tune = 2 * tune
   endif
 
 enddo
+
+if (data_type(1:4) == 'beta') tune = 2 * tune
 
 ! Fit
 
