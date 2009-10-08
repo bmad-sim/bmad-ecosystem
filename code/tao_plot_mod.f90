@@ -160,11 +160,11 @@ y0 = y%min + 0.1 * (y%max - y%min)
 y1 = y%max - 0.1 * (y%max - y%min)
 
 if (graph%type == 'wave.0' .or. graph%type == 'wave.a') then
-  call qp_draw_rectangle (1.0_rp * s%wave%ix_a1, 1.0_rp * s%wave%ix_a2, y0, y1)
+  call qp_draw_rectangle (1.0_rp * s%wave%ix_a1, 1.0_rp * s%wave%ix_a2, y0, y1, color = blue$, width = 2)
 endif
 
 if (graph%type == 'wave.0' .or. graph%type == 'wave.b') then
-  call qp_draw_rectangle (1.0_rp * s%wave%ix_b1, 1.0_rp * s%wave%ix_b2, y0, y1)
+  call qp_draw_rectangle (1.0_rp * s%wave%ix_b1, 1.0_rp * s%wave%ix_b2, y0, y1, color = blue$, width = 2)
 endif
 
 end subroutine

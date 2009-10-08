@@ -80,7 +80,7 @@ type tao_wave_struct     ! Struct for wave analysis
   real(rp) amp_a(2), amp_b(2), amp_ba(2)
   real(rp) coef_a(4), coef_b(4), coef_ba(4)
   integer n_func   ! Number of functions used in the fit.
-  integer ix_a1, ix_a2, ix_b1, ix_b2
+  integer :: ix_a1 = -1, ix_a2 = -1, ix_b1 = -1, ix_b2 = -1
   integer i_a1, i_a2, i_b1, i_b2, n_a, n_b
   integer i_wrap_pt      ! Index of last point before wrap in curve array. 
   integer, allocatable :: ix_data(:) ! Translates from plot point to datum index

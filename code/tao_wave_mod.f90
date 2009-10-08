@@ -155,13 +155,6 @@ call tao_plot_struct_transfer (wave_plot, region%plot)
 region%visible = .true.
 region%plot%r => region
 
-! Init some wave parameters
-
-s%wave%ix_a1 = -1
-s%wave%ix_a2 = -1
-s%wave%ix_b1 = -1
-s%wave%ix_b2 = -1
-
 err = .false.
 
 end subroutine tao_wave_cmd

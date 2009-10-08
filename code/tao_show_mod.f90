@@ -2233,7 +2233,7 @@ case ('wave')
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Normalized Kick = k * l * beta [dimensionless]'
     nl=nl+1; lines(nl) = '   where k = quadrupole gradient [rad/m^2].'
-    nl=nl+1; lines(nl) = 'After Dat#    Norm_K       phi'
+    nl=nl+1; lines(nl) = 'After Dat#     Norm_K       phi'
     do i = 1, min(s%wave%n_kick, 10)
       nl=nl+1; write (lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, &
                   s%wave%kick(i)%amp, s%wave%kick(i)%phi
