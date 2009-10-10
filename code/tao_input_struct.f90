@@ -150,6 +150,7 @@ type tao_design_lat_input
   character(100) file
   character(100) file2
   character(16) parser
+  character(40) use_line
 end type
 
 type tao_connected_uni_input

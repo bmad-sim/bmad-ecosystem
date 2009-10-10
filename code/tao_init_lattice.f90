@@ -43,6 +43,7 @@ namelist / tao_design_lattice / design_lattice, taylor_order, &
 design_lattice%file   = ''
 design_lattice%file2  = ''
 design_lattice%parser = ''
+design_lattice%use_line = ''
 
 ! Read lattice info
 
@@ -142,7 +143,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
   endif
 
-  ! Split off parser name if needed
+  ! Split off parser name and/or use_line if needed
 
   ix = index(design_lat%file(1:10), '::')
   if (ix == 0) then
@@ -152,15 +153,21 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     design_lat%file = design_lat%file(ix+2:)
   endif
 
+  ix = index(design_lat%file, '@')
+  if (ix /= 0) then
+    design_lat%use_line = design_lat%file(ix+1:)
+    design_lat%file = design_lat%file(:ix-1)
+  endif
+
   ! Read in the design lattice. 
   ! A blank means use the lattice form universe 1.
 
   allocate (u%design, u%base, u%model)
   select case (design_lat%parser)
   case ('bmad')
-    call bmad_parser (design_lat%file, u%design%lat)
+    call bmad_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line)
   case ('xsif')
-    call xsif_parser (design_lat%file, u%design%lat)
+    call xsif_parser (design_lat%file, u%design%lat, use_line = design_lat%use_line)
   case ('aml')
     call aml_parser (design_lat%file, u%design%lat)
   case ('digested')

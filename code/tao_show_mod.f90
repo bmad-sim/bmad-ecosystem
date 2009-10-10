@@ -2202,8 +2202,8 @@ case ('variable')
 
 case ('wave')
 
-  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_a1, ix_a2:', s%wave%ix_a1, s%wave%ix_a2
-  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_b1, ix_b2:', s%wave%ix_b1, s%wave%ix_b2
+  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_a:', s%wave%ix_a1, s%wave%ix_a2
+  nl=nl+1; write(lines(nl), '(a, 2i4)') 'ix_b:', s%wave%ix_b1, s%wave%ix_b2
 
   select case (s%wave%data_type)
   case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b')

@@ -134,7 +134,7 @@ overrides the \vn{beam0_file} variable (\sref{s:beam.init}). The
 centroid of the particle distribution can be shifted using the
 \vn{change beam_start} command (\sref{s:change}).
 
-The \vn{-noplot} optional argument supresses the opening of the plot window.
+The \vn{-noplot} optional argument suppresses the opening of the plot window.
 
 The \vn{-lat} switch is used to override the \vn{design_lattice}
 lattice file specified in the initialization file
@@ -233,7 +233,7 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
     common_lattice = <logical>        ! Default = False
-    design_lattice(i) = "\{<parser>::\}<lattice_file>", \{"<lattice2_file>"\}
+    design_lattice(i) = "\{<parser>::\}<lattice_file>\{@<use_line>\}", \{"<lattice2_file>"\}
   /
 \end{example}
 
@@ -247,6 +247,7 @@ universe \vn{i}.  Example:
     design_lattice(1) = "this.lat"      ! Default: Bmad format lattice file.
     design_lattice(2) = "xsif::that.lat", "floor_coords.bmad"
                                         ! XSIF file. For universe \#2 
+    design_lattice(3) = "third.lat@my_line"  ! Specify a different line.
   /
 \end{example}
 In this example, the lattice of universe 1 is given by the file
@@ -268,8 +269,16 @@ standard format. This can be especially useful if \vn{lattice_file} is
 not a bmad file. For example, a \vn{lattice2_file} can be used to set
 non-zero floor coordinates to an XSIF lattice file. If there is no
 \vn{design_lattice} specified for a given universe then the last
-\vn{design_lattice} is used. Thus, in the above example, universes 3
-and 4 use the same lattice as universe 2.
+\vn{design_lattice} is used. Thus, in the above example, universes 4
+use the same lattice as universe 3.
+
+Normally, a lattice file will specify which ``line'' will be used to
+specify the lattice. Occasionally, it is convenient to override this
+specification and to use a different line. To do this in \tao, the
+name of the line to be used to specify the lattice can be appended to
+the lattice file name. Thus, in the example above, universe 3 will
+have the lattice specified by the line ``my_line'' from the lattice
+``third.lat''.
 
 \vn{taylor_order} is the order of the Taylor maps. This will override
 the Taylor order set in the lattice files. 
@@ -378,7 +387,7 @@ type tao_global_struct
   logical lattice_calc_on = T           ! Master switch.
   logical command_file_print_on = T     ! Toggle printing when using a command file.
   logical beam_timer_on = F             ! For timing the beam tracking calculation.
-  logical optimizer_var_limit_warn = T  ! Warn when variabless reach a limit when
+  logical optimizer_var_limit_warn = T  ! Warn when variables reach a limit when
                                         !   optimizing.
 end type
 \end{example}
@@ -1393,7 +1402,7 @@ and with \vn{major_div_nominal} the number of major divisions can vary
 from the set value when \tao scales a graph. If
 \vn{major_div_nominal} is set, this will override any setting of
 \vn{major_div}. If neither \vn{major_div} nor \vn{major_div_nominal}
-is set, a value will be choisen for \vn{major_div_nominal} by \tao. If
+is set, a value will be chosen for \vn{major_div_nominal} by \tao. If
 you are unsure which to set, it is recommended that
 \vn{major_div_nominal} be used.
 
