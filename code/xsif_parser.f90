@@ -589,6 +589,8 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   call lat_geometry (lat)
   if (logic_option (.true., make_mats6)) call lat_make_mat6 (lat, -1)
   err_flag = .false.
+  bmad_status%ok = .true.
+
   call xsif_io_close
 
 ! Make a digested file
