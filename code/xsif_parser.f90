@@ -16,7 +16,7 @@
 !   xsif_file  -- Character(*): Name of the xsif file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements? Default is True.
-!   use_line   -- Character(*), optional: If present then override the use 
+!   use_line   -- Character(*), optional: If present and not blank, override the use 
 !                   statement in the lattice file and use use_line instead.
 !
 ! Output:
@@ -66,8 +66,10 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
   call read_digested_bmad_file (digested_file, lat, digested_version)
 
   if (present(use_line)) then
-    call str_upcase (name, use_line)
-    if (name /= lat%name) bmad_status%ok = .false.
+    if (use_line /= '') then
+      call str_upcase (name, use_line)
+      if (name /= lat%name) bmad_status%ok = .false.
+    endif
   endif
 
   if (bmad_status%ok) then
@@ -104,7 +106,9 @@ subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 
   ierr = xsif_cmd_loop ( ) 
 
-  if (present(use_line)) call xuse2 (use_line)
+  if (present(use_line)) then
+    if (use_line /= '') call xuse2 (use_line)
+  endif
 
   if (ierr /= 0) then
     call xsif_error ( 'UNABLE TO PARSE LATTICE')

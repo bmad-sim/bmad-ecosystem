@@ -18,7 +18,7 @@
 !   lat_file   -- Character(*): Name of the input file.
 !   make_mats6 -- Logical, optional: Compute the 6x6 transport matrices for the
 !                   Elements? Default is True.
-!   use_line   -- Character(*), optional: If present then override the use 
+!   use_line   -- Character(*), optional: If present and not blank, override the use 
 !                   statement in the lattice file and use use_line instead.
 !
 ! Output:
@@ -35,8 +35,6 @@
 !   lat%param%lattice_type      = circular_lattice$
 !   lat%param%aperture_limit_on = .true.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
 
@@ -97,8 +95,10 @@ call read_digested_bmad_file (digested_file, lat, digested_version)
 ! correct line
 
 if (present(use_line)) then
-  call str_upcase (name, use_line)
-  if (name /= lat%name) bmad_status%ok = .false.
+  if (use_line /= '') then
+    call str_upcase (name, use_line)
+    if (name /= lat%name) bmad_status%ok = .false.
+  endif
 endif
 
 if (bmad_status%ok) then
@@ -619,7 +619,10 @@ enddo
 
 ! find line corresponding to the "use" statement and expand the used line.
 
-if (present (use_line)) call str_upcase (lat%name, use_line)
+if (present (use_line)) then
+  if (use_line /= '') call str_upcase (lat%name, use_line)
+endif
+
 if (lat%name == blank_name$) then
   call warning ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
   call parser_end_stuff ()
