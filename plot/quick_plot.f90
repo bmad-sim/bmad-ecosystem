@@ -1403,6 +1403,8 @@ implicit none
 
 type (qp_rect_struct), pointer :: graph
 
+real(rp) y1, y2
+
 ! qp_com%graph%z1 is the lower left corner of plot
 ! qp_com%graph%z2 is the upper right corner of plot
 
@@ -1416,9 +1418,13 @@ if (.not. qp_com%subgraph_on) then      ! if no subgraph
 endif
 
 ! only set graph position if the coords look reasonable
+! Also: The graph position sets the clip boundries. We enlarge the graph position
+! slightly to prevent clipping of lines that are slightly outside the graph.
 
 if (graph%x1 < graph%x2 .and. graph%y1 < graph%y2) then
-  call qp_set_graph_position_basic (graph%x1, graph%x2, graph%y1, graph%y2)
+  y1 = graph%y1 - 2 * qp_com%dflt_axis_slop_factor * (graph%y2 - graph%y1)
+  y2 = graph%y2 + 2 * qp_com%dflt_axis_slop_factor * (graph%y2 - graph%y1)
+  call qp_set_graph_position_basic (graph%x1, graph%x2, y1, y2)
 endif
 
 end subroutine
