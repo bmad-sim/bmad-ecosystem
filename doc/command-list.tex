@@ -736,6 +736,7 @@ variables, etc. Format:
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc on/off
   set var <var_name>|<component> = <value>
+  set wave <component> = <value>
 \end{example}
 
 \vskip 0.2in 
@@ -966,6 +967,20 @@ Example:
   set var quad\_k1|weight = 0.1         ! Set quad\_k1 weights. 
 \end{example}
 
+%% set wave --------------------------------------------------------------
+
+\item[set wave <component> = <value>] \Newline
+The \vn{set wave} command sets the boundries of the $A$ and $B$ regions 
+for the wave analysis (\sref{c:wave}). The components are
+\begin{example}
+  ix_a = <ix_a1> <ix_a2>  ! A-region left and right boundries.
+  ix_b = <ix_b1> <ix_b2>  ! B-region left and right boundries.
+\end{example}
+Example:
+\begin{example}
+  set wave ix_a = 15 27    ! Set A-region to span from datum \#15 to \#27
+\end{example}
+
 \end{description}
 
 %% show --------------------------------------------------------------
@@ -1006,6 +1021,7 @@ Format:
   show variable \{<var_name>\}
   show variable <universe_number>@
   show variable -bmad_format \{-good_opt_only\}
+  show wave
 \end{example}
 
 \vskip 0.2in 
@@ -1409,6 +1425,12 @@ Examples:
   show var 2@          ! List all variables that control attributes in universe 2.
   show var -bmad       ! List variables in Bmad Lattice format.
 \end{example}
+
+%% show variable --------------------------------------------------------------
+
+\item[show wave]
+The \vn{show wave} command shows the results of the current wave 
+analysis (\sref{c:wave}).
 
 \end{description}
 
