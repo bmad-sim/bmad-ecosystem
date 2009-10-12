@@ -568,8 +568,6 @@ do k = 1, size(graph%curve)
 
   if (curve%ele_ref_name == ' ') then
     zero_average_phase = .true.
-    curve%ix_ele_ref = 0
-    curve%ix_ele_ref_track = 0
   else
     zero_average_phase = .false.
     call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, locs, err, .true.)

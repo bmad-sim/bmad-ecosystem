@@ -1186,35 +1186,42 @@ case ('sigma.x')
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s11$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
+  valid_value = .true.
 
 case ('sigma.px')  
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s22$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
+  valid_value = .true.
   
 case ('sigma.y')  
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s33$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
+  valid_value = .true.
   
 case ('sigma.py')  
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s44$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
+  valid_value = .true.
   
-case ('sigma.z')  
+case ('sigma.z')
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s55$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
+  valid_value = .true.
   
 case ('sigma.pz')  
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s66$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
+  valid_value = .true.
   
 case ('sigma.xy')  
   if (data_source == 'lattice') return
   call load_it (bunch_params(:)%sigma(s13$), loc_ref, loc_start, loc_ele, datum_value, valid_value, datum, lat, why_invalid)
+  valid_value = .true.
   
 case ('spin.theta')
   if (data_source == 'beam') then
