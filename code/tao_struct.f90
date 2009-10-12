@@ -76,7 +76,7 @@ type tao_wave_struct     ! Struct for wave analysis
   real(rp) rms_rel_a, rms_rel_b, rms_rel_as, rms_rel_bs, rms_rel_ar, rms_rel_br
   real(rp) rms_rel_k, rms_rel_ks, rms_rel_kr 
   real(rp) rms_phi, rms_phi_s, rms_phi_r
-  real(rp) amp_ba_s, amp_ba_r, chi_a, chi_ba
+  real(rp) amp_ba_s, amp_ba_r, chi_a, chi_c, chi_ba
   real(rp) amp_a(2), amp_b(2), amp_ba(2)
   real(rp) coef_a(4), coef_b(4), coef_ba(4)
   integer n_func   ! Number of functions used in the fit.

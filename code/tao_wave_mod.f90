@@ -593,12 +593,13 @@ enddo
 ! Compute the fit rms
 
 if (amp_a == 0 .or. amp_b == 0 .or. amp_ba == 0) then
+  s%wave%chi_c     = 0
   s%wave%rms_rel_a = 0
   s%wave%rms_rel_b = 0
   s%wave%rms_rel_k = 0
   s%wave%rms_phi   = 0
 else
-  s%wave%chi_a     = abs(abs(coef_ba(3)) - amp_ba) / abs(kick_amp)
+  s%wave%chi_c     = abs(abs(coef_ba(3)) - amp_ba) / abs(kick_amp)
   s%wave%rms_rel_a = sqrt(rms_a(1)**2 + rms_a(2)**2) / amp_a
   s%wave%rms_rel_b = sqrt(rms_b(1)**2 + rms_b(2)**2) / amp_b
   s%wave%rms_rel_k = sqrt(rms_ba(1)**2 * coef_ba(1)**2 + &

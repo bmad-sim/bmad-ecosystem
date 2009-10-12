@@ -2229,7 +2229,7 @@ case ('wave')
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_Kick/Kick: ', s%wave%rms_rel_k
     nl=nl+1; write(lines(nl), '(a, f8.3)') 'Sigma_phi:       ', s%wave%rms_phi
     nl=nl+1; write(lines(nl), '(a, f8.3, a)') &
-                                    'Chi_a:           ', s%wave%chi_a, ' [Figure of Merit]'
+                                    'Chi_C:           ', s%wave%chi_c, ' [Figure of Merit]'
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Normalized Kick = k * l * beta [dimensionless]'
     nl=nl+1; lines(nl) = '   where k = quadrupole gradient [rad/m^2].'

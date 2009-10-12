@@ -14,7 +14,7 @@ Table~\ref{t:wave0}.
 The analysis works on difference quantities. For example, the
 difference between measurement and theory or the difference between
 two measurements, etc. Orbit and vertical dispersion measurements are the
-exception here since an analysis of, say, just an orbit mesurement can
+exception here since an analysis of, say, just an orbit measurement can
 be considered to be the difference between the measurement and a
 perfectly flat (zero) orbit.
 
@@ -73,7 +73,7 @@ Figure~\ref{f:wave0}c shows the orbit of Figure~\ref{f:wave0}a with
 the fit to the $B$ region subtracted off. Concentrating on
 Figure~\ref{f:wave0}b, since there are no kick errors in the $A$
 region, the fit is very good and hence the difference between the data
-and the fit is nerly zero. Moving to the right from the $A$ region in
+and the fit is nearly zero. Moving to the right from the $A$ region in
 Figure~\ref{f:wave0}b, this difference is nearly zero up to where the
 assumption of no kick errors is violated. That is, at the location of
 the quadrupole error  near detector 47. Similarly, since there are no kick errors
@@ -116,7 +116,7 @@ detector 32.
 \section{Wave Analysis in Tao}
 \label{s:wave.tao}
 
-Proforming a wave analysis in \tao is a three step process:
+Performing a wave analysis in \tao is a three step process:
 \begin{example}
   1) Plot the data to be analyzed.
   2) Use the \vn{wave} command to select the data.
@@ -133,7 +133,7 @@ measurements that can give this information include an orbit response
 matrix (ORM) analysis, fits to beta or betatron phase measurements, etc.
 
 %----------------------------------------------------------------
-\subsection{Prepairing the Data} 
+\subsection{Preparing the Data} 
 \label{ss:wave.data}
 
 At present (due to limited manpower to do the
@@ -169,18 +169,15 @@ was
 \end{example}
 
 %----------------------------------------------------------------
-\subsection{Wave Analysis Commands}
-\label{ss:wave.cmd}
+\subsection{Wave Analysis Commands and Output}
+\label{ss:wave.cmd.out}
 
 The \vn{wave} command (\sref{s:wave}) sets which plotted data curve
 is used for the wave analysis. The \vn{set wave} command (\sref{s:set}) 
 is used for setting the $A$ and $B$ region locations. Finally the 
 \vn{show wave} command (\sref{s:show}) prints analysis results. 
 
-%----------------------------------------------------------------
-\subsection{The Wave Analysis Output}
-\label{ss:wave.cmd}
-
+Example wave analysis output with \vn{show wave}:
 \begin{example}
   ix_a:  35  45
   ix_b:  55  70
@@ -188,7 +185,7 @@ is used for setting the $A$ and $B$ region locations. Finally the
   B Region Sigma_Fit/Amp_Fit:     0.015
   Sigma_Kick/Kick:    0.013
   Sigma_phi:          0.019
-  Chi_a:              0.037 [Figure of Merit]
+  Chi_C:              0.037 [Figure of Merit]
 
   Normalized Kick = k * l * beta [dimensionless]
      where k = quadrupole gradient [rad/m^2].
@@ -197,3 +194,25 @@ is used for setting the $A$ and $B$ region locations. Finally the
          49      0.0705    33.573
          53      0.0705    36.715
 \end{example}
+This output is for analysis of betatron phase data but the output for
+other types of data is similar.  The first two lines of the output
+show where the $A$ and $B$ regions are. The next two lines show
+$\sigma_{a}/A_a$ and $\sigma_{b}/A_b$ where $\sigma_a$ and $sigma_b$
+are given by Eq.~(42) of Sagan\ref{b:wave0} and 
+\Begineq
+  A_a \equiv \sqrt{\xi_a^2 \eta_a^2}
+\Endeq
+with a similar equation for $A_b$. $\sigma_{a}/A_a$ and
+$\sigma_{b}/A_b$ are thus a measure of how well the data is fit in the
+$A$ and $B$ regions with a value of zero being a perfect fit and a
+value of one indicating a poor fit. Notice that a poor fit of one of
+the regions may simply be a reflection that the wave amplitude being
+there. The next three lines of the output are $\sigma_{\detal
+k}/\delta k$, $\sigma_\phi$, and $\xi_C$, and are given by Eq.~(39),
+(43), and (44) respectively of \ref{b:wave0}. The last three lines of
+the analysis tell where the wave analysis predicts the kicks are and
+what the normalized kick amplitudes are. Thus the first of these three
+lines indicates that the kick may be somewhere after the location of
+datum \#46 (but before the location of datum \#47), The normalized
+quadrupole kick amplitude is 0.0705, and the betatron phase at the
+putative kick is 30.431 radians.
