@@ -409,7 +409,7 @@ end function
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lat, lord, ix_slave) result (slave_ptr)
+! Function pointer_to_slave (lat, lord, ix_slave, ix_contrl) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
 !
@@ -422,10 +422,11 @@ end function
 !   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_lord
 !
 ! Output:
-!   slave_ptr -- Ele_struct, pointer: Pointer to the slave.
+!   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
+!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
 !-
 
-function pointer_to_slave (lat, lord, ix_slave) result (slave_ptr)
+function pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)
 
 implicit none
 
@@ -434,12 +435,15 @@ type (ele_struct) lord
 type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
 
-integer ix_slave
+integer, optional :: ix_control
+integer ix_slave, icon
 
 !
 
-con => lat%control(lord%ix1_slave + ix_slave - 1)
+icon = lord%ix1_slave + ix_slave - 1
+con => lat%control(icon)
 slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
+if (present(ix_control)) ix_control = icon
 
 end function
 
@@ -447,7 +451,7 @@ end function
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_lord (lat, slave, ix_lord) result (lord_ptr)
+! Function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
 !
 ! Function to point to a lord of a slave.
 !
@@ -455,15 +459,16 @@ end function
 !   use lat_ele_loc_mod
 !
 ! Input:
-!   lat      -- lat_struct: Lattice containing the lord
-!   slave    -- Ele_struct: Slave element.
-!   ix_lord  -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord
+!   lat        -- lat_struct: Lattice containing the lord
+!   slave      -- Ele_struct: Slave element.
+!   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord
 !
 ! Output:
-!   lord_ptr -- Ele_struct, pointer: Pointer to the lord.
+!   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
+!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
 !-
 
-function pointer_to_lord (lat, slave, ix_lord) result (lord_ptr)
+function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
 
 implicit none
 
@@ -472,12 +477,14 @@ type (ele_struct) slave
 type (ele_struct), pointer :: lord_ptr
 type (control_struct), pointer :: con
 
+integer, optional :: ix_control
 integer ix_lord, icon
 
 !
 
 icon = lat%ic(slave%ic1_lord + ix_lord - 1)
 lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+if (present(ix_control)) ix_control = icon
 
 end function
 
