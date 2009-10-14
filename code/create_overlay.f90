@@ -143,7 +143,8 @@ do i = lord%ix1_slave, lord%ix2_slave
 
   slave => lat%ele(ix_slave)
 
-  if (slave%slave_status == free$) slave%slave_status = overlay_slave$
+  if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
+                                                  slave%slave_status = overlay_slave$
 
   ! You cannot overlay super_slaves 
 

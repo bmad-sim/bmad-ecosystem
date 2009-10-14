@@ -89,7 +89,8 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
 
     slave => lat%ele(ixs)
 
-    if (slave%slave_status == free$) slave%slave_status = overlay_slave$
+    if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
+                                                  slave%slave_status = overlay_slave$
 
 ! You cannot control super_slaves, group_lords or overlay_lords
 

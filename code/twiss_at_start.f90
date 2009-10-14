@@ -50,7 +50,7 @@ subroutine twiss_at_start (lat)
   logical :: debug = .false. 
   logical saved_state
 
-  character(100), pointer :: lines(:)
+  character(200), pointer :: lines(:)
 
 ! init one turn. T0 is the transverse part of the matrix
 

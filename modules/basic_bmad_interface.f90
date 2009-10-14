@@ -1047,7 +1047,7 @@ interface
     logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
     logical, optional, intent(in) :: type_zero_attrib, type_wake
     logical, optional :: type_wig_terms
-    character(100), pointer :: lines(:)
+    character(*), pointer :: lines(:)
   end subroutine
 end interface
 

@@ -89,7 +89,8 @@ use bmad_interface, except_dummy => create_group
 
 implicit none
 
-type (lat_struct)  lat
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: slave, lord
 type (control_struct)  contrl(:)
 
 integer i, ix_lord, ix_attrib, n_control, n_con
@@ -106,10 +107,11 @@ call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
 if (err) return
 
 n_control = size(contrl)
-lat%ele(ix_lord)%lord_status = group_lord$
-lat%ele(ix_lord)%key = group$
+lord => lat%ele(ix_lord)
+lord%lord_status = group_lord$
+lord%key = group$
 n_con = lat%n_control_max
-lat%ele(ix_lord)%ix1_slave = n_con + 1
+lord%ix1_slave = n_con + 1
 
 ! loop over all controlled elements
 
@@ -123,21 +125,22 @@ do i = 1, n_control
 
   ix_slave = contrl(i)%ix_slave
   ix_attrib = contrl(i)%ix_attrib
+  slave =>lat%ele(ix_slave)
 
   if (ix_attrib == start_edge$ .or. ix_attrib == end_edge$ .or. &
                                             ix_attrib == accordion_edge$) then
 
-    if (lat%ele(ix_slave)%lord_status == super_lord$) then
-      ix_min = lat%control(lat%ele(ix_slave)%ix1_slave)%ix_slave
-      ix_max = lat%control(lat%ele(ix_slave)%ix2_slave)%ix_slave
+    if (slave%lord_status == super_lord$) then
+      ix_min = lat%control(slave%ix1_slave)%ix_slave
+      ix_max = lat%control(slave%ix2_slave)%ix_slave
     elseif (ix_slave < lat%n_ele_track) then
       ix_min = ix_slave
       ix_max = ix_slave
     else
       call out_io (s_fatal$, r_name, &
                     'A GROUP IS NOT ALLOWED TO CONTROL', &
-                    'A ' // control_name(lat%ele(ix_slave)%slave_status), &
-                    'YOU TRIED TO CONTROL: ' // lat%ele(ix_slave)%name)
+                    'A ' // control_name(slave%slave_status), &
+                    'YOU TRIED TO CONTROL: ' // slave%name)
       call err_exit
     endif
 
@@ -168,7 +171,7 @@ do i = 1, n_control
         call out_io (s_fatal$, r_name, &
                       'START_EDGE OF CONTROLED', &
                       'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
-                      'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
+                      'VARIED FOR GROUP: ' // lord%name)
         call err_exit
       endif
     endif
@@ -179,7 +182,7 @@ do i = 1, n_control
         call out_io (s_fatal$, r_name, &
                       'END_EDGE OF CONTROLED', &
                       'ELEMENT IS AT END OF LAT AND CANNOT BE', &
-                      'VARIED FOR GROUP: ' // lat%ele(ix_lord)%name)
+                      'VARIED FOR GROUP: ' // lord%name)
         call err_exit
       endif
     endif
@@ -248,15 +251,14 @@ do i = 1, n_control
   else
 
     ! If the slave attribute is a multipole component, make sure it exists.
-    if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
-      call multipole_init(lat%ele(ix_slave))
+    if (ix_attrib > n_attrib_maxx .and. .not. associated (slave%a_pole)) then
+      call multipole_init(slave)
     endif
 
-    free = attribute_free (ix_slave, attribute_name(lat%ele(ix_slave), ix_attrib), &
-                                                                      lat, err_print_flag)
+    free = attribute_free (ix_slave, attribute_name(slave, ix_attrib), lat, err_print_flag)
     if (.not. free) then
       if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, &
-            'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lat%ele(ix_lord)%name)
+            'SLAVE ATTRIBUTE NOT FREE TO VARY FOR GROUP LORD: ' // lord%name)
       err = .true.
     endif
     n_con = n_con + 1
@@ -266,12 +268,14 @@ do i = 1, n_control
 
   endif
 
+  if (slave%slave_status == free$) slave%slave_status = group_slave$
+
 enddo
 
 ! final bookkeping
 
-lat%ele(ix_lord)%ix2_slave = n_con
-lat%ele(ix_lord)%n_slave = n_con - lat%ele(ix_lord)%ix1_slave + 1
+lord%ix2_slave = n_con
+lord%n_slave = n_con - lord%ix1_slave + 1
 lat%n_control_max = n_con
 
 !---------------------------------------------------------------------------

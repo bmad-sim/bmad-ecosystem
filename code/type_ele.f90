@@ -62,7 +62,7 @@ integer, optional :: type_mat6, twiss_out, nunit
 logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
 logical, optional :: type_floor_coords, type_wig_terms
 
-character(100), pointer :: lines(:) 
+character(200), pointer :: lines(:) 
 
 !
 

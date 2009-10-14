@@ -73,13 +73,11 @@ if (present(ix_ele)) then
 
 else
   do ie = lat%n_ele_track+1, lat%n_ele_max
-    if (lat%ele(ie)%lord_status /= group_lord$) &
-                         call this_bookkeeper (lat, lat%ele(ie), sm_only)
+    if (lat%ele(ie)%lord_status /= group_lord$) call this_bookkeeper (lat, lat%ele(ie), sm_only)
   enddo
 
   do ie = lat%n_ele_track+1, lat%n_ele_max
-    if (lat%ele(ie)%lord_status == group_lord$) &
-                         call this_bookkeeper (lat, lat%ele(ie), sm_only)
+    if (lat%ele(ie)%lord_status == group_lord$) call this_bookkeeper (lat, lat%ele(ie), sm_only)
   enddo
 endif
 
@@ -101,7 +99,7 @@ type (lat_struct), target :: lat
 type (ele_struct) ele
 type (ele_struct), pointer :: lord, slave
 
-integer j, k, ix, ix1, ix2, ix_lord
+integer j, k, ix, ix1, ix2, ix_slave
 integer, allocatable, save :: ix_slaves(:), ix_super(:)
 
 logical sm_only
@@ -131,11 +129,11 @@ ix2 = 1   ! index for last element in list
 
 do
   ix1 = ix1 + 1
-  ix_lord = ix_slaves(ix1)
-  lord => lat%ele(ix_lord)
-  do j = lord%ix1_slave, lord%ix2_slave
+  ix_slave = ix_slaves(ix1)
+  slave => lat%ele(ix_slave)
+  do j = slave%ix1_slave, slave%ix2_slave  ! Slaves of this slave
     ix = lat%control(j)%ix_slave
-    if (lord%lord_status == group_lord$ .and. lat%ele(ix)%slave_status == free$) cycle
+    if (slave%lord_status == group_lord$ .and. lat%ele(ix)%slave_status == free$) cycle
     if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
     ix2 = ix2 + 1
     if (ix2 > size(ix_slaves)) then
@@ -143,15 +141,15 @@ do
       call re_allocate (ix_super, 2*size(ix_super), .false.)
     endif
     ix_slaves(ix2) = ix
-    if (lord%lord_status == super_lord$) ix_super(ix2) = ix_lord
+    if (slave%lord_status == super_lord$) ix_super(ix2) = ix_slave
   enddo
   if (ix1 == ix2) exit
 enddo
 
-! First: Makup all lords.
+! First: Makup all slaves that are themselves lords.
 ! If an overlay_lord has lords above it then these lords must be overlay_lords.
 ! Therefore treat the overlay_lord as an overlay_slave.
-! The same is true if a super_lord has lords except in this case the lord
+! The same is true if a super_lord has lords except in this case one lord
 ! may be a multipass_lord.
 
 do j = 1, ix2
@@ -1752,6 +1750,7 @@ do i = slave%ic1_lord, slave%ic2_lord
   lord => lat%ele(ix)
 
   if (lord%lord_status == multipass_lord$) cycle
+  if (lord%lord_status == group_lord$) cycle
 
   if (lord%lord_status == girder_lord$) then
     ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 

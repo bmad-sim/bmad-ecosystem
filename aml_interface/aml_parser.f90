@@ -339,6 +339,7 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
 
   case ('')
     ele%slave_status = free$
+    if (size(node%controllers) /= 0) ele%slave_status = group_slave$
     do j = lbound(node%controllers, 1), ubound(node%controllers, 1)
       controller_node => node%controllers(j)%node%parent
       found = get_attribute_value (controller_node, 'variation', value_str)

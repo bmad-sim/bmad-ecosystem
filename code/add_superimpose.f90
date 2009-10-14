@@ -234,15 +234,18 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
     ! Do we need to set up a super lord to control this slave element?
 
-    if (slave%slave_status == overlay_slave$) then
-      setup_lord = .true.
-    elseif (slave%slave_status == super_slave$) then
+    select case (slave%slave_status)
+    case (super_slave$) 
       setup_lord = .false.
-    elseif (slave%key == drift$ .and. slave%slave_status /= multipass_slave$) then
-      setup_lord = .false.
-    else
+    case (multipass_slave$, overlay_slave$, group_slave$)
       setup_lord = .true.
-    endif
+    case default
+      if (slave%key == drift$) then
+        setup_lord = .false.
+      else
+        setup_lord = .true.
+      endif
+    end select
 
     ! if yes then create the super lord element
 
