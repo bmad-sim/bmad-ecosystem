@@ -176,7 +176,7 @@ character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
-character(100), pointer :: ptr_lines(:)
+character(200), pointer :: ptr_lines(:)
 character(100), allocatable :: alloc_lines(:)
 character(100) file_name, name
 character(120) header, str
