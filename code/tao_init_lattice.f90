@@ -157,6 +157,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (ix /= 0) then
     design_lat%use_line = design_lat%file(ix+1:)
     design_lat%file = design_lat%file(:ix-1)
+  else
+    design_lat%use_line = ''
   endif
 
   ! Read in the design lattice. 
