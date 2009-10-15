@@ -133,7 +133,7 @@ do i = 1, size(s%var)
   do j = 1, size(var%this)
     this => var%this(j)
     u => s%u(this%ix_uni)
-    if (.not. attribute_free (this%ix_ele, var%attrib_name, u%model%lat)) then
+    if (.not. attribute_free (this%ix_ele, this%ix_branch, var%attrib_name, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &
                 '       VARIABLE:  ' // tao_var1_name(var), &

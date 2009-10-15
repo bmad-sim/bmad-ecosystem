@@ -1951,7 +1951,8 @@ do j = 1, size(locs)
                       'FOR ELEMENT: ' // ele%name)
       return
     endif
-    if (.not. attribute_free (locs(j), attribute, u%model%lat, .false.)) then
+    if (.not. attribute_free (locs(j)%ix_ele, locs(j)%ix_branch, &
+                                        attribute, u%model%lat, .false.)) then
       if (.not. warn_given) then
         call out_io (s_info$, r_name, &
                   'Non-free attribute ' // attribute, &
