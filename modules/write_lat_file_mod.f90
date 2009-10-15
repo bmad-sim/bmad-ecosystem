@@ -412,7 +412,7 @@ ele_loop: do ie = 1, lat%n_ele_max
     if (j == check_sum$) cycle
     if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
     if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
-    if (.not. attribute_free (ie, attrib_name, lat, .false., .true.)) cycle
+    if (.not. attribute_free (ele, attrib_name, lat, .false., .true.)) cycle
     if (attrib_name == 'DS_STEP' .and. ele%value(j) == bmad_com%default_ds_step) cycle
     if (attrib_name == null_name$) then
       print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
