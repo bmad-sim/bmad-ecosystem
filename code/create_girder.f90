@@ -30,8 +30,6 @@
 !   call create_girder (lat, ix_ele, (/ 10, 12 /))  ! create the girder
 !-
 
-#include "CESR_platform.inc"
-
 subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
 
   use bmad_struct
@@ -104,7 +102,7 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
 ! update controller info for the slave ele
 
     slave%n_lord = slave%n_lord + 1
-    call add_lattice_control_structs (lat, ixs)
+    call add_lattice_control_structs (lat, slave)
     ixc = slave%ic2_lord
     lat%ic(ixc) = i
 

@@ -376,11 +376,67 @@ if (logic_option(present(lattice), type_control)) then
     nl=nl+1; write (li(nl), '(2a)') 'Slave_status: ', control_name(ele%slave_status)
   endif
 
+  ! Print lord info
+
+  if (ele%n_lord /= 0) then
+
+    print_it = .true.
+    if (ele%slave_status == multipass_slave$) then
+      lord => pointer_to_lord (lattice, ele, 1)
+      nl=nl+1; write (li(nl), '(2a, 4x, a, i0, a)') &
+                'Multipass_lord: ', trim(lord%name), '[Lattice index: ', lord%ix_ele, ']'
+      if (ele%n_lord == 1) print_it = .false. 
+    endif
+
+    if (ele%slave_status == super_slave$) then
+      nl=nl+1; write (li(nl), '(a, i4)') 'Lords:'
+      nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
+      do i = 1, ele%n_lord
+        lord => pointer_to_lord (lattice, ele, i)
+        nl=nl+1; write (li(nl), '(5x, a30, i10)') lord%name, lord%ix_ele
+      enddo
+      print_it = .false.
+    endif
+
+    ! Print overlay info here.
+
+    if (print_it) then
+
+      if (ele%slave_status == multipass_slave$) then
+        i1 = 2
+        nl=nl+1; write (li(nl), '(a, i4)') 'Other Lords:'
+      else
+        i1 = 1
+        nl=nl+1; write (li(nl), '(a, i4)') 'Lords:'
+      endif
+
+      nl=nl+1; write (li(nl), *) &
+'    Name                       Lat_index  Attribute         Coefficient       Value  Lord_Type'
+
+      do i = i1, ele%n_lord
+        lord => pointer_to_lord (lattice, ele, i, ic)
+        coef = lattice%control(ic)%coef
+        iv = lattice%control(ic)%ix_attrib
+        a_name = attribute_name(ele, iv)
+        ix = lord%ix_value
+        if (ix == 0) then
+          val_str = '     GARBAGE!'
+        else
+          call pointer_to_indexed_attribute (lord, ix, .false., r_ptr, err_flag)
+          write (val_str, '(1p, e12.3)') r_ptr
+        endif
+        nl=nl+1; write (li(nl), '(5x, a30, i6, 2x, a18, es11.3, a12, 2x, a)') &
+              lord%name, lord%ix_ele, a_name, coef, val_str, trim(control_name(lord%lord_status))
+      enddo
+    endif
+
+  endif
+
   if (ele%n_slave /= 0) then
 
     select case (ele%lord_status)
     case (super_lord$, girder_lord$, multipass_lord$) 
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: Number:', ele%n_slave
+      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = ele%ix1_slave, ele%ix2_slave
         j = lattice%control(i)%ix_slave
@@ -388,7 +444,7 @@ if (logic_option(present(lattice), type_control)) then
       enddo
 
     case default
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: Number:', ele%n_slave
+      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; write (li(nl), *) &
           '    Name                       Lat_index  Attribute         Coefficient'
       do i = ele%ix1_slave, ele%ix2_slave
@@ -409,62 +465,6 @@ if (logic_option(present(lattice), type_control)) then
                                                 lattice%ele(j)%name, j, a_name, coef
       enddo
     end select
-
-  endif
-
-  ! Print lord info
-
-  if (ele%n_lord /= 0) then
-
-    print_it = .true.
-    if (ele%slave_status == multipass_slave$) then
-      lord => pointer_to_lord (lattice, ele, 1)
-      nl=nl+1; write (li(nl), '(2a, 4x, a, i0, a)') &
-                'Multipass_lord: ', trim(lord%name), '[Lattice index: ', lord%ix_ele, ']'
-      if (ele%n_lord == 1) print_it = .false. 
-    endif
-
-    if (ele%slave_status == super_slave$) then
-      nl=nl+1; write (li(nl), '(a, i4)') 'Lords: Number:', ele%n_lord
-      nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
-      do i = 1, ele%n_lord
-        lord => pointer_to_lord (lattice, ele, i)
-        nl=nl+1; write (li(nl), '(5x, a30, i10)') lord%name, lord%ix_ele
-      enddo
-      print_it = .false.
-    endif
-
-    ! Print overlay info here.
-
-    if (print_it) then
-
-      if (ele%slave_status == multipass_slave$) then
-        i1 = 2
-        nl=nl+1; write (li(nl), '(a, i4)') 'Other Lords: Number:', ele%n_lord - 1
-      else
-        i1 = 1
-        nl=nl+1; write (li(nl), '(a, i4)') 'Lords: Number:', ele%n_lord
-      endif
-
-      nl=nl+1; write (li(nl), *) &
-'    Name                       Lat_index  Attribute           Coefficient     Value  Lord_Type'
-
-      do i = i1, ele%n_lord
-        lord => pointer_to_lord (lattice, ele, i, ic)
-        coef = lattice%control(ic)%coef
-        iv = lattice%control(ic)%ix_attrib
-        a_name = attribute_name(ele, iv)
-        ix = lord%ix_value
-        if (ix == 0) then
-          val_str = '  GARBAGE!'
-        else
-          call pointer_to_indexed_attribute (lord, ix, .false., r_ptr, err_flag)
-          write (val_str, '(1p, e12.3)') r_ptr
-        endif
-        nl=nl+1; write (li(nl), '(5x, a30, i6, 2x, a18, es11.3, a12, 2x, a)') &
-              lord%name, lord%ix_ele, a_name, coef, val_str, trim(control_name(lord%lord_status))
-      enddo
-    endif
 
   endif
 

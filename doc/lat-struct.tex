@@ -2,12 +2,11 @@
 \label{c:lat.struct}
 \index{lat_struct|hyperbf}
 
-The \vn{lat_struct} is the structure that holds of all the information 
-about a lattice.
-
-%----------------------------------------------------------------------------
-\section{Branches in the lat_struct}
-\label {s:lat.struct}
+The \vn{lat_struct} is the structure that holds of all the information
+about a lattice. The components of a \vn{lat_struct} are shown in
+Figure~\ref{f:lat.struct}. Note: To denote a component of a
+\vn{lat_struct} in this chapter the convention ``\vn{%<component>}''
+will be used where \vn{<component>} is a \vn{lat_struct} component.
 
 \begin{figure}[htb]
 \centering
@@ -37,6 +36,10 @@ end type
 \label{f:lat.struct}
 \end{figure}
 
+%----------------------------------------------------------------------------
+\section{Branches in the lat_struct}
+\label {s:lat.struct}
+
 \index{lat_struct!\%branch(:)}
 \index{branch}\index{photon_branch}
 The lattice is divided up into a number of ``branches''. If the
@@ -44,8 +47,8 @@ lattice does not contain any \vn{branch} or \vn{photon_branch}
 elements, there is only one branch and that branch represents the
 entire lattice. The total number of branches is $N+11$ where $N$ is
 the number of \vn{branch} plus \vn{photon_branch} elements. The branch
-information is stored in the \vn{lat%branch(0:)} array. This array is
-always indexed from 0. The \vn{lat%branch(0)} branch is the ``main''
+information is stored in the \vn{%branch(0:)} array. This array is
+always indexed from 0. The \vn{%branch(0)} branch is the ``main''
 branch from which other branches may branch. The definition of the
 \vn{branch_struct} structure is
 \begin{example}
@@ -62,18 +65,25 @@ branch from which other branches may branch. The definition of the
   end type
 \end{example}
 
-The \vn{lat%branch%ele(:)} array holds the array of elements in the
+The \vn{%branch%ele(:)} array holds the array of elements in the
 branch. Historically, the \vn{lat_struct} was developed at the start
 of the \bmad project and branches were implemented well after that. To
-maintain compatibility with older code, the \vn{lat%branch(0)%ele}
-array points to the \vn{lat%ele(:)} array. Space for other
-\vn{lat%branch(:)%ele} arrays are allocated from heap storage. 
+maintain compatibility with older code, the \vn{%ele(:)} array, which
+is used by older code, is pointed to by the \vn{%branch(0)%ele}
+array. Similarly, \vn{%branch(0)%n_ele_track},
+\vn{%branch(0)%n_ele_max}, and \vn{%branch(0)%param} point to
+\vn{%n_ele_track}, \vn{%n_ele_max}, \vn{%param} respectively.
 
 \index{key_name}
-The \vn{lat%branch(:)%key} component is set to either
-\vn{photon_branch$} or \vn{branch$}. The \vn{key_name()} function will
-convert the integer key value to a string for printing. The
-\vn{lat%branch(:)%ix_branch} index gives the index of 
+The \vn{%branch(i)%key} component is set to either
+\vn{photon_branch\$} or \vn{branch\$}. The \vn{key_name()} function
+will convert the integer key value to a string for printing. The
+\vn{%branch(i)%ix_branch} index contains the branch index. That is,
+\vn{i}. This can be useful when passing a branch to a subroutine. The
+\vn{ix_branch} component.  The \vn{%branch(i)%ix_from_branch} gives
+the branch index of the branch that the $i$\Th branch branched off
+from. \vn{%branch(i)%ix_from_ele} gives the index in the
+\vn{%branch(j)%ele(:)} array 
 
 
 \index{lat_struct!\%ele(:)}
@@ -213,7 +223,7 @@ to an individual program to use as desired.
   \vnr{element_locator}(ele_name, lat, ix_ele) ! locate by name
   \vnr{elements_locator}(class, lat, indx)        ! locate by class
 \end{example}
-\vn{element_locator} searches the \vn{lat%ele(:)} array for an
+\vn{element_locator} searches the \vn{%ele(:)} array for an
 element of the correct name. Alternatively, \vn{elements_locator}
 searches for all elements of a given class and returns an array of
 indexes. To see how simple searching a lattice is consider the heart
@@ -226,7 +236,7 @@ of \vn{element_locator}:
 
 Once an element or elements are identified in the lattice,
 changing an element attribute generally involves changing values in the 
-\vn{lat%ele(i)%value(:)} array. This is done using the 
+\vn{%ele(i)%value(:)} array. This is done using the 
 \vnr{set_ele_attribute} routine. For example:
 \begin{example}
   type (lat_struct) lat

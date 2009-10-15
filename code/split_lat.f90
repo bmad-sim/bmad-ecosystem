@@ -24,8 +24,6 @@
 !   split_done -- Logical: True if lat was split.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
 
 use bmad_struct
@@ -203,7 +201,7 @@ if (ele%slave_status == super_slave$) then
     lat%control(icon)%coef = coef2
 
     lat%ele(ix_lord)%n_slave = lat%ele(ix_lord)%n_slave + 1
-    call add_lattice_control_structs (lat, ix_lord)
+    call add_lattice_control_structs (lat, lat%ele(ix_lord))
 
     ix2 = lat%ele(ix_lord)%ix2_slave
     lat%control(ix2)%ix_slave = ix_split

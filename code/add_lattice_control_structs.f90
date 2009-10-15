@@ -1,5 +1,5 @@
 !+
-! Subroutine add_lattice_control_structs (lat, ix_ele)
+! Subroutine add_lattice_control_structs (lat, ele)
 ! 
 ! Subroutine to adjust the control structure of a lat so that extra control
 ! elements can be added.
@@ -9,21 +9,18 @@
 !
 ! Input:
 !   lat   -- lat_struct: lat whose control structure needs fixing
-!     %ele(ix_ele)  -- This could be a new element or an existing element
-!                       that needs more control info.
-!     %ele(ix_ele)%n_slave -- Increase this to reserve more room in the
+!   ele -- Ele_struct: Element that needs extra control elements.
+!          This could be a new element or an existing element that needs more control info.
+!     %n_slave -- Increase this to reserve more room in the
 !                              lat%control(:) array.
-!     %ele(ix_ele)%n_lord  -- Increase this to reserve more room in the 
+!     %n_lord  -- Increase this to reserve more room in the 
 !                              lat%ic(:) array.
-!   ix_ele -- Integer: Index of element that needs extra control elements.
 !
 ! Output:
 !   lat -- lat_struct: Lat with control structure fixed.
 !-
 
-#include "CESR_platform.inc"
-
-subroutine add_lattice_control_structs (lat, ix_ele)
+subroutine add_lattice_control_structs (lat, ele)
 
   use bmad_struct
   use bmad_interface, except_dummy => add_lattice_control_structs
@@ -31,14 +28,13 @@ subroutine add_lattice_control_structs (lat, ix_ele)
   implicit none
 
   type (lat_struct), target :: lat
-  type (ele_struct), pointer :: ele
+  type (ele_struct) ele
 
-  integer ix_ele, n_add, n_con, i2, n_con2, n_ic, n_ic2
+  integer n_add, n_con, i2, n_con2, n_ic, n_ic2
 
 
 ! fix slave problems
 
-  ele => lat%ele(ix_ele)
   n_add = ele%n_slave - (ele%ix2_slave - ele%ix1_slave + 1) 
 
   if (n_add < 0) then
@@ -60,8 +56,9 @@ subroutine add_lattice_control_structs (lat, ix_ele)
       ele%ix2_slave = n_con + n_add
     else
       lat%control(i2+1+n_add:n_con+n_add) = lat%control(i2+1:n_con)
-      lat%control(i2+1:i2+n_add)%ix_lord = ix_ele
+      lat%control(i2+1:i2+n_add)%ix_lord = ele%ix_ele
       lat%control(i2+1:i2+n_add)%ix_slave = 0
+      lat%control(i2+1:i2+n_add)%ix_branch = 0
       lat%control(i2+1:i2+n_add)%ix_attrib = 0
       lat%control(i2+1:i2+n_add)%coef = 0
       where (lat%ele%ix1_slave > i2) lat%ele%ix1_slave = lat%ele%ix1_slave + n_add

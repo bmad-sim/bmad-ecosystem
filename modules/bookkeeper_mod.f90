@@ -8,7 +8,7 @@ use lat_geometry_mod
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
-private this_bookkeeper, makeup_overlay_and_girder_slave 
+private control_bookkeeper1, makeup_overlay_and_girder_slave 
         
 contains
 
@@ -39,47 +39,68 @@ contains
 !                  to set unless you know what you are doing.
 !-
 
-subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
+recursive subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
 
 implicit none
 
 type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele, slave, lord
 
 integer, optional :: ix_ele, ix_branch
-integer ie, ix0
+integer ie, ix0, ix_b, j, n1, n2
 
 logical, optional :: super_and_multipass_only
-logical sm_only
+logical sm_only, did_bookkeeping
 
 ! Check that super_slave lengths add up to the super_lord_length.
 ! With super_only (used by lattice_bookkeeper) this check has already been
-! done so don't do it again.
+! done so we don't need to do it again.
 
 ix0 = integer_option(0, ix_ele)
+ix_b = integer_option (0, ix_branch)
 sm_only = logic_option (.false., super_and_multipass_only)
+ele => lat%branch(ix_b)%ele(ix0)
 
 if (.not. sm_only) then
-  if (.not. present(ix_ele) .or. lat%ele(ix0)%lord_status == super_lord$) &
+  if (.not. present(ix_ele) .or. ele%lord_status == super_lord$) &
                                     call super_lord_length_bookkeeper (lat, ix_ele)
 endif
 
-! If ix_ele is present we only do bookkeeping for this one element
+! If ix_ele is present we only do bookkeeping for this one element and its slaves
 
 if (present(ix_ele)) then
-  call this_bookkeeper (lat, lat%ele(ix_ele), sm_only)
+  call control_bookkeeper1 (lat, ele, sm_only)
+  do ie = 1, ele%n_slave
+    slave => pointer_to_slave (lat, ele, ie)
+    call control_bookkeeper (lat, slave%ix_ele, slave%ix_branch, sm_only)
+  enddo
+  return
+endif
 
 ! Else we need to make up all the lords. 
-! The group lords must be done last since their slaves don't know about them.
+! Need to do this from the top level down.
+! The top level are those lord elements that have no lords.
 
-else
-  do ie = lat%n_ele_track+1, lat%n_ele_max
-    if (lat%ele(ie)%lord_status /= group_lord$) call this_bookkeeper (lat, lat%ele(ie), sm_only)
-  enddo
+n1 = lat%n_ele_track+1
+n2 = lat%n_ele_max
+lat%ele(n1:n2)%bmad_logic = .false.  ! Bookkeeping done on this element yet?
 
-  do ie = lat%n_ele_track+1, lat%n_ele_max
-    if (lat%ele(ie)%lord_status == group_lord$) call this_bookkeeper (lat, lat%ele(ie), sm_only)
-  enddo
-endif
+do
+  did_bookkeeping = .true.
+  ie_loop: do ie = n1, n2
+    if (lat%ele(ie)%bmad_logic) cycle
+    do j = 1, lat%ele(ie)%n_lord
+      lord => pointer_to_lord (lat, lat%ele(ie), j)
+      if (.not. lord%bmad_logic) then
+        did_bookkeeping = .false.  ! This element remains to be done.
+        cycle ie_loop ! Do not do bookkeeping yet if lord not done yet.
+      endif
+    enddo
+    call control_bookkeeper1 (lat, lat%ele(ie), sm_only)
+    lat%ele(ie)%bmad_logic = .true.  ! Done this element
+  enddo ie_loop
+  if (did_bookkeeping) exit  ! And we are done
+enddo
 
 end subroutine
 
@@ -87,20 +108,17 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine this_bookkeeper (lat, ele, sm_only)
+! Subroutine control_bookkeeper1 (lat, ele, sm_only)
 !
+! This routine is for control bookkeeping for a single element.
 ! This subroutine is only to be called from control_bookkeeper and is
 ! not meant for general use.
 !-
 
-subroutine this_bookkeeper (lat, ele, sm_only)
+subroutine control_bookkeeper1 (lat, ele, sm_only)
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
-type (ele_struct), pointer :: lord, slave
-
-integer j, k, ix, ix1, ix2, ix_slave
-integer, allocatable, save :: ix_slaves(:), ix_super(:)
 
 logical sm_only
 
@@ -111,105 +129,30 @@ if (sm_only) then
       ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$) return
 endif
 
-call re_allocate (ix_slaves, lat%n_ele_max, .false.)
-call re_allocate (ix_super, lat%n_ele_max, .false.)
-ix_super = 0
+! Slave bookkeeping
 
-! Attribute bookkeeping for this element
+if (ele%slave_status == super_slave$) then
+  call makeup_super_slave (lat, ele)
+
+elseif (ele%slave_status == overlay_slave$) then
+  call makeup_overlay_and_girder_slave (lat, ele)
+
+elseif (ele%slave_status == multipass_slave$) then
+  call makeup_multipass_slave (lat, ele)
+  if (ele%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ele)
+endif
+
+! Lord bookkeeping
+
+if (ele%lord_status == group_lord$) then
+  call makeup_group_lord (lat, ele)
+
+elseif (ele%lord_status == super_lord$) then
+  call adjust_super_lord_s_position (lat, ele)
+
+endif
 
 call attribute_bookkeeper (ele, lat%param)
-if (ele%n_slave == 0 .and. ele%n_lord == 0) return  ! nothing more to do
-
-! Make a list of slave elements to update.
-! we do not need to update free elements of group lords.
-
-ix1 = 0   ! index for processed elements
-ix_slaves(1) = ele%ix_ele
-ix2 = 1   ! index for last element in list
-
-do
-  ix1 = ix1 + 1
-  ix_slave = ix_slaves(ix1)
-  slave => lat%ele(ix_slave)
-  do j = slave%ix1_slave, slave%ix2_slave  ! Slaves of this slave
-    ix = lat%control(j)%ix_slave
-    if (slave%lord_status == group_lord$ .and. lat%ele(ix)%slave_status == free$) cycle
-    if (ix == ix_slaves(ix2)) cycle   ! do not use duplicates
-    ix2 = ix2 + 1
-    if (ix2 > size(ix_slaves)) then
-      call re_allocate (ix_slaves, 2*size(ix_super), .false.)
-      call re_allocate (ix_super, 2*size(ix_super), .false.)
-    endif
-    ix_slaves(ix2) = ix
-    if (slave%lord_status == super_lord$) ix_super(ix2) = ix_slave
-  enddo
-  if (ix1 == ix2) exit
-enddo
-
-! First: Makup all slaves that are themselves lords.
-! If an overlay_lord has lords above it then these lords must be overlay_lords.
-! Therefore treat the overlay_lord as an overlay_slave.
-! The same is true if a super_lord has lords except in this case one lord
-! may be a multipass_lord.
-
-do j = 1, ix2
-
-  ix = ix_slaves(j)
-  slave => lat%ele(ix)
-
-  if (slave%lord_status == group_lord$) then
-    call makeup_group_lord (lat, ix)
-    call attribute_bookkeeper (slave, lat%param)
-
-  elseif (slave%lord_status == super_lord$) then
-
-    if (slave%n_lord > 0) then
-      k =  lat%ic(slave%ic1_lord)
-      lord => lat%ele(lat%control(k)%ix_lord)
-      if (lord%lord_status == multipass_lord$) then
-        call makeup_multipass_slave (lat, ix)
-      else
-        call adjust_super_lord_s_position (lat, ix)
-        call makeup_overlay_and_girder_slave (lat, ix)
-      endif
-      call attribute_bookkeeper (slave, lat%param)
-    endif
-
-  elseif (slave%lord_status == multipass_lord$ .and. slave%n_lord > 0) then
-    call makeup_overlay_and_girder_slave (lat, ix)
-    call attribute_bookkeeper (slave, lat%param)
-
-  elseif (slave%lord_status == overlay_lord$ .and. slave%n_lord > 0) then
-    call makeup_overlay_and_girder_slave (lat, ix)
-    call attribute_bookkeeper (slave, lat%param)
-
-  endif
-
-enddo
-
-! Second: Makeup all slaves.
-
-do j = 1, ix2
-
-  ix = ix_slaves(j)
-  slave => lat%ele(ix)       
-
-  if (slave%slave_status == super_slave$) then
-    call makeup_super_slave (lat, ix)
-    call attribute_bookkeeper (slave, lat%param)
-
-  elseif (slave%slave_status == overlay_slave$) then
-    call makeup_overlay_and_girder_slave (lat, ix)
-    call attribute_bookkeeper (slave, lat%param)
-
-  elseif (slave%slave_status == multipass_slave$) then
-    call makeup_multipass_slave (lat, ix)
-    if (slave%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ix)
-    call attribute_bookkeeper (slave, lat%param)
-
-  endif
-
-enddo
 
 end subroutine
 
@@ -531,11 +474,15 @@ call lat_geometry (lat)
 ! multipass slaves with ref_orbit set may may depend upon the geometry so recalc.
 
 found = .false.
-do i = 1, lat%n_ele_track
-  if (lat%ele(i)%slave_status == multipass_slave$ .and. lat%ele(i)%ref_orbit /= 0) then
-    call makeup_multipass_slave (lat, i)
-    found = .true.
-  endif
+
+do i = 0, ubound(lat%branch, 1)
+  do j = 1, lat%branch(i)%n_ele_track
+    if (lat%branch(i)%ele(j)%slave_status == multipass_slave$ .and. &
+        lat%branch(i)%ele(j)%ref_orbit /= 0) then
+      call makeup_multipass_slave (lat, lat%branch(i)%ele(j))
+      found = .true.
+    endif
+  enddo
 enddo
 
 if (found) then
@@ -549,28 +496,25 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine adjust_super_lord_s_position (lat, ix_lord)
+! Subroutine adjust_super_lord_s_position (lat, lord)
 !
 ! Subroutine to adjust the positions of the slaves of a super_lord due
 ! to changes in the lord's s_offset.
 !-
 
-subroutine adjust_super_lord_s_position (lat, ix_lord)
+subroutine adjust_super_lord_s_position (lat, lord)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave 
+type (ele_struct) lord
+type (ele_struct), pointer :: slave 
 
-integer ix_lord, ix
-
-real(rp) s_start, s_start2, s_end
+real(rp) s_start, s_start2, s_end, tot_len
 
 character(40) :: r_name = 'adjust_super_lord_s_position'
 
 !
-
-lord => lat%ele(ix_lord)
 
 if (lord%lord_status /= super_lord$) then
    call out_io (s_abort$, r_name, 'ELEMENT IS NOT A LORD! ' // lord%name)
@@ -581,20 +525,19 @@ endif
 ! Adjust end position.
 
 s_end = lord%s + lord%value(s_offset_tot$)
-ix = lat%control(lord%ix2_slave)%ix_slave
-slave => lat%ele(ix)
+slave => pointer_to_slave (lat, lord, lord%n_slave)
 s_start = slave%s - slave%value(l$)
 slave%value(l$) = s_end - s_start
 slave%s = s_end
 
 ! Adjust start position
 
+slave => pointer_to_slave (lat, lord, 1)
+tot_len = lat%branch(slave%ix_branch)%param%total_length
 s_start = s_end - lord%value(l$)
-if (s_start < 0) s_start = s_start + lat%param%total_length
-ix = lat%control(lord%ix1_slave)%ix_slave
-slave => lat%ele(ix)
+if (s_start < 0) s_start = s_start + tot_len
 s_start2 = slave%s - slave%value(l$)
-if (s_start < 0) s_start = s_start + lat%param%total_length 
+if (s_start < 0) s_start = s_start + tot_len
 slave%value(l$) = slave%value(l$) + s_start2 - s_start
 
 end subroutine
@@ -603,30 +546,29 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_group_lord (lat, ix_lord)
+! Subroutine makeup_group_lord (lat, lord)
 !
 ! Subroutine to calculate the attributes of group slave elements
 !-
 
-Subroutine makeup_group_lord (lat, ix_lord)   
+Subroutine makeup_group_lord (lat, lord)   
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave
+type (ele_struct) :: lord
+type (ele_struct), pointer :: slave
 
 real(rp) delta, coef
 real(rp), pointer :: r_ptr
 
-integer ix_lord, ix, iv, slave_stat, i
+integer ix, iv, slave_stat, i
 
 logical moved, err_flag
 
 character(20) :: r_name = 'makeup_group_lord'
 
 !
-
-lord => lat%ele(ix_lord)
 
 delta = lord%value(command$) - lord%value(old_command$)    ! change
 lord%value(old_command$) = lord%value(command$) ! save old
@@ -662,18 +604,20 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_multipass_slave (lat, ix_slave)
+! Subroutine makeup_multipass_slave (lat, slave)
 !
 ! Subroutine to calcualte the attributes of multipass slave elements.
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_multipass_slave (lat, ix_slave)
+subroutine makeup_multipass_slave (lat, slave)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave, patch_in_lord
+type (ele_struct) slave
+type (ele_struct), pointer :: lord, patch_in_lord
+type (branch_struct), pointer :: branch
 type (floor_position_struct), pointer :: f0, f1
 type (coord_struct) start, end
 
@@ -689,7 +633,8 @@ character(40) :: r_name = 'makeup_multipass_slave'
 
 !
 
-slave => lat%ele(ix_slave)
+ix_slave = slave%ix_ele
+branch => lat%branch(slave%ix_branch)
 j =  lat%ic(slave%ic1_lord)
 lord => lat%ele(lat%control(j)%ix_lord)
 n_pass = j - lord%ix1_slave + 1  ! pass number for slave
@@ -790,8 +735,8 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
       return     
     endif
 
-    f0 => lat%ele(ix_s0)%floor      ! Coords at ref slave exit end.
-    f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
+    f0 => branch%ele(ix_s0)%floor      ! Coords at ref slave exit end.
+    f1 => branch%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
     call floor_angles_to_w_mat (f0%theta, f0%phi, f0%psi, w0_mat)
     call floor_angles_to_w_mat (f1%theta, f1%phi, f1%psi, w1_mat)
 
@@ -822,7 +767,7 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     ix_patch_in_slave = lat%control(ic)%ix_slave
     start%vec = 0
     do i = ix_patch_in_slave, ix_slave - 1
-      call track1 (start, lat%ele(i), lat%param, end)
+      call track1 (start, branch%ele(i), lat%param, end)
       start = end
     enddo
     slave%value(x_offset$) = end%vec(1) 
@@ -866,8 +811,8 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
     if (ix_s0 == ix_slave) return     ! Do not need calculation for ref slave.
 
-    f0 => lat%ele(ix_s0-1)%floor    ! Coords at ref slave entrance end.
-    f1 => lat%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
+    f0 => branch%ele(ix_s0-1)%floor    ! Coords at ref slave entrance end.
+    f1 => branch%ele(ix_slave-1)%floor ! Coords at this slave entrance end.
 
     d_theta = modulo2(f1%theta - f0%theta, pi)
     !! if (abs(d_theta) > pi/4) return  ! Stop calc if too unphysical.
@@ -963,19 +908,21 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave (lat, ix_slave)
+! Subroutine makeup_super_slave (lat, slave)
 !
 ! Subroutine to calcualte the attributes of superposition slave elements.
 ! This routine is not meant for general use.
 !-
        
-subroutine makeup_super_slave (lat, ix_slave)
+subroutine makeup_super_slave (lat, slave)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave, slave0
+type (ele_struct) slave
+type (ele_struct), pointer :: lord, slave0
 type (ele_struct), save :: sol_quad
+type (branch_struct), pointer :: branch
 
 integer i, j, ix_con, ix, ix_slave, ix_lord
 
@@ -1003,12 +950,13 @@ endif
 
 ! Super_slave:
 
-slave => lat%ele(ix_slave)
-
 if (slave%slave_status /= super_slave$) then
    call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
   call err_exit
 endif
+
+branch => lat%branch(slave%ix_branch)
+ix_slave = slave%ix_ele
 
 ! If this slave is the last slave for some lord (so that then longitudinal 
 ! end of the slave matches the end of the lord) then the limits of the lord
@@ -1026,7 +974,7 @@ if (slave%n_lord == 1) then
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (ix_con /= lord%ix1_slave) then
-    slave%map_ref_orb_in = lat%ele(ix_slave-1)%map_ref_orb_out
+    slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   ! Find the offset from the longitudinal start of the lord to the start of the slave
@@ -1034,7 +982,7 @@ if (slave%n_lord == 1) then
   offset = 0 ! length of all slaves before this one
   do i = lord%ix1_slave, ix_con-1
     j = lat%control(i)%ix_slave
-    offset = offset + lat%ele(j)%value(l$)
+    offset = offset + branch%ele(j)%value(l$)
   enddo
 
   ! If this is the last slave, adjust it's length to be consistant with
@@ -1114,7 +1062,7 @@ do j = slave%ic1_lord, slave%ic2_lord
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (ix_con /= lord%ix1_slave) then
-    slave%map_ref_orb_in = lat%ele(ix_slave-1)%map_ref_orb_out
+    slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   ! Choose the smallest ds_step of all the lords.
@@ -1139,13 +1087,13 @@ do j = slave%ic1_lord, slave%ic2_lord
     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
       ix = lat%control(lat%ic(slave%ic1_lord))%ix_lord
       call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lat%ele(ix)%name))
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(branch%ele(ix)%name))
       call err_exit
     endif
     if (slave%tracking_method /= lord%tracking_method) then
       ix = lat%control(lat%ic(slave%ic1_lord))%ix_lord
       call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lat%ele(ix)%name))
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(branch%ele(ix)%name))
       call err_exit
     endif
   endif
@@ -1715,29 +1663,32 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_overlay_and_girder_slave (lat, ix_ele)
+! Subroutine makeup_overlay_and_girder_slave (lat, slave)
 !
 ! This routine is not meant for general use.
 !-
 
-subroutine makeup_overlay_and_girder_slave (lat, ix_ele)
+subroutine makeup_overlay_and_girder_slave (lat, slave)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: slave, lord
+type (ele_struct) slave
+type (ele_struct), pointer :: lord
+type (branch_struct), pointer :: branch
 
 real(rp) value(n_attrib_special_maxx), coef, ds
 real(rp), pointer :: r_ptr
-integer i, j, ix, iv, ix_ele, icom, l_stat
+integer i, j, ix, iv, ix_slave, icom, l_stat
 logical used(n_attrib_special_maxx), multipole_set, err_flag
 
 character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 
 !
                              
-slave => lat%ele(ix_ele)
+branch => lat%branch(slave%ix_branch)
 l_stat = slave%lord_status
+ix_slave = slave%ix_ele
 
 value = 0
 used = .false.
@@ -1767,7 +1718,7 @@ do i = slave%ic1_lord, slave%ic2_lord
   endif
 
   if (lord%lord_status /= overlay_lord$) then
-    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_ele)
+    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_slave)
     call type_ele (slave, .true., 0, .false., 0, .true., lat)
     call err_exit
   endif     

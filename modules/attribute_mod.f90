@@ -26,9 +26,9 @@ private init_attribute_name_array, check_this_attribute_free, print_error
 ! Overloaded function for:
 !   Function attribute_free1 (ix_ele, attrib_name, lat,
 !                                err_print_flag, except_overlay) result (free)
-!   Function attribute_free2 (ix_ele, ix_branch, attrib_name, lat, 
+!   Function attribute_free2 (ele, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
-!   Function attribute_free3 (loc, attrib_name, lat, 
+!   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
 !
 ! Subroutine to check if an attribute is free to vary.
@@ -45,8 +45,9 @@ private init_attribute_name_array, check_this_attribute_free, print_error
 !
 ! Input:
 !   loc             -- Lat_ele_loc_struct: Element location.
-!   ix_ele          -- Integer: Index of element in lat%ele(:) array.
-!   ix_branch       -- Integer: Branch index. Default is 0.
+!   ix_ele          -- Integer: Index of element in element array.
+!   ix_branch       -- Integer: Branch index of element. 
+!   ele             -- Ele_struct: Element containing the attribute
 !   attrib_name     -- Character(*): Name of the attribute. Assumed upper case.
 !   lat             -- lat_struct: Lattice structure.
 !   err_print_flag  -- Logical, optional: If present and False then supress
@@ -999,7 +1000,8 @@ end function
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free1 (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
+function attribute_free1 (ix_ele, attrib_name, lat, &
+                                  err_print_flag, except_overlay) result (free)
 
 implicit none
 
@@ -1017,10 +1019,8 @@ logical, optional :: err_print_flag, except_overlay
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-ele0 => lat%ele(ix_ele)
-attrib_name0 = attrib_name
-
-call check_this_attribute_free (ele0, attrib_name, lat, do_print, do_except_overlay, free)
+call check_this_attribute_free (lat%ele(ix_ele), attrib_name, lat, &
+                                             do_print, do_except_overlay, free, 0)
 
 end function attribute_free1
 
@@ -1028,20 +1028,18 @@ end function attribute_free1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free2 (ix_ele, ix_branch, attrib_name, 
+! Function attribute_free2 (ele, attrib_name, 
 !                                 lat, err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free2 (ix_ele, ix_branch, attrib_name, lat, &
-                                        err_print_flag, except_overlay) result (free)
+function attribute_free2 (ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
 
 implicit none
 
 type (lat_struct), target :: lat
-
-integer ix_branch, ix_ele, ix_ele0
+type (ele_struct) ele
 
 character(*) attrib_name
 
@@ -1055,10 +1053,7 @@ character(16) :: r_name = 'attribute_free'
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-ele0 => lat%branch(ix_branch)%ele(ix_ele)
-attrib_name0 = attrib_name
-
-call check_this_attribute_free (ele0, attrib_name, lat, do_print, do_except_overlay, free)
+call check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, free, 0)
 
 end function attribute_free2
 
@@ -1066,18 +1061,20 @@ end function attribute_free2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free3 (loc, lat, err_print_flag, except_overlay) result (free)
+! Function attribute_free3 (ix_ele, ix_branch, 
+!                           lat, err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free3 (loc, attrib_name, lat, err_print_flag, except_overlay) result (free)
+function attribute_free3 (ix_ele, ix_branch, attrib_name, &
+                            lat, err_print_flag, except_overlay) result (free)
 
 implicit none
 
 type (lat_struct) :: lat
-type (lat_ele_loc_struct) loc
 
+integer ix_ele, ix_branch
 character(*) attrib_name
 
 logical free, do_print, do_except_overlay
@@ -1088,10 +1085,8 @@ logical, optional :: err_print_flag, except_overlay
 do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 
-ele0 => lat%branch(loc%ix_branch)%ele(loc%ix_ele)
-attrib_name0 = attrib_name
-
-call check_this_attribute_free (ele0, attrib_name, lat, do_print, do_except_overlay, free)
+call check_this_attribute_free (lat%branch(ix_branch)%ele(ix_ele), attrib_name, &
+                                             lat, do_print, do_except_overlay, free, 0)
 
 end function attribute_free3
 
@@ -1100,18 +1095,25 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 
 recursive subroutine check_this_attribute_free (ele, attrib_name, lat, &
-                                          do_print, do_except_overlay, free, ix_lord)
+                            do_print, do_except_overlay, free, ix_recursion, ix_lord)
 
 type (ele_struct) :: ele
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_p
 
-integer ix_branch, i, ir, ix_attrib, ix
+integer ix_branch, ix_recursion, i, ir, ix_attrib, ix
 integer, optional :: ix_lord
 
 character(*) attrib_name
 
 logical free, do_print, do_except_overlay
+
+! If this is first time then set pointers used in error message printing.
+
+if (ix_recursion == 0) then
+  ele0 => lat%branch(ele%ix_branch)%ele(ele%ix_ele)
+  attrib_name0 = attrib_name
+endif
 
 ! super_slaves attributes cannot be varied
 
@@ -1285,7 +1287,7 @@ if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
   do i = ele%ix1_slave, ele%ix2_slave
     ele_p => lat%ele(lat%control(i)%ix_slave)
     call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(i)%ix_attrib), &
-                                    lat, do_print, do_except_overlay, free, ele%ix_ele)
+                            lat, do_print, do_except_overlay, free, 1, ele%ix_ele)
     if (.not. free) return
   enddo
 endif

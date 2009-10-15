@@ -80,8 +80,6 @@
 ! length change.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine create_group (lat, ix_lord, contrl, err, err_print_flag)
 
 use bmad_struct
@@ -94,7 +92,7 @@ type (ele_struct), pointer :: slave, lord
 type (control_struct)  contrl(:)
 
 integer i, ix_lord, ix_attrib, n_control, n_con
-integer ix1, ix2, ix_min, ix_max, ix_slave
+integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
 logical err, free
 logical, optional :: err_print_flag
@@ -112,6 +110,7 @@ lord%lord_status = group_lord$
 lord%key = group$
 n_con = lat%n_control_max
 lord%ix1_slave = n_con + 1
+lord%ix_value = command$
 
 ! loop over all controlled elements
 
@@ -125,7 +124,8 @@ do i = 1, n_control
 
   ix_slave = contrl(i)%ix_slave
   ix_attrib = contrl(i)%ix_attrib
-  slave =>lat%ele(ix_slave)
+  ix_branch = contrl(i)%ix_branch
+  slave => lat%branch(ix_branch)%ele(ix_slave)
 
   if (ix_attrib == start_edge$ .or. ix_attrib == end_edge$ .or. &
                                             ix_attrib == accordion_edge$) then
@@ -149,7 +149,7 @@ do i = 1, n_control
 
     ix1 = ix_min - 1
     do 
-      if (lat%ele(ix1)%value(l$) == 0) then
+      if (lat%branch(ix_branch)%ele(ix1)%value(l$) == 0) then
         ix1 = ix1 - 1
       else
         exit
@@ -158,7 +158,7 @@ do i = 1, n_control
 
     ix2 = ix_max + 1 
     do
-      if (lat%ele(ix2)%value(l$) == 0) then
+      if (lat%branch(ix_branch)%ele(ix2)%value(l$) == 0) then
         ix2 = ix2 + 1
       else
         exit
@@ -233,6 +233,13 @@ do i = 1, n_control
     endif
     n_con = n_con + 2
 
+    ! Update controller info for the slave element
+
+    slave%n_lord = slave%n_lord + 2
+    call add_lattice_control_structs (lat, slave)
+    lat%ic(slave%ic2_lord-1) = n_con - 1
+    lat%ic(slave%ic2_lord-0) = n_con - 0
+
   ! x_limit and y_limit
 
   elseif (ix_attrib == aperture$) then
@@ -245,6 +252,15 @@ do i = 1, n_control
     lat%control(n_con+3)%ix_attrib = y1_limit$
     lat%control(n_con+4)%ix_attrib = y2_limit$
     n_con = n_con + 4
+
+    ! Update controller info for the slave element
+
+    slave%n_lord = slave%n_lord + 4
+    call add_lattice_control_structs (lat, slave)
+    lat%ic(slave%ic2_lord-3) = n_con - 3
+    lat%ic(slave%ic2_lord-2) = n_con - 2
+    lat%ic(slave%ic2_lord-1) = n_con - 1
+    lat%ic(slave%ic2_lord-0) = n_con - 0
 
   ! For all else without position control the group setup is simple.
 
@@ -265,6 +281,12 @@ do i = 1, n_control
     if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
     lat%control(n_con) = contrl(i)
     lat%control(n_con)%ix_lord = ix_lord
+
+    ! Update controller info for the slave element
+
+    slave%n_lord = slave%n_lord + 1
+    call add_lattice_control_structs (lat, slave)
+    lat%ic(slave%ic2_lord) = n_con
 
   endif
 

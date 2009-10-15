@@ -42,8 +42,6 @@
 !   call create_overlay (lat, ix_ovr, 'K1', contl(1:2))  ! create the overlay
 !-
 
-#include "CESR_platform.inc"
-
 subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
 
 use bmad_struct
@@ -56,8 +54,8 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: slave, lord
 type (control_struct)  contl(:)
 
-integer i, j, nc0, ixc, ix_overlay, nc2
-integer ix_slave, n_slave, ix_attrib
+integer i, j, nc0, ix_overlay, nc2
+integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(*) attrib_name
 character(40) at_name
@@ -67,10 +65,10 @@ logical, optional :: err_print_flag
 
 ! Mark element as an overlay lord
 
-call check_controller_controls (contl, lat%ele(ix_overlay)%name, err)
+lord => lat%ele(ix_overlay)
+call check_controller_controls (contl, lord%name, err)
 if (err) return
 
-lord => lat%ele(ix_overlay)
 n_slave = size (contl)
 
 nc0 = lat%n_control_max
@@ -79,6 +77,8 @@ nc2 = nc0
 do j = 1, n_slave
   ix_attrib = contl(j)%ix_attrib
   ix_slave = contl(j)%ix_slave
+  slave => lat%branch(contl(j)%ix_branch)%ele(ix_slave)
+
   if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
 
   if (ix_attrib == x_limit$) then
@@ -101,10 +101,10 @@ do j = 1, n_slave
     nc2 = nc2 + 4
   else
     ! If the slave attribute is a multipole component, make sure it exists.
-    if (ix_attrib > n_attrib_maxx .and. .not. associated (lat%ele(ix_slave)%a_pole)) then
-      call multipole_init(lat%ele(ix_slave))
+    if (ix_attrib > n_attrib_maxx .and. .not. associated (slave%a_pole)) then
+      call multipole_init(slave)
     endif
-    free = attribute_free (ix_slave, attribute_name(lat%ele(ix_slave), ix_attrib), &
+    free = attribute_free (ix_slave, attribute_name(slave, ix_attrib), &
                                                                  lat, err_print_flag, .true.)
     err = err .or. .not. free
     lat%control(nc2+1) = contl(j)
@@ -136,12 +136,14 @@ lord%ix_value = ix_attrib
 do i = lord%ix1_slave, lord%ix2_slave
 
   ix_slave = lat%control(i)%ix_slave
+  ix_branch = lat%control(i)%ix_branch
+
   if (ix_slave <= 0) then
     print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
     call err_exit
   endif
 
-  slave => lat%ele(ix_slave)
+  slave => lat%branch(ix_branch)%ele(ix_slave)
 
   if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$
@@ -157,9 +159,8 @@ do i = lord%ix1_slave, lord%ix2_slave
   ! update controller info for the slave ele
 
   slave%n_lord = slave%n_lord + 1
-  call add_lattice_control_structs (lat, ix_slave)
-  ixc = slave%ic2_lord
-  lat%ic(ixc) = i
+  call add_lattice_control_structs (lat, slave)
+  lat%ic(slave%ic2_lord) = i
 
 enddo
 

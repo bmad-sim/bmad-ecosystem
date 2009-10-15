@@ -279,7 +279,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
     else
       slave%n_lord = slave_saved%n_lord + 1
-      call add_lattice_control_structs (lat, ix_slave)
+      call add_lattice_control_structs (lat, slave)
     endif
 
     slave%slave_status = super_slave$

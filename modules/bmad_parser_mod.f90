@@ -2584,7 +2584,7 @@ lord%lord_status = multipass_lord$
 lord%n_slave = n_multipass
 lord%ix1_slave = 0
 lord%ix2_slave = -1
-call add_lattice_control_structs (lat, ix_lord)
+call add_lattice_control_structs (lat, lord)
 if (lord%key == sbend$ .and. lord%ref_orbit == 0) lord%ref_orbit = single_ref$
 
 ! Setup bookkeeping between lord and slaves
@@ -2602,7 +2602,7 @@ do i = 1, n_multipass
   endif
   slave%n_lord = 1
   write (slave%name, '(2a, i1)') trim(slave%name), '\', i   ! '
-  call add_lattice_control_structs (lat, ix_slave)
+  call add_lattice_control_structs (lat, slave)
   slave%slave_status = multipass_slave$
   ixic = slave%ic1_lord
   lat%ic(ixic) = ixc

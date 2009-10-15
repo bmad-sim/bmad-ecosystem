@@ -1087,11 +1087,11 @@ interface
 end interface
 
 interface
-  subroutine add_lattice_control_structs (lat, ix_ele)
-    use bmad_struct, only: lat_struct
+  subroutine add_lattice_control_structs (lat, ele)
+    use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct), target :: lat
-    integer ix_ele
+    type (ele_struct) ele
   end subroutine
 end interface
 
