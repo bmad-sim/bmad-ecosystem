@@ -260,3 +260,22 @@ For example: \vn{lat_struct}, \vn{ele_struct}, etc. Structures without a
 \vn{_struct} are usually part of Etienne's PTC/FPP package.
 
 \end{description}
+
+%-----------------------------------------------------------------------------
+\section{Manual Notation}
+\label{s:component}
+
+\bmad defines a number of structures and these structures may contain
+components which are structures, etc. In order to keep the text in
+this manual succinct when referring to components, the encoposing
+structure name may be dropped. For example, 
+
+in the text, to denote a component of
+a structure the convention ``\vn{%<component>}'' will be used. For
+example, ``\vn{%ix_from_ele}'' or ``\vn{%branch%ix_from_ele}'' could
+be be used to denote the \vn{ix_from_ele} component of a the
+\vn{branch} component of the \vn{lat_struct}. This convention can be
+ambiguous. For example, \vn{%n_ele_track} can refer to the component
+of the \vn{lat_struct} with that name or the sub-component
+\vn{%branch%n_ele_track}. Which is being referred to should be clear
+in context. In case of ambiguity, a ``\vn{lat}'' prefix will be used to 

@@ -16,6 +16,80 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine lattice_bookkeeper (lat)
+!
+! Subroutine to do a complete bookkeeping job on a lattice.
+!
+! This this routine does a complete job of bookking and could be unacceptably
+! slow if used, for example, in the inner loop of an optimizer. In this case
+! consider using only control_bookkeeper instead.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   lat   -- lat_struct: Lattice needing bookkeeping.
+!
+! Output:
+!   lat   -- lat_struct: Lattice with bookkeeping done.
+!-
+
+subroutine lattice_bookkeeper (lat)
+
+implicit none
+
+type (lat_struct) lat
+integer i, j
+logical found
+
+! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
+! wiggler super_lord is computed. Other reasons include multipass bends.
+
+call control_bookkeeper (lat)
+call compute_reference_energy (lat)
+call control_bookkeeper (lat, super_and_multipass_only = .true.)
+
+! Make sure attributes are updated for free elements in the tracking part of the lattice.
+! All the other elements were taken care of by control_bookkeeper.
+
+do i = 0, ubound(lat%branch, 1)
+  do j = 1, lat%branch(i)%n_ele_track
+    if (lat%branch(i)%ele(j)%slave_status == free$) then
+      call attribute_bookkeeper (lat%branch(i)%ele(j), lat%param)
+    endif
+  enddo
+enddo
+
+! Global geometry
+
+call s_calc (lat)
+call lat_geometry (lat)
+
+! multipass slaves with ref_orbit set may may depend upon the geometry so recalc.
+
+found = .false.
+
+do i = 0, ubound(lat%branch, 1)
+  do j = 1, lat%branch(i)%n_ele_track
+    if (lat%branch(i)%ele(j)%slave_status == multipass_slave$ .and. &
+        lat%branch(i)%ele(j)%ref_orbit /= 0) then
+      call makeup_multipass_slave (lat, lat%branch(i)%ele(j))
+      found = .true.
+    endif
+  enddo
+enddo
+
+if (found) then
+  call s_calc (lat)
+  call lat_geometry (lat)
+endif
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
@@ -47,7 +121,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord
 
 integer, optional :: ix_ele, ix_branch
-integer ie, ix0, ix_b, j, n1, n2
+integer ie, ib, ix0, j, n1, n2
 
 logical, optional :: super_and_multipass_only
 logical sm_only, did_bookkeeping
@@ -57,9 +131,9 @@ logical sm_only, did_bookkeeping
 ! done so we don't need to do it again.
 
 ix0 = integer_option(0, ix_ele)
-ix_b = integer_option (0, ix_branch)
+ib = integer_option (0, ix_branch)
 sm_only = logic_option (.false., super_and_multipass_only)
-ele => lat%branch(ix_b)%ele(ix0)
+ele => lat%branch(ib)%ele(ix0)
 
 if (.not. sm_only) then
   if (.not. present(ix_ele) .or. ele%lord_status == super_lord$) &
@@ -102,6 +176,16 @@ do
   if (did_bookkeeping) exit  ! And we are done
 enddo
 
+! and now the slaves in the tracking lattice
+
+do ib = 0, ubound(lat%branch, 1)
+  do ie = 1, lat%branch(ib)%n_ele_track
+    if (lat%branch(ib)%ele(ie)%slave_status /= free$) then
+      call control_bookkeeper1 (lat, lat%ele(ie), sm_only)
+    endif
+  enddo
+enddo
+
 end subroutine
 
 !--------------------------------------------------------------------------
@@ -120,7 +204,7 @@ subroutine control_bookkeeper1 (lat, ele, sm_only)
 type (lat_struct), target :: lat
 type (ele_struct) ele
 
-logical sm_only
+logical sm_only, called_a_bookkeeper
 
 ! Init
 
@@ -129,30 +213,43 @@ if (sm_only) then
       ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$) return
 endif
 
+! Make sure the bookkeeping for this element is correct.
+
+call attribute_bookkeeper (ele, lat%param)
+
 ! Slave bookkeeping
+
+called_a_bookkeeper = .false.
 
 if (ele%slave_status == super_slave$) then
   call makeup_super_slave (lat, ele)
+  called_a_bookkeeper = .true.
 
 elseif (ele%slave_status == overlay_slave$) then
   call makeup_overlay_and_girder_slave (lat, ele)
+  called_a_bookkeeper = .true.
 
 elseif (ele%slave_status == multipass_slave$) then
   call makeup_multipass_slave (lat, ele)
   if (ele%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ele)
+  called_a_bookkeeper = .true.
 endif
 
 ! Lord bookkeeping
 
 if (ele%lord_status == group_lord$) then
   call makeup_group_lord (lat, ele)
+  called_a_bookkeeper = .true.
 
 elseif (ele%lord_status == super_lord$) then
   call adjust_super_lord_s_position (lat, ele)
+  called_a_bookkeeper = .true.
 
 endif
 
-call attribute_bookkeeper (ele, lat%param)
+! 
+
+if (called_a_bookkeeper) call attribute_bookkeeper (ele, lat%param)
 
 end subroutine
 
@@ -417,77 +514,6 @@ if (length_adjustment_made) then
       call err_exit
     endif
   enddo
-endif
-
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine lattice_bookkeeper (lat)
-!
-! Subroutine to do a complete bookkeeping job on a lattice.
-!
-! This this routine does a complete job of bookking and could be unacceptably
-! slow if used, for example, in the inner loop of an optimizer. In this case
-! consider using only control_bookkeeper instead.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   lat   -- lat_struct: Lattice needing bookkeeping.
-!
-! Output:
-!   lat   -- lat_struct: Lattice with bookkeeping done.
-!-
-
-subroutine lattice_bookkeeper (lat)
-
-implicit none
-
-type (lat_struct) lat
-integer i, j
-logical found
-
-! Control bookkeeper is called twice to make sure, for example, that the z_patch for a 
-! wiggler super_lord is computed. Other reasons include multipass bends.
-
-call control_bookkeeper (lat)
-call compute_reference_energy (lat)
-call control_bookkeeper (lat, super_and_multipass_only = .true.)
-
-! Make sure attributes are updated in the tracking part of the lattice
-
-do i = 0, ubound(lat%branch, 1)
-  do j = 1, lat%branch(i)%n_ele_track
-    call attribute_bookkeeper (lat%branch(i)%ele(j), lat%param)
-  enddo
-enddo
-
-! Global geometry
-
-call s_calc (lat)
-call lat_geometry (lat)
-
-! multipass slaves with ref_orbit set may may depend upon the geometry so recalc.
-
-found = .false.
-
-do i = 0, ubound(lat%branch, 1)
-  do j = 1, lat%branch(i)%n_ele_track
-    if (lat%branch(i)%ele(j)%slave_status == multipass_slave$ .and. &
-        lat%branch(i)%ele(j)%ref_orbit /= 0) then
-      call makeup_multipass_slave (lat, lat%branch(i)%ele(j))
-      found = .true.
-    endif
-  enddo
-enddo
-
-if (found) then
-  call s_calc (lat)
-  call lat_geometry (lat)
 endif
 
 end subroutine
