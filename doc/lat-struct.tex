@@ -212,10 +212,9 @@ components are not currently used.
 \section{Bunch_start Component}
 \label{s:lat.beam.start}
 
-The \vn{%beam_start} component within the \vn{lat_struct} is a
-\vn{coord_struct} structure for holding the information obtained from
-\vn{beam_start} statements (\sref{s:beam.start}) in a \bmad lattice
-file. 
+The \vn{lat%beam_start} component is a \vn{coord_struct} structure for
+holding the information obtained from \vn{beam_start} statements
+(\sref{s:beam.start}) in a \bmad lattice file.
 
 This component is not used in any standard \bmad calculation. It is up
 to an individual program to use as desired.
@@ -224,21 +223,9 @@ to an individual program to use as desired.
 \section{Finding Elements and Changing Their Value}
 \label{s:lat.ele.change}
 
-\bmad has two routines for searching for an element in a lattice:
-\begin{example}
-  \vnr{element_locator}(ele_name, lat, ix_ele) ! locate by name
-  \vnr{elements_locator}(class, lat, indx)        ! locate by class
-\end{example}
-\vn{element_locator} searches the \vn{%ele(:)} array for an
-element of the correct name. Alternatively, \vn{elements_locator}
-searches for all elements of a given class and returns an array of
-indexes. To see how simple searching a lattice is consider the heart
-of \vn{element_locator}:
-\begin{example}
-  do ix_ele = 0, lat%n_ele_max
-    if (lat%ele(ix_ele)%name == ele_name) return
-  enddo
-\end{example}
+The routine \vn{lat_ele_locator} can be used to search for an element
+in a lattice by name or key type or a combination of both (\sref{}).
+
 
 Once an element or elements are identified in the lattice,
 changing an element attribute generally involves changing values in the 

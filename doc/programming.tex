@@ -267,15 +267,37 @@ For example: \vn{lat_struct}, \vn{ele_struct}, etc. Structures without a
 
 \bmad defines a number of structures and these structures may contain
 components which are structures, etc. In order to keep the text in
-this manual succinct when referring to components, the encoposing
-structure name may be dropped. For example, 
-
-in the text, to denote a component of
-a structure the convention ``\vn{%<component>}'' will be used. For
-example, ``\vn{%ix_from_ele}'' or ``\vn{%branch%ix_from_ele}'' could
-be be used to denote the \vn{ix_from_ele} component of a the
-\vn{branch} component of the \vn{lat_struct}. This convention can be
-ambiguous. For example, \vn{%n_ele_track} can refer to the component
-of the \vn{lat_struct} with that name or the sub-component
-\vn{%branch%n_ele_track}. Which is being referred to should be clear
-in context. In case of ambiguity, a ``\vn{lat}'' prefix will be used to 
+this manual succinct when referring to components, the enclosing
+structure name may be dropped. For example, the \vn{lat_struct}
+structure looks like
+\begin{example}
+  type lat_struct
+    character(40) name               
+    type (mode_info_struct) a, b, z  
+    type (lat_param_struct) param    
+    type (ele_struct), pointer ::  ele(:)
+    type (branch_struct), allocatable :: branch(:)  
+    ... etc. ...
+  end type
+\end{example}
+To refer to, say, the \vn{a} component of the \vn{lat_struct},
+``\vn{%a}'' could be used. To make it explicit that this is a
+component of a \vn{lat_struct}, ``\vn{lat_struct%a}'' can be
+used. Since the vast majority of structures have the ``_struct''
+suffix, this may be shortened to ``\vn{lat%a}''. A similar notation
+works for subcomponents. For example, a \vn{branch_struct} looks like
+\begin{example}
+  type branch_struct
+    character(40) name
+    integer ix_from_ele                  ! Index of branching element
+    integer, pointer :: n_ele_track      ! Number of tracking elements
+    integer, pointer :: n_ele_max
+    type (ele_struct), pointer :: ele(:) ! Element array
+    ... etc. ...
+  end type
+\end{example}
+The \vn{ele} component of the \vn{branch} component of the
+\vn{lat_struct} can be referred to using ``\vn{lat%branch%ele}'',
+``\vn{%branch%ele}'', or ``\vn{%ele}''. Potentially, the last of these
+could be confused with the ``\vn{lat%ele}'' component so ``\vn{%ele}''
+would only be used if the meaning is unambiguous due to the context.

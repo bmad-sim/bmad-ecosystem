@@ -20,7 +20,8 @@ program test
 
   use bmad                 ! Define the structures we need to know about.
   implicit none
-  type (lat_struct) lat  ! This structure holds the lattice info
+  type (lat_struct) lat   ! This structure holds the lattice info
+  type (ele_pointer_struct), allocatable :: eles(:)
   integer i, ix
 
 ! Read in a lattice and calculate the twiss parameters.
@@ -40,12 +41,14 @@ program test
 
 ! Find the CLEO_SOL element and print information on it.
 
-  call element_locator ('CLEO_SOL', lat, ix)
+  call lat_ele_locator ('CLEO_SOL', lat, eles)
   print *
   print *, '!---------------------------------------------------------'
-  print *, '! Information on element: CLEO_SOL', ix
+  print *, '! Information on element: CLEO_SOL'
   print *
-  call type_ele (lat%ele(ix), .false., 0, .false., 0, .true., lat)
+  call type_ele (eles(1)%ele, .false., 0, .false., 0, .true., lat)
+
+  deallocate (eles)
 
 end program
 \end{listing}
@@ -80,7 +83,7 @@ Figure~\ref{f:output}.
   10  Q01W              QUADRUPOLE            3.8740     68.1771
 
  !---------------------------------------------------------
- ! Information on element: CLEO_SOL        871
+ ! Information on element: CLEO_SOL 
 
   Element #         871
   Element Name: CLEO_SOL

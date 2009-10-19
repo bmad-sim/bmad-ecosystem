@@ -50,6 +50,7 @@ solely meant for \bmad internal use.
   Twiss and Other Calculations                & \ref{r:twiss}          \\ \hline
   Twiss: 6-Dimensional                        & \ref{r:twiss6}         \\ \hline
   Wake Fields                                 & \ref{r:wake}           \\ \hline
+  Deprecated                                  & \ref{r:deprecated}     \\ \hline
 \end{tabular}
 \end{center}
 \toffset
@@ -483,19 +484,6 @@ Subroutine to check if the control links in a lat structure are valid.
 \index{Routine!attribute_free}
 \item[attribute_free (ele, ix_attrib, lat, err_print_flag) result (free)] \Newline
 Function to check if an attribute is free to vary.
-
-\index{Routine!elements_locator}
-\item[elements_locator (ele_name, lat, indx, err)] \Newline 
-Subroutine to locate all the elements of a certain key 
-and certain name. 
-
-\index{Routine!elements_locator_by_key}
-\item[elements_locator_by_key (key, lat, indx)] \Newline
-Subroutine to locate all the elements of a certain kind in a lat. 
-
-\index{Routine!element_locator}
-\item[element_locator (ele_name, lat, ix_ele)] \Newline
-Subroutine to locate an element in a lat. 
 
 \index{Routine!ele_at_s}
 \item[ele_at_s (lat, s, ix_ele)] \Newline 
@@ -2842,6 +2830,27 @@ Subroutine to put in the long-range wakes for particle tracking.
 \item[zero_lr_wakes_in_lat (lat)] \Newline 
 Routine to zero the long range wake amplitudes for the elements that have
 long range wakes in a lattice.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Wake Fields}
+\label{r:wake}    
+\index{wake fields!list of routines}
+
+\begin{description}
+
+\index{Routine!elements_locator}
+\item[elements_locator (ele_name, lat, indx, err)] \Newline 
+Replaced by lat_ele_locator.
+
+\index{Routine!elements_locator_by_key}
+\item[elements_locator_by_key (key, lat, indx)] \Newline
+Replaced by lat_ele_locator.
+
+\index{Routine!element_locator}
+\item[element_locator (ele_name, lat, ix_ele)] \Newline
+Replaced by lat_ele_locator.
 
 \end{description}
 
