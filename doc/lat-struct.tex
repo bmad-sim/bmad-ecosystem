@@ -5,7 +5,7 @@
 The \vn{lat_struct} is the structure that holds of all the information
 about a lattice. If \vn{branch} (\sref{s:branch}) and/or
 \vn{photon_branch} elements (\sref{s:photon.branch}) are part of the
-lattice, the \vn{lat_struct) will include the information on the
+lattice, the \vn{lat_struct} will include the information on the
 branching sections as well as the mail lattice.
 The components of a \vn{lat_struct} are shown in
 Figure~\ref{f:lat.struct} (\sref{s:component}).
@@ -220,14 +220,35 @@ This component is not used in any standard \bmad calculation. It is up
 to an individual program to use as desired.
 
 %----------------------------------------------------------------------------
-\section{Finding Elements and Changing Their Value}
+\section{Finding Elements and Changing Attribute Values}
 \label{s:lat.ele.change}
 
 The routine \vn{lat_ele_locator} can be used to search for an element
-in a lattice by name or key type or a combination of both (\sref{}).
+in a lattice by name or key type or a combination of both. Example:
+\begin{example}
+  type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc;    logical err
+  ...
+  call lat_ele_locator ("quad:skew*", lat, eles, n_loc, err)
+\end{example}
+This example finds all elements where \vn{ele%key} is \vn{quadrupole\$} 
+and \vn{ele%name} starts with ``\vn{skew}''. See the documentation on 
+\vn{lat_ele_locator} for more details on the syntax of the search string.
 
+The \vn{ele_pointer_struct} array returned by \vn{lat_ele_locator} is
+an array of pointers to \vn{ele_struct) elements
+\begin{example}
+  type ele_pointer_struct
+    type (ele_struct), pointer :: ele => null()
+  end type
+\end{example}
+The \vn{n_loc} argument is the number of elements found and the \vn{err} argument
+is set True on a decode error of the search string.
 
-Once an element or elements are identified in the lattice,
+Once an element (or elements) is identified in the lattice,
+it's attributes can be altered. 
+
 changing an element attribute generally involves changing values in the 
 \vn{%ele(i)%value(:)} array. This is done using the 
 \vnr{set_ele_attribute} routine. For example:

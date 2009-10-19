@@ -74,8 +74,8 @@ the one--turn transfer matrix. From this the routine extracts the initial Twiss
 parameters and the tune. The tune is placed in the variables
 \begin{example}
   type (lat_struct) lat 
-  lat%x%tune     ! a-mode tune
-  lat%y%tune     ! b-mode tune
+  lat%a%tune     ! a-mode tune
+  lat%b%tune     ! b-mode tune
 \end{example}
 
 The routine \vnr{set_tune} To set the transverse tunes of a closed lat:
