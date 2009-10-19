@@ -34,7 +34,7 @@ type (lat_struct), target :: lat
 type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 
-logical adsorbed
+logical absorbed
 
 !
 
@@ -43,8 +43,8 @@ photon%now = photon%start
 
 do
   call track_photon_to_wall (photon, lat, wall)
-  call reflect_photon (photon, wall, adsorbed)
-  if (adsorbed) return
+  call reflect_photon (photon, wall, absorbed)
+  if (absorbed) return
   photon%n_reflect = photon%n_reflect + 1
 enddo
 
@@ -507,6 +507,15 @@ dy_perp = dy_perp / denom
 dx_parallel =  dy_perp 
 dy_parallel = -dx_perp
 
+! absorbtion
+
+graze_angle = pi - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
+call photon_reflectivity (vec(6), graze_angle, reflectivity)
+call ran_uniform(r)
+absorbed = (r > reflectivity)
+if (absorbed) return  ! Do not reflect if absorbed
+
+! Reflect the ray.
 ! The perpendicular component gets reflected and the parallel component is invarient.
 
 dot_parallel = dx_parallel * vec(2) + dy_parallel * vec(4)
@@ -514,13 +523,6 @@ dot_perp     = dx_perp     * vec(2) + dy_perp     * vec(4)
 
 vec(2) = dot_parallel * dx_parallel - dot_perp * dx_perp
 vec(4) = dot_parallel * dy_parallel - dot_perp * dy_perp
-
-! absorbtion
-
-graze_angle = pi - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
-call photon_reflectivity (vec(6), graze_angle, reflectivity)
-call ran_uniform(r)
-absorbed = (r > reflectivity)
 
 end subroutine
 
