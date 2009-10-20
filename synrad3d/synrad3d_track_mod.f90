@@ -509,8 +509,8 @@ dy_parallel = -dx_perp
 
 ! absorbtion
 
-graze_angle = pi - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
-call photon_reflectivity (vec(6), graze_angle, reflectivity)
+graze_angle = pi/2 - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
+call photon_reflectivity (graze_angle, vec(6), reflectivity)
 call ran_uniform(r)
 absorbed = (r > reflectivity)
 if (absorbed) return  ! Do not reflect if absorbed
