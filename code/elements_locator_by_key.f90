@@ -1,6 +1,9 @@
 !+
 ! Subroutine elements_locator_by_key (key, lat, indx)
 !
+! NOTE: THIS ROUTINE IS DEPRECATED SINCE IT DOES NOT WORK WITH BRANCHES.
+! USE LAT_ELE_LOCATOR INSTEAD.
+!
 ! Subroutine to locate all the elements of a certain kind in a lat. 
 ! Note: super_slave elements are not included in the list since super_slaves
 ! cannot have their attributes changed directly.
@@ -17,8 +20,6 @@
 !              Note: This routine does not try to deallocate indx.
 !               It is up to you to deallocate indx if needed.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine elements_locator_by_key (key, lat, indx)
 

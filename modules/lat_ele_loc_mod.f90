@@ -3,44 +3,13 @@ module lat_ele_loc_mod
 use bmad_struct
 use bmad_interface
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_ele
-!
-! Function to return a pointer to an element in a lattice.
-!
-! Overloaded function for:
-!   Function pointer_to_ele1 (lat, loc) result (ele_ptr)
-!   Function pointer_to_ele2 (lat, ix_ele, ix_branch) result (ele_ptr)
-!
-! Modules Needed:
-!   use lat_ele_loc_mod
-!
-! Input:
-!   lat       -- Lat_struct: Lattice.
-!   loc       -- lat_ele_loc_struct: Location of element.
-!   ix_ele    -- Integer: element index in the branch.
-!   ix_branch -- Integer: Branch index.
-!
-! Output:
-!   ele_ptr -- Ele_struct, pointer: Pointer to the element. 
-!              If input location is out of range then ele_ptr will be nullified.
-!-
-
-interface pointer_to_ele
-  module procedure pointer_to_ele1
-  module procedure pointer_to_ele2
-end interface
-
 contains
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele_locator (loc_str, lat, locs, n_loc, err)
+! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err)
 !
 ! Routine to locate all the elements of a certain key 
 ! and certain name. loc_str is of the form:
@@ -67,15 +36,15 @@ contains
 !   lat      -- lat_struct: Lattice to search through.
 !
 ! Output:
-!   locs(:) -- Lat_ele_loc_struct, allocatable: Array of matching element locations.
-!              Note: This routine does not try to deallocate locs.
-!               It is up to you to deallocate locs if needed.
+!   eles(:) -- Ele_pointer_struct, allocatable: Array of matching elements.
+!              Note: This routine does not try to deallocate eles.
+!               It is up to you to deallocate eles if needed.
 !   n_loc   -- Integer: Number of locations found.
 !                Set to zero if no elements are found.
 !   err     -- Logical: Set True if there is a decode error.
 !-
 
-subroutine lat_ele_locator (loc_str, lat, locs, n_loc, err)
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err)
 
 implicit none
 
@@ -83,7 +52,7 @@ type (lat_struct) lat
 
 character(*) loc_str
 character(40) name
-type (lat_ele_loc_struct), allocatable :: locs(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 integer i, j, k, ix, key, n_loc
 logical err, do_match_wild
 
@@ -93,8 +62,8 @@ err = .true.
 n_loc = 0
 
 if (is_integer(loc_str(1:1))) then
-  call lat_location_decode (loc_str, lat, locs, err)
-  n_loc = size(locs)
+  call lat_location_decode (loc_str, lat, eles, err)
+  n_loc = size(eles)
   return
 endif
 
@@ -131,9 +100,9 @@ do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
       if (lat%branch(k)%ele(i)%name /= name) cycle
     endif
     n_loc = n_loc + 1
-    if (.not. allocated(locs)) call re_allocate_locs (locs, 1, .true.)
-    if (size(locs) < n_loc) call re_allocate_locs (locs, 2*n_loc, .true.)
-    locs(n_loc) = lat_ele_loc_struct(i, k)
+    if (.not. allocated(eles)) call re_allocate_eles (eles, 1, .true.)
+    if (size(eles) < n_loc) call re_allocate_eles (eles, 2*n_loc, .true.)
+    eles(n_loc)%ele => lat%branch(k)%ele(i)
   enddo
 enddo
 
@@ -145,7 +114,7 @@ end subroutine lat_ele_locator
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_location_decode (loc_str, lat, locs, err)
+! Subroutine lat_location_decode (loc_str, lat, eles, err)
 !
 ! Routine to parse a numeric list of element locations.
 !
@@ -160,23 +129,23 @@ end subroutine lat_ele_locator
 !   use lat_ele_loc_mod
 !
 ! Output:
-!   locs(:) -- Lat_ele_loc_struct: Array of matching locations.
+!   eles(:) -- Ele_pointer_struct: Array of matching locations.
 !   err     -- Logical: Set True if location does not correspond to a physical element.
 !
 ! Example:
 !     string = '3:37 98, 101:115:2'
 ! Then:
-!     call location_decode (string, locs, err)
+!     call location_decode (string, eles, err)
 ! Gives:
-!     locs(:) points to 3 to 37, 98, and odd numbers between 101 to 115
+!     eles(:) points to 3 to 37, 98, and odd numbers between 101 to 115
 !-
 
-subroutine lat_location_decode(loc_str, lat, locs, err)
+subroutine lat_location_decode(loc_str, lat, eles, err)
 
 implicit none
 
 type (lat_struct) lat
-type (lat_ele_loc_struct), allocatable :: locs(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 integer i, j, k
 integer n_loc, ios, ix_next, ix_branch, step,start_loc, end_loc, ix_word
@@ -190,7 +159,7 @@ character :: r_name = 'lat_location_decode'
 logical err
 logical range_found, step_found
 
-! initialize locs
+! initialize eles
 
 str = loc_str
 
@@ -279,13 +248,13 @@ endif
 
 ! count number of elements in arrray
 
-call re_allocate_locs (locs, n_loc)
+call re_allocate_eles (eles, n_loc)
 j = 0
 do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
   do i = 0, lat%branch(k)%n_ele_max
     if (.not. lat%branch(k)%ele(i)%bmad_logic) cycle
     j = j + 1
-    locs(j) = lat_ele_loc_struct(i, k)
+    eles(j)%ele => lat%branch(k)%ele(i)
   enddo
 enddo
 
@@ -297,9 +266,9 @@ end subroutine lat_location_decode
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_locs (locs, n, save)
+! Subroutine re_allocate_eles (eles, n, save)
 !
-! Routine to allocate an array of lat_ele_loc_structs.
+! Routine to allocate an array of ele_pointer_structs.
 !
 ! Modules Needed:
 !   use lat_ele_loc_mod
@@ -309,43 +278,39 @@ end subroutine lat_location_decode
 !   save -- Logical, optional: If present and True then save the old data.
 !
 ! Output:
-!   locs(:) -- lat_ele_loc_struct, allocatable: Array of locations.
-!     %ix_branch -- Initalized to zero were needed.
+!   eles(:) -- ele_pointer_struct, allocatable: Array of element pointers.
 !-
 
-subroutine re_allocate_locs (locs, n, save)
+subroutine re_allocate_eles (eles, n, save)
 
 implicit none
 
-type (lat_ele_loc_struct), allocatable :: locs(:)
-type (lat_ele_loc_struct), allocatable :: l_temp(:)
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_pointer_struct), allocatable :: l_temp(:)
 integer n, n_old
 logical, optional :: save
 
 !
 
-if (.not. allocated(locs)) then
-  allocate (locs(n))
+if (.not. allocated(eles)) then
+  allocate (eles(n))
   return
 endif
 
-if  (size(locs) == n) return
+if  (size(eles) == n) return
 
 if (logic_option (.false., save)) then
-  n_old = min(size(locs), n)
+  n_old = min(size(eles), n)
   allocate (l_temp(n_old))
-  l_temp = locs(1:n_old)
+  l_temp = eles(1:n_old)
 endif
 
-deallocate (locs)
-allocate (locs(n))
+deallocate (eles)
+allocate (eles(n))
 
 if (logic_option (.false., save)) then
-  locs(1:n_old) = l_temp
+  eles(1:n_old) = l_temp
   deallocate (l_temp)
-  locs(n_old+1:)%ix_branch = 0
-else
-  locs%ix_branch = 0
 endif
 
 end subroutine
@@ -354,40 +319,13 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_ele1 (lat, loc) result (ele_ptr)
+! Function pointer_to_ele (lat, ix_ele, ix_branch) result (ele_ptr)
 !
 ! Function to return a pointer to an element in a lattice.
 ! See pointer_to_ele for more details.
 !-
 
-function pointer_to_ele1 (lat, loc) result (ele_ptr)
-
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele_ptr
-type (lat_ele_loc_struct) loc
-
-!
-
-ele_ptr => null()
-
-if (loc%ix_branch < 0 .or. loc%ix_branch > ubound(lat%branch, 1)) return
-if (loc%ix_ele < 0 .or. loc%ix_ele > lat%branch(loc%ix_branch)%n_ele_max) return
-
-ele_ptr => lat%branch(loc%ix_branch)%ele(loc%ix_ele)
-
-end function
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_ele2 (lat, ix_ele, ix_branch) result (ele_ptr)
-!
-! Function to return a pointer to an element in a lattice.
-! See pointer_to_ele for more details.
-!-
-
-function pointer_to_ele2 (lat, ix_ele, ix_branch) result (ele_ptr)
+function pointer_to_ele (lat, ix_ele, ix_branch) result (ele_ptr)
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr

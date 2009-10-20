@@ -1,6 +1,9 @@
 !+
 ! Subroutine element_locator (ele_name, lat, ix_ele)
 !
+! NOTE: THIS ROUTINE IS DEPRECATED SINCE IT DOES NOT WORK WITH BRANCHES.
+! USE LAT_ELE_LOCATOR INSTEAD.
+!
 ! Subroutine to locate an element in a lattice. If multipole elements
 ! match then ix_ele will point to the first one. Also see:
 !   elements_locator_by_key
@@ -20,8 +23,6 @@
 !   ix_ele -- Integer: Index of element in lat%ele(:) array. 
 !               ix_ele set to -1 if not found.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine element_locator (ele_name, lat, ix_ele)
 

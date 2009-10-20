@@ -614,8 +614,8 @@ end interface
 
 interface
   Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
-                    ptr_array, err_flag, err_print_flag, locs, ix_attrib)
-    use bmad_struct, only: lat_struct, real_pointer_struct, lat_ele_loc_struct
+                    ptr_array, err_flag, err_print_flag, eles, ix_attrib)
+    use bmad_struct, only: lat_struct, real_pointer_struct, ele_pointer_struct
     implicit none
     type (lat_struct) lat
     type (real_pointer_struct), allocatable :: ptr_array(:)
@@ -623,7 +623,7 @@ interface
     logical err_flag
     logical do_allocation
     logical, optional :: err_print_flag
-    type (lat_ele_loc_struct), optional, allocatable :: locs(:)
+    type (ele_pointer_struct), optional, allocatable :: eles(:)
     integer, optional :: ix_attrib
   end subroutine
 end interface

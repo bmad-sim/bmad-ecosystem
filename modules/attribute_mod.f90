@@ -44,7 +44,6 @@ private init_attribute_name_array, check_this_attribute_free, print_error
 !   use bmad
 !
 ! Input:
-!   loc             -- Lat_ele_loc_struct: Element location.
 !   ix_ele          -- Integer: Index of element in element array.
 !   ix_branch       -- Integer: Branch index of element. 
 !   ele             -- Ele_struct: Element containing the attribute

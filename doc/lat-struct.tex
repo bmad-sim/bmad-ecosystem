@@ -102,7 +102,7 @@ main branch (with branch index 0), \vn{%ele(0:)} is divided up into
 two parts: The ``tracking'' part and a ``control'' part (also called
 the ``lord'' part). The tracking part of this array holds the elements
 that are tracked through. The control part holds elements whose
-control attributes of other elements. The bounds
+control attributes of other elements (\sref{s:lat.control}). The bounds
 of these two parts is given in Table~\ref{t:part.extent}.
 \begin{table}[htb]
 \begin{center}
@@ -209,90 +209,146 @@ therefore the two are identical. The other \vn{%bunch%param}
 components are not currently used.
 
 %----------------------------------------------------------------------------
-\section{Bunch_start Component}
-\label{s:lat.beam.start}
+\section{Pointers}
+\label{s:lat:point}
+\index{lat_struct!pointers}
 
-The \vn{lat%beam_start} component is a \vn{coord_struct} structure for
-holding the information obtained from \vn{beam_start} statements
-(\sref{s:beam.start}) in a \bmad lattice file.
+Since the \vn{lat_struct} has pointers within it, there is an extra
+burden on the programmer to make sure that allocation and deallocation
+is done properly. To this end, the equal sign has been overloaded by
+the routine \vn{lat_equal_lat} so that when one writes
+\begin{example}
+    type (lat_struct) lattice1, lattice2
+    ! ... some calculations ...
+    lattice1 = lattice2
+\end{example}
+the pointers in the \vn{lat_struct} structures will be handled
+properly. The result will be that lattice1 will hold the same
+information as \vn{lattice2} but the pointers in \vn{lattice1} will
+point to different locations in physical memory so that changes to one
+lattice will not affect the other.
 
-This component is not used in any standard \bmad calculation. It is up
-to an individual program to use as desired.
+Initial allocation of the pointers in a \vn{lat_struct} variable is
+generally handled by the \vnr{bmad_parser} and \vn{lat_equal_lat}
+routines.  Once allocated, local \vn{lat_struct} variables must have
+the save attribute or the pointers within must be appropriately
+deallocated before leaving the routine.
+\begin{example}
+  type (lat_struct), save :: lattice     ! Either do this at the start or ...
+  ...
+  call deallocate_lat_pointers (lattice) ! ... Do this at the end.
+\end{example}
+Using the save attribute will generally be faster but will use more
+memory. Typically using the save attribute will be the best choice.
 
 %----------------------------------------------------------------------------
-\section{Finding Elements and Changing Attribute Values}
-\label{s:lat.ele.change}
+\section{Elements Controlling Other Elements}
+\label{s:lat.control}
 
-The routine \vn{lat_ele_locator} can be used to search for an element
-in a lattice by name or key type or a combination of both. Example:
+The \vn{ele_struct} elements in the \vn{lat_struct} structure are
+divided into two groups: Those that get tracked through, and those
+elements, called \vn{lord} elements} that control attributes of other
+\vn{ele_struct} elements. Elements so controlled are called \vn{slave}
+elements. While \vn{lord} elements are always situated in the
+\vn{control} part of the lattice, \vn{slave} elements may appear in
+both the \vn{tracking} or \vn{control} parts of the lattice.
+The situation is complicated by the fact that a given
+element may simultaneously be a \vn{lord} and a \vn{slave}. For
+example, an \vn{overlay} is a lord since it controlls attributes of
+other elements but an \vn{overlay} can itself be controlled by other
+\vn{overlay} and \vn{group} elements.
+
+\index{free}\index{super_lord}
+\index{group_lord}\index{girder_lord}
+\index{multipass_lord}
+Two components of an \vn{ele_struct} determine the line of control:
+\vn{ele%lord_status} and \vn{ele%slave_status}. \vn{ele%lord_status}
+determines what type of lord the element is. In the tracking part of
+the lattice (\sref{s:lat.struct}), \vn{%lord_status} is always set to
+\vn{free\$}.  In the lord section of the lattice, \vn{ele%lord_status}
+can be one of:
+\begin{description}
+  \item[free\$]\Newline
+A free lord element does not control anything. This can be sometimes useful
+when manipulating lattices but is not generally used.
+\item[super_lord\$]\Newline 
+A \vn{super_lord} lord element is created when elements are
+superimposed on top of other elements (\sref{s:super}).
+  \item[overlay_lord\$]\Newline 
+An \vn{overlay_lord} is an \vn{overlay} element(\sref{s:overlay}). 
+Such an element will also have \vn{ele%key} = \vn{overlay\$}.
+  \item[group_lord\$]\Newline 
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Such
+an element will also have \vn{ele%key} = \vn{group\$}.
+  \index{girder_lord}
+  \item[girder_lord]\Newline 
+A \vn{girder_lord} is a \vn{girder} element (\sref{s:girder}).  Such
+an element will also have \vn{ele%key} = \vn{girder\$}. In this case,
+the slave elements are marked by setting the \vn{ele%on_a_girder}
+component.
+  \item[multipass_lord\$]\Newline
+\vn{multipass_lord} elements are created when
+multipass lines are present (\sref{s:multipass}). 
+\end{description}
+
+The \vn{ele%slave_status} component determines what type of slave an element is.
+Possible values for \vn{ele%slave_status} are:
+\begin{description}
+  \item[super_slave\$]\Newline 
+A \vn{super_slave} element is an element in the tracking part of the lattice that 
+has one or more \vn{super_lord} lords (\sref{s:super}).
+  \item[multipass_slave]\Newline
+A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
+(\sref{s:multipass}). \vn{multipass_slave} elements are always in the
+tracking part of the lattice.
+  \item[overlay_slave\$]\Newline 
+An \vn{overlay_slave} is an element that has any number of
+\vn{overlay_lord} and/or \vn{girder_lord} elements controlling the
+slave's attributes.  An \vn{overlay_slave} can also be controlled by
+\vn{group_lord} elements.
+  \item[group_slave\$]\Newline
+A \vn{group_slave} is an element that has one or more \vn{group_lord}
+elements controlling controlling the slave's attributes.  A \vn{group_slave} 
+will not have any \vn{overlay_lord} or \vn{girder_lord} lords.
+  \item[free\$]\Newline
+Free elements do not have any lord elements.
+\end{description}
+
+How \bmad 
+
+
+
+
+
+In the example in
+\sref{s:multipass}, Element \vn{A} would be a \vn{multipass_lord} and
+\vn{A\B1} and \vn{A\B2} would be \vn{multipass_slave}s. When
+superposition is combined with multipass, the elements in the tracking
+part of the lattice will be \vn{super_slave}s.  These elements will be
+controlled by \vn{super_lord}s which will also be
+\vn{multipass_slave}s and these \vn{super_lord}/\vn{multipass_slave}
+elements will be controlled by \vn{multipass_lord}s.
+
+The possible values for \vn{%slave_status} are:
+\index{free}\index{super_slave}
+\index{overlay_slave}\index{multipass_slave}
 \begin{example}
-  type (lat_struct) lat
-  type (ele_pointer_struct), allocatable :: eles(:)
-  integer n_loc;    logical err
-  ...
-  call lat_ele_locator ("quad:skew*", lat, eles, n_loc, err)
-\end{example}
-This example finds all elements where \vn{ele%key} is \vn{quadrupole\$} 
-and \vn{ele%name} starts with ``\vn{skew}''. See the documentation on 
-\vn{lat_ele_locator} for more details on the syntax of the search string.
-
-The \vn{ele_pointer_struct} array returned by \vn{lat_ele_locator} is
-an array of pointers to \vn{ele_struct) elements
-\begin{example}
-  type ele_pointer_struct
-    type (ele_struct), pointer :: ele => null()
-  end type
-\end{example}
-The \vn{n_loc} argument is the number of elements found and the \vn{err} argument
-is set True on a decode error of the search string.
-
-Once an element (or elements) is identified in the lattice,
-it's attributes can be altered. 
-
-changing an element attribute generally involves changing values in the 
-\vn{%ele(i)%value(:)} array. This is done using the 
-\vnr{set_ele_attribute} routine. For example:
-\begin{example}
-  type (lat_struct) lat
-  logical err_flag, make_xfer_mat
-  ...
-  call element_locator ('Q01W', lat, ix_ele)
-  call set_ele_attribute (lat, ix_ele, 'K1', 0.1_rp, err_flag, make_xfer_mat)
-\end{example}
-\index{overlay}
-This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
-\vn{set_ele_attribute} checks whether this element is actually free to
-be varied and sets the \vn{err_flag} logical accordingly. An element's
-attribute may not be freely varied if, for example, the attribute is
-controlled via an \vn{Overlay}.
-
-\index{bmad_common_struct!auto_bookkeeper}
-There is a global variable \vn{bmad_com%auto_bookkeeper} that 
-controls whether bookkeeping routines are called by routines that do tracking
-and routines that calculate transfer matrices. 
-This is done to make sure that the control 
-and attribute information in a lattice is
-up--to--date. Since this bookkeeping needs only be done when element attributes
-are changed, this can lead to a significant waste of time. Setting 
-\vn{bmad_com%auto_bookkeeper} to \vn{.false.} turns off this
-automatic bookkeeping.
-As a result, if an attribute value is changed directly the appropriate bookkeeping
-routines need to be called:
-\begin{example}
-  type (lat_struct) lat
-  bmad_com%auto_bookkeeper = .false.
-  lat%ele(ix_ele)%value(k1$) = 0.1
-  call control_bookkeeper (lat, ix_ele)
-\end{example}
-Alternatively, if multiple elements are modified, then \vn{lattice_bookkeeper} can be
-used to do bookkeeping for the entire lattice:
-\begin{example}
-  type (lat_struct) lat
-  ... set some attributes ...
-  call lattice_bookkeeper (lat)
+  free\$               No lords.
+  multipass_slave\$    Has a multipass_lord.
+  super_slave\$        Has one or more super_lords.
+  overlay_slave\$      Has one or more overlay_lords.
+  group_slave\$        Has one or more group_lords.
 \end{example}
 
 
+With \vn{%lord_status} equal to \vn{free\$}, the element is is not
+controlled by any other element.
+
+With \vn{%lord_status} equal to \vn{free\$}, the element does not have
+any elements under its control. 
+
+
+ 
 
 
 
@@ -300,21 +356,18 @@ used to do bookkeeping for the entire lattice:
 (\sref{s:ele.control}) is one of \vn{overlay_lord}, \vn{girder_lord},
 \vn{multipass_lord}, \vn{super_lord}, or \vn{Group_lord}.  
 
-%----------------------------------------------------------------------------
-\section{Elements Controlling Other Elements}
-\label{s:lat.control}
+
 
 \index{routine!get_element_lord_list}
 \index{routine!get_element_slave_list}
 Generally anyone using \bmad routines will not need to bother with the
-details of how elements control other elements
-(\sref{s:lat.ele.change}).  It is always safer to use the bookkeeping
-routines provided by \bmad rather than directly manipulating the
-control information. To simply find the slaves and lords of a given
-element use the routines \vn{get_element_lord_list} and
-\vn{get_element_slave_list}.  The following is thus meant for those
-unusual situations where knowledge of how \bmad implements control is
-needed.
+details of how elements control other elements. It is always safer to
+use the bookkeeping routines provided by \bmad rather than directly
+manipulating the control information. To simply find the slaves and
+lords of a given element use the routines \vn{get_element_lord_list}
+and \vn{get_element_slave_list}.  The following is thus meant for
+those unusual situations where knowledge of how \bmad implements
+control is needed.
 
 
 The element control information is stored in the \vn{%control(:)} array, 
@@ -374,34 +427,90 @@ in the values of the attributes it controls, \vn{Group} elements are
 not included in the list of lords generated by the above example.
 
 %----------------------------------------------------------------------------
-\section{Pointers}
-\label{s:lat:point}
-\index{lat_struct!pointers}
+\section{Bunch_start Component}
+\label{s:lat.beam.start}
 
-Since the \vn{lat_struct} has pointers within it there is an extra burden on
-the programmer to make sure that allocation and deallocation is done
-properly. To this end the equal sign has been overloaded by the
-routine \vn{lat_equal_lat} so that when one writes
-\begin{example}
-    type (lat_struct) lattice1, lattice2
-    ! ... some calculations ...
-    lattice1 = lattice2
-\end{example}
-the pointers in the \vn{lat_struct} structures will be handled
-properly. The result will be that lattice1 will hold the same
-information as \vn{lattice2} but the pointers in \vn{lattice1} will
-point to different locations in physical memory so that changes to one
-lattice will not affect the other.
+The \vn{lat%beam_start} component is a \vn{coord_struct} structure for
+holding the information obtained from \vn{beam_start} statements
+(\sref{s:beam.start}) in a \bmad lattice file.
 
-Initial allocation of the pointers in a \vn{lat_struct} variable is
-generally handled by the \vnr{bmad_parser} and \vn{lat_equal_lat}
-routines.  Once allocated, local \vn{lat_struct} variables must have
-the save attribute or the pointers within must be appropriately
-deallocated before leaving the routine.
+This component is not used in any standard \bmad calculation. It is up
+to an individual program to use as desired.
+
+%----------------------------------------------------------------------------
+\section{Finding Elements and Changing Attribute Values}
+\label{s:lat.ele.change}
+
+The routine \vn{lat_ele_locator} can be used to search for an element
+in a lattice by name or key type or a combination of both. Example:
 \begin{example}
-  type (lat_struct), save :: lattice     ! Either do this at the start or ...
+  type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc;    logical err
   ...
-  call deallocate_lat_pointers (lattice) ! ... Do this at the end.
+  call lat_ele_locator ("quad:skew*", lat, eles, n_loc, err)
+  do i = 1, n_loc  ! Loop over all elements found to match the search string.
+    !! eles(i)%ele is a pointer to the i^th element found to match.
+  enddo
 \end{example}
-Using the save attribute will generally be faster but will use more
-memory. Typically using the save attribute will be the best choice.
+This example finds all elements where \vn{ele%key} is \vn{quadrupole\$} 
+and \vn{ele%name} starts with ``\vn{skew}''. See the documentation on 
+\vn{lat_ele_locator} for more details on the syntax of the search string.
+
+The \vn{ele_pointer_struct} array returned by \vn{lat_ele_locator} is
+an array of pointers to \vn{ele_struct) elements
+\begin{example}
+  type ele_pointer_struct
+    type (ele_struct), pointer :: ele => null()
+  end type
+\end{example}
+The \vn{n_loc} argument is the number of elements found and the \vn{err} argument
+is set True on a decode error of the search string.
+
+Once an element (or elements) is identified in the lattice,
+it's attributes can be altered. Care however, must be taken that an element's attribute
+can be modified. Reasons why an attribute may not be modified include ...
+Programs where attributes If the attribute 
+
+changing an element attribute generally involves changing values in the 
+\vn{%ele(i)%value(:)} array. This is done using the 
+\vnr{set_ele_attribute} routine. For example:
+\begin{example}
+  type (lat_struct) lat
+  logical err_flag, make_xfer_mat
+  ...
+  call element_locator ('Q01W', lat, ix_ele)
+  call set_ele_attribute (lat, ix_ele, 'K1', 0.1_rp, err_flag, make_xfer_mat)
+\end{example}
+\index{overlay}
+This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
+\vn{set_ele_attribute} checks whether this element is actually free to
+be varied and sets the \vn{err_flag} logical accordingly. An element's
+attribute may not be freely varied if, for example, the attribute is
+controlled via an \vn{Overlay}.
+
+\index{bmad_common_struct!auto_bookkeeper}
+There is a global variable \vn{bmad_com%auto_bookkeeper} that 
+controls whether bookkeeping routines are called by routines that do tracking
+and routines that calculate transfer matrices. 
+This is done to make sure that the control 
+and attribute information in a lattice is
+up--to--date. Since this bookkeeping needs only be done when element attributes
+are changed, this can lead to a significant waste of time. Setting 
+\vn{bmad_com%auto_bookkeeper} to \vn{.false.} turns off this
+automatic bookkeeping.
+As a result, if an attribute value is changed directly the appropriate bookkeeping
+routines need to be called:
+\begin{example}
+  type (lat_struct) lat
+  bmad_com%auto_bookkeeper = .false.
+  lat%ele(ix_ele)%value(k1$) = 0.1
+  call control_bookkeeper (lat, ix_ele)
+\end{example}
+Alternatively, if multiple elements are modified, then \vn{lattice_bookkeeper} can be
+used to do bookkeeping for the entire lattice:
+\begin{example}
+  type (lat_struct) lat
+  ... set some attributes ...
+  call lattice_bookkeeper (lat)
+\end{example}

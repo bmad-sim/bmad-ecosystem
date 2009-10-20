@@ -2,33 +2,44 @@
 \label{c:programming}
 
 %-----------------------------------------------------------------------
-\section {The Bmad Distribution}
+\section {The Bmad Libraries}
 \label{s:libs}
 \index{Bmad!distribution}
 
-The \bmad distribution consists of the \bmad library and six subsidiary
-libraries which \bmad depends upon. The \bmad distribution can be obtained at:
+The code that goes into a program based upon \bmad is divided up into
+a number of libraries. The \bmad web site has general information on
+the organization of these libraries including information on obtaining
+and compiling programs. The \bmad web site is at:
 \begin{example}
     http://www.lepp.cornell.edu/~dcs/bmad
 \end{example}
-Supported platforms are Tru64 (aka OSF) and Linux. On Linux the \bmad
-distribution has been built with the Lahey--Fujitsu f95 compiler. The
-\bmad distribution has also been built on VMS and Windows and an
-initial check indicates that the distribution should be build able
-under Sun Solaris. The \bmad web site has contact information for
-questions about platform support and building problems.
 
-\index{libraries, Software}
-The subsidiary libraries are: 
+The \bmad libraries are divided into two groups. One group of
+libraries contains the Cornell developed code. The \vn{``package''}
+libraries consist of non-Cornell code that \bmad relies upon.
+
+The Cornell developed code can further be divided into Cesr storage
+ring specific code and non Cesr specific code. The Cesr specific code
+will not be discussed in this Manual.
+
+The Cornell non Cesr specific code libraries are:
+subsidiary libraries are: 
 \begin{description}
-\index{sim_utils library}
-\item[sim_utils] 
-This library defines a set of miscellaneous helper routines for
-simulations. Included are routines for string manipulation, file manipulation,
+  \index{sim_utils library}
+  \item[sim_utils] 
+The \vn{sim_utils} library contains a set of miscellaneous helper routines. 
+Included are routines for string manipulation, file manipulation,
 matrix manipulation, spline fitting, Gaussian random number generation, etc. 
+  \item[bmad]
+The \vn{bmad} library contains the routines for relativistic charged
+particle simulation including particle tracking, Twiss calculations,
+symplectic integration, etc., etc.
+\end{description}
 
-\index{PTC/FPP!library}
-\item[forest] 
+The \vn{package} libraries are:
+\begin{description}
+  \index{PTC/FPP!library}
+  \item[forest] 
 This is the PTC/FPP (Polymorphic Tracking Code /
 Fully Polymorphic Package) library of Etienne Forest that handles
 Taylor maps to any arbitrary order (this is also known as Truncated
@@ -39,9 +50,8 @@ web site at
 \begin{example} 
    http://acc-physics.kek.jp/forest/PTC/Introduction.html
 \end{example}
-
-\index{numerical recipes!library}
-\item[recipes] 
+  \index{numerical recipes!library}
+  \item[recipes] 
 Numerical Recipes is a set of subroutines for doing
 scientific computing including Runge--Kutta integration, FFTs,
 interpolation and extrapolation, etc., etc. The documentation for this
@@ -54,9 +64,8 @@ subroutines are. You do need both books if you want to use Numerical
 Recipes. For \bmad this library has been modified to handle both
 single or double precision reals as needed in the other libraries (See
 \sref{s:precision}).
-
-\index{pgplot!library}
-\item[PGPLOT] 
+  \index{pgplot!library}
+  \item[PGPLOT] 
 The PGPLOT Graphics Subroutine Library is a Fortran or
 C-callable, device-independent graphics package for making simple
 scientific graphs. Documentation including a user's manual may be
@@ -69,32 +78,15 @@ most user friendly. To remedy this, there is a set of Fortran90
 wrapper subroutines called \vn{quick_plot}.  The \vn{quick_plot}
 suite is part of the sim_utils library and is documented in
 Chapter~\ref{c:quick.plot}.
-
-\index{XSIF!library}
-\item[XSIF] 
+  \index{XSIF!library}
+  \item[XSIF] 
 XSIF is a library from SLAC to read in XSIF format files. See 
 \sref{s:lattice.file.formats} for more details. The only
 \bmad routine to use this library is \vn{xsif_parser}.
-
-\index{cesr_utils}
-\item{cesr_utils} 
-The \vn{cesr_utils} library contains routines used for simulation of
-the CESR storage ring.
-
-\index{mpm_utils}
-\item{mpm_utils}
-The \vn{mpm_utils} library contains routines that access the CESR MPM
-database.
-
 \end{description}
 
-The \bmad distribution also contains the \tao library. \tao is a program 
-which uses \bmad as the simulation engine and is meant as a general 
-purpose tool for simulating accelerators. See the \tao documentation, which 
-can be obtained from the \bmad web page, for more information.
-
 %-----------------------------------------------------------------------------
-\section{Getf and Listf}
+\section{getf and listf}
 \label{s:getf}
 \index{getf}
 \index{listf}
@@ -107,7 +99,7 @@ lines. The hard part comes about since there are many details that
 have to be kept in mind in order to make sure that the subroutines
 are calculating what you really want them to calculate.
 
-To help with the details all \bmad subroutines have in their source (.f90)
+To help with the details, all \bmad subroutines have in their source (.f90)
 files a comment block that explains the arguments needed by the
 subroutines and explains what the subroutine does. To help quickly
 access these comments, there are two Perl scripts that are supplied
@@ -280,12 +272,13 @@ structure looks like
     ... etc. ...
   end type
 \end{example}
-To refer to, say, the \vn{a} component of the \vn{lat_struct},
-``\vn{%a}'' could be used. To make it explicit that this is a
-component of a \vn{lat_struct}, ``\vn{lat_struct%a}'' can be
-used. Since the vast majority of structures have the ``_struct''
-suffix, this may be shortened to ``\vn{lat%a}''. A similar notation
-works for subcomponents. For example, a \vn{branch_struct} looks like
+In this example, ``\vn{%a}'' could be used to refer to, the \vn{a}
+component of the \vn{lat_struct}.  To make it explicit that this is a
+component of a \vn{lat_struct}, ``\vn{lat_struct%a}'' is an alternate
+possibility. Since the vast majority of structures have the
+``_struct'' suffix, this may be shortened to ``\vn{lat%a}''. A similar
+notation works for subcomponents. For example, a \vn{branch_struct}
+looks like
 \begin{example}
   type branch_struct
     character(40) name
@@ -300,4 +293,4 @@ The \vn{ele} component of the \vn{branch} component of the
 \vn{lat_struct} can be referred to using ``\vn{lat%branch%ele}'',
 ``\vn{%branch%ele}'', or ``\vn{%ele}''. Potentially, the last of these
 could be confused with the ``\vn{lat%ele}'' component so ``\vn{%ele}''
-would only be used if the meaning is unambiguous due to the context.
+would only be used if the meaning is unambiguous in the context.

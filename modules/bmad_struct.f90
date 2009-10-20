@@ -145,11 +145,10 @@ type xy_disp_struct
   real(rp) eta, etap
 end type
 
-! Structure to encode the location of an element in a lat_struct
+! Structure to be used for an array of pointers to elements.
 
-type lat_ele_loc_struct
-  integer ix_ele
-  integer ix_branch
+type ele_pointer_struct
+  type (ele_struct), pointer :: ele => null()
 end type
 
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.

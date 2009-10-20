@@ -300,7 +300,7 @@ character(40) :: r_name = 'super_lord_length_bookkeeper'
 
 !
 
-dl_tol = 1e-6
+dl_tol = 1e-10
 
 length_adjustment_made = .false.
 ix0 = integer_option(0, ix_ele)
@@ -318,9 +318,9 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     length = length + slave%value(l$)
   enddo
 
-  ! Nothing to be done if the lengths add up
+  ! Nothing to be done if the lengths add up.
 
-  if (abs(length - lord0%value(l$)) < dl_tol * lord0%value(l$)) cycle
+  if (abs(length - lord0%value(l$)) < dl_tol * (1 + lord0%value(l$))) cycle
 
   ! Now we need to adjust some super_slave lengths.
   ! We try varying the length of all the slaves except
@@ -548,12 +548,14 @@ if (lord%lord_status /= super_lord$) then
 endif
 
 ! If a super lord is moved then we just need to adjust the start and end edges.
-! Adjust end position.
+! Since we don't want to kill taylor maps due to round-off errors we only change
+! the length if the percentage or absolute change is more than 10^-10
 
 s_end = lord%s + lord%value(s_offset_tot$)
 slave => pointer_to_slave (lat, lord, lord%n_slave)
 s_start = slave%s - slave%value(l$)
-slave%value(l$) = s_end - s_start
+if (abs(s_end - s_start - slave%value(l$)) > 1e-10 * (1 + abs(slave%value(l$)))) &  
+                              slave%value(l$) = s_end - s_start
 slave%s = s_end
 
 ! Adjust start position
