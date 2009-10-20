@@ -383,8 +383,25 @@ do i = 1, 20
     call err_exit
   endif
 
-  dl = -del0 * (photon2%now%track_len - photon0%now%track_len) / (del2 - del0)
+  ! Try linear interpolation
 
+  dl = -del0 * (photon2%now%track_len - photon0%now%track_len) / (del2 - del0)
+  call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
+
+  call photon_radius (photon1%now, wall, radius)
+  del1 = radius - 1
+
+  if (del1 < 0) then
+    photon0 = photon1; del0 = del1
+  elseif (del1 > 0) then
+    photon2 = photon1; del2 = del1
+    photon1 = photon0
+  endif
+
+  ! Linear interpolation will fail badly if the photon is doing from one side of the 
+  ! chamber to another. So also do a divide in half.
+
+  dl = (photon2%now%track_len - photon0%now%track_len) / 2
   call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
 
   call photon_radius (photon1%now, wall, radius)
@@ -510,7 +527,7 @@ dy_parallel = -dx_perp
 ! absorbtion
 
 graze_angle = pi/2 - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
-call photon_reflectivity (graze_angle, vec(6), reflectivity)
+call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
 call ran_uniform(r)
 absorbed = (r > reflectivity)
 if (absorbed) return  ! Do not reflect if absorbed
