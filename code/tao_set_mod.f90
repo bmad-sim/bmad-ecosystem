@@ -473,7 +473,7 @@ type (tao_curve_struct) this_curve
 type (tao_graph_struct), pointer :: this_graph
 type (tao_universe_struct), pointer :: u
 type (tao_universe_branch_struct), pointer :: uni_branch
-type (lat_ele_loc_struct), allocatable :: locs(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ix, ib, i_branch
 logical error
@@ -491,10 +491,10 @@ select case (component)
 
 case ('ele_ref_name')
   this_curve%ele_ref_name = set_value
-  call tao_locate_elements (this_curve%ele_ref_name, i_uni, locs, error, .true.)
-  if (size(locs) == 0) return
-  this_curve%ix_ele_ref = locs(1)%ix_ele
-  this_curve%ix_branch  = locs(1)%ix_branch
+  call tao_locate_elements (this_curve%ele_ref_name, i_uni, eles, error, .true.)
+  if (size(eles) == 0) return
+  this_curve%ix_ele_ref = eles(1)%ele%ix_ele
+  this_curve%ix_branch  = eles(1)%ele%ix_branch
   call tao_ele_to_ele_track (i_uni, i_branch, this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
   
 case ('ix_ele_ref')
@@ -508,10 +508,10 @@ case ('ix_universe')
   call tao_integer_set_value (this_curve%ix_universe, component, &
                                             set_value, error, 0, ubound(s%u, 1))
   if (error) return
-  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, locs, error, .true.)
-  if (size(locs) == 0) return
-  this_curve%ix_ele_ref = locs(1)%ix_ele
-  this_curve%ix_branch  = locs(1)%ix_branch
+  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, eles, error, .true.)
+  if (size(eles) == 0) return
+  this_curve%ix_ele_ref = eles(1)%ele%ix_ele
+  this_curve%ix_branch  = eles(1)%ele%ix_branch
   call tao_ele_to_ele_track (this_curve%ix_universe, this_curve%ix_branch, &
                                      this_curve%ix_ele_ref, this_curve%ix_ele_ref_track)
 

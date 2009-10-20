@@ -24,7 +24,7 @@ use tao_top10_mod
 implicit none
 
 type (lat_struct), pointer :: lat
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 type (tao_universe_struct), pointer :: u
 
 integer i, j, ix, ix2, ix_plot, ie, iv, factor, ix_key, ios, ir
@@ -461,18 +461,17 @@ case ('/')
     write (*, '(/, a)', advance = "NO") ' Element Name or Index: '
     read (*, '(a)', iostat = ios) str
     if (ios /= 0 .or. str == '') return
-    call tao_locate_elements (str, 0, locs, err)
+    call tao_locate_elements (str, 0, eles, err)
     u => tao_pointer_to_universe(0)  
     lat => u%model%lat
-    do i = 1, size(locs)
+    do i = 1, size(eles)
       write (*, *) '!---------------------------------------------------'
-      write (*, *) '! Branch Index: ', locs(i)%ix_branch
-      write (*, *) '! Element Index:', locs(i)%ix_ele
-      call type_ele (lat%branch(locs(i)%ix_branch)%ele(locs(i)%ix_ele), &
-                                      .false., 6, .true., radians$, .true., lat)
+      write (*, *) '! Branch Index: ', eles(i)%ele%ix_branch
+      write (*, *) '! Element Index:', eles(i)%ele%ix_ele
+      call type_ele (eles(i)%ele, .false., 6, .true., radians$, .true., lat)
     enddo
 
-    if (size(locs) == 0) write (*, *) 'Element not found.'
+    if (size(eles) == 0) write (*, *) 'Element not found.'
 
   ! '/l' Lattice list
 

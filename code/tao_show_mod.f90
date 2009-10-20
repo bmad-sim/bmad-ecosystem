@@ -153,7 +153,7 @@ type (ele_struct), target :: ele3
 type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_universe_branch_struct), pointer :: uni_branch
 
@@ -358,11 +358,11 @@ case ('beam')
     call tao_pick_universe (word1, word1, picked_uni, err, ix_u)
     if (err) return
     u => s%u(ix_u)
-    call tao_locate_elements (word1, ix_u, locs, err)
-    if (err .or. size(locs) == 0) return
-    ix_ele = locs(1)%ix_ele
+    call tao_locate_elements (word1, ix_u, eles, err)
+    if (err .or. size(eles) == 0) return
+    ix_ele = eles(1)%ele%ix_ele
     n = s%global%bunch_to_plot
-    bunch_p => u%model%lat_branch(locs(1)%ix_branch)%bunch_params(ix_ele)
+    bunch_p => u%model%lat_branch(eles(1)%ele%ix_branch)%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
@@ -374,7 +374,7 @@ case ('beam')
     nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta
     nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
 
-    beam => u%uni_branch(locs(1)%ix_branch)%ele(ix_ele)%beam
+    beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
       call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params, err)
@@ -830,23 +830,22 @@ case ('element')
     n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
-      call tao_locate_elements (ele_name, i_uni,locs, err, .true.)
+      call tao_locate_elements (ele_name, i_uni,eles, err, .true.)
       if (err) return
       lat => s%u(i_uni)%model%lat
-      n_tot = n_tot + size(locs)
-      do i = 1, size(locs)
-        ele => pointer_to_ele (lat, locs(i))
+      n_tot = n_tot + size(eles)
+      do i = 1, size(eles)
+        ele => eles(i)%ele
         if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
         if (count(picked_uni) > 1) then
-          nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') &
-                                                locs(i)%ix_ele, i_uni, '@', ele%name
+          nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') ele%ix_ele, i_uni, '@', ele%name
         else
-          nl=nl+1; write (lines(nl), '(i8, 2x, a)') locs(i)%ix_ele, ele%name
+          nl=nl+1; write (lines(nl), '(i8, 2x, a)') ele%ix_ele, ele%name
         endif
       enddo
     enddo
 
-    deallocate(locs)
+    deallocate(eles)
     nl=nl+1; write (lines(nl), '(a, i0)') 'Number of Matches: ', n_tot
 
     if (nl == 0) then
@@ -862,14 +861,14 @@ case ('element')
   ! No wildcard case...
   ! Normal: Show the element info
 
-  call tao_locate_elements (ele_name, ix_u, locs, err)
+  call tao_locate_elements (ele_name, ix_u, eles, err)
   if (err) return
-  ele => pointer_to_ele (s%u(ix_u)%model%lat, locs(1))
+  ele => eles(1)%ele
 
   ! Show data associated with this element
 
   if (print_data) then
-    call show_ele_data (u, locs(1), lines, nl)
+    call show_ele_data (u, ele, lines, nl)
     result_id = 'element:data'
     return
   endif
@@ -889,7 +888,7 @@ case ('element')
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
   endif
 
-  orb = u%model%lat_branch(locs(1)%ix_branch)%orbit(locs(1)%ix_ele)
+  orb = u%model%lat_branch(eles(1)%ele%ix_branch)%orbit(eles(1)%ele%ix_ele)
   fmt = '(2x, a, 3p2f15.8)'
   lines(nl+1) = ' '
   lines(nl+2) = 'Orbit: [mm, mrad]'
@@ -899,20 +898,20 @@ case ('element')
   nl = nl + 5
 
   found = .false.
-  do i = 2, size(locs)
+  do i = 2, size(eles)
     if (size(lines) < nl+2) call re_allocate (lines, nl+10, .false.)
     if (found) then
       nl=nl+1; lines(nl) = ''
       found = .true.
     endif
     nl=nl+1
-    if (locs(i)%ix_branch == 0) then
+    if (eles(i)%ele%ix_branch == 0) then
       write (lines(nl), '(a, i0)') &
-              'Note: Found another element with same name at: ', locs(i)%ix_ele
+              'Note: Found another element with same name at: ', eles(i)%ele%ix_ele
     else
       write (lines(nl), '(a, i0, a,i0)') &
               'Note: Found another element with same name at: ', &
-              locs(i)%ix_branch, '.', locs(i)%ix_ele
+              eles(i)%ele%ix_branch, '.', eles(i)%ele%ix_ele
     endif
   enddo
 
@@ -1220,10 +1219,12 @@ case ('lattice')
   allocate (picked_ele(0:branch%n_ele_max))
 
   if (ele_name /= '') then
-    call tao_locate_elements (ele_name, u%ix_uni, locs, err, .true.)
+    call tao_locate_elements (ele_name, u%ix_uni, eles, err, .true.)
     if (err) return
     picked_ele = .false.
-    picked_ele(locs%ix_ele) = .true.
+    do i = 1, size(eles)
+      picked_ele(eles(i)%ele%ix_ele) = .true.
+    enddo
 
   elseif (stuff2(1:ix) == '*' .or. all_lat .or. stuff2(1:ix) == 'all') then
     picked_ele = .true.
@@ -1459,11 +1460,11 @@ case ('optimizer')
 
 case ('orbit')
 
-  call tao_locate_elements (word1, u%ix_uni, locs, err)
+  call tao_locate_elements (word1, u%ix_uni, eles, err)
   if (err) return
   do i = 1, 6
     nl=nl+1; write (lines(nl), rmt) '     ', &
-                u%model%lat_branch(locs(1)%ix_branch)%orbit%vec(locs(1)%ix_ele)
+                u%model%lat_branch(eles(1)%ele%ix_branch)%orbit%vec(eles(1)%ele%ix_ele)
   enddo
 
   result_id = show_what
@@ -1522,10 +1523,10 @@ case ('particle')
   if (ele_name /= '') then
     call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
     if (err) return
-    call tao_locate_elements (ele_name, ix_u, locs, err)
+    call tao_locate_elements (ele_name, ix_u, eles, err)
     if (err) return
-    ix_ele = locs(1)%ix_ele
-    ix_branch = locs(2)%ix_ele
+    ix_ele = eles(1)%ele%ix_ele
+    ix_branch = eles(2)%ele%ix_ele
   endif
 
   uni_branch => u%uni_branch(ix_branch)
@@ -1749,25 +1750,25 @@ case ('taylor_map')
     ix2 = lat%n_ele_track
     ix1 = 0
   else
-    call tao_locate_elements (ele1, u%ix_uni, locs, err)
-    if (size(locs) > 1) then
+    call tao_locate_elements (ele1, u%ix_uni, eles, err)
+    if (size(eles) > 1) then
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
       return
     endif
     if (err) return
-    ix1 = locs(1)%ix_ele
+    ix1 = eles(1)%ele%ix_ele
   endif
 
   if (ele2 == '') then
     ix2 = ix1
     ix1 = 0
   else
-    call tao_locate_elements (ele2, u%ix_uni, locs, err)
-    if (size(locs) > 1) then
+    call tao_locate_elements (ele2, u%ix_uni, eles, err)
+    if (size(eles) > 1) then
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
       return
     endif
-    if (err .or. size(locs) == 0) return
+    if (err .or. size(eles) == 0) return
   endif
 
   call transfer_map_calc (lat, taylor, ix1, ix2)
@@ -2283,13 +2284,13 @@ end select
 !----------------------------------------------------------------------
 contains
 
-subroutine show_ele_data (u, loc, lines, nl)
+subroutine show_ele_data (u, ele, lines, nl)
 
 implicit none
 
 type (tao_universe_struct), target :: u
 type (tao_data_struct), pointer :: datum
-type (lat_ele_loc_struct) loc
+type (ele_struct) ele
 
 character(*) :: lines(:)
 character(100) l1
@@ -2306,7 +2307,7 @@ nl=nl+1; lines(nl) = l1
 
 found_one = .false.
 do i = 1, size(u%data)
-  if (u%data(i)%ix_ele == loc%ix_ele .and. u%data(i)%ix_branch == loc%ix_branch) then
+  if (u%data(i)%ix_ele == ele%ix_ele .and. u%data(i)%ix_branch == ele%ix_branch) then
     found_one = .true.
     datum => u%data(i)
     nl=nl+1; write (lines(nl), "(a, t30, a20, 3(1x, es15.5))") &

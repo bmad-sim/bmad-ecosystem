@@ -353,7 +353,7 @@ use tao_read_beam_mod
 implicit none
 
 type (tao_universe_struct), target :: u
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (branch_struct), pointer :: branch
 !! type (lat_struct), pointer :: lat
@@ -387,13 +387,13 @@ uni_branch%ele(u%design%lat%n_ele_track)%save_beam = .true.
 
 do i = 1, size(save_beam_at)
   if (save_beam_at(i) == '') exit
-  call tao_locate_elements (save_beam_at(i), u%ix_uni, locs, err, .false.)
+  call tao_locate_elements (save_beam_at(i), u%ix_uni, eles, err, .false.)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SAVE_BEAM_AT ELEMENT: ' // save_beam_at(i))
     cycle
   endif
-  do k = 1, size(locs)
-    uni_branch%ele(locs(k)%ix_ele)%save_beam = .true.
+  do k = 1, size(eles)
+    uni_branch%ele(eles(k)%ele%ix_ele)%save_beam = .true.
   enddo
 enddo
   
@@ -419,7 +419,7 @@ if (uni_branch%beam_all_file /= '') then
 endif
 
 if (u%connect%connected) u%connect%injecting_beam = u%current_beam
-if (allocated(locs)) deallocate (locs)
+if (allocated(eles)) deallocate (eles)
 
 end subroutine init_beam
 
@@ -698,7 +698,7 @@ subroutine d1_data_stuffit (i_d1, u, n_d2)
 type (tao_universe_struct), target :: u
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
@@ -723,8 +723,8 @@ endif
 ! and record the element names in the data structs.
     
 if (search_for_lat_eles /= '') then
-  call tao_init_find_elements (u, search_for_lat_eles, locs)
-  if (size(locs) == 0) then
+  call tao_init_find_elements (u, search_for_lat_eles, eles)
+  if (size(eles) == 0) then
     call out_io (s_warn$, r_name, &
       'NO ELEMENTS FOUND IN SEARCH FOR: ' // search_for_lat_eles, &
       'WHILE SETTING UP DATA ARRAY: ' // tao_d2_d1_name(d1_this))
@@ -732,7 +732,7 @@ if (search_for_lat_eles /= '') then
   endif
   ! finish finding data array limits
   n1 = u%n_data_used + 1
-  n2 = u%n_data_used + size(locs)
+  n2 = u%n_data_used + size(eles)
   u%n_data_used = n2
   call tao_allocate_data_array (u, n2)
 
@@ -742,15 +742,14 @@ if (search_for_lat_eles /= '') then
 
   ! get element names
   jj = n1
-  do k = lbound(locs, 1), ubound(locs, 1)
+  do k = lbound(eles, 1), ubound(eles, 1)
     if (jj .gt. n2) then
       call out_io (s_abort$, r_name, "INTERNAL ERROR DURING ELEMENT COUNTING")
       call err_exit
     endif
-    ele => pointer_to_ele (u%design%lat, locs(k))
-    u%data(jj)%ele_name  = ele%name
-    u%data(jj)%ix_ele    = locs(k)%ix_ele
-    u%data(jj)%ix_branch = locs(k)%ix_branch
+    u%data(jj)%ele_name  = eles(k)%ele%name
+    u%data(jj)%ix_ele    = eles(k)%ele%ix_ele
+    u%data(jj)%ix_branch = eles(k)%ele%ix_branch
     u%data(jj)%exists    = .true.
     jj = jj + 1
   enddo
@@ -1488,7 +1487,7 @@ type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: var_ptr
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 
 character(20) fmt
 character(40) ele_name
@@ -1615,12 +1614,10 @@ if (search_for_lat_eles /= '') then
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_init_find_elements (s%u(iu), search_string, locs, default_attribute)
+    call tao_init_find_elements (s%u(iu), search_string, eles, default_attribute)
     if (grouping) then
-      do kk = 1, size(locs)
-        ix_ele = locs(kk)%ix_ele
-        ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
-        call find_indexx(ele_name, ele_names, an_indexx, num_ele, ixm, ix2m)
+      do kk = 1, size(eles)
+        call find_indexx(eles(kk)%ele%name, ele_names, an_indexx, num_ele, ixm, ix2m)
         if (ixm == 0) then
           if (num_ele+1 > size(ele_names)) then
             call re_allocate(ele_names, size(ele_names) + 100)
@@ -1628,12 +1625,12 @@ if (search_for_lat_eles /= '') then
           endif
           an_indexx(ix2m+1:num_ele+1) = an_indexx(ix2m:num_ele)
           an_indexx(ix2m) = num_ele + 1
-          ele_names(num_ele+1) = ele_name
+          ele_names(num_ele+1) = eles(kk)%ele%name
           num_ele = num_ele + 1
         endif
       enddo
     else
-      num_ele = num_ele + size(locs)
+      num_ele = num_ele + size(eles)
     endif
   enddo
   deallocate(ele_names, an_indexx)
@@ -1655,15 +1652,13 @@ if (search_for_lat_eles /= '') then
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. dflt_good_unis(iu)) cycle
     if (ix_uni > -1 .and. iu /= ix_uni) cycle
-    call tao_init_find_elements (s%u(iu), search_string, locs, default_attribute)
-    kk_loop: do kk = 1, size(locs)
-      ix_ele = locs(kk)%ix_ele
-      ele_name = s%u(iu)%design%lat%ele(ix_ele)%name
+    call tao_init_find_elements (s%u(iu), search_string, eles, default_attribute)
+    kk_loop: do kk = 1, size(eles)
       ! If the name matches an existing variable then use that variable
       if (grouping) then
         do j = n1, nn
           if (s%var(j)%ele_name == ele_name) then
-            call tao_pointer_to_var_in_lattice (s%var(j), iu, ix_ele, err)
+            call tao_pointer_to_var_in_lattice (s%var(j), iu, eles(kk)%ele, err)
             cycle kk_loop
           endif
         enddo
@@ -1675,10 +1670,10 @@ if (search_for_lat_eles /= '') then
       var_ptr%v1 => v1_var_ptr  ! Used for error messages in pointer_to_var
       var_ptr%ix_v1 = ix_min_var + nn - n1
       var_ptr%exists = .true.
-      var_ptr%ele_name = ele_name
-      var_ptr%s = s%u(iu)%design%lat%ele(ix_ele)%s
+      var_ptr%ele_name = eles(kk)%ele%name
+      var_ptr%s = eles(kk)%ele%s
       var_ptr%attrib_name = default_attribute
-      call tao_pointer_to_var_in_lattice (var_ptr, iu, ix_ele, err)
+      call tao_pointer_to_var_in_lattice (var_ptr, iu, eles(kk)%ele, err)
     enddo kk_loop
   enddo 
 
@@ -1815,8 +1810,9 @@ implicit none
 type (tao_var_struct), target :: var
 type (tao_this_var_struct), pointer :: this
 type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
 
-integer i, j, n, n1, n2, ie, iu
+integer i, j, n, n1, n2, ie, iu, ib
 
 character(20) :: r_name = 'tao_var_stuffit2'
 logical err, good_unis(lbound(s%u, 1):), found
@@ -1832,11 +1828,14 @@ endif
 found = .false.
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. good_unis(iu)) cycle
-  do ie = 0, s%u(iu)%model%lat%n_ele_max
-    if (var%ele_name /= s%u(iu)%model%lat%ele(ie)%name) cycle
-    call tao_pointer_to_var_in_lattice (var, iu, ie, err)
-    if (err) return
-    found = .true.
+  lat => s%u(iu)%model%lat
+  do ib = 0, ubound(lat%branch, 1)
+    do ie = 0, lat%branch(ib)%n_ele_max
+      if (var%ele_name /= lat%branch(ib)%ele(ie)%name) cycle
+      call tao_pointer_to_var_in_lattice (var, iu, lat%branch(ib)%ele(ie), err)
+      if (err) return
+      found = .true.
+    enddo
   enddo
 enddo
 
@@ -1882,15 +1881,15 @@ end subroutine
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
-! This searches the lattice for the specified element and flags locs(:)
+! This searches the lattice for the specified element and flags eles(:)
 
-subroutine tao_init_find_elements (u, search_string, locs, attribute)
+subroutine tao_init_find_elements (u, search_string, eles, attribute)
 
 implicit none
 
 type (tao_universe_struct), target :: u
 type (ele_struct), pointer :: ele
-type (lat_ele_loc_struct), allocatable :: locs(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 character(*) search_string
 character(*), optional :: attribute
@@ -1930,12 +1929,12 @@ enddo
 
 ! Find elements
 
-call tao_locate_elements (string, u%ix_uni, locs, err)
+call tao_locate_elements (string, u%ix_uni, eles, err)
 
 warn_given = .false.
 n_ele = 0
-do j = 1, size(locs)
-  ele => pointer_to_ele (u%design%lat, locs(j))
+do j = 1, size(eles)
+  ele => eles(j)%ele
   t = ele%slave_status
   if ((t == multipass_slave$ .or. t == super_slave$) .and. no_slaves) cycle
   t = ele%lord_status 
@@ -1951,8 +1950,7 @@ do j = 1, size(locs)
                       'FOR ELEMENT: ' // ele%name)
       return
     endif
-    if (.not. attribute_free (locs(j)%ix_ele, locs(j)%ix_branch, &
-                                        attribute, u%model%lat, .false.)) then
+    if (.not. attribute_free (eles(j)%ele, attribute, u%model%lat, .false.)) then
       if (.not. warn_given) then
         call out_io (s_info$, r_name, &
                   'Non-free attribute ' // attribute, &
@@ -1965,10 +1963,10 @@ do j = 1, size(locs)
   endif
   ! Passes test so add it to the list
   n_ele = n_ele + 1
-  locs(n_ele) = locs(j)
+  eles(n_ele)%ele => eles(j)%ele
 enddo
 
-call re_allocate_locs (locs, n_ele, .true.)
+call re_allocate_eles (eles, n_ele, .true.)
 
 end subroutine tao_init_find_elements
 
@@ -1976,7 +1974,7 @@ end subroutine tao_init_find_elements
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ix_ele, err)
+! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ele, err)
 ! 
 ! Routine to set a pointer to the appropriate variable in a lattice
 !
@@ -1994,16 +1992,17 @@ end subroutine tao_init_find_elements
 !   err       -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ix_ele, err)
+subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ele, err)
 
 implicit none
 
 type (tao_var_struct), target :: var
+type (ele_struct) ele
+type (ele_struct), pointer :: ele2
 type (tao_universe_struct), pointer :: u
 type (tao_this_var_struct), pointer :: this
 type (tao_this_var_struct) :: this_saved(size(var%this))
 
-integer :: ix_ele
 integer ix, ix_uni, ix_this
 logical :: err
 character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
@@ -2026,13 +2025,14 @@ this => var%this(ix_this)
 
 ! locate attribute
 
-call pointer_to_attribute (u%model%lat%ele(ix_ele), var%attrib_name, .true., &
+ele2 => pointer_to_ele (u%model%lat, ele%ix_ele, ele%ix_branch)
+call pointer_to_attribute (ele2, var%attrib_name, .true., &
                           this%model_value, err, .false., ix_attrib = var%ix_attrib)
 if (err) then
   call out_io (s_error$, r_name, &
             'IN VARIBALE: ' // tao_var1_name(var), &
             '  INVALID ATTRIBUTE: ' // var%attrib_name, &
-            '  FOR ELEMENT: ' // u%model%lat%ele(ix_ele)%name)
+            '  FOR ELEMENT: ' // ele%name)
   var%model_value => var%old_value
   var%base_value  => var%old_value
   var%exists = .false.
@@ -2040,23 +2040,24 @@ if (err) then
   return
 endif
 
-call pointer_to_attribute (u%base%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      this%base_value,  err)
+ele2 => pointer_to_ele (u%base%lat, ele%ix_ele, ele%ix_branch)
+call pointer_to_attribute (ele2,  var%attrib_name, .true., this%base_value,  err)
 
 var%model_value => var%this(1)%model_value
 var%base_value  => var%this(1)%base_value
 var%design_value = var%this(1)%model_value
 
-this%ix_ele = ix_ele
-this%ix_uni = ix_uni
+this%ix_ele    = ele%ix_ele
+this%ix_branch = ele%ix_branch
+this%ix_uni    = ix_uni
 
 ! Common pointer
 
 if (associated(u%common)) then
-  call pointer_to_attribute (u%common%model%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      var%common%model_value,  err)
-  call pointer_to_attribute (u%common%base%lat%ele(ix_ele),  var%attrib_name, .true., &
-                                                      var%common%base_value,  err)
+  ele2 => pointer_to_ele (u%common%model%lat, ele%ix_ele, ele%ix_branch)
+  call pointer_to_attribute (ele,  var%attrib_name, .true., var%common%model_value,  err)
+  ele2 => pointer_to_ele (u%common%base%lat, ele%ix_ele, ele%ix_branch)
+  call pointer_to_attribute (ele, var%attrib_name, .true., var%common%base_value,  err)
 endif
 
 ! With unified lattices: model_value and base_value get their own storage

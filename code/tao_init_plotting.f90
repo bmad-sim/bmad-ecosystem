@@ -46,7 +46,7 @@ type (tao_ele_shape_struct) ele_shape(20)
 type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
 type (qp_axis_struct) init_axis
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 
 real(rp) shape_height_max, y1, y2
 
@@ -659,9 +659,9 @@ do  ! Loop over plot files
           crv%ele_ref_name = s%u(i_uni)%design%lat%ele(crv%ix_ele_ref)%name ! find the name
         ! if ele_ref_name has been set ...
         elseif (crv%ele_ref_name /= ' ') then
-          call tao_locate_elements (crv%ele_ref_name, i_uni, locs, err, .true.) ! find the index
-          crv%ix_ele_ref = locs(1)%ix_ele
-          crv%ix_branch  = locs(1)%ix_branch
+          call tao_locate_elements (crv%ele_ref_name, i_uni, eles, err, .true.) ! find the index
+          crv%ix_ele_ref = eles(1)%ele%ix_ele
+          crv%ix_branch  = eles(1)%ele%ix_branch
         elseif (crv%data_type(1:5) == 'phase' .or. crv%data_type(1:2) == 'r.' .or. &
                 crv%data_type(1:2) == 't.' .or. crv%data_type(1:3) == 'tt.') then
           crv%ix_ele_ref = 0

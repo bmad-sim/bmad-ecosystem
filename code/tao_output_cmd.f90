@@ -23,7 +23,7 @@ type (tao_curve_struct), pointer :: c
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
 type (tao_universe_struct), pointer :: u
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 
 real(rp) scale
 
@@ -83,9 +83,9 @@ case ('beam')
     if (switch == '') exit
     if (switch == '-ascii') ascii = .true.
     if (switch == '-at') then
-      call tao_locate_elements (what2(1:ix), s%global%u_view, locs, err)
+      call tao_locate_elements (what2(1:ix), s%global%u_view, eles, err)
       what2 = what2(ix+1:)
-      if (err .or. size(locs) == 0) return
+      if (err .or. size(eles) == 0) return
     endif
   enddo
 
@@ -112,7 +112,7 @@ case ('beam')
 
       do j = lbound(u%uni_branch(ibr)%ele, 1), ubound(u%uni_branch(ibr)%ele, 1)
 
-        if (locs(1)%ix_ele /= j .or. locs(1)%ix_branch /= ibr) cycle
+        if (eles(1)%ele%ix_ele /= j .or. eles(1)%ele%ix_branch /= ibr) cycle
         beam => u%uni_branch(ibr)%ele(j)%beam
         if (.not. allocated(beam%bunch)) cycle
 

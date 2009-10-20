@@ -239,7 +239,7 @@ end subroutine tao_pick_universe
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_elements (string, ix_universe, locs, err, ignore_blank) 
+! Subroutine tao_locate_elements (string, ix_universe, eles, err, ignore_blank) 
 !
 ! Subroutine to find the lattice elements corresponding to the string argument.
 !
@@ -250,16 +250,16 @@ end subroutine tao_pick_universe
 !     string is blank. otherwise treated as an error.
 !
 ! Output:
-!   locs  -- lat_ele_loc_struct(:), allocatable: Array of elements. 
+!   eles  -- ele_pointer_struct(:), allocatable: Array of elements. 
 !   err   -- Logical: Set true on error.
 !-
 
-subroutine tao_locate_elements (string, ix_universe, locs, err, ignore_blank)
+subroutine tao_locate_elements (string, ix_universe, eles, err, ignore_blank)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (lat_ele_loc_struct), allocatable :: locs(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc
 
@@ -278,7 +278,7 @@ err = .true.
 call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
 
-call re_allocate_locs (locs, 0)
+call re_allocate_eles (eles, 0)
 
 if (ix == 0 .and. logic_option(.false., ignore_blank)) return
 
@@ -290,7 +290,7 @@ endif
 u => tao_pointer_to_universe (ix_universe)
 if (.not. associated(u)) return
 
-call lat_ele_locator (ele_name, u%model%lat, locs, n_loc, err)
+call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
 if (err) return
 
 if (n_loc == 0) then
@@ -299,7 +299,7 @@ if (n_loc == 0) then
   return
 endif
 
-call re_allocate_locs (locs, n_loc, .true.)
+call re_allocate_eles (eles, n_loc, .true.)
 
 end subroutine tao_locate_elements
 
@@ -660,7 +660,7 @@ type (lat_struct), pointer :: lat
 type (ele_struct) ele3
 type (coord_struct), pointer :: this_orb(:)
 type (coord_struct) orb
-type (lat_ele_loc_struct), allocatable, save :: locs(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 
 character(*) param_name
@@ -724,12 +724,12 @@ n_tot = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   u => s%u(i)
-  call tao_locate_elements (class_ele, u%ix_uni, locs, err)
+  call tao_locate_elements (class_ele, u%ix_uni, eles, err)
   if (err) return
-  call re_allocate (values, n_tot + size(locs))
+  call re_allocate (values, n_tot + size(eles))
 
-  do j = 1, size(locs)
-    ixe = locs(j)%ix_ele
+  do j = 1, size(eles)
+    ixe = eles(j)%ele%ix_ele
 
     if (parameter == 'index') then
       values(n_tot+j) = ixe
@@ -739,16 +739,16 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     select case (component)
     case ('model')   
       lat => u%model%lat
-      this_orb => u%model%lat_branch(locs(j)%ix_branch)%orbit
-      branch => u%model%lat%branch(locs(j)%ix_branch)
+      this_orb => u%model%lat_branch(eles(j)%ele%ix_branch)%orbit
+      branch => u%model%lat%branch(eles(j)%ele%ix_branch)
     case ('base')  
       lat => u%base%lat
-      this_orb => u%base%lat_branch(locs(j)%ix_branch)%orbit
-      branch => u%base%lat%branch(locs(j)%ix_branch)
+      this_orb => u%base%lat_branch(eles(j)%ele%ix_branch)%orbit
+      branch => u%base%lat%branch(eles(j)%ele%ix_branch)
     case ('design')
       lat => u%design%lat
-      this_orb => u%design%lat_branch(locs(j)%ix_branch)%orbit
-      branch => u%design%lat%branch(locs(j)%ix_branch)
+      this_orb => u%design%lat_branch(eles(j)%ele%ix_branch)%orbit
+      branch => u%design%lat%branch(eles(j)%ele%ix_branch)
     case default
       call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // param_name)
       return
