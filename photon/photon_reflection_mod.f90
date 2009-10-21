@@ -171,6 +171,8 @@ subroutine photon_reflectivity (angle, energy,  ref)
   endif
 
   energym = max(30.0_rp, energy)
+  energym = min(1000.0_rp, energym)
+
   angle_deg = angle * 180 / pi
   ref = max(0.0_rp, splin2 (ang_vec, energy_vec, reflect_vec, y2, angle_deg, energym))
 
