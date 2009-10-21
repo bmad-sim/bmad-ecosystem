@@ -1844,7 +1844,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) start, end
 
-real(rp) factor, f2, phase, E_tot
+real(rp) factor, f2, phase, E_tot, dval(n_attrib_maxx)
 real(rp), pointer :: val(:)
 
 character(20) ::  r_name = 'attribute_bookkeeper'
@@ -1852,6 +1852,7 @@ character(20) ::  r_name = 'attribute_bookkeeper'
 logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed
 logical v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
+logical :: debug = .false.  ! For debugging purposes
 
 ! If no change then we don't need to do anything
 
@@ -1863,6 +1864,7 @@ if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
 z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0)
 
 if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
+if (debug) dval = val - ele%old_value
 
 ! Transfer tilt to tilt_tot, etc.
 
@@ -2084,6 +2086,8 @@ if (val(ds_step$) == 0 .or. ele%num_steps == 0) ele%num_steps = 1
 
 ! If things have changed we need to kill the Taylor Map and gen_field.
 ! The old_value array tells us this.
+
+if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
 
 if (init_needed) then
   v_mask = .true.
