@@ -84,6 +84,8 @@ do
       num = -1
       return
     endif
+    ! Correction since match_word assumes that names(:) has lower bound of 1.
+    index = index + (ix_min - 1)  
   endif
 
   ! If there is no name match then assume it is a number
