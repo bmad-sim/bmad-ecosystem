@@ -176,7 +176,6 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (real_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
-type (ele_struct), pointer :: ele
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
 real(rp) new_merit, old_merit, new_value, delta
@@ -296,7 +295,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     if (nl < 11) then
       name = 'BEAM_START'
-      if (size(eles) > 0) name = ele%name
+      if (size(eles) > 0) name = eles(1)%ele%name
       nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
                               old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
                               m_ptr(i)%r-old_value(i), trim(name)

@@ -1047,7 +1047,7 @@ ix_shape = 0
 if (ele%lord_status == group_lord$) return
 if (ele%lord_status == overlay_lord$) return
 if (ele%slave_status == super_slave$) return
-if (ele%ix_ele > n_ele_track .and. ele%lord_status == free$) return
+if (ele%ix_ele > n_ele_track .and. ele%lord_status == not_a_lord$) return
 
 do k = 1, size(ele_shapes)
 
