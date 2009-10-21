@@ -213,7 +213,7 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    if (.not. any( (/ free$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
+    if (.not. any( (/ not_a_lord$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
                       multipass_lord$ /) == l_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
