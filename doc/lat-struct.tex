@@ -265,22 +265,13 @@ Two components of an \vn{ele_struct} determine the line of control:
 \vn{ele%lord_status} and \vn{ele%slave_status}. \vn{ele%lord_status}
 determines what type of lord the element is. In the tracking part of
 the lattice (\sref{s:lat.struct}), \vn{%lord_status} is always set to
-\vn{free\$}.  In the lord section of the lattice, \vn{ele%lord_status}
+\vn{not_a_lord\$}. In the lord section of the lattice, \vn{ele%lord_status}
 can be one of:
+\index{girder_lord}
 \begin{description}
-  \item[free\$]\Newline
-A free lord element does not control anything. This can be sometimes useful
-when manipulating lattices but is not generally used.
 \item[super_lord\$]\Newline 
-A \vn{super_lord} lord element is created when elements are
+A \vn{super_lord} element is created when elements are
 superimposed on top of other elements (\sref{s:super}).
-  \item[overlay_lord\$]\Newline 
-An \vn{overlay_lord} is an \vn{overlay} element(\sref{s:overlay}). 
-Such an element will also have \vn{ele%key} = \vn{overlay\$}.
-  \item[group_lord\$]\Newline 
-A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Such
-an element will also have \vn{ele%key} = \vn{group\$}.
-  \index{girder_lord}
   \item[girder_lord]\Newline 
 A \vn{girder_lord} is a \vn{girder} element (\sref{s:girder}).  Such
 an element will also have \vn{ele%key} = \vn{girder\$}. In this case,
@@ -289,6 +280,15 @@ component.
   \item[multipass_lord\$]\Newline
 \vn{multipass_lord} elements are created when
 multipass lines are present (\sref{s:multipass}). 
+  \item[overlay_lord\$]\Newline 
+An \vn{overlay_lord} is an \vn{overlay} element(\sref{s:overlay}). 
+Such an element will also have \vn{ele%key} = \vn{overlay\$}.
+  \item[group_lord\$]\Newline 
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Such
+an element will also have \vn{ele%key} = \vn{group\$}.
+  \item[not_a_lord\$]\Newline
+This lord element does not control anything. This can be sometimes useful
+when manipulating lattices but is not generally used.
 \end{description}
 
 The \vn{ele%slave_status} component determines what type of slave an element is.
@@ -316,7 +316,46 @@ Free elements do not have any lord elements.
 
 How \bmad 
 
+\begin{tabular}{llccccc} 
+\hline
+& \multicolumn{6){c}{\vn{ele%lord_status}} \\ \hline
+\rule{0pt}{80pt} &
+\begin{sideways}\vn{not_a_lord\$}\end{sideways} &
+\begin{sideways}\vn{group_lord\$}\end{sideways} &
+\begin{sideways}\vn{girder_lord\$}\end{sideways} &
+\begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+\begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+\begin{sideways}\vn{super_lord\$}\end{sideways}
+\\ \hline
+\multirow{5}*{\begin{sideways}\vn{ele%slave_status}\end{sideways}
+%                           NL  GR  GI  O   M   S
+& \vn{free\$}             & X & X & X & X & X & X \\ \hline
+& \vn{group_slave\$}      & X & X & X & X & X & X \\ \hline
+& \vn{overlay_slave\$}    & X & X & X & X & X & X \\ \hline
+& \vn{multipass_slave\$}  & X &   &   &   &   & X \\ \hline
+& \vn{super_slave\$}      & X &   &   &   &   &   \\ \hline
+\end{tabular}
 
+
+\begin{tabular}{llccccc} 
+\hline
+& \multicolumn{6){c}{\vn{ele1%lord_status}} \\ \hline
+\rule{0pt}{80pt} &
+\begin{sideways}\vn{not_a_lord\$\$}\end{sideways} &
+\begin{sideways}\vn{group_lord\$}\end{sideways} &
+\begin{sideways}\vn{girder_lord\$}\end{sideways} &
+\begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+\begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+\begin{sideways}\vn{super_lord\$}\end{sideways}
+\\ \hline
+\multirow{5}*{\begin{sideways}\vn{ele2%slave_status}\end{sideways}
+%                           NL  GR  GI  O   M   S
+& \vn{free\$}             &   &   &   &   &   &   \\ \hline
+& \vn{group_slave\$}      &   & X &   &   &   &   \\ \hline
+& \vn{overlay_slave\$}    &   & X & X & X &   &   \\ \hline
+& \vn{multipass_slave\$}  &   & X &   & X & X &   \\ \hline
+& \vn{super_slave\$}      &   &   &   &   &   & X \\ \hline
+\end{tabular}
 
 
 

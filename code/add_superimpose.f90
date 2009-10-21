@@ -102,7 +102,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     call split_lat (lat, s1, ix1_split, split1_done, check_controls = .false.)
     call insert_element (lat, super_saved, ix1_split+1)
     ix_super = ix1_split + 1
-    lat%ele(ix_super)%lord_status  = free$
+    lat%ele(ix_super)%lord_status  = not_a_lord$
     lat%ele(ix_super)%slave_status = free$
     call adjust_slave_names (lat, n_ele_max_old)
     return
@@ -191,7 +191,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     call remove_eles_from_lat(lat)    ! And delete
     ix_super = ix1_split + 1
     lat%ele(ix_super) = super_saved
-    lat%ele(ix_super)%lord_status  = free$
+    lat%ele(ix_super)%lord_status  = not_a_lord$
     lat%ele(ix_super)%slave_status = free$
     ! If a single drift was split give the runt drifts on either end 
     ! Unique names by adding "#1" and "#2" suffixes.

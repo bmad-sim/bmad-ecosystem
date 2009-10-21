@@ -153,7 +153,7 @@ do j_in = 1, r_in%n_ele_track
       if (i_out > ubound(r_out%ele, 1)) call allocate_lat_ele_array(r_out)
       ele_out => r_out%ele(i_out)
       ele_out = ele_in
-      ele_out%lord_status = free$
+      ele_out%lord_status = not_a_lord$
       ele_out%slave_status = free$
       ele_out%n_slave = 0
       ele_out%ix1_slave = 0

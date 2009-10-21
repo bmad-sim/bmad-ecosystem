@@ -1140,7 +1140,7 @@ ele%old_value(:) = 0
 call init_coord (ele%map_ref_orb_in)
 call init_coord (ele%map_ref_orb_out)
 
-ele%lord_status = free$
+ele%lord_status = not_a_lord$
 ele%slave_status = free$
 ele%ix_value = 0
 ele%ic1_lord = 0

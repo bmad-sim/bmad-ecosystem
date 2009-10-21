@@ -51,7 +51,7 @@ subroutine delete_lattice_control_struct (lat, ix_con)
 
   slave%n_lord = slave%n_lord - 1
   if (slave%n_lord == 0) then
-    slave%lord_status  = free$
+    slave%lord_status  = not_a_lord$
     slave%slave_status = free$
     slave%ic1_lord = 0
     slave%ic2_lord = -1
