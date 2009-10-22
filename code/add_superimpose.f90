@@ -121,8 +121,8 @@ subroutine add_superimpose (lat, super_ele, ix_super)
   if (s2 < s1) then     
     call split_lat (lat, s2, ix2_split, split2_done, .false., .false.)
     call split_lat (lat, s1, ix1_split, split1_done, .false., .false.)
-    super_saved%value(l$) = (s2_lat - lat%ele(ix2_split)%s) - &
-                            (lat%ele(ix1_split)%s - s1_lat)
+    super_saved%value(l$) = (s2_lat - lat%ele(ix1_split)%s) + &
+                            (lat%ele(ix2_split)%s - s1_lat)
 
   ! no wrap case...
   else                  
