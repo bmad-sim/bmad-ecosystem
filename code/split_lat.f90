@@ -60,7 +60,7 @@ endif
 ! Find where to split.
 
 do ix_split = 0, lat%n_ele_track   
-  if (abs(lat%ele(ix_split)%s - s_split) < 1.0e-6) then
+  if (abs(lat%ele(ix_split)%s - s_split) < 1.0e-10) then
     split_done = .false.
     return
   endif

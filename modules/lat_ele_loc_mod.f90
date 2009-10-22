@@ -144,8 +144,9 @@ subroutine lat_location_decode(loc_str, lat, eles, err)
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (ele_pointer_struct), allocatable :: eles(:)
+type (branch_struct), pointer :: branch
 
 integer i, j, k
 integer n_loc, ios, ix_next, ix_branch, step,start_loc, end_loc, ix_word
@@ -168,6 +169,7 @@ range_found = .false.
 step_found = .false.
 ix_next = 1
 ix_branch = 0
+branch => lat%branch(0)
 n_loc = 0
 step = 1
 
@@ -197,6 +199,11 @@ do
         call out_io (s_error$, r_name, 'ERROR: BAD LOCATION: ' // str(:ix_word))
         return
       endif
+      if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
+        call out_io (s_error$, r_name, 'ERROR: BRANCH INDEX OUT OF RANGE: ' // str(:ix_word))
+        return
+      endif
+      branch => lat%branch(ix_branch)
       str = str(ixp+1:)
       ix_word = ix_word - ixp
     endif
@@ -224,13 +231,17 @@ do
     endif
   else
     if (range_found) then
-      lat%branch(ix_branch)%ele(start_loc:end_loc:step)%bmad_logic = .true.
+      branch%ele(start_loc:end_loc:step)%bmad_logic = .true.
       n_loc = n_loc + (end_loc - start_loc) / step
       range_found = .false.
       step_found = .false.
       step = 1
     else
-      lat%branch(ix_branch)%ele(ix_ele)%bmad_logic = .true.
+      if (ix_ele < 0 .or. ix_ele > ubound(branch%ele, 1)) then
+        call out_io (s_error$, r_name, 'ERROR: ELEMENT INDEX OUT OF RANGE: ' // str(:ix_word))
+        return
+      endif
+      branch%ele(ix_ele)%bmad_logic = .true.
       n_loc = n_loc + 1
     endif
   endif
