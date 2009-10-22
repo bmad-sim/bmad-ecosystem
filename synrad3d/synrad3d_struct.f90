@@ -17,6 +17,7 @@ end type
 
 type photon3d_track_struct
   type (photon3d_coord_struct) start, old, now  ! coords
+  type (photon3d_coord_struct), allocatable :: reflect(:)
   logical crossed_end         ! photon crossed through the lattice end?
   integer n_reflect
 end type

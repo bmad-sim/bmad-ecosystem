@@ -179,6 +179,10 @@ do i = 1, n_photon_tot
   write (1, '(2i8, f10.2, a)') i, photon%n_reflect, photon%start%energy, '  ! index, n_reflect, eV'
   write (1, '(10x, 4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Starting position vector'
   write (1, '(10x, 4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position vector'
+  do j = 0, photon%n_reflect + 1
+    ! photon%reflect(j)%vec 
+    ! photon%reflect(j)%track_len
+  enddo 
 enddo
 
 end program

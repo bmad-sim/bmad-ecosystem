@@ -32,17 +32,31 @@ implicit none
 
 type (lat_struct), target :: lat
 type (photon3d_track_struct), target :: photon
+type (photon3d_coord_struct), allocatable :: p_temp(:)
 type (wall3d_struct), target :: wall
 
+integer n
 logical absorbed
 
 !
 
 photon%start%track_len = 0
 photon%now = photon%start
+allocate (photon%reflect(0:0))
+photon%reflect(0) = photon%start
 
 do
   call track_photon_to_wall (photon, lat, wall)
+
+  n = size(photon%reflect)
+  allocate (p_temp(n))
+  p_temp = photon%reflect
+  deallocate (photon%reflect)
+  allocate (photon%reflect(0:n))
+  photon%reflect(0:n-1) = p_temp
+  photon%reflect(n) = photon%now
+  deallocate(p_temp)
+
   call reflect_photon (photon, wall, absorbed)
   if (absorbed) return
   photon%n_reflect = photon%n_reflect + 1
