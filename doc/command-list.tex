@@ -1216,12 +1216,13 @@ This will show the parameters at all marker elements whose name begin
 with \vn{"bpm"}. 
 
 Alternatively, a range of elements can be specified using the element
-index or the element's longitudinal position with a \vn{":"} being
+index, name, or the element's longitudinal position with a \vn{":"} being
 used to separate the index. For example
 \begin{example}  
   show lat  45:76, 101, 106    ! Show element #45 through #76 and 101 and 106.
+  show lat q34w:q45e           ! Show from element q34w through q45e.
   show lat -s  23.9:55.3       ! Show elements whose position is between 
-                               !   23.9 meters and 55.3 meters .
+                               !   23.9 meters and 55.3 meters.
 \end{example}
 The \vn{-all} switch can be used to show all the elements. The
 \vn{element_list} is optional but if it is present it must be at the

@@ -1258,7 +1258,7 @@ case ('lattice')
     enddo
 
   else
-    call location_decode (stuff2, picked_ele, 0, num_locations)
+    call location_decode (stuff2, picked_ele, 0, num_locations, branch%ele%name)
     if (num_locations .eq. -1) then
       nl=1; lines(1) = 'SYNTAX ERROR IN RANGE LIST:' // stuff2
       deallocate(picked_ele)
