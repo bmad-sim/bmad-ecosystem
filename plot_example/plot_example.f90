@@ -9,7 +9,7 @@ character(1) ans
 call qp_open_page ('PS-L')  ! Tell Quick Plot to generate a PS file.
 call draw_histogram         ! Generate the plot
 call qp_close_page          ! quick_plot.ps is the file name
-call qp_open_page ('X', id, 600.0_rp, 470.0_rp, 'POINTS')
+call qp_open_page ('X', id, 400.0_rp, 270.0_rp, 'POINTS')
 call draw_histogram
 write (*, '(a)', advance = 'NO') ' Hit any key to end program: '
 read (*, '(a)') ans
