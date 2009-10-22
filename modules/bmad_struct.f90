@@ -725,19 +725,14 @@ type bmad_common_struct
   real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
   real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
-#if defined(CESR_F90_DOUBLE)
+  real(rp) :: significant_longitudinal_length = 1e-10 ! meter 
   real(rp) :: rel_tolerance = 1e-5
   real(rp) :: abs_tolerance = 1e-8
-#else
-  real(rp) :: rel_tolerance = 1e-3
-  real(rp) :: abs_tolerance = 1e-6
-#endif
   real(rp) :: rel_tol_adaptive_tracking = 1e-6  ! Adaptive tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1e-7  ! Adaptive tracking absolute tolerance.
   integer :: taylor_order = 3                ! 3rd order is default
   integer :: default_integ_order = 2         ! PTC integration order
   logical :: canonical_coords = .true.       ! NOT USED.
-  logical :: use_liar_lcavity = .false.      ! Liar like tracking?
   logical :: sr_wakes_on = .true.            ! Short range wakefields?
   logical :: lr_wakes_on = .true.            ! Long range wakefields
   logical :: mat6_track_symmetric = .true.   ! symmetric offsets

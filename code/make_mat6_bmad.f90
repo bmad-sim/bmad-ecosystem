@@ -263,23 +263,21 @@ case (lcavity$)
 
   k1 = -gradient / (2 * pc_start)
 
-  ! body 
+  ! body...
+  ! Note: dimad/liar formulas are:
+  !  r11 = 1
+  !  r12 = e_start * log (e_ratio) / gradient
+  !  r21 = 0
+  !  r22 = 1 / e_ratio
 
-  if (bmad_com%use_liar_lcavity) then  ! use dimad formula
-    r11 = 1
-    r12 = e_start * log (e_ratio) / gradient
-    r21 = 0
-    r22 = 1 / e_ratio
-  else
-    alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
-    cos_a = cos(alpha)
-    sin_a = sin(alpha)
-    f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
-    r11 =  cos_a
-    r12 =  sin_a * beta_start * e_start / f
-    r21 = -sin_a * f / (e_end * beta_end)
-    r22 =  cos_a * beta_start * e_start / (e_end * beta_end)
-  endif
+  alpha = log(e_ratio) / (2 * sqrt_2 * cos_phi)
+  cos_a = cos(alpha)
+  sin_a = sin(alpha)
+  f = gradient / (2 * sqrt_2 * cos_phi)   ! body matrix
+  r11 =  cos_a
+  r12 =  sin_a * beta_start * e_start / f
+  r21 = -sin_a * f / (e_end * beta_end)
+  r22 =  cos_a * beta_start * e_start / (e_end * beta_end)
 
   ! exit kick
 

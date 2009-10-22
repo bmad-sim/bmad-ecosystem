@@ -110,14 +110,22 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   !-------------------------------------------------------------------------
   ! Split lat at begining and end of the superimpose.
-  ! the correct order of splitting is important since we are creating elements
+  ! The correct order of splitting is important since we are creating elements
   ! so that the numbering of the elments after the split changes.
 
-  if (s2 < s1) then     ! if superimpose wraps around 0 ...
+  ! Also the splits may not be done exactly at s1 and s2 since split_lat avoids
+  ! making very small "runt" elements. We thus readjust the lord length to
+  ! keep everything consistant. 
+
+  ! if superimpose wraps around 0 ...
+  if (s2 < s1) then     
     call split_lat (lat, s2, ix2_split, split2_done, .false., .false.)
     call split_lat (lat, s1, ix1_split, split1_done, .false., .false.)
+    super_saved%value(l$) = (s2_lat - lat%ele(ix2_split)%s) - &
+                            (lat%ele(ix1_split)%s - s1_lat)
 
-  else                  ! no wrap case
+  ! no wrap case...
+  else                  
     if (s1 < s1_lat) then    ! superimpose off end case
       if (lat%ele(1)%key /= drift$) then
         length = s1_lat - s1
@@ -149,6 +157,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
       lat%ele(n)%value(l$) = s2 - lat%ele(n-1)%s
     endif
 
+    super_saved%value(l$) = lat%ele(ix2_split)%s - lat%ele(ix1_split)%s
   endif
 
   ! If there are null_ele elements in the superimpose region then just move them

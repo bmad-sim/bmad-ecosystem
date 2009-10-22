@@ -389,7 +389,7 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%default_integ_order == f2%default_integ_order) .and. &
       (f1%default_ds_step == f2%default_ds_step) .and.  &
       (f1%canonical_coords .eqv. f2%canonical_coords) .and. &
-      (f1%use_liar_lcavity .eqv. f2%use_liar_lcavity) .and. &
+      (f1%significant_longitudinal_length  == f2%significant_longitudinal_length) .and. &
       (f1%sr_wakes_on .eqv. f2%sr_wakes_on) .and.  &
       (f1%lr_wakes_on .eqv. f2%lr_wakes_on) .and.  &
       (f1%mat6_track_symmetric .eqv.  f2%mat6_track_symmetric) .and. &

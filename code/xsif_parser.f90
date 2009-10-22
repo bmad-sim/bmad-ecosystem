@@ -2,7 +2,6 @@
 ! Subroutine xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)
 !
 ! Subroutine to parse an XSIF (extended standard input format) lattice file.
-! XSIF is used by, for example, LIAR.
 ! Error messages will be recorded in a local file: 'xsif.err'.
 ! Standard output messages will be recorded in a local file: 'xsif.out'
 !
@@ -692,7 +691,7 @@ if (n < 1) then
   call err_exit
 endif
 
-! Signs: In Bmad +z is pointing forward. In LIAR this is the opposite.
+! Signs: In Bmad +z is pointing forward. In XSIF/LIAR this is the opposite.
 
 s_pos = -s_pos
 

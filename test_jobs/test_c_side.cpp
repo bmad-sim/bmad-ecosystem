@@ -136,10 +136,10 @@ void init_all_c_structs () {
   c_param_in  = C_param(1, 2, 3, m6a, m6b, 11, 12, 13, 14, 15, 16, 1, 0, 1);
   c_param_out = C_param(11, 12, 13, m6b, m6a, 111, 112, 113, 114, 115, 116, 0, 0, 0);
 
-  c_bmad_com_in  = C_bmad_com(2, v6a, 3, 4, 5, 6, 7, 8, 9, 10, 
-                                  1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0);
-  c_bmad_com_out = C_bmad_com(12, v6b, 13, 14, 15, 16, 17, 18, 19, 20, 
-                                  1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1);
+  c_bmad_com_in  = C_bmad_com(2, v6a, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+                                  1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1);
+  c_bmad_com_out = C_bmad_com(12, v6b, 13, 14, 15, 16, 17, 18, 19, 20, 21, 
+                                  1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0);
 
   c_em_field_in  = C_em_field(v3a, v3b, v3c, m3a, m3b, m3c, 77);
   c_em_field_out = C_em_field(v3c, v3b, v3a, m3c, m3b, m3a, -77);

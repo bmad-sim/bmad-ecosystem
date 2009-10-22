@@ -295,7 +295,12 @@ case (lcavity$)
 
   endif
 
-  ! track body
+  ! track body...
+  ! Note: dimad/liar formulas are:
+  !  r11 = 1
+  !  r12 = E_start * log (E_ratio) / gradient
+  !  r21 = 0
+  !  r22 = 1 / E_ratio
 
   if (gradient == 0) then
     r11 = 1
@@ -303,11 +308,6 @@ case (lcavity$)
     r21 = 0
     r22 = 1
 
-  elseif (bmad_com%use_liar_lcavity) then  ! use liar formula
-    r11 = 1
-    r12 = E_start * log (E_ratio) / gradient
-    r21 = 0
-    r22 = 1 / E_ratio
   else
     alpha = log(E_ratio) / (2 * sqrt_2 * cos_phi)
     cos_a = cos(alpha)

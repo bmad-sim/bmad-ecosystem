@@ -300,7 +300,7 @@ character(40) :: r_name = 'super_lord_length_bookkeeper'
 
 !
 
-dl_tol = 1e-10
+dl_tol = 10 * bmad_com%significant_longitudinal_length
 
 length_adjustment_made = .false.
 ix0 = integer_option(0, ix_ele)
@@ -554,8 +554,8 @@ endif
 s_end = lord%s + lord%value(s_offset_tot$)
 slave => pointer_to_slave (lat, lord, lord%n_slave)
 s_start = slave%s - slave%value(l$)
-if (abs(s_end - s_start - slave%value(l$)) > 1e-10 * (1 + abs(slave%value(l$)))) &  
-                              slave%value(l$) = s_end - s_start
+if (abs(s_end - s_start - slave%value(l$)) > bmad_com%significant_longitudinal_length * &
+                              (1 + abs(slave%value(l$)))) slave%value(l$) = s_end - s_start
 slave%s = s_end
 
 ! Adjust start position

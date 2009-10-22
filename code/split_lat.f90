@@ -2,7 +2,7 @@
 ! Subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat
-! if the split would create a "runt" element with length less than 10um
+! if the split would create a "runt" element with length less than 1um
 !
 ! Note: split_lat does NOT call make_mat6. The Twiss parameters are also
 !       not recomputed.
@@ -60,7 +60,7 @@ endif
 ! Find where to split.
 
 do ix_split = 0, lat%n_ele_track   
-  if (abs(lat%ele(ix_split)%s - s_split) < 1.0e-10) then
+  if (abs(lat%ele(ix_split)%s - s_split) < 1.0e-6) then
     split_done = .false.
     return
   endif
