@@ -381,6 +381,9 @@ elseif (v89) then
           ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time 
+
+          if (ele%lord_status == free$) ele%lord_status = not_a_lord$
+
 endif
 
 ! Decompress value array
