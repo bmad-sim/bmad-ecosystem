@@ -245,40 +245,51 @@ memory. Typically using the save attribute will be the best choice.
 \section{Elements Controlling Other Elements}
 \label{s:lat.control}
 
-The \vn{ele_struct} elements in the \vn{lat_struct} structure are
-divided into two groups: Those that get tracked through, and those
-elements, called \vn{lord} elements} that control attributes of other
-\vn{ele_struct} elements. Elements so controlled are called \vn{slave}
-elements. While \vn{lord} elements are always situated in the
-\vn{control} part of the lattice, \vn{slave} elements may appear in
-both the \vn{tracking} or \vn{control} parts of the lattice.
-The situation is complicated by the fact that a given
-element may simultaneously be a \vn{lord} and a \vn{slave}. For
-example, an \vn{overlay} is a lord since it controlls attributes of
-other elements but an \vn{overlay} can itself be controlled by other
-\vn{overlay} and \vn{group} elements.
+
+
+In the \vn{lat_struct} structure, certain \vn{ele_struct} elements,
+called \vn{lord} elements, can control the attributes (component
+values) of other \vn{ele_struct} elements.  Elements so controlled are
+called \vn{slave} elements.  The situation is complicated by the fact
+that a given element may simultaneously be a \vn{lord} and a
+\vn{slave}. For example, an \vn{overlay} element (\sref{c:control}) is
+a lord since it controlls attributes of other elements but an
+\vn{overlay} can itself be controlled by other \vn{overlay} and
+\vn{group} elements.  
+
+What type of lord an element is is set by the
+value of the element's \vn{ele%lord_status} component.  The number of
+slave elements that a lord controls is given by the value of the
+lord's \vn{ele%n_slave} component, and as will be discussed in greater
+detail below, the indexes \vn{ele%ix1_slave} and \vn{ele%ix2_slave}
+indicate exactly what elements ae being controlled. 
+
+Similarly, what type of slave an element is is set by the value of the
+element's \vn{ele%slave_status} component.  The number of lord
+elements that the slave has is given by the value of the slave's
+\vn{ele%n_lord} component, and the indexes \vn{ele%ic1_lord} and
+\vn{ele%ic2_lord} indicate where the lords are located.
 
 \index{free}\index{super_lord}
 \index{group_lord}\index{girder_lord}
 \index{multipass_lord}
-Two components of an \vn{ele_struct} determine the line of control:
-\vn{ele%lord_status} and \vn{ele%slave_status}. \vn{ele%lord_status}
-determines what type of lord the element is. In the tracking part of
-the lattice (\sref{s:lat.struct}), \vn{%lord_status} is always set to
-\vn{not_a_lord\$}. In the lord section of the lattice, \vn{ele%lord_status}
-can be one of:
+
+Note: for compactness sake, an element may be referred to by it's
+\vn{%lord_status} or \vn{%slave_status} value. For example, an element
+with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to
+as a ``\vn{super_lord}'' element.
+
+The value of the \vn{ele%lord_status} component can be one of:
 \index{girder_lord}
 \begin{description}
 \item[super_lord\$]\Newline 
-An element with \vn{%lord_status} set to \vn{super_lord\$ is called a
-\vn{super_lord} element. Such an element is created when elements are
+A \vn{super_lord} element is created when elements are
 superimposed on top of other elements (\sref{s:super}).
   \item[girder_lord\$]\Newline 
-An element with \vn{%lord_status} set to \vn{girder_lord\$} is called a
-\vn{girder_lord} element (\sref{s:girder}).  Such
-an element will also have \vn{ele%key} = \vn{girder\$}. In this case,
-the slave elements are marked by setting the \vn{ele%on_a_girder}
-component.
+A \vn{girder_lord} element is a \vn{girder}. That is, the element will
+also have \vn{ele%key} = \vn{girder\$} (\sref{s:girder}). In this
+case, the slave elements are marked by setting the
+\vn{ele%on_a_girder} component.
   \item[multipass_lord\$]\Newline
 \vn{multipass_lord} elements are created when
 multipass lines are present (\sref{s:multipass}). 
@@ -286,23 +297,27 @@ multipass lines are present (\sref{s:multipass}).
 An \vn{overlay_lord} is an \vn{overlay} element(\sref{s:overlay}). 
 Such an element will also have \vn{ele%key} = \vn{overlay\$}.
   \item[group_lord\$]\Newline 
-A \vn{group_lord} is a \vn{group} element (\sref{s:group}). Such
-an element will also have \vn{ele%key} = \vn{group\$}.
+A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is,
+such an element will also have \vn{ele%key} = \vn{group\$}.
   \item[not_a_lord\$]\Newline
-This lord element does not control anything. This can be sometimes useful
-when manipulating lattices but is not generally used.
+This element does not control anything.
 \end{description}
+Any element whose \vn{%lord_status} is something other than
+\vn{not_a_lord\$} is called a \vn{lord} element. In the tracking part
+of the lattice (\sref{s:lat.struct}), \vn{%lord_status} must always be
+\vn{not_a_lord\$}. In the lord section of the lattice, bmad_parser
+will never create \vn{not_a_lord} elements although it is permissible,
+and sometimes convenient, for programs to set the \vn{%lord_status} of
+a lord element to \vn{not_a_lord\$}.
 
-The \vn{ele%slave_status} component determines what type of slave an element is.
-Possible values for \vn{ele%slave_status} are:
+The possible values for the \vn{ele%slave_status} component are:
 \begin{description}
   \item[super_slave\$]\Newline 
 A \vn{super_slave} element is an element in the tracking part of the lattice that 
 has one or more \vn{super_lord} lords (\sref{s:super}).
   \item[multipass_slave]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
-(\sref{s:multipass}). \vn{multipass_slave} elements are always in the
-tracking part of the lattice.
+(\sref{s:multipass}).
   \item[overlay_slave\$]\Newline 
 An \vn{overlay_slave} is an element that has any number of
 \vn{overlay_lord} and/or \vn{girder_lord} elements controlling the
@@ -311,55 +326,78 @@ slave's attributes.  An \vn{overlay_slave} can also be controlled by
   \item[group_slave\$]\Newline
 A \vn{group_slave} is an element that has one or more \vn{group_lord}
 elements controlling controlling the slave's attributes.  A \vn{group_slave} 
-will not have any \vn{overlay_lord} or \vn{girder_lord} lords.
+will not have any other types of lords.
   \item[free\$]\Newline
-Free elements do not have any lord elements.
+Free elements do not have any lord elements controlling them.
 \end{description}
+Any element whose \vn{%slave_status} is something other than
+\vn{feee\$} is called a \vn{slave} element. \vn{super_slave} elements
+always appear in the tracking part of the lattice. The other types can
+be in either the tracking or control parts of the lattice.
 
-How \bmad 
+\begin{table}[ht]
+  \begin{center}
+  \subfigure[Possible \vn{ele%lord_status} and \vn{ele%slave_status} combinations
+    within an individual element. X marks a possible combination.]
+  {\label{f:lord-slave-a}
+  \begin{tabular}{llccccc} 
+    \hline
+    & \multicolumn{6){c}{\vn{ele%lord_status}} \\ \hline
+    \rule{0pt}{80pt} &
+    \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
+    \begin{sideways}\vn{group_lord\$}\end{sideways} &
+    \begin{sideways}\vn{girder_lord\$}\end{sideways} &
+    \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+    \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+    \begin{sideways}\vn{super_lord\$}\end{sideways}
+    \\ \hline
+    \multirow{5}*{\begin{sideways}\vn{ele%slave_status}\end{sideways}
+    %                           NL  GR  GI  O   M   S
+    & \vn{free\$}             & X & X & X & X & X & X \\ \hline
+    & \vn{group_slave\$}      & X & X & X & X & X & X \\ \hline
+    & \vn{overlay_slave\$}    & X & X & X & X & X & X \\ \hline
+    & \vn{multipass_slave\$}  & X &   &   &   &   & X \\ \hline
+    & \vn{super_slave\$}      & X &   &   &   &   &   \\ \hline
+  \end{tabular}
+  }
+  \hskip 0.3in
+  \subfigure[Possible \vn{ele%lord_status} and \vn{ele%slave_status} combinations
+    for a given lord/slave pair. X marks a possible combination.]
+  {\label{f:lord-slave-b}
+  \begin{tabular}{llccccc} 
+    \hline
+    & \multicolumn{6){c}{\vn{ele1%lord_status}} \\ \hline
+    \rule{0pt}{80pt} &
+    \begin{sideways}\vn{not_a_lord\$\$}\end{sideways} &
+    \begin{sideways}\vn{group_lord\$}\end{sideways} &
+    \begin{sideways}\vn{girder_lord\$}\end{sideways} &
+    \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
+    \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
+    \begin{sideways}\vn{super_lord\$}\end{sideways}
+    \\ \hline
+    \multirow{5}*{\begin{sideways}\vn{ele2%slave_status}\end{sideways}
+    %                           NL  GR  GI  O   M   S
+    & \vn{free\$}             &   &   &   &   &   &   \\ \hline
+    & \vn{group_slave\$}      &   & X &   &   &   &   \\ \hline
+    & \vn{overlay_slave\$}    &   & X & X & X &   &   \\ \hline
+    & \vn{multipass_slave\$}  &   & X &   & X & X &   \\ \hline
+    & \vn{super_slave\$}      &   &   &   &   &   & X \\ \hline
+  \end{tabular}
+  }
+\end{center}
+\label[Possible \%lord_status/\%slave_status combinations.]{f:lord-slave}
+\end{table}
 
-\begin{tabular}{llccccc} 
-\hline
-& \multicolumn{6){c}{\vn{ele%lord_status}} \\ \hline
-\rule{0pt}{80pt} &
-\begin{sideways}\vn{not_a_lord\$}\end{sideways} &
-\begin{sideways}\vn{group_lord\$}\end{sideways} &
-\begin{sideways}\vn{girder_lord\$}\end{sideways} &
-\begin{sideways}\vn{overlay_lord\$}\end{sideways} &
-\begin{sideways}\vn{multipass_lord\$}\end{sideways} &
-\begin{sideways}\vn{super_lord\$}\end{sideways}
-\\ \hline
-\multirow{5}*{\begin{sideways}\vn{ele%slave_status}\end{sideways}
-%                           NL  GR  GI  O   M   S
-& \vn{free\$}             & X & X & X & X & X & X \\ \hline
-& \vn{group_slave\$}      & X & X & X & X & X & X \\ \hline
-& \vn{overlay_slave\$}    & X & X & X & X & X & X \\ \hline
-& \vn{multipass_slave\$}  & X &   &   &   &   & X \\ \hline
-& \vn{super_slave\$}      & X &   &   &   &   &   \\ \hline
-\end{tabular}
+Within a given element, only some combinations of \vn{%lord_status}
+values and \vn{%slave_status} values are permissible.
+Table~\ref{f:lord-slave-a} lists the valid combinations. Thus, for
+example, it is not possible for an element to be simultaneously a
+\vn{super_lord} and a \vn{super_slave}. For lord/slave pairs,
 
-
-\begin{tabular}{llccccc} 
-\hline
-& \multicolumn{6){c}{\vn{ele1%lord_status}} \\ \hline
-\rule{0pt}{80pt} &
-\begin{sideways}\vn{not_a_lord\$\$}\end{sideways} &
-\begin{sideways}\vn{group_lord\$}\end{sideways} &
-\begin{sideways}\vn{girder_lord\$}\end{sideways} &
-\begin{sideways}\vn{overlay_lord\$}\end{sideways} &
-\begin{sideways}\vn{multipass_lord\$}\end{sideways} &
-\begin{sideways}\vn{super_lord\$}\end{sideways}
-\\ \hline
-\multirow{5}*{\begin{sideways}\vn{ele2%slave_status}\end{sideways}
-%                           NL  GR  GI  O   M   S
-& \vn{free\$}             &   &   &   &   &   &   \\ \hline
-& \vn{group_slave\$}      &   & X &   &   &   &   \\ \hline
-& \vn{overlay_slave\$}    &   & X & X & X &   &   \\ \hline
-& \vn{multipass_slave\$}  &   & X &   & X & X &   \\ \hline
-& \vn{super_slave\$}      &   &   &   &   &   & X \\ \hline
-\end{tabular}
-
-
+Table~\ref{f:lord-slave-a} lists the valid combinations of
+\vn{%lord_status} values in the lord element and \vn{%slave_status}
+values in the slave element that are permissible. Thus, for example, a
+\vn{super_slave} may only be controlled by a \vn{super_lord}.
 
 In the example in
 \sref{s:multipass}, Element \vn{A} would be a \vn{multipass_lord} and

@@ -385,7 +385,7 @@ endif
 
 ! wiggler term attribute
 
-if (ix_attrib == term$) then
+if (ix_attrib == term$ .and. ele%key == wiggler$) then
 
   err_flag = .true. ! assume the worst
 

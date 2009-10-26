@@ -454,8 +454,8 @@ integer, parameter :: check_sum$ = 60  ! Assumed unique. Do not overload.
 
 !! 61 = 1 + n_attrib_maxx
 
-integer, parameter :: term$ = 61
-integer, parameter :: ref_orbit$ = 62, x_position$ = 62
+integer, parameter :: ref_orbit$ = 61, term$ = 61
+integer, parameter :: x_position$ = 62
 integer, parameter :: symplectify$ = 63, y_position$ = 63
 integer, parameter :: descrip$ = 64, z_position$ = 64
 integer, parameter :: is_on$ = 65, theta_position$ = 65
