@@ -155,6 +155,7 @@ do
     do j = 1, n_photon_here
       n_photon_tot = n_photon_tot + 1
       photon => photons(n_photon_tot)
+      photon%ix_photon = n_photon_tot
       call emit_photon (ele_here, orbit_here, gx, gy, &
                              emit_a, emit_b, sig_e, photon_direction, photon%start)
       photon%n_reflect = 0

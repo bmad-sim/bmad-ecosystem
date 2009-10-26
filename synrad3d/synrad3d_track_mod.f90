@@ -62,7 +62,7 @@ do
   photon%n_reflect = photon%n_reflect + 1
 enddo
 
-end subroutine
+end subroutine track_photon
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ do
 
 enddo
 
-end subroutine
+end subroutine track_photon_to_wall
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -278,7 +278,7 @@ propagation_loop: do
     if (stop_at_check_pt .and. now%vec(2) < 0) then 
       dl2 = -now%vec(2) * (radius + now%vec(1)) / (now%vec(2)**2 + now%vec(6)**2)
       if (dl2 < dl) then
-        dl = 1.000001 * dl2 ! Add extra to make sure we are not short due to roundoff.
+        dl = 1.00000001 * dl2 ! Add extra to make sure we are not short due to roundoff.
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
         s_stop = now%vec(5) + radius * theta
@@ -332,7 +332,7 @@ propagation_loop: do
 
 enddo propagation_loop
 
-end subroutine
+end subroutine propagate_photon_a_step
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -368,11 +368,17 @@ integer ix_wall, ix0, ix1, ix2, i
 
 real(rp) del0, del1, del2, dl, radius
 
+logical photon0_is_at_beginning
+
 ! Find where the photon hits.
 ! we need to iterate in a bend since the wall is actually curved.
+! Also, after the first reflection, the photon will start at the wall so
+! we must avoid selecting this point as the next hit spot!
 
 photon0 = photon
 photon0%now = photon%old
+photon0_is_at_beginning = .true.
+
 photon1 = photon0
 photon2 = photon
 
@@ -382,38 +388,22 @@ del0 = radius - 1 ! Must be negative
 call photon_radius (photon2%now, wall, radius)
 del2 = radius - 1 ! Must be positive
 
-do i = 1, 20
+do i = 1, 30
 
-  if (abs(del0) < 1.0e-4) then
+  if (abs(del0) < 1.0e-6 .and. .not. photon0_is_at_beginning) then
     photon1 = photon0
     exit
-  elseif (abs(del2) < 1.0e-4) then
+  elseif (abs(del2) < 1.0e-6) then
     photon1 = photon2
     exit
   endif
 
-  if (i == 20) then
+  if (i == 30) then
     print *, 'ERROR IN PHOTON_HIT_SPOT_CALC: CALCULATION IS NOT CONVERGING'
     call err_exit
   endif
 
-  ! Try linear interpolation
-
-  dl = -del0 * (photon2%now%track_len - photon0%now%track_len) / (del2 - del0)
-  call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
-
-  call photon_radius (photon1%now, wall, radius)
-  del1 = radius - 1
-
-  if (del1 < 0) then
-    photon0 = photon1; del0 = del1
-  elseif (del1 > 0) then
-    photon2 = photon1; del2 = del1
-    photon1 = photon0
-  endif
-
-  ! Linear interpolation will fail badly if the photon is doing from one side of the 
-  ! chamber to another. So also do a divide in half.
+  ! Make a half step.
 
   dl = (photon2%now%track_len - photon0%now%track_len) / 2
   call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
@@ -423,7 +413,27 @@ do i = 1, 20
 
   if (del1 < 0) then
     photon0 = photon1; del0 = del1
-  elseif (del1 > 0) then
+    photon0_is_at_beginning = .false.
+  else
+    photon2 = photon1; del2 = del1
+    photon1 = photon0
+  endif
+
+  ! Linear interpolation can be faster then divide by 2.
+  ! However, things are pretty nonlinear so only do linar interpolation when 
+  ! the photon0 point is no longer the initial point
+
+  if (photon0_is_at_beginning) cycle
+
+  dl = -del0 * (photon2%now%track_len - photon0%now%track_len) / (del2 - del0)
+  call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
+
+  call photon_radius (photon1%now, wall, radius)
+  del1 = radius - 1
+
+  if (del1 < 0) then
+    photon0 = photon1; del0 = del1
+  else
     photon2 = photon1; del2 = del1
     photon1 = photon0
   endif
@@ -434,7 +444,7 @@ enddo
 
 photon = photon1
 
-end subroutine
+end subroutine photon_hit_spot_calc 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -453,9 +463,8 @@ type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: wall0, wall1
 
-real(rp) dx_parallel, dy_parallel, dx_perp0, dy_perp0
-real(rp) dx_perp1, dy_perp1, dx_perp, dy_perp, denom, f
-real(rp) dot_parallel, dot_perp, r, graze_angle, reflectivity
+real(rp) cos_perp, dw_perp(3), denom, f
+real(rp) r, graze_angle, reflectivity
 real(rp), pointer :: vec(:)
 
 integer ix
@@ -469,79 +478,35 @@ if (.not. synrad3d_params%allow_reflections) then
   return
 endif
 
-! Get the wall index for this section of the lattice
+! get the perpendicular outward normal to the wall
 
 vec => photon%now%vec
-call bracket_index (wall%pt%s, 0, wall%n_pt_max, vec(5), ix)
-if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
+photon%old = photon%now
 
-wall0 => wall%pt(ix)
-wall1 => wall%pt(ix+1)
+call photon_radius (photon%now, wall, r, dw_perp)
 
-! (dx_perp, dy_perp) is the normalized vector perpendicular to the wall
-! at the photon hit point.
+! cos_perp is the component of the photon velocity perpendicular to the wall.
+! since the photon is striking the wall from the inside this must be positive.
 
-if (wall0%type == 'rectangular') then
-  if (abs(vec(1)/wall0%width2) > abs(vec(3)/wall0%height2)) then
-    dx_perp0 = vec(1)
-    dy_perp0 = 0
-  else
-    dx_perp0 = 0
-    dy_perp0 = vec(3)
-  endif
-elseif (wall0%type == 'elliptical') then
-  dx_perp0 = wall1%height2**2 * vec(1)
-  dy_perp0 = wall1%width2**2 * vec(3)
-else
-  print *, 'BAD WALL%TYPE: ' // wall0%type, ix
-  call err_exit
+cos_perp = dot_product (vec(2:6:2), dw_perp)
+graze_angle = pi/2 - acos(cos_perp)
+call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
+
+if (synrad3d_params%debug) then
+  write (2, *) '*********************************************'
+  write (2, '(2i8, 3f10.4, 10x, 2f12.6)') photon%ix_photon, photon%n_reflect, &
+                                 dw_perp, cos_perp, reflectivity
+  write (2, '(6f12.6)') photon%old%vec
 endif
 
-denom = sqrt(dx_perp0**2 + dy_perp0**2)
-dx_perp0 = dx_perp0 / denom
-dy_perp0 = dy_perp0 / denom
-
-if (wall1%type == 'rectangular') then
-  if (abs(vec(1)/wall1%width2) > abs(vec(3)/wall1%height2)) then
-    dx_perp1 = vec(1)
-    dy_perp1 = 0
-  else
-    dx_perp1 = 0
-    dy_perp1 = vec(3)
-  endif
-elseif (wall1%type == 'elliptical') then
-  dx_perp1 = wall1%height2**2 * vec(1)
-  dy_perp1 = wall1%width2**2  * vec(3)
-else
-  print *, 'BAD WALL%TYPE: ' // wall1%type, ix+1
+if (cos_perp < 0) then
+  print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
+  print *, '       WILL EXIT HERE...'
   call err_exit
 endif
-
-denom = sqrt(dx_perp1**2 + dy_perp1**2)
-dx_perp1 = dx_perp1 / denom
-dy_perp1 = dy_perp1 / denom
-
-! Average the vectors to get the vector at the photon point.
-
-f = (vec(5) - wall0%s) / (wall1%s - wall0%s)
-dx_perp = (1 - f) * dx_perp0 + f * dx_perp1
-dy_perp = (1 - f) * dy_perp0 + f * dy_perp1
-
-denom = sqrt(dx_perp**2 + dy_perp**2)
-dx_perp = dx_perp / denom
-dy_perp = dy_perp / denom
-
-
-! (dx_parallel, dy_parallel) is the normalized vector parallel to the wall
-! at the photon hit point.
-
-dx_parallel =  dy_perp 
-dy_parallel = -dx_perp
 
 ! absorbtion
 
-graze_angle = pi/2 - acos(abs(vec(2) * dx_perp + vec(4) * dy_perp))
-call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
 call ran_uniform(r)
 absorbed = (r > reflectivity)
 if (absorbed) return  ! Do not reflect if absorbed
@@ -549,12 +514,12 @@ if (absorbed) return  ! Do not reflect if absorbed
 ! Reflect the ray.
 ! The perpendicular component gets reflected and the parallel component is invarient.
 
-dot_parallel = dx_parallel * vec(2) + dy_parallel * vec(4)
-dot_perp     = dx_perp     * vec(2) + dy_perp     * vec(4)
+vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * dw_perp
 
-vec(2) = dot_parallel * dx_parallel - dot_perp * dx_perp
-vec(4) = dot_parallel * dy_parallel - dot_perp * dy_perp
+if (synrad3d_params%debug) then
+  write (2, '(3(12x, f12.6))') photon%now%vec(2:6:2)
+endif
 
-end subroutine
+end subroutine reflect_photon
 
 end module

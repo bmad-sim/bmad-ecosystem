@@ -4,6 +4,8 @@ use synrad3d_struct
 use random_mod
 use photon_init_mod
 
+private wall_pt_params
+
 contains
 
 !-------------------------------------------------------------------------
@@ -204,15 +206,13 @@ end subroutine
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_radius (p_orb, wall, radius)
+! Subroutine photon_radius (p_orb, wall, radius, dw_perp)
 !
 ! Routine to calculate the normalized transverse position of the photon 
 ! relative to the wall: 
 !     radius = 0 => Center of the beam pipe 
 !     radius = 1 => at wall.
 !     radius > 1 => Outside the beam pipe.
-! Actually what is computed is radius2, the radius squared, which avoids a potentially
-! needless sqrt evaluation.
 !
 ! Modules needed:
 !   use photon_utils
@@ -222,10 +222,11 @@ end subroutine
 !   s    -- Real(rp): Longitudinal position.
 !
 ! Output:
-!   radius -- real(rp): Radius of beam relative to the wall.
+!   radius       -- real(rp): Radius of beam relative to the wall.
+!   dw_perp(3)   -- real(rp), optional: Outward normal vector perpendicular to the wall.
 !-
 
-subroutine photon_radius (p_orb, wall, radius)
+Subroutine photon_radius (p_orb, wall, radius, dw_perp)
 
 implicit none
 
@@ -233,7 +234,9 @@ type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: wall0, wall1
 type (photon3d_coord_struct), target :: p_orb
 
+real(rp), optional :: dw_perp(:)
 real(rp) r0, r1, f, radius
+real(rp) dw_x0, dw_y0, dw_z0, dw_x1, dw_y1, dw_z1, dw_x, dw_y, dw_z, denom
 real(rp), pointer :: vec(:)
 
 integer ix
@@ -246,28 +249,68 @@ if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
 
 !
 
-wall0 => wall%pt(ix)
-if (wall0%type == 'rectangular') then
-  r0 = max(abs(vec(1)/wall0%width2), abs(vec(3)/wall0%height2)) 
-elseif (wall0%type == 'elliptical') then
-  r0 = sqrt((vec(1)/wall0%width2)**2 + (vec(3)/wall0%height2)**2)
-else
-  print *, 'BAD WALL%TYPE: ' // wall0%type, ix
-  call err_exit
-endif
+call wall_pt_params (wall%pt(ix),   vec, r0, dw_x0, dw_y0, dw_z0)
+call wall_pt_params (wall%pt(ix+1), vec, r1, dw_x1, dw_y1, dw_z1)
 
-wall1 => wall%pt(ix+1)
-if (wall1%type == 'rectangular') then
-  r1 = max(abs(vec(1)/wall1%width2), abs(vec(3)/wall1%height2)) 
-elseif (wall1%type == 'elliptical') then
-  r1 = sqrt((vec(1)/wall1%width2)**2 + (vec(3)/wall1%height2)**2)
-else
-  print *, 'BAD WALL%TYPE: ' // wall1%type, ix+1
-  call err_exit
-endif
-
-f = (vec(5) - wall0%s) / (wall1%s - wall0%s)
+f = (vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
 radius = (1 - f) * r0 + f * r1
+
+if (present (dw_perp)) then
+  dw_x = (1 - f) * dw_x0 + f * dw_x1
+  dw_y = (1 - f) * dw_y0 + f * dw_y1
+  dw_z = (dw_z1 - dw_z0) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+  denom = sqrt(dw_x**2 + dw_y**2 + dw_z**2)
+  dw_perp = [dw_x, dw_y, dw_z] / denom
+endif
+
+end subroutine photon_radius
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z)
+!
+! Private routine used by photon_radius
+!-
+
+subroutine wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z)
+
+implicit none
+
+type (wall3d_pt_struct) wall_pt
+real(rp) r, dw_x, dw_y, dw_z, vec(6)
+
+!
+
+if (wall_pt%type == 'rectangular') then
+  if (abs(vec(1)/wall_pt%width2) > abs(vec(3)/wall_pt%height2)) then
+    dw_x = sign(1.0_rp, vec(1)) / wall_pt%width2
+    dw_y = 0
+    dw_z = abs(vec(1)/wall_pt%width2)
+    r = dw_z
+  else
+    dw_x = 0
+    dw_y = sign(1.0_rp, vec(3)) / wall_pt%height2
+    dw_z = abs(vec(3)/wall_pt%height2)
+    r = dw_z
+  endif
+
+elseif (wall_pt%type == 'elliptical') then
+  dw_z = sqrt((vec(1)/wall_pt%width2)**2 + (vec(3)/wall_pt%height2)**2)
+  r = dw_z
+  if (dw_z == 0) then
+    dw_x = 0
+    dw_y = 0
+  else
+    dw_x = vec(1) / wall_pt%width2**2 / dw_z
+    dw_y = vec(3) / wall_pt%height2**2 / dw_z
+  endif
+
+else
+  print *, 'BAD WALL_PT%TYPE: ' // wall_pt%type
+  call err_exit
+endif
 
 end subroutine
 

@@ -9,5 +9,12 @@
 &synrad3d_wall
    n_wall_pt_max = 1
    wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
-   wall_pt(1) = 0.0, 'rectangular', 0.06, 0.03 
+   wall_pt(1) = 0.0, 'elliptical', 0.065, 0.045 
 /
+
+   wall_pt(0) = 0.0, 'rectangular', 0.045, 0.025
+   wall_pt(1) = 0.0, 'rectangular', 0.065, 0.045 
+
+
+
+   wall_pt(1) = 0.0, 'elliptical', 0.045, 0.025

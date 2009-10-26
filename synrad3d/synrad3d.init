@@ -14,6 +14,8 @@
   wall_file        = 'synrad3d.wall'                          ! File specifying the vacuum chamber wall
   dat_file         = 'synrad3d.dat'
 
-	synrad3d_params%allow_reflections = .true.  ! For testing purposes.
-	random_seed = 123456   ! 0 -> Use sys clock.
+  synrad3d_params%allow_reflections = .true.  ! For testing purposes.
+  synrad3d_params%debug = .false.             ! If true then create a file (fort.2) 
+                                              !    of photon before/after reflection coords.
+  random_seed = 123456   ! 0 -> Use sys clock.
 /

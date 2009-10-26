@@ -19,6 +19,7 @@ type photon3d_track_struct
   type (photon3d_coord_struct) start, old, now  ! coords
   type (photon3d_coord_struct), allocatable :: reflect(:)
   logical crossed_end         ! photon crossed through the lattice end?
+  integer ix_photon           ! Photon index.
   integer n_reflect
 end type
 
@@ -44,8 +45,9 @@ type synrad3d_params_struct
   real(rp) :: ds_track_step_max = 3
   real(rp) :: dr_track_step_max = 0.1
   logical :: allow_reflections = .true.
+  logical :: debug = .false.
 end type
 
-type (synrad3d_params_struct) synrad3d_params
+type (synrad3d_params_struct), save :: synrad3d_params
 
 end module
