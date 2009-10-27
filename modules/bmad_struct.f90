@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 90
+integer, parameter :: bmad_inc_version$ = 89
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
