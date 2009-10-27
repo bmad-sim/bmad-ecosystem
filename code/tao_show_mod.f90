@@ -1231,8 +1231,10 @@ case ('lattice')
 
   elseif (ix == 0) then
     picked_ele = .true.
-    if (size(picked_ele) > 200) picked_ele(201:) = .false.
-    limited = .true.
+    if (size(picked_ele) > 200) then
+      picked_ele(201:) = .false.
+      limited = .true.
+    endif
 
   elseif (by_s) then
     ix = index(stuff2, ':')
