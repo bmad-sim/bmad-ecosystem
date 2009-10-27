@@ -1327,7 +1327,7 @@ case ('lattice')
         line2(ix2-n:) = name
       else
         line2(ix2-ix+1:) = name(1:ix-1)
-        line3(ix2-n+ix-1:) = name(ix+1:)
+        line3(ix2-n+ix:) = name(ix+1:)
       endif
 
     else
