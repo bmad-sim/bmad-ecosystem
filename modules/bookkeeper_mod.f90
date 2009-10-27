@@ -656,7 +656,7 @@ real(rp) d, e, r_lord, r_slave, cos_lord, cos_e, sin_lord, sin_lorde
 real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2
 real(rp) cos_e2, d_theta, ang_dlord, cos_lorde1, cos_dlord
 real(rp) w0_mat(3,3), w1_mat(3,3), w1_inv_mat(3,3), offset(3), dw_mat(3,3)
-real(rp) theta, phi, psi
+real(rp) theta, phi, psi, w0_inv_mat(3,3)
 
 integer i, j, ix_slave, ic, ix_s0, ix_patch_in_slave, n_pass
 character(40) :: r_name = 'makeup_multipass_slave'
@@ -773,15 +773,16 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     call mat_inverse (w1_mat, w1_inv_mat)
     dw_mat = matmul (w1_inv_mat, w0_mat) 
     call floor_w_mat_to_angles (dw_mat, 0.0_rp, theta, phi, psi)
-    slave%value(x_pitch$) = -theta
+    slave%value(x_pitch$) = theta
     slave%value(y_pitch$) = phi
     slave%value(tilt$) = psi
 
     offset = (/ f0%x-f1%x, f0%y-f1%y, f0%z-f1%z /)
     if (slave%value(translate_after$) == 0) then
-      offset = matmul(w1_mat, offset)
+      offset = matmul(w1_inv_mat, offset)
     else
-      offset = matmul(w0_mat, offset)
+      call mat_inverse (w0_mat, w0_inv_mat)
+      offset = matmul(w0_inv_mat, offset)
     endif
     slave%value(x_offset$) = offset(1)
     slave%value(y_offset$) = offset(2)
