@@ -286,24 +286,6 @@ interface
 end interface
 
 interface
-  subroutine get_element_lord_list (lat, ix_ele, lord_list, n_lord)
-    use bmad_struct, only: lat_struct
-    type (lat_struct) lat
-    integer ix_ele, n_lord
-    integer, allocatable :: lord_list(:)
-  end subroutine
-end interface
-
-interface
-  subroutine get_element_slave_list (lat, ix_ele, slave_list, n_slave)
-    use bmad_struct, only: lat_struct
-    type (lat_struct) lat
-    integer ix_ele, n_slave
-    integer, allocatable :: slave_list(:)
-  end subroutine
-end interface
-
-interface
   subroutine init_LRBBI(lat, oppos_lat, LRBBI_ele, ix_LRBBI, ix_oppos)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
@@ -1092,15 +1074,6 @@ interface
     implicit none
     type (lat_struct), target :: lat
     type (ele_struct) ele
-  end subroutine
-end interface
-
-interface
-  subroutine delete_lattice_control_struct (lat, ix_con)
-    use bmad_struct, only: lat_struct
-    implicit none
-    type (lat_struct), target :: lat
-    integer ix_con
   end subroutine
 end interface
 

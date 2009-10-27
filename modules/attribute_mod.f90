@@ -3,6 +3,7 @@ module attribute_mod
 use bmad_struct
 use basic_bmad_interface
 use multipole_mod
+use lat_ele_loc_mod
 
 
 character(40), private, save :: attrib_array(n_key, n_attrib_special_maxx)
@@ -1096,9 +1097,9 @@ end function attribute_free3
 recursive subroutine check_this_attribute_free (ele, attrib_name, lat, &
                             do_print, do_except_overlay, free, ix_recursion, ix_lord)
 
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele_p
+type (ele_struct), pointer :: ele_p, lord
 
 integer ix_branch, ix_recursion, i, ir, ix_attrib, ix
 integer, optional :: ix_lord
@@ -1156,13 +1157,22 @@ if (ele%slave_status == super_slave$) then
 endif
 
 ! Check for a multipass_slave.
-! Exception: dphi0 can be varied for lcavity and rfcavity slaves.
+! Exception: dphi0 can be varied for lcavity and rfcavity slaves, etc.
 
 if (ele%slave_status == multipass_slave$) then
-  if ((ele%key /= lcavity$ .and. ele%key /= rfcavity$) .or. ix_attrib /= dphi0$) then
-    if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')
-    return
-  endif
+  free = .true.
+  select case (ele%key)
+  case (lcavity$, rfcavity$) 
+    if (ix_attrib == dphi0$) return
+  case (patch$)
+    lord => pointer_to_lord (lat, ele, 1)
+    if (associated (pointer_to_slave(lat, lord, 1), ele) .and. &
+                                    ele%ref_orbit == patch_in$) return
+  end select
+
+  free = .false.
+  if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A MULTIPASS_SLAVE.')
+  return
 endif
 
 ! only one particular attribute of an overlay lord is allowed to be adjusted

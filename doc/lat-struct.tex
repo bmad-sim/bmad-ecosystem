@@ -95,6 +95,10 @@ array. Similarly, \vn{%branch(0)%n_ele_track},
 \vn{%branch(0)%n_ele_max}, and \vn{%branch(0)%param} point to
 \vn{lat%n_ele_track}, \vn{lat%n_ele_max}, \vn{lat%param} respectively.
 
+General Note: In fact, branches are a recent introduction to bmad. At
+this time, there are still a fair number of routines that have not
+been generalized to handle branch lines. The conversion process is on going...
+
 The \vn{%branch%ele(:)} array is always allocated with zero as the
 lower bound.  \vn{%ele(0)} is a marker element with the name
 \vn{BEGINNING}. \vn{%ele(0)%mat6} is always the unit matrix. For the
@@ -318,6 +322,10 @@ has one or more \vn{super_lord} lords (\sref{s:super}).
   \item[multipass_slave]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
 (\sref{s:multipass}).
+  \item[patch_in_slave\$]\Newline
+A \vn{patch_in_slave} is a \vn{patch} element that is also a
+\vn{multipass_lord} with \vn{%ref_orbit} set to \vn{patch_out\$}
+(\sref{s:multi-pass}). 
   \item[overlay_slave\$]\Newline 
 An \vn{overlay_slave} is an element that has any number of
 \vn{overlay_lord} and/or \vn{girder_lord} elements controlling the
@@ -397,53 +405,19 @@ example, it is not possible for an element to be simultaneously a
 Table~\ref{f:lord-slave-a} lists the valid combinations of
 \vn{%lord_status} values in the lord element and \vn{%slave_status}
 values in the slave element that are permissible. Thus, for example, a
-\vn{super_slave} may only be controlled by a \vn{super_lord}.
+\vn{super_slave} may only be controlled by a \vn{super_lord}. In the
+example in \sref{s:multipass}, Element \vn{A} would be a
+\vn{multipass_lord} and \vn{A\B1} and \vn{A\B2} would be
+\vn{multipass_slave}s. When superposition is combined with multipass,
+the elements in the tracking part of the lattice will be
+\vn{super_slave}s.  These elements will be controlled by
+\vn{super_lord}s which will also be \vn{multipass_slave}s and these
+\vn{super_lord}/\vn{multipass_slave} elements will be controlled by
+\vn{multipass_lord}s.
 
-In the example in
-\sref{s:multipass}, Element \vn{A} would be a \vn{multipass_lord} and
-\vn{A\B1} and \vn{A\B2} would be \vn{multipass_slave}s. When
-superposition is combined with multipass, the elements in the tracking
-part of the lattice will be \vn{super_slave}s.  These elements will be
-controlled by \vn{super_lord}s which will also be
-\vn{multipass_slave}s and these \vn{super_lord}/\vn{multipass_slave}
-elements will be controlled by \vn{multipass_lord}s.
-
-The possible values for \vn{%slave_status} are:
-\index{free}\index{super_slave}
-\index{overlay_slave}\index{multipass_slave}
-\begin{example}
-  free\$               No lords.
-  multipass_slave\$    Has a multipass_lord.
-  super_slave\$        Has one or more super_lords.
-  overlay_slave\$      Has one or more overlay_lords.
-  group_slave\$        Has one or more group_lords.
-\end{example}
-
-
-With \vn{%lord_status} equal to \vn{free\$}, the element is is not
-controlled by any other element.
-
-With \vn{%lord_status} equal to \vn{free\$}, the element does not have
-any elements under its control. 
-
-
- 
-
-
-
- \vn{lord_status}
-(\sref{s:ele.control}) is one of \vn{overlay_lord}, \vn{girder_lord},
-\vn{multipass_lord}, \vn{super_lord}, or \vn{Group_lord}.  
-
-
-
-\index{routine!get_element_lord_list}
 \index{routine!get_element_slave_list}
-Generally anyone using \bmad routines will not need to bother with the
-details of how elements control other elements. It is always safer to
-use the bookkeeping routines provided by \bmad rather than directly
-manipulating the control information. To simply find the slaves and
-lords of a given element use the routines \vn{get_element_lord_list}
+To simply find the slaves and
+lords of a given element use the routines 
 and \vn{get_element_slave_list}.  The following is thus meant for
 those unusual situations where knowledge of how \bmad implements
 control is needed.

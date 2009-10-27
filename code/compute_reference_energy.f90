@@ -24,12 +24,10 @@
 !     %ele(:)%ref_time      -- Reference time from the beginning at the exit end.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine compute_reference_energy (lat, compute)
 
 use bmad_struct
-use bmad_utils_mod
+use lat_ele_loc_mod
 
 implicit none
 
@@ -101,10 +99,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (lord%lord_status == multipass_lord$) then
     ix = nint(lord%value(n_ref_pass$))
     if (ix /= 0) then  
-      j = lord%ix1_slave + ix - 1
-      ixs = lat%control(j)%ix_slave
-      lord%value(e_tot$) = lat%ele(ixs)%value(e_tot$)
-      lord%value(p0c$)   = lat%ele(ixs)%value(p0c$)
+      slave => pointer_to_slave(lat, lord, ix)
+      lord%value(e_tot$) = slave%value(e_tot$)
+      lord%value(p0c$)   = slave%value(p0c$)
     elseif (lord%value(e_tot$) == 0 .and. lord%value(p0c$) /= 0) then
       call convert_pc_to (lord%value(p0c$), lat%param%particle, e_tot = lord%value(e_tot$))
     elseif (lord%value(p0c$) == 0 .and. lord%value(e_tot$) /= 0) then

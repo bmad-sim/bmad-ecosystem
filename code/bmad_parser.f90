@@ -59,7 +59,7 @@ integer, allocatable :: seq_indexx(:), in_indexx(:)
 character(40), allocatable ::  in_name(:), seq_name(:)
 
 integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, ixm(100)
-integer n_ele_use, digested_version, key, loop_counter
+integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0
 integer, pointer :: n_max
 
@@ -716,11 +716,22 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   do j = lat%n_ele_track+1, lat%n_ele_max
     if (lat%ele(j)%name == ele%component_name) then
       call reallocate_control(lat, lat%n_control_max+1)
-      n = lat%n_control_max + 1
-      lat%n_control_max = n
-      lat%control(n)%ix_lord = j
-      lat%control(n)%ix_slave = i
-      ele%value(ix_patch_control$) = n
+
+      n_ic = lat%n_ic_max + 1
+      lat%n_ic_max = n_ic
+
+      n_con = lat%n_control_max + 1
+      lat%n_control_max = n_con
+
+      ele%slave_status = patch_in_slave$
+      ele%n_lord = 1
+      ele%ic1_lord = n_ic
+      ele%ic2_lord = n_ic
+
+      lat%ic(n_ic) = n_con  
+      lat%control(n_con)%ix_lord = j
+      lat%control(n_con)%ix_slave = i
+      lat%control(n_con)%ix_branch = 0
       exit
     endif
   enddo

@@ -1,7 +1,8 @@
 module lat_ele_loc_mod
 
 use bmad_struct
-use bmad_interface
+use basic_bmad_interface
+use bmad_utils_mod
 
 contains
 
@@ -436,5 +437,76 @@ lord_ptr => lat%ele(lat%control(icon)%ix_lord)
 if (present(ix_control)) ix_control = icon
 
 end function
+
+!+
+! Subroutine get_element_slave_list (lat, lord, slave_list, n_slave)
+!
+! Subroutine to get the list of slaves for a lord element.
+!
+! This is a list of ultimate slaves. That is, slaves in the tracking part 
+! of the lattice. Thus if the element lord0 controls an
+! element lord1 which controlls an element lord2, then lord2 will
+! show up in the slave_list but lord1 will not.
+!
+! If the lord element does not have any slaves, 
+! then the slave_list will just be that element.
+!
+! This routine will increase the size of slave_list if needed but will
+! not decrease it.
+!
+! Modules needed:
+!   use lat_ele_loc_mod
+!
+! Input:
+!   lat   -- lat_struct: Lattice
+!   lord  -- Ele_struct: pointer to the lord element.
+!
+! Output:
+!   slaves(:) -- Ele_pointer_struct, allocatable :: Array of slaves.
+!   n_slave   -- Integer: Number of slaves.
+!-
+
+subroutine get_element_slave_list (lat, lord, slaves, n_slave)
+
+implicit none
+
+type (lat_struct) lat
+type (ele_struct), pointer :: lord
+type (ele_pointer_struct), allocatable :: slaves(:)
+
+integer n_slave
+
+!
+
+n_slave = 0
+if (.not. allocated(slaves)) call re_allocate_eles (slaves, lord%n_slave)
+
+call get_slaves (lord)
+
+!--------------------------------------------------------------------------
+contains
+
+recursive subroutine get_slaves (lord)
+
+type (ele_struct) lord
+type (ele_struct), pointer :: slave
+integer i, ix
+
+!
+
+do i = 1, lord%n_slave
+  slave => pointer_to_slave(lat, lord, i)
+  if (slave%n_slave > 0) then
+    call get_slaves (slave)
+  else
+    n_slave = n_slave + 1
+    if (n_slave > size(slaves)) call re_allocate_eles(slaves, n_slave + 10, .true.)
+    slaves(n_slave)%ele => slave
+  endif
+enddo
+
+end subroutine
+
+end subroutine
 
 end module

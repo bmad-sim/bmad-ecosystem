@@ -259,7 +259,7 @@ enddo
 
 ! split elements must now be pointing towards their lord
 
-if (lat%n_ic_max+2 > size(lat%ic)) call re_allocate (lat%ic, lat%n_ic_max+500)
+if (lat%n_ic_max+2 > size(lat%ic)) call re_allocate (lat%ic, lat%n_ic_max+100)
 
 ele1%slave_status = super_slave$
 inc = lat%n_ic_max + 1

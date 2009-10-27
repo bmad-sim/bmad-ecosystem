@@ -1044,7 +1044,6 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
 integer, optional :: ix_start, ix_end
 integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
 integer ie1, ie2, ios, t_count, ix_lord, ix1, ix2, n_lord
-integer, allocatable, save :: lord_list(:)
 
 character(*) out_type, out_file_name
 character(300) line
@@ -1174,9 +1173,7 @@ do
       if (ele%key == wiggler$) then
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
-          call get_element_lord_list (lat_out, ix_ele, lord_list, n_lord)
-          ix_lord = lord_list(1)
-          lord => lat_out%ele(ix_lord)
+          lord => pointer_to_lord(lat, ele, 1)
           call create_wiggler_model (lord, lat_model)
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &

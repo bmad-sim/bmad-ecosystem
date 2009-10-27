@@ -46,7 +46,7 @@ good_control(group_lord$, (/ group_slave$, overlay_slave$, multipass_slave$ /)) 
 good_control(girder_lord$, (/ overlay_slave$, multipass_slave$ /)) = .true.
 good_control(overlay_lord$, (/ overlay_slave$, multipass_slave$ /)) = .true.
 good_control(super_lord$, (/ super_slave$ /)) = .true.
-good_control(multipass_lord$, (/ multipass_slave$ /)) = .true.
+good_control(multipass_lord$, (/ multipass_slave$, patch_in_slave$ /)) = .true.
 
 found_err = .false.
            
@@ -222,7 +222,7 @@ do i_b = 0, ubound(lat%branch, 1)
     endif
 
     if (.not. any( (/ free$, group_slave$, super_slave$, overlay_slave$, &
-                      multipass_slave$ /) == s_stat)) then
+                      multipass_slave$, patch_in_slave$ /) == s_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = (/ i_t, s_stat /) )

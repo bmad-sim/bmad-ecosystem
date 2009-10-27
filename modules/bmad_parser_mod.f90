@@ -6,8 +6,6 @@
 ! bmad_parser2 and cannot, in general, be used otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 module bmad_parser_mod
 
 use ptc_interface_mod

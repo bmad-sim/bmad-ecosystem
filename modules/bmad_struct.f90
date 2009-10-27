@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 89
+integer, parameter :: bmad_inc_version$ = 90
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -199,26 +199,26 @@ type ele_struct
   real(rp), pointer :: const(:) => null()         ! Working constants.
   integer key                ! key value
   integer sub_key            ! For wigglers: map_type$, periodic_type$
-  integer lord_status        ! overlay_lord$, etc.
+  integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer ix_value           ! Overlays: Index of control attribute. 
   integer slave_status       ! super_slave$, etc.
-  integer ix_value           ! Pointer for attribute to control
   integer n_slave            ! Number of slaves
   integer ix1_slave          ! Start index for slave elements
   integer ix2_slave          ! Stop  index for slave elements
+  integer lord_status        ! overlay_lord$, etc.
   integer n_lord             ! Number of lords
   integer ic1_lord           ! Start index for lord elements
   integer ic2_lord           ! Stop  index for lord elements
   integer ix_pointer         ! For general use. Not used by Bmad.
   integer ixx                ! Index for Bmad internal use
-  integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
-  integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
   integer num_steps          ! number of slices for DA_maps
   integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
   integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, 
-                             !                    match_at_entrance$, match_at_exit$
+                             !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer coupler_at         ! Lcavity coupler location: exit_end$, ...
@@ -437,7 +437,7 @@ integer, parameter :: x_offset_tot$=43  ! Assumed unique. Do not overload.
 integer, parameter :: y_offset_tot$=44  ! Assumed unique. Do not overload.
 integer, parameter :: s_offset_tot$=45  ! Assumed unique. Do not overload.
 integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
-integer, parameter :: coupler_phase$ = 47, c_12$ = 47, ix_patch_control$=47
+integer, parameter :: coupler_phase$ = 47, c_12$ = 47
 integer, parameter :: coupler_angle$ = 48, c_21$ = 48
 integer, parameter :: c_22$ = 49, pole_radius$ = 48
 integer, parameter :: ds_step$ = 50, gamma_c$ = 50
@@ -540,13 +540,13 @@ logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 integer, parameter :: free$ = 1, super_slave$ = 2, overlay_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, group_slave$ = 11
+integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12
 
-character(16) :: control_name(11) = (/ &
+character(16) :: control_name(12) = (/ &
             'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
             'GIRDER_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
-            'NOT_A_LORD     ', 'GROUP_SLAVE    ' /)
+            'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ' /)
 
 ! plane list, etc
 

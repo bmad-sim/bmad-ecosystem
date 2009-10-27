@@ -38,7 +38,8 @@ subroutine lattice_bookkeeper (lat)
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
 integer i, j
 logical found
 
@@ -71,9 +72,10 @@ found = .false.
 
 do i = 0, ubound(lat%branch, 1)
   do j = 1, lat%branch(i)%n_ele_track
-    if (lat%branch(i)%ele(j)%slave_status == multipass_slave$ .and. &
-        lat%branch(i)%ele(j)%ref_orbit /= 0) then
-      call makeup_multipass_slave (lat, lat%branch(i)%ele(j))
+    ele => lat%branch(i)%ele(j)
+    if (ele%slave_status == multipass_slave$ .and. ele%ref_orbit /= 0) then
+      call makeup_multipass_slave (lat, ele)
+      call attribute_bookkeeper (ele, lat%param)
       found = .true.
     endif
   enddo
@@ -644,7 +646,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord, patch_in_lord
+type (ele_struct), pointer :: lord, patch_in_lord, patch_in_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct), pointer :: f0, f1
 type (coord_struct) start, end
@@ -789,12 +791,10 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
     ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
 
-    ic = nint(lord%value(ix_patch_control$))
-    patch_in_lord => lat%ele(lat%control(ic)%ix_lord)
-    ic = patch_in_lord%ix1_slave + n_pass - 1    
-    ix_patch_in_slave = lat%control(ic)%ix_slave
+    patch_in_lord => pointer_to_lord(lat, lord, 1)
+    patch_in_slave => pointer_to_slave (lat, patch_in_lord, n_pass)
     start%vec = 0
-    do i = ix_patch_in_slave, ix_slave - 1
+    do i = patch_in_slave%ix_ele, ix_slave - 1
       call track1 (start, branch%ele(i), lat%param, end)
       start = end
     enddo

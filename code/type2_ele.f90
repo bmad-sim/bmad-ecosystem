@@ -60,7 +60,7 @@ use lat_ele_loc_mod
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord
+type (ele_struct), pointer :: lord, slave
 type (lat_struct), optional, target :: lattice
 type (wig_term_struct), pointer :: term
 type (lr_wake_struct), pointer :: lr
@@ -381,6 +381,7 @@ if (logic_option(present(lattice), type_control)) then
   if (ele%n_lord /= 0) then
 
     print_it = .true.
+
     if (ele%slave_status == multipass_slave$) then
       lord => pointer_to_lord (lattice, ele, 1)
       nl=nl+1; write (li(nl), '(2a, 4x, a, i0, a)') &
@@ -388,7 +389,7 @@ if (logic_option(present(lattice), type_control)) then
       if (ele%n_lord == 1) print_it = .false. 
     endif
 
-    if (ele%slave_status == super_slave$) then
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == patch_in_slave$) then
       nl=nl+1; write (li(nl), '(a, i4)') 'Lords:'
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = 1, ele%n_lord
@@ -433,18 +434,24 @@ if (logic_option(present(lattice), type_control)) then
   endif
 
   if (ele%n_slave /= 0) then
+    nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
 
     select case (ele%lord_status)
-    case (super_lord$, girder_lord$, multipass_lord$) 
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
+    case (multipass_lord$)
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
-      do i = ele%ix1_slave, ele%ix2_slave
-        j = lattice%control(i)%ix_slave
-        nl=nl+1; write (li(nl), '(5x, a30, i10)') lattice%ele(j)%name, j
+      do i = 1, ele%n_slave
+        slave => pointer_to_slave (lattice, ele, i)
+        nl=nl+1; write (li(nl), '(5x, a30, i10)') slave%name, slave%ix_ele
+      enddo
+
+    case (super_lord$, girder_lord$)
+      nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
+      do i = 1, ele%n_slave
+        slave => pointer_to_slave (lattice, ele, i)
+        nl=nl+1; write (li(nl), '(5x, a30, i10)') slave%name, slave%ix_ele
       enddo
 
     case default
-      nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
       nl=nl+1; write (li(nl), *) &
           '    Name                       Lat_index  Attribute         Coefficient'
       do i = ele%ix1_slave, ele%ix2_slave

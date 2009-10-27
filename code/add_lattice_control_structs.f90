@@ -33,7 +33,7 @@ subroutine add_lattice_control_structs (lat, ele)
   integer n_add, n_con, i2, n_con2, n_ic, n_ic2
 
 
-! fix slave problems
+  ! fix slave problems
 
   n_add = ele%n_slave - (ele%ix2_slave - ele%ix1_slave + 1) 
 
@@ -70,7 +70,7 @@ subroutine add_lattice_control_structs (lat, ele)
 
   endif
                                         
-! fix lord problems
+  ! fix lord problems
 
   n_add = ele%n_lord - (ele%ic2_lord - ele%ic1_lord + 1) 
 

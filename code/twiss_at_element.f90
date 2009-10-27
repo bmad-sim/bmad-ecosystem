@@ -12,9 +12,9 @@
 !   ix_ele  -- Integer: Index of element
 !
 ! Output:
-!   start   -- Ele_struct: [Optional] Twiss and s at start of element.
-!   end     -- Ele_struct: [Optional] Twiss and s at end of element.
-!   average -- Ele_struct: [Optional] Average Twiss and s of element.
+!   start   -- Ele_struct, optional: Twiss and s at start of element.
+!   end     -- Ele_struct, optional: Twiss and s at end of element.
+!   average -- Ele_struct, optional: Average Twiss and s of element.
 !     %value(l$) -- "Effective" length which for groups and overlays
 !                      are weighted by the control coefficient.
 !
@@ -22,12 +22,10 @@
 ! this does not do a good job of calculating the average for some elements.
 !-
 
-#include "CESR_platform.inc"
-
 recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => twiss_at_element
+  
+  use lat_ele_loc_mod, except_dummy => twiss_at_element
   use nr
   
   implicit none
@@ -36,10 +34,10 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   type (ele_struct), optional :: start, end, average
   type (ele_struct), pointer :: ele
   type (ele_struct) slave_ave
+  type (ele_pointer_struct), allocatable, save :: slaves(:)
 
   integer ix_ele, ix1, ix2
   integer i, ix, n_slave, ct
-  integer, allocatable :: slave_list(:)
 
   real(rp) rr, tot, l_now
 
@@ -73,17 +71,22 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 ! Start and end calculation for the lord elements
 
   select case (ele%lord_status)
-  case (super_lord$, multipass_lord$, girder_lord$)
-    ix1 = ele%ix1_slave
-    ix2 = ele%ix2_slave
-    if (present(start)) start = lat%ele(lat%control(ix1)%ix_slave - 1)
-    if (present(end)) end = lat%ele(lat%control(ix2)%ix_slave)
+  case (multipass_lord$)
+    if (present(start)) start = pointer_to_slave(lat, ele, 1)
+    if (present(end)) end = pointer_to_slave(lat, ele, ele%n_slave)
+
+  case (super_lord$, girder_lord$)
+    if (present(start)) start = pointer_to_slave(lat, ele, 1)
+    if (present(end)) end = pointer_to_slave(lat, ele, ele%n_slave)
 
   case default   ! overlay_lord$ or group_lord$
 
-    call get_element_slave_list (lat, ix_ele, slave_list, n_slave)
-    ix1 = minval (slave_list(1:n_slave))
-    ix2 = maxval (slave_list(1:n_slave))
+    call get_element_slave_list (lat, ele, slaves, n_slave)
+    ix1 = lat%n_ele_track;  ix2 = 0
+    do i = 1, n_slave
+      ix1 = min (ix1, slaves(i)%ele%ix_ele)
+      ix2 = max (ix2, slaves(i)%ele%ix_ele)
+    enddo
 
     if (ix2-ix1 < lat%n_ele_track/2) then
       if (present(start)) start = lat%ele(ix1-1)

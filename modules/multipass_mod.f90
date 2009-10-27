@@ -63,10 +63,10 @@ implicit none
 
 type (lat_struct), target :: lat
 type (multipass_all_info_struct) info
-type (ele_struct), pointer :: m_lord, super_lord
+type (ele_struct), pointer :: m_lord, super_lord, slave1, slave
 
-integer i, j, k, n, ik, ie, nl, ixsl, ixss 
-integer n_multi_lord, n_pass, ix_pass, ix_slave, n_super_slave
+integer i, j, k, n, ik, ie, nl
+integer n_multi_lord, n_pass, ix_pass, n_super_slave
 
 ! First get the number of multipass_lords.
 
@@ -104,51 +104,47 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   allocate (info%top(nl)%ix_super_lord(n_pass))
 
-  ix_slave = lat%control(m_lord%ix1_slave)%ix_slave
+  slave1 => pointer_to_slave(lat, m_lord, 1)
 
-  if (lat%ele(ix_slave)%lord_status == super_lord$) then
-    n_super_slave = lat%ele(ix_slave)%n_slave
+  if (slave1%lord_status == super_lord$) then
+    n_super_slave = slave1%n_slave
     info%top(nl)%n_super_slave = n_super_slave
     allocate (info%top(nl)%ix_slave(n_pass, n_super_slave))
-    do j = m_lord%ix1_slave, m_lord%ix2_slave
-      ix_pass = j + 1 - m_lord%ix1_slave
-      ixsl = lat%control(j)%ix_slave
-      super_lord => lat%ele(ixsl)
-      info%top(nl)%ix_super_lord(ix_pass) = ixsl
-      info%bottom(ixsl)%multipass = .true.
-      n = size(info%bottom(ixsl)%ix_top)
-      call re_allocate(info%bottom(ixsl)%ix_top, n+1)
-      info%bottom(ixsl)%ix_top(n+1) = nl
-      info%bottom(ixsl)%ix_pass = ix_pass
-      do k = super_lord%ix1_slave, super_lord%ix2_slave
-        ik = k + 1 - super_lord%ix1_slave
-        ixss = lat%control(k)%ix_slave
-        info%top(nl)%ix_slave(ix_pass, ik) = ixss
-        info%bottom(ixss)%multipass = .true.
-        info%bottom(ixss)%ix_pass = ix_pass
-        n = size(info%bottom(ixss)%ix_top)
-        call re_allocate(info%bottom(ixss)%ix_top, n+1)
-        call re_allocate(info%bottom(ixss)%ix_super, n+1)
-        info%bottom(ixss)%ix_top(n+1) = nl
-        info%bottom(ixss)%ix_super(n+1) = ik
+    do j = 1, m_lord%n_slave
+      super_lord => pointer_to_slave(lat, m_lord, j)
+      info%top(nl)%ix_super_lord(j) = super_lord%ix_ele
+      info%bottom(super_lord%ix_ele)%multipass = .true.
+      n = size(info%bottom(super_lord%ix_ele)%ix_top)
+      call re_allocate(info%bottom(super_lord%ix_ele)%ix_top, n+1)
+      info%bottom(super_lord%ix_ele)%ix_top(n+1) = nl
+      info%bottom(super_lord%ix_ele)%ix_pass = j
+      do k = 1, super_lord%n_slave
+        slave => pointer_to_slave(lat, super_lord, k)
+        info%top(nl)%ix_slave(j, k) = slave%ix_ele
+        info%bottom(slave%ix_ele)%multipass = .true.
+        info%bottom(slave%ix_ele)%ix_pass = j
+        n = size(info%bottom(slave%ix_ele)%ix_top)
+        call re_allocate(info%bottom(slave%ix_ele)%ix_top, n+1)
+        call re_allocate(info%bottom(slave%ix_ele)%ix_super, n+1)
+        info%bottom(slave%ix_ele)%ix_top(n+1) = nl
+        info%bottom(slave%ix_ele)%ix_super(n+1) = k
       enddo
     enddo
 
   else
     info%top(nl)%n_super_slave = 1
     allocate (info%top(nl)%ix_slave(n_pass, 1))
-    do j = m_lord%ix1_slave, m_lord%ix2_slave
-      ix_pass = j + 1 - m_lord%ix1_slave
-      ixss = lat%control(j)%ix_slave
-      info%top(nl)%ix_super_lord(ix_pass) = ixss
-      info%top(nl)%ix_slave(ix_pass, 1) = ixss
-      info%bottom(ixss)%multipass = .true.
-      info%bottom(ixss)%ix_pass = ix_pass
-      n = size(info%bottom(ixss)%ix_top)
-      call re_allocate(info%bottom(ixss)%ix_top, n+1)
-      call re_allocate(info%bottom(ixss)%ix_super, n+1)
-      info%bottom(ixss)%ix_top(n+1) = nl
-      info%bottom(ixss)%ix_super(n+1) = 1
+    do j = 1, m_lord%n_slave
+      slave => pointer_to_slave(lat, m_lord, j)
+      info%top(nl)%ix_super_lord(j) = slave%ix_ele
+      info%top(nl)%ix_slave(j, 1) = slave%ix_ele
+      info%bottom(slave%ix_ele)%multipass = .true.
+      info%bottom(slave%ix_ele)%ix_pass = j
+      n = size(info%bottom(slave%ix_ele)%ix_top)
+      call re_allocate(info%bottom(slave%ix_ele)%ix_top, n+1)
+      call re_allocate(info%bottom(slave%ix_ele)%ix_super, n+1)
+      info%bottom(slave%ix_ele)%ix_top(n+1) = nl
+      info%bottom(slave%ix_ele)%ix_super(n+1) = 1
     enddo
   endif
 
