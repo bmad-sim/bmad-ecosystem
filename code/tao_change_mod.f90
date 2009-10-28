@@ -364,7 +364,7 @@ case ('@', 'd', '%')
   number_str(1:1) = ' '
 end select
 
-call tao_to_real_vector (number_str, n_size, .false., change_number, good, err)
+call tao_evaluate_expression (number_str, n_size, .false., change_number, good, err)
 
 end subroutine
 

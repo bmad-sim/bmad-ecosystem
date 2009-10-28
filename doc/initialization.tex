@@ -304,11 +304,11 @@ integer is inserted in place of the \vn{``?''}. For example, if
 \vn{unique_name_suffix} is \vn{"quad:_?"}, and if the following
 quadrupoles are in the lattice:
 \begin{example}
-				QA    QB    QX    QA    QB     QB
+        QA    QB    QX    QA    QB     QB
 \end{example}
 then after initialization, the names will be:
 \begin{example}
-				QA_1  QB_1  QX    QA_2  QB_2   QB_3
+        QA_1  QB_1  QX    QA_2  QB_2   QB_3
 \end{example}
 
 Setting \vn{aperture_limit_on} to \vn{False} will turn off the
@@ -1691,8 +1691,8 @@ place holder for the \vn{graph%component} Example:
     graph_index = 1
     graph%title = "Orbit at BPM"
     graph%y%label = "y"
-  	graph%component = "meas - ref"
-  	graph%type = "data"
+    graph%component = "meas - ref"
+    graph%type = "data"
     graph%n_curve = 1
     graph%x_axis_scale_factor = 1000
     curve(1)%data_source = "data_array"
@@ -1700,12 +1700,12 @@ place holder for the \vn{graph%component} Example:
     curve(1)%data_type   = "[2:57]@orbit.y[#ref]|#comp"
     curve(1)%data_index  = "[2:57]@orbit.y[#ref]|ix_uni"
     curve(1)%y_axis_scale_factor = 1000
-  	curve(1)%ele_ref_name = "23"
-  	curve(1)%draw_line = F
+    curve(1)%ele_ref_name = "23"
+    curve(1)%draw_line = F
   /
 \end{example}
 In this example, \vn{curve(1)%data_type_x} expands to
-\vn{"[2:57]@orbit.x[50]|meas-ref"}. That is, the \vn{meas - ref}
+\vn{"[2:57]@orbit.x[23]|meas-ref"}. That is, the \vn{meas - ref}
 values of \vn{orbit.x[23]} from universes 2 through 57 is used for the
 x-axis.  Similarly, \vn{orbit.y[23]} is used for the y-axis. The
 \vn{set} command (\sref{s:set}) can be used to change

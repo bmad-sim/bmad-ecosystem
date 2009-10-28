@@ -19,13 +19,13 @@ type (this_array_struct), save, allocatable, target, private :: cc(:)
 
 ! used for parsing expressions
 
-integer, parameter, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-integer, parameter, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
-integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
-integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
-integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: numeric$ = 100, var$ = 101, var_on_the_fly$ = 102
+integer, parameter :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
+integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
+integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
+integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
+integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
+integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+integer, parameter :: numeric$ = 100, var_num$ = 101, on_the_fly$ = 102, data_num$ = 103
 
 integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
@@ -1841,70 +1841,20 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real_vector (expression, n_size, use_good_user, value, good, 
-!                                                                err_flag, print_err)
-!
-! Mathematically evaluates an expression.
-!
-! Input:
-!   expression    -- Character(*): Arithmetic expression.
-!   n_size        -- Integer: Size of the value array. If the expression
-!                               is a scaler then the value will be spread.
-!                               If n_size = 0 then the natural size determined 
-!                               by expression is used.
-!   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
-!   print_err     -- Logical, optional: Print an error message? Default is True.
-!  
-! Output:
-!   value(:)     -- Real(rp), allocatable: Value of arithmetic expression.
-!   good(:)      -- Logical, allocatable: Is the value valid? 
-!                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                     orbit.x[23]|good_user is False.
-!   err_flag     -- Logical: True on error. False otherwise
-!-
-
-subroutine tao_to_real_vector (expression, n_size, use_good_user, value, good, &
-                                                                      err_flag, print_err)
-
-use random_mod
-
-implicit none
-
-real(rp), allocatable :: value(:)
-logical, allocatable :: good(:)
-
-integer n_size
-
-character(*) :: expression
-character(16) :: r_name = "tao_to_real_vector"
-
-logical err_flag, err, use_good_user
-logical, optional :: print_err
-
-!
-
-call tao_evaluate_expression (expression, n_size, use_good_user, &
-                                                       value, good, err_flag, print_err)
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-!                                   value, good, err_flag, print_err, stack)
+!                             value, good, err_flag, print_err, stack, dflt_component)
 !
 ! Mathematically evaluates a character expression.
 !
 ! Input:
-!   expression    -- Character(*): Arithmetic expression.
-!   n_size        -- Integer: Size of the value array. If the expression
+!   expression     -- Character(*): Arithmetic expression.
+!   n_size         -- Integer: Size of the value array. If the expression
 !                      is a scaler then the value will be spread.
 !                      If n_size = 0, the natural size is determined by expression is used.
-!   use_good_user -- Logical: Use the good_user logical in evaluating good(:)
-!   print_err     -- Logical, optional: If False then supress evaluation error messages.
+!   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
+!   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
+!   dflt_component -- Character(*): Default component to use with datums if not specified.
 !   
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -1920,7 +1870,7 @@ end subroutine
 !-
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-                                    value, good, err_flag, print_err, stack)
+                              value, good, err_flag, print_err, stack, dflt_component)
 
 use random_mod
 
@@ -1935,6 +1885,7 @@ integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 real(rp), allocatable :: value(:)
 
 character(*) :: expression
+character(*), optional :: dflt_component
 character(200) phrase
 character(1) delim
 character(40) word, word2
@@ -2098,6 +2049,17 @@ parsing_loop: do
       saved_prefix = word
       word = ''
       ix_word = 0
+    endif
+  endif
+
+  ! if the word is a datum without an "|", and dflt_component is present, 
+  ! Then use the dflt_component.
+
+  if (present(dflt_component) .and. index(word, '|') == 0) then
+    call tao_find_data (err, word)
+    if (.not. err) then
+      phrase = trim(word) // '|' // trim(dflt_component) // delim // trim(phrase)
+      cycle   ! Try again
     endif
   endif
 
@@ -2300,7 +2262,7 @@ endif
 
 n__size = 1
 do i = 1, i_lev
-  if (stk(i)%type /= numeric$ .and. stk(i)%type /= var$) cycle
+  if (stk(i)%type /= numeric$ .and. stk(i)%type /= var_num$ .and. stk(i)%type /= data_num$) cycle
   n = size(stk(i)%value)
   if (n == 1) cycle
   if (n__size == 1) n__size = n
@@ -2424,8 +2386,16 @@ endif
 ix = index(str, '|')
 ix_ele = index(str, ':')
 stack%name = str
-if (ix == 0 .and. ix_ele == 0) stack%name = trim(saved_prefix) // str
-if (ix /= 0) saved_prefix = str(1:ix)
+
+if (ix == 0) then
+  select case (str)
+  case ('model', 'design', 'base', 'meas', 'ref', 'old', 'fit')
+    stack%name = trim(saved_prefix) // str
+  end select
+else
+  saved_prefix = str(1:ix)
+endif
+
 name = stack%name
 
 if (.not. allocated(re_array)) allocate (re_array(0))
@@ -2434,30 +2404,32 @@ if (.not. allocated(re_array)) allocate (re_array(0))
 
 if (name(1:4) == 'dat:' .or. index(name, '@dat:') /= 0) then
   call tao_evaluate_data_on_the_fly (err_flag, name, stack%value, print_err = .false.)
-  stack%type = var_on_the_fly$
+  stack%type = on_the_fly$
   return
 
 ! Look for a lattice element parameter 
 
 elseif (name(1:4) == 'ele:' .or. index(name, '@ele:') /= 0) then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err = .false.)
-  stack%type = var_on_the_fly$
+  stack%type = on_the_fly$
   return
 
 ! Look for variable or data values
 
 else
+  stack%type = var_num$
   call tao_find_var (err_flag, name, re_array = re_array, print_err = .false.)
-  if (err_flag) call tao_find_data (err_flag, name, &
+  if (err_flag) then
+    call tao_find_data (err_flag, name, &
                      re_array = re_array, int_array = int_array, print_err = .false.)
-
+    stack%type = data_num$
+  endif
   if (err_flag) return
 endif
 
 ! Now transfer the information to the stack
 
 if (size(re_array) /= 0) then
-  stack%type = var$
   n = size(re_array)
   if (allocated(stack%value_ptr)) then
     if (size(stack%value_ptr) /= n) deallocate (stack%value_ptr)
@@ -2574,12 +2546,12 @@ do i = 1, size(stack)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
-  case (var_on_the_fly$)
+  case (on_the_fly$)
     call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag, print_err)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
-  case (var$)
+  case (var_num$, data_num$)
     do j = 1, size(stack(i)%value)
       stack(i)%value(j) = stack(i)%value_ptr(j)%r
     enddo

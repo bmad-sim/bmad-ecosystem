@@ -131,8 +131,8 @@ curve_loop: do k = 1, size(graph%curve)
     if (i == 1) name = curve%data_type_x
     if (i == 2) name = curve%data_type
     call tao_data_type_substitute (name, name, curve%ele_ref_name, graph%component)
-    if (i == 1) call tao_to_real_vector (name, 0, .true., x, gx, err)
-    if (i == 2) call tao_to_real_vector (name, 0, .true., y, gy, err)
+    if (i == 1) call tao_evaluate_expression (name, 0, .true., x, gx, err, dflt_component = graph%component)
+    if (i == 2) call tao_evaluate_expression (name, 0, .true., y, gy, err, dflt_component = graph%component)
     if (err) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // tao_curve_name(curve))   
@@ -167,7 +167,7 @@ curve_loop: do k = 1, size(graph%curve)
     curve%ix_symb = (/ (i, i = 1, n_symb) /)
   else
     call tao_data_type_substitute (curve%data_index, name, curve%ele_ref_name, graph%component)
-    call tao_to_real_vector (name, 0, .true., x, gix, err)
+    call tao_evaluate_expression (name, 0, .true., x, gix, err, dflt_component = graph%component)
     if (size(gx) == size(gy)) then
       curve%ix_symb = pack (nint(x), mask = gx .and. gy)
     else
@@ -482,7 +482,7 @@ case default
   err = .true.
 end select
 
-end subroutine
+end subroutine tao_phase_space_axis
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -510,6 +510,7 @@ type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_data_var_component_struct), allocatable, save :: comp(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
+type (tao_eval_stack1_struct), allocatable, save :: stack(:)
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min
 real(rp), allocatable :: value(:)
@@ -591,11 +592,29 @@ do k = 1, size(graph%curve)
 
   case ('data_array')
 
+    ! Calculate values
+
+    call tao_data_type_substitute (curve%data_type, data_type, curve%ele_ref_name, graph%component)
+    call tao_evaluate_expression  (data_type, 0, .true., value, good, err, &
+                                             stack = stack, dflt_component = graph%component)
+    if (err) then
+      graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
+      return
+    end if
+
     ! point d1_array to the data to be plotted
 
-    call tao_find_data (err, curve%data_type, d2_ptr, d1_array, ix_uni = curve%ix_universe)
+    do i = 1, size(stack)
+      if (stack(i)%type == data_num$) exit
+      if (i == size(stack)) then
+        graph%why_invalid = 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type
+        return
+      endif
+    enddo
+
+    call tao_find_data (err, stack(i)%name, d2_ptr, d1_array, ix_uni = curve%ix_universe)
     if (err .or. size(d1_array) /= 1) then
-      graph%why_invalid = 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type
+      graph%why_invalid = 'CANNOT FIND VALID DATA ARRAY TO PLOT CURVE: ' // curve%data_type
       return
     endif
 
@@ -692,13 +711,6 @@ do k = 1, size(graph%curve)
 
     ! calculate the y-axis data point values.
 
-    data_type = trim(curve%data_type) // '|' // graph%component
-    call tao_to_real_vector (data_type, 0, .true., value, good, err)
-    if (err) then
-      graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
-      return
-    end if
-
     curve%y_symb = pack(value, mask = d1_ptr%d%useit_plot)
 
   !----------------------------------------------------------------------------
@@ -770,7 +782,7 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     data_type = trim(curve%data_type) // '|' // graph%component
-    call tao_to_real_vector (data_type, 0, .true., value, good, err)
+    call tao_evaluate_expression (data_type, 0, .true., value, good, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
       return
@@ -955,7 +967,7 @@ do k = 1, size(graph%curve)
 
 enddo
 
-end subroutine
+end subroutine tao_graph_data_setup
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1251,7 +1263,7 @@ do ii = 1, size(curve%x_line)
 
 enddo
 
-end subroutine
+end subroutine calc_data_at_s
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
