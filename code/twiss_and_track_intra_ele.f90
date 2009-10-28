@@ -84,6 +84,7 @@ endif
 runt = ele
 runt%value(l$) = l_end - l_start
 call makeup_super_slave1 (runt, ele, l_start, param, track_entrance, track_exit)
+call attribute_bookkeeper (runt, param)
 
 track = runt%tracking_method
 mat6  = runt%mat6_calc_method

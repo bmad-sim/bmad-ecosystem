@@ -1445,6 +1445,8 @@ end subroutine
 ! Routine to transfer the %value, %wig_term, and %wake%lr information from a 
 ! superposition lord to a slave when the slave has only one lord.
 !
+! Note: attribute_bookkeeper needs to be called after calling this routine.
+!
 ! Modules needed:
 !   use bmad
 !

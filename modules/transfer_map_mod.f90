@@ -41,8 +41,9 @@ contains
 !   integrate  -- Logical, optional: If present and True then do symplectic
 !                   integration instead of concatenation. 
 !                   Default = False.
-!   one_turn   -- Logical, optional: If present and True and s1 = s2 then 
-!                   construct the one-turn map from s1 back to s1.
+!   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
+!                   is circular: Construct the one-turn map from s1 back to s1.
+!                   Otherwise t_map is unchanged or the unit map if unit_start = T.
 !                   Default = False.
 !   unit_start -- Logical, optional: If present and False then t_map will be
 !                   used as the starting map instead of the unit map.
@@ -56,6 +57,7 @@ subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, &
                                       integrate, one_turn, unit_start)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
+use bookkeeper_mod, only: makeup_super_slave1, attribute_bookkeeper
 
 implicit none
 
@@ -82,7 +84,10 @@ ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
  
 if (unit_start_this) call taylor_make_unit (t_map)
 
-if (ss1 == ss2 .and. .not. one_turn_this) return
+! One turn or not calc?
+
+if (ss1 == ss2 .and. (.not. one_turn_this .or. &
+                lat%param%lattice_type == linear_lattice$)) return
 
 ! Normal case
 
@@ -117,7 +122,8 @@ contains
 subroutine transfer_this (map, s_1, s_2)
 
 type (taylor_struct) :: map(:)
-type (ele_struct), save :: ele
+type (ele_struct), pointer, save :: ele
+type (ele_struct), save :: runt
 
 real(rp) s_1, s_2, s_now, s_end, ds
 real(rp), save :: ds_old = -1
@@ -125,57 +131,67 @@ real(rp), save :: ds_old = -1
 integer i, ix_ele
 integer, save :: ix_ele_old = -1
 
-logical kill_it
+logical kill_it, track_entrance, track_exit
+logical, save :: old_track_entrance = .false.
 
 !
 
 call ele_at_s (lat, s_1, ix_ele)
+ele => lat%ele(ix_ele)
 
-if (ix_ele /= ix_ele_old) ele = lat%ele(ix_ele)
+if (ix_ele /= ix_ele_old) then
+  runt = ele
+  old_track_entrance = .false.
+endif
+
 s_now = s_1
 kill_it = .false.
 
 do
   s_end = min(s_2, ele%s)
-  if (ele%key == sbend$) then
-    if (s_now /= lat%ele(ix_ele-1)%s) ele%value(e1$) = 0
-    if (s_end /= ele%s) ele%value(e2$) = 0
-    if (s_now == lat%ele(ix_ele-1)%s) kill_it = .true.
-    if (s_end == ele%s) kill_it = .true.
-  elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
-    if (s_now /= lat%ele(ix_ele-1)%s) then
-      do i = 1, size(ele%wig_term)
-        ele%wig_term(i)%phi_z = lat%ele(ix_ele)%wig_term(i)%phi_z + &
-                          (s_now - lat%ele(ix_ele-1)%s) * ele%wig_term(i)%kz
-      enddo
-    endif
-  endif
+
+  track_entrance = (s_now == lat%ele(ix_ele-1)%s) 
+  track_exit     = (s_end == ele%s)
 
   ds = s_end - s_now
-  ele%value(l$) = ds
+  runt%value(l$) = ds
 
-  if (ds /= ds_old .or. ix_ele /= ix_ele_old) kill_it = .true.
+  call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
+                                          lat%param, track_entrance, track_exit)
+  call attribute_bookkeeper (runt, lat%param)
 
-  if (kill_it) call kill_taylor (ele%taylor)
+
+  if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
+    kill_it = .true.
+  elseif (ele%key == sbend$) then
+    if (track_entrance .or. track_exit .or. old_track_entrance) kill_it = .true.
+  elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+    kill_it = .true.
+  endif
+
+  if (kill_it) call kill_taylor (runt%taylor)
 
   if (integrate_this) then
-    call taylor_propagate1 (map, ele, lat%param)
+    call taylor_propagate1 (map, runt, lat%param)
   else
-    if (.not. associated(ele%taylor(1)%term)) then
-      call ele_to_taylor (ele, lat%param)
+    if (.not. associated(runt%taylor(1)%term)) then
+      call ele_to_taylor (runt, lat%param)
     endif
-    call concat_taylor (map, ele%taylor, map)
+    call concat_taylor (map, runt%taylor, map)
   endif
 
-  if (s_end == s_2) then
-    ix_ele_old = ix_ele
-    ds_old = ds
-    return
-  endif
+  ds_old = ds
+  ix_ele_old = ix_ele
 
+  if (s_end == s_2) return
+
+  old_track_entrance = .false.
   s_now = s_end
   ix_ele = ix_ele + 1
-  ele = lat%ele(ix_ele)
+  ele => lat%ele(ix_ele)
+  runt = ele
+  ix_ele_old = ix_ele
+
 enddo
 
 end subroutine
@@ -212,8 +228,9 @@ end subroutine
 !                   Default is 0.
 !   s2         -- Real(rp), optional: Element end index for the calculation.
 !                   Default is lat%param%total_length.
-!   one_turn   -- Logical, optional: If present and True then construct the
-!                   one-turn map from s1 back to s1 (ignolat s2).
+!   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
+!                   is circular: Construct the one-turn matrix from s1 back to s1.
+!                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
 !                   Default = False.
 !   unit_start -- Logical, optional: If present and False then mat6 will be
 !                   used as the starting matrix instead of the unit matrix.
@@ -225,6 +242,8 @@ end subroutine
 !-
 
 subroutine mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)
+
+use bookkeeper_mod, only: makeup_super_slave1, attribute_bookkeeper
 
 implicit none
 
@@ -249,9 +268,14 @@ if (logic_option(.true., unit_start)) then
   vec0 = 0
 endif
 
+! One turn or not calc?
+
+if (ss1 == ss2 .and. (.not. one_turn_this .or. &
+                lat%param%lattice_type == linear_lattice$)) return
+
 ! Normal case
 
-if (ss1 < ss2 .or. (ss1 == ss2 .and. one_turn_this)) then
+if (ss1 < ss2) then
   call transfer_this (ss1, ss2)
 
 ! For a circular lattice push through the origin.
@@ -279,34 +303,53 @@ contains
 
 subroutine transfer_this (s_1, s_2)
 
-type (ele_struct), save :: ele
+type (ele_struct), save :: runt
+type (ele_struct), pointer, save :: ele
+
 real(rp) s_1, s_2, s_end, s_now, ds
+
 integer ix_ele
+integer, save :: ix_ele_old = -1
+
+logical track_entrance, track_exit
 
 !
 
 call ele_at_s (lat, s_1, ix_ele)
-ele = lat%ele(ix_ele)
+ele => lat%ele(ix_ele)
+
+if (ix_ele /= ix_ele_old) runt = lat%ele(ix_ele)
 s_now = s_1
 
 do
-  s_end = min(s_2, ele%s)
+  s_end = min(s_2, runt%s)
+
+  track_entrance = (s_now == lat%ele(ix_ele-1)%s) 
+  track_exit     = (s_end == ele%s)
+
   ds = s_end - s_now
-  ele%value(l$) = ds
-  if (ele%key == sbend$) then
-    if (s_now /= lat%ele(ix_ele-1)%s) ele%value(e1$) = 0
-    if (s_end /= ele%s) ele%value(e2$) = 0
+  runt%value(l$) = ds
+
+  call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
+                                          lat%param, track_entrance, track_exit)
+  call attribute_bookkeeper (runt, lat%param)
+
+  call make_mat6 (runt, lat%param)
+
+  mat6 = matmul (runt%mat6, mat6)
+  vec0 = matmul (runt%mat6, vec0) + runt%vec0
+
+  if (s_end == s_2) then
+    ix_ele_old = ix_ele
+    return
   endif
 
-  call make_mat6 (ele, lat%param)
-
-  mat6 = matmul (ele%mat6, mat6)
-  vec0 = matmul (ele%mat6, vec0) + ele%vec0
-
-  if (s_end == s_2) return
   s_now = s_end
   ix_ele = ix_ele + 1
-  ele = lat%ele(ix_ele)
+  ele => lat%ele(ix_ele)
+  runt = lat%ele(ix_ele)
+  ix_ele_old = ix_ele
+
 enddo
 
 end subroutine
