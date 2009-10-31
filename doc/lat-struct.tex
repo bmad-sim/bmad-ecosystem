@@ -249,8 +249,6 @@ memory. Typically using the save attribute will be the best choice.
 \section{Elements Controlling Other Elements}
 \label{s:lat.control}
 
-
-
 In the \vn{lat_struct} structure, certain \vn{ele_struct} elements,
 called \vn{lord} elements, can control the attributes (component
 values) of other \vn{ele_struct} elements.  Elements so controlled are
@@ -266,18 +264,17 @@ value of the element's \vn{ele%lord_status} component.  The number of
 slave elements that a lord controls is given by the value of the
 lord's \vn{ele%n_slave} component, and as will be discussed in greater
 detail below, the indexes \vn{ele%ix1_slave} and \vn{ele%ix2_slave}
-indicate exactly what elements ae being controlled. 
+indicate exactly what elements are being controlled. 
 
 Similarly, what type of slave an element is is set by the value of the
 element's \vn{ele%slave_status} component.  The number of lord
 elements that the slave has is given by the value of the slave's
-\vn{ele%n_lord} component, and the indexes \vn{ele%ic1_lord} and
+\vn{ele%n_lord} component. The indexes \vn{ele%ic1_lord} and
 \vn{ele%ic2_lord} indicate where the lords are located.
 
 \index{free}\index{super_lord}
 \index{group_lord}\index{girder_lord}
 \index{multipass_lord}
-
 Note: for compactness sake, an element may be referred to by it's
 \vn{%lord_status} or \vn{%slave_status} value. For example, an element
 with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to
@@ -418,10 +415,10 @@ the elements in the tracking part of the lattice will be
 \vn{multipass_lord}s.
 
 \index{routine!get_element_slave_list}
-To simply find the slaves and
-lords of a given element use the routines 
-and \vn{get_element_slave_list}.  The following is thus meant for
-those unusual situations where knowledge of how \bmad implements
+To simply find the slaves and lords of a given element, use the
+routines \vn{pointer_to_slave} and \vn{pointer_to_lord}.
+\vn{get_element_slave_list}.  The following is thus meant
+for those unusual situations where knowledge of how \bmad implements
 control is needed.
 
 

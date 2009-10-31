@@ -591,7 +591,7 @@ character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
 
 integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
 integer, parameter :: match_global_coords$ = 4, patch_in$ = 5, patch_out$ = 6
-character(20), parameter :: ref_orbit_name(0:6) = (/  "GARBAGE!         ", &
+character(20), parameter :: ref_orbit_name(0:6) = (/      "GARBAGE!           ", &
             "Single_Ref         ", "Match_at_Entrance  ", "Match_at_Exit      ", &
             "Match_Global_Coords", "Patch_In           ", "Patch_Out          " /)
 

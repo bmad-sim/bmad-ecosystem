@@ -1180,7 +1180,7 @@ implicit none
 type (ele_struct) ele
 
 type (beam_init_struct), target :: beam_init
-type (tail_weighted_beam_init_struct), pointer :: tw_init
+type (tail_weighted_beam_init_struct), pointer :: tw
 
 type (bunch_struct), target :: bunch
 type (particle_struct), pointer :: p
@@ -1195,7 +1195,7 @@ integer :: KV_indices(2) = 0  ! indices (1,2,3) of the two KV planes or 0 if uni
 
 character(22) :: r_name = "init_tail_weighted_bunch"
 
-tw_init => beam_init%tw_beam_init
+tw => beam_init%tw_beam_init
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
@@ -1221,11 +1221,13 @@ alpha(3) = - covar / emitt(3)
 
 ! Fill the corresponding struct and generate the distribution for each phase plane
 do i = 1, 3
-   select case (tw_init%type(i))
+   select case (tw%type(i))
    case (ellipse$)
-      call init_ellipse_distribution (tw_init%n_ellipse(i), tw_init%part_per_ellipse(i), tw_init%sigma_cutoff(i), beta(i), alpha(i), emitt(i), space2D(i))
+      call init_ellipse_distribution (tw%n_ellipse(i), tw%part_per_ellipse(i), &
+                             tw%sigma_cutoff(i), beta(i), alpha(i), emitt(i), space2D(i))
    case (grid$)
-      call init_grid_distribution (tw_init%n_x(i), tw_init%n_px(i), tw_init%minima(2*i-1), tw_init%maxima(2*i-1), tw_init%minima(2*i), tw_init%maxima(2*i), space2D(i))
+      call init_grid_distribution (tw%n_x(i), tw%n_px(i), tw%minima(2*i-1), &
+                        tw%maxima(2*i-1), tw%minima(2*i), tw%maxima(2*i), space2D(i))
    case (KV$) 
       KV_counter = KV_counter + 1
       ! If we are doing KV, we keep track of which phase planes are KV.
@@ -1235,7 +1237,9 @@ do i = 1, 3
          KV_indices(1) = i
       else if (KV_counter .eq. 2) then
          KV_indices(2) = i
-         call init_KV_distribution (tw_init%n_I2, tw_init%part_per_ellipse(KV_indices(1)), tw_init%part_per_ellipse(i), tw_init%A, beta(KV_indices(1)), beta(i), alpha(KV_indices(1)), alpha(i), emitt(KV_indices(1)), emitt(i), space4D)
+         call init_KV_distribution (tw%n_I2, tw%part_per_ellipse(KV_indices(1)), &
+                  tw%part_per_ellipse(i), tw%A, beta(KV_indices(1)), beta(i), &
+                  alpha(KV_indices(1)), alpha(i), emitt(KV_indices(1)), emitt(i), space4D)
       endif
    case default
       call out_io (s_abort$, r_name, &
