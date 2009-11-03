@@ -661,11 +661,11 @@ case ('data')
     ! Expressions generally have very long strings so we let this spill over to
     ! the where0 and where fields
 
-    n_name = 9
+    n_name  = 9      ! Set mimimum field widths
     n_start = 10
-    n_ref = 8
-    n_ele = 8
-    n_tot = 0
+    n_ref   = 8
+    n_ele   = 8
+    n_tot   = 0
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
@@ -674,10 +674,10 @@ case ('data')
       if (d_ptr%data_type(1:11) == 'expression:') then
         n_tot = max(n_tot, len_trim(name))
       else
-        n_name = max(n_name, len_trim(name))
+        n_name  = max(n_name,  len_trim(name))
         n_start = max(n_start, len_trim(d_ptr%ele_start_name))
-        n_ref = max(n_ref, len_trim(d_ptr%ele_ref_name))
-        n_ele = max(n_ele, len_trim(d_ptr%ele_name))
+        n_ref   = max(n_ref,   len_trim(d_ptr%ele_ref_name))
+        n_ele   = max(n_ele,   len_trim(d_ptr%ele_name))
       endif
     enddo
 
@@ -685,13 +685,15 @@ case ('data')
     n_ele = n_tot - n_name - n_ref - n_start - 4
 
     ! Write header
+    ! Element names are left justified and real quantities are right justified
 
     line1 = ''; line2 = ''
-    n=9+n_name;                  line2(n:) = 'Ref_Ele'
-    n=len_trim(line2)+n_ref-3;   line2(n:) = 'Start_Ele'
-    n=len_trim(line2)+n_start-3; line2(n:) = 'Ele'
-    n=len_trim(line2)+n_ele+4;   line2(n:) = 'Meas         Model        Design    | Opt  Plot'
-                                 line1(n:) = '                                    |   Useit'
+    n=9+n_name;    line2(n:) = 'Ref_Ele'  ! n = i4 + 2x + n_name + 2x + 1
+    n=n+n_ref+2;   line2(n:) = 'Start_Ele'
+
+    n=n+n_start+2; line2(n:) = 'Ele'
+    n=n+n_ele+10;  line2(n:) = 'Meas         Model        Design | Opt  Plot'
+                   line1(n:) = '                                 |   Useit'
 
     nl=nl+1; lines(nl) = line1
     nl=nl+1; lines(nl) = line2
@@ -713,7 +715,7 @@ case ('data')
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
       else
         nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), d_ptr%ele_ref_name(1:n_ref), & 
-                     d_ptr%ele_start_name(1:n_ref), d_ptr%ele_name(1:n_ele), &
+                     d_ptr%ele_start_name(1:n_start), d_ptr%ele_name(1:n_ele), &
                      d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
       endif

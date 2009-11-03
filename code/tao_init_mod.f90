@@ -620,8 +620,12 @@ do
     ! Convert old class:name format to new class::name format
 
     ix = index(search_for_lat_eles, ":")
-    if (ix /= 0 .and. search_for_lat_eles(ix+1:ix+1) /= ':') &
-            search_for_lat_eles = search_for_lat_eles(1:ix) // ':' // search_for_lat_eles(ix+1:)
+    if (ix /= 0 .and. search_for_lat_eles(ix+1:ix+1) /= ':') then
+      name = search_for_lat_eles(1:ix-1)
+      if (name == '' .or. name == '*' .or. key_name_to_key_index (name, .true.) > 0) then
+        search_for_lat_eles = search_for_lat_eles(1:ix) // ':' // search_for_lat_eles(ix+1:)
+      endif
+    endif
 
     ! Transfer data(:) to datum(:) if needed
 

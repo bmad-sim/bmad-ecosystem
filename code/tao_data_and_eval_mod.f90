@@ -138,12 +138,6 @@ if (ix /= 0) then
     endif
   else
     datum%ele_ref_name = name(:ix-1)
-    call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err)
-    if (size(eles) /= 1) then
-      call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
-      return
-    endif
-    datum%ix_ele_ref = eles(1)%ele%ix_ele
   endif
   ele_name = name(ix+1:)
 else
@@ -156,6 +150,17 @@ n_tot = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   u => s%u(i)
+
+  if (datum%ele_ref_name /= '') then
+    call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err)
+    if (size(eles) /= 1) then
+      call out_io (s_error$, r_name, &
+                      'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
+      return
+    endif
+    datum%ix_ele_ref = eles(1)%ele%ix_ele
+  endif
+
   call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
   if (err) return
   call re_allocate (values, n_tot + n_loc)
