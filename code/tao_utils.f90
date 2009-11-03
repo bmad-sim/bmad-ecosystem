@@ -717,7 +717,7 @@ else
   ix1 = index(name, '[');  if (ix1 == 0) return
   class_ele = name(1:ix1-1)
   name = name(ix1+1:)
-  if (class_ele(1:1) == ':') class_ele = class_ele(2:)
+  if (class_ele(1:2) == '::') class_ele = class_ele(3:)
   ix1 = index(name, ']');  if (ix1 == 0) return
   parameter = name(1:ix1-1)
 endif
@@ -2603,7 +2603,7 @@ logical err
 
 err = .false.
 
-ix = index(str, ':')
+ix = index(str, '::')
 
 if (ix == 0) then
   ix_class = 0
@@ -2613,7 +2613,7 @@ if (ix == 0) then
 endif
 
 class = str(:ix-1)
-ele_name = str(ix+1:)
+ele_name = str(ix+2:)
 call str_upcase (ele_name, ele_name)
 
 if (class == '*') then

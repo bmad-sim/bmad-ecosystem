@@ -1132,7 +1132,6 @@ case ('lattice')
   by_s = .false.
   print_header_lines = .true.
   print_tail_lines = .true.
-  ele_name = ''
   ix_branch = 0
   undef_str = '-----'
 
@@ -1198,10 +1197,6 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-elements', stuff2(1:ix)) == 1 .and. ix > 1) then
-      call string_trim(stuff2(ix+1:), stuff2, ix)
-      ele_name = stuff2(1:ix)
-
     elseif (index('-s', stuff2(1:ix)) == 1 .and. ix > 1) then
       by_s = .true.
 
@@ -1220,25 +1215,7 @@ case ('lattice')
   if (allocated (picked_ele)) deallocate (picked_ele)
   allocate (picked_ele(0:branch%n_ele_max))
 
-  if (ele_name /= '') then
-    call tao_locate_elements (ele_name, u%ix_uni, eles, err, .true.)
-    if (err) return
-    picked_ele = .false.
-    do i = 1, size(eles)
-      picked_ele(eles(i)%ele%ix_ele) = .true.
-    enddo
-
-  elseif (stuff2(1:ix) == '*' .or. all_lat .or. stuff2(1:ix) == 'all') then
-    picked_ele = .true.
-
-  elseif (ix == 0) then
-    picked_ele = .true.
-    if (size(picked_ele) > 200) then
-      picked_ele(201:) = .false.
-      limited = .true.
-    endif
-
-  elseif (by_s) then
+  if (by_s) then
     ix = index(stuff2, ':')
     if (ix == 0) then
       nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
@@ -1261,13 +1238,24 @@ case ('lattice')
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
 
-  else
-    call location_decode (stuff2, picked_ele, 0, num_locations, branch%ele%name)
-    if (num_locations .eq. -1) then
-      nl=1; lines(1) = 'SYNTAX ERROR IN RANGE LIST:' // stuff2
-      deallocate(picked_ele)
-      return
+  elseif (stuff2(1:ix) == '*' .or. all_lat) then
+    picked_ele = .true.
+
+  elseif (ix == 0) then
+    picked_ele = .true.
+    if (size(picked_ele) > 200) then
+      picked_ele(201:) = .false.
+      limited = .true.
     endif
+
+  else
+    call tao_locate_elements (stuff2, u%ix_uni, eles, err, .true.)
+    if (err) return
+    picked_ele = .false.
+    do i = 1, size(eles)
+      picked_ele(eles(i)%ele%ix_ele) = .true.
+    enddo
+
   endif
 
   if (at_ends) then

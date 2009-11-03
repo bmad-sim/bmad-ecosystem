@@ -199,7 +199,7 @@ if (ios == 0) then
   do i = 1, size(shape)
     ele_shape(i)%ele_name = shape(i)%ele_name
     if (shape(i)%key_name /= '') &
-            ele_shape(i)%ele_name = trim(shape(i)%key_name) // ':' // ele_shape(i)%ele_name
+            ele_shape(i)%ele_name = trim(shape(i)%key_name) // '::' // ele_shape(i)%ele_name
     ele_shape(i)%shape     = shape(i)%shape
     ele_shape(i)%color     = shape(i)%color
     ele_shape(i)%dy_pix    = shape(i)%dy_pix

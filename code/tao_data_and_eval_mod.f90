@@ -2422,7 +2422,7 @@ type (tao_real_pointer_struct), allocatable, save :: re_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
 type (tao_data_struct) datum
 
-integer ios, i, n, ix, ix_ele, ix2
+integer ios, i, n, ix, ix2
 
 character(*) str, saved_prefix
 character(*), optional :: default_source, default_index
@@ -2471,7 +2471,6 @@ endif
 ! Remember the last string so 'orbit.x|meas-ref' translates to 'orbit.x|meas - orbit.x|ref.'
 
 ix = index(str, '|')
-ix_ele = index(str, ':')
 stack%name = str
 
 if (ix == 0) then
