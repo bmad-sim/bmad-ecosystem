@@ -284,6 +284,13 @@ ele_loop: do ie = 1, lat%n_ele_max
   if (associated(ele%descrip)) line = trim(line) // &
                             ', descrip = "' // trim(ele%descrip) // '"'
 
+  ! patch_in_slave
+
+  if (ele%slave_status == patch_in_slave$) then
+    lord => pointer_to_lord (lat, ele, 1)
+    line = trim(line) // ', ref_patch = ' // trim(lord%name)
+  endif
+
   ! Create a null_ele element for a superposition and fill in the superposition
   ! information.
 

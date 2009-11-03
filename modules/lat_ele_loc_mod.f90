@@ -301,7 +301,7 @@ end subroutine lat_ele1_locator
 !   n     -- Integer: Array size to set.
 !   save  -- Logical, optional: If present and True then save the old data.
 !   exact -- Logical, optional: If present and True then eles will have size = n
-!             If False, reallcation will not be done if eles is already large enough
+!             If False (default), reallcation will not be done if eles is already large enough
 !
 ! Output:
 !   eles(:) -- ele_pointer_struct, allocatable: Array of element pointers.
