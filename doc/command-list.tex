@@ -978,7 +978,7 @@ for the wave analysis (\sref{c:wave}). The components are
 \end{example}
 Example:
 \begin{example}
-  set wave ix_a = 15 27    ! Set A-region to span from datum \#15 to \#27
+  set wave ix_a = 15 27    ! Set A-region to span from datum #15 to #27
 \end{example}
 
 \end{description}
@@ -1003,8 +1003,9 @@ Format:
   show graph <graph_name>
   show hom
   show key_bindings
-  show lattice \{-all} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
-         \{-elements <name>\} \{-lords\} \{-middle\} \{-no_header\} \{-s\} \{<location_range>\} 
+  show lattice \{-all_tracking} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
+         \{-elements <name>\} \{-lords\} \{-middle\} \{-no_label_lines\} 
+         \{-no_tail_lines\} \{-s\} \{<location_range>\} 
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
   show particle -lost \{<bunch_index>\}
@@ -1130,7 +1131,7 @@ Example:
 \item[show element \{-taylor\} \{-wig\_terms\} \{-data\} 
                      \{-all\_attributes\} <name>] \Newline
 This shows information on lattice elements. \vn{<name>} is in
-\vn{Class:Name} syntax as explained in \sref{s:class:name}. If
+\vn{class::name} syntax as explained in \sref{s:class.name}. If
 \vn{<name>} contains a wild card or a class name then a list of
 elements that match the name are shown. If no wild--card or class name
 is present then information about the element whose name matches
@@ -1188,16 +1189,19 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-all} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
-  \hspace*{0.35in} \{-elements <name>\} \{-lords\} \{-middle\} \{-no\_header\} \{-s\} \{<location\_range>\} }] \Newline
+  show lattice \{-all_tracking} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
+  \hspace*{0.35in} \{-elements <name>\} \{-lords\} \{-middle\} \{-no\_label_lines\} \\
+  \hspace*{0.35in} \{-no_tail_lines\} \{-s\} \{<location\_range>\} }] \Newline
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
 
-If present, the \vn{-no_header} switch will prevent the printing of
-the header lines. This is useful when the output needs to be read in
-by another program.
+If present, the \vn{-no_label_lines} switch will prevent the printing
+of the header (containing the column labels) lines at the top and
+bottom of the table.  This is useful when the output needs to be read
+in by another program. The \vn{-no_tail_lines} just supress the header
+lines at the bottom of the table.
 
 If present, the \vn{-lords} switch will print a list of lord elements only.
 
@@ -1207,8 +1211,8 @@ The default is the main branch (\# 0).
 The locations to show can either be specified using the \vn{-elements}
 switch, or by specifying a longitudinal position range with \vn{-s},
 or (the default) by specifying a range of element indices.  The
-\vn{-elements} switch is used specify elements using a \vn{class:name}
-format (\sref{s:class:name}). For example:
+\vn{-elements} switch is used specify elements using a \vn{class::name}
+format (\sref{s:class.name}). For example:
 \begin{example}
   show lat -ele marker:bpm*
 \end{example}
@@ -1224,7 +1228,8 @@ used to separate the index. For example
   show lat -s  23.9:55.3       ! Show elements whose position is between 
                                !   23.9 meters and 55.3 meters.
 \end{example}
-The \vn{-all} switch can be used to show all the elements. The
+The \vn{-all_tracking} switch can be used to show all the elements
+in the tracking part of the lattice. The
 \vn{element_list} is optional but if it is present it must be at the
 end of the command line.
 
@@ -1240,22 +1245,29 @@ To customize the output use the command \vn{show lattice -custom
     column(3) = "ele::#[name]",          "a",      0
     column(4) = "ele::#[key]",           "a16",   16
     column(5) = "ele::#[s]",             "f10.3", 10
-    column(6) = "dat::beta.a[#]",        "f7.2",   7
+    column(6) = "ele::#[beta_a]",        "f7.2",   7
     column(7) = "1e3 * ele::#[orbit_x]   "f8.3",   8, "Orbit_x| (mm)" 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what
 is to be displayed in that column. Algebraic expressions are permitted
-(\sref{s:arithmetic}). This includes using data-on-the-fly
-(\sref{s:data.on.the.fly}). To encode the element index, use a \vn{\#}.
+(\sref{s:arithmetic}). Note: Use of \vn{lat::} and \vn{beam::}, etc
+sources is accepted but these constructs cannot be evaluated at the
+center of an element. That is the \vn{-middle} switch will have no
+effect on such constructs.
+
+To encode the element index, use a \vn{\#}.
 Any element attribute is permitted ("show ele" will show element
 attributes or see the Bmad manual). Additionally, the following are
 recognized:
 \begin{example}
-  x                           ! Add spaces
-  #                           ! Index number of element.
+  x                          ! Add spaces
+  #                          ! Index number of element.
   ele::#[name]                ! Name of element.
-  ele::#[key]                 ! Type of element (quadrupole, etc.)
+  ele::#[key]                 ! Type of element (``quadrupole'', etc.)
+  ele::#[slave_status]        ! Slave type (``super_slave'', etc.)
+  ele::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
+  ele::#[type]                ! Element type string (see \bmad manual).
 \end{example}
 If an attribute does not exist for a given element (for example,
 \vn{quadrupole}s do not have a \vn{voltage}), a series of dashes,
@@ -1370,7 +1382,7 @@ order set by the lattice file.
 Examples:
 \begin{example}
   show taylor -order 1 q10e q10w  ! 0th and 1st order maps from q10e to q10w
-  show taylor 45                  ! Transfer map from element \#0 to \#45
+  show taylor 45                  ! Transfer map from element #0 to #45
 \end{example} 
 
 %% show universe --------------------------------------------------------------
@@ -1396,7 +1408,7 @@ be read in with a \vn{call} command.
 \item[show value <expression>]
 Shows the value of an expression. Examples:
 \begin{example}
-  show value 3@dat::orbit.x[34]   ! Value of a datum-on-the-fly
+  show value 3@lat:orbit.x[34]  ! orbit at lattice element #34 
   show value sin(0.35)
 \end{example}
 

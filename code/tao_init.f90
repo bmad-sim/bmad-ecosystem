@@ -185,7 +185,7 @@ call output_direct (0, .true.)
 
 tao_com%lattice_recalc = .true.
 s%u%universe_recalc = .true.
-call tao_lattice_calc (calc_ok, init_design = .true.) 
+call tao_lattice_calc (calc_ok) 
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   s%u(i)%design = s%u(i)%model

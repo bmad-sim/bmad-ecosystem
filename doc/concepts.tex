@@ -301,6 +301,29 @@ component. The list of components that can be set or refereed to are:
 
 Use the \vn{show var} (\sref{s:show}) command to view variable information
 
+%-----------------------------------------------------------------
+\subsection{Class::Name Format}
+\label{s:class.name}
+
+\index{class::name}
+Some input parameters require \vn{class::name} format where lattice
+elements are selected based upon their class (Eg: \vn{quadrupole},
+\vn{marker}, etc.), and their name. The syntax is:
+\begin{example}
+  <element class>::<element name>
+\end{example}
+where \vn{<element class>} is an element class and \vn{<element name>}
+is the name of the element.  The wild-card character \vn{"*"} will match
+to any number of characters and \vn{"\%"} matches to any
+single character.  For example
+\begin{example}
+  "quad::q*"
+\end{example}
+will match to all quadrupole elements whose name starts with a
+\vn{"q"}. If there is no \vn{"::"} in the name then this is equivalent
+to using \vn{"*"} as the class.  Thus \vn{"*"} is equivalent to
+\vn{"*::*"} which will match to all elements.
+
 %------------------------------------------------------------------------
 \section{Arithmetic Expressions}
 \index{Arithmetic Expressions}
@@ -338,9 +361,41 @@ The following intrinsic functions are also recognized: \hfil\break
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 Setting the seed is described in Section~\sref{s:globals}.
 
-When combining components from the same \vn{d1_data}
-(\sref{s:data.org}) or \vn{v1_var} (\sref{s:variable.overview}) array
-in an expression, the common prefix can be eliminated. For example
+Data (\sref{s:data.org}) and variable values
+(\sref{s:variable.overview}), along with lattice parameters can be
+referenced in expressions. The general form of a reference is:
+\begin{example}
+  \{[<universe(s)>]@\}<source>::<ref_type>[\{<ref_point>&<eval_point>]\{|<component>\}
+\end{example}
+The \vn{<source>} field may be one of:
+\begin{example}
+  dat         Value is from a \tao datum.
+  var         Value is from a \tao variable.
+  lat         Value is from the lattice.
+  beam        value is from the beam.
+\end{example}
+For element parameters the form is
+\begin{example}
+  \{<universe_range>@\}ele::<ele_name_or_num>[<param_name>]\{|<component>\}
+\end{example}
+Examples:
+\begin{example}
+  3@lat::orbit.x[34]             Orbit at element 34 in universe 3.
+  3@lat::orbit.x[34]|model       Same as above.
+  beam::beta.x[28]               Beam data
+  lat::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
+  3@ele::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
+                                   with names beginning with "q".
+  ele::3[l]|design               Length of the design lattice element #3 
+                                   in the viewed universe.
+  dat::orbit.x[2:7,8]|model
+\end{example}
+
+
+
+Note: when combining components from the same \vn{d1_data} or \vn{v1_var}
+array in an expression, the common prefix can be eliminated. For
+example
 \begin{example}
   orbit.x[2:7,8]|model - 2*orbit.x[2:7,8]|meas
 \end{example}
@@ -349,23 +404,33 @@ is equivalent to
   orbit.x[2:7,8]|model - 2*meas
 \end{example}
 
-``Data-on-the-fly'' can be evaluated using the syntax in \sref{s:data.on.the.fly}.
-Additionally, lattice element parameters can be included using the syntax:
+
+
+The components of this syntax are:
 \begin{example}
-  \{[universe_range]\}ele:\{<class>\}:<name_or_num>[<param_name>]\{|<component>\}
+  [<universe_range>]@    Optional universe specification (\sref{s:universe})
+  <datum_type>           A data type defined in \sref{s:data.types}.
+  <ix_ele_start>         Optional \vn{ele_start} index number.
+  <ix_ele>               \vn{ele} index number.
+  <component>            Optional component. 
+                            Possibilities are "model" (default), "base", or "design".
 \end{example}
-The element name can be in \vn{class:name} format (\sref{s:class:name}). 
+
+
+Notice the difference between referring to a datum, for example
+\vn{orbit.x[22]} and constructing a ``datum-on-the-fly'', for
+example, \vn{lat::orbit.x[10]}. In the first example, the ``\vn{[22]}''
+refers to the 22nd element in the data array which may or may not
+correspond to the 22nd lattice element. With data-on-the-fly example,
+the index in the brackets, \vn{[10]}, does indeed refer to the 10th
+lattice element.
+
+The element name can be in \vn{class::name} format (\sref{s:class.name}). 
 The optional \vn {<component>} lattice can be
 \begin{example}
   model (default)
   base
   design
-\end{example}
-Examples:
-\begin{example}
-  3@ele:quad:q*[k1]   k1 of all quads in the model lattice of universe 3 with 
-                         names beginning with "q".
-  ele::3[l]|design   Length of the design lattice element #3 in the viewed universe.
 \end{example}
 
 %------------------------------------------------------------------------

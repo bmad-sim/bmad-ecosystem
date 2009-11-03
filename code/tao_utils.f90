@@ -278,7 +278,7 @@ err = .true.
 call str_upcase (ele_name, string)
 call string_trim (ele_name, ele_name, ix)
 
-call re_allocate_eles (eles, 0)
+call re_allocate_eles (eles, 0, exact = .true.)
 
 if (ix == 0 .and. logic_option(.false., ignore_blank)) return
 
@@ -299,7 +299,7 @@ if (n_loc == 0) then
   return
 endif
 
-call re_allocate_eles (eles, n_loc, .true.)
+call re_allocate_eles (eles, n_loc, .true., .true.)
 
 end subroutine tao_locate_elements
 
@@ -637,21 +637,22 @@ end subroutine tao_var_useit_plot_calc
 ! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err)
 !
 ! Routine to evaluate a lattice element parameter of the form 
-!     <universe>@ele:{<class>}:<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! or
-!     <universe>@ele@middle:{<class>}:<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@ele@middle::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! Note: size(values) can be zero without an error
 ! 
 ! Input:
 !   param_name -- Character(*): parameter name.
-!   print_err -- Logical, optional :: Print error message? Default is True.
+!   print_err -- Logical: Print error message? 
 !
 ! Output:
 !   err       -- Logical: True if there is an error in syntax. False otherwise
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_element_parameters (err, param_name, values, print_err)
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, &
+                                                       default_source, default_index)
 
 implicit none
 
@@ -664,16 +665,17 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 
 character(*) param_name
+character(*) default_source, default_index
 character(60) name, class_ele, parameter, component
 character(40) :: r_name = 'tao_evaluate_element_parameters'
 
 real(rp), allocatable :: values(:)
 real(rp), pointer :: real_ptr
 
-integer i, j, num, ixe, ix1, ios, n_tot
+integer i, j, ix, num, ixe, ix1, ios, n_tot
 
-logical err, printit, valid, middle
-logical, optional :: print_err
+logical err, valid, middle
+logical :: print_err
 logical, allocatable, save :: this_u(:)
 
 !
@@ -682,40 +684,42 @@ call tao_pick_universe (param_name, name, this_u, err)
 if (err) return
 
 err = .true.
-printit = logic_option (.true., print_err)
 
-if (name(1:4) == 'ele:') then
-  name = name(5:)  ! Strip off 'ele:'
+if (name(1:5) == 'ele::') then
+  name = name(6:)  ! Strip off 'ele::'
   middle = .false.
-elseif (name(1:10) == 'ele@middle') then
-  name = name(11:)  ! Strip off 'ele@middle:'
+elseif (name(1:9) == 'ele_middle::') then   
+  name = name(10:)  ! Strip off 'ele_mid::'
   middle = .true.
-else
+elseif (default_source /= 'element') then
   return
+endif
+
+! Get component
+
+ix = index(name, '|')
+if (ix == 0) then
+  component = 'model'
+else
+  component = name(ix+1:)
+  name = name(1:ix-1)
 endif
 
 ! Get class:name
 
-ix1 = index(name, '[');  if (ix1 == 0) return
-class_ele = name(1:ix1-1)
-name = name(ix1+1:)
-if (class_ele(1:1) == ':') class_ele = class_ele(2:)
+ix1 = index(name, '[');  
+if (ix1 == 0) then
+  if (default_index == '') return
+  class_ele = name
+  parameter = default_index
 
-! Get parameter
-
-ix1 = index(name, ']');  if (ix1 == 0) return
-parameter = name(1:ix1-1)
-name = name(ix1+1:)
-
-! Get component
-
-if (name(1:1) == '|') then
-  component = name(2:)
-elseif (name(1:1) == ' ') then
-  component = 'model'
 else
-  if (printit) call out_io (s_error$, r_name, 'COMPONENT: ' // param_name)
-  return
+  ix1 = index(name, '[');  if (ix1 == 0) return
+  class_ele = name(1:ix1-1)
+  name = name(ix1+1:)
+  if (class_ele(1:1) == ':') class_ele = class_ele(2:)
+  ix1 = index(name, ']');  if (ix1 == 0) return
+  parameter = name(1:ix1-1)
 endif
 
 ! Evaluate
@@ -760,13 +764,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       else
-        call pointer_to_attribute (ele3, parameter, .true., real_ptr, err, printit)
+        call pointer_to_attribute (ele3, parameter, .true., real_ptr, err, print_err)
       endif
     else
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
       else
-        call pointer_to_attribute (branch%ele(ixe), parameter, .true., real_ptr, err, printit)
+        call pointer_to_attribute (branch%ele(ixe), parameter, .true., real_ptr, err, print_err)
       endif
     endif
 
@@ -995,6 +999,13 @@ endif
 
 call tao_pick_universe (dat_name, dat_name, picked, this_err)
 if (this_err) return
+
+! Trim 'dat::' suffix if present
+
+if (dat_name(1:5) == 'dat::') dat_name = dat_name(6:)
+
+! Find the d2 data.
+
 if (present(ix_uni)) then
   u => tao_pointer_to_universe (ix_uni)
   if (.not. associated(u)) return
@@ -1542,9 +1553,13 @@ if (component_here) then
   endif
 endif
 
+! Trim 'var::' suffix if present
+
+if (v1_name(1:5) == 'var::') v1_name = v1_name(6:)
+
 ! split on '['
 
-ix = index(var_name, '[')
+ix = index(v1_name, '[')
 if (ix == 0) then
   v_name = '*'
 else

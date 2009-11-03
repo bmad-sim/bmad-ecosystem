@@ -204,7 +204,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_wo
 
 logical bmad_format, good_opt_only
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
-logical show_sym, show_line, show_shape, print_data, ok
+logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -1134,6 +1134,7 @@ case ('lattice')
   at_ends = .true.
   by_s = .false.
   print_header_lines = .true.
+  print_tail_lines = .true.
   ele_name = ''
   ix_branch = 0
   undef_str = '-----'
@@ -1166,19 +1167,23 @@ case ('lattice')
       enddo
       return
 
-    elseif (index('-middle', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    elseif (index('-middle', stuff2(1:ix)) == 1 .and. ix > 1) then
       at_ends = .false.
 
-    elseif (index('-all', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    elseif (index('-all_tracking', stuff2(1:ix)) == 1 .and. ix > 1) then
       all_lat = .true. 
 
     elseif (index('-0undef', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       undef_str = '    0'
 
-    elseif (index('-no_header', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    elseif (index('-no_label_lines', stuff2(1:ix)) == 1 .and. ix > 5) then
       print_header_lines = .false.
+      print_tail_lines = .false.
 
-    elseif (index('-custom', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    elseif (index('-no_tail_lines', stuff2(1:ix)) == 1 .and. ix > 5) then
+      print_tail_lines = .false.
+
+    elseif (index('-custom', stuff2(1:ix)) == 1 .and. ix > 1) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
       iu = lunget()
@@ -1196,11 +1201,11 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-elements', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    elseif (index('-elements', stuff2(1:ix)) == 1 .and. ix > 1) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       ele_name = stuff2(1:ix)
 
-    elseif (index('-s', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    elseif (index('-s', stuff2(1:ix)) == 1 .and. ix > 1) then
       by_s = .true.
 
     else
@@ -1281,6 +1286,11 @@ case ('lattice')
   line3 = ""
   do i = 1, size(column)
     if (column(i)%name == "") cycle
+
+    ! Convert from old 'dat::' format to 'lat::' format.
+    ix = index(column(i)%name, 'dat::')
+    if (ix /= 0) column(i)%name = column(i)%name(1:ix-1) // 'lat' // column(i)%name(ix+3:)
+
     column(i)%format = '(' // trim(column(i)%format) // ')'
 
     if (column(i)%field_width == 0) then
@@ -1300,16 +1310,15 @@ case ('lattice')
 
     if (column(i)%label == '') then
       name = column(i)%name
-      if (index(name, 'ele:') /= 0) then
+      if (index(name, 'ele::') /= 0) then
         i1 = index(name, '[')
         i2 = index(name, ']')
         name = name(i1+1:i2-1)
-      elseif (index(name, 'dat:') /= 0) then
-        ix = index(name, 'dat:')
-        name = name(ix+4:)
-        i1 = index(name, ':')
+      elseif (index(name, 'lat::') /= 0) then
+        ix = index(name, 'lat::')
+        name = name(ix+5:)
         i2 = index(name, '[')
-        name = name(i1+1:i2-1)
+        name = name(1:i2-1)
       elseif  (name == '#') then
         line2(ix2-5:) = 'Index'
         ix1 = ix2
@@ -1373,14 +1382,20 @@ case ('lattice')
         write (line(nc:), column(i)%format, iostat = ios) ele%name
       elseif (name == 'ele::#[key]') then
         write (line(nc:), column(i)%format, iostat = ios) key_name(ele%key)
+      elseif (name == 'ele::#[slave_status]') then
+        write (line(nc:), column(i)%format, iostat = ios) control_name(ele%slave_status)
+      elseif (name == 'ele::#[lord_status]') then
+        write (line(nc:), column(i)%format, iostat = ios) control_name(ele%lord_status)
+      elseif (name == 'ele::#[type]') then
+        write (line(nc:), column(i)%format, iostat = ios) ele%type
       elseif (name == 'x') then
         ios = 0
       else
         write (nam, '(i0)') ie
         call str_substitute (name, '#', trim(nam))
-        ix = index(name, 'ele:')
+        ix = index(name, 'ele::')
         if (.not. at_ends .and. ix /= 0) then
-          name = name(:ix+3) // '@middle' // trim(name(ix+4:))
+          name = name(:ix+3) // '_middle' // trim(name(ix+4:))
         endif
         call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
@@ -1411,7 +1426,7 @@ case ('lattice')
 
   enddo
 
-  if (print_header_lines) then
+  if (print_tail_lines) then
     nl=nl+1; lines(nl) = line2
     if (line3 /= '') then
       nl=nl+1; lines(nl) = line3

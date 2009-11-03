@@ -86,30 +86,8 @@ in place of logical variables when \tao needs to know if the variable
 has been explicitly set.
 
 %-----------------------------------------------------------------
-\subsection{Class:Name Format}
-\label{s:class:name}
-
-Some input parameters require \vn{Class:Name} format where lattice
-elements are selected based upon their class (Eg: \vn{quadrupole},
-\vn{marker}, etc.), and their name. The syntax is:
-\begin{example}
-  <element class>:<element name>
-\end{example}
-where \vn{<element class>} is an element class and \vn{<element name>}
-is the name of the element.  The wild-card character \vn{"*"} will match
-to any number of characters and \vn{"\%"} matches to any
-single character.  For example
-\begin{example}
-  "quad:q*"
-\end{example}
-will match to all quadrupole elements whose name starts with a
-\vn{"q"}. If there is no \vn{":"} in the name then this is equivalent
-to using \vn{"*"} as the class.  Thus \vn{"*"} is equivalent to
-\vn{"*:*"} which will match to all elements.
-
-%-----------------------------------------------------------------
 \section{Initialization from the Command Line}
-\index{Command line}
+\index{command line}
 \label{s:command.line} 
 
 The syntax of the command line is:
@@ -296,7 +274,7 @@ lattice is read in during initialization.
 
 \vn{unique_name_suffix} is used to append a unique character string to
 element names that are not unique. \vn{unique_name_suffix} uses
-\vn{class:name} format (\sref{s:class:name}). The class is used to
+\vn{class::name} format (\sref{s:class.name}). The class is used to
 restrict which elements can have their names changed. The \vn{name}
 part is used as a suffix. This suffix must have a single \vn{``?''}
 character.  When this suffix is applied to an element's name, a unique
@@ -753,13 +731,13 @@ the \vn{tao_params} namelist above, for example,
 
 \vn{save_beam_at} is used to specify at what elements the beam
 distribution is to be saved at. Each element in the \vn{save_beam_at}
-array is in \vn{class:ele_name} format as explained in \sref{s:class:name}.
+array is in \vn{class::name} format as explained in \sref{s:class.name}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
 \begin{example}
   &tao_beam_init
-    save_beam_at(1) = "marker:m*" ! Save beam at all markers starting with "m".
-    save_beam_at(2) = "*34w*"     ! And all elements that have "34w" in their name. 
+    save_beam_at(1) = "marker::m*" ! Save beam at all markers starting with "m".
+    save_beam_at(2) = "*34w*"      ! And all elements that have "34w" in their name. 
   /
 \end{example}
 
@@ -790,7 +768,7 @@ format for this is
   &tao_var
     v1_var%name          = "<var_array_name>"  ! Variable array name.
     use_same_lat_eles_as = "<d1_name>"         ! Reuse previous element list.
-    search_for_lat_eles  = "<class:name>"      ! Find elements by name.
+    search_for_lat_eles  = "<class::name>"     ! Find elements by name.
     default_universe     = "<integer>"         ! Universe variables belong in.
     default_attribute    = "<attribute_name>"  ! Attribute to control.
     default_weight       = <number>            ! Merit_function weight.
@@ -933,17 +911,17 @@ For example:
 Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, 
 \tao can be told to search for the elements by name using the syntax:
 \begin{example}
-   search_for_lat_eles = "{-no_grouping} <element class>:<element name>"  
+   search_for_lat_eles = "{-no_grouping} <element class>::<element name>"  
 \end{example}
-\vn{<element class>:<element name>} specifies elements using
-\vn{class:name} format (\sref{s:class:name}). The searching will
+\vn{<element class>::<element name>} specifies elements using
+\vn{class:name} format (\sref{s:class.name}). The searching will
 automatically exclude any superposition and multipass slaves elements.
 All elements with the same name are grouped under a single
 variable. That is, a single variable can control multiple element.
 If the \vn{-no_grouping} flag is present, however, each
 element will be assigned an individual variable.  For example:
 \begin{example}
-  search_for_lat_eles = "sbend:b*"
+  search_for_lat_eles = "sbend::b*"
 \end{example}
 will search for all non-lord bend lattice elements whose names begins
 with \vn{"B"} followed by any set of characters. In this example, if,
@@ -1022,7 +1000,7 @@ structure. For each \vn{n_d1_data} structure there must be a
   &tao_d1_data
     ix_d1_data             = <integer>          ! d1_data index
     use_same_lat_eles_as   = "<d1_name>"        ! Reuse previous element list.
-    search_for_lat_eles    = "<class:name>"     ! Find elements by name.
+    search_for_lat_eles    = "<class::name>"    ! Find elements by name.
     d1_data%name           = "<d1_name>"        ! d1_data name.
     default_data_type      = <type_name>        ! Eg: orbit.x, e_tot, etc...
     default_weight         = <number>           ! Merit function weight. 
@@ -1125,8 +1103,9 @@ of particles when \vn{"beam"} is performed. Which is
 calculation is performed is determined by the \vn{datum(:)%data_source}
 component. Possibilities are:
 \begin{example}
-  "lattice"   ! (Default) Calculation using the lattice layout.
   "beam"      ! Calculation using the beam distribution.
+  "data"      ! Use data from a d1_data array.
+  "lattice"   ! (Default) Calculation using the lattice layout.
 \end{example}
 \vn{"lattice"} is the default. With \vn{"beam"}, the particular
 bunch that the data is extracted from can be specified via \vn{datum(:)%ix_bunch}.
@@ -1153,10 +1132,10 @@ For example:
 \tao can search for the elements in the lattice to be associated with 
 each data type by using the syntax:
 \begin{example}
-   search_for_lat_eles = "{<restriction>} <element class>:<element name>"
+   search_for_lat_eles = "{<restriction>} <element class>::<element name>"
 \end{example}
-\vn{<element class>:<element name>} specifies elements using
-\vn{class:name} format (\sref{s:class:name}). \vn{restriction}, if
+\vn{<element class>::<element name>} specifies elements using
+\vn{class::name} format (\sref{s:class.name}). \vn{restriction}, if
 present, is used to restrict the counting of lord or slave
 elements. The possible choices for \vn{restriction} are:
 \begin{example}
@@ -1166,7 +1145,7 @@ elements. The possible choices for \vn{restriction} are:
 \end{example}
 For example:
 \begin{example}
-  search_for_lat_eles = "-no_lords sbend:b*
+  search_for_lat_eles = "-no_lords sbend::b*
 \end{example}
 will search for all non-lord bend lattice elements whose names begins
 with \vn{"B"} followed by any set of characters.
@@ -1929,24 +1908,24 @@ and lattice layouts.
 The namelist syntax is the same for both:
 \begin{example}
   &element_shapes_lat_layout
-    ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+    ele_shape(i) = "<class::name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
   /
   &element_shapes_floor_plan
-    ele_shape(i) = "<class:name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+    ele_shape(i) = "<class::name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
   /
 \end{example}
 For Example:                 
 \begin{example}
   &element_shapes_floor_plan
-    !               Class:Name       Shape     Color     Size   Label_Type
-    ele_shape(1) = "quadrupole:q*"   "box"     "red"     30     name 
-    ele_shape(2) = "quadrupole:*"    "xbox"    "red"     30     none 
-    ele_shape(3) = "sbend:*"         "box"     "blue"    15     none
-    ele_shape(4) = "wiggler:*"       "xbox"    "green"   20     name
+    !               Class::Name       Shape     Color     Size   Label_Type
+    ele_shape(1) = "quadrupole::q*"   "box"     "red"     30     name 
+    ele_shape(2) = "quadrupole::*"    "xbox"    "red"     30     none 
+    ele_shape(3) = "sbend::*"         "box"     "blue"    15     none
+    ele_shape(4) = "wiggler::*"       "xbox"    "green"   20     name
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches a
-\vn{<class:name>} (\sref{s:class:name}) of any \vn{ele_shape(:)}.
+\vn{<class::name>} (\sref{s:class.name}) of any \vn{ele_shape(:)}.
 Thus, in the example above, \vn{ele_shape(1)} will match to all
 quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
 match all quadrupoles. If an element matches more than one shape the

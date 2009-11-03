@@ -25,10 +25,13 @@ integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter :: numeric$ = 100, var_num$ = 101, on_the_fly$ = 102, data_num$ = 103
+integer, parameter :: numeric$ = 100, var_num$ = 101, lat_num$ = 102, data_num$ = 103
+integer, parameter :: ele_num$ = 104
 
 integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
+
+private load_it
 
 contains
 
@@ -36,96 +39,115 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_data_on_the_fly (err, data_name, values, print_err)
+! Subroutine tao_evaluate_lat_data (err, data_name, values, print_err,
+!                                        default_source, default_index)
 !
 ! Routine to evaluate data "on-the-fly" of the form 
-!     <universe>@dat:<source>:<data_type>[<ix_ele_start>&<ix_ele>]|<component>
+!     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
 !
 ! Input:
 !   data_name -- Character(*): data name.
-!   print_err -- Logical, optional :: Print error message? Default is True.
+!   print_err -- Logical: Print error message?
 !
 ! Output:
 !   err       -- Logical: True if there is an error. False otherwise
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_data_on_the_fly (err, data_name, values, print_err)
+subroutine tao_evaluate_lat_data (err, data_name, values, print_err, &
+                                        default_source, default_index)
 
 implicit none
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
+type (ele_pointer_struct), allocatable, save :: eles(:)
 
 character(*) data_name
+character(*) default_source, default_index
 character(60) name, ele_name, component
-character(40) :: r_name = 'tao_evaluate_data_on_the_fly'
+character(40) :: r_name = 'tao_evaluate_lat_data'
 
 real(rp), allocatable :: values(:)
 
-integer i, j, num, ix, ix1, ios, n_tot
-integer, allocatable, save :: ix_ele(:)
+integer i, j, num, ix, ix1, ios, n_tot, n_loc
 
-logical err, printit, valid
-logical, optional :: print_err
+logical err, valid
+logical print_err
 logical, allocatable, save :: this_u(:)
 
 !
+
+datum%ele_start_name = ''
+datum%ele_ref_name = ''
+datum%ix_ele_start = -1
+datum%ix_ele_ref = -1
 
 call tao_pick_universe (data_name, name, this_u, err)
 if (err) return
 
 err = .true.
-printit = logic_option (.true., print_err)
-name = name(5:)  ! Strip off 'dat:'
-
-! Get data source. Default is 'lattice'
-
-ix1 = index(name, ':');  if (ix1 == 0) return
-datum%data_source = name(1:ix1-1)
-if (datum%data_source == '') datum%data_source = 'lattice'
-name = name(ix1+1:)
-
-! Get data type
-
-ix1 = index(name, '[');  if (ix1 == 0) return
-datum%data_type = name(1:ix1-1)
-name = name(ix1+1:)
-
-! Get ele_start
-
-ix1 = index(name, ']');  if (ix1 == 0) return
-ix = index(name, '&')
-datum%ix_ele_start = -1
-datum%ele_start_name = ''
-if (ix /= 0 .and. ix < ix1) then
-  if (is_integer(name(:ix-1))) then
-    read (name(:ix-1), *, iostat = ios) datum%ix_ele_start
-    if (ios /= 0) then
-      if (printit) call out_io (s_error$, r_name, 'BAD ELE_START: ' // data_name)
-      return
-    endif
-  else
-    datum%ele_start_name = name(:ix-1)
-  endif
-  name = name(ix+1:)
+if (name(1:5) == 'lat::') then
+  datum%data_source = 'lattice'
+  name = name(6:)  ! Strip off 'lat:'
+elseif (name(1:6) == 'beam::') then
+  datum%data_source = 'beam'
+  name = name(7:)  ! Strip off 'beam:'
+elseif (default_source /= '') then
+  datum%data_source = default_source
+else
+  if (print_err) call out_io (s_error$, r_name, 'DATUM NOT "LAT::" OR "BEAM::"' // data_name)
+  return
 endif
-
-! Get ele
-
-ix = index(name, ']')
-ele_name = name(:ix-1)
-name = name(ix+1:)
 
 ! Get component
 
-if (name(1:1) == '|') then
-  component = name(2:)
-elseif (name(1:1) == ' ') then
+ix = index(name, '|')
+if (ix == 0) then
   component = 'model'
 else
-  if (printit) call out_io (s_error$, r_name, 'COMPONENT: ' // data_name)
-  return
+  component = name(ix+1:)
+  name = name(1:ix-1)
+endif
+
+! Get data type
+
+ix1 = index(name, '[');  
+if (ix1 == 0) then
+  if (default_index == '') return
+  datum%data_type = name
+  name = default_index
+
+else
+  datum%data_type = name(1:ix1-1)
+  name = name(ix1+1:)
+  ix1 = index(name, ']')
+  if (ix1 == 0) return
+  if (name(ix1+1:) /= '') return
+endif
+
+! Get ele_ref & ele
+
+ix = index(name, '&')
+if (ix /= 0) then
+  if (is_integer(name)) then
+    read (name(:ix-1), *, iostat = ios) datum%ix_ele_ref
+    if (ios /= 0) then
+      if (print_err) call out_io (s_error$, r_name, 'BAD ELE_REF: ' // data_name)
+      return
+    endif
+  else
+    datum%ele_ref_name = name(:ix-1)
+    call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err)
+    if (size(eles) /= 1) then
+      call out_io (s_error$, r_name, 'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
+      return
+    endif
+    datum%ix_ele_ref = eles(1)%ele%ix_ele
+  endif
+  ele_name = name(ix+1:)
+else
+  ele_name = name
 endif
 
 ! Evaluate
@@ -134,11 +156,13 @@ n_tot = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   u => s%u(i)
-  call elements_locator (ele_name, u%model%lat, ix_ele, err)
+  call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
   if (err) return
-  call re_allocate (values, n_tot + size(ix_ele))
-  do j = 1, size(ix_ele)
-    datum%ix_ele = ix_ele(j)
+  call re_allocate (values, n_tot + n_loc)
+  do j = 1, n_loc
+    datum%ele_name = ele_name
+    datum%ix_ele = eles(j)%ele%ix_ele
+    datum%ix_branch = eles(j)%ele%ix_branch
     select case (component)
     case ('model')   
       call tao_evaluate_a_datum (datum, u, u%model, values(n_tot+j), valid)
@@ -156,7 +180,7 @@ enddo
 
 err = .false.
 
-end subroutine tao_evaluate_data_on_the_fly
+end subroutine tao_evaluate_lat_data
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -397,13 +421,16 @@ real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
 real(rp), allocatable, save ::value1(:), value_vec(:)
 real(rp) theta, phi, psi
+real(rp), allocatable, save :: value_array(:)
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
+integer n_size
 
 character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_evaluate_a_datum'
 character(40) data_type, data_source, name
+character(80) index_str
 
 logical found, valid_value, err
 logical, allocatable, save :: good1(:)
@@ -813,19 +840,49 @@ case ('etap.b')
   endif
 
 case ('expression:')
-  if (data_source == 'beam') return ! bad
-
   ! The point here is that tao_evaluate_stack is much quicker than tao_to_real.
   ! So on the fist time through, construct datum%stack and for subsequent times, use
   ! datum%stack with tao_evaluate_stack.
-  if (allocated (datum%stack)) then
-    call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err, .true.)
-    if (err) return
-    datum_value = value1(1)
-    valid_value = good1(1)
+  !! if (allocated (datum%stack)) then
+  !!   call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err, .true.)
+  !!   if (err) return
+  !!   datum_value = value1(1)
+  !!   valid_value = good1(1)
 
-  else ! Only do this first time through...
-    call tao_to_real (datum%data_type(12:), datum_value, err, .false., valid_value, datum%stack)
+  !! else ! Only do this first time through...
+    if (datum%ele_start_name == '') then
+      index_str = datum%ele_name
+    else
+      index_str = trim(datum%ele_start_name) // '&' // trim(datum%ele_name)
+    endif
+    call tao_evaluate_expression (datum%data_type(12:), n_size, .false., value_array, good1, &
+                                     err, .true., datum%stack, 'model', datum%data_source, index_str)
+    if (err) return
+    select case (datum%merit_type)
+    case ('min')
+      datum_value = minval(value_array)
+    case ('max') 
+      datum_value = maxval(value_array)
+    case ('abs_min')
+      datum_value = minval(abs(value_array))
+    case ('abs_max') 
+      datum_value = maxval(abs(value_array))
+    case ('target')
+      if (n_size /= 1) then
+        call out_io (s_error$, r_name, &
+                  'DATUM: ' // tao_datum_name(datum), &
+                  'HAS "TARGET" MERIT_TYPE BUT DOES NOT EVALUATE TO A SINGLE NUMBER!')
+        return
+      endif
+      datum_value = value_array(1)
+    case default
+      call out_io (s_error$, r_name, &
+                  'SINCE THIS DATUM: ' // tao_datum_name(datum), &
+                  'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
+                  'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
+      return
+    end select
+
     ! Make sure that any datums used in the expression have already been evaluated.
     do i = 1, size(datum%stack)
       if (datum%stack(i)%name == '') cycle
@@ -841,7 +898,7 @@ case ('expression:')
       return
     enddo
     valid_value = .true.
-  endif
+  !! endif
 
 case ('face1.offset')
 
@@ -1497,7 +1554,7 @@ else
     call integrate_max (ix_start, ix_ele, datum_value, ix_m, lat, vec_ptr, datum)
 
   case default
-    call out_io (s_abort$, r_name, &
+    call out_io (s_error$, r_name, &
                   'SINCE THIS DATUM: ' // tao_datum_name(datum), &
                   'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
                   'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
@@ -1746,12 +1803,23 @@ character(*) ele_name
 character(*), optional :: why_invalid
 character(40) :: r_name = 'tao_valid_datum_index'
 
-!
+! If ele_name is blank but ix_ele is not -1 then this datum was constructed internally
+! by Tao (as opposed being constructed from tao init file info).
+! If this is the case, assume that everything is OK and just return a pointer to the element.
 
 valid = .true.
-nullify (ele)
 
-if (ele_name == '') return
+if (ele_name == '') then
+  if (ix_ele == -1) then
+    nullify (ele)
+  else
+    ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
+  endif
+  return
+endif
+
+! Here if ele_name is not blank.
+! Do some checking...
 
 n_track = lat%branch(datum%ix_branch)%n_ele_track
 n_max   = lat%branch(datum%ix_branch)%n_ele_max
@@ -1788,7 +1856,8 @@ end function
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack)
+! Subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, &
+!                                                  print_err, dflt_source, dflt_index)
 !
 ! Mathematically evaluates an expression.
 !
@@ -1797,6 +1866,8 @@ end function
 !   use_good_user -- Logical, optional: Use the good_user logical in evaluating good(:)
 !                      Default is False.
 !   print_err     -- Logical, optional: Print an error message? Default is True.
+!   dflt_source   -- Character(*), optional: Default source. Default is ''.
+!   dflt_index    -- Character(*), optional: Default index. Default is ''.
 !
 ! Output:
 !   value        -- real(rp): Value of arithmetic expression.
@@ -1810,13 +1881,15 @@ end function
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, print_err)
+subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, &
+                                                       print_err, dflt_source, dflt_index)
 
 implicit none
 
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 
 character(*) :: expression
+character(*), optional :: dflt_source, dflt_index
 
 real(rp) value
 real(rp), allocatable, save :: vec(:)
@@ -1842,7 +1915,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-!                             value, good, err_flag, print_err, stack, dflt_component)
+!       value, good, err_flag, print_err, stack, dflt_component, dflt_source, dflt_index)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -1855,6 +1928,8 @@ end subroutine
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
 !   dflt_component -- Character(*): Default component to use with datums if not specified.
+!   dflt_source    -- Character(*), optional: Default source. Default is ''.
+!   dflt_index     -- Character(*), optional: Default index. Default is ''.
 !   
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -1869,8 +1944,8 @@ end subroutine
 !                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-                              value, good, err_flag, print_err, stack, dflt_component)
+subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
+          good, err_flag, print_err, stack, dflt_component, dflt_source, dflt_index)
 
 use random_mod
 
@@ -1885,10 +1960,10 @@ integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 real(rp), allocatable :: value(:)
 
 character(*) :: expression
-character(*), optional :: dflt_component
+character(*), optional :: dflt_component, dflt_source, dflt_index
 character(200) phrase
 character(1) delim
-character(40) word, word2
+character(40) word, word2, default_source, default_index
 character(40) :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
@@ -1902,6 +1977,10 @@ logical, optional :: print_err
 err_flag = .true.
 saved_prefix = ''
 printit = logic_option(.true., print_err)
+default_source = ''
+if (present(dflt_source)) default_source = dflt_source
+default_index = ''
+if (present(dflt_index)) default_index = dflt_index
 
 phrase = expression
 
@@ -2056,7 +2135,7 @@ parsing_loop: do
   ! Then use the dflt_component.
 
   if (present(dflt_component) .and. index(word, '|') == 0) then
-    call tao_find_data (err, word)
+    call tao_find_data (err, word, print_err = .false.)
     if (.not. err) then
       phrase = trim(word) // '|' // trim(dflt_component) // delim // trim(phrase)
       cycle   ! Try again
@@ -2130,7 +2209,8 @@ parsing_loop: do
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
-      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit)
+      call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
+                                      err, printit, default_source, default_index)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -2181,7 +2261,8 @@ parsing_loop: do
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit)
+    call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
+                                      err, printit, default_source, default_index)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -2328,7 +2409,8 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err)
+subroutine tao_param_value_routine (str, saved_prefix, stack, &
+                              err_flag, print_err, default_source, default_index)
 
 implicit none
 
@@ -2340,6 +2422,8 @@ type (tao_data_struct) datum
 integer ios, i, n, ix, ix_ele, ix2
 
 character(*) str, saved_prefix
+character(*), optional :: default_source, default_index
+character(16) s, source
 character(60) name
 character(40) :: r_name = 'tao_param_value_routine'
 
@@ -2400,30 +2484,56 @@ name = stack%name
 
 if (.not. allocated(re_array)) allocate (re_array(0))
 
-! Look for a datum-on-the-fly.
+! Decide data source
 
-if (name(1:4) == 'dat:' .or. index(name, '@dat:') /= 0) then
-  call tao_evaluate_data_on_the_fly (err_flag, name, stack%value, print_err = .false.)
-  stack%type = on_the_fly$
+source = default_source
+ix = index(name, '::')
+if (ix /= 0) then
+  s = name(max(1,ix-3):ix-1)
+  if (s == 'lat' .or. s == 'ele' .or. s == 'dat' .or. s == 'var') then
+    source = s
+  elseif (name(max(1, ix-4):ix-1) == 'beam') then
+    source = 'beam'
+  endif
+endif
+if (source == 'lattice') source = 'lat'
+if (source == 'data_array') source = 'dat'
+if (source == 'var_array') source = 'var'
+if (source == 'element') source = 'ele'
+
+
+! Look for a lat datum.
+
+if (source == 'lat') then
+  call tao_evaluate_lat_data (err_flag, name, stack%value, .false., &
+                                                  default_source, default_index)
+  stack%type = lat_num$
   return
 
 ! Look for a lattice element parameter 
 
-elseif (name(1:4) == 'ele:' .or. index(name, '@ele:') /= 0) then
-  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err = .false.)
-  stack%type = on_the_fly$
+elseif (source == 'ele') then
+  call tao_evaluate_element_parameters (err_flag, name, stack%value, .false., &
+                                                  default_source, default_index)
+  stack%type = ele_num$
   return
 
 ! Look for variable or data values
 
 else
-  stack%type = var_num$
-  call tao_find_var (err_flag, name, re_array = re_array, print_err = .false.)
-  if (err_flag) then
+
+  err_flag = .true.
+  if (source == 'var' .or. source == '') then
+    call tao_find_var (err_flag, name, re_array = re_array, print_err = .false.)
+    stack%type = var_num$
+  endif
+
+  if (source == 'dat' .or. (err_flag .and. source == '')) then
     call tao_find_data (err_flag, name, &
-                     re_array = re_array, int_array = int_array, print_err = .false.)
+                            re_array = re_array, int_array = int_array, print_err = .false.)
     stack%type = data_num$
   endif
+
   if (err_flag) return
 endif
 
@@ -2546,7 +2656,7 @@ do i = 1, size(stack)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
-  case (on_the_fly$)
+  case (lat_num$, ele_num$)
     call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag, print_err)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)

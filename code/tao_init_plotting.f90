@@ -746,6 +746,10 @@ do n = 1, size(ele_shape)
   if (ele_shape(n)%label_type == '') ele_shape(n)%label_type = 'name'
   if (index('false', trim(ele_shape(n)%label_type)) == 1) ele_shape(n)%label_type = 'none'
   if (index('true', trim(ele_shape(n)%label_type)) == 1) ele_shape(n)%label_type = 'name'
+  ! Convert old class:name format to new class::name format
+  ix = index(ele_shape(n)%ele_name, ":")
+  if (ix /= 0 .and. ele_shape(n)%ele_name(ix+1:ix+1) /= ':') &
+     ele_shape(n)%ele_name = ele_shape(n)%ele_name(1:ix) // ':' // ele_shape(n)%ele_name(ix+1:)
 
   if (ele_shape(n)%ele_name /= '') n_shape = n
 enddo

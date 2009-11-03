@@ -47,7 +47,8 @@ character(40) :: r_name = 'tao_init_global'
 character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe
 
-character(60) save_beam_at(100)
+character(60), target :: save_beam_at(100)
+character(60), pointer :: sb
 character(100) line
 
 logical err, is_set
@@ -220,6 +221,12 @@ if (s%global%track_type == 'beam') then
             read (iu, nml = tao_beam_init)  ! generate an error message
           enddo
         endif
+        ! Convert old class:name format to new class::name format
+        do i = 1, size(save_beam_at)
+          sb => save_beam_at(i)
+          ix = index(sb, ":")
+          if (ix /= 0 .and. sb(ix+1:ix+1) /= ':') sb = sb(1:ix) // ':' // sb(ix+1:)
+        enddo
         if (ios /= 0) exit
       endif
 
@@ -610,6 +617,12 @@ do
       enddo
     endif
 
+    ! Convert old class:name format to new class::name format
+
+    ix = index(search_for_lat_eles, ":")
+    if (ix /= 0 .and. search_for_lat_eles(ix+1:ix+1) /= ':') &
+            search_for_lat_eles = search_for_lat_eles(1:ix) // ':' // search_for_lat_eles(ix+1:)
+
     ! Transfer data(:) to datum(:) if needed
 
     if (any(data%data_type /= '') .or. any(data%ele_name /= '')) then
@@ -923,7 +936,7 @@ do j = n1, n2
   if (data_type(1:8) == 'rad_int.') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
-  if (data_type(1:11) == 'expression:' .or. data_type == 'unstable_orbit' .or. &
+  if (data_type == 'unstable_orbit' .or. &
               u%design%lat%param%lattice_type == circular_lattice$ .and. &
               (data_type(1:6)  == 'chrom.' .or. &
                data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
@@ -1368,6 +1381,12 @@ do
   if (ios < 0) exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
 
+  ! Convert old class:name format to new class::name format
+
+  ix = index(search_for_lat_eles, ":")
+  if (ix /= 0 .and. search_for_lat_eles(ix+1:ix+1) /= ':') &
+          search_for_lat_eles = search_for_lat_eles(1:ix) // ':' // search_for_lat_eles(ix+1:)
+
   ! Convert old format to new
 
   call str_upcase (default_attribute, default_attribute)
@@ -1421,7 +1440,10 @@ do
   ! Set up variable lists
 
   if (gang) then
-    call tao_var_stuffit1 (v1_var_ptr, -1, searching)
+    call tao_var_stuffit1 (var, v1_var_ptr, v1_var, -1, searching, &
+              use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
+              default_attribute, default_weight, default_step, default_merit_type, &
+              default_low_lim, default_high_lim, dflt_good_unis)
 
     if (.not. searching) then
       do j = lbound(v1_var_ptr%v, 1), ubound(v1_var_ptr%v, 1)
@@ -1455,7 +1477,11 @@ do
   else   ! If clone...
     do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. dflt_good_unis(i)) cycle
-      call tao_var_stuffit1 (v1_var_ptr, i, searching)
+      call tao_var_stuffit1 (var, v1_var_ptr, v1_var, i, searching, &
+              use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
+              default_attribute, default_weight, default_step, default_merit_type, &
+              default_low_lim, default_high_lim, dflt_good_unis)
+
       write (v1_var_ptr%name, '(2a, i0)') trim(v1_var_ptr%name), '_u', i
       if (.not. searching) then
         good_unis = .false.
@@ -1475,30 +1501,46 @@ deallocate (default_key_b, default_key_d)
 
 call tao_init_var_end_stuff ()
 
+end subroutine tao_init_variables
+
 !-----------------------------------------------------------------------
 !------------------------------------------------------------------------
-contains
-
 ! stuff common to all universes
 
-subroutine tao_var_stuffit1 (v1_var_ptr, ix_uni, searching)
+subroutine tao_var_stuffit1 (var, v1_var_ptr, v1_var, ix_uni, searching, &
+              use_same_lat_eles_as, search_for_lat_eles, ix_min_var, ix_max_var, &
+              default_attribute, default_weight, default_step, default_merit_type, &
+              default_low_lim, default_high_lim, dflt_good_unis)
+
+use tao_input_struct
+
+implicit none
 
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_v1_var_struct), pointer :: v1_var_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: var_ptr
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (tao_v1_var_input) v1_var
+type (tao_var_input) var(n_var_minn:n_var_maxx)
 
+real(rp) default_weight, default_step, default_low_lim, default_high_lim
+
+character(*) use_same_lat_eles_as, search_for_lat_eles, default_attribute
+character(*) default_merit_type
 character(20) fmt
-character(40) ele_name
+character(40) name
 character(40), allocatable :: ele_names(:)
 character(60) search_string
+character(20) :: r_name = 'tao_var_stuffit1'
 
 integer i, iu, ip, j, jj, k, kk, n, nn, n1, n2, ix1, ix2, ix
 integer num_ele, ios, ix_uni, ixm, ix2m
 integer, allocatable, save :: an_indexx(:)
+integer ix_min_var, ix_max_var
 
-logical searching, grouping, found_one, bound
+logical :: dflt_good_unis(lbound(s%u,1):)
+logical searching, grouping, found_one, bound, err
 
 ! count number of v1 entries
 
@@ -1657,7 +1699,7 @@ if (search_for_lat_eles /= '') then
       ! If the name matches an existing variable then use that variable
       if (grouping) then
         do j = n1, nn
-          if (s%var(j)%ele_name == ele_name) then
+          if (s%var(j)%ele_name == eles(kk)%ele%name) then
             call tao_pointer_to_var_in_lattice (s%var(j), iu, eles(kk)%ele, err)
             cycle kk_loop
           endif
@@ -1770,10 +1812,8 @@ where (s%var(n1:n2)%low_lim == -1e30) s%var(n1:n2)%low_lim = default_low_lim
 s%var(n1:n2)%high_lim = var(ix1:ix2)%high_lim
 where (s%var(n1:n2)%high_lim == 1e30) s%var(n1:n2)%high_lim = default_high_lim
 
-end subroutine
+end subroutine tao_var_stuffit1 
   
-end subroutine tao_init_variables
-
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -1966,7 +2006,7 @@ do j = 1, size(eles)
   eles(n_ele)%ele => eles(j)%ele
 enddo
 
-call re_allocate_eles (eles, n_ele, .true.)
+call re_allocate_eles (eles, n_ele, .true., .true.)
 
 end subroutine tao_init_find_elements
 

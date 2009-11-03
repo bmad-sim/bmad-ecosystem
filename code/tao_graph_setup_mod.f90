@@ -528,7 +528,7 @@ character(30) :: r_name = 'tao_graph_data_setup'
 !
 
 graph%valid = .false.
-call re_allocate_eles (eles, 1)
+call re_allocate_eles (eles, 1, exact = .true.)
 
 graph%title_suffix = '[' // trim(graph%component) // ']'
 
@@ -805,7 +805,7 @@ do k = 1, size(graph%curve)
         x_max = min(x_max, graph%x%max)
       endif 
       n_dat = max(0, nint(x_max+1-x_min))
-      call re_allocate_eles (eles, n_dat)
+      call re_allocate_eles (eles, n_dat, exact = .true.)
       if (n_dat > 0) then
         do i = 1, n_dat
           eles(i)%ele => pointer_to_ele (model_lat, i, curve%ix_branch)
@@ -813,7 +813,7 @@ do k = 1, size(graph%curve)
       endif
 
     elseif (plot%x_axis_type == 's') then
-      call re_allocate_eles (eles, 0)
+      call re_allocate_eles (eles, 0, exact = .true.)
 
     else
       call out_io (s_error$, r_name, 'BAD PLOT%X_AXIS_TYPE: ' // plot%x_axis_type)
@@ -918,7 +918,7 @@ do k = 1, size(graph%curve)
         endif
       enddo
       n_dat = count (branch%ele(:)%logic)
-      call re_allocate_eles (eles, n_dat)
+      call re_allocate_eles (eles, n_dat, exact = .true.)
       i = 0
       do j = 0, ubound(branch%ele, 1)
         if (.not. branch%ele(j)%logic) cycle
@@ -1434,7 +1434,7 @@ else
     curve%y_line(j)  = y_value(i)
     eles(j) = eles(i)
   enddo
-  call re_allocate_eles (eles, n_dat, .true.)
+  call re_allocate_eles (eles, n_dat, .true., .true.)
 endif
 
 valid = .true.

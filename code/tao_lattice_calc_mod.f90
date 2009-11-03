@@ -23,7 +23,7 @@ contains
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok, ix_uni, init_design)
+! Subroutine tao_lattice_calc (calc_ok, ix_uni)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
@@ -35,18 +35,15 @@ contains
 !   ix_uni      -- Integer, optional: If present then calculation is restricted to
 !                   the universe with this index.
 !                   If present, tao_com%lattice_recalc will be ignored.
-!   init_design -- Logical, optional: Set this True to initialize design lattices
 !
 ! Output:
 !   calc_ok -- Logical: Set False if there was an error in the 
 !                calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok, ix_uni, init_design)
+subroutine tao_lattice_calc (calc_ok, ix_uni)
 
 implicit none
-
-logical, optional :: init_design
 
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_dat
@@ -60,15 +57,12 @@ real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
 
-logical initing_design
 logical :: calc_ok, recalc
 logical this_calc_ok
 
 !
 
 calc_ok = .true.
-
-initing_design = logic_option (.false., init_design)
 
 ! To save time, tao_com%lattice_recalc and s%u(:)%universe_recalc are used to
 ! determine what gets calculated. 
@@ -108,7 +102,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! set up matching element
 
-  if (initing_design) call tao_match_lats_init (u)
+  call tao_match_lats_init (u)
 
   call tao_lat_bookkeeper (u, tao_lat)
 
@@ -200,10 +194,8 @@ call tao_hook_post_process_data ()
 tao_com%lattice_recalc = .false.
 s%u%universe_recalc = .true.
 
-if (.not. initing_design) then
-  call tao_set_var_useit_opt
-  call tao_set_data_useit_opt
-endif
+call tao_set_var_useit_opt
+call tao_set_data_useit_opt
 
 end subroutine tao_lattice_calc
 
@@ -850,8 +842,8 @@ implicit none
 
 type (tao_universe_struct), target :: u
 type (coord_struct) extract_pos
-type (ele_struct), save :: extract_ele, inject_ele
-type (ele_struct), pointer :: connection_ele
+type (ele_struct), save :: extract_ele
+type (ele_struct), pointer :: connection_ele, inject_ele
 type (beam_struct), pointer :: injecting_beam
 
 character(20) :: r_name = "match_lats_init"
@@ -861,8 +853,6 @@ character(20) :: r_name = "match_lats_init"
 if (.not. (u%connect%connected .and. u%connect%match_to_design)) return
 
 connection_ele => u%connect%match_ele
-call init_ele (extract_ele)
-call init_ele (inject_ele)
   
 ! set up coupling%injecting_beam 
 
@@ -873,27 +863,29 @@ if (s%global%track_type == 'beam') then
 endif
 
 ! match design lattices
-if (u%connect%match_to_design) then
-  ! get twiss parameters from extracted lattice
-  if (s%global%track_type == 'single') then
-    call twiss_and_track_at_s (s%u(u%connect%from_uni)%design%lat, &
-                     u%connect%from_uni_s, extract_ele, &
-                     s%u(u%connect%from_uni)%design%lat_branch(0)%orbit, extract_pos)
-  elseif (s%global%track_type == 'beam') then
-    extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
-  endif
-    
-  ! get twiss parameters for injected lattice
-  ! This is performed before the standard lattice calculation so the design
-  ! twiss parameters in ele(0) will still be as set in the lattice file.
-  inject_ele = u%design%lat%ele(0)
-else
-  call out_io (s_warn$, r_name, &
-                "The coupling element will only match the design lattices")
+
+if (.not. u%connect%match_to_design) then
+  call out_io (s_warn$, r_name, "The coupling element will only match the design lattices")
   return
 endif
 
+! get twiss parameters from extracted lattice
+
+if (s%global%track_type == 'single') then
+  call twiss_and_track_at_s (s%u(u%connect%from_uni)%design%lat, u%connect%from_uni_s, &
+                 extract_ele, s%u(u%connect%from_uni)%design%lat_branch(0)%orbit, extract_pos)
+elseif (s%global%track_type == 'beam') then
+  extract_ele = s%u(u%connect%from_uni)%design%lat%ele(u%connect%from_uni_ix_ele)
+endif
+    
+! get twiss parameters for injected lattice
+! This is performed before the standard lattice calculation so the design
+! twiss parameters in ele(0) will still be as set in the lattice file.
+
+inject_ele => u%design%lat%ele(0)
+
 ! set up matching element
+
 connection_ele%value( beta_a0$) = extract_ele%a%beta
 connection_ele%value(alpha_a0$) = extract_ele%a%alpha
 connection_ele%value(  eta_x0$) = extract_ele%x%eta
