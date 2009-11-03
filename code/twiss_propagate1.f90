@@ -151,7 +151,8 @@ subroutine twiss_propagate1 (ele1, ele2, err)
       mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
       det = determinant(mat2) / det_factor
       if (det < 0) then
-        print *, 'TWISS_PROPAGATE1: INTERNAL ERROR! (DUE TO ROUNDOFF?)'
+        print *, 'TWISS_PROPAGATE1: ||mat2|| < 0! (Due to roundoff?) ', det
+        print *, '       When propagating through: ', trim(ele2%name), ele2%ix_ele
       endif
 
       ele2%gamma_c = sqrt(abs(det))
