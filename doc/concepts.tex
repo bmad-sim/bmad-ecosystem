@@ -149,7 +149,9 @@ is attach a prefix of the form:
 \begin{example}
   [<universe_range>]@<parameter>
 \end{example}
-Commas and colons can be used in the syntax for \vn{<universe_range>}
+Commas and colons can be used in the syntax for \vn{<universe_range>} 
+(this is similar to the \vn{list} format used to specify lattice elements 
+(\sref{s:ele.name.syntax})).
 When there is only a single Universe specified, the brackets
 \vn{[...]} are optional. When the universe prefix is not present, the
 current ``viewed'' (default) universe (\sref{s:view}) is assumed. The
@@ -302,8 +304,20 @@ component. The list of components that can be set or refereed to are:
 Use the \vn{show var} (\sref{s:show}) command to view variable information
 
 %-----------------------------------------------------------------
-\subsection{Class::Name Format}
-\label{s:class.name}
+\subsection{Syntax for Specifying Elements}
+\label{s:ele.name.syntax}
+
+When a lattice element or elements need to be specified in an expression, 
+there are two formats that can be used: \vn{list} format and \vn{class::name} 
+format.
+
+\vn{Range} format is a list of element names or indexes separated by blanks, 
+commas or colons. The colons represent a range of elements. For example:
+\begin{example}
+  d23 b34e:567, 45 77
+\end{example}
+The elements specified In this example are all elements 
+
 
 \index{class::name}
 Some input parameters require \vn{class::name} format where lattice

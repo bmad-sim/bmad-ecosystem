@@ -998,14 +998,14 @@ Format:
   show curve \{-symbol\} \{-line\} <curve_name> 
   show data \{<data_name>\} 
   show derivative <data_name(s)> <var_name(s)>
-  show element \{-taylor\} \{-wig_terms\} \{-data\} \{-all_attributes\} <name>
+  show element \{-taylor\} \{-wig_terms\} \{-data\} \{-all_attributes\} <ele_name>
   show global
   show graph <graph_name>
   show hom
   show key_bindings
   show lattice \{-all_tracking} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
-         \{-elements <name>\} \{-lords\} \{-middle\} \{-no_label_lines\} 
-         \{-no_tail_lines\} \{-s\} \{<location_range>\} 
+         \{-lords\} \{-middle\} \{-no_label_lines\} 
+         \{-no_tail_lines\} \{-s <s1>:<s2>\} \{<elements>\} 
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
   show particle -lost \{<bunch_index>\}
@@ -1129,13 +1129,13 @@ Example:
 %% show element --------------------------------------------------------------
 
 \item[show element \{-taylor\} \{-wig\_terms\} \{-data\} 
-                     \{-all\_attributes\} <name>] \Newline
-This shows information on lattice elements. \vn{<name>} is in
-\vn{class::name} syntax as explained in \sref{s:class.name}. If
-\vn{<name>} contains a wild card or a class name then a list of
+                     \{-all\_attributes\} <ele_name>] \Newline
+This shows information on lattice elements. The syntax for \vn{<ele_name>} 
+is explained in section \sref{s:ele.name}. If
+\vn{<ele_name>} contains a wild card or a class name then a list of
 elements that match the name are shown. If no wild--card or class name
 is present then information about the element whose name matches
-\vn{<name>} is shown. If \vn{<name>} is a number $n$, then the $n$\Th
+\vn{<ele_name>} is shown. If \vn{<ele_name>} is a number $n$, then the $n$\Th
 element in the lattice list will be shown.
 
 If the \vn{-taylor} switch is present then the Taylor map associated
@@ -1190,8 +1190,8 @@ Shows all key bindings.
 
 \item[\protect\parbox{6in}{
   show lattice \{-all_tracking} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
-  \hspace*{0.35in} \{-elements <name>\} \{-lords\} \{-middle\} \{-no\_label_lines\} \\
-  \hspace*{0.35in} \{-no_tail_lines\} \{-s\} \{<location\_range>\} }] \Newline
+  \hspace*{0.35in} \{-lords\} \{-middle\} \{-no\_label_lines\} \\
+  \hspace*{0.35in} \{-no_tail_lines\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
@@ -1210,11 +1210,12 @@ The default is the main branch (\# 0).
 
 The locations to show can either be specified using the \vn{-elements}
 switch, or by specifying a longitudinal position range with \vn{-s},
-or (the default) by specifying a range of element indices.  The
-\vn{-elements} switch is used specify elements using a \vn{class::name}
-format (\sref{s:class.name}). For example:
+or (the default) by specifying a range of element indices.  The syntax
+used for specifying which elements to show when the 
+\vn{-elements} switch is used is given in section~\sref{s:ele.name.syntax}. 
+For example:
 \begin{example}
-  show lat -ele marker:bpm*
+  show lat -ele marker:bpm*   !
 \end{example}
 This will show the parameters at all marker elements whose name begin
 with \vn{"bpm"}. 
