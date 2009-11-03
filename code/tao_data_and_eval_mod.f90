@@ -855,12 +855,10 @@ case ('expression:')
   !!   valid_value = good1(1)
 
   !! else ! Only do this first time through...
-    if (datum%ele_start_name == '') then
-      index_str = datum%ele_name
-    else
-      index_str = trim(datum%ele_start_name) // '&' // trim(datum%ele_name)
-    endif
-    call tao_evaluate_expression (datum%data_type(12:), n_size, .false., value_array, good1, &
+    index_str = datum%ele_name
+    if (datum%ele_start_name /= '') index_str = trim(datum%ele_start_name) // ':' // trim(index_str)
+    if (datum%ele_ref_name /= '') index_str = trim(datum%ele_ref_name) // '&' // trim(index_str)
+    call tao_evaluate_expression (datum%data_type(12:), 0, .false., value_array, good1, &
                                      err, .true., datum%stack, 'model', datum%data_source, index_str)
     if (err) return
     select case (datum%merit_type)
@@ -873,7 +871,7 @@ case ('expression:')
     case ('abs_max') 
       datum_value = maxval(abs(value_array))
     case ('target')
-      if (n_size /= 1) then
+      if (size(value_array) /= 1) then
         call out_io (s_error$, r_name, &
                   'DATUM: ' // tao_datum_name(datum), &
                   'HAS "TARGET" MERIT_TYPE BUT DOES NOT EVALUATE TO A SINGLE NUMBER!')
@@ -2348,7 +2346,7 @@ endif
 
 n__size = 1
 do i = 1, i_lev
-  if (stk(i)%type /= numeric$ .and. stk(i)%type /= var_num$ .and. stk(i)%type /= data_num$) cycle
+  if (stk(i)%type < numeric$) cycle
   n = size(stk(i)%value)
   if (n == 1) cycle
   if (n__size == 1) n__size = n
@@ -2512,6 +2510,8 @@ if (source == 'element') source = 'ele'
 if (source == 'lat') then
   call tao_evaluate_lat_data (err_flag, name, stack%value, .false., &
                                                   default_source, default_index)
+  call re_allocate (stack%good, size(stack%value))
+  stack%good = .not. err_flag
   stack%type = lat_num$
   return
 
@@ -2520,6 +2520,8 @@ if (source == 'lat') then
 elseif (source == 'ele') then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, .false., &
                                                   default_source, default_index)
+  call re_allocate (stack%good, size(stack%value))
+  stack%good = .not. err_flag
   stack%type = ele_num$
   return
 
@@ -2662,7 +2664,8 @@ do i = 1, size(stack)
     call value_transfer (stk2(i2)%value, stack(i)%value)
 
   case (lat_num$, ele_num$)
-    call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag, print_err)
+    !!! This needs to be fixed to include default stuff
+    !!! call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag, print_err)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, stack(i)%value)
 

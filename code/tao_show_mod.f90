@@ -171,7 +171,7 @@ real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
-character(24) :: var_name
+character(24) :: var_name, blank_str = ''
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
@@ -665,15 +665,12 @@ case ('data')
     n_start = 10
     n_ref   = 8
     n_ele   = 8
-    n_tot   = 0
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       name = tao_datum_type_name(d_ptr)
-      if (d_ptr%data_type(1:11) == 'expression:') then
-        n_tot = max(n_tot, len_trim(name))
-      else
+      if (d_ptr%data_type(1:11) /= 'expression:') then
         n_name  = max(n_name,  len_trim(name))
         n_start = max(n_start, len_trim(d_ptr%ele_start_name))
         n_ref   = max(n_ref,   len_trim(d_ptr%ele_ref_name))
@@ -681,16 +678,12 @@ case ('data')
       endif
     enddo
 
-    n_tot = max(n_tot, n_name + n_ref + n_start + n_ele + 4)
-    n_ele = n_tot - n_name - n_ref - n_start - 4
-
     ! Write header
     ! Element names are left justified and real quantities are right justified
 
     line1 = ''; line2 = ''
     n=9+n_name;    line2(n:) = 'Ref_Ele'  ! n = i4 + 2x + n_name + 2x + 1
     n=n+n_ref+2;   line2(n:) = 'Start_Ele'
-
     n=n+n_start+2; line2(n:) = 'Ele'
     n=n+n_ele+10;  line2(n:) = 'Meas         Model        Design | Opt  Plot'
                    line1(n:) = '                                 |   Useit'
@@ -702,21 +695,23 @@ case ('data')
 
     call re_allocate (lines, nl+100+size(d_array), .false.)
 
-    fmt2 = '(i4, 1(2x, a), 3es14.4, 2l6)'
     fmt  = '(i4, 4(2x, a), 3es14.4, 2l6)'
+    fmt2 = '(4x, 4(2x, a), 3es14.4, 2l6)'
 
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
       name = tao_datum_type_name(d_ptr)
       if (d_ptr%data_type(1:11) == 'expression:') then
-        nl=nl+1; write(lines(nl), fmt2) d_ptr%ix_d1, name(1:n_tot), & 
-                     d_ptr%meas_value, d_ptr%model_value, &
+        nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, trim(name)
+        nl=nl+1; write(lines(nl), fmt2) blank_str(1:n_name), &
+                     d_ptr%ele_ref_name(1:n_ref), d_ptr%ele_start_name(1:n_start), &
+                     d_ptr%ele_name(1:n_ele), d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
       else
-        nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), d_ptr%ele_ref_name(1:n_ref), & 
-                     d_ptr%ele_start_name(1:n_start), d_ptr%ele_name(1:n_ele), &
-                     d_ptr%meas_value, d_ptr%model_value, &
+        nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, name(1:n_name), &
+                     d_ptr%ele_ref_name(1:n_ref), d_ptr%ele_start_name(1:n_start), &
+                     d_ptr%ele_name(1:n_ele), d_ptr%meas_value, d_ptr%model_value, &
                      d_ptr%design_value, d_ptr%useit_opt, d_ptr%useit_plot
       endif
     enddo
