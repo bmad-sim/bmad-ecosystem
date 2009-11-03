@@ -2112,7 +2112,7 @@ offset_nonzero = (any(val /= 0 .and. offset_mask))
 
 if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
         offset_nonzero .and. bmad_com%conserve_taylor_maps .and. &
-        .not. non_offset_changed) then
+        .not. non_offset_changed .and. ele%key /= patch$) then
   ele%map_with_offsets = .false.
   call out_io (s_info$, r_name, &
       'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &

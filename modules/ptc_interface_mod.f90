@@ -1545,12 +1545,20 @@ type (fibre), pointer :: fib
 
 real(8) x_dp(6)
 
+! LCavity, Patch and Match elements are not implemented in PTC so just use the matrix.
+
+if (ele%key == lcavity$ .or. ele%key == patch$ .or. ele%key == match$) then
+  call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
+  call concat_taylor (taylor1, ele%taylor, taylor3)
+  return
+endif
+
 ! ele%map_with_offset = T means that misalignment effects are already included 
 ! in ele%taylor.
 
-if (ele%map_with_offsets) then
-call concat_taylor (taylor1, ele%taylor, taylor3)
-return
+if (ele%map_with_offsets .or. ele%key == taylor$) then
+  call concat_taylor (taylor1, ele%taylor, taylor3)
+  return
 endif
 
 ! Here when we need to include the misalignment effects.
