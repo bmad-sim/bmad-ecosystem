@@ -20,8 +20,8 @@
 !   l_end          -- Real(rp): Stop position measured from the beginning of the element.
 !   track_entrance -- Logical: If True then entrance effects are included in the tracking.
 !   track_exit     -- Logical: If True then exit effects are included in the tracking.
-!   orbit_start    -- Coord_struct, optional: Starting phase space coordinates.
-!   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters.
+!   orbit_start    -- Coord_struct, optional: Starting phase space coordinates at l_start.
+!   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !
 ! Output:
 !   param      -- lat_param_struct: 
@@ -58,9 +58,9 @@ integer track, mat6
 logical track_entrance, track_exit
 logical, optional :: err
 
-! Easy case when l_end = 0
+! Easy case when l_end = l_start
 
-if (l_end == 0) then
+if (l_end == l_start) then
 
   if (present(ele_end)) then
     ele_end = ele_start

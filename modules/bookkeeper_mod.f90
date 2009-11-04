@@ -1474,9 +1474,15 @@ real(rp) offset, s_del, coef, r, e_tot_start
 real(rp) value(n_attrib_maxx)
 integer i
 logical at_entrance_end, at_exit_end
+character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
 ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
+
+if (lord%value(l$) == 0) then
+  call out_io (s_fatal$, r_name, 'LORD HAS ZERO LENGTH!')
+  call err_exit
+endif
 
 if (abs(slave%value(l$)) > abs(lord%value(l$))) then
   coef = 1

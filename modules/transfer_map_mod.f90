@@ -123,7 +123,8 @@ subroutine transfer_this (map, s_1, s_2)
 
 type (taylor_struct) :: map(:)
 type (ele_struct), pointer, save :: ele
-type (ele_struct), save :: runt
+type (ele_struct), pointer, save :: runt
+type (ele_struct), target, save :: runt_save
 
 real(rp) s_1, s_2, s_now, s_end, ds
 real(rp), save :: ds_old = -1
@@ -131,45 +132,70 @@ real(rp), save :: ds_old = -1
 integer i, ix_ele
 integer, save :: ix_ele_old = -1
 
-logical kill_it, track_entrance, track_exit
-logical, save :: old_track_entrance = .false.
+logical kill_it, track_entrance, track_exit, track_entire_ele
+logical, save :: old_track_end = .false.
 
-!
+! Init
 
 call ele_at_s (lat, s_1, ix_ele)
-ele => lat%ele(ix_ele)
-
-if (ix_ele /= ix_ele_old) then
-  runt = ele
-  old_track_entrance = .false.
-endif
-
 s_now = s_1
-kill_it = .false.
+
+! Loop over all the element to track through.
 
 do
+
+  ele => lat%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_entrance = (s_now == lat%ele(ix_ele-1)%s) 
-  track_exit     = (s_end == ele%s)
+  track_entrance   = (s_now == lat%ele(ix_ele-1)%s) 
+  track_exit       = (s_end == ele%s)
+  track_entire_ele = (track_entrance .and. track_exit)
 
   ds = s_end - s_now
-  runt%value(l$) = ds
 
-  call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
-                                          lat%param, track_entrance, track_exit)
-  call attribute_bookkeeper (runt, lat%param)
+  ! runt points at ele if we are tracking through the entire element and
+  ! at runt_save if only a partial track. We do this since we will mangle
+  ! the element with a partial track.
 
-
-  if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
-    kill_it = .true.
-  elseif (ele%key == sbend$) then
-    if (track_entrance .or. track_exit .or. old_track_entrance) kill_it = .true.
-  elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
-    kill_it = .true.
+  if (ix_ele /= ix_ele_old) then
+    if (track_entire_ele) then
+      runt => ele
+    else  ! partial track
+      runt_save = ele
+      runt => runt_save
+      old_track_end = .false.
+    endif
   endif
 
-  if (kill_it) call kill_taylor (runt%taylor)
+  ! We only need to do the "split" bookkeeping if we are only partially tracking
+  ! through the element and we have not done the bookkeeping before.
+
+  if (.not. track_entire_ele) then
+
+    ! Kill the saved taylor map if it does not apply to the present integration step.
+
+    kill_it = .false.
+    if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
+      kill_it = .true.
+    elseif (ele%key == sbend$) then
+      if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
+    elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+      kill_it = .true.
+    elseif (ele%key == lcavity$) then
+      kill_it = .true.
+    endif
+
+    if (kill_it) then
+      call kill_taylor (runt%taylor)
+      runt%value(l$) = ds
+      call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
+                                              lat%param, track_entrance, track_exit)
+      call attribute_bookkeeper (runt, lat%param)
+    endif
+
+  endif
+
+  ! Now for the integration step
 
   if (integrate_this) then
     call taylor_propagate1 (map, runt, lat%param)
@@ -180,17 +206,21 @@ do
     call concat_taylor (map, runt%taylor, map)
   endif
 
+  ! Save the present integration step parameters so that if this routine
+  ! is called in the future we can tell if the saved taylor map is still valid.
+
   ds_old = ds
   ix_ele_old = ix_ele
+  old_track_end = track_entrance .or. track_exit
+
+  ! Are we done?
 
   if (s_end == s_2) return
 
-  old_track_entrance = .false.
+  ! We are not done so move to the next element.
+
   s_now = s_end
   ix_ele = ix_ele + 1
-  ele => lat%ele(ix_ele)
-  runt = ele
-  ix_ele_old = ix_ele
 
 enddo
 
@@ -295,60 +325,104 @@ endif
 
 
 !--------------------------------------------------------
-! Known problems:
-!   1) map type wigglers not treated properly.
-!   2) need to reuse mat6? (is time really an issue?)
 
 contains
 
 subroutine transfer_this (s_1, s_2)
 
-type (ele_struct), save :: runt
 type (ele_struct), pointer, save :: ele
+type (ele_struct), pointer, save :: runt
+type (ele_struct), target, save :: runt_save
 
 real(rp) s_1, s_2, s_end, s_now, ds
+real(rp), save :: ds_old = -1
 
 integer ix_ele
 integer, save :: ix_ele_old = -1
 
-logical track_entrance, track_exit
+logical track_entrance, track_exit, old_track_end, track_entire_ele, kill_it
 
-!
+! Init
 
 call ele_at_s (lat, s_1, ix_ele)
-ele => lat%ele(ix_ele)
-
-if (ix_ele /= ix_ele_old) runt = lat%ele(ix_ele)
 s_now = s_1
 
-do
-  s_end = min(s_2, runt%s)
+! Loop over all the element to track through.
 
-  track_entrance = (s_now == lat%ele(ix_ele-1)%s) 
-  track_exit     = (s_end == ele%s)
+do
+
+  ele => lat%ele(ix_ele)
+  s_end = min(s_2, ele%s)
+
+  track_entrance   = (s_now == lat%ele(ix_ele-1)%s) 
+  track_exit       = (s_end == ele%s)
+  track_entire_ele = (track_entrance .and. track_exit)
 
   ds = s_end - s_now
-  runt%value(l$) = ds
 
-  call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
-                                          lat%param, track_entrance, track_exit)
-  call attribute_bookkeeper (runt, lat%param)
+  ! runt points at ele if we are tracking through the entire element and
+  ! at runt_save if only a partial track. We do this since we will mangle
+  ! the element with a partial track.
 
-  call make_mat6 (runt, lat%param)
+  if (ix_ele /= ix_ele_old) then
+    if (track_entire_ele) then
+      runt => ele
+    else  ! partial track
+      runt_save = ele
+      runt => runt_save
+      old_track_end = .false.
+    endif
+  endif
+
+  ! We only need to do the "split" bookkeeping if we are only partially tracking
+  ! through the element and we have not done the bookkeeping before.
+
+  if (.not. track_entire_ele) then
+
+    ! Kill the saved matrix if it does not apply to the present integration step.
+
+    kill_it = .false.
+    if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
+      kill_it = .true.
+    elseif (ele%key == sbend$) then
+      if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
+    elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+      kill_it = .true.
+    elseif (ele%key == lcavity$) then
+      kill_it = .true.
+    endif
+
+    if (kill_it) then
+      runt%value(l$) = ds
+      call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
+                                            lat%param, track_entrance, track_exit)
+      call attribute_bookkeeper (runt, lat%param)
+
+      call make_mat6 (runt, lat%param)
+    endif
+
+  endif
+
+  ! Now for the integration step
 
   mat6 = matmul (runt%mat6, mat6)
   vec0 = matmul (runt%mat6, vec0) + runt%vec0
 
-  if (s_end == s_2) then
-    ix_ele_old = ix_ele
-    return
-  endif
+  ! Save the present integration step parameters so that if this routine
+  ! is called in the future we can tell if the saved taylor map is still valid.
+
+  ds_old = ds
+  ix_ele_old = ix_ele
+  old_track_end = track_entrance .or. track_exit
+
+  ! Are we done?
+
+  if (s_end == s_2) return
+
+  ! We are not done so move to the next element.
 
   s_now = s_end
   ix_ele = ix_ele + 1
-  ele => lat%ele(ix_ele)
-  runt = lat%ele(ix_ele)
-  ix_ele_old = ix_ele
 
 enddo
 
