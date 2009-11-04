@@ -20,7 +20,7 @@ perfectly flat (zero) orbit.
 
 \begin{table}[h]
 \centering{\tt
-\begin{tabular{|l|l|} \hline
+\begin{tabular}{|l|l|} \hline
   {\it Measurement Type}  & {\it Error Type}           \\ \hline
   Orbit                   & Steering errors            \\ \hline
   Betatron phase          & Quadrupolar errors         \\ \hline
@@ -36,7 +36,7 @@ types of errors that can be diagnosed.}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=4in]{wave.eps}
+  \includegraphics[width=6in]{wave.eps}
   \caption[Example wave analysis.]
 {Example wave analysis for betatron phase data.}
   \label{f:wave}
@@ -49,8 +49,8 @@ measurements is similar to the beta function analysis that is
 presented. 
 
 The wave analysis is similar for all the measurement types. How the
-wave analysis works is illustrated in Figure~\ref{f:wave0}.
-Figure~\ref{f:wave0}a shows the difference between \vn{model}
+wave analysis works is illustrated in Figure~\ref{f:wave}.
+Figure~\ref{f:wave}a shows the difference between \vn{model}
 and \vn{design} values for the $a$-mode betatron phase for the Cornell's 
 Cesr storage ring. In this example, one quadrupole in the model has 
 been varied from it's design value. The horizontal axis is the detector index. 
@@ -67,25 +67,25 @@ For phase differences, this functional form is
 where $\phi$ is the phase
 advance and the quantities $C$, $D$ and $\phi_0$ are varied to give the best
 fit.  Once $C$, $D$, and $\phi_0$ are fixed, \Eq{xabps} can be evaluated at
-any point. Figure~\ref{f:wave0}b shows the orbit of \ref{f:wave0}a
+any point. Figure~\ref{f:wave}b shows the orbit of \ref{f:wave}a
 with the fit to the $A$ region subtracted off. Similarly,
-Figure~\ref{f:wave0}c shows the orbit of Figure~\ref{f:wave0}a with
+Figure~\ref{f:wave}c shows the orbit of Figure~\ref{f:wave}a with
 the fit to the $B$ region subtracted off. Concentrating on
-Figure~\ref{f:wave0}b, since there are no kick errors in the $A$
+Figure~\ref{f:wave}b, since there are no kick errors in the $A$
 region, the fit is very good and hence the difference between the data
 and the fit is nearly zero. Moving to the right from the $A$ region in
-Figure~\ref{f:wave0}b, this difference is nearly zero up to where the
+Figure~\ref{f:wave}b, this difference is nearly zero up to where the
 assumption of no kick errors is violated. That is, at the location of
 the quadrupole error  near detector 47. Similarly, since there are no kick errors
 in region $B$, the difference between the data and the $B$ region fit
-is nearly zero in Figure~\ref{f:wave0}c and this remains true moving leftward
+is nearly zero in Figure~\ref{f:wave}c and this remains true moving leftward
 from region $B$ up to the quadrupole near detector 47.
 
 By taking the fitted values for $C$, $D$, and $\phi_0$ for the regions $A$
 and $B$, the point between the regions where the kick is generated and
 the amplitude of the kick can be calculated. This calculation is
 similar to that used to find quadrupolar errors from beta
-data\cite{f:wave0}. The one difference is a factor of 2 that appears
+data\ref{f:wave}. The one difference is a factor of 2 that appears
 in the beta calculation due to the fact that a freely propagating beta
 wave oscillates at $2\phi(s)$. 
 
@@ -106,7 +106,7 @@ an ``effective'' kick amplitude can be calculated.
 For circular machines, to be able to analyze kicks near the beginning
 or end of the lattice, the wave analysis can be done by ``wrapping''
 the data past the end of the lattice for another 1/2 turn. This is
-illustrated in Figure~\ref{f:wave0}. In the Cesr machine, there are
+illustrated in Figure~\ref{f:wave}. In the Cesr machine, there are
 approximately 100 detectors labeled from 0 to 99.  The detectors from
 100 to 150 are just the detectors from 0 to 50 shifted by 100. Thus,
 for example, the detector labeled 132 in the figure is actually
@@ -138,7 +138,7 @@ matrix (ORM) analysis, fits to beta or betatron phase measurements, etc.
 
 At present (due to limited manpower to do the
 coding), the wave analysis is restricted to data that is stored in a
-d1_data array (\sref{c:data}). That is, the plotted curve to be
+\vn{d1_data} array (\sref{c:data}). That is, the plotted curve to be
 analyzed must have its \vn{data_type} parameter set to
 \vn{'data_array'} (\sref{s:init.data}). The possible data types that
 can be analyzed are:
@@ -156,16 +156,16 @@ If data from a circular machine is being analyzed, the data is wrapped
 past the end of the lattice for another 1/2 turn. The translation from
 the data index in the wrapped section to the first 1/2 section of the
 lattice is determined by the values of \vn{ix_min_data} and
-\vn{ix_max_data} of the d1_data array under consideration
+\vn{ix_max_data} of the \vn{d1_data} array under consideration
 (\sref{s:init.data}):
 \begin{example}
-  index_wrap \longrightarrow index_wrap - (ix_max_data - ix_min_data + 1)
+  index_wrap \(\longrightarrow\) index_wrap - (ix_max_data - ix_min_data + 1)
 \end{example}
 For example, for the Cesr example in the previous section,
 \vn{ix_min_data} was 0 and \vn{ix_max_data} was 99 to the translation
 was
 \begin{example}
-  index_wrap \longringtarrow index_wrap - 100
+  index_wrap \(\longrightarrow\) index_wrap - 100
 \end{example}
 
 %----------------------------------------------------------------
@@ -198,7 +198,7 @@ This output is for analysis of betatron phase data but the output for
 other types of data is similar.  The first two lines of the output
 show where the $A$ and $B$ regions are. The next two lines show
 $\sigma_{a}/A_a$ and $\sigma_{b}/A_b$ where $\sigma_a$ and $sigma_b$
-are given by Eq.~(42) of Sagan\ref{b:wave0} and 
+are given by Eq.~(42) of Sagan\cite{b:wave} and 
 \Begineq
   A_a \equiv \sqrt{\xi_a^2 \eta_a^2}
 \Endeq
@@ -207,9 +207,9 @@ $\sigma_{b}/A_b$ are thus a measure of how well the data is fit in the
 $A$ and $B$ regions with a value of zero being a perfect fit and a
 value of one indicating a poor fit. Notice that a poor fit of one of
 the regions may simply be a reflection that the wave amplitude being
-there. The next three lines of the output are $\sigma_{\detal
+there. The next three lines of the output are $\sigma_{\delta
 k}/\delta k$, $\sigma_\phi$, and $\xi_C$, and are given by Eq.~(39),
-(43), and (44) respectively of \ref{b:wave0}. The last three lines of
+(43), and (44) respectively of \cite{b:wave}. The last three lines of
 the analysis tell where the wave analysis predicts the kicks are and
 what the normalized kick amplitudes are. Thus the first of these three
 lines indicates that the kick may be somewhere after the location of
