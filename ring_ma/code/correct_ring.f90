@@ -8,8 +8,8 @@ module correct_ring_mod
 ! Define some logicals and structures to be used here and elsewhere
 
   ! Measurement parameters
-  integer, parameter :: orbit_x$ = 1, orbit_y$ = 2, eta_x$ = 3, eta_y$ = 4
-  integer, parameter :: phi_a$ = 5, phi_b$ = 6, cbar12$ = 7
+  integer, parameter :: orbit_x$ = 1, orbit_y$ = 2, eta_xx$ = 3, eta_yy$ = 4
+  integer, parameter :: phi_aa$ = 5, phi_bb$ = 6, cbar12$ = 7
 
   type detcor_grp
      character*40 mask
@@ -72,6 +72,7 @@ contains
     type(ele_struct), pointer :: ele, ma_ele
     integer i_ele, i_det_grp, i_cor_grp, i_det, i, i_ele2
     integer size_y, iy, iter, ip
+    integer status
     real(rp) harvest(7), cbar(2,2), chisq, alamda, old_chisq, d_chisq
     real(rp), allocatable, dimension(:) :: x, y, sig, a
     real(rp), allocatable, dimension(:,:) :: alpha, covar
@@ -246,13 +247,13 @@ contains
           y(iy) = meas(i_ele)%orbit_x
        case(orbit_y$)
           y(iy) = meas(i_ele)%orbit_y
-       case(eta_x$)
+       case(eta_xx$)
           y(iy) = meas(i_ele)%eta_x
-       case(eta_y$)
+       case(eta_yy$)
           y(iy) = meas(i_ele)%eta_y
-       case(phi_a$)
+       case(phi_aa$)
           y(iy) = meas(i_ele)%phi_a
-       case(phi_b$)
+       case(phi_bb$)
           y(iy) = meas(i_ele)%phi_b
        case(cbar12$)
           y(iy) = meas(i_ele)%cbar12
@@ -268,7 +269,8 @@ contains
 ! n_lm_iterations times, then stop as soon as chisq doesn't change.
 
   alamda = -1.
-  call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
+!  call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
+  call super_mrqmin(y,sig,a,covar,alpha,chisq,lmfunc,alamda,status,maska)
   iter = 0
   write (*,'(A8,2A12)') "Iter", "Chisq", "D_Chisq"
   write(*,'(i8,es12.4)') iter, chisq
@@ -277,8 +279,9 @@ contains
   do while (iter < correct_ring_params%n_lm_iterations)
      iter = iter + 1
      old_chisq = chisq
-     call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
-     if (super_mrqmin_error) then
+!     call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
+     call super_mrqmin(y,sig,a,covar,alpha,chisq,lmfunc,alamda, status, maska)
+     if (status /= 0) then
         print*, "*** Singular matrix encountered--nothing more to do with this seed."
         exit
      end if
@@ -286,7 +289,8 @@ contains
      write(*,'(i8,2es12.4)') iter, chisq, d_chisq
   end do
   alamda = 0.
-  call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
+!  call super_mrqmin(x,y,sig,a,maska,covar,alpha,chisq,lmfunc,alamda)
+  call super_mrqmin(y,sig,a,covar,alpha,chisq,lmfunc,alamda,status,maska)
 
 !==========================================================================
 ! Apply correction to misaligned ring, i.e., put in the negative of the
@@ -349,9 +353,9 @@ contains
 ! minimize. This is essentially just a wrapper for passing values to
 ! RING_TO_Y.
 
-  subroutine lmfunc(x,a,y,dyda)
+  subroutine lmfunc(a,y,dyda)
     implicit none
-    real(rp), dimension(:), intent(in) :: x,a
+    real(rp), dimension(:), intent(in) :: a
     real(rp), dimension(:), intent(out) :: y
     real(rp), dimension(:,:), intent(out) :: dyda
 
@@ -435,13 +439,13 @@ contains
           y(iy) = cr_model_co(det(i_det)%loc)%vec(1)
        case(orbit_y$)
           y(iy) = cr_model_co(det(i_det)%loc)%vec(3)
-       case(eta_x$)
+       case(eta_xx$)
           y(iy) = cr_model_ring%ele(det(i_det)%loc)%x%eta
-       case(eta_y$)
+       case(eta_yy$)
           y(iy) = cr_model_ring%ele(det(i_det)%loc)%y%eta
-       case(phi_a$)
+       case(phi_aa$)
           y(iy) = cr_model_ring%ele(det(i_det)%loc)%a%phi
-       case(phi_b$)
+       case(phi_bb$)
           y(iy) = cr_model_ring%ele(det(i_det)%loc)%b%phi
        case(cbar12$)
           call c_to_cbar(cr_model_ring%ele(det(i_det)%loc), cbar)
