@@ -149,15 +149,15 @@ is attach a prefix of the form:
 \begin{example}
   [<universe_range>]@<parameter>
 \end{example}
-Commas and colons can be used in the syntax for \vn{<universe_range>} 
-(this is similar to the \vn{list} format used to specify lattice elements 
-(\sref{s:ele.name.syntax})).
-When there is only a single Universe specified, the brackets
-\vn{[...]} are optional. When the universe prefix is not present, the
-current ``viewed'' (default) universe (\sref{s:view}) is assumed. The
-current \vn{viewed} universe can also be specified using the number
-\vn{-1}. Additionally, a ``\vn{*}'' can be used as a wild card to 
-denote all of the universes. Examples:
+Commas and colons can be used in the syntax for \vn{<universe_range>},
+similar to the \vn{element list} format used to specify lattice
+elements (\sref{s:ele.name.syntax}).  When there is only a single
+Universe specified, the brackets \vn{[...]} are optional. When the
+universe prefix is not present, the current ``viewed'' (default)
+universe (\sref{s:view}) is assumed. The current \vn{viewed} universe
+can also be specified using the number \vn{-1}. Additionally, a
+``\vn{*}'' can be used as a wild card to denote all of the
+universes. Examples:
 \begin{example}
   [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
   [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
@@ -304,39 +304,57 @@ component. The list of components that can be set or refereed to are:
 Use the \vn{show var} (\sref{s:show}) command to view variable information
 
 %-----------------------------------------------------------------
-\subsection{Syntax for Specifying Elements}
+\subsection{Element List Format}
 \label{s:ele.name.syntax}
 
-When a lattice element or elements need to be specified in an expression, 
-there are two formats that can be used: \vn{list} format and \vn{class::name} 
-format.
+The syntax for specifying a set of lattice elements is called
+\vn{element list} format. Each item of the list is one of:
+\centering{
+\begin{tabular}{ll}
+  {\it Item Type} & {\it Example} \\ \hline     
+  An element name. Can include wildcard characters "*" or "\%". & "q*"         \\
+  An element index.                                             & "23"         \\
+  A range of elements.                                          & 'b23w:67"    \\
+  A class::name specification.                                  & "sbend::b*"  \\
+\end{tabular}
+}
+Items in a list are separated by a blank character or a comma ",". 
 
-\vn{Range} format is a list of element names or indexes separated by blanks, 
-commas or colons. The colons represent a range of elements. For example:
+An element name item is the name of an element or elements. The
+wildcard characters ``*'' and/or ``\%'' can be used. The ``*''wildcard
+matches any number of characters, The ``\%'' wildcard matches a single
+character. Thus, for example, ``q*'' matches any element whose name
+begins with ``q''. If there are multiple elements in the lattice that
+match a given name, all such elements are included. Thus ``d12'' will
+match to all elements with the name ``d12''.
+
+An element index is simply the index of the number in the lattice list
+of elements.
+
+A range of elements is specified using the format:
 \begin{example}
-  d23 b34e:567, 45 77
+  <ele1>:<ele2}
 \end{example}
-The elements specified In this example are all elements 
-
+where \vn{<ele1>} is the element at the beginning of the range and
+\vn{<ele2>} is the element at the end of the range. Either an element
+name or index can be used to specify \vn{<ele1>} and \vn{<ele2>}. Both
+\vn{<ele1>} and \vn{<ele2>} are part of the range.
 
 \index{class::name}
-Some input parameters require \vn{class::name} format where lattice
-elements are selected based upon their class (Eg: \vn{quadrupole},
+A \vn{class::name} item
+selects elements based upon their class (Eg: \vn{quadrupole},
 \vn{marker}, etc.), and their name. The syntax is:
 \begin{example}
   <element class>::<element name>
 \end{example}
-where \vn{<element class>} is an element class and \vn{<element name>}
-is the name of the element.  The wild-card character \vn{"*"} will match
-to any number of characters and \vn{"\%"} matches to any
-single character.  For example
+where \vn{<element class>} is an element class and \vn{<element
+name>}. Essentially this is an extension of the \vn{element name}
+format. Example:
 \begin{example}
   "quad::q*"
 \end{example}
 will match to all quadrupole elements whose name starts with a
-\vn{"q"}. If there is no \vn{"::"} in the name then this is equivalent
-to using \vn{"*"} as the class.  Thus \vn{"*"} is equivalent to
-\vn{"*::*"} which will match to all elements.
+\vn{``q''}.
 
 %------------------------------------------------------------------------
 \section{Arithmetic Expressions}
@@ -377,7 +395,8 @@ Setting the seed is described in Section~\sref{s:globals}.
 
 Data (\sref{s:data.org}) and variable values
 (\sref{s:variable.overview}), along with lattice parameters can be
-referenced in expressions. The general form of a reference is:
+referenced in expressions. The general form of a reference for
+anything other than element parameters is:
 \begin{example}
   \{[<universe(s)>]@\}<source>::<ref_type>[\{<ref_point>&<eval_point>]\{|<component>\}
 \end{example}
@@ -388,10 +407,20 @@ The \vn{<source>} field may be one of:
   lat         Value is from the lattice.
   beam        value is from the beam.
 \end{example}
-For element parameters the form is
+For element parameters the format is
 \begin{example}
   \{<universe_range>@\}ele::<ele_name_or_num>[<param_name>]\{|<component>\}
 \end{example}
+The components of this syntax are:
+\begin{example}
+  [<universe_range>]@    Optional universe specification (\sref{s:universe})
+  <datum_type>           A data type defined in \sref{s:data.types}.
+  <ix_ele_start>         Optional \vn{ele_start} index number.
+  <ix_ele>               \vn{ele} index number.
+  <component>            Optional component. 
+                            Possibilities are "model" (default), "base", or "design".
+\end{example}
+
 Examples:
 \begin{example}
   3@lat::orbit.x[34]             Orbit at element 34 in universe 3.
@@ -405,8 +434,6 @@ Examples:
   dat::orbit.x[2:7,8]|model
 \end{example}
 
-
-
 Note: when combining components from the same \vn{d1_data} or \vn{v1_var}
 array in an expression, the common prefix can be eliminated. For
 example
@@ -418,28 +445,13 @@ is equivalent to
   orbit.x[2:7,8]|model - 2*meas
 \end{example}
 
+Notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
+``\vn{dat::orbit.x[10]''. With the ``\vn{lat::}'' source, the index in
+the brackets, \vn{[10]}, refers to the 10th lattice element. With the
+``\vn{dat::}'' source, ``\vn{[10]}'' refers to the 10\Th element in
+the \vn{orbit.x} data array which may or may not correspond to the
+10\Th lattice element.
 
-
-The components of this syntax are:
-\begin{example}
-  [<universe_range>]@    Optional universe specification (\sref{s:universe})
-  <datum_type>           A data type defined in \sref{s:data.types}.
-  <ix_ele_start>         Optional \vn{ele_start} index number.
-  <ix_ele>               \vn{ele} index number.
-  <component>            Optional component. 
-                            Possibilities are "model" (default), "base", or "design".
-\end{example}
-
-
-Notice the difference between referring to a datum, for example
-\vn{orbit.x[22]} and constructing a ``datum-on-the-fly'', for
-example, \vn{lat::orbit.x[10]}. In the first example, the ``\vn{[22]}''
-refers to the 22nd element in the data array which may or may not
-correspond to the 22nd lattice element. With data-on-the-fly example,
-the index in the brackets, \vn{[10]}, does indeed refer to the 10th
-lattice element.
-
-The element name can be in \vn{class::name} format (\sref{s:class.name}). 
 The optional \vn {<component>} lattice can be
 \begin{example}
   model (default)
