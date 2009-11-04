@@ -33,13 +33,6 @@ use multipole_mod
 
 implicit none
 
-type old_mode_info_struct
-  real(rp) tune      ! "fractional" tune in radians: 0 < tune < 2pi
-  real(rp) emit      ! Emittance.
-  real(rp) chrom     ! Chromaticity.
-end type
-type (old_mode_info_struct) old_a, old_b, old_z
-
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 
@@ -57,7 +50,7 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
-logical found_it, v86, v87, v88, v89, v_old, mode3, error, is_open
+logical found_it, v87, v88, v89, v90, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -79,12 +72,12 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9010) n_files, version
 
-v86 = (version == 86)
 v87 = (version == 87)
 v88 = (version == 88)
 v89 = (version == 89)
+v90 = (version == 90)
 
-v_old = v86 .or. v87 .or. v88
+v_old = v87 .or. v88 .or. v89
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -175,23 +168,11 @@ enddo
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-if (v86) then
-  read (d_unit, err = 9030)  &   
-            lat%name, lat%lattice, lat%input_file_name, lat%title, &
-            old_a, old_b, old_z, lat%param, lat%version, lat%n_ele_track, &
-            lat%n_ele_track, lat%n_ele_max, &
-            lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
-  lat%a%chrom = old_a%chrom; lat%a%emit = old_a%emit; lat%a%tune = old_a%tune
-  lat%b%chrom = old_b%chrom; lat%b%emit = old_b%emit; lat%b%tune = old_b%tune
-  lat%z%chrom = old_z%chrom; lat%z%emit = old_z%emit; lat%z%tune = old_z%tune
-
-else
-  read (d_unit, err = 9030)  &   
+read (d_unit, err = 9030)  &   
             lat%name, lat%lattice, lat%input_file_name, lat%title, &
             lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
-endif
 
 ! %control and %ic are allocated to the same length for convenience.
 
@@ -330,24 +311,7 @@ logical error
 
 error = .true.
 
-if (v86) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, control_type, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture
- 
-elseif (v87 .or. v88) then
+if (v87 .or. v88) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -383,6 +347,24 @@ elseif (v89) then
           ele%ix_branch, ele%ref_time 
 
           if (ele%lord_status == free$) ele%lord_status = not_a_lord$
+
+elseif (v90) then
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
+          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          ele%ix_branch, ele%ref_time 
 
 endif
 

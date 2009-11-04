@@ -1,7 +1,10 @@
-controller:
+ADD NONLINEAR CONTROLLER:
+
 	cc: control = {q[k1]=2.7*#, ...}, attrib = k1, absolute = T
 
-0) Just add nonlinearities to overlay/group ????!!!
+ Or just add nonlinearities to overlay/group ????!!!
+
+Steps:
 
 1) Add structure to control_struct:
 
@@ -41,14 +44,14 @@ Python Scripting for Computational ScienceÓ, Hans Petter Langtangen, Ed.: Spring
 ----------------------------------
 
 Symplectic integration for lcav !?
+Get Etienne implement lcav and patch !?
 
 implement bmad_standard bend_sol_quad
 
 finish bmad_standard doc.
 
-a0/b0 -> a_1/b_1
-
-Take out setting of bmad_struct%ok and replace this with added "err" subroutine argument.
+In subroutines that use it: 
+	Take out setting of bmad_struct%ok and replace this with added "err" subroutine argument.
 
 Convert all print statements to out_io
 
@@ -70,7 +73,8 @@ enable reading in sigmas in bmad_parser & xsif_parser
 emittance, emitt -> emit
 [Remember bmadz, etc.]
 
-pointers -> allocatable in ele_struct, lat_struct, etc.
+In ele_struct, lat_struct, etc.:
+	pointers -> allocatable arrays
 
 -----------------
 
@@ -105,18 +109,6 @@ Solution:
 	6) revise type2_ele to print the reverse logical.
 
 -----------------
-
-add function to calc: ring%param%s_start
-add function to calc: ring%param%s_end
-
------------------
-
-*) Bmad/CesrV/tao_cesr
-    Change phase data files to incude "raw" a/b-mode x_amp, y_amp, x_phase, y_phase numbers
-      Remake old phase files to include this?
-
-*) tao
-    add branch stuff
 
 *) Branch:
   a) track_all & 
