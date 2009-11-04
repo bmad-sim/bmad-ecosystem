@@ -647,7 +647,7 @@ type tao_universe_struct
   type (coord_struct) model_orb0                         ! For saving beginning orbit
   type (tao_ix_data_struct), allocatable :: ix_data(:)   ! which data to evaluate at this ele
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
-  character(60), allocatable :: save_beam_at(:)
+  character(100) beam_saved_at
   integer ix_uni                         ! Universe index.
   integer n_d2_data_used
   integer n_data_used

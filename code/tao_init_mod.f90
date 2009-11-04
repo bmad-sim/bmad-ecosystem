@@ -47,8 +47,8 @@ character(40) :: r_name = 'tao_init_global'
 character(200) file_name, beam0_file, beam_all_file
 character(40) name,  universe
 
-character(60), target :: save_beam_at(100)
-character(60), pointer :: sb
+character(60), target :: save_beam_at(100)   ! old style syntax
+character(100) beam_saved_at
 character(100) line
 
 logical err, is_set
@@ -59,7 +59,8 @@ namelist / tao_params / global, bmad_com, csr_param, &
 namelist / tao_connected_uni_init / to_universe, connect
   
 namelist / tao_beam_init / ix_universe, ix_branch, beam0_file, &
-  ix_track_start, ix_track_end, beam_all_file, beam_init, save_beam_at
+  ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
+  beam_saved_at
          
 !-----------------------------------------------------------------------
 ! Init lattaces
@@ -206,7 +207,8 @@ if (s%global%track_type == 'beam') then
       beam_init%random_sigma_cutoff = s%global%random_sigma_cutoff
       beam0_file = tao_com%beam0_file        ! From the command line
       beam_all_file = tao_com%beam_all_file  ! From the command line
-      save_beam_at = ''
+      beam_saved_at = ''
+      save_beam_at  = ''
       ix_track_start = 0
       ix_track_end = -1
 
@@ -221,12 +223,16 @@ if (s%global%track_type == 'beam') then
             read (iu, nml = tao_beam_init)  ! generate an error message
           enddo
         endif
-        ! Convert old class:name format to new class::name format
+        ! transfer info from old style save_beam_at(:) to beam_saved_at
         do i = 1, size(save_beam_at)
-          sb => save_beam_at(i)
-          ix = index(sb, ":")
-          if (ix /= 0 .and. sb(ix+1:ix+1) /= ':') sb = sb(1:ix) // ':' // sb(ix+1:)
-        enddo
+          if (save_beam_at(i) == '') cycle
+          beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
+        enddo  
+        ! Convert old class:name format to new class::name format
+        ix = index(beam_saved_at, ":")
+        if (ix /= 0 .and. beam_saved_at(ix+1:ix+1) /= ':') &
+              beam_saved_at = beam_saved_at(1:ix) // ':' // beam_saved_at(ix+1:)
+
         if (ios /= 0) exit
       endif
 
@@ -392,21 +398,18 @@ uni_branch%ele%save_beam = .false.
 uni_branch%ele(0)%save_beam = .true.
 uni_branch%ele(u%design%lat%n_ele_track)%save_beam = .true.
 
-do i = 1, size(save_beam_at)
-  if (save_beam_at(i) == '') exit
-  call tao_locate_elements (save_beam_at(i), u%ix_uni, eles, err, .false.)
+if (beam_saved_at /= '') then
+  call tao_locate_elements (beam_saved_at, u%ix_uni, eles, err, .false.)
   if (err) then
-    call out_io (s_error$, r_name, 'BAD SAVE_BEAM_AT ELEMENT: ' // save_beam_at(i))
-    cycle
+    call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT ELEMENT: ' // beam_saved_at)
+  else
+    do k = 1, size(eles)
+      uni_branch%ele(eles(k)%ele%ix_ele)%save_beam = .true.
+    enddo
   endif
-  do k = 1, size(eles)
-    uni_branch%ele(eles(k)%ele%ix_ele)%save_beam = .true.
-  enddo
-enddo
+endif
   
-if (allocated (u%save_beam_at)) deallocate (u%save_beam_at)
-allocate (u%save_beam_at(i-1))
-if (i > 1) u%save_beam_at(1:i-1) = save_beam_at(1:i-1)
+u%beam_saved_at = beam_saved_at
 
 ! If beam_all_file is set, read in the beam distributions.
 

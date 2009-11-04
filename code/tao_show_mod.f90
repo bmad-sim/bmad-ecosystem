@@ -347,10 +347,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt)  'global%beam_timer_on       = ', s%global%beam_timer_on
     nl=nl+1; write (lines(nl), imt) 'ix_track_start             = ', uni_branch%ix_track_start 
     nl=nl+1; write (lines(nl), imt) 'ix_track_end               = ', uni_branch%ix_track_end
-    nl=nl+1; write(lines(nl), amt)  'u%save_beam_at:'
-    do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
-      nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
-    enddo
+    nl=nl+1; write(lines(nl), amt)  'u%beam_saved_at:           = ', trim(u%beam_saved_at)
 
   ! have element index
 
@@ -1847,10 +1844,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(uni_branch%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(uni_branch%beam_all_file)
-  nl=nl+1; write (lines(nl), amt) '%save_beam_at:'
-  do i = lbound(u%save_beam_at, 1), ubound(u%save_beam_at, 1)
-    nl=nl+1; write (lines(nl), '(a, i0, 2a)') '           (', i, ') = ', u%save_beam_at(i)
-  enddo
+  nl=nl+1; write (lines(nl), amt) '%beam_saved_at:        = ', trim(u%beam_saved_at)
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:    ', lat%lattice
   nl=nl+1; write(lines(nl), amt) 'Input_file_name: ', lat%input_file_name
