@@ -274,7 +274,7 @@ lattice is read in during initialization.
 
 \vn{unique_name_suffix} is used to append a unique character string to
 element names that are not unique. \vn{unique_name_suffix} uses
-\vn{class::name} format (\sref{s:class.name}). The class is used to
+element list format (\sref{s:ele.list.format}). The class is used to
 restrict which elements can have their names changed. The \vn{name}
 part is used as a suffix. This suffix must have a single \vn{``?''}
 character.  When this suffix is applied to an element's name, a unique
@@ -576,33 +576,33 @@ The syntax is as follows:
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
-    beam0_file              = <string>       ! File used in place of beam_init.
-    beam_all_file           = <string>       ! File used in place of beam tracking.
-    save_beam_at(:)         = <element list> ! List of 
-    ix_track_start          = <integer>      ! Lattice element start tracking index.
-    ix_track_end            = <integer>      ! Lattice element end tracking index.
-    beam_init%a_norm_emitt  = <number>       ! A-mode emittance
-    beam_init%b_norm_emitt  = <number>       ! B-mode emittance
-    beam_init%dPz_dZ        = <number>       ! Energy-Z correlation
-    beam_init%center        = <number>*6     ! Bunch center offset relative to
-                                             ! reference particle (BMAD coords)
-    beam_init%sig_e         = <number>       ! e_sigma in dE/E0
-    beam_init%sig_z         = <number>       ! Z sigma in m
-    beam_init%n_bunch       = <integer>      ! Number of bunches
-    beam_init%ds_bunch      = <number>       ! distance between bunches (meters)
-    beam_init%n_particle    = <number>       ! Number of particles per bunch
-    beam_init%bunch_charge  = <number>       ! charge per bunch (Coulombs)
-    beam_init%renorm_center = <logical>      ! Default is T
-    beam_init%renorm_sigma  = <logical>      ! Default is F
-    beam_init%center_jitter = <number>*6     ! Bunch center rms jitter (meters)
-    beam_init%emitt_jitter  = <bumber>*2     ! Emittance rms jitter (\(d\epsilon/\epsilon\))
-    beam_init%sig_z_jitter  = <number>       ! bunch length rms jitter (dz/z)
-    beam_init%sig_e_jitter  = <number>       ! bunch energy spread rms jitter (dE/E)
-    beam_init%spin%polarization = <number>   ! spin polarization (1.0 = 100%)
-    beam_init%spin%theta    = <number>       ! spin orientation  (polar coordinate)
-    beam_init%spin%phi      = <number>       ! spin orientation  (polar coordinate)
-    beam_init%init_spin     = <logical>      ! Initialize the spin (default: False)
-    beam_init%preserve_dist = <logical>      ! Use the same particle distribution.
+    beam0_file              = <string>         ! File used in place of beam_init.
+    beam_all_file           = <string>         ! File used in place of beam tracking.
+    beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
+    ix_track_start          = <integer>        ! Lattice element start tracking index.
+    ix_track_end            = <integer>        ! Lattice element end tracking index.
+    beam_init%a_norm_emitt  = <number>         ! A-mode emittance
+    beam_init%b_norm_emitt  = <number>         ! B-mode emittance
+    beam_init%dPz_dZ        = <number>         ! Energy-Z correlation
+    beam_init%center        = <number>*6       ! Bunch center offset relative to
+                                               ! reference particle (BMAD coords)
+    beam_init%sig_e         = <number>         ! e_sigma in dE/E0
+    beam_init%sig_z         = <number>         ! Z sigma in m
+    beam_init%n_bunch       = <integer>        ! Number of bunches
+    beam_init%ds_bunch      = <number>         ! distance between bunches (meters)
+    beam_init%n_particle    = <number>         ! Number of particles per bunch
+    beam_init%bunch_charge  = <number>         ! charge per bunch (Coulombs)
+    beam_init%renorm_center = <logical>        ! Default is T
+    beam_init%renorm_sigma  = <logical>        ! Default is F
+    beam_init%center_jitter = <number>*6       ! Bunch center rms jitter (meters)
+    beam_init%emitt_jitter  = <bumber>*2       ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
+    beam_init%sig_z_jitter  = <number>         ! bunch length rms jitter (dz/z)
+    beam_init%sig_e_jitter  = <number>         ! bunch energy spread rms jitter (dE/E)
+    beam_init%spin%polarization = <number>     ! spin polarization (1.0 = 100%)
+    beam_init%spin%theta    = <number>         ! spin orientation  (polar coordinate)
+    beam_init%spin%phi      = <number>         ! spin orientation  (polar coordinate)
+    beam_init%init_spin     = <logical>        ! Initialize the spin (default: False)
+    beam_init%preserve_dist = <logical>        ! Use the same particle distribution.
     beam_init%random_engine = "pseudo"         ! random number engine to use
     beam_init%random_gauss_converter = "exact" ! Uniform to gauss conversion method
     beam_init%random_sigma_cutoff = 4.0        ! Cut-off in sigmas.
@@ -729,15 +729,15 @@ the \vn{tao_params} namelist above, for example,
   /
 \end{example}
 
-\vn{save_beam_at} is used to specify at what elements the beam
-distribution is to be saved at. Each element in the \vn{save_beam_at}
-array is in \vn{class::name} format as explained in \sref{s:class.name}.
+\vn{beam_saved_at} is used to specify at what elements the beam
+distribution is to be saved at. The syntax used is
+element list format as explained in \sref{s:ele.list.format}.
 The \vn{BEGINNING} element (with index 0 in the lattice
 list) and the last element are automatically saved.
 \begin{example}
   &tao_beam_init
-    save_beam_at(1) = "marker::m*" ! Save beam at all markers starting with "m".
-    save_beam_at(2) = "*34w*"      ! And all elements that have "34w" in their name. 
+    beam_saved_at = "marker::m* *34w*" ! Save beam at all markers starting with "m"
+                                      !   and all elements that have "34w" in their name. 
   /
 \end{example}
 
@@ -768,7 +768,7 @@ format for this is
   &tao_var
     v1_var%name          = "<var_array_name>"  ! Variable array name.
     use_same_lat_eles_as = "<d1_name>"         ! Reuse previous element list.
-    search_for_lat_eles  = "<class::name>"     ! Find elements by name.
+    search_for_lat_eles  = "<element_list>"    ! Find elements by name.
     default_universe     = "<integer>"         ! Universe variables belong in.
     default_attribute    = "<attribute_name>"  ! Attribute to control.
     default_weight       = <number>            ! Merit_function weight.
@@ -911,21 +911,22 @@ For example:
 Instead of specifying a list of lattice element names for \vn{var(:)%ele_name}, 
 \tao can be told to search for the elements by name using the syntax:
 \begin{example}
-   search_for_lat_eles = "{-no_grouping} <element class>::<element name>"  
+   search_for_lat_eles = "{-no_grouping} <element_list>"  
 \end{example}
-\vn{<element class>::<element name>} specifies elements using
-\vn{class::name} format (\sref{s:class.name}). The searching will
+Where \vn{<element_list>} is a list of elements using the element list format
+(\sref{s:ele.list.format}). The searching will
 automatically exclude any superposition and multipass slaves elements.
-All elements with the same name are grouped under a single
-variable. That is, a single variable can control multiple element.
-If the \vn{-no_grouping} flag is present, however, each
+If the \vn{-no_grouping} flag is not present, the default behavior
+is that all matched elements with the same name are grouped under a single
+variable. That is, a single variable can control multiple elements.
+On the other hand, if the \vn{-no_grouping} flag is present, each
 element will be assigned an individual variable.  For example:
 \begin{example}
   search_for_lat_eles = "sbend::b*"
 \end{example}
 will search for all non-lord bend lattice elements whose names begins
 with \vn{"B"} followed by any set of characters. In this example, if,
-say, two bends have the name "bend0" then a single variable will be
+for example, two bends have the name, say "bend0", then a single variable will be
 set up to control these two bends.
 
 Note: \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be
@@ -998,16 +999,16 @@ structure. For each \vn{n_d1_data} structure there must be a
 \index{data!ix_bunch}\index{use_same_lat_eles_as}\index{search_for_lat_eles}
 \begin{example}
   &tao_d1_data
-    ix_d1_data             = <integer>          ! d1_data index
-    use_same_lat_eles_as   = "<d1_name>"        ! Reuse previous element list.
-    search_for_lat_eles    = "<class::name>"    ! Find elements by name.
-    d1_data%name           = "<d1_name>"        ! d1_data name.
-    default_data_type      = <type_name>        ! Eg: orbit.x, e_tot, etc...
-    default_weight         = <number>           ! Merit function weight. 
-                                                !   Default = 0.0
-    default_data_source    = "<source>"         ! "lattice" (default), or "beam". 
-    ix_min_data            = <integer>          ! Minimum array index.
-    ix_max_data            = <integer>          ! Maximum array index.
+    ix_d1_data             = <integer>           ! d1_data index
+    use_same_lat_eles_as   = "<d1_name>"         ! Reuse previous element list.
+    search_for_lat_eles    = "<element_list>"    ! Find elements by name.
+    d1_data%name           = "<d1_name>"         ! d1_data name.
+    default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
+    default_weight         = <number>            ! Merit function weight. 
+                                                 !   Default = 0.0
+    default_data_source    = "<source>"          ! "lattice" (default), or "beam". 
+    ix_min_data            = <integer>           ! Minimum array index.
+    ix_max_data            = <integer>           ! Maximum array index.
     datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
     datum(j)%ele_name       = "<ele_name>"       ! Lattice element name.
     datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
@@ -1085,16 +1086,16 @@ as being equivalent to \vn{ele_start}. The relative data types where:
 \begin{example}
   floor.x, floor.y, floor.z, floor.theta
   momentum_compaction         
-  periodic.tt.$ijklm\ldots$    
+  periodic.tt.\(ijklm\ldots\)    
   phase.a, phase.b             
   phase_frac.a, phase_frac.b            
   phase_frac_diff            
-  r.$ij$                       
+  r.\(ij\)                       
   rel_floor.x, rel_floor.y,
   rel_floor.z, rel_floor.theta
   s_position                  
-  t.$ijk$                      
-  tt.$ijklm\ldots$
+  t.\(ijk\)                      
+  tt.\(ijklm\ldots\)
 \end{example}
 
 Certain data types like the \vn{emittance} along a Linac can be
@@ -1104,10 +1105,10 @@ calculation is performed is determined by the \vn{datum(:)%data_source}
 component. Possibilities are:
 \begin{example}
   "beam"      ! Calculation using the beam distribution.
-  "data"      ! Use data from a d1_data array.
-  "lattice"   ! (Default) Calculation using the lattice layout.
+  "dat"       ! Use data from a d1_data array.
+  "lat"       ! (Default) Calculation using the lattice layout.
 \end{example}
-\vn{"lattice"} is the default. With \vn{"beam"}, the particular
+\vn{"lat"} is the default. With \vn{"beam"}, the particular
 bunch that the data is extracted from can be specified via \vn{datum(:)%ix_bunch}.
 The default is \vn{0} which combines all the bunches for the datum calculation.
 
@@ -1132,23 +1133,19 @@ For example:
 \tao can search for the elements in the lattice to be associated with 
 each data type by using the syntax:
 \begin{example}
-   search_for_lat_eles = "{<restriction>} <element class>::<element name>"
+   search_for_lat_eles = "{-no_lords} {-no_slaves} <element_list>"
 \end{example}
-\vn{<element class>::<element name>} specifies elements using
-\vn{class::name} format (\sref{s:class.name}). \vn{restriction}, if
-present, is used to restrict the counting of lord or slave
-elements. The possible choices for \vn{restriction} are:
-\begin{example}
-  "-no_lords"        ! All group, overlay, and girder elements excluded.
-  "-no_slaves"       ! No superposition or multipass slave elements. 
-  " "                ! No restrictions (Default).
-\end{example}
-For example:
+\vn{<element_list>} specifies elements using the standard element list
+format (\sref{s:ele.list.format}). The \vn{-no_lords} and
+\vn{-no_slaves} switchs, if present, are used to restrict the counting
+of lord or slave elements. The \vn{-no_lords} switch excludes all group,
+overlay, and girder elements. The \vn{-no_slaves} switch vetoes
+superposition or multipass slave elements. For example:
 \begin{example}
   search_for_lat_eles = "-no_lords sbend::b*
 \end{example}
-will search for all non-lord bend lattice elements whose names begins
-with \vn{"B"} followed by any set of characters.
+This will search for all non-lord bend lattice elements whose names
+begins with \vn{"B"} followed by any set of characters.
 \vn{search_for_lat_eles} and \vn{use_same_lat_eles_as} cannot be used
 together.
 
@@ -1481,7 +1478,7 @@ For example:
     graph%y%major_div_nominal = 4
     graph%n_curve             = 1
     graph%component           = "model - design"
-    curve(1)%data_source      = "data_array"
+    curve(1)%data_source      = "dat"
     curve(1)%data_type        = "orbit.x"
     curve(1)%units_factor     = 1000
     curve(1)%use_y2           = F
@@ -1556,20 +1553,20 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
-\index{Data_array}\index{Var_array}\index{Calculation}
+\index{dat}\index{var}\index{Calculation}
 \index{Curve!data_source}
 The \vn{curve} structure is used to define the curves that are plotted
 in each graph. \vn{curve%data_source} is the type of information for
 the source of the data points. \vn{curve%data_source} must be one of:
 \begin{example}
-  "data_array"        ! A d1_data array is the source of the curve points.
-  "var_array"         ! A v1_var array is the source of the curve points.
-  "lattice" (Default) ! The curve points are computed directly from the lattice.
+  "dat"               ! A d1_data array is the source of the curve points.
+  "var"               ! A v1_var array is the source of the curve points.
+  "lat" (Default)     ! The curve points are computed directly from the lattice.
   "beam"              ! The curve points are computed tracking a beam of particles.
   "multi_turn_orbit"  ! Computation is from multi-turn tracking. 
 \end{example}
-The default for \vn{curve%data_source} is \vn{"lattice"}. With
-\vn{curve%data_source} set to \vn{data_array}, the values of the curve
+The default for \vn{curve%data_source} is \vn{"lat"}. With
+\vn{curve%data_source} set to \vn{dat}, the values of the curve
 points come from the \vn{d1_data} array structure named by
 \vn{curve%data_type}. Thus in the above example the curve point values
 are obtained from \vn{orbit.x} data. To be valid the data structure
@@ -1578,9 +1575,9 @@ file. If not given, the default \vn{curve%data_type} is
 \begin{example}
   <plot%name>.<graph%name>
 \end{example}
-If \vn{curve%data_source} is set to \vn{var_array}, the values of the
+If \vn{curve%data_source} is set to \vn{var}, the values of the
 curve points come from a \vn{v1_var} array structure. If it is set to
-\vn{lattice} the curve data points are calculated from the lattice
+\vn{lat} the curve data points are calculated from the lattice
 without regard to any data structures. \vn{curve%data_source} can be
 set to \vn{beam} when tracking beams of particles. In this case, the
 curve points are calculated from the tracking. With \vn{beam}, the
@@ -1589,7 +1586,7 @@ particular bunch that the data is extracted from can be specified via
 bunches of the beam for the calculation.
 
 Example: With \vn{curve%data_type} set to \vn{beta.x}, the setting of
-\vn{curve%data_source} to \vn{lattice} gives the beta as calculated
+\vn{curve%data_source} to \vn{lat} gives the beta as calculated
 from the lattice and \vn{beam} gives the beta as calculated from the
 shape of the beam.
 
@@ -1651,7 +1648,7 @@ points (x, y) where:
 When defining a template for graphing a data slice, the
 plot%x_axis_type is set to \vn{"data"}, and the \vn{graph%type} must
 be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
-\vn{"data_array"} and the \vn{curve(:)%data_type_x} and
+\vn{"dat"} and the \vn{curve(:)%data_type_x} and
 \vn{curve%data_type} are used to define the x and y axes respectively.
 In the strings given by \vn{<curve%data_type_x} or
 \vn{<curve%data_type}, all substrings that look like \vn{\#ref} are
@@ -1674,7 +1671,7 @@ place holder for the \vn{graph%component} Example:
     graph%type = "data"
     graph%n_curve = 1
     graph%x_axis_scale_factor = 1000
-    curve(1)%data_source = "data_array"
+    curve(1)%data_source = "dat"
     curve(1)%data_type_x = "[2:57]@orbit.x[#ref]|#comp"
     curve(1)%data_type   = "[2:57]@orbit.y[#ref]|#comp"
     curve(1)%data_index  = "[2:57]@orbit.y[#ref]|ix_uni"
@@ -1908,24 +1905,24 @@ and lattice layouts.
 The namelist syntax is the same for both:
 \begin{example}
   &element_shapes_lat_layout
-    ele_shape(i) = "<class::name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+    ele_shape(i) = "<element_list>" "<shape>" "<color>" "<v_size>" "<Label_type>"
   /
   &element_shapes_floor_plan
-    ele_shape(i) = "<class::name>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+    ele_shape(i) = "<element_list>" "<shape>" "<color>" "<v_size>" "<Label_type>"
   /
 \end{example}
 For Example:                 
 \begin{example}
   &element_shapes_floor_plan
-    !               Class::Name       Shape     Color     Size   Label_Type
+    !               element_list       Shape     Color     Size   Label_Type
     ele_shape(1) = "quadrupole::q*"   "box"     "red"     30     name 
     ele_shape(2) = "quadrupole::*"    "xbox"    "red"     30     none 
     ele_shape(3) = "sbend::*"         "box"     "blue"    15     none
     ele_shape(4) = "wiggler::*"       "xbox"    "green"   20     name
   /
 \end{example}
-A figure is drawn for each lattice element in the lattice that matches a
-\vn{<class::name>} (\sref{s:class.name}) of any \vn{ele_shape(:)}.
+A figure is drawn for each lattice element in the lattice that matches the
+\vn{<element_list>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
 Thus, in the example above, \vn{ele_shape(1)} will match to all
 quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
 match all quadrupoles. If an element matches more than one shape the

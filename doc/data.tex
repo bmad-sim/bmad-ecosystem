@@ -55,11 +55,20 @@ structure. In this case the data can be referred to simply by using
 the \vn{d2_data} structure's name. The individual datums can be
 referred to using the notation
 \begin{example}
-  <d2_name>.<d1_name>[<datum_index_range>]
+  <d2_name>.<d1_name>[<list_of_datum_indexes>]
 \end{example}
 For example, \vn{orbit.x[10]} refers to the horizontal orbit datum
 with index 10. Notice that the beginning (lowest) datum index is user
-selectable and is therefore not necessarily 1.
+selectable and is therefore not necessarily 1. 
+
+It is important to note that the name given to \vn{d2_data} and \vn{d1_data}
+structures is arbitrary and does not have to correspond to the 
+type of data contained in the 
+structures. In fact, a \vn{d1_data} array can contain hetogeneous data types.
+Thus, for example, it is perfectly permissible (but definitely not recommended) 
+to set up the data structures so that, say, \vn{orbit.x[10]} 
+is the $a$-mode emittance at a certain element and \vn{orbit.x[11]}
+is the $b$-mode beta function at the same element.
 
 Ranges of data can be referred to using using a comma \vn{,} to
 separate the indexes combined with the notation \vn{n1:n2} to specify
@@ -410,22 +419,41 @@ results.
 
   \index{expression: *}
   \item[expression:] \Newline
-The \vn{expression:} data type allows the value of a datum to depend upon
-the value of other datums or the value of variables. For example:
+The \vn{expression:} The data type can be an expression (\sref{s:arithmetic}).
+In this case the \vn{data_type} must begin with the string ``\vn{expression:}''.
+For example:
 \begin{example}
-  data_type = "expression: 1@beta.a[12]|model - 2@beta.a[12]|model"
+  data_type = "expression: 1@dat::beta.a[12] - 2@dat::beta.a[12]"
 \end{example}
 With this, the value of the datum will be the difference between
-datums \vn{beta.a[12]} for universe 1 and universe 2. To be valid, an
-expression must be evaluated after it's components are evaluated. In
-this example, the components are \vn{1@beta.a[12]|model} and
-\vn{2@beta.a[12]|model}. Data evaluation is done universe by universe
+datums \vn{beta.a[12]} for universe 1 and universe 2. In this example,
+the source of both terms in the expression is explicitly given as \vn{dat}.
+However, if an explicit source is not specified for a given term,
+the \vn{datum%data_source} component in the initialization file 
+(\sref{s:init.data} will be used. An expression can also be used as the
+\vn{default_data_type} in the \vn{tao_d1_data} structure in the
+initialization file. In this case, the 
+evaluation point is implicit. For example:
+\begin{example}
+  default_data_type = "expression: 1@dat::beta.a - 2@dat::beta.a"
+\end{example}
+And the evaluation point for the datums created will be, just like
+other data types, by the specified \vn{datum%ele_name}.
+
+To be valid, 
+if an expression has a term with a \vn{dat} source, 
+the expression must be evaluated after the \vn{dat} source 
+components are evaluated. Data evaluation is done universe by universe
 starting with universe 1, then universe 2, etc. Within a given
 universe, the order of evaluation can be complicated but in this case
 a datum using an expression will always be evaluated after any datum
-that appears earlier in the initialization file. In this example, the
+that appears earlier in the initialization file. 
+In the example above, the expression terms are 
+\vn{1@dat::beta.a[12]|model} and \vn{2@dat::beta.a[12]|model}. 
+Therefore, this expression
 datum should be in universe 2 or higher. Notice that while all datums
-must be assigned a universe, in this case the value of the datum will
+must be assigned a universe, in this case, since all the terms explicitly
+give a universe number, the value of the datum will
 be independent of the universe it is in.
 
   \index{floor.*}
@@ -560,7 +588,7 @@ size squared.
 \centering 
 {\tt\small
 \begin{tabular}{|l|l|} \hline
-
+  {\it Data\_Type}             & {\it Description}                  \\ \hline 
   beta.x, beta.y  beta.z      & Projected beta function             \\ \hline 
   beta.a, beta.b              & Normal-mode beta function           \\ \hline 
 

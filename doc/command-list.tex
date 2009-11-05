@@ -1003,7 +1003,7 @@ Format:
   show graph <graph_name>
   show hom
   show key_bindings
-  show lattice \{-all_tracking} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
+  show lattice \{-all_tracking\} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
          \{-lords\} \{-middle\} \{-no_label_lines\} 
          \{-no_tail_lines\} \{-s <s1>:<s2>\} \{<elements>\} 
   show optimizer
@@ -1129,9 +1129,9 @@ Example:
 %% show element --------------------------------------------------------------
 
 \item[show element \{-taylor\} \{-wig\_terms\} \{-data\} 
-                     \{-all\_attributes\} <ele_name>] \Newline
+                     \{-all\_attributes\} <ele\_name>] \Newline
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
-is explained in section \sref{s:ele.name}. If
+is explained in section \sref{s:ele.list.format}. If
 \vn{<ele_name>} contains a wild card or a class name then a list of
 elements that match the name are shown. If no wild--card or class name
 is present then information about the element whose name matches
@@ -1189,9 +1189,9 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-all_tracking} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
-  \hspace*{0.35in} \{-lords\} \{-middle\} \{-no\_label_lines\} \\
-  \hspace*{0.35in} \{-no_tail_lines\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
+  show lattice \{-all\_tracking\} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
+  \hspace*{0.35in} \{-lords\} \{-middle\} \{-no\_label\_lines\} \\
+  \hspace*{0.35in} \{-no\_tail\_lines\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
 Shows Twiss and orbit data for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
@@ -1212,7 +1212,7 @@ The locations to show can either be specified using the \vn{-elements}
 switch, or by specifying a longitudinal position range with \vn{-s},
 or (the default) by specifying a range of element indices.  The syntax
 used for specifying which elements to show when the 
-\vn{-elements} switch is used is given in section~\sref{s:ele.name.syntax}. 
+\vn{-elements} switch is used is given in section~\sref{s:ele.list.format}. 
 For example:
 \begin{example}
   show lat -ele marker:bpm*   !

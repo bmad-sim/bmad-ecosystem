@@ -71,7 +71,7 @@ functions, etc. (\sref{c:data})
   \index{Variable}
   \item[Variables] \Newline
 Essentially, any lattice parameter or initial condition that can be varied.
-For example: quadrupole strengths, etc. (\sref{s:variable.overview}).
+For example: quadrupole strengths, etc. (\sref{s:var}).
   \index{Plotting}
   \item[Plotting]  \Newline
 Information used to draw graphs, display the lattice 
@@ -151,7 +151,7 @@ is attach a prefix of the form:
 \end{example}
 Commas and colons can be used in the syntax for \vn{<universe_range>},
 similar to the \vn{element list} format used to specify lattice
-elements (\sref{s:ele.name.syntax}).  When there is only a single
+elements (\sref{s:ele.list.format}).  When there is only a single
 Universe specified, the brackets \vn{[...]} are optional. When the
 universe prefix is not present, the current ``viewed'' (default)
 universe (\sref{s:view}) is assumed. The current \vn{viewed} universe
@@ -206,18 +206,20 @@ command (\sref{s:set}) is used to transfer information from the
 
 %------------------------------------------------------------------------
 \section{Variables}
-\label{s:variable.overview}
+\label{s:var}
 \index{Variables}
 
 \index{change command}
 \index{Optimizer!variables}
 For the \vn{model} lattice (or lattices if there are multiple
 \vn{universes}) the \vn{change} command (\sref{s:change}) can be used
-to vary lattice parameters such as element strengths or, the initial
-Twiss parameters, etc.  Additionally, \vn{variables} can be set up
-within \tao that vary these \vn{model} lattice parameters.  A given
-\tao variable may control a single attribute of one element in one or
-more universes.  There are a few reasons why this can be convenient.
+to vary lattice parameters such as element strengths, the initial
+Twiss parameters, etc.  Additionally, \vn{variables} can be defined
+in the \tao initialization files (\sref{s:init.var})
+that can also be used to vary these \vn{model} lattice parameters.  
+A given \tao variable may control a single attribute of one element 
+in one or more universes.  
+There are a few reasons why one would want to setup such variables.
 For example, the optimizer (\sref{s:optimizer}) will only work with
 \tao variables and blocks of these variables can be plotted for visual
 inspection.
@@ -304,36 +306,41 @@ component. The list of components that can be set or refereed to are:
 Use the \vn{show var} (\sref{s:show}) command to view variable information
 
 %-----------------------------------------------------------------
-\subsection{Element List Format}
-\label{s:ele.name.syntax}
+\section{Element List Format}
+\label{s:ele.list.format}
 
 The syntax for specifying a set of lattice elements is called
 \vn{element list} format. Each item of the list is one of:
-\centering{
+\begin{center}
 \begin{tabular}{ll}
   {\it Item Type} & {\it Example} \\ \hline     
-  An element name. Can include wildcard characters "*" or "\%". & "q*"         \\
-  An element index.                                             & "23"         \\
-  A range of elements.                                          & 'b23w:67"    \\
-  A class::name specification.                                  & "sbend::b*"  \\
+  An element name.                                & \multirow{2}*{"q*"}  \\
+  {[Can include wildcard characters "*" or "\%"]} &                      \\
+  An element index.                               & "23"                 \\
+  A range of elements.                            & 'b23w:67"            \\
+  A class::name specification.                    & "sbend::b*"          \\
 \end{tabular}
-}
-Items in a list are separated by a blank character or a comma ",". 
+\end{center}
+Items in a list are separated by a blank character or a comma. Example:
+\begin{example}
+  23, 45:74 quad::q*
+\end{example}
 
 An element name item is the name of an element or elements. The
 wildcard characters ``*'' and/or ``\%'' can be used. The ``*''wildcard
 matches any number of characters, The ``\%'' wildcard matches a single
-character. Thus, for example, ``q*'' matches any element whose name
-begins with ``q''. If there are multiple elements in the lattice that
+character. Thus, for example, ``q\%1*'' matches any element whose name
+begins with ``q'' and whose third character is ``1''. 
+If there are multiple elements in the lattice that
 match a given name, all such elements are included. Thus ``d12'' will
-match to all elements with the name ``d12''.
+match to all elements of that name.
 
-An element index is simply the index of the number in the lattice list
+An element index item is simply the index of the number in the lattice list
 of elements.
 
 A range of elements is specified using the format:
 \begin{example}
-  <ele1>:<ele2}
+  <ele1>:<ele2>
 \end{example}
 where \vn{<ele1>} is the element at the beginning of the range and
 \vn{<ele2>} is the element at the end of the range. Either an element
@@ -348,7 +355,8 @@ selects elements based upon their class (Eg: \vn{quadrupole},
   <element class>::<element name>
 \end{example}
 where \vn{<element class>} is an element class and \vn{<element
-name>}. Essentially this is an extension of the \vn{element name}
+name>} is the element name that can (and generally does) contain the wildcard characters
+``\%'' and ``*''. Essentially this is an extension of the \vn{element name}
 format. Example:
 \begin{example}
   "quad::q*"
@@ -394,38 +402,37 @@ Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator.
 Setting the seed is described in Section~\sref{s:globals}.
 
 Data (\sref{s:data.org}) and variable values
-(\sref{s:variable.overview}), along with lattice parameters can be
-referenced in expressions. The general form of a reference for
-anything other than element parameters is:
+(\sref{s:var}), along with lattice parameters can be
+referenced in expressions. The general form of a term for
+data and variables is
 \begin{example}
-  \{[<universe(s)>]@\}<source>::<ref_type>[\{<ref_point>&<eval_point>]\{|<component>\}
+  \{[<universe(s)>]@\}<source>::<var_or_dat_name>[<index_list>]\{|<component>\}
 \end{example}
-The \vn{<source>} field may be one of:
+For lattice and beam parameters the format is
 \begin{example}
-  dat         Value is from a \tao datum.
-  var         Value is from a \tao variable.
-  lat         Value is from the lattice.
-  beam        value is from the beam.
+  \{[<universe(s)>]@\}<source>::<param_name>[\{<ref_element>&\}<element_list>]\{|<component>\}
 \end{example}
-For element parameters the format is
+And for element parameters the format is
 \begin{example}
-  \{<universe_range>@\}ele::<ele_name_or_num>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}ele::<element_id>[<param_name>]\{|<component>\}
 \end{example}
 The components of this syntax are:
 \begin{example}
-  [<universe_range>]@    Optional universe specification (\sref{s:universe})
-  <datum_type>           A data type defined in \sref{s:data.types}.
-  <ix_ele_start>         Optional \vn{ele_start} index number.
-  <ix_ele>               \vn{ele} index number.
-  <component>            Optional component. 
-                            Possibilities are "model" (default), "base", or "design".
+  <universe_range>    Optional universe specification (\sref{s:universe})
+  <var_or_dat_name>   Variable or data name.
+  <element_id>        Element identifyer: Name or lattice index.
+  <source>            Source of the data.
+  <param_name>        Name of the parameter, datum, or variable.
+  <index_list>        List of indexes.
+  <ref_point>         Optional reference element (with lat or beam source only).
+  <eval_points>       Evaluation point or points.
+  <component>         Optional component. 
 \end{example}
-
 Examples:
 \begin{example}
-  3@lat::orbit.x[34]             Orbit at element 34 in universe 3.
+  3@lat::orbit.x[34:37]          Array of orbits at element 34 through 37 in universe 3.
   3@lat::orbit.x[34]|model       Same as above.
-  beam::beta.x[28]               Beam data
+  beam::sigma.x[q10w]            Beam sigma at element q10w.
   lat::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
   3@ele::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
                                    with names beginning with "q".
@@ -434,30 +441,80 @@ Examples:
   dat::orbit.x[2:7,8]|model
 \end{example}
 
-Note: when combining components from the same \vn{d1_data} or \vn{v1_var}
-array in an expression, the common prefix can be eliminated. For
-example
+The \vn{<source>} field may be one of:
 \begin{example}
-  orbit.x[2:7,8]|model - 2*orbit.x[2:7,8]|meas
-\end{example}
-is equivalent to
-\begin{example}
-  orbit.x[2:7,8]|model - 2*meas
+  beam        value is from beam tracking.
+  dat         Value is from a \tao datum in a data array (\sref{s:data.org}).
+  lat         Value is from the lattice.
+  var         Value is from a \tao variable (\sref{s:var}).
 \end{example}
 
-Notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
-``\vn{dat::orbit.x[10]''. With the ``\vn{lat::}'' source, the index in
-the brackets, \vn{[10]}, refers to the 10th lattice element. With the
-``\vn{dat::}'' source, ``\vn{[10]}'' refers to the 10\Th element in
-the \vn{orbit.x} data array which may or may not correspond to the
-10\Th lattice element.
+When a term has a \vn{dat} source, The value of the term comes from a 
+data structure. With a \vn{dat} source, \vn{<var_or_dat_name>} is the name
+of a \vn{d2_name.d1_name} data array (\sref{s:data.org}) and 
+\vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine
+how many elements are in the array. For example, \vn{orbit.x[10:21,44]} 
+represents an array of 13 elements. Finally, the optional \vn {<component>}
+indicates what component of the datum is to be used. Possible components are
+listed in Section~\sref{s:datum.values}. The default is \vn{model}.
 
-The optional \vn {<component>} lattice can be
+When a term has a \vn{var} source, the value of the term comes from a
+\tao variable (\sref{s:var}). With a \vn{var} source,
+\vn{<var_or_dat_name>} is the name of a \vn{v1_var} variable array. Like
+terms with a \vn{dat} source, \vn{<index_list>} is a list of indexes.
+The optional \vn{<component>} indicates what component of the variable
+is to be used. Possible components are listed in Section~\sref{s:var}.
+The default is \vn{model}.
+
+% Note: when combining components from the same \vn{dat} or \vn{var} source
+% in an expression, the common prefix can be eliminated. 
+% For example
+% \begin{example}
+%   orbit.x[2:7,8]|model - 2*orbit.x[2:7,8]|meas
+% \end{example}
+% is equivalent to
+% \begin{example}
+%   orbit.x[2:7,8]|model - 2*meas
+% \end{example}
+
+When a term has a \vn{lat} or \vn{beam} source, the value of the term
+comes from evaluation of the lattice or beam tracking. The
+\vn{<param_name>} will be a datum type from Table~\ref{t:data.lattice}
+with a \vn{lat} source and Table~\ref{t:data.beam} for a \vn{beam}
+source. Element list format (\sref{s:ele.list.format}) is used for the
+\vn{element_list}. The optional \vn{<ref_element>} specifies a reference
+element for the evaluation. For example, ``\vn{lat::r.56[q0\&qa:qb]}'' is
+an array of the $r(5,6)$ matrix element of the transport map between
+element \vn{q0} and each element in the range from element \vn{qa} and 
+\vn{qb}. The optional \vn{<component>} indicates what lattice 
+is to be used. Possible components are 
 \begin{example}
   model (default)
   base
   design
 \end{example}
+The default is \vn{model}.
+
+Notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
+``\vn{dat::orbit.x[10]}''. With the ``\vn{lat::}'' source, the element 
+index, in this case \vn{10}, refers to the 10th lattice element. With the
+``\vn{dat::}'' source, ``\vn{10}'' refers to the 10\Th element in
+the \vn{orbit.x} data array which may or may not correspond to the
+10\Th lattice element and which may not even refer to orbit data.
+
+When a term has a \vn{ele} source, the value of the term comes from an
+element parameter such as the element strength. 
+Element list format (\sref{s:ele.list.format}) is used for the
+\vn{<element_id>} so an array of elements can be defined. 
+The optional \vn{<component>} indicates what lattice 
+is to be used and is the same as for terms with a \vn{lat} or \vn{beam} 
+source (see above).
+
+Generally, if the \vn{<source>} field is not present, for example, 
+``\vn{orbit.x[10]}'', \tao will search 
+for a match assuming that the source is either \vn{dat} or \vn{var}. 
+Exceptions will be noted in the manual.
+
 
 %------------------------------------------------------------------------
 \section{Plotting}\index{Plotting}
@@ -489,7 +546,7 @@ of \vn{curve}s that are plotted within the graph.
 A \vn{plot} is essentially a collection of \vn{graphs}.
 \index{Page|hyperbf}
 \item[Page] \Newline
-The \vn{page} refers to the Xwindow where graphics are displayed or the 
+The \vn{page} refers to the X11 window where graphics are displayed or the 
 corresponding printed graphics page.
 \index{Region}
 \item[Region] \Newline
@@ -556,7 +613,7 @@ one graph, the graph may be specified by just using the plot name.
 
 A curve within a graph is specified using the format
 \vn{plot_name.graph_name.curve_name}. If a graph has only one curve,
-the curve may be specifed using only the graph name
+the curve may be specified using only the graph name
 \vn{plot_name.graph_name}. Additionally, if the there is only one
 curve in a plot, the curve can be specified by just using the
 \vn{plot_name}.
@@ -586,7 +643,7 @@ Figure~\ref{f:plot.page2} shows another example of a plot \vn{page}.
 In this case the \vn{page} was generated by again defining two
 vertically stacked regions but in this case the regions have different
 heights.  A \vn{template plot} with a single graph was placed in the
-bottommost \vn{region}.  This \vn{graph} contains a \vn{key_table}.
+bottom most \vn{region}.  This \vn{graph} contains a \vn{key_table}.
 A \vn{key_table} is used in conjunction with \vn{single mode} and is
 explained in Chapter~\ref{c:single}. A \vn{template plot} containing
 five \vn{graphs} was placed in the uppermost region. The uppermost
@@ -726,18 +783,18 @@ have been turned off).
   \item 
 If changes have been made to the lattice (e.g. variables changed) then
 the model lattice for all universes will be recalculated. The
-\vn{model} orbit, linear transfer matrices and twiss parameters are
+\vn{model} orbit, linear transfer matrices and Twiss parameters are
 recalculated for every element. All data types will also be calculated
 at each element specified in the initialization file.  For single
-particle tracking the linear transfer matrices and twiss parameters
+particle tracking the linear transfer matrices and Twiss parameters
 are found about the tracked orbit. Tracking is
 performed using the tracking method defined for each element
 (i.e. Bmad Standard, Symplectic Lie, etc...). See the \bmad Reference
 manual for details on tracking and finding the linear transfer
-matrices and twiss parameters.
+matrices and Twiss parameters.
   \item 
 The \vn{model} data is recalculated from the \vn{model} orbit, linear
-transfer matrices, twiss parameters, particle beam information and
+transfer matrices, Twiss parameters, particle beam information and
 global lattice parameters.  Any custom data type calculations are
 performed \textit{before} the standard \tao data types are calculated.
   \item 
@@ -747,7 +804,7 @@ Any user specified data post-processing is performed in
 The contributions to the merit function from the variables and data are
 computed.
   \item 
-Data and variable values are transfered to the plotting structures.
+Data and variable values are transferred to the plotting structures.
   \item 
 The plotting window is regenerated.
 \end{enumerate}
