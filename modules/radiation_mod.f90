@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module radiation_mod
 
   use bmad_struct
@@ -34,15 +32,15 @@ subroutine release_rad_int_cache (ix_cache)
 
   integer i, ix_cache
 
-!
+  !
 
-!  do i = 1, size(rad_int_cache_common(ix_cache)%ele)
-!    if (allocated(rad_int_cache_common(ix_cache)%ele(i)%pt)) &
-!                                deallocate (rad_int_cache_common(ix_cache)%ele(i)%pt)
-!  enddo
+  !  do i = 1, size(rad_int_cache_common(ix_cache)%ele)
+  !    if (allocated(rad_int_cache_common(ix_cache)%ele(i)%pt)) &
+  !                                deallocate (rad_int_cache_common(ix_cache)%ele(i)%pt)
+  !  enddo
 
-!  deallocate (rad_int_cache_common(ix_cache)%ele)
-!  deallocate (rad_int_cache_common(ix_cache)%ix_ele)
+  !  deallocate (rad_int_cache_common(ix_cache)%ele)
+  !  deallocate (rad_int_cache_common(ix_cache)%ix_ele)
 
   rad_int_cache_common(ix_cache)%set = .false.
   ix_cache = 0
@@ -98,8 +96,8 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   character(20) :: r_name = 'track1_radiation'
 
-! If not a magnetic element then nothing to do.
-! Also symplectic tracking handles the radiation.
+  ! If not a magnetic element then nothing to do.
+  ! Also symplectic tracking handles the radiation.
 
   if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
         (/ quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$ /))) then
@@ -107,11 +105,11 @@ subroutine track1_radiation (start, ele, param, end, edge)
     return
   endif
 
-! The total radiation length is the element length + any change in path length.
-! If entering the element then the length over which radiation is generated
-! is taken to be 1/2 the element length.
-! If leaving the element the radiation length is taken to be 1/2 the element
-! length + delta_Z
+  ! The total radiation length is the element length + any change in path length.
+  ! If entering the element then the length over which radiation is generated
+  ! is taken to be 1/2 the element length.
+  ! If leaving the element the radiation length is taken to be 1/2 the element
+  ! length + delta_Z
 
   if (edge == start_edge$) then
     set = set$
@@ -129,12 +127,12 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   if (s_len < 0) s_len = 0
 
-! Get the coords in the frame of reference of the element
+  ! Get the coords in the frame of reference of the element
 
   start2 = start
   call offset_particle (ele, param, start2, set)
 
-! Calculate the radius of curvature for an on-energy particle
+  ! Calculate the radius of curvature for an on-energy particle
 
   select case (ele%key)
 
@@ -187,9 +185,9 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   end select
 
-! Apply the radiation kicks
-! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
-! where xi is a random number with sigma = 1.
+  ! Apply the radiation kicks
+  ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
+  ! where xi is a random number with sigma = 1.
 
   gamma_0 = ele%value(E_TOT$) / m_electron
 
@@ -235,11 +233,12 @@ end subroutine
 !
 ! Input:
 !   lat            -- lat_struct:
-!   closed_orb(0:)  -- Coord_struct: Closed_orbit.
-!   fluctuations_on -- Logical, optional: If True then radiation fluctuations
-!                        will be present. 
-!   damping_on      -- Logical, optional: If True then radiation damping
-!                        will be present. 
+!   closed_orb(0:)  -- Coord_struct, optional: Closed_orbit. 
+!                        If not present then orb = 0 will be used.
+!   fluctuations_on -- Logical, optional: If present, bmad_com%radiation_fluctuations_on
+!                        will be set to the value of this argument. 
+!   damping_on      -- Logical, optional: If present, bmad_com%radiation_damping_on
+!                        will be set to the value of this argument. 
 !
 ! Output:
 !   lat           -- lat_struct: Lattice with radiation parameters computed. 
@@ -253,7 +252,7 @@ subroutine setup_radiation_tracking (lat, closed_orb, &
   implicit none
 
   type (lat_struct), target :: lat
-  type (coord_struct) :: closed_orb(0:)
+  type (coord_struct), optional :: closed_orb(0:)
   type (coord_struct) start0, start1, start, end
   type (track_struct), save :: track
 
@@ -264,16 +263,16 @@ subroutine setup_radiation_tracking (lat, closed_orb, &
 
   logical, optional :: fluctuations_on, damping_on
 
-! Set logicals.
+  ! Set logicals.
 
   if (present(fluctuations_on)) bmad_com%radiation_fluctuations_on = fluctuations_on
   if (present(damping_on)) bmad_com%radiation_damping_on = damping_on
 
-! Compute for a map_type wiggler the change in g2 and g3 
-!   with respect to transverse orbit for an on-energy particle..
-! This is done with (x, x', y, y') to take out the energy dependence.
-! start0 is in local coords                    
-! start1 is lab coords with vec(6) = dE/E = 0 
+  ! Compute for a map_type wiggler the change in g2 and g3 
+  !   with respect to transverse orbit for an on-energy particle..
+  ! This is done with (x, x', y, y') to take out the energy dependence.
+  ! start0 is in local coords                    
+  ! start1 is lab coords with vec(6) = dE/E = 0 
 
   do i = 1, lat%n_ele_track
 
@@ -282,10 +281,16 @@ subroutine setup_radiation_tracking (lat, closed_orb, &
 
     track%save_track = .true.
 
-    start0 = closed_orb(i-1)
+    if (present(closed_orb)) then
+      start0 = closed_orb(i-1)
+    else
+      start0%vec = 0
+    endif
+
+    start1 = start0
+
     call offset_particle (lat%ele(i), lat%param, start0, set$)
 
-    start1 = closed_orb(i-1)
     start1%vec(2) = start0%vec(2)
     start1%vec(4) = start0%vec(4)
     start1%vec(6) = 0
@@ -315,7 +320,7 @@ subroutine calc_g (track, g2, g3)
   real(rp) g2, g3, k2, k3, kick(6)
   integer j, n0, n1
 
-! g2 is the average kick^2 over the element.
+  ! g2 is the average kick^2 over the element.
 
   g2 = 0; g3 = 0
 
