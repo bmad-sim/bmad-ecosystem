@@ -114,7 +114,10 @@ endif
 
 ix1 = index(name, '[');  
 if (ix1 == 0) then
-  if (default_index == '') return
+  if (default_index == '') then
+    if (print_err) call out_io (s_error$, r_name, 'NO "[" FOUND IN:' // data_name)
+    return
+  endif
   datum%data_type = name
   name = default_index
 
@@ -122,8 +125,15 @@ else
   datum%data_type = name(1:ix1-1)
   name = name(ix1+1:)
   ix1 = index(name, ']')
-  if (ix1 == 0) return
-  if (name(ix1+1:) /= '') return
+  if (ix1 == 0) then
+    if (print_err) call out_io (s_error$, r_name, 'NO "]" FOUND IN:' // data_name)
+    return
+  endif
+  name(ix1:ix1) = ''
+  if (name(ix1+1:) /= '') then
+    if (print_err) call out_io (s_error$, r_name, 'MANGLED CONSTRUCT:' // data_name)
+    return
+  endif
 endif
 
 ! Get ele_ref & ele
