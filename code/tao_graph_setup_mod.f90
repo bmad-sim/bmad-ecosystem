@@ -590,7 +590,7 @@ do k = 1, size(graph%curve)
   !----------------------------------------------------------------------------
   ! Case: data_source is a data_array
 
-  case ('data_array')
+  case ('dat')
 
     ! Calculate values
 
@@ -716,7 +716,7 @@ do k = 1, size(graph%curve)
   !----------------------------------------------------------------------------
   ! Case: data_source is a var_array
 
-  case ('var_array')
+  case ('var')
     call tao_find_var (err, curve%data_type, v1_array)
     if (err .or. size(v1_array) /= 1) return
     v1_ptr => v1_array(1)%v1
@@ -793,7 +793,7 @@ do k = 1, size(graph%curve)
   !----------------------------------------------------------------------------
   ! Case: data_source is from lattice, or beam
 
-  case ('lattice', 'beam')
+  case ('lat', 'beam')
 
     ! Find how many symbol points there are
 
@@ -849,11 +849,11 @@ do k = 1, size(graph%curve)
 
   case ('s')
 
-    smooth_curve = (curve%data_source == 'lattice') .or. &
+    smooth_curve = (curve%data_source == 'lat') .or. &
                    (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
     smooth_curve = smooth_curve .and. curve%smooth_line_calc
 
-    if (curve%data_source == 'lattice' .and. index(curve%data_type, 'emit.') /= 0) &
+    if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) &
                                                                        smooth_curve = .false.
 
     if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0) then
@@ -1019,11 +1019,11 @@ if (lat%param%lattice_type == circular_lattice$ .and. .not. lat%param%stable) th
   return
 endif
 
-if (curve%data_source == 'lattice') then
+if (curve%data_source == 'lat') then
   select case (data_type(1:5))
   case ('sigma', 'emitt', 'norm_')
     call out_io (s_warn$, r_name, &
-              'curve%data_source = "lattice" is not compatable with data_type: ' // data_type)
+              'curve%data_source = "lat" is not compatable with data_type: ' // data_type)
     call out_io (s_blank$, r_name, "Will not perform any plot smoothing")
     good = .false.
     return
@@ -1065,7 +1065,7 @@ do ii = 1, size(curve%x_line)
   value = 0
 
   select case (curve%data_source)
-  case ('lattice')   
+  case ('lat')   
     call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err)
     if (err) then
       good(ii:) = .false.

@@ -367,7 +367,7 @@ do  ! Loop over plot files
       do j = 1, size(curve)
         write (curve(j)%name, '(a, i0)') 'c', j
       enddo
-      curve(:)%data_source = 'lattice'
+      curve(:)%data_source = 'lat'
       curve(:)%data_index  = ''
       curve(:)%data_type_x = ''
       curve(:)%data_type   = ''
@@ -514,7 +514,6 @@ do  ! Loop over plot files
         crv => grph%curve(j)
         crv%g                    => grph
         crv%data_source          = curve(j)%data_source
-        if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
         crv%data_index           = curve(j)%data_index
         crv%data_type_x          = curve(j)%data_type_x
         crv%data_type            = curve(j)%data_type
@@ -536,7 +535,12 @@ do  ! Loop over plot files
         crv%ix_branch            = curve(j)%ix_branch
         crv%legend_text          = curve(j)%legend_text
 
-        ! Old style
+        ! Convert old syntax to new
+
+        if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
+        if (crv%data_source == 'lattice')       crv%data_source = 'lat'
+        if (crv%data_source == 'data_array')    crv%data_source = 'dat'
+        if (crv%data_source == 'var_array')     crv%data_source = 'var'
 
         if (curve(j)%x_axis_scale_factor /= 0) then
           call out_io (s_error$, r_name, (/ &
@@ -642,7 +646,7 @@ do  ! Loop over plot files
         endif
 
         if ((crv%data_type(1:5) == 'emit.' .or. &
-              crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lattice') then
+              crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lat') then
           if (crv%ix_universe == -1) then
             s%u%do_synch_rad_int_calc = .true.
           else
@@ -813,7 +817,7 @@ grph%y%major_div_nominal   = 4
 grph%y2%draw_numbers = .false.
 grph%component     = 'model'
 crv => grph%curve(1)
-crv%data_source = 'lattice'
+crv%data_source = 'lat'
 crv%data_type = 'beta.a'
 
 grph => plt%graph(2)

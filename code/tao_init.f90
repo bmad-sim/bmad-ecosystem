@@ -182,7 +182,7 @@ call output_direct (0, .true.)
 
 ! Init radiation damping and fluctuation constants if needed.
 
-if (bmad_com%radiation_dampling_on .or. bmad_com%radiation_fluctuations_on) then
+if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) then
   do i = 1, size(s%u)
     call setup_radiation_tracking (s%u(i)%model%lat)
   enddo

@@ -88,7 +88,7 @@ if (err) return
 
 err = .true.
 if (name(1:5) == 'lat::') then
-  datum%data_source = 'lattice'
+  datum%data_source = 'lat'
   name = name(6:)  ! Strip off 'lat:'
 elseif (name(1:6) == 'beam::') then
   datum%data_source = 'beam'
@@ -499,7 +499,7 @@ if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
 if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
 if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
 
-if (data_source /= "lattice" .and. data_source /= "beam") then
+if (data_source /= 'lat' .and. data_source /= 'beam') then
   call out_io (s_error$, r_name, &
           'UNKNOWN DATA_SOURCE: ' // data_source, &
           'FOR DATUM: ' // tao_datum_name(datum))
@@ -533,7 +533,7 @@ if (present(why_invalid)) why_invalid = &
 select case (data_type)
 
 case ('alpha.a')
-  if (data_source == 'lattice') then
+  if (data_source == 'lat') then
     call load_it (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
     call load_it (bunch_params(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -542,7 +542,7 @@ case ('alpha.a')
   endif
   
 case ('alpha.b')
-  if (data_source == 'lattice') then
+  if (data_source == 'lat') then
     call load_it (branch%ele(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
     call load_it (bunch_params(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -551,7 +551,7 @@ case ('alpha.b')
   endif
 
 case ('alpha.z')
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%z%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('beta.x')
@@ -576,13 +576,13 @@ case ('beta.y')
   endif
 
 case ('beta.z')
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   valid_value = valid_value .and. (bunch_params(ix_ele)%z%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
 
 case ('beta.a')
-  if (data_source == 'lattice') then
+  if (data_source == 'lat') then
     call load_it (branch%ele(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
     call load_it (bunch_params(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -591,7 +591,7 @@ case ('beta.a')
   endif
     
 case ('beta.b')
-  if (data_source == 'lattice') then
+  if (data_source == 'lat') then
     call load_it (branch%ele(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
     call load_it (bunch_params(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -698,17 +698,17 @@ case ('chrom.b')
   valid_value = .true.
 
 case ('dpx_dx') 
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   datum_value = bunch_params(ix_ele)%sigma(s12$) / bunch_params(ix_ele)%sigma(s11$)
   valid_value = .true.
 
 case ('dpy_dy') 
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   datum_value = bunch_params(ix_ele)%sigma(s34$) / bunch_params(ix_ele)%sigma(s33$)
   valid_value = .true.
 
 case ('dpz_dz') 
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   datum_value = bunch_params(ix_ele)%sigma(s56$) / bunch_params(ix_ele)%sigma(s55$)
   valid_value = .true.
 
@@ -735,19 +735,19 @@ case ('element_param.')
 
 case ('emit.x', 'norm_emit.x')
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%x%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.y', 'norm_emit.y')  
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%y%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.z', 'norm_emit.z')
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%z%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
@@ -755,7 +755,7 @@ case ('emit.a', 'norm_emit.a')
   call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     call load_it (bunch_params(:)%a%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-  elseif (data_source == 'lattice') then
+  elseif (data_source == 'lat') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
         call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
@@ -774,7 +774,7 @@ case ('emit.b', 'norm_emit.b')
   call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
     call load_it (bunch_params(:)%b%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-  elseif (data_source == 'lattice') then
+  elseif (data_source == 'lat') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
         call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
@@ -933,7 +933,7 @@ case ('floor.phi')
   call load_it (branch%ele(:)%floor%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('gamma.a')
-  if (data_source == 'lattice') then
+  if (data_source == 'lat') then
     call load_it (branch%ele(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
     call load_it (bunch_params(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -942,7 +942,7 @@ case ('gamma.a')
   endif
   
 case ('gamma.b')
-  if (data_source == 'lattice') then
+  if (data_source == 'lat') then
     call load_it (branch%ele(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
     call load_it (bunch_params(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -951,7 +951,7 @@ case ('gamma.b')
   endif
 
 case ('gamma.z')
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('rad_int.i5a')
@@ -1248,43 +1248,43 @@ case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
   valid_value = .true.
 
 case ('sigma.x')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s11$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
 
 case ('sigma.px')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s22$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.y')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s33$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.py')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s44$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.z')
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s55$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.pz')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.xy')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   call load_it (bunch_params(:)%sigma(s13$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   valid_value = .true.
   
@@ -1396,7 +1396,7 @@ case ('wall')
   return
 
 case ('wire.')  
-  if (data_source == 'lattice') return
+  if (data_source == 'lat') return
   read (data_type(6:), '(a)') angle
   datum_value = tao_do_wire_scan (ele, angle, u%current_beam)
   valid_value = .true.
@@ -2508,10 +2508,6 @@ if (ix /= 0) then
     source = 'beam'
   endif
 endif
-if (source == 'lattice') source = 'lat'
-if (source == 'data_array') source = 'dat'
-if (source == 'var_array') source = 'var'
-if (source == 'element') source = 'ele'
 
 
 ! Look for a lat datum.

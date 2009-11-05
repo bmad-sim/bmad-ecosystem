@@ -582,7 +582,7 @@ do
     d1_data%name           = ''
     default_weight         = 0      ! set default
     default_data_type      = ''
-    default_data_source    = 'lattice'
+    default_data_source    = 'lat'
     ix_min_data            = int_garbage$
     ix_max_data            = int_garbage$
 
@@ -658,6 +658,9 @@ do
         else
           datum(i)%ele_start_name = data(i)%ele0_name
         endif
+        ! convert old style to new
+        if (d_typ == 'lattice')       datum(i)%data_type = 'lat'
+        if (d_typ == 'beam_tracking') datum(i)%data_source = 'beam'
       enddo
     endif
 
@@ -682,8 +685,6 @@ do
       call err_exit
     endif
     do i = lbound(datum, 1), ubound(datum, 1)
-      ! 'beam_tracking' is old syntax.
-      if (datum(i)%data_source == 'beam_tracking') datum(i)%data_source = 'beam'
       if ((datum(i)%ele_ref_name /= '' .or. datum(i)%ele_start_name /= '') .and. datum(i)%ele_name == '') then
         write (line, '(4a, i0, a)') trim(d2_data%name), '.', trim(d1_data%name), '[', i, ']'
         call out_io (s_abort$, r_name, &
@@ -939,7 +940,7 @@ do j = n1, n2
                                          'emit.' // u%data(j)%data_type(ix+10:)
   data_type = u%data(j)%data_type
   emit_here = (index(data_type, 'emit.') /= 0)
-  if (emit_here .and. u%data(j)%data_source == 'lattice') u%do_synch_rad_int_calc = .true. 
+  if (emit_here .and. u%data(j)%data_source == 'lat') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:8) == 'rad_int.') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
@@ -1020,7 +1021,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ix_ele = -1
     elseif (data%ix_ele == -1) then
       ix_ele = -1
-    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
+    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
       ix_ele = -1
     elseif (data%ix_ele_ref > data%ix_ele) then
       ix_ele = u%model%lat%n_ele_track
@@ -1055,7 +1056,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       ix_ele = -1
     elseif (data%ix_ele == -1) then
       ix_ele = -1
-    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lattice') then
+    elseif (index(data%data_type, 'emit.') /= 0 .and. data%data_source == 'lat') then
       ix_ele = -1
     elseif (data%ix_ele_ref > data%ix_ele) then
       ix_ele = u%model%lat%n_ele_track

@@ -109,10 +109,10 @@ end type
 
 type tao_curve_struct
   character(40) :: name = ''               ! Name identifying the curve.
-  character(40) :: data_source  = ''       ! "lattice", "data_array", "var_array", etc.
+  character(40) :: data_source  = ''       ! 'lat', 'dat', 'var', etc.
   character(100) :: data_index  = ''       ! Used for calculating %ix_symb(:).
   character(100) :: data_type_x = ''       ! Used for data slices and phase space plots.
-  character(100) :: data_type   = ''       ! "orbit.x", etc.
+  character(100) :: data_type   = ''       ! 'orbit.x', etc.
   character(40) :: ele_ref_name = ''       ! Reference element.
   character(40) :: legend_text = ''        ! String to print in a curve legend. 
   type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
@@ -143,7 +143,7 @@ end type
 
 type tao_graph_struct
   character(40) name            ! Name identifying the graph
-  character(40) type            ! "data", "lat_layout", "key_table", "phase_space"
+  character(40) type            ! 'data', 'lat_layout', 'key_table', 'phase_space'
   character(100) title
   character(100) title_suffix 
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
@@ -271,9 +271,9 @@ type tao_data_struct
   character(40) ele_name        ! Name of the lattice element where datum is evaluated.
   character(40) ele_start_name  ! Name of starting lattice element when there is a range 
   character(40) ele_ref_name    ! Name of reference lattice element
-  character(100) data_type   ! Type of data: "orbit.x", etc.
+  character(100) data_type   ! Type of data: 'orbit.x', etc.
   character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
-  character(20) data_source  ! 'lattice', or 'beam'
+  character(20) data_source  ! 'lat', or 'beam'
   integer ix_bunch           ! Bunch number to get the data from.
   integer ix_branch          ! Index of the lattice branch of the element
   integer ix_ele             ! Index of the lattice element corresponding to ele_name
@@ -316,7 +316,7 @@ end type tao_data_struct
 !   the u%data array. 
 
 type tao_d1_data_struct
-  character(40) name        ! Eg: "x", etc.
+  character(40) name        ! Eg: 'x', etc.
   integer ix_data           ! index of the 0th element in u%data.
   type (tao_d2_data_struct), pointer :: d2 => null() ! ptr to parent d2_data
   type (tao_data_struct), pointer :: d(:) => null()  
@@ -426,7 +426,7 @@ end type tao_var_struct
 ! The v1_var_struct has a pointer to a section in the s%var array. 
 
 type tao_v1_var_struct
-  character(40) :: name = ' '  ! Eg: "quad_k1"
+  character(40) :: name = ' '  ! Eg: 'quad_k1'
   integer ix_var0              ! Index of the 0th element in s%var
   integer ix_v1                ! Index to s%v1_var(:) array
   type (tao_var_struct), pointer :: v(:) => null() 
@@ -550,7 +550,7 @@ type tao_common_struct
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
   character(100) :: cmd                                ! Used for the cmd history
-  character(16) :: init_name = "Tao"                   ! label for initialization
+  character(16) :: init_name = 'Tao'                   ! label for initialization
   character(200) :: init_lat_file = ''                 ! '-lat' argument.
   character(100) :: init_tao_file                      ! '-init' argument.
   character(100) :: default_init_tao_file = 'tao.init'          
@@ -641,7 +641,7 @@ type tao_universe_struct
   type (tao_lattice_struct), pointer :: model, design, base
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
   type (beam_struct) current_beam                  ! Beam at the current position
-  type (tao_connected_uni_struct)   :: connect     ! Connection data put in "to" uni.
+  type (tao_connected_uni_struct)   :: connect     ! Connection data put in 'to' uni.
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (coord_struct) model_orb0                         ! For saving beginning orbit
