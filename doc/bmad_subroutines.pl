@@ -196,7 +196,6 @@ $pl_hash{"i_size"} = "bmad_and_cpp.f90";
 $pl_hash{"indexx"} = "indexx_mod.f90";
 $pl_hash{"output_lines"} = "output_mod.f90";
 $pl_hash{"lmpar"} = "lmdif_mod.f90";
-$pl_hash{"create_nir_shuntcur_elements"} = "cesr_basic_mod.f90";
 $pl_hash{"brent2"} = "brent2.f90";
 $pl_hash{"ety"} = "eigen_mod.f90";
 $pl_hash{"save_bunch_track"} = "save_bunch_track.f90";
@@ -280,7 +279,6 @@ print "Subroutines in bmad but not in subroutines.tex:\n\n";
 
 find (\&searchit, '..');
 find (\&searchit, '../../sim_utils');
-find (\&searchit, '../../cesr_utils');
 
 #---------------------------------------------------------
 # find all BMAD subroutines and see if they are in the tex file

@@ -12,7 +12,6 @@ solely meant for \bmad internal use.
 \begin{center}
 \begin{tabular}{|l|l|} \hline
 {\em Routine Type} & {\em Section} \\ \hline
-  Beam: Beam-Beam Interaction                 & \ref{r:bbi}            \\ \hline
   Beam: Low Level Routines                    & \ref{r:low.beam}       \\ \hline
   Beam: Tracking and Manipulation             & \ref{r:beam}           \\ \hline
   Branch Handling                             & \ref{r:branch}         \\ \hline
@@ -56,42 +55,6 @@ solely meant for \bmad internal use.
 \toffset
 
 %------------------------------------------------------------------------
-\section{Beam: Beam-Beam Interaction}
-\label{r:bbi}    
-
-\begin{description}
-
-\index{Routine!init_lrbbi}
-\item[init_lrbbi(lat, oppos_lat, lrbbi_ele, ix_lrbbi, ix_oppos)] \Newline 
-     Subroutine to calculate the basic parameters of a beambeam element. 
-     Initializes the element and establishes the following values.
-
-\index{Routine!insert_lrbbi}
-\item[insert_lrbbi (lat, lat_oppos, cross_positions, ix_lrbbi)] \Newline
-Subroutine to create and insert beambeam elements at each parasitic crossing
-point as specified form a list of crossing points.
-
-\index{Routine!ion_kick}
-\item[ion_kick] \Newline 
-    subroutine to return the kick felt by an ion due to the
-    passage of a bunch.
-
-\index{Routine!lrbbi_crossings}
-\item[lrbbi_crossings (n_bucket, oppos_buckets, cross_positions)] \Newline
-Subroutine to calculate the location of the parasitic crossings points 
-given a bunch and an array of positions of the bunches it will cross. 
-
-\index{Routine!make_lrbbi}
-\item[make_lrbbi(master_lat, master_lat_oppos, lat, ix_lrbbi, master_ix_lrbbi)] \Newline
-Subroutine to turn elements marking parasitic crossings into beam-beam elements. 
-
-\index{Routine!mark_lrbbi}
-\item[mark_lrbbi(master_lat, master_lat_oppos, lat, crossings)] \Newline
-Subroutine to insert named markers into the lat structure at the positions of parasitic crossings. 
-
-\end{description}
-
-%------------------------------------------------------------------------
 \section{Beam: Low Level Routines}
 \label{r:low.beam}
 
@@ -99,10 +62,26 @@ The following helper routines are generally not useful for general use.
 
 \begin{description}
 
+\index{Routine!add_sr_long_wake}
+\item[add_sr_long_wake (ele, bunch, num_in_front, follower)] \Newline 
+Adds the longitudinal wake for all particles in front of the follower.
+
 \index{Routine!beam_equal_beam}
 \item[beam_equal_beam (beam1, beam2)] \Newline 
 Subroutine to set one particle beam equal to another taking care of
 pointers so that they don't all point to the same place.
+
+\index{Routine!calc_bunch_params_slice}
+\item[calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)] \Newline 
+Finds all bunch parameters for a slice through the beam distribution.
+
+\index{Routine!find_bunch_sigma_matrix}
+\item[find_bunch_sigma_matrix (particle, ave, sigma)] \Newline 
+Routine to find the sigma matrix elements of a particle distribution.
+
+\index{Routine!init_spin_distribution}
+\item[init_spin_distribution (beam_init, bunch)] \Newline 
+Initializes a spin distribution according to init_beam\%spin
 
 \index{Routine!order_particles_in_z}
 \item[order_particles_in_z (bunch)] \Newline 
@@ -133,22 +112,6 @@ Subroutine to put in the long-range wakes for particle tracking.
 \index{Routine!track1_particle}
 \item[track1_particle (start, ele, param, end)] \Newline 
 Subroutine to track a particle through an element.
-
-\index{Routine!add_sr_long_wake}
-\item[add_sr_long_wake (ele, bunch, num_in_front, follower)] \Newline 
-Adds the longitudinal wake for all particles in front of the follower.
-
-\index{Routine!init_spin_distribution}
-\item[init_spin_distribution (beam_init, bunch)] \Newline 
-Initializes a spin distribution according to init_beam\%spin
-
-\index{Routine!calc_bunch_params_slice}
-\item[calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)] \Newline 
-Finds all bunch parameters for a slice through the beam distribution.
-
-\index{Routine!find_bunch_sigma_matrix}
-\item[find_bunch_sigma_matrix (particle, ave, sigma)] \Newline 
-Routine to find the sigma matrix elements of a particle distribution.
 
 \end{description}
 
@@ -185,6 +148,11 @@ Subroutine to convert particle coords from
 \item[init_beam_distribution (ele, beam_init, beam)] \Newline 
 Subroutine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
+
+\index{Routine!ion_kick}
+\item[ion_kick(x, y, x_kicker, y_kicker, s_kicker)] \Newline 
+    subroutine to return the kick felt by an ion due to the
+    passage of a bunch. Can also be used for beam-beam simulations.
 
 \index{Routine!reallocate_beam}
 \item[reallocate_beam (beam, n_bunch, n_particle)] \Newline 
@@ -1358,19 +1326,6 @@ Routine to convert a string to uppercase:
 \label{r:opti}      
 
 \begin{description}
-
-
-\index{Routine!amoeba}
-\item[amoeba(p, y, ftol, func, iter)] \Newline
-Downhill simplex method of Neider and Mead. Numerical Recipes routine.
-
-\index{Routine!frprmn}
-\item[frprmn (p, ftol, iter, fret)] \Newline
-Fletcher--Reeves minimization. Numerical Recipes routine.
-
-\index{Routine!mrqmin}
-\item[mrqmin (x, y, sig, a, maska, covar, alpha, chisq, funcs, alamda)] \Newline
-Levenburg--Marquardt minimization. Numerical Recipes routine.
 
 \index{Routine!opti_lmdif}
 \item[opti_lmdif (vec, n, merit, eps) result(this_opti)] \Newline 

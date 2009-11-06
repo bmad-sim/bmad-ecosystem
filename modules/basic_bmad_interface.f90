@@ -286,33 +286,12 @@ interface
 end interface
 
 interface
-  subroutine init_LRBBI(lat, oppos_lat, LRBBI_ele, ix_LRBBI, ix_oppos)
-    use bmad_struct, only: lat_struct, ele_struct
-    implicit none
-    type (lat_struct) lat
-	type (lat_struct) :: oppos_lat
-    type (ele_struct) LRBBI_ele
-	integer, intent(in) :: ix_LRBBI, ix_oppos
-  end subroutine
-end interface
-
-interface
   subroutine insert_element (lat, insert_ele, insert_index)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct) lat
     type (ele_struct) insert_ele
     integer insert_index
-  end subroutine
-end interface
-
-interface
-  subroutine insert_LRBBI (lat, oppos_lat, cross_positions, ix_LRBBI)
-	use bmad_struct, only: lat_struct, rp
-    type (lat_struct) lat
-	type (lat_struct) oppos_lat 
-   real(rp), dimension(:), intent(inout) :: cross_positions
-    integer, dimension(:), intent(inout) :: ix_LRBBI
   end subroutine
 end interface
 
@@ -341,17 +320,6 @@ interface
   end subroutine
 end interface
 
-interface
-  subroutine make_LRBBI(master_lat_oppos, lat, ix_LRBBI, master_ix_LRBBI)
-    use bmad_struct, only: lat_struct
-    implicit none
-    type (lat_struct), dimension(:) :: lat
-    type (lat_struct) :: master_lat_oppos
-    integer, dimension(:,:) :: ix_LRBBI
-    integer, dimension(:,:) :: master_ix_LRBBI
-  end subroutine
-end interface
- 
 interface
   subroutine make_mat6 (ele, param, start, end, end_in, err)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
@@ -430,17 +398,6 @@ interface
   subroutine mat6_add_offsets (ele)
     use bmad_struct, only: ele_struct
     type (ele_struct) ele
-  end subroutine
-end interface
-
-interface
-  subroutine mark_LRBBI(master_lat, master_lat_oppos, lat, crossings)
-    use bmad_struct, only: lat_struct, rp
-    implicit none
-    type (lat_struct), dimension(:) :: lat
-    type (lat_struct) :: master_lat
-    type (lat_struct) :: master_lat_oppos
-    real(rp), dimension(:,:) :: crossings
   end subroutine
 end interface
 
