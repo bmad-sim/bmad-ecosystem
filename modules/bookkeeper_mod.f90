@@ -50,14 +50,13 @@ call control_bookkeeper (lat)
 call compute_reference_energy (lat)
 call control_bookkeeper (lat, super_and_multipass_only = .true.)
 
-! Make sure attributes are updated for free elements in the tracking part of the lattice.
-! All the other elements were taken care of by control_bookkeeper.
+! Make sure attributes are updated for all elements in the tracking part of the lattice.
+! We do this since control_bookkeeper does not take care of free elements.
+! Also overlay slaves with field_master = T need doing...
 
 do i = 0, ubound(lat%branch, 1)
   do j = 1, lat%branch(i)%n_ele_track
-    if (lat%branch(i)%ele(j)%slave_status == free$) then
-      call attribute_bookkeeper (lat%branch(i)%ele(j), lat%param)
-    endif
+    call attribute_bookkeeper (lat%branch(i)%ele(j), lat%param)
   enddo
 enddo
 
