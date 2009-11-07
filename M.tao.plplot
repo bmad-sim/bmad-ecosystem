@@ -203,7 +203,6 @@ LOCAL_LFLAGS   :=
 #                           packages)
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
-EXTRA_LIBDIR := ../plplot/lib_root/lib
 LOCAL_LIBS := 
 CESR_LIBS  := tao bmad sim_utils recipes_f-90_LEPP 
 PKG_LIBS   := forest plplotd plplotf77cd plplotf77d xsif
