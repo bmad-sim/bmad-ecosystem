@@ -7,10 +7,19 @@
 !		Possible shapes: 'elliptical', 'rectangular'
 
 &synrad3d_wall
+  n_wall_pt_max=5 
+  wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
+  wall_pt(1) = 80.0, 'elliptical', 0.045, 0.025
+  wall_pt(2) = 80.01, 'rectangular', 0.045, 0.025
+  wall_pt(3) = 100.0, 'rectangular', 0.045, 0.025
+  wall_pt(4) = 100.01, 'elliptical', 0.045, 0.025
+  wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025 
+/
+
+
    n_wall_pt_max = 1
    wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
    wall_pt(1) = 0.0, 'elliptical', 0.065, 0.045 
-/
 
    wall_pt(0) = 0.0, 'rectangular', 0.045, 0.025
    wall_pt(1) = 0.0, 'rectangular', 0.065, 0.045 
