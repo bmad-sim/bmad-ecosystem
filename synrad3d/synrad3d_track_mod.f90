@@ -406,6 +406,11 @@ do i = 1, 30
   ! Make a half step.
 
   dl = (photon2%now%track_len - photon0%now%track_len) / 2
+  if (dl < 0) then
+    print *, 'ERROR IN PHOTON_HIT_SPOT_CALC: BOOKKEEPING ERROR #1!'
+    call err_exit
+  endif
+
   call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
 
   call photon_radius (photon1%now, wall, radius)
@@ -426,6 +431,11 @@ do i = 1, 30
   if (photon0_is_at_beginning) cycle
 
   dl = -del0 * (photon2%now%track_len - photon0%now%track_len) / (del2 - del0)
+  if (dl < 0 .or. dl > photon2%now%track_len - photon0%now%track_len) then
+    print *, 'ERROR IN PHOTON_HIT_SPOT_CALC: BOOKKEEPING ERROR #2!'
+    call err_exit
+  endif
+
   call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
 
   call photon_radius (photon1%now, wall, radius)
