@@ -261,15 +261,15 @@ propagation_loop: do
     radius = 1 / g
     theta = (s_stop - now%vec(5)) * g
     tan_t = tan(theta)
-    dl = tan_t * (radius + now%vec(2)) / (now%vec(6) - tan_t * now%vec(2))
+    dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
 
-    if (abs(tan_t * (radius + now%vec(2))) > dl_left * abs(now%vec(6) - tan_t * now%vec(2))) then
+    if (abs(tan_t * (radius + now%vec(1))) > dl_left * abs(now%vec(6) - tan_t * now%vec(2))) then
       dl = dl_left
       tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
       theta = atan(tan_t)
       will_stop_at_s_stop = .false.
     else
-      dl = tan_t * (radius + now%vec(2)) / (now%vec(6) - tan_t * now%vec(2))
+      dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
       will_stop_at_s_stop = .true.
     endif
 
@@ -433,6 +433,7 @@ do i = 1, 30
 
   if (del1 < 0) then
     photon0 = photon1; del0 = del1
+    photon0_is_at_beginning = .false.
   else
     photon2 = photon1; del2 = del1
     photon1 = photon0

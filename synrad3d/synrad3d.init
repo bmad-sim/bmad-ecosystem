@@ -1,6 +1,6 @@
 &synrad3d_parameters
-  ix_ele_track_start = 110 ! Radiation is produced from the *exit* end of this element...
-  ix_ele_track_end   = 130 !  ... to the exit end of this element. If = -1 -> Go to the end of the lattice
+  ix_ele_track_start = 103 ! Radiation is produced from the *exit* end of this element...
+  ix_ele_track_end   = 104 !  ... to the exit end of this element. If = -1 -> Go to the end of the lattice
   photon_direction = 1     ! 1 = Forward generation, -1 = Backward generation.
   num_photons      = 10000  ! Total number of photons generated. 
   ds_step_min      = 0.01  ! Photons are generated at discrete points. 
@@ -15,7 +15,7 @@
   dat_file         = 'synrad3d.dat'
 
   synrad3d_params%allow_reflections = .true.  ! For testing purposes.
-  synrad3d_params%debug = .false.             ! If true then create a file (fort.2) 
+  synrad3d_params%debug = .true.             ! If true then create a file (fort.2) 
                                               !    of photon before/after reflection coords.
   random_seed = 123456   ! 0 -> Use sys clock.
 /
