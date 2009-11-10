@@ -248,7 +248,7 @@ call bracket_index (wall%pt%s, 0, wall%n_pt_max, vec(5), ix)
 if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
 
 ! The outward normal vector is discontinuous at the wall points.
-! If at a wall point use the correct part of the wall.
+! If at a wall point, use the correct part of the wall.
 
 if (vec(5) == wall%pt(ix)%s .and. vec(6) > 0) then
   if (ix /= 0) then
