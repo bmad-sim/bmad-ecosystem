@@ -183,6 +183,7 @@ character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
 character(5) undef_str
+character(40) output_str_for_blank_str
 
 character(16) :: show_what, show_names(25) = [ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
@@ -1129,6 +1130,7 @@ case ('lattice')
   by_s = .false.
   print_header_lines = .true.
   print_tail_lines = .true.
+  output_str_for_blank_str = ''
   ix_branch = 0
   undef_str = '-----'
 
@@ -1138,13 +1140,17 @@ case ('lattice')
   do
     if (stuff2(1:1) /= '-' .or. ix == 0) exit
 
-    if (index('-branch', stuff2(1:ix)) == 1 .and. ix > 1) then
+    if (index('-branch', stuff2(1:ix)) == 1 .and. ix > 2) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
       read (stuff2(1:ix), *, iostat = ios) ix_branch
       if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
         nl=1; write (lines(1), *) 'Branch index out of bounds:', ix_branch
         return
       endif
+
+    elseif (index('-blank_string', stuff2(1:ix)) == 1 .and. ix > 2) then
+      call string_trim(stuff2(ix+1:), stuff2, ix)
+      output_str_for_blank_str = stuff2(1:ix)
 
     ! '-lords' just prints lor info
 
@@ -1169,11 +1175,11 @@ case ('lattice')
     elseif (index('-0undef', stuff2(1:ix)) == 1 .and. ix > 1 ) then
       undef_str = '    0'
 
-    elseif (index('-no_label_lines', stuff2(1:ix)) == 1 .and. ix > 5) then
+    elseif (index('-no_label_lines', stuff2(1:ix)) == 1 .and. ix > 4) then
       print_header_lines = .false.
       print_tail_lines = .false.
 
-    elseif (index('-no_tail_lines', stuff2(1:ix)) == 1 .and. ix > 5) then
+    elseif (index('-no_tail_lines', stuff2(1:ix)) == 1 .and. ix > 4) then
       print_tail_lines = .false.
 
     elseif (index('-custom', stuff2(1:ix)) == 1 .and. ix > 1) then
@@ -1358,20 +1364,32 @@ case ('lattice')
     do i = 1, size(column)
       name = column(i)%name
       if (name == '') cycle
+
       if (name == '#') then
         write (line(nc:), column(i)%format, iostat = ios) ie
+
       elseif (name == 'ele::#[name]') then
         write (line(nc:), column(i)%format, iostat = ios) ele%name
+
       elseif (name == 'ele::#[key]') then
         write (line(nc:), column(i)%format, iostat = ios) key_name(ele%key)
+
       elseif (name == 'ele::#[slave_status]') then
         write (line(nc:), column(i)%format, iostat = ios) control_name(ele%slave_status)
+
       elseif (name == 'ele::#[lord_status]') then
         write (line(nc:), column(i)%format, iostat = ios) control_name(ele%lord_status)
+
       elseif (name == 'ele::#[type]') then
-        write (line(nc:), column(i)%format, iostat = ios) ele%type
+        if (ele%type == '') then
+          write (line(nc:), column(i)%format, iostat = ios) output_str_for_blank_str
+        else
+          write (line(nc:), column(i)%format, iostat = ios) ele%type
+        endif
+
       elseif (name == 'x') then
         ios = 0
+
       else
         write (nam, '(i0)') ie
         call str_substitute (name, '#', trim(nam))
