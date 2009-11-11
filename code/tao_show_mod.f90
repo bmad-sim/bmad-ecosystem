@@ -203,7 +203,7 @@ integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
-logical bmad_format, good_opt_only, show_lords
+logical bmad_format, good_opt_only, show_lords, show_custom
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
@@ -1107,23 +1107,6 @@ case ('key_bindings')
 
 case ('lattice')
   
-  column(:)%name = ""
-  column(:)%label = ""
-  column(1)  = show_lat_column_struct('#',                 'i6',        6, '')
-  column(2)  = show_lat_column_struct('x',                 'x',         2, '')
-  column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '')
-  column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '')
-  column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '')
-  column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '')
-  column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a')
-  column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '')
-  column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '')
-  column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '')
-  column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '')
-  column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '')
-  column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '')
-  column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
-
   limited = .false.
   all_lat = .false.
   at_ends = .true.
@@ -1134,6 +1117,9 @@ case ('lattice')
   ix_branch = 0
   undef_str = '-----'
   show_lords = .false.
+  show_custom = .false.
+  column(:)%name = ""
+  column(:)%label = ""
 
   ! get command line switches
 
@@ -1173,6 +1159,7 @@ case ('lattice')
       print_tail_lines = .false.
 
     elseif (index('-custom', stuff2(1:ix)) == 1 .and. ix > 1) then
+      show_custom = .true.
       call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
       iu = lunget()
@@ -1203,11 +1190,46 @@ case ('lattice')
   
   branch => lat%branch(ix_branch)
 
+  ! Construct columns if needed.
+
+  if (.not. show_custom) then
+    if (show_lords) then
+      column(1)  = show_lat_column_struct('#',                   'i6',        6, '')
+      column(2)  = show_lat_column_struct('x',                   'x',         2, '')
+      column(3)  = show_lat_column_struct('ele::#[name]',        'a',         0, '')
+      column(4)  = show_lat_column_struct('ele::#[key]',         'a16',      16, '')
+      column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',    10, '')
+      column(6)  = show_lat_column_struct('x',                   'x',         2, '')
+      column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '') 
+    else
+      column(1)  = show_lat_column_struct('#',                 'i6',        6, '')
+      column(2)  = show_lat_column_struct('x',                 'x',         2, '')
+      column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '')
+      column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '')
+      column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '')
+      column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '')
+      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a')
+      column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '')
+      column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '')
+      column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '')
+      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '')
+      column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '')
+      column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '')
+      column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
+    endif
+  endif
+
   ! Find elements to use
 
   if (allocated (picked_ele)) deallocate (picked_ele)
   allocate (picked_ele(0:branch%n_ele_max))
-  if (show_lords) picked_ele = .true.
+  if (show_lords) then
+    picked_ele(0:branch%n_ele_track) = .false.
+    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .true.
+  else
+    picked_ele(0:branch%n_ele_track) = .true.
+    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
+  endif
 
   if (by_s) then
     ix = index(stuff2, ':')
@@ -1233,7 +1255,7 @@ case ('lattice')
     enddo
 
   elseif (stuff2(1:ix) == '*' .or. all_lat) then
-    picked_ele = .true.
+    ! picked_ele already set
 
   elseif (ix /= 0) then
     call tao_locate_elements (stuff2, u%ix_uni, eles, err, .true.)
@@ -1244,30 +1266,11 @@ case ('lattice')
     enddo
 
   elseif (.not. show_lords) then
-    picked_ele = .true.
     if (size(picked_ele) > 200) then
       picked_ele(201:) = .false.
       limited = .true.
     endif
 
-  endif
-
-  ! If showing lord elements
-
-  if (show_lords) then
-    nl=nl+1; lines(nl) = 'Lord Elements:'
-    nl=nl+1; lines(nl) = ' Index  Name                            Class             Lord_type'
-
-    do ie = lat%n_ele_track+1, lat%n_ele_max
-      if (.not. picked_ele(ie)) cycle
-      if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
-      ele => lat%ele(ie)
-      nl=nl+1; write (lines(nl), '(i6, 2x, a30, 2x, a16, 2x, a12)') &
-               ie, ele%name, key_name(ele%key), control_name(ele%lord_status)
-    enddo
-    deallocate(picked_ele)
-    result_id = 'lat_lords'
-    return
   endif
 
   !
@@ -1298,10 +1301,9 @@ case ('lattice')
             'FIELD_WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
         return
       endif
-      do ie = 0, branch%n_ele_track
+      do ie = 0, branch%n_ele_max
         if (.not. picked_ele(ie)) cycle
-        column(i)%field_width = &
-                  max(column(i)%field_width, len_trim(branch%ele(ie)%name)+1)
+        column(i)%field_width = max(column(i)%field_width, len_trim(branch%ele(ie)%name)+1)
       enddo
     endif
 
@@ -1366,7 +1368,7 @@ case ('lattice')
     endif
   endif
 
-  do ie = 0, branch%n_ele_track
+  do ie = 0, branch%n_ele_max
     if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
     line = ''
