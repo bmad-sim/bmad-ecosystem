@@ -340,7 +340,8 @@ real(rp), save :: ds_old = -1
 integer ix_ele
 integer, save :: ix_ele_old = -1
 
-logical track_entrance, track_exit, old_track_end, track_entire_ele, kill_it
+logical track_entrance, track_exit, track_entire_ele, kill_it
+logical, save :: old_track_end = .false.
 
 ! Init
 
