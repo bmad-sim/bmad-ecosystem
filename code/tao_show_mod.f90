@@ -183,7 +183,7 @@ character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
 character(5) undef_str
-character(40) output_str_for_blank_str
+character(40) replacement_for_blank
 
 character(16) :: show_what, show_names(25) = [ &
    'data        ', 'variable    ', 'global      ', 'alias       ', 'top10       ', &
@@ -203,7 +203,7 @@ integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
-logical bmad_format, good_opt_only
+logical bmad_format, good_opt_only, show_lords
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines
 logical show_all, name_found, print_taylor, print_wig_terms, print_all
@@ -1130,9 +1130,10 @@ case ('lattice')
   by_s = .false.
   print_header_lines = .true.
   print_tail_lines = .true.
-  output_str_for_blank_str = ''
+  replacement_for_blank = ''
   ix_branch = 0
   undef_str = '-----'
+  show_lords = .false.
 
   ! get command line switches
 
@@ -1148,23 +1149,12 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-blank_string', stuff2(1:ix)) == 1 .and. ix > 2) then
+    elseif (index('-blank_replacement', stuff2(1:ix)) == 1 .and. ix > 2) then
       call string_trim(stuff2(ix+1:), stuff2, ix)
-      output_str_for_blank_str = stuff2(1:ix)
-
-    ! '-lords' just prints lor info
+      replacement_for_blank = stuff2(1:ix)
 
     elseif (index('-lords', stuff2(1:ix)) == 1 .and. ix > 1) then
-      nl=nl+1; lines(nl) = 'Lord Elements:'
-      do ie = lat%n_ele_track+1, lat%n_ele_max
-        if (.not. picked_ele(ie)) cycle
-        if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
-        ele => lat%ele(ie)
-        nl=nl+1
-        write (lines(nl), '(i6, 1x, a24, 1x, a16, f10.3, 2(f7.2, f8.3, f5.1, f8.3))') &
-              ie, ele%name, key_name(ele%key)
-      enddo
-      return
+      show_lords = .true.
 
     elseif (index('-middle', stuff2(1:ix)) == 1 .and. ix > 1) then
       at_ends = .false.
@@ -1217,6 +1207,7 @@ case ('lattice')
 
   if (allocated (picked_ele)) deallocate (picked_ele)
   allocate (picked_ele(0:branch%n_ele_max))
+  if (show_lords) picked_ele = .true.
 
   if (by_s) then
     ix = index(stuff2, ':')
@@ -1244,14 +1235,7 @@ case ('lattice')
   elseif (stuff2(1:ix) == '*' .or. all_lat) then
     picked_ele = .true.
 
-  elseif (ix == 0) then
-    picked_ele = .true.
-    if (size(picked_ele) > 200) then
-      picked_ele(201:) = .false.
-      limited = .true.
-    endif
-
-  else
+  elseif (ix /= 0) then
     call tao_locate_elements (stuff2, u%ix_uni, eles, err, .true.)
     if (err) return
     picked_ele = .false.
@@ -1259,7 +1243,34 @@ case ('lattice')
       picked_ele(eles(i)%ele%ix_ele) = .true.
     enddo
 
+  elseif (.not. show_lords) then
+    picked_ele = .true.
+    if (size(picked_ele) > 200) then
+      picked_ele(201:) = .false.
+      limited = .true.
+    endif
+
   endif
+
+  ! If showing lord elements
+
+  if (show_lords) then
+    nl=nl+1; lines(nl) = 'Lord Elements:'
+    nl=nl+1; lines(nl) = ' Index  Name                            Class             Lord_type'
+
+    do ie = lat%n_ele_track+1, lat%n_ele_max
+      if (.not. picked_ele(ie)) cycle
+      if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
+      ele => lat%ele(ie)
+      nl=nl+1; write (lines(nl), '(i6, 2x, a30, 2x, a16, 2x, a12)') &
+               ie, ele%name, key_name(ele%key), control_name(ele%lord_status)
+    enddo
+    deallocate(picked_ele)
+    result_id = 'lat_lords'
+    return
+  endif
+
+  !
 
   if (at_ends) then
     write (line1, '(6x, a)') 'Model values at End of Element:'
@@ -1382,7 +1393,7 @@ case ('lattice')
 
       elseif (name == 'ele::#[type]') then
         if (ele%type == '') then
-          write (line(nc:), column(i)%format, iostat = ios) output_str_for_blank_str
+          write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
         else
           write (line(nc:), column(i)%format, iostat = ios) ele%type
         endif

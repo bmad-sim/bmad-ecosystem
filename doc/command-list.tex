@@ -1004,8 +1004,8 @@ Format:
   show hom
   show key_bindings
   show lattice \{-all_tracking\} \{-0undef\} \{-branch <branch>\} \{-custom <file_name>\} 
-         \{-lords\} \{-middle\} \{-no_label_lines\} 
-         \{-no_tail_lines\} \{-s <s1>:<s2>\} \{<elements>\} 
+         \{-lords\} \{-middle\} \{-no_label_lines\} \{-blank_replacement <string>\} 
+         \{-no_tail_lines\} \{-s <s1>:<s2>\} \{<elements>\}
   show optimizer
   show particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
   show particle -lost \{<bunch_index>\}
@@ -1190,9 +1190,9 @@ Shows all key bindings.
 
 \item[\protect\parbox{6in}{
   show lattice \{-all\_tracking\} \{-0undef\} \{-branch <branch>\} \{-custom <file\_name>\} \\
-  \hspace*{0.35in} \{-lords\} \{-middle\} \{-no\_label\_lines\} \\
+  \hspace*{0.35in} \{-lords\} \{-middle\} \{-no\_label\_lines\} \{-blank_replacement <string>\} \\
   \hspace*{0.35in} \{-no\_tail\_lines\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
-Shows Twiss and orbit data for the \vn{model} lattice at the specified
+Shows Twiss and orbit data, etc. for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
@@ -1276,7 +1276,17 @@ If an attribute does not exist for a given element (for example,
 Additionally, an arithmetic expression that results in a divide by
 zero will result in dashes being printed. This behavior is changed if
 the \vn{-0undef} switch is present. In this case, a zero, ``0'', will
-be printed.
+be printed. 
+
+Additionally, The \vn{-blank_replacement <string>} switch specifies
+that whenever a blank string is encountered (for example, the
+\vn{type} attribute for an element can be blank), \vn{<string>} should
+be substituted in its place. \vn{<string>} may not contain any blank
+characters. Example:
+\begin{example}
+  show lat -cust custom.file -blank -- 1:100
+\end{example}
+This will replace any blank fields with ``--''.
 
 Note: Data can be used in custom output but data is always evaluated at
 the exit end of an element even when the \vn{-middle} switch is used.
