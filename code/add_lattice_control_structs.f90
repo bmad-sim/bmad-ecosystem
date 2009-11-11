@@ -51,13 +51,21 @@ subroutine add_lattice_control_structs (lat, ele)
     if (n_con2 > size(lat%control)) call reallocate_control(lat, nint(1.2*n_con2)+10)
     lat%control(lat%n_control_max+1:) = control_struct(0.0_rp, 0, 0, 0, 0)
 
-    if (i2 < 0) then
+    ! If no existing slaves of this lord then just put the new lat%control elements
+    ! at the end of the array.
+
+    if (i2 < 0) then  
       ele%ix1_slave = n_con + 1
       ele%ix2_slave = n_con + n_add
+      lat%control(n_con+1:n_con+n_add)%ix_lord = ele%ix_ele
+
+    ! Else we need to make room in lat%control for the new slaves by moving
+    ! a slice of lat%control.
+
     else
       lat%control(i2+1+n_add:n_con+n_add) = lat%control(i2+1:n_con)
       lat%control(i2+1:i2+n_add)%ix_lord = ele%ix_ele
-      lat%control(i2+1:i2+n_add)%ix_slave = 0
+      lat%control(i2+1:i2+n_add)%ix_slave = -1
       lat%control(i2+1:i2+n_add)%ix_branch = 0
       lat%control(i2+1:i2+n_add)%ix_attrib = 0
       lat%control(i2+1:i2+n_add)%coef = 0

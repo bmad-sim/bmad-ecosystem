@@ -20,7 +20,7 @@ use lat_ele_loc_mod, except_dummy => check_lat_controls
 implicit none
      
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, slave, lord, lord2
+type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2
 type (branch_struct), pointer :: branch
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
@@ -282,22 +282,28 @@ do i_b = 0, ubound(lat%branch, 1)
           call out_io (s_fatal$, r_name, &
                     'DUPLICATE SUPER_SLAVES: ', trim(lat%ele(ix1)%name) // '  (\i0)', &
                     'FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                    i_array = (/ ii, i_t /) )
+                    i_array = (/ ix1, i_t /) )
           found_err = .true.
         endif
       enddo
     endif
 
-    ! The slaves of a multipass_lord must must be in order
+    ! The ultimate slaves of a multipass_lord must must be in order
 
     if (l_stat == multipass_lord$) then
-      do i = ele%ix1_slave+1, ele%ix2_slave
-        if (lat%control(i)%ix_slave <= lat%control(i-1)%ix_slave) then
+      do i = 2, ele%n_slave
+        slave1 => pointer_to_slave(lat, ele, i-1)
+        if (slave1%lord_status == super_lord$) slave1 => pointer_to_slave(lat, slave1, 1)
+        slave2 => pointer_to_slave(lat, ele, i)
+        if (slave2%lord_status == super_lord$) slave2 => pointer_to_slave(lat, slave2, 1)
+
+        if (slave2%ix_ele <= slave1%ix_ele) then
           call out_io (s_fatal$, r_name, &
-                    'SLAVE OF A MULTIPASS_LORD: ' // trim(lat%ele(i)%name) // '  (\i0\)', &
-                    'IS OUT OF ORDER IN THE LORD LIST', &
+                    'SLAVES OF A MULTIPASS_LORD: ' // trim(slave1%name) // '  (\i0\)', &
+                    '                          : ' // trim(slave2%name) // '  (\i0\)', &
+                    'ARE OUT OF ORDER IN THE LORD LIST', &
                     'FOR MULTIPASS_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                    i_array = (/ ii, i_t /) )
+                    i_array = (/ slave1%ix_ele, slave2%ix_ele, i_t /) )
           found_err = .true.
         endif
       enddo

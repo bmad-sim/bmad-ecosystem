@@ -2555,10 +2555,10 @@ subroutine add_this_multipass (lat, ixm, lord_in)
 implicit none
 
 type (lat_struct) lat
-type (ele_struct), pointer :: slave, lord, slave2
+type (ele_struct), pointer :: slave, lord, slave2, lord2
 type (ele_struct), optional :: lord_in
 
-integer i, j, k, n, ix, ixc, ixic, ix_lord, ix_slave
+integer i, j, k, n, i1, ix, ixc, ixic, ix_lord, ix_slave
 integer n_multipass, ixm(:), ic, ix_l1, ix_l0
 
 ! Count slaves.
@@ -2604,18 +2604,22 @@ do i = 1, n_multipass
   slave%slave_status = multipass_slave$
   ixic = slave%ic1_lord
   lat%ic(ixic) = ixc
-  ! If slave is a super_lord then mark the super_slave names
-  do j = slave%ix1_slave, slave%ix2_slave  
-    ix = lat%control(j)%ix_slave
-    slave2 => lat%ele(ix)
-    slave2%name = ''
-    do k = slave2%ic1_lord, slave2%ic2_lord
-      ix_l1 = lat%control(lat%ic(k))%ix_lord
-      ic = lat%ele(ix_l1)%ic1_lord
-      ix_l0 = lat%control(lat%ic(ic))%ix_lord
-      slave2%name = trim(slave2%name) // trim(lat%ele(ix_l0)%name) // '\'     ! '
-    enddo
-    write (slave2%name, '(a, i1)') trim(slave2%name), i  
+  ! If slave is a super_lord then create the appropriate super_slave names
+  i1 = 0
+  do j = 1, slave%n_slave
+    slave2 => pointer_to_slave(lat, slave, j)
+    if (slave2%n_lord == 1) then
+      i1 = i1 + 1
+      write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '#', i1, '\', i      ! '
+    else
+      slave2%name = ''
+      do k = 1, slave2%n_lord
+        lord2 => pointer_to_lord(lat, slave2, k)
+        lord2 => pointer_to_lord(lat, lord2, 1)
+        slave2%name = trim(slave2%name) // trim(lord2%name) // '\'     ! '
+      enddo
+      write (slave2%name, '(a, i0)') trim(slave2%name), i  
+    endif
   enddo
 enddo
 
@@ -2759,7 +2763,7 @@ do
 
       ! Put in the superposition at the multipass locations.
       ! Since elements get shuffled around tag the superimposed elements 
-      !     with a dummy name to identify them later.
+      !     with a temp_name! to identify them later.
 
       i = 0  ! Element index
       j = 0  ! Number of superpositions done.
@@ -2769,7 +2773,7 @@ do
         j = j + 1
         call compute_super_lord_s (lat, i, super_ele, pele)
         call add_superimpose (lat, super_ele, i_sup)
-        lat%ele(i_sup)%name = 'dummy name'
+        lat%ele(i_sup)%name = 'temp_name!'
       enddo
 
       ! Remove any multipass_lord drifts that no longer do anything.
@@ -2799,7 +2803,7 @@ do
 
       j = 0
       do i = 1, lat%n_ele_max
-        if (lat%ele(i)%name == 'dummy name') then
+        if (lat%ele(i)%name == 'temp_name!') then
           lat%ele(i)%name = super_ele_saved%name
           j = j + 1
           ixs(j) = i

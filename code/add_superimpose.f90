@@ -37,7 +37,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   real(rp) s1, s2, length, s1_lat, s2_lat
 
-  integer i, j, jj, k, ix, n, i2, ic, n_con
+  integer i, j, jj, k, ix, n, i2, ic, n_con, ixs
   integer ix1_split, ix2_split, ix_super, ix_super_con
   integer ix_slave, ixn, ixc, ix_1lord, n_ele_max_old
 
@@ -104,7 +104,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     ix_super = ix1_split + 1
     lat%ele(ix_super)%lord_status  = not_a_lord$
     lat%ele(ix_super)%slave_status = free$
-    call adjust_slave_names (lat, n_ele_max_old)
+    call adjust_super_slave_names (lat, n_ele_max_old+1, lat%n_ele_max)
     return
   endif
 
@@ -214,8 +214,43 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     return
   endif
 
-  ! Only possibility left means we have to set up a super_lord element for the
-  ! superposition
+  ! Only possibility left means we have to set up a super_lord element 
+  ! representing the superimposed element for the superposition...
+
+  ! First: It is not legal for an element to be simultaneously a multipass_slave and a super_slave.
+  ! Thus if the elements to be superimposed upon are multipass_slaves,
+  ! we need to make them super_slaves and create a corresponding super_lord.
+
+  do i = ix1_split+1, ix2_split
+    slave => lat%ele(i)
+    if (slave%slave_status == multipass_slave$) then
+      ! Create a lord for this multipass_slave
+      call new_control(lat, ixs)
+      slave => lat%ele(i) ! need this if lat%ele was reallocated
+      lord => lat%ele(ixs)
+      lord = slave
+      lord%lord_status = super_lord$
+      ! Point control info to this new lord
+      do j = 1, lat%n_control_max
+        if (lat%control(j)%ix_slave == i) lat%control(j)%ix_slave = ixs
+      enddo
+      ! Now put in the info to make the original element a super_slave
+      lord%n_slave = 1
+      call add_lattice_control_structs (lat, lord)
+      ix = lord%ix1_slave
+      lat%control(ix)%ix_slave = i
+      slave%slave_status = super_slave$
+      slave%name = trim(slave%name) // '#1'
+      slave%n_lord = 1
+      slave%ic1_lord = 0   ! So add_lattice_control_structs does the right thing
+      slave%ic2_lord = -1  ! So add_lattice_control_structs does the right thing
+      call add_lattice_control_structs (lat, slave)
+      ic = slave%ic1_lord
+      lat%ic(ic) = ix
+    endif
+  enddo
+
+  ! Now to create the superimposed element super_lord.
 
   ix_super = lat%n_ele_max + 1
   lat%n_ele_max = ix_super
@@ -349,7 +384,7 @@ subroutine add_superimpose (lat, super_ele, ix_super)
 
   call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
   call order_super_lord_slaves (lat, ix_super)
-  call adjust_slave_names (lat, n_ele_max_old)
+  call adjust_super_slave_names (lat, n_ele_max_old+1, lat%n_ele_max)
 
 end subroutine
 
@@ -379,9 +414,12 @@ end subroutine
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Adjust the names of the slaves
+!+
+! Subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord)
+!
+! Routine to adjust the names of the slaves
 
-subroutine adjust_slave_names (lat, n_ele_max_old)
+subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord)
 
 use bmad_struct
 
@@ -389,13 +427,19 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave
-integer n_ele_max_old
-integer i, j, k, ix, ix_1lord
+integer ix1_lord, ix2_lord
+integer i, j, k, ix, ix_1lord, ix1, ix2
 character(40) name
 
 !
 
-do i = n_ele_max_old+1, lat%n_ele_max
+!! ix1 = integer_optional(lat%n_ele_track+1, ix1_lord)
+!! ix2 = integer_optional(lat%n_ele_max, ix1_lord)
+
+ix1 = ix1_lord
+ix2 = ix2_lord
+
+do i = ix1, ix2
   lord => lat%ele(i)
   if (lord%lord_status /= super_lord$) cycle
   ix_1lord = 0

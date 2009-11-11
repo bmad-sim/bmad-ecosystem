@@ -51,7 +51,7 @@ type (seq_struct), save, target :: sequence(1000)
 type (ele_struct), pointer :: beam_ele, param_ele, beam_start_ele
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct) plat
-type (ele_struct), save, pointer :: ele
+type (ele_struct), save, pointer :: ele, slave
 type (ele_struct), allocatable, save :: old_ele(:) 
 type (used_seq_struct), allocatable ::  used_line(:)
 
@@ -62,6 +62,7 @@ integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, ixm(100)
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0
 integer, pointer :: n_max
+integer, allocatable :: iele(:)
 
 character(*) lat_file
 character(*), optional :: use_line
@@ -922,6 +923,49 @@ else
   if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
 endif
 
+! If drifts have been split due to superimpose then the split drifts
+! can have some very convoluted names. Also multipass lord drifts. Here we do some cleanup.
+! Collect all free elements with the same name before the '#' and renumber.
+
+n = 0
+allocate (iele(100))
+
+do i = 1, lat%n_ele_max
+
+  ele => lat%ele(i)
+  if (ele%slave_status /= free$ .and. ele%lord_status /= multipass_lord$) cycle
+  ix = index(ele%name, '#')
+  if (ix == 0) cycle
+
+  found = .false.
+  do j = 1, n
+    if (in_name(j) == ele%name(1:ix-1)) then
+      ele%ixx = lat%ele(iele(j))%ixx + 1
+      iele(j) = i
+      write (ele%name, '(a, i0)') ele%name(1:ix), ele%ixx
+      found = .true.
+      exit
+    endif
+  enddo
+
+  if (.not. found) then
+    n = n + 1
+    if (n > size(iele)) call re_allocate(iele, n + 100)
+    in_name(n) = ele%name(1:ix-1)
+    iele(n) = i
+    ele%ixx = 1
+    write (ele%name, '(a, i0)') ele%name(1:ix), ele%ixx
+  endif
+  
+  if (ele%lord_status == multipass_lord$) then
+    do k = 1, ele%n_slave
+      slave => pointer_to_slave(lat, ele, k)
+      write (slave%name, '(2a, i0)') trim(ele%name), '\', k  ! '
+    enddo
+  endif
+
+enddo 
+
 !-------------------------------------------------------------------------
 ! write out if debug is on
 
@@ -971,6 +1015,8 @@ if (logic_option (.true., do_dealloc)) then
       deallocate(sequence(i)%ele)
     endif
   enddo
+
+  if (allocated(iele)) deallocate (iele)
 
   if (associated (in_lat%ele))     call deallocate_lat_pointers (in_lat)
   if (associated (plat%ele))       deallocate (plat%ele)

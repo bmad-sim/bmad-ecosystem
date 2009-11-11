@@ -40,7 +40,7 @@ subroutine lat_geometry (lat)
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, lord, slave
 type (branch_struct), pointer :: branch
 
 integer i, n, ix2, ie
@@ -70,15 +70,18 @@ do n = 1, ubound(lat%branch, 1)
 
 enddo
 
-! put info in superimpose lords
+! put info in super_lords and multipass_lords
 
 do i = lat%n_ele_track+1, lat%n_ele_max  
-  ele => lat%ele(i)
-  if (ele%key == super_lord$) then
-    ix2 = ele%ix2_slave
-    ie = lat%control(ix2)%ix_slave
-    ele%floor = lat%ele(ie)%floor
-  endif
+  lord => lat%ele(i)
+  select case (lord%lord_status)
+  case (super_lord$)
+    slave => pointer_to_slave(lat, lord, lord%n_slave) ! Last slave is at exit end.
+    lord%floor = slave%floor
+  case (multipass_lord$)
+    slave => pointer_to_slave(lat, lord, 1)
+    lord%floor = slave%floor
+  end select
 enddo
 
 end subroutine

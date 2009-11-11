@@ -2,7 +2,10 @@
 ! Subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat
-! if the split would create a "runt" element with length less than 1um
+! if the split would create a "runt" element with length less than 1 um.
+!
+! split_lat will create a super_lord element if needed and will redo the 
+! appropriate bookkeeping for lords and slaves. 
 !
 ! Note: split_lat does NOT call make_mat6. The Twiss parameters are also
 !       not recomputed.
@@ -162,7 +165,7 @@ endif
 
 ix_super_lord = 0   ! no super lord made yet.
 
-! a free drift needs nothing more.
+! A free drift needs nothing more.
 
 if (ele%key == drift$ .and. ele%slave_status == free$) goto 8000
 
@@ -221,12 +224,9 @@ endif   ! split element is a super_slave
 ! Here if a free or overlay element
 ! Need to make a super lord to control the split elements.
 
-ix_super_lord = lat%n_ele_max + 1
-if (ix_super_lord > ubound(lat%ele, 1)) then
-  call allocate_lat_ele_array(lat)
-  ele1 => lat%ele(ix_split)
-  ele2 => lat%ele(ix_split+1)
-endif            
+call new_control (lat, ix_super_lord)
+ele1 => lat%ele(ix_split)
+ele2 => lat%ele(ix_split+1)
 lat%n_ele_max = ix_super_lord
 lat%ele(ix_super_lord) = ele
 lat%ele(ix_super_lord)%lord_status = super_lord$
