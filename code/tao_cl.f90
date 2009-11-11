@@ -20,7 +20,7 @@ subroutine tao_cl (prompt_string)
   type (tao_super_universe_struct), pointer :: s_ptr  ! For debug purposes
   type (tao_common_struct), pointer :: t_ptr          ! For debug purposes
 
-  character(100) cmd_line
+  character(200) cmd_line
   character(16) :: r_name = 'tao_cl'
   character(*), optional :: prompt_string
 
