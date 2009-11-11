@@ -1035,7 +1035,7 @@ case ('momentum_compaction')
     value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
   enddo
-  call load_it (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call load_it (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
@@ -1205,7 +1205,7 @@ case ('r.')
     value_vec(k) = mat6(i, j)
     if (k /= ix_ele) mat6 = matmul(branch%ele(k+1)%mat6, mat6)
   enddo
-  call load_it (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call load_it (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
 
