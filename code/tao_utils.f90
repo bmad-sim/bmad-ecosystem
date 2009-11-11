@@ -2427,10 +2427,11 @@ subroutine tao_parse_command_args (error, cmd_words)
       call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
       call out_io (s_blank$, r_name, (/ &
           'Switches:                  ', &
+          '  -beam_all <beam_all_file>', &
+          '  -beam0 <beam_init_file>  ', &
           '  -init <tao_init_file>    ', &
           '  -lat <bmad_lattice_file> ', &
-          '  -beam_all <beam_all_file>', &
-          '  -beam0 <beam_init_file>  ' /) )
+          '  -noplot                  ' /) )
       error = .true.
       return
     end select
