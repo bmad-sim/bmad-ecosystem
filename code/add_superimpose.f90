@@ -160,6 +160,21 @@ subroutine add_superimpose (lat, super_ele, ix_super)
     super_saved%value(l$) = lat%ele(ix2_split)%s - lat%ele(ix1_split)%s
   endif
 
+  ! zero length elements at the edges of the superimpose region can be excluded
+  ! from the region
+
+  do 
+    if (lat%ele(ix1_split+1)%value(l$) /= 0) exit
+    ix1_split = ix1_split + 1
+    if (ix1_split > lat%n_ele_track) ix1_split = 0
+  enddo
+
+  do
+    if (lat%ele(ix2_split)%value(l$) /= 0) exit
+    ix2_split = ix2_split - 1
+    if (ix2_split == -1) ix2_split = lat%n_ele_track
+  enddo
+
   ! If there are null_ele elements in the superimpose region then just move them
   ! out of the way to the lord section of the lattice. This prevents unnecessary
   ! splitting.
