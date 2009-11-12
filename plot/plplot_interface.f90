@@ -40,19 +40,25 @@ type viewport_size
 end type
 
 type pl_interface_struct
+  character(16) page_type
   type (viewport_size) :: graph_pos
   integer :: i_chan = -1
   integer :: fill_style
   integer :: line_width
   integer :: line_style
   real(rp) :: char_size
+  real(rp) :: sym_size
   integer :: fg_color
   logical :: clip
   real(rp) page_scale
+  real(rp) x_inch_page
+  real(rp) y_inch_page
+  real(rp) x_inch_to_mm
+  real(rp) y_inch_to_mm
 end type
 
-type (pl_interface_struct), target, save, private :: pl_interface_com
-type (pl_interface_struct), save, private :: pl_interface_save_com(10)
+type (pl_interface_struct), target, save, private :: pl_com
+type (pl_interface_struct), save, target, private :: pl_interface_save_com(10)
 integer, save, private :: i_save = 0
 real(rp), parameter, private :: point_to_mm_conv = .25   !approximate
 
@@ -75,30 +81,32 @@ contains
 subroutine qp_set_graph_position_basic (x1, x2, y1, y2)
 
   implicit none
-  real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2, f
+  real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m, xp1, xp2, yp1, yp2, fx, fy
 
   !
 
   if (x1 == x2 .or. y1 == y2) return
 
-  f = 25.4 * pl_interface_com%page_scale
-  x1m = x1 * f
-  x2m = x2 * f
-  y1m = y1 * f
-  y2m = y2 * f
+  fx = pl_com%x_inch_to_mm 
+  fy = pl_com%y_inch_to_mm 
 
-  call plsvpa (x1m, x2m, y1m, y2m)
-  call plwind (x1m, x2m, y1m, y2m)
+  x1m = x1 * fx
+  x2m = x2 * fx
+  y1m = y1 * fy
+  y2m = y2 * fy
 
-  pl_interface_com%graph_pos%x1 = x1m
-  pl_interface_com%graph_pos%x2 = x2m
-  pl_interface_com%graph_pos%y1 = y1m
-  pl_interface_com%graph_pos%y2 = y2m
+  pl_com%graph_pos%x1 = x1m
+  pl_com%graph_pos%x2 = x2m
+  pl_com%graph_pos%y1 = y1m
+  pl_com%graph_pos%y2 = y2m
 
-  if (.not. pl_interface_com%clip) then
-     call plgspa(xp1, xp2, yp1, yp2)
-     call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)
-     call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1)
+  if (.not. pl_com%clip) then
+     call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
+     call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
+     call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
+  else
+    call plsvpa (x1m, x2m, y1m, y2m)  ! Set viewport in abs coords
+    call plwind (x1m, x2m, y1m, y2m)  ! Set world coords
   endif
 
 end subroutine
@@ -134,7 +142,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
         
-  h = height * pl_interface_com%page_scale
+  h = height * pl_com%page_scale / 3  ! 3 => conversion from points to mm.
 
   if (uniform_size) then
 
@@ -168,11 +176,10 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
 
   endif
 
-  call plschr(0.0_rp,h)
-  call plgchr(d,dum)
+  ! Set symbol size and save this state.
 
-  !Save this state
-  pl_interface_com%char_size = h*d
+  call plssym(h, 1.0_rp)  ! Set symbol scale factor in mm.
+  pl_com%sym_size = h
 
 end subroutine
 
@@ -209,7 +216,7 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_t
 
   call qp_save_state_basic              ! Buffer the following calls
 
-!  f = pl_interface_com%page_scale
+!  f = pl_com%page_scale
 
   call qp_set_color_basic(color, page_type)    ! Set color index to background
 
@@ -223,11 +230,11 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_t
   end select
 
   if (fill_pattern == no_fill$) then
-    call plline (4, 25.4 * (/ x1, x2, x2, x1 /), &
-                    25.4 * (/ y1, y1, y2, y2 /))      ! No fill
+    call plline (4, pl_com%x_inch_to_mm * (/ x1, x2, x2, x1 /), &
+                    pl_com%y_inch_to_mm * (/ y1, y1, y2, y2 /))      ! No fill
   else
-    call plfill (4, 25.4 * (/ x1, x2, x2, x1 /), &
-                    25.4 * (/ y1, y1, y2, y2 /))      ! color the box
+    call plfill (4, pl_com%x_inch_to_mm * (/ x1, x2, x2, x1 /), &
+                    pl_com%y_inch_to_mm * (/ y1, y1, y2, y2 /))      ! color the box
   endif
 
   call qp_restore_state_basic                 ! Flush the buffer.
@@ -253,7 +260,7 @@ subroutine qp_set_symbol_fill_basic (fill)
   call plpsty (fill)       ! set fill
 
   !Save this state
-  pl_interface_com%fill_style = fill
+  pl_com%fill_style = fill
 
 end subroutine
 
@@ -276,7 +283,7 @@ subroutine qp_set_line_width_basic (line_width)
   call plwid (line_width) ! set line width
 
   !Save this state
-  pl_interface_com%line_width = line_width
+  pl_com%line_width = line_width
 
 end subroutine
 
@@ -299,7 +306,7 @@ subroutine qp_set_line_style_basic (style)
   call pllsty (style)       ! Set style
 
   !Save this state
-  pl_interface_com%line_style = style
+  pl_com%line_style = style
 
 end subroutine
 
@@ -320,21 +327,21 @@ subroutine qp_set_clip_basic (clip)
   implicit none
   logical :: clip
   real(rp) xp1, xp2, yp1, yp2
+  type(viewport_size), pointer :: gp
+
+  !
 
   if (.not. clip) then
-     call plgspa(xp1, xp2, yp1, yp2)
-     call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)
-     call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1)
-
-     pl_interface_com%clip = clip
+     call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
+     call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
+     call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
   else
-     call plsvpa (pl_interface_com%graph_pos%x1, pl_interface_com%graph_pos%x2, &
-             pl_interface_com%graph_pos%y1, pl_interface_com%graph_pos%y2)
-     call plwind (0.0_rp, pl_interface_com%graph_pos%x2-pl_interface_com%graph_pos%x1, &
-             0.0_rp, pl_interface_com%graph_pos%y2-pl_interface_com%graph_pos%y1)
-
-     pl_interface_com%clip = clip
+    gp => pl_com%graph_pos
+    call plsvpa (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set viewport in abs coords
+    call plwind (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set wold coords
   endif
+
+   pl_com%clip = clip
 
 end subroutine
 
@@ -354,12 +361,12 @@ subroutine qp_set_char_size_basic (height)
   implicit none
   real(rp) height, d, h
 
-  !call plschr(pl_interface_com%default_cs, height)
+  !call plschr(pl_com%default_cs, height)
   call plschr(0.0_rp, height)
   call plgchr(d,h)
 
   !Save this state
-  pl_interface_com%char_size = height*d
+  pl_com%char_size = height*d
 
 end subroutine
 
@@ -452,8 +459,8 @@ subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   t_len = len_trim(text2)*h
   dx = cos(angle*pi/180)
   dy = sin(angle*pi/180)
-  x0m = x0 * 25.4 - 0.5*h*dy  ! x0, y0 specify coordinates of text baseline
-  y0m = y0 * 25.4 + 0.5*h*dx  ! but plptex needs the coordinates of the midline
+  x0m = x0 * pl_com%x_inch_to_mm - 0.5*h*dy  ! x0, y0 specify coordinates of text baseline
+  y0m = y0 * pl_com%y_inch_to_mm + 0.5*h*dx  ! but plptex needs the coordinates of the midline
 
   call plptex (x0m, y0m, dx, dy, justify, trim(text2))
 
@@ -478,8 +485,8 @@ subroutine qp_draw_symbol_basic (x, y, symbol)
   real(rp) x, y, xm, ym
   integer symbol
   
-  xm = x * 25.4
-  ym = y * 25.4
+  xm = x * pl_com%x_inch_to_mm
+  ym = y * pl_com%y_inch_to_mm
 
   call plpoin (1, xm, ym, symbol)
 end subroutine
@@ -500,7 +507,7 @@ subroutine qp_save_state_basic
 
   i_save = i_save + 1
 
-  pl_interface_save_com(i_save) = pl_interface_com
+  pl_interface_save_com(i_save) = pl_com
  
 end subroutine
 
@@ -515,46 +522,44 @@ end subroutine
 
 subroutine qp_restore_state_basic ()
   implicit none
-  real(rp) a,b,c,d,def,dum,xp1,xp2,yp1,yp2
-  integer style, fill, width, color, state
+  type(viewport_size), pointer :: gp
+  type (pl_interface_struct), pointer :: pl_ptr
+  real(rp) def,dum,xp1,xp2,yp1,yp2
 
-  state = i_save
-  
+  !
+
+  pl_ptr => pl_interface_save_com(i_save)  
+
   call plgchr(def,dum)
-  call plschr(def,(pl_interface_save_com(i_save)%char_size)/def)
+  call plschr(def,(pl_ptr%char_size)/def)
 
-  fill = pl_interface_save_com(i_save)%fill_style
-  if(fill /= 0) then
-     call plpsty(pl_interface_save_com(i_save)%fill_style)
+  call plssym(pl_ptr%sym_size, 1.0_rp)  ! Set symbol scale factor
+
+  if(pl_ptr%fill_style /= 0) then
+     call plpsty(pl_ptr%fill_style)
   endif
 
-  width = pl_interface_save_com(i_save)%line_width
-  call plwid(pl_interface_save_com(i_save)%line_width)
+  call plwid(pl_ptr%line_width)
   
-  style = pl_interface_save_com(i_save)%line_style
-  if(style /= 0) then
-     call pllsty(pl_interface_save_com(i_save)%line_style)
+  if(pl_ptr%line_style /= 0) then
+     call pllsty(pl_ptr%line_style)
   endif
 
-  color = pl_interface_save_com(i_save)%fg_color
-  call plcol0(pl_interface_save_com(i_save)%fg_color)
+  call plcol0(pl_ptr%fg_color)
 
-  if (pl_interface_save_com(i_save)%clip) then
-    a = pl_interface_save_com(i_save)%graph_pos%x1
-    b = pl_interface_save_com(i_save)%graph_pos%x2
-    c = pl_interface_save_com(i_save)%graph_pos%y1
-    d = pl_interface_save_com(i_save)%graph_pos%y2
-    if (a /= b .and. c /= d) then
-      call plsvpa (a,b,c,d)
-      call plwind (0.0_rp, b-a, 0.0_rp, d-c)
+  if (pl_ptr%clip) then
+    gp => pl_ptr%graph_pos
+    if (gp%x1 /= gp%x2 .and. gp%y1 /= gp%y2) then
+      call plsvpa (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set viewport in abs coords
+      call plwind (gp%x1, gp%x2, gp%y1, gp%y2)  ! Set world coords
     endif
   else
-    call plgspa(xp1, xp2, yp1, yp2)
-    call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)
-    call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1)
+    call plgspa(xp1, xp2, yp1, yp2)               ! Get current subpage in mm
+    call plvpor(0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! Set viewport in normalized coords.
+    call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
   endif
   
-  pl_interface_com = pl_interface_save_com(i_save)
+  pl_com = pl_interface_save_com(i_save)
   i_save = i_save - 1
 
   call plflush()
@@ -600,11 +605,11 @@ subroutine qp_set_color_basic (ix_color, page_type)
   !if (page_type == 'GIF') then
     !call plcol0 (inverse_color(ix_color))
     !Save this state
-     !pl_interface_com%fg_color = inverse_color(ix_color)
+     !pl_com%fg_color = inverse_color(ix_color)
   !else
     call plcol0 (ix_color)
     !Save this state
-    pl_interface_com%fg_color = ix_color
+    pl_com%fg_color = ix_color
   !endif
 
 end subroutine
@@ -620,7 +625,11 @@ end subroutine
 
 subroutine qp_clear_page_basic
   implicit none
-  call plclear()
+  ! plclear should work but does not.
+  ! So also call qp_clear_box_basic which does the job.
+  call plclear()  
+  call qp_clear_box_basic (0.0_rp, pl_com%x_inch_page, &
+                           0.0_rp, pl_com%y_inch_page, pl_com%page_type)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -634,8 +643,8 @@ end subroutine
 ! Units are inches from lower left of page.
 !
 ! Input:
-!   x1, y1 -- Real(rp): Bottom left corner of box.
-!   x2, y2 -- Real(rp): Upper right corner of box.
+!   x1, y1 -- Real(rp): Bottom left corner of box in inches.
+!   x2, y2 -- Real(rp): Upper right corner of box in inches.
 !   page_type -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
@@ -644,23 +653,23 @@ subroutine qp_clear_box_basic (x1, x2, y1, y2, page_type)
   implicit none
 
   real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m
-  real(rp) :: x_vec(0:3)
-  real(rp) :: y_vec(0:3)
+  real(rp) :: x_vec(0:4)
+  real(rp) :: y_vec(0:4)
   character(*) page_type
 
-  x1m = 25.4 * x1
-  x2m = 25.4 * x2
-  y1m = 25.4 * y1
-  y2m = 25.4 * y2
+  x1m = pl_com%x_inch_to_mm * x1
+  x2m = pl_com%x_inch_to_mm * x2
+  y1m = pl_com%y_inch_to_mm * y1
+  y2m = pl_com%y_inch_to_mm * y2
 !
   call qp_save_state_basic              ! Buffer the following calls
 
   call qp_set_color_basic(0, page_type) ! Set color index to background
-  call plpsty(8)                        ! Set fill-area style to solid
+  call plpsty(0)                        ! Set fill-area style to solid
   
-  x_vec = (/x1m, x2m, x1m, x2m/)
-  y_vec = (/y1m, y1m, y2m, y2m/)
-  call plfill (4, x_vec, y_vec)         ! Fills a polygon with 4 vertices
+  x_vec = (/x1m, x2m, x2m, x1m, x1m/)
+  y_vec = (/y1m, y1m, y2m, y2m, y1m/)
+  call plfill (5, x_vec, y_vec)         ! Fills a polygon with 4 vertices
   
   call qp_restore_state_basic           ! Flush the buffer.
 
@@ -695,8 +704,8 @@ subroutine qp_draw_polyline_basic (x, y)
     call err_exit
   endif
   
-  xm = 25.4 * x
-  ym = 25.4 * y
+  xm = pl_com%x_inch_to_mm * x
+  ym = pl_com%y_inch_to_mm * y
 
   if (size(x) < 2) return
   call plline (size(x), xm, ym)
@@ -740,13 +749,16 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   implicit none
 
+  type (pl_interface_struct), pointer :: pl_ptr
+
   real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
   real(rp), optional :: page_scale
 
   integer, optional :: i_chan
-  integer plsdev, iw, ix, xp, yp
+  integer plsdev, iw, ix, xp, yp, ix_len, iy_len
 
   character(*) page_type, plot_file
+  character(40) geom
   character(16) :: r_name = 'qp_open_page_basic'
 
   integer, parameter :: red(0:15) = (/255, 0, 255, 0, 0, 0, 255, 255, 255, 127&
@@ -759,7 +771,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! set plot type
 
   if (page_type == 'X') then
-    iw = plsdev ('xwin')
+    iw = plsdev ('tk')
   elseif (page_type == 'PS') then
     iw = plsdev ('psc')
   elseif (page_type == 'PS-L') then
@@ -789,9 +801,15 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set color map
   call plscmap0(red, green, blue, 16)
 
-! Set size of x-window
+! Set size of x-window.
+! Work around for bug in plplot-5.9.5 is to set the geometry
+
   if (page_type == 'X') then
-     call plspage (0.0_rp, 0.0_rp, nint(100*x_len), nint(100*y_len), 0, 0)
+    ix_len = nint(85*x_len)
+    iy_len = nint(85*y_len)
+    call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+    write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
+    call plsetopt ("geometry", trim(geom))
   endif
 
 ! Initialize plplot
@@ -805,19 +823,18 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
      call plsdiori(1.0_rp)
   endif
 
-  call plvpor (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)  ! viewport to entire page
-  call plgspa(x1i,x2i,y1i,y2i)
-  call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max
+  call plvpor (0.0_rp, 1.0_rp, 0.0_rp, 1.0_rp)   ! viewport to entire page
+  call plgspa(x1i,x2i,y1i,y2i)                   ! Get current subpage in mm.
+  call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
 
 ! Get page size info.
-  call plgvpw(x1i,x2i,y1i,y2i)      !in mm
-  x_page = (x2i-x1i)*.03937               !convert to inches
-  y_page = (y2i-y1i)*.03937
+  call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
   if (page_type == 'X') then
-     call plschr(.7*point_to_mm_conv, 1.0_rp)
+    !! call plschr(.7*point_to_mm_conv, 1.0_rp)
+    call plschr(point_to_mm_conv, 1.0_rp)
   else
-     call plschr(point_to_mm_conv, 1.0_rp)
+    call plschr(point_to_mm_conv, 1.0_rp)
   endif
 
   call plgchr(d, h)
@@ -825,16 +842,34 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Remember plot area parameters
 
   i_save = i_save + 1
+  pl_ptr => pl_interface_save_com(i_save)
 
-  pl_interface_save_com(i_save)%graph_pos%x1 = 0
-  pl_interface_save_com(i_save)%graph_pos%x2 = x2i
-  pl_interface_save_com(i_save)%graph_pos%y1 = 0
-  pl_interface_save_com(i_save)%graph_pos%y2 = y2i
-  pl_interface_save_com(i_save)%i_chan = iw
-  pl_interface_save_com(i_save)%char_size = d*h
-  pl_interface_save_com(i_save)%page_scale = real_option(1.0_rp, page_scale)
+  pl_ptr%graph_pos%x1 = 0
+  pl_ptr%graph_pos%x2 = x2i
+  pl_ptr%graph_pos%y1 = 0
+  pl_ptr%graph_pos%y2 = y2i
+  pl_ptr%i_chan = iw
+  pl_ptr%char_size = d*h
+  pl_ptr%sym_size = 10
+  pl_ptr%page_scale = real_option(1.0_rp, page_scale)
+  pl_ptr%page_type = page_type
 
-  pl_interface_com = pl_interface_save_com(i_save)
+  if (page_type == 'X') then
+    pl_ptr%x_inch_to_mm = pl_ptr%page_scale * x2i / x_len
+    pl_ptr%y_inch_to_mm = pl_ptr%page_scale * y2i / y_len
+    x_page = x_len
+    y_page = y_len
+  else
+    pl_ptr%x_inch_to_mm = pl_ptr%page_scale * 25.4
+    pl_ptr%y_inch_to_mm = pl_ptr%page_scale * 25.4
+    x_page = (x2i-x1i) / 25.4         ! convert to inches
+    y_page = (y2i-y1i) / 25.4
+  endif
+
+  pl_ptr%x_inch_page = x_page
+  pl_ptr%y_inch_page = y_page
+
+  pl_com = pl_ptr
 
   call qp_set_clip_basic(.false.)
 
@@ -859,8 +894,8 @@ subroutine qp_select_page_basic (iw)
   do i = 1, size(pl_interface_save_com)
     if (pl_interface_save_com(i)%i_chan == iw) then
       pl_interface_save_com(i_save) = pl_interface_save_com(i)
-      pl_interface_save_com(i) = pl_interface_com
-      pl_interface_com = pl_interface_save_com(i_save)
+      pl_interface_save_com(i) = pl_com
+      pl_com = pl_interface_save_com(i_save)
       return
     endif
   enddo
@@ -880,7 +915,7 @@ end subroutine
 subroutine qp_close_page_basic
   implicit none
   call plend()
-  if (i_save /= 0) pl_interface_com = pl_interface_save_com(i_save)
+  if (i_save /= 0) pl_com = pl_interface_save_com(i_save)
 end subroutine
 
 end module
