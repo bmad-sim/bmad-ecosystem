@@ -654,22 +654,22 @@ case ('bpm_k.12b')
 case ('bpm_cbar.22a')
   if (data_source == 'beam') return ! bad
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
-  datum_value = bpm_data%k_22a
+  datum_value = bpm_data%cbar22_a
 
 case ('bpm_cbar.12a')
   if (data_source == 'beam') return ! bad
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
-  datum_value = bpm_data%k_12a
+  datum_value = bpm_data%cbar12_a
 
 case ('bpm_cbar.11b')
   if (data_source == 'beam') return ! bad
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
-  datum_value = bpm_data%k_11b
+  datum_value = bpm_data%cbar11_b
 
 case ('bpm_cbar.12b')
   if (data_source == 'beam') return ! bad
   call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
-  datum_value = bpm_data%k_12b
+  datum_value = bpm_data%cbar12_b
 
 case ('cbar.11')
   if (data_source == 'beam') return
