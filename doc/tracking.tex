@@ -371,13 +371,17 @@ end program
 \caption{Example program showing macroparticle tracking.}
 \end{figure}
 
-Macroparticles are particles that also have an associated size. 
-See \sref{s:macro} for more details. Note: Macroparticles where implemented 
-into \bmad when bunch tracking was first introduced. Macroparticles have the
-theoretical advantage over particle tracking since the number of macroparticles
-needed to characterize a bunch is smaller. However, transport of the macroparticle
-sigma matrix adds complexity and recent development in \bmad in terms of tracking
-bunches have generally focused on straight particle tracking (\sref{s:part.track}).
+Macroparticles are particles that also have an associated size.  See
+\sref{s:macro} for more details. Note: Macroparticles where
+implemented into \bmad when bunch tracking was first
+introduced. Macroparticles have the theoretical advantage over
+particle tracking since the number of macroparticles needed to
+characterize a bunch is smaller. However, transport of the
+macroparticle sigma matrix adds complexity and it is not clear if
+macroparticles are a useful construct and in fact, is not in
+use. \textbf{At this time macroparticle tracking is not supported and
+will not be supported until there is a need.} Instead particle
+distribution tracking {s:part.track} is used.
 
 The definition of the \vn{macro_struct} structure that defines a
 macroparticle is shown in Figure~\ref{f:macro.struct}.  
