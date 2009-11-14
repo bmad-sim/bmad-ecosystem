@@ -191,8 +191,7 @@ endif
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
-tao_com%lattice_recalc = .true.
-s%u%universe_recalc = .true.
+s%u%lattice_recalc = .true.
 call tao_lattice_calc (calc_ok) 
 
 do i = lbound(s%u, 1), ubound(s%u, 1)

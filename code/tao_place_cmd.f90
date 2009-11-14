@@ -83,7 +83,7 @@ do i = 1, size(region%plot%graph)
     endif
     u => s%u(tao_universe_number(curve%ix_universe))
     if (.not. allocated(u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam%bunch)) then
-      tao_com%lattice_recalc = .true.
+      u%lattice_recalc = .true.
       u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%save_beam = .true.
     endif
   enddo

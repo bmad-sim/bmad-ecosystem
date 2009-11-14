@@ -130,6 +130,7 @@ if (.not. is_set .and. init_file /= '') then
     s%u(i)%connect%connected = .false.
     s%u(i)%connect%match_to_design = .false.
     s%u(i)%connect%from_uni = -1
+    s%u(i)%connect%to_uni = -1
     s%u(i)%connect%from_uni_s = -1
     s%u(i)%connect%from_uni_ix_ele = -1
   enddo
@@ -297,6 +298,7 @@ endif
   
 u_to%connect%connected = .true.
 u_to%connect%from_uni = connect%from_universe
+u_from%connect%to_uni = to_universe
 
 call init_ele (u_to%connect%match_ele)
 u_to%connect%match_ele%key = match$

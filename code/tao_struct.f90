@@ -546,7 +546,6 @@ type tao_common_struct
   logical :: cmd_from_cmd_file = .false.               ! was command from a command file?
   logical :: use_saved_beam_in_tracking = .false.
   logical :: single_mode = .false.
-  logical :: lattice_recalc = .true.         ! recalculate the lattice?
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
   character(100) :: cmd                                ! Used for the cmd history
@@ -567,7 +566,8 @@ end type
 type tao_connected_uni_struct
   logical connected       ! This universe is injected from another
   logical match_to_design ! match the design lattices
-  integer from_uni        ! The universe whose beam injects into this universe
+  integer to_uni          ! The universe to which we inject from this universe.
+  integer from_uni        ! The universe that injects into this universe
   integer from_uni_ix_ele ! element index where the connection occurs
   real(rp) from_uni_s     ! s position in from_uni where the connection occurs
   type (ele_struct) :: match_ele ! element used to match universes
@@ -656,7 +656,7 @@ type tao_universe_struct
   logical do_chrom_calc
   logical is_on                          ! universe turned on
   logical calc_beam_emittance            ! for a lat calculate emittance
-  logical universe_recalc                ! Allows for fine control of lattice calculations
+  logical lattice_recalc                 ! Used to indicate which lattices need tracking done.
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
   logical picked_uni                     ! Scratch logical.
 end type

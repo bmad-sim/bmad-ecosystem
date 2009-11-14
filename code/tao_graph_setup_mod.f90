@@ -560,7 +560,8 @@ do k = 1, size(graph%curve)
   endif
 
   if (tao_com%common_lattice) then
-    call tao_lattice_calc (ok, u%ix_uni)
+    u%lattice_recalc = .true.
+    call tao_lattice_calc (ok)
   endif
 
   model_lat => u%model%lat

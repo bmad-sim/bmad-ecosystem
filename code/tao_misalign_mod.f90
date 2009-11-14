@@ -151,37 +151,37 @@ logical, allocatable, save :: action_logic(:)
   
   ! set misalignment
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (which_univ(i)) then
-      do j = 1, s%u(i)%model%lat%n_ele_max
-        if (found_double) then
-          found_double = .false.
-          cycle
-        endif
-        if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1) .and. action_logic(j)) then
-          call find_ele_and_ref_ele (wrt_what, i, j, ref_ele, ele)
-          if (.not. attribute_free (j, 0, ele_attrib, s%u(i)%model%lat)) cycle
-          if (rel_error) then
-            if (rel_sbend_error_flag) then
-              ele%value(ix_attrib) = ref_ele%value(g$) * gauss_err() * misalign_value_num
-            else
-              ele%value(ix_attrib) = ref_ele%value(ix_attrib) * (1 + gauss_err() * misalign_value_num)
-            endif
+    if (.not. which_univ(i)) cycle
+    do j = 1, s%u(i)%model%lat%n_ele_max
+      if (found_double) then
+        found_double = .false.
+        cycle
+      endif
+      if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1) .and. action_logic(j)) then
+        call find_ele_and_ref_ele (wrt_what, i, j, ref_ele, ele)
+        if (.not. attribute_free (j, 0, ele_attrib, s%u(i)%model%lat)) cycle
+        if (rel_error) then
+          if (rel_sbend_error_flag) then
+            ele%value(ix_attrib) = ref_ele%value(g$) * gauss_err() * misalign_value_num
           else
-            ele%value(ix_attrib) = ref_ele%value(ix_attrib) + gauss_err() * misalign_value_num
+            ele%value(ix_attrib) = ref_ele%value(ix_attrib) * (1 + gauss_err() * misalign_value_num)
           endif
-          if (j .eq. s%u(i)%model%lat%n_ele_max) exit
-          if (s%u(i)%model%lat%ele(j+1)%key .eq. ix_key(1) .and. action_logic(j)) then
-            call find_ele_and_ref_ele (wrt_what, i, j+1, ref_ele, ele2)
-            ! Found Woodley double
-            ele2%value(ix_attrib) = ele%value(ix_attrib)
-            found_double = .true.
-          endif
-        end if
-      end do
-    end if
+        else
+          ele%value(ix_attrib) = ref_ele%value(ix_attrib) + gauss_err() * misalign_value_num
+        endif
+        if (j .eq. s%u(i)%model%lat%n_ele_max) exit
+        if (s%u(i)%model%lat%ele(j+1)%key .eq. ix_key(1) .and. action_logic(j)) then
+          call find_ele_and_ref_ele (wrt_what, i, j+1, ref_ele, ele2)
+          ! Found Woodley double
+          ele2%value(ix_attrib) = ele%value(ix_attrib)
+          found_double = .true.
+        endif
+      end if
+    end do
+
+    s%u(i)%lattice_recalc = .true.
   end do
 
-  tao_com%lattice_recalc = .true.
 
   999 continue
   

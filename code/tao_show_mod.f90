@@ -375,7 +375,7 @@ case ('beam')
     beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
-      call calc_bunch_params (bunch, lat%ele(ix_ele), bunch_params, err)
+      call calc_bunch_params (bunch, lat%ele(ix_ele), lat%param, bunch_params, err)
       n_live = bunch_params%n_live_particle
       n_tot = size(bunch%particle)
 
@@ -869,7 +869,8 @@ case ('element')
   endif
 
   if (tao_com%common_lattice) then
-    call tao_lattice_calc (ok, ix_u)
+    s%u(ix_u)%lattice_recalc = .true.
+    call tao_lattice_calc (ok)
   endif
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
             .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms)
@@ -1826,15 +1827,24 @@ case ('universe')
   if (len_trim(word1) > 1 .and. index('-connections', trim(word1)) == 1) then
     do i = lbound(s%u, 1), ubound(s%u, 1)
       u => s%u(i)
-      if (.not. u%connect%connected) cycle
-      n = u%connect%from_uni_ix_ele
-      ix_u = u%connect%from_uni
-      nl=nl+1; write (lines(nl), imt) 'Connection into universe:', i
-      nl=nl+1; write (lines(nl), imt) 'Connection from universe:', ix
-      nl=nl+1; write (lines(nl), '(3a, i0, a)') '  From element:    ', &
-                                    trim(s%u(ix_u)%model%lat%ele(n)%name), ' (# ', n, ')'
-      nl=nl+1; write (lines(nl), '(a, f10.2)')  '  From s:          ', u%connect%from_uni_s
-      nl=nl+1; write (lines(nl), '(a, l1)')     '  Match_to_design: ', u%connect%match_to_design
+      nl=nl+1; write (lines(nl), imt) 'For universe:', i
+      if (u%connect%connected) then
+        n = u%connect%from_uni_ix_ele
+        ix_u = u%connect%from_uni
+        nl=nl+1; write (lines(nl), imt) '  Injection from universe:', ix_u
+        nl=nl+1; write (lines(nl), '(3a, i0, a)') '  From element:    ', &
+                                      trim(s%u(ix_u)%model%lat%ele(n)%name), ' (# ', n, ')'
+        nl=nl+1; write (lines(nl), '(a, f10.2)')  '  From s:          ', u%connect%from_uni_s
+        nl=nl+1; write (lines(nl), '(a, l1)')     '  Match_to_design: ', u%connect%match_to_design
+      else
+        nl=nl+1; write (lines(nl), '(a)') '  No injection into this universe.'
+      endif
+      if (u%connect%to_uni > 0) then
+        nl=nl+1; write (lines(nl), '(a, i0)') '  Injection from this universe to universe: ', &
+                                                                           u%connect%to_uni 
+      else
+        nl=nl+1; write (lines(nl), '(a)') '  No injection from this universe'
+      endif
       nl=nl+1; lines(nl) = ''
     enddo
     if (nl > 1) nl = nl - 1  ! Erase last blank line.

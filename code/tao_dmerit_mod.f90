@@ -128,7 +128,6 @@ do j = 1, s%n_var_used
     call err_exit
   endif
   model_value = s%var(j)%model_value
-  s%u(:)%universe_recalc = .false.  ! Only do minimal calc.
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
   merit_value = tao_merit (calc_ok)
 

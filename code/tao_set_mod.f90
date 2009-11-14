@@ -85,7 +85,7 @@ end select
 select case (source_lat)
   case ('model')
     ! make sure model data is up to date
-    tao_com%lattice_recalc = .true.
+    u%lattice_recalc = .true.
     call tao_lattice_calc (calc_ok)
     source1_lat => u%model
     source_data => u%data%model_value
@@ -193,7 +193,7 @@ if (err) return
 
 if (ios == 0) then
   s%global = global
-  if (trim(who) == 'track_type') tao_com%lattice_recalc = .true.
+  if (trim(who) == 'track_type') s%u%lattice_recalc = .true.
 else
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
 endif
@@ -330,7 +330,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   if (ios == 0) then
     u%uni_branch(ix_branch)%beam_init = beam_init
-    tao_com%lattice_recalc = .true.
+    u%lattice_recalc = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
     return
@@ -555,7 +555,7 @@ end select
 if (this_graph%type == 'phase_space') then
   uni_branch => s%u(i_uni)%uni_branch(i_branch)
   if (.not. uni_branch%ele(this_curve%ix_ele_ref)%save_beam) then
-    tao_com%lattice_recalc = .true.
+    s%u(i_uni)%lattice_recalc = .true.
     uni_branch%ele(this_curve%ix_ele_ref)%save_beam = .true.
   endif
 endif
@@ -590,7 +590,7 @@ type (tao_graph_array_struct), allocatable, save :: graph(:)
 character(*) graph_name, component, set_value
 character(20) :: r_name = 'tao_set_graph_cmd'
 
-integer i, j, ios, i_uni
+integer i, j, ios
 logical err
 
 !
@@ -619,14 +619,13 @@ contains
 subroutine set_this_graph (this_graph)
 
 type (tao_graph_struct) this_graph
+type (tao_universe_struct), pointer :: u
 character(40) comp
 integer iset, iw, ix
 logical logic, error
 
 !
 
-i_uni = this_graph%ix_universe
-if (i_uni == 0) i_uni = s%global%u_view
 comp = component
 
 select case (comp)
@@ -671,7 +670,8 @@ select case (comp)
     
 end select
 
-tao_com%lattice_recalc = .true.
+u => tao_pointer_to_universe(this_graph%ix_universe)
+u%lattice_recalc = .true.
 
 end subroutine
 end subroutine
@@ -1004,7 +1004,7 @@ integer i, n_uni
 character(*) uni, who, what
 character(20) :: r_name = "tao_set_universe_cmd"
 
-logical is_on, err, recalc, mat6_toggle
+logical is_on, err, mat6_toggle
 
 
 ! Pick universe
@@ -1032,10 +1032,11 @@ if (index('mat6_recalc', trim(who)) == 1) then
   endif
   if (uni == '*') then
     s%u(:)%mat6_recalc_on = is_on
+    if (is_on) s%u(:)%lattice_recalc = .true.
   else
     s%u(n_uni)%mat6_recalc_on = is_on
+    if (is_on) s%u(n_uni)%lattice_recalc = .true.
   endif
-  tao_com%lattice_recalc = .true.
   return
 endif
   
@@ -1046,22 +1047,23 @@ if (what /= '') then
   return
 endif
 
-
-recalc = .false.
+if (index('recalculate', trim(who)) == 1) then
+  if (uni == '*') then
+    s%u(:)%lattice_recalc = .true.
+  else
+    s%u(n_uni)%lattice_recalc = .true.
+  endif
+  return
+endif
 
 if (who == 'on') then
   is_on = .true.
-  recalc = .true.
 elseif (who == 'off') then
   is_on = .false.
-elseif (index('recalculate', trim(who)) == 1) then
-  recalc = .true.
 else
   call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', or 'mat6_recalc")
   return
 endif
-
-!
 
 if (uni == '*') then
   call out_io (s_blank$, r_name, "Setting all universes to: " // on_off_logic(is_on))
@@ -1071,10 +1073,7 @@ else
   call out_io (s_blank$, r_name, "Setting universe \i0\ to: " // on_off_logic(is_on), n_uni)
 endif
 
-! make sure lattice calculation is up to date if turning lattice on
-
 call tao_set_data_useit_opt()
-if (recalc) tao_com%lattice_recalc = .true.
   
 end subroutine tao_set_uni_cmd
 

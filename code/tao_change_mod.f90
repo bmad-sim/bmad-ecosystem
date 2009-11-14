@@ -308,12 +308,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
+  u%lattice_recalc = .true.
+
 enddo
 
 !----------------------------------
 ! print results
 
-tao_com%lattice_recalc = .true.
 new_merit = tao_merit()
 
 if (max(abs(old_merit), abs(new_merit)) > 100) then

@@ -359,11 +359,11 @@ case ('reinitialize')
   case ('beam') 
     do i = lbound(s%u, 1), ubound(s%u, 1)
       s%u(i)%uni_branch(:)%init_beam0 = .true.
+      s%u(i)%lattice_recalc = .true.
     enddo
-    tao_com%lattice_recalc = .true.
 
   case ('data') 
-    tao_com%lattice_recalc = .true.
+    s%u(:)%lattice_recalc = .true.
 
   case ('tao') 
 

@@ -13,35 +13,26 @@ use beam_mod
 use random_mod
 use rad_int_common
 
-!
-
-type (tao_lattice_struct), pointer :: this_bunch_track_lat ! for save_bunch_track routine
-
 contains
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lattice_calc (calc_ok, ix_uni)
+! Subroutine tao_lattice_calc (calc_ok)
 !
 ! Routine to calculate the lattice functions and TAO data. 
 ! Always tracks through the model lattice. 
 ! If initing the design lattices then the tracking will still be done
 ! through the model lattices. tao_init then transfers this into the
 ! design lattices.
-! 
-! Input:
-!   ix_uni      -- Integer, optional: If present then calculation is restricted to
-!                   the universe with this index.
-!                   If present, tao_com%lattice_recalc will be ignored.
 !
 ! Output:
 !   calc_ok -- Logical: Set False if there was an error in the 
 !                calculation like a particle was lost or a lat is unstable.
 !-
 
-subroutine tao_lattice_calc (calc_ok, ix_uni)
+subroutine tao_lattice_calc (calc_ok)
 
 implicit none
 
@@ -51,48 +42,30 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
-integer, optional :: ix_uni
-integer i, j, k, ix, n_max, it, id
+integer i, j, k, ix, n_max, iu, it, id
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
 
-logical :: calc_ok, recalc
-logical this_calc_ok
+logical calc_ok, this_calc_ok
 
 !
 
 calc_ok = .true.
 
-! To save time, tao_com%lattice_recalc and s%u(:)%universe_recalc are used to
-! determine what gets calculated. 
-! If ix_uni is not present, the lattice functions of universe i are calculated
-! if (tao_com%lattice_reclac = True and s%u(i)%universe_recalc = True. 
-
 ! do a custom lattice calculation if desired
 
 if (.not. s%global%lattice_calc_on) return
 
-recalc = tao_com%lattice_recalc .or. present(ix_uni)
-if (.not. recalc) return
-
 tao_com%ix_ref_taylor = -1   ! Reset taylor map
 call tao_hook_lattice_calc (calc_ok)
     
-! Closed orbit and Twiss calculation.
-! This can be slow for large lattices so only do it if the lattice changed.
+! To save time, s%u(:)%lattice_recalc are used to determine what gets calculated. 
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  if (present(ix_uni)) then
-    if (i /= ix_uni) cycle
-  endif
 
   u => s%u(i)
-  if (u%connect%connected) then
-    if (s%u(u%connect%from_uni)%universe_recalc) u%universe_recalc = .true.
-  endif
-
-  if (.not. u%is_on .or. .not. u%universe_recalc) cycle
+  if (.not. u%is_on .or. .not. u%lattice_recalc) cycle
 
   ! Pointer to appropriate lattice and zero data array
 
@@ -186,13 +159,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     enddo
   endif
 
+  ! Mark this lattice as done and mark any connected to universe as needing a calculation.
+
+  u%lattice_recalc = .false.
+  iu = u%connect%to_uni
+  if (iu > -1) s%u(iu)%lattice_recalc = .true.
+
 enddo
 
 ! do any post-processing
 
 call tao_hook_post_process_data ()
-tao_com%lattice_recalc = .false.
-s%u%universe_recalc = .true.
 
 call tao_set_var_useit_opt
 call tao_set_data_useit_opt
@@ -323,7 +300,6 @@ logical post, calc_ok, too_many_lost, print_err, err, lost
 
 ! Initialize moment structure
 
-this_bunch_track_lat => tao_lat
 tao_lat%n_bunch_params2 = 0
 
 !
@@ -367,17 +343,15 @@ call zero_lr_wakes_in_lat (lat)
 ! Find if injecting into another lattice
 
 extract_at_ix_ele = -1
-do i_uni_to = u%ix_uni+1, ubound(s%u, 1)
-  if (.not. s%u(i_uni_to)%connect%connected) cycle
-  if (s%u(i_uni_to)%connect%from_uni /= u%ix_uni) cycle
+i_uni_to = u%connect%to_uni
+if (i_uni_to > -1) then
   if (s%u(i_uni_to)%connect%from_uni_ix_ele == -1) then
     call out_io (s_abort$, r_name, &
          "Must specify an element when connecting lattices with a beam.")
     call err_exit
   endif
   extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
-  exit ! save i_uni_to for connected universe
-enddo
+endif
 
 ! If beam is injected into this lattice then no initialization wanted.
 
@@ -399,7 +373,7 @@ if (.not. u%connect%connected) then
                           'BOTH BEAM_INIT%A_NORM_EMITT AND %B_NORM_EMITT NOT SET!')
         call err_exit
       endif
-      call init_beam_distribution (lat%ele(extract_at_ix_ele), &
+      call init_beam_distribution (lat%ele(extract_at_ix_ele), lat%param, &
                                beam_init, s%u(i_uni_to)%connect%injecting_beam)
     endif
     ! no beam tracking in circular lattices
@@ -462,7 +436,7 @@ do j = ie1, ie2
   n_alive_old = n_alive
 
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
-                             lat%ele(j), lat_branch%bunch_params(j), err, print_err)
+                     lat%ele(j), lat%param, lat_branch%bunch_params(j), err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, model$) 
 
@@ -771,7 +745,8 @@ if (.not. u%connect%connected) then
     endif
     beam_init = uni_branch%beam_init
     if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-    call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), beam_init, uni_branch%beam0)
+    call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
+                                      model%lat%param, beam_init, uni_branch%beam0)
     call tao_find_beam_centroid (uni_branch%beam0, orb0, too_many_lost)
     if (too_many_lost) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
@@ -916,57 +891,3 @@ if (u%mat6_recalc_on) call make_mat6 (connection_ele, &
 end subroutine  tao_match_lats_init
  
 end module tao_lattice_calc_mod
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!+
-! Subroutine save_bunch_track (bunch, ele, s_travel)
-!
-! Custom routine to record bunch statistics.
-! This routine is called by the bmad routine track1_bunch_csr.
-!-
-
-subroutine save_bunch_track (bunch, ele, s_travel)
-
-use tao_lattice_calc_mod
-
-implicit none
-
-type (tao_lattice_struct), pointer :: t_lat
-type (bunch_params_struct), allocatable, save :: tm(:)
-type (bunch_struct) bunch
-type (ele_struct) ele
-
-real(rp) s_travel
-integer n
-
-logical err
-
-! Make sure we have room in the array for the data
-
-t_lat => this_bunch_track_lat
-n = t_lat%n_bunch_params2
-
-if (allocated(t_lat%bunch_params2)) then
-  if (n+1 > size(t_lat%bunch_params2)) then
-    allocate(tm(n))
-    tm = t_lat%bunch_params2
-    deallocate (t_lat%bunch_params2)
-    allocate (t_lat%bunch_params2(max(10, 2*n)))
-    t_lat%bunch_params2(1:n) = tm
-    deallocate (tm)
-  endif
-
-else
-  allocate(t_lat%bunch_params2(10))
-endif
-
-!
-
-n = n + 1
-t_lat%n_bunch_params2 = n
-t_lat%bunch_params2(n)%s = ele%s - ele%value(l$) + s_travel
-call calc_bunch_params (bunch, ele, t_lat%bunch_params2(n), err)
-
-end subroutine

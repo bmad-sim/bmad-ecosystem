@@ -1917,13 +1917,11 @@ do i = 1, size(var%this)
   ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
   call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, ele, t%model_value)
   if (tao_com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
-    s%u(:)%universe_recalc = .true.
+    s%u(:)%lattice_recalc = .true.
   else
-    s%u(t%ix_uni)%universe_recalc = .true.
+    s%u(t%ix_uni)%lattice_recalc = .true.
   endif
 enddo
-
-tao_com%lattice_recalc = .true.
 
 end subroutine tao_set_var_model_value
 
@@ -2782,14 +2780,15 @@ do i = 1, size(s%plot_region)
       if ((index(curve%data_type, 'emit.') /= 0) .and. &
                         curve%data_source == 'lat') do_synch = .true. 
       if (curve%data_type(1:8) == 'rad_int.') do_synch = .true.
+
+      if (do_synch .and. .not. u%do_synch_rad_int_calc) then
+        u%do_synch_rad_int_calc = .true. 
+        u%lattice_recalc = .true.
+      endif
+
     enddo
   enddo
 enddo
-
-if (do_synch .and. .not. u%do_synch_rad_int_calc) then
-  u%do_synch_rad_int_calc = .true. 
-  tao_com%lattice_recalc = .true.
-endif
 
 end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting
 
