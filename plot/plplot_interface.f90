@@ -914,6 +914,7 @@ end subroutine
 
 subroutine qp_close_page_basic
   implicit none
+  call plspause(0)  ! Disable end of page pause
   call plend()
   if (i_save /= 0) pl_com = pl_interface_save_com(i_save)
 end subroutine
