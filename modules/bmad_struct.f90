@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 90
+integer, parameter :: bmad_inc_version$ = 91
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -221,7 +221,7 @@ type ele_struct
                              !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
-  integer coupler_at         ! Lcavity coupler location: exit_end$, ...
+  integer aperture_type      ! rectangular$, or elliptical$
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
@@ -439,7 +439,7 @@ integer, parameter :: s_offset_tot$=45  ! Assumed unique. Do not overload.
 integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
 integer, parameter :: coupler_phase$ = 47, c_12$ = 47
 integer, parameter :: coupler_angle$ = 48, c_21$ = 48
-integer, parameter :: c_22$ = 49, pole_radius$ = 48
+integer, parameter :: c_22$ = 49, pole_radius$ = 49, coupler_at$ = 49
 integer, parameter :: ds_step$ = 50, gamma_c$ = 50
 integer, parameter :: general1$ = 51   ! For general use
 integer, parameter :: general2$ = 52   ! For general use
@@ -470,7 +470,7 @@ integer, parameter :: start_edge$ =73, eta_y$ = 73
 integer, parameter :: end_edge$ =74, etap_x$ = 74
 integer, parameter :: accordion_edge$ =75, etap_y$ = 75
 integer, parameter :: lattice$ = 76, phi_a$ = 76
-integer, parameter :: coupler_at$ = 77, phi_b$ = 77
+integer, parameter :: aperture_type$ = 77, phi_b$ = 77
 integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78
 integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
 integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80
@@ -703,11 +703,14 @@ end type
 
 type (synch_rad_common_struct), save :: synch_rad_com
 
-real(rp), parameter :: rad_fluct_const = 1.3231 * r_e * h_bar_planck * c_light / m_electron
+real(rp), parameter :: rad_fluct_const = 1.3231 * r_e * h_bar_planck * c_light
 
 integer, parameter :: not_lost$ = -1
 
-integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3
+integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ = 4
+
+integer, parameter :: rectangular$ = 1, elliptical$ = 2
+character(16) :: shape_name(0:2) = ['garbage!   ', 'Rectangular', 'Elliptical ']
 
 !------------------------------------------------------------------------------
 ! common stuff

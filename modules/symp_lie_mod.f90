@@ -122,16 +122,14 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) then
 
-  gamma_0 = ele%value(E_TOT$) / m_electron
+  gamma_0 = ele%value(E_TOT$) / mass_of(param%particle)
 
   fact_d = 0
   if (bmad_com%radiation_damping_on) fact_d = 2 * r_e * gamma_0**3 * ds / 3
 
   fact_f = 0
   if (bmad_com%radiation_fluctuations_on) then
-!    call ran_gauss (this_ran)
-!    fact_f = sqrt(rad_fluct_const * ele%value(l$) * gamma_0**5) * this_ran / n_step
-    fact_f = sqrt(rad_fluct_const * ds * gamma_0**5) 
+    fact_f = sqrt(rad_fluct_const * ds * gamma_0**5 / mass_of(param%particle)) 
   endif
 
 endif

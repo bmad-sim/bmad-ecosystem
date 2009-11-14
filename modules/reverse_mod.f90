@@ -164,10 +164,10 @@ subroutine reverse_ele (ele)
 ! Flip coupler limit position
 
   if (ele%key == lcavity$) then
-    if (ele%coupler_at == entrance_end$) then
-      ele%coupler_at = exit_end$
-    elseif (ele%coupler_at == exit_end$) then
-      ele%coupler_at = entrance_end$
+    if (nint(ele%value(coupler_at$)) == entrance_end$) then
+      ele%value(coupler_at$) = exit_end$
+    elseif (nint(ele%value(coupler_at$)) == exit_end$) then
+      ele%value(coupler_at$) = entrance_end$
     endif
   endif
 

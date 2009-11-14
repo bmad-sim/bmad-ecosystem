@@ -311,17 +311,19 @@ case (lcavity$)
     dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
     dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
 
-    if (ele%coupler_at == both_ends$) then
+    if (nint(ele%value(coupler_at$)) == both_ends$) then
       dp_x_coupler = dp_x_coupler / 2
       dp_y_coupler = dp_y_coupler / 2
     endif
 
-    if (ele%coupler_at == entrance_end$ .or. ele%coupler_at == both_ends$) then
+    if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
+        nint(ele%value(coupler_at$)) == both_ends$) then
       mat6(:,5) = mat6(:,5) + &
           (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
     endif
 
-    if (ele%coupler_at == exit_end$ .or. ele%coupler_at == both_ends$) then
+    if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
+        nint(ele%value(coupler_at$)) == both_ends$) then
       mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
       mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end
     endif
@@ -896,13 +898,13 @@ case (accel_sol$)
       phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) 
       mat6(6,5) = ele%value(voltage$) * cos(phase) *  &
                     twopi / ele%value(rf_wavelength$) /ele%value(p0c$)
-      c_e = ele%value(voltage$) * sin(phase) / (m_electron * length)
+      c_e = ele%value(voltage$) * sin(phase) / (mass_of(param%particle) * length)
     endif
   else
     c_e = 0.0
   endif
-  c_m = param%particle * c_light * ele%value(b_z$) / m_electron
-  gamma_old = ele%value(p0c$) * rel_p / m_electron
+  c_m = param%particle * c_light * ele%value(b_z$) / mass_of(param%particle)
+  gamma_old = ele%value(p0c$) * rel_p / mass_of(param%particle)
   gamma_new = gamma_old + c_e * length
 !!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
 !!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)
@@ -1000,7 +1002,7 @@ call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 call bbi_kick (x_pos+del, y_pos, ratio, k1_x, garbage)
 call bbi_kick (x_pos, y_pos+del, ratio, garbage, k1_y)
 
-bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
+bbi_const = -param%n_part * mass_of(param%particle) * ele%value(charge$) * r_e /  &
                     (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
 coef = bbi_const / (ele%value(n_slice$) * del * (1 + orb%vec(6)))

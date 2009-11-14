@@ -428,6 +428,7 @@ do i = 1, n_key
   attrib_array(i, y2_limit$)              = 'Y2_LIMIT'
   attrib_array(i, aperture$)              = 'APERTURE'
   attrib_array(i, aperture_at$)           = 'APERTURE_AT'
+  attrib_array(i, aperture_type$)         = 'APERTURE_TYPE'
   attrib_array(i, offset_moves_aperture$) = 'OFFSET_MOVES_APERTURE'
   attrib_array(i, mat6_calc_method$)      = 'MAT6_CALC_METHOD'
   attrib_array(i, tracking_method$)       = 'TRACKING_METHOD'
@@ -597,10 +598,10 @@ attrib_array(lcavity$, lr_wake_file$)     = 'LR_WAKE_FILE'
 attrib_array(lcavity$, field_calc$)       = 'FIELD_CALC'
 attrib_array(lcavity$, field_master$)     = 'FIELD_MASTER'
 attrib_array(lcavity$, lr_freq_spread$)   = 'LR_FREQ_SPREAD'
-attrib_array(lcavity$, coupler_at$)       = 'COUPLER_AT'
 attrib_array(lcavity$, coupler_strength$) = 'COUPLER_STRENGTH'
 attrib_array(lcavity$, coupler_angle$)    = 'COUPLER_ANGLE'
 attrib_array(lcavity$, coupler_phase$)    = 'COUPLER_PHASE'
+attrib_array(lcavity$, coupler_at$)       = 'COUPLER_AT'
 attrib_array(lcavity$, gradient_err$)     = 'GRADIENT_ERR'
 attrib_array(lcavity$, phi0_err$)         = 'PHI0_ERR'
 
@@ -933,7 +934,10 @@ end subroutine init_attribute_name_array
 !+
 ! Function attribute_type (attrib_name) result (attrib_type)
 !
-! Routine to return the type (logical, integer, or real) of an attribute.
+! Routine to return the type (logical, integer, real, or named) of an attribute.
+!
+! If this is a named attribute, attribute_value_name can be used to print the 
+! name corresponding to the attribute's value.
 !
 ! Modules needed:
 !   use bmad
@@ -942,7 +946,8 @@ end subroutine init_attribute_name_array
 !   attrib_name -- Character(*): Name of the attribute. Must be upper case.
 !
 ! Output:
-!   attrib_type  -- Integer: is_logical$, is_integer$, or is_real$
+!   attrib_type  -- Integer: Attribute type: 
+!                     is_logical$, is_integer$, is_real$, or is_name$
 !-
 
 function attribute_type (attrib_name) result (attrib_type)
@@ -957,13 +962,86 @@ integer attrib_type
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER')
   attrib_type = is_logical$
-case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'N_POLE', 'DIRECTION', 'IX_BRANCH_TO')
+case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'N_POLE', 'DIRECTION', &
+      'IX_BRANCH_TO')
   attrib_type = is_integer$
+case ('COUPLER_AT', 'ATTRIBUTE_TYPE')
+  attrib_type = is_name$
 case default
   attrib_type = is_real$
 end select
 
 end function attribute_type 
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_value_name (attrib_name, attrib_value, ele, 
+!                                     is_default) result (attrib_val_name)
+!
+! Routine to return the name corresponding to the value of a given attribute.
+!
+! Optionally, this routine can determine if the attribute value corresponds 
+! to the default value. That is, the value that the attribute would have if 
+! not specified in the lattice file.
+!
+! Use the routine attribute_type to first test if the type of the attribute
+! corresponds to is_name$. 
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   attrib_name  -- Character(*): Name of the attribute. Must be upper case.
+!   attrib_value -- Real(rp): Value of the attribute.
+!   ele          -- ele_struct, optional: Lattice element that the attribute is contained in.
+!                     This argument is only needed if is_default is present.
+!
+! Output:
+!   attrib_val_name -- Character(40): Name corresponding to the value.
+!   is_default      -- Logical, optional: If True then the value of the attiribute
+!                        corresponds to the default value. If this argument is
+!                        present, the ele argument must also be present.
+!-
+
+function attribute_value_name (attrib_name, attrib_value, ele, &
+                                     is_default) result (attrib_val_name)
+
+implicit none
+
+type (ele_struct), optional :: ele
+character(*) attrib_name
+real(rp) attrib_value
+character(40) attrib_val_name
+character(24) :: r_name = 'attribute_value_name'
+logical, optional :: is_default
+
+!
+
+select case (attrib_name)
+
+case ('COUPLER_AT')
+  attrib_val_name = element_end_name(nint(attrib_value))
+  if (present(is_default)) then
+    is_default = (nint(attrib_value) == exit_end$)
+  endif
+
+case ('APERTURE_TYPE')
+  attrib_val_name = shape_name(nint(attrib_value))
+  if (present(is_default)) then
+    if (ele%key == ecollimator$) then
+      is_default = (nint(attrib_value) == rectangular$)
+    else
+      is_default = (nint(attrib_value) == rectangular$)
+    endif
+  endif
+
+case default
+  call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)
+end select
+
+end function attribute_value_name 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

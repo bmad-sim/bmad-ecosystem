@@ -189,7 +189,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
   ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
   ! where xi is a random number with sigma = 1.
 
-  gamma_0 = ele%value(E_TOT$) / m_electron
+  gamma_0 = ele%value(E_TOT$) / mass_of(param%particle)
 
   fact_d = 0
   if (bmad_com%radiation_damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3
@@ -197,7 +197,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
   fact_f = 0
   if (bmad_com%radiation_fluctuations_on) then
     call ran_gauss (this_ran)
-    fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran
+    fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mass_of(param%particle)
   endif
 
   dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 

@@ -688,7 +688,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, beam_init, beam)
+! Subroutine init_beam_distribution (ele, param, beam_init, beam)
 !
 ! Subroutine to initialize either a random or tail-weighted distribution of particles.  
 !
@@ -716,6 +716,8 @@ end subroutine
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
+!   param       -- Lat_param_struct: Lattice parameters
+!     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !     %is_random  -- Logical: If True then create a random distribution
 !                 (default is True)
@@ -741,13 +743,14 @@ end subroutine
 !
 !-
 
-subroutine init_beam_distribution (ele, beam_init, beam)
+subroutine init_beam_distribution (ele, param, beam_init, beam)
  
 use random_mod
 
 implicit none
 
 type (ele_struct) ele
+type (lat_param_struct) param
 type (beam_init_struct) beam_init
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -776,7 +779,7 @@ endif
 do i_bunch = 1, size(beam%bunch)
 
   bunch => beam%bunch(i_bunch)
-  call init_bunch_distribution (ele, beam_init, bunch)
+  call init_bunch_distribution (ele, param, beam_init, bunch)
 
   bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
   bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
@@ -797,7 +800,7 @@ end subroutine init_beam_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, beam_init, beam)
+! Subroutine init_bunch_distribution (ele, param, beam_init, bunch)
 !
 ! Subroutine to initialize either a random or tail-weighted distribution of particles.  
 !
@@ -825,6 +828,8 @@ end subroutine init_beam_distribution
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
+!   param       -- Lat_param_struct: Lattice parameters
+!     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !     %is_random  -- Logical: If True then create a random distribution
 !                 (default is True)
@@ -846,17 +851,18 @@ end subroutine init_beam_distribution
 !                         Use "getf tail_weighted_beam_init_struct" for more details.
 !
 ! Output:
-!   beam        -- Beam_struct: Structure with initialized particles.
+!   bunch        -- bunch_struct: Structure with initialized particles.
 !
 !-
 
-subroutine init_bunch_distribution (ele, beam_init, bunch)
+subroutine init_bunch_distribution (ele, param, beam_init, bunch)
  
 use random_mod
 
 implicit none
 
 type (ele_struct) ele
+type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (tail_weighted_beam_init_struct), pointer :: tw_init
 type (bunch_struct) :: bunch
@@ -898,9 +904,9 @@ endif
 ! Initialize the bunch.
 
 if (beam_init%is_random) then
-   call init_random_bunch (ele, beam_init, bunch)
+   call init_random_bunch (ele, param, beam_init, bunch)
 else
-   call init_tail_weighted_bunch (ele, beam_init, bunch)
+   call init_tail_weighted_bunch (ele, param, beam_init, bunch)
 endif
 
 end subroutine init_bunch_distribution
@@ -909,7 +915,7 @@ end subroutine init_bunch_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_random_bunch (ele, beam_init, bunch)
+! Subroutine init_random_bunch (ele, param, beam_init, bunch)
 !
 ! Subroutine to initialize a random bunch of particles matched to
 ! the Twiss parameters, centroid position, and Energy - z correlation
@@ -932,6 +938,8 @@ end subroutine init_bunch_distribution
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
+!   param       -- Lat_param_struct: Lattice parameters
+!     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !     %renorm_center -- Logical: If True then distribution is rescaled to
 !                    the desired centroid (to take care of
@@ -951,13 +959,14 @@ end subroutine init_bunch_distribution
 !
 !-
 
-subroutine init_random_bunch (ele, beam_init, bunch)
+subroutine init_random_bunch (ele, param, beam_init, bunch)
  
 use random_mod
 
 implicit none
 
 type (ele_struct) ele
+type (lat_param_struct) param
 type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
 type (particle_struct), pointer :: p
@@ -1074,9 +1083,9 @@ endif
 
 call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
 a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
-                                                      * m_electron / ele%value(e_tot$)
+                                        * mass_of(param%particle) / ele%value(e_tot$)
 b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
-                                                      * m_electron / ele%value(e_tot$)
+                                        * mass_of(param%particle) / ele%value(e_tot$)
   
 dpz_dz = beam_init%dpz_dz
   
@@ -1148,7 +1157,7 @@ end subroutine init_random_bunch
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_tail_weighted_bunch (ele, beam_init, bunch)
+! Subroutine init_tail_weighted_bunch (ele, param, beam_init, bunch)
 !
 ! Subroutine to initialize a tail_weighted bunch of particles.
 !
@@ -1156,6 +1165,8 @@ end subroutine init_random_bunch
 !
 ! Input:
 !   ele         -- Ele_struct: element to initialize distribution at
+!   param       -- Lat_param_struct: Lattice parameters
+!     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
 !     %tw_beam_init -- tail_weighted_beam_init_struct: 
 !                      Use "getf tail_weighted_beam_init_struct" for more details.
@@ -1173,12 +1184,12 @@ end subroutine init_random_bunch
 !
 !-
 
-subroutine init_tail_weighted_bunch (ele, beam_init, bunch)
+subroutine init_tail_weighted_bunch (ele, param, beam_init, bunch)
 
 implicit none
 
 type (ele_struct) ele
-
+type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (tail_weighted_beam_init_struct), pointer :: tw
 
@@ -1210,8 +1221,8 @@ beta(1) = ele%a%beta
 beta(2) = ele%b%beta
 alpha(1) = ele%a%alpha
 alpha(2) = ele%b%alpha
-emitt(1) = beam_init%a_norm_emitt * m_electron / ele%value(E_TOT$)
-emitt(2) = beam_init%b_norm_emitt * m_electron / ele%value(E_TOT$)
+emitt(1) = beam_init%a_norm_emitt * mass_of(param%particle) / ele%value(E_TOT$)
+emitt(2) = beam_init%b_norm_emitt * mass_of(param%particle) / ele%value(E_TOT$)
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
 emitt(3) = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
@@ -1721,7 +1732,7 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine calc_bunch_params_slice (bunch, ele, params, 
+! subroutine calc_bunch_params_slice (bunch, ele, param, bunch_params, 
 !                           plane, slice_center, slice_spread, err, print_err)
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
@@ -1743,7 +1754,7 @@ end subroutine init_spin_distribution
 !   err    -- Logical: Set True if there is an error in mat_eigen routine.
 ! -
 
-subroutine calc_bunch_params_slice (bunch, ele, params, &
+subroutine calc_bunch_params_slice (bunch, ele, param, bunch_params, &
                           plane, slice_center, slice_spread, err, print_err)
 
 implicit none
@@ -1751,7 +1762,8 @@ implicit none
 type (bunch_struct), intent(in) :: bunch
 type (beam_struct) :: beam
 type (ele_struct) :: ele
-type (bunch_params_struct) params
+type (lat_param_struct) param
+type (bunch_params_struct) bunch_params
 
 real(rp) slice_center, slice_spread
 
@@ -1785,7 +1797,7 @@ do i = 1, size(bunch%particle)
   endif
 enddo
 
-call calc_bunch_params (beam%bunch(1), ele, params, err, print_err)
+call calc_bunch_params (beam%bunch(1), ele, param, bunch_params, err, print_err)
 
 end subroutine calc_bunch_params_slice
 
@@ -1793,7 +1805,7 @@ end subroutine calc_bunch_params_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_bunch_params (bunch, ele, params, err, print_err)
+! Subroutine calc_bunch_params (bunch, ele, param, bunch_params, err, print_err)
 !
 ! Finds all bunch parameters defined in bunch_params_struct, both normal-mode
 ! and projected. Projected parameters are found purely from the geometrical
@@ -1811,11 +1823,13 @@ end subroutine calc_bunch_params_slice
 ! Input:
 !   bunch     -- Bunch_struct
 !   ele       -- ele_struct: element to find parameters at
+!   param -- Param_struct: lattice parameters.
+!     %particle -- Particle being tracked.
 !   print_err -- Logical, optional: If present and False then suppress 
 !                  "no eigen-system found" messages.
 !
 ! Output     
-!   params -- bunch_params_struct:
+!   bunch_params -- bunch_params_struct:
 !     %a,%b,%z       -- Projected parameters
 !       %alpha; %beta; %gamma
 !       %eta, %etap, %norm_emitt
@@ -1833,13 +1847,14 @@ end subroutine calc_bunch_params_slice
 !   err   -- Logical: Set True if there is an error in mat_eigen routine.
 !-
 
-subroutine calc_bunch_params (bunch, ele, params, err, print_err)
+subroutine calc_bunch_params (bunch, ele, param, bunch_params, err, print_err)
 
 implicit none
 
 type (bunch_struct), intent(in) :: bunch
 type (ele_struct) :: ele
-type (bunch_params_struct) params
+type (lat_param_struct) param
+type (bunch_params_struct) bunch_params
 
 real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6)
@@ -1876,18 +1891,18 @@ s(6,5) = -1.0
 
 ! n_particle and centroid
 
-params%n_live_particle = count(bunch%particle%ix_lost == not_lost$)
-params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%n_live_particle = count(bunch%particle%ix_lost == not_lost$)
+bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
 
-if (params%charge_live == 0) then
-  params%centroid%vec = 0.0     ! zero everything
-  params%sigma = 0
-  call zero_plane (params%x)
-  call zero_plane (params%y)
-  call zero_plane (params%z)
-  call zero_plane (params%a)
-  call zero_plane (params%b)
-  call zero_plane (params%c)
+if (bunch_params%charge_live == 0) then
+  bunch_params%centroid%vec = 0.0     ! zero everything
+  bunch_params%sigma = 0
+  call zero_plane (bunch_params%x)
+  call zero_plane (bunch_params%y)
+  call zero_plane (bunch_params%z)
+  call zero_plane (bunch_params%a)
+  call zero_plane (bunch_params%b)
+  call zero_plane (bunch_params%c)
   return
 endif
   
@@ -1895,24 +1910,21 @@ endif
 
 avg_energy = sum((1+bunch%particle%r%vec(6))*bunch%particle%charge, & 
                               mask = (bunch%particle%ix_lost == not_lost$))
-avg_energy = avg_energy * ele%value(E_TOT$) / params%charge_live
+avg_energy = avg_energy * ele%value(E_TOT$) / bunch_params%charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
-call find_bunch_sigma_matrix (bunch%particle, params%centroid%vec, params%sigma, sigma_s)
+call find_bunch_sigma_matrix (bunch%particle, bunch_params%centroid%vec, bunch_params%sigma, sigma_s)
 
-! Projected Parameters
-! X
-call projected_twiss_calc ('X', params%x, params%sigma(s11$), params%sigma(s22$), &
-                      params%sigma(s12$), params%sigma(s16$), params%sigma(s26$))
+! X, Y, & Z Projected Parameters
+call projected_twiss_calc ('X', bunch_params%x, bunch_params%sigma(s11$), bunch_params%sigma(s22$), &
+                      bunch_params%sigma(s12$), bunch_params%sigma(s16$), bunch_params%sigma(s26$))
 
-! Y
-call projected_twiss_calc ('Y', params%y, params%sigma(s33$), params%sigma(s44$), &
-                      params%sigma(s34$), params%sigma(s36$), params%sigma(s46$))
+call projected_twiss_calc ('Y', bunch_params%y, bunch_params%sigma(s33$), bunch_params%sigma(s44$), &
+                      bunch_params%sigma(s34$), bunch_params%sigma(s36$), bunch_params%sigma(s46$))
 
-! Z
-call projected_twiss_calc ('Z', params%z, params%sigma(s55$), params%sigma(s66$), &
-                      params%sigma(s56$), params%sigma(s56$), params%sigma(s66$))
+call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(s55$), bunch_params%sigma(s66$), &
+                      bunch_params%sigma(s56$), bunch_params%sigma(s56$), bunch_params%sigma(s66$))
      
 ! Normal-Mode Parameters.
 ! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
@@ -1924,9 +1936,9 @@ if (err) goto 999
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
 
-params%a%norm_emit = d_i(1) * (avg_energy/m_electron)
-params%b%norm_emit = d_i(3) * (avg_energy/m_electron)
-params%c%norm_emit = d_i(5) * (avg_energy/m_electron)
+bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(param%particle))
+bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(param%particle))
+bunch_params%c%norm_emit = d_i(5) * (avg_energy/mass_of(param%particle))
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! N = E.Q from eq. 44
@@ -1965,30 +1977,30 @@ n_real = real(n)
 
 ! Twiss parameters come from equations 59, 63 and 64
 
-params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
-params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
-params%c%beta = n_real(5,5)**2 + n_real(5,6)**2
+bunch_params%a%beta = n_real(1,1)**2 + n_real(1,2)**2
+bunch_params%b%beta = n_real(3,3)**2 + n_real(3,4)**2
+bunch_params%c%beta = n_real(5,5)**2 + n_real(5,6)**2
 
-params%a%alpha = -(n_real(1,1)*n_real(2,1) + n_real(1,2)*n_real(2,2))
-params%b%alpha = -(n_real(3,3)*n_real(4,3) + n_real(3,4)*n_real(4,4))
-params%c%alpha = -(n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6))
+bunch_params%a%alpha = -(n_real(1,1)*n_real(2,1) + n_real(1,2)*n_real(2,2))
+bunch_params%b%alpha = -(n_real(3,3)*n_real(4,3) + n_real(3,4)*n_real(4,4))
+bunch_params%c%alpha = -(n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6))
 
-params%a%gamma = n_real(2,1)**2 + n_real(2,2)**2
-params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
-params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
+bunch_params%a%gamma = n_real(2,1)**2 + n_real(2,2)**2
+bunch_params%b%gamma = n_real(4,3)**2 + n_real(4,4)**2
+bunch_params%c%gamma = n_real(6,5)**2 + n_real(6,6)**2
 
 ! Dispersion comes from equations 69 and 70
 
 beta_66_iii   = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
 
-params%a%eta  = n_real(1,5)*n_real(6,5) + n_real(1,6)*n_real(6,6)
-params%a%etap = n_real(2,5)*n_real(6,5) + n_real(2,6)*n_real(6,6)
+bunch_params%a%eta  = n_real(1,5)*n_real(6,5) + n_real(1,6)*n_real(6,6)
+bunch_params%a%etap = n_real(2,5)*n_real(6,5) + n_real(2,6)*n_real(6,6)
 
-params%b%eta  = n_real(3,5)*n_real(6,5) + n_real(3,6)*n_real(6,6)
-params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
+bunch_params%b%eta  = n_real(3,5)*n_real(6,5) + n_real(3,6)*n_real(6,6)
+bunch_params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
 
-params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
-params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
+bunch_params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
+bunch_params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
 
 999 continue
 
@@ -1998,29 +2010,29 @@ if (bmad_com%spin_tracking_on) call calc_spin_params ()
 
 !----------------------------------------------------------------------
 contains
-subroutine zero_plane (param)
+subroutine zero_plane (twiss)
 
 implicit none
 
-type (twiss_struct), intent(out) :: param
+type (twiss_struct), intent(out) :: twiss
 
-param%beta       = 0
-param%alpha      = 0
-param%gamma      = 0
-param%eta        = 0
-param%etap       = 0
-param%norm_emit  = 0
+twiss%beta       = 0
+twiss%alpha      = 0
+twiss%gamma      = 0
+twiss%eta        = 0
+twiss%etap       = 0
+twiss%norm_emit  = 0
 
 end subroutine zero_plane
   
 !----------------------------------------------------------------------
 ! contains
 
-subroutine projected_twiss_calc (plane, param, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d)
+subroutine projected_twiss_calc (plane, twiss, exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d)
 
 implicit none
 
-type (twiss_struct) :: param
+type (twiss_struct) :: twiss
 
 real(rp), intent(in) :: exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) emitt, x2, x_px, px2
@@ -2031,9 +2043,9 @@ character(*) plane
 
 !
 
-if (params%sigma(s66$) /= 0) then
-  param%eta   = exp_x_d / params%sigma(s66$)
-  param%etap  = exp_px_d / params%sigma(s66$)
+if (bunch_params%sigma(s66$) /= 0) then
+  twiss%eta   = exp_x_d / bunch_params%sigma(s66$)
+  twiss%etap  = exp_px_d / bunch_params%sigma(s66$)
 endif
 
 x2   = exp_x2   
@@ -2042,12 +2054,12 @@ px2  = exp_px2
 
 emitt = sqrt(x2*px2 - x_px**2)
 
-param%norm_emit = (avg_energy/m_electron) * emitt
+twiss%norm_emit = (avg_energy/mass_of(param%particle)) * emitt
 
 if (emitt /= 0) then
-  param%alpha = -x_px / emitt
-  param%beta  = x2 / emitt
-  param%gamma = px2 / emitt
+  twiss%alpha = -x_px / emitt
+  twiss%beta  = x2 / emitt
+  twiss%gamma = px2 / emitt
 endif
 
 end subroutine projected_twiss_calc
@@ -2105,8 +2117,8 @@ real(rp) vec(3), ave_vec(3)
 
 ! polarization vector
 
-params%spin%theta = 0.0
-params%spin%phi   = 0.0
+bunch_params%spin%theta = 0.0
+bunch_params%spin%phi   = 0.0
 
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
@@ -2115,24 +2127,24 @@ do i = 1, size(bunch%particle)
   ave_vec = ave_vec + vec * bunch%particle(i)%charge
 enddo
 
-ave_vec = ave_vec / params%charge_live
+ave_vec = ave_vec / bunch_params%charge_live
 call vec_to_polar (ave_vec, ave_polar)
-params%spin%theta = ave_polar%theta
-params%spin%phi   = ave_polar%phi
+bunch_params%spin%theta = ave_polar%theta
+bunch_params%spin%phi   = ave_polar%phi
 
 ! polarization
 
-params%spin%polarization = 0.0
+bunch_params%spin%polarization = 0.0
 
   
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%ix_lost /= not_lost$) cycle
   call spinor_to_polar (bunch%particle(i)%r, polar)
-  params%spin%polarization = params%spin%polarization + &
+  bunch_params%spin%polarization = bunch_params%spin%polarization + &
            cos(angle_between_polars (polar, ave_polar)) * bunch%particle(i)%charge
 enddo
 
-params%spin%polarization = params%spin%polarization / params%charge_live
+bunch_params%spin%polarization = bunch_params%spin%polarization / bunch_params%charge_live
     
 end subroutine calc_spin_params
 

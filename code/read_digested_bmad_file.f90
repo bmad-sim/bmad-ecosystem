@@ -41,7 +41,7 @@ real(rp) value(n_attrib_maxx)
 integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
-integer stat_b(13), idate_old, n_branch, n, control_type
+integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
@@ -50,7 +50,7 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
-logical found_it, v87, v88, v89, v90, v_old, mode3, error, is_open
+logical found_it, v89, v90, v91, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -72,12 +72,11 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9010) n_files, version
 
-v87 = (version == 87)
-v88 = (version == 88)
 v89 = (version == 89)
 v90 = (version == 90)
+v91 = (version == 91)
 
-v_old = v87 .or. v88 .or. v89
+v_old = v89 .or. v90
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -311,24 +310,7 @@ logical error
 
 error = .true.
 
-if (v87 .or. v88) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, control_type, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch
-elseif (v89) then
+if (v89) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -342,7 +324,7 @@ elseif (v89) then
           ele%taylor_order, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          coupler_at, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time 
 
@@ -362,7 +344,25 @@ elseif (v90) then
           ele%taylor_order, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          coupler_at, ele%on_a_girder, ele%csr_calc_on, &
+          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          ele%ix_branch, ele%ref_time 
+
+elseif (v91) then
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
+          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time 
 

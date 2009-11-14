@@ -56,7 +56,7 @@ type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (lr_wake_struct), pointer :: lr
 
-real(rp) s0, x_lim, y_lim
+real(rp) s0, x_lim, y_lim, val
 
 character(*) bmad_file
 character(4000) line
@@ -71,12 +71,12 @@ character(10) angle
 integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie
 integer unit(6), ix_names, ix_match
 integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass, ix_multi_lord
-integer ix_top, ix_super
+integer ix_top, ix_super, default_val
 integer, pointer :: ix_ss1(:), ix_ss2(:)
 
 logical, optional :: err
 logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
-logical is_multi_sup, x_lim_good, y_lim_good
+logical is_multi_sup, x_lim_good, y_lim_good, is_default
 
 ! Init...
 ! Count the number of foreign wake files
@@ -373,7 +373,7 @@ ele_loop: do ie = 1, lat%n_ele_max
           iuw = lunget()
           open (iuw, file = wake_name)
           write (iuw, '(14x, a)') &
-            'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
+ 'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
           write (iuw, '(14x, a)') &
             '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
           do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
@@ -384,8 +384,8 @@ ele_loop: do ie = 1, lat%n_ele_max
               angle = '     unpol'
             endif
             if (any ( (/ lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref /) /= 0)) then
-              write (iuw, '(a, i0, a, 3es14.5, i6, a, 5es12.2)') 'lr(', n, ') =', &
-                    lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
+              write (iuw, '(a, i0, a, 3es14.5, i6, a, 5es12.2)') 'lr(', n, ') =', lr%freq_in, &
+                    lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
             else
               write (iuw, '(a, i0, a, 3es14.5, i6, a)') 'lr(', n, ') =', &
                     lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle
@@ -415,12 +415,13 @@ ele_loop: do ie = 1, lat%n_ele_max
 
   do j = 1, n_attrib_maxx
     attrib_name = attribute_name(ele, j)
-    if (ele%value(j) == 0) cycle
+    val = ele%value(j)
+    if (val == 0) cycle
     if (j == check_sum$) cycle
     if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
     if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
     if (.not. attribute_free (ele, attrib_name, lat, .false., .true.)) cycle
-    if (attrib_name == 'DS_STEP' .and. ele%value(j) == bmad_com%default_ds_step) cycle
+    if (attrib_name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
     if (attrib_name == null_name$) then
       print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
       print *, '      ELEMENT: ', ele%name
@@ -428,13 +429,25 @@ ele_loop: do ie = 1, lat%n_ele_max
       stop
     endif
 
+    if (attrib_name == 'COUPLER_AT') then
+      if (nint(val) /= exit_end$) then
+        line = trim(line) // ', coupler_at = ' // element_end_name(nint(val))
+      endif
+      cycle
+    endif
+
     select case (attribute_type(attrib_name))
     case (is_logical$)
-      write (line, '(4a, l1)') trim(line), ', ', trim(attrib_name), ' = ', (ele%value(j) /= 0)
+      write (line, '(4a, l1)') trim(line), ', ', trim(attrib_name), ' = ', (val /= 0)
     case (is_integer$)
-      write (line, '(4a, i0)') trim(line), ', ', trim(attrib_name), ' = ', int(ele%value(j))
+      write (line, '(4a, i0)') trim(line), ', ', trim(attrib_name), ' = ', int(val)
     case (is_real$)
-      line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(ele%value(j))
+      line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(val)
+    case (is_name$)
+      name = attribute_value_name (attrib_name, val, ele, is_default)
+        if (.not. is_default) then
+          line = trim(line) // ', ' // trim(attrib_name) // ' = ' // name
+        endif
     end select
 
   enddo ! attribute loop
@@ -465,8 +478,12 @@ ele_loop: do ie = 1, lat%n_ele_max
   if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'
   if (ele%aperture_at /= exit_end$) line = trim(line) // ', aperture_at = ' // & 
                                                        element_end_name(ele%aperture_at)
-  if (ele%coupler_at /= exit_end$) line = trim(line) // ', coupler_at = ' // & 
-                                                       element_end_name(ele%coupler_at)
+
+  default_val = rectangular$
+  if (ele%key == ecollimator$) default_val = elliptical$
+  if (ele%aperture_type /= default_val) line = trim(line) // &
+                              ', aperture_type = ' // shape_name(ele%aperture_type)
+
   if (ele%integrator_order /= bmad_com%default_integ_order) write (line, '(a, i0)') &
                  trim(line) // ', integrator_order = ', ele%integrator_order
   if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)

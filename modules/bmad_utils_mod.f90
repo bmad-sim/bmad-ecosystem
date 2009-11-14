@@ -1174,9 +1174,9 @@ ele%map_with_offsets  = .true.
 ele%on_a_girder       = .false.
 ele%csr_calc_on       = .true.
 
-ele%field_master = .false.
-ele%coupler_at  = exit_end$
-ele%aperture_at = exit_end$
+ele%field_master  = .false.
+ele%aperture_type = rectangular$
+ele%aperture_at   = exit_end$
 ele%offset_moves_aperture = .false.
 
 call deallocate_ele_pointers (ele)

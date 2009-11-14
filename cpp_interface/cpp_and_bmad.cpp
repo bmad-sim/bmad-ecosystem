@@ -622,7 +622,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
     c.ixx, c.ix_ele, c.ix_photon_line, c.mat6_calc_method, c.tracking_method, 
     c.field_calc, c.num_steps, c.integrator_order, c.ref_orbit, c.taylor_order, 
-    c.aperture_at, c.coupler_at, c.symplectify, c.mode_flip, c.multipoles_on, 
+    c.aperture_at, c.aperture_type, c.symplectify, c.mode_flip, c.multipoles_on, 
     c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
     c.csr_calc_on, c.offset_moves_aperture);
   for (int i = 0; i < n_wig; i++) {
@@ -646,7 +646,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& lord_status, Int& slave_status, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
     Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_photon, 
     Int& mat6_calc, Int& tracking, Int& f_calc, Int& num_s, Int& int_ord, 
-    Int& ptc, Int& t_ord, Int& aperture_at, Int& coupler_at, Int& symp, 
+    Int& ptc, Int& t_ord, Int& aperture_at, Int& aperture_type, Int& symp, 
     Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
     Int& internal, Int& logic, Int& girder, Int& csr_calc, Int& offset_moves_ap) {
 
@@ -684,7 +684,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.ref_orbit              = ptc;
   c.taylor_order          = t_ord;
   c.aperture_at           = aperture_at;
-  c.coupler_at            = coupler_at;
+  c.aperture_type         = aperture_type;
   c.symplectify           = symp;
   c.mode_flip             = flip;
   c.multipoles_on         = multi;

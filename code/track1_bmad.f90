@@ -113,7 +113,7 @@ case (beambeam$)
 
     call bbi_kick (end%vec(1)/sig_x, end%vec(3)/sig_y, sig_y/sig_x,  &
                                                                 kx, ky)
-    bbi_const = -param%n_part * m_electron * ele%value(charge$) * r_e /  &
+    bbi_const = -param%n_part * mass_of(param%particle) * ele%value(charge$) * r_e /  &
                     (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
     coef = ele%value(bbi_const$) / (n_slice * rel_pc)
     end%vec(2) = end%vec(2) + kx * coef
@@ -283,12 +283,13 @@ case (lcavity$)
     dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
     dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
 
-    if (ele%coupler_at == both_ends$) then
+    if (nint(ele%value(coupler_at$)) == both_ends$) then
       dp_x_coupler = dp_x_coupler / 2
       dp_y_coupler = dp_y_coupler / 2
     endif
 
-    if (ele%coupler_at == entrance_end$ .or. ele%coupler_at == both_ends$) then
+    if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
+        nint(ele%value(coupler_at$)) == both_ends$) then
       end%vec(2) = end%vec(2) + dp_x_coupler / pc_start
       end%vec(4) = end%vec(4) + dp_y_coupler / pc_start
     endif
@@ -330,7 +331,8 @@ case (lcavity$)
   ! coupler kick
 
   if (ele%value(coupler_strength$) /= 0) then
-    if (ele%coupler_at == exit_end$ .or. ele%coupler_at == both_ends$) then
+    if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
+        nint(ele%value(coupler_at$)) == both_ends$) then
       end%vec(2) = end%vec(2) + dp_x_coupler / pc_end
       end%vec(4) = end%vec(4) + dp_y_coupler / pc_end
     endif

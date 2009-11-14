@@ -4,8 +4,6 @@
 ! Module of helper routines for track1 routines
 !-
 
-#include "CESR_platform.inc"
-
 module track1_mod
 
 use bmad_struct
@@ -64,6 +62,7 @@ type (lat_param_struct), intent(inout) :: param
 real(rp) x_lim, y_lim, x_beam, y_beam, s_here
 integer at
 logical do_tilt
+character(20) :: r_name = 'check_aperture_limit'
 
 ! Check p_x and p_y
 
@@ -117,10 +116,11 @@ if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
 
 if (x_lim == 0 .and. y_lim == 0) return
 
-if (ele%key == ecollimator$) then
+select case (ele%aperture_type)
+case (elliptical$)
   if (x_lim == 0 .or. y_lim == 0) then
-    print *, 'ERROR IN CHECK_APERTURE_LIMIT: ECOLLIMATOR HAS ONE LIMIT ZERO'
-    print *, '      AND THE OTHER NOT: ', ele%name
+    call out_io (s_fatal$, r_name, &
+              'ECOLLIMATOR HAS ONE LIMIT ZERO AND THE OTHER NOT: ' // ele%name)
     call err_exit
   endif
   if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
@@ -131,7 +131,8 @@ if (ele%key == ecollimator$) then
       param%plane_lost_at = y_plane$
     endif
   endif
-else
+
+case (rectangular$)
   if (abs(x_beam) > x_lim) then
     param%lost = .true.
     param%plane_lost_at = x_plane$
@@ -140,7 +141,10 @@ else
     param%lost = .true.
     param%plane_lost_at = y_plane$
   endif
-endif
+
+case default
+  call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE FOR ELEMENT: ' // ele%name)
+end select
 
 end subroutine
 

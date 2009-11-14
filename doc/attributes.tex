@@ -350,24 +350,35 @@ they appear in the lattice file (\sref{s:depend}).
 \index{y2_limit|hyperbf}
 \index{x_offset|hyperbf}
 \index{offset_moves_aperture|hyperbf}
+\index{aperture_at}
+\index{aperture_type}
 The aperture attributes are:
 \begin{example}
-  x1_limit    = <Real>      ! Horizontal, negative side, aperture limit
-  x2_limit    = <Real>      ! Horizontal, positive side, aperture limit
-  y1_limit    = <Real>      ! Vertical, negative side, aperture limit
-  y2_limit    = <Real>      ! Vertical, positive side, aperture limit
-  x_limit     = <Real>      ! Alternative to specifying x1_limit and x2_limit
-  y_limit     = <Real>      ! Alternative to specifying y1_limit and y2_limit
-  aperture    = <Real>      ! Alternative to specifying x_limit and y_limit
-  aperture_at = <Switch>    ! What end aperture is at.
+  x1_limit      = <Real>      ! Horizontal, negative side, aperture limit
+  x2_limit      = <Real>      ! Horizontal, positive side, aperture limit
+  y1_limit      = <Real>      ! Vertical, negative side, aperture limit
+  y2_limit      = <Real>      ! Vertical, positive side, aperture limit
+  x_limit       = <Real>      ! Alternative to specifying x1_limit and x2_limit
+  y_limit       = <Real>      ! Alternative to specifying y1_limit and y2_limit
+  aperture      = <Real>      ! Alternative to specifying x_limit and y_limit
+  aperture_at   = <Switch>    ! What end aperture is at.
+  aperture_type = <Switch>    ! What type of aperture it is.
   offset_moves_aperture = <Logical> ! Element offsets affect aperture position
 \end{example}
 \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify
 the half--width of the aperture of an element as shown in
-figure~\ref{f:limit}. Apertures are assumed to be rectangular except
-that an \vn{Ecollimator} has a elliptical aperture. 
-A zero \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, or
-\vn{y2_limit} is interpreted as no aperture in the appropriate plane.
+figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
+\vn{y1_limit}, or \vn{y2_limit} is interpreted as no aperture in the
+appropriate plane.
+
+By default, apertures are assumed to be
+rectangular except that an \vn{Ecollimator} has a elliptical aperture.
+This can be changed by setting the \vn{aperture_type} attribute. The possible 
+values of this attribute are:
+\begin{example}
+  rectanular
+  elliptical
+\end{example}
 
 To avoid numerical overflow and other errors in tracking, a particle
 will be considered to have hit an aperture in an element, even if
@@ -426,8 +437,9 @@ which direction particles are tracked through an element. Thus if a
 particle is tracked backwards it enters an element at the ``exit end''
 and exits at the ``entrance end''.
 
-Example:
+Examples:
 \begin{example}
+  q2: quad, aperture_type = elliptical  
   q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
   q1[y1_limit] = 0.03
   q1[y2_limit] = 0.03

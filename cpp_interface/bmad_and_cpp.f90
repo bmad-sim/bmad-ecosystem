@@ -1349,7 +1349,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
       f%num_steps, f%integrator_order, f%ref_orbit, f%taylor_order, &
-      f%aperture_at, f%coupler_at, f%symplectify, f%mode_flip, &
+      f%aperture_at, f%aperture_type, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
       f%field_master, f%is_on, f%old_is_on, f%logic, f%on_a_girder, &
       f%csr_calc_on)
@@ -1373,7 +1373,7 @@ end subroutine
 !    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
 !    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
 !    ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, steps, int_ord, &
-!    ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad,  &
+!    ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad,  &
 !    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
 !
 ! Subroutine used by ele_to_f to convert a C++ C_ele into
@@ -1386,7 +1386,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
     n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, &
     nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, steps, &
-    int_ord, ptc, tlr_ord, aperture_at, coupler_at, symp, mode, mult, ex_rad, &
+    int_ord, ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad, &
     f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
 
 use fortran_and_cpp
@@ -1405,7 +1405,7 @@ integer n_nam, nr1, nr2, n_ab, n_const, key, sub, lord_status, slave_status, ixv
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
     int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
     on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_lat, &
-    n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, coupler_at, offset_moves_ap
+    n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s, ref_t
 real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2), const(n_const)
@@ -1461,7 +1461,7 @@ f%integrator_order      = int_ord
 f%ref_orbit              = ptc
 f%taylor_order          = tlr_ord
 f%aperture_at           = aperture_at
-f%coupler_at            = coupler_at
+f%aperture_type         = aperture_type
 f%symplectify           = f_logic(symp)
 f%mode_flip             = f_logic(mode)
 f%multipoles_on         = f_logic(mult)

@@ -680,8 +680,8 @@ case default   ! normal attribute
     ele%ref_orbit = nint(value)
   elseif (ix_attrib == aperture_at$) then
     ele%aperture_at = nint(value)
-  elseif (ix_attrib == coupler_at$) then
-    ele%coupler_at = nint(value)
+  elseif (ix_attrib == aperture_type$) then
+    ele%aperture_type = nint(value)
   elseif (ix_attrib == ran_seed$) then
     call ran_seed_put (nint(value))  ! init random number generator
     bp_com%ran_function_was_called = .true.
@@ -2451,7 +2451,7 @@ integer nn, nt, i
 
 nn = 21  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-                    ubound(ref_orbit_name, 1) + ubound(element_end_name, 1)
+           ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(shape_name, 1)
 bp_com%ivar_tot = bp_com%ivar_init
 
 nt = bp_com%ivar_tot
@@ -2535,6 +2535,12 @@ enddo
 do i = 1, ubound(ref_orbit_name, 1)
   nn = nn + 1
   call str_upcase (bp_com%var_name(nn), ref_orbit_name(i))
+  bp_com%var_value(nn) = i
+enddo
+
+do i = 1, ubound(shape_name, 1)
+  nn = nn + 1
+  call str_upcase (bp_com%var_name(nn), shape_name(i))
   bp_com%var_value(nn) = i
 enddo
 
@@ -3616,8 +3622,15 @@ case (rbend$, sbend$)
 case (branch$, photon_branch$)
   ele%value(direction$) = 1
 
-case (rcollimator$, ecollimator$)
+case (rcollimator$)
   ele%offset_moves_aperture = .true.
+
+case (ecollimator$)
+  ele%offset_moves_aperture = .true.
+  ele%aperture_type = elliptical$
+
+case (lcavity$)
+  ele%value(coupler_at$) = exit_end$
 
 end select
 

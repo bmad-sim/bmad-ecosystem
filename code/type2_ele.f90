@@ -1,4 +1,4 @@
-!+
+
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
 !        twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
 !
@@ -46,8 +46,6 @@
 !   n_lines      -- Number of lines in lines(:).
 !-
 
-#include "CESR_platform.inc"
-
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_taylor, twiss_out, type_control, lattice, type_wake, &
                 type_floor_coords, type_wig_terms)
@@ -69,7 +67,7 @@ type (sr_mode_wake_struct), pointer :: sr_m
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
-integer i, i1, j, n, ix, iv, ic, nl2, l_status, a_type
+integer i, i1, j, n, ix, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_max, particle, n_term, n_att, attrib_type
 integer pos_tot(n_attrib_maxx)
 
@@ -89,7 +87,7 @@ character(2) str_i
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
 logical, optional :: type_floor_coords, type_wig_terms
-logical type_zero, err_flag, print_it
+logical type_zero, err_flag, print_it, is_default
 
 ! init
 
@@ -181,6 +179,12 @@ else
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
       case (is_real$)
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, a_name(1:n_att), '=', ele%value(i)
+      case (is_name$)
+        name = attribute_value_name (a_name, ele%value(i), ele, is_default)
+        if (.not. is_default .or. type_zero) then
+          nl=nl+1; write (li(nl), '(i6, 3x, 4a, i0, a)')  i, a_name(1:n_att), '=  ', &
+                                                        name, ' (', nint(ele%value(i)), ')'
+        endif
       end select
     else
       if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
@@ -279,14 +283,16 @@ if (attribute_index(ele, 'FIELD_CALC') /= 0) then
   nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', calc_method_name(ele%field_calc)
 endif
 
+! Write aparture stuff if appropriate
+
 if (ele%aperture_at /= 0) then
   nl=nl+1; write (li(nl), fmt_a) 'APERTURE_AT', '=', element_end_name(ele%aperture_at)
+  default_val = rectangular$
+  if (ele%key == ecollimator$) default_val = elliptical$
+  if (ele%aperture_type /= default_val .or. type_zero) then
+    nl=nl+1; write (li(nl), fmt_a) 'APERTURE_TYPE', '=', shape_name(ele%aperture_type)
+  endif
   nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
-endif
-
-
-if (attribute_index(ele, 'COUPLER_AT') /= 0) then
-  nl=nl+1; write (li(nl), fmt_a) 'COUPLER_AT', '=', element_end_name(ele%coupler_at)
 endif
 
 if (ele%ref_orbit /= 0) then

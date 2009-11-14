@@ -739,7 +739,7 @@ slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
 slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
-slave%coupler_at       = lord%coupler_at
+slave%aperture_type    = lord%aperture_type
 
 ! patch element.
 ! The reference energy may be zero while parsing in a lattice file so only do
@@ -1509,7 +1509,7 @@ slave%aperture_at = no_end$
 call compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
 
 if (slave%key == lcavity$) then
-  slave%coupler_at = no_end$
+  slave%value(coupler_at$) = no_end$
   call compute_slave_coupler (value, slave, lord, at_entrance_end, at_exit_end)
 endif
 
@@ -1674,22 +1674,22 @@ logical at_entrance_end, at_exit_end
 
 !
 
-select case (lord%coupler_at)
+select case (nint(lord%value(coupler_at$)))
 case (exit_end$) 
-  if (at_exit_end) slave%coupler_at = exit_end$
+  if (at_exit_end) slave%value(coupler_at$) = exit_end$
 case (entrance_end$)
-  if (at_entrance_end) slave%coupler_at = entrance_end$
+  if (at_entrance_end) slave%value(coupler_at$) = entrance_end$
 case (both_ends$)
   if (at_entrance_end .and. at_exit_end) then
-    slave%coupler_at = both_ends$
+    slave%value(coupler_at$) = both_ends$
   elseif (at_entrance_end) then
-    slave%coupler_at = entrance_end$
+    slave%value(coupler_at$) = entrance_end$
   elseif (at_exit_end) then 
-    slave%coupler_at = exit_end$
+    slave%value(coupler_at$) = exit_end$
   endif
 end select
 
-if (slave%coupler_at == no_end$) then
+if (nint(slave%value(coupler_at$)) == no_end$) then
   value(coupler_strength$) = 0
 endif
 
@@ -1799,7 +1799,7 @@ end subroutine
 ! control_bookkeeper or lattice_bookkeeper instead.
 ! 
 ! BEAMBEAM:   
-!     bbi_const$ = param%n_part * m_electron * charge$ * r_e /
+!     bbi_const$ = param%n_part * mass_of(param%particle) * charge$ * r_e /
 !                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
 !
 ! ELSEPARATOR:
@@ -2024,7 +2024,7 @@ case (beambeam$)
       call err_exit
     endif
 
-    val(bbi_const$) = -param%n_part * m_electron * val(charge$) * r_e /  &
+    val(bbi_const$) = -param%n_part * mass_of(param%particle) * val(charge$) * r_e /  &
                              (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
 
   endif
