@@ -369,7 +369,7 @@ print *, 'Created: ', trim(csrtrk_file)
 !     y =         x
 !     z =         y
 
-call init_beam_distribution (lat%ele(ix_start-1), beam_init, beam)
+call init_beam_distribution (lat%ele(ix_start-1), lat%param, beam_init, beam)
 c = beam%bunch(1)%particle(1)%charge
 
 open (2, file = particle_out_file)
