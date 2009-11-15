@@ -40,14 +40,15 @@ contains
 !----------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_lat_data (err, data_name, values, print_err,
-!                                        default_source, default_index)
+!                          default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
 !
 ! Routine to evaluate data "on-the-fly" of the form 
 !     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
 !
 ! Input:
-!   data_name -- Character(*): data name.
-!   print_err -- Logical: Print error message?
+!   data_name      -- Character(*): data name.
+!   print_err      -- Logical: Print error message?
+!   default_source -- Character(*): If not blank: Default source ('model', 'design', 'base').
 !
 ! Output:
 !   err       -- Logical: True if there is an error. False otherwise
@@ -55,16 +56,17 @@ contains
 !-
 
 subroutine tao_evaluate_lat_data (err, data_name, values, print_err, &
-                                        default_source, default_index)
+                         default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
 
 implicit none
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 character(*) data_name
-character(*) default_source, default_index
+character(*) default_source
 character(60) name, ele_name, component
 character(40) :: r_name = 'tao_evaluate_lat_data'
 
@@ -73,7 +75,7 @@ real(rp), allocatable :: values(:)
 integer i, j, num, ix, ix1, ios, n_tot, n_loc
 
 logical err, valid
-logical print_err
+logical print_err, use_dflt_ele
 logical, allocatable, save :: this_u(:)
 
 !
@@ -112,14 +114,15 @@ endif
 
 ! Get data type
 
-ix1 = index(name, '[');  
+ix1 = index(name, '[');
 if (ix1 == 0) then
-  if (default_index == '') then
+  if (.not. present(dflt_ele) .or. .not. associated(dflt_ele)) then
     if (print_err) call out_io (s_error$, r_name, 'NO "[" FOUND IN:' // data_name)
     return
   endif
   datum%data_type = name
-  name = default_index
+  name = dflt_ele%name
+  use_dflt_ele = .true.
 
 else
   datum%data_type = name(1:ix1-1)
@@ -134,25 +137,27 @@ else
     if (print_err) call out_io (s_error$, r_name, 'MANGLED CONSTRUCT:' // data_name)
     return
   endif
-endif
+  use_dflt_ele = .false.
 
-! Get ele_ref & ele
+  ! Get ele_ref & ele
 
-ix = index(name, '&')
-if (ix /= 0) then
-  if (is_integer(name)) then
-    read (name(:ix-1), *, iostat = ios) datum%ix_ele_ref
-    if (ios /= 0) then
-      if (print_err) call out_io (s_error$, r_name, 'BAD ELE_REF: ' // data_name)
-      return
+  ix = index(name, '&')
+  if (ix /= 0) then
+    if (is_integer(name)) then
+      read (name(:ix-1), *, iostat = ios) datum%ix_ele_ref
+      if (ios /= 0) then
+        if (print_err) call out_io (s_error$, r_name, 'BAD ELE_REF: ' // data_name)
+        return
+      endif
+    else
+      datum%ele_ref_name = name(:ix-1)
     endif
+    ele_name = name(ix+1:)
   else
-    datum%ele_ref_name = name(:ix-1)
+    ele_name = name
   endif
-  ele_name = name(ix+1:)
-else
-  ele_name = name
 endif
+
 
 ! Evaluate
 
@@ -161,23 +166,47 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   u => s%u(i)
 
-  if (datum%ele_ref_name /= '') then
-    call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err)
-    if (size(eles) /= 1) then
-      call out_io (s_error$, r_name, &
-                      'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
-      return
+  if (use_dflt_ele) then
+    if (associated(dflt_ele_start)) then
+      n_loc = dflt_ele%ix_ele - dflt_ele_start%ix_ele + 1
+    else
+      n_loc = 1
     endif
-    datum%ix_ele_ref = eles(1)%ele%ix_ele
+    if (associated(dflt_ele_ref)) then
+      datum%ix_ele_ref = dflt_ele_ref%ix_ele
+    endif
+
+  else
+    if (datum%ele_ref_name /= '') then
+      call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err)
+      if (size(eles) /= 1) then
+        call out_io (s_error$, r_name, &
+                        'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
+        return
+      endif
+      datum%ix_ele_ref = eles(1)%ele%ix_ele
+    endif
+
+    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
+    if (err) return
   endif
 
-  call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
-  if (err) return
   call re_allocate (values, n_tot + n_loc)
+
   do j = 1, n_loc
-    datum%ele_name = ele_name
-    datum%ix_ele = eles(j)%ele%ix_ele
-    datum%ix_branch = eles(j)%ele%ix_branch
+    if (use_dflt_ele) then
+      datum%ix_branch = dflt_ele%ix_branch
+      if (associated(dflt_ele_start)) then
+        datum%ix_ele = dflt_ele_start%ix_ele + j - 1
+      else
+        datum%ix_ele = dflt_ele%ix_ele
+      endif
+    else
+      datum%ele_name = eles(j)%ele%name
+      datum%ix_ele = eles(j)%ele%ix_ele
+      datum%ix_branch = eles(j)%ele%ix_branch
+    endif
+
     select case (component)
     case ('model')   
       call tao_evaluate_a_datum (datum, u, u%model, values(n_tot+j), valid)
@@ -865,11 +894,8 @@ case ('expression:')
   !!   valid_value = good1(1)
 
   !! else ! Only do this first time through...
-    index_str = datum%ele_name
-    if (datum%ele_start_name /= '') index_str = trim(datum%ele_start_name) // ':' // trim(index_str)
-    if (datum%ele_ref_name /= '') index_str = trim(datum%ele_ref_name) // '&' // trim(index_str)
     call tao_evaluate_expression (datum%data_type(12:), 0, .false., value_array, good1, &
-                                     err, .true., datum%stack, 'model', datum%data_source, index_str)
+               err, .true., datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele)
     if (err) return
     select case (datum%merit_type)
     case ('min')
@@ -1870,56 +1896,35 @@ end function
 !-------------------------------------------------------------------------
 !+
 ! Subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, &
-!                                                  print_err, dflt_source, dflt_index)
+!                             print_err, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
 !
 ! Mathematically evaluates an expression.
 !
 ! Input:
 !   expression    -- character(*): arithmetic expression
-!   use_good_user -- Logical, optional: Use the good_user logical in evaluating good(:)
-!                      Default is False.
-!   print_err     -- Logical, optional: Print an error message? Default is True.
-!   dflt_source   -- Character(*), optional: Default source. Default is ''.
-!   dflt_index    -- Character(*), optional: Default index. Default is ''.
 !
 ! Output:
 !   value        -- real(rp): Value of arithmetic expression.
 !   err_flag     -- Logical: TRUE on error.
-!   good         -- Logical, optional: Is the value valid? 
-!                     Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                     orbit.x[23]|good_user is False.
-!   stack(:)  -- Tao_eval_stack1_struct, optional: Evaluation stack for the
-!                  expression. This is useful to save if the same expression is
-!                  to be evaluated repeatedly. 
-!                  With this, tao_evaluate_stack can be called directly.
 !-
 
-subroutine tao_to_real (expression, value, err_flag, use_good_user, good, stack, &
-                                                       print_err, dflt_source, dflt_index)
+subroutine tao_to_real (expression, value, err_flag)
 
 implicit none
 
-type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
-
 character(*) :: expression
-character(*), optional :: dflt_source, dflt_index
 
 real(rp) value
 real(rp), allocatable, save :: vec(:)
 
 logical, allocatable, save :: ok(:)
-logical err_flag, good_user
-logical, optional :: good, use_good_user
-logical, optional :: print_err
+logical err_flag
 
 !
 
-good_user = logic_option(.false., use_good_user)
-call tao_evaluate_expression (expression, 1, good_user, &
-                                            vec, ok, err_flag, print_err, stack)
+call tao_evaluate_expression (expression, 1, .false., vec, ok, err_flag)
 if (err_flag) return
 value = vec(1)
-if (present(good)) good = ok(1)
 
 end subroutine
 
@@ -1928,7 +1933,8 @@ end subroutine
 !-------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
-!       value, good, err_flag, print_err, stack, dflt_component, dflt_source, dflt_index)
+!      value, good, err_flag, print_err, stack, dflt_component, dflt_source, &
+!      dflt_ele_ref, dflt_ele_start, dflt_ele)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -1940,9 +1946,11 @@ end subroutine
 !   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
-!   dflt_component -- Character(*): Default component to use with datums if not specified.
-!   dflt_source    -- Character(*), optional: Default source. Default is ''.
-!   dflt_index     -- Character(*), optional: Default index. Default is ''.
+!   dflt_component -- Character(*): Default component to use if not specified in the expression.
+!   dflt_source    -- Character(*), optional: Default source ('lat', 'dat', etc.). Default is ''.
+!   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
+!   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.
+!   dflt_ele       -- Ele_struct, pointer, optional: Default element to evaluate at.
 !   
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -1958,7 +1966,8 @@ end subroutine
 !-
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
-          good, err_flag, print_err, stack, dflt_component, dflt_source, dflt_index)
+          good, err_flag, print_err, stack, dflt_component, dflt_source, &
+          dflt_ele_ref, dflt_ele_start, dflt_ele)
 
 use random_mod
 
@@ -1966,6 +1975,7 @@ implicit none
 
 type (tao_eval_stack1_struct), save :: stk(100)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 integer i_lev, i_op, i, ios, n, n_size, n__size
 integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
@@ -1973,10 +1983,10 @@ integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 real(rp), allocatable :: value(:)
 
 character(*) :: expression
-character(*), optional :: dflt_component, dflt_source, dflt_index
+character(*), optional :: dflt_component, dflt_source
 character(200) phrase
 character(1) delim
-character(40) word, word2, default_source, default_index
+character(40) word, word2, default_source
 character(40) :: r_name = "tao_evaluate_expression"
 character(40) saved_prefix
 
@@ -1992,8 +2002,6 @@ saved_prefix = ''
 printit = logic_option(.true., print_err)
 default_source = ''
 if (present(dflt_source)) default_source = dflt_source
-default_index = ''
-if (present(dflt_index)) default_index = dflt_index
 
 phrase = expression
 
@@ -2223,7 +2231,7 @@ parsing_loop: do
     else
       call pushit (stk%type, i_lev, numeric$)
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-                                      err, printit, default_source, default_index)
+                 err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -2275,7 +2283,7 @@ parsing_loop: do
     endif
     call pushit (stk%type, i_lev, numeric$)
     call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-                                      err, printit, default_source, default_index)
+                err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -2423,7 +2431,7 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 
 subroutine tao_param_value_routine (str, saved_prefix, stack, &
-                              err_flag, print_err, default_source, default_index)
+              err_flag, print_err, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
 
 implicit none
 
@@ -2431,11 +2439,12 @@ type (tao_eval_stack1_struct) stack
 type (tao_real_pointer_struct), allocatable, save :: re_array(:)
 type (tao_integer_array_struct), allocatable, save :: int_array(:)
 type (tao_data_struct) datum
+type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 integer ios, i, n, ix, ix2
 
 character(*) str, saved_prefix
-character(*), optional :: default_source, default_index
+character(*), optional :: default_source
 character(16) s, source
 character(60) name
 character(40) :: r_name = 'tao_param_value_routine'
@@ -2514,7 +2523,7 @@ endif
 
 if (source == 'lat') then
   call tao_evaluate_lat_data (err_flag, name, stack%value, .false., &
-                                                  default_source, default_index)
+                                default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
   stack%type = lat_num$
@@ -2523,8 +2532,7 @@ if (source == 'lat') then
 ! Look for a lattice element parameter 
 
 elseif (source == 'ele') then
-  call tao_evaluate_element_parameters (err_flag, name, stack%value, .false., &
-                                                  default_source, default_index)
+  call tao_evaluate_element_parameters (err_flag, name, stack%value, .false., default_source)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
   stack%type = ele_num$

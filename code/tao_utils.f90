@@ -634,7 +634,7 @@ end subroutine tao_var_useit_plot_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err)
+! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, default_source)
 !
 ! Routine to evaluate a lattice element parameter of the form 
 !     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
@@ -651,8 +651,7 @@ end subroutine tao_var_useit_plot_calc
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, &
-                                                       default_source, default_index)
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, default_source)
 
 implicit none
 
@@ -665,7 +664,7 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 
 character(*) param_name
-character(*) default_source, default_index
+character(*) default_source
 character(60) name, class_ele, parameter, component
 character(40) :: r_name = 'tao_evaluate_element_parameters'
 
@@ -709,9 +708,7 @@ endif
 
 ix1 = index(name, '[');  
 if (ix1 == 0) then
-  if (default_index == '') return
-  class_ele = name
-  parameter = default_index
+  return
 
 else
   ix1 = index(name, '[');  if (ix1 == 0) return
