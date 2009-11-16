@@ -381,7 +381,7 @@ else
 endif
 
 bunch => bbu_beam%bunch(ixb)
-call init_bunch_distribution (lat%ele(0), beam_init, bunch)
+call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
 
 ! If this is not the first bunch need to correct some of the bunch information
 
