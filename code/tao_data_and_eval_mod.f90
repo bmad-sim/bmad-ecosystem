@@ -469,7 +469,7 @@ real(rp), allocatable, save :: value_array(:)
 
 integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
-integer n_size
+integer n_size, ix0
 
 character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_evaluate_a_datum'
@@ -1159,8 +1159,11 @@ case ('periodic.tt.')
                                                                         datum%data_type)
     return
   endif
-  
-  call transfer_map_calc (lat, taylor, ix_ele, ix_ele, one_turn = .true.)
+
+  ix0 = ix_ele
+  if (associated(ele_ref)) ix0 = ele_ref%ix_ele
+
+  call transfer_map_calc (lat, taylor, ix0, ix_ele, one_turn = .true.)
   do i = 1, 4
     call add_taylor_term (taylor(i), -1.0_rp, i)
   enddo
