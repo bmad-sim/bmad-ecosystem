@@ -45,13 +45,13 @@ options here.
 \begin{enumerate}
   \item Change the files directly in \cmd{ROOT/tao/hook}, adding any extra
     files you may need, then recompile from the \cmd{ROOT/tao} directory with
-  \cmd{gmake -f M.tao}.  \label{cust_option_one}
+  \cmd{gmake -f M.tao}.  \label{cust.option.one}
   \item Copy the hook files to a separate directory say \cmd{ROOT/my_tao},
     adding any extra files you may need, then write a Makefile to 
     compile and link these
-    routines to the main \tao library. \label{cust_option_two}
+    routines to the main \tao library. \label{cust.option.two}
 \end{enumerate}
-Option~\ref{cust_option_two} is HIGHLY recommended because it keeps
+Option~\ref{cust.option.two} is HIGHLY recommended because it keeps
 the \tao distribution tree undisturbed and reserves the possibility to
 create multiple custom \tao programs using the same vanilla \tao
 library. This option is used in the following example.
@@ -81,13 +81,13 @@ Makefile is a great starting point.
 \end{example}
 Now change the following lines in your Makefile
 \begin{example}
-  LIB\_SRC\_DIRS := ./code ./hook
-  OBJ\_SRC\_DIRS := ./program
+  LIB_SRC_DIRS := ./code ./hook
+  OBJ_SRC_DIRS := ./program
 \end{example}
 to
 \begin{example}
-  LIB\_SRC\_DIRS :=
-  OBJ\_SRC\_DIRS := ./
+  LIB_SRC_DIRS :=
+  OBJ_SRC_DIRS := ./
 \end{example}
 This Makefile will tell gmake to use the tao library that has already
 been created (from \cmd{../tao/code} but the actual library is located
@@ -104,11 +104,11 @@ object files with \cmd{gmake clean}.
 
 There are two more lines to alter. change
 \begin{example}
-  MAIN\_FILE :=
+  MAIN_FILE :=
 \end{example}
 to
 \begin{example}
-  MAIN\_FILE := ./my\_tao_cl.f90
+  MAIN_FILE := ./my_tao_cl.f90
 \end{example}
 and finally,
 \begin{example}

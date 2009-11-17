@@ -310,20 +310,27 @@ same type. Thus the user is free to group data as s/he sees fit.
 Associated with a datum are three lattice elements called the
 \vn{evaluation element}, the \vn{reference element}, and the
 \vn{start element}. The corresponding components in a datum are
-\hfill\break
-\begin{tabular}{lll}
-\toprule
-&\multicolumn{2}{c}{\it Data Component} \\ \cmidrule{2-3}
-{\it Element} & {\it name} & {\it index} \\ \midrule
-Reference Element  & ele_ref_name   & ix_ele_ref   \\
-Start Element      & ele_start_name & ix_ele_strar \\
-Evaluation Element & ele_name       & ix_ele       \\ \bottomrule
-\end{tabular}
-
+shown in Table~\ref{t:datum.elements}.
 These three elements may be specified for a datum by either setting
 the name component or the index component of the datum. Using the
 element index over the element name is necessary when more than one
 element in the lattice has the same name.
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{lll}
+  \toprule
+  &\multicolumn{2}{c}{\it Data Component} \\ \cmidrule{2-3}
+  {\it Element} & {\it name} & {\it index} \\ \midrule
+  Reference Element  & \vn{ele_ref_name}   & \vn{ix_ele_ref}   \\
+  Start Element      & \vn{ele_start_name} & \vn{ix_ele_start} \\
+  Evaluation Element & \vn{ele_name}       & \vn{ix_ele}       \\ \bottomrule
+\end{tabular}
+\caption{The three lattice elements associated with a datum may be
+specified in the datum by setting the appropriate name component or by 
+setting the appropriate index component.}
+\label{t:datum.elements}
+\end{table}
 
 Some datums, like the emittance in a circular ring, do not have
 associated lattice elements and their corresponding element names will
@@ -334,8 +341,8 @@ associated start or reference elements, the \vn{model} value of that
 datum is the value of the \vn{data_type} at the evaluation
 element. For example, if a datum has:
 \begin{example}
-  data_type      = 'orbit.x'
-  ele_name       = 'q12'
+  data_type      = "orbit.x"
+  ele_name       = "q12"
 \end{example}
 then the \vn{model} value of this datum will be the horizontal orbit
 at the element with name \vn{q12}.
@@ -345,10 +352,10 @@ setting the \vn{ele_start_name} or \vn{ix_ele_start} datum components, the
 datum is evaluated over a region from the exit end of the start element
 to the exit end of evaluation element. For example, if a datum has:
 \begin{example}
-  data_type      = 'beta.a'
-  ele_name       = 'q12'
-  ele_start_name = 'q45'
-  merit_type     = 'max'
+  data_type      = "beta.a"
+  ele_name       = "q12"
+  ele_start_name = "q45"
+  merit_type     = "max"
 \end{example}
 then the \vn{model} value of this datum will be the maximum value of the a-mode
 beta function in the region from the exit end of the element with name
@@ -363,11 +370,11 @@ over the range \vn{ele_start} to the evaluation element if \vn{ele_start} is
 specified), minus the \vn{model} value at \vn{ele_ref}. For example,
 if a datum has:
 \begin{example}
-  data_type      = 'beta.a'
-  ele_name       = 'q12'
-  ele_start_name = 'q45'
-  ele_ref_name   = 'q1'
-  merit_type     = 'max'
+  data_type      = "beta.a"
+  ele_name       = "q12"
+  ele_start_name = "q45"
+  ele_ref_name   = "q1"
+  merit_type     = "max"
 \end{example}
 then the \vn{model} value of the datum will be the same as the
 previous example minus the value of the a-mode beta function at the
@@ -417,7 +424,7 @@ $x'$ and $y'$ in place of $p_x$ and $p_y$. However, in the vast
 majority of cases, this does not appreciably affect the numeric
 results.
 
-  \index{expression: *}
+  \index{expression: }
   \item[expression:] \Newline
 The \vn{expression:} The data type can be an expression (\sref{s:arithmetic}).
 In this case the \vn{data_type} must begin with the string ``\vn{expression:}''.
