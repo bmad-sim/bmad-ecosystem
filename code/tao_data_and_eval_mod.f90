@@ -1154,10 +1154,10 @@ case ('orbit.norm_amp_b')
 
 case ('periodic.tt.')
   if (data_source == 'beam') return
-  if (lat%param%lattice_type /= circular_lattice$) then
+  if (lat%param%lattice_type /= circular_lattice$ .and. .not. associated(ele_ref)) then
     call out_io (s_fatal$, r_name, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // &
                                                                         datum%data_type)
-    return
+    call err_exit
   endif
 
   ix0 = ix_ele

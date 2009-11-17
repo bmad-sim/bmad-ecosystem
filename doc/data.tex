@@ -308,7 +308,7 @@ fact, the datums in a given \vn{d1} array do not all have to be of the
 same type. Thus the user is free to group data as s/he sees fit.
 
 Associated with a datum are three lattice elements called \vn{ele},
-\vn{ele_ref}, and \vn{ele_start}.  The names of these elements may be
+\vn{ele_ref}, and \vn{ele_start}. The names of these elements may be
 specified by setting the \vn{ele_name} and \vn{ele_ref_name} and
 \vn{ele_start_name} components of a datum. Alternatively, these
 elements may be specified by setting the \vn{ix_ele} and
@@ -322,7 +322,7 @@ Some datums, like the emittance in a circular ring, do not have
 associated lattice elements and their corresponding element names will
 be blank. All other datums must have an associated \vn{ele} element
 that is specifed by \vn{ele_name} or \vn{ix_ele}. If a datum has an
-associated \vn{ele} but no associated \vn{ele_start} or \vn{ele_ref},
+associated \vn{ele}, but no associated \vn{ele_start} or \vn{ele_ref},
 the \vn{model} value of that datum is the value of the \vn{data_type}
 at that element. For example, if a datum has:
 \begin{example}
@@ -477,7 +477,7 @@ periodic Taylor map defined by
 \Begineq
   T_p \equiv (T_0 - I_4)^{-1}
 \Endeq
-This map is only defined for circular lattices. Here $T_p$ is the
+Here $T_p$ is the
 periodic map, $T_0$ is the one-turn map from some point back to that
 point, and $I_4$ is a linear map defined by the matrix
 \Begineq
@@ -494,6 +494,11 @@ point, and $I_4$ is a linear map defined by the matrix
 The periodic map give information about the closed orbit, dispersion,
 etc. For example, the zeroth order terms are the closed orbit, the r16
 term gives the horizontal dispersion, etc.
+
+If a reference lattice element is specified, the map $T_0$ will be
+the transfer map from the reference element to eva
+This map is only defined for circular lattices. 
+
 
   \index{phase.*}
   \item[phase.*]
