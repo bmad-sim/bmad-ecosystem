@@ -17,7 +17,7 @@
 ! If ix2 < ix1 and lat%param%lattice_type is linear_lattice$ then the backwards
 ! transfer matrix is computed.
 !
-! If ix2 = ix1 then you get the unit map except if one_turn = True.
+! If ix2 = ix1 then you get the unit map except if one_turn = True and the lattice is circular.
 !
 ! Note: If integrate = False and if a taylor map does not exist for an 
 ! element this routine will make one and store it in the element.

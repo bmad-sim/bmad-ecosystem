@@ -23,7 +23,7 @@ contains
 ! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
 ! transfer matrix is computed.
 !
-! If s2 = s1 then you get the unit map except if one_turn = True.
+! If s2 = s1 then you get the unit map except if one_turn = True and the lattice is circular.
 !
 ! Note: If integrate = False and if a taylor map does not exist for an 
 ! element this routine will make one and store it in the element.
@@ -53,8 +53,7 @@ contains
 !    t_map(6) -- Taylor_struct: Transfer map.
 !-
 
-subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, &
-                                      integrate, one_turn, unit_start)
+subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
 use bookkeeper_mod, only: makeup_super_slave1, attribute_bookkeeper
@@ -245,7 +244,7 @@ end subroutine
 ! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
 ! transfer matrix is computed.
 !
-! If s2 = s1 then you get the unit matrix except if one_turn = True.
+! If s2 = s1 then you get the unit matrix except if one_turn = True and the lattice is circular.
 !
 ! Modules Needed:
 !   use bmad

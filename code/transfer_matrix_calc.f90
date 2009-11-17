@@ -41,8 +41,6 @@
 !    xfr_vec(6)   -- Real(rp), optional: 0th order part of the transfer map.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
 
 use bmad_struct
