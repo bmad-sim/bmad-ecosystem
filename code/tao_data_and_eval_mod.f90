@@ -526,7 +526,6 @@ if (data_type(1:2)  == 't.')             data_type = 't.'
 if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
 if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
 if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
-if (data_type(1:14) == 'element_param.') data_type = 'element_param.'
 
 if (data_source /= 'lat' .and. data_source /= 'beam') then
   call out_io (s_error$, r_name, &
@@ -751,17 +750,6 @@ case ('%e_tot')
   call load_it (orbit(0:n_track)%vec(6), ele_ref, ele_start, ele, &
                                      datum_value, valid_value, datum, lat, why_invalid)
   
-case ('element_param.')
-  if (data_source == 'beam') return ! bad
-  call str_upcase (name, datum%data_type(15:))
-  ix = attribute_index (ele, name)
-  if (ix < 1) then
-    call out_io (s_error$, r_name, 'BAD ELEMENT ATTRIBUTE : ' // datum%data_type)
-    why_invalid = 'BAD ELEMENT ATTRIBUTE : ' // datum%data_type
-  endif
-  call load_it (branch%ele(0:n_max)%value(ix), &
-                          ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-
 case ('emit.x', 'norm_emit.x')
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lat') return

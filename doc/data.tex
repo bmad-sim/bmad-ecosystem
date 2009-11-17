@@ -307,24 +307,32 @@ name of \vn{orbit.x} to hold, say, global floor position data. In
 fact, the datums in a given \vn{d1} array do not all have to be of the
 same type. Thus the user is free to group data as s/he sees fit.
 
-Associated with a datum are three lattice elements called \vn{ele},
-\vn{ele_ref}, and \vn{ele_start}. The names of these elements may be
-specified by setting the \vn{ele_name} and \vn{ele_ref_name} and
-\vn{ele_start_name} components of a datum. Alternatively, these
-elements may be specified by setting the \vn{ix_ele} and
-\vn{ix_ele_ref} and \vn{ix_ele_start} components of a
-datum. \vn{ix_ele} and \vn{ix_ele_ref}, and \vn{ix_ele_start} are the
-index of the elements in the array of elements in the lattice. Using
-the element index over the element name is necessary when more than
-one element in the lattice has the same name.
+Associated with a datum are three lattice elements called the
+\vn{evaluation element}, the \vn{reference element}, and the
+\vn{start element}. The corresponding components in a datum are
+\hfill\break
+\begin{tabular}{lll}
+\toprule
+&\multicolumn{2}{c}{\it Data Component} \\ \cmidrule{2-3}
+{\it Element} & {\it name} & {\it index} \\ \midrule
+Reference Element  & ele_ref_name   & ix_ele_ref   \\
+Start Element      & ele_start_name & ix_ele_strar \\
+Evaluation Element & ele_name       & ix_ele       \\ \bottomrule
+\end{tabular}
+
+These three elements may be specified for a datum by either setting
+the name component or the index component of the datum. Using the
+element index over the element name is necessary when more than one
+element in the lattice has the same name.
 
 Some datums, like the emittance in a circular ring, do not have
 associated lattice elements and their corresponding element names will
-be blank. All other datums must have an associated \vn{ele} element
-that is specifed by \vn{ele_name} or \vn{ix_ele}. If a datum has an
-associated \vn{ele}, but no associated \vn{ele_start} or \vn{ele_ref},
-the \vn{model} value of that datum is the value of the \vn{data_type}
-at that element. For example, if a datum has:
+be blank. All other datums must have an associated evaluation element
+that is specifed by setting the \vn{ele_name} or \vn{ix_ele} datum
+component. If a datum has an associated evaluation element, but no
+associated start or reference elements, the \vn{model} value of that
+datum is the value of the \vn{data_type} at the evaluation
+element. For example, if a datum has:
 \begin{example}
   data_type      = 'orbit.x'
   ele_name       = 'q12'
@@ -332,10 +340,10 @@ at that element. For example, if a datum has:
 then the \vn{model} value of this datum will be the horizontal orbit
 at the element with name \vn{q12}.
 
-If a datum has an associated \vn{ele_start} element, specified by
-either \vn{ele_start_name} or \vn{ix_ele_start}, the datum is
-evaluated over a region from the exit end of \vn{ele_start} to the
-exit end of \vn{ele}. For example, if a datum has:
+If a datum has an associated start element, specified by either
+setting the \vn{ele_start_name} or \vn{ix_ele_start} datum components, the
+datum is evaluated over a region from the exit end of the start element
+to the exit end of evaluation element. For example, if a datum has:
 \begin{example}
   data_type      = 'beta.a'
   ele_name       = 'q12'
@@ -348,11 +356,12 @@ beta function in the region from the exit end of the element with name
 that when a range of elements is used, a \vn{merit_type} of
 \vn{target} does not make sense.
 
-If a datum has an associated \vn{ele_ref} element, specified by either
-\vn{ele_ref_name} or \vn{ix_ele_ref}, the \vn{model} value of the
-datum is the value at \vn{ele} (or the value over the range
-\vn{ele_start} to \vn{ele} if \vn{ele_start} is specified), minus the
-\vn{model} value at \vn{ele_ref}. For example, if a datum has:
+If a datum has an associated reference element, specified by either
+setting the \vn{ele_ref_name} or \vn{ix_ele_ref} datum components, the
+\vn{model} value of the datum is the value at the evaluation element (or the value
+over the range \vn{ele_start} to the evaluation element if \vn{ele_start} is
+specified), minus the \vn{model} value at \vn{ele_ref}. For example,
+if a datum has:
 \begin{example}
   data_type      = 'beta.a'
   ele_name       = 'q12'
@@ -362,13 +371,15 @@ datum is the value at \vn{ele} (or the value over the range
 \end{example}
 then the \vn{model} value of the datum will be the same as the
 previous example minus the value of the a-mode beta function at the
-exit end of element \vn{q1}.
+exit end of element \vn{q1}. There are a number of exceptions to the
+above rule and datum types treat the reference element in a different
+manner. For example, the \vn{r.} data type uses the reference element
+as the starting point in constructing a transfer matrix.
 
-%---------------------------------------------------------------------
+The individual data types are described below:
 
   \begin{description}
-
-  \index{beta.*}
+  \index{beta.}
   \item[beta.] \Newline
 \vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
 \vn{beta.y} are beam projected beta functions defined by
@@ -380,18 +391,7 @@ where the average \vn{<>} is over all the particles in the beam.
 Note: If the beta function is calculated from the beam distribution,
 the emittance must be non-zero.
 
-  \index{element_param.*}
-  \item[element\_param.] \Newline 
-The \vn{element_param.<param_name>} data type is for using lattice
-element parameters. \vn{<param_name>} is the name of the
-parameter. See the \bmad manual for the names associated with each
-type of lattice element.  For example, the \vn{k1} quadrupole strength
-would be given by:
-\begin{example}
-  element_param.k1
-\end{example}
-
-  \index{emit.*}
+  \index{emit.}
   \item[emit.] \Newline
 Emittance can be calculated in one of two ways. One way is to
 calculate it from a tracked beam. The other is from the lattice using
@@ -456,23 +456,24 @@ must be assigned a universe, in this case, since all the terms explicitly
 give a universe number, the value of the datum will
 be independent of the universe it is in.
 
-  \index{floor.*}
-  \item[floor.*]
-This is the global floor position at the exit end of \vn{ele}. See the
+  \index{floor.}
+  \item[floor.]
+This is the global floor position at the exit end of evaluation element. See the
 \bmad manual for details on the global coordinate system. See also
-\vn{rel_floor.*}.
+\vn{rel_floor.}.
 
   \index{n_particle_loss}
   \item[n\_particle\_loss] \Newline
-If \vn{ele_start} is not specified, \vn{n_particle_loss} gives the number
-of particles lost at element \vn{ele}. If \vn{ele_ref} is specified,
-\vn{n_particle_loss} gives the cumulative loss between the exit end of
-\vn{ele_ref} and the exit end of \vn{ele}. That is, this sum does not
-count any losses at \vn{ele_ref} itself.
+If the start element is not specified, \vn{n_particle_loss} gives the
+number of particles lost at the evaluation element. If the reference
+element is specified, \vn{n_particle_loss} gives the cumulative loss
+between the exit end of the reference element and the exit end of the
+evaluation element. That is, this sum does not count any losses at the
+reference element itself.
 
-  \index{periodic.tt.*}
-  \item[periodic.tt.*] \Newline
-This is like the \vn{tt.*} datum except here the terms are from the
+  \index{periodic.tt.}
+  \item[periodic.tt.] \Newline
+This is like the \vn{tt.} datum except here the terms are from the
 periodic Taylor map defined by
 \Begineq
   T_p \equiv (T_0 - I_4)^{-1}
@@ -496,14 +497,16 @@ etc. For example, the zeroth order terms are the closed orbit, the r16
 term gives the horizontal dispersion, etc.
 
 If a reference lattice element is specified, the map $T_0$ will be
-the transfer map from the reference element to eva
-This map is only defined for circular lattices. 
+the transfer map from the reference element to the evaluation element.
 
+Note: If the reference element is not specified or if the reference
+element is the same as the evaluation element, this data type cannot
+be used with a circular lattice.
 
-  \index{phase.*}
-  \item[phase.*]
+  \index{phase.}
+  \item[phase.]
 This is the betatron phase.  If a \vn{d1_data} array has a set of
-\vn{phase} datums, and if the \vn{ele_ref} element is {\em not}
+\vn{phase} datums, and if the reference element is {\em not}
 specified, the average phase used for optimizations ($D$ in
 \Eq{miwdjw}) and plotting for all the datums within a \vn{d1_data}
 array are set to zero by adding a fixed constant to all the datums.
@@ -511,50 +514,52 @@ This is done since, without a reference point that defines a zero
 phase, the overall average phase is arbitrary and so the average phase
 is taken in \tao to be zero. This can be helpful in optimizations
 since one does not have to worry about arbitrary offsets between the
-\vn{model} and \vn{measured} values. If the \vn{ele_ref} element is
+\vn{model} and \vn{measured} values. If the reference element is
 specified then there is no arbitrary constant in the evalustion.
 
-  \index{rel_floor.*}
-  \item[rel\_floor.*]
-This is the global floor position at the exit end of \vn{ele} relative
-to the exit end of \vn{ele_ref} in a global coordinate system where the
-exit end of \vn{ele_ref} is taken to be at \vn{x = y = z = theta = phi =
-0}. See the \bmad manual for details on the global coordinate
-system. See also \vn{floor.*}.
+  \index{rel_floor.}
+  \item[rel\_floor.]
+This is the global floor position at the exit end of the evaluation
+element relative to the exit end of the reference element in a global
+coordinate system where the exit end of the reference element is taken to be at
+\vn{x = y = z = theta = phi = 0}. See the \bmad manual for details on
+the global coordinate system. See also \vn{floor.}.
 
-  \index{t.* tt.*} 
-  \item[t.* tt.*] \Newline
+  \index{t. tt.} 
+  \item[t. tt.] \Newline
 The \vn{t} and \vn{tt} data types give terms of the Taylor map between
-two points. The difference between \vn{t.*} and \vn{tt.*} is that
-\vn{t.*} is restricted to exactly three indices and \vn{tt.*} is
-not. \vn{t.*} is superfluous but is keep for backwards compatibility.
+two points. The difference between \vn{t.} and \vn{tt.} is that
+\vn{t.} is restricted to exactly three indices and \vn{tt.} is
+not. \vn{t.} is superfluous but is keep for backwards compatibility.
 
-Calculation of \vn{t.*} and \vn{tt.*} datums involve symplectic integration
-through lattice elements. One point to be kept in mind is that results
-will be dependent upon the integration step size through an element
-set by the \vn{ds_step} attribute of that element (see the \bmad
-manual for more details). When a smooth curve (\sref{s:template}) is
-plotted for \vn{t} and \vn{tt} data types, and the longitudinal
-(\vn{"s"}) position is used for the x-axis, the integration step used
-in generating the points that define this curve will be decreased if
-the the s-distance between points is smaller than the \vn{ds_step}.
-In this case, discrepancies between the plot and datum values may be observed.
+Calculation of \vn{t.} and \vn{tt.} datums involve symplectic
+integration through lattice elements. One point to be kept in mind is
+that results will be dependent upon the integration step size through
+an element set by the \vn{ds_step} attribute of that element (see the
+\bmad manual for more details). When a smooth curve
+(\sref{s:template}) is plotted for \vn{t} and \vn{tt} data types, and
+the longitudinal (\vn{"s"}) position is used for the x-axis, the
+integration step used in generating the points that define this curve
+will be decreased if the s-distance between points is smaller than
+the \vn{ds_step}.  In this case, discrepancies between the plot and
+datum values may be observed.
 
   \index{unstable_orbit}
   \item[unstable\_orbit] \Newline
-The \vn{unstable_orbit} datum is used for linear lattices. For single particle
-tracking, the value of an \vn{unstable_orbit} datum is zero if the
-tracked particle survives (has not been lost) up to the \vn{ele}
-element and, if it has been lost, is set to 
+The \vn{unstable_orbit} datum is used for linear lattices. For single
+particle tracking, the value of an \vn{unstable_orbit} datum is zero
+if the tracked particle survives (has not been lost) up to the
+evaluation element and, if it has been lost, is set to
 \Begineq
  1 + i_{\mbox{ele}} - i_{\mbox{lost}}
 \Endeq
-where $i_{\mbox{ele}}$ is the index of \vn{ele} in the lattice and
-$i_{\mbox{lost}}$ is the index of the element where the particle was
-lost. When tracking beams, the value of \vn{unstable_orbit} is the
-averaged value over all particles in the bunch. The default for
-\vn{ele}, if \vn{ele_name} nor \vn{ix_ele} is not specified, is to use
-the last element in the lattice.
+where $i_{\mbox{ele}}$ is the index of the evaluation element in the
+lattice and $i_{\mbox{lost}}$ is the index of the element where the
+particle was lost. When tracking beams, the value of
+\vn{unstable_orbit} is the averaged value over all particles in the
+bunch. The default for the evaluation element, if \vn{ele_name} nor
+\vn{ix_ele} is not specified, is to use the last element in the
+lattice.
 
 \vn{unstable_orbit} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
@@ -567,7 +572,7 @@ largest growth rate of all the normal modes of oscillation if the ring
 is unstable. \vn{unstable_ring} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
 
-  \index{wire.*}
+  \index{wire.}
   \item[wire] \Newline
 \vn{wire} data simulates the measurement of a wire scanner. The angle specified
 is the angle of the wire with respect to the horizontal axis. The measurement
