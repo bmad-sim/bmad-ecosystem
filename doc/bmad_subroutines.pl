@@ -356,6 +356,8 @@ sub searchit {
           $this2 = $this; 
           $this2 =~ s/\s*\(.*//;
           print "\\index\{routine\!$this2\}\n";
+          this2 =~ s/_/./g;
+          print "\\label\{r:$this2\}\n";
           print "\\item\[$this\] \\Newline \n";
           $l2 = <F_IN>; 
           $l2 =~ s/\%/\\\%/g;
