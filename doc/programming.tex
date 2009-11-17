@@ -191,15 +191,15 @@ version you are working with is controlled by the kind parameter \vn{rp}\
 module. [Note: For compatibility with older programs the kind parameter
 \vn{rdef} is defined to be equal to \vn{rp}.]  On most platforms single
 precision translates to \vn{rp}\ = 4 and double precision to \vn{rp}\ =
-8. Normally the double precision version is used since round-off
+8. The double precision version is used by default since round-off
 errors can be significant in some calculations. Long--term tracking is
 an example where the single precision version is not adequate. Changing 
 the precision means recompiling all the libraries except PTC and PGPLOT. 
 You cannot mix and match. Either you are using the single precision version
 or you are using the double precision version.
 
-To define your variables in Fortran with the correct precision use the syntax
-{\tt real(rp)}. For example:
+To define floating point variables in Fortran with the correct precision,
+ use the syntax {\tt ``real(rp)''}. For example:
 \begin{example}
     real(rp) var1, var2, var3
 \end{example}
@@ -225,7 +225,7 @@ respectively.
 
 \begin{description}
 
-\index{programming!\$}
+\index{\$!character to denote a parameter}
 \item[\$ Denotes Parameter:] A ``\$'' at the end of a name denotes an 
 integer parameter. For example, in the above program, to check
 whether an element is a quadrupole one would write:
@@ -246,7 +246,7 @@ importantly, the integer value of the parameters may at times be
 shuffled for practical internal reasons. The use of the integer value
 could thus lead to disastrous results.  
 
-\index{programming!structures}
+\index{structures}
 \item[Structure names have a _struct suffix:]
 For example: \vn{lat_struct}, \vn{ele_struct}, etc. Structures without a 
 \vn{_struct} are usually part of Etienne's PTC/FPP package.

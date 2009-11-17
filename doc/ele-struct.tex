@@ -3,76 +3,152 @@
 \index{ele_struct|hyperbf}
 
 This chapter describes the \vn{ele_struct} which is the structure that
-holds all the information about an individual element: quadrupoles,
-separators, wigglers, etc. 
-Part of the substructure of the \vn{ele_struct} is shown
-in figure~\ref{f:ele.struct} (use \vn{getf} to see the entire structure 
-definition). This structure is somewhat
-complicated, however, in practice, a lot of the complexity is
-generally hidden  by the \bmad bookkeeping routines.
+holds all the information about an individual lattice element:
+quadrupoles, separators, wigglers, etc. The \vn{ele_struct} structure is
+shown in Figures~\ref{f:ele.struct1}  and \ref{f:ele.struct2}. This
+structure is somewhat complicated, however, in practice, a lot of the
+complexity is generally hidden  by the \bmad bookkeeping routines.
 
-\begin{figure}[htb]
+As a general rule, for variables like the Twiss parameters that are not
+constant along the length of an element, the value stored in the
+corresponding component in the \vn{ele_struct} is the value at the exit
+end of the element.
+
+\begin{figure}[tb]
 \centering
-\small
+\footnotesize
 \begin{verbatim}
-  type ele_struct
-    character(40) name                ! name of element
-    character(40) type                ! type name
-    character(40) alias               ! Another name
-    character(40) component_name      ! Used by overlays, multipass patch, etc.
-    character(200), pointer :: descrip => null()     ! For general use
-    type (twiss_struct)  a, b, z      ! Twiss parameters at end of element
-    type (xy_disp_struct) x, y        ! Projected dispersion
-    type (floor_position_struct) position
-    real(rp) value(n_attrib_maxx)     ! attribute values
-    real(rp) ref_orb_start(6)         ! Reference orbit for mat6 calc at entrance of element.
-    real(rp) ref_orb_end(6)           ! Reference orbit at exit of element.
-    real(rp) vec0(6)                  ! 0th order transport vector
-    real(rp) mat6(6,6)                ! 1st order transport matrix
-    real(rp) c_mat(2,2)               ! 2x2 C coupling matrix
-    real(rp) gamma_c                  ! gamma associated with C matrix
-    real(rp) s                        ! longitudinal position at the end
-    real(rp), pointer :: a_pole(:) => null()  ! skew multipole component
-    real(rp), pointer :: b_pole(:) => null()  ! normal multipole component
-    type (wake_struct), pointer :: wake => null() ! Wake fields
-    type (taylor_struct) :: taylor(6)             ! Taylor terms
-    integer key                    ! key value
-    integer sub_key                ! For wigglers: map_type$, periodic_type$
-    integer lord_status            ! overlay_lord$, etc.
-    integer slave_status           ! super_slave$, etc.
-    integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
-    integer tracking_method        ! bmad_standard$, taylor$, etc.
-    integer field_calc             ! Used with integrators (Runge-Kutta et. al)
-    integer num_steps              ! number of slices for DA_maps
-    integer integrator_order       ! For Etiennes' PTC: 2, 4, or 6.
-    logical symplectify            ! Symplectify mat6 matrices.
-    logical exact_rad_int_calc     ! Exact radiation integral calculation?
-    logical map_with_offsets       ! Taylor map calculated with element offsets?
-    logical field_master           ! Calculate strength from the field value?
-    logical is_on                  ! For turning element on/off.
-    logical on_a_girder            ! Have an Girder lord?
-    logical csr_calc_on            ! Coherent synchrotron radiation calculation
-    logical offset_moves_aperture  ! element offsets affects aperture?
-  end type
+type ele_struct
+  character(40) name                   ! name of element.
+  character(40) type                   ! type name.
+  character(40) alias                  ! Another name.
+  character(40) component_name         ! Used by overlays, multipass patch, etc.
+  character(200), pointer :: descrip => null() ! Description string.
+  type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
+  type (xy_disp_struct) x, y           ! Projected dispersions.
+  type (floor_position_struct) floor   ! Global floor position at end of ele.
+  type (mode3_struct), pointer :: mode3 => null()
+  type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
+  type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
+  type (genfield), pointer :: gen_field => null() ! For symp_map$
+  type (taylor_struct) :: taylor(6)               ! Taylor terms
+  type (wake_struct), pointer :: wake => null()   ! Wakefields
+  type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
+  type (trans_space_charge_struct), pointer :: trans_sc => null()
+  real(rp) value(n_attrib_maxx)      ! attribute values.
+  real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
+  real(rp) gen0(6)                   ! constant part of the genfield map.
+  real(rp) vec0(6)                   ! 0th order transport vector.
+  real(rp) mat6(6,6)                 ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                ! 2x2 C coupling matrix
+  real(rp) gamma_c                   ! gamma associated with C matrix
+  real(rp) s                         ! longitudinal position at the exit end.
+  real(rp) ref_time                  ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()        ! multipole
+  real(rp), pointer :: b_pole(:) => null()        ! multipoles
+  real(rp), pointer :: const(:) => null()         ! Working constants.
+  ele_struct definition continued on next figure...
 \end{verbatim}
-\caption[The \vn{ele_struct}.]{The \vn{ele_struct}. Only part of the 
-  substructure is shown.}
-\label{f:ele.struct}
+\caption[The \vn{ele_struct}. Part 1]{The \vn{ele_struct}. structure definition. 
+The complete structure is shown in this and the following figure.}
+\label{f:ele.struct1}
 \end{figure}
 
 %--------------------------------------------------------------------------
-\section{String components}
+
+\begin{figure}[tb]
+\centering
+\footnotesize
+\begin{verbatim}
+  ele_struct definition continued from previous figure.
+  integer key                ! key value
+  integer sub_key            ! For wigglers: map_type$, periodic_type$
+  integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer ix_value           ! Overlays: Index of control attribute. 
+  integer slave_status       ! super_slave$, etc.
+  integer n_slave            ! Number of slaves
+  integer ix1_slave          ! Start index for slave elements
+  integer ix2_slave          ! Stop  index for slave elements
+  integer lord_status        ! overlay_lord$, etc.
+  integer n_lord             ! Number of lords
+  integer ic1_lord           ! Start index for lord elements
+  integer ic2_lord           ! Stop  index for lord elements
+  integer ix_pointer         ! For general use. Not used by Bmad.
+  integer ixx                ! Index for Bmad internal use
+  integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
+  integer tracking_method    ! bmad_standard$, taylor$, etc.
+  integer field_calc         ! Used with Boris, Runge-Kutta integrators.
+  integer num_steps          ! number of slices for DA_maps
+  integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
+  integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, etc.
+  integer taylor_order       ! Order of the taylor series.
+  integer aperture_at        ! Aperture location: exit_end$, ...
+  integer coupler_at         ! Lcavity coupler location: exit_end$, ...
+  logical symplectify        ! Symplectify mat6 matrices.
+  logical mode_flip          ! Have the normal modes traded places?
+  logical multipoles_on      ! For turning multipoles on/off
+  logical map_with_offsets   ! Taylor map calculated with element offsets?
+  logical field_master       ! Calculate strength from the field value?
+  logical is_on              ! For turning element on/off.
+  logical old_is_on          ! For saving the element on/off state.
+  logical logic              ! For general use. Not used by Bmad.
+  logical bmad_logic         ! For Bmad internal use only.
+  logical on_a_girder        ! Have an Girder overlay_lord?
+  logical csr_calc_on        ! Coherent synchrotron radiation calculation
+  logical offset_moves_aperture  ! element offsets affects aperture?          
+end type
+\end{verbatim}
+\caption[The \vn{ele_struct}. part 2.]{The \vn{ele_struct}. 
+The complete structure is shown in this and the preceeding figure.}
+\label{f:ele.struct2}
+\end{figure}
+
+%--------------------------------------------------------------------------
+\section{Initialization and Pointers}
+\index{ele_struct!initialization}
+\index{ele_struct!pointer components}
+
+The \vn{ele_struct} has a number of components and subcomponents 
+that are pointers and this raises a deallocation issue.
+Generally, most \vn{ele_struct} elements are part of a \vn{lat_struct}
+variable (\sref{s:lat:point})
+and such elements in a \vn{lat_struct} are handled by the
+\vn{lat_struct} allocation/deallocation routines. 
+In the case where a local \vn{ele_struct}
+variable is used within a subroutine or function, the \vn{ele_struct} 
+variable must either be defined with the \vn{save} attribute or
+the pointers within the variable must be deallocated  with a call to
+\hyperref[r:lat.low]{deallocate_ele_pointers}
+\begin{example}
+  type (ele_struct), save :: ele     ! Either do this at the beginning ...
+  ...
+  call deallocate_ele_pointers (ele) ! ... Or do this at the end of a routine.
+\end{example}
+
+The equal sign in the assignment
+\begin{example}
+  ele1 = ele2
+\end{example}
+is overloaded by the routine \vn{ele_equal_ele} to ensure that the
+pointers of \vn{ele1} do not point to the same memory locations as the
+pointers of \vn{ele2}.
+
+%--------------------------------------------------------------------------
+\section{String Components}
 
 \index{ele_struct!\%descrip}\index{ele_struct!\%alias}
 \index{ele_struct!\%type}\index{ele_struct!\%name}
-\vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} are character arrays
-within an \vn{ele_struct}. All of these have a direct correspondence with
+The \vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} components
+of the \vn{ele_struct} all have a direct correspondence with
 the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
-an input lattice file. The \vnr{bmad_parser} routine will convert 
-\vn{name}, \vn{type}, and \vn{alias} attributes to uppercase before loading them
-into an \vn{ele_struct}. \bmad generally ignores these character arrays. 
-Notice that \vn{%descrip} is a pointer so if you make use of it in a program 
-make sure that it is allocated before hand.
+an input lattice file (\sref{s:string}). On input, from a lattice file,  
+\vn{name}, \vn{type}, and \vn{alias} attributes will be converted to
+to uppercase before being loaded 
+into an \vn{ele_struct}. To save memory, since \vn{%descrip} is not frequently used,
+\vn{%descrip} is a pointer that is only allocated if \vn{descrip} is set for 
+a given element.
 
 %--------------------------------------------------------------------------
 \section{Initialization and Element Key}
@@ -80,68 +156,46 @@ make sure that it is allocated before hand.
 
 \index{ele_struct!\%key}
 The \vn{%key} integer component gives the type of element
-(\vn{Quadrupole}, \vn{RFcavity}, etc.). In general to get the
-corresponding integer parameter for an element class just add a ``\$''
+(\vn{Quadrupole}, \vn{RFcavity}, etc.). In general, to get the
+corresponding integer parameter for an element class, just add a ``\$''
 character to the type name. For example \vn{quadrupole\$} is the integer
 parameter for \vn{quadrupole} elements. The \vn{key_name} array converts from
-integer to the appropriate string. For example
+integer to the appropriate string. For example:
 \begin{example}
   type (ele_struct) ele
   call init_ele (ele)                  ! Initialize
   if (ele%key == wiggler\$) then       ! Test if element is a wiggler.
   print *, 'This element: ', key_name(ele%key) ! Prints, for example, 'WIGGLER'
 \end{example}
-The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
+Note: The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{lat_struct} structure.
 
-\index{wiggler}
-\index{rbend}
-\index{sbend}\index{ele_struct!\%sub_key}
+\index{wiggler}\index{rbend}\index{sbend}\index{ele_struct!\%sub_key}
 The \vn{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
 \vn{Sbend} elements. For \vn{Wiggler} elements, \vn{%sub_key} is either set to
 \begin{example}
   map_type$ or
   periodic_type$
 \end{example}
-depending upon the type of wiggler. For bends the parser routines
-turn all \vn{Sbend}s into \vn{Rbend}s. To keep track of what they
-were in the input lattice file, the \vn{%sub_key} is set to
-\begin{example}
-  sbend$ or
-  rbend$
-\end{example}
-whatever is appropriate.
+depending upon the type of wiggler. For bend elements,
+when a lattice file is parsed, all \vn{rbend} elements are converted into
+\vn{sbend} elements (\sref{s:bend}). To keep track of what the original definition
+of the element was, the \vn{%sub_key} component will be set to \vn{sbend\$} or
+\vn{rbend\$} whatever is appropriate. In the case of bends, the \vn{%sub_key} component
+does not affect any calculations and is only used in the routines that recreate
+lattice files from a \vn{lat_struct} (\sref{r:read}).
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
 \label{s:ele.twiss}
-\index{ele_struct!Twiss}
-\index{ele_struct!global coordinates}
-\index{Coordinates!global!in ele_struct}
 
-For variables like the Twiss parameters that vary along the length of an
-element the rule is that the value stored in the \vn{ele_struct} is
-the value at the exit end of the element. Such variables are:
+\index{ele_struct!\%twiss}
+
 \index{ele_struct!\%s}
 \index{ele_struct!\%gamma_c}
 \index{ele_struct!\%c_mat}
 \index{ele_struct!\%a}
-\begin{example}
-  type (twiss_struct)  a, b, z          ! Twiss parameters
-  type (xy_disp_struct) x, y            ! Projected dispersion
-  type (floor_position_struct) position ! Floor position
-  real(rp) c_mat(2,2)                   ! Coupling c matrix
-  real(rp) gamma_c                      ! Coupling parameter
-  real(rp) s                            ! Longitudinal position
-\end{example}
-To get the Twiss parameters, floor (global) position, etc.\ for the beginning
-of the element you need to look at the preceding element in the
-\vn{lat%ele(:)} array 
-\begin{example}
-  lat%ele(i-1)%a%beta  ! Beta_a at beginning of ith element.
-\end{example}
-To get the parameters at a position within an element you can use the
-routines \vn{twiss_and_track_at_s} or \vn{twiss_and_track_partial}.
+
 
 \index{ele_struct!\%z}\index{ele_struct!\%b}\index{ele_struct!\%a}
 \index{normal mode!in Ele_struct}
@@ -153,7 +207,7 @@ the \vn{twiss_struct} structure is
 \begin{example}
   type twiss_struct
     real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) sigma, emit
+    real(rp) sigma, sigma_p, emit, norm_emit
   end type 
 \end{example} 
 \vn{eta} and \vn{etap} are also the normal mode dispersion and
@@ -340,7 +394,12 @@ The aperture limits are:
 \end{example}
 
 %--------------------------------------------------------------------------
-\section{Positional Offsets}
+\section{Coordinates, Offsets, etc.}
+
+\index{ele_struct!\%floor}
+\index{global coordinates!in ele_struct}
+
+
 \index{x_offset}\index{y_offset}\index{x_pitch}\index{y_pitch}
 \index{tilt}\index{x_offset_tot}\index{y_offset_tot}\index{x_pitch_tot}
 \index{y_pitch_tot}\index{tilt_tot}
@@ -611,31 +670,4 @@ someone writing a program. These components are
    integer ix_pointer                   ! For general use. Not used by \bmad.
    logical logic                        ! For general use. Not used by \bmad.
 \end{example}
-
-%--------------------------------------------------------------------------
-\section{Initialization and Pointers}
-\index{ele_struct!initialization}
-\index{ele_struct!pointer components}
-
-Generally most \vn{ele_struct} elements are part of a \vn{lat_struct}
-variable and elements in a \vn{lat_struct} are handled by the
-\vn{lat_struct} allocation/deallocation routines (see
-\sref{s:lat:point}). In case you do have a local \vn{ele_struct}
-variable within a subroutine or function then you either have to
-deallocate the pointers within it with a call to
-\vn{deallocate_ele_pointers} or you use the save attribute.
-\begin{example}
-  type (ele_struct), save :: ele     ! Either do this at the beginning ...
-  ...
-  call deallocate_ele_pointers (ele) ! ... Or do this at the end.
-\end{example}
-
-\noindent
-The equal sign in the assignment
-\begin{example}
-  ele1 = ele2
-\end{example}
-is overloaded by the routine \vn{ele_equal_ele} to ensure that the
-pointers of \vn{ele1} do not point to the same memory locations as the
-pointers of \vn{ele2}.
 

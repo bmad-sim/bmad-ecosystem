@@ -14,13 +14,16 @@ This program is provided with the \bmad distribution in a file called
 \vn{simple_program.f90}. \vn{simple_program.f90} is in the \vn{bmad}
 library area in a directory called \vn{bmad/simple_program}.
 
+
+
 \begin{figure}[htp]
 \begin{listing}{1}
 program test
 
   use bmad                 ! Define the structures we need to know about.
   implicit none
-  type (lat_struct) lat   ! This structure holds the lattice info
+  type (lat_struct), target :: lat   ! This structure holds the lattice info
+  type (ele_struct), pointer :: ele
   type (ele_pointer_struct), allocatable :: eles(:)
   integer i, ix, n_loc
   logical err
@@ -36,9 +39,8 @@ program test
 
   print *, ' Ix  Name              Ele_type                   S      Beta_a'
   do i = 0, 10
-    print '(i4, 2x, a16, 2x, a, 2f12.4)', i, lat%ele(i)%name, &
-                    key_name(lat%ele(i)%key), &
-                    lat%ele(i)%s, lat%ele(i)%a%beta
+    ele => lat%ele(i)
+    print '(i4,2x,a16,2x,a,2f12.4)', i, ele%name, key_name(ele%key), ele%s, ele%a%beta
   enddo
 
   ! Find the CLEO_SOL element and print information on it.
@@ -62,53 +64,60 @@ end program
 \section{Explanation of the Simple_Program}
 
 \index{lat_struct!example use of}
-A line by line explanation of the example program follows. 
-The \vn{use bmad} statement at line 4
-defines the \bmad structures and defines the interfaces
-(argument lists) for the \bmad subroutines. In particular, the
-\vn{lat_struct} structure (line 6) holds all of the lattice
-information: The list of elements, their attributes,
-etc. \vnr{bmad_parser} (line 12) is the routine which parses a lattice
-file and transfers the information to a
-\vn{lat_struct} variable. To get a listing of the \vn{lat_struct}
-components or to find out more about \vn{bmad_parser} use the \vn{getf}
-command as discussed in \sref{s:getf}.
+A line by line explanation of the example program follows. The \vn{use
+bmad} statement at line 3 defines the \bmad structures and defines the
+interfaces (argument lists) for the \bmad subroutines. In particular,
+the \vn{lat_struct} (\sref{s:lat.struct}) structure (line 5) holds all
+of the lattice information: The list of elements, their attributes, etc.
+\vnr{bmad_parser} (line 13) is the routine which parses a lattice file
+and transfers the information to a \vn{lat_struct} variable. To get a
+listing of the \vn{lat_struct} components or to find out more about
+\vn{bmad_parser} use the \vn{getf} command as discussed in \sref{s:getf}.
 
-\index{Routine!bmad_parser}
-\index{Routine!twiss_at_start}
-\index{Routine!twiss_propagate_all}
-After \vnr{bmad_parser} is called, the program check if the lattice 
+\index{routine!bmad_parser}
+\index{routine!twiss_at_start}
+\index{routine!twiss_propagate_all}
+After \vnr{bmad_parser} is called, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
-routine \vnr{twiss_at_start} (line 14) to multiply the transfer
+routine \vnr{twiss_at_start} (line 15) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
 matrix from the start of the lat back to the start. From this matrix
 \vn{twiss_at_start} calculates the Twiss parameters at the start of
 the lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}). 
-The next call, to \vnr{twiss_propagate_all} (line 15), takes the starting
+The next call, to \vnr{twiss_propagate_all}, takes the starting
 Twiss parameters and, using the transfer matrices of the individual
-elements, calculates the Twiss parameters at all the elements. 
+elements, calculates the Twiss parameters at all the elements. Notice that
+if the lattice is not circular, The starting Twiss parameters will need
+to have been defined in the lattice file.
 
 \index{ele_struct!\%x}
 \index{ele_struct!\%key}
 \index{ele_struct!\%s}
 \index{lat_struct!\%ele(:)}
-The program is now ready to print out the results of the calculation
-which it does on lines 19 through 24 of the program. 
-\vn{lat} has within it an array
-\vn{lat%ele(0:)}.  Each element of the array holds the information
-about an individual element as explained in
-Chapter~\ref{c:ele.struct}. \vn{lat%ele(0)} is basically a marker
-element to denote the beginning of the array. \vn{lat%ele(i)%key} is
-an integer denoting what type of element (quadrupole, wiggler, etc.)
-it is. \vn{key_name} is an array that translates the key of an element
-to a string. \vn{lat%ele(i)%s} is the longitudinal position at the
-exit end of the i\Th\ element. \vn{lat%ele(i)%x%beta} is the
-$a$--mode (nearly horizontal mode) beta. The result of this printing is
-shown in lines 1 through 12 of the output in Figure~\ref{f:output}. 
+The program is now ready to print out some information on the first 11
+elements in the lattice which it does on lines 20 through 24 of the
+program. The do-loop is over the array \vn{lat%ele(:)}.  Each element of
+the array holds the information about an individual lattice element as
+explained in Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)} element is
+basically a marker element to denote the beginning of the array
+(\sref{c:sequence}). Using the pointer \vn{ele} to point to the
+individual elements (line 22) makes for a cleaner syntax and reduces
+typing. The table that is produced is shown in
+lines 1 through 12 of Figure~\ref{f:output}.
+The first column is the element index $i$. The second column,
+\vn{ele%name}, is the name of the element. The third column,
+key_name(ele%key), is the name of the element class. \vn{ele%key} is an
+integer denoting what type of element (quadrupole, wiggler, etc.) it is.
+\vn{key_name} is an array that translates the integer key of an element
+to a printable string. The fourth column, \vn{ele%s}, is the longitudinal 
+position at the
+exit end of the element. Finally, the last column, \vn{ele%x%beta},
+is the $a$--mode (nearly
+horizontal mode) beta function.
 
-The next section of the program, lines 28 through 35, uses the routine
-\vnr{lat_ele_locator} (\sref{s:lat.ele.change}) to find the index of an
-element in the lattice with the name \vn{CLEO_SOL}.
+The final section of the program, lines 28 through 33, uses the routine
+\vnr{lat_ele_locator} (\sref{s:lat.ele.change}) to find the element 
+in the lattice with the name \vn{CLEO_SOL}.
 \vnr{type_ele} is used to type out the element's attributes and other
 information as shown on lines 14 through 41 of the output (more on this later).
 

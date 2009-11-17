@@ -257,7 +257,7 @@ $tex_file =  'subroutines.tex';
 open (F_IN, $tex_file) || die ("Cannot open File: $tex_file");
 
 while (<F_IN>) {
-  if (/\\index\{Routine\!(.*?)\}/i)  {      # match to "\index{Routine!...}" 
+  if (/\\index\{routine\!(.*?)\}/i)  {      # match to "\index{routine!...}" 
     $name = $1;
     $name =~ s/protect\\parbox\{6in\}\{//;
     $name =~ tr/A-Z/a-z/;    # lowercase
@@ -355,7 +355,7 @@ sub searchit {
           print "\nFile: $file\n";
           $this2 = $this; 
           $this2 =~ s/\s*\(.*//;
-          print "\\index\{Routine\!$this2\}\n";
+          print "\\index\{routine\!$this2\}\n";
           print "\\item\[$this\] \\Newline \n";
           $l2 = <F_IN>; 
           $l2 =~ s/\%/\\\%/g;

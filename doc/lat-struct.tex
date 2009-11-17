@@ -108,14 +108,14 @@ the ``lord'' part). The tracking part of this array holds the elements
 that are tracked through. The control part holds elements whose
 control attributes of other elements (\sref{s:lat.control}). The bounds
 of these two parts is given in Table~\ref{t:part.extent}.
-\begin{table}[htb]
+\begin{table}[tb]
 \begin{center}
-\begin{tabular}{|l|l|l|}
-\hline
-              & \multicolumn{2}{c|} {\em index n}         \\ \hline
-{\em section} & {\em min}          & {\em max}            \\ \hline
-tracking      & 0                  & \vn{%n_ele_track}     \\ \hline
-control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}      \\ \hline
+\begin{tabular}{lll}
+\toprule
+              & \multicolumn{2}{c} {\em Element index}   \\ \cmidrule{2-3}
+{\em section} & {\em min}          & {\em max}            \\ \midrule
+tracking      & 0                  & \vn{%n_ele_track}    \\ 
+control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}     \\ \bottomrule
 \end{tabular} 
 \caption{Bounds of the tracking and control parts 
 of the main lattice \vn{\%ele(:)} array.}
@@ -340,68 +340,69 @@ Any element whose \vn{%slave_status} is something other than
 always appear in the tracking part of the lattice. The other types can
 be in either the tracking or control parts of the lattice.
 
-\begin{table}[ht]
-  \begin{center}
-  \subfigure[Possible \vn{ele%lord_status} and \vn{ele%slave_status} combinations
+\begin{table}[tb]
+  \footnotesize
+
+  \centering
+  \subfigure[Possible {ele\%lord_status} and {ele\%slave_status} combinations
     within an individual element. X marks a possible combination.]
-  {\label{f:lord-slave-a}
-  \begin{tabular}{llccccc} 
-    \hline
-    & \multicolumn{6){c}{\vn{ele%lord_status}} \\ \hline
-    \rule{0pt}{80pt} &
+  {
+ \begin{tabular}{lcccccc} 
+    \toprule
+    & \multicolumn{6}{c}{\vn{ele\%lord_status1}} \\ \cmidrule{2-7}
+    \vn{ele\%slave_status} &
     \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
     \begin{sideways}\vn{group_lord\$}\end{sideways} &
     \begin{sideways}\vn{girder_lord\$}\end{sideways} &
     \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
     \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
     \begin{sideways}\vn{super_lord\$}\end{sideways}
-    \\ \hline
-    \multirow{5}*{\begin{sideways}\vn{ele%slave_status}\end{sideways}
+    \\ \midrule
     %                           NL  GR  GI  O   M   S
-    & \vn{free\$}             & X & X & X & X & X & X \\ \hline
-    & \vn{group_slave\$}      & X & X & X & X & X & X \\ \hline
-    & \vn{overlay_slave\$}    & X & X & X & X & X & X \\ \hline
-    & \vn{patch_in_slave\$}   &   &   &   &   & X &   \\ \hline
-    & \vn{multipass_slave\$}  & X &   &   &   &   & X \\ \hline
-    & \vn{super_slave\$}      & X &   &   &   &   &   \\ \hline
+    \vn{free\$}             & X & X & X & X & X & X \\ 
+    \vn{group_slave\$}      & X & X & X & X & X & X \\ 
+    \vn{overlay_slave\$}    & X & X & X & X & X & X \\ 
+    \vn{patch_in_slave\$}   &   &   &   &   & X &   \\ 
+    \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
+    \vn{super_slave\$}      & X &   &   &   &   &   \\ \bottomrule
   \end{tabular}
+  \label{f:lord.slave.a}
   }
-  \hskip 0.3in
-  \subfigure[Possible \vn{ele%lord_status} and \vn{ele%slave_status} combinations
+  \hfill
+  \subfigure[Possible {ele\%lord_status} and {ele\%slave_status} combinations
     for a given lord/slave pair. X marks a possible combination.]
-  {\label{f:lord-slave-b}
-  \begin{tabular}{llccccc} 
-    \hline
-    & \multicolumn{6){c}{\vn{ele1%lord_status}} \\ \hline
-    \rule{0pt}{80pt} &
-    \begin{sideways}\vn{not_a_lord\$\$}\end{sideways} &
+  {
+  \begin{tabular}{lcccccc} 
+    \toprule
+    & \multicolumn{6}{c}{\vn{lord\%lord_status}} \\ \cmidrule{2-7}
+    \vn{slave\%slave_status} &
+    \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
     \begin{sideways}\vn{group_lord\$}\end{sideways} &
     \begin{sideways}\vn{girder_lord\$}\end{sideways} &
     \begin{sideways}\vn{overlay_lord\$}\end{sideways} &
     \begin{sideways}\vn{multipass_lord\$}\end{sideways} &
     \begin{sideways}\vn{super_lord\$}\end{sideways}
-    \\ \hline
-    \multirow{5}*{\begin{sideways}\vn{ele2%slave_status}\end{sideways}
+    \\ \midrule
     %                           NL  GR  GI  O   M   S
-    & \vn{free\$}             &   &   &   &   &   &   \\ \hline
-    & \vn{group_slave\$}      &   & X &   &   &   &   \\ \hline
-    & \vn{overlay_slave\$}    &   & X & X & X &   &   \\ \hline
-    & \vn{patch_in_slave\$}   &   &   &   &   & X &   \\ \hline
-    & \vn{multipass_slave\$}  &   & X &   & X & X &   \\ \hline
-    & \vn{super_slave\$}      &   &   &   &   &   & X \\ \hline
+    \vn{free\$}             &   &   &   &   &   &   \\ 
+    \vn{group_slave\$}      &   & X &   &   &   &   \\ 
+    \vn{overlay_slave\$}    &   & X & X & X &   &   \\ 
+    \vn{patch_in_slave\$}   &   &   &   &   & X &   \\ 
+    \vn{multipass_slave\$}  &   & X &   & X & X &   \\ 
+    \vn{super_slave\$}      &   &   &   &   &   & X \\ \bottomrule
   \end{tabular}
+  \label{f:lord.slave.b}
   }
-\end{center}
-\label[Possible \%lord_status/\%slave_status combinations.]{f:lord-slave}
+  \label{f:lord.slave}
 \end{table}
 
 Within a given element, only some combinations of \vn{%lord_status}
 values and \vn{%slave_status} values are permissible.
-Table~\ref{f:lord-slave-a} lists the valid combinations. Thus, for
+Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for
 example, it is not possible for an element to be simultaneously a
 \vn{super_lord} and a \vn{super_slave}. For lord/slave pairs,
 
-Table~\ref{f:lord-slave-a} lists the valid combinations of
+Table~\ref{f:lord.slave.a} lists the valid combinations of
 \vn{%lord_status} values in the lord element and \vn{%slave_status}
 values in the slave element that are permissible. Thus, for example, a
 \vn{super_slave} may only be controlled by a \vn{super_lord}. In the
@@ -510,7 +511,7 @@ and \vn{ele%name} starts with ``\vn{skew}''. See the documentation on
 \vn{lat_ele_locator} for more details on the syntax of the search string.
 
 The \vn{ele_pointer_struct} array returned by \vn{lat_ele_locator} is
-an array of pointers to \vn{ele_struct) elements
+an array of pointers to \vn{ele_struct} elements
 \begin{example}
   type ele_pointer_struct
     type (ele_struct), pointer :: ele => null()
