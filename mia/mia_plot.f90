@@ -393,7 +393,7 @@ contains
           !Draws a single graph
           call qp_save_state(.true.)
           call qp_set_box (ix, iy, ix_tot, iy_tot)
-          call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
+          call qp_set_symbol_attrib (star5_filled_sym$, height = 5.0_rp)
           call qp_set_axis ("X", xmin, xmax, div=xdiv)
           call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
           call qp_draw_graph (xcoord,ycoord(graph,:),title=titl(graph))
@@ -592,7 +592,7 @@ contains
        !Draws graph
        call qp_save_state(.true.)
        call qp_set_box (ix, iy, ix_tot, iy_tot)
-       call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
+       call qp_set_symbol_attrib (star5_filled_sym$, height = 5.0_rp)
        call qp_set_axis ("X", xmin, xmax, div = xdiv)
        call qp_calc_and_set_axis("Y", miny, maxy, &
             4, 6, "GENERAL")

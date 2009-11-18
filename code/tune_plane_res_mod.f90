@@ -538,7 +538,7 @@ subroutine res_line_plot (plot_type, param, res)
                                                               width = wid, style = dashed$)
     endif
 
-    call qp_draw_symbol (line%x_lab, line%y_lab, type = circle$)
+    call qp_draw_symbol (line%x_lab, line%y_lab, type = circle_sym$)
 
     write (str, '(5(a, i0))') '(', line%p, ',', line%q, ',', line%r, ',', line%n, ')'
 
