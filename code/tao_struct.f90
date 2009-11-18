@@ -207,6 +207,7 @@ end type
 
 type tao_plot_page_struct               
   character(80) ps_scale             ! scaling when creating PS files.
+  character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
   real(rp) :: shape_height_max = 40  ! maximum half height for drawing elements.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
@@ -491,6 +492,7 @@ type tao_global_struct
   character(16) :: default_key_merit_type 
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
+  character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
   logical :: var_limits_on = .true.             ! Respect the variable limits?
   logical :: auto_scale = .false.               ! Automatically scale and x-scale the plots?
   logical :: opt_with_ref = .false.             ! use reference data in optimization?

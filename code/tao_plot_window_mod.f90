@@ -31,7 +31,8 @@ character(24) :: r_name = 'tao_create_plot_window'
 
   has_been_created = .true.
 
-  call qp_open_page ('X', s%plot_page%id_window, s%plot_page%size(1), s%plot_page%size(2), 'POINTS')
+  call qp_open_page (s%plot_page%plot_display_type, s%plot_page%id_window, &
+                                s%plot_page%size(1), s%plot_page%size(2), 'POINTS')
   call qp_set_layout (page_border = s%plot_page%border)
 
   ! Set default font size

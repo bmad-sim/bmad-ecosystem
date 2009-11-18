@@ -1196,6 +1196,7 @@ plots go. The syntax of this block is:
 \index{place}
 \begin{example}
   &tao_plot_page
+    plot_page%plot_display_type      = <string>  ! Display type: 'X' or 'TK'
     plot_page%size                   = <x_size>, <y_size>         ! size in POINTS 
     plot_page%border                 = <b_x1>, <b_x2>, <b_y1>, <b_y2>, "<units>"
     plot_page%text_height            = <num> ! height in POINTS. Def = 12
@@ -1220,7 +1221,8 @@ plots go. The syntax of this block is:
 For example:
 \begin{example}
   &tao_plot_page
-    plot_page%size        = 700, 800           ! Points
+    plot_page%plot_display_type = "X"        ! X11 window.  "TK" is alternative.
+    plot_page%size        = 700, 800         ! Points
     plot_page%border      = 0, 0, 0, 50, "POINTS"  
     plot_page%text_height = 12.0
     plot_page%title(1)    = "CESR Lattice", 0.5, 0.996, "%PAGE", "CC"
@@ -1249,6 +1251,13 @@ individual types of text:
   plot_page%legend_text_scale      = 0.9 ! Lat Layout or floor plan text.
 \end{example}
 The default values for these scales are given above.
+
+The \vn{plot_page%plot_display_type} component sets the type of plot display
+window used. possibilities are:
+\begin{example}
+  "X"      X11 window   
+  "TK"     tk window   
+\end{example}
 
 \vn{plot_page%border} sets a border around the edges of the
 window. As shown in Figure~\ref{f:plot.page} \vn{b_x1}, \vn{b_x2} are
