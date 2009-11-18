@@ -127,24 +127,24 @@
 !--------------------------------------------------------------------
 !
 ! The symbols are:
-!     0 - square$
-!     1 - dot$
-!     2 - plus$
-!     3 - times$
-!     4 - circle$
-!     5 - x_symbol$
-!     7 - triangle$
-!     8 - circle_plus$
-!     9 - circle_dot$
-!    10 - square_concave$
-!    11 - diamond$
-!    12 - star5$
-!    13 - triangle_filled$
-!    14 - red_cross$
-!    15 - star_of_david$
-!    16 - square_filled$
-!    17 - circle_filled$
-!    18 - star5_filled$
+!     0 - square_sym$
+!     1 - dot_sym$
+!     2 - plus_sym$
+!     3 - times_sym$
+!     4 - circle_sym$
+!     5 - x_sym$
+!     7 - triangle_sym$
+!     8 - circle_plus_sym$
+!     9 - circle_dot_sym$
+!    10 - square_concave_sym$
+!    11 - diamond_sym$
+!    12 - star5_sym$
+!    13 - triangle_filled_sym$
+!    14 - red_cross_sym$
+!    15 - star_of_david_sym$
+!    16 - square_filled_sym$
+!    17 - circle_filled_sym$
+!    18 - star5_filled_sym$
 !
 !--------------------------------------------------------------------
 !
@@ -177,113 +177,6 @@ use output_mod
 #else
   use pgplot_interface
 #endif
-
-!------------------------------------
-
-type qp_axis_struct
-  character(80) :: label = ' '
-  real(rp) :: min = 0, max = 10         ! min is actually left or bottom axis number.
-  real(rp) :: number_offset = 0.05      ! offset from axis line in inches.
-  real(rp) :: label_offset = 0.05       ! offset from numbers in inches.
-  real(rp) :: major_tick_len = 0.10     ! in inches.
-  real(rp) :: minor_tick_len = 0.06     ! in inches.
-  integer :: label_color = black$       
-  integer :: major_div = 5
-  integer :: major_div_nominal = 5      ! Nominal value.
-  integer :: minor_div = 0              ! 0 = auto choose.
-  integer :: minor_div_max = 5          ! max number for auto choose.
-  integer :: places = 0
-  character(16) :: type = 'LINEAR'      ! or 'LOG', or 'CUSTOM'
-  character(16) :: bounds = 'GENERAL'   ! or 'ZERO_AT_END' or 'ZERO_SYMMETRIC'
-  integer :: tick_side = +1    ! +1 = draw to the inside, 0 = both, -1 = outside.
-  integer :: number_side = -1  ! +1 = draw to the inside, -1 = outside.
-  logical :: draw_label = .true.
-  logical :: draw_numbers  = .true.
-end type
-
-! x2_mirrors_x and y2_mirrors_y force the x2 or y2 axis to have the same tick markings.
-! What can be still different is whether a label and/or numbering is drawn.
-
-type qp_plot_struct
-  character(80) :: title = ' '
-  type (qp_axis_struct) x, y, x2, y2
-  type (qp_axis_struct), pointer :: xx, yy  ! Pointer to axes used for data plotting, etc. 
-  logical :: draw_box    = .true.
-  logical :: draw_title  = .true.
-  logical :: draw_grid   = .true.
-  logical limit_plot
-  logical :: x2_mirrors_x = .true.
-  logical :: y2_mirrors_y = .true.
-  logical :: xx_points_to_x
-  logical :: yy_points_to_y
-end type          
-
-type qp_point_struct     ! A point on the page.
-  real(rp) x, y
-  character(16) :: units = ' '
-end type
-
-type qp_rect_struct     ! Rectangular: A structure with 4 numbers
-  real(rp) x1, x2, y1, y2   
-  character(16) :: units = ' '
-end type
-
-type qp_text_struct
-  real(rp) height   ! in points
-  integer :: color = black$
-  logical :: uniform_spacing = .false.
-end type
-
-type qp_line_struct
-  integer :: width = 1
-  integer :: color = black$
-  integer :: style = solid$
-end type
-
-type qp_symbol_struct
-  integer :: type = circle_dot$
-  real(rp) :: height      = 10d0  ! in points (same as text height)
-  integer :: color        = black$
-  integer :: fill_pattern = solid_fill$
-  integer :: line_width   = 1
-end type
-
-type qp_state_struct
-  type (qp_plot_struct) plot
-  type (qp_rect_struct) :: page   = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')
-  type (qp_rect_struct) :: box    = qp_rect_struct (1.0, 2.0, 1.0, 2.0, ' ')
-  type (qp_rect_struct) :: graph  = qp_rect_struct (1.0, 2.0, 1.0, 2.0, ' ')
-  type (qp_rect_struct) :: margin = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')
-  type (qp_rect_struct) :: border = qp_rect_struct (0.0, 0.0, 0.0, 0.0, ' ')
-  type (qp_text_struct) :: main_title = qp_text_struct(18.0, black$, .false.)
-  type (qp_text_struct) :: graph_title= qp_text_struct(20.0, black$, .false.)
-  type (qp_text_struct) :: legend     = qp_text_struct(13.0, black$, .false.)
-  type (qp_text_struct) :: text       = qp_text_struct(18.0, black$, .false.)
-  type (qp_text_struct) :: axis_number= qp_text_struct(10.0, black$, .false.)
-  type (qp_text_struct) :: axis_label = qp_text_struct(15.0, black$, .false.)
-  type (qp_text_struct) :: this_text  ! current settings.
-  type (qp_symbol_struct) :: symbol 
-  type (qp_line_struct) :: std_line  = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: plot_line = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: axis_line = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: legend_line = qp_line_struct (2, black$, solid$)
-  type (qp_line_struct) :: grid_line = qp_line_struct(1, light_grey$, solid$)
-  real(rp) :: text_scale = 1
-  real(rp) :: text_spacing_factor = 0.6
-  real(rp) :: dflt_axis_slop_factor = 1e-3
-  integer :: text_background = -1
-  integer :: max_axis_zero_digits = 3
-  integer :: dflt_units = dflt_draw$
-  integer :: max_digits = 8
-  character(80) plot_file
-  character(16) page_type       ! 'PS', 'X', etc.
-  character(8) :: dflt_draw_units(3) = (/ 'DATA ', 'GRAPH', 'LB   ' /)
-  character(8) :: dflt_set_units(3)  = (/ 'INCH ', 'PAGE ', 'LB   ' /)
-  logical :: subgraph_on = .false.
-  logical :: clip = .false.
-  logical :: buffer = .false.   ! to be used by qp_save_state only
-  logical :: uniform_symbol_size = .true.
-end type
 
 !---------------------------------------------------------------------------
 ! common block
@@ -1517,8 +1410,7 @@ qp_com%dflt_units = dflt_draw$
  
 call qp_paint_rectangle_basic (x1_inch, x2_inch, y1_inch, y2_inch, &
               integer_option(qp_com%symbol%color, color), &
-              integer_option(qp_com%symbol%fill_pattern, fill_pattern), &
-              qp_com%page_type)
+              integer_option(qp_com%symbol%fill_pattern, fill_pattern))
 
 end subroutine
 
@@ -3764,8 +3656,8 @@ endif
 
 call qp_set_clip (clip)
 call qp_set_symbol_size_basic (qp_com%symbol%height, &
-         qp_com%symbol%type, qp_com%page_type, qp_com%uniform_symbol_size)
-call qp_set_color_basic (qp_com%symbol%color, qp_com%page_type)
+                   qp_com%symbol%type, qp_com%uniform_symbol_size)
+call qp_set_color_basic (qp_com%symbol%color)
 call qp_set_symbol_fill_basic (qp_com%symbol%fill_pattern)       
 call qp_set_line_width_basic (qp_com%symbol%line_width)
 
@@ -3960,7 +3852,7 @@ if (present(color)) this%color = color
 if (present(style)) this%style = style
 
 call qp_set_clip (clip)
-call qp_set_color_basic (this%color, qp_com%page_type)
+call qp_set_color_basic (this%color)
 call qp_set_line_width_basic (this%width)
 call qp_set_line_style_basic (this%style)       
 
@@ -4133,7 +4025,7 @@ endif
 text_height = this_text%height * qp_com%text_scale
 
 call qp_set_char_size_basic (text_height)
-call qp_set_color_basic (this_text%color, qp_com%page_type)
+call qp_set_color_basic (this_text%color)
 call qp_set_text_background_color_basic (qp_com%text_background)
 call qp_set_line_width_basic (1)
 

@@ -32,12 +32,13 @@ use output_mod
 use quick_plot_struct
 
 type pg_interface_struct
+  character(16) page_type
   integer :: i_chan = -1
   real qp_to_pg_text_height_factor
   real page_scale   ! scaling for entire page
 end type
 
-type (pg_interface_struct), target, save, private :: pg_interface_com
+type (pg_interface_struct), target, save, private :: pg_com
 type (pg_interface_struct), save, private :: pg_interface_save_com(10)
 integer, save, private :: i_save = 0
 
@@ -60,7 +61,7 @@ contains
 subroutine qp_set_graph_position_basic (x1, x2, y1, y2)
   implicit none
   real(rp) x1, x2, y1, y2, f
-  f = pg_interface_com%page_scale
+  f = pg_com%page_scale
   call pgvsiz (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
   call pgswin (real(f*x1), real(f*x2), real(f*y1), real(f*y2))
 end subroutine
@@ -69,18 +70,17 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_size)
+! Subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 !
 ! Subroutine to set the symbol_size
 !
 ! Input:
 !   height       -- Real(rp): Symbol height.
 !   symbol_type  -- Integer: Symbol type.
-!   page_type    -- Character(*): Page type.
 !   uniform_size -- Logical: Make all symbols the save size for constant height.
 !+
 
-subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_size)
+subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 
   implicit none
 
@@ -91,14 +91,12 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
 
   logical uniform_size
 
-  character(*) page_type
-
 ! The PGPLOT symbol set does not have a constant symbol size.
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
 
-  f = pg_interface_com%page_scale
-  h = height * pg_interface_com%qp_to_pg_text_height_factor
+  f = pg_com%page_scale
+  h = height * pg_com%qp_to_pg_text_height_factor
 
   if (uniform_size) then
 
@@ -115,7 +113,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
       h = h * 0.73
     end select
 
-    if (page_type == 'X' .or. page_type == 'TK') then
+    if (pg_com%page_type == 'X' .or. pg_com%page_type == 'TK') then
       select case (symbol_type)
       case (8)           ! circle_plus$
         h = h * 0.55
@@ -228,8 +226,8 @@ end subroutine
 subroutine qp_set_char_size_basic (height)
   implicit none
   real(rp) height, f
-  f = pg_interface_com%page_scale
-  call pgsch(real(f * height * pg_interface_com%qp_to_pg_text_height_factor))
+  f = pg_com%page_scale
+  call pgsch(real(f * height * pg_com%qp_to_pg_text_height_factor))
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -276,7 +274,7 @@ function qp_text_len_basic (text, len_text) result (t_len)
 
 !
 
-  f = pg_interface_com%page_scale
+  f = pg_com%page_scale
   call pglen (1, trim(text), tl, dum)
   t_len = tl / f
 
@@ -303,7 +301,7 @@ subroutine qp_draw_text_basic (text, len_text, x0, y0, angle, justify)
   character(*) text
   integer len_text
   real(rp) x0, y0, angle, justify, f
-  f = pg_interface_com%page_scale
+  f = pg_com%page_scale
   call pgptxt (real(f*x0), real(f*y0), real(angle), real(justify), trim(text))
 end subroutine
 
@@ -325,7 +323,7 @@ subroutine qp_draw_symbol_basic (x, y, symbol)
   implicit none
   real(rp) x, y, f
   integer symbol
-  f = pg_interface_com%page_scale
+  f = pg_com%page_scale
   call pgpt1 (real(f*x), real(f*y), symbol)
 end subroutine
 
@@ -361,17 +359,16 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_color_basic (ix_color, page_type)  
+! Subroutine qp_set_color_basic (ix_color)  
 !
 ! Subroutine to set the color taking into accout that GIF
 ! inverts the black for white.
 !
 ! Input:
 !   ix_color -- Integer: Color index (0 - 15).
-!   page_type -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
-subroutine qp_set_color_basic (ix_color, page_type)  
+subroutine qp_set_color_basic (ix_color)
 
   implicit none
 
@@ -380,8 +377,6 @@ subroutine qp_set_color_basic (ix_color, page_type)
           (/ 1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 /)
 !            1, 0, 5, 6, 7, 2, 3, 4, 11, 12, 13,  8,  9, 10, 15, 14 
 !            0  1  2  3  4  5  6  7   8   9  10  11  12  13  14  15 
-
-  character(*) page_type
 
 ! Error check
 
@@ -393,7 +388,7 @@ subroutine qp_set_color_basic (ix_color, page_type)
 
 ! Set pgplot color
 
-  if (page_type == 'GIF') then
+  if (pg_com%page_type == 'GIF') then
     call pgsci (inverse_color(ix_color))
   else
     call pgsci (ix_color)
@@ -419,7 +414,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_type)
+! Subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 !
 ! Subroutine to fill a rectangle with a given color. 
 ! A color of white essentially eraces the rectangle.
@@ -433,24 +428,23 @@ end subroutine
 !   page_type    -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
-subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_type)
+subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 
   implicit none
 
   real(rp) x1, x2, y1, y2
   integer ci, fs
   real  xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, f
-  character(*) page_type
   integer color, fill_pattern
 
 !
 
   call qp_save_state_basic              ! Buffer the following calls
 
-  f = pg_interface_com%page_scale
+  f = pg_com%page_scale
 
-  call qp_set_color_basic(color, page_type) ! Set color index to background
-  call pgsfs(fill_pattern)                         ! Set fill-area style to solid
+  call qp_set_color_basic(color)        ! Set color index to background
+  call pgsfs(fill_pattern)              ! Set fill-area style to solid
 
   call pgqwin (xw1, xw2, yw1, yw2)      ! get graph data min/max
   call pgqvp (0, xv1, xv2, yv1, yv2)    ! get viewport coords
@@ -487,7 +481,7 @@ subroutine qp_draw_polyline_basic (x, y)
 
 !
 
-  f = pg_interface_com%page_scale
+  f = pg_com%page_scale
 
   if (size(x) /= size(y)) then
     print *, 'ERROR IN QP_DRAW_POLYLINE_BASIC: X, Y COORD VECTORS HAVE'
@@ -624,7 +618,9 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   pg_interface_save_com(i_save)%i_chan = iw
   pg_interface_save_com(i_save)%qp_to_pg_text_height_factor = h / (xi * 72)
   pg_interface_save_com(i_save)%page_scale = real_option(1.0_rp, page_scale)
-  pg_interface_com = pg_interface_save_com(i_save)
+  pg_interface_save_com(i_save)%page_type = page_type
+
+  pg_com = pg_interface_save_com(i_save)
 
 end subroutine
 
@@ -647,8 +643,8 @@ subroutine qp_select_page_basic (iw)
   do i = 1, size(pg_interface_save_com)
     if (pg_interface_save_com(i)%i_chan == iw) then
       pg_interface_save_com(i_save) = pg_interface_save_com(i)
-      pg_interface_save_com(i) = pg_interface_com
-      pg_interface_com = pg_interface_save_com(i_save)
+      pg_interface_save_com(i) = pg_com
+      pg_com = pg_interface_save_com(i_save)
       return
     endif
   enddo
@@ -669,7 +665,8 @@ subroutine qp_close_page_basic
   implicit none
   call pgclos
   i_save = i_save - 1
-  if (i_save /= 0) pg_interface_com = pg_interface_save_com(i_save)
+  if (i_save /= 0) pg_com = pg_interface_save_com(i_save)
+  call pgslct(pg_com%i_chan)
 end subroutine
 
 end module

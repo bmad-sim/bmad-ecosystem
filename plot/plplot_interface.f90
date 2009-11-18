@@ -115,18 +115,17 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_size)
+! Subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 !
 ! Subroutine to set the symbol_size
 !
 ! Input:
 !   height       -- Real(rp): Symbol height.
 !   symbol_type  -- Integer: Symbol type.
-!   page_type    -- Character(*): Page type.
 !   uniform_size -- Logical: Make all symbols the save size for constant height.
 !+
 
-subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_size)
+subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 
   implicit none
 
@@ -135,8 +134,6 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
   integer symbol_type
 
   logical uniform_size
-
-  character(*) page_type
 
 ! The PLPLOT symbol set does not have a constant symbol size.
 ! This generally does not look nice so renormalize to get a consistant size.
@@ -159,7 +156,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
       h = h * 0.73
     end select
 
-    if (page_type == 'X' .or. page_type == 'TK') then
+    if (pl_com%page_type == 'X' .or. pl_com%page_type == 'TK') then
       select case (symbol_type)
       case (8)           ! circle_plus$
         h = h * 0.55
@@ -186,7 +183,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_type)
+! Subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 !
 ! Subroutine to fill a rectangle with a given color.
 ! A color of white essentially eraces the rectangle.
@@ -197,16 +194,14 @@ end subroutine
 !   x2, y2       -- Real(rp): Upper right corner of box.
 !   color        -- Integer: Color of rectangle.
 !   fill_pattern -- Integer: Fill style.
-!   page_type    -- Character(*): Type of page.
 !-
 
-subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_type)
+subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 
   implicit none
 
   real(rp) x1, x2, y1, y2
   real(rp) xv1, xv2, yv1, yv2, xw1, xw2, yw1, yw2, f
-  character(*) page_type
   integer color, fill_pattern
   integer ci, fs
 
@@ -218,7 +213,7 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern, page_t
 
 !  f = pl_com%page_scale
 
-  call qp_set_color_basic(color, page_type)    ! Set color index to background
+  call qp_set_color_basic(color)    ! Set color index to background
 
   select case (fill_pattern)
   case (hatched$) 
@@ -570,17 +565,16 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_color_basic (ix_color, page_type)  
+! Subroutine qp_set_color_basic (ix_color)  
 !
 ! Subroutine to set the color taking into accout that GIF
 ! inverts the black for white.
 !
 ! Input:
 !   ix_color -- Integer: Color index (0 - 15).
-!   page_type -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
-subroutine qp_set_color_basic (ix_color, page_type)  
+subroutine qp_set_color_basic (ix_color)
 
   implicit none
 
@@ -589,8 +583,6 @@ subroutine qp_set_color_basic (ix_color, page_type)
           (/ 1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 /)
 !            1, 0, 5, 6, 7, 2, 3, 4, 11, 12, 13,  8,  9, 10, 15, 14 
 !            0  1  2  3  4  5  6  7   8   9  10  11  12  13  14  15 
-
-  character(*) page_type
 
 ! Error check
 
@@ -628,15 +620,14 @@ subroutine qp_clear_page_basic
   ! plclear should work but does not.
   ! So also call qp_clear_box_basic which does the job.
   call plclear()  
-  call qp_clear_box_basic (0.0_rp, pl_com%x_inch_page, &
-                           0.0_rp, pl_com%y_inch_page, pl_com%page_type)
+  call qp_clear_box_basic (0.0_rp, pl_com%x_inch_page, 0.0_rp, pl_com%y_inch_page)
 end subroutine
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_clear_box_basic (x1, x2, y1, y2, page_type)
+! Subroutine qp_clear_box_basic (x1, x2, y1, y2)
 !
 ! Subroutine to clear all drawing from a box.
 ! That is, white out the box region.
@@ -645,17 +636,15 @@ end subroutine
 ! Input:
 !   x1, y1 -- Real(rp): Bottom left corner of box in inches.
 !   x2, y2 -- Real(rp): Upper right corner of box in inches.
-!   page_type -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
-subroutine qp_clear_box_basic (x1, x2, y1, y2, page_type)
+subroutine qp_clear_box_basic (x1, x2, y1, y2)
                 
   implicit none
 
   real(rp) x1, x2, y1, y2, x1m, x2m, y1m, y2m
   real(rp) :: x_vec(0:4)
   real(rp) :: y_vec(0:4)
-  character(*) page_type
 
   x1m = pl_com%x_inch_to_mm * x1
   x2m = pl_com%x_inch_to_mm * x2
@@ -664,7 +653,7 @@ subroutine qp_clear_box_basic (x1, x2, y1, y2, page_type)
 !
   call qp_save_state_basic              ! Buffer the following calls
 
-  call qp_set_color_basic(0, page_type) ! Set color index to background
+  call qp_set_color_basic(0)            ! Set color index to background
   call plpsty(0)                        ! Set fill-area style to solid
   
   x_vec = (/x1m, x2m, x2m, x1m, x1m/)
@@ -790,7 +779,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set output file name  
 
   if (page_type /= 'X' .and. page_type /= 'TK') then
-     call plsetopt('-o', trim(plot_file))
+     call plsfnam (trim(plot_file))
   endif
 
   if (present(i_chan)) i_chan = iw
@@ -870,6 +859,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   pl_ptr%x_inch_page = x_page
   pl_ptr%y_inch_page = y_page
+  pl_ptr%page_type   = page_type
 
   pl_com = pl_ptr
 
@@ -892,7 +882,7 @@ end subroutine
 subroutine qp_select_page_basic (iw)
   implicit none
   integer i, iw
-  call pladv(iw)
+  call plsstrm(iw)
   do i = 1, size(pl_interface_save_com)
     if (pl_interface_save_com(i)%i_chan == iw) then
       pl_interface_save_com(i_save) = pl_interface_save_com(i)
@@ -918,7 +908,11 @@ subroutine qp_close_page_basic
   implicit none
   call plspause(0)  ! Disable end of page pause
   call plend()
-  if (i_save /= 0) pl_com = pl_interface_save_com(i_save)
+  i_save = i_save - 1
+  if (i_save /= 0) then
+    pl_com = pl_interface_save_com(i_save)
+    call plsstrm(pl_com%i_chan)
+  endif
 end subroutine
 
 end module

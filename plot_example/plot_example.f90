@@ -141,7 +141,7 @@ call qp_draw_axes ("X\dlab\u", "\gb(\A)")
 call qp_draw_data (x, y, symbol_every = 0)
 
 call qp_save_state (.true.)
-call qp_set_symbol_attrib (times$, color = blue$, height = 20.0_rp)
+call qp_set_symbol_attrib (times_sym$, color = blue$, height = 20.0_rp)
 call qp_set_line_attrib ('PLOT', color = blue$, style = dashed$)
 call qp_draw_data (x, z, symbol_every = 5)
 call qp_restore_state
@@ -150,7 +150,7 @@ call qp_restore_state
 call qp_save_state (.true.)
 call qp_set_box (2, 1, 2, 1)
 call qp_set_graph_attrib (draw_grid = .false.)
-call qp_set_symbol_attrib (star5_filled$, height = 10.0_rp)
+call qp_set_symbol_attrib (star5_filled_sym$, height = 10.0_rp)
 call qp_set_axis ('Y', -0.1_rp, 0.1_rp, 4, 2)
 call qp_set_axis ('Y2', 1.0_rp, 100.0_rp, label = 'Y2 axis', &
                               draw_numbers = .true., ax_type = 'LOG')
