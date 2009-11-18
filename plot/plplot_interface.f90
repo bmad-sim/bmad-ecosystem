@@ -159,7 +159,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
       h = h * 0.73
     end select
 
-    if (page_type == 'X') then
+    if (page_type == 'X' .or. page_type == 'TK') then
       select case (symbol_type)
       case (8)           ! circle_plus$
         h = h * 0.55
@@ -771,6 +771,8 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! set plot type
 
   if (page_type == 'X') then
+    iw = plsdev ('xwin')
+  elseif (page_type == 'TK') then
     iw = plsdev ('tk')
   elseif (page_type == 'PS') then
     iw = plsdev ('psc')
@@ -787,7 +789,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
 ! Set output file name  
 
-  if (page_type /= 'X') then
+  if (page_type /= 'X' .and. page_type /= 'TK') then
      call plsetopt('-o', trim(plot_file))
   endif
 
@@ -804,7 +806,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set size of x-window.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
-  if (page_type == 'X') then
+  if (page_type == 'X' .or. page_type == 'TK') then
     ix_len = nint(85*x_len)
     iy_len = nint(85*y_len)
     call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
@@ -830,7 +832,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Get page size info.
   call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
-  if (page_type == 'X') then
+  if (page_type == 'X' .or. page_type == 'TK') then
     !! call plschr(.7*point_to_mm_conv, 1.0_rp)
     call plschr(point_to_mm_conv, 1.0_rp)
   else
@@ -854,7 +856,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   pl_ptr%page_scale = real_option(1.0_rp, page_scale)
   pl_ptr%page_type = page_type
 
-  if (page_type == 'X') then
+  if (page_type == 'X' .or. page_type == 'TK') then
     pl_ptr%x_inch_to_mm = pl_ptr%page_scale * x2i / x_len
     pl_ptr%y_inch_to_mm = pl_ptr%page_scale * y2i / y_len
     x_page = x_len

@@ -115,7 +115,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_siz
       h = h * 0.73
     end select
 
-    if (page_type == 'X') then
+    if (page_type == 'X' .or. page_type == 'TK') then
       select case (symbol_type)
       case (8)           ! circle_plus$
         h = h * 0.55
@@ -554,7 +554,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
 ! set plot type
 
-  if (page_type == 'X') then
+  if (page_type == 'X' .or. page_type == 'TK') then
 #if defined (CESR_WINCVF)
     iw = pgopen ('/WV')
 #else
