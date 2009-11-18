@@ -17,7 +17,6 @@
 subroutine tao_command (command_line, err)
 
 use tao_mod
-use quick_plot
 use tao_command_mod
 use tao_dmerit_mod
 use tao_scale_mod

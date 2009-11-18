@@ -14,7 +14,6 @@ subroutine tao_single_mode (char)
 use tao_struct
 use tao_interface
 use tao_utils
-use quick_plot
 use input_mod
 use tao_scale_mod
 use tao_x_scale_mod

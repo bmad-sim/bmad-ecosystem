@@ -11,7 +11,6 @@
 subroutine tao_x_axis_cmd (where, what)
 
 use tao_mod
-use quick_plot
 use tao_graph_setup_mod
 use tao_x_scale_mod
 

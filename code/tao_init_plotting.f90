@@ -91,7 +91,7 @@ plot_page%title(:)%y = 0.990
 plot_page%title(1)%y = 0.996
 plot_page%title(2)%y = 0.97
 plot_page%title(:)%units = '%PAGE'
-plot_page%size = (/ 600, 800 /)
+plot_page%size = [600, 800]
 
 default_plot%name = ' '
 default_plot%x_axis_type = 'index'
@@ -124,7 +124,7 @@ default_graph%draw_curve_legend     = .true.
 default_graph%component             = 'model'
 default_graph%who%name              = ''
 default_graph%who%sign              = 1
-default_graph%box     = (/ 1, 1, 1, 1 /)
+default_graph%box     = [1, 1, 1, 1]
 default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 default_graph%n_curve = 0
 
@@ -328,7 +328,7 @@ do  ! Loop over plot files
     if (plt%x%major_div < 0 .and. plt%x%major_div_nominal < 0) plt%x%major_div_nominal = 6
 
     if (plot%independent_graphs) then  ! Old style
-      call out_io (s_error$, r_name, (/ &
+      call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
             '**********************************************************', &
@@ -340,7 +340,7 @@ do  ! Loop over plot files
             '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
             '**********************************************************', &
             '**********************************************************', &
-            '**********************************************************' /) )
+            '**********************************************************'] )
       plt%autoscale_gang_y = .false.
     endif
 
@@ -388,10 +388,10 @@ do  ! Loop over plot files
       curve(:)%line%width = -1
       curve(:)%legend_text = ''
       curve(:)%x_axis_scale_factor = 0  ! This is old syntax. Not used.
-      curve(2:7)%symbol%type = &
-                  (/ times$, square$, plus$, triangle$, x_symbol$, diamond$ /)
+      curve(2:7)%symbol%type = [times_sym$, square_sym$, &
+                  plus_sym$, triangle_sym$, x_symbol_sym$, diamond_sym$]
       curve(2:7)%symbol%color = &
-                  (/ blue$, red$, green$, cyan$, magenta$, yellow$ /)
+                  [blue$, red$, green$, cyan$, magenta$, yellow$]
       curve(2:7)%line%color = curve(2:7)%symbol%color
       read (iu, nml = tao_template_graph, err = 9200)
       graph_name = trim(plot%name) // '.' // graph%name
@@ -402,7 +402,7 @@ do  ! Loop over plot files
               'BAD "GRAPH_INDEX" FOR PLOT: ' // plot%name, &
               'LOOKING FOR GRAPH_INDEX: \I0\ ', &
               'BUT TAO_TEMPLACE_GRAPH HAD GRAPH_INDEX: \I0\ ', &
-              i_array = (/ i_graph, graph_index /) )
+              i_array = [i_graph, graph_index] )
         call err_exit
       endif
       grph => plt%graph(i_graph)
@@ -412,7 +412,7 @@ do  ! Loop over plot files
       grph%component     = graph%component
       grph%x_axis_scale_factor = graph%x_axis_scale_factor 
       if (graph%who(1)%name /= '') then  ! Old style
-        call out_io (s_error$, r_name, (/ &
+        call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
             '**********************************************************', &
@@ -427,7 +427,7 @@ do  ! Loop over plot files
             '***** SEE THE TAO MANUAL FOR MORE DETAILS!           *****', &
             '**********************************************************', &
             '**********************************************************', &
-            '**********************************************************' /) )
+            '**********************************************************'] )
         grph%component = graph%who(1)%name
         do i = 2, size(graph%who)
           if (graph%who(i)%name == '') exit
@@ -475,7 +475,7 @@ do  ! Loop over plot files
       call qp_calc_axis_places (grph%y)
 
       if (.not. tao_com%common_lattice .and. grph%ix_universe == 0) then
-        call out_io (s_error$, r_name, (/ &
+        call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
             '**********************************************************', &
@@ -483,14 +483,14 @@ do  ! Loop over plot files
             '***** NEEDS TO BE CHANGED TO: GRAPH%IX_UNIVERSE = -1 *****', &
             '**********************************************************', &
             '**********************************************************', &
-            '**********************************************************' /) )
+            '**********************************************************'] )
         grph%ix_universe = -1
       endif
 
       if (grph%ix_universe < -1 .or. grph%ix_universe > ubound(s%u, 1)) then
         call out_io (s_error$, r_name, 'UNIVERSE INDEX: \i4\ ', & 
                                        'OUT OF RANGE FOR PLOT:GRAPH: ' // graph_name, &
-                                       i_array = (/ grph%ix_universe /) )
+                                       i_array = [grph%ix_universe] )
         call err_exit
       endif
 
@@ -543,7 +543,7 @@ do  ! Loop over plot files
         if (crv%data_source == 'var_array')     crv%data_source = 'var'
 
         if (curve(j)%x_axis_scale_factor /= 0) then
-          call out_io (s_error$, r_name, (/ &
+          call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
             '**********************************************************', &
@@ -554,12 +554,12 @@ do  ! Loop over plot files
             '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
             '**********************************************************', &
             '**********************************************************', &
-            '**********************************************************' /) )
+            '**********************************************************'] )
           crv%smooth_line_calc = .false.
         endif
 
         if (.not. curve(j)%draw_interpolated_curve) then
-          call out_io (s_error$, r_name, (/ &
+          call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
             '**********************************************************', &
@@ -570,7 +570,7 @@ do  ! Loop over plot files
             '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
             '**********************************************************', &
             '**********************************************************', &
-            '**********************************************************' /) )
+            '**********************************************************'] )
           crv%smooth_line_calc = .false.
         endif
 
@@ -623,7 +623,7 @@ do  ! Loop over plot files
         ! Enable the radiation integrals calculation if needed.
 
         if (.not. tao_com%common_lattice .and. crv%ix_universe == 0) then
-          call out_io (s_error$, r_name, (/ &
+          call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
             '**********************************************************', &
@@ -631,7 +631,7 @@ do  ! Loop over plot files
             '***** NEEDS TO BE CHANGED TO: CURVE%IX_UNIVERSE = -1 *****', &
             '**********************************************************', &
             '**********************************************************', &
-            '**********************************************************' /) )
+            '**********************************************************'] )
           crv%ix_universe = -1
         endif
 
@@ -641,7 +641,7 @@ do  ! Loop over plot files
           call out_io (s_error$, r_name, &
                           'CURVE OF PLOT: ' // plot%name, &
                           'HAS UNIVERSE INDEX OUT OF RANGE: \I0\ ', &
-                          i_array = (/ i_uni /) )
+                          i_array = [i_uni] )
           call err_exit
         endif
 
@@ -774,12 +774,12 @@ s%plot_page = plot_page
 allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
 
 tao_com%ele_shape_floor_plan(:)%ele_name = ''
-tao_com%ele_shape_floor_plan(1:5) = (/ &
+tao_com%ele_shape_floor_plan(1:5) = [&
           tao_ele_shape_struct('SBEND:*',      'BOX',  'BLUE',    08.0_rp, 'none'), &
           tao_ele_shape_struct('QUADRUPOLE:*', 'XBOX', 'MAGENTA', 15.0_rp, 'name'), &
           tao_ele_shape_struct('SEXTUPOLE:*',  'XBOX', 'GREEN',   15.0_rp, 'none'), &
           tao_ele_shape_struct('LCAVITY:*',    'XBOX', 'RED',     20.0_rp, 'none'), &
-          tao_ele_shape_struct('RFCAVITY:*',   'XBOX', 'RED',     20.0_rp, 'none') /)
+          tao_ele_shape_struct('RFCAVITY:*',   'XBOX', 'RED',     20.0_rp, 'none')]
 
 tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
 
@@ -810,7 +810,7 @@ grph%name          = 'a'
 grph%title         = 'Horizontal Beta'
 grph%type          = 'data'
 grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
-grph%box           = (/ 1, 2, 1, 2 /)
+grph%box           = [1, 2, 1, 2]
 grph%y             = init_axis
 grph%y%label       = '\gb\dA\u'
 grph%y%major_div_nominal   = 4
@@ -825,7 +825,7 @@ grph               = plt%graph(1)
 grph%name          = 'b'
 grph%title         = 'Vertical Beta'
 grph%y%label       = '\gb\dB\u'
-grph%box           = (/ 1, 1, 1, 2 /)
+grph%box           = [1, 1, 1, 2]
 crv => grph%curve(1)
 crv%data_type = 'beta.b'
 
@@ -904,7 +904,7 @@ plt%x              = init_axis
 
 grph => plt%graph(1)
 grph%name          = 'g1'
-grph%box           = (/ 1, 1, 1, 1 /)
+grph%box           = [1, 1, 1, 1]
 grph%type          = 'lat_layout'
 grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%x             = init_axis
@@ -924,7 +924,7 @@ plt%x                    = init_axis
 
 grph => plt%graph(1)
 grph%name          = 'g1'
-grph%box           = (/ 1, 1, 1, 1 /)
+grph%box           = [1, 1, 1, 1]
 grph%type          = 'floor_plan'
 grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%correct_xy_distortion = .true.
@@ -937,7 +937,7 @@ allocate (s%plot_region(20))
 
 y_top = 0.85
 s%plot_region(1)%name = 'r_top'
-s%plot_region(1)%location = (/ 0.0_rp, 1.0_rp, y_top, 1.00_rp /)
+s%plot_region(1)%location = [0.0_rp, 1.0_rp, y_top, 1.00_rp]
 
 k = 1
 do i = 1, 4
@@ -946,7 +946,7 @@ do i = 1, 4
     write (s%plot_region(k)%name, '(a, 2i0)') 'r', j, i
     y1 = y_top * real(j-1)/ i
     y2 = y_top * real(j) / i
-    s%plot_region(k)%location = (/ 0.0_rp, 1.0_rp, y1, y2 /)
+    s%plot_region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
   enddo
 enddo
 

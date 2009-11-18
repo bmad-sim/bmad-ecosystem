@@ -2,7 +2,6 @@ module tao_change_mod
 
 use tao_mod
 use tao_data_and_eval_mod
-use quick_plot
 use lat_ele_loc_mod
 
 contains
@@ -167,9 +166,6 @@ end subroutine
 !-
 
 subroutine tao_change_ele (ele_name, attrib_name, num_str)
-
-use tao_mod
-use quick_plot
 
 implicit none
 

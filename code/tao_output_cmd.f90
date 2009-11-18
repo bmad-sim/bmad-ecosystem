@@ -373,7 +373,6 @@ case ('hard', 'hard-l')
   endif
   call tao_draw_plots ()   ! Update the plotting window
   call qp_close_page
-  call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
   call tao_draw_plots ()   ! Update the plotting window
 
   if (s%global%print_command == ' ') then

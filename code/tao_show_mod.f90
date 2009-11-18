@@ -7,7 +7,6 @@ use tao_command_mod, only: tao_next_switch
 use tao_lattice_calc_mod
 use random_mod
 use csr_mod, only: csr_param
-use quick_plot
 use location_encode_mod
 
 type show_common_struct

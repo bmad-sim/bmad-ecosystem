@@ -11,8 +11,7 @@ module tao_struct
 
 use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct
 use equal_mod
-use quick_plot, only: qp_line_struct, qp_symbol_struct, qp_axis_struct, &
-                      qp_rect_struct, qp_point_struct
+use quick_plot_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 use rad_int_common, only: rad_int_common_struct

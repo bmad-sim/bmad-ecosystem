@@ -19,7 +19,6 @@ subroutine tao_place_cmd (where, who)
 
 use tao_mod
 use tao_x_scale_mod
-use quick_plot
 use beam_mod
 
 implicit none
