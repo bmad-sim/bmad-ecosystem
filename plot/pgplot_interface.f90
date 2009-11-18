@@ -639,16 +639,10 @@ end subroutine
 subroutine qp_select_page_basic (iw)
   implicit none
   integer i, iw
+  !
+  call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
+  call err_exit
   call pgslct(iw)
-  do i = 1, size(pg_interface_save_com)
-    if (pg_interface_save_com(i)%i_chan == iw) then
-      pg_interface_save_com(i_save) = pg_interface_save_com(i)
-      pg_interface_save_com(i) = pg_com
-      pg_com = pg_interface_save_com(i_save)
-      return
-    endif
-  enddo
-  call out_io (s_abort$, 'qp_select_page_basic', 'BAD PAGE ID: \i\ ', iw)
 end subroutine
 
 !-----------------------------------------------------------------------

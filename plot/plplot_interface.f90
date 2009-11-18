@@ -744,7 +744,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   real(rp), optional :: page_scale
 
   integer, optional :: i_chan
-  integer plsdev, iw, ix, xp, yp, ix_len, iy_len
+  integer ix, xp, yp, ix_len, iy_len, i_ch
 
   character(*) page_type, plot_file
   character(40) geom
@@ -760,17 +760,17 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! set plot type
 
   if (page_type == 'X') then
-    iw = plsdev ('xwin')
+    call plsdev ('xwin')
   elseif (page_type == 'TK') then
-    iw = plsdev ('tk')
+    call plsdev ('tk')
   elseif (page_type == 'PS') then
-    iw = plsdev ('psc')
+    call plsdev ('psc')
   elseif (page_type == 'PS-L') then
-    iw = plsdev ('psc')
+    call plsdev ('psc')
   elseif (page_type == 'GIF') then
-    iw = plsdev ('png')
+    call plsdev ('png')
   elseif (page_type == 'GIF-L') then
-    iw = plsdev ('png')
+    call plsdev ('png')
   else
     call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
     call err_exit
@@ -780,13 +780,6 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
   if (page_type /= 'X' .and. page_type /= 'TK') then
      call plsfnam (trim(plot_file))
-  endif
-
-  if (present(i_chan)) i_chan = iw
-
-  if (iw <= 0) then
-    print *, 'ERROR IN QP_OPEN_PAGE: CANNONT OPEN OUTPUT DEVICE!'
-    stop
   endif
 
 ! Set color map
@@ -832,6 +825,14 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 
 ! Remember plot area parameters
 
+  if (i_save == 0) then
+    i_ch = 1
+  else
+    i_ch = pl_com%i_chan + 1
+  endif
+
+  if (present(i_chan)) i_chan = i_ch
+
   i_save = i_save + 1
   pl_ptr => pl_interface_save_com(i_save)
 
@@ -839,7 +840,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   pl_ptr%graph_pos%x2 = x2i
   pl_ptr%graph_pos%y1 = 0
   pl_ptr%graph_pos%y2 = y2i
-  pl_ptr%i_chan = iw
+  pl_ptr%i_chan = i_ch
   pl_ptr%char_size = d*h
   pl_ptr%sym_size = 10
   pl_ptr%page_scale = real_option(1.0_rp, page_scale)
@@ -881,17 +882,11 @@ end subroutine
 
 subroutine qp_select_page_basic (iw)
   implicit none
-  integer i, iw
+  integer iw
+  !
+  call out_io (s_abort$, 'qp_select_page_basic', 'NOT YET IMPLEMENTED!')
+  call err_exit
   call plsstrm(iw)
-  do i = 1, size(pl_interface_save_com)
-    if (pl_interface_save_com(i)%i_chan == iw) then
-      pl_interface_save_com(i_save) = pl_interface_save_com(i)
-      pl_interface_save_com(i) = pl_com
-      pl_com = pl_interface_save_com(i_save)
-      return
-    endif
-  enddo
-  call out_io (s_abort$, 'qp_select_page_basic', 'BAD PAGE ID: \i\ ', iw)
 end subroutine
 
 !-----------------------------------------------------------------------
