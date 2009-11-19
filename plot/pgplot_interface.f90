@@ -33,13 +33,14 @@ use quick_plot_struct
 
 type pg_interface_struct
   character(16) page_type
+  character(100) plot_file
   integer :: i_chan = -1
   real qp_to_pg_text_height_factor
   real page_scale   ! scaling for entire page
 end type
 
-type (pg_interface_struct), target, save, private :: pg_com
-type (pg_interface_struct), save, private :: pg_interface_save_com(10)
+type (pg_interface_struct), pointer, save, private :: pg_com
+type (pg_interface_struct), save, target, private :: pg_interface_save_com(0:20)
 integer, save, private :: i_save = 0
 
 contains
@@ -546,7 +547,8 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   character(*) page_type, plot_file
   character(16) :: r_name = 'qp_open_page_basic'
 
-! set plot type
+! Set plot type
+! GIF does not work well so create a ps file and convert to gif on closing.
 
   if (page_type == 'X' .or. page_type == 'TK') then
 #if defined (CESR_WINCVF)
@@ -565,14 +567,18 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
     iw = pgopen (trim(plot_file) // '/CPS')
 
   elseif (page_type == 'GIF') then
-    iw = pgopen (trim(plot_file) // '/GIF')
-    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
-    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+    iw = pgopen ('pgplot_temp.ps/VCPS')
+
+!    iw = pgopen (trim(plot_file) // '/GIF')
+!    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
+!    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
 
   elseif (page_type == 'GIF-L') then
-    iw = pgopen (trim(plot_file) // '/VGIF')
-    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
-    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+    iw = pgopen ('pgplot_temp.ps/CPS')
+
+!    iw = pgopen (trim(plot_file) // '/VGIF')
+!    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
+!    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
 
   else
     call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
@@ -615,12 +621,14 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   call pgqcs (1, xi, yi)       ! size in inches
 
   i_save = i_save + 1
-  pg_interface_save_com(i_save)%i_chan = iw
-  pg_interface_save_com(i_save)%qp_to_pg_text_height_factor = h / (xi * 72)
-  pg_interface_save_com(i_save)%page_scale = real_option(1.0_rp, page_scale)
-  pg_interface_save_com(i_save)%page_type = page_type
+  pg_com => pg_interface_save_com(i_save)
 
-  pg_com = pg_interface_save_com(i_save)
+  pg_com%i_chan = iw
+  pg_com%qp_to_pg_text_height_factor = h / (xi * 72)
+  pg_com%page_scale = real_option(1.0_rp, page_scale)
+  pg_com%page_type = page_type
+  pg_com%plot_file = plot_file
+
 
 end subroutine
 
@@ -658,8 +666,11 @@ end subroutine
 subroutine qp_close_page_basic
   implicit none
   call pgclos
+  if (pg_com%page_type(1:3) == 'GIF') then
+    call ps2gif ('pgplot_temp.ps', pg_com%plot_file, .true.)
+  endif
   i_save = i_save - 1
-  if (i_save /= 0) pg_com = pg_interface_save_com(i_save)
+  pg_com => pg_interface_save_com(i_save)
   call pgslct(pg_com%i_chan)
 end subroutine
 

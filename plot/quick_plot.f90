@@ -172,11 +172,7 @@ use sim_utils_interface
 use utilities_mod
 use output_mod
 
-#if defined (CESR_MACINTOSH) || defined (TEST_PLPLOT)
   use plplot_interface
-#else
-  use pgplot_interface
-#endif
 
 !---------------------------------------------------------------------------
 ! common block
@@ -3174,7 +3170,7 @@ subroutine qp_open_page (page_type, i_chan, x_len, y_len, units, plot_file, scal
 implicit none
 
 real(rp), optional :: x_len, y_len, scale
-real(rp) x_inch, y_inch, x_page, y_page, page_scale, x, y, l_long, l_short
+real(rp) x_inch, y_inch, x_page, y_page, page_scale, x, y
 real(rp), save :: x_inch_old, y_inch_old
 
 integer, optional :: i_chan
@@ -3210,9 +3206,6 @@ endif
 
 ! set page size
 
-l_long = 10.5
-l_short = 7.8
-
 if (present(y_len)) then
   call qp_to_inch_rel (x_len, y_len, x_inch, y_inch, units)
 else
@@ -3221,11 +3214,11 @@ endif
 
 if (x_inch == 0) then
   if (qp_com%page_type == 'PS-L' .or. qp_com%page_type == 'GIF-L') then
-    x_inch = l_long
-    y_inch = l_short
+    x_inch = print_page_long_len
+    y_inch = print_page_short_len
   else
-    x_inch = l_short
-    y_inch = l_long
+    x_inch = print_page_short_len
+    y_inch = print_page_long_len
   endif
 endif
 
@@ -3241,16 +3234,16 @@ page_scale = real_option(1.0_rp, scale)
 if (page_scale == 0) then ! Auto scale to fit standard paper size.
 
   if (qp_com%page_type == 'PS' .or. qp_com%page_type == 'GIF') then
-    if (x_inch/y_inch > l_short/l_long) then  ! x_inch is larger
-      page_scale = l_short / x_inch
+    if (x_inch/y_inch > print_page_short_len/print_page_long_len) then  ! x_inch is larger
+      page_scale = print_page_short_len / x_inch
     else
-      page_scale = l_long / y_inch
+      page_scale = print_page_long_len / y_inch
     endif
   elseif (qp_com%page_type == 'PS-L' .or. qp_com%page_type == 'GIF-L') then
-    if (x_inch/y_inch > l_long/l_short) then  ! x_inch is larger
-      page_scale = l_long / x_inch
+    if (x_inch/y_inch > print_page_long_len/print_page_short_len) then  ! x_inch is larger
+      page_scale = print_page_long_len / x_inch
     else
-      page_scale = l_short / y_inch
+      page_scale = print_page_short_len / y_inch
     endif
   else
     call out_io (s_abort$, r_name, &

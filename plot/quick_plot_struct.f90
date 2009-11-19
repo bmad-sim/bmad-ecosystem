@@ -43,6 +43,9 @@ character(16) :: qp_symbol_type_name(0:18) = (/ 'square         ', &
 
 integer, parameter :: dflt_draw$ = 1, dflt_set$ = 2
 
+integer, parameter :: print_page_long_len = 10.5
+integer, parameter :: print_page_short_len = 7.8
+
 !------------------------------------
 
 type qp_axis_struct
