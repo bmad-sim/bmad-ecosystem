@@ -1168,6 +1168,8 @@ case ('periodic.tt.')
   datum_value = taylor_coef (taylor(i), expnt)
   valid_value = .true.
 
+  tao_com%ix_ref_taylor = -999
+
 case ('phase.a', 'phase_frac.a')
   if (data_source == 'beam') return ! bad
   if (ix_ref < 0) then

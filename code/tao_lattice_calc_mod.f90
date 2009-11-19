@@ -57,7 +57,7 @@ calc_ok = .true.
 
 if (.not. s%global%lattice_calc_on) return
 
-tao_com%ix_ref_taylor = -1   ! Reset taylor map
+tao_com%ix_ref_taylor = -999   ! Reset taylor map
 call tao_hook_lattice_calc (calc_ok)
     
 ! To save time, s%u(:)%lattice_recalc are used to determine what gets calculated. 
