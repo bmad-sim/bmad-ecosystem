@@ -371,7 +371,7 @@ case ('hard', 'hard-l')
   else
     call qp_open_page ('PS-L', scale = 0.0_rp)
   endif
-  call tao_draw_plots ()   ! Update the plotting window
+  call tao_draw_plots ()   ! PS out
   call qp_close_page
   call tao_draw_plots ()   ! Update the plotting window
 
@@ -484,9 +484,9 @@ case ('ps', 'ps-l', 'gif', 'gif-l')
 
   file_name = "tao.ps"
   if (action(1:3) == 'gif') file_name = 'tao.gif'
-  scale = 0
   call str_upcase (action, action)
 
+  scale = 0
   do
     call tao_next_switch (what2, (/ '-scale' /), switch, err, ix)
     if (err) return
@@ -509,23 +509,13 @@ case ('ps', 'ps-l', 'gif', 'gif-l')
     endif
   endif
 
-  if (action(1:3) == 'GIF') then
-    call qp_open_page ('PS' // trim(action(4:)), plot_file = 'tao_out.ps', scale = scale)
-  else
-    call qp_open_page (action, plot_file = file_name, scale = scale)
-  endif
-
-  call tao_draw_plots ()   ! Update the plotting window
+  call qp_open_page (action, plot_file = file_name, scale = scale)
+  call tao_draw_plots ()   ! GIF plot
   call qp_close_page
-  call qp_select_page (s%plot_page%id_window)  ! Back to X-windows
+
   call tao_draw_plots ()   ! Update the plotting window
 
-  if (action(1:3) == 'GIF') then
-    call ps2gif ('tao_out.ps', file_name, .true.)
-    call out_io (s_blank$, r_name, "Created GIF file: " // file_name)
-  else
-    call out_io (s_blank$, r_name, "Created PS file: " // file_name)
-  endif
+  call out_io (s_blank$, r_name, "Created " // trim(action) // " file: " // file_name)
 
 !---------------------------------------------------
 ! variables
