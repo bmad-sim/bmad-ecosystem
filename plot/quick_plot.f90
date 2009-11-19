@@ -3475,8 +3475,7 @@ if (qp_com%this_text%uniform_spacing) then
   enddo
 else
   call qp_to_inch_abs (x1, y1, x_inch, y_inch, 'INCH/PAGE/LB')
-  call qp_draw_text_basic (text, len_trim(text), &
-                                      x_inch, y_inch, ang, qp_justify(justify))
+  call qp_draw_text_basic (text, len_trim(text), x_inch, y_inch, ang, qp_justify(justify))
 endif
 
 end subroutine         
