@@ -92,8 +92,6 @@ void UAPToBmadLat::aml_parser_cpp (char* lat_file, uap_node_f_struct* fort_root,
   aml_parameter_to_bmad ("lattice", expand_root, param_node);
   aml_parameter_to_bmad ("global", expand_root, param_node);
 
-  custom_aml_rep_to_x_rep (NULL, expand_root);
-
   // Convert to a fortran tree.
 
   uap_node_tree_to_f_(expand_root, fort_root);
@@ -112,19 +110,19 @@ void UAPToBmadLat::init (UAPNode* expand_root) {
 
 void UAPToBmadLat::register_aml_element (UAPNode* parent) {
 
-  error.ix_line = -1;
-  error.parsing_status = "Converting AML lattice structures to Bmad.";
+  info_out.ix_line = -1;
+  info_out.parsing_status = "Converting AML lattice structures to Bmad.";
 
   // This is necessary so the call to aml_node_to_x_rep (called in 
   // aml_element_to_x_class) can find the bmad_class of any slave element of a controller.
 
-  NodeList children = parent->getChildren();
-  for (NodeListIter in = children.begin(); in != children.end(); in++) {
+  NodeVec children = parent->getChildren();
+  for (NodeVecIter in = children.begin(); in != children.end(); in++) {
     UAPNode* ele_node = *in;
     string bmad_class;
     string ele_name = ele_node->getAttributeString("name");
     aml_ele_to_x_class (ele_node, bmad_class);
-    map_element_name_to_x_class[ele_name] = bmad_class;
+    name_to_x_class_map[ele_name] = bmad_class;
   }
 }
 
@@ -132,8 +130,8 @@ void UAPToBmadLat::register_aml_element (UAPNode* parent) {
 
 void UAPToBmadLat::aml_element_to_bmad (UAPNode* parent) {
 
-  NodeList children = parent->getChildren();
-  for (NodeListIter in = children.begin(); in != children.end(); in++) {
+  NodeVec children = parent->getChildren();
+  for (NodeVecIter in = children.begin(); in != children.end(); in++) {
     UAPNode* ele_node = *in;
 
     // Find the Bmad class (key) for this element
@@ -147,17 +145,17 @@ void UAPToBmadLat::aml_element_to_bmad (UAPNode* parent) {
     UAPNode* bmad_attrib_node = new UAPNode("bmad_attributes");
 
     if (bmad_class == "group" || bmad_class == "overlay") {
-      aml_node_to_x_rep (ele_node, bmad_attrib_node);
+      aml_node_to_x (ele_node, bmad_attrib_node);
       UAPNode* node = bmad_attrib_node->getChildren().back();
       node = ele_node->addChildCopy(node);
       node->addAttribute("class", node->getName());
       node->setName("bmad_attributes");
-      bmad_attrib_node->deleteTree();
+      bmad_attrib_node->deleteNode();
     } else {
       bmad_attrib_node->addAttribute("class", bmad_class);    
-      aml_element_attributes_to_x_rep (ele_node, ele_node, bmad_attrib_node);
+      aml_element_attributes_to_x (ele_node, ele_node, bmad_attrib_node);
       ele_node->addChildCopy(bmad_attrib_node);
-      bmad_attrib_node->deleteTree();
+      bmad_attrib_node->deleteNode();
     }
 
   }
@@ -171,6 +169,6 @@ void UAPToBmadLat::aml_parameter_to_bmad (string who, UAPNode* expand_node,
 
   if (expand_node->getSubNodesByName(who).size() == 0) return;
   UAPNode* aml_param_node = expand_node->getSubNodesByName(who).front();
-  aml_param_to_x_rep (aml_param_node, aml_param_node, bmad_param_node);
+  aml_param_to_x (aml_param_node, aml_param_node, bmad_param_node);
 
 }
