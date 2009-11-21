@@ -1,24 +1,21 @@
 !+
 ! Subroutine twiss_propagate1 (ele1, ele2, err)
 !
-! Subroutine to propagate the twiss parameters from the end of ELE1 to
-! the end of ELE2.
-!
-! Note: ele%a Twiss parameters are associated with the "A" mode and
-! the ele%b Twiss parameters are associated with the "B" mode.
+! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
+! the exit end of ele1 to the exit end of ele2.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ele1        -- Ele_struct: Structure holding the starting Twiss parameters.
+!   ele1        -- Ele_struct: Structure holding the starting parameters.
 !   ele2        -- Ele_struct: Structure holding the transfer matrix.
 !   bmad_status -- Common block status structure:
 !       %type_out -- If True then will type a message if the modes are flipped.
 !       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
-!   ele2   -- Ele_struct: Structure for the ending Twiss parameters.
+!   ele2   -- Ele_struct: Structure for the ending parameters.
 !   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !   bmad_status -- Common block status structure:
 !       %ok         -- Set False if an input beta is zero (deprecated).

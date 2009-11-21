@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module ptc_interface_mod
 
 use bmad_struct
@@ -1341,7 +1339,7 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_inverse (taylor_in, taylor_inv, ref_pt)
+! Subroutine taylor_inverse (taylor_in, taylor_inv, err, ref_pt)
 !
 ! Subroutine to invert a taylor map. Since the inverse map is truncated, it
 ! is not exact and the reference point about which it is computed matters.
@@ -1356,9 +1354,11 @@ end subroutine
 !
 ! Output:
 !   taylor_inv(6) -- Taylor_struct: Inverted taylor map.
+!   err           -- Logical, optional: Set True if there is no inverse.
+!                     If not present then print an error message.
 !-
 
-subroutine taylor_inverse (taylor_in, taylor_inv, ref_pt)
+subroutine taylor_inverse (taylor_in, taylor_inv, err, ref_pt)
 
 use s_fitting, only: assignment(=), alloc, kill, operator(**), damap
 
@@ -1376,6 +1376,10 @@ real(rp) c0(6)
 integer i, expn(6)
 
 real(dp) c8(6), c_ref(6)
+
+logical, optional :: err
+
+character(16) :: r_name = 'taylor_inverse'
 
 ! Set the taylor order in PTC if not already done so.
 
@@ -1403,6 +1407,19 @@ if (present(ref_pt)) then
 else
   call remove_constant_taylor (taylor_in, tlr, c0, .true.)
 endif
+
+! Each taylor_in(i) must have at least one term for an inverse to exist.
+
+do i = 1, 6
+  if (size(tlr(i)%term) == 0) then
+    if (present(err)) then
+      err = .true.
+    else
+      call out_io (s_error$, r_name, 'Taylor map does not have an inverse.')
+    endif
+    return
+  endif
+enddo
 
 ! Compute inverse.
 
@@ -1444,6 +1461,8 @@ call kill (da)
 call kill (y)
 call kill (yc)
 call kill_taylor (tlr)
+
+if (present(err)) err = .false.
 
 end subroutine
 

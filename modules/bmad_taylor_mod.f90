@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module bmad_taylor_mod
 
 use sim_utils
@@ -570,7 +568,7 @@ end subroutine
 ! Input:
 !   bmad_taylor -- Taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
-!                   0 => %term pointer will be disassociated.
+!                   -1 => bmad_taylor%term pointer will be disassociated.
 !   save        -- Logical, optional: If True then save any old terms when
 !                   bmad_taylor is resized. Default is False.
 !
@@ -590,6 +588,11 @@ logical, optional :: save
 
 !
 
+if (n_term < 0) then
+  if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
+  return
+endif
+
 if (.not. associated (bmad_taylor%term)) then
   allocate (bmad_taylor%term(n_term))
   return
@@ -599,7 +602,7 @@ if (size(bmad_taylor%term) == n_term) return
 
 !
 
-if (logic_option (.false., save)) then
+if (logic_option (.false., save) .and. n_term > 0 .and. size(bmad_taylor%term) > 0) then
   n = min (n_term, size(bmad_taylor%term))
   allocate (term(n))
   term = bmad_taylor%term(1:n)

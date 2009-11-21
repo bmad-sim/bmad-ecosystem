@@ -3,7 +3,7 @@
 #include "UAP/UAPUtilities.hpp"
 #include "AML/AMLReader.hpp"
 #include "AML/AMLLatticeExpander.hpp"
-#include "Bmad/BmadParser.hpp"
+#include "Translate/BmadParser.hpp"
 
 using namespace std;
 

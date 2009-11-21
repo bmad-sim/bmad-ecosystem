@@ -1,23 +1,23 @@
 !+
 ! Subroutine twiss_propagate_all (lat, ix_branch)
 !
-! Subroutine to propagate the twiss parameters from the start to the end.
+! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
+! the start to the end of a lattice branch.
 !
-! Note: lat%ele(:)%a Twiss parameters are associated with the "A" mode and
-! the lat%ele(:)%b Twiss parameters are associated with the "B" mode.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   lat%ele(0) -- lat_struct: Twiss parameters at the start
+!   lat        -- Lat_struct: lattice.
+!     %branch(ix_branch%rele(0) -- Branch beginning element with the starting parameters.
 !   ix_branch  -- Integer, optional: Branch index. Default is 0 (main lattice).
 !   bmad_status  -- Common block status structure:
 !       %type_out      -- If True then will type a message if the modes are flipped.
 !       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
-!   lat         -- lat_struct: Lat
+!   lat          -- lat_struct: Lattice with parameters computed for the branch.
 !   bmad_status  -- Common block status structure:
 !       %ok         -- Set False if an input beta is zero. True otherwise
 !-
