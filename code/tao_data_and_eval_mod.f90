@@ -1155,7 +1155,11 @@ case ('periodic.tt.')
   do i = 1, 4
     call add_taylor_term (taylor(i), -1.0_rp, i)
   enddo
-  call taylor_inverse (taylor, taylor)
+  call taylor_inverse (taylor, taylor, err)
+  if (err) then
+    call out_io (s_error$, r_name, 'CANNOT INVERT MAP FOR DATUM: ' // datum%data_type)
+    return
+  endif
 
   expnt = 0
   i = tao_read_this_index (datum%data_type, 13); if (i == 0) return
