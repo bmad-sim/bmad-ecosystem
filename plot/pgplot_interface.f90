@@ -671,7 +671,9 @@ subroutine qp_close_page_basic
   endif
   i_save = i_save - 1
   pg_com => pg_interface_save_com(i_save)
-  call pgslct(pg_com%i_chan)
+  if (i_save /= 0) then
+    call pgslct(pg_com%i_chan)
+  endif
 end subroutine
 
 end module
