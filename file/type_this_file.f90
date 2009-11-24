@@ -7,33 +7,31 @@
 !     call type_this_file ('HELP_FILE.HELP')
 !-
 
-#include "CESR_platform.inc"
-
 subroutine type_this_file(filename)
 
-  use precision_def
+use filename_mod
 
-  implicit none
+implicit none
 
-  integer lun, lunget
+integer lun, lunget
 
-  character(*) filename
-  character(132) line
+character(*) filename
+character(200) f_name, line
 
 !
 
-  lun = lunget()
-  open (unit = lun, file = filename, status = 'old', &
-                                             action = 'READ', err = 9000)
+lun = lunget()
+call fullfilename (filename, f_name)
+open (unit = lun, file = f_name, status = 'old', action = 'READ', err = 9000)
 
-  do 
-    read (lun, '(a)', end = 8000) line
-    print '(1x, a)', trim(line)
-  enddo
+do 
+  read (lun, '(a)', end = 8000) line
+  print '(1x, a)', trim(line)
+enddo
 
 8000  continue
-  close (unit = lun)
-  return
+close (unit = lun)
+return
 
 9000  print *, 'ERROR IN TYPE_THIS_FILE: CANNOT FIND: ', filename
 
