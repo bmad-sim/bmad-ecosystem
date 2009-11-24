@@ -3,9 +3,6 @@ module synrad3d_struct
 use bmad_struct
 use bmad_interface
 
-
-integer, parameter :: elliptical$ = 1, rectangular$ = 2
-
 type photon3d_coord_struct
   real(rp) vec(6)             ! Position: (x, vx/c, y, vy/c, z, vz/c)
   real(rp) energy             ! eV
