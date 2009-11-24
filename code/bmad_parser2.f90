@@ -87,6 +87,8 @@ bmad_status%ok = .true.
 bp_com%write_digested2 = .false.
 bp_com%parser_name = 'BMAD_PARSER2'
 if (lat_file /= 'FROM: BMAD_PARSER') bp_com%do_superimpose = .true.
+bp_com%e_tot_set = .false.
+bp_com%p0c_set   = .false.
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
 ! bmad_parser (after an expand_lattice command). 
@@ -106,12 +108,14 @@ last_con = 0
 
 call allocate_plat (lat, plat)
 
+bp_com%beam_ele => beam_ele
 call init_ele(beam_ele)
 beam_ele%name = 'BEAM'              ! fake beam element
 beam_ele%key = def_beam$            ! "definition of beam"
 beam_ele%value(n_part$)     = lat%param%n_part
 beam_ele%value(particle$)   = lat%param%particle
 
+bp_com%param_ele => param_ele
 call init_ele (param_ele)
 param_ele%name = 'PARAMETER'
 param_ele%key = def_parameter$
@@ -120,6 +124,7 @@ param_ele%value(taylor_order$) = lat%input_taylor_order
 param_ele%value(n_part$)       = lat%param%n_part
 param_ele%value(particle$)     = lat%param%particle
 
+bp_com%beam_start_ele => beam_start_ele
 call init_ele (beam_start_ele)
 beam_start_ele%name = 'BEAM_START'
 beam_start_ele%key = def_beam_start$
@@ -456,16 +461,11 @@ bp_com%input_line_meaningful = .false.
 lat%param%lattice_type = nint(param_ele%value(lattice_type$))
 lat%input_taylor_order = nint(param_ele%value(taylor_order$))
 
-if (beam_ele%value(p0c$) /= 0) then
-  call convert_pc_to (1d9 * beam_ele%value(p0c$), lat%param%particle, &
-                                           e_tot = lat%ele(0)%value(e_tot$))    
-elseif (param_ele%value(p0c$) /= 0) then
-  call convert_pc_to (param_ele%value(p0c$), lat%param%particle, &
-                                           e_tot = lat%ele(0)%value(e_tot$))
-elseif (beam_ele%value(e_tot$) /= 0) then
-  lat%ele(0)%value(e_tot$) = beam_ele%value(e_tot$) * 1d9
-elseif (param_ele%value(e_tot$) /= 0) then
-  lat%ele(0)%value(e_tot$) = param_ele%value(e_tot$)
+if (bp_com%p0c_set) then
+  call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, e_tot = lat%ele(0)%value(e_tot$))
+elseif (bp_com%e_tot_set) then
+  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
+                                                         pc = lat%ele(0)%value(p0c$))
 endif
 
 v1 = param_ele%value(n_part$)

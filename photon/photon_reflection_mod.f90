@@ -250,16 +250,16 @@ end subroutine
 !---------------------------------------------------------------------------------------------
 
 ! evaluate using spline interpolation
-! angle is in degrees,  energy is in eV,  
-! ref is the reflectivity, a pure number between 0 and 1.
+! angle is in radians,  energy is in eV,  
+! reflect_prop is the reflectivity, a pure number between 0 and 1.
 
-subroutine photon_reflectivity (angle, energy,  ref)
+subroutine photon_reflectivity (angle, energy,  reflect_prob)
 
   use nr
 
   implicit none
 
-  real(rp) angle, angle_deg, energy, energym, ref
+  real(rp) angle, angle_deg, energy, e_tot, reflect_prob, e_crit
 
   !
 
@@ -268,11 +268,22 @@ subroutine photon_reflectivity (angle, energy,  ref)
     init_needed = .false.
   endif
 
-  energym = max(30.0_rp, energy)
-  energym = min(1000.0_rp, energym)
-
   angle_deg = angle * 180 / pi
-  ref = max(0.0_rp, splin2 (ang_vec, energy_vec, reflect_vec, y2, angle_deg, energym))
+
+  e_tot = max(30.0_rp, energy)
+
+  if (e_tot <= 1000) then
+    reflect_prob = max(0.0_rp, splin2 (ang_vec, energy_vec, reflect_vec, y2, angle_deg, e_tot))
+  else
+    e_crit = max(397+2015/angle_deg, 1000.0_rp) 
+    if (e_tot < e_crit) then
+      reflect_prob = max(0.0_rp, splin2 (ang_vec, energy_vec, reflect_vec, y2, angle_deg, 1000.0_rp)) * &
+                            (e_crit - e_tot) / (e_crit - 1000)
+    else
+      reflect_prob = 0
+    endif
+  endif
+
 
 end subroutine
 

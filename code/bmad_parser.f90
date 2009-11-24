@@ -48,7 +48,6 @@ implicit none
 type (lat_struct), target :: lat, in_lat
 type (ele_struct) this_ele
 type (seq_struct), save, target :: sequence(1000)
-type (ele_struct), pointer :: beam_ele, param_ele, beam_start_ele
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct) plat
 type (ele_struct), save, pointer :: ele, slave
@@ -145,28 +144,30 @@ iseq_tot = 0                            ! number of sequences encountered
 
 bp_com%input_line_meaningful = .true.
 bp_com%ran_function_was_called = .false.
+bp_com%e_tot_set = .false.
+bp_com%p0c_set   = .false.
 
 call init_ele (in_lat%ele(0))
 in_lat%ele(0)%name = 'BEGINNING'     ! Beginning element
 in_lat%ele(0)%key = init_ele$
 
-beam_ele => in_lat%ele(1)
-call init_ele (beam_ele)
-beam_ele%name = 'BEAM'                 ! fake beam element
-beam_ele%key = def_beam$               ! "definition of beam"
-beam_ele%value(particle$) = positron$  ! default
+bp_com%beam_ele => in_lat%ele(1)
+call init_ele (bp_com%beam_ele)
+bp_com%beam_ele%name = 'BEAM'                 ! fake beam element
+bp_com%beam_ele%key = def_beam$               ! "definition of beam"
+bp_com%beam_ele%value(particle$) = positron$  ! default
 
-param_ele => in_lat%ele(2)
-call init_ele (param_ele)
-param_ele%name = 'PARAMETER'           ! For parameters 
-param_ele%key = def_parameter$
-param_ele%value(lattice_type$) = -1
-param_ele%value(particle$)     = positron$  ! default
+bp_com%param_ele => in_lat%ele(2)
+call init_ele (bp_com%param_ele)
+bp_com%param_ele%name = 'PARAMETER'           ! For parameters 
+bp_com%param_ele%key = def_parameter$
+bp_com%param_ele%value(lattice_type$) = -1
+bp_com%param_ele%value(particle$)     = positron$  ! default
 
-beam_start_ele => in_lat%ele(3)
-call init_ele (beam_start_ele)
-beam_start_ele%name = 'BEAM_START'           ! For parameters 
-beam_start_ele%key = def_beam_start$
+bp_com%beam_start_ele => in_lat%ele(3)
+call init_ele (bp_com%beam_start_ele)
+bp_com%beam_start_ele%name = 'BEAM_START'           ! For parameters 
+bp_com%beam_start_ele%key = def_beam_start$
 
 n_max => in_lat%n_ele_max
 n_max = 3                              ! Number of elements encountered
@@ -281,7 +282,7 @@ parsing_loop: do
         call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call get_attribute (def$, beam_ele, in_lat, plat, delim, delim_found, err_flag, .true.)
+      call get_attribute (def$, bp_com%beam_ele, in_lat, plat, delim, delim_found, err_flag, .true.)
     enddo
     cycle parsing_loop
   endif
@@ -487,9 +488,9 @@ parsing_loop: do
     n_max = n_max + 1
     if (n_max > ubound(in_lat%ele, 1)) then
       call allocate_lat_ele_array (in_lat)
-      beam_ele => in_lat%ele(1)
-      param_ele => in_lat%ele(2)
-      beam_start_ele => in_lat%ele(3)
+      bp_com%beam_ele => in_lat%ele(1)
+      bp_com%param_ele => in_lat%ele(2)
+      bp_com%beam_start_ele => in_lat%ele(3)
       call allocate_plat (in_lat, plat)
     endif
 
@@ -666,23 +667,23 @@ lat%z          = in_lat%z
 call mat_make_unit (lat%ele(0)%mat6)
 call clear_lat_1turn_mats (lat)
 
-if (beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) &
+if (bp_com%beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
           call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-lat%param%n_part = max(beam_ele%value(n_part$), param_ele%value(n_part$))
+lat%param%n_part = max(bp_com%beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
 
-ix1 = nint(param_ele%value(particle$))
-ix2 = nint(beam_ele%value(particle$))
+ix1 = nint(bp_com%param_ele%value(particle$))
+ix2 = nint(bp_com%beam_ele%value(particle$))
 if (ix1 /= positron$ .and. ix2 /= positron$) &
         call warning ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
 lat%param%particle = ix1
 if (ix2 /=  positron$) lat%param%particle = ix2
 
 ! The lattice name from a "parameter[lattice] = ..." line is 
-! stored the param_ele%descrip string
+! stored the bp_com%param_ele%descrip string
 
-if (associated(param_ele%descrip)) then
-  lat%lattice = param_ele%descrip
-  deallocate (param_ele%descrip)
+if (associated(bp_com%param_ele%descrip)) then
+  lat%lattice = bp_com%param_ele%descrip
+  deallocate (bp_com%param_ele%descrip)
 endif
 
 ! Work on multipass before overlays, groups, and superimpose. 
@@ -781,7 +782,7 @@ enddo
 
 ! Set lattice_type.
 
-ix = nint(param_ele%value(lattice_type$))
+ix = nint(bp_com%param_ele%value(lattice_type$))
 if (ix > 0) then  ! lattice_type has been set.
   lat%param%lattice_type = ix
 else              ! else use default
@@ -795,7 +796,7 @@ endif
 
 ! Set taylor_order
 
-lat%input_taylor_order = nint(param_ele%value(taylor_order$))
+lat%input_taylor_order = nint(bp_com%param_ele%value(taylor_order$))
 
 if (lat%input_taylor_order /= 0) &
      call set_taylor_order (lat%input_taylor_order, .false.)
@@ -803,39 +804,21 @@ if (lat%input_taylor_order /= 0) &
 !-------------------------------------------------------------------------
 ! energy bookkeeping.
 
-n = 0
-if (beam_ele%value(e_tot$) /= 0)   n = n + 1
-if (param_ele%value(e_tot$) /= 0)  n = n + 1
-if (lat%ele(0)%value(e_tot$) /= 0) n = n + 1
-if (beam_ele%value(p0c$) /= 0)     n = n + 1
-if (param_ele%value(p0c$) /= 0)    n = n + 1
-if (lat%ele(0)%value(p0c$) /= 0)   n = n + 1
-
-if (n > 1) then
-  call warning ('REFERENCE ENERGY SET MULTIPLE TIMES!', stop_here = .true.)
+if (lat%ele(0)%value(e_tot$) /= 0 .and. lat%ele(0)%value(p0c$) /= 0) then
+  call warning ('BOTH REFERENCE ENERGY AND P0C HAVE BEEN DEFINED!', stop_here = .true.)
   return
 endif
 
-if (beam_ele%value(e_tot$) /= 0) then      ! beam, energy = ...
-  lat%ele(0)%value(e_tot$) = 1d9 * beam_ele%value(e_tot$)
-elseif (beam_ele%value(p0c$) /= 0) then    ! beam, pc = ...
-  call convert_pc_to (1d9 * beam_ele%value(p0c$), lat%param%particle, &
-                                           e_tot = lat%ele(0)%value(e_tot$))
-elseif (param_ele%value(e_tot$) /= 0) then ! parameter[e_tot] = ...
-  lat%ele(0)%value(e_tot$) = param_ele%value(e_tot$)
-elseif (param_ele%value(p0c$) /= 0) then   ! parameter[p0c] = ...
-  call convert_pc_to (param_ele%value(p0c$), lat%param%particle, &
-                                           e_tot = lat%ele(0)%value(e_tot$))
-elseif (lat%ele(0)%value(p0c$) /= 0) then  ! beginning[p0c] = ...
+if (lat%ele(0)%value(p0c$) /= 0) then  ! beginning[p0c] = ...
   call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, &
                                            e_tot = lat%ele(0)%value(e_tot$))
-elseif (lat%ele(0)%value(e_tot$) == 0) then
+elseif (lat%ele(0)%value(e_tot$) /= 0) then
+  call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
+                                           pc = lat%ele(0)%value(p0c$))
+else
   call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET! WILL USE SOMETHING LARGE!')
   lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
 endif
-
-call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
-                                           pc = lat%ele(0)%value(p0c$))
 
 call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 

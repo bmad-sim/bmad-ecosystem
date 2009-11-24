@@ -169,6 +169,67 @@ same as using \vn{parameter[e_tot]}. Similarly, setting \vn{pc} is
 equivalent to setting \vn{parameter[p0c]}. Valid \vn{particle} switches
 are the same as \vn{parameter[particle]}.
 
+%--------------------------------------------------------------------------
+\section{Beginning Statement}
+\label{s:beginning}
+\index{beginning statement|hyperbf}
+
+\index{beta_a}
+\index{alpha_a}
+\index{phi_a}
+\index{eta_x}
+\index{etap_x}
+\index{beta_b}
+\index{alpha_b}
+\index{phi_b}
+\index{eta_y}
+\index{etap_y}
+\index{cmat_ij}
+\index{e_tot}
+\index{p0c}
+For non--circular lattices the \vn{beginning} statement can be used to
+set the Twiss parameters and beam energy at the beginning of the lat
+\begin{example}
+  beginning[beta_a]  = <Real>  ! "a" mode beta
+  beginning[alpha_a] = <Real>  ! "a" mode alpha
+  beginning[phi_a]   = <Real>  ! "a" mode phase
+  beginning[eta_x]   = <Real>  ! x-axis dispersion
+  beginning[etap_x]  = <Real>  ! x-axis dispersion derivative.
+  beginning[beta_b]  = <Real>  ! "b" mode beta
+  beginning[alpha_b] = <Real>  ! "b" mode alpha
+  beginning[phi_b]   = <Real>  ! "b" mode phase
+  beginning[eta_y]   = <Real>  ! y-axis dispersion
+  beginning[etap_y]  = <Real>  ! y-axis dispersion derivative.
+  beginning[cmat_ij] = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
+  beginning[s]       = <Real>  ! Longitudinal starting position.
+  beginning[e_tot]   = <Real>  ! Reference total energy in eV.
+  beginning[p0c]     = <Real>  ! Reference momentum in eV.
+\end{example}
+\index{e_tot}
+The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma
+factor) will be kept consistent with the values set. If not set the
+default values are all zero.  \vn{beginning[e_tot]} and
+\vn{parameter[e_tot]} are equivalent and one or the other may be
+set but not both. Similarly, \vn{beginning[p0c]} and
+\vn{parameter[p0c]} are equivalent.
+
+\index{x_position}
+\index{y_position}
+\index{z_position}
+\index{theta_position}
+\index{phi_position}
+\index{psi_position}
+For any lattice the \vn{beginning} statement can be used to set the starting floor position 
+(see~\ref{s:global}). The syntax is
+\begin{example}
+  beginning[x_position]     = <Real>  ! X position
+  beginning[y_position]     = <Real>  ! Y position
+  beginning[z_position]     = <Real>  ! Z position
+  beginning[theta_position] = <Real>  ! Angle on floor
+  beginning[phi_position]   = <Real>  ! Angle of attack
+  beginning[psi_position]   = <Real>  ! Roll angle
+\end{example}
+
 %-----------------------------------------------------------------------------
 \section{Title Statement}
 \index{title statement|hyperbf}
@@ -249,67 +310,6 @@ file operate on the expanded lattice.
 \vn{Return} and \vn{end_file} have identical effect and tell \bmad to
 ignore anything beyond the \vn{return} or \vn{end_file} statement in
 the file.
-
-%--------------------------------------------------------------------------
-\section{Beginning Statement}
-\label{s:beginning}
-\index{beginning statement|hyperbf}
-
-\index{beta_a}
-\index{alpha_a}
-\index{phi_a}
-\index{eta_x}
-\index{etap_x}
-\index{beta_b}
-\index{alpha_b}
-\index{phi_b}
-\index{eta_y}
-\index{etap_y}
-\index{cmat_ij}
-\index{e_tot}
-\index{p0c}
-For non--circular lattices the \vn{beginning} statement can be used to
-set the Twiss parameters and beam energy at the beginning of the lat
-\begin{example}
-  beginning[beta_a]  = <Real>  ! "a" mode beta
-  beginning[alpha_a] = <Real>  ! "a" mode alpha
-  beginning[phi_a]   = <Real>  ! "a" mode phase
-  beginning[eta_x]   = <Real>  ! x-axis dispersion
-  beginning[etap_x]  = <Real>  ! x-axis dispersion derivative.
-  beginning[beta_b]  = <Real>  ! "b" mode beta
-  beginning[alpha_b] = <Real>  ! "b" mode alpha
-  beginning[phi_b]   = <Real>  ! "b" mode phase
-  beginning[eta_y]   = <Real>  ! y-axis dispersion
-  beginning[etap_y]  = <Real>  ! y-axis dispersion derivative.
-  beginning[cmat_ij] = <Real>  ! C coupling matrix. i, j = {``1'', or ``2''} 
-  beginning[s]       = <Real>  ! Longitudinal starting position.
-  beginning[e_tot]   = <Real>  ! Reference total energy in eV.
-  beginning[p0c]     = <Real>  ! Reference momentum in eV.
-\end{example}
-\index{e_tot}
-The \vn{gamma_a}, \vn{gamma_b}, and \vn{gamma_c} (the coupling gamma
-factor) will be kept consistent with the values set. If not set the
-default values are all zero.  \vn{beginning[e_tot]} and
-\vn{parameter[e_tot]} are equivalent and one or the other may be
-set but not both. Similarly, \vn{beginning[p0c]} and
-\vn{parameter[p0c]} are equivalent.
-
-\index{x_position}
-\index{y_position}
-\index{z_position}
-\index{theta_position}
-\index{phi_position}
-\index{psi_position}
-For any lattice the \vn{beginning} statement can be used to set the starting floor position 
-(see~\ref{s:global}). The syntax is
-\begin{example}
-  beginning[x_position]     = <Real>  ! X position
-  beginning[y_position]     = <Real>  ! Y position
-  beginning[z_position]     = <Real>  ! Z position
-  beginning[theta_position] = <Real>  ! Angle on floor
-  beginning[phi_position]   = <Real>  ! Angle of attack
-  beginning[psi_position]   = <Real>  ! Roll angle
-\end{example}
 
 %----------------------------------------------------------------------------
 \section{Expand_lattice Statement}

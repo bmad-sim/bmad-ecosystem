@@ -133,6 +133,8 @@ parameter (redef$ = 2)
 integer, parameter :: n_parse_line = 280
 
 type bp_common_struct
+  type (ele_struct), pointer :: param_ele, beam_ele, beam_start_ele
+  logical e_tot_set, p0c_set
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
@@ -704,6 +706,33 @@ case default   ! normal attribute
     if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
     if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
     if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
+
+    if (ix_attrib == e_tot$) then
+      select case (ele%key)
+      case (def_beam$)
+        lat%ele(0)%value(e_tot$) = 1d9 * value
+        bp_com%param_ele%value(e_tot$) = 1d9 * value
+      case (def_parameter$, init_ele$)
+        lat%ele(0)%value(e_tot$) = value
+        bp_com%param_ele%value(e_tot$) = value
+        bp_com%beam_ele%value(e_tot$) = 1d-9 * value
+      end select
+      bp_com%e_tot_set = .true.
+      bp_com%p0c_set   = .false.
+    elseif (ix_attrib == p0c$) then
+      select case (ele%key)
+      case (def_beam$)
+        lat%ele(0)%value(p0c$) = 1d9 * value
+        bp_com%param_ele%value(p0c$) = 1d9 * value
+      case (def_parameter$, init_ele$)
+        lat%ele(0)%value(p0c$) = value
+        bp_com%param_ele%value(p0c$) = value
+        bp_com%beam_ele%value(p0c$) = 1d-9 * value
+      end select
+      bp_com%e_tot_set = .false.
+      bp_com%p0c_set   = .true.
+    endif
+
   endif
 
 end select
