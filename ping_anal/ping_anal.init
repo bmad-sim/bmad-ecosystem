@@ -1,0 +1,5 @@
+&ping_params
+	param%data_file = 'RD-000463-64.dat'
+	param%lattice_file = '/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20090516.lat'
+	param%ix_phase_meas = 8332
+/
