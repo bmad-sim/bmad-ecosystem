@@ -549,6 +549,12 @@ type tao_common_struct
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
+  logical :: init_connected_uni  = .true.   ! Used by custom programs to control Tao init
+  logical :: init_beam           = .true.   ! Used by custom programs to control Tao init
+  logical :: init_var            = .true.   ! Used by custom programs to control Tao init
+  logical :: init_read_lat_info  = .true.   ! Used by custom programs to control Tao init
+  logical :: init_data           = .true.   ! Used by custom programs to control Tao init
+  logical :: parse_cmd_args      = .true.   ! Used by custom programs to control Tao init
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization
   character(200) :: init_lat_file = ''                 ! '-lat' argument.

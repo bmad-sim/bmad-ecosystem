@@ -1,22 +1,17 @@
 !+
-! Subroutine tao_hook_parse_command_args (is_set) 
+! Subroutine tao_hook_parse_command_args () 
 !
-! Hook routine to read the command arguments
+! Hook routine to read the command arguments.
 !
-! Output:
-!   is_set -- Logical: Set True if the command arguments are parsed by this routine.
-!                False otherwise. This tells the calling routine whether to skip
-!                the standard command arg parsing.
+! Note: use the logical tao_com%parse_cmd_args to control 
+! the standard parsing of the command line arguments.
+!
 !-
 
-subroutine tao_hook_parse_command_args (is_set)
+subroutine tao_hook_parse_command_args ()
 
 implicit none
 
-logical is_set
-
 !
-
-is_set = .false.
 
 end subroutine

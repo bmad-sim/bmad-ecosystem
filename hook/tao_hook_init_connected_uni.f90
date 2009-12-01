@@ -1,22 +1,15 @@
 !+
-! Subroutine tao_hook_init_connected_uni (is_set)
+! Subroutine tao_hook_init_connected_uni ()
 !
 ! Hook routine to initialize connected universe information.
-!
-! Output:
-!   is_set -- Logical: Set True if connected universe info has been initialized 
-!                by this routine. False otherwise. This tells the calling routine 
-!                whether to skip the standard connected universe initialization.
+! Note: use the logical tao_com%init_connected_uni to control the 
+! standard connected universe initialization.
 !-
 
-subroutine tao_hook_init_connected_uni (is_set)
+subroutine tao_hook_init_connected_uni ()
 
 implicit none
 
-logical is_set
-
 !
-
-is_set = .false.
 
 end subroutine

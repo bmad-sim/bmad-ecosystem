@@ -1,23 +1,20 @@
 !+
-! Subroutine tao_hook_init_read_lattice_info (is_set) 
+! Subroutine tao_hook_init_read_lattice_info (file_name) 
 !
-! Hook routine to initialize lattice information
+! Hook routine to initialize lattice information.
+! Note: use the logical tao_com%init_read_lat_info to control 
+! the standard lattice initialization.
 !
-! Output:
-!   is_set -- Logical: Set True if the lattice info has been initialized by this 
-!                routine. False otherwise. This tells the calling routine whether 
-!                to skip the standard lattice initialization.
+! Input:
+!   file_name -- Character(*): File containing lattice information.
 !-
 
-subroutine tao_hook_init_read_lattice_info (file_name, is_set)
+subroutine tao_hook_init_read_lattice_info (file_name)
 
 implicit none
 
 character(*) file_name
-logical is_set
 
 !
-
-is_set = .false.
 
 end subroutine

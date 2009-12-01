@@ -109,16 +109,14 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_init_var(is_set) 
+  subroutine tao_hook_init_var() 
     implicit none
-    logical is_set
   end subroutine
 end interface
 
 interface
-  subroutine tao_hook_parse_command_args(is_set)
+  subroutine tao_hook_parse_command_args()
     implicit none
-    logical is_set
   end subroutine
 end interface
 
@@ -212,16 +210,14 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_data (is_set) 
+  subroutine tao_hook_init_data () 
     implicit none
-    logical is_set
   end subroutine
 end interface
 
 interface
-  subroutine tao_hook_init_beam (is_set)
+  subroutine tao_hook_init_beam ()
     implicit none
-    logical is_set
   end subroutine
 end interface
 
@@ -235,9 +231,8 @@ interface
 end interface
  
 interface
-  subroutine tao_hook_init_connected_uni (is_set)
+  subroutine tao_hook_init_connected_uni ()
     implicit none
-    logical is_set
   end subroutine
 end interface
  
@@ -250,10 +245,9 @@ interface
 end interface
 
 interface
-  subroutine tao_hook_init_read_lattice_info (lat_file, is_set)
+  subroutine tao_hook_init_read_lattice_info (lat_file)
     implicit none
     character(*) lat_file
-    logical is_set
   end subroutine
 end interface
 

@@ -32,7 +32,7 @@ integer i, j, k, n, iu, ios, version, taylor_order, ix, key, n_universes
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice
-logical err, is_set
+logical err
 
 namelist / tao_design_lattice / design_lattice, taylor_order, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
@@ -47,9 +47,9 @@ design_lattice%use_line = ''
 
 ! Read lattice info
 
-call tao_hook_init_read_lattice_info (input_file_name, is_set)
+call tao_hook_init_read_lattice_info (input_file_name)
 
-if (.not. is_set) then
+if (tao_com%init_read_lat_info) then
 
   ! input_file_name == '' means there is no lattice file so just use the defaults.
 

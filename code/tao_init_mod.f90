@@ -51,7 +51,7 @@ character(60), target :: save_beam_at(100)   ! old style syntax
 character(100) beam_saved_at
 character(100) line
 
-logical err, is_set
+logical err
 
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -119,41 +119,39 @@ call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma
 !-----------------------------------------------------------------------
 ! Init connected universes
 
-call tao_hook_init_connected_uni (is_set)
+! defaults
 
-if (.not. is_set .and. init_file /= '') then
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  s%u(i)%connect%connected = .false.
+  s%u(i)%connect%match_to_design = .false.
+  s%u(i)%connect%from_uni = -1
+  s%u(i)%connect%to_uni = -1
+  s%u(i)%connect%from_uni_s = -1
+  s%u(i)%connect%from_uni_ix_ele = -1
+enddo
+
+call tao_hook_init_connected_uni ()
+
+if (tao_com%init_connected_uni .and. init_file /= '') then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-
-  ! defaults
-
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    s%u(i)%connect%connected = .false.
-    s%u(i)%connect%match_to_design = .false.
-    s%u(i)%connect%from_uni = -1
-    s%u(i)%connect%to_uni = -1
-    s%u(i)%connect%from_uni_s = -1
-    s%u(i)%connect%from_uni_ix_ele = -1
-  enddo
 
   do
     to_universe = -1
+    connect%match_to_design = .false.
     connect%from_universe = -1
     connect%at_element = ''
     connect%at_ele_index = -1
     connect%at_s = -1
-    connect%match_to_design = .false.
 
-    if (.not. is_set) then
-      read (iu, nml = tao_connected_uni_init, iostat = ios)
-      if (ios > 0) then
-        call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
-        rewind (iu)
-        do
-          read (iu, nml = tao_connected_uni_init)  ! generate an error message
-        enddo
-      endif
-      if (ios < 0) exit
+    read (iu, nml = tao_connected_uni_init, iostat = ios)
+    if (ios > 0) then
+      call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
+      rewind (iu)
+      do
+        read (iu, nml = tao_connected_uni_init)  ! generate an error message
+      enddo
     endif
+    if (ios < 0) exit
 
     if (to_universe == -1) then
       call out_io (s_abort$, r_name, &
@@ -174,9 +172,9 @@ endif
 
 if (s%global%track_type == 'beam') then
 
-  call tao_hook_init_beam (is_set)
+  call tao_hook_init_beam ()
 
-  if (.not. is_set) then
+  if (tao_com%init_beam) then
     call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
     call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
 
@@ -215,48 +213,46 @@ if (s%global%track_type == 'beam') then
 
       ! Read beam parameters
 
-      if (.not. is_set) then
-        read (iu, nml = tao_beam_init, iostat = ios)
-        if (ios > 0) then
-          call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
-          rewind (iu)
-          do
-            read (iu, nml = tao_beam_init)  ! generate an error message
-          enddo
-        endif
-        ! transfer info from old style save_beam_at(:) to beam_saved_at
-        do i = 1, size(save_beam_at)
-          if (save_beam_at(i) == '') cycle
-          beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
-        enddo  
-        ! Convert old class:name format to new class::name format
-        ix = index(beam_saved_at, ":")
-        if (ix /= 0 .and. beam_saved_at(ix+1:ix+1) /= ':') &
-              beam_saved_at = beam_saved_at(1:ix) // ':' // beam_saved_at(ix+1:)
-
-        if (ios /= 0) exit
-      endif
-
-      call out_io (s_blank$, r_name, &
-              'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
-      if (ix_universe == -1) then
-        do i = lbound(s%u, 1), ubound(s%u, 1)
-          call init_beam(s%u(i))
+      read (iu, nml = tao_beam_init, iostat = ios)
+      if (ios > 0) then
+        call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
+        rewind (iu)
+        do
+          read (iu, nml = tao_beam_init)  ! generate an error message
         enddo
-      else
-        if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
-          call out_io (s_error$, r_name, &
-                'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
-          call err_exit
-        endif
-        call init_beam(s%u(ix_universe))
       endif
+      ! transfer info from old style save_beam_at(:) to beam_saved_at
+      do i = 1, size(save_beam_at)
+        if (save_beam_at(i) == '') cycle
+        beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
+      enddo  
+      ! Convert old class:name format to new class::name format
+      ix = index(beam_saved_at, ":")
+      if (ix /= 0 .and. beam_saved_at(ix+1:ix+1) /= ':') &
+            beam_saved_at = beam_saved_at(1:ix) // ':' // beam_saved_at(ix+1:)
 
+      if (ios /= 0) exit
     enddo
 
-    close (iu)
+    call out_io (s_blank$, r_name, &
+            'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
+    if (ix_universe == -1) then
+      do i = lbound(s%u, 1), ubound(s%u, 1)
+        call init_beam(s%u(i))
+      enddo
+    else
+      if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
+        call out_io (s_error$, r_name, &
+              'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
+        call err_exit
+      endif
+      call init_beam(s%u(ix_universe))
+    endif
 
   endif
+
+  close (iu)
+
 endif
 
 !----------------------------------------------------------------
@@ -486,7 +482,7 @@ character(40) use_same_lat_eles_as, search_for_lat_eles
 
 character(100) line
 
-logical err, free, gang, is_set
+logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
@@ -499,8 +495,8 @@ namelist / tao_d1_data / d1_data, data, datum, ix_d1_data, &
 !-----------------------------------------------------------------------
 ! Find out how many d2_data structures we need for each universe
 
-call tao_hook_init_data(is_set) 
-if (is_set .or. data_file == '') then
+call tao_hook_init_data() 
+if (.not. tao_com%init_data .or. data_file == '') then
   call tao_init_data_end_stuff ()
   return
 endif
@@ -1301,7 +1297,7 @@ character(8), allocatable, save :: default_key_b(:)
 character(100) line
 
 logical err, free, gang
-logical searching, is_set
+logical searching
 logical, allocatable, save :: dflt_good_unis(:), good_unis(:)
 
 namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delta, &
@@ -1315,16 +1311,21 @@ namelist / tao_var / v1_var, var, default_weight, default_step, default_key_delt
 allocate (s%var(1))
 s%n_var_used = 0
 
-! First count how many v1_var definitions there are
+! Call the hook routine and then return if the standard init is not wanted.
 
-call tao_hook_init_var(is_set) 
-if (is_set .or. var_file == '') then
+call tao_hook_init_var() 
+if (.not. tao_com%init_var .or. var_file == '') then
   call tao_init_var_end_stuff ()
   return
 endif
 
+! Standard var init:
+! First open the var init file.
+
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
+
+! Count how many v1_var definitions there are
 
 allocate (default_key_b(100), default_key_d(100))
 n = 0

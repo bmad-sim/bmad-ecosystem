@@ -1,24 +1,17 @@
 !+
-! Subroutine tao_hook_init_var (is_set) 
+! Subroutine tao_hook_init_var () 
 !
 ! Hook routine to initialize Tao variables.
 !
-! Output:
-!   is_set -- Logical: Set True if variables have been initialized by this routine.
-!                False otherwise. This tells the calling routine whether to skip
-!                the standard variable initialization.
+! Note: use the logical tao_com%init_var to control the standard variable initialization.
 !-
 
-subroutine tao_hook_init_var (is_set) 
+subroutine tao_hook_init_var () 
 
 use tao_mod
 
 implicit none
 
-logical is_set
-
 !
-
-is_set = .false.
 
 end subroutine

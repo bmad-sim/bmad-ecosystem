@@ -2356,14 +2356,14 @@ subroutine tao_parse_command_args (error, cmd_words)
   character(24) :: r_name = 'tao_parse_command_args'
 
   integer n_arg, i_arg
-  logical error, is_set
+  logical error
 
 ! Get command line input
 
   error = .false.
 
-  call tao_hook_parse_command_args(is_set)
-  if (is_set) return
+  call tao_hook_parse_command_args()
+  if (.not. tao_com%parse_cmd_args) return
 
   if (present(cmd_words)) then
     n_arg = size(cmd_words)
