@@ -775,11 +775,11 @@ allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
 
 tao_com%ele_shape_floor_plan(:)%ele_name = ''
 tao_com%ele_shape_floor_plan(1:5) = [&
-          tao_ele_shape_struct('SBEND:*',      'BOX',  'BLUE',    08.0_rp, 'none'), &
-          tao_ele_shape_struct('QUADRUPOLE:*', 'XBOX', 'MAGENTA', 15.0_rp, 'name'), &
-          tao_ele_shape_struct('SEXTUPOLE:*',  'XBOX', 'GREEN',   15.0_rp, 'none'), &
-          tao_ele_shape_struct('LCAVITY:*',    'XBOX', 'RED',     20.0_rp, 'none'), &
-          tao_ele_shape_struct('RFCAVITY:*',   'XBOX', 'RED',     20.0_rp, 'none')]
+          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none'), &
+          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name'), &
+          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none'), &
+          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none'), &
+          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none')]
 
 tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
 
