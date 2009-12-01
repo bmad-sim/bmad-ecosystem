@@ -232,27 +232,27 @@ if (s%global%track_type == 'beam') then
             beam_saved_at = beam_saved_at(1:ix) // ':' // beam_saved_at(ix+1:)
 
       if (ios /= 0) exit
+
+      call out_io (s_blank$, r_name, &
+            'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
+      if (ix_universe == -1) then
+        do i = lbound(s%u, 1), ubound(s%u, 1)
+          call init_beam(s%u(i))
+        enddo
+      else
+        if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
+          call out_io (s_error$, r_name, &
+                'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
+          call err_exit
+        endif
+        call init_beam(s%u(ix_universe))
+      endif
+
     enddo
 
-    call out_io (s_blank$, r_name, &
-            'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
-    if (ix_universe == -1) then
-      do i = lbound(s%u, 1), ubound(s%u, 1)
-        call init_beam(s%u(i))
-      enddo
-    else
-      if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
-        call out_io (s_error$, r_name, &
-              'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
-        call err_exit
-      endif
-      call init_beam(s%u(ix_universe))
-    endif
+    close (iu)
 
   endif
-
-  close (iu)
-
 endif
 
 !----------------------------------------------------------------
