@@ -873,7 +873,7 @@ enddo
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
-  do i = 1, lat%n_ele_max
+  do i = 1, branch%n_ele_max
     if (branch%ele(i)%key == null_ele$) branch%ele(i)%key = -1 ! mark for deletion
   enddo
 enddo
