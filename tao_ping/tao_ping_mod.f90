@@ -1,10 +1,10 @@
-module ping_anal_mod
+module tao_ping_mod
 
 use bmad
 
 ! Structure for a given bpm
 
-type bpm_ping_struct
+type ping_bpm_struct
   character(8) name       ! bpm name
   integer index           ! bpm index
   real(rp), allocatable :: x(:), y(:)  ! orbit data
@@ -31,7 +31,7 @@ end type
 
 type ping_universe_struct
   type (ping_param_struct) param
-  type (bpm_ping_struct), allocatable :: bpm(:)
+  type (ping_bpm_struct), allocatable :: bpm(:)
   ! Fit parameters...
   real(rp) n_damp     ! Damping number of turns.
   real(rp) n_damp_z   ! Longitudinal damping.

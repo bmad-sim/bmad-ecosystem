@@ -1,6 +1,6 @@
-program ping_anal
+program tao_ping
 
-use ping_anal_mod
+use tao_ping_mod
 
 implicit none
 
@@ -38,7 +38,7 @@ end program
 
 subroutine read_parameters (pu)
 
-use ping_anal_mod
+use tao_ping_mod
 
 implicit none
 
@@ -49,7 +49,7 @@ namelist / ping_params / param
 
 !
 
-open (1, file = 'ping_anal.init', status = 'old')
+open (1, file = 'tao_ping.init', status = 'old')
 read (1, nml = ping_params)
 close (1)
 
@@ -64,7 +64,7 @@ end subroutine
 
 subroutine read_data (pu)
 
-use ping_anal_mod
+use tao_ping_mod
 
 implicit none
 
