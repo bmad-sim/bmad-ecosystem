@@ -174,7 +174,7 @@ ix_last = ix2-1  ! last index we expect to track.
 do n = ix1, ix2, -1
 
   ele = lat%branch(ix_br)%ele(n)
-  call reverse_ele (ele)
+  call reverse_ele (ele, lat%param)
   call track1 (orbit(n), ele, lat%param, orbit(n-1))
 
   ! check for lost particles

@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module symp_lie_mod
 
 use bmad_struct
@@ -69,7 +67,7 @@ real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
 real(rp) dE_p, dpx, dpy
-integer i, j, n_step
+integer i, n_step
 
 logical calc_mat6, calculate_mat6, err, save_track, do_offset
 logical, optional :: offset_ele
@@ -504,6 +502,7 @@ end subroutine
 subroutine update_wig_coefs (do_mat6)
 
 real(rp) factor, coef
+integer j
 logical do_mat6
 
 factor = c_light / ele%value(p0c$)
@@ -553,6 +552,7 @@ end subroutine
 subroutine update_wig_y_terms (err)
 
 real(rp) kyy
+integer j
 logical err
 
 do j = 1, size(ele%wig_term)
@@ -590,6 +590,7 @@ end subroutine
 subroutine update_wig_x_s_terms (err)
 
 real(rp) kxx, kzz
+integer j
 logical err
 
 !
@@ -631,6 +632,9 @@ end subroutine
 function a_y() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -646,6 +650,9 @@ end function
 function dint_a_y_dx() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -661,6 +668,9 @@ end function
 function da_z_dx() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -676,6 +686,9 @@ end function
 function da_z_dy() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -691,6 +704,9 @@ end function
 function dint_a_y_dx__dx() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -706,6 +722,9 @@ end function
 function dint_a_y_dx__dy() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -721,6 +740,9 @@ end function
 function a_y__dx() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -736,6 +758,9 @@ end function
 function a_y__dy() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -751,6 +776,9 @@ end function
 function da_z_dx__dx() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -766,6 +794,9 @@ end function
 function da_z_dx__dy() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -781,6 +812,9 @@ end function
 function da_z_dy__dx() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)
@@ -796,6 +830,9 @@ end function
 function da_z_dy__dy() result (value)
 
 real(rp) value
+integer j
+
+!
 
 value = 0
 do j = 1, size(ele%wig_term)

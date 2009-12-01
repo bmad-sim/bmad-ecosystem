@@ -71,7 +71,7 @@ subroutine lat_reverse (lat_in, lat_rev)
 
   do i = 1, lat_rev%n_ele_max
     ele => lat_rev%ele(i)
-    call reverse_ele (ele)
+    call reverse_ele (ele, lat%param)
     if (i <= nr) ele%s = lat_rev%param%total_length - (ele%s - ele%value(l$))
   enddo
 
@@ -120,7 +120,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine reverse_ele (ele)
+! Subroutine reverse_ele (ele, param)
 !
 ! Subroutine to "reverse" an element for backward tracking.
 !
@@ -134,13 +134,14 @@ end subroutine
 !   use bmad
 !
 ! Input:
-!   ele -- Ele_struct: Input element.
+!   ele   -- Ele_struct: Input element.
+!   param -- Lat_param_struct: Lattice parameters
 !
 ! Output:
 !   ele -- Ele_struct: Reversed element.
 !-
 
-subroutine reverse_ele (ele)
+subroutine reverse_ele (ele, param)
 
   use ptc_interface_mod, only: taylor_inverse
 
@@ -148,10 +149,25 @@ subroutine reverse_ele (ele)
 
   type (ele_struct) ele
   type (lat_param_struct) param
+  type (coord_struct) temp
 
   integer i, j, sum245
 
   real(rp) tempp
+
+! Flip map_ref coords
+
+  temp = ele%map_ref_orb_out
+  ele%map_ref_orb_out = ele%map_ref_orb_in
+  ele%map_ref_orb_in = temp
+
+  ele%map_ref_orb_in%vec(2) = -ele%map_ref_orb_in%vec(2)
+  ele%map_ref_orb_in%vec(4) = -ele%map_ref_orb_in%vec(4)
+  ele%map_ref_orb_in%vec(5) = -ele%map_ref_orb_in%vec(5)
+
+  ele%map_ref_orb_out%vec(2) = -ele%map_ref_orb_out%vec(2)
+  ele%map_ref_orb_out%vec(4) = -ele%map_ref_orb_out%vec(4)
+  ele%map_ref_orb_out%vec(5) = -ele%map_ref_orb_out%vec(5)
 
 ! Flip aperture limit position
 
@@ -200,14 +216,14 @@ subroutine reverse_ele (ele)
     ele%value(fintx$) = tempp 
     tempp = ele%value(hgap$)
     ele%value(hgap$)  = ele%value(hgapx$)
-    ele%value(hgapx$) = tempp 
+    ele%value(hgapx$) = tempp
 
 ! For wigglers:
 !       phi_z -> -phi_z -  k_z * Length
 ! This transforms:
 !       (B_x, B_y, B_z) @ (s) -> (B_x, B_y, -B_z) @ (L-s)
 ! Also: Since the wiggler trajectory starting on the origin may not end
-!   on the origin z_patch may shift. Zero z_patch so that there are
+!   on the origin, z_patch may shift. Zero z_patch so that there are
 !   no shifts in tracking when remaking the element.
 
   case (wiggler$)
