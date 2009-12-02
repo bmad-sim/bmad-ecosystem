@@ -739,7 +739,6 @@ logical emit_here
 !
 
 d1_this => u%d2_data(n_d2)%d1(i_d1)  
-d1_this%d2 => u%d2_data(n_d2)        ! point back to the parent
 if (d1_data%name == '') then
   write (d1_this%name, '(i0)') i_d1
 else
@@ -760,7 +759,6 @@ if (search_for_lat_eles /= '') then
   ! finish finding data array limits
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(eles)
-  u%n_data_used = n2
   call tao_allocate_data_array (u, n2)
 
   if (ix_min_data == int_garbage$) ix_min_data = 1
@@ -800,7 +798,6 @@ elseif (use_same_lat_eles_as /= '') then
   endif
   n1 = u%n_data_used + 1
   n2 = u%n_data_used + size(d1_array(1)%d1%d)
-  u%n_data_used = n2
   call tao_allocate_data_array (u, n2)
 
   ix_min_data = lbound(d1_array(1)%d1%d, 1)
@@ -840,7 +837,6 @@ else
   n2 = u%n_data_used + ix_max_data - ix_min_data + 1
   ix1 = ix_min_data
   ix2 = ix_max_data
-  u%n_data_used = n2
   call tao_allocate_data_array (u, n2)
 
   ! Transfer info from the input structure
@@ -1098,6 +1094,8 @@ logical, optional :: exact  ! Default = False
 ! Exact means that size(u%data) must end up to be n_data.
 ! Not exact means that size(u%data) must be at least n_data.
 
+u%n_data_used = n_data
+  
 if (n_data == size(u%data)) return 
 if (.not. logic_option(.false., exact) .and. n_data < size(u%data)) return 
 
@@ -1156,7 +1154,7 @@ do i = n0+1, size(u%data)
   u%data(i)%ix_data        = i
   u%data(i)%ix_branch      = 0
 enddo
-  
+
 end subroutine tao_allocate_data_array
 
 !----------------------------------------------------------------------------
@@ -1166,8 +1164,9 @@ end subroutine tao_allocate_data_array
 subroutine tao_d2_data_stuffit (u, d2_name, n_d1_data)
 
 type (tao_universe_struct), target :: u
+type (tao_d2_data_struct), pointer :: d2
 
-integer nn, n_d1_data
+integer i, nn, n_d1_data
 character(*) d2_name
 character(40) :: r_name = 'tao_d2_data_stuffit'
 
@@ -1181,13 +1180,19 @@ if (size(u%d2_data) < nn) then
   call err_exit
 endif
 
-u%d2_data(nn)%name = d2_name
-u%d2_data(nn)%ix_uni = u%ix_uni
+d2 => u%d2_data(nn)
+
+d2%name = d2_name
+d2%ix_uni = u%ix_uni
 
 ! allocate memory for the u%d1_data structures
 
-if (allocated(u%d2_data(nn)%d1)) deallocate (u%d2_data(nn)%d1)
-allocate(u%d2_data(nn)%d1(n_d1_data))
+if (allocated(d2%d1)) deallocate (d2%d1)
+allocate(d2%d1(n_d1_data))
+
+do i = 1, n_d1_data
+  d2%d1(i)%d2 => d2
+enddo
 
 end subroutine
 
