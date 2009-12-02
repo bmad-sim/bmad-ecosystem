@@ -52,6 +52,7 @@ character(100) beam_saved_at
 character(100) line
 
 logical err
+logical, save :: init_needed = .true.
 
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
@@ -64,14 +65,21 @@ namelist / tao_beam_init / ix_universe, ix_branch, beam0_file, &
          
 !-----------------------------------------------------------------------
 ! Init lattaces
-! read global structure from tao_params namelist
+
+! First time through capture the default global (could have been set via command line arg.)
+
+if (init_needed) then
+  default_global = s%global
+  init_needed = .false.
+endif
 
 global = default_global         ! establish defaults
 global%default_key_merit_type = 'limit'
 
 call tao_hook_init_global (init_file, global)
 
-  ! init_file == '' means there is no lattice file so just use the defaults.
+! read global structure from tao_params namelist
+! init_file == '' means there is no lattice file so just use the defaults.
 
 if (init_file /= '') then
   call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
