@@ -931,8 +931,6 @@ call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
 ! Also determine if we need to do the radiation integrals. This can save a lot of time.
 
 do j = n1, n2
-  u%data(j)%d1 => d1_this
-  u%data(j)%ix_d1 = ix_min_data + j - n1
   if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
   if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
   if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
@@ -1235,25 +1233,30 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_point_d1_to_data (d1, data, n)
+! Subroutine tao_point_d1_to_data (d1, data, n_min)
 !
 ! Routine used for arbitrary data pointer indexing
 !
 ! d1     -- tao_data_struct: the pointer
 ! data   -- tao_data_struct: the data
-! n      -- integer: starting index for the pointer
+! n_min  -- integer: starting index for the pointer
 !-
 
-subroutine tao_point_d1_to_data (d1, data, n)
+subroutine tao_point_d1_to_data (d1, data, n_min)
 
 implicit none
 
-integer n, i, n0, n1
+integer n, n_min, i, n0, n1
 
-type (tao_d1_data_struct) :: d1
-type (tao_data_struct), target :: data(n:)
+type (tao_d1_data_struct), target :: d1
+type (tao_data_struct), target :: data(n_min:)
 
 d1%d => data
+
+do n = lbound(data, 1), ubound(data, 1)
+  data(n)%d1 => d1
+  data(n)%ix_d1 = n
+enddo
 
 end subroutine 
 
