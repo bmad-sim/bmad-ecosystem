@@ -160,7 +160,7 @@ do
                              emit_a, emit_b, sig_e, photon_direction, photon%start)
       photon%n_reflect = 0
       photon%start%ix_ele = ix_ele
-      photon%start%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
+      photon%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
                                                       (4 * h_bar_planck * c_light * num_photons)
       call track_photon (photon, lat, wall)
 
@@ -177,9 +177,10 @@ enddo
 
 do i = 1, n_photon_tot      
   photon => photons(i)
-  write (1, '(2i8, f10.2, a)') i, photon%n_reflect, photon%start%energy, '  ! index, n_reflect, eV'
-  write (1, '(10x, 4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Starting position vector'
-  write (1, '(10x, 4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position vector'
+  write (1, '(2i8, f10.2, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
+                                             '! index, n_reflect, eV, intensity'
+  write (1, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
+  write (1, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
   do j = 0, photon%n_reflect + 1
     ! photon%reflect(j)%vec 
     ! photon%reflect(j)%track_len

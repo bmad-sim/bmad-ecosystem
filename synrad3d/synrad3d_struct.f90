@@ -6,7 +6,6 @@ use bmad_interface
 type photon3d_coord_struct
   real(rp) vec(6)             ! Position: (x, vx/c, y, vy/c, z, vz/c)
   real(rp) energy             ! eV
-  real(rp) intensity          ! Intensity of this macro-photon in Photons/turn
   real(rp) track_len          ! length of the track from the start
   integer ix_ele              ! index of element we are in.
   integer ix_wall             ! Index to wall segment
@@ -15,6 +14,7 @@ end type
 type photon3d_track_struct
   type (photon3d_coord_struct) start, old, now  ! coords
   type (photon3d_coord_struct), allocatable :: reflect(:)
+  real(rp) intensity          ! Intensity of this macro-photon in Photons/(beam_particle*turn)
   logical crossed_end         ! photon crossed through the lattice end?
   integer ix_photon           ! Photon index.
   integer n_reflect
