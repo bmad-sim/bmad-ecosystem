@@ -44,7 +44,8 @@
 # LOCAL_INCS      - Local directories to search for include files
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
-LIB_SRC_DIRS := interfaces file io matrix plot_example string conversion math misc plot old_utils
+LIB_SRC_DIRS := interfaces file io matrix string conversion math misc plot old_utils
+OBJ_SRC_DIRS := plot_example 
 LOCAL_INCS   := ../include
 LOCAL_MODS   := ../modules
 

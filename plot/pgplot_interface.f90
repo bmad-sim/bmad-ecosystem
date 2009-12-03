@@ -390,7 +390,8 @@ subroutine qp_set_color_basic (ix_color)
 ! Set pgplot color
 
   if (pg_com%page_type == 'GIF') then
-    call pgsci (inverse_color(ix_color))
+    call pgsci (ix_color)
+   !  call pgsci (inverse_color(ix_color))
   else
     call pgsci (ix_color)
   endif
@@ -567,18 +568,14 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
     iw = pgopen (trim(plot_file) // '/CPS')
 
   elseif (page_type == 'GIF') then
-    iw = pgopen ('pgplot_temp.ps/VCPS')
-
-!    iw = pgopen (trim(plot_file) // '/GIF')
-!    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
-!    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+    iw = pgopen (trim(plot_file) // '/GIF')
+    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
 
   elseif (page_type == 'GIF-L') then
-    iw = pgopen ('pgplot_temp.ps/CPS')
-
-!    iw = pgopen (trim(plot_file) // '/VGIF')
-!    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
-!    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+    iw = pgopen (trim(plot_file) // '/VGIF')
+    call pgscr (1, 0.0, 0.0, 0.0)    ! black foreground
+    call pgscr (0, 1.0, 1.0, 1.0)    ! white background
 
   else
     call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
@@ -666,9 +663,9 @@ end subroutine
 subroutine qp_close_page_basic
   implicit none
   call pgclos
-  if (pg_com%page_type(1:3) == 'GIF') then
-    call ps2gif ('pgplot_temp.ps', pg_com%plot_file, .true.)
-  endif
+!  if (pg_com%page_type(1:3) == 'GIF') then
+!    call ps2gif ('pgplot_temp.ps', pg_com%plot_file, .true.)
+!  endif
   i_save = i_save - 1
   pg_com => pg_interface_save_com(i_save)
   if (i_save /= 0) then

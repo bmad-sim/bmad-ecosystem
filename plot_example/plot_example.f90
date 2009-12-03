@@ -20,6 +20,9 @@ call string_trim (ans, ans, i)
 call qp_open_page ('PS-L')  ! Tell Quick Plot to generate a PS file.
 call draw_it
 call qp_close_page          ! quick_plot.ps is the file name
+call qp_open_page ('GIF-L')  ! Tell Quick Plot to generate a GIF file.
+call draw_it
+call qp_close_page          ! quick_plot.ps is the file name
 call qp_open_page ('X', id, xlen, ylen, 'POINTS')
 call draw_it
 write (*, '(a)', advance = 'NO') ' Hit any key to end program: '
