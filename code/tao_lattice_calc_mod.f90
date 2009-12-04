@@ -407,7 +407,7 @@ do j = ie1, ie2
 
   else
     if (j /= ie1) then 
-      call track_beam (lat, beam, j-1, j, too_many_lost)
+      call track_beam (lat, beam, lat%ele(j-1), lat%ele(j), too_many_lost)
     endif
 
     if (uni_ele(j)%save_beam) uni_ele(j)%beam = beam
