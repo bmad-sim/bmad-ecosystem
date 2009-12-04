@@ -1730,7 +1730,7 @@ multipole_set = .false.
 slave%on_a_girder = .false.
 
 do i = 1, slave%n_lord
-  lord => pointer_to_lord (lat, slave, i)
+  lord => pointer_to_lord (lat, slave, i, ix_con)
 
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%lord_status == group_lord$) cycle
