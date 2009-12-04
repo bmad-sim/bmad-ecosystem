@@ -2716,7 +2716,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct) super_ele_in
 type (ele_struct), save :: super_ele_saved, super_ele
-type (ele_struct), pointer :: ref_ele, ele
+type (ele_struct), pointer :: ref_ele, ele, slave, lord
 type (parser_ele_struct) pele
 type (ele_struct), pointer :: eles(:)
 type (control_struct), pointer :: control(:)
@@ -2823,9 +2823,9 @@ do
         ix = lat%control(ele%ix1_slave)%ix_slave
         if (lat%ele(ix)%slave_status /= super_slave$) cycle
         ele%key = -1 ! mark for deletion
-        do j = ele%ic1_lord, ele%ic2_lord
-          ix = lat%control(lat%ic(j))%ix_lord
-          lat%ele(ix)%key = -1  ! Mark lord for deletion
+        do j = 1, ele%n_lord
+          lord => pointer_to_lord (lat, ele, j)
+          lord%key = -1  ! Mark lord for deletion
         enddo
       enddo
       call remove_eles_from_lat (lat, .false.) ! and delete
@@ -2864,13 +2864,12 @@ do
       ! Reconnect drifts that were part of the multipass region.
 
       do i = 1, size(m_info%top)
-        do j = 1, size(m_info%top(i)%ix_slave, 2)
-          ix = m_info%top(i)%ix_slave(1, j)
-          if (lat%ele(ix)%key /= drift$) cycle
-          if (lat%ele(ix)%slave_status == multipass_slave$) cycle
-          ixs = m_info%top(i)%ix_slave(:, j)
-          do k = 1, size(ixs)
-            ele => lat%ele(ixs(k))
+        do j = 1, size(m_info%top(i)%slave, 2)
+          slave => m_info%top(i)%slave(1, j)%ele
+          if (slave%key /= drift$) cycle
+          if (slave%slave_status == multipass_slave$) cycle
+          do k = 1, size(m_info%top(i)%slave(:, j))
+            ele => m_info%top(i)%slave(k, j)%ele
             ib = index(ele%name, '\') ! '
             if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
           enddo
@@ -3019,8 +3018,7 @@ if (ct == overlay_lord$ .or. ct == girder_lord$) then
   s_ref_end = 0
   do i = lat%ele(i_ref)%ix1_slave, lat%ele(i_ref)%ix2_slave
     ix = lat%control(i)%ix_slave
-    s_ref_begin = min(s_ref_begin,  &
-                       lat%ele(ix)%s - lat%ele(ix)%value(l$))
+    s_ref_begin = min(s_ref_begin, lat%ele(ix)%s - lat%ele(ix)%value(l$))
     s_ref_end = max(s_ref_end, lat%ele(ix)%s)
   enddo
 elseif (ct == group_lord$) then

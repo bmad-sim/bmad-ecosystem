@@ -1057,11 +1057,9 @@ slave%is_on = .false.
 
 ! sum over all lords...
 
-do j = slave%ic1_lord, slave%ic2_lord
+do j = 1, slave%n_lord
 
-  ix_con = lat%ic(j)
-  ix = lat%control(ix_con)%ix_lord
-  lord => lat%ele(ix)
+  lord => pointer_to_lord (lat, slave, j, ix_con)
 
   ! Physically, the lord length cannot be less than the slave length.
   ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
@@ -1715,7 +1713,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) value(n_attrib_special_maxx), coef, ds
 real(rp), pointer :: r_ptr
-integer i, j, ix, iv, ix_slave, icom, l_stat
+integer i, ix_con, ix, iv, ix_slave, icom, l_stat
 logical used(n_attrib_special_maxx), multipole_set, err_flag
 
 character(40) :: r_name = 'makeup_overlay_and_girder_slave'
@@ -1731,10 +1729,8 @@ used = .false.
 multipole_set = .false.
 slave%on_a_girder = .false.
 
-do i = slave%ic1_lord, slave%ic2_lord
-  j = lat%ic(i)
-  ix = lat%control(j)%ix_lord
-  lord => lat%ele(ix)
+do i = 1, slave%n_lord
+  lord => pointer_to_lord (lat, slave, i)
 
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%lord_status == group_lord$) cycle
@@ -1759,8 +1755,8 @@ do i = slave%ic1_lord, slave%ic2_lord
     call err_exit
   endif     
 
-  coef = lat%control(j)%coef
-  iv = lat%control(j)%ix_attrib
+  coef = lat%control(ix_con)%coef
+  iv = lat%control(ix_con)%ix_attrib
   call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
   value(iv) = value(iv) + r_ptr * coef

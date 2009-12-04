@@ -1210,17 +1210,16 @@ endif
 ! Exception: Multiple overlays can control the same attribute.
 
 if (.not. do_except_overlay) then
-  do i = ele%ic1_lord, ele%ic2_lord
-    ix = lat%ic(i)
-    ir = lat%control(ix)%ix_lord
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord (lat, ele, i, ix)
     if (present(ix_lord)) then
-      if (ix_lord == ir) cycle
+      if (ix_lord == lord%ix_ele) cycle
       if (lat%ele(ix_lord)%lord_status == overlay_lord$) cycle
     endif
-    if (lat%ele(ir)%lord_status == overlay_lord$) then
+    if (lord%lord_status == overlay_lord$) then
       if (lat%control(ix)%ix_attrib == ix_attrib) then 
         if (do_print) call print_error (ele, ix_attrib, & 
-           'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lat%ele(ir)%name)
+           'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lord%name)
         return
       endif
     endif

@@ -113,10 +113,9 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
+! Subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err)
 !
-! Routine to track a bunch of particles through the element lat%ele(ix_ele)
-! with csr radiation effects.
+! Routine to track a bunch of particles through an element with csr radiation effects.
 !
 ! Modules needed:
 !   use csr_mod
@@ -124,26 +123,26 @@ contains
 ! Input:
 !   bunch_start -- Bunch_struct: Starting bunch position.
 !   lat         -- lat_struct: Lattice.
-!   ix_ele      -- Integer: lat%ele(ix_ele) is the element to track through.
+!   ele         -- Ele_struct: The element to track through.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.
 !   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !-
 
-subroutine track1_bunch_csr (bunch_start, lat, ix_ele, bunch_end, err)
+subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err)
 
 implicit none
 
 type (lat_struct) lat
 type (bunch_struct), target :: bunch_start, bunch_end
 type (particle_struct), pointer :: pt
-type (ele_struct), pointer :: ele
+type (ele_struct) :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
 
 real(rp) s_start
-integer i, j, ns, nb, ix_ele, n_step, n_live
+integer i, j, ns, nb, n_step, n_live
 
 character(20) :: r_name = 'track1_bunch_csr'
 logical err, auto_bookkeeper
@@ -151,7 +150,6 @@ logical err, auto_bookkeeper
 ! Init
 
 err = .true.
-ele => lat%ele(ix_ele)
 
 ! No CSR for a zero length element.
 
@@ -208,7 +206,7 @@ do i = 0, n_step
     call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
                           'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
                           'AT ELEMENT: ' // trim(ele%name) // '  [# \i0\] ', &
-                          i_array = (/ n_live, ix_ele /) )
+                          i_array = (/ n_live, ele%ix_ele /) )
     return
   endif
 
@@ -229,13 +227,13 @@ do i = 0, n_step
     bin%y2 = ns * csr_param%beam_chamber_height
 
     if (ns == 0) then
-      call csr_bin_kicks (lat, ix_ele, s_start, bin, csr_param%small_angle_approx)
+      call csr_bin_kicks (lat, ele, s_start, bin, csr_param%small_angle_approx)
 
     else
       ! The factor of two is due to there being image currents both above and below.
       ! The factor of -1^ns accounts for the sign of the image currents
       bin%kick_factor = bin%kick_factor * 2 * (-1)**ns
-      call csr_bin_kicks (lat, ix_ele, s_start, bin, .false.)
+      call csr_bin_kicks (lat, ele, s_start, bin, .false.)
     endif
 
   enddo
@@ -463,7 +461,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_kicks (lat, ix_ele, s_travel, bin, small_anlge_approx)
+! Subroutine csr_bin_kicks (lat, ele, s_travel, bin, small_anlge_approx)
 !
 ! Routine to cache intermediate values needed for the csr calculations.
 !
@@ -472,7 +470,7 @@ end subroutine
 !
 ! Input:
 !   lat       -- lat_struct: Lattice.
-!   ix_ele    -- Integer: lat%ele(ix_ele) is the element to set up cache for.
+!   ele       -- Element_struct: Element to set up cache for.
 !   s_travel  -- Real(rp): Distance between the beginning of the element we are
 !                  tracking through and the kick point (which is within this element).
 !   bin       -- Csr_bin_struct: Binned particle averages.
@@ -485,18 +483,20 @@ end subroutine
 !     %bin1(:)%kick_csr -- Integrated kick
 !-
 
-subroutine csr_bin_kicks (lat, ix_ele, s_travel, bin, small_angle_approx)
+subroutine csr_bin_kicks (lat, ele, s_travel, bin, small_angle_approx)
 
 implicit none
 
 type (csr_bin_struct), target :: bin
 type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct) ele
 type (csr_kick1_struct), pointer :: kick1
 type (csr_kick_factor_struct) k_factor
 
 real(rp) s_travel, s_kick, s0_kick_ele, coef, e_tot, f1
 
-integer i, ix_ele, n_ele_pp, n_bin
+integer i, n_ele_pp, n_bin
 
 logical small_angle_approx
 
@@ -504,9 +504,10 @@ character(16) :: r_name = 'csr_bin_kicks'
 
 ! Assume a linear energy gain
 
-f1 = s_travel / lat%ele(ix_ele)%value(l$)
-e_tot = f1 * lat%ele(ix_ele-1)%value(e_tot$) + (1 - f1) * lat%ele(ix_ele)%value(e_tot$)
-call convert_total_energy_to (e_tot, lat%param%particle, bin%gamma, beta = bin%beta)
+branch => lat%branch(ele%ix_branch)
+f1 = s_travel / ele%value(l$)
+e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot$)
+call convert_total_energy_to (e_tot, branch%param%particle, bin%gamma, beta = bin%beta)
 bin%gamma2 = bin%gamma**2
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
@@ -602,16 +603,16 @@ real(rp), allocatable, save :: g_i(:), d_i(:)
 ! Assume a drift before the first element if needed.
 
 n_ele_pp = n_ele_pp + 1
-ix_source = ix_ele - n_ele_pp  ! Index of current P' element
+ix_source = ele%ix_ele - n_ele_pp  ! Index of current P' element
 
-source_ele => lat%ele(ix_source)  ! Pointer to the P' element
+source_ele => branch%ele(ix_source)  ! Pointer to the P' element
 
 ! Assume a drift before the first element if needed.
 
 if (ix_source == 0) then
   s0_kick_ele = -1e20  ! something large and negative
 else
-  s0_kick_ele = lat%ele(ix_source-1)%s  ! s value at beginning edge of the P' element
+  s0_kick_ele = branch%ele(ix_source-1)%s  ! s value at beginning edge of the P' element
 endif
 
 ! calculate new values for d and g for this element and store in arrays

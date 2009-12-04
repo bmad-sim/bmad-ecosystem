@@ -43,14 +43,13 @@ interface
 end interface
 
 interface
-  subroutine track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)
+  subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end)
     use bmad_struct, only: lat_struct, ele_struct
     use beam_def_struct, only: bunch_struct
     implicit none
     type (bunch_struct) bunch_start, bunch_end
     type (lat_struct), target :: lat
-    type (ele_struct), pointer :: ele
-    integer ix_ele
+    type (ele_struct) :: ele
   end subroutine
 end interface
 

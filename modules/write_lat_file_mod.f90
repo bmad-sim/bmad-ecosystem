@@ -48,13 +48,15 @@ end type
 type (multipass_info_struct), allocatable :: multipass(:)
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, super, slave, lord
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord
 type (ele_struct), save :: ele_init
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (lr_wake_struct), pointer :: lr
+type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 
 real(rp) s0, x_lim, y_lim, val
 
@@ -68,11 +70,10 @@ character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 character(10) angle
 
-integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie
+integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib
 integer unit(6), ix_names, ix_match
-integer ix_slave, ix_ss, ix_l, ixs1, ixs2, ix_r, ix_pass, ix_multi_lord
+integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_top, ix_super, default_val
-integer, pointer :: ix_ss1(:), ix_ss2(:)
 
 logical, optional :: err
 logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
@@ -181,375 +182,385 @@ ixs = 0
 ix_names = 0
 allocate (names(lat%n_ele_max))
 
-ele_loop: do ie = 1, lat%n_ele_max
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  ele_loop: do ie = 1, branch%n_ele_max
 
-  ele => lat%ele(ie)
+    ele => branch%ele(ie)
 
-  ix_multi_lord = multipass_lord_index(ie, lat, ix_pass) 
+    multi_lord = pointer_to_multipass_lord (ele, lat, ix_pass) 
 
-  if (ele%key == null_ele$) cycle
-  if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
-  if (ele%lord_status == super_lord$ .and. ix_multi_lord > 0) cycle
-  if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
+    if (ele%key == null_ele$) cycle
+    if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
+    if (ele%lord_status == super_lord$ .and. multi_lord%ix_ele > 0) cycle
+    if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
 
-  if (ie == lat%n_ele_track+1) then
-    write (iu, *)
-    write (iu, '(a)') '!-------------------------------------------------------'
-    write (iu, '(a)') '! Overlays, groups, etc.'
-    write (iu, *)
-  endif
-
-  ! For a super_slave just create a dummy drift. 
-
-  if (ele%slave_status == super_slave$) then
-    ixs = ixs + 1
-    ele%ixx = ixs
-    write (iu, '(a, i3.3, 2a)') 'slave_drift_', ixs, &
-                                      ': drift, l = ', trim(str(ele%value(l$)))
-    cycle
-  endif
-
-  ! Do not write anything for elements that have a duplicate name.
-
-  call find1_indexx (ele%name, names, ix_names, ix_match, match_found)
-  if (match_found) cycle
-
-  names(ix_match+1:ix_names+1) = names(ix_match:ix_names)
-  names(ix_match) = ele%name
-  ix_names = ix_names + 1
-
-  ! Overlays and groups
-
-  if (ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
-    if (ele%lord_status == overlay_lord$) then
-      write (line, '(2a)') trim(ele%name), ': overlay = {'
-    else
-      write (line, '(2a)') trim(ele%name), ': group = {'
-    endif
-    j_loop: do j = ele%ix1_slave, ele%ix2_slave
-      ctl = lat%control(j)
-      slave => pointer_to_ele (lat, ctl%ix_slave, ctl%ix_branch)
-      do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
-        if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) cycle j_loop
-      enddo
-      if (j == ele%ix1_slave) then
-        write (line, '(3a)') trim(line), trim(slave%name)
-      else
-        write (line, '(3a)') trim(line), ', ', trim(slave%name)
-      endif
-      name = attribute_name(slave, ctl%ix_attrib)  
-      if (name /= ele%component_name) &
-              line = trim(line) // '[' // trim(name) // ']'
-      if (ctl%coef /= 1) write (line, '(3a)') trim(line), '/', trim(str(ctl%coef))
-    enddo j_loop
-    line = trim(line) // '}'
-    if (ele%component_name == ' ') then
-      line = trim(line) // ', command'
-    else
-      line = trim(line) // ', ' // ele%component_name
-    endif
-    if (ele%lord_status == overlay_lord$) then
-      ix = ele%ix_value
-      if (ele%value(ix) /= 0) write (line, '(3a)') &
-                          trim(line), ' = ', str(ele%value(ix))
-    endif
-    if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
-    if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
-    if (associated(ele%descrip)) line = trim(line) // &
-                            ', descrip = "' // trim(ele%descrip) // '"'
-    call write_out (line, iu, .true.)
-    cycle
-  endif
-
-  ! Girder
-
-  if (ele%lord_status == girder_lord$) then
-    write (line, '(2a)') trim(ele%name), ': girder = {'
-    do j = ele%ix1_slave, ele%ix2_slave
-      ix1 = lat%control(j)%ix_slave
-      if (j == ele%ix2_slave) then
-        write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), '}'
-      else
-        write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), ', '
-      endif
-    enddo
-  else
-    line = trim(ele%name) // ': ' // key_name(ele%key)
-  endif
-
-  ! other elements
-
-  if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
-  if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
-  if (associated(ele%descrip)) line = trim(line) // &
-                            ', descrip = "' // trim(ele%descrip) // '"'
-
-  ! patch_in_slave
-
-  if (ele%slave_status == patch_in_slave$) then
-    lord => pointer_to_lord (lat, ele, 1)
-    line = trim(line) // ', ref_patch = ' // trim(lord%name)
-  endif
-
-  ! Create a null_ele element for a superposition and fill in the superposition
-  ! information.
-
-  is_multi_sup = .false.
-  if (ele%lord_status == multipass_lord$) then
-    ix1 = lat%control(ele%ix1_slave)%ix_slave
-    if (lat%ele(ix1)%lord_status == super_lord$) is_multi_sup = .true.
-  endif
-
-  if (ele%lord_status == super_lord$ .or. is_multi_sup) then
-    write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
-    line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
-  endif
-
-  ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
-  ! If first three characters of the file name are '...' then it is a foreign file.
-
-  if (associated(ele%wake)) then
-
-    ! Short-range
-
-    if (ele%wake%sr_file /= ' ') then
-
-      wake_name = ele%wake%sr_file
-
-      if (wake_name(1:3) == '...') then
-        found = .false.
-        do n = 1, n_sr
-          if (wake_name == sr_wake_name(n)) then
-            found = .true.
-            exit
-          endif
-        enddo
-        if (.not. found) then
-          n = n_sr + 1
-          n_sr = n
-          sr_wake_name(n_sr) = wake_name
-        endif
-        write (wake_name, '(a, i0, a)') 'sr_wake_file_', n, '.bmad'
-        if (.not. found) then
-          call out_io (s_info$, r_name, 'Creating SR Wake file: ' // trim(wake_name))
-          iuw = lunget()
-          open (iuw, file = wake_name)
-          write (iuw, *) '!      z           Wz             Wt'
-          write (iuw, *) '!     [m]       [V/C/m]       [V/C/m^2]'
-          do n = lbound(ele%wake%sr_table, 1), ubound(ele%wake%sr_table, 1)
-            write (iuw, '(3es14.5)') ele%wake%sr_table(n)%z, &
-                                  ele%wake%sr_table(n)%long, ele%wake%sr_table(n)%trans
-          enddo
-          close(iuw)
-        endif
-      endif
-
-      line = trim(line) // ',  sr_wake_file = "' // trim(wake_name) // '"'
-
+    if (ie == lat%n_ele_track+1) then
+      write (iu, *)
+      write (iu, '(a)') '!-------------------------------------------------------'
+      write (iu, '(a)') '! Overlays, groups, etc.'
+      write (iu, *)
     endif
 
-    ! Long-range
+    ! For a super_slave just create a dummy drift. 
 
-    if (ele%wake%lr_file /= ' ') then
-
-      wake_name = ele%wake%lr_file
-
-      if (wake_name(1:3) == '...') then
-        found = .false.
-        do n = 1, n_lr
-          if (wake_name == lr_wake_name(n)) then
-            found = .true.
-            exit
-          endif
-        enddo
-        if (.not. found) then
-          n = n_lr + 1
-          n_lr = n
-          lr_wake_name(n_lr) = wake_name
-        endif
-        write (wake_name, '(a, i0, a)') 'lr_wake_file_', n, '.bmad'
-        if (.not. found) then
-          call out_io (s_info$, r_name, 'Creating LR Wake file: ' // trim(wake_name))
-          iuw = lunget()
-          open (iuw, file = wake_name)
-          write (iuw, '(14x, a)') &
- 'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
-          write (iuw, '(14x, a)') &
-            '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
-          do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
-            lr => ele%wake%lr(n)
-            if (lr%polarized) then
-              write (angle, '(f10.6)') lr%angle
-            else
-              angle = '     unpol'
-            endif
-            if (any ( (/ lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref /) /= 0)) then
-              write (iuw, '(a, i0, a, 3es14.5, i6, a, 5es12.2)') 'lr(', n, ') =', lr%freq_in, &
-                    lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
-            else
-              write (iuw, '(a, i0, a, 3es14.5, i6, a)') 'lr(', n, ') =', &
-                    lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle
-            endif
-          enddo
-          close(iuw)
-        endif
-      endif
-
-      line = trim(line) // ',  lr_wake_file = "' // trim(wake_name) // '"'
-
-    endif
-
-  endif
-
-  ! Decide if x1_limit, etc. are to be output directly or combined. 
-
-  x_lim = ele%value(x1_limit$) 
-  x_lim_good = .false.
-  if (x_lim /=0 .and. ele%value(x2_limit$) == x_lim) x_lim_good = .true.
-
-  y_lim = ele%value(y1_limit$) 
-  y_lim_good = .false.
-  if (y_lim /=0 .and. ele%value(y2_limit$) == y_lim) y_lim_good = .true.
-
-  ! Print the element attributes.
-
-  do j = 1, n_attrib_maxx
-    attrib_name = attribute_name(ele, j)
-    val = ele%value(j)
-    if (val == 0) cycle
-    if (j == check_sum$) cycle
-    if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
-    if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
-    if (.not. attribute_free (ele, attrib_name, lat, .false., .true.)) cycle
-    if (attrib_name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
-    if (attrib_name == null_name$) then
-      print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
-      print *, '      ELEMENT: ', ele%name
-      print *, '      HAS AN UNKNOWN ATTRIBUTE INDEX:', j
-      stop
-    endif
-
-    if (attrib_name == 'COUPLER_AT') then
-      if (nint(val) /= exit_end$) then
-        line = trim(line) // ', coupler_at = ' // element_end_name(nint(val))
-      endif
+    if (ele%slave_status == super_slave$) then
+      ixs = ixs + 1
+      ele%ixx = ixs
+      write (iu, '(a, i3.3, 2a)') 'slave_drift_', ixs, &
+                                        ': drift, l = ', trim(str(ele%value(l$)))
       cycle
     endif
 
-    select case (attribute_type(attrib_name))
-    case (is_logical$)
-      write (line, '(4a, l1)') trim(line), ', ', trim(attrib_name), ' = ', (val /= 0)
-    case (is_integer$)
-      write (line, '(4a, i0)') trim(line), ', ', trim(attrib_name), ' = ', int(val)
-    case (is_real$)
-      line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(val)
-    case (is_name$)
-      name = attribute_value_name (attrib_name, val, ele, is_default)
-        if (.not. is_default) then
-          line = trim(line) // ', ' // trim(attrib_name) // ' = ' // name
-        endif
-    end select
+    ! Do not write anything for elements that have a duplicate name.
 
-  enddo ! attribute loop
+    call find1_indexx (ele%name, names, ix_names, ix_match, match_found)
+    if (match_found) cycle
 
-  ! Print the combined limits if needed.
+    names(ix_match+1:ix_names+1) = names(ix_match:ix_names)
+    names(ix_match) = ele%name
+    ix_names = ix_names + 1
 
-  if (x_lim_good .and. y_lim_good .and. x_lim == y_lim) then
-    line = trim(line) // ', aperture = ' // str(x_lim)
-  else
-    if (x_lim_good) line = trim(line) // ', x_limit = ' // str(x_lim)
-    if (y_lim_good) line = trim(line) // ', y_limit = ' // str(y_lim)
-  endif
+    ! Overlays and groups
 
-  ! Encode methods, etc.
-
-  if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
-              ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
-  if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
-              ', tracking_method = ' // calc_method_name(ele%tracking_method)
-  if (ele%field_calc /= bmad_standard$) line = trim(line) // &
-              ', field_calc = ' // calc_method_name(ele%field_calc)
-  if (ele%symplectify) line = trim(line) // ', symplectify'
-  if (attribute_index(ele, 'FIELD_MASTER') /= 0 .and. ele%field_master) &
-              line = trim(line) // ', field_master = True'
-  if (.not. ele%is_on) line = trim(line) // ', is_on = False'
-  if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
-  if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
-  if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'
-  if (ele%aperture_at /= exit_end$) line = trim(line) // ', aperture_at = ' // & 
-                                                       element_end_name(ele%aperture_at)
-
-  default_val = rectangular$
-  if (ele%key == ecollimator$) default_val = elliptical$
-  if (ele%aperture_type /= default_val) line = trim(line) // &
-                              ', aperture_type = ' // shape_name(ele%aperture_type)
-
-  if (ele%integrator_order /= bmad_com%default_integ_order) write (line, '(a, i0)') &
-                 trim(line) // ', integrator_order = ', ele%integrator_order
-  if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
-
-  ! Multipass lord 
-
-  if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
-    select case (ele%key)
-      case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
-            hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
-      line = trim(line) // ', e_tot = ' // str(ele%value(e_tot$))
-    end select
-  endif
-
-
-  call write_out (line, iu, .false.)  
-
-  ! Encode taylor
-
-  if (ele%key == taylor$) then
-    do j = 1, 6
-      unit_found = .false.
-      unit = 0
-      unit(j:j) = 1
-      do k = 1, size(ele%taylor(j)%term)
-        tm = ele%taylor(j)%term(k)
-        write_term = .false.
-        if (all(tm%exp == unit)) then
-          unit_found = .true.
-          if (tm%coef /= 1) write_term = .true.
+    if (ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
+      if (ele%lord_status == overlay_lord$) then
+        write (line, '(2a)') trim(ele%name), ': overlay = {'
+      else
+        write (line, '(2a)') trim(ele%name), ': group = {'
+      endif
+      j_loop: do j = ele%ix1_slave, ele%ix2_slave
+        ctl = lat%control(j)
+        slave => pointer_to_ele (lat, ctl%ix_slave, ctl%ix_branch)
+        do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
+          if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) cycle j_loop
+        enddo
+        if (j == ele%ix1_slave) then
+          write (line, '(3a)') trim(line), trim(slave%name)
         else
-          write_term = .true.
+          write (line, '(3a)') trim(line), ', ', trim(slave%name)
         endif
-        if (write_term) write (line, '(2a, i1, 3a, 6i2, a)') &
-              trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%exp, '}'
+        name = attribute_name(slave, ctl%ix_attrib)  
+        if (name /= ele%component_name) &
+                line = trim(line) // '[' // trim(name) // ']'
+        if (ctl%coef /= 1) write (line, '(3a)') trim(line), '/', trim(str(ctl%coef))
+      enddo j_loop
+      line = trim(line) // '}'
+      if (ele%component_name == ' ') then
+        line = trim(line) // ', command'
+      else
+        line = trim(line) // ', ' // ele%component_name
+      endif
+      if (ele%lord_status == overlay_lord$) then
+        ix = ele%ix_value
+        if (ele%value(ix) /= 0) write (line, '(3a)') &
+                            trim(line), ' = ', str(ele%value(ix))
+      endif
+      if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
+      if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
+      if (associated(ele%descrip)) line = trim(line) // &
+                              ', descrip = "' // trim(ele%descrip) // '"'
+      call write_out (line, iu, .true.)
+      cycle
+    endif
+
+    ! Girder
+
+    if (ele%lord_status == girder_lord$) then
+      write (line, '(2a)') trim(ele%name), ': girder = {'
+      do j = ele%ix1_slave, ele%ix2_slave
+        ix1 = lat%control(j)%ix_slave
+        if (j == ele%ix2_slave) then
+          write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), '}'
+        else
+          write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), ', '
+        endif
       enddo
-      if (.not. unit_found) write (line, '(2a, i1, a, 6i2, a)') &
-              trim(line), ', {', j, ': 0,', tm%exp, '}'
-    enddo
-  endif
+    else
+      line = trim(ele%name) // ': ' // key_name(ele%key)
+    endif
 
-  if (associated(ele%a_pole)) then
-    do j = 0, ubound(ele%a_pole, 1)
-      if (ele%a_pole(j) /= 0) line = trim(line) // ', ' // &
-              trim(attribute_name(ele, j+a0$)) // ' = ' // str(ele%a_pole(j))
-      if (ele%b_pole(j) /= 0) line = trim(line) // ', ' // &
-              trim(attribute_name(ele, j+b0$)) // ' = ' // str(ele%b_pole(j))
-    enddo
-  endif
-  
-  if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
-    line = trim(line) // ', &'
-    call write_out (line, iu, .true.)  
-    do j = 1, size(ele%wig_term)
-      wt = ele%wig_term(j)
-      last = '}, &'
-      if (j == size(ele%wig_term)) last = '}'
-      write (iu, '(a, i3, 11a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
-        trim(str(wt%kx)), ', ', trim(str(wt%ky)), ', ', trim(str(wt%kz)), &
-        ', ', trim(str(wt%phi_z)), trim(last)  
-    enddo
-  else
-    call write_out (line, iu, .true.)  
-  endif
+    ! Branch
 
-enddo ele_loop
+    if (ele%key == branch$ .or. ele%key == photon_branch$) then
+      n = nint(ele%value(ix_branch_to$))
+      line = trim(line) // ', to = ' // trim(lat%branch(n)%name)
+    endif
+
+    ! Other elements
+
+    if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
+    if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
+    if (associated(ele%descrip)) line = trim(line) // &
+                              ', descrip = "' // trim(ele%descrip) // '"'
+
+    ! patch_in_slave
+
+    if (ele%slave_status == patch_in_slave$) then
+      lord => pointer_to_lord (lat, ele, 1)
+      line = trim(line) // ', ref_patch = ' // trim(lord%name)
+    endif
+
+    ! Create a null_ele element for a superposition and fill in the superposition
+    ! information.
+
+    is_multi_sup = .false.
+    if (ele%lord_status == multipass_lord$) then
+      ix1 = lat%control(ele%ix1_slave)%ix_slave
+      if (lat%ele(ix1)%lord_status == super_lord$) is_multi_sup = .true.
+    endif
+
+    if (ele%lord_status == super_lord$ .or. is_multi_sup) then
+      write (iu, '(a)') "x__" // trim(ele%name) // ": null_ele"
+      line = trim(line) // ', superimpose, ele_beginning, ref = x__' // trim(ele%name)
+    endif
+
+    ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
+    ! If first three characters of the file name are '...' then it is a foreign file.
+
+    if (associated(ele%wake)) then
+
+      ! Short-range
+
+      if (ele%wake%sr_file /= ' ') then
+
+        wake_name = ele%wake%sr_file
+
+        if (wake_name(1:3) == '...') then
+          found = .false.
+          do n = 1, n_sr
+            if (wake_name == sr_wake_name(n)) then
+              found = .true.
+              exit
+            endif
+          enddo
+          if (.not. found) then
+            n = n_sr + 1
+            n_sr = n
+            sr_wake_name(n_sr) = wake_name
+          endif
+          write (wake_name, '(a, i0, a)') 'sr_wake_file_', n, '.bmad'
+          if (.not. found) then
+            call out_io (s_info$, r_name, 'Creating SR Wake file: ' // trim(wake_name))
+            iuw = lunget()
+            open (iuw, file = wake_name)
+            write (iuw, *) '!      z           Wz             Wt'
+            write (iuw, *) '!     [m]       [V/C/m]       [V/C/m^2]'
+            do n = lbound(ele%wake%sr_table, 1), ubound(ele%wake%sr_table, 1)
+              write (iuw, '(3es14.5)') ele%wake%sr_table(n)%z, &
+                                    ele%wake%sr_table(n)%long, ele%wake%sr_table(n)%trans
+            enddo
+            close(iuw)
+          endif
+        endif
+
+        line = trim(line) // ',  sr_wake_file = "' // trim(wake_name) // '"'
+
+      endif
+
+      ! Long-range
+
+      if (ele%wake%lr_file /= ' ') then
+
+        wake_name = ele%wake%lr_file
+
+        if (wake_name(1:3) == '...') then
+          found = .false.
+          do n = 1, n_lr
+            if (wake_name == lr_wake_name(n)) then
+              found = .true.
+              exit
+            endif
+          enddo
+          if (.not. found) then
+            n = n_lr + 1
+            n_lr = n
+            lr_wake_name(n_lr) = wake_name
+          endif
+          write (wake_name, '(a, i0, a)') 'lr_wake_file_', n, '.bmad'
+          if (.not. found) then
+            call out_io (s_info$, r_name, 'Creating LR Wake file: ' // trim(wake_name))
+            iuw = lunget()
+            open (iuw, file = wake_name)
+            write (iuw, '(14x, a)') &
+   'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
+            write (iuw, '(14x, a)') &
+              '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
+            do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
+              lr => ele%wake%lr(n)
+              if (lr%polarized) then
+                write (angle, '(f10.6)') lr%angle
+              else
+                angle = '     unpol'
+              endif
+              if (any ( (/ lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref /) /= 0)) then
+                write (iuw, '(a, i0, a, 3es14.5, i6, a, 5es12.2)') 'lr(', n, ') =', lr%freq_in, &
+                      lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
+              else
+                write (iuw, '(a, i0, a, 3es14.5, i6, a)') 'lr(', n, ') =', &
+                      lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle
+              endif
+            enddo
+            close(iuw)
+          endif
+        endif
+
+        line = trim(line) // ',  lr_wake_file = "' // trim(wake_name) // '"'
+
+      endif
+
+    endif
+
+    ! Decide if x1_limit, etc. are to be output directly or combined. 
+
+    x_lim = ele%value(x1_limit$) 
+    x_lim_good = .false.
+    if (x_lim /=0 .and. ele%value(x2_limit$) == x_lim) x_lim_good = .true.
+
+    y_lim = ele%value(y1_limit$) 
+    y_lim_good = .false.
+    if (y_lim /=0 .and. ele%value(y2_limit$) == y_lim) y_lim_good = .true.
+
+    ! Print the element attributes.
+
+    do j = 1, n_attrib_maxx
+      attrib_name = attribute_name(ele, j)
+      val = ele%value(j)
+      if (val == 0) cycle
+      if (j == check_sum$) cycle
+      if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
+      if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
+      if (.not. attribute_free (ele, attrib_name, lat, .false., .true.)) cycle
+      if (attrib_name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
+      if (attrib_name == null_name$) then
+        print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
+        print *, '      ELEMENT: ', ele%name
+        print *, '      HAS AN UNKNOWN ATTRIBUTE INDEX:', j
+        stop
+      endif
+
+      if (attrib_name == 'COUPLER_AT') then
+        if (nint(val) /= exit_end$) then
+          line = trim(line) // ', coupler_at = ' // element_end_name(nint(val))
+        endif
+        cycle
+      endif
+
+      select case (attribute_type(attrib_name))
+      case (is_logical$)
+        write (line, '(4a, l1)') trim(line), ', ', trim(attrib_name), ' = ', (val /= 0)
+      case (is_integer$)
+        write (line, '(4a, i0)') trim(line), ', ', trim(attrib_name), ' = ', int(val)
+      case (is_real$)
+        line = trim(line) // ', ' // trim(attrib_name) // ' = ' // str(val)
+      case (is_name$)
+        name = attribute_value_name (attrib_name, val, ele, is_default)
+          if (.not. is_default) then
+            line = trim(line) // ', ' // trim(attrib_name) // ' = ' // name
+          endif
+      end select
+
+    enddo ! attribute loop
+
+    ! Print the combined limits if needed.
+
+    if (x_lim_good .and. y_lim_good .and. x_lim == y_lim) then
+      line = trim(line) // ', aperture = ' // str(x_lim)
+    else
+      if (x_lim_good) line = trim(line) // ', x_limit = ' // str(x_lim)
+      if (y_lim_good) line = trim(line) // ', y_limit = ' // str(y_lim)
+    endif
+
+    ! Encode methods, etc.
+
+    if (ele%mat6_calc_method /= bmad_standard$) line = trim(line) // &
+                ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
+    if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
+                ', tracking_method = ' // calc_method_name(ele%tracking_method)
+    if (ele%field_calc /= bmad_standard$) line = trim(line) // &
+                ', field_calc = ' // calc_method_name(ele%field_calc)
+    if (ele%symplectify) line = trim(line) // ', symplectify'
+    if (attribute_index(ele, 'FIELD_MASTER') /= 0 .and. ele%field_master) &
+                line = trim(line) // ', field_master = True'
+    if (.not. ele%is_on) line = trim(line) // ', is_on = False'
+    if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
+    if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
+    if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'
+    if (ele%aperture_at /= exit_end$) line = trim(line) // ', aperture_at = ' // & 
+                                                         element_end_name(ele%aperture_at)
+
+    default_val = rectangular$
+    if (ele%key == ecollimator$) default_val = elliptical$
+    if (ele%aperture_type /= default_val) line = trim(line) // &
+                                ', aperture_type = ' // shape_name(ele%aperture_type)
+
+    if (ele%integrator_order /= bmad_com%default_integ_order) write (line, '(a, i0)') &
+                   trim(line) // ', integrator_order = ', ele%integrator_order
+    if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
+
+    ! Multipass lord 
+
+    if (ele%lord_status == multipass_lord$ .and. .not. ele%field_master .and. ele%value(n_ref_pass$) == 0) then
+      select case (ele%key)
+        case (quadrupole$, sextupole$, octupole$, solenoid$, sol_quad$, sbend$, &
+              hkicker$, vkicker$, kicker$, elseparator$, bend_sol_quad$)
+        line = trim(line) // ', e_tot = ' // str(ele%value(e_tot$))
+      end select
+    endif
+
+
+    call write_out (line, iu, .false.)  
+
+    ! Encode taylor
+
+    if (ele%key == taylor$) then
+      do j = 1, 6
+        unit_found = .false.
+        unit = 0
+        unit(j:j) = 1
+        do k = 1, size(ele%taylor(j)%term)
+          tm = ele%taylor(j)%term(k)
+          write_term = .false.
+          if (all(tm%exp == unit)) then
+            unit_found = .true.
+            if (tm%coef /= 1) write_term = .true.
+          else
+            write_term = .true.
+          endif
+          if (write_term) write (line, '(2a, i1, 3a, 6i2, a)') &
+                trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%exp, '}'
+        enddo
+        if (.not. unit_found) write (line, '(2a, i1, a, 6i2, a)') &
+                trim(line), ', {', j, ': 0,', tm%exp, '}'
+      enddo
+    endif
+
+    if (associated(ele%a_pole)) then
+      do j = 0, ubound(ele%a_pole, 1)
+        if (ele%a_pole(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+a0$)) // ' = ' // str(ele%a_pole(j))
+        if (ele%b_pole(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+b0$)) // ' = ' // str(ele%b_pole(j))
+      enddo
+    endif
+    
+    if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+      line = trim(line) // ', &'
+      call write_out (line, iu, .true.)  
+      do j = 1, size(ele%wig_term)
+        wt = ele%wig_term(j)
+        last = '}, &'
+        if (j == size(ele%wig_term)) last = '}'
+        write (iu, '(a, i3, 11a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
+          trim(str(wt%kx)), ', ', trim(str(wt%ky)), ', ', trim(str(wt%kz)), &
+          ', ', trim(str(wt%phi_z)), trim(last)  
+      enddo
+    else
+      call write_out (line, iu, .true.)  
+    endif
+
+  enddo ele_loop
+enddo  ! branch loop
 
 !----------------------------------------------------------
 ! Lattice Layout...
@@ -595,23 +606,23 @@ if (size(m_info%top) /= 0) then
       in_multi_region = .true.
       ix_top = m_info%bottom(ie)%ix_top(1)
       ix_super = m_info%bottom(ie)%ix_super(1)
-      ix_ss1 => m_info%top(ix_top)%ix_slave(:,ix_super)
+      ss1 => m_info%top(ix_top)%slave(:,ix_super)
       cycle
     endif
     ix_top = m_info%bottom(ie)%ix_top(1)
     ix_super = m_info%bottom(ie)%ix_super(1)
-    ix_ss2 => m_info%top(ix_top)%ix_slave(:,ix_super)
-    do ix_pass = 2, size(ix_ss1)
-      ixs1 = ix_ss1(ix_pass)
-      ixs2 = ix_ss2(ix_pass)
-      if (abs(ixs1 - ixs2) /= 1) then  ! If not contiguous then need a new region
+    ss2 => m_info%top(ix_top)%slave(:, ix_super)
+    do ix_pass = 2, size(ss1)
+      s1 => ss1(ix_pass)%ele
+      s2 => ss2(ix_pass)%ele
+      if (abs(s1%ix_ele - s2%ix_ele) /= 1) then  ! If not contiguous then need a new region
         ix_r = ix_r + 1
         multipass(ie-1)%region_stop_pt = .true.
         multipass(ie)%region_start_pt = .true.
         exit
       endif
     enddo
-    ix_ss1 => ix_ss2
+    ss1 => ss2
     multipass(ie)%ix_region = ix_r
   enddo
 
@@ -639,7 +650,7 @@ if (size(m_info%top) /= 0) then
       write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
     endif
 
-    call write_line_element (line, iu, ie, lat)
+    call write_line_element (line, iu, lat%ele(ie), lat)
 
   enddo
 
@@ -659,13 +670,13 @@ in_multi_region = .false.
 do ie = 1, lat%n_ele_track
 
   if (.not. m_info%bottom(ie)%multipass) then
-    call write_line_element (line, iu, ie, lat)
+    call write_line_element (line, iu, lat%ele(ie), lat)
     cycle
   endif
 
   ix_top = m_info%bottom(ie)%ix_top(1)
   ix_super = m_info%bottom(ie)%ix_super(1)
-  ix1 = m_info%top(ix_top)%ix_slave(1,ix_super)
+  ix1 = m_info%top(ix_top)%slave(1,ix_super)%ele%ix_ele
   ix_r = multipass(ix1)%ix_region
 
   ! If entering new multipass region
@@ -692,6 +703,21 @@ call write_out (line, iu, .true.)
 
 write (iu, *)
 write (iu, *) 'use, main_line'
+
+! Branch lines
+
+do ib = 1, ubound(lat%branch, 1)
+
+  branch => lat%branch(ib)
+
+  write (iu, *)
+  line = trim(branch%name) // ': line = ('
+
+  do ie = 1, branch%n_ele_track
+    call write_line_element (line, iu, branch%ele(ie), lat) 
+  enddo
+
+enddo
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
@@ -748,42 +774,39 @@ end subroutine
 !-------------------------------------------------------
 !-------------------------------------------------------
 
-subroutine write_line_element (line, iu, ix_ele, lat)
+subroutine write_line_element (line, iu, ele, lat)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord
+type (ele_struct) :: ele
+type (ele_struct), pointer :: lord, m_lord, slave
 
 character(*) line
 character(40) lord_name
 
-integer iu, ix_ele, ixm
-integer j, ix, ic
+integer iu
+integer j, ix
 
 !
-
-ele => lat%ele(ix_ele)
 
 if (ele%slave_status == super_slave$) then
   ! If a super_lord element starts at the beginning of this slave element,
   !  put in the null_ele marker 'x__' + lord_name for the superposition.
-  do j = ele%ic1_lord, ele%ic2_lord
-    ix = lat%control(lat%ic(j))%ix_lord
-    lord => lat%ele(ix)
+  do j = 1, ele%n_lord
+    lord => pointer_to_lord (lat, ele, j)
     lord_name = lord%name
-    ixm = multipass_lord_index(ix, lat)
-    if (ixm > 0) lord_name = lat%ele(ixm)%name
-    if (lat%control(lord%ix1_slave)%ix_slave == ix_ele) then
+    m_lord => pointer_to_multipass_lord (lord, lat)
+    if (associated(m_lord)) lord_name = lord%name
+    slave => pointer_to_slave (lat, lord, 1) 
+    if (slave%ix_ele == ele%ix_ele) then
       write (line, '(4a)') trim(line), ' x__', trim(lord_name), ',' 
     endif
   enddo
   write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','
 
 elseif (ele%slave_status == multipass_slave$) then
-  ic = lat%ic(ele%ic1_lord)
-  ix = lat%control(ic)%ix_lord
-  lord => lat%ele(ix)
+  lord => pointer_to_lord (lat, ele, 1)
   write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
 
 else

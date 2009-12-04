@@ -7,16 +7,16 @@ use bmad_interface
 ! multipass_lord and all its slaves ("from the top down"). 
 ! If the multipass_lord has super_lords as slaves, n_super will be the number of 
 ! super_slaves per super_lord.
-! ix_slave(1:n_pass, 1:n_super_slave) is a matrix of slaves in the tracking lattice.
+! slave(1:n_pass, 1:n_super_slave) is a matrix of slaves in the tracking lattice.
 ! If there are no super_lords then n_super_slave = 1 and 
-!      ix_super_lord(1:n_pass) = ix_slave (1:n_pass, 1)
+!      super_lord(1:n_pass) = slave (1:n_pass, 1)
 
 type multipass_top_info_struct
-  integer ix_lord          ! Lord index in lat%ele(:)
+  type (ele_struct), pointer :: lord          ! Lord element
   integer n_pass           ! Number of passes (= number of slaves)
   integer n_super_slave    ! Number of super_slaves per super_lord. 
-  integer, allocatable :: ix_super_lord(:)  ! Super_lord list in lat%ele(:) if they exist.
-  integer, allocatable :: ix_slave(:,:)     ! Slaves list in lat%ele(:) tracking part.
+  type (ele_pointer_struct), allocatable :: super_lord(:)  ! Super_lord list if they exist.
+  type (ele_pointer_struct), allocatable :: slave(:,:)     ! Slaves list in tracking part.
 end type
 
 ! Multipass_bottom_info_struct gives information about a singe
@@ -25,8 +25,8 @@ end type
 type multipass_bottom_info_struct
   logical multipass     ! True if involved in multipass. False otherwise
   integer ix_pass       ! Pass number
-  integer, allocatable :: ix_top(:) ! Pointers to top(:) array
-  integer, allocatable :: ix_super(:) ! Indexes to ix_slave(ix_pass, ix_super_slave) matrix
+  integer, allocatable :: ix_top(:)   ! Pointers to top(:) array
+  integer, allocatable :: ix_super(:) ! Indexes to slave(ix_pass, super_slave%ix_ele) matrix
 end type
 
 ! top(i), i = 1, ..., n = number of multipass_lords in the lattice.
@@ -90,11 +90,11 @@ enddo
 
 nl = 0
 do ie = lat%n_ele_track+1, lat%n_ele_max
-  m_lord => lat%ele(ie)
+  m_lord => lat%ele(ie) 
   if (m_lord%lord_status /= multipass_lord$) cycle
   nl = nl + 1
 
-  info%top(nl)%ix_lord = ie
+  info%top(nl)%lord => m_lord
   n_pass = m_lord%n_slave
   info%top(nl)%n_pass = n_pass
   info%bottom(ie)%multipass = .true.
@@ -102,17 +102,17 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   call re_allocate(info%bottom(ie)%ix_top, n+1)
   info%bottom(ie)%ix_top(n+1) = nl
 
-  allocate (info%top(nl)%ix_super_lord(n_pass))
+  allocate (info%top(nl)%super_lord(n_pass))
 
   slave1 => pointer_to_slave(lat, m_lord, 1)
 
   if (slave1%lord_status == super_lord$) then
     n_super_slave = slave1%n_slave
     info%top(nl)%n_super_slave = n_super_slave
-    allocate (info%top(nl)%ix_slave(n_pass, n_super_slave))
+    allocate (info%top(nl)%slave(n_pass, n_super_slave))
     do j = 1, m_lord%n_slave
       super_lord => pointer_to_slave(lat, m_lord, j)
-      info%top(nl)%ix_super_lord(j) = super_lord%ix_ele
+      info%top(nl)%super_lord(j)%ele => super_lord
       info%bottom(super_lord%ix_ele)%multipass = .true.
       n = size(info%bottom(super_lord%ix_ele)%ix_top)
       call re_allocate(info%bottom(super_lord%ix_ele)%ix_top, n+1)
@@ -120,7 +120,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       info%bottom(super_lord%ix_ele)%ix_pass = j
       do k = 1, super_lord%n_slave
         slave => pointer_to_slave(lat, super_lord, k)
-        info%top(nl)%ix_slave(j, k) = slave%ix_ele
+        info%top(nl)%slave(j, k)%ele => slave
         info%bottom(slave%ix_ele)%multipass = .true.
         info%bottom(slave%ix_ele)%ix_pass = j
         n = size(info%bottom(slave%ix_ele)%ix_top)
@@ -133,11 +133,11 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   else
     info%top(nl)%n_super_slave = 1
-    allocate (info%top(nl)%ix_slave(n_pass, 1))
+    allocate (info%top(nl)%slave(n_pass, 1))
     do j = 1, m_lord%n_slave
       slave => pointer_to_slave(lat, m_lord, j)
-      info%top(nl)%ix_super_lord(j) = slave%ix_ele
-      info%top(nl)%ix_slave(j, 1) = slave%ix_ele
+      info%top(nl)%super_lord(j)%ele => slave
+      info%top(nl)%slave(j, 1)%ele => slave
       info%bottom(slave%ix_ele)%multipass = .true.
       info%bottom(slave%ix_ele)%ix_pass = j
       n = size(info%bottom(slave%ix_ele)%ix_top)
@@ -156,10 +156,10 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function multipass_lord_index (ix_ele, lat, ix_pass, ix_super_lord) result (ix_multi_lord)
+! Function pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)
 !
-! Routine to find the index of the multipass lord of a lattice element.
-! ix_multi_lord will be positive for elements:
+! Routine to find the multipass lord of a lattice element.
+! A multi_lord will be found for:
 !   multipass_slaves
 !   super_lords that are slaves of a multipass_lord
 !   super_slaves whose super_lord is a slave of a multipass_lord
@@ -168,64 +168,49 @@ end subroutine
 !   use multipass_mod
 !
 ! Input:
-!   ix_ele   -- Integer: Index of the lattice element.
-!   lat      -- Lat_struct: Lattice containing the element.
+!   ele   -- Ele_struct: Lattice element.
+!   lat   -- Lat_struct: Lattice containing the element.
 !
 ! Output:
-!   ix_pass       -- Integer, optional: Multipass turn number.
+!   ix_pass    -- Integer, optional: Multipass turn number.
 !                      Set to -1 if element is not a multipass slave
-!   ix_super_lord -- Integer, optional: Index in lat%ele(:) of the super_lord of the element.
-!                      Set to -1 if the element is not a super_slave.
-!   ix_multi_lord -- Integer: Index in lat%ele(:) of the multipass_lord if there is one.
-!                      Set to -1 if there is no multipass_lord.
+!   super_lord -- Ele_struct, pointer, optional: super_lord of the element.
+!                      Set to NULL if ele is not a super_slave.
+!   multi_lord -- Ele_struct, pointer: multipass_lord if there is one.
+!                      Set to NULL if there is no multipass_lord.
 !-
 
-function multipass_lord_index (ix_ele, lat, ix_pass, ix_super_lord) result (ix_multi_lord)
+function pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct) ele
+type (ele_struct), pointer :: multi_lord, sup_lord
+type (ele_struct), pointer, optional :: super_lord
 
-integer ix_ele, ix_multi_lord
-integer, optional :: ix_super_lord, ix_pass
-integer ix_sup, ix_mult, ic
+integer, optional :: ix_pass
+integer ix_con
 
 !
 
-ele => lat%ele(ix_ele)
-
-ix_multi_lord = -1
-if (present(ix_super_lord)) ix_super_lord = -1
-if (present(ix_pass))       ix_pass = -1
+if (present(super_lord)) nullify (super_lord)
+if (present(ix_pass)) ix_pass = -1
 
 if (ele%slave_status == multipass_slave$) then
-  ic = lat%ic(ele%ic1_lord)
-  ix_multi_lord = lat%control(ic)%ix_lord
-  if (present(ix_pass)) ix_pass = ic + 1 - lat%ele(ix_multi_lord)%ix1_slave
+  multi_lord => pointer_to_lord (lat, ele, 1, ix_con)
+  if (present(ix_pass)) ix_pass = ix_con + 1 - multi_lord%ix1_slave
   return
 endif
 
 if (ele%slave_status == super_slave$) then
-  ic = lat%ic(ele%ic1_lord)
-  ix_sup = lat%control(ic)%ix_lord
-  if (lat%ele(ix_sup)%n_lord == 0) return
-  ic = lat%ic(lat%ele(ix_sup)%ic1_lord)
-  ix_mult = lat%control(ic)%ix_lord
-  if (lat%ele(ix_mult)%lord_status /= multipass_lord$) return
-  ix_multi_lord = ix_mult
-  if (present(ix_super_lord)) ix_super_lord = ix_sup
-  if (present(ix_pass)) ix_pass = ic + 1 - lat%ele(ix_multi_lord)%ix1_slave
-  return
-endif
+  sup_lord => pointer_to_lord (lat, ele, 1)
+  if (present(super_lord)) super_lord = sup_lord
 
-if (ele%lord_status == super_lord$) then
-  if (ele%n_lord == 0) return
-  ic = lat%ic(ele%ic1_lord)
-  ix_mult = lat%control(ic)%ix_lord
-  if (lat%ele(ix_mult)%lord_status /= multipass_lord$) return
-  ix_multi_lord = ix_mult
-  if (present(ix_pass)) ix_pass = ic + 1 - lat%ele(ix_multi_lord)%ix1_slave
+  if (sup_lord%n_lord /= multipass_slave$) return
+  multi_lord => pointer_to_lord (lat, sup_lord, 1, ix_con)
+  if (present(ix_pass)) ix_pass = ix_con + 1 - multi_lord%ix1_slave
+  return
 endif
 
 end function
@@ -234,7 +219,7 @@ end function
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine multipass_chain (ix_ele, lat, ix_pass, n_links, ix_chain)
+! Subroutine multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
 !
 ! Routine to return the chain of elements that represent the same physical element
 ! when there is multipass.
@@ -243,80 +228,68 @@ end function
 !   use multipass_mod
 !
 ! Input:
-!   ix_ele  -- Integer: Index in lat%ele(:) of an element in a multipass chain.
-!   lat     -- Lat_struct: Lattice structure.
+!   ele  -- Ele_pointer_struct: Element in a multipass chain.
+!   lat  -- Lat_struct: Lattice structure.
 !
 ! Output
-!   ix_pass     -- Integer: Multipass pass number of the input element. 
-!                    Set to -1 if input element is not in a multipass section.
-!   n_links     -- Integer, optional: Number of times the physical element is passed through.
-!   ix_chain(:) -- Integer, optional, allocatable: Indexes in lat%ele(:) of the 
-!                    elements of the chain. 
-!                    Note: ix_chain(ix_pass) = ix_ele
+!   ix_pass      -- Integer: Multipass pass number of the input element. 
+!                     Set to -1 if input element is not in a multipass section.
+!   n_links      -- Integer, optional: Number of times the physical element is passed through.
+!   chain_ele(:) -- Ele_pointer_struct, optional, allocatable: pointers to the
+!                    elements of the chain. Note: chain_ele(ix_pass)%ele => ele
 !-
 
-subroutine multipass_chain (ix_ele, lat, ix_pass, n_links, ix_chain)
+subroutine multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, m_lord, s_lord
+type (ele_struct) :: ele
+type (ele_struct), pointer :: m_lord, s_lord, slave
+type (ele_pointer_struct), allocatable, optional :: chain_ele(:)
 
-integer i, j, k, ix_ele, ix_pass, ic, ix_lord, ix_off, ix_c, n_links
-integer, allocatable, optional :: ix_chain(:)
+integer i, j, k, ix_pass, ic, ix_lord, ix_off, ix_c, n_links
 
-!
+! Init
 
 ix_pass = -1
 n_links = 0
 
-ele => lat%ele(ix_ele)
-
 ! element is a multipass_slave case
 
 if (ele%slave_status == multipass_slave$) then
-  ic = lat%ic(ele%ic1_lord)
-  ix_lord = lat%control(ic)%ix_lord
-  m_lord => lat%ele(ix_lord)
-  if (present(ix_chain)) call re_allocate (ix_chain, m_lord%n_slave, .false.)
+  m_lord => pointer_to_lord(lat, ele, 1)
+  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
   n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
-    k = j - 1 + m_lord%ix1_slave
-    ix_c = lat%control(k)%ix_slave
-    if (present(ix_chain)) ix_chain(j) = ix_c
-    if (ix_c == ix_ele) ix_pass = j
+    if (present(chain_ele)) chain_ele(j)%ele => pointer_to_slave(lat, m_lord, j)
+    if (chain_ele(j)%ele%ix_ele  == ele%ix_ele) ix_pass = j
   enddo
 endif
 
 ! element is a super_slave case
 
 if (ele%slave_status == super_slave$) then
-  ic = lat%ic(ele%ic1_lord)
-  ix_lord = lat%control(ic)%ix_lord
-  if (lat%ele(ix_lord)%slave_status /= multipass_slave$) return
+  s_lord => pointer_to_lord(lat, ele, 1)
+  if (s_lord%slave_status /= multipass_slave$) return
 
   ! Find offset in super_lord
 
-  s_lord => lat%ele(ix_lord)
-  do j = 0, s_lord%n_slave - 1
-    k = j + m_lord%ix1_slave
-    if (lat%control(k)%ix_slave == ix_ele) ix_off = j
+  do j = 1, s_lord%n_slave
+    slave => pointer_to_slave(lat, ele, j)
+    if (slave%ix_ele == ele%ix_ele) ix_off = j
   enddo
 
   ! Construct chain
 
-  ic = lat%ic(s_lord%ic1_lord)
-  ix_lord = lat%control(ic)%ix_lord
-  m_lord => lat%ele(ix_lord)
-  if (present(ix_chain)) call re_allocate (ix_chain, m_lord%n_slave, .false.)
+  m_lord => pointer_to_lord (lat, ele, 1)
+  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
   n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
-    k = j - 1 + m_lord%ix1_slave
-    s_lord => lat%ele(lat%control(k)%ix_slave)
-    k = s_lord%ix1_slave + ix_off
-    ix_c = lat%control(k)%ix_slave
-    if (present(ix_chain)) ix_chain(j) = ix_c
-    if (ix_c == ix_ele) ix_pass = j
+    s_lord => pointer_to_slave(lat, m_lord, j)
+    slave => pointer_to_slave(lat, s_lord, ix_off)
+    if (present(chain_ele)) chain_ele(j)%ele => slave
+    if (ix_c == ele%ix_ele) ix_pass = j
   enddo
 
 endif
