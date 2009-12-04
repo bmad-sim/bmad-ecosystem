@@ -15,16 +15,28 @@ write (*, '(a)', advance = 'NO') ' Input number <CR=3> '
 read (*, '(a)') ans
 call string_trim (ans, ans, i)
 
+select case (ans)
+case('1')
+  xlen = 800
+  ylen = 540
+case('2')
+  xlen = 800
+  ylen = 540
+case default
+  xlen = 600
+  ylen = 800
+end select
+
 ! Generate PS and X-windows data plots.
 
+call qp_open_page ('X', id, xlen, ylen, 'POINTS')
+call draw_it
 call qp_open_page ('PS-L')  ! Tell Quick Plot to generate a PS file.
 call draw_it
 call qp_close_page          ! quick_plot.ps is the file name
 call qp_open_page ('GIF-L')  ! Tell Quick Plot to generate a GIF file.
 call draw_it
 call qp_close_page          ! quick_plot.ps is the file name
-call qp_open_page ('X', id, xlen, ylen, 'POINTS')
-call draw_it
 write (*, '(a)', advance = 'NO') ' Hit any key to end program: '
 read (*, '(a)') ans
 
@@ -35,16 +47,10 @@ subroutine draw_it
   select case (ans)
   case('1')
     call draw_histogram
-    xlen = 800
-    ylen = 540
   case('2')
     call draw_graphs
-    xlen = 800
-    ylen = 540
   case default
     call draw_symbols
-    xlen = 600
-    ylen = 800
   end select
 end subroutine
 

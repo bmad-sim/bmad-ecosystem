@@ -103,7 +103,7 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 
     select case (symbol_type)
     case (1)            ! dot$
-      h = h * 2.0       ! I like bigger dots
+      if (pg_com%page_type(1:3) /= 'GIF') h = h * 2.0       ! I like bigger dots
     case (16)           ! square_filled$
       h = h * 1.56
     case (17)           ! circle_filled$
