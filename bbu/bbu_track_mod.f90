@@ -63,9 +63,9 @@ type (bbu_beam_struct) bbu_beam
 type (beam_init_struct) beam_init
 type (bbu_param_struct) bbu_param
 type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable, save :: chain_ele(:)
 
 integer i, j, k, ih, ix_pass, n_links
-integer, allocatable, save :: ix_chain(:)
 
 real(rp) dt_bunch, rr(4)
 
@@ -129,11 +129,11 @@ do i = 1, lat%n_ele_track
   if (size(ele%wake%lr) == 0) cycle
   j = j + 1
   bbu_beam%stage(j)%ix_ele_lr_wake = i
-  call multipass_chain (i, lat, ix_pass, n_links, ix_chain)
+  call multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
   bbu_beam%stage(j)%ix_pass = ix_pass
   if (ix_pass > 0) then
     do k = 1, j
-      if (bbu_beam%stage(k)%ix_ele_lr_wake == ix_chain(1)) then
+      if (bbu_beam%stage(k)%ix_ele_lr_wake == chain_ele(1)%ele%ix_ele) then
         bbu_beam%stage(j)%ix_stage_pass1 = k
         exit
       endif
@@ -293,7 +293,7 @@ ib = bbu_beam%stage(i_stage_min)%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
 do j = ix_ele_start+1, ix_ele_end
-  call track1_bunch (bbu_beam%bunch(ib), lat, j, bbu_beam%bunch(ib), err)
+  call track1_bunch (bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
   if (.not. all(bbu_beam%bunch(ib)%particle%ix_lost == not_lost$)) then
     lost = .true.
     return

@@ -8,8 +8,9 @@ type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
+type (ele_struct), pointer :: ele, ele2
 
-integer i, ix, j, n_hom, n, n_ele, ix_pass, ie, ie2, i_lr
+integer i, ix, j, n_hom, n, n_ele, ix_pass, i_lr
 
 integer istep
 integer :: nstep = 100
@@ -150,7 +151,8 @@ do istep = 1, nstep
 
   n_ele = 0
   do i = 1, size(bbu_beam%stage)
-    call multipass_chain (bbu_beam%stage(i)%ix_ele_lr_wake, lat, ix_pass, n_links = n)
+    j = bbu_beam%stage(i)%ix_ele_lr_wake
+    call multipass_chain (lat%ele(j), lat, ix_pass, n_links = n)
     if (ix_pass /= 1 .and. n /= 0) cycle
     n_ele = n_ele + 1
   enddo
@@ -197,22 +199,24 @@ do istep = 1, nstep
     beam_init%bunch_charge = (charge0 + charge1) / 2
     print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
     i = bbu_beam%ix_stage_power_max
-    ie = bbu_beam%stage(i)%ix_ele_lr_wake
-    ie2 = ie
-    if (lat%ele(ie)%slave_status == multipass_slave$) ie2 = multipass_lord_index(ie, lat)
+    j = bbu_beam%stage(i)%ix_ele_lr_wake
+    ele => lat%ele(j)
+    ele2 => ele
+    if (ele2%slave_status == multipass_slave$) then
+      ele2 => pointer_to_multipass_lord (ele, lat)
+    endif
     i_lr = bbu_beam%stage(i)%ix_hom_max
-    print *, 'Element with critical HOM:', ie2, ':   ', lat%ele(ie2)%name
-    print *, 'Critical HOM: Input Frequency: ', lat%ele(ie)%wake%lr(i_lr)%freq_in 
-    print *, 'Critical HOM: Actual Frequency:', lat%ele(ie)%wake%lr(i_lr)%freq
-    print *, 'Critical HOM: R_overQ:         ', lat%ele(ie)%wake%lr(i_lr)%r_over_q
-    print *, 'Critical HOM: Q:               ', lat%ele(ie)%wake%lr(i_lr)%q
-    print *, 'Critical HOM: Angle:           ', lat%ele(ie)%wake%lr(i_lr)%angle
+    print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
+    print *, 'Critical HOM: Input Frequency: ', ele%wake%lr(i_lr)%freq_in 
+    print *, 'Critical HOM: Actual Frequency:', ele%wake%lr(i_lr)%freq
+    print *, 'Critical HOM: R_overQ:         ', ele%wake%lr(i_lr)%r_over_q
+    print *, 'Critical HOM: Q:               ', ele%wake%lr(i_lr)%q
+    print *, 'Critical HOM: Angle:           ', ele%wake%lr(i_lr)%angle
 
     if (bbu_param%nrep.gt.1)write(55,'(i6,e14.6,2i7,6(e14.6,1x))') &
-        irep, beam_init%bunch_charge / beam_init%dt_bunch , &
-        ie, ie2, lat%ele(ie)%s, lat%ele(ie)%wake%lr(i_lr)%freq_in, &
-        lat%ele(ie)%wake%lr(i_lr)%freq, lat%ele(ie)%wake%lr(i_lr)%r_over_q, &
-        lat%ele(ie)%wake%lr(i_lr)%q, lat%ele(ie)%wake%lr(i_lr)%angle
+        irep, beam_init%bunch_charge / beam_init%dt_bunch, ele%ix_ele, ele2%ix_ele, ele%s, &
+        ele%wake%lr(i_lr)%freq_in, ele%wake%lr(i_lr)%freq, ele%wake%lr(i_lr)%r_over_q, &
+        ele%wake%lr(i_lr)%q, ele%wake%lr(i_lr)%angle
 
     ! Re-randomize HOM frequencies
 
