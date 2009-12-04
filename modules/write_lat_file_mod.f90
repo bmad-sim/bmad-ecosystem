@@ -188,7 +188,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ele => branch%ele(ie)
 
-    multi_lord = pointer_to_multipass_lord (ele, lat, ix_pass) 
+    multi_lord => pointer_to_multipass_lord (ele, lat, ix_pass) 
 
     if (ele%key == null_ele$) cycle
     if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
@@ -711,6 +711,8 @@ do ib = 1, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
   write (iu, *)
+  write (iu, '(a)') '!-------------------------------------------------------'
+  write (iu, *)
   line = trim(branch%name) // ': line = ('
 
   do ie = 1, branch%n_ele_track
@@ -718,6 +720,9 @@ do ib = 1, ubound(lat%branch, 1)
   enddo
 
 enddo
+
+line = line(:len_trim(line)-1) // ')'
+call write_out (line, iu, .true.)
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
@@ -730,13 +735,11 @@ do ie = 1, lat%n_ele_max
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(dphi0$) == 0) cycle
     if (.not. expand_lat_out) call write_expand_lat_header
-    write (iu, *)
     write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
   endif
 
   if (ele%key == patch$ .and. ele%ref_orbit /= 0) then
     if (.not. expand_lat_out) call write_expand_lat_header
-    write (iu, *)
     if (ele%value(x_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[x_offset] = ', trim(str(ele%value(x_offset$)))
     if (ele%value(y_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[y_offset] = ', trim(str(ele%value(y_offset$)))
     if (ele%value(z_offset$) /= 0) write (iu, '(3a)') trim(ele%name), '[z_offset] = ', trim(str(ele%value(z_offset$)))
@@ -764,6 +767,7 @@ write (iu, *)
 write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, *)
 write (iu, '(a)') 'expand_lattice'
+write (iu, *)
 expand_lat_out = .true.
 
 end subroutine
