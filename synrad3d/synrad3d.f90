@@ -99,6 +99,9 @@ if (i0_tot == 0) then
   call err_exit
 endif
 
+print *, 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
+print *, 'I0 Radiation Integral over emission region:', i0_tot
+
 d_i0 = i0_tot / num_photons
 
 if (emit_a < 0) then
