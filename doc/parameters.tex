@@ -31,6 +31,15 @@ Section~\sref{s:bmad.params} the syntax is
 \label{s:bmad.params}
 \index{Bmad!general parameters|hyperbf}
 
+\index{max_aperture_limit}\index{d_orb(6)}
+\index{grad_loss_sr_wake}\index{default_ds_step}
+\index{rel_tolerance}\index{abs_tolerance}
+\index{taylor_order}\index{default_integ_order}
+\index{sr_wakes_on}\index{lr_wakes_on}
+\index{mat6_track_symmetric}\index{auto_bookkeeper}
+\index{trans_space_charge_on}\index{coherent_synch_rad_on}
+\index{spin_tracking_on}\index{radiation_damping_on}
+\index{radiation_fluctuations_on}\index{compute_ref_energy}
 Some overall parameters are stored in the \vn{bmad_common_struct}
 structure. The instance name here is \vn{bmad_com}. The parameters of
 this structure are:
@@ -40,11 +49,13 @@ this structure are:
     real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
     real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for Cavities.
     real(rp) :: default_ds_step    = 0.2       ! Integration step size.  
+    real(rp) :: significant_longitudinal_length = 1e-10 ! meter 
     real(rp) :: rel_tolerance = 1e-5           ! Runge-Kutta: Relative tolerance.
     real(rp) :: abs_tolerance = 1e-8           ! Runge-Kutta: Absolute tolerance.
+    real(rp) :: rel_tol_adaptive_tracking = 1e-6  ! Adaptive tracking relative tolerance.
+    real(rp) :: abs_tol_adaptive_tracking = 1e-7  ! Adaptive tracking absolute tolerance.
     integer :: taylor_order = 3                ! 3rd order is default
     integer :: default_integ_order = 2         ! PTC integration order
-    logical :: use_liar_lcavity = .false.      ! Liar like tracking?
     logical :: sr_wakes_on = .true.            ! Short range wake fields?
     logical :: lr_wakes_on = .true.            ! Long range wake fields
     logical :: mat6_track_symmetric = .true.   ! symmetric offsets

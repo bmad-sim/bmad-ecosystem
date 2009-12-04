@@ -724,7 +724,8 @@ $\bfV$ is written in the form
     \end{pmatrix}
     , \label{vgicc1}
   \Endeq
-where the symplectic conjugate is 
+where $\bfC$ is a 2x2 matrix and $+$ superscript 
+denotes the symplectic conjugate:
 \index{symplectic!conjugate}
   \Begineq
     \bfC^+ = 
@@ -815,6 +816,8 @@ dispersion $\bfeta_x = (\eta_x, \eta'_x, \eta_y, \eta'_y)$ via
     {\bfeta_a} = \bfV\inv \, {\bfeta_x}
     . \label{etaavx}
   \Endeq 
+When there is no coupling ($\bfC = 0$), $\bfeta_a$ and $\bfeta_x$ are
+equal to each other.
 
 %-----------------------------------------------------------------
 \section{Dispersion Calculation}
@@ -1201,6 +1204,9 @@ previous subsection, the phase $\phi$ is
 \label{s:macro}
 \index{macroparticles|hyperbf}
 
+{\em Note: The macroparticle tracking code is not currently maintained
+in favor of tracking an ensamble of particles.}
+
 A macroparticle\cite{b:transport.appendix} is a bundle of particles
 whose distribution is assumed to be Gaussian in shape. A macroparticle
 is represented by a centroid position $\bfrbar$ and a $6 \times 6$
@@ -1268,38 +1274,8 @@ laboratory matrix $\bfsig_x$ is
   \bfsig_x = \bfV \, \bfsig_a \bfV^t
 \Endeq
 
-For tracking a relativistic charged particle bunch is modeled by dividing it
-longitudinally into a series of slices. Each slice is made up of a
-number of macroparticles. It is assumed that the range of the
-longitudinal positions of the macroparticles of a given slice do not
-overlap the ranges of the other slices.
-
-\bmad has a routine to initialize macroparticles to mirror the initial
-distribution as set--up by the LIAR program\cite{b:liar}. The
-initialization is as follows: The center of a
-slice will be at a longitudinal position $z_j$ given by
-\Begineq
-  z_j = z_b + \frac{(n_s - 2 \, j + 1) \, \sigma_z \, N_{\sigma z}}{n_s}
-\Endeq
-where $z_b$ the overall offset of the bunch, 
-$n_s$ is the number of slices, $j = 1, \ldots,
-n_s$ is the index of the slice, $\sigma_z$ is the RMS bunch length,
-and $N_{\sigma z}$ is the number of $\sigma_z$ the slices go out
-to. The width $dz_s$ of each slice is
-\Begineq
-    dz_s = \frac{2 \, \sigma_z \, N_{\sigma z}}{n_s}
-\Endeq
-The charge associated with each slice is, within a constant factor,
-the charge contained within the region between $z_j - dz_s/2$ and $z_j
-+ dz_s/2$ assuming a Gaussian distribution.  The charge of all the
-slices are multiplied by a factor so that the total charge of the
-slices is equal to the input bunch charge.
-
-The initialization of the macroparticles within a slice gives all the
-macroparticles the same centroid position except with differing
-centroid energies. 
 The sigma matrix is the same for all macroparticles and is
-determined by the input Twiss parameters:
+determined by the local Twiss parameters:
 \begin{align}
   \bfsig(1,1) &= \epsilon_x \, \beta_x \CRNEG
   \bfsig(1,2) &= -\epsilon_x \alpha_x  \CRNEG
@@ -1316,7 +1292,7 @@ The centroid energy of the $k$\Th macroparticle is
   E_k = E_b + \frac{(n_{mp} - 2 \, k + 1) \, \sigma_E \, N_{\sigma E}}{n_{mp}}
 \Endeq
 where $E_b$ is the central energy of the bunch, $n_{mp}$ is the number
-of macroparticles per slice, $\sigma_E$ is the energy sigma, and
+of macroparticles, $\sigma_E$ is the energy sigma, and
 $N_{\sigma E}$ is the number of sigmas in energy that the range of
 macroparticle energies cover. The charge of each macroparticle is,
 within a constant factor, the charge contained within the energy
@@ -1325,9 +1301,6 @@ distribution where the energy width $dE_{mp}$ is
 \Begineq
   dE_{mp} = \frac{2 \, \sigma_E \, N_{\sigma E}}{n_{mp}}
 \Endeq
-The charge of all the macroparticles is adjusted by a constant factor
-so that the total charge of the macroparticles within a slice is equal
-to the charge associated with the slice.
 
 %-----------------------------------------------------------------
 \section{Wake fields}
@@ -1381,8 +1354,7 @@ dipole short--range transverse wake field is modeled with the equation
   \label{pelqxw}
 \Endeq
 There is a similar equation for $\Delta p_y(i)$. $\WtS$ is the
-transverse short--range wake function. Note that the LIAR
-program\cite{b:liar} uses an opposite sign here.
+transverse short--range wake function. 
 
 The wake field functions $\WlS$ and $\WlS$ can be specified in a \bmad
 lattice file using a table of wake vs $z$ or by using ``pseudo'' modes

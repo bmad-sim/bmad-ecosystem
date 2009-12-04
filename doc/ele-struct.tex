@@ -19,13 +19,13 @@ end of the element.
 \footnotesize
 \begin{verbatim}
 type ele_struct
-  character(40) name                   ! name of element.
-  character(40) type                   ! type name.
-  character(40) alias                  ! Another name.
+  character(40) name                   ! name of element \sref{c:ele.string}.
+  character(40) type                   ! type name \sref{c:ele.string}.
+  character(40) alias                  ! Another name \sref{c:ele.string}.
   character(40) component_name         ! Used by overlays, multipass patch, etc.
   character(200), pointer :: descrip => null() ! Description string.
-  type (twiss_struct)  a, b, z         ! Twiss parameters at end of element
-  type (xy_disp_struct) x, y           ! Projected dispersions.
+  type (twiss_struct)  a, b, z         ! Twiss parameters at end of element \sref{c:twiss}.
+  type (xy_disp_struct) x, y           ! Projected dispersions \sref{c:twiss}.
   type (floor_position_struct) floor   ! Global floor position at end of ele.
   type (mode3_struct), pointer :: mode3 => null()
   type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
@@ -118,32 +118,44 @@ and such elements in a \vn{lat_struct} are handled by the
 \vn{lat_struct} allocation/deallocation routines. 
 In the case where a local \vn{ele_struct}
 variable is used within a subroutine or function, the \vn{ele_struct} 
-variable must either be defined with the \vn{save} attribute or
-the pointers within the variable must be deallocated  with a call to
-\hyperref[r:lat.low]{deallocate_ele_pointers}
+variable must either be defined with the \vn{save} attribute 
 \begin{example}
-  type (ele_struct), save :: ele     ! Either do this at the beginning ...
+  type (ele_struct), save :: ele          ! Use the save attribute
+  logical, save :: init_needed = .false.
   ...
-  call deallocate_ele_pointers (ele) ! ... Or do this at the end of a routine.
+  if (init_needed) then
+    call init_ele (ele)                ! Initialize element once
+    init_needed = .false.
+  endif
+\end{example}
+or the pointers within the variable must be deallocated  with a call to
+\hyperref[r:deallocate.ele.pointers]{deallocate_ele_pointers}:
+\begin{example}
+  type (ele_struct) ele  
+  ...
+  call init_ele (ele)                ! Initialize element each time
+  ...
+  call deallocate_ele_pointers (ele) ! And deallocate.
 \end{example}
 
-The equal sign in the assignment
-\begin{example}
-  ele1 = ele2
-\end{example}
-is overloaded by the routine \vn{ele_equal_ele} to ensure that the
-pointers of \vn{ele1} do not point to the same memory locations as the
-pointers of \vn{ele2}.
+In the normal course of events, the pointers of an \vn{ele_struct} variable
+should not be pointing to the same memory locations as the pointers
+of any other \vn{ele_struct} variable. To make sure of this,
+the equal sign in the assignment \vn{ele1 = ele2}
+is overloaded by the routine \hyperref[r:ele.equal.ele]{ele_equal_ele}
+and this routine will allocate as necessary.
 
 %--------------------------------------------------------------------------
 \section{String Components}
+\label{s:ele.string}
 
 \index{ele_struct!\%descrip}\index{ele_struct!\%alias}
 \index{ele_struct!\%type}\index{ele_struct!\%name}
 The \vn{%name}, \vn{%type}, \vn{%alias}, and \vn{%descrip} components
 of the \vn{ele_struct} all have a direct correspondence with
 the \vn{name}, \vn{type}, \vn{alias}, and \vn{descrip} element attributes in
-an input lattice file (\sref{s:string}). On input, from a lattice file,  
+an input lattice file (\sref{s:string}). On input (\sref{s:lat.readin}), 
+from a lattice file,  
 \vn{name}, \vn{type}, and \vn{alias} attributes will be converted to
 to uppercase before being loaded 
 into an \vn{ele_struct}. To save memory, since \vn{%descrip} is not frequently used,
@@ -151,19 +163,17 @@ into an \vn{ele_struct}. To save memory, since \vn{%descrip} is not frequently u
 a given element.
 
 %--------------------------------------------------------------------------
-\section{Initialization and Element Key}
-\index{ele_struct!initialization}
+\section{Element Key}
 
 \index{ele_struct!\%key}
 The \vn{%key} integer component gives the type of element
-(\vn{Quadrupole}, \vn{RFcavity}, etc.). In general, to get the
+(\vn{quadrupole}, \vn{rfcavity}, etc.). In general, to get the
 corresponding integer parameter for an element class, just add a ``\$''
 character to the type name. For example \vn{quadrupole\$} is the integer
 parameter for \vn{quadrupole} elements. The \vn{key_name} array converts from
 integer to the appropriate string. For example:
 \begin{example}
   type (ele_struct) ele
-  call init_ele (ele)                  ! Initialize
   if (ele%key == wiggler\$) then       ! Test if element is a wiggler.
   print *, 'This element: ', key_name(ele%key) ! Prints, for example, 'WIGGLER'
 \end{example}
@@ -178,85 +188,27 @@ The \vn{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
   periodic_type$
 \end{example}
 depending upon the type of wiggler. For bend elements,
-when a lattice file is parsed, all \vn{rbend} elements are converted into
+when a lattice file is parsed (\sref{s:lat.readin}), 
+all \vn{rbend} elements are converted into
 \vn{sbend} elements (\sref{s:bend}). To keep track of what the original definition
 of the element was, the \vn{%sub_key} component will be set to \vn{sbend\$} or
 \vn{rbend\$} whatever is appropriate. In the case of bends, the \vn{%sub_key} component
 does not affect any calculations and is only used in the routines that recreate
-lattice files from a \vn{lat_struct} (\sref{r:read}).
+lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
 
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
 \label{s:ele.twiss}
 
-\index{ele_struct!\%twiss}
-
-\index{ele_struct!\%s}
 \index{ele_struct!\%gamma_c}
 \index{ele_struct!\%c_mat}
-\index{ele_struct!\%a}
+\index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
+\index{ele_struct!\%mode3}, \index{ele_struct!\%mode_flip}
 
-
-\index{ele_struct!\%z}\index{ele_struct!\%b}\index{ele_struct!\%a}
-\index{normal mode!in Ele_struct}
-The \vn{%a}, \vn{%b}, and \vn{%z} components are
-\vn{twiss_struct} structures that hold the Twiss parameters for the
-$a$, $b$ and $z$ modes respectively. The definition of
-the \vn{twiss_struct} structure is
-\index{ele_struct!twiss_struct substructure}
-\begin{example}
-  type twiss_struct
-    real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) sigma, sigma_p, emit, norm_emit
-  end type 
-\end{example} 
-\vn{eta} and \vn{etap} are also the normal mode dispersion and
-dispersion derivative. The projected horizontal and vertical dispersions
-are given in the \vn{xy_disp_struct}
-\begin{example}
-  type xy_disp_struct
-    real(rp) eta, etap
-  end type 
-\end{example} 
-The relationship between the projected and normal mode dispersions are
-given in \Eq{avx}. When there is no coupling (\vn{%c_mat} = 0) the
-normal mode dispersions are the same as the projected horizontal and
-vertical dispersions.
-
-\vn{%c_mat} is the coupling \vn{C} matrix given by \Eq{vgicc1} and
-\vn{%gamma_c} is the $\gamma$ factor in \Eq{vgicc1}. There are several
-routines to manipulate the coupling factors. For example:
-\begin{example}
-  C_to_Cbar(ele, cbar_mat)             ! Form Cbar(2,2) matrix
-  Make_V_Mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
-\end{example}
-See \sref{r:mat} for a complete listing of such routines.
-
-The routine to propagate the Twiss parameters from one element to the
-next is \vn{twiss_propagate1}. To propagate the
-twiss_parameters from the start of the lattice to the end, the routine
-\vn{twiss_propagate_all} can be used. In propagating the Twiss
-parameters, the dispersion values in \vn{%x} and \vn{%y} are assumed
-to be correct and the dispersion values in \vn{%a} and \vn{%b} are
-ignored. [Notice, though, in an input lattice file, if
-beginning[eta_a] is set, Bmad does the correct bookkeeping.] In
-general, setting one Twiss parameter will affect the others. To make
-sure everything is consistent, the changed_attribute_bookkeeper
-routine can be used.
-
-If the Twiss parameters need to be transfered from 
-one element to another The three components \vn{%a}, \vn{%b}, and \vn{%c}
-need to be copied. Additionally, to transfer the dispersion, the two
-components \vn{%x} and \vn{%y} need to be copied since the standard
-dispersion propagation routine, \vn{twiss_propagate1}, computes normal mode
-dispersions from the projected ones. Thus a full transfer looks like
-\begin{example}
-  ele2%a = ele1%a
-  ele2%b = ele1%b
-  ele2%x = ele1%x
-  ele2%y = ele1%y
-  ele2%z = ele1%z
-\end{example}
+The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
+\vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
+hold information on the Twiss parameters, dispersion, and coupling
+at the exit end of the element. See \cref{c:twiss} for more details.
 
 %--------------------------------------------------------------------------
 \section{Attribute Values: Dependent and Otherwise}

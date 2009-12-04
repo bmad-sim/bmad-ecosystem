@@ -1,5 +1,87 @@
-\chapter{Twiss Parameters, Tunes, Chromaticity, Etc.}
+\chapter{Twiss Parameters, Coupling, Chromaticity, Etc.}
 \label{c:twiss}
+
+%-----------------------------------------------------------------------------
+\section{Ele\_struct Components}
+\label{s:twiss.ele}
+
+\index{ele_struct!\%gamma_c}
+\index{ele_struct!\%c_mat}
+\index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
+
+The \vn{ele_struct} (\sref{c:ele.struct}) has a number of components that
+hold information on the Twiss parameters, dispersion, and coupling
+at the exit end of the element. The Twiss parameters of the three 
+normal modes (\sref{s:coupling})
+are contained in the \vn{%a}, \vn{%b}, and \vn{%z} components which are 
+of type \vn{twiss_struct}:
+\index{twiss_struct}
+\begin{example}
+  type twiss_struct
+    real(rp) beta         ! Twiss Beta function
+    real(rp) alpha        ! Twiss Alpha function
+    real(rp) gamma        ! Twiss gamma function
+    real(rp) phi          ! Normal mode Phase advance
+    real(rp) eta          ! Normal mode dispersion
+    real(rp) etap         ! Normal mode dispersion derivative
+    real(rp) sigma        ! Normal mode beam size
+    real(rp) sigma_p      ! Normal mode beam size derivative
+    real(rp) emit         ! Geometric emittance
+    real(rp) norm_emit    ! Normalized emittance
+  end type 
+\end{example}
+The projected horizontal and vertical dispersions in an \vn{ele_struct}
+are contained in the \vn{%x} and \vn{%y} components. These components are
+of type \vn{xy_disp_struct}:
+\index{xy_disp_struct}
+\begin{example}
+  type xy_disp_struct
+    real(rp) eta     ! Projected dispersion 
+    real(rp) etap    ! Projected dispersion derivative.
+  end type 
+\end{example}
+
+The relationship between the projected and normal mode dispersions are
+given in \Eq{avx}. 
+The 2x2 coupling matrix $\bfC$ (\Eq{vgicc1}) is stored in the \vn{%c(2,2)}
+component of the \vn{ele_struct} and the $\gamma$ factor of \Eq{vgicc1}
+is stored in the \vn{gamma_c} component.
+There are several
+routines to manipulate the coupling factors. For example:
+\begin{example}
+  c_to_cbar(ele, cbar_mat)             ! Form Cbar(2,2) matrix
+  make_v_mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
+\end{example}
+See \sref{r:mat} for a complete listing of such routines.
+
+The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates
+whether the $a$ and $b$ normal modes have been flipped relative to the
+beginning of the lattice. See Sagan and Rubin\cite{b:coupling} for a
+discussion of this. The convention adopted  by \bmad is that all the
+\vn{%a} component of all the elements in a lattice will all correspond
+to the same physical normal mode. Similary, the \vn{%b} component of all
+the elements will all correspond to some (other) physical normal mode.
+That is, at an element where there is a mode flip (\vn{%mode_flip} is
+True), the \vn{%a} component actuall corresponds to the $\bfB$ matrix
+element in \Eq{ua00b} and vice versa. The advantage of this convention
+is that routines that calculate properties of the modes (for example the
+emittance), can ignore whether the modes are flipped or not.
+
+The normal mode analysis of Sagan and Rubin,
+while it has the benefit of simplicity, is strictly
+only applicable to lattices where the RF cavities are turned off. 
+The full 6-dimensional analysis is summerized by Wolski\cite{b:wolski.coupling}. 
+The \hyperref[r:normal.mode3.calc]{normal_mode3_calc} routine proform 
+the full analysis. The results are put in
+the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_struct}:
+\index{ele_struct!\%mode3}
+\begin{example}
+  type mode3_struct
+    real(rp) v(6,6)
+    type (twiss_struct) a, b, c
+    type (twiss_struct) x, y
+  end type
+\end{example}
 
 %-----------------------------------------------------------------------------
 \section{Twiss Parameter Calculations}
@@ -7,8 +89,48 @@
 \index{twiss parameters}
 \index{twiss parameters!calculation}
 
-The Twiss parameters for an element are stored in the
-\vn{ele_struct}. See Chapter~\ref{c:ele.struct} for more details.
+A calculation of the Twiss parameters starts with the Twiss parameters
+at the beginning of the lattice. For linear machines, these twiss parameter
+need to be set in the input lattice file (\sref{s:beginning}). For
+circular machines, 
+the routine \vnr{twiss_at_start} may be used (\sref{s:beginning})
+\begin{example}
+  type (lat_struct) lat
+  ...
+  if (lat%param%lattice_type == circular_lattice$) call twiss_at_start(lat)
+\end{example}
+The initial twiss parameters are placed in \vn{lat%ele(0)}. 
+
+To propagate the Twiss, coupling and dispersion 
+parameters from the start of the lattice to the end, the routine
+\hyperref[r:twiss.propagate.all]{twiss_propagate_all} can be used. This
+routine works by repeated calls to \vnr{twiss_propagate1} which does
+a single propagation from one element to another. The Twiss propagation
+depends upon the transfer matrices having already computed (\sref{c:tracking}).
+
+
+In propagating the Twiss
+parameters, the dispersion values in \vn{%x} and \vn{%y} are assumed
+to be correct and the dispersion values in \vn{%a} and \vn{%b} are
+ignored. [Notice, though, in an input lattice file, if
+beginning[eta_a] is set, Bmad does the correct bookkeeping.] In
+general, setting one Twiss parameter will affect the others. To make
+sure everything is consistent, the \vnr{changed_attribute_bookkeeper}
+routine can be used.
+
+If the Twiss parameters need to be transfered from 
+one element to another The three components \vn{%a}, \vn{%b}, and \vn{%c}
+need to be copied. Additionally, to transfer the dispersion, the two
+components \vn{%x} and \vn{%y} need to be copied since the standard
+dispersion propagation routine, \vn{twiss_propagate1}, computes normal mode
+dispersions from the projected ones. Thus a full transfer looks like
+\begin{example}
+  ele2%a = ele1%a
+  ele2%b = ele1%b
+  ele2%x = ele1%x
+  ele2%y = ele1%y
+  ele2%z = ele1%z
+\end{example}
 
 Before any Twiss parameters can be calculated the transfer matrices
 stored in the lattice elements must be computed. \vnr{bmad_parser} does
@@ -40,7 +162,9 @@ in a program. For example
 \end{example}
 Note that \vn{%beta}, \vn{%alpha}, and \vn{%gamma} all must be specified.
 
-If the lattice is closed then \vnr{twiss_at_start} may be used to
+
+
+If the lattice is circular, the routine \vnr{twiss_at_start} may be used to
 calculate the self--consistent starting Twiss parameters:
 \begin{example}
   type (lat_struct) lat
@@ -62,6 +186,8 @@ Twiss parameters at any given longitudinal location. Alternatively, to
 propagate the Twiss parameters partially through a given element use
 the the routine \vnr{twiss_and_track_partial}.
 
+
+twiss_and_track_at_s \aaaa
 
 %-----------------------------------------------------------------------------
 \section{Tune Calculation}
@@ -143,32 +269,3 @@ through the lattice input file or within a program. Additionally a
 routine \vn{em_field_custom} must be linked with any program using the
 custom calculations.
 
-%-----------------------------------------------------------------------------
-\section{Particle Information}
-\label{s:particle}
-\index{particle!information}
-
-In a \vn{lat_struct} structure the particle type is stored in the
-integer variable \vn{%param%particle}. The value of this variable will
-correspond to one of the constants:
-\index{positron}\index{electron}\index{proton}\index{antiproton}
-\begin{example}
-  positron\$
-  electron\$
-  proton\$
-  antiproton\$
-\end{example}
-To print the name of the particle use the function
-\vnr{particle_name}. A particles mass and charge can be obtained from
-the functions \vnr{mass_of} and \vnr{charge_of} respectively. 
-\vn{charge_of} returns the particle's charge in units of the fundamental
-electron charge. Example:
-\begin{example}
-  type (lat_struct) lat
-  call bmad_parser (input_file_name, lat)
-  print *, 'Beam Particles are: ', particle_name(lat%param%particle)
-  if (lat%param%particle == proton\$) print *, 'I do not like protons!'
-  print *, 'Particle mass (eV):    ', mass_of(lat%param%particle)
-  print *, 'Particle charge (Coul):', &
-                          e_charge * charge_of(lat%param%particle)
-\end{example}
