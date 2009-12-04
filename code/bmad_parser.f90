@@ -53,11 +53,12 @@ type (parser_lat_struct) plat
 type (ele_struct), save, pointer :: ele, slave
 type (ele_struct), allocatable, save :: old_ele(:) 
 type (used_seq_struct), allocatable ::  used_line(:)
+type (lat_ele_loc_struct) m_slaves(100)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 character(40), allocatable ::  in_name(:), seq_name(:)
 
-integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, ixm(100)
+integer ix_word, i_use, i, j, k, n, ix, ix1, ix2
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0
 integer, pointer :: n_max
@@ -699,10 +700,10 @@ do i = 1, lat%n_ele_track
     if (used_line(j)%ix_multipass /= ix_multipass) cycle
     if (used_line(j)%multipass_line /= used_line(i)%multipass_line) cycle
     n_multi = n_multi + 1
-    ixm(n_multi) = j
+    m_slaves(n_multi) = ele_to_lat_loc (lat%ele(j))
     used_line(j)%ix_multipass = 0  ! mark as taken care of
   enddo
-  call add_this_multipass (lat, ixm(1:n_multi))
+  call add_this_multipass (lat, m_slaves(1:n_multi))
 enddo
 
 ! A patch element with ref_orb = patch_out$ gets a lat%control element to keep

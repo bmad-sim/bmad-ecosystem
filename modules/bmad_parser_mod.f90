@@ -2585,22 +2585,23 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_this_multipass (lat, ixm, lord_in)
+subroutine add_this_multipass (lat, m_slaves, lord_in)
 
 implicit none
 
 type (lat_struct) lat
 type (ele_struct), pointer :: slave, lord, slave2, lord2
 type (ele_struct), optional :: lord_in
+type (lat_ele_loc_struct) m_slaves(:)
 
-integer i, j, k, n, i1, ix, ixc, ixic, ix_lord, ix_slave
-integer n_multipass, ixm(:), ic, ix_l1, ix_l0
+integer i, j, k, n, i1, ix, ixc, ixic, ix_lord
+integer n_multipass, ic, ix_l1, ix_l0
 
 ! Count slaves.
 ! If i > lat%n_ele_track we are looking at cloning a super_lord which should
 ! not happen.
 
-n_multipass = size(ixm)
+n_multipass = size(m_slaves)
 
 ! setup multipass_lord
 
@@ -2610,7 +2611,7 @@ lord => lat%ele(ix_lord)
 if (present(lord_in)) then
   lord = lord_in   ! Use lord_in as template
 else
-  lord = lat%ele(ixm(1))  ! Set attributes equal to first slave.
+  lord = pointer_to_ele(lat, m_slaves(1))  ! Set attributes equal to first slave.
 endif
 
 lord%lord_status = multipass_lord$
@@ -2623,11 +2624,11 @@ if (lord%key == sbend$ .and. lord%ref_orbit == 0) lord%ref_orbit = single_ref$
 ! Setup bookkeeping between lord and slaves
 
 do i = 1, n_multipass
-  ix_slave = ixm(i)
+  slave => pointer_to_ele (lat, m_slaves(i))
   ixc = i + lord%ix1_slave - 1
   lat%control(ixc)%ix_lord = ix_lord
-  lat%control(ixc)%ix_slave = ix_slave
-  slave => lat%ele(ix_slave)
+  lat%control(ixc)%ix_slave = slave%ix_ele
+  lat%control(ixc)%ix_branch = slave%ix_branch
   if (slave%n_lord /= 0) then
     call warning ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
                   'PLEASE GET EXPERT HELP!')
@@ -2722,11 +2723,10 @@ type (ele_struct), pointer :: eles(:)
 type (control_struct), pointer :: control(:)
 type (multipass_all_info_struct) m_info
 type (lat_struct), optional :: in_lat
+type (lat_ele_loc_struct), allocatable :: m_slaves(:)
 
-integer, pointer :: ics(:)
 integer ix, i, j, k, it, nic, nn, i_sup, i_ele, ib
 integer n_inserted, n_con
-integer, allocatable :: ixs(:)
 
 character(40) matched_name(200), num, name
 character(40), allocatable :: multi_name(:)
@@ -2745,7 +2745,6 @@ call init_ele(super_ele)
 
 eles => lat%ele
 control => lat%control
-ics => lat%ic
 
 super_ele_saved = super_ele_in      ! in case super_ele_in changes
 super_ele = super_ele_saved        ! 
@@ -2788,7 +2787,7 @@ do
     ! must be done at all multipass locations.
 
     if (ref_ele%lord_status == multipass_lord$) then
-      allocate (ixs(ref_ele%n_slave), multi_name(ref_ele%n_slave))
+      allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
       do i = ref_ele%ix1_slave, ref_ele%ix2_slave  
         ix = lat%control(i)%ix_slave 
         lat%ele(ix)%ix_pointer = i + 1 - ref_ele%ix1_slave  ! tag ref element
@@ -2841,25 +2840,26 @@ do
         if (lat%ele(i)%name == 'temp_name!') then
           lat%ele(i)%name = super_ele_saved%name
           j = j + 1
-          ixs(j) = i
+          m_slaves(j) = ele_to_lat_loc (lat%ele(i))
         endif
       enddo
 
-      ele => lat%ele(ixs(1))
+      ele => pointer_to_ele (lat, m_slaves(1))
       if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
         ix = lat%control(ele%ix1_slave)%ix_slave
         if (lat%ele(ix)%n_lord == 1) then
-          do i = 1, size(ixs)
-            ele => lat%ele(ixs(i))
+          do i = 1, size(m_slaves)
+            ele => pointer_to_ele (lat, m_slaves(i))
             ele%key = -1 ! Mark for deletion
-            ixs(i) = lat%control(ele%ix1_slave)%ix_slave ! point to super_slave
-            lat%ele(ixs(i))%name = super_ele_saved%name
+            ele => pointer_to_slave (lat, ele, 1)
+            ele%name = super_ele_saved%name
+            m_slaves(i) = ele_to_lat_loc (ele)
           enddo
           call remove_eles_from_lat (lat, .false.)
         endif
       endif
 
-      call add_this_multipass (lat, ixs, super_ele_saved) 
+      call add_this_multipass (lat, m_slaves, super_ele_saved) 
 
       ! Reconnect drifts that were part of the multipass region.
 
@@ -2870,10 +2870,11 @@ do
           if (slave%slave_status == multipass_slave$) cycle
           do k = 1, size(m_info%top(i)%slave(:, j))
             ele => m_info%top(i)%slave(k, j)%ele
+            m_slaves(k) = ele_to_lat_loc (ele)
             ib = index(ele%name, '\') ! '
             if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
           enddo
-          call add_this_multipass (lat, ixs)
+          call add_this_multipass (lat, m_slaves)
         enddo
       enddo
 

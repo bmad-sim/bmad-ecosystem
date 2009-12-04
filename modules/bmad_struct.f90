@@ -151,6 +151,13 @@ type ele_pointer_struct
   type (ele_struct), pointer :: ele => null()
 end type
 
+! Structure to hold the information of where an individual element is in the lattice.
+
+type lat_ele_loc_struct
+  integer ix_ele
+  integer ix_branch
+end type
+
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct

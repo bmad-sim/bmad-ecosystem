@@ -14,6 +14,7 @@
 !                     to be varied.
 !   contl(:)       -- Control_struct: control info. 1 element for each slave.
 !     %ix_slave      -- Index of element to control
+!     %ix_branch     -- Index of branch element belongs to.
 !     %ix_attrib     -- Index of attribute controlled
 !     %coef          -- Coefficient
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
