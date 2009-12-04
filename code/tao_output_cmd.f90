@@ -510,7 +510,7 @@ case ('ps', 'ps-l', 'gif', 'gif-l')
   endif
 
   call qp_open_page (action, plot_file = file_name, scale = scale)
-  call tao_draw_plots ()   ! GIF plot
+  call tao_draw_plots (.false.)   ! GIF plot
   call qp_close_page
 
   call tao_draw_plots ()   ! Update the plotting window

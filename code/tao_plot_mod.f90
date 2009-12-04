@@ -11,14 +11,16 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_draw_plots ()
+! Subroutine tao_draw_plots (do_clear)
 !
 ! Subroutine to draw the plots on the plot window.
 !
 ! Input:
+!   do_clear -- Logical, optional: If present and False then call qp_clear_page.
+!                 This argument is used when drawing PS or GIF.
 !-
 
-subroutine tao_draw_plots ()
+subroutine tao_draw_plots (do_clear)
 
 implicit none
 
@@ -36,13 +38,14 @@ character(80) text
 character(16) :: r_name = 'tao_draw_plots'
 character(3) view_str
 
+logical, optional :: do_clear
 logical found, err, beam_source
 
 ! inits
 
 if (.not. s%global%plot_on) return
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
-call qp_clear_page
+if (logic_option(.true., do_clear)) call qp_clear_page
 
 h = s%plot_page%text_height
 call qp_set_text_attrib ('TEXT', height = h)
