@@ -33,6 +33,12 @@ end type
 
 ----------------------------------
 
+Rename: mat6 -> xfer_mat
+		mat6_calc_method -> xfer_mat_calc_method
+		etc...
+
+----------------------------------
+
 Python(x,y) / Qt front end for gui/graphics
 
 http://www.pythonxy.com/foreword.php

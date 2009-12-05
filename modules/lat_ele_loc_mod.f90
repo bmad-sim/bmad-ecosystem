@@ -487,6 +487,13 @@ integer ix_slave, icon
 
 !
 
+if (ix_slave > lord%n_slave .or. ix_slave < 1) then
+  call err_exit
+  nullify(slave_ptr)
+  ix_control = -1
+  return
+endif
+
 icon = lord%ix1_slave + ix_slave - 1
 con => lat%control(icon)
 slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
@@ -528,6 +535,13 @@ integer, optional :: ix_control
 integer ix_lord, icon
 
 !
+
+if (ix_lord > slave%n_lord .or. ix_lord < 1) then
+  call err_exit
+  nullify(lord_ptr)
+  ix_control = -1
+  return
+endif
 
 icon = lat%ic(slave%ic1_lord + ix_lord - 1)
 lord_ptr => lat%ele(lat%control(icon)%ix_lord)

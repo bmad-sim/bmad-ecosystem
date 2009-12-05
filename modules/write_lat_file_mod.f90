@@ -1224,7 +1224,7 @@ do
       if (ele%key == wiggler$) then
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
-          lord => pointer_to_lord(lat, ele, 1)
+          lord => pointer_to_lord(lat_out, ele, 1)
           call create_wiggler_model (lord, lat_model)
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &

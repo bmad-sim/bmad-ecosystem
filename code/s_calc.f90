@@ -52,6 +52,7 @@ lat%param%total_length = ss - lat%ele(0)%s
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
   if (lord%key == null_ele$) cycle
+  if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
   if (lord%lord_status == super_lord$) then
     slave => pointer_to_slave (lat, lord, lord%n_slave)
     lord%s = slave%s
