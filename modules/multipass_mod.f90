@@ -262,8 +262,9 @@ if (ele%slave_status == multipass_slave$) then
   if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
   n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
-    if (present(chain_ele)) chain_ele(j)%ele => pointer_to_slave(lat, m_lord, j)
-    if (chain_ele(j)%ele%ix_ele  == ele%ix_ele) ix_pass = j
+    slave => pointer_to_slave(lat, m_lord, j)
+    if (present(chain_ele)) chain_ele(j)%ele => slave
+    if (slave%ix_ele  == ele%ix_ele) ix_pass = j
   enddo
 endif
 
