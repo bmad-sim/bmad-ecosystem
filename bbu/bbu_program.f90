@@ -47,6 +47,7 @@ bbu_param%begdr = 5.234
 bbu_param%enddr = 6.135
 bbu_param%use_interpolated_threshold = .true.
 bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
+bbu_param%ran_seed = 0
 
 beam_init%n_particle = 1
 
@@ -55,7 +56,10 @@ read (1, nml = bbu_params)
 close (1)
 
 ! Define distance between bunches
+
 beam_init%dt_bunch = 1 / bbu_param%bunch_freq
+call ran_seed_put (bbu_param%ran_seed)
+print *, 'Random number seed:', bbu_param%ran_seed
 
 ! Init
 

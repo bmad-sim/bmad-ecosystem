@@ -46,6 +46,7 @@ type bbu_param_struct
   real(rp) begdr
   real(rp) enddr
   integer nrep
+  integer ran_seed
 end type
 
 contains
