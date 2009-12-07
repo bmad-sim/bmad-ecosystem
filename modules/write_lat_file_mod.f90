@@ -719,10 +719,10 @@ do ib = 1, ubound(lat%branch, 1)
     call write_line_element (line, iu, branch%ele(ie), lat) 
   enddo
 
-enddo
+  line = line(:len_trim(line)-1) // ')'
+  call write_out (line, iu, .true.)
 
-line = line(:len_trim(line)-1) // ')'
-call write_out (line, iu, .true.)
+enddo
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
