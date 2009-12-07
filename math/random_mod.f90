@@ -369,23 +369,18 @@ integer v(10)
 real(rp) dum(2)
 
 ! Random number generator init
-! Only init if seed >= 0
 
-if (seed > -1) then
-
-  if (seed == 0) then
-    call date_and_time (values = v)
-    my_seed = v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
-  else
-    my_seed = seed
-  endif
-
-  am = nearest(1.0,-1.0)/IM
-  iy = ior(ieor(888889999, abs(my_seed)), 1)
-  ix = ieor(777755555, abs(my_seed))
-  number_stored = .false.
-
+if (seed == 0) then
+  call date_and_time (values = v)
+  my_seed = v(2) + 11*v(3) + 111*v(5) + 1111*v(6) + 11111*v(7) + 111111*v(8)
+else
+  my_seed = seed
 endif
+
+am = nearest(1.0,-1.0)/IM
+iy = ior(ieor(888889999, abs(my_seed)), 1)
+ix = ieor(777755555, abs(my_seed))
+number_stored = .false.
 
 ! Quasi-random number generator init
 
@@ -438,7 +433,7 @@ real(rp), intent(out) :: harvest
 real(rp), save :: r(6)
 character :: r_name = 'ran_uniform_scaler'
 
-!
+! If iy < 0 then the random number generator has never bee initialized.
 
 if (iy < 0) call ran_seed_put(my_seed)
 
