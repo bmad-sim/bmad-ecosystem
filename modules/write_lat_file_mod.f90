@@ -192,7 +192,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == null_ele$) cycle
     if (ele%slave_status == multipass_slave$) cycle ! Ignore for now
-    if (ele%lord_status == super_lord$ .and. multi_lord%ix_ele > 0) cycle
+    if (ele%lord_status == super_lord$ .and. ix_pass > 0) cycle
     if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
 
     if (ie == lat%n_ele_track+1) then

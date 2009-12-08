@@ -138,6 +138,7 @@ type bp_common_struct
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
+  type (used_seq_struct), allocatable ::  used_line(:)
   character(40), pointer :: var_name(:) => null()    ! variable name
   real(rp), pointer :: var_value(:) => null()        ! variable value
   integer, pointer :: var_indexx(:) => null()        ! variable sort index
@@ -4025,24 +4026,82 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_expand_line (ix_line, lat, use_name, sequence, in_name, in_indexx, &
-                        seq_name, seq_indexx, ele_in, used_line, n_ele_use)
+recursive subroutine parser_add_branch (ele, lat, sequence, in_name, in_indexx, &
+                                                        seq_name, seq_indexx, in_lat)
 
 implicit none
 
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele_in(:), ele_line(:)
+type (lat_struct), target :: lat, in_lat
+type (ele_struct) ele
+type (ele_struct), pointer :: ele2
+type (seq_struct), target :: sequence(:)
+type (branch_struct), pointer :: branch
+
+integer, allocatable :: seq_indexx(:), in_indexx(:)
+integer j, nb, n_ele_use
+
+character(*), allocatable ::  in_name(:), seq_name(:)
+
+!
+
+nb = ubound(lat%branch, 1) + 1
+call allocate_branch_array (lat%branch, nb)
+ele%value(ix_branch_to$) = nb
+branch => lat%branch(nb)
+branch%param%lattice_type = linear_lattice$
+branch%key            = ele%key
+branch%ix_branch      = nb
+branch%ix_from_branch = 0
+branch%ix_from_ele    = ele%ix_ele
+branch%name           = ele%component_name
+call parser_expand_line (nb, lat, ele%component_name, sequence, in_name, &
+                              in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+branch%ele(0)%key     = init_ele$
+branch%ele(0)%name    = 'BEGINNING'
+if (ele%alias /= '') branch%name = ele%alias
+branch%n_ele_track = n_ele_use
+branch%n_ele_max   = n_ele_use
+
+do j = 1, n_ele_use
+  ele2 => lat%branch(nb)%ele(j)
+  if (ele2%key == photon_branch$ .or. ele2%key == branch$) then
+    call parser_add_branch (ele2, lat, sequence, in_name, in_indexx, &
+                                                    seq_name, seq_indexx, in_lat)
+  endif
+enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_expand_line
+!
+! Subroutine to do line expansion.
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_expand_line (ix_branch, lat, use_name, sequence, in_name, &
+                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+
+implicit none
+
+type (lat_struct), target :: lat, in_lat
+type (ele_struct), pointer :: ele_line(:)
 type (seq_struct), target :: sequence(:)
 type (seq_ele_struct), pointer :: s_ele, this_seq_ele
 type (seq_stack_struct) stack(40)
 type (seq_struct), pointer :: seq, seq2
-type (used_seq_struct), allocatable ::  used_line(:), used2(:)
+type (used_seq_struct), allocatable ::  used2(:)
 type (seq_ele_struct), target :: dummy_seq_ele
 
 integer, allocatable :: ix_lat(:)
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 integer iseq_tot, i_lev, i_use, n0_multi, n_ele_use, n_max
-integer i, j, k, n, ix, ix_multipass, ix_line
+integer i, j, k, n, ix, ix_multipass, ix_branch
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(*) use_name
@@ -4155,8 +4214,8 @@ line_expansion: do
       seq => sequence(stack(i_lev)%ix_seq)
       if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
         if (stack(i_lev+1)%direction == -1) then
-          used_line(n0_multi:n_ele_use)%ix_multipass = &
-                        used_line(n_ele_use:n0_multi:-1)%ix_multipass
+          bp_com%used_line(n0_multi:n_ele_use)%ix_multipass = &
+                        bp_com%used_line(n_ele_use:n0_multi:-1)%ix_multipass
         endif
       endif
       cycle
@@ -4221,33 +4280,33 @@ line_expansion: do
     if (n_ele_use+1 > size(ix_lat)) then
       n = 1.5*n_ele_use
       call re_allocate (ix_lat, n)
-      ix = size(used_line) 
+      ix = size(bp_com%used_line) 
       allocate (used2(ix))
-      used2(1:ix) = used_line(1:ix)
-      deallocate (used_line)
-      allocate (used_line(1:n))
-      used_line(1:ix) = used2(1:ix)
+      used2(1:ix) = bp_com%used_line(1:ix)
+      deallocate (bp_com%used_line)
+      allocate (bp_com%used_line(1:n))
+      bp_com%used_line(1:ix) = used2(1:ix)
       deallocate (used2)
     endif
 
     call pushit (ix_lat, n_ele_use, this_seq_ele%ix_ele)
 
-    used_line(n_ele_use)%name = this_seq_ele%name
+    bp_com%used_line(n_ele_use)%name = this_seq_ele%name
 
     if (stack(i_lev)%tag /= '' .and. s_ele%tag /= '') then
-      used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
+      bp_com%used_line(n_ele_use)%tag =  trim(stack(i_lev)%tag) // '.' // s_ele%tag
     elseif (s_ele%tag /= '') then
-      used_line(n_ele_use)%tag = s_ele%tag
+      bp_com%used_line(n_ele_use)%tag = s_ele%tag
     else
-      used_line(n_ele_use)%tag =  stack(i_lev)%tag
+      bp_com%used_line(n_ele_use)%tag =  stack(i_lev)%tag
     endif
 
     if (stack(i_lev)%multipass) then
       ix_multipass = ix_multipass + 1
-      used_line(n_ele_use)%ix_multipass = ix_multipass
-      used_line(n_ele_use)%multipass_line = multipass_line
+      bp_com%used_line(n_ele_use)%ix_multipass = ix_multipass
+      bp_com%used_line(n_ele_use)%multipass_line = multipass_line
     else
-      used_line(n_ele_use)%ix_multipass = 0
+      bp_com%used_line(n_ele_use)%ix_multipass = 0
     endif
 
 
@@ -4321,22 +4380,22 @@ enddo line_expansion
 ! Transfer the ele information from the in_lat to lat and
 ! do the bookkeeping for settable dependent variables.
 
-if (ix_line == 0) then  ! Main line
+if (ix_branch == 0) then  ! Main branch
   call allocate_lat_ele_array(lat, n_ele_use)
   ele_line => lat%ele
 else                    ! branch line
-  call allocate_ele_array(lat%branch(ix_line)%ele, n_ele_use)
-  ele_line => lat%branch(ix_line)%ele
+  call allocate_ele_array(lat%branch(ix_branch)%ele, n_ele_use)
+  ele_line => lat%branch(ix_branch)%ele
 endif
 
-ele_line(0)%ix_branch = ix_line
+ele_line(0)%ix_branch = ix_branch
 
 do i = 1, n_ele_use
-  ele_line(i) = ele_in(ix_lat(i)) 
-  ele_line(i)%name = used_line(i)%name
-  ele_line(i)%ix_branch = ix_line
-  if (used_line(i)%tag /= '') ele_line(i)%name = &
-                trim(used_line(i)%tag) // '.' // ele_line(i)%name
+  ele_line(i) = in_lat%ele(ix_lat(i)) 
+  ele_line(i)%name = bp_com%used_line(i)%name
+  ele_line(i)%ix_branch = ix_branch
+  if (bp_com%used_line(i)%tag /= '') ele_line(i)%name = &
+                trim(bp_com%used_line(i)%tag) // '.' // ele_line(i)%name
   call settable_dep_var_bookkeeping (ele_line(i))
 enddo
 

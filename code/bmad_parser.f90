@@ -52,7 +52,6 @@ type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct) plat
 type (ele_struct), save, pointer :: ele, slave
 type (ele_struct), allocatable, save :: old_ele(:) 
-type (used_seq_struct), allocatable ::  used_line(:)
 type (lat_ele_loc_struct) m_slaves(100)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
@@ -60,7 +59,7 @@ character(40), allocatable ::  in_name(:), seq_name(:)
 
 integer ix_word, i_use, i, j, k, n, ix, ix1, ix2
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
-integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0
+integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele
 integer, pointer :: n_max
 integer, allocatable :: iele(:)
 
@@ -632,10 +631,10 @@ if (lat%name == blank_name$) then
   return
 endif
 
-allocate (used_line(n_max))
+allocate (bp_com%used_line(n_max))
 
 call parser_expand_line (0, lat, lat%name, sequence, in_name, in_indexx, &
-                seq_name, seq_indexx, in_lat%ele, used_line, n_ele_use)
+                                      seq_name, seq_indexx, in_lat, n_ele_use)
 
 if (bp_com%error_flag) then
   call parser_end_stuff ()
@@ -693,15 +692,15 @@ endif
 ! Multipass elements are paired by multipass index and multipass line name
 
 do i = 1, lat%n_ele_track
-  if (used_line(i)%ix_multipass == 0) cycle
+  if (bp_com%used_line(i)%ix_multipass == 0) cycle
   n_multi = 0  ! number of elements to slave together
-  ix_multipass = used_line(i)%ix_multipass
+  ix_multipass = bp_com%used_line(i)%ix_multipass
   do j = i, lat%n_ele_track
-    if (used_line(j)%ix_multipass /= ix_multipass) cycle
-    if (used_line(j)%multipass_line /= used_line(i)%multipass_line) cycle
+    if (bp_com%used_line(j)%ix_multipass /= ix_multipass) cycle
+    if (bp_com%used_line(j)%multipass_line /= bp_com%used_line(i)%multipass_line) cycle
     n_multi = n_multi + 1
     m_slaves(n_multi) = ele_to_lat_loc (lat%ele(j))
-    used_line(j)%ix_multipass = 0  ! mark as taken care of
+    bp_com%used_line(j)%ix_multipass = 0  ! mark as taken care of
   enddo
   call add_this_multipass (lat, m_slaves(1:n_multi))
 enddo
@@ -823,8 +822,18 @@ endif
 
 call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
-! Go through the IN_LAT elements and put in the superpositions, groups, etc.
-! First put in the superpositions.
+! Add branch lines.
+! Branch lines may contain branch elements so this is an iterative process
+
+do i = 1, lat%n_ele_max
+  if (lat%ele(i)%key /= photon_branch$ .and. lat%ele(i)%key /= branch$) cycle
+  if (lat%ele(i)%slave_status == multipass_slave$) cycle
+  call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, &
+                                                            seq_name, seq_indexx, in_lat)
+enddo
+
+! Go through the IN_LAT elements and put in the superpositions.
+! If the superposition is a branch elemen, need to add the branch line.
 
 call s_calc (lat)              ! calc longitudinal distances
 call control_bookkeeper (lat)
@@ -832,39 +841,18 @@ call control_bookkeeper (lat)
 do i = 1, n_max
   if (in_lat%ele(i)%lord_status /= super_lord$) cycle
   call add_all_superimpose (lat, in_lat%ele(i), plat%ele(i), in_lat)
-enddo
 
-! Add branch lines
-! Branch lines may have superposition so this is an iterative process
-
-n0 = 0
-n = 0
-do
-  branch0 => lat%branch(n0)
-  do i = 1, branch0%n_ele_track
-    if (branch0%ele(i)%key /= photon_branch$ .and. branch0%ele(i)%key /= branch$) cycle
-    n = n + 1
-    branch0%ele(i)%value(ix_branch_to$) = n
-    call allocate_branch_array (lat%branch, n)
-    branch0 => lat%branch(n0)
-    branch => lat%branch(n)
-    branch%param%lattice_type = linear_lattice$
-    branch%key = branch0%ele(i)%key
-    branch%ix_branch = n
-    branch%ix_from_branch = 0
-    branch%ix_from_ele = i
-    call parser_expand_line (n, lat, lat%ele(i)%component_name, sequence, in_name, &
-      in_indexx, seq_name, seq_indexx, in_lat%ele, used_line, n_ele_use)
-    branch%ele(0)%key = init_ele$
-    branch%ele(0)%name = 'BEGINNING'
-    branch%name        = lat%ele(i)%component_name
-    if (lat%ele(i)%alias /= '') branch%name = lat%ele(i)%alias
-    branch%n_ele_track = n_ele_use
-    branch%n_ele_max   = n_ele_use
+  if (in_lat%ele(i)%key /= photon_branch$ .and. in_lat%ele(i)%key /= branch$) cycle
+  do j = 0, ubound(lat%branch, 1)
+    branch => lat%branch(j)
+    n_ele = branch%n_ele_max
+    do k = 1, n_ele
+      if (branch%ele(k)%name /= in_lat%ele(i)%name) cycle
+      call parser_add_branch (branch%ele(k), lat, sequence, in_name, in_indexx, &
+                                                              seq_name, seq_indexx, in_lat)
+      branch => lat%branch(j)
+    enddo
   enddo
-
-  n0 = n0 + 1
-  if (n0 > n) exit
 
 enddo
 
@@ -1002,13 +990,13 @@ if (logic_option (.true., do_dealloc)) then
 
   if (allocated(iele)) deallocate (iele)
 
-  if (associated (in_lat%ele))     call deallocate_lat_pointers (in_lat)
-  if (associated (plat%ele))       deallocate (plat%ele)
-  if (allocated (seq_indexx))      deallocate (seq_indexx, seq_name)
-  if (allocated (in_indexx))       deallocate (in_indexx, in_name)
-  if (allocated (in_lat%control))  deallocate (in_lat%control)
-  if (allocated (in_lat%ic))       deallocate (in_lat%ic)
-  if (allocated (used_line))       deallocate (used_line)
+  if (associated (in_lat%ele))           call deallocate_lat_pointers (in_lat)
+  if (associated (plat%ele))             deallocate (plat%ele)
+  if (allocated (seq_indexx))            deallocate (seq_indexx, seq_name)
+  if (allocated (in_indexx))             deallocate (in_indexx, in_name)
+  if (allocated (in_lat%control))        deallocate (in_lat%control)
+  if (allocated (in_lat%ic))             deallocate (in_lat%ic)
+  if (allocated (bp_com%used_line))      deallocate (bp_com%used_line)
   if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
 
 endif
