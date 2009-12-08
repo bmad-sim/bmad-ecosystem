@@ -275,7 +275,7 @@ propagation_loop: do
 
     ! Check if we should actually be stopping at the extremum (minimal x)
 
-    if (stop_at_check_pt .and. now%vec(2) < 0) then 
+    if (stop_at_check_pt .and. now%vec(2) * g < 0) then 
       dl2 = -now%vec(2) * (radius + now%vec(1)) / (now%vec(2)**2 + now%vec(6)**2)
       if (dl2 < dl) then
         dl = 1.00000001 * dl2 ! Add extra to make sure we are not short due to roundoff.
@@ -287,9 +287,10 @@ propagation_loop: do
       endif
     endif
 
-    ! Move to the stop point
+    ! Move to the stop point. 
+    ! Need to remember that radius can be negative.
 
-    denom = sqrt((radius + now%vec(1) + dl * now%vec(2))**2 + (dl * now%vec(6))**2) 
+    denom = sign (sqrt((radius + now%vec(1) + dl * now%vec(2))**2 + (dl * now%vec(6))**2), radius)
     sin_t = (dl * now%vec(6)) / denom
     cos_t = (radius + now%vec(1) + dl * now%vec(2)) / denom
     v_x = now%vec(2); v_s = now%vec(6)

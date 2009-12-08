@@ -24,7 +24,7 @@ type (wall3d_struct) wall
 type (wall3d_pt_struct) wall_pt(0:100)
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma
+real(rp) emit_a, emit_b, sig_e, g, gamma, radius
 
 integer i, j, n_wall_pt_max, random_seed
 integer ix_ele, n_photon_tot, i0_ele, n_photon_ele, n_photon_here
@@ -163,8 +163,16 @@ do
                              emit_a, emit_b, sig_e, photon_direction, photon%start)
       photon%n_reflect = 0
       photon%start%ix_ele = ix_ele
+
+      call photon_radius (photon%start, wall, radius)
+      if (radius > 1) then
+        print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_tot
+        print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
+        cycle
+      endif
+
       photon%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
-                                                      (4 * h_bar_planck * c_light * num_photons)
+                                                      (6 * h_bar_planck * c_light * num_photons)
       call track_photon (photon, lat, wall)
 
     enddo
