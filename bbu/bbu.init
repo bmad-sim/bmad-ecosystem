@@ -23,7 +23,7 @@
   bbu_param%use_interpolated_threshold = .true.
 
   bbu_param%nrep = 1500   ! Number of times to repeat threshold calculation
-  bbu_param%ran_seed = -1 ! If 0, seed is chosen from system clock
+  bbu_param%ran_seed = 1 ! If 0, seed is chosen from system clock
 
 /
   bbu_param%lat_file_name = 'cerl7.4_1hom_1cav_taylor.bmad'  ! Bmad lattice file name
