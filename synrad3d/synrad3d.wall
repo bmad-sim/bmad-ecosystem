@@ -7,8 +7,8 @@
 !  /
 !
 ! The format to specify a wall point is:
-!    wall_pt(n) = z, shape, x_half_width, y_half_height, antichamber_half_height(+x side), 
-!                                                            antichamber_half_height(-x side)
+!    wall_pt(n) = z, shape, x_half_width, y_half_height, antechamber_half_height(+x side), 
+!                                                            antechamber_half_height(-x side)
 !
 ! Wall point parameters:
 !   n             -- Wall point index. The index starts at 0 and runs to to the last point.
@@ -21,16 +21,16 @@
 !												'rectangular'
 !   x_half_width  -- Half width of the chamber.
 !   y_half_height -- Half height of the chamber.
-!   antichamber_half_height(+x side)
-!                 -- Antichamber half height on the +x side of the chamber.
-!   antichamber_half_height(-x side)
-!                 -- Antichamber half height on the -x side of the chamber.
+!   antechamber_half_height(+x side)
+!                 -- Antechamber half height on the +x side of the chamber.
+!   antechamber_half_height(-x side)
+!                 -- Antechamber half height on the -x side of the chamber.
 !
-! The antichamber values are optional. If present, for a given wall point, the 
-! antichamber is taken to start at the previous wall point and end at the given wall point.
-! A photon stricking the wall will be considered to have entered the antichamber if
-!      |y| (vertical coordinate) < antichamber_half_height
-! Negative values for the antichamber half height are taken to mean no antichamber
+! The antechamber values are optional. If present, for a given wall point, the 
+! antechamber is taken to start at the previous wall point and end at the given wall point.
+! A photon stricking the wall will be considered to have entered the antechamber if
+!      |y| (vertical coordinate) < antechamber_half_height
+! Negative values for the antechamber half height are taken to mean no antechamber
 ! exists for a given section of wall.
 !-
 

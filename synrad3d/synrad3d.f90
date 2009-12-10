@@ -73,8 +73,8 @@ close (1)
 
 n_wall_pt_max = -1
 wall_pt%type = ''
-wall_pt%antichamber_plus_x_height2 = -1
-wall_pt%antichamber_minus_x_height2 = -1
+wall_pt%antechamber_plus_x_height2 = -1
+wall_pt%antechamber_minus_x_height2 = -1
 
 open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
@@ -143,11 +143,11 @@ endif
 open (1, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
 
-if (any(wall_pt%antichamber_plus_x_height2 > 0) .or. &
-    any(wall_pt%antichamber_minus_x_height2 > 0)) then
-  dat2_file = trim(dat_file) // '.antichamber'
+if (any(wall_pt%antechamber_plus_x_height2 > 0) .or. &
+    any(wall_pt%antechamber_minus_x_height2 > 0)) then
+  dat2_file = trim(dat_file) // '.antechamber'
   open (2, file = dat2_file)
-  print *, 'Data file for photons hitting the antichamber: ', trim(dat_file)
+  print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
 endif
 
 n_photon_tot = 0
@@ -230,7 +230,7 @@ write (1, *)
 do i = 1, n_photon_tot      
   photon => photons(i)
   iu = 1
-  if (photon%hit_antichamber) iu = 2
+  if (photon%hit_antechamber) iu = 2
   write (iu, '(2i8, f10.2, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
                                              '! index, n_reflect, eV, intensity'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'

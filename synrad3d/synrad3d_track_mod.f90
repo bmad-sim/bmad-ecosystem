@@ -58,7 +58,7 @@ do
   photon%reflect(n) = photon%now
   deallocate(p_temp)
 
-  if (photon%hit_antichamber) return
+  if (photon%hit_antechamber) return
 
   call reflect_photon (photon, wall, absorbed)
   if (absorbed) return
@@ -461,15 +461,15 @@ enddo
 
 photon = photon1
 
-! hit the antichamber?
+! hit the antechamber?
 
 iw = photon%now%ix_wall
 if (photon%now%vec(1) > 0) then
-  if (wall%pt(iw)%antichamber_plus_x_height2 > abs(photon%now%vec(3))) &
-                                                       photon%hit_antichamber = .true.
+  if (wall%pt(iw)%antechamber_plus_x_height2 > abs(photon%now%vec(3))) &
+                                                       photon%hit_antechamber = .true.
 else
-  if (wall%pt(iw)%antichamber_minus_x_height2 > abs(photon%now%vec(3))) &
-                                                       photon%hit_antichamber = .true.
+  if (wall%pt(iw)%antechamber_minus_x_height2 > abs(photon%now%vec(3))) &
+                                                       photon%hit_antechamber = .true.
 endif
 
 end subroutine photon_hit_spot_calc 
