@@ -245,6 +245,8 @@ integer ix
 
 vec => p_orb%vec
 call bracket_index (wall%pt%s, 0, wall%n_pt_max, vec(5), ix)
+p_orb%ix_wall = ix
+
 if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
 
 ! The outward normal vector is discontinuous at the wall points.

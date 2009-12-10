@@ -1,29 +1,44 @@
-! format is:
-!		wall_pt(n) = z, shape, x_half_width, y_half_height
+!+
+! Example wall specification:
 !
-! Notes:
-!   For wall_pt(1): z must be 0.
-!		At the last point, the actual lattice length will be substituted for  z.
-!		Possible shapes: 'elliptical', 'rectangular'
+!  &synrad3d_wall
+!    wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
+!    wall_pt(1) = 80.01, 'rectangular', 0.045, 0.025, 0.01, 0.006
+!  /
+!
+! The format to specify a wall point is:
+!    wall_pt(n) = z, shape, x_half_width, y_half_height, antichamber_half_height(+x side), 
+!                                                            antichamber_half_height(-x side)
+!
+! Wall point parameters:
+!   n             -- Wall point index. The index starts at 0 and runs to to the last point.
+!   z             -- Longitudinal distance from the start of the lattice. 
+!                      For wall_pt(0): z must be 0.
+!                      For the last wall point the z value will be set by 
+!                      synrad3d to the z at the end of the lattice. 
+!   shape         -- Chamber shapes. Possible values are:
+!												'elliptical', 
+!												'rectangular'
+!   x_half_width  -- Half width of the chamber.
+!   y_half_height -- Half height of the chamber.
+!   antichamber_half_height(+x side)
+!                 -- Antichamber half height on the +x side of the chamber.
+!   antichamber_half_height(-x side)
+!                 -- Antichamber half height on the -x side of the chamber.
+!
+! The antichamber values are optional. If present, for a given wall point, the 
+! antichamber is taken to start at the previous wall point and end at the given wall point.
+! A photon stricking the wall will be considered to have entered the antichamber if
+!      |y| (vertical coordinate) < antichamber_half_height
+! Negative values for the antichamber half height are taken to mean no antichamber
+! exists for a given section of wall.
+!-
 
 &synrad3d_wall
-  n_wall_pt_max=5 
   wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
   wall_pt(1) = 80.0, 'elliptical', 0.045, 0.025
   wall_pt(2) = 80.01, 'rectangular', 0.045, 0.025
-  wall_pt(3) = 100.0, 'rectangular', 0.045, 0.025
+  wall_pt(3) = 100.0, 'rectangular', 0.045, 0.025, 0.02, 0.02
   wall_pt(4) = 100.01, 'elliptical', 0.045, 0.025
   wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025 
 /
-
-
-   n_wall_pt_max = 1
-   wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
-   wall_pt(1) = 0.0, 'elliptical', 0.065, 0.045 
-
-   wall_pt(0) = 0.0, 'rectangular', 0.045, 0.025
-   wall_pt(1) = 0.0, 'rectangular', 0.065, 0.045 
-
-
-
-   wall_pt(1) = 0.0, 'elliptical', 0.045, 0.025

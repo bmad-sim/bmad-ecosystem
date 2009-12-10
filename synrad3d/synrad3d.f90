@@ -26,12 +26,12 @@ type (wall3d_pt_struct) wall_pt(0:100)
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
 
-integer i, j, n_wall_pt_max, random_seed
+integer i, j, iu, n_wall_pt_max, random_seed
 integer ix_ele, n_photon_tot, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_phot
 
-character(100) lattice_file, dat_file, wall_file, param_file
+character(100) lattice_file, dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
 logical ok
@@ -71,9 +71,28 @@ open (1, file = param_file, status = 'old')
 read (1, nml = synrad3d_parameters)
 close (1)
 
+n_wall_pt_max = -1
+wall_pt%type = ''
+wall_pt%antichamber_plus_x_height2 = -1
+wall_pt%antichamber_minus_x_height2 = -1
+
 open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
 close (1)
+
+if (n_wall_pt_max > 0) then
+  print *, 'NOTE: YOU DO NOT NEED TO SPECIFY N_WALL_PT_MAX IN YOUR WALL FILE!'
+  print *, '      THIS SET WILL BE IGNORED.'
+endif
+
+do i = 1, ubound(wall_pt, 1)
+  if (wall_pt(i)%type == '') then
+    n_wall_pt_max = i - 1
+    exit
+  endif
+enddo
+
+print *, 'n_wall_pt_max:', n_wall_pt_max
 
 ! Get lattice
 
@@ -123,6 +142,13 @@ endif
 
 open (1, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
+
+if (any(wall_pt%antichamber_plus_x_height2 > 0) .or. &
+    any(wall_pt%antichamber_minus_x_height2 > 0)) then
+  dat2_file = trim(dat_file) // '.antichamber'
+  open (2, file = dat2_file)
+  print *, 'Data file for photons hitting the antichamber: ', trim(dat_file)
+endif
 
 n_photon_tot = 0
 allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
@@ -186,16 +212,35 @@ enddo
 
 ! Write results
 
+write (1, *) 'ix_ele_track_start =', ix_ele_track_start
+write (1, *) 'ix_ele_track_end   =', ix_ele_track_end
+write (1, *) 'photon_direction   =', photon_direction
+write (1, *) 'num_photons        =', num_photons
+write (1, *) 'lattice_file       =', lattice_file
+write (1, *) 'ds_step_min        =', ds_step_min
+write (1, *) 'emit_a             =', emit_a
+write (1, *) 'emit_b             =', emit_b
+write (1, *) 'sig_e              =', sig_e
+write (1, *) 'wall_file          =', wall_file
+write (1, *) 'dat_file           =', dat_file
+write (1, *) 'random_seed        =', random_seed
+write (1, *) 'synrad3d_params%allow_reflections =', synrad3d_params%allow_reflections
+write (1, *)
+
 do i = 1, n_photon_tot      
   photon => photons(i)
-  write (1, '(2i8, f10.2, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
+  iu = 1
+  if (photon%hit_antichamber) iu = 2
+  write (iu, '(2i8, f10.2, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
                                              '! index, n_reflect, eV, intensity'
-  write (1, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
-  write (1, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
+  write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
+  write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
   do j = 0, photon%n_reflect + 1
     ! photon%reflect(j)%vec 
     ! photon%reflect(j)%track_len
   enddo 
 enddo
+
+close (1)
 
 end program

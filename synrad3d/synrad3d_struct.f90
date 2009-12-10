@@ -15,7 +15,8 @@ type photon3d_track_struct
   type (photon3d_coord_struct) start, old, now  ! coords
   type (photon3d_coord_struct), allocatable :: reflect(:)
   real(rp) intensity          ! Intensity of this macro-photon in Photons/(beam_particle*turn)
-  logical crossed_end         ! photon crossed through the lattice end?
+  logical :: crossed_lat_end = .false.     ! photon crossed through the lattice beginning or end?
+  logical :: hit_antichamber = .false.
   integer ix_photon           ! Photon index.
   integer n_reflect
 end type
@@ -29,6 +30,8 @@ type wall3d_pt_struct
   character(16) type   ! elliptical or rectangular
   real(rp) width2      ! half width
   real(rp) height2     ! half height
+  real(rp) antichamber_plus_x_height2
+  real(rp) antichamber_minus_x_height2
 end type
 
 type wall3d_struct

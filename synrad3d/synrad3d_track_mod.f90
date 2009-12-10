@@ -46,6 +46,7 @@ allocate (photon%reflect(0:0))
 photon%reflect(0) = photon%start
 
 do
+
   call track_photon_to_wall (photon, lat, wall)
 
   n = size(photon%reflect)
@@ -57,9 +58,13 @@ do
   photon%reflect(n) = photon%now
   deallocate(p_temp)
 
+  if (photon%hit_antichamber) return
+
   call reflect_photon (photon, wall, absorbed)
   if (absorbed) return
+
   photon%n_reflect = photon%n_reflect + 1
+
 enddo
 
 end subroutine track_photon
@@ -191,7 +196,7 @@ propagation_loop: do
         if (now%ix_ele == lat%n_ele_track) then
           now%vec(5) = now%vec(5) - lat%param%total_length
           now%ix_ele = 1
-          photon%crossed_end = .not. photon%crossed_end
+          photon%crossed_lat_end = .not. photon%crossed_lat_end
           exit
         endif
         now%ix_ele = now%ix_ele + 1
@@ -221,7 +226,7 @@ propagation_loop: do
         if (now%ix_ele <= 0) then
           now%vec(5) = now%vec(5) + lat%param%total_length
           now%ix_ele = lat%n_ele_track
-          photon%crossed_end = .not. photon%crossed_end
+          photon%crossed_lat_end = .not. photon%crossed_lat_end
           exit
         endif
         now%ix_ele = now%ix_ele - 1
@@ -365,7 +370,7 @@ type (photon3d_track_struct) :: photon, photon0, photon1, photon2
 type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: wall_pt
 
-integer ix_wall, ix0, ix1, ix2, i
+integer ix0, ix1, ix2, i, iw
 
 real(rp) del0, del1, del2, dl, radius
 
@@ -455,6 +460,17 @@ enddo
 ! cleanup...
 
 photon = photon1
+
+! hit the antichamber?
+
+iw = photon%now%ix_wall
+if (photon%now%vec(1) > 0) then
+  if (wall%pt(iw)%antichamber_plus_x_height2 > abs(photon%now%vec(3))) &
+                                                       photon%hit_antichamber = .true.
+else
+  if (wall%pt(iw)%antichamber_minus_x_height2 > abs(photon%now%vec(3))) &
+                                                       photon%hit_antichamber = .true.
+endif
 
 end subroutine photon_hit_spot_calc 
 
