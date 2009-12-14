@@ -880,12 +880,13 @@ if (.not. beam_init%is_random) then
    beam_init%n_particle = 1
    tw_init => beam_init%tw_beam_init
    do i = 1, 3
+      call str_upcase(tw_init%type(i), tw_init%type(i))
       select case (tw_init%type(i))
-      case (ellipse$)
+      case ('ELLIPSE')
          beam_init%n_particle = beam_init%n_particle * tw_init%n_ellipse(i) * tw_init%part_per_ellipse(i)
-      case (grid$)
+      case ('GRID')
          beam_init%n_particle = beam_init%n_particle * tw_init%n_x(i) * tw_init%n_px(i)
-      case (KV$)
+      case ('KV')
          is_KV = .true.
          beam_init%n_particle = beam_init%n_particle * tw_init%part_per_ellipse(i)
       case default
@@ -1232,14 +1233,15 @@ alpha(3) = - covar / emitt(3)
 
 ! Fill the corresponding struct and generate the distribution for each phase plane
 do i = 1, 3
+  call str_upcase (tw%type(i), tw%type(i))
    select case (tw%type(i))
-   case (ellipse$)
+   case ('ELLIPSE')
       call init_ellipse_distribution (tw%n_ellipse(i), tw%part_per_ellipse(i), &
                              tw%sigma_cutoff(i), beta(i), alpha(i), emitt(i), space2D(i))
-   case (grid$)
+   case ('GRID')
       call init_grid_distribution (tw%n_x(i), tw%n_px(i), tw%minima(2*i-1), &
                         tw%maxima(2*i-1), tw%minima(2*i), tw%maxima(2*i), space2D(i))
-   case (KV$) 
+   case ('KV') 
       KV_counter = KV_counter + 1
       ! If we are doing KV, we keep track of which phase planes are KV.
       ! For the first plane, we only store the plane's index and compute the emittance,

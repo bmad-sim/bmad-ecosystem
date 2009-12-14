@@ -7,7 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\%attribute_name/\%component_name/g;
+    s/\%top/\%top1/g;
+    s/\%bottom/\%bottom1/g;
 
     print (F_OUT);
   }

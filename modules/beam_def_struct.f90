@@ -9,11 +9,6 @@ integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
 integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
 integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
 
-! Phase space distribution types
-integer, parameter :: grid$ = 1       ! uniform rectangular grid
-integer, parameter :: ellipse$ = 2    ! ellipses representing a Gaussian dist.
-integer, parameter :: KV$ = 3         ! Kapchinsky-Vladimirsky distribution
-
 type beam_spin_struct
   real(rp) :: polarization = 1.0 ! i.e. 80% polarized
   real(rp) :: theta = 0.0  ! polar coordinates
@@ -44,7 +39,7 @@ type beam_struct
 end type
 
 type tail_weighted_beam_init_struct
-   integer :: type(3) = 0              ! distribution type (in x-px, y-py, and z-pz planes)
+   character(16) :: type(3) = ''       ! distribution type (in x-px, y-py, and z-pz planes)
    ! Params for ellipse$ and KV$
    integer :: part_per_ellipse(3) = 0  ! number of particles per ellipse
    ! Params for ellipse$

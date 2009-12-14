@@ -1179,7 +1179,7 @@ type (ele_struct), target :: ele
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_p, lord
 
-integer ix_branch, ix_recursion, i, ir, ix_attrib, ix
+integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
 
 character(*) attrib_name
@@ -1370,9 +1370,9 @@ endif
 ! check slaves
 
 if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
-  do i = ele%ix1_slave, ele%ix2_slave
-    ele_p => lat%ele(lat%control(i)%ix_slave)
-    call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(i)%ix_attrib), &
+  do i = 1, ele%n_slave
+    ele_p => pointer_to_slave(lat, ele, i, ic)
+    call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(ic)%ix_attrib), &
                             lat, do_print, do_except_overlay, free, 1, ele%ix_ele)
     if (.not. free) return
   enddo
