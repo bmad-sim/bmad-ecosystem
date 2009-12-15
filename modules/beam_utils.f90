@@ -1402,32 +1402,32 @@ space2D%n_particle = n_ellipse * part_per_ellipse
 if (allocated(space2D%vec)) deallocate(space2D%vec)
 allocate (space2D%vec(space2D%n_particle, 3))
 
-k = 1
+k = 0
 
 do n = 1, n_ellipse
-   if (n == n_ellipse) then
-      J = emitt * (sigma_cutoff**2/2.0 + 1)                     ! J_N    this is the ellipse that represents
-      charge = exp(-sigma_cutoff**2/(2.0 * part_per_ellipse))   ! q_N    the distribution out to infinity
-   else
-      b_inner = sigma_cutoff**2/2.0 * (real(n - 1)/(n_ellipse - 1))**2
-      b_outer = sigma_cutoff**2/2.0 * (real(n)/(n_ellipse - 1))**2
 
-      J = emitt * ((b_inner + 1.0) * exp(-b_inner) - (b_outer + 1.0) * exp(-b_outer)) / (exp(-b_inner) - exp(-b_outer))   ! J_n
+    b_inner = sigma_cutoff**2/2.0 * (real(n - 1)/(n_ellipse - 1))**2
+    b_outer = sigma_cutoff**2/2.0 * (real(n)/(n_ellipse - 1))**2
+
+    if (n == n_ellipse) then
+      ! This is the ellipse that represents the distribution out to infinity
+      charge = exp(-b_inner)       ! q_n
+      J = emitt * (b_inner + 1.0) * exp(-b_inner) / charge   ! J_n
+    else
       charge = exp(-b_inner) - exp(-b_outer)   ! q_n
+      J = emitt * ((b_inner + 1.0) * exp(-b_inner) - (b_outer + 1.0) * exp(-b_outer)) / charge   ! J_n
+    endif
+
    endif
 
    do m = 1, part_per_ellipse
-      phi = (2.0 * pi * m) / part_per_ellipse
-
-      x = sqrt(2.0 * J * beta) * cos(phi)
-      px = -sqrt(2.0 * J / beta) * (alpha * cos(phi) + sin(phi))
-      
-      space2D%vec(k,1) = x
-      space2D%vec(k,2) = px
-      space2D%vec(k,3) = charge / part_per_ellipse
-
+      phi = (twopi * m) / part_per_ellipse
       k = k + 1
+      space2D%vec(k,1) = sqrt(2 * J * beta) * cos(phi)
+      space2D%vec(k,2) = -sqrt(2 * J / beta) * (alpha * cos(phi) + sin(phi))
+      space2D%vec(k,3) = charge / part_per_ellipse
    enddo
+
 enddo
 
 end subroutine init_ellipse_distribution
