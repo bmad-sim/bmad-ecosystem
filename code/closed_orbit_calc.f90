@@ -245,7 +245,10 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
     amp_co = sum(abs(start%vec(1:nc)))
     amp_del = sum(abs(del_co%vec(1:nc)))
 
-    if (amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance) exit
+    ! We want to do at least one iteration to prevent problems when 
+    ! only a small change is made to the machine and the closed orbit recalculated.
+
+    if (i > 1 .and. amp_del < amp_co * bmad_com%rel_tolerance + bmad_com%abs_tolerance) exit
 
     if (amp_del < amp_del_old) then
       start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)

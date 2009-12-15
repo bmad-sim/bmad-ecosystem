@@ -39,42 +39,42 @@ type beam_struct
 end type
 
 type tail_weighted_beam_init_struct
-   character(16) :: type(3) = ''       ! distribution type (in x-px, y-py, and z-pz planes)
-   ! Params for ellipse$ and KV$
-   integer :: part_per_ellipse(3) = 0  ! number of particles per ellipse
-   ! Params for ellipse$
-   integer :: n_ellipse(3) = 1         ! number of ellipses (>= 1)
-   real(rp) :: sigma_cutoff(3) = 0     ! sigma cutoff of the representation
-   ! Params for KV$
-   integer :: n_I2 = 0                 ! number of I2
-   real(rp) :: A = 0                   ! A = I1/e
-   ! Params for grid$
-   integer :: n_x(3) = 0               ! number of columns
-   integer :: n_px(3) = 0              ! number of rows
-   real(rp) :: minima(6) = 0           ! upper and lower limits in (x,px,y,py,z,pz)
-   real(rp) :: maxima(6) = 0
+  ! Params for ELLIPSE and KV
+  integer :: part_per_ellipse(3) = 0  ! number of particles per ellipse
+  ! Params for ELLIPSE
+  integer :: n_ellipse(3) = 1         ! number of ellipses (>= 1)
+  real(rp) :: sigma_cutoff(3) = 0     ! sigma cutoff of the representation
+  ! Params for KV
+  integer :: n_I2 = 0                 ! number of I2
+  real(rp) :: A = 0                   ! A = I1/e
+  ! Params for GRID
+  integer :: n_x(3) = 0               ! number of columns
+  integer :: n_px(3) = 0               ! number of rows
+  real(rp) :: minima(6) = 0           ! upper and lower limits in (x,px,y,py,z,pz)
+  real(rp) :: maxima(6) = 0
 end type
 
 type beam_init_struct
-  real(rp) a_norm_emitt     ! a-mode emittance
-  real(rp) b_norm_emitt     ! b-mode emittance
-  real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
-  real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
-  real(rp) dt_bunch         ! Time between bunches.
-  real(rp) sig_z            ! Z sigma in m.
-  real(rp) sig_e            ! e_sigma in dE/E.
-  real(rp) bunch_charge     ! charge in a bunch.
-  real(rp) :: center_jitter(6) = 0.0 ! Bunch center rms jitter
-  real(rp) :: emitt_jitter(2)  = 0.0 ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
-  real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
-  type(beam_spin_struct)  spin       ! Initialize the spin
-  integer :: n_particle = 0          ! Number of simulated particles per bunch.
-  integer :: n_bunch = 1             ! Number of bunches.
-  logical :: renorm_center = .true.  ! Renormalize centroid?
-  logical :: renorm_sigma = .true.   ! Renormalize sigma?
-  logical :: init_spin     = .false. ! initialize beam spinors
-  logical :: is_random = .true.      ! Random distribution?  Or a tail-weighted distribution?
+  character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
+                                             ! "ELLIPSE", "KV", "GRID", or "" (random Gaussian)
+  type(beam_spin_struct)  spin        ! Initialize the spin
+  real(rp) a_norm_emitt               ! a-mode emittance
+  real(rp) b_norm_emitt               ! b-mode emittance
+  real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
+  real(rp) :: center(6) = 0           ! Bench center offset relative to reference.
+  real(rp) dt_bunch                   ! Time between bunches.
+  real(rp) sig_z                      ! Z sigma in m.
+  real(rp) sig_e                      ! e_sigma in dE/E.
+  real(rp) bunch_charge               ! charge in a bunch.
+  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
+  real(rp) :: emitt_jitter(2)  = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
+  real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
+  integer :: n_particle = 0           ! Number of simulated particles per bunch.
+  integer :: n_bunch = 1              ! Number of bunches.
+  logical :: renorm_center = .true.   ! Renormalize centroid?
+  logical :: renorm_sigma = .true.    ! Renormalize sigma?
+  logical :: init_spin     = .false.  ! initialize beam spinors
   character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  
                                             ! Or 'limited'. Uniform to gauss conversion method.

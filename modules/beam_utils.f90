@@ -719,9 +719,7 @@ end subroutine
 !   param       -- Lat_param_struct: Lattice parameters
 !     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!     %is_random  -- Logical: If True then create a random distribution
-!                 (default is True)
-!     For random distributions:
+!     For Gaussian random distributions:
 !       %renorm_center -- Logical: If True then distribution is rescaled to
 !                      the desired centroid (to take care of
 !                      possible statistical errors in distribution).
@@ -767,7 +765,7 @@ call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
 
 ! Set and save the random number generator parameters.
 
-if (beam_init%is_random) then
+if (all(beam_init%distribution_type == '')) then
   call ran_engine (beam_init%random_engine, old_engine)
   call ran_gauss_converter (beam_init%random_gauss_converter, &
                   beam_init%random_sigma_cutoff, old_converter, old_cutoff)
@@ -789,7 +787,7 @@ enddo
   
 ! Reset the random number generator parameters.
 
-if (beam_init%is_random) then
+if (all(beam_init%distribution_type == '')) then
   call ran_engine (old_engine)
   call ran_gauss_converter (old_converter, old_cutoff)
 endif
@@ -831,9 +829,7 @@ end subroutine init_beam_distribution
 !   param       -- Lat_param_struct: Lattice parameters
 !     %particle      -- Type of particle.
 !   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!     %is_random  -- Logical: If True then create a random distribution
-!                 (default is True)
-!     For random distributions:
+!     For gaussian random distributions:
 !       %renorm_center -- Logical: If True then distribution is rescaled to
 !                      the desired centroid (to take care of
 !                      possible statistical errors in distribution).
@@ -876,12 +872,12 @@ character(22) :: r_name = "init_bunch_distribution"
 
 ! If we are making a tail-weighted distribution, we must compute the number of particles
 
-if (.not. beam_init%is_random) then
+if (any(beam_init%distribution_type /= '')) then
    beam_init%n_particle = 1
    tw_init => beam_init%tw_beam_init
    do i = 1, 3
-      call str_upcase(tw_init%type(i), tw_init%type(i))
-      select case (tw_init%type(i))
+      call str_upcase(beam_init%distribution_type(i), beam_init%distribution_type(i))
+      select case (beam_init%distribution_type(i))
       case ('ELLIPSE')
          beam_init%n_particle = beam_init%n_particle * tw_init%n_ellipse(i) * tw_init%part_per_ellipse(i)
       case ('GRID')
@@ -904,7 +900,7 @@ endif
 
 ! Initialize the bunch.
 
-if (beam_init%is_random) then
+if (all(beam_init%distribution_type == '')) then
    call init_random_bunch (ele, param, beam_init, bunch)
 else
    call init_tail_weighted_bunch (ele, param, beam_init, bunch)
