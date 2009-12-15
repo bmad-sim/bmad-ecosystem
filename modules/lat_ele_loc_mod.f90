@@ -58,8 +58,9 @@ contains
 !   <ix_branch> = Optional branch index number.
 !
 ! An element range is of the form:
-!   <ele1>:<ele2>{:<step>}
+!   {<key>::}<ele1>:<ele2>{:<step>}
 ! Where:
+!   <key>      = Optional key name ("quadrupole", "sbend", etc.)
 !   <ele1>     = Starting element of the range. May be element name or index.
 !   <ele2>     = Ending element of the range. May be element name or index.
 !   <step>     = Optional step increment Default is 1. 
@@ -104,7 +105,7 @@ character(1) delim
 character(20) :: r_name = 'lat_ele_locator'
 
 integer i, j, ib, ios, ix, n_loc, n_loc2
-integer in_range, step, ix_word
+integer in_range, step, ix_word, key
 
 logical err, err2, delim_found
 
@@ -115,21 +116,36 @@ n_loc = 0
 str = loc_str
 in_range = 0   ! 0 -> not in range construct, 1 -> read start, 2 -> read stop
 step = 1
+key = 0
 
 ! Loop over all items in the list
 
 do
 
-  ! get next item. 
-  ! If the split is in between "::" then need to piece the two halvs together.
+  ! Get next item. 
+  ! If the split is in between "::" then need to piece the two haves together.
 
   call word_read (str, ':, ', name, ix_word, delim, delim_found, str)
+
   if (str(1:1) == ':') then
-    call word_read (str, ', ', name2, ix_word, delim, delim_found, str)
-    name = trim(name) // ':' // trim(name2)
+    call word_read (str(2:), ', ', name2, ix_word, delim, delim_found, str)
+    ! If name2 contains a ":" then we have a "<key>::<ele1>:<ele2>" range construct.
+    ix = index(name2, ':') 
+    if (ix == 0) then  ! No range
+      name = trim(name) // '::' // trim(name2)
+    else
+      key = key_name_to_key_index (name, .true.)
+      if (key < 0) then
+        call out_io (s_error$, r_name, 'ERROR: BAD ELEMENT TYPE: ' // name)
+        return           ! Return on error
+      endif
+      name = name2(1:ix-1)
+      str = trim(name2(ix+1:)) // delim // trim(str)
+      delim = ':'
+    endif
   endif
 
-  if (ix_word == 0) exit
+  if (name == '') exit
 
   ! Get list of elements for this item
 
@@ -185,14 +201,28 @@ do
       return
     endif
     ib = ele_start%ix_branch
-    n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
+
+    if (key > 0) then
+      n_loc2 = 0
+      do i = ele_start%ix_ele, ele_end%ix_ele, step
+        if (lat%branch(ib)%ele(i)%key == key) n_loc2 = n_loc2 + 1
+      enddo
+    else
+      n_loc2 = (ele_end%ix_ele - ele_start%ix_ele) / step + 1
+    endif
+
     call re_allocate_eles(eles, n_loc+n_loc2, .true.)
-    do i = 1, n_loc2
-      j = ele_start%ix_ele + (i-1) * step
-      eles(n_loc+i)%ele => lat%branch(ib)%ele(j)
+
+    n_loc2 = 0
+    do i = ele_start%ix_ele, ele_end%ix_ele, step
+      if (key > 0 .and. lat%branch(ib)%ele(i)%key /= key) cycle
+      n_loc2 = n_loc2 + 1
+      eles(n_loc+n_loc2)%ele => lat%branch(ib)%ele(i)
     enddo
+
     n_loc = n_loc + n_loc2
     in_range = 0
+    key = 0
     step = 1
   endif
 
