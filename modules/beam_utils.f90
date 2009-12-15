@@ -749,17 +749,41 @@ implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (beam_init_struct) beam_init
+type (beam_init_struct), target :: beam_init
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
-  
-integer i_bunch
+type (tail_weighted_beam_init_struct), pointer :: tw_init
+
+integer i_bunch, i, n
 real(rp) old_cutoff
 
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_beam_distribution"
 
-! resize the beam to the number of particles and the number of bunches.
+! Resize the beam to the number of particles and the number of bunches.
+! If we are making a tail-weighted distribution, we must compute the number of particles
+! Number of particles for a 4D KV distribution = n_I2 * n_phi1 * n_phi2
+
+if (.not. all(beam_init%distribution_type == '')) then
+  n = 1
+  tw_init => beam_init%tw_beam_init
+  do i = 1, 3
+    call str_upcase(beam_init%distribution_type(i), beam_init%distribution_type(i))
+    select case (beam_init%distribution_type(i))
+    case ('ELLIPSE')
+      n = n * tw_init%n_ellipse(i) * tw_init%part_per_ellipse(i)
+    case ('GRID')
+      n = n * tw_init%n_x(i) * tw_init%n_px(i)
+    case ('KV')
+      n = n * tw_init%part_per_ellipse(i)
+    case default
+      call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
+      call err_exit
+    end select    
+  enddo
+  if (any(beam_init%distribution_type == '')) n = n * tw_init%n_I2
+  beam_init%n_particle = n
+endif
 
 call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
 
@@ -775,14 +799,12 @@ endif
 ! Note z_center is negative and t_center is posive for trailing bunches.
 
 do i_bunch = 1, size(beam%bunch)
-
   bunch => beam%bunch(i_bunch)
   call init_bunch_distribution (ele, param, beam_init, bunch)
 
   bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
   bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
   bunch%ix_bunch = i_bunch
-
 enddo
   
 ! Reset the random number generator parameters.
@@ -864,39 +886,10 @@ type (tail_weighted_beam_init_struct), pointer :: tw_init
 type (bunch_struct) :: bunch
   
 integer i_bunch, i
-logical :: is_KV = .false.
 real(rp) old_cutoff
 
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_bunch_distribution"
-
-! If we are making a tail-weighted distribution, we must compute the number of particles
-
-if (any(beam_init%distribution_type /= '')) then
-   beam_init%n_particle = 1
-   tw_init => beam_init%tw_beam_init
-   do i = 1, 3
-      call str_upcase(beam_init%distribution_type(i), beam_init%distribution_type(i))
-      select case (beam_init%distribution_type(i))
-      case ('ELLIPSE')
-         beam_init%n_particle = beam_init%n_particle * tw_init%n_ellipse(i) * tw_init%part_per_ellipse(i)
-      case ('GRID')
-         beam_init%n_particle = beam_init%n_particle * tw_init%n_x(i) * tw_init%n_px(i)
-      case ('KV')
-         is_KV = .true.
-         beam_init%n_particle = beam_init%n_particle * tw_init%part_per_ellipse(i)
-      case default
-         call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
-         call err_exit
-      end select
-   enddo
-endif
-
-! number of particles for a 4D KV distribution = n_I2 * n_phi1 * n_phi2
-
-if (is_KV) then
-   beam_init%n_particle = beam_init%n_particle * tw_init%n_I2
-endif
 
 ! Initialize the bunch.
 
@@ -1229,8 +1222,8 @@ alpha(3) = - covar / emitt(3)
 
 ! Fill the corresponding struct and generate the distribution for each phase plane
 do i = 1, 3
-  call str_upcase (tw%type(i), tw%type(i))
-   select case (tw%type(i))
+  call str_upcase (beam_init%distribution_type(i), beam_init%distribution_type(i))
+   select case (beam_init%distribution_type(i))
    case ('ELLIPSE')
       call init_ellipse_distribution (tw%n_ellipse(i), tw%part_per_ellipse(i), &
                              tw%sigma_cutoff(i), beta(i), alpha(i), emitt(i), space2D(i))
