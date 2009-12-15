@@ -81,10 +81,6 @@ if (tao_com%init_read_lat_info) then
       enddo
     endif
     close (iu)
-    ! Convert old class:name format to new class::name format
-    ix = index(unique_name_suffix, ":")
-    if (ix /= 0 .and. unique_name_suffix(ix+1:ix+1) /= ':') &
-          unique_name_suffix = unique_name_suffix(1:ix) // ':' // unique_name_suffix(ix+1:)
   endif
 
   if (taylor_order /= 0) call set_taylor_order (taylor_order)

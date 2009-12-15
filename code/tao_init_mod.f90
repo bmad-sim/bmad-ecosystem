@@ -233,11 +233,7 @@ if (s%global%track_type == 'beam') then
       do i = 1, size(save_beam_at)
         if (save_beam_at(i) == '') cycle
         beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
-      enddo  
-      ! Convert old class:name format to new class::name format
-      ix = index(beam_saved_at, ":")
-      if (ix /= 0 .and. beam_saved_at(ix+1:ix+1) /= ':') &
-            beam_saved_at = beam_saved_at(1:ix) // ':' // beam_saved_at(ix+1:)
+      enddo
 
       if (ios /= 0) exit
 
@@ -624,16 +620,6 @@ do
       do
         read (iu, nml = tao_d1_data)  ! force printing of error message
       enddo
-    endif
-
-    ! Convert old class:name format to new class::name format
-
-    ix = index(search_for_lat_eles, ":")
-    if (ix /= 0 .and. search_for_lat_eles(ix+1:ix+1) /= ':') then
-      name = search_for_lat_eles(1:ix-1)
-      if (name == '' .or. name == '*' .or. key_name_to_key_index (name, .true.) > 0) then
-        search_for_lat_eles = search_for_lat_eles(1:ix) // ':' // search_for_lat_eles(ix+1:)
-      endif
     endif
 
     ! Transfer data(:) to datum(:) if needed
@@ -1407,12 +1393,6 @@ do
   read (iu, nml = tao_var, iostat = ios)
   if (ios < 0) exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
-
-  ! Convert old class:name format to new class::name format
-
-  ix = index(search_for_lat_eles, ":")
-  if (ix /= 0 .and. search_for_lat_eles(ix+1:ix+1) /= ':') &
-          search_for_lat_eles = search_for_lat_eles(1:ix) // ':' // search_for_lat_eles(ix+1:)
 
   ! Convert old format to new
 
