@@ -100,7 +100,7 @@ type (ele_struct), pointer :: ele_start, ele_end
 
 character(*) loc_str
 character(len(loc_str)) str
-character(40) name, name2
+character(80) name, name2
 character(1) delim
 character(20) :: r_name = 'lat_ele_locator'
 
