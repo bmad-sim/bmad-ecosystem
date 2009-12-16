@@ -1482,7 +1482,7 @@ do ix_ele = ie1, ie2
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': rfcavity, l =', val(l$)
     call value_to_line (line_out, val(voltage$)/1E6, 'volt', 'es13.5', 'R')
-    call value_to_line (line_out, val(phi0$)+val(dphi0$), 'lag', 'es13.5', 'R')
+    call value_to_line (line_out, val(phi0$)+val(dphi0$)+0.5, 'lag', 'es13.5', 'R')
     call value_to_line (line_out, val(harmon$), 'harmon', 'i8', 'I')
 
   ! lcavity
