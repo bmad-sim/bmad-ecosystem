@@ -680,7 +680,7 @@ use tao_read_beam_mod
 implicit none
 
 type (tao_universe_struct), target :: u
-type (beam_init_struct) beam_init
+type (beam_init_struct), pointer :: beam_init
 type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
 type (coord_struct), pointer :: orb0
@@ -702,15 +702,15 @@ if (tao_com%use_saved_beam_in_tracking) return
 uni_branch => u%uni_branch(ix_branch)
 orb0 => model%lat_branch(0)%orbit(0)
 
-model%lat%beam_start%vec = uni_branch%beam_init%center
+beam_init => uni_branch%beam_init
+model%lat%beam_start%vec = beam_init%center
 
 ! If there is an init file then read from the file
 
 if (uni_branch%beam0_file /= "") then
   if (uni_branch%init_beam0 .or. .not. allocated(uni_branch%beam0%bunch)) then
     call tao_open_beam_file (uni_branch%beam0_file)
-    call tao_set_beam_params (uni_branch%beam_init%n_bunch, uni_branch%beam_init%n_particle, &
-                                                       uni_branch%beam_init%bunch_charge)
+    call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
     call tao_read_beam (uni_branch%beam0, err)
     if (err) call err_exit
     call tao_close_beam_file()
@@ -737,16 +737,15 @@ endif
 
 if (.not. u%connect%connected) then
   if (uni_branch%init_beam0 .or. .not. allocated(uni_branch%beam0%bunch)) then
-    uni_branch%beam_init%center = model%lat%beam_start%vec
-    if (uni_branch%beam_init%n_particle < 1) then
+    beam_init%center = model%lat%beam_start%vec
+    if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
+    call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
+                                      model%lat%param, beam_init, uni_branch%beam0)
+    if (beam_init%n_particle < 1) then
       call out_io (s_fatal$, r_name, &
         'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
       call err_exit
     endif
-    beam_init = uni_branch%beam_init
-    if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
-    call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
-                                      model%lat%param, beam_init, uni_branch%beam0)
     call tao_find_beam_centroid (uni_branch%beam0, orb0, too_many_lost)
     if (too_many_lost) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
