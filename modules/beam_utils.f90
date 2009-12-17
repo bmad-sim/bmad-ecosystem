@@ -1403,11 +1403,12 @@ if (allocated(space2D%vec)) deallocate(space2D%vec)
 allocate (space2D%vec(space2D%n_particle, 3))
 
 k = 0
+b_outer = 0
 
 do n = 1, n_ellipse
 
-  b_inner = sigma_cutoff**2/2.0 * (real(n - 1)/(n_ellipse - 1))**2
-  b_outer = sigma_cutoff**2/2.0 * (real(n)/(n_ellipse - 1))**2
+  b_inner = b_outer
+  b_outer = sigma_cutoff**2/2.0 * (real(n)/n_ellipse)**2
 
   if (n == n_ellipse) then
     ! This is the ellipse that represents the distribution out to infinity
