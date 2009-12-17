@@ -287,23 +287,36 @@ These components and others can be refereed to using the notation
 \vn{|name} where \vn{name} is the appropriate name for the
 component. The list of components that can be set or refereed to are:
 \begin{example}
-  quad_k1[1]|meas      ! Value at time of data measurement
-  quad_k1[1]|ref       ! Value at time of the reference data measurement
-  quad_k1[1]|model     ! Value in the model lattice
-  quad_k1[1]|base      ! Value in the base lattice
-  quad_k1[1]|design    ! Value in  the design lattice
-  quad_k1[1]|weight    ! Weight used in the merit function.
-  quad_k1[1]|old       ! Scratch value.
-  quad_k1[1]|step      ! For fitting/optimization: What is considered a small change.
-  quad_k1[1]|exists    ! Logical
-  quad_k1[1]|good_var  ! Logical
-  quad_k1[1]|good_ref  ! Logical
-  quad_k1[1]|good_user ! Logical
-  quad_k1[1]|good_opt  ! Logical
-  quad_k1[1]|good_plot ! Logical
+  quad_k1[1]|meas       ! Value at time of data measurement
+  quad_k1[1]|ref        ! Value at time of the reference data measurement
+  quad_k1[1]|model      ! Value in the model lattice
+  quad_k1[1]|base       ! Value in the base lattice
+  quad_k1[1]|design     ! Value in  the design lattice
+  quad_k1[1]|weight     ! Weight used in the merit function.
+  quad_k1[1]|old        ! Scratch value.
+  quad_k1[1]|step       ! For fitting/optimization: What is considered a small change.
+  quad_k1[1]|exists     ! Logical
+  quad_k1[1]|good_var   ! Logical
+  quad_k1[1]|good_user  ! Logical
+  quad_k1[1]|good_opt   ! Logical
+  quad_k1[1]|good_plot  ! Logical
+  quad_k1[1]|useit_opt  ! Logical
+  quad_k1[1]|useit_plot ! Logical
+
 \end{example}
 
 Use the \vn{show var} (\sref{s:show}) command to view variable information
+
+When using optimization for lattice correction or lattice design
+(\sref{c:opti}), Individual datums can be excluded from the process
+using the \vn{veto} (\sref{s:veto}), \vn{restore} (\sref{s:restore}),
+and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user}
+component of a datum. This, combined with the setting \vn{exists},
+\vn{good_var}, and \vn{good_opt} determine the setting of
+\vn{useit_opt} which is the component that determines if the datum is
+used in the computation of the merit function. The settings of
+everything but \vn{good_user} is determined by \tao
+
 
 %-----------------------------------------------------------------
 \section{Element List Format}

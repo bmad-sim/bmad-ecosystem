@@ -180,8 +180,10 @@ type tao_plot_struct
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
-  character(16) x_axis_type                   ! 'index', 'ele_index', 's', 'none', 
+  character(16) x_axis_type                   ! 'index', 'ele_index', 's', 'none',
                                               !         'floor', or 'phase_space'
+  logical :: autoscale_x = .false.            ! Horizontal autoscale.
+  logical :: autoscale_y = .false.            ! Vertical autoscale.
   logical :: autoscale_gang_x = .true.        ! scale cmd scales graphs together?
   logical :: autoscale_gang_y = .true.        ! scale cmd scales graphs together?
 end type
@@ -493,7 +495,6 @@ type tao_global_struct
   character(80) :: var_out_file  = 'var#.out'
   character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
   logical :: var_limits_on = .true.             ! Respect the variable limits?
-  logical :: auto_scale = .false.               ! Automatically scale and x-scale the plots?
   logical :: opt_with_ref = .false.             ! use reference data in optimization?
   logical :: opt_with_base = .false.            ! use base data in optimization?
   logical :: label_lattice_elements = .true.    ! For lat_layout plots

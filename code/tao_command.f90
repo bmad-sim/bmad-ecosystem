@@ -53,11 +53,10 @@ character(16) :: cmd_names(33) = (/  &
     'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
     'pause       ', 'continue    ', 'wave        ' /)
 
-character(16) :: set_names(10) = (/ &
+character(16) :: set_names(11) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
-    'universe    ', 'curve       ', 'graph       ', 'beam_init   ', 'wave        ' /)
-
-
+    'universe    ', 'curve       ', 'graph       ', 'beam_init   ', 'wave        ', &
+    'plot        ' /)
 
 logical quit_tao, err, silent, gang, abort
 
@@ -467,6 +466,7 @@ case ('set')
        (set_word == 'beam_init' .and. cmd_word(3) /= '=') .or. &
        (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
        (set_word == 'graph'     .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'plot'      .and. cmd_word(4) /= '=') .or. &
        (set_word == 'lattice'   .and. cmd_word(3) /= '=')) then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
     return
@@ -492,6 +492,8 @@ case ('set')
     call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
   case ('graph')
     call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
+  case ('plot ')
+    call tao_set_plot_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('universe')    
     call tao_set_uni_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
   case ('wave')

@@ -918,7 +918,6 @@ case ('element')
 case ('global')
 
   nl=nl+1; lines(nl) = 'Global parameters:'
-  nl=nl+1; write (lines(nl), lmt) '%auto_scale                 = ', s%global%auto_scale
   nl=nl+1; write (lines(nl), imt) '%bunch_to_plot              = ', s%global%bunch_to_plot
   nl=nl+1; write (lines(nl), rmt) '%de_lm_step_ratio           = ', s%global%de_lm_step_ratio
   nl=nl+1; write (lines(nl), lmt) '%derivative_recalc          = ', s%global%derivative_recalc
@@ -1716,6 +1715,8 @@ case ('plot')
     nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
     nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
     nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
     nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
     nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
     

@@ -731,6 +731,7 @@ variables, etc. Format:
   set global <component> = <value>
   set graph <graph> <component> = <value>
   set lattice \{n@\}<destination\_lat> = <source\_lat>
+  set plot <plot> <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
   set universe <what_universe> on/off 
   set universe <what_universe> recalculate
@@ -888,6 +889,21 @@ Example:
 \end{example}
 
 %% set plot --------------------------------------------------------------
+
+\item[set plot <plot> <component> = <value>] \Newline
+For \vn{set plot}, the \vn{component}s that can be set are:
+\begin{example}
+  autoscale_x = <logical>
+  autoscale_y = <logical>
+\end{example}
+
+Example:
+\begin{example}
+  set plot orbit.x component = model - design  
+                          ! Plot model orbit - design orbit in the graph
+\end{example}
+
+%% set plot_page --------------------------------------------------------------
 
 \item[set plot\_page <component> = <value1> \{<value2>\}] \Newline
 For \vn{set plot_page}, the \vn{<component>}s that can be set are:

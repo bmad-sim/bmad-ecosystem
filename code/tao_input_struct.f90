@@ -140,6 +140,8 @@ type tao_plot_input
   logical independent_graphs
   logical autoscale_gang_x      ! scale cmd scales graphs independently?
   logical autoscale_gang_y      ! scale cmd scales graphs independently?
+  logical autoscale_x 
+  logical autoscale_y 
   type (qp_axis_struct) x
 end type
 

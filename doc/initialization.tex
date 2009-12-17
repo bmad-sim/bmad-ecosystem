@@ -325,7 +325,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
 \index{default_key_merit_type}\index{write_file}\index{var_limits_on}
-\index{plot_on}\index{auto_scale}\index{opt_with_ref}\index{opt_with_base}
+\index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{init_plot_needed}\index{lattice_calc_on}\index{command_file_print_on}
@@ -354,7 +354,6 @@ type tao_global_struct
   character(40) print_command = "lpr"
   character(80) var_out_file  = "var#.out"
   logical var_limits_on = T             ! Respect the variable limits?
-  logical auto_scale = F                ! Automatically scale and x-scale the plots?
   logical opt_with_ref = F              ! use reference data in optimization?
   logical opt_with_base = F             ! use base data in optimization?
   logical init_opt_wrapper = T
@@ -834,6 +833,10 @@ varying variables. If \vn{var%step(i)} is not given for a
 particular variable then the default \vn{default_step} is
 used. 
 
+\vn{var(i)%good_user} is a logical that the user can toggle when
+running \tao (\sref{s:var}). The initial default value of
+\vn{%good_user} is True.
+
 \vn{var(i)%universe} gives the universe that the lattice element lives
 in. Multiple universes can be specified using a comma delimited list.
 For example:
@@ -1016,7 +1019,7 @@ structure. For each \vn{n_d1_data} structure there must be a
     datum(j)%merit_type     = "<merit_type>"     ! Sets how the merit is calculated.
     datum(j)%meas           = "<number>"         ! Datum "measured" value
     datum(j)%weight         = "<weight>"         ! Merit function weight.
-    datum(j)%good_user      = Logical            ! Use for optimization and plotting?
+    datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
     datum(j)%data_source    = "<source>"         ! "lattice", or "beam"
     datum(j)%ix_bunch       = <integer>          ! Bunch index. 
                                                  !   0 (default) = all bunches.
@@ -1052,6 +1055,10 @@ Alternatively, one can specify a datum in a single line. For example,
 \vn{datum(i)} structure array that is associated with the \vn{d1_data}
 structure. \vn{datum(:)%ele_name} gives the lattice element names
 associated with the data points.
+
+\vn{datum(i)%good_user} is a logical that the user can toggle when
+running \tao (\sref{s:data.anatomy}). The initial default value of
+\vn{%good_user} is True.
 
 A range of elements can be specified by giving an \vn{ele_start_name} that
 is not a blank string. Thus, in the above example, the value of
@@ -1326,6 +1333,8 @@ Template plots are defined using namelists with a name of
 \index{plot!n_graph}
 \index{plot!autoscale_gang_x}
 \index{plot!autoscale_gang_y}
+\index{plot!autoscale_x}
+\index{plot!autoscale_y}
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
@@ -1335,6 +1344,8 @@ Template plots are defined using namelists with a name of
     plot%n_graph     = <n_graphs>
     plot%autoscale_gang_x = <logical>  ! Default: True.
     plot%autoscale_gang_y = <logical>  ! Default: True.
+    plot%autoscale_x = <logical>       ! Default: False.
+    plot%autoscale_y = <logical>       ! Default: False.
     default_graph%...                  ! See below
   /
 \end{example}
@@ -1357,7 +1368,6 @@ overrides \vn{default_graph} settings made in the
 \vn{tao_template_plot} namelist (\sref{s:init.plot}) but only for
 graphs associated with the \vn{tao_template_plot} the
 \vn{default_graph} is defined in.
-
 
 \vn{plot%x} sets the properties of the horizontal axis. For more
 information see the \vn{Quick Plot} documentation on the
@@ -1392,10 +1402,13 @@ is set, a value will be chosen for \vn{major_div_nominal} by \tao. If
 you are unsure which to set, it is recommended that
 \vn{major_div_nominal} be used.
 
-The \vn{plot%autoscale_gang_x} and \vn{plot%autoscale_gang_y}
-components set how the \vn{x-scale} (\sref{s:x.scale}) and \vn{scale}
-(\sref{s:scale}) commands behave when autoscaling entire plots. See
-these individual commands for more details.
+Plots with \vn{plot%autoscale_x} and/or \vn{plot%autoscale_y}
+logicals, set to true will automatically rescale after any
+calculation. The \vn{plot%autoscale_gang_x} and
+\vn{plot%autoscale_gang_y} components set how the \vn{x-scale}
+(\sref{s:x.scale}) and \vn{scale} (\sref{s:scale}) commands behave
+when autoscaling entire plots. See these individual commands for more
+details.
 
 \vn{plot%name} is the name that is used with \tao commands to identify
 the plot. It is important that this name not contain any blank spaces since

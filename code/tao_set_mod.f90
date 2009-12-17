@@ -567,6 +567,69 @@ end subroutine
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_plot_cmd (plot_name, component, set_value)
+!
+! Routine to set var values.
+!
+! Input:
+!   plot_name --  Character(*): Which plot to set.
+!   component  -- Character(*): Which component to set.
+!   set_value  -- Character(*): What value to set it to.
+!
+!  Output:
+!-
+
+subroutine tao_set_plot_cmd (plot_name, component, set_value)
+
+implicit none
+
+type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_universe_struct), pointer :: u
+
+character(*) plot_name, component, set_value
+character(20) :: r_name = 'tao_set_plot_cmd'
+
+integer iset, iw, ix
+integer i, j, ios
+logical err
+logical logic, error
+
+!
+
+call tao_find_plots (err, plot_name, 'REGION', plot = plot)
+if (err) return
+
+if (.not. allocated(plot)) then
+  call out_io (s_error$, r_name, 'PLOT OR PLOT NOT SPECIFIED')
+  return
+endif
+
+! And set
+
+do i = 1, size(plot)
+
+  select case (component)
+
+    case ('autoscale_x')
+      call tao_logical_set_value (plot(i)%p%autoscale_x, component, set_value, error)
+
+    case ('autoscale_y')
+      call tao_logical_set_value (plot(i)%p%autoscale_y, component, set_value, error)
+
+    case default
+      call out_io (s_error$, r_name, "BAD PLOT COMPONENT: " // component)
+      return
+      
+  end select
+
+enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_graph_cmd (graph_name, component, set_value)
 !
 ! Routine to set var values.
@@ -633,20 +696,10 @@ select case (comp)
     this_graph%component = set_value
 
   case ('clip')
-    read (set_value, '(l)', iostat = ios) logic
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD CLIP VALUE.')
-      return
-    endif
-    this_graph%clip = logic
+    call tao_logical_set_value (this_graph%clip, comp, set_value, error)
 
   case ('draw_axes')
-    read (set_value, '(l)', iostat = ios) logic
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD CLIP VALUE.')
-      return
-    endif
-    this_graph%draw_axes = logic
+    call tao_logical_set_value (this_graph%draw_axes, comp, set_value, error)
 
   case ('ix_universe')
     call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, ubound(s%u, 1))

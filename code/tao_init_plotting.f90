@@ -102,6 +102,8 @@ default_plot%x%major_div = -1
 default_plot%independent_graphs = .false.
 default_plot%autoscale_gang_x = .true.
 default_plot%autoscale_gang_y = .true.
+default_plot%autoscale_x = .false.
+default_plot%autoscale_y = .false.
 default_plot%n_graph = 0
 
 default_graph%title                 = ''
@@ -324,6 +326,8 @@ do  ! Loop over plot files
     plt%x                    = plot%x
     plt%autoscale_gang_x     = plot%autoscale_gang_x 
     plt%autoscale_gang_y     = plot%autoscale_gang_y 
+    plt%autoscale_x          = plot%autoscale_x 
+    plt%autoscale_y          = plot%autoscale_y 
 
     if (plt%x%major_div < 0 .and. plt%x%major_div_nominal < 0) plt%x%major_div_nominal = 6
 

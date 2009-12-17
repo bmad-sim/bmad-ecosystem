@@ -9,7 +9,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, gang)
+! Subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, gang, turn_autoscale_off)
 !
 ! Routine to scale a plot. If y_min = y_max
 ! Then the scales will be chosen to show all the data.
@@ -20,9 +20,12 @@ contains
 !   y_max_in -- Real(rp): Plot y-axis max value.
 !   axis     -- Character(*), optional: 'y', 'y2', or '' (both). Default = ''.
 !   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   turn_autoscale_off
+!            -- Logical, optional: If True (default) then turn off plot%autoscale_y logical
+!               for all plots that are scaled.
 !-
 
-subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, gang)
+subroutine tao_scale_cmd (where, y_min_in, y_max_in, axis, gang, turn_autoscale_off)
 
 implicit none
 
@@ -38,6 +41,7 @@ character(*), optional :: axis, gang
 character(8) this_axis, this_gang
 character(20) :: r_name = 'tao_scale_cmd'
 
+logical, optional :: turn_autoscale_off
 logical err
 
 ! Error check
@@ -74,10 +78,12 @@ if (err) return
 if (allocated(graph)) then                ! If all the graphs of a plot...
   do j = 1, size(graph)
     call tao_scale_graph (graph(j)%g, y_min, y_max, axis)
+    if (logic_option(.true., turn_autoscale_off)) graph(j)%g%p%autoscale_y = .false.
   enddo
 else                          ! else just the one graph...
   do i = 1, size(plot)
     call tao_scale_plot (plot(i)%p, y_min, y_max, axis, gang)
+    if (logic_option(.true., turn_autoscale_off)) plot(i)%p%autoscale_y = .false.
   enddo
 endif
 

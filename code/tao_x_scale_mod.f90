@@ -10,7 +10,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang)
+! Subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang, turn_autoscale_off)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
@@ -20,12 +20,15 @@ contains
 !   x_min_in -- Real(rp): Plot x-axis min value.
 !   x_max_in -- Real(rp): Plot x-axis max value.
 !   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!   turn_autoscale_off
+!            -- Logical, optional: If True (default) then turn off plot%autoscale_x logical
+!               for all plots that are scaled.
 !
 !  Output:
 !   err -- Logical: Set to True if the plot cannot be found. False otherwise.
 !-
 
-subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang)
+subroutine tao_x_scale_cmd (where, x_min_in, x_max_in, err, gang, turn_autoscale_off)
 
 implicit none
 
@@ -41,6 +44,7 @@ character(*) where
 character(*), optional :: gang
 character(20) :: r_name = 'tao_x_scale_cmd'
 
+logical, optional :: turn_autoscale_off
 logical err, all_same
 
 ! Use local vars for x_min and x_max in case the actual args are something 
@@ -83,12 +87,14 @@ if (allocated(graph)) then
     call tao_x_scale_graph (graph(i)%g, x_min, x_max)
     if (graph(i)%g%x%max /= graph(1)%g%x%max) all_same = .false.
     if (graph(i)%g%x%min /= graph(1)%g%x%min) all_same = .false.
+    if (logic_option(.true., turn_autoscale_off)) graph(i)%g%p%autoscale_x = .false.
   enddo
 else
   do i = 1, size(plot)
     call tao_x_scale_plot (plot(i)%p, x_min, x_max, gang)
     if (plot(i)%p%x%max /= plot(1)%p%x%max) all_same = .false.
     if (plot(i)%p%x%min /= plot(1)%p%x%min) all_same = .false.
+    if (logic_option(.true., turn_autoscale_off)) plot(i)%p%autoscale_x = .false.
   enddo
 endif
 
