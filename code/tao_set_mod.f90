@@ -203,6 +203,62 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_bmad_com_cmd (who, set_value)
+!
+! Routine to set bmad_com variables
+! 
+! Input:
+!   who       -- Character(*): which bmad_com variable to set
+!   set_value -- Character(*): Value to set to.
+!-
+
+subroutine tao_set_bmad_com_cmd (who, set_value)
+
+implicit none
+
+type (bmad_common_struct) this_bmad_com
+
+character(*) who, set_value
+character(20) :: r_name = 'tao_set_bmad_com_cmd'
+
+integer iu, ios
+logical err
+
+namelist / params / this_bmad_com
+
+! open a scratch file for a namelist read
+
+iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+write (iu, *) '&params'
+write (iu, *) ' this_bmad_com%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) '/'
+rewind (iu)
+this_bmad_com = bmad_com  ! set defaults
+read (iu, nml = params, iostat = ios)
+close (iu)
+
+call tao_data_check (err)
+if (err) return
+
+if (ios == 0) then
+  bmad_com = this_bmad_com
+  s%u%lattice_recalc = .true.
+else
+  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+endif
+
+end subroutine tao_set_bmad_com_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_wave_cmd (who, set_value, err)
 !
 ! Routine to set wave variables

@@ -53,10 +53,10 @@ character(16) :: cmd_names(33) = (/  &
     'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
     'pause       ', 'continue    ', 'wave        ' /)
 
-character(16) :: set_names(11) = (/ &
+character(16) :: set_names(12) = (/ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
     'universe    ', 'curve       ', 'graph       ', 'beam_init   ', 'wave        ', &
-    'plot        ' /)
+    'plot        ', 'bmad_com    ' /)
 
 logical quit_tao, err, silent, gang, abort
 
@@ -463,6 +463,7 @@ case ('set')
        (set_word == 'wave'      .and. cmd_word(3) /= '=') .or. &
        (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
        (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'bmad_com'  .and. cmd_word(3) /= '=') .or. &
        (set_word == 'beam_init' .and. cmd_word(3) /= '=') .or. &
        (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
        (set_word == 'graph'     .and. cmd_word(4) /= '=') .or. &
@@ -486,6 +487,8 @@ case ('set')
     call tao_set_curve_cmd (cmd_word(2), cmd_word(3), cmd_word(5)) 
   case ('global')
     call tao_set_global_cmd (cmd_word(2), cmd_word(4))
+  case ('bmad_com')
+    call tao_set_bmad_com_cmd (cmd_word(2), cmd_word(4))
   case ('beam_init')
     call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4), 0)
   case ('plot_page')

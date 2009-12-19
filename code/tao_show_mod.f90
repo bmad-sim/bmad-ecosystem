@@ -918,41 +918,41 @@ case ('element')
 case ('global')
 
   nl=nl+1; lines(nl) = 'Global parameters:'
-  nl=nl+1; write (lines(nl), imt) '%bunch_to_plot              = ', s%global%bunch_to_plot
-  nl=nl+1; write (lines(nl), rmt) '%de_lm_step_ratio           = ', s%global%de_lm_step_ratio
-  nl=nl+1; write (lines(nl), lmt) '%derivative_recalc          = ', s%global%derivative_recalc
-  nl=nl+1; write (lines(nl), lmt) '%label_lattice_elements     = ', s%global%label_lattice_elements
-  nl=nl+1; write (lines(nl), lmt) '%label_keys                 = ', s%global%label_keys
-  nl=nl+1; write (lines(nl), rmt) '%lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
-  nl=nl+1; write (lines(nl), rmt) '%lmdif_eps                  = ', s%global%lmdif_eps
-  nl=nl+1; write (lines(nl), rmt) '%merit_finish               = ', s%global%merit_finish
-  nl=nl+1; write (lines(nl), imt) '%n_top10                    = ', s%global%n_top10
-  nl=nl+1; write (lines(nl), imt) '%n_opti_loops               = ', s%global%n_opti_loops
-  nl=nl+1; write (lines(nl), imt) '%n_opti_cycles              = ', s%global%n_opti_cycles
-  nl=nl+1; write (lines(nl), lmt) '%opt_with_ref               = ', s%global%opt_with_ref 
-  nl=nl+1; write (lines(nl), lmt) '%opt_with_base              = ', s%global%opt_with_base
-  nl=nl+1; write (lines(nl), amt) '%optimizer                  = ', s%global%optimizer
-  nl=nl+1; write (lines(nl), amt) '%phase_units                = ', &
+  nl=nl+1; write (lines(nl), imt) '  %bunch_to_plot              = ', s%global%bunch_to_plot
+  nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio           = ', s%global%de_lm_step_ratio
+  nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc          = ', s%global%derivative_recalc
+  nl=nl+1; write (lines(nl), lmt) '  %label_lattice_elements     = ', s%global%label_lattice_elements
+  nl=nl+1; write (lines(nl), lmt) '  %label_keys                 = ', s%global%label_keys
+  nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit        = ', s%global%lm_opt_deriv_reinit
+  nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                  = ', s%global%lmdif_eps
+  nl=nl+1; write (lines(nl), rmt) '  %merit_finish               = ', s%global%merit_finish
+  nl=nl+1; write (lines(nl), imt) '  %n_top10                    = ', s%global%n_top10
+  nl=nl+1; write (lines(nl), imt) '  %n_opti_loops               = ', s%global%n_opti_loops
+  nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles              = ', s%global%n_opti_cycles
+  nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref               = ', s%global%opt_with_ref 
+  nl=nl+1; write (lines(nl), lmt) '  %opt_with_base              = ', s%global%opt_with_base
+  nl=nl+1; write (lines(nl), amt) '  %optimizer                  = ', s%global%optimizer
+  nl=nl+1; write (lines(nl), amt) '  %phase_units                = ', &
                                                   frequency_units_name(s%global%phase_units)
-  nl=nl+1; write (lines(nl), lmt) '%plot_on                    = ', s%global%plot_on
-  nl=nl+1; write (lines(nl), lmt) '%lattice_calc_on            = ', s%global%lattice_calc_on
-  nl=nl+1; write (lines(nl), lmt) '%command_file_print_on      = ', s%global%command_file_print_on
-  nl=nl+1; write(lines(nl), lmt)  '%beam_timer_on              = ', s%global%beam_timer_on
-  nl=nl+1; write (lines(nl), amt) '%prompt_string              = ', s%global%prompt_string
-  nl=nl+1; write (lines(nl), amt) '%print_command              = ', s%global%print_command
-  nl=nl+1; write (lines(nl), amt) '%random_engine              = ', s%global%random_engine
-  nl=nl+1; write (lines(nl), amt) '%random_gauss_converter     = ', s%global%random_gauss_converter
-  nl=nl+1; write (lines(nl), rmt) '%random_sigma_cutoff        = ', s%global%random_sigma_cutoff
-  nl=nl+1; write (lines(nl), imt) '%random_seed                = ', s%global%random_seed
+  nl=nl+1; write (lines(nl), lmt) '  %plot_on                    = ', s%global%plot_on
+  nl=nl+1; write (lines(nl), lmt) '  %lattice_calc_on            = ', s%global%lattice_calc_on
+  nl=nl+1; write (lines(nl), lmt) '  %command_file_print_on      = ', s%global%command_file_print_on
+  nl=nl+1; write(lines(nl), lmt)  '  %beam_timer_on              = ', s%global%beam_timer_on
+  nl=nl+1; write (lines(nl), amt) '  %prompt_string              = ', s%global%prompt_string
+  nl=nl+1; write (lines(nl), amt) '  %print_command              = ', s%global%print_command
+  nl=nl+1; write (lines(nl), amt) '  %random_engine              = ', s%global%random_engine
+  nl=nl+1; write (lines(nl), amt) '  %random_gauss_converter     = ', s%global%random_gauss_converter
+  nl=nl+1; write (lines(nl), rmt) '  %random_sigma_cutoff        = ', s%global%random_sigma_cutoff
+  nl=nl+1; write (lines(nl), imt) '  %random_seed                = ', s%global%random_seed
   if (s%global%random_seed == 0) then
     call ran_seed_get(ix)
-    nl=nl+1; write (lines(nl), imt) ' random_seed (generated)    = ', ix
+    nl=nl+1; write (lines(nl), imt) '   random_seed (generated)    = ', ix
   endif
-  nl=nl+1; write (lines(nl), amt) '%track_type                 = ', s%global%track_type
-  nl=nl+1; write (lines(nl), imt) '%u_view                     = ', s%global%u_view
-  nl=nl+1; write (lines(nl), lmt) '%var_limits_on              = ', s%global%var_limits_on
-  nl=nl+1; write (lines(nl), amt) '%var_out_file               = ', s%global%var_out_file
-  nl=nl+1; write (lines(nl), rmt) '%y_axis_plot_dmin           = ', s%global%y_axis_plot_dmin
+  nl=nl+1; write (lines(nl), amt) '  %track_type                 = ', s%global%track_type
+  nl=nl+1; write (lines(nl), imt) '  %u_view                     = ', s%global%u_view
+  nl=nl+1; write (lines(nl), lmt) '  %var_limits_on              = ', s%global%var_limits_on
+  nl=nl+1; write (lines(nl), amt) '  %var_out_file               = ', s%global%var_out_file
+  nl=nl+1; write (lines(nl), rmt) '  %y_axis_plot_dmin           = ', s%global%y_axis_plot_dmin
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
@@ -967,26 +967,26 @@ case ('global')
   nl=nl+1; write (lines(nl), imt) 'Number paused command files  = ', count(tao_com%cmd_file%paused)
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = 'Bmad Parameters:'
-  nl=nl+1; write (lines(nl), imt) 'taylor_order              = ', bmad_com%taylor_order
-  nl=nl+1; write (lines(nl), lmt) 'auto_bookkeeper           = ', bmad_com%auto_bookkeeper
-  nl=nl+1; write (lines(nl), lmt) 'trans_space_charge_on     = ', bmad_com%trans_space_charge_on
-  nl=nl+1; write (lines(nl), lmt) 'coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
-  nl=nl+1; write (lines(nl), lmt) 'spin_tracking_on          = ', bmad_com%spin_tracking_on
-  nl=nl+1; write (lines(nl), lmt) 'radiation_damping_on      = ', bmad_com%radiation_damping_on
-  nl=nl+1; write (lines(nl), lmt) 'radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
-  nl=nl+1; write (lines(nl), lmt) 'spin_tracking_on          = ', bmad_com%spin_tracking_on
+  nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
+  nl=nl+1; write (lines(nl), imt) '  %taylor_order              = ', bmad_com%taylor_order
+  nl=nl+1; write (lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
+  nl=nl+1; write (lines(nl), lmt) '  %trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+  nl=nl+1; write (lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
+  nl=nl+1; write (lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
+  nl=nl+1; write (lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
+  nl=nl+1; write (lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+  nl=nl+1; write (lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; lines(nl) = 'CSR Parameters:'
-  nl=nl+1; write(lines(nl), rmt) 'csr_param%ds_track_step        = ', csr_param%ds_track_step
-  nl=nl+1; write(lines(nl), imt) 'csr_param%n_bin                = ', csr_param%n_bin
-  nl=nl+1; write(lines(nl), imt) 'csr_param%particle_bin_span    = ', csr_param%particle_bin_span
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%ix1_ele_csr          = ', csr_param%ix1_ele_csr
-  nl=nl+1; write(lines(nl), lmt) 'csr_param%ix2_ele_csr          = ', csr_param%ix2_ele_csr
+  nl=nl+1; lines(nl) = 'CSR_param Parameters:'
+  nl=nl+1; write(lines(nl), rmt) '  %ds_track_step        = ', csr_param%ds_track_step
+  nl=nl+1; write(lines(nl), imt) '  %n_bin                = ', csr_param%n_bin
+  nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
+  nl=nl+1; write(lines(nl), lmt) '  %lcsr_component_on    = ', csr_param%lcsr_component_on
+  nl=nl+1; write(lines(nl), lmt) '  %lsc_component_on     = ', csr_param%lsc_component_on
+  nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
+  nl=nl+1; write(lines(nl), lmt) '  %ix1_ele_csr          = ', csr_param%ix1_ele_csr
+  nl=nl+1; write(lines(nl), lmt) '  %ix2_ele_csr          = ', csr_param%ix2_ele_csr
 
   result_id = show_what
 

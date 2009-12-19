@@ -726,6 +726,7 @@ The \vn{set} command is used to set values for datums,
 variables, etc. Format:
 \begin{example}
   set beam_init \{n@\}<component> = <value>
+  set bmad_com <component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
   set global <component> = <value>
@@ -752,7 +753,7 @@ in place of \vn{<data_name>} or \vn{var_name}.
 % to obtain more information on a particular set subtopic. Example:
 %   help set plot
 
-%% set curve --------------------------------------------------------------
+%% set beam_init --------------------------------------------------------------
 
 \begin{description}
 
@@ -770,6 +771,16 @@ Examples:
   set beam_init [1,2]@sig_e = 0.02   ! Set sig_e for universes 1 and 2.
 \end{example}
 
+%% set bmad_com --------------------------------------------------------------
+
+\item[set bmad_com <component> = <value>] \Newline
+For \vn{set bmad_com}: The \vn{show global} command will give a list of 
+\vn{<component>}s.
+
+Example:
+\begin{example}
+  set bmad_com radiation_fluctuations_on = T ! Turn on synchrotron radiation fluctuations.
+\end{example}
 
 %% set curve --------------------------------------------------------------
 
