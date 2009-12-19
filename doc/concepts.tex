@@ -330,7 +330,7 @@ The syntax for specifying a set of lattice elements is called
   An element name.                                & \multirow{2}*{"q*"}  \\
   {[Can include wildcard characters "*" or "\%"]} &                      \\
   An element index.                               & "23"                 \\
-  A range of elements.                            & 'b23w:67"            \\
+  A range of elements.                            & "b23w:67"            \\
   A class::name specification.                    & "sbend::b*"          \\
 \end{tabular}
 \end{center}
@@ -353,12 +353,18 @@ of elements.
 
 A range of elements is specified using the format:
 \begin{example}
-  <ele1>:<ele2>
+  \{<class>::\}<ele1>:<ele2>
 \end{example}
-where \vn{<ele1>} is the element at the beginning of the range and
+\vn{<ele1>} is the element at the beginning of the range and
 \vn{<ele2>} is the element at the end of the range. Either an element
 name or index can be used to specify \vn{<ele1>} and \vn{<ele2>}. Both
-\vn{<ele1>} and \vn{<ele2>} are part of the range.
+\vn{<ele1>} and \vn{<ele2>} are part of the range. The optional \vn{<class>} 
+prefix can be used to select only those elements in the range that match the class.
+Example:
+\begin{example}
+  quad::sex10w:sex20w
+\end{example}
+This will select all quadrupoles between elements \vn{sex10w} and \vn{sex20w}.
 
 \index{class::name}
 A \vn{class::name} item
