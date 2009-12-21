@@ -4026,13 +4026,13 @@ end subroutine
 ! This subroutine is not intended for general use.
 !-
 
-recursive subroutine parser_add_branch (ele, lat, sequence, in_name, in_indexx, &
+recursive subroutine parser_add_branch (branch_ele, lat, sequence, in_name, in_indexx, &
                                                         seq_name, seq_indexx, in_lat)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
-type (ele_struct) ele
+type (ele_struct) branch_ele
 type (ele_struct), pointer :: ele2
 type (seq_struct), target :: sequence(:)
 type (branch_struct), pointer :: branch
@@ -4046,19 +4046,24 @@ character(*), allocatable ::  in_name(:), seq_name(:)
 
 nb = ubound(lat%branch, 1) + 1
 call allocate_branch_array (lat%branch, nb)
-ele%value(ix_branch_to$) = nb
+branch_ele%value(ix_branch_to$) = nb
 branch => lat%branch(nb)
+if (branch_ele%key == branch$) then
+  branch%param%particle = lat%branch(branch_ele%ix_branch)%param%particle
+else
+  branch%param%particle = photon$
+endif
 branch%param%lattice_type = linear_lattice$
-branch%key            = ele%key
+branch%key            = branch_ele%key
 branch%ix_branch      = nb
-branch%ix_from_branch = 0
-branch%ix_from_ele    = ele%ix_ele
-branch%name           = ele%component_name
-call parser_expand_line (nb, lat, ele%component_name, sequence, in_name, &
+branch%ix_from_branch = branch_ele%ix_branch
+branch%ix_from_ele    = branch_ele%ix_ele
+branch%name           = branch_ele%component_name
+call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 branch%ele(0)%key     = init_ele$
 branch%ele(0)%name    = 'BEGINNING'
-if (ele%alias /= '') branch%name = ele%alias
+if (branch_ele%alias /= '') branch%name = branch_ele%alias
 branch%n_ele_track = n_ele_use
 branch%n_ele_max   = n_ele_use
 

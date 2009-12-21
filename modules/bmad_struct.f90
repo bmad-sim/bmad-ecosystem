@@ -520,11 +520,12 @@ character(40), parameter :: blank_name$ = ' '
 
 integer, parameter :: proton$     = +2
 integer, parameter :: positron$   = +1
+integer, parameter :: photon$     = 0
 integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 
 character(16) :: particle_name(-2:2) = (/ 'ANTIPROTON', &
-                'ELECTRON  ', '???       ', 'POSITRON  ', 'PROTON    ' /)
+                'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ' /)
 
 integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
 real(rp), parameter :: mass_of(-2:2) = (/ m_proton, m_electron, 0.0_rp, &
