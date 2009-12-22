@@ -629,16 +629,18 @@ type tao_element_struct
   integer ixx                     ! Scratch variable
 end type
 
-type tao_universe_branch_struct
-  type (tao_element_struct), allocatable :: ele(:) ! Per element information
-  type (beam_struct) beam0                         ! Beam at the beginning of lattice
+type tao_beam_struct
   type (beam_init_struct) :: beam_init             ! Beam distrubution
                                                    !  at beginning of lattice
-  integer ix_track_start                 ! Element start index of tracking
-  integer ix_track_end                   ! Element end index of tracking
   logical :: init_beam0 = .false.        ! Init beam
   character(80) :: beam_all_file = ''  ! Input beam data file for entire lattice.
   character(80) :: beam0_file    = ''  ! Input beam data file at the start of the lattice.
+end type
+
+type tao_universe_branch_struct
+  type (tao_element_struct), allocatable :: ele(:) ! Per element information
+  integer ix_track_start                 ! Element start index of tracking
+  integer ix_track_end                   ! Element end index of tracking
 end type
 
 !-----------------------------------------------------------------------
@@ -647,6 +649,7 @@ end type
 type tao_universe_struct
   type (tao_universe_struct), pointer :: common => null()
   type (tao_lattice_struct), pointer :: model, design, base
+  type (tao_beam_struct) beam
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
   type (beam_struct) current_beam                  ! Beam at the current position
   type (tao_connected_uni_struct)   :: connect     ! Connection data put in 'to' uni.

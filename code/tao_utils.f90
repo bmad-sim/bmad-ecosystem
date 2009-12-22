@@ -241,7 +241,8 @@ end subroutine tao_pick_universe
 !+
 ! Subroutine tao_locate_elements (string, ix_universe, eles, err, ignore_blank) 
 !
-! Subroutine to find the lattice elements corresponding to the string argument.
+! Subroutine to find the lattice elements in the model lattice
+! corresponding to the string argument.
 !
 ! Input:
 !   string       -- Character(*): String with element name or index locations.
@@ -250,7 +251,7 @@ end subroutine tao_pick_universe
 !     string is blank. otherwise treated as an error.
 !
 ! Output:
-!   eles  -- ele_pointer_struct(:), allocatable: Array of elements. 
+!   eles  -- ele_pointer_struct(:), allocatable: Array of elements in the modle lat. 
 !   err   -- Logical: Set true on error.
 !-
 

@@ -339,7 +339,7 @@ end subroutine tao_set_wave_cmd
 !    s%beam_init  -- Beam_init variables structure.
 !-
 
-subroutine tao_set_beam_init_cmd (who, set_value, ix_branch)
+subroutine tao_set_beam_init_cmd (who, set_value)
 
 implicit none
 
@@ -349,7 +349,6 @@ character(*) who, set_value
 character(40) who2
 character(20) :: r_name = 'tao_set_beam_init_cmd'
 
-integer ix_branch
 integer i, iu, ios
 logical err
 logical, allocatable :: picked_uni(:)
@@ -376,7 +375,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   write (iu, *) '/'
   rewind (iu)
   u => s%u(i)
-  beam_init = u%uni_branch(ix_branch)%beam_init  ! set defaults
+  beam_init = u%beam%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
   close (iu)
 
@@ -384,7 +383,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (err) return
 
   if (ios == 0) then
-    u%uni_branch(ix_branch)%beam_init = beam_init
+    u%beam%beam_init = beam_init
     u%lattice_recalc = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -577,7 +576,7 @@ case ('ix_bunch')
   u => tao_pointer_to_universe (this_curve%ix_universe)
   if (.not. associated(u)) return
   call tao_integer_set_value (this_curve%ix_bunch, component, &
-                        set_value, error, -1, u%uni_branch(i_branch)%beam_init%n_bunch)
+                        set_value, error, -1, u%beam%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_integer_set_value (this_curve%symbol_every, component, &

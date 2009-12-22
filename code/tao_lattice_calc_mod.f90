@@ -42,10 +42,11 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
-integer i, j, k, ix, n_max, iu, it, id
+integer i, j, k, ix, n_max, iu, it, id 
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
+character(20) track_type
 
 logical calc_ok, this_calc_ok
 
@@ -87,7 +88,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       tao_lat%lat_branch(k)%orbit%vec(j) = 0.0
     enddo
 
-    select case (s%global%track_type)
+    track_type = s%global%track_type
+    if (k > 0 .and. tao_lat%lat%branch(k)%param%particle == photon$) track_type = 'single'
+
+    select case (track_type)
     case ('single') 
       call tao_inject_particle (u, tao_lat, k)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
@@ -97,7 +101,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       call tao_inject_beam (u, tao_lat, k)
       call tao_beam_track (u, tao_lat, this_calc_ok, k)
     case default
-      call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // s%global%track_type)
+      call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
       call err_exit
     end select
 
@@ -306,15 +310,16 @@ tao_lat%n_bunch_params2 = 0
 
 calc_ok = .true.
 
-call re_allocate (ix_ele,1)
+call re_allocate (ix_ele, 1)
 
 beam => u%current_beam
 branch => tao_lat%lat%branch(ix_branch)
 lat_branch => tao_lat%lat_branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
 uni_ele => uni_branch%ele
-beam_init => uni_branch%beam_init
-beam = uni_branch%beam0
+
+beam_init => u%beam%beam_init
+beam = uni_branch%ele(0)%beam
 
 lat => tao_lat%lat
 lat%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
@@ -613,8 +618,8 @@ orb0 => model%lat_branch(ix_branch)%orbit(0)
 ! Not connected case is easy.
 
 if (.not. u%connect%connected) then
-  polar%theta = u%uni_branch(ix_branch)%beam_init%spin%theta
-  polar%phi = u%uni_branch(ix_branch)%beam_init%spin%phi
+  polar%theta = u%beam%beam_init%spin%theta
+  polar%phi = u%beam%beam_init%spin%phi
   call polar_to_spinor (polar, orb0)
   return
 endif
@@ -688,72 +693,82 @@ type (lat_param_struct), pointer :: param
 type (tao_universe_branch_struct), pointer :: uni_branch
 
 real(rp) v(6)
-integer i, j, iu, ios, n_in_file, n_in, ix_branch
+integer i, j, iu, ios, n_in_file, n_in, ix_branch, ib, ie
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
 
 logical too_many_lost, err
 
-! Init
+! if injecting into a branch then use the branch point
 
 if (tao_com%use_saved_beam_in_tracking) return
 
 uni_branch => u%uni_branch(ix_branch)
+
+if (ix_branch > 0) then
+  ib = model%lat%branch(ix_branch)%ix_from_branch
+  ie = model%lat%branch(ix_branch)%ix_from_ele
+  uni_branch%ele(0)%beam = u%uni_branch(ib)%ele(ie)%beam
+  return
+endif
+
+! Init
+
 orb0 => model%lat_branch(0)%orbit(0)
 
-beam_init => uni_branch%beam_init
+beam_init => u%beam%beam_init
 model%lat%beam_start%vec = beam_init%center
 
 ! If there is an init file then read from the file
 
-if (uni_branch%beam0_file /= "") then
-  if (uni_branch%init_beam0 .or. .not. allocated(uni_branch%beam0%bunch)) then
-    call tao_open_beam_file (uni_branch%beam0_file)
+if (u%beam%beam0_file /= "") then
+  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+    call tao_open_beam_file (u%beam%beam0_file)
     call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
-    call tao_read_beam (uni_branch%beam0, err)
+    call tao_read_beam (uni_branch%ele(0)%beam, err)
     if (err) call err_exit
     call tao_close_beam_file()
-    do i = 1, size(uni_branch%beam0%bunch)
-      do j = 1, size(uni_branch%beam0%bunch(i)%particle)
-        uni_branch%beam0%bunch(i)%particle(j)%r%vec = &
-                  uni_branch%beam0%bunch(i)%particle(j)%r%vec + model%lat%beam_start%vec
+    do i = 1, size(uni_branch%ele(0)%beam%bunch)
+      do j = 1, size(uni_branch%ele(0)%beam%bunch(i)%particle)
+        uni_branch%ele(0)%beam%bunch(i)%particle(j)%r%vec = &
+                  uni_branch%ele(0)%beam%bunch(i)%particle(j)%r%vec + model%lat%beam_start%vec
       enddo
     enddo
     call out_io (s_info$, r_name, &
-                  'Read initial beam distribution from: ' // uni_branch%beam0_file, &
+                  'Read initial beam distribution from: ' // u%beam%beam0_file, &
                   'Centroid Offset: \6es12.3\ ', r_array = model%lat%beam_start%vec)
   endif
-  call tao_find_beam_centroid (uni_branch%beam0, orb0, too_many_lost) 
+  call tao_find_beam_centroid (uni_branch%ele(0)%beam, orb0, too_many_lost) 
   if (too_many_lost) then
     call out_io (s_warn$, r_name, "Not enough particles for beam init!")
     call err_exit
   endif
-  if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%beam0
+  if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%ele(0)%beam
   return
 endif
 
 ! Not connected case
 
 if (.not. u%connect%connected) then
-  if (uni_branch%init_beam0 .or. .not. allocated(uni_branch%beam0%bunch)) then
+  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
     beam_init%center = model%lat%beam_start%vec
     if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
     call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
-                                      model%lat%param, beam_init, uni_branch%beam0)
+                                      model%lat%param, beam_init, uni_branch%ele(0)%beam)
     if (beam_init%n_particle < 1) then
       call out_io (s_fatal$, r_name, &
         'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
       call err_exit
     endif
-    call tao_find_beam_centroid (uni_branch%beam0, orb0, too_many_lost)
+    call tao_find_beam_centroid (uni_branch%ele(0)%beam, orb0, too_many_lost)
     if (too_many_lost) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
       call err_exit
     endif
-    uni_branch%init_beam0 = .false.
+    u%beam%init_beam0 = .false.
   endif
-  if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%beam0
+  if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%ele(0)%beam
   return
 endif
 
@@ -792,14 +807,12 @@ model%lat%ele(0)%value(E_TOT$) = extract_ele%value(E_TOT$)
 model%lat%ele(0)%c_mat   = extract_ele%c_mat
 model%lat%ele(0)%gamma_c = extract_ele%gamma_c
 model%lat%ele(0)%floor   = extract_ele%floor
-uni_branch%beam0 = u%connect%injecting_beam
+uni_branch%ele(0)%beam = u%connect%injecting_beam
 call tao_find_beam_centroid (u%connect%injecting_beam, orb0, too_many_lost)
 if (too_many_lost) then
   call out_io (s_warn$, r_name, "Not enough particles for beam init!")
   call err_exit
 endif
-
-if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%beam0
 
 end subroutine tao_inject_beam
 

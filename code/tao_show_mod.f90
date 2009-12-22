@@ -292,32 +292,32 @@ case ('beam')
     nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', u%ix_uni
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', uni_branch%beam0_file
-    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', uni_branch%beam_all_file
+    nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
+    nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
     beam => uni_branch%ele(0)%beam
     if (allocated(beam%bunch)) then
       nl=nl+1; write(lines(nl), imt) 'n_particle                  = ', size(beam%bunch(1)%particle)
       nl=nl+1; write(lines(nl), imt) 'n_bunch                     = ', size(beam%bunch)
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge                = ', beam%bunch(1)%charge
     endif
-    if (uni_branch%beam_all_file == '' .and. uni_branch%beam0_file == '') then
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', uni_branch%beam_init%center
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', uni_branch%beam_init%a_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', uni_branch%beam_init%b_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', uni_branch%beam_init%dPz_dz
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%dt_bunch          = ', uni_branch%beam_init%dt_bunch
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', uni_branch%beam_init%sig_z
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', uni_branch%beam_init%sig_e
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', uni_branch%beam_init%center_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', uni_branch%beam_init%emitt_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', uni_branch%beam_init%sig_z_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', uni_branch%beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', uni_branch%beam_init%spin%polarization
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', uni_branch%beam_init%spin%theta
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', uni_branch%beam_init%spin%phi
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', uni_branch%beam_init%renorm_center
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', uni_branch%beam_init%renorm_sigma
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', uni_branch%beam_init%init_spin
+    if (u%beam%beam_all_file == '' .and. u%beam%beam0_file == '') then
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', u%beam%beam_init%center
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam%beam_init%a_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam%beam_init%b_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam%beam_init%dPz_dz
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%dt_bunch          = ', u%beam%beam_init%dt_bunch
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', u%beam%beam_init%sig_z
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', u%beam%beam_init%sig_e
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', u%beam%beam_init%center_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', u%beam%beam_init%emitt_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', u%beam%beam_init%sig_z_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', u%beam%beam_init%sig_e_jitter
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', u%beam%beam_init%spin%polarization
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', u%beam%beam_init%spin%theta
+      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', u%beam%beam_init%spin%phi
+      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', u%beam%beam_init%renorm_center
+      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', u%beam%beam_init%renorm_sigma
+      nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', u%beam%beam_init%init_spin
     endif
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), lmt) 'bmad_com%sr_wakes_on               = ', bmad_com%sr_wakes_on
@@ -1883,8 +1883,8 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write (lines(nl), lmt) '%mat6_recalc_on        = ', u%mat6_recalc_on
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(uni_branch%beam0_file)
-  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(uni_branch%beam_all_file)
+  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
+  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)
   nl=nl+1; write (lines(nl), amt) '%beam_saved_at:        = ', trim(u%beam_saved_at)
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:    ', lat%lattice
