@@ -41,9 +41,9 @@ do i = 0, ubound(lat%branch, 1)
     ss = ss + ele%value(l$)
     branch%ele(n)%s = ss
   enddo
+  branch%param%total_length = ss - branch%ele(0)%s
 enddo
 
-lat%param%total_length = ss - lat%ele(0)%s
 
 ! Now fill in the s positions of the super_lords and zero everyone else.
 ! Exception: A null_ele lord element is the result of a superposition on a multipass section.
