@@ -685,8 +685,7 @@ do k = 1, size(graph%curve)
       ! If there is a wrap-around then reorder data
       if (branch%param%lattice_type == circular_lattice$) then
         do i = 1, n_dat
-          if (curve%x_symb(i) > graph%x%max+eps .and. & 
-                        curve%x_symb(i)-l_tot > graph%x%min-eps) then
+          if (curve%x_symb(i) > graph%x%max+eps .and. curve%x_symb(i)-l_tot > graph%x%min-eps) then
             curve%ix_symb = (/ curve%ix_symb(i:), curve%ix_symb(:i-1) /)
             curve%x_symb = (/ curve%x_symb(i:)-l_tot, curve%x_symb(:i-1) /)
             exit
