@@ -1200,12 +1200,116 @@ previous subsection, the phase $\phi$ is
 \Endeq
 
 %-----------------------------------------------------------------
+\section{bunch Initialization}
+\label{s:bunch.init}
+\index{bunch initialization|hyperbf}
+
+\textit{Developed by Michael Saelim}
+
+\subsection{Elliptical Phase Space Distribution}
+
+To observe nonlinear effects on the beam, it is sometimes convenient to
+initialize a bunch of particles in a way that puts more particles in the
+tails of the bunch than one would normally have with the standard method
+of seeding particles using a Gaussian distribution. In order to preserve
+the emittance, a distribution with more particles in the tail needs to
+decrease the charge per tail particle relative to the core. For better
+visualization, it is also sometimes convenient to have a regular distribution. 
+Both of these features are contained in the following algorithm. 
+
+Consider the two dimensional phase space $(x, p_x)$. 
+The transformation to action-angle coordinates
+$(J, \phi)$ is
+\Begineq
+  \begin{pmatrix} 
+    x \\ x' 
+  \end{pmatrix} 
+  = \sqrt{2J} 
+  \begin{pmatrix} 
+    \sqrt{\beta} & 0 \\ -\frac{\alpha}{\sqrt{\beta}} & 
+    -\frac{1}{\sqrt{\beta}} 
+  \end{pmatrix}
+  \begin{pmatrix} 
+    \cos\phi \\ 
+    \sin\phi 
+  \end{pmatrix}.
+\Endeq
+The inverse is
+\Begineq
+  J = \frac{1}{2}[\gamma x^2 + 2 \alpha x x' + \beta x'^2]
+\Endeq
+In action-angle coordinates, the normalized Gaussian phase space 
+distribution, $\rho(J, \phi)$, is
+\Begineq
+  \rho(J,\phi) = \frac{1}{2\pi\varepsilon} e^{-\frac{J}{\varepsilon}}.
+  \label{eq:rho}
+\Endeq
+where the emittance $\varepsilon$ is just the average of $J$ over the distribution
+\Begineq
+  \varepsilon = \langle J \rangle \equiv \int dJ \, d\phi \, J\rho(J,\phi).
+  \label{eq:eps}
+\Endeq
+The beam sizes $\sigma$ and $\sigma'$ are
+\begin{align}
+  \sigma  & = \sqrt{\langle x^2 \rangle} = \sqrt{\varepsilon\beta}  \\
+  \sigma' & = \sqrt{\langle x'^2 \rangle} = \sqrt{\varepsilon\gamma},
+  \label{eq:rms}
+\end{align}
+and the covariance is
+\Begineq
+  \langle xx' \rangle = -\varepsilon\alpha.
+  \label{eq:corr}
+\Endeq
+
+The implementation of the initialization algorithm starts by partitioning phase space
+into regions bounded by ellipses of constant $J = B_n$, $n = 0, \ldots N_J$. 
+The boundary values $B_n$ are chosen so that, except for the last boundary,
+the $\sqrt{B_n}$ are equally spaced
+\Begineq
+  B_n = 
+  \begin{cases}
+    \frac{\varepsilon}{2} \, \left( \frac{n_\sigma \, n}{N} \right)^2 & \text{for } 0 \le n < N_J \\
+    \infty & \text{for } n = N_J
+  \end{cases}
+\Endeq
+where $n_\sigma$ is the boundary sigma cutoff.
+Within each region, an elipse of constant $J_n$ is constructed with
+$N_\phi$ particles equally spaced in $\phi$. The charge $q_n$ of each
+particle of the $n$\Th ellipse is chosen so that the total normalized
+charge of all
+the particles of the ellipse is equal to the total charge within the
+region
+\Begineq
+  N_\phi \, q_n = 
+  \int_{B_{n-1}}^{B_{n}} \!\! dJ \int_{0}^{2\pi} \!\! d\phi \, \rho(J,\phi) 
+  = 
+    \exp \left( -\frac{B_{n-1}}{\varepsilon} \right) - 
+    \exp \left( -\frac{B_{n}}{\varepsilon} \right)
+\Endeq
+The value of $J_n$ is chosen to coincide with the average $J$ within the region
+\Begineq
+  N_\phi \, q_n \, J_n = 
+  \int_{B_{n-1}}^{B_{n}} \!\! dJ \int_{0}^{2\pi} \!\! d\phi \, J \, \rho(J,\phi) 
+  = \varepsilon (\xi + 1) e^{-\xi} 
+    \biggr\vert_{\frac{B_{n}}{\varepsilon}}^{\frac{B_{n-1}}{\varepsilon}}
+\Endeq
+The model phase space distribution is thus
+\Begineq
+  \rho_{model}(J, \phi) = q_{tot} \, 
+  \sum_{n=1}^{N_J} q_{n} \, \delta(J - J_{n}) \, 
+  \sum_{m=1}^{N_\phi} \, \delta(\phi - 2\pi \frac{m}{N_{\phi}})
+  \label{eq:rhomodel}
+\Endeq
+where $q_{tot}$ is the total charge.
+
+
+%-----------------------------------------------------------------
 \section{Macroparticles}
 \label{s:macro}
 \index{macroparticles|hyperbf}
 
 {\em Note: The macroparticle tracking code is not currently maintained
-in favor of tracking an ensamble of particles.}
+in favor of tracking an ensemble of particles.}
 
 A macroparticle\cite{b:transport.appendix} is a bundle of particles
 whose distribution is assumed to be Gaussian in shape. A macroparticle

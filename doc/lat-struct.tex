@@ -542,6 +542,71 @@ be varied and sets the \vn{err_flag} logical accordingly. An element's
 attribute may not be freely varied if, for example, the attribute is
 controlled via an \vn{Overlay}.
 
+%----------------------------------------------------------------------------
+\section{Lattice Bookkeeping}
+\label{s:lat.bookkeeping}
+
+
+\vn{attribute_bookkeeper} is the routine that makes sure that the
+dependent variables (\sref{s:depend}) of an element are keep
+up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
+when \vnf{make_mat6} is called to make transfer matrices and when
+\vnf{track1} is called to track through an element. As a general rule,
+to be safe, when element attributes are changed, call
+\vnf{attribute_bookkeeper}. If the element is part of a
+\vn{Lat_struct} (as it is in most cases), the routine
+\vnf{control_bookkeeper} (which calls \vn{attribute_bookkeeper})
+should be called instead.  
+
+\changed-section...
+-----------------------------------------
+
+The function \vnr{attribute_free} will
+check if an attribute is free to vary.
+\begin{example}
+  type (lat_struct) lat
+  integer ix_ele
+  ...
+  call element_locator ('Q10W', lat, ix_ele)   ! look for a quadrupole
+  free = attribute_free (lat%ele(ix_ele), k1$, lat, .false.)
+  if (.not. free) print *, 'Cannot vary: Q10W k1'
+\end{example}
+\vn{%field_master} is the logical within appropriate elements that
+sets whether it is the normalized strength or field strength that is
+the independent variable. See \sref{s:depend} for more details.
+
+In designing a program that will let a user input what
+attribute to vary, 
+
+With user input the routine \vn{pointer_to_attribute} is a convenient
+way to obtain from an input string a pointer that points to the
+appropriate attribute. For example:
+\begin{example}
+  type (lat_struct) lat
+  character(40) attrib_name, ele_name
+  real(rp), pointer :: attrib_ptr
+  real(rp) set_value
+  logical err_flag
+  integer ix_attrib, ie
+  ...
+  write (*, '(a)', advance = 'no') ' Name of element to vary: '
+  accept '(a)', ele_name
+  write (*, '(a)', advance = 'no') ' Name of attribute to vary: '
+  accept '(a)', attrib_name
+  write (*, '(a)', advance = 'no') ' Value to set attribute at: '
+  accept *, set_value
+  do ie = 1, lat%n_ele_max
+    if (lat%ele(ie)%name == ele_name) then
+      call pointer_to_attribute (lat%ele(ie), attrib_name, &
+                            .false., attrib_ptr, ix_attrib, err_flag)
+      if (err_flag) exit      ! Do nothing on an error
+      attrib_ptr = set_value  ! Set the attribute
+    endif
+  enddo
+\end{example}
+
+-----------------------------------------------------------
+
 \index{bmad_common_struct!auto_bookkeeper}
 There is a global variable \vn{bmad_com%auto_bookkeeper} that 
 controls whether bookkeeping routines are called by routines that do tracking

@@ -67,17 +67,6 @@ The following helper routines are generally not useful for general use.
 \item[add_sr_long_wake (ele, bunch, num_in_front, follower)] \Newline 
 Adds the longitudinal wake for all particles in front of the follower.
 
-\index{routine!beam_equal_beam}
-\label{r:beam.equal.beam}
-\item[beam_equal_beam (beam1, beam2)] \Newline 
-Subroutine to set one particle beam equal to another taking care of
-pointers so that they don't all point to the same place.
-
-\index{routine!calc_bunch_params_slice}
-\label{r:calc.bunch.params.slice}
-\item[calc_bunch_params_slice (bunch, ele, params, plane, slice_center, slice_spread)] \Newline 
-Finds all bunch parameters for a slice through the beam distribution.
-
 \index{routine!find_bunch_sigma_matrix}
 \label{r:find.bunch.sigma.matrix}
 \item[find_bunch_sigma_matrix (particle, ave, sigma)] \Newline 
@@ -109,16 +98,6 @@ Overloaded by \vn{track1_beam}.
 \label{r:track1.bunch}
 \item[track1_bunch (bunch_start, lat, ix_ele, bunch_end, err)] \Newline 
 Subroutine to track a bunch of particles through an element.
-
-\index{routine!track1_sr_wake}
-\label{r:track1.sr.wake}
-\item[track1_sr_wake (bunch, ele)] \Newline 
-Subroutine to apply the short range wake fields to a bunch. 
-
-\index{routine!track1_lr_wake}
-\label{r:track1.lr.wake}
-\item[track1_lr_wake (bunch, ele)] \Newline 
-Subroutine to put in the long-range wakes for particle tracking.
 
 \index{routine!track1_particle}
 \label{r:track1.particle}
@@ -533,7 +512,6 @@ Function to check if an attribute is free to vary.
 Subroutine to return the index of the element at position s.
 
 \index{routine!equivalent_taylor_attributes}
-\label{r:equivalent.taylor.attributes}
 \item[equivalent_taylor_attributes (ele1, ele2) result (equiv)] \Newline 
 Subroutine to see if two elements are equivalent in terms of their attributes so
 that their Taylor Maps, if they existed, would be the same.
@@ -837,7 +815,6 @@ RF cavities, etc.) in a lat.
      This is a plain transfer of information not using the overloaded equal.
 
 \index{routine!transfer_ele_taylor}
-\label{r:transfer.ele.taylor}
 \item[transfer_ele_taylor (ele_in, ele_out, taylor_order)] \Newline 
      Subroutine to transfer a Taylor map from one element to another.
 
@@ -854,7 +831,6 @@ Subroutine to transfer the lat parameters (such as lat\%name,
 lat\%param, etc.) from one lat to another. 
 
 \index{routine!transfer_lat_taylors}
-\label{r:transfer.lat.taylors}
 \item[transfer_lat_taylors (lat_in, lat_out, 
                         type_out, transfered_all) ] \Newline 
 Subroutine to transfer the taylor maps from the elements of one lat to
@@ -1058,7 +1034,6 @@ Subroutine to make the matrices needed to go from normal mode coords to X-Y
 coords and vice versa. 
 
 \index{routine!mat6_to_taylor}
-\label{r:mat6.to.taylor}
 \item[mat6_to_taylor (mat6, vec0, bmad_taylor)] \Newline
 Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
@@ -1116,7 +1091,6 @@ transfer matrix T0.
 Subroutine to make the 6 x 6 transfer matrix from the twiss parameters.
 
 \index{routine!multi_turn_tracking_to_mat}
-\label{r:multi.turn.tracking.to.mat}
 \item[multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)] \Newline
 Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
 and the closed orbit offset.
@@ -1139,7 +1113,6 @@ at the end of an element.
 Subroutine to make the 6x6 linear transfer matrix for an element 
 
 \index{routine!taylor_to_mat6}
-\label{r:taylor.to.mat6}
 \item[taylor_to_mat6 (a_taylor, c0, mat6, c1)] \Newline
 Subroutine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
 
@@ -1165,7 +1138,6 @@ Subroutine to extract the Twiss parameters from the one-turn 2x2 matrix
 Subroutine to extract the Twiss parameters from the one-turn 6x6 matrix 
 
 \index{routine!twiss_to_1_turn_mat}
-\label{r:twiss.to.1.turn.mat}
 \item[twiss_to_1_turn_mat (twiss, phi, mat2)] \Newline
 Subroutine to form the 2x2 1-turn transfer matrix from the Twiss parameters. 
 
@@ -1644,7 +1616,6 @@ Subroutine that is used to set one element vector equal to another.
 This routine takes care of the pointers in ele1. 
 
 \index{routine!real_8_equal_taylor}
-\label{r:real.8.equal.taylor}
 \item[real_8_equal_taylor (y8, bmad_taylor)] \Newline
 Subroutine to overload "=" in expressions real_8 (PTC) = bmad_taylor.
 
@@ -1661,7 +1632,6 @@ Subroutine that is used to set one lat array equal to another.
 This routine takes care of the pointers in lat1(:). 
 
 \index{routine!taylor_equal_real_8}
-\label{r:taylor.equal.real.8}
 \item[taylor_equal_real_8 (bmad_taylor, y8)] \Newline
 Subroutine to overload "=" in expressions bmad_taylor = real_8 (PTC) 
 
@@ -1761,7 +1731,6 @@ Subroutine to create a PTC layout from a Bmad lat.
 Subroutine to initialize PTC. 
 
 \index{routine!set_taylor_order}
-\label{r:set.taylor.order}
 \item[set_taylor_order (order, override_flag)] \Newline
 Subroutine to set the taylor order. 
 
@@ -1866,7 +1835,6 @@ Routine to calculate how ``nicely'' an axis will look.
 The higher the score the nicer.
 
 \index{routine!qp_calc_and_set_axis}
-\label{r:qp.calc.and.set.axis}
 \item[qp_calc_and_set_axis (axis, data_min, data_max, ... ] \Newline
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
@@ -2792,7 +2760,6 @@ Subroutine to calculate the Twiss parameters and orbit at a particular longitudi
 Subroutine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index{routine!twiss_from_tracking}
-\label{r:twiss.from.tracking}
 \item[twiss_from_tracking (lat, closed_orb_, d_orb, error)] \Newline
 Subroutine to compute from tracking the Twiss parameters and the transfer matrices 
 for every element in the lat. 
@@ -3041,7 +3008,7 @@ Subroutine to track a macroparticle through an element.
 
 %------------------------------------------------------------------------
 \section{Tracking: Routines called by TRACK1}
-\label{r:track1}   
+\label{r:track1.call}   
 
 Note: Generally you don't call these routines directly.
 
@@ -3156,13 +3123,11 @@ Subroutine to Q_tune a lat. This routine will set the tunes to within 0.001 radi
 Subroutine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
 \index{routine!twiss_and_track}
-\label{r:twiss.and.track}
 \item[twiss_and_track (lat, orb)] \Newline
 Subroutine to calculate the Twiss and orbit parameters. 
 This is not necessarily the fastest routine. 
 
 \index{routine!twiss_and_track_partial}
-\label{r:twiss.and.track.partial}
 \item[twiss_and_track_partial (ele1, ele2, param, del_s, ele3, start, end)] \Newline
 Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
 
@@ -3172,7 +3137,6 @@ Subroutine to propagate partially through ELE2 the Twiss parameters and the orbi
 Subroutine to return the Twiss parameters at the beginning, end, or the average of an element. 
 
 \index{routine!twiss_and_track_at_s}
-\label{r:twiss.and.track.at.s}
 \item[twiss_and_track_at_s (lat, s, ele, orb_, here)] \Newline
 Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 

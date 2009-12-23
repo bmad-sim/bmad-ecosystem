@@ -85,6 +85,7 @@ The complete structure is shown in this and the following figure.}
   integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, etc.
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
+  integer aperture_type      ! Type of aperture: rectanular$, or elliptical$.
   integer coupler_at         ! Lcavity coupler location: exit_end$, ...
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
@@ -166,10 +167,10 @@ a given element.
 \section{Element Key}
 
 \index{ele_struct!\%key}
-The \vn{%key} integer component gives the type of element
+The \vn{%key} integer component gives the class of element
 (\vn{quadrupole}, \vn{rfcavity}, etc.). In general, to get the
 corresponding integer parameter for an element class, just add a ``\$''
-character to the type name. For example \vn{quadrupole\$} is the integer
+character to the class name. For example \vn{quadrupole\$} is the integer
 parameter for \vn{quadrupole} elements. The \vn{key_name} array converts from
 integer to the appropriate string. For example:
 \begin{example}
@@ -181,7 +182,7 @@ Note: The call to \vn{init_ele} is needed for any \vn{ele_struct} defined
 outside of a \vn{lat_struct} structure.
 
 \index{wiggler}\index{rbend}\index{sbend}\index{ele_struct!\%sub_key}
-The \vn{%sub_key} component is only used for \vn{Wiggler} and \vn{Rbend} and
+The \vn{%sub_key} component is only used for \vn{Wiggler}, \vn{Rbend} and
 \vn{Sbend} elements. For \vn{Wiggler} elements, \vn{%sub_key} is either set to
 \begin{example}
   map_type$ or
@@ -203,7 +204,7 @@ lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
 \index{ele_struct!\%gamma_c}
 \index{ele_struct!\%c_mat}
 \index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
-\index{ele_struct!\%mode3}, \index{ele_struct!\%mode_flip}
+\index{ele_struct!\%mode3}\index{ele_struct!\%mode_flip}
 
 The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
 \vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
@@ -211,7 +212,7 @@ hold information on the Twiss parameters, dispersion, and coupling
 at the exit end of the element. See \cref{c:twiss} for more details.
 
 %--------------------------------------------------------------------------
-\section{Attribute Values: Dependent and Otherwise}
+\section{The \%value(:) array}
 \label{s:ele.dep}
 \index{ele_struct!attribute values}
 
@@ -219,8 +220,9 @@ at the exit end of the element. See \cref{c:twiss} for more details.
 Most of the real valued attributes of an element are held in the
 \vn{%value(:)} array. For example, the value of the \vn{k1} attribute
 for a quadrupole element is stored in \vn{%value(k1\$)} where
-\vn{k1\$} is an integer parameter. In general to get the correct index
-in \vn{%value(:)} for a given attribute just add a ``\$" as a
+\vn{k1\$} is an integer parameter that \bmad defines. 
+In general, to get the correct index
+in \vn{%value(:)} for a given attribute, add a ``\$" as a
 suffix. To convert from an attribute name to its index in the
 \vn{%value} array use the \vn{attribute_index} routine.  To go back
 from an index in the \vn{%value} array to a name use the
@@ -231,7 +233,7 @@ from an index in the \vn{%value} array to a name use the
   ele%key = quadrupole$  ! Set element to be a quadrupole
   ele%value(k1$) = 0.3                                        ! Set K1 value
   print *, 'Index for Quad K1:  ', attribute_index(ele, 'K1') ! prints: `4' (= k1\$)
-  print *, 'Name for Quad k1\$: ', attribute_name (ele, k1\$)    ! prints: `K1' 
+  print *, 'Name for Quad k1\$: ', attribute_name (ele, k1\$)   ! prints: `K1' 
 \end{example}
 The list of attributes for a given element
 type is given in the writeup for the different element in
@@ -249,87 +251,32 @@ like:
   lat%ele(i)%value(time_stamp$) = ...
 \end{example}
 
-\index{ele_struct!\%b_pole(:)}\index{ele_struct!\%a_pole(:)}
-\index{ele_struct!\%value(:)}
-Certain real valued attributes are {\em not}
-found in the \vn{%value(:)} array. For example, multipole components
-are stored in the \vn{%a_pole(:)} and \vn{%b_pole(:)} arrays. The full list
-of real attributes not in \vn{%value(:)} is:
-\begin{center}
-\begin{tabular}{|l|l|} \hline
-  {\em Attribute} & {\em Component in Ele_struct} \\ \hline
-  a$n$, b$n$      & \%a_pole(:), \%b_pole(:) \\ \hline
-  K$n$L, T$n$     & \%a_pole(:), \%b_pole(:) \\ \hline
-  Taylor term     & \%taylor(:)              \\ \hline
-  wakes           & \%wake                   \\ \hline
-  wiggler terms   & \%wig_term(:)            \\ \hline
-\end{tabular}
-\end{center}
-
-\vn{attribute_bookkeeper} is the routine that makes sure that the
-dependent variables (See \sref{s:depend}) of an element are keep
-up--to--date. \vn{attribute_bookkeeper} is called behind the scenes
-when \vnf{make_mat6} is called to make transfer matrices and when
-\vnf{track1} is called to track through an element. As a general rule,
-to be safe, when element attributes are changed, call
-\vnf{attribute_bookkeeper}. If the element is part of a
-\vn{Lat_struct} (as it is in most cases), the routine
-\vnf{control_bookkeeper} (which calls \vn{attribute_bookkeeper})
-should be called instead.  The function \vnr{attribute_free} will
-check if an attribute is free to vary.
-\begin{example}
-  type (lat_struct) lat
-  integer ix_ele
-  ...
-  call element_locator ('Q10W', lat, ix_ele)   ! look for a quadrupole
-  free = attribute_free (lat%ele(ix_ele), k1$, lat, .false.)
-  if (.not. free) print *, 'Cannot vary: Q10W k1'
-\end{example}
-\vn{%field_master} is the logical within appropriate elements that
-sets whether it is the normalized strength or field strength that is
-the independent variable. See \sref{s:depend} for more details.
-
-In designing a program that will let a user input what
-attribute to vary, 
-
-With user input the routine \vn{pointer_to_attribute} is a convenient
-way to obtain from an input string a pointer that points to the
-appropriate attribute. For example:
-\begin{example}
-  type (lat_struct) lat
-  character(40) attrib_name, ele_name
-  real(rp), pointer :: attrib_ptr
-  real(rp) set_value
-  logical err_flag
-  integer ix_attrib, ie
-  ...
-  write (*, '(a)', advance = 'no') ' Name of element to vary: '
-  accept '(a)', ele_name
-  write (*, '(a)', advance = 'no') ' Name of attribute to vary: '
-  accept '(a)', attrib_name
-  write (*, '(a)', advance = 'no') ' Value to set attribute at: '
-  accept *, set_value
-  do ie = 1, lat%n_ele_max
-    if (lat%ele(ie)%name == ele_name) then
-      call pointer_to_attribute (lat%ele(ie), attrib_name, &
-                            .false., attrib_ptr, ix_attrib, err_flag)
-      if (err_flag) exit      ! Do nothing on an error
-      attrib_ptr = set_value  ! Set the attribute
-    endif
-  enddo
-\end{example}
-
 %--------------------------------------------------------------------------
 \section{Element Lords and Element Slaves}
 \label{s:ele.control}
 
-\index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
-In a \vn{lat_struct} (\sref{c:lat.struct}), elements in the lattice
-can control the attributes of other elements. The \vn{%lord_status}
-and \vn{%slave_status} components of an element identifies whether the
-element is a slave element (it is being controlled or is a lord
-element (it controls other elements) or both. See \sref{s:lat.control}
-for more details.
+\index{ele_struct!\%slave_status}
+\index{ele_struct!\%n_slave}
+\index{ele_struct!\%ix1_slave}
+\index{ele_struct!\%ix2_slave}
+\index{ele_struct!\%lord_status}
+\index{ele_struct!\%n_lord}
+\index{ele_struct!\%ic1_lord}
+\index{ele_struct!\%ic2_lord}
+In \bmad, elements in a lattice can control other elements.
+The components that determine this control are:
+\begin{example}
+  %slave_status
+  %n_slave
+  %ix1_slave
+  %ix2_slave
+  %lord_status
+  %n_lord
+  %ic1_lord
+  %ic2_lord
+\end{example}
+\index{lat_struct}
+This is explained fully in the chapter on the \vn{lat_struct} (sref{c:lat.struct}).
 
 %--------------------------------------------------------------------------
 \section{Limits}
@@ -337,26 +284,42 @@ for more details.
 \index{x_limit}\index{x1_limit}\index{x2_limit}
 \index{x_limit}\index{x1_limit}\index{x2_limit}
 
-The aperture limits are:
+The aperture limits (\sref{s:limit}) in the \vn{ele_struct} are:
 \begin{example}
   %value(x1_limit$)
   %value(x2_limit$)
   %value(y1_limit$)
   %value(y2_limit$)
 \end{example}
+The values of these limits along with the \vn{%aperture_at}, \vn{%aperture_type},
+and \vn{%offset_moves_aperture} components are used in tracking to determine
+if a particle has hit the vacuum chamber wall. See Section~\sref{s:tracking.aperture}
+for more details.
 
 %--------------------------------------------------------------------------
 \section{Coordinates, Offsets, etc.}
-
-\index{ele_struct!\%floor}
 \index{global coordinates!in ele_struct}
 
+\index{ele_struct!\%floor}
+\index{floor_position_struct}
+The \vn{%floor} component gives the global ``floor'' coordinates (\sref{s:global})
+at the exit end of the element. The components of the \vn{%floor} structure are
+\begin{example}
+  type floor_position_struct
+    real(rp) x, y, z            ! offset from origin
+    real(rp) theta, phi, psi    ! angular orientation
+  end type
+\end{example}
+The routine \hyperref[r:ele.geometry]{ele_geometry} will calculate an element's 
+floor coordinates given the floor coordinates at the beginning of the element.
+In a lattice, the \hyperref[r:lat.geometry]{lat_geometry} routine will calculate
+the floor coordinates for the entire lattice using repeated calls to \vn{ele_geometry}.
 
 \index{x_offset}\index{y_offset}\index{x_pitch}\index{y_pitch}
 \index{tilt}\index{x_offset_tot}\index{y_offset_tot}\index{x_pitch_tot}
 \index{y_pitch_tot}\index{tilt_tot}
-
-The positional offsets for an element are stored in:
+The positional offsets (\sref{s:offset}) for an element 
+from the reference orbit are stored in
 \begin{example}
   %value(x_offset\$)
   %value(y_offset\$)
@@ -365,8 +328,8 @@ The positional offsets for an element are stored in:
   %value(tilt\$)
 \end{example}
 \index{girder}
-If the element is supported by an \vn{Girder} then the \vn{Girder}
-offsets are added to the element offsets 
+If the element is supported by an \vn{girder} element (\sref{s:girder})
+then the \vn{girder} offsets are added to the element offsets 
 and the total offset with respect to the
 reference coordinate system is stored in:
 \begin{example}
@@ -376,7 +339,7 @@ reference coordinate system is stored in:
   %value(y_pitch_tot\$)
   %value(tilt_tot\$)
 \end{example}
-If there is no \vn{Girder}, the values for \vn{%value(x_offset_tot\$)}, etc.
+If there is no \vn{girder}, the values for \vn{%value(x_offset_tot\$)}, etc.
 are set to the corresponding values in \vn{%value(x_offset\$)}, etc.
 Thus, to vary the position of an individual
 element the values of \vn{%value(x_offset\$)}, etc. are changed and to
