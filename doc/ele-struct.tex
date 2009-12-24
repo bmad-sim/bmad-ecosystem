@@ -14,6 +14,12 @@ constant along the length of an element, the value stored in the
 corresponding component in the \vn{ele_struct} is the value at the exit
 end of the element.
 
+For printing information about an element, the
+\hyperref[type.ele]{type_ele} or \hyperref[type2.ele]{type2_ele} routines
+can be used (\sref{s:first.program}). The difference between the two is
+that \vn{type_ele} will print to the terminal window while \vn{type2_ele}
+will return an array of strings containing the element information.
+
 \begin{figure}[tb]
 \centering
 \footnotesize
@@ -211,9 +217,10 @@ for a quadrupole element is stored in \vn{%value(k1\$)} where
 In general, to get the correct index
 in \vn{%value(:)} for a given attribute, add a ``\$" as a
 suffix. To convert from an attribute name to its index in the
-\vn{%value} array use the \vn{attribute_index} routine.  To go back
+\vn{%value} array use the \hyperref[r:attribute.index]{attribute_index} 
+routine.  To go back
 from an index in the \vn{%value} array to a name use the
-\vn{attribute_name} routine. Example:
+\hyperref[r:attribute.name]{attribute_name} routine. Example:
 \begin{example}
   type (ele_struct) ele
   call init_ele (ele)    ! Initialize element
