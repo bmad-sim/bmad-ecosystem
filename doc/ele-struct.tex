@@ -165,6 +165,7 @@ a given element.
 
 %--------------------------------------------------------------------------
 \section{Element Key}
+\label{s:ele.key}
 
 \index{ele_struct!\%key}
 The \vn{%key} integer component gives the class of element
@@ -196,20 +197,6 @@ of the element was, the \vn{%sub_key} component will be set to \vn{sbend\$} or
 \vn{rbend\$} whatever is appropriate. In the case of bends, the \vn{%sub_key} component
 does not affect any calculations and is only used in the routines that recreate
 lattice files from a \vn{lat_struct} (\sref{s:lat.write}).
-
-%--------------------------------------------------------------------------
-\section{Twiss Parameters, etc.}
-\label{s:ele.twiss}
-
-\index{ele_struct!\%gamma_c}
-\index{ele_struct!\%c_mat}
-\index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
-\index{ele_struct!\%mode3}\index{ele_struct!\%mode_flip}
-
-The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
-\vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
-hold information on the Twiss parameters, dispersion, and coupling
-at the exit end of the element. See \cref{c:twiss} for more details.
 
 %--------------------------------------------------------------------------
 \section{The \%value(:) array}
@@ -252,6 +239,20 @@ like:
 \end{example}
 
 %--------------------------------------------------------------------------
+\section{Twiss Parameters, etc.}
+\label{s:ele.twiss}
+
+\index{ele_struct!\%gamma_c}
+\index{ele_struct!\%c_mat}
+\index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
+\index{ele_struct!\%mode3}\index{ele_struct!\%mode_flip}
+
+The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
+\vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
+hold information on the Twiss parameters, dispersion, and coupling
+at the exit end of the element. See \cref{c:twiss} for more details.
+
+%--------------------------------------------------------------------------
 \section{Element Lords and Element Slaves}
 \label{s:ele.control}
 
@@ -276,7 +277,7 @@ The components that determine this control are:
   %ic2_lord
 \end{example}
 \index{lat_struct}
-This is explained fully in the chapter on the \vn{lat_struct} (sref{c:lat.struct}).
+This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struct}).
 
 %--------------------------------------------------------------------------
 \section{Limits}
@@ -347,51 +348,52 @@ read the position of an element a program should look at
 \vn{%value(x_offset_tot\$)}, etc.
 
 %--------------------------------------------------------------------------
-\section{Transfer Maps}
+\section{Linear Transfer Maps}
 \index{ele_struct!transfer maps}
 \index{transfer map!in ele_struct}
 \index{mat6}
 \index{vec0}
 \index{ref_orb}
 
-The routine \vn{make_mat6} computes the linear transfer matrix (Jacobian). 
-This matrix is stored in \vn{%mat6(6,6)}. The reference orbit at
+The routine \hyperref[r:make.mat6]{make_mat6} computes the linear 
+transfer matrix (Jacobian) along with the zeroth order transfer vector. 
+This matrix is stored in \vn{%mat6(6,6)} and the
+zeroth order vector is stored in \vn{%vec0(6)}. The reference orbit at
 the entrance end of the element about
 which the transfer matrix is computed is stored in \vn{%ref_orb_start}
 and the the reference orbit at the exit end is stored in \vn{%ref_orb_end}.
-Finally, \vn{make_mat6} stores in \vn{%vec0} a vector such that
+In the calculation of the transfer map, the vector \vn{%vec0} is set so that
 \begin{example}
   ref_orb_end = %mat6 * ref_orbit_start + %vec0
 \end{example}
-Notice that \vn{%vec0} only corresponds to the zeroth
-order part of the transport map when the transport map is linear.
 The reason redundant information is stored in the element is to save
 computation time.
 
-To compute the transfer maps for an entire lattice use the routine \vn{lat_make_mat6}.
+To compute the transfer maps for an entire lattice use the routine 
+\hyperref[r:lat.make.mat6]{lat_make_mat6}.
 
 %--------------------------------------------------------------------------
 \section{Taylor Maps}
 \index{ele_struct!Taylor maps}
 \index{taylor map!structure in ele_struct}
 
-\vn{taylor_order} is the order of the Taylor map
-(see~\sref{s:taylor.phys}). The map itself is stored in
+Taylor maps (\sref{c:methods}) are stored in
 \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct}
-structure that defines a Taylor series. The structure is defined as
-\begin{example}
+structure that defines a Taylor series:
   type taylor_struct
     real (rp) ref
     type (taylor_term_struct), pointer :: term(:) => null()
   end type
 \end{example}
-Each Taylor series is an array of \vn{taylor_term_struct} term defined as
+Each Taylor series has an array of \vn{taylor_term_struct} term defined as
 \begin{example}
   type taylor_term_struct
     real(rp) :: coef
     integer :: exp(6)
   end type
 \end{example}
+The coefficient for a Taylor term is stored in \vn{%coef} and the
+six exponents are stored in \vn{%exp(6)}. 
 
 To see if there is a Taylor map associated with an element the
 association status of \vn{%taylor(1)%term} needs to be checked.
@@ -414,7 +416,7 @@ As an example the following finds the order of a Taylor map.
 The Taylor map is made up around some reference phase space point
 corresponding to the coordinates at the entrance of the element.
 This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
-made the reference point is not needed in subsequent
+made, the reference point is not needed in subsequent
 calculations. However, The Taylor map itself will depend upon what
 reference point is chosen (\sref{s:taylor.phys}).
 
@@ -522,7 +524,7 @@ indicates whether the the mode has a polarization angle. If so, then
 \index{wiggler!types}
 
 The \vn{%sub_key} component of the \vn{ele_struct} is used to distinguish
-between \vn{map type} and \vn{periodic type} wigglers (\sref{s:wiggler}):
+between \vn{map type} and \vn{periodic type} wigglers (\sref{s:ele.key}):
 \begin{example}
   if (ele%key == wiggler\$ .and. ele%sub_key == map_type$) ...
   if (ele%key == wiggler\$ .and. ele%sub_key == periodic_type$) ...
