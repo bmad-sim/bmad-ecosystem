@@ -1,7 +1,7 @@
 program example_plot
 
 use quick_plot
-integer i, id
+integer i, id, id2
 real(rp) xlen, ylen
 character(10) ans
 

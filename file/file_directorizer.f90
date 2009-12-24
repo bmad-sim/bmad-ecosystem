@@ -5,8 +5,7 @@
 !
 ! Input:
 !     IN_FILE     - Character string: Input file name
-!     DIRECTORY   - Character string: directory specification to
-!                     be added (DO INCLUDE THE SQUARE BRACKETS '[ ]').
+!     DIRECTORY   - Character string: directory specification to be added.
 !     ADD_SWITCH  - Logical:
 !                       if .true.  directory spec is always added
 !                       if .false. directory spec is only added if FILE
@@ -47,12 +46,11 @@ subroutine file_directorizer (in_file, out_file, directory, add_switch)
 
   implicit none
 
-  integer ilen, dir_len, i, dix
+  integer ilen, i, ix, dix
 
   logical add_switch
 
   character(*) in_file, out_file, directory
-  character(80) directory2
 
 #if defined (CESR_VMS)
   character(2) :: dir_str = ']:'
@@ -62,11 +60,7 @@ subroutine file_directorizer (in_file, out_file, directory, add_switch)
   character(1) :: dir_str = '/'
 #endif
 
-! DIRECTORY2 is used so that DIRECTORY is not changed by program.
-! Trim directory of leading blanks.
-
-  directory2 = directory
-  call string_trim (directory2, directory2, dir_len)
+! 
 
   out_file = in_file
   call string_trim (out_file, out_file, ilen) ! trim leading blanks
@@ -86,10 +80,15 @@ subroutine file_directorizer (in_file, out_file, directory, add_switch)
 
   if (.not. add_switch .and. dix /= 0) return
 
-  if (dir_len == 0) then
+  if (len_trim(directory) == 0) then
     out_file = out_file(dix+1:)
   else
-    out_file = directory2(:dir_len) // out_file(dix+1:)  ! add directory
+    ix = len_trim(directory)
+    if (dir_str == '/' .and. directory(ix:ix) /= '/') then
+      out_file = trim(directory) // '/' // out_file(dix+1:)  ! add directory
+    else
+      out_file = trim(directory) // out_file(dix+1:)  ! add directory
+    endif
   endif
 
 end subroutine
