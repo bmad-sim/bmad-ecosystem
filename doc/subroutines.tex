@@ -660,6 +660,53 @@ that an error flag is set instead of bombing the program when there is a problem
 
 \begin{description}
 
+\index{routine!mat_eigen}
+\label{r:mat.eigen}
+\item[mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error)] \Newline 
+Routine for determining the eigen vectors and eigen values of a matrix.
+
+\index{routine!mat_inverse}
+\label{r:mat.inverse}
+\item[mat_inverse (mat, mat_inv)] \Newline
+Subroutine to take the inverse of a square matrix. 
+
+\index{routine!mat_make_unit}
+\label{r:mat.make.unit}
+\item[mat_make_unit (mat)] \Newline 
+     routine to create a unit matrix.
+
+\index{routine!mat_rotation}
+\label{r:mat.rotation}
+\item[mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)] \Newline 
+     Subroutine to construct a 2x2 rotation matrix for translation from
+     point 1 to point 2.
+
+\index{routine!mat_symplectify}
+\label{r:mat.symplectify}
+\item[mat_symplectify (mat_in, mat_symp)] \Newline
+Subroutine to form a symplectic matrix that is approximately equal to the input matrix. 
+
+\index{routine!mat_symp_error}
+\label{r:mat.symp.error}
+\item[mat_symp_error (mat) result (error)] \Newline
+Routine to check the symplecticity of a square matrix 
+
+\index{routine!mat_symp_conj}
+\label{r:mat.symp.conj}
+\item[mat_symp_conj (mat1, mat2)] \Newline 
+Subroutine to take the symplectic conjugate of a square matrix.
+
+\index{routine!mat_symp_decouple}
+\label{r:mat.symp.decouple}
+\item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type_out)] \Newline
+Subroutine to find the symplectic eigen--modes of the one turn 4x4 coupled 
+transfer matrix T0. 
+
+\index{routine!mat_type}
+\label{r:mat.type}
+\item[mat_type (mat, nunit, header)] \Newline 
+     Subroutine to output matrices to the terminal or to a file
+
 \end{description}
 
 %------------------------------------------------------------------------
@@ -1529,53 +1576,6 @@ s1 to s2.
 \item[mat6_to_taylor (mat6, vec0, bmad_taylor)] \Newline
 Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
-
-\index{routine!mat_eigen}
-\label{r:mat.eigen}
-\item[mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error)] \Newline 
-Routine for determining the eigen vectors and eigen values of a matrix.
-
-\index{routine!mat_inverse}
-\label{r:mat.inverse}
-\item[mat_inverse (mat, mat_inv)] \Newline
-Subroutine to take the inverse of a square matrix. 
-
-\index{routine!mat_make_unit}
-\label{r:mat.make.unit}
-\item[mat_make_unit (mat)] \Newline 
-     routine to create a unit matrix.
-
-\index{routine!mat_rotation}
-\label{r:mat.rotation}
-\item[mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)] \Newline 
-     Subroutine to construct a 2x2 rotation matrix for translation from
-     point 1 to point 2.
-
-\index{routine!mat_symplectify}
-\label{r:mat.symplectify}
-\item[mat_symplectify (mat_in, mat_symp)] \Newline
-Subroutine to form a symplectic matrix that is approximately equal to the input matrix. 
-
-\index{routine!mat_symp_error}
-\label{r:mat.symp.error}
-\item[mat_symp_error (mat) result (error)] \Newline
-Routine to check the symplecticity of a square matrix 
-
-\index{routine!mat_symp_conj}
-\label{r:mat.symp.conj}
-\item[mat_symp_conj (mat1, mat2)] \Newline 
-Subroutine to take the symplectic conjugate of a square matrix.
-
-\index{routine!mat_symp_decouple}
-\label{r:mat.symp.decouple}
-\item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type_out)] \Newline
-Subroutine to find the symplectic eigen--modes of the one turn 4x4 coupled 
-transfer matrix T0. 
-
-\index{routine!mat_type}
-\label{r:mat.type}
-\item[mat_type (mat, nunit, header)] \Newline 
-     Subroutine to output matrices to the terminal or to a file
 
 \index{routine!match_ele_to_mat6}
 \label{r:match.ele.to.mat6}

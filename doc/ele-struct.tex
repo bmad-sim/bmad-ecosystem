@@ -387,6 +387,7 @@ To compute the transfer maps for an entire lattice use the routine
 Taylor maps (\sref{c:methods}) are stored in
 \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct}
 structure that defines a Taylor series:
+\begin{example}
   type taylor_struct
     real (rp) ref
     type (taylor_term_struct), pointer :: term(:) => null()
