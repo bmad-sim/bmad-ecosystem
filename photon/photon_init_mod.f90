@@ -39,6 +39,8 @@ end type
 
 integer, parameter :: gen_poly_spline$ = 1, end_spline$ = 2
 
+private photon_init_spline_fit, photon_init_spline_coef_calc
+
 contains
 
 !----------------------------------------------------------------------------------------
@@ -555,7 +557,7 @@ case (gen_poly_spline$)
   enddo
 
   spline%pt(ns)%c2 = 0  ! Need to set this due to roundoff errors
-  spline%pt(ns)%c3  = 0  ! Need to set this due to roundoff errors
+  spline%pt(ns)%c3 = 0  ! Need to set this due to roundoff errors
 
 end select
 

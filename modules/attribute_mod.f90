@@ -32,7 +32,7 @@ private init_attribute_name_array, check_this_attribute_free, print_error
 !   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
 !
-! Subroutine to check if an attribute is free to vary.
+! Routine to check if an attribute is free to vary.
 !
 ! Attributes that cannot be changed directly include super_slave attributes (since
 ! these attributes are controlled by their super_lords) and attributes that

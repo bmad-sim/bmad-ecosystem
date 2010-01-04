@@ -2,7 +2,7 @@
 ! Subroutine offset_photon (ele, param, coord, set)
 !
 ! Routine to effectively offset an element by instead offsetting
-! the photon position to correspond to the local crystal or mirrow coordinates.
+! the photon position to correspond to the local crystal or mirror coordinates.
 !
 ! Note: The transformation between local and lab coordinates does *not* include 
 ! a transformation due to a finite graze angle. 

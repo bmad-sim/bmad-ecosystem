@@ -8,7 +8,8 @@ use lat_geometry_mod
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
-private control_bookkeeper1, makeup_overlay_and_girder_slave 
+private control_bookkeeper1, makeup_overlay_and_girder_slave, super_lord_length_bookkeeper 
+private makeup_group_lord
         
 contains
 
@@ -263,8 +264,7 @@ end subroutine
 ! Subroutine to make sure the length of the slaves of a super_lord add up to the
 ! length of the lord. If not, make an adjustment to the slave length.
 !
-! Note: This routine is called by control_bookkeeper. Generally this
-! routine does not have to be called directly.
+! Note: This routine is private and is called by control_bookkeeper. 
 !
 ! Modules needed:
 !   use bookkeeper_mod
@@ -577,7 +577,8 @@ end subroutine
 !+
 ! Subroutine makeup_group_lord (lat, lord)
 !
-! Subroutine to calculate the attributes of group slave elements
+! Subroutine to calculate the attributes of group slave elements.
+! This routine is private to bookkeeper_mod.
 !-
 
 Subroutine makeup_group_lord (lat, lord)   

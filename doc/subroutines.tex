@@ -19,11 +19,12 @@ solely meant for \bmad internal use.
   Coherent Synchrotron Radiation (CSR)        & \ref{r:csr}            \\ \hline
   Collective Effects                          & \ref{r:collective}     \\ \hline
   Electro-Magnetic Fields                     & \ref{r:em.fields}      \\ \hline
+  General Helper Routines                     & \ref{r:sim.utils}      \\ \hline
   Inter-Beam Scattering (IBS)                 & \ref{r:ibs}            \\ \hline
   Lattice: Element Informational              & \ref{r:info}           \\ \hline
   Lattice: Element Manipulation               & \ref{r:elem}           \\ \hline
   Lattice: Geometry                           & \ref{r:geom}           \\ \hline
-  Lattice: Low Level Stuff                    & \ref{r:lat.low}       \\ \hline
+  Lattice: Low Level Stuff                    & \ref{r:lat.low}        \\ \hline
   Lattice: Manipulation                       & \ref{r:trans}          \\ \hline
   Lattice: Miscellaneous                      & \ref{r:misc.help}      \\ \hline
   Lattice: Reading and Writing Files          & \ref{r:read}           \\ \hline
@@ -32,20 +33,20 @@ solely meant for \bmad internal use.
   Measurement Simulation Routines             & \ref{r:meas}           \\ \hline
   Multipass                                   & \ref{r:multipass}      \\ \hline
   Multipoles                                  & \ref{r:multipoles}     \\ \hline
-  sim_utils routines                          & \ref{r:sim.utils}       \\ \hline
   Optimizers (Nonlinear)                      & \ref{r:opti}           \\ \hline
   Overload Equal Sign                         & \ref{r:equal}          \\ \hline
   Particle Coordinate Stuff                   & \ref{r:coord}          \\ \hline
+  Photon Routines                             & \ref{r:photon}         \\ \hline
   PTC Interface                               & \ref{r:ptc}            \\ \hline
   Quick Plot                                  & \ref{r:qp}             \\ \hline
   Spin                                        & \ref{r:spin}           \\ \hline
-  Transfer Maps: Routines Called by MAKE_MAT6 & \ref{r:mat6}           \\ \hline
+  Transfer Maps: Routines Called by make_mat6 & \ref{r:mat6}           \\ \hline
   Transfer Maps: Taylor Maps                  & \ref{r:taylor}         \\ \hline
   Tracking and Closed Orbit                   & \ref{r:track}          \\ \hline
   Tracking: Low Level Routines                & \ref{r:low.track}      \\ \hline
   Tracking: Macroparticle                     & \ref{r:macro}          \\ \hline
   Tracking: Mad Routines                      & \ref{r:mad}            \\ \hline
-  Tracking: Routines Called by TRACK1         & \ref{r:track1}         \\ \hline
+  Tracking: Routines Called by track1         & \ref{r:track1}         \\ \hline
   Twiss and Other Calculations                & \ref{r:twiss}          \\ \hline
   Twiss: 6-Dimensional                        & \ref{r:twiss6}         \\ \hline
   Wake Fields                                 & \ref{r:wake}           \\ \hline
@@ -83,11 +84,6 @@ Initializes a spin distribution according to init_beam\%spin
 Subroutine to order the particles longitudinally 
 The ordering uses the centroid of the particles:
 
-\index{routine!rest_energy}
-\label{r:rest.energy}
-\item[rest_energy (particle) result (energy)] \Newline 
-Routine to return the rest energy in eV of a particle.
-
 \index{routine!track1_beam}
 \label{r:track1.beam}
 \item[track1_beam (beam_start, lat, ix_ele, beam_end, err)] \Newline 
@@ -97,6 +93,11 @@ Overloaded by \vn{track1_beam}.
 \index{routine!track1_bunch}
 \label{r:track1.bunch}
 \item[track1_bunch (bunch_start, lat, ix_ele, bunch_end, err)] \Newline 
+Subroutine to track a bunch of particles through an element.
+
+\index{routine!track1_bunch_hom}
+\label{r:track1.bunch.hom}
+\item[track1_bunch_hom (bunch_start, ele, param, bunch_end)] \Newline 
 Subroutine to track a bunch of particles through an element.
 
 \index{routine!track1_particle}
@@ -122,6 +123,12 @@ a bunch.
 Subroutine to convert particle coords from 
     (x, x', y, y', z, E)
 
+\index{routine!bbi_kick}
+\label{r:bbi.kick}
+\item[bbi_kick (x, y, r, kx, ky)] \Newline 
+Subroutine to compute the normalized kick due to the beam-beam
+interaction using the normalized position for input.
+
 \index{routine!calc_bunch_params}
 \label{r:calc.bunch.params}
 \item[calc_bunch_params (bunch, ele, params)] \Newline 
@@ -145,6 +152,11 @@ Subroutine to convert particle coords from
 Subroutine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
 
+\index{routine!init_bunch_distribution}
+\label{r:init.bunch.distribution}
+\item[init_bunch_distribution (ele, param, beam_init, bunch)] \Newline 
+Subroutine to initialize either a random or tail-weighted distribution of particles.  
+
 \index{routine!ion_kick}
 \label{r:ion.kick}
 \item[ion_kick(x, y, x_kicker, y_kicker, s_kicker)] \Newline 
@@ -164,7 +176,7 @@ Dummy routine for custom bunch tracking.
 \index{routine!track_beam}
 \label{r:track.beam}
 \item[track_beam (lat, beam, ix1, ix2)] \Newline 
-     Subroutine to track a beam of macroparticles from the end of
+     Subroutine to track a beam of particles from the end of
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
 \end{description}
@@ -357,9 +369,19 @@ Routine to bin the particles longitudinally in s.
 \item[csr_bin_kicks (lat, ix_ele, s_travel, bin)] \Newline 
 Routine to cache intermediate values needed for the csr calculations.
 
+\index{routine!csr_kick_calc}
+\label{r:csr.kick.calc}
+\item[csr_kick_calc (bin, particle)] \Newline 
+Routine to calculate the longitudinal coherent synchrotron radiation kick.
+
 \index{routine!i_csr}
 \label{r:i.csr}
 \item[i_csr (z, d, val, bin) result (i_this)] \Newline 
+Routine to calculate the CSR kick integral.
+
+\index{routine!kick_csr_lsc}
+\label{r:kick.csr.lsc}
+\item[kick_csr_lsc (kick1, k_factor, bin)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index{routine!z_calc_csr}
@@ -424,7 +446,7 @@ Subroutine to calculate the E and B fields for an element.
 
 \index{routine!em_field_custom}
 \label{r:em.field.custom}
-\item[em_field_custom] \Newline
+\item[em_field_custom(ele, param, s, here, local_ref_frame, field, calc_dfield)] \Newline
 Custom routine for calculating fields.
 
 \index{routine!em_field_kick}
@@ -432,6 +454,370 @@ Custom routine for calculating fields.
 \item[em_field_kick (ele, param, s, r, local_ref_frame, dr_ds, dkick)] \Newline 
 Subroutine to essentially calculate the kick felt by a particle in a
 element. 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{General Helper Routines}
+\label{r:sim.utils}      
+
+%------------------------------------------------------------------------
+\subsection{General Helper: File, System, and IO Routines}
+
+\begin{description}
+
+\index{routine!append_subdirectory}
+\label{r:append.subdirectory}
+\item[append_subdirectory (dir, sub_dir, dir_out)] \Newline 
+Subroutine to combine a directory specification with a 
+subdirectory specification to form a complete directory
+
+\index{routine!cesr_iargc}
+\label{r:cesr.iargc}
+\item[cesr_iargc ()] \Newline 
+Platform independent function to return the number of command
+line arguments. Use this with cesr_getarg.
+
+\index{routine!cesr_getarg}
+\label{r:cesr.getarg}
+\item[cesr_getarg (i_arg, arg)] \Newline 
+Platform independent function to return the i'th command
+line argument. Use this with cesr_iargc.
+
+\index{routine!dir_close}
+\label{r:dir.close}
+\item[dir_close () ] \Newline 
+Routine to close a directory that was opened with dir_open.
+Also see dir_read.
+
+\index{routine!dir_open}
+\label{r:dir.open}
+\item[dir_open (dir_name) result (opened)] \Newline 
+Routine to open a directory to obtain a list of its files.
+Use this routine with dir_read and dir_close.
+
+\index{routine!dir_read}
+\label{r:dir.read}
+\item[dir_read (file_name) result (valid)] \Newline 
+Routine to get the names of the files in a directory.
+Use this routine with dir_open and dir_close.
+
+\index{routine!file_suffixer}
+\label{r:file.suffixer}
+\item[file_suffixer (in_file_name, out_file_name, suffix, add_switch)] \Newline 
+Routine to add/replace a suffix to a file name.
+
+\index{routine!get_tty_char}
+\label{r:get.tty.char}
+\item[get_tty_char (this_char, wait, flush)] \Newline 
+Subroutine for getting a single character from the terminal.
+Also see: get_a_char
+
+\index{routine!get_a_char}
+\label{r:get.a.char}
+\item[get_a_char (this_char, wait, ignore_this)] \Newline 
+Subroutine for getting a single character from the terminal.
+Also see: get_tty_char
+
+\index{routine!get_file_time_stamp}
+\label{r:get.file.time.stamp}
+\item[get_file_time_stamp (file, time_stamp)] \Newline 
+Routine to get the "last modified" time stamp for a file.
+
+\index{routine!lunget}
+\label{r:lunget}
+\item[lunget()] \Newline 
+Function to return a free file unit number to be used with an open statement.
+
+\index{routine!milli_sleep}
+\label{r:milli.sleep}
+\item[milli_sleep (milli_sec)] \Newline 
+Routine to pause the program for a given number of milli-seconds.
+
+\index{routine!output_direct}
+\label{r:output.direct}
+\item[output_direct (file_unit, do_print, min_level, max_level)] \Newline 
+Subroutine to set where the output goes when out_io is called.
+Output may be sent to the terminal screen, written to a file, or both.
+
+\index{routine!out_io}
+\label{r:out.io}
+\item[out_io (...)] \Newline 
+Subroutine to print to the terminal for command line type programs.
+The idea is that for programs with a gui this routine can be easily
+replaced with another routine.
+
+\index{routine!read_a_line}
+\label{r:read.a.line}
+\item[read_a_line (prompt, line_out, trim_prompt)] \Newline 
+Subroutine to read a line of input from the terminal.
+The line is also add to the history buffer so that the up-arrow
+
+\index{routine!skip_header}
+\label{r:skip.header}
+\item[skip_header (unit_, error_flag)] \Newline 
+Subroutine to find the first line of data in a file. 
+
+\index{routine!splitfilename}
+\label{r:splitfilename}
+\item[splitfilename(filename, path, basename, is_relative) result (ix_char)] \Newline 
+Routine to take filename and splits it into its constituent parts, 
+the directory path and the base file name.  
+
+\index{routine!system_command}
+\label{r:system.command}
+\item[system_command (line)] \Newline 
+Routine to execute an operating system command from within the program.
+
+\index{routine!type_this_file}
+\label{r:type.this.file}
+\item[type_this_file (filename)] \Newline 
+Subroutine to type out a file to the screen.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\subsection{General Helper: Math (Except Matrix) Routines}
+
+\begin{description}
+
+\index{routine!abs_sort}
+\label{r:abs.sort}
+\item[abs_sort (array, index, n)] \Newline 
+  Subroutine to sort by absolute value.
+
+\index{routine!complex_error_function}
+\label{r:complex.error.function}
+\item[complex_error_function (wr, wi, zr, zi)] \Newline 
+This routine evaluates the function w(z) in the first quadrant of
+the complex plane. 
+
+\index{routine!linear_fit}
+\label{r:linear.fit}
+\item[linear_fit (x, y, n_data, a, b, sig_a, sig_b)] \Newline 
+Subroutine to fit to y = A + B x
+
+\index{routine!modulo2}
+\label{r:modulo2}
+\item[modulo2 (x, amp)] \Newline 
+Function to return y = x + 2 * n * amp, n is an integer, such that y is 
+in the interval [-amp, amp].
+
+\index{routine!ran_engine}
+\label{r:ran.engine}
+\item[ran_engine (set, get)] \Newline 
+Subroutine to set what random number generator algorithm is used.
+If this routine is never called then pseudo_random\$ is used.
+
+\index{routine!ran_gauss}
+\label{r:ran.gauss}
+\item[ran_gauss (harvest)] \Newline 
+Subroutine to return a Gaussian distributed random number with unit sigma.
+
+\index{routine!ran_gauss_converter}
+\label{r:ran.gauss.converter}
+\item[ran_gauss_converter (set, get, sigma_cut)] \Newline 
+Subroutine to set what conversion routine is used for converting
+uniformly distributed random numbers to Gaussian distributed random numbers.
+
+\index{routine!ran_seed_put}
+\label{r:ran.seed.put}
+\item[ran_seed_put (seed)] \Newline 
+Subroutine to seed the random number generator. 
+
+\index{routine!ran_seed_get}
+\label{r:ran.seed.get}
+\item[ran_seed_get (seed)] \Newline 
+Subroutine to return the seed used for the random number generator.
+
+\index{routine!ran_uniform}
+\label{r:ran.uniform}
+\item[ran_uniform (harvest)] \Newline 
+Subroutine to return a random number uniformly distributed in the 
+interval [0, 1]. This routine uses the same algorithm as ran from
+
+\index{routine!spline_akima}
+\label{r:spline.akima}
+\item[spline_akima (spline, stat)] \Newline 
+Given a set of (x,y) points we want to interpolate between the points.
+This subroutine computes the semi-hermite cubic spline developed by akima
+
+\index{routine!spline_evaluate}
+\label{r:spline.evaluate}
+\item[spline_evaluate (spline, x, ok, y, dy)] \Newline 
+Subroutine to evaluate a spline at a set of points.
+
+\index{routine!super_ludcmp}
+\label{r:super.ludcmp}
+\item[super_ludcmp (a, indx, d, err)] \Newline 
+This routine is essentially ludcmp from Numerical Recipes with the added feature
+that an error flag is set instead of bombing the program when there is a problem.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\subsection{General Helper: Matrix Routines}
+
+\begin{description}
+
+\end{description}
+
+%------------------------------------------------------------------------
+\subsection{General Helper: Misc Routines}
+
+\begin{description}
+
+\index{routine!date_and_time_stamp}
+\label{r:date.and.time.stamp}
+\item[date_and_time_stamp (string, numeric_month)] \Newline 
+Subroutine to return the current date and time in a character string.
+
+\index{routine!err_exit}
+\label{r:err.exit}
+\item[err_exit()] \Newline 
+Subroutine to first show the stack call list before exiting.
+This routine is typically used when a program detects an error condition.
+
+\index{routine!integer_option}
+\label{r:integer.option}
+\item[integer_option (integer_default, opt_integer)] \Newline 
+Function to retrun True or False dependending upon the state of an 
+optional integer.
+
+\index{routine!logic_option}
+\label{r:logic.option}
+\item[logic_option (logic_default, opt_logic)] \Newline 
+Function to retrun True or False dependending upon the state of an 
+optional logical.
+
+\index{routine!re_allocate}
+\label{r:re.allocate}
+\item[re_allocate (ptr_to_array, n)] \Newline 
+Function to reallocate a pointer to an array of strings, integers, reals, or logicals.
+
+\index{routine!re_associate}
+\label{r:re.associate}
+\item[re_associate (array, n)] \Newline 
+Function to reassociate an allocatable array of strings, integers, reals, or logicals.
+
+\index{routine!real_option}
+\label{r:real.option}
+\item[real_option (real_default, opt_real)] \Newline 
+Function to retrun True or False depending upon the state of an 
+optional real.
+
+\index{routine!string_option}
+\label{r:string.option}
+\item[string_option (string_default, opt_string)] \Newline 
+Subroutine to retrun True or False depending upon the state of an 
+optional string.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\subsection{General Helper: String Manipulation Routines}
+
+\begin{description}
+
+\index{routine!downcase_string}
+\label{r:downcase.string}
+\item[downcase_string (string)] \Newline 
+Routine to convert a string to lowercase:
+
+\index{routine!indexx_char}
+\label{r:indexx.char}
+\item[indexx_char (arr, index)] \Newline 
+Subroutine to sort a character array.
+This subroutine is used to overload the generic name indexx.
+
+\index{routine!index_nocase}
+\label{r:index.nocase}
+\item[index_nocase (string, match_str) result (indx)] \Newline 
+Function to look for a sub-string of string that matches match_str.
+This routine is similar to the fortran INDEX function
+
+\index{routine!is_integer}
+\label{r:is.integer}
+\item[is_integer (string)] \Newline 
+Function to tell if the first word in a string is a valid integer.
+
+\index{routine!is_logical}
+\label{r:is.logical}
+\item[is_logical (string, ignore) result (good)] \Newline 
+Function to test if a string represents a logical.
+Accepted possibilities are (individual characters can be either case):
+
+\index{routine!is_real}
+\label{r:is.real}
+\item[is_real (string, ignore) result (good)] \Newline 
+Function to test if a string represents a real number.
+
+\index{routine!match_reg}
+\label{r:match.reg}
+\item[match_reg (str, pat)] \Newline 
+Function for matching with regular expressions.
+Note: strings are trimmed before comparison.
+
+\index{routine!match_wild}
+\label{r:match.wild}
+\item[match_wild (string, template) result (this_match)] \Newline 
+Function to do wild card matches. Note: trailing blanks will be discarded
+before any matching is done.
+
+\index{routine!match_word}
+\label{r:match.word}
+\item[match_word (string, names, ix, exact_case, matched_name)] \Newline 
+Subroutine to match the first word in a string against a list of names.
+Abbreviations are accepted.  
+
+\index{routine!on_off_logic}
+\label{r:on.off.logic}
+\item[on_off_logic (logic) result (name)] \Newline 
+Function to return the string "ON" or "OFF".
+
+\index{routine!str_match_wild}
+\label{r:str.match.wild}
+\item[str_match_wild(str, pat) result (a_match)] \Newline 
+Function to match a character string against a regular expression pattern.
+This is a replacement for the VMS function str\$match_wild.
+
+\index{routine!string_to_int}
+\label{r:string.to.int}
+\item[string_to_int (line, default, value, err_flag)] \Newline 
+Subroutine to convert a string to an integer.
+
+
+\index{routine!string_to_real}
+\label{r:string.to.real}
+\item[string_to_real (line, default, value, err_flag)] \Newline 
+Subroutine to convert a string to an real.
+
+\index{routine!string_trim}
+\label{r:string.trim}
+\item[string_trim(in_string, out_string, word_len)] \Newline 
+Subroutine to trim a string of leading blanks and/or tabs and also to return the
+length of the first word.
+
+\index{routine!string_trim2}
+\label{r:string.trim2}
+\item[string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)] \Newline 
+Subroutine to trim a string of leading delimitors and also to return the
+length of the first word.
+
+\index{routine!str_downcase}
+\label{r:str.downcase}
+\item[str_downcase (destination, source)] \Newline 
+Subroutine to convert a string to down case.
+
+\index{routine!str_substitute}
+\label{r:str.substitute}
+\item[str_substitute (string, str_match, str_replace, do_trim)] \Newline 
+Routine to substitute all instances of one sub-string for another in a string
+
+\index{routine!upcase_string}
+\label{r:upcase.string}
+\item[upcase_string (string)] \Newline 
+Routine to convert a string to uppercase:
 
 \end{description}
 
@@ -485,6 +871,15 @@ element.
 
 \begin{description}
 
+\index{routine!attribute_free}
+\label{r:attribute.free}
+\item[\protect\parbox{6in}{
+  attribute_free (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free) \\
+  attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay) result (free) \\
+  attribute_free (ix_ele, ix_branch, attrib_name, lat, err_print_flag, except_overlay) result (free)
+  }] \Newline
+Overloaded function to check if an attribute is free to vary.
+
 \index{routine!attribute_index}
 \label{r:attribute.index}
 \item[attribute_index (key, name)] \Newline
@@ -496,20 +891,36 @@ type and the name of the attribute
 \item[attribute_name (key, index)] \Newline
 Function to return the name of an attribute for a particular type of element. 
 
+\index{routine!attribute_type}
+\label{r:attribute.type}
+\item[attribute_type (attrib_name) result (attrib_type)] \Newline 
+Routine to return the type (logical, integer, real, or named) of an attribute.
+
+\index{routine!attribute_free}
+\label{r:attribute.free}
+\item[attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay) result (free)] \Newline
+Function to check if an attribute is free to vary.
+
+\index{routine!attribute_value_name}
+\label{r:attribute.value.name}
+\item[attribute_value_name (attrib_name, attrib_value, ele, 
+                                    is_default) result (attrib_val_name)] \Newline 
+Routine to return the name corresponding to the value of a given attribute.
+
 \index{routine!check_lat_controls}
 \label{r:check.lat.controls}
 \item[check_lat_controls (lat, exit_on_error)] \Newline
 Subroutine to check if the control links in a lat structure are valid. 
 
-\index{routine!attribute_free}
-\label{r:attribute.free}
-\item[attribute_free (ele, ix_attrib, lat, err_print_flag) result (free)] \Newline
-Function to check if an attribute is free to vary.
-
 \index{routine!ele_at_s}
 \label{r:ele.at.s}
 \item[ele_at_s (lat, s, ix_ele)] \Newline 
 Subroutine to return the index of the element at position s.
+
+\index{routine!ele_to_lat_loc}
+\label{r:ele.to.lat.loc}
+\item[ele_to_lat_loc (ele) result (ele_loc)] \Newline 
+Function to return an lat_ele_loc_struct identifying where an element is in the lattice.
 
 \index{routine!equivalent_taylor_attributes}
 \item[equivalent_taylor_attributes (ele1, ele2) result (equiv)] \Newline 
@@ -531,11 +942,37 @@ Subroutine to get the list of slaves for an element.
 \item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
 Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
 
+\index{routine!lat_ele_locator}
+\label{r:lat.ele.locator}
+\item[lat_ele_locator (loc_str, lat, eles, n_loc, err)] \Newline 
+Routine to locate all the elements in a lattice that corresponds to loc_str. 
+
+\index{routine!n_attrib_string_max_len}
+\label{r:n.attrib.string.max.len}
+\item[n_attrib_string_max_len () result (max_len)] \Newline 
+Routine to return the the maximum number of characters in any attribute
+name known to bmad.
+
 \index{routine!pointer_to_indexed_attribute}
 \label{r:pointer.to.indexed.attribute}
-\item[pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,] \Newline 
-                                     ptr_attrib, err_flag, err_print_flag)
+\item[pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
+                                     ptr_attrib, err_flag, err_print_flag)] \Newline 
 Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
+
+\index{routine!pointer_to_lord}
+\label{r:pointer.to.lord}
+\item[pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)] \Newline 
+Function to point to a lord of a slave.
+
+\label{r:pointer.to.multipass.lord}
+\item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
+Routine to find the multipass lord of a lattice element.
+A multi_lord will be found for:
+
+\index{routine!pointer_to_slave}
+\label{r:pointer.to.slave}
+\item[pointer_to_slave (lat, lord, ix_slave, ix_contrl) result (slave_ptr)] \Newline 
+Function to point to a slave of a lord.
 
 \index{routine!type_ele}
 \label{r:type.ele}
@@ -619,6 +1056,12 @@ This routine uses the mrqmin nonlinear optimizer to vary the parameters in the w
 Subroutine to Insert a new element into the tracking part of the 
 lat structure. 
 
+\index{routine!makeup_super_slave1}
+\label{r:makeup.super.slave1}
+\item[makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)] \Newline 
+Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
+superposition lord to a slave when the slave has only one lord.
+
 \index{routine!make_hybrid_lat}
 \label{r:make.hybrid.lat}
 \item[make_hybrid_lat (lat_in, use_ele, remove_markers, lat_out, ix_out)] \Newline
@@ -637,14 +1080,17 @@ Returns a pointer to an attribute of an element with name attrib_name.
 
 \index{routine!pointers_to_attribute}
 \label{r:pointers.to.attribute}
-\item[pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,] \Newline 
-                    ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)
+\item[pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,
+                    ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)] \Newline 
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
 \index{routine!pointer_to_ele}
 \label{r:pointer.to.ele}
-\item[pointer_to_ele (lat, ix_line, ix_ele, ele)] \Newline 
+\item[\protect\parbox{6in}{
+  pointer_to_ele (lat, ix_ele, ix_branch) result (ele_ptr) \\
+  pointer_to_ele (lat, ele_loc_id) result (ele_ptr)
+  }] \Newline 
 Subroutine to point to a given element.
 
 \index{routine!remove_eles_from_lat}
@@ -678,6 +1124,18 @@ hybridized by \vn{make_hybrid_lat}.
 Subroutine to calculate the physical (floor) placement of an element given the
 placement of the preceding element. This is the same as the MAD convention.
 
+\index{routine!floor_angles_to_w_mat}
+\label{r:floor.angles.to.w.mat}
+\item[floor_angles_to_w_mat (theta, phi, psi, w_mat)] \Newline 
+Routine to construct the W matrix that specifies the orientation of an element
+in the global "floor" coordinates. See the Bmad manual for more details.
+
+\index{routine!floor_w_mat_to_angles}
+\label{r:floor.w.mat.to.angles}
+\item[floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)] \Newline 
+Routine to construct the angles that define the orientation of an element
+in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
+
 \index{routine!init_floor}
 \label{r:init.floor}
 \item[init_floor (floor)] \Newline 
@@ -693,6 +1151,12 @@ That is, the physical machine layout on the floor.
 \label{r:s.calc}
 \item[s_calc (lat)] \Newline
 Subroutine to calculate the longitudinal distance S for the elements in a lat. 
+
+\index{routine!theta_floor}
+\label{r:theta.floor}
+\item[theta_floor (s, lat, theta_base) result (theta_fl)] \Newline 
+Returns the angle of the reference coordinate system in the
+global reference system.
 
 \end{description}
 
@@ -714,6 +1178,11 @@ super_lord due to changes in the lord's s_offset.
 Subroutine to find the index ix so that s(ix) $\le$ s $<$ s(ix+1). 
 If s $<$ s(1) then ix = 0 
 
+\index{routine!check_controller_controls}
+\label{r:check.controller.controls}
+\item[check_controller_controls (contrl, name, err)] \Newline 
+Routine to check for problems when setting up group or overlay controllers.
+
 \index{routine!deallocate_ele_pointers}
 \label{r:deallocate.ele.pointers}
 \item[deallocate_ele_pointers (ele)] \Newline
@@ -734,6 +1203,11 @@ Subroutine to calculate the attributes of overlay slave elements.
 \item[orbit_to_dispersion (orb_diff, ele)] \Newline
 Subroutine to take an orbit vector difference and calculate the dispersion. 
 
+\index{routine!re_allocate_eles}
+\label{r:re.allocate.eles}
+\item[re_allocate_eles (eles, n, save, exact)] \Newline 
+Routine to allocate an array of ele_pointer_structs.
+
 \index{routine!twiss1_propagate}
 \label{r:twiss1.propagate}
 \item[twiss1_propagate (twiss1, mat2, length, twiss2)] \Newline 
@@ -747,11 +1221,27 @@ Subroutine to propagate the twiss parameters of a single mode.
 
 \begin{description}
 
+\index{routine!allocate_ele_array}
+\label{r:allocate.ele.array}
+\item[allocate_ele_array (ele, upper_bound)] \Newline 
+Subroutine to allocate or re-allocate an element array.
+
+\index{routine!allocate_lat_ele_array}
+\label{r:allocate.lat.ele.array}
+\item[allocate_lat_ele_array (lat, upper_bound, ix_branch)] \Newline 
+Subroutine to allocate or re-allocate an element array.
+
 \index{routine!control_bookkeeper}
 \label{r:control.bookkeeper}
 \item[control_bookkeeper (lat, ix_ele)] \Newline
 Subroutine to calculate the combined strength of the attributes for
 controlled elements.
+
+\index{routine!deallocate_ele_array_pointers}
+\label{r:deallocate.ele.array.pointers}
+\item[deallocate_ele_array_pointers (eles)] \Newline 
+Routine to deallocate the pointers of all the elements in an 
+element array and the array itself.
 
 \index{routine!deallocate_lat_pointers}
 \label{r:deallocate.lat.pointers}
@@ -832,7 +1322,7 @@ lat\%param, etc.) from one lat to another.
 
 \index{routine!transfer_lat_taylors}
 \item[transfer_lat_taylors (lat_in, lat_out, 
-                        type_out, transfered_all) ] \Newline 
+                        type_out, transfered_all)] \Newline 
 Subroutine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
@@ -864,11 +1354,6 @@ c_multi(n, m) = +/- ("n choose m")/n!
 \label{r:compute.reference.energy}
 \item[compute_reference_energy (lat)] \Newline
 Subroutine to compute the reference energy for each element in a lattice. 
-
-\index{routine!custom_radiation_integrals}
-\label{r:custom.radiation.integrals}
-\item[custom_radiation_integrals (lat, ir, orb)] \Newline
-Dummy routine for the radiation_integrals calculation for CUSTOM elements. 
 
 \index{routine!convert_total_energy_to}
 \label{r:convert.total.energy.to}
@@ -930,17 +1415,12 @@ Subroutine to parse (read in) a Bmad input file.
 \item[bmad_parser2 (in_file, lat, orbit, make_mats6)] \Newline
 Subroutine to parse (read in) a Bmad input file to modify an existing lattice. 
 
-\index{routine!bmad_to_mad}
-\label{r:bmad.to.mad}
-\item[bmad_to_mad (mad_file, lat, ix_start, ix_end)] \Newline 
-Subroutine to write a mad lattice file using the information in
+\index{routine!bmad_to_mad_or_xsif}
+\label{r:bmad.to.mad.or.xsif}
+\item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, file_name, lat, use_matrix_model, \\
+  \hspace*{2in} ix_start, ix_end, converted_lat, err)}] \Newline 
+Subroutine to write a mad or xsif lattice file using the information in
 a lat_struct. 
-
-\index{routine!bmad_to_xsif}
-\label{r:bmad.to.xsif}
-\item[bmad_to_xsif (xsif_file, lat, ix_start, ix_end)] \Newline 
-Subroutine to write a xsif lattice file using the information in
-a lat_struct. Optionally only part of the lattice can be generated.
 
 \index{routine!combine_consecutive_elements}
 \label{r:combine.consecutive.elements}
@@ -948,6 +1428,12 @@ a lat_struct. Optionally only part of the lattice can be generated.
 Routine to combine consecutive elements in the lattice that have the same name.
 This allows simplification, for example, of lattices where elements have been split 
 to compute the beta function at the center.
+
+\index{routine!create_sol_quad_model}
+\label{r:create.sol.quad.model}
+\item[create_sol_quad_model (sol_quad, lat)] \Newline 
+Routine to create series of solenoid and quadrupole elements to serve as a replacement
+model for a sol_quad element.
 
 \index{routine!create_unique_ele_names}
 \label{r:create.unique.ele.names}
@@ -1032,6 +1518,12 @@ Subroutine to make the 6x6 transfer matrix for an element.
 \item[make_v_mats (ele, v_mat, v_inv_mat)] \Newline
 Subroutine to make the matrices needed to go from normal mode coords to X-Y 
 coords and vice versa. 
+
+\index{routine!mat6_calc_at_s}
+\label{r:mat6.calc.at.s}
+\item[mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)] \Newline 
+Subroutine to calculate the transfer map between longitudinal positions
+s1 to s2.
 
 \index{routine!mat6_to_taylor}
 \item[mat6_to_taylor (mat6, vec0, bmad_taylor)] \Newline
@@ -1228,11 +1720,17 @@ Find the measured coupling values given the actual ones
 \item[multipass_all_info (lat, info)] \Newline 
 Subroutine to put multipass to a multipass_all_info_struct structure.
 
-\index{routine!multipass_lord_index}
-\label{r:multipass.lord.index}
-\item[multipass_lord_index (ix_ele, lat, ix_pass, ix_super_lord) result (ix_multi_lord)] \Newline 
-Routine to find the index of the multipass lord of a lattice element.
-ix_multi_lord will be positive for elements:
+\index{routine!multipass_chain}
+\label{r:multipass.chain}
+\item[multipass_chain (ele, lat, ix_pass, n_links, chain_ele)] \Newline 
+Routine to return the chain of elements that represent the same physical element
+when there is multipass.
+
+\index{routine!pointer_to_multipass_lord}
+\label{r:pointer.to.multipass.lord}
+\item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
+Routine to find the multipass lord of a lattice element.
+A multi_lord will be found for:
 
 \end{description}
 
@@ -1276,7 +1774,7 @@ into 2 vectors.
 
 \index{routine!multipole_init}
 \label{r:multipole.init}
-\item[multipole_init] \Newline
+\item[multipole_init(ele, zero)] \Newline
 Subroutine to initialize the multipole arrays within an element.
 
 \index{routine!multipole_kick}
@@ -1288,251 +1786,6 @@ Subroutine to put in the kick due to a multipole.
 \label{r:multipole.kt.to.ab}
 \item[multipole_kt_to_ab (knl, tn, an, bn)] \Newline
 Subroutine to convert kt (MAD standard) multipoles to ab type multipoles. 
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Miscellaneous sim_utils Routines}
-\label{r:sim.utils}      
-
-\begin{description}
-
-\index{routine!abs_sort}
-\label{r:abs.sort}
-\item[abs_sort (array, index, n)] \Newline 
-  Subroutine to sort by absolute value.
-
-\index{routine!bbi_kick}
-\label{r:bbi.kick}
-\item[bbi_kick (x, y, r, kx, ky)] \Newline 
-Subroutine to compute the normalized kick due to the beam-beam
-interaction using the normalized position for input.
-
-\index{routine!cesr_iargc}
-\label{r:cesr.iargc}
-\item[cesr_iargc ()] \Newline 
-Platform independent function to return the number of command
-line arguments. Use this with cesr_getarg.
-
-\index{routine!cesr_getarg}
-\label{r:cesr.getarg}
-\item[cesr_getarg (i_arg, arg)] \Newline 
-Platform independent function to return the i'th command
-line argument. Use this with cesr_iargc.
-
-\index{routine!complex_error_function}
-\label{r:complex.error.function}
-\item[complex_error_function (wr, wi, zr, zi)] \Newline 
-This routine evaluates the function w(z) in the first quadrant of
-the complex plane. 
-
-\index{routine!date_and_time_stamp}
-\label{r:date.and.time.stamp}
-\item[date_and_time_stamp (string, numeric_month)] \Newline 
-Subroutine to return the current date and time in a character string.
-
-\index{routine!downcase_string}
-\label{r:downcase.string}
-\item[downcase_string (string)] \Newline 
-Routine to convert a string to lowercase:
-
-\index{routine!err_exit}
-\label{r:err.exit}
-\item[err_exit] \Newline 
-Subroutine to first show the stack call list before exiting.
-This routine is typically used when a program detects an error condition.
-
-\index{routine!get_tty_char}
-\label{r:get.tty.char}
-\item[get_tty_char (this_char, wait, flush)] \Newline 
-Subroutine for getting a single character from the terminal.
-Also see: get_a_char
-
-\index{routine!get_a_char}
-\label{r:get.a.char}
-\item[get_a_char (this_char, wait, ignore_this)] \Newline 
-Subroutine for getting a single character from the terminal.
-Also see: get_tty_char
-
-\index{routine!indexx_char}
-\label{r:indexx.char}
-\item[indexx_char (arr, index)] \Newline 
-Subroutine to sort a character array.
-This subroutine is used to overload the generic name indexx.
-
-\index{routine!index_nocase}
-\label{r:index.nocase}
-\item[index_nocase (string, match_str) result (indx)] \Newline 
-Function to look for a sub-string of string that matches match_str.
-This routine is similar to the fortran INDEX function
-
-\index{routine!integer_option}
-\label{r:integer.option}
-\item[integer_option (integer_default, opt_integer)] \Newline 
-Function to retrun True or False dependending upon the state of an 
-optional integer.
-
-\index{routine!is_integer}
-\label{r:is.integer}
-\item[is_integer (string)] \Newline 
-Function to tell if the first word in a string is a valid integer.
-
-\index{routine!is_logical}
-\label{r:is.logical}
-\item[is_logical (string, ignore) result (good)] \Newline 
-Function to test if a string represents a logical.
-Accepted possibilities are (individual characters can be either case):
-
-\index{routine!is_real}
-\label{r:is.real}
-\item[is_real (string, ignore) result (good)] \Newline 
-Function to test if a string represents a real number.
-
-\index{routine!linear_fit}
-\label{r:linear.fit}
-\item[linear_fit (x, y, n_data, a, b, sig_a, sig_b)] \Newline 
-Subroutine to fit to y = A + B x
-
-\index{routine!logic_option}
-\label{r:logic.option}
-\item[logic_option (logic_default, opt_logic)] \Newline 
-Function to retrun True or False dependending upon the state of an 
-optional logical.
-
-\index{routine!lunget}
-\label{r:lunget}
-\item[lunget()] \Newline 
-Function to return a free file unit number to be used with an open statement.
-
-\index{routine!match_reg}
-\label{r:match.reg}
-\item[match_reg (str, pat)] \Newline 
-Function for matching with regular expressions.
-Note: strings are trimmed before comparison.
-
-\index{routine!match_wild}
-\label{r:match.wild}
-\item[match_wild (string, template) result (this_match)] \Newline 
-Function to do wild card matches. Note: trailing blanks will be discarded
-before any matching is done.
-
-\index{routine!modulo2}
-\label{r:modulo2}
-\item[modulo2 (x, amp)] \Newline 
-Function to return y = x + 2 * n * amp, n is an integer, such that y is 
-in the interval [-amp, amp].
-
-\index{routine!out_io}
-\label{r:out.io}
-\item[out_io (...)] \Newline 
-Subroutine to print to the terminal for command line type programs.
-The idea is that for programs with a gui this routine can be easily
-replaced with another routine.
-
-\index{routine!ran_engine}
-\label{r:ran.engine}
-\item[ran_engine (set, get)] \Newline 
-Subroutine to set what random number generator algorithm is used.
-If this routine is never called then pseudo_random\$ is used.
-
-\index{routine!ran_gauss}
-\label{r:ran.gauss}
-\item[ran_gauss (harvest)] \Newline 
-Subroutine to return a Gaussian distributed random number with unit sigma.
-
-\index{routine!ran_gauss_converter}
-\label{r:ran.gauss.converter}
-\item[ran_gauss_converter (set, get, sigma_cut)] \Newline 
-Subroutine to set what conversion routine is used for converting
-uniformly distributed random numbers to Gaussian distributed random numbers.
-
-\index{routine!ran_seed_put}
-\label{r:ran.seed.put}
-\item[ran_seed_put (seed)] \Newline 
-Subroutine to seed the random number generator. 
-
-\index{routine!ran_seed_get}
-\label{r:ran.seed.get}
-\item[ran_seed_get (seed)] \Newline 
-Subroutine to return the seed used for the random number generator.
-
-\index{routine!ran_uniform}
-\label{r:ran.uniform}
-\item[ran_uniform (harvest)] \Newline 
-Subroutine to return a random number uniformly distributed in the 
-interval [0, 1]. This routine uses the same algorithm as ran from
-
-\index{routine!re_allocate}
-\label{r:re.allocate}
-\item[re_allocate (ptr_to_array, n)] \Newline 
-Function to reallocate a pointer to an array of strings, integers, reals, or logicals.
-
-\index{routine!re_associate}
-\label{r:re.associate}
-\item[re_associate (array, n)] \Newline 
-Function to reassociate an allocatable array of strings, integers, reals, or logicals.
-
-\index{routine!real_option}
-\label{r:real.option}
-\item[real_option (real_default, opt_real)] \Newline 
-Function to retrun True or False dependending upon the state of an 
-optional real.
-
-\index{routine!skip_header}
-\label{r:skip.header}
-\item[skip_header (unit_, error_flag)] \Newline 
-Subroutine to find the first line of data in a file. 
-
-\index{routine!splitfilename}
-\label{r:splitfilename}
-\item[splitfilename(filename, path, basename, is_relative) result (ix_char)] \Newline 
-Routine to take filename and splits it into its constituent parts, 
-the directory path and the base file name.  
-
-\index{routine!str_match_wild}
-\label{r:str.match.wild}
-\item[str_match_wild(str, pat) result (a_match)] \Newline 
-Function to match a character string against a regular expression pattern.
-This is a replacement for the VMS function str\$match_wild.
-
-\index{routine!string_to_int}
-\label{r:string.to.int}
-\item[string_to_int (line, default, value, err_flag)] \Newline 
-Subroutine to convert a string to an integer.
-
-\index{routine!string_trim}
-\label{r:string.trim}
-\item[string_trim(in_string, out_string, word_len)] \Newline 
-Subroutine to trim a string of leading blanks and/or tabs and also to return the
-length of the first word.
-
-\index{routine!string_trim2}
-\label{r:string.trim2}
-\item[string_trim2 (in_str, delimitors, out_str,] \Newline 
-                                     ix_word, delim, ix_next)
-Subroutine to trim a string of leading delimitors and also to return the
-length of the first word.
-
-\index{routine!spline_akima}
-\label{r:spline.akima}
-\item[spline_akima (spline, stat)] \Newline 
-Given a set of (x,y) points we want to interpolate between the points.
-This subroutine computes the semi-hermite cubic spline developed by akima
-
-\index{routine!spline_evaluate}
-\label{r:spline.evaluate}
-\item[spline_evaluate (spline, x, ok, y, dy)] \Newline 
-Subroutine to evaluate a spline at a set of points.
-
-\index{routine!type_this_file}
-\label{r:type.this.file}
-\item[type_this_file (filename)] \Newline 
-Subroutine to type out a file to the screen.
-
-\index{routine!upcase_string}
-\label{r:upcase.string}
-\item[upcase_string (string)] \Newline 
-Routine to convert a string to uppercase:
 
 \end{description}
 
@@ -1550,7 +1803,7 @@ by changing the values in vec. Multiple merit functions can be used.
 
 \index{routine!initial_lmdif}  
 \label{r:initial.lmdif}  
-\item[initial_lmdif] \Newline 
+\item[initial_lmdif()] \Newline 
 Subroutine that clears out previous saved values of the optimizer.
 
 \index{routine!suggest_lmdif}
@@ -1615,6 +1868,12 @@ This routine takes care of the pointers in ele1.
 Subroutine that is used to set one element vector equal to another. 
 This routine takes care of the pointers in ele1. 
 
+\index{routine!mp_beam_equal_mp_beam}
+\label{r:mp.beam.equal.mp.beam}
+\item[mp_beam_equal_mp_beam (beam1, beam2)] \Newline 
+Subroutine to set one macroparticle beam equal to another taking care of
+pointers so that they don't all point to the same place.
+
 \index{routine!real_8_equal_taylor}
 \item[real_8_equal_taylor (y8, bmad_taylor)] \Newline
 Subroutine to overload "=" in expressions real_8 (PTC) = bmad_taylor.
@@ -1665,6 +1924,31 @@ Subroutine to initialize a coord_struct.
 \label{r:type.coord}
 \item[type_coord (coord)] \Newline
 Subroutine to type out a coordinate. 
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Photon Routines}
+\label{r:photon}
+\index{photons!list of routines}
+
+\begin{description}
+
+\index{routine!photon_init}
+\label{r:photon.init}
+\item[photon_init (g_bend, gamma, orbit)] \Newline 
+Routine to initalize a photon
+
+\index{routine!photon_vert_angle_init}
+\label{r:photon.vert.angle.init}
+\item[photon_vert_angle_init (e_rel, gamma_phi, r_in)] \Newline 
+Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
+angle for a simple bend.
+
+\index{routine!photon_energy_init}
+\label{r:photon.energy.init}
+\item[photon_energy_init (e_rel, r_in)] \Newline 
+Routine to convert a random number in the interval [0,1] to a photon energy.
 
 \end{description}
 
@@ -1802,7 +2086,7 @@ Subroutine to convert from PTC to Bmad coordinates.
 \index{quick plot!list of routines}
 
 %--------------------------------------
-\subsection{Page Routines}
+\subsection{Quick Plot Page Routines}
 
 \begin{description}
 
@@ -1818,13 +2102,13 @@ Subroutine to convert from PTC to Bmad coordinates.
 
 \index{routine!qp_close_page}
 \label{r:qp.close.page}
-\item[qp_close_page] \Newline 
+\item[qp_close_page()] \Newline 
      Subroutine to finish plotting on a page.
 
 \end{description}
 
 %--------------------------------------
-\subsection{Calculational Routines}
+\subsection{Quick Plot Calculational Routines}
 
 \begin{description}
 
@@ -1835,14 +2119,15 @@ Routine to calculate how ``nicely'' an axis will look.
 The higher the score the nicer.
 
 \index{routine!qp_calc_and_set_axis}
-\item[qp_calc_and_set_axis (axis, data_min, data_max, ... ] \Newline
+\item[\protext\parbox{6in}{qp_calc_and_set_axis (axis, data_min, data_max, div_min, div_max, \\
+\hspace*{2in} bounds, axis_type, slop_factor)}] \Newline
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index{routine!qp_calc_axis_params}
 \label{r:qp.calc.axis.params}
-\item[\protect\parbox{6in}{qp_calc_axis_params (data_min, data_max, div_min, 
-\\ \hspace*{2in} div_max, how, places, axis_min, axis_max, divisions)}] \Newline 
+\item[\protect\parbox{6in}{qp_calc_axis_params (data_min, data_max, div_min, \\ 
+\hspace*{2in} div_max, how, places, axis_min, axis_max, divisions)}] \Newline 
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. This is similar to calc_axis_scale.
 
@@ -1860,8 +2145,8 @@ of major divisions for fixed axis minimum and maximum.
 
 \index{routine!qp_calc_axis_scale}
 \label{r:qp.calc.axis.scale}
-\item[\protect\parbox{6in}{qp_calc_axis_scale (data_min, data_max, divisions, how,
-\\ \hspace*{2in} places, axis_min, axis_max, niceness_score)}] \Newline 
+\item[\protect\parbox{6in}{qp_calc_axis_scale (data_min, data_max, divisions, how, \\ 
+\hspace*{2in} places, axis_min, axis_max, niceness_score)}] \Newline 
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
@@ -1879,14 +2164,19 @@ of major divisions for fixed axis minimum and maximum.
 \end{description}
 
 %--------------------------------------
-\subsection{Drawing Routines}
+\subsection{Quick Plot Drawing Routines}
 
 \begin{description}
 
+\index{routine!qp_clear_box}
+\label{r:qp.clear.box}
+\item[qp_clear_box] \Newline 
+Subroutine to clear the current box on the page.
+
 \index{routine!qp_clear_page}
 \label{r:qp.clear.page}
-\item[qp_clear_page] \Newline 
-     Subroutine to clear all drawing from the page.
+\item[qp_clear_page()] \Newline 
+Subroutine to clear all drawing from the page.
 
 \index{routine!qp_draw_circle}
 \label{r:qp.draw.circle}
@@ -1904,7 +2194,7 @@ Subroutine to plot a section of an ellipse.
 
 \index{routine!qp_draw_axes}
 \label{r:qp.draw.axes}
-\item[qp_draw_axes] \Newline 
+\item[qp_draw_axes()] \Newline 
      Subroutine to plot the axes, title, etc. of a plot.
 
 \index{routine!qp_draw_data}
@@ -1925,7 +2215,7 @@ Subroutine to plot a section of an ellipse.
 
 \index{routine!qp_draw_grid}
 \label{r:qp.draw.grid}
-\item[qp_draw_grid] \Newline 
+\item[qp_draw_grid()] \Newline 
      Subroutine to draw a grid on the current graph.
 
 \index{routine!qp_draw_histogram}
@@ -1963,7 +2253,7 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index{routine!qp_draw_polyline_basic}
 \label{r:qp.draw.polyline.basic}
-\item[qp_draw_polyline_basic (x, y, units) ] \Newline 
+\item[qp_draw_polyline_basic (x, y, units)] \Newline 
      Subroutine to draw a polyline. See also qp_draw_polyline
 
 \index{routine!qp_draw_line}
@@ -1973,7 +2263,7 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index{routine!qp_draw_rectangle}
 \label{r:qp.draw.rectangle}
-\item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip) ] \Newline 
+\item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)] \Newline 
      Subroutine to draw a rectangular box.
 
 \index{routine!qp_draw_symbol}
@@ -1989,7 +2279,7 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index{routine!qp_draw_text}
 \label{r:qp.draw.text}
-\item[qp_draw_text (text, x, y, units, justify, height, color, angle, ...) ] \Newline 
+\item[qp_draw_text (text, x, y, units, justify, height, color, angle, ...)] \Newline 
      Subroutine to draw text.
 
 \index{routine!qp_draw_text_no_set}
@@ -2028,30 +2318,33 @@ The default color is the background color (white\$).
 \end{description}
 
 %--------------------------------------
-\subsection{Set Routines}
+\subsection{Quick Plot Set Routines}
 
 \begin{description}
 
 \index{routine!qp_calc_and_set_axis}
 \label{r:qp.calc.and.set.axis}
-\item[qp_calc_and_set_axis (axis, data_min, data_max, ... ] \Newline
+\item[\protext\parbox{6in}{qp_calc_and_set_axis (axis, data_min, data_max,
+\hspace*{2in} div_min, div_max, bounds, axis_type, slop_factor)}] \Newline
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index{routine!qp_eliminate_xy_distortion}
 \label{r:qp.eliminate.xy.distortion}
-\item[qp_eliminate_xy_distortion] \Newline 
+\item[qp_eliminate_xy_distortion()] \Newline 
 This subroutine will increase the x or y margins so that the conversion
 between data units and page units is the same for the x and y axes.
 
 \index{routine!qp_set_axis}
 \label{r:qp.set.axis}
-\item[qp_set_axis (axis, a_min, a_max, ...)] \Newline
+\item[\protext\parbox{6in}{qp_set_axis (axis, a_min, a_max, div, places, label, draw_label, \\
+\hspace*{2in} draw_numbers, minor_div, minor_div_max, mirror, \\
+\hspace*{2in} number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
     Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
 
 \index{routine!qp_set_box}
 \label{r:qp.set.box}
-\item[qp_set_box (ix, iy, ix_tot, iy_tot) ] \Newline 
+\item[qp_set_box (ix, iy, ix_tot, iy_tot)] \Newline 
      Subroutine to set the box on the physical page.
      This routine divides the page into a grid of boxes. 
 
@@ -2062,16 +2355,15 @@ between data units and page units is the same for the x and y axes.
 
 \index{routine!qp_set_graph_limits}
 \label{r:qp.set.graph.limits}
-\item[qp_set_graph_limits] \Newline 
+\item[qp_set_graph_limits()] \Newline 
      Subroutine to calculate the offsets for the graph.
      This subroutine also sets the PGPLOT window size equal to the graph size.
 
 \index{routine!qp_set_graph_placement}
 \label{r:qp.set.graph.placement}
-\item[qp_set_graph_placement (x1_marg, x_graph_len, y1_marg, ] \Newline 
-                                                       y_graph_len, units)
+\item[qp_set_graph_placement (x1_marg, x_graph_len, y1_marg, y_graph_len, units)] \Newline 
 Subroutine to set the placement of the current graph inside the box. 
-This routine can be used in place of QP_SET_MARGIN.
+This routine can be used in place of qp_set_margin.
 
 \index{routine!qp_set_layout}
 \label{r:qp.set.layout}
@@ -2109,7 +2401,7 @@ current box. This allows qp_set_box to subdivide the current box.
 \index{routine!qp_set_parameters}
 \label{r:qp.set.parameters}
 \item[qp_set_parameters (text_scale)] \Newline 
-Subroutine to set various quick_plot parameters.
+Subroutine to set various quick plot parameters.
 
 \index{routine!qp_subset_box}
 \label{r:qp.subset.box}
@@ -2158,7 +2450,7 @@ Subroutine to set what axis to use: X or X2, Y or Y2.
 
 \index{routine!qp_get_axis}
 \label{r:qp.get.axis}
-\item[qp_get_axis (axis, a_min, a_max, div, ... ) ] \Newline
+\item[qp_get_axis (axis, a_min, a_max, div, ... )] \Newline
      Subroutine to get the min, max, divisions etc. for the X and Y axes.
 
 \index{routine!qp_get_layout_attrib}
@@ -2244,7 +2536,7 @@ to the Left Bottom corner of the page.
 \index{routine!qp_read_data}
 \label{r:qp.read.data}
 \item[qp_read_data (iu, err_flag, x, ix_col, y, iy_col, z, iz_col, 
-                                                               t, it_col) ] \Newline 
+                                                               t, it_col)] \Newline 
      Subroutine to read columns of data.
 
 \end{description}
@@ -2372,7 +2664,7 @@ inverts the black for white.
 Subroutine to set the position of a graph.
 Units are inches from lower left of page.
 
-\index{routine!qp_set_line_width_basic}
+?\index{routine!qp_set_line_width_basic}
 \label{r:qp.set.line.width.basic}
 \item[qp_set_line_width_basic (line_width)] \Newline 
 Subroutine to set the line width.
@@ -2588,6 +2880,16 @@ Taylor Series.
 Subroutine to transfer the values from one taylor map to another:
 Taylor1 $\le$ Taylor2
 
+\index{routine!taylor_minus_taylor}
+\label{r:taylor.minus.taylor}
+\item[taylor_minus_taylor (taylor1, taylor2) result (taylor3)] \Newline 
+Routine to add two taylor maps.
+
+\index{routine!taylor_plus_taylor}
+\label{r:taylor.plus.taylor}
+\item[taylor_plus_taylor (taylor1, taylor2) result (taylor3)] \Newline 
+Routine to add two taylor maps.
+
 \index{routine!taylors_equal_taylors}
 \label{r:taylors.equal.taylors}
 \item[taylors_equal_taylors (taylor1, taylor2)] \Newline 
@@ -2628,7 +2930,7 @@ Subroutine to transfer a Taylor map from one element to another.
 \index{routine!transfer_lat_taylors}
 \label{r:transfer.lat.taylors}
 \item[transfer_lat_taylors (lat_in, lat_out, 
-                                             type_out, transfered_all) ] \Newline 
+                                             type_out, transfered_all)] \Newline 
 Subroutine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
@@ -2706,6 +3008,12 @@ matrix and the closed orbit offset.
 Subroutine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
+\index{routine!offset_photon}
+\label{r:offset.photon}
+\item[offset_photon (ele, param, coord, set)] \Newline 
+Routine to effectively offset an element by instead offsetting
+the photon position to correspond to the local crystal or mirror coordinates.
+
 \index{routine!orbit_amplitude_calc}
 \label{r:orbit.amplitude.calc}
 \item[orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb, particle)] \Newline
@@ -2727,6 +3035,12 @@ instead rotating the particle position with negative the angle.
 \label{r:track1}
 \item[track1 (start, ele, param, end)] \Newline
 Subroutine to track through a single element. 
+
+\index{routine!track1_beam_simple}
+\label{r:track1.beam.simple}
+\item[track1_beam_simple (beam_start, ele, param, beam_end)] \Newline 
+Routine to track a beam of particles through a single element.
+This routine does *not* include multiparticle effects.
 
 \index{routine!track1_bunch_csr}
 \label{r:track1.bunch.csr}
@@ -2753,6 +3067,12 @@ See the Twiss section for more details.
 \label{r:twiss.and.track.at.s}
 \item[twiss_and_track_at_s (lat, s, ele, orb_, here)] \Newline
 Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
+
+\index{routine!twiss_and_track_intra_ele}
+\label{r:twiss.and.track.intra.ele}
+\item[twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, ] \Newline 
+                              track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+Routine to track a particle within an element.
 
 \index{routine!twiss_and_track_partial}
 \label{r:twiss.and.track.partial}
@@ -2806,8 +3126,8 @@ Particle tracking through a bend element.
 \label{r:macro}    
 \index{macroparticle!list of routines}
 
-See sections \sref{s:macro} and \sref{s:macro.track} for a discussion of macroparticles
-and macroparticle tracking.
+{\em Note: The macroparticle tracking code is not currently maintained
+in favor of tracking an ensemble of particles.}
 
 \begin{description}
 
@@ -2847,7 +3167,7 @@ Subroutine to convert macroparticle coords from
 
 \index{routine!reallocate_macro_beam}
 \label{r:reallocate.macro.beam}
-\item[reallocate_macro_beam (beam, n_bunch, n_slice, n_macro)] \Newline 
+\item[reallocate_macro_beam (beam, n_bunch, n_macro)] \Newline 
 Subroutine to reallocate memory within a beam_struct.
 
 \index{routine!track1_macro_beam}
@@ -3122,6 +3442,18 @@ Subroutine to Q_tune a lat. This routine will set the tunes to within 0.001 radi
 \item[set_z_tune (lat)] \Newline
 Subroutine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
+\index{routine!transfer_map_calc}
+\label{r:transfer.map.calc}
+\item[transfer_map_calc (lat, t_map, ix1, ix2, &] \Newline 
+                                        integrate, one_turn, unit_start)
+Subroutine to calculate the transfer map between two elements.
+
+\index{routine!transfer_map_calc_at_s}
+\label{r:transfer.map.calc.at.s}
+\item[transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)] \Newline 
+Subroutine to calculate the transfer map between longitudinal positions
+s1 to s2.
+
 \index{routine!twiss_and_track}
 \item[twiss_and_track (lat, orb)] \Newline
 Subroutine to calculate the Twiss and orbit parameters. 
@@ -3221,6 +3553,11 @@ Subroutine to initialize a wake struct.
 \item[lr_wake_apply_kick (ele, s_ref, orbit)] \Newline 
 Subroutine to apply the long-range wake kick to a particle.
 
+\index{routine!randomize_lr_wake_frequencies}
+\label{r:randomize.lr.wake.frequencies}
+\item[randomize_lr_wake_frequencies (ele, set_done)] \Newline 
+Routine to randomize the frequencies of the lr wake HOMs.
+
 \index{routine!sr_table_apply_trans_kick}
 \label{r:sr.table.apply.trans.kick}
 \item[sr_table_apply_trans_kick (ele, leader, charge, follower)] \Newline 
@@ -3292,6 +3629,12 @@ Replaced by lat_ele_locator.
 \label{r:element.locator}
 \item[element_locator (ele_name, lat, ix_ele)] \Newline
 Replaced by lat_ele_locator.
+
+\index{routine!emit_calc}
+\label{r:emit.calc}
+\item[emit_calc (lat, what, mode)] \Newline 
+Subroutine to calculate the emittance, energy spread, and synchrotron
+integrals. This subroutine assumes that bends are in the horizontal plane.
 
 \end{description}
 

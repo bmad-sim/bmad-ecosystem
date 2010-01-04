@@ -407,6 +407,7 @@ end subroutine
 ! Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 !
 ! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
 ! See pointer_to_ele for more details.
 !-
 
@@ -435,6 +436,7 @@ end function
 ! Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
 !
 ! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
 ! See pointer_to_ele for more details.
 !-
 

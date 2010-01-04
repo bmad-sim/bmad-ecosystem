@@ -34,6 +34,12 @@ contains
 !+
 ! Subroutine create_sol_quad_model (sol_quad, lat)
 !
+! Routine to create series of solenoid and quadrupole elements to serve as a replacement
+! model for a sol_quad element.
+!
+! This routine is helpful for translating bmad lattices to a language that does not
+! implement a combination solenoid/quadrupole.
+!
 ! Not yet implemented!
 !-
 
@@ -59,7 +65,12 @@ end subroutine
 !+
 ! Subroutine create_wiggler_model (wiggler, lat)
 !
-! Routine to create series of bend and drift elements to serve as a model for a wiggler.
+! Routine to create series of bend and drift elements to serve as a replacement 
+! model for a wiggler.
+!
+! This routine is helpful for translating bmad lattices to a language that does not
+! implement the Bmad wiggler model.
+!
 ! This routine uses the mrqmin nonlinear optimizer to vary the parameters in the wiggler 
 ! model to match:
 !   Integral g^2

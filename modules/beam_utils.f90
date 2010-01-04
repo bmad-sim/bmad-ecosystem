@@ -11,6 +11,10 @@ type phase_space_struct    ! this is only used in beam_utils
    real(rp), allocatable :: vec(:,:)
 end type
 
+private init_random_bunch, init_tail_weighted_bunch, init_grid_distribution
+private init_ellipse_distribution, init_kv_distribution, multiply_3planes
+private multiply_2planes, recenter_bunch, 
+
 contains
 
 !--------------------------------------------------------------------------
@@ -912,41 +916,7 @@ end subroutine init_bunch_distribution
 ! as specified. Coupling in the element ele is incorporated into the
 ! distribution.
 !
-! Note: Except for the random number seed, the random number generator 
-! parameters used for this routine are set from the beam_init argument.
-! That is, these parameters are independent of what is used everywhere else.
-!
-! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
-!
-! Note: To get good results, It is important to make sure that for 
-! circular rings that beam_init%center is the correct closed orbit. 
-! The closed orbit will shift if, for example, radiation damping is
-! turned on.
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   ele         -- Ele_struct: element to initialize distribution at
-!   param       -- Lat_param_struct: Lattice parameters
-!     %particle      -- Type of particle.
-!   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!     %renorm_center -- Logical: If True then distribution is rescaled to
-!                    the desired centroid (to take care of
-!                    possible statistical errors in distribution).
-!                    (default is True)
-!     %renorm_sigma  -- Logical: If True then rescale the distribution to the desired sigmas.
-!                    (default is True)
-!     %init_spin     -- Logical: If True then the particle spinors will be
-!                    initialized with the parameters in beam_init%spin
-!                    (default is False)
-!     %random_engine          -- Character: "pseudo" (default) or "quasi".
-!     %random_gauss_converter -- Character: "exact" (default) or "limited".
-!     %random_sigma_cutoff    -- Real: Used with "limited" converter. Default is 4.0.
-!
-! Output:
-!   bunch        -- Bunch_struct: Structure with initialized particles.
-!
+! Note: This routine is private. Use init_bunch_distribution instead.
 !-
 
 subroutine init_random_bunch (ele, param, beam_init, bunch)
