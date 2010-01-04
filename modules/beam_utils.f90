@@ -13,7 +13,7 @@ end type
 
 private init_random_bunch, init_tail_weighted_bunch, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution, multiply_3planes
-private multiply_2planes, recenter_bunch, 
+private multiply_2planes, recenter_bunch
 
 contains
 
