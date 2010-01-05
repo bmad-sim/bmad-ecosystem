@@ -7,31 +7,6 @@
 # Author:   M. Palmer 
 #
 #=============================================================================
-#
-# $Id: MAKEFILE.VMS 4478 2007-05-09 18:28:38Z cesrulib $
-#
-# $Log$
-# Revision 1.6  2005/09/22 14:57:06  cesrulib
-# Fixed bug so it can run locally
-#
-# Revision 1.5  2004/12/22 19:47:10  cesrulib
-# workdisk->cesr_porting
-#
-# Revision 1.4  2004/12/17 22:02:08  cesrulib
-# VMS-porting
-#
-# Revision 1.2  2002/01/11 01:07:59  cesrulib
-# Bug fix.
-#
-# Revision 1.1  2002/01/10 20:06:04  cesrulib
-# makefile.vms --> MAKEFILE.VMS for proper VMS building.
-#
-#
-# Revision 1.1  2002/01/09 16:26:53  cesrulib
-# First pass at general VMS library makefile infrastructure.
-#
-#
-#=============================================================================
 
 #-----------------------------------------------------------------------------
 # The following must be explicitly set when building under VMS
@@ -96,7 +71,7 @@ MAKE_SRC := CESR_PORTING:[cesr_libs.$(CESRLIB).Gmake]
 #       example: place [--.lib] instead of real path [-.lib].
 #-----------------------------------------------------------------------------
 
-OLB_SRC_DIRS  := [.file] [.io] [.matrix] [.plot_example] [.string] [.conversion] [.interfaces] [.math] [.misc] [.plot] [.old_utils]
+OLB_SRC_DIRS  := [.file] [.io] [.matrix] [.plot] [.plot_example] [.string] [.conversion] [.interfaces] [.math] [.misc] [.old_utils]
 MOD_SRC_DIRS  := 
 OBJ_SRC_DIRS  :=
 CFG_SRC_DIRS  :=
