@@ -388,7 +388,7 @@ ep%power_tot = ep%power_tot + dpower * seg%len
 ! Also: Convert keV to Joules 
 
 ep%photons_per_sec = ep%photons_per_sec + 3.248 * (dpower * seg%len) / &
-        (2.218 * (energy/1e9)**3 * ((1 - rr) * ray2%g_bend + rr * ray1%g_bend) * 1.602e-16) 
+        (2.218 * (energy/1e9)**3 * ((1 - rr) * ray1%g_bend + rr * ray2%g_bend) * 1.602e-16) 
 
 ep%n_source = ep%n_source + 1
 ns = ep%n_source
