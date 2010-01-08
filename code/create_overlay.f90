@@ -164,7 +164,7 @@ do i = lord%ix1_slave, lord%ix2_slave
 
 enddo
 
-call control_bookkeeper (lat, ix_overlay)
+call control_bookkeeper (lat, lord)
 
 end subroutine
 

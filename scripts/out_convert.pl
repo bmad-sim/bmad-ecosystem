@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\%top/\%top1/g;
-    s/\%bottom/\%bottom1/g;
+    if (/use bmadz/) {next;}
 
     print (F_OUT);
   }

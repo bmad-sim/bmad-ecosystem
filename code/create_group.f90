@@ -26,9 +26,10 @@
 !
 ! Example:
 !   call new_control (lat, ix_lord)   ! get IX_LORD index
-!   lat%ele(ix_lord)%name = 'GROUP1' ! group name
-!   lat%ele(ix_lord)%value(command$) = 0 ! start at zero
-!   n_control = 2               ! control 2 elements
+!   lord => lat%ele(ix_lord)   
+!   lord%name = 'GROUP1'      ! group name
+!   lord%value(command$) = 0  ! start at zero
+!   n_control = 2             ! control 2 elements
 !
 !   contrl(1)%ix_slave = 10   ! LAT%ele(10) is Q01W say.
 !   contrl(1)%ix_attrib = k1$ ! The group controls the quadrupole strength.
@@ -51,15 +52,14 @@
 !     elements controlled by the group element.
 !
 ! Proceeding with the previous example:
-!   ix_lord1 = ix_lord                       ! save the group index
-!   lat%ele(ix_lord1)%value(command$) = 10   ! put in a value for the group
-!   call lat_make_mat6 (lat, ix_lord1)       ! update the k1's for the 2 quads
-!                                            !   AND remake the MAT6's
-!   call control_bookkeeper (lat, ix_lord1)  ! use this instead
-!                                            !   to only update the k1's
-!   lat%ele(ix_lord1)%value(command$) = 13   ! put in a new value for the group
-!   call lat_make_mat6 (lat, ix_lord1)       ! the change now in k1's is
-!                                            !   based upon the delta: 13 - 10
+!   lord%value(command$) = 10            ! put in a value for the group
+!   call lat_make_mat6 (lat, ix_lord)    ! update the k1's for the 2 quads
+!                                        !   AND remake the MAT6's
+!   call control_bookkeeper (lat, lord)  ! use this instead
+!                                        !   to only update the k1's
+!   lord%value(command$) = 13            ! put in a new value for the group
+!   call lat_make_mat6 (lat, ix_lord)    ! the change now in k1's is
+!                                        !   based upon the delta: 13 - 10
 !
 ! Note: You can control an element's position by setting:
 !       CONTRL(i)%IX_ATTRIB = START_EDGE$      or

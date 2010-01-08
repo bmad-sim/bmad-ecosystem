@@ -42,7 +42,7 @@ implicit none
 type (lat_struct), target :: lat
 type (coord_struct), optional, volatile :: ref_orb(0:)
 type (coord_struct) orb_start, orb_end
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
 integer, optional :: ix_ele, ix_branch
@@ -160,16 +160,16 @@ endif
 !-----------------------------------------------------------
 ! otherwise make a single element
 
-call control_bookkeeper (lat, i_ele, ix_branch)
+ele => branch%ele(i_ele)
+call control_bookkeeper (lat, ele)
 
 ! For an element in the tracking part of the lattice
 
 if (i_ele <= branch%n_ele_track) then
    if (present(ref_orb)) then
-      call make_mat6(branch%ele(i_ele), lat%param, &
-                                ref_orb(i_ele-1), ref_orb(i_ele), .true.)
+      call make_mat6(ele, lat%param, ref_orb(i_ele-1), ref_orb(i_ele), .true.)
    else
-      call make_mat6(branch%ele(i_ele), lat%param)
+      call make_mat6(ele, lat%param)
    endif
 
   return
@@ -177,12 +177,12 @@ endif
 
 ! for a control element
 
-do i1 = branch%ele(i_ele)%ix1_slave, branch%ele(i_ele)%ix2_slave
-  i = lat%control(i1)%ix_slave
+do i = 1, ele%n_slave
+  slave => pointer_to_slave (lat, ele, i)
    if (present(ref_orb)) then
-      call lat_make_mat6 (lat, i, ref_orb)
+     call lat_make_mat6 (lat, slave%ix_ele, ref_orb, slave%ix_branch)
    else
-      call lat_make_mat6 (lat, i)
+     call lat_make_mat6 (lat, slave%ix_ele, ix_branch = slave%ix_branch)
    endif
 enddo
 

@@ -92,7 +92,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
+! Subroutine control_bookkeeper (lat, ele, super_and_multipass_only)
 !
 ! Subroutine to transfer attibute information from lord to slave elements.
 ! This subroutine will call attribute_bookkeeper.
@@ -104,10 +104,9 @@ end subroutine
 !
 ! Input:
 !   lat       -- lat_struct: lattice to be used
-!   ix_ele    -- Integer, optional: Index of element whose attribute values 
+!   ix_ele    -- Ele_struct, optional: Element whose attribute values 
 !                  have been changed. If not present bookkeeping will be done 
 !                  for all elements.
-!   ix_branch -- Integer, optional: Branch index. Default is 0.
 !   super_and_multipass_only 
 !             -- Logical, optional: If True then only do bookkeeping for 
 !                  superposition and multipass elements only. Default is False. 
@@ -115,15 +114,15 @@ end subroutine
 !                  to set unless you know what you are doing.
 !-
 
-recursive subroutine control_bookkeeper (lat, ix_ele, ix_branch, super_and_multipass_only)
+recursive subroutine control_bookkeeper (lat, ele, super_and_multipass_only)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, slave, lord
+type (ele_struct), optional :: ele
+type (ele_struct), pointer :: slave, lord
 
-integer, optional :: ix_ele, ix_branch
-integer ie, ib, ix0, j, n1, n2
+integer ie, ib, j, n1, n2
 
 logical, optional :: super_and_multipass_only
 logical sm_only, did_bookkeeping
@@ -132,23 +131,23 @@ logical sm_only, did_bookkeeping
 ! With super_only (used by lattice_bookkeeper) this check has already been
 ! done so we don't need to do it again.
 
-ix0 = integer_option(0, ix_ele)
-ib = integer_option (0, ix_branch)
 sm_only = logic_option (.false., super_and_multipass_only)
-ele => lat%branch(ib)%ele(ix0)
 
 if (.not. sm_only) then
-  if (.not. present(ix_ele) .or. ele%lord_status == super_lord$) &
-                                    call super_lord_length_bookkeeper (lat, ix_ele)
+  if (present(ele)) then
+    if (ele%lord_status == super_lord$) call super_lord_length_bookkeeper (lat, ele) 
+  else
+    call super_lord_length_bookkeeper (lat) 
+  endif
 endif
 
-! If ix_ele is present we only do bookkeeping for this one element and its slaves
+! If ele is present we only do bookkeeping for this one element and its slaves
 
-if (present(ix_ele)) then
+if (present(ele)) then
   call control_bookkeeper1 (lat, ele, sm_only)
   do ie = 1, ele%n_slave
     slave => pointer_to_slave (lat, ele, ie)
-    call control_bookkeeper (lat, slave%ix_ele, slave%ix_branch, sm_only)
+    call control_bookkeeper (lat, slave, sm_only)
   enddo
   return
 endif
@@ -259,7 +258,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine super_lord_length_bookkeeper (lat, ix_ele)
+! Subroutine super_lord_length_bookkeeper (lat, ele)
 !
 ! Subroutine to make sure the length of the slaves of a super_lord add up to the
 ! length of the lord. If not, make an adjustment to the slave length.
@@ -270,28 +269,28 @@ end subroutine
 !   use bookkeeper_mod
 !
 ! Input:
-!   lat    -- Lat_struct: Lattice.
-!   ix_ele -- Integer, optional: Index of super_lord element to check.
+!   lat   -- Lat_struct: Lattice.
+!   ele   -- Ele_struct, optional: Index of super_lord element to check.
 !                  If not present bookkeeping will be done for all super_lords.
 !
 ! Output:
 !   lat  -- Lat_struct: Lattice with adjustments made.
 !-
 
-subroutine super_lord_length_bookkeeper (lat, ix_ele)
+subroutine super_lord_length_bookkeeper (lat, ele)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord0, lord2, slave, slave2
 type (branch_struct), pointer :: branch
+type (ele_struct), optional :: ele
 
 real(rp) length, coef, length_start, length_pos, length_neg
 real(rp) d_length, d_length_pos, d_length_neg
 real(rp) dl_tol
 
-integer, optional :: ix_ele
-integer j, k, ie, ix0, ixa_lord0, ixb_lord0, ixa_lord2, ixb_lord2
+integer j, k, ie, ixa_lord0, ixb_lord0, ixa_lord2, ixb_lord2
 integer ix_pos_edge, ix_neg_edge, ixa, ixb
 
 logical pos_extension_lord_exists, neg_extension_lord_exists, all_extension_lord_exists
@@ -304,14 +303,16 @@ character(40) :: r_name = 'super_lord_length_bookkeeper'
 dl_tol = 10 * bmad_com%significant_longitudinal_length
 
 length_adjustment_made = .false.
-ix0 = integer_option(0, ix_ele)
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
 
   lord0 => lat%ele(ie)
 
   if (lord0%lord_status /= super_lord$) cycle
-  if (ix0 /= 0 .and. ix0 /= ie) cycle
+
+  if (present(ele)) then
+    if (ele%ix_branch == 0 .and. ele%ix_ele == ie) cycle
+  endif
 
   length = 0
   do j = 1, lord0%n_slave
@@ -965,6 +966,7 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
+logical is_first, is_last
 logical, save :: init_needed = .true.
 
 character(20) :: r_name = 'makeup_super_slave'
@@ -996,31 +998,30 @@ ix_slave = slave%ix_ele
 
 if (slave%n_lord == 1) then
 
-  ix_con = lat%ic(slave%ic1_lord)  
-  ix = lat%control(ix_con)%ix_lord
-  lord => lat%ele(ix)
+  lord => pointer_to_lord (lat, slave, 1, ix_con)
+  is_first = (ix_con == lord%ix1_slave)
+  is_last  = (ix_con == lord%ix2_slave)
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
-  if (ix_con /= lord%ix1_slave) then
+  if (.not. is_first) then
     slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
   endif
 
   ! Find the offset from the longitudinal start of the lord to the start of the slave
 
   offset = 0 ! length of all slaves before this one
-  do i = lord%ix1_slave, ix_con-1
-    j = lat%control(i)%ix_slave
-    offset = offset + branch%ele(j)%value(l$)
+  do i = 1, ix_con - lord%ix1_slave
+    slave0 => pointer_to_slave(lat, lord, i)
+    offset = offset + slave0%value(l$)
   enddo
 
   ! If this is the last slave, adjust it's length to be consistant with
   ! The lord length. Then do the rest of the bookkeeping
 
-  if (ix_con == lord%ix2_slave) slave%value(l$) = lord%value(l$) - offset
+  if (is_last) slave%value(l$) = lord%value(l$) - offset
 
-  call makeup_super_slave1 (slave, lord, offset, lat%param, &
-                             (ix_con == lord%ix1_slave), (ix_con == lord%ix2_slave))
+  call makeup_super_slave1 (slave, lord, offset, lat%param, is_first, is_last)
 
   return
 
@@ -1061,6 +1062,8 @@ slave%is_on = .false.
 do j = 1, slave%n_lord
 
   lord => pointer_to_lord (lat, slave, j, ix_con)
+  is_first = (ix_con == lord%ix1_slave)
+  is_last  = (ix_con == lord%ix2_slave)
 
   ! Physically, the lord length cannot be less than the slave length.
   ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
@@ -1088,7 +1091,7 @@ do j = 1, slave%n_lord
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
-  if (ix_con /= lord%ix1_slave) then
+  if (.not. is_first) then
     slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
   endif
 
@@ -1099,11 +1102,9 @@ do j = 1, slave%n_lord
 
   ! Coupler and aperture calc.
 
-  call compute_slave_aperture (value, slave, lord, &
-                               ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
+  call compute_slave_aperture (value, slave, lord, is_first, is_last)
 
-  if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, &
-                               ix_con == lord%ix1_slave, ix_con == lord%ix2_slave)
+  if (slave%key == lcavity$) call compute_slave_coupler (value, slave, lord, is_first, is_last)
 
   ! Methods
 

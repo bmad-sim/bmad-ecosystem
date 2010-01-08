@@ -306,8 +306,8 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   endif
 enddo
 
-call control_bookkeeper (lat, ix_split)
-call control_bookkeeper (lat, ix_split+1)
+call control_bookkeeper (lat, ele1)
+call control_bookkeeper (lat, ele2)
 
 if (logic_option(.true., check_controls)) call check_lat_controls (lat, .true.)
 

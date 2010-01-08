@@ -2660,7 +2660,7 @@ do i = 1, n_multipass
   enddo
 enddo
 
-call control_bookkeeper (lat, ix_lord)
+call control_bookkeeper (lat, lord)
 
 end subroutine
 
@@ -2886,7 +2886,7 @@ do
       call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
       super_ele%name = super_ele_saved%name(:ix)            
       call add_superimpose (lat, super_ele, i_sup)
-      call control_bookkeeper (lat, i_sup)
+      call control_bookkeeper (lat, lat%ele(i_sup))
     endif
 
     call s_calc (lat)
