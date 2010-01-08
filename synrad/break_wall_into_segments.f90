@@ -45,9 +45,12 @@ do ip = 1, wall%n_pt_tot
     rr = float(i - i_seg) / n_seg
     wall%seg(i)%x = wall%pt(ip-1)%x * (1 - rr) + wall%pt(ip)%x * rr
     wall%seg(i)%s = wall%pt(ip-1)%s * (1 - rr) + wall%pt(ip)%s * rr
-    if (i /= 1) wall%seg(i)%len = &
-                      sqrt((wall%seg(i)%s - wall%seg(i-1)%s)**2 + &
-                      (wall%seg(i)%x - wall%seg(i-1)%x)**2)
+    if (i == 1) then
+      wall%seg(i)%len = sqrt(wall%seg(i)%s**2 + (wall%seg(i)%x - wall%pt(ip-1)%x)**2)
+    else
+      wall%seg(i)%len = sqrt((wall%seg(i)%s - wall%seg(i-1)%s)**2 + &
+                                    (wall%seg(i)%x - wall%seg(i-1)%x)**2)
+    endif
   end do
   i_seg = i_seg + n_seg
 enddo
