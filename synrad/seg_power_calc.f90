@@ -39,7 +39,7 @@ type (ele_power_struct) power
 
 real(rp) energy, dx_seg, x1, x2
 real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
-real(rp) rr, dr2, dr1, theta, factor
+real(rp) rr, dr2, dr1, theta, power_factor
 real(rp) dx_wall, ds_wall, r1, r2, dpower, track_len
 real(rp) r_i1, r_i2, frac_illum, gamma
 real(rp) theta_base, theta_floor1, theta_floor2, theta_floor_seg
@@ -60,18 +60,18 @@ energy = lat%ele(fan(1)%ix_source)%value(e_tot$)
 !    Cgamma is from Sands (p98) which is 8.85e-5 m (GeV)^-3 
 !    for electrons.  Not valid for protons, etc!!!
 
-factor = 14.1e3 * gen%i_beam * (energy/1e9)**4
+power_factor = 14.1e3 * gen%i_beam * (energy/1e9)**4
 do i = 2, i_ray
 
   ray1 => fan(i-1)
   ray2 => fan(i)
 
   ! Sum up the power radiated by the element:
-  ! above factor * delta S * avg(gbend^2)
+  ! above power_factor * delta S * avg(gbend^2)
   ! which is an integrated segment of Sands eq. 4.5
   ! * the current to get the power
 
-  power%radiated = power%radiated + factor * &
+  power%radiated = power%radiated + power_factor * &
          (ray2%start%vec(5) - ray1%start%vec(5)) * (ray2%g_bend**2 + ray1%g_bend**2) / 2
 enddo
  
@@ -109,7 +109,7 @@ do i = 1, i_ray
   sig_y_eff = sqrt(sig_y**2 + (ray2%track_len * sig_yp)**2)
 
   ! the p1 factor is used in power/length
-  ray2%p1_factor = factor * ray2%g_bend
+  ray2%p1_factor = power_factor * ray2%g_bend
 
   ! the p2 factor is used in power/area
   ray2%p2_factor = ray2%p1_factor / (sqrt(twopi) * sig_y_eff)
@@ -367,6 +367,8 @@ subroutine this_seg_power_calc (seg)
 type (wall_seg_struct), target :: seg
 type (seg_power_struct), pointer :: ep
 
+real(rp) illum_factor
+
 integer ns
 
 ! Only change ep%ix_ele_source and ep%s_source if the contribution to the
@@ -374,8 +376,9 @@ integer ns
 
 ep => seg%power
 
-dpower = ((1 - rr)*ray1%p1_factor + rr*ray2%p1_factor) * &
-                    abs(sin(theta_rel)) * frac_illum / track_len
+illum_factor = abs(sin(theta_rel)) * frac_illum / track_len
+dpower = ((1 - rr)*ray1%p1_factor + rr*ray2%p1_factor) * illum_factor
+                    
 
 ep%power_per_len  = ep%power_per_len + dpower
 ep%power_per_area = ep%power_per_area + abs(sin(theta_rel)) * frac_illum * &
@@ -387,8 +390,8 @@ ep%power_tot = ep%power_tot + dpower * seg%len
 ! 3.248 is 15*sqrt(3)/8
 ! Also: Convert keV to Joules 
 
-ep%photons_per_sec = ep%photons_per_sec + 3.248 * (dpower * seg%len) / &
-        (2.218 * (energy/1e9)**3 * ((1 - rr) * ray1%g_bend + rr * ray2%g_bend) * 1.602e-16) 
+ep%photons_per_sec = ep%photons_per_sec + 3.248 * illum_factor * &
+                       power_factor * seg%len / (2.218 * (energy/1e9)**3 * 1.602e-16) 
 
 ep%n_source = ep%n_source + 1
 ns = ep%n_source
