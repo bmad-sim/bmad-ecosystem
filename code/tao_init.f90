@@ -325,8 +325,8 @@ if (allocated (s%u)) then
 
     if (i == 0 .or. .not. tao_com%common_lattice) then
       do ib = 0, ubound(u%uni_branch, 1)
-        deallocate (u%uni_branch(ib)%ele)
         call reallocate_beam(u%uni_branch(ib)%ele(0)%beam, 0, 0)
+        deallocate (u%uni_branch(ib)%ele)
       enddo
       deallocate (u%uni_branch)
     endif
