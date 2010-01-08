@@ -108,7 +108,7 @@ subroutine write_power_results (wall, lat, gen_params, use_ele_ix)
     seg_name = wall%pt(seg%ix_pt)%name
     call str_substitute (seg_name, ' ', '_', .true.)
 
-    fmt = '(i6, 1x, a10, f10.3, 2es11.3, 3es12.4, 3f10.3, 2x, a16, 1x, a10, es12.4, 1x, a)'
+    fmt = '(i6, 1x, a10, f10.4, 2es11.3, 3es12.4, 3f10.3, 2x, a16, 1x, a10, es12.4, 1x, a)'
     write (1, fmt) &
               i, seg_name, seg%s, seg%x, &
               ep%power_per_len, &
