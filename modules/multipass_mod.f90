@@ -248,7 +248,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: m_lord, s_lord, slave
 type (ele_pointer_struct), allocatable, optional :: chain_ele(:)
 
-integer i, j, k, ix_pass, ic, ix_lord, ix_off, ix_c, n_links
+integer i, j, ix_pass, ix_off, n_links
 
 ! Init
 
@@ -290,7 +290,7 @@ if (ele%slave_status == super_slave$) then
     s_lord => pointer_to_slave(lat, m_lord, j)
     slave => pointer_to_slave(lat, s_lord, ix_off)
     if (present(chain_ele)) chain_ele(j)%ele => slave
-    if (ix_c == ele%ix_ele) ix_pass = j
+    if (slave%ix_ele == ele%ix_ele) ix_pass = j
   enddo
 
 endif
