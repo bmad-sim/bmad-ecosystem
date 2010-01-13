@@ -47,11 +47,10 @@ contains
     enddo
 
     A = data%poshis(1:NUM_TURNS,1:2*NUM_BPMS)
-!I don't know what this is:
-!    call out(data%poshis, "poshis")
+
     lwork = -1
     allocate(work(7883))
-    !The first call to dgesdddetermines the ideal length of temporary array 
+    !The first call to dgesdd determines the ideal length of temporary array 
     !'work'; the SVD is not done until the second call.
     call dgesdd('S', NUM_TURNS, 2*NUM_BPMS, A, NUM_TURNS, data%lambda, &
          data%tau_mat, NUM_TURNS, data%pi_mat, 2*NUM_BPMS, work, lwork, &
@@ -71,6 +70,7 @@ contains
 
     call transpose(data%pi_mat,2*NUM_BPMS, 2*NUM_BPMS)
 
+    deallocate(A)
     deallocate(work)
     deallocate(iwork)
   end subroutine svd
@@ -84,6 +84,9 @@ contains
     do i=1, row
        do j=1, col
           temp(j,i) = matrix(i,j)
+          if (.not. matrix(i,j) == matrix(i,j)) then
+             Print *, "Error in transpose"
+          end if
        enddo
     enddo
     deallocate (matrix)
@@ -331,7 +334,7 @@ contains
          af(2), bf(2), &          !Which set A and B modes were found in
          lambdas, &               !Number of lambas assumed not to be noise
          pair_cap                 !Number of mode pairs to find before
-    !moving on to the next file.
+                                  !moving on to the next file.
     real(rp) :: ave(2), &         !2*average of filtered noise (threshold)
          noise_sum(2), &          !Sum of filtered noise (last 5 lambda values)
          sum_a(4), &              !Sum of odd rows of pi matrix
@@ -354,8 +357,10 @@ contains
     !(ave(cset) is the threshold)
     do cset = 1, nset
        call findNoise(data(cset)%lambda, ave(cset))
+       data(cset)%noise = ave(cset)
        ave(cset) = 2.0*ave(cset)
-!       print *, ave(cset)
+       print *, ave(cset)
+       print *, data(cset)%noise
     end do
 !    do cset = 1,nset
 !       do i = lambdas, 2*NUM_BPMS
@@ -411,7 +416,7 @@ contains
     col_counta = 0
     col_countb = 0
 
-    do c = 1,4 
+    do c = 1,2*nset
 
        sum_a(c) = 0.0_rp
        sum_b(c) = 0.0_rp
@@ -421,16 +426,18 @@ contains
        if (nset==1) then
           call splitsum(data(1)%pi_mat(:, colu(c)), sum_a(c), sum_b(c))
        else
+          !place is the current file number
           place = ceiling(1.0*c/nset)
           call splitsum(data(place)%pi_mat(:, colu(c)), sum_a(c), sum_b(c))
        endif
+       print *, "sum a:", sum_a(c), " sum b:", sum_b(c)
 
       !Assign horizontal or vertical based on which direction has a greater sum
-       if (sum_a(c) > sum_b(c)) then
+       if (sum_a(c) > sum_b(c)+0.5) then
           col_counta = col_counta + 1
           col_a_(col_counta) = colu(c)
           af(col_counta) = ceiling(1.0*c/nset)
-       else if (sum_a(c) < sum_b(c)) then 
+       else
           col_countb = col_countb + 1
           col_b_(col_countb) = colu(c)
           bf(col_countb) = ceiling(1.0*c/nset)
@@ -455,22 +462,13 @@ contains
 
     !Check for files that only have excitation in a single mode
     if (col_counta > 2 .or. col_countb > 2) then
-!       Print *, "counta: ", col_counta
-!       Print *, "countb: ", col_countb
        Print *, "Excitation for both files appears to be in the same plane."
        Print *, "Try again with different files."
        STOP
     endif
 
-    if (nset == 1) then 
-       PRINT *, "nset==1"
-       af(2) = 1
-       bf(1) = 1
-       bf(2) = 1
-    end if
-
-    !    write (*,'(1x,a,i2,a,i2)')"Horizontal Match: ", &
-    !    col_a_(1),",",col_a_(2), "Vertical Match: ", col_b_(1),",", col_b_(2)
+!    write (*,'(1x,a,i2,a,i2)')"Horizontal Match: ", &
+!         col_a_(1),",",col_a_(2), "Vertical Match: ", col_b_(1),",", col_b_(2)
 
     if (abs(data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) &
          - data( af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) &
@@ -744,9 +742,10 @@ contains
 
   end subroutine det3x3
 
+
   subroutine regen(data)
     !
-    !Should regenerate data file read in...doesn't quit work.
+    !Should regenerate data file read in...doesn't quite work.
     !
     type(data_set) data
     real(rp), allocatable :: temp(:,:), tlambda(:,:)

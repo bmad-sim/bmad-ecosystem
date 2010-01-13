@@ -3,10 +3,11 @@ module mia_plot
   !This module contains the plotting subroutines for MIA.
   use quick_plot
   use mia_types
+  use mia_matrixops
 
   logical :: windowOpen = .false.     !Whether a plotting window is open
 contains
-  subroutine plots(data, plot, iset)     
+  subroutine plots(data, plot)     
     !Routine can be used to plot data from different  
     !matrices. Can use digital display but also writes 
     !a postscript that can be printed for a hard copy
@@ -16,10 +17,9 @@ contains
     character(1) ans              !User input (any character to continue)
     INTEGER :: id = 0             !ID for page--arbitrary number
     Integer :: plot               !To use plot_it or plot_it2
-    Integer :: iset               !File number
     logical :: printit = .false.  !To print or not to print
     logical :: plot_more          !To plot or not to plot
-    character(15) :: input         !User input for plotting options
+    character(50) :: input         !User input for plotting options
     integer :: col                !Keeps track of columns to plot
     integer :: graph_set, &       !Which set of graphs to use for debug_plots
          old_set                  !Previous value of graph_set
@@ -49,7 +49,7 @@ contains
                 gifName = "0" // adjustl(gifName)
              end if
              gifName = "mia" // adjustl(gifName) // ".gif"
-             print *, gifName
+!             print *, gifName
              numGif = numGif+1
              call qp_open_page ("GIF-L", id, 600.0_rp, 550.0_rp, "POINTS",&
                   plot_file=gifName)
@@ -64,10 +64,9 @@ contains
        endif
 
 
-
-                           !!!!ZOMBIES!!!!!
        if (debugMode) then
           !Plot first, then ask questions.
+          call qp_draw_text (" Orbit MIA ", 0.5_rp, 1.0_rp, "%PAGE", "CT") 
           if (graph_set<7) then
              call debug_plots(data,graph_set, col)
           else
@@ -84,7 +83,8 @@ contains
                "8 - Phase advance and coupling",&
                "col n - Plot column n of the current set",&
                " help - Print this message", &
-               " print - Make a postscript file of the current plot"
+             " print - Toggle generating gif file of the current plot on/off",&
+           " veto [#] - Remove detector # (ex 12W) from data and redo analysis"
           write (*,*), "Type anything else to continue"
           accept "(a)", input
 
@@ -123,11 +123,15 @@ contains
              phase = .true.
              graph_set = 8             
           case default
-             select case(input(1:3))
-             case('col')
+             select case(input(1:4))
+             case('col ')
 12              format (i)
                 !Read column number
                 read (input(5:len_trim(input)),*), col
+             case('veto')
+                vetoBPM = .true.
+                inputPasser = input
+                plot_more = .false.
              case default
                 plot_more = .false.
              end select
@@ -147,13 +151,14 @@ contains
 177       write (*,*), "Plotting options:"
           write (*,'(2x,a)')  " phase - Plot phase advance", &
                " beta - Plot betas"," help - Print this message", &
-               " print - Make a postscript file of the current plot"
+               " print - Toggle making gif file of the current plot on/off", &
+               " veto [#] - Remove detector # (ex 12W) from data and redo analysis"
           write (*,*), "Type anything else to continue"
           accept "(a)", input
          
           call lowerCase(input)
           
-          Select case(input)
+          Select case(input(1:5))
           case ('phase')
              phase = .true.
           case('print')
@@ -167,6 +172,13 @@ contains
           case('help')
              goto 177     !Go reprint the options
           case default
+             select case(input(1:4))
+             case('veto')
+                !Just pass input along;
+                !subroutines to remove dets are called in the main program.
+                vetoBPM = .true.
+                inputPasser = input
+             end select
              plot_more = .false.
           end select
 
@@ -212,7 +224,7 @@ contains
     integer :: i, &                    !Counter
          xdiv, &                       !Divisions of x axis
          graph, &                      !Choice to graph
-         arr_length, iset, icolumn, count, nset, n_graphs,&
+         arr_length, icolumn, count, nset, n_graphs,&
          graph_set, &                  !User choice for sets of data to plot
          format_num, &
          col, &                        !Column of pi or tau matrix to plot
@@ -246,8 +258,6 @@ contains
        nt(i) = i
     end do
 
-!*******************************Zombie Invasion Starts Here******************
-
     ix_tot = 1
     ix = 1                         
     graph_more = .true.
@@ -280,8 +290,6 @@ contains
        end if
        allocate(ycoord(n_graphs,arr_length))
        xlength = arr_length
-      !Spacing is arbitrary. Chose 8 divisions to make graphs look reasonable.
-!       xdiv = sqrt(maxval(xcoord))
        iy_tot = n_graphs
        iy = iy_tot                           !Graph position 1 is the bottom 
 
@@ -291,7 +299,7 @@ contains
              !!!They bring with them six plotting options!!!
        select case (graph_set)
        case(1)
-          titl =(/"\gg\u2\d \gb Ratio - A Mode","\gg\u2\d\gb Ratio - B Mode",&
+          titl=(/"\gg\u2\d \gb Ratio - A Mode","\gg\u2\d\gb Ratio - B Mode",&
                "<J\dt\u>\gD\u2\d - A Mode","<J\dt\u>\gD\u2\d - B Mode",&
                "Angle - A Mode"/)
           do i=1, NUM_BPMS
@@ -302,7 +310,7 @@ contains
              ycoord(5,i) = atan(data_struc%loc(i)%a%ratio(1))
           end do
        case (2)
-          titl =(/'\gg\u2\d\gb Ratio - A Mode','\gg\u2\d\gb Ratio - B Mode',&
+          titl=(/'\gg\u2\d\gb Ratio - A Mode','\gg\u2\d\gb Ratio - B Mode',&
                '<J\dt\u>\gD\u2\d - A Mode','<J\dt\u>\gD\u2\d - B Mode',&
                'Angle - B Mode'/)
           do i=1, NUM_BPMS
@@ -389,11 +397,13 @@ contains
           if (sPoss) then
              call sortsPos(xcoord, ycoord(graph,:))
           end if
-
+          xmin = minval(xcoord)
+          xmax = maxval(xcoord)
+          call calcAxes(xmin,xmax,xdiv)
           !Draws a single graph
           call qp_save_state(.true.)
           call qp_set_box (ix, iy, ix_tot, iy_tot)
-          call qp_set_symbol_attrib (star5_filled_sym$, height = 5.0_rp)
+          call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
           call qp_set_axis ("X", xmin, xmax, div=xdiv)
           call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
           call qp_draw_graph (xcoord,ycoord(graph,:),title=titl(graph))
@@ -402,8 +412,8 @@ contains
              call qp_draw_line(0.0_rp,0.0_rp, miny,maxy,width=5, color = 2,&
                   style=4)
              !Line at L3 (if plot goes that far):
-             if (maxval(xcoord) > endLoc/2) then
-                call qp_draw_line(endLoc/2,endLoc/2,miny,maxy,width=5,&
+             if (maxval(xcoord) > ip_L3) then
+                call qp_draw_line(ip_L3,ip_L3,miny,maxy,width=5,&
                      color=3,style=4)
              end if
           end if
@@ -428,13 +438,12 @@ contains
     !Used in plotting graphs.
     !
 
-    real(rp) :: vector(:), &        !Some vector passed into the subroutine
-         miny, maxy, &              !Find the min and max values of the vector
-         max_factor, min_factor, &  !Used to find order of magnitude to
-         !round min, max properly
-         ycoord(:)                  !Takes the values of vector
+    real(rp) :: vector(:), &       !Some vector passed into the subroutine
+         miny, maxy, &             !Find the min and max values of the vector
+         max_factor, min_factor, & !Used to find order of magnitude to
+                                   !round min, max properly
+         ycoord(:)                 !Takes the values of vector
     integer :: arr_length
-
 
     !Change factors to integers?
     ycoord(:) = vector(1:arr_length)
@@ -451,9 +460,9 @@ contains
 
     min_factor = floor(min_factor)
     call rounding(max_factor)
-
-    miny = floor(miny*100/(10**min_factor))*(10**min_factor)/100
-    maxy = ceiling(maxy*100/(10**max_factor))*(10**max_factor)/100
+!Adjust this to apply to a wider range (ex 10 vs. 1000)
+    miny = floor(miny*10/(10**min_factor))*(10**min_factor)/10
+    maxy = ceiling(maxy*10/(10**max_factor))*(10**max_factor)/10
 
   end subroutine min_max_y
 
@@ -486,7 +495,7 @@ contains
     integer :: i, &                    !Counter
          xdiv, &                       !Divisions of x axis
          graph, &                      !Choice to graph
-         arr_length, iset, icolumn, count, nset
+         arr_length, icolumn, count, nset
     real(rp) xlength, &                !Length of x axis (# values)
          miny, maxy                    !Min and max y values
     real(rp), allocatable :: xcoord(:), &  !X coordinates to plot
@@ -502,7 +511,7 @@ contains
          lam_log(:)                    !Log of lambda (for plotting)
     real(rp) :: xmin, xmax             !X min and max for qplot
     logical :: badFile, badColumn      !Errors in user input
-    real (rp):: sMax   !Will be global soon
+    real (rp):: sMax   !Should be global?
     logical :: sPoss
     sPoss = .true.
     sMax = endLoc/2
@@ -518,9 +527,6 @@ contains
     do i=1,NUM_TURNS
        nt(i) = i
     end do
-
-
-!*******************************Zombie Invasion Stops Here******************
 
     ix_tot = 1
     ix = 1                         
@@ -550,7 +556,6 @@ contains
 43     format('Inv Gamma Cbar (1,1)')  
 44     format('Inv Gamma Cbar (1,2)')
 45     format('Inv Gamma Cbar (2,2)')
-
   
        if (graph == 1 .and. phase) then
           ycoord(:) = data_struc%loc(:)%a%phi
@@ -592,26 +597,25 @@ contains
        !Draws graph
        call qp_save_state(.true.)
        call qp_set_box (ix, iy, ix_tot, iy_tot)
-       call qp_set_symbol_attrib (star5_filled_sym$, height = 5.0_rp)
+       call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
        call qp_set_axis ("X", xmin, xmax, div = xdiv)
        call qp_calc_and_set_axis("Y", miny, maxy, &
             4, 6, "GENERAL")
        call qp_draw_graph (xcoord, ycoord(:),title = titl)
+       !Removed line at IP because sPos no longer goes negative.
        !Line at IP (s=0):
-       call qp_draw_line(0.0_rp,0.0_rp, miny,maxy,width=5, color = 2,&
-            style=4)
+!       call qp_draw_line(0.0_rp,0.0_rp, miny,maxy,width=5, color = 2,&
+!            style=4)
        !Line at L3 (if plot goes that far):
-       if (maxval(xcoord) > endLoc/2) then
-          call qp_draw_line(endLoc/2,endLoc/2, miny,maxy,width=5, color = 3,&
-               style=4)
-       end if
+       call qp_draw_line(ip_L3,ip_L3, miny,maxy,width=5, color = 3,&
+            style=4)
+
        call qp_restore_state
 
        IF (iy <= 1) THEN
           graph_more = .false.
        ENDIF
 
-       !ZOMBIES
        iy = iy-1
        ix = 1
 
@@ -674,27 +678,112 @@ contains
 
     numEast=0
     do i=1, num_bpms
-       sPos(i) = data_struc%proc(i)%sPos
-       if ( .not. data_struc%proc(i)%is_west) then
-          if (.not.east) then
-             break = i-1 !Index of last west detector
-             east = .true.
+       xcoord(i) = data_struc%proc(i)%sPos
+!       sPos(i) = data_struc%proc(i)%sPos
+!       if ( .not. data_struc%proc(i)%is_west) then
+!          if (.not.east) then
+!             break = i-1 !Index of last west detector
+!             east = .true.
+!          end if
+!          numEast = numEast + 1
+!          sPos(i) = sPos(i) - endLoc
+!          xcoord(i-break) = sPos(i)
+!          tempy(i-break) = ycoord(i)
+!       end if
+    end do
+
+!    do i=1,break
+!       xcoord(numEast+i) = sPos(i)
+!       tempy(numEast+i) = ycoord(i)
+!    end do
+
+!    ycoord = tempy
+!    call quickSortpos(xcoord, ycoord)
+    call slowSort(xcoord, ycoord)
+  end subroutine sortsPos
+
+  recursive subroutine quickSortpos(xcoord, ycoord)
+    !Uses the recursive quicksort algorithm. Doens't work
+    !quite as intended... Not in use until the bugs have been
+    !corrected.
+
+    real(rp) :: xcoord(:),ycoord(:) !The x and y coordinate vectors to sort
+    integer :: i, j                 !Indices for quicksort algorithm
+    real(rp) :: pivotVal            !Value of the pivot (xcoord)
+    logical :: lowerFound, higherFound ! Has it found a higher and lower value
+                                      ! to flip across the pivot?
+    real(rp) :: tempx, tempy
+    logical :: keepGoing
+
+    pivotVal = xcoord(size(xcoord)/2)
+    i=1
+    j=size(xcoord)
+    keepGoing = .false.
+
+    Print *, "Pivot: ", pivotVal, "i", i,"j", j
+
+    do while (i<j)
+       lowerFound = .false.
+       higherFound = .false.
+
+       do while (i<j .and. .not. lowerFound)
+          if (xcoord(i) > pivotVal) then
+             lowerFound = .true.
+          else
+             i=i+1
           end if
-          numEast = numEast + 1
-          sPos(i) = sPos(i) - endLoc
-          xcoord(i-break) = sPos(i)
-          tempy(i-break) = ycoord(i)
+       end do
+
+       do while (j> i .and. .not. higherFound)
+          if (xcoord(j) < pivotVal) then
+             higherFound = .true.
+          else
+             j = j-1
+          end if
+       end do
+       if (lowerFound .and. higherFound) then
+!          Print *, "Switching ", ycoord(i), " with ", ycoord(j)
+          call swap(xcoord(i), xcoord(j))
+          call swap(ycoord(i), ycoord(j))
+          keepGoing = .true.
        end if
     end do
 
-    do i=1,break
-       xcoord(numEast+i) = sPos(i)
-       tempy(numEast+i) = ycoord(i)
+1211 continue
+    if (keepGoing) then
+       Print *, "Left side"
+       call quickSortpos(xcoord(1:i), ycoord(1:i))
+       Print *, "Right side"
+       call quickSortpos(xcoord(i+1:size(xcoord)), ycoord(i+1:size(ycoord)))
+    end if
+
+  end subroutine quickSortpos
+
+  subroutine slowSort(xArr, yArr)
+    real(rp) :: xArr(:), yArr(:)
+    integer :: i,j
+
+    do i=1, size(xArr)
+       do j=1, size(xArr)
+          if (xArr(j) > xArr(i) ) then
+             call swap(xArr(i),xArr(j))
+             call swap(yArr(i),yArr(j))
+          end if
+
+
+       end do
     end do
 
-    ycoord = tempy
+  end subroutine slowSort
 
-  end subroutine sortsPos
+
+  subroutine swap (a,b)
+    real(rp) :: a, b, temp
+
+    temp = a
+    a = b
+    b = temp
+  end subroutine swap
 
   subroutine rearrange(arr,break)
 
@@ -731,7 +820,7 @@ contains
 
   subroutine lowerCase(string)
     !Modified from Fortran 90/95 for Scientists and Engineers
-    !Originally written by S.J. Chapman
+    !Written by S.J. Chapman
     
     !Shifts a string to all lowercase letters
     
@@ -773,48 +862,61 @@ contains
   end subroutine phase_bound
 
   subroutine calcAxes(xmin,xmax,xdiv)
+    !
+    !Calculates axes labels so that they are multiples of
+    !5,25,50,100, etc.
+    !
     real (rp) :: xmin,xmax
-    integer :: xdiv, range,modterm,modx
+    integer :: xdiv, range,modterm,modx, interv
     real :: interval
 
     interval = 6 !Try six divisions first
-    xmin = floor(xmin/10)*10
-    xmax = ceiling(xmax/10)*10 
+    if (xmax > 300) then
+       xmin = floor(xmin/100)*100
+       xmax = ceiling(xmax/100)*100
+    else  
+       xmin = floor(xmin/10)*10
+       xmax = ceiling(xmax/10)*10
+    end if
+
    !Move xmin from 1 to 0 for markers to be at 0,5,etc instead of 1,6,...
     if (mod(xmin,10.0_rp) == 1) then
        xmin = xmin-1
     end if
     range = ceiling(xmax-xmin)
     xdiv=ceiling(range/interval)
+!    if (mod(xdiv,5) == 0) then
+!       goto 511
+!    end if
 
-    if (mod(xdiv,5) == 0) then
-       goto 511
-    end if
     !For xmax < 5, this algorithm must be modified.
-    if (xdiv .ge. 50) then
-       modterm = 50
-    else if(xdiv .ge. 25) then
-       modterm = 25
-    else if (xdiv .ge. 10) then
-       modterm = 10
+    if (range .ge. 500) then
+       interv = 100
+    else if (range .ge. 150) then
+       interv = 50
+    else if(range .ge. 100) then
+       interv = 25
+    else if (range .ge. 50) then
+       interv = 10
     else
-       modterm = 5
+       interv = 5
     end if
+    xdiv = range / interv
 
-    modx = mod(xdiv,modterm)
-    if (modx>0) then
-       if (modx .ge. (modterm/2)) then
-          xdiv = xdiv + (modterm-modx)
-       else
-          xdiv = xdiv - modx
-          interval = interval + 1
-       end if
-       xmax = xdiv * interval+xmin
-       xdiv=interval
-    end if
+!    modx = mod(xdiv,modterm)
+!    if (modx>0) then
+!       if (modx .ge. (modterm/2)) then
+!          xdiv = xdiv + (modterm-modx)
+!       else
+!          xdiv = xdiv - modx
+!          interval = interval + 1
+!       end if
+!       xmax = xdiv * interval+xmin
+!       xdiv=interval
+!    end if
 
 511 continue
-    xdiv = interval
+!    xdiv = interval
   end subroutine calcAxes
 
 end module mia_plot

@@ -5,6 +5,7 @@ program mia
   use mia_input
   use mia_matrixops
   use mia_parse
+  use mia_veto
 
   implicit none
 
@@ -21,9 +22,9 @@ program mia
        + time(7) + 0.001 * time(8)
 
   nset = 2
-  more_files = .true.
+  more_files = .false.
   first_run = .true.
-  do while (more_files)
+  do while (more_files .or. first_run)
      allocate (data(nset))
 
      do i_set = 1, nset             !Do for first input data 
@@ -42,32 +43,53 @@ program mia
         endif
        
         call svd_fft(data(i_set))
-!Just plot at end; if you want to plot for individual files, uncomment this.
+        !Plot after analysis; for debugging, single file analysis, or
+        !SVD/FFT data only uncomment this.
 !        call plots(data, 1, i_set)      !Use plot_it
 
      end do
-     do i_set =1, nset
+
+
+871  do i_set =1, nset
         call bpm_ops(data,i_set, nset, first_run)
      end do
      first_run = .false.
-     call deall_file
+!     call deall_file
      call match_tau_column(nset,data)
      call convert_data_from_pi_matrix(data)
      call calculate_with_known_spacing(data)
+
      if (.not. silentMode) then
-        call plots(data, 2, 2)         !Use plot_it2
+        call plots(data, 2)         !Use plot_it2
      end if
+     if (vetoBPM) then
+        !***Call subroutine to remove a bpm,
+        !***redo analysis with new poshis
+
+        call veto(data, inputPasser)
+        call clean(.true.)
+        call initialize_structures(data(1), nset)
+
+        call svd_fft(data(1))
+        call svd_fft(data(2))
+        goto 871
+
+     end if
+
      call output (data)
 
-!Disabled for testing.
+!Disabled to make batch analysis easier; can uncomment this
+!to give the user the option of running MIA with a new set of files
+!without exiting
 !     if (.not. silentMode) then
 !        call logic_get('Y', 'N', 'Repeat calculations with different files?',&
 !             more_files)
 !     else
-        more_files = .false.
- !    endif
-
-     deallocate (data)
+!        more_files = .false.
+!     endif
+     if (.not. more_files) then
+        deallocate (data)
+     end if
      call clean (more_files)
   enddo
   call date_and_time(values=time)

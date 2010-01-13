@@ -2,7 +2,6 @@ module mia_input
 
   use mia_types
  
-  type (data_file), allocatable :: file(:) !File being used
 contains
 
   subroutine read_bpm_data(data,iset,nset)
@@ -23,18 +22,41 @@ contains
          C, I, S, &                        !Counters
          places, power
     integer :: iset, nset                  !Number of current set
-    real(rp) :: tempx, tempy, &                !Temporary variables in x and y
+    real(rp) :: tempx, tempy, &            !Temporary variables in x and y
          sum, ave                          !Sum and average
-    logical :: continue, &                 !Whether to ask for another filename
+    logical :: continue, &               !Whether to ask for another filename
          trunc
     real(rp), allocatable :: newt(:), &    !Temporary array
          pos_temp(:,:)
+    integer :: turnCount, bpmCount
+    logical :: readData                    !True when data is being read
+                                           !False when just skipping lines
+    integer :: tempBpmCount, tempTurnCount
+    character (6) :: bpm                   !BPM currently being read
 
+!    real(rp), allocatable :: firstDet(:,:) !For reading in the first det's
+                                           !data; # turns not known
+    logical :: firstData                   !True if this is the first data
+                                           !being read
+    character(30), allocatable :: tempLabel(:)
+    type(cbpm_data), allocatable :: tempPosHis(:)
+    type(cbpm_data) :: firstDet
+    character(120) :: line                 !Line of raw data from file
     character(30) :: Plane(2)          !See next line:
     data Plane/' data file 1.',' data file 2.'/
 
+    bpmCount = 0
+    turnCount = 0
+    tempBpmCount = 150
+    tempTurnCount = 5000
+    readData = .false.
+    firstData = .true.
     continue = .true.
-  
+    allocate(tempLabel(tempBpmCount))
+    allocate(tempPosHis(tempBpmCount))   !Temporary PosHis matrix until
+                                         !BPM count is known
+    allocate (firstDet%x(tempTurnCount))
+    allocate (firstDet%y(tempTurnCount))
 
     DO WHILE (continue == .true.)
 177    format (a120)
@@ -60,17 +82,15 @@ contains
 !          data%filename = trim(data%shortName)
 !       endif
 
-       if (scan(data%filename, "#")>0) then
-
+       if (scan(data%filename, "/")>0) then
+          data%shortname = data%filename(scan(data%filename, &
+               "/", .true.)+1:len_trim(data%filename))
+       else
           data%shortName = data%filename(scan(data%filename, &
                "#")+1:len_trim(data%filename))
           data%filename = "./data/" // data%shortName
-       else
-          if (scan(data%filename, "/")>0) then
-             data%shortname = data%filename(scan(data%filename, &
-                  "/", .true.)+1:len_trim(data%filename))
-          endif
        endif
+
 
        open (unit = 1, file = data%filename, status = "old", &
             iostat = openstatus)
@@ -94,58 +114,110 @@ contains
 !       places = 10**power
 !    endif
 
-10  format (/ 1x, t28, i3)   !reads in number of processors
 
-40  format (10x, a14,  t29, f10.7, t41, f10.7, t125, i6) 
-    !reads in number of 
-    !turns and the first 
-    !values for x and y
-
-30  format (1x, t29, f10.7, t41, f10.7) !reads in rest of x and y
-
-    Read (1, 10, iostat = inputstatus) data%bpmproc
+    !Read in first line, see if the file is valid
+    !First line should contain no important data.
+    !If it does, remove this line.
+    Read (1, *, iostat = inputstatus) line
     if (inputstatus > 0) stop "*** INPUT ERROR ***"
     if (inputstatus < 0) stop "*** Not enough data ***"
-    allocate (data%cdata(data%bpmproc))      !allocates the cdata array to be
-    !as large as the number of active
-    !bpm processors
-    if (.not. ALLOCATED(file)) then
-       allocate(file(nset))
+
+12 format (35x,f9.6, 2x, f9.6)
+    inputstatus=0
+
+    !Read data from the first detector and find how many turns there are:
+    do while (inputstatus .eq. 0 .and. firstData == .true.)
+
+       Read (1, '(a120)', iostat = inputstatus) line
+       !Test for blank lines & EOF:
+       if (.not. inputstatus == 0 .or. len_trim(line)<10) then
+          readData = .false.
+          if (turnCount > 2) then
+             firstData = .false.
+             cycle
+          end if
+       end if
+
+       if (.not. readData) then
+          if (verify(line(3:10),'Location') == 0) then
+             bpmCount = 1
+             write(bpm, *) line(22:len_trim(line))
+             tempLabel(bpmCount) = trim(adjustl(bpm))
+             do i=1, 32                !Skip ahead 32 lines
+                Read (1, *, iostat = inputstatus) line
+             end do
+             readData = .true.
+          end if
+       else !Read in data!          
+          turnCount = turnCount+1
+          Read (line, 12) firstDet%x(turnCount), &
+               firstDet%y(turnCount)
+       end if
+
+    end do
+
+    Print *, "Data contains ", turnCount, " turns"
+    data%numturns = turnCount
+    allocate(tempPosHis(1)%x(turnCount))
+    allocate(tempPosHis(1)%y(turnCount))
+    tempPosHis(1)%x = firstDet%x(1:turnCount)
+    tempPosHis(1)%y = firstDet%y(1:turnCount)
+
+    !Read in the rest of the detectors:
+    do while (inputstatus .eq. 0)
+       Read (1, '(a120)', iostat = inputstatus) line
+       !Test for blank lines & EOF:
+       if (.not. inputstatus == 0 .or. len_trim(line)<10) then
+          readData = .false.
+          cycle
+       end if
+
+       !Look for the next BPM:
+       if (.not. readData) then
+          if (verify(line(3:10),'Location') == 0) then
+             bpmCount = bpmCount + 1
+             turnCount = 0
+             allocate (tempPosHis(bpmCount)%x(data%numturns))
+             allocate (tempPosHis(bpmCount)%y(data%numturns)) 
+
+             write(bpm, *) line(22:len_trim(line))
+             tempLabel(bpmCount) = trim(adjustl(bpm))
+             do i=1, 32                !Skip ahead 32 lines
+                Read (1, *, iostat = inputstatus) line
+             end do
+             readData = .true.
+          end if
+       else !Read in data!
+          turnCount = turnCount+1          
+          Read (line, 12) tempPosHis(bpmCount)%x(turnCount), &
+               tempPosHis(bpmCount)%y(turnCount)
+       end if
+    end do
+
+    !Now we know how many detectors there are; copy data
+    !to the final data structures
+    data%bpmproc = bpmCount
+    Print *, "Data contains ", bpmCount, " detectors"
+    if (.not. ALLOCATED(data%proc)) then
+       allocate(data%proc(data%bpmproc))
     endif
-    allocate(file(iset)%proc(data%bpmproc))
+    allocate (data%cdata(data%bpmproc))      !allocates the cdata array to be
+    !as large as the number of active bpm processors
 
-    Processor: do proc = 1, data%bpmproc
-
-       Read (1, 40, iostat = inputstatus) file(iset)%proc(proc)%label, &
-            tempx, tempy, data%numturns
-       if (inputstatus > 0) stop "*** INPUT ERROR ***"
-       if (inputstatus < 0) stop "*** Not enough data ***"	
-
-       allocate (data%cdata(proc)%x(0:data%numturns-1))
-       !allocates the x and y arrays to be as large as the number of turns 
-       allocate (data%cdata(proc)%y(0:data%numturns-1)) 
-       data%cdata(proc)%x(0) = tempx !assigns the temp values to the 
-                                     !first posisitions
-       data%cdata(proc)%y(0) = tempy !of the x and y arrays
-
-       turn: do turns = 1, data%numturns-1
-          !starts at 1 and goes
-          !to turns-1 because
-          !temps are read and 
-          !stored earlier
-          read (1, 30, iostat = inputstatus) &
-               data%cdata(proc)%x(turns), data%cdata(proc)%y(turns)
-          if (inputstatus > 0) stop "*** INPUT ERROR ***"
-          if (inputstatus < 0) stop "*** Not enough data ***"	
-!Truncation was for testing. If needed, uncomment this if statement and 151.
+    do i=1, data%bpmproc
+       allocate (data%cdata(i)%x(data%numturns))
+       allocate (data%cdata(i)%y(data%numturns)) 
+       data%proc(i)%label = tempLabel(i)
+       data%cdata(i)%x = tempPosHis(i)%x
+       data%cdata(i)%y = tempPosHis(i)%y
+    end do
+ !Truncation was for testing. If needed, uncomment this if statement and 151.
 !          if (trunc) then
 !             data%cdata(proc)%x(turns) = &
 !                  floor( data%cdata(proc)%x(turns) * places ) / (places*1.0)
 !             data%cdata(proc)%y(turns) = &
 !                  floor(data%cdata(proc)%y(turns)*places) / (places*1.0)
 !          endif
-       End do turn
-    end do Processor
 
     close (1)
 
@@ -157,12 +229,17 @@ contains
     !twice the number of 
     !processors that are active
     do proc = 1, data%bpmproc
-
        pos_temp(:,2*proc-1) = data%cdata(proc)%x(:)  &
             /sqrt(float(data%numturns))  !feeds x arrays into odd columns
-
+       if (.not. pos_temp(1,2*proc-1) == pos_temp(1,2*proc-1)) then
+          Print *, "Error at 1x"
+       end if
        pos_temp(:,2*proc) = data%cdata(proc)%y(:)    &
             /sqrt(float(data%numturns))  !feeds y arrays into even columns
+       if (.not. pos_temp(1,2*proc) == pos_temp(1,2*proc)) then
+          Print *, "Error at 1y"
+       end if
+
     end do
 
 
@@ -179,7 +256,9 @@ contains
        end do
 
        ave = sum/data%numturns     !takes average of the sum of a column
-
+       if (.not. ave == ave) then
+          Print *, "Error at ave"
+       end if
        do s = 1, data%numturns
           newt(s) = pos_temp(s,C) - ave  
           !subtracts average value from each 
@@ -198,7 +277,7 @@ contains
 
   end subroutine read_bpm_data
 
-  subroutine locate_bpm (iset, data)
+  subroutine locate_bpm (data)
 
     !
     !Creates a list of the bpms that are active.  Keeps track of bpms in West 
@@ -208,46 +287,64 @@ contains
     !
 
     implicit none
-    type(data_set)data       !Data set
-    integer :: nchar, &      !Place were a certain string was found.
-         n_bpm,&             !Number of BPMs
-         iset,i, &              !Counters
-         length              !Length of a string 
-    character(5) :: temp     !Holds temporary file number
+    type(data_set)data        !Data set
+    integer :: n_bpm          !Number of BPMs
 
     do n_bpm = 1, NUM_BPMS
 
-       nchar = scan(file(iset)%proc(n_bpm)%label, 'BPM') + &	
-            scan(file(iset)%proc(n_bpm)%label, 'bpm')	
-       if (nchar > 0 .and. nchar < 7 ) then
-          length = len_trim(file(iset)%proc(n_bpm)%label)
-          temp = trim(file(iset)%proc(n_bpm)%label(nchar+4:length))
-       end if
-       nchar = scan(temp, 'W') + &   !Scan temp so W can be truncated
-            scan(temp, 'w')          !Scans label for W(est)
-       if (nchar > 0 ) then 
-          file(iset)%proc(n_bpm)%is_west = .true.
-          temp = temp(1:nchar-1) !Remove W from temp
-       else                               !Look for E so it can be removed
-          nchar = scan(temp, 'E') + scan(temp, 'e')
-          temp = "-" //  temp(1:nchar-1)    !Add negative sign
-       endif
+       call parseDet(data%proc(n_bpm)%label, data%proc(n_bpm)%number,&
+            data%proc(n_bpm)%is_west)
 
-       nchar = scan(temp, 'A') + &
-            scan(temp, 'a')  !Scan for A (ex BPM 8AW)
-       if (nchar>0) then
-          temp = temp(1:nchar-1) // ".5"  !Remove "A" from temp and add 0.5
-       endif
-       read (temp, *), file(iset)%proc(n_bpm)%number
-
-       if (file(iset)%proc(n_bpm)%number == 0 .and. &
-            .not. file(iset)%proc(n_bpm)%is_west) then
-          file(iset)%proc(n_bpm)%number = -0.000001
+       !Check for extra bpms (ex BPM 101 which comes after 12W)
+       if (data%proc(n_bpm)%number>100 .and. data%proc(n_bpm-1)%number<50) then
+          data%proc(n_bpm)%eleNum = data%proc(n_bpm)%number 
+          data%proc(n_bpm)%number = data%proc(n_bpm-1)%number + 0.2
+          data%proc(n_bpm)%is_west = data%proc(n_bpm-1)%is_west
        end if
 
     end do
 
   end subroutine locate_bpm
+
+  subroutine parseDet(label, number, isWest)
+    !
+    !Parses det label into a number for easier comparison
+    !Should get rid of isWest someday....
+    !
+    integer :: nchar, &      !Place were a certain string was found.
+         n_bpm,&             !Number of BPMs
+         i                   !Counters
+    character(5) :: temp     !Holds temporary file number
+    character (13) :: label
+    real(rp) :: number
+    logical :: isWest
+
+
+    temp = trim(adjustl(label))
+
+    nchar = scan(temp, 'W') + &   !Scans label for W(est)
+         scan(temp, 'w')          
+    if (nchar > 0 ) then 
+       isWest = .true.
+       temp = temp(1:nchar-1) 
+    end if
+    nchar = scan(temp, 'E') + scan(temp, 'e')
+    if (nchar > 0) then
+       temp = "-" //  temp(1:nchar-1)    !Add negative sign
+    endif
+    
+    read (temp, *), number
+
+    !Check for BPM0E and change its number to be different than 0W:
+    if (number == 0 .and. &
+         .not. isWest) then
+       number = -0.0001
+    end if
+
+    
+  end subroutine parseDet
+
+
 
 
   subroutine find_L(nset,data)
@@ -260,11 +357,11 @@ contains
     implicit none
     integer :: inputstatus, openstatus,&  !Status indicators
          num, i, j, i_file, nset, k, li, &!Counters and nset--number of sets
-         nfile, rnum                    !Counter and actual number of BPM pairs
+         nfile, rnum, q                 !Counter and actual number of BPM pairs
     logical :: found_one(2)               !If a BPM pair has been found
     type(data_set) data(*)                !All data
     type(known_spacings), allocatable ::  bpm_old(:)   !BPM data read in
-
+    character (30) :: temp
     !Placed in different location because
     !a BPM may not be in use.
 
@@ -278,8 +375,8 @@ contains
 61  format (1x, a13, 3x, a13, 2x, f7.3)
 
     read (2,60, iostat = inputstatus) num
-    if (inputstatus > 0) stop "*** INPUT ERROR ***"
-    if (inputstatus < 0) stop "*** Not enough data ***"	
+    if (inputstatus > 0) stop "*** INPUT ERROR (knownl.inp)***"
+    if (inputstatus < 0) stop "*** Not enough data (knownl.inp)***"	
     allocate (bpm_old(num))
     call allocate_bpm_pairs(num)
 
@@ -291,9 +388,14 @@ contains
     do i = 1, num
        read (2,61, iostat = inputstatus) (bpm_old(i)%bpm_name(j),j=1,2), &
             bpm_old(i)%length
-       if (inputstatus > 0) stop "*** INPUT ERROR ***"
-       if (inputstatus < 0) stop "*** Not enough data ***"	
+       if (inputstatus > 0) stop "*** INPUT ERROR (knownl.inp)***"
+       if (inputstatus < 0) stop "*** Not enough data (knownl.inp)***"	
        bpm_old(i)%in_use = .true.
+       do q=1,2
+          temp = bpm_old(i)%bpm_name(q)
+          temp = trim(adjustl(temp(9:len_trim(temp))))
+          bpm_old(i)%bpm_name(q) = temp
+       end do
     end do
 
     !This could be made more efficient by finding a BPM number for 
@@ -307,7 +409,7 @@ contains
           bpm_old(i)%bpm_pntr(2)=0
           do j = 1, NUM_BPMS           !All BPMs
              do k = 1, 2                      !First and second of the BPM pair
-                if (file(i_file)%proc(j)%label == bpm_old(i)%bpm_name(k)) then
+                if (data(i_file)%proc(j)%label == bpm_old(i)%bpm_name(k)) then
                    bpm_old(i)%bpm_pntr(k) = j
                 end if
              end do
@@ -320,6 +422,10 @@ contains
              found_one(i_file) = .true.
           end if
        end do
+       if (.not. found_one(i_file)) then
+          Print *, "**** Warning: No detector pairs were found ****"
+          Print *, "**** Analysis will not be complete ****"
+       end if
        !Unnecessary?
        bpm_old(1)%has_one = bpm_old(1)%has_one .and. found_one(i_file)
     end do
@@ -349,13 +455,15 @@ contains
 
   end subroutine find_L
 
-  subroutine get_ele_sPos(iset)
+  subroutine get_ele_sPos(data,iset)
     !
     !Reads in a file containing bpms with their s positions and
     !element numbers and matches them with bpms in the input file.
     !
+    type(data_set) :: data    !Data set
     character(7) :: detName
     integer :: eleNum, openstatus, i, inStat, iset, bpmInt
+    real(rp) :: lastNum
     real(rp) :: sPos, bpmNum
     logical :: continue, theEnd
     open (unit = 273, file = "./data/one_ring.det", &
@@ -364,12 +472,16 @@ contains
 
 188 format (1x,a7,5x,f10.6,5x,i3)
 56  format (2x,i2)
+57  format (2x,i3)
 
     theEnd=.false. !It's just the beginning
     continue = .true.
 
     do while (continue)
-
+       !*******************************************
+       !one_ring.det not found =>
+       !sPoss, cesrvOut = .false. Then quit method
+       !*******************************************
        read (273,188,iostat=inStat) detName, sPos, eleNum
        if (inStat>0) stop "*** Error reading one_ring.det ***"
        if (inStat < 0) then
@@ -386,31 +498,62 @@ contains
        case ('DT')
           read (detName,56) bpmInt
           bpmNum = bpmInt
-          if (detName(5:5) == "A" .or. detName(6:6) == "2") then
+          if (detName(5:5) == "A") then
              bpmNum = bpmNum+0.5
           endif
           if ( detName(4:4) == "E" .or. detName(5:5) == "E") then
              bpmNum  = -bpmNum
              if (bpmNum == 0) then
-                bpmNum = -0.000001 !Since there is no -0...something close.
+                bpmNum = -0.001 !Since there is no -0...something close.
              endif
           endif
+          !For extra detectors (ex. BPM104) not labeled E/W
+          if ( detName(5:5)=="1" .or. detName(5:5)=="2" .or.&
+               detName(5:5)=="3" .or. detName(5:5)=="4" .or.&
+               detName(5:5)=="5" .or. detName(5:5)=="6" .or.&
+               detName(5:5)=="7" .or. detName(5:5)=="8" .or.&
+               detName(5:5)=="9" .or. detName(5:5)=="0") then
+             read (detName,57) bpmInt
+             bpmNum = bpmInt
+          end if
        case default
           Print *, "Error in reading BPM S Positions"
           exit
        end select
-
        if (.not. theEnd) then
           do i=1,num_bpms
-             if (file(iset)%proc(i)%number == bpmNum) then
-                file(iset)%proc(i)%sPos = sPos
-                file(iset)%proc(i)%eleNum = eleNum
+             if (data%proc(i)%number == bpmNum) then
+                data%proc(i)%sPos = sPos
+                data%proc(i)%eleNum = eleNum
              end if
           end do
        end if
+
     end do
 
+    call check_sPos(data)
+
   end subroutine get_ele_sPos
+
+  subroutine check_sPos(data)
+
+    type(data_set) :: data
+    integer :: i
+
+    do i=1, NUM_BPMS
+       if (data%proc(i)%sPos == -999) then
+          Print *, "Position and element number not found for detector ", &
+               data%proc(i)%label
+          Print *,"Setting element number to 0 and approximating position."
+          if (i>1) then
+             data%proc(i)%eleNum = 0
+             data%proc(i)%sPos = (data%proc(i-1)%sPos - &
+                  data%proc(i+1)%sPos) / 2.0
+          end if
+       end if
+    end do
+
+  end subroutine check_sPos
 
 
   subroutine match_processors(data)
@@ -430,17 +573,17 @@ contains
     nbpm = 1
 
     do while (n_file_1 <= data(1)%bpmproc)
-       if (file(1)%proc(n_file_1)%label == &
-            file(2)%proc(n_file_2)%label) then
-          data_struc%proc(nbpm) = file(1)%proc(n_file_1)
+       if (data(1)%proc(n_file_1)%label == &
+            data(2)%proc(n_file_2)%label) then
+          data_struc%proc(nbpm) = data(1)%proc(n_file_1)
           n_file_1 = n_file_1 + 1 	
           n_file_2 = n_file_2 + 1
           nbpm = nbpm + 1 
        else 
           do i = n_file_2 +1, data(2)%bpmproc 
-             if (file(1)%proc(n_file_1)%label == &
-                  file(2)%proc(i)%label) then
-                data_struc%proc(nbpm) = file(1)%proc(n_file_1)
+             if (data(1)%proc(n_file_1)%label == &
+                  data(2)%proc(i)%label) then
+                data_struc%proc(nbpm) = data(1)%proc(n_file_1)
                 n_file_1 = n_file_1 + 1 	
                 n_file_2 = i + 1
                 nbpm = nbpm + 1
@@ -459,9 +602,5 @@ contains
     end if
 
   end subroutine match_processors
-
-  subroutine deall_file
-    deallocate(file)
-  end subroutine deall_file
 
 end module mia_input

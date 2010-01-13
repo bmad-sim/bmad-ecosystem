@@ -26,8 +26,8 @@ contains
     integer :: iset, nset
     logical :: first_run
  
-    call locate_bpm (iset, data(iset))
-    call get_ele_sPos(iset)
+    call locate_bpm (data(iset))
+    call get_ele_sPos(data(iset),iset)
 
     if (first_run .and. iset == 1) then
        call find_L(nset,data)
@@ -54,8 +54,6 @@ contains
     integer :: east, west, bpm, n_bpm_e
 
     call tune(data) 
-!    Print *, "set num a ", data_struc%set_num_a
-!    Print *, "set num b ", data_struc%set_num_b
 
     do n_bpm = 1, NUM_BPMS
 
@@ -77,62 +75,65 @@ contains
     !Phase is defined as 0 at BPM 0W.
     !
     !Find BPMs 0E and 0W
-    do bpm = 1, NUM_BPMS
-       if (data_struc%proc(bpm)%number == 0) then
-          if (data_struc%proc(bpm)%is_west) then
-             west = bpm
-          else
-             east = bpm
-          endif
-       endif
-    enddo
+!    do bpm = 1, NUM_BPMS
+!       if (data_struc%proc(bpm)%number == 0) then
+!          if (data_struc%proc(bpm)%is_west) then
+!             west = bpm
+!          else
+!             east = bpm
+!          endif
+!       endif
+!    enddo
+    !***(*)_* Temp: define first bpm as 0 phase, etc
+    west = 1
+    east = NUM_BPMS
 
     data_struc%loc(west)%a%d_phase_adv = 0.
     data_struc%loc(west)%b%d_phase_adv = 0.
     data_struc%loc(west)%a%gam2_beta_ratio = 1.0
     data_struc%loc(west)%b%gam2_beta_ratio = 1.0
 
-    call phase_adv(data_struc%loc(east)%a, data_struc%loc(west)%a, 1)
-    call phase_adv(data_struc%loc(east)%b, data_struc%loc(west)%b, 2) 
+!    call phase_adv(data_struc%loc(east)%a, data_struc%loc(west)%a, 1)
+!    call phase_adv(data_struc%loc(east)%b, data_struc%loc(west)%b, 2) 
 
-    data_struc%loc(east)%a%d_phase_adv = &
-         mod((data_struc%loc(east)%a%d_phase_adv - &
-         data_struc%phi_t(1))+7.0*pi, 2.0*pi) -pi
-    data_struc%loc(east)%b%d_phase_adv = &
-         mod((data_struc%loc(east)%b%d_phase_adv - &
-         data_struc%phi_t(2)+7.0*pi),2.0*pi) - pi
+!    data_struc%loc(east)%a%d_phase_adv = &
+!         mod((data_struc%loc(east)%a%d_phase_adv - &
+!         data_struc%phi_t(1))+7.0*pi, 2.0*pi) -pi
+!    data_struc%loc(east)%b%d_phase_adv = &
+!         mod((data_struc%loc(east)%b%d_phase_adv - &
+!         data_struc%phi_t(2)+7.0*pi),2.0*pi) - pi
 
     !BPMs must be in clockwise order (first BPM is west, last BPM is east)
     !Gives an error if they are not.
-    if (data_struc%proc(1)%is_west) then
+!    if (data_struc%proc(1)%is_west) then
        do n_bpm = 2, NUM_BPMS
           !Calculate phase advance clockwise around the ring (skipping 0W):
-          if (data_struc%proc(n_bpm)%is_west) then 
+!          if (data_struc%proc(n_bpm)%is_west) then 
 
              call phase_adv(data_struc%loc(n_bpm)%a, &
                   data_struc%loc(n_bpm-1)%a, 1)
 
              call phase_adv(data_struc%loc(n_bpm)%b, &
                   data_struc%loc(n_bpm-1)%b, 2)
-          else
+ !         else
              !Calculate phase counterclockwise for east BPMs (skipping 0E):
-             if (.not. data_struc%proc(NUM_BPMS)%is_west) then
-                do n_bpm_e = NUM_BPMS-1, n_bpm, -1
-                   call phase_adv(data_struc%loc(n_bpm_e)%a, &
-                        data_struc%loc(n_bpm_e+1)%a, 1)
-                   call phase_adv(data_struc%loc(n_bpm_e)%b, &
-                        data_struc%loc(n_bpm_e+1)%b, 2)
-                enddo
+  !           if (.not. data_struc%proc(NUM_BPMS)%is_west) then
+   !             do n_bpm_e = NUM_BPMS-1, n_bpm, -1
+    !               call phase_adv(data_struc%loc(n_bpm_e)%a, &
+     !                   data_struc%loc(n_bpm_e+1)%a, 1)
+      !             call phase_adv(data_struc%loc(n_bpm_e)%b, &
+       !                 data_struc%loc(n_bpm_e+1)%b, 2)
+        !        enddo
 
-                Exit
-             else
-          print *, "ERROR: Found BPMs that are not east, but last BPM is west."
-             endif
-          end if
-       end do
-    else
-       Print *, "ERROR: BPMs do not start in the west."
-    endif
+         !       Exit
+          !   else
+         !print *, "ERROR: Found BPMs that are not east, but last BPM is west."
+           !  endif
+         ! end if
+          end do
+!    else
+!       Print *, "***BPMs do not start in the west.***"
+!    endif
     
     sum_a = 0.0
     sum_b = 0.0
@@ -140,25 +141,27 @@ contains
     do i = 1, NUM_BPMS
        !Reset phi to 0 when switching from west to east
 
-       if (data_struc%proc(i)%is_west) then
+       !Temp disabled--no large gap in detectors anymore
+       !Need to have something that detects big gaps and compensates
+!       if (data_struc%proc(i)%is_west) then
           sum_a = sum_a + data_struc%loc(i)%a%d_phase_adv
           data_struc%loc(i)%a%phi = sum_a
 
           sum_b = sum_b + data_struc%loc(i)%b%d_phase_adv
           data_struc%loc(i)%b%phi = sum_b
-       else 
-          if (.not. data_struc%proc(i)%is_west .and. &
-               data_struc%proc(i-1)%is_west) then
-             sum_a = 0.0
-             sum_b = 0.0
-             numWest = i
-          endif
-          sum_a = sum_a + data_struc%loc(NUM_BPMS-(i-numWest))%a%d_phase_adv
-          data_struc%loc(NUM_BPMS-(i-numWest))%a%phi = sum_a
+!       else 
+!          if (.not. data_struc%proc(i)%is_west .and. &
+!               data_struc%proc(i-1)%is_west) then
+!             sum_a = 0.0
+!             sum_b = 0.0
+!             numWest = i
+!          endif
+!          sum_a = sum_a + data_struc%loc(NUM_BPMS-(i-numWest))%a%d_phase_adv
+!          data_struc%loc(NUM_BPMS-(i-numWest))%a%phi = sum_a
 
-          sum_b = sum_b + data_struc%loc(NUM_BPMS-(i-numWest))%b%d_phase_adv
-          data_struc%loc(NUM_BPMS-(i-numWest))%b%phi = sum_b
-       endif
+!          sum_b = sum_b + data_struc%loc(NUM_BPMS-(i-numWest))%b%d_phase_adv
+!          data_struc%loc(NUM_BPMS-(i-numWest))%b%phi = sum_b
+!       endif
     end do
 
     do n_bpm = 1, NUM_BPMS
@@ -304,7 +307,9 @@ contains
     !Second BPM:
     ring2%beta = bpm_pairs(i)%length / &
          sin(ring2%d_phase_adv) * sqrt(1/ring2%gam2_beta_ratio)
-
+    if (.not. ring%beta == ring%beta) then
+       Print *, "Error at beta"
+    end if
   end subroutine ring_beta
 
   subroutine alpha(twiss, d_phase_adv, i, q)
@@ -407,7 +412,7 @@ contains
     type(processor_analysis) temp(2)
     type (twiss_parameters), pointer :: ring_a, ring_b,dat_a, dat_b
     type (processor_analysis), pointer :: loc_1, loc_2
-
+    integer :: begin, endpt
     type self_consistent  
        type (processor_analysis), allocatable :: loc(:)
        real(rp) :: j_amp_ave(2) 
@@ -438,9 +443,9 @@ contains
     loc_1 => null()
     loc_2 => null()
 
+
     if (.not. bpm_pairs(1)%has_one) return   !Does not continue if there are
     !not BPMs with known spacing
-
     n_ring = bpm_pairs(1)%number
     allocate (ring(n_ring))
 
@@ -500,20 +505,17 @@ contains
           !Checking Inv Gamma Cbar Consistency
           !
           !*Check this
-!          ring(i)%loc(bpm1)%inv_gamma_cbar_check(1) =  &
-!               (ca * ring(i)%loc(bpm2)%inv_gamma_cbar(1,2) + &
-!               sa * ring(i)%loc(bpm2)%inv_gamma_cbar(2,2) - &
-!               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,1) - &
-!               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,2))
-!          Print *, "Inv gamma cbar check: ", &
-!               ring(i)%loc(bpm1)%inv_gamma_cbar_check(1)
-!          ring(i)%loc(bpm1)%inv_gamma_cbar_check(2) =  &
-!               (-sa * ring(i)%loc(bpm2)%inv_gamma_cbar(1,1) + &
-!               ca * ring(i)%loc(bpm2)%inv_gamma_cbar(2,1) - &
-!               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,1) + &
-!               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,2))
-          !          Print *, "Inv gamma cbar check: ", &
-          !               ring(i)%loc(bpm1)%inv_gamma_cbar_check(2)
+          ring(i)%loc(bpm1)%inv_gamma_cbar_check(1) =  &
+               (ca * ring(i)%loc(bpm2)%inv_gamma_cbar(1,2) + &
+               sa * ring(i)%loc(bpm2)%inv_gamma_cbar(2,2) - &
+               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,1) - &
+               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(1,2))
+
+          ring(i)%loc(bpm1)%inv_gamma_cbar_check(2) =  &
+               (-sa * ring(i)%loc(bpm2)%inv_gamma_cbar(1,1) + &
+               ca * ring(i)%loc(bpm2)%inv_gamma_cbar(2,1) - &
+               cb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,1) + &
+               sb * ring(i)%loc(bpm1)%inv_gamma_cbar(2,2))
 
           !
           !Gamma (pg 16) +
@@ -527,7 +529,6 @@ contains
           !
           !Compute Cbar
           !
-          !?@@
           ring_p(q)%loc%cbar =  &
                ring_p(q)%loc%inv_gamma_cbar * ring_p(q)%loc%gamma
 
@@ -557,44 +558,47 @@ contains
        !***This is always true. Does it have a purpose or should it be .and.?
 !          if (j /= bpm1 .or. j /= bpm2) then 
 
-             !
-             !Compute Gamma**2 Beta (pg 17) +
-             !
+          !
+          !Compute Gamma**2 Beta (pg 17) +
+          !
+          !(*)_*
+!          if (i==3) then
              ring(i)%loc(j)%a%gam2_beta = ring(i)%loc(j)%a%magnitude2(1)/ &
                   ring(i)%j_amp_ave(1)
              ring(i)%loc(j)%b%gam2_beta = ring(i)%loc(j)%b%magnitude2(2)/ &
                   ring(i)%j_amp_ave(2)
-
+!          end if
              !
              !Compute Inv Gamma Cbar (pg 17) +
              !
-             !Does not calculate (2,1)
-             !These Cbars are accurate.
              ring(i)%loc(j)%inv_gamma_cbar(2,2) = &
                   ring(i)%loc(j)%a%inv_gamma_cbar_sqrt_betas(2,2) * &
-                  sqrt(ring(i)%loc(j)%a%gam2_beta / ring(i)%loc(j)%b%gam2_beta)
-             !@@ Was sqrt(1): needs to be beta(a)/beta(b)
+                  sqrt(ring(i)%loc(j)%a%gam2_beta / &
+                  ring(i)%loc(j)%b%gam2_beta)
 
              ring(i)%loc(j)%inv_gamma_cbar(1,1) = &
                   ring(i)%loc(j)%b%inv_gamma_cbar_sqrt_betas(1,1) * &
-                  sqrt(ring(i)%loc(j)%b%gam2_beta / ring(i)%loc(j)%a%gam2_beta)
+                  sqrt(ring(i)%loc(j)%b%gam2_beta / &
+                  ring(i)%loc(j)%a%gam2_beta)
 
              inv_gamma_cbar_prelim(1) = &
                   ring(i)%loc(j)%a%inv_gamma_cbar_sqrt_betas(1,2) * &
-                  sqrt(ring(i)%loc(j)%a%gam2_beta / ring(i)%loc(j)%b%gam2_beta)
+                  sqrt(ring(i)%loc(j)%a%gam2_beta / &
+                  ring(i)%loc(j)%b%gam2_beta)
              inv_gamma_cbar_prelim(2) = &
                   ring(i)%loc(j)%b%inv_gamma_cbar_sqrt_betas(1,2) * &
-                  sqrt(ring(i)%loc(j)%b%gam2_beta / ring(i)%loc(j)%a%gam2_beta)
+                  sqrt(ring(i)%loc(j)%b%gam2_beta / &
+                  ring(i)%loc(j)%a%gam2_beta)
 
              ring(i)%loc(j)%inv_gamma_cbar(1,2) = &
-                  (inv_gamma_cbar_prelim(1) + inv_gamma_cbar_prelim(2)) / 2.0
+                  (inv_gamma_cbar_prelim(1)+inv_gamma_cbar_prelim(2)) / 2.0
 
              !
              !Compute sqrt(beta) cbar prelim
              !
              sqrt_beta_cbar_prelim(1) = &
                   - sqrt(data_struc%loc(j)%a%magnitude2(2) / &
-                  ring(i)%j_amp_ave(1)) * cos(0.-data_struc%loc(j)%a%d_delta)
+                  ring(i)%j_amp_ave(1))*cos(0.-data_struc%loc(j)%a%d_delta)
 
              sqrt_beta_cbar_prelim(2) = &
                   -sqrt(data_struc%loc(j)%b%magnitude2(1) / &
@@ -620,14 +624,23 @@ contains
     !
     !Copy averages from rings to data struct
     !
-    !**Some of these don't actually do anything...
-    do ik = 1, n_ring
+    begin=1
+    endpt = n_ring
+!    if (data(1)%noise/data(2)%noise < 2 ) then
+!       begin = 2
+!       Print *, "Using file 2 only: less noise"
+!    else if (data(2)%noise/data(1)%noise < 2 ) then
+!       endpt = 1
+!       Print *, "Using file 1 only: less noise"
+!    end if
+
+    do ik = begin, endpt
        do jm = 1, NUM_BPMS
           ring_twiss(1)%twiss => ring(ik)%loc(jm)%a
           ring_twiss(2)%twiss => ring(ik)%loc(jm)%b
           dat_twiss(1)%twiss => data_struc%loc(jm)%a
           dat_twiss(2)%twiss => data_struc%loc(jm)%b
-    
+
           do r = 1, 2
              !This loop calculates some values that depend upon mode.
              !r=1 does A mode, r=2 does B mode
@@ -635,8 +648,7 @@ contains
              !
              !Compute Gamma**2 Beta
              !
-             !This takes half of ring_twiss(r)%gam2_beta for each r 
-             !(averages gam2_beta from the two files)
+             !(*)_*
              dat_twiss(r)%twiss%gam2_beta = &
                   dat_twiss(r)%twiss%gam2_beta + &
                   ring_twiss(r)%twiss%gam2_beta / n_ring
@@ -649,12 +661,12 @@ contains
           !
           !Compute sqrt(beta) cbar
           !
-          call avg(data_struc%loc(jm)%sqrt_beta_cbar(1,1), &
-               ring(ik)%loc(jm)%sqrt_beta_cbar(1,1), n_ring)
-          call avg(data_struc%loc(jm)%sqrt_beta_cbar(1,2), &
-               ring(ik)%loc(jm)%sqrt_beta_cbar(1,2), n_ring)
-          call avg(data_struc%loc(jm)%sqrt_beta_cbar(2,2), &
-               ring(ik)%loc(jm)%sqrt_beta_cbar(2,2), n_ring)
+!          call avg(data_struc%loc(jm)%sqrt_beta_cbar(1,1), &
+!               ring(ik)%loc(jm)%sqrt_beta_cbar(1,1), n_ring)
+!          call avg(data_struc%loc(jm)%sqrt_beta_cbar(1,2), &
+!               ring(ik)%loc(jm)%sqrt_beta_cbar(1,2), n_ring)
+!          call avg(data_struc%loc(jm)%sqrt_beta_cbar(2,2), &
+!               ring(ik)%loc(jm)%sqrt_beta_cbar(2,2), n_ring)
 
           !
           !Compute Inv Gamma Cbar
@@ -671,16 +683,15 @@ contains
           !
 
           !
-          !Compute Beta
+          !Copies beta into data_struc if it was calculated
           !
-          !***Does not compute beta. In general, this does nothing.
           data_struc%loc(jm)%a%beta = ring(ik)%loc(jm)%a%beta + &
                data_struc%loc(jm)%a%beta
           data_struc%loc(jm)%b%beta = ring(ik)%loc(jm)%b%beta + &
                data_struc%loc(jm)%b%beta
 
           !
-          !Compute Alphas
+          !Copy alpha into data_struc if available
           !
           data_struc%loc(jm)%a%alpha = ring(ik)%loc(jm)%a%alpha + &
                data_struc%loc(jm)%a%alpha
@@ -733,9 +744,8 @@ contains
     integer :: i,j, openstatus
     integer :: n_pairs                  !Number of BPM pairs
     integer :: bpm
-
-
     n_pairs = bpm_pairs(1)%number
+
 
 !51  if (.not. outfile) then
        open (unit = 27, file = "./data/mia.out", &
@@ -862,10 +872,145 @@ contains
             data_struc%j_amp_ave(2,i)
     enddo
 
+    call cesrv_out()
     close(27)
 !*    close(29)
 !*    close(31)
 
   end subroutine output
+
+  subroutine cesrv_out()
+    real(rp), allocatable :: cbar_11(:), cbar_12(:),cbar_22(:)
+    character(1), allocatable :: valid(:) !True if number was calculated,
+                                          !false if not (ex. for cbar)
+    real(rp), allocatable :: writeMe(:,:)
+    logical :: known_spacing  !temporary
+    integer :: i, openstatus
+    character(1),allocatable :: allTrueIsm(:) !Contains all true; for variables
+                                          !MIA can always calculate
+    integer :: cesrv                    !Unit number for cesrv file
+    integer, allocatable :: eleNum(:)
+    integer :: bpm1, bpm2
+    integer, allocatable :: driftSpaces(:) !ele # of detectors separated by
+                                           !only a drift space
+    cesrv = 51 
+
+    allocate(cbar_11(2*bpm_pairs(1)%number))
+    allocate(cbar_12(2*bpm_pairs(1)%number))
+    allocate(cbar_22(2*bpm_pairs(1)%number))
+    allocate(eleNum(NUM_BPMS))
+    allocate(writeMe(2,NUM_BPMS))
+    allocate (driftSpaces(2*bpm_pairs(1)%number))
+
+    known_spacing = .false.
+    open (unit = cesrv, file = "./data/cesrv.out", &
+         action = "write", position = "rewind",&
+         iostat = openstatus)
+    if (openstatus > 0) print *, "*** Cannot open output file ***",&
+         openstatus
+
+    do i=1, bpm_pairs(1)%number
+       bpm1 = bpm_pairs(i)%bpm_pntr(1)
+       bpm2 = bpm_pairs(i)%bpm_pntr(2)
+
+       cbar_11(2*i-1) = data_struc%loc(bpm1)%cbar(1,1)
+       cbar_11(2*i) = data_struc%loc(bpm2)%cbar(1,1)
+       cbar_12(2*i-1) = data_struc%loc(bpm1)%cbar(1,2)
+       cbar_12(2*i) = data_struc%loc(bpm2)%cbar(1,2)
+       cbar_22(2*i-1) = data_struc%loc(bpm1)%cbar(2,2)
+       cbar_22(2*i) = data_struc%loc(bpm2)%cbar(2,2)
+
+       driftSpaces(2*i-1) = bpm1
+       driftSpaces(2*i) = bpm2
+    end do
+    
+    write (cesrv,*) "&DATA_PARAMETERS"
+    write (cesrv,*) "file_type = 'ALL DATA'"
+    !Not the correct form of tune; need to convert Hz to radians
+    write (cesrv,*) "horiz_freq = ", 9+data_struc%tune(1)/FREQ
+    write (cesrv,*) "vert_freq = ", 10+data_struc%tune(2)/FREQ
+    write (cesrv,*) "comment = ", "'MIA'"
+    write (cesrv,*) "/"
+    Write (cesrv,*) ""
+    Write (cesrv,*) "&all_data"
+    Write (cesrv, *) "!    det       X       Y    Valid?"
+
+    close(cesrv)
+
+    do i=1, num_bpms
+       eleNum(i) = data_struc%proc(i)%eleNum
+    end do
+
+    writeMe(1,:) = data_struc%loc(:)%a%phi
+    writeMe(2,:) = data_struc%loc(:)%b%phi
+
+    call writeArray(eleNum, writeMe, "phase")
+    writeMe(1,:) = data_struc%loc(:)%a%gam2_beta
+    writeMe(2,:) = data_struc%loc(:)%b%gam2_beta
+    call writeArray(eleNum, writeMe, "beta")
+
+    call writeVector(driftSpaces, cbar_11, "cbar11")
+    call writeVector(driftSpaces, cbar_12, "cbar12")
+    call writeVector(driftSpaces, cbar_22, "cbar22")
+
+    open (unit = cesrv, file = "./data/cesrv.out", &
+         action = "write", position = "append",&
+         iostat = openstatus)
+    if (.not. openstatus == 0) print *, "*** Cannot open output file ***",&
+         openstatus
+
+
+    write (cesrv,*) "/"
+    close(cesrv)
+  end subroutine cesrv_out
+
+  subroutine writeArray(eleNum, vector, name)
+
+    real(rp) :: vector(:,:)
+    integer :: fileNum, i, eleNum(:)
+    character(*) :: name
+    integer :: openstatus
+
+    fileNum = 55
+98  format (a,a1,i3.1,a4,f6.3, 2x, f6.3, 2x, a1)
+
+    open (unit = fileNum, file = "./data/cesrv.out", &
+         action = "write", position = "append",&
+         iostat = openstatus)
+    if (.not. openstatus == 0) print *, "*** Cannot open output file ***",&
+         openstatus
+
+    do i=1, size(eleNum)
+       write (fileNum, 98) name,"(", eleNum(i), ") = ", vector(1,i),&
+            vector(2,i), "T"
+    end do
+
+
+
+  end subroutine writeArray
+
+  subroutine writeVector(eleNum, vector, name)
+
+    real(rp) :: vector(:)
+    integer :: fileNum, i, eleNum(:)
+    character(*) :: name
+    integer :: openstatus
+
+    fileNum = 55
+98  format (a,a1,i3.1,a4,e12.4, 2x, a1)
+
+    open (unit = fileNum, file = "./data/cesrv.out", &
+         action = "write", position = "append",&
+         iostat = openstatus)
+    if (.not. openstatus == 0) print *, "*** Cannot open output file ***",&
+         openstatus
+
+    do i=1, size(eleNum)
+       write (fileNum, 98) name,"(", eleNum(i), ") = ", vector(i), "T"
+    end do
+
+
+
+  end subroutine writeVector
 
 end module orbit_mia

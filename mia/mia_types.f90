@@ -10,28 +10,40 @@ module mia_types
   use physical_constants
 
   type cbpm_data
+     !
+     !Contains X and Y position data from input file for a single BPM
+     !
      real(rp), allocatable :: x(:), y(:)  !X and Y vectors from raw data
   end type cbpm_data
 
   type twiss_parameters
-     real(rp) :: gam2_beta_ratio   !from preceding CBPM to the present CBPM
-     real(rp) :: d_phase_adv 	   !from preceding CBPM to the present CBPM
-     real(rp) :: d_delta           !Delta_delta = out-of-plane phase shifts
-     !from preceding CBPM to the present CBPM
-     real(rp) :: beta              !Beta
-     real(rp) :: alpha             !Alpha
-     real(rp) :: phi               !Phase advance
-     real(rp) :: ratio(2),&        !numer/denom
-          magnitude2(2), &         !numer^2+denom^2
-          numer(2), denom(2)       !lambda*pi of positive and negative cols
+     !
+     !Contains the twiss parameters for a particular detector.
+     !
+     real(rp) :: gam2_beta_ratio  !from preceding CBPM to the present CBPM
+     real(rp) :: d_phase_adv 	  !phase advance from preceding CBPM
+                                  !to the present CBPM
+     real(rp) :: d_delta          !change in delta = out-of-plane phase shifts
+                                  !from preceding CBPM to the present CBPM
+     real(rp) :: beta             !Beta
+     real(rp) :: alpha            !Alpha
+     real(rp) :: phi              !Phase advance (cumulative)
+   !The following variables are arrays because they are calculated for both A and B modes.
+     real(rp) :: ratio(2),&       !numer/denom
+          magnitude2(2), &        !numer^2+denom^2
+          numer(2), denom(2)      !lambda*pi of positive and negative cols
      real(rp) :: inv_gamma_cbar_sqrt_betas(2,2) 
                           !(C bar of i,j * sqrt(beta-B/beta-A))/gamma (pg 16)
-     real(rp) :: gam2_beta         !gamma^2*beta
-     real(rp) :: j_amp(2)               !Amplitude (A and B modes)
+                          !This is an intermediate variable
+     real(rp) :: gam2_beta        !gamma^2*beta
+     real(rp) :: j_amp(2)         !Amplitude (A and B modes)
   end type twiss_parameters
 
   type processor_analysis
-     type (twiss_parameters) :: a, b      !A and B modes
+     !
+     !Contains data and A and B mode twiss parameters for a single detector.
+     !
+     type (twiss_parameters) :: a, b      !A and B mode twiss parameters
      real(rp) :: inv_gamma_cbar(2,2)      !(1/gamma)*Cbar
      real(rp) :: inv_gamma_cbar_check(2)  !Consistancy check value
      real(rp) :: gamma                    !Gamma (gamma^2 + det_Cbar = 1)
@@ -40,6 +52,9 @@ module mia_types
   end type processor_analysis
 
   type active_processors
+     !
+     !Contains identifying information for a single detector
+     !
      character (13) :: label      !Full BPM label (ex. BPM09E)
      real(rp) :: number, &        !BPM number (negative for east BPMs)
           sPos                    !S position (for sorting and CESRV)
@@ -48,21 +63,26 @@ module mia_types
   end type active_processors
 
   type cbpm_analysis
-     integer :: col_a_p, col_a_n, &  !Horizontal positive and negative
-          col_b_p, col_b_n           !Vertical positive and negative
-     integer :: set_num_a, set_num_b !Which of the two input files (1 or 2) is 
-     !horizontal (a) or vertical(b)
-     type (processor_analysis), allocatable :: loc(:)
-     !Information for each BPM location
-     type (active_processors), allocatable :: proc(:)
-     !Array of processors 
+     !
+     !Contains information for the full set of BPMs including their identification and
+     !data. Also contains several derived values for the entire machine, such as average
+     !amplitude and tune.
+     !
+     integer :: col_a_p, col_a_n, &  !A mode positive and negative
+          col_b_p, col_b_n           !B mode positive and negative
+     integer :: set_num_a, set_num_b !File number (1 or 2) of the data in that mode
+     type (processor_analysis), allocatable :: loc(:) !Twiss, etc calculated at BPM
+     type (active_processors), allocatable :: proc(:) !BPM data (name, element #, etc)
      real(rp) :: tune(2)                     !Tune of the machine
-     real(rp) :: phi_t(2)                    !phi(t)
-     real(rp) :: j_amp_ave(2,2)           !Average amplitude (A and B modes)
-                                          !Second index is the file
+     real(rp) :: phi_t(2)                    !Total phase
+     real(rp) :: j_amp_ave(2,2)              !Average amplitude (A/B mode, File #)
   end type cbpm_analysis
 
   type data_set
+     !
+     !Contains raw data from one input file as well as
+     !results from SVD and FFT.
+     !
      character (120) :: filename    !Full filename
      character (40) :: shortname   !Filename without path (used for printing)
      real(rp), allocatable :: tau_mat(:,:), &   !Position matrix
@@ -74,14 +94,17 @@ module mia_types
      integer, allocatable :: fr_peak(:)  !Frequency peak (was nmax)
      integer :: bpmproc            !Number of active BPM processors
      integer :: numturns           !Number of turns
-     type (cbpm_data), allocatable :: cdata(:)     !Temporarily holds data
-  end type data_set                                !from file being read in.
-
-  type data_file
      type (active_processors), allocatable :: proc(:) !Data for BPM processors
-  end type data_file
+     type (cbpm_data), allocatable :: cdata(:)     !Raw data from the file being read in
+     real(rp) :: noise           !Relative noise level from higher eigenvalues
+  end type data_set                                
+
 
   type known_spacings
+     !
+     !Data for BPMs separated by a drift space; used
+     !to find them and set length scale for beta ratios
+     !
      character (13) :: bpm_name(2) !Name of the BPM
      logical :: in_use,&           !If the BPM is in use?
           has_one                  !True if a BPM has a known spacing
@@ -90,8 +113,11 @@ module mia_types
      integer :: bpm_pntr(2)        !Points to the pair's position in BPM array
   end type known_spacings
 
+
+  !****************
   !Global variables
-  type(cbpm_analysis), target :: data_struc
+  !****************
+  type(cbpm_analysis), target :: data_struc !Contains data from calculations
   !BPM pairs with known spacing:
   type(known_spacings), allocatable:: bpm_pairs(:) 
 
@@ -99,6 +125,7 @@ module mia_types
        NUM_TURNS, &                      !Number of turns
        nset                              !Number of files
   real(rp), parameter :: FREQ=390.12     !Frequency of the machine (in MHz)
+  real(rp), parameter :: ip_L3=384.213   !Location (m) of IP_L3
   logical :: outfile                     !True if user specified an output file
   character(100) :: outname              !Name of output file
   logical :: fileread(2)                 !True if filename has been read
@@ -108,8 +135,14 @@ module mia_types
        silentMode,&                      !MIA runs without plotting
        phase,&                           !Plot phase advance instead of beta
        postScript                        !Print postscript plot only
+  logical :: vetoBPM                     !Remove detectors; specified
+                                         !as an option in the plotting routine
   real(rp) :: endLoc                     !Location of the end of the machine
                                          !Used in plotting east before west
+  character(120) :: inputPasser          !Not very elegant, but passes
+                                         !input between modules
+
+
 contains
 
   subroutine initialize_structures(data, nset)
@@ -118,6 +151,8 @@ contains
     !
     type(data_set) data
     integer :: nset, i
+
+    vetoBPM = 0
     NUM_BPMS = data%bpmproc
     NUM_TURNS = data%numturns
     allocate(data_struc%loc(NUM_BPMS))
@@ -169,6 +204,8 @@ contains
        data_struc%proc(i)%label = ""
        data_struc%proc(i)%is_west = .false.
        data_struc%proc(i)%number = 0
+       data_struc%proc(i)%sPos = -9999.0
+       data_struc%proc(i)%eleNum = -999
     enddo
 
   end subroutine initialize_structures
@@ -179,6 +216,8 @@ contains
   end subroutine allocate_bpm_pairs
 
   subroutine clean(pairs)
+    !True if new files will be read in; 
+    !don't reread knownl.inp to get paired detectors
     logical :: pairs
     if (.not. pairs) then
        deallocate (bpm_pairs)
