@@ -524,6 +524,12 @@ since one does not have to worry about arbitrary offsets between the
 \vn{model} and \vn{measured} values. If the reference element is
 specified then there is no arbitrary constant in the evalustion.
 
+  \index{ref_time}
+  \item[ref_time]
+This is the time the reference particle passes the exit end of the element.
+If the particle is ultra-relativistic then this is just $c * s$ where $s$
+is the longitudinal distance from the start of the lattice.
+
   \index{rel_floor.}
   \item[rel\_floor.]
 This is the global floor position at the exit end of the evaluation
@@ -627,6 +633,8 @@ size squared.
     norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
     norm\_emit.a, norm\_emit.b, norm\_emit.c 
   \end{tabular}               & Normalized beam emittance           \\ \hline 
+
+  ref\_time                   & Reference time                      \\ \hline
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 
@@ -737,6 +745,8 @@ size squared.
 
   r.$ij$ \hspace{10pt} $1 \le i,j \le 6$
                                  & Term in linear transfer map        \\ \hline 
+
+  ref\_time                      & Reference time                     \\ \hline
 
   \begin{tabular}{@{}l}   
     rel\_floor.x, rel\_floor.y, \\

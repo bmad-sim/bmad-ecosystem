@@ -1146,6 +1146,8 @@ do ii = 1, size(curve%x_line)
     value = ele%a%etap
   case ('etap.b')
     value = ele%b%etap
+  case ('ref_time')
+    value = ele%ref_time
   case ('floor.x')
     value = ele%floor%x
   case ('floor.y')

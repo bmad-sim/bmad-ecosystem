@@ -1230,6 +1230,9 @@ case ('r.')
   enddo
   call load_it (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
+case ('ref_time')
+    call load_it (branch%ele(:)%ref_time, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  
 case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
 
   if (ix_ref < 0) then
