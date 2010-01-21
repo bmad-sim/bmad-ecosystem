@@ -64,6 +64,15 @@ interface
 end interface
  
 interface
+  function cross_product (a, b) result (c)
+    use precision_def
+    implicit none
+    real(rp) a(:), b(:)
+    real(rp) c(3)
+  end function
+end interface
+ 
+interface
   function determinant (mat) result (det)
     use precision_def
     implicit none
