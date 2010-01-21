@@ -905,34 +905,6 @@ end function spin_omega_at
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function cross_product (vec1, vec2)
-!
-! Returns the cross product of vec1 x vec2
-!
-! Modules needed:
-!   use bmad
-!
-! Input :
-!   vec1(3)      -- Real(rp)
-!   vec2(3)      -- Real(rp)
-!-
-
-function cross_product (vec1, vec2) result (vec)
-
-implicit none
-
-real(rp) :: vec1(3), vec2(3), vec(3)
-
-  vec(1) = vec1(2)*vec2(3) - vec1(3)*vec2(2)
-  vec(2) = vec1(3)*vec2(1) - vec1(1)*vec2(3)
-  vec(3) = vec1(1)*vec2(2) - vec1(2)*vec2(1)
-
-end function cross_product  
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Function normalized_quaternion (quat)
 !
 ! Returns the normalized quaternion (preserves the spin unitarity)
