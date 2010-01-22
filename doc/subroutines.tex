@@ -943,15 +943,10 @@ Function to return the name of an attribute for a particular type of element.
 \item[attribute_type (attrib_name) result (attrib_type)] \Newline 
 Routine to return the type (logical, integer, real, or named) of an attribute.
 
-\index{routine!attribute_free}
-\label{r:attribute.free}
-\item[attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay) result (free)] \Newline
-Function to check if an attribute is free to vary.
-
 \index{routine!attribute_value_name}
 \label{r:attribute.value.name}
 \item[attribute_value_name (attrib_name, attrib_value, ele, 
-                                    is_default) result (attrib_val_name)] \Newline 
+                                    is_default) result (val_name)] \Newline 
 Routine to return the name corresponding to the value of a given attribute.
 
 \index{routine!check_lat_controls}
@@ -984,6 +979,11 @@ Subroutine to find the end points of an element.
 \item[get_element_slave_list (lat, ix_lord, slave_list, n_slave)] \Newline 
 Subroutine to get the list of slaves for an element.
 
+\index{routine!key_name}
+\label{r:key.name}
+\item[{key_name (key_index)}] \Newline
+Translate an element key index (EG: quadrupole\$, etc.) to a character string.
+
 \index{routine!key_name_to_key_index}
 \label{r:key.name.to.key.index}
 \item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
@@ -1002,8 +1002,9 @@ name known to bmad.
 
 \index{routine!pointer_to_indexed_attribute}
 \label{r:pointer.to.indexed.attribute}
-\item[pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
-                                     ptr_attrib, err_flag, err_print_flag)] \Newline 
+\item[\protect\parbox{6in}{
+  pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, \\
+  \hspace*{1in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
 Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
 
 \index{routine!pointer_to_lord}
@@ -1011,7 +1012,6 @@ Returns a pointer to an attribute of an element ele with attribute index ix_attr
 \item[pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)] \Newline 
 Function to point to a lord of a slave.
 
-\label{r:pointer.to.multipass.lord}
 \item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
 Routine to find the multipass lord of a lattice element.
 A multi_lord will be found for:
@@ -1121,14 +1121,16 @@ Subroutine to create a new control element.
 
 \index{routine!pointer_to_attribute}
 \label{r:pointer.to.attribute}
-\item[\protect\parbox{6in}{pointer_to_attribute (ele, attrib_name, do_allocation, 
-\\ \hspace*{2in} ptr_attrib, ix_attrib, err_flag, err_print_flag)}] \Newline
+\item[\protect\parbox{6in}{
+  pointer_to_attribute (ele, attrib_name, do_allocation, \\
+  \hspace*{2in} ptr_attrib, ix_attrib, err_flag, err_print_flag)}] \Newline
 Returns a pointer to an attribute of an element with name attrib_name. 
 
 \index{routine!pointers_to_attribute}
 \label{r:pointers.to.attribute}
-\item[pointers_to_attribute (lat, ele_name, attrib_name, do_allocation,
-                    ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)] \Newline 
+\item[\protect\parbox{6in}{
+    pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, \\
+    \hspace*{2in} ptr_array, err_flag, err_print_flag, ix_eles, ix_attrib)} ] \Newline 
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
@@ -1161,7 +1163,7 @@ hybridized by \vn{make_hybrid_lat}.
 %------------------------------------------------------------------------
 \section{Lattice: Geometry}
 \label{r:geom}     
-\index{Coordinates!global!list of routines}
+\index{global coordinates!list of routines}
 
 \begin{description}
 
@@ -1905,7 +1907,7 @@ structure equal to another.
 %------------------------------------------------------------------------
 \section{Particle Coordinate Stuff}
 \label{r:coord}    
-\index{Coordinates!list of routines}
+\index{coordinates!list of routines}
 
 \begin{description}
 
@@ -2119,8 +2121,9 @@ Routine to calculate how ``nicely'' an axis will look.
 The higher the score the nicer.
 
 \index{routine!qp_calc_and_set_axis}
-\item[\protext\parbox{6in}{qp_calc_and_set_axis (axis, data_min, data_max, div_min, div_max, \\
-\hspace*{2in} bounds, axis_type, slop_factor)}] \Newline
+\item[\protect\parbox{6in}{
+    qp_calc_and_set_axis (axis, data_min, data_max, div_min, div_max, \\
+    \hspace*{2in} bounds, axis_type, slop_factor)}] \Newline
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
@@ -2324,8 +2327,9 @@ The default color is the background color (white\$).
 
 \index{routine!qp_calc_and_set_axis}
 \label{r:qp.calc.and.set.axis}
-\item[\protext\parbox{6in}{qp_calc_and_set_axis (axis, data_min, data_max,
-\hspace*{2in} div_min, div_max, bounds, axis_type, slop_factor)}] \Newline
+\item[\protect\parbox{6in}{
+  qp_calc_and_set_axis (axis, data_min, data_max, \\
+  \hspace*{2in} div_min, div_max, bounds, axis_type, slop_factor)}] \Newline
      Subroutine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
@@ -2337,7 +2341,7 @@ between data units and page units is the same for the x and y axes.
 
 \index{routine!qp_set_axis}
 \label{r:qp.set.axis}
-\item[\protext\parbox{6in}{qp_set_axis (axis, a_min, a_max, div, places, label, draw_label, \\
+\item[\protect\parbox{6in}{qp_set_axis (axis, a_min, a_max, div, places, label, draw_label, \\
 \hspace*{2in} draw_numbers, minor_div, minor_div_max, mirror, \\
 \hspace*{2in} number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
     Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
@@ -2815,9 +2819,8 @@ tracking 7 particle with different starting conditions.
 \label{r:add.taylor.term}
 \item[\protect\parbox{6.5in}{
   add_taylor_term (bmad_taylor, coef, expn, replace) \\
-  add_taylor_term2 (bmad_taylor, coef,  \\
-  \hspace*{2in} i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)}] \Newline 
-Routine to add a Taylor term to a Taylor series.
+  add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)}] \Newline 
+Overloaded routine to add a Taylor term to a Taylor series.
 
 
 \index{routine!concat_ele_taylor}
@@ -3444,8 +3447,7 @@ Subroutine to set the longitudinal tune by setting the RF voltages in the RF cav
 
 \index{routine!transfer_map_calc}
 \label{r:transfer.map.calc}
-\item[transfer_map_calc (lat, t_map, ix1, ix2, &] \Newline 
-                                        integrate, one_turn, unit_start)
+\item[transfer_map_calc (lat, t_map, ix1, ix2, integrate, one_turn, unit_start) ] \Newline 
 Subroutine to calculate the transfer map between two elements.
 
 \index{routine!transfer_map_calc_at_s}

@@ -17,10 +17,10 @@ to a model. For more information on this see the \tao manual.
 
 In terms of routines for implementing nonlinear optimization the
 Numerical Recipes library (\sref{s:libs} that is distributed along
-with \bmad contains several. In particular, the routine \vnr{mrqmin}
+with \bmad contains several. In particular, the routine \hyperref{routine!mrqmin}
 which implements the Levenberg--Marquardt is an excellent routine for
 finding local minimum when the merit function can be expressed as the
-sum of quadratic terms. Another routine, \vnr{frprmn}, which is an
+sum of quadratic terms. Another routine, \hyperref{routine!frprmn}, which is an
 implementation of the Fletcher--Reeves algorithm, is also good at
 finding local minimum and has the advantage that as input it does not
 need a derivative matrix as does Levenberg--Marquardt. The
@@ -28,8 +28,8 @@ disadvantage of Fletcher--Reeves is that it is slower than
 Levenberg--Marquardt. 
 
 A second implementation of Levenberg--Marquardt available with \bmad
-is \vnr{opti_lmdif} which is Fortran90 version of the popular
-\vn{lmdif} routine. Also available is \vnr{opti_de} which implements
+is \hyperref{routine!opti_lmdif} which is Fortran90 version of the popular
+\vn{lmdif} routine. Also available is \hyperref{routine!opti_de} which implements
 the Differential Evolution algorithm of Storn and
 Price\cite{b:storn}. This routine is good for finding global minima
 but can be slow. 

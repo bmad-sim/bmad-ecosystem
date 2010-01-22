@@ -15,9 +15,16 @@ This program is provided with the \bmad distribution in a file called
 \vn{simple_program.f90}. \vn{simple_program.f90} is in the \vn{bmad}
 library area in a directory called \vn{bmad/simple_program}.
 
-
-
 \begin{figure}[htp]
+\index{routine!bmad_parser}
+\index{routine!twiss_at_start}
+\index{routine!twiss_propagate_all}
+\index{routine!lat_ele_locator}
+\index{routine!type_ele}
+\index{ele_struct}
+\index{lat_struct}
+\index{ele_pointer_struct}
+\index{lattice_type}
 \begin{listing}{1}
 program test
 
@@ -70,7 +77,7 @@ bmad} statement at line 3 defines the \bmad structures and defines the
 interfaces (argument lists) for the \bmad subroutines. In particular,
 the \vn{lat_struct} (\sref{s:lat.struct}) structure (line 5) holds all
 of the lattice information: The list of elements, their attributes, etc.
-\vnr{bmad_parser} (line 13) is the routine which parses a lattice file
+\hyperref{routine!bmad_parser} (line 13) is the routine which parses a lattice file
 and transfers the information to a \vn{lat_struct} variable. To get a
 listing of the \vn{lat_struct} components or to find out more about
 \vn{bmad_parser} use the \vn{getf} command as discussed in \sref{s:getf}.
@@ -78,14 +85,14 @@ listing of the \vn{lat_struct} components or to find out more about
 \index{routine!bmad_parser}
 \index{routine!twiss_at_start}
 \index{routine!twiss_propagate_all}
-After \vnr{bmad_parser} is called, the program checks if the lattice 
+After \hyperref{routine!bmad_parser} is called, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
-routine \vnr{twiss_at_start} (line 15) to multiply the transfer
+routine \hyperref{routine!twiss_at_start} (line 15) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
 matrix from the start of the lat back to the start. From this matrix
 \vn{twiss_at_start} calculates the Twiss parameters at the start of
 the lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}). 
-The next call, to \vnr{twiss_propagate_all}, takes the starting
+The next call, to \hyperref{routine!twiss_propagate_all}, takes the starting
 Twiss parameters and, using the transfer matrices of the individual
 elements, calculates the Twiss parameters at all the elements. Notice that
 if the lattice is not circular, The starting Twiss parameters will need
@@ -117,9 +124,10 @@ is the $a$--mode (nearly
 horizontal mode) beta function.
 
 The final section of the program, lines 28 through 33, uses the routine
-\vnr{lat_ele_locator} (\sref{s:lat.ele.change}) to find the element 
+\hyperref[r:lat.ele.locator]{routine!lat_ele_locator} 
+(\sref{s:lat.ele.change}) to find the element 
 in the lattice with the name \vn{CLEO_SOL}.
-\vnr{type_ele} is used to type out the element's attributes and other
+\hyperref{routine!type_ele} is used to type out the element's attributes and other
 information as shown on lines 14 through 41 of the output (more on this later).
 
 This brings us to the lattice file used for the input to the program.
@@ -181,10 +189,12 @@ of the \vn{ks} attribute of the \vn{CLEO_SOL} and have the \vn{ks}
 attributes of the dependent (``\vn{super_slave}'') elements updated
 with one subroutine call. For example, the following code increases the
 solenoid strength by 1\%
+\index{routine!lattice_bookkeeper}
+\index{routine!lat_ele_locator}
 \begin{example}
-  call element_locator ('CLEO_SOL', lat, ix)
-  lat%ele(ix)%value(ks$) = lat%ele(ix)%value(ks$) * 1.01 
-  call control_bookkeeper (lat, ix)
+  call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
+  eles(1)%ele(ix)%value(ks$) = eles(1)%ele%value(ks$) * 1.01 
+  call lattice_bookkeeper (lat)
 \end{example}
 \bmad takes care of the bookkeeping. In fact \vn{control_bookkeeper} is
 automatically called when transfer matrices are remade so the direct call

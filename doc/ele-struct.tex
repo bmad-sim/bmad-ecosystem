@@ -15,7 +15,7 @@ corresponding component in the \vn{ele_struct} is the value at the exit
 end of the element.
 
 For printing information about an element, the
-\hyperref[type.ele]{type_ele} or \hyperref[type2.ele]{type2_ele} routines
+\hyperref[r:type.ele]{type_ele} or \hyperref[r:type2.ele]{type2_ele} routines
 can be used (\sref{s:first.program}). The difference between the two is
 that \vn{type_ele} will print to the terminal window while \vn{type2_ele}
 will return an array of strings containing the element information.
@@ -54,7 +54,7 @@ type ele_struct
   real(rp), pointer :: a_pole(:) => null()        ! multipole
   real(rp), pointer :: b_pole(:) => null()        ! multipoles
   real(rp), pointer :: const(:) => null()         ! Working constants.
-  ele_struct definition continued on next figure...
+    ele_struct definition continued on next figure...
 \end{verbatim}
 \caption[The \vn{ele_struct}. Part 1]{The \vn{ele_struct}. structure definition. 
 The complete structure is shown in this and the following figure.}
@@ -67,7 +67,7 @@ The complete structure is shown in this and the following figure.}
 \centering
 \footnotesize
 \begin{verbatim}
-  ele_struct definition continued from previous figure.
+    ... ele_struct definition continued from previous figure.
   integer key                ! key value
   integer sub_key            ! For wigglers: map_type$, periodic_type$
   integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
@@ -245,6 +245,34 @@ like:
   lat%ele(i)%value(time_stamp$) = ...
 \end{example}
 
+\index{ele_struct\%old_value(:)}
+The \vn{%old_value(:)} component of the \vn{ele_struct} is used by the 
+\href[r:attribute.bookkeeper]{attribute_bookkeeper} routine to check for
+changes for changes in the \vn{%value(:)} array since the last time 
+the \vn{attribute_bookkeeper} routine had been called. 
+If nothing has been changed, the \vn{attribute_bookkeeper} routine knows
+not to waste time recalculating dependent values. Essentially what
+this means is that the \vn{%old_value(:)} 
+array should not be modified outside of \vn{attribute_bookkeeper}.
+
+%--------------------------------------------------------------------------
+\section{Limits}
+\index{aperture}
+\index{x_limit}\index{x1_limit}\index{x2_limit}
+\index{x_limit}\index{x1_limit}\index{x2_limit}
+
+The aperture limits (\sref{s:limit}) in the \vn{ele_struct} are:
+\begin{example}
+  %value(x1_limit$)
+  %value(x2_limit$)
+  %value(y1_limit$)
+  %value(y2_limit$)
+\end{example}
+The values of these limits along with the \vn{%aperture_at}, \vn{%aperture_type},
+and \vn{%offset_moves_aperture} components are used in tracking to determine
+if a particle has hit the vacuum chamber wall. See Section~\sref{s:tracking.apertures}
+for more details.
+
 %--------------------------------------------------------------------------
 \section{Twiss Parameters, etc.}
 \label{s:ele.twiss}
@@ -271,6 +299,7 @@ at the exit end of the element. See \cref{c:twiss} for more details.
 \index{ele_struct!\%n_lord}
 \index{ele_struct!\%ic1_lord}
 \index{ele_struct!\%ic2_lord}
+\index{ele_struct!\%component_name}
 In \bmad, elements in a lattice can control other elements.
 The components that determine this control are:
 \begin{example}
@@ -282,27 +311,10 @@ The components that determine this control are:
   %n_lord
   %ic1_lord
   %ic2_lord
+  %component_name
 \end{example}
 \index{lat_struct}
 This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struct}).
-
-%--------------------------------------------------------------------------
-\section{Limits}
-\index{aperture}
-\index{x_limit}\index{x1_limit}\index{x2_limit}
-\index{x_limit}\index{x1_limit}\index{x2_limit}
-
-The aperture limits (\sref{s:limit}) in the \vn{ele_struct} are:
-\begin{example}
-  %value(x1_limit$)
-  %value(x2_limit$)
-  %value(y1_limit$)
-  %value(y2_limit$)
-\end{example}
-The values of these limits along with the \vn{%aperture_at}, \vn{%aperture_type},
-and \vn{%offset_moves_aperture} components are used in tracking to determine
-if a particle has hit the vacuum chamber wall. See Section~\sref{s:tracking.aperture}
-for more details.
 
 %--------------------------------------------------------------------------
 \section{Coordinates, Offsets, etc.}
@@ -354,24 +366,31 @@ element the values of \vn{%value(x_offset\$)}, etc. are changed and to
 read the position of an element a program should look at
 \vn{%value(x_offset_tot\$)}, etc.
 
+\index{ele_struct!\%s}
+\index{ele_struct!\%ref_time}
+The longitudinal position at the exit end of an element is stored in \vn{%s}
+and the reference time is stored in \vn{%ref_time}. See \sref{s:global}
+for more details.
+
 %--------------------------------------------------------------------------
-\section{Linear Transfer Maps}
+\section{Transfer Maps: Linear and Non-linear (Taylor)}
 \index{ele_struct!transfer maps}
 \index{transfer map!in ele_struct}
-\index{mat6}
-\index{vec0}
-\index{ref_orb}
+\index{ele_struct!\%mat6}
+\index{ele_struct!\%vec0}
+\index{ele_struct!\%map_ref_orb_in}
+\index{ele_struct!\%map_ref_orb_out}
 
 The routine \hyperref[r:make.mat6]{make_mat6} computes the linear 
 transfer matrix (Jacobian) along with the zeroth order transfer vector. 
 This matrix is stored in \vn{%mat6(6,6)} and the
 zeroth order vector is stored in \vn{%vec0(6)}. The reference orbit at
 the entrance end of the element about
-which the transfer matrix is computed is stored in \vn{%ref_orb_start}
-and the the reference orbit at the exit end is stored in \vn{%ref_orb_end}.
+which the transfer matrix is computed is stored in \vn{%map_ref_orb_in}
+and the the reference orbit at the exit end is stored in \vn{%map_ref_orb_out}.
 In the calculation of the transfer map, the vector \vn{%vec0} is set so that
 \begin{example}
-  ref_orb_end = %mat6 * ref_orbit_start + %vec0
+  map_ref_orb_out = %mat6 * map_ref_orbit_in + %vec0
 \end{example}
 The reason redundant information is stored in the element is to save
 computation time.
@@ -379,12 +398,9 @@ computation time.
 To compute the transfer maps for an entire lattice use the routine 
 \hyperref[r:lat.make.mat6]{lat_make_mat6}.
 
-%--------------------------------------------------------------------------
-\section{Taylor Maps}
 \index{ele_struct!Taylor maps}
 \index{taylor map!structure in ele_struct}
-
-Taylor maps (\sref{c:methods}) are stored in
+The Taylor map (\sref{c:methods})  for an element is stored in
 \vn{%taylor(1:6)}. Each \vn{%taylor(i)} is a \vn{taylor_struct}
 structure that defines a Taylor series:
 \begin{example}
@@ -393,7 +409,7 @@ structure that defines a Taylor series:
     type (taylor_term_struct), pointer :: term(:) => null()
   end type
 \end{example}
-Each Taylor series has an array of \vn{taylor_term_struct} term defined as
+Each Taylor series has an array of \vn{taylor_term_struct} terms defined as
 \begin{example}
   type taylor_term_struct
     real(rp) :: coef
@@ -427,6 +443,14 @@ This reference point is saved in \vn{%taylor(1:6)%ref}.  Once a Taylor map is
 made, the reference point is not needed in subsequent
 calculations. However, The Taylor map itself will depend upon what
 reference point is chosen (\sref{s:taylor.phys}).
+
+\index{ele_struct!\%gen_field}
+\index{ele_struct!\%gen0}
+When using the \vn{symp_map\$} tracking method (\sref{s:tkm}), the pointer
+to the partially inverted Taylor map is stored in the \vn{%gen_field} component
+of the \vn{ele_struct}. The actual storage of the map is handled by the
+PTC library (\sref{s:libs}). The PTC partially inverted map does not have any
+zeroth order terms so the zeroth order terms are stored in the \vn{%gen0(6)} vector.
 
 %--------------------------------------------------------------------------
 \section {Wake fields}
@@ -501,6 +525,7 @@ the components.
 \vn{%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo
 mode representation is not valid. This is set in the input lattice file.
 
+\index{lr_wake_struct}
 The \vn{%wake%lr} array stores the long--range wake modes. The
 structure definition is:
 \begin{example}
@@ -518,9 +543,9 @@ structure definition is:
     logical polarized   ! Polarized mode?
   end type
 \end{example}
-\index{lR_freq_spread}
+\index{lr_freq_spread}
 This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the
-actual frequency in the input file. \vnr{bmad_parser} will set
+actual frequency in the input file. \hyperref{routine!bmad_parser} will set
 \vn{%freq} to \vn{%freq_in} except when the \vn{lr_freq_spread} attribute
 is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
 explained in \sref{s:lcav}. \vn{%polarized} is a logical that
@@ -581,6 +606,28 @@ A list of \bmad routines for manipulating multipoles can be found in
 \sref{r:multipoles}.
 
 %--------------------------------------------------------------------------
+\section{Tracking Methods}
+\label{s:ele.tracking.methods}
+
+A number of \vn{ele_struct} components control tracking and transfer 
+map calculations.
+These are
+\begin{example}
+  %mat6_calc_method
+  %tracking_method
+  %num_steps
+  %integrator_order
+  %taylor_order
+  %symplectify
+  %multipoles_on
+  %map_with_offsets
+  %is_on
+  %csr_calc_on
+  %offset_moves_apaerture
+\end{example}
+See Chapter~\sref{c:tracking} for more details.
+
+%--------------------------------------------------------------------------
 \section{General Use Components}
 \index{ele_struct!components not used by Bmad}
 
@@ -591,8 +638,21 @@ There are three components of an \vn{ele_struct} that are guaranteed
 to never be used by any \bmad routine and so are available for use by
 someone writing a program. These components are
 \begin{example}
-   real(rp), pointer :: r(:) => null()  ! For general use. Not used by \bmad. 
-   integer ix_pointer                   ! For general use. Not used by \bmad.
-   logical logic                        ! For general use. Not used by \bmad.
+   real(rp), pointer :: r(:) => null()  
+   integer ix_pointer                 
+   logical logic                      
 \end{example}
+
+%--------------------------------------------------------------------------
+\section{Bmad Reserved Variables}
+
+A number of \vn{ele_struct} components are reserved for use by \bmad routines
+only. These are
+\begin{example}
+  %ixx
+  %old_is_on
+  %bmad_logic
+  %const(:)
+\end{example}
+
 

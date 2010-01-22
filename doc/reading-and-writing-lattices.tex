@@ -107,16 +107,19 @@ using \vn{write_bmad_lattice_file}
 \index{lattice files!MAD files}
 \index{MAD}
 
-\index{MAD!MAD-8}\index{routine!bmad_to_mad}
-\mad--8 compatible lattice files can be created using the routine \vnr{bmad_to_mad}:
+\index{routine!write_bmad_lattice_file}
+To create a \bmad lattice file from a \vn{lat_struct} variable, use the routine
+\hyperref[r:write.bmad.lattice.file]{write_bmad_lattice_file}.
+\index{MAD!MAD-8}
+\mad--8, \mad--X, or \vn{XSIF} compatible lattice 
+files can be created from a \vn{lat_struct} variable 
+using the routine \hyperref[r:bmad.to.mad.or.xsif]{routine!bmad_to_mad_or_xsif}:
 \begin{example}
   type (lat_struct) lat             ! lattice
   ...
-  call bmad_to_mad ('lat.mad', lat)  ! create MAD file
+  call bmad_parser (bmad_lat_file, lat)               ! Read in a lattice
+  call bmad_to_mad_or_xsif ('lat.mad', 'MAD-8', lat)  ! create MAD file
 \end{example}
-Since \mad has no concept of things such as \vn{overlay}s and \vn{group}s, such 
-information is lost in translation.
-
-\index{routine!write_bmad_lattice_file}
-To write \bmad lattice files use the routine \vn{write_bmad_lattice_file}.
+Some information is lost in the process. For example, \mad has no concept of 
+things such as \vn{overlay}s and \vn{group}s.
 
