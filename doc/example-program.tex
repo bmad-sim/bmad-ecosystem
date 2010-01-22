@@ -77,7 +77,7 @@ bmad} statement at line 3 defines the \bmad structures and defines the
 interfaces (argument lists) for the \bmad subroutines. In particular,
 the \vn{lat_struct} (\sref{s:lat.struct}) structure (line 5) holds all
 of the lattice information: The list of elements, their attributes, etc.
-\hyperref{routine!bmad_parser} (line 13) is the routine which parses a lattice file
+\hyperref[r:bmad.parser]{routine!bmad_parser} (line 13) is the routine which parses a lattice file
 and transfers the information to a \vn{lat_struct} variable. To get a
 listing of the \vn{lat_struct} components or to find out more about
 \vn{bmad_parser} use the \vn{getf} command as discussed in \sref{s:getf}.
@@ -85,14 +85,14 @@ listing of the \vn{lat_struct} components or to find out more about
 \index{routine!bmad_parser}
 \index{routine!twiss_at_start}
 \index{routine!twiss_propagate_all}
-After \hyperref{routine!bmad_parser} is called, the program checks if the lattice 
+After \hyperref[r:bmad.parser]{routine!bmad_parser} is called, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
-routine \hyperref{routine!twiss_at_start} (line 15) to multiply the transfer
+routine \hyperref[r:twiss.at.start]{routine!twiss_at_start} (line 15) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
 matrix from the start of the lat back to the start. From this matrix
 \vn{twiss_at_start} calculates the Twiss parameters at the start of
 the lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}). 
-The next call, to \hyperref{routine!twiss_propagate_all}, takes the starting
+The next call, to \hyperref[r:twiss.propagate.all]{routine!twiss_propagate_all}, takes the starting
 Twiss parameters and, using the transfer matrices of the individual
 elements, calculates the Twiss parameters at all the elements. Notice that
 if the lattice is not circular, The starting Twiss parameters will need
@@ -127,7 +127,7 @@ The final section of the program, lines 28 through 33, uses the routine
 \hyperref[r:lat.ele.locator]{routine!lat_ele_locator} 
 (\sref{s:lat.ele.change}) to find the element 
 in the lattice with the name \vn{CLEO_SOL}.
-\hyperref{routine!type_ele} is used to type out the element's attributes and other
+\hyperref[r:type.ele]{routine!type_ele} is used to type out the element's attributes and other
 information as shown on lines 14 through 41 of the output (more on this later).
 
 This brings us to the lattice file used for the input to the program.
