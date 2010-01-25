@@ -1,6 +1,24 @@
 \chapter{Miscellaneous Programming}
 
 %-----------------------------------------------------------------------------
+\section{Physical Constants}
+\label{s:physical.constants}
+
+\index{constants}
+Common physical constants that can be used in any expression
+are defined in the file
+\begin{example}
+ sim_utils/interfaces/physical_constants.f90
+\end{example}
+This includes the constants given in Section~\sref{s:constants} along with
+\begin{example}
+  mu_0_vac           ! Permeability of free space
+  eps_0_vac          ! Permittivity of free space
+  g_factor_electron  ! Electron anomalous gyro-magnetic moment
+  g_factor_proton    ! Proton anomalous gyro-magnetic moment
+\end{example}
+
+%-----------------------------------------------------------------------------
 \section{Common Structures}
 \label{s:common.struct}
 

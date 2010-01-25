@@ -45,7 +45,6 @@ unity by default. Thus
 \end{example}
 in an XSIF file will give a matrix with all elements being zero.
 
-
 \index{MAD!lattice format}
 The syntax that a \bmad standard lattice file must conform to is
 modeled after the lattice input format of the \mad program.
@@ -260,6 +259,44 @@ Switches are variables that take discrete values. For example:
 The name ``switch'' can refer to the variable (for example,
 \vn{tracking_method}) or to a value that it can take (for example,
 \vn{bmad_standard}). The name ``method'' is used interchangeably with switch.
+
+%-----------------------------------------------------------------
+\section{Units and Constants}
+\label{s:constants}
+\index{constants|hyperbf}
+
+\bmad uses SI (Syst\'eme International) units as shown in
+Table~\ref{t:units}.
+
+\bmad defines commonly used physical and mathematical constants
+shown in Table~\ref{t:constants}.  All symbols use straight SI units
+except for \vn{e_mass} and \vn{p_mass} which are provided for
+compatibility with \mad.
+
+\begin{table}
+\centering
+\begin{tabular}{|l|l|l|l|} \hline
+  {\em Symbol}  & {\em Value}       & {\em Units} &  {\em Name}       \\ \hline
+  pi            & 3.14159265359          &        &                   \\
+  twopi         & 2 * pi                 &        &                   \\
+  fourpi        & 4 * pi                 &        &                   \\
+  e_log         & 2.718281828            &        &                   \\
+  sqrt_2        & 1.4142135623731        &        &                   \\
+  degrees       & 180 / pi               &        &                   \\
+  m_electron    & $0.51099906 \pow{6}$   & eV     & Electron mass     \\
+  m_proton      & $0.938271998 \pow{9}$  & eV     & Proton mass       \\
+  c_light       & $2.99792458 \pow{8}$   & m/sec  & Speed of light    \\
+  r_e           & $2.8179380 \pow{-15}$  & m      & Electron radius   \\
+  r_p           & $1.5346980 \pow{-18}$  & m      & Proton radius     \\
+  e_charge      & $1.6021892 \pow{-19}$  & C      & Electron charge   \\
+  h_planck      & $4.13566733 \pow{-15}$ & eV*sec & Planck's constant \\
+  h_bar_planck  & $6.58211899 \pow{-16}$ & eV*sec & Planck / $2\pi$   \\
+  e_mass        & $0.51099906 \pow{-3}$  & GeV    & Electron mass     \\
+  p_mass        & $0.938271998$          & GeV    & Proton mass       \\ \hline
+\end{tabular}
+\caption{Physical and mathematical constants recognized by \bmad.}
+\label{t:constants}
+\end{table}
 
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}

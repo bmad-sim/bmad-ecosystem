@@ -11,11 +11,10 @@ for arg in sys.argv[1:]:
   file_out = open(arg + 'x', mode = 'w')
 
   for line in file_in.readlines():
-    ixh = line.find(r'\hyperref{')
+    ixh = line.find(r']{routine!')
     if ixh != -1:
-      ix2 = line.find(r'}', ixh)
-      ref = line[ixh+18:ix2].replace('_', '.')
-      line = line[0:ixh+9] + '[r:' + ref + ']' + line[ixh+9:]
+      line = line[0:ixh+2] + line[ixh+10:]
+      print line
     file_out.write(line)
     
   file_in.close()

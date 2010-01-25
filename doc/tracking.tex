@@ -73,10 +73,10 @@ Saving the \vn{coord_stuct} is faster but leaves memory tied up.
 %----------------------------------------------------------------
 \section{Tracking Through the Elements}
 
-The routine \hyperref[r:track1]{routine!track1} is the routine that tracks through one
-element in the lattice. The routine \hyperref[r:track.all]{routine!track_all} calls \vn{track1}
+The routine \hyperref[r:track1]{track1} is the routine that tracks through one
+element in the lattice. The routine \hyperref[r:track.all]{track_all} calls \vn{track1}
 in a loop over all elements to track through the entire
-lattice. Alternatively the routine \hyperref[r:track.many]{routine!track_many} can be used to
+lattice. Alternatively the routine \hyperref[r:track.many]{track_many} can be used to
 track through a selective number of elements or to track backwards
 (See \sref{s:reverse.track}). The routines used for tracking
 and closed orbit calculations are listed in Section \sref{r:track}.
@@ -86,7 +86,7 @@ and closed orbit calculations are listed in Section \sref{r:track}.
 \index{lat_param_struct!plane_lost_at}
 \index{lat_param_struct!end_lost_at}
 \index{tracking!example}
-The \hyperref[r:track_all]{track_all} routine serves as a good example of how tracking
+The \vn{track_all} routine serves as a good example of how tracking
 works. \vn{track_all} tracks a particle through a lattice from
 beginning to end. Its code, condensed slightly, is shown in
 Figure~\ref{f:track.all}.  The \vn{reallocate_coord} call (line~13) is
@@ -192,8 +192,7 @@ element then the place where the orbit was outside the aperture is at
 particle is lost (given by \vn{lat%param%ix_lost}). If the
 particle is lost at the entrance end then the appropriate index is one
 less (remember that \vn{orbit(i)} is the orbit at the exit end of an
-element). To sort this out and to determine in what plane the particle
-is lost in use the routine \hyperref[r:lost.particle.info]{routine!lost_particle_info}.
+element). 
 
 To tell how a particle is lost, check the \vn{lat%param%plane_lost_at}
 parameter. Possible values for this are:
@@ -234,7 +233,7 @@ routines (\vn{lat_make_mat6}, etc.)  will do tracking.
 \index{synchrotron radiation!calculating}
 \bmad simulates radiation damping and excitation by applying a kick
 just before and after each element. To turn on radiation damping
-and/or excitation use the \hyperref[r:setup.radiation.tracking]{routine!setup_radiation_tracking} routine.
+and/or excitation use the \hyperref[r:setup.radiation.tracking]{setup_radiation_tracking} routine.
 
 %----------------------------------------------------------------
 \section{Taylor Maps}
@@ -244,8 +243,8 @@ and/or excitation use the \hyperref[r:setup.radiation.tracking]{routine!setup_ra
 A list of routines for manipulating Taylor maps is given
 in~\sref{r:taylor}. The order of the Taylor maps is set in the lattice
 file using the \vn{parameter} statement (\sref{s:param}). In a program
-this can be overridden using the routine \hyperref[r:set.taylor.order]{routine!set_taylor_order}. The
-routine \hyperref[r:taylor.coef]{routine!taylor_coef} can be used to get the coefficient of any
+this can be overridden using the routine \hyperref[r:set.taylor.order]{set_taylor_order}. The
+routine \hyperref[r:taylor.coef]{taylor_coef} can be used to get the coefficient of any
 given term.
 
 \index{symp_lie_Bmad}
@@ -261,9 +260,9 @@ Transfer Taylor maps for an element are generated as needed when the
 regenerated unless an element attribute is changed.  To generate a
 Taylor map within an element irregardless of the
 \vn{ele%tracking_method} or \vn{ele%mat6_calc_method} settings use the
-routine \hyperref[r:ele.to.taylor]{routine!ele_to_taylor}. This routine will kill any old Taylor map
+routine \hyperref[r:ele.to.taylor]{ele_to_taylor}. This routine will kill any old Taylor map
 before making any new one. To kill a Taylor map (which frees up the
-memory it takes up) use the routine \hyperref[r:kill.taylor]{routine!kill_taylor}.
+memory it takes up) use the routine \hyperref[r:kill.taylor]{kill_taylor}.
 
 To test whether a \vn{taylor_struct} variable has an associated Taylor
 map. That is, to test whether memory has been allocated for the map,
@@ -276,7 +275,7 @@ use the Fortran associated function:
 \end{example}
 
 To concatenate the Taylor maps in a set of elements the routine
-\hyperref[r:concat.taylor]{routine!concat_taylor} can be used
+\hyperref[r:concat.taylor]{concat_taylor} can be used
 \begin{example}
   type (lat_struct) lat          ! lattice
   type (taylor_struct) taylor(6)  ! taylor map
@@ -330,13 +329,13 @@ simpler to handle and analyze.
 
 There are two ways to do reverse tracking in which the particle goes
 in the direction of decreasing \vn{s}. The first way is to use the
-\hyperref[r:track.many]{routine!track_many} routine. See the \vn{track_many} routine for more
+\hyperref[r:track.many]{track_many} routine. See the \vn{track_many} routine for more
 details. The advantage of using \vn{track_many} is that it is
 simple. The disadvantage is that it can slow things down some since
 each element goes through a reversal process every time it is tracked
 through. If a program is doing a lot of tracking the other option
 is to form a reversed lattice with the elements in the reverse order
-and track through that. The routine \hyperref[r:lat.reverse]{routine!lat_reverse} will do
+and track through that. The routine \hyperref[r:lat.reverse]{lat_reverse} will do
 this. One must be somewhat careful since the reversed lattice uses a
 reversed coordinate system. The transformation between the reversed
 and unreversed lattices is
@@ -359,7 +358,7 @@ damping or excitation breaks this symmetry.
 
 Initializing a distribution of particles to conform to some initial set of
 Twiss parameters and emittances can be done using the routine
-\hyperref[r:init.beam.distribution]{routine!init_beam_distribution}. Tracking is then performed similarly to
+\hyperref[r:init.beam.distribution]{init_beam_distribution}. Tracking is then performed similarly to
 macroparticle tracking.
 
 %----------------------------------------------------------------

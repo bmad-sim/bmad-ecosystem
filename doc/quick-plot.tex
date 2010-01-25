@@ -142,43 +142,43 @@ The heart of the plotting is in the subroutine \vn{plot_it} beginning
 on line 17. The namelist read on line 27 shows how both parameters and
 data can be stored in the same file so that a plotting program can be
 automatically told what the appropriate plot labels are. The
-\hyperref[r:qp.draw.text]{routine!qp_draw_text} call on line 34 draws the title above the two graphs.
+\hyperref[r:qp.draw.text]{qp_draw_text} call on line 34 draws the title above the two graphs.
 
-The \hyperref[r:qp.read.data]{routine!qp_read_data} call on line 28 will skip any ``header'' lines
+The \hyperref[r:qp.read.data]{qp_read_data} call on line 28 will skip any ``header'' lines
 (lines that do not begin with something that looks like a number) in
-the data file. In this instance \hyperref[r:qp.read.data]{routine!qp_read_data} will read the
+the data file. In this instance \hyperref[r:qp.read.data]{qp_read_data} will read the
 first, third forth and fifth data columns and put them into the
 \vn{x}, \vn{y}, \vn{z}, and \vn{t} arrays.
 
-\hyperref[r:qp.set.page.border]{routine!qp_set_page_border}, \hyperref{routine!qp_set_box}, and \hyperref{routine!qp_set_margin}
-sets where the graph is going to be placed.  \hyperref[r:qp.set.box]{routine!qp_set_box}\vn{(1,
+\hyperref[r:qp.set.page.border]{qp_set_page_border}, \hyperref{routine!qp_set_box}, and \hyperref{routine!qp_set_margin}
+sets where the graph is going to be placed.  \hyperref[r:qp.set.box]{qp_set_box}\vn{(1,
 1, 2, 1)} on line 37 tells \quickplot to put the first graph in the
-left box of a 2 box grid. The \hyperref[r:qp.set.margin]{routine!qp_set_margin} on line 33 sets the
+left box of a 2 box grid. The \hyperref[r:qp.set.margin]{qp_set_margin} on line 33 sets the
 margins between the box and the graph axes.
 
-\hyperref[r:qp.calc.and.set.axis]{routine!qp_calc_and_set_axis} on lines 38 and 39 are used to scale the
+\hyperref[r:qp.calc.and.set.axis]{qp_calc_and_set_axis} on lines 38 and 39 are used to scale the
 axes. \vn{"ZERO_AT_END"} ensures that the $x$--axis starts (or stops)
-at zero.  \hyperref[r:qp.calc.and.axis.axis]{routine!qp_calc_and_axis_axis} is told to restrict the number of
+at zero.  \hyperref[r:qp.calc.and.set.axis]{qp_calc_and_set_axis} is told to restrict the number of
 major divisions to be between 4 and 8. For the horizontal axis, as can be
 seen in Figure~\ref{f:plot.out}, it chooses 5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
-graph, the routines \hyperref[r:qp.set.symbol.attrib]{routine!qp_set_symbol_attrib} and
-\hyperref[r:qp.set.line.attrib]{routine!qp_set_line_attrib} are called on lines 44 and 45 to plot the
+graph, the routines \hyperref[r:qp.set.symbol.attrib]{qp_set_symbol_attrib} and
+\hyperref[r:qp.set.line.attrib]{qp_set_line_attrib} are called on lines 44 and 45 to plot the
 next data curve in blue with a dashed line style. By default, this
 curve goes where the last one did: in the left graph. To keep the
 setting of the line and symbol attributes from affecting other plots
-the routines \hyperref[r:qp.save.state]{routine!qp_save_state} and \hyperref{routine!qp_restore_state} on lines
-43 and 47 are used. \hyperref[r:qp.save.state]{routine!qp_save_state} saves the current attributes
-in a attribute stack. \hyperref[r:qp.restore.state]{routine!qp_restore_state} restores the saved
-attributes from the attribute stack. \hyperref[r:qp.draw.axes]{routine!qp_draw_axes} is called on
+the routines \hyperref[r:qp.save.state]{qp_save_state} and \hyperref{routine!qp_restore_state} on lines
+43 and 47 are used. \hyperref[r:qp.save.state]{qp_save_state} saves the current attributes
+in a attribute stack. \hyperref[r:qp.restore.state]{qp_restore_state} restores the saved
+attributes from the attribute stack. \hyperref[r:qp.draw.axes]{qp_draw_axes} is called on
 line 40 to draw the $x$ and $y$-axes along, and \vn{qp_draw_data} is called
 on lines 41 and 46 to draw the two data curves.
 
 Lines 50 through 60 draw the third curve in the right hand graph.  The
 \vn{qp_set_axis} call on lines 55/56 sets a log scale for the \vn{y2}
 (right hand) axis. The syntax of the string arguments of
-\hyperref[r:qp.draw.axes]{routine!qp_draw_axes} in lines 40 and 57/58 comes from PGPLOT and allows
+\hyperref[r:qp.draw.axes]{qp_draw_axes} in lines 40 and 57/58 comes from PGPLOT and allows
 special symbols along with subscripts and superscripts.
 
 %----------------------------------------------------------------------------
@@ -212,14 +212,14 @@ will be clipped (if clipping is turned on) and the WINDOW defines the
 plot area. I'm not sure why PGPLOT makes a distinction, but VIEWPORT and
 WINDOW are always the same region.
 
-\hyperref[r:qp.open.page]{routine!qp_open_page} determines the size of the \vn{page} if it is
+\hyperref[r:qp.open.page]{qp_open_page} determines the size of the \vn{page} if it is
 settable (like for X--windows). The page is divided up into a grid of
 boxes. For example, in Figure~\ref{f:plot.coords}, the grid is 1 box
 wide by 3 boxes tall. The border between the grid of boxes and the
-edges of the page are set by \hyperref[r:qp.set.page.border]{routine!qp_set_page_border}.  The box that
-the graph falls into is set by \hyperref[r:qp.set.box]{routine!qp_set_box}. The default is to
+edges of the page are set by \hyperref[r:qp.set.page.border]{qp_set_page_border}.  The box that
+the graph falls into is set by \hyperref[r:qp.set.box]{qp_set_box}. The default is to
 have no margins with 1 box covering the entire page. The
-\hyperref[r:qp.set.margin]{routine!qp_set_margin} routine sets the distance between the box edges
+\hyperref[r:qp.set.margin]{qp_set_margin} routine sets the distance between the box edges
 and the axes (See the PGPLOT manual for more details).
 
 
@@ -230,7 +230,7 @@ and the axes (See the PGPLOT manual for more details).
 
 Typically there is an optional \vn{units} argument for \quickplot routines that
 have length and/or position arguments. For example, using \vn{getf} one can
-see that the arguments for \hyperref[r:qp.draw.rectangle]{routine!qp_draw_rectangle} are
+see that the arguments for \hyperref[r:qp.draw.rectangle]{qp_draw_rectangle} are
 \begin{example}
   Subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)
 \end{example}
@@ -275,7 +275,7 @@ If the \vn{corner} is specified then the \vn{ref_object} must appear also.
  \item 
 Everything must be in upper case.
  \item 
-For some routines (\hyperref[r:qp.set.margin]{routine!qp_set_margin}, etc.) only a relative distance
+For some routines (\hyperref[r:qp.set.margin]{qp_set_margin}, etc.) only a relative distance
 is needed. In this case the \vn{ref_object/corner} part, if present,
 is ignored.
  \item 
@@ -284,7 +284,8 @@ present the default units will be used. There are actually two
 defaults: The draw default is used for drawing text, symbols, or whatever.
 The set default is used for setting margins, and other lengths.
 Initially the draw default is \vn{DATA/GRAPH/LB} and the set
-default is \vn{INCH/PAGE/LB}. use \hyperref[r:qp.set.default]{routine!qp_set_default} to change this.
+default is \vn{INCH/PAGE/LB}. 
+Use \hyperref[r:qp.set.parameters]{qp_set_parameters} to change this.
 \end{itemize}
 Examples:
 \begin{example}
@@ -306,24 +307,24 @@ respectively as shown in Figure~\ref{f:plot.coords}. Normally the
 \vn{X2} axis mirrors the \vn{X} axis and the \vn{Y2} axis mirrors the
 \vn{Y} axis in that the tick marks and axis numbering for the \vn{X2}
 and \vn{Y2} axes are the same as the \vn{X} and \vn{Y} axes
-respectively. \hyperref[r:qp.set.axis]{routine!qp_set_axis} can be used to disable mirroring. For
+respectively. \hyperref[r:qp.set.axis]{qp_set_axis} can be used to disable mirroring. For
 example:
 \begin{example}
   call qp_set_axis ("Y2", mirror = .false.)  ! y2-axis now independent of y.
 \end{example}
-\hyperref[r:qp.set.axis]{routine!qp_set_axis} can also be used to set \vn{Y2} axis parameters
+\hyperref[r:qp.set.axis]{qp_set_axis} can also be used to set \vn{Y2} axis parameters
 (axis minimum, maximum, etc.) and setting the \vn{Y2} or \vn{X2} axis
 minimum or maximum will, by default, turn off mirroring.
 
 Note that the default is for the \vn{X2} and \vn{Y2} axis numbering
 not to be shown. To enable or disable axis numbering again use
-\hyperref[r:qp.set.axis]{routine!qp_set_axis}. For example:
+\hyperref[r:qp.set.axis]{qp_set_axis}. For example:
 \begin{example}
   call qp_set_axis ("Y2", draw_numbers = .true.)  ! draw y2 axis numbers
 \end{example}
 
 To plot data using the \vn{X2} or \vn{Y2} scale use the
-\hyperref[r:qp.use.axis]{routine!qp_use_axis} routine. For example:
+\hyperref[r:qp.use.axis]{qp_use_axis} routine. For example:
 \begin{example}
   call qp_save_state (.true.)
   call qp_use_axis (y = 'Y2')
