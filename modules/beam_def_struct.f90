@@ -38,26 +38,34 @@ type beam_struct
   type (bunch_struct), allocatable :: bunch(:)
 end type
 
-type tail_weighted_beam_init_struct
-  ! Params for ELLIPSE and KV
-  integer :: part_per_ellipse(3) = 0  ! number of particles per ellipse
-  ! Params for ELLIPSE
-  integer :: n_ellipse(3) = 1         ! number of ellipses (>= 1)
-  real(rp) :: sigma_cutoff(3) = 0     ! sigma cutoff of the representation
-  ! Params for KV
-  integer :: n_I2 = 0                 ! number of I2
-  real(rp) :: A = 0                   ! A = I1/e
-  ! Params for GRID
-  integer :: n_x(3) = 0               ! number of columns
-  integer :: n_px(3) = 0               ! number of rows
-  real(rp) :: minima(6) = 0           ! upper and lower limits in (x,px,y,py,z,pz)
-  real(rp) :: maxima(6) = 0
+type ellipse_beam_init_struct
+  integer :: part_per_ellipse = 0  ! number of particles per ellipse
+  integer :: n_ellipse = 1         ! number of ellipses (>= 1)
+  real(rp) :: sigma_cutoff = 0     ! sigma cutoff of the representation
+end type
+
+type kv_beam_init_struct
+  integer :: part_per_phi(2) = 0    ! number of particles per angle variable.
+  integer :: n_I2 = 0               ! number of I2
+  real(rp) :: A = 0                 ! A = I1/e
+end type
+
+type grid_beam_init_struct
+  integer :: n_x = 0               ! number of columns
+  integer :: n_px = 0              ! number of rows
+  real(rp) :: x_min = 0            ! upper and lower limits in (x,px,y,py,z,pz)
+  real(rp) :: x_max = 0            ! upper and lower limits in (x,px,y,py,z,pz)
+  real(rp) :: px_min = 0   
+  real(rp) :: px_max = 0   
 end type
 
 type beam_init_struct
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", or "" (random Gaussian)
-  type(beam_spin_struct)  spin        ! Initialize the spin
+  type(beam_spin_struct)  spin               ! Initialize the spin
+  type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
+  type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
+  type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
   real(rp) a_norm_emitt               ! a-mode emittance
   real(rp) b_norm_emitt               ! b-mode emittance
   real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
@@ -79,8 +87,6 @@ type beam_init_struct
   character(16) :: random_gauss_converter = 'exact'  
                                             ! Or 'limited'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = 4.0     ! Used with 'limited' converter. Cut-off in sigmas.
-
-  type (tail_weighted_beam_init_struct) tw_beam_init ! Parameters for a tail-weighted beam distribution
 end type
 
 type bunch_params_struct
