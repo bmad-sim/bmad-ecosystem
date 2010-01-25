@@ -84,35 +84,120 @@ calculates the transfer matrix through an element via tracking.
 \label{s:beam.init}
 \index{beam initialization parameters|hyperbf}
 
+\index{beam_init_struct}
 Beams of particles are used for simulating inter-bunch intra-bunch effects.
 The \vn{beam_init_struct} structure holds parameters which are used to initialize
 the beam. The parameters of this structure are:
 \begin{example}
   type beam_init_struct
-    real(rp) a_norm_emitt     ! a-mode emittance
-    real(rp) b_norm_emitt     ! b-mode emittance
-    real(rp) :: dPz_dz = 0    ! Correlation of Pz with long position.
-    real(rp) :: center(6) = 0 ! Bench center offset relative to reference.
-    real(rp) ds_bunch         ! Distance between bunches.
-    real(rp) sig_z            ! Z sigma in m.
-    real(rp) sig_e            ! e_sigma in dE/E.
-    real(rp) bunch_charge     ! charge in a bunch.
-    real(rp) :: center_jitter(6) = 0.0 ! Bunch center rms jitter
-    real(rp) :: emitt_jitter(2)  = 0.0 ! a and b normalized rms emittance jitter
-    real(rp) :: sig_z_jitter     = 0.0 ! bunch length RMS jitter 
-    real(rp) :: sig_e_jitter     = 0.0 ! energy spread RMS jitter 
-    type(beam_spin_struct)  spin       ! Initialize the spin
-    integer :: n_particle = 0          ! Number of simulated particles per bunch.
-    integer :: n_bunch = 0             ! Number of bunches.
-    logical :: renorm_center = .true.  ! Renormalize centroid?
-    logical :: renorm_sigma = .true.   ! Renormalize sigma?
-    logical :: preserve_dist = .false. ! use the same grid distribution each time
-    logical :: init_spin     = .false. ! initialize beam spinors
+    character(16) distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
+    type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
+    type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
+    type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
+    !!! The following are for Random distributions
+    character(16) :: random_engine            ! Engine to use: "pseudo" (default) or "quasi". 
+    character(16) :: random_gauss_converter   ! "exact" (default) or "limited". 
+    real(rp) :: random_sigma_cutoff = 4.0     ! Cut-off in sigmas. Used with "limited" converter. 
+    real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
+    real(rp) :: emitt_jitter(2)  = 0.0  ! %RMS a and b mode bunch emittance jitter
+    real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
+    real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
+    integer :: n_particle = 0           ! Number of simulated particles per bunch.
+    logical :: renorm_center = .true.   ! Renormalize centroid?
+    logical :: renorm_sigma = .true.    ! Renormalize sigma?
+    !!! The following are used  by all distribution types
+    type(beam_spin_struct)  spin        ! Spin
+    real(rp) a_norm_emitt               ! a-mode emittance
+    real(rp) b_norm_emitt               ! b-mode emittance
+    real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
+    real(rp) :: center(6) = 0           ! Bench center offset.
+    real(rp) dt_bunch                   ! Time between bunches.
+    real(rp) sig_z                      ! Z sigma in m.
+    real(rp) sig_e                      ! dE/E (pz) sigma.
+    real(rp) bunch_charge               ! Charge in a bunch.
+    integer :: n_bunch = 1              ! Number of bunches.
+    logical :: init_spin     = .false.  ! initialize beam spinors
   end type
 \end{example}
 The number of bunches in the beam is set by \vn{n_bunch}. 
-The number of simulation particles in a bunch is set by \vn{n_particle}.
+The \vn{%distributeion_type(:)} array determines what algorithms are used to generate
+the particle distribution for a bunch. \vn{%distributeion_type(1)} sets the distribution 
+type for the $(x, p_x)$ 2D phase space, etc. 
+Possibilities for \vn{%distributeion_type(:)} are:
+\begin{example}
+  ""         ! Random distribution (default).
+  "ELLIPSE"  ! Ellipse distribution (\sref{ss:ellipse.init})
+  "KV"       ! Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
+  "GRID"     ! Uniform distribution.
+\end{example}
+Currently, if a random distribution is used, it must be used in all 2D
+phase spaces. Since the Kapchinsky-Vladimirsky distribution is for a 4D
+phase space, if the Kapchinsky-Vladimirsky distribution is used,
+\vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)}
+array. 
 
+The parameters common to all the distribution types are marked in the 
+\vn{beam_init_struct} above. The parameters for the random distribution
+are also indicated. These random distribution parameters are:
+  \begin{description}
+  \item[\%random_engine] \Newline
+This component sets the algorithm to use in generating a uniform distribution
+of random numbers in the interval [0, 1]. \vn{"pseudo"} is a pseudo random
+number generator and "quasi" is a quasi random generator. "quasi random" is
+a misnomer in that the distribution generated is fairly uniform.
+  \item[\%random_gauss_converter, \%random_sigma_cutoff] \Newline
+To generate Gaussian random numbers, a conversion alogorithm from the 
+flat distribution generated according to \vn{%random_engine} is needed.
+\vn{%random_gauss_converter} selects the algorithm. The \vn{"exact"} conversion
+uses an exact conversion. The \vn{"limited"} limits the maximum sigma generated
+to the value of \vn{%random_sigma_cutoff}. The \vn{"limited"} method is also
+somewhat faster than the \vn{"exact"} method. Note that the sigma cutoff
+is ignored in the \vn{"exact"} method.
+  \item[\%n_parcicle] \Newline
+This component sets the number of particles generated per bunch.
+  \item[\%renorm_center, \%renorm_sigma] \Newline 
+If set to True, these components will ensure that the actual beam center 
+and sigmas will correspond to the input values. 
+Otherwise, there will be fluctuations due to the finite number of 
+particles generated. 
+  \item[\%center_jitter, \%emitt_jitter, \%sig_z_jitter, \%sig_e_jitter] \Newline
+These components can be used to provide a bunch-to-bunch 
+random variation in the emittance and bunch center.
+\end{description}
+
+The \vn{%ellipse(:)} array sets the parameters for the 
+\vn{ellipse} distribution (\sref{ss:ellipse.init}). 
+Each component of this array looks like
+\begin{example}
+  type ellipse_beam_init_struct
+    integer part_per_ellipse  ! number of particles per ellipse.
+    integer n_ellipse         ! number of ellipses.
+    real(rp) sigma_cutoff     ! sigma cutoff of the representation.
+  end type
+\end{example}
+
+The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the 
+Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
+\begin{example}
+  type kv_beam_init_struct
+    integer part_per_phi(2) .    ! number of particles per angle variable.
+    integer n_I2               ! number of I2
+    real(rp) A                 ! A = I1/e
+  end type
+\end{example}
+
+The \vn{%grid} component of the \vn{beam_init_struct} sets the parameters 
+for a uniformly spaced grid of particles.
+\begin{example}
+  type grid_beam_init_struct
+    integer n_x        ! number of columns.
+    integer n_px       ! number of rows.
+    real(rp) x_min     ! Lower x limit.
+    real(rp) x_max     ! Upper x limit.
+    real(rp) px_min    ! Lower px limit.
+    real(rp) px_max    ! Upper px limit.
+  end type
+\end{example}
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}

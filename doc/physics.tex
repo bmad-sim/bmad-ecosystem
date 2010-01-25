@@ -1162,26 +1162,39 @@ previous subsection, the phase $\phi$ is
 \Endeq
 
 %-----------------------------------------------------------------
-\section{bunch Initialization}
+\section{Bunch Initialization}
 \label{s:bunch.init}
 \index{bunch initialization|hyperbf}
 
 \textit{Developed by Michael Saelim}
 
+To better visualize the evolution of a particle beam, it is 
+sometimes convenient to initialize the beam with
+the particles regularly spaced. The following two algorithms
+are implemented in \bmad for such a purpose.
+
+%----------------------------------------------
 \subsection{Elliptical Phase Space Distribution}
+\label{ss:ellipse.init}
 
 To observe nonlinear effects on the beam, it is sometimes convenient to
 initialize a bunch of particles in a way that puts more particles in the
 tails of the bunch than one would normally have with the standard method
 of seeding particles using a Gaussian distribution. In order to preserve
 the emittance, a distribution with more particles in the tail needs to
-decrease the charge per tail particle relative to the core. For better
-visualization, it is also sometimes convenient to have a regular distribution. 
-Both of these features are contained in the following algorithm. 
+decrease the charge per tail particle relative to the core. 
+This feature, along with a regular distribution,
+are contained in the following \vn{``ellipse''}
+distribution algorithm. 
 
 Consider the two dimensional phase space $(x, p_x)$. 
-The transformation to action-angle coordinates
-$(J, \phi)$ is
+The transformation to action-angle coordinates,
+$(J, \phi)$, is
+\begin{align}
+  J &= \frac{1}{2}[\gamma x^2 + 2 \alpha x x' + \beta x'^2] \\
+  \tan\phi &= \frac{-\beta \, (x' + \alpha \, x)}{x}
+\end{align}
+The inverse is
 \Begineq
   \begin{pmatrix} 
     x \\ x' 
@@ -1195,10 +1208,6 @@ $(J, \phi)$ is
     \cos\phi \\ 
     \sin\phi 
   \end{pmatrix}.
-\Endeq
-The inverse is
-\Begineq
-  J = \frac{1}{2}[\gamma x^2 + 2 \alpha x x' + \beta x'^2]
 \Endeq
 In action-angle coordinates, the normalized Gaussian phase space 
 distribution, $\rho(J, \phi)$, is
@@ -1223,22 +1232,22 @@ and the covariance is
   \label{eq:corr}
 \Endeq
 
-The implementation of the initialization algorithm starts by partitioning phase space
+The \vn{ellipse} algorithm starts by partitioning phase space
 into regions bounded by ellipses of constant $J = B_n$, $n = 0, \ldots N_J$. 
 The boundary values $B_n$ are chosen so that, except for the last boundary,
 the $\sqrt{B_n}$ are equally spaced
 \Begineq
   B_n = 
   \begin{cases}
-    \frac{\varepsilon}{2} \, \left( \frac{n_\sigma \, n}{N} \right)^2 & \text{for } 0 \le n < N_J \\
+    \frac{\varepsilon}{2} \, \left( \frac{n_\sigma \, n}{N} \right)^2 & 
+                  \text{for } 0 \le n < N_J \\
     \infty & \text{for } n = N_J
   \end{cases}
 \Endeq
-where $n_\sigma$ is the boundary sigma cutoff.
-Within each region, an elipse of constant $J_n$ is constructed with
+where $n_\sigma$ is called the \vn{``boundary sigma cutoff''}.
+Within each region, an elliptical shell of constant $J_n$ is constructed with
 $N_\phi$ particles equally spaced in $\phi$. The charge $q_n$ of each
-particle of the $n$\Th ellipse is chosen so that the total normalized
-charge of all
+particle of the $n$\Th ellipse is chosen so that the total charge of all
 the particles of the ellipse is equal to the total charge within the
 region
 \Begineq
@@ -1255,15 +1264,84 @@ The value of $J_n$ is chosen to coincide with the average $J$ within the region
   = \varepsilon (\xi + 1) e^{-\xi} 
     \biggr\vert_{\frac{B_{n}}{\varepsilon}}^{\frac{B_{n-1}}{\varepsilon}}
 \Endeq
-The model phase space distribution is thus
+The \vn{ellipse} phase space distribution is thus
 \Begineq
   \rho_{model}(J, \phi) = q_{tot} \, 
   \sum_{n=1}^{N_J} q_{n} \, \delta(J - J_{n}) \, 
   \sum_{m=1}^{N_\phi} \, \delta(\phi - 2\pi \frac{m}{N_{\phi}})
   \label{eq:rhomodel}
 \Endeq
-where $q_{tot}$ is the total charge.
+where $q_{tot}$ is the total charge. At a given point in the lattice, where
+the Twiss parameters are known, the input parameters needed to construct
+the \vn{ellipse} phase space distribution is $n_\sigma$, $N_J$, $N_\phi$, 
+and $q_{tot}$.
 
+The \vn{ellipse} distribution is two dimensional in nature but can easily be 
+extended to six dimensions.
+
+%----------------------------------------------
+\subsection{Kapchinsky-Vladimirsky Phase Space Distribution}
+\label{ss:kv.init}
+
+The Kapchinsky-Vladimirsky (\vn{KV}) distribution can be thought of as
+a four dimensional alalog of the \vn{ellipse} distribution with only one
+elliptical shell. Consider a 4D phase space $(x,x', y,y')$.  
+Using this framework, a 4D Gaussian distribution is
+\begin{align}
+  \rho(J_x, \phi_x, J_y, \phi_y) &= 
+    \frac{1}{(2\pi)^2 \varepsilon_x \varepsilon_y}\; 
+    exp(-\frac{J_x}{\varepsilon_x})\; exp(-\frac{J_y} {\varepsilon_y}) \\
+  &= \frac{1}{(2\pi)^2 \varepsilon_x \varepsilon_y}\; 
+    exp(-\frac{I_1}{\varepsilon}) ,
+\end{align}
+where the orthogonal action coordinates are:
+\begin{align}
+  I_1 &= \left(  \frac{J_x}{\varepsilon_x} + \frac{J_y}{\varepsilon_y} \right) \varepsilon \\
+  I_2 &= \left( -\frac{J_x}{\varepsilon_y} + \frac{J_y}{\varepsilon_x} \right) \varepsilon
+\end{align}
+with $\varepsilon = (\frac{1}{\varepsilon_x^2} + \frac{1}{\varepsilon_y^2})^{-1/2}$.  
+The reverse transformation is:
+\begin{align}
+   J_x & = \left( \frac{I_1}{\varepsilon_x} - \frac{I_2}{\varepsilon_y} \right) 
+      \varepsilon  \\
+   J_y & = \left( \frac{I_1}{\varepsilon_y} + \frac{I_2}{\varepsilon_x} \right) 
+      \varepsilon.
+\end{align}
+
+The \vn{KV} distribution is
+\Begineq
+  \rho(I_1,I_2,\phi_x,\phi_y) = \frac{1}{A} \delta(I_1 - \xi),
+\Endeq
+where $A = \frac{\varepsilon_x \varepsilon_y}{\varepsilon^2} \xi (2\pi)^2$ 
+is a constant which normalizes the distribution to 1.  
+By choosing a particular $\xi$, and iterating over the domain of the three remaining
+coordinates, one can populate a 3D subspace of constant density.
+
+The range in $I_2$ to be iterated over is constrained by $J_x$, $J_y \geq 0$.  
+Thus $I_2 is in the range [-\frac{\varepsilon_x}{\varepsilon_y} I_1, 
+\frac{\varepsilon_y}{\varepsilon_x} I_1]$. 
+This range is divided into N regions of equal size, with a ring of 
+macroparticles placed in the middle of each region.  
+The angle variables are also constrained to $\phi_x, \phi_y \in [0, 2\pi]$, 
+with each range divided into $M_x$ and $M_y$ regions, respectively.  
+Each of these regions will have a particle placed in its center.
+
+The weight of a macroparticle is determined by the total weight of the region 
+of phase space it represents.  
+Because the density $\rho$ is only dependent on $I_1$,
+\begin{align}
+   q &= \int_{0}^{\infty} dI_1 \int_{I_2}^{I_2 + \Delta I_2} 
+     dI_2 \int_{\phi_x}^{\phi_x + \Delta \phi_x} d\phi_x 
+    \int_{\phi_y}^{\phi_y + \Delta \phi_y} d\phi_y \; \frac{1}{A} \delta(I_1 - \xi) \\
+   &= \frac{1}{A} \Delta I_2 \Delta \phi_x \Delta \phi_y.
+\end{align}
+To represent the distribution with macroparticles of equal weight, 
+we must partition $(I_2,\phi_x,\phi_y)$-space into regions of equal volume.
+
+The weight of each macroparticle is
+\Begineq
+  q = \frac{1}{N M_x M_y} = \frac{1}{number of particles}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Macroparticles}
