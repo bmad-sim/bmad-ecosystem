@@ -479,6 +479,14 @@ character(80) index_str
 logical found, valid_value, err
 logical, allocatable, save :: good1(:)
 
+! To save time, don't evaluate if unnecessary when the running an optimizer.
+
+if (tao_com%optimizer_running .and. .not. datum%useit_opt) then
+  datum_value = 0
+  valid_value = .false.
+  return
+endif
+
 ! See if there is a hook for this datum
 
 call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)

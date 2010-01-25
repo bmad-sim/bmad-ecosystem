@@ -525,8 +525,7 @@ type tao_command_file_struct
   integer :: n_line = 0             ! Current line number
 end type
 
-! tao_common_struct is for those global parameters that the user 
-! should not have direct access to.
+! tao_common_struct is for the global parameters that the user should not have direct access to.
 ! Also see tao_global_struct.
 
 type tao_common_struct
@@ -556,6 +555,7 @@ type tao_common_struct
   logical :: init_read_lat_info  = .true.   ! Used by custom programs to control Tao init
   logical :: init_data           = .true.   ! Used by custom programs to control Tao init
   logical :: parse_cmd_args      = .true.   ! Used by custom programs to control Tao init
+  logical :: optimizer_running   = .false. 
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization
   character(200) :: init_lat_file = ''                 ! '-lat' argument.
