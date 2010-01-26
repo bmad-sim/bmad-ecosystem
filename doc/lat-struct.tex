@@ -175,7 +175,7 @@ Figure~\ref{f:lat.param.struct}
 \centering
 \begin{verbatim}
   type lat_param_struct
-    real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
+    real(rp) n_part             ! Particles/bunch (for beambeam elements).
     real(rp) total_length       ! total_length of lattice
     real(rp) growth_rate        ! growth rate/turn if not stable
     real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
@@ -206,9 +206,9 @@ Normally \vn{%ele(0)%s} = 0 so \vn{%param%total_length} =
 
 \index{lat_param_struct!\%n_part}
 \index{beambeam}
-\index{lcavity}
+\index{lcavity!and param\%n_part}
 \vn{%param%n_part} is the number of particles in a bunch and is used
-by \vn{BeamBeam} element to determine the strength of the beambeam
+by \vn{beambeam} element to determine the strength of the beambeam
 interaction. \vn{%param%n_part} is also used by \vn{lcavity} elements
 for wake field calculations.
 
@@ -280,49 +280,41 @@ electron charge. Example:
 \section{Elements Controlling Other Elements}
 \label{s:lat.control}
 
-In the \vn{lat_struct} structure, certain \vn{ele_struct} elements,
+\index{lord|hyperbf}\index{slave|hyperbf}
+In the \vn{lat_struct} structure, certain elements in the \vn{%ele(:)} 
+array (which is the same as the \vn{%branch(0)%ele(:)} array),
 called \vn{lord} elements, can control the attributes (component
-values) of other \vn{ele_struct} elements.  Elements so controlled are
+values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are
 called \vn{slave} elements.  The situation is complicated by the fact
 that a given element may simultaneously be a \vn{lord} and a
 \vn{slave}. For example, an \vn{overlay} element (\sref{c:control}) is
 a lord since it controlls attributes of other elements but an
 \vn{overlay} can itself be controlled by other \vn{overlay} and
-\vn{group} elements.  
+\vn{group} elements. In all cases, circular lord/slave chains are not permitted.
 
-What type of lord an element is is set by the
-value of the element's \vn{ele%lord_status} component.  The number of
-slave elements that a lord controls is given by the value of the
-lord's \vn{ele%n_slave} component, and as will be discussed in greater
-detail below, the indexes \vn{ele%ix1_slave} and \vn{ele%ix2_slave}
-indicate exactly what elements are being controlled. 
-
-Similarly, what type of slave an element is is set by the value of the
-element's \vn{ele%slave_status} component.  The number of lord
-elements that the slave has is given by the value of the slave's
-\vn{ele%n_lord} component. The indexes \vn{ele%ic1_lord} and
-\vn{ele%ic2_lord} indicate where the lords are located.
+The lord and slave elements can be divided up into classes. What type of
+lord an element is, is set by the value of the element's
+\vn{ele%lord_status} component. Similarly, what type of slave an element
+is is set by the value of the element's \vn{ele%slave_status} component.
+Nomenclature note: An element may be referred to by it's
+\vn{%lord_status} or \vn{%slave_status} value. For example, an element
+with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to as
+a ``\vn{super_lord}'' element.
 
 \index{free}\index{super_lord}
 \index{group_lord}\index{girder_lord}
 \index{multipass_lord}
-Nomenclature note:
-An element may be referred to by it's
-\vn{%lord_status} or \vn{%slave_status} value. For example, an element
-with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to
-as a ``\vn{super_lord}'' element.
-
-The value of the \vn{ele%lord_status} component can be one of:
 \index{girder_lord}
-\begin{description}
-\item[super_lord\$]\Newline 
+The value of the \vn{ele%lord_status} component can be one of:
+  \begin{description}
+  \item[super_lord\$]\Newline 
 A \vn{super_lord} element is created when elements are
 superimposed on top of other elements (\sref{s:super}).
   \item[girder_lord\$]\Newline 
 A \vn{girder_lord} element is a \vn{girder} element  (\sref{s:girder}). 
 That is, the element will have \vn{ele%key} = \vn{girder\$}. In this
 case, the slave elements are marked by setting the
-\vn{ele%on_a_girder} logical to \vn{True}.
+\vn{slave_ele%on_a_girder} logical to \vn{True}.
   \item[multipass_lord\$]\Newline
 \vn{multipass_lord} elements are created when
 multipass lines are present (\sref{s:multipass}). 
@@ -334,7 +326,7 @@ A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is,
 such an element willp have \vn{ele%key} = \vn{group\$}.
   \item[not_a_lord\$]\Newline
 This element does not control anything.
-\end{description}
+  \end{description}
 Any element whose \vn{%lord_status} is something other than
 \vn{not_a_lord\$} is called a \vn{lord} element. In the \vn{tracking part}
 of the lattice (\sref{s:lat.struct}), \vn{%lord_status} will always be
@@ -344,12 +336,13 @@ However, it is permissible,
 and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
+
 The possible values for the \vn{ele%slave_status} component are:
-\begin{description}
+  \begin{description}
   \item[super_slave\$]\Newline 
 A \vn{super_slave} element is an element in the tracking part of the lattice that 
 has one or more \vn{super_lord} lords (\sref{s:super}).
-  \item[multipass_slave]\Newline
+  \item[multipass_slave\$]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
 (\sref{s:multipass}).
   \item[patch_in_slave\$]\Newline
@@ -366,7 +359,7 @@ a bit misleading. An \vn{overlay_slave} can also have associated
 \vn{group_lord} elements.
   \item[group_slave\$]\Newline
 A \vn{group_slave} is an element that has one or more \vn{group_lord}
-elements controlling controlling the slave's attributes.  A \vn{group_slave} 
+elements controlling the slave's attributes.  A \vn{group_slave} 
 will not have any other types of lords.
   \item[free\$]\Newline
 Free elements do not have any lord elements controlling them.
@@ -381,7 +374,7 @@ be in either the tracking or control parts of the lattice.
 
   \centering
   \subfigure[Possible {ele\%lord_status} and {ele\%slave_status} combinations
-    within an individual element. ``X'' marks a possible combination.]
+    within an individual element.]
   {
  \begin{tabular}{lcccccc} 
     \toprule
@@ -405,10 +398,8 @@ be in either the tracking or control parts of the lattice.
   \label{f:lord.slave.a}
   }
   \hfill
-  \subfigure[Possible {ele\%lord_status} and {ele\%slave_status} combinations
-    for a given lord/slave pair. ``X'' marks a possible combination. ``1'' indicates
-    that the slave will have exactly one lord of the type given in the column. ``Y''
-    indicates the combination is not bidirectional.]
+  \subfigure[Possible {\%lord_status} and {\%slave_status} combinations
+    for any lord/slave pair.]
   {
   \begin{tabular}{lcccccc} 
     \toprule
@@ -431,13 +422,18 @@ be in either the tracking or control parts of the lattice.
   \end{tabular}
   \label{f:lord.slave.b}
   }
+  \caption[Possible element \%lord_status/\%slave_status combinations.]
+  {Possible \%lord_status/\%slave_status combinations. 
+   ``X'' marks a possible combination.
+   ``1'' indicates that the slave will have exactly one lord of the type 
+   given in the column. ``Y'' indicates the combination is not bidirectional.}
   \label{f:lord.slave}
 \end{table}
 
 Only some combinations of \vn{%lord_status}
 values and \vn{%slave_status} values are permissible for a given element.
 Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for
-example, it is not possible for an element to be simultaneously a
+example, it is {\em not} possible for an element to be simultaneously a
 \vn{super_lord} and a \vn{super_slave}. 
 
 \begin{figure}[tb]
@@ -452,11 +448,11 @@ will control \vn{super_slave} elements in the tracking part of the lattice.}
 \end{figure}
 
 For lord/slave pairs,
-Table~\ref{f:lord.slave.a} lists the valid combinations of
+Table~\ref{f:lord.slave.b} lists the valid combinations of
 \vn{%lord_status} values in the lord element and \vn{%slave_status}
-values in the slave element that are permissible. Thus, for example, a
+values in the slave element. Thus, for example, a
 \vn{super_slave} may only be controlled by a \vn{super_lord}. In the
-example in \sref{s:multipass}, Element \vn{A} would be a
+example in Section~\sref{s:multipass}, element \vn{A} would be a
 \vn{multipass_lord} and \vn{A\B1} and \vn{A\B2} would be
 \vn{multipass_slave}s. When superposition is combined with multipass,
 the elements in the tracking part of the lattice will be
@@ -465,8 +461,11 @@ the elements in the tracking part of the lattice will be
 \vn{super_lord}/\vn{multipass_slave} elements will be controlled by
 \vn{multipass_lord}s. This is illustrated in Figure~\ref{f:super.mul}.
 
-To find the slaves and lords of a given element, use the
-routines \hyperref[r:pointer.to.slave]{pointer_to_slave} and 
+The number of slave elements that a lord controls is given by the value
+of the lord's \vn{%n_slave} component. Additionally, the number of lord
+elements that the slave has is given by the value of the slave's.
+\vn{%n_lord} component. To find the slaves and lords of a given element,
+use the routines \hyperref[r:pointer.to.slave]{pointer_to_slave} and
 \hyperref[r:pointer.to.lord]{pointer_to_lord}. Eample:
 \begin{example}
   type (lat_struct), target :: lat
@@ -566,7 +565,7 @@ Each element in the \vn{lat%control(:)} array holds the information on
 one lord/slave pair. The \vn{%ix_lord} component gives the index of the
 lord element which is always in the main branch --- branch 0. The
 \vn{%ix_slave}  and \vn{%ix_branch} components give the element index
-and branch index of the slave element. The \vn{%coef} and \vn{ix_attrib}
+and branch index of the slave element. The \vn{%coef} and \vn{%ix_attrib}
 components are used to store the coefficient and
 attribute index for \vn{overlay} and \vn{group} control. The appropriate
 control_struct for a given lord/slave pair can be obtained
@@ -596,8 +595,8 @@ on all group elements in a lattice.
 The elements in the \vn{lat%control(:)} array associated with
 the slaves of a given lord are in the same order as the slaves and the 
 index of the associated \vn{lat%control(:)} element of the first slave 
-is given by the \vn{lord%ix1_slave} component of the lord
-and the last slave is given by the \vn{lord%ix2_slave} component of the
+is given by the \vn{%ix1_slave} component of the lord
+and the last slave is given by the \vn{%ix2_slave} component of the
 lord. Example:
 \begin{example}
   type (lat_struct), target :: lat
@@ -614,7 +613,6 @@ lord. Example:
 This fact can be used to determine where a slave is in the list of slaves
 for a lord. The following example prints the pass number of a \vn{multipass_slave}
 taking advantage of the fact that the pass number 
-
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: lord, slave
@@ -628,6 +626,31 @@ taking advantage of the fact that the pass number
   endif
 \end{example}
 
+\index{ele_struct!\%ic1_lord}\index{ele_struct!\%ic2_lord}
+\index{lat_struct!\%ic}
+The \vn{%ic1_lord} and \vn{%ic2_lord} components of a given slave element,
+along with the \vn{lat%ic(:)} array, can be
+used to find the lords of the slave. In vitually all practical cases, it is
+simpler to use the \vn{pointer_to_lord} function to find the lords and so
+it is recommended that the use of \vn{%ic1_lord} and \vn{%ic2_lord} be
+avoided. For the interested reader, the entire
+\vn{pointer_to_lord} function (minus
+some error checking) is:
+\begin{example}
+  function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
+    implicit none
+    type (lat_struct), target :: lat
+    type (ele_struct) slave
+    type (ele_struct), pointer :: lord_ptr
+    integer, optional :: ix_control
+    integer ix_lord, icon
+    !
+    icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+    lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+    if (present(ix_control)) ix_control = icon
+  end function
+\end{example}
+
 %----------------------------------------------------------------------------
 \section{Lattice Bookkeeping}
 \label{s:lat.bookkeeping}
@@ -635,7 +658,7 @@ taking advantage of the fact that the pass number
 When an attribute of an element is changed, the entire lattice can be
 affected. For example, changing the length of an element will affect the
 global position of all subsequent elements in the lattice. To do the
-necessary bookkeeping involved after an attribute change, the
+necessary bookkeeping, the
 \hyperref[r:lattice.bookkeeper]{lattice_bookkeeper} routine may be used.
 \begin{example}
   type (lat_struct) lat
@@ -644,13 +667,14 @@ necessary bookkeeping involved after an attribute change, the
   call lattice_bookkeeper (lat)         ! And update everything.
 \end{example}
 
-The advantage of using \vn{lattice_bookkeeper} is that it is simple to
-call and does a complete job. The disadvantage is that, since
+The advantage of using \vn{lattice_bookkeeper} is that a complete 
+job is done in one call.
+The disadvantage is that, since
 \vn{lattice_bookkeeper} does not know exactly what has changed, it generally
 does more calculations than is necessary. This can be a problem if
 \vn{lattice_bookkeeper} is being called many times. Additionally, routines
-like \vn{lat_make_mat6} will call bookkeeping routines and this will
-add to the execution time of a program. 
+like \hyperref[r:lat.make.mat6]{lat_make_mat6} will also 
+call bookkeeping routines and this will add to the execution time of a program. 
 
 If program execution time is a problem, it may be necessary to fine tune
 the bookkeeping process. The first step is to turn off automatic
@@ -662,10 +686,10 @@ variable \vn{bmad_com%auto_bookkeeper} (\sref{s:bmad.params}) to False
 The bookkeeping routines that can be used are in place of \vn{lattice_bookkeeper} 
 are:
 \begin{example}
-  attribute_bookkeeper   ! Bookking of attributes in a given element
-  control_bookkeeper
-  s_calc
-  lat_geomegty
+  attribute_bookkeeper   ! Bookkeeping of attributes in a given element
+  control_bookkeeper     ! Lord/slave control bookkeeping
+  s_calc                 ! Longitudinal element position calc.
+  lat_geometry           ! Element global (floor) positions.
   compute_reference_energy  
 \end{example}
 See the individual routines for more details.
@@ -684,8 +708,9 @@ in a lattice by name or key type or a combination of both. Example:
   ...
   call lat_ele_locator ("quad:skew*", lat, eles, n_loc, err)
   print *, 'Quadrupole elements whose name begins with the string "SKEW":'
+  print *, 'Name                 Branch_index        Element_index'
   do i = 1, n_loc  ! Loop over all elements found to match the search string.
-    print *, eles(i)%ele%name
+    print *, eles(i)%ele%name, eles(i)%ele%ix_branch, eles(i)%ele%ix_ele
   enddo
 \end{example}
 This example finds all elements where \vn{ele%key} is \vn{quadrupole\$} 
@@ -710,16 +735,14 @@ check if an attribute is free to vary.
   type (lat_struct) lat
   integer ix_ele
   ...
-  call element_locator ('Q10W', lat, ix_ele)   ! look for a quadrupole
-  free = attribute_free (lat%ele(ix_ele), k1$, lat, .false.)
-  if (.not. free) print *, 'Cannot vary: Q10W k1'
+  call lat_ele_locator ('Q10W', lat, eles, n_loc, err)   ! look for a element 'Q10W'
+  free = attribute_free (eles(i)%ele, 'K1', lat, .false.)
+  if (.not. free) print *, 'Cannot vary k1 attribute of element Q10W'
 \end{example}
+
 \vn{%field_master} is the logical within appropriate elements that
 sets whether it is the normalized strength or field strength that is
 the independent variable. See \sref{s:depend} for more details.
-
-In designing a program that will let a user input what
-attribute to vary, 
 
 With user input the routine \vn{pointer_to_attribute} is a convenient
 way to obtain from an input string a pointer that points to the

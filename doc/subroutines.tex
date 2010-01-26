@@ -1312,6 +1312,12 @@ Subroutine to initialize a Bmad lat.
 \item[lattice_bookkeeper (lat)] \Newline 
 Subroutine to do bookkeeping for the entire lattice.
 
+\index{routine!lat_reverse}
+\label{r:lat.reverse}
+\item[lat_reverse (lat_in, lat_rev)] \Newline
+Subroutine to construct a lat structure with the elements in reversed 
+order. This may be used for backward tracking through the lat. 
+
 \index{routine!reallocate_coord}
 \label{r:reallocate.coord}
 \item[reallocate_coord (coord_, n_coord)] \Newline 
@@ -1322,12 +1328,6 @@ coord(0:n_coord).
 \label{r:reverse.ele}
 \item[reverse_ele (ele)] \Newline
 Subroutine to "reverse" an element for backward tracking. 
-
-\index{routine!lat_reverse}
-\label{r:lat.reverse}
-\item[lat_reverse (lat_in, lat_rev)] \Newline
-Subroutine to construct a lat structure with the elements in reversed 
-order. This may be used for backward tracking through the lat. 
 
 \index{routine!set_design_linear}
 \label{r:set.design.linear}
