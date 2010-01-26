@@ -1,7 +1,7 @@
 &synrad_params
 !  sr_param%lat_file = "/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20081107.lat"   ! Input lattice.
   sr_param%lat_file = "lat.bmad"   ! Input lattice.
-  sr_param%i_beam = 0.1            ! Beam current.
+  sr_param%i_beam = 0.1            ! Single-beam current. 
   sr_param%epsilon_y = 10e-12      ! Vertical emittance.
   sr_param%n_slice = 20            ! # of slices per element or wiggler pole
   seg_len = 0.1                    ! Segment length for calculation.
