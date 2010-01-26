@@ -16,11 +16,11 @@ This program is provided with the \bmad distribution in a file called
 library area in a directory called \vn{bmad/simple_program}.
 
 \begin{figure}[htp]
-\index{routine!bmad_parser}
-\index{routine!twiss_at_start}
-\index{routine!twiss_propagate_all}
-\index{routine!lat_ele_locator}
-\index{routine!type_ele}
+\index[routine]{bmad_parser}
+\index[routine]{twiss_at_start}
+\index[routine]{twiss_propagate_all}
+\index[routine]{lat_ele_locator}
+\index[routine]{type_ele}
 \index{ele_struct}
 \index{lat_struct}
 \index{ele_pointer_struct}
@@ -82,9 +82,9 @@ and transfers the information to a \vn{lat_struct} variable. To get a
 listing of the \vn{lat_struct} components or to find out more about
 \vn{bmad_parser} use the \vn{getf} command as discussed in \sref{s:getf}.
 
-\index{routine!bmad_parser}
-\index{routine!twiss_at_start}
-\index{routine!twiss_propagate_all}
+\index[routine]{bmad_parser}
+\index[routine]{twiss_at_start}
+\index[routine]{twiss_propagate_all}
 After \hyperref[r:bmad.parser]{bmad_parser} is called, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
 routine \hyperref[r:twiss.at.start]{twiss_at_start} (line 15) to multiply the transfer
@@ -189,8 +189,8 @@ of the \vn{ks} attribute of the \vn{CLEO_SOL} and have the \vn{ks}
 attributes of the dependent (``\vn{super_slave}'') elements updated
 with one subroutine call. For example, the following code increases the
 solenoid strength by 1\%
-\index{routine!lattice_bookkeeper}
-\index{routine!lat_ele_locator}
+\index[routine]{lattice_bookkeeper}
+\index[routine]{lat_ele_locator}
 \begin{example}
   call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
   eles(1)%ele(ix)%value(ks$) = eles(1)%ele%value(ks$) * 1.01 

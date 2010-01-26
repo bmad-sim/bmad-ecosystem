@@ -28,6 +28,22 @@ careful of this.
 %----------------------------------------------------------------------------
 
 \begin{figure}
+\index[routine]{qp_open_page}
+\index[routine]{qp_close_page}
+\index[routine]{qp_read_data}
+\index[routine]{qp_calc_and_set_axis}
+\index[routine]{qp_draw_text}
+\index[routine]{qp_draw_axes}
+\index[routine]{qp_draw_data}
+\index[routine]{qp_save_state}
+\index[routine]{qp_restore_state}
+\index[routine]{qp_set_page_border}
+\index[routine]{qp_set_margin}
+\index[routine]{qp_set_line_attrib}
+\index[routine]{qp_set_box}
+\index[routine]{qp_set_graph_attrib}
+\index[routine]{qp_set_symbol_attrib}
+\index[routine]{qp_set_axis}
 \footnotesize
 \begin{listing}{1}
   program example_plot
@@ -142,15 +158,18 @@ The heart of the plotting is in the subroutine \vn{plot_it} beginning
 on line 17. The namelist read on line 27 shows how both parameters and
 data can be stored in the same file so that a plotting program can be
 automatically told what the appropriate plot labels are. The
-\hyperref[r:qp.draw.text]{qp_draw_text} call on line 34 draws the title above the two graphs.
+\hyperref[r:qp.draw.text]{qp_draw_text} call on line 34 draws the 
+title above the two graphs.
 
-The \hyperref[r:qp.read.data]{qp_read_data} call on line 28 will skip any ``header'' lines
-(lines that do not begin with something that looks like a number) in
-the data file. In this instance \hyperref[r:qp.read.data]{qp_read_data} will read the
-first, third forth and fifth data columns and put them into the
-\vn{x}, \vn{y}, \vn{z}, and \vn{t} arrays.
+The \hyperref[r:qp.read.data]{qp_read_data} call on line 28 will skip
+any ``header'' lines (lines that do not begin with something that looks
+like a number) in the data file. In this instance
+\hyperref[r:qp.read.data]{qp_read_data} will read the first, third forth
+and fifth data columns and put them into the \vn{x}, \vn{y}, \vn{z}, and
+\vn{t} arrays.
 
-\hyperref[r:qp.set.page.border]{qp_set_page_border}, \hyperref{routine!qp_set_box}, and \hyperref{routine!qp_set_margin}
+\hyperref[r:qp.set.page.border]{qp_set_page_border}, 
+\hyperref[r:qp.set.box]{qp_set_box}, and \hyperref[r:qp.set.margin]{qp_set_margin}
 sets where the graph is going to be placed.  \hyperref[r:qp.set.box]{qp_set_box}\vn{(1,
 1, 2, 1)} on line 37 tells \quickplot to put the first graph in the
 left box of a 2 box grid. The \hyperref[r:qp.set.margin]{qp_set_margin} on line 33 sets the
@@ -168,7 +187,8 @@ graph, the routines \hyperref[r:qp.set.symbol.attrib]{qp_set_symbol_attrib} and
 next data curve in blue with a dashed line style. By default, this
 curve goes where the last one did: in the left graph. To keep the
 setting of the line and symbol attributes from affecting other plots
-the routines \hyperref[r:qp.save.state]{qp_save_state} and \hyperref{routine!qp_restore_state} on lines
+the routines \hyperref[r:qp.save.state]{qp_save_state} and 
+\hyperref[r:qp.restore.state]{qp_restore_state} on lines
 43 and 47 are used. \hyperref[r:qp.save.state]{qp_save_state} saves the current attributes
 in a attribute stack. \hyperref[r:qp.restore.state]{qp_restore_state} restores the saved
 attributes from the attribute stack. \hyperref[r:qp.draw.axes]{qp_draw_axes} is called on

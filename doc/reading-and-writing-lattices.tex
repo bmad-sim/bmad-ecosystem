@@ -5,8 +5,8 @@
 \label{s:lat.readin}
 \index{lattice files!reading}
 
-\index{XSIF}\index{routine!xsif_parser}
-\index{routine!bmad_parser}\index{routine!bmad_parser2}
+\index{XSIF}\index[routine]{xsif_parser}
+\index[routine]{bmad_parser}\index[routine]{bmad_parser2}
 
 \bmad has routines for reading XSIF (\sref{s:lattice.file.formats})
 and \bmad format files.
@@ -83,8 +83,8 @@ digested file that has elements with the correct Taylor Maps, then to
 save on the map computation time simply make a copy of the digested
 file with the digested file name corresponding to the first lattice.
 
-\index{routine!read_digested_bmad_file}
-\index{routine!write_digested_bmad_file}
+\index[routine]{read_digested_bmad_file}
+\index[routine]{write_digested_bmad_file}
 The digested file is in binary format and is not human readable but it
 provides a convenient mechanism for transporting lattices between
 programs. For example, say you have read in a lattice, changed
@@ -107,7 +107,7 @@ using \vn{write_bmad_lattice_file}
 \index{lattice files!MAD files}
 \index{MAD}
 
-\index{routine!write_bmad_lattice_file}
+\index[routine]{write_bmad_lattice_file}
 To create a \bmad lattice file from a \vn{lat_struct} variable, use the routine
 \hyperref[r:write.bmad.lattice.file]{write_bmad_lattice_file}.
 \index{MAD!MAD-8}
