@@ -111,6 +111,11 @@ type synrad_param_struct
   integer n_slice        ! # of slice per element or wiggler pole
 end type synrad_param_struct
 
+type synrad_mode_struct
+ type (normal_modes_struct) pos_mode
+ type (normal_modes_struct) ele_mode
+end type synrad_mode_struct
+
 type outline_pt_struct
   character(16) name
   character(16) blueprint
