@@ -15,7 +15,7 @@ corresponding component in the \vn{ele_struct} is the value at the exit
 end of the element.
 
 For printing information about an element, the
-\hyperref[r:type.ele]{type_ele} or \hyperref[r:type2.ele]{type2_ele} routines
+\Hyperref{r:type.ele}{type_ele} or \Hyperref{r:type2.ele}{type2_ele} routines
 can be used (\sref{s:first.program}). The difference between the two is
 that \vn{type_ele} will print to the terminal window while \vn{type2_ele}
 will return an array of strings containing the element information.
@@ -136,7 +136,7 @@ variable must either be defined with the \vn{save} attribute
   endif
 \end{example}
 or the pointers within the variable must be deallocated  with a call to
-\hyperref[r:deallocate.ele.pointers]{deallocate_ele_pointers}:
+\Hyperref{r:deallocate.ele.pointers}{deallocate_ele_pointers}:
 \begin{example}
   type (ele_struct) ele  
   ...
@@ -149,7 +149,7 @@ In the normal course of events, the pointers of an \vn{ele_struct} variable
 should not be pointing to the same memory locations as the pointers
 of any other \vn{ele_struct} variable. To make sure of this,
 the equal sign in the assignment \vn{ele1 = ele2}
-is overloaded by the routine \hyperref[r:ele.equal.ele]{ele_equal_ele}
+is overloaded by the routine \Hyperref{r:ele.equal.ele}{ele_equal_ele}
 and this routine will allocate as necessary.
 
 %--------------------------------------------------------------------------
@@ -217,10 +217,10 @@ for a quadrupole element is stored in \vn{%value(k1\$)} where
 In general, to get the correct index
 in \vn{%value(:)} for a given attribute, add a ``\$" as a
 suffix. To convert from an attribute name to its index in the
-\vn{%value} array use the \hyperref[r:attribute.index]{attribute_index} 
+\vn{%value} array use the \Hyperref{r:attribute.index}{attribute_index} 
 routine.  To go back
 from an index in the \vn{%value} array to a name use the
-\hyperref[r:attribute.name]{attribute_name} routine. Example:
+\Hyperref{r:attribute.name}{attribute_name} routine. Example:
 \begin{example}
   type (ele_struct) ele
   call init_ele (ele)    ! Initialize element
@@ -330,9 +330,9 @@ at the exit end of the element. The components of the \vn{%floor} structure are
     real(rp) theta, phi, psi    ! angular orientation
   end type
 \end{example}
-The routine \hyperref[r:ele.geometry]{ele_geometry} will calculate an element's 
+The routine \Hyperref{r:ele.geometry}{ele_geometry} will calculate an element's 
 floor coordinates given the floor coordinates at the beginning of the element.
-In a lattice, the \hyperref[r:lat.geometry]{lat_geometry} routine will calculate
+In a lattice, the \Hyperref{r:lat.geometry}{lat_geometry} routine will calculate
 the floor coordinates for the entire lattice using repeated calls to \vn{ele_geometry}.
 
 \index{x_offset}\index{y_offset}\index{x_pitch}\index{y_pitch}
@@ -381,7 +381,7 @@ for more details.
 \index{ele_struct!\%map_ref_orb_in}
 \index{ele_struct!\%map_ref_orb_out}
 
-The routine \hyperref[r:make.mat6]{make_mat6} computes the linear 
+The routine \Hyperref{r:make.mat6}{make_mat6} computes the linear 
 transfer matrix (Jacobian) along with the zeroth order transfer vector. 
 This matrix is stored in \vn{%mat6(6,6)} and the
 zeroth order vector is stored in \vn{%vec0(6)}. The reference orbit at
@@ -396,7 +396,7 @@ The reason redundant information is stored in the element is to save
 computation time.
 
 To compute the transfer maps for an entire lattice use the routine 
-\hyperref[r:lat.make.mat6]{lat_make_mat6}.
+\Hyperref{r:lat.make.mat6}{lat_make_mat6}.
 
 \index{ele_struct!Taylor maps}
 \index{taylor map!structure in ele_struct}
@@ -545,7 +545,7 @@ structure definition is:
 \end{example}
 \index{lr_freq_spread}
 This is similar to the \vn{sr_mode_wake_struct}. \vn{%freq_in} is the
-actual frequency in the input file. \hyperref[r:bmad.parser]{bmad_parser} will set
+actual frequency in the input file. \Hyperref{r:bmad.parser}{bmad_parser} will set
 \vn{%freq} to \vn{%freq_in} except when the \vn{lr_freq_spread} attribute
 is non-zero in which case \vn{bmad_parser} will vary \vn{%freq} as
 explained in \sref{s:lcav}. \vn{%polarized} is a logical that

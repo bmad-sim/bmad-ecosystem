@@ -82,14 +82,14 @@ and transfers the information to a \vn{lat_struct} variable. To get a
 listing of the \vn{lat_struct} components or to find out more about
 \vn{bmad_parser} use the \vn{getf} command as discussed in \sref{s:getf}.
 
-After \hyperref[r:bmad.parser]{bmad_parser} is called, the program checks if the lattice 
+After \Hyperref{r:bmad.parser}{bmad_parser} is called, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
-routine \hyperref[r:twiss.at.start]{twiss_at_start} (line 15) to multiply the transfer
+routine \Hyperref{r:twiss.at.start}{twiss_at_start} (line 15) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
 matrix from the start of the lat back to the start. From this matrix
 \vn{twiss_at_start} calculates the Twiss parameters at the start of
 the lattice and puts the information into \vn{lat%ele(0)} (\sref{s:twiss}). 
-The next call, to \hyperref[r:twiss.propagate.all]{twiss_propagate_all}, takes the starting
+The next call, to \Hyperref{r:twiss.propagate.all}{twiss_propagate_all}, takes the starting
 Twiss parameters and, using the transfer matrices of the individual
 elements, calculates the Twiss parameters at all the elements. Notice that
 if the lattice is not circular, The starting Twiss parameters will need
@@ -121,10 +121,10 @@ is the $a$--mode (nearly
 horizontal mode) beta function.
 
 The final section of the program, lines 28 through 33, uses the routine
-\hyperref[r:lat.ele.locator]{lat_ele_locator} 
+\Hyperref{r:lat.ele.locator}{lat_ele_locator} 
 (\sref{s:lat.ele.change}) to find the element 
 in the lattice with the name \vn{CLEO_SOL}.
-\hyperref[r:type.ele]{type_ele} is used to type out the element's attributes and other
+\Hyperref{r:type.ele}{type_ele} is used to type out the element's attributes and other
 information as shown on lines 14 through 41 of the output (more on this later).
 
 This brings us to the lattice file used for the input to the program.

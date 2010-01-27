@@ -71,7 +71,7 @@ The normal mode analysis of Sagan and Rubin,
 while it has the benefit of simplicity, is strictly
 only applicable to lattices where the RF cavities are turned off. 
 The full 6-dimensional analysis is summerized by Wolski\cite{b:wolski.coupling}. 
-The \hyperref[r:normal.mode3.calc]{normal_mode3_calc} routine proform 
+The \Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine proform 
 the full analysis. The results are put in
 the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_struct}:
 \index{ele_struct!\%mode3}
@@ -93,7 +93,7 @@ A calculation of the Twiss parameters starts with the Twiss parameters
 at the beginning of the lattice. For linear machines, these twiss parameter
 need to be set in the input lattice file (\sref{s:beginning}). For
 circular machines, 
-the routine \hyperref[r:twiss.at.start]{twiss_at_start} may be used (\sref{s:beginning})
+the routine \Hyperref{r:twiss.at.start}{twiss_at_start} may be used (\sref{s:beginning})
 \begin{example}
   type (lat_struct) lat
   ...
@@ -103,8 +103,8 @@ The initial twiss parameters are placed in \vn{lat%ele(0)}.
 
 To propagate the Twiss, coupling and dispersion 
 parameters from the start of the lattice to the end, the routine
-\hyperref[r:twiss.propagate.all]{twiss_propagate_all} can be used. This
-routine works by repeated calls to \hyperref[r:twiss.propagate1]{twiss_propagate1} which does
+\Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used. This
+routine works by repeated calls to \Hyperref{r:twiss.propagate1}{twiss_propagate1} which does
 a single propagation from one element to another. The Twiss propagation
 depends upon the transfer matrices having already computed (\sref{c:tracking}).
 
@@ -115,7 +115,7 @@ to be correct and the dispersion values in \vn{%a} and \vn{%b} are
 ignored. [Notice, though, in an input lattice file, if
 beginning[eta_a] is set, Bmad does the correct bookkeeping.] In
 general, setting one Twiss parameter will affect the others. To make
-sure everything is consistent, the \hyperref[r:changed.attribute.bookkeeper]{changed_attribute_bookkeeper}
+sure everything is consistent, the \Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
 routine can be used.
 
 If the Twiss parameters need to be transfered from 
@@ -133,10 +133,10 @@ dispersions from the projected ones. Thus a full transfer looks like
 \end{example}
 
 Before any Twiss parameters can be calculated the transfer matrices
-stored in the lattice elements must be computed. \hyperref[r:bmad.parser]{bmad_parser} does
+stored in the lattice elements must be computed. \Hyperref{r:bmad.parser}{bmad_parser} does
 this automatically about the zero orbit. If, to see nonlinear effects,
 a different orbit needs to be used for the reference, The routine
-\hyperref[r:lat.make.mat6]{lat_make_mat6} can be used. For example
+\Hyperref{r:lat.make.mat6}{lat_make_mat6} can be used. For example
 \begin{example}
   type (lat_struct) lat
   type (coord_struct), allocatable :: orbit(:)
@@ -162,7 +162,7 @@ in a program. For example
 \end{example}
 Note that \vn{%beta}, \vn{%alpha}, and \vn{%gamma} all must be specified.
 
-If the lattice is circular, the routine \hyperref[r:twiss.at.start]{twiss_at_start} may be used to
+If the lattice is circular, the routine \Hyperref{r:twiss.at.start}{twiss_at_start} may be used to
 calculate the self--consistent starting Twiss parameters:
 \begin{example}
   type (lat_struct) lat
@@ -170,7 +170,7 @@ calculate the self--consistent starting Twiss parameters:
   call twiss_at_start (lat)
 \end{example}
 
-Once the starting Twiss parameters are set, \hyperref[r:twiss.propagate.all]{twiss_propagate_all}
+Once the starting Twiss parameters are set, \Hyperref{r:twiss.propagate.all}{twiss_propagate_all}
 can be used to propagate the Twiss parameters to the rest of the
 elements
 \begin{example}
@@ -179,18 +179,18 @@ elements
 It is important to keep in mind that \vn{lat%ele(i)%x%eta} is the $a$--mode
 dispersion, not the dispersion along the $x$--axis (\sref{s:ele.twiss}).
 
-The routine \hyperref[r:twiss.and.track.at.s]{twiss_and_track_at_s} 
+The routine \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s} 
 can be used to calculate the
 Twiss parameters at any given longitudinal location. Alternatively, to
 propagate the Twiss parameters partially through a given element use
-the the routine \hyperref[r:twiss.and.track.partial]{twiss_and_track_partial}.
+the the routine \Hyperref{r:twiss.and.track.partial}{twiss_and_track_partial}.
 
 %-----------------------------------------------------------------------------
 \section{Tune Calculation}
 \label{s:tune}
 \index{tune calculation}
 
-For a closed lat the tune is calculated via the routine \hyperref[r:twiss.at.start]{twiss_at_start}.
+For a closed lat the tune is calculated via the routine \Hyperref{r:twiss.at.start}{twiss_at_start}.
 This routine multiplies the transfer matrices of the elements together to form
 the one--turn transfer matrix. From this the routine extracts the initial Twiss
 parameters and the tune. The tune is placed in the variables
@@ -200,7 +200,7 @@ parameters and the tune. The tune is placed in the variables
   lat%b%tune     ! b-mode tune
 \end{example}
 
-The routine \hyperref[r:set.tune]{set_tune} To set the transverse tunes of a closed lat:
+The routine \Hyperref{r:set.tune}{set_tune} To set the transverse tunes of a closed lat:
 \begin{example}
   set_tune (phi_a_set, phi_b_set, dk1, lat, orb_, ok)
 \end{example}
@@ -208,8 +208,8 @@ The routine \hyperref[r:set.tune]{set_tune} To set the transverse tunes of a clo
 achieved. As input \vn{set_tune} takes an argument \vn{dk1(:)} which is an array
 that specifies the relative change to be make to the quadrupoles in the lattice.
 
-To set the longitudinal (synchrotron) tune the routine \hyperref[r:set.z.tune]{set_z_tune} can be
-used. \hyperref[r:set.z.tune]{set_z_tune} 
+To set the longitudinal (synchrotron) tune the routine \Hyperref{r:set.z.tune}{set_z_tune} can be
+used. \Hyperref{r:set.z.tune}{set_z_tune} 
 works by varying rf cavity voltages until the desired tune
 is achieved.
 
@@ -217,10 +217,10 @@ is achieved.
 \section{Chromaticity Calculation}
 \label{s:chrom}
 
-For a closed lat \hyperref[r:chrom.calc]{chrom_calc} calculates the chromaticity by calculating
+For a closed lat \Hyperref{r:chrom.calc}{chrom_calc} calculates the chromaticity by calculating
 the tune change with change in beam energy.
 
-\hyperref[r:chrom.tune]{chrom_tune} sets the chromaticity by varying the sextupoles. This is a 
+\Hyperref{r:chrom.tune}{chrom_tune} sets the chromaticity by varying the sextupoles. This is a 
 very simple routine that simply divides the sextupoles into two families
 based upon the local beta functions at the sextupoles.
 

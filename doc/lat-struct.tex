@@ -98,7 +98,7 @@ definition of the \vn{branch_struct} structure is
 \end{example}
 \index{key_name}
 The \vn{branch(i)%key} component is set to either \vn{photon_branch\$}
-or \vn{branch\$}. The \hyperref[r:key.name]{key_name} function will
+or \vn{branch\$}. The \Hyperref{r:key.name}{key_name} function will
 convert the integer key value to a string for printing. The value of the
 \vn{%branch(i)%ix_branch} conponent is the branch index and will thus
 have the value \vn{i}. This can be useful when passing a branch to a
@@ -465,8 +465,8 @@ The number of slave elements that a lord controls is given by the value
 of the lord's \vn{%n_slave} component. Additionally, the number of lord
 elements that the slave has is given by the value of the slave's.
 \vn{%n_lord} component. To find the slaves and lords of a given element,
-use the routines \hyperref[r:pointer.to.slave]{pointer_to_slave} and
-\hyperref[r:pointer.to.lord]{pointer_to_lord}. Eample:
+use the routines \Hyperref{r:pointer.to.slave}{pointer_to_slave} and
+\Hyperref{r:pointer.to.lord}{pointer_to_lord}. Eample:
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: this_ele, lord_ele, slave_ele
@@ -659,7 +659,7 @@ When an attribute of an element is changed, the entire lattice can be
 affected. For example, changing the length of an element will affect the
 global position of all subsequent elements in the lattice. To do the
 necessary bookkeeping, the
-\hyperref[r:lattice.bookkeeper]{lattice_bookkeeper} routine may be used.
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} routine may be used.
 \begin{example}
   type (lat_struct) lat
   ...
@@ -673,7 +673,7 @@ The disadvantage is that, since
 \vn{lattice_bookkeeper} does not know exactly what has changed, it generally
 does more calculations than is necessary. This can be a problem if
 \vn{lattice_bookkeeper} is being called many times. Additionally, routines
-like \hyperref[r:lat.make.mat6]{lat_make_mat6} will also 
+like \Hyperref{r:lat.make.mat6}{lat_make_mat6} will also 
 call bookkeeping routines and this will add to the execution time of a program. 
 
 If program execution time is a problem, it may be necessary to fine tune
@@ -698,7 +698,7 @@ See the individual routines for more details.
 \section{Finding Elements and Changing Attribute Values}
 \label{s:lat.ele.change}
 
-The routine \hyperref[r:lat.ele.locator]{lat_ele_locator} 
+The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator} 
 can be used to search for an element
 in a lattice by name or key type or a combination of both. Example:
 \begin{example}
