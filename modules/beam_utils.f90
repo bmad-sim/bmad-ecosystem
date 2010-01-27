@@ -1009,7 +1009,7 @@ if (.not. beam_init%renorm_center) then
   enddo
 endif
 
-! scale by the emittances, etc. and put in jitter
+! Scale by the emittances, etc. and put in jitter
 
 call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
 a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &

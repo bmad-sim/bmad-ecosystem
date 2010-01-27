@@ -561,7 +561,6 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct) slave
 type (ele_struct), pointer :: lord_ptr
-type (control_struct), pointer :: con
 
 integer, optional :: ix_control
 integer ix_lord, icon

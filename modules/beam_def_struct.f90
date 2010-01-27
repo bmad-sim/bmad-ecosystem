@@ -51,21 +51,34 @@ type kv_beam_init_struct
 end type
 
 type grid_beam_init_struct
-  integer :: n_x = 0               ! number of columns
-  integer :: n_px = 0              ! number of rows
-  real(rp) :: x_min = 0            ! upper and lower limits in (x,px,y,py,z,pz)
-  real(rp) :: x_max = 0            ! upper and lower limits in (x,px,y,py,z,pz)
-  real(rp) :: px_min = 0   
-  real(rp) :: px_max = 0   
+  integer :: n_x = 0         ! Number of columns.
+  integer :: n_px = 0        ! Number of rows.
+  real(rp) :: x_min = 0      ! Lower x limit.
+  real(rp) :: x_max = 0      ! Upper x limit.
+  real(rp) :: px_min = 0     ! Lower px limit.
+  real(rp) :: px_max = 0     ! Upper px limit,
 end type
 
 type beam_init_struct
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
                                              ! "ELLIPSE", "KV", "GRID", or "" (random Gaussian)
-  type(beam_spin_struct)  spin               ! Initialize the spin
   type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
   type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
   type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
+  !!! The following are for Random distributions
+  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
+  real(rp) :: emitt_jitter(2)  = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
+  real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
+  integer :: n_particle = 0           ! Number of simulated particles per bunch.
+  logical :: renorm_center = .true.   ! Renormalize centroid?
+  logical :: renorm_sigma = .true.    ! Renormalize sigma?
+  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
+  character(16) :: random_gauss_converter = 'exact'  
+                                            ! Or 'limited'. Uniform to gauss conversion method.
+  real(rp) :: random_sigma_cutoff = 4.0     ! Used with 'limited' converter. Cut-off in sigmas.
+  !!! The following are used  by all distribution types
+  type(beam_spin_struct)  spin        ! Initialize the spin
   real(rp) a_norm_emitt               ! a-mode emittance
   real(rp) b_norm_emitt               ! b-mode emittance
   real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
@@ -74,19 +87,8 @@ type beam_init_struct
   real(rp) sig_z                      ! Z sigma in m.
   real(rp) sig_e                      ! e_sigma in dE/E.
   real(rp) bunch_charge               ! charge in a bunch.
-  real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
-  real(rp) :: emitt_jitter(2)  = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
-  real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
-  real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
-  integer :: n_particle = 0           ! Number of simulated particles per bunch.
   integer :: n_bunch = 1              ! Number of bunches.
-  logical :: renorm_center = .true.   ! Renormalize centroid?
-  logical :: renorm_sigma = .true.    ! Renormalize sigma?
   logical :: init_spin     = .false.  ! initialize beam spinors
-  character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
-  character(16) :: random_gauss_converter = 'exact'  
-                                            ! Or 'limited'. Uniform to gauss conversion method.
-  real(rp) :: random_sigma_cutoff = 4.0     ! Used with 'limited' converter. Cut-off in sigmas.
 end type
 
 type bunch_params_struct
