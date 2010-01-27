@@ -434,7 +434,10 @@ For lattice and beam parameters the format is
 And for element parameters the format is
 \begin{example}
   \{<universe_range>@\}ele::<element_id>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}ele_mid::<element_id>[<param_name>]\{|<component>\}
 \end{example}
+\vn{ele::} will evaluate the parameter at the exit end of the element and 
+\vn{ele_mid::} will evalute the parameter at the middle of the element.
 The components of this syntax are:
 \begin{example}
   <universe_range>    Optional universe specification (\sref{s:universe})

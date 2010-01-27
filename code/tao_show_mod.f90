@@ -1407,7 +1407,7 @@ case ('lattice')
         call str_substitute (name, '#', trim(nam))
         ix = index(name, 'ele::')
         if (.not. at_ends .and. ix /= 0) then
-          name = name(:ix+3) // '_middle' // trim(name(ix+4:))
+          name = name(:ix+2) // '_mid' // trim(name(ix+3:))
         endif
         call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then

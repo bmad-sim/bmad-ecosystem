@@ -2521,6 +2521,8 @@ if (ix /= 0) then
   s = name(max(1,ix-3):ix-1)
   if (s == 'lat' .or. s == 'ele' .or. s == 'dat' .or. s == 'var') then
     source = s
+  else if (name(max(1,ix-7):ix-1) == 'ele_mid') then
+    source = 'ele'
   elseif (name(max(1, ix-4):ix-1) == 'beam') then
     source = 'beam'
   endif
