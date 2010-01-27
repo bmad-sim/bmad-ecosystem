@@ -1,16 +1,19 @@
 &synrad_params
 !  sr_param%lat_file = "/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20081107.lat"   ! Input lattice.
-  sr_param%lat_file = "lat.bmad"   ! Input lattice.
+!  sr_param%lat_file = "lat.bmad"   ! Input lattice.
+  sr_param%lat_file = "/home/critten/synrad/cerl8.0.modea.bmad"   ! Input lattice.
   sr_param%i_beam = 0.1            ! Single-beam current. 
   sr_param%epsilon_y = 10e-12      ! Vertical emittance.
   sr_param%n_slice = 20            ! # of slices per element or wiggler pole
   seg_len = 0.1                    ! Segment length for calculation.
-  beam_direction = 0               ! -1 = track backwards only, 
+  beam_direction = 1               ! -1 = track backwards only, 
                                    !  0 = track both directions, 1 = forward.
 !  wall_file = "CTAwall.dat"           ! "NONE" => Use a wall with a fixed offset from the beam.
-  wall_file = "wall.dat"           ! "NONE" => Use a wall with a fixed offset from the beam.
-  wall_offset = 0.045              ! Used when wall_file is set to "NONE"
-  forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
+!  wall_file = "wall.dat"           ! "NONE" => Use a wall with a fixed offset from the beam.
+  wall_file = "NONE"           ! "NONE" => Use a wall with a fixed offset from the beam.
+  wall_offset = 0.0127              ! Used when wall_file is set to "NONE"
+!  forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
+  forward_beam  = "ELECTRON"       ! "POSITRON" or "ELECTRON"
   backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
   use_ele_ix = 0   ! If using only a single element, this is the element index number to use
         ! Otherwise, use 0 for power from all elements

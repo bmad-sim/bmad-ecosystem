@@ -11,6 +11,7 @@ type (coord_struct), allocatable :: orb(:)
 type (walls_struct), target :: walls
 type (wall_struct),pointer :: negative_x_wall, positive_x_wall
 type (synrad_param_struct) :: sr_param
+type (synrad_mode_struct) :: synrad_mode
 
 type (ele_power_struct), allocatable :: fwd_power(:), back_power(:)
 
@@ -192,18 +193,21 @@ if (beam_direction < -1 .or. beam_direction > 1) then
 endif
 
 if (beam_direction == 0 .or. beam_direction == 1) then
-  call synch_calc (1, forward_beam, fwd_power) 
+  call synch_calc (1, forward_beam, fwd_power, synrad_mode) 
 endif
 
 if (beam_direction == 0 .or. beam_direction == -1) then
-  call synch_calc (-1, backward_beam, back_power) 
+  call synch_calc (-1, backward_beam, back_power, synrad_mode) 
 endif
 
 ! write out results
 ! set lat elements and twiss at wall segments
 
-call write_power_results(positive_x_wall, lat, sr_param, use_ele_ix)
-call write_power_results(negative_x_wall, lat, sr_param, use_ele_ix)
+call write_power_results(positive_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_power_results(negative_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+
+call write_results(positive_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_results(negative_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
 
 open (unit = 1, file = 'element_power.dat')
 
@@ -251,8 +255,10 @@ deallocate(fwd_power, back_power)
 !------------------------------------------------------------------------------
 contains
 
-subroutine synch_calc (direction, beam_type, power)
+subroutine synch_calc (direction, beam_type, power, synrad_mode)
 
+type (synrad_mode_struct) :: synrad_mode
+type (normal_modes_struct) :: mode
 type (ele_power_struct), allocatable :: power(:)
 integer direction
 character(*) beam_type
@@ -268,6 +274,16 @@ endif
 call twiss_and_track (lat, orb)
 call calculate_synrad_power(lat, orb, direction, power, &
                               walls, sr_param, use_ele_ix)
+
+call radiation_integrals (lat, orb, mode)
+
+if (beam_type == 'ELECTRON') then
+  synrad_mode%ele_mode = mode
+  print *,'Electron horiz emittance:',mode%a%emittance
+else if (beam_type == 'POSITRON') then
+  synrad_mode%pos_mode = mode
+  print *,'Positron horiz emittance:',mode%a%emittance
+endif
 
 end subroutine
 
