@@ -243,7 +243,7 @@ endif
 
 if (u%mat6_recalc_on) then
   do i = 1, branch%n_ele_track
-    if (lat%ele(i)%tracking_method == linear$) then
+    if (branch%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i, ix_branch = ix_branch)
     else
       call lat_make_mat6 (lat, i, orbit, ix_branch)

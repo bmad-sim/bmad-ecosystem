@@ -369,7 +369,7 @@ do i = 1, size(ix_datum)
   case (model$)
     call tao_evaluate_a_datum (datum, u, u%model, datum%model_value, datum%good_model)
     if (datum%ix_ele_merit > -1) then
-      datum%s = u%model%lat%ele(datum%ix_ele_merit)%s
+      datum%s = u%model%lat%branch(datum%ix_branch)%ele(datum%ix_ele_merit)%s
     endif
   case (design$)
     call tao_evaluate_a_datum (datum, u, u%design, datum%design_value, good)

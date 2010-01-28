@@ -756,7 +756,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       return
     end select
 
-    if (middle) then
+    if (middle .and. ixe /= 0) then
       call twiss_and_track_partial (branch%ele(ixe-1), branch%ele(ixe), &
                 lat%param, branch%ele(ixe)%value(l$)/2, ele3, this_orb(ixe-1), orb)
       if (parameter(1:6) == 'orbit_') then
