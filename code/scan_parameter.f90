@@ -204,7 +204,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 
   ix_ip = 1
 
-  call add_superimpose (ring, beambeam_ele, ix_ip)
+  call add_superimpose (ring, beambeam_ele, 0, ix_ip)
   call lat_make_mat6(ring, -1)
 
   call out_io(s_info$,r_name,' Strong beam: ')

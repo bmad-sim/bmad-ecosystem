@@ -115,7 +115,7 @@ OBJ_OUT_DIR   = $(locallib)
 ifeq "$(BMAD_DIST)" "TRUE"
   include $(BMAD_GMAKE)/M.tail
 else
-  include $(CESR_GMAKE)/M.tail
+  include /home/cesrulib/bin/Gmake/M.tail 
 endif
 
 
