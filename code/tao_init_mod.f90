@@ -972,10 +972,8 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (tao_data_struct), pointer :: data
-
-integer, allocatable :: n_data(:)
-integer, allocatable :: ix_next(:)
-integer i, j, k, ix_ele, n_max
+type (tao_element_struct), pointer :: uni_ele(:)
+integer i, ib, j, k, ix_ele, n_max
 
 logical err
 
@@ -986,27 +984,20 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   call tao_allocate_data_array (u, u%n_data_used, .true.) ! Trim u%data size
 
-  n_max = u%design%lat%n_ele_max
-
-  allocate (n_data(-2:n_max), ix_next(-2:n_max))
-
-  n_data(:) = 0
-
-  ! allocate the ix_data array
-
-  if (allocated(u%ix_data)) deallocate(u%ix_data)
-  allocate(u%ix_data(-2:n_max))
+  do ib = 0, ubound(u%model%lat%branch, 1)
+    uni_ele => u%uni_branch(ib)%ele
+    uni_ele(:)%n_datum = 0
+  end do
 
   ! Since some information gets lost during tracking (like beam distributions),
   !   find where each datum gets evaluated when tao_load_data_array is called.
-  ! ix_ele = -1  ! Gets evaluated after all tracking
-  ! ix_ele = -2  ! Does not get evaluated by tao_lattice_calc_mod
+  ! ix_ele = -1  -->  Gets evaluated after all tracking
 
   do j = 1, size(u%data)
     data => u%data(j)
     if (.not. data%exists) cycle
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
-      ix_ele = -2
+      cycle ! Does not get evaluated by tao_lattice_calc_mod
     elseif (data%data_type(1:8) == 'rad_int.') then
       ix_ele = -1
     elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
@@ -1020,19 +1011,22 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     else
       ix_ele = data%ix_ele
     endif
-    n_data(ix_ele) = n_data(ix_ele) + 1
-  enddo
-    
-  ! allocate ix_ele array for each element
-  do j = lbound(u%ix_data, 1), ubound(u%ix_data, 1)
-    if (allocated(u%ix_data(j)%ix_datum)) deallocate (u%ix_data(j)%ix_datum)
-    if (n_data(j) == 0) cycle
-    allocate (u%ix_data(j)%ix_datum(n_data(j)))
-  enddo
 
-  ! used for keeping track of current datum index in each ix_ele element
-  ix_next(:) = 1
+    uni_ele => u%uni_branch(data%ix_branch)%ele
+    uni_ele(ix_ele)%n_datum = uni_ele(ix_ele)%n_datum + 1 
+  enddo
     
+  ! allocate ix_datum array for each element
+
+  do ib = 0, ubound(u%model%lat%branch, 1)
+    uni_ele => u%uni_branch(ib)%ele
+    do j = -1, ubound(uni_ele, 1)
+      if (uni_ele(j)%n_datum == 0) cycle
+      allocate (uni_ele(j)%ix_datum(uni_ele(j)%n_datum))
+    enddo
+    uni_ele(:)%n_datum = 0
+  end do
+
   ! setup ix_ele array for each element
   ! This is the point where the datum is evaluated
   ! if ix_ele_ref > ix_ele then there is "wrap around"
@@ -1041,7 +1035,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     data => u%data(j)
     if (.not. data%exists) cycle
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
-      ix_ele = -2
+      cycle ! Does not get evaluated by tao_lattice_calc_mod
     elseif (data%data_type(1:8) == 'rad_int.') then
       ix_ele = -1
     elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
@@ -1055,11 +1049,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     else
       ix_ele = data%ix_ele
     endif
-    u%ix_data(ix_ele)%ix_datum(ix_next(ix_ele)) = j
-    ix_next(ix_ele) = ix_next(ix_ele) + 1
-  enddo
 
-  deallocate (n_data, ix_next)
+    uni_ele => u%uni_branch(data%ix_branch)%ele
+    k = uni_ele(ix_ele)%n_datum + 1
+    uni_ele(ix_ele)%ix_datum(k) = j
+    uni_ele(ix_ele)%n_datum = k
+  enddo
 
 enddo
 

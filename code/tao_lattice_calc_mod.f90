@@ -42,13 +42,13 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
-integer i, j, k, ix, n_max, iu, it, id 
+integer iuni, j, k, ix, n_max, iu, it, id 
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
-character(20) track_type
+character(20) track_type, name
 
-logical calc_ok, this_calc_ok
+logical calc_ok, this_calc_ok, err
 
 !
 
@@ -63,9 +63,9 @@ call tao_hook_lattice_calc (calc_ok)
     
 ! To save time, s%u(:)%lattice_recalc are used to determine what gets calculated. 
 
-do i = lbound(s%u, 1), ubound(s%u, 1)
+do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
-  u => s%u(i)
+  u => s%u(iuni)
   if (.not. u%is_on .or. .not. u%lattice_recalc) cycle
 
   ! Pointer to appropriate lattice and zero data array
@@ -80,7 +80,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   call tao_lat_bookkeeper (u, tao_lat)
 
-  ! 
+  ! Loop over all branches
 
   do k = 0, ubound(tao_lat%lat%branch, 1)
  
@@ -118,13 +118,14 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     calc_ok = .false.
   endif
 
-  call tao_load_data_array (u, -1, model$)
+  call tao_load_data_array (u, -1, 0, model$)
 
   ! do multi-turn tracking if needed. This is always the main lattice. 
 
-  if (allocated(u%ix_data(-2)%ix_datum)) then
-    ix = u%ix_data(-2)%ix_datum(1)
-    d2_dat => u%data(ix)%d1%d2
+  write (name, '(i0, a)') iuni, '@multi_turn_orbit'
+  call tao_find_data (err, name, d2_dat)
+
+  if (associated(d2_dat)) then
     n_max = 0
     do id = 1, size(d2_dat%d1)
       n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))
@@ -156,7 +157,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If calc is on common model then transfer data to base of all other universes
 
-  if (tao_com%common_lattice .and. i == ix_common_uni$) then
+  if (tao_com%common_lattice .and. iuni == ix_common_uni$) then
     do j = lbound(s%u, 1), ubound(s%u, 1)
       if (j == ix_common_uni$) cycle
       s%u(j)%data(:)%base_value = u%data(:)%model_value
@@ -260,7 +261,7 @@ if (u%mat6_recalc_on) then
 endif
 
 do i = 0, branch%n_ele_track
-  call tao_load_data_array (u, i, model$)
+  call tao_load_data_array (u, i, ix_branch, model$)
 enddo
 
 end subroutine tao_single_track
@@ -443,7 +444,7 @@ do j = ie1, ie2
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
                      lat%ele(j), lat%param, lat_branch%bunch_params(j), err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
-  call tao_load_data_array (u, j, model$) 
+  call tao_load_data_array (u, j, ix_branch, model$) 
 
   if (s%global%beam_timer_on) then
     call run_timer ('READ', time)

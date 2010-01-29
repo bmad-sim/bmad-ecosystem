@@ -108,11 +108,14 @@ case ('beam')
 
     do ibr = 0, ubound(u%uni_branch, 1)
 
+      if (eles(1)%ele%ix_branch /= ibr) cycle
+
       ! Write file
 
       do j = lbound(u%uni_branch(ibr)%ele, 1), ubound(u%uni_branch(ibr)%ele, 1)
 
-        if (eles(1)%ele%ix_ele /= j .or. eles(1)%ele%ix_branch /= ibr) cycle
+        if (eles(1)%ele%ix_ele /= j) cycle
+
         beam => u%uni_branch(ibr)%ele(j)%beam
         if (.not. allocated(beam%bunch)) cycle
 

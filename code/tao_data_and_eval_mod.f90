@@ -327,7 +327,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_load_data_array (uni, ix_ele, who_dat)
+! Subroutine tao_load_data_array (uni, ix_ele, ix_branch, who_dat)
 !
 ! Routine to take data from the model lattice and model orbit
 ! and put that into the s%u(:)%data(:) arrays.
@@ -338,7 +338,7 @@ end subroutine
 !   who_dat     -- Integer: Either: model$, base$, or design$
 !-
 
-subroutine tao_load_data_array (u, ix_ele, who_dat)
+subroutine tao_load_data_array (u, ix_ele, ix_branch, who_dat)
 
 implicit none
 
@@ -346,7 +346,7 @@ type (tao_universe_struct), target :: u
 type (tao_data_struct), pointer :: datum
 
 integer, pointer :: ix_datum(:)
-integer uni, ix_ele, who_dat
+integer uni, ix_ele, ix_branch, who_dat
 integer i
 
 character(20) data_source
@@ -359,9 +359,10 @@ logical good
 if (ix_ele == 0) call tao_data_coupling_init (u) 
   
 ! find which datums to evaluate here
-if (.not. allocated(u%ix_data(ix_ele)%ix_datum)) return
 
-ix_datum => u%ix_data(ix_ele)%ix_datum
+if (.not. allocated(u%uni_branch(ix_branch)%ele(ix_ele)%ix_datum)) return
+
+ix_datum => u%uni_branch(ix_branch)%ele(ix_ele)%ix_datum
 do i = 1, size(ix_datum)
   datum => u%data(ix_datum(i))
 

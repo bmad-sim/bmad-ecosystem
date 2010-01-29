@@ -231,11 +231,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   allocate (u%uni_branch(0:n))
 
   do k = 0, ubound(u%design%lat%branch, 1)
-    n = ubound(u%design%lat%branch(k)%ele, 1)
+    n = u%design%lat%branch(k)%n_ele_max
     allocate (u%model%lat_branch(k)%orbit(0:n), u%model%lat_branch(k)%bunch_params(0:n))
     allocate (u%design%lat_branch(k)%orbit(0:n), u%design%lat_branch(k)%bunch_params(0:n))
     allocate (u%base%lat_branch(k)%orbit(0:n), u%base%lat_branch(k)%bunch_params(0:n))
-    allocate (u%uni_branch(k)%ele(0:n))
+    allocate (u%uni_branch(k)%ele(-1:n))
   enddo
 
   u%model = u%design
@@ -262,11 +262,11 @@ if (tao_com%common_lattice) then
   allocate (u%uni_branch(0:n))
 
   do k = 0, ubound(u%design%lat%branch, 1)
-    n = ubound(u%design%lat%branch(k)%ele, 1)
+    n = u%design%lat%branch(k)%n_ele_max
     allocate (u%model%lat_branch(k)%orbit(0:n), u%model%lat_branch(k)%bunch_params(0:n))
     allocate (u%design%lat_branch(k)%orbit(0:n), u%design%lat_branch(k)%bunch_params(0:n))
     allocate (u%base%lat_branch(k)%orbit(0:n), u%base%lat_branch(k)%bunch_params(0:n))
-    allocate (u%uni_branch(k)%ele(0:n))
+    allocate (u%uni_branch(k)%ele(-1:n))
   enddo
 
   ! If unified then point back to the common universe (#1) and the working universe (#2)

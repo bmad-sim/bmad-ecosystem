@@ -583,17 +583,6 @@ type tao_connected_uni_struct
 end type
 
 !-----------------------------------------------------------------------
-! This says which datumns to evaluate at this ele
-! The point of this is to ave time by not looping through all the data at every
-! elements finding which datums need to be evaluated. Instead, do the searching
-! beforehand and just keep a log of where to evaluate.
-
-  type tao_ix_data_struct
-    ! list of all datums evaluated at this ele
-    integer, allocatable :: ix_datum(:)
-  endtype
-
-!-----------------------------------------------------------------------
 
 type tao_lat_mode_struct
   real(rp) chrom
@@ -621,12 +610,19 @@ end type
 
 !-----------------------------------------------------------------------
 ! tao_element_struct is for saving per-element information.
+!
+! ix_datum(:) keeps track of which datumns to evaluate at this element
+! The point of this is to save time by not looping through all the data at all the
+! elements finding which datums need to be evaluated. Instead, do the sorting
+! beforehand and just keep a log of where to evaluate.
 
 type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
-  logical save_beam               ! Save beam here?
+  integer, allocatable :: ix_datum(:)
+  integer n_datum
   integer n_particle_lost_here    ! How many particles are lost here.
   integer ixx                     ! Scratch variable
+  logical save_beam               ! Save beam here?
 end type
 
 type tao_beam_struct
@@ -656,7 +652,6 @@ type tao_universe_struct
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (coord_struct) model_orb0                         ! For saving beginning orbit
-  type (tao_ix_data_struct), allocatable :: ix_data(:)   ! which data to evaluate at this ele
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   character(100) beam_saved_at
   integer ix_uni                         ! Universe index.
