@@ -123,7 +123,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   ! do multi-turn tracking if needed. This is always the main lattice. 
 
   write (name, '(i0, a)') iuni, '@multi_turn_orbit'
-  call tao_find_data (err, name, d2_dat)
+  call tao_find_data (err, name, d2_dat, print_err = .false.)
 
   if (associated(d2_dat)) then
     n_max = 0
