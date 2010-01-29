@@ -155,6 +155,8 @@ if (wiggler%sub_key == map_type$) then
     
   enddo
 
+  !
+
   b2_int = b2_int * wiggler%value(l$) / i_max
   b3_int = b3_int * wiggler%value(l$) / i_max
 
@@ -198,8 +200,8 @@ if (wiggler%sub_key == map_type$) then
 
   ! Need at least 3 poles for the model.
 
-  if (n_pole < 3) then
-    call out_io (s_fatal$, r_name, 'WIGGLER: ' // ele%name, &
+  if (n_pole < 3  .and. g_max /= 0) then
+    call out_io (s_fatal$, r_name, 'WIGGLER: ' // wiggler%name, &
                'HAS LESS THAN 3 POLES. CANNOT CREATE A WIGGLER MODEL.')
     call err_exit
   endif
@@ -213,6 +215,7 @@ else
   g2_int = g_max**2 / 2
   g3_int = 4 * g_max**3 / (3 * pi)  
   n_pole = wiggler%value(n_pole$)
+  if (g_max == 0) n_pole = 0
 
 endif
 
@@ -250,8 +253,6 @@ lat%param%particle = positron$
 ! Simple model if there is no field
 
 if (g_max == 0) then
-  lat%n_ele_track = 1
-  lat%n_ele_max = 1
   lat%ele(1)%key = drift$
   lat%ele(1)%value(l$) = wiggler%value(l$)
   lat%ele(1)%name = wiggler%name

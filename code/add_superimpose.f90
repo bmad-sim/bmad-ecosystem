@@ -39,7 +39,7 @@ type (branch_struct), pointer :: branch
 
 real(rp) s1, s2, length, s1_lat, s2_lat
 
-integer i, j, jj, k, ix, n, i2, ic, n_con, ixs
+integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
 integer ix1_split, ix2_split, ix_super, ix_super_con
 integer ix_slave, ixn, ixc, ix_1lord, n_ele_max_old
 
@@ -69,7 +69,8 @@ call init_ele (drift)
 drift%key = drift$
 
 super_saved = super_ele
-branch => lat%branch(super_ele%ix_branch)
+ix_branch = super_ele%ix_branch
+branch => lat%branch(ix_branch)
 
 ! s1 is the left edge of the superimpose.
 ! s2 is the right edge of the superimpose.
@@ -102,8 +103,8 @@ endif
 ! of the lattice list.
 
 if (super_saved%value(l$) == 0) then
-  call split_lat (lat, s1, ix1_split, split1_done, check_controls = .false.)
-  call insert_element (lat, super_saved, ix1_split+1)
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, check_controls = .false.)
+  call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   branch%ele(ix_super)%lord_status  = not_a_lord$
   branch%ele(ix_super)%slave_status = free$
@@ -122,8 +123,8 @@ endif
 
 ! if superimpose wraps around 0 ...
 if (s2 < s1) then     
-  call split_lat (lat, s2, ix2_split, split2_done, .false., .false.)
-  call split_lat (lat, s1, ix1_split, split1_done, .false., .false.)
+  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
   super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + &
                           (branch%ele(ix2_split)%s - s1_lat)
 
@@ -133,25 +134,25 @@ else
     if (branch%ele(1)%key /= drift$) then
       length = s1_lat - s1
       drift%value(l$) = length
-      call insert_element (lat, drift, 1)
+      call insert_element (lat, drift, 1, ix_branch)
       s1 = s1_lat
       s2 = s2 + length
       s2_lat = s2_lat + length
     endif
     ix1_split = 0
   else
-    call split_lat (lat, s1, ix1_split, split1_done, .false., .false.)
+    call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
   endif
 
   if (s2 > s2_lat) then    ! superimpose off end case
     if (branch%ele(branch%n_ele_track)%key /= drift$) then
       drift%value(l$) = s2 - s2_lat
-      call insert_element (lat, drift, branch%n_ele_track + 1)
+      call insert_element (lat, drift, branch%n_ele_track + 1, ix_branch)
       s2_lat = s2
     endif
     ix2_split = branch%n_ele_track
   else
-    call split_lat (lat, s2, ix2_split, split2_done, .false., .false.)
+    call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
   endif
 
   if (s1 < s1_lat) branch%ele(1)%value(l$) = branch%ele(1)%s - s1

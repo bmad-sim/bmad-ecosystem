@@ -1,5 +1,5 @@
 !+
-! Subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
+! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
 !
 ! Subroutine to split a lat at a point. Subroutine will not split the lat
 ! if the split would create a "runt" element with length less than 1 um.
@@ -27,7 +27,7 @@
 !   split_done -- Logical: True if lat was split.
 !-
 
-subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
+subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
 
 use bmad_struct
 use bmad_interface, except_dummy => split_lat
@@ -37,11 +37,12 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), save :: ele
-type (ele_struct), pointer :: ele1, ele2
+type (ele_struct), pointer :: ele1, ele2, slave
+type (branch_struct), pointer :: branch
 
 real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old
 
-integer i, j, k, ix
+integer i, j, k, ix, ix_branch
 integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
@@ -53,8 +54,10 @@ character(16) :: r_name = "split_lat"
 
 ! Check for s_split out of bounds.
 
-nr = lat%n_ele_track
-if (s_split < lat%ele(0)%s .or. s_split > lat%ele(nr)%s) then
+branch => lat%branch(ix_branch)
+
+nr = branch%n_ele_track
+if (s_split < branch%ele(0)%s .or. s_split > branch%ele(nr)%s) then
   call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ',  &
                                   r_array = (/ s_split /) )
   call err_exit
@@ -62,18 +65,18 @@ endif
 
 ! Find where to split.
 
-do ix_split = 0, lat%n_ele_track   
-  if (abs(lat%ele(ix_split)%s - s_split) < 1.0e-6) then
+do ix_split = 0, branch%n_ele_track   
+  if (abs(branch%ele(ix_split)%s - s_split) < 1.0e-6) then
     split_done = .false.
     return
   endif
-  if (lat%ele(ix_split)%s > s_split) exit
+  if (branch%ele(ix_split)%s > s_split) exit
 enddo
 
 split_done = .true.
-ele = lat%ele(ix_split)
+ele = branch%ele(ix_split)
 len_orig = ele%value(l$)
-len2 = lat%ele(ix_split)%s - s_split
+len2 = branch%ele(ix_split)%s - s_split
 len1 = len_orig - len2
 
 ! there is a problem with custom elements in that we don't know which
@@ -89,9 +92,9 @@ endif
 !  point to ix_split+1.
 
 ele%value(l$) = 0       ! so no s recalc with insert_element
-call insert_element (lat, ele, ix_split)
-ele1 => lat%ele(ix_split)
-ele2 => lat%ele(ix_split+1)
+call insert_element (lat, ele, ix_split, ix_branch)
+ele1 => branch%ele(ix_split)
+ele2 => branch%ele(ix_split+1)
 
 if (logic_option(.true., add_suffix)) then
   ix = len_trim(ele%name)
@@ -207,7 +210,8 @@ if (ele%slave_status == super_slave$) then
     call add_lattice_control_structs (lat, lat%ele(ix_lord))
 
     ix2 = lat%ele(ix_lord)%ix2_slave
-    lat%control(ix2)%ix_slave = ix_split
+    lat%control(ix2)%ix_slave  = ix_split
+    lat%control(ix2)%ix_branch = ix_branch
     lat%control(ix2)%ix_attrib = ix_attrib
     lat%control(ix2)%coef = coef1
     lat%ic(ixc+j) = ix2
@@ -225,8 +229,8 @@ endif   ! split element is a super_slave
 ! Need to make a super lord to control the split elements.
 
 call new_control (lat, ix_super_lord)
-ele1 => lat%ele(ix_split)
-ele2 => lat%ele(ix_split+1)
+ele1 => branch%ele(ix_split)
+ele2 => branch%ele(ix_split+1)
 lat%n_ele_max = ix_super_lord
 lat%ele(ix_super_lord) = ele
 lat%ele(ix_super_lord)%lord_status = super_lord$
@@ -237,11 +241,13 @@ lat%ele(ix_super_lord)%ix1_slave = ixc
 lat%ele(ix_super_lord)%ix2_slave = ixc + 1
 lat%ele(ix_super_lord)%n_slave = 2
 lat%n_control_max = ixc + 1
-lat%control(ixc)%ix_lord = ix_super_lord
-lat%control(ixc)%ix_slave = ix_split
+lat%control(ixc)%ix_lord   = ix_super_lord
+lat%control(ixc)%ix_slave  = ix_split
+lat%control(ixc)%ix_branch = ix_branch
 lat%control(ixc)%coef = len1 / len_orig
-lat%control(ixc+1)%ix_lord = ix_super_lord
-lat%control(ixc+1)%ix_slave = ix_split + 1
+lat%control(ixc+1)%ix_lord   = ix_super_lord
+lat%control(ixc+1)%ix_slave  = ix_split + 1
+lat%control(ixc+1)%ix_branch = ix_branch
 lat%control(ixc+1)%coef = len2 / len_orig
 
 ! overlay lord elements of the split element must now point towards the
@@ -252,7 +258,8 @@ do i = ele%ic1_lord, ele%ic2_lord
   ix_lord = lat%control(j)%ix_lord
   do k = lat%ele(ix_lord)%ix1_slave, lat%ele(ix_lord)%ix2_slave
     if (lat%control(k)%ix_slave == ix_split+1) then
-      lat%control(k)%ix_slave = ix_super_lord
+      lat%control(k)%ix_slave  = ix_super_lord
+      lat%control(k)%ix_branch = 0
     endif
   enddo
 enddo
@@ -286,24 +293,26 @@ lat%ic(inc) = ixc + 1
 
 do i = lat%n_ele_track+1, lat%n_ele_max
   ct = lat%ele(i)%lord_status
-  if (ct == group_lord$ .or. ct == girder_lord$) then
-    do j = lat%ele(i)%ix1_slave, lat%ele(i)%ix2_slave
-      if (lat%control(j)%ix_slave == ix_split+1) then
-        if (lat%control(j)%ix_attrib == l$) then
-          call out_io (s_warn$, r_name, 'GROUP: ' // lat%ele(i)%name, &
-                                        'CONTROLS L$ OF SPLIT ELEMENT: ' // ele%name)
-        elseif (ix_super_lord /= 0) then
-          lat%control(j)%ix_slave = ix_super_lord
-        else
-          call out_io (s_warn$, r_name, &
-                      'GROUP: ' // lat%ele(i)%name, &
-                      'CONTROLS SPLIT ELEMENT: ' // ele%name, &
-                      'BUT NO LORD WAS MADE!')
-          call err_exit
-        endif
-      endif
-    enddo
-  endif
+  if (ct /= group_lord$ .and. ct /= girder_lord$) cycle
+
+  do k = 1, lat%ele(i)%n_slave
+    slave => pointer_to_slave (lat, lat%ele(i), k, j) 
+    if (slave%ix_ele /= ix_split+1 .or. slave%ix_branch /= ix_branch) cycle
+    if (lat%control(j)%ix_attrib == l$) then
+      call out_io (s_warn$, r_name, 'GROUP: ' // lat%ele(i)%name, &
+                                    'CONTROLS L$ OF SPLIT ELEMENT: ' // ele%name)
+    elseif (ix_super_lord /= 0) then
+      lat%control(j)%ix_slave  = ix_super_lord
+      lat%control(j)%ix_branch = 0
+    else
+      call out_io (s_warn$, r_name, &
+                    'GROUP: ' // lat%ele(i)%name, &
+                    'CONTROLS SPLIT ELEMENT: ' // ele%name, &
+                    'BUT NO LORD WAS MADE!')
+      call err_exit
+    endif
+  enddo
+
 enddo
 
 call control_bookkeeper (lat, ele1)

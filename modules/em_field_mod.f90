@@ -159,6 +159,21 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
   logical df_calc
   character(20) :: r_name = 'em_field_calc'
 
+! If element is turned off then return zero
+
+  field%e = 0
+  field%B = 0
+  field%type = em_field$
+
+  df_calc = logic_option (.false., calc_dfield)
+
+  if (df_calc) then
+    field%dB = 0
+    field%dE = 0
+  endif
+
+  if (.not. ele%is_on) return
+
 ! custom field_calc
 
   select case (ele%field_calc)
@@ -188,18 +203,6 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
   s = s_pos
 
 ! Init
-
-  field%e = 0
-  field%B = 0
-  field%type = em_field$
-
-  df_calc = .false.
-  if (present(calc_dfield)) df_calc = calc_dfield
-
-  if (df_calc) then
-    field%dB = 0
-    field%dE = 0
-  endif
 
 !------------------------------------------
 

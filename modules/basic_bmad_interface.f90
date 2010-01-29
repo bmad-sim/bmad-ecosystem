@@ -286,12 +286,13 @@ interface
 end interface
 
 interface
-  subroutine insert_element (lat, insert_ele, insert_index)
+  subroutine insert_element (lat, insert_ele, insert_index, ix_branch)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct) lat
     type (ele_struct) insert_ele
     integer insert_index
+    integer, optional :: ix_branch
   end subroutine
 end interface
 
@@ -680,11 +681,12 @@ interface
 end interface
 
 interface
-  subroutine split_lat (lat, s_split, ix_split, split_done, add_suffix, check_controls)
+  subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct), target :: lat
     real(rp) s_split
+    integer ix_branch
     integer ix_split
     logical split_done
     logical, optional :: add_suffix, check_controls

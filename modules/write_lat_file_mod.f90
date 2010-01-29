@@ -1137,13 +1137,10 @@ call init_ele (taylor_ele, taylor$)
 call init_ele (ab_ele, ab_multipole$)
 call multipole_init (ab_ele)
 
-ie1 = 1    ! element index
-if (present(ix_start)) ie1 = ix_start
+ie1 = integer_option(1, ix_start)
+ie2 = integer_option(lat%n_ele_track, ix_end)
 
-ie2 = lat%n_ele_track
-if (present(ix_end)) ie2 = ix_end
-
-allocate (name_list(3*(ie2-ie1+1))) ! list of element names
+allocate (name_list(100)) ! list of element names
 
 ! Transfer info to lat_out and make substitutions for sol_quad and wiggler elements.
 
@@ -1152,7 +1149,7 @@ j_count = 0    ! drift around solenoid or sol_quad index
 t_count = 0    ! taylor element count.
 i_unique = 1000
 
-ix_ele = ie1 
+ix_ele = ie1 - 1
 do 
 
   ix_ele = ix_ele + 1
@@ -1295,6 +1292,7 @@ do ix_ele = ie1, ie2
   ! Add to the list of elements
 
   n_list = n_list + 1
+  if (n_list > size(name_list)) call re_allocate(name_list, 2*size(name_list))
   name_list(n_list) = ele%name
 
   ! select key
