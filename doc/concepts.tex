@@ -329,7 +329,7 @@ The syntax for specifying a set of lattice elements is called
   {\it Item Type} & {\it Example} \\ \hline     
   An element name.                                & \multirow{2}*{"q*"}  \\
   {[Can include wildcard characters "*" or "\%"]} &                      \\
-  An element index.                               & "23"                 \\
+  An element index.                               & "23", "2>>183"       \\
   A range of elements.                            & "b23w:67"            \\
   A class::name specification.                    & "sbend::b*"          \\
 \end{tabular}
@@ -348,8 +348,12 @@ If there are multiple elements in the lattice that
 match a given name, all such elements are included. Thus ``d12'' will
 match to all elements of that name.
 
-An element index item is simply the index of the number in the lattice list
-of elements.
+An element index item is simply the index of the number in the lattice
+list of elements. A prefix followed by the string ">>" can be used to
+specify a branch. Example
+\begin{example}
+  2>>183   ! Element number 183 of branch \# 2
+\end{example}
 
 A range of elements is specified using the format:
 \begin{example}

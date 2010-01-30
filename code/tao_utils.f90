@@ -172,7 +172,7 @@ character(20) :: r_name = 'tao_pick_universe'
 character(40) uni
 
 integer, optional :: ix_uni
-integer i, ix, n, ios, iu, num
+integer i, ix, n, ios, iu, num, ic
 
 logical, allocatable :: picked(:)
 logical, allocatable, save :: p(:)
@@ -188,10 +188,12 @@ picked = .false.
 p = .false.
 if (present(ix_uni)) ix_uni = -1
 
-! No "@" then simply choose s%global%u_view
+! No "@" then simply choose s%global%u_view.
+! Also: a "@" after a "::" is not a universe prefix. Example: ele::3@7
 
 ix = index (name_in, '@')
-if (ix == 0) then
+ic = index (name_in, '::')
+if (ix == 0 .or. (ic /= 0 .and. ix > ic)) then
   picked (s%global%u_view) = .true.
   name_out = name_in
   if (present(ix_uni)) ix_uni = s%global%u_view

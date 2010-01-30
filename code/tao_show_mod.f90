@@ -1300,6 +1300,7 @@ case ('lattice')
             'FIELD_WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
         return
       endif
+      column(i)%field_width = 5
       do ie = 0, branch%n_ele_max
         if (.not. picked_ele(ie)) cycle
         column(i)%field_width = max(column(i)%field_width, len_trim(branch%ele(ie)%name)+1)
@@ -1403,7 +1404,7 @@ case ('lattice')
         ios = 0
 
       else
-        write (nam, '(i0)') ie
+        write (nam, '(i0, a, i0)') ix_branch, '>>', ie
         call str_substitute (name, '#', trim(nam))
         ix = index(name, 'ele::')
         if (.not. at_ends .and. ix /= 0) then
