@@ -235,6 +235,8 @@ do i = 1, n_photon_tot
                                              '! index, n_reflect, eV, intensity'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
+  j = photon%now%ix_ele
+  write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
   do j = 0, photon%n_reflect + 1
     ! photon%reflect(j)%vec 
     ! photon%reflect(j)%track_len
