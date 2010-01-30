@@ -35,7 +35,7 @@ type (lat_struct) lat
 type (ele_struct), pointer :: ele, lord, slave
 real(rp) E_tot, p0c, phase
 
-integer i, j, k, ix, ixs
+integer i, k, ix, ixs
 logical, optional :: compute
 
 ! Init energy
@@ -116,10 +116,8 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   slave => lord
   do
-    ix = slave%ix2_slave
-    j = lat%control(ix)%ix_slave
-    slave => lat%ele(j)
-    if (j <= lat%n_ele_track) exit
+    slave => pointer_to_slave (lat, slave, slave%n_slave)
+    if (slave%ix_ele <= lat%branch(slave%ix_branch)%n_ele_track) exit
   enddo
 
   ! Now transfer the information to the lord.
@@ -130,10 +128,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   ! Transfer the starting energy if needed.
 
   if (lord%key == lcavity$ .or. lord%key == custom$) then
-    ix = lord%ix1_slave
-    j = lat%control(ix)%ix_slave
-    lord%value(E_tot_start$) = lat%ele(j)%value(E_tot_start$)
-    lord%value(p0c_start$) = lat%ele(j)%value(p0c_start$)
+    slave => pointer_to_slave (lat, lord, 1)
+    lord%value(E_tot_start$) = slave%value(E_tot_start$)
+    lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif
 
 enddo

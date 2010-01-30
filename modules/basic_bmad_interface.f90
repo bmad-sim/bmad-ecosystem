@@ -13,12 +13,12 @@ interface
 end interface
 
 interface
-  subroutine add_superimpose (lat, super_ele, ix_super)
+  subroutine add_superimpose (lat, super_ele, ix_branch, ix_super)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (lat_struct) lat
     type (ele_struct) super_ele
-    integer ix_super
+    integer ix_branch, ix_super
   end subroutine
 end interface
 

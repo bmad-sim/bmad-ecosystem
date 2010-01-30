@@ -210,7 +210,7 @@ if (version > 86) then
     read (d_unit) branch%param
     read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
                   branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
-    call allocate_ele_array (branch%ele, branch%n_ele_max)
+    call allocate_lat_ele_array (lat, branch%n_ele_max, i)
     do j = 0, branch%n_ele_max
       call read_this_ele (branch%ele(j), j, error)
       if (error) return

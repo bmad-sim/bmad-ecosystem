@@ -97,8 +97,26 @@ do i_b = 0, ubound(lat%branch, 1)
   do i_t = 1, branch%n_ele_max
 
     ele => branch%ele(i_t)
-    l_stat = ele%lord_status
-    s_stat = ele%slave_status
+
+    ! Check that %ix_ele and %ix_branch are correct. 
+    ! A null_ele might have the wrong %ix_branch since add_superimpose can
+    !   shift such an element around.
+
+    if (ele%ix_ele /= i_t) then
+      call out_io (s_fatal$, r_name, &
+                'ELEMENT: ' // ele%name, &
+                'HAS BAD %IX_ELE INDEX: \i0\  (\i0\)', &
+                'SHOULD BE: \i0\ ', i_array = (/ ele%ix_ele, ele%ix_branch, i_t /) )
+      found_err = .true.
+    endif
+
+    if (ele%ix_branch /= i_b .and. ele%key /= null_ele$) then
+      call out_io (s_fatal$, r_name, &
+                'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
+                'HAS BAD %IX_BRANCH INDEX: \i0\  (\i0\)', &
+                'SHOULD BE: \i0\ ', i_array = (/ ele%ix_ele, ele%ix_branch, i_b /) )
+      found_err = .true.
+    endif
 
     ! branch check
 
@@ -127,6 +145,9 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ! A patch element which is a multipass_lord and a ref_orbit specification must
     ! have n_ref_pass = 1
+
+    l_stat = ele%lord_status
+    s_stat = ele%slave_status
 
     if (ele%key == patch$ .and. l_stat == multipass_lord$) then
       if (ele%ref_orbit /= 0 .and. ele%value(n_ref_pass$) /= 1) then

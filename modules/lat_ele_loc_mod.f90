@@ -53,9 +53,9 @@ contains
 !   <name>    = Name of element. May contain the wild cards "*" and "%".
 !
 ! An element index is of the form:
-!     {<ix_branch>->}<ix_ele>
+!     {ix_branch>>}<ix_ele>
 ! Where
-!   <ix_branch> = Optional branch index number.
+!   ix_branch = Optional branch name or branch index number.
 !
 ! An element range is of the form:
 !   {<key>::}<ele1>:<ele2>{:<step>}
@@ -70,7 +70,7 @@ contains
 !   "quad::q*"   All quadrupoles whose name begins with "q"
 !   "*:*"        All elements.
 !   "3,5:7"      Elements with index 3, 5, 6, and 7 in branch 0.
-!   "2.45:51"    Elements 45 through 51 of branch 2.
+!   "2>>45:51"   Elements 45 through 51 of branch 2.
 !   "q1:q5"      Eleements between "q1" and "q5"
 ! 
 ! Modules Needed:
@@ -264,21 +264,31 @@ integer key
 
 logical err, do_match_wild
 
-! read branch index
+! Read branch name or index which is everything before an '>>'.
 
 err = .true.
 ix_branch = -1
 
-ixp = index(name, '->')
-if (ixp /= 0) then
-  read (name(1:ixp-1), *, iostat = ios) ix_branch
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'BAD BRANCH LOCATION: ' // name)
-    return
-  endif
-  if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-    call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // name)
-    return
+ixp = index(name, '>>')
+if (ixp > 0) then
+  if (is_integer(name(1:ixp-1))) then
+    read (name(1:ixp-1), *, iostat = ios) ix_branch
+    if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
+      call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // name)
+      return
+    endif
+  else
+    ix_branch = -1
+    do i = 1, ubound(lat%branch, 1)
+      if (lat%branch(i)%name == name(1:ixp-1)) then
+        ix_branch = i
+        exit
+      endif
+    enddo
+    if (ix_branch == -1) then
+      call out_io (s_error$, r_name, 'BRANCH NAME NOT FOUND: ' // name)
+      return
+    endif
   endif
   name = name(ixp+2:)
 endif
@@ -293,6 +303,10 @@ if (is_integer(name)) then
   endif
   if (.not. allocated(eles)) allocate (eles(1))
   if (ix_branch == -1) ix_branch = 0
+  if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) then
+    call out_io (s_error$, r_name, 'ELEMENT LOCATION INDEX OUT OF RANGE: ' // name)
+    return
+  endif
   eles(1)%ele => lat%branch(ix_branch)%ele(ix_ele)
   n_loc = 1
   err = .false.

@@ -1,7 +1,7 @@
 !+
-! Subroutine NEW_CONTROL (LAT, IX_ELE)
+! Subroutine new_control (lat, ix_ele)
 !
-! Subroutine to create a new control element.
+! Routine to create a new control element.
 !
 ! Note: This routine may reallocate the lat%branch arrays so
 ! any pointers to elements will need to be repointed.
@@ -10,28 +10,26 @@
 !   use bmad
 !
 ! Input:
-!     LAT -- lat_struct: Lat used
+!     lat -- lat_struct: Lat used
 !
 ! Output
-!     IX_ELE -- Integer: Index of the new control element
+!     ix_ele -- Integer: Index of the new control element
 !-
 
 subroutine new_control (lat, ix_ele)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => new_control
+use bmad_struct
+use bmad_interface, except_dummy => new_control
 
-  implicit none
+implicit none
 
-  type (lat_struct)  lat
-  integer ix_ele
+type (lat_struct)  lat
+integer ix_ele
 
 !
 
-  lat%n_ele_max = lat%n_ele_max + 1
-  ix_ele = lat%n_ele_max
-
-  if (ix_ele > ubound(lat%ele, 1))  call allocate_lat_ele_array(lat)
-  call init_ele (lat%ele(ix_ele), ix_ele = ix_ele)
+lat%n_ele_max = lat%n_ele_max + 1
+ix_ele = lat%n_ele_max
+if (ix_ele > ubound(lat%ele, 1))  call allocate_lat_ele_array (lat)
 
 end subroutine

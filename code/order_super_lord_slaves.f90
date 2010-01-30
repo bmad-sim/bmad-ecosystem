@@ -14,8 +14,6 @@
 !   lat -- lat_struct: Lat with fixed controls.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine order_super_lord_slaves (lat, ix_lord)
 
   use bmad_struct
@@ -25,10 +23,10 @@ subroutine order_super_lord_slaves (lat, ix_lord)
   implicit none
 
   type (lat_struct), target :: lat
-  type (ele_struct), pointer :: ele
+  type (ele_struct), pointer :: lord, slave
   type (control_struct), allocatable :: cs(:)
 
-  integer i, ix, ix_lord, ix1, ix2, ns
+  integer i, ix_lord, ix1, ix2, ns
   integer, allocatable :: ixx(:), iyy(:)
 
   real(rp) ds
@@ -36,10 +34,9 @@ subroutine order_super_lord_slaves (lat, ix_lord)
 
 ! Init setup.
 
-  ele => lat%ele(ix_lord)
-  ix1 = ele%ix1_slave; ix2 = ele%ix2_slave
+  lord => lat%ele(ix_lord)
 
-  if (ele%lord_status /= super_lord$) then
+  if (lord%lord_status /= super_lord$) then
     print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: ELEMENT NOT A SUPER_LORD'
     call err_exit
   endif
@@ -47,23 +44,25 @@ subroutine order_super_lord_slaves (lat, ix_lord)
 ! Make an array of distances between the slave elements and the lord element.
 ! Note that all distances are negative.
 
-  ns = ele%n_slave
+  ns = lord%n_slave
   allocate (s_rel(ns), ixx(ns), iyy(ns), cs(ns))
 
-  do i = ix1, ix2
-    ix = lat%control(i)%ix_slave
-    ds = lat%ele(ix)%s - ele%s
-    if (ds > 0) ds = ds - lat%param%total_length
-    if (-ds > ele%value(l$)) then
+  do i = 1, lord%n_slave
+    slave => pointer_to_slave (lat, lord, i)
+    ds = slave%s - lord%s
+    if (ds > 0) ds = ds - lat%branch(slave%ix_branch)%param%total_length
+    if (-ds > lord%value(l$)) then
       print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: INTERNAL ERROR!'
       call err_exit
     endif
-    s_rel(i+1-ix1) = ds
+    s_rel(i) = ds
   enddo
 
 ! Sort slaves by distance.
 
   call indexx (s_rel, ixx)
+
+  ix1 = lord%ix1_slave; ix2 = lord%ix2_slave
   cs = lat%control(ix1:ix2) 
 
   do i = 1, ns

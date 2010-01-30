@@ -1270,7 +1270,7 @@ end subroutine init_floor
 !
 ! Input:
 !   lat         -- Lat_struct: Lattice with element array.
-!     %ele(:)      -- Ele_struct, pointer: Element array to reallocate.
+!     %branch(ix_branch)%ele(:)  -- Element array to reallocate.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
 !                    Default: 1.3*ubound(ele(:)) or 100 if ele is not allocated.
 !   ix_branch   -- Integer, optional: Branch index. Default is 0.
@@ -1287,18 +1287,20 @@ implicit none
 type (lat_struct), target :: lat
 integer, optional :: upper_bound
 integer, optional :: ix_branch
-integer i_branch
+integer ix_br
 
 !
 
-i_branch = integer_option (0, ix_branch)
+ix_br = integer_option (0, ix_branch)
 
-if (i_branch == 0) then
-  call allocate_ele_array (lat%ele, upper_bound)
+if (ix_br == 0) then
+  call allocate_element_array (lat%ele, upper_bound)
   if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
 else
-  call allocate_ele_array (lat%branch(i_branch)%ele, upper_bound)
+  call allocate_element_array (lat%branch(ix_br)%ele, upper_bound)
+  lat%branch(ix_br)%ele%ix_branch = ix_br
 endif
+
 
 end subroutine allocate_lat_ele_array
 
@@ -1306,13 +1308,15 @@ end subroutine allocate_lat_ele_array
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_ele_array (ele, upper_bound)
+! Subroutine allocate_element_array (ele, upper_bound)
 !
 ! Subroutine to allocate or re-allocate an element array.
 ! The old information is saved.
 ! The lower bound is always 0.
-! Note: Do not use this routine for the lat%ele(:) array!
-!   Use allocate_lat_ele_array instead.
+!
+! Note: Use allocate_lat_ele_array instead for all ele(:) arrays that
+!       are part of a lattice.
+!   
 !
 ! Modules needed:
 !   use bmad
@@ -1326,7 +1330,7 @@ end subroutine allocate_lat_ele_array
 !   ele(:)      -- Ele_struct, pointer: Element array.
 !-
 
-subroutine allocate_ele_array (ele, upper_bound)
+subroutine allocate_element_array (ele, upper_bound)
 
 implicit none
 
@@ -1368,7 +1372,7 @@ do i = curr_ub+1, ub
   ele(i)%ix_ele = i
 end do
 
-end subroutine allocate_ele_array
+end subroutine allocate_element_array
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

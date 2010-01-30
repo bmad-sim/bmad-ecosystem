@@ -51,7 +51,9 @@ integer i
 
 call transfer_ele (ele1, ele_save)
 call transfer_ele (ele2, ele1)
-ele1%ix_ele = ele_save%ix_ele     ! this should not change.
+
+ele1%ix_ele    = ele_save%ix_ele    ! this should not change.
+ele1%ix_branch = ele_save%ix_branch ! this should not change.
 
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
@@ -299,7 +301,7 @@ endif
 n = ubound(lat_in%branch, 1)
 call allocate_branch_array (lat_out%branch, n, lat_out)
 do i = 1, n
-  call allocate_ele_array (lat_out%branch(i)%ele, ubound(lat_in%branch(i)%ele, 1))
+  call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
   lat_out%branch(i) = lat_in%branch(i)
 enddo
 
@@ -388,16 +390,17 @@ type (branch_struct), intent(in) :: branch2
 
 !
 
-branch1%name         = branch2%name
-branch1%key          = branch2%key 
-branch1%ix_branch    = branch2%ix_branch
+branch1%name           = branch2%name
+branch1%key            = branch2%key 
+branch1%ix_branch      = branch2%ix_branch
 branch1%ix_from_branch = branch2%ix_from_branch
-branch1%ix_from_ele  = branch2%ix_from_ele
-branch1%n_ele_track  = branch2%n_ele_track
-branch1%n_ele_max    = branch2%n_ele_max
-call allocate_ele_array (branch1%ele, ubound(branch2%ele, 1))
-branch1%ele          = branch2%ele
-branch1%param        = branch2%param
+branch1%ix_from_ele    = branch2%ix_from_ele
+branch1%n_ele_track    = branch2%n_ele_track
+branch1%n_ele_max      = branch2%n_ele_max
+call allocate_element_array (branch1%ele, ubound(branch2%ele, 1))
+branch1%ele            = branch2%ele
+branch1%param          = branch2%param
+branch1%ele%ix_branch  = branch2%ix_branch
 
 end subroutine
 

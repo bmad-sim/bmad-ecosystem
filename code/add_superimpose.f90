@@ -1,5 +1,5 @@
 !+
-! Subroutine add_superimpose (lat, super_ele, ix_super)
+! Subroutine add_superimpose (lat, super_ele, ix_branch, ix_super)
 !
 ! Subroutine to make a superimposed element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -13,9 +13,9 @@
 ! Input:
 !   lat       -- lat_struct: Lat to modify.
 !   super_ele -- Ele_struct: Element to superimpose.
-!         %ix_branch  -- Branch index.
 !         %s          -- Position of end of element.
 !                         Negative distances mean distance from the end.
+!   ix_branch -- Integer: Branch index to put element.
 !
 !
 ! Output:
@@ -23,7 +23,7 @@
 !   ix_super -- Integer: Index where element is put.
 !-
 
-subroutine add_superimpose (lat, super_ele, ix_super)
+subroutine add_superimpose (lat, super_ele, ix_branch, ix_super)
 
 use bmad_struct
 use bmad_interface, except_dummy => add_superimpose
@@ -41,7 +41,7 @@ real(rp) s1, s2, length, s1_lat, s2_lat
 
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
 integer ix1_split, ix2_split, ix_super, ix_super_con
-integer ix_slave, ixn, ixc, ix_1lord, n_ele_max_old
+integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
 
 logical setup_lord, split1_done, split2_done, all_drift
 
@@ -69,14 +69,13 @@ call init_ele (drift)
 drift%key = drift$
 
 super_saved = super_ele
-ix_branch = super_ele%ix_branch
 branch => lat%branch(ix_branch)
 
 ! s1 is the left edge of the superimpose.
 ! s2 is the right edge of the superimpose.
 ! For a lat a superimpose can wrap around the ends of the lattice.
 
-n_ele_max_old = branch%n_ele_max
+ix_lord_max_old = lat%n_ele_max
 
 s1_lat = branch%ele(0)%s                 ! normally this is zero.
 s2_lat = branch%ele(branch%n_ele_track)%s
@@ -108,7 +107,7 @@ if (super_saved%value(l$) == 0) then
   ix_super = ix1_split + 1
   branch%ele(ix_super)%lord_status  = not_a_lord$
   branch%ele(ix_super)%slave_status = free$
-  call adjust_super_slave_names (lat, n_ele_max_old+1, branch%n_ele_max)
+  call adjust_super_slave_names (lat, ix_lord_max_old+1, branch%n_ele_max)
   return
 endif
 
@@ -180,7 +179,7 @@ do
 enddo
 
 ! If there are null_ele elements in the superimpose region then just move them
-! out of the way to the lord section of the lattice. This prevents unnecessary
+! out of the way to the lord section of the branch. This prevents unnecessary
 ! splitting.
 
 i = ix1_split
@@ -188,8 +187,12 @@ do
   i = i + 1
   if (i > branch%n_ele_track) i = 0
   if (branch%ele(i)%key == null_ele$) then
-    call new_control (lat, ix)
-    branch%ele(ix) = branch%ele(i)  ! copy null_ele
+
+    branch%n_ele_max = branch%n_ele_max + 1
+    ix = branch%n_ele_max
+    if (ix > ubound(branch%ele, 1))  call allocate_lat_ele_array (lat, ix_branch = ix_branch)
+
+    branch%ele(ix) = branch%ele(i)       ! copy null_ele
     do ic = branch%ele(i)%ic1_lord, branch%ele(i)%ic2_lord
       j = lat%ic(ic)
       lat%control(j)%ix_slave = ix ! point to new null_ele.
@@ -218,16 +221,16 @@ if (all_drift) then
   enddo
   call remove_eles_from_lat(lat)    ! And delete
   ix_super = ix1_split + 1
-  lat%ele(ix_super) = super_saved
-  lat%ele(ix_super)%lord_status  = not_a_lord$
-  lat%ele(ix_super)%slave_status = free$
+  branch%ele(ix_super) = super_saved
+  branch%ele(ix_super)%lord_status  = not_a_lord$
+  branch%ele(ix_super)%slave_status = free$
   ! If a single drift was split give the runt drifts on either end 
   ! Unique names by adding "#1" and "#2" suffixes.
   if (split1_done .and. split2_done) then
-    if (lat%ele(ix_super-1)%name == lat%ele(ix_super+1)%name .and. &
-                                  lat%ele(ix_super-1)%key == drift$) then
-      lat%ele(ix_super-1)%name = trim(lat%ele(ix_super-1)%name) // '#1'
-      lat%ele(ix_super+1)%name = trim(lat%ele(ix_super+1)%name) // '#2'
+    if (branch%ele(ix_super-1)%name == branch%ele(ix_super+1)%name .and. &
+                                  branch%ele(ix_super-1)%key == drift$) then
+      branch%ele(ix_super-1)%name = trim(branch%ele(ix_super-1)%name) // '#1'
+      branch%ele(ix_super+1)%name = trim(branch%ele(ix_super+1)%name) // '#2'
     endif
   endif
   return
@@ -258,7 +261,7 @@ do i = ix1_split+1, ix2_split
     call add_lattice_control_structs (lat, lord)
     ix = lord%ix1_slave
     lat%control(ix)%ix_slave = i
-    lat%control(ix)%ix_branch = super_saved%ix_branch
+    lat%control(ix)%ix_branch = ix_branch
     slave%slave_status = super_slave$
     slave%name = trim(slave%name) // '#1'
     slave%n_lord = 1
@@ -314,11 +317,9 @@ do
   ! if yes then create the super lord element
 
   if (setup_lord) then
-    ixn = lat%n_ele_max + 1
-    if (ixn > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
+    call new_control (lat, ixn)
     lat%ele(ixn) = slave_saved
     lat%ele(ixn)%lord_status = super_lord$
-    lat%n_ele_max = ixn
     ixc = lat%n_control_max + 1
     if (ixc > size(lat%control)) call reallocate_control(lat, ixc+100)
     lat%ele(ixn)%ix1_slave = ixc
@@ -326,7 +327,7 @@ do
     lat%ele(ixn)%n_slave = 1
     lat%control(ixc)%ix_lord = ixn
     lat%control(ixc)%ix_slave = ix_slave
-    lat%control(ixc)%ix_branch = super_saved%ix_branch
+    lat%control(ixc)%ix_branch = ix_branch
     lat%control(ixc)%coef = 1.0
     lat%n_control_max = ixc
 
@@ -353,7 +354,7 @@ do
 
   ix_super_con = ix_super_con + 1
   sup_con(ix_super_con)%ix_slave = ix_slave
-  sup_con(ix_super_con)%ix_branch = super_saved%ix_branch
+  sup_con(ix_super_con)%ix_branch = ix_branch
   sup_con(ix_super_con)%ix_lord = ix_super
   sup_con(ix_super_con)%coef = slave_saved%value(l$) / length
   sup_con(ix_super_con)%ix_attrib = 0
@@ -406,7 +407,7 @@ lat%n_control_max = n_con
 
 call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
 call order_super_lord_slaves (lat, ix_super)
-call adjust_super_slave_names (lat, n_ele_max_old+1, lat%n_ele_max)
+call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
 
 end subroutine
 
@@ -449,7 +450,7 @@ use bmad_struct
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: lord, slave
+type (ele_struct), pointer :: lord, slave, lord2
 integer ix1_lord, ix2_lord
 integer i, j, k, ix, ix_1lord, ix1, ix2
 character(40) name
@@ -470,9 +471,9 @@ do i = ix1, ix2
       write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
     else
       name = ''
-      do k = slave%ic1_lord, slave%ic2_lord
-        ix = lat%control(lat%ic(k))%ix_lord
-        name = trim(name) //  '\' // lat%ele(ix)%name !'
+      do k = 1, slave%n_lord
+        lord2 => pointer_to_lord (lat, slave, k)
+        name = trim(name) //  '\' // lord2%name     !'
       enddo
       slave%name = name(2:len(slave%name))
     endif
