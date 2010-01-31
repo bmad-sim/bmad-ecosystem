@@ -288,7 +288,7 @@ do n = 0, ubound(lat%branch, 1)
   branch%ele%logic = .false.  ! Used to mark as drawn.
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, branch%n_ele_track, ix_shape)
+    call tao_find_ele_shape (ele, tao_com%ele_shape_floor_plan, ix_shape)
     if (ele%ix_ele > lat%n_ele_track .and. ix_shape == 0) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
@@ -377,6 +377,8 @@ character(2) justify
 !
 
 call find_element_ends (lat, ele, ele1, ele2)
+if (.not. associated(ele1)) return
+
 call floor_to_screen_coords (ele1%floor, end1)
 call floor_to_screen_coords (ele2%floor, end2)
 
@@ -520,7 +522,7 @@ endif
 if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
   drift%key = photon_branch$
   drift%name = ele%name
-  call tao_find_ele_shape (drift, tao_com%ele_shape_floor_plan, ele%ix_ele, ixs)
+  call tao_find_ele_shape (drift, tao_com%ele_shape_floor_plan, ixs)
   if (ixs > 0) then
     call qp_translate_to_color_index (tao_com%ele_shape_floor_plan(ixs)%color, ic)
     call qp_draw_line (x_ray%x, end2%x, x_ray%y, end2%y, units = 'POINTS', color = ic)
@@ -734,7 +736,7 @@ height = s%plot_page%text_height * s%plot_page%legend_text_scale
 do i = 1, branch%n_ele_max
 
   ele => branch%ele(i)
-  call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, branch%n_ele_track, ix_shape)
+  call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix_shape)
 
   if (ele%lord_status == multipass_lord$) cycle
   if (ele%slave_status == super_slave$) cycle
@@ -742,6 +744,8 @@ do i = 1, branch%n_ele_max
 
   if (plot%x_axis_type == 's') then
     call find_element_ends (lat, ele, ele1, ele2)
+    if (.not. associated(ele1)) cycle
+    if (ele1%ix_branch /= graph%ix_branch) cycle
     x1 = ele1%s
     x2 = ele2%s
     ! If out of range then try a negative position
@@ -1029,7 +1033,7 @@ end subroutine tao_plot_data
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_find_ele_shape (ele, ele_shapes, n_ele_track, ix_shape)
+subroutine tao_find_ele_shape (ele, ele_shapes, ix_shape)
 
 implicit none
 
@@ -1050,7 +1054,6 @@ ix_shape = 0
 if (ele%lord_status == group_lord$) return
 if (ele%lord_status == overlay_lord$) return
 if (ele%slave_status == super_slave$) return
-if (ele%ix_ele > n_ele_track .and. ele%lord_status == not_a_lord$) return
 
 do k = 1, size(ele_shapes)
 
