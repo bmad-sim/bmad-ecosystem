@@ -11,12 +11,13 @@
 !     %ele(ix_lord)%value(command$) -- Real(rp): Initial command value.
 !   ix_lord       -- Integer: Index of group lord element (see below).
 !   contrl(:)     -- Control_struct: What to control.
-!     %ix_slave       -- Integer: Index in LAT%ele() of element controlled.
-!     %ix_attrib      -- Integer: Index in %VALUE() array of
+!     %ix_slave       -- Integer: Index in lat%branch()%ele() of element controlled.
+!     %ix_branch      -- Integer: Branch index.  
+!     %ix_attrib      -- Integer: Index in %value() array of
 !                                 attribute controlled.
 !     %coef           -- Real(rp): Coefficient.
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
-!   err_print_flag -- Logical, optional: If present and False then supress
+!   err_print_flag -- Logical, optional: If present and False then supress.
 !                       printing of an error message if attribute is not free.  
 !
 ! Output:
@@ -31,21 +32,23 @@
 !   lord%value(command$) = 0  ! start at zero
 !   n_control = 2             ! control 2 elements
 !
-!   contrl(1)%ix_slave = 10   ! LAT%ele(10) is Q01W say.
+!   contrl(1)%ix_branch = 0   ! Main lattice branch
+!   contrl(1)%ix_slave = 10   ! lat%ele(10) is Q01W say.
 !   contrl(1)%ix_attrib = k1$ ! The group controls the quadrupole strength.
 !   contrl(1)%coef = 0.1      ! A change in the group value of 1 produces
 !                             !    a change of 0.1 in k1 of element 10.
 !
-!   contrl(2)%ix_slave = 790  ! LAT%ele(790) is Q01E say.
+!   contrl(1)%ix_branch = 1   ! branch #1
+!   contrl(2)%ix_slave = 790  ! lat%branch(1)%ele(790) is Q01E say.
 !   contrl(2)%ix_attrib = k1$ ! The group controls the quadrupole strength.
 !   contrl(2)%coef = -0.1     ! make changes antisymmetric.
 !
 !   call create_group (lat, ix_lord, 2, contrl)  ! create the group
 !
 ! Notes:
-!   A) The value of the group is stored in LAT%ele(IX_LORD)%VALUE(COMMAND$)
+!   A) The value of the group is stored in lat%ele(IX_LORD)%VALUE(COMMAND$)
 !   B) Only changes from the previous value are significant. The
-!      old value is stored in LAT%ele(IX_LORD)%VALUE(OLD_COMMAND$).
+!      old value is stored in lat%ele(ix_lord)%value(old_command$).
 !   C) Use CONTROL_BOOKKEEPER to update the attributes of the elements
 !      controlled by the group element.
 !   D) Use lat_make_mat6 to update the attributes AND remake MAT6 for the

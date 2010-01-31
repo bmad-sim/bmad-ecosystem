@@ -1,5 +1,5 @@
 !+
-! Subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
+! Subroutine create_girder (lat, ix_girder, contrl, ele_init)
 !
 ! Subroutine to add the controller information to slave elements of
 ! an girder_lord.
@@ -8,9 +8,11 @@
 !   use bmad
 !
 ! Input:
-!   lat         -- lat_struct: Lat to modify.
+!   lat          -- lat_struct: Lat to modify.
 !   ix_girder    -- Integer: Index of girder element.
-!   ix_slave(:)  -- Index of element to control
+!   contrl(:)    -- Control_struct: What to control.
+!     %ix_slave       -- Integer: Index in lat%branch()%ele() of element controlled.
+!     %ix_branch      -- Integer: Branch index.  
 !   ele_init     -- Element containing attributes to be transfered
 !                   to the Girder element:
 !                       ele_init%name        
@@ -19,18 +21,20 @@
 !                       ele_init%value(:)
 !
 ! Output:
-!   lat    -- lat_struct: Modified lat.
+!   lat    -- lat_struct: Modified lattice.
 !
 ! Note: Use NEW_CONTROL to get an index for the girder element
 !
 ! Example: Create the Girder supporting elements 
 ! lat%ele(10) and lat%ele(12)
 !
-!   call new_control (lat, ix_ele)        ! get IX_ELE index
-!   call create_girder (lat, ix_ele, (/ 10, 12 /))  ! create the girder
+!   call new_control (lat, ix_ele)        ! get IX_ELE index of the girder.
+!   control(1:2)%ix_branch = 0
+!   control(1)%ix_ele = 10; control(2)%ix_ele = 12
+!   call create_girder (lat, ix_ele, control(1:2))  ! create the girder
 !-
 
-subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
+subroutine create_girder (lat, ix_girder, contrl, ele_init)
 
   use bmad_struct
   use bmad_interface, except_dummy => create_girder
@@ -40,8 +44,9 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
   type (lat_struct), target :: lat
   type (ele_struct), optional :: ele_init
   type (ele_struct), pointer ::  slave, girder
+  type (control_struct)  contrl(:)
 
-  integer, intent(in) :: ix_girder, ix_slave(:)
+  integer, intent(in) :: ix_girder
   integer i, j, ix, ix2, ixc, n_con2
   integer ixs, idel, n_slave
 
@@ -51,14 +56,14 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
 
   girder => lat%ele(ix_girder)
 
-  n_slave = size (ix_slave)
+  n_slave = size (contrl)
   ix = lat%n_control_max
   n_con2 = ix + n_slave
 
   if (n_con2 > size(lat%control)) call reallocate_control (lat, n_con2+500)
 
   do j = 1, n_slave
-    lat%control(ix+j)%ix_slave  = ix_slave(j)
+    lat%control(ix+j)           = contrl(j)
     lat%control(ix+j)%ix_lord   = ix_girder
     lat%control(ix+j)%coef      = 0
     lat%control(ix+j)%ix_attrib = 0
@@ -77,15 +82,9 @@ subroutine create_girder (lat, ix_girder, ix_slave, ele_init)
   s_max = -1e30  ! something large and negative
   s_min =  1e30  ! something large and positive
 
-  do i = girder%ix1_slave, girder%ix2_slave
+  do i = 1, girder%n_slave
 
-    ixs = lat%control(i)%ix_slave
-    if (ixs <= 0) then
-      print *, 'ERROR IN CREATE_GIRDER: INDEX OUT OF BOUNDS.', ixs
-      call err_exit
-    endif
-
-    slave => lat%ele(ixs)
+    slave => pointer_to_slave (lat, girder, i)
 
     if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$

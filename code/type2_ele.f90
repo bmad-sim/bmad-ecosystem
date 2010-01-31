@@ -447,35 +447,34 @@ if (logic_option(present(lattice), type_control)) then
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (lattice, ele, i)
-        nl=nl+1; write (li(nl), '(5x, a30, i10)') slave%name, slave%ix_ele
+        nl=nl+1; write (li(nl), '(5x, a30, a10)') slave%name, trim(ele_loc_to_string(slave))
       enddo
 
     case (super_lord$, girder_lord$)
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (lattice, ele, i)
-        nl=nl+1; write (li(nl), '(5x, a30, i10)') slave%name, slave%ix_ele
+        nl=nl+1; write (li(nl), '(5x, a30, a10)') slave%name, trim(ele_loc_to_string(slave))
       enddo
 
     case default
       nl=nl+1; write (li(nl), *) &
-          '    Name                       Lat_index  Attribute         Coefficient'
-      do i = ele%ix1_slave, ele%ix2_slave
-        j = lattice%control(i)%ix_slave
+          '    Name                         Lat_index  Attribute         Coefficient'
+      do ix = 1, ele%n_slave
+        slave => pointer_to_slave (lattice, ele, ix, i)
         iv = lattice%control(i)%ix_attrib
         coef = lattice%control(i)%coef
-        if (lattice%ele(j)%lord_status == overlay_lord$) then
-          if (iv == lattice%ele(j)%ix_value) then
-            ix = lattice%control(lattice%ele(j)%ix1_slave)%ix_slave
-            a_name = attribute_name(lattice%ele(ix), iv)
+        if (slave%lord_status == overlay_lord$) then
+          if (iv == slave%ix_value) then
+            a_name = attribute_name(pointer_to_slave(lattice, slave, 1), iv)
           else
             a_name = '** BAD POINTER! **'
           endif            
         else
-          a_name = attribute_name(lattice%ele(j), iv)
+          a_name = attribute_name(slave, iv)
         endif
-        nl=nl+1; write (li(nl), '(5x, a30, i6, 2x, a18, es11.3, es12.3)') &
-                                                lattice%ele(j)%name, j, a_name, coef
+        nl=nl+1; write (li(nl), '(5x, a30, a8, 2x, a18, es11.3, es12.3)') &
+                               slave%name, trim(ele_loc_to_string(slave)), a_name, coef
       enddo
     end select
 

@@ -175,13 +175,13 @@ interface
 end interface
 
 interface
-  subroutine create_girder (lat, ix_ele, ix_slave, init_ele)
-    use bmad_struct, only: lat_struct, ele_struct
+  subroutine create_girder (lat, ix_ele, con, init_ele)
+    use bmad_struct, only: lat_struct, ele_struct, control_struct
     implicit none
     type (lat_struct) lat
     type (ele_struct), optional :: init_ele
+    type (control_struct) con(:)
     integer, intent(in) :: ix_ele
-    integer, intent(in) :: ix_slave(:)
   end subroutine
 end interface
 

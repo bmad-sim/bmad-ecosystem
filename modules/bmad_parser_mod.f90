@@ -3402,31 +3402,43 @@ subroutine parser_add_lord (in_lat, n2, plat, lat)
 implicit none
 
 type (lat_struct), target :: in_lat, lat
-type (ele_struct), pointer :: lord
+type (ele_struct), pointer :: lord, lord2, slave
 type (parser_lat_struct) plat
 type (control_struct), pointer, save :: cs(:) => null()
+type (branch_struct), pointer :: branch
 
-integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ns, ixs
-integer ix_lord, ix_slave(1000), k_slave, k_slave_original
-integer, allocatable :: r_indexx(:)
+integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ix2, ns, ixs
+integer ix_lord, k_slave, ix_ele_original
+integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
 
 character(40), allocatable :: name_list(:)
 character(40) name, name1, slave_name, attrib_name, missing_slave_name
 
 logical err, slave_not_in_lat
 
-! setup
+! Setup...
 ! in_lat has the lords that are to be added to lat.
-! we add an extra 1000 places to the arrays to give us some overhead.
+! We add an extra 1000 places to the arrays to give us some overhead.
 
-n = lat%n_ele_max + n2 + 1000
+n = n2 + 1000
+do i = 0, ubound(lat%branch, 1)
+    n = n + lat%branch(i)%n_ele_max
+enddo
 
-allocate (r_indexx(n))
-allocate (name_list(n))
+allocate (name_list(n), ix_ele(n), ix_branch(n), r_indexx(n))
 allocate (cs(1000))
 
-ix1 = lat%n_ele_max
-name_list(1:ix1) = lat%ele(1:ix1)%name
+ix1 = 0
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+  n = branch%n_ele_max
+  ix2 = ix1 + n
+  name_list(ix1+1:ix2) = branch%ele(1:n)%name
+  ix_ele(ix1+1:ix2)    = branch%ele(1:n)%ix_ele
+  ix_branch(ix1+1:ix2) = branch%ele(1:n)%ix_branch
+  ix1 = ix2
+enddo
+
 call indexx (name_list(1:ix1), r_indexx(1:ix1)) ! get sorted list
 
 ! loop over elements
@@ -3447,8 +3459,8 @@ main_loop: do n = 1, n2
 
     ! Find where the slave elements are. 
     ! If a slave element is not in lat but is in in_lat then the slave has 
-    ! not been used in the lattice list. In this case do not add the lord to 
-    ! the lattice.
+    ! not yet been used in the lattice list. 
+    ! In this case do not add the lord to the lattice.
 
     j = 0 ! number of slaves found
     slave_not_in_lat = .false.  ! Is there a slave that is not in the lattice?
@@ -3481,24 +3493,27 @@ main_loop: do n = 1, n2
         j = j + 1
         k = r_indexx(k2)
         cs(j)%coef = plat%ele(ixx)%coef(i)
-        cs(j)%ix_slave = k
-        cs(j)%ix_branch = lat%ele(k)%ix_branch
+        cs(j)%ix_slave = ix_ele(k)
+        cs(j)%ix_branch = ix_branch(k)
         cs(j)%ix_lord = -1             ! dummy value
         attrib_name = plat%ele(ixx)%attrib_name(i)
         if (attrib_name == blank_name$) attrib_name = lord%component_name
-        ix = attribute_index(lat%ele(k), attrib_name)
+        slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
+        ix = attribute_index(slave, attrib_name)
         cs(j)%ix_attrib = ix
         if (ix < 1) then
           call warning ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                         'ATTRIBUTE: ' // attrib_name, &
-                        'IS NOT A VALID ATTRIBUTE OF: ' // lat%ele(k)%name, &
+                        'IS NOT A VALID ATTRIBUTE OF: ' // slave%name, &
                         pele = plat%ele(ixx))
           cycle main_loop
         endif
         k2 = k2 + 1
         if (k2 > ix1) exit
         k = r_indexx(k2)
-        if (lat%ele(k)%name /= name) exit ! exit loop if no more matches
+        slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
+        ! exit loop if no more matches
+        if (slave%name /= name) exit 
       enddo
 
     enddo
@@ -3514,12 +3529,13 @@ main_loop: do n = 1, n2
 
     ! put the element name in the list r_indexx list
 
-    call find_indexx (lord%name, lat%ele(1:ix1)%name, &
-                                           r_indexx(1:ix1), ix1, k, k2)
+    call find_indexx (lord%name, lat%ele(1:ix1)%name, r_indexx(1:ix1), ix1, k, k2)
     ix1 = ix1 + 1
     r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
     r_indexx(k2) = ix1
     name_list(ix1) = lord%name
+    ix_ele(ix1) = ix_lord
+    ix_branch(ix1) = 0
 
     ! create the lord
 
@@ -3540,7 +3556,7 @@ main_loop: do n = 1, n2
   ! Create an girder element for each element whose name matches the
   ! first name in the slave list.
 
-  case (girder_lord$) 
+  case (girder_lord$)
 
     ixx = lord%ixx
     name1 = plat%ele(ixx)%name(1)
@@ -3552,12 +3568,14 @@ main_loop: do n = 1, n2
       cycle
     endif
 
-    if (k_slave > lat%n_ele_track) then ! must be a super_lord.
-      ix = lat%ele(k)%ix1_slave
-      k_slave = lat%control(ix)%ix_slave
+    slave => pointer_to_ele (lat, ix_ele(k_slave), ix_branch(k_slave))
+
+    if (slave%lord_status == super_lord$) then 
+      slave => pointer_to_slave (lat, slave, 1)
     endif
 
-    k_slave_original = k_slave
+    branch => lat%branch(slave%ix_branch)
+    ix_ele_original = slave%ix_ele
 
     ! Loop over all matches to the first name.
 
@@ -3571,23 +3589,28 @@ main_loop: do n = 1, n2
         slave_name = plat%ele(ixx)%name(ixs)
 
         do  ! loop over all lattice elements
-          if (lat%ele(k_slave)%slave_status == super_slave$) then
-            do ic = lat%ele(k_slave)%ic1_lord, lat%ele(k_slave)%ic2_lord
-              ie = lat%control(ic)%ix_lord
-              if (match_wild(lat%ele(ie)%name, slave_name)) then
-                ix_slave(ixs) = ie
+          if (slave%slave_status == super_slave$) then
+            do ic = 1, slave%n_lord
+              lord2 => pointer_to_lord (lat, slave, ic)
+              if (match_wild(lord2%name, slave_name)) then
+                cs(ixs)%ix_slave  = lord2%ix_ele
+                cs(ixs)%ix_branch = lord2%ix_branch
                 cycle slave_loop
               endif
             enddo
           else
-            if (match_wild(lat%ele(k_slave)%name, slave_name)) then
-              ix_slave(ixs) = k_slave
+            if (match_wild(slave%name, slave_name)) then
+              cs(ixs)%ix_slave  = slave%ix_ele
+              cs(ixs)%ix_branch = slave%ix_branch
               cycle slave_loop
             endif
           endif
-          k_slave = k_slave + 1  
-          if (k_slave == lat%n_ele_track + 1) k_slave = 1
-          if (k_slave == k_slave_original) then
+          if (slave%ix_ele == branch%n_ele_track) then
+            slave => branch%ele(1)
+          else
+            slave => branch%ele(slave%ix_ele + 1)
+          endif
+          if (slave%ix_ele == ix_ele_original) then
             call warning ('CANNOT FIND END ELEMENT FOR GIRDER: ' // lord%name, &
                           'CANNOT FIND: ' // slave_name, pele = plat%ele(ixx))
             cycle main_loop
@@ -3598,13 +3621,13 @@ main_loop: do n = 1, n2
       ! create the girder element
 
       call new_control (lat, ix_lord)
-      call create_girder (lat, ix_lord, ix_slave(1:lord%n_slave), lord)
+      call create_girder (lat, ix_lord, cs(1:lord%n_slave), lord)
 
       k2 = k2 + 1
       k_slave = r_indexx(k2)
-      if (lat%ele(k_slave)%name /= name1) exit
+      if (slave%name /= name1) exit
       if (k_slave > lat%n_ele_track) then ! must be a super_lord.
-        ix = lat%ele(k_slave)%ix1_slave
+        ix = slave%ix1_slave
         k_slave = lat%control(ix)%ix_slave
       endif
 
