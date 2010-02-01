@@ -3,7 +3,7 @@
 !
 ! Subroutine to compress the ele(:), control(:), and ic(:) arrays to remove
 ! elements no longer used. Note: to mark an element for removal use:
-!     lat%ele(i)%key = -1
+!     lat%branch(ib)%ele(i)%key = -1
 !
 ! Modules Needed:
 !   use bmad
@@ -30,7 +30,7 @@ type (branch_struct), pointer :: branch
 type (control_struct), pointer :: ctl
 
 type ele_index_temp
-  integer, allocatable :: ix_new(:)  ! ix_new(old_ele_index) = new_ele_index
+  type (lat_ele_loc_struct), allocatable :: new(:)  ! new(old_ele_index) => new_ele_index
 end type
 type (ele_index_temp), allocatable :: ibr(:)
 
@@ -43,7 +43,7 @@ logical, optional :: check_controls
 
 allocate (ibr(0:ubound(lat%branch, 1)) )
 do i = 0, ubound(lat%branch, 1)
-  allocate (ibr(i)%ix_new(lat%branch(i)%n_ele_max))
+  allocate (ibr(i)%new(lat%branch(i)%n_ele_max))
 enddo
 
 allocate (control(lat%n_control_max))
@@ -68,16 +68,17 @@ enddo
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  if (ib > 0) branch%ix_from_ele = ibr(branch%ix_from_branch)%ix_new(branch%ix_from_ele)
+  if (ib > 0) branch%ix_from_ele = ibr(branch%ix_from_branch)%new(branch%ix_from_ele)%ix_ele
 
   i2 = 0
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
     if (ele%key == -1) then
-      ibr(ib)%ix_new(i) = -1
+      ibr(ib)%new(i)%ix_ele = -1
     else
       i2 = i2 + 1
-      ibr(ib)%ix_new(i) = i2
+      ibr(ib)%new(i)%ix_ele    = i2
+      ibr(ib)%new(i)%ix_branch = ib
       if (i2 /= i) branch%ele(i2) = ele
     endif
     if (i == branch%n_ele_track) then
@@ -102,8 +103,8 @@ do i = 1, lat%n_control_max
   control(i) = i2
   ctl => lat%control(i)
   lat%control(i2) = ctl
-  lat%control(i2)%ix_lord  = ibr(ctl%ix_branch)%ix_new(ctl%ix_lord)
-  lat%control(i2)%ix_slave = ibr(ctl%ix_branch)%ix_new(ctl%ix_slave)
+  lat%control(i2)%ix_lord  = ibr(0)%new(ctl%ix_lord)%ix_ele
+  lat%control(i2)%ix_slave = ibr(ctl%ix_branch)%new(ctl%ix_slave)%ix_ele
 enddo
 
 lat%n_control_max = i2

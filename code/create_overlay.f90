@@ -55,7 +55,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: slave, lord
 type (control_struct)  contl(:)
 
-integer i, j, nc0, ix_overlay, nc2
+integer i, j, nc0, ix_overlay, nc2, ix_con
 integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(*) attrib_name
@@ -72,7 +72,7 @@ do j = 1, n_slave
   ix_slave  = contl(j)%ix_slave
   ix_branch = contl(j)%ix_branch
 
-  if (ix_branch <= 0 .or. ix_branch > ubound(lat%branch, 1)) then
+  if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
     print *, 'ERROR IN CREATE_OVERLAY: BRANCH INDEX OUT OF BOUNDS.', ix_branch
     call err_exit
   endif
@@ -152,7 +152,7 @@ lord%ix_value = ix_attrib
 
 do i = 1, lord%n_slave
 
-  slave => pointer_to_slave (lat, lord, i)
+  slave => pointer_to_slave (lat, lord, i, ix_con)
 
   if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$
@@ -169,7 +169,7 @@ do i = 1, lord%n_slave
 
   slave%n_lord = slave%n_lord + 1
   call add_lattice_control_structs (lat, slave)
-  lat%ic(slave%ic2_lord) = i
+  lat%ic(slave%ic2_lord) = ix_con
 
 enddo
 

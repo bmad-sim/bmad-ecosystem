@@ -102,12 +102,30 @@ logical, optional :: err_print_flag
 
 character(16) :: r_name = 'create_group'
 
+! Error check
+
+n_control = size(contrl)
+
+do i = 1, n_control
+  ix_slave  = contrl(i)%ix_slave
+  ix_branch = contrl(i)%ix_branch
+
+  if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
+    print *, 'ERROR IN CREATE_OVERLAY: BRANCH INDEX OUT OF BOUNDS.', ix_branch
+    call err_exit
+  endif
+
+  if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
+    print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
+    call err_exit
+  endif
+enddo
+
 ! init
 
 call check_controller_controls (contrl, lat%ele(ix_lord)%name, err)
 if (err) return
 
-n_control = size(contrl)
 lord => lat%ele(ix_lord)
 lord%lord_status = group_lord$
 lord%key = group$

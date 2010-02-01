@@ -264,7 +264,7 @@ if (ele%key == overlay$) then
     endif
 
     if (ele%ix_value /= i) then
-      call warning ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
+      if (print_err) call warning ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
             'YOU ARE TRYING TO SET: ' // word, &
             'BUT YOU SHOULD BE SETTING: ' // ele%component_name)
       return
@@ -2794,7 +2794,7 @@ do
         allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
         do i = 1, ref_ele%n_slave
           slave => pointer_to_slave (lat, ref_ele, i)
-          slave%ix_pointer = i + 1 - ref_ele%ix1_slave  ! tag ref element
+          slave%ix_pointer = i  ! tag ref element
         enddo
         ix_branch = slave%ix_branch  ! Branch of slaves
         branch => lat%branch(ix_branch)
@@ -2825,8 +2825,8 @@ do
         do i = lat%n_ele_track+1, lat%n_ele_max 
           ele => lat%ele(i)
           if (ele%key /= drift$) cycle
-          ix = lat%control(ele%ix1_slave)%ix_slave
-          if (lat%ele(ix)%slave_status /= super_slave$) cycle
+          slave => pointer_to_slave (lat, ele, 1)
+          if (slave%slave_status /= super_slave$) cycle
           ele%key = -1 ! mark for deletion
           do j = 1, ele%n_lord
             lord => pointer_to_lord (lat, ele, j)
@@ -2842,11 +2842,11 @@ do
         ! super_slaves directly
 
         j = 0
-        do i = 1, branch%n_ele_max
-          if (branch%ele(i)%name == 'temp_name!') then
-            branch%ele(i)%name = super_ele_saved%name
+        do i = lat%n_ele_track+1, lat%n_ele_max
+          if (lat%ele(i)%name == 'temp_name!') then
+            lat%ele(i)%name = super_ele_saved%name
             j = j + 1
-            m_slaves(j) = ele_to_lat_loc (branch%ele(i))
+            m_slaves(j) = ele_to_lat_loc (lat%ele(i))
           endif
         enddo
 
