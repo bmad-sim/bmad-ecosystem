@@ -182,7 +182,7 @@ enddo
 do ib = 0, ubound(lat%branch, 1)
   do ie = 1, lat%branch(ib)%n_ele_track
     if (lat%branch(ib)%ele(ie)%slave_status /= free$) then
-      call control_bookkeeper1 (lat, lat%ele(ie), sm_only)
+      call control_bookkeeper1 (lat, lat%branch(ib)%ele(ie), sm_only)
     endif
   enddo
 enddo

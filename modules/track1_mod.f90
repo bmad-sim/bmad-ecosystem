@@ -226,9 +226,10 @@ integer n, n_step
 ! simple case
 
 if (ele%value(g$) == 0) then
+  length = ele%value(l$)
   end = start
   end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end%vec, ele%value(l$))
+  call track_a_drift (end%vec, length)
   end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
   return
 endif

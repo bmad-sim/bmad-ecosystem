@@ -29,9 +29,9 @@ subroutine add_lattice_control_structs (lat, ele)
 
   type (lat_struct), target :: lat
   type (ele_struct) ele
+  type (branch_struct), pointer :: branch
 
-  integer n_add, n_con, i2, n_con2, n_ic, n_ic2
-
+  integer n_add, n_con, i2, n_con2, n_ic, n_ic2, ib
 
   ! fix slave problems
 
@@ -69,8 +69,11 @@ subroutine add_lattice_control_structs (lat, ele)
       lat%control(i2+1:i2+n_add)%ix_branch = 0
       lat%control(i2+1:i2+n_add)%ix_attrib = 0
       lat%control(i2+1:i2+n_add)%coef = 0
-      where (lat%ele%ix1_slave > i2) lat%ele%ix1_slave = lat%ele%ix1_slave + n_add
-      where (lat%ele%ix2_slave >= i2) lat%ele%ix2_slave = lat%ele%ix2_slave + n_add
+      do ib = 0, ubound(lat%branch, 1)
+        branch => lat%branch(ib)
+        where (branch%ele%ix1_slave > i2) branch%ele%ix1_slave = branch%ele%ix1_slave + n_add
+        where (branch%ele%ix2_slave >= i2) branch%ele%ix2_slave = branch%ele%ix2_slave + n_add
+      enddo
       where (lat%ic > i2) lat%ic = lat%ic + n_add
     endif
 
@@ -102,8 +105,11 @@ subroutine add_lattice_control_structs (lat, ele)
       if (n_ic+n_add > size(lat%ic)) call re_allocate (lat%ic, nint(1.2*(n_ic+n_add)) + 10)
       lat%ic(i2+1+n_add:n_ic+n_add) = lat%ic(i2+1:n_ic)
       lat%ic(i2+1:i2+n_add) = 0
-      where (lat%ele%ic1_lord > i2) lat%ele%ic1_lord = lat%ele%ic1_lord + n_add
-      where (lat%ele%ic2_lord >= i2) lat%ele%ic2_lord = lat%ele%ic2_lord + n_add
+      do ib = 0, ubound(lat%branch, 1)
+        branch => lat%branch(ib)
+        where (branch%ele%ic1_lord > i2) branch%ele%ic1_lord = branch%ele%ic1_lord + n_add
+        where (branch%ele%ic2_lord >= i2) branch%ele%ic2_lord = branch%ele%ic2_lord + n_add
+      enddo
     endif
 
     lat%n_ic_max = n_ic + n_add

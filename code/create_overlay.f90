@@ -64,13 +64,30 @@ character(40) at_name
 logical err, free
 logical, optional :: err_print_flag
 
+! Error check
+
+n_slave = size (contl)
+
+do j = 1, n_slave
+  ix_slave  = contl(j)%ix_slave
+  ix_branch = contl(j)%ix_branch
+
+  if (ix_branch <= 0 .or. ix_branch > ubound(lat%branch, 1)) then
+    print *, 'ERROR IN CREATE_OVERLAY: BRANCH INDEX OUT OF BOUNDS.', ix_branch
+    call err_exit
+  endif
+
+  if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
+    print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
+    call err_exit
+  endif
+enddo
+
 ! Mark element as an overlay lord
 
 lord => lat%ele(ix_overlay)
 call check_controller_controls (contl, lord%name, err)
 if (err) return
-
-n_slave = size (contl)
 
 nc0 = lat%n_control_max
 nc2 = nc0
@@ -133,17 +150,9 @@ lord%ix_value = ix_attrib
 ! Loop over all slaves
 ! Free elements convert to overlay slaves.
 
-do i = lord%ix1_slave, lord%ix2_slave
+do i = 1, lord%n_slave
 
-  ix_slave = lat%control(i)%ix_slave
-  ix_branch = lat%control(i)%ix_branch
-
-  if (ix_slave <= 0) then
-    print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
-    call err_exit
-  endif
-
-  slave => lat%branch(ix_branch)%ele(ix_slave)
+  slave => pointer_to_slave (lat, lord, i)
 
   if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$

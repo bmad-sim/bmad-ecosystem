@@ -85,13 +85,13 @@ s2 = super_saved%s
 
 if (s1 < s1_lat) then
   if (branch%param%lattice_type == linear_lattice$) call out_io (s_warn$, &
-         r_name, 'superimpose is being wrapped around for: ' // super_saved%name)
+         r_name, 'Superimpose is being wrapped around linear lattice for: ' // super_saved%name)
   s1 = s1 + branch%param%total_length
 endif
 
 if (s2 < s1_lat .or. s1 > s2_lat) then
   call out_io (s_abort$, r_name, &
-    'SUPERIMPOSE POSITION BEYOUND END OF LATTICE', &
+    'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_ele%name, &
     'LEFT EDGE: \F10.1\ ', &
     'RIGHT EDGE:\F10.1\ ', r_array = (/ s1, s2 /))
   call err_exit
