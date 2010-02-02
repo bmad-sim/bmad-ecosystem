@@ -499,40 +499,48 @@ endif
 if (delim /= '=')  then
   err_flag = .false.
 
-  if (ele%key == multipole$) then
-    if (ix_attrib >= t0$) then
-      if (.not. associated(ele%a_pole)) call multipole_init (ele)
-      ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
-    else
-      call warning ('EXPECTING "=" AFTER MULTIPOLE ATTRIBUTE: ' // word,  &
-                       'FOR ELEMENT: ' // ele%name)
-      err_flag = .true.
-    endif
+  if (ele%key == multipole$ .and. ix_attrib >= t0$) then
+    if (.not. associated(ele%a_pole)) call multipole_init (ele)
+    ele%b_pole(ix_attrib-t0$) = pi / (2*(ix_attrib-t0$) + 2)
     return
   endif
 
-  select case (ix_attrib)
-
-  case (tilt$)
+  if (ix_attrib == tilt$) then
     select case (ele%key)
-    case (sbend$, rbend$)
+    case (sbend$, rbend$, mirror$)
       ele%value(tilt$) = pi / 2
+      return
     case (quadrupole$, sol_quad$) 
       ele%value(tilt$) = pi / 4
+      return
     case (sextupole$) 
       ele%value(tilt$) = pi / 6
+      return
     case (octupole$) 
       ele%value(tilt$) = pi / 8
+      return
     case default
-      call warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
-              'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
+      if (attribute_name(ele, tilt$) == 'TILT') then
+        call warning ('SORRY I''M NOT PROGRAMMED TO USE A "TILT" DEFAULT' // &
+                      'FOR A: ' // key_name(ele%key), 'FOR: ' // ele%name)
+        err_flag = .true.
+        return
+      endif
     end select
+  endif
 
-  case (fint$)
-    ele%value(fint$) = 0.5
+  if (ele%key == sbend$ .or. ele%key == rbend$) then
+    select case (ix_attrib)
+    case (fint$)
+      ele%value(fint$) = 0.5
+      return
+    case (fintx$)
+      ele%value(fintx$) = 0.5
+      return
+    end select
+  endif
 
-  case (fintx$)
-    ele%value(fintx$) = 0.5
+  select case (ix_attrib)
 
   case (superimpose$)
     ele%lord_status = super_lord$

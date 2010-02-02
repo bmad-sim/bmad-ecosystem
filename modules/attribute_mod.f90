@@ -982,6 +982,9 @@ end function attribute_type
 !
 ! Routine to return the name corresponding to the value of a given attribute.
 !
+! This routine is for "switch" attributes. For example, the "aperture_type" attribute
+! can have value names of "Entrance_End", "Exit_End", etc.
+!
 ! Optionally, this routine can determine if the attribute value corresponds 
 ! to the default value. That is, the value that the attribute would have if 
 ! not specified in the lattice file.

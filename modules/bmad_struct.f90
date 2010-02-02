@@ -491,7 +491,9 @@ integer, parameter :: y_limit$ = 87
 integer, parameter :: offset_moves_aperture$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
-integer, parameter :: superimpose$    = 90
+! superimpose$ through common_lord$ assumed unique (or need to modify bmad_parser_mod.f90).
+
+integer, parameter :: superimpose$    = 90   
 integer, parameter :: offset$         = 91
 integer, parameter :: reference$      = 92
 integer, parameter :: ele_beginning$  = 93

@@ -217,6 +217,7 @@ do ib = 0, ubound(lat%branch, 1)
     call find1_indexx (ele%name, names, ix_names, ix_match, match_found)
     if (match_found) cycle
 
+    if (size(names) < ix_names + 1) call re_allocate(names, 2*size(names))
     names(ix_match+1:ix_names+1) = names(ix_match:ix_names)
     names(ix_match) = ele%name
     ix_names = ix_names + 1
