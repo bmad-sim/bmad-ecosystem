@@ -181,7 +181,7 @@ character(100) file_name, name
 character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
-character(5) undef_str
+character(3) undef_str
 character(40) replacement_for_blank
 
 character(16) :: show_what, show_names(25) = [ &
@@ -1114,7 +1114,7 @@ case ('lattice')
   print_tail_lines = .true.
   replacement_for_blank = ''
   ix_branch = 0
-  undef_str = '-----'
+  undef_str = '---'
   show_lords = .false.
   show_custom = .false.
   column(:)%name = ""
@@ -1148,7 +1148,7 @@ case ('lattice')
       all_lat = .true. 
 
     elseif (index('-0undef', stuff2(1:ix)) == 1 .and. ix > 1 ) then
-      undef_str = '    0'
+      undef_str = '  0'
 
     elseif (index('-no_label_lines', stuff2(1:ix)) == 1 .and. ix > 4) then
       print_header_lines = .false.
@@ -1412,9 +1412,10 @@ case ('lattice')
         endif
         call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
-          j = nc + max(1, column(i)%field_width - 5)
-          k = max(5, 6 - min(5, column(i)%field_width - 1))
-          line(j:) = undef_str(k:5)
+          n = len(undef_str)
+          k = min(n, column(i)%field_width - 1)
+          j = nc + column(i)%field_width - k
+          line(j:) = undef_str(n-k+1:n)
         else
           if (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
             write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
