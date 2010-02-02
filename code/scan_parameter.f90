@@ -110,7 +110,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 
   integer particle
   integer ierr
-  integer i,n,ix_ip
+  integer i,n
   integer, optional, intent(in) :: slices
 
 
@@ -202,9 +202,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   beambeam_ele%value(y_offset$) = co_oppos(0)%vec(3)
   beambeam_ele%value(tilt$) = theta !tilt of beam ellipse due to coupling
 
-  ix_ip = 1
-
-  call add_superimpose (ring, beambeam_ele, 0, ix_ip)
+  call add_superimpose (ring, beambeam_ele, 0)
   call lat_make_mat6(ring, -1)
 
   call out_io(s_info$,r_name,' Strong beam: ')
