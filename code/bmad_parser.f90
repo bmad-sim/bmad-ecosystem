@@ -854,6 +854,8 @@ do i = 1, n_max
     enddo
   enddo
 
+  call s_calc (lat)  ! calc longitudinal distances of new branche elements
+
 enddo
 
 ! Remove all null_ele elements.

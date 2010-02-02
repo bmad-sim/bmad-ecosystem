@@ -1,5 +1,5 @@
 !+
-! Subroutine add_superimpose (lat, super_ele, ix_branch, ix_super)
+! Subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
 !
 ! Subroutine to make a superimposed element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
@@ -11,19 +11,19 @@
 !   use bmad
 !
 ! Input:
-!   lat       -- lat_struct: Lat to modify.
-!   super_ele -- Ele_struct: Element to superimpose.
+!   lat          -- lat_struct: Lat to modify.
+!   super_ele_in -- Ele_struct: Element to superimpose.
 !         %s          -- Position of end of element.
 !                         Negative distances mean distance from the end.
 !   ix_branch -- Integer: Branch index to put element.
 !
 !
 ! Output:
-!   lat      -- lat_struct: Modified lat.
-!   ix_super -- Integer: Index where element is put.
+!   lat           -- lat_struct: Modified lat.
+!   super_ele_out -- Ele_struct, pointer, optional :: Pointer to the super element in the lattice.
 !-
 
-subroutine add_superimpose (lat, super_ele, ix_branch, ix_super)
+subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
 
 use bmad_struct
 use bmad_interface, except_dummy => add_superimpose
@@ -31,7 +31,8 @@ use bmad_interface, except_dummy => add_superimpose
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct)  super_ele
+type (ele_struct)  super_ele_in
+type (ele_struct), pointer, optional ::  super_ele_out
 type (ele_struct), save :: super_saved, slave_saved, drift, null_ele
 type (ele_struct), pointer :: slave, lord
 type (control_struct)  sup_con(100)
@@ -52,15 +53,15 @@ character(20) :: r_name = "add_superimpose"
 !-------------------------------------------------------------------------
 ! Check for negative length
 
-if (super_ele%value(l$) < 0) then
+if (super_ele_in%value(l$) < 0) then
   call out_io (s_abort$, r_name, &
                   'Superposition of element with negative length not allowed!', &
-                  'Element: ' // super_ele%name, &
-                  'Length: \es10.2\ ', r_array = (/ super_ele%value(l$) /) )
+                  'Element: ' // super_ele_in%name, &
+                  'Length: \es10.2\ ', r_array = (/ super_ele_in%value(l$) /) )
   call err_exit
 endif
 
-! We need a copy of super_ele since the actual argument may be in the lat
+! We need a copy of super_ele_in since the actual argument may be in the lat
 ! and split_lat can then overwrite it.
 
 call init_ele (super_saved)
@@ -68,7 +69,7 @@ call init_ele (slave_saved)
 call init_ele (drift)
 drift%key = drift$
 
-super_saved = super_ele
+super_saved = super_ele_in
 branch => lat%branch(ix_branch)
 
 ! s1 is the left edge of the superimpose.
@@ -91,7 +92,7 @@ endif
 
 if (s2 < s1_lat .or. s1 > s2_lat) then
   call out_io (s_abort$, r_name, &
-    'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_ele%name, &
+    'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
     'LEFT EDGE: \F10.1\ ', &
     'RIGHT EDGE:\F10.1\ ', r_array = (/ s1, s2 /))
   call err_exit
@@ -107,6 +108,7 @@ if (super_saved%value(l$) == 0) then
   ix_super = ix1_split + 1
   branch%ele(ix_super)%lord_status  = not_a_lord$
   branch%ele(ix_super)%slave_status = free$
+  if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   call adjust_super_slave_names (lat, ix_lord_max_old+1, branch%n_ele_max)
   return
 endif
@@ -224,6 +226,7 @@ if (all_drift) then
   branch%ele(ix_super) = super_saved
   branch%ele(ix_super)%lord_status  = not_a_lord$
   branch%ele(ix_super)%slave_status = free$
+  if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   ! If a single drift was split give the runt drifts on either end 
   ! Unique names by adding "#1" and "#2" suffixes.
   if (split1_done .and. split2_done) then
@@ -280,6 +283,7 @@ lat%n_ele_max = ix_super
 if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
 lat%ele(ix_super) = super_saved
 lat%ele(ix_super)%lord_status = super_lord$
+if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 ix_super_con = 0
 length = super_saved%value(l$)
@@ -393,6 +397,7 @@ if (n_con > size(lat%control)) call reallocate_control(lat, n_con+500)
 lat%ele(ix_super)%ix1_slave = ixc
 lat%ele(ix_super)%ix2_slave = n_con
 lat%ele(ix_super)%n_slave = ix_super_con
+if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 do k = 1, ix_super_con
   lat%control(k+ixc-1) = sup_con(k)

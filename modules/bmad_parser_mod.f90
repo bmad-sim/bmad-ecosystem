@@ -2718,14 +2718,14 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct) super_ele_in
 type (ele_struct), save :: super_ele_saved, super_ele
-type (ele_struct), pointer :: ref_ele, ele, slave, lord
+type (ele_struct), pointer :: ref_ele, ele, slave, lord, super_ele_out
 type (parser_ele_struct) pele
 type (multipass_all_info_struct) m_info
 type (lat_struct), optional :: in_lat
 type (lat_ele_loc_struct), allocatable :: m_slaves(:)
 type (branch_struct), pointer :: branch
 
-integer ix, i, j, k, it, nic, nn, i_sup, i_ele, ib
+integer ix, i, j, k, it, nic, nn, i_ele, ib
 integer n_inserted, n_con, i_br, ix_branch
 
 character(40) matched_name(200), num, name
@@ -2751,7 +2751,7 @@ n_inserted = 0
 
 if (pele%ref_name == blank_name$) then
   call compute_super_lord_s (lat, lat%ele(0), super_ele, pele)
-  call add_superimpose (lat, super_ele, 0, i_sup)
+  call add_superimpose (lat, super_ele, 0)
   return
 endif
 
@@ -2812,8 +2812,8 @@ do
           if (branch%ele(i)%ix_pointer /= j+1) cycle
           j = j + 1
           call compute_super_lord_s (lat, branch%ele(i), super_ele, pele)
-          call add_superimpose (lat, super_ele, ix_branch, i_sup)
-          lat%ele(i_sup)%name = 'temp_name!'
+          call add_superimpose (lat, super_ele, ix_branch, super_ele_out)
+          super_ele_out%name = 'temp_name!'
         enddo
 
         ! Remove any multipass_lord drifts that no longer do anything.
@@ -2890,8 +2890,8 @@ do
         call compute_super_lord_s (lat, branch%ele(i_ele), super_ele, pele)
         call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
         super_ele%name = super_ele_saved%name(:ix)            
-        call add_superimpose (lat, super_ele, i_br, i_sup)
-        call control_bookkeeper (lat, lat%ele(i_sup))
+        call add_superimpose (lat, super_ele, i_br, super_ele_out)
+        call control_bookkeeper (lat, super_ele_out)
       endif
 
       call s_calc (lat)
