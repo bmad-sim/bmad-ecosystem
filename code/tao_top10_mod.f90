@@ -291,8 +291,8 @@ character(40) location, con_var, max_loc, loc_ele, loc_start, loc_ref
 character(80) fmt, fmt2
 character(1) plane
 character(24) :: r_name = 'tao_show_constraints'
-character(200), allocatable, save :: line(:)
-character(200) l1
+character(300), allocatable, save :: line(:)
+character(300) l1
 
 type constraint_struct
   character(40) d2_d1_name
