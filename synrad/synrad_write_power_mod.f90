@@ -163,7 +163,7 @@ subroutine write_header (iu, file, gen_params, synrad_mode)
   write (iu, *) 'Electron sigE/E =',1.e2*synrad_mode%ele_mode%sigE_E, ' ! %'
 
   write (iu, *)
-  write (iu, *) 'Attribute values are G (bends), k1 (quads), k2 (sextupoles), ks (solenoids), B_max (wigglers)'
+  write (iu, '(a)') 'Attribute values are G (bends), k1 (quads), k2 (sextupoles), ks (solenoids), B_max (wigglers)'
 
   write (iu, '(3(/,2x,a))') &
 'Segment                                  ', &
