@@ -25,6 +25,7 @@ end type wall_pt_struct
 
 type source_struct
   integer ix_ele_source    ! element index at source
+  real(rp) power_per_len   ! Power from this source
   type (coord_struct) start, now    ! 
 end type source_struct
 

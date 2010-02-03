@@ -414,7 +414,8 @@ power%at_wall = power%at_wall + dpower * seg%len
 ep%sources(ns)%start%vec = ray1%start%vec * (1 - rr) + ray2%start%vec * rr
 ep%sources(ns)%now%vec = ray1%now%vec * (1 - rr) + ray2%now%vec * rr
 ep%sources(ns)%ix_ele_source = ray2%ix_source
-if (dpower > ep%power_per_len) then
+ep%sources(ns)%power_per_len = dpower
+if (dpower > maxval(ep%sources(1:ns-1)%power_per_len)) then
   ep%ix_ele_source = ray2%ix_source
   ep%s_source = ep%sources(ns)%start%vec(5)
 endif
