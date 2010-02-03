@@ -96,12 +96,20 @@ call file_suffixer (out_name, out_name, 'madx', .true.)
 call bmad_to_mad_or_xsif ('MAD-X', out_name, lat)
 
 ! Lattices without bpm markers.
+! Also combine drifts to either side of a detector.
 
 if (.not. nobpm) stop
 
 do i = 1, lat%n_ele_track
-  if (lat%ele(i)%name(1:4) == 'DET_') lat%ele(i)%key = -1 ! Mark for deletion
+  if (lat%ele(i)%name(1:4) == 'DET_') then
+    lat%ele(i)%key = -1 ! Mark for deletion
+    if (lat%ele(i-1)%key == drift$ .and. lat%ele(i+1)%key == drift$) then
+      lat%ele(i-1)%value(l$) = lat%ele(i-1)%value(l$) + lat%ele(i+1)%value(l$)
+      lat%ele(i+1)%key = -1
+    endif
+  endif
 enddo
+
 call remove_eles_from_lat(lat)
 
 out_name = file_name
