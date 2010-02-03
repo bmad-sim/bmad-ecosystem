@@ -123,11 +123,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     opt_with_base = s%global%opt_with_base
   endif
 
-! Check if universe is turned off
+  ! Check if universe is turned off
 
   if (.not. s%u(i)%is_on) cycle
 
-! First compute the delta for the merit function
+  ! First compute the delta for the merit function
   
   do j = 1, size(data)
     if (.not. data(j)%useit_opt) cycle
@@ -161,15 +161,15 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
   enddo
 
-! For phase data, since there is an arbitrary overall phase,
-! we choose to make the average delta zero.
+  ! For phase data, since there is an arbitrary overall phase,
+  ! we choose to make the average delta zero.
 
   call zero_phase_merit ('phase.a', i)
   call zero_phase_merit ('phase.b', i)
   call zero_phase_merit ('bpm_phase.a', i)
   call zero_phase_merit ('bpm_phase.b', i)
 
-! for max or min merit_types the delta might be modified.
+  ! for max or min merit_types the delta might be modified.
 
   do j = 1, size(data)
     select case (data(j)%merit_type)

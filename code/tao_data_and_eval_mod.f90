@@ -1701,7 +1701,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine data_calc (ixd, datum, lat, orbit)
+subroutine data_calc (ix_ele, datum, lat, orbit)
 
 implicit none
 
@@ -1711,14 +1711,13 @@ type (tao_data_struct) datum
 type (lat_struct) lat
 type (coord_struct) orbit(0:)
 
-integer ie, ixd
+integer ix_ele
 real(rp) f, f1, f2
 
 !
 
-cc_p => cc(ixd)
-ie = datum%ix_ele
-ele => lat%ele(ie)
+cc_p => cc(ix_ele)
+ele => lat%ele(ix_ele)
 
 select case (datum%data_type)
 case ('k.11b', 'k.12a', 'k.12b', 'k.22a', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar.22')
@@ -1739,7 +1738,7 @@ case ('k.11b', 'k.12a', 'k.12b', 'k.22a', 'cbar.11', 'cbar.12', 'cbar.21', 'cbar
 
 case ('orbit.amp_a', 'orbit.amp_b', 'orbit.norm_amp_a', 'orbit.norm_amp_b')
   if (cc_p%amp_calc_done) return
-  call orbit_amplitude_calc (ele, orbit(ie), cc_p%amp_a, cc_p%amp_b, &
+  call orbit_amplitude_calc (ele, orbit(ix_ele), cc_p%amp_a, cc_p%amp_b, &
                            cc_p%amp_na, cc_p%amp_nb, lat%param%particle)
   cc_p%amp_calc_done = .true.
 end select
