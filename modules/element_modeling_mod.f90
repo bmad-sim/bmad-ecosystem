@@ -12,7 +12,10 @@ type wiggler_modeling_common_struct
   real(rp) :: k_step   = 1e-7  ! Step size for calculating derivatives
   real(rp) :: len_step = 1e-6  ! Step size for calculating derivatives
   real(rp) :: integration_ds = 0.001 ! meters
-  real(rp) :: drift_len_min = .02
+  real(rp) :: drift_len_min = .01
+  real(rp) :: len_drifts(3)
+  real(rp) :: len_d_end
+  real(rp) :: len_d_end2
   logical :: print_results = .false.
 end type
 
@@ -22,7 +25,7 @@ type (lat_struct), private, save, pointer :: lat_com
 
 private wig_func, yfit_calc, mat_flatten
 
-real(rp), private, save :: a_step(5) 
+real(rp), private, save :: a_step(5)
 integer, private, save :: n_ele, first_peak_polarity
 logical, private, save :: even_pole_num
 
@@ -333,18 +336,21 @@ call lattice_bookkeeper (lat)
 ! Possible:
 !   fint, hgap
 !
-! Data to fit (13 datums):
+! Data to fit (14 datums if n_pole is odd, 15 datums if n_pole is even):
 !   Difference: g2_int, g3_int
 !   ele%floor%x = 0
-!   End drift length > 0
 !   Difference: mat6(1:2,1:2), mat6(3:4,3:4), mat6(1,6), 
+!   D length > 0
+!   D_end length > 0
+!   D_end2 length > 0   (only with n_pole even)
 
 if (even_pole_num) then
   n_var = 5
+  n_data = 15
 else
   n_var = 4
+  n_data = 14
 endif
-n_data = 13
 
 allocate (y(n_data), yfit(n_data), weight(n_data))
 allocate (a(n_var), covar(n_var, n_var), alpha(n_var,n_var))
@@ -357,10 +363,11 @@ a_step = (/ c%g_step, c%k_step, c%len_step, c%len_step, c%len_step /)
 call make_mat6 (wiggler, lat%param)
 
 weight(1:3)  = (/ c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt /)
-weight(4)   = c%drift_len_wgt
-weight(5:13) = c%mat6_wgt
+weight(4:12) = c%mat6_wgt
+weight(13:)  = c%drift_len_wgt
 
-y = (/ g2_int, g3_int, 0.0_rp, 0.0_rp, mat_flatten(wiggler%mat6) /)
+y = 0
+y(1:12) = [g2_int, g3_int, 0.0_rp, mat_flatten(wiggler%mat6)]
 
 a_lambda = -1
 chisq_old = 1e10
@@ -384,18 +391,27 @@ do i = 1, 100
       print *, 'Model   g2_int, g3_int:', yfit(1), yfit(2)
       print *, 'Floor: ', lat%ele(n_ele)%floor%theta, lat%ele(n_ele)%floor%x, lat%ele(n_ele)%floor%z
       print *, 'L:', wiggler%value(l$), lat%ele(n_ele)%s
-      print *, 'chi2_g2:   ', weight(1) * (yfit(1) - y(1))**2
-      print *, 'chi2_g3:   ', weight(2) * (yfit(2) - y(2))**2
-      print *, 'chi2_x:    ', weight(3) * (yfit(3) - y(3))**2
-      print *, 'chi2_len:  ', weight(4) * (yfit(4) - y(4))**2
-      print *, 'chi2_m12:  ', weight(4) * sum((yfit(5: 8) - y(5: 8))**2)
-      print *, 'chi2_m34:  ', weight(8) * sum((yfit(9:12) - y(9:12))**2)
-      print *, 'chi2_m16:  ', weight(12)* (yfit(13) - y(13))**2
+      print *, 'chi2_g2:         ', weight(1) * (yfit(1) - y(1))**2
+      print *, 'chi2_g3:         ', weight(2) * (yfit(2) - y(2))**2
+      print *, 'chi2_x:          ', weight(3) * (yfit(3) - y(3))**2
+      print *, 'chi2_m12:        ', weight(4) * sum((yfit(4: 7) - y(4: 7))**2)
+      print *, 'chi2_m34:        ', weight(8) * sum((yfit(8:11) - y(8:11))**2)
+      print *, 'chi2_m16:        ', weight(12) * (yfit(12) - y(12))**2
+      print *, 'chi2_d_len:      ', weight(13) * (yfit(13) - y(13))**2
+      print *, 'chi2_d_end_len:  ', weight(14) * (yfit(14) - y(14))**2
+      if (even_pole_num) print *, 'chi2_d_end2_len: ', weight(15) * (yfit(15) - y(15))**2
       chisq_old = chisq
     endif
   endif
   if (a_lambda > 1e10) exit
 enddo
+
+call out_io (s_blank$, r_name, 'Wiggler fitting: ' // trim(wiggler%name) // '  Merit: \f10.3\ ', r_array = [chisq])
+
+if (any(wig_model_com%len_drifts < 0)) then
+  call out_io (s_warn$, r_name, 'Wiggler fitting producing negative drift lengths! ' // wiggler%name)
+
+endif
 
 deallocate (y, yfit, weight, a, covar, alpha)
 
@@ -448,7 +464,7 @@ type (ele_struct), pointer :: ele
 real(rp), intent(in) :: a(:)
 real(rp), intent(out) :: yfit(:)
 real(rp) g, g2_int, g3_int, len_bend, len_drift, k1, sum_angle, len_d_end2, len_d_end
-real(rp) mat6(6,6), vec0(6), dft_len
+real(rp) mat6(6,6), vec0(6)
 
 integer status
 integer i, n_pole
@@ -491,10 +507,14 @@ do i = 1, n_pole
 enddo
 
 lat_com%ele(1:n_ele:2)%value(l$) = len_drift
+
+len_d_end2 = 0
+
 if (even_pole_num) then
   len_d_end2 = a(5)
   lat_com%ele(3)%value(l$) = len_d_end2
   lat_com%ele(n_ele-2)%value(l$) = len_d_end2
+  yfit(15) = len_func(len_d_end2)
 endif
 
 len_d_end = (wig_com%value(l$) - sum(lat_com%ele(2:n_ele-1)%value(l$))) / 2
@@ -514,8 +534,30 @@ else
   g3_int = g**3 * (n_pole - 1) * len_bend
 endif
 
-dft_len = max(0.0_rp, wig_model_com%drift_len_min - len_d_end)
-yfit = (/ g2_int, g3_int, lat_com%ele(n_ele)%floor%x, dft_len, mat_flatten(mat6) /)
+wig_model_com%len_drifts  = [len_drift, len_d_end, len_d_end2]
+
+yfit(1:14) = [g2_int, g3_int, lat_com%ele(n_ele)%floor%x, mat_flatten(mat6), &
+                                         len_func(len_drift), len_func(len_d_end)]
+
+!----------------------------------
+contains
+
+function len_func (length) result (eff_len)
+
+real(rp) length, dm, eff_len
+
+!
+
+dm = wig_model_com%drift_len_min
+
+if (length > dm) then
+  eff_len = 0
+  return
+endif
+
+eff_len = (length - dm) *  (1 + ((length - dm)/ dm)**2)
+
+end function
 
 end subroutine
 
