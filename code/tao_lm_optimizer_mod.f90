@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-                                    
 module tao_lm_optimizer_mod
 
 use tao_mod

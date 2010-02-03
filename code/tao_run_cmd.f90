@@ -100,8 +100,13 @@ do i = 1, s%global%n_opti_loops
 
 enddo
 
+! We need a lattice recalc one last time since data not used in the 
+! optimization has not been updated.
+
 tao_com%optimizer_running = .false.
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
+s%u(:)%lattice_recalc = .true.
+
 
 end subroutine
 
