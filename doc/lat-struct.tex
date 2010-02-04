@@ -54,8 +54,10 @@ information as \vn{lattice2} but the pointers in \vn{lattice1} will
 point to different locations in physical memory so that changes to one
 lattice will not affect the other.
 
+\index[routine]{deallocate_lat_pointers}
 Initial allocation of the pointers in a \vn{lat_struct} variable is
-generally handled by the \vn{bmad_parser} and \vn{lat_equal_lat}
+generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} 
+and \Hyperref{r:lat.equal.lat}{lat_equal_lat}
 routines.  Once allocated, local \vn{lat_struct} variables must have
 the save attribute or the pointers within must be appropriately
 deallocated before leaving the routine.
@@ -72,12 +74,13 @@ memory. Typically using the save attribute will be the best choice.
 \label {s:lat.struct}
 
 \index{lat_struct!\%branch(:)}
-\index{branch}\index{photon_branch}
+\index{branch}\index{photon_branch}\index{branch!main}
 The lattice is divided up into the ``main branch'' 
 (also called the ``main lattice'') and, if there are
 \vn{branch} or \vn{photon_branch} elements, a number of other branches. 
 To simpllify the bookkeeping, the main lattice is itself considered a branch.
 
+\index{branch_struct}
 The branch information is contained in the \vn{%branch(0:)} array. The
 \vn{%branch} array is always indexed from 0 with the $0$ branch
 being the main lattice.  The upper bound of this array will be equal to
@@ -96,7 +99,7 @@ definition of the \vn{branch_struct} structure is
     type (lat_param_struct), pointer :: param
   end type
 \end{example}
-\index{key_name}
+\index[routine]{key_name}
 The \vn{branch(i)%key} component is set to either \vn{photon_branch\$}
 or \vn{branch\$}. The \Hyperref{r:key.name}{key_name} function will
 convert the integer key value to a string for printing. The value of the
@@ -132,15 +135,11 @@ array. Similarly, \vn{%branch(0)%n_ele_track},
 \vn{%branch(0)%n_ele_max}, and \vn{%branch(0)%param} point to
 \vn{lat%n_ele_track}, \vn{lat%n_ele_max}, \vn{lat%param} respectively.
 
-General Note: Since branches are a recent introduction to bmad, at
-this time, there are still some routines that have not
-been generalized to handle branch lines. The conversion process is on going...
-
 The \vn{%branch%ele(:)} array is always allocated with zero as the
 lower bound.  \vn{%ele(0)} is a marker element with its \vn{%name} component
 set to ``\vn{BEGINNING}''. 
 \vn{%ele(0)%mat6} is always the unit matrix. For the
-main branch, with branch index 0, the \vn{%ele(0:)} array is divided up into
+main branch, the \vn{%branch(0)%ele(0:)} array is divided up into
 two parts: The ``tracking'' part and a ``control'' part (also called
 the ``lord'' part). The tracking part of this array holds the elements
 that are tracked through. The control part holds elements that
@@ -162,7 +161,9 @@ of the main lattice \vn{\%branch(0)\%ele(:)} array.}
 \end{table}
 Only the main branch has a lord section so 
 \vn{%branch%n_ele_track} and \vn{%branch%n_ele_max} are the same for 
-all other branches.
+all other branches. Since the main branch can also be accessed via the \vn{lat%ele(:)}
+array, code that deals with the lord section of the lattice may use \vn{lat%ele(:)}
+in place of \vn{lat%branch(0)%ele(:)}.
 
 %----------------------------------------------------------------------------
 \section{Param_struct Component}
@@ -254,7 +255,7 @@ growth rate per turn of the unstable mode.
 The particle type for a branch is stored in the
 integer variable \vn{%param%particle}. The value of this variable will
 correspond to one of the constants:
-\index{positron}\index{electron}\index{proton}\index{antiproton}
+\index{positron\$}\index{electron\$}\index{proton\$}\index{antiproton\$}
 \begin{example}
   positron\$
   electron\$
@@ -292,6 +293,7 @@ a lord since it controlls attributes of other elements but an
 \vn{overlay} can itself be controlled by other \vn{overlay} and
 \vn{group} elements. In all cases, circular lord/slave chains are not permitted.
 
+\index{ele_struct!\%lord_status}\index{ele_struct\%slave_status}
 The lord and slave elements can be divided up into classes. What type of
 lord an element is, is set by the value of the element's
 \vn{ele%lord_status} component. Similarly, what type of slave an element
@@ -301,10 +303,10 @@ Nomenclature note: An element may be referred to by it's
 with \vn{ele%lord_status} set to \vn{super_lord\$} can be referred to as
 a ``\vn{super_lord}'' element.
 
-\index{free}\index{super_lord}
-\index{group_lord}\index{girder_lord}
-\index{multipass_lord}
-\index{girder_lord}
+\index{free\$}\index{super_lord\$}
+\index{group_lord}\index{girder_lord\$}
+\index{multipass_lord\$}
+\index{girder_lord\$}\index{not_a_lord\$}
 The value of the \vn{ele%lord_status} component can be one of:
   \begin{description}
   \item[super_lord\$]\Newline 
@@ -336,7 +338,9 @@ However, it is permissible,
 and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
-
+\index{super_slave\$}\index{multipass_slave\$}
+\index{patch_in_slave\$}\index{overlay_slave\$}
+\index{group_slave\$} index{free\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
   \item[super_slave\$]\Newline 
@@ -430,6 +434,7 @@ be in either the tracking or control parts of the lattice.
   \label{f:lord.slave}
 \end{table}
 
+\index{ele_struct!\%lord_status}\index{ele_struct\%slave_status}
 Only some combinations of \vn{%lord_status}
 values and \vn{%slave_status} values are permissible for a given element.
 Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for
@@ -461,6 +466,7 @@ the elements in the tracking part of the lattice will be
 \vn{super_lord}/\vn{multipass_slave} elements will be controlled by
 \vn{multipass_lord}s. This is illustrated in Figure~\ref{f:super.mul}.
 
+\index{ele_struct!\%n_lord}\index{ele_struct\%n_slave}
 The number of slave elements that a lord controls is given by the value
 of the lord's \vn{%n_slave} component. Additionally, the number of lord
 elements that the slave has is given by the value of the slave's.
@@ -506,15 +512,20 @@ element pointed to by
 \begin{example}
   pointer_to_lord(lat, slave_ele_i, j)
 \end{example}
+\index{patch_in_slave}
 will be the original element \vn{this_ele}. 
 The one exception here is that the lord of a
 \vn{patch_in_slave} does not have a pointer back to
 the \vn{patch_in_slave}.
 
-
+\index{slave!ordering}\index{lords!ordering}
+\index{super_lord}\index{super_slave}
+\index{multipass_lord}\index{multipass_slave}
+\index{patch_in_slave}
+\index{patch}
 The following ordering of slaves and lords is observed:
   \begin{description}
-  \item[Super_lord slaves:] \Newline
+  \item[Slaves of a super_lord:] \Newline
 The associated \vn{super_slave} elements of a given \vn{super_lord}
 element are ordered from the entrance end of the \vn{super_lord}
 to the exit end. That is, in the code snipit above,
@@ -522,12 +533,12 @@ to the exit end. That is, in the code snipit above,
 the start of the \vn{super_lord} and 
 \vn{ pointer_to_slave (lat, this_ele, this_ele%n_lord)}
 will point to the slave at the exit end of the \vn{super_lord}.
-  \item[Multipass_lord slaves:] \Newline
+  \item[Slaves of a multipass_lord:] \Newline
 The associated \vn{multipass_slave} elements of a 
 \vn{multipass_lord} element are ordered by pass number. That is, 
 in the code snipit above, \vn{pointer_to_slave (lat, this_ele, i)}
 will point to the slave of the $i$\Th pass.
-  \item[Multipass_slave lords:] \Newline
+  \item[Lord of a multipass_slave:] \Newline
 A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord}
 and this lord will be the first one. That is, 
 \vn{pointer_to_slave (lat, this_ele, 1)}.
@@ -547,6 +558,7 @@ slaves pointed to by \vn{pointer_to_slave} of a \vn{mulitpass_lord}
 will always be \vn{multipass_slave}s.
   \end{description}
 
+\index{control_struct}
 The element control information is stored in the \vn{lat%control(:)} array.
 Each element of this array is a \vn{control_struct} structure 
 \begin{example}
@@ -558,9 +570,8 @@ Each element of this array is a \vn{control_struct} structure
     integer ix_attrib              ! index of attribute controlled
   end type
 \end{example}
-\index{girder}
-\index{overlay}
-\index{group}
+\index{girder}\index{overlay}\index{group}
+\index{lat_struct!\%control}
 Each element in the \vn{lat%control(:)} array holds the information on
 one lord/slave pair. The \vn{%ix_lord} component gives the index of the
 lord element which is always in the main branch --- branch 0. The
@@ -569,8 +580,10 @@ and branch index of the slave element. The \vn{%coef} and \vn{%ix_attrib}
 components are used to store the coefficient and
 attribute index for \vn{overlay} and \vn{group} control. The appropriate
 control_struct for a given lord/slave pair can be obtained
-from the optional fourth argument of the \vn{pointer_to_lord} and
-\vn{pointer_to_slave} functions. Example: The following prints 
+from the optional fourth argument of the 
+\Hyperref{r:pointer.to.lord}{pointer_to_lord} and
+\Hyperref{r:pointer.to.slave}{pointer_to_slave} functions. 
+Example: The following prints 
 a list of the slaves, along with the attributes controlled and coefficients,
 on all group elements in a lattice.
 \begin{example}
@@ -592,6 +605,8 @@ on all group elements in a lattice.
   enddo
 \end{example}
 
+\index{lat_struct!\%control}
+\index{lat_struct!\%ix1_slave}\index{lat_struct!\%ix2_slave}
 The elements in the \vn{lat%control(:)} array associated with
 the slaves of a given lord are in the same order as the slaves and the 
 index of the associated \vn{lat%control(:)} element of the first slave 
@@ -676,6 +691,7 @@ does more calculations than is necessary. This can be a problem if
 like \Hyperref{r:lat.make.mat6}{lat_make_mat6} will also 
 call bookkeeping routines and this will add to the execution time of a program. 
 
+\index{bmad_common_struct!\%auto_bookkeeper}
 If program execution time is a problem, it may be necessary to fine tune
 the bookkeeping process. The first step is to turn off automatic
 bookkeeping in routines like \vn{lat_make_mat6} by setting the global
@@ -685,12 +701,13 @@ variable \vn{bmad_com%auto_bookkeeper} (\sref{s:bmad.params}) to False
 \end{example}
 The bookkeeping routines that can be used are in place of \vn{lattice_bookkeeper} 
 are:
+
 \begin{example}
-  attribute_bookkeeper   ! Bookkeeping of attributes in a given element
-  control_bookkeeper     ! Lord/slave control bookkeeping
-  s_calc                 ! Longitudinal element position calc.
-  lat_geometry           ! Element global (floor) positions.
-  compute_reference_energy  
+  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}   ! Bookkeeping of attributes in a given element
+  \Hyperref{r:control.bookkeeper}{control_bookkeeper}     ! Lord/slave control bookkeeping
+  \Hyperref{r:s.calc}{s_calc}                 ! Longitudinal element position calc.
+  \Hyperref{r:lat.geometry}{lat_geometry}           ! Element global (floor) positions.
+  \Hyperref{r:compute.reference.energy}{compute_reference_energy}  
 \end{example}
 See the individual routines for more details.
 
@@ -739,10 +756,6 @@ check if an attribute is free to vary.
   free = attribute_free (eles(i)%ele, 'K1', lat, .false.)
   if (.not. free) print *, 'Cannot vary k1 attribute of element Q10W'
 \end{example}
-
-\vn{%field_master} is the logical within appropriate elements that
-sets whether it is the normalized strength or field strength that is
-the independent variable. See \sref{s:depend} for more details.
 
 With user input the routine \vn{pointer_to_attribute} is a convenient
 way to obtain from an input string a pointer that points to the
