@@ -10,11 +10,13 @@ for arg in sys.argv[1:]:
   for line in file_in.readlines():
 
     while True:
-      ix1 = line.find('hyperref[')
+      ix1 = line.find('\\zzz{')
       if ix1 == -1: break
-      ix2 = line.find(']', ix1)
-      line = line[0:ix1] + 'Hyperref{' + line[ix1+9:ix2] + '}' + line[ix2+1:]
-      ## print line
+      ix2 = line.find('}', ix1)
+      subr = line[ix1+3:ix2]
+      subr = subr.replace('_', '.')
+      line = line[0:ix1] + '\\Hyperref{r:' +  subr + '}{' + line[ix1+3:]
+      print line
 
     file_out.write(line)
     

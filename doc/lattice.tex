@@ -103,7 +103,7 @@ special characters may make the lattice files less portable to non-Bmad programs
 %----------------------------------------------------------------------------
 \section{Digested Files}
 \label{s:lattice.files}
-\index{lattice files!digested files}
+\index{digested files}
 
 Normally the \bmad parser routine will create what is called a
 ``digested file'' after it has parsed a lattice file so that when a
@@ -138,7 +138,7 @@ lattice. This adjusted lattice can now be read in by another program.
 %---------------------------------------------------------------------------
 \section{Element Sequence Definition}
 
-\index{line}
+\index{line}\index{use statement}
 A \vn{line} defines a sequence of elements. \vn{lines} may contain
 other \vn{lines} and so a hierarchy may be established. One line is
 selected, via a \vn{use} statement, that defines the lattice. For
@@ -148,7 +148,6 @@ example:
   l1: line = (a, b, c)  ! Line with 3 elements
   l2: line = (a, z)     ! Another line 
   use, l3               ! Use l3 as the lattice definition.
-  expand_lattice        ! Expand all lines and form the lattice.
 \end{example}
 In this case the lattice would be
 \begin{example}

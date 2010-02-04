@@ -79,7 +79,7 @@ throughout an element.
 \item[\vn{Custom!tracking method}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
-default \vn{track1_custom} supplied with the \bmad\ release will print
+default \vn{track1_custom} supplied with the \bmad release will print
 an error message and stop the program if it is called which probably
 indicates a program linking problem.
 
@@ -111,7 +111,7 @@ accurate. This method is non-symplectic.
 \item[\vn{Symp_Lie_Bmad!tracking method}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad\ routine. By bypassing some of the generality inherent in PTC's routines
+\bmad routine. By bypassing some of the generality inherent in PTC's routines
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
 \vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
 currently only implemented for Wigglers.
@@ -238,7 +238,7 @@ but what is integrated here is a Taylor map. Truncating the map to
 order gives the transfer matrix (Jacobian).  The order at which a
 Taylor series is truncated at is set by \vn{taylor_order} (see
 \sref{s:param}. Like ordinary integration there are various
-formulas that one can use to do symplectic integration. In \bmad\ (or
+formulas that one can use to do symplectic integration. In \bmad (or
 more precisely Etienne's PTC) you can use one of 3 methods. This is
 set by \vn{integrator_order}.  \vn{integrator_order} = n where $n$ is
 allowed by PTC to be 2, 4, or 6. With an integration order of $n$ the
@@ -258,7 +258,7 @@ Uses formulas for the calculation. The emphasis here is on speed
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
 calculation. The default \vn{make_mat6_custom} supplied with the
-\bmad\ release will print an error message and stop the program if it
+\bmad release will print an error message and stop the program if it
 is called which probably indicates a program linking problem.
 
 \index{MAD!Mat6_calc_method!transfer map method}
@@ -276,7 +276,7 @@ Typically \vn{None} is used internally in a program to prevent recomputation.
 \item[\vn{Symp_Lie_Bmad}]
 A Symplectic calculation using a Hamiltonian with Lie operator techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad\ routine. By bypassing some of the generality inherent in PTC's routines
+\bmad routine. By bypassing some of the generality inherent in PTC's routines
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
 \vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
 currently only implemented for Wigglers.

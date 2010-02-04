@@ -8,70 +8,77 @@
 \index{XSIF}\index[routine]{xsif_parser}
 \index[routine]{bmad_parser}\index[routine]{bmad_parser2}
 
-\bmad has routines for reading XSIF (\sref{s:lattice.file.formats})
-and \bmad format files.
-The subroutine to read in an XSIF lattice file is \vn{xsif_parser}.
-There are two subroutines in \bmad\ to read in a \bmad standard
-lattice file: \vn{bmad_parser} and \vn{bmad_parser2}.
-\vn{bmad_parser} is used to initialize a \vn{lat_struct}
-structure from scratch using the information from a lattice
-file. Unless told otherwise, after reading in the lattice
-\vn{bmad_parser} will compute the 6x6 transfer matrices for each
-element. Normally you want to do this but there are exceptions where
-you don't need it and for particular lattices the computation can take
-a long time (especially if there are Taylor maps to be
-computed). Notice that \vn{bmad_parser} does {\em not} compute any
-Twiss parameters.
+\bmad has routines for reading XSIF (\sref{s:lattice.file.formats}) and
+\bmad formatted lattice files. The subroutine to read in an XSIF lattice
+file is \zzz{xsif_parser}. There are two subroutines in \bmad to read
+in a \bmad standard lattice file: \zzz{bmad_parser} and
+\zzz{bmad_parser2}. \vn{bmad_parser} is used to initialize a
+\vn{lat_struct} structure from scratch using the information from a
+lattice file. Unless told otherwise, after reading in the lattice,
+\vn{bmad_parser} will compute the 6x6 transfer matrices for each element
+and this information will be stored in the \vn{digested file}
+(\sref{s:lattice.files}) that is created.  Notice that \vn{bmad_parser}
+does {\em not} compute any Twiss parameters.
 
-\vn{bmad_parser2} is typically used after \vn{bmad_parser} if there is
+\zzz{bmad_parser2} is typically used after \vn{bmad_parser} if there is
 additional information that needs to be added to the lattice. For
-example, aperture limits for the elements are often stored in a
-separate file. In this case there are two possibilities: The first is
-to use \vn{bmad_parser2}
-\begin{verbatim}
-  call bmad_parser ('lattice_file', lat)       ! read in a lattice.
-  call bmad_parser2 ('aperture_file', lat)     ! read in the aperture limits.
-\end{verbatim}
-The second alternative is to create a third file that calls the first two
+example, consider the case where the aperture limits for the elements 
+is stored in a file that is separate from the main lattice definition
+file and it is undesireable to put a \vn{call} statement in one file
+to reference the other.
+To read in the lattice information along with the aperture limits, 
+there are two possibilities: One possibility 
+is to create a third file that calls the first two:
 \begin{verbatim}
  ! This is a file to be called by bmad_parser
  call, file = 'lattice_file'
  call, file = 'aperture_file'
 \end{verbatim}
-and then just use \vn{bmad_parser} to parse this third file.
+and then just use \vn{bmad_parser} to parse this third file. The
+alternative is to use \vn{bmad_parser2} so that the program code looks
+like:
+\begin{verbatim}
+  ! program code to read in everything
+  call bmad_parser ('lattice_file', lat)       ! read in a lattice.
+  call bmad_parser2 ('aperture_file', lat)     ! read in the aperture limits.
+\end{verbatim}
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
-\index{lattice files!digested files}
+\index{digested files}
 
-Since parsing can be slow, once \vn{bmad_parser} has transfered the
+\index{bmad_parser}
+\index{bmad version number}
+Since parsing can be slow, once the \vn{bmad_parser} routine
+has transfered the
 information from a lattice file into the \vn{lat_struct} it will make
 what is called a digested file. A digested file is an image of the
-\vn{lat_struct} in binary form. When \vn{bmad_parser} is called it
-(actually it is a the subroutine \vn{read_digested_bmad_file} that
-does all the work) first looks in the same directory as the lattice
-file for a digested file whose name is of the form
+\vn{lat_struct} in binary form. When \vn{bmad_parser} is called, 
+it first looks in the same directory as the lattice
+file for a digested file whose name is of the form:
 \begin{verbatim}
   'digested_' // LAT_FILE   ! for single precision BMAD 
   'digested8_' // LAT_FILE  ! for double precision BMAD 
 \end{verbatim}
-where \vn{LAT_FILE} is the lattice file name. If it finds the digested
-file it checks that the file is not out--of--date. It can do this
-since the digested file stores the names and the dates of all the
-lattice files that were used when the digested file was made. The
-\bmad\ version number stored in the digested file is also checked. The
-\bmad\ version number is a global parameter that is increased (not too
-frequently) each time the structure of the \vn{lat_struct} or
-\vn{ele_struct} is modified. If the \bmad\ version number in the
-digested file does not agree with the current or the digested file is
-out--of--date a warning will be printed and the digested file will not
-be used.
+where \vn{LAT_FILE} is the lattice file name. If \vn{bmad_parser} finds the digested
+file, it checks that the file is not out--of--date (that is, whether the
+lattice file(s) have been modified after the digested file is made).
+\vn{bmad_parser} can do this since the digested file contains the names
+and the dates of all the lattice files that were involved. Also stored
+in the digested file is the ``\bmad \vn{version number}''. The \bmad
+version number is a global parameter that is increased (not too
+frequently) each time a code change involves modifying the structure of
+the \vn{lat_struct} or \vn{ele_struct}. If the \bmad version number in
+the digested file does not agree with the number current when \vn{bmad_parser}
+was compiled, or if the digested
+file is out--of--date, a warning will be printed, and \vn{bmad_parser}
+will reparse the lattice and create a new digested file.
 
 \index{taylor map!with digested files}
 Since computing Taylor Maps can be very time intensive,
 \vn{bmad_parser} tries to reuse Taylor Maps it finds in the digested
-file even if the lattice file has been changed in the meantime. To
-make sure that everything is OK it will check that the attribute
+file even if the digested file is out--of--date. To
+make sure that everything is OK, \vn{bmad_parser} will check that the attribute
 values of an element needing a Taylor map are the same as the
 attribute values of a corresponding element in the digested file
 before it reuses the map. Element names are not a factor in this
@@ -79,18 +86,18 @@ decision.
 
 This leads to the following trick: If you want to read in a lattice
 where there is no corresponding digested file, and if there is another
-digested file that has elements with the correct Taylor Maps, then to
-save on the map computation time simply make a copy of the digested
+digested file that has elements with the correct Taylor Maps, then, to
+save on the map computation time, simply make a copy of the digested
 file with the digested file name corresponding to the first lattice.
 
 \index[routine]{read_digested_bmad_file}
 \index[routine]{write_digested_bmad_file}
 The digested file is in binary format and is not human readable but it
-provides a convenient mechanism for transporting lattices between
+can provide a convenient mechanism for transporting lattices between
 programs. For example, say you have read in a lattice, changed
 some parameters in the \vn{lat_struct}, and now you want to do some
-analysis on this modified \vn{lat_struct} using a different program. The 
-answer is to have the first program create a digested file
+analysis on this modified \vn{lat_struct} using a different program. 
+One possibility is to have the first program create a digested file
 \begin{example}
   call write_digested_bmad_file ('digested_file_of_mine', lat)
 \end{example}
@@ -108,7 +115,7 @@ using \vn{write_bmad_lattice_file}
 \index{MAD}
 
 \index[routine]{write_bmad_lattice_file}
-To create a \bmad lattice file from a \vn{lat_struct} variable, use the routine
+To create a \bmad lattice file from a \vn{lat_struct} instance, use the routine
 \Hyperref{r:write.bmad.lattice.file}{write_bmad_lattice_file}.
 \index{MAD!MAD-8}
 \mad--8, \mad--X, or \vn{XSIF} compatible lattice 
@@ -120,6 +127,23 @@ using the routine \Hyperref{r:bmad.to.mad.or.xsif}{bmad_to_mad_or_xsif}:
   call bmad_parser (bmad_lat_file, lat)               ! Read in a lattice
   call bmad_to_mad_or_xsif ('lat.mad', 'MAD-8', lat)  ! create MAD file
 \end{example}
-Some information is lost in the process. For example, \mad has no concept of 
+Information can be lost when creating a \mad or \vn{XSIF} file.
+For example, neither \mad nor \vn{XSIF} has the concept of 
 things such as \vn{overlay}s and \vn{group}s.
+
+%----------------------------------------------------------------------------
+\section{Accelerator Markup Lanuage}
+\label{s:aml}
+\index{Accelerator Markup Language (AML)}
+\index{Universal Accelerator Parser (UAP)}
+
+The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal
+Accelerator Parser} (\vn{UAP}) project\cite{b:aml} is a collaboratory
+effort with the aim of 1) creating a lattice format (the \vn{AML} part)
+that can be used to fully describe accelerators and storage rings, and
+2) producing software (the \vn{UAP} part) that can parse \vn{AML}
+lattice files. A side benefit of this project is that the \vn{UAP} code
+has been extended to be able to translate between \vn{AML}, \bmad, \mad-8,
+\mad-X, and \vn{XSIF}. See the AML/UAP project home web page for more details.
+
 
