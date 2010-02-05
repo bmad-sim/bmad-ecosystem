@@ -89,6 +89,23 @@ lord => lat%ele(ix_overlay)
 call check_controller_controls (contl, lord%name, err)
 if (err) return
 
+lord%lord_status = overlay_lord$
+lord%key = overlay$
+
+call str_upcase (at_name, attrib_name)
+ix_attrib =  attribute_index (lord, at_name)
+if (ix_attrib == 0) then
+  print *, 'ERROR IN CREATE_OVERLAY: BAD ATTRIBUTE_NAME: ', attrib_name
+  print *, '      TRYING TO CREATE OVERLAY: ', lord%name
+  call err_exit
+endif
+lord%component_name = at_name
+lord%ix_value = ix_attrib
+
+if (n_slave == 0) return ! If no slaves then nothing to do.
+
+! Loop over all slaves.
+
 nc0 = lat%n_control_max
 nc2 = nc0
 
@@ -133,19 +150,7 @@ enddo
 lord%n_slave = n_slave
 lord%ix1_slave = nc0 + 1
 lord%ix2_slave = nc0 + n_slave
-lord%lord_status = overlay_lord$
-lord%key = overlay$
 lat%n_control_max = nc2
-
-call str_upcase (at_name, attrib_name)
-ix_attrib =  attribute_index (lord, at_name)
-if (ix_attrib == 0) then
-  print *, 'ERROR IN CREATE_OVERLAY: BAD ATTRIBUTE_NAME: ', attrib_name
-  print *, '      TRYING TO CREATE OVERLAY: ', lord%name
-  call err_exit
-endif
-lord%component_name = at_name
-lord%ix_value = ix_attrib
 
 ! Loop over all slaves
 ! Free elements convert to overlay slaves.

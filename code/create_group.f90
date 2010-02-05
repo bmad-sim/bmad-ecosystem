@@ -129,9 +129,12 @@ if (err) return
 lord => lat%ele(ix_lord)
 lord%lord_status = group_lord$
 lord%key = group$
+lord%ix_value = command$
+
+if (n_control == 0) return ! If no slaves then nothing to do.
+
 n_con = lat%n_control_max
 lord%ix1_slave = n_con + 1
-lord%ix_value = command$
 
 ! loop over all controlled elements
 
