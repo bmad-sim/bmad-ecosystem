@@ -516,7 +516,9 @@ end function
 !
 ! Output:
 !   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
+!                   Nullified if there is an error.
 !   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
+!                   Set to -1 is there is an error.
 !-
 
 function pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)
@@ -534,9 +536,8 @@ integer ix_slave, icon
 !
 
 if (ix_slave > lord%n_slave .or. ix_slave < 1) then
-  call err_exit
   nullify(slave_ptr)
-  ix_control = -1
+  if (present(ix_control)) ix_control = -1
   return
 endif
 
@@ -565,7 +566,9 @@ end function
 !
 ! Output:
 !   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
+!                   Nullified if there is an error.
 !   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
+!                   Set to -1 is there is an error.
 !-
 
 function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
@@ -582,9 +585,8 @@ integer ix_lord, icon
 !
 
 if (ix_lord > slave%n_lord .or. ix_lord < 1) then
-  call err_exit
   nullify(lord_ptr)
-  ix_control = -1
+  if (present(ix_control)) ix_control = -1
   return
 endif
 
