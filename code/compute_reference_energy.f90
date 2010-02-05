@@ -116,8 +116,8 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   slave => lord
   do
+    if (slave%n_slave == 0) exit
     slave => pointer_to_slave (lat, slave, slave%n_slave)
-    if (slave%ix_ele <= lat%branch(slave%ix_branch)%n_ele_track) exit
   enddo
 
   ! Now transfer the information to the lord.
