@@ -50,7 +50,7 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := test tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif beambeam bmad_to_autocad synrad synrad3d
+OBJ_SRC_DIRS := test tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif beambeam bmad_to_autocad synrad synrad3d bbu
 CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
@@ -115,7 +115,7 @@ OBJ_OUT_DIR   = $(locallib)
 ifeq "$(BMAD_DIST)" "TRUE"
   include $(BMAD_GMAKE)/M.tail
 else
-  include $(CESR_GMAKE)/M.tail 
+  include $(CESR_GMAKE)/M.tail
 endif
 
 
