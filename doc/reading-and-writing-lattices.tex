@@ -10,17 +10,18 @@
 
 \bmad has routines for reading XSIF (\sref{s:lattice.file.formats}) and
 \bmad formatted lattice files. The subroutine to read in an XSIF lattice
-file is \zzz{xsif_parser}. There are two subroutines in \bmad to read
-in a \bmad standard lattice file: \zzz{bmad_parser} and
-\zzz{bmad_parser2}. \vn{bmad_parser} is used to initialize a
-\vn{lat_struct} structure from scratch using the information from a
+file is \Hyperref{r:xsif.parser}{xsif_parser}. There are two subroutines in \bmad to read
+in a \bmad standard lattice file: \Hyperref{r:bmad.parser}{bmad_parser} and
+\Hyperref{r:bmad.parser2}{bmad_parser2}. \vn{bmad_parser} is used to initialize a
+\vn{lat_struct} (\sref{c:lat.struct}) 
+structure from scratch using the information from a
 lattice file. Unless told otherwise, after reading in the lattice,
 \vn{bmad_parser} will compute the 6x6 transfer matrices for each element
 and this information will be stored in the \vn{digested file}
 (\sref{s:lattice.files}) that is created.  Notice that \vn{bmad_parser}
 does {\em not} compute any Twiss parameters.
 
-\zzz{bmad_parser2} is typically used after \vn{bmad_parser} if there is
+\Hyperref{r:bmad.parser2}{bmad_parser2} is typically used after \vn{bmad_parser} if there is
 additional information that needs to be added to the lattice. For
 example, consider the case where the aperture limits for the elements 
 is stored in a file that is separate from the main lattice definition

@@ -1,5 +1,10 @@
 \chapter{Physics}
 
+This chapter describes some of the physics and various conventions
+\bmad uses. This chapter is by no means a comprehensive treatment
+of accelerator physics and the interested reader is invited to consult 
+any one of the number of good texts that deal with the subject.
+
 %-----------------------------------------------------------------
 \section{Units}
 \label{s:units}
@@ -1321,12 +1326,12 @@ The range in $I_2$ to be iterated over is constrained by $J_x$, $J_y \geq 0$.
 Thus $I_2 is in the range [-\frac{\varepsilon_x}{\varepsilon_y} I_1, 
 \frac{\varepsilon_y}{\varepsilon_x} I_1]$. 
 This range is divided into N regions of equal size, with a ring of 
-macroparticles placed in the middle of each region.  
+particles placed in the middle of each region.  
 The angle variables are also constrained to $\phi_x, \phi_y \in [0, 2\pi]$, 
 with each range divided into $M_x$ and $M_y$ regions, respectively.  
 Each of these regions will have a particle placed in its center.
 
-The weight of a macroparticle is determined by the total weight of the region 
+The weight of a particle is determined by the total weight of the region 
 of phase space it represents.  
 Because the density $\rho$ is only dependent on $I_1$,
 \begin{align}
@@ -1335,10 +1340,10 @@ Because the density $\rho$ is only dependent on $I_1$,
     \int_{\phi_y}^{\phi_y + \Delta \phi_y} d\phi_y \; \frac{1}{A} \delta(I_1 - \xi) \\
    &= \frac{1}{A} \Delta I_2 \Delta \phi_x \Delta \phi_y.
 \end{align}
-To represent the distribution with macroparticles of equal weight, 
+To represent the distribution with particles of equal weight, 
 we must partition $(I_2,\phi_x,\phi_y)$-space into regions of equal volume.
 
-The weight of each macroparticle is
+The weight of each particle is
 \Begineq
   q = \frac{1}{N M_x M_y} = \frac{1}{number of particles}
 \Endeq
@@ -1351,9 +1356,8 @@ The weight of each macroparticle is
 {\em Note: The macroparticle tracking code is not currently maintained
 in favor of tracking an ensemble of particles.}
 
-A macroparticle\cite{b:transport.appendix} is a bundle of particles
-whose distribution is assumed to be Gaussian in shape. A macroparticle
-is represented by a centroid position $\bfrbar$ and a $6 \times 6$
+A macroparticle\cite{b:transport.appendix} is
+represented by a centroid position $\bfrbar$ and a $6 \times 6$
 $\bfsig$ matrix which defines the shape of the macroparticle in
 phase space. $\sigma_i = \sqrt{\bfsig(i,i)}$ is the RMS sigma for the $i$\Th
 phase space coordinate. For example $\sigma_z = \sqrt{\bfsig(5,5)}$.

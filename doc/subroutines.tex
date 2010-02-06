@@ -2822,7 +2822,6 @@ tracking 7 particle with different starting conditions.
   add_taylor_term (bmad_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9, replace)}] \Newline 
 Overloaded routine to add a Taylor term to a Taylor series.
 
-
 \index[routine]{concat_ele_taylor}
 \label{r:concat.ele.taylor}
 \item[concat_ele_taylor (taylor1, ele, taylor3)] \Newline 
@@ -3360,7 +3359,7 @@ Particle tracking through a single element BMAD_standard style.
 \index[routine]{track1_custom}
 \label{r:track1.custom}
 \item[track1_custom (start, ele, param, end)] \Newline
-Dummy routine for custom_tracking.
+Dummy routine for custom tracking.
 
 \index[routine]{track1_linear}
 \label{r:track1.linear}
@@ -3427,8 +3426,14 @@ Subroutine to compute the average betas in a quad.
 
 \index[routine]{radiation_integrals}
 \label{r:radiation.integrals}
-\item[radiation_integrals (lat, orb_, mode)] \Newline
+\item[radiation_integrals (lat, orb, mode)] \Newline
 Subroutine to calculate the synchrotron radiation integrals, the emittance, and energy spread. 
+
+\index[routine]{radiation_integrals_custom}
+\label{r:radiation.integrals}
+\item[radiation_integrals_custom (lat, ir, orb)] \Newline
+User supplied routine to calculate the synchrotron radiation integrals for
+a custom element.
 
 \index[routine]{relative_mode_flip}
 \label{r:relative.mode.flip}

@@ -13,9 +13,9 @@ for arg in sys.argv[1:]:
       ix1 = line.find('\\zzz{')
       if ix1 == -1: break
       ix2 = line.find('}', ix1)
-      subr = line[ix1+3:ix2]
+      subr = line[ix1+5:ix2]
       subr = subr.replace('_', '.')
-      line = line[0:ix1] + '\\Hyperref{r:' +  subr + '}{' + line[ix1+3:]
+      line = line[0:ix1] + '\\Hyperref{r:' +  subr + '}{' + line[ix1+5:]
       print line
 
     file_out.write(line)

@@ -91,13 +91,13 @@ the beam. The parameters of this structure are:
 \begin{example}
   type beam_init_struct
     character(16) distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
-    type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
-    type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
-    type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
+    type (ellipse_beam_init_struct) ellipse(3) ! For ellipse beam distribution
+    type (kv_beam_init_struct) KV              ! For KV beam distribution
+    type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
     !!! The following are for Random distributions
-    character(16) :: random_engine            ! Engine to use: "pseudo" (default) or "quasi". 
-    character(16) :: random_gauss_converter   ! "exact" (default) or "limited". 
-    real(rp) :: random_sigma_cutoff = 4.0     ! Cut-off in sigmas. Used with "limited" converter. 
+    character(16) :: random_engine          ! "pseudo" (default) or "quasi". 
+    character(16) :: random_gauss_converter ! "exact" (default) or "limited". 
+    real(rp) :: random_sigma_cutoff = 4.0   ! Used with "limited" converter. 
     real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
     real(rp) :: emitt_jitter(2)  = 0.0  ! %RMS a and b mode bunch emittance jitter
     real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 

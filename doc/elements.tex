@@ -570,13 +570,13 @@ will be filled out as the code is developed.
 \index{val1,  ..., Val12}
 Attributes specific to a \vn{Custom} element are
 \begin{example}
-  val1,$\ldots$, val12 = <Real>  ! Custom values 
-  delta_e   = <Real>            ! Change in energy.
+  val1, ..., val12 = <Real>  ! Custom values 
+  delta_e          = <Real>  ! Change in energy.
 \end{example}
 
-A \vn{Custom} element is an element whose properties are defined
+A \vn{custom} element is an element whose properties are defined
 outside of the standard \bmad subroutine library. That is, to use a
-custom element some programmer must write the appropriate custom
+custom element, some programmer must write the appropriate custom
 routines which are then linked with the \bmad subroutines into a
 program. \bmad will call the custom routines at the appropriate time
 to do tracking, transfer matrix calculations, etc. See the programmer

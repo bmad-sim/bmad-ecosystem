@@ -2,26 +2,43 @@
 \label{c:tracking}
 \index{tracking}
 
-\bmad can do two types of tracking. One type uses a single particle
-and tracks its coordinates throughout the lattice. The other type
-takes a beam distribution and tracks the centroids and sigmas of
-``macroparticles''. Discussion of macroparticle tracking will be
-deferred until the last section of this chapter.
+\index{macroparticles!tracking}
+\index{tracking!Macroparticles}
+\bmad can do two types of tracking. ``\vn{particle tracking}'' involves
+tracking particles and a particle is characterized by its phase space coordinates.
+The other type of tracking involves ``\vn{macroparticles}'' (\sref{s:macro}) 
+which are characterized by a centroid position and a $6\times 6$ ``sigma'' 
+matrix characterizing the size of the macroparticle. 
+
+Macroparticle tracking was implemented in \bmad in order to simulate particle bunches.
+The idea was that far fewer macroparticles than particles would 
+be needed to characterize a bunch. In practice, it was found that the complexity 
+of handling the macroparticle sigma matrix more than offset the reduction in the
+number of particles needed. Hence, while the basic macroparticle tracking 
+routines still exist, macroparticle tracking is not currently maintained
+and the use of this code is discouraged. Macroparticle tracking could be revived
+if there is a demonstated need for it however.
+
+\index{beam}\index{bunch}
+Particle tracking can be divided into ``single particle'' trackig and ``beam''
+tracking. Single particle tracking is simply tracking a single particle.
+Beam tracking is tracking an ensable of particles divided up into a number of bunches
+that make up the entire beam. Both types particle tracking are covered in this
+chapter.
 
 %----------------------------------------------------------------
 \section{The coord_struct}
 \index{coord_struct}
 
 For single particle tracking the starting point is the
-\vn{coord_struct} whose definition is 
+\vn{coord_struct} which defines a particle. The definition of
+the \vn{coord_struct} is
 \begin{example}
   type coord_struct
     real(rp) vec(6)     ! (x, px, y, py, z, pz)
     complex(rp) spin(2) ! particle spin in spinor notation
   end type
 \end{example}
-The \vn{coord_struct} defines the phase
-space vector of the particle at a certain longitudinal location.
 
 \index{lat_struct!\%n_ele_max}
 To get an orbit, that is, the particle position at every element in a
@@ -313,16 +330,6 @@ is given by \vn{%ele%integrator_order}.
 PTC (\sref{c:etienne}) currently implements integrators of order 2, 4, or 6.
 
 %----------------------------------------------------------------
-\section{Macroparticle Tracking}
-\index{macroparticles!tracking}
-\index{tracking!Macroparticles}
-\label{s:macro.track}
-
-Note: The macroparticle (\sref{s:macro}) tracking code is not currently maintained
-since straight tracking of an ensable of particles (\sref{s:part.track}) is
-simpler to handle and analyze.
-
-%----------------------------------------------------------------
 \section{Reverse Tracking}
 \label{s:reverse.track}
 \index{tracking!reverse}
@@ -358,8 +365,7 @@ damping or excitation breaks this symmetry.
 
 Initializing a distribution of particles to conform to some initial set of
 Twiss parameters and emittances can be done using the routine
-\Hyperref{r:init.beam.distribution}{init_beam_distribution}. Tracking is then performed similarly to
-macroparticle tracking.
+\Hyperref{r:init.beam.distribution}{init_beam_distribution}. 
 
 %----------------------------------------------------------------
 \section{Spin Tracking}
@@ -372,3 +378,18 @@ Spin tracking has been implemented for \vn{bmad_standard}, \vn{boris} and
 in the \vn{coord_struct}, calls to \vn{track1} will track both the
 particle orbit and the spin.
 
+%-----------------------------------------------------------------------------
+\section{Custom Field Calculations}
+\label{s:custom.field}
+\index{fields (electric and magnetic)!custom calculation} 
+\index{ele_struct!\%field_calc}
+
+\index{runge_kutta}\index{boris}\index{ele_struct!\%field_calc}
+\index[routine]{em_filed_custom}
+Custom Electric and Magnetic field calculations are used with
+\vn{runge_kutta} and \vn{boris} tracking (See \sref{s:integ}).  To
+implement custom field calculations the \vn{ele%field_calc} component
+of an element must be set to \vn{custom\$}. This can be done either
+through the lattice input file or within a program. Additionally a
+routine \vn{em_field_custom} must be linked with any program using the
+custom calculations.

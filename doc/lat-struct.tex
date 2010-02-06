@@ -283,7 +283,7 @@ electron charge. Example:
 
 \index{lord|hyperbf}\index{slave|hyperbf}
 In the \vn{lat_struct} structure, certain elements in the \vn{%ele(:)} 
-array (which is the same as the \vn{%branch(0)%ele(:)} array),
+array (equivalent to the \vn{%branch(0)%ele(:)} array),
 called \vn{lord} elements, can control the attributes (component
 values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are
 called \vn{slave} elements.  The situation is complicated by the fact
@@ -293,7 +293,7 @@ a lord since it controlls attributes of other elements but an
 \vn{overlay} can itself be controlled by other \vn{overlay} and
 \vn{group} elements. In all cases, circular lord/slave chains are not permitted.
 
-\index{ele_struct!\%lord_status}\index{ele_struct\%slave_status}
+\index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
 The lord and slave elements can be divided up into classes. What type of
 lord an element is, is set by the value of the element's
 \vn{ele%lord_status} component. Similarly, what type of slave an element
@@ -434,7 +434,7 @@ be in either the tracking or control parts of the lattice.
   \label{f:lord.slave}
 \end{table}
 
-\index{ele_struct!\%lord_status}\index{ele_struct\%slave_status}
+\index{ele_struct!\%lord_status}\index{ele_struct!\%slave_status}
 Only some combinations of \vn{%lord_status}
 values and \vn{%slave_status} values are permissible for a given element.
 Table~\ref{f:lord.slave.a} lists the valid combinations. Thus, for
@@ -466,7 +466,7 @@ the elements in the tracking part of the lattice will be
 \vn{super_lord}/\vn{multipass_slave} elements will be controlled by
 \vn{multipass_lord}s. This is illustrated in Figure~\ref{f:super.mul}.
 
-\index{ele_struct!\%n_lord}\index{ele_struct\%n_slave}
+\index{ele_struct!\%n_lord}\index{ele_struct!\%n_slave}
 The number of slave elements that a lord controls is given by the value
 of the lord's \vn{%n_slave} component. Additionally, the number of lord
 elements that the slave has is given by the value of the slave's.

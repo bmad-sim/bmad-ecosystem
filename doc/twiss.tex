@@ -13,8 +13,8 @@ The \vn{ele_struct} (\sref{c:ele.struct}) has a number of components that
 hold information on the Twiss parameters, dispersion, and coupling
 at the exit end of the element. The Twiss parameters of the three 
 normal modes (\sref{s:coupling})
-are contained in the \vn{%a}, \vn{%b}, and \vn{%z} components which are 
-of type \vn{twiss_struct}:
+are contained in the \vn{ele%a}, \vn{ele%b}, and \vn{ele%z} 
+components which are of type \vn{twiss_struct}:
 \index{twiss_struct}
 \begin{example}
   type twiss_struct
@@ -42,27 +42,33 @@ of type \vn{xy_disp_struct}:
 \end{example}
 
 The relationship between the projected and normal mode dispersions are
-given in \Eq{avx}. 
+given by \Eq{avx}. 
 The 2x2 coupling matrix $\bfC$ (\Eq{vgicc1}) is stored in the \vn{%c(2,2)}
 component of the \vn{ele_struct} and the $\gamma$ factor of \Eq{vgicc1}
 is stored in the \vn{ele%gamma_c} component.
 There are several
 routines to manipulate the coupling factors. For example:
 \begin{example}
-  c_to_cbar(ele, cbar_mat)             ! Form Cbar(2,2) matrix
-  make_v_mats(ele, v_mat, v_inv_mat)   ! Form V matrices.
+  \Hyperref{r:c.to.cbar}{c_to_cbar}(ele, cbar_mat)             ! Form Cbar(2,2) matrix
+  \Hyperref{r:make.v.mats}{make_v_mats}(ele, v_mat, v_inv_mat)   ! Form V matrices.
 \end{example}
 See \sref{r:mat} for a complete listing of such routines.
+
+Since the normal mode and projected dispersions are related, when one is changed 
+within a program the appropriate change must be made to the other. To make
+sure everything is consistent, the \Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
+routine can be used.
 
 The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates
 whether the $a$ and $b$ normal modes have been flipped relative to the
 beginning of the lattice. See Sagan and Rubin\cite{b:coupling} for a
-discussion of this. The convention adopted  by \bmad is that all the
+discussion of this. The convention adopted  by \bmad is that the
 \vn{%a} component of all the elements in a lattice will all correspond
 to the same physical normal mode. Similary, the \vn{%b} component of all
 the elements will all correspond to some (other) physical normal mode.
-That is, at an element where there is a mode flip (\vn{%mode_flip} is
-True), the \vn{%a} component actuall corresponds to the $\bfB$ matrix
+That is, at an element where there is a mode flip (with \vn{%mode_flip} 
+set to True), 
+the \vn{%a} component actually corresponds to the $\bfB$ matrix
 element in \Eq{ua00b} and vice versa. The advantage of this convention
 is that routines that calculate properties of the modes (for example the
 emittance), can ignore whether the modes are flipped or not.
@@ -75,6 +81,7 @@ The \Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine proform
 the full analysis. The results are put in
 the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_struct}:
 \index{ele_struct!\%mode3}
+\index{mode3_struct}
 \begin{example}
   type mode3_struct
     real(rp) v(6,6)
@@ -82,6 +89,8 @@ the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_stru
     type (twiss_struct) x, y
   end type
 \end{example}
+The 6-dimensional \vn{mode3%v(6,6)} component is the analog of the 4-dimensional
+$\bfV$ matrix apearing in \Eq{tvuv}.
 
 %-----------------------------------------------------------------------------
 \section{Twiss Parameter Calculations}
@@ -90,50 +99,31 @@ the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_stru
 \index{twiss parameters!calculation}
 
 A calculation of the Twiss parameters starts with the Twiss parameters
-at the beginning of the lattice. For linear machines, these twiss parameter
-need to be set in the input lattice file (\sref{s:beginning}). For
+at the beginning of the lattice. For linear machines, these Twiss parameters
+are generally set in the input lattice file (\sref{s:beginning}). For
 circular machines, 
-the routine \Hyperref{r:twiss.at.start}{twiss_at_start} may be used (\sref{s:beginning})
+the routine \Hyperref{r:twiss.at.start}{twiss_at_start} 
+may be used (\sref{s:beginning})
 \begin{example}
   type (lat_struct) lat
   ...
   if (lat%param%lattice_type == circular_lattice$) call twiss_at_start(lat)
 \end{example}
-The initial twiss parameters are placed in \vn{lat%ele(0)}. 
+In either case, the initial Twiss parameters are placed in \vn{lat%ele(0)}. 
 
 To propagate the Twiss, coupling and dispersion 
 parameters from the start of the lattice to the end, the routine
 \Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used. This
-routine works by repeated calls to \Hyperref{r:twiss.propagate1}{twiss_propagate1} which does
+routine works by repeated calls to 
+\Hyperref{r:twiss.propagate1}{twiss_propagate1} which does
 a single propagation from one element to another. The Twiss propagation
 depends upon the transfer matrices having already computed (\sref{c:tracking}).
-
-
-In propagating the Twiss
-parameters, the dispersion values in \vn{%x} and \vn{%y} are assumed
-to be correct and the dispersion values in \vn{%a} and \vn{%b} are
-ignored. [Notice, though, in an input lattice file, if
-beginning[eta_a] is set, Bmad does the correct bookkeeping.] In
-general, setting one Twiss parameter will affect the others. To make
-sure everything is consistent, the \Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
-routine can be used.
-
-If the Twiss parameters need to be transfered from 
-one element to another The three components \vn{%a}, \vn{%b}, and \vn{%c}
-need to be copied. Additionally, to transfer the dispersion, the two
-components \vn{%x} and \vn{%y} need to be copied since the standard
-dispersion propagation routine, \vn{twiss_propagate1}, computes normal mode
-dispersions from the projected ones. Thus a full transfer looks like
-\begin{example}
-  ele2%a = ele1%a
-  ele2%b = ele1%b
-  ele2%x = ele1%x
-  ele2%y = ele1%y
-  ele2%z = ele1%z
-\end{example}
+\vn{twiss_propagate_all} also computes the twiss parameters for all the
+lattice branches.
 
 Before any Twiss parameters can be calculated the transfer matrices
-stored in the lattice elements must be computed. \Hyperref{r:bmad.parser}{bmad_parser} does
+stored in the lattice elements must be computed. 
+\Hyperref{r:bmad.parser}{bmad_parser} does
 this automatically about the zero orbit. If, to see nonlinear effects,
 a different orbit needs to be used for the reference, The routine
 \Hyperref{r:lat.make.mat6}{lat_make_mat6} can be used. For example
@@ -190,7 +180,10 @@ the the routine \Hyperref{r:twiss.and.track.partial}{twiss_and_track_partial}.
 \label{s:tune}
 \index{tune calculation}
 
-For a closed lat the tune is calculated via the routine \Hyperref{r:twiss.at.start}{twiss_at_start}.
+\index{lat_struct}
+\index{lat_struct!\%a}\index{lat_struct!\%b}
+For a circular lattice, the tune is calculated via the routine 
+\Hyperref{r:twiss.at.start}{twiss_at_start}.
 This routine multiplies the transfer matrices of the elements together to form
 the one--turn transfer matrix. From this the routine extracts the initial Twiss
 parameters and the tune. The tune is placed in the variables
@@ -200,15 +193,17 @@ parameters and the tune. The tune is placed in the variables
   lat%b%tune     ! b-mode tune
 \end{example}
 
-The routine \Hyperref{r:set.tune}{set_tune} To set the transverse tunes of a closed lat:
+The routine \Hyperref{r:set.tune}{set_tune} can be used
+to set the transverse tunes:
 \begin{example}
   set_tune (phi_a_set, phi_b_set, dk1, lat, orb_, ok)
 \end{example}
 \vn{set_tune} varies quadrupole strengths until the desired tunes are
-achieved. As input \vn{set_tune} takes an argument \vn{dk1(:)} which is an array
+achieved. As input,\vn{set_tune} takes an argument \vn{dk1(:)} which is an array
 that specifies the relative change to be make to the quadrupoles in the lattice.
 
-To set the longitudinal (synchrotron) tune the routine \Hyperref{r:set.z.tune}{set_z_tune} can be
+To set the longitudinal (synchrotron) tune, the routine 
+\Hyperref{r:set.z.tune}{set_z_tune} can be
 used. \Hyperref{r:set.z.tune}{set_z_tune} 
 works by varying rf cavity voltages until the desired tune
 is achieved.
@@ -217,10 +212,13 @@ is achieved.
 \section{Chromaticity Calculation}
 \label{s:chrom}
 
-For a closed lat \Hyperref{r:chrom.calc}{chrom_calc} calculates the chromaticity by calculating
+\index{chromaticity}
+For a circular lattice, \Hyperref{r:chrom.calc}{chrom_calc} 
+calculates the chromaticity by calculating
 the tune change with change in beam energy.
 
-\Hyperref{r:chrom.tune}{chrom_tune} sets the chromaticity by varying the sextupoles. This is a 
+\Hyperref{r:chrom.tune}{chrom_tune} sets the chromaticity by 
+varying the sextupoles. This is a 
 very simple routine that simply divides the sextupoles into two families
 based upon the local beta functions at the sextupoles.
 
@@ -230,39 +228,23 @@ based upon the local beta functions at the sextupoles.
 \index{twiss parameters!calculation with custom elements}
 \index{custom}
 
-There are up to six routines that must be written to implement a custom 
+\index{custom}
+Routines to handle \vn{custom} elements (\sref{s:custom}) must be supplied
+by the creator of the elements.
+There are five routines that must be written to implement a custom 
 element they are:
-\index[routine]{custom_emitt_calc}\index[routine]{custom_radiation_integrals}
-\index[routine]{em_field_custom}\index[routine]{field_rk_custom}
-\index[routine]{make_mat6_custom}\index[routine]{track1_custom}
 \begin{example}
-   custom_emitt_calc            ! only needed if emitt_calc is called in a program.
-   custom_radiation_integrals   ! only needed if radiation_integrals is called.
-   em_field_custom              ! only needed if em_field is called.
-   field_rk_custom              ! only needed if field_rk is called.
-   make_mat6_custom             ! only needed if make_mat6 is called.
-   track1_custom                ! only needed if track1 is called.
+   \Hyperref{r:radiation.integrals.custom}{radiation_integrals_custom}
+   \Hyperref{r:em.field.custom}{em_field_custom}
+   \Hyperref{r:field.rk.custom}{field_rk_custom}
+   \Hyperref{r:make.mat6.custom}{make_mat6_custom}
+   \Hyperref{r:track1.custom}{track1_custom}
 \end{example}
-use \vn{getf} for more details about the argument lists for these
-routines.  The \bmad library has dummy routines of the same name to
+[Use \vn{getf} for more details about the argument lists for these
+routines.]  The \bmad library has dummy routines of the same name to
 keep the linker happy when custom routines are not implemented. These
 dummy routines, if called, will print an error message and stop the
-program. To make the linker preferentially link in new custom routines
-the new routines should be explicitly listed in the linking list.
+program.
 
-%-----------------------------------------------------------------------------
-\section{Custom Field Calculations}
-\label{s:custom.field}
-\index{fields (electric and magnetic)!custom calculation} 
-\index{ele_struct!\%field_calc}
 
-\index{runge_kutta}\index{boris}\index{ele_struct!\%field_calc}
-\index[routine]{em_filed_custom}
-Custom Electric and Magnetic field calculations are used with
-\vn{runge_kutta} and \vn{boris} tracking (See \sref{s:integ}).  To
-implement custom field calculations the \vn{ele%field_calc} component
-of an element must be set to \vn{custom\$}. This can be done either
-through the lattice input file or within a program. Additionally a
-routine \vn{em_field_custom} must be linked with any program using the
-custom calculations.
 
