@@ -606,12 +606,11 @@ lord%value(old_command$) = lord%value(command$) ! save old
 
 moved = .false.   ! have we longitudinally moved an element?
 
-do i = lord%ix1_slave, lord%ix2_slave
+do i = 1, lord%n_slave
 
-  ix = lat%control(i)%ix_slave
-  iv = lat%control(i)%ix_attrib
-  slave_stat = lat%ele(ix)%slave_status
-  slave => lat%ele(ix)
+  slave => pointer_to_slave (lat, lord, i, ix)
+  iv = lat%control(ix)%ix_attrib
+  slave_stat = slave%slave_status
 
   if (iv == l$) then
     moved = .true.
@@ -621,7 +620,7 @@ do i = lord%ix1_slave, lord%ix2_slave
       call err_exit
     endif
   endif
-  coef = lat%control(i)%coef
+  coef = lat%control(ix)%coef
   call pointer_to_indexed_attribute (slave, iv, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
   r_ptr = r_ptr + delta * coef

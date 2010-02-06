@@ -49,7 +49,7 @@ type (multipass_info_struct), allocatable :: multipass(:)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord
+type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2
 type (ele_struct), save :: ele_init
 type (wig_term_struct) wt
 type (control_struct) ctl
@@ -70,7 +70,7 @@ character(200), allocatable, save :: sr_wake_name(:), lr_wake_name(:)
 character(40) :: r_name = 'write_bmad_lattice_file'
 character(10) angle
 
-integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib
+integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
 integer unit(6), ix_names, ix_match
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_top, ix_super, default_val
@@ -230,20 +230,22 @@ do ib = 0, ubound(lat%branch, 1)
       else
         write (line, '(2a)') trim(ele%name), ': group = {'
       endif
-      j_loop: do j = ele%ix1_slave, ele%ix2_slave
-        ctl = lat%control(j)
-        slave => pointer_to_ele (lat, ctl%ix_slave, ctl%ix_branch)
-        do k = ele%ix1_slave, j-1 ! do not use elements w/ duplicate names
-          if (lat%ele(lat%control(k)%ix_slave)%name == slave%name) cycle j_loop
+      j_loop: do j = 1, ele%n_slave
+        slave => pointer_to_slave (lat, ele, j, ic)
+        ctl = lat%control(ic)
+        ! do not use elements w/ duplicate names & attributes
+        do k = 1, j-1 
+          slave2 => pointer_to_slave (lat, ele, k, ic2)
+          if (slave2%name == slave%name .and. lat%control(ic2)%ix_attrib == ctl%ix_attrib) cycle j_loop
         enddo
-        if (j == ele%ix1_slave) then
+        ! Now write the slave info
+        if (j == 1) then
           write (line, '(3a)') trim(line), trim(slave%name)
         else
           write (line, '(3a)') trim(line), ', ', trim(slave%name)
         endif
         name = attribute_name(slave, ctl%ix_attrib)  
-        if (name /= ele%component_name) &
-                line = trim(line) // '[' // trim(name) // ']'
+        if (name /= ele%component_name) line = trim(line) // '[' // trim(name) // ']'
         if (ctl%coef /= 1) write (line, '(3a)') trim(line), '/', trim(str(ctl%coef))
       enddo j_loop
       line = trim(line) // '}'
@@ -269,12 +271,12 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%lord_status == girder_lord$) then
       write (line, '(2a)') trim(ele%name), ': girder = {'
-      do j = ele%ix1_slave, ele%ix2_slave
-        ix1 = lat%control(j)%ix_slave
-        if (j == ele%ix2_slave) then
-          write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), '}'
+      do j = 1, ele%n_slave
+        slave => pointer_to_slave (lat, ele, j)
+        if (j == ele%n_slave) then
+          write (line, '(3a)') trim(line), trim(slave%name), '}'
         else
-          write (line, '(3a)') trim(line), trim(lat%ele(ix1)%name), ', '
+          write (line, '(3a)') trim(line), trim(slave%name), ', '
         endif
       enddo
     else

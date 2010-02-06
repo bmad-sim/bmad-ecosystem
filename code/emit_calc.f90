@@ -313,7 +313,7 @@ subroutine emit_calc (lat, what, mode)
 ! custom contribution
 
     elseif (do_wigs .and. lat%ele(ir)%key == custom$) then
-       call custom_emit_calc (lat, ir, i2, i3, i5a, i5b)
+       call emit_calc_custom (lat, ir, i2, i3, i5a, i5b)
 
     elseif (lat%ele(ir)%key == rfcavity$) then
       m65 = m65 + lat%ele(ir)%mat6(6,5)   ! add up the m65s

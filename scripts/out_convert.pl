@@ -7,7 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    if (/use bmadz/) {next;}
+    s/custom_emit_calc/emit_calc_custom/g;
+    s/custom_radiation_integrals/radiation_integrals_custom/g; 
 
     print (F_OUT);
   }

@@ -4,7 +4,7 @@
 ! Dummy routine. Will generate an error if called.
 ! A valid em_field_custom is needed only if the em_field routine is being used.
 !
-! Arguments needed to construct a custom_emit_calc routine:
+! Arguments needed to construct a emit_calc_custom routine:
 !
 ! Input:
 !   ele         -- Ele_struct: Custom element.

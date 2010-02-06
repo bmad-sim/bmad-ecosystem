@@ -405,7 +405,7 @@ do ir = 1, lat%n_ele_track
   ! custom
 
   if (key == custom$) then
-    call custom_radiation_integrals (lat, ir, orbit)
+    call radiation_integrals_custom (lat, ir, orbit)
     cycle
   endif
 

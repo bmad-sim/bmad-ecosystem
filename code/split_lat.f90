@@ -37,13 +37,13 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), save :: ele
-type (ele_struct), pointer :: ele1, ele2, slave
+type (ele_struct), pointer :: ele1, ele2, slave, lord
 type (branch_struct), pointer :: branch
 
 real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old
 
 integer i, j, k, ix, ix_branch
-integer ix_split, ix_lord, ixc, ix_attrib, ix_super_lord
+integer ix_split, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
 logical split_done
@@ -188,12 +188,10 @@ if (ele%slave_status == super_slave$) then
 
   do j = 1, ele%n_lord
 
-    ix = ele2%ic1_lord - 1
-    icon = lat%ic(ix + j)
+    lord => pointer_to_lord (lat, ele, j, icon)
 
     coef_old = lat%control(icon)%coef
     ix_attrib = lat%control(icon)%ix_attrib
-    ix_lord = lat%control(icon)%ix_lord
 
     if (ele%slave_status == super_slave$ .or.  &
           ix_attrib == hkick$ .or. ix_attrib == vkick$) then
@@ -206,18 +204,17 @@ if (ele%slave_status == super_slave$) then
 
     lat%control(icon)%coef = coef2
 
-    lat%ele(ix_lord)%n_slave = lat%ele(ix_lord)%n_slave + 1
-    call add_lattice_control_structs (lat, lat%ele(ix_lord))
+    lord%n_slave = lord%n_slave + 1
+    call add_lattice_control_structs (lat, lord)
 
-    ix2 = lat%ele(ix_lord)%ix2_slave
+    ix2 = lord%ix2_slave
     lat%control(ix2)%ix_slave  = ix_split
     lat%control(ix2)%ix_branch = ix_branch
     lat%control(ix2)%ix_attrib = ix_attrib
     lat%control(ix2)%coef = coef1
     lat%ic(ixc+j) = ix2
 
-    if (lat%ele(ix_lord)%lord_status == super_lord$) &
-                  call order_super_lord_slaves (lat, ix_lord)
+    if (lord%lord_status == super_lord$) call order_super_lord_slaves (lat, lord%ix_ele)
 
   enddo
 
@@ -253,10 +250,9 @@ lat%control(ixc+1)%coef = len2 / len_orig
 ! overlay lord elements of the split element must now point towards the
 ! super lord
 
-do i = ele%ic1_lord, ele%ic2_lord
-  j = lat%ic(i)
-  ix_lord = lat%control(j)%ix_lord
-  do k = lat%ele(ix_lord)%ix1_slave, lat%ele(ix_lord)%ix2_slave
+do i = 1, ele%n_lord
+  lord => pointer_to_lord (lat, ele, i)
+  do k = lord%ix1_slave, lord%ix2_slave
     if (lat%control(k)%ix_slave == ix_split+1) then
       lat%control(k)%ix_slave  = ix_super_lord
       lat%control(k)%ix_branch = 0
