@@ -20,7 +20,7 @@ documentation which can be found at:
   http://www-project.slac.stanford.edu/
               lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
 \end{example}
-\index{parameter!lattice_type}
+\index{parameter statement!lattice_type}
 \index{XSIF!lcavity and lattice_type}
 Since XSIF does not have a \vn{lattice_type} statement
 (\sref{s:param}), the type of the lattice (whether circular or linear)
@@ -62,7 +62,9 @@ construct a valid lattice file.
 \section{File Example and Syntax}
 \index{Bmad!statement syntax}
 
-The following (rather silly) example shows the main features of a
+\index{parameter statement}
+\index{use statement}
+The following (rather silly) example shows some of the features of a
 \bmad lattice file:
 \begin{example}
   ! This is a comment
@@ -88,7 +90,6 @@ exclamation mark and everything after the exclamation mark on a line
 are ignored.  \bmad is case insensitive. All names are converted to
 uppercase except strings (\sref{s:var.types}).
 
-\index{superimpose}
 \index{lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 40
 characters. The first character must be a letter (\vn{A} --- \vn{Z}).
@@ -99,6 +100,31 @@ backslash (\vn{\B}) character is used to by Bmad when forming the names of
 superposition slaves (\sref{s:super}) and dots (\vn{.}) are used by Bmad 
 when creating names of \vn{tagged} elements (\sref{s:tag}). Also use of
 special characters may make the lattice files less portable to non-Bmad programs.
+
+\index{parameter statement}
+\index{parameter statement}
+\index{parameter statement}
+\index{beginning statement}|
+The following example constructs a linear lattice with two elements: 
+\begin{example}
+  parameter[lattice_type] = LINEAR_LATTICE
+  parameter[e_tot] =2.7389062E9
+  parameter[particle] = POSITRON
+  beginning[beta_a] = 14.5011548
+  beginning[alpha_a] = -0.53828197
+  beginning[beta_b] = 31.3178048
+  beginning[alpha_b] = 0.25761815
+  q: quadrupole, l = 0.6, b1_gradient = 9.011
+  d: drift, l = 2.5
+  t: line = (q, d)
+  use, t 
+\end{example}
+here \vn{parameter[lattice_type]} (\sref{s:param}) is set to \vn{LINEAR_LATTICE}
+which specifies that the lattice is not circular. In this case, the beginning 
+Twiss parameters need to be specified and this is done by the \vn{beginning}
+statements (\sref{s:beginning}). A quadrupole named \vn{q}
+and a drift element named \vn{d} are specified
+and the entire lattice consists of element \vn{q} followed by element \vn{d}.
 
 %----------------------------------------------------------------------------
 \section{Digested Files}
@@ -138,7 +164,7 @@ lattice. This adjusted lattice can now be read in by another program.
 %---------------------------------------------------------------------------
 \section{Element Sequence Definition}
 
-\index{line}\index{use statement}
+\index{line}\index{use statement|hyperbf}
 A \vn{line} defines a sequence of elements. \vn{lines} may contain
 other \vn{lines} and so a hierarchy may be established. One line is
 selected, via a \vn{use} statement, that defines the lattice. For

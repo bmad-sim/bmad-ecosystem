@@ -1,6 +1,40 @@
 \chapter{Miscellaneous Programming}
 
 %-----------------------------------------------------------------------------
+\section{Custom Elements}
+\label{s:custom.ele}
+\index{twiss parameters!calculation with custom elements}
+\index{custom}
+
+\index{custom}
+\index[routine]{radiation_integrals}\index[routine]{em_field}
+\index[routine]{make.mat6}\index[routine]{track1}
+Routines to handle \vn{custom} elements (\sref{s:custom}) must be supplied
+by the creator of the elements.
+There are potentially four routines that must be written to implement a custom 
+element:
+\begin{example}
+   \Hyperref{r:radiation.integrals.custom}{radiation_integrals_custom}
+   \Hyperref{r:em.field.custom}{em_field_custom}
+   \Hyperref{r:make.mat6.custom}{make_mat6_custom}
+   \Hyperref{r:track1.custom}{track1_custom}
+\end{example}
+[Use \vn{getf} for more details about the argument lists for these
+routines.]  The \bmad library has dummy routines of the same name to
+keep the linker happy when custom routines are not implemented. These
+dummy routines, if called, will print an error message and stop the
+program. The custom routines are called by their corresponding
+regular routines. By ``regular'' routine it is meant the routine
+without the ``\vn{_custom}'' suffix. For example, \vn{radiation_integrals}
+will call \vn{radiation_integrals_custom}.
+Thus if a
+program using the custom code does not call a particular
+regular routine, the program does not have to implement the 
+corresponding custom routine.
+
+   \Hyperref{r:track1.bunch.custom}{track1_bunch_custom}
+
+%-----------------------------------------------------------------------------
 \section{Physical Constants}
 \label{s:physical.constants}
 

@@ -222,29 +222,5 @@ varying the sextupoles. This is a
 very simple routine that simply divides the sextupoles into two families
 based upon the local beta functions at the sextupoles.
 
-%-----------------------------------------------------------------------------
-\section{Custom Elements}
-\label{s:custom.ele}
-\index{twiss parameters!calculation with custom elements}
-\index{custom}
-
-\index{custom}
-Routines to handle \vn{custom} elements (\sref{s:custom}) must be supplied
-by the creator of the elements.
-There are five routines that must be written to implement a custom 
-element they are:
-\begin{example}
-   \Hyperref{r:radiation.integrals.custom}{radiation_integrals_custom}
-   \Hyperref{r:em.field.custom}{em_field_custom}
-   \Hyperref{r:field.rk.custom}{field_rk_custom}
-   \Hyperref{r:make.mat6.custom}{make_mat6_custom}
-   \Hyperref{r:track1.custom}{track1_custom}
-\end{example}
-[Use \vn{getf} for more details about the argument lists for these
-routines.]  The \bmad library has dummy routines of the same name to
-keep the linker happy when custom routines are not implemented. These
-dummy routines, if called, will print an error message and stop the
-program.
-
 
 

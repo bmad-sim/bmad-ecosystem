@@ -555,7 +555,7 @@ The line is also add to the history buffer so that the up-arrow
 
 \index[routine]{skip_header}
 \label{r:skip.header}
-\item[skip_header (unit_, error_flag)] \Newline 
+\item[skip_header (unit, error_flag)] \Newline 
 Subroutine to find the first line of data in a file. 
 
 \index[routine]{splitfilename}
@@ -959,6 +959,11 @@ Subroutine to check if the control links in a lat structure are valid.
 \item[ele_at_s (lat, s, ix_ele)] \Newline 
 Subroutine to return the index of the element at position s.
 
+\index{routine!ele_loc_to_string}
+\label{r:ele.loc.to.string}
+\item[ele_loc_to_string (ele, show_branch0) result (str)] \Newline 
+Routine to encode an element's location into a string.
+
 \index[routine]{ele_to_lat_loc}
 \label{r:ele.to.lat.loc}
 \item[ele_to_lat_loc (ele) result (ele_loc)] \Newline 
@@ -1061,7 +1066,7 @@ elements can be added.
 
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
-\item[add_superimpose (lat, super_ele, ix_super)] \Newline
+\item[add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)] \Newline
 Subroutine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -1149,7 +1154,7 @@ Subroutine to remove an elements from the lattice.
 
 \index[routine]{split_lat}
 \label{r:split.lat}
-\item[split_lat (lat, s_split, ix_branch, ix_split, split_done)] \Newline
+\item[split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)] \Newline
 Subroutine to split a lat at a point.
 
 \index[routine]{update_hybrid_list}
@@ -1223,7 +1228,7 @@ super_lord due to changes in the lord's s_offset.
 
 \index[routine]{bracket_index}
 \label{r:bracket.index}
-\item[bracket_index (s_, s, ix)] \Newline
+\item[bracket_index (s_arr, i_min, i_max, s, ix)] \Newline
 Subroutine to find the index ix so that s(ix) $\le$ s $<$ s(ix+1). 
 If s $<$ s(1) then ix = 0 
 
@@ -1299,7 +1304,7 @@ Subroutine to deallocate the pointers in a lat.
 
 \index[routine]{init_ele}
 \label{r:init.ele}
-\item[init_ele (ele)] \Newline
+\item[init_ele (ele, ix_ele, ix_branch)] \Newline
 Subroutine to initialize an element. 
 
 \index[routine]{init_lat}
@@ -1320,7 +1325,7 @@ order. This may be used for backward tracking through the lat.
 
 \index[routine]{reallocate_coord}
 \label{r:reallocate.coord}
-\item[reallocate_coord (coord_, n_coord)] \Newline 
+\item[reallocate_coord (coord, n_coord)] \Newline 
 Subroutine to reallocate an allocatable  coord_struct array to at least:
 coord(0:n_coord).
 
@@ -1603,7 +1608,7 @@ at the end of an element.
 
 \index[routine]{lat_make_mat6}
 \label{r:lat.make.mat6}
-\item[lat_make_mat6 (lat, ix_ele, coord)] \Newline
+\item[lat_make_mat6 (lat, ix_ele, coord, ix_branch)] \Newline
 Subroutine to make the 6x6 linear transfer matrix for an element 
 
 \index[routine]{taylor_to_mat6}
@@ -2974,7 +2979,7 @@ Subroutine to calculate the closed orbit at the beginning of the lat.
 
 \index[routine]{closed_orbit_from_tracking}
 \label{r:closed.orbit.from.tracking}
-\item[closed_orbit_from_tracking (lat, closed_orb_, i_dim, 
+\item[closed_orbit_from_tracking (lat, closed_orb, i_dim, 
 eps_rel, eps_abs, init_guess)] \Newline
 Subroutine to find the closed orbit via tracking. 
 
@@ -3052,12 +3057,12 @@ with csr radiation effects.
 
 \index[routine]{track_all}
 \label{r:track.all}
-\item[track_all (lat, orbit)] \Newline
+\item[track_all (lat, orbit, ix_branch)] \Newline
 Subroutine to track through the lat. 
 
 \index[routine]{track_many}
 \label{r:track.many}
-\item[track_many (lat, orbit_, ix_start, ix_end, direction)] \Newline
+\item[track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)] \Newline
 Subroutine to track from one element in the lat to another. 
 
 \index[routine]{twiss_and_track}
@@ -3067,7 +3072,7 @@ See the Twiss section for more details.
 
 \index[routine]{twiss_and_track_at_s}
 \label{r:twiss.and.track.at.s}
-\item[twiss_and_track_at_s (lat, s, ele, orb_, here)] \Newline
+\item[twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, ix_branch, err)] \Newline
 Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index[routine]{twiss_and_track_intra_ele}
@@ -3082,7 +3087,7 @@ Routine to track a particle within an element.
 Subroutine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index[routine]{twiss_from_tracking}
-\item[twiss_from_tracking (lat, closed_orb_, d_orb, error)] \Newline
+\item[twiss_from_tracking (lat, closed_orb, d_orb, error)] \Newline
 Subroutine to compute from tracking the Twiss parameters and the transfer matrices 
 for every element in the lat. 
 
@@ -3430,7 +3435,7 @@ Subroutine to compute the average betas in a quad.
 Subroutine to calculate the synchrotron radiation integrals, the emittance, and energy spread. 
 
 \index[routine]{radiation_integrals_custom}
-\label{r:radiation.integrals}
+\label{r:radiation.integrals.custom}
 \item[radiation_integrals_custom (lat, ir, orb)] \Newline
 User supplied routine to calculate the synchrotron radiation integrals for
 a custom element.
@@ -3442,7 +3447,7 @@ Function to see if the modes of ELE1 are flipped relative to ELE2.
 
 \index[routine]{set_tune}
 \label{r:set.tune}
-\item[set_tune (phi_x_set, phi_y_set, dk1, lat, orb_, ok)] \Newline
+\item[set_tune (phi_x_set, phi_y_set, dk1, lat, orb, ok)] \Newline
 Subroutine to Q_tune a lat. This routine will set the tunes to within 0.001 radian (0.06 deg). 
 
 \index[routine]{set_z_tune}

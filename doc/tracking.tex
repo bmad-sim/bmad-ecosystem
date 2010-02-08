@@ -5,7 +5,7 @@
 \index{macroparticles!tracking}
 \index{tracking!Macroparticles}
 \bmad can do two types of tracking. ``\vn{particle tracking}'' involves
-tracking particles and a particle is characterized by its phase space coordinates.
+tracking particles which are characterized by its phase space coordinates and spin.
 The other type of tracking involves ``\vn{macroparticles}'' (\sref{s:macro}) 
 which are characterized by a centroid position and a $6\times 6$ ``sigma'' 
 matrix characterizing the size of the macroparticle. 
@@ -20,7 +20,7 @@ and the use of this code is discouraged. Macroparticle tracking could be revived
 if there is a demonstated need for it however.
 
 \index{beam}\index{bunch}
-Particle tracking can be divided into ``single particle'' trackig and ``beam''
+Particle tracking can be divided into ``single particle'' tracking and ``beam''
 tracking. Single particle tracking is simply tracking a single particle.
 Beam tracking is tracking an ensable of particles divided up into a number of bunches
 that make up the entire beam. Both types particle tracking are covered in this
@@ -30,7 +30,7 @@ chapter.
 \section{The coord_struct}
 \index{coord_struct}
 
-For single particle tracking the starting point is the
+For particle tracking, the starting point is the
 \vn{coord_struct} which defines a particle. The definition of
 the \vn{coord_struct} is
 \begin{example}
@@ -41,6 +41,7 @@ the \vn{coord_struct} is
 \end{example}
 
 \index{lat_struct!\%n_ele_max}
+\index{lat_struct!\%n_ele_track}
 To get an orbit, that is, the particle position at every element in a
 lattice, you will need an array of \vn{coord_struct}s. Since the
 number of elements in the lattice is not known in advance the array
@@ -49,6 +50,7 @@ must be declared to be allocatable.
   type (coord_struct), allocatable :: orbit(:)
 \end{example}
 An example of how to do multi-turn tracking (assuming a circular lattice) is
+\index[routine]{track_all}\index[routine]{bmad_parser}
 \begin{example}
   type (lat_struct) lat             ! lattice to track through
   type (coord_struct), allocatable :: orbit(:)
