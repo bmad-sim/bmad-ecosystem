@@ -605,12 +605,12 @@ end function
 ! Subroutine to get the list of slaves for a lord element.
 !
 ! This is a list of ultimate slaves. That is, slaves in the tracking part 
-! of the lattice. Thus if the element lord0 controls an
+! of the lattice. Thus if the element lord controls an
 ! element lord1 which controlls an element lord2, then lord2 will
 ! show up in the slave_list but lord1 will not.
 !
 ! If the lord element does not have any slaves, 
-! then the slave_list will just be that element.
+! then the slave_list will just be the lord element.
 !
 ! This routine will increase the size of slave_list if needed but will
 ! not decrease it.
@@ -620,7 +620,7 @@ end function
 !
 ! Input:
 !   lat   -- lat_struct: Lattice
-!   lord  -- Ele_struct: pointer to the lord element.
+!   lord  -- Ele_struct: The lord element.
 !
 ! Output:
 !   slaves(:) -- Ele_pointer_struct, allocatable :: Array of slaves.
@@ -632,7 +632,7 @@ subroutine get_element_slave_list (lat, lord, slaves, n_slave)
 implicit none
 
 type (lat_struct) lat
-type (ele_struct), pointer :: lord
+type (ele_struct) :: lord
 type (ele_pointer_struct), allocatable :: slaves(:)
 
 integer n_slave

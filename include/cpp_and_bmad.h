@@ -3,6 +3,7 @@
 #include <string>
 #include <string.h>
 #include <valarray>
+#include <complex>
 #include "bmad_parameters.h"
 
 using namespace std;
@@ -25,7 +26,11 @@ typedef const bool      Bool;
 typedef const double*   ReArr;
 typedef const int*      IntArr;
 
+typedef complex<double>                 Complx;
+typedef const complex<double>           CComplx;
+
 typedef valarray<double>                Real_Array;
+typedef valarray<Complx>                Complx_Array;
 typedef valarray<bool>                  Bool_Array;
 typedef valarray<int>                   Int_Array;
 typedef valarray<C_taylor_term>         C_taylor_term_array;
@@ -46,7 +51,8 @@ const Real_Array V6_array(double(0), 6);
 const Real_Matrix M2_mat(V2_array, 2);
 const Real_Matrix M3_mat(V3_array, 3);
 const Real_Matrix M6_mat(V6_array, 6);
-const double     V0(0);
+const double       V0(0);
+const Complx       C0(0);
 
 //--------------------------------------------------------------------
 
@@ -69,18 +75,20 @@ extern "C" void init_coord_struct_(coord_struct*&);
 
 class C_coord {
 public:
-  Real_Array vec;   // size = 6
+  Real_Array vec;      // size = 6
+  Complx_Array spin;   // size = 2
 
-  C_coord(Re v[6]) : vec(v, 6) {}
+  C_coord(Re v[6], CComplx s[2] = 0) : vec(v, 6), spin(s, 2) {}
 
-  C_coord(double v0, double v1, double v2, double v3, double v4, double v5)
+  C_coord(double v0, double v1, double v2, double v3, double v4, double v5) :
+     spin(2)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
 
-  C_coord(Re v = 0) : vec(v, 6) {}
+  C_coord(Re v = 0) : vec(v, 6), spin(2) {}
 
-  C_coord(Int i) : vec(double(i), 6) {}
+  C_coord(Int i) : vec(double(i), 6), spin(2) {}
 
-  C_coord(Real_Array v) : vec(v) {}
+  C_coord(Real_Array v) : vec(v), spin(2) {}
 
 };    // End Class
 
