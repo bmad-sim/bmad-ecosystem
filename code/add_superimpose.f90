@@ -126,8 +126,7 @@ endif
 if (s2 < s1) then     
   call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
-  super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + &
-                          (branch%ele(ix2_split)%s - s1_lat)
+  super_saved%value(l$) = (s2_lat - branch%ele(ix1_split)%s) + (branch%ele(ix2_split)%s - s1_lat)
 
 ! no wrap case...
 else                  
