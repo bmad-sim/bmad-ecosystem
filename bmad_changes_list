@@ -43,9 +43,9 @@ Python(x,y) / Qt front end for gui/graphics
 
 http://www.pythonxy.com/foreword.php
 
-Rapid GUI Programming with Python and Qt”, Mark Summerfield, Ed.: Prentice Hall, ISBN-13: 978-0-13-235418-9.
+Rapid GUI Programming with Python and Qt, Mark Summerfield, Ed.: Prentice Hall, ISBN-13: 978-0-13-235418-9.
 
-Python Scripting for Computational Science”, Hans Petter Langtangen, Ed.: Springer, ISBN-13: 978-3-540-73915-9.
+Python Scripting for Computational Science, Hans Petter Langtangen, Ed.: Springer, ISBN-13: 978-3-540-73915-9.
 
 ----------------------------------
 
@@ -116,12 +116,4 @@ Solution:
 
 -----------------
 
-*) Branch:
-  a) track_all & 
-  b) lat_mat6 calc with branch.
-  c) twiss propagate
-  d) emit calc
-  e) doc
-
-*) aml/uap
-
+Varying the length or s_offset of superpositions is not handled well.

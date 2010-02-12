@@ -286,7 +286,7 @@ type (ele_struct), pointer :: lord0, lord2, slave, slave2
 type (branch_struct), pointer :: branch
 type (ele_struct), optional :: ele
 
-real(rp) length, coef, length_start, length_pos, length_neg
+real(rp) sum_len_slaves, coef, vary_sublength, length_pos, length_neg
 real(rp) d_length, d_length_pos, d_length_neg
 real(rp) dl_tol
 
@@ -311,18 +311,18 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   if (lord0%lord_status /= super_lord$) cycle
 
   if (present(ele)) then
-    if (ele%ix_branch == 0 .and. ele%ix_ele == ie) cycle
+    if (ele%ix_ele /= ie) cycle
   endif
 
-  length = 0
+  sum_len_slaves = 0
   do j = 1, lord0%n_slave
     slave => pointer_to_slave(lat, lord0, j)
-    length = length + slave%value(l$)
+    sum_len_slaves = sum_len_slaves + slave%value(l$)
   enddo
 
   ! Nothing to be done if the lengths add up.
 
-  if (abs(length - lord0%value(l$)) < dl_tol * (1 + lord0%value(l$))) cycle
+  if (abs(sum_len_slaves - lord0%value(l$)) < dl_tol * (1 + lord0%value(l$))) cycle
 
   ! Now we need to adjust some super_slave lengths.
   ! We try varying the length of all the slaves except
@@ -338,10 +338,10 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   length_adjustment_made = .true.
 
-  slave = pointer_to_slave(lat, lord0, 1)
+  slave => pointer_to_slave(lat, lord0, 1)
   ixa_lord0 = slave%ix_ele  ! Index at entrance end of lord0
 
-  slave = pointer_to_slave(lat, lord0, lord0%n_slave)
+  slave => pointer_to_slave(lat, lord0, lord0%n_slave)
   ixb_lord0 = slave%ix_ele  ! Index at exit end of lord0
 
   pos_extension_lord_exists = .false.
@@ -351,7 +351,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   ix_pos_edge = lat%n_ele_max
   ix_neg_edge = 0
 
-  length_start = 0
+  vary_sublength = 0
   slave_loop: do j = 1, lord0%n_slave
 
     slave => pointer_to_slave(lat, lord0, j)
@@ -411,20 +411,20 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
     enddo
 
-    if (slave%bmad_logic) length_start = length_start + slave%value(l$)
+    if (slave%bmad_logic) vary_sublength = vary_sublength + slave%value(l$)
   enddo slave_loop
 
   ! If we have not found any slaves to vary we are in trouble
 
-  if (length_start == 0) then
+  if (vary_sublength == 0) then
     call out_io (s_fatal$, r_name, 'CANNOT VARY LENGTH OF SUPER_LORD: ' // lord0%name)
     call err_exit
   endif
 
   ! Calculate positive and negative extension length changes
 
-  coef = lord0%value(l$) / length_start
-  d_length = lord0%value(l$) - length_start
+  coef = (lord0%value(l$) - sum_len_slaves) / vary_sublength
+  d_length = lord0%value(l$) - sum_len_slaves
 
   if (pos_extension_lord_exists) then
     length_pos = 0
@@ -434,7 +434,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       if (.not. slave%bmad_logic) cycle
       length_pos = length_pos + slave%value(l$)
     enddo
-    d_length_pos = length_pos * (coef - 1)
+    d_length_pos = length_pos * coef
   endif
 
   if (neg_extension_lord_exists) then
@@ -445,7 +445,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       if (.not. slave%bmad_logic) cycle
       length_neg = length_neg + slave%value(l$)
     enddo    
-    d_length_neg = length_neg * (coef - 1)
+    d_length_neg = length_neg * coef
   endif
 
   ! Vary the slave lengths
@@ -453,7 +453,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   do j = 1, lord0%n_slave
     slave => pointer_to_slave(lat, lord0, j)
     if (.not. slave%bmad_logic) cycle
-    slave%value(l$) = slave%value(l$) * coef
+    slave%value(l$) = slave%value(l$) * (1 + coef)
   enddo
 
   ! Now to make the adjustments to either side of lord0.
@@ -482,16 +482,10 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     endif
 
   else ! An all_extension_lord does not exist
-    if (pos_extension_lord_exists .and. neg_extension_lord_exists) then
-      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
-      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
-    elseif (pos_extension_lord_exists) then
-      branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
-    elseif (neg_extension_lord_exists) then
-      branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
-    else  
-      ! No extensions -> Nothing to be done.
-    endif
+    if (pos_extension_lord_exists) &
+            branch%ele(ixb)%value(l$) = branch%ele(ixb)%value(l$) - d_length_pos
+    if (neg_extension_lord_exists) &
+            branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
   endif
 
 enddo
@@ -502,17 +496,17 @@ if (length_adjustment_made) then
   do ie = lat%n_ele_track+1, lat%n_ele_max
     lord0 => lat%ele(ie)
     if (lord0%lord_status /= super_lord$) cycle
-    length = 0
+    sum_len_slaves = 0
     do j = 1, lord0%n_slave
       slave => pointer_to_slave(lat, lord0, j)
-      length = length + slave%value(l$)
+      sum_len_slaves = sum_len_slaves + slave%value(l$)
     enddo
-    if (abs(length - lord0%value(l$)) > dl_tol * abs(lord0%value(l$))) then
+    if (abs(sum_len_slaves - lord0%value(l$)) > dl_tol * abs(lord0%value(l$))) then
       call out_io (s_fatal$, r_name, &
               'INCONSISTANT SUPER_LORD/SUPER_SLAVE LENGTHS!', &
               'LORD: ' // lord0%name, &
               'LENGTH: \es16.9\ ', &
-              'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = (/ lord0%value(l$), length /) )
+              'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = (/ lord0%value(l$), sum_len_slaves /) )
       call err_exit
     endif
   enddo
@@ -538,7 +532,7 @@ type (lat_struct), target :: lat
 type (ele_struct) lord
 type (ele_struct), pointer :: slave 
 
-real(rp) s_start, s_start2, s_end, tot_len
+real(rp) s_start_lord, s_start_slave, s_end_lord, tot_len, sig_l
 
 character(40) :: r_name = 'adjust_super_lord_s_position'
 
@@ -553,22 +547,24 @@ endif
 ! Since we don't want to kill taylor maps due to round-off errors we only change
 ! the length if the percentage or absolute change is more than 10^-10
 
-s_end = lord%s + lord%value(s_offset_tot$)
+s_end_lord = lord%s + lord%value(s_offset_tot$)
 slave => pointer_to_slave (lat, lord, lord%n_slave)
-s_start = slave%s - slave%value(l$)
-if (abs(s_end - s_start - slave%value(l$)) > bmad_com%significant_longitudinal_length * &
-                              (1 + abs(slave%value(l$)))) slave%value(l$) = s_end - s_start
-slave%s = s_end
+sig_l = bmad_com%significant_longitudinal_length
 
-! Adjust start position
+if (abs(s_end_lord - slave%s) < sig_l * (1 + abs(slave%value(l$)))) return
+
+slave%value(l$) = slave%value(l$) + (s_end_lord - slave%s)
+slave%s = s_end_lord
+
+! Adjust start position of the first slave
 
 slave => pointer_to_slave (lat, lord, 1)
 tot_len = lat%branch(slave%ix_branch)%param%total_length
-s_start = s_end - lord%value(l$)
-if (s_start < 0) s_start = s_start + tot_len
-s_start2 = slave%s - slave%value(l$)
-if (s_start < 0) s_start = s_start + tot_len
-slave%value(l$) = slave%value(l$) + s_start2 - s_start
+s_start_lord = s_end_lord - lord%value(l$)
+
+s_start_slave = slave%s - slave%value(l$)
+if (s_start_slave > s_start_lord + tot_len / 2) s_start_slave = s_start_slave - tot_len
+slave%value(l$) = slave%value(l$) + (s_start_slave - s_start_lord)
 
 end subroutine
 
