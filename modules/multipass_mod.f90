@@ -47,6 +47,9 @@ contains
 !
 ! Subroutine to put multipass information into a multipass_all_info_struct structure.
 !
+! Note: Use deallocate_multipass_all_info_struct(info) to deallocate info 
+! components after use.
+!
 ! Modules needed:
 !   use multipass_mod
 !
@@ -70,6 +73,8 @@ integer n_multi_lord, n_pass, ix_pass, n_super_slave
 
 ! First get the number of multipass_lords.
 
+call deallocate_multipass_all_info_struct (info)
+
 n_multi_lord = 0
 do ie = lat%n_ele_track+1, lat%n_ele_max
   m_lord => lat%ele(ie)
@@ -77,7 +82,6 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   n_multi_lord = n_multi_lord + 1
 enddo
 
-if (allocated (info%top)) deallocate (info%top, info%bottom)
 allocate (info%top(n_multi_lord), info%bottom(lat%n_ele_max))
 info%bottom(:)%multipass = .false.
 info%bottom(:)%ix_pass = -1
@@ -149,6 +153,37 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   endif
 
 enddo
+
+end subroutine
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine deallocate_multipass_all_info_struct (info)
+!
+! Routine to deallocate the allocatable arrays in an multipass_all_info_struct.
+!
+! Modules needed:
+!   use multipass_mod
+!
+! Input:
+!   info -- Multipass_all_info_struct: Variable to deallocate
+!
+! Output
+!   info -- Multipass_all_info_struct: Multipass information.
+!-
+
+subroutine deallocate_multipass_all_info_struct (info)
+
+implicit none
+
+type (multipass_all_info_struct) info
+
+!
+
+if (allocated(info%top)) deallocate(info%top)
+if (allocated(info%bottom)) deallocate(info%bottom)
 
 end subroutine
 

@@ -2828,8 +2828,6 @@ do
         ! We can recognize these elements since they control super_slaves.
         ! Also mark any of their lords for deletion.
 
-        call multipass_all_info (lat, m_info) ! Save multipass info for later.
-
         do i = lat%n_ele_track+1, lat%n_ele_max 
           ele => lat%ele(i)
           if (ele%key /= drift$) cycle
@@ -2850,6 +2848,15 @@ do
         ! super_slaves directly
 
         j = 0
+
+        do i = 1, branch%n_ele_track
+          if (lat%ele(i)%name == 'temp_name!') then
+            lat%ele(i)%name = super_ele_saved%name
+            j = j + 1
+            m_slaves(j) = ele_to_lat_loc (lat%ele(i))
+          endif
+        enddo
+
         do i = lat%n_ele_track+1, lat%n_ele_max
           if (lat%ele(i)%name == 'temp_name!') then
             lat%ele(i)%name = super_ele_saved%name
@@ -2877,6 +2884,8 @@ do
 
         ! Reconnect drifts that were part of the multipass region.
 
+        call multipass_all_info (lat, m_info) ! Save multipass info for later.
+
         do i = 1, size(m_info%top)
           do j = 1, size(m_info%top(i)%slave, 2)
             slave => m_info%top(i)%slave(1, j)%ele
@@ -2891,6 +2900,8 @@ do
             call add_this_multipass (lat, m_slaves)
           enddo
         enddo
+
+        call deallocate_multipass_all_info_struct (m_info)
 
       ! Else not superimposing on a multipass_lord ...
 

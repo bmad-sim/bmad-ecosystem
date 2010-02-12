@@ -38,7 +38,7 @@ type (ele_struct), pointer :: slave, lord
 type (control_struct)  sup_con(100)
 type (branch_struct), pointer :: branch
 
-real(rp) s1, s2, length, s1_lat, s2_lat
+real(rp) s1, s2, length, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge
 
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch
 integer ix1_split, ix2_split, ix_super, ix_super_con
@@ -79,18 +79,27 @@ branch => lat%branch(ix_branch)
 ix_lord_max_old = lat%n_ele_max
 
 s1_lat = branch%ele(0)%s                 ! normally this is zero.
+s1_lat_fudge = s1_lat - bmad_com%significant_longitudinal_length
+
 s2_lat = branch%ele(branch%n_ele_track)%s
+s2_lat_fudge = s2_lat + bmad_com%significant_longitudinal_length
 
 s1 = super_saved%s - super_saved%value(l$)
 s2 = super_saved%s                 
 
-if (s1 < s1_lat) then
+if (s1 < s1_lat_fudge) then
   if (branch%param%lattice_type == linear_lattice$) call out_io (s_warn$, &
          r_name, 'Superimpose is being wrapped around linear lattice for: ' // super_saved%name)
   s1 = s1 + branch%param%total_length
 endif
 
-if (s2 < s1_lat .or. s1 > s2_lat) then
+if (s2 > s2_lat_fudge) then
+  if (branch%param%lattice_type == linear_lattice$) call out_io (s_warn$, &
+         r_name, 'Superimpose is being wrapped around linear lattice for: ' // super_saved%name)
+  s2 = s2 - branch%param%total_length
+endif
+
+if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2_lat_fudge) then
   call out_io (s_abort$, r_name, &
     'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
     'LEFT EDGE: \F10.1\ ', &
@@ -130,37 +139,8 @@ if (s2 < s1) then
 
 ! no wrap case...
 else                  
-  if (s1 < s1_lat) then    ! superimpose off end case
-    if (branch%ele(1)%key /= drift$) then
-      length = s1_lat - s1
-      drift%value(l$) = length
-      call insert_element (lat, drift, 1, ix_branch)
-      s1 = s1_lat
-      s2 = s2 + length
-      s2_lat = s2_lat + length
-    endif
-    ix1_split = 0
-  else
-    call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
-  endif
-
-  if (s2 > s2_lat) then    ! superimpose off end case
-    if (branch%ele(branch%n_ele_track)%key /= drift$) then
-      drift%value(l$) = s2 - s2_lat
-      call insert_element (lat, drift, branch%n_ele_track + 1, ix_branch)
-      s2_lat = s2
-    endif
-    ix2_split = branch%n_ele_track
-  else
-    call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
-  endif
-
-  if (s1 < s1_lat) branch%ele(1)%value(l$) = branch%ele(1)%s - s1
-  if (s2 > s2_lat) then
-    n = branch%n_ele_track
-    branch%ele(n)%value(l$) = s2 - branch%ele(n-1)%s
-  endif
-
+  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, .false., .false.)
+  call split_lat (lat, s2, ix_branch, ix2_split, split2_done, .false., .false.)
   super_saved%value(l$) = branch%ele(ix2_split)%s - branch%ele(ix1_split)%s
 endif
 

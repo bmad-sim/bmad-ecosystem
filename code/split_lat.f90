@@ -40,7 +40,7 @@ type (ele_struct), save :: ele
 type (ele_struct), pointer :: ele1, ele2, slave, lord
 type (branch_struct), pointer :: branch
 
-real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old
+real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old, ds_fudge
 
 integer i, j, k, ix, ix_branch
 integer ix_split, ixc, ix_attrib, ix_super_lord
@@ -55,9 +55,10 @@ character(16) :: r_name = "split_lat"
 ! Check for s_split out of bounds.
 
 branch => lat%branch(ix_branch)
+ds_fudge = bmad_com%significant_longitudinal_length
 
 nr = branch%n_ele_track
-if (s_split < branch%ele(0)%s .or. s_split > branch%ele(nr)%s) then
+if (s_split < branch%ele(0)%s - ds_fudge .or. s_split > branch%ele(nr)%s + ds_fudge) then
   call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ',  &
                                   r_array = (/ s_split /) )
   call err_exit

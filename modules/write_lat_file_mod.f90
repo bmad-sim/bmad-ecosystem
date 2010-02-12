@@ -758,7 +758,8 @@ enddo
 close(iu)
 deallocate (names)
 deallocate (multipass)
-deallocate (m_info%top, m_info%bottom)
+call deallocate_multipass_all_info_struct (m_info)
+
 if (present(err)) err = .false.
 
 !--------------------------------------------------------------------------------
