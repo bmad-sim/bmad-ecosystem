@@ -282,14 +282,14 @@ vice versa) the element is just split in two. For example:
   lat: line = (Q)
   use, lat
 \end{example}
-The resulting lattice (first part) would be
+The resulting is that the tracking part of the lattice would be
 \begin{example}
         Element   Key           Length
   1)    Q{\#}1       Quadrupole    6
   2)    M         Marker        0
   3)    Q{\#}2       Quadrupole    4
 \end{example}
-and the second part of the lattice would have the \vn{Q} element.
+and the lord part of the lattice would have the \vn{Q} element.
  
 A superposition is illustrated in Figure~\ref{f:superimpose} The
 placement of a superimposed element is determined by three factors: A
@@ -329,10 +329,26 @@ point on the superimposed element. The default if not present is zero.
 \index{girder}
 Superposition may be done with any element except \vn{Drift},
 \vn{Group}, \vn{Overlay}, and \vn{Girder} control elements. A
-superimposed element that extends beyond either end of the lattice will
-be wrapped around. For consistency's sake, this is done even if the
-\vn{lattice_type} is set to \vn{linear_lattice} (for example, It is sometimes
-convenient to treat a circular lattice as linear).
+superimposed element that extends beyond either end of the lattice
+will be wrapped around so part of the element will be at the beginning
+of the lattice and part of the element will be at the end. For
+consistency's sake, this is done even if the \vn{lattice_type} is set
+to \vn{linear_lattice} (for example, It is sometimes convenient to
+treat a circular lattice as linear). Example:
+\begin{example}
+  d: drift, l = 10
+  q: quad, l = 2, superimpose
+  machine: line = (d)
+  use, machine
+\end{example}
+The lattice will have three elements in the tracking section:
+\begin{example}
+        Element   Key           Length
+  3)    Q{\#}2       Quadrupole    1
+  2)    D{\#}1       Drift         8
+  1)    Q{\#}1       Quadrupole    1
+\end{example}
+The lord section of the lattice will have the element \vn{Q}. 
 
 When a superposition is made that overlaps a drift the drift, not being a "real" 
 element, vanishes. That is, it does not get put in the lord section of the lattice.
