@@ -70,7 +70,11 @@ if (use_ele_ix .ne. 0) print *, "Only calculating power for element #",use_ele_i
 
 !
 
-call bmad_parser(sr_param%lat_file, lat)
+if (sr_param%lat_file(1:6) == 'xsif::') then
+  call xsif_parser(sr_param%lat_file(7:), lat)
+else
+  call bmad_parser(sr_param%lat_file, lat)
+endif
 
 call reallocate_coord (orb, lat%n_ele_max)
 allocate(back_power(lat%n_ele_max), fwd_power(lat%n_ele_max))
