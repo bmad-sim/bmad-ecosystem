@@ -189,7 +189,6 @@ p = .false.
 if (present(ix_uni)) ix_uni = -1
 
 ! No "@" then simply choose s%global%u_view.
-! Also: a "@" after a "::" is not a universe prefix. Example: ele::3@7
 
 ix = index (name_in, '@')
 ic = index (name_in, '::')
@@ -640,9 +639,9 @@ end subroutine tao_var_useit_plot_calc
 ! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, default_source)
 !
 ! Routine to evaluate a lattice element parameter of the form 
-!     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@lat::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! or to evaluate at the middle of the element
-!     <universe>@ele_mid::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@lat_mid::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! Note: size(values) can be zero without an error
 ! 
 ! Input:
@@ -687,11 +686,11 @@ if (err) return
 
 err = .true.
 
-if (name(1:5) == 'ele::') then
-  name = name(6:)  ! Strip off 'ele::'
+if (name(1:5) == 'lat::') then
+  name = name(6:)  ! Strip off 'lat::'
   middle = .false.
-elseif (name(1:9) == 'ele_mid::') then   
-  name = name(10:)  ! Strip off 'ele_mid::'
+elseif (name(1:9) == 'lat_mid::') then   
+  name = name(10:)  ! Strip off 'lat_mid::'
   middle = .true.
 elseif (default_source /= 'element') then
   return
@@ -841,7 +840,7 @@ end subroutine tao_orbit_value
 !----------------------------------------------------------------------------
 !+
 ! Subroutine tao_find_data (err, data_name, d2_ptr, d1_array, d_array, re_array, 
-!                       log_array, str_array, int_array, ix_uni, print_err, component)
+!                       log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
 !
 ! Routine to set data pointers to the correct data structures. 
 !
@@ -867,11 +866,21 @@ end subroutine tao_orbit_value
 ! The measured values for the 3rd, 7th, 8th and 9th elements of orbit.x in universe #2.
 ! r_arrray will be allocated and l_array will be nullified.
 !
+! Example:
+!   data_name = 'orbit.x'
+!   dflt_index = '4'
+! This is equivalent to:
+!   data_name = 'orbit.x[4]'
+! Notice that if dflt_index is not present, or is negative, 'orbit.x' will evaluate
+! to an array of numbers.
+!
 ! Input:
 !   data_name    -- Character(*): The data name type. Eg: "3@orbit.x[2:5,10]|meas"
 !   ix_uni       -- Integer, optional: Index of default universe to use.
 !                     If ix_uni = 0 then "viewed" universe will be used.
 !                     Also, if not present then the "viewed" universe will be used.
+!   dflt_index   -- character, optional: If present and non-negative, and if no index is specified
+!                     by the data_name argument, this index is used in the evaluation.
 !   print_err    -- Logical, optional: Print error message if data is 
 !                     not found? Default is True.
 !
@@ -896,7 +905,7 @@ end subroutine tao_orbit_value
 !-
 
 subroutine tao_find_data (err, data_name, d2_ptr, d1_array, d_array, re_array, &
-                           log_array, str_array, int_array, ix_uni, print_err, component)
+                           log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
 
 implicit none
 
@@ -912,6 +921,8 @@ type (tao_universe_struct), pointer :: u
 
 character(*) :: data_name
 character(*), optional :: component
+character(*), optional :: dflt_index
+
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
 character(16), parameter :: real_components(9) = &
@@ -1072,6 +1083,7 @@ if (ix == 0) then
   else
     d2_name = name
     d1_name = '*'
+    if (present(dflt_index)) d1_name = dflt_index
   endif
 else
   d2_name = name(1:ix-1)
@@ -1112,6 +1124,7 @@ ix = index(name, '[')
 if (ix == 0) then
   d1_name = name
   d_name = '*'
+  if (present(dflt_index)) d_name = dflt_index
 else
   d1_name = name(1:ix-1)
   d_name = name(ix+1:)

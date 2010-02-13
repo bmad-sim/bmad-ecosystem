@@ -474,7 +474,7 @@ integer n_size, ix0
 
 character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(40) data_type, data_source, name
+character(40) data_type, data_source, name, dflt_dat_index
 character(80) index_str
 
 logical found, valid_value, err
@@ -881,7 +881,7 @@ case ('etap.b')
   endif
 
 case ('expression:')
-  ! The point here is that tao_evaluate_stack is much quicker than tao_to_real.
+  ! The point here is that tao_evaluate_stack is much quicker than tao_evaluate_expression.
   ! So on the fist time through, construct datum%stack and for subsequent times, use
   ! datum%stack with tao_evaluate_stack.
   !! if (allocated (datum%stack)) then
@@ -891,8 +891,9 @@ case ('expression:')
   !!   valid_value = good1(1)
 
   !! else ! Only do this first time through...
+    write (dflt_dat_index, '(i0)') datum%ix_d1
     call tao_evaluate_expression (datum%data_type(12:), 0, .false., value_array, good1, &
-               err, .true., datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele)
+               err, .true., datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index)
     if (err) return
     select case (datum%merit_type)
     case ('min')
@@ -1942,7 +1943,7 @@ end subroutine
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
 !      value, good, err_flag, print_err, stack, dflt_component, dflt_source, &
-!      dflt_ele_ref, dflt_ele_start, dflt_ele)
+!      dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -1959,7 +1960,8 @@ end subroutine
 !   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.
 !   dflt_ele       -- Ele_struct, pointer, optional: Default element to evaluate at.
-!   
+!   dflt_dat_index -- Character(*): Default datum index to use.
+!
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
 !   good(:)   -- Logical, allocatable: Is the value valid? 
@@ -1975,7 +1977,7 @@ end subroutine
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
           good, err_flag, print_err, stack, dflt_component, dflt_source, &
-          dflt_ele_ref, dflt_ele_start, dflt_ele)
+          dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
 
 use random_mod
 
@@ -1992,6 +1994,8 @@ real(rp), allocatable :: value(:)
 
 character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
+character(*), optional :: dflt_dat_index
+
 character(200) phrase
 character(1) delim
 character(40) word, word2, default_source
@@ -2239,7 +2243,7 @@ parsing_loop: do
     else
       call pushit (stk%type, i_lev, numeric$)
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-                 err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+             err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -2291,7 +2295,7 @@ parsing_loop: do
     endif
     call pushit (stk%type, i_lev, numeric$)
     call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-                err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+            err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -2439,7 +2443,7 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 
 subroutine tao_param_value_routine (str, saved_prefix, stack, &
-              err_flag, print_err, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+      err_flag, print_err, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
 
 implicit none
 
@@ -2453,6 +2457,8 @@ integer ios, i, n, ix, ix2
 
 character(*) str, saved_prefix
 character(*), optional :: default_source
+character(*), optional :: dflt_dat_index
+
 character(16) s, source
 character(60) name
 character(40) :: r_name = 'tao_param_value_routine'
@@ -2559,8 +2565,8 @@ else
   endif
 
   if (source == 'dat' .or. (err_flag .and. source == '')) then
-    call tao_find_data (err_flag, name, &
-                            re_array = re_array, int_array = int_array, print_err = .false.)
+    call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
+                        dflt_index = dflt_dat_index, print_err = .false.)
     stack%type = data_num$
   endif
 
