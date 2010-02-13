@@ -1216,7 +1216,7 @@ do j = 1, slave%n_lord
 
   ! hkicker, vkicker, kicker, etc. looks like drifts
 
-  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$)
+  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
 
   ! default
 
