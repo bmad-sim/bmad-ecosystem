@@ -437,11 +437,11 @@ For lattice and beam parameters the format is
 \end{example}
 And for element parameters the format is
 \begin{example}
-  \{<universe_range>@\}ele::<element_id>[<param_name>]\{|<component>\}
-  \{<universe_range>@\}ele_mid::<element_id>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}lat::<element_id>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}lat_mid::<element_id>[<param_name>]\{|<component>\}
 \end{example}
-\vn{ele::} will evaluate the parameter at the exit end of the element and 
-\vn{ele_mid::} will evalute the parameter at the middle of the element.
+\vn{lat::} will evaluate the parameter at the exit end of the element and 
+\vn{lat_mid::} will evalute the parameter at the middle of the element.
 The components of this syntax are:
 \begin{example}
   <universe_range>    Optional universe specification (\sref{s:universe})
@@ -460,9 +460,9 @@ Examples:
   3@lat::orbit.x[34]|model       Same as above.
   beam::sigma.x[q10w]            Beam sigma at element q10w.
   lat::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
-  3@ele::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
+  3@lat::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
                                    with names beginning with "q".
-  ele::3[l]|design               Length of the design lattice element #3 
+  lat::3[l]|design               Length of the design lattice element #3 
                                    in the viewed universe.
   dat::orbit.x[2:7,8]|model
 \end{example}

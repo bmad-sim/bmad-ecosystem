@@ -1009,7 +1009,7 @@ structure. For each \vn{n_d1_data} structure there must be a
     default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
     default_weight         = <number>            ! Merit function weight. 
                                                  !   Default = 0.0
-    default_data_source    = "<source>"          ! "lattice" (default), or "beam". 
+    default_data_source    = "<source>"          ! "lat" (dflt), "dat", "var", or "beam". 
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
     datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
@@ -1105,6 +1105,8 @@ as being equivalent to \vn{ele_start}. The relative data types where:
   tt.\(ijklm\ldots\)
 \end{example}
 
+\index{data_source}
+\index{default_data_source}
 Certain data types like the \vn{emittance} along a Linac can be
 calculated from the lattice or can be calculated from the distribution
 of particles when \vn{"beam"} is performed. Which is
@@ -1114,10 +1116,14 @@ component. Possibilities are:
   "beam"      ! Calculation using the beam distribution.
   "dat"       ! Use data from a d1_data array.
   "lat"       ! (Default) Calculation using the lattice layout.
+  "var"       ! Datum comes from a \tao variable.
 \end{example}
-\vn{"lat"} is the default. With \vn{"beam"}, the particular
-bunch that the data is extracted from can be specified via \vn{datum(:)%ix_bunch}.
-The default is \vn{0} which combines all the bunches for the datum calculation.
+\vn{"lat"} is the default. With \vn{"beam"}, the particular bunch that
+the data is extracted from can be specified via
+\vn{datum(:)%ix_bunch}.  The default is \vn{0} which combines all the
+bunches for the datum calculation.  If the \vn{datum(:)%data_source}
+is not set, the value of the \vn{default_data_source} is used.
+
 
 If elements in the \vn{data} array do not exist the corresponding
 \vn{data%ele_name} should be left blank. Lists of names can be reused

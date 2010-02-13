@@ -430,38 +430,42 @@ The \vn{expression:} The data type can be an expression (\sref{s:arithmetic}).
 In this case the \vn{data_type} must begin with the string ``\vn{expression:}''.
 For example:
 \begin{example}
-  data_type = "expression: 1@dat::beta.a[12] - 2@dat::beta.a[12]"
+  datum(i)%data_type = "expression: 1@lat::q10w[beta_a] - 2@lat::q10w[beta_a]"
 \end{example}
 With this, the value of the datum will be the difference between
-datums \vn{beta.a[12]} for universe 1 and universe 2. In this example,
-the source of both terms in the expression is explicitly given as \vn{dat}.
-However, if an explicit source is not specified for a given term,
-the \vn{datum%data_source} component in the initialization file 
-(\sref{s:init.data} will be used. An expression can also be used as the
-\vn{default_data_type} in the \vn{tao_d1_data} structure in the
-initialization file. In this case, the 
+the a-mode beta at element \vn{q10w}
+for universe 1 and universe 2. In this example,
+the source of both terms in the expression is explicitly given as \vn{lat}.
+This is not necessary if the \vn{datum%data_source} is set to \vn{lat}
+\begin{example}
+  datum(i)%data_type = "expression: 1@q10w[beta_a] - 2@q10w[beta_a]"
+  datum(i)%data_source = "lat"
+\end{example}
+An expression can also be used as the
+\vn{default_data_type}. In this case, the 
 evaluation point is implicit. For example:
+\begin{example}
+  default_data_source = "dat"
+  default_data_type = "expression: 1@beta.a - 2@beta.a"
+\end{example}
+which is equivalent to:
 \begin{example}
   default_data_type = "expression: 1@dat::beta.a - 2@dat::beta.a"
 \end{example}
-And the evaluation point for the datums created will be, just like
-other data types, by the specified \vn{datum%ele_name}.
 
-To be valid, 
-if an expression has a term with a \vn{dat} source, 
-the expression must be evaluated after the \vn{dat} source 
-components are evaluated. Data evaluation is done universe by universe
-starting with universe 1, then universe 2, etc. Within a given
-universe, the order of evaluation can be complicated but in this case
-a datum using an expression will always be evaluated after any datum
-that appears earlier in the initialization file. 
-In the example above, the expression terms are 
-\vn{1@dat::beta.a[12]|model} and \vn{2@dat::beta.a[12]|model}. 
-Therefore, this expression
-datum should be in universe 2 or higher. Notice that while all datums
-must be assigned a universe, in this case, since all the terms explicitly
-give a universe number, the value of the datum will
-be independent of the universe it is in.
+To be valid, if an expression has a term with a \vn{dat} source, the
+expression must be evaluated after the \vn{dat} source components are
+evaluated. Data evaluation is done universe by universe starting with
+universe 1, then universe 2, etc. Within a given universe, the order
+of evaluation can be complicated but in this case a datum using an
+expression will always be evaluated after any datum that appears
+earlier in the initialization file.  In the last example above, the
+expression terms involve an evaluation of \vn{beta.a} in universe 2.  
+Therefore, this expression datum should
+be in universe 2 or higher. Notice that while all datums must be
+assigned a universe, in this case, since all the terms explicitly give
+a universe number, the value of the datum will be independent of the
+universe it is in.
 
   \index{floor.}
   \item[floor.]
