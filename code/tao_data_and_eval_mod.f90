@@ -31,8 +31,6 @@ integer, parameter :: ele_num$ = 104
 integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
 
-private load_it
-
 contains
 
 !----------------------------------------------------------------------------
@@ -571,29 +569,29 @@ select case (data_type)
 
 case ('alpha.a')
   if (data_source == 'lat') then
-    call load_it (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
-    call load_it (bunch_params(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%a%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
 case ('alpha.b')
   if (data_source == 'lat') then
-    call load_it (branch%ele(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
-    call load_it (bunch_params(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%b%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%b%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('alpha.z')
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%z%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%z%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('beta.x')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%x%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%x%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%x%norm_emit /= 0)
   else
     call out_io (s_error$, r_name, 'BAD DATA TYPE: ' // data_type, &
@@ -603,7 +601,7 @@ case ('beta.x')
     
 case ('beta.y')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%y%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%y%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%y%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   else
@@ -614,24 +612,24 @@ case ('beta.y')
 
 case ('beta.z')
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%z%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   valid_value = valid_value .and. (bunch_params(ix_ele)%z%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
 
 case ('beta.a')
   if (data_source == 'lat') then
-    call load_it (branch%ele(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
-    call load_it (bunch_params(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%a%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%a%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
     
 case ('beta.b')
   if (data_source == 'lat') then
-    call load_it (branch%ele(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
-    call load_it (bunch_params(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%b%beta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%b%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
@@ -710,19 +708,19 @@ case ('bpm_cbar.12b')
 
 case ('cbar.11')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%cbar(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
 case ('cbar.12')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%cbar(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
 case ('cbar.21')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%cbar(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
 case ('cbar.22')
   if (data_source == 'beam') return
-  call load_it (cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%cbar(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
 case ('chrom.a')
   if (data_source == 'beam') return
@@ -751,43 +749,43 @@ case ('dpz_dz')
 
 case ('e_tot')
   if (data_source == 'beam') return
-  call load_it (branch%ele(0:n_track)%value(E_TOT$) * (1+orbit(0:n_track)%vec(6)), &
+  call tao_load_this_datum (branch%ele(0:n_track)%value(E_TOT$) * (1+orbit(0:n_track)%vec(6)), &
                             ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('%e_tot')
   if (data_source == 'beam') return
-  call load_it (orbit(0:n_track)%vec(6), ele_ref, ele_start, ele, &
+  call tao_load_this_datum (orbit(0:n_track)%vec(6), ele_ref, ele_start, ele, &
                                      datum_value, valid_value, datum, lat, why_invalid)
   
 case ('emit.x', 'norm_emit.x')
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%x%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%x%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.y', 'norm_emit.y')  
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%y%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%y%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.z', 'norm_emit.z')
   call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%z%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%z%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
 
 case ('emit.a', 'norm_emit.a')
   call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%a%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%a%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'lat') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
         call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
         return
       endif
-      call load_it (tao_lat%rad_int%lin_norm_emit_a, &
+      call tao_load_this_datum (tao_lat%rad_int%lin_norm_emit_a, &
                               ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
       datum_value = gamma * tao_lat%modes%a%emittance
@@ -799,7 +797,7 @@ case ('emit.a', 'norm_emit.a')
 case ('emit.b', 'norm_emit.b')  
   call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%b%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%b%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'lat') then
     if (lat%param%lattice_type == linear_lattice$) then
       if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
@@ -807,7 +805,7 @@ case ('emit.b', 'norm_emit.b')
         valid_value = .false.
         return
       endif
-      call load_it (tao_lat%rad_int%lin_norm_emit_b, &
+      call tao_load_this_datum (tao_lat%rad_int%lin_norm_emit_b, &
                               ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
       datum_value = gamma * tao_lat%modes%b%emittance
@@ -818,66 +816,66 @@ case ('emit.b', 'norm_emit.b')
 
 case ('eta.x')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%x%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('eta.y')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('etap.x')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%x%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('etap.y')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%y%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('eta.a')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%a%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('eta.b')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%b%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('etap.a')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%a%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('etap.b')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = .true.
   else
-    call load_it (branch%ele(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%b%etap, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
 
 case ('expression:')
@@ -942,41 +940,41 @@ case ('face1.offset')
 case ('face2.offset')
 
 case ('floor.x')
-  call load_it (branch%ele(:)%floor%x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (branch%ele(:)%floor%x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('floor.y')
-  call load_it (branch%ele(:)%floor%y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (branch%ele(:)%floor%y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('floor.z')
-  call load_it (branch%ele(:)%floor%z, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (branch%ele(:)%floor%z, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('floor.theta')
-  call load_it (branch%ele(:)%floor%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (branch%ele(:)%floor%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('floor.phi')
-  call load_it (branch%ele(:)%floor%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (branch%ele(:)%floor%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('gamma.a')
   if (data_source == 'lat') then
-    call load_it (branch%ele(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
-    call load_it (bunch_params(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%a%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%a%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
   
 case ('gamma.b')
   if (data_source == 'lat') then
-    call load_it (branch%ele(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   elseif (data_source == 'beam') then
-    call load_it (bunch_params(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%b%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     valid_value = valid_value .and. (bunch_params(ix_ele)%b%norm_emit /= 0)
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE SINCE THE EMITTANCE IS ZERO!'
   endif
 
 case ('gamma.z')
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('rad_int.i5a')
   if (data_source == 'beam') return
@@ -1020,16 +1018,16 @@ case ('rad_int.i5b_e6')
 
 case ('k.11b')
   if (data_source == 'beam') return
-  call load_it (cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%k_11a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 case ('k.12a')
   if (data_source == 'beam') return
-  call load_it (cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%k_12a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 case ('k.12b')
   if (data_source == 'beam') return
-  call load_it (cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%k_12b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 case ('k.22a')
   if (data_source == 'beam') return
-  call load_it (cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%k_22b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
 case ('momentum_compaction')
   if (data_source == 'beam') return
@@ -1059,7 +1057,7 @@ case ('momentum_compaction')
     value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
   enddo
-  call load_it (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
@@ -1072,7 +1070,7 @@ case ('n_particle_loss')
 
 case ('orbit.x')
   if (data_source == 'beam') return ! bad
-  call load_it (orbit(:)%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(:)%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1080,7 +1078,7 @@ case ('orbit.x')
 
 case ('orbit.y')
   if (data_source == 'beam') return ! bad
-  call load_it (orbit(:)%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(:)%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1088,7 +1086,7 @@ case ('orbit.y')
 
 case ('orbit.z')
   if (data_source == 'beam') return ! bad
-  call load_it (orbit(:)%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(:)%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1096,7 +1094,7 @@ case ('orbit.z')
 
 case ('orbit.px')
   if (data_source == 'beam') return ! bad
-  call load_it (orbit(:)%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(:)%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1104,7 +1102,7 @@ case ('orbit.px')
 
 case ('orbit.py')
   if (data_source == 'beam') return ! bad
-  call load_it (orbit(:)%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(:)%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1112,7 +1110,7 @@ case ('orbit.py')
 
 case ('orbit.pz')
   if (data_source == 'beam') return ! bad
-  call load_it (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1120,7 +1118,7 @@ case ('orbit.pz')
 
 case ('orbit.amp_a')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1128,7 +1126,7 @@ case ('orbit.amp_a')
 
 case ('orbit.amp_b')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1136,7 +1134,7 @@ case ('orbit.amp_b')
 
 case ('orbit.norm_amp_a')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1144,7 +1142,7 @@ case ('orbit.norm_amp_a')
 
 case ('orbit.norm_amp_b')
   if (data_source == 'beam') return ! bad
-  call load_it (cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+  call tao_load_this_datum (cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
   if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
     valid_value = .false.
     why_invalid = 'Particle lost.'
@@ -1238,10 +1236,10 @@ case ('r.')
     value_vec(k) = mat6(i, j)
     if (k /= ix_ele) mat6 = matmul(branch%ele(k+1)%mat6, mat6)
   enddo
-  call load_it (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('ref_time')
-    call load_it (branch%ele(:)%ref_time, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (branch%ele(:)%ref_time, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   
 case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
 
@@ -1285,48 +1283,48 @@ case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
 
 case ('sigma.x')  
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s11$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s11$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
 
 case ('sigma.px')  
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s22$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s22$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.y')  
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s33$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s33$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.py')  
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s44$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s44$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.z')
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s55$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s55$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.pz')  
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   datum_value = sqrt(datum_value)
   valid_value = .true.
   
 case ('sigma.xy')  
   if (data_source == 'lat') return
-  call load_it (bunch_params(:)%sigma(s13$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (bunch_params(:)%sigma(s13$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   valid_value = .true.
   
 case ('spin.theta')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%spin%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%spin%theta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   else
     call spinor_to_polar (orbit(ix_ele), polar)
     datum_value = polar%theta
@@ -1335,7 +1333,7 @@ case ('spin.theta')
   
 case ('spin.phi')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%spin%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%spin%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   else
     call spinor_to_polar (orbit(ix_ele), polar)
     datum_value = polar%phi
@@ -1344,7 +1342,7 @@ case ('spin.phi')
   
 case ('spin.polarity')
   if (data_source == 'beam') then
-    call load_it (bunch_params(:)%spin%polarization, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    call tao_load_this_datum (bunch_params(:)%spin%polarization, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   else
     datum_value = 1.0
   endif
@@ -1449,7 +1447,7 @@ end subroutine tao_evaluate_a_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine load_it (vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+subroutine tao_load_this_datum (vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
 
 implicit none
 
