@@ -4,7 +4,7 @@ use synrad3d_struct
 use random_mod
 use photon_init_mod
 
-private wall_pt_params
+private sr3d_wall_pt_params
 
 contains
 
@@ -12,7 +12,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
+! Subroutine sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
 !
 ! Routine to get the parameters at a photon emission point.
 !
@@ -33,7 +33,7 @@ contains
 !   photon    -- photon3d_coord_struct: Generated photon.
 !-
 
-subroutine get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
+subroutine sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
 
 use em_field_mod
 
@@ -120,28 +120,28 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon)
+! Subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon)
 !
-! subroutine to initialize a new photon
+! subroutine sr3d_to initialize a new photon
 !
 ! Modules needed:
 !   use synrad3d_utils
 !
 ! Input:
-!   lat       -- lat_struct with twiss propagated and mat6s made
-!   ix_ele    -- integer: index of lat element to start ray from
-!   s_offset  -- real(rp): offset along the length of the element 
-!                         to use as a starting point for ray
-!   orb(0:*)  -- coord_struct: orbit of particles to use as 
-!                             source of ray
-!   direction -- integer: +1 In the direction of increasing s.
+!   ele_here  -- Ele_struct: Element emitting the photon. Emission is at the exit end of the element.
+!   orb_here  -- coord_struct: orbit of particles emitting the photon.
+!   gx, gy    -- Real(rp): Horizontal and vertical bending strengths.
+!   emit_a    -- Real(rp): Emittance of the a-mode.
+!   emit_b    -- Real(rp): Emittance of the b-mode.
+!   photon_direction 
+!             -- Integer: +1 In the direction of increasing s.
 !                         -1 In the direction of decreasing s.
 !
 ! Output:
 !   photon    -- photon_coord_struct: Generated photon.
 !-
 
-subroutine emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, p_orb)
+subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, p_orb)
 
 implicit none
 
@@ -206,7 +206,7 @@ end subroutine
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_radius (p_orb, wall, radius, dw_perp)
+! Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, hit_antechamber)
 !
 ! Routine to calculate the normalized transverse position of the photon 
 ! relative to the wall: 
@@ -224,9 +224,10 @@ end subroutine
 ! Output:
 !   radius       -- real(rp): Radius of beam relative to the wall.
 !   dw_perp(3)   -- real(rp), optional: Outward normal vector perpendicular to the wall.
+!   hit_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine photon_radius (p_orb, wall, radius, dw_perp)
+Subroutine Sr3d_photon_radius (p_orb, wall, radius, dw_perp, hit_antechamber)
 
 implicit none
 
@@ -240,6 +241,9 @@ real(rp) dw_x0, dw_y0, dw_z0, dw_x1, dw_y1, dw_z1, dw_x, dw_y, dw_z, denom
 real(rp), pointer :: vec(:)
 
 integer ix
+
+logical, optional :: hit_antechamber
+logical hit0, hit1
 
 !
 
@@ -260,8 +264,8 @@ endif
 
 !
 
-call wall_pt_params (wall%pt(ix),   vec, r0, dw_x0, dw_y0, dw_z0)
-call wall_pt_params (wall%pt(ix+1), vec, r1, dw_x1, dw_y1, dw_z1)
+call sr3d_wall_pt_params (wall%pt(ix),   vec, r0, dw_x0, dw_y0, dw_z0, hit0)
+call sr3d_wall_pt_params (wall%pt(ix+1), vec, r1, dw_x1, dw_y1, dw_z1, hit1)
 
 f = (vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
 radius = (1 - f) * r0 + f * r1
@@ -274,23 +278,34 @@ if (present (dw_perp)) then
   dw_perp = [dw_x, dw_y, dw_z] / denom
 endif
 
-end subroutine photon_radius
+if (present(hit_antechamber)) hit_antechamber = (hit0 .or. hit1)
+
+end subroutine sr3d_photon_radius
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z)
+! Subroutine sr3d_wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z, hit)
 !
-! Private routine used by photon_radius
+! Routine to compute parameters needed by sr3d_photon_radius routine.
+!
+! Input:
+!   wall_pt -- wall3d_pt_struct: Wall outline at a particular longitudinal location.
+!   vec(6)  -- Real(rp): Photon phase space coords. 
+!
+! Output:
+!   r                  -- Real(rp): Radius of 
+!   [dw_x, dw_y, dw_z]
 !-
 
-subroutine wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z)
+subroutine sr3d_wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z, hit)
 
 implicit none
 
 type (wall3d_pt_struct) wall_pt
 real(rp) r, dw_x, dw_y, dw_z, vec(6)
+logical hit
 
 !
 

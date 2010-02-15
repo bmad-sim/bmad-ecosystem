@@ -27,12 +27,14 @@ end type
 ! The wall between point i-1 and i is associated with 
 
 type wall3d_pt_struct
-  real(rp) s                            ! Longitudinal position.
-  character(16) type                    ! Elliptical or rectangular.
-  real(rp) width2                       ! Half width.
-  real(rp) height2                      ! Half height.
-  real(rp) antechamber_plus_x_height2   ! Anechamber half height on +x side of the wall
-  real(rp) antechamber_minus_x_height2  ! Anechamber half height on -x side of the wall
+  real(rp) s                          ! Longitudinal position.
+  character(16) type                  ! Elliptical or rectangular.
+  real(rp) width2                     ! Half width ignoring antechamber.
+  real(rp) height2                    ! Half height ignoring antechamber.
+  real(rp) antechamber_height2_plus   ! Antechamber half height on +x side of the wall
+  real(rp) width2_plus                ! Distance from pipe center to +x side edge.
+  real(rp) antechamber_height2_minus  ! Antechamber half height on -x side of the wall
+  real(rp) width2_minus               ! Distance from pipe center -x side edge.
 end type
 
 
@@ -43,13 +45,14 @@ end type
 
 ! Some parameters that can be set. 
 
-type synrad3d_params_struct
+type sr3d_params_struct
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
-  logical :: debug = .false.            
+  logical :: debug = .false.           
+  logical :: stop_if_hit_antechamber = .false. 
 end type
 
-type (synrad3d_params_struct), save :: synrad3d_params
+type (sr3d_params_struct), save :: sr3d_params
 
 end module

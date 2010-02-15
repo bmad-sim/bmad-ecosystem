@@ -9,7 +9,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_photon (photon, lat, wall)
+! Subroutine sr3d_track_photon (photon, lat, wall)
 !
 ! Routine to propagate a synch radiation photon until it gets absorbed by a wall.
 !
@@ -26,7 +26,7 @@ contains
 !   photon    -- photon3d_coord_struct: synch radiation photon propagated until absorbtion.
 !-
 
-subroutine track_photon (photon, lat, wall)
+subroutine sr3d_track_photon (photon, lat, wall)
 
 implicit none
 
@@ -47,7 +47,7 @@ photon%reflect(0) = photon%start
 
 do
 
-  call track_photon_to_wall (photon, lat, wall)
+  call sr3d_track_photon_to_wall (photon, lat, wall)
 
   n = size(photon%reflect)
   allocate (p_temp(n))
@@ -58,22 +58,22 @@ do
   photon%reflect(n) = photon%now
   deallocate(p_temp)
 
-  if (photon%hit_antechamber) return
+  if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) return
 
-  call reflect_photon (photon, wall, absorbed)
+  call sr3d_reflect_photon (photon, wall, absorbed)
   if (absorbed) return
 
   photon%n_reflect = photon%n_reflect + 1
 
 enddo
 
-end subroutine track_photon
+end subroutine sr3d_track_photon
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_photon_to_wall (photon, lat, wall)
+! Subroutine sr3d_track_photon_to_wall (photon, lat, wall)
 !
 ! Routine to propagate a synch radiation photon until it hits a wall.
 !
@@ -89,7 +89,7 @@ end subroutine track_photon
 !   photon    -- photon3d_coord_struct: synch radiation photon propagated to wall
 !-
 
-subroutine track_photon_to_wall (photon, lat, wall)
+subroutine sr3d_track_photon_to_wall (photon, lat, wall)
 
 implicit none
 
@@ -107,34 +107,34 @@ vec => photon%now%vec
 do
 
   v_rad_max = max(abs(vec(2)), abs(vec(4)))
-  if (synrad3d_params%dr_track_step_max * abs(vec(6)) > &
-      synrad3d_params%ds_track_step_max * v_rad_max) then
-    dlen = synrad3d_params%ds_track_step_max / abs(vec(6))
+  if (sr3d_params%dr_track_step_max * abs(vec(6)) > &
+      sr3d_params%ds_track_step_max * v_rad_max) then
+    dlen = sr3d_params%ds_track_step_max / abs(vec(6))
   else
-    dlen = synrad3d_params%dr_track_step_max / v_rad_max
+    dlen = sr3d_params%dr_track_step_max / v_rad_max
   endif
 
-  call propagate_photon_a_step (photon, dlen, lat, wall, .true.)
+  call sr3d_propagate_photon_a_step (photon, dlen, lat, wall, .true.)
 
   ! See if the photon has hit the wall.
   ! If so we calculate the exact hit spot where the photon crossed the
   ! wall boundry and return
 
-  call photon_radius (photon%now, wall, radius)
+  call sr3d_photon_radius (photon%now, wall, radius)
   if (radius > 1) then
-    call photon_hit_spot_calc (photon, wall, lat)
+    call sr3d_photon_hit_spot_calc (photon, wall, lat)
     return
   endif
 
 enddo
 
-end subroutine track_photon_to_wall
+end subroutine sr3d_track_photon_to_wall
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine propagate_photon_a_step (photon, dl_step, lat, wall, stop_at_check_pt)
+! Subroutine sr3d_propagate_photon_a_step (photon, dl_step, lat, wall, stop_at_check_pt)
 !
 ! Routine to propagate a photon to a given spot
 !
@@ -157,7 +157,7 @@ end subroutine track_photon_to_wall
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !-
 
-subroutine propagate_photon_a_step (photon, dl_step, lat, wall, stop_at_check_pt)
+subroutine sr3d_propagate_photon_a_step (photon, dl_step, lat, wall, stop_at_check_pt)
 
 implicit none
 
@@ -338,13 +338,13 @@ propagation_loop: do
 
 enddo propagation_loop
 
-end subroutine propagate_photon_a_step
+end subroutine sr3d_propagate_photon_a_step
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_hit_spot_calc (photon, wall, lat)
+! Subroutine sr3d_photon_hit_spot_calc (photon, wall, lat)
 !
 ! Routine to calculate where the photon has hit the wall.
 !
@@ -361,7 +361,7 @@ end subroutine propagate_photon_a_step
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !-
 
-subroutine photon_hit_spot_calc (photon, wall, lat)
+subroutine sr3d_photon_hit_spot_calc (photon, wall, lat)
 
 implicit none
 
@@ -388,10 +388,10 @@ photon0_is_at_beginning = .true.
 photon1 = photon0
 photon2 = photon
 
-call photon_radius (photon0%now, wall, radius)
+call sr3d_photon_radius (photon0%now, wall, radius)
 del0 = radius - 1 ! Must be negative
 
-call photon_radius (photon2%now, wall, radius)
+call sr3d_photon_radius (photon2%now, wall, radius)
 del2 = radius - 1 ! Must be positive
 
 do i = 1, 30
@@ -417,9 +417,9 @@ do i = 1, 30
     call err_exit
   endif
 
-  call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
+  call sr3d_propagate_photon_a_step (photon1, dl, lat, wall, .false.)
 
-  call photon_radius (photon1%now, wall, radius)
+  call sr3d_photon_radius (photon1%now, wall, radius)
   del1 = radius - 1
 
   if (del1 < 0) then
@@ -442,9 +442,9 @@ do i = 1, 30
     call err_exit
   endif
 
-  call propagate_photon_a_step (photon1, dl, lat, wall, .false.)
+  call sr3d_propagate_photon_a_step (photon1, dl, lat, wall, .false.)
 
-  call photon_radius (photon1%now, wall, radius)
+  call sr3d_photon_radius (photon1%now, wall, radius)
   del1 = radius - 1
 
   if (del1 < 0) then
@@ -460,30 +460,20 @@ enddo
 ! cleanup...
 
 photon = photon1
+call sr3d_photon_radius (photon%now, wall, radius, hit_antechamber = photon%hit_antechamber)
 
-! hit the antechamber?
-
-iw = photon%now%ix_wall
-if (photon%now%vec(1) > 0) then
-  if (wall%pt(iw)%antechamber_plus_x_height2 > abs(photon%now%vec(3))) &
-                                                       photon%hit_antechamber = .true.
-else
-  if (wall%pt(iw)%antechamber_minus_x_height2 > abs(photon%now%vec(3))) &
-                                                       photon%hit_antechamber = .true.
-endif
-
-end subroutine photon_hit_spot_calc 
+end subroutine sr3d_photon_hit_spot_calc 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine reflect_photon (photon, wall, absorbed)
+! Subroutine sr3d_reflect_photon (photon, wall, absorbed)
 !
 ! Routine to reflect a photon off of the wall.
 !-
 
-subroutine reflect_photon (photon, wall, absorbed)
+subroutine sr3d_reflect_photon (photon, wall, absorbed)
 
 implicit none
 
@@ -501,7 +491,7 @@ logical absorbed
 
 ! Check if reflections allowed
 
-if (.not. synrad3d_params%allow_reflections) then
+if (.not. sr3d_params%allow_reflections) then
   absorbed = .true.
   return
 endif
@@ -511,7 +501,7 @@ endif
 vec => photon%now%vec
 photon%old = photon%now
 
-call photon_radius (photon%now, wall, r, dw_perp)
+call sr3d_photon_radius (photon%now, wall, r, dw_perp)
 
 ! cos_perp is the component of the photon velocity perpendicular to the wall.
 ! since the photon is striking the wall from the inside this must be positive.
@@ -520,7 +510,7 @@ cos_perp = dot_product (vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
 
-if (synrad3d_params%debug) then
+if (sr3d_params%debug) then
   write (2, *) '*********************************************'
   write (2, '(2i8, 3f10.4, 10x, 2f12.6)') photon%ix_photon, photon%n_reflect, &
                                  dw_perp, cos_perp, reflectivity
@@ -544,10 +534,10 @@ if (absorbed) return  ! Do not reflect if absorbed
 
 vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * dw_perp
 
-if (synrad3d_params%debug) then
+if (sr3d_params%debug) then
   write (2, '(3(12x, f12.6))') photon%now%vec(2:6:2)
 endif
 
-end subroutine reflect_photon
+end subroutine sr3d_reflect_photon
 
 end module

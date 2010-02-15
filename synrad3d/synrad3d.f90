@@ -22,6 +22,7 @@ type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct) wall
 type (wall3d_pt_struct) wall_pt(0:100)
+type (sr3d_params_struct) synrad3d_params
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
@@ -71,10 +72,14 @@ open (1, file = param_file, status = 'old')
 read (1, nml = synrad3d_parameters)
 close (1)
 
+sr3d_params = synrad3d_params
+
 n_wall_pt_max = -1
 wall_pt%type = ''
-wall_pt%antechamber_plus_x_height2 = -1
-wall_pt%antechamber_minus_x_height2 = -1
+wall_pt%antechamber_height2_plus = -1
+wall_pt%antechamber_height2_minus = -1
+wall_pt%width2_plus = -1
+wall_pt%width2_minus = -1
 
 open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
@@ -143,8 +148,9 @@ endif
 open (1, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
 
-if (any(wall_pt%antechamber_plus_x_height2 > 0) .or. &
-    any(wall_pt%antechamber_minus_x_height2 > 0)) then
+if (sr3d_params%stop_if_hit_antechamber .and. &
+    (any(wall_pt%antechamber_height2_plus > 0) .or. &
+     any(wall_pt%antechamber_height2_minus > 0))) then
   dat2_file = trim(dat_file) // '.antechamber'
   open (2, file = dat2_file)
   print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
@@ -175,7 +181,7 @@ do
   n_photon_ele = 0   
 
   do
-    call get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
+    call sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
     g = sqrt(gx**2 + gy**2) 
     call convert_total_energy_to (ele%value(e_tot$),  lat%param%particle, gamma)
     ! Generate photons, track to the wall 
@@ -185,12 +191,12 @@ do
       n_photon_tot = n_photon_tot + 1
       photon => photons(n_photon_tot)
       photon%ix_photon = n_photon_tot
-      call emit_photon (ele_here, orbit_here, gx, gy, &
+      call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
                              emit_a, emit_b, sig_e, photon_direction, photon%start)
       photon%n_reflect = 0
       photon%start%ix_ele = ix_ele
 
-      call photon_radius (photon%start, wall, radius)
+      call sr3d_photon_radius (photon%start, wall, radius)
       if (radius > 1) then
         print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_tot
         print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
@@ -199,7 +205,7 @@ do
 
       photon%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
                                                       (6 * h_bar_planck * c_light * num_photons)
-      call track_photon (photon, lat, wall)
+      call sr3d_track_photon (photon, lat, wall)
 
     enddo
 
@@ -230,7 +236,7 @@ write (1, *)
 do i = 1, n_photon_tot      
   photon => photons(i)
   iu = 1
-  if (photon%hit_antechamber) iu = 2
+  if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
   write (iu, '(2i8, f10.2, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
                                              '! index, n_reflect, eV, intensity'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
