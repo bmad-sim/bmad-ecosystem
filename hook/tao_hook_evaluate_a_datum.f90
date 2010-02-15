@@ -22,9 +22,9 @@ use tao_mod
 
 implicit none
 
-type (tao_universe_struct) u
+type (tao_universe_struct), target :: u
 type (tao_data_struct) datum
-type (tao_lattice_struct) tao_lat
+type (tao_lattice_struct), target :: tao_lat
 
 real(rp) datum_value
 logical found, valid_value
