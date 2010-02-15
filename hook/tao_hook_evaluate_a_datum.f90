@@ -13,9 +13,10 @@
 !                             design_value, etc...)
 !   Found        -- Logical: TRUE if  this datum is evaluated in this subroutine.
 !   valid_value  -- Logical: Set false when there is a problem. Set true otherwise.
+!   why_invalid  -- Character(*), optional: Tells why datum value is invalid.
 !-
 
-subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value)
+subroutine tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
 
 use tao_mod
 
@@ -28,6 +29,7 @@ type (tao_lattice_struct) tao_lat
 real(rp) datum_value
 logical found, valid_value
 
+character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_hook_evaluate_a_datum'
 
 !
