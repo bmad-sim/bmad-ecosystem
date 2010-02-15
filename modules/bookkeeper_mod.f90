@@ -589,7 +589,7 @@ type (ele_struct), pointer :: slave
 real(rp) delta, coef
 real(rp), pointer :: r_ptr
 
-integer ix, iv, slave_stat, i
+integer ix, iv, i
 
 logical moved, err_flag
 
@@ -603,26 +603,19 @@ lord%value(old_command$) = lord%value(command$) ! save old
 moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
-
   slave => pointer_to_slave (lat, lord, i, ix)
   iv = lat%control(ix)%ix_attrib
-  slave_stat = slave%slave_status
-
-  if (iv == l$) then
-    moved = .true.
-    if (slave_stat /= free$ .and. slave_stat /= super_slave$) then
-      call out_io (s_abort$, r_name, "A GROUP: " // lord%name, &
-                    "CONTROLS THE LENGTH OF A LORD ELEMENT: " // slave%name)
-      call err_exit
-    endif
-  endif
+  if (iv == l$) moved = .true.
   coef = lat%control(ix)%coef
   call pointer_to_indexed_attribute (slave, iv, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
   r_ptr = r_ptr + delta * coef
 enddo
 
-if (moved) call s_calc (lat)       ! recompute s distances
+if (moved) then
+  call s_calc (lat)       ! recompute s distances
+  call lat_geometry (lat)
+endif
 
 end subroutine
 
@@ -1060,20 +1053,13 @@ do j = 1, slave%n_lord
   is_first = (ix_con == lord%ix1_slave)
   is_last  = (ix_con == lord%ix2_slave)
 
-  ! Physically, the lord length cannot be less than the slave length.
-  ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
-
-  if (abs(slave%value(l$)) > abs(lord%value(l$))) then
-    coef = 1
-  else
-    coef = slave%value(l$) / lord%value(l$) 
-  endif
+  ! Do some error checking.
 
   if (lord%lord_status /= super_lord$) then
     call out_io (s_abort$, r_name, &
           "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
           'SLAVE: ' //  slave%name // '  \i\ ', &
-          'LORD:  ' //  lord%name  // '  \i\ ', i_array = (/ ix_slave, ix /) )
+          'LORD:  ' //  lord%name  // '  \i\ ', i_array = (/ ix_slave, lord%ix_ele /) )
     call err_exit
   endif
 
@@ -1082,6 +1068,15 @@ do j = 1, slave%n_lord
             'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
     call err_exit
+  endif
+
+  ! Physically, the lord length cannot be less than the slave length.
+  ! In case we are dealing with a non-physical situation, arbitrarily set coef = 1.
+
+  if (abs(slave%value(l$)) > abs(lord%value(l$))) then
+    coef = 1
+  else
+    coef = slave%value(l$) / lord%value(l$) 
   endif
 
   ! If this is not the first slave: Transfer reference orbit from previous slave

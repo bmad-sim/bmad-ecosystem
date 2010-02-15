@@ -3519,6 +3519,12 @@ main_loop: do n = 1, n2
         if (attrib_name == blank_name$) attrib_name = lord%component_name
         slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
         ix = attribute_index(slave, attrib_name)
+        ! If attribute not found it may be a special attribute like accordian_edge$.
+        ! A special attribute will have ix > n_attrib_maxx
+        if (ix < 1 .and. lord%lord_status == group_lord$) then
+          ix = attribute_index(lord, attrib_name)
+          if (ix <= n_attrib_maxx) ix = 0  ! Mark as not valid
+        endif
         cs(j)%ix_attrib = ix
         if (ix < 1) then
           call warning ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &

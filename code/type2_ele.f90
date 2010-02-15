@@ -370,19 +370,13 @@ if (logic_option(present(lattice), type_control)) then
     nl=nl+1; li(nl) = ' '
   endif
 
-  if (ele%lord_status <= 0) then
-    nl=nl+1; write (li(nl), '(a)') 'Lord_status: UNKNOWN!', ele%lord_status
-  else
-    nl=nl+1; write (li(nl), '(2a)') 'Lord_status:  ', control_name(ele%lord_status)
-  endif
+  ! Print info on element's lords
 
   if (ele%slave_status <= 0) then
-    nl=nl+1; write (li(nl), '(a)') 'Slave_status: UNKNOWN!', ele%slave_status
+    nl=nl+1; write (li(nl), '(a)') 'Slave_status: BAD!', ele%slave_status
   else
     nl=nl+1; write (li(nl), '(2a)') 'Slave_status: ', control_name(ele%slave_status)
   endif
-
-  ! Print lord info
 
   if (ele%n_lord /= 0) then
 
@@ -437,6 +431,14 @@ if (logic_option(present(lattice), type_control)) then
       enddo
     endif
 
+  endif
+
+  ! Print info on elements slaves.
+
+  if (ele%lord_status <= 0) then
+    nl=nl+1; write (li(nl), '(a)') 'Lord_status: BAD!', ele%lord_status
+  else
+    nl=nl+1; write (li(nl), '(2a)') 'Lord_status:  ', control_name(ele%lord_status)
   endif
 
   if (ele%n_slave /= 0) then

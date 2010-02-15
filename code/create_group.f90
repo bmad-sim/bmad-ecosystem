@@ -93,6 +93,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: slave, lord
 type (control_struct)  contrl(:)
+type (branch_struct), pointer :: branch
 
 integer i, ix_lord, ix_attrib, n_control, n_con
 integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
@@ -133,6 +134,7 @@ lord%ix_value = command$
 
 if (n_control == 0) return ! If no slaves then nothing to do.
 
+err = .true.
 n_con = lat%n_control_max
 lord%ix1_slave = n_con + 1
 
@@ -149,10 +151,11 @@ do i = 1, n_control
   ix_slave = contrl(i)%ix_slave
   ix_attrib = contrl(i)%ix_attrib
   ix_branch = contrl(i)%ix_branch
-  slave => lat%branch(ix_branch)%ele(ix_slave)
+  branch => lat%branch(ix_branch)
+  slave => branch%ele(ix_slave)
 
   if (ix_attrib == start_edge$ .or. ix_attrib == end_edge$ .or. &
-                                            ix_attrib == accordion_edge$) then
+      ix_attrib == symmetric_edge$ .or. ix_attrib == accordion_edge$) then
 
     if (slave%lord_status == super_lord$) then
       ix_min = lat%control(slave%ix1_slave)%ix_slave
@@ -161,54 +164,44 @@ do i = 1, n_control
       ix_min = ix_slave
       ix_max = ix_slave
     else
-      call out_io (s_fatal$, r_name, &
+      call out_io (s_error$, r_name, &
                     'A GROUP IS NOT ALLOWED TO CONTROL', &
                     'A ' // control_name(slave%slave_status), &
                     'YOU TRIED TO CONTROL: ' // slave%name)
-      call err_exit
+      return
     endif
 
     ! now that we have the ends we find the elements to either side whose length
     ! the group can adjust
 
-    ix1 = ix_min - 1
-    do 
-      if (lat%branch(ix_branch)%ele(ix1)%value(l$) == 0) then
+    if (ix_attrib /= end_edge$) then
+      ix1 = ix_min - 1
+      do 
+        if (branch%ele(ix1)%value(l$) /= 0) exit
         ix1 = ix1 - 1
-      else
-        exit
-      endif
-    enddo
-
-    ix2 = ix_max + 1 
-    do
-      if (lat%branch(ix_branch)%ele(ix2)%value(l$) == 0) then
-        ix2 = ix2 + 1
-      else
-        exit
-      endif
-    enddo
-
-    if (ix_attrib == start_edge$ .or. ix_attrib == accordion_edge$ .or. &
-                                     ix_attrib == symmetric_edge$) then
-      if (ix1 < 1) then
-        call out_io (s_fatal$, r_name, &
-                      'START_EDGE OF CONTROLED', &
-                      'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
-                      'VARIED FOR GROUP: ' // lord%name)
-        call err_exit
-      endif
+        if (ix1 < 0) then
+          call out_io (s_error$, r_name, &
+                        'START_EDGE OF CONTROLED', &
+                        'ELEMENT IS AT BEGINNING OF LAT AND CANNOT BE', &
+                        'VARIED FOR GROUP: ' // lord%name)
+          return
+        endif
+      enddo
     endif
 
-    if (ix_attrib == end_edge$ .or. ix_attrib == accordion_edge$ .or. &
-                                      ix_attrib == symmetric_edge$) then
-      if (ix2 > lat%n_ele_track) then
-        call out_io (s_fatal$, r_name, &
-                      'END_EDGE OF CONTROLED', &
-                      'ELEMENT IS AT END OF LAT AND CANNOT BE', &
-                      'VARIED FOR GROUP: ' // lord%name)
-        call err_exit
-      endif
+    if (ix_attrib /= start_edge$) then
+      ix2 = ix_max + 1 
+      do
+        if (branch%ele(ix2)%value(l$) /= 0) exit
+        ix2 = ix2 + 1
+        if (ix2 > branch%n_ele_track) then
+          call out_io (s_error$, r_name, &
+                        'END_EDGE OF CONTROLED', &
+                        'ELEMENT IS AT END OF LAT AND CANNOT BE', &
+                        'VARIED FOR GROUP: ' // lord%name)
+          return
+        endif
+      enddo
     endif
 
     ! put in coefficients
@@ -263,6 +256,7 @@ do i = 1, n_control
     call add_lattice_control_structs (lat, slave)
     lat%ic(slave%ic2_lord-1) = n_con - 1
     lat%ic(slave%ic2_lord-0) = n_con - 0
+    if (slave%slave_status == free$) slave%slave_status = group_slave$
 
   ! x_limit and y_limit
 
@@ -285,6 +279,7 @@ do i = 1, n_control
     lat%ic(slave%ic2_lord-2) = n_con - 2
     lat%ic(slave%ic2_lord-1) = n_con - 1
     lat%ic(slave%ic2_lord-0) = n_con - 0
+    if (slave%slave_status == free$) slave%slave_status = group_slave$
 
   ! For all else without position control the group setup is simple.
 
@@ -311,10 +306,9 @@ do i = 1, n_control
     slave%n_lord = slave%n_lord + 1
     call add_lattice_control_structs (lat, slave)
     lat%ic(slave%ic2_lord) = n_con
+    if (slave%slave_status == free$) slave%slave_status = group_slave$
 
   endif
-
-  if (slave%slave_status == free$) slave%slave_status = group_slave$
 
 enddo
 
@@ -323,6 +317,7 @@ enddo
 lord%ix2_slave = n_con
 lord%n_slave = n_con - lord%ix1_slave + 1
 lat%n_control_max = n_con
+err = .false.
 
 !---------------------------------------------------------------------------
 
@@ -338,6 +333,12 @@ lat%control(n_con)%ix_lord = ix_lord
 lat%control(n_con)%ix_slave = i_ele
 lat%control(n_con)%ix_attrib = l$
 lat%control(n_con)%coef = scale * contrl(i)%coef
+
+slave => branch%ele(i_ele)
+slave%n_lord = slave%n_lord + 1
+call add_lattice_control_structs (lat, slave)
+lat%ic(slave%ic2_lord) = n_con
+if (slave%slave_status == free$) slave%slave_status = group_slave$ 
 
 end subroutine
 
