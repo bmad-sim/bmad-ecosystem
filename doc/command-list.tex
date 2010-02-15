@@ -1270,16 +1270,16 @@ To customize the output use the command \vn{show lattice -custom
   &custom_show_list
     column(1) = "#",                     "i6",     6 
     column(2) = "x",                     "x"       1       ! blank space
-    column(3) = "lat::#[name]",          "a",      0
-    column(4) = "lat::#[key]",           "a16",   16
-    column(5) = "lat::#[s]",             "f10.3", 10
-    column(6) = "lat::#[beta_a]",        "f7.2",   7
-    column(7) = "1e3 * lat::#[orbit_x]   "f8.3",   8, "Orbit_x| (mm)" 
+    column(3) = "ele::#[name]",          "a",      0
+    column(4) = "ele::#[key]",           "a16",   16
+    column(5) = "ele::#[s]",             "f10.3", 10
+    column(6) = "ele::#[beta_a]",        "f7.2",   7
+    column(7) = "1e3 * ele::#[orbit_x]   "f8.3",   8, "Orbit_x| (mm)" 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what
 is to be displayed in that column. Algebraic expressions are permitted
-(\sref{s:arithmetic}). Note: Use of \vn{lat::} and \vn{beam::}, etc
+(\sref{s:arithmetic}). Note: Use of \vn{ele::} and \vn{beam::}, etc
 sources is accepted but these constructs cannot be evaluated at the
 center of an element. That is the \vn{-middle} switch will have no
 effect on such constructs.
@@ -1291,11 +1291,11 @@ recognized:
 \begin{example}
   x                          ! Add spaces
   #                          ! Index number of element.
-  lat::#[name]                ! Name of element.
-  lat::#[key]                 ! Type of element (``quadrupole'', etc.)
-  lat::#[slave_status]        ! Slave type (``super_slave'', etc.)
-  lat::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
-  lat::#[type]                ! Element type string (see \bmad manual).
+  ele::#[name]                ! Name of element.
+  ele::#[key]                 ! Type of element (``quadrupole'', etc.)
+  ele::#[slave_status]        ! Slave type (``super_slave'', etc.)
+  ele::#[lord_status]         ! Slave type (``multipass_lord'', etc.)
+  ele::#[type]                ! Element type string (see \bmad manual).
 \end{example}
 If an attribute does not exist for a given element (for example,
 \vn{quadrupole}s do not have a \vn{voltage}), a series of dashes,
@@ -1323,7 +1323,7 @@ is the total width of the field. Notice that strings (like the element
 name) are left justified and numbers are right justified. In the case
 of a number followed by a string, there will be no white space in
 between. The use of an "x" column can solve this problem. A field
-width of 0, which can only be used for an \vn{lat::\#[name]} column,
+width of 0, which can only be used for an \vn{ele::\#[name]} column,
 indicates that the field width will be taken to be one greater then
 the maximum characters of any element name.
 

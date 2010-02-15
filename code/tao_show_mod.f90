@@ -1195,26 +1195,26 @@ case ('lattice')
     if (show_lords) then
       column(1)  = show_lat_column_struct('#',                   'i6',        6, '')
       column(2)  = show_lat_column_struct('x',                   'x',         2, '')
-      column(3)  = show_lat_column_struct('lat::#[name]',        'a',         0, '')
-      column(4)  = show_lat_column_struct('lat::#[key]',         'a16',      16, '')
-      column(5)  = show_lat_column_struct('lat::#[s]',           'f10.3',    10, '')
+      column(3)  = show_lat_column_struct('ele::#[name]',        'a',         0, '')
+      column(4)  = show_lat_column_struct('ele::#[key]',         'a16',      16, '')
+      column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',    10, '')
       column(6)  = show_lat_column_struct('x',                   'x',         2, '')
-      column(7)  = show_lat_column_struct("lat::#[lord_status]", 'a16',      16, '') 
+      column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '') 
     else
       column(1)  = show_lat_column_struct('#',                 'i6',        6, '')
       column(2)  = show_lat_column_struct('x',                 'x',         2, '')
-      column(3)  = show_lat_column_struct('lat::#[name]',      'a',         0, '')
-      column(4)  = show_lat_column_struct('lat::#[key]',       'a16',      16, '')
-      column(5)  = show_lat_column_struct('lat::#[s]',         'f10.3',    10, '')
-      column(6)  = show_lat_column_struct('lat::#[l]',         'f8.3',      8, '')
-      column(7)  = show_lat_column_struct('lat::#[beta_a]',    'f7.2',      7, 'beta|  a')
-      column(8)  = show_lat_column_struct('lat::#[phi_a]',     'f8.3',      8, '')
-      column(9)  = show_lat_column_struct('lat::#[eta_a]',     'f5.1',      5, '')
-      column(10) = show_lat_column_struct('lat::#[orbit_x]',   '3p, f8.3',  8, '')
-      column(11) = show_lat_column_struct('lat::#[beta_b]',    'f7.2',      7, '')
-      column(12) = show_lat_column_struct('lat::#[phi_b]',     'f8.3',      8, '')
-      column(13) = show_lat_column_struct('lat::#[eta_b]',     'f5.1',      5, '')
-      column(14) = show_lat_column_struct('lat::#[orbit_y]',   '3p, f8.3',  8, '')
+      column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '')
+      column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '')
+      column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '')
+      column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '')
+      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a')
+      column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '')
+      column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '')
+      column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '')
+      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '')
+      column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '')
+      column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '')
+      column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
     endif
   endif
 
@@ -1292,16 +1292,12 @@ case ('lattice')
     ix = index(column(i)%name, 'dat::')
     if (ix /= 0) column(i)%name = column(i)%name(1:ix-1) // 'lat' // column(i)%name(ix+3:)
 
-    ! Convert from old 'ele::' format to 'lat::' format.
-    ix = index(column(i)%name, 'ele::')
-    if (ix /= 0) column(i)%name = column(i)%name(1:ix-1) // 'lat' // column(i)%name(ix+3:)
-
     column(i)%format = '(' // trim(column(i)%format) // ')'
 
     if (column(i)%field_width == 0) then
-      if (column(i)%name /= 'lat::#[name]') then
+      if (column(i)%name /= 'ele::#[name]') then
         call out_io (s_error$, r_name, &
-            'FIELD_WIDTH = 0 CAN ONLY BE USED WITH "lat::#[name]" TYPE COLUMNS')
+            'FIELD_WIDTH = 0 CAN ONLY BE USED WITH "ele::#[name]" TYPE COLUMNS')
         return
       endif
       column(i)%field_width = 5
@@ -1315,7 +1311,7 @@ case ('lattice')
 
     if (column(i)%label == '') then
       name = column(i)%name
-      if (index(name, 'lat::') /= 0) then
+      if (index(name, 'ele::') /= 0) then
         i1 = index(name, '[')
         i2 = index(name, ']')
         name = name(i1+1:i2-1)
@@ -1385,19 +1381,19 @@ case ('lattice')
       if (name == '#') then
         write (line(nc:), column(i)%format, iostat = ios) ie
 
-      elseif (name == 'lat::#[name]') then
+      elseif (name == 'ele::#[name]') then
         write (line(nc:), column(i)%format, iostat = ios) ele%name
 
-      elseif (name == 'lat::#[key]') then
+      elseif (name == 'ele::#[key]') then
         write (line(nc:), column(i)%format, iostat = ios) key_name(ele%key)
 
-      elseif (name == 'lat::#[slave_status]') then
+      elseif (name == 'ele::#[slave_status]') then
         write (line(nc:), column(i)%format, iostat = ios) control_name(ele%slave_status)
 
-      elseif (name == 'lat::#[lord_status]') then
+      elseif (name == 'ele::#[lord_status]') then
         write (line(nc:), column(i)%format, iostat = ios) control_name(ele%lord_status)
 
-      elseif (name == 'lat::#[type]') then
+      elseif (name == 'ele::#[type]') then
         if (ele%type == '') then
           write (line(nc:), column(i)%format, iostat = ios) replacement_for_blank
         else
@@ -1410,7 +1406,7 @@ case ('lattice')
       else
         write (nam, '(i0, a, i0)') ix_branch, '>>', ie
         call str_substitute (name, '#', trim(nam))
-        ix = index(name, 'lat::')
+        ix = index(name, 'ele::')
         if (.not. at_ends .and. ix /= 0) then
           name = name(:ix+2) // '_mid' // trim(name(ix+3:))
         endif

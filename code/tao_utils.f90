@@ -639,9 +639,9 @@ end subroutine tao_var_useit_plot_calc
 ! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, default_source)
 !
 ! Routine to evaluate a lattice element parameter of the form 
-!     <universe>@lat::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! or to evaluate at the middle of the element
-!     <universe>@lat_mid::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
+!     <universe>@ele_mid::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
 ! Note: size(values) can be zero without an error
 ! 
 ! Input:
@@ -686,11 +686,11 @@ if (err) return
 
 err = .true.
 
-if (name(1:5) == 'lat::') then
-  name = name(6:)  ! Strip off 'lat::'
+if (name(1:5) == 'ele::') then
+  name = name(6:)  ! Strip off 'ele::'
   middle = .false.
-elseif (name(1:9) == 'lat_mid::') then   
-  name = name(10:)  ! Strip off 'lat_mid::'
+elseif (name(1:9) == 'ele_mid::') then   
+  name = name(10:)  ! Strip off 'ele_mid::'
   middle = .true.
 elseif (default_source /= 'element') then
   return

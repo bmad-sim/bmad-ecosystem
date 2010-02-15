@@ -437,8 +437,8 @@ For lattice and beam parameters the format is
 \end{example}
 And for element parameters the format is
 \begin{example}
-  \{<universe_range>@\}lat::<element_id>[<param_name>]\{|<component>\}
-  \{<universe_range>@\}lat_mid::<element_id>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}ele::<element_id>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}ele_mid::<element_id>[<param_name>]\{|<component>\}
 \end{example}
 \vn{lat::} will evaluate the parameter at the exit end of the element and 
 \vn{lat_mid::} will evalute the parameter at the middle of the element.
@@ -471,6 +471,8 @@ The \vn{<source>} field may be one of:
 \begin{example}
   beam        value is from beam tracking.
   dat         Value is from a \tao datum in a data array (\sref{s:data.org}).
+  ele         Value at exit end of element.
+  ele_mid     Value at middle of element.
   lat         Value is from the lattice.
   var         Value is from a \tao variable (\sref{s:var}).
 \end{example}
