@@ -993,7 +993,7 @@ case ('rad_int.')
   select case (datum%data_type)
   case ('rad_int.i3')
     if (data_source == 'beam') return
-    datum_value = tao_lat%modes%a%synch_int(3)
+    datum_value = tao_lat%modes%synch_int(3)
     valid_value = .true.
 
   case ('rad_int.i3_e7')
