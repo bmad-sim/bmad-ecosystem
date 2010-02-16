@@ -76,8 +76,8 @@ sr3d_params = synrad3d_params
 
 n_wall_pt_max = -1
 wall_pt%type = ''
-wall_pt%antechamber_height2_plus = -1
-wall_pt%antechamber_height2_minus = -1
+wall_pt%ante_height2_plus = -1
+wall_pt%ante_height2_minus = -1
 wall_pt%width2_plus = -1
 wall_pt%width2_minus = -1
 
@@ -111,6 +111,8 @@ allocate (wall%pt(0:n_wall_pt_max))
 wall%pt = wall_pt(0:n_wall_pt_max)
 wall%n_pt_max = n_wall_pt_max
 wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
+
+call sr3d_check_wall (wall)
 
 call ran_seed_put (random_seed)
 
@@ -149,8 +151,8 @@ open (1, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
 
 if (sr3d_params%stop_if_hit_antechamber .and. &
-    (any(wall_pt%antechamber_height2_plus > 0) .or. &
-     any(wall_pt%antechamber_height2_minus > 0))) then
+    (any(wall_pt%ante_height2_plus > 0) .or. &
+     any(wall_pt%ante_height2_minus > 0))) then
   dat2_file = trim(dat_file) // '.antechamber'
   open (2, file = dat2_file)
   print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)

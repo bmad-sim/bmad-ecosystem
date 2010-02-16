@@ -12,6 +12,158 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine sr3d_check_wall (wall)
+!
+! Routine to check the vacuum chamber wall for problematic values.
+!
+! Input:
+!   wall -- wall3d_struct: wall structure.
+!-
+
+subroutine sr3d_check_wall (wall)
+
+implicit none
+
+type (wall3d_struct), target :: wall
+type (wall3d_pt_struct), pointer :: pt
+
+integer i
+
+character(20) :: r_name = 'sr3d_check_wall'
+
+!
+
+do i = 0, wall%n_pt_max
+  pt => wall%pt(i)
+
+  if (i > 0) then
+    if (pt%s <= wall%pt(i-1)%s) then
+      call out_io (s_fatal$, r_name, &
+                'WALL%PT(i)%S: \es12.2\ ', &
+                '    IS LESS THAN PT(i-1)%S: \es12.2\ ', &
+                '    FOR PT(I) INDEX: \i0\ ', &
+                r_array = [pt%s, wall%pt(i-1)%s], i_array = [i])
+      call err_exit
+    endif
+  endif
+
+  if (pt%type /= 'elliptical' .and. pt%type /= 'rectangular') then
+    call out_io (s_fatal$, r_name, &
+              'BAD WALL%PT(i)%TYPE: ' // pt%type, &
+              '    FOR PT(I) INDEX: \i0\ ', i_array = [i])
+    call err_exit
+  endif
+
+  if (pt%width2 <= 0) then
+    call out_io (s_fatal$, r_name, &
+              'BAD WALL%PT(i)%WIDTH2: \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', r_array = [pt%width2], i_array = [i])
+    call err_exit
+  endif
+
+  if (pt%width2 <= 0) then
+    call out_io (s_fatal$, r_name, &
+              'BAD WALL%PT(i)%HEIGHT2: \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', r_array = [pt%height2], i_array = [i])
+    call err_exit
+  endif
+
+  ! +x side check
+
+  if (pt%ante_height2_plus > 0) then
+    if (pt%width2_plus <= pt%width2) then
+      call out_io (s_fatal$, r_name, &
+              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
+              '    MUST BE GREATER THEN WIDTH2 \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', &
+              r_array = [pt%width2_plus, pt%width2], i_array = [i])
+      call err_exit
+    endif
+
+  elseif (pt%width2_plus > 0) then
+    if (pt%width2_plus > pt%width2) then
+      call out_io (s_fatal$, r_name, &
+              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
+              '    MUST BE LESS THEN WIDTH2 \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', &
+              r_array = [pt%width2_plus, pt%width2], i_array = [i])
+      call err_exit
+    endif
+  endif
+
+  ! -x side check
+
+  if (pt%ante_height2_minus > 0) then
+    if (pt%width2_minus <= pt%width2) then
+      call out_io (s_fatal$, r_name, &
+              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
+              '    MUST BE GREATER THEN WIDTH2 \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', &
+              r_array = [pt%width2_minus, pt%width2], i_array = [i])
+
+      call err_exit
+    endif
+
+  elseif (pt%width2_minus > 0) then
+    if (pt%width2_minus > pt%width2) then
+      call out_io (s_fatal$, r_name, &
+              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
+              '    MUST BE LESS THEN WIDTH2 \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', &
+              r_array = [pt%width2_minus, pt%width2], i_array = [i])
+      call err_exit
+    endif
+  endif
+
+enddo
+
+! computations
+
+do i = 0, wall%n_pt_max
+  pt => wall%pt(i)
+
+  ! +x side computation
+
+  if (pt%ante_height2_plus > 0) then
+    if (pt%type == 'elliptical') then
+      pt%ante_x0_plus = pt%width2 * sqrt (1 - (pt%ante_height2_plus / pt%height2)**2)
+    else
+      pt%ante_x0_plus = pt%width2
+    endif
+
+  elseif (pt%width2_plus > 0) then
+    if (pt%type == 'elliptical') then
+      pt%y0_plus = pt%height2 * sqrt (1 - (pt%width2_plus / pt%width2)**2)
+    else
+      pt%y0_plus = pt%height2
+    endif
+  endif
+
+  ! -x side computation
+
+  if (pt%ante_height2_minus > 0) then
+    if (pt%type == 'elliptical') then
+      pt%ante_x0_minus = pt%width2 * sqrt (1 - (pt%ante_height2_minus / pt%height2)**2)
+    else
+      pt%ante_x0_minus = pt%width2
+    endif
+
+  elseif (pt%width2_minus > 0) then
+    if (pt%type == 'elliptical') then
+      pt%y0_minus = pt%height2 * sqrt (1 - (pt%width2_minus / pt%width2)**2)
+    else
+      pt%y0_minus = pt%height2
+    endif
+  endif
+
+enddo
+
+end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
 !
 ! Routine to get the parameters at a photon emission point.
@@ -227,17 +379,16 @@ end subroutine
 !   hit_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine Sr3d_photon_radius (p_orb, wall, radius, dw_perp, hit_antechamber)
+Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, hit_antechamber)
 
 implicit none
 
 type (wall3d_struct), target :: wall
-type (wall3d_pt_struct), pointer :: wall0, wall1
 type (photon3d_coord_struct), target :: p_orb
 
 real(rp), optional :: dw_perp(:)
-real(rp) r0, r1, f, radius
-real(rp) dw_x0, dw_y0, dw_z0, dw_x1, dw_y1, dw_z1, dw_x, dw_y, dw_z, denom
+real(rp) g0, g1, f, radius
+real(rp) dw_x0, dw_y0, dw_x1, dw_y1
 real(rp), pointer :: vec(:)
 
 integer ix
@@ -245,9 +396,20 @@ integer ix
 logical, optional :: hit_antechamber
 logical hit0, hit1
 
-!
+! There is a sigularity in the calculation when the photon is at the origin.
+! To avoid this, just return radius = 0 for small radii.
 
 vec => p_orb%vec
+
+if (abs(vec(1)) < 1e-6 .and. abs(vec(3)) < 1e-6) then
+  radius = 0
+  if (present (dw_perp)) dw_perp = 0
+  if (present(hit_antechamber)) hit_antechamber = .false.
+  return
+endif
+
+!
+
 call bracket_index (wall%pt%s, 0, wall%n_pt_max, vec(5), ix)
 p_orb%ix_wall = ix
 
@@ -264,18 +426,17 @@ endif
 
 !
 
-call sr3d_wall_pt_params (wall%pt(ix),   vec, r0, dw_x0, dw_y0, dw_z0, hit0)
-call sr3d_wall_pt_params (wall%pt(ix+1), vec, r1, dw_x1, dw_y1, dw_z1, hit1)
+call sr3d_wall_pt_params (wall%pt(ix),   vec, g0, dw_x0, dw_y0, hit0)
+call sr3d_wall_pt_params (wall%pt(ix+1), vec, g1, dw_x1, dw_y1, hit1)
 
 f = (vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
-radius = (1 - f) * r0 + f * r1
+radius = 1 / ((1 - f) * g0 + f * g1)
 
 if (present (dw_perp)) then
-  dw_x = (1 - f) * dw_x0 + f * dw_x1
-  dw_y = (1 - f) * dw_y0 + f * dw_y1
-  dw_z = (dw_z1 - dw_z0) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
-  denom = sqrt(dw_x**2 + dw_y**2 + dw_z**2)
-  dw_perp = [dw_x, dw_y, dw_z] / denom
+  dw_perp(1) = (1 - f) * dw_x0 + f * dw_x1
+  dw_perp(2) = (1 - f) * dw_y0 + f * dw_y1
+  dw_perp(3) = (g0 - g1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+  dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
 endif
 
 if (present(hit_antechamber)) hit_antechamber = (hit0 .or. hit1)
@@ -286,7 +447,7 @@ end subroutine sr3d_photon_radius
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z, hit)
+! Subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, hit)
 !
 ! Routine to compute parameters needed by sr3d_photon_radius routine.
 !
@@ -295,47 +456,95 @@ end subroutine sr3d_photon_radius
 !   vec(6)  -- Real(rp): Photon phase space coords. 
 !
 ! Output:
-!   r                  -- Real(rp): Radius of 
-!   [dw_x, dw_y, dw_z]
+!   g             -- Real(rp): Radius of the wall / radius of the photon.
+!   [dw_x, dw_y]  -- Real(rp): Transverse directional derivatives.
 !-
 
-subroutine sr3d_wall_pt_params (wall_pt, vec, r, dw_x, dw_y, dw_z, hit)
+subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, hit)
 
 implicit none
 
-type (wall3d_pt_struct) wall_pt
-real(rp) r, dw_x, dw_y, dw_z, vec(6)
+type (wall3d_pt_struct) wall_pt, pt
+real(rp) g, dw_x, dw_y, vec(6), r_p, r_w
 logical hit
 
-!
+! Check for antechamber or beam stop...
+! If the line extending from the origin through the photon intersects the
+! antechamber or beam stop then pretend the chamber is rectangular with the 
+! antechamber or beam stop dimensions.
 
-if (wall_pt%type == 'rectangular') then
-  if (abs(vec(1)/wall_pt%width2) > abs(vec(3)/wall_pt%height2)) then
-    dw_x = sign(1.0_rp, vec(1)) / wall_pt%width2
-    dw_y = 0
-    dw_z = abs(vec(1)/wall_pt%width2)
-    r = dw_z
-  else
-    dw_x = 0
-    dw_y = sign(1.0_rp, vec(3)) / wall_pt%height2
-    dw_z = abs(vec(3)/wall_pt%height2)
-    r = dw_z
+! Positive x side check.
+
+hit = .false.
+
+pt = wall_pt
+
+if (vec(1) > 0) then
+
+  ! If there is an antechamber...
+  if (pt%ante_height2_plus > 0) then
+
+    if (abs(vec(3)/vec(1)) < pt%ante_height2_plus/pt%ante_x0_plus) then  
+      pt%type = 'rectangular'
+      pt%width2 = pt%width2_plus
+      pt%height2 = pt%ante_height2_plus
+      if (vec(1) >= pt%ante_x0_plus) hit = .true.
+    endif
+
+  ! If there is a beam stop...
+  elseif (pt%width2_plus > 0) then
+    if (abs(vec(3)/vec(1)) < pt%y0_plus/pt%width2_plus) then 
+      pt%type = 'rectangular'
+      pt%width2 = pt%width2_plus
+    endif
+
   endif
 
-elseif (wall_pt%type == 'elliptical') then
-  dw_z = sqrt((vec(1)/wall_pt%width2)**2 + (vec(3)/wall_pt%height2)**2)
-  r = dw_z
-  if (dw_z == 0) then
-    dw_x = 0
-    dw_y = 0
-  else
-    dw_x = vec(1) / wall_pt%width2**2 / dw_z
-    dw_y = vec(3) / wall_pt%height2**2 / dw_z
+! Negative x side check
+
+elseif (vec(1) < 0) then
+
+  ! If there is an antechamber...
+  if (pt%ante_height2_minus > 0) then
+
+    if (abs(vec(3)/vec(1)) < pt%ante_height2_minus/pt%ante_x0_minus) then  
+      pt%type = 'rectangular'
+      pt%width2 = pt%width2_minus
+      pt%height2 = pt%ante_height2_minus
+      if (vec(1) >= pt%ante_x0_minus) hit = .true.
+    endif
+
+  ! If there is a beam stop...
+  elseif (pt%width2_minus > 0) then
+    if (abs(vec(3) / vec(1)) < pt%y0_minus/pt%width2_minus) then 
+      pt%type = 'rectangular'
+      pt%width2 = pt%width2_minus
+    endif
+
   endif
 
-else
-  print *, 'BAD WALL_PT%TYPE: ' // wall_pt%type
-  call err_exit
+endif
+
+! Compute parameters
+
+if (pt%type == 'rectangular') then
+  if (abs(vec(1)/pt%width2) > abs(vec(3)/pt%height2)) then
+    g = pt%width2 / abs(vec(1)) 
+    dw_x = g / vec(1)
+    dw_y = 0
+  else
+    g = pt%height2 / abs(vec(3))
+    dw_x = 0
+    dw_y = g / vec(3)
+  endif
+
+elseif (pt%type == 'elliptical') then
+  r_p = vec(1)**2 + vec(3)**2
+  r_w = sqrt((pt%width2 * vec(1))**2 + (pt%height2 * vec(3))**2)
+  g = r_w / r_p
+  dw_x = 2 * vec(1) * g / r_p - pt%width2**2 * vec(1) / (r_p * r_w)
+  dw_y = 2 * vec(3) * g / r_p - pt%height2**2 * vec(3) / (r_p * r_w)
+
 endif
 
 end subroutine
