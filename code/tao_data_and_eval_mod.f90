@@ -527,12 +527,22 @@ n_max   = branch%n_ele_max
 datum_value = 0           ! default
 datum%ix_ele_merit = -1   ! default
 
-if (data_type(1:11) == 'expression:')    data_type = 'expression:'
-if (data_type(1:2)  == 'r.')             data_type = 'r.'
-if (data_type(1:2)  == 't.')             data_type = 't.'
-if (data_type(1:3)  == 'tt.')            data_type = 'tt.'
-if (data_type(1:5)  == 'wire.')          data_type = 'wire.'
-if (data_type(1:12) == 'periodic.tt.')   data_type = 'periodic.tt.'
+if (data_type(1:11) == 'expression:') then;      data_type = 'expression:'
+elseif (data_type(1:2)  == 'r.') then;           data_type = 'r.'
+elseif (data_type(1:2)  == 't.') then;           data_type = 't.'
+elseif (data_type(1:3)  == 'tt.') then;          data_type = 'tt.'
+elseif (data_type(1:5)  == 'wire.') then;        data_type = 'wire.'
+elseif (data_type(1:12) == 'periodic.tt.') then; data_type = 'periodic.tt.'
+
+elseif (data_type(1:8)  == 'rad_int.') then
+  data_type = 'rad_int.'
+  if (index(data_type, '_e') /= 0 .and. (ix_ref > 0 .or. ix_ele > 0)) then
+    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
+      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
+      return
+    endif
+  endif
+endif
 
 if (data_source /= 'lat' .and. data_source /= 'beam') then
   call out_io (s_error$, r_name, &
@@ -976,45 +986,61 @@ case ('gamma.z')
   if (data_source == 'lat') return
   call tao_load_this_datum (bunch_params(:)%z%gamma, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
-case ('rad_int.i5a')
-  if (data_source == 'beam') return
-  datum_value = tao_lat%modes%a%synch_int(5)
-  valid_value = .true.
+!-----------
 
-case ('rad_int.i5a_e6')
-  if (data_source == 'beam') return
-  if (ix_ref > 0 .or. ix_ele > 0) then
-    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
-      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-      return
+case ('rad_int.')
+
+  select case (datum%data_type)
+  case ('rad_int.i3')
+    if (data_source == 'beam') return
+    datum_value = tao_lat%modes%a%synch_int(3)
+    valid_value = .true.
+
+  case ('rad_int.i3_e7')
+    if (data_source == 'beam') return
+    if (ix_ref > 0 .or. ix_ele > 0) then
+      ix_ref = max(1, ix_ref)
+      if (ix_ele < 1) ix_ele = branch%n_ele_track
+      datum_value = sum(tao_lat%rad_int%lin_i3_e7(ix_ref:ix_ele))
+    else
+      datum_value = tao_lat%modes%lin%i3_e7
     endif
-    ix_ref = max(1, ix_ref)
-    if (ix_ele < 1) ix_ele = branch%n_ele_track
-    datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix_ref:ix_ele))
-  else
-    datum_value = tao_lat%modes%lin%i5a_e6
-  endif
-  valid_value = .true.
+    valid_value = .true.
 
-case ('rad_int.i5b')
-  if (data_source == 'beam') return
-  datum_value = tao_lat%modes%b%synch_int(5)
-  valid_value = .true.
+  case ('rad_int.i5a')
+    if (data_source == 'beam') return
+    datum_value = tao_lat%modes%a%synch_int(5)
+    valid_value = .true.
 
-case ('rad_int.i5b_e6')
-  if (data_source == 'beam') return
-  if (ix_ref > 0 .or. ix_ele > 0) then
-    if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) then
-      call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
-      return
+  case ('rad_int.i5a_e6')
+    if (data_source == 'beam') return
+    if (ix_ref > 0 .or. ix_ele > 0) then
+      ix_ref = max(1, ix_ref)
+      if (ix_ele < 1) ix_ele = branch%n_ele_track
+      datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix_ref:ix_ele))
+    else
+      datum_value = tao_lat%modes%lin%i5a_e6
     endif
-    ix_ref = max(1, ix_ref)
-    if (ix_ele < 1) ix_ele = branch%n_ele_track
-    datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix_ref:ix_ele))
-  else
-    datum_value = tao_lat%modes%lin%i5b_e6
-  endif
-  valid_value = .true.
+    valid_value = .true.
+
+  case ('rad_int.i5b')
+    if (data_source == 'beam') return
+    datum_value = tao_lat%modes%b%synch_int(5)
+    valid_value = .true.
+
+  case ('rad_int.i5b_e6')
+    if (data_source == 'beam') return
+    if (ix_ref > 0 .or. ix_ele > 0) then
+      ix_ref = max(1, ix_ref)
+      if (ix_ele < 1) ix_ele = branch%n_ele_track
+      datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix_ref:ix_ele))
+    else
+      datum_value = tao_lat%modes%lin%i5b_e6
+    endif
+    valid_value = .true.
+  end select
+
+!-----------
 
 case ('k.11b')
   if (data_source == 'beam') return
