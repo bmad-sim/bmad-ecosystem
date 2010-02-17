@@ -87,6 +87,7 @@ contains
 !   n_loc   -- Integer: Number of locations found.
 !                Set to zero if no elements are found.
 !   err     -- Logical: Set True if there is a decode error.
+!                Note: not finding any element is not an error.
 !-
 
 subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err)

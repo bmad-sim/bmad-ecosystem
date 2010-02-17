@@ -486,9 +486,9 @@ of the matrix is $\beta_1 \, \gamma_1 / \beta_2 \, \gamma_2$.
 The change in $z$ going through a cavity is calculated by first calculating the particle
 transit time $\Delta t$
 \begin{align}
-  \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \beta(s) \CRNO
+  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} \CRNO
   &= \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \\
-  &= \frac{P_{z2} - P_{z1}}{G} \nonumber
+  &= \frac{c \, P_{z2} - c \, P_{z1}}{G} \nonumber
 \end{align}
 where it has been assumed that the accelerating gradient $G$ is
 constant through the cavity. In this equation $\beta = v / c$, $E$ is
@@ -1841,7 +1841,13 @@ any damping is
   \Begineq
     \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
   \Endeq
-and, again neglecting any initial beam width, the transverse beam size
+The above equation is appropriate for a linac. In a storage ring where
+there are energy oscillations, the growth of $\sigma_E^2$ due to
+quantum excitation is half that. One way to explain this is that in a
+storage ring the longitudinal motion is ``shared'' between the $z$ and
+$pz$ coordinates.
+
+Again neglecting any initial beam width, the transverse beam size
 at the end of the lattice is
   \Begineqs
     \epsilon_a \AND= \frac{2}{3} \, C_q \, r_e \, 

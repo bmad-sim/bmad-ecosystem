@@ -96,7 +96,7 @@ ierr = xsif_io_setup (xsif_file, 'xsif.err', 'xsif.out', xsif_unit, &
              err_unit, std_out_unit, internal_unit,  echo_output, .false.)
 
 if (ierr /= 0) then
-  call xsif_error ('FILE OPEN FAILED FOR OUTPUT FILE.')
+  call xsif_error ('CANNOT OPEN LATTICE FILE.')
   return
 endif
 

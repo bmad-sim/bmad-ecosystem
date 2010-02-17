@@ -1,7 +1,10 @@
 !+
 ! Subroutine calc_z_tune (lat)
 !
-! Subroutine to calculate the synchrotron tune from the full 6X6 1-turn matrix
+! Routine to calculate the synchrotron tune from the full 6X6 1-turn matrix.
+!
+! Note: The tune will be negative above transition which corresponds to
+! counter-clockwise rotation in z-pz space.
 !
 ! Modules Needed:
 !   use bmad
@@ -14,8 +17,6 @@
 !     %z%tune            -- Synchrotron tune (radians)
 !     %param%t1_with_RF  -- 6x6 1-turn matrix.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine calc_z_tune ( lat)
 

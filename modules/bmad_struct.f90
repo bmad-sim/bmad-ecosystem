@@ -146,9 +146,13 @@ type xy_disp_struct
 end type
 
 ! Structure to be used for an array of pointers to elements.
+! The id component is not set by any Bmad routines and can be used by 
+! programs that handle multiple lattices to indicate which lattice 
+! the element pointer is pointing to.
 
 type ele_pointer_struct
   type (ele_struct), pointer :: ele => null()
+  integer id          
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.
