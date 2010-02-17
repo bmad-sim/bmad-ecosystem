@@ -63,7 +63,8 @@ setenv CESR_GMAKE   $CESR_REL/Gmake
 setenv CESR_LIB     $CESR_REL/lib
 setenv CESR_MOD     $CESR_REL/modules
 setenv CESR_RUN     $CESR_REL/run
-setenv CESR_UTIL    $CESR_REL/util
+#setenv CESR_UTIL    $CESR_REL/util
+setenv CESR_UTIL    /home/cesrulib/bin/util
 setenv CESR_INC     $CESR_SRC/include
 setenv CESR_PKG     $CESR_REL/packages
 
@@ -102,3 +103,20 @@ setenv BMAD_LAYOUT  $CESR_LAT/bmad
 #-- TOAD help file search path --
 #
 setenv TOAD_DIR     $CESR_SRC/toad
+
+
+#
+#-- TAO help file search path --
+#
+setenv TAO_DIR     $CESR_SRC/tao
+
+
+#
+#-- CESR_MNT variable used by cesrv, synradv, etc. on Linux
+#   Points NFS mount area shared by the Linux filesystem
+#   and the VMS cluster.
+#   Linux: /nfs/cesr/mnt
+#     is the same filesystem space as
+#   VMS:   CESR_MOUNT:[]
+#
+setenv CESR_MNT     /nfs/cesr/mnt
