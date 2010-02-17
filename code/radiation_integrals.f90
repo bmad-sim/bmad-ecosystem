@@ -123,7 +123,6 @@ type (rad_int_track_point_struct) pt
 integer, parameter :: num_int = 8
 
 real(rp) :: int_tot(num_int)
-real(rp), parameter :: c_gam = 4.425e-5, c_q = 3.84e-13
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, mc2, gamma, gamma4, gamma6
@@ -511,7 +510,7 @@ mode%lin%i3_E7  = 0
 mode%lin%i5a_E6 = 0
 mode%lin%i5b_E6 = 0
 
-factor = 2 * c_q * r_e / 3
+factor = 2 * const_q * r_e / 3
 
 do i = 0, lat%n_ele_track
   gamma = lat%ele(i)%value(E_TOT$) / mc2
@@ -547,7 +546,7 @@ i4z = i4a + i4b
 
 energy = lat%ele(0)%value(E_TOT$)
 gamma2_factor = (energy * 1956.95e-9)**2
-energy_loss = 1e9 * c_gam * (1e-9 * mc2)**4 * mode%lin%i2_E4 / pi
+energy_loss = const_gamma * (mc2)**4 * mode%lin%i2_E4 / twopi
 
 mode%synch_int(0) = int_tot(8)
 mode%synch_int(1) = i1
@@ -563,14 +562,14 @@ mode%b%synch_int(5) = i5b
 
 if (i2 /= 0) then
 
-  mode%a%emittance = c_q * gamma2_factor * i5a / (i2 - i4a)
-  mode%b%emittance = c_q * gamma2_factor * i5b / (i2 - i4b)
+  mode%a%emittance = const_q * gamma2_factor * i5a / (i2 - i4a)
+  mode%b%emittance = const_q * gamma2_factor * i5b / (i2 - i4b)
 
   mode%a%j_damp = 1 - i4a / i2
   mode%b%j_damp = 1 - i4b / i2
   mode%z%j_damp = 2 + i4z / i2
 
-  arg = (c_q * i3 * gamma2_factor / (2*i2 + i4z))
+  arg = (const_q * i3 * gamma2_factor / (2*i2 + i4z))
   mode%sigE_E = sqrt(max(0.0_rp, arg))
 
 endif
