@@ -214,7 +214,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   endif
 
   if (u%design%lat%param%lattice_type == circular_lattice$) then
-    call out_io (s_blank$, r_name, "RFCavities will be turned off in lattices")
+    call out_io (s_warn$, r_name, "Note: RFCavities will be turned off in lattices")
+    call calc_z_tune(u%design%lat)
     call set_on_off (rfcavity$, u%design%lat, off$)
   endif
 

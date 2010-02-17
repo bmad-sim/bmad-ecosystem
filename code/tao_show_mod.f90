@@ -1819,6 +1819,8 @@ case ('taylor_map')
 
 case ('tune')
 
+  nl=nl+1; lines(nl) = 'Use "show universe" instead.'
+
   result_id = show_what
 
 !----------------------------------------------------------------------
@@ -1965,6 +1967,11 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
   fmt = '(1x, a12, 1p2e11.3, 3x, a)'
+  if (lat%param%lattice_type == circular_lattice$) then
+    call calc_z_tune(u%model%lat)
+    nl=nl+1; write (lines(nl), '(1x, a12, 2f11.3, 3x, a)') 'Z_tune:', &
+             -u%model%lat%z%tune, -u%design%lat%z%tune, '! The design value is calculated with RF on'
+  endif
   nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
             u%design%modes%sigE_E
   nl=nl+1; write (lines(nl), fmt) 'Energy Loss:', u%model%modes%e_loss, &

@@ -44,19 +44,19 @@ character(200) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(33) = (/  &
+character(16) :: cmd_names(33) = [  &
     'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
     'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
     'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
     'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
     'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
     'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
-    'pause       ', 'continue    ', 'wave        ' /)
+    'pause       ', 'continue    ', 'wave        ']
 
-character(16) :: set_names(12) = (/ &
+character(16) :: set_names(13) = [ &
     'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
     'universe    ', 'curve       ', 'graph       ', 'beam_init   ', 'wave        ', &
-    'plot        ', 'bmad_com    ' /)
+    'plot        ', 'bmad_com    ', 'elements    ']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -498,7 +498,9 @@ case ('set')
   case ('plot ')
     call tao_set_plot_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('universe')    
-    call tao_set_uni_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
+    call tao_set_universe_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
+  case ('elements')    
+    call tao_set_elements_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
   case ('wave')
     call tao_set_wave_cmd (cmd_word(2), cmd_word(4) // ' ' // cmd_word(5), err)
     if (err) return

@@ -304,8 +304,7 @@ The \vn{help} command gives help on \tao commands. Format:
   help \{<command> \{<subcommand>\}\}
 \end{example}
 
-\vskip 0.2in The environmental variable \vn{TAO_DIR} must be defined
-so \tao can find any help files.
+\vskip 0.2in
 
 The \vn{help} command without any arguments gives a list of all commands.
 Some commands, like \vn{show}, are so large that help on these commands
@@ -318,6 +317,13 @@ Examples:
   help show       ! Help on the show command.
   help show alias ! Help on the show alias command.
 \end{example}
+
+Note: The \vn{help} command works by parsing the file
+\vn{\$TAO_DIR/doc/command-list.tex} which is the LaTex file for the
+Line Mode Commands chapter of the \tao manual. Thus, for the \vn{help}
+command to work properly, the environmental variable \vn{TAO_DIR} must
+be appropriately defined. Generally, \vn{TAO_DIR} will be defined if
+the \bmad library setup scripts have been run.
 
 %% history --------------------------------------------------------------
 \section{history}\index{Commands!history}
@@ -729,14 +735,15 @@ variables, etc. Format:
   set bmad_com <component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
+  set element <ele_names> <on/off>
   set global <component> = <value>
   set graph <graph> <component> = <value>
   set lattice \{n@\}<destination\_lat> = <source\_lat>
   set plot <plot> <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
-  set universe <what_universe> on/off 
+  set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
-  set universe <what_universe> mat6_recalc on/off
+  set universe <what_universe> mat6_recalc <on/off>
   set var <var_name>|<component> = <value>
   set wave <component> = <value>
 \end{example}
@@ -832,6 +839,17 @@ Examples:
   set data *|ref = *|meas       ! Set ref data = measured in current universe.
   set data 2@orbit.x|base = 2@orbit.x|model 
                                 ! Set the base orbit.x in universe 2 to model
+\end{example}
+
+%% set global --------------------------------------------------------------
+
+\item[set elements <ele_names> <on/off>] \Newline
+An element that is turned off acts like a drift. The syntax
+of \vn{<ele_names>} is the element list format (\sref{s:ele.list.format}).
+
+Example:
+\begin{example}
+  set ele *@rfcav::* off  ! Turns off all rfcavity elements in all universes.
 \end{example}
 
 %% set global --------------------------------------------------------------
@@ -935,10 +953,10 @@ Example:
 %% set universe --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-        set universe <what\_universe> on/off \\ 
+        set universe <what\_universe> <on/off> \\ 
         set universe <what\_universe> recalculate \\
-        set universe <what\_universe> mat6\_recalc on/off}] \Newline
-The \vn{set universe <what_universe> on/off} command will turn the
+        set universe <what\_universe> mat6\_recalc <on/off>}] \Newline
+The \vn{set universe <what_universe> <on/off>} command will turn the
 specified universe(s) on or off. Turning a universe off is useful to
 speed up lattice calculations when this universe is not being
 used. Or, if many changes are to be performed to a universe and there

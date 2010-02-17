@@ -327,12 +327,13 @@ The syntax for specifying a set of lattice elements is called
 \begin{center}
 \begin{tabular}{ll}
   {\it Item Type} & {\it Example} \\ \hline     
-  An element name.                                & \multirow{2}*{"q*"}  \\
-  {[Can include wildcard characters "*" or "\%"]} &                      \\
+  An element name.                                & "5@q*"               \\
   An element index.                               & "23", "2>>183"       \\
   A range of elements.                            & "b23w:67"            \\
   A class::name specification.                    & "sbend::b*"          \\
 \end{tabular}
+\break
+
 \end{center}
 Items in a list are separated by a blank character or a comma. Example:
 \begin{example}
@@ -342,17 +343,27 @@ Items in a list are separated by a blank character or a comma. Example:
 An element name item is the name of an element or elements. The
 wildcard characters ``*'' and/or ``\%'' can be used. The ``*''wildcard
 matches any number of characters, The ``\%'' wildcard matches a single
-character. Thus, for example, ``q\%1*'' matches any element whose name
-begins with ``q'' and whose third character is ``1''. 
-If there are multiple elements in the lattice that
-match a given name, all such elements are included. Thus ``d12'' will
-match to all elements of that name.
+character. For example, ``q\%1*'' matches any element whose name
+begins with ``q'' and whose third character is ``1''.  If there are
+multiple elements in the lattice that match a given name, all such
+elements are included. Thus ``d12'' will match to all elements of that
+name. Element names may be prefixed by the universe number followed by
+the ``\vn{\@}'' sign. If a universe is not specified, the current universe
+is used. Examples
+\begin{example}
+  "5@q*"       ! All elements whose name begins with "q" of universe 5.
+  "*@sex10w"   ! Element "sex10w" of all universes.
+  "b37"        ! Element "b37" of the current universe.
+  "0@b37"      ! Same as the previous example.
+\end{example}
+Note: element names are {\em not} case sensitive.
 
 An element index item is simply the index of the number in the lattice
 list of elements. A prefix followed by the string ">>" can be used to
-specify a branch. Example
+specify a branch. As with element names, a universe previx can be 
+given. Example
 \begin{example}
-  2>>183   ! Element number 183 of branch \# 2
+  2@2>>183   ! Element number 183 of branch \# 2 of universe 2.
 \end{example}
 
 A range of elements is specified using the format:
@@ -380,12 +391,11 @@ selects elements based upon their class (Eg: \vn{quadrupole},
 where \vn{<element class>} is an element class and \vn{<element
 name>} is the element name that can (and generally does) contain the wildcard characters
 ``\%'' and ``*''. Essentially this is an extension of the \vn{element name}
-format. Example:
+format. As with element names, a universe previx can be 
+given. Example:
 \begin{example}
-  "quad::q*"
+  "4@quad::q*"   ! All quadrupole whose name starts with "q" of universe 4.
 \end{example}
-will match to all quadrupole elements whose name starts with a
-\vn{``q''}.
 
 %------------------------------------------------------------------------
 \section{Arithmetic Expressions}
@@ -510,7 +520,18 @@ comes from evaluation of the lattice or beam tracking. The
 \vn{<param_name>} will be a datum type from Table~\ref{t:data.lattice}
 with a \vn{lat} source and Table~\ref{t:data.beam} for a \vn{beam}
 source. Element list format (\sref{s:ele.list.format}) is used for the
-\vn{element_list}. The optional \vn{<ref_element>} specifies a reference
+\vn{element_list}. In this case, a universe specification is not
+allowed as part of the element list. For example, the following is not
+allowed
+\begin{example}
+  lat::orbit.x[3@q10w]    ! Bad syntax
+\end{example}
+The correct syntax is
+\begin{example}
+  3@lat::orbit.x[q10w]    ! Good syntax
+\end{example}
+
+The optional \vn{<ref_element>} specifies a reference
 element for the evaluation. For example, ``\vn{lat::r.56[q0\&qa:qb]}'' is
 an array of the $r(5,6)$ matrix element of the transport map between
 element \vn{q0} and each element in the range from element \vn{qa} and 
@@ -530,13 +551,12 @@ index, in this case \vn{10}, refers to the 10th lattice element. With the
 the \vn{orbit.x} data array which may or may not correspond to the
 10\Th lattice element and which may not even refer to orbit data.
 
-When a term has a \vn{ele} source, the value of the term comes from an
-element parameter such as the element strength. 
+When a term has a \vn{ele} or \vn{ele_mid} source, the value of the
+term comes from an element parameter such as the element strength.
 Element list format (\sref{s:ele.list.format}) is used for the
-\vn{<element_id>} so an array of elements can be defined. 
-The optional \vn{<component>} indicates what lattice 
-is to be used and is the same as for terms with a \vn{lat} or \vn{beam} 
-source (see above).
+\vn{<element_id>} so an array of elements can be defined.  The
+optional \vn{<component>} indicates what lattice is to be used and is
+the same as for terms with a \vn{lat} or \vn{beam} source (see above).
 
 Generally, if the \vn{<source>} field is not present, for example, 
 ``\vn{orbit.x[10]}'', \tao will search 
