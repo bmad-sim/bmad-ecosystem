@@ -649,8 +649,8 @@ do  ! Loop over plot files
           call err_exit
         endif
 
-        if ((crv%data_type(1:5) == 'emit.' .or. &
-              crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lat') then
+        if ((crv%data_type(1:5) == 'emit.' .or. crv%data_type == 'sigma.pz' .or. &
+             crv%data_type(1:10) == 'norm_emit.') .and. crv%data_source == 'lat') then
           if (crv%ix_universe == -1) then
             s%u%do_synch_rad_int_calc = .true.
           else

@@ -1970,8 +1970,8 @@ case ('universe')
   fmt = '(1x, a12, 1p2e11.3, 3x, a)'
   if (lat%param%lattice_type == circular_lattice$) then
     call calc_z_tune(u%model%lat)
-    nl=nl+1; write (lines(nl), '(1x, a12, 2f11.3, 3x, a)') 'Z_tune:', &
-             -u%model%lat%z%tune, -u%design%lat%z%tune, '! The design value is calculated with RF on'
+    nl=nl+1; write (lines(nl), '(1x, a12, 2f11.4, 3x, a)') 'Z_tune:', &
+         -u%model%lat%z%tune/twopi, -u%design%lat%z%tune/twopi, '! The design value is calculated with RF on'
   endif
   nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
             u%design%modes%sigE_E

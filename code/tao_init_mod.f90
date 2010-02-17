@@ -524,7 +524,7 @@ character(40) :: r_name = 'tao_init_data'
 character(200) file_name
 character(40) name,  universe, default_universe, d_typ
 character(40) default_merit_type, default_attribute, data_type, default_data_source
-character(40) use_same_lat_eles_as
+character(40) use_same_lat_eles_as, source
 character(100) line, default_data_type, search_for_lat_eles
 
 logical err, free, gang
@@ -966,9 +966,11 @@ do j = n1, n2
   if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
                                          'emit.' // u%data(j)%data_type(ix+10:)
   data_type = u%data(j)%data_type
+  source = u%data(j)%data_source
   emit_here = (index(data_type, 'emit.') /= 0)
-  if (emit_here .and. u%data(j)%data_source == 'lat') u%do_synch_rad_int_calc = .true. 
+  if (emit_here .and. source == 'lat') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:8) == 'rad_int.') u%do_synch_rad_int_calc = .true. 
+  if (data_type == 'sigma.pz' .and. source == 'lat') u%do_synch_rad_int_calc = .true. 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
   if (data_type == 'unstable_orbit' .or. &

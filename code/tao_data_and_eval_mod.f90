@@ -1582,7 +1582,13 @@ case ('sigma.')
     valid_value = .true.
     
   case ('sigma.pz')  
-    if (data_source == 'lat') return
+    if (data_source == 'lat') then
+      if (lat%param%lattice_type == circular_lattice$) return
+      if (ix_start == -1) ix_start = 0
+      if (ix_ele == -1) ix_ele = branch%n_ele_track
+      datum_value = sqrt(4 * const_q * r_e * sum(tao_lat%rad_int%lin_i3_e7(ix_start+1:ix_ele)) / 3)
+      valid_value = .true.
+    endif
     call tao_load_this_datum (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
     valid_value = .true.
