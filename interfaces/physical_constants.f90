@@ -24,6 +24,11 @@ real(rp), parameter :: h_bar_planck = 6.58211899d-16  ! eV*sec h_planck/twopi
 real(rp), parameter :: mu_0_vac = fourpi * 1e-7                ! Permeability of free space
 real(rp), parameter :: eps_0_vac = 1 / (c_light**2 * mu_0_vac) ! Permittivity of free space
 
+! Radiation constants
+
+real(rp), parameter :: const_q     = 3.83194d-13  ! meter   55 h_bar / (32 sqrt(3) mc) Sands Eq 5.46 pg 124.
+real(rp), parameter :: const_gamma = 8.84629d-32  ! m/ev^3  4pi r_e / (3 (mc^2)^3)     Sands Eq 4.2  pg  98.
+
 ! Anomalous gyro-magnetic moment
 
 real(rp), parameter :: g_factor_electron = 0.001159652193
