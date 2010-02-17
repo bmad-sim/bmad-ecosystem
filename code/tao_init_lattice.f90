@@ -213,7 +213,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
    read (tao_com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
   endif
 
-  if (u%design%lat%param%lattice_type == circular_lattice$) then
+  if (u%design%lat%param%lattice_type == circular_lattice$ .and. s%global%init_lats_with_rf_off) then
     call out_io (s_warn$, r_name, "Note: RFCavities will be turned off in lattices")
     call calc_z_tune(u%design%lat)
     call set_on_off (rfcavity$, u%design%lat, off$)

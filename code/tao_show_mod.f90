@@ -937,7 +937,8 @@ case ('global')
   nl=nl+1; write (lines(nl), lmt) '  %plot_on                    = ', s%global%plot_on
   nl=nl+1; write (lines(nl), lmt) '  %lattice_calc_on            = ', s%global%lattice_calc_on
   nl=nl+1; write (lines(nl), lmt) '  %command_file_print_on      = ', s%global%command_file_print_on
-  nl=nl+1; write(lines(nl), lmt)  '  %beam_timer_on              = ', s%global%beam_timer_on
+  nl=nl+1; write (lines(nl), lmt) '  %beam_timer_on              = ', s%global%beam_timer_on
+  nl=nl+1; write (lines(nl), lmt) '  %init_lats_with_rf_off      = ', s%global%init_lats_with_rf_off
   nl=nl+1; write (lines(nl), amt) '  %prompt_string              = ', s%global%prompt_string
   nl=nl+1; write (lines(nl), amt) '  %print_command              = ', s%global%print_command
   nl=nl+1; write (lines(nl), amt) '  %random_engine              = ', s%global%random_engine

@@ -367,6 +367,7 @@ type tao_global_struct
   logical beam_timer_on = F             ! For timing the beam tracking calculation.
   logical optimizer_var_limit_warn = T  ! Warn when variables reach a limit when
                                         !   optimizing.
+  logical init_lats_with_rf_off = T     ! Initalize lattices with the RF off?
 end type
 \end{example}
 
@@ -410,8 +411,12 @@ setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of
 the calculational overhead that each command generates. Similarly,
 \vn{global%plot_on} can be toggled to save even more time.
 
-The \vn{global%command_file_print_on} switch controlls whether printing
+The \vn{global%command_file_print_on} switch controlles whether printing
 is suppressed when a command file is called.
+
+The rf cavities in circular lattices can be automatically be turned
+off when \tao is initialized. The behavior is set by the
+\vn{global%init_lats_with_rf_off} switch. The default is True.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
 \index{radiation_damping_on}

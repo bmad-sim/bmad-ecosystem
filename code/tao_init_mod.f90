@@ -22,33 +22,25 @@ contains
 
 subroutine tao_init_global (init_file)
 
-use tao_lattice_calc_mod
-use tao_input_struct
-use bmad_parser_mod
+!use tao_lattice_calc_mod
+!use bmad_parser_mod
 use random_mod
 use csr_mod, only: csr_param
-use spin_mod
   
 implicit none
 
-type (tao_universe_struct), pointer :: u
 type (tao_global_struct), save :: global, default_global
-type (beam_init_struct) beam_init
-type (tao_connected_uni_input) connect
-type (spin_polar_struct) spin
 
-integer ios, iu, i, j, k, ib, ix, n_uni, num
-integer n_data_max, n_var_max, ix_track_start, ix_track_end
+integer ios, iu, i, j, k, ix, num
+integer n_data_max, n_var_max
 integer n_d2_data_max, n_v1_var_max ! Deprecated variables
-integer n, iostat, ix_universe, to_universe
+integer n, iostat
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_global'
-character(200) file_name, beam0_file, beam_all_file
-character(40) name,  universe
+character(200) file_name
+character(40) name, universe
 
-character(60), target :: save_beam_at(100)   ! old style syntax
-character(100) beam_saved_at
 character(100) line
 
 logical err
@@ -57,15 +49,7 @@ logical, save :: init_needed = .true.
 namelist / tao_params / global, bmad_com, csr_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
-namelist / tao_connected_uni_init / to_universe, connect
-  
-namelist / tao_beam_init / ix_universe, beam0_file, &
-  ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
-  beam_saved_at
-         
 !-----------------------------------------------------------------------
-! Init lattaces
-
 ! First time through capture the default global (could have been set via command line arg.)
 
 if (init_needed) then
@@ -124,6 +108,57 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
+
+end subroutine tao_init_global
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_init_beams_and_uni_connections (init_file)
+!
+! Subroutine to initialize beam stuff and universe connections for
+! continuing tracking from one universe to another.
+!
+! If init_file is not in the current directory then it 
+! will be searched for in the directory:
+!   TAO_INIT_DIR
+!
+! Input:
+!   init_file  -- Character(*): Tao initialization file.
+!                  If blank, there is no file so just use the defaults.
+!-
+
+subroutine tao_init_beams_and_uni_connections (init_file)
+
+use spin_mod
+use tao_input_struct
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+type (beam_init_struct) beam_init
+type (tao_connected_uni_input) connect
+type (spin_polar_struct) spin
+
+integer i, k, iu, ios, ib, n_uni
+integer n, iostat, ix_universe, to_universe
+integer ix_track_start, ix_track_end
+
+character(*) init_file
+character(40) :: r_name = 'tao_init_beams_and_uni_connections'
+character(100) beam_saved_at
+character(200) file_name, beam0_file, beam_all_file
+character(60), target :: save_beam_at(100)   ! old style syntax
+
+logical err
+
+namelist / tao_connected_uni_init / to_universe, connect
+  
+namelist / tao_beam_init / ix_universe, beam0_file, &
+  ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
+  beam_saved_at
+         
 !-----------------------------------------------------------------------
 ! Init connected universes
 
@@ -442,7 +477,7 @@ if (allocated(eles)) deallocate (eles)
 
 end subroutine init_beam
 
-end subroutine tao_init_global
+end subroutine tao_init_beams_and_uni_connections 
 
 !-----------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------
