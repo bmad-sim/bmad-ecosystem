@@ -18,9 +18,10 @@
 !                  by the program.
 !
 ! Output:
-!   word     - Character(*): First word with leading blanks trimmed
-!   ix_word  - Integer: Index in WORD of last character in the first word.
-!   delim    - Character(1): Delimiter found. Set to ' ' if no delimiter found
+!   word        - Character(*): First word with leading blanks trimmed
+!   ix_word     - Integer: Index in WORD of last character in the first word.
+!                   Set to 0 if word is blank.
+!   delim       - Character(1): Delimiter found. Set to ' ' if no delimiter found
 !   delim_found - Logical: Set to true if delimiter found. False otherwise.
 !   out_str     - Character(*)  Rest of string after the delimiter.
 !
