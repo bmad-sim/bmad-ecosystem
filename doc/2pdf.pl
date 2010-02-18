@@ -24,6 +24,7 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 `rm bmad-manual-*pdf`;
 `rm bmad-manual-*ps`;
 `cp bmad.pdf bmad-manual-$rev.pdf`; 
+`cp bmad.pdf bmad-manual.pdf`; 
 `dvips -o bmad.ps bmad`;
 `mv bmad.ps bmad-manual-$rev.ps`; 
 
@@ -42,3 +43,4 @@ close (F_OUT);
 `scp manual.html       dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
 `scp bmad-manual-*.pdf dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
 `scp bmad-manual-*.ps  dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
+`scp bmad-manual.pdf   dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
