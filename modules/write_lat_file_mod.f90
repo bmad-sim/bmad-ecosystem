@@ -805,7 +805,7 @@ if (ele%slave_status == super_slave$) then
     lord => pointer_to_lord (lat, ele, j)
     lord_name = lord%name
     m_lord => pointer_to_multipass_lord (lord, lat)
-    if (associated(m_lord)) lord_name = lord%name
+    if (associated(m_lord)) lord_name = m_lord%name
     slave => pointer_to_slave (lat, lord, 1) 
     if (slave%ix_ele == ele%ix_ele) then
       write (line, '(4a)') trim(line), ' x__', trim(lord_name), ',' 
@@ -850,7 +850,7 @@ pl = floor(log10(abs(rel)))
 if (pl > 5) then
   fmt = '(2a, i1)'
   if (pl > 9) fmt = '(2a, i2)'
-  write (str_out, fmt) trim(rchomp(rel/10.0**pl, 0)), 'E', pl
+  write (str_out, fmt) trim(rchomp(rel/10.0**pl, 0)), 'D', pl
 
 elseif (pl > -3) then
   str_out = rchomp(rel, pl)
@@ -858,7 +858,7 @@ elseif (pl > -3) then
 else
   fmt = '(2a, i2)'
   if (pl < -9)  fmt = '(2a, i3)'
-  write (str_out, fmt) trim(rchomp(rel*10.0**(-pl), 0)), 'E', pl
+  write (str_out, fmt) trim(rchomp(rel*10.0**(-pl), 0)), 'D', pl
 
 endif
 
@@ -879,7 +879,7 @@ integer it, plc, ix
 
 !
 
-write (fmt(6:7), '(i2.2)') 8-plc
+write (fmt(6:7), '(i2.2)') 10-plc
 write (out, fmt) rel
 do it = 16, 1, -1
   if (out(it:it) == ' ') cycle

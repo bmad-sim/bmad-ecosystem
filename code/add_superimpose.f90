@@ -422,13 +422,15 @@ end subroutine
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord)
+! Subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord, first_time)
 !
-! Routine to adjust the names of the slaves
+! Routine to adjust the names of the slaves.
+! This routine is used by add_superimpose and is not meant for general use.
+!-
 
-subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord)
+recursive subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord, first_time)
 
-use lat_ele_loc_mod
+use lat_ele_loc_mod, except_dummy => adjust_super_slave_names
 use bmad_struct
 
 implicit none
@@ -436,20 +438,32 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: lord, slave, lord2
 integer ix1_lord, ix2_lord
-integer i, j, k, ix, ix_1lord, ix1, ix2
+integer i, j, k, ix, ix_1lord
 character(40) name
+logical, optional :: first_time
+
+! First time through...
+! The idea is to prevent an infinite circle by making sure that an element is not
+! touched more than once. So initially mark all elements as not touched.
+
+if (.not. present(first_time)) then
+  do i = 0, ubound(lat%branch, 1)
+    lat%branch(i)%ele%bmad_logic = .false.  ! Have adjusted?
+  enddo
+endif
 
 !
 
-ix1 = ix1_lord
-ix2 = ix2_lord
-
-do i = ix1, ix2
+do i = ix1_lord, ix2_lord
   lord => lat%ele(i)
   if (lord%lord_status /= super_lord$) cycle
+  if (lord%bmad_logic) cycle
+  lord%bmad_logic = .true.
   ix_1lord = 0
   do j = 1, lord%n_slave
     slave => pointer_to_slave (lat, lord, j)
+    if (slave%bmad_logic) cycle
+    slave%bmad_logic = .true.
     if (slave%n_lord == 1) then
       ix_1lord = ix_1lord + 1
       write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
@@ -457,6 +471,7 @@ do i = ix1, ix2
       name = ''
       do k = 1, slave%n_lord
         lord2 => pointer_to_lord (lat, slave, k)
+        if (.not. lord2%bmad_logic) call adjust_super_slave_names (lat, lord2%ix_ele, lord2%ix_ele, .false.)
         name = trim(name) //  '\' // lord2%name     !'
       enddo
       slave%name = name(2:len(slave%name))
