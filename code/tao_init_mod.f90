@@ -754,6 +754,7 @@ type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
+type (tao_data_struct), pointer :: dat
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2
 
@@ -958,19 +959,28 @@ call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
 ! Also determine if we need to do the radiation integrals. This can save a lot of time.
 
 do j = n1, n2
-  if (u%data(j)%weight == 0) u%data(j)%weight = default_weight
-  if (u%data(j)%merit_type == '') u%data(j)%merit_type = default_merit_type
-  if (u%data(j)%data_source == '') u%data(j)%data_source = default_data_source
+  dat => u%data(j)
+  if (dat%weight == 0) dat%weight = default_weight
+  if (dat%merit_type == '') dat%merit_type = default_merit_type
+  if (dat%data_source == '') dat%data_source = default_data_source
   ! old style is to use "emittance." instead of "emit."
-  ix = index(u%data(j)%data_type, 'emittance.')
-  if (ix /= 0) u%data(j)%data_type = u%data(j)%data_type(1:ix-1) // &
-                                         'emit.' // u%data(j)%data_type(ix+10:)
-  data_type = u%data(j)%data_type
-  source = u%data(j)%data_source
+  ix = index(dat%data_type, 'emittance.')
+  if (ix /= 0) dat%data_type = dat%data_type(1:ix-1) // 'emit.' // dat%data_type(ix+10:)
+
+  data_type = dat%data_type
+  source = dat%data_source
   emit_here = (index(data_type, 'emit.') /= 0)
-  if (emit_here .and. source == 'lat') u%do_synch_rad_int_calc = .true. 
-  if (data_type(1:8) == 'rad_int.') u%do_synch_rad_int_calc = .true. 
-  if (data_type == 'sigma.pz' .and. source == 'lat') u%do_synch_rad_int_calc = .true. 
+
+  if ((emit_here .and. source == 'lat') .or. &
+      (data_type(1:8) == 'rad_int.') .or. &
+      (data_type == 'sigma.pz' .and. source == 'lat')) then
+    u%do_synch_rad_int_calc = .true. 
+    if (dat%ix_branch /= 0) then
+      call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
+      call err_exit
+    endif
+  endif
+
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
   if (data_type == 'unstable_orbit' .or. &
@@ -978,10 +988,10 @@ do j = n1, n2
               (data_type(1:6)  == 'chrom.' .or. &
                data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
                data_type(1:17) == 'multi_turn_orbit.')) then
-    u%data(j)%exists = .true.
-    if (u%data(j)%ele_name /= '') then
+    dat%exists = .true.
+    if (dat%ele_name /= '') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
-                        'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // u%data(j)%ele_name)
+                        'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // dat%ele_name)
       call err_exit
     endif
   endif

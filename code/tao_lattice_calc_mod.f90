@@ -107,16 +107,15 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
-  if (this_calc_ok) then
-    if (u%do_synch_rad_int_calc) then
-      call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(0)%orbit, tao_lat%modes, u%ix_rad_int_cache)
-      call transfer_rad_int_struct (ric, tao_lat%rad_int)
-    endif
-    if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
-                             tao_lat%a%chrom, tao_lat%b%chrom, exit_on_error = .false.)
-  else
-    calc_ok = .false.
+  if (u%do_synch_rad_int_calc) then
+    call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(0)%orbit, tao_lat%modes, u%ix_rad_int_cache)
+    call transfer_rad_int_struct (ric, tao_lat%rad_int)
   endif
+
+  if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
+                             tao_lat%a%chrom, tao_lat%b%chrom, exit_on_error = .false.)
+
+  if (.not. this_calc_ok) calc_ok = .false.
 
   call tao_load_data_array (u, -1, 0, model$)
 
