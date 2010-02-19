@@ -1,5 +1,5 @@
-%%\documentclass[11pt]{article}
-\documentclass{book}
+\documentclass[11pt]{article}
+%%\documentclass{book}
 \usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
 \usepackage{xspace}
 \geometry{letterpaper}           % ... or a4paper or a5paper or ... 
@@ -10,6 +10,9 @@
 \usepackage{alltt}
 %\usepackage{epstopdf}
 %\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+
 \usepackage{hyperref}
 
 %---------------------------------------------------------------------------------
@@ -22,6 +25,7 @@
 \newcommand{\fig}[1]{Figure~\ref{#1}}
 \newcommand{\vn}{\ttcmd}           
 \newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Newline}{\hfil \\}
 
 \newlength{\dPar}
 \newlength{\ExBeg}
@@ -162,7 +166,7 @@ radiation spectra for wigglers and dipoles in CesrTA at 2 GeV.
 
 \begin{figure}[tb]
 \begin{center}
-%%\includegraphics[width=5in]{reflectivity.eps}
+\includegraphics[width=5in]{reflectivity.eps}
 \caption{Reflectivity vs. energy for several grazing angles. 
 Points shown are a measurement from INFN~\cite{b.mehne}}
 \label{f.reflect}
@@ -173,40 +177,85 @@ Points shown are a measurement from INFN~\cite{b.mehne}}
 \subsection{Main input file} 
 
 The main input file can be specified on the command line involking synrad3d.
-If not given, the default name for the main input file is \vn{synrad3d.init}.
+If not given, the default name for the main input file is ``\vn{synrad3d.init}''.
 Example main input file:
 \begin{example}
-&synrad3d_parameters
-  ix_ele_track_start = 1    ! Radiation is produced from the *exit* end of this element...
-  ix_ele_track_end   = 912  !   ... to the exit end of this element. 
-                            !   If = -1 -> Go to the end of the lattice
-  photon_direction = 1      ! 1 = Forward generation, -1 = Backward generation.
-  num_photons      = 50000  ! Total number of photons generated. 
-  ds_step_min      = 0.01   ! Photons are generated at discrete points. 
-                            ! Multipole photons can be generated at each point.
-                            ! This is minimum distance between points.
-  emit_a       = -1         ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
-  emit_b       = 7.52E-11   ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
-  sig_e            = -1     ! Sig_E/E. If < 0 -> Use value from radiation integral calc.
+  &synrad3d_parameters
+    ix_ele_track_start = 1    ! Radiation region start lattice element.
+    ix_ele_track_end   = 912  ! Radiation region end lattice element.
+    photon_direction = 1      ! 1 = Forward generation, -1 = Backward generation.
+    num_photons      = 50000  ! Total number of photons generated. 
+    ds_step_min      = 0.01   ! Photons are generated at discrete points. 
+                              ! Multipole photons can be generated at each point.
+                              ! This is minimum distance between points.
+    emit_a       = -1         ! Horiontal emit. Meters. If < 0 -> Calc from lattice.
+    emit_b       = 7.52E-11   ! Vertical emit.  Meters. If < 0 -> Calc from lattice.
+    sig_e        = -1         ! Sig_E/E. If < 0 -> CAlc from lattice.
 
-  lattice_file     = '../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat                         ' 
-  wall_file        = 'synrad3d.wall'   ! File specifying the vacuum chamber wall
-  dat_file         = 'synrad3d.dat'
+    lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
+    wall_file    = "synrad3d.wall"     ! Vacuum chamber wall file.
+    dat_file     = "synrad3d.dat"      ! Output data file.
 
-  sr3d_params%allow_reflections = .true.  ! For testing purposes.
-  sr3d_params%debug = .false.             ! If true then create a file (fort.2) 
-                                              !    of photon before/after reflection coords.
-  random_seed = 123456   ! 0 -> Use sys clock.
-/
+    sr3d_params%allow_reflections = T       ! For testing purposes.
+    sr3d_params%stop_if_hit_antechamber = F !
+    sr3d_params%debug = F                   ! If true then create a file fort.2 
+    random_seed = 123456                    ! 0 -> Use sys clock.
+  /
 \end{example}
-The emittances are geometric. The format of the output files
-\vn{dat_file} and (optionally) \vn{fort.2} are discussed
-below.  
+Fortran namelist input is used.
+The namelist begins on the line starting with \vn{"\&synrad3d_parameters"}
+and ends with the line containing the slash \vn{"/"}. Anything outside
+of this is ignored. Within the namelist, anything after an excamation
+mark \vn{"!"} is ignored including the exclamation mark. 
 
-Lattice definition file: \vn{lattice_file} This file defines the
+  \begin{description}
+  \item[\vn{ix_ele_track_start}, \vn{ix_ele_track_end}] \Newline
+The parameters \vn{ix_ele_track_start} and \vn{ix_ele_track_end} establish
+the region where radiation is produced. These are the index numbers of 
+elements in the lattice. The radiation region boundary is taken to be at
+the exit end of the elements so no radiation is produced in the element
+with index \vn{ix_ele_track_start}. If \vn{ix_ele_track_end} is negative,
+the end of the radiation region is taken to be end of the lattice.
+  \item[\vn{photon_direction}] \Newline
+The \vn{photon_direction} parameter determines in what direction the photons
+are traveling when initially created. A value of \vn{+1} indicates the photons
+are created traveling in the $+s$ direction and a value of \vn{-1} indicates
+that the photons are created in the $-s$ direction.
+  \item[\vn{num_photons}] \Newline
+The \vn{num_photons} establishes the number of photons generated.
+  \item[\vn{ds_step_min}] \Newline
+This parameter establishes the minimum distance to track a the particle beam between emission
+points. The thought was that if \srthree decided to make very small steps  between emission
+points, this might slow the calculation down. This has not been tested...
+  \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_e}] \Newline
+These parameters set the particle beam size and so will affect the starting coordinates of
+the photons. A negative set of any of these parameters will result in \srthree 
+using the value for the parameter from a calculation of the synchrotron radiation integrals.
+  \item[\vn{lattice_file}] \Newline
+This file defines the
 machine optics. The lattice file format may be the Bmad format or, if
 the \vn{lattice_file} string is prefixed by \vn{``xsif::''},
 may be in xsif format.
+  \item[\vn{wall_file}] \Newline
+This parameter gives the name of the vacuum chamber wall definition file. See below for
+more details.
+  \item[\vn{dat_file}] \Newline
+This parameter gives the name of the output data file.
+See below for more details.
+  \item[\vn{sr3d_params\%allow_reflections}] \Newline
+This parameter, if set False, will cause \srthree to stop tracking a given photon once
+it hits the chamber wall.
+  \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
+This parameter, if set True, will cause \srthree to stop tracking a given photon once
+it hits part of an antechamber wall.
+  \item[\vn{sr3d_params\%debug}] \Newline
+This parameter, if set True, will create an output file called \vn{fort.2} in addition
+to the regular output file.
+See below for more details.
+  \item[\vn{random_seed}] \Newline
+Random number see used in by the random number generator. If set to 0, the system clock
+will be used. That is, if set to 0, the output results will vary from run to run. 
+\end{description}
 
 %------------------------------------------------------------------
 \subsection{Vacuum chamber wall definition} 
@@ -293,20 +342,20 @@ the angle of the photon as it reflects off the surface. Actually,
 \srthree calculates the gradient of $-1/r_n$ expressed in $(x, y, s)$
 coordinates as this turns out to be especially easy to evaluate.
 
-The syntax of the file defining the chamber wall is a follows: Fortran
-namelist input is used. An example is:
+An example wall definition file is:
 \begin{example}
   ! Anything outside the namelist is ignored.
   &synrad3d_wall
-   wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
-   wall_pt(1) = 74.307, 'elliptical', 0.045, 0.025
-   wall_pt(2) = 82.971, 'rectangular', 0.045, 0.025
-   wall_pt(3) = 91.176, 'rectangular', 0.045, 0.025,
+   wall_pt(0) = 0.0, "elliptical", 0.045, 0.025
+   wall_pt(1) = 74.307, "elliptical", 0.045, 0.025
+   wall_pt(2) = 82.971, "rectangular", 0.045, 0.025
+   wall_pt(3) = 91.176, "rectangular", 0.045, 0.025,
                             -1, -1, 0.08, 0.01
-   wall_pt(4) = 101.300, 'elliptical', 0.045, 0.025
-   wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025
+   wall_pt(4) = 101.300, "elliptical", 0.045, 0.025
+   wall_pt(5) = 0.0, "elliptical", 0.045, 0.025
   /
 \end{example}
+Fortran namelist input is used. 
 The namelist begins on the line starting with \vn{"\&synrad3d_wall"}
 and ends with the line containing the slash \vn{"/"}. Anything outside
 of this is ignored. Within the namelist, anything after an excamation
@@ -320,8 +369,8 @@ cross-section The format for a \vn{wall_pt} is
 \end{example}
 Possible \vn{basic_shape} values are
 \begin{example}
-  'elliptical'
-  'rectangular'
+  "elliptical"
+  "rectangular"
 \end{example}
 
 The index $i$ of \vn{wall_pt(i)} runs from zero which gives the
