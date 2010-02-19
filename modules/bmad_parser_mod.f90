@@ -1346,7 +1346,7 @@ parsing_loop: do
   split = .true.         ! assume initially that we have a split number
   if (ix_word == 0) then
     split = .false.
-  elseif (word(ix_word:ix_word) /= 'E') then
+  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'D') then
     split = .false.
   endif
   if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
