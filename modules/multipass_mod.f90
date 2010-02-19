@@ -229,6 +229,7 @@ integer ix_con
 
 !
 
+nullify (multi_lord)
 if (present(super_lord)) nullify (super_lord)
 if (present(ix_pass)) ix_pass = -1
 
