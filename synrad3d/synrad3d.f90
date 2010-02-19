@@ -22,7 +22,6 @@ type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct) wall
 type (wall3d_pt_struct) wall_pt(0:100)
-type (sr3d_params_struct) synrad3d_params
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
@@ -39,7 +38,7 @@ logical ok
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
-            emit_a, emit_b, sig_e, synrad3d_params, wall_file, dat_file, random_seed
+            emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
@@ -72,10 +71,8 @@ open (1, file = param_file, status = 'old')
 read (1, nml = synrad3d_parameters)
 close (1)
 
-sr3d_params = synrad3d_params
-
 n_wall_pt_max = -1
-wall_pt%type = ''
+wall_pt%basic_shape = ''
 wall_pt%ante_height2_plus = -1
 wall_pt%ante_height2_minus = -1
 wall_pt%width2_plus = -1
@@ -91,7 +88,7 @@ if (n_wall_pt_max > 0) then
 endif
 
 do i = 1, ubound(wall_pt, 1)
-  if (wall_pt(i)%type == '') then
+  if (wall_pt(i)%basic_shape == '') then
     n_wall_pt_max = i - 1
     exit
   endif
@@ -101,7 +98,12 @@ print *, 'n_wall_pt_max:', n_wall_pt_max
 
 ! Get lattice
 
-call bmad_parser (lattice_file, lat)
+if (lattice_file(1:6) == 'xsif::') then
+  call xsif_parser(lattice_file(7:), lat)
+else
+  call bmad_parser (lattice_file, lat)
+endif
+
 call twiss_and_track (lat, orb, ok)
 if (.not. ok) stop
   
@@ -232,7 +234,7 @@ write (1, *) 'sig_e              =', sig_e
 write (1, *) 'wall_file          =', wall_file
 write (1, *) 'dat_file           =', dat_file
 write (1, *) 'random_seed        =', random_seed
-write (1, *) 'synrad3d_params%allow_reflections =', synrad3d_params%allow_reflections
+write (1, *) 'sr3d_params%allow_reflections =', sr3d_params%allow_reflections
 write (1, *)
 
 do i = 1, n_photon_tot      

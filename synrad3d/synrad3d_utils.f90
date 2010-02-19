@@ -47,9 +47,9 @@ do i = 0, wall%n_pt_max
     endif
   endif
 
-  if (pt%type /= 'elliptical' .and. pt%type /= 'rectangular') then
+  if (pt%basic_shape /= 'elliptical' .and. pt%basic_shape /= 'rectangular') then
     call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(i)%TYPE: ' // pt%type, &
+              'BAD WALL%PT(i)%BASIC_SHAPE: ' // pt%basic_shape, &
               '    FOR PT(I) INDEX: \i0\ ', i_array = [i])
     call err_exit
   endif
@@ -70,17 +70,7 @@ do i = 0, wall%n_pt_max
 
   ! +x side check
 
-  if (pt%ante_height2_plus > 0) then
-    if (pt%width2_plus <= pt%width2) then
-      call out_io (s_fatal$, r_name, &
-              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
-              '    MUST BE GREATER THEN WIDTH2 \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', &
-              r_array = [pt%width2_plus, pt%width2], i_array = [i])
-      call err_exit
-    endif
-
-  elseif (pt%width2_plus > 0) then
+  if (pt%ante_height2_plus < 0 .and.pt%width2_plus > 0) then
     if (pt%width2_plus > pt%width2) then
       call out_io (s_fatal$, r_name, &
               'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
@@ -93,18 +83,7 @@ do i = 0, wall%n_pt_max
 
   ! -x side check
 
-  if (pt%ante_height2_minus > 0) then
-    if (pt%width2_minus <= pt%width2) then
-      call out_io (s_fatal$, r_name, &
-              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
-              '    MUST BE GREATER THEN WIDTH2 \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', &
-              r_array = [pt%width2_minus, pt%width2], i_array = [i])
-
-      call err_exit
-    endif
-
-  elseif (pt%width2_minus > 0) then
+  if (pt%ante_height2_minus < 0 .and. pt%width2_minus > 0) then
     if (pt%width2_minus > pt%width2) then
       call out_io (s_fatal$, r_name, &
               'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
@@ -125,14 +104,23 @@ do i = 0, wall%n_pt_max
   ! +x side computation
 
   if (pt%ante_height2_plus > 0) then
-    if (pt%type == 'elliptical') then
+    if (pt%basic_shape == 'elliptical') then
       pt%ante_x0_plus = pt%width2 * sqrt (1 - (pt%ante_height2_plus / pt%height2)**2)
     else
       pt%ante_x0_plus = pt%width2
     endif
 
+    if (pt%width2_plus <= pt%ante_x0_plus) then
+      call out_io (s_fatal$, r_name, &
+              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
+              '    MUST BE GREATER THEN: \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', &
+              r_array = [pt%width2_plus, pt%ante_x0_plus], i_array = [i])
+      call err_exit
+    endif
+
   elseif (pt%width2_plus > 0) then
-    if (pt%type == 'elliptical') then
+    if (pt%basic_shape == 'elliptical') then
       pt%y0_plus = pt%height2 * sqrt (1 - (pt%width2_plus / pt%width2)**2)
     else
       pt%y0_plus = pt%height2
@@ -142,14 +130,24 @@ do i = 0, wall%n_pt_max
   ! -x side computation
 
   if (pt%ante_height2_minus > 0) then
-    if (pt%type == 'elliptical') then
+    if (pt%basic_shape == 'elliptical') then
       pt%ante_x0_minus = pt%width2 * sqrt (1 - (pt%ante_height2_minus / pt%height2)**2)
     else
       pt%ante_x0_minus = pt%width2
     endif
 
+    if (pt%width2_minus <= pt%ante_x0_minus) then
+      call out_io (s_fatal$, r_name, &
+              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
+              '    MUST BE GREATER THEN: \es12.2\ ', &
+              '    FOR PT(I) INDEX: \i0\ ', &
+              r_array = [pt%width2_minus, pt%ante_x0_minus], i_array = [i])
+
+      call err_exit
+    endif
+
   elseif (pt%width2_minus > 0) then
-    if (pt%type == 'elliptical') then
+    if (pt%basic_shape == 'elliptical') then
       pt%y0_minus = pt%height2 * sqrt (1 - (pt%width2_minus / pt%width2)**2)
     else
       pt%y0_minus = pt%height2
@@ -485,7 +483,7 @@ if (vec(1) > 0) then
   if (pt%ante_height2_plus > 0) then
 
     if (abs(vec(3)/vec(1)) < pt%ante_height2_plus/pt%ante_x0_plus) then  
-      pt%type = 'rectangular'
+      pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_plus
       pt%height2 = pt%ante_height2_plus
       if (vec(1) >= pt%ante_x0_plus) hit = .true.
@@ -494,7 +492,7 @@ if (vec(1) > 0) then
   ! If there is a beam stop...
   elseif (pt%width2_plus > 0) then
     if (abs(vec(3)/vec(1)) < pt%y0_plus/pt%width2_plus) then 
-      pt%type = 'rectangular'
+      pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_plus
     endif
 
@@ -508,7 +506,7 @@ elseif (vec(1) < 0) then
   if (pt%ante_height2_minus > 0) then
 
     if (abs(vec(3)/vec(1)) < pt%ante_height2_minus/pt%ante_x0_minus) then  
-      pt%type = 'rectangular'
+      pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_minus
       pt%height2 = pt%ante_height2_minus
       if (vec(1) >= pt%ante_x0_minus) hit = .true.
@@ -517,7 +515,7 @@ elseif (vec(1) < 0) then
   ! If there is a beam stop...
   elseif (pt%width2_minus > 0) then
     if (abs(vec(3) / vec(1)) < pt%y0_minus/pt%width2_minus) then 
-      pt%type = 'rectangular'
+      pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_minus
     endif
 
@@ -527,7 +525,7 @@ endif
 
 ! Compute parameters
 
-if (pt%type == 'rectangular') then
+if (pt%basic_shape == 'rectangular') then
   if (abs(vec(1)/pt%width2) > abs(vec(3)/pt%height2)) then
     g = pt%width2 / abs(vec(1)) 
     dw_x = g / vec(1)
@@ -538,7 +536,7 @@ if (pt%type == 'rectangular') then
     dw_y = g / vec(3)
   endif
 
-elseif (pt%type == 'elliptical') then
+elseif (pt%basic_shape == 'elliptical') then
   r_p = vec(1)**2 + vec(3)**2
   r_w = sqrt((pt%width2 * vec(1))**2 + (pt%height2 * vec(3))**2)
   g = r_w / r_p

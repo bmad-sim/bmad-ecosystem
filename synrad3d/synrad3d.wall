@@ -38,7 +38,7 @@
   wall_pt(0) = 0.0, 'elliptical', 0.02, 0.01
   wall_pt(1) = 80.0, 'elliptical', 0.04, 0.02
   wall_pt(2) = 80.01, 'rectangular', 0.045, 0.025
-  wall_pt(3) = 100.0, 'rectangular', 0.045, 0.025, 0.02, 0.02
+  wall_pt(3) = 100.0, 'rectangular', 0.045, 0.025, 0.02, 0.05, 0.02, 0.05
   wall_pt(4) = 100.01, 'elliptical', 0.045, 0.025
   wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025 
 /

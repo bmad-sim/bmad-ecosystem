@@ -1,19 +1,56 @@
-\documentclass[11pt,landscape]{article}
-\usepackage{geometry}               % See geometry.pdf to learn the layout options. There are lots.
-\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
-%\geometry{landscape}              % Activate for for rotated page geometry
-%\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+%%\documentclass[11pt]{article}
+\documentclass{book}
+\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{xspace}
+\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
+%\geometry{landscape}            % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
 \usepackage{graphicx}
 \usepackage{amssymb}
+\usepackage{alltt}
 %\usepackage{epstopdf}
 %\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 \usepackage{hyperref}
 
-\newcommand{\srthree}{\texttt{SYNRAD3D}}
+%---------------------------------------------------------------------------------
+
+\newcommand{\srthree}{\texttt{SYNRAD3D}\xspace}
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+\newcommand{\fig}[1]{Figure~\ref{#1}}
+\newcommand{\vn}{\ttcmd}           
+\newcommand{\Th}{$^{th}$\xspace}
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-0.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-0.0ex}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
 
 %---------------------------------------------------------------------------------
 
-\title{ \srthree information-DRAFT}
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+%---------------------------------------------------------------------------------
+
+\title{ \srthree information}
 \author{G. Dugan, D. Sagan}
 \date{\today}                                      % Activate to display a given date or no date
 
@@ -31,16 +68,16 @@ Sagan of Cornell University.
 The principal motivation for this simulation is to estimate the
 distribution of photon absorption sites around the vacuum chamber as a
 function of longitudinal position in the machine. This information is
-then input to simulation programs such as \texttt{POSINST} and
-\texttt{ECLOUD}, which simulate photoelectron production in various
+then input to simulation programs such as \vn{POSINST} and
+\vn{ECLOUD}, which simulate photoelectron production in various
 magnetic environments, which seeds the formation of the electron
 cloud.
 
 \srthree is not to be confused with an older program called
-\texttt{SYNRAD}. The \textt{SYNRAD} program is used for calculating
-wall heating from the primary beam.  \texttt{SYNRAD} only tracks
+\vn{SYNRAD}. The \vn{SYNRAD} program is used for calculating
+wall heating from the primary beam.  \vn{SYNRAD} only tracks
 photons in the horizontal plane and does not simulate scattering of
-the photons from the wall. The advantage of \texttt{SYNRAD} is that it
+the photons from the wall. The advantage of \vn{SYNRAD} is that it
 is fast and directly gives wall heating numbers. The advantage of
 \srthree is that it tracks photons in three dimensions and it does
 simulate scattering from the wall.
@@ -109,7 +146,7 @@ probability which depends on the photon energy and polar angle with
 respect to the chamber normal at the point of incidence.
 
 The scattering probabilities are taken from an X-ray scattering
-database at LBNL~\cite{ref:1}. The scattering probabilities depend on
+database at LBNL~\cite{b.henke}. The scattering probabilities depend on
 the material of which the vacuum chamber is composed, and on the
 surface condition (oxide coating, roughness, etc.) In priniciple, the
 scattering probability also depends on the photon polarization
@@ -120,15 +157,15 @@ The scattering probabilities in the table currently used by the
 simulation were computed for a photon p-polarization (electric field
 in the plane of incidence), for an aluminum substrate with a 8 nm
 layer of Al$_2$O$_3$, and a surface roughness of 2 nm. See
-Fig.~\ref{f1} for some example reflectivity curves, compared with
+Fig.~\ref{f.reflect} for some example reflectivity curves, compared with
 radiation spectra for wigglers and dipoles in CesrTA at 2 GeV.
 
-\begin{figure}[h!]
+\begin{figure}[tb]
 \begin{center}
-\includegraphics[width=6in, trim = 1in 1in 1in 0.75in]{fig1}
+%%\includegraphics[width=5in]{reflectivity.eps}
 \caption{Reflectivity vs. energy for several grazing angles. 
-Points shown are a measurement from INFN~\cite{ref:2}}
-\label{f1}
+Points shown are a measurement from INFN~\cite{b.mehne}}
+\label{f.reflect}
 \end{center}
 \end{figure}
 
@@ -136,101 +173,181 @@ Points shown are a measurement from INFN~\cite{ref:2}}
 \subsection{Main input file} 
 
 The main input file can be specified on the command line involking synrad3d.
-If not given, the default name for the main input file is \texttt{synrad3d.init}.
+If not given, the default name for the main input file is \vn{synrad3d.init}.
 Example main input file:
-\begin{verbatim}
+\begin{example}
 &synrad3d_parameters
-  ix_ele_track_start = 1 ! Radiation is produced from the *exit* end of this element...
-  ix_ele_track_end   = 912 !  ... to the exit end of this element. If = -1 -> Go to the end of the lattice
-  photon_direction = 1     ! 1 = Forward generation, -1 = Backward generation.
+  ix_ele_track_start = 1    ! Radiation is produced from the *exit* end of this element...
+  ix_ele_track_end   = 912  !   ... to the exit end of this element. 
+                            !   If = -1 -> Go to the end of the lattice
+  photon_direction = 1      ! 1 = Forward generation, -1 = Backward generation.
   num_photons      = 50000  ! Total number of photons generated. 
-  ds_step_min      = 0.01  ! Photons are generated at discrete points. 
-                           ! Multipole photons can be generated at each point.
-                           ! This is minimum distance between points.
-  emit_a           = -1     ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
-  emit_b           = 7.52E-11     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
+  ds_step_min      = 0.01   ! Photons are generated at discrete points. 
+                            ! Multipole photons can be generated at each point.
+                            ! This is minimum distance between points.
+  emit_a       = -1         ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
+  emit_b       = 7.52E-11   ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
   sig_e            = -1     ! Sig_E/E. If < 0 -> Use value from radiation integral calc.
 
   lattice_file     = '../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat                         ' 
-  wall_file        = 'synrad3d.wall'                          ! File specifying the vacuum chamber wall
+  wall_file        = 'synrad3d.wall'   ! File specifying the vacuum chamber wall
   dat_file         = 'synrad3d.dat'
 
-  synrad3d_params%allow_reflections = .true.  ! For testing purposes.
-  synrad3d_params%debug = .false.             ! If true then create a file (fort.2) 
+  sr3d_params%allow_reflections = .true.  ! For testing purposes.
+  sr3d_params%debug = .false.             ! If true then create a file (fort.2) 
                                               !    of photon before/after reflection coords.
   random_seed = 123456   ! 0 -> Use sys clock.
 /
-\end{verbatim}
+\end{example}
 The emittances are geometric. The format of the output files
-\texttt{dat\_file} and (optionally) \texttt{fort.2} are discussed
+\vn{dat_file} and (optionally) \vn{fort.2} are discussed
 below.  
 
-%------------------------------------------------------------------
-\subsection{Vacuum chamber wall definition file: \texttt{wall\_file}} 
-
-Here is a sample of a file defining the vacuum
-chamber wall.
-
-%------------------------------------------------------------------
-\subsection{Vacuum chamber specification}
-
-The vacuum chamber cross section can be specified to be either
-elliptical or rectangular. Regions in the longitudinal direction can
-be defined at which the vacuum chamber has one of these cross section
-types. In the transition region between types, an interpolation is
-used for the vacuum chamber cross section.  
+Lattice definition file: \vn{lattice_file} This file defines the
+machine optics. The lattice file format may be the Bmad format or, if
+the \vn{lattice_file} string is prefixed by \vn{``xsif::''},
+may be in xsif format.
 
 %------------------------------------------------------------------
-\section{Input files}
+\subsection{Vacuum chamber wall definition} 
 
-The statements which are not commented out describe a chamber with an
-elliptical cross section starting at $z=0$ and ending at the end of
-the lattice. (At the last point, $z$ must be 0, and the actual lattice
-length will be used.)
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=5in]{chamber.eps}
+\caption{Example vacuum chamber cross-section. The example is for an elliptical
+chamber with an antechamber on the $+x$ side of the chamber and an
+aperture on the $-x$ side.}
+\label{f.chamber}
+\end{center}
+\end{figure}
 
-The statements which are commented out describe with an elliptical
-chamber from $z=0$ to $z=74.307$ and from $z=101.3$ to the end of the
-lattice, and a rectangular chamber between $z=82.891$ and
-$z=91.176$. In the transition regions from $z=74.307$ to $z=82.971$,
-and from $z=91.176$ to $z=101.3$, the chamber cross section is a
-linear interpolation between elliptical and rectangular.
-\begin{verbatim}
-! format is:
-!		wall_pt(n) = z, shape, x_half_width, y_half_height
-!
-! Notes:
-!		At the last point, the actual lattice length will be substituted for  z.
-!		Possible shapes: 'elliptical', 'rectangular'
+The vacuum chamber wall is defined by specifying the chamber
+cross-section at a number of longitudinal positions. An example
+cross-section is shown in \fig{f.chamber}. The parameters needed to
+specify the chamber at a given longitudinal position are:
+\begin{example}
+  s                   ! Longitudinal position
+  basic_shape          ! Either "elliptical" or "rectangular"
+  width2              ! Half width ignoring antechamber.
+  height2             ! Half height ignoring antechamber.
+  width2_plus         ! Distance from pipe center to +x side edge.
+  ante_height2_plus   ! Antechamber half height on +x side of the wall
+  width2_minus        ! Distance from pipe center -x side edge.
+  ante_height2_minus  ! Antechamber half height on -x side of the wall
+\end{example}
 
-&synrad3d_wall
-! wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
-! wall_pt(1) = 74.307, 'elliptical', 0.045, 0.025
-! wall_pt(2) = 82.971, 'rectangular', 0.045, 0.025
-! wall_pt(3) = 91.176, 'rectangular', 0.045, 0.025
-! wall_pt(4) = 101.300, 'elliptical', 0.045, 0.025
-! wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025
-    wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
-    wall_pt(1) = 0.0, 'elliptical', 0.045, 0.025
-/
-\end{verbatim}
+The basic chamber shape at a given position is given by the
+\vn{basic_shape} attribute which my be set to either
+\vn{"rectangular"} or \vn{"elliptical"}. The example in
+\fig{f.chamber} is elliptical. \vn{width2} and \vn{height2} define the
+half-height and half-width of the basic shape. 
 
+Antechambers on the $+x$ side and/or $-x$ side of the chamber can be
+added to the basic shape. On the $+x$ side, an antechamber is formed
+if the \vn{ante_height2_plus} parameter is set to a positive value. If
+\vn{ante_height2_plus} is set to a positive value, as shown in
+\fig{f.chamber}, the parameter \vn{width2_plus} specifies the
+horizontal distance from the chamber center to the far end of the $+x$
+side antechamber. In this case, the value of \vn{width2_plus} must be
+large enough so that the antechamber far wall does not stick back into
+the basic shape. For a rectangular shape, this translates to
+\vn{width2_plus} being larger than \vn{width2}. Similarly, if
+\vn{ante_height2_minus} is set to a positive value, an antechamber is
+formed on the $-x$ side.  In this case, \vn{width2_minus} is the
+(positive) horizontal distance from the chamber center to the far end
+of the $-x$ antechamber.
 
-%------------------------------------------------------------------
-\subsection{Lattice definition file: \texttt{lattice\_file}} This file
-defines the machine optics. Any file format readable by BMAD is
-acceptable (e.g, bmad format, mad format, xsif format).
+If \vn{ante_height2_plus} is not set, a set of \vn{width2_plus}
+defines an aperture on the $+x$ side of the chamber. In this case, the
+value of \vn{width2_plus} must be less than the value of
+\vn{width2}. Similarly, if \vn{ante_height2_minus} is not set, a set of
+\vn{width2_minus} defines an aperture on the $-x$ side of the chamber.
+A $-x$ aperture is shown in \fig{f.chamber}.
+
+Once a set of chamber cross-sections have been defined, the
+cross-section of the chamber at a given longitudinal position is
+computed using a linear interpolation: In cyclindrical coordinates,
+let $r_{w1}(\theta)$ be the radius of the wall as a function of
+$\theta$ at some point $s_1$ where the chamber cross-section has been
+defined. Let $r_{w2}(\theta)$ be the radius of the wall at the next
+defined cross-section at $s_2$. The radius of the wall corss-section,
+$r_w(\theta, s)$ at some position $s$ with $s_1 \le s \le s_2$ is
+\Begineq
+  r_w(\theta, s) = \frac{s_2 - s}{s_2 - s_1} \, r_{w1} + \frac{s_1 - s}{s_1 - s_2} \, r_{w2}
+\Endeq
+Note: The foregoing construction works as long as $r_{w1}$ and
+$r_{w2}$ are single valued functions. Thus, it would be a fairly
+simple matter in the future to extend the wall definition syntax to include more
+complicated cross-sections as long as the $r_w$ remains single valued.
+
+To determine if a photon at position $(r, \theta, s)$ is inside or outside the
+chamber, the normalized radius $r_n$ is evaluated:
+\Begineq
+  r_n(r, \theta, s) = r / r_w(\theta, s)
+\Endeq
+The photon is outside if $r_n > 1$ and inside if $r_n < 1$. The wall
+itself is defined by the equation $r_n = 1$. This being the case, the
+gradient $\nabla r_n$, evaluated at the chamber wall, gives a vector
+that is outward normal to the surface. This is useful when calculating
+the angle of the photon as it reflects off the surface. Actually,
+\srthree calculates the gradient of $-1/r_n$ expressed in $(x, y, s)$
+coordinates as this turns out to be especially easy to evaluate.
+
+The syntax of the file defining the chamber wall is a follows: Fortran
+namelist input is used. An example is:
+\begin{example}
+  ! Anything outside the namelist is ignored.
+  &synrad3d_wall
+   wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
+   wall_pt(1) = 74.307, 'elliptical', 0.045, 0.025
+   wall_pt(2) = 82.971, 'rectangular', 0.045, 0.025
+   wall_pt(3) = 91.176, 'rectangular', 0.045, 0.025,
+                            -1, -1, 0.08, 0.01
+   wall_pt(4) = 101.300, 'elliptical', 0.045, 0.025
+   wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025
+  /
+\end{example}
+The namelist begins on the line starting with \vn{"\&synrad3d_wall"}
+and ends with the line containing the slash \vn{"/"}. Anything outside
+of this is ignored. Within the namelist, anything after an excamation
+mark \vn{"!"} is ignored including the exclamation mark. 
+
+In the namelist, \vn{wall_pt(i)} gives the parameters for the $i$\Th
+cross-section The format for a \vn{wall_pt} is
+\begin{example}
+  wall_pt(i) = s, basic_shape, width2, heigh2, width2_plus, ante_height2_plus, 
+                  width2_minus, ante_height2_minus
+\end{example}
+Possible \vn{basic_shape} values are
+\begin{example}
+  'elliptical'
+  'rectangular'
+\end{example}
+
+The index $i$ of \vn{wall_pt(i)} runs from zero which gives the
+cross-section at the beginning of the lattice up to the index for the
+last cross-section at the end of the lattice. The $s$ values for the
+wall points must be in increasing order starting at $s = 0$ for
+\vn{wall_pt(i)}. The exception is that the $s$ value for the last
+\vn{wall_pt(i)} is immaterial since \srthree will automatically substitute
+the appropriate $s$ value at the end of the lattice.
+
+For each \vn{wall_pt(i)} the first four parameters -- \vn{s},
+\vn{basic_shape}, \vn{width2}, and \vn{height2} -- must be
+specified. Values for the other parameters are optional and default to
+the ``unset'' value of -1.
 
 %------------------------------------------------------------------
 \section{Output files} 
 
 %------------------------------------------------------------------
-\subsection{Main output file:
-\texttt{dat\_file}} The first 20 lines of this file echo the
-information provided in the file \texttt{synrad3d.init}.
-Subsequently, \texttt{dat\_file} contains 4 lines for each photon
+\subsection{Main output file}
+The first 20 lines of this file echo the
+information provided in the file \vn{synrad3d.init}.
+Subsequently, \vn{dat_file} contains 4 lines for each photon
 generated. An example of the output generated for two photons is shown
 below.
-\begin{verbatim}
+\begin{example}
  1       2     71.52  6.614E-03  ! index, n_reflect, eV, intensity
     0.000542    0.000037   -0.000073    0.000080       9.015    1.000000  ! Start position
     0.015165    0.004010    0.023538    0.017410      18.661    0.999840  ! End position
@@ -239,7 +356,7 @@ below.
    -0.000604   -0.000046    0.000003    0.000826       9.036    1.000000  ! Start position
     0.013187   -0.004171   -0.023902   -0.009377      15.524    0.999947  ! End position
       36   SBEND             ! Lat ele index and class
-\end{verbatim}
+\end{example}
 The first line gives the photon index number, the number of times the
 photon struck the vacuum chamber before absorption, the photon energy
 (in eV), and the photon intensity.
@@ -273,15 +390,15 @@ provided so that the photon hits can be sorted by magnetic environment
 
 
 %------------------------------------------------------------------
-\subsection{Optional output file: \texttt{fort.2}} 
+\subsection{Optional output file: \vn{fort.2}} 
 
 
-If the switch \texttt{synrad3d\_params\%debug} is set
-to \texttt{.true.}, then an additional output file \texttt{fort.2} is
+If the switch \vn{sr3d_params%debug} is set
+to \vn{True}, then an additional output file \vn{fort.2} is
 generated, which contains more detailed information. An example of the
 output generated for 4 photons is shown below. (This example is not
 for the same run as in the previous section).
-\begin{verbatim}
+\begin{example}
 *********************************************
        1       0    1.0000    0.0000    0.0000              0.031988    0.135670
     0.045000    0.031988    0.000086    0.000031   70.549655    0.999488
@@ -310,7 +427,7 @@ for the same run as in the previous section).
  *********************************************
        4       0    1.0000    0.0000    0.0000              0.031988    0.135670
     0.045000    0.031988    0.000088    0.000031   70.549655    0.999488
-\end{verbatim}
+\end{example}
 Individual entries are separated by a row of asterisks. Each entry
 corresponds to a photon striking the vacuum chamber. There may be one
 or more entries for each photon, depending on the number of times it
@@ -337,12 +454,19 @@ encounter with the vacuum chamber. The second photon reflects 3 times,
 the third photon reflects once, and the fourth photon is absorbed
 immediately, like the first one.
 
-\begin{thebibliography}{}
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
 
-\bibitem[1]{ref:1}
- B.L. Henke, E.M. Gullikson, and J.C. Davis. X-ray interactions: photoabsorption, scattering, transmission, and reflection at E=50-30000 eV,=1-92, Atomic Data and Nuclear Data Tables Vol. 54 (no.2), 181-342 (July 1993) {\tt http://henke.lbl.gov/optical\_constants/}
+\bibitem{b.henke} 
+B.L. Henke, E.M. Gullikson, and J.C. Davis. X-ray
+interactions: photoabsorption, scattering, transmission, and
+reflection at E=50-30000 eV,=1-92, Atomic Data and Nuclear Data
+Tables Vol. 54 (no.2), 181-342 (July 1993) {\tt
+http://henke.lbl.gov/optical\_constants/}
 
-\bibitem[2]{ref:2}N. Mahne et. al., ``Experimental Determination of ECLOUD Simulation Input
+\bibitem{b.mehne}
+N. Mahne et. al., ``Experimental Determination of ECLOUD Simulation Input
 Paramaters for DA$\Phi$NE", EuroTev-Report-2005-013
-\end{thebibliography}{}
+
+\end{thebibliography}
 \end{document}  

@@ -12,8 +12,8 @@
   emit_a           = 0     ! Horiontal emit. If < 0 -> Use value from radiation integral calc.
   emit_b           = 0     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
   sig_e            = 0     ! Sig_E/E. If < 0 -> Use value from radiation integral calc.
-  synrad3d_params%allow_reflections = .true.  ! For testing purposes.
-  synrad3d_params%debug = .true.              ! If true then create a file (fort.2) 
+  sr3d_params%allow_reflections = .true.  ! For testing purposes.
+  sr3d_params%debug = .true.              ! If true then create a file (fort.2) 
                                               !    of photon before/after reflection coords.
   random_seed = 123456                        ! Random number seed. 0 -> Use sys clock.
 /
