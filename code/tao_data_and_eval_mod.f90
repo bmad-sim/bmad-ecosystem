@@ -2384,7 +2384,8 @@ parsing_loop: do
   split = .true.         ! assume initially that we have a split number
   if (ix_word == 0) then
     split = .false.
-  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'e' ) then
+  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'e' .and. &
+          word(ix_word:ix_word) /= 'D' .and. word(ix_word:ix_word) /= 'd'  ) then
     split = .false.
   endif
   if (delim /= '-' .and. delim /= '+') split = .false.
@@ -2396,8 +2397,7 @@ parsing_loop: do
 
   if (split) then
     word = word(:ix_word) // delim
-    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, &
-                    delim_found, phrase)
+    call word_read (phrase, '+-*/()^,}', word2, ix_word2, delim, delim_found, phrase)
     word = word(:ix_word+1) // word2
     ix_word = ix_word + ix_word2
   endif
