@@ -28,6 +28,8 @@ subroutine write_power_header (iu, file, gen_params, synrad_mode)
 '          Segment                                  ', &
 '  Ix  Name          S_seg      X_seg     P/len      P/Area     P_tot     Phot/sec      A Beta    B Beta    A Eta     Ele Type       Relevant               Ele',&
 '                     (m)        (m)      (W/m)     (W/mm^2)      (W)      (1/s)         (m)        (m)      (m)      at s_mid       Attribute              Name'
+!' S_seg      P/len      P/Area     Phot/sec',&
+!'  (m)       (W/m)     (W/mm^2)     (1/s)'
 
 end subroutine
 
@@ -264,12 +266,6 @@ subroutine write_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
               seg%a%beta, seg%b%beta,seg%a%eta, key_name(key), &
               value, trim(lat%ele(seg%ix_ele)%name), &
               ep_source_key_name, trim(ep_source_name), ep%s_source, ep%n_source
-
-!    fmt = '(f10.4, 2es11.3)'
-!    write (1, fmt) &
-!              seg%s, &
-!              1.e-6 * (ep%power_per_area), &
-!              ep%photons_per_sec
 
   enddo
   close (unit = 1)
