@@ -537,11 +537,9 @@ if (pt%basic_shape == 'rectangular') then
   endif
 
 elseif (pt%basic_shape == 'elliptical') then
-  r_p = vec(1)**2 + vec(3)**2
-  r_w = sqrt((pt%width2 * vec(1))**2 + (pt%height2 * vec(3))**2)
-  g = r_w / r_p
-  dw_x = 2 * vec(1) * g / r_p - pt%width2**2 * vec(1) / (r_p * r_w)
-  dw_y = 2 * vec(3) * g / r_p - pt%height2**2 * vec(3) / (r_p * r_w)
+  g = 1 / sqrt((vec(1)/pt%width2)**2 + (vec(3)/pt%height2)**2)
+  dw_x = vec(1) * g**3 / pt%width2**2
+  dw_y = vec(3) * g**3 / pt%height2**2
 
 endif
 
