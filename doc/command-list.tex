@@ -406,7 +406,7 @@ The \vn{output} command creates various files.
 Format:
 \begin{example}
   output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
-  output beam \{-ascii\} \{-at <element_name_or_index>\} \{<file_name>\} 
+  output beam \{-ascii\} -at <element_list> \{<file_name>\} 
                                           ! Write beam distribution data.
   output covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
                                           !   from the Levenburg (lm) optimization.
@@ -465,12 +465,16 @@ switch.  If present, only the information on variables that are
 currently used in the optimization is written.
 
 \vn{output beam} will create a file of the particle positions when
-beam tracking is being used. If the switch \vn{-at} is present then
-only the particle positions at the given element are written. 
-Otherwise the positions at all elements will be written. The
+beam tracking is being used. The \vn{-at} switch specifies at what
+elements the particle positions are written. Element list format
+(\sref{s:ele.list.format}), without any embeded blanks, is used for
+the \vn{<element_list>} argument to the \vn{-at} switch. The
 \vn{-ascii} switch is for writing text files. The default is to write
 with a compressed binary format.  Note: Beam files can be used to
-initialize \tao (\sref{s:command.line}). 
+initialize \tao (\sref{s:command.line}). Example
+\begin{example}
+  output beam -at *   ! Output beam at every element.
+\end{example}
 
 Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.

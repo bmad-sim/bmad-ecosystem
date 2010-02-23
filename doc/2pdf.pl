@@ -39,7 +39,7 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`scp tao.html       dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad`;
-`scp tao-manual-*.pdf dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad`;
-`scp tao-manual-*.ps  dcs\@lnx209.lepp.cornell.edu:/home/dcs/public_html/bmad`;
+`scp tao.html         /home/dcs/public_html/bmad`;
+`scp tao-manual-*.pdf /home/dcs/public_html/bmad`;
+`scp tao-manual-*.ps  /home/dcs/public_html/bmad`;
 

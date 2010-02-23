@@ -24,6 +24,7 @@ type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (ele_struct), pointer :: ele
 
 real(rp) scale
 
@@ -40,10 +41,10 @@ character(20) :: names(16) = (/ &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ' /)
 
-integer i, j, n, ix, iu, nd, ii, i_uni, ib, ip, ios, loc, ibr
+integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam
 
-logical is_open, ascii, ok, err, good_opt_only
+logical is_open, ascii, ok, err, good_opt_only, at_switch
 
 !
 
@@ -76,6 +77,7 @@ case ('beam')
   file_name0 = 'beam_#.dat'
   loc = -1
   is_open = .false.
+  at_switch = .false.
 
   do
     call tao_next_switch (what2, (/ '-ascii', '-at   ' /), switch, err, ix)
@@ -86,6 +88,7 @@ case ('beam')
       call tao_locate_elements (what2(1:ix), s%global%u_view, eles, err)
       what2 = what2(ix+1:)
       if (err .or. size(eles) == 0) return
+      at_switch = .true.
     endif
   enddo
 
@@ -97,6 +100,11 @@ case ('beam')
     endif
   endif
 
+  if (.not. at_switch) then
+    call out_io (s_error$, r_name, 'YOU NEED TO SPECIFY "-at".')
+    return
+  endif 
+
   iu = lunget()
 
   uni_loop: do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -106,59 +114,52 @@ case ('beam')
     if (.not. subin_uni_number (file_name0, i, file_name)) return
     call fullfilename (file_name, file_name)
 
-    do ibr = 0, ubound(u%uni_branch, 1)
+    do ie = 1, size(eles)
 
-      if (eles(1)%ele%ix_branch /= ibr) cycle
-
+      ele => eles(ie)%ele
       ! Write file
 
-      do j = lbound(u%uni_branch(ibr)%ele, 1), ubound(u%uni_branch(ibr)%ele, 1)
+      beam => u%uni_branch(ele%ix_branch)%ele(ele%ix_ele)%beam
+      if (.not. allocated(beam%bunch)) cycle
 
-        if (eles(1)%ele%ix_ele /= j) cycle
-
-        beam => u%uni_branch(ibr)%ele(j)%beam
-        if (.not. allocated(beam%bunch)) cycle
-
-        if (.not. is_open) then
-          if (ascii) then
-            open (iu, file = file_name)
-          else
-            open (iu, file = file_name, form = 'unformatted')
-            write (iu) '!BINARY'
-          endif
-          is_open = .true.
-        endif
-
+      if (.not. is_open) then
         if (ascii) then
-          write (iu, *) 'BEGIN_BUNCH'
-          write (iu, *) j, '  ! ix_ele' 
-          write (iu, *) size(beam%bunch), '  ! n_bunch'
-          write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
-          do ib = 1, size(beam%bunch)
-            bunch => beam%bunch(ib)
-            write (iu, *) bunch%charge, '  ! bunch_charge'
-            write (iu, *) bunch%z_center, '  ! z_center'
-            write (iu, *) bunch%t_center, '  ! t_center'
-            do ip = 1, size(bunch%particle)
-              write (iu, '(6es19.10, es14.5, i6, 4es19.10)') &
-                            bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
-                            bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin 
-            enddo
-            write (iu, *) 'END_BUNCH'
-          enddo
+          open (iu, file = file_name)
         else
-          write (iu) j, size(beam%bunch), size(beam%bunch(1)%particle)
-          do ib = 1, size(beam%bunch)
-            bunch => beam%bunch(ib)
-            write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
-            do ip = 1, size(bunch%particle)
-              write (iu) bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
-                                 bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin
-            enddo
-          enddo
+          open (iu, file = file_name, form = 'unformatted')
+          write (iu) '!BINARY'
         endif
+        is_open = .true.
+      endif
 
-      enddo
+      if (ascii) then
+        write (iu, *) 'BEGIN_BUNCH'
+        write (iu, *) j, '  ! ix_ele' 
+        write (iu, *) size(beam%bunch), '  ! n_bunch'
+        write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
+        do ib = 1, size(beam%bunch)
+          bunch => beam%bunch(ib)
+          write (iu, *) bunch%charge, '  ! bunch_charge'
+          write (iu, *) bunch%z_center, '  ! z_center'
+          write (iu, *) bunch%t_center, '  ! t_center'
+          do ip = 1, size(bunch%particle)
+            write (iu, '(6es19.10, es14.5, i6, 4es19.10)') &
+                          bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
+                          bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin 
+          enddo
+          write (iu, *) 'END_BUNCH'
+        enddo
+      else
+        write (iu) j, size(beam%bunch), size(beam%bunch(1)%particle)
+        do ib = 1, size(beam%bunch)
+          bunch => beam%bunch(ib)
+          write (iu) bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
+          do ip = 1, size(bunch%particle)
+            write (iu) bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
+                               bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin
+          enddo
+        enddo
+      endif
 
     enddo 
 
