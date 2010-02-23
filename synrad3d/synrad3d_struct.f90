@@ -4,10 +4,14 @@ use bmad_struct
 use bmad_interface
 
 ! This structure defines a photon at a particular point.
+! for vec(6): (x, y, s) is the local coordinate system with
+!  s being the longitudinal position (s = 0 is the start of the lattice), 
+!  and  x, y are the local transverse coords. See the Bmad manual for more details.
 ! Notice that vec(1)^2 + vec(3)^2 + vec(5)^2 = 1
 
+
 type photon3d_coord_struct
-  real(rp) vec(6)             ! Position: (x, vx/c, y, vy/c, s, vz/c)
+  real(rp) vec(6)             ! Photon position: (x, vx/c, y, vy/c, s, vz/c)
   real(rp) energy             ! In eV
   real(rp) track_len          ! length of the track from the start
   integer ix_ele              ! index of lattice element we are in.
