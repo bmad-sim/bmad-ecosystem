@@ -582,7 +582,11 @@ enddo
 
 call s_calc (lat)
 call lat_geometry (lat)
-if (logic_option (.true., make_mats6)) call lat_make_mat6 (lat, -1)
+if (logic_option (.true., make_mats6)) then
+  call lattice_bookkeeper (lat)
+  call lat_make_mat6 (lat, -1)
+endif
+
 err_flag = .false.
 bmad_status%ok = .true.
 

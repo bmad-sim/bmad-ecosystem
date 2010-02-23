@@ -46,6 +46,9 @@ if (ele%n_slave == 0) then
 
   if (ele%ix_ele > lat%branch(ele%ix_branch)%n_ele_track) then
     nullify (ele1, ele2)
+  elseif (ele%ix_ele == 0) then
+    ele1 => ele
+    ele2 => ele
   else
     ele1 => pointer_to_ele (lat, ele%ix_ele-1, ele%ix_branch)
     ele2 => ele
@@ -58,6 +61,7 @@ elseif (ele%lord_status == super_lord$) then
 
 ! For overlays and groups: The idea is to look at all the slave elements in the tracking 
 ! part of the lattice and find the minimum and maximum element indexes.
+! An element with a greater %ix_branch is always considered to be greater independent of %ix_ele.
 ! The small complication is that overlays or groups lords can control other overlays or 
 ! groups, etc.
 ! So we must "recursively" follow the slave tree.
