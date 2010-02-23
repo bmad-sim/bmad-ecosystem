@@ -931,7 +931,7 @@ end subroutine transfer_lat
 !+
 ! Subroutine reallocate_coord (coord, n_coord)
 !
-! Subroutine to reallocate an allocatable  coord_struct array to at least:
+! Subroutine to allocate an allocatable  coord_struct array to at least:
 !     coord(0:n_coord)
 ! Note: The old coordinates are not saved except for coord(0).
 ! If, at input, coord(:) is not allocated then coord(0)%vec is set to zero.
@@ -976,6 +976,67 @@ else
 endif
 
 end subroutine reallocate_coord
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord_array (coord_array, lat)
+!
+! Subroutine to allocate an allocatable coord_array_struct array to
+! the proper size for a lattice.
+!
+! Note: Any old coordinates are not saved except for coord_array(:)%orb(0).
+! If, at input, coord_array is not allocated, coord_array(:)%orb(0)%vec is set to zero.
+! In any case, all other %vec components are set to zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   coord(:) -- Coord_struct, allocatable: Allocatable array.
+!   lat      -- lat_struct: 
+!
+! Output:
+!   coord(:) -- coord_struct: Allocated array.
+!-
+
+subroutine reallocate_coord_array (coord_array, lat)
+
+implicit none
+
+type (coord_array_struct), allocatable :: coord_array(:)
+type (lat_struct) lat
+type (coord_struct), allocatable, save :: start(:)
+
+integer i, j, nb
+
+!
+
+if (.not. allocated(lat%branch)) return
+nb = ubound(lat%branch, 1)
+
+if (allocated (coord_array)) then
+  if (size(coord_array) /= nb + 1) then
+    call reallocate_coord(start, nb)
+    do i = 0, nb
+      start(i) = coord_array(i)%orb(0)
+    enddo
+    deallocate (coord_array)
+    allocate (coord_array(0:nb))
+    do i = 0, nb
+      call reallocate_coord (coord_array(i)%orb, lat%branch(i)%n_ele_max)
+      coord_array(i)%orb(0) = start(i)
+    enddo
+  endif
+else
+  allocate (coord_array(0:nb))
+  do i = 0, nb
+    call reallocate_coord (coord_array(i)%orb, lat%branch(i)%n_ele_max)
+  enddo
+endif
+
+end subroutine reallocate_coord_array
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------

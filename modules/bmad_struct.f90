@@ -37,7 +37,7 @@ type coord_struct            ! Particle coordinates at a single point
 end type
 
 type coord_array_struct
-  type (coord_struct), allocatable :: orbit(:)
+  type (coord_struct), allocatable :: orb(:)
 end type
 
 ! Coupling structure

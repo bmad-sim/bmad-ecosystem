@@ -2,7 +2,7 @@
 ! Subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 !                                                     start, end, body_only, err)
 !
-! Subroutine to propagate partially through ELE2 the twiss parameters and the
+! Subroutine to propagate partially through ele2 the twiss parameters and the
 ! orbit. 
 !
 ! This routine assumes that the end point is inside the element so
@@ -45,13 +45,13 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   use bmad_struct
   use bmad_interface, except_dummy => twiss_and_track_partial
-  use bookkeeper_mod, only: attribute_bookkeeper
+  use bookkeeper_mod, only: attribute_bookkeeper, makeup_super_slave1
 
   implicit none
 
   type (ele_struct), optional :: ele3
   type (ele_struct) ele1, ele2
-  type (ele_struct), save :: ele
+  type (ele_struct), save :: runt
   type (coord_struct), optional :: start, end
   type (coord_struct) c0, c1
   type (lat_param_struct) param
@@ -61,7 +61,7 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
   character(24) :: r_name = 'twiss_and_track_partial'
   character(80) line
   logical, optional :: body_only, err
-  logical error
+  logical error, track_exit
 
   ! Error check
 
@@ -97,22 +97,15 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
 
   endif
 
-  ! The only real complication comes with a dipole where we have to negate
-  ! the focusing of the exit face (we never get to the exit face since we are
-  ! only partially tracking through).
+  ! Create the runt element to track through.
 
-  ele = ele2
-  ele%s = ele1%s + del_s
-  ele%value(l$) = del_s
-  ratio = del_s / l_orig
-  ele%value(hkick$) = ele2%value(hkick$) * ratio
-  ele%value(vkick$) = ele2%value(vkick$) * ratio
-  if (ele%key == hkicker$ .or. ele%key == vkicker$) &
-                        ele%value(kick$) = ele2%value(kick$) * ratio
-  if (ele%key == lcavity$) ele%value(e_loss$) = ele%value(e_loss$) * ratio
-
+  runt = ele2
+  runt%s = ele1%s + del_s
+  runt%value(l$) = del_s
+  track_exit = .not. logic_option(body_only, .false.)
+  call makeup_super_slave1 (runt, ele2, 0.0_rp, param, .true., track_exit)
   ! Need to do bookkeeping if auto_bookkeeper is off
-  if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+  if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (runt, param)
 
   ! If not easy case then do tracking...
 
@@ -122,36 +115,31 @@ subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
     c0%vec = 0
   endif
 
-  track = ele%tracking_method
-  mat6 = ele%mat6_calc_method
+  track = runt%tracking_method
+  mat6 = runt%mat6_calc_method
 
-  select case (ele%key)
+  select case (runt%key)
   case (wiggler$) 
     if (track == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
-                                                  ele%tracking_method = symp_lie_bmad$
+                                                  runt%tracking_method = symp_lie_bmad$
     if (mat6 == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
-                                                  ele%mat6_calc_method = symp_lie_bmad$
-  case (sbend$)
-    if (track == taylor$ .or. track == symp_map$) ele%tracking_method = bmad_standard$
-    if (mat6 == taylor$ .or. track == symp_map$)  ele%mat6_calc_method = bmad_standard$
-    if (logic_option(.false., body_only)) ele%value(e1$) = 0
-    ele%value(e2$) = 0  
+                                                  runt%mat6_calc_method = symp_lie_bmad$
   case default
-    if (track == taylor$ .or. track == symp_map$) ele%tracking_method = bmad_standard$
-    if (mat6 == taylor$ .or. track == symp_map$)  ele%mat6_calc_method = bmad_standard$
+    if (track == taylor$ .or. track == symp_map$) runt%tracking_method = bmad_standard$
+    if (mat6 == taylor$ .or. track == symp_map$)  runt%mat6_calc_method = bmad_standard$
   end select
 
-  call track1 (c0, ele, param, c1)
+  call track1 (c0, runt, param, c1)
   if (param%lost) return
 
   if (present(end)) end = c1
 
   if (present(ele3)) then
     if (ele2%key == sbend$) c1%vec = 0
-    call make_mat6 (ele, param, c0, c1, .true.)   
-    call twiss_propagate1(ele1, ele, error)      
+    call make_mat6 (runt, param, c0, c1, .true.)   
+    call twiss_propagate1(ele1, runt, error)      
     if (error) return
-    ele3 = ele
+    ele3 = runt
   endif
 
   if (present(err)) err = .false.

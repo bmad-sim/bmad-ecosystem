@@ -271,6 +271,12 @@ $pl_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
 $pl_hash{"read_parameter"} = "aml_parser.f90";
 $pl_hash{"mat_det"} = "mat_det.f90";
 
+$pl_hash{"convert1"} = "f77_to_f90.f90";
+$pl_hash{"write_flx"} = "f77_to_f90.f90";
+$pl_hash{"push_stack"} = "f77_to_f90.f90";
+$pl_hash{"flx_word_test"} = "f77_to_f90.f90";
+$pl_hash{"add_ampersand"} = "f77_to_f90.f90";
+
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
 
@@ -278,7 +284,7 @@ $tex_file =  'subroutines.tex';
 open (F_IN, $tex_file) || die ("Cannot open File: $tex_file");
 
 while (<F_IN>) {
-  if (/\\index\{routine\!(.*?)\}/i)  {      # match to "\index{routine!...}" 
+  if (/\\index\[routine\]\{(.*?)\}/i)  {      # match to "\index[routine]{...}" 
     $name = $1;
     $name =~ s/protect\\parbox\{6in\}\{//;
     $name =~ tr/A-Z/a-z/;    # lowercase
@@ -376,7 +382,7 @@ sub searchit {
           print "\nFile: $file\n";
           $this2 = $this; 
           $this2 =~ s/\s*\(.*//;
-          print "\\index\{routine\!$this2\}\n";
+          print "\\index\[routine\]\{$this2\}\n";
           $this2 =~ s/_/./g;
           print "\\label\{r:$this2\}\n";
           print "\\item\[$this\] \\Newline \n";

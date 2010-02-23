@@ -35,7 +35,6 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele1, ele2
-type (branch_struct), pointer :: branch
 
 integer ix_start, ix_end, ix_start_branch, ix_end_branch
 integer ix1, ix2, n, n_end, n_slave, ix_slave, ix_branch
@@ -66,7 +65,7 @@ elseif (ele%lord_status == super_lord$) then
 
 else  ! overlay_lord$, group_lord$, multipass_lord$
 
-  ix_start = branch%n_ele_track + 1
+  ix_start = 1000000
   ix_start_branch = ubound(lat%branch, 1) + 1
 
   ix_end = 0

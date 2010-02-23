@@ -30,67 +30,114 @@ chapter.
 \section{The coord_struct}
 \index{coord_struct}
 
-For particle tracking, the starting point is the
-\vn{coord_struct} which defines a particle. The definition of
-the \vn{coord_struct} is
+\index{spin}
+\index{phase space coordinates}
+For both particle and beam tracking the starting point is the
+\vn{coord_struct} which defines a position of a particle at a given
+point. The definition of the \vn{coord_struct} is
 \begin{example}
   type coord_struct
     real(rp) vec(6)     ! (x, px, y, py, z, pz)
     complex(rp) spin(2) ! particle spin in spinor notation
   end type
 \end{example}
+The \vn{%vec(6)} array defines the phase space coordinants
+(\vn{s:phase.space}) and spin (\sref{s:spin.dyn}).
 
-\index{lat_struct!\%n_ele_max}
-\index{lat_struct!\%n_ele_track}
-To get an orbit, that is, the particle position at every element in a
-lattice, you will need an array of \vn{coord_struct}s. Since the
-number of elements in the lattice is not known in advance the array
-must be declared to be allocatable.
+When associated with a lattice element, a \vn{coord_struct} variable
+gives a particle's position at the exit end of the element.  To get an
+orbit through a lattice branch (\sref{s:lat.struct}), that is, the
+particle position at every element in the branch, an array of
+\vn{coord_struct}s is needed. Since the number of elements in the
+lattice is not known in advance the array must be declared to be
+allocatable. The lower bound of the array must be set to zero since
+that is the lower bound for the \vn{lat%branch(i)%ele(:)} arrays.  The
+upper bound should be the upper bound of the \vn{%branch(i)%ele(:)}
+array.  The routine \Hyperref{r:reallocate.coord}{reallocate_coord} will allocate an array of
+\vn{coord_struct}s:
 \begin{example}
   type (coord_struct), allocatable :: orbit(:)
+  type (lat_struct) lat
+  ...
+  call reallocate_coord (orbit, lat%branch(i)%n_ele_max)
+  orbits(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
+  ...
+  deallocate(orbit) ! Needed if orbit is a local var
 \end{example}
-An example of how to do multi-turn tracking (assuming a circular lattice) is
-\index[routine]{track_all}\index[routine]{bmad_parser}
+The deallocation at the end of this example is needed when the
+\vn{coord_struct} array is defined locally (not passed as an argument
+to the routine) in a subroutine or function. Alternatively, the
+\vn{save} attribute can be used so that the array stays around until
+the next time the routine is called
+\begin{example}
+  type (coord_struct), allocatable, save :: orb(:) 
+\end{example}
+Saving the \vn{coord_stuct} is faster but leaves memory tied up.  Note
+that in the main program the \vn{save} attribute is not permitted and
+the deallocation is not necessary.  If a \vn{coord_struct} array is
+passed to a routine, the routine must explicitly set the lower bound
+to zero if the array is not declared as allocatable:
+\begin{example}
+  subroutine my_routine (orbit1, orbit2)
+    use bmad
+    implicit none
+    type (coord_struct), allocatable :: orbit1(:)  ! OK
+    type (coord_struct) orbit2(0:)                 ! Also OK
+    ...
+\end{example}
+Declaring the array allocatable is manditory if the array is to be resized
+or the array is passed to a routine that declares it allocatable.
+
+\index{coord_array_struct}
+For an entire lattice, the \vn{coord_array_struct} can be used to define an array
+of \vn{coord_array} arrays:
+\begin{example}
+  type coord_array_struct
+    type (coord_struct), allocatable :: orb(:)
+  end type
+\end{example}
+The routine \Hyperref{r:reallocate.coord.array}{reallocate_coord_array} will allocate an
+\vn{coord_array_struct} instance
+\begin{example}
+  type (coord_array_struct), allocatable :: all_orbit(:)
+  type (lat_struct) lat
+  ...
+  call reallocate_coord_array (all_orbit, lat)
+  ...
+  deallocate(all_orbit) ! Needed if all_orbit is a local var
+\end{example}
+
+%----------------------------------------------------------------
+\section{Particle Tracking Through the Lattice}
+
+The routine \Hyperref{r:track.all}{track_all} tracks thourgh a given branch of the
+lattice.  Multi-turn tracking over a branch is then simply a matter of
+setting the coordinates at the beginning zeroth element equal to the
+last tracked element within a loop:
 \begin{example}
   type (lat_struct) lat             ! lattice to track through
   type (coord_struct), allocatable :: orbit(:)
   ...
-  call bmad_parser ('this_lattice', lat)
+  call reallocate_coord (orbit, lat%branch(1)%n_ele_max)
+  orbits(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
+  do i = 1, n_turns
+    call track_all (lat, orbit, 1)
+    orbit(0) = orbit(lat%branch(1)%n_ele_track)
+  end do
+\end{example}
+Often times it is only the main branch, \vn{branch(0)}, that is to be tracked.
+In this case, the above reduces to
+\begin{example}
+  type (lat_struct) lat             ! lattice to track through
+  type (coord_struct), allocatable :: orbit(:)
   ...
   call reallocate_coord (orbit, lat%n_ele_max)
-  orbits(0)%vec = (/ 0.01, 0.2, 0.3, 0.4, 0.0, 0.0 /) ! initialization
+  orbits(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
   do i = 1, n_turns
     call track_all (lat, orbit)
     orbit(0) = orbit(lat%n_ele_track)
   end do
 \end{example}
-\index{super_lord}
-\vn{orbit(n)} holds the particle's position at the exit end of the
-$n$\Th element. Since \vn{super_lord} (\sref{s:ele.control}) elements
-have an associated particle position, the upper bound of the
-\vn{orbit(:)} array must be at least \vn{lat%n_ele_max}
-(\sref{s:lat.struct}).  The call to \vn{reallocate_coord} does the
-allocation for the \vn{orbit(:)} array. Since \vn{lat%ele(0)} is
-essentially a marker element \vn{orbit(0)} is the orbit at the start
-of the lattice.  \vn{track_all} takes \vn{orbit(0)} and tracks through
-the list of lattice elements until it gets to the last trackable
-element \vn{lat%n_ele_track} (\sref{s:lat.struct}).
-
-If you are writing a routine where the \vn{coord_struct} array is
-local (not passed as an argument to the routine) then you have to
-decide how to cleanup the allocated \vn{coord_struct} memory at the
-end of the routine. In general you have two choices: 1) Deallocate
-the array. This is the cleanest solution but it can be slow since you
-have to allocate afresh each time the routine is called. 2) Use the
-save attribute so that the array stays around until the next time the
-routine is called 
-\begin{example}
-  type (coord_struct), allocatable, save :: orb(:) 
-\end{example}
-Saving the \vn{coord_stuct} is faster but leaves memory tied up. 
-
-%----------------------------------------------------------------
-\section{Tracking Through the Elements}
 
 The routine \Hyperref{r:track1}{track1} is the routine that tracks through one
 element in the lattice. The routine \Hyperref{r:track.all}{track_all} calls \vn{track1}

@@ -31,54 +31,69 @@
 !   orbit(0:*)  -- Coord_struct: Orbit array.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track_all (lat, orbit, ix_branch)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => track_all
-  use bookkeeper_mod, only: control_bookkeeper
+use bmad_struct
+use bmad_interface, except_dummy => track_all
+use bookkeeper_mod, only: control_bookkeeper
 
-  implicit none
+implicit none
 
-  type (lat_struct)  lat
-  type (coord_struct), allocatable :: orbit(:)
+type (lat_struct), target :: lat
+type (coord_struct), allocatable :: orbit(:)
+type (ele_struct), pointer :: lord, slave
+type (branch_struct), pointer :: branch
 
-  integer n, i, nn, ix_br
-  integer, optional :: ix_branch
+integer n, i, nn, ix_br
+integer, optional :: ix_branch
 
-  logical :: debug = .false.
+logical :: debug = .false.
 
 ! init
 
-  ix_br = integer_option (0, ix_branch)
-  if (size(orbit) < lat%branch(ix_br)%n_ele_max+1) call reallocate_coord (orbit, lat%branch(ix_br)%n_ele_max)
+ix_br = integer_option (0, ix_branch)
+branch => lat%branch(ix_br)
 
-  lat%param%ix_lost = not_lost$
+if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
-  if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
+branch%param%ix_lost = not_lost$
+
+if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 ! track through elements.
 
-  do n = 1, lat%branch(ix_br)%n_ele_track
+do n = 1, branch%n_ele_track
 
-    call track1 (orbit(n-1), lat%branch(ix_br)%ele(n), lat%param, orbit(n))
+  call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n))
 
-! check for lost particles
+  ! check for lost particles
 
-    if (lat%param%lost) then
-      lat%param%ix_lost = n
-      do nn = n+1, lat%branch(ix_br)%n_ele_track
-        orbit(nn)%vec = 0
-      enddo
-      return
-    endif
+  if (branch%param%lost) then
+    branch%param%ix_lost = n
+    do nn = n+1, branch%n_ele_track
+      orbit(nn)%vec = 0
+    enddo
+    exit
+  endif
 
-    if (debug) then
-      print *, lat%branch(ix_br)%ele(n)%name
-      print *, (orbit(n)%vec(i), i = 1, 6)
-    endif
+  if (debug) then
+    print *, branch%ele(n)%name
+    print *, (orbit(n)%vec(i), i = 1, 6)
+  endif
 
-  enddo
+enddo
+
+! Fill in super_lord info.
+! This only works on the main branch at present
+
+if (ix_br /= 0) return
+
+do n = lat%n_ele_track+1, lat%n_ele_max
+  lord => lat%ele(n) 
+  if (lord%lord_status /= super_lord$) cycle
+  slave => pointer_to_slave (lat, lord, lord%n_slave)
+  if (slave%ix_branch /= ix_br) cycle
+  orbit(lord%ix_ele) = orbit(slave%ix_ele)
+enddo
 
 end subroutine

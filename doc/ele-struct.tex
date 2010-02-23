@@ -651,8 +651,12 @@ someone writing a program. These components are
 %--------------------------------------------------------------------------
 \section{Bmad Reserved Variables}
 
+index{ele_struct!\%ixx}
+index{ele_struct!\%old_is_on}
+index{ele_struct!\%bmad_logic}
+index{ele_struct!\%const}
 A number of \vn{ele_struct} components are reserved for use by \bmad routines
-only. These are
+only. These are:
 \begin{example}
   %ixx
   %old_is_on
@@ -660,4 +664,16 @@ only. These are
   %const(:)
 \end{example}
 
+%--------------------------------------------------------------------------
+\section{Creating Element Slices}
 
+\index{sbend}\index{rbend}\index{wiggler}
+It is sometimes convenient to split an element longitudinally into ``slices''
+that represent a part of the element.
+This is complicated by the fact that elements are not necessarily uniform.
+For example, map type wigglers are nonuniform and bend elements have end effects.
+Furthermore, attributes like \vn{hkick} need to be scaled with the element length.
+
+To create an element slice, the routine
+\Hyperref{r:makeup.super.slave1}{makeup_super_slave1} can be used.
+\begin{example}
