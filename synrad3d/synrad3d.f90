@@ -125,8 +125,8 @@ call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele)
 if (ix_ele_track_end > ix_ele_track_start) then
   i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:ix_ele_track_end))
 else
-  i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:lat%n_ele_track))
-  i0_tot = sum(rad_int_ele%i0(1:ix_ele_track_end))
+  i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:lat%n_ele_track)) + &
+           sum(rad_int_ele%i0(1:ix_ele_track_end))
 endif
 
 if (i0_tot == 0) then
@@ -200,6 +200,10 @@ do
     n_photon_here = nint(g * gamma * ds / d_i0)
     do j = 1, n_photon_here
       n_photon_tot = n_photon_tot + 1
+      if (n_photon_tot > size(photons)) then
+        print *, 'INTERNAL ERROR: NUMBER OF PHOTONS GENERATED TOO LARGE!'
+        call err_exit
+      endif
       photon => photons(n_photon_tot)
       photon%ix_photon = n_photon_tot
       call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
