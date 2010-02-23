@@ -107,7 +107,7 @@ endif
 call twiss_and_track (lat, orb, ok)
 if (.not. ok) stop
   
-if (ix_ele_track_end == -1) ix_ele_track_end = lat%n_ele_track
+if (ix_ele_track_end < -1) ix_ele_track_end = lat%n_ele_track
 
 allocate (wall%pt(0:n_wall_pt_max))
 wall%pt = wall_pt(0:n_wall_pt_max)
@@ -121,7 +121,14 @@ call ran_seed_put (random_seed)
 ! Find out much radiation is produced
 
 call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele)
-i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:ix_ele_track_end))
+
+if (ix_ele_track_end > ix_ele_track_start) then
+  i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:ix_ele_track_end))
+else
+  i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:lat%n_ele_track))
+  i0_tot = sum(rad_int_ele%i0(1:ix_ele_track_end))
+endif
+
 if (i0_tot == 0) then
   call out_io (s_fatal$, r_name, 'No bends in region of interest')
   call err_exit
@@ -168,7 +175,7 @@ do
 
   if (ix_ele == ix_ele_track_end) exit
   ix_ele = ix_ele + 1
-  if (ix_ele > lat%n_ele_track) ix_ele = 1
+  if (ix_ele > lat%n_ele_track) ix_ele = 0
 
   ele => lat%ele(ix_ele)
 

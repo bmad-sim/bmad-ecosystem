@@ -216,6 +216,9 @@ elements in the lattice. The radiation region boundary is taken to be at
 the exit end of the elements so no radiation is produced in the element
 with index \vn{ix_ele_track_start}. If \vn{ix_ele_track_end} is negative,
 the end of the radiation region is taken to be end of the lattice.
+If \vn{ix_ele_track_end} is positive and less than \vn{ix_ele_track_start},
+then the track region will be from \vn{ix_ele_track_start} through the
+end of the lattice and from the beginning of the lattice to \vn{ix_ele_track_end}.
   \item[\vn{photon_direction}] \Newline
 The \vn{photon_direction} parameter determines in what direction the photons
 are traveling when initially created. A value of \vn{+1} indicates the photons
