@@ -259,8 +259,9 @@ do
           if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
           if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
         endif
+        if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
       endif
-      if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+
     enddo
 
     s_offset = s_offset + ds
