@@ -47,12 +47,23 @@ do i = 0, wall%n_pt_max
     endif
   endif
 
-  if (pt%basic_shape /= 'elliptical' .and. pt%basic_shape /= 'rectangular') then
+  if (.not. any(pt%basic_shape == ['elliptical ', 'rectangular', 'linear     ', 'sym_linear '])) then
     call out_io (s_fatal$, r_name, &
               'BAD WALL%PT(i)%BASIC_SHAPE: ' // pt%basic_shape, &
               '    FOR PT(I) INDEX: \i0\ ', i_array = [i])
     call err_exit
   endif
+
+  if (pt%basic_shape == 'linear' .or. pt%basic_shape == 'sym_linear') then
+    if (pt%ix_shape < 1) then
+      call out_io (s_fatal$, r_name, &
+              'WALL%PT(I)%IX_SHAPE NOT FOR PT(I) INDEX: \i0\ ', i_array = [i])
+      call err_exit
+    endif
+
+    cycle
+  endif
+
 
   if (pt%width2 <= 0) then
     call out_io (s_fatal$, r_name, &

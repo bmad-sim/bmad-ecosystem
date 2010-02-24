@@ -252,7 +252,7 @@ do i = 1, n_photon_tot
   photon => photons(i)
   iu = 1
   if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
-  write (iu, '(2i8, f10.2, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
+  write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
                                              '! index, n_reflect, eV, intensity'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'

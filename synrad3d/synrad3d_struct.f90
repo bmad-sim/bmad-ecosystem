@@ -50,7 +50,7 @@ end type
 
 type wall3d_pt_struct
   real(rp) s                      ! Longitudinal position.
-  character(16) basic_shape       ! "elliptical" or "rectangular".
+  character(16) basic_shape       ! "elliptical", "rectangular", "linear", or "sym_linear".
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
   real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
@@ -61,12 +61,26 @@ type wall3d_pt_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
+  integer ix_shape                ! Shape index for "linear" or "sym_linear"
+end type
+
+! Structure used to hold linear and sym_linear shapes
+
+type wall3d_linear_vertex_struct
+  real(rp) r                   ! Radius
+  real(rp) theta               ! Angle
+  logical in_antechamber       ! This vertex part of an antechamber.
+end type
+
+type wall3d_linear_struct
+  type (wall3d_linear_vertex_struct), allocatable :: v(:)
 end type
 
 ! This is just an array of chamber cross-sections.
 
 type wall3d_struct
   type (wall3d_pt_struct), allocatable :: pt(:)
+  type (wall3d_linear_vertex_struct), allocatable :: lin_shape(:)
   integer n_pt_max
 end type
 
