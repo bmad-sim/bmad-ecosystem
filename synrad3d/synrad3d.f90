@@ -25,16 +25,17 @@ type (wall3d_pt_struct) wall_pt(0:100)
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
+real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
 integer i, j, iu, n_wall_pt_max, random_seed
-integer ix_ele, n_photon_tot, i0_ele, n_photon_ele, n_photon_here
+integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_phot
 
 character(100) lattice_file, dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
-logical ok
+logical ok, filter_on, s_wrap_on, filter_this
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
@@ -65,6 +66,10 @@ sig_e  = -1
 dat_file = 'synrad3d.dat'
 wall_file = 'synrad3d.wall'
 photon_direction = 1
+e_filter_min = -1
+e_filter_max = -1
+s_filter_min = -1
+s_filter_max = -1
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -77,6 +82,7 @@ wall_pt%ante_height2_plus = -1
 wall_pt%ante_height2_minus = -1
 wall_pt%width2_plus = -1
 wall_pt%width2_minus = -1
+wall_pt%ix_shape = -1
 
 open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
@@ -86,6 +92,11 @@ if (n_wall_pt_max > 0) then
   print *, 'NOTE: YOU DO NOT NEED TO SPECIFY N_WALL_PT_MAX IN YOUR WALL FILE!'
   print *, '      THIS SET WILL BE IGNORED.'
 endif
+
+! When a filter parameter is set, only photons that satisfy the filter criteria are kept
+
+filter_on = (e_filter_min > 0) .or. (e_filter_max > 0) .or. (s_filter_min >= 0) .or. (s_filter_max >= 0)
+s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > s_filter_max)
 
 do i = 1, ubound(wall_pt, 1)
   if (wall_pt(i)%basic_shape == '') then
@@ -137,7 +148,11 @@ endif
 print *, 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
 print *, 'I0 Radiation Integral over emission region:', i0_tot
 
+! d_i0 determines the number of photons to generatie per unit i0 integral.
+
 d_i0 = i0_tot / num_photons
+
+! Determine the emittance
 
 if (emit_a < 0) then
   emit_a = modes%a%emittance
@@ -167,13 +182,23 @@ if (sr3d_params%stop_if_hit_antechamber .and. &
   print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
 endif
 
-n_photon_tot = 0
-allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
+n_photon_generated = 0
+n_photon_array = 0
+
+if (filter_on) then
+  allocate (photons(nint(2.1*num_photons)))   
+else
+  allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
+endif
 
 ix_ele = ix_ele_track_start
 do 
 
-  if (ix_ele == ix_ele_track_end) exit
+  if (ix_ele == ix_ele_track_end) then
+    if (.not. filter_on .or. n_photon_array > 0.9 * size(photons)) exit
+    ix_ele = ix_ele_track_start
+  endif
+
   ix_ele = ix_ele + 1
   if (ix_ele > lat%n_ele_track) ix_ele = 0
 
@@ -199,13 +224,14 @@ do
 
     n_photon_here = nint(g * gamma * ds / d_i0)
     do j = 1, n_photon_here
-      n_photon_tot = n_photon_tot + 1
-      if (n_photon_tot > size(photons)) then
+      n_photon_generated = n_photon_generated + 1
+      n_photon_array = n_photon_array + 1
+      if (n_photon_array > size(photons)) then
         print *, 'INTERNAL ERROR: NUMBER OF PHOTONS GENERATED TOO LARGE!'
         call err_exit
       endif
-      photon => photons(n_photon_tot)
-      photon%ix_photon = n_photon_tot
+      photon => photons(n_photon_array)
+      photon%ix_photon = n_photon_array
       call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
                              emit_a, emit_b, sig_e, photon_direction, photon%start)
       photon%n_reflect = 0
@@ -213,15 +239,28 @@ do
 
       call sr3d_photon_radius (photon%start, wall, radius)
       if (radius > 1) then
-        print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_tot
+        print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
         print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
         cycle
       endif
 
-      photon%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
-                                                      (6 * h_bar_planck * c_light * num_photons)
       call sr3d_track_photon (photon, lat, wall)
 
+      ! Check filter restrictions
+
+      if (filter_on) then
+        filter_this = .false.
+        if (e_filter_min > 0 .and. photon%now%vec(6) < e_filter_min) filter_this = .true.
+        if (e_filter_max > 0 .and. photon%now%vec(6) > e_filter_max) filter_this = .true.
+        if (s_wrap_on) then
+          if (photon%now%vec(5) > s_filter_min) filter_this = .true.
+          if (photon%now%vec(5) < s_filter_max) filter_this = .true.
+        else
+          if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+          if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+        endif
+      endif
+      if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
     enddo
 
     s_offset = s_offset + ds
@@ -230,6 +269,9 @@ do
   enddo
 
 enddo
+
+photon%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
+                                                      (6 * h_bar_planck * c_light * n_photon_generated)
 
 ! Write results
 
@@ -246,9 +288,13 @@ write (1, *) 'wall_file          =', wall_file
 write (1, *) 'dat_file           =', dat_file
 write (1, *) 'random_seed        =', random_seed
 write (1, *) 'sr3d_params%allow_reflections =', sr3d_params%allow_reflections
+write (1, *) 'e_filter_min   =', e_filter_min
+write (1, *) 'e_filter_max   =', e_filter_max
+write (1, *) 's_filter_min   =', s_filter_min
+write (1, *) 's_filter_max   =', s_filter_max
 write (1, *)
 
-do i = 1, n_photon_tot      
+do i = 1, n_photon_array   
   photon => photons(i)
   iu = 1
   if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2

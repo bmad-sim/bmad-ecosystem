@@ -96,7 +96,7 @@ is designated for photon generation.
 
 The total number of photons generated is set by the user. \srthree
 calculates how many photons need to be generated within each machine
-element. \srthree then slices up each element longituinally and
+element. \srthree then slices up each element longitudinally and
 generates photons from each slice. The number of photons generated in
 a slice weighted by the local probability of photon emission, which
 depends on the instantaneous orbit curvature. A transverse location
@@ -106,7 +106,7 @@ transverse distribution of the beam.
 A photon is generated with a randomly chosen direction (relative to
 the direction of the beam particle) and energy. The directions and
 energies follow a distribution based on the standard synchrotron
-radiation formulae. The photon is tracked from the point of origin to
+radiation formulas. The photon is tracked from the point of origin to
 the point at which it hits the vacuum chamber wall. The angle of
 incidence relative to the local normal to the vacuum chamber is
 computed. A scattering probability is computed, based on this angle
@@ -124,7 +124,7 @@ computed. This process continues until the photon is absorbed.
 \subsection{Photon generation}
 
 Photon generation is based on the standard synchrotron radiation
-formulae, applicable for dipoles quadrupoles, and wigglers. The
+formulas, applicable for dipoles quadrupoles, and wigglers. The
 radiation is assumed to be incoherent, so this program cannot treat
 undulator radiation. Polarization of the photon is ignored.
 
@@ -152,7 +152,7 @@ respect to the chamber normal at the point of incidence.
 The scattering probabilities are taken from an X-ray scattering
 database at LBNL~\cite{b.henke}. The scattering probabilities depend on
 the material of which the vacuum chamber is composed, and on the
-surface condition (oxide coating, roughness, etc.) In priniciple, the
+surface condition (oxide coating, roughness, etc.) In principle, the
 scattering probability also depends on the photon polarization
 relative to the incident normal to the surface, but this dependence is
 ignored in the simulation.
@@ -176,7 +176,7 @@ Points shown are a measurement from INFN~\cite{b.mehne}}
 %------------------------------------------------------------------
 \subsection{Main input file} 
 
-The main input file can be specified on the command line involking synrad3d.
+The main input file can be specified on the command line invoking synrad3d.
 If not given, the default name for the main input file is ``\vn{synrad3d.init}''.
 Example main input file:
 \begin{example}
@@ -188,9 +188,9 @@ Example main input file:
     ds_step_min      = 0.01   ! Photons are generated at discrete points. 
                               ! Multipole photons can be generated at each point.
                               ! This is minimum distance between points.
-    emit_a       = -1         ! Horiontal emit. Meters. If < 0 -> Calc from lattice.
+    emit_a       = -1         ! Horizontal emit. Meters. If < 0 -> Calc from lattice.
     emit_b       = 7.52E-11   ! Vertical emit.  Meters. If < 0 -> Calc from lattice.
-    sig_e        = -1         ! Sig_E/E. If < 0 -> CAlc from lattice.
+    sig_e        = -1         ! Sig_E/E. If < 0 -> Calc from lattice.
 
     lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
     wall_file    = "synrad3d.wall"     ! Vacuum chamber wall file.
@@ -200,12 +200,16 @@ Example main input file:
     sr3d_params%stop_if_hit_antechamber = F !
     sr3d_params%debug = F                   ! If true then create a file fort.2 
     random_seed = 123456                    ! 0 -> Use sys clock.
+    e_filter_min = -1           ! Min energy filter Output file photon filter
+    e_filter_max = -1
+    s_filter_min = -1
+    s_filter_max = -1
   /
 \end{example}
 Fortran namelist input is used.
 The namelist begins on the line starting with \vn{"\&synrad3d_parameters"}
 and ends with the line containing the slash \vn{"/"}. Anything outside
-of this is ignored. Within the namelist, anything after an excamation
+of this is ignored. Within the namelist, anything after an exclamation
 mark \vn{"!"} is ignored including the exclamation mark. 
 
   \begin{description}
@@ -225,7 +229,10 @@ are traveling when initially created. A value of \vn{+1} indicates the photons
 are created traveling in the $+s$ direction and a value of \vn{-1} indicates
 that the photons are created in the $-s$ direction.
   \item[\vn{num_photons}] \Newline
-The \vn{num_photons} establishes the number of photons generated.
+The \vn{num_photons} establishes the approximate number of photons
+generated.  The exact number of photons shown in the output file may vary
+slightly. If filtering is enabled (see below), the number of photons shown
+in the output file will approximately be in the range [0.9 * num_photons, 2 * num_photons]
   \item[\vn{ds_step_min}] \Newline
 This parameter establishes the minimum distance to track a the particle beam between emission
 points. The thought was that if \srthree decided to make very small steps  between emission
@@ -258,7 +265,43 @@ See below for more details.
   \item[\vn{random_seed}] \Newline
 Random number see used in by the random number generator. If set to 0, the system clock
 will be used. That is, if set to 0, the output results will vary from run to run. 
+  \item[\vn{e_filter_min}, \vn{e_filter_max}] \Newline
+Minimum and maximum energy filter values. A negative filter value
+indicates that the particular filter is not used. See below.
+  \item[\vn{s_filter_min}, \vn{s_filter_max}] \Newline
+Minimum and maximum longitudinal position filter values. A negative filter value
+indicates that the particular filter is not used. See below.
 \end{description}
+
+The four "filter" parameters are:
+\begin{example}
+  e_filter_min   ! min energy filter.
+  e_filter_max   ! max energy filter.
+  s_filter_min   ! min longitudinal position filter.
+  s_filter_max   ! max longitudinal position filter.
+\end{example}
+A filter parameter is "unset" if its value is negative and is "set"
+otherwise.  \srthree can run in "filtered" or "unfiltered"
+mode. Unfiltered mode occurs when none of the filter parameters have
+have been set. In this mode, all photons generated are recorded in
+the output file.
+
+In filtered mode, with at least one of the filter parameters set,
+photons that do not satisfy the set filter values are discarded. The
+filter parameters are compared against the final photon position and
+energy. If both \vn{s_filter_min} and \vn{s_filter_max} have been set,
+and \vn{s_filter_min} is greater than \vn{s_filter_max}, the region
+for keeping a photon is from \vn{s_filter_min} through the end of the
+lattice along with the region from the start of the lattice to
+\vn{s_filter_max}. 
+
+In filtered mode, \srthree will generate a set of approximately
+\vn{num_photons} photons in the radiation production region.  After
+filtering, \srthree will check to see if the number of unfiltered
+photons is at least 0.9 * \vn{num_photons}. If so, photon generation
+will stop. If not enough photons have been generated, \srthree will
+generate another \vn{num_photons}, and so on, until at least 0.9 *
+\vn{num_photons} unfiltered photons have been generated. 
 
 %------------------------------------------------------------------
 \subsection{Vacuum chamber wall definition} 
@@ -318,11 +361,11 @@ A $-x$ aperture is shown in \fig{f.chamber}.
 
 Once a set of chamber cross-sections have been defined, the
 cross-section of the chamber at a given longitudinal position is
-computed using a linear interpolation: In cyclindrical coordinates,
+computed using a linear interpolation: In cylindrical coordinates,
 let $r_{w1}(\theta)$ be the radius of the wall as a function of
 $\theta$ at some point $s_1$ where the chamber cross-section has been
 defined. Let $r_{w2}(\theta)$ be the radius of the wall at the next
-defined cross-section at $s_2$. The radius of the wall corss-section,
+defined cross-section at $s_2$. The radius of the wall cross-section,
 $r_w(\theta, s)$ at some position $s$ with $s_1 \le s \le s_2$ is
 \Begineq
   r_w(\theta, s) = \frac{s_2 - s}{s_2 - s_1} \, r_{w1} + \frac{s_1 - s}{s_1 - s_2} \, r_{w2}
@@ -361,13 +404,13 @@ An example wall definition file is:
 Fortran namelist input is used. 
 The namelist begins on the line starting with \vn{"\&synrad3d_wall"}
 and ends with the line containing the slash \vn{"/"}. Anything outside
-of this is ignored. Within the namelist, anything after an excamation
+of this is ignored. Within the namelist, anything after an exclamation
 mark \vn{"!"} is ignored including the exclamation mark. 
 
 In the namelist, \vn{wall_pt(i)} gives the parameters for the $i$\Th
 cross-section The format for a \vn{wall_pt} is
 \begin{example}
-  wall_pt(i) = s, basic_shape, width2, heigh2, width2_plus, ante_height2_plus, 
+  wall_pt(i) = s, basic_shape, width2, height2, width2_plus, ante_height2_plus, 
                   width2_minus, ante_height2_minus
 \end{example}
 Possible \vn{basic_shape} values are
@@ -518,7 +561,7 @@ http://henke.lbl.gov/optical\_constants/}
 
 \bibitem{b.mehne}
 N. Mahne et. al., ``Experimental Determination of ECLOUD Simulation Input
-Paramaters for DA$\Phi$NE", EuroTev-Report-2005-013
+Parameters for DA$\Phi$NE", EuroTev-Report-2005-013
 
 \end{thebibliography}
 \end{document}  
