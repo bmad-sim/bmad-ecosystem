@@ -816,7 +816,7 @@ elseif (lat%ele(0)%value(e_tot$) /= 0) then
   call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, &
                                            pc = lat%ele(0)%value(p0c$))
 else
-  call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET! WILL USE SOMETHING LARGE!')
+  call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
   lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
 endif
 

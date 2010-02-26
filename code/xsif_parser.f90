@@ -564,6 +564,11 @@ lat%n_ic_max           = 0
 lat%n_control_max      = 0    
 lat%name = ktext  ! ktext is global xsif variable
 
+if (lat%ele(0)%value(e_tot$) == 0) then
+  call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
+  lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
+endif
+
 call set_taylor_order (lat%input_taylor_order, .false.)
 call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
