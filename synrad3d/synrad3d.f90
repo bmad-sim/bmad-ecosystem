@@ -39,7 +39,8 @@ logical ok, filter_on, s_wrap_on, filter_this
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
-            emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed
+            emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
+            e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
