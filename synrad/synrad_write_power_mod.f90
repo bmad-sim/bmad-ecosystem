@@ -61,8 +61,8 @@ subroutine write_power_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
   call set_wall_eles (wall, lat)
 
   file1 = 'synch_power_' // trim(wall_name(wall%side))
-  if (use_ele_ix .ne. 0) then
-    write (ele_num, '(i6.6)') use_ele_ix
+  if (use_ele_ix > 0) then
+    write (ele_num, '(i0)') use_ele_ix
     file1 = trim(file1) // '_' // trim(ele_num)
   endif
   file1 = trim(file1) // '.dat'
@@ -202,8 +202,8 @@ subroutine write_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
   call set_wall_eles (wall, lat)
 
   file1 = 'synrad_' // trim(wall_name(wall%side))
-  if (use_ele_ix .ne. 0) then
-    write (ele_num, '(i6.6)') use_ele_ix
+  if (use_ele_ix > 0) then
+    write (ele_num, '(i0)') use_ele_ix
     file1 = trim(file1) // '_' // trim(ele_num)
   endif
   file1 = trim(file1) // '.txt'

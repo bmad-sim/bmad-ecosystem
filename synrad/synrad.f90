@@ -9,7 +9,7 @@ implicit none
 type (lat_struct) :: lat
 type (coord_struct), allocatable :: orb(:)
 type (walls_struct), target :: walls
-type (wall_struct),pointer :: negative_x_wall, positive_x_wall
+type (wall_struct),pointer :: neg_x_wall, pos_x_wall
 type (synrad_param_struct) :: sr_param
 type (synrad_mode_struct) :: synrad_mode
 
@@ -30,8 +30,8 @@ namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direc
                            forward_beam, backward_beam, use_ele_ix
 
 ! set pointers
-positive_x_wall => walls%positive_x_wall
-negative_x_wall => walls%negative_x_wall
+pos_x_wall => walls%positive_x_wall
+neg_x_wall => walls%negative_x_wall
 
 ! get parameters
 
@@ -66,7 +66,7 @@ open (1, file = in_file, status = "old")
 read (1, nml = synrad_params)
 close (1)
 
-if (use_ele_ix .ne. 0) print *, "Only calculating power for element #",use_ele_ix
+if (use_ele_ix > 0) print *, "Only calculating power for element #",use_ele_ix
 
 !
 
@@ -83,36 +83,36 @@ allocate(back_power(lat%n_ele_max), fwd_power(lat%n_ele_max))
 
 end_s = lat%ele(lat%n_ele_track)%s
 n = 2 * end_s / seg_len + 2
-allocate (positive_x_wall%seg(n), negative_x_wall%seg(n))
+allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
 
-negative_x_wall%side = negative_x$
-positive_x_wall%side = positive_x$
+neg_x_wall%side = negative_x$
+pos_x_wall%side = positive_x$
 
 if (wall_file == 'NONE') then
 
-  allocate (positive_x_wall%pt(0:1), negative_x_wall%pt(0:1))
+  allocate (pos_x_wall%pt(0:1), neg_x_wall%pt(0:1))
 
-  positive_x_wall%pt(0)%s = 0.0
-  positive_x_wall%pt(0)%ix_pt = 0
-  positive_x_wall%pt(1)%s = end_s
-  positive_x_wall%pt(1)%ix_pt = 1
+  pos_x_wall%pt(0)%s = 0.0
+  pos_x_wall%pt(0)%ix_pt = 0
+  pos_x_wall%pt(1)%s = end_s
+  pos_x_wall%pt(1)%ix_pt = 1
 
-  positive_x_wall%n_pt_tot = 1
-  positive_x_wall%pt(:)%type = no_alley$
-  positive_x_wall%pt(:)%name = 'POSITIVE_X_WALL'
-  positive_x_wall%pt(:)%x = wall_offset
-  positive_x_wall%pt(:)%phantom = .false.
+  pos_x_wall%n_pt_tot = 1
+  pos_x_wall%pt(:)%type = no_alley$
+  pos_x_wall%pt(:)%name = 'POS_X_WALL'
+  pos_x_wall%pt(:)%x = wall_offset
+  pos_x_wall%pt(:)%phantom = .false.
 
-  negative_x_wall%pt(0)%s = 0.0
-  negative_x_wall%pt(0)%ix_pt = 0
-  negative_x_wall%pt(1)%s = end_s
-  negative_x_wall%pt(1)%ix_pt = 1
+  neg_x_wall%pt(0)%s = 0.0
+  neg_x_wall%pt(0)%ix_pt = 0
+  neg_x_wall%pt(1)%s = end_s
+  neg_x_wall%pt(1)%ix_pt = 1
 
-  negative_x_wall%n_pt_tot = 1
-  negative_x_wall%pt(:)%type = no_alley$
-  negative_x_wall%pt(:)%name = 'NEGATIVE_X_WALL'
-  negative_x_wall%pt(:)%x = -wall_offset
-  negative_x_wall%pt(:)%phantom = .false.
+  neg_x_wall%n_pt_tot = 1
+  neg_x_wall%pt(:)%type = no_alley$
+  neg_x_wall%pt(:)%name = 'NEG_X_WALL'
+  neg_x_wall%pt(:)%x = -wall_offset
+  neg_x_wall%pt(:)%phantom = .false.
 
 else
   open (1, file = wall_file, status = 'old')
@@ -136,7 +136,7 @@ else
   ! Allocate arrays read in data
 
   n_wall = i
-  allocate (positive_x_wall%pt(0:n_wall), negative_x_wall%pt(0:n_wall))
+  allocate (pos_x_wall%pt(0:n_wall), neg_x_wall%pt(0:n_wall))
   rewind (1)
   call skip_header (1, err_flag)
   i = -1
@@ -146,46 +146,46 @@ else
     if (line == '') cycle
     i = i + 1
     read (line, *) s, x_in, x_out
-    positive_x_wall%pt(i)%s = s
-    positive_x_wall%pt(i)%x = x_out
-    positive_x_wall%pt(i)%name = 'POSITIVE_X_WALL'
-    positive_x_wall%pt(i)%type = no_alley$
-    positive_x_wall%pt(i)%phantom = .false.
-    positive_x_wall%pt(i)%ix_pt = i
+    pos_x_wall%pt(i)%s = s
+    pos_x_wall%pt(i)%x = x_out
+    pos_x_wall%pt(i)%name = 'POS_X_WALL'
+    pos_x_wall%pt(i)%type = no_alley$
+    pos_x_wall%pt(i)%phantom = .false.
+    pos_x_wall%pt(i)%ix_pt = i
 
-    negative_x_wall%pt(i)%s = s
-    negative_x_wall%pt(i)%x = x_in
-    negative_x_wall%pt(i)%name = 'NEGATIVE_X_WALL'
-    negative_x_wall%pt(i)%type = no_alley$
-    negative_x_wall%pt(i)%phantom = .false.
-    negative_x_wall%pt(i)%ix_pt = i
+    neg_x_wall%pt(i)%s = s
+    neg_x_wall%pt(i)%x = x_in
+    neg_x_wall%pt(i)%name = 'NEG_X_WALL'
+    neg_x_wall%pt(i)%type = no_alley$
+    neg_x_wall%pt(i)%phantom = .false.
+    neg_x_wall%pt(i)%ix_pt = i
   enddo
   close (1)
 
-  positive_x_wall%n_pt_tot = i
-  negative_x_wall%n_pt_tot = i
+  pos_x_wall%n_pt_tot = i
+  neg_x_wall%n_pt_tot = i
 
-  negative_x_wall%pt(i)%s  = lat%ele(lat%n_ele_track)%s
-  positive_x_wall%pt(i)%s = lat%ele(lat%n_ele_track)%s
- 
 endif
-
-do i = 0, negative_x_wall%n_pt_tot
-
-enddo
 
 !
 
-call delete_overlapping_wall_points(positive_x_wall)
-call delete_overlapping_wall_points(negative_x_wall)
+call delete_overlapping_wall_points(pos_x_wall)
+call delete_overlapping_wall_points(neg_x_wall)
 
-call break_wall_into_segments(negative_x_wall, seg_len)
-call break_wall_into_segments(positive_x_wall, seg_len)
+! Must do this set after deleting overlapping wall points
+
+neg_x_wall%pt(neg_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
+pos_x_wall%pt(pos_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
+ 
+!
+
+call break_wall_into_segments(neg_x_wall, seg_len)
+call break_wall_into_segments(pos_x_wall, seg_len)
 
 ! calculate power densities
 
-call init_wall(positive_x_wall)
-call init_wall(negative_x_wall)
+call init_wall(pos_x_wall)
+call init_wall(neg_x_wall)
 
 call init_wall_ends(walls)
 
@@ -207,11 +207,11 @@ endif
 ! write out results
 ! set lat elements and twiss at wall segments
 
-call write_power_results(positive_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
-call write_power_results(negative_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_power_results(pos_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_power_results(neg_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
 
-call write_results(positive_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
-call write_results(negative_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_results(pos_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_results(neg_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
 
 open (unit = 1, file = 'element_power.dat')
 
@@ -276,8 +276,7 @@ else if (beam_type == 'POSITRON') then
 endif
 
 call twiss_and_track (lat, orb)
-call calculate_synrad_power(lat, orb, direction, power, &
-                              walls, sr_param, use_ele_ix)
+call calculate_synrad_power(lat, orb, direction, power, walls, sr_param, use_ele_ix)
 
 call radiation_integrals (lat, orb, mode)
 
