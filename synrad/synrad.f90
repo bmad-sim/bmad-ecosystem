@@ -189,6 +189,11 @@ call init_wall(neg_x_wall)
 
 call init_wall_ends(walls)
 
+n = lat%n_ele_track
+call check_wall (pos_x_wall, lat%ele(n)%s)
+call check_wall (neg_x_wall, lat%ele(n)%s)
+
+
 ! Synch calculation
 
 if (beam_direction < -1 .or. beam_direction > 1) then
