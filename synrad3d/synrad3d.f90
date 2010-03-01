@@ -119,7 +119,7 @@ endif
 call twiss_and_track (lat, orb, ok)
 if (.not. ok) stop
   
-if (ix_ele_track_end < -1) ix_ele_track_end = lat%n_ele_track
+if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
 
 allocate (wall%pt(0:n_wall_pt_max))
 wall%pt = wall_pt(0:n_wall_pt_max)
