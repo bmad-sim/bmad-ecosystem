@@ -110,6 +110,7 @@ type synrad_param_struct
   real(rp) epsilon_y     ! vertical emit
   real(rp) i_beam        ! beam current
   integer n_slice        ! # of slice per element or wiggler pole
+  logical :: debug = .false.
 end type synrad_param_struct
 
 type synrad_mode_struct
