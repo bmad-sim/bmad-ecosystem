@@ -42,6 +42,7 @@ logical absorbed
 
 photon%start%track_len = 0
 photon%now = photon%start
+if (allocated(photon%reflect)) deallocate(photon%reflect)
 allocate (photon%reflect(0:0))
 photon%reflect(0) = photon%start
 
