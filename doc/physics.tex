@@ -1345,8 +1345,9 @@ we must partition $(I_2,\phi_x,\phi_y)$-space into regions of equal volume.
 
 The weight of each particle is
 \Begineq
-  q = \frac{1}{N M_x M_y} = \frac{1}{number of particles}
+  q = \frac{1}{N M_x M_y} = \frac{1}{N_{tot}}
 \Endeq
+where $N_{tot}$ is the total number of particles
 
 %-----------------------------------------------------------------
 \section{Macroparticles}
@@ -1529,7 +1530,7 @@ modes are used.
 \subsection{Long--Range Wakes}
 \index{wake fields!long-range}
 
-Following Chao\cite{b:chao} Eq.~2.88, The long--range wake fields are
+Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are
 characterized by a set of cavity modes. The wake function $W$ for a
 mode is given by
 \Begineq
@@ -1588,7 +1589,7 @@ comes through, the wake it generates is simply added to the existing
 wake. This computation scales as $N$ and makes simulations with large
 number of particles practical. 
 
-To add wakes together, A wake must be decomposed into its
+To add wakes together, a wake must be decomposed into its
 components.  Spatially, there are normal and skew components and
 temporally there are sin and cosine components. This gives 4
 components which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$,
@@ -1820,12 +1821,12 @@ of the storage ring. Finally the emittances are given by
     \epsilon_b \AND= C_q \, \gamma_0^2 \frac{I_{5b}}{I_2 - I_{4b}}
   \Endeqs
 
-For a non-circular machine, radiation integrals are still of interest if there are
-bends or steering elements but, in this case, 
-the appropriate energy factors must be included
-to take account any changes in energy due to any \vn{LCavity} elements. 
-The $I_1$ integral is not altered and
-the $I_4$ integrals are not relevant. The other integrals become
+For a non-circular machine, radiation integrals are still of interest
+if there are bends or steering elements. However, in this case, the
+appropriate energy factors must be included to take account any
+changes in energy due to any \vn{LCavity} elements.  For a
+non-circular machine, the $I_1$ integral is not altered and the $I_4$
+integrals are not relevant. The other integrals become
   \Begineqs
     L_2 &=& \int ds \, G^2 \, \gamma_0^4 \\
     L_3 &=& \int ds \, G^3 \, \gamma_0^7 \\
@@ -1841,10 +1842,10 @@ any damping is
   \Begineq
     \sigma_E^2 = \frac{4}{3} \, C_q \, r_e \, \left( m c^2 \right)^2 \, L_3
   \Endeq
-The above equation is appropriate for a linac. In a storage ring where
+The above equation is appropriate for a linac. In a storage ring, where
 there are energy oscillations, the growth of $\sigma_E^2$ due to
 quantum excitation is half that. One way to explain this is that in a
-storage ring the longitudinal motion is ``shared'' between the $z$ and
+storage ring, the longitudinal motion is ``shared'' between the $z$ and
 $pz$ coordinates and, to preserve phase space volume, this reduces
 $\sigma_E^2$ by a factor of 2.
 

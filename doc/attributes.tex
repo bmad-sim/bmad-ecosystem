@@ -186,7 +186,7 @@ the same as the previous element except for \vn{Lcavity} and
 \vn{patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
 the lattice use the \vn{beginning} or \vn{parameter} statements.
 See~\sref{s:param}. Since the energy changes from the start to the end
-of an \vn{Lcavity}, An \vn{Lcavity} has the dependent attributes
+of an \vn{Lcavity}, an \vn{Lcavity} has the dependent attributes
 \begin{example}
   e_tot_start   and
   p0c_start
@@ -450,6 +450,7 @@ Examples:
 \section{Length Attributes}
 \label{s:l}
 
+\index{length of elements}
 \index{l|hyperbf}
 \index{l_chord|hyperbf}
 \index{rbend}
@@ -457,16 +458,16 @@ Examples:
 The length attributes are
 \begin{example}
   l       = <Real>  ! 
-  l_chord           ! Chord length of a bend. Dependent attribute.
+  l_chord = <Real>  ! Chord length of a bend. Dependent attribute.
 \end{example}
-The length \vn{l} is the path length of the reference
-particle. The one exception that that for an \vn{Rbend} the length
-\vn{l} is the chord length (\sref{s:bend}). Internally, \bmad converts
-all \vn{Rbend}s to \vn{Sbend}s and stores the chord length
+The length \vn{l} is the path length of the reference particle. The
+one exception is for an \vn{Rbend}, the length \vn{l} set in the
+lattice file is the chord length (\sref{s:bend}). Internally, \bmad
+converts all \vn{Rbend}s to \vn{Sbend}s and stores the chord length
 under the \vn{l_chord} attribute.
 
 \index{wiggler}
-Note that for \vn{Wiggler}s
+Note that for \vn{Wiggler}s,
 the length \vn{l} is not the same as the path length for a particle
 with the reference energy starting on the reference orbit.
 
@@ -487,6 +488,9 @@ Example
   q1[is_on] = False
 \end{example}
 
+\index{aperture}
+\index{reference orbit}
+\index{reference energy}
 \vn{is_on} does not affect any apertures that are set. Additionally,
 \vn{is_on} does not affect the reference orbit. Therefore, turning 
 off an \vn{lcavity} will not affect the reference energy.
