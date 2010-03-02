@@ -13,7 +13,7 @@
   emit_b           = 0     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
   sig_e            = 0     ! Sig_E/E. If < 0 -> Use value from radiation integral calc.
   sr3d_params%allow_reflections = .true.  ! For testing purposes.
-  sr3d_params%debug = .true.              ! If true then create a file (fort.2) 
+  sr3d_params%reflect_file_name = ''      ! If not blank then create a photon reflections data file
                                               !    of photon before/after reflection coords.
   random_seed = 123456                       ! Random number seed. 0 -> Use sys clock.
 	s_filter_min = 10

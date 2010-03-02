@@ -193,12 +193,12 @@ Example main input file:
     sig_e        = -1         ! Sig_E/E. If < 0 -> Calc from lattice.
 
     lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
-    wall_file    = "synrad3d.wall"     ! Vacuum chamber wall file.
-    dat_file     = "synrad3d.dat"      ! Output data file.
+    wall_file    = "synrad3d.wall"   ! Vacuum chamber wall file.
+    dat_file     = "synrad3d.dat"    ! Output data file.
+    reflect_file = ''                ! If not blank: Write reflection data file. 
 
     sr3d_params%allow_reflections = T       ! For testing purposes.
     sr3d_params%stop_if_hit_antechamber = F !
-    sr3d_params%debug = F                   ! If true then create a file fort.2 
     random_seed = 123456                    ! 0 -> Use sys clock.
     e_filter_min = -1           ! Min energy filter Output file photon filter
     e_filter_max = -1
@@ -258,8 +258,9 @@ it hits the chamber wall.
   \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
 This parameter, if set True, will cause \srthree to stop tracking a given photon once
 it hits part of an antechamber wall.
-  \item[\vn{sr3d_params\%debug}] \Newline
-This parameter, if set True, will create an output file called \vn{fort.2} in addition
+  \item[\vn{reflect_file}] \Newline
+This parameter, if not blank, will create a data file listing the reflection points for all
+the photons. This will be in addition
 to the regular output file.
 See below for more details.
   \item[\vn{random_seed}] \Newline
@@ -485,14 +486,13 @@ provided so that the photon hits can be sorted by magnetic environment
 
 
 %------------------------------------------------------------------
-\subsection{Optional output file: \vn{fort.2}} 
+\subsection{Photon Reflection File}
 
 
-If the switch \vn{sr3d_params%debug} is set
-to \vn{True}, then an additional output file \vn{fort.2} is
-generated, which contains more detailed information. An example of the
-output generated for 4 photons is shown below. (This example is not
-for the same run as in the previous section).
+If the switch \vn{reflect_file} is non-blank, an additional output
+file is generated, which contains more detailed information. An
+example of the output generated for 4 photons is shown below. (This
+example is not for the same run as in the previous section).
 \begin{example}
 *********************************************
        1       0    1.0000    0.0000    0.0000              0.031988    0.135670

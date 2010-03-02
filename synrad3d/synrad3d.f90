@@ -32,7 +32,8 @@ integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_phot
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_phot
 
-character(200) lattice_file
+character(200) lattice_file, reflect_file
+
 character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
@@ -41,7 +42,7 @@ logical ok, filter_on, s_wrap_on, filter_this
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
-            e_filter_min, e_filter_max, s_filter_min, s_filter_max
+            e_filter_min, e_filter_max, s_filter_min, s_filter_max, reflect_file
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
@@ -72,6 +73,8 @@ e_filter_min = -1
 e_filter_max = -1
 s_filter_min = -1
 s_filter_max = -1
+reflect_file = ''
+sr3d_params%debug_on = .false.
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -108,6 +111,14 @@ do i = 1, ubound(wall_pt, 1)
 enddo
 
 print *, 'n_wall_pt_max:', n_wall_pt_max
+
+! open reflect file
+
+if (reflect_file /= '') then
+  sr3d_params%iu_reflect_file = lunget()
+  open (sr3d_params%iu_reflect_file, file = reflect_file)
+  print *, 'Opening photon reflections file: ', trim(reflect_file)
+endif
 
 ! Get lattice
 
@@ -307,10 +318,10 @@ do i = 1, n_photon_array
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
   j = photon%now%ix_ele
   write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
-  do j = 0, photon%n_reflect + 1
-    ! photon%reflect(j)%vec 
-    ! photon%reflect(j)%track_len
-  enddo 
+  ! do j = 0, photon%n_reflect + 1
+  !   photon%reflect(j)%vec 
+  !   photon%reflect(j)%track_len
+  ! enddo 
 enddo
 
 close (1)

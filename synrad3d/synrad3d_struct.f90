@@ -90,8 +90,9 @@ type sr3d_params_struct
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
-  logical :: debug = .false.           
+  integer :: iu_reflect_file = 0
   logical :: stop_if_hit_antechamber = .false. 
+  logical :: debug_on
 end type
 
 type (sr3d_params_struct), save :: sr3d_params

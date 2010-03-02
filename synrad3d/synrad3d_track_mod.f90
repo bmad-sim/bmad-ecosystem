@@ -42,22 +42,27 @@ logical absorbed
 
 photon%start%track_len = 0
 photon%now = photon%start
-if (allocated(photon%reflect)) deallocate(photon%reflect)
-allocate (photon%reflect(0:0))
-photon%reflect(0) = photon%start
+
+! if (.not. sr3d_params%debug_on) then
+!   if (allocated(photon%reflect)) deallocate(photon%reflect)
+!   allocate (photon%reflect(0:0))
+!   photon%reflect(0) = photon%start
+! endif
 
 do
 
   call sr3d_track_photon_to_wall (photon, lat, wall)
 
-  n = size(photon%reflect)
-  allocate (p_temp(n))
-  p_temp = photon%reflect
-  deallocate (photon%reflect)
-  allocate (photon%reflect(0:n))
-  photon%reflect(0:n-1) = p_temp
-  photon%reflect(n) = photon%now
-  deallocate(p_temp)
+  ! if (.not. sr3d_params%debug_on) then
+  !   n = size(photon%reflect)
+  !   allocate (p_temp(n))
+  !   p_temp = photon%reflect
+  !   deallocate (photon%reflect)
+  !   allocate (photon%reflect(0:n))
+  !   photon%reflect(0:n-1) = p_temp
+  !   photon%reflect(n) = photon%now
+  !   deallocate(p_temp)
+  ! endif
 
   if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) return
 
@@ -486,7 +491,7 @@ real(rp) cos_perp, dw_perp(3), denom, f
 real(rp) r, graze_angle, reflectivity
 real(rp), pointer :: vec(:)
 
-integer ix
+integer ix, iu
 
 logical absorbed
 
@@ -511,11 +516,12 @@ cos_perp = dot_product (vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
 
-if (sr3d_params%debug) then
-  write (2, *) '*********************************************'
-  write (2, '(2i8, 3f10.4, 10x, 2f12.6)') photon%ix_photon, photon%n_reflect, &
+iu = sr3d_params%iu_reflect_file 
+if (iu /= 0) then
+  write (iu, *) '*********************************************'
+  write (iu, '(2i8, 3f10.4, 10x, 2f12.6)') photon%ix_photon, photon%n_reflect, &
                                  dw_perp, cos_perp, reflectivity
-  write (2, '(6f12.6)') photon%old%vec
+  write (iu, '(6f12.6)') photon%old%vec
 endif
 
 if (cos_perp < 0) then
@@ -535,8 +541,8 @@ if (absorbed) return  ! Do not reflect if absorbed
 
 vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * dw_perp
 
-if (sr3d_params%debug) then
-  write (2, '(3(12x, f12.6))') photon%now%vec(2:6:2)
+if (iu /= 0) then
+  write (iu, '(3(12x, f12.6))') photon%now%vec(2:6:2)
 endif
 
 end subroutine sr3d_reflect_photon
