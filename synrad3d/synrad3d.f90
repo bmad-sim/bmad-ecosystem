@@ -32,7 +32,8 @@ integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_phot
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_phot
 
-character(100) lattice_file, dat_file, dat2_file, wall_file, param_file
+character(200) lattice_file
+character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this
@@ -196,7 +197,7 @@ ix_ele = ix_ele_track_start
 do 
 
   if (ix_ele == ix_ele_track_end) then
-    if (.not. filter_on .or. n_photon_array > 0.9 * size(photons)) exit
+    if (.not. filter_on .or. n_photon_array > 0.9 * num_photons) exit
     ix_ele = ix_ele_track_start
   endif
 
@@ -272,8 +273,8 @@ do
 
 enddo
 
-photon%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
-                                                      (6 * h_bar_planck * c_light * n_photon_generated)
+photons(:)%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
+                                             (6 * h_bar_planck * c_light * n_photon_generated)
 
 ! Write results
 
