@@ -2,6 +2,7 @@
   lattice_file     = '../test_lat/bmad_L9A18A000-_MOVEREC.lat                        ' 
   wall_file        = 'synrad3d.wall'                          ! File specifying the vacuum chamber wall
   dat_file         = 'synrad3d.dat'														! For output
+  reflect_file = ''      ! If not blank then create a photon reflections data file
   ix_ele_track_start = 103 ! Radiation is produced from the *exit* end of this element...
   ix_ele_track_end   = 104 !  ... to the exit end of this element. If = -1 -> Go to the end of the lattice
   photon_direction = 1     ! 1 = Forward generation, -1 = Backward generation.
@@ -13,8 +14,7 @@
   emit_b           = 0     ! Vertical emit.  If < 0 -> Use value from radiation integral calc.
   sig_e            = 0     ! Sig_E/E. If < 0 -> Use value from radiation integral calc.
   sr3d_params%allow_reflections = .true.  ! For testing purposes.
-  sr3d_params%reflect_file_name = ''      ! If not blank then create a photon reflections data file
                                               !    of photon before/after reflection coords.
   random_seed = 123456                       ! Random number seed. 0 -> Use sys clock.
-	s_filter_min = 10
+	e_filter_min = 4
 /
