@@ -54,7 +54,7 @@ OBJ_SRC_DIRS := test tune_scan dynamic_aperture freq_map closed_orbit analyzer t
 CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
-M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad3d
+M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad3d M.synrad_aperture_to_wall
 
 # beambeam_luminosity cannot be linked on OSF1 due to (intentionally) missing lammpio
 ifneq "$(CESR_PLATFORM)" "OSF1_alpha"
