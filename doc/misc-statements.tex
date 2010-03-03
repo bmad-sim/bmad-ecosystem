@@ -95,12 +95,14 @@ Valid \vn{lattice_type} switches are
   circular_lattice  ! Default w/o LCavity element present.
   linear_lattice    ! Default if LCavity elements present.
 \end{example}
-a \vn{circular_lattice} is for a closed lat where one expects a
+a \vn{circular_lattice} is for a closed lattice where one expects a
 periodic solution for the Twiss parameters. A \vn{linear_lattice} is
-not closed so that the initial Twiss parameters need to be given, not
-computed. Although \vn{circular_lattice} is the nominal default, if
-there are \vn{Lcavity} elements present, \vn{linear_lattice} will be used
-as the default.
+not closed so that the initial Twiss parameters need to be specified
+in the lattice file. If the \vn{lattice_type} is not specified, a
+\vn{circular_lattice} is the default. The exception is that if there
+is an \vn{Lcavity} element present in the lattice file (even if it is
+not used in constructing the lattice), \vn{linear_lattice} will be the
+default.
 
 \index{taylor_order statement}
 \index{taylor_order}

@@ -40,6 +40,15 @@ type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
 
+! Structure for star apertures.
+! This structure holds the info on one point of the shape. 
+! A star shape is defined by an array of star_shape1_structs.
+
+type star_shape1_struct
+  real(rp) x, y        ! coordinates of a point defining the shape
+  real(rp) angle       ! angle of (x, y)
+end type
+
 ! Coupling structure
 
 type bpm_phase_coupling_struct
@@ -232,7 +241,7 @@ type ele_struct
                              !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
-  integer aperture_type      ! rectangular$, or elliptical$
+  integer aperture_type      ! rectangular$, elliptical$, or star_shape$
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
@@ -510,6 +519,7 @@ integer, parameter :: common_lord$    = 99
 
 integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
+integer, parameter :: star_aperture$ = 102
 
 integer, parameter :: a0$  = 110, k0l$  = 110
 integer, parameter :: a20$ = 130, k20l$ = 130
@@ -526,7 +536,7 @@ character(40), parameter :: blank_name$ = ' '
 
 integer, parameter :: proton$     = +2
 integer, parameter :: positron$   = +1
-integer, parameter :: photon$     = 0
+integer, parameter :: photon$     =  0
 integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 
@@ -723,8 +733,8 @@ integer, parameter :: not_lost$ = -1
 
 integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ = 4
 
-integer, parameter :: rectangular$ = 1, elliptical$ = 2
-character(16) :: shape_name(0:2) = ['garbage!   ', 'Rectangular', 'Elliptical ']
+integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
+character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
 
 !------------------------------------------------------------------------------
 ! common stuff

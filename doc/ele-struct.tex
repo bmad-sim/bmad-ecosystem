@@ -36,7 +36,7 @@ type ele_struct
   type (mode3_struct), pointer :: mode3 => null()
   type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
   type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
-  type (genfield), pointer :: gen_field => null() ! For symp_map$
+  type (genfield), pointer :: gen_field => null() ! For symp_map
   type (taylor_struct) :: taylor(6)               ! Taylor terms
   type (wake_struct), pointer :: wake => null()   ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
@@ -668,12 +668,21 @@ only. These are:
 \section{Creating Element Slices}
 
 \index{sbend}\index{rbend}\index{wiggler}
-It is sometimes convenient to split an element longitudinally into ``slices''
-that represent a part of the element.
-This is complicated by the fact that elements are not necessarily uniform.
-For example, map type wigglers are nonuniform and bend elements have end effects.
-Furthermore, attributes like \vn{hkick} need to be scaled with the element length.
+It is sometimes convenient to split an element longitudinally into
+``slices'' that represent a part of the element.  This is complicated
+by the fact that elements are not necessarily uniform.  For example,
+map type wigglers are nonuniform and bend elements have end effects.
+Furthermore, attributes like \vn{hkick} need to be scaled with the
+element length.
 
 To create an element slice, the routine
 \Hyperref{r:makeup.super.slave1}{makeup_super_slave1} can be used.
+Example:
 \begin{example}
+  type (ele_struct) ele, sliced_ele
+  ...
+  sliced_ele = ele
+  sliced_ele%value(l$) = l_slice ! Set the sliced element's length
+  call makeup_super_slave1 (sliced_ele, ele, l_start, param, include_entrance, include_exit)
+\end{example}
+See the documentation on \vn{makeup_super_slave1} for more details (sref{s:getf}).
