@@ -466,7 +466,6 @@ real(rp), allocatable, save ::value1(:), value_vec(:)
 real(rp) theta, phi, psi
 real(rp), allocatable, save :: value_array(:)
 
-integer, save :: ix_save = -1
 integer i, j, k, m, n, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
 integer n_size, ix0
 
