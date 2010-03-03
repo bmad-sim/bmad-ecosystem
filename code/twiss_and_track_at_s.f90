@@ -8,6 +8,10 @@
 ! that the lattice elements already contain the Twiss parameters calculated
 ! for the ends of the elements. 
 !
+! See also:
+!   twiss_and_track_partial
+!   twiss_and_track_intra_ele
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -19,7 +23,7 @@
 !   ix_branch -- Integer, optional: Branch index, Default is 0 (main lattice).
 !
 ! Output:
-!   ele       -- Ele_struct, optional: Element structure holding the Twiss parameters.
+!   ele      -- Ele_struct, optional: Element structure holding the Twiss parameters.
 !                  if orb is not given then the Twiss parameters are calculated
 !                  with respect to the zero orbit.
 !   orb_at_s -- Coord_struct, optional: Particle position at the position s.

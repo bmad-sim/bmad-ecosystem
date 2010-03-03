@@ -9,8 +9,7 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, &
-!                                         integrate, one_turn, unit_start)
+! Subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -50,7 +49,7 @@ contains
 !                   Default = True
 !
 ! Output:
-!    t_map(6) -- Taylor_struct: Transfer map.
+!   t_map(6) -- Taylor_struct: Transfer map.
 !-
 
 subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)
@@ -266,8 +265,8 @@ end subroutine
 !                   Default = True
 !
 ! Output:
-!    mat6(6,6) -- Real(rp): Transfer matrix.
-!    vec0(6)   -- Real(rp): 0th order part of the map.
+!   mat6(6,6) -- Real(rp): Transfer matrix.
+!   vec0(6)   -- Real(rp): 0th order part of the map.
 !-
 
 subroutine mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)

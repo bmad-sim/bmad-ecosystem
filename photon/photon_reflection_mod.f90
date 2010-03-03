@@ -7,6 +7,7 @@ integer, private, parameter :: N_energy=98, N_angles=16
 real(rp), private, save :: ang_vec(N_angles) = (/ 0,1,2,3,4,5,6,7,10,15,20,30,45,60,75,90 /)
 real(rp), private, save :: energy_vec(N_energy), reflect_vec(N_angles,N_energy)
 real(rp), private, save :: y2(N_angles,N_energy)
+real(rp), private, save :: yytmp(N_angles), y2tmp2(N_angles)
 logical, save, private :: init_needed = .true.
 
 contains
@@ -260,6 +261,9 @@ subroutine photon_reflectivity (angle, energy,  reflect_prob)
   implicit none
 
   real(rp) angle, angle_deg, energy, e_tot, reflect_prob, e_crit
+  real(rp), save :: e_tot_old = -1
+
+  integer j
 
   !
 
@@ -272,18 +276,28 @@ subroutine photon_reflectivity (angle, energy,  reflect_prob)
 
   e_tot = max(30.0_rp, energy)
 
-  if (e_tot <= 1000) then
-    reflect_prob = max(0.0_rp, splin2 (ang_vec, energy_vec, reflect_vec, y2, angle_deg, e_tot))
-  else
+  if (e_tot > 1000) then
     e_crit = max(397+2015/angle_deg, 1000.0_rp) 
     if (e_tot < e_crit) then
-      reflect_prob = max(0.0_rp, splin2 (ang_vec, energy_vec, reflect_vec, y2, angle_deg, 1000.0_rp)) * &
-                            (e_crit - e_tot) / (e_crit - 1000)
+      e_tot = 1000
     else
       reflect_prob = 0
+      return
     endif
   endif
 
+  ! This is splin2 from NR
+
+  if (e_tot /= e_tot_old) then
+    do j = 1, N_angles
+      yytmp(j) = splint(energy_vec, reflect_vec(j,:), y2(j,:), e_tot)   
+    enddo
+    e_tot_old = e_tot
+  endif
+
+  call spline (ang_vec, yytmp, 1.0e30_rp, 1.0e30_rp, y2tmp2) 
+  reflect_prob = max(0.0_rp, splint(ang_vec, yytmp, y2tmp2, angle_deg))
+  if (e_tot > 1000) reflect_prob = reflect_prob * (e_crit - e_tot) / (e_crit - 1000)
 
 end subroutine
 

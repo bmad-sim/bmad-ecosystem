@@ -1482,6 +1482,8 @@ endif
 value = lord%value
 value(l$) = slave%value(l$)                 ! do not change slave length
 
+slave%s = lord%s - lord%value(l$) + offset + slave%value(l$)
+
 if (lord%key == wiggler$) then
   value(z_patch$) = slave%value(z_patch$)
 endif
@@ -2130,7 +2132,7 @@ endif
 if (z_patch_calc_needed) then
   start = ele%map_ref_orb_in
   call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
-  val(z_patch$) = end%vec(5)
+  val(z_patch$) = end%vec(5) - start%vec(5)
   end%vec(5) = 0
   if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
   ele%map_ref_orb_out = end             ! save for next super_slave

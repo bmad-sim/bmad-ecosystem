@@ -184,7 +184,7 @@ Figure~\ref{f:lat.param.struct}
     integer particle            ! +1 = positrons, -1 = electrons
     integer ix_lost             ! If lost at what element?
     integer end_lost_at         ! entrance_end$ or exit_end$
-    integer plane_lost_at       ! x_plane$, y_plane$, or z_plane$
+    integer plane_lost_at       ! x_plane$, y_plane$, or z_plane\$
     integer lattice_type        ! linear_lattice$, circular_lattice$, etc...
     integer ixx                 ! Integer for general use
     logical stable              ! is closed lattice stable?
@@ -382,7 +382,7 @@ be in either the tracking or control parts of the lattice.
   {
  \begin{tabular}{lcccccc} 
     \toprule
-    & \multicolumn{6}{c}{\vn{ele\%lord_status1}} \\ \cmidrule{2-7}
+    & \multicolumn{6}{c}{\vn{ele\%lord_status}} \\ \cmidrule{2-7}
     \vn{ele\%slave_status} &
     \begin{sideways}\vn{not_a_lord\$}\end{sideways} &
     \begin{sideways}\vn{group_lord\$}\end{sideways} &

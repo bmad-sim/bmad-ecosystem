@@ -184,19 +184,23 @@ do not follow this format.
 \index{programming!precision (rp)}
 \index{rp}
 
+
 \bmad comes in two flavors: One version where the real numbers are single
 precision and a second version with double precision reals. Which
-version you are working with is controlled by the kind parameter \vn{rp}\
-(Real Precision) which is defined in the \vn{precision_def}
-module. [Note: For compatibility with older programs the kind parameter
-\vn{rdef} is defined to be equal to \vn{rp}.]  On most platforms single
-precision translates to \vn{rp}\ = 4 and double precision to \vn{rp}\ =
-8. The double precision version is used by default since round-off
-errors can be significant in some calculations. Long--term tracking is
-an example where the single precision version is not adequate. Changing 
-the precision means recompiling all the libraries except PTC and PGPLOT. 
-You cannot mix and match. Either you are using the single precision version
-or you are using the double precision version.
+version you are working with is controlled 
+
+The precision \bmad uses for real number arithmatic is controlled by
+the kind parameter \vn{rp}\ (Real Precision) which is defined in the
+\vn{precision_def} module. [Note: For compatibility with older
+programs, the kind parameter \vn{rdef} is defined to be equal to
+\vn{rp}.]  On most platforms, single precision translates to \vn{rp}\ =
+4 and double precision to \vn{rp}\ = 8. The double precision version
+is used by default since round-off errors can be significant in some
+calculations. Long--term tracking is an example where the single
+precision version is not adequate. Changing the precision means
+recompiling all the libraries except PTC and PGPLOT.  You cannot mix
+and match. Either you are using the single precision version or you
+are using the double precision version.
 
 To define floating point variables in Fortran with the correct precision,
  use the syntax {\tt ``real(rp)''}. For example:
