@@ -22,6 +22,7 @@ type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct) wall
 type (wall3d_pt_struct) wall_pt(0:100)
+type (photon3d_coord_struct) photon_start
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
@@ -42,7 +43,8 @@ logical ok, filter_on, s_wrap_on, filter_this
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
-            e_filter_min, e_filter_max, s_filter_min, s_filter_max, reflect_file
+            e_filter_min, e_filter_max, s_filter_min, s_filter_max, reflect_file, &
+            photon_start
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
@@ -75,6 +77,7 @@ s_filter_min = -1
 s_filter_max = -1
 reflect_file = ''
 sr3d_params%debug_on = .false.
+photon_start%energy = -1
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -142,6 +145,16 @@ call sr3d_check_wall (wall)
 
 call ran_seed_put (random_seed)
 
+! If photon_start has been set then just use that.
+
+if (photon_start%energy > 0) then
+  print *, 'Test using photon_start...'
+  allocate(photon)
+  photon%start = photon_start
+  call sr3d_track_photon (photon, lat, wall)
+  stop
+endif
+
 ! Find out much radiation is produced
 
 call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele)
@@ -203,6 +216,8 @@ if (filter_on) then
 else
   allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
 endif
+
+bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 
 ix_ele = ix_ele_track_start
 do 

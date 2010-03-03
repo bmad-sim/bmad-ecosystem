@@ -202,27 +202,46 @@ implicit none
 
 type (lat_struct), target :: lat
 type (coord_struct) :: orb(0:), orb_here, orb1
-type (ele_struct), pointer :: ele0, ele
-type (ele_struct) :: ele_here
+type (ele_struct), pointer :: ele
+type (ele_struct) ele_here
 type (photon3d_coord_struct) :: photon
 type (em_field_struct) :: field
 
 real(rp) s_offset, k_wig, g_max, l_small, gx, gy
+real(rp), save :: s_old
 
 integer direction, ix_ele
 
-! initialize the photon
+logical err
+logical, save :: init_needed = .true.
 
-ele0 => lat%ele(ix_ele-1)
-ele => lat%ele(ix_ele)
+! Init
 
+if (init_needed) then
+  call init_ele (ele_here)
+  init_needed = .false.
+endif
 
-! set the photon's initial twiss values
+ele  => lat%ele(ix_ele)
 
-call twiss_and_track_partial (ele0, ele, lat%param, s_offset, ele_here, & 
-                                                    orb(ix_ele-1), orb_here)
+! Calc the photon's initial twiss values.
+! Tracking through a wiggler can take time so use twiss_and_track_intra_ele to
+!   minimize the length over which we track.
 
-! set the photon's g_bend value (inverse bending radius at src pt) 
+if (ele_here%ix_ele /= ele%ix_ele .or. ele_here%ix_branch /= ele%ix_branch) then
+  ele_here = lat%ele(ix_ele-1)
+  ele_here%ix_ele = ele%ix_ele
+  ele_here%ix_branch = ele%ix_branch
+  orb_here = orb(ix_ele-1)
+  s_old = 0
+endif
+
+call twiss_and_track_intra_ele (ele, lat%param, s_old, s_offset, .true., .true., &
+                                            orb_here, orb_here, ele_here, ele_here, err)
+if (err) call err_exit
+s_old = s_offset
+
+! Calc the photon's g_bend value (inverse bending radius at src pt) 
 
 if (ele%key == sbend$) then  
 
@@ -264,7 +283,7 @@ elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
   ! for mapped wigglers, find the B field at the source point
   ! Note: assumes particles are relativistic!!
 
-  call em_field_calc (ele_here, lat%param, s_offset, orb_here, .false., field)
+  call em_field_calc (ele_here, lat%param, ele_here%value(l$), orb_here, .false., field)
   gx = field%b(2) * c_light / ele%value(p0c$)
   gy = field%b(1) * c_light / ele%value(p0c$)
 

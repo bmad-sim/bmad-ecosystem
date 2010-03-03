@@ -173,7 +173,7 @@ type (wall3d_struct) wall
 type (photon3d_coord_struct), pointer :: now
 
 real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t
-real(rp) g, new_x, radius, theta, tan_t, dl, dl2
+real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st
 real(rp), pointer :: vec(:)
 
 integer ixw
@@ -266,7 +266,7 @@ propagation_loop: do
   if (lat%ele(now%ix_ele)%key == sbend$ .and. lat%ele(now%ix_ele)%value(g$) /= 0) then
 
     ! Next position is determined by whether the distance to the element edge is 
-    ! shorder than the distance left to travel.
+    ! shorter than the distance left to travel.
 
     g = lat%ele(now%ix_ele)%value(g$)
     radius = 1 / g
@@ -300,10 +300,15 @@ propagation_loop: do
 
     ! Move to the stop point. 
     ! Need to remember that radius can be negative.
-
-    denom = sign (sqrt((radius + now%vec(1) + dl * now%vec(2))**2 + (dl * now%vec(6))**2), radius)
-    sin_t = (dl * now%vec(6)) / denom
-    cos_t = (radius + now%vec(1) + dl * now%vec(2)) / denom
+    st = dl * now%vec(6)
+    ct = radius + now%vec(1) + dl * now%vec(2)
+    if (abs(st) < 1e-3 * ct) then
+      denom = sign (ct * (1 + (st/ct)**2/2 + (st/ct)**4/8), radius)
+    else
+      denom = sign (sqrt((radius + now%vec(1) + dl * now%vec(2))**2 + (dl * now%vec(6))**2), radius)
+    endif
+    sin_t = st / denom
+    cos_t = ct / denom
     v_x = now%vec(2); v_s = now%vec(6)
     now%vec(1) = denom - radius
     now%vec(2) = v_s * sin_t + v_x * cos_t
@@ -369,104 +374,75 @@ end subroutine sr3d_propagate_photon_a_step
 
 subroutine sr3d_photon_hit_spot_calc (photon, wall, lat)
 
+use nr, only: zbrent
+
 implicit none
 
 type (lat_struct) lat
-type (photon3d_track_struct) :: photon, photon0, photon1, photon2
+type (photon3d_track_struct) :: photon, photon1
 type (wall3d_struct), target :: wall
-type (wall3d_pt_struct), pointer :: wall_pt
 
-integer ix0, ix1, ix2, i, iw
+real(rp) track_length, radius, tol, d_rad
 
-real(rp) del0, del1, del2, dl, radius
-
-logical photon0_is_at_beginning
+integer i
 
 ! Find where the photon hits.
-! we need to iterate in a bend since the wall is actually curved.
-! Also, after the first reflection, the photon will start at the wall so
+! Note: After the first reflection, the photon will start at the wall so
 ! we must avoid selecting this point as the next hit spot!
 
-photon0 = photon
-photon0%now = photon%old
-photon0_is_at_beginning = .true.
+photon1 = photon
 
-photon1 = photon0
-photon2 = photon
-
-call sr3d_photon_radius (photon0%now, wall, radius)
-del0 = radius - 1 ! Must be negative
-
-call sr3d_photon_radius (photon2%now, wall, radius)
-del2 = radius - 1 ! Must be positive
-
+track_length = (photon%now%track_len + photon%old%track_len) / 2
 do i = 1, 30
-
-  if (abs(del0) < 1.0e-6 .and. .not. photon0_is_at_beginning) then
-    photon1 = photon0
-    exit
-  elseif (abs(del2) < 1.0e-6) then
-    photon1 = photon2
-    exit
-  endif
-
+  d_rad = photon_hit_func(track_length)
+  if (d_rad < 0) exit
+  track_length = (track_length + photon%old%track_len) / 2
   if (i == 30) then
-    print *, 'ERROR IN PHOTON_HIT_SPOT_CALC: CALCULATION IS NOT CONVERGING'
+    print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
     call err_exit
   endif
-
-  ! Make a half step.
-
-  dl = (photon2%now%track_len - photon0%now%track_len) / 2
-  if (dl < 0) then
-    print *, 'ERROR IN PHOTON_HIT_SPOT_CALC: BOOKKEEPING ERROR #1!'
-    call err_exit
-  endif
-
-  call sr3d_propagate_photon_a_step (photon1, dl, lat, wall, .false.)
-
-  call sr3d_photon_radius (photon1%now, wall, radius)
-  del1 = radius - 1
-
-  if (del1 < 0) then
-    photon0 = photon1; del0 = del1
-    photon0_is_at_beginning = .false.
-  else
-    photon2 = photon1; del2 = del1
-    photon1 = photon0
-  endif
-
-  ! Linear interpolation can be faster then divide by 2.
-  ! However, things are pretty nonlinear so only do linar interpolation when 
-  ! the photon0 point is no longer the initial point
-
-  if (photon0_is_at_beginning) cycle
-
-  dl = -del0 * (photon2%now%track_len - photon0%now%track_len) / (del2 - del0)
-  if (dl < 0 .or. dl > photon2%now%track_len - photon0%now%track_len) then
-    print *, 'ERROR IN PHOTON_HIT_SPOT_CALC: BOOKKEEPING ERROR #2!'
-    call err_exit
-  endif
-
-  call sr3d_propagate_photon_a_step (photon1, dl, lat, wall, .false.)
-
-  call sr3d_photon_radius (photon1%now, wall, radius)
-  del1 = radius - 1
-
-  if (del1 < 0) then
-    photon0 = photon1; del0 = del1
-    photon0_is_at_beginning = .false.
-  else
-    photon2 = photon1; del2 = del1
-    photon1 = photon0
-  endif
-
 enddo
 
-! cleanup...
+tol = 1e-10 * (photon%now%track_len + photon%old%track_len)
+track_length = zbrent (photon_hit_func, track_length, photon%now%track_len, tol)
 
-photon = photon1
+! Cleanup
+
+photon%now = photon%old
+call sr3d_propagate_photon_a_step (photon, track_length-photon%now%track_len, lat, wall, .false.)
 call sr3d_photon_radius (photon%now, wall, radius, hit_antechamber = photon%hit_antechamber)
+
+!-----------------------------------------------------------------------
+contains
+
+function photon_hit_func (track_len) result (d_radius)
+
+real(rp) track_len, d_radius, radius, d_track
+
+! Easy case
+
+if (track_len == photon%now%track_len) then
+  call sr3d_photon_radius (photon%now, wall, radius)
+  d_radius = radius - 1
+  return
+endif
+
+! Track starting from the present position (photon1%now) if track_length > photon1%now%track_len.
+! Otherwise, track starting from the beginning of the region (photon%old).
+
+if (track_len < photon1%now%track_len) then
+  photon1 = photon
+  photon1%now = photon%old
+endif
+
+! And track
+
+d_track = track_len - photon1%now%track_len
+call sr3d_propagate_photon_a_step (photon1, d_track, lat, wall, .false.)
+call sr3d_photon_radius (photon1%now, wall, radius)
+d_radius = radius - 1
+
+end function
 
 end subroutine sr3d_photon_hit_spot_calc 
 
@@ -526,6 +502,8 @@ endif
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
+  print *, '       START COORDS: ', photon%start%vec
+  print *, '       ENERGY: ', photon%start%energy, photon%ix_photon
   print *, '       WILL EXIT HERE...'
   call err_exit
 endif
