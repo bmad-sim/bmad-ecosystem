@@ -61,7 +61,7 @@ end type
 
 type beam_init_struct
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
-                                             ! "ELLIPSE", "KV", "GRID", or "" (random Gaussian)
+                                             ! "ELLIPSE", "KV", "GRID", "", or "RAN_GAUSS" 
   type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
   type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
   type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
@@ -70,7 +70,7 @@ type beam_init_struct
   real(rp) :: emitt_jitter(2)  = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
   real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
   real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
-  integer :: n_particle = 0           ! Number of simulated particles per bunch.
+  integer :: n_particle = 0           ! Number of random particles per bunch.
   logical :: renorm_center = .true.   ! Renormalize centroid?
   logical :: renorm_sigma = .true.    ! Renormalize sigma?
   character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
@@ -89,6 +89,7 @@ type beam_init_struct
   real(rp) bunch_charge               ! charge in a bunch.
   integer :: n_bunch = 1              ! Number of bunches.
   logical :: init_spin     = .false.  ! initialize beam spinors
+  integer n_particle_generated        ! Set by init_bunch_distribution.
 end type
 
 type bunch_params_struct

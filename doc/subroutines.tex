@@ -1,4 +1,4 @@
-\chapter{Bmad Library Subroutine List}
+\chapter{Bmad Library Routine List}
 
 Below are a list of \bmad and sim_utils routines sorted by their
 functionality.  Use the \vn{getf} and \vn{listf} (\sref{s:getf}) 
@@ -81,29 +81,29 @@ Initializes a spin distribution according to init_beam\%spin
 \index[routine]{order_particles_in_z}
 \label{r:order.particles.in.z}
 \item[order_particles_in_z (bunch)] \Newline 
-Subroutine to order the particles longitudinally 
+Routine to order the particles longitudinally 
 The ordering uses the centroid of the particles:
 
 \index[routine]{track1_beam}
 \label{r:track1.beam}
 \item[track1_beam (beam_start, lat, ix_ele, beam_end, err)] \Newline 
-Subroutine to track a beam of particles through a single element.
+Routine to track a beam of particles through a single element.
 Overloaded by \vn{track1_beam}.
 
 \index[routine]{track1_bunch}
 \label{r:track1.bunch}
 \item[track1_bunch (bunch_start, lat, ix_ele, bunch_end, err)] \Newline 
-Subroutine to track a bunch of particles through an element.
+Routine to track a bunch of particles through an element.
 
 \index[routine]{track1_bunch_hom}
 \label{r:track1.bunch.hom}
 \item[track1_bunch_hom (bunch_start, ele, param, bunch_end)] \Newline 
-Subroutine to track a bunch of particles through an element.
+Routine to track a bunch of particles through an element.
 
 \index[routine]{track1_particle}
 \label{r:track1.particle}
 \item[track1_particle (start, ele, param, end)] \Newline 
-Subroutine to track a particle through an element.
+Routine to track a particle through an element.
 
 \end{description}
 
@@ -120,13 +120,13 @@ a bunch.
 \index[routine]{angle_to_canonical_coords}
 \label{r:angle.to.canonical.coords}
 \item[angle_to_canonical_coords (particle, energy0)] \Newline 
-Subroutine to convert particle coords from 
+Routine to convert particle coords from 
     (x, x', y, y', z, E)
 
 \index[routine]{bbi_kick}
 \label{r:bbi.kick}
 \item[bbi_kick (x, y, r, kx, ky)] \Newline 
-Subroutine to compute the normalized kick due to the beam-beam
+Routine to compute the normalized kick due to the beam-beam
 interaction using the normalized position for input.
 
 \index[routine]{calc_bunch_params}
@@ -143,30 +143,30 @@ Finds all bunch parameters for a slice through the beam distribution.
 \index[routine]{canonical_to_angle_coords}
 \label{r:canonical.to.angle.coords}
 \item[canonical_to_angle_coords (particle, energy0)] \Newline 
-Subroutine to convert particle coords from 
+Routine to convert particle coords from 
     (x, px, y, py, z, pz)
 
 \index[routine]{init_beam_distribution}
 \label{r:init.beam.distribution}
 \item[init_beam_distribution (ele, beam_init, beam)] \Newline 
-Subroutine to initialize a distribution of particles matched to
+Routine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
 
 \index[routine]{init_bunch_distribution}
 \label{r:init.bunch.distribution}
 \item[init_bunch_distribution (ele, param, beam_init, bunch)] \Newline 
-Subroutine to initialize either a random or tail-weighted distribution of particles.  
+Routine to initialize either a random or tail-weighted distribution of particles.  
 
 \index[routine]{ion_kick}
 \label{r:ion.kick}
 \item[ion_kick(x, y, x_kicker, y_kicker, s_kicker)] \Newline 
-    subroutine to return the kick felt by an ion due to the
+    routine to return the kick felt by an ion due to the
     passage of a bunch. Can also be used for beam-beam simulations.
 
 \index[routine]{reallocate_beam}
 \label{r:reallocate.beam}
 \item[reallocate_beam (beam, n_bunch, n_particle)] \Newline 
-Subroutine to reallocate memory within a beam_struct.
+Routine to reallocate memory within a beam_struct.
 
 \index[routine]{track1_bunch_custom}
 \label{r:track1.bunch.custom}
@@ -176,7 +176,7 @@ Dummy routine for custom bunch tracking.
 \index[routine]{track_beam}
 \label{r:track.beam}
 \item[track_beam (lat, beam, ix1, ix2)] \Newline 
-     Subroutine to track a beam of particles from the end of
+     Routine to track a beam of particles from the end of
      lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
 \end{description}
@@ -190,24 +190,24 @@ Dummy routine for custom bunch tracking.
 \index[routine]{allocate_branch_array}
 \label{r:allocate.branch.array}
 \item[allocate_branch_array (branch, upper_bound, lat)] \Newline 
-Subroutine to allocate or re-allocate an branch array.
+Routine to allocate or re-allocate an branch array.
 The old information is saved.
 
 \index[routine]{deallocate_branch}
 \label{r:deallocate.branch}
 \item[deallocate_branch (branch)] \Newline 
-Subroutine to deallocate a branch array and everything in it.
+Routine to deallocate a branch array and everything in it.
 
 \index[routine]{transfer_branch}
 \label{r:transfer.branch}
 \item[transfer_branch (branch1, branch2)] \Newline 
-Subroutine to set branch2 = branch1. 
+Routine to set branch2 = branch1. 
 This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{transfer_branches}
 \label{r:transfer.branches}
 \item[transfer_branches (branch1, branch2)] \Newline 
-Subroutine to set branch2 = branch1. 
+Routine to set branch2 = branch1. 
 This is a plain transfer of information not using the overloaded equal.
 
 \end{description}
@@ -222,7 +222,7 @@ This is a plain transfer of information not using the overloaded equal.
 \index[routine]{amode_to_c}
 \label{r:amode.to.c}
 \item[amode_to_c (f_amode, c_amode)] \Newline 
-Subroutine to convert a Bmad amode_struct to a C++ C_amode.
+Routine to convert a Bmad amode_struct to a C++ C_amode.
 
 \index[routine]{arr2mat}
 \label{r:arr2mat}
@@ -232,7 +232,7 @@ Function to take a an array and turn it into a matrix.
 \index[routine]{bmad_com_to_c}
 \label{r:bmad.com.to.c}
 \item[bmad_com_to_c (c_bmad_com)] \Newline 
-Subroutine to convert the Bmad bmad_com_struct common block to 
+Routine to convert the Bmad bmad_com_struct common block to 
 a C++ C_bmad_com.
 
 \index[routine]{c_logic}
@@ -249,22 +249,22 @@ of trailing blanks) so it will look like a C character array.
 \index[routine]{control_to_c}
 \label{r:control.to.c}
 \item[control_to_c (f_control, c_control)] \Newline 
-Subroutine to convert a Bmad control_struct to a C++ C_control.
+Routine to convert a Bmad control_struct to a C++ C_control.
 
 \index[routine]{coord_to_c}
 \label{r:coord.to.c}
 \item[coord_to_c (f_coord, c_coord)] \Newline 
-Subroutine to convert a Bmad coord_struct to a C++ C_coord.
+Routine to convert a Bmad coord_struct to a C++ C_coord.
 
 \index[routine]{ele_to_c}
 \label{r:ele.to.c}
 \item[ele_to_c (f_ele, c_ele)] \Newline 
-Subroutine to convert a Bmad ele_struct to a C++ C_ele.
+Routine to convert a Bmad ele_struct to a C++ C_ele.
 
 \index[routine]{em_field_to_c}
 \label{r:em.field.to.c}
 \item[em_field_to_c (f_em_field, c_em_field)] \Newline 
-Subroutine to convert a Bmad em_field_struct to a C++ C_em_field.
+Routine to convert a Bmad em_field_struct to a C++ C_em_field.
 
 \index[routine]{f_logic}
 \label{r:f.logic}
@@ -274,17 +274,17 @@ Function to convert from a Fortran logical to a C logical.
 \index[routine]{floor_position_to_c}
 \label{r:floor.position.to.c}
 \item[floor_position_to_c (f_floor_position, c_floor_position)] \Newline 
-Subroutine to convert a Bmad floor_position_struct to a C++ C_floor_position.
+Routine to convert a Bmad floor_position_struct to a C++ C_floor_position.
 
 \index[routine]{linac_mode_to_c}
 \label{r:linac.mode.to.c}
 \item[linac_mode_to_c (f_linac_mode, c_linac_mode)] \Newline 
-Subroutine to convert a Bmad linac_mode_struct to a C++ C_linac_mode.
+Routine to convert a Bmad linac_mode_struct to a C++ C_linac_mode.
 
 \index[routine]{lr_wake_to_c}
 \label{r:lr.wake.to.c}
 \item[lr_wake_to_c (f_lr_wake, c_lr_wake)] \Newline 
-Subroutine to convert a Bmad lr_wake_struct to a C++ C_lr_wake.
+Routine to convert a Bmad lr_wake_struct to a C++ C_lr_wake.
 
 \index[routine]{mat2arr}
 \label{r:mat2arr}
@@ -294,62 +294,62 @@ Function to take a matrix and turn it into an array.
 \index[routine]{modes_to_c}
 \label{r:modes.to.c}
 \item[modes_to_c (f_modes, c_modes)] \Newline 
-Subroutine to convert a Bmad modes_struct to a C++ C_modes.
+Routine to convert a Bmad modes_struct to a C++ C_modes.
 
 \index[routine]{mode_info_to_c}
 \label{r:mode.info.to.c}
 \item[mode_info_to_c (f_mode_info, c_mode_info)] \Newline 
-Subroutine to convert a Bmad mode_info_struct to a C++ C_mode_info.
+Routine to convert a Bmad mode_info_struct to a C++ C_mode_info.
 
 \index[routine]{param_to_c}
 \label{r:param.to.c}
 \item[param_to_c (f_param, c_param)] \Newline 
-Subroutine to convert a Bmad param_struct to a C++ C_param.
+Routine to convert a Bmad param_struct to a C++ C_param.
 
 \index[routine]{lat_to_c}
 \label{r:lat.to.c}
 \item[lat_to_c (f_lat, c_lat)] \Newline 
-Subroutine to convert a Bmad lat_struct to a C++ C_lat.
+Routine to convert a Bmad lat_struct to a C++ C_lat.
 
 \index[routine]{sr_table_wake_to_c}
 \label{r:sr.table.wake.to.c}
 \item[sr_table_wake_to_c (f_sr_table_wake, c_sr_wake)] \Newline 
-Subroutine to convert a Bmad sr_table_wake_struct to a C++ C_sr_table_wake.
+Routine to convert a Bmad sr_table_wake_struct to a C++ C_sr_table_wake.
 
 \index[routine]{sr_mode_wake_to_c}
 \label{r:sr.mode.wake.to.c}
 \item[sr_mode_wake_to_c (f_sr_mode_wake, c_sr_wake)] \Newline 
-Subroutine to convert a Bmad sr_mode_wake_struct to a C++ C_sr_mode_wake.
+Routine to convert a Bmad sr_mode_wake_struct to a C++ C_sr_mode_wake.
 
 \index[routine]{twiss_to_c}
 \label{r:twiss.to.c}
 \item[twiss_to_c (f_twiss, c_twiss)] \Newline 
-Subroutine to convert a Bmad twiss_struct to a C++ C_twiss.
+Routine to convert a Bmad twiss_struct to a C++ C_twiss.
 
 \index[routine]{taylor_term_to_c}
 \label{r:taylor.term.to.c}
 \item[taylor_term_to_c (f_taylor_term, c_taylor_term)] \Newline 
-Subroutine to convert a Bmad taylor_term_struct to a C++ C_taylor_term.
+Routine to convert a Bmad taylor_term_struct to a C++ C_taylor_term.
 
 \index[routine]{taylor_to_c}
 \label{r:taylor.to.c}
 \item[taylor_to_c (f_taylor, c_taylor)] \Newline 
-Subroutine to convert a Bmad taylor_struct to a C++ C_taylor.
+Routine to convert a Bmad taylor_struct to a C++ C_taylor.
 
 \index[routine]{wake_to_c}
 \label{r:wake.to.c}
 \item[wake_to_c (f_wake, c_wake)] \Newline 
-Subroutine to convert a Bmad wake_struct to a C++ C_wake.
+Routine to convert a Bmad wake_struct to a C++ C_wake.
 
 \index[routine]{wig_term_to_c}
 \label{r:wig.term.to.c}
 \item[wig_term_to_c (f_wig_term, c_wig_term)] \Newline 
-Subroutine to convert a Bmad wig_term_struct to a C++ C_wig_term.
+Routine to convert a Bmad wig_term_struct to a C++ C_wig_term.
 
 \index[routine]{xy_disp_to_c}
 \label{r:xy.disp.to.c}
 \item[xy_disp_to_c (f_xy_disp, c_xy_disp)] \Newline
-Subroutine to convert a Bmad xy_disp_struct to a C++ C_xy_disp.
+Routine to convert a Bmad xy_disp_struct to a C++ C_xy_disp.
 
 \end{description}
 
@@ -406,29 +406,29 @@ Routine to calculate the distance between source and kick points.
 \index[routine]{setup_trans_space_charge_calc}
 \label{r:setup.trans.space.charge.calc}
 \item[setup_trans_space_charge_calc (calc_on, lattice, mode, closed_orb)] \Newline 
-Subroutine to initialize constants needed by the transverse space charge 
+Routine to initialize constants needed by the transverse space charge 
 tracking routine track1_space_charge. This routine must be called if 
 
 \index[routine]{touschek_lifetime}
 \label{r:touschek.lifetime}
 \item[touschek_lifetime (mode, lifetime, lat, orb)] \Newline
-Subroutine to calculate the Touschek lifetime for a lat.
+Routine to calculate the Touschek lifetime for a lat.
 
 \index[routine]{ibs_rates}
 \label{r:ibs.rates}
 \item[ibs_rates (lat, mode, rates, formula)] \Newline
-Subroutine to calculate the IBS rates for a lat.
+Routine to calculate the IBS rates for a lat.
 
 \index[routine]{ibs_equilibrium}
 \label{r:ibs.equilibrium}
 \item[ibs_equilibrium(lat, inmode, ibsmode, formula, coupling)] \Newline
-Subroutine to calculate the equilibrium mode of a lat due to IBS effects
+Routine to calculate the equilibrium mode of a lat due to IBS effects
 by iterating over derivatives of the equilibrium equations.
 
 \index[routine]{ibsequilibrium2}
 \label{r:ibsequilibrium2}
 \item[ibsequilibrium2(lat, inmode, ibsmode, formula, ratio, initial_blow_up)] \Newline
-Subroutine to calculate the equilibrium mode of a lat due to IBS effects
+Routine to calculate the equilibrium mode of a lat due to IBS effects
 by iterating over the equilibrium equations.
 
 \end{description}
@@ -442,7 +442,7 @@ by iterating over the equilibrium equations.
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
 \item[em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield)] \Newline 
-Subroutine to calculate the E and B fields for an element.
+Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
 \label{r:em.field.custom}
@@ -452,7 +452,7 @@ Custom routine for calculating fields.
 \index[routine]{em_field_kick}
 \label{r:em.field.kick}
 \item[em_field_kick (ele, param, s, r, local_ref_frame, dr_ds, dkick)] \Newline 
-Subroutine to essentially calculate the kick felt by a particle in a
+Routine to essentially calculate the kick felt by a particle in a
 element. 
 
 \end{description}
@@ -469,7 +469,7 @@ element.
 \index[routine]{append_subdirectory}
 \label{r:append.subdirectory}
 \item[append_subdirectory (dir, sub_dir, dir_out)] \Newline 
-Subroutine to combine a directory specification with a 
+Routine to combine a directory specification with a 
 subdirectory specification to form a complete directory
 
 \index[routine]{cesr_iargc}
@@ -510,13 +510,13 @@ Routine to add/replace a suffix to a file name.
 \index[routine]{get_tty_char}
 \label{r:get.tty.char}
 \item[get_tty_char (this_char, wait, flush)] \Newline 
-Subroutine for getting a single character from the terminal.
+Routine for getting a single character from the terminal.
 Also see: get_a_char
 
 \index[routine]{get_a_char}
 \label{r:get.a.char}
 \item[get_a_char (this_char, wait, ignore_this)] \Newline 
-Subroutine for getting a single character from the terminal.
+Routine for getting a single character from the terminal.
 Also see: get_tty_char
 
 \index[routine]{get_file_time_stamp}
@@ -537,26 +537,26 @@ Routine to pause the program for a given number of milli-seconds.
 \index[routine]{output_direct}
 \label{r:output.direct}
 \item[output_direct (file_unit, do_print, min_level, max_level)] \Newline 
-Subroutine to set where the output goes when out_io is called.
+Routine to set where the output goes when out_io is called.
 Output may be sent to the terminal screen, written to a file, or both.
 
 \index[routine]{out_io}
 \label{r:out.io}
 \item[out_io (...)] \Newline 
-Subroutine to print to the terminal for command line type programs.
+Routine to print to the terminal for command line type programs.
 The idea is that for programs with a gui this routine can be easily
 replaced with another routine.
 
 \index[routine]{read_a_line}
 \label{r:read.a.line}
 \item[read_a_line (prompt, line_out, trim_prompt)] \Newline 
-Subroutine to read a line of input from the terminal.
+Routine to read a line of input from the terminal.
 The line is also add to the history buffer so that the up-arrow
 
 \index[routine]{skip_header}
 \label{r:skip.header}
 \item[skip_header (unit, error_flag)] \Newline 
-Subroutine to find the first line of data in a file. 
+Routine to find the first line of data in a file. 
 
 \index[routine]{splitfilename}
 \label{r:splitfilename}
@@ -572,7 +572,7 @@ Routine to execute an operating system command from within the program.
 \index[routine]{type_this_file}
 \label{r:type.this.file}
 \item[type_this_file (filename)] \Newline 
-Subroutine to type out a file to the screen.
+Routine to type out a file to the screen.
 
 \end{description}
 
@@ -584,7 +584,7 @@ Subroutine to type out a file to the screen.
 \index[routine]{abs_sort}
 \label{r:abs.sort}
 \item[abs_sort (array, index, n)] \Newline 
-  Subroutine to sort by absolute value.
+  Routine to sort by absolute value.
 
 \index[routine]{complex_error_function}
 \label{r:complex.error.function}
@@ -595,7 +595,7 @@ the complex plane.
 \index[routine]{linear_fit}
 \label{r:linear.fit}
 \item[linear_fit (x, y, n_data, a, b, sig_a, sig_b)] \Newline 
-Subroutine to fit to y = A + B x
+Routine to fit to y = A + B x
 
 \index[routine]{modulo2}
 \label{r:modulo2}
@@ -606,46 +606,46 @@ in the interval [-amp, amp].
 \index[routine]{ran_engine}
 \label{r:ran.engine}
 \item[ran_engine (set, get)] \Newline 
-Subroutine to set what random number generator algorithm is used.
+Routine to set what random number generator algorithm is used.
 If this routine is never called then pseudo_random\$ is used.
 
 \index[routine]{ran_gauss}
 \label{r:ran.gauss}
 \item[ran_gauss (harvest)] \Newline 
-Subroutine to return a Gaussian distributed random number with unit sigma.
+Routine to return a Gaussian distributed random number with unit sigma.
 
 \index[routine]{ran_gauss_converter}
 \label{r:ran.gauss.converter}
 \item[ran_gauss_converter (set, get, sigma_cut)] \Newline 
-Subroutine to set what conversion routine is used for converting
+Routine to set what conversion routine is used for converting
 uniformly distributed random numbers to Gaussian distributed random numbers.
 
 \index[routine]{ran_seed_put}
 \label{r:ran.seed.put}
 \item[ran_seed_put (seed)] \Newline 
-Subroutine to seed the random number generator. 
+Routine to seed the random number generator. 
 
 \index[routine]{ran_seed_get}
 \label{r:ran.seed.get}
 \item[ran_seed_get (seed)] \Newline 
-Subroutine to return the seed used for the random number generator.
+Routine to return the seed used for the random number generator.
 
 \index[routine]{ran_uniform}
 \label{r:ran.uniform}
 \item[ran_uniform (harvest)] \Newline 
-Subroutine to return a random number uniformly distributed in the 
+Routine to return a random number uniformly distributed in the 
 interval [0, 1]. This routine uses the same algorithm as ran from
 
 \index[routine]{spline_akima}
 \label{r:spline.akima}
 \item[spline_akima (spline, stat)] \Newline 
 Given a set of (x,y) points we want to interpolate between the points.
-This subroutine computes the semi-hermite cubic spline developed by akima
+This routine computes the semi-hermite cubic spline developed by akima
 
 \index[routine]{spline_evaluate}
 \label{r:spline.evaluate}
 \item[spline_evaluate (spline, x, ok, y, dy)] \Newline 
-Subroutine to evaluate a spline at a set of points.
+Routine to evaluate a spline at a set of points.
 
 \index[routine]{super_ludcmp}
 \label{r:super.ludcmp}
@@ -668,7 +668,7 @@ Routine for determining the eigen vectors and eigen values of a matrix.
 \index[routine]{mat_inverse}
 \label{r:mat.inverse}
 \item[mat_inverse (mat, mat_inv)] \Newline
-Subroutine to take the inverse of a square matrix. 
+Routine to take the inverse of a square matrix. 
 
 \index[routine]{mat_make_unit}
 \label{r:mat.make.unit}
@@ -678,13 +678,13 @@ Subroutine to take the inverse of a square matrix.
 \index[routine]{mat_rotation}
 \label{r:mat.rotation}
 \item[mat_rotation (mat, angle, bet_1, bet_2, alph_1, alph_2)] \Newline 
-     Subroutine to construct a 2x2 rotation matrix for translation from
+     Routine to construct a 2x2 rotation matrix for translation from
      point 1 to point 2.
 
 \index[routine]{mat_symplectify}
 \label{r:mat.symplectify}
 \item[mat_symplectify (mat_in, mat_symp)] \Newline
-Subroutine to form a symplectic matrix that is approximately equal to the input matrix. 
+Routine to form a symplectic matrix that is approximately equal to the input matrix. 
 
 \index[routine]{mat_symp_error}
 \label{r:mat.symp.error}
@@ -694,18 +694,18 @@ Routine to check the symplecticity of a square matrix
 \index[routine]{mat_symp_conj}
 \label{r:mat.symp.conj}
 \item[mat_symp_conj (mat1, mat2)] \Newline 
-Subroutine to take the symplectic conjugate of a square matrix.
+Routine to take the symplectic conjugate of a square matrix.
 
 \index[routine]{mat_symp_decouple}
 \label{r:mat.symp.decouple}
 \item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type_out)] \Newline
-Subroutine to find the symplectic eigen--modes of the one turn 4x4 coupled 
+Routine to find the symplectic eigen--modes of the one turn 4x4 coupled 
 transfer matrix T0. 
 
 \index[routine]{mat_type}
 \label{r:mat.type}
 \item[mat_type (mat, nunit, header)] \Newline 
-     Subroutine to output matrices to the terminal or to a file
+     Routine to output matrices to the terminal or to a file
 
 \end{description}
 
@@ -717,12 +717,12 @@ transfer matrix T0.
 \index[routine]{date_and_time_stamp}
 \label{r:date.and.time.stamp}
 \item[date_and_time_stamp (string, numeric_month)] \Newline 
-Subroutine to return the current date and time in a character string.
+Routine to return the current date and time in a character string.
 
 \index[routine]{err_exit}
 \label{r:err.exit}
 \item[err_exit()] \Newline 
-Subroutine to first show the stack call list before exiting.
+Routine to first show the stack call list before exiting.
 This routine is typically used when a program detects an error condition.
 
 \index[routine]{integer_option}
@@ -756,7 +756,7 @@ optional real.
 \index[routine]{string_option}
 \label{r:string.option}
 \item[string_option (string_default, opt_string)] \Newline 
-Subroutine to retrun True or False depending upon the state of an 
+Routine to retrun True or False depending upon the state of an 
 optional string.
 
 \end{description}
@@ -774,8 +774,8 @@ Routine to convert a string to lowercase:
 \index[routine]{indexx_char}
 \label{r:indexx.char}
 \item[indexx_char (arr, index)] \Newline 
-Subroutine to sort a character array.
-This subroutine is used to overload the generic name indexx.
+Routine to sort a character array.
+This routine is used to overload the generic name indexx.
 
 \index[routine]{index_nocase}
 \label{r:index.nocase}
@@ -814,7 +814,7 @@ before any matching is done.
 \index[routine]{match_word}
 \label{r:match.word}
 \item[match_word (string, names, ix, exact_case, matched_name)] \Newline 
-Subroutine to match the first word in a string against a list of names.
+Routine to match the first word in a string against a list of names.
 Abbreviations are accepted.  
 
 \index[routine]{on_off_logic}
@@ -831,30 +831,30 @@ This is a replacement for the VMS function str\$match_wild.
 \index[routine]{string_to_int}
 \label{r:string.to.int}
 \item[string_to_int (line, default, value, err_flag)] \Newline 
-Subroutine to convert a string to an integer.
+Routine to convert a string to an integer.
 
 
 \index[routine]{string_to_real}
 \label{r:string.to.real}
 \item[string_to_real (line, default, value, err_flag)] \Newline 
-Subroutine to convert a string to an real.
+Routine to convert a string to an real.
 
 \index[routine]{string_trim}
 \label{r:string.trim}
 \item[string_trim(in_string, out_string, word_len)] \Newline 
-Subroutine to trim a string of leading blanks and/or tabs and also to return the
+Routine to trim a string of leading blanks and/or tabs and also to return the
 length of the first word.
 
 \index[routine]{string_trim2}
 \label{r:string.trim2}
 \item[string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)] \Newline 
-Subroutine to trim a string of leading delimitors and also to return the
+Routine to trim a string of leading delimitors and also to return the
 length of the first word.
 
 \index[routine]{str_downcase}
 \label{r:str.downcase}
 \item[str_downcase (destination, source)] \Newline 
-Subroutine to convert a string to down case.
+Routine to convert a string to down case.
 
 \index[routine]{str_substitute}
 \label{r:str.substitute}
@@ -883,19 +883,19 @@ Routine to convert a string to uppercase:
 \index[routine]{bjmt}
 \label{r:bjmt}
 \item[bjmt(lat, mode, rates)] \Newline 
- This is a private subroutine.  To access this subroutine, call
+ This is a private routine.  To access this routine, call
  ibs_rates.
 
 \index[routine]{bane}
 \label{r:bane}
 \item[bane(lat, mode, rates)] \Newline 
- This is a private subroutine. To access this subroutine, call
+ This is a private routine. To access this routine, call
  ibs_rates.
 
 \index[routine]{cimp}
 \label{r:cimp}
 \item[cimp(lat, mode, rates)] \Newline 
- This is a private subroutine. To access this subroutine, call
+ This is a private routine. To access this routine, call
  ibs_rates.
 
 \index[routine]{g}
@@ -952,12 +952,12 @@ Routine to return the name corresponding to the value of a given attribute.
 \index[routine]{check_lat_controls}
 \label{r:check.lat.controls}
 \item[check_lat_controls (lat, exit_on_error)] \Newline
-Subroutine to check if the control links in a lat structure are valid. 
+Routine to check if the control links in a lat structure are valid. 
 
 \index[routine]{ele_at_s}
 \label{r:ele.at.s}
 \item[ele_at_s (lat, s, ix_ele)] \Newline 
-Subroutine to return the index of the element at position s.
+Routine to return the index of the element at position s.
 
 \index[routine]{ele_loc_to_string}
 \label{r:ele.loc.to.string}
@@ -971,18 +971,18 @@ Function to return an lat_ele_loc_struct identifying where an element is in the 
 
 \index[routine]{equivalent_taylor_attributes}
 \item[equivalent_taylor_attributes (ele1, ele2) result (equiv)] \Newline 
-Subroutine to see if two elements are equivalent in terms of their attributes so
+Routine to see if two elements are equivalent in terms of their attributes so
 that their Taylor Maps, if they existed, would be the same.
 
 \index[routine]{find_element_ends}
 \label{r:find.element.ends}
 \item[find_element_ends (lat, ix_ele, ix_start, ix_end)] \Newline
-Subroutine to find the end points of an element. 
+Routine to find the end points of an element. 
 
 \index[routine]{get_element_slave_list}
 \label{r:get.element.slave.list}
 \item[get_element_slave_list (lat, ix_lord, slave_list, n_slave)] \Newline 
-Subroutine to get the list of slaves for an element.
+Routine to get the list of slaves for an element.
 
 \index[routine]{key_name}
 \label{r:key.name}
@@ -1030,7 +1030,7 @@ Function to point to a slave of a lord.
 \label{r:type.ele}
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, \\ 
 \hspace*{1in} type_twiss, type_control, type_wake, type_floor_coords)}] \Newline
-Subroutine to print the contents of an element at the terminal. 
+Routine to print the contents of an element at the terminal. 
 
 \index[routine]{type2_ele}
 \label{r:type2.ele}
@@ -1041,7 +1041,7 @@ Like \vn{type_ele} but the output is stored in a string array.
 \index[routine]{type_twiss}
 \label{r:type.twiss}
 \item[type_twiss (ele, frequency_units)] \Newline
-Subroutine to type out the Twiss parameters from an element. 
+Routine to type out the Twiss parameters from an element. 
 
 \index[routine]{type2_twiss}
 \label{r:type2.twiss}
@@ -1061,39 +1061,39 @@ These routine are for adding elements, moving elements, etc.
 \index[routine]{add_lattice_control_structs}
 \label{r:add.lattice.control.structs}
 \item[add_lattice_control_structs (lat, ix_ele)] \Newline 
-Subroutine to adjust the control structure of a lat so that extra control
+Routine to adjust the control structure of a lat so that extra control
 elements can be added.
 
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
 \item[add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)] \Newline
-Subroutine to make a superimposed element. 
+Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
 \label{r:attribute.bookkeeper}
 \item[attribute_bookkeeper (ele, param)] \Newline
-Subroutine to make sure the attributes of an element are self-consistent. 
+Routine to make sure the attributes of an element are self-consistent. 
 
 \index[routine]{changed_attribute_bookkeeper}
 \label{r:changed.attribute.bookkeeper}
 \item[changed_attribute_bookkeeper (lat, a_ptr)] \Newline 
-Subroutine to do bookkeeping when a particular attribute has been altered.
+Routine to do bookkeeping when a particular attribute has been altered.
 
 \index[routine]{create_group}
 \label{r:create.group}
 \item[create_group (lat, ix_ele, contrl)] \Newline
-Subroutine to create a group control element. 
+Routine to create a group control element. 
 
 \index[routine]{create_girder}
 \label{r:create.girder}
 \item[create_girder (lat, ix_girder, ix_slave)] \Newline 
-     Subroutine to add the controller information to slave elements of
+     Routine to add the controller information to slave elements of
      an girder_lord.
 
 \index[routine]{create_overlay}
 \label{r:create.overlay}
 \item[create_overlay (lat, ix_overlay, attrib_name, , contl)] \Newline
-Subroutine to add the controller information to slave elements of an 
+Routine to add the controller information to slave elements of an 
 overlay_lord. 
 
 \index[routine]{create_wiggler_model}
@@ -1105,7 +1105,7 @@ This routine uses the mrqmin nonlinear optimizer to vary the parameters in the w
 \index[routine]{insert_element}
 \label{r:insert.element}
 \item[insert_element (lat, insert_ele, insert_index)] \Newline
-Subroutine to Insert a new element into the tracking part of the 
+Routine to Insert a new element into the tracking part of the 
 lat structure. 
 
 \index[routine]{makeup_super_slave1}
@@ -1117,12 +1117,12 @@ superposition lord to a slave when the slave has only one lord.
 \index[routine]{make_hybrid_lat}
 \label{r:make.hybrid.lat}
 \item[make_hybrid_lat (lat_in, use_ele, remove_markers, lat_out, ix_out)] \Newline
-Subroutine to concatenate together elements to make a hybrid lat 
+Routine to concatenate together elements to make a hybrid lat 
 
 \index[routine]{new_control}
 \label{r:new.control}
 \item[new_control (lat, ix_ele)] \Newline
-Subroutine to create a new control element. 
+Routine to create a new control element. 
 
 \index[routine]{pointer_to_attribute}
 \label{r:pointer.to.attribute}
@@ -1145,22 +1145,22 @@ elements with name ele_name.
   pointer_to_ele (lat, ix_ele, ix_branch) result (ele_ptr) \\
   pointer_to_ele (lat, ele_loc_id) result (ele_ptr)
   }] \Newline 
-Subroutine to point to a given element.
+Routine to point to a given element.
 
 \index[routine]{remove_eles_from_lat}
 \label{r:remove.eles.from.lat}
 \item[remove_eles_from_lat (lat)] \Newline 
-Subroutine to remove an elements from the lattice.
+Routine to remove an elements from the lattice.
 
 \index[routine]{split_lat}
 \label{r:split.lat}
 \item[split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)] \Newline
-Subroutine to split a lat at a point.
+Routine to split a lat at a point.
 
 \index[routine]{update_hybrid_list}
 \label{r:update.hybrid.list}
 \item[update_hybrid_list (lat, n_in, use_ele)] \Newline
-Subroutine used to specify a list of element that should not be
+Routine used to specify a list of element that should not be
 hybridized by \vn{make_hybrid_lat}.
 
 \end{description}
@@ -1175,7 +1175,7 @@ hybridized by \vn{make_hybrid_lat}.
 \index[routine]{ele_geometry}
 \label{r:ele.geometry}
 \item[ele_geometry (ele0, ele, param)] \Newline 
-Subroutine to calculate the physical (floor) placement of an element given the
+Routine to calculate the physical (floor) placement of an element given the
 placement of the preceding element. This is the same as the MAD convention.
 
 \index[routine]{floor_angles_to_w_mat}
@@ -1198,13 +1198,13 @@ Routine to initialize a floor_position_struct to zero.
 \index[routine]{lat_geometry}
 \label{r:lat.geometry}
 \item[lat_geometry (lat)] \Newline
-Subroutine to calculate the physical placement of all the elements in a lattice. 
+Routine to calculate the physical placement of all the elements in a lattice. 
 That is, the physical machine layout on the floor. 
 
 \index[routine]{s_calc}
 \label{r:s.calc}
 \item[s_calc (lat)] \Newline
-Subroutine to calculate the longitudinal distance S for the elements in a lat. 
+Routine to calculate the longitudinal distance S for the elements in a lat. 
 
 \index[routine]{theta_floor}
 \label{r:theta.floor}
@@ -1223,13 +1223,13 @@ global reference system.
 \index[routine]{adjust_super_lord_s_position}
 \label{r:adjust.super.lord.s.position}
 \item[adjust_super_lord_s_position (lat, ix_lord)] \Newline
-Subroutine to adjust the positions of the slaves of a 
+Routine to adjust the positions of the slaves of a 
 super_lord due to changes in the lord's s_offset. 
 
 \index[routine]{bracket_index}
 \label{r:bracket.index}
 \item[bracket_index (s_arr, i_min, i_max, s, ix)] \Newline
-Subroutine to find the index ix so that s(ix) $\le$ s $<$ s(ix+1). 
+Routine to find the index ix so that s(ix) $\le$ s $<$ s(ix+1). 
 If s $<$ s(1) then ix = 0 
 
 \index[routine]{check_controller_controls}
@@ -1240,22 +1240,22 @@ Routine to check for problems when setting up group or overlay controllers.
 \index[routine]{deallocate_ele_pointers}
 \label{r:deallocate.ele.pointers}
 \item[deallocate_ele_pointers (ele)] \Newline
-Subroutine to deallocate the pointers in an element. 
+Routine to deallocate the pointers in an element. 
 
 \index[routine]{dispersion_to_orbit}
 \label{r:dispersion.to.orbit}
 \item[dispersion_to_orbit (ele, disp_orb)] \Newline
-Subroutine to make an orbit vector proportional to the dispersion. 
+Routine to make an orbit vector proportional to the dispersion. 
 
 \index[routine]{makeup_super_slave}
 \label{r:makeup.super.slave}
 \item[makeup_super_slave (lat, ix_slave)] \Newline
-Subroutine to calculate the attributes of overlay slave elements. 
+Routine to calculate the attributes of overlay slave elements. 
 
 \index[routine]{orbit_to_dispersion}
 \label{r:orbit.to.dispersion}
 \item[orbit_to_dispersion (orb_diff, ele)] \Newline
-Subroutine to take an orbit vector difference and calculate the dispersion. 
+Routine to take an orbit vector difference and calculate the dispersion. 
 
 \index[routine]{re_allocate_eles}
 \label{r:re.allocate.eles}
@@ -1265,7 +1265,7 @@ Routine to allocate an array of ele_pointer_structs.
 \index[routine]{twiss1_propagate}
 \label{r:twiss1.propagate}
 \item[twiss1_propagate (twiss1, mat2, length, twiss2)] \Newline 
-Subroutine to propagate the twiss parameters of a single mode.
+Routine to propagate the twiss parameters of a single mode.
 
 \end{description}
 
@@ -1278,17 +1278,17 @@ Subroutine to propagate the twiss parameters of a single mode.
 \index[routine]{allocate_element_array}
 \label{r:allocate.element.array}
 \item[allocate_element_array (ele, upper_bound)] \Newline 
-Subroutine to allocate or re-allocate an element array.
+Routine to allocate or re-allocate an element array.
 
 \index[routine]{allocate_lat_ele_array}
 \label{r:allocate.lat.ele.array}
 \item[allocate_lat_ele_array (lat, upper_bound, ix_branch)] \Newline 
-Subroutine to allocate or re-allocate an element array.
+Routine to allocate or re-allocate an element array.
 
 \index[routine]{control_bookkeeper}
 \label{r:control.bookkeeper}
 \item[control_bookkeeper (lat, ix_ele)] \Newline
-Subroutine to calculate the combined strength of the attributes for
+Routine to calculate the combined strength of the attributes for
 controlled elements.
 
 \index[routine]{deallocate_ele_array_pointers}
@@ -1300,90 +1300,96 @@ element array and the array itself.
 \index[routine]{deallocate_lat_pointers}
 \label{r:deallocate.lat.pointers}
 \item[deallocate_lat_pointers (lat)] \Newline 
-Subroutine to deallocate the pointers in a lat.
+Routine to deallocate the pointers in a lat.
 
 \index[routine]{init_ele}
 \label{r:init.ele}
 \item[init_ele (ele, ix_ele, ix_branch)] \Newline
-Subroutine to initialize an element. 
+Routine to initialize an element. 
 
 \index[routine]{init_lat}
 \label{r:init.lat}
 \item[init_lat (lat, n)] \Newline 
-Subroutine to initialize a Bmad lat.
+Routine to initialize a Bmad lat.
 
 \index[routine]{lattice_bookkeeper}
 \label{r:lattice.bookkeeper}
 \item[lattice_bookkeeper (lat)] \Newline 
-Subroutine to do bookkeeping for the entire lattice.
+Routine to do bookkeeping for the entire lattice.
 
 \index[routine]{lat_reverse}
 \label{r:lat.reverse}
 \item[lat_reverse (lat_in, lat_rev)] \Newline
-Subroutine to construct a lat structure with the elements in reversed 
+Routine to construct a lat structure with the elements in reversed 
 order. This may be used for backward tracking through the lat. 
 
 \index[routine]{reallocate_coord}
 \label{r:reallocate.coord}
 \item[reallocate_coord (coord, n_coord)] \Newline 
-Subroutine to reallocate an allocatable  coord_struct array to at least:
+Routine to reallocate an allocatable  coord_struct array to at least:
 coord(0:n_coord).
+
+\index[routine]{reallocate_coord_array}
+\label{r:reallocate.coord.array}
+\item[reallocate_coord_array (coord_array, lat)] \Newline 
+Routine to allocate an allocatable coord_array_struct array to
+the proper size for a lattice.
 
 \index[routine]{reverse_ele}
 \label{r:reverse.ele}
 \item[reverse_ele (ele)] \Newline
-Subroutine to "reverse" an element for backward tracking. 
+Routine to "reverse" an element for backward tracking. 
 
 \index[routine]{set_design_linear}
 \label{r:set.design.linear}
 \item[set_design_linear (lat)] \Newline
-Subroutine to set only those elements on that constitute the "design" 
+Routine to set only those elements on that constitute the "design" 
 lattice. That is, only quadrupoles, bends and wigglers will be set on. 
 
 \index[routine]{set_on_off}
 \label{r:set.on.off}
 \item[set_on_off (key, lat, switch, orb)] \Newline
-Subroutine to turn on or off a set of elements (quadrupoles,
+Routine to turn on or off a set of elements (quadrupoles,
 RF cavities, etc.) in a lat.
 
 \index[routine]{transfer_ele}
 \label{r:transfer.ele}
 \item[transfer_ele (ele1, ele2)] \Newline 
-     Subroutine to set ele2 = ele1. 
+     Routine to set ele2 = ele1. 
      This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{transfer_eles}
 \label{r:transfer.eles}
 \item[transfer_eles (ele1, ele2)] \Newline 
-     Subroutine to set ele2(:) = ele1(:). 
+     Routine to set ele2(:) = ele1(:). 
      This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{transfer_ele_taylor}
 \item[transfer_ele_taylor (ele_in, ele_out, taylor_order)] \Newline 
-     Subroutine to transfer a Taylor map from one element to another.
+     Routine to transfer a Taylor map from one element to another.
 
 \index[routine]{transfer_lat}
 \label{r:transfer.lat}
 \item[transfer_lat (lat1, lat2)] \Newline 
-     Subroutine to set lat2 = lat1. 
+     Routine to set lat2 = lat1. 
      This is a plain transfer of information not using the overloaded equal.
 
 \index[routine]{transfer_lat_parameters}
 \label{r:transfer.lat.parameters}
 \item[transfer_lat_parameters (lat_in, lat_out)] \Newline
-Subroutine to transfer the lat parameters (such as lat\%name, 
+Routine to transfer the lat parameters (such as lat\%name, 
 lat\%param, etc.) from one lat to another. 
 
 \index[routine]{transfer_lat_taylors}
 \item[transfer_lat_taylors (lat_in, lat_out, 
                         type_out, transfered_all)] \Newline 
-Subroutine to transfer the taylor maps from the elements of one lat to
+Routine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
 \index[routine]{zero_ele_offsets}
 \label{r:zero.ele.offsets}
 \item[zero_ele_offsets (ele)] \Newline 
-Subroutine to zero the offsets, pitches and tilt of an element.
+Routine to zero the offsets, pitches and tilt of an element.
 
 \end{description}
 
@@ -1401,23 +1407,23 @@ Returns the cross product of vec1 x vec2
 \index[routine]{c_multi}
 \label{r:c.multi}
 \item[c_multi (n, m)] \Newline
-Subroutine to compute multipole factors: 
+Routine to compute multipole factors: 
 c_multi(n, m) = +/- ("n choose m")/n! 
 
 \index[routine]{compute_reference_energy}
 \label{r:compute.reference.energy}
 \item[compute_reference_energy (lat)] \Newline
-Subroutine to compute the reference energy for each element in a lattice. 
+Routine to compute the reference energy for each element in a lattice. 
 
 \index[routine]{convert_total_energy_to}
 \label{r:convert.total.energy.to}
 \item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
-Subroutine to calculate the momentum, etc. from a particle's total energy. 
+Routine to calculate the momentum, etc. from a particle's total energy. 
 
 \index[routine]{convert_pc_to}
 \label{r:convert.pc.to}
 \item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)] \Newline
-Subroutine to calculate the energy, etc. from a particle's momentum. 
+Routine to calculate the energy, etc. from a particle's momentum. 
 
 \index[routine]{field_interpolate_3d}
 \label{r:field.interpolate.3d}
@@ -1427,23 +1433,23 @@ Function to interpolate a 3d field.
 \index[routine]{name_to_list}
 \label{r:name.to.list}
 \item[name_to_list (lat, ele_names, use_ele)] \Newline
-Subroutine to make a list of the elements in a lat 
+Routine to make a list of the elements in a lat 
 whose name matches the names in the ele_names list. 
 
 \index[routine]{order_super_lord_slaves}
 \label{r:order.super.lord.slaves}
 \item[order_super_lord_slaves (lat, ix_lord)] \Newline
-Subroutine to make the slave elements of a super_lord in order. 
+Routine to make the slave elements of a super_lord in order. 
 
 \index[routine]{release_rad_int_cache}
 \label{r:release.rad.int.cache}
 \item[release_rad_int_cache (ix_cache)] \Newline 
-     Subroutine to release the memory associated with caching wiggler values.
+     Routine to release the memory associated with caching wiggler values.
 
 \index[routine]{wiggler_vec_potential}
 \label{r:wiggler.vec.potential}
 \item[wiggler_vec_potential (ele, energy, here, vec_pot)] \Newline
-Subroutine to calculate the normalized vector potential at a point for a wiggler.
+Routine to calculate the normalized vector potential at a point for a wiggler.
 
 \end{description}
 
@@ -1457,23 +1463,23 @@ Subroutine to calculate the normalized vector potential at a point for a wiggler
 \index[routine]{aml_parser}
 \label{r:aml.parser}
 \item[aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
-Subroutine to parse an AML input file and put the information in a lat_struct.
+Routine to parse an AML input file and put the information in a lat_struct.
 
 \index[routine]{bmad_parser}
 \label{r:bmad.parser}
 \item[bmad_parser (in_file, lat, make_mats6, digested_read_ok, use_line)] \Newline
-Subroutine to parse (read in) a Bmad input file. 
+Routine to parse (read in) a Bmad input file. 
 
 \index[routine]{bmad_parser2}
 \label{r:bmad.parser2}
 \item[bmad_parser2 (in_file, lat, orbit, make_mats6)] \Newline
-Subroutine to parse (read in) a Bmad input file to modify an existing lattice. 
+Routine to parse (read in) a Bmad input file to modify an existing lattice. 
 
 \index[routine]{bmad_to_mad_or_xsif}
 \label{r:bmad.to.mad.or.xsif}
 \item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, file_name, lat, use_matrix_model, \\
   \hspace*{2in} ix_start, ix_end, converted_lat, err)}] \Newline 
-Subroutine to write a mad or xsif lattice file using the information in
+Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 
 \index[routine]{combine_consecutive_elements}
@@ -1497,23 +1503,23 @@ Routine to give elements in a lattice unique names.
 \index[routine]{read_digested_bmad_file}
 \label{r:read.digested.bmad.file}
 \item[read_digested_bmad_file (in_file_name, lat, version)] \Newline
-Subroutine to read in a digested file. 
+Routine to read in a digested file. 
 
 \index[routine]{write_bmad_lattice_file}
 \label{r:write.bmad.lattice.file}
 \item[write_bmad_lattice_file (lattice_name, lat)] \Newline 
-Subroutine to write a Bmad lattice file using the information in
+Routine to write a Bmad lattice file using the information in
 a lat_struct.
 
 \index[routine]{write_digested_bmad_file}
 \label{r:write.digested.bmad.file}
 \item[write_digested_bmad_file (digested_name, lat, n_files, file_names)] \Newline
-Subroutine to write a digested file. 
+Routine to write a digested file. 
 
 \index[routine]{xsif_parser}
 \label{r:xsif.parser}
 \item[xsif_parser (xsif_file, lat, make_mats6, use_line)] \Newline 
-     Subroutine to parse an XSIF (extended standard input format) lattice file.
+     Routine to parse an XSIF (extended standard input format) lattice file.
 
 \end{description}
 
@@ -1527,12 +1533,12 @@ Subroutine to write a digested file.
 \index[routine]{c_to_cbar}
 \label{r:c.to.cbar}
 \item[c_to_cbar (ele, cbar_mat)] \Newline
-Subroutine to compute Cbar from the C matrix and the Twiss parameters. 
+Routine to compute Cbar from the C matrix and the Twiss parameters. 
 
 \index[routine]{cbar_to_c}
 \label{r:cbar.to.c}
 \item[cbar_to_c (cbar_mat, ele)] \Newline
-Subroutine to compute C coupling matrix from the Cbar matrix and the Twiss parameters. 
+Routine to compute C coupling matrix from the Cbar matrix and the Twiss parameters. 
 
 \index[routine]{clear_lat_1turn_mats}
 \label{r:clear.lat.1turn.mats}
@@ -1548,97 +1554,97 @@ This routine is adapted from Numerical Recipes.
 \index[routine]{do_mode_flip}
 \label{r:do.mode.flip}
 \item[do_mode_flip (ele, ele_flip)] \Newline
-Subroutine to mode flip the Twiss parameters of an element 
+Routine to mode flip the Twiss parameters of an element 
 
 \index[routine]{make_g2_mats}
 \label{r:make.g2.mats}
 \item[make_g2_mats (twiss, g_mat, g_inv_mat)] \Newline
-Subroutine to make the matrices needed to go from normal mode coords to 
+Routine to make the matrices needed to go from normal mode coords to 
 coordinates with the beta function removed. 
 
 \index[routine]{make_g_mats}
 \label{r:make.g.mats}
 \item[make_g_mats (ele, g_mat, g_inv_mat)] \Newline
-Subroutine to make the matrices needed to go from normal mode coords to 
+Routine to make the matrices needed to go from normal mode coords to 
 coordinates with the beta function removed. 
 
 \index[routine]{make_mat6}
 \label{r:make.mat6}
 \item[make_mat6 (ele, param, c0, c1)] \Newline
-Subroutine to make the 6x6 transfer matrix for an element. 
+Routine to make the 6x6 transfer matrix for an element. 
 
 \index[routine]{make_v_mats}
 \label{r:make.v.mats}
 \item[make_v_mats (ele, v_mat, v_inv_mat)] \Newline
-Subroutine to make the matrices needed to go from normal mode coords to X-Y 
+Routine to make the matrices needed to go from normal mode coords to X-Y 
 coords and vice versa. 
 
 \index[routine]{mat6_calc_at_s}
 \label{r:mat6.calc.at.s}
 \item[mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)] \Newline 
-Subroutine to calculate the transfer map between longitudinal positions
+Routine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
 \index[routine]{mat6_to_taylor}
 \item[mat6_to_taylor (mat6, vec0, bmad_taylor)] \Newline
-Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
+Routine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
 
 \index[routine]{match_ele_to_mat6}
 \label{r:match.ele.to.mat6}
 \item[match_ele_to_mat6 (ele, mat6, vec0)] \Newline 
-Subroutine to make the 6 x 6 transfer matrix from the twiss parameters.
+Routine to make the 6 x 6 transfer matrix from the twiss parameters.
 
 \index[routine]{multi_turn_tracking_to_mat}
 \item[multi_turn_tracking_to_mat (track, i_dim, mat1, track0, chi)] \Newline
-Subroutine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
+Routine to analyze 1-turn tracking data to find the 1-turn transfer matrix 
 and the closed orbit offset.
 
 \index[routine]{transfer_matrix_calc}
 \label{r:transfer.matrix.calc}
 \item[transfer_matrix_calc (lat, rf_on, mat6, ix1, ix2)] \Newline
-Subroutine to calculate the transfer matrix between two elements. If
+Routine to calculate the transfer matrix between two elements. If
 ix1 and ix2 are not present the full 1--turn matrix is calculated.
 
 \index[routine]{one_turn_mat_at_ele}
 \label{r:one.turn.mat.at.ele}
 \item[one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)] \Newline
-Subroutine to form the 4x4 1-turn coupled matrix with the reference point 
+Routine to form the 4x4 1-turn coupled matrix with the reference point 
 at the end of an element. 
 
 \index[routine]{lat_make_mat6}
 \label{r:lat.make.mat6}
 \item[lat_make_mat6 (lat, ix_ele, coord, ix_branch)] \Newline
-Subroutine to make the 6x6 linear transfer matrix for an element 
+Routine to make the 6x6 linear transfer matrix for an element 
 
 \index[routine]{taylor_to_mat6}
 \item[taylor_to_mat6 (a_taylor, c0, mat6, c1)] \Newline
-Subroutine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
+Routine to calculate the linear (Jacobian) matrix about some trajectory from a Taylor map. 
 
 \index[routine]{transfer_mat2_from_twiss}
 \label{r:transfer.mat2.from.twiss}
 \item[transfer_mat2_from_twiss (twiss1, twiss2, mat)] \Newline
-Subroutine to make a 2 x 2 transfer matrix from the Twiss parameters at the end points. 
+Routine to make a 2 x 2 transfer matrix from the Twiss parameters at the end points. 
 
 \index[routine]{transfer_mat_from_twiss}
 \label{r:transfer.mat.from.twiss}
 \item[transfer_mat_from_twiss (ele1, ele2, m)] \Newline 
-Subroutine to make a 6 x 6 transfer matrix from the twiss parameters
+Routine to make a 6 x 6 transfer matrix from the twiss parameters
 at the beginning and end of the element.
 
 \index[routine]{twiss_from_mat2}
 \label{r:twiss.from.mat2}
 \item[twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)] \Newline
-Subroutine to extract the Twiss parameters from the one-turn 2x2 matrix 
+Routine to extract the Twiss parameters from the one-turn 2x2 matrix 
 
 \index[routine]{twiss_from_mat6}
 \label{r:twiss.from.mat6}
 \item[twiss_from_mat6 (mat6, ele, stable, growth_rate)] \Newline
-Subroutine to extract the Twiss parameters from the one-turn 6x6 matrix 
+Routine to extract the Twiss parameters from the one-turn 6x6 matrix 
 
 \index[routine]{twiss_to_1_turn_mat}
 \item[twiss_to_1_turn_mat (twiss, phi, mat2)] \Newline
-Subroutine to form the 2x2 1-turn transfer matrix from the Twiss parameters. 
+Routine to form the 2x2 1-turn transfer matrix from the Twiss parameters. 
 
 \end{description}
 
@@ -1653,22 +1659,22 @@ Listed below are helper routines that are not meant for general use.
 \index[routine]{drift_mat6_calc}
 \label{r:drift.mat6.calc}
 \item[drift_mat6_calc (mat6, length, start, end)] \Newline
-Subroutine to calculate a drift transfer matrix with a possible kick. 
+Routine to calculate a drift transfer matrix with a possible kick. 
 
 \index[routine]{mat6_dispersion}
 \label{r:mat6.dispersion}
 \item[mat6_dispersion (mat6, e_vec)] \Newline
-Subroutine to put the dispersion into ele\%mat6 given the dispersion vector E_VEC 
+Routine to put the dispersion into ele\%mat6 given the dispersion vector E_VEC 
 
 \index[routine]{sol_quad_mat6_calc}
 \label{r:sol.quad.mat6.calc}
 \item[sol_quad_mat6_calc (ks, k1, length, mat6, orb)] \Newline
-Subroutine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
+Routine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
 
 \index[routine]{tilt_mat6}
 \label{r:tilt.mat6}
 \item[tilt_mat6 (mat6, tilt)] \Newline
-Subroutine to transform a 6x6 transfer matrix to a new reference frame that is 
+Routine to transform a 6x6 transfer matrix to a new reference frame that is 
 tilted in (x, Px, y, Py) with respect to the old reference frame. 
 
 \end{description}
@@ -1725,7 +1731,7 @@ Find the measured coupling values given the actual ones
 \index[routine]{multipass_all_info}
 \label{r:multipass.all.info}
 \item[multipass_all_info (lat, info)] \Newline 
-Subroutine to put multipass to a multipass_all_info_struct structure.
+Routine to put multipass to a multipass_all_info_struct structure.
 
 \index[routine]{multipass_chain}
 \label{r:multipass.chain}
@@ -1751,12 +1757,12 @@ A multi_lord will be found for:
 \index[routine]{ab_multipole_kick}
 \label{r:ab.multipole.kick}
 \item[ab_multipole_kick (a, b, n, coord, kx, ky)] \Newline 
-Subroutine to put in the kick due to an ab_multipole.
+Routine to put in the kick due to an ab_multipole.
 
 \index[routine]{multipole_kicks}
 \label{r:multipole.kicks}
 \item[multipole_kicks (knl, tilt, coord, ref_orb_offset)] \Newline 
-Subroutine to put in the kick due to a multipole.
+Routine to put in the kick due to a multipole.
 
 \index[routine]{mexp}
 \label{r:mexp}
@@ -1766,33 +1772,33 @@ Returns x**m with 0**0 = 0.
 \index[routine]{multipole_ab_to_kt}
 \label{r:multipole.ab.to.kt}
 \item[multipole_ab_to_kt (an, bn, knl, tn)] \Newline
-Subroutine to convert ab type multipoles to kt (MAD standard) multipoles. 
+Routine to convert ab type multipoles to kt (MAD standard) multipoles. 
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
 \item[multipole_ele_to_ab (ele, particle, a, b, use_ele_tilt)] \Newline
-Subroutine to put the scaled element multipole components (normal and skew) into 2 vectors. 
+Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
 \item[multipole_ele_to_kt (ele, particle, knl, tilt, use_ele_tilt)] \Newline
-Subroutine to put the scaled element multipole components (strength and tilt) 
+Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
 \index[routine]{multipole_init}
 \label{r:multipole.init}
 \item[multipole_init(ele, zero)] \Newline
-Subroutine to initialize the multipole arrays within an element.
+Routine to initialize the multipole arrays within an element.
 
 \index[routine]{multipole_kick}
 \label{r:multipole.kick}
 \item[multipole_kick (knl, tilt, n, coord)] \Newline
-Subroutine to put in the kick due to a multipole. 
+Routine to put in the kick due to a multipole. 
 
 \index[routine]{multipole_kt_to_ab}
 \label{r:multipole.kt.to.ab}
 \item[multipole_kt_to_ab (knl, tn, an, bn)] \Newline
-Subroutine to convert kt (MAD standard) multipoles to ab type multipoles. 
+Routine to convert kt (MAD standard) multipoles to ab type multipoles. 
 
 \end{description}
 
@@ -1811,12 +1817,12 @@ by changing the values in vec. Multiple merit functions can be used.
 \index[routine]{initial_lmdif}  
 \label{r:initial.lmdif}  
 \item[initial_lmdif()] \Newline 
-Subroutine that clears out previous saved values of the optimizer.
+Routine that clears out previous saved values of the optimizer.
 
 \index[routine]{suggest_lmdif}
 \label{r:suggest.lmdif}
 \item[suggest_lmdif (xv,fv,eps,itermx,iend,reset_flag)] \Newline 
-Reverse communication subroutine. 
+Reverse communication routine. 
 
 \index[routine]{super_mrqmin}
 \label{r:super.mrqmin}
@@ -1844,67 +1850,67 @@ These routines are overloaded by the equal sign so should not be called explicit
 \index[routine]{beam_equal_beam}
 \label{r:beam.equal.beam}
 \item[mp_beam_equal_mp_beam (beam1, beam2)] \Newline
-Subroutine that is used to set one macroparticle beam to another. This routine
+Routine that is used to set one macroparticle beam to another. This routine
 takes care of the pointers in beam1.
 
 \index[routine]{branch_equal_branch}
 \label{r:branch.equal.branch}
 \item[branch_equal_branch (branch1, branch2)] \Newline 
-Subroutine that is used to set one branch equal to another. 
+Routine that is used to set one branch equal to another. 
 
 \index[routine]{bunch_equal_bunch}
 \label{r:bunch.equal.bunch}
 \item[bunch_equal_bunch (bunch1, bunch2)] \Newline
-Subroutine that is used to set one macroparticle bunch to another. This routine
+Routine that is used to set one macroparticle bunch to another. This routine
 takes care of the pointers in bunch1.
 
 \index[routine]{coord_equal_coord}
 \label{r:coord.equal.coord}
 \item[coord_equal_coord (coord1, coord2)] \Newline
-Subroutine that is used to set one coord_struct equal to another. 
+Routine that is used to set one coord_struct equal to another. 
 
 \index[routine]{ele_equal_ele}
 \label{r:ele.equal.ele}
 \item[ele_equal_ele (ele1, ele2)] \Newline
-Subroutine that is used to set one element equal to another. 
+Routine that is used to set one element equal to another. 
 This routine takes care of the pointers in ele1. 
 
 \index[routine]{ele_vec_equal_ele_vec}
 \label{r:ele.vec.equal.ele.vec}
 \item[ele_vec_equal_ele_vec (ele1, ele2)] \Newline
-Subroutine that is used to set one element vector equal to another. 
+Routine that is used to set one element vector equal to another. 
 This routine takes care of the pointers in ele1. 
 
 \index[routine]{mp_beam_equal_mp_beam}
 \label{r:mp.beam.equal.mp.beam}
 \item[mp_beam_equal_mp_beam (beam1, beam2)] \Newline 
-Subroutine to set one macroparticle beam equal to another taking care of
+Routine to set one macroparticle beam equal to another taking care of
 pointers so that they don't all point to the same place.
 
 \index[routine]{real_8_equal_taylor}
 \item[real_8_equal_taylor (y8, bmad_taylor)] \Newline
-Subroutine to overload "=" in expressions real_8 (PTC) = bmad_taylor.
+Routine to overload "=" in expressions real_8 (PTC) = bmad_taylor.
 
 \index[routine]{lat_equal_lat}
 \label{r:lat.equal.lat}
 \item[lat_equal_lat (lat1, lat2)] \Newline
-Subroutine that is used to set one lat equal to another. 
+Routine that is used to set one lat equal to another. 
 This routine takes care of the pointers in lat1. 
 
 \index[routine]{lat_vec_equal_lat_vec}
 \label{r:lat.vec.equal.lat.vec}
 \item[lat_vec_equal_lat_vec (lat1, lat2)] \Newline
-Subroutine that is used to set one lat array equal to another. 
+Routine that is used to set one lat array equal to another. 
 This routine takes care of the pointers in lat1(:). 
 
 \index[routine]{taylor_equal_real_8}
 \item[taylor_equal_real_8 (bmad_taylor, y8)] \Newline
-Subroutine to overload "=" in expressions bmad_taylor = real_8 (PTC) 
+Routine to overload "=" in expressions bmad_taylor = real_8 (PTC) 
 
 \index[routine]{universal_equal_universal}
 \label{r:universal.equal.universal}
 \item[universal_equal_universal (universal1, universal2)] \Newline
-Subroutine that is used to set one PTC universal_taylor 
+Routine that is used to set one PTC universal_taylor 
 structure equal to another. 
 
 \end{description}
@@ -1919,18 +1925,18 @@ structure equal to another.
 \index[routine]{convert_coords}
 \label{r:convert.coords}
 \item[convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)] \Newline
-Subroutine to convert between lab frame, normal mode, normalized normal mode, 
+Routine to convert between lab frame, normal mode, normalized normal mode, 
 and action-angle coordinates. 
 
 \index[routine]{init_coord}
 \label{r:init.coord}
 \item[init_coord (orb, vec)] \Newline 
-Subroutine to initialize a coord_struct.
+Routine to initialize a coord_struct.
 
 \index[routine]{type_coord}
 \label{r:type.coord}
 \item[type_coord (coord)] \Newline
-Subroutine to type out a coordinate. 
+Routine to type out a coordinate. 
 
 \end{description}
 
@@ -1969,12 +1975,12 @@ Routine to convert a random number in the interval [0,1] to a photon energy.
 \index[routine]{concat_real_8}
 \label{r:concat.real.8}
 \item[concat_real_8 (y1, y2, y3)] \Newline
-Subroutine to concatenate two real_8 taylor series. 
+Routine to concatenate two real_8 taylor series. 
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
 \item[ele_to_fibre (ele, fiber, param, integ_order, steps)] \Newline
-Subroutine to convert a Bmad element to a PTC fibre element. 
+Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
 \label{r:map.coef}
@@ -1984,7 +1990,7 @@ Function to return the coefficient of the map y(:) up to 3rd order.
 \index[routine]{kill_gen_field}
 \label{r:kill.gen.field}
 \item[kill_gen_field (gen_field)] \Newline
-Subroutine to kill a gen_field. 
+Routine to kill a gen_field. 
 
 \index[routine]{kind_name}
 \label{r:kind.name}
@@ -1994,96 +2000,96 @@ Function to return the name of a PTC kind.
 \index[routine]{real_8_equal_taylor}
 \label{r:real.8.equal.taylor}
 \item[real_8_equal_taylor (y8, bmad_taylor)] \Newline
-Subroutine to overload "=" in expressions real_8 = bmad_taylor 
+Routine to overload "=" in expressions real_8 = bmad_taylor 
 
 \index[routine]{real_8_to_taylor}
 \label{r:real.8.to.taylor}
 \item[real_8_to_taylor (y8, bmad_taylor, switch_z)] \Newline
-Subroutine to convert from a real_8 taylor map in Etienne's PTC to a taylor map in Bmad. 
+Routine to convert from a real_8 taylor map in Etienne's PTC to a taylor map in Bmad. 
 
 \index[routine]{real_8_init}
 \label{r:real.8.init}
 \item[real_8_init (y, set_taylor)] \Newline
-Subroutine to allocate a PTC real_8 variable. 
+Routine to allocate a PTC real_8 variable. 
 
 \index[routine]{remove_constant_taylor}
 \label{r:remove.constant.taylor}
 \item[remove_constant_taylor (taylor_in, taylor_out, c0, remove_higher_order_terms)] \Newline
-Subroutine to remove the constant part of a taylor series. 
+Routine to remove the constant part of a taylor series. 
 
 \index[routine]{lat_to_layout}
 \label{r:lat.to.layout}
 \item[lat_to_layout (lat, ptc_layout)] \Newline
-Subroutine to create a PTC layout from a Bmad lat. 
+Routine to create a PTC layout from a Bmad lat. 
 
 \index[routine]{set_ptc}
 \label{r:set.ptc}
 \item[set_ptc (param, taylor_order, integ_order, n_step, no_cavity, exact_calc)] \Newline
-Subroutine to initialize PTC. 
+Routine to initialize PTC. 
 
 \index[routine]{set_taylor_order}
 \item[set_taylor_order (order, override_flag)] \Newline
-Subroutine to set the taylor order. 
+Routine to set the taylor order. 
 
 \index[routine]{sort_universal_terms}
 \label{r:sort.universal.terms}
 \item[sort_universal_terms (ut_in, ut_sorted)] \Newline
-Subroutine to sort the taylor terms from "lowest" to "highest". 
+Routine to sort the taylor terms from "lowest" to "highest". 
 
 \index[routine]{taylor_equal_real_8}
 \label{r:taylor.equal.real.8}
 \item[taylor_equal_real_8 (bmad_taylor, y8)] \Newline
-Subroutine to overload "=" in expressions bmad_taylor = y8 
+Routine to overload "=" in expressions bmad_taylor = y8 
 
 \index[routine]{taylor_to_real_8}
 \label{r:taylor.to.real.8}
 \item[taylor_to_real_8 (bmad_taylor, y8, switch_z)] \Newline
-Subroutine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
+Routine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
 
 \index[routine]{type_layout}
 \label{r:type.layout}
 \item[type_layout (lay)] \Newline
-Subroutine to print the global information in a PTC layout.
+Routine to print the global information in a PTC layout.
 
 \index[routine]{type_map1}
 \label{r:type.map1}
 \item[type_map1 (y, type0, n_dim, style)] \Newline
-Subroutine to type the transfer map up to first order. 
+Routine to type the transfer map up to first order. 
 
 \index[routine]{type_fibre}
 \label{r:type.fibre}
 \item[type_fibre (fib)] \Newline
-Subroutine to print the global information in a fibre.
+Routine to print the global information in a fibre.
 
 \index[routine]{type_map}
 \label{r:type.map}
 \item[type_map (y)] \Newline
-Subroutine to type the transfer maps of a real_8 array. 
+Routine to type the transfer maps of a real_8 array. 
 
 \index[routine]{type_real_8_taylors}
 \label{r:type.real.8.taylors}
 \item[type_real_8_taylors (y, switch_z)] \Newline
-Subroutine to type out the taylor series from a real_8 array. 
+Routine to type out the taylor series from a real_8 array. 
 
 \index[routine]{taylor_to_genfield}
 \label{r:taylor.to.genfield}
 \item[taylor_to_genfield (bmad_taylor, gen_field, c0)] \Newline
-Subroutine to construct a genfield (partially inverted map) from a taylor map. 
+Routine to construct a genfield (partially inverted map) from a taylor map. 
 
 \index[routine]{universal_to_bmad_taylor}
 \label{r:universal.to.bmad.taylor}
 \item[universal_to_bmad_taylor (u_taylor, bmad_taylor, switch_z)] \Newline
-Subroutine to convert from a universal_taylor map in Etienne's PTC to a taylor map in Bmad. 
+Routine to convert from a universal_taylor map in Etienne's PTC to a taylor map in Bmad. 
 
 \index[routine]{vec_bmad_to_ptc}
 \label{r:vec.bmad.to.ptc}
 \item[vec_bmad_to_ptc (vec_bmad, vec_ptc)] \Newline
-Subroutine to convert from Bmad to PTC coordinates. 
+Routine to convert from Bmad to PTC coordinates. 
 
 \index[routine]{vec_ptc_to_bmad}
 \label{r:vec.ptc.to.bmad}
 \item[vec_ptc_to_bmad (vec_ptc, vec_bmad)] \Newline
-Subroutine to convert from PTC to Bmad coordinates. 
+Routine to convert from PTC to Bmad coordinates. 
 
 \end{description}
 
@@ -2100,17 +2106,17 @@ Subroutine to convert from PTC to Bmad coordinates.
 \index[routine]{qp_open_page}
 \label{r:qp.open.page}
 \item[qp_open_page (page_type, i_chan, x_len, y_len, units)] \Newline 
-     Subroutine to Initialize a page (window) for plotting.
+     Routine to Initialize a page (window) for plotting.
 
 \index[routine]{qp_select_page}
 \label{r:qp.select.page}
 \item[qp_select_page (iw)] \Newline 
-     Subroutine to switch to a particular page for drawing graphics.
+     Routine to switch to a particular page for drawing graphics.
 
 \index[routine]{qp_close_page}
 \label{r:qp.close.page}
 \item[qp_close_page()] \Newline 
-     Subroutine to finish plotting on a page.
+     Routine to finish plotting on a page.
 
 \end{description}
 
@@ -2129,14 +2135,14 @@ The higher the score the nicer.
 \item[\protect\parbox{6in}{
     qp_calc_and_set_axis (axis, data_min, data_max, div_min, div_max, \\
     \hspace*{2in} bounds, axis_type, slop_factor)}] \Newline
-     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index[routine]{qp_calc_axis_params}
 \label{r:qp.calc.axis.params}
 \item[\protect\parbox{6in}{qp_calc_axis_params (data_min, data_max, div_min, \\ 
 \hspace*{2in} div_max, how, places, axis_min, axis_max, divisions)}] \Newline 
-     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. This is similar to calc_axis_scale.
 
 \index[routine]{qp_calc_axis_divisions}
@@ -2148,25 +2154,25 @@ of major divisions for fixed axis minimum and maximum.
 \index[routine]{qp_calc_axis_places}
 \label{r:qp.calc.axis.places}
 \item[qp_calc_axis_places (axis_min, axis_max, divisions, places)] \Newline 
-     Subroutine to calculate the number of decimal places needed to display the
+     Routine to calculate the number of decimal places needed to display the
      axis numbers.
 
 \index[routine]{qp_calc_axis_scale}
 \label{r:qp.calc.axis.scale}
 \item[\protect\parbox{6in}{qp_calc_axis_scale (data_min, data_max, divisions, how, \\ 
 \hspace*{2in} places, axis_min, axis_max, niceness_score)}] \Newline 
-     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index[routine]{qp_calc_minor_div}
 \label{r:qp.calc.minor.div}
 \item[qp_calc_minor_div (delta, div_max, divisions)] \Newline 
-     Subroutine to calculate the number of minor divisions an axis should have.
+     Routine to calculate the number of minor divisions an axis should have.
 
 \index[routine]{qp_convert_rectangle_rel}
 \label{r:qp.convert.rectangle.rel}
 \item[qp_convert_rectangle_rel (rect1, rect2)] \Newline 
-     Subroutine to convert a "rectangle" (structure of 4 points) from
+     Routine to convert a "rectangle" (structure of 4 points) from
      one set of relative units to another
 
 \end{description}
@@ -2179,100 +2185,100 @@ of major divisions for fixed axis minimum and maximum.
 \index[routine]{qp_clear_box}
 \label{r:qp.clear.box}
 \item[qp_clear_box] \Newline 
-Subroutine to clear the current box on the page.
+Routine to clear the current box on the page.
 
 \index[routine]{qp_clear_page}
 \label{r:qp.clear.page}
 \item[qp_clear_page()] \Newline 
-Subroutine to clear all drawing from the page.
+Routine to clear all drawing from the page.
 
 \index[routine]{qp_draw_circle}
 \label{r:qp.draw.circle}
 \item[\protect\parbox{6in}{
       qp_draw_circle (x0, y0, r, angle0, del_angle, \\
       \hspace*{2in} units, width, color, style, clip)}] \Newline 
-Subroutine to plot a section of an ellipse.
+Routine to plot a section of an ellipse.
 
 \index[routine]{qp_draw_ellipse}
 \label{r:qp.draw.ellipse}
 \item[\protect\parbox{6in}{
     qp_draw_ellipse (x0, y0, r_x, r_y, theta_xy, \\
     \hspace*{2in} angle1, angle2, units, width, color, style, clip) }] \Newline 
-     Subroutine to plot a section of an ellipse.
+     Routine to plot a section of an ellipse.
 
 \index[routine]{qp_draw_axes}
 \label{r:qp.draw.axes}
 \item[qp_draw_axes()] \Newline 
-     Subroutine to plot the axes, title, etc. of a plot.
+     Routine to plot the axes, title, etc. of a plot.
 
 \index[routine]{qp_draw_data}
 \label{r:qp.draw.data}
 \item[qp_draw_data (x, y, draw_line, symbol_every, clip)] \Newline
-     Subroutine to plot data, axes with labels, a grid, and a title.
+     Routine to plot data, axes with labels, a grid, and a title.
 
 \index[routine]{qp_draw_graph}
 \label{r:qp.draw.graph}
 \item[\protect\parbox{6in}{qp_draw_graph (x, y, x_lab, y_lab, title, \\
   \hspace*{2in} draw_line, draw_symbol, clip, symbol_every) }] \Newline 
-     Subroutine to plot data, axes with labels, a grid, and a title.
+     Routine to plot data, axes with labels, a grid, and a title.
 
 \index[routine]{qp_draw_graph_title}
 \label{r:qp.draw.graph.title}
 \item[qp_draw_graph_title (title)] \Newline 
-     Subroutine to draw the title for a graph.
+     Routine to draw the title for a graph.
 
 \index[routine]{qp_draw_grid}
 \label{r:qp.draw.grid}
 \item[qp_draw_grid()] \Newline 
-     Subroutine to draw a grid on the current graph.
+     Routine to draw a grid on the current graph.
 
 \index[routine]{qp_draw_histogram}
 \label{r:qp.draw.histogram}
 \item[qp_draw_histogram (x_dat, y_dat, x_lab, y_lab, title, draw_axes)] \Newline 
-     Subroutine to plot data, axes with labels, a grid, and a title.
+     Routine to plot data, axes with labels, a grid, and a title.
 
 \index[routine]{qp_draw_curve_legend}
 \label{r:qp.draw.curve.legend}
 \item[\protect\parbox{6in}{qp_draw_curve_legend (origin, text_offset, line_length, \\ 
 \hspace*{2in}  line, symbol, text, draw_line, draw_symbol, draw_text) }] \Newline
-Subroutine to draw a legend with each line in the legend having
+Routine to draw a legend with each line in the legend having
   a line, a symbol, some text.
 
 \index[routine]{qp_draw_text_legend}
 \label{r:qp.draw.text.legend}
 \item[qp_draw_text_legend (lines, x, y, units)] \Newline 
-Subroutine to draw a legend of lines of text.
+Routine to draw a legend of lines of text.
 
 \index[routine]{qp_draw_main_title}
 \label{r:qp.draw.main.title}
 \item[qp_draw_main_title (lines, justify)] \Newline 
-     Subroutine to plot the main title at the top of the page.
+     Routine to plot the main title at the top of the page.
 
 \index[routine]{qp_draw_polyline}
 \label{r:qp.draw.polyline}
 \item[qp_draw_polyline (x, y, units, width, color, style, clip)] \Newline 
-     Subroutine to draw a polyline.
+     Routine to draw a polyline.
 
 \index[routine]{qp_draw_polyline_no_set}
 \label{r:qp.draw.polyline.no.set}
 \item[qp_draw_polyline_no_set (x, y, units)] \Newline 
-Subroutine to draw a polyline.
+Routine to draw a polyline.
 This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index[routine]{qp_draw_polyline_basic}
 \label{r:qp.draw.polyline.basic}
 \item[qp_draw_polyline_basic (x, y, units)] \Newline 
-     Subroutine to draw a polyline. See also qp_draw_polyline
+     Routine to draw a polyline. See also qp_draw_polyline
 
 \index[routine]{qp_draw_line}
 \label{r:qp.draw.line}
 \item[qp_draw_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
-     Subroutine to draw a line.
+     Routine to draw a line.
 
 \index[routine]{qp_draw_rectangle}
 \label{r:qp.draw.rectangle}
 \item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)] \Newline 
-     Subroutine to draw a rectangular box.
+     Routine to draw a rectangular box.
 
 \index[routine]{qp_draw_symbol}
 \label{r:qp.draw.symbol}
@@ -2288,40 +2294,40 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 \index[routine]{qp_draw_text}
 \label{r:qp.draw.text}
 \item[qp_draw_text (text, x, y, units, justify, height, color, angle, ...)] \Newline 
-     Subroutine to draw text.
+     Routine to draw text.
 
 \index[routine]{qp_draw_text_no_set}
 \label{r:qp.draw.text.no.set}
 \item[qp_draw_text_no_set (text, x, y, units, justify, angle)] \Newline 
-Subroutine to display on a plot a character string.
+Routine to display on a plot a character string.
 See also: qp_draw_text.
 
 \index[routine]{qp_draw_text_basic}
 \label{r:qp.draw.text.basic}
 \item[qp_draw_text_basic (text, x, y, units, justify, angle)] \Newline 
-     Subroutine to display on a plot a character string.
+     Routine to display on a plot a character string.
      See also: qp_draw_text.
 
 \index[routine]{qp_draw_x_axis}
 \label{r:qp.draw.x.axis}
 \item[qp_draw_x_axis (who, y_pos)] \Newline 
-     Subroutine to draw a horizontal axis.
+     Routine to draw a horizontal axis.
 
 \index[routine]{qp_draw_y_axis}
 \label{r:qp.draw.y.axis}
 \item[qp_draw_y_axis (who, x_pos)] \Newline 
-     Subroutine to draw a horizontal axis.
+     Routine to draw a horizontal axis.
 
 \index[routine]{qp_paint_rectangle}
 \label{r:qp.paint.rectangle}
 \item[qp_paint_rectangle (x1, x2, y1, y2, units, color)] \Newline 
-Subroutine to paint a rectangular region a specified color.
+Routine to paint a rectangular region a specified color.
 The default color is the background color (white\$).
 
 \index[routine]{qp_to_axis_number_text}
 \label{r:qp.to.axis.number.text}
 \item[qp_to_axis_number_text (axis, ix_n, text)] \Newline 
-     Subroutine to form the text string for an axis number.
+     Routine to form the text string for an axis number.
 
 \end{description}
 
@@ -2335,13 +2341,13 @@ The default color is the background color (white\$).
 \item[\protect\parbox{6in}{
   qp_calc_and_set_axis (axis, data_min, data_max, \\
   \hspace*{2in} div_min, div_max, bounds, axis_type, slop_factor)}] \Newline
-     Subroutine to calculate a "nice" plot scale given the minimum and maximum
+     Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index[routine]{qp_eliminate_xy_distortion}
 \label{r:qp.eliminate.xy.distortion}
 \item[qp_eliminate_xy_distortion()] \Newline 
-This subroutine will increase the x or y margins so that the conversion
+This routine will increase the x or y margins so that the conversion
 between data units and page units is the same for the x and y axes.
 
 \index[routine]{qp_set_axis}
@@ -2349,106 +2355,106 @@ between data units and page units is the same for the x and y axes.
 \item[\protect\parbox{6in}{qp_set_axis (axis, a_min, a_max, div, places, label, draw_label, \\
 \hspace*{2in} draw_numbers, minor_div, minor_div_max, mirror, \\
 \hspace*{2in} number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
-    Subroutine to set (but not plot) the min, max and divisions for the axes of the graph.
+    Routine to set (but not plot) the min, max and divisions for the axes of the graph.
 
 \index[routine]{qp_set_box}
 \label{r:qp.set.box}
 \item[qp_set_box (ix, iy, ix_tot, iy_tot)] \Newline 
-     Subroutine to set the box on the physical page.
+     Routine to set the box on the physical page.
      This routine divides the page into a grid of boxes. 
 
 \index[routine]{qp_set_graph}
 \label{r:qp.set.graph}
 \item[qp_set_graph (title)] \Newline 
-     Subroutine to set certain graph attributes.
+     Routine to set certain graph attributes.
 
 \index[routine]{qp_set_graph_limits}
 \label{r:qp.set.graph.limits}
 \item[qp_set_graph_limits()] \Newline 
-     Subroutine to calculate the offsets for the graph.
-     This subroutine also sets the PGPLOT window size equal to the graph size.
+     Routine to calculate the offsets for the graph.
+     This routine also sets the PGPLOT window size equal to the graph size.
 
 \index[routine]{qp_set_graph_placement}
 \label{r:qp.set.graph.placement}
 \item[qp_set_graph_placement (x1_marg, x_graph_len, y1_marg, y_graph_len, units)] \Newline 
-Subroutine to set the placement of the current graph inside the box. 
+Routine to set the placement of the current graph inside the box. 
 This routine can be used in place of qp_set_margin.
 
 \index[routine]{qp_set_layout}
 \label{r:qp.set.layout}
 \item[qp_set_layout (x_axis, y_axis, x2_axis, y2_axis, ...] \Newline 
-     Subroutine to set various attributes. This routine can be used
+     Routine to set various attributes. This routine can be used
      in place of other qp_set_* routines.
 
 \index[routine]{qp_set_line}
 \label{r:qp.set.line}
 \item[qp_set_line (who, line)] \Newline 
-     Subroutine to set the default line attributes.
+     Routine to set the default line attributes.
 
 \index[routine]{qp_set_margin}
 \label{r:qp.set.margin}
 \item[qp_set_margin (x1_marg, x2_marg, y1_marg, y2_marg, units)] \Newline 
-Subroutine to set up the margins from the sides of the box (see QP_SET_BOX)
+Routine to set up the margins from the sides of the box (see QP_SET_BOX)
 to the edges of the actual graph.
 
 \index[routine]{qp_set_page_border}
 \label{r:qp.set.page.border}
 \item[qp_set_page_border (x1_b, x2_b, y1_b, y2_b, units)] \Newline 
-     Subroutine to set the border around the physical page.
+     Routine to set the border around the physical page.
 
 \index[routine]{qp_set_page_border_to_box}
 \label{r:qp.set.page.border.to.box}
 \item[qp_set_page_border_to_box ()] \Newline 
-Subroutine to set the page border to correspond to the region of the
+Routine to set the page border to correspond to the region of the
 current box. This allows qp_set_box to subdivide the current box.
 
 \index[routine]{qp_set_clip}
 \label{r:qp.set.clip}
 \item[qp_set_clip (clip)] \Newline 
-     Subroutine to set the default clipping state.
+     Routine to set the default clipping state.
 
 \index[routine]{qp_set_parameters}
 \label{r:qp.set.parameters}
 \item[qp_set_parameters (text_scale)] \Newline 
-Subroutine to set various quick plot parameters.
+Routine to set various quick plot parameters.
 
 \index[routine]{qp_subset_box}
 \label{r:qp.subset.box}
 \item[qp_subset_box (ix, iy, ix_tot, iy_tot, x_marg, y_marg)] \Newline 
-     Subroutine to set the box for a graph. This is the same as
+     Routine to set the box for a graph. This is the same as
      qp_set_box but the boundaries of the page are taken to be the box boundaries.
 
 \index[routine]{qp_set_symbol}
 \label{r:qp.set.symbol}
 \item[qp_set_symbol (symbol)] \Newline 
-     Subroutine to set the type and size of the symbols used in plotting data.
+     Routine to set the type and size of the symbols used in plotting data.
      See the pgplot documentation for more details.
 
 \index[routine]{qp_set_symbol_attrib}
 \label{r:qp.set.symbol.attrib}
 \item[qp_set_symbol_attrib (type, height, color, fill, line_width, clip)] \Newline 
-     Subroutine to set the type and size of the symbols used in plotting data.
+     Routine to set the type and size of the symbols used in plotting data.
 
 \index[routine]{qp_set_line_attrib}
 \label{r:qp.set.line.attrib}
 \item[qp_set_line_attrib (who, width, color, style, clip)] \Newline 
-     Subroutine to set the default line attributes.
+     Routine to set the default line attributes.
 
 \index[routine]{qp_set_graph_attrib}
 \label{r:qp.set.graph.attrib}
 \item[qp_set_graph_attrib (draw_grid, draw_title)] \Newline 
-     Subroutine to set attributes of the current graph.
+     Routine to set attributes of the current graph.
 
 \index[routine]{qp_set_text_attrib}
 \label{r:qp.set.text.attrib}
 \item[\protect\parbox{6in}{qp_set_text_attrib (who, height, color, \\
   \hspace*{2in} background, uniform_spacing, spacing_factor)} ] \Newline 
-     Subroutine to set the default text attributes.
+     Routine to set the default text attributes.
 
 \index[routine]{qp_use_axis}
 \label{r:qp.use.axis}
 \item[qp_use_axis (x, y)] \Newline 
-Subroutine to set what axis to use: X or X2, Y or Y2.
+Routine to set what axis to use: X or X2, Y or Y2.
 
 \end{description}
 
@@ -2460,27 +2466,27 @@ Subroutine to set what axis to use: X or X2, Y or Y2.
 \index[routine]{qp_get_axis}
 \label{r:qp.get.axis}
 \item[qp_get_axis (axis, a_min, a_max, div, ... )] \Newline
-     Subroutine to get the min, max, divisions etc. for the X and Y axes.
+     Routine to get the min, max, divisions etc. for the X and Y axes.
 
 \index[routine]{qp_get_layout_attrib}
 \label{r:qp.get.layout.attrib}
 \item[qp_get_layout_attrib (who, x1, x2, y1, y2, units)] \Newline 
-     Subroutine to get the attributes of the layout.
+     Routine to get the attributes of the layout.
 
 \index[routine]{qp_get_line}
 \label{r:qp.get.line}
 \item[qp_get_line (who, line)] \Newline 
-Subroutine to get the default line attributes.
+Routine to get the default line attributes.
 
 \index[routine]{qp_get_parameters}
 \label{r:qp.get.parameters}
 \item[qp_get_parameters (text_scale)] \Newline 
-Subroutine to get various quick_plot parameters.
+Routine to get various quick_plot parameters.
 
 \index[routine]{qp_get_symbol}
 \label{r:qp.get.symbol}
 \item[qp_get_symbol (symbol)] \Newline 
-Subroutine to get the symbol parameters used in plotting data.
+Routine to get the symbol parameters used in plotting data.
 Use qp_set_symbol or qp_set_symbol_attrib to set symbol attributes.
 
 \index[routine]{qp_text_len}
@@ -2498,13 +2504,13 @@ Use qp_set_symbol or qp_set_symbol_attrib to set symbol attributes.
 \index[routine]{qp_from_inch_rel}
 \label{r:qp.from.inch.rel}
 \item[qp_from_inch_rel (x_inch, y_inch, x, y, units)] \Newline 
-     Subroutine to convert from a relative position (an offset) in inches
+     Routine to convert from a relative position (an offset) in inches
      to other units.
 
 \index[routine]{qp_from_inch_abs}
 \label{r:qp.from.inch.abs}
 \item[qp_from_inch_abs (x_inch, y_inch, x, y, units)] \Newline 
-     Subroutine to convert to absolute position (x, y) from inches referenced
+     Routine to convert to absolute position (x, y) from inches referenced
      to the Left Bottom corner of the page
 
 \index[routine]{qp_text_height_to_inches}
@@ -2516,23 +2522,23 @@ inches taking into account the text_scale.
 \index[routine]{qp_to_inch_rel}
 \label{r:qp.to.inch.rel}
 \item[qp_to_inch_rel (x, y, x_inch, y_inch, units)] \Newline 
-Subroutine to convert a relative (x, y) into inches.
+Routine to convert a relative (x, y) into inches.
 
 \index[routine]{qp_to_inch_abs}
 \label{r:qp.to.inch.abs}
 \item[qp_to_inch_abs (x, y, x_inch, y_inch, units)] \Newline 
-Subroutine to convert an absolute position (x, y) into inches referenced
+Routine to convert an absolute position (x, y) into inches referenced
 to the Left Bottom corner of the page.
 
 \index[routine]{qp_to_inches_rel}
 \label{r:qp.to.inches.rel}
 \item[qp_to_inches_rel (x, y, x_inch, y_inch, units)] \Newline 
-     Subroutine to convert a relative (x, y) into inches.
+     Routine to convert a relative (x, y) into inches.
 
 \index[routine]{qp_to_inches_abs}
 \label{r:qp.to.inches.abs}
 \item[qp_to_inches_abs (x, y, x_inch, y_inch, units)] \Newline 
-     Subroutine to convert an absolute position (x, y) into inches referenced
+     Routine to convert an absolute position (x, y) into inches referenced
      to the left bottom corner of the page.
 
 \end{description}
@@ -2546,7 +2552,7 @@ to the Left Bottom corner of the page.
 \label{r:qp.read.data}
 \item[qp_read_data (iu, err_flag, x, ix_col, y, iy_col, z, iz_col, 
                                                                t, it_col)] \Newline 
-     Subroutine to read columns of data.
+     Routine to read columns of data.
 
 \end{description}
 
@@ -2558,47 +2564,47 @@ to the Left Bottom corner of the page.
 \index[routine]{qp_clear_box_basic}
 \label{r:qp.clear.box.basic}
 \item[qp_clear_box_basic (x1, x2, y1, y2, page_type)] \Newline 
-Subroutine to clear all drawing from a box.
+Routine to clear all drawing from a box.
 That is, white out the box region.
 
 \index[routine]{qp_clear_page_basic}
 \label{r:qp.clear.page.basic}
 \item[qp_clear_page_basic] \Newline 
-Subroutine to clear all drawing from the page.
+Routine to clear all drawing from the page.
 
 \index[routine]{qp_close_page_basic}
 \label{r:qp.close.page.basic}
 \item[qp_close_page_basic] \Newline 
-Subroutine to finish plotting on a page.
+Routine to finish plotting on a page.
 For X this closes the window.
 
 \index[routine]{qp_convert_point_rel}
 \label{r:qp.convert.point.rel}
 \item[qp_convert_point_rel (x_in, y_in, units_in, x_out, y_out, units_out)] \Newline 
-Subroutine to convert a (x, y) point from from
+Routine to convert a (x, y) point from from
 one set of relative units to another.
 
 \index[routine]{qp_convert_point_abs}
 \label{r:qp.convert.point.abs}
 \item[qp_convert_point_abs (x_in, y_in, units_in, x_out, y_out, units_out)] \Newline 
-Subroutine to convert a (x, y) point from from
+Routine to convert a (x, y) point from from
 one set of absolute units to another.
 
 \index[routine]{qp_draw_symbol_basic}
 \label{r:qp.draw.symbol.basic}
 \item[qp_draw_symbol_basic (x, y, symbol)] \Newline 
-Subroutine to draw a symbol.
+Routine to draw a symbol.
 
 \index[routine]{qp_init_com_struct}
 \label{r:qp.init.com.struct}
 \item[qp_init_com_struct ] \Newline 
-Subroutine to initialize the common block qp_state_struct.
-This subroutine is not for general use.
+Routine to initialize the common block qp_state_struct.
+This routine is not for general use.
 
 \index[routine]{qp_join_units_string}
 \label{r:qp.join.units.string}
 \item[qp_join_units_string (u_type, region, corner, units)] \Newline 
-Subroutine to form a units from its components.
+Routine to form a units from its components.
 
 \index[routine]{qp_justify}
 \label{r:qp.justify}
@@ -2610,98 +2616,98 @@ Subroutine to form a units from its components.
 \label{r:qp.open.page.basic}
 \item[qp_open_page_basic (page_type, x_len, y_len, plot_file] \Newline 
       x_page, y_page, i_chan)
-Subroutine to Initialize a page (window) for plotting.
+Routine to Initialize a page (window) for plotting.
 
 \index[routine]{qp_paint_rectangle_basic}
 \label{r:qp.paint.rectangle.basic}
 \item[qp_paint_rectangle_basic (x1, x2, y1, y2, color, page_type)] \Newline 
-Subroutine to fill a rectangle with a given color. 
+Routine to fill a rectangle with a given color. 
 A color of white essentially eraces the rectangle.
 
 \index[routine]{qp_pointer_to_axis}
 \label{r:qp.pointer.to.axis}
 \item[qp_pointer_to_axis (axis, axis_ptr)] \Newline 
-Subroutine to return a pointer to an common block axis.
+Routine to return a pointer to an common block axis.
 
 \index[routine]{qp_restore_state}
 \label{r:qp.restore.state}
 \item[qp_restore_state] \Newline 
-     Subroutine to restore saved attributes. 
+     Routine to restore saved attributes. 
      Use qp_save_state to restore the saved state.
 
 \index[routine]{qp_restore_state_basic}
 \label{r:qp.restore.state.basic}
 \item[qp_restore_state_basic ()] \Newline 
-Subroutine to restore the print state.
+Routine to restore the print state.
 
 \index[routine]{qp_save_state}
 \label{r:qp.save.state}
 \item[qp_save_state (buffer)] \Newline 
-     Subroutine to save the current attributes. 
+     Routine to save the current attributes. 
      Use qp_restore_state to restore the saved state.
 
 \index[routine]{qp_save_state_basic}
 \label{r:qp.save.state.basic}
 \item[qp_save_state_basic ] \Newline 
-Subroutine to save the print state.
+Routine to save the print state.
 
 \index[routine]{qp_select_page_basic}
 \label{r:qp.select.page.basic}
 \item[qp_select_page_basic (iw)] \Newline 
-Subroutine to switch to a particular page for drawing graphics.
+Routine to switch to a particular page for drawing graphics.
 
 \index[routine]{qp_set_char_size_basic}
 \label{r:qp.set.char.size.basic}
 \item[qp_set_char_size_basic (height)] \Newline 
-Subroutine to set the character size.
+Routine to set the character size.
 
 \index[routine]{qp_set_clip_basic}
 \label{r:qp.set.clip.basic}
 \item[qp_set_clip_basic (clip)] \Newline 
-Subroutine to set the clipping state.
+Routine to set the clipping state.
 Note: This affects both lines and symbols.
 
 \index[routine]{qp_set_color_basic}
 \label{r:qp.set.color.basic}
 \item[qp_set_color_basic (ix_color, page_type)  ] \Newline 
-Subroutine to set the color taking into accout that GIF
+Routine to set the color taking into accout that GIF
 inverts the black for white.
 
 \index[routine]{qp_set_graph_position_basic}
 \label{r:qp.set.graph.position.basic}
 \item[qp_set_graph_position_basic (x1, x2, y1, y2)] \Newline 
-Subroutine to set the position of a graph.
+Routine to set the position of a graph.
 Units are inches from lower left of page.
 
 ?\index[routine]{qp_set_line_width_basic}
 \label{r:qp.set.line.width.basic}
 \item[qp_set_line_width_basic (line_width)] \Newline 
-Subroutine to set the line width.
+Routine to set the line width.
 
 \index[routine]{qp_set_line_style_basic}
 \label{r:qp.set.line.style.basic}
 \item[qp_set_line_style_basic (style)] \Newline 
-Subroutine to set the line style.
+Routine to set the line style.
 
 \index[routine]{qp_set_symbol_fill_basic}
 \label{r:qp.set.symbol.fill.basic}
 \item[qp_set_symbol_fill_basic (fill)] \Newline 
-Subroutine to set the symbol fill style.
+Routine to set the symbol fill style.
 
 \index[routine]{qp_set_symbol_size_basic}
 \label{r:qp.set.symbol.size.basic}
 \item[qp_set_symbol_size_basic (height, symbol_type, page_type, uniform_size)] \Newline 
-Subroutine to set the symbol_size
+Routine to set the symbol_size
 
 \index[routine]{qp_set_text_background_color_basic}
 \label{r:qp.set.text.background.color.basic}
 \item[qp_set_text_background_color_basic (color)] \Newline 
-Subroutine to set the character text background color.
+Routine to set the character text background color.
 
 \index[routine]{qp_split_units_string}
 \label{r:qp.split.units.string}
 \item[qp_split_units_string (u_type, region, corner, units)] \Newline 
-     Subroutine to split a units string into its components.
+     Routine to split a units string into its components.
 
 \index[routine]{qp_text_len_basic}
 \label{r:qp.text.len.basic}
@@ -2711,7 +2717,7 @@ Function to find the length of a text string.
 \index[routine]{qp_translate_to_color_index}
 \label{r:qp.translate.to.color.index}
 \item[qp_translate_to_color_index (name, index)] \Newline 
-     Subroutine to translate from a string to a color index.
+     Routine to translate from a string to a color index.
 
 \end{description}
 
@@ -2725,33 +2731,33 @@ Function to find the length of a text string.
 \index[routine]{spinor_to_polar}
 \label{r:spinor.to.polar}
 \item[spinor_to_polar (coord, polar)] \Newline 
-Subroutine to convert a spinor into polar coordinates.
+Routine to convert a spinor into polar coordinates.
 
 \index[routine]{polar_to_vec}
 \label{r:polar.to.vec}
 \item[polar_to_vec (polar, vec)] \Newline
-Subroutine to convert a spin vector from polar coordinates to cartesian coordinates.
+Routine to convert a spin vector from polar coordinates to cartesian coordinates.
 
 \index[routine]{polar_to_spinor}
 \label{r:polar.to.spinor}
 \item[polar_to_spinor (polar, coord)] \Newline
-Subroutine to convert a spin vector in polar coordinates to a spinor.
+Routine to convert a spin vector in polar coordinates to a spinor.
 
 \index[routine]{vec_to_polar}
 \label{r:vec.to.polar}
 \item[vec_to_polar (vec, polar, phase)] \Newline
-Subroutine to convert a spin vector from cartesian coordinates to polar coordinates 
+Routine to convert a spin vector from cartesian coordinates to polar coordinates 
 preserving the complex phase.
 
 \index[routine]{spinor_to_vec}
 \label{r:spinor.to.vec}
 \item[spinor_to_vec (coord, vec)] \Newline
-Subroutine to convert a spinor to a spin vector in cartesian coordinates.
+Routine to convert a spinor to a spin vector in cartesian coordinates.
 
 \index[routine]{vec_to_spinor}
 \label{r:vec.to.spinor}
 \item[vec_to_spinor (vec, coord, phase)] \Newline
-Subroutine to convert a spin vector in cartesian coordinates to a spinor using
+Routine to convert a spin vector in cartesian coordinates to a spinor using
 the specified complex phase.
 
 \index[routine]{angle_between_polars}
@@ -2767,7 +2773,7 @@ Subrotuine to track the spin with the Euler four-vector quaternion a.
 \index[routine]{track1_spin}
 \label{r:track1.spin}
 \item[track1_spin (start, ele, param, end)] \Newline
-Subroutine to track the particle spin through one element.
+Routine to track the particle spin through one element.
 
 \end{description}
 
@@ -2785,7 +2791,7 @@ routines directly.
 \index[routine]{make_mat6_bmad}
 \label{r:make.mat6.bmad}
 \item[make_mat6_bmad (ele, param, c0, c1)] \Newline
-Subroutine to make the 6x6 transfer matrix for an element
+Routine to make the 6x6 transfer matrix for an element
 using closed formulas.
 
 \index[routine]{make_mat6_custom}
@@ -2796,19 +2802,19 @@ Dummy routine for making the 6x6 transfer matrices.
 \index[routine]{make_mat6_symp_lie_ptc}
 \label{r:make.mat6.symp.lie.ptc}
 \item[make_mat6_symp_lie_ptc (ele, param, c0, c1)] \Newline
-Subroutine to make the 6x6 transfer matrix for an element using
+Routine to make the 6x6 transfer matrix for an element using
 the PTC symplectic integrator.
 
 \index[routine]{make_mat6_taylor}
 \label{r:make.mat6.taylor}
 \item[make_mat6_taylor (ele, param, c0, c1)] \Newline
-Subroutine to make the 6x6 transfer matrix for an element
+Routine to make the 6x6 transfer matrix for an element
 from a Taylor map.
 
 \index[routine]{make_mat6_tracking}
 \label{r:make.mat6.tracking}
 \item[make_mat6_tracking (ele, param, c0, c1)] \Newline
-Subroutine to make the 6x6 transfer matrix for an element by 
+Routine to make the 6x6 transfer matrix for an element by 
 tracking 7 particle with different starting conditions.
 
 \end{description}
@@ -2835,44 +2841,44 @@ Routine to concatinate two taylor maps.
 \index[routine]{concat_taylor}
 \label{r:concat.taylor}
 \item[concat_taylor (taylor1, taylor2, taylor3)] \Newline
-Subroutine to concatenate two taylor series: taylor3(x) = taylor2(taylor1(x)) 
+Routine to concatenate two taylor series: taylor3(x) = taylor2(taylor1(x)) 
 
 \index[routine]{ele_to_taylor}
 \label{r:ele.to.taylor}
 \item[ele_to_taylor (ele, param, orb0)] \Newline
-Subroutine to make a Taylor map for an element. The order of the map is set by set_ptc.
+Routine to make a Taylor map for an element. The order of the map is set by set_ptc.
 
 \index[routine]{equivalent_taylor_attributes}
 \label{r:equivalent.taylor.attributes}
 \item[equivalent_taylor_attributes (ele1, ele2) result (equiv)] \Newline 
-Subroutine to see if to elements are equivalent in terms of attributes so
+Routine to see if to elements are equivalent in terms of attributes so
 that their Taylor Maps would be the same. 
 
 \index[routine]{init_taylor_series}
 \label{r:init.taylor.series}
 \item[init_taylor_series (bmad_taylor, n_term)] \Newline
-Subroutine to initialize a Bmad Taylor series. 
+Routine to initialize a Bmad Taylor series. 
 
 \index[routine]{kill_taylor}
 \label{r:kill.taylor}
 \item[kill_taylor (bmad_taylor)] \Newline
-Subroutine to deallocate a Bmad Taylor map. 
+Routine to deallocate a Bmad Taylor map. 
 
 \index[routine]{mat6_to_taylor}
 \label{r:mat6.to.taylor}
 \item[mat6_to_taylor (mat6, vec0, bmad_taylor)] \Newline
-Subroutine to form a first order Taylor map from the 6x6 transfer matrix 
+Routine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
 
 \index[routine]{set_taylor_order}
 \label{r:set.taylor.order}
 \item[set_taylor_order (order, override_flag)] \Newline
-Subroutine to set the taylor order. 
+Routine to set the taylor order. 
 
 \index[routine]{sort_taylor_terms}
 \label{r:sort.taylor.terms}
 \item[sort_taylor_terms (taylor_in, taylor_sorted)] \Newline
-Subroutine to sort the taylor terms from "lowest" to "highest" of a
+Routine to sort the taylor terms from "lowest" to "highest" of a
 Taylor series.
 
 \index[routine]{taylor_coef}
@@ -2884,7 +2890,7 @@ Taylor Series.
 \index[routine]{taylor_equal_taylor}
 \label{r:taylor.equal.taylor}
 \item[taylor_equal_taylor (taylor1, taylor2)] \Newline
-Subroutine to transfer the values from one taylor map to another:
+Routine to transfer the values from one taylor map to another:
 Taylor1 $\le$ Taylor2
 
 \index[routine]{taylor_minus_taylor}
@@ -2900,61 +2906,61 @@ Routine to add two taylor maps.
 \index[routine]{taylors_equal_taylors}
 \label{r:taylors.equal.taylors}
 \item[taylors_equal_taylors (taylor1, taylor2)] \Newline 
-Subroutine to transfer the values from one taylor map to another.
+Routine to transfer the values from one taylor map to another.
 
 \index[routine]{taylor_make_unit}
 \label{r:taylor.make.unit}
 \item[taylor_make_unit (bmad_taylor)] \Newline
-Subroutine to make the unit Taylor map
+Routine to make the unit Taylor map
 
 \index[routine]{taylor_to_mat6}
 \label{r:taylor.to.mat6}
 \item[taylor_to_mat6 (a_taylor, c0, mat6, c1)] \Newline
-Subroutine to calculate the linear (Jacobian) matrix about some
+Routine to calculate the linear (Jacobian) matrix about some
 trajectory from a Taylor map.
 
 \index[routine]{taylor_inverse}
 \label{r:taylor.inverse}
 \item[taylor_inverse (taylor_in, taylor_inv)] \Newline
-Subroutine to invert a taylor map. 
+Routine to invert a taylor map. 
 
 \index[routine]{taylor_propagate1}
 \label{r:taylor.propagate1}
 \item[taylor_propagate1 (tlr, ele, param)] \Newline
-Subroutine to track a real_8 taylor map through an element. 
+Routine to track a real_8 taylor map through an element. 
 The alternative routine, if ele has a taylor series, is concat_taylor. 
 
 \index[routine]{track_taylor}
 \label{r:track.taylor}
 \item[track_taylor (start, bmad_taylor, end)] \Newline
-Subroutine to track using a Taylor map. 
+Routine to track using a Taylor map. 
 
 \index[routine]{transfer_ele_taylor}
 \label{r:transfer.ele.taylor}
 \item[transfer_ele_taylor (ele_in, ele_out, taylor_order)] \Newline 
-Subroutine to transfer a Taylor map from one element to another.
+Routine to transfer a Taylor map from one element to another.
 
 \index[routine]{transfer_lat_taylors}
 \label{r:transfer.lat.taylors}
 \item[transfer_lat_taylors (lat_in, lat_out, 
                                              type_out, transfered_all)] \Newline 
-Subroutine to transfer the taylor maps from the elements of one lat to
+Routine to transfer the taylor maps from the elements of one lat to
 the elements of another. 
 
 \index[routine]{truncate_taylor_to_order}
 \label{r:truncate.taylor.to.order}
 \item[truncate_taylor_to_order (taylor_in, order, taylor_out)] \Newline 
-Subroutine to throw out all terms in a taylor map that are above a certain order.
+Routine to throw out all terms in a taylor map that are above a certain order.
 
 \index[routine]{type_taylors}
 \label{r:type.taylors}
 \item[type_taylors (bmad_taylor)] \Newline
-Subroutine to print in a nice format a Bmad taylor map at the terminal. 
+Routine to print in a nice format a Bmad taylor map at the terminal. 
 
 \index[routine]{type2_taylors}
 \label{r:type2.taylors}
 \item[type2_taylors (bmad_taylor, lines, n_lines)] \Newline
-Subroutine to write a Bmad taylor map in a nice format to a character array. 
+Routine to write a Bmad taylor map in a nice format to a character array. 
 
 \end{description}
 
@@ -2970,49 +2976,49 @@ The following routines perform tracking and closed orbit calculations.
 \index[routine]{check_aperture_limit}
 \label{r:check.aperture.limit}
 \item[check_aperture_limit (orb, ele, param)] \Newline
-Subroutine to check if an orbit is outside the aperture. 
+Routine to check if an orbit is outside the aperture. 
 
 \index[routine]{closed_orbit_calc}
 \label{r:closed.orbit.calc}
 \item[closed_orbit_calc (lat, closed_orb, i_dim, direction)] \Newline 
-Subroutine to calculate the closed orbit at the beginning of the lat.
+Routine to calculate the closed orbit at the beginning of the lat.
 
 \index[routine]{closed_orbit_from_tracking}
 \label{r:closed.orbit.from.tracking}
 \item[closed_orbit_from_tracking (lat, closed_orb, i_dim, 
 eps_rel, eps_abs, init_guess)] \Newline
-Subroutine to find the closed orbit via tracking. 
+Routine to find the closed orbit via tracking. 
 
 \index[routine]{compute_even_steps}
 \label{r:compute.even.steps}
 \item[compute_even_steps (ds_in, length, ds_default, ds_out, n_step)] \Newline 
-Subroutine to compute a step size ds_out, close to ds_in, so that an 
+Routine to compute a step size ds_out, close to ds_in, so that an 
 integer number of steps spans the length.
 
 \index[routine]{dynamic_aperture}
 \label{r:dynamic.aperture}
 \item[dynamic_aperture (lat, track_input, aperture)] \Newline
-Subroutine to determine the dynamic aperture of a lattice via tracking. 
+Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
 \label{r:multi.turn.tracking.analysis}
 \item[multi_turn_tracking_analysis (track, i_dim, track0, ele, 
 stable, growth_rate, chi)] \Newline
-Subroutine to analyze multi-turn tracking data to get the Twiss
+Routine to analyze multi-turn tracking data to get the Twiss
 parameters etc.
 
 \index[routine]{multi_turn_tracking_to_mat}
 \label{r:multi.turn.tracking.to.mat}
 \item[multi_turn_tracking_to_mat (track, i_dim, 
 mat1, track0, chi)] \Newline
-Subroutine to analyze 1-turn tracking data to find the 1-turn transfer
+Routine to analyze 1-turn tracking data to find the 1-turn transfer
 matrix and the closed orbit offset.
 
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{offset_particle (ele, param, coord, set, set_canonical, \\
 \hspace*{2in} set_tilt, set_multipoles, set_hvkicks, s_pos)}] \Newline
-Subroutine to effectively offset an element by instead offsetting 
+Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
 \index[routine]{offset_photon}
@@ -3030,18 +3036,18 @@ particular point in its orbit.
 \index[routine]{setup_radiation_tracking}
 \label{r:setup.radiation.tracking}
 \item[setup_radiation_tracking (lat, closed_orb, fluctuations_on, damping_on)] \Newline
-Subroutine to compute synchrotron radiation parameters prior to tracking. 
+Routine to compute synchrotron radiation parameters prior to tracking. 
 
 \index[routine]{tilt_coords}
 \label{r:tilt.coords}
 \item[tilt_coords (tilt_val coord, set)] \Newline
-Subroutine to effectively tilt (rotate in the x-y plane) an element by 
+Routine to effectively tilt (rotate in the x-y plane) an element by 
 instead rotating the particle position with negative the angle. 
 
 \index[routine]{track1}
 \label{r:track1}
 \item[track1 (start, ele, param, end)] \Newline
-Subroutine to track through a single element. 
+Routine to track through a single element. 
 
 \index[routine]{track1_beam_simple}
 \label{r:track1.beam.simple}
@@ -3058,12 +3064,12 @@ with csr radiation effects.
 \index[routine]{track_all}
 \label{r:track.all}
 \item[track_all (lat, orbit, ix_branch)] \Newline
-Subroutine to track through the lat. 
+Routine to track through the lat. 
 
 \index[routine]{track_many}
 \label{r:track.many}
 \item[track_many (lat, orbit, ix_start, ix_end, direction, ix_branch)] \Newline
-Subroutine to track from one element in the lat to another. 
+Routine to track from one element in the lat to another. 
 
 \index[routine]{twiss_and_track}
 \label{r:twiss.and.track}
@@ -3073,7 +3079,7 @@ See the Twiss section for more details.
 \index[routine]{twiss_and_track_at_s}
 \label{r:twiss.and.track.at.s}
 \item[twiss_and_track_at_s (lat, s, ele, orb, orb_at_s, ix_branch, err)] \Newline
-Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
+Routine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index[routine]{twiss_and_track_intra_ele}
 \label{r:twiss.and.track.intra.ele}
@@ -3084,11 +3090,11 @@ Routine to track a particle within an element.
 \index[routine]{twiss_and_track_partial}
 \label{r:twiss.and.track.partial}
 \item[twiss_and_track_partial (ele1, ele2, param, del_s, ele3, start, end)] \Newline
-Subroutine to calculate the Twiss parameters and orbit at a particular position inside an element. 
+Routine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index[routine]{twiss_from_tracking}
 \item[twiss_from_tracking (lat, closed_orb, d_orb, error)] \Newline
-Subroutine to compute from tracking the Twiss parameters and the transfer matrices 
+Routine to compute from tracking the Twiss parameters and the transfer matrices 
 for every element in the lat. 
 
 \end{description}
@@ -3102,7 +3108,7 @@ for every element in the lat.
 \index[routine]{odeint_bmad}
 \label{r:odeint.bmad}
 \item[odeint_bmad (start, ele, param, end, s1, s2, rel_tol, abs_tol, h1, hmin)] \Newline
-Subroutine to do Runge Kutta tracking. 
+Routine to do Runge Kutta tracking. 
 
 \index[routine]{slice_ele_calc}
 \label{r:slice.ele.calc}
@@ -3113,13 +3119,13 @@ This routine can be used for detailed tracking through an element.
 \index[routine]{track1_boris_partial}
 \label{r:track1.boris.partial}
 \item[track1_boris_partial (start, ele, param, s, ds, end)] \Newline
-Subroutine to track 1 step using boris tracking. 
-This subroutine is used by track1_boris and track1_adaptive_boris. 
+Routine to track 1 step using boris tracking. 
+This routine is used by track1_boris and track1_adaptive_boris. 
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
 \item[track_a_drift (orb, length)] \Newline
-Subroutine to track through a drift. 
+Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
 \label{r:track.a.bend}
@@ -3141,57 +3147,57 @@ in favor of tracking an ensemble of particles.}
 \index[routine]{calc_macro_bunch_params}
 \label{r:calc.macro.bunch.params}
 \item[calc_macro_bunch_params (bunch, ele, params)] \Newline
-Subroutine to calculate various beam characteristics from a bunch.
+Routine to calculate various beam characteristics from a bunch.
 
 \index[routine]{init_macro_distribution}
 \label{r:init.macro.distribution}
 \item[init_macro_distribution (beam, init, canonical_out)] \Newline 
-Subroutine to initialize a macroparticle distribution.
+Routine to initialize a macroparticle distribution.
 
 \index[routine]{mat_to_mp_sigma}
 \label{r:mat.to.mp.sigma}
 \item[mat_to_mp_sigma (mat, sigma)] \Newline 
-Subroutine to convert a sigma matrix. to a linear array of 
+Routine to convert a sigma matrix. to a linear array of 
 macroparticle sigmas.
 
 \index[routine]{mp_sigma_to_mat}
 \label{r:mp.sigma.to.mat}
 \item[mp_sigma_to_mat (sigma, mat)] \Newline 
-Subroutine to convert a linear array of macroparticle sigmas to a 
+Routine to convert a linear array of macroparticle sigmas to a 
 sigma matrix. 
 
 \index[routine]{mp_to_angle_coords}
 \label{r:mp.to.angle.coords}
 \item[mp_to_angle_coords (mp, energy0)] \Newline 
-Subroutine to convert macroparticle coords from 
+Routine to convert macroparticle coords from 
 (x, px, y, py, z, pz) to (x, x', y, y', z, E).
 
 \index[routine]{mp_to_canonical_coords}
 \label{r:mp.to.canonical.coords}
 \item[mp_to_canonical_coords (mp, energy0)] \Newline 
-Subroutine to convert macroparticle coords from 
+Routine to convert macroparticle coords from 
 (x, x', y, y', z, E) to (x, px, y, py, z, pz).
 
 \index[routine]{reallocate_macro_beam}
 \label{r:reallocate.macro.beam}
 \item[reallocate_macro_beam (beam, n_bunch, n_macro)] \Newline 
-Subroutine to reallocate memory within a beam_struct.
+Routine to reallocate memory within a beam_struct.
 
 \index[routine]{track1_macro_beam}
 \label{r:track1.macro.beam}
 \item[track1_macro_beam (start, ele, param, end] \Newline
-Subroutine to track a beam of macroparticles through an element.
+Routine to track a beam of macroparticles through an element.
 
 \index[routine]{track_macro_beam}
 \label{r:track.macro.beam}
 \item[track_macro_beam (lat, beam, ix1, ix2)] \Newline 
-Subroutine to track a beam of macroparticles from the end of
+Routine to track a beam of macroparticles from the end of
 lat\%ele(ix1) Through to the end of lat\%ele(ix2).
 
 \index[routine]{track1_macroparticle}
 \label{r:track1.macroparticle}
 \item[track1_macroparticle (start, ele, param, end)] \Newline 
-Subroutine to track a macroparticle through an element.
+Routine to track a macroparticle through an element.
 
 \end{description}
 
@@ -3204,131 +3210,131 @@ Subroutine to track a macroparticle through an element.
 \index[routine]{make_mat6_mad}
 \label{r:make.mat6.mad}
 \item[make_mat6_mad (ele, param, map, c0, c1)] \Newline 
-     Subroutine to make the 6x6 transfer matrix for an element from the 
+     Routine to make the 6x6 transfer matrix for an element from the 
      2nd order MAD transport map. The map is stored in ele\%taylor.
 
 \index[routine]{make_mad_map}
 \label{r:make.mad.map}
 \item[make_mad_map (ele, particle, map)] \Newline 
-     Subroutine to make a 2nd order transport map a la MAD.
+     Routine to make a 2nd order transport map a la MAD.
 
 \index[routine]{mad_add_offsets_and_multipoles}
 \label{r:mad.add.offsets.and.multipoles}
 \item[mad_add_offsets_and_multipoles (ele, energy, map)] \Newline 
-     Subroutine to add in the effect of element offsets and/or multipoles
+     Routine to add in the effect of element offsets and/or multipoles
      on the 2nd order transport map for the element.
 
 \index[routine]{mad_drift}
 \label{r:mad.drift}
 \item[mad_drift (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for a drift space.
+     Routine to make a transport map for a drift space.
      The equivalent MAD-8 routine is: TMDRF
 
 \index[routine]{mad_elsep}
 \label{r:mad.elsep}
 \item[mad_elsep (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for an electric separator. 
+     Routine to make a transport map for an electric separator. 
      The equivalent MAD-8 routine is: TMSEP
 
 \index[routine]{mad_sextupole}
 \label{r:mad.sextupole}
 \item[mad_sextupole (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for an sextupole.
+     Routine to make a transport map for an sextupole.
      The equivalent MAD-8 routine is: TMSEXT
 
 \index[routine]{mad_sbend}
 \label{r:mad.sbend}
 \item[mad_sbend (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for a sector bend element.
+     Routine to make a transport map for a sector bend element.
      The equivalent MAD-8 routine is: TMBEND
 
 \index[routine]{mad_sbend_fringe}
 \label{r:mad.sbend.fringe}
 \item[mad_sbend_fringe (ele, energy, into, map)] \Newline 
-     Subroutine to make a transport map for the fringe field of a dipole.
+     Routine to make a transport map for the fringe field of a dipole.
      The equivalent MAD-8 routine is: TMFRNG
 
 \index[routine]{mad_sbend_body}
 \label{r:mad.sbend.body}
 \item[mad_sbend_body (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for the body of a sector dipole.
+     Routine to make a transport map for the body of a sector dipole.
      The equivalent MAD-8 routine is: TMSECT
 
 \index[routine]{mad_tmfoc}
 \label{r:mad.tmfoc}
 \item[mad_tmfoc (el, sk1, c, s, d, f)] \Newline 
-     Subroutine to compute the linear focussing functions.  
+     Routine to compute the linear focussing functions.  
      The equivalent MAD-8 routine is: TMFOC
 
 \index[routine]{mad_quadrupole}
 \label{r:mad.quadrupole}
 \item[mad_quadrupole (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for an quadrupole element.
+     Routine to make a transport map for an quadrupole element.
      The equivalent MAD-8 routine is: TMSEXT
 
 \index[routine]{mad_rfcavity}
 \label{r:mad.rfcavity}
 \item[mad_rfcavity (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for an rfcavity element.
+     Routine to make a transport map for an rfcavity element.
      The equivalent MAD-8 routine is: TMRF
 
 \index[routine]{mad_solenoid}
 \label{r:mad.solenoid}
 \item[mad_solenoid (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for an solenoid.
+     Routine to make a transport map for an solenoid.
      The equivalent MAD-8 routine is: TMSEXT
 
 \index[routine]{mad_sol_quad}
 \label{r:mad.sol.quad}
 \item[mad_sol_quad (ele, energy, map)] \Newline 
-     Subroutine to make a transport map for a combination solenoid/quadrupole.
+     Routine to make a transport map for a combination solenoid/quadrupole.
      Note: There is no equivalent MAD-8 routine.
 
 \index[routine]{mad_tmsymm}
 \label{r:mad.tmsymm}
 \item[mad_tmsymm (te)] \Newline 
-     subroutine to symmetrize the 2nd order map t.
+     routine to symmetrize the 2nd order map t.
      The equivalent MAD-8 routine is: tmsymm
 
 \index[routine]{mad_tmtilt}
 \label{r:mad.tmtilt}
 \item[mad_tmtilt (map, tilt)] \Newline 
-     Subroutine to apply a tilt to a transport map.
+     Routine to apply a tilt to a transport map.
      The equivalent MAD-8 routine is: TMTILT
 
 \index[routine]{mad_concat_map2}
 \label{r:mad.concat.map2}
 \item[mad_concat_map2 (map1, map2, map3)] \Newline 
-     Subroutine to concatenate two 2nd order transport maps.
+     Routine to concatenate two 2nd order transport maps.
          map3 = map2(map1)
 
 \index[routine]{mad_track1}
 \label{r:mad.track1}
 \item[mad_track1 (c0, map, c1)] \Newline 
-     Subroutine to track through a 2nd order transfer map.
+     Routine to track through a 2nd order transfer map.
      The equivalent MAD-8 routine is: TMTRAK
 
 \index[routine]{track1_mad}
 \label{r:track1.mad}
 \item[track1_mad (start, ele, param, end)] \Newline 
-     Subroutine to track through an element using a 2nd order transfer map.
+     Routine to track through an element using a 2nd order transfer map.
      Note: If map does not exist then one will be created. 
 
 \index[routine]{mad_map_to_taylor}
 \label{r:mad.map.to.taylor}
 \item[mad_map_to_taylor (map, taylor)] \Newline 
-     Subroutine to convert a mad order 2 map to a taylor map.
+     Routine to convert a mad order 2 map to a taylor map.
 
 \index[routine]{taylor_to_mad_map}
 \label{r:taylor.to.mad.map}
 \item[taylor_to_mad_map (taylor, map)] \Newline 
-     Subroutine to convert a Taylor map to a mad order 2 map.
+     Routine to convert a Taylor map to a mad order 2 map.
      If any of the Taylor terms have order greater than 2 they are ignored.
 
 \index[routine]{make_unit_mad_map}
 \label{r:make.unit.mad.map}
 \item[make_unit_mad_map (map)] \Newline 
-     Subroutine to initialize a 2nd order transport map to unity.
+     Routine to initialize a 2nd order transport map to unity.
 
 
 \end{description}
@@ -3349,12 +3355,12 @@ Symplectic integration through an element to 0th or 1st order.
 \index[routine]{track1_adaptive_boris}
 \label{r:track1.adaptive.boris}
 \item[track1_adaptive_boris (start, ele, param, end, s_start, s_end)] \Newline
-Subroutine to do Boris tracking with adaptive step size control. 
+Routine to do Boris tracking with adaptive step size control. 
 
 \index[routine]{track1_boris}
 \label{r:track1.boris}
 \item[track1_boris (start, ele, param, end, s_start, s_end)] \Newline
-Subroutine to do Boris tracking.  
+Routine to do Boris tracking.  
 
 \index[routine]{track1_bmad}
 \label{r:track1.bmad}
@@ -3374,12 +3380,12 @@ Particle tracking through a single element using the transfer matrix..
 \index[routine]{track1_radiation}
 \label{r:track1.radiation}
 \item[track1_radiation (start, ele, param, end, edge)] \Newline
-Subroutine to put in radiation damping and/or fluctuations. 
+Routine to put in radiation damping and/or fluctuations. 
 
 \index[routine]{track1_runge_kutta}
 \label{r:track1.runge.kutta}
 \item[track1_runge_kutta (start, ele, param, end)] \Newline
-Subroutine to do tracking using Runge-Kutta integration. 
+Routine to do tracking using Runge-Kutta integration. 
 
 \index[routine]{track1_symp_lie_ptc}
 \label{r:track1.symp.lie.ptc}
@@ -3396,7 +3402,7 @@ taylor map (In PTC/FPP this is called a genfield).
 \index[routine]{track1_taylor}
 \label{r:track1.taylor}
 \item[track1_taylor (start, ele, param, end)] \Newline
-Subroutine to track through an element using the elements taylor series. 
+Routine to track through an element using the elements taylor series. 
 
 \end{description}
 
@@ -3410,29 +3416,29 @@ Subroutine to track through an element using the elements taylor series.
 \index[routine]{calc_z_tune}
 \label{r:calc.z.tune}
 \item[calc_z_tune (lat)] \Newline
-Subroutine to calculate the synchrotron tune from the full 6X6 1 turn matrix. 
+Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix. 
 
 \index[routine]{chrom_calc}
 \label{r:chrom.calc}
 \item[chrom_calc (lat, delta_e, chrom_x, chrom_y)] \Newline
-Subroutine to calculate the chromaticities by computing the tune 
+Routine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 
 
 \index[routine]{chrom_tune}
 \label{r:chrom.tune}
 \item[chrom_tune (lat, delta_e, target_x, target_y, err_flag)] \Newline
-Subroutine to set the sextupole strengths so that the lat 
+Routine to set the sextupole strengths so that the lat 
 has the desired chromaticities. 
 
 \index[routine]{quad_beta_ave}
 \label{r:quad.beta.ave}
 \item[quad_beta_ave (lat, ix_ele, beta_x_ave, beta_y_ave)] \Newline
-Subroutine to compute the average betas in a quad.
+Routine to compute the average betas in a quad.
 
 \index[routine]{radiation_integrals}
 \label{r:radiation.integrals}
 \item[radiation_integrals (lat, orb, mode)] \Newline
-Subroutine to calculate the synchrotron radiation integrals, the emittance, and energy spread. 
+Routine to calculate the synchrotron radiation integrals, the emittance, and energy spread. 
 
 \index[routine]{radiation_integrals_custom}
 \label{r:radiation.integrals.custom}
@@ -3448,72 +3454,72 @@ Function to see if the modes of ELE1 are flipped relative to ELE2.
 \index[routine]{set_tune}
 \label{r:set.tune}
 \item[set_tune (phi_x_set, phi_y_set, dk1, lat, orb, ok)] \Newline
-Subroutine to Q_tune a lat. This routine will set the tunes to within 0.001 radian (0.06 deg). 
+Routine to Q_tune a lat. This routine will set the tunes to within 0.001 radian (0.06 deg). 
 
 \index[routine]{set_z_tune}
 \label{r:set.z.tune}
 \item[set_z_tune (lat)] \Newline
-Subroutine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
+Routine to set the longitudinal tune by setting the RF voltages in the RF cavities. 
 
 \index[routine]{transfer_map_calc}
 \label{r:transfer.map.calc}
 \item[transfer_map_calc (lat, t_map, ix1, ix2, integrate, one_turn, unit_start) ] \Newline 
-Subroutine to calculate the transfer map between two elements.
+Routine to calculate the transfer map between two elements.
 
 \index[routine]{transfer_map_calc_at_s}
 \label{r:transfer.map.calc.at.s}
 \item[transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)] \Newline 
-Subroutine to calculate the transfer map between longitudinal positions
+Routine to calculate the transfer map between longitudinal positions
 s1 to s2.
 
 \index[routine]{twiss_and_track}
 \item[twiss_and_track (lat, orb)] \Newline
-Subroutine to calculate the Twiss and orbit parameters. 
+Routine to calculate the Twiss and orbit parameters. 
 This is not necessarily the fastest routine. 
 
 \index[routine]{twiss_and_track_partial}
 \item[twiss_and_track_partial (ele1, ele2, param, del_s, ele3, start, end)] \Newline
-Subroutine to propagate partially through ELE2 the Twiss parameters and the orbit. 
+Routine to propagate partially through ELE2 the Twiss parameters and the orbit. 
 
 \index[routine]{twiss_at_element}
 \label{r:twiss.at.element}
 \item[twiss_at_element (lat, ix_ele, start, end, average)] \Newline
-Subroutine to return the Twiss parameters at the beginning, end, or the average of an element. 
+Routine to return the Twiss parameters at the beginning, end, or the average of an element. 
 
 \index[routine]{twiss_and_track_at_s}
 \item[twiss_and_track_at_s (lat, s, ele, orb_, here)] \Newline
-Subroutine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
+Routine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index[routine]{twiss_at_start}
 \label{r:twiss.at.start}
 \item[twiss_at_start (lat)] \Newline
-Subroutine to calculate the Twiss parameters at the start of the lat. 
+Routine to calculate the Twiss parameters at the start of the lat. 
 
 \index[routine]{twiss_from_tracking}
 \label{r:twiss.from.tracking}
 \item[twiss_from_tracking (lat, closed_orb_, d_orb, error)] \Newline
-Subroutine to compute from tracking, for every element in the lat, 
+Routine to compute from tracking, for every element in the lat, 
 the Twiss parameters and the transfer matrices. 
 
 \index[routine]{twiss_propagate1}
 \label{r:twiss.propagate1}
 \item[twiss_propagate1 (ele1, ele2)] \Newline
-Subroutine to propagate the Twiss parameters from the end of ELE1 to the end of ELE2. 
+Routine to propagate the Twiss parameters from the end of ELE1 to the end of ELE2. 
 
 \index[routine]{twiss_propagate_all}
 \label{r:twiss.propagate.all}
 \item[twiss_propagate_all (lat, set_match)] \Newline
-Subroutine to propagate the Twiss parameters from the start to the end. 
+Routine to propagate the Twiss parameters from the start to the end. 
 
 \index[routine]{twiss_propagate_many}
 \label{r:twiss.propagate.many}
 \item[twiss_propagate_many (lat, ix_start, ix_end, direction)] \Newline
-Subroutine to propagate the Twiss parameters from one element in the lat to another. 
+Routine to propagate the Twiss parameters from one element in the lat to another. 
 
 \index[routine]{twiss_to_1_turn_mat}
 \label{r:twiss.to.1.turn.mat}
 \item[twiss_to_1_turn_mat (twiss, phi, mat2)] \Newline
-Subroutine to form the 2x2 1-turn transfer matrix from the Twiss parameters. 
+Routine to form the 2x2 1-turn transfer matrix from the Twiss parameters. 
 
 \end{description}
 
@@ -3533,17 +3539,17 @@ For more details see:
 \index[routine]{twiss3_propagate_all}
 \label{r:twiss3.propagate.all}
 \item[twiss3_propagate_all (lat)] \Newline 
-Subroutine to propagate the twiss parameters using all three normal modes.
+Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{twiss3_propagate1}
 \label{r:twiss3.propagate1}
 \item[twiss3_propagate1 (ele1, ele2)] \Newline 
-Subroutine to propagate the twiss parameters using all three normal modes.
+Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{twiss3_at_start}
 \label{r:twiss3.at.start}
 \item[twiss3_at_start (lat)] \Newline 
-Subroutine to propagate the twiss parameters using all three normal modes.
+Routine to propagate the twiss parameters using all three normal modes.
 
 
 \end{description}
@@ -3558,12 +3564,12 @@ Subroutine to propagate the twiss parameters using all three normal modes.
 \index[routine]{init_wake}
 \label{r:init.wake}
 \item[init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)] \Newline 
-Subroutine to initialize a wake struct.
+Routine to initialize a wake struct.
 
 \index[routine]{lr_wake_apply_kick}
 \label{r:lr.wake.apply.kick}
 \item[lr_wake_apply_kick (ele, s_ref, orbit)] \Newline 
-Subroutine to apply the long-range wake kick to a particle.
+Routine to apply the long-range wake kick to a particle.
 
 \index[routine]{randomize_lr_wake_frequencies}
 \label{r:randomize.lr.wake.frequencies}
@@ -3573,44 +3579,44 @@ Routine to randomize the frequencies of the lr wake HOMs.
 \index[routine]{sr_table_apply_trans_kick}
 \label{r:sr.table.apply.trans.kick}
 \item[sr_table_apply_trans_kick (ele, leader, charge, follower)] \Newline 
-Subroutine to put in the kick for the short-range wakes.
+Routine to put in the kick for the short-range wakes.
 
 \index[routine]{sr_mode_long_wake_add_to}
 \label{r:sr.mode.long.wake.add.to}
 \item[sr_mode_long_wake_add_to (ele, orbit, charge)] \Newline 
-Subroutine to add to the existing short-range wake the contribution from
+Routine to add to the existing short-range wake the contribution from
 a passing (macro)particle.
 
 \index[routine]{sr_mode_long_wake_apply_kick}
 \label{r:sr.mode.long.wake.apply.kick}
 \item[sr_mode_long_wake_apply_kick (ele, orbit)] \Newline 
-Subroutine to put in the kick for the short-range wakes.
+Routine to put in the kick for the short-range wakes.
 
 \index[routine]{sr_mode_long_self_wake_apply_kick}
 \label{r:sr.mode.long.self.wake.apply.kick}
 \item[sr_mode_long_self_wake_apply_kick (ele, charge, orbit)] \Newline 
-Subroutine to put in the kick for the short-range wakes
+Routine to put in the kick for the short-range wakes
 
 \index[routine]{sr_mode_trans_wake_add_to}
 \label{r:sr.mode.trans.wake.add.to}
 \item[sr_mode_trans_wake_add_to (ele, orbit, charge)] \Newline 
-Subroutine to add to the existing short-range wake the contribution from
+Routine to add to the existing short-range wake the contribution from
 a passing (macro)particle.
 
 \index[routine]{sr_mode_trans_wake_apply_kick}
 \label{r:sr.mode.trans.wake.apply.kick}
 \item[sr_mode_trans_wake_apply_kick (ele, orbit)] \Newline 
-Subroutine to put in the kick for the short-range wakes
+Routine to put in the kick for the short-range wakes
 
 \index[routine]{track1_sr_wake}
 \label{r:track1.sr.wake}
 \item[track1_sr_wake (bunch, ele)] \Newline 
-Subroutine to apply the short range wake fields to a bunch. 
+Routine to apply the short range wake fields to a bunch. 
 
 \index[routine]{track1_lr_wake}
 \label{r:track1.lr.wake}
 \item[track1_lr_wake (bunch, ele)] \Newline 
-Subroutine to put in the long-range wakes for particle tracking.
+Routine to put in the long-range wakes for particle tracking.
 
 \index[routine]{zero_lr_wakes_in_lat}
 \label{r:zero.lr.wakes.in.lat}
@@ -3645,8 +3651,8 @@ Replaced by lat_ele_locator.
 \index[routine]{emit_calc}
 \label{r:emit.calc}
 \item[emit_calc (lat, what, mode)] \Newline 
-Subroutine to calculate the emittance, energy spread, and synchrotron
-integrals. This subroutine assumes that bends are in the horizontal plane.
+Routine to calculate the emittance, energy spread, and synchrotron
+integrals. This routine assumes that bends are in the horizontal plane.
 
 \end{description}
 

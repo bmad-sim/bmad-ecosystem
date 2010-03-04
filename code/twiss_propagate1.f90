@@ -82,13 +82,7 @@ subroutine twiss_propagate1 (ele1, ele2, err)
   ! markers are easy
 
   if (key2 == marker$ .or. key2 == photon_branch$ .or. key2 == branch$) then
-    ele2%x = ele1%x
-    ele2%y = ele1%y
-    ele2%a = ele1%a
-    ele2%b = ele1%b
-    ele2%z = ele1%z
-    ele2%gamma_c = ele1%gamma_c
-    ele2%c_mat = ele1%c_mat
+    call transfer_twiss (ele1, ele2)
     if (present(err)) err = .false.
     return
   endif

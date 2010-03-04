@@ -125,13 +125,12 @@ the particle distribution for a bunch. \vn{%distributeion_type(1)} sets the dist
 type for the $(x, p_x)$ 2D phase space, etc. 
 Possibilities for \vn{%distributeion_type(:)} are:
 \begin{example}
-  ""         ! Random distribution (default).
-  "ELLIPSE"  ! Ellipse distribution (\sref{ss:ellipse.init})
-  "KV"       ! Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
-  "GRID"     ! Uniform distribution.
+  "", or "RAN_GAUSS"  ! Random distribution (default).
+  "ELLIPSE"           ! Ellipse distribution (\sref{ss:ellipse.init})
+  "KV"                ! Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
+  "GRID"              ! Uniform distribution.
 \end{example}
-Currently, if a random distribution is used, it must be used in all 2D
-phase spaces. Since the Kapchinsky-Vladimirsky distribution is for a 4D
+Since the Kapchinsky-Vladimirsky distribution is for a 4D
 phase space, if the Kapchinsky-Vladimirsky distribution is used,
 \vn{"KV"} must appear exactly twice in the \vn{%distributeion_type(:)}
 array. 
@@ -154,7 +153,7 @@ to the value of \vn{%random_sigma_cutoff}. The \vn{"limited"} method is also
 somewhat faster than the \vn{"exact"} method. Note that the sigma cutoff
 is ignored in the \vn{"exact"} method.
   \item[\%n_parcicle] \Newline
-This component sets the number of particles generated per bunch.
+Number of random particles generated per bunch.
   \item[\%renorm_center, \%renorm_sigma] \Newline 
 If set to True, these components will ensure that the actual beam center 
 and sigmas will correspond to the input values. 
@@ -180,7 +179,7 @@ The \vn{%kv} component of the \vn{beam_init_struct} sets the parameters for the
 Kapchinsky-Vladimirsky distribution (\sref{ss:kv.init})
 \begin{example}
   type kv_beam_init_struct
-    integer part_per_phi(2) .    ! number of particles per angle variable.
+    integer part_per_phi(2)    ! number of particles per angle variable.
     integer n_I2               ! number of I2
     real(rp) A                 ! A = I1/e
   end type
@@ -198,6 +197,20 @@ for a uniformly spaced grid of particles.
     real(rp) px_max    ! Upper px limit.
   end type
 \end{example}
+
+The total number particles generated is the product of the individual
+distributions. For example:
+\begin{example}
+  type (beam_init_struct) bi
+  bi%distribution_type = "", "ELLIPSE", "GRID"
+  bi%n_particle = 300
+  bi%ellipse(2)%n_ellipse = 3
+  bi%ellipse(2)%part_per_ellipse = 100
+  bi%grid(3)%n_x = 20
+  bi%grid(3)%n_px = 30
+\end{example}
+The total number of particles per bunch will be $(300) \times (3
+\times 100) \times (20 \times 30)$.
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}

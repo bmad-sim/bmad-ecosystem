@@ -19,6 +19,42 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine transfer_twiss (ele_in, ele_out)
+!
+! Routine to transfer the twiss parameters from one element to another.
+!
+! Moduels needed:
+!   use bmad
+!
+! Input:
+!   ele_in   -- Ele_struct: Element with existing Twiss parameters.
+!
+! Output:
+!   ele_out  -- Ele_struct: Element receiving the Twiss parameters.
+!-
+
+subroutine transfer_twiss (ele_in, ele_out)
+
+implicit none
+
+type (ele_struct) ele_in, ele_out
+
+!
+
+ele_out%x       = ele_in%x
+ele_out%y       = ele_in%y
+ele_out%a       = ele_in%a
+ele_out%b       = ele_in%b
+ele_out%z       = ele_in%z
+ele_out%c_mat   = ele_in%c_mat
+ele_out%gamma_c = ele_in%gamma_c
+
+end subroutine transfer_twiss
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function ele_loc_to_string (ele, show_branch0) result (str)
 !
 ! Routine to encode an element's location into a string.
@@ -56,7 +92,8 @@ else
   write (str, '(i0, a, i0)') ele%ix_branch, '>>', ele%ix_ele
 endif
 
-end function
+end function ele_loc_to_string 
+
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -199,7 +236,7 @@ enddo
 
 if (abbrev .and. n_match > 1) key_index = -1  ! Multiple matches are not valid
 
-end function
+end function key_name_to_key_index 
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -734,7 +771,7 @@ if (ele1%key == taylor$) return
 equiv = .true.
 
 
-end function
+end function equivalent_taylor_attributes 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

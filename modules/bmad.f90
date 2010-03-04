@@ -5,8 +5,6 @@
 ! by a program.
 !-
 
-#include "CESR_platform.inc"
-
 module bmad
 
   use runge_kutta_mod
@@ -18,6 +16,7 @@ module bmad
   use radiation_mod
   use symp_lie_mod
   use lat_ele_loc_mod
+  use twiss_and_track_mod
 
   ! This is to suppress the ranlib "has no symbols" message
   integer, private :: private_dummy

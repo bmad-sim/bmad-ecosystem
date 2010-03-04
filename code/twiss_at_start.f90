@@ -30,8 +30,6 @@
 !                        See MAT_SYMP_DECOUPLE for for more info
 !-
 
-#include "CESR_platform.inc"
-
 subroutine twiss_at_start (lat)
 
   use bmad_struct
