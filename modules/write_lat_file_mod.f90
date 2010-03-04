@@ -77,7 +77,7 @@ integer ix_top, ix_super, default_val
 
 logical, optional :: err
 logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
-logical is_multi_sup, x_lim_good, y_lim_good, is_default
+logical is_multi_sup, x_lim_good, y_lim_good, is_default, need_new_region
 
 ! Init...
 ! Count the number of foreign wake files
@@ -615,16 +615,25 @@ if (size(m_info%top) /= 0) then
     ix_top = m_info%bottom(ie)%ix_top(1)
     ix_super = m_info%bottom(ie)%ix_super(1)
     ss2 => m_info%top(ix_top)%slave(:, ix_super)
-    do ix_pass = 2, size(ss1)
-      s1 => ss1(ix_pass)%ele
-      s2 => ss2(ix_pass)%ele
-      if (abs(s1%ix_ele - s2%ix_ele) /= 1) then  ! If not contiguous then need a new region
-        ix_r = ix_r + 1
-        multipass(ie-1)%region_stop_pt = .true.
-        multipass(ie)%region_start_pt = .true.
+
+    need_new_region = .false.
+    if (size(ss1) /= size(ss2)) then
+      need_new_region = .true.
+    else
+      do ix_pass = 2, size(ss1)
+        if (abs(ss1(ix_pass)%ele%ix_ele - ss2(ix_pass)%ele%ix_ele) == 1) cycle
+        ! not contiguous then need a new region
+        need_new_region = .true.
         exit
-      endif
-    enddo
+      enddo
+    endif
+
+    if (need_new_region) then
+      ix_r = ix_r + 1
+      multipass(ie-1)%region_stop_pt = .true.
+      multipass(ie)%region_start_pt = .true.
+    endif
+
     ss1 => ss2
     multipass(ie)%ix_region = ix_r
   enddo
