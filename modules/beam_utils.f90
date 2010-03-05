@@ -1091,7 +1091,7 @@ end do
 ! Set particle charge and transfer info the the bunch
 
 p(:)%charge = 1.0_rp / n_particle
-call combine_bunch_distributions (bunch, p, is_ran_plane)
+call combine_bunch_distributions (bunch, p, is_ran_plane, .false.)
 
 end subroutine init_random_distribution
 
@@ -1162,7 +1162,7 @@ enddo
 ! Combine with bunch distribution
 
 where = .false.;  where(ix_plane) = .true.
-call combine_bunch_distributions (bunch, p, where)
+call combine_bunch_distributions (bunch, p, where, .true.)
 
 end subroutine init_grid_distribution
 
@@ -1249,7 +1249,7 @@ enddo
 ! Combine with bunch distribution
 
 where = .false.;  where(ix_plane) = .true.
-call combine_bunch_distributions (bunch, p, where)
+call combine_bunch_distributions (bunch, p, where, .true.)
 
 end subroutine init_ellipse_distribution
 
@@ -1345,7 +1345,7 @@ enddo
 ! Combine with bunch distribution
 
 where = .false.;  where(ix1_plane) = .true.;  where(ix2_plane) = .true.
-call combine_bunch_distributions (bunch, p, where)
+call combine_bunch_distributions (bunch, p, where, .true.)
 
 end subroutine init_KV_distribution
 
