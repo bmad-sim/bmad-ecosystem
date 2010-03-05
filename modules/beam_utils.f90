@@ -1423,7 +1423,7 @@ else
   do i = 1, size(bunch%particle)
     do k = 1, 3
       if (.not. where(k)) cycle
-      p(i)%r%vec(2*k-1:2*k) = particle(i)%r%vec(2*k-1:2*k)
+      bunch%particle(i)%r%vec(2*k-1:2*k) = particle(i)%r%vec(2*k-1:2*k)
     enddo
   enddo
 endif
