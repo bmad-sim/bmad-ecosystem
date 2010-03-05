@@ -202,15 +202,29 @@ The total number particles generated is the product of the individual
 distributions. For example:
 \begin{example}
   type (beam_init_struct) bi
-  bi%distribution_type = "", "ELLIPSE", "GRID"
-  bi%n_particle = 300
+  bi%distribution_type = ELLIPSE", "ELLIPSE", "GRID"
+  bi%ellipse(1)%n_ellipse = 4
+  bi%ellipse(1)%part_per_ellipse = 8
   bi%ellipse(2)%n_ellipse = 3
   bi%ellipse(2)%part_per_ellipse = 100
   bi%grid(3)%n_x = 20
   bi%grid(3)%n_px = 30
 \end{example}
-The total number of particles per bunch will be $(300) \times (3
-\times 100) \times (20 \times 30)$.
+The total number of particles per bunch will be $32 \times 300 \times
+600$. The exception is that when \vn{RAN_GAUSS} is mixed with other
+distributions, the random distribution is overlayed with the other distributions
+instead of multiplying. For example:
+\begin{example}
+  type (beam_init_struct) bi
+  bi%distribution_type = RAN_GAUSS", "ELLIPSE", "GRID"
+  bi%ellipse(2)%n_ellipse = 3
+  bi%ellipse(2)%part_per_ellipse = 100
+  bi%grid(3)%n_x = 20
+  bi%grid(3)%n_px = 30
+\end{example}
+Here the number of particle is $300 \times 600$. Notice that when
+\vn{RAN_GAUSS} is mixed with other distributions, the value of
+\vn{beam_init%n_particle} is ignored.
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}

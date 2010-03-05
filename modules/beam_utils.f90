@@ -861,6 +861,7 @@ ix_kv = 0
 ran_gauss_here = .false.
 
 ! Fill the corresponding struct and generate the distribution for each phase plane.
+! init_random_distribution must be called last.
 
 do i = 1, 3
   call str_upcase (beam_init%distribution_type(i), beam_init%distribution_type(i))
@@ -881,7 +882,8 @@ do i = 1, 3
 enddo
 
 if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, beta, &
-                alpha, emitt, bunch)
+                                          alpha, emitt, bunch)
+
 if (ran_gauss_here) call init_random_distribution (ele, param, beam_init, bunch)
 
 !
@@ -942,35 +944,38 @@ type (bunch_struct), target :: bunch
 type (particle_struct), allocatable :: p(:)
   
 real(rp) dpz_dz, denom
-real(rp) a_emitt, b_emitt
-real(rp) ave(6), sigma(6), a, b
-real(rp) r(6)
-real(rp) y, alpha(6), sig_mat(6,6)
-real(rp) center(6) ! includes jitter
-real(rp) ran(6), old_cutoff
+real(rp) a_emitt, b_emitt, y, a, b
+real(rp) ave(6), sigma(6), alpha(6), sig_mat(6,6), r(6)
+real(rp) center(6), ran(6), old_cutoff
 
-integer i, j, j2, n, i_bunch
+integer i, j, j2, n, i_bunch, n_particle
 
-logical where(3)
+logical is_ran_plane(3)
 
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_random_distribution"
 
-!
+! If random is to be combined with other distributions, the number
+! of particles is set by the other distributions.
 
-allocate(p(beam_init%n_particle))
+is_ran_plane = (beam_init%distribution_type == '' .or. beam_init%distribution_type == 'RAN_GAUSS')
+
+n_particle = beam_init%n_particle
+if (any(.not. is_ran_plane)) n_particle = size(bunch%particle)
+
+allocate(p(n_particle))
 
 sig_mat = 0
 ave = 0
-do n = 1, beam_init%n_particle
+do n = 1, n_particle
   call ran_gauss(r)
   p(n)%r%vec = r
   ave = ave + r
   forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
 enddo  
 
-ave = ave / beam_init%n_particle
-sig_mat = sig_mat / beam_init%n_particle
+ave = ave / n_particle
+sig_mat = sig_mat / n_particle
 
 ! Now the distribution of particle(:)%r%vec(n) for fixed n has
 ! on average, unit sigma and the distribution for n = n1 is uncorrelated
@@ -983,15 +988,15 @@ sig_mat = sig_mat / beam_init%n_particle
 
 ! Zero the average for now
 
-do n = 1, beam_init%n_particle
+do n = 1, n_particle
   p(n)%r%vec = p(n)%r%vec - ave
 enddo
 
 ! renormalize the beam sigmas. Ignore if n_particle = 1.
 
-if (beam_init%renorm_sigma .and. beam_init%n_particle > 1) then
+if (beam_init%renorm_sigma .and. n_particle > 1) then
 
-  if (beam_init%n_particle < 7) then
+  if (n_particle < 7) then
     call out_io (s_abort$, r_name, &
         'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
     call err_exit
@@ -1009,7 +1014,7 @@ if (beam_init%renorm_sigma .and. beam_init%n_particle > 1) then
     do j = i+1, 6
       b = -sig_mat(i,j) / sig_mat(j,j)
       ! Transform the distribution
-      do n = 1, beam_init%n_particle
+      do n = 1, n_particle
         p(n)%r%vec(i) = p(n)%r%vec(i) + b * p(n)%r%vec(j)
       enddo
       ! Since we have transformed the distribution we need to transform
@@ -1027,7 +1032,7 @@ if (beam_init%renorm_sigma .and. beam_init%n_particle > 1) then
   ! Now we make the diagonal elements unity
 
   forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
-  do n = 1, beam_init%n_particle
+  do n = 1, n_particle
     p(n)%r%vec = p(n)%r%vec * alpha
   enddo
 
@@ -1038,7 +1043,7 @@ endif
 ! Put back the non-zero center if beam_init%renorm_center = False.
 
 if (.not. beam_init%renorm_center) then
-  do n = 1, beam_init%n_particle
+  do n = 1, n_particle
     p(n)%r%vec = p(n)%r%vec + ave
   enddo
 endif
@@ -1073,7 +1078,7 @@ b = sqrt(1-a**2)
      
 ! Put everything together to distribute the particles.
 
-do i = 1, beam_init%n_particle
+do i = 1, n_particle
   r = p(i)%r%vec
   p(i)%r%vec(1) =  sigma(1) *  r(1)
   p(i)%r%vec(2) = -sigma(2) * (r(2) + r(1) * ele%a%alpha)
@@ -1085,10 +1090,8 @@ end do
 
 ! Set particle charge and transfer info the the bunch
 
-p(:)%charge = 1.0_rp / beam_init%n_particle
-
-where = (beam_init%distribution_type == '' .or. beam_init%distribution_type == 'RAN_GAUSS')
-call combine_bunch_distributions (bunch, p, where)
+p(:)%charge = 1.0_rp / n_particle
+call combine_bunch_distributions (bunch, p, is_ran_plane)
 
 end subroutine init_random_distribution
 
@@ -1350,21 +1353,27 @@ end subroutine init_KV_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine combine_bunch_distributions (bunch, particle, where)
+! Subroutine combine_bunch_distributions (bunch, particle, where, do_multiply)
 !
-! This subroutine multiplies two bunch distributions together.
+! This subroutine combines two bunch distributions together.
+!
+! If do_multiply is True:
+!   size(combined distribution) = size(bunch%particle) * size(particle)
+! If do_multiply is False:
+!   size(combined distribution) = size(bunch%particle) = size(particle)
 !
 ! Input:
 !   bunch       -- bunch_struct: Structure holding the old distribution
 !   particle(:) -- particle_struct, allocatable: A new distribution.
 !                   This array will be deallocated.
 !   where(3)    -- logical: Which planes of particle have the new distribution.
+!   do_multiply -- logical: Determines type of combination.
 !
 ! Output:
 !   bunch       -- bunch_struct: Structure holding the combined distribution.
 !-
 
-subroutine combine_bunch_distributions (bunch, particle, where)
+subroutine combine_bunch_distributions (bunch, particle, where, do_multiply)
 
 implicit none
 
@@ -1373,7 +1382,7 @@ type (particle_struct), allocatable :: particle(:), p(:)
 
 integer i, j, k, m
 
-logical where(:)
+logical where(:), do_multiply
 
 ! If bunch%particle do not contain a distribution, just transfer particle to it.
 
@@ -1384,28 +1393,40 @@ if (size(bunch%particle) == 0) then
   return
 endif
 
-! Combine distributions
+!------------------------
+! Multiply combination
 
-allocate (p(size(bunch%particle) * size(particle)))
-
-m = 0
-do i = 1, size(bunch%particle)
-  do j = 1, size(particle)
-    m = m + 1
-    p(m)%charge = bunch%particle(i)%charge * particle(j)%charge
-    p(m)%r%vec = bunch%particle(i)%r%vec
-    do k = 1, 3
-      if (.not. where(k)) cycle
-      p(m)%r%vec(2*k-1:2*k) = particle(j)%r%vec(2*k-1:2*k)
+if (do_multiply) then
+  allocate (p(size(bunch%particle) * size(particle)))
+  m = 0
+  do i = 1, size(bunch%particle)
+    do j = 1, size(particle)
+      m = m + 1
+      p(m)%charge = bunch%particle(i)%charge * particle(j)%charge
+      p(m)%r%vec = bunch%particle(i)%r%vec
+      do k = 1, 3
+        if (.not. where(k)) cycle
+        p(m)%r%vec(2*k-1:2*k) = particle(j)%r%vec(2*k-1:2*k)
+      enddo
     enddo
   enddo
-enddo
 
-! Transfer to bunch
+  ! Transfer to bunch
 
-call reallocate_bunch (bunch, size(p))
-bunch%particle = p
-deallocate (p, particle)
+  call reallocate_bunch (bunch, size(p))
+  bunch%particle = p
+  deallocate (p, particle)
+
+! Overlap combination
+
+else
+  do i = 1, size(bunch%particle)
+    do k = 1, 3
+      if (.not. where(k)) cycle
+      p(i)%r%vec(2*k-1:2*k) = particle(i)%r%vec(2*k-1:2*k)
+    enddo
+  enddo
+endif
 
 end subroutine combine_bunch_distributions
 
