@@ -1,19 +1,14 @@
 module beam_utils
 
-  use beam_def_struct
-  use bmad_interface
-  use spin_mod
-  use eigen_mod
-  use wake_mod
+use beam_def_struct
+use bmad_interface
+use spin_mod
+use eigen_mod
+use wake_mod
 
-type phase_space_struct    ! this is only used in beam_utils
-   integer n_particle
-   real(rp), allocatable :: vec(:,:)
-end type
-
-private init_random_bunch, init_regular_bunch, init_grid_distribution
-private init_ellipse_distribution, init_kv_distribution, multiply_3planes
-private multiply_2planes, recenter_bunch
+private init_random_distribution, init_grid_distribution
+private init_ellipse_distribution, init_kv_distribution
+private recenter_bunch, combine_bunch_distributions
 
 contains
 
@@ -279,7 +274,6 @@ if (n_sr_table > 0) then
 endif
 
 end subroutine add_sr_long_wake
-
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -627,13 +621,14 @@ end subroutine
 ! Subroutine to reallocate memory within a beam_struct.
 !
 ! If n_bunch = 0 then all macro beam pointers will be deallocated.
+! Rule: If beam%bunch(:) is allocated, beam%bunch(i)%particle(:) will be allocated.
 !
 ! Modules needed:
 !   use beam_mod
 !
 ! Input:
-!   n_bunch -- Integer: Number of bunches.
-!   n_particle -- Integer: Number of particles.
+!   n_bunch    -- Integer: Number of bunches.
+!   n_particle -- Integer: Number of particles. Must be non-negative.
 !
 ! Output:
 !   beam -- beam_struct: Allocated beam_struct structure.
@@ -645,35 +640,12 @@ implicit none
 
 type (beam_struct) beam
 
-integer i, j
-integer n_bunch, n_particle
+integer i, n_bunch, n_particle
 
-logical de_bunch, de_particle
-
-! Deallocate
-
-de_bunch = .false.
-de_particle = .false.
+! Deallocate if needed
 
 if (allocated(beam%bunch)) then
-  if (n_bunch == 0) then
-    de_bunch = .true.
-    de_particle = .true.
-  else
-    if (size(beam%bunch) /= n_bunch) then
-      de_bunch = .true.
-      de_particle = .true.
-    endif
-    if (size(beam%bunch(1)%particle) /= n_particle) then
-      de_particle= .true.
-    endif
-  endif
-
-  do i = 1, size(beam%bunch)
-    if (de_particle) deallocate (beam%bunch(i)%particle)
-  enddo
-  if (de_bunch) deallocate (beam%bunch)
-
+  if (n_bunch == 0 .or. size(beam%bunch) /= n_bunch) deallocate (beam%bunch)
 endif
 
 if (n_bunch == 0) return
@@ -681,10 +653,46 @@ if (n_bunch == 0) return
 ! Allocate
 
 if (.not. allocated (beam%bunch)) allocate (beam%bunch(n_bunch))
+
 do i = 1, n_bunch
-  if (.not. allocated (beam%bunch(i)%particle)) &
-                    allocate (beam%bunch(i)%particle(n_particle))
+  call reallocate_bunch (beam%bunch(i), n_particle)
 enddo
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine reallocate_bunch (bunch, n_bunch, n_particle)
+! 
+! Subroutine to reallocate particles within a bunch_struct.
+!
+! Modules needed:
+!   use bunch_mod
+!
+! Input:
+!   n_particle -- Integer: Number of particles. Must be non-negative.
+!
+! Output:
+!   bunch -- bunch_struct: Allocated bunch_struct structure.
+!-
+
+subroutine reallocate_bunch (bunch, n_particle)
+
+implicit none
+
+type (bunch_struct) bunch
+
+integer i, n_particle
+
+! Deallocate if needed
+
+if (allocated(bunch%particle)) then
+  if (size(bunch%particle) /= n_particle) deallocate (bunch%particle)
+endif
+
+if (.not. allocated(bunch%particle)) allocate (bunch%particle(n_particle))
 
 end subroutine
 
@@ -694,27 +702,11 @@ end subroutine
 !+
 ! Subroutine init_beam_distribution (ele, param, beam_init, beam)
 !
-! Subroutine to initialize either a random or tail-weighted distribution of particles.  
+! Subroutine to initialize a beam of particles. 
 !
-! There are three tail-weighted distributions available: rectangular grid, 
-! Gaussian represented by concentric ellipses, and Kapchinsky-Vladimirsky (KV).
-! See manual for more information.
-!
-! The distribution is matched to the Twiss parameters, centroid position,
-! and Energy - z correlation as specified. Coupling in the element ele is 
-! incorporated into the distribution.
-!
-! Note: Except for the random number seed, the random number generator 
-! parameters used for this routine are set from the beam_init argument.
-! That is, these parameters are independent of what is used everywhere else.
-!
-! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
-!
-! Note: To get good results, It is important to make sure that for 
-! circular rings that beam_init%center is the correct closed orbit. 
-! The closed orbit will shift if, for example, radiation damping is
-! turned on.
-!
+! For more information on individual bunch initialization, see the 
+! init_bunch_distribution routine.
+! 
 ! Modules needed:
 !   use beam_mod
 !
@@ -747,44 +739,13 @@ real(rp) old_cutoff
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_beam_distribution"
 
-! Resize the beam to the number of particles and the number of bunches.
-! If we are making a tail-weighted distribution, we must compute the number of particles
-! Number of particles for a 4D KV distribution = n_I2 * n_phi1 * n_phi2
+call reallocate_beam (beam, beam_init%n_bunch, 0)
 
-if (any(beam_init%distribution_type /= '')) then
-  n_kv = 0
-  n = 1
-  do i = 1, 3
-    call str_upcase(beam_init%distribution_type(i), beam_init%distribution_type(i))
-    select case (beam_init%distribution_type(i))
-    case ('ELLIPSE')
-      n = n * beam_init%ellipse(i)%n_ellipse * beam_init%ellipse(i)%part_per_ellipse
-    case ('GRID')
-      n = n * beam_init%grid(i)%n_x * beam_init%grid(i)%n_px
-    case ('KV')
-      n_kv = n_kv + 1
-    case default
-      call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
-      call err_exit
-    end select    
-  enddo
-  if (n_kv /= 0 .and. n_kv /= 2) then
-    call out_io (s_abort$, r_name, 'KV DISTRIBUTION TYPE REQUIRES 2 PHASE PLANES')
-    call err_exit
-  endif
-  if (n_kv == 2) n = n * beam_init%kv%part_per_phi(1) * beam_init%kv%part_per_phi(2) * beam_init%kv%n_I2
-  beam_init%n_particle = n
-endif
+! Save and set the random number generator parameters.
 
-call reallocate_beam (beam, beam_init%n_bunch, beam_init%n_particle)
-
-! Set and save the random number generator parameters.
-
-if (all(beam_init%distribution_type == '')) then
-  call ran_engine (beam_init%random_engine, old_engine)
-  call ran_gauss_converter (beam_init%random_gauss_converter, &
+call ran_engine (beam_init%random_engine, old_engine)
+call ran_gauss_converter (beam_init%random_gauss_converter, &
                   beam_init%random_sigma_cutoff, old_converter, old_cutoff)
-endif
 
 ! Loop over all bunches
 ! Note z_center is negative and t_center is posive for trailing bunches.
@@ -800,10 +761,8 @@ enddo
   
 ! Reset the random number generator parameters.
 
-if (all(beam_init%distribution_type == '')) then
-  call ran_engine (old_engine)
-  call ran_gauss_converter (old_converter, old_cutoff)
-endif
+call ran_engine (old_engine)
+call ran_gauss_converter (old_converter, old_cutoff)
 
 end subroutine init_beam_distribution
 
@@ -813,10 +772,13 @@ end subroutine init_beam_distribution
 !+
 ! Subroutine init_bunch_distribution (ele, param, beam_init, bunch)
 !
-! Subroutine to initialize either a random or regular distribution of particles.  
+! Subroutine to initialize a distribution of particles of a bunch.
 !
-! There are three regular distributions available: rectangular grid, 
-! Gaussian represented by concentric ellipses, and Kapchinsky-Vladimirsky (KV).
+! There are four distributions available: 
+!   '', or 'ran_gauss' -- Random gaussian distribution.
+!   'ellipse'  -- concentric ellipses representing a Gaussian distribution
+!   'grid'     -- uniform rectangular grid
+!   'KV'       -- Kapchinsky-Vladimirsky distribution
 ! See the Bmad manual for more information.
 !
 ! The distribution is matched to the Twiss parameters, centroid position,
@@ -845,273 +807,9 @@ end subroutine init_beam_distribution
 !
 ! Output:
 !   bunch        -- bunch_struct: Structure with initialized particles.
-!
 !-
 
 subroutine init_bunch_distribution (ele, param, beam_init, bunch)
- 
-use random_mod
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (beam_init_struct), target :: beam_init
-type (bunch_struct) :: bunch
-  
-integer i_bunch, i
-real(rp) old_cutoff
-
-character(16) old_engine, old_converter  
-character(22) :: r_name = "init_bunch_distribution"
-
-! Initialize the bunch.
-
-if (all(beam_init%distribution_type == '')) then
-   call init_random_bunch (ele, param, beam_init, bunch)
-else
-   call init_regular_bunch (ele, param, beam_init, bunch)
-endif
-
-end subroutine init_bunch_distribution
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine init_random_bunch (ele, param, beam_init, bunch)
-!
-! Subroutine to initialize a random bunch of particles matched to
-! the Twiss parameters, centroid position, and Energy - z correlation
-! as specified. Coupling in the element ele is incorporated into the
-! distribution.
-!
-! Note: This routine is private. Use init_bunch_distribution instead.
-!-
-
-subroutine init_random_bunch (ele, param, beam_init, bunch)
- 
-use random_mod
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (beam_init_struct) beam_init
-type (bunch_struct), target :: bunch
-type (particle_struct), pointer :: p
-  
-real(rp) dpz_dz, denom
-real(rp) a_emitt, b_emitt
-real(rp) ave(6), sigma(6), a, b
-real(rp) r(6), v_mat(4,4), v_inv(4,4)
-real(rp) y, alpha(6), sig_mat(6,6)
-real(rp) center(6) ! includes jitter
-real(rp) ran(6), old_cutoff
-
-integer i, j, j2, n, i_bunch
-
-character(16) old_engine, old_converter  
-character(22) :: r_name = "init_random_bunch"
-
-! make sure the beam%particle array is the correct size.
-
-if (allocated(bunch%particle)) then
-  if (size(bunch%particle) /= beam_init%n_particle) deallocate (bunch%particle)
-endif
-if (.not. allocated(bunch%particle)) allocate (bunch%particle(beam_init%n_particle))
-
-!
-
-sig_mat = 0
-ave = 0
-do n = 1, beam_init%n_particle
-  p => bunch%particle(n)
-  call ran_gauss(r)
-  p%r%vec = r
-  ave = ave + r
-  forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
-enddo  
-
-ave = ave / beam_init%n_particle
-sig_mat = sig_mat / beam_init%n_particle
-
-! Now the distribution of bunch%particle(:)%r%vec(n) for fixed n has
-! on average, unit sigma and the distribution for n = n1 is uncorrelated
-! with the distribution for n = n2, n1 /= n2.
-
-! However, since we are dealing with a finite number of particles, 
-! the sigmas of the distributions will not be exactly 1, and there will 
-! be some correlation between distributions.
-! If beam_init%renorm_sigma = True then take this out.
-
-! Zero the average for now
-
-do n = 1, beam_init%n_particle
-  bunch%particle(n)%r%vec = bunch%particle(n)%r%vec - ave
-enddo
-
-! renormalize the beam sigmas. Ignore if n_particle = 1.
-
-if (beam_init%renorm_sigma .and. beam_init%n_particle > 1) then
-
-  if (beam_init%n_particle < 7) then
-    call out_io (s_abort$, r_name, &
-        'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
-    call err_exit
-  endif
-
-  ! This accounts for subtracting off the average
-  forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
-
-  ! To renormalize we want to make sig_mat = the unit matrix.
-  ! The first step is to zero the off-diagonal elements.
-  ! We have to do this in the correct order otherwise zeroing one element
-  ! might unzero others that have already been zeroed.
-
-  do i = 5, 1, -1
-    do j = i+1, 6
-      b = -sig_mat(i,j) / sig_mat(j,j)
-      ! Transform the distribution
-      do n = 1, beam_init%n_particle
-        p => bunch%particle(n)
-        p%r%vec(i) = p%r%vec(i) + b * p%r%vec(j)
-      enddo
-      ! Since we have transformed the distribution we need to transform
-      ! sig_mat to keep things consistant.
-      sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
-      do j2 = 1, 6
-        if (j2 == i) cycle
-        sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
-        sig_mat(j2,i) = sig_mat(i,j2)
-      enddo
-
-    enddo
-  enddo
-
-  ! Now we make the diagonal elements unity
-
-  forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
-  do n = 1, beam_init%n_particle
-    p => bunch%particle(n)
-    p%r%vec = p%r%vec * alpha
-  enddo
-
-endif
-
-! In general, since we are dealing with a finite number of particles, 
-! the averages will not be zero.
-! Put back the non-zero center if beam_init%renorm_center = False.
-
-if (.not. beam_init%renorm_center) then
-  do n = 1, beam_init%n_particle
-    bunch%particle(n)%r%vec = bunch%particle(n)%r%vec + ave
-  enddo
-endif
-
-! Scale by the emittances, etc. and put in jitter
-
-call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
-a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
-                                        * mass_of(param%particle) / ele%value(e_tot$)
-b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
-                                        * mass_of(param%particle) / ele%value(e_tot$)
-  
-dpz_dz = beam_init%dpz_dz
-  
-call make_v_mats(ele, v_mat, v_inv)
-
-sigma(1) = sqrt(a_emitt * ele%a%beta)
-sigma(2) = sqrt(a_emitt / ele%a%beta)
-sigma(3) = sqrt(b_emitt * ele%b%beta)
-sigma(4) = sqrt(b_emitt / ele%b%beta)
-sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
-sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
-
-if (sigma(6) == 0 .or. dpz_dz == 0) then
-  a = 0
-else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
-  call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
-  call err_exit
-else
-  a = dpz_dz * sigma(5) / sigma(6)
-endif
-
-b = sqrt(1-a**2)
-     
-! Put everything together to distribute the particles.
-
-do i = 1, beam_init%n_particle
-
-  p => bunch%particle(i)
-  r = p%r%vec
-
-  p%r%vec(1) = sigma(1) *  r(1)
-  p%r%vec(2) = - sigma(2) * (r(2) + r(1) * ele%a%alpha)
-  p%r%vec(3) = sigma(3) *  r(3)
-  p%r%vec(4) = - sigma(4) * (r(4) + r(3) * ele%b%alpha)
-  p%r%vec(5) = sigma(5) *  r(5)
-  p%r%vec(6) = sigma(6) * (r(6) * b + r(5) * a)
-      
-  ! Include Dispersion
-  p%r%vec(1:4) =  p%r%vec(1:4) + &
-              p%r%vec(6) * (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
-      
-  ! Include Coupling
-  p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
-
-end do
-
-! recenter bunch (includes beam jitter)
-call recenter_bunch (beam_init, bunch)
-
-! set particle charge
-
-bunch%charge = beam_init%bunch_charge
-bunch%particle(:)%charge = beam_init%bunch_charge / beam_init%n_particle
-bunch%particle(:)%ix_lost = not_lost$
-bunch%ix_ele = ele%ix_ele  ! Current position of the bunch
-
-bunch%z_center = 0  ! Default
-bunch%t_center = 0  ! Default
-bunch%ix_bunch = 1  ! Default
-
-! particle spin
-
-call init_spin_distribution (beam_init, bunch)
-
-end subroutine init_random_bunch
-
-!----------------------------------------------------------
-!----------------------------------------------------------
-!----------------------------------------------------------
-!+
-! Subroutine init_regular_bunch (ele, param, beam_init, bunch)
-!
-! Subroutine to initialize a regular bunch of particles.
-!
-! Note: Make sure: |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
-!
-! Input:
-!   ele         -- Ele_struct: element to initialize distribution at
-!   param       -- Lat_param_struct: Lattice parameters
-!     %particle      -- Type of particle.
-!   beam_init   -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!
-! Output:
-!   bunch       -- Bunch_struct: Structure with initialized particles.
-!
-!
-! Phase space distribution types (case insensitive):
-!   'ellipse'  -- concentric ellipses representing a Gaussian distribution
-!   'grid'     -- uniform rectangular grid
-!   'KV'       -- Kapchinsky-Vladimirsky distribution
-!
-! See manual for more details.   
-!
-!-
-
-subroutine init_regular_bunch (ele, param, beam_init, bunch)
 
 implicit none
 
@@ -1120,16 +818,18 @@ type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (bunch_struct), target :: bunch
 type (particle_struct), pointer :: p
-type (phase_space_struct) space2D(3), space4D, space6D
 type (kv_beam_init_struct), pointer :: kv
 
-real(rp) beta(3), alpha(3), emitt(3), covar, e1, e2
+real(rp) beta(3), alpha(3), emitt(3), covar
+real(rp) v_mat(4,4), v_inv(4,4)
 
 integer i,j,k
 integer :: n_kv     ! counts how many phase planes are of KV type
-integer :: ix_kv(2) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
+integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
-character(22) :: r_name = "init_regular_bunch"
+character(22) :: r_name = "init_bunch_distribution"
+
+logical ran_gauss_here
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 
@@ -1158,53 +858,51 @@ alpha(3) = - covar / emitt(3)
 
 n_kv = 0
 ix_kv = 0
+ran_gauss_here = .false.
 
-! Fill the corresponding struct and generate the distribution for each phase plane
+! Fill the corresponding struct and generate the distribution for each phase plane.
 
 do i = 1, 3
   call str_upcase (beam_init%distribution_type(i), beam_init%distribution_type(i))
-   select case (beam_init%distribution_type(i))
-   case ('ELLIPSE')
-     call init_ellipse_distribution (beam_init%ellipse(i), beta(i), alpha(i), emitt(i), space2D(i))
-   case ('GRID')
-     call init_grid_distribution (beam_init%grid(i), space2D(i))
-   case ('KV') 
-     ! If we are doing KV, we keep track of which phase planes are KV.
-     ! For the first plane, we only store the plane's index and compute the emittance,
-     ! but for the second plane, we also call the subroutine to make the distribution.
-     n_kv = n_kv + 1
-     if (n_kv == 1) then
-       ix_kv(1) = i
-     else if (n_kv == 2) then
-       ix_kv(2) = i
-       call init_KV_distribution (beam_init%kv, beta(ix_kv(1)), beta(i), &
-                 alpha(ix_kv(1)), alpha(i), emitt(ix_kv(1)), emitt(i), space4D)
-     endif
-   case default
-      call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
-      call err_exit
-   end select
+  select case (beam_init%distribution_type(i))
+  case ('', 'RAN_GAUSS')
+    ran_gauss_here = .true.
+  case ('ELLIPSE')
+    call init_ellipse_distribution (i, beam_init%ellipse(i), beta(i), alpha(i), emitt(i), bunch)
+  case ('GRID')
+    call init_grid_distribution (i, beam_init%grid(i), bunch)
+  case ('KV') 
+    n_kv = n_kv + 1
+    ix_kv(n_kv) = i
+  case default
+    call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
+    call err_exit
+  end select
 enddo
 
-! Combine the planes into one collection of particle positions and weights
-if (n_kv == 2) then
-   call multiply_2planes (ix_kv, space4D, space2D(6-ix_kv(1)-ix_kv(2)), space6D)
-else
-   call multiply_3planes (space2D, space6D)
-endif
+if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, beta, &
+                alpha, emitt, bunch)
+if (ran_gauss_here) call init_random_distribution (ele, param, beam_init, bunch)
+
+!
 
 bunch%charge = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
 
-do i = 1, space6D%n_particle
-   p => bunch%particle(i)
+call make_v_mats(ele, v_mat, v_inv)
 
-   p%r%vec = space6D%vec(i,1:6)
-   p%charge = space6D%vec(i,7) * bunch%charge
-   p%ix_lost = not_lost$
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  p%charge = bunch%charge * p%charge
+  p%ix_lost = not_lost$
+  ! Include Dispersion
+  p%r%vec(1:4) =  p%r%vec(1:4) + p%r%vec(6) * [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
+  ! Include Coupling
+  p%r%vec(1:4) = matmul(v_mat, p%r%vec(1:4))
 enddo
 
 ! recenter the bunch and include beam jitter
+
 call recenter_bunch (beam_init, bunch)
 
 bunch%z_center = 0  ! Default
@@ -1215,19 +913,196 @@ bunch%ix_bunch = 1  ! Default
 
 call init_spin_distribution (beam_init, bunch)
 
-end subroutine init_regular_bunch
+end subroutine init_bunch_distribution
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine init_random_distribution (ele, param, beam_init, bunch)
+!
+! Subroutine to initialize a random bunch of particles matched to
+! the Twiss parameters, centroid position, and Energy - z correlation
+! as specified. Coupling in the element ele is incorporated into the
+! distribution.
+!
+! Note: This routine is private. Use init_bunch_distribution instead.
+!-
+
+subroutine init_random_distribution (ele, param, beam_init, bunch)
+ 
+use random_mod
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) param
+type (beam_init_struct) beam_init
+type (bunch_struct), target :: bunch
+type (particle_struct), allocatable :: p(:)
+  
+real(rp) dpz_dz, denom
+real(rp) a_emitt, b_emitt
+real(rp) ave(6), sigma(6), a, b
+real(rp) r(6)
+real(rp) y, alpha(6), sig_mat(6,6)
+real(rp) center(6) ! includes jitter
+real(rp) ran(6), old_cutoff
+
+integer i, j, j2, n, i_bunch
+
+logical where(3)
+
+character(16) old_engine, old_converter  
+character(22) :: r_name = "init_random_distribution"
+
+!
+
+allocate(p(beam_init%n_particle))
+
+sig_mat = 0
+ave = 0
+do n = 1, beam_init%n_particle
+  call ran_gauss(r)
+  p(n)%r%vec = r
+  ave = ave + r
+  forall (i=1:6, j=1:6) sig_mat(i,j) = sig_mat(i,j) + r(i) * r(j)
+enddo  
+
+ave = ave / beam_init%n_particle
+sig_mat = sig_mat / beam_init%n_particle
+
+! Now the distribution of particle(:)%r%vec(n) for fixed n has
+! on average, unit sigma and the distribution for n = n1 is uncorrelated
+! with the distribution for n = n2, n1 /= n2.
+
+! However, since we are dealing with a finite number of particles, 
+! the sigmas of the distributions will not be exactly 1, and there will 
+! be some correlation between distributions.
+! If beam_init%renorm_sigma = True then take this out.
+
+! Zero the average for now
+
+do n = 1, beam_init%n_particle
+  p(n)%r%vec = p(n)%r%vec - ave
+enddo
+
+! renormalize the beam sigmas. Ignore if n_particle = 1.
+
+if (beam_init%renorm_sigma .and. beam_init%n_particle > 1) then
+
+  if (beam_init%n_particle < 7) then
+    call out_io (s_abort$, r_name, &
+        'INITIALIZATION WITH RENORM_SIGMA MUST USE AT LEAST 7 PARTICLES!')
+    call err_exit
+  endif
+
+  ! This accounts for subtracting off the average
+  forall (i = 1:6, j = 1:6) sig_mat(i,j) = sig_mat(i,j) - ave(i) * ave(j)
+
+  ! To renormalize we want to make sig_mat = the unit matrix.
+  ! The first step is to zero the off-diagonal elements.
+  ! We have to do this in the correct order otherwise zeroing one element
+  ! might unzero others that have already been zeroed.
+
+  do i = 5, 1, -1
+    do j = i+1, 6
+      b = -sig_mat(i,j) / sig_mat(j,j)
+      ! Transform the distribution
+      do n = 1, beam_init%n_particle
+        p(n)%r%vec(i) = p(n)%r%vec(i) + b * p(n)%r%vec(j)
+      enddo
+      ! Since we have transformed the distribution we need to transform
+      ! sig_mat to keep things consistant.
+      sig_mat(i,i) = sig_mat(i,i) + 2 * b * sig_mat(i,j) + b**2 * sig_mat(j,j)
+      do j2 = 1, 6
+        if (j2 == i) cycle
+        sig_mat(i,j2) = sig_mat(i,j2) + b * sig_mat(j ,j2)
+        sig_mat(j2,i) = sig_mat(i,j2)
+      enddo
+
+    enddo
+  enddo
+
+  ! Now we make the diagonal elements unity
+
+  forall (i = 1:6) alpha(i) = sqrt(1/sig_mat(i,i))
+  do n = 1, beam_init%n_particle
+    p(n)%r%vec = p(n)%r%vec * alpha
+  enddo
+
+endif
+
+! In general, since we are dealing with a finite number of particles, 
+! the averages will not be zero.
+! Put back the non-zero center if beam_init%renorm_center = False.
+
+if (.not. beam_init%renorm_center) then
+  do n = 1, beam_init%n_particle
+    p(n)%r%vec = p(n)%r%vec + ave
+  enddo
+endif
+
+! Scale by the emittances, etc. and put in jitter
+
+call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
+a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
+                                        * mass_of(param%particle) / ele%value(e_tot$)
+b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
+                                        * mass_of(param%particle) / ele%value(e_tot$)
+  
+dpz_dz = beam_init%dpz_dz
+  
+sigma(1) = sqrt(a_emitt * ele%a%beta)
+sigma(2) = sqrt(a_emitt / ele%a%beta)
+sigma(3) = sqrt(b_emitt * ele%b%beta)
+sigma(4) = sqrt(b_emitt / ele%b%beta)
+sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
+sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
+
+if (sigma(6) == 0 .or. dpz_dz == 0) then
+  a = 0
+else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
+  call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
+  call err_exit
+else
+  a = dpz_dz * sigma(5) / sigma(6)
+endif
+
+b = sqrt(1-a**2)
+     
+! Put everything together to distribute the particles.
+
+do i = 1, beam_init%n_particle
+  r = p(i)%r%vec
+  p(i)%r%vec(1) =  sigma(1) *  r(1)
+  p(i)%r%vec(2) = -sigma(2) * (r(2) + r(1) * ele%a%alpha)
+  p(i)%r%vec(3) =  sigma(3) *  r(3)
+  p(i)%r%vec(4) = -sigma(4) * (r(4) + r(3) * ele%b%alpha)
+  p(i)%r%vec(5) =  sigma(5) *  r(5)
+  p(i)%r%vec(6) =  sigma(6) * (r(6) * b + r(5) * a)
+end do
+
+! Set particle charge and transfer info the the bunch
+
+p(:)%charge = 1.0_rp / beam_init%n_particle
+
+where = (beam_init%distribution_type == '' .or. beam_init%distribution_type == 'RAN_GAUSS')
+call combine_bunch_distributions (bunch, p, where)
+
+end subroutine init_random_distribution
 
 !----------------------------------------------------------
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_grid_distribution (grid, space2D)
+! Subroutine init_grid_distribution (ix_plane, grid, bunch)
 !
 ! Subroutine to initialize a uniform rectangular grid as the phase space
 ! distribution of a bunch.
 !
 ! Input:
+!    ix_plane       -- Integer: Index of plane of this distribution: 1, 2, or 3
 !   grid            -- grid_beam_init_struct: Grid info.
 !     %n_x              -- number of columns
 !     %n_px             -- number of rows
@@ -1235,29 +1110,27 @@ end subroutine init_regular_bunch
 !     %px_min, %px_max  -- upper and lower limits in divergence
 !
 ! Output:
-!   space2D -- 2D phase_space_struct of particle positions and charges
-!
+!   bunch     -- Bunch_struct: Bunch structure
 !-
 
-subroutine init_grid_distribution (grid, space2D)
+subroutine init_grid_distribution (ix_plane, grid, bunch)
 
 implicit none
 
 type (grid_beam_init_struct) grid
-type (phase_space_struct) space2D
+type (particle_struct), allocatable :: p(:)
+type (bunch_struct) bunch
 
-integer i, j     ! counters for the x and px directions
-integer k        ! particle counter
+integer i, j, k, ix_plane, n_particle
 
-real(rp) x, px, charge
+real(rp) x, px
+
+logical where(3)
 
 !
 
-space2D%n_particle = grid%n_x * grid%n_px       ! total number of particles
-charge = 1.0 / space2D%n_particle     ! total charge = 1
-
-if (allocated(space2D%vec)) deallocate(space2D%vec)
-allocate (space2D%vec(space2D%n_particle, 3))
+n_particle = grid%n_x * grid%n_px       ! total number of particles
+allocate (p(n_particle))
 
 k = 1
 
@@ -1275,13 +1148,18 @@ do i = 1, grid%n_x
          px = grid%px_min + real(j - 1)/(grid%n_px - 1) * (grid%px_max - grid%px_min)
       endif
 
-      space2D%vec(k,1) = x
-      space2D%vec(k,2) = px
-      space2D%vec(k,3) = charge
+      p(k)%r%vec(2*ix_plane-1) = x
+      p(k)%r%vec(2*ix_plane)   = px
+      p(k)%charge = 0 / n_particle     ! total charge = 1
 
       k = k + 1
    enddo
 enddo
+
+! Combine with bunch distribution
+
+where = .false.;  where(ix_plane) = .true.
+call combine_bunch_distributions (bunch, p, where)
 
 end subroutine init_grid_distribution
 
@@ -1290,50 +1168,53 @@ end subroutine init_grid_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_ellipse_distribution (ellipse, beta, alpha, emitt, space2D)
+! Subroutine init_ellipse_distribution (ix_plane, ellipse, ix_plane, beta, alpha, emitt, bunch)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Gaussian distribution.
 !
 ! Input:
+!    ix_plane       -- Integer: Index of plane of this distribution: 1, 2, or 3
 !   ellipse           -- ellipse_distribution_struct: Init info.
 !     %n_ellipse         -- number of ellipses (>= 1)
 !     %part_per_ellipse  -- number of particles per ellipse
 !     %sigma_cutoff      -- sigma cutoff of the representation
+!    ix_plane          -- Integer: Plane of distribution. 1, 2, or 3.
 !   beta, alpha       -- Twiss parameters
 !   emitt             -- emittance
 !
 ! Output:
-!   space2D -- 2D phase_space_struct of particle positions and charges
+!   bunch     -- Bunch_struct: Bunch structure
 !
 ! See manual for more details.
 !-
 
-subroutine init_ellipse_distribution (ellipse, beta, alpha, emitt, space2D)
+subroutine init_ellipse_distribution (ix_plane, ellipse, beta, alpha, emitt, bunch)
 
 implicit none
 
+type (bunch_struct) bunch
+type (particle_struct), allocatable :: p(:)
 type (ellipse_beam_init_struct), target :: ellipse
-type (phase_space_struct) space2D
 type (ellipse_beam_init_struct), pointer :: e
 
 real(rp) beta, alpha, emitt
 
-integer n, m     ! counters for the J and phi directions
-integer k        ! particle counter
+integer ix_plane, n_particle
+integer n, m, k
 
 real(rp) b_inner, b_outer                  ! B_{n-1}/epsilon  and B_{n}/epsilon in the bmad manual
 
 real(rp) J, phi
 real(rp) x, px, charge
 
+logical where(3)
+
 !
 
 e => ellipse
-space2D%n_particle = e%n_ellipse * e%part_per_ellipse
-
-if (allocated(space2D%vec)) deallocate(space2D%vec)
-allocate (space2D%vec(space2D%n_particle, 3))
+n_particle = e%n_ellipse * e%part_per_ellipse
+allocate (p(n_particle))
 
 k = 0
 b_outer = 0
@@ -1355,12 +1236,17 @@ do n = 1, e%n_ellipse
   do m = 1, e%part_per_ellipse
     phi = (twopi * m) / e%part_per_ellipse
     k = k + 1
-    space2D%vec(k,1) = sqrt(2 * J * beta) * cos(phi)
-    space2D%vec(k,2) = -sqrt(2 * J / beta) * (alpha * cos(phi) + sin(phi))
-    space2D%vec(k,3) = charge / e%part_per_ellipse
+    p(k)%r%vec(2*ix_plane-1) =  sqrt(2 * J * beta) * cos(phi)
+    p(k)%r%vec(2*ix_plane)   = -sqrt(2 * J / beta) * (alpha * cos(phi) + sin(phi))
+    p(k)%charge = charge / e%part_per_ellipse
   enddo
 
 enddo
+
+! Combine with bunch distribution
+
+where = .false.;  where(ix_plane) = .true.
+call combine_bunch_distributions (bunch, p, where)
 
 end subroutine init_ellipse_distribution
 
@@ -1369,83 +1255,94 @@ end subroutine init_ellipse_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_KV_distribution (kv, beta1, beta2, alpha1, alpha2, e1, e2, space4D)
+! Subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, beta, alpha, emit, bunch)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Kapchinsky-Vladimirsky distribution.
 !
-! Input:
-!   kv                           -- kv_beam_init_struct: KV info.
-!   beta1, beta2, alpha1, alpha2 -- Twiss parameters of each phase plane
-!   e1, e2                       -- emittance of each phase plane
-!
-! Output:
-!   space4D -- 4D phase_space_struct of particle positions and charges
-!
 ! See manual for more details.
 !
+! Input:
+!   ix1_plane   -- Integer: Index of first plane.
+!   ix2_plane   -- Integer: Index of second plane.
+!   kv          -- kv_beam_init_struct: KV info.
+!   beta, alpha -- Twiss parameters of each phase plane
+!   emit        -- emittance of each phase plane
+!
+! Output:
+!   bunch     -- Bunch_struct: Bunch structure
 !-
 
-subroutine init_KV_distribution (kv, beta1, beta2, alpha1, alpha2, e1, e2, space4D)
+subroutine init_KV_distribution (ix1_plane, ix2_plane, kv, beta, alpha, emit, bunch)
 
 implicit none
 
-type (phase_space_struct) space4D
+type (bunch_struct) bunch
 type (kv_beam_init_struct) kv
+type (particle_struct), allocatable :: p(:)
 
-real(rp) beta1, beta2, alpha1, alpha2, e1, e2
+real(rp) beta(:), alpha(:), emit(:)
+real(rp) beta1, beta2, alpha1, alpha2, emit1, emit2
 
-integer i_I2, i_phi1, i_phi2        ! do-loop counters
-integer k                           ! particle counter
+integer i_I2, i_phi1, i_phi2, k, n_particle, ix1_plane, ix2_plane
 
-real(rp) e, n_p1, n_p2
+real(rp) emit_tot, n_p1, n_p2
 real(rp) I1, I2
 real(rp) J1, J2, phi1, phi2
 real(rp) x1, x2, px1, px2, charge
 
+logical where(3)
+
 !
+
+beta1 = beta(ix1_plane); beta2 = beta(ix2_plane)
+alpha1 = alpha(ix1_plane); alpha2 = alpha(ix2_plane)
+emit1 = emit(ix1_plane); emit2 = emit(ix2_plane)
 
 n_p1 = kv%part_per_phi(1)
 n_p2 = kv%part_per_phi(2)
 
-space4D%n_particle = kv%n_i2 * n_p1 * n_p2
-charge = 1.0 / space4D%n_particle                       ! constant charge density
+n_particle = kv%n_i2 * n_p1 * n_p2
 
-if (allocated(space4D%vec)) deallocate(space4D%vec)
-allocate (space4D%vec(space4D%n_particle, 5))
+allocate (p(n_particle))
 
-e = 1.0 / sqrt(1.0 / e1**2 + 1.0 / e2**2)
-I1 = kv%A * e
+emit_tot = 1.0 / sqrt(1.0 / emit1**2 + 1.0 / emit2**2)
+I1 = kv%A * emit_tot
 
 k = 1
 
 do i_I2 = 1, kv%n_i2
-   I2 = -e1/e2 * I1 + e1*e2/e**2 * I1 * real(i_I2 - 0.5)/kv%n_i2
+  I2 = -emit1/emit2 * I1 + emit1*emit2/emit_tot**2 * I1 * real(i_I2 - 0.5)/kv%n_i2
 
-   J1 = (I1/e1 - I2/e2) * e
-   J2 = (I1/e2 + I2/e1) * e
+  J1 = (I1/emit1 - I2/emit2) * emit_tot
+  J2 = (I1/emit2 + I2/emit1) * emit_tot
    
-   do i_phi1 = 1, n_p1
-      phi1 = 2.0 * pi * real(i_phi1 - 1)/n_p1
+  do i_phi1 = 1, n_p1
+    phi1 = 2.0 * pi * real(i_phi1 - 1)/n_p1
  
-      do i_phi2 = 1, n_p2
-         phi2 = 2.0 * pi * real(i_phi2 - 1)/n_p2
+    do i_phi2 = 1, n_p2
+      phi2 = 2.0 * pi * real(i_phi2 - 1)/n_p2
 
-         x1 = sqrt(2.0 * J1 * beta1) * cos(phi1)
-         px1 = -sqrt(2.0 * J1 / beta1) * (alpha1 * cos(phi1) + sin(phi1))
-         x2 = sqrt(2.0 * J2 * beta2) * cos(phi2)
-         px2 = -sqrt(2.0 * J2 / beta2) * (alpha2 * cos(phi2) + sin(phi2))
-         
-         space4D%vec(k,1) = x1
-         space4D%vec(k,2) = px1
-         space4D%vec(k,3) = x2
-         space4D%vec(k,4) = px2
-         space4D%vec(k,5) = charge
+      x1 = sqrt(2.0 * J1 * beta1) * cos(phi1)
+      px1 = -sqrt(2.0 * J1 / beta1) * (alpha1 * cos(phi1) + sin(phi1))
+      x2 = sqrt(2.0 * J2 * beta2) * cos(phi2)
+      px2 = -sqrt(2.0 * J2 / beta2) * (alpha2 * cos(phi2) + sin(phi2))
+     
+      p(k)%r%vec(2*ix1_plane-1) = x1
+      p(k)%r%vec(2*ix1_plane)   = px1
+      p(k)%r%vec(2*ix2_plane-1) = x2
+      p(k)%r%vec(2*ix2_plane)   = px2
+      p(k)%charge = 1.0_rp / n_particle
 
-         k = k + 1
-      enddo
-   enddo
+      k = k + 1
+    enddo
+  enddo
 enddo
+
+! Combine with bunch distribution
+
+where = .false.;  where(ix1_plane) = .true.;  where(ix2_plane) = .true.
+call combine_bunch_distributions (bunch, p, where)
 
 end subroutine init_KV_distribution
 
@@ -1453,104 +1350,64 @@ end subroutine init_KV_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine multiply_3planes (space2D, space6D)
+! Subroutine combine_bunch_distributions (bunch, particle, where)
 !
-! This subroutine multiplies three 2D phase planes by outputting a 6D
-! phase_space_struct with all possible combinations of 2D phase space positions.
-! Particle weights are conferred accordingly.
+! This subroutine multiplies two bunch distributions together.
 !
 ! Input:
-!   space2D(3) -- three 2D phase_space_struct objects representing planes x, y, and z
+!   bunch       -- bunch_struct: Structure holding the old distribution
+!   particle(:) -- particle_struct, allocatable: A new distribution.
+!                   This array will be deallocated.
+!   where(3)    -- logical: Which planes of particle have the new distribution.
 !
 ! Output:
-!   space6D    -- 6D phase_space_struct representing the full phase space
-!
+!   bunch       -- bunch_struct: Structure holding the combined distribution.
 !-
 
-subroutine multiply_3planes (space2D, space6D)
+subroutine combine_bunch_distributions (bunch, particle, where)
 
 implicit none
 
-type (phase_space_struct) space2D(3), space6D
-integer i, j, k
-integer :: m = 1          ! particle counter
-space6D%n_particle = space2D(1)%n_particle * space2D(2)%n_particle * space2D(3)%n_particle
+type (bunch_struct) bunch
+type (particle_struct), allocatable :: particle(:), p(:)
 
-if (allocated(space6D%vec)) deallocate(space6D%vec)
-allocate (space6D%vec(space6D%n_particle, 7))
+integer i, j, k, m
 
-do i = 1, space2D(1)%n_particle
-   do j = 1, space2D(2)%n_particle
-      do k = 1, space2D(3)%n_particle
-         space6D%vec(m,1) = space2D(1)%vec(i,1)
-         space6D%vec(m,2) = space2D(1)%vec(i,2)
-         space6D%vec(m,3) = space2D(2)%vec(j,1)
-         space6D%vec(m,4) = space2D(2)%vec(j,2)
-         space6D%vec(m,5) = space2D(3)%vec(k,1)
-         space6D%vec(m,6) = space2D(3)%vec(k,2)
-         space6D%vec(m,7) = space2D(1)%vec(i,3) * space2D(2)%vec(j,3) * space2D(3)%vec(k,3)
+logical where(:)
 
-         m = m + 1
-      enddo
-   enddo
+! If bunch%particle do not contain a distribution, just transfer particle to it.
+
+if (size(bunch%particle) == 0) then
+  call reallocate_bunch (bunch, size(particle))
+  bunch%particle = particle
+  deallocate(particle)
+  return
+endif
+
+! Combine distributions
+
+allocate (p(size(bunch%particle) * size(particle)))
+
+m = 0
+do i = 1, size(bunch%particle)
+  do j = 1, size(particle)
+    m = m + 1
+    p(m)%charge = bunch%particle(i)%charge * particle(j)%charge
+    p(m)%r%vec = bunch%particle(i)%r%vec
+    do k = 1, 3
+      if (.not. where(k)) cycle
+      p(m)%r%vec(2*k-1:2*k) = particle(j)%r%vec(2*k-1:2*k)
+    enddo
+  enddo
 enddo
 
-end subroutine multiply_3planes
+! Transfer to bunch
 
+call reallocate_bunch (bunch, size(p))
+bunch%particle = p
+deallocate (p, particle)
 
-!----------------------------------------------------------
-!----------------------------------------------------------
-!----------------------------------------------------------
-!+
-! Subroutine multiply_2planes (index_4D, space4D, space2D, space6D)
-!
-! This subroutine multiplies a 4D phase plane with a 2D phase plane by 
-! outputting a 6D phase_space_struct with all possible combinations of 
-! positions between the two planes.  Particle weights are conferred accordingly.
-!
-! Input:
-!   index4D(2) -- tells which indices of the final 6D phase space should be from
-!              the 4D phase plane (1 = x-px, 2 = y-py, 3 = z-pz)
-!   space4D    -- 4D phase_space_struct
-!   space2D    -- 2D phase space struct
-!
-! Output:
-!   space6D    -- 6D phase_space_struct representing the full phase space
-!
-!-
-
-subroutine multiply_2planes (index_4D, space4D, space2D, space6D)
-
-implicit none
-
-type (phase_space_struct) space4D, space2D, space6D
-integer index_4D(2), index_2D
-
-integer i, j, m
-
-m = 1          ! particle counter
-index_2D = 6 - index_4D(1) - index_4D(2)   ! 1+2+3=6
-
-space6D%n_particle = space4D%n_particle * space2D%n_particle
-
-if (allocated(space6D%vec)) deallocate(space6D%vec)
-allocate (space6D%vec(space6D%n_particle, 7))
-
-do i = 1, space4D%n_particle
-   do j = 1, space2D%n_particle
-      space6D%vec(m,2*index_4D(1)-1) = space4D%vec(i,1)
-      space6D%vec(m,2*index_4D(1)  ) = space4D%vec(i,2)
-      space6D%vec(m,2*index_4D(2)-1) = space4D%vec(i,3)
-      space6D%vec(m,2*index_4D(2)  ) = space4D%vec(i,4)
-      space6D%vec(m,2*index_2D-1   ) = space2D%vec(j,1)
-      space6D%vec(m,2*index_2D     ) = space2D%vec(j,2)
-      space6D%vec(m,7) = space4D%vec(i,5) * space2D%vec(j,3)
-      
-      m = m + 1
-   enddo
-enddo
-
-end subroutine multiply_2planes
+end subroutine combine_bunch_distributions
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2222,7 +2079,7 @@ end subroutine find_bunch_sigma_matrix
 ! pointers so that they don't all point to the same place.
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		bunch1 = bunch2
+!    bunch1 = bunch2
 !
 ! Input: 
 !   bunch2 -- bunch_struct: Input bunch
@@ -2266,7 +2123,7 @@ end subroutine bunch_equal_bunch
 ! pointers so that they don't all point to the same place.
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		beam1 = beam2
+!    beam1 = beam2
 !
 ! Input: 
 !  beam2 -- beam_struct: Input beam

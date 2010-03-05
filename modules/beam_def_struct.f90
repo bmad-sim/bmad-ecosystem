@@ -89,7 +89,6 @@ type beam_init_struct
   real(rp) bunch_charge               ! charge in a bunch.
   integer :: n_bunch = 1              ! Number of bunches.
   logical :: init_spin     = .false.  ! initialize beam spinors
-  integer n_particle_generated        ! Set by init_bunch_distribution.
 end type
 
 type bunch_params_struct
