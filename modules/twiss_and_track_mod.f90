@@ -35,7 +35,7 @@ use bmad_interface
 !     orb(0)            -- Initial conditions to be used for an open lat.
 !     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit 
 !                             is computed.
-!   orb_array(0:)       -- Coord_array_struct: Array of orbit arrays.
+!   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
 !     orb_array(0)%orb(0) -- Used as the starting point for a linear lattice.
 !
 ! Output:
