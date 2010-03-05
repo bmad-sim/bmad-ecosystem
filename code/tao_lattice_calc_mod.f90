@@ -756,7 +756,7 @@ if (.not. u%connect%connected) then
     if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
     call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
                                       model%lat%param, beam_init, uni_branch%ele(0)%beam)
-    if (beam_init%n_particle < 1) then
+    if (size(uni_branch%ele(0)%beam%bunch(1)%particle) == 0) then
       call out_io (s_fatal$, r_name, &
         'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
       call err_exit
