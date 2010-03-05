@@ -2,6 +2,7 @@ module synrad3d_struct
 
 use bmad_struct
 use bmad_interface
+use twiss_and_track_mod
 
 ! This structure defines a photon at a particular point.
 ! for vec(6): (x, y, s) is the local coordinate system with
