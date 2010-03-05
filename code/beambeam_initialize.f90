@@ -50,7 +50,7 @@
   implicit none
 
   type (lat_struct) ring
-  type (lat_struct), save :: ring_in, ring_out
+  type (lat_struct), save :: ring_in, ring_out, ring_save
   type (coord_struct), allocatable, save ::  start_coord(:), end_coord(:) 
   type (coord_struct), allocatable, save :: co(:), orbit(:)
   type (coord_struct), allocatable, save :: start(:), end(:)
@@ -237,9 +237,15 @@
 
 ! Qtune
       allocate(dk1(ring%n_ele_max))
+       ring_save = ring
        call choose_quads(ring, dk1)
        call custom_set_tune (phi_x, phi_y, dk1, ring, co, ok)
       deallocate(dk1)
+      if(.not. ok)then
+        ring = ring_save
+        print '(a,2f10.3,a)',' Tunes ',phi_x/twopi,phi_y/twopi, ' are unstable. Not tracking ' 
+        return
+      endif
 
       if(scan_params%close_pretz)then
         call close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
