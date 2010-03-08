@@ -6,6 +6,7 @@ real(rp), parameter :: pi = 3.14159265358979d0
 real(rp), parameter :: twopi = 2 * pi
 real(rp), parameter :: fourpi = 4 * pi
 real(rp), parameter :: sqrt_2 = 1.41421356237310d0
+real(rp), parameter :: sqrt_3 = 1.73205080757d0
 
 real(rp), parameter :: e_mass = 0.51099906d-3   ! DO NOT USE! In GeV
 real(rp), parameter :: p_mass   = 0.938271998d0   ! DO NOT USE! In GeV
@@ -26,8 +27,7 @@ real(rp), parameter :: eps_0_vac = 1 / (c_light**2 * mu_0_vac) ! Permittivity of
 
 ! Radiation constants
 
-real(rp), parameter :: const_q     = 3.83194d-13  ! meter   55 h_bar / (32 sqrt(3) mc) Sands Eq 5.46 pg 124.
-real(rp), parameter :: const_gamma = 8.84629d-32  ! m/ev^3  4pi r_e / (3 (mc^2)^3)     Sands Eq 4.2  pg  98.
+real(rp), parameter :: classical_radius_factor = r_e * m_electron
 
 ! Anomalous gyro-magnetic moment
 
