@@ -465,6 +465,8 @@ real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
 real(rp), allocatable, save ::value1(:), value_vec(:)
 real(rp) theta, phi, psi
 real(rp), allocatable, save :: value_array(:)
+! Cf: Sands Eq 5.46 pg 124.
+real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
 integer i, j, k, m, n, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
 integer n_size, ix0
@@ -1428,7 +1430,7 @@ case ('phase.', 'phase_frac.')
     else
       datum_value = ele%a%phi - ele_ref%a%phi
       if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%a%phi + branch%ele(n_track)%a%phi 
-    if (data_type == 'phase_frac.a') datum_value = modulo2(datum_value, pi)
+    if (datum%data_type == 'phase_frac.a') datum_value = modulo2(datum_value, pi)
     endif
     valid_value = .true.
 
@@ -1440,7 +1442,7 @@ case ('phase.', 'phase_frac.')
       datum_value = ele%b%phi - ele_ref%b%phi
       if (ix_ref > ix_ele) datum_value = datum_value - branch%ele(0)%b%phi + branch%ele(n_track)%b%phi 
     endif
-    if (data_type == 'phase_frac.b') datum_value = modulo2(datum_value, pi)
+    if (datum%data_type == 'phase_frac.b') datum_value = modulo2(datum_value, pi)
     valid_value = .true.
 
   case default
@@ -1507,7 +1509,7 @@ case ('rel_floor.')
     call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
     vec3 = (/ ele%floor%x - ele_ref%floor%x, ele%floor%y - ele_ref%floor%y, ele%floor%z - ele_ref%floor%z /)
     vec3 = matmul (w0_mat, vec3)
-    select case (data_type)
+    select case (datum%data_type)
     case ('rel_floor.x')
       datum_value = vec3(1)
     case ('rel_floor.y')
@@ -1528,7 +1530,7 @@ case ('rel_floor.')
     w_mat = matmul (w0_mat, w_mat)
     call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi)
 
-    select case (data_type)
+    select case (datum%data_type)
     case ('rel_floor.theta')
       datum_value = theta
     case ('rel_floor.phi')
@@ -1585,7 +1587,8 @@ case ('sigma.')
       if (lat%param%lattice_type == circular_lattice$) return
       if (ix_start == -1) ix_start = 0
       if (ix_ele == -1) ix_ele = branch%n_ele_track
-      datum_value = sqrt(4 * const_q * r_e * sum(tao_lat%rad_int%lin_i3_e7(ix_start+1:ix_ele)) / 3)
+      datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
+            sum(tao_lat%rad_int%lin_i3_e7(ix_start+1:ix_ele)) / 3) / mass_of(lat%param%particle)
       valid_value = .true.
     endif
     call tao_load_this_datum (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -1744,7 +1747,7 @@ case ('wall')
 
 case ('wire.')  
   if (data_source == 'lat') return
-  read (data_type(6:), '(a)') angle
+  read (datum%data_type(6:), '(a)') angle
   datum_value = tao_do_wire_scan (ele, angle, u%current_beam)
   valid_value = .true.
   
