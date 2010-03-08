@@ -47,7 +47,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed
   type (xy_disp_struct), pointer :: x, y
 
   real(rp) c11, c12, c22, g, g2, xx_ave, xy_ave, yy_ave, phi, n_part
-  real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3
+  real(rp) xx_rot_ave, yy_rot_ave, a_emit, b_emit, length, g3, mc2
 
   integer i, m
   logical calc_on
@@ -132,9 +132,10 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed
 ! The extra factor of 4pi comes from the normalization of 
 !   the bbi_kick routine used in track1_trans_space_charge.
 
-    g3 = (ele%value(p0c$) / mass_of(lattice%param%particle))**3
-    sc%kick_const = length * r_e * n_part / &
-        (sqrt(twopi**3) * g3 * (sc%sig_x + sc%sig_y) * mode%sig_z)
+    mc2 = mass_of(lattice%param%particle)
+    g3 = (ele%value(p0c$) / mc2)**3
+    sc%kick_const = length * classical_radius_factor * n_part / &
+        (sqrt(twopi**3) * g3 * mc2 * (sc%sig_x + sc%sig_y) * mode%sig_z)
 
   enddo
 

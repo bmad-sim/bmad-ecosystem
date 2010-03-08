@@ -44,6 +44,10 @@ like:
   call bmad_parser2 ('aperture_file', lat)     ! read in the aperture limits.
 \end{verbatim}
 
+A combined \bmad and XSIF parser is \Hyperref{r:bmad.and.xsif.parser}{bmad_and_xsif_parser}. This
+parser will assume that the input file is using \bmad syntax unless
+the file name is prefixed by the string \vn{``xsif::''}.
+
 %----------------------------------------------------------------------------
 \section{Digested Files}
 \index{digested files}

@@ -5,6 +5,9 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"twiss_and_track_main"} = "twiss_and_track_mod.f90";
+$pl_hash{"twiss_and_track_all"} = "twiss_and_track_mod.f90";
+$pl_hash{"twiss_and_track1"} = "twiss_and_track_mod.f90";
 $pl_hash{"offset_photon_mat6"} = "make_mat6_bmad.f90";
 $pl_hash{"photon_init_spline_coef_calc"} = "photon_init_mod.f90";
 $pl_hash{"photon_init_spline_fit"} = "photon_init_mod.f90";
@@ -13,12 +16,8 @@ $pl_hash{"pointer_to_ele2"} = "lat_ele_loc_mod.f90";
 $pl_hash{"pointer_to_ele1"} = "lat_ele_loc_mod.f90";
 $pl_hash{"lat_ele1_locator"} = "lat_ele_loc_mod.f90";
 $pl_hash{"init_kv_distribution"} = "beam_utils.f90";
-$pl_hash{"multiply_3planes"} = "beam_utils.f90";
 $pl_hash{"init_grid_distribution"} = "beam_utils.f90";
 $pl_hash{"init_ellipse_distribution"} = "beam_utils.f90";
-$pl_hash{"init_random_bunch"} = "beam_utils.f90";
-$pl_hash{"multiply_2planes"} = "beam_utils.f90";
-$pl_hash{"init_tail_weighted_bunch"} = "beam_utils.f90";
 $pl_hash{"recenter_bunch"} = "beam_utils.f90";
 $pl_hash{"makeup_group_lord"} = "bookkeeper_mod.f90";
 $pl_hash{"super_lord_length_bookkeeper"} = "bookkeeper_mod.f90";

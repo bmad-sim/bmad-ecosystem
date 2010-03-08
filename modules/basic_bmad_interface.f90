@@ -843,15 +843,13 @@ interface
 end interface
 
 interface
-  subroutine twiss_and_track_partial (ele1, ele2, param, del_s, ele3, &
-                                                  start, end, body_only, err)
+  subroutine twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, &
+                                                  orb_start, orb_end, body_only, err)
     use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
     implicit none
-    type (ele_struct), optional :: ele3
-    type (ele_struct) ele1
-    type (ele_struct) ele2
-    type (coord_struct), optional :: start
-    type (coord_struct), optional :: end
+    type (ele_struct), optional :: ele_end
+    type (ele_struct) ele0, ele_track
+    type (coord_struct), optional :: orb_start, orb_end
     type (lat_param_struct) param
     logical, optional :: body_only, err
     real(rp) del_s

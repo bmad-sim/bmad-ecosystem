@@ -126,7 +126,10 @@ real(rp) :: int_tot(num_int)
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, mc2, gamma, gamma4, gamma6
-real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1
+real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q
+! Cf: Sands Eq 5.46 pg 124.
+real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
+
 
 integer, optional :: ix_cache
 integer i, j, k, ir, key, n_step
@@ -336,7 +339,7 @@ if (init_cache) then
         call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
                                                       z_here, runt, start, end)
         call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
-                                                      z1, start = start, end = end1)
+                                           z1, orb_start = start, orb_end = end1)
         c_pt%mat6 = runt%mat6
         c_pt%vec0 = runt%vec0
         c_pt%map_ref_orb_in  = start
@@ -502,7 +505,8 @@ enddo
 ! Linac radiation integrals:
 
 mc2 = mass_of (lat%param%particle)
-gamma_f = lat%ele(lat%n_ele_track)%value(E_TOT$) / mc2
+gamma_f = lat%ele(lat%n_ele_track)%value(e_tot$) / mc2
+const_q = const_q_factor / mc2
 
 mode%lin%sig_E1 = 0
 mode%lin%i2_E4  = 0
@@ -510,10 +514,10 @@ mode%lin%i3_E7  = 0
 mode%lin%i5a_E6 = 0
 mode%lin%i5b_E6 = 0
 
-factor = 2 * const_q * r_e / 3
+factor = 2 * const_q * classical_radius_factor / (3 * mc2)
 
 do i = 0, lat%n_ele_track
-  gamma = lat%ele(i)%value(E_TOT$) / mc2
+  gamma = lat%ele(i)%value(e_tot$) / mc2
   gamma4 = gamma**4
   gamma6 = gamma4 * gamma**2
   ric%lin_i2_E4(i)  = ric%i2(i) * gamma4
@@ -544,9 +548,9 @@ i5b  = int_tot(7)
 
 i4z = i4a + i4b
 
-energy = lat%ele(0)%value(E_TOT$)
-gamma2_factor = (energy * 1956.95e-9)**2
-energy_loss = const_gamma * (mc2)**4 * mode%lin%i2_E4 / twopi
+energy = lat%ele(0)%value(e_tot$)
+gamma2_factor = (energy / mc2)**2
+energy_loss = 2 * classical_radius_factor * mode%lin%i2_e4 / 3
 
 mode%synch_int(0) = int_tot(8)
 mode%synch_int(1) = i1

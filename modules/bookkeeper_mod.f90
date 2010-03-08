@@ -1789,7 +1789,7 @@ end subroutine
 ! control_bookkeeper or lattice_bookkeeper instead.
 ! 
 ! BEAMBEAM:   
-!     bbi_const$ = param%n_part * mass_of(param%particle) * charge$ * r_e /
+!     bbi_const$ = param%n_part * charge$ * classical_radius_factor /
 !                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
 !
 ! ELSEPARATOR:
@@ -2014,7 +2014,7 @@ case (beambeam$)
       call err_exit
     endif
 
-    val(bbi_const$) = -param%n_part * mass_of(param%particle) * val(charge$) * r_e /  &
+    val(bbi_const$) = -param%n_part * val(charge$) * classical_radius_factor /  &
                              (2 * pi * val(p0c$) * (val(sig_x$) + val(sig_y$)))
 
   endif

@@ -52,6 +52,7 @@ end type
 
 type csr_bin_struct             ! Structurture for binning particle averages
   real(rp) gamma, gamma2        ! Relativistic gamma factor.
+  real(rp) rel_mass             ! m_particle / m_electron
   real(rp) beta                 ! Relativistic beta factor.
   real(rp) :: dz_bin = 0        ! Bin width
   real(rp) ds_track_step        ! True step size
@@ -509,6 +510,7 @@ f1 = s_travel / ele%value(l$)
 e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot$)
 call convert_total_energy_to (e_tot, branch%param%particle, bin%gamma, beta = bin%beta)
 bin%gamma2 = bin%gamma**2
+bin%rel_mass = mass_of(lat%param%particle) / m_electron 
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
 
@@ -556,7 +558,7 @@ enddo
 
 ! Now calculate the kick for a particle at the center of a bin.
 
-coef = bin%ds_track_step * r_e / (e_charge * bin%gamma)
+coef = bin%ds_track_step * r_e / (bin%rel_mass * e_charge * bin%gamma)
 n_bin = csr_param%n_bin
 
 if (csr_param%lcsr_component_on) then
@@ -682,11 +684,11 @@ end subroutine
 !   use lsc_mod
 !
 ! Input:
-!   bin       -- lsc_bin_struct: Binned particle averages.
+!   bin       -- csr_bin_struct: Binned particle averages.
 !     %bin1(:)  -- bin array of particle averages.
 !
 ! Output:
-!   bin     -- lsc_bin_struct: Binned particle averages.
+!   bin     -- csr_bin_struct: Binned particle averages.
 !     %bin1(:)%kick_lsc -- Integrated kick.
 !-
 
@@ -737,7 +739,7 @@ do i = 1, csr_param%n_bin
 
 enddo
 
-factor = bin%kick_factor * bin%ds_track_step * r_e / (e_charge * bin%gamma)
+factor = bin%kick_factor * bin%ds_track_step * r_e / (bin%rel_mass * e_charge * bin%gamma)
 bin%bin1(:)%kick_lsc = factor * bin%bin1(:)%kick_lsc
 
 end subroutine

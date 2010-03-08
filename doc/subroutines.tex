@@ -1465,6 +1465,11 @@ Routine to calculate the normalized vector potential at a point for a wiggler.
 \item[aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
 Routine to parse an AML input file and put the information in a lat_struct.
 
+\index[routine]{bmad_and_xsif_parser}
+\label{r:bmad.and.xsif.parser}
+\item[bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
+Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice files.
+
 \index[routine]{bmad_parser}
 \label{r:bmad.parser}
 \item[bmad_parser (in_file, lat, make_mats6, digested_read_ok, use_line)] \Newline
@@ -3073,8 +3078,11 @@ Routine to track from one element in the lat to another.
 
 \index[routine]{twiss_and_track}
 \label{r:twiss.and.track}
-\item[twiss_and_track (lat, orb)] \Newline
-See the Twiss section for more details. 
+\item[\protect\parbox{6in}{
+  twiss_and_track (lat, orb, ok) \\
+  twiss_and_track (lat, orb_array, ok) 
+}] \Newline
+Routine to calculate the twiss parameters, transport matrices and orbit.
 
 \index[routine]{twiss_and_track_at_s}
 \label{r:twiss.and.track.at.s}

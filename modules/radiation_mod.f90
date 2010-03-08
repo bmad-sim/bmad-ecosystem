@@ -86,8 +86,10 @@ subroutine track1_radiation (start, ele, param, end, edge)
   integer :: edge
 
   real(rp), save :: z_start
-  real(rp) s_len, g, g2, g3, g_x, g_y, this_ran
+  real(rp) s_len, g, g2, g3, g_x, g_y, this_ran, mc2
   real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
+  real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
+                                                  h_bar_planck * c_light / (24 * sqrt_3)
 
   integer direc
 
@@ -189,15 +191,16 @@ subroutine track1_radiation (start, ele, param, end, edge)
   ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
   ! where xi is a random number with sigma = 1.
 
-  gamma_0 = ele%value(E_TOT$) / mass_of(param%particle)
+  mc2 = mass_of(param%particle)
+  gamma_0 = ele%value(e_tot$) / mc2
 
   fact_d = 0
-  if (bmad_com%radiation_damping_on) fact_d = 2 * r_e * gamma_0**3 * g2 * s_len / 3
+  if (bmad_com%radiation_damping_on) fact_d = 2 * classical_radius_factor * gamma_0**3 * g2 * s_len / (3 * mc2)
 
   fact_f = 0
   if (bmad_com%radiation_fluctuations_on) then
     call ran_gauss (this_ran)
-    fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mass_of(param%particle)
+    fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mc2
   endif
 
   dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 

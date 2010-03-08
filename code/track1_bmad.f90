@@ -113,7 +113,7 @@ case (beambeam$)
 
     call bbi_kick (end%vec(1)/sig_x, end%vec(3)/sig_y, sig_y/sig_x,  &
                                                                 kx, ky)
-    bbi_const = -param%n_part * mass_of(param%particle) * ele%value(charge$) * r_e /  &
+    bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
                     (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
     coef = ele%value(bbi_const$) / (n_slice * rel_pc)
     end%vec(2) = end%vec(2) + kx * coef

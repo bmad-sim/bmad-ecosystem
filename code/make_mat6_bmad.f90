@@ -1002,7 +1002,7 @@ call bbi_kick (x_pos, y_pos, ratio, k0_x, k0_y)
 call bbi_kick (x_pos+del, y_pos, ratio, k1_x, garbage)
 call bbi_kick (x_pos, y_pos+del, ratio, garbage, k1_y)
 
-bbi_const = -param%n_part * mass_of(param%particle) * ele%value(charge$) * r_e /  &
+bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
                     (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
 
 coef = bbi_const / (ele%value(n_slice$) * del * (1 + orb%vec(6)))

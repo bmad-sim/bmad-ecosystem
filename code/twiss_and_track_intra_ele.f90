@@ -23,7 +23,8 @@
 !   l_end          -- Real(rp): Stop position measured from the beginning of the element.
 !   track_entrance -- Logical: If True then entrance effects are included in the tracking.
 !                       But only if l_start = 0.
-!   track_exit     -- Logical: If True then exit effects are included in the tracking.
+!   track_exit     -- Logical: If True then exit effects are included in the tracking but 
+!                       only if l_end = ele%value(l$) (within bmad_com%significant_longitudinal_length tol).
 !   orbit_start    -- Coord_struct, optional: Starting phase space coordinates at l_start.
 !   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !
@@ -59,12 +60,12 @@ real(rp) l_start, l_end
 
 integer track, mat6
 
-logical track_entrance, track_exit, entrance
+logical track_entrance, track_exit, do_entrance, do_exit
 logical, optional :: err
 
 ! Easy case when l_end = l_start
 
-if (l_end == l_start) then
+if (l_end == l_start .and. .not. (l_start == 0 .and. track_entrance)) then
 
   if (present(ele_end)) then
     ele_end = ele_start
@@ -87,8 +88,9 @@ endif
 
 runt = ele
 runt%value(l$) = l_end - l_start
-entrance = (track_entrance .and. l_start == 0)
-call makeup_super_slave1 (runt, ele, l_start, param, entrance, track_exit)
+do_entrance = (track_entrance .and. l_start == 0)
+do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_longitudinal_length)
+call makeup_super_slave1 (runt, ele, l_start, param, do_entrance, do_exit)
 call attribute_bookkeeper (runt, param)
 
 track = runt%tracking_method

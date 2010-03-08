@@ -66,7 +66,10 @@ real(rp) g_x, g_y, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
-real(rp) dE_p, dpx, dpy
+real(rp) dE_p, dpx, dpy, mc2
+real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
+                                                  h_bar_planck * c_light / (24 * sqrt_3)
+
 integer i, n_step
 
 logical calc_mat6, calculate_mat6, err, save_track, do_offset
@@ -120,14 +123,15 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) then
 
-  gamma_0 = ele%value(E_TOT$) / mass_of(param%particle)
+  mc2 = mass_of(param%particle)
+  gamma_0 = ele%value(e_tot$) / mass_of(param%particle)
 
   fact_d = 0
-  if (bmad_com%radiation_damping_on) fact_d = 2 * r_e * gamma_0**3 * ds / 3
+  if (bmad_com%radiation_damping_on) fact_d = 2 * classical_radius_factor * gamma_0**3 * ds / (3 * mc2)
 
   fact_f = 0
   if (bmad_com%radiation_fluctuations_on) then
-    fact_f = sqrt(rad_fluct_const * ds * gamma_0**5 / mass_of(param%particle)) 
+    fact_f = sqrt(rad_fluct_const * ds * gamma_0**5) / mc2 
   endif
 
 endif
@@ -858,8 +862,7 @@ if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) the
 
   !  dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3)) * synch_rad_com%scale
   call ran_gauss (this_ran)
-  dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * &
-                                                                      synch_rad_com%scale 
+  dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * synch_rad_com%scale 
 
   end%vec(2) = end%vec(2) * (1 - dE_p)
   end%vec(4) = end%vec(4) * (1 - dE_p)
