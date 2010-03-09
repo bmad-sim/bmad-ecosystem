@@ -22,7 +22,8 @@ type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct) wall
 type (wall3d_pt_struct) wall_pt(0:100)
-type (photon3d_coord_struct) photon_start
+type (photon3d_coord_struct) p
+type (random_state_struct) ran_state
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
@@ -31,9 +32,10 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 integer i, j, iu, n_wall_pt_max, random_seed
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end
-integer photon_direction, num_photons, n_phot
+integer photon_direction, num_photons, n_phot, ios
 
 character(200) lattice_file, reflect_file
+character(200) photon_start_input_file, photon_start_output_file
 
 character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
@@ -44,9 +46,11 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, reflect_file, &
-            photon_start
+            photon_start_input_file, photon_start_output_file
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
+
+namelist / start / p, ran_state
 
 ! Get parameter file name
 
@@ -77,7 +81,8 @@ s_filter_min = -1
 s_filter_max = -1
 reflect_file = ''
 sr3d_params%debug_on = .false.
-photon_start%energy = -1
+photon_start_input_file = '' 
+photon_start_output_file = ''
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -115,12 +120,12 @@ enddo
 
 print *, 'n_wall_pt_max:', n_wall_pt_max
 
-! open reflect file
+! Open reflect file
 
 if (reflect_file /= '') then
   sr3d_params%iu_reflect_file = lunget()
   open (sr3d_params%iu_reflect_file, file = reflect_file)
-  print *, 'Opening photon reflections file: ', trim(reflect_file)
+  print *, 'Opening photon reflections output file: ', trim(reflect_file)
 endif
 
 ! Get lattice
@@ -144,16 +149,6 @@ wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
 call sr3d_check_wall (wall)
 
 call ran_seed_put (random_seed)
-
-! If photon_start has been set then just use that.
-
-if (photon_start%energy > 0) then
-  print *, 'Test using photon_start...'
-  allocate(photon)
-  photon%start = photon_start
-  call sr3d_track_photon (photon, lat, wall)
-  stop
-endif
 
 ! Find out much radiation is produced
 
@@ -211,93 +206,155 @@ endif
 n_photon_generated = 0
 n_photon_array = 0
 
-if (filter_on) then
-  allocate (photons(nint(2.1*num_photons)))   
-else
-  allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
-endif
-
 bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 
-ix_ele = ix_ele_track_start
-do 
+!--------------------------------------------------------------------------
+! If the photon_start input file exists then use that
 
-  if (ix_ele == ix_ele_track_end) then
-    if (.not. filter_on .or. n_photon_array > 0.9 * num_photons) exit
-    ix_ele = ix_ele_track_start
-  endif
+if (photon_start_input_file /= '') then
 
-  ix_ele = ix_ele + 1
-  if (ix_ele > lat%n_ele_track) ix_ele = 0
+  ! Open photon start input file and count the number of photons
 
-  ele => lat%ele(ix_ele)
+  print *, 'Opening photon starting position input file: ', trim(photon_start_input_file)
+  open (1, file = photon_start_input_file, status = 'old')
+  do
+    read (1, nml = start, iostat = ios)
+    if (ios < 0) exit
+    if (ios > 0) call err_exit
+    n_photon_generated = n_photon_generated + 1
+  enddo
 
-  n_phot = nint(rad_int_ele%i0(ix_ele) / d_i0)
-  if (n_phot == 0) cycle
+  allocate (photons(n_photon_generated))
+  n_photon_generated = 0
+  rewind(1)
 
-  ds = ele%value(l$) / n_phot
-  if (ds < ds_step_min) ds = (1+int(ds_step_min/ds)) * ds
-
-  ! Loop over all photon generating points
-
-  s_offset = ds / 2
-  i0_ele = 0         ! Integrated i0 for this element
-  n_photon_ele = 0   
+  ! Now read the file and initialize photons and the random number generator.
+  ! Only set the random number generator if ran_state is set in the file.
 
   do
-    call sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
-    g = sqrt(gx**2 + gy**2) 
-    call convert_total_energy_to (ele%value(e_tot$),  lat%param%particle, gamma)
-    ! Generate photons, track to the wall 
+    ran_state%iy = -1  ! To see if ran_state is set by the read.
+    read (1, nml = start, iostat = ios)
+    if (ios < 0) exit
+    n_photon_generated = n_photon_generated + 1
+    photon => photons(n_photon_generated)
+    photon%start = p
+    if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
+    call sr3d_track_photon (photon, lat, wall)
+  enddo
 
-    n_photon_here = nint(g * gamma * ds / d_i0)
-    do j = 1, n_photon_here
-      n_photon_generated = n_photon_generated + 1
-      n_photon_array = n_photon_array + 1
-      if (n_photon_array > size(photons)) then
-        print *, 'INTERNAL ERROR: NUMBER OF PHOTONS GENERATED TOO LARGE!'
-        call err_exit
-      endif
-      photon => photons(n_photon_array)
-      photon%ix_photon = n_photon_array
-      call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
-                             emit_a, emit_b, sig_e, photon_direction, photon%start)
-      photon%n_reflect = 0
-      photon%start%ix_ele = ix_ele
+  close (1)
 
-      call sr3d_photon_radius (photon%start, wall, radius)
-      if (radius > 1) then
-        print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
-        print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
-        cycle
-      endif
+! Regular photon generation
 
-      call sr3d_track_photon (photon, lat, wall)
+else
 
-      ! Check filter restrictions
+  ! Open photon start output file
 
-      if (filter_on) then
-        filter_this = .false.
-        if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
-        if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
-        if (s_wrap_on) then
-          if (photon%now%vec(5) > s_filter_min) filter_this = .true.
-          if (photon%now%vec(5) < s_filter_max) filter_this = .true.
-        else
-          if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
-          if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+  if (photon_start_output_file /= '') then
+    open (3, file = photon_start_output_file, recl = 140)
+    print *, 'Opening photon start output file: ', trim(photon_start_output_file)
+  endif
+
+  ! Allocate photons array
+
+  if (filter_on) then
+    allocate (photons(nint(2.1*num_photons)))   
+  else
+    allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
+  endif
+
+  ix_ele = ix_ele_track_start
+  do 
+
+    if (ix_ele == ix_ele_track_end) then
+      if (.not. filter_on .or. n_photon_array > 0.9 * num_photons) exit
+      ix_ele = ix_ele_track_start
+    endif
+
+    ix_ele = ix_ele + 1
+    if (ix_ele > lat%n_ele_track) ix_ele = 0
+
+    ele => lat%ele(ix_ele)
+
+    n_phot = nint(rad_int_ele%i0(ix_ele) / d_i0)
+    if (n_phot == 0) cycle
+
+    ds = ele%value(l$) / n_phot
+    if (ds < ds_step_min) ds = (1+int(ds_step_min/ds)) * ds
+
+    ! Loop over all photon generating points
+
+    s_offset = ds / 2
+    i0_ele = 0         ! Integrated i0 for this element
+    n_photon_ele = 0   
+
+    do
+      call sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
+      g = sqrt(gx**2 + gy**2) 
+      call convert_total_energy_to (ele%value(e_tot$),  lat%param%particle, gamma)
+      ! Generate photons, track to the wall 
+
+      n_photon_here = nint(g * gamma * ds / d_i0)
+      do j = 1, n_photon_here
+        n_photon_generated = n_photon_generated + 1
+        n_photon_array = n_photon_array + 1
+        if (n_photon_array > size(photons)) then
+          print *, 'INTERNAL ERROR: NUMBER OF PHOTONS GENERATED TOO LARGE!'
+          call err_exit
         endif
-        if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
-      endif
+        photon => photons(n_photon_array)
+        photon%ix_photon = n_photon_array
+        call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
+                               emit_a, emit_b, sig_e, photon_direction, photon%start)
+        photon%n_reflect = 0
+        photon%start%ix_ele = ix_ele
+
+        call sr3d_photon_radius (photon%start, wall, radius)
+        if (radius > 1) then
+          print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
+          print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
+          cycle
+        endif
+
+        if (photon_start_output_file /= '') then
+          call ran_seed_get (state = ran_state)
+          write (3, '(a)')           '&start'
+          write (3, '(a, 6es20.12)') '  p%vec = ', photon%start%vec
+          write (3, '(a, es20.12)')  '  p%energy =', photon%start%energy
+          write (3, *)               '  ran_state = ', ran_state
+          write (3, '(a)')           '/'
+        endif
+
+        call sr3d_track_photon (photon, lat, wall)
+
+        ! Check filter restrictions
+
+        if (filter_on) then
+          filter_this = .false.
+          if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
+          if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
+          if (s_wrap_on) then
+            if (photon%now%vec(5) > s_filter_min) filter_this = .true.
+            if (photon%now%vec(5) < s_filter_max) filter_this = .true.
+          else
+            if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+            if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+          endif
+          if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+        endif
+
+      enddo
+
+      s_offset = s_offset + ds
+      if (s_offset > ele%value(l$)) exit
 
     enddo
 
-    s_offset = s_offset + ds
-    if (s_offset > ele%value(l$)) exit
-
   enddo
 
-enddo
+endif
+
+!
 
 photons(:)%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_tot / &
                                              (6 * h_bar_planck * c_light * n_photon_generated)
@@ -308,13 +365,13 @@ write (1, *) 'ix_ele_track_start =', ix_ele_track_start
 write (1, *) 'ix_ele_track_end   =', ix_ele_track_end
 write (1, *) 'photon_direction   =', photon_direction
 write (1, *) 'num_photons        =', num_photons
-write (1, *) 'lattice_file       =', lattice_file
+write (1, *) 'lattice_file       =', trim(lattice_file)
 write (1, *) 'ds_step_min        =', ds_step_min
 write (1, *) 'emit_a             =', emit_a
 write (1, *) 'emit_b             =', emit_b
 write (1, *) 'sig_e              =', sig_e
-write (1, *) 'wall_file          =', wall_file
-write (1, *) 'dat_file           =', dat_file
+write (1, *) 'wall_file          =', trim(wall_file)
+write (1, *) 'dat_file           =', trim(dat_file)
 write (1, *) 'random_seed        =', random_seed
 write (1, *) 'sr3d_params%allow_reflections =', sr3d_params%allow_reflections
 write (1, *) 'e_filter_min   =', e_filter_min
