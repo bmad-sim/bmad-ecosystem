@@ -264,6 +264,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$)
     call bsq_drift1 (calculate_mat6)
     call bsq_drift2 (calculate_mat6)
     call bsq_kick (calculate_mat6)
+    call radiation_kick()
     call bsq_drift2 (calculate_mat6)
     call bsq_drift1 (calculate_mat6)
 
@@ -466,10 +467,11 @@ subroutine bsq_kick (do_mat6)
 
 logical do_mat6
 
-end%vec(2) = end%vec(2) + ds * &  ! da_z_dx
-              (k1_norm * (x_q - end%vec(1)) - k1_skew * end%vec(3) - g_x)    
-end%vec(4) = end%vec(4) + ds * &  ! da_z_dy
-              (k1_norm * (end%vec(3) - y_q) - k1_skew * end%vec(1) - g_y)    
+dpx = k1_norm * (x_q - end%vec(1)) - k1_skew * end%vec(3) - g_x
+end%vec(2) = end%vec(2) + ds * dpx  ! da_z_dx
+              
+dpy = k1_norm * (end%vec(3) - y_q) - k1_skew * end%vec(1) - g_y
+end%vec(4) = end%vec(4) + ds * dpy  ! da_z_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ds * k1_norm * mat6(1,1:6) - ds * k1_skew * mat6(3,1:6)
@@ -860,7 +862,6 @@ if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on)) the
   g2 = dpx**2 + dpy**2
   g3 = g2 * sqrt(g2)
 
-  !  dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3)) * synch_rad_com%scale
   call ran_gauss (this_ran)
   dE_p = (1 + end%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * synch_rad_com%scale 
 
