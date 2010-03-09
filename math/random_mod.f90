@@ -4,8 +4,6 @@
 ! Module for random number generation.
 !-
 
-#include "CESR_platform.inc"
-
 module random_mod
 
 use precision_def
@@ -13,6 +11,19 @@ use physical_constants
 use output_mod
 use sim_utils_interface
 
+integer, parameter :: kr4b = selected_int_kind(9)
+
+type random_state_struct
+  integer(kr4b) :: ix = -1, iy = -1
+  logical :: number_stored = .false.
+  real(rp) :: h_saved = 0
+end type
+
+type (random_state_struct), private, save :: r_state
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
 !+
 ! Subroutine ran_gauss (harvest)
 !
@@ -42,6 +53,9 @@ interface ran_gauss
   module procedure ran_gauss_vector
 end interface
 
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
 !+
 ! Subroutine ran_uniform (harvest)
 !
@@ -75,12 +89,8 @@ end interface
 ! common variables for random number generator.
 
 integer, private, save :: my_seed = 0
-integer, private, parameter :: k4b=selected_int_kind(9)
-integer(k4b), private, save :: ix = -1, iy = -1, k
 real(sp), private, save :: am
-integer(k4b), private, parameter :: ia = 16807, im = 2147483647
-integer(k4b), private, parameter :: iq = 127773, ir = 2836
-logical, private, save :: number_stored = .false.
+integer(kr4b), parameter :: im = 2147483647
 
 ! index_quasi is used so that the scaler routines know which component of the
 ! quasi-random vector to return.
@@ -115,7 +125,6 @@ implicit none
 
 real(rp), intent(out) :: harvest
 real(rp) a(2), v1, v2, r
-real(rp), save :: h_saved
 real(rp), allocatable, save :: g(:)
 
 integer i, ss, ix
@@ -152,9 +161,9 @@ endif
 
 ! If we have a stored value then just use it
 
-if (number_stored) then
-  harvest = h_saved
-  number_stored = .false.
+if (r_state%number_stored) then
+  harvest = r_state%h_saved
+  r_state%number_stored = .false.
   return
 endif
 
@@ -170,8 +179,8 @@ enddo
 
 r = sqrt(-2*log(r)/r)
 harvest = v1 * r
-h_saved = v2 * r
-number_stored = .true.
+r_state%h_saved = v2 * r
+r_state%number_stored = .true.
 
 end subroutine
 
@@ -249,7 +258,7 @@ if (present(set)) then
     engine = pseudo_random$
   case ('quasi')
     engine = quasi_random$
-    number_stored = .false.
+    r_state%number_stored = .false.
     index_quasi = 1
   case default
     call out_io (s_error$, r_name, 'BAD RANDOM NUMBER ENGINE NAME: ' // set)
@@ -339,7 +348,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_put (seed)
+! Subroutine ran_seed_put (seed, state)
 !
 ! Subroutine to seed the random number generator. 
 !
@@ -348,27 +357,44 @@ end subroutine
 !
 ! The seed is only used with the pseudo_random$ engine.
 !
+! If state is given, that will be used instead of seed
+! 
 ! Use the subroutine ran_seed_get(seed) to get the seed used.
 !
 ! Modules needed:
 !   use random_mod
 !
 ! Intput:
-!   seed -- Integer: Seed number. If seed = 0 then a 
-!             seed will be choosen based upon the system clock.
+!   seed  -- Integer, optional: Seed number. If seed = 0 then a 
+!              seed will be choosen based upon the system clock.
+!   state -- random_state_struct, optional: Internal state of the random engine.
 !-
 
-subroutine ran_seed_put (seed)
+subroutine ran_seed_put (seed, state)
 
 use nr, only: sobseq
 
 implicit none
 
-integer seed
+type (random_state_struct), optional :: state
+integer, optional :: seed
 integer v(10)
 real(rp) dum(2)
 
-! Random number generator init
+! Quasi-random number generator init
+
+call sobseq (dum, 0)
+
+am = nearest(1.0,-1.0) / im
+
+! Init Random number generator with state
+
+if (present(state)) then
+  r_state = state
+  return
+endif
+
+! init
 
 if (seed == 0) then
   call date_and_time (values = v)
@@ -377,14 +403,10 @@ else
   my_seed = seed
 endif
 
-am = nearest(1.0,-1.0)/IM
-iy = ior(ieor(888889999, abs(my_seed)), 1)
-ix = ieor(777755555, abs(my_seed))
-number_stored = .false.
+r_state%iy = ior(ieor(888889999, abs(my_seed)), 1)
+r_state%ix = ieor(777755555, abs(my_seed))
 
-! Quasi-random number generator init
-
-call sobseq (dum, 0)
+r_state%number_stored = .false.
 
 end subroutine
 
@@ -392,23 +414,32 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_seed_get (seed)
+! Subroutine ran_seed_get (seed, state)
 ! 
 ! Subroutine to return the seed used for the random number generator.
+!
+! Note: The internal state can be used to put the pseudo-random
+! number generator into a known state. See ran_seed_put
 !
 ! Modules needed:
 !   use random_mod
 !
 ! Output:
-!   seed -- Integer: Random number seed used.
+!   seed  -- Integer, optional: Random number seed used.
+!   state -- random_state_struct, optional: Internal state of the random engine.
 !-
 
-subroutine ran_seed_get (seed)
+subroutine ran_seed_get (seed, state)
 
 implicit none
-integer seed
 
-seed = my_seed
+type (random_state_struct), optional :: state
+integer, optional :: seed
+
+!
+
+if (present(seed)) seed = my_seed
+if (present(state)) state = r_state
 
 end subroutine
 
@@ -431,11 +462,16 @@ implicit none
 
 real(rp), intent(out) :: harvest
 real(rp), save :: r(6)
+integer(kr4b) k
+
+integer(kr4b), parameter :: ia = 16807
+integer(kr4b), parameter :: iq = 127773, ir = 2836
+
 character :: r_name = 'ran_uniform_scaler'
 
-! If iy < 0 then the random number generator has never bee initialized.
+! If r_state%iy < 0 then the random number generator has never bee initialized.
 
-if (iy < 0) call ran_seed_put(my_seed)
+if (r_state%iy < 0) call ran_seed_put(my_seed)
 
 ! quasi-random
 
@@ -450,18 +486,19 @@ if (engine == quasi_random$) then
 endif
 
 ! Pseudo-random
+! Marsaglia shift sequence with period 2^32 - 1.
 
-ix = ieor(ix, ishft(ix, 13)) !Marsaglia shift sequence with period 2^32 - 1.
-ix = ieor(ix, ishft(ix, -17))
-ix = ieor(ix, ishft(ix, 5))
-k = iy/iq                  ! Park-Miller sequence by Schrage's method,
-iy = ia*(iy-k*iq)-ir*k     ! period 2^31-2.
+r_state%ix = ieor(r_state%ix, ishft(r_state%ix, 13)) 
+r_state%ix = ieor(r_state%ix, ishft(r_state%ix, -17))
+r_state%ix = ieor(r_state%ix, ishft(r_state%ix, 5))
+k = r_state%iy/iq         ! Park-Miller sequence by Schrage's method,
+r_state%iy = ia*(r_state%iy - k*iq) - ir * k       ! period 2^31-2.
 
-if (iy < 0) iy = iy+im
+if (r_state%iy < 0) r_state%iy = r_state%iy + im
 
 ! Combine the two generators with masking to ensure nonzero value.
 
-harvest = am * ior(iand(im, ieor(ix,iy)), 1) 
+harvest = am * ior(iand(im, ieor(r_state%ix, r_state%iy)), 1) 
 
 end subroutine
 
