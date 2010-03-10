@@ -41,6 +41,7 @@ character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this
+logical is_outside
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
@@ -51,8 +52,6 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
 namelist / start / p, ran_state
-
-namelist / num_photons_list / n_photon_generated
 
 ! Get parameter file name
 
@@ -194,10 +193,10 @@ endif
 
 ! Track through the elements and generate photons.
 
+bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
+
 n_photon_generated = 0
 n_photon_array = 0
-
-bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
 
 !--------------------------------------------------------------------------
 ! If the photon_start input file exists then use that
@@ -208,19 +207,8 @@ if (photon_start_input_file /= '') then
 
   print *, 'Opening photon starting position input file: ', trim(photon_start_input_file)
   open (1, file = photon_start_input_file, status = 'old')
-  do
-    read (1, nml = start, iostat = ios)
-    if (ios < 0) exit
-    if (ios > 0) call err_exit
-    n_photon_array = n_photon_array + 1
-  enddo
 
-  allocate (photons(n_photon_array))
-  n_photon_array = 0
-  rewind(1)
-
-  read (1, nml = num_photons_list, iostat = ios)  ! Get n_photon_generated
-  rewind(1)
+  allocate (photons(1000))
 
   ! Now read the file and initialize photons and the random number generator.
   ! Only set the random number generator if ran_state is set in the file.
@@ -229,11 +217,21 @@ if (photon_start_input_file /= '') then
     ran_state%iy = -1  ! To see if ran_state is set by the read.
     read (1, nml = start, iostat = ios)
     if (ios < 0) exit
+    if (ios > 0) then
+      print *, 'Error reading photon starting position at photon index:', n_photon_generated
+      cycle
+    endif
+    n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1
+    if (n_photon_array > size(photons)) call reallocate_photon_array (photons, 2*size(photons))
     photon => photons(n_photon_array)
     photon%start = p
+    photon%n_reflect = 0
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
+    call check_if_photon_init_coords_outside_wall (is_outside)
+    if (is_outside) cycle
     call sr3d_track_photon (photon, lat, wall)
+    call check_filter_restrictions()
   enddo
 
   close (1)
@@ -304,13 +302,6 @@ else
         photon%n_reflect = 0
         photon%start%ix_ele = ix_ele
 
-        call sr3d_photon_radius (photon%start, wall, radius)
-        if (radius > 1) then
-          print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
-          print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
-          cycle
-        endif
-
         if (photon_start_output_file /= '') then
           call ran_seed_get (state = ran_state)
           write (iu_start, '(a)')           '&start'
@@ -320,23 +311,10 @@ else
           write (iu_start, '(a)')           '/'
         endif
 
+        call check_if_photon_init_coords_outside_wall (is_outside)
+        if (is_outside) cycle
         call sr3d_track_photon (photon, lat, wall)
-
-        ! Check filter restrictions
-
-        if (filter_on) then
-          filter_this = .false.
-          if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
-          if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
-          if (s_wrap_on) then
-            if (photon%now%vec(5) > s_filter_min) filter_this = .true.
-            if (photon%now%vec(5) < s_filter_max) filter_this = .true.
-          else
-            if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
-            if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
-          endif
-          if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
-        endif
+        call check_filter_restrictions()
 
       enddo
 
@@ -346,13 +324,6 @@ else
     enddo
 
   enddo
-
-  if (photon_start_output_file /= '') then
-    write (iu_start, '(a)')           '&num_photons_list'
-    write (iu_start, '(a, i0)')       '  n_photon_generated = ', n_photon_generated
-    write (iu_start, '(a)')           '/'
-    close (iu_start)
-  endif
 
 endif
 
@@ -410,5 +381,98 @@ do i = 1, n_photon_array
 enddo
 
 close (1)
+
+!--------------------------------------------------------------------------------------------
+contains
+
+subroutine check_filter_restrictions ()
+
+! Check filter restrictions
+
+if (filter_on) then
+  filter_this = .false.
+  if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
+  if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
+  if (s_wrap_on) then
+    if (photon%now%vec(5) > s_filter_min) filter_this = .true.
+    if (photon%now%vec(5) < s_filter_max) filter_this = .true.
+  else
+    if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+    if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+  endif
+  if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+endif
+
+end subroutine
+
+!--------------------------------------------------------------------------------------------
+! contains
+
+subroutine check_if_photon_init_coords_outside_wall (is_outside)
+
+logical is_outside
+
+call sr3d_photon_radius (photon%start, wall, radius)
+if (radius > 1) then
+  print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
+  print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
+  n_photon_array = n_photon_array - 1
+endif
+
+end subroutine
+
+!--------------------------------------------------------------------------------------------
+! contains
+
+!+
+! Subroutine reallocate_photon_array (photon_array, n_size)
+! 
+! Routine to enlarge an array of photons while saving the original information.
+! The final size will be at least n_size.
+!
+! Input:
+!   photon_array(:) -- photon3d_track_struct, allocatable: Array of photons
+!   n_size          -- Integer: Minimum size
+!
+! Output:
+!   photon_array(:) -- photon3d_track_struct, allocatable: Array with size at least n_size.
+!-
+
+subroutine reallocate_photon_array (photon_array, n_size)
+
+implicit none
+
+type (photon3d_track_struct), allocatable :: photon_array(:), temp(:)
+integer n, n_size, n_old, j
+
+!
+
+if (.not. allocated(photon_array)) then
+  allocate (photon_array(n_size))
+  return
+endif
+
+n_old = size(photon_array)
+if (n_old >= n_size) return
+
+allocate(temp(n_old))
+do n = 1, n_old
+  j = size(photon_array(n)%reflect)
+  allocate(temp(n)%reflect(j))
+  temp(n) = photon_array(n)
+enddo
+
+deallocate(photon_array)
+allocate(photon_array(n_size))
+
+do n = 1, n_old
+  j = size(temp(n)%reflect)
+  allocate(photon_array(n)%reflect(j))
+  photon_array(n) = temp(n)
+enddo
+
+deallocate (temp)
+
+end subroutine
 
 end program
