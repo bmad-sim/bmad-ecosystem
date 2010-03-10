@@ -297,7 +297,7 @@ subroutine photon_reflectivity (angle, energy,  reflect_prob)
 
   call spline (ang_vec, yytmp, 1.0e30_rp, 1.0e30_rp, y2tmp2) 
   reflect_prob = max(0.0_rp, splint(ang_vec, yytmp, y2tmp2, angle_deg))
-  if (e_tot > 1000) reflect_prob = reflect_prob * (e_crit - e_tot) / (e_crit - 1000)
+  if (energy > 1000) reflect_prob = reflect_prob * (e_crit - energy) / (e_crit - 1000)
 
 end subroutine
 
