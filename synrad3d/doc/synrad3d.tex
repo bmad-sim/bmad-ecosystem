@@ -278,9 +278,12 @@ indicates that the particular filter is not used. See below.
 This string, if not blank, will cause \srthree to create an output
 file, with a name given by the value of \vn{photon_start_output_file},
 of the photon starting positions along with the state of the random
-number generator. This is useful for diagnostic purposes. Note: If
+number generator. Note: If
 \vn{photon_start_input_file} is set, \vn{photon_start_outpu_file} will
-be ignored (no output file is generated).
+be ignored (no output file is generated). Also note that the file will
+have the starting coordinates of all photons generated, not just the
+photons that pass any filtering tests. Thus, if any of the filter
+parameters are set, the size of the file may be very large.
   \item[\vn{photon_start_input_file}] \Newline
 This string, if not blank, will cause \srthree to initialize photon
 starting positions using the values in an input file. The name of the
@@ -288,7 +291,8 @@ input file being given by the value of \vn{photon_start_input_file}.
 The state of the random number generator at the time of a photon's
 initialization can also be specified in the file. In this case, the
 random number generator state will also be set along with the state of
-the photon. This is useful for diagnostic purposes.
+the photon. This is useful for diagnostic purposes when one wishes to
+compare the results of different versions of the \srthree program. 
 
 \end{description}
 

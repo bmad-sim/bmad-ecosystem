@@ -40,7 +40,7 @@ type photon3d_track_struct
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
   integer ix_photon                        ! Photon index.
-  integer n_reflect                        ! Number of reflections
+  integer :: n_reflect = 0                 ! Number of reflections
 end type
 
 !--------------
