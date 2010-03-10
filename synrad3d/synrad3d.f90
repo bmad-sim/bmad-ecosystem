@@ -29,7 +29,7 @@ real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
-integer i, j, iu, n_wall_pt_max, random_seed
+integer i, j, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end
 integer photon_direction, num_photons, n_phot, ios
@@ -51,6 +51,8 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
 namelist / start / p, ran_state
+
+namelist / num_photons_list / n_photon_generated
 
 ! Get parameter file name
 
@@ -192,17 +194,6 @@ endif
 
 ! Track through the elements and generate photons.
 
-open (1, file = dat_file)
-print *, 'Data file is: ', trim(dat_file)
-
-if (sr3d_params%stop_if_hit_antechamber .and. &
-    (any(wall_pt%ante_height2_plus > 0) .or. &
-     any(wall_pt%ante_height2_minus > 0))) then
-  dat2_file = trim(dat_file) // '.antechamber'
-  open (2, file = dat2_file)
-  print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
-endif
-
 n_photon_generated = 0
 n_photon_array = 0
 
@@ -221,11 +212,14 @@ if (photon_start_input_file /= '') then
     read (1, nml = start, iostat = ios)
     if (ios < 0) exit
     if (ios > 0) call err_exit
-    n_photon_generated = n_photon_generated + 1
+    n_photon_array = n_photon_array + 1
   enddo
 
-  allocate (photons(n_photon_generated))
-  n_photon_generated = 0
+  allocate (photons(n_photon_array))
+  n_photon_array = 0
+  rewind(1)
+
+  read (1, nml = num_photons_list, iostat = ios)  ! Get n_photon_generated
   rewind(1)
 
   ! Now read the file and initialize photons and the random number generator.
@@ -235,8 +229,8 @@ if (photon_start_input_file /= '') then
     ran_state%iy = -1  ! To see if ran_state is set by the read.
     read (1, nml = start, iostat = ios)
     if (ios < 0) exit
-    n_photon_generated = n_photon_generated + 1
-    photon => photons(n_photon_generated)
+    n_photon_array = n_photon_array + 1
+    photon => photons(n_photon_array)
     photon%start = p
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
     call sr3d_track_photon (photon, lat, wall)
@@ -251,7 +245,8 @@ else
   ! Open photon start output file
 
   if (photon_start_output_file /= '') then
-    open (3, file = photon_start_output_file, recl = 140)
+    iu_start = lunget()
+    open (iu_start, file = photon_start_output_file, recl = 140)
     print *, 'Opening photon start output file: ', trim(photon_start_output_file)
   endif
 
@@ -318,11 +313,11 @@ else
 
         if (photon_start_output_file /= '') then
           call ran_seed_get (state = ran_state)
-          write (3, '(a)')           '&start'
-          write (3, '(a, 6es20.12)') '  p%vec = ', photon%start%vec
-          write (3, '(a, es20.12)')  '  p%energy =', photon%start%energy
-          write (3, *)               '  ran_state = ', ran_state
-          write (3, '(a)')           '/'
+          write (iu_start, '(a)')           '&start'
+          write (iu_start, '(a, 6es20.12)') '  p%vec = ', photon%start%vec
+          write (iu_start, '(a, es20.12)')  '  p%energy =', photon%start%energy
+          write (iu_start, *)               '  ran_state = ', ran_state
+          write (iu_start, '(a)')           '/'
         endif
 
         call sr3d_track_photon (photon, lat, wall)
@@ -352,6 +347,13 @@ else
 
   enddo
 
+  if (photon_start_output_file /= '') then
+    write (iu_start, '(a)')           '&num_photons_list'
+    write (iu_start, '(a, i0)')       '  n_photon_generated = ', n_photon_generated
+    write (iu_start, '(a)')           '/'
+    close (iu_start)
+  endif
+
 endif
 
 !
@@ -360,6 +362,17 @@ photons(:)%intensity = 5 * sqrt(3.0) * r_e * mass_of(lat%param%particle) * i0_to
                                              (6 * h_bar_planck * c_light * n_photon_generated)
 
 ! Write results
+
+open (1, file = dat_file)
+print *, 'Data file is: ', trim(dat_file)
+
+if (sr3d_params%stop_if_hit_antechamber .and. &
+    (any(wall_pt%ante_height2_plus > 0) .or. &
+     any(wall_pt%ante_height2_minus > 0))) then
+  dat2_file = trim(dat_file) // '.antechamber'
+  open (2, file = dat2_file)
+  print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
+endif
 
 write (1, *) 'ix_ele_track_start =', ix_ele_track_start
 write (1, *) 'ix_ele_track_end   =', ix_ele_track_end
