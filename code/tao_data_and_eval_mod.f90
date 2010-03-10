@@ -454,7 +454,7 @@ type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
-type (coord_struct), pointer :: orbit(:)
+type (coord_struct), pointer :: orbit(:), orb
 type (branch_struct), pointer :: branch
 type (bunch_params_struct), pointer :: bunch_params(:)
 type (tao_element_struct), pointer :: uni_ele(:)
@@ -1717,26 +1717,63 @@ case ('t.', 'tt.')
 
 !-----------
 
-case ('unstable_orbit')
-  if (lat%param%lattice_type /= linear_lattice$) return
-  if (datum%ele_name == '') ix_ele = branch%n_ele_track
-  if (data_source == 'beam') then
-    do i = 1, ix_ele
-      datum_value = datum_value + (1 + ix_ele - i) * uni_ele(i)%n_particle_lost_here
-    enddo
-    datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
-  else
-    iz = lat%param%ix_lost
-    if (iz /= not_lost$) datum_value = max(0, 1 + ix_ele - iz)
-  endif
-  valid_value = .true.
+case ('unstable.')
 
-case ('unstable_ring')
-  if (data_source == 'beam') return
-  datum_value = lat%param%growth_rate
-  ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
-  if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
-  valid_value = .true.
+  select case (datum%data_type)
+
+  case ('unstable.orbit')
+    if (lat%param%lattice_type /= linear_lattice$) return
+    if (datum%ele_name == '') ix_ele = branch%n_ele_track
+
+    if (data_source == 'beam') then
+      do i = 1, ix_ele
+        datum_value = datum_value + (1 + ix_ele - i) * uni_ele(i)%n_particle_lost_here
+      enddo
+      datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
+
+    else
+      iz = lat%param%ix_lost
+      if (iz /= not_lost$) then
+        datum_value = max(0, 1 + ix_ele - iz)
+        if (lat%param%end_lost_at == entrance_end$) then
+          datum_value = datum_value - 0.5
+          orb => orbit(iz-1)
+        else
+          orb => orbit(iz)
+        endif
+
+        if (lat%param%plane_lost_at == x_plane$) then
+          if (orb%vec(1) < 0) then
+            if (lat%ele(iz)%value(x1_limit$) /= 0) datum_value = datum_value + &
+                                0.5 * tanh(-orb%vec(1) / lat%ele(iz)%value(x1_limit$) - 1)
+          else
+            if (lat%ele(iz)%value(x2_limit$) /= 0) datum_value = datum_value + &
+                                0.5 * tanh( orb%vec(1) / lat%ele(iz)%value(x2_limit$) - 1)
+          endif
+        elseif (lat%param%plane_lost_at == y_plane$) then
+          if (orb%vec(3) < 0) then
+            if (lat%ele(iz)%value(y1_limit$) /= 0) datum_value = datum_value + &
+                                0.5 * tanh(-orb%vec(1) / lat%ele(iz)%value(y1_limit$) - 1)
+          else
+            if (lat%ele(iz)%value(y2_limit$) /= 0) datum_value = datum_value + &
+                                0.5 * tanh( orb%vec(1) / lat%ele(iz)%value(y2_limit$) - 1)
+          endif      
+        endif
+
+      endif
+    endif
+    valid_value = .true.
+
+  case ('unstable.ring')
+    if (data_source == 'beam') return
+    datum_value = lat%param%growth_rate
+    ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
+    if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
+    valid_value = .true.
+
+  end select
+
+!-----------
 
 case ('wall')
   if (data_source == 'beam') return

@@ -944,8 +944,7 @@ if (default_data_type == '') then
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
                             trim(d2_data%name) // '.' // d1_data%name
 else
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
-                                                    default_data_type
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
 endif
 
 ! Point the %data back to the d1_data_struct
@@ -954,7 +953,7 @@ call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
 
 ! In a d1_data array, not all the datums need to exist. 
 ! If a datum is not associated with an element, that generally means that
-! it does not exist. There are, however, a few exceptions. EG: unstable_ring, etc.
+! it does not exist. There are, however, a few exceptions. EG: unstable.ring, etc.
 ! Here we mark data%exists for such datums.
 ! Also determine if we need to do the radiation integrals. This can save a lot of time.
 
@@ -963,10 +962,14 @@ do j = n1, n2
   if (dat%weight == 0) dat%weight = default_weight
   if (dat%merit_type == '') dat%merit_type = default_merit_type
   if (dat%data_source == '') dat%data_source = default_data_source
-  ! old style is to use "emittance." instead of "emit."
+
+  ! Convert old style to new style
+
   ix = index(dat%data_type, 'emittance.')
   if (ix /= 0) dat%data_type = dat%data_type(1:ix-1) // 'emit.' // dat%data_type(ix+10:)
+  if (dat%data_type(1:9) == 'unstable_') dat%data_type(9:9) = '.'
 
+  !
   data_type = dat%data_type
   source = dat%data_source
   emit_here = (index(data_type, 'emit.') /= 0)
@@ -983,10 +986,10 @@ do j = n1, n2
 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
-  if (data_type == 'unstable_orbit' .or. &
+  if (data_type == 'unstable.orbit' .or. &
               u%design%lat%param%lattice_type == circular_lattice$ .and. &
               (data_type(1:6)  == 'chrom.' .or. &
-               data_type(1:13) == 'unstable_ring' .or. emit_here .or. &
+               data_type(1:13) == 'unstable.ring' .or. emit_here .or. &
                data_type(1:17) == 'multi_turn_orbit.')) then
     dat%exists = .true.
     if (dat%ele_name /= '') then

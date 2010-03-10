@@ -561,32 +561,49 @@ will be decreased if the s-distance between points is smaller than
 the \vn{ds_step}.  In this case, discrepancies between the plot and
 datum values may be observed.
 
-  \index{unstable_orbit}
-  \item[unstable\_orbit] \Newline
-The \vn{unstable_orbit} datum is used for linear lattices. For single
-particle tracking, the value of an \vn{unstable_orbit} datum is zero
-if the tracked particle survives (has not been lost) up to the
-evaluation element and, if it has been lost, is set to
+  \index{unstable.orbit}
+  \item[unstable.orbit] \Newline
+The \vn{unstable.orbit} datum is used for linear lattices in an
+optimization to avoid unstable solutions (\sref{s:generalized.design}).
+
+For single particle tracking, the value of an \vn{unstable.orbit}
+datum is zero if the tracked particle survives (has not been lost) up
+to the evaluation element and, if it has been lost, is set to
 \Begineq
- 1 + i_{\mbox{ele}} - i_{\mbox{lost}}
+ 1 + i_{\mbox{ele}} - i_{\mbox{lost}} - \frac{E}{2} + 
+\tanh\left( \frac{|x|}{x_{lim}} - 1 \right)
 \Endeq
 where $i_{\mbox{ele}}$ is the index of the evaluation element in the
 lattice and $i_{\mbox{lost}}$ is the index of the element where the
-particle was lost. When tracking beams, the value of
-\vn{unstable_orbit} is the averaged value over all particles in the
-bunch. The default for the evaluation element, if \vn{ele_name} nor
+particle was lost. In the above equation, $E$ is the function
+\Begineq
+  E = 
+  \begin{cases}
+    1 & \text{if the particle is lost at the entrance end of the element.} \\
+    0 & \text{if the particle is lost at the exit end of the element.}
+  \end{cases}
+\Endeq
+Also in the abouve equation, $x$ is the particle position at the point
+of loss and $x_{lim}$ is the aperture limit. The above equation is for
+loss in the horizontal plane. If the loss is in the vertical plane,
+$x$ is replaced by $y$.
+
+The form of the above equation has been choisen so that the datum value
+will be monotonic with increasing stability.
+
+The default for the evaluation element, if \vn{ele_name} nor
 \vn{ix_ele} is not specified, is to use the last element in the
-lattice.
+lattice. 
 
-\vn{unstable_orbit} is used in an optimization to avoid
-unstable solutions (\sref{s:generalized.design}).
+When tracking beams, the value of \vn{unstable.orbit} is the averaged
+value over all particles in the bunch.
 
-  \index{unstable_ring}
-  \item[unstable\_ring] \Newline
-\vn{unstable_ring} is used for storage rings. The value of an
-\vn{unstable_ring} datum is zero if the ring is stable and set to the
+  \index{unstable.ring}
+  \item[unstable.ring] \Newline
+\vn{unstable.ring} is used for storage rings. The value of an
+\vn{unstable.ring} datum is zero if the ring is stable and set to the
 largest growth rate of all the normal modes of oscillation if the ring
-is unstable. \vn{unstable_ring} is used in an optimization to avoid
+is unstable. \vn{unstable.ring} is used in an optimization to avoid
 unstable solutions (\sref{s:generalized.design}).
 
   \index{wire.}
@@ -603,11 +620,11 @@ size squared.
 
 
 \index{Data!Calculation Method}
-\index{unstable_orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
+\index{unstable.orbit}\index{beta}\index{alpha}\index{eta}\index{eta}
 \index{etap}\index{phase}\index{orbit}\index{wire}\index{spin}
 \index{cbar}\index{coupling}\index{floor}\index{r}\index{t}\index{tt}
 \index{rad_int.i5a_e6}\index{rad_int.i5b_e6}\index{s_position}\index{e_tot}
-\index{unstable_ring}\index{emittance}\index{chrom}\index{norm_emittance}
+\index{unstable.ring}\index{emittance}\index{chrom}\index{norm_emittance}
 \index{sigma}\index{dpx_dx}\index{dpy_dy}\index{dpz_dz}\index{dpa_da}
 \index{dpb_db}\index{rad_int.i3}\index{rad_int.i3_e7}
 
@@ -769,8 +786,8 @@ size squared.
                                  & Term in n\Th order transfer map    \\ \hline 
 
   tune.a, tune.b                 & Tune                               \\ \hline 
-  unstable\_orbit                & Nonzero if particles are lost in tracking \\ \hline
-  unstable\_ring                 & Nonzero if a ring is unstable (global)    \\ \hline
+  unstable.orbit                 & Nonzero if particles are lost in tracking \\ \hline
+  unstable.ring                  & Nonzero if a ring is unstable (global)    \\ \hline
 
 \end{tabular}
 } 
