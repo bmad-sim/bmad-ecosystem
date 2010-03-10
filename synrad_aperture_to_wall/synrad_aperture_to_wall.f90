@@ -22,12 +22,12 @@ type (ele_struct), pointer :: slave
 !------------------
 
 !Get lattice from command line
-if (iargc()==0) then
+if (cesr_iargc()==0) then
 	print *,"ERROR: Please provide a lattice file"
 	stop
 endif
 
-call getarg(1, lat_name)
+call cesr_getarg(1, lat_name)
 print *,"Using ", lat_name
 call file_suffixer (lat_name, outfile_name, '.wall_dat', .true.)
 
