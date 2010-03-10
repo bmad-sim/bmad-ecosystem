@@ -5,8 +5,6 @@
 !   use rad_int_common
 !-
 
-#include "CESR_platform.inc"
-
 module rad_int_common               
 
 use ptc_interface_mod
@@ -29,7 +27,6 @@ end type
 type ele_cache_struct
   type (rad_int_track_point_struct), allocatable :: pt(:)
   real(rp) del_z
-  integer ix_ele
 end type
 
 type rad_int_cache_struct
@@ -37,6 +34,10 @@ type rad_int_cache_struct
   integer, allocatable :: ix_ele(:)
   logical :: set = .false.   ! is being used?
 end type
+
+type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
+
+!
 
 type rad_int_info_struct
   type (lat_struct), pointer :: lat
@@ -50,16 +51,13 @@ type rad_int_info_struct
   integer ix_ele
 end type
 
-type (rad_int_common_struct), target, save :: ric
-type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
-
 contains
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine qromb_rad_int(do_int, pt, info, int_tot)
+! Subroutine qromb_rad_int(do_int, pt, info, int_tot, rad_int)
 !
 ! Function to do integration using Romberg's method on the 7 radiation 
 ! integrals.
@@ -76,7 +74,7 @@ contains
 ! not have to be done by this routine.
 !-
 
-subroutine qromb_rad_int (do_int, pt, info, int_tot)
+subroutine qromb_rad_int (do_int, pt, info, int_tot, rad_int)
 
 use precision_def
 use nrtype
@@ -88,6 +86,7 @@ type (ele_struct), pointer :: ele
 type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
+type (rad_int_common_struct) rad_int
 
 integer, parameter :: num_int = 8
 integer, parameter :: jmax = 14
@@ -96,7 +95,7 @@ integer j, j0, n, n_pts, ix_ele
 real(rp) :: int_tot(num_int)
 real(rp) :: eps_int, eps_sum, gamma
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
-real(rp) i_sum(num_int), rad_int(num_int)
+real(rp) i_sum(num_int), rad_int_vec(num_int)
 
 logical do_int(num_int), complete
 
@@ -116,7 +115,7 @@ eps_sum = 1e-6
 
 ri(:)%h(0) = 4.0
 ri(:)%sum(0) = 0
-rad_int = 0
+rad_int_vec = 0
 
 ll = ele%value(l$)
 
@@ -197,8 +196,8 @@ do j = 1, jmax
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
-    call polint (ri(n)%h(j0:j), ri(n)%sum(j0:j), 0.0_rp, rad_int(n), dint)
-    d0 = eps_int * abs(rad_int(n)) + eps_sum * abs(int_tot(n))
+    call polint (ri(n)%h(j0:j), ri(n)%sum(j0:j), 0.0_rp, rad_int_vec(n), dint)
+    d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot(n))
     if (abs(dint) > d0)  complete = .false.
     if (d0 /= 0) d_max = abs(dint) / d0
   enddo
@@ -208,28 +207,28 @@ do j = 1, jmax
 
   if (complete .or. j == jmax) then
 
-    ric%n_steps(ix_ele) = j
+    rad_int%n_steps(ix_ele) = j
 
-    ! Note that ric%i... may already contain a contribution from edge
-    ! affects (Eg bend face angles) so add it on to rad_int(i)
+    ! Note that rad_int%i... may already contain a contribution from edge
+    ! affects (Eg bend face angles) so add it on to rad_int_vec(i)
 
-    ric%i1(ix_ele)  = ric%i1(ix_ele)  + rad_int(1)
-    ric%i2(ix_ele)  = ric%i2(ix_ele)  + rad_int(2)
-    ric%i3(ix_ele)  = ric%i3(ix_ele)  + rad_int(3)
-    ric%i4a(ix_ele) = ric%i4a(ix_ele) + rad_int(4)
-    ric%i4b(ix_ele) = ric%i4b(ix_ele) + rad_int(5)
-    ric%i5a(ix_ele) = ric%i5a(ix_ele) + rad_int(6)
-    ric%i5b(ix_ele) = ric%i5b(ix_ele) + rad_int(7)
-    ric%i0(ix_ele)  = ric%i0(ix_ele)  + rad_int(8)
+    rad_int%i1(ix_ele)  = rad_int%i1(ix_ele)  + rad_int_vec(1)
+    rad_int%i2(ix_ele)  = rad_int%i2(ix_ele)  + rad_int_vec(2)
+    rad_int%i3(ix_ele)  = rad_int%i3(ix_ele)  + rad_int_vec(3)
+    rad_int%i4a(ix_ele) = rad_int%i4a(ix_ele) + rad_int_vec(4)
+    rad_int%i4b(ix_ele) = rad_int%i4b(ix_ele) + rad_int_vec(5)
+    rad_int%i5a(ix_ele) = rad_int%i5a(ix_ele) + rad_int_vec(6)
+    rad_int%i5b(ix_ele) = rad_int%i5b(ix_ele) + rad_int_vec(7)
+    rad_int%i0(ix_ele)  = rad_int%i0(ix_ele)  + rad_int_vec(8)
 
-    int_tot(1) = int_tot(1) + ric%i1(ix_ele)
-    int_tot(2) = int_tot(2) + ric%i2(ix_ele)
-    int_tot(3) = int_tot(3) + ric%i3(ix_ele)
-    int_tot(4) = int_tot(4) + ric%i4a(ix_ele)
-    int_tot(5) = int_tot(5) + ric%i4b(ix_ele)
-    int_tot(6) = int_tot(6) + ric%i5a(ix_ele)
-    int_tot(7) = int_tot(7) + ric%i5b(ix_ele)
-    int_tot(8) = int_tot(8) + ric%i0(ix_ele)
+    int_tot(1) = int_tot(1) + rad_int%i1(ix_ele)
+    int_tot(2) = int_tot(2) + rad_int%i2(ix_ele)
+    int_tot(3) = int_tot(3) + rad_int%i3(ix_ele)
+    int_tot(4) = int_tot(4) + rad_int%i4a(ix_ele)
+    int_tot(5) = int_tot(5) + rad_int%i4b(ix_ele)
+    int_tot(6) = int_tot(6) + rad_int%i5a(ix_ele)
+    int_tot(7) = int_tot(7) + rad_int%i5b(ix_ele)
+    int_tot(8) = int_tot(8) + rad_int%i0(ix_ele)
 
   endif
 

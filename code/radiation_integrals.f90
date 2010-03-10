@@ -77,10 +77,10 @@
 !       %i4b(0:)             -- "B" mode I4 integral for each element.
 !       %i5a(0:)             -- "A" mode I5 integral for each element.
 !       %i5b(0:)             -- "B" mode I5 integral for each element.
-!       %lin_i2_E4(0:)       -- I2 * gamma^4 integral
-!       %lin_i3_E7(0:)       -- I3 * gamma^7 integral
-!       %lin_i5a_E6(0:)      -- I5a * gamma^6 integral
-!       %lin_i5b_E6(0:)      -- I5b * gamma^6 integral
+!       %lin_i2_E4(0:)       -- I2 * gamma^4 integral for each element.
+!       %lin_i3_E7(0:)       -- I3 * gamma^7 integral for each element.
+!       %lin_i5a_E6(0:)      -- I5a * gamma^6 integral for each element.
+!       %lin_i5b_E6(0:)      -- I5b * gamma^6 integral for each element.
 !       %lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
 !       %lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
 !
@@ -95,8 +95,6 @@
 ! 3) To transfer the data from one rad_int_common_struct block to another 
 !    use the routine: transfer_rad_int_struct
 !-       
-
-#include "CESR_platform.inc"
 
 subroutine radiation_integrals (lat, orbit, mode, ix_cache, rad_int_by_ele)
 
@@ -119,6 +117,7 @@ type (rad_int_info_struct), save :: ri_info
 type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
 type (rad_int_track_point_struct), pointer :: c_pt
 type (rad_int_track_point_struct) pt
+type (rad_int_common_struct), target, save :: rad_int
 
 integer, parameter :: num_int = 8
 
@@ -148,23 +147,23 @@ bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
 bmad_com%trans_space_charge_on = .false.
 
-if (allocated(ric%i1)) then
-  if (ubound(ric%i1, 1) < lat%n_ele_max) then 
-    deallocate (ric%i0)
-    deallocate (ric%i1)
-    deallocate (ric%i2)
-    deallocate (ric%i3)
-    deallocate (ric%i4a)
-    deallocate (ric%i4b)
-    deallocate (ric%i5a)
-    deallocate (ric%i5b)
-    deallocate (ric%n_steps)
-    deallocate (ric%lin_i2_E4)
-    deallocate (ric%lin_i3_E7)
-    deallocate (ric%lin_i5a_E6)
-    deallocate (ric%lin_i5b_E6)
-    deallocate (ric%lin_norm_emit_a)
-    deallocate (ric%lin_norm_emit_b)
+if (allocated(rad_int%i1)) then
+  if (ubound(rad_int%i1, 1) < lat%n_ele_max) then 
+    deallocate (rad_int%i0)
+    deallocate (rad_int%i1)
+    deallocate (rad_int%i2)
+    deallocate (rad_int%i3)
+    deallocate (rad_int%i4a)
+    deallocate (rad_int%i4b)
+    deallocate (rad_int%i5a)
+    deallocate (rad_int%i5b)
+    deallocate (rad_int%n_steps)
+    deallocate (rad_int%lin_i2_E4)
+    deallocate (rad_int%lin_i3_E7)
+    deallocate (rad_int%lin_i5a_E6)
+    deallocate (rad_int%lin_i5b_E6)
+    deallocate (rad_int%lin_norm_emit_a)
+    deallocate (rad_int%lin_norm_emit_b)
     do_alloc = .true.
   else
     do_alloc = .false.
@@ -174,32 +173,32 @@ else
 endif
 
 if (do_alloc) then
-  allocate (ric%i0(0:lat%n_ele_max))
-  allocate (ric%i1(0:lat%n_ele_max))
-  allocate (ric%i2(0:lat%n_ele_max))
-  allocate (ric%i3(0:lat%n_ele_max))
-  allocate (ric%i4a(0:lat%n_ele_max))
-  allocate (ric%i4b(0:lat%n_ele_max))
-  allocate (ric%i5a(0:lat%n_ele_max))
-  allocate (ric%i5b(0:lat%n_ele_max))
-  allocate (ric%n_steps(0:lat%n_ele_max))
-  allocate (ric%lin_i2_E4(0:lat%n_ele_max))
-  allocate (ric%lin_i3_E7(0:lat%n_ele_max))
-  allocate (ric%lin_i5a_E6(0:lat%n_ele_max))
-  allocate (ric%lin_i5b_E6(0:lat%n_ele_max))
-  allocate (ric%lin_norm_emit_a(0:lat%n_ele_max))
-  allocate (ric%lin_norm_emit_b(0:lat%n_ele_max))
+  allocate (rad_int%i0(0:lat%n_ele_max))
+  allocate (rad_int%i1(0:lat%n_ele_max))
+  allocate (rad_int%i2(0:lat%n_ele_max))
+  allocate (rad_int%i3(0:lat%n_ele_max))
+  allocate (rad_int%i4a(0:lat%n_ele_max))
+  allocate (rad_int%i4b(0:lat%n_ele_max))
+  allocate (rad_int%i5a(0:lat%n_ele_max))
+  allocate (rad_int%i5b(0:lat%n_ele_max))
+  allocate (rad_int%n_steps(0:lat%n_ele_max))
+  allocate (rad_int%lin_i2_E4(0:lat%n_ele_max))
+  allocate (rad_int%lin_i3_E7(0:lat%n_ele_max))
+  allocate (rad_int%lin_i5a_E6(0:lat%n_ele_max))
+  allocate (rad_int%lin_i5b_E6(0:lat%n_ele_max))
+  allocate (rad_int%lin_norm_emit_a(0:lat%n_ele_max))
+  allocate (rad_int%lin_norm_emit_b(0:lat%n_ele_max))
 endif
 
 ri_info%lat => lat
 ri_info%orbit => orbit
 
-ric%i0 = 0;  ric%i1 = 0;   ric%i2 = 0;  ric%i3 = 0
-ric%i4a = 0;  ric%i4b = 0
-ric%i5a = 0;  ric%i5b = 0
-ric%n_steps = 0
-ric%lin_i2_E4 = 0;  ric%lin_i3_E7 = 0;
-ric%lin_i5a_E6 = 0;  ric%lin_i5b_E6 = 0;
+rad_int%i0 = 0;  rad_int%i1 = 0;   rad_int%i2 = 0;  rad_int%i3 = 0
+rad_int%i4a = 0;  rad_int%i4b = 0
+rad_int%i5a = 0;  rad_int%i5b = 0
+rad_int%n_steps = 0
+rad_int%lin_i2_E4 = 0;  rad_int%lin_i3_E7 = 0;
+rad_int%lin_i5a_E6 = 0;  rad_int%lin_i5b_E6 = 0;
 
 m65 = 0
 
@@ -278,7 +277,6 @@ if (init_cache) then
 
     j = j + 1
     cache_ele => cache%ele(j)
-    cache_ele%ix_ele = i
 
     ele2 = lat%ele(i)
     call zero_ele_offsets (ele2)
@@ -422,16 +420,16 @@ do ir = 1, lat%n_ele_track
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)
-    ric%i0(ir) = (ele%value(e_tot$) / mass_of(lat%param%particle)) * 2 * G_max / 3
-    ric%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
-    ric%i2(ir) = ll * G_max**2 / 2
-    ric%i3(ir) = ll * g3_ave
-    ric%i4a(ir) = 0   ! Too complicated to calculate. Probably small
-    ric%i4b(ir) = 0   ! Too complicated to calculate. Probably small
+    rad_int%i0(ir) = (ele%value(e_tot$) / mass_of(lat%param%particle)) * 2 * G_max / 3
+    rad_int%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+    rad_int%i2(ir) = ll * G_max**2 / 2
+    rad_int%i3(ir) = ll * g3_ave
+    rad_int%i4a(ir) = 0   ! Too complicated to calculate. Probably small
+    rad_int%i4b(ir) = 0   ! Too complicated to calculate. Probably small
 
     pt%g_x0 = g3_ave**(1.0/3)
 
-    call qromb_rad_int ((/ F, F, F, F, F, T, T, F /), pt, ri_info, int_tot)
+    call qromb_rad_int ((/ F, F, F, F, F, T, T, F /), pt, ri_info, int_tot, rad_int)
     cycle
 
   endif
@@ -454,11 +452,11 @@ do ir = 1, lat%n_ele_track
     pt%dgy_dy = -pt%dgx_dx
     ! Edge effects for a bend. In this case we ignore any rolls.
     call propagate_part_way (orbit(ir-1), orbit(ir), pt, ri_info, 0.0_rp, 1, 1)
-    ric%i4a(ir) = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
-    ric%i4b(ir) = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
+    rad_int%i4a(ir) = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
+    rad_int%i4b(ir) = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
     call propagate_part_way (orbit(ir-1), orbit(ir), pt, ri_info, ll, 1, 2)
-    ric%i4a(ir) = ric%i4a(ir) - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
-    ric%i4b(ir) = ric%i4a(ir) - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
+    rad_int%i4a(ir) = rad_int%i4a(ir) - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
+    rad_int%i4b(ir) = rad_int%i4a(ir) - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif
 
   if (key == quadrupole$ .or. key == sol_quad$) then
@@ -471,7 +469,7 @@ do ir = 1, lat%n_ele_track
 
   ! Integrate for quads, bends and nonzero kicks
 
-  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot)
+  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot, rad_int)
 
 enddo
 
@@ -496,7 +494,7 @@ do ir = 1, lat%n_ele_track
   if (ll == 0) cycle
 
   ri_info%ix_ele = ir
-  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot) 
+  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot, rad_int)
 
 enddo
 
@@ -520,16 +518,16 @@ do i = 0, lat%n_ele_track
   gamma = lat%ele(i)%value(e_tot$) / mc2
   gamma4 = gamma**4
   gamma6 = gamma4 * gamma**2
-  ric%lin_i2_E4(i)  = ric%i2(i) * gamma4
-  ric%lin_i3_E7(i)  = ric%i3(i) * gamma6 * gamma
-  ric%lin_i5a_E6(i) = ric%i5a(i) * gamma6
-  ric%lin_i5b_E6(i) = ric%i5b(i) * gamma6
-  mode%lin%i2_E4  = mode%lin%i2_E4  + ric%lin_i2_E4(i)
-  mode%lin%i3_E7  = mode%lin%i3_E7  + ric%lin_i3_E7(i)
-  mode%lin%i5a_E6 = mode%lin%i5a_E6 + ric%lin_i5a_E6(i)
-  mode%lin%i5b_E6 = mode%lin%i5b_E6 + ric%lin_i5b_E6(i)
-  ric%lin_norm_emit_a(i) = lat%a%emit * gamma + factor * mode%lin%i5a_E6
-  ric%lin_norm_emit_b(i) = lat%b%emit * gamma + factor * mode%lin%i5b_E6
+  rad_int%lin_i2_E4(i)  = rad_int%i2(i) * gamma4
+  rad_int%lin_i3_E7(i)  = rad_int%i3(i) * gamma6 * gamma
+  rad_int%lin_i5a_E6(i) = rad_int%i5a(i) * gamma6
+  rad_int%lin_i5b_E6(i) = rad_int%i5b(i) * gamma6
+  mode%lin%i2_E4  = mode%lin%i2_E4  + rad_int%lin_i2_E4(i)
+  mode%lin%i3_E7  = mode%lin%i3_E7  + rad_int%lin_i3_E7(i)
+  mode%lin%i5a_E6 = mode%lin%i5a_E6 + rad_int%lin_i5a_E6(i)
+  mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int%lin_i5b_E6(i)
+  rad_int%lin_norm_emit_a(i) = lat%a%emit * gamma + factor * mode%lin%i5a_E6
+  rad_int%lin_norm_emit_b(i) = lat%b%emit * gamma + factor * mode%lin%i5b_E6
 enddo
 
 mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)
@@ -594,6 +592,6 @@ mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
 
-if (present(rad_int_by_ele)) call transfer_rad_int_struct (ric, rad_int_by_ele)
+if (present(rad_int_by_ele)) call transfer_rad_int_struct (rad_int, rad_int_by_ele)
 
 end subroutine
