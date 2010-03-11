@@ -271,6 +271,16 @@ if (s%global%track_type == 'beam') then
 
       if (ios /= 0) exit
 
+      ! Error checking
+
+      if (beam_init%n_bunch < 1 .or. beam_init%n_particle) then
+        call out_io (s_fatal$, r_name, &
+          'BEAM_INIT%N_BUNCH OR BEAM_INIT%N_PARTICLE NOT PROPERLY SET.')
+        call err_exit
+      endif
+
+      ! init
+
       call out_io (s_blank$, r_name, &
             'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
       if (ix_universe == -1) then
@@ -406,7 +416,6 @@ type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_universe_branch_struct), pointer :: uni_branch0
 type (branch_struct), pointer :: branch
-!! type (lat_struct), pointer :: lat
 
 real(rp) v(6), bunch_charge, gamma
 integer i, j, ix, iu, n_part, ix_class, n_bunch, n_particle
