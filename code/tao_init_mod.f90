@@ -223,7 +223,7 @@ if (s%global%track_type == 'beam') then
 
     do i = lbound(s%u, 1), ubound(s%u, 1)
       do ib = 0, ubound(s%u(i)%uni_branch, 1)
-        s%u(i)%beam%beam0_file = ''
+        s%u(i)%beam_info%beam0_file = ''
       enddo
     enddo
 
@@ -231,6 +231,7 @@ if (s%global%track_type == 'beam') then
 
       ! defaults
       ix_universe = -1
+      beam_init%distribution_type = ''
       beam_init%a_norm_emitt  = 0.0
       beam_init%b_norm_emitt  = 0.0
       beam_init%dPz_dz = 0.0
@@ -273,9 +274,9 @@ if (s%global%track_type == 'beam') then
 
       ! Error checking
 
-      if (beam_init%n_bunch < 1 .or. beam_init%n_particle) then
+      if (beam_init%n_bunch < 1) then
         call out_io (s_fatal$, r_name, &
-          'BEAM_INIT%N_BUNCH OR BEAM_INIT%N_PARTICLE NOT PROPERLY SET.')
+          'BEAM_INIT%N_BUNCH NOT PROPERLY SET.')
         call err_exit
       endif
 
@@ -428,17 +429,17 @@ uni_branch0 => u%uni_branch(0)
 uni_branch0%ix_track_start = ix_track_start
 uni_branch0%ix_track_end   = ix_track_end
 
-u%beam%beam_init = beam_init
-u%beam%beam0_file = beam0_file
-u%beam%beam_all_file = beam_all_file
+u%beam_info%beam_init = beam_init
+u%beam_info%beam0_file = beam0_file
+u%beam_info%beam_all_file = beam_all_file
 u%design%lat_branch(0)%orbit(0)%vec = beam_init%center
 
 ! No initialization for a circular lattice
 
 if (u%model%lat%param%lattice_type == circular_lattice$) return
 
-! Find where to save the beam at
-! Always save at branch points
+! Find where to save the beam at.
+! Always save at branch points.
 
 do i = 0, ubound(u%model%lat%branch, 1)
   branch => u%design%lat%branch(i)
@@ -466,18 +467,18 @@ u%beam_saved_at = beam_saved_at
 
 ! If beam_all_file is set, read in the beam distributions.
 
-if (u%beam%beam_all_file /= '') then
+if (u%beam_info%beam_all_file /= '') then
   tao_com%use_saved_beam_in_tracking = .true.
   call tao_open_beam_file (beam_all_file)
-  call tao_read_beam_file_header (j, u%beam%beam_init%n_bunch, &
-                                             u%beam%beam_init%n_particle, err)  
+  call tao_read_beam_file_header (j, u%beam_info%beam_init%n_bunch, &
+                                             u%beam_info%beam_init%n_particle, err)  
   if (err) call err_exit
   do
     if (j == -1) exit
     call tao_read_beam (uni_branch0%ele(j)%beam, err)
     if (err) call err_exit
   enddo  
-  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam%beam_all_file)
+  call out_io (s_info$, r_name, 'Read beam_all file: ' // u%beam_info%beam_all_file)
   call tao_close_beam_file ()
 endif
 

@@ -275,8 +275,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     delta = m_ptr(i)%r - old_value(i)
 
     if (e_name == 'BEAM_START') then
-      u%beam%beam_init%center = u%model%lat%beam_start%vec
-      u%beam%init_beam0 = .true.
+      u%beam_info%beam_init%center = u%model%lat%beam_start%vec
+      u%beam_info%init_beam0 = .true.
     endif
 
     if (size(eles) > 0) then

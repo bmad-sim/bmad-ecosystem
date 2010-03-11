@@ -95,11 +95,15 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     case ('single') 
       call tao_inject_particle (u, tao_lat, k)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
+      if (.not. this_calc_ok) exit
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, k)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
-      call tao_inject_beam (u, tao_lat, k)
+      if (.not. this_calc_ok) exit
+      call tao_inject_beam (u, tao_lat, k, this_calc_ok)
+      if (.not. this_calc_ok) exit
       call tao_beam_track (u, tao_lat, this_calc_ok, k)
+      if (.not. this_calc_ok) exit
     case default
       call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING TYPE: ' // track_type)
       call err_exit
@@ -109,7 +113,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   if (u%do_synch_rad_int_calc) then
     call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(0)%orbit, tao_lat%modes, &
-                                                                      u%ix_rad_int_cache, tao_lat%rad_int)
+                                                             u%ix_rad_int_cache, tao_lat%rad_int)
   endif
 
   if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &
@@ -302,31 +306,29 @@ real(rp) :: value1, value2, f, time, old_time
 
 logical post, calc_ok, too_many_lost, print_err, err, lost
 
-! Initialize moment structure
-
-tao_lat%n_bunch_params2 = 0
-
-!
-
-calc_ok = .true.
+! Initialize 
 
 call re_allocate (ix_ele, 1)
 
-beam => u%current_beam
 branch => tao_lat%lat%branch(ix_branch)
 lat_branch => tao_lat%lat_branch(ix_branch)
 uni_branch => u%uni_branch(ix_branch)
 uni_ele => uni_branch%ele
 
-beam_init => u%beam%beam_init
+beam_init => u%beam_info%beam_init
+
+beam => u%current_beam
 beam = uni_branch%ele(0)%beam
 
 lat => tao_lat%lat
+orbit => tao_lat%lat_branch(ix_branch)%orbit
+
+tao_lat%n_bunch_params2 = 0
 lat%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
 ix_lost = not_lost$
 lost = .false.
+calc_ok = .true.
 too_many_lost = .false.
-orbit => tao_lat%lat_branch(ix_branch)%orbit
 
 uni_ele(:)%n_particle_lost_here = 0
 
@@ -359,6 +361,7 @@ if (i_uni_to > -1) then
 endif
 
 ! If beam is injected into this lattice then no initialization wanted.
+! At present this code is not used.
 
 if (.not. u%connect%connected) then
   if (branch%param%lattice_type == circular_lattice$) then
@@ -618,8 +621,8 @@ orb0 => model%lat_branch(ix_branch)%orbit(0)
 ! Not connected case is easy.
 
 if (.not. u%connect%connected) then
-  polar%theta = u%beam%beam_init%spin%theta
-  polar%phi = u%beam%beam_init%spin%phi
+  polar%theta = u%beam_info%beam_init%spin%theta
+  polar%phi = u%beam_info%beam_init%spin%phi
   call polar_to_spinor (polar, orb0)
   return
 endif
@@ -678,7 +681,7 @@ end subroutine tao_inject_particle
 !
 ! If there is no connection between lattice then this will initialize the beam
 
-subroutine tao_inject_beam (u, model, ix_branch)
+subroutine tao_inject_beam (u, model, ix_branch, init_ok)
 
 use tao_read_beam_mod
 
@@ -698,33 +701,42 @@ integer i, j, iu, ios, n_in_file, n_in, ix_branch, ib, ie
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
 
-logical too_many_lost, err
+logical too_many_lost, err, init_ok
 
-! if injecting into a branch then use the branch point
+! If using beam info from a file then no init necessary.
+
+init_ok = .true.
 
 if (tao_com%use_saved_beam_in_tracking) return
+
+! if injecting into a branch then use the branch point as the starting distribution.
 
 uni_branch => u%uni_branch(ix_branch)
 
 if (ix_branch > 0) then
   ib = model%lat%branch(ix_branch)%ix_from_branch
   ie = model%lat%branch(ix_branch)%ix_from_ele
+  if (.not. allocated (u%uni_branch(ib)%ele(ie)%beam%bunch)) then
+    call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // &
+                                      u%model%lat%branch(ib)%ele(ie)%name)
+    init_ok = .false.
+  endif
   uni_branch%ele(0)%beam = u%uni_branch(ib)%ele(ie)%beam
   return
 endif
 
-! Init
+! Init for main branch
 
 orb0 => model%lat_branch(0)%orbit(0)
 
-beam_init => u%beam%beam_init
+beam_init => u%beam_info%beam_init
 model%lat%beam_start%vec = beam_init%center
 
 ! If there is an init file then read from the file
 
-if (u%beam%beam0_file /= "") then
-  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
-    call tao_open_beam_file (u%beam%beam0_file)
+if (u%beam_info%beam0_file /= "") then
+  if (u%beam_info%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+    call tao_open_beam_file (u%beam_info%beam0_file)
     call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
     call tao_read_beam (uni_branch%ele(0)%beam, err)
     if (err) call err_exit
@@ -736,7 +748,7 @@ if (u%beam%beam0_file /= "") then
       enddo
     enddo
     call out_io (s_info$, r_name, &
-                  'Read initial beam distribution from: ' // u%beam%beam0_file, &
+                  'Read initial beam distribution from: ' // u%beam_info%beam0_file, &
                   'Centroid Offset: \6es12.3\ ', r_array = model%lat%beam_start%vec)
   endif
   call tao_find_beam_centroid (uni_branch%ele(0)%beam, orb0, too_many_lost) 
@@ -751,7 +763,7 @@ endif
 ! Not connected case
 
 if (.not. u%connect%connected) then
-  if (u%beam%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
+  if (u%beam_info%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
     beam_init%center = model%lat%beam_start%vec
     if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
     call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
@@ -766,9 +778,8 @@ if (.not. u%connect%connected) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
       call err_exit
     endif
-    u%beam%init_beam0 = .false.
+    u%beam_info%init_beam0 = .false.
   endif
-  if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%ele(0)%beam
   return
 endif
 
@@ -778,6 +789,7 @@ if (.not. s%u(u%connect%from_uni)%is_on) then
   call out_io (s_error$, r_name, &
             "Injecting from a turned off universe! This will not do!", &
             "No injection will be performed.")
+  init_ok = .false.
   return
 endif
   

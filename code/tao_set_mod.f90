@@ -375,7 +375,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   write (iu, *) '/'
   rewind (iu)
   u => s%u(i)
-  beam_init = u%beam%beam_init  ! set defaults
+  beam_init = u%beam_info%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
   close (iu)
 
@@ -383,7 +383,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (err) return
 
   if (ios == 0) then
-    u%beam%beam_init = beam_init
+    u%beam_info%beam_init = beam_init
     u%lattice_recalc = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
@@ -576,7 +576,7 @@ case ('ix_bunch')
   u => tao_pointer_to_universe (this_curve%ix_universe)
   if (.not. associated(u)) return
   call tao_integer_set_value (this_curve%ix_bunch, component, &
-                        set_value, error, -1, u%beam%beam_init%n_bunch)
+                        set_value, error, -1, u%beam_info%beam_init%n_bunch)
 
 case ('symbol_every')
   call tao_integer_set_value (this_curve%symbol_every, component, &
