@@ -4,11 +4,13 @@
 
 \index{macroparticles!tracking}
 \index{tracking!Macroparticles}
-\bmad can do two types of tracking. ``\vn{particle tracking}'' involves
-tracking particles which are characterized by its phase space coordinates and spin.
-The other type of tracking involves ``\vn{macroparticles}'' (\sref{s:macro}) 
-which are characterized by a centroid position and a $6\times 6$ ``sigma'' 
-matrix characterizing the size of the macroparticle. 
+\bmad has routines for tracking two types of objects called
+``\vn{particles}'' and ``\vn{macroparticles}''. \vn{Particles} are
+characterized by a six-vector representing the particle's phase space
+coordinates and a pair of complex numbers characterizing the
+particle's spin.  A macroparticle is like a particle with the
+addition of a $6\times 6$ ``sigma'' matrix characterizing the size of
+the macroparticle.
 
 Macroparticle tracking was implemented in \bmad in order to simulate particle bunches.
 The idea was that far fewer macroparticles than particles would 
@@ -16,14 +18,14 @@ be needed to characterize a bunch. In practice, it was found that the complexity
 of handling the macroparticle sigma matrix more than offset the reduction in the
 number of particles needed. Hence, while the basic macroparticle tracking 
 routines still exist, macroparticle tracking is not currently maintained
-and the use of this code is discouraged. Macroparticle tracking could be revived
-if there is a demonstated need for it however.
+and the use of this code is discouraged. However macroparticle tracking could be revived
+in the future if there is a demonstated need for it.
 
 \index{beam}\index{bunch}
 Particle tracking can be divided into ``single particle'' tracking and ``beam''
 tracking. Single particle tracking is simply tracking a single particle.
 Beam tracking is tracking an ensable of particles divided up into a number of bunches
-that make up the entire beam. Both types particle tracking are covered in this
+that make up a ``beam''. Both types particle tracking are covered in this
 chapter.
 
 %----------------------------------------------------------------
@@ -32,9 +34,9 @@ chapter.
 
 \index{spin}
 \index{phase space coordinates}
-For both particle and beam tracking the starting point is the
-\vn{coord_struct} which defines a position of a particle at a given
-point. The definition of the \vn{coord_struct} is
+The \vn{coord_struct} holds the coordinates of a particle at a given
+longitudinal position in the lattice. The definition of the
+\vn{coord_struct} is
 \begin{example}
   type coord_struct
     real(rp) vec(6)     ! (x, px, y, py, z, pz)
@@ -42,19 +44,19 @@ point. The definition of the \vn{coord_struct} is
   end type
 \end{example}
 The \vn{%vec(6)} array defines the phase space coordinants
-(\vn{s:phase.space}) and spin (\sref{s:spin.dyn}).
+(\sref{s:phase.space}) and spin (\sref{s:spin.dyn}).
 
 When associated with a lattice element, a \vn{coord_struct} variable
 gives a particle's position at the exit end of the element.  To get an
 orbit through a lattice branch (\sref{s:lat.struct}), that is, the
 particle position at every element in the branch, an array of
 \vn{coord_struct}s is needed. Since the number of elements in the
-lattice is not known in advance the array must be declared to be
-allocatable. The lower bound of the array must be set to zero since
-that is the lower bound for the \vn{lat%branch(i)%ele(:)} arrays.  The
-upper bound should be the upper bound of the \vn{%branch(i)%ele(:)}
-array.  The routine \Hyperref{r:reallocate.coord}{reallocate_coord} will allocate an array of
-\vn{coord_struct}s:
+lattice is not known in advance, the array must be declared to be
+allocatable. The lower bound of the array must be set to zero to match
+a \vn{lat%branch(i)%ele(:)} array.  The upper bound should be the
+upper bound of the \vn{%branch(i)%ele(:)} array.  The routine
+\Hyperref{r:reallocate.coord}{reallocate_coord} will allocate an array
+of \vn{coord_struct}s:
 \begin{example}
   type (coord_struct), allocatable :: orbit(:)
   type (lat_struct) lat
@@ -65,15 +67,15 @@ array.  The routine \Hyperref{r:reallocate.coord}{reallocate_coord} will allocat
   deallocate(orbit) ! Needed if orbit is a local var
 \end{example}
 The deallocation at the end of this example is needed when the
-\vn{coord_struct} array is defined locally (not passed as an argument
-to the routine) in a subroutine or function. Alternatively, the
-\vn{save} attribute can be used so that the array stays around until
-the next time the routine is called
+\vn{coord_struct} array is defined locally (not passed as an argument)
+in a subroutine or function. Alternatively, the \vn{save} attribute
+can be used so that the array stays around until the next time the
+routine is called
 \begin{example}
   type (coord_struct), allocatable, save :: orb(:) 
 \end{example}
-Saving the \vn{coord_stuct} is faster but leaves memory tied up.  Note
-that in the main program the \vn{save} attribute is not permitted and
+Saving the \vn{coord_stuct} is faster but leaves memory tied up. Note
+that in the main program, the \vn{save} attribute is not permitted and
 the deallocation is not necessary.  If a \vn{coord_struct} array is
 passed to a routine, the routine must explicitly set the lower bound
 to zero if the array is not declared as allocatable:
@@ -108,7 +110,20 @@ The routine \Hyperref{r:reallocate.coord.array}{reallocate_coord_array} will all
 \end{example}
 
 %----------------------------------------------------------------
-\section{Particle Tracking Through the Lattice}
+\section{Closed Orbit and Particle Tracking}
+
+\index{closed orbit}
+For a circular lattice the closed orbit may be calculated using
+\vn{closed_orbit_calc}. By default this routine will track in the
+forward direction which is acceptable unless the particle you are
+trying to simulate is traveling in the reverse direction and there is
+radiation damping on. In this case you must tell
+\vn{closed_orbit_calc} to do backward tracking. This routine works by
+iteratively converging on the closed orbit using the 1--turn matrix to
+calculate the next guess. On rare occasions if the nonlinearities are
+strong enough, this can fail to converge. An alternative routine is
+\vn{closed_orbit_from_tracking} which tries to do things in a more
+robust way but with a large speed penalty.
 
 The routine \Hyperref{r:track.all}{track_all} tracks thourgh a given branch of the
 lattice.  Multi-turn tracking over a branch is then simply a matter of
@@ -198,22 +213,6 @@ what element the loss occurred.
 n\caption{Condensed track_all code.}
 \end{centering}
 \end{figure}
-
-%----------------------------------------------------------------
-\section{Closed Orbit}
-\index{closed orbit}
-
-For a circular lattice the closed orbit may be calculated using
-\vn{closed_orbit_calc}. By default this routine will track in the
-forward direction which is acceptable unless the particle you are
-trying to simulate is traveling in the reverse direction and there is
-radiation damping on. In this case you must tell
-\vn{closed_orbit_calc} to do backward tracking. This routine works by
-iteratively converging on the closed orbit using the 1--turn matrix to
-calculate the next guess. On rare occasions if the nonlinearities are
-strong enough, this can fail to converge. An alternative routine is
-\vn{closed_orbit_from_tracking} which tries to do things in a more
-robust way but with a large speed penalty.
 
 %----------------------------------------------------------------
 \section{Apertures}

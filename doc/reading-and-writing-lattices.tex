@@ -40,13 +40,16 @@ alternative is to use \vn{bmad_parser2} so that the program code looks
 like:
 \begin{verbatim}
   ! program code to read in everything
+  type (lat_struct) lat
   call bmad_parser ('lattice_file', lat)       ! read in a lattice.
   call bmad_parser2 ('aperture_file', lat)     ! read in the aperture limits.
 \end{verbatim}
 
-A combined \bmad and XSIF parser is \Hyperref{r:bmad.and.xsif.parser}{bmad_and_xsif_parser}. This
-parser will assume that the input file is using \bmad syntax unless
-the file name is prefixed by the string \vn{``xsif::''}.
+An alternative to using \vn{bmad_parser} and \vn{xsif_parser} is to
+use the combined \bmad and XSIF parser
+\Hyperref{r:bmad.and.xsif.parser}{bmad_and_xsif_parser}. This parser
+will assume that the input file is using \bmad syntax unless the file
+name is prefixed by the string \vn{``xsif::''}.
 
 %----------------------------------------------------------------------------
 \section{Digested Files}

@@ -43,20 +43,21 @@ of type \vn{xy_disp_struct}:
 
 The relationship between the projected and normal mode dispersions are
 given by \Eq{avx}. 
-The 2x2 coupling matrix $\bfC$ (\Eq{vgicc1}) is stored in the \vn{%c(2,2)}
+The 2x2 coupling matrix $\bfC$ (\Eq{vgicc1}) is stored in the \vn{ele%c(2,2)}
 component of the \vn{ele_struct} and the $\gamma$ factor of \Eq{vgicc1}
 is stored in the \vn{ele%gamma_c} component.
 There are several
 routines to manipulate the coupling factors. For example:
 \begin{example}
   \Hyperref{r:c.to.cbar}{c_to_cbar}(ele, cbar_mat)             ! Form Cbar(2,2) matrix
-  \Hyperref{r:make.v.mats}{make_v_mats}(ele, v_mat, v_inv_mat)   ! Form V matrices.
+  \Hyperref{r:make.v.mats}{make_v_mats}(ele, v_mat, v_inv_mat)   ! Form V coupling matrices.
 \end{example}
 See \sref{r:mat} for a complete listing of such routines.
 
-Since the normal mode and projected dispersions are related, when one is changed 
-within a program the appropriate change must be made to the other. To make
-sure everything is consistent, the \Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
+Since the normal mode and projected dispersions are related, when one
+is changed within a program the appropriate change must be made to the
+other. To make sure everything is consistent, the
+\Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
 routine can be used.
 
 The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates
@@ -64,7 +65,7 @@ whether the $a$ and $b$ normal modes have been flipped relative to the
 beginning of the lattice. See Sagan and Rubin\cite{b:coupling} for a
 discussion of this. The convention adopted  by \bmad is that the
 \vn{%a} component of all the elements in a lattice will all correspond
-to the same physical normal mode. Similary, the \vn{%b} component of all
+to the same physical normal mode. Similarly, the \vn{%b} component of all
 the elements will all correspond to some (other) physical normal mode.
 That is, at an element where there is a mode flip (with \vn{%mode_flip} 
 set to True), 
@@ -76,8 +77,8 @@ emittance), can ignore whether the modes are flipped or not.
 The normal mode analysis of Sagan and Rubin,
 while it has the benefit of simplicity, is strictly
 only applicable to lattices where the RF cavities are turned off. 
-The full 6-dimensional analysis is summerized by Wolski\cite{b:wolski.coupling}. 
-The \Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine proform 
+The full 6-dimensional analysis is summarized by Wolski\cite{b:wolski.coupling}. 
+The \Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine perform 
 the full analysis. The results are put in
 the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_struct}:
 \index{ele_struct!\%mode3}
@@ -90,7 +91,7 @@ the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_stru
   end type
 \end{example}
 The 6-dimensional \vn{mode3%v(6,6)} component is the analog of the 4-dimensional
-$\bfV$ matrix apearing in \Eq{tvuv}.
+$\bfV$ matrix appearing in \Eq{tvuv}.
 
 %-----------------------------------------------------------------------------
 \section{Twiss Parameter Calculations}
@@ -110,6 +111,13 @@ may be used (\sref{s:beginning})
   if (lat%param%lattice_type == circular_lattice$) call twiss_at_start(lat)
 \end{example}
 In either case, the initial Twiss parameters are placed in \vn{lat%ele(0)}. 
+The tune is placed in the variables:
+\begin{example}
+  type (lat_struct) lat 
+  lat%a%tune     ! a-mode tune
+  lat%b%tune     ! b-mode tune
+\end{example}
+
 
 To propagate the Twiss, coupling and dispersion 
 parameters from the start of the lattice to the end, the routine
@@ -121,7 +129,7 @@ depends upon the transfer matrices having already computed (\sref{c:tracking}).
 \vn{twiss_propagate_all} also computes the twiss parameters for all the
 lattice branches.
 
-Before any Twiss parameters can be calculated the transfer matrices
+Before any Twiss parameters can be calculated, the transfer matrices
 stored in the lattice elements must be computed. 
 \Hyperref{r:bmad.parser}{bmad_parser} does
 this automatically about the zero orbit. If, to see nonlinear effects,
@@ -136,62 +144,26 @@ a different orbit needs to be used for the reference, The routine
 \end{example}
 This example reads in a lattice, finds the closed orbit which may be
 non--zero due to, say, kicks due to a separator, and then remakes the
-transfer matrices (which are stored in \vn{lat%ele(i)%mat6} around
+transfer matrices, which are stored in \vn{lat%ele(i)%mat6}, around
 the closed orbit.
 
-Once the transfer matrices are calculated the Twiss parameters at the
-start of the lattice need to be defined. The Twiss parameters at the
-start are in \vn{lat%ele(0)}. If the lattice is open then generally
-the Twiss parameters are set in the lattice file or may easily be set
-in a program. For example
-\begin{example}
-  lat%ele(0)%x%beta = 1.2
-  lat%ele(0)%x%alpha = 0.1
-  lat%ele(0)%x%gamma = (1 + lat%ele(0)%x%alpha**2) / lat%ele(0)%beta
-  lat%ele(0)%x%eta  = 0
-\end{example}
-Note that \vn{%beta}, \vn{%alpha}, and \vn{%gamma} all must be specified.
-
-If the lattice is circular, the routine \Hyperref{r:twiss.at.start}{twiss_at_start} may be used to
-calculate the self--consistent starting Twiss parameters:
-\begin{example}
-  type (lat_struct) lat
-  call bmad_parser ('my_lattice', lat)
-  call twiss_at_start (lat)
-\end{example}
-
-Once the starting Twiss parameters are set, \Hyperref{r:twiss.propagate.all}{twiss_propagate_all}
-can be used to propagate the Twiss parameters to the rest of the
-elements
+Once the starting Twiss parameters are set,
+\Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used to
+propagate the Twiss parameters to the rest of the elements
 \begin{example}
   call twiss_propagate_all (lat)
 \end{example}
-It is important to keep in mind that \vn{lat%ele(i)%x%eta} is the $a$--mode
-dispersion, not the dispersion along the $x$--axis (\sref{s:ele.twiss}).
 
-The routine \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s} 
-can be used to calculate the
-Twiss parameters at any given longitudinal location. Alternatively, to
-propagate the Twiss parameters partially through a given element use
-the the routine \Hyperref{r:twiss.and.track.partial}{twiss_and_track_partial}.
+The routine \Hyperref{r:twiss.and.track.at.s}{twiss_and_track_at_s}
+can be used to calculate the Twiss parameters at any given
+longitudinal location. Alternatively, to propagate the Twiss
+parameters partially through a given element use the the routine
+\Hyperref{r:twiss.and.track.partial}{twiss_and_track_partial}.
 
 %-----------------------------------------------------------------------------
 \section{Tune Calculation}
 \label{s:tune}
 \index{tune calculation}
-
-\index{lat_struct}
-\index{lat_struct!\%a}\index{lat_struct!\%b}
-For a circular lattice, the tune is calculated via the routine 
-\Hyperref{r:twiss.at.start}{twiss_at_start}.
-This routine multiplies the transfer matrices of the elements together to form
-the one--turn transfer matrix. From this the routine extracts the initial Twiss
-parameters and the tune. The tune is placed in the variables
-\begin{example}
-  type (lat_struct) lat 
-  lat%a%tune     ! a-mode tune
-  lat%b%tune     ! b-mode tune
-\end{example}
 
 The routine \Hyperref{r:set.tune}{set_tune} can be used
 to set the transverse tunes:
@@ -202,11 +174,10 @@ to set the transverse tunes:
 achieved. As input,\vn{set_tune} takes an argument \vn{dk1(:)} which is an array
 that specifies the relative change to be make to the quadrupoles in the lattice.
 
-To set the longitudinal (synchrotron) tune, the routine 
-\Hyperref{r:set.z.tune}{set_z_tune} can be
-used. \Hyperref{r:set.z.tune}{set_z_tune} 
-works by varying rf cavity voltages until the desired tune
-is achieved.
+To set the longitudinal (synchrotron) tune, the routine
+\Hyperref{r:set.z.tune}{set_z_tune} can be used. 
+\Hyperref{r:set.z.tune}{set_z_tune} works by varying rf cavity
+voltages until the desired tune is achieved.
 
 %-----------------------------------------------------------------------------
 \section{Chromaticity Calculation}

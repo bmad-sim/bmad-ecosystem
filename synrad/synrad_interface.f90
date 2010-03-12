@@ -23,8 +23,7 @@ interface
 end interface
 
 interface
-  subroutine calculate_synrad_power (lat, orb, direction, power, &
-       walls, gen, use_ele_ix)
+  subroutine calculate_synrad_power (lat, orb, direction, power, walls, gen, ix_ele1, ix_ele2)
     use synrad_struct
     implicit none
     type (lat_struct), target :: lat
@@ -33,7 +32,7 @@ interface
     type (synrad_param_struct) gen
     type (ele_power_struct) power(:)
     integer direction
-    integer use_ele_ix
+    integer ix_ele1, ix_ele2
   end subroutine
 end interface
 

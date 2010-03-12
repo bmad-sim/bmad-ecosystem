@@ -339,7 +339,7 @@ end subroutine
 !   max_order      -- Integer, optional: Maximum order to print.
 !
 ! Output:
-!   lines(:)     -- Character(80), allocatable: Character array to hold the 
+!   lines(:)     -- Character(*), allocatable: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
 !                     this subroutine.
 !   n_lines      -- Number of lines in lines(:).
