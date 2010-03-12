@@ -8,6 +8,7 @@ use tao_lattice_calc_mod
 use random_mod
 use csr_mod, only: csr_param
 use location_encode_mod
+use transfer_map_mod
 
 type show_common_struct
   type (ele_struct), pointer :: ele 
@@ -49,8 +50,9 @@ character(len(what)) what2
 character(len(stuff)) stuff2
 character(n_char), allocatable, save :: lines(:)
 character(16) :: r_name = 'tao_show_cmd'
+character(20) switch
 
-logical opened
+logical opened, err
 
 ! Init
 
@@ -60,10 +62,10 @@ opened = .false.
 
 ! See if the results need to be written to a file.
 
-n = len_trim(what)
-if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
-                                index('-write', trim(what)) == 1)) then
+call tao_next_switch (what2, ['-append', '-write '], switch, err, ix)
+if (err) return
 
+if (switch /= '') then
   call string_trim(stuff, stuff2, ix)
   file_name = stuff2(:ix)
   call string_trim(stuff2(ix+1:), stuff2, ix)
@@ -75,7 +77,7 @@ if (n > 1 .and. (index('-append', trim(what)) == 1 .or. &
   endif
 
   iu = lunget()
-  if (what(1:2) == '-a') then
+  if (switch == '-append') then
     open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char)
   else
     open (iu, file = file_name, status = 'REPLACE', recl = n_char)
@@ -363,7 +365,7 @@ case ('beam')
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
-                              sqrt(bunch_p%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+                              sqrt(bunch_p%sigma([s11$, s22$, s33$, s44$, s55$, s66$]))
     nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
     nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta
     nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta
@@ -386,7 +388,7 @@ case ('beam')
                                                   100 * real(n_tot - n_live) / n_tot
       nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_params%centroid%vec
       nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
-                         sqrt(bunch_params%sigma((/s11$, s22$, s33$, s44$, s55$, s66$/)))
+                         sqrt(bunch_params%sigma([s11$, s22$, s33$, s44$, s55$, s66$]))
       nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
       nl=nl+1; write (lines(nl), rmt) '  a:       ', &
                                 bunch_params%a%norm_emit, bunch_params%a%beta
@@ -449,7 +451,7 @@ case ('curve')
   show_line = .false.
 
   do
-    call tao_next_switch (stuff2, (/ '-symbol', '-line  ' /), switch, err, ix)
+    call tao_next_switch (stuff2, ['-symbol', '-line  ' ], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-symbol') show_sym = .true.
@@ -516,7 +518,7 @@ case ('curve')
       if (.not. err) then
         do i = 1, size(c1%x_symb)
           nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') i, c1%ix_symb(i), &
-                      c1%x_symb(i), (/ (curve(j)%c%y_symb(i), j = 1, size(curve)) /)
+                      c1%x_symb(i), [ (curve(j)%c%y_symb(i), j = 1, size(curve)) ]
         enddo
       endif
     endif
@@ -536,7 +538,7 @@ case ('curve')
         call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
         do i = 1, size(c1%x_line)
           nl=nl+1; write (lines(nl), '(10es14.6)') c1%x_line(i), &
-                                        (/ (curve(j)%c%y_line(i), j = 1, size(curve)) /)
+                                        [ (curve(j)%c%y_line(i), j = 1, size(curve)) ]
         enddo
       endif
     endif
@@ -794,21 +796,15 @@ case ('element')
   print_all = .false.
   print_data = .false.
 
-  call string_trim(stuff, stuff2, ix)
   do
-    if (ix == 0) exit
-    if (stuff2(1:1) /= '-') exit
-    call match_word (stuff2(:ix), (/ '-taylor        ', '-wig_terms     ', &
-                      '-all_attributes', '-data          ' /), n, .true., name)
-    if (n < 1) then
-      nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
-      return
-    endif
-    if (name == '-taylor') print_taylor = .true.
-    if (name == '-wig_terms') print_wig_terms = .true.
-    if (name == '-all_attributes') print_all = .true.
-    if (name == '-data') print_data = .true.
-    call string_trim(stuff2(ix+1:), stuff2, ix)
+    call tao_next_switch (stuff2, ['-taylor        ', '-wig_terms     ', &
+                                   '-all_attributes', '-data          '], switch, err, ix)
+    if (err) return
+    if (switch == '') exit
+    if (switch == '-taylor') print_taylor = .true.
+    if (switch == '-wig_terms') print_wig_terms = .true.
+    if (switch == '-all_attributes') print_all = .true.
+    if (switch == '-data') print_data = .true.
   enddo
 
   call str_upcase (ele_name, stuff2)
@@ -1123,11 +1119,16 @@ case ('lattice')
 
   ! get command line switches
 
-  call string_trim(stuff, stuff2, ix)
   do
-    if (stuff2(1:1) /= '-' .or. ix == 0) exit
+    call tao_next_switch (stuff2, [ &
+        '-branch           ', '-blank_replacement', '-lords            ', '-middle           ', &
+        '-all_tracking     ', '-0undef           ', '-no_label_lines   ', '-no_tail_lines    ', &
+        '-custom           ', '-s                '], switch, err, ix)
+    if (err) return
+    if (switch == '') exit
+    select case (switch)
 
-    if (index('-branch', stuff2(1:ix)) == 1 .and. ix > 2) then
+    case ('-branch')
       call string_trim(stuff2(ix+1:), stuff2, ix)
       read (stuff2(1:ix), *, iostat = ios) ix_branch
       if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
@@ -1135,30 +1136,30 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-blank_replacement', stuff2(1:ix)) == 1 .and. ix > 2) then
+    case ('-blank_replacement')
       call string_trim(stuff2(ix+1:), stuff2, ix)
       replacement_for_blank = stuff2(1:ix)
 
-    elseif (index('-lords', stuff2(1:ix)) == 1 .and. ix > 1) then
+    case ('-lords')
       show_lords = .true.
 
-    elseif (index('-middle', stuff2(1:ix)) == 1 .and. ix > 1) then
+    case ('-middle')
       at_ends = .false.
 
-    elseif (index('-all_tracking', stuff2(1:ix)) == 1 .and. ix > 1) then
+    case ('-all_tracking')
       all_lat = .true. 
 
-    elseif (index('-0undef', stuff2(1:ix)) == 1 .and. ix > 1 ) then
+    case ('-0undef')
       undef_str = '  0'
 
-    elseif (index('-no_label_lines', stuff2(1:ix)) == 1 .and. ix > 4) then
+    case ('-no_label_lines')
       print_header_lines = .false.
       print_tail_lines = .false.
 
-    elseif (index('-no_tail_lines', stuff2(1:ix)) == 1 .and. ix > 4) then
+    case ('-no_tail_lines')
       print_tail_lines = .false.
 
-    elseif (index('-custom', stuff2(1:ix)) == 1 .and. ix > 1) then
+    case ('-custom')
       show_custom = .true.
       call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
@@ -1177,15 +1178,10 @@ case ('lattice')
         return
       endif
 
-    elseif (index('-s', stuff2(1:ix)) == 1 .and. ix > 1) then
+    case ('-s')
       by_s = .true.
+    end select
 
-    else
-      call out_io (s_error$, r_name, 'BAD SWITCH: ' // stuff2(1:ix))
-      return
-    endif
-
-    call string_trim(stuff2(ix+1:), stuff2, ix)
   enddo
   
   branch => lat%branch(ix_branch)
@@ -1509,11 +1505,12 @@ case ('particle')
   nb = s%global%bunch_to_plot
   ix_branch = 0
 
-  if (index('-lost', word1) == 1) then
-    call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-    word1 = stuff2(:ix_word)
-    if (word1 /= '') then
-      read (word1, *, iostat = ios) nb
+  call tao_next_switch (stuff2, ['-lost'], switch, err, ix)
+  if (err) return
+
+  if (switch == '-lost') then
+    if (ix /= 0) then
+      read (stuff2(1:ix), *, iostat = ios) nb
       if (ios /= 0) then
         call out_io (s_error$, r_name, 'CANNOT READ BUNCH INDEX.')
         return
@@ -1569,14 +1566,14 @@ case ('particle')
   endif
 
   if (nb < 1 .or. nb > size(uni_branch%ele(ix_ele)%beam%bunch)) then
-    call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = (/ nb /))
+    call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = [ nb ])
     return
   endif
 
   bunch => uni_branch%ele(ix_ele)%beam%bunch(nb)
 
   if (ix_p < 1 .or. ix_p > size(bunch%particle)) then
-    call out_io (s_error$, r_name, 'PARTICLE INDEX OUT OF RANGE: \i0\ ', i_array = (/ ix_p /))
+    call out_io (s_error$, r_name, 'PARTICLE INDEX OUT OF RANGE: \i0\ ', i_array = [ ix_p ])
     return
   endif
 
@@ -1597,18 +1594,12 @@ case ('plot')
   ! Look for switches
 
   show_shape = .false.
-  call string_trim(stuff, stuff2, ix)
 
   do
-    if (ix == 0) exit
-    if (stuff2(1:1) /= '-') exit
-    call match_word (stuff2(:ix), (/ '-shapes' /), n, .true., name)
-    if (n < 1) then
-      nl=1; lines(1) = 'UNKNOWN SWITCH: ' // stuff2(:ix)
-      return
-    endif
-    if (name == '-shapes') show_shape = .true.
-    call string_trim(stuff2(ix+1:), stuff2, ix)
+    call tao_next_switch (stuff2, ['-shapes'], switch, err, ix)
+    if (err) return
+    if (switch == '') exit
+    if (switch == '-shapes') show_shape = .true.
   enddo
 
   ! Element shapes
@@ -1758,20 +1749,26 @@ case ('top10')
 
 case ('taylor_map')
 
+  by_s = .false.
   n_order = -1
+
   do
-    call tao_next_switch (stuff2, (/ '-order' /), switch, err, ix)
+    call tao_next_switch (stuff2, [ '-order', '-s' ], switch, err, ix)
     if (err) return
     if (switch == '') exit
-    read (stuff2(:ix), *, iostat = ios) n_order
-    if (ios /= 0) then
-      nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
-      return
-    endif
-    call string_trim (stuff2(ix+1:), stuff2, ix)
+    select case (switch)
+    case ('-s')
+      by_s = .true.
+    case ('-order')
+      read (stuff2(:ix), *, iostat = ios) n_order
+      if (ios /= 0) then
+        nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
+        return
+      endif
+      call string_trim (stuff2(ix+1:), stuff2, ix)
+    end select
   enddo
 
-  
   ele1 = stuff2(:ix)
   call string_trim(stuff2(ix+1:), stuff2, ix)
   ele2 = stuff2(:ix)
@@ -1780,35 +1777,70 @@ case ('taylor_map')
     return
   endif
 
-  if (ele1 == '') then
-    ix2 = lat%n_ele_track
-    ix1 = 0
-  else
-    call tao_locate_elements (ele1, u%ix_uni, eles, err)
-    if (size(eles) > 1) then
-      nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
-      return
+  ! By s
+
+  if (by_s) then
+    if (ele1 == '') then
+      s2 = lat%ele(lat%n_ele_track)%s
+      s1 = 0
+    else
+      read (ele1, *, iostat = ios) s1
+      if (ios /= 0) then
+        nl=1; lines(1) = 'BAD S1 VALUE:' // ele1
+        return
+      endif
     endif
-    if (err .or. size(eles) == 0) return
-    ix1 = eles(1)%ele%ix_ele
+
+    if (ele2 == '') then
+      s2 = s1
+      s1 = 0
+    else 
+      read (ele2, *, iostat = ios) s2
+      if (ios /= 0) then
+        nl=1; lines(1) = 'BAD S2 VALUE:' // ele2
+        return
+      endif
+    endif
+
+    call transfer_map_calc_at_s (lat, taylor, s1, s2)
+
+  ! By element
+
+  else
+
+    if (ele1 == '') then
+      ix2 = lat%n_ele_track
+      ix1 = 0
+    else
+      call tao_locate_elements (ele1, u%ix_uni, eles, err)
+      if (size(eles) > 1) then
+        nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
+        return
+      endif
+      if (err .or. size(eles) == 0) return
+      ix1 = eles(1)%ele%ix_ele
+    endif
+
+    if (ele2 == '') then
+      ix2 = ix1
+      ix1 = 0
+    else
+      call tao_locate_elements (ele2, u%ix_uni, eles, err)
+      if (size(eles) > 1) then
+        nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
+        return
+      endif
+      if (err .or. size(eles) == 0) return
+      ix2 = eles(1)%ele%ix_ele
+    endif
+
+    call transfer_map_calc (lat, taylor, ix1, ix2)
+
   endif
 
-  if (ele2 == '') then
-    ix2 = ix1
-    ix1 = 0
-  else
-    call tao_locate_elements (ele2, u%ix_uni, eles, err)
-    if (size(eles) > 1) then
-      nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
-      return
-    endif
-    if (err .or. size(eles) == 0) return
-    ix2 = eles(1)%ele%ix_ele
-  endif
+  ! Print results
 
-  call transfer_map_calc (lat, taylor, ix1, ix2)
   if (n_order > -1) call truncate_taylor_to_order (taylor, n_order, taylor)
-
   call type2_taylors (taylor, lines, nl)
 
   result_id = show_what
@@ -2052,7 +2084,7 @@ case ('variable')
   good_opt_only = .false.
   bmad_format = .false.
   do
-    call tao_next_switch (stuff2, (/ '-bmad_format  ', '-good_opt_only' /), switch, err, ix)
+    call tao_next_switch (stuff2, [ '-bmad_format  ', '-good_opt_only' ], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-bmad_format') bmad_format = .true.
