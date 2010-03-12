@@ -1789,7 +1789,7 @@ case ('taylor_map')
       nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
       return
     endif
-    if (err) return
+    if (err .or. size(eles) == 0) return
     ix1 = eles(1)%ele%ix_ele
   endif
 
@@ -1803,15 +1803,13 @@ case ('taylor_map')
       return
     endif
     if (err .or. size(eles) == 0) return
+    ix2 = eles(1)%ele%ix_ele
   endif
 
   call transfer_map_calc (lat, taylor, ix1, ix2)
   if (n_order > -1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
-  call type2_taylors (taylor, alloc_lines, nl)
-  if (size(lines) < nl) call re_allocate (lines, nl, .false.)
-  lines(1:nl) = ptr_lines(1:nl)
-  deallocate (ptr_lines)
+  call type2_taylors (taylor, lines, nl)
 
   result_id = show_what
 
