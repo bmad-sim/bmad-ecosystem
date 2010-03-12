@@ -329,7 +329,7 @@ end subroutine tao_cmd_split
 subroutine tao_next_switch (line, switch_list, switch, err, ix_word)
 
 character(*) line, switch, switch_list(:)
-character(20) :: r_name = 'next_switch'
+character(20) :: r_name = 'tao_next_switch'
 logical err
 
 integer ix, n, ix_word
