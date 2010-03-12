@@ -37,7 +37,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine write_power_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
+subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
   implicit none
 
@@ -48,21 +48,23 @@ subroutine write_power_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
   type (synrad_mode_struct) :: synrad_mode
   type (lat_struct) lat
 
-  integer use_ele_ix, i
+  real(rp) value
+
+  integer ix_ele1, ix_ele2, i
+  integer key
+
   character*16 seg_name, ep_source_name, e_source_name, p_source_name
   character fmt*100, ep_name*2
   character file1*50, ele_num*6
   character ele_at_seg*16, attrib*10
-  integer key
-  real(rp) value
 
 !
 
   call set_wall_eles (wall, lat)
 
   file1 = 'synch_power_' // trim(wall_name(wall%side))
-  if (use_ele_ix > 0) then
-    write (ele_num, '(i0)') use_ele_ix
+  if (ix_ele1 == ix_ele2) then
+    write (ele_num, '(i0)') ix_ele1
     file1 = trim(file1) // '_' // trim(ele_num)
   endif
   file1 = trim(file1) // '.dat'
@@ -178,7 +180,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine write_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
+subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
   implicit none
 
@@ -189,7 +191,7 @@ subroutine write_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
   type (synrad_mode_struct) :: synrad_mode
   type (lat_struct) lat
 
-  integer use_ele_ix, i
+  integer ix_ele1, ix_ele2, i
   character*16 seg_name, ep_source_name, ep_source_key_name
   character fmt*130, ep_name*2
   character file1*50, ele_num*6
@@ -202,8 +204,8 @@ subroutine write_results (wall, lat, gen_params, use_ele_ix, synrad_mode)
   call set_wall_eles (wall, lat)
 
   file1 = 'synrad_' // trim(wall_name(wall%side))
-  if (use_ele_ix > 0) then
-    write (ele_num, '(i0)') use_ele_ix
+  if (ix_ele1 == ix_ele2) then
+    write (ele_num, '(i0)') ix_ele1
     file1 = trim(file1) // '_' // trim(ele_num)
   endif
   file1 = trim(file1) // '.txt'
