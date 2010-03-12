@@ -40,7 +40,7 @@ type (ele_power_struct) power
 real(rp) energy, dx_seg, x1, x2
 real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
 real(rp) rr, dr2, dr1, theta, power_factor
-real(rp) dx_wall, ds_wall, r1, r2, dpower, track_len
+real(rp) dx_wall, ds_wall, r1, r2, track_len
 real(rp) r_i1, r_i2, frac_illum, gamma
 real(rp) theta_base, theta_floor1, theta_floor2, theta_floor_seg
 
@@ -48,9 +48,6 @@ integer i_ray, iw, i, ip, is, iss, wall_side
 integer type0, type1, i_pt, n_pos, n_neg
 
 logical hit_flag
-
-type (source_struct), pointer :: temp_sources(:)
-integer temp_size
 
 ! get energy from source element
 
@@ -367,23 +364,28 @@ subroutine this_seg_power_calc (seg)
 type (wall_seg_struct), target :: seg
 type (seg_power_struct), pointer :: ep
 
-real(rp) illum_factor
-
-integer ns
+real(rp) illum_factor, power_per_len
 
 ! Only change ep%ix_ele_source and ep%s_source if the contribution to the
 ! power is larger than what has so far been accumulated.
 
-ep => seg%power
-
 illum_factor = abs(sin(theta_rel)) * frac_illum / track_len
-dpower = ((1 - rr)*ray1%p1_factor + rr*ray2%p1_factor) * illum_factor
-                    
+power_per_len = ((1 - rr)*ray1%p1_factor + rr*ray2%p1_factor) * illum_factor
+power%at_wall = power%at_wall + power_per_len * seg%len
 
-ep%power_per_len  = ep%power_per_len + dpower
+ep => seg%power
+ep%n_source = ep%n_source + 1
+
+ep%power_per_len  = ep%power_per_len + power_per_len
 ep%power_per_area = ep%power_per_area + abs(sin(theta_rel)) * frac_illum * &
         ((1 - rr)*ray1%p2_factor + rr*ray2%p2_factor) / track_len
-ep%power_tot = ep%power_tot + dpower * seg%len
+ep%power_tot = ep%power_tot + power_per_len * seg%len
+
+if (power_per_len > ep%main_source%power_per_len) then
+  ep%main_source%power_per_len = power_per_len
+  ep%main_source%s             = ray1%start%vec(5) * (1 - rr) + ray2%start%vec(5) * rr
+  ep%main_source%ix_ele        = ray2%ix_source
+endif
 
 ! from Sands and Chao/Tigner p188
 ! Flux is 3.248 * Power / critical photon energy 
@@ -392,33 +394,6 @@ ep%power_tot = ep%power_tot + dpower * seg%len
 
 ep%photons_per_sec = ep%photons_per_sec + 3.248 * illum_factor * &
                        power_factor * seg%len / (2.218 * (energy/1e9)**3 * 1.602e-16) 
-
-ep%n_source = ep%n_source + 1
-ns = ep%n_source
-
-if (associated(ep%sources)) then
-  temp_size = size(ep%sources)
-  if (temp_size < ns) then
-    allocate(temp_sources(temp_size))
-    temp_sources = ep%sources
-    deallocate(ep%sources)
-    allocate (ep%sources(ns))
-    ep%sources(1:temp_size) = temp_sources(1:temp_size)
-    deallocate(temp_sources)
-  endif
-else
-  allocate (ep%sources(5))
-endif
-
-power%at_wall = power%at_wall + dpower * seg%len
-ep%sources(ns)%start%vec = ray1%start%vec * (1 - rr) + ray2%start%vec * rr
-ep%sources(ns)%now%vec = ray1%now%vec * (1 - rr) + ray2%now%vec * rr
-ep%sources(ns)%ix_ele_source = ray2%ix_source
-ep%sources(ns)%power_per_len = dpower
-if (dpower > maxval(ep%sources(1:ns-1)%power_per_len)) then
-  ep%ix_ele_source = ray2%ix_source
-  ep%s_source = ep%sources(ns)%start%vec(5)
-endif
 
 end subroutine this_seg_power_calc
 

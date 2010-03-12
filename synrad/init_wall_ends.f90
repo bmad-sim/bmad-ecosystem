@@ -21,10 +21,10 @@ subroutine init_wall_ends (walls)
   walls%start_end%power%power_tot = 0
   walls%start_end%power%power_per_len = 0
   walls%start_end%power%power_per_area = 0
-  walls%start_end%power%ix_ele_source = 0
-  walls%start_end%power%s_source = 0
   walls%start_end%power%n_source = 0
-  nullify (walls%start_end%power%sources)
+  walls%start_end%power%main_source%power_per_len = 0
+  walls%start_end%power%main_source%ix_ele = 0
+  walls%start_end%power%main_source%s = 0
   
   end_n_s = walls%negative_x_wall%seg(walls%negative_x_wall%n_seg_tot)%s
   end_p_s = walls%positive_x_wall%seg(walls%positive_x_wall%n_seg_tot)%s
@@ -41,10 +41,10 @@ subroutine init_wall_ends (walls)
   walls%exit_end%power%power_tot = 0
   walls%exit_end%power%power_per_len = 0
   walls%exit_end%power%power_per_area = 0
-  walls%exit_end%power%ix_ele_source = 0
-  walls%exit_end%power%s_source = 0
   walls%exit_end%power%n_source = 0
-  nullify (walls%exit_end%power%sources)
+  walls%exit_end%power%main_source%power_per_len = 0
+  walls%exit_end%power%main_source%ix_ele = 0
+  walls%exit_end%power%main_source%s = 0
 
 
 end subroutine init_wall_ends

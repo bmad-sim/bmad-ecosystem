@@ -24,21 +24,20 @@ end type wall_pt_struct
 ! throughout the segment
 
 type source_struct
-  integer ix_ele_source    ! element index at source
+  integer ix_ele           ! element index at source
   real(rp) power_per_len   ! Power from this source
-  type (coord_struct) start, now    ! 
+  real(rp) s               ! Longitudinal s position.
 end type source_struct
 
-type seg_power_struct           ! substruct for a segment 
-  real(rp) power_tot               ! total power on segment (Watts)
-  real(rp) power_per_len       ! power density (Watts / m)
-  real(rp) power_per_area      ! power density (Watts / m^2)
-  real(rp) photons_per_sec     ! flux hitting segment in photons per sec
-  integer ix_ele_source        ! element index for the largest source
-  real(rp) s_source            ! s position of the largest source
-  integer n_source             ! number of source points
-  type (source_struct), pointer :: sources(:)
-                               ! list of source info for rays hitting this seg
+! substruct for a segment 
+
+type seg_power_struct           
+  real(rp) power_tot                ! total power on segment (Watts)
+  real(rp) power_per_len            ! power density (Watts / m)
+  real(rp) power_per_area           ! power density (Watts / m^2)
+  real(rp) photons_per_sec          ! flux hitting segment in photons per sec
+  integer n_source                  ! number of source points
+  type (source_struct) main_source  ! main source info for rays hitting this seg
 end type seg_power_struct
 
 type wall_seg_struct       ! segment struct
