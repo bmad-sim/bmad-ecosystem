@@ -16,7 +16,7 @@ type (synrad_mode_struct) :: synrad_mode
 type (ele_power_struct), allocatable :: fwd_power(:), back_power(:)
 
 integer i, n, ix, n_arg, n_wall, ios, beam_direction
-integer use_ele_ix
+integer use_ele_ix, use_ele_ix2
 
 character(100) this_lat, line, temp
 character(100) lat_file, in_file, wall_file
@@ -27,7 +27,7 @@ real(rp) end_s, wall_offset, s, x_in, x_out, seg_len
 logical err_flag
 
 namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
-                           forward_beam, backward_beam, use_ele_ix
+                           forward_beam, backward_beam, use_ele_ix, use_ele_ix2
 
 ! set pointers
 pos_x_wall => walls%positive_x_wall
@@ -57,7 +57,7 @@ sr_param%n_slice = 20
 forward_beam = "POSITRON"
 backward_beam = "ELECTRON"
 use_ele_ix = 0
-
+use_ele_ix2 = 0
 
 ! Read file
 
@@ -66,14 +66,22 @@ open (1, file = in_file, status = "old")
 read (1, nml = synrad_params)
 close (1)
 
-if (use_ele_ix > 0) print *, "Only calculating power for element #",use_ele_ix
-
 !
 
 if (sr_param%lat_file(1:6) == 'xsif::') then
   call xsif_parser(sr_param%lat_file(7:), lat)
 else
   call bmad_parser(sr_param%lat_file, lat)
+endif
+
+if (use_ele_ix > 0) then
+  if (use_ele_ix2 == 0) use_ele_ix2 = use_ele_ix
+  if (use_ele_ix2 < 0)  use_ele_ix2 = lat%n_ele_track
+  print *, 'Only calculating power from element #', use_ele_ix
+  print *, '                         to element #', use_ele_ix2
+else
+  use_ele_ix = 1
+  use_ele_ix2 = lat%n_ele_track
 endif
 
 call reallocate_coord (orb, lat%n_ele_max)
@@ -212,11 +220,11 @@ endif
 ! write out results
 ! set lat elements and twiss at wall segments
 
-call write_power_results(pos_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
-call write_power_results(neg_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_power_results(pos_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
+call write_power_results(neg_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
 
-call write_results(pos_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
-call write_results(neg_x_wall, lat, sr_param, use_ele_ix, synrad_mode)
+call write_results(pos_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
+call write_results(neg_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
 
 open (unit = 1, file = 'element_power.dat')
 
@@ -281,7 +289,7 @@ else if (beam_type == 'POSITRON') then
 endif
 
 call twiss_and_track (lat, orb)
-call calculate_synrad_power(lat, orb, direction, power, walls, sr_param, use_ele_ix)
+call calculate_synrad_power(lat, orb, direction, power, walls, sr_param, use_ele_ix, use_ele_ix2)
 
 call radiation_integrals (lat, orb, mode)
 
