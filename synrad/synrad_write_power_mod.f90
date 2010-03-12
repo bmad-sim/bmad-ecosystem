@@ -104,11 +104,11 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
 
     ep => seg%power
 
-    if (ep%ix_ele_source == 0) then
+    if (ep%main_source%ix_ele == 0) then
       ep_source_name = '--------'
       ep_name = '--'
     else
-      ep_source_name = lat%ele(ep%ix_ele_source)%name
+      ep_source_name = lat%ele(ep%main_source%ix_ele)%name
     endif
 
     seg_name = wall%pt(seg%ix_pt)%name
@@ -245,14 +245,14 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
     ep => seg%power
 
-    if (ep%ix_ele_source == 0) then
+    if (ep%main_source%ix_ele == 0) then
       ep_source_name = '------------------'
       ep_name = '--'
       ep_source_key = 0
       ep_source_key_name = '----------'
     else
-      ep_source_name = lat%ele(ep%ix_ele_source)%name
-      ep_source_key = lat%ele(ep%ix_ele_source)%key
+      ep_source_name = lat%ele(ep%main_source%ix_ele)%name
+      ep_source_key = lat%ele(ep%main_source%ix_ele)%key
       ep_source_key_name = key_name(ep_source_key)
     endif
 
@@ -267,7 +267,7 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
               ep%power_tot, ep%photons_per_sec, &
               seg%a%beta, seg%b%beta,seg%a%eta, key_name(key), &
               value, trim(lat%ele(seg%ix_ele)%name), &
-              ep_source_key_name, trim(ep_source_name), ep%s_source, ep%n_source
+              ep_source_key_name, trim(ep_source_name), ep%main_source%s, ep%n_source
 
   enddo
   close (unit = 1)
