@@ -24,6 +24,7 @@ type (wall3d_struct) wall
 type (wall3d_pt_struct) wall_pt(0:100)
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
+type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
@@ -201,6 +202,8 @@ bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element para
 n_photon_generated = 0
 n_photon_array = 0
 
+allocate (wall_hit(10))
+
 !--------------------------------------------------------------------------
 ! If the photon_start input file exists then use that
 
@@ -233,11 +236,9 @@ if (photon_start_input_file /= '') then
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
     call check_if_photon_init_coords_outside_wall (is_outside)
     if (is_outside) cycle
-    ! To save comp time just reuse old hit_point storage.
-    if (n_photon_array > 1) photon%wall_hit => photons(n_photon_array-1)%wall_hit
-    call sr3d_track_photon (photon, lat, wall)
+    call sr3d_track_photon (photon, lat, wall, wall_hit)
     call check_filter_restrictions(ok)
-    if (ok) call print_hit_points (photon)
+    if (ok) call print_hit_points (photon, wall_hit)
   enddo
 
   close (1)
@@ -319,11 +320,9 @@ else
 
         call check_if_photon_init_coords_outside_wall (is_outside)
         if (is_outside) cycle
-        ! To save comp time just reuse old hit_point storage.
-        if (n_photon_array > 1) photon%wall_hit => photons(n_photon_array-1)%wall_hit
-        call sr3d_track_photon (photon, lat, wall)
+        call sr3d_track_photon (photon, lat, wall, wall_hit)
         call check_filter_restrictions (ok)
-        if (ok) call print_hit_points (photon)
+        if (ok) call print_hit_points (photon, wall_hit)
 
       enddo
 
@@ -493,10 +492,12 @@ end subroutine
 !--------------------------------------------------------------------------------------------
 ! contains
 
-subroutine print_hit_points (photon)
+subroutine print_hit_points (photon, wall_hit)
 
 type (photon3d_track_struct), target :: photon
 type (photon3d_wall_hit_struct), pointer :: hit
+type (photon3d_wall_hit_struct), target :: wall_hit(:)
+
 integer iu, n
 
 !
@@ -510,7 +511,7 @@ write (iu, '(2i8, f10.1)') photon%ix_photon, 0, photon%start%energy
 write (iu, '(6f12.6)') photon%start%vec
 
 do n = 1, photon%n_wall_hit
-  hit => photon%wall_hit(n)
+  hit => wall_hit(n)
   write (iu, *) '*********************************************'
   write (iu, '(2i8, f10.1)') photon%ix_photon, n, hit%before_reflect%energy
   write (iu, '(6f12.6)') hit%before_reflect%vec

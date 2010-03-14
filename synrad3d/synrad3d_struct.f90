@@ -42,7 +42,6 @@ end type
 
 type photon3d_track_struct
   type (photon3d_coord_struct) start, old, now  ! coords:
-  type (photon3d_wall_hit_struct), pointer :: wall_hit(:) => null() ! Wall hit points
   real(rp) intensity          ! Intensity of this macro-photon in Photons/(beam_particle*turn)
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     

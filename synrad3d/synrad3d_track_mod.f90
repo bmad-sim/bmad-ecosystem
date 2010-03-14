@@ -23,16 +23,18 @@ contains
 !   wall      -- wall3d_struct: Beam chamber walls
 !
 ! Output:
-!   photon     -- photon3d_coord_struct: synch radiation photon propagated until absorbtion.
+!   photon      -- photon3d_coord_struct: synch radiation photon propagated until absorbtion.
+!   wall_hit(:) -- photon3d_wall_hit_struct: Array of wall hit data.
 !-
 
-subroutine sr3d_track_photon (photon, lat, wall)
+subroutine sr3d_track_photon (photon, lat, wall, wall_hit)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
+type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 
 logical absorbed
 
@@ -41,14 +43,12 @@ logical absorbed
 photon%start%track_len = 0
 photon%now = photon%start
 
-if (.not. associated(photon%wall_hit)) allocate (photon%wall_hit(10))
-
 !
 
 do
 
   call sr3d_track_photon_to_wall (photon, lat, wall)
-  call sr3d_reflect_photon (photon, wall, absorbed)
+  call sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
   if (absorbed) return
 
 enddo
@@ -430,18 +430,19 @@ end subroutine sr3d_photon_hit_spot_calc
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_reflect_photon (photon, wall, absorbed)
+! Subroutine sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
 !
 ! Routine to reflect a photon off of the wall.
 !-
 
-subroutine sr3d_reflect_photon (photon, wall, absorbed)
+subroutine sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
 
 implicit none
 
 type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: wall0, wall1
+type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 type (photon3d_wall_hit_struct), allocatable :: hit_temp(:)
 
 real(rp) cos_perp, dw_perp(3), denom, f
@@ -454,31 +455,31 @@ logical absorbed
 
 !
 
-n_old = size(photon%wall_hit)
+n_old = size(wall_hit)
 n_wall_hit = photon%n_wall_hit + 1
 if (n_old < n_wall_hit) then
   allocate (hit_temp(n_old))
-  hit_temp = photon%wall_hit
-  deallocate (photon%wall_hit)
-  allocate (photon%wall_hit(2*n_wall_hit))
-  photon%wall_hit(1:n_old) = hit_temp
+  hit_temp = wall_hit
+  deallocate (wall_hit)
+  allocate (wall_hit(2*n_wall_hit))
+  wall_hit(1:n_old) = hit_temp
   deallocate(hit_temp)
 endif
 
 photon%n_wall_hit = n_wall_hit
-photon%wall_hit(n_wall_hit)%before_reflect = photon%now
-photon%wall_hit(n_wall_hit)%dw_perp = 0
-photon%wall_hit(n_wall_hit)%cos_perp = 0
-photon%wall_hit(n_wall_hit)%reflectivity = -1
+wall_hit(n_wall_hit)%before_reflect = photon%now
+wall_hit(n_wall_hit)%dw_perp = 0
+wall_hit(n_wall_hit)%cos_perp = 0
+wall_hit(n_wall_hit)%reflectivity = -1
 
 ! Check if reflections allowed or hit antechamber
 
 if (.not. sr3d_params%allow_reflections .or. &
     (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber)) then
-  photon%wall_hit(n_wall_hit)%dw_perp = 0
-  photon%wall_hit(n_wall_hit)%cos_perp = 0
-  photon%wall_hit(n_wall_hit)%reflectivity = 0
-  photon%wall_hit(n_wall_hit)%after_reflect%vec = 0
+  wall_hit(n_wall_hit)%dw_perp = 0
+  wall_hit(n_wall_hit)%cos_perp = 0
+  wall_hit(n_wall_hit)%reflectivity = 0
+  wall_hit(n_wall_hit)%after_reflect%vec = 0
   absorbed = .true.
   return
 endif
@@ -508,11 +509,11 @@ endif
 
 ! Record
 
-photon%wall_hit(n_wall_hit)%dw_perp = dw_perp
-photon%wall_hit(n_wall_hit)%cos_perp = cos_perp
-photon%wall_hit(n_wall_hit)%reflectivity = reflectivity
-photon%wall_hit(n_wall_hit)%after_reflect = photon%now
-photon%wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
+wall_hit(n_wall_hit)%dw_perp = dw_perp
+wall_hit(n_wall_hit)%cos_perp = cos_perp
+wall_hit(n_wall_hit)%reflectivity = reflectivity
+wall_hit(n_wall_hit)%after_reflect = photon%now
+wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 ! absorbtion
 
