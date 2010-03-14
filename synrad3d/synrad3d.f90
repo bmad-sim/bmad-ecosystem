@@ -31,10 +31,10 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
 integer i, j, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
-integer ix_ele_track_start, ix_ele_track_end
+integer ix_ele_track_start, ix_ele_track_end, iu_hit_file
 integer photon_direction, num_photons, n_phot, ios
 
-character(200) lattice_file, reflect_file
+character(200) lattice_file, wall_hit_file, reflect_file
 character(200) photon_start_input_file, photon_start_output_file
 
 character(100) dat_file, dat2_file, wall_file, param_file
@@ -46,8 +46,8 @@ logical is_outside
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
-            e_filter_min, e_filter_max, s_filter_min, s_filter_max, reflect_file, &
-            photon_start_input_file, photon_start_output_file
+            e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
+            photon_start_input_file, photon_start_output_file, reflect_file
 
 namelist / synrad3d_wall / wall_pt, n_wall_pt_max
 
@@ -80,6 +80,7 @@ e_filter_min = -1
 e_filter_max = -1
 s_filter_min = -1
 s_filter_max = -1
+wall_hit_file = ''
 reflect_file = ''
 sr3d_params%debug_on = .false.
 photon_start_input_file = '' 
@@ -102,6 +103,8 @@ open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
 close (1)
 
+if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
+
 if (n_wall_pt_max > 0) then
   print *, 'NOTE: YOU DO NOT NEED TO SPECIFY N_WALL_PT_MAX IN YOUR WALL FILE!'
   print *, '      THIS SET WILL BE IGNORED.'
@@ -120,14 +123,6 @@ do i = 1, ubound(wall_pt, 1)
 enddo
 
 print *, 'n_wall_pt_max:', n_wall_pt_max
-
-! Open reflect file
-
-if (reflect_file /= '') then
-  sr3d_params%iu_reflect_file = lunget()
-  open (sr3d_params%iu_reflect_file, file = reflect_file)
-  print *, 'Opening photon reflections output file: ', trim(reflect_file)
-endif
 
 ! Get lattice
 
@@ -191,6 +186,14 @@ if (sig_e < 0) then
   print *, 'Using sig_e =', sig_e
 endif
 
+! Open hit_point file
+
+if (wall_hit_file /= '') then
+  iu_hit_file = lunget()
+  open (iu_hit_file, file = wall_hit_file)
+  print *, 'Opening photon hit point output file: ', trim(wall_hit_file)
+endif
+
 ! Track through the elements and generate photons.
 
 bmad_com%auto_bookkeeper = .false.  ! Since we are not changing any element params.
@@ -226,12 +229,15 @@ if (photon_start_input_file /= '') then
     if (n_photon_array > size(photons)) call reallocate_photon_array (photons, 2*size(photons))
     photon => photons(n_photon_array)
     photon%start = p
-    photon%n_reflect = 0
+    photon%n_wall_hit = 0
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
     call check_if_photon_init_coords_outside_wall (is_outside)
     if (is_outside) cycle
+    ! To save comp time just reuse old hit_point storage.
+    if (n_photon_array > 1) photon%wall_hit => photons(n_photon_array-1)%wall_hit
     call sr3d_track_photon (photon, lat, wall)
-    call check_filter_restrictions()
+    call check_filter_restrictions(ok)
+    if (ok) call print_hit_points (photon)
   enddo
 
   close (1)
@@ -299,7 +305,7 @@ else
         photon%ix_photon = n_photon_array
         call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
                                emit_a, emit_b, sig_e, photon_direction, photon%start)
-        photon%n_reflect = 0
+        photon%n_wall_hit = 0
         photon%start%ix_ele = ix_ele
 
         if (photon_start_output_file /= '') then
@@ -313,8 +319,11 @@ else
 
         call check_if_photon_init_coords_outside_wall (is_outside)
         if (is_outside) cycle
+        ! To save comp time just reuse old hit_point storage.
+        if (n_photon_array > 1) photon%wall_hit => photons(n_photon_array-1)%wall_hit
         call sr3d_track_photon (photon, lat, wall)
-        call check_filter_restrictions()
+        call check_filter_restrictions (ok)
+        if (ok) call print_hit_points (photon)
 
       enddo
 
@@ -368,16 +377,12 @@ do i = 1, n_photon_array
   photon => photons(i)
   iu = 1
   if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
-  write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_reflect, photon%start%energy, photon%intensity, &
-                                             '! index, n_reflect, eV, intensity'
+  write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_wall_hit, photon%start%energy, photon%intensity, &
+                                             '! index, n_wall_hit, eV, intensity'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
   j = photon%now%ix_ele
   write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
-  ! do j = 0, photon%n_reflect + 1
-  !   photon%reflect(j)%vec 
-  !   photon%reflect(j)%track_len
-  ! enddo 
 enddo
 
 close (1)
@@ -385,9 +390,22 @@ close (1)
 !--------------------------------------------------------------------------------------------
 contains
 
-subroutine check_filter_restrictions ()
+!+
+! Subroutine check_filter_restrictions (ok)
+!
+! Routine to check if a photon has passed the filter requirements.
+!
+! Output:
+!   ok -- logical: Set True if passed. False otherwise.
+!-
+
+subroutine check_filter_restrictions (ok)
+
+logical ok
 
 ! Check filter restrictions
+
+ok = .true.
 
 if (filter_on) then
   filter_this = .false.
@@ -400,7 +418,12 @@ if (filter_on) then
     if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
     if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
   endif
-  if (filter_this) n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+
+  if (filter_this) then
+    n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+    ok = .false.
+  endif
+
 endif
 
 end subroutine
@@ -456,22 +479,44 @@ n_old = size(photon_array)
 if (n_old >= n_size) return
 
 allocate(temp(n_old))
-do n = 1, n_old
-  j = size(photon_array(n)%reflect)
-  allocate(temp(n)%reflect(j))
-  temp(n) = photon_array(n)
-enddo
+temp = photon_array
 
 deallocate(photon_array)
 allocate(photon_array(n_size))
 
-do n = 1, n_old
-  j = size(temp(n)%reflect)
-  allocate(photon_array(n)%reflect(j))
-  photon_array(n) = temp(n)
-enddo
+photon_array(1:n_old) = temp
 
 deallocate (temp)
+
+end subroutine
+
+!--------------------------------------------------------------------------------------------
+! contains
+
+subroutine print_hit_points (photon)
+
+type (photon3d_track_struct), target :: photon
+type (photon3d_wall_hit_struct), pointer :: hit
+integer iu, n
+
+!
+
+
+iu = iu_hit_file 
+if (iu == 0) return
+
+write (iu, *) '*********************************************'
+write (iu, '(2i8, f10.1)') photon%ix_photon, 0, photon%start%energy
+write (iu, '(6f12.6)') photon%start%vec
+
+do n = 1, photon%n_wall_hit
+  hit => photon%wall_hit(n)
+  write (iu, *) '*********************************************'
+  write (iu, '(2i8, f10.1)') photon%ix_photon, n, hit%before_reflect%energy
+  write (iu, '(6f12.6)') hit%before_reflect%vec
+  write (iu, '(3(12x, f12.6))') hit%after_reflect%vec(2:6:2)
+  write (iu, '(3f10.4, 10x, 2f12.6)') hit%dw_perp, hit%cos_perp, hit%reflectivity
+enddo
 
 end subroutine
 

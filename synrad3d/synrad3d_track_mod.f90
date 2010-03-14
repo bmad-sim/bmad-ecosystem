@@ -23,7 +23,7 @@ contains
 !   wall      -- wall3d_struct: Beam chamber walls
 !
 ! Output:
-!   photon    -- photon3d_coord_struct: synch radiation photon propagated until absorbtion.
+!   photon     -- photon3d_coord_struct: synch radiation photon propagated until absorbtion.
 !-
 
 subroutine sr3d_track_photon (photon, lat, wall)
@@ -32,10 +32,8 @@ implicit none
 
 type (lat_struct), target :: lat
 type (photon3d_track_struct), target :: photon
-type (photon3d_coord_struct), allocatable :: p_temp(:)
 type (wall3d_struct), target :: wall
 
-integer n
 logical absorbed
 
 !
@@ -43,33 +41,15 @@ logical absorbed
 photon%start%track_len = 0
 photon%now = photon%start
 
-! if (.not. sr3d_params%debug_on) then
-!   if (allocated(photon%reflect)) deallocate(photon%reflect)
-!   allocate (photon%reflect(0:0))
-!   photon%reflect(0) = photon%start
-! endif
+if (.not. associated(photon%wall_hit)) allocate (photon%wall_hit(10))
+
+!
 
 do
 
   call sr3d_track_photon_to_wall (photon, lat, wall)
-
-  ! if (.not. sr3d_params%debug_on) then
-  !   n = size(photon%reflect)
-  !   allocate (p_temp(n))
-  !   p_temp = photon%reflect
-  !   deallocate (photon%reflect)
-  !   allocate (photon%reflect(0:n))
-  !   photon%reflect(0:n-1) = p_temp
-  !   photon%reflect(n) = photon%now
-  !   deallocate(p_temp)
-  ! endif
-
-  if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) return
-
   call sr3d_reflect_photon (photon, wall, absorbed)
   if (absorbed) return
-
-  photon%n_reflect = photon%n_reflect + 1
 
 enddo
 
@@ -462,25 +442,49 @@ implicit none
 type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: wall0, wall1
+type (photon3d_wall_hit_struct), allocatable :: hit_temp(:)
 
 real(rp) cos_perp, dw_perp(3), denom, f
-real(rp) r, graze_angle, reflectivity
-real(rp), pointer :: vec(:)
+real(rp) r, graze_angle, reflectivity, dvec(3)
 
 integer ix, iu
+integer n_old, n_wall_hit
 
 logical absorbed
 
-! Check if reflections allowed
+!
 
-if (.not. sr3d_params%allow_reflections) then
+n_old = size(photon%wall_hit)
+n_wall_hit = photon%n_wall_hit + 1
+if (n_old < n_wall_hit) then
+  allocate (hit_temp(n_old))
+  hit_temp = photon%wall_hit
+  deallocate (photon%wall_hit)
+  allocate (photon%wall_hit(2*n_wall_hit))
+  photon%wall_hit(1:n_old) = hit_temp
+  deallocate(hit_temp)
+endif
+
+photon%n_wall_hit = n_wall_hit
+photon%wall_hit(n_wall_hit)%before_reflect = photon%now
+photon%wall_hit(n_wall_hit)%dw_perp = 0
+photon%wall_hit(n_wall_hit)%cos_perp = 0
+photon%wall_hit(n_wall_hit)%reflectivity = -1
+
+! Check if reflections allowed or hit antechamber
+
+if (.not. sr3d_params%allow_reflections .or. &
+    (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber)) then
+  photon%wall_hit(n_wall_hit)%dw_perp = 0
+  photon%wall_hit(n_wall_hit)%cos_perp = 0
+  photon%wall_hit(n_wall_hit)%reflectivity = 0
+  photon%wall_hit(n_wall_hit)%after_reflect%vec = 0
   absorbed = .true.
   return
 endif
 
 ! get the perpendicular outward normal to the wall
 
-vec => photon%now%vec
 photon%old = photon%now
 
 call sr3d_photon_radius (photon%now, wall, r, dw_perp)
@@ -488,17 +492,11 @@ call sr3d_photon_radius (photon%now, wall, r, dw_perp)
 ! cos_perp is the component of the photon velocity perpendicular to the wall.
 ! since the photon is striking the wall from the inside this must be positive.
 
-cos_perp = dot_product (vec(2:6:2), dw_perp)
+cos_perp = dot_product (photon%now%vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
-call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
+dvec = -2 * cos_perp * dw_perp
 
-iu = sr3d_params%iu_reflect_file 
-if (iu /= 0) then
-  write (iu, *) '*********************************************'
-  write (iu, '(2i8, 3f10.4, 10x, 2f12.6)') photon%ix_photon, photon%n_reflect, &
-                                 dw_perp, cos_perp, reflectivity
-  write (iu, '(6f12.6)') photon%old%vec
-endif
+call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
@@ -507,6 +505,14 @@ if (cos_perp < 0) then
   print *, '       WILL EXIT HERE...'
   call err_exit
 endif
+
+! Record
+
+photon%wall_hit(n_wall_hit)%dw_perp = dw_perp
+photon%wall_hit(n_wall_hit)%cos_perp = cos_perp
+photon%wall_hit(n_wall_hit)%reflectivity = reflectivity
+photon%wall_hit(n_wall_hit)%after_reflect = photon%now
+photon%wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 ! absorbtion
 
@@ -517,11 +523,7 @@ if (absorbed) return  ! Do not reflect if absorbed
 ! Reflect the ray.
 ! The perpendicular component gets reflected and the parallel component is invarient.
 
-vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * dw_perp
-
-if (iu /= 0) then
-  write (iu, '(3(12x, f12.6))') photon%now%vec(2:6:2)
-endif
+photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 end subroutine sr3d_reflect_photon
 

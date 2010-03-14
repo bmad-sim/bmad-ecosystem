@@ -19,28 +19,35 @@ type photon3d_coord_struct
   integer ix_wall             ! Index to wall cross-section array
 end type
 
+type photon3d_wall_hit_struct
+  type (photon3d_coord_struct) before_reflect   ! Coords before reflection.
+  type (photon3d_coord_struct) after_reflect    ! Coords after reflection.
+  real(rp) dw_perp(3)                   ! Wall perpendicular vector
+  real(rp) cos_perp                     ! Cosine of hit angle
+  real(rp) reflectivity                 ! Reflectivity probability
+end type
+
 ! This structure defines the full track of the photon from start to finish
 ! %start -- Starting position.
 ! %old   -- Used by the tracking code. Not useful otherwise.
 ! %now   -- Present position. At the end of tracking, %now will be the final position.
-! %reflect(:)      -- Records the positions at which the photon was reflected off the wall
-!                       including the final position. The array bounds are:
-!                       %reflect(0:%n_reflect+1)
+! %wall_hit(:)     -- Records the positions at which the photon hit the wall
+!                       including the final position. The array bounds are: %hit(1:%n_hit) 
 ! %intensity       -- Intensity of this macro-photon in Photons/(beam_particle*turn).
 ! %crossed_lat_end -- Did the photon cross from the end of the lattice to the beginning
 !                       or vice versa?
 ! %hit_antechamber -- Did the photon hit the antechamber at the final position?
 ! %ix_photon       -- Photon index. The first photon generated has index 1, etc.
-! %n_reflect       -- Number of reflections. %reflect
+! %n_wall_hit      -- Number of wall hits.
 
 type photon3d_track_struct
   type (photon3d_coord_struct) start, old, now  ! coords:
-  type (photon3d_coord_struct), allocatable :: reflect(:) ! Photon reflection points
+  type (photon3d_wall_hit_struct), pointer :: wall_hit(:) => null() ! Wall hit points
   real(rp) intensity          ! Intensity of this macro-photon in Photons/(beam_particle*turn)
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
   integer ix_photon                        ! Photon index.
-  integer :: n_reflect = 0                 ! Number of reflections
+  integer :: n_wall_hit = 0                     ! Number of wall hits
 end type
 
 !--------------
@@ -91,7 +98,6 @@ type sr3d_params_struct
   real(rp) :: ds_track_step_max = 3     ! Maximum longitudinal distance in one photon "step".
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
-  integer :: iu_reflect_file = 0
   logical :: stop_if_hit_antechamber = .false. 
   logical :: debug_on
 end type
