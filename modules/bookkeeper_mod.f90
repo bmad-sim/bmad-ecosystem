@@ -2062,7 +2062,7 @@ case (wiggler$)
   if (ele%sub_key == periodic_type$) then
     if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
 
-    if (val(l_pole$) == 0) then
+    if (val(l$) == 0) then
       ele%wig_term(1)%ky = 0
     else
       ! Use an integer number of poles in calculating ky.
