@@ -195,7 +195,7 @@ Example main input file:
     lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
     wall_file    = "synrad3d.wall"   ! Vacuum chamber wall file.
     dat_file     = "synrad3d.dat"    ! Output data file.
-    reflect_file = ''                ! If not blank: Write reflection data file. 
+    wall_hit_file = ''               ! If not blank: Write photon wall hit data file.
 
     sr3d_params%allow_reflections = T       ! For testing purposes.
     sr3d_params%stop_if_hit_antechamber = F !
@@ -260,11 +260,11 @@ it hits the chamber wall.
   \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
 This parameter, if set True, will cause \srthree to stop tracking a given photon once
 it hits part of an antechamber wall.
-  \item[\vn{reflect_file}] \Newline
-This string, if not blank, will create a data file listing the reflection points for all
-the photons. This will be in addition
-to the regular output file.
-See below for more details.
+  \item[\vn{wall_hit_file}] \Newline
+This string, if not blank, will create a data file listing the points
+where the photons hit the wall including all the reflection
+points. This will be in addition to the regular output file.  See
+below for more details.
   \item[\vn{random_seed}] \Newline
 Random number see used in by the random number generator. If set to 0, the system clock
 will be used. That is, if set to 0, the output results will vary from run to run. 
@@ -279,7 +279,7 @@ This string, if not blank, will cause \srthree to create an output
 file, with a name given by the value of \vn{photon_start_output_file},
 of the photon starting positions along with the state of the random
 number generator. Note: If
-\vn{photon_start_input_file} is set, \vn{photon_start_outpu_file} will
+\vn{photon_start_input_file} is set, \vn{photon_start_output_file} will
 be ignored (no output file is generated). Also note that the file will
 have the starting coordinates of all photons generated, not just the
 photons that pass any filtering tests. Thus, if any of the filter
@@ -466,7 +466,7 @@ Subsequently, \vn{dat_file} contains 4 lines for each photon
 generated. An example of the output generated for two photons is shown
 below.
 \begin{example}
- 1       2     71.52  6.614E-03  ! index, n_reflect, eV, intensity
+ 1       2     71.52  6.614E-03  ! index, n_wall_hits, eV, intensity
     0.000542    0.000037   -0.000073    0.000080       9.015    1.000000  ! Start position
     0.015165    0.004010    0.023538    0.017410      18.661    0.999840  ! End position
       37   DRIFT             ! Lat ele index and class
@@ -476,8 +476,8 @@ below.
       36   SBEND             ! Lat ele index and class
 \end{example}
 The first line gives the photon index number, the number of times the
-photon struck the vacuum chamber before absorption, the photon energy
-(in eV), and the photon intensity.
+photon struck the vacuum chamber (including the final hit where it is
+adsorbed), the photon energy (in eV), and the photon intensity.
 
 The photon intensity is always the same for all photons in a given
 run. If $N_{\gamma}$ is the total number of photons per beam particle
@@ -511,65 +511,87 @@ provided so that the photon hits can be sorted by magnetic environment
 \subsection{Photon Reflection File}
 
 
-If the switch \vn{reflect_file} is non-blank, an additional output
+If the switch \vn{wall_hit_file} is non-blank, an additional output
 file is generated, which contains more detailed information. An
-example of the output generated for 4 photons is shown below. (This
+example of the output is shown below. (This
 example is not for the same run as in the previous section).
 \begin{example}
-*********************************************
-       1       0    1.0000    0.0000    0.0000              0.031988    0.135670
-    0.045000    0.031988    0.000086    0.000031   70.549655    0.999488
  *********************************************
-       2       0    1.0000    0.0000    0.0000              0.031988    0.733201
-    0.045000    0.031988    0.001106    0.000393   70.549655    0.999488
-               -0.031988                0.000393                0.999488
+       1       0     825.0
+    0.000163   -0.001690   -0.000078    0.000084  761.691897    1.000000
  *********************************************
-       2       1    1.0000    0.0000    0.0000              0.022632    0.803131
-    0.045000    0.022632    0.003817    0.000393   77.441042    0.999744
-               -0.022632                0.000393                0.999744
+       1       1     825.0
+    0.044902    0.035208    0.001647    0.000084   13.729227    0.999381
+               -0.034247               -0.008171                0.999381
+    0.9930    0.1180    0.0000              0.034972    0.409532
  *********************************************
-       2       2    1.0000    0.0000    0.0000              0.022632    0.803131
-    0.045000    0.022632    0.005382    0.000393   81.419627    0.999744
-               -0.022632                0.000393                0.999744
+       2       0      59.0
+   -0.000135   -0.002640    0.000010    0.000995  761.701478    1.000000
  *********************************************
-       2       3    1.0000    0.0000    0.0000              0.026406    0.774138
-    0.045000    0.026406    0.007719    0.000393   87.361447    0.999651
+       2       1      59.0
+   -0.037269   -0.002640    0.014011    0.000995    7.332935    1.000000
+                0.000462               -0.002783                1.000000
+   -0.6345    0.7729    0.0000              0.002444    0.983416
  *********************************************
-       3       0    1.0000    0.0000    0.0000              0.031988    0.547595
-    0.045000    0.031988   -0.000434   -0.000154   70.549655    0.999488
-               -0.031988               -0.000154                0.999488
+       2       2      59.0
+    0.044491    0.037193   -0.003750   -0.002783   13.714673    0.999308
+               -0.033444                0.016510                0.999308
+    0.9647   -0.2635    0.0000              0.036612    0.766948
  *********************************************
-       3       1    1.0000    0.0000    0.0000              0.022632    0.691365
-    0.045000    0.022632   -0.001498   -0.000154   77.441042    0.999744
+       2       3      59.0
+   -0.008275   -0.030089    0.024574    0.016510   15.429119    0.999414
+               -0.026051               -0.022345                0.999414
+   -0.1034    0.9946    0.0000              0.019532    0.870489
  *********************************************
-       4       0    1.0000    0.0000    0.0000              0.031988    0.135670
-    0.045000    0.031988    0.000088    0.000031   70.549655    0.999488
+       2       4      59.0
+    0.010349    0.043049   -0.024330   -0.022345   17.617477    0.998827
+                0.035823                0.032699                0.998827
+    0.1302   -0.9915    0.0000              0.027758    0.819663
 \end{example}
 Individual entries are separated by a row of asterisks. Each entry
-corresponds to a photon striking the vacuum chamber. There may be one
-or more entries for each photon, depending on the number of times it
-strikes the vacuum chamber before being absorbed.
+corresponds to a photon striking the vacuum chamber except the
+``zeroth'' entry for a given photon gives the emission point
+parameters. There will be at least two entries for each photon.
 
-The first line in the first entry starts with two integers: the photon
-index, followed by the number of reflections. For the first entry for
-each photon, the number of reflections will always be zero. In the
-example shown, the next three real numbers are always 1.0, 0.0 and
-0.0. The following real number is $\cos{\theta_\perp}$, the angle
+The format of and entry is:
+\begin{example}
+  photon_index  wall_hit_index  photon_energy
+  x_before  v_x_before  y_before  v_y_before  s_before  v_s_before
+            v_x_after             v_y_after             v_s_after
+  perp_x   perp_y   perp_z        cos_perp    reflectivity
+\end{example}
+The \vn{photon_index} is the same index as in the main output file.
+The \vn{wall_hit_index} starts at 0 for the emission point entry and
+increases up to the value for \vn{n_wall_hits} in the main file.
+The \vn{photon_energy} will be the same as in the main file.
+
+The second line gives the 6-coordinate position of the photon as it
+strikes the chamber (same conventions as given in the previous
+section) except that the zeroth entry gives the emission point
+coordinates.
+
+Except for the zeroth entry, there is a third line and fourth
+line. The third line gives the values for $v_x, v_y, v_z$ after the
+reflection. For the last entry of a given photon, this line gives the
+values of $v_x, v_y, v_z$ that the photon would have had had it been
+reflected.
+
+The first three numbers on the fourth line give the orientation of the
+vector normal to the chamber surface at the hit point. The fourth number
+is $\cos{\theta_\perp}$, the angle
 relative to the surface normal with which the photon strikes the
-wall. The grazing angle is $\theta_g=\pi/2-\theta_\perp.$ The last
-real number in this line is the probability of reflection, computed
+wall. The grazing angle is $\theta_g=\pi/2-\theta_\perp$. The last
+real number on the fourth line is the probability of reflection, computed
 from the X-ray data for the given grazing angle and photon energy.
 
-The following line gives the 6-coordinate position of the photon when
-it strikes the chamber (same conventions as given in the previous
-section). If it is reflected, there is a third line which gives the
-new direction of the scattered photon ($v_x$ changes sign, but $v_y$
-and $v_s$ are unchanged, corresponding to specular reflection).
+If the photon is ``adsorbed'' due to reflections being disallowed, or
+the photon is adsorbed due to the photon hitting the antechamber when
+\vn{sr3d_params%stop_if_hit_antechamber} is set True, then the third
+and fourth lines will have zeros.
 
 In the example given above, the first photon is absorbed at the first
-encounter with the vacuum chamber. The second photon reflects 3 times,
-the third photon reflects once, and the fourth photon is absorbed
-immediately, like the first one.
+encounter with the vacuum chamber and the second photon is reflected 3
+times, before being adsorbed on the fourth hit.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
