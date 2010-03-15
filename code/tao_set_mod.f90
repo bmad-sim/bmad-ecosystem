@@ -160,7 +160,7 @@ subroutine tao_set_global_cmd (who, set_value)
 
 implicit none
 
-type (tao_global_struct) global
+type (tao_global_struct) global, old_global
 
 character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'
@@ -187,15 +187,21 @@ global = s%global  ! set defaults
 read (iu, nml = params, iostat = ios)
 close (iu)
 
-call tao_data_check (err)
-if (err) return
-
-if (ios == 0) then
-  s%global = global
-  if (trim(who) == 'track_type') s%u%lattice_recalc = .true.
-else
+if (ios /= 0) then
   call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+  return
 endif
+
+old_global = s%global  ! Save
+s%global = global
+
+call tao_data_check (err)
+if (err) then
+  s%global = old_global
+  return
+endif
+
+if (trim(who) == 'track_type') s%u%lattice_recalc = .true.
 
 end subroutine tao_set_global_cmd
 
@@ -397,38 +403,47 @@ end subroutine tao_set_beam_init_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Subroutine tao_set_plot_page_cmd (component, set_value)
+! Subroutine tao_set_plot_page_cmd (component, set_value, set_value2)
 !
 !  Set various aspects of the plotting window
 !
 ! Input:
 !   component     -- Character(*): Which component to set.
 !   set_value     -- Character(*): What value to set to.
+!   set_value2    -- Character(*): 2nd value if component is an array.
 !
 !  Output:
 !    s%plot_page  -- tao_plot_page_struct:
 !-
 
-subroutine tao_set_plot_page_cmd (component, set_value1, set_value2)
+subroutine tao_set_plot_page_cmd (component, set_value, set_value2)
 
 implicit none
 
-character(*) component, set_value1
+type (tao_plot_page_struct) plot_page
+
+character(*) component, set_value
 character(*), optional :: set_value2
 character(24) :: r_name = 'tao_set_plot_page_cmd'
 
 real(rp) x, y
-integer ix
+integer iu, ios
 logical error
+
+namelist / params / plot_page
+
+! Special cases
 
 select case (component)
 
 case ('title')
-  s%plot_page%title(1)%string = trim(set_value1)
+  s%plot_page%title(1)%string = trim(set_value)
+  return
 
 case ('subtitle')
-  s%plot_page%title(2)%string = trim(set_value1)
+  s%plot_page%title(2)%string = trim(set_value)
   s%plot_page%title(2)%draw_it = .true.
+  return
 
 case ('subtitle_loc')
 
@@ -437,40 +452,38 @@ case ('subtitle_loc')
     return
   endif
 
-  read(set_value1, '(f15.10)') x
+  read(set_value, '(f15.10)') x
   read(set_value2, '(f15.10)') y
   s%plot_page%title(2)%x = x
   s%plot_page%title(2)%y = y
-
-case ('shape_height_max')
-  call tao_real_set_value (s%plot_page%shape_height_max, component, set_value1, error)
-
-case ('text_height')
-  call tao_real_set_value (s%plot_page%text_height, component, set_value1, error)
-
-case ('main_title_text_scale')
-  call tao_real_set_value (s%plot_page%main_title_text_scale, component, set_value1, error)
-
-case ('graph_title_text_scale')
-  call tao_real_set_value (s%plot_page%graph_title_text_scale, component, set_value1, error)
-
-case ('axis_number_text_scale')
-  call tao_real_set_value (s%plot_page%axis_number_text_scale, component, set_value1, error)
-
-case ('axis_label_text_scale')
-  call tao_real_set_value (s%plot_page%axis_label_text_scale, component, set_value1, error)
-
-case ('legend_text_scale')
-  call tao_real_set_value (s%plot_page%legend_text_scale, component, set_value1, error)
-
-case ('key_table_text_scale')
-  call tao_real_set_value (s%plot_page%key_table_text_scale, component, set_value1, error)
-
-
-case default
-  call out_io (s_error$, r_name, 'PLOT COMPONENT NOT RECOGNIZED: ' // component)
+  return
 
 end select
+
+! For everything else...
+! open a scratch file for a namelist read
+
+iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+write (iu, *) '&params'
+write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(set_value)
+write (iu, *) '/'
+rewind (iu)
+plot_page = s%plot_page  ! set defaults
+read (iu, nml = params, iostat = ios)
+close (iu)
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+  return
+endif
+
+s%plot_page = plot_page
 
 end subroutine tao_set_plot_page_cmd
 

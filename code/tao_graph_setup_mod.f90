@@ -506,7 +506,7 @@ type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
 type (tao_var_struct), pointer :: v_ptr
-type (ele_struct), pointer :: ele, ele1, ele2
+type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (tao_data_var_component_struct), allocatable, save :: comp(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
@@ -797,7 +797,8 @@ do k = 1, size(graph%curve)
 
     ! Find how many symbol points there are
 
-    if (plot%x_axis_type == 'index' .or. plot%x_axis_type == 'ele_index') then
+    select case (plot%x_axis_type)
+    case ('index', 'ele_index')
       x_min = 1
       x_max = branch%n_ele_track
       if (graph%x%min /= graph%x%max) then
@@ -812,13 +813,65 @@ do k = 1, size(graph%curve)
         enddo
       endif
 
-    elseif (plot%x_axis_type == 's') then
-      call re_allocate_eles (eles, 0, exact = .true.)
+    case ('s')
+      ! Symbols are to be put at the ends of displayed elements in the lat_layout
+      eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
+      branch%ele%logic = .false.
 
-    else
+\      do i = 1, branch%n_ele_track
+        ele => branch%ele(i)
+        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, branch%n_ele_track, ix)
+        if (ix == 0) cycle
+        call find_element_ends (model_lat, ele, ele1, ele2)
+        ele1%logic = .true.
+        ele2%logic = .true.
+      enddo
+
+      do i = model_lat%n_ele_track+1, model_lat%n_ele_max
+        ele => model_lat%ele(i)
+        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, branch%n_ele_track, ix)
+        if (ix == 0) cycle
+        if (ele%control_type == multipass_lord$) then
+          do j = 1, ele%n_slave
+            slave => pointer_to_slave (model_lat, ele, j)
+            call find_element_ends (model_lat, slave, ele1, ele2)
+            ele1%logic = .true.
+            ele2%logic = .true.
+          enddo
+        else
+          call find_element_ends (model_lat, ele, ele1, ele2)
+          ele1%logic = .true.
+          ele2%logic = .true.
+        endif
+      enddo
+
+      do i = 1, branch%n_ele_max
+        ele => branch%ele(i)
+        if (.not. ele%logic) cycle
+        if (graph%x%min == graph%x%max) cycle
+        s0 = ele%s - ele%value(l$)
+        s1 = ele%s
+        in_graph = (s0 >= graph%x%min-eps) .and. (s1 <= graph%x%max+eps)
+        l_tot = branch%param%total_length
+        if (branch%param%lattice_type == circular_lattice$) in_graph = in_graph .or. &
+                        (s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps)
+        ele%logic = ele%logic .and. in_graph                                 
+      enddo
+      n_dat = count (branch%ele(:)%logic)
+
+      call re_allocate_eles (eles, n_dat, exact = .true.)
+      n = 0
+      do i = 1, branch%n_ele_max
+        ele => branch%ele(i)
+        if (.not. ele%logic) cycle
+        n = n + 1
+        eles(n)%ele => ele 
+      enddo      
+
+    case default
       call out_io (s_error$, r_name, 'BAD PLOT%X_AXIS_TYPE: ' // plot%x_axis_type)
       call err_exit
-    endif
+    end select
 
     call tao_curve_datum_calc (eles, curve, 'SYMBOL', valid)
     if (.not. valid) return
@@ -1312,15 +1365,18 @@ end subroutine
 !+
 ! Subroutine tao_curve_datum_calc (eles, curve, who, valid)
 !
+! Routine to calculate datum values. 
+! The values are calculated at the end of each eles(:)%ele element.
+!
 ! Input:
-!   eles(:)   -- ele_pointer_struct: Array of element indexes.
+!   eles(:)   -- ele_pointer_struct: Array of elements.
 !   curve     -- Tao_curve_struct:
 !   who       -- Character(*): Where to put the data. 
-!               Either: "SYMBOL" or "LINE".
+!                  Either: "SYMBOL" or "LINE".
 !
 ! Output:
-!   curve -- Tao_curve_struct: 
-!   valid -- Logical: 
+!   curve -- Tao_curve_struct: Structure holding the datum values
+!   valid -- Logical: Set True is OK. False otherwise.
 !-
 
 subroutine tao_curve_datum_calc (eles, curve, who, valid)
