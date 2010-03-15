@@ -55,7 +55,7 @@ contains
 subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
-use bookkeeper_mod, only: makeup_super_slave1, attribute_bookkeeper
+use bookkeeper_mod, only: create_element_slice, attribute_bookkeeper
 
 implicit none
 
@@ -185,10 +185,8 @@ do
 
     if (kill_it) then
       call kill_taylor (runt%taylor)
-      runt%value(l$) = ds
-      call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
+      call create_element_slice (runt, ele, ds, s_now-lat%ele(ix_ele-1)%s, &
                                               lat%param, track_entrance, track_exit)
-      call attribute_bookkeeper (runt, lat%param)
     endif
 
   endif
@@ -271,7 +269,7 @@ end subroutine
 
 subroutine mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)
 
-use bookkeeper_mod, only: makeup_super_slave1, attribute_bookkeeper
+use bookkeeper_mod, only: create_element_slice, attribute_bookkeeper
 
 implicit none
 
@@ -392,11 +390,8 @@ do
     endif
 
     if (kill_it) then
-      runt%value(l$) = ds
-      call makeup_super_slave1 (runt, ele, s_now-lat%ele(ix_ele-1)%s, &
+      call create_element_slice (runt, ele, ds, s_now-lat%ele(ix_ele-1)%s, &
                                             lat%param, track_entrance, track_exit)
-      call attribute_bookkeeper (runt, lat%param)
-
       call make_mat6 (runt, lat%param)
     endif
 

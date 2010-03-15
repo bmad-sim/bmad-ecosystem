@@ -49,7 +49,7 @@ subroutine twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, &
 
 use bmad_struct
 use bmad_interface, except_dummy => twiss_and_track_partial
-use bookkeeper_mod, only: attribute_bookkeeper, makeup_super_slave1
+use bookkeeper_mod, only: attribute_bookkeeper, create_element_slice
 
 implicit none
 
@@ -105,11 +105,7 @@ endif
 ! Create the runt element to track through.
 
 runt = ele_track
-runt%s = ele0%s + del_s
-runt%value(l$) = del_s
-call makeup_super_slave1 (runt, ele_track, 0.0_rp, param, track_entrance, .false.)
-! Need to do bookkeeping if auto_bookkeeper is off
-if (.not. bmad_com%auto_bookkeeper) call attribute_bookkeeper (runt, param)
+call create_element_slice (runt, ele_track, del_s, 0.0_rp, param, track_entrance, .false.)
 
 ! If not easy case then do tracking...
 

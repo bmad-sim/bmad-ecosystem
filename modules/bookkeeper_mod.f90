@@ -9,7 +9,7 @@ integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
 private control_bookkeeper1, makeup_overlay_and_girder_slave, super_lord_length_bookkeeper 
-private makeup_group_lord
+private makeup_group_lord, makeup_super_slave1
         
 contains
 
@@ -86,7 +86,7 @@ if (found) then
   call lat_geometry (lat)
 endif
 
-end subroutine
+end subroutine lattice_bookkeeper
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -187,7 +187,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
-end subroutine
+end subroutine control_bookkeeper
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -252,7 +252,7 @@ endif
 
 if (called_a_bookkeeper) call attribute_bookkeeper (ele, lat%param)
 
-end subroutine
+end subroutine control_bookkeeper1
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -512,7 +512,7 @@ if (length_adjustment_made) then
   enddo
 endif
 
-end subroutine
+end subroutine super_lord_length_bookkeeper
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -566,7 +566,7 @@ s_start_slave = slave%s - slave%value(l$)
 if (s_start_slave > s_start_lord + tot_len / 2) s_start_slave = s_start_slave - tot_len
 slave%value(l$) = slave%value(l$) + (s_start_slave - s_start_lord)
 
-end subroutine
+end subroutine adjust_super_lord_s_position
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -617,7 +617,7 @@ if (moved) then
   call lat_geometry (lat)
 endif
 
-end subroutine
+end subroutine makeup_group_lord
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -920,7 +920,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
   end select
 endif
 
-end subroutine
+end subroutine makeup_multipass_slave
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1422,8 +1422,58 @@ if (slave%field_master) then
   slave%field_master = .true.
 endif
 
+end subroutine makeup_super_slave
 
-end subroutine
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset,
+!                                                 param, at_entrance_end, at_exit_end)
+!
+! Routine to create an element that represents a longitudinal slice of the original element.
+! Note: This routine essentially only modified the sliced_ele%value array so 
+! before this routine is called, the set:
+!    sliced_ele = ele_in 
+! needs to be done.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele_in      -- Ele_struct: Original element to slice
+!   l_slice     -- Real(rp): Length of the slice
+!   offset      -- Real(rp): offset of entrance end of sliced_ele from entrance end of the ele.
+!   param       -- Lat_param_struct: lattice paramters.
+!   at_entrance_end -- Logical: Sliced_ele contains the ele's entrance end?
+!   at_exit_end     -- Logical: Sliced_ele contains the ele's exit end?
+!
+! Output:
+!   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
+!-
+
+subroutine create_element_slice (sliced_ele, ele, l_slice, offset, &
+                                                       param, at_entrance_end, at_exit_end)
+
+implicit none
+
+type (ele_struct), target :: sliced_ele, ele
+type (lat_param_struct) param
+
+real(rp) l_slice, offset
+
+logical at_entrance_end, at_exit_end
+
+character(24) :: r_name = 'create_element_slice'
+
+!
+
+sliced_ele%value(l$) = l_slice
+call makeup_super_slave1 (sliced_ele, ele, offset, param, at_entrance_end, at_exit_end)
+sliced_ele%s = ele%s - ele%value(l$) + offset + sliced_ele%value(l$)
+call attribute_bookkeeper (sliced_ele, param)
+
+end subroutine create_element_slice
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1481,8 +1531,6 @@ endif
 
 value = lord%value
 value(l$) = slave%value(l$)                 ! do not change slave length
-
-slave%s = lord%s - lord%value(l$) + offset + slave%value(l$)
 
 if (lord%key == wiggler$) then
   value(z_patch$) = slave%value(z_patch$)
@@ -1602,7 +1650,7 @@ if (slave%key == lcavity$) then
   endif
 endif
 
-end subroutine
+end subroutine makeup_super_slave1
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1645,7 +1693,7 @@ if (slave%aperture_at == no_end$) then
   value(y2_limit$) = 0
 endif
 
-end subroutine
+end subroutine compute_slave_aperture
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1685,7 +1733,7 @@ if (nint(slave%value(coupler_at$)) == no_end$) then
   value(coupler_strength$) = 0
 endif
 
-end subroutine
+end subroutine compute_slave_coupler
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1775,7 +1823,7 @@ if (.not. slave%on_a_girder) then
   slave%value(y_pitch_tot$)  = slave%value(y_pitch$)
 endif
 
-end subroutine
+end subroutine makeup_overlay_and_girder_slave 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2140,7 +2188,7 @@ endif
 
 ele%old_value = val
 
-end subroutine
+end subroutine attribute_bookkeeper
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2225,7 +2273,7 @@ if (ele%key == init_ele$) then
 
 endif
 
-end subroutine
+end subroutine changed_attribute_bookkeeper
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2328,7 +2376,7 @@ out_loop: do i = 1, lat_out%n_ele_max
 
 enddo out_loop
 
-end subroutine
+end subroutine transfer_lat_taylors
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -2411,6 +2459,6 @@ do i = 1, lat%n_ele_max
 
 enddo
 
-end subroutine
+end subroutine set_on_off
 
 end module

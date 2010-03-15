@@ -83,15 +83,11 @@ if (l_end == l_start .and. .not. (l_start == 0 .and. track_entrance)) then
 endif
 
 ! Construct a "runt" element to track through.
-! A superposition slave is a section of the lord element so makeup_super_slave1 
-! does the needed modification to the runt element.
 
 runt = ele
-runt%value(l$) = l_end - l_start
 do_entrance = (track_entrance .and. l_start == 0)
 do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_longitudinal_length)
-call makeup_super_slave1 (runt, ele, l_start, param, do_entrance, do_exit)
-call attribute_bookkeeper (runt, param)
+call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit)
 
 track = runt%tracking_method
 mat6  = runt%mat6_calc_method
