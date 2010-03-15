@@ -380,7 +380,11 @@ do  ! Loop over plot files
       curve(:)%ix_universe = -1
       curve(:)%ix_branch = 0
       curve(:)%draw_line = .true.
-      curve(:)%draw_symbols = .true.
+      if (plt%x_axis_type == 's') then
+        curve(:)%draw_symbols = .false.
+      else
+        curve(:)%draw_symbols = .true.
+      endif
       curve(:)%draw_symbol_index = .false.
       curve(:)%use_y2 = .false.
       curve(:)%symbol = default_symbol
@@ -828,6 +832,7 @@ grph%y2%draw_numbers = .false.
 grph%component     = 'model'
 crv => grph%curve(1)
 crv%data_source = 'lat'
+crv%draw_symbols = .false.
 crv%data_type = 'beta.a'
 
 grph => plt%graph(2)

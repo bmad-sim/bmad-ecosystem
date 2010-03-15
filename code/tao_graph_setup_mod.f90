@@ -518,7 +518,7 @@ real(rp), allocatable :: value(:)
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this
 
-logical err, smooth_curve, found, zero_average_phase, ok, ref_or_meas, valid
+logical err, smooth_curve, found, zero_average_phase, ok, ref_or_meas, valid, in_graph
 logical, allocatable, save :: good(:)
 
 character(60) data_type
@@ -795,7 +795,8 @@ do k = 1, size(graph%curve)
 
   case ('lat', 'beam')
 
-    ! Find how many symbol points there are
+    ! Find how many symbol points there are...
+    ! Here 'index' and 'ele_index' mean the same thing.
 
     select case (plot%x_axis_type)
     case ('index', 'ele_index')
@@ -813,25 +814,29 @@ do k = 1, size(graph%curve)
         enddo
       endif
 
+    ! x_axis_type == 's':
+
     case ('s')
       ! Symbols are to be put at the ends of displayed elements in the lat_layout
-      eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
-      branch%ele%logic = .false.
+      eps = 1e-4 * (graph%x%max - graph%x%min)       ! a small number
+      branch%ele%logic = .false.                     ! Mark if ele is in the graph
 
-\      do i = 1, branch%n_ele_track
+      ! Mark all eles in branch if they match a shape.
+      do i = 1, branch%n_ele_track
         ele => branch%ele(i)
-        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, branch%n_ele_track, ix)
+        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix)
         if (ix == 0) cycle
         call find_element_ends (model_lat, ele, ele1, ele2)
         ele1%logic = .true.
         ele2%logic = .true.
       enddo
 
+      ! Mark slaves of lord elements that match a shape.
       do i = model_lat%n_ele_track+1, model_lat%n_ele_max
         ele => model_lat%ele(i)
-        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, branch%n_ele_track, ix)
+        call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix)
         if (ix == 0) cycle
-        if (ele%control_type == multipass_lord$) then
+        if (ele%lord_status == multipass_lord$) then
           do j = 1, ele%n_slave
             slave => pointer_to_slave (model_lat, ele, j)
             call find_element_ends (model_lat, slave, ele1, ele2)
@@ -845,7 +850,8 @@ do k = 1, size(graph%curve)
         endif
       enddo
 
-      do i = 1, branch%n_ele_max
+      ! Now unmark all elements in the branch that are not within the graph boundries.
+      do i = 1, branch%n_ele_track
         ele => branch%ele(i)
         if (.not. ele%logic) cycle
         if (graph%x%min == graph%x%max) cycle
@@ -857,9 +863,11 @@ do k = 1, size(graph%curve)
                         (s0-l_tot >= graph%x%min-eps) .and. (s1-l_tot <= graph%x%max+eps)
         ele%logic = ele%logic .and. in_graph                                 
       enddo
-      n_dat = count (branch%ele(:)%logic)
 
+      ! Allocate eles(:) array and set the eles(:)%ele pointers to point to the marked elements.
+      n_dat = count (branch%ele(:)%logic)
       call re_allocate_eles (eles, n_dat, exact = .true.)
+
       n = 0
       do i = 1, branch%n_ele_max
         ele => branch%ele(i)
@@ -868,12 +876,14 @@ do k = 1, size(graph%curve)
         eles(n)%ele => ele 
       enddo      
 
+    ! Error for x_axis_type unrecognized.
+
     case default
       call out_io (s_error$, r_name, 'BAD PLOT%X_AXIS_TYPE: ' // plot%x_axis_type)
       call err_exit
     end select
 
-    call tao_curve_datum_calc (eles, curve, 'SYMBOL', valid)
+    call tao_curve_datum_calc (eles, plot, curve, 'SYMBOL', valid)
     if (.not. valid) return
 
   !----------------------------------------------------------------------------
@@ -986,7 +996,7 @@ do k = 1, size(graph%curve)
         endif
       enddo
 
-      call tao_curve_datum_calc (eles, curve, 'LINE', graph%valid)
+      call tao_curve_datum_calc (eles, plot, curve, 'LINE', graph%valid)
       if (.not. graph%valid) return
 
       do i = 1, size(curve%x_line)
@@ -1363,13 +1373,14 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_curve_datum_calc (eles, curve, who, valid)
+! Subroutine tao_curve_datum_calc (eles, plot, curve, who, valid)
 !
 ! Routine to calculate datum values. 
 ! The values are calculated at the end of each eles(:)%ele element.
 !
 ! Input:
 !   eles(:)   -- ele_pointer_struct: Array of elements.
+!   plot      -- Tao_plot_struct:
 !   curve     -- Tao_curve_struct:
 !   who       -- Character(*): Where to put the data. 
 !                  Either: "SYMBOL" or "LINE".
@@ -1379,10 +1390,11 @@ end subroutine
 !   valid -- Logical: Set True is OK. False otherwise.
 !-
 
-subroutine tao_curve_datum_calc (eles, curve, who, valid)
+subroutine tao_curve_datum_calc (eles, plot, curve, who, valid)
 
 implicit none
 
+type (tao_plot_struct) plot
 type (tao_curve_struct) curve
 type (tao_data_var_component_struct), allocatable, save :: comp(:)
 type (tao_universe_struct), pointer :: u
@@ -1477,10 +1489,15 @@ if (who == 'SYMBOL') then
   do i = 1, size(eles)
     if (.not. good(i)) cycle
     j = j + 1
-    curve%x_symb(j)  = eles(i)%ele%ix_ele
+    if (plot%x_axis_type == 's') then
+      curve%x_symb(j)  = eles(i)%ele%s
+    else  ! 'index' or 'ele_index'
+      curve%x_symb(j)  = eles(i)%ele%ix_ele
+    endif
+    curve%ix_symb(j) = eles(i)%ele%ix_ele
     curve%y_symb(j)  = y_value(i)
-    curve%ix_symb(j) = curve%x_symb(j)
   enddo
+
 else
   call re_allocate (curve%x_line, n_dat) ! allocate space for the data
   call re_allocate (curve%y_line, n_dat) ! allocate space for the data

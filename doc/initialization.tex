@@ -1484,7 +1484,7 @@ namelists should be placed directly after their respective
     curve(i)%use_y2              = <logical>  ! Use left-axis scale?
     curve(i)%draw_line           = <logical>  ! Connect data with lines?
     curve(i)%draw_symbols        = <logical>  ! Draw data symbols?
-    curve(i)%draw_symbol_index   = <logical>  ! Draw data symbols?
+    curve(i)%draw_symbol_index   = <logical>  ! Print data symbol index next to the data symbol?
     curve(i)%ix_universe         = <number>   ! Default = -1 => Use viewed universe
     curve(i)%ix_branch           = <number>   ! Default = 0  => Use main lattice.  
     curve(i)%ix_bunch            = <integer>  ! Bunch index. Default = 0 (all bunches).
@@ -1632,8 +1632,11 @@ symbol is the index of the datum or variable corresponding the symbol
 in the \vn{d1_data} or \vn{v1_var} array. These three numbers can be
 printed using the \vn{show curve -symbol} command (\sref{s:show}).
 \vn{curve%draw_symbol_index} determines whether the index number is
-printed besides the symbol. Use the \vn{set curve} command 
-(\sref{s:set}) to toggle the drawing of symbols.
+printed besides the symbol. Use the \vn{set curve} command
+(\sref{s:set}) to toggle the drawing of symbols. The default value for
+\vn{curve%draw_symbol} is False if \vn{plot%x_axis_type} is \vn{"s"}
+and True otherwise. The default\vn{curve%draw_symbol_index} is always
+False.
 
 \vn{curve%draw_line} determines whether a curve is drawn through the
 data point symbols. The thickness, style (solid, dashed, etc.), and
