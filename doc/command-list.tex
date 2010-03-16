@@ -743,6 +743,7 @@ variables, etc. Format:
   set global <component> = <value>
   set graph <graph> <component> = <value>
   set lattice \{n@\}<destination\_lat> = <source\_lat>
+  set opti_de_param <component> = <value>
   set plot <plot> <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
   set universe <what_universe> <on/off>
@@ -921,6 +922,17 @@ Example:
                                 !   the currently viewed universe.
 \end{example}
 
+%% set opti_de_param --------------------------------------------------------------
+
+\item[set opti_de_param <component> = <value>] \Newline
+For \vn{set opti_de_param}: The \vn{show global} command will give a list of 
+\vn{<component>}s.
+
+Example:
+\begin{example}
+  set opti_de_param binomial_cross = T  ! Use binomial corssovers 
+\end{example}
+
 %% set plot --------------------------------------------------------------
 
 \item[set plot <plot> <component> = <value>] \Newline
@@ -1048,7 +1060,7 @@ Format:
   show data \{<data_name>\} 
   show derivative <data_name(s)> <var_name(s)>
   show element \{-taylor\} \{-wig_terms\} \{-data\} \{-all_attributes\} <ele_name>
-  show global
+  show global \{-optimization\} \{-bmad_com\} \{-csr_param\}
   show graph <graph_name>
   show hom
   show key_bindings
@@ -1208,8 +1220,18 @@ Example:
 
 %% show global --------------------------------------------------------------
 
-\item[show global] \Newline
-Shows information on the global parameter structure (\sref{s:globals}).
+\item[show global \{-optimization\} \{-bmad_com\} \{-csr_param\}] \Newline
+The \vn{show global} command, used without any optional switches,
+shows information on the global parameter structure
+(\sref{s:globals}). The optional switches are
+  \begin{description}
+  \item[-optimization] \Newline
+Displays optimization parameters.
+  \item[-bmad_com] \Newline
+Displays \vn{bmad_com} compoents (\sref{s:globals}).
+  \item[-csr_param] \Newline
+Displays \vn{csr_param} compoents (\sref{s:globals}).
+  \end{description}
 
 %% show graph --------------------------------------------------------------
 

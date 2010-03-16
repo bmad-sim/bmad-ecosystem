@@ -295,28 +295,34 @@ optimizer initializes itself and goes through
 \vn{global%n_opti_cycles}, it is said to have gone through one
 \vn{loop}. After going through through \vn{global%n_opti_loops} loops,
 the optimizer will automatically stop.  To immediately stop the
-optimizer the period key \vn{``.''} may be pressed.
+optimizer the period key \vn{``.''} may be pressed. Note: In
+\vn{single_mode} (\sref{c:single}), \vn{n_opti_loops} is ignored and
+the optimizer will loop forever.
 
-There are currently three optimizers that can be used: \vn{lm} is an
-optimizer based upon the Levenburg-Marquardt algorithm as implemented
-in \vn{Numerical Recipes}\cite{b:nr}. This algorithm looks at the
-local derivative matrix of \vn{dData/dVariable} and takes steps in
-variable space accordingly. The derivative matrix is calculated
-beforehand by varying all the variables by an amount set by the
-variable's \vn{step} component (\sref{s:init.var}). The \vn{step} size
-should be chosen large enough so that round-off errors will not make
-computation of the derivatives inaccurate but the step size should not
-be so large that the derivatives are effected by nonlinearities. By
-default, the derivative matrix will be recalculated each \vn{loop} but
-this can be changed by setting the \vn{global%derivative_recalc}
-global parameter (\sref{s:globals}). The reason to not recalculate the
-derivative matrix is one of time.  However, if the calculated
-derivative matrix is not accurate (that is, if the variables have
-changed enough from the last time the matrix was calculated and the
-nonlinearities in the lattice are large enough), the \vn{lm} optimizer
-will not work very well.  In any case, this method will only find
-local minimum.
-
+There are currently three optimizers that can be used: 
+  \begin{description}
+  \index{lm optimizer}
+  \item{\vn{lm}} \Newline
+\vn{lm} is an optimizer based upon the Levenburg-Marquardt algorithm
+as implemented in \vn{Numerical Recipes}\cite{b:nr}. This algorithm
+looks at the local derivative matrix of \vn{dData/dVariable} and takes
+steps in variable space accordingly. The derivative matrix is
+calculated beforehand by varying all the variables by an amount set by
+the variable's \vn{step} component (\sref{s:init.var}). The \vn{step}
+size should be chosen large enough so that round-off errors will not
+make computation of the derivatives inaccurate but the step size
+should not be so large that the derivatives are effected by
+nonlinearities. By default, the derivative matrix will be recalculated
+each \vn{loop} but this can be changed by setting the
+\vn{global%derivative_recalc} global parameter (\sref{s:globals}). The
+reason to not recalculate the derivative matrix is one of time.
+However, if the calculated derivative matrix is not accurate (that is,
+if the variables have changed enough from the last time the matrix was
+calculated and the nonlinearities in the lattice are large enough),
+the \vn{lm} optimizer will not work very well.  In any case, this
+method will only find local minimum.
+  \index{lmdif optimizer}
+  \item{\vn{lmdif}} \Newline
 The \vn{lmdif} optimizer is like the \vn{lm} optimizer except that it
 builds up the information it needs on the derivative matrix by
 initially taking small steps over the first \vn{n} cycles where \vn{n}
@@ -325,27 +331,35 @@ have to set a \vn{step} size for the variables. The disadvantage is
 that for \vn{lmdif} to be useful, the number of \vn{cycles} must be
 greater than the number of variables. Again, like \vn{lm}, this method
 will only find local minimum.
-
-The third optimizer is called \vn{de} which stands for
-\vn{differential evolution}\cite{b:de}. The advantage of this
-optimizer is that it looks for global minimum. The disadvantage is
-that it is slow to find the bottom of a local minimum. A good strategy
-sometimes when trying to find a global minimum is to use \vn{de} in
-combination with \vn{lm} or \vn{lmdif} one after the other. One
-important parameter with the \vn{de} optimizer is the \vn{step}
-size. A larger step size means that the optimizer will tend to explore
-larger areas of variable space but the trade off is that this will make
-it harder to find minimum in the locally. One good strategy is to vary
-the \vn{step} size to see what is effective. Remember, the optimal
-step size will be different for different problems and for different
-starting points. The \vn{step} size that is appropriate of the \vn{de}
-optimizer will, in general, be different from the \vn{step} size for
-the \vn{lm} optimizer. For this reason, and to facilitate changing
-the step size, the actual step size used by the \vn{de} optimizer is
-the step size given by a variable's \vn{step} component multiplied by
-the global variable \vn{global%de_lm_step_ratio}. This global variable
-can be varied using the \vn{set} command (\sref{s:set}).
-
+  \index{de optimizer}
+  \item{\vn{de}} \Newline
+The \vn{de} optimizer stands for \vn{differential
+evolution}\cite{b:de}. The advantage of this optimizer is that it
+looks for global minimum. The disadvantage is that it is slow to find
+the bottom of a local minimum. A good strategy sometimes when trying
+to find a global minimum is to use \vn{de} in combination with \vn{lm}
+or \vn{lmdif} one after the other. One important parameter with the
+\vn{de} optimizer is the \vn{step} size. A larger step size means that
+the optimizer will tend to explore larger areas of variable space but
+the trade off is that this will make it harder to find minimum in the
+locally. One good strategy is to vary the \vn{step} size to see what
+is effective. Remember, the optimal step size will be different for
+different problems and for different starting points. The \vn{step}
+size that is appropriate of the \vn{de} optimizer will, in general, be
+different from the \vn{step} size for the \vn{lm} optimizer. For this
+reason, and to facilitate changing the step size, the actual step size
+used by the \vn{de} optimizer is the step size given by a variable's
+\vn{step} component multiplied by the global variable
+\vn{global%de_lm_step_ratio}. This global variable can be varied using
+the \vn{set} command (\sref{s:set}). The number of trial solutions used 
+in the optimization is
+\begin{example}
+  population = number_of_variables * global%de_var_to_population_factor
+\end{example}
+There are also a number of parameters that can be set that will affect
+how the optimizer works. See Section~\sref{s:globals} for more
+details.
+  \end{description}
 
 %------------------------------------------------------------------------
 \section{Common Base Lattice (CBL) Analysis}

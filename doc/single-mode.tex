@@ -1,6 +1,7 @@
 \chapter{Single Mode}\index{Single mode}
 \label{c:single}
 
+\index{single mode}
 \tao has two \vn{modes} for entering commands. In \vn{Single Mode},
 described in this chapter, each keystroke represents a command.  That
 is, the user does not have to press the carriage control key to signal
@@ -20,6 +21,7 @@ to get into \vn{single mode}. To go back to \vn{line mode} type
 \section{Key Bindings}\index{Key Bindings}
 \label{s:key.bind}
 
+\index{key bindings}
 The main purpose of Single Mode is to associate certain keys with
 certain variables so that the pressing of these keys will change their
 associated variable. This is called a \vn{key binding}. Key bindings
@@ -147,10 +149,11 @@ Zoom y-axis of plots by a factor of 0.5
 Show constraints.
 
 \item[g]
-Go run the default optimizer. The optimizer will run until you type a
-'.' (a period).  Periodically during the optimization the variable
-values will be written to files, one for each universe, whose name is
-\vn{tao_opt_vars\#.dat}. where \vn{\#} is the universe number.
+Go run the default optimizer (\sref{s:tao.opti}). The optimizer will
+run until you type a '.' (a period).  Periodically during the
+optimization the variable values will be written to files, one for
+each universe, whose name is \vn{tao_opt_vars\#.dat}. where \vn{\#} is
+the universe number.
 
 \item[v]
 Show Bmad variable values in bmad lattice format. See also the

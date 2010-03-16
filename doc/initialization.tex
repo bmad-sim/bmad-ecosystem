@@ -303,12 +303,13 @@ details.
 
 Global variables are initialized in the \vn{data_and_var_file} using a
 namelist block named \vn{tao_params} The syntax of this block is:
-\index{tao_params}\index{global}\index{bmad_com}\index{csr_param}
+\index{tao_params}\index{global}\index{bmad_com}\index{csr_param}\index{opti_de_param}
 \begin{example}
   &tao_params
-    global        = <tao_global_struct>     ! global parameters
-    bmad_com      = <bmad_com_struct>       ! Bmad global parameters
-    csr_param     = <csr_parameter_struct>  ! CSR global parameters
+    global        = <tao_global_struct>     ! global parameters.
+    bmad_com      = <bmad_com_struct>       ! Bmad global parameters.
+    csr_param     = <csr_parameter_struct>  ! CSR global parameters.
+    opti_de_param = <opti_de_param_struct>  ! de optimizer parameters.
   /
 \end{example}
 Example:
@@ -336,6 +337,7 @@ type tao_global_struct
   real(rp) y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
+  real(rp) de_var_to_population_factor = 5 
   real(rp) floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   integer u_view = 1                  ! Which universe we are viewing.
   integer n_opti_cycles = 20          ! number of optimization cycles
@@ -441,7 +443,7 @@ The \vn{bmad_com_struct} holds bmad global variables.
     logical spin_tracking_on = T           ! Do particle spin tracking
   end type
 \end{example}
-See the Bmad manual for more details.
+See the \bmad manual for more details.
 
 The \vn{csr_parameter_struct} holds global variables for the coherent
 synchrotron radiation calculations. 
@@ -463,7 +465,21 @@ synchrotron radiation calculations.
   end type
 \end{example}
 the \vn{global%track_type} must be set to \vn{"beam"} for the CSR computation.
-See the Bmad manual for more details.
+See the \bmad manual for more details.
+
+The \vn{opti_de_param_struct} holds parameters that influence the behavior
+of the \vn{de} optimizer (\sref{s:tao.opti})
+\begin{example}
+                         Default
+  real(rp) CR               0.8    ! Crossover Probability.
+  real(rp) F                0.8    !
+  real(rp) l_best           0.0    ! Percentage of best solution used.
+  logical  binomial_cross   False  ! IE: Default = Exponential.
+  logical  use_2nd_diff     False  ! use F * (x_4 - x_5) term
+  logical  randomize_F      False  !
+  logical  minimize_merit   True   ! F => maximize the Merit func.
+\end{example}
+See the \bmad manual for more details.
 
 If \vn{ix1_ele_csr} and \vn{ix2_ele_csr} are set, The effect of
 coherent synchrotron radiation is only included in tracking in the
