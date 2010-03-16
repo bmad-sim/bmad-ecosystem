@@ -1,9 +1,8 @@
-module opti_mod
+module opti_de_mod
 
 use precision_def
-use nr, only: indexx
 
-type opti_common_struct
+type opti_de_param_struct
   real(rp) :: CR = 0.8                    ! Crossover probability
   real(rp) :: F  = 0.8                    ! Mixing number
   real(rp) :: l_best = 0.0                ! Percentage of best vector.
@@ -13,7 +12,7 @@ type opti_common_struct
   logical :: minimize_merit = .true.      ! Alternative is to maximize.
 end type
 
-type (opti_common_struct), save :: opti_com
+type (opti_de_param_struct), save :: opti_de_param
 
 type solution_struct
   real(rp), pointer :: vec(:)
@@ -39,7 +38,7 @@ contains
 !
 ! The "perturbed vector" is
 !   v = x_1 + l_best * (x_best - x_1) + F * (x_2 - x_3) + F * (x_4 - x_5)
-! The last term F * (x_4 - x_5) is only used if opti_com%use_2nd_diff = T.
+! The last term F * (x_4 - x_5) is only used if opti_de_param%use_2nd_diff = T.
 !
 ! The crossover can be either "Exponential" or "Binary". 
 ! Exponential crossover is what is described in the paper.
@@ -52,17 +51,17 @@ contains
 ! the average number of crossovers is
 !     average crossovers = D * CR
 !
-! The parameters used for the DE are in opti_com:
+! The parameters used for the DE are in opti_de_param:
 !                           Default
-!   opti_com%CR               0.8    ! Crossover Probability.
-!   opti_com%F                0.8    !
-!   opti_com%l_best           0.0    ! Percentage of best solution used.
-!   opti_com%binomial_cross   False  ! IE: Default = Exponential.
-!   opti_com%use_2nd_diff     False  ! use F * (x_4 - x_5) term
-!   opti_com%randomize_F      False  ! 
-!   opti_com%minimize_merit   True   ! F => maximize the Merit func.
+!   opti_de_param%CR               0.8    ! Crossover Probability.
+!   opti_de_param%F                0.8    !
+!   opti_de_param%l_best           0.0    ! Percentage of best solution used.
+!   opti_de_param%binomial_cross   False  ! IE: Default = Exponential.
+!   opti_de_param%use_2nd_diff     False  ! use F * (x_4 - x_5) term
+!   opti_de_param%randomize_F      False  ! 
+!   opti_de_param%minimize_merit   True   ! F => maximize the Merit func.
 !
-! opti_com%randomize_F = True means that the F that is used for a given 
+! opti_de_param%randomize_F = True means that the F that is used for a given 
 ! generation  is randomly choisen to be within the range 
 ! [0, 2*F] with average F.
 !
@@ -95,6 +94,8 @@ contains
 
 function opti_de (v_best, generations, population, merit_func, &
                                               v_del, status) result (best_merit)
+use nr, only: indexx
+
 implicit none
 
 integer, intent(in) :: generations, population
@@ -140,7 +141,7 @@ if (population < 4) then
   call err_exit
 endif
 
-if (population < 6 .and. opti_com%use_2nd_diff) then
+if (population < 6 .and. opti_de_param%use_2nd_diff) then
   print *, 'ERROR IN OPTI_DE: POPULATION MUST BE AT LEAST 6 WITH'
   print *, '      USE_2ND_DIFF!', population
   call err_exit
@@ -152,7 +153,7 @@ status = 0
 iter_count = 0
 
 n_vec = 3
-if (opti_com%use_2nd_diff) n_vec = 5
+if (opti_de_param%use_2nd_diff) n_vec = 5
 
 ! Find the best of the initial population
 
@@ -171,7 +172,7 @@ do i = 1, population
 
   if (i == 1) then
     i_best = 1
-  elseif (opti_com%minimize_merit) then
+  elseif (opti_de_param%minimize_merit) then
     if (trial(i)%merit < best_merit) i_best = i
   else
     if (trial(i)%merit > best_merit) i_best = i
@@ -188,11 +189,11 @@ enddo
 
 do ng = 1, generations
 
-  if (opti_com%randomize_F) then
+  if (opti_de_param%randomize_F) then
     call random_number (r_ran)
-    F = 2 * opti_com%f * r_ran
+    F = 2 * opti_de_param%f * r_ran
   else
-    F = opti_com%f
+    F = opti_de_param%f
   endif
 
   ! i1, ... i5 gives the indexes for constructing the perturbed vector.
@@ -206,7 +207,7 @@ do ng = 1, generations
   call random_number (r_pop)
   call indexx (r_pop, i3)   ! i3 is a random permutation
 
-  if (opti_com%use_2nd_diff) then
+  if (opti_de_param%use_2nd_diff) then
     call random_number (r_pop)
     call indexx (r_pop, i4)   ! i4 is a random permutation
 
@@ -236,7 +237,7 @@ do ng = 1, generations
       if (p3 /= i .and. p3 /= p1 .and. p3 /= p2) exit
     enddo
 
-    if (opti_com%use_2nd_diff) then
+    if (opti_de_param%use_2nd_diff) then
 
       do k = 1, population
         kk = mod (k + i, population) + 1
@@ -257,25 +258,25 @@ do ng = 1, generations
 
     ! Construct the perturbed vector
 
-    v1 = trial(p1)%vec + opti_com%l_best * (v_best - trial(p1)%vec) + &
+    v1 = trial(p1)%vec + opti_de_param%l_best * (v_best - trial(p1)%vec) + &
                           F * (trial(p2)%vec - trial(p3)%vec)
-    if (opti_com%use_2nd_diff) v1 = v1 + &
+    if (opti_de_param%use_2nd_diff) v1 = v1 + &
                                   F * (trial(p4)%vec - trial(p5)%vec)
 
     ! Perform crossover
 
     v2 = trial(i)%vec
 
-    if (opti_com%binomial_cross) then
+    if (opti_de_param%binomial_cross) then
       call random_number (r_vec)
-      where (r_vec < opti_com%CR) v2 = v1
+      where (r_vec < opti_de_param%CR) v2 = v1
 
     else  ! exponential crossover
       call random_number(r_ran) 
       ii = r_ran * nd + 1
       do k = 1, nd
         call random_number(r_ran) 
-        if (r_ran > opti_com%CR) exit
+        if (r_ran > opti_de_param%CR) exit
         ii = mod(ii, nd) + 1
         v2(ii) = v1(ii)
         ii = ii + 1
@@ -289,7 +290,7 @@ do ng = 1, generations
 
     this_better_merit = .false.
     this_best_merit = .false.
-    if (opti_com%minimize_merit) then
+    if (opti_de_param%minimize_merit) then
       if (merit < trial(i)%merit) this_better_merit = .true.
       if (merit < best_merit) this_best_merit = .true.
     else
