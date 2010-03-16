@@ -40,7 +40,7 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`scp manual.html       dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
-`scp bmad-manual-*.pdf dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
-`scp bmad-manual-*.ps  dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
-`scp bmad-manual.pdf   dcs\@lnx209.lns.cornell.edu:/home/dcs/public_html/bmad`;
+`scp manual.html       ~/public_html/bmad`;
+`scp bmad-manual-*.pdf ~/public_html/bmad`;
+`scp bmad-manual-*.ps  ~/public_html/bmad`;
+`scp bmad-manual.pdf   ~/public_html/bmad`;
