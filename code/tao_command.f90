@@ -53,10 +53,10 @@ character(16) :: cmd_names(33) = [  &
     'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
     'pause       ', 'continue    ', 'wave        ']
 
-character(16) :: set_names(13) = [ &
-    'data        ', 'var         ', 'lattice     ', 'global      ', 'plot_page   ', &
-    'universe    ', 'curve       ', 'graph       ', 'beam_init   ', 'wave        ', &
-    'plot        ', 'bmad_com    ', 'elements    ']
+character(16) :: set_names(14) = [ &
+    'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
+    'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
+    'plot         ', 'bmad_com     ', 'elements     ', 'opti_de_param']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -458,17 +458,18 @@ case ('set')
 
   set_word = set_names(ix)
 
-  if ( (set_word == 'curve'     .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'data'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'wave'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'var'       .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'global'    .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'bmad_com'  .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'beam_init' .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'plot_page' .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'graph'     .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'plot'      .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'lattice'   .and. cmd_word(3) /= '=')) then
+  if ( (set_word == 'curve'          .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'data'           .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'wave'           .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'var'            .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'global'         .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'bmad_com'       .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'opti_de_param'  .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'beam_init'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'plot_page'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'graph'          .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'plot'           .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'lattice'        .and. cmd_word(3) /= '=')) then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
     return
   endif
@@ -489,6 +490,8 @@ case ('set')
     call tao_set_global_cmd (cmd_word(2), cmd_word(4))
   case ('bmad_com')
     call tao_set_bmad_com_cmd (cmd_word(2), cmd_word(4))
+  case ('opti_de_param')
+    call tao_set_opti_de_param_cmd (cmd_word(2), cmd_word(4))
   case ('beam_init')
     call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4))
   case ('plot_page')

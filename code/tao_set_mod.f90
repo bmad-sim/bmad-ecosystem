@@ -265,6 +265,55 @@ end subroutine tao_set_bmad_com_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_opti_de_param_cmd (who, set_value)
+!
+! Routine to set opti_de_param variables
+! 
+! Input:
+!   who       -- Character(*): which opti_de_param variable to set
+!   set_value -- Character(*): Value to set to.
+!-
+
+subroutine tao_set_opti_de_param_cmd (who, set_value)
+
+use opti_de_mod, only: opti_de_param
+
+implicit none
+
+character(*) who, set_value
+character(20) :: r_name = 'tao_set_opti_de_param_cmd'
+
+integer iu, ios
+logical err
+
+namelist / params / opti_de_param
+
+! open a scratch file for a namelist read
+
+iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+write (iu, *) '&params'
+write (iu, *) ' opti_de_param%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) '/'
+rewind (iu)
+read (iu, nml = params, iostat = ios)
+close (iu)
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+endif
+
+end subroutine tao_set_opti_de_param_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_wave_cmd (who, set_value, err)
 !
 ! Routine to set wave variables

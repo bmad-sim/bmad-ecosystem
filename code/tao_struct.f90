@@ -472,10 +472,12 @@ type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
+  real(rp) :: de_var_to_population_factor = 5 
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_finish = 1           ! Merit value below which an optimizer will stop.
   real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+  real(rp) :: random_sigma_cutoff = 4    ! cut-off in sigmas.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
@@ -484,7 +486,6 @@ type tao_global_struct
   integer :: n_curve_pts = -1            ! For backward compatability
   integer :: random_seed = 0             ! Use system clock by default
   integer :: n_top10 = 10                ! Number of top constraints to print.
-  real(rp) :: random_sigma_cutoff = 4    ! cut-off in sigmas.
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
   character(16) :: track_type    = 'single'         ! or 'beam'  

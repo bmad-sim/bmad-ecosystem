@@ -19,7 +19,7 @@ subroutine tao_de_optimizer (abort)
 use tao_mod
 use tao_top10_mod
 use tao_var_mod
-use opti_mod
+use opti_de_mod
 
 implicit none
 

@@ -26,7 +26,8 @@ subroutine tao_init_global (init_file)
 !use bmad_parser_mod
 use random_mod
 use csr_mod, only: csr_param
-  
+use opti_de_mod, only: opti_de_param
+
 implicit none
 
 type (tao_global_struct), save :: global, default_global
@@ -46,7 +47,7 @@ character(100) line
 logical err
 logical, save :: init_needed = .true.
 
-namelist / tao_params / global, bmad_com, csr_param, &
+namelist / tao_params / global, bmad_com, csr_param, opti_de_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
 !-----------------------------------------------------------------------
