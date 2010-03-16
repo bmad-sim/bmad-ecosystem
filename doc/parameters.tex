@@ -5,18 +5,18 @@ calculations that \bmad performs. A given program may give the user
 access to some of these parameters so, in order to allow the intelligent
 setting of these parameters, this chapter gives an in-depth description.
 
-A set of parameters are grouped that affect a particular type
-of calculation are grouped into \vn{``structures''}. Each structure
-has a \vn{``structure name''} (also called a \vn{``type name''}) which identifies
-the list of parameters in the structure. 
-Additionally, there will be an
-\vn{``instance name''} which is what the user uses to refer to this
-\vn{structure}. For global parameters there will be a unique instance name.
-For non-global parameters the instance name will be program specific. 
-It is possible to have multiple instance names. For example, in the situation
-where a program is simulating multiple particle beams, there could be
-multiple \vn{beam_init_struct} (\sref{s:beam.init}) instances. 
-To refer to a particular parameter use the syntax
+A set of parameters are grouped that affect a particular type of
+calculation are grouped into \vn{``structures''}. Each structure has a
+\vn{``structure name''} (also called a \vn{``type name''}) which
+identifies the list of parameters in the structure.  Additionally,
+there will be an \vn{``instance name''} which is what the user uses to
+refer to this \vn{structure}. For global parameters there will be a
+unique instance name.  For non-global parameters, the instance name
+will be program specific.  It is possible to have multiple instance
+names. For example, in the situation where a program is simulating
+multiple particle beams, there could be multiple \vn{beam_init_struct}
+(\sref{s:beam.init}) instances.  To refer to a particular parameter
+use the syntax
 \begin{example}
   instance_name%parameter_name
 \end{example}
@@ -145,7 +145,7 @@ of random numbers in the interval [0, 1]. \vn{"pseudo"} is a pseudo random
 number generator and "quasi" is a quasi random generator. "quasi random" is
 a misnomer in that the distribution generated is fairly uniform.
   \item[\%random_gauss_converter, \%random_sigma_cutoff] \Newline
-To generate Gaussian random numbers, a conversion alogorithm from the 
+To generate Gaussian random numbers, a conversion algorithm from the 
 flat distribution generated according to \vn{%random_engine} is needed.
 \vn{%random_gauss_converter} selects the algorithm. The \vn{"exact"} conversion
 uses an exact conversion. The \vn{"limited"} limits the maximum sigma generated
@@ -229,7 +229,7 @@ Here the number of particle is $300 \times 600$. Notice that when
 %-----------------------------------------------------------------
 \section{CSR Parameters}
 \label{s:csr.params}
-\index{CSR parameters|hyperbf}
+\index{csr parameters|hyperbf}
 
 The Coherent Synchrotron Radiation (CSR) calculation is discussed in
 Section~\sref{s:csr}. Besides the parameters discussed below, the
@@ -304,3 +304,43 @@ does not have any affect.
 is used in the calculation. This is generally an excellent
 approximation.
 
+%-----------------------------------------------------------------
+\section{DE Optimizer Parameters}
+\label{s:de.params}
+\index{de optimizer parameters|hyperbf}
+
+The Differential Evolution (\vn{DE}) optimizer is used in nonlinear
+optimization problems. This optimizer is based upon the work of Storn
+and Price\cite{b:de}. There are a number of parameters that can be
+varied to vary how the optimizer works. These parameters are are
+contained in a structure named \vn{opti_de_param_struct}. the instance
+name is \vn{opti_de_param}.  This structure has components
+\begin{example}
+                         Default
+  real(rp) CR               0.8    ! Crossover Probability.
+  real(rp) F                0.8    !
+  real(rp) l_best           0.0    ! Percentage of best solution used.
+  logical  binomial_cross   False  ! IE: Default = Exponential.
+  logical  use_2nd_diff     False  ! use F * (x_4 - x_5) term
+  logical  randomize_F      False  !
+  logical  minimize_merit   True   ! F => maximize the Merit func.
+\end{example}
+
+The "perturbed vector" is
+  v = x_1 + l_best * (x_best - x_1) + F * (x_2 - x_3) + F * (x_4 - x_5)
+The last term F * (x_4 - x_5) is only used if \vn{use_2nd_diff} = T.
+
+The crossover can be either "Exponential" or "Binary". 
+Exponential crossover is what is described in the paper.
+With Exponential crossover the crossover parameters from a contiguous block
+and the average number of crossover parameters is approximately
+    average crossovers $\sim$ min(D, CR / (1 - CR))
+where D is the total number of parameters.
+With Binary crossover the probability of crossover of a parameter is 
+uncorrelated with the probability of crossover of any other parameter and
+the average number of crossovers is
+    average crossovers = D * CR
+
+\vn{randomize_F} = True means that the F that is used for a given 
+generation  is randomly chosen to be within the range 
+[0, 2*F] with average F.

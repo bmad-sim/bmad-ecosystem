@@ -182,6 +182,7 @@ do
     call remove_eles_from_lat (lat)
     i = i - 1
     if (ix2_split > i) ix2_split = ix2_split - 1
+    if (ix1_split > i) ix1_split = ix1_split - 1
   endif
   if (i == ix2_split) exit
 enddo
