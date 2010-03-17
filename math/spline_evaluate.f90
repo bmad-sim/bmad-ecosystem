@@ -19,8 +19,6 @@
 !   The point x must lie between spline(1)%x and spline(max)%x
 !-
 
-#include "CESR_platform.inc"
-
 subroutine spline_evaluate (spline, x, ok, y, dy)
 
   use sim_utils, except => spline_evaluate

@@ -1,5 +1,5 @@
 !+
-! Subroutine spline_akima (spline, stat)
+! Subroutine spline_akima (spline, ok)
 !
 ! Given a set of (x,y) points we want to interpolate between the points.
 ! This subroutine computes the semi-hermite cubic spline developed by 
@@ -22,12 +22,9 @@
 ! Output:
 !   spline(:) -- Spline_struct:
 !     %coef(0:3)  -- Spline coefficients at a point.
-!   stat      -- Logical: Set .false. if something is wrong (like less than 2
-!                    points used).
+!   ok        -- Logical: Set .false. if something is wrong (like less than 2 points used).
 !
 !-
-
-#include "CESR_platform.inc"
 
 subroutine spline_akima (spline, ok)
 
