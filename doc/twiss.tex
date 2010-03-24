@@ -111,23 +111,18 @@ may be used (\sref{s:beginning})
   if (lat%param%lattice_type == circular_lattice$) call twiss_at_start(lat)
 \end{example}
 In either case, the initial Twiss parameters are placed in \vn{lat%ele(0)}. 
-The tune is placed in the variables:
-\begin{example}
-  type (lat_struct) lat 
-  lat%a%tune     ! a-mode tune
-  lat%b%tune     ! b-mode tune
-\end{example}
+The tune is placed in the variables \vn{lat%a%tune} and \vn{lat%b%tune).
 
-
-To propagate the Twiss, coupling and dispersion 
-parameters from the start of the lattice to the end, the routine
-\Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used. This
-routine works by repeated calls to 
-\Hyperref{r:twiss.propagate1}{twiss_propagate1} which does
-a single propagation from one element to another. The Twiss propagation
-depends upon the transfer matrices having already computed (\sref{c:tracking}).
-\vn{twiss_propagate_all} also computes the twiss parameters for all the
-lattice branches.
+To propagate the Twiss, coupling and dispersion parameters from the
+start of the lattice to the end, the routine,
+\Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be
+used. This routine works by repeated calls to
+\Hyperref{r:twiss.propagate1}{twiss_propagate1} which does a single
+propagation from one element to another. The Twiss propagation depends
+upon the transfer matrices having already computed
+(\sref{c:tracking}).  \vn{twiss_propagate_all} also computes the twiss
+parameters for all the lattice branches. Note: Currently,
+\vn{twiss_at_start} only works with the main lattice branch.
 
 Before any Twiss parameters can be calculated, the transfer matrices
 stored in the lattice elements must be computed. 
@@ -143,9 +138,9 @@ a different orbit needs to be used for the reference, The routine
   call lat_make_mat6 (lat, -1, orbit)
 \end{example}
 This example reads in a lattice, finds the closed orbit which may be
-non--zero due to, say, kicks due to a separator, and then remakes the
-transfer matrices, which are stored in \vn{lat%ele(i)%mat6}, around
-the closed orbit.
+non--zero due to, say, non-zero kickers or quadrupole offsets, and
+then remakes the transfer matrices, which are stored in
+\vn{lat%ele(i)%mat6}, around the closed orbit.
 
 Once the starting Twiss parameters are set,
 \Hyperref{r:twiss.propagate.all}{twiss_propagate_all} can be used to

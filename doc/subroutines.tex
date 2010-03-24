@@ -1108,9 +1108,11 @@ This routine uses the mrqmin nonlinear optimizer to vary the parameters in the w
 Routine to Insert a new element into the tracking part of the 
 lat structure. 
 
-\index[routine]{makeup_super_slave1}
-\label{r:makeup.super.slave1}
-\item[makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)] \Newline 
+\index[routine]{create_element_slice}
+\label{r:create.element.slice}
+\item[\protect\parbox{6in}{
+    create_element_slice (sliced_ele, ele_in, l_slice, offset, \\
+    \hspace*{2in} param, at_entrance_end, at_exit_end)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
 

@@ -1,5 +1,5 @@
 !+
-! Subroutine ele_at_s (lat, s, ix_ele)
+! Subroutine ele_at_s (lat, s, ix_ele, ix_branch)
 !
 ! Subroutine to return the index of the element at position s.
 ! That is, ix_ele is choisen such that:
@@ -13,56 +13,61 @@
 !   use bmad
 !
 ! Input:
-!   lat -- lat_struct: Lattice of elements.
-!   s   -- Real(rp): Longitudinal position.
+!   lat       -- lat_struct: Lattice of elements.
+!   s         -- Real(rp): Longitudinal position.
+!   ix_branch -- Integer, optional: Branch index. Default is 0.
 !
 ! Output:
 !   ix_ele -- Integer: Index of element at s.
 !-
 
-subroutine ele_at_s (lat, s, ix_ele)
+subroutine ele_at_s (lat, s, ix_ele, ix_branch)
 
   use bmad, except_dummy => ele_at_s
 
   implicit none
 
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
+  type (branch_struct), pointer :: branch
+
   real(rp) s, ss, ll
   integer ix_ele, n1, n2, n3
+  integer, optional :: ix_branch
   character(16) :: r_name = 'ele_at_s'
 
 !
 
-  ll = lat%param%total_length
+branch => lat%branch(integer_option(0, ix_branch))
+ll = branch%param%total_length
 
-  if (lat%param%lattice_type == circular_lattice$) then
-    ss = s - ll * floor((s-lat%ele(0)%s)/ll)
-  else
-    ss = s
-    if (s < lat%ele(0)%s .or. s > lat%ele(lat%n_ele_track)%s) then
-      call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
-      call err_exit
-    endif
+if (branch%param%lattice_type == circular_lattice$) then
+  ss = s - ll * floor((s-branch%ele(0)%s)/ll)
+else
+  ss = s
+  if (s < branch%ele(0)%s .or. s > branch%ele(branch%n_ele_track)%s) then
+    call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
+    call err_exit
+  endif
+endif
+
+n1 = 0
+n3 = branch%n_ele_track
+
+do
+
+  if (n3 == n1 + 1) then
+    ix_ele = n3
+    return
   endif
 
-  n1 = 0
-  n3 = lat%n_ele_track
+  n2 = (n1 + n3) / 2
 
-  do
+  if (ss < branch%ele(n2)%s) then
+    n3 = n2
+  else
+    n1 = n2
+  endif
 
-    if (n3 == n1 + 1) then
-      ix_ele = n3
-      return
-    endif
-
-    n2 = (n1 + n3) / 2
-
-    if (ss < lat%ele(n2)%s) then
-      n3 = n2
-    else
-      n1 = n2
-    endif
-
-  enddo
+enddo
 
 end subroutine

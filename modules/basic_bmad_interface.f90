@@ -279,12 +279,13 @@ interface
 end interface
 
 interface
-  subroutine ele_at_s (lat, s, ix_ele)
+  subroutine ele_at_s (lat, s, ix_ele, ix_branch)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct) lat
     real(rp) s
     integer ix_ele
+    integer, optional :: ix_branch
   end subroutine
 end interface
 
