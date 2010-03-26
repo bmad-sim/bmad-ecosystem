@@ -18,7 +18,7 @@
 !   i5b  -- Real(rp): b mode i5 integral
 !-
 
-subroutine emit_calc_custom
+subroutine emit_calc_custom ()
 
   print *, 'ERROR IN EMIT_CALC_CUSTOM: THIS DUMMY ROUTINE SHOULD NOT HAVE'
   print *, '      BEEN CALLED IN THE FIRST PLACE.'

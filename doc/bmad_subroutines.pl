@@ -279,17 +279,50 @@ $pl_hash{"add_ampersand"} = "f77_to_f90.f90";
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html
 
+    #$name =~ s/protect\\parbox\{6in\}\{//;
+    #$name =~ tr/A-Z/a-z/;    # lowercase
+    #$name =~ s/\\//g;       # remove "\"
+    #chomp $name;
+
 $tex_file =  'subroutines.tex';
 open (F_IN, $tex_file) || die ("Cannot open File: $tex_file");
 
 while (<F_IN>) {
   if (/\\index\[routine\]\{(.*?)\}/i)  {      # match to "\index[routine]{...}" 
     $name = $1;
-    $name =~ s/protect\\parbox\{6in\}\{//;
-    $name =~ tr/A-Z/a-z/;    # lowercase
-    $name =~ s/\\//g;       # remove "\"
-    chomp $name;
-    if (! exists $tex_hash{$name}) { $tex_hash{$name} = $name; }
+    if (exists $tex_hash{$name}) {next;}
+
+    $_ = <F_IN>;
+    if (!/\\item/) {$_ = <F_IN>;}
+    if (!/\\item/) {
+      print "No item for: $name\n";
+      $tex_hash{$name} = $name;
+      next;
+    }
+
+    while () {
+      if (/\(/) {last;}  # Next line if no "("
+      $_ = <F_IN>;
+    }
+    $arg_list = $_;
+    $arg_list =~ s/.*?\(//;  # Strip off "...("
+    chomp $arg_list;
+
+    while () {
+      if ($arg_list =~ /\)/) {   # If matches ")"
+        $arg_list =~ s/\).*//;   # String ")..."
+        last;
+      }
+      $_ = <F_IN>;
+      $arg_list = $arg_list . $_;
+      chomp $arg_list;
+    }
+
+    $arg_list =~ s/\\\\//g;           # Remove "\\"
+    $arg_list =~ s/\\hspace.+?\}//g;  # Remove "\hspace{...}"
+    $arg_list =~ s/ {2,}/ /g;         # Multiple space to single space
+    $tex_hash{$name} = $arg_list;
+    ## print "$arg_list\n";
   }
 }
 
@@ -344,6 +377,22 @@ while (($key, $val) = each %pl_hash) {
 }
 
 #---------------------------------------------------------
+# Compare arg lists.
+
+print "\n---------------------------------------------------\n";
+print "Arg lists that are different in bmad and in subroutines.tex:\n\n";
+
+while (($key, $f90_val) = each %f90_hash) {
+  if (!exists $tex_hash{$key}) {next;}
+  $tex_val = $tex_hash{$key};
+  if ($tex_val eq $f90_val) {next;}
+  printf "\n";
+  printf "$key\n";
+  printf "    f90: $f90_val\n";
+  printf "    tex: $tex_val\n";
+}
+
+#---------------------------------------------------------
 #---------------------------------------------------------
 #---------------------------------------------------------
 
@@ -365,7 +414,7 @@ sub searchit {
       }
     }
 
-# Look for "! subroutine ..." after "!+" to get description.
+    # Look for "! subroutine ..." after "!+" to get description.
 
     if ($old =~ /^\!\+/) {
       if (/^\! *subroutine */i || /^\! *function */i) {
@@ -398,7 +447,7 @@ sub searchit {
       }
     }
 
-# Look for "subroutine ..." to get name list.
+    # Look for "subroutine ..." to get name list.
 
     if (/^\s*subroutine /i || /^\s*recursive *subroutine /i || 
         /^\s*function /i   || /^\s*recursive *function /i || 
@@ -410,8 +459,27 @@ sub searchit {
       $name =~ s/ +$//;        # strip off trailing blank if no arg list
       $name =~ tr/A-Z/a-z/; #lowercase
       chomp $name;
+
+      if (/\((.*)/) {
+        $arg_list = $1;
+        while () {
+          if ($arg_list =~ /\)/) {   # If matches ")"
+            $arg_list =~ s/\).*//;   # String ")..."
+            last;
+          }
+          $_ = <F_IN>;
+          $arg_list = $arg_list . $_;
+          chomp $arg_list;
+        }
+      } else {
+        $arg_list = "";
+      }
+
+      $arg_list =~ s/\&//g;           # Remove "&"
+      $arg_list =~ s/ {2,}/ /g;         # Multiple space to single space
+        
       # print "Hashed: $name\n";
-     if (! exists $f90_hash{$name}) { $f90_hash{$name} = $file; }
+     if (! exists $f90_hash{$name}) { $f90_hash{$name} = $arg_list; }
 
       # skip rest of routine including contained routines
 

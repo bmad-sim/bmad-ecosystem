@@ -392,7 +392,7 @@ kicked particle.
 
 \index[routine]{d_calc_csr}
 \label{r:d.calc.csr}
-\item[d_calc_csr (dz_particles, val, bin) result (d_this)] \Newline 
+\item[d_calc_csr (dz_particles, k_factor, bin, small_angle_approx) result (d_this)] \Newline 
 Routine to calculate the distance between source and kick points.
 
 \end{description}
@@ -468,7 +468,7 @@ element.
 
 \index[routine]{append_subdirectory}
 \label{r:append.subdirectory}
-\item[append_subdirectory (dir, sub_dir, dir_out)] \Newline 
+\item[append_subdirectory (dir, sub_dir, dir_out, err)] \Newline 
 Routine to combine a directory specification with a 
 subdirectory specification to form a complete directory
 
@@ -755,7 +755,7 @@ optional real.
 
 \index[routine]{string_option}
 \label{r:string.option}
-\item[string_option (string_default, opt_string)] \Newline 
+\item[string_option (string_out, string_default, opt_string)] \Newline 
 Routine to retrun True or False depending upon the state of an 
 optional string.
 
@@ -1009,7 +1009,7 @@ name known to bmad.
 \label{r:pointer.to.indexed.attribute}
 \item[\protect\parbox{6in}{
   pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, \\
-  \hspace*{1in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
+  \hspace*{2in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
 Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
 
 \index[routine]{pointer_to_lord}
@@ -1092,7 +1092,7 @@ Routine to create a group control element.
 
 \index[routine]{create_overlay}
 \label{r:create.overlay}
-\item[create_overlay (lat, ix_overlay, attrib_name, , contl)] \Newline
+\item[create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)] \Newline
 Routine to add the controller information to slave elements of an 
 overlay_lord. 
 
@@ -1111,7 +1111,7 @@ lat structure.
 \index[routine]{create_element_slice}
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
-    create_element_slice (sliced_ele, ele_in, l_slice, offset, \\
+    create_element_slice (sliced_ele, ele, l_slice, offset, \\
     \hspace*{2in} param, at_entrance_end, at_exit_end)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
@@ -1130,7 +1130,7 @@ Routine to create a new control element.
 \label{r:pointer.to.attribute}
 \item[\protect\parbox{6in}{
   pointer_to_attribute (ele, attrib_name, do_allocation, \\
-  \hspace*{2in} ptr_attrib, ix_attrib, err_flag, err_print_flag)}] \Newline
+  \hspace*{2in} ptr_attrib, err_flag, err_print_flag, ix_attrib)}] \Newline
 Returns a pointer to an attribute of an element with name attrib_name. 
 
 \index[routine]{pointers_to_attribute}
@@ -1403,12 +1403,12 @@ Routine to zero the offsets, pitches and tilt of an element.
 
 \index[routine]{cross_product}
 \label{r:cross.product}
-\item[cross_product (vec1, vec2)] \Newline 
-Returns the cross product of vec1 x vec2
+\item[cross_product (a, b)] \Newline 
+Returns the cross product of a x b
 
 \index[routine]{c_multi}
 \label{r:c.multi}
-\item[c_multi (n, m)] \Newline
+\item[c_multi (n, m, no_n_fact)] \Newline
 Routine to compute multipole factors: 
 c_multi(n, m) = +/- ("n choose m")/n! 
 
@@ -1484,7 +1484,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 
 \index[routine]{bmad_to_mad_or_xsif}
 \label{r:bmad.to.mad.or.xsif}
-\item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, file_name, lat, use_matrix_model, \\
+\item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, old_file_name, lat, use_matrix_model, \\
   \hspace*{2in} ix_start, ix_end, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
@@ -1544,7 +1544,7 @@ Routine to compute Cbar from the C matrix and the Twiss parameters.
 
 \index[routine]{cbar_to_c}
 \label{r:cbar.to.c}
-\item[cbar_to_c (cbar_mat, ele)] \Newline
+\item[cbar_to_c (cbar_mat, a, b, c_mat)] \Newline
 Routine to compute C coupling matrix from the Cbar matrix and the Twiss parameters. 
 
 \index[routine]{clear_lat_1turn_mats}
@@ -1565,7 +1565,7 @@ Routine to mode flip the Twiss parameters of an element
 
 \index[routine]{make_g2_mats}
 \label{r:make.g2.mats}
-\item[make_g2_mats (twiss, g_mat, g_inv_mat)] \Newline
+\item[make_g2_mats (twiss, g2_mat, g2_inv_mat)] \Newline
 Routine to make the matrices needed to go from normal mode coords to 
 coordinates with the beta function removed. 
 
@@ -1621,7 +1621,7 @@ at the end of an element.
 
 \index[routine]{lat_make_mat6}
 \label{r:lat.make.mat6}
-\item[lat_make_mat6 (lat, ix_ele, coord, ix_branch)] \Newline
+\item[lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch)] \Newline
 Routine to make the 6x6 linear transfer matrix for an element 
 
 \index[routine]{taylor_to_mat6}
@@ -1670,7 +1670,7 @@ Routine to calculate a drift transfer matrix with a possible kick.
 
 \index[routine]{mat6_dispersion}
 \label{r:mat6.dispersion}
-\item[mat6_dispersion (mat6, e_vec)] \Newline
+\item[mat6_dispersion (m_i6, mat6)] \Newline
 Routine to put the dispersion into ele\%mat6 given the dispersion vector E_VEC 
 
 \index[routine]{sol_quad_mat6_calc}
@@ -1799,7 +1799,7 @@ Routine to initialize the multipole arrays within an element.
 
 \index[routine]{multipole_kick}
 \label{r:multipole.kick}
-\item[multipole_kick (knl, tilt, n, coord)] \Newline
+\item[multipole_kick (knl, tilt, n, coord, ref_orb_offset)] \Newline
 Routine to put in the kick due to a multipole. 
 
 \index[routine]{multipole_kt_to_ab}
@@ -2140,7 +2140,7 @@ The higher the score the nicer.
 
 \index[routine]{qp_calc_and_set_axis}
 \item[\protect\parbox{6in}{
-    qp_calc_and_set_axis (axis, data_min, data_max, div_min, div_max, \\
+    qp_calc_and_set_axis (axis_str, data_min, data_max, div_min, div_max, \\
     \hspace*{2in} bounds, axis_type, slop_factor)}] \Newline
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
@@ -2289,7 +2289,7 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index[routine]{qp_draw_symbol}
 \label{r:qp.draw.symbol}
-\item[qp_draw_symbol (x, y, units, type, height, color, fill, line_width, clip)] \Newline 
+\item[qp_draw_symbol (x, y, units, type, height, color, fill_pattern, line_width, clip)] \Newline 
      Draws a symbol at (x, y) 
 
 \index[routine]{qp_draw_symbols}
@@ -2300,7 +2300,9 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index[routine]{qp_draw_text}
 \label{r:qp.draw.text}
-\item[qp_draw_text (text, x, y, units, justify, height, color, angle, ...)] \Newline 
+\item[\protect\parbox{6in}{
+  qp_draw_text (text, x, y, units, justify, height, color, angle, \\
+  \hspace*{2in} background, uniform_spacing, spacing_factor) }] \Newline 
      Routine to draw text.
 
 \index[routine]{qp_draw_text_no_set}
@@ -2389,7 +2391,9 @@ This routine can be used in place of qp_set_margin.
 
 \index[routine]{qp_set_layout}
 \label{r:qp.set.layout}
-\item[qp_set_layout (x_axis, y_axis, x2_axis, y2_axis, ...] \Newline 
+\item[\protect\parbox{6in}{
+  qp_set_layout (x_axis, y_axis, x2_axis, y2_axis, \\
+  \hspace*{2in} x2_mirrors_x, y2_mirrors_y, box, margin, page_border) }] \Newline 
      Routine to set various attributes. This routine can be used
      in place of other qp_set_* routines.
 
@@ -2472,7 +2476,10 @@ Routine to set what axis to use: X or X2, Y or Y2.
 
 \index[routine]{qp_get_axis}
 \label{r:qp.get.axis}
-\item[qp_get_axis (axis, a_min, a_max, div, ... )] \Newline
+\item[\protect\parbox{6in}{
+  qp_get_axis (axis, a_min, a_max, div,  places, label, \\
+  \hspace*{2in} draw_label, draw_numbers, minor_div, mirror, number_offset, \\
+  \hspace*{2in} label_offset, major_tick_len, minor_tick_len, ax_type) }] \Newline
      Routine to get the min, max, divisions etc. for the X and Y axes.
 
 \index[routine]{qp_get_layout_attrib}
@@ -2982,7 +2989,7 @@ The following routines perform tracking and closed orbit calculations.
 
 \index[routine]{check_aperture_limit}
 \label{r:check.aperture.limit}
-\item[check_aperture_limit (orb, ele, param)] \Newline
+\item[check_aperture_limit (orb, ele, at, param)] \Newline
 Routine to check if an orbit is outside the aperture. 
 
 \index[routine]{closed_orbit_calc}
@@ -3093,8 +3100,9 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
 
 \index[routine]{twiss_and_track_intra_ele}
 \label{r:twiss.and.track.intra.ele}
-\item[twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, ] \Newline 
-                              track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+\item[\protect\parbox{6in}{
+  twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, \\
+  \hspace*{2in} track_exit, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
 Routine to track a particle within an element.
 
 \index[routine]{twiss_and_track_partial}
@@ -3166,7 +3174,7 @@ Routine to initialize a macroparticle distribution.
 
 \index[routine]{mat_to_mp_sigma}
 \label{r:mat.to.mp.sigma}
-\item[mat_to_mp_sigma (mat, sigma)] \Newline 
+\item[mat_to_mp_sigma (mat, sig)] \Newline 
 Routine to convert a sigma matrix. to a linear array of 
 macroparticle sigmas.
 
@@ -3364,7 +3372,7 @@ Symplectic integration through an element to 0th or 1st order.
 
 \index[routine]{track1_adaptive_boris}
 \label{r:track1.adaptive.boris}
-\item[track1_adaptive_boris (start, ele, param, end, s_start, s_end)] \Newline
+\item[track1_adaptive_boris (start, ele, param, end, track, s_start, s_end)] \Newline
 Routine to do Boris tracking with adaptive step size control. 
 
 \index[routine]{track1_boris}
@@ -3523,7 +3531,7 @@ Routine to propagate the Twiss parameters from the start to the end.
 
 \index[routine]{twiss_propagate_many}
 \label{r:twiss.propagate.many}
-\item[twiss_propagate_many (lat, ix_start, ix_end, direction)] \Newline
+\item[twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch)] \Newline
 Routine to propagate the Twiss parameters from one element in the lat to another. 
 
 \index[routine]{twiss_to_1_turn_mat}
