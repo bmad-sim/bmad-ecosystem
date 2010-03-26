@@ -337,7 +337,7 @@ end subroutine
 ! Subroutine to save the print state.
 !+
 
-subroutine qp_save_state_basic 
+subroutine qp_save_state_basic () 
   implicit none
   call pgbbuf     ! buffer commands
 end subroutine

@@ -1283,14 +1283,14 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_graph_limits
+! Subroutine qp_set_graph_limits ()
 !
 ! Subroutine to calculate the offsets for the graph.
 ! Note: This subroutine is for internal use only.
 !-
 
 
-subroutine qp_set_graph_limits 
+subroutine qp_set_graph_limits ()
 
 implicit none
 
@@ -1326,12 +1326,12 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_clear_page
+! Subroutine qp_clear_page ()
 !
 ! Subroutine to clear all drawing from the page.
 !-
 
-subroutine qp_clear_page
+subroutine qp_clear_page ()
 
 type (qp_rect_struct) border  
 
@@ -3302,14 +3302,14 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_close_page
+! Subroutine qp_close_page ()
 !
 ! Subroutine to finish plotting on a page.
 ! For X this closes the window.
 ! You will need to call qp_open_page to do further graphics.
 !-
 
-subroutine qp_close_page
+subroutine qp_close_page ()
 
 implicit none
 
