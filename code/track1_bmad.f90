@@ -29,8 +29,6 @@
 !     %lost -- Set True if particle is lost. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track1_bmad (start, ele, param, end)
 
 use bmad, except_dummy => track1_bmad
@@ -54,7 +52,8 @@ real(rp) alpha, sin_a, cos_a, f, r11, r12, r21, r22
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp0, xp1, yp0, yp1
 real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3)
 real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
-real(rp) phase0, dphase, dcos_phi, dgradient, dpz, d_ct
+real(rp) phase0, dphase, dcos_phi, dgradient, dpz
+real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp), parameter :: phase_cut = 1e-5
 
@@ -227,8 +226,7 @@ case (lcavity$)
       ! use grad_loss_sr_wake and ignore e_loss
       gradient = gradient - bmad_com%grad_loss_sr_wake
     else
-      gradient = gradient - ele%value(e_loss$) * param%n_part * &
-                                                          e_charge / length
+      gradient = gradient - ele%value(e_loss$) * param%n_part * e_charge / length
     endif
   endif
 
@@ -348,32 +346,63 @@ case (lcavity$)
   ! dgradient is the deviation of the gradient from the reference and is used to 
   ! avoid round-off errors when the change in pz is small.
 
-  if (abs(dphase) < phase_cut .and. ele%is_on) then
-    dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
-    dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos(phase0) 
-    dpz = (dgradient * length - start%vec(6) * pc_start_ref * &
-                         (beta_end_ref - beta_start_ref)) / beta_end_ref 
-    end%vec(6) = (dpz + start%vec(6) * pc_start_ref) / pc_end_ref
+  mc2 = mass_of(param%particle)
+
+  dPc_start = start%vec(6) * pc_start_ref
+  dE_start = dpc_start * pc_start_ref / E_start_ref + (dPc_start * E_start_ref/ mc2)**2 / E_start_ref**3
+  dE_end = dE_start + (gradient - ele%value(gradient$)) * length 
+
+  if (ele%is_on .and. ((dE_end/E_end_ref) < 1e-4 * E_end_ref / mc2)) then
+    if (abs(dphase) < phase_cut) then
+      dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
+      dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos_phi 
+      dE_end = dE_start + dgradient * length
+    endif
+    f = dE_end / (beta_end_ref * pc_end_ref)
+    end%vec(6) = f - (f * mc2 / E_end_ref)**2 / 2
+
   else
     end%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
   endif
+
   call offset_particle (ele, param, end, unset$)
 
-  ! correct z for change in velocity
+  ! z propagation...
+  ! Calculate for both particle and ref particle:
+  !    dp_dg = c * Delta_t / length - 1 
+  ! The "- 1" is to cancel the large constant factor.
 
-  if (gradient_ref == 0) then
-    d_ct = (pc_end - pc_start) / gradient - length / beta_end_ref
-  elseif (gradient == 0) then
-    d_ct = length / beta_end - (pc_end_ref - pc_start_ref) / gradient_ref
-  elseif (abs(dphase) < phase_cut) then
-    d_ct = dpz / gradient - dgradient * &
-                    (pc_end_ref - pc_start_ref) / (gradient * gradient_ref)
+  dE = gradient * length
+  if (abs(dE/E_start) < 1e-4) then
+    if (E_start > 100 * mc2) then 
+      f = (mc2 / pc_start)**2 
+      dp_dg = f/2 - f**2/8 + f**3/16
+    else
+      dp_dg = (E_start - pc_start) / pc_start
+    endif
+    f = (dE  / E_start)
+    g = E_start / pc_start
+    dp_dg = dp_dg + (mc2 / pc_start)**2 * (-f/2 + f**2 * g / 2 - f**3 * g**2 / 8)
   else
-    d_ct = (pc_end - pc_start) / gradient - &
-                  (pc_end_ref - pc_start_ref) / gradient_ref
-  endif                      
+    dp_dg = (pc_end - pc_start) / dE - 1
+  endif
 
-  end%vec(5) = end%vec(5) * (beta_end / beta_start) - beta_end * d_ct
+  dE = gradient_ref * length
+  if (abs(dE/E_start_ref) < 1e-4) then
+    if (E_start_ref > 100 * mc2) then 
+      f = (mc2 / pc_start_ref)**2 
+      dp_dg_ref = f/2 - f**2/8 + f**3/16
+    else
+      dp_dg_ref = (E_start_ref - pc_start_ref) / pc_start_ref
+    endif
+    f = (dE  / E_start_ref)
+    g = E_start_ref / pc_start_ref
+    dp_dg_ref = dp_dg_ref + (mc2 / pc_start_ref)**2 * (-f/2 + f**2 * g / 2 - f**3 * g**2 / 8)
+  else
+    dp_dg_ref = (pc_end_ref - pc_start_ref) / dE - 1
+  endif
+
+  end%vec(5) = end%vec(5) * (beta_end / beta_start) - beta_end * length * (dp_dg - dp_dg_ref)
 
   ! This assumes a uniform change in slope.
 

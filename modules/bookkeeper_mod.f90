@@ -1468,7 +1468,7 @@ character(24) :: r_name = 'create_element_slice'
 
 ! Err check
 
-if (l_slice < 0 .or. l_slice > ele%value(l$)) then
+if (l_slice < 0 .or. l_slice > ele%value(l$) + bmad_com%significant_longitudinal_length) then
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele%name, &
         'LENGTH: \2es12.3\ ', r_array = [l_slice, ele%value(l$)])
