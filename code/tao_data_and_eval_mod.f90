@@ -422,8 +422,6 @@ end subroutine
 !
 ! Subroutine to put the proper data in the specified datum
 !
-! If datum results in NaN then datum_value = tiny(1.0_rp)
-!
 ! Input:
 !   datum         -- Tao_data_struct: What type of datum
 !   u             -- Tao_universe_struct: Which universe to use.
@@ -449,10 +447,10 @@ type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
 type (spin_polar_struct) polar
-type (ele_struct), pointer :: ele, ele_start, ele_ref
+type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
 type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
-type (taylor_struct), save :: taylor(6) ! Saved taylor map
+type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
 type (coord_struct), pointer :: orbit(:), orb
 type (branch_struct), pointer :: branch
@@ -462,14 +460,13 @@ type (tao_element_struct), pointer :: uni_ele(:)
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4)
 real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
-real(rp), allocatable, save ::value1(:), value_vec(:)
+real(rp), allocatable, save :: value_vec(:)
+real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
-real(rp), allocatable, save :: value_array(:)
-! Cf: Sands Eq 5.46 pg 124.
-real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
+real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
 
-integer i, j, k, m, n, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
-integer n_size, ix0
+integer i, j, k, m, n, k_old, ix, ix_ele, ix_start, ix_ref, expnt(6), n_track, n_max, iz
+integer n_size, ix0, which
 
 character(*), optional :: why_invalid
 character(20) :: r_name = 'tao_evaluate_a_datum'
@@ -477,7 +474,7 @@ character(40) data_type, data_source, name, dflt_dat_index
 character(80) index_str
 
 logical found, valid_value, err
-logical, allocatable, save :: good1(:)
+logical, allocatable, save :: good_exp(:), good(:)
 
 ! To save time, don't evaluate if unnecessary when the running an optimizer.
 
@@ -492,7 +489,8 @@ endif
 call tao_hook_evaluate_a_datum (found, datum, u, tao_lat, datum_value, valid_value, why_invalid)
 if (found) return
 
-! Check range
+! Set ix_ele, ix_ref, and ix_start. 
+! Note: To check that a start element was set, need to look at datum%ele_start_name, not ix_start.
 
 data_source = datum%data_source
 data_type = datum%data_type
@@ -510,23 +508,26 @@ if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 
 ele_start => tao_valid_datum_index (lat, datum%ele_start_name, datum%ix_ele_start, datum, valid_value, why_invalid)
 if (.not. valid_value) return
-ix_start = -1
+ix_start = ix_ele
 if (associated(ele_start)) ix_start = ele_start%ix_ele
 
-!
+! Some inits
+
+valid_value = .false.
+
+datum_value = 0           ! default
+datum%ix_ele_merit = -1   ! default
 
 branch => lat%branch(datum%ix_branch)
 orbit => tao_lat%lat_branch(datum%ix_branch)%orbit
 bunch_params => tao_lat%lat_branch(datum%ix_branch)%bunch_params
 uni_ele => u%uni_branch(datum%ix_branch)%ele
 
-valid_value = .false.
-
 n_track = branch%n_ele_track
 n_max   = branch%n_ele_max
 
-datum_value = 0           ! default
-datum%ix_ele_merit = -1   ! default
+call re_allocate2 (value_vec, 0, n_track, .false.) ! Make sure is large enough if used.
+call re_allocate2 (good,      0, n_track, .false.) ! Make sure is large enough if used.
 
 ix = index(data_type, '.')
 if (data_type(1:11) == 'expression:') then
@@ -552,18 +553,19 @@ if (data_source /= 'lat' .and. data_source /= 'beam') then
   return
 endif
 
+! ele_start must not be specified for some data types. Check this.
 
-if (data_type == 'bpm.') then
-  if (ix_start /= ix_ele) then
-    call out_io (s_error$, r_name, 'DATUM OVER A REGION NOT YET IMPLEMENTED FOR: ' // &
-                                                                 tao_datum_name(datum))
-    if (present(why_invalid)) why_invalid = 'DATUM OVER A REGION NOT YET IMPLEMENTED FOR: ' // tao_datum_name(datum)
+select case (datum%data_type)
+case ('periodic.tt', 'sigma.pz')
+  if (datum%ele_start_name /= '') then
+    call out_io (s_error$, r_name, 'SPECIFYING ELE_START NOT VALID FOR: ' // tao_datum_name(datum))
+    if (present(why_invalid)) why_invalid = 'SPECIFYING ELE_START NOT VALID FOR: ' // tao_datum_name(datum)
     return
   endif
-endif
+end select
 
 if (lat%param%ix_lost /= not_lost$ .and. ix_ele >= lat%param%ix_lost) then
-  if (data_source == 'beam' .or. data_type == 'bpm.' .or. data_type == 'orbit.') then
+  if (data_source == 'beam' .or. data_type(1:4) == 'bpm_' .or. data_type == 'orbit.') then
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE DUE TO PARTICLE LOSS.'
     return
   endif
@@ -672,131 +674,96 @@ case ('beta.')
 case ('bpm_orbit.')
 
   select case (datum%data_type)
-
   case ('bpm_orbit.x')
-    if (data_source == 'beam') return ! bad
-    call to_orbit_reading (orbit(ix_ele), ele, x_plane$, datum_value, err)
-    valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost))
-
+    which = x_plane$
   case ('bpm_orbit.y')
-    if (data_source == 'beam') return ! bad
-    call to_orbit_reading (orbit(ix_ele), ele, y_plane$, datum_value, err)
-    valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost))
-
+    which = y_plane$
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
-
   end select
+
+  if (data_source == 'beam') return ! bad
+  call to_orbit_reading (orbit(ix_ele), ele, which, datum_value, err)
+  valid_value = .not. (err .or. (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost))
 
 !-----------
 
 case ('bpm_eta.')
 
   select case (datum%data_type)
-
   case ('bpm_eta.x')
-    if (data_source == 'beam') return ! bad
-    vec2 = (/ ele%x%eta, ele%y%eta /)
-    call to_eta_reading (vec2, ele, x_plane$, datum_value, err)
-    valid_value = .not. err
-
+    which = x_plane$
   case ('bpm_eta.y')
-    if (data_source == 'beam') return ! bad
-    vec2 = (/ ele%x%eta, ele%y%eta /)
-    call to_eta_reading (vec2, ele, y_plane$, datum_value, err)
-    valid_value = .not. err
-
+    which = y_plane$
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
-
   end select
+
+  if (data_source == 'beam') return ! bad
+  vec2 = (/ ele%x%eta, ele%y%eta /)
+  call to_eta_reading (vec2, ele, which, datum_value, err)
+  valid_value = .not. err
 
 !-----------
 
 case ('bpm_phase.')
 
+  if (data_source == 'beam') return ! bad
+  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+  datum_value = bpm_data%phi_a
+
   select case (datum%data_type)
-
   case ('bpm_phase.a')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%phi_a
-
   case ('bpm_phase.b')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%phi_b
-
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
-
   end select
 
 !-----------
 
 case ('bpm_k.')
 
+  if (data_source == 'beam') return ! bad
+  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+
   select case (datum%data_type)
-
   case ('bpm_k.22a')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%k_22a
-
   case ('bpm_k.12a')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%k_12a
-
   case ('bpm_k.11b')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%k_11b
-
   case ('bpm_k.12b')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%k_12b
-
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
-
   end select
 
 !-----------
 
 case ('bpm_cbar.')
 
+  if (data_source == 'beam') return ! bad
+  call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
+
   select case (datum%data_type)
-
   case ('bpm_cbar.22a')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%cbar22_a
-
   case ('bpm_cbar.12a')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%cbar12_a
-
   case ('bpm_cbar.11b')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%cbar11_b
-
   case ('bpm_cbar.12b')
-    if (data_source == 'beam') return ! bad
-    call tao_to_phase_and_coupling_reading (ele, bpm_data, valid_value)
     datum_value = bpm_data%cbar12_b
-
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
-
   end select
 
 !-----------
@@ -853,18 +820,39 @@ case ('chrom.')
 
 case ('dpx_dx') 
   if (data_source == 'lat') return
-  datum_value = bunch_params(ix_ele)%sigma(s12$) / bunch_params(ix_ele)%sigma(s11$)
-  valid_value = .true.
+
+  if (ix_start == ix_ele) then
+    if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(s12$) / bunch_params(ix_ref)%sigma(s11$)
+    value_vec(ix_ele) = bunch_params(ix_ele)%sigma(s12$) / bunch_params(ix_ele)%sigma(s11$)
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  else
+    call tao_load_this_datum (bunch_params%sigma(s12$) / bunch_params%sigma(s11$), &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  endif
 
 case ('dpy_dy') 
   if (data_source == 'lat') return
-  datum_value = bunch_params(ix_ele)%sigma(s34$) / bunch_params(ix_ele)%sigma(s33$)
-  valid_value = .true.
+
+  if (ix_start == ix_ele) then
+    if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(s34$) / bunch_params(ix_ref)%sigma(s33$)
+    value_vec(ix_ele) = bunch_params(ix_ele)%sigma(s34$) / bunch_params(ix_ele)%sigma(s33$)
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  else
+    call tao_load_this_datum (bunch_params%sigma(s34$) / bunch_params%sigma(s33$), &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  endif
 
 case ('dpz_dz') 
   if (data_source == 'lat') return
-  datum_value = bunch_params(ix_ele)%sigma(s56$) / bunch_params(ix_ele)%sigma(s55$)
-  valid_value = .true.
+
+  if (ix_start == ix_ele) then
+    if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(s56$) / bunch_params(ix_ref)%sigma(s55$)
+    value_vec(ix_ele) = bunch_params(ix_ele)%sigma(s56$) / bunch_params(ix_ele)%sigma(s55$)
+    call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  else
+    call tao_load_this_datum (bunch_params%sigma(s56$) / bunch_params%sigma(s55$), &
+                        ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  endif
 
 case ('e_tot')
   if (data_source == 'beam') return
@@ -1040,33 +1028,33 @@ case ('expression:')
   ! So on the fist time through, construct datum%stack and for subsequent times, use
   ! datum%stack with tao_evaluate_stack.
   !! if (allocated (datum%stack)) then
-  !!   call tao_evaluate_stack (datum%stack, 1, .false., value1, good1, err, .true.)
+  !!   call tao_evaluate_stack (datum%stack, 1, .false., value1, good_exp, err, .true.)
   !!   if (err) return
   !!   datum_value = value1(1)
-  !!   valid_value = good1(1)
+  !!   valid_value = good_exp(1)
 
   !! else ! Only do this first time through...
     write (dflt_dat_index, '(i0)') datum%ix_d1
-    call tao_evaluate_expression (datum%data_type(12:), 0, .false., value_array, good1, &
+    call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, good_exp, &
                err, .true., datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index)
     if (err) return
     select case (datum%merit_type)
     case ('min')
-      datum_value = minval(value_array)
+      datum_value = minval(expression_value_vec)
     case ('max') 
-      datum_value = maxval(value_array)
+      datum_value = maxval(expression_value_vec)
     case ('abs_min')
-      datum_value = minval(abs(value_array))
+      datum_value = minval(abs(expression_value_vec))
     case ('abs_max') 
-      datum_value = maxval(abs(value_array))
+      datum_value = maxval(abs(expression_value_vec))
     case ('target')
-      if (size(value_array) /= 1) then
+      if (size(expression_value_vec) /= 1) then
         call out_io (s_error$, r_name, &
                   'DATUM: ' // tao_datum_name(datum), &
                   'HAS "TARGET" MERIT_TYPE BUT DOES NOT EVALUATE TO A SINGLE NUMBER!')
         return
       endif
-      datum_value = value_array(1)
+      datum_value = expression_value_vec(1)
     case default
       call out_io (s_error$, r_name, &
                   'SINCE THIS DATUM: ' // tao_datum_name(datum), &
@@ -1259,10 +1247,8 @@ case ('momentum_compaction')
   eta_vec(2) = eta_vec(2) * one_pz + orb0%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb0%vec(4) / one_pz
 
-  if (ix_start < 0) ix_start = ix_ele
   call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start)
 
-  call re_allocate2 (value_vec, 0, branch%n_ele_track, .false.)
   do i = ix_start, ix_ele
     value_vec(i) = sum(mat6(5,1:4) * eta_vec) + mat6(5,6)
     if (i /= ix_ele) mat6 = matmul(branch%ele(i+1)%mat6, mat6)
@@ -1271,11 +1257,7 @@ case ('momentum_compaction')
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
-  if (ix_start == -1) then
-    datum_value = uni_ele(ix_ele)%n_particle_lost_here
-  else
-    datum_value = sum(uni_ele(ix_start:ix_ele)%n_particle_lost_here)
-  endif
+  datum_value = sum(uni_ele(ix_start:ix_ele)%n_particle_lost_here)
   valid_value = .true.
 
 !-----------
@@ -1380,8 +1362,7 @@ case ('periodic.')
   case ('periodic.tt.')
     if (data_source == 'beam') return
     if (lat%param%lattice_type /= circular_lattice$ .and. .not. associated(ele_ref)) then
-      call out_io (s_fatal$, r_name, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // &
-                                                                          datum%data_type)
+      call out_io (s_fatal$, r_name, 'LATTICE MUST BE CIRCULAR FOR A DATUM LIKE: ' // datum%data_type)
       call err_exit
     endif
 
@@ -1408,8 +1389,6 @@ case ('periodic.')
 
     datum_value = taylor_coef (taylor(i), expnt)
     valid_value = .true.
-
-    tao_com%ix_ref_taylor = -999
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1470,23 +1449,22 @@ case ('phase_frac_diff')
 !-----------
 
 case ('r.')
-  if (datum%ix_branch /= 0) then
-    call out_io (s_fatal$, r_name, 'TRANSFER MATRIX CALC NOT YET MODIFIED FOR BRANCHES.')
-    return
-  endif
   if (data_source == 'beam') return
   i = tao_read_this_index (datum%data_type, 3); if (i == 0) return
   j = tao_read_this_index (datum%data_type, 4); if (j == 0) return
 
-  if (ix_start < 0) ix_start = ix_ele
   if (ix_ref < 0) ix_ref = 0
-  call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start)
+  call transfer_matrix_calc (lat, .true., mat6, vec0, ix_ref, ix_start, datum%ix_branch)
 
-  call re_allocate2 (value_vec, 0, branch%n_ele_track, .false.)
-  do k = ix_start, ix_ele
+  k = ix_start
+  do 
     value_vec(k) = mat6(i, j)
-    if (k /= ix_ele) mat6 = matmul(branch%ele(k+1)%mat6, mat6)
+    if (k == ix_ele) exit
+    k = k + 1
+    if (k > n_track) k = 0
+    mat6 = matmul(branch%ele(k)%mat6, mat6)
   enddo
+
   call tao_load_this_datum (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 !-----------
@@ -1502,43 +1480,57 @@ case ('rel_floor.')
 
   case ('rel_floor.x', 'rel_floor.y', 'rel_floor.z')
 
-    if (ix_ref < 0) then
-      ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
-    endif
+    if (ix_ref < 0) ele_ref => lat%branch(datum%ix_branch)%ele(0)
 
     call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
-    vec3 = (/ ele%floor%x - ele_ref%floor%x, ele%floor%y - ele_ref%floor%y, ele%floor%z - ele_ref%floor%z /)
-    vec3 = matmul (w0_mat, vec3)
-    select case (datum%data_type)
-    case ('rel_floor.x')
-      datum_value = vec3(1)
-    case ('rel_floor.y')
-      datum_value = vec3(2)
-    case ('rel_floor.z')
-      datum_value = vec3(3)
-    end select
-    valid_value = .true.
+
+    i = ix_start
+    do 
+      ele2 => branch%ele(i)
+      vec3 = (/ ele2%floor%x - ele_ref%floor%x, ele2%floor%y - ele_ref%floor%y, ele2%floor%z - ele_ref%floor%z /)
+      vec3 = matmul (w0_mat, vec3)
+      select case (datum%data_type)
+      case ('rel_floor.x')
+        value_vec(i) = vec3(1)
+      case ('rel_floor.y')
+        value_vec(i) = vec3(2)
+      case ('rel_floor.z')
+        value_vec(i) = vec3(3)
+      end select
+      if (i == ix_ele) exit
+      i = i + 1
+      if (i > n_track) i = 0
+    enddo
+
+    call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case ('rel_floor.theta', 'rel_floor.phi', 'rel_floor.psi')
 
-    if (ix_ref < 0) then
-      ele_ref => lat%branch(datum%ix_branch)%ele(ix_ref)
-    endif
+    if (ix_ref < 0) ele_ref => lat%branch(datum%ix_branch)%ele(0)
 
     call floor_angles_to_w_mat (-ele_ref%floor%theta, -ele_ref%floor%phi, -ele_ref%floor%psi, w0_mat)
-    call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)
-    w_mat = matmul (w0_mat, w_mat)
-    call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi)
 
-    select case (datum%data_type)
-    case ('rel_floor.theta')
-      datum_value = theta
-    case ('rel_floor.phi')
-      datum_value = phi
-    case ('rel_floor.psi')
-      datum_value = psi
-    end select
-    valid_value = .true.
+    i = ix_start
+    do 
+      ele2 => branch%ele(i)
+      call floor_angles_to_w_mat (ele2%floor%theta, ele2%floor%phi, ele2%floor%psi, w_mat)
+      w_mat = matmul (w0_mat, w_mat)
+      call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi)
+
+      select case (datum%data_type)
+      case ('rel_floor.theta')
+        value_vec(i) = theta
+      case ('rel_floor.phi')
+        value_vec(i) = phi
+      case ('rel_floor.psi')
+        value_vec(i) = psi
+      end select
+      if (i == ix_ele) exit
+      i = i + 1
+      if (i > n_track) i = 0
+    enddo
+
+    call tao_load_this_datum (value_vec, null(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1585,11 +1577,11 @@ case ('sigma.')
   case ('sigma.pz')  
     if (data_source == 'lat') then
       if (lat%param%lattice_type == circular_lattice$) return
-      if (ix_start == -1) ix_start = 0
       if (ix_ele == -1) ix_ele = branch%n_ele_track
       datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
-            sum(tao_lat%rad_int%lin_i3_e7(ix_start+1:ix_ele)) / 3) / mass_of(lat%param%particle)
+                               sum(tao_lat%rad_int%lin_i3_e7(ix_ref+1:ix_ele)) / 3) / mass_of(lat%param%particle)
       valid_value = .true.
+      return
     endif
     call tao_load_this_datum (bunch_params(:)%sigma(s66$), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     datum_value = sqrt(datum_value)
@@ -1703,17 +1695,35 @@ case ('t.', 'tt.')
 
   if (ix_ref < 0) ix_ref = 0
 
-  if (tao_com%ix_ref_taylor /= ix_ref .or. tao_com%ix_ele_taylor /= ix_ele) then
-    if (tao_com%ix_ref_taylor == ix_ref .and. ix_ele > tao_com%ix_ele_taylor) then
-      call transfer_map_calc (lat, taylor, tao_com%ix_ele_taylor, ix_ele, unit_start = .false.)
-    else
-      call transfer_map_calc (lat, taylor, ix_ref, ix_ele)
+  ! Computation if there is no range
+
+  if (ix_start == ix_ele) then
+    if (tao_com%ix_ref_taylor /= ix_ref .or. tao_com%ix_ele_taylor /= ix_ele) then
+      if (tao_com%ix_ref_taylor == ix_ref .and. ix_ele > tao_com%ix_ele_taylor) then
+        call transfer_map_calc (lat, taylor_save, tao_com%ix_ele_taylor, ix_ele, unit_start = .false.)
+      else
+        call transfer_map_calc (lat, taylor_save, ix_ref, ix_ele)
+      endif
+      tao_com%ix_ref_taylor = ix_ref
+      tao_com%ix_ele_taylor = ix_ele
     endif
-    tao_com%ix_ref_taylor = ix_ref
-    tao_com%ix_ele_taylor = ix_ele
+    datum_value = taylor_coef (taylor_save(i), expnt)
+    valid_value = .true.
+
+  ! Here if there is a range.
+  else
+    k = ix_start
+    call transfer_map_calc (lat, taylor, ix_ref, k)
+    do
+      value_vec(k) = taylor_coef (taylor(i), expnt)
+      if (k == ix_ele) exit
+      k_old = k
+      k = k + 1
+      if (k > branch%n_ele_track) k = 0
+      call transfer_map_calc (lat, taylor, k_old, k, unit_start = .false.)
+    enddo
+    call tao_load_this_datum (value_vec, NULL(), ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   endif
-  datum_value = taylor_coef (taylor(i), expnt)
-  valid_value = .true.
 
 !-----------
 
@@ -1800,7 +1810,7 @@ end subroutine tao_evaluate_a_datum
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 
-subroutine tao_load_this_datum (vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+subroutine tao_load_this_datum (vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit, good)
 
 implicit none
 
@@ -1819,8 +1829,11 @@ character(*), optional :: why_invalid
 integer ix_m, i, n_track, ix_m2, ix_ref, ix_start, ix_ele
 
 logical valid_value
+logical, optional :: good(0:)
 
 !
+
+valid_value = .true.
 
 n_track = lat%branch(datum%ix_branch)%n_ele_track
 ix_start = -1; ix_ref = -1; ix_ele = -1
@@ -1843,6 +1856,12 @@ endif
 if (ix_ref > -1) then
   if (present(orbit)) call data_calc (ix_ref, datum, lat, orbit)
   ref_value = vec(ix_ref)
+  if (present(good)) then
+    if (.not. good(ix_ref)) then
+      valid_value = .false.
+      return
+    endif
+  endif
 else
   ref_value = 0
 endif
@@ -1854,7 +1873,7 @@ if (datum%ele_start_name == '' .or. ix_start == ix_ele) then
   if (present(orbit)) call data_calc (ix_ele, datum, lat, orbit)
   datum_value = vec(ix_ele) - ref_value
   if (datum%merit_type(1:4) == 'abs_') datum_value = abs(vec(ele%ix_ele))
-  valid_value = .true.
+  if (present(good)) valid_value = good(ix_ele)
   return
 endif
 
@@ -1886,41 +1905,49 @@ if (ix_ele < ix_start) then   ! wrap around
     ix_m2 = minloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
     if (vec_ptr(ix_m2) < vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = vec_ptr(ix_m)
+    if (present(good)) valid_value = good(ix_m)
 
   case ('max')
     ix_m = maxloc (vec_ptr(0:ix_ele), 1) - 1
     ix_m2 = maxloc (vec_ptr(ix_start:n_track), 1) + ix_start - 1
     if (vec_ptr(ix_m2) > vec_ptr(ix_m2)) ix_m = ix_m2
     datum_value = vec_ptr(ix_m)
+    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_min')
     ix_m = minloc (abs(vec_ptr(0:ix_ele)), 1) - 1
     ix_m2 = minloc (abs(vec_ptr(ix_start:n_track)), 1) + ix_start - 1
     if (abs(vec_ptr(ix_m2)) < abs(vec_ptr(ix_m2))) ix_m = ix_m2
     datum_value = abs(vec_ptr(ix_m))
+    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_max')
     ix_m = maxloc (abs(vec_ptr(0:ix_ele)), 1) - 1
     ix_m2 = maxloc (abs(vec_ptr(ix_start:n_track)), 1) + ix_start - 1
     if (abs(vec_ptr(ix_m2)) > abs(vec_ptr(ix_m2))) ix_m = ix_m2
     datum_value = abs(vec_ptr(ix_m))
+    if (present(good)) valid_value = good(ix_m)
 
   case ('int_min')
     datum_value = 0; ix_m = -1
     call integrate_min (ix_ele, n_track, datum_value, ix_m, lat, vec_ptr, datum)
     call integrate_min (0, ix_start, datum_value, ix_m, lat, vec_ptr, datum)
+    if (present(good)) valid_value = all(good(ix_ele:n_track)) .and. all(good(0:ix_start))
 
   case ('int_max')
     datum_value = 0; ix_m = -1
     call integrate_max (ix_ele, n_track, datum_value, ix_m, lat, vec_ptr, datum)
     call integrate_max (0, ix_start, datum_value, ix_m, lat, vec_ptr, datum)
+    if (present(good)) valid_value = all(good(ix_ele:n_track)) .and. all(good(0:ix_start))
 
   case default
     call out_io (s_abort$, r_name, 'BAD MERIT_TYPE: ' // datum%merit_type, &
-                                 'FOR DATUM: ' // tao_datum_name(datum))
+                                   'FOR DATUM: ' // tao_datum_name(datum))
+    valid_value = .false.
     return
   end select
 
+! no wrap case
 else
   if (present(orbit)) then
     do i = ix_start, ix_ele
@@ -1932,39 +1959,45 @@ else
   case ('min')
     ix_m = minloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = vec_ptr(ix_m)
+    if (present(good)) valid_value = good(ix_m)
 
   case ('max')
     ix_m = maxloc (vec_ptr(ix_start:ix_ele), 1) + ix_start - 1
     datum_value = vec_ptr(ix_m)
+    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_min')
     ix_m = minloc (abs(vec_ptr(ix_start:ix_ele)), 1) + ix_start - 1
     datum_value = abs(vec_ptr(ix_m))
+    if (present(good)) valid_value = good(ix_m)
 
   case ('abs_max')
     ix_m = maxloc (abs(vec_ptr(ix_start:ix_ele)), 1) + ix_start - 1
     datum_value = abs(vec_ptr(ix_m))
+    if (present(good)) valid_value = good(ix_m)
 
   case ('int_min')
     datum_value = 0; ix_m = -1
     call integrate_min (ix_start, ix_ele, datum_value, ix_m, lat, vec_ptr, datum)
+    if (present(good)) valid_value = all(good(ix_start:ix_ele))
 
   case ('int_max')
     datum_value = 0; ix_m = -1
     call integrate_max (ix_start, ix_ele, datum_value, ix_m, lat, vec_ptr, datum)
+    if (present(good)) valid_value = all(good(ix_start:ix_ele))
 
   case default
     call out_io (s_error$, r_name, &
                   'SINCE THIS DATUM: ' // tao_datum_name(datum), &
                   'SPECIFIES A RANGE OF ELEMENTS, THEN THIS MERIT_TYPE: ' // datum%merit_type, &
                   'IS NOT VALID. VALID MERIT_TYPES ARE MIN, MAX, ABS_MIN, AND ABS_MAX.')
+    valid_value = .false.
     return
   end select
 
 endif
 
 datum%ix_ele_merit = ix_m
-valid_value = .true.
 if (ref_value /= 0) deallocate (vec_ptr)
 
 !

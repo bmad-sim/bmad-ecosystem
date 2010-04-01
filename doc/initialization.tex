@@ -1033,6 +1033,7 @@ structure. For each \vn{n_d1_data} structure there must be a
     default_data_source    = "<source>"          ! "lat" (dflt), "dat", "var", or "beam". 
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
+    datum(j)%data_source    = "<source>"         ! "lat" (dflt), "dat", "var", or "beam". 
     datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
     datum(j)%ele_name       = "<ele_name>"       ! Lattice element name.
     datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
@@ -1041,7 +1042,6 @@ structure. For each \vn{n_d1_data} structure there must be a
     datum(j)%meas           = "<number>"         ! Datum "measured" value
     datum(j)%weight         = "<weight>"         ! Merit function weight.
     datum(j)%good_user      = <logical>          ! Use for optimization and plotting?
-    datum(j)%data_source    = "<source>"         ! "lattice", or "beam"
     datum(j)%ix_bunch       = <integer>          ! Bunch index. 
                                                  !   0 (default) = all bunches.
   /
