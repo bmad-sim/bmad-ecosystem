@@ -728,13 +728,13 @@ This routine is typically used when a program detects an error condition.
 \index[routine]{integer_option}
 \label{r:integer.option}
 \item[integer_option (integer_default, opt_integer)] \Newline 
-Function to retrun True or False dependending upon the state of an 
+Function to return True or False depending upon the state of an 
 optional integer.
 
 \index[routine]{logic_option}
 \label{r:logic.option}
 \item[logic_option (logic_default, opt_logic)] \Newline 
-Function to retrun True or False dependending upon the state of an 
+Function to return True or False depending upon the state of an 
 optional logical.
 
 \index[routine]{re_allocate}
@@ -750,13 +750,13 @@ Function to reassociate an allocatable array of strings, integers, reals, or log
 \index[routine]{real_option}
 \label{r:real.option}
 \item[real_option (real_default, opt_real)] \Newline 
-Function to retrun True or False depending upon the state of an 
+Function to return True or False depending upon the state of an 
 optional real.
 
 \index[routine]{string_option}
 \label{r:string.option}
 \item[string_option (string_out, string_default, opt_string)] \Newline 
-Routine to retrun True or False depending upon the state of an 
+Routine to return True or False depending upon the state of an 
 optional string.
 
 \end{description}
@@ -847,8 +847,8 @@ length of the first word.
 
 \index[routine]{string_trim2}
 \label{r:string.trim2}
-\item[string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)] \Newline 
-Routine to trim a string of leading delimitors and also to return the
+\item[string_trim2 (in_str, delimiters, out_str, ix_word, delim, ix_next)] \Newline 
+Routine to trim a string of leading delimiters and also to return the
 length of the first word.
 
 \index[routine]{str_downcase}
@@ -1957,7 +1957,7 @@ Routine to type out a coordinate.
 \index[routine]{photon_init}
 \label{r:photon.init}
 \item[photon_init (g_bend, gamma, orbit)] \Newline 
-Routine to initalize a photon
+Routine to initialize a photon
 
 \index[routine]{photon_vert_angle_init}
 \label{r:photon.vert.angle.init}
@@ -2636,7 +2636,7 @@ Routine to Initialize a page (window) for plotting.
 \label{r:qp.paint.rectangle.basic}
 \item[qp_paint_rectangle_basic (x1, x2, y1, y2, color, page_type)] \Newline 
 Routine to fill a rectangle with a given color. 
-A color of white essentially eraces the rectangle.
+A color of white essentially erases the rectangle.
 
 \index[routine]{qp_pointer_to_axis}
 \label{r:qp.pointer.to.axis}
@@ -2684,7 +2684,7 @@ Note: This affects both lines and symbols.
 \index[routine]{qp_set_color_basic}
 \label{r:qp.set.color.basic}
 \item[qp_set_color_basic (ix_color, page_type)  ] \Newline 
-Routine to set the color taking into accout that GIF
+Routine to set the color taking into account that GIF
 inverts the black for white.
 
 \index[routine]{qp_set_graph_position_basic}
@@ -2750,7 +2750,7 @@ Routine to convert a spinor into polar coordinates.
 \index[routine]{polar_to_vec}
 \label{r:polar.to.vec}
 \item[polar_to_vec (polar, vec)] \Newline
-Routine to convert a spin vector from polar coordinates to cartesian coordinates.
+Routine to convert a spin vector from polar coordinates to Cartesian coordinates.
 
 \index[routine]{polar_to_spinor}
 \label{r:polar.to.spinor}
@@ -2760,18 +2760,18 @@ Routine to convert a spin vector in polar coordinates to a spinor.
 \index[routine]{vec_to_polar}
 \label{r:vec.to.polar}
 \item[vec_to_polar (vec, polar, phase)] \Newline
-Routine to convert a spin vector from cartesian coordinates to polar coordinates 
+Routine to convert a spin vector from Cartesian coordinates to polar coordinates 
 preserving the complex phase.
 
 \index[routine]{spinor_to_vec}
 \label{r:spinor.to.vec}
 \item[spinor_to_vec (coord, vec)] \Newline
-Routine to convert a spinor to a spin vector in cartesian coordinates.
+Routine to convert a spinor to a spin vector in Cartesian coordinates.
 
 \index[routine]{vec_to_spinor}
 \label{r:vec.to.spinor}
 \item[vec_to_spinor (vec, coord, phase)] \Newline
-Routine to convert a spin vector in cartesian coordinates to a spinor using
+Routine to convert a spin vector in Cartesian coordinates to a spinor using
 the specified complex phase.
 
 \index[routine]{angle_between_polars}
@@ -2782,7 +2782,7 @@ Function to return the angle between two spin vectors in polar coordinates.
 \index[routine]{quaternion_track}
 \label{r:quaternion.track}
 \item[quaternion_track (a, start, end)] \Newline
-Subrotuine to track the spin with the Euler four-vector quaternion a.
+Subroutine to track the spin with the Euler four-vector quaternion a.
 
 \index[routine]{track1_spin}
 \label{r:track1.spin}
@@ -2850,7 +2850,7 @@ Overloaded routine to add a Taylor term to a Taylor series.
 \index[routine]{concat_ele_taylor}
 \label{r:concat.ele.taylor}
 \item[concat_ele_taylor (taylor1, ele, taylor3)] \Newline 
-Routine to concatinate two taylor maps.
+Routine to concatenate two taylor maps.
 
 \index[routine]{concat_taylor}
 \label{r:concat.taylor}
@@ -3281,7 +3281,7 @@ Routine to track a macroparticle through an element.
 \index[routine]{mad_tmfoc}
 \label{r:mad.tmfoc}
 \item[mad_tmfoc (el, sk1, c, s, d, f)] \Newline 
-     Routine to compute the linear focussing functions.  
+     Routine to compute the linear focusing functions.  
      The equivalent MAD-8 routine is: TMFOC
 
 \index[routine]{mad_quadrupole}
@@ -3551,7 +3551,7 @@ Routine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 \index[routine]{normal_mode3_calc}
 \label{r:normal.mode3.calc}
 \item[normal_mode3_calc (mat, tune, g, v, synchrotron_motion)] \Newline 
-Decompose a 2n x 2n sympectic matrix into normal modes.
+Decompose a 2n x 2n symplectic matrix into normal modes.
 For more details see:
 
 \index[routine]{twiss3_propagate_all}

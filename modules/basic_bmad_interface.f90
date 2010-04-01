@@ -472,14 +472,14 @@ interface
 end interface
 
 interface
-  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
+  subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
     use bmad_struct, only: lat_struct, rp
     implicit none
     type (lat_struct) lat
-    logical, intent(in) :: rf_on
-    real(rp), intent(out) :: xfer_mat(:,:)
-    real(rp), intent(out), optional :: xfer_vec(:)
-    integer, intent(in), optional :: ix1, ix2
+    logical :: rf_on
+    real(rp) :: xfer_mat(:,:)
+    real(rp), optional :: xfer_vec(:)
+    integer, optional :: ix1, ix2, ix_branch
   end subroutine
 end interface
 

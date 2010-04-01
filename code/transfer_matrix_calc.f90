@@ -1,5 +1,5 @@
 !+         
-! Subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
+! Subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
 !
 ! Subroutine to calculate the 6X6 transfer matrix between two elements.
 ! To calculate transfer maps see the routine: transfer_map_calc.
@@ -35,13 +35,14 @@
 !                If ix1 is not present: ix2 = lat%n_ele_track
 !                If ix1 is present and lattice is circular: Calculate the 
 !                  one-turn matrix from ix1 back to ix1.
+!   ix_branch -- Integer, optional: Branch index. Default is 0.
 !
 ! Output:
 !    xfr_mat(6,6) -- Real(rp): Transfer matrix.
 !    xfr_vec(6)   -- Real(rp), optional: 0th order part of the transfer map.
 !-
 
-subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2)
+subroutine transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)
 
 use bmad_struct
 use bmad_interface, except_dummy => transfer_matrix_calc
@@ -49,16 +50,17 @@ use sim_utils, only: integer_option
 
 implicit none
 
-type (lat_struct)  lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 
-real(rp), intent(out) :: xfer_mat(:,:)
-real(rp), intent(out), optional :: xfer_vec(:)
+real(rp) :: xfer_mat(:,:)
+real(rp), optional :: xfer_vec(:)
 real(rp) rf_mat(6,6)
 
-integer, intent(in), optional :: ix1, ix2
+integer, optional :: ix1, ix2, ix_branch
 integer i, i1, i2
 
-logical, intent(in) :: rf_on
+logical :: rf_on
 logical vec_present, one_turn
 
 !
@@ -67,12 +69,13 @@ vec_present = present(xfer_vec)
 if (vec_present) xfer_vec = 0
 
 call mat_make_unit (xfer_mat)
-  
+
+branch => lat%branch(integer_option(0, ix_branch))  
 i1 = integer_option(0, ix1) 
-i2 = integer_option(lat%n_ele_track, ix2) 
+i2 = integer_option(branch%n_ele_track, ix2) 
 one_turn = .false.
 
-if (lat%param%lattice_type == circular_lattice$ .and. &
+if (branch%param%lattice_type == circular_lattice$ .and. &
                     present(ix1) .and. .not. present(ix2)) then
   i2 = i1
   one_turn = .true.
@@ -87,8 +90,8 @@ if (i1 <= i2 .and. .not. one_turn) then
 
 ! For a circular lattice push through the origin.
 
-elseif (lat%param%lattice_type == circular_lattice$ .or. one_turn) then
-  do i = i1+1, lat%n_ele_track
+elseif (branch%param%lattice_type == circular_lattice$ .or. one_turn) then
+  do i = i1+1, branch%n_ele_track
     call add_on_to_xfer_mat
   enddo
   do i = 1, i2
@@ -111,15 +114,14 @@ contains
 
 subroutine add_on_to_xfer_mat
 
-if (lat%ele(i)%key == rfcavity$ .and. .not. rf_on) then
-  rf_mat = lat%ele(i)%mat6
+if (branch%ele(i)%key == rfcavity$ .and. .not. rf_on) then
+  rf_mat = branch%ele(i)%mat6
   rf_mat(6,5) = 0  ! turn rf off
   xfer_mat = matmul (rf_mat, xfer_mat)
-  if (vec_present) xfer_vec = matmul(rf_mat, xfer_vec) + lat%ele(i)%vec0
+  if (vec_present) xfer_vec = matmul(rf_mat, xfer_vec) + branch%ele(i)%vec0
 else
-  xfer_mat = matmul (lat%ele(i)%mat6, xfer_mat)
-  if (vec_present) xfer_vec = &
-          matmul(lat%ele(i)%mat6, xfer_vec) + lat%ele(i)%vec0
+  xfer_mat = matmul (branch%ele(i)%mat6, xfer_mat)
+  if (vec_present) xfer_vec = matmul(branch%ele(i)%mat6, xfer_vec) + branch%ele(i)%vec0
 endif
 
 end subroutine

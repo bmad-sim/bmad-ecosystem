@@ -232,7 +232,7 @@ Element attributes can be set or used in an algebraic expression:
   bo1w[roll] = 6.5                  ! Set an attribute value.
   b01w[l] = 6.5                     ! Change an attribute value.
   b01w[l] = b01w[rho] / 12          ! OK to reset an attribute value.
-  my_const = b01[rho] / b01[l]      ! Use of attribute values in an expression.
+  my_const = b01w[rho] / b01w[l]      ! Use of attribute values in an expression.
 \end{example}
 Notice that there can be no space between the element name and the
 \vn{[} opening bracket.  When setting an attribute value, if more than
