@@ -1197,6 +1197,8 @@ do ii = 1, size(curve%x_line)
     value = ele%x%eta
   case ('eta.y')
     value = ele%y%eta
+  case ('eta.z')
+    value = ele%z%eta
   case ('etap.x')
     value = ele%x%etap
   case ('etap.y')
