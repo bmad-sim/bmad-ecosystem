@@ -971,6 +971,14 @@ case ('eta.')
       call tao_load_this_datum (branch%ele(:)%y%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
+  case ('eta.z')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%z%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      valid_value = .true.
+    else
+      call tao_load_this_datum (branch%ele(:)%z%eta, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
