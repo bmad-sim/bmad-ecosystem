@@ -1316,7 +1316,7 @@ do ix_ele = ie1, ie2
 
   ! drift
 
-  case (drift$)
+  case (drift$, instrument$, pipe$)
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
   ! beambeam

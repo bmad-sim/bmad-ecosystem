@@ -676,13 +676,13 @@ Furthermore, attributes like \vn{hkick} need to be scaled with the
 element length.
 
 To create an element slice, the routine
-\Hyperref{r:makeup.super.slave1}{makeup_super_slave1} can be used.
+\Hyperref{r:create.element.slice}{create_element_slice} can be used.
 Example:
 \begin{example}
   type (ele_struct) ele, sliced_ele
   ...
   sliced_ele = ele
   sliced_ele%value(l$) = l_slice ! Set the sliced element's length
-  call makeup_super_slave1 (sliced_ele, ele, l_start, param, include_entrance, include_exit)
+  call create_element_slice (sliced_ele, ele, l_start, param, include_entrance, include_exit)
 \end{example}
-See the documentation on \vn{makeup_super_slave1} for more details (sref{s:getf}).
+See the documentation on \vn{create_element_slice} for more details (sref{s:getf}).

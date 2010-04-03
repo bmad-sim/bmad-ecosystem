@@ -27,8 +27,6 @@
 !                        See MAT_SYMP_DECOUPLE for for more info
 !-
 
-#include "CESR_platform.inc"
-
 subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 
   use bmad_struct
@@ -50,11 +48,11 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 
   character(20) :: r_name = 'twiss_from_mat6'
 
-! init
+  ! init
 
   mat4 = mat6(1:4, 1:4)
 
-!
+  !
 
   call mat_symp_decouple (mat4, tol, bmad_status%status, u, v, ubar, &
                                              vbar, g, ele%a, ele%b, .false.)
@@ -80,7 +78,7 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
     stable = .true.          ! stable lat
   endif
 
-! here if everything normal so load twiss parameters
+  ! here if everything normal so load twiss parameters
 
   if (ele%a%beta /= 0 .and. ele%b%beta /= 0) then
     ele%mode_flip = .false.
@@ -89,7 +87,7 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
     ele%gamma_c = sqrt(1-det)
   endif
 
-! Compute normal mode and lab dispersion.
+  ! Compute normal mode and lab dispersion.
 
   mat4 = -mat4
   forall (i = 1:4) mat4(i,i) = mat4(i,i) + 1
@@ -107,6 +105,8 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   ele%x%etap = eta_vec(2)
   ele%y%eta  = eta_vec(3)
   ele%y%etap = eta_vec(4)
+  ele%z%eta  = 0
+  ele%z%etap = 1
 
   call mat_symp_conj (v, v_inv)
   eta_vec = matmul(v_inv, eta_vec)

@@ -108,8 +108,7 @@ subroutine twiss_at_start (lat)
 
 ! compute twiss parameters
 
-  call twiss_from_mat6 (mat6, map0, lat%ele(0), &
-                                  lat%param%stable, lat%param%growth_rate)
+  call twiss_from_mat6 (mat6, map0, lat%ele(0), lat%param%stable, lat%param%growth_rate)
   lat%a%tune = lat%ele(0)%a%phi
   lat%b%tune = lat%ele(0)%b%phi
   lat%ele(0)%a%phi = 0

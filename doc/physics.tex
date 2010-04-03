@@ -809,7 +809,7 @@ Given the dispersion at a given point, the dispersion at some other
 point is calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$
 be the reference orbit, around which the dispersion is to be
 calculated. Let $\bV$ and $\bf M$ be the zeroth and first order components of 
-the transfer map between two points labeled 1 and 2. Thus
+the transfer map between two points labeled 1 and 2:
 \Begineq
   \Bf r_2 = \bM \, \Bf r_1 + \bV
   \label{rmrv}
@@ -855,10 +855,8 @@ The sixth row of the matrix equation gives $dp_{z1}/dp_{z2}$.
 Explicitly
 \Begineq
   \left[ \frac{dp_{z1}}{dp_{z2}} \right]^{-1} =
-  M_{66} + 
-  M_{61} \, \eta_{x1} + M_{62} \, \eta'_{x1} \, (1 + p_{z1}) +
-  M_{63} \, \eta_{y1} + M_{64} \, \eta'_{y1} \, (1 + p_{z1}) +
-  M_{62} \, p_{x1} + M_{64} \, p_{y1}
+  \sum_{i=1}^6 M_{6i} \, \eta_{1i} + 
+  \frac{M_{62} \, p_{x1} + M_{64} \, p_{y1}}{1 + p_{z1}}
 \Endeq
 For everything except \vn{RFcavity} and \vn{Lcavity} elements, 
 $dp_{z1}/dp_{z2}$ is 1.
