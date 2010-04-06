@@ -133,13 +133,13 @@ case ('beam')
       endif
 
       if (ascii) then
-        write (iu, *) 'BEGIN_BUNCH'
         write (iu, *) j, '  ! ix_ele' 
         write (iu, *) size(beam%bunch), '  ! n_bunch'
         write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
         do ib = 1, size(beam%bunch)
           bunch => beam%bunch(ib)
-          write (iu, *) bunch%charge, '  ! bunch_charge'
+          write (iu, *) 'BEGIN_BUNCH'
+          write (iu, *) bunch%charge,   '  ! bunch_charge'
           write (iu, *) bunch%z_center, '  ! z_center'
           write (iu, *) bunch%t_center, '  ! t_center'
           do ip = 1, size(bunch%particle)
