@@ -401,8 +401,6 @@ do i = 1, n_key
   if (i == group$)    cycle
   if (i == overlay$)  cycle
   if (i == girder$)   cycle
-  if (i == mirror$)   cycle
-  if (i == crystal$)  cycle
 
   attrib_array(i, superimpose$)       = 'SUPERIMPOSE'
   attrib_array(i, offset$)            = 'OFFSET'
@@ -415,11 +413,6 @@ do i = 1, n_key
   attrib_array(i, ref_end$)           = 'REF_END'
   attrib_array(i, common_lord$)       = 'COMMON_LORD'
 
-  if (i == photon_branch$) cycle
-  if (i == branch$) cycle
-
-  attrib_array(i, E_tot$)                 = 'E_TOT'
-  attrib_array(i, p0c$)                   = 'P0C'
   attrib_array(i, x_limit$)               = 'X_LIMIT'
   attrib_array(i, x1_limit$)              = 'X1_LIMIT'
   attrib_array(i, x2_limit$)              = 'X2_LIMIT'
@@ -433,7 +426,16 @@ do i = 1, n_key
   attrib_array(i, mat6_calc_method$)      = 'MAT6_CALC_METHOD'
   attrib_array(i, tracking_method$)       = 'TRACKING_METHOD'
 
+  attrib_array(i, E_tot$)                 = 'E_TOT'
+  attrib_array(i, p0c$)                   = 'P0C'
+
+  if (i == mirror$)   cycle
+  if (i == crystal$)  cycle
+
   attrib_array(i, is_on$)       = 'IS_ON'
+
+  if (i == photon_branch$) cycle
+  if (i == branch$) cycle
 
   if (i == marker$)       cycle
   if (i == match$)        cycle
