@@ -1153,7 +1153,7 @@ do i = 1, grid%n_x
 
       p(k)%r%vec(2*ix_plane-1) = x
       p(k)%r%vec(2*ix_plane)   = px
-      p(k)%charge = 0 / n_particle     ! total charge = 1
+      p(k)%charge = 1.0_rp / n_particle     ! total charge = 1
 
       k = k + 1
    enddo
