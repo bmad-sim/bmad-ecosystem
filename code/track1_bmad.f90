@@ -55,7 +55,6 @@ real(rp) dp_coupler, dp_x_coupler, dp_y_coupler, len_slice, k0l, k1l
 real(rp) phase0, dphase, dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
-real(rp), parameter :: phase_cut = 1e-5
 
 integer i, n, n_slice, key
 
@@ -204,8 +203,7 @@ case (lcavity$)
     call err_exit
   endif
 
-  dphase = twopi * (ele%value(phi0_err$) - &
-                            end%vec(5) * ele%value(rf_frequency$) / c_light)
+  dphase = twopi * (ele%value(phi0_err$) - end%vec(5) * ele%value(rf_frequency$) / c_light)
   phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
   phase = phase0 + dphase
 
@@ -352,8 +350,8 @@ case (lcavity$)
   dE_start = dpc_start * pc_start_ref / E_start_ref + (dPc_start * E_start_ref/ mc2)**2 / E_start_ref**3
   dE_end = dE_start + (gradient - ele%value(gradient$)) * length 
 
-  if (ele%is_on .and. ((dE_end/E_end_ref) < 1e-4 * E_end_ref / mc2)) then
-    if (abs(dphase) < phase_cut) then
+  if (ele%is_on .and. abs(dE_end/E_end_ref) < 1e-4) then
+    if (abs(dphase) < 1e-5) then
       dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
       dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos_phi 
       dE_end = dE_start + dgradient * length
