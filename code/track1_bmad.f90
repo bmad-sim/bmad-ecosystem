@@ -341,27 +341,25 @@ case (lcavity$)
   end%vec(4) = end%vec(4) + k2 * end%vec(3)
 
   ! Final momentum.
-  ! dgradient is the deviation of the gradient from the reference and is used to 
-  ! avoid round-off errors when the change in pz is small.
 
   mc2 = mass_of(param%particle)
 
-  dPc_start = start%vec(6) * pc_start_ref
-  dE_start = dpc_start * pc_start_ref / E_start_ref + (dPc_start * E_start_ref/ mc2)**2 / E_start_ref**3
-  dE_end = dE_start + (gradient - ele%value(gradient$)) * length 
+!  dPc_start = start%vec(6) * pc_start_ref
+!  dE_start = dpc_start * pc_start_ref / E_start_ref + (dPc_start * E_start_ref/ mc2)**2 / E_start_ref**3
+!  dE_end = dE_start + (gradient - gradient_ref) * length 
 
-  if (ele%is_on .and. abs(dE_end/E_end_ref) < 1e-4) then
-    if (abs(dphase) < 1e-5) then
-      dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
-      dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos_phi 
-      dE_end = dE_start + dgradient * length
-    endif
-    f = dE_end / (beta_end_ref * pc_end_ref)
-    end%vec(6) = f - (f * mc2 / E_end_ref)**2 / 2
-
-  else
+!  if (ele%is_on .and. abs(dE_end/E_end_ref) < 1e-4) then
+!    if (abs(dphase) < 1e-5) then
+!      dcos_phi = -sin(phase0) * dphase - cos(phase0) * dphase**2 / 2
+!      dgradient = ele%value(gradient$) * dcos_phi + ele%value(gradient_err$) * cos_phi 
+!      dE_end = dE_start + dgradient * length
+!    endif
+!    f = dE_end / (beta_end_ref * pc_end_ref)
+!    end%vec(6) = f - (f * mc2 / E_end_ref)**2 / 2
+!
+!  else
     end%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
-  endif
+!  endif
 
   call offset_particle (ele, param, end, unset$)
 
