@@ -2,17 +2,17 @@ module quick_plot_struct
 
 use precision_def
 
-integer, parameter :: White$ = 0, Black$ = 1, Red$ = 2, Green$ = 3
-integer, parameter :: Blue$ = 4, Cyan$ = 5, Magenta$ = 6, Yellow$ = 7
-integer, parameter :: Orange$ = 8, Yellow_Green$ = 9, Light_Green$ = 10
-integer, parameter :: Navy_Blue$ = 11, Purple$ = 12, Redish_Purple$ = 13
-integer, parameter :: Dark_Grey$ = 14, Light_Grey$ = 15
+integer, parameter :: white$ = 0, black$ = 1, red$ = 2, green$ = 3
+integer, parameter :: blue$ = 4, cyan$ = 5, magenta$ = 6, yellow$ = 7
+integer, parameter :: orange$ = 8, yellow_green$ = 9, light_green$ = 10
+integer, parameter :: navy_blue$ = 11, purple$ = 12, redish_purple$ = 13
+integer, parameter :: dark_grey$ = 14, light_grey$ = 15, transparent$ = 16
 
-character(16), parameter :: qp_color_name(0:15) = (/ 'White        ', &
-    'Black        ', 'Red          ', 'Green        ', 'Blue         ', &
-    'Cyan         ', 'Magenta      ', 'Yellow       ', 'Orange       ', &
-    'Yellow_Green ', 'Light_Green  ', 'Navy_Blue    ', 'Purple       ', &
-    'Redish_Purple', 'Dark_Grey    ', 'Light_Grey   ' /)
+character(16), parameter :: qp_color_name(0:16) =   ['White        ', &
+  'Black        ', 'Red          ', 'Green        ', 'Blue         ', &
+  'Cyan         ', 'Magenta      ', 'Yellow       ', 'Orange       ', &
+  'Yellow_Green ', 'Light_Green  ', 'Navy_Blue    ', 'Purple       ', &
+  'Redish_Purple', 'Dark_Grey    ', 'Light_Grey   ', 'Transparent  ']
 
 integer, parameter :: solid$ = 1, dashed$ = 2, dash_dot$ = 3
 integer, parameter :: dotted$ = 4, dash_dot3$ = 5

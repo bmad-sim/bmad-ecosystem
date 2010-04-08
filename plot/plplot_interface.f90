@@ -212,6 +212,7 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 !
 
   if (x1 == x2 .or. y1 == y2) return
+  if (color == transparent$) return
 
   call qp_save_state_basic              ! Buffer the following calls
 
@@ -579,7 +580,7 @@ end subroutine
 ! inverts the black for white.
 !
 ! Input:
-!   ix_color -- Integer: Color index (0 - 15).
+!   ix_color -- Integer: Color index (0 - 16).
 !-
 
 subroutine qp_set_color_basic (ix_color)
@@ -587,14 +588,14 @@ subroutine qp_set_color_basic (ix_color)
   implicit none
 
   integer ix_color
-  integer, parameter :: inverse_color(0:15) = &
-          (/ 1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 /)
+  integer, parameter :: inverse_color(0:16) = &
+            [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 !            1, 0, 5, 6, 7, 2, 3, 4, 11, 12, 13,  8,  9, 10, 15, 14 
 !            0  1  2  3  4  5  6  7   8   9  10  11  12  13  14  15 
 
 ! Error check
 
-  if (ix_color < 0 .or. ix_color > 15) then
+  if (ix_color < 0 .or. ix_color > ubound(inverse_color, 1)) then
     print *, 'ERROR IN QP_SET_COLOR_BASIC: IX_COLOR ARGUMENT OUT OF RANGE:', &
                                                                       ix_color
     call err_exit

@@ -7,7 +7,13 @@ character(10) ans
 
 ! Which plot?
 
-ans = '1'
+write (*, '(a)') 'What to draw?:'
+write (*, '(a)') ' 1) Histogram example'
+write (*, '(a)') ' 2) Graph example'
+write (*, '(a)') ' 3) Symbol chart'
+write (*, '(a)', advance = 'NO') ' Input number <CR=3> '
+read (*, '(a)') ans
+call string_trim (ans, ans, i)
 
 select case (ans)
 case('1')
@@ -25,6 +31,12 @@ end select
 
 call qp_open_page ('X', id, xlen, ylen, 'POINTS')
 call draw_it
+call qp_open_page ('PS-L')  ! Tell Quick Plot to generate a PS file.
+call draw_it
+call qp_close_page          ! quick_plot.ps is the file name
+call qp_open_page ('GIF-L')  ! Tell Quick Plot to generate a GIF file.
+call draw_it
+call qp_close_page          ! quick_plot.ps is the file name
 write (*, '(a)', advance = 'NO') ' Hit any key to end program: '
 read (*, '(a)') ans
 
@@ -175,10 +187,10 @@ call qp_set_box (1, 1, 2, 1)
 call qp_set_axis ('X', 0.0_rp, 60.0_rp, 6)
 call qp_set_axis ('Y', 0.0_rp, 100.0_rp, 5)
 call qp_draw_axes ("x", "y", "Line Histogram")
-call qp_draw_histogram (x, y)
+call qp_draw_histogram (x, y, transparent$)
 
 call qp_set_box (2, 1, 2, 1)
-call qp_draw_axes ("x", "y", "Filled Histogram")
+call qp_draw_axes ("x", "y", "Filled Histogram", .false.)
 call qp_draw_histogram (x, y, blue$, hatched$)
 
 end subroutine

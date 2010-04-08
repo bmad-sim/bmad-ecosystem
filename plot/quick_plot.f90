@@ -115,7 +115,8 @@
 !    13 - Redish_Purple$
 !    14 - Dark_Grey$
 !    15 - Light_Grey$
-! 
+!    16 - Transparent$
+!
 !--------------------------------------------------------------------
 !
 ! The fill styles are:
@@ -2572,7 +2573,7 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_histogram (x_dat, y_dat, fill_color, fill_pattern, draw_line, clip)
+! Subroutine qp_draw_histogram (x_dat, y_dat, fill_color, fill_pattern, line_color, clip)
 !
 ! Subroutine to draw a histogram.
 ! The histogram is drawn as a series of rectangles, one for each
@@ -2586,27 +2587,27 @@ end subroutine
 !
 ! Input:
 !   x_dat(:), y_dat(:) -- Real(rp): Rectangle Data.
-!   fill_color   -- Integer, optional: Color to fill the rectangles.
-!                     If fill_color is 0 (white$) no color is added.
-!                     Default = white$
+!   fill_color   -- Integer, optional: Color of fill pattern and outline.
+!                     If fill_color is transparent$ no color is added.
+!                     Default = black$
 !   fill_pattern -- Integer, optional: Default is set by symbol fill pattern.
-!   draw_line    -- Logical, optional: Draw an outline of the rectangles?
-!                     Default is True.
+!   line_color   -- Integer, optional: Outline of the rectangles color
+!                     Default is black$. 
 !   clip         -- Logical, optional: Clip at the graph boundary?
 !                     Default is set by qp_set_line_attrib.
 !-
 
-subroutine qp_draw_histogram (x_dat, y_dat, fill_color, fill_pattern, draw_line, clip) 
+subroutine qp_draw_histogram (x_dat, y_dat, fill_color, fill_pattern, line_color, clip) 
 
 implicit none
 
 integer i, n, n_min, n_max
-integer, optional :: fill_color, fill_pattern
+integer, optional :: line_color, fill_color, fill_pattern
 
 real(rp) x_dat(:), y_dat(:)
 real(rp) :: xh(2*size(x_dat)+2), yh(2*size(x_dat)+2)
 
-logical, optional :: draw_line, clip
+logical, optional :: clip
 
 character(16) :: r_name = 'qp_draw_histogram'
 
@@ -2670,14 +2671,14 @@ call qp_save_state (.true.)
 
 call qp_set_line_attrib ('PLOT', clip = .false.)
 
-if (logic_option(.true., draw_line)) call qp_draw_polyline_no_set (xh, yh)
-
-if (integer_option(white$, fill_color) /= white$) then
+if (integer_option(black$, fill_color) /= transparent$) then
   do i = 1, n
     call qp_paint_rectangle (xh(2*i), xh(2*i+1), yh(1), yh(2*i), 'DATA', &
-                                                       fill_color, fill_pattern)
+                                      integer_option(black$, fill_color), fill_pattern)
   enddo
 endif
+
+call qp_draw_polyline (xh, yh, color = integer_option(black$, line_color))
 
 call qp_restore_state
 
