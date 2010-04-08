@@ -441,6 +441,9 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
 
 !
 
+  if (color == transparent$) return
+  if (fill_pattern == no_fill$) return
+
   call qp_save_state_basic              ! Buffer the following calls
 
   f = pg_com%page_scale

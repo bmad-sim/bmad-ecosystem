@@ -191,7 +191,7 @@ call qp_draw_histogram (x, y, transparent$)
 
 call qp_set_box (2, 1, 2, 1)
 call qp_draw_axes ("x", "y", "Filled Histogram", .false.)
-call qp_draw_histogram (x, y, blue$, hatched$)
+call qp_draw_histogram (x, y, blue$, no_fill$, red$)
 
 end subroutine
 
