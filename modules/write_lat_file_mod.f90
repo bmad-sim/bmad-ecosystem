@@ -1222,11 +1222,11 @@ do
         col_ele%value(l$) = 0
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
         aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
-        if (ele%aperture_at == both_ends$ .or. ele%aperture_at == exit_end$) then
+        if (aperture_at == both_ends$ .or. aperture_at == exit_end$) then
           call insert_element (lat_out, col_ele, ix_ele+1)
           ie2 = ie2 + 1
         endif
-        if (ele%aperture_at == both_ends$ .or. ele%aperture_at == entrance_end$) then
+        if (aperture_at == both_ends$ .or. aperture_at == entrance_end$) then
           call insert_element (lat_out, col_ele, ix_ele)
           ie2 = ie2 + 1
         endif
