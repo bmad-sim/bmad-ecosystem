@@ -1098,16 +1098,16 @@ subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, &
 type (lat_struct), target :: lat, lat_out, lat_model
 type (lat_struct), optional :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord
-type (ele_struct), save :: drift_ele, ab_ele, taylor_ele
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele
 type (taylor_term_struct) :: term
 
-real(rp) field, hk, vk, tilt
+real(rp) field, hk, vk, tilt, limit(2)
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
 
 integer, optional :: ix_start, ix_end
 integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
-integer ie1, ie2, ios, t_count, a_count, ix_lord, ix1, ix2, n_lord
+integer ie1, ie2, ios, t_count, a_count, ix_lord, ix1, ix2, n_lord, aperture_at
 
 character(*) out_type, out_file_name
 character(300) line
@@ -1145,6 +1145,7 @@ else
   return
 endif
 
+call init_ele (col_ele)
 call init_ele (drift_ele, drift$)
 call init_ele (taylor_ele, taylor$)
 call init_ele (ab_ele, ab_multipole$)
@@ -1170,6 +1171,7 @@ do
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
   ele => lat_out%ele(ix_ele)
+  val => ele%value
 
   ! If the name has more than 16 characters then replace the name by something shorter and unique.
 
@@ -1188,13 +1190,52 @@ do
     ele%name(j:j) = '_'
   enddo
 
-  ! If there is an aperture then create ecoll and rcoll elements.
+  ! If there is an aperture...
 
-  if (out_type == 'MAD-8' .or. out_type == 'MAD-X') then
-    if (ele%value(x1_limit$) /= 0 .or. ele%value(x2_limit$) /= 0 .or. &
-        ele%value(y1_limit$) /= 0 .or. ele%value(y2_limit$) /= 0) then
+  if (val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. &
+      val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) then
 
+    if (val(x1_limit$) /= val(x2_limit$)) then
+      call out_io (s_warn$, r_name, 'Asymmetric x_limits cannot be converted for: ' // ele%name, &
+                                    'Will use largest limit here.')
+      val(x1_limit$) = max(val(x1_limit$), val(x2_limit$))
     endif
+
+    if (val(y1_limit$) /= val(y2_limit$)) then
+      call out_io (s_warn$, r_name, 'Asymmetric y_limits cannot be converted for: ' // ele%name, &
+                                    'Will use largest limit here.')
+      val(y1_limit$) = max(val(y1_limit$), val(y2_limit$))
+    endif
+
+    ! create ecoll and rcoll elements.
+
+    if (ele%key /= ecollimator$ .and. ele%key /= rcollimator$) then
+      if (out_type == 'MAD-8' .or. out_type == 'XSIF' .or. ele%key == drift$) then
+        if (ele%aperture_type == rectangular$) then
+          col_ele%key = rcollimator$
+        else
+          col_ele%key = ecollimator$
+        endif
+        a_count = a_count + 1
+        write (col_ele%name, '(a, i3.3)')  'COLLIMATOR_N', a_count
+        col_ele%value = val
+        col_ele%value(l$) = 0
+        val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
+        aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
+        if (ele%aperture_at == both_ends$ .or. ele%aperture_at == exit_end$) then
+          call insert_element (lat_out, col_ele, ix_ele+1)
+          ie2 = ie2 + 1
+        endif
+        if (ele%aperture_at == both_ends$ .or. ele%aperture_at == entrance_end$) then
+          call insert_element (lat_out, col_ele, ix_ele)
+          ie2 = ie2 + 1
+        endif
+        ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
+      endif
+
+      cycle ! cycle since ele pointer is invalid
+    endif
+
   endif
 
   ! If there is a multipole component then put half at the beginning and half at the end
@@ -1218,7 +1259,7 @@ do
   if (ele%key == wiggler$ .or. ele%key == sol_quad$) then
     if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
 
-      drift_ele%value(l$) = -ele%value(l$) / 2
+      drift_ele%value(l$) = -val(l$) / 2
       call make_mat6 (drift_ele, lat_out%param)
       taylor_ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
       call mat6_to_taylor (taylor_ele%vec0, taylor_ele%mat6, taylor_ele%taylor)
@@ -1228,7 +1269,7 @@ do
       t_count = t_count + 1
       write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
       write (taylor_ele%name, '(a, i3.3)') 'SOL_QUAD', j_count
-      drift_ele%value(l$) = ele%value(l$) / 2
+      drift_ele%value(l$) = val(l$) / 2
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
       call insert_element (lat_out, drift_ele, ix_ele)
@@ -1280,7 +1321,7 @@ do
 
 enddo
 
-!----------------------------------
+!-------------------------------------------
 ! Now write info to the output file...
 ! lat lattice name
 
@@ -1293,7 +1334,7 @@ write (iu, *)
 
 ele => lat_out%ele(ie1-1)
 
-write (iu, '(2a, 2(a, es12.5), a)')  &
+write (iu, '(2a, 2(a, es13.5), a)')  &
       'beam_def: Beam, Particle = ', trim(particle_name(lat_out%param%particle)),  &
       ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat_out%param%n_part, trim(eol_char)
 
@@ -1306,6 +1347,7 @@ n_list = 0                          ! number of names stored in the list
 do ix_ele = ie1, ie2
 
   ele => lat_out%ele(ix_ele)
+  val => ele%value
 
   if (out_type == 'XSIF') then
     if (ele%key == elseparator$) ele%key = drift$  ! XSIF does not have elsep elements.
@@ -1322,8 +1364,6 @@ do ix_ele = ie1, ie2
   name_list(n_list) = ele%name
 
   ! select key
-
-  val => ele%value
 
   select case (ele%key)
 
@@ -1347,10 +1387,11 @@ do ix_ele = ie1, ie2
 
   ! ecollimator
 
-  case (ecollimator$)
+  case (ecollimator$, rcollimator$)
 
-    line_out = trim(ele%name) // ': ecollimator'
-
+    write (line_out, '(a, es13.5)') trim(ele%name) // ': ' // trim(key_name(ele%key)) // ', l =', val(l$)
+    call value_to_line (line_out, val(x1_limit$), 'xsize', 'es13.5', 'R')
+    call value_to_line (line_out, val(y1_limit$), 'ysize', 'es13.5', 'R')
 
   ! elseparator
 
@@ -1557,6 +1598,22 @@ do ix_ele = ie1, ie2
 
   end select
 
+  ! Add apertures for mad-x. Use 1 meter for unset apertures
+
+  if (out_type == 'MAD-X') then
+    if (val(x1_limit$) /= 0 .or. val(y1_limit$) /= 0) then
+      limit = [val(x1_limit$), val(y1_limit$)]
+      where (limit == 0) limit = 1
+      if (ele%aperture_type == rectangular$) then
+        line_out = trim(line_out) // ', apertype = rectangle'
+      else
+        line_out = trim(line_out) // ', apertype = ellipse'
+      endif
+      write (line_out, '(2a, es13.5, a, es10.4, a)') trim(line_out), &
+                                  ', aperture = (', limit(1), ', ', limit(2), ')'
+    endif
+  endif
+
   ! write element spec to file
 
   do
@@ -1634,10 +1691,10 @@ if (lat_out%param%lattice_type /= circular_lattice$) then
   write (iu, *)
   write (iu, *) '!---------------------------------', trim(eol_char)
   write (iu, *)
-  write (iu, '(2(a, es12.5), 2a)') 'TWISS, betx =', ele%a%beta, ', bety =', ele%b%beta, ',', trim(continue_char)
-  write (iu, '(5x, 2(a, es12.5), 2a)') 'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ',', trim(continue_char)
-  write (iu, '(5x, 2(a, es12.5), 2a)') 'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ',', trim(continue_char)
-  write (iu, '(5x, 2(a, es12.5), a)') 'dy =', ele%b%eta, ', dpy = ', ele%b%etap, trim(eol_char)
+  write (iu, '(2(a, es13.5), 2a)') 'TWISS, betx =', ele%a%beta, ', bety =', ele%b%beta, ',', trim(continue_char)
+  write (iu, '(5x, 2(a, es13.5), 2a)') 'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ',', trim(continue_char)
+  write (iu, '(5x, 2(a, es13.5), 2a)') 'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ',', trim(continue_char)
+  write (iu, '(5x, 2(a, es13.5), a)') 'dy =', ele%b%eta, ', dpy = ', ele%b%etap, trim(eol_char)
 endif
 
 !
