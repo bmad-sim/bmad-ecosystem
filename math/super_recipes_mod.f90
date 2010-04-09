@@ -236,10 +236,12 @@ end subroutine super_mrqcof
 !   super_recipes_mod
 !
 ! Input:
-!   a(:,:) -- Real(rp): Input matrix.
+!   a(:,:) -- Real(rp): matrix.
+!   b(:,:) -- Real(rp): matrix.
 !
 ! Output:
-!   b(:,:) -- Real(rp): Output matrix
+!   a(:,:) -- Real(rp): matrix.
+!   b(:,:) -- Real(rp): matrix.
 !   status -- Integer: Status. Set to -1 or -2 if there is an error.
 !               Set to 0 otherwise.
 !-
