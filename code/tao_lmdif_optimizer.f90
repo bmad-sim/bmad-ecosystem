@@ -75,7 +75,7 @@ endif
 
 call initial_lmdif
 
-call out_io (s_blank$, r_name, '   Loop      Merit')
+call out_io (s_blank$, r_name, '  Cycle      Merit')
 
 cycle_loop: do i = 1, s%global%n_opti_cycles
 

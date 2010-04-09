@@ -45,13 +45,13 @@ character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
 character(16) :: cmd_names(33) = [  &
-    'quit        ', 'exit        ', 'show        ', 'plot        ', 'place       ', &
-    'clip        ', 'scale       ', 'veto        ', 'use         ', 'restore     ', &
-    'run         ', 'flatten     ', 'output      ', 'change      ', 'set         ', &
-    'call        ', 'view        ', 'alias       ', 'help        ', 'history     ', &
-    'single-mode ', 'reinitialize', 'x-scale     ', 'x-axis      ', 'derivative  ', &
-    'spawn       ', 'xy-scale    ', 'read        ', 'misalign    ', 'end-file    ', &
-    'pause       ', 'continue    ', 'wave        ']
+    'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
+    'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
+    'run_optimizer', 'flatten      ', 'output       ', 'change       ', 'set          ', &
+    'call         ', 'view         ', 'alias        ', 'help         ', 'history      ', &
+    'single-mode  ', 'reinitialize ', 'x-scale      ', 'x-axis       ', 'derivative   ', &
+    'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
+    'pause        ', 'continue     ', 'wave         ']
 
 character(16) :: set_names(14) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
@@ -392,7 +392,7 @@ case ('reinitialize')
 !--------------------------------
 ! RUN, FLATTEN
 
-case ('run', 'flatten')
+case ('run_optimizer', 'flatten')
 
   call tao_cmd_split (cmd_line, 1, cmd_word, .true., err); if (err) return
   call tao_run_cmd (cmd_word(1), abort)

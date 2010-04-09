@@ -21,6 +21,7 @@ subroutine tao_run_cmd (which, abort)
 use tao_mod
 use tao_var_mod
 use tao_lm_optimizer_mod
+use tao_svd_optimizer_mod
 
 implicit none
 
@@ -37,7 +38,7 @@ logical abort
 call tao_set_var_useit_opt()
 call tao_set_data_useit_opt()
 
-if (all (which /= (/ '      ', 'de    ', 'lm    ', 'lmdif ', 'custom' /))) then
+if (all (which /= ['      ', 'de    ', 'lm    ', 'lmdif ', 'custom', 'svd   '])) then
   call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
   return
 endif
@@ -90,6 +91,9 @@ do i = 1, s%global%n_opti_loops
 
   case ('lmdif')
     call tao_lmdif_optimizer (abort)
+
+  case ('svd')
+    call tao_svd_optimizer ()
 
   case ('custom')
     call tao_hook_optimizer (abort)

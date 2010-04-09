@@ -30,23 +30,23 @@ of the line is ignored.  Example:
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}  & {\it Command} & {\it Section}    \\ \hline
-  alias      & \sref{s:alias}    & quit         & \sref{s:quit}     \\ \hline
-  call       & \sref{s:call}     & read         & \sref{s:read}     \\ \hline
-  change     & \sref{s:change}   & restore      & \sref{s:restore}  \\ \hline 
-  clip       & \sref{s:clip}     & reinitialize & \sref{s:reinit}   \\ \hline 
-  continue   & \sref{s:continue} & run          & \sref{s:run}      \\ \hline 
-  derivative & \sref{s:deriv}    & scale        & \sref{s:scale}    \\ \hline 
-  end-file   & \sref{s:end.file} & set          & \sref{s:set}      \\ \hline  
-  exit       & \sref{s:exit}     & show         & \sref{s:show}     \\ \hline 
-  flatten    & \sref{s:flatten}  & single-mode  & \sref{s:sing}     \\ \hline 
-  help       & \sref{s:help}     & spawn        & \sref{s:spawn}    \\ \hline 
-  history    & \sref{s:history}  & use          & \sref{s:use}      \\ \hline 
-  misalign   & \sref{s:misalign} & veto         & \sref{s:veto}     \\ \hline 
-  output     & \sref{s:output}   & view         & \sref{s:view}     \\ \hline 
-  pause      & \sref{s:pause}    & wave         & \sref{s:wave}     \\ \hline
-  place      & \sref{s:place}    & x-axis       & \sref{s:x.axis}   \\ \hline 
-  plot       & \sref{s:plot}     & x-scale      & \sref{s:x.scale}  \\ \hline 
-             &                   & xy-scale     & \sref{s:xy.scale} \\ \hline
+  alias      & \sref{s:alias}    & quit          & \sref{s:quit}     \\ \hline
+  call       & \sref{s:call}     & read          & \sref{s:read}     \\ \hline
+  change     & \sref{s:change}   & restore       & \sref{s:restore}  \\ \hline 
+  clip       & \sref{s:clip}     & reinitialize  & \sref{s:reinit}   \\ \hline 
+  continue   & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ \hline 
+  derivative & \sref{s:deriv}    & scale         & \sref{s:scale}    \\ \hline 
+  end-file   & \sref{s:end.file} & set           & \sref{s:set}      \\ \hline  
+  exit       & \sref{s:exit}     & show          & \sref{s:show}     \\ \hline 
+  flatten    & \sref{s:flatten}  & single-mode   & \sref{s:sing}     \\ \hline 
+  help       & \sref{s:help}     & spawn         & \sref{s:spawn}    \\ \hline 
+  history    & \sref{s:history}  & use           & \sref{s:use}      \\ \hline 
+  misalign   & \sref{s:misalign} & veto          & \sref{s:veto}     \\ \hline 
+  output     & \sref{s:output}   & view          & \sref{s:view}     \\ \hline 
+  pause      & \sref{s:pause}    & wave          & \sref{s:wave}     \\ \hline
+  place      & \sref{s:place}    & x-axis        & \sref{s:x.axis}   \\ \hline 
+  plot       & \sref{s:plot}     & x-scale       & \sref{s:x.scale}  \\ \hline 
+             &                   & xy-scale      & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -287,8 +287,8 @@ Format:
 \label{s:flatten}
 
 The \vn{Flatten} command runs the optimizer to minimize the merit
-function. This is the same as \vn{run}. See the \vn{run} command for
-more details.  Format:
+function. This is the same as the \vn{run_optimizer} command. 
+See the \vn{run_optimizer} command for more details.  Format:
 \begin{example}
   flatten \{<optimizer>\}
 \end{example}
@@ -313,7 +313,7 @@ is divided up by their subcommand.
 Examples:
 \begin{example}
   help            ! Gives list of commands.
-  help run        ! Gives help on the run command.
+  help run        ! Gives help on the run_optimizer command.
   help show       ! Help on the show command.
   help show alias ! Help on the show alias command.
 \end{example}
@@ -653,12 +653,12 @@ Examples:
 
 
 %% run --------------------------------------------------------------
-\section{run}\index{Commands!run}
+\section{run_optimizer}\index{Commands!run}
 \label{s:run}
 
-The \vn{run} command runs an optimizer. Format:
+The \vn{run_optimizer} command runs an optimizer. Format:
 \begin{example}
-  run \{<optimizer>\}
+  run_optimizer \{<optimizer>\}
 \end{example}
 
 \vskip 0.2in 
@@ -678,8 +678,8 @@ optimizers.
 
 Examples:
 \begin{example}
-  run 
-  run de
+  run         ! Run the default optimizer
+  run de      ! Run the de optimizer
 \end{example}
 
 %% scale --------------------------------------------------------------

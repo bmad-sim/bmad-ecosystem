@@ -15,7 +15,7 @@ contains
 !+
 ! Subroutine tao_lm_optimizer (abort)
 !
-! Subrutine to minimize the merit function by varying variables until
+! Routine to minimize the merit function by varying variables until
 ! the "data" as calculated from the model matches the measured data.
 ! 
 ! This subroutine is a wrapper for the mrqmin routine of Numerical Recipes.
@@ -96,7 +96,7 @@ enddo
 ! run optimizer mrqmin from Numerical Recipes.
 
 finished = .false.
-call out_io (s_blank$, r_name, '   Loop      Merit   A_lambda')
+call out_io (s_blank$, r_name, '  Cycle      Merit   A_lambda')
 
 do i = 1, s%global%n_opti_cycles+1
 
@@ -203,9 +203,9 @@ if (limited) then
   return
 endif
 
-! calculate derivatives
+! Calculate derivatives
 
-merit0 = tao_merit()
+merit0 = tao_merit()  ! Calculate %delta_merit values
 
 dy_da = 0
 n_var = size(a)
