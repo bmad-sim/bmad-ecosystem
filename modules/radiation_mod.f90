@@ -57,8 +57,6 @@ end subroutine
 ! This routine calculates half the radiation of an element so this routine
 ! needs to be called before entering an element and just after exiting.
 !
-! Use the setup_radiation_tracking routine initially prior to tracking.
-!
 ! Modules needed:
 !   use radiation_mod
 !
@@ -102,7 +100,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
   ! Also symplectic tracking handles the radiation.
 
   if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
-        (/ quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$ /))) then
+            [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$])) then
     end = start
     return
   endif
@@ -171,14 +169,10 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   case (wiggler$)
     if (ele%sub_key == map_type$) then
-      if (.not. associated(ele%const)) then
-        call out_io (s_fatal$, r_name, 'SETUP_RADIATION_TRACKING HAS NOT BEEN CALLED FOR THIS LATTICE!')
-        call err_exit
-      endif
-      g2 = ele%const(10) + &
-                  dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
-      g3 = ele%const(20) + &
-                  dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(21:24))
+      if (.not. associated(ele%const)) call calc_radiation_tracking_consts(ele, param)
+      if (ele%const(10) < 0) call calc_radiation_tracking_consts(ele, param)
+      g2 = ele%const(10) + dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
+      g3 = ele%const(20) + dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(21:24))
       if (g3 < 0) g3 = 0
     elseif (ele%sub_key == periodic_type$) then
       g2 = abs(ele%value(k1$))
@@ -221,134 +215,106 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine setup_radiation_tracking (lat, closed_orb,
-!                                        fluctuations_on, damping_on) 
+! Subroutine calc_radiation_tracking_consts (ele, param)
 !
-! Subroutine to compute synchrotron radiation parameters prior to tracking.
-!
-! Note: The fluctuations_on and damping_on flags are global and are applied
-! to all lattices. If either fluctuations or damping is turned on then this
-! routine must be called for each lattice in use.
-! Initially, fluctuations and damping are turned off.
+! Routine to compute synchrotron radiation parameters prior to tracking.
+! This routine is not meant for general use
 !
 ! Modules needed:
 !   use radiation_mod
 !
 ! Input:
-!   lat            -- lat_struct:
-!   closed_orb(0:)  -- Coord_struct, optional: Closed_orbit. 
-!                        If not present then orb = 0 will be used.
-!   fluctuations_on -- Logical, optional: If present, bmad_com%radiation_fluctuations_on
-!                        will be set to the value of this argument. 
-!   damping_on      -- Logical, optional: If present, bmad_com%radiation_damping_on
-!                        will be set to the value of this argument. 
+!   ele   -- ele_struct: Element 
+!   param -- lat_param_struct
 !
 ! Output:
-!   lat           -- lat_struct: Lattice with radiation parameters computed. 
+!   ele  -- ele_struct: Element 
+!     %const(:)  -- radiation tracking constants.
 !-
 
-subroutine setup_radiation_tracking (lat, closed_orb, &
-                                        fluctuations_on, damping_on)
+subroutine calc_radiation_tracking_consts (ele, param)
 
-  use symp_lie_mod
+use symp_lie_mod
 
-  implicit none
+implicit none
 
-  type (lat_struct), target :: lat
-  type (coord_struct), optional :: closed_orb(0:)
-  type (coord_struct) start0, start1, start, end
-  type (track_struct), save :: track
+type (ele_struct) ele
+type (lat_param_struct) param
+type (coord_struct) start1, start, end
+type (track_struct), save :: track
 
-  real(rp), save :: del_orb(6) = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
-  real(rp) g2, g3
+real(rp), save :: del_orb(6) = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
+real(rp) g2, g3
 
-  integer i, j
+integer i, j
 
-  logical, optional :: fluctuations_on, damping_on
+! Compute for a map_type wiggler the change in g2 and g3 
+!   with respect to transverse orbit for an on-energy particle..
+! This is done with (x, x', y, y') to take out the energy dependence.
+! start0 is in local coords                    
+! start1 is lab coords with vec(6) = dE/E = 0 
 
-  ! Set logicals.
+if (ele%key /= wiggler$) return
+if (ele%sub_key /= map_type$) return
 
-  if (present(fluctuations_on)) bmad_com%radiation_fluctuations_on = fluctuations_on
-  if (present(damping_on)) bmad_com%radiation_damping_on = damping_on
+track%save_track = .true.
 
-  ! Compute for a map_type wiggler the change in g2 and g3 
-  !   with respect to transverse orbit for an on-energy particle..
-  ! This is done with (x, x', y, y') to take out the energy dependence.
-  ! start0 is in local coords                    
-  ! start1 is lab coords with vec(6) = dE/E = 0 
+start1 = ele%map_ref_orb_in
 
-  do i = 1, lat%n_ele_track
+call offset_particle (ele, param, ele%map_ref_orb_in, set$)
 
-    if (lat%ele(i)%key /= wiggler$) cycle
-    if (lat%ele(i)%sub_key /= map_type$) cycle
+start1%vec(2) = ele%map_ref_orb_in%vec(2)
+start1%vec(4) = ele%map_ref_orb_in%vec(4)
+start1%vec(6) = 0
 
-    track%save_track = .true.
+if (.not. associated(ele%const)) allocate (ele%const(1:26))
+ele%const(1:6) = ele%map_ref_orb_in%vec  ! Local coords
+call symp_lie_bmad (ele, param, start1, end, .false., track)
+call calc_g (track, ele%const(10), ele%const(20))
 
-    if (present(closed_orb)) then
-      start0 = closed_orb(i-1)
-    else
-      start0%vec = 0
-    endif
-
-    start1 = start0
-
-    call offset_particle (lat%ele(i), lat%param, start0, set$)
-
-    start1%vec(2) = start0%vec(2)
-    start1%vec(4) = start0%vec(4)
-    start1%vec(6) = 0
-
-    if (.not. associated(lat%ele(i)%const)) allocate (lat%ele(i)%const(1:26))
-    lat%ele(i)%const(1:6) = start0%vec  ! Local coords
-    call symp_lie_bmad (lat%ele(i), lat%param, start1, end, .false., track)
-    call calc_g (track, lat%ele(i)%const(10), lat%ele(i)%const(20))
-
-    do j = 1, 4
-      start = start1
-      start%vec(j) = start%vec(j) + del_orb(j)
-      call symp_lie_bmad (lat%ele(i), lat%param, start, end, .false., track)
-      call calc_g (track, g2, g3)
-      lat%ele(i)%const(j+10) = (g2 - lat%ele(i)%const(10)) / del_orb(j)
-      lat%ele(i)%const(j+20) = (g3 - lat%ele(i)%const(20)) / del_orb(j)
-    enddo
-
-  enddo
+do j = 1, 4
+  start = start1
+  start%vec(j) = start%vec(j) + del_orb(j)
+  call symp_lie_bmad (ele, param, start, end, .false., track)
+  call calc_g (track, g2, g3)
+  ele%const(j+10) = (g2 - ele%const(10)) / del_orb(j)
+  ele%const(j+20) = (g3 - ele%const(20)) / del_orb(j)
+enddo
 
 !-------------------------------------------------------
 contains
 
 subroutine calc_g (track, g2, g3)
 
-  type (track_struct) track
-  real(rp) g2, g3, k2, k3, kick(6)
-  integer j, n0, n1
+type (track_struct) track
+real(rp) g2, g3, k2, k3, kick(6)
+integer j, n0, n1
 
-  ! g2 is the average kick^2 over the element.
+! g2 is the average kick^2 over the element.
 
-  g2 = 0; g3 = 0
+g2 = 0; g3 = 0
 
-  n0 = lbound(track%pt, 1)
-  n1 = track%n_pt
-  do j = n0, n1
+n0 = lbound(track%pt, 1)
+n1 = track%n_pt
+do j = n0, n1
 
-    call em_field_kick (lat%ele(i), lat%param, track%pt(j)%s, &
-                                    track%pt(j)%orb%vec, .false., kick)
+  call em_field_kick (ele, param, track%pt(j)%s, track%pt(j)%orb%vec, .false., kick)
 
-    k2 = kick(2)**2 + kick(4)**2
-    k3 = sqrt(k2)**3
+  k2 = kick(2)**2 + kick(4)**2
+  k3 = sqrt(k2)**3
 
-    if (i == n0 .or. i == n1) then
-      k2 = k2 / 2
-      k3 = k3 / 2
-    endif
+  if (i == n0 .or. i == n1) then
+    k2 = k2 / 2
+    k3 = k3 / 2
+  endif
 
-    g2 = g2 + k2
-    g3 = g3 + k3
+  g2 = g2 + k2
+  g3 = g3 + k3
 
-  enddo
+enddo
 
-  g2 = g2 / (n1 - n0 + 1)
-  g3 = g3 / (n1 - n0 + 1)
+g2 = g2 / (n1 - n0 + 1)
+g3 = g3 / (n1 - n0 + 1)
 
 end subroutine
 

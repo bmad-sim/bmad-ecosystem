@@ -30,103 +30,106 @@
 !   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_mat6 (ele, param, start, end, end_in, err)
 
-  use symp_lie_mod, only: symp_lie_bmad
-  use bookkeeper_mod, only: attribute_bookkeeper
-  use mad_mod, only: make_mat6_mad
-  use em_field_mod, only: track_com
-  use trans_space_charge_mod, except_dummy => make_mat6
+use symp_lie_mod, only: symp_lie_bmad
+use bookkeeper_mod, only: attribute_bookkeeper
+use mad_mod, only: make_mat6_mad
+use em_field_mod, only: track_com
+use trans_space_charge_mod, except_dummy => make_mat6
+use equality_mod
 
-  implicit none
+implicit none
 
-  type (ele_struct), target :: ele
-  type (coord_struct), optional :: start, end
-  type (lat_param_struct)  param
-  type (coord_struct) a_start, a_end
+type (ele_struct), target :: ele
+type (coord_struct), optional :: start, end
+type (lat_param_struct)  param
+type (coord_struct) a_start, a_end
 
-  integer mat6_calc_method
+integer mat6_calc_method
 
-  logical, optional :: end_in, err
-  logical end_input
+logical, optional :: end_in, err
+logical end_input
 
 !--------------------------------------------------------
 ! init
 
-  param%lost = .false.
-  if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+param%lost = .false.
+if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
-  mat6_calc_method = ele%mat6_calc_method
-  if (.not. ele%is_on) mat6_calc_method = bmad_standard$
+mat6_calc_method = ele%mat6_calc_method
+if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 
 !
 
-  end_input = logic_option (.false., end_in)
-  if (present(err)) err = .false.
+end_input = logic_option (.false., end_in)
+if (present(err)) err = .false.
 
-  if (end_input .and. .not. present(end)) then
-    print *, 'ERROR IN MAKE_MAT6: CONFUSED END_IN WITHOUT AN END!'
-    call err_exit
-  endif
+if (end_input .and. .not. present(end)) then
+  print *, 'ERROR IN MAKE_MAT6: CONFUSED END_IN WITHOUT AN END!'
+  call err_exit
+endif
 
-  if (present(start)) then
-    a_start = start
-  else
-    call init_coord (a_start)
-  endif
+if (present(start)) then
+  a_start = start
+else
+  call init_coord (a_start)
+endif
 
-  if (end_input) a_end = end
+if (end_input) a_end = end
 
-  select case (mat6_calc_method)
+select case (mat6_calc_method)
 
-  case (taylor$)
-    call make_mat6_taylor (ele, param, a_start)
-    if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
+case (taylor$)
+  call make_mat6_taylor (ele, param, a_start)
+  if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
 
-  case (custom$) 
-    call make_mat6_custom (ele, param, a_start, a_end)
+case (custom$) 
+  call make_mat6_custom (ele, param, a_start, a_end)
 
-  case (bmad_standard$)
-    call make_mat6_bmad (ele, param, a_start, a_end, end_in, err)
+case (bmad_standard$)
+  call make_mat6_bmad (ele, param, a_start, a_end, end_in, err)
 
-  case (symp_lie_ptc$)
-    call make_mat6_symp_lie_ptc (ele, param, a_start)
-    if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
+case (symp_lie_ptc$)
+  call make_mat6_symp_lie_ptc (ele, param, a_start)
+  if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
 
-  case (symp_lie_bmad$)
-    call symp_lie_bmad (ele, param, a_start, a_end, .true., track_com)
+case (symp_lie_bmad$)
+  call symp_lie_bmad (ele, param, a_start, a_end, .true., track_com)
 
-  case (tracking$)
-    call make_mat6_tracking (ele, param, a_start, a_end)
+case (tracking$)
+  call make_mat6_tracking (ele, param, a_start, a_end)
 
-  case (mad$)
-    call make_mat6_mad (ele, param, a_start, a_end)
+case (mad$)
+  call make_mat6_mad (ele, param, a_start, a_end)
 
-  case (no_method$)
-    return
+case (no_method$)
+  return
 
-  case default
-    print *, 'ERROR IN MAKE_MAT6: UNKNOWN MAT6_CALC_METHOD: ', &
-                                    calc_method_name(ele%mat6_calc_method)
-    call err_exit
-  end select
+case default
+  print *, 'ERROR IN MAKE_MAT6: UNKNOWN MAT6_CALC_METHOD: ', &
+                                  calc_method_name(ele%mat6_calc_method)
+  call err_exit
+end select
 
 ! Add space charge effects
 
-  if (bmad_com%trans_space_charge_on) &
-                  call make_mat6_trans_space_charge (ele, param)
+if (bmad_com%trans_space_charge_on) &
+                call make_mat6_trans_space_charge (ele, param)
 
 ! symplectify if wanted
 
-  if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
+if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6)
 
 ! Finish up
 
+if (.not. ele%map_ref_orb_in == a_start) then
   ele%map_ref_orb_in = a_start
-  ele%map_ref_orb_out = a_end
-  if (present(end) .and. .not. end_input) end = a_end
+  if (associated(ele%const)) ele%const = -1
+endif
+
+ele%map_ref_orb_out = a_end
+if (present(end) .and. .not. end_input) end = a_end
 
 end subroutine
 

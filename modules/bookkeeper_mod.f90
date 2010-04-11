@@ -4,6 +4,7 @@ use bmad_interface
 use bmad_utils_mod
 use multipole_mod
 use lat_geometry_mod
+use equality_mod
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
@@ -711,8 +712,6 @@ endif
 
 ! wakes
 
-if (associated (slave%r)) slave%r = lord%r
-if (associated (slave%const)) slave%const = lord%const
 if (associated (slave%wake)) then
   slave%wake%sr_table      = lord%wake%sr_table
   slave%wake%sr_mode_long  = lord%wake%sr_mode_long
@@ -993,7 +992,10 @@ if (slave%n_lord == 1) then
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
+    if (.not. slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out) then
+      slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
+      if (associated(slave%const)) slave%const = -1  ! Forces recalc
+    endif
   endif
 
   ! Find the offset from the longitudinal start of the lord to the start of the slave
@@ -1082,7 +1084,10 @@ do j = 1, slave%n_lord
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
+    if (.not. slave%map_ref_orb_in == branch%ele(ix_slave-1)%map_ref_orb_out) then
+      slave%map_ref_orb_in = branch%ele(ix_slave-1)%map_ref_orb_out
+      if (associated(slave%const)) slave%const = -1  ! Forces recalc
+    endif
   endif
 
   ! Choose the smallest ds_step of all the lords.
@@ -2189,6 +2194,10 @@ if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
     z_patch_calc_needed = (ele%key == wiggler$ .and. val(p0c$) /= 0)
   endif
 endif
+
+! Kill ele%const if allocated
+
+if (associated(ele%const)) ele%const = -1  ! Forces recalc
 
 ! compute the z_patch for a wiggler if needed.
 ! This is normally zero except for split wiggler sections.
