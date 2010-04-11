@@ -92,7 +92,6 @@
   call reallocate_coord(start, scan_params%n_part)
   call reallocate_coord(end, scan_params%n_part)
 
-  call setup_radiation_tracking(ring, co, .false., .false.)
   call set_on_off (rfcavity$, ring, off$)
 
   ring%param%particle = scan_params%particle
@@ -293,7 +292,8 @@
   call set_on_off (rfcavity$, ring, on$)
   call set_z_tune(ring)
   if(scan_params%radiation)then
-    call setup_radiation_tracking(ring, co, .true., .true.)
+    bmad_com%radiation_damping_on = .true.
+    bmad_com%radiation_fluctuations_on = .true.
     type *,' radiation fluctuations and damping are on'
   endif
   forall(i=0:ring%n_ele_track) orbit(i)%vec = co(i)%vec

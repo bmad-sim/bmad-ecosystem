@@ -157,7 +157,6 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call reallocate_coord(start, scan_params%n_part)
   call reallocate_coord(end, scan_params%n_part)
 
-  call setup_radiation_tracking(ring, co, .false., .false.)
   call set_on_off (rfcavity$, ring, off$)
 
   ring%param%particle = positron$
@@ -396,7 +395,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call set_on_off (rfcavity$, ring, on$)
   call set_z_tune(ring)
   if(scan_params%radiation)then
-     call setup_radiation_tracking(ring, co, .true., .true.)
+     bmad_com%radiation_damping_on = .true.
+     bmad_com%radiation_fluctuations_on = .true.
      if(rank.eq.0) then
         type *,' radiation fluctuations and damping are on'
      endif
