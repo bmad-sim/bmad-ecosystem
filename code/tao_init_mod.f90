@@ -148,7 +148,7 @@ integer ix_track_start, ix_track_end
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams_and_uni_connections'
-character(100) beam_saved_at
+character(160) beam_saved_at
 character(200) file_name, beam0_file, beam_all_file
 character(60), target :: save_beam_at(100)   ! old style syntax
 

@@ -654,7 +654,7 @@ type tao_universe_struct
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (coord_struct) model_orb0                         ! For saving beginning orbit
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
-  character(100) beam_saved_at
+  character(160) beam_saved_at
   integer ix_uni                         ! Universe index.
   integer n_d2_data_used
   integer n_data_used
