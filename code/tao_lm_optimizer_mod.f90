@@ -62,10 +62,12 @@ abort = .false.
 
 merit0 = tao_merit()
 
-call tao_get_vars (var_value, var_weight = var_weight, var_ix = var_ix)
+call tao_get_opt_vars (var_value, var_ix = var_ix)
 n_var = size(var_value)
 
-n_data = n_var
+call tao_get_opt_vars (var_weight = var_weight, ignore_if_weight_is_zero = .true.)
+
+n_data = size(var_weight)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(i)%is_on) cycle
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
@@ -81,9 +83,9 @@ allocate (dy_da(n_data, n_var))
 
 a = var_value
 y = 0
-weight(1:n_var) = var_weight
 
-k = n_var
+k = size(var_weight)
+weight(1:k) = var_weight
 do j = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(j)
   if (.not. u%is_on) cycle
@@ -184,7 +186,7 @@ real(rp), intent(out) :: dy_da(:, :)
 real(rp) merit0
 real(rp), allocatable, save :: var_delta(:)
 
-integer i, j, k, n, nn, im, iv, n_var
+integer i, j, k, n, nn, im, iv, n_var, nd
 integer status
 
 logical limited
@@ -193,7 +195,7 @@ character(80) line
 
 ! transfer "a" array to model
 
-call tao_set_vars (a, s%global%optimizer_var_limit_warn)
+call tao_set_opt_vars (a, s%global%optimizer_var_limit_warn)
 
 ! if limited then set y_fit to something large so merit calc gives a large number.
 
@@ -212,12 +214,11 @@ merit0 = tao_merit()  ! Calculate %delta_merit values
 dy_da = 0
 n_var = size(a)
 
-call tao_get_vars (var_delta = var_delta)
-y_fit(1:n_var) = var_delta
+call tao_get_opt_vars (var_delta = var_delta, ignore_if_weight_is_zero = .true.)
+nd = size(var_delta)
+y_fit(1:nd) = var_delta
 
-forall (k = 1:n_var) dy_da(k,k) = 1
-
-k = n_var
+forall (k = 1:nd) dy_da(k,k) = 1
 
 do j = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(j)
@@ -225,15 +226,15 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
     if (u%data(i)%weight == 0) cycle
-    k = k + 1
-    y_fit(k) = u%data(i)%delta_merit
+    nd = nd + 1
+    y_fit(nd) = u%data(i)%delta_merit
     im = u%data(i)%ix_dModel
     nn = 0
     do n = 1, size(s%var)
       if (.not. s%var(n)%useit_opt) cycle
       nn = nn + 1
       iv = s%var(n)%ix_dVar
-      dy_da(k, nn) = u%dModel_dVar(im, iv)
+      dy_da(nd, nn) = u%dModel_dVar(im, iv)
     enddo
   enddo
 enddo

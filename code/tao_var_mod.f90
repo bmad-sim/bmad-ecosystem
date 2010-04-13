@@ -8,7 +8,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, var_ix)
+! Subroutine tao_get_opt_vars (var_value, var_step, var_delta, var_weight, var_ix, ignore_if_weight_is_zero)
 !
 ! Subroutine to get the values of the variables used in optimization and put them
 ! in an array.
@@ -21,9 +21,11 @@ contains
 !   var_delta(:)       -- Real, allocatable, optional: Variable Merit deltas.
 !   var_weight(:)      -- Real, allocatable, optional: Variable weights in the merit function.
 !   var_ix(:)          -- Integer, allocatable, optional: Variable s%var(:) indexes
+!   ignore_if_weight_is_zero -- Logical, optional: If present and True then ignore
+!                                 all variables whose merit weight is zero.
 !-
 
-subroutine tao_get_vars (var_value, var_step, var_delta, var_weight, var_ix)
+subroutine tao_get_opt_vars (var_value, var_step, var_delta, var_weight, var_ix, ignore_if_weight_is_zero)
 
 implicit none
 
@@ -34,9 +36,16 @@ integer, allocatable, optional :: var_ix(:)
 integer i, j
 integer n_var
 
+logical, optional :: ignore_if_weight_is_zero
+
 ! 
 
-  n_var  = count(s%var(:)%useit_opt)
+  if (logic_option(.false., ignore_if_weight_is_zero)) then
+    n_var  = count(s%var(:)%useit_opt .and. s%var(:)%weight /= 0)
+  else
+    n_var  = count(s%var(:)%useit_opt)
+  endif
+
   if (present(var_value))   call re_allocate (var_value, n_var)
   if (present(var_delta))   call re_allocate (var_delta, n_var)
   if (present(var_step))    call re_allocate (var_step, n_var)
@@ -46,6 +55,7 @@ integer n_var
   j = 0
   do i = 1, size(s%var)
     if (.not. s%var(i)%useit_opt) cycle
+    if (logic_option(.false., ignore_if_weight_is_zero) .and. s%var(i)%weight == 0) cycle
     j = j + 1
     if (present(var_value))        var_value(j)   = s%var(i)%model_value
     if (present(var_delta))        var_delta(j)   = s%var(i)%delta_merit
@@ -61,7 +71,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_set_vars (var_vec, print_limit_warning)
+! Subroutine tao_set_opt_vars (var_vec, print_limit_warning)
 !
 ! Subrutine to set variable values from a vector of values. 
 ! This routine is used with optimization since optimimizers
@@ -79,7 +89,7 @@ end subroutine
 ! Output:
 !-
 
-subroutine tao_set_vars (var_vec, print_limit_warning)
+subroutine tao_set_opt_vars (var_vec, print_limit_warning)
 
 implicit none
 

@@ -356,7 +356,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc
 
 character(*) ele_list
-character(100) ele_name
+character(200) ele_name
 character(20) :: r_name = 'tao_locate_elements'
 
 logical err

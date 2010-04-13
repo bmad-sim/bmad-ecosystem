@@ -41,7 +41,7 @@ abort = .false.
 
 ! put the variable values into an array for the optimizer
 
-call tao_get_vars (var_vec, var_step = var_step)
+call tao_get_opt_vars (var_vec, var_step = var_step)
 var_step = var_step * s%global%de_lm_step_ratio
 n_var = size(var_vec)
 
@@ -50,12 +50,11 @@ merit_start = tao_merit ()
 
 ! run the optimizer
 
-merit = opti_de (var_vec, s%global%n_opti_cycles, population, &
-                                                    merit_wrapper, var_step, status)
+merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
 
 ! cleanup after the optimizer
 
-call tao_set_vars (var_vec, s%global%optimizer_var_limit_warn)
+call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
 merit_end = tao_merit ()
 
 write (line, '(a, es14.6)') 'Merit start:', merit_start
@@ -136,7 +135,7 @@ enddo
 
 stars = '****************************************************'
 
-call tao_set_vars (var_vec, s%global%optimizer_var_limit_warn)
+call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
 
 this_merit = tao_merit ()
 merit_min = min(merit_min, this_merit)
