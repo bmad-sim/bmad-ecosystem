@@ -8,7 +8,7 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_dModel_dVar_calc (force_calc, veto_vars_with_zero_dmodel)
+! Subroutine tao_dModel_dVar_calc (force_calc)
 !
 ! Subroutine to calculate the dModel_dVar derivative matrix.
 !
@@ -26,7 +26,7 @@ contains
 !    %u(:)%dModel_dVar(:,:)  -- Derivative matrix
 !-
 
-subroutine tao_dmodel_dvar_calc (force_calc, veto_vars_with_zero_dmodel)
+subroutine tao_dmodel_dvar_calc (force_calc)
 
 implicit none
 
@@ -39,8 +39,7 @@ integer n_data, n_var, nd, nv
 
 character(20) :: r_name = 'tao_dmodel_dvar_calc'
 
-logical, optional :: veto_vars_with_zero_dmodel
-logical reinit, force_calc, calc_ok, err_message_out, zero_dmodel
+logical reinit, force_calc, calc_ok, err_message_out
 
 ! make sure size of matrices are correct.
 ! We only compute the derivitive matrix if needed or if force_calc is set.
@@ -56,7 +55,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   if (.not. u%is_on) then
     if (allocated(u%dModel_dVar)) deallocate(u%dModel_dVar)
-     cycle
+    cycle
   endif
 
   n_data = count (u%data%useit_opt)
@@ -75,11 +74,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   nd = 0
   do j = 1, size(u%data)
-    if (.not. u%data(j)%useit_opt) cycle
+    if (.not. u%data(j)%useit_opt) then
+      u%data(j)%ix_dmodel = 0
+      cycle
+    endif
     nd = nd + 1
     if (u%data(j)%ix_dModel /= nd) reinit = .true.
-    if (u%data(j)%good_model .and. &
-            any (u%dModel_dVar(nd,:) == real_garbage$)) reinit = .true.
+    if (u%data(j)%good_model .and. any (u%dModel_dVar(nd,:) == real_garbage$)) reinit = .true.
     u%data(j)%ix_dModel = nd
     if (u%data(j)%good_model) then
       u%data(j)%old_value = u%data(j)%delta_merit
@@ -90,22 +91,26 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
 enddo
 
-s%var%ix_dvar = 0
 nv = 0
 do j = 1, size(s%var)
-  if (.not. s%var(j)%useit_opt) cycle
+  if (.not. s%var(j)%useit_opt) then
+    s%var(j)%ix_dvar = 0
+    cycle
+  endif
   nv = nv + 1
   if (s%var(j)%ix_dVar /= nv) reinit = .true.
   s%var(j)%ix_dVar = nv
 enddo
 
-if (.not. reinit) return
-call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.', &
-                              'This may take a while...', &
-                              '')
+if (.not. reinit) then
+  return
+endif
 
 !--------------------------------------------------------------
 ! Calculate derivative matrices.
+
+call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.', &
+                              'This may take a while...', '')
 
 merit_value = tao_merit (calc_ok)
 if (.not. calc_ok) then
@@ -118,22 +123,19 @@ if (s%global%orm_analysis) then
   s%u(ix_common_uni$)%mat6_recalc_on = .true.
 endif
 
-do j = 1, s%n_var_used
+do j = 1, size(s%var)
 
   if (.not. s%var(j)%useit_opt) cycle
 
   nv = s%var(j)%ix_dvar
   if (s%var(j)%step == 0) then
-    call out_io (s_error$, r_name, &
-                'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
+    call out_io (s_error$, r_name, 'VARIABLE STEP SIZE IS ZERO FOR: ' // tao_var1_name(s%var(j)))
     call err_exit
   endif
   model_value = s%var(j)%model_value
   call tao_set_var_model_value (s%var(j), model_value + s%var(j)%step)
   merit_value = tao_merit (calc_ok)
 
-
-  zero_dmodel = .true.
   err_message_out = .false.   ! Want to print the error message only once per variable.
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
@@ -142,7 +144,6 @@ do j = 1, s%n_var_used
       nd = u%data(k)%ix_dmodel
       if (u%data(k)%good_model .and. u%data(k)%old_value /= real_garbage$) then
         u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
-        zero_dmodel = .false.
       else
         u%dModel_dVar(nd,nv) = 0
         if (.not. err_message_out) then
@@ -154,20 +155,50 @@ do j = 1, s%n_var_used
     enddo
   enddo
 
-  if (zero_dmodel .and. logic_option(.false., veto_vars_with_zero_dmodel)) then
-    s%var(j)%good_var = .false.
-    call out_io (s_info$, r_name, 'Data is independent of Variable: ' // tao_var1_name(s%var(j)))
-  endif
-
   call tao_set_var_model_value (s%var(j), model_value)
 
 enddo
 
 ! End
 
-call tao_set_var_useit_opt()
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 merit_value = tao_merit () ! to reset all values
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_veto_vars_with_zero_dmodel ()
+!
+! Routine to veto all variables with zero effect on data used in the merit function.
+!-
+
+subroutine tao_veto_vars_with_zero_dmodel ()
+
+type (tao_universe_struct), pointer :: u
+integer i, j, nv
+logical zero_dmodel
+character(40) :: r_name = 'tao_veto_vars_with_zero_dmodel'
+
+!
+
+do j = 1, size(s%var)
+  if (.not. s%var(j)%useit_opt) cycle
+  nv = s%var(j)%ix_dvar
+  zero_dmodel = .true.
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    if (any(u%dmodel_dvar(:,nv) /= 0)) zero_dmodel = .false.
+  enddo
+  if (zero_dmodel) then
+    s%var(j)%good_var = .false.
+    call out_io (s_info$, r_name, 'Data is independent of Variable: ' // tao_var1_name(s%var(j)))
+  endif
+enddo
+
+call tao_set_var_useit_opt()
 
 end subroutine
 

@@ -53,7 +53,8 @@ character(1) char
 
 ! Calc derivative matrix
 
-call tao_dModel_dVar_calc (s%global%derivative_recalc, .true.)
+call tao_dModel_dVar_calc (s%global%derivative_recalc)
+call tao_veto_vars_with_zero_dmodel ()
 
 ! setup
 
@@ -158,9 +159,9 @@ do i = 1, s%global%n_opti_cycles+1
 
 enddo
 
-! Cleanup
+! Cleanup: Reinstate vars vetoed with zero dmerit
 
-s%var(:)%good_var = .true.  ! Reinstate
+s%var(:)%good_var = .true.  
 call tao_set_var_useit_opt()
 
 end subroutine

@@ -1578,7 +1578,7 @@ implicit none
 
 type (tao_v1_var_array_struct), allocatable, optional  :: v1_array(:)
 type (tao_var_array_struct), allocatable, optional     :: v_array(:)
-type (tao_real_pointer_struct), allocatable, optional    :: re_array(:)
+type (tao_real_pointer_struct), allocatable, optional  :: re_array(:)
 type (tao_logical_array_struct), allocatable, optional :: log_array(:)
 type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
@@ -1623,8 +1623,8 @@ err = .true.
 
 ! Error if no variables exist
 
-if (s%n_var_used == 0) then
-  if (print_error) call out_io (s_error$, r_name, &
+if (size(s%var) == 0) then
+  if (print_error) call out_io (s_warn$, r_name, &
                         "NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!")
   return
 endif
