@@ -730,7 +730,7 @@ case ('data')
     nl=nl+1; write(lines(nl), '(t40, a)')     'Using' 
 
     do i = 1, size(d2_ptr%d1)
-      if (size(lines) > nl + 50) call re_allocate (lines, nl+100, .false.)
+      if (size(lines) < nl + 50) call re_allocate (lines, nl+100, .false.)
       call location_encode(line, d2_ptr%d1(i)%d%useit_opt, &
                       d2_ptr%d1(i)%d%exists, lbound(d2_ptr%d1(i)%d, 1))
       nl=nl+1; write(lines(nl), '(2x, 2a, i0, a, i0, a, t40, a)') &
@@ -770,6 +770,7 @@ case ('derivative')
   call tao_find_var(err, stuff2(:ix_word), v_array = v_array) 
   if (err) return
 
+  found = .false.
   do id = 1, size(d_array)
     do iv = 1, size(v_array)
       d_ptr => d_array(id)%d
@@ -777,16 +778,19 @@ case ('derivative')
       u => s%u(d_ptr%d1%d2%ix_uni)
       jd = d_ptr%ix_dmodel
       jv = v_ptr%ix_dvar
-      if (jd == 0 .or. jv == 0) then
-        nl=nl+1; write (lines(nl), '(2a20, a14, 2i5)') tao_datum_name(d_ptr), &
-                          tao_var1_name(v_ptr), ' No Derivative', jd, jv
-      else
+      if (jd /= 0 .and. jv /= 0) then
         nl=nl+1; write (lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
                                   tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
+        if (size(lines) < nl + 1) call re_allocate (lines, nl+200, .false.)
+        found = .true.
       endif
     enddo
   enddo
 
+  if (.not. found) then
+    nl=nl+1; write (lines(nl), '(a)') 'No Derivatives'
+  endif
+  
   result_id = show_what
 
 !----------------------------------------------------------------------
@@ -934,55 +938,56 @@ case ('global')
 
   if (print_global) then
     nl=nl+1; lines(nl) = 'Global parameters:'
-    nl=nl+1; write (lines(nl), imt) '  %bunch_to_plot               = ', s%global%bunch_to_plot
-    nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio            = ', s%global%de_lm_step_ratio
-    nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor = ', s%global%de_var_to_population_factor
-    nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc           = ', s%global%derivative_recalc
-    nl=nl+1; write (lines(nl), lmt) '  %label_lattice_elements      = ', s%global%label_lattice_elements
-    nl=nl+1; write (lines(nl), lmt) '  %label_keys                  = ', s%global%label_keys
-    nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit         = ', s%global%lm_opt_deriv_reinit
-    nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                   = ', s%global%lmdif_eps
-    nl=nl+1; write (lines(nl), rmt) '  %merit_finish                = ', s%global%merit_finish
-    nl=nl+1; write (lines(nl), imt) '  %n_top10                     = ', s%global%n_top10
-    nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                = ', s%global%n_opti_loops
-    nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles               = ', s%global%n_opti_cycles
-    nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                = ', s%global%opt_with_ref 
-    nl=nl+1; write (lines(nl), lmt) '  %opt_with_base               = ', s%global%opt_with_base
-    nl=nl+1; write (lines(nl), amt) '  %optimizer                   = ', s%global%optimizer
-    nl=nl+1; write (lines(nl), amt) '  %phase_units                 = ', &
+    nl=nl+1; write (lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
+    nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
+    nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
+    nl=nl+1; write (lines(nl), rmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
+    nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
+    nl=nl+1; write (lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
+    nl=nl+1; write (lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
+    nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
+    nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
+    nl=nl+1; write (lines(nl), rmt) '  %merit_finish                  = ', s%global%merit_finish
+    nl=nl+1; write (lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
+    nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
+    nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
+    nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
+    nl=nl+1; write (lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
+    nl=nl+1; write (lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
+    nl=nl+1; write (lines(nl), amt) '  %phase_units                   = ', &
                                                     frequency_units_name(s%global%phase_units)
-    nl=nl+1; write (lines(nl), lmt) '  %plot_on                     = ', s%global%plot_on
-    nl=nl+1; write (lines(nl), lmt) '  %lattice_calc_on             = ', s%global%lattice_calc_on
-    nl=nl+1; write (lines(nl), lmt) '  %command_file_print_on       = ', s%global%command_file_print_on
-    nl=nl+1; write (lines(nl), lmt) '  %beam_timer_on               = ', s%global%beam_timer_on
-    nl=nl+1; write (lines(nl), lmt) '  %init_lats_with_rf_off       = ', s%global%init_lats_with_rf_off
-    nl=nl+1; write (lines(nl), amt) '  %prompt_string               = ', s%global%prompt_string
-    nl=nl+1; write (lines(nl), amt) '  %print_command               = ', s%global%print_command
-    nl=nl+1; write (lines(nl), amt) '  %random_engine               = ', s%global%random_engine
-    nl=nl+1; write (lines(nl), amt) '  %random_gauss_converter      = ', s%global%random_gauss_converter
-    nl=nl+1; write (lines(nl), rmt) '  %random_sigma_cutoff         = ', s%global%random_sigma_cutoff
-    nl=nl+1; write (lines(nl), imt) '  %random_seed                 = ', s%global%random_seed
+    nl=nl+1; write (lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
+    nl=nl+1; write (lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
+    nl=nl+1; write (lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
+    nl=nl+1; write (lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
+    nl=nl+1; write (lines(nl), lmt) '  %init_lats_with_rf_off         = ', s%global%init_lats_with_rf_off
+    nl=nl+1; write (lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
+    nl=nl+1; write (lines(nl), amt) '  %print_command                 = ', s%global%print_command
+    nl=nl+1; write (lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
+    nl=nl+1; write (lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
+    nl=nl+1; write (lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
+    nl=nl+1; write (lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
       call ran_seed_get(ix)
-      nl=nl+1; write (lines(nl), imt) '   random_seed (generated)    = ', ix
+      nl=nl+1; write (lines(nl), imt) '   random_seed (generated)      = ', ix
     endif
-    nl=nl+1; write (lines(nl), amt) '  %track_type                  = ', s%global%track_type
-    nl=nl+1; write (lines(nl), imt) '  %u_view                      = ', s%global%u_view
-    nl=nl+1; write (lines(nl), lmt) '  %var_limits_on               = ', s%global%var_limits_on
-    nl=nl+1; write (lines(nl), amt) '  %var_out_file                = ', s%global%var_out_file
-    nl=nl+1; write (lines(nl), rmt) '  %y_axis_plot_dmin            = ', s%global%y_axis_plot_dmin
+    nl=nl+1; write (lines(nl), amt) '  %track_type                    = ', s%global%track_type
+    nl=nl+1; write (lines(nl), imt) '  %u_view                        = ', s%global%u_view
+    nl=nl+1; write (lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
+    nl=nl+1; write (lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
+    nl=nl+1; write (lines(nl), rmt) '  %y_axis_plot_dmin              = ', s%global%y_axis_plot_dmin
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
-    nl=nl+1; write (lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
-    nl=nl+1; write (lines(nl), lmt) 'common_lattice               = ', tao_com%common_lattice
-    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file        = ', tao_com%beam_all_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file           = ', tao_com%beam0_file
+    nl=nl+1; write (lines(nl), imt) 'Universe index range:          = ', lbound(s%u, 1), ubound(s%u, 1)
+    nl=nl+1; write (lines(nl), lmt) 'common_lattice                 = ', tao_com%common_lattice
+    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file          = ', tao_com%beam_all_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file             = ', tao_com%beam0_file
     nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
                                                 tao_com%combine_consecutive_elements_of_like_name
-    nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file        = ', tao_com%init_lat_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file        = ', tao_com%init_tao_file
-    nl=nl+1; write (lines(nl), imt) 'Number paused command files  = ', count(tao_com%cmd_file%paused)
+    nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file          = ', tao_com%init_lat_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
+    nl=nl+1; write (lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
   endif
 
   if (print_bmad_com) then
@@ -1012,25 +1017,7 @@ case ('global')
   endif
 
   if (print_optimization) then
-    nl=nl+1; lines(nl) = 'Global parameters:'
-    nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio            = ', s%global%de_lm_step_ratio
-    nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor = ', s%global%de_var_to_population_factor
-    nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit         = ', s%global%lm_opt_deriv_reinit
-    nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                   = ', s%global%lmdif_eps
-    nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                = ', s%global%n_opti_loops
-    nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles               = ', s%global%n_opti_cycles
-    nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                = ', s%global%opt_with_ref 
-    nl=nl+1; write (lines(nl), lmt) '  %opt_with_base               = ', s%global%opt_with_base
-    nl=nl+1; write (lines(nl), amt) '  %optimizer                   = ', s%global%optimizer
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'opti_de_param Parameters:'
-    nl=nl+1; write (lines(nl), rmt) '  %CR                   = ', opti_de_param%CR
-    nl=nl+1; write (lines(nl), rmt) '  %F                    = ', opti_de_param%F
-    nl=nl+1; write (lines(nl), rmt) '  %l_best               = ', opti_de_param%l_best
-    nl=nl+1; write (lines(nl), lmt) '  %binomial_cross       = ', opti_de_param%binomial_cross
-    nl=nl+1; write (lines(nl), lmt) '  %use_2nd_diff         = ', opti_de_param%use_2nd_diff
-    nl=nl+1; write (lines(nl), lmt) '  %randomize_F          = ', opti_de_param%randomize_F
-    nl=nl+1; write (lines(nl), lmt) '  %minimize_merit       = ', opti_de_param%minimize_merit
+    call show_opt()
   endif
 
   result_id = show_what
@@ -1526,6 +1513,7 @@ case ('optimizer')
 
   nl=nl+1; lines(nl) = ' '
   nl=nl+1; write (lines(nl), amt) 'optimizer:        ', s%global%optimizer
+  call show_opt
   call out_io (s_blank$, r_name, lines(1:nl))
   nl = 0
 
@@ -2448,6 +2436,37 @@ else
 endif
 
 end subroutine show_ele_data
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+! contains
+
+subroutine show_opt ()
+
+implicit none
+
+nl=nl+1; lines(nl) = 'Global parameters:'
+nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
+nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
+nl=nl+1; write (lines(nl), rmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
+nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
+nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
+nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
+nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
+nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
+nl=nl+1; write (lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
+nl=nl+1; write (lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
+nl=nl+1; lines(nl) = ''
+nl=nl+1; lines(nl) = 'opti_de_param Parameters:'
+nl=nl+1; write (lines(nl), rmt) '  %CR                   = ', opti_de_param%CR
+nl=nl+1; write (lines(nl), rmt) '  %F                    = ', opti_de_param%F
+nl=nl+1; write (lines(nl), rmt) '  %l_best               = ', opti_de_param%l_best
+nl=nl+1; write (lines(nl), lmt) '  %binomial_cross       = ', opti_de_param%binomial_cross
+nl=nl+1; write (lines(nl), lmt) '  %use_2nd_diff         = ', opti_de_param%use_2nd_diff
+nl=nl+1; write (lines(nl), lmt) '  %randomize_F          = ', opti_de_param%randomize_F
+nl=nl+1; write (lines(nl), lmt) '  %minimize_merit       = ', opti_de_param%minimize_merit
+
+end subroutine show_opt
 
 end subroutine tao_show_this
 

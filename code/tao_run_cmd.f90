@@ -93,7 +93,7 @@ do i = 1, s%global%n_opti_loops
     call tao_lmdif_optimizer (abort)
 
   case ('svd')
-    call tao_svd_optimizer ()
+    call tao_svd_optimizer (abort)
 
   case ('custom')
     call tao_hook_optimizer (abort)

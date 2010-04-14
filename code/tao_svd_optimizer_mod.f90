@@ -3,7 +3,6 @@ module tao_svd_optimizer_mod
 use tao_mod
 use tao_dmerit_mod
 use tao_var_mod
-use tao_lm_optimizer_mod
 
 contains
 
@@ -11,12 +10,15 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_svd_optimizer 
+! Subroutine tao_svd_optimizer (abort)
 !
 ! Routine to minimize the merit function using svd.
+!
+! Output:
+!   abort -- Logical: Set True if svd step increases the merit function.
 !-
 
-subroutine tao_svd_optimizer ()
+subroutine tao_svd_optimizer (abort)
 
 use nr
 
@@ -34,7 +36,7 @@ real(rp), parameter :: tol = 1d-5
 integer i, j, k, status, status2
 integer n_data, n_var
 
-logical :: finished, init_needed = .true.
+logical abort
 
 character(20) :: r_name = 'tao_svd_optimizer'
 character(80) line
@@ -51,7 +53,9 @@ merit0 = tao_merit()
 call tao_get_opt_vars (var_value)
 n_var = size(var_value)
 
-call tao_get_opt_vars (var_weight = var_weight, ignore_if_weight_is_zero = .true.)
+call tao_get_opt_vars (var_weight = var_weight, ignore_if_weight_is_zero = .true., &
+                                                ignore_if_not_limited = .true.)
+
 n_data = size(var_weight)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(i)%is_on) cycle
@@ -84,9 +88,9 @@ enddo
 ! SVD 
 
 merit0 = tao_merit()
-call out_io (s_blank$, r_name, 'Initial Merit:   \es14.4\ ', r_array = [merit0])
+call out_io (s_blank$, r_name, 'Initial Merit: \es14.4\ ', r_array = [merit0])
 
-call tao_mrq_func (a, y_fit, dy_da, status)  ! put a -> model
+call tao_svd_func (a, y_fit, dy_da, status)  ! put a -> model
 if (status /= 0) return
 
 b = y_fit / sqrt(weight)
@@ -98,15 +102,97 @@ where (w < tol * maxval(w)) w = 0
 call svbksb (dy_da, w, v, b, da)
 a_try = a - da
 
-call tao_mrq_func (a_try, y_fit, dy_da, status)  ! put a -> model
+call tao_svd_func (a_try, y_fit, dy_da, status)  ! put a -> model
 merit = tao_merit()
 call out_io (s_blank$, r_name, 'Merit after svd: \es14.4\ ', r_array = [merit])
 
 if (status /= 0 .or. merit > merit0) then
-  call tao_mrq_func (a, y_fit, dy_da, status2)  ! put a -> model
-  call out_io (s_blank$, r_name, 'Retreating to initial state.')
+  abort = .true.   ! So no more loops
+  if (s%global%svd_retreat_on_merit_increase) then
+     call tao_svd_func (a, y_fit, dy_da, status2)  ! put a -> model
+    call out_io (s_blank$, r_name, 'Retreating to initial state.')
+  endif
 endif
 
 end subroutine
+
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_svd_func (a, y_fit, dy_da, status)
+!-
+
+subroutine tao_svd_func (a, y_fit, dy_da, status)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+
+real(rp), intent(in) :: a(:)
+real(rp), intent(out) :: y_fit(:)
+real(rp), intent(out) :: dy_da(:, :)
+real(rp) merit0
+real(rp), allocatable, save :: var_delta(:)
+
+integer i, j, k, n, nn, im, iv, n_var, nd
+integer status
+
+logical limited
+
+character(80) line
+
+! transfer "a" array to model
+
+call tao_set_opt_vars (a, s%global%optimizer_var_limit_warn)
+
+! if limited then set y_fit to something large so merit calc gives a large number.
+
+call tao_limit_calc (limited)
+
+if (limited) then
+  status = -999
+  y_fit = 1e10 
+  return
+endif
+
+! Calculate derivatives
+
+merit0 = tao_merit()  ! Calculate %delta_merit values
+
+dy_da = 0
+n_var = size(a)
+
+call tao_get_opt_vars (var_delta = var_delta, ignore_if_weight_is_zero = .true., &
+                                              ignore_if_not_limited = .true.)
+nd = size(var_delta)
+y_fit(1:nd) = var_delta
+
+forall (k = 1:nd) dy_da(k,k) = 1
+
+do j = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(j)
+  if (.not. u%is_on) cycle
+  do i = 1, size(u%data)
+    if (.not. u%data(i)%useit_opt) cycle
+    if (u%data(i)%weight == 0) cycle
+    nd = nd + 1
+    y_fit(nd) = u%data(i)%delta_merit
+    im = u%data(i)%ix_dModel
+    nn = 0
+    do n = 1, size(s%var)
+      if (.not. s%var(n)%useit_opt) cycle
+      nn = nn + 1
+      iv = s%var(n)%ix_dVar
+      dy_da(nd, nn) = u%dModel_dVar(im, iv)
+    enddo
+  enddo
+enddo
+
+status = 0
+
+end subroutine
+
 
 end module

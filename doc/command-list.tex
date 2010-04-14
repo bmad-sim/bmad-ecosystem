@@ -1179,12 +1179,16 @@ Examples:
 %% show derivative --------------------------------------------------------------
 
 \item[show derivative <data\_name(s)> <var\_name(s)>] \Newline
+\index{lm}\index{svd}
 Shows the derivative dModel\_Value/dVariable. This derivative is used
-by the optimizer \vn{lm}.
+by the optimizers \vn{lm} and \vn{svd}. Note: Wild card characters can
+be used to show multiple derivatives.
 
 Example:
 \begin{example}
   show deriv orbit.x[23] k1[34] ! Show dModel_Value/dVariable Derivative.
+  show deriv * *                ! Show all derivatives. Warning! The outup 
+                                ! may be large.
 \end{example}
 
 %% show element --------------------------------------------------------------

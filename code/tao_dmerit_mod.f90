@@ -90,6 +90,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
 enddo
 
+s%var%ix_dvar = 0
 nv = 0
 do j = 1, size(s%var)
   if (.not. s%var(j)%useit_opt) cycle

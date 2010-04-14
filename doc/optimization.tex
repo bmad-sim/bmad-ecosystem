@@ -361,10 +361,18 @@ how the optimizer works. See Section~\sref{s:globals} for more
 details.
   \index{svd optimizer}
   \item{\vn{svd}} \Newline
-The \vn{svd} optimizer uses a singular value decomposition calculation.
-See the description of \vn{svdfit} from Numerical Recipes\cite{b:nr}
-for more details. With the \vn{svd} optimizer, the setting of 
-\vn{global%n_opti_cycles}is ignored. 
+The \vn{svd} optimizer uses a singular value decomposition
+calculation.  See the description of \vn{svdfit} from Numerical
+Recipes\cite{b:nr} for more details. With the \vn{svd} optimizer, the
+setting of \vn{global%n_opti_cycles} is ignored. One optimization loop
+consists of applying svd to the derivative matrix to locate a new set
+of variable values.  If the merit function decreases with the new set,
+the new valuse are retaind and the optimization loop is finished. If
+the merit function increases, and if the global variable
+\vn{global%svd_retreat_on_merit_increase} is True (the default), the
+variables are set to the original variable settings. In either case,
+an increasing merit function will stop the execution of additional
+loops.
   \end{description}
 
 %------------------------------------------------------------------------
