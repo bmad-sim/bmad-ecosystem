@@ -603,7 +603,7 @@ end subroutine
 !-
 
 subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
-                                   n_sin, n_cos, s_cos, s_sin, m, polarized)
+                                   n_sin, n_cos, s_cos, s_sin, t_ref, m, polarized)
 
 
 use fortran_and_cpp

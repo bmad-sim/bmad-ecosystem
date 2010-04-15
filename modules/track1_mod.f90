@@ -135,7 +135,7 @@ case (elliptical$)
     else
       param%plane_lost_at = y_plane$
     endif
-    param%unstable_factor = sqrt(r)
+    param%unstable_factor = sqrt(r) - 1
   endif
 
 case (rectangular$)
@@ -144,10 +144,10 @@ case (rectangular$)
     param%lost = .true.
     if (abs(x_beam)/x_lim > abs(y_beam)/y_lim) then
       param%plane_lost_at = x_plane$
-      param%unstable_factor = abs(x_beam) / x_lim
+      param%unstable_factor = abs(x_beam) / x_lim - 1
     else
       param%plane_lost_at = y_plane$
-      param%unstable_factor = abs(y_beam) / y_lim
+      param%unstable_factor = abs(y_beam) / y_lim - 1
     endif
   endif
 
