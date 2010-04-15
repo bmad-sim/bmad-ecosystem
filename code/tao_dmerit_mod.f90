@@ -31,6 +31,7 @@ subroutine tao_dmodel_dvar_calc (force_calc)
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (tao_data_struct), pointer :: dat
 
 real(rp) model_value, merit_value
 
@@ -141,17 +142,26 @@ do j = 1, size(s%var)
     u => s%u(i)
     do k = 1, size(u%data)
       if (.not. u%data(k)%useit_opt) cycle
-      nd = u%data(k)%ix_dmodel
-      if (u%data(k)%good_model .and. u%data(k)%old_value /= real_garbage$) then
-        u%dModel_dVar(nd,nv) = (u%data(k)%delta_merit - u%data(k)%old_value) / s%var(j)%step
-      else
-        u%dModel_dVar(nd,nv) = 0
-        if (.not. err_message_out) then
-          call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
+      dat => u%data(k)
+      nd = dat%ix_dmodel
+      if (dat%good_model .and. dat%old_value /= real_garbage$) then
+        u%dModel_dVar(nd,nv) = (dat%delta_merit - dat%old_value) / s%var(j)%step
+        cycle
+      endif
+
+      ! Could not compute derivative...
+      ! Error meassges are only generated when the datum is good with one setting
+      ! of the variable and bad with the other setting.
+
+      u%dModel_dVar(nd,nv) = 0
+
+      if (err_message_out) cycle
+      if (.not. dat%good_model .and. dat%old_value == real_garbage$) cycle
+
+      call out_io (s_error$, r_name, 'ERROR IN CALCULATING DERIVATIVE MATRIX.', &
                       'VARIABLE STEP SIZE IS TOO LARGE(?) FOR: ' // tao_var1_name(s%var(j)))
-          err_message_out = .true.
-        endif
-     endif
+      err_message_out = .true.
+
     enddo
   enddo
 

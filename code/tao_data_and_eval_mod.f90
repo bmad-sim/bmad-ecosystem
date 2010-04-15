@@ -1740,6 +1740,7 @@ case ('unstable.')
   select case (datum%data_type)
 
   case ('unstable.orbit')
+
     if (lat%param%lattice_type /= linear_lattice$) return
     if (datum%ele_name == '') ix_ele = branch%n_ele_track
 
@@ -1748,35 +1749,22 @@ case ('unstable.')
         datum_value = datum_value + (1 + ix_ele - i) * uni_ele(i)%n_particle_lost_here
       enddo
       datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
+      datum%ix_ele_merit = -1
 
     else
       iz = lat%param%ix_lost
-      if (iz /= not_lost$) then
-        datum_value = max(0, 1 + ix_ele - iz)
+      if (iz /= not_lost$ .and. iz <= ix_ele) then
+        datum_value = 1 + ix_ele - iz
         if (lat%param%end_lost_at == entrance_end$) then
-          datum_value = datum_value - 0.5
           orb => orbit(iz-1)
+          datum%ix_ele_merit = iz - 1
         else
+          datum_value = datum_value - 0.5
           orb => orbit(iz)
+          datum%ix_ele_merit = iz
         endif
 
-        if (lat%param%plane_lost_at == x_plane$) then
-          if (orb%vec(1) < 0) then
-            if (lat%ele(iz)%value(x1_limit$) /= 0) datum_value = datum_value + &
-                                0.5 * tanh(-orb%vec(1) / lat%ele(iz)%value(x1_limit$) - 1)
-          else
-            if (lat%ele(iz)%value(x2_limit$) /= 0) datum_value = datum_value + &
-                                0.5 * tanh( orb%vec(1) / lat%ele(iz)%value(x2_limit$) - 1)
-          endif
-        elseif (lat%param%plane_lost_at == y_plane$) then
-          if (orb%vec(3) < 0) then
-            if (lat%ele(iz)%value(y1_limit$) /= 0) datum_value = datum_value + &
-                                0.5 * tanh(-orb%vec(1) / lat%ele(iz)%value(y1_limit$) - 1)
-          else
-            if (lat%ele(iz)%value(y2_limit$) /= 0) datum_value = datum_value + &
-                                0.5 * tanh( orb%vec(1) / lat%ele(iz)%value(y2_limit$) - 1)
-          endif      
-        endif
+        datum_value = datum_value + 0.5 * tanh(lat%param%unstable_factor - 1)
 
       endif
     endif
@@ -1784,7 +1772,7 @@ case ('unstable.')
 
   case ('unstable.ring')
     if (data_source == 'beam') return
-    datum_value = lat%param%growth_rate
+    datum_value = lat%param%unstable_factor
     ! unstable_penalty is needed since at the meta stable borderline the growth rate is zero.
     if (.not. lat%param%stable) datum_value = datum_value + s%global%unstable_penalty
     valid_value = .true.

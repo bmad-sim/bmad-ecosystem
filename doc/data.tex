@@ -570,8 +570,8 @@ For single particle tracking, the value of an \vn{unstable.orbit}
 datum is zero if the tracked particle survives (has not been lost) up
 to the evaluation element and, if it has been lost, is set to
 \Begineq
- 1 + i_{\mbox{ele}} - i_{\mbox{lost}} - \frac{E}{2} + 
-\tanh\left( \frac{|x|}{x_{lim}} - 1 \right)
+ 1 + i_{\mbox{ele}} - i_{\mbox{lost}} + \frac{1}{2}
+ \left[ \tanh\left( \frac{r_{orbit}}{r_{lim}} - 1 \right) - E \right]
 \Endeq
 where $i_{\mbox{ele}}$ is the index of the evaluation element in the
 lattice and $i_{\mbox{lost}}$ is the index of the element where the
@@ -579,17 +579,14 @@ particle was lost. In the above equation, $E$ is the function
 \Begineq
   E = 
   \begin{cases}
-    1 & \text{if the particle is lost at the entrance end of the element.} \\
-    0 & \text{if the particle is lost at the exit end of the element.}
+    1 & \text{if the particle is lost at the exit end of the element.} \\
+    0 & \text{if the particle is lost at the entrance end of the element.}
   \end{cases}
 \Endeq
-Also in the abouve equation, $x$ is the particle position at the point
-of loss and $x_{lim}$ is the aperture limit. The above equation is for
-loss in the horizontal plane. If the loss is in the vertical plane,
-$x$ is replaced by $y$.
-
-The form of the above equation has been choisen so that the datum value
-will be monotonic with increasing stability.
+In the abouve equation, $r_{orbit}$ is the particle amplitude at the
+point of loss and $r_{lim}$ is the aperture limit. The form of the
+above equation has been choisen so that the datum value will be
+monotonic with increasing stability.
 
 The default for the evaluation element, if \vn{ele_name} nor
 \vn{ix_ele} is not specified, is to use the last element in the

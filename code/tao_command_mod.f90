@@ -9,7 +9,7 @@ type cmd_history_struct  ! record the command history
   logical cmd_file       ! Did command come from a command file
 end type
 
-type (cmd_history_struct), private, save :: history(100) ! command history
+type (cmd_history_struct), private, save :: history(1000) ! command history
 integer, private, save :: ix_history = 0 ! present index to command history array
 integer, private, save :: n_history      ! present history index
 
