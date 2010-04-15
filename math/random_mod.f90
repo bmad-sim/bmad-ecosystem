@@ -92,17 +92,12 @@ integer, private, save :: my_seed = 0
 real(sp), private, save :: am
 integer(kr4b), parameter :: im = 2147483647
 
-! index_quasi is used so that the scaler routines know which component of the
-! quasi-random vector to return.
-
-integer, private, save :: index_quasi = 1
-
 integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
 integer, private, save :: engine = pseudo_random$
 
 integer, parameter :: limited_gaussian$ = 3, exact_gaussian$ = 4
 integer, private, save :: gauss_converter = exact_gaussian$
-real(rp), save :: gauss_sigma_cut = 4.0
+real(rp), save :: gauss_sigma_cut = -1
 integer, private :: n_pts_per_sigma = 20
 
 contains
@@ -111,42 +106,54 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_gauss_scaler (harvest)
+! Subroutine ran_gauss_scaler (harvest, index_quasi)
 !
 ! Subroutine to return a gaussian distributed random number with unit sigma.
 ! See ran_gauss for more details.
 !-
 
-subroutine ran_gauss_scaler (harvest)
+subroutine ran_gauss_scaler (harvest, index_quasi)
 
-use nr, only: erf_s
+use nr, only: erf_s, erf
 
 implicit none
 
 real(rp), intent(out) :: harvest
-real(rp) a(2), v1, v2, r
+real(rp) a(2), v1, v2, r, sigma_cut, fac
 real(rp), allocatable, save :: g(:)
 
-integer i, ss, ix
-integer, save :: n_g
+integer, optional :: index_quasi
+integer i, ss, ix, n_g_new
+integer, save :: n_g = -1
 
-logical, save :: init_needed = .true.
+! quasi-random must use the limited_gaussian since the exact_gaussian can
+! use several uniform random numbers to generate a single Gaussian random number.
+! This invalidates the algorithm used to generate a quasi-random Gaussian vector.
 
-! quasi-random must use the limited_gaussian.
 ! g is the normalized error function and maps from the 
 ! interval [0, 0.5] to [0, infinity].
 
 if (engine == quasi_random$ .or. gauss_converter == limited_gaussian$) then
-  if (init_needed) then
-    n_g = gauss_sigma_cut*n_pts_per_sigma
-    allocate (g(0:n_g))
-    do i = 0, n_g-1
-      g(i) = 0.5 * erf_s (gauss_sigma_cut * i / (sqrt_2 * n_g))
-    enddo
-    g(n_g) = 0.50000001
-    init_needed = .false.
+
+  if (gauss_sigma_cut > 0) then
+    sigma_cut = gauss_sigma_cut
+  else 
+    sigma_cut = 10
   endif
-  call ran_uniform(r)
+  n_g_new = max(nint(sigma_cut * n_pts_per_sigma), 10)
+
+  if (n_g_new /= n_g) then
+    n_g = n_g_new
+    if (allocated(g)) deallocate(g)
+    allocate (g(0:n_g))
+    fac = 2 * erf_s (sigma_cut/sqrt_2)
+    do i = 0, n_g-1
+      g(i) = erf_s (sigma_cut * i / (sqrt_2 * n_g)) / fac
+    enddo
+    g(n_g) = 0.50000000001_rp
+  endif
+
+  call ran_uniform_scaler (r, index_quasi)
   if (r > 0.5) then
     r = r - 0.5
     ss = 1
@@ -155,32 +162,41 @@ if (engine == quasi_random$ .or. gauss_converter == limited_gaussian$) then
     ss = -1
   endif
   call bracket_index(g, 0, n_g, r, ix)    
-  harvest = ss * (ix + (g(ix+1) - r) / (g(ix+1) - g(ix))) / n_pts_per_sigma
+  harvest = ss * (ix + (g(ix+1) - r) / (g(ix+1) - g(ix))) * sigma_cut / n_g
   return
+
 endif
 
-! If we have a stored value then just use it
+! Loop until we get an acceptable number
 
-if (r_state%number_stored) then
-  harvest = r_state%h_saved
-  r_state%number_stored = .false.
-  return
-endif
+do 
 
-! else we generate a number
+  ! If we have a stored value then just use it
 
-do
-  call ran_uniform(a)
-  v1 = 2*a(1) - 1
-  v2 = 2*a(2) - 1
-  r = v1**2 + v2**2
-  if (r > 0 .and. r < 1) exit   ! In unit circle
+  if (r_state%number_stored) then
+    r_state%number_stored = .false.
+    harvest = r_state%h_saved
+    if (gauss_sigma_cut < 0 .or. abs(harvest) < gauss_sigma_cut) return
+  endif
+
+  ! else we generate a number
+
+  do
+    call ran_uniform(a)
+    v1 = 2*a(1) - 1
+    v2 = 2*a(2) - 1
+    r = v1**2 + v2**2
+    if (r > 0 .and. r < 1) exit   ! In unit circle
+  enddo
+
+  r = sqrt(-2*log(r)/r)
+  r_state%h_saved = v2 * r
+  r_state%number_stored = .true.
+
+  harvest = v1 * r
+  if (gauss_sigma_cut < 0 .or. abs(harvest) < gauss_sigma_cut) return
+
 enddo
-
-r = sqrt(-2*log(r)/r)
-harvest = v1 * r
-r_state%h_saved = v2 * r
-r_state%number_stored = .true.
 
 end subroutine
 
@@ -204,11 +220,8 @@ integer i
 !
 
 do i = 1, size(harvest)
-  index_quasi = i
-  call ran_gauss_scaler (harvest(i))
+  call ran_gauss_scaler (harvest(i), i)
 enddo
-
-index_quasi = 1
 
 end subroutine
 
@@ -259,7 +272,6 @@ if (present(set)) then
   case ('quasi')
     engine = quasi_random$
     r_state%number_stored = .false.
-    index_quasi = 1
   case default
     call out_io (s_error$, r_name, 'BAD RANDOM NUMBER ENGINE NAME: ' // set)
   end select
@@ -283,6 +295,9 @@ end subroutine
 ! limited_gaussian$ is a quick a dirty approximation with a cutoff so that no 
 ! numbers will be generated beyound what is set for sigma_cut. 
 !
+! A negative sigma_cut means that the exact_gaussian$ will not be limited
+! and the limited_gaussian$ will use a default of 10.0
+!
 ! Note: Because of technical issues, when using the quasi_random$ number generator
 ! (see the ran_engine routine), the limited_gaussian$ method will automatically be 
 ! used independent of what was set with this routine.
@@ -294,8 +309,7 @@ end subroutine
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !             'exact'
 !             'limited'
-!   set_sigma_cut -- Real(rp), optional: Sigma cutoff used with the 
-!                 limited_gaussian$ converter. Initially: sigma_cut = 4.0.
+!   set_sigma_cut -- Real(rp), optional: Sigma cutoff. Initially: sigma_cut = -1.
 !
 ! Output:
 !   get -- Character(*), optional: Get the current (before any set) gaussian converter.
@@ -447,14 +461,14 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ran_uniform_scaler (harvest)
+! Subroutine ran_uniform_scaler (harvest, index_quasi)
 !
 ! Subroutine to return a random number uniformly distributed in the 
 ! interval [0, 1]. 
 ! See ran_uniform for more details.
 !-
 
-subroutine ran_uniform_scaler (harvest)
+subroutine ran_uniform_scaler (harvest, index_quasi)
 
 use nr, only: sobseq
 
@@ -462,7 +476,9 @@ implicit none
 
 real(rp), intent(out) :: harvest
 real(rp), save :: r(6)
-integer(kr4b) k
+
+integer(kr4b) k, ix_q
+integer, optional :: index_quasi
 
 integer(kr4b), parameter :: ia = 16807
 integer(kr4b), parameter :: iq = 127773, ir = 2836
@@ -476,12 +492,13 @@ if (r_state%iy < 0) call ran_seed_put(my_seed)
 ! quasi-random
 
 if (engine == quasi_random$) then
-  if (index_quasi == 1) call sobseq (r)
-  if (index_quasi > 6) then
+  ix_q = integer_option(1, index_quasi)
+  if (ix_q == 1) call sobseq (r)
+  if (ix_q > 6) then
     call out_io (s_error$, r_name, 'NUMBER OF DIMENSIONS WANTED IS TOO LARGE!')
     call err_exit
   endif
-  harvest = r(index_quasi)
+  harvest = r(ix_q)
   return
 endif
 
@@ -523,11 +540,8 @@ integer i
 !
 
 do i = 1, size(harvest)
-  index_quasi = i
-  call ran_uniform_scaler (harvest(i))
+  call ran_uniform_scaler (harvest(i), i)
 enddo
-
-index_quasi = 1  ! reset
 
 end subroutine
 
