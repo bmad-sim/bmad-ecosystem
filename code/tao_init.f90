@@ -184,6 +184,11 @@ call output_direct (0, .true.)
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
 
+if (bmad_com%radiation_fluctuations_on .and. s%global%track_type == 'single') then
+  call out_io (s_info$, r_name, &
+          'Note: Radiation fluctuations are always turned off for single particle tracking...')
+endif
+
 s%u%lattice_recalc = .true.
 call tao_lattice_calc (calc_ok) 
 

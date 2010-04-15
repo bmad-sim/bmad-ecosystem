@@ -32,8 +32,8 @@ character(*) what
 character(20) action, name
 character(40) switch
 character(20) :: r_name = 'tao_output_cmd'
-character(100) file_name0, file_name, what2
-character(80) :: word(10)
+character(200) file_name0, file_name, what2
+character(200) :: word(10)
 
 character(20) :: names(16) = (/ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
