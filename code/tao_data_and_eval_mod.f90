@@ -1764,7 +1764,7 @@ case ('unstable.')
           datum%ix_ele_merit = iz
         endif
 
-        datum_value = datum_value + 0.5 * tanh(lat%param%unstable_factor - 1)
+        datum_value = datum_value + 0.5 * tanh(lat%param%unstable_factor)
 
       endif
     endif
