@@ -887,11 +887,11 @@ integer i
 real(rp) width, num, num2, a_min, a_max, max_d, effective_zero
 
 ! LOG scale does not use places.
-! If min = max or major_div == 0 then cannot do a calculation so don't do anything.
+! If min = max or major_div < 1 then cannot do a calculation so don't do anything.
 
 if (axis%type == 'LOG') return
 if (axis%min == axis%max) return
-if (axis%major_div == 0) return
+if (axis%major_div < 1) return
 
 ! sort true min and max
 
