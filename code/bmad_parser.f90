@@ -650,11 +650,11 @@ lat%n_ele_max          = n_ele_use
 ! superimpose, overlays, and groups are handled later.
 ! first load beam parameters.
 
-lat%version            = bmad_inc_version$
-lat%input_file_name    = full_lat_file_name             ! save input file  
-lat%n_ic_max           = 0                     
-lat%n_control_max      = 0    
-lat%param%growth_rate  = 0
+lat%version                 = bmad_inc_version$
+lat%input_file_name         = full_lat_file_name             ! save input file  
+lat%n_ic_max                = 0                     
+lat%n_control_max           = 0    
+lat%param%unstable_factor   = 0
 lat%param%stable            = .true.
 lat%param%aperture_limit_on = .true.
 

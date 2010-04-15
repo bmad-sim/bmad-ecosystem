@@ -178,7 +178,7 @@ Figure~\ref{f:lat.param.struct}
   type lat_param_struct
     real(rp) n_part             ! Particles/bunch (for beambeam elements).
     real(rp) total_length       ! total_length of lattice
-    real(rp) growth_rate        ! growth rate/turn if not stable
+    real(rp) unstable_factor    ! Circular lats: growth rate/turn. Linear lats: |orbit/limit|
     real(rp) t1_with_RF(6,6)    ! Full 1-turn 6x6 matrix
     real(rp) t1_no_RF(6,6)      ! Transverse 1-turn 4x4 matrix (RF off).
     integer particle            ! +1 = positrons, -1 = electrons
@@ -242,15 +242,22 @@ See Chapter~\ref{c:tracking} for more details.
 \index{lat_param_struct!\%t1_with_RF}
 \index{lat_param_struct!\%t1_no_RF}
 \index{lat_param_struct!\%stable}
-\vn{%param%t1_with_RF} and \vn{%param%t1_no_RF} are the 1--turn transfer
-matrices from the start of the lattice to the end. \vn{%param%t1_with_RF}
-is the full transfer matrix with RF on. \vn{%param%t1_no_RF} is the
-transverse transfer matrix with RF off. \vn{%param%t1_no_RF} is used to
-compute the Twiss parameters. When computing the Twiss parameters
-\vn{%param%stable} is set according to whether the matrix is stable or
-not. If the matrix is not stable the Twiss parameters cannot be
-computed. If unstable, \vn{%param%growth_rate} will be set to the
-growth rate per turn of the unstable mode.
+For circular lattices, \vn{%param%t1_with_RF} and \vn{%param%t1_no_RF}
+are the 1--turn transfer matrices from the start of the lattice to the
+end. \vn{%param%t1_with_RF} is the full transfer matrix with RF
+on. \vn{%param%t1_no_RF} is the transverse transfer matrix with RF
+off. \vn{%param%t1_no_RF} is used to compute the Twiss
+parameters. When computing the Twiss parameters \vn{%param%stable} is
+set according to whether the matrix is stable or not. If the matrix is
+not stable the Twiss parameters cannot be computed. If unstable,
+\vn{%param%unstable_factor} will be set to the growth rate per turn of
+the unstable mode.
+
+For linear lattices, if a particle is lost in tracking,
+\vn{%param%unstable_factor} will be set to
+\begin{example}
+  orbit_amplitude / limit
+\end{example}
 
 The particle type for a branch is stored in the
 integer variable \vn{%param%particle}. The value of this variable will

@@ -922,7 +922,7 @@ type (c_dummy_struct) c_param
 
 f => f_param
 
-call param_to_c2 (c_param, f%n_part, f%total_length, f%growth_rate, &
+call param_to_c2 (c_param, f%n_part, f%total_length, f%unstable_factor, &
       mat2arr(f%t1_with_RF), mat2arr(f%t1_no_RF), &
       f%particle, f%ix_lost, f%end_lost_at, f%plane_lost_at, f%lattice_type, &
       f%ixx, c_logic(f%stable), c_logic(f%aperture_limit_on), c_logic(f%lost))

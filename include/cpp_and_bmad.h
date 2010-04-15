@@ -439,7 +439,7 @@ class C_param {
 public:
   double n_part;            // Particles/bunch (for BeamBeam elements).
   double total_length;      // total_length of ring
-  double growth_rate;       // growth rate/turn if not stable
+  double unstable_factor;   // growth rate/turn if not stable
   Real_Matrix t1_with_RF;   // Full 1-turn matrix with RF on.
   Real_Matrix t1_no_RF;     // Full 1-turn matrix with RF off.
   int particle;             // positron$, electron$, etc.
@@ -452,7 +452,7 @@ public:
   bool aperture_limit_on;   // use apertures in tracking?
   bool lost;                // for use in tracking
 
-  C_param () : n_part(0), total_length(0), growth_rate(0),
+  C_param () : n_part(0), total_length(0), unstable_factor(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
       particle(0), ix_lost(0), end_lost_at(0), plane_lost_at(0), lattice_type(0), ixx(0),
       stable(1), aperture_limit_on(1), lost(0) {}
@@ -460,7 +460,7 @@ public:
   C_param (double np, double tl, double gr, Real_Matrix t1w,
     Real_Matrix t1n, int pa, int il, int ela, int pla, int lt, int ix, 
     int st, int alo, int lo) :
-        n_part(np), total_length(tl), growth_rate(gr),
+        n_part(np), total_length(tl), unstable_factor(gr),
         t1_with_RF(t1w), t1_no_RF(t1n), particle(pa), 
         ix_lost(il), end_lost_at(ela), plane_lost_at(pla), lattice_type(lt), ixx(ix),
         stable(st), aperture_limit_on(alo), lost(lo) {}

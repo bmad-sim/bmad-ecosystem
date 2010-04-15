@@ -292,7 +292,7 @@ logical is_eq
 !
 
 is_eq = (f1%n_part == f2%n_part) .and. (f1%total_length == f2%total_length) .and. &
-     (f1%growth_rate == f2%growth_rate) .and. &
+     (f1%unstable_factor == f2%unstable_factor) .and. &
      all(f1%t1_with_RF == f2%t1_with_RF) .and. &
      all(f1%t1_no_RF == f2%t1_no_RF) .and. &
      (f1%particle == f2%particle) .and. (f1%ix_lost == f2%ix_lost) .and. &

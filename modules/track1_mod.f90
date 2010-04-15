@@ -46,8 +46,9 @@ contains
 !     %lost -- Set True if the orbit is outside the aperture. 
 !              Note: %lost is NOT set False if the orbit is inside 
 !                the aperture.
-!     %plane_lost_at -- Integer: Plane where particle is lost:
-!                     x_plane$ or y_plane$
+!     %plane_lost_at   -- Integer: Plane where particle is lost:
+!                           x_plane$ or y_plane$
+!     %unstable_factor -- Real(rp): |orbit_amp/limit|
 !-
 
 subroutine check_aperture_limit (orb, ele, at, param)
@@ -59,21 +60,23 @@ type (coord_struct) orb2
 type (ele_struct) :: ele
 type (lat_param_struct), intent(inout) :: param
 
-real(rp) x_lim, y_lim, x_beam, y_beam, s_here
+real(rp) x_lim, y_lim, x_beam, y_beam, s_here, r
 integer at
 logical do_tilt
 character(20) :: r_name = 'check_aperture_limit'
 
 ! Check p_x and p_y
 
-if (abs(orb%vec(2)) > 1) then
+if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
   param%lost = .true.
-  param%plane_lost_at = x_plane$
-endif
-  
-if (abs(orb%vec(4)) > 1) then
-  param%lost = .true.
-  param%plane_lost_at = y_plane$
+  if (abs(orb%vec(2)) > abs(orb%vec(4))) then
+    param%plane_lost_at = x_plane$
+    param%unstable_factor = 100 * abs(orb%vec(2)) 
+  else
+    param%plane_lost_at = y_plane$
+    param%unstable_factor = 100 * abs(orb%vec(4)) 
+  endif
+  return
 endif
 
 !
@@ -102,8 +105,7 @@ else
   x_lim = ele%value(x2_limit$)
 endif
 
-if (x_lim <= 0 .or. .not. param%aperture_limit_on) &
-                                  x_lim = bmad_com%max_aperture_limit
+if (x_lim <= 0 .or. .not. param%aperture_limit_on) x_lim = bmad_com%max_aperture_limit
 
 if (y_beam < 0) then
   y_lim = ele%value(y1_limit$)
@@ -117,29 +119,36 @@ if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
 if (x_lim == 0 .and. y_lim == 0) return
 
 select case (ele%aperture_type)
+
 case (elliptical$)
   if (x_lim == 0 .or. y_lim == 0) then
     call out_io (s_fatal$, r_name, &
               'ECOLLIMATOR HAS ONE LIMIT ZERO AND THE OTHER NOT: ' // ele%name)
     call err_exit
   endif
-  if ((x_beam / x_lim)**2 + (y_beam / y_lim)**2 > 1) then
+
+  r = (x_beam / x_lim)**2 + (y_beam / y_lim)**2
+  if (r > 1) then
     param%lost = .true.
     if (abs(x_beam / x_lim) > abs(y_beam / y_lim)) then
       param%plane_lost_at = x_plane$
     else
       param%plane_lost_at = y_plane$
     endif
+    param%unstable_factor = sqrt(r)
   endif
 
 case (rectangular$)
-  if (abs(x_beam) > x_lim) then
+
+  if (abs(x_beam) > x_lim .or. abs(y_beam) > y_lim) then
     param%lost = .true.
-    param%plane_lost_at = x_plane$
-  endif
-  if (abs(y_beam) > y_lim) then
-    param%lost = .true.
-    param%plane_lost_at = y_plane$
+    if (abs(x_beam)/x_lim > abs(y_beam)/y_lim) then
+      param%plane_lost_at = x_plane$
+      param%unstable_factor = abs(x_beam) / x_lim
+    else
+      param%plane_lost_at = y_plane$
+      param%unstable_factor = abs(y_beam) / y_lim
+    endif
   endif
 
 case default

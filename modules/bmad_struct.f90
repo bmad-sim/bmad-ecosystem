@@ -266,12 +266,12 @@ type control_struct
   integer :: ix_attrib = 0       ! Index of attribute controlled
 end type
 
-! parameter and mode structures
+! lattice parameter struct
 
 type lat_param_struct
   real(rp) n_part             ! Particles/bunch (for BeamBeam elements).
   real(rp) total_length       ! total_length of lat
-  real(rp) growth_rate        ! growth rate/turn if not stable
+  real(rp) unstable_factor    ! growth rate/turn for circular lats. |orbit/limit| for linear lats.
   real(rp) t1_with_RF(6,6)    ! Full 1-turn matrix with RF on.
   real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
   integer particle            ! positron$, electron$, etc.
@@ -284,6 +284,8 @@ type lat_param_struct
   logical aperture_limit_on   ! use apertures in tracking?
   logical lost                ! for use in tracking
 end type
+
+!
 
 type mode_info_struct
   real(rp) tune      ! "fractional" tune in radians: 0 < tune < 2pi
@@ -311,6 +313,7 @@ end type
 
 ! lat_struct
 ! Remember: If this struct is changed you have to modify:
+!     Increase bmad_inc_version by 1.
 !     read_digested_bmad_file
 !     write_digested_bmad_file
 !     transfer_lat_parameters

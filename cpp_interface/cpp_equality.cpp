@@ -125,7 +125,7 @@ bool operator== (const C_control& x, const C_control& y) {
 
 bool operator== (const C_param& x, const C_param& y) {
   return (x.n_part == y.n_part) && (x.total_length == y.total_length) && 
-         (x.growth_rate == y.growth_rate) &&
+         (x.unstable_factor == y.unstable_factor) &&
          is_all_true(x.t1_with_RF, y.t1_with_RF) && 
          is_all_true(x.t1_no_RF, y.t1_no_RF) && 
          (x.particle == y.particle) && (x.ix_lost == y.ix_lost) && 

@@ -22,7 +22,7 @@
 !     %a%tune         -- Fractional part of the tune in radians
 !     %b%tune         -- Fractional part of the tune in radians
 !     %param%stable   -- Set true or false.
-!     %param%growth_rate -- unstable growth rate (= 0 if stable)
+!     %param%unstable_factor -- unstable growth rate (= 0 if stable)
 ! 
 !   bmad_status  -- BMAD Common block status structure
 !     %ok            -- Logical: .True. if everything is OK, False otherwise.
@@ -108,7 +108,7 @@ subroutine twiss_at_start (lat)
 
 ! compute twiss parameters
 
-  call twiss_from_mat6 (mat6, map0, lat%ele(0), lat%param%stable, lat%param%growth_rate)
+  call twiss_from_mat6 (mat6, map0, lat%ele(0), lat%param%stable, lat%param%unstable_factor)
   lat%a%tune = lat%ele(0)%a%phi
   lat%b%tune = lat%ele(0)%b%phi
   lat%ele(0)%a%phi = 0
