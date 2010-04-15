@@ -886,9 +886,12 @@ type (qp_axis_struct) axis
 integer i
 real(rp) width, num, num2, a_min, a_max, max_d, effective_zero
 
-! LOG scale does not use places
+! LOG scale does not use places.
+! If min = max or major_div == 0 then cannot do a calculation so don't do anything.
 
 if (axis%type == 'LOG') return
+if (axis%min == axis%max) return
+if (axis%major_div == 0) return
 
 ! sort true min and max
 
@@ -896,10 +899,6 @@ a_min = min (axis%min, axis%max)
 a_max = max (axis%min, axis%max)
 max_d = 10.0_rp**qp_com%max_digits
 effective_zero = max(abs(a_max), abs(a_min)) / max_d
-
-! If min = max then cannot do a calculation so don't do anything.
-
-if (a_min == a_max) return
 
 ! First calculation: Take each axis number and find how many digits it has.
 ! The number of places is the maximum number of digits needed to represent
