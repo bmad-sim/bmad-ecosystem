@@ -99,9 +99,15 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, k)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
-      if (.not. this_calc_ok) exit
+      if (.not. this_calc_ok) then
+        call out_io (s_error$, r_name, 'CANNOT TRACK BEAM CENTROID. WILL NOT TRACK BEAM...')
+        exit
+      endif
       call tao_inject_beam (u, tao_lat, k, this_calc_ok)
-      if (.not. this_calc_ok) exit
+      if (.not. this_calc_ok) then
+        call out_io (s_error$, r_name, 'CANNOT INJECT BEAM. WILL NOT TRACK BEAM...')
+        exit
+      endif
       call tao_beam_track (u, tao_lat, this_calc_ok, k)
       if (.not. this_calc_ok) exit
     case default
@@ -203,7 +209,7 @@ integer i, ii, ix_lost, ix_branch
 
 character(20) :: r_name = "tao_single_track"
 
-logical calc_ok, err
+logical calc_ok, err, radiation_fluctuations_on
 
 !
 
@@ -214,12 +220,17 @@ branch => tao_lat%lat%branch(ix_branch)
 lat_branch => tao_lat%lat_branch(ix_branch)
 
 calc_ok = .true.
-lat%param%ix_lost = not_lost$
-lat%param%lost = .false.
+branch%param%ix_lost = not_lost$
+branch%param%lost = .false.
 
-! Track
+! Track.
+! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
+
+radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
+bmad_com%radiation_fluctuations_on = .false.
 
 if (branch%param%lattice_type == circular_lattice$) then
+  if (ix_branch /= 0) call err_exit  ! Needs to be fixed...
   call closed_orbit_calc (lat, lat_branch%orbit, 4, exit_on_error = .false.)
   if (.not. bmad_status%ok) then
     calc_ok = .false.
@@ -231,17 +242,19 @@ if (branch%param%lattice_type == circular_lattice$) then
 
 else
   call track_all (lat, lat_branch%orbit, ix_branch)
-  if (lat%param%lost) then
+  if (branch%param%lost) then
     calc_ok = .false.
-    ix_lost = lat%param%ix_lost
+    ix_lost = branch%param%ix_lost
     do ii = ix_lost+1, branch%n_ele_track
       orbit(ii)%vec = 0
     enddo
     call out_io (s_blank$, r_name, "particle lost at element \I0\: " // &
-            trim(lat%ele(ix_lost)%name) // '  [s =\F9.2\]', &
-            r_array = (/ lat%ele(ix_lost)%s /), i_array = (/ ix_lost /))
+            trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
+            r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_lost /))
   endif
 endif
+
+bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 
 ! Twiss
 
@@ -324,7 +337,7 @@ lat => tao_lat%lat
 orbit => tao_lat%lat_branch(ix_branch)%orbit
 
 tao_lat%n_bunch_params2 = 0
-lat%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
+branch%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
 ix_lost = not_lost$
 lost = .false.
 calc_ok = .true.
@@ -342,7 +355,8 @@ endif
 ! Transfer wakes from  design
 
 do i = 1, branch%n_ele_max
-  if (associated(lat%ele(i)%wake)) lat%ele(i)%wake%lr = u%design%lat%ele(i)%wake%lr
+  if (associated(branch%ele(i)%wake)) branch%ele(i)%wake%lr = &
+                                        u%design%lat%branch(ix_branch)%ele(i)%wake%lr
 enddo
 
 call zero_lr_wakes_in_lat (lat)
@@ -369,8 +383,8 @@ if (.not. u%connect%connected) then
     if (extract_at_ix_ele /= -1) then
       if (u%calc_beam_emittance) then
         call radiation_integrals (lat, lat_branch%orbit, modes)
-        f = lat%ele(extract_at_ix_ele)%value(E_tot$) * &
-             (1+orbit(extract_at_ix_ele)%vec(6)) / mass_of(lat%param%particle)
+        f = branch%ele(extract_at_ix_ele)%value(E_tot$) * &
+             (1+orbit(extract_at_ix_ele)%vec(6)) / mass_of(branch%param%particle)
         beam_init%a_norm_emitt  = modes%a%emittance * f
         beam_init%b_norm_emitt  = modes%b%emittance * f
       endif
@@ -381,7 +395,7 @@ if (.not. u%connect%connected) then
                           'BOTH BEAM_INIT%A_NORM_EMITT AND %B_NORM_EMITT NOT SET!')
         call err_exit
       endif
-      call init_beam_distribution (lat%ele(extract_at_ix_ele), lat%param, &
+      call init_beam_distribution (branch%ele(extract_at_ix_ele), branch%param, &
                                beam_init, s%u(i_uni_to)%connect%injecting_beam)
     endif
     ! no beam tracking in circular lattices
@@ -415,7 +429,7 @@ do j = ie1, ie2
 
   else
     if (j /= ie1) then 
-      call track_beam (lat, beam, lat%ele(j-1), lat%ele(j), too_many_lost)
+      call track_beam (lat, beam, branch%ele(j-1), branch%ele(j), too_many_lost)
     endif
 
     if (uni_ele(j)%save_beam) uni_ele(j)%beam = beam
@@ -428,13 +442,13 @@ do j = ie1, ie2
 
   ! compute centroid orbit
 
-  call tao_find_beam_centroid (beam, orbit(j), too_many_lost, u, j, lat%ele(j))
+  call tao_find_beam_centroid (beam, orbit(j), too_many_lost, u, j, branch%ele(j))
   if (too_many_lost .and. .not. lost) then
     ix_lost = j
     lost = .true.
     call out_io (s_warn$, r_name, &
             "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
-            // trim(lat%ele(j)%name), j)
+            // trim(branch%ele(j)%name), j)
   endif
 
   !
@@ -444,7 +458,7 @@ do j = ie1, ie2
   n_alive_old = n_alive
 
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
-                     lat%ele(j), lat%param, lat_branch%bunch_params(j), err, print_err)
+                     branch%ele(j), branch%param, lat_branch%bunch_params(j), err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, ix_branch, model$) 
 
@@ -478,8 +492,8 @@ if (post) then
                                   i_array = (/u%ix_uni, n_lost /))
 endif
 
-lat%param%lost = lost
-lat%param%ix_lost = ix_lost
+branch%param%lost = lost
+branch%param%ix_lost = ix_lost
   
 end subroutine tao_beam_track
 
@@ -812,6 +826,7 @@ if (u%connect%match_to_design) then
 endif
     
 ! transfer to this lattice
+
 model%lat%ele(0)%a = extract_ele%a
 model%lat%ele(0)%b = extract_ele%b
 model%lat%ele(0)%z = extract_ele%z

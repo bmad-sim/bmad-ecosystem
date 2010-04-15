@@ -349,7 +349,7 @@ type tao_global_struct
   character(16) random_engine = "pseudo"         ! Random number engine to use
   character(16) random_gauss_converter = "exact" ! Uniform to gauss conversion method
   real(rp) random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
-  character(16) track_type = "single"            ! or "beam" 
+  character(16) track_type = "single"            ! "single" or "beam" 
   character(16) prompt_string = "Tao"
   character(16) optimizer     = "de"             ! optimizer to use.
   character(16) default_key_merit_type
@@ -376,6 +376,16 @@ end type
 
 All global parameters can be changed from their initial value using
 the \vn{set} command (\sref{s:set}).
+
+The setting of the \vn{global%track_type} parameter can be
+\begin{example}
+  "single"
+  "beam"
+\end{example}
+The \vn{"single"} setting is used when single particle tracking is
+desired and \vn{"beam"} is used when tracking with a beam of
+particles. Note that with \vn{"single"} tracking, synchrotron
+radiation fluctuations (but not dampling) is always turned off.
 
 Random numbers are used by \tao in various algorithms. For example,
 random numbers are used in generating the initial coordinates of the
