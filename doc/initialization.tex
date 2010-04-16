@@ -325,17 +325,17 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{bunch_to_plot}\index{random_seed}
 \index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
-\index{default_key_merit_type}\index{write_file}\index{var_limits_on}
+\index{write_file}\index{var_limits_on}
 \index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{init_plot_needed}\index{lattice_calc_on}\index{command_file_print_on}
-\index{print_command}\index{default_init_file}
+\index{print_command}\index{default_init_file}\index{derivative_uses_design}
 \index{current_init_file}\index{var_out_file}
 \begin{example}
 type tao_global_struct
   real(rp) y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
-  real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
+  real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff. -1 => ignore this.
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   real(rp) de_var_to_population_factor = 5 
   real(rp) floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
@@ -352,7 +352,6 @@ type tao_global_struct
   character(16) track_type = "single"            ! "single" or "beam" 
   character(16) prompt_string = "Tao"
   character(16) optimizer     = "de"             ! optimizer to use.
-  character(16) default_key_merit_type
   character(40) print_command = "lpr"
   character(80) var_out_file  = "var#.out"
   logical var_limits_on = T             ! Respect the variable limits?
@@ -361,7 +360,8 @@ type tao_global_struct
   logical init_opt_wrapper = T
   logical label_lattice_elements = T    ! For lat_layout plots
   logical label_keys = T                ! For lat_layout plots
-  logical derivative_recalc = T         ! Recalc before each optimizer run?
+  logical derivative_recalc = T         ! Recalc derivative matrix before each optimizer loop?
+  logical derivative_uses_design = F    ! Derivative matrix uses the design lattice?
   logical init_plot_needed = T          ! reinitialize plotting?
   logical plot_on = T                   ! Do plotting?
   logical lattice_calc_on = T           ! Master switch.
@@ -386,6 +386,12 @@ The \vn{"single"} setting is used when single particle tracking is
 desired and \vn{"beam"} is used when tracking with a beam of
 particles. Note that with \vn{"single"} tracking, synchrotron
 radiation fluctuations (but not dampling) is always turned off.
+
+The \vn{global%derivative_recalc} logical determines whether the
+derivative matrix is recalculated every optimization loop. The
+\vn{global%derivative_uses_design} logical determines if the design
+lattice is used in the derivative matrix calculation instead of the
+model lattice.
 
 Random numbers are used by \tao in various algorithms. For example,
 random numbers are used in generating the initial coordinates of the

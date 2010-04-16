@@ -399,7 +399,8 @@ type tao_var_struct
   real(rp), pointer :: model_value      ! Model value.
   real(rp), pointer :: base_value       ! Base value.
   real(rp) design_value     ! Design value from the design lattice.
-  real(rp) old_value        ! The model_value at some previous time.
+  real(rp) scratch_value    ! Scratch space to be used within a routine.
+  real(rp) old_value        ! Scratch space to be used within a routine.
   real(rp) meas_value       ! The value when the data measurement was taken.
   real(rp) ref_value        ! Value when the reference measurement was taken.
   real(rp) correction_value ! Value determined by a fit to correct the lattice.
@@ -491,7 +492,6 @@ type tao_global_struct
   character(16) :: track_type    = 'single'         ! or 'beam'  
   character(16) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'             ! optimizer to use.
-  character(16) :: default_key_merit_type 
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
   character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
@@ -501,6 +501,7 @@ type tao_global_struct
   logical :: label_lattice_elements = .true.    ! For lat_layout plots
   logical :: label_keys = .true.                ! For lat_layout plots
   logical :: derivative_recalc = .true.         ! Recalc before each optimizer run?
+  logical :: derivative_uses_design = .false.   ! Derivative calc uses design lattice instead of model?
   logical :: init_plot_needed = .true.          ! reinitialize plotting?
   logical :: orm_analysis = .false.             ! orm using mdsa? 
   logical :: plot_on = .true.                   ! Do plotting?

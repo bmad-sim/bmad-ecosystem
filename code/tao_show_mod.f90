@@ -939,21 +939,8 @@ case ('global')
   if (print_global) then
     nl=nl+1; lines(nl) = 'Global parameters:'
     nl=nl+1; write (lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
-    nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
-    nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
-    nl=nl+1; write (lines(nl), rmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
-    nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
     nl=nl+1; write (lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write (lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
-    nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
-    nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
-    nl=nl+1; write (lines(nl), rmt) '  %merit_finish                  = ', s%global%merit_finish
-    nl=nl+1; write (lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
-    nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
-    nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
-    nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
-    nl=nl+1; write (lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
-    nl=nl+1; write (lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
     nl=nl+1; write (lines(nl), amt) '  %phase_units                   = ', &
                                                     frequency_units_name(s%global%phase_units)
     nl=nl+1; write (lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
@@ -990,6 +977,10 @@ case ('global')
     nl=nl+1; write (lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
   endif
 
+  if (print_optimization) then
+    call show_opt()
+  endif
+
   if (print_bmad_com) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
@@ -1014,10 +1005,6 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
     nl=nl+1; write(lines(nl), lmt) '  %ix1_ele_csr          = ', csr_param%ix1_ele_csr
     nl=nl+1; write(lines(nl), lmt) '  %ix2_ele_csr          = ', csr_param%ix2_ele_csr
-  endif
-
-  if (print_optimization) then
-    call show_opt()
   endif
 
   result_id = show_what
@@ -2445,14 +2432,18 @@ subroutine show_opt ()
 
 implicit none
 
-nl=nl+1; lines(nl) = 'Global parameters:'
+nl=nl+1; lines(nl) = 'Global optimization parameters:'
 nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
 nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
 nl=nl+1; write (lines(nl), rmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
 nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
 nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
+nl=nl+1; write (lines(nl), rmt) '  %merit_finish                  = ', s%global%merit_finish
+nl=nl+1; write (lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
 nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
 nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
+nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
+nl=nl+1; write (lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
 nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
 nl=nl+1; write (lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
 nl=nl+1; write (lines(nl), amt) '  %optimizer                     = ', s%global%optimizer

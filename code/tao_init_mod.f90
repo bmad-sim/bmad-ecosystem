@@ -59,7 +59,6 @@ if (init_needed) then
 endif
 
 global = default_global         ! establish defaults
-global%default_key_merit_type = 'limit'
 
 call tao_hook_init_global (init_file, global)
 

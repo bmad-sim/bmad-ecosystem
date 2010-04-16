@@ -268,9 +268,6 @@ case ('=')
         ix = s%key(i)
         s%var(ix)%key_val0 = s%var(ix)%model_value
       enddo
-      do i = 1, size(s%var)
-        s%var(i)%old_value = s%var(i)%model_value
-      enddo
 
     ! '= ESC' Error:
 

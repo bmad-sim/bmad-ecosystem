@@ -119,10 +119,20 @@ if (.not. calc_ok) then
 endif
 
 s%var%old_value = s%var%delta_merit
+
 if (s%global%orm_analysis) then 
   s%u(:)%mat6_recalc_on = .false.
   s%u(ix_common_uni$)%mat6_recalc_on = .true.
 endif
+
+if (s%global%derivative_uses_design) then
+  do j = 1, size(s%var)
+    s%var(j)%scratch_value = s%var(j)%model_value  ! Save
+    call tao_set_var_model_value (s%var(j), s%var(j)%design_value)
+  enddo
+endif
+
+! Loop over all variables to vary
 
 do j = 1, size(s%var)
 
@@ -172,6 +182,13 @@ enddo
 ! End
 
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
+
+if (s%global%derivative_uses_design) then
+  do j = 1, size(s%var)
+    call tao_set_var_model_value (s%var(j), s%var(j)%scratch_value)
+  enddo
+endif
+
 merit_value = tao_merit () ! to reset all values
 
 end subroutine
