@@ -2435,7 +2435,6 @@ implicit none
 nl=nl+1; lines(nl) = 'Global optimization parameters:'
 nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
 nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
-nl=nl+1; write (lines(nl), rmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
 nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
 nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
 nl=nl+1; write (lines(nl), rmt) '  %merit_finish                  = ', s%global%merit_finish
@@ -2443,6 +2442,7 @@ nl=nl+1; write (lines(nl), imt) '  %n_top10                       = ', s%global%
 nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
 nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
 nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
+nl=nl+1; write (lines(nl), lmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
 nl=nl+1; write (lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
 nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
 nl=nl+1; write (lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base

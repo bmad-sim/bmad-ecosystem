@@ -81,6 +81,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
     nd = nd + 1
     if (u%data(j)%ix_dModel /= nd) reinit = .true.
+    u%data(j)%ix_dModel = nd
   enddo
 
 enddo
