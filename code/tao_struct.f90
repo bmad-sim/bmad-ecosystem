@@ -655,6 +655,7 @@ type tao_universe_struct
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.
   type (coord_struct) model_orb0                         ! For saving beginning orbit
+  type (lat_struct) scratch_lat                          ! Scratch area.
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   character(160) beam_saved_at
   integer ix_uni                         ! Universe index.

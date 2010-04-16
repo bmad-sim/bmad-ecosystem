@@ -81,13 +81,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
     nd = nd + 1
     if (u%data(j)%ix_dModel /= nd) reinit = .true.
-    if (u%data(j)%good_model .and. any (u%dModel_dVar(nd,:) == real_garbage$)) reinit = .true.
-    u%data(j)%ix_dModel = nd
-    if (u%data(j)%good_model) then
-      u%data(j)%old_value = u%data(j)%delta_merit
-    else
-      u%data(j)%old_value = real_garbage$
-    endif
   enddo
 
 enddo
@@ -113,6 +106,17 @@ endif
 call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.', &
                               'This may take a while...', '')
 
+if (s%global%derivative_uses_design) then
+  do i = 1, size(s%u)
+    s%u(i)%scratch_lat = s%u(i)%model%lat ! Save
+    s%u(i)%model%lat = s%u(i)%design%lat
+  enddo
+  do j = 1, size(s%var)
+    s%var(j)%scratch_value = s%var(j)%model_value  ! Save
+    call tao_set_var_model_value (s%var(j), s%var(j)%design_value)
+  enddo
+endif
+
 merit_value = tao_merit (calc_ok)
 if (.not. calc_ok) then
   call out_io (s_error$, r_name, 'BASE MODEL CALCULATION HAS PROBLEMS', ' ')
@@ -125,12 +129,20 @@ if (s%global%orm_analysis) then
   s%u(ix_common_uni$)%mat6_recalc_on = .true.
 endif
 
-if (s%global%derivative_uses_design) then
-  do j = 1, size(s%var)
-    s%var(j)%scratch_value = s%var(j)%model_value  ! Save
-    call tao_set_var_model_value (s%var(j), s%var(j)%design_value)
+! Save old data
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(i)
+  if (.not. u%is_on) cycle
+  do j = 1, size(u%data)
+    if (.not. u%data(j)%useit_opt) cycle
+    if (u%data(j)%good_model) then
+      u%data(j)%old_value = u%data(j)%delta_merit
+    else
+      u%data(j)%old_value = real_garbage$
+    endif
   enddo
-endif
+enddo
 
 ! Loop over all variables to vary
 
@@ -184,6 +196,9 @@ enddo
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 
 if (s%global%derivative_uses_design) then
+  do i = 1, size(s%u)
+    s%u(i)%model%lat = s%u(i)%scratch_lat
+  enddo
   do j = 1, size(s%var)
     call tao_set_var_model_value (s%var(j), s%var(j)%scratch_value)
   enddo
