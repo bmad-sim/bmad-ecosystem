@@ -49,6 +49,7 @@ call tao_veto_vars_with_zero_dmodel ()
 
 ! Setup
 
+abort = .false.
 merit0 = tao_merit()
 
 call tao_get_opt_vars (var_value)
@@ -107,19 +108,16 @@ call tao_svd_func (a_try, y_fit, dy_da, status)  ! put a -> model
 merit = tao_merit()
 call out_io (s_blank$, r_name, 'Merit after svd: \es14.4\ ', r_array = [merit])
 
-if (status /= 0 .or. merit > merit0) then
+if (status /= 0 .or. (merit > merit0 .and. s%global%svd_retreat_on_merit_increase)) then
   abort = .true.   ! So no more loops
-  if (s%global%svd_retreat_on_merit_increase) then
-     call tao_svd_func (a, y_fit, dy_da, status2)  ! put a -> model
-    call out_io (s_blank$, r_name, 'Retreating to initial state.')
-  endif
+  call tao_svd_func (a, y_fit, dy_da, status2)  ! put a -> model
+  call out_io (s_blank$, r_name, 'Retreating to initial state.')
 endif
 
 ! Cleanup: Reinstate vars vetoed with zero dmerit
 
 s%var(:)%good_var = .true.  
 call tao_set_var_useit_opt()
-
 
 end subroutine
 
