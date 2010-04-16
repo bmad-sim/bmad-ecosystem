@@ -107,14 +107,17 @@ endif
 call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.', &
                               'This may take a while...', '')
 
+! Note that the var model_value needs to be saved before
+! switching to the design lattice since var%model_value is a pointer.
+
 if (s%global%derivative_uses_design) then
-  do i = 1, size(s%u)
-    s%u(i)%scratch_lat = s%u(i)%model%lat ! Save
-    s%u(i)%model%lat = s%u(i)%design%lat
-  enddo
   do j = 1, size(s%var)
     s%var(j)%scratch_value = s%var(j)%model_value  ! Save
     call tao_set_var_model_value (s%var(j), s%var(j)%design_value)
+  enddo
+  do i = 1, size(s%u)
+    s%u(i)%scratch_lat = s%u(i)%model%lat ! Save
+    s%u(i)%model%lat = s%u(i)%design%lat
   enddo
 endif
 
