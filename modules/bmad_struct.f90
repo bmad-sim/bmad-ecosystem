@@ -40,13 +40,12 @@ type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
 
-! Structure for star apertures.
-! This structure holds the info on one point of the shape. 
-! A star shape is defined by an array of star_shape1_structs.
+! Structure for defining polygonal vacuum pipe cross sections.
+! polygon_vertex_struct structure holds the info on one vertex of the polygon.
 
-type star_shape1_struct
-  real(rp) x, y        ! coordinates of a point defining the shape
-  real(rp) angle       ! angle of (x, y)
+type polygon_vertex_struct
+  real(rp) x, y        ! coordinates of the vertex.
+  real(rp) angle       ! angle of (x, y).
 end type
 
 ! Coupling structure
