@@ -31,10 +31,14 @@ character(*) dest_lat, source_lat
 character(16) dest1_name
 character(20) :: r_name = 'tao_set_lattice_cmd'
 
+real(rp) :: dest_var
+
 integer i, ib
 
 logical, allocatable, save :: this_u(:)
 logical err
+
+!
 
 call tao_pick_universe (dest_lat, dest1_name, this_u, err)
 if (err) return
@@ -43,6 +47,26 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(i)) cycle
   call set_lat (s%u(i))
   if (err) return
+enddo
+
+! variable set
+
+do i = 1, size(s%var)
+  select case (dest1_name)
+  case ('model')
+    dest_var  = s%var(i)%model_value
+  case ('base')
+    dest_var  = s%var(i)%base_value
+  end select
+
+  select case (source_lat)
+  case ('model')
+    s%var(i)%model_value = dest_var
+  case ('base')
+    s%var(i)%base_value = dest_var
+  case ('design')
+    s%var(i)%design_value = dest_var
+  end select
 enddo
 
 !-------------------------------------------
@@ -55,8 +79,7 @@ implicit none
 type (tao_universe_struct), target :: u
 type (tao_lattice_struct), pointer :: dest1_lat
 type (tao_lattice_struct), pointer :: source1_lat
-real(rp), pointer :: dest_data(:)
-real(rp), pointer :: source_data(:)
+real(rp), pointer :: dest_data(:), source_data(:)
 logical, pointer :: dest_good(:), source_good(:)
 logical calc_ok
 
@@ -67,40 +90,40 @@ integer j
 err = .false.
 
 select case (dest1_name)
-  case ('model')
-    dest1_lat => u%model
-    dest_data => u%data%model_value
-    dest_good => u%data%good_model
-  case ('base')
-    dest1_lat => u%base
-    dest_data => u%data%base_value
-    dest_good => u%data%good_base
-  case default
-    call out_io (s_error$, r_name, 'BAD LATTICE: ' // dest_lat)
-    err = .true.
-    return
+case ('model')
+  dest1_lat => u%model
+  dest_data => u%data%model_value
+  dest_good => u%data%good_model
+case ('base')
+  dest1_lat => u%base
+  dest_data => u%data%base_value
+  dest_good => u%data%good_base
+case default
+  call out_io (s_error$, r_name, 'BAD NAME: ' // dest_lat)
+  err = .true.
+  return
 end select
 
 select case (source_lat)
-  case ('model')
-    ! make sure model data is up to date
-    u%lattice_recalc = .true.
-    call tao_lattice_calc (calc_ok)
-    source1_lat => u%model
-    source_data => u%data%model_value
-    source_good => u%data%good_model
-  case ('base')
-    source1_lat => u%base
-    source_data => u%data%base_value
-    source_good => u%data%good_base
-  case ('design')
-    source1_lat => u%design
-    source_data => u%data%design_value
-    source_good => u%data%good_design
-  case default
-    call out_io (s_error$, r_name, 'BAD LATTICE: ' // source_lat)
-    err = .true.
-    return
+case ('model')
+  ! make sure model data is up to date
+  u%lattice_recalc = .true.
+  call tao_lattice_calc (calc_ok)
+  source1_lat => u%model
+  source_data => u%data%model_value
+  source_good => u%data%good_model
+case ('base')
+  source1_lat => u%base
+  source_data => u%data%base_value
+  source_good => u%data%good_base
+case ('design')
+  source1_lat => u%design
+  source_data => u%data%design_value
+  source_good => u%data%good_design
+case default
+  call out_io (s_error$, r_name, 'BAD NAME: ' // source_lat)
+  err = .true.
+  return
 end select
 
 dest1_lat%lat          = source1_lat%lat

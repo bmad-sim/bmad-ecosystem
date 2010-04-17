@@ -147,6 +147,7 @@ type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
 type (tao_ele_shape_struct), pointer :: shape
 type (beam_struct), pointer :: beam
+type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
 type (lr_wake_struct), pointer :: lr
@@ -227,7 +228,7 @@ lines = " "
 nl = 0
 
 rmt  = '(a, 9es16.8)'
-f3mt  = '(a, 9f0.3)'
+f3mt = '(a, 9f0.3)'
 irmt = '(a, i0, a, es16.8)'
 imt  = '(a, 9i8)'
 iimt = '(a, i0, a, i8)'
@@ -306,41 +307,66 @@ case ('beam')
       nl=nl+1; write(lines(nl), rmt) 'bunch_charge                = ', beam%bunch(1)%charge
     endif
     if (u%beam_info%beam_all_file == '' .and. u%beam_info%beam0_file == '') then
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%center            = ', u%beam_info%beam_init%center
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%a_norm_emitt      = ', u%beam_info%beam_init%a_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%b_norm_emitt      = ', u%beam_info%beam_init%b_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%dPz_dz            = ', u%beam_info%beam_init%dPz_dz
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%dt_bunch          = ', u%beam_info%beam_init%dt_bunch
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z             = ', u%beam_info%beam_init%sig_z
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e             = ', u%beam_info%beam_init%sig_e
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%center_jitter     = ', u%beam_info%beam_init%center_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%emitt_jitter      = ', u%beam_info%beam_init%emitt_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_z_jitter      = ', u%beam_info%beam_init%sig_z_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%sig_e_jitter      = ', u%beam_info%beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%polarization = ', u%beam_info%beam_init%spin%polarization
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%theta        = ', u%beam_info%beam_init%spin%theta
-      nl=nl+1; write(lines(nl), rmt) 'beam_init%spin%phi          = ', u%beam_info%beam_init%spin%phi
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_center     = ', u%beam_info%beam_init%renorm_center
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%renorm_sigma      = ', u%beam_info%beam_init%renorm_sigma
-      nl=nl+1; write(lines(nl), lmt) 'beam_init%init_spin         = ', u%beam_info%beam_init%init_spin
+      beam_init => u%beam_info%beam_init
+      nl=nl+1; lines(nl) = 'beam_init components:'
+      nl=nl+1; write(lines(nl), amt) '  %distribution_type = ', beam_init%distribution_type
+      nl=nl+1; write(lines(nl), rmt) '  %center            = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %a_norm_emitt      = ', beam_init%a_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) '  %b_norm_emitt      = ', beam_init%b_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) '  %dPz_dz            = ', beam_init%dPz_dz
+      nl=nl+1; write(lines(nl), rmt) '  %dt_bunch          = ', beam_init%dt_bunch
+      nl=nl+1; write(lines(nl), rmt) '  %sig_z             = ', beam_init%sig_z
+      nl=nl+1; write(lines(nl), rmt) '  %sig_e             = ', beam_init%sig_e
+      nl=nl+1; write(lines(nl), rmt) '  %center_jitter     = ', beam_init%center_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %emitt_jitter      = ', beam_init%emitt_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter      = ', beam_init%sig_z_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter      = ', beam_init%sig_e_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %spin%polarization = ', beam_init%spin%polarization
+      nl=nl+1; write(lines(nl), rmt) '  %spin%theta        = ', beam_init%spin%theta
+      nl=nl+1; write(lines(nl), rmt) '  %spin%phi          = ', beam_init%spin%phi
+      nl=nl+1; write(lines(nl), lmt) '  %renorm_center     = ', beam_init%renorm_center
+      nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma      = ', beam_init%renorm_sigma
+      nl=nl+1; write(lines(nl), lmt) '  %init_spin         = ', beam_init%init_spin
+      fmt = '(a, i1, a, es16.8)'
+      do i = 1, 3
+        if (beam_init%distribution_type(i) == 'ELLIPSE') then
+          nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%part_per_ellipse  = ', beam_init%ellipse(i)%part_per_ellipse
+          nl=nl+1; write(lines(nl), iimt) '  %ellipse(', i, ')%n_ellipse         = ', beam_init%ellipse(i)%n_ellipse
+          nl=nl+1; write(lines(nl), irmt) '  %ellipse(', i, ')%sigma_cutoff      = ', beam_init%ellipse(i)%sigma_cutoff
+        elseif (beam_init%distribution_type(i) == 'GRID') then
+          nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_x            = ', beam_init%grid(i)%n_x
+          nl=nl+1; write(lines(nl), iimt) '  %grid(', i, ')%n_px           = ', beam_init%grid(i)%n_px
+          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_min          = ', beam_init%grid(i)%x_min
+          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%x_max          = ', beam_init%grid(i)%x_max
+          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_min         = ', beam_init%grid(i)%px_min
+          nl=nl+1; write(lines(nl), irmt) '  %grid(', i, ')%px_max         = ', beam_init%grid(i)%px_max
+        endif
+      enddo
+      if (any(beam_init%distribution_type == 'KV')) then
+        nl=nl+1; write(lines(nl), imt) '  %kv%part_per_phi(1:2) = ', beam_init%kv%part_per_phi
+        nl=nl+1; write(lines(nl), imt) '  %kv%n_i2              = ', beam_init%kv%n_i2
+        nl=nl+1; write(lines(nl), rmt) '  %kv%a                 = ', beam_init%kv%a
+      endif
     endif
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%sr_wakes_on               = ', bmad_com%sr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%lr_wakes_on               = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%trans_space_charge_on     = ', bmad_com%trans_space_charge_on
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%spin_tracking_on          = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_damping_on      = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) 'bmad_com%radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; lines(nl) = 'bmad_com components:'
+    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on               = ', bmad_com%sr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on               = ', bmad_com%lr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), rmt) 'csr_param%ds_track_step        = ', csr_param%ds_track_step
-    nl=nl+1; write(lines(nl), imt) 'csr_param%n_bin                = ', csr_param%n_bin
-    nl=nl+1; write(lines(nl), imt) 'csr_param%particle_bin_span    = ', csr_param%particle_bin_span
-    nl=nl+1; write(lines(nl), lmt) 'csr_param%lcsr_component_on    = ', csr_param%lcsr_component_on
-    nl=nl+1; write(lines(nl), lmt) 'csr_param%lsc_component_on     = ', csr_param%lsc_component_on
-    nl=nl+1; write(lines(nl), lmt) 'csr_param%tsc_component_on     = ', csr_param%tsc_component_on
-    nl=nl+1; write(lines(nl), lmt) 'csr_param%ix1_ele_csr          = ', csr_param%ix1_ele_csr
-    nl=nl+1; write(lines(nl), lmt) 'csr_param%ix2_ele_csr          = ', csr_param%ix2_ele_csr
+    nl=nl+1; lines(nl) = 'csr_param components:'
+    nl=nl+1; write(lines(nl), rmt) '  %ds_track_step        = ', csr_param%ds_track_step
+    nl=nl+1; write(lines(nl), imt) '  %n_bin                = ', csr_param%n_bin
+    nl=nl+1; write(lines(nl), imt) '  %particle_bin_span    = ', csr_param%particle_bin_span
+    nl=nl+1; write(lines(nl), lmt) '  %lcsr_component_on    = ', csr_param%lcsr_component_on
+    nl=nl+1; write(lines(nl), lmt) '  %lsc_component_on     = ', csr_param%lsc_component_on
+    nl=nl+1; write(lines(nl), lmt) '  %tsc_component_on     = ', csr_param%tsc_component_on
+    nl=nl+1; write(lines(nl), lmt) '  %ix1_ele_csr          = ', csr_param%ix1_ele_csr
+    nl=nl+1; write(lines(nl), lmt) '  %ix2_ele_csr          = ', csr_param%ix2_ele_csr
     nl=nl+1; lines(nl) = ''
     call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma = gam)
     nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
