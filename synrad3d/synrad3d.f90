@@ -488,8 +488,7 @@ if (filter_on) then
   if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
   if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
   if (s_wrap_on) then
-    if (photon%now%vec(5) > s_filter_min) filter_this = .true.
-    if (photon%now%vec(5) < s_filter_max) filter_this = .true.
+    if (photon%now%vec(5) > s_filter_max .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
   else
     if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
     if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
