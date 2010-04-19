@@ -26,9 +26,9 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: weight(:), a(:), a_try(:), da(:), b(:), w(:)
+real(rp), allocatable, save :: weight(:), a(:), a_try(:), da(:), b(:), b_old(:), w(:)
 real(rp), allocatable, save :: y_fit(:)
-real(rp), allocatable, save :: dy_da(:, :), v(:, :)
+real(rp), allocatable, save :: dy_da(:, :), dy_da_old(:, :), v(:, :)
 real(rp), allocatable, save :: var_value(:), var_weight(:)
 real(rp) merit0, merit
 real(rp), parameter :: tol = 1d-5
@@ -64,10 +64,19 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
 enddo
 
-if (allocated(weight)) deallocate(weight, a, a_try, da, y_fit, dy_da, b, w, v)
-allocate (weight(n_data), y_fit(n_data), b(n_data))
-allocate (a(n_var), a_try(n_var), da(n_var), w(n_var))
-allocate (dy_da(n_data, n_var), v(n_var, n_var))
+if (allocated(weight)) then
+ if (size(dy_da, 1) /= size(dy_da_old, 1) .or. size(dy_da, 2) /= size(dy_da_old, 2)) then
+   deallocate(weight, a, a_try, da, y_fit, dy_da, dy_da_old, b, b_old, w, v)
+  endif
+endif
+
+if (.not. allocated(weight)) then
+  allocate (weight(n_data), y_fit(n_data), b(n_data), b_old(n_data)
+  allocate (a(n_var), a_try(n_var), da(n_var), w(n_var))
+  allocate (dy_da(n_data, n_var), dy_da_old(n_data, n_var), v(n_var, n_var))
+  dy_da_old = 0
+  b_old = 0
+endif
 
 ! init a and y arrays
 
@@ -95,14 +104,18 @@ call out_io (s_blank$, r_name, 'Initial Merit: \es14.4\ ', r_array = [merit0])
 call tao_svd_func (a, y_fit, dy_da, status)  ! put a -> model
 if (status /= 0) return
 
-b = y_fit / sqrt(weight)
 do i = 1, n_data
   dy_da(i, :) = dy_da(i, :) / sqrt(weight(i))
 enddo
-call svdcmp(dy_da, w, v)
+
+if (any(dy_da /= dy_da_old)) call svdcmp(dy_da, w, v)
+dy_da_old = dy_da
+
 where (w < tol * maxval(w)) w = 0
+b = y_fit / sqrt(weight)
 call svbksb (dy_da, w, v, b, da)
 a_try = a - da
+
 
 call tao_svd_func (a_try, y_fit, dy_da, status)  ! put a -> model
 merit = tao_merit()
