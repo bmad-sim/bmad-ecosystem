@@ -332,7 +332,7 @@ generate another \vn{num_photons}, and so on, until at least 0.9 *
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=5in]{chamber.eps}
-\caption{Example vacuum chamber cross-section. The example is for an elliptical
+\caption{Example vacuum chamber cross-section for an \vn{elliptical} 
 chamber with an antechamber on the $+x$ side of the chamber and an
 aperture on the $-x$ side.}
 \label{f.chamber}
@@ -340,12 +340,22 @@ aperture on the $-x$ side.}
 \end{figure}
 
 The vacuum chamber wall is defined by specifying the chamber
-cross-section at a number of longitudinal positions. An example
-cross-section is shown in \fig{f.chamber}. The parameters needed to
-specify the chamber at a given longitudinal position are:
+cross-section at a number of longitudinal positions. 
+At a given longitudinal
+position, the wall cross-section can have one of three ``basic''
+shapes:
+\begin{example}
+  elliptical
+  rectangular
+  polygon
+\end{example}
+The \vn{polygon} shape is discussed later. An example \vn{elliptical}
+cross-section is shown in \fig{f.chamber}.  For \vn{elliptical} or
+\vn{rectangular} shapes, the parameters needed to specify the chamber
+are:
 \begin{example}
   s                   ! Longitudinal position
-  basic_shape          ! Either "elliptical" or "rectangular"
+  basic_shape         ! Either "elliptical" or "rectangular"
   width2              ! Half width ignoring antechamber.
   height2             ! Half height ignoring antechamber.
   width2_plus         ! Distance from pipe center to +x side edge.
@@ -355,10 +365,10 @@ specify the chamber at a given longitudinal position are:
 \end{example}
 
 The basic chamber shape at a given position is given by the
-\vn{basic_shape} attribute which my be set to either
-\vn{"rectangular"} or \vn{"elliptical"}. The example in
-\fig{f.chamber} is elliptical. \vn{width2} and \vn{height2} define the
-half-height and half-width of the basic shape. 
+\vn{basic_shape} attribute which must be set to 
+\vn{"rectangular"} for a \vn{rectangular} shape and \vn{"elliptical"}
+for an \vn{elliptical} shape. \vn{width2} and \vn{height2}
+define the half-height and half-width of the basic shape.
 
 Antechambers on the $+x$ side and/or $-x$ side of the chamber can be
 added to the basic shape. On the $+x$ side, an antechamber is formed
@@ -382,6 +392,105 @@ value of \vn{width2_plus} must be less than the value of
 \vn{width2_minus} defines an aperture on the $-x$ side of the chamber.
 A $-x$ aperture is shown in \fig{f.chamber}.
 
+For the \vn{polygon} shape, the parameters are:
+\begin{example}
+  s                   ! Longitudinal position.
+  basic_shape         ! "polygon".
+  ix_polygon          ! Index of polygon definition to use.
+\end{example}
+The \vn{basic_shape} attribute must be set to \vn{"polygon"} for a
+\vn{polygon} shape. The \vn{ix_polygon} index referrs to a polygon
+specification which has the parameters
+\begin{example}
+  ix_polygon         ! Index of this polygon definition.
+  v(i)               ! (x, y) coordinates of the i\Th vertex.
+\end{example}
+
+An example wall definition file is:
+\begin{example}
+  ! Anything outside the namelist is ignored.
+  &synrad3d_wall
+    wall_pt(0) =   0.0, "elliptical", 0.045, 0.025
+    wall_pt(1) =  74.3, "polygon", 1
+    wall_pt(2) =  82.9, "rectangular", 0.045, 0.025
+    wall_pt(3) =  91.1, "rectangular", 0.045, 0.025, -1, -1, 0.08, 0.01
+    wall_pt(4) = 101.3, "elliptical", 0.045, 0.025
+    wall_pt(5) =   0.0, "elliptical", 0.045, 0.025
+  /
+  &polygon_def
+    ix_polygon = 1
+    v(1) =  0.045,  0.025
+    v(2) = -0.045,  0.025
+    v(3) = -0.045, -0.025
+    v(4) =  0.045, -0.025
+  /
+  &polygon_def
+    ix_polygon = 2
+    v(1) =  0.045,  0.025
+    v(2) = -0.045,  0.025
+  /
+\end{example}
+Fortran namelist input is used. 
+The main namelist begins on the line starting with \vn{"\&synrad3d_wall"}
+and ends with the line containing the slash \vn{"/"}. Anything outside
+of this is ignored. Within the namelist, anything after an exclamation
+mark \vn{"!"} is ignored including the exclamation mark. 
+
+In the \vn{synrad3d_wall} namelist, \vn{wall_pt(i)} gives the
+parameters for the $i$\Th cross-section. The format for an \vn{elliptical}
+or \vn{rectangualr} \vn{wall_pt} is
+\begin{example}
+  wall_pt(<i>) = <s>, <basic_shape>, <width2>, <height2>, <width2_plus>, 
+                  <ante_height2_plus>, <width2_minus>, <ante_height2_minus>
+\end{example}
+The format for a \vn{polygon} \vn{wall_pt} is
+\begin{example}
+  wall_pt(<i>) = <s>, "polygon", <ix_polygon>
+\end{example}
+
+The index $<i>$ of \vn{wall_pt(<i>)} runs from zero which gives the
+cross-section at the beginning of the lattice up to the index for the
+last cross-section at the end of the lattice. The $<s>$ values for the
+wall points must be in increasing order starting at $<s> = 0$ for
+\vn{wall_pt(<i>)}. The exception is that the $<s>$ value for the last
+\vn{wall_pt(<i>)} is immaterial since \srthree will automatically substitute
+the appropriate $<s>$ value at the end of the lattice.
+
+For \vn{elliptical} and \vn{rectangular} shapes, the first four parameters -- \vn{<s>},
+\vn{<basic_shape>}, \vn{<width2>}, and \vn{<height2>} -- of \vn{wall_pt(<i>)} must be
+specified. Values for the other parameters are optional and default to
+the ``unset'' value of -1.
+
+For \vn{polygon} shapes, the \vn{ix_polygon} referrs to a
+corressponding \vn{polygon_def} namelist that specifies the exact shape of the polygon.
+The for mat of the \vn{polygon_def} namelist is:
+\begin{example}
+  &polygon_def
+    ix_polygon = <index>
+    v(1) = <x1> <y1>
+    v(2) = <x2> <y2>
+    ... etc ...
+  /
+\end{example}
+A polygon is specified as a list of connected vertices. Each vertex is
+specified by it's $(x, y)$ coordinates. When the vertex points are
+expressed in terms of $(r, \theta)$ coordinates, the vertices must be
+in order of increasing $theta$. If all the vertex points have
+non-negative $y$ values, it is assumed that the polygon is symmetric
+with respect to the $x$-axis and that only half the vertex points are
+being specified.
+
+In the example above, \vn{wall_pt(1)} at $s = 74.3$~meters is a
+\vn{polygon} whose definition is given by the first \vn{polygon_def}
+nameslist with an \vn{ix_polygon} value of 1. This definition defines
+a rectangle and is equivalent to \vn{wall_pt(2)}. Additionally, the
+second \vn{polygon_def} namelist with an \vn{ix_polygon} value of
+2. defines a symmetrix polygon which has the exact same shape as the
+first polygon.
+
+%------------------------------------------------------------------
+\subsection{Vacuum Chamber Wall Interpolation} 
+
 Once a set of chamber cross-sections have been defined, the
 cross-section of the chamber at a given longitudinal position is
 computed using a linear interpolation: In cylindrical coordinates,
@@ -393,10 +502,10 @@ $r_w(\theta, s)$ at some position $s$ with $s_1 \le s \le s_2$ is
 \Begineq
   r_w(\theta, s) = \frac{s_2 - s}{s_2 - s_1} \, r_{w1} + \frac{s_1 - s}{s_1 - s_2} \, r_{w2}
 \Endeq
-Note: The foregoing construction works as long as $r_{w1}$ and
-$r_{w2}$ are single valued functions. Thus, it would be a fairly
-simple matter in the future to extend the wall definition syntax to include more
-complicated cross-sections as long as the $r_w$ remains single valued.
+The foregoing construction works as long as $r_{w1}$ and $r_{w2}$ are
+single valued functions. For \vn{polygon} shapes, this is equivalent
+to having the $\theta$ value of the list of vertices be in increasing (or
+decreasing) order.
 
 To determine if a photon at position $(r, \theta, s)$ is inside or outside the
 chamber, the normalized radius $r_n$ is evaluated:
@@ -407,53 +516,10 @@ The photon is outside if $r_n > 1$ and inside if $r_n < 1$. The wall
 itself is defined by the equation $r_n = 1$. This being the case, the
 gradient $\nabla r_n$, evaluated at the chamber wall, gives a vector
 that is outward normal to the surface. This is useful when calculating
-the angle of the photon as it reflects off the surface. Actually,
-\srthree calculates the gradient of $-1/r_n$ expressed in $(x, y, s)$
-coordinates as this turns out to be especially easy to evaluate.
-
-An example wall definition file is:
-\begin{example}
-  ! Anything outside the namelist is ignored.
-  &synrad3d_wall
-   wall_pt(0) = 0.0, "elliptical", 0.045, 0.025
-   wall_pt(1) = 74.307, "elliptical", 0.045, 0.025
-   wall_pt(2) = 82.971, "rectangular", 0.045, 0.025
-   wall_pt(3) = 91.176, "rectangular", 0.045, 0.025,
-                            -1, -1, 0.08, 0.01
-   wall_pt(4) = 101.300, "elliptical", 0.045, 0.025
-   wall_pt(5) = 0.0, "elliptical", 0.045, 0.025
-  /
-\end{example}
-Fortran namelist input is used. 
-The namelist begins on the line starting with \vn{"\&synrad3d_wall"}
-and ends with the line containing the slash \vn{"/"}. Anything outside
-of this is ignored. Within the namelist, anything after an exclamation
-mark \vn{"!"} is ignored including the exclamation mark. 
-
-In the namelist, \vn{wall_pt(i)} gives the parameters for the $i$\Th
-cross-section The format for a \vn{wall_pt} is
-\begin{example}
-  wall_pt(i) = s, basic_shape, width2, height2, width2_plus, ante_height2_plus, 
-                  width2_minus, ante_height2_minus
-\end{example}
-Possible \vn{basic_shape} values are
-\begin{example}
-  "elliptical"
-  "rectangular"
-\end{example}
-
-The index $i$ of \vn{wall_pt(i)} runs from zero which gives the
-cross-section at the beginning of the lattice up to the index for the
-last cross-section at the end of the lattice. The $s$ values for the
-wall points must be in increasing order starting at $s = 0$ for
-\vn{wall_pt(i)}. The exception is that the $s$ value for the last
-\vn{wall_pt(i)} is immaterial since \srthree will automatically substitute
-the appropriate $s$ value at the end of the lattice.
-
-For each \vn{wall_pt(i)} the first four parameters -- \vn{s},
-\vn{basic_shape}, \vn{width2}, and \vn{height2} -- must be
-specified. Values for the other parameters are optional and default to
-the ``unset'' value of -1.
+the grazing angle of the photon as it reflects off the
+surface. Actually, \srthree calculates the gradient of $-1/r_n$
+expressed in $(x, y, s)$ coordinates as this turns out to be
+especially easy to evaluate.
 
 %------------------------------------------------------------------
 \section{Output files} 

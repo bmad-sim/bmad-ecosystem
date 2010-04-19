@@ -20,20 +20,22 @@ type (rad_int_common_struct) rad_int_ele
 type (normal_modes_struct) modes
 type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
-type (wall3d_struct) wall
+type (wall3d_struct), target :: wall
 type (wall3d_pt_struct) wall_pt(0:100)
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
+type (polygon_vertex_struct) v(100)
+type (wall3d_polygon_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
-integer i, j, iu, n_wall_pt_max, random_seed, iu_start
+integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file
-integer photon_direction, num_photons, n_phot, ios
+integer photon_direction, num_photons, n_phot, ios, ix_polygon
 
 character(200) lattice_file, wall_hit_file, reflect_file
 character(200) photon_start_input_file, photon_start_output_file
@@ -50,7 +52,8 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file
 
-namelist / synrad3d_wall / wall_pt, n_wall_pt_max
+namelist / synrad3d_wall / wall_pt
+namelist / polygon_def / ix_polygon, v
 
 namelist / start / p, ran_state
 
@@ -92,38 +95,108 @@ open (1, file = param_file, status = 'old')
 read (1, nml = synrad3d_parameters)
 close (1)
 
-n_wall_pt_max = -1
-wall_pt%basic_shape = ''
-wall_pt%ante_height2_plus = -1
-wall_pt%ante_height2_minus = -1
-wall_pt%width2_plus = -1
-wall_pt%width2_minus = -1
-wall_pt%ix_shape = -1
-
-open (1, file = wall_file, status = 'old')
-read (1, nml = synrad3d_wall)
-close (1)
-
 if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
-
-if (n_wall_pt_max > 0) then
-  print *, 'NOTE: YOU DO NOT NEED TO SPECIFY N_WALL_PT_MAX IN YOUR WALL FILE!'
-  print *, '      THIS SET WILL BE IGNORED.'
-endif
 
 ! When a filter parameter is set, only photons that satisfy the filter criteria are kept
 
 filter_on = (e_filter_min > 0) .or. (e_filter_max > 0) .or. (s_filter_min >= 0) .or. (s_filter_max >= 0)
 s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > s_filter_max)
 
-do i = 1, ubound(wall_pt, 1)
+! Get wall info
+
+n_wall_pt_max = -1
+wall_pt%basic_shape = ''
+wall_pt%ante_height2_plus = -1
+wall_pt%ante_height2_minus = -1
+wall_pt%width2_plus = -1
+wall_pt%width2_minus = -1
+wall_pt%ix_polygon = -1
+
+open (1, file = wall_file, status = 'old')
+read (1, nml = synrad3d_wall)
+
+n = 0
+do i = 0, ubound(wall_pt, 1)
+  if (wall_pt(i)%basic_shape == 'polygon') then
+    wall_pt(i)%ix_polygon = nint(wall_pt(i)%width2)
+    n = max (n, wall_pt(i)%ix_polygon)
+  endif
   if (wall_pt(i)%basic_shape == '') then
     n_wall_pt_max = i - 1
     exit
   endif
 enddo
 
-print *, 'n_wall_pt_max:', n_wall_pt_max
+if (n > 0) then
+  allocate (wall%polygon(n))
+  do
+    v = polygon_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp)
+    read (1, nml = polygon_def, iostat = ios)
+    if (ios > 0) then ! If error
+      print *, 'ERROR READING POLYGON_DEF NAMELIST.'
+      rewind (1)
+      do
+        read (1, nml = polygon_def) ! Generate error message
+      enddo
+    endif
+    if (ios < 0) exit  ! End of file
+    if (ix_polygon > n .or. ix_polygon < 1) then
+      print *, 'BAD IX_POLYGON VALUE IN WALL FILE: ', ix_polygon
+      call err_exit
+    endif
+
+    ! Count number of vertices and calc angles.
+
+    do n = 1, size(v)
+      v(n)%angle = atan2(v(n)%y, v(n)%x)
+      if (n > 1) then
+        if (v(n)%angle <= v(n-1)%angle) v(n)%angle = v(n)%angle + twopi
+        if (v(n)%angle >= v(n-1)%angle + pi .or. v(n)%angle <= v(n-1)%angle) then
+          print *, 'POLYGON SHAPE IS BAD.'
+          print *, '  FOR IX_POLYGON =', ix_polygon
+          call err_exit
+        endif
+      endif
+      if (v(n+1)%x == 0 .and. v(n+1)%y == 0) exit
+    enddo
+
+    if (v(1)%angle < 0 .or. v(n)%angle > twopi) then
+      print *, 'FIRST VERTEX CANNOT HAVE ANGLE < 0 AND LAST VERTEX CANNOT HAVE ANGLE > 0.'
+      print *, '  FOR IX_POLYGON =', ix_polygon
+      call err_exit
+    endif
+
+    poly => wall%polygon(ix_polygon)
+    nn = n  ! Total number of vertices
+
+    ! If all y >= 0, only half the polygon has been specified.
+    ! In this case, assume up/down symmetry.
+
+    if (all(v(1:n)%y >= 0)) then
+      nn = 2 * n ! Total number of vetices
+      if (v(n)%y == 0) then  ! Do not duplicate v(n) vertex
+        nn = nn - 1
+        v(n+1:nn) = v(n-1:1:-1)
+      else
+        v(n+1:nn) = v(n:1:-1)
+      endif
+      v(n+1:nn)%y     = -v(n+1:nn)%y
+      v(n+1:nn)%angle = twopi - v(n+1:nn)%angle
+      if (v(1)%y == 0) nn = nn - 1  ! Do not duplicate v(1) vertex
+    endif
+
+    ! Transfer the information to the poly%v array.
+    ! The last vertex is the first vertex and closes the polygon
+
+    allocate(poly%v(nn+1))
+    poly%v(1:nn) = v(1:nn)
+    poly%v(nn+1) = v(1)
+    poly%v(nn+1)%angle = v(1)%angle + twopi
+
+  enddo
+endif
+
+close (1)
 
 ! Get lattice
 
@@ -138,14 +211,18 @@ if (.not. ok) stop
   
 if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
 
+call ran_seed_put (random_seed)
+
+! Transfer info from wall_pt to wall%pt
+
+print *, 'n_wall_pt_max:', n_wall_pt_max
+
 allocate (wall%pt(0:n_wall_pt_max))
 wall%pt = wall_pt(0:n_wall_pt_max)
 wall%n_pt_max = n_wall_pt_max
 wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
 
 call sr3d_check_wall (wall)
-
-call ran_seed_put (random_seed)
 
 ! Find out much radiation is produced
 
