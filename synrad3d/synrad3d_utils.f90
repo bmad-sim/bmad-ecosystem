@@ -41,23 +41,23 @@ do i = 0, wall%n_pt_max
       call out_io (s_fatal$, r_name, &
                 'WALL%PT(i)%S: \es12.2\ ', &
                 '    IS LESS THAN PT(i-1)%S: \es12.2\ ', &
-                '    FOR PT(I) INDEX: \i0\ ', &
+                '    FOR I = \i0\ ', &
                 r_array = [pt%s, wall%pt(i-1)%s], i_array = [i])
       call err_exit
     endif
   endif
 
-  if (.not. any(pt%basic_shape == ['elliptical ', 'rectangular', 'linear     ', 'sym_linear '])) then
+  if (.not. any(pt%basic_shape == ['elliptical ', 'rectangular', 'polygon    '])) then
     call out_io (s_fatal$, r_name, &
               'BAD WALL%PT(i)%BASIC_SHAPE: ' // pt%basic_shape, &
-              '    FOR PT(I) INDEX: \i0\ ', i_array = [i])
+              '    FOR I = \i0\ ', i_array = [i])
     call err_exit
   endif
 
-  if (pt%basic_shape == 'linear' .or. pt%basic_shape == 'sym_linear') then
-    if (pt%ix_shape < 1) then
+  if (pt%basic_shape == 'polygon') then
+    if (pt%ix_polygon < 1) then
       call out_io (s_fatal$, r_name, &
-              'WALL%PT(I)%IX_SHAPE NOT FOR PT(I) INDEX: \i0\ ', i_array = [i])
+              'BAD WALL%PT(I)%IX_POLYGON INDEX FOR I = \i0\ ', i_array = [i])
       call err_exit
     endif
 
@@ -68,14 +68,14 @@ do i = 0, wall%n_pt_max
   if (pt%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
               'BAD WALL%PT(i)%WIDTH2: \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', r_array = [pt%width2], i_array = [i])
+              '    FOR I = \i0\ ', r_array = [pt%width2], i_array = [i])
     call err_exit
   endif
 
   if (pt%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
               'BAD WALL%PT(i)%HEIGHT2: \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', r_array = [pt%height2], i_array = [i])
+              '    FOR I = \i0\ ', r_array = [pt%height2], i_array = [i])
     call err_exit
   endif
 
@@ -86,7 +86,7 @@ do i = 0, wall%n_pt_max
       call out_io (s_fatal$, r_name, &
               'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
               '    MUST BE LESS THEN WIDTH2 \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', &
+              '    FOR I = \i0\ ', &
               r_array = [pt%width2_plus, pt%width2], i_array = [i])
       call err_exit
     endif
@@ -99,7 +99,7 @@ do i = 0, wall%n_pt_max
       call out_io (s_fatal$, r_name, &
               'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
               '    MUST BE LESS THEN WIDTH2 \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', &
+              '    FOR I = \i0\ ', &
               r_array = [pt%width2_minus, pt%width2], i_array = [i])
       call err_exit
     endif
@@ -125,7 +125,7 @@ do i = 0, wall%n_pt_max
       call out_io (s_fatal$, r_name, &
               'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
               '    MUST BE GREATER THEN: \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', &
+              '    FOR I = \i0\ ', &
               r_array = [pt%width2_plus, pt%ante_x0_plus], i_array = [i])
       call err_exit
     endif
@@ -151,7 +151,7 @@ do i = 0, wall%n_pt_max
       call out_io (s_fatal$, r_name, &
               'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
               '    MUST BE GREATER THEN: \es12.2\ ', &
-              '    FOR PT(I) INDEX: \i0\ ', &
+              '    FOR I = \i0\ ', &
               r_array = [pt%width2_minus, pt%ante_x0_minus], i_array = [i])
 
       call err_exit
@@ -386,7 +386,7 @@ end subroutine
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, hit_antechamber)
+! Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, in_antechamber)
 !
 ! Routine to calculate the normalized transverse position of the photon 
 ! relative to the wall: 
@@ -404,10 +404,10 @@ end subroutine
 ! Output:
 !   radius       -- real(rp): Radius of beam relative to the wall.
 !   dw_perp(3)   -- real(rp), optional: Outward normal vector perpendicular to the wall.
-!   hit_antechamber -- Logical, optional: At antechamber wall?
+!   in_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, hit_antechamber)
+Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, in_antechamber)
 
 implicit none
 
@@ -421,8 +421,8 @@ real(rp), pointer :: vec(:)
 
 integer ix
 
-logical, optional :: hit_antechamber
-logical hit0, hit1
+logical, optional :: in_antechamber
+logical in_ante0, in_ante1
 
 ! There is a sigularity in the calculation when the photon is at the origin.
 ! To avoid this, just return radius = 0 for small radii.
@@ -432,7 +432,7 @@ vec => p_orb%vec
 if (abs(vec(1)) < 1e-6 .and. abs(vec(3)) < 1e-6) then
   radius = 0
   if (present (dw_perp)) dw_perp = 0
-  if (present(hit_antechamber)) hit_antechamber = .false.
+  if (present(in_antechamber)) in_antechamber = .false.
   return
 endif
 
@@ -454,8 +454,8 @@ endif
 
 !
 
-call sr3d_wall_pt_params (wall%pt(ix),   vec, g0, dw_x0, dw_y0, hit0)
-call sr3d_wall_pt_params (wall%pt(ix+1), vec, g1, dw_x1, dw_y1, hit1)
+call sr3d_wall_pt_params (wall%pt(ix),   vec, g0, dw_x0, dw_y0, in_ante0, wall)
+call sr3d_wall_pt_params (wall%pt(ix+1), vec, g1, dw_x1, dw_y1, in_ante1, wall)
 
 f = (vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
 radius = 1 / ((1 - f) * g0 + f * g1)
@@ -467,7 +467,7 @@ if (present (dw_perp)) then
   dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
 endif
 
-if (present(hit_antechamber)) hit_antechamber = (hit0 .or. hit1)
+if (present(in_antechamber)) in_antechamber = (in_ante0 .or. in_ante1)
 
 end subroutine sr3d_photon_radius
 
@@ -475,7 +475,7 @@ end subroutine sr3d_photon_radius
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, hit)
+! Subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, in_antechamber, wall)
 !
 ! Routine to compute parameters needed by sr3d_photon_radius routine.
 !
@@ -484,17 +484,39 @@ end subroutine sr3d_photon_radius
 !   vec(6)  -- Real(rp): Photon phase space coords. 
 !
 ! Output:
-!   g             -- Real(rp): Radius of the wall / radius of the photon.
-!   [dw_x, dw_y]  -- Real(rp): Transverse directional derivatives.
+!   g              -- Real(rp): Radius of the wall / radius of the photon.
+!   [dw_x, dw_y]   -- Real(rp): Transverse directional derivatives of -g.
+!   in_antechamber -- Logical: Set true of particle is in antechamber
 !-
 
-subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, hit)
+subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, in_antechamber, wall)
 
 implicit none
 
 type (wall3d_pt_struct) wall_pt, pt
-real(rp) g, dw_x, dw_y, vec(6), r_p, r_w
-logical hit
+type (wall3d_struct), target :: wall
+type (polygon_vertex_struct), pointer :: v(:)
+
+real(rp) g, dw_x, dw_y, vec(6), r_p, r_w, theta, numer, denom
+
+integer ix
+
+logical in_antechamber
+
+! polygon shape
+
+if (wall_pt%basic_shape == 'polygon') then
+  v => wall%polygon(wall_pt%ix_polygon)%v
+  theta = atan2(vec(3), vec(1))
+  if (theta < v(1)%angle) theta = ceiling((v(1)%angle-theta)/twopi) * twopi + theta
+  call bracket_index (v%angle, 1, size(v), theta, ix)
+  numer = (v(ix)%x * v(ix+1)%y - v(ix)%y * v(ix+1)%x)
+  denom = (vec(1) * (v(ix+1)%y - v(ix)%y) - vec(3) * (v(ix+1)%x - v(ix)%x))
+  g = numer / denom
+  dw_x =  (v(ix+1)%y - v(ix)%y) * numer / denom**2
+  dw_y = -(v(ix+1)%x - v(ix)%x) * numer / denom**2
+  return
+endif
 
 ! Check for antechamber or beam stop...
 ! If the line extending from the origin through the photon intersects the
@@ -503,7 +525,7 @@ logical hit
 
 ! Positive x side check.
 
-hit = .false.
+in_antechamber = .false.
 
 pt = wall_pt
 
@@ -516,7 +538,7 @@ if (vec(1) > 0) then
       pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_plus
       pt%height2 = pt%ante_height2_plus
-      if (vec(1) >= pt%ante_x0_plus) hit = .true.
+      if (vec(1) >= pt%ante_x0_plus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...
@@ -539,7 +561,7 @@ elseif (vec(1) < 0) then
       pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_minus
       pt%height2 = pt%ante_height2_minus
-      if (vec(1) >= pt%ante_x0_minus) hit = .true.
+      if (vec(1) >= pt%ante_x0_minus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...

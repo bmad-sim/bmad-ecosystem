@@ -390,7 +390,7 @@ track_length = zbrent (photon_hit_func, track_length, photon%now%track_len, tol)
 
 photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_length-photon%now%track_len, lat, wall, .false.)
-call sr3d_photon_radius (photon%now, wall, radius, hit_antechamber = photon%hit_antechamber)
+call sr3d_photon_radius (photon%now, wall, radius, in_antechamber = photon%hit_antechamber)
 
 !-----------------------------------------------------------------------
 contains
