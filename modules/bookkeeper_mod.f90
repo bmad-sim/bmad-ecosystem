@@ -742,6 +742,8 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
     ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
 
+    if (.not. has_tilt_attributes(slave%key)) call err_exit ! This should not be
+
     ! ref pass slave parameters are fixed.
     if (ix_s0 == ix_slave) then
       slave%value(x_offset$) = slave_val(x_offset$)
@@ -1576,6 +1578,8 @@ endif
 
 ! s_del is the distance between lord and slave centers
 
+if (.not. has_tilt_attributes(slave%key)) call err_exit  ! This should not be
+
 s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
 value(x_pitch$)  = value(x_pitch_tot$)
 value(y_pitch$)  = value(y_pitch_tot$)
@@ -1798,7 +1802,7 @@ do i = 1, slave%n_lord
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%lord_status == group_lord$) cycle
 
-  if (lord%lord_status == girder_lord$) then
+  if (lord%lord_status == girder_lord$ .and. has_tilt_attributes(slave%key)) then
     ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 
     slave%value(x_offset_tot$) = slave%value(x_offset$) + &
                    ds * lord%value(x_pitch$) + lord%value(x_offset$)
@@ -1835,7 +1839,7 @@ endif
 
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 
-if (.not. slave%on_a_girder) then
+if (.not. slave%on_a_girder .and. has_tilt_attributes(slave%key)) then
   slave%value(tilt_tot$)     = slave%value(tilt$)
   slave%value(x_offset_tot$) = slave%value(x_offset$)
   slave%value(y_offset_tot$) = slave%value(y_offset$)
@@ -1935,7 +1939,7 @@ if (debug) dval = val - ele%old_value
 
 ! Transfer tilt to tilt_tot, etc.
 
-if (.not. ele%on_a_girder .and. ele%key /= match$) then
+if (.not. ele%on_a_girder .and. has_tilt_attributes(ele%key)) then
   val(tilt_tot$)     = val(tilt$)
   val(x_offset_tot$) = val(x_offset$)
   val(y_offset_tot$) = val(y_offset$)
@@ -1981,8 +1985,10 @@ if (ele%field_master) then
     val(ks$) = factor * val(Bs_field$)
   end select
 
-  val(hkick$) = factor * val(BL_hkick$)
-  val(vkick$) = factor * val(BL_vkick$)
+  if (has_kick_attributes(ele%key)) then
+    val(hkick$) = factor * val(BL_hkick$)
+    val(vkick$) = factor * val(BL_vkick$)
+  endif
 
 else
 
@@ -2015,8 +2021,10 @@ else
     val(Bs_field$)    = factor * val(ks$)
   end select
 
-  val(BL_hkick$) = factor * val(hkick$)
-  val(BL_vkick$) = factor * val(vkick$)
+  if (has_kick_attributes(ele%key)) then
+    val(BL_hkick$) = factor * val(hkick$)
+    val(BL_vkick$) = factor * val(vkick$)
+  endif
 
 endif
 
@@ -2158,9 +2166,9 @@ if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
 
 if (init_needed) then
   v_mask = .true.
-  v_mask( (/ x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
-            y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
-            tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$ /) ) = .false.
+  if (has_tilt_attributes(ele%key)) v_mask([x_offset$, y_offset$, s_offset$, &
+            tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
+            tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$]) = .false.
   offset_mask = .not. v_mask
   offset_mask(z_patch$) = .false.
   v_mask( (/ x1_limit$, x2_limit$, y1_limit$, y2_limit$ /) ) = .false.

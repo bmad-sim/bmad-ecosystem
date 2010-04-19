@@ -21,7 +21,7 @@
 !   ele       -- Ele_struct: Element
 !     %value(x_offset$) -- Horizontal offset of element.
 !     %value(x_pitch$)  -- Horizontal roll of element.
-!     %value(tilt$)     -- titlt of element.
+!     %value(tilt$)     -- tilt of element.
 !   coord     -- Coord_struct: Coordinates of the particle.
 !     %vec(6)            -- Energy deviation dE/E. 
 !                          Used to modify %vec(2) and %vec(4)

@@ -873,45 +873,45 @@ case (wiggler$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! accelerating solenoid with steerings
+! Accelerating solenoid with steerings
 ! WARNING: This 6x6 matrix may produce bad results at low energies!
 
 case (accel_sol$)
 
-  if ((ele%value(s_st1$) < 0.) .or.  &
-      (ele%value(s_st1$) + ele%value(l_st1$) > ele%value(s_st2$)) .or.  &
-      (ele%value(s_st2$) + ele%value(l_st2$) > length)) then
-    print *, 'ERROR IN MAKE_MAT6_BMAD: STEERINGS MUST NOT OVERLAP AND MUST BE',  &
-      ' CONTAINED WITHIN'
-    print *, 'THE ACCEL_SOL ELEMENT!'
-    call type_ele(ele, .true., 0, .false., 0, .false.)
-    stop
-  endif
-
-  call mat_make_unit (mat6)     ! make a unit matrix
-  if (ele%value(voltage$) /= 0) then
-    if (ele%value(rf_wavelength$) == 0) then
-      print *, 'ERROR IN MAKE_MAT6_BMAD: RF IS ON BUT "RF_WAVELENGTH" NOT SET',  &
-            ' IN ACCEL_SOL!'
-      call err_exit
-    else
-      phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) 
-      mat6(6,5) = ele%value(voltage$) * cos(phase) *  &
-                    twopi / ele%value(rf_wavelength$) /ele%value(p0c$)
-      c_e = ele%value(voltage$) * sin(phase) / (mass_of(param%particle) * length)
-    endif
-  else
-    c_e = 0.0
-  endif
-  c_m = param%particle * c_light * ele%value(b_z$) / mass_of(param%particle)
-  gamma_old = ele%value(p0c$) * rel_p / mass_of(param%particle)
-  gamma_new = gamma_old + c_e * length
-!!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
-!!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)
-  mat4 = mat6(1:4,1:4)
-
-  call add_multipoles_and_s_offset
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+!  if ((ele%value(s_st1$) < 0.) .or.  &
+!      (ele%value(s_st1$) + ele%value(l_st1$) > ele%value(s_st2$)) .or.  &
+!      (ele%value(s_st2$) + ele%value(l_st2$) > length)) then
+!    print *, 'ERROR IN MAKE_MAT6_BMAD: STEERINGS MUST NOT OVERLAP AND MUST BE',  &
+!      ' CONTAINED WITHIN'
+!    print *, 'THE ACCEL_SOL ELEMENT!'
+!    call type_ele(ele, .true., 0, .false., 0, .false.)
+!    stop
+!  endif
+!
+!  call mat_make_unit (mat6)     ! make a unit matrix
+!  if (ele%value(voltage$) /= 0) then
+!    if (ele%value(rf_wavelength$) == 0) then
+!      print *, 'ERROR IN MAKE_MAT6_BMAD: RF IS ON BUT "RF_WAVELENGTH" NOT SET',  &
+!            ' IN ACCEL_SOL!'
+!      call err_exit
+!    else
+!      phase = twopi * (ele%value(phi0$)+ele%value(dphi0$)) 
+!      mat6(6,5) = ele%value(voltage$) * cos(phase) *  &
+!                    twopi / ele%value(rf_wavelength$) /ele%value(p0c$)
+!      c_e = ele%value(voltage$) * sin(phase) / (mass_of(param%particle) * length)
+!    endif
+!  else
+!    c_e = 0.0
+!  endif
+!  c_m = param%particle * c_light * ele%value(b_z$) / mass_of(param%particle)
+!  gamma_old = ele%value(p0c$) * rel_p / mass_of(param%particle)
+!  gamma_new = gamma_old + c_e * length
+!    call accel_sol_mat_calc (length, c_m, c_e, gamma_old, gamma_new, &
+!                                    0.0_rp, 0.0_rp, c00%vec, mat4, vec_st)
+!  mat4 = mat6(1:4,1:4)
+!
+!  call add_multipoles_and_s_offset
+!  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! unrecognized element

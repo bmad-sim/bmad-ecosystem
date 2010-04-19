@@ -17,7 +17,6 @@ character(40), private, save :: attrib_name0     ! For Error message purposes
 
 private init_attribute_name_array, check_this_attribute_free, print_error
 
-
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -914,7 +913,13 @@ attrib_array(mirror$, g_trans$)         = 'G_TRANS'
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster
 
+has_kick_attributes = .false.  ! Defined in bmad_struct.f90
+has_tilt_attributes = .false.  ! Defined in bmad_struct.f90
+
 do i = 1, n_key
+  if (attrib_array(i, tilt$) == 'TILT') has_tilt_attributes = .true.
+  if (attrib_array(i, kick$) == 'KICK') has_kick_attributes = .true.
+
   num = 0
   do j = 1, n_attrib_special_maxx
     if (attrib_array(i, j) /= null_name$) then
@@ -1335,8 +1340,10 @@ if (ele%field_master) then
     if (ix_attrib == kick$) free = .false.
   end select
 
-  if (ix_attrib == hkick$) free = .false.
-  if (ix_attrib == vkick$) free = .false.
+  if (has_kick_attributes(ele%key)) then
+    if (ix_attrib == hkick$) free = .false.
+    if (ix_attrib == vkick$) free = .false.
+  endif
 
 else
   select case (ele%key)
@@ -1360,8 +1367,10 @@ else
     if (ix_attrib == bl_kick$) free = .false.
   end select
 
-  if (ix_attrib == bl_hkick$) free = .false.
-  if (ix_attrib == bl_vkick$) free = .false.
+  if (has_kick_attributes(ele%key)) then
+    if (ix_attrib == bl_hkick$) free = .false.
+    if (ix_attrib == bl_vkick$) free = .false.
+  endif
 
 endif
 

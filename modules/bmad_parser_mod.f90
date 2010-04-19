@@ -216,8 +216,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   word = word(2:)             ! strip off '{'
   read (word, *, iostat = ios) i_out
   if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
-    call warning ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, &
-                                                    'CANNOT PARSE: ' // str)
+    call warning ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
   endif
 
@@ -227,8 +226,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   call get_next_word (line, ix_word, '},', delim, delim_found, .true.)
   read (line, *, iostat = ios) expn
   if (delim /= '}' .or. ix_word == 0 .or. ios /= 0) then
-    call warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // &
-                                          ele%name, 'CANNOT PARSE: ' // str)
+    call warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
   endif
 
@@ -236,8 +234,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   call get_next_word (word, ix_word, '},', delim, delim_found, .true.)
 
   if (ix_word /= 0 .or. (delim_found .and. delim /= ',')) then
-    call warning ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, &
-                                                    'CANNOT PARSE: ' // str)
+    call warning ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
     return
   endif
 
@@ -311,8 +308,7 @@ if (ele%key == group$) then
       ele%component_name = word
     endif
     if (delim == '=') then  ! value
-      call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                              lat, delim, delim_found, err_flag)
+      call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
       if (err_flag) return
       if (how == def$) then
         ele%value(command$) = value
@@ -332,8 +328,7 @@ endif
 ! beginning element or beam_start element
 
 if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
-  call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                    lat, delim, delim_found, err_flag) 
+  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
   if (err_flag) return
   call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
   if (err_flag .or. size(r_ptrs) /= 1) then
@@ -360,8 +355,7 @@ if (word == 'LR' .and. delim == '(') then
     call warning ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
-  call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                    lat, delim, delim_found, err_flag)
+  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   r_ptr = value
   return
 endif
@@ -391,15 +385,13 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
   err_flag = .true. ! assume the worst
 
   if (delim /= '(') then   ! ) then
-    call warning ('"TERM" FOR A WIGGLER NOT FOLLOWED BY A "(" FOR: ' // &
-                                                            ele%name)  ! )
+    call warning ('"TERM" FOR A WIGGLER NOT FOLLOWED BY A "(" FOR: ' // ele%name)  ! )
     return
   endif
 
   call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.) ! (
   if (delim /= ')') then
-    call warning ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', &
-                  'FOR: ' // ele%name)
+    call warning ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
     return
   endif
 
@@ -427,33 +419,26 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
   call get_next_word (word, ix_word1, ':,={}', delim1, delim_found, .true.)  
   call get_next_word (word, ix_word2, ':,={}', delim2, delim_found, .true.)  
 
-  if (delim1 /= '=' .or. delim2 /= '{' .or. &
-                                  ix_word1 /= 0 .or. ix_word2 /= 0) then
-    call warning ('CONFUSED SYNTAX FOR TERM IN WIGGLER: ' // ele%name, &
-                                                                    str_ix)
+  if (delim1 /= '=' .or. delim2 /= '{' .or. ix_word1 /= 0 .or. ix_word2 /= 0) then
+    call warning ('CONFUSED SYNTAX FOR TERM IN WIGGLER: ' // ele%name, str_ix)
     return
   endif
 
   err_str = trim(ele%name) // ' ' // str_ix
 
-  call evaluate_value (err_str, ele%wig_term(ix)%coef, &
-                            lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%coef, lat, delim, delim_found, err_flag)
   if (err_flag) return
  
-  call evaluate_value (err_str, ele%wig_term(ix)%kx, &
-                            lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%kx, lat, delim, delim_found, err_flag)
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%ky, &
-                            lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%ky, lat, delim, delim_found, err_flag)
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%kz, &
-                            lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%kz, lat, delim, delim_found, err_flag)
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%phi_z, &
-                            lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%phi_z, lat, delim, delim_found, err_flag)
   if (err_flag) return
 
 
@@ -574,8 +559,7 @@ if (delim /= '=')  then
     plat%ele(ic)%common_lord = .true.
 
   case default
-    call warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  &
-                       'FOR ELEMENT: ' // ele%name)
+    call warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
     err_flag = .true.
   end select
 
@@ -590,12 +574,10 @@ select case (attrib_word)
 
 case ('REFERENCE')
   ic = ele%ixx
-  call get_next_word(plat%ele(ic)%ref_name, ix_word,  &
-                                       ':=,', delim, delim_found, .true.)
+  call get_next_word(plat%ele(ic)%ref_name, ix_word,  ':=,', delim, delim_found, .true.)
 
 case ('OFFSET')
-  call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                    lat, delim, delim_found, err_flag)
+  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   if (err_flag) return
   ic = ele%ixx
   plat%ele(ic)%s = value
@@ -665,8 +647,7 @@ case ('FIELD_MASTER')
 
 case default   ! normal attribute
 
-  call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                    lat, delim, delim_found, err_flag)
+  call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   if (err_flag) return
 
   if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then  ! multipole attribute

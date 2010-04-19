@@ -379,16 +379,16 @@ character(16) :: key_name(n_key) = (/ &
     'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH', &
     'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ', 'PIPE         ' /)
 
-! Attribute name logical definitions
-! Note: The following attributes must have unique number assignments:
-!     L$, TILT$, X_PITCH$ and higher
+! These logical arrays get set in init_attribute_name_array and are used
+! to sort elements that have kick or tilt attributes from elements that do not.
+
+logical has_kick_attributes(n_key)
+logical has_tilt_attributes(n_key)
+
+! Element attribute name logical definitions
 
 integer, parameter :: particle$ = 1, n_part$   = 2, taylor_order$ = 3
 integer, parameter :: lattice_type$ = 5, symmetry$ = 6
-
-integer, parameter :: x_beg_limit$=2, y_beg_limit$=3, b_x2$=4, &
-          b_y2$=5, l_st2$=9, b_z$=10, l_st1$=11, s_st2$=12, s_st1$=13, &
-          b_x1$=14, b_y1$=15    
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=8, val7$=9, val8$=10, val9$=11, val10$=12, val11$=13, &
@@ -402,7 +402,7 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           match_end$ = 20, &
           x0$ = 21, px0$ = 22, y0$ = 23, py0$ = 24, z0$ = 25, pz0$ = 26, &
           x1$ = 34, px1$ = 35, y1$ = 36, py1$ = 37, z1$ = 38, pz1$ = 39, &
-          match_end_orbit$ = 40
+          match_end_orbit$ = 40, c_11$ = 46, c_12$ = 47, c_21$ = 48, c_22$ = 49, gamma_c$ = 50 
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 
@@ -431,19 +431,19 @@ integer, parameter :: n_sample$=15, delta_ref_time$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18
-integer, parameter :: x_pitch$=19  ! Assumed unique. Do not overload.
-integer, parameter :: y_pitch$=20  ! Assumed unique. Do not overload.
-integer, parameter :: hkick$=21    ! Assumed unique. Do not overload.
-integer, parameter :: vkick$=22    ! Assumed unique. Do not overload.
-integer, parameter :: BL_hkick$=23 ! Assumed unique. Do not overload.  
-integer, parameter :: BL_vkick$=24 ! Assumed unique. Do not overload.
-integer, parameter :: x_offset$=25 ! Assumed unique. Do not overload.
-integer, parameter :: y_offset$=26 ! Assumed unique. Do not overload.
+integer, parameter :: x_pitch$=19  
+integer, parameter :: y_pitch$=20  
+integer, parameter :: hkick$=21    
+integer, parameter :: vkick$=22    
+integer, parameter :: BL_hkick$=23 
+integer, parameter :: BL_vkick$=24 
+integer, parameter :: x_offset$=25 
+integer, parameter :: y_offset$=26 
 integer, parameter :: s_offset$=27, z_offset$=27 ! Assumed unique. Do not overload further.
 integer, parameter :: B_field_err$=28, BL_kick$ = 28
 integer, parameter :: radius$=29
 integer, parameter :: n_ref_pass$=30  ! Assumed unique. Do not overload.
-integer, parameter :: tilt_err$=31    ! Assumed unique. Do not overload.
+integer, parameter :: tilt_err$=31    
 integer, parameter :: p0c$=32         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=33       ! Assumed unique. Do not overload.
 integer, parameter :: Bs_field$=34
@@ -452,17 +452,17 @@ integer, parameter :: B_gradient$=36, E_gradient$=36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
 integer, parameter :: B2_gradient$=38, E2_gradient$=38, patch_end$ = 38
 integer, parameter :: B3_gradient$=39, E3_gradient$=39, translate_after$=39
-integer, parameter :: tilt_tot$=40      ! Assumed unique. Do not overload.
-integer, parameter :: x_pitch_tot$=41   ! Assumed unique. Do not overload.
-integer, parameter :: y_pitch_tot$=42   ! Assumed unique. Do not overload.
-integer, parameter :: x_offset_tot$=43  ! Assumed unique. Do not overload.
-integer, parameter :: y_offset_tot$=44  ! Assumed unique. Do not overload.
-integer, parameter :: s_offset_tot$=45  ! Assumed unique. Do not overload.
-integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46, c_11$ = 46
-integer, parameter :: coupler_phase$ = 47, c_12$ = 47
-integer, parameter :: coupler_angle$ = 48, c_21$ = 48
-integer, parameter :: c_22$ = 49, pole_radius$ = 49, coupler_at$ = 49
-integer, parameter :: ds_step$ = 50, gamma_c$ = 50
+integer, parameter :: tilt_tot$=40      
+integer, parameter :: x_pitch_tot$=41   
+integer, parameter :: y_pitch_tot$=42   
+integer, parameter :: x_offset_tot$=43  
+integer, parameter :: y_offset_tot$=44  
+integer, parameter :: s_offset_tot$=45  
+integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46
+integer, parameter :: coupler_phase$ = 47
+integer, parameter :: coupler_angle$ = 48
+integer, parameter :: pole_radius$ = 49, coupler_at$ = 49
+integer, parameter :: ds_step$ = 50
 integer, parameter :: general1$ = 51   ! For general use
 integer, parameter :: general2$ = 52   ! For general use
 integer, parameter :: general3$ = 53   ! For general use

@@ -1205,7 +1205,7 @@ When running a program, if a \vn{match} element has it's
 \vn{match_end} attribute is set to True, the beginning Twiss and
 dispersion parameters (\vn{beta_a0}, \vn{eta_x0}, etc.)  of the
 \vn{match} element are continuously updated to be equal to the Twiss
-and dispersion parameters at the end of the the element before it. As
+and dispersion parameters at the end of the element before it. As
 a consequence, if \vn{match_end} for the \vn{match} element is toggled
 to False, the values of the elements in the transfer matrix through
 the \vn{match} element are frozen in place.
@@ -1233,11 +1233,11 @@ kick term, $\Bf V$ is given by
 \Endeq
 If \vn{match_end_orbit} is set to True, a particle tracked through the
 \vn{match} element will have its ending coordinates equal to \vn{(x1,
-px1, y1, py1, z1, pz1)} and the the beginning coordinate parameters
+px1, y1, py1, z1, pz1)} and the beginning coordinate parameters
 \vn{(x0, px0, y0, py0, z0, pz0)} will be set to the particle's
 coordinates at the beginning of the match element. Similar to
 \vn{match_end}, if \vn{match_end_orbit} for the \vn{match} element is
-toggled to False, the $Bf V$ vector will become fixed.
+toggled to False, the $\Bf V$ vector will become fixed.
 
 \index{l}
 The attribute \vn{l} is not used in the transfer matrix
