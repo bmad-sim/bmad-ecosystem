@@ -26,9 +26,9 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 
-real(rp), allocatable, save :: weight(:), a(:), a_try(:), da(:), b(:), b_old(:), w(:)
+real(rp), allocatable, save :: weight(:), a(:), a_try(:), da(:), b(:), w(:)
 real(rp), allocatable, save :: y_fit(:)
-real(rp), allocatable, save :: dy_da(:, :), dy_da_old(:, :), v(:, :)
+real(rp), allocatable, save :: dy_da(:, :), dy_da_old(:, :), dy_da_out(:, :), v(:, :)
 real(rp), allocatable, save :: var_value(:), var_weight(:)
 real(rp) merit0, merit
 real(rp), parameter :: tol = 1d-5
@@ -66,16 +66,15 @@ enddo
 
 if (allocated(weight)) then
  if (size(dy_da, 1) /= size(dy_da_old, 1) .or. size(dy_da, 2) /= size(dy_da_old, 2)) then
-   deallocate(weight, a, a_try, da, y_fit, dy_da, dy_da_old, b, b_old, w, v)
+   deallocate(weight, a, a_try, da, y_fit, dy_da, dy_da_old, dy_da_out, b, w, v)
   endif
 endif
 
 if (.not. allocated(weight)) then
-  allocate (weight(n_data), y_fit(n_data), b(n_data), b_old(n_data))
+  allocate (weight(n_data), y_fit(n_data), b(n_data))
   allocate (a(n_var), a_try(n_var), da(n_var), w(n_var))
-  allocate (dy_da(n_data, n_var), dy_da_old(n_data, n_var), v(n_var, n_var))
+  allocate (dy_da(n_data, n_var), dy_da_old(n_data, n_var), dy_da_out(n_data, n_var), v(n_var, n_var))
   dy_da_old = 0
-  b_old = 0
 endif
 
 ! init a and y arrays
@@ -111,11 +110,12 @@ enddo
 if (any(dy_da /= dy_da_old)) then
   dy_da_old = dy_da
   call svdcmp(dy_da, w, v)
+  dy_da_out = dy_da
 endif
 
 where (w < tol * maxval(w)) w = 0
 b = y_fit / sqrt(weight)
-call svbksb (dy_da, w, v, b, da)
+call svbksb (dy_da_out, w, v, b, da)
 a_try = a - da
 
 
