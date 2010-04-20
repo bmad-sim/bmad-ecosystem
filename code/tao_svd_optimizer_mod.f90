@@ -108,8 +108,10 @@ do i = 1, n_data
   dy_da(i, :) = dy_da(i, :) / sqrt(weight(i))
 enddo
 
-if (any(dy_da /= dy_da_old)) call svdcmp(dy_da, w, v)
-dy_da_old = dy_da
+if (any(dy_da /= dy_da_old)) then
+  dy_da_old = dy_da
+  call svdcmp(dy_da, w, v)
+endif
 
 where (w < tol * maxval(w)) w = 0
 b = y_fit / sqrt(weight)
