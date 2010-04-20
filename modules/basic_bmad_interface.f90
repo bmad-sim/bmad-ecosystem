@@ -665,10 +665,22 @@ end interface
 interface
   subroutine set_on (key, lat, on_switch, orb)
     use bmad_struct, only: lat_struct, coord_struct
+    implicit none
     type (lat_struct) lat
     type (coord_struct), optional :: orb(0:)
     integer key
     logical on_switch
+  end subroutine
+end interface
+
+interface
+  subroutine set_ele_attribute (ele, set_string, lat, err_flag)
+    use bmad_struct, only: lat_struct, ele_struct
+    implicit none
+    type (ele_struct) ele
+    type (lat_struct) lat
+    character(*) set_string
+    logical err_flag
   end subroutine
 end interface
 

@@ -86,7 +86,7 @@ logical file_end, err_flag, finished, print_err, good_attrib
 bmad_status%ok = .true.
 bp_com%write_digested2 = .false.
 bp_com%parser_name = 'BMAD_PARSER2'
-if (lat_file /= 'FROM: BMAD_PARSER') bp_com%do_superimpose = .true.
+bp_com%input_from_file = .true.
 bp_com%e_tot_set = .false.
 bp_com%p0c_set   = .false.
 
@@ -95,6 +95,7 @@ bp_com%p0c_set   = .false.
 ! In this case we just read from the current open file.
 
 if (lat_file /= 'FROM: BMAD_PARSER') then
+  bp_com%do_superimpose = .true.
   call file_stack('init')
   call file_stack('push', lat_file, finished, err)   ! open file on stack
   if (err) return
@@ -207,7 +208,7 @@ parsing_loop: do
         call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
-        call get_attribute (def$, beam_ele, lat, plat, delim, delim_found, err_flag, .true.)
+        call get_attribute (def$, beam_ele, lat, delim, delim_found, err_flag, .true.)
         if (err_flag) cycle parsing_loop
       endif
     enddo
@@ -285,7 +286,8 @@ parsing_loop: do
         endif
         print_err = .true.
         if (word_1 == '*') print_err = .false.
-        call get_attribute (redef$, ele, lat, plat, delim, delim_found, err_flag, print_err)
+        call get_attribute (redef$, ele, lat, delim, delim_found, &
+                                      err_flag, print_err, plat%ele(ele%ixx))
         if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
         found = .true.
         if (.not. err_flag) good_attrib = .true.
@@ -410,8 +412,7 @@ parsing_loop: do
         if (key == overlay$) lat%ele(n_max)%lord_status = overlay_lord$
         if (key == group$)   lat%ele(n_max)%lord_status = group_lord$
         if (key == girder$)  lat%ele(n_max)%lord_status = girder_lord$
-        call get_overlay_group_names(lat%ele(n_max), lat,  &
-                                            plat, delim, delim_found)
+        call get_overlay_group_names(lat%ele(n_max), lat,  plat%ele(n_max), delim, delim_found)
       endif
       if (key /= girder$ .and. .not. delim_found) then
         call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
@@ -431,7 +432,8 @@ parsing_loop: do
         n_max = n_max - 1
         cycle parsing_loop
       else
-        call get_attribute (def$, lat%ele(n_max), lat, plat, delim, delim_found, err_flag, .true.)
+        call get_attribute (def$, lat%ele(n_max), lat, delim, delim_found, &
+                                                            err_flag, .true., plat%ele(n_max))
         if (err_flag) then
           n_max = n_max - 1
           cycle parsing_loop

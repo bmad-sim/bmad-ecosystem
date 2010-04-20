@@ -86,6 +86,7 @@ bp_com%error_flag = .false.              ! set to true on an error
 bp_com%parser_name = 'BMAD_PARSER'       ! Used for error messages.
 bp_com%write_digested = .true.
 bp_com%do_superimpose = .true.
+bp_com%input_from_file = .true.
 debug_line = ''
 
 call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
@@ -282,7 +283,7 @@ parsing_loop: do
         call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call get_attribute (def$, bp_com%beam_ele, in_lat, plat, delim, delim_found, err_flag, .true.)
+      call get_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err_flag, .true.)
     enddo
     cycle parsing_loop
   endif
@@ -373,7 +374,8 @@ parsing_loop: do
         endif
         print_err = .true.
         if (word_1 == '*') print_err = .false.
-        call get_attribute (redef$, ele, in_lat, plat, delim, delim_found, err_flag, print_err)
+        call get_attribute (redef$, ele, in_lat, delim, delim_found, &
+                                                  err_flag, print_err, plat%ele(ele%ixx))
         if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim)
         found = .true.
         if (.not. err_flag) good_attrib = .true.
@@ -545,7 +547,7 @@ parsing_loop: do
       if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
 
       call get_overlay_group_names(in_lat%ele(n_max), in_lat, &
-                                                  plat, delim, delim_found)
+                                                  plat%ele(n_max), delim, delim_found)
 
       if (key /= girder$ .and. .not. delim_found) then
         call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
@@ -564,7 +566,8 @@ parsing_loop: do
                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
         exit
       endif
-      call get_attribute (def$, in_lat%ele(n_max), in_lat, plat, delim, delim_found, err_flag, .true.)
+      call get_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, &
+                      err_flag, .true., plat%ele(n_max))
       if (err_flag) cycle parsing_loop
     enddo
 

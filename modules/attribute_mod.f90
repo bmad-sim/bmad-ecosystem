@@ -1214,8 +1214,6 @@ if (ix_attrib < 1) then
   return
 endif
 
-
-
 ! If the attribute is controled by an overlay lord then it cannot be varied.
 ! Exception: Multiple overlays can control the same attribute.
 
@@ -1299,12 +1297,15 @@ case (elseparator$)
   if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
 end select
 
-if (ix_attrib == tilt_tot$) free = .false.
-if (ix_attrib == x_pitch_tot$) free = .false.
-if (ix_attrib == y_pitch_tot$) free = .false.
-if (ix_attrib == x_offset_tot$) free = .false.
-if (ix_attrib == y_offset_tot$) free = .false.
-if (ix_attrib == s_offset_tot$) free = .false.
+if (has_tilt_attributes(ele%key)) then
+  if (ix_attrib == tilt_tot$) free = .false.
+  if (ix_attrib == x_pitch_tot$) free = .false.
+  if (ix_attrib == y_pitch_tot$) free = .false.
+  if (ix_attrib == x_offset_tot$) free = .false.
+  if (ix_attrib == y_offset_tot$) free = .false.
+  if (ix_attrib == s_offset_tot$) free = .false.
+endif
+
 if (ix_attrib == e_tot$) free = .false.
 if (ix_attrib == p0c$) free = .false.
 

@@ -139,9 +139,9 @@ type bp_common_struct
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
   type (used_seq_struct), allocatable ::  used_line(:)
-  character(40), pointer :: var_name(:) => null()    ! variable name
-  real(rp), pointer :: var_value(:) => null()        ! variable value
-  integer, pointer :: var_indexx(:) => null()        ! variable sort index
+  character(40), allocatable :: var_name(:)   ! variable name
+  real(rp), allocatable :: var_value(:)       ! variable value
+  integer, allocatable :: var_indexx(:)       ! variable sort index
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
@@ -157,6 +157,7 @@ type bp_common_struct
   logical do_superimpose
   logical write_digested      ! For bmad_parser
   logical write_digested2     ! For bmad_parser2
+  logical input_from_file     ! Input is from a lattice file?
 end type
 
 !
@@ -169,7 +170,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag, print_err)
+! Subroutine get_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file.
@@ -177,14 +178,14 @@ contains
 ! This subroutine is not intended for general use.
 !-
 
-subroutine get_attribute (how, ele, lat, plat, delim, delim_found, err_flag, print_err)
+subroutine get_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
 
 use random_mod
        
 implicit none
 
 type (lat_struct)  lat
-type (parser_lat_struct) plat
+type (parser_ele_struct), optional :: pele
 type (ele_struct), target ::  ele
 type (ele_struct), target, save ::  ele0
 type (wig_term_struct), pointer :: wig_term(:)
@@ -193,7 +194,7 @@ type (real_pointer_struct), allocatable, save :: r_ptrs(:)
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
 
-integer i, ic, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
+integer i, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
 integer expn(6), ix_attrib
 
 character(40) :: word, str_ix, attrib_word
@@ -531,32 +532,32 @@ if (delim /= '=')  then
     ele%lord_status = super_lord$
 
   case (ref_beginning$)
-    ic = ele%ixx
-    plat%ele(ic)%ref_pt = begin$
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%ref_pt = begin$
 
   case (ref_center$)
-    ic = ele%ixx
-    plat%ele(ic)%ref_pt = center$
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%ref_pt = center$
 
   case (ref_end$)
-    ic = ele%ixx
-    plat%ele(ic)%ref_pt = end$
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%ref_pt = end$
 
   case (ele_beginning$)
-    ic = ele%ixx
-    plat%ele(ic)%ele_pt = begin$
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%ele_pt = begin$
 
   case (ele_center$)
-    ic = ele%ixx
-    plat%ele(ic)%ele_pt = center$
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%ele_pt = center$
 
   case (ele_end$)
-    ic = ele%ixx
-    plat%ele(ic)%ele_pt = end$
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%ele_pt = end$
 
   case (common_lord$)
-    ic = ele%ixx
-    plat%ele(ic)%common_lord = .true.
+    if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+    pele%common_lord = .true.
 
   case default
     call warning ('EXPECTING "=" AFTER ATTRIBUTE: ' // word,  'FOR ELEMENT: ' // ele%name)
@@ -573,14 +574,14 @@ endif
 select case (attrib_word)
 
 case ('REFERENCE')
-  ic = ele%ixx
-  call get_next_word(plat%ele(ic)%ref_name, ix_word,  ':=,', delim, delim_found, .true.)
+  if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+  call get_next_word(pele%ref_name, ix_word,  ':=,', delim, delim_found, .true.)
 
 case ('OFFSET')
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   if (err_flag) return
-  ic = ele%ixx
-  plat%ele(ic)%s = value
+  if (.not. present(pele)) call warning ('INTERNAL ERROR...')
+  pele%s = value
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', 'REF_PATCH')
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found)
@@ -905,8 +906,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_next_word (word, ix_word,
-!                        delim_list, delim, delim_found, upper_case_word)
+! Subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word)
 !
 ! Subroutine to get the next word from the input stream.
 ! This subroutine is used by bmad_parser and bmad_parser2.
@@ -926,8 +926,7 @@ end subroutine
 !-
 
 
-subroutine get_next_word (word, ix_word, delim_list, &
-                                  delim, delim_found, upper_case_word)
+subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word)
 
 implicit none
 
@@ -938,15 +937,19 @@ character(*) word, delim_list, delim
 logical delim_found, file_end
 logical, optional :: upper_case_word
 
-! check for continuation character and if found then load more characters
-! into the parse line.
-! after that get the first word in BP_COM%PARSE_LINE
+! check for continuation character and, if found, then load more characters
+! into the parse line from the lattice file. 
+! If the input is not from a file then skip this.
 
-do
-  ix_a = index(bp_com%parse_line, '&')
-  if (ix_a == 0 .or. ix_a > n_parse_line/2) exit
-  call load_parse_line('continue', ix_a, file_end)
-enddo
+if (bp_com%input_from_file) then 
+  do
+    ix_a = index(bp_com%parse_line, '&')
+    if (ix_a == 0 .or. ix_a > n_parse_line/2) exit
+    call load_parse_line('continue', ix_a, file_end)
+  enddo
+endif
+
+! Get the first word in bp_com%parse_line
 
 call word_read (bp_com%parse_line, delim_list,  &
                        word, ix_word, delim, delim_found, bp_com%parse_line)
@@ -2162,24 +2165,24 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
+! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found)
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
       
-subroutine get_overlay_group_names (ele, lat, plat, delim, delim_found)
+subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found)
 
 implicit none
 
 type (ele_struct)  ele
-type (parser_lat_struct) plat
+type (parser_ele_struct) pele
 type (lat_struct)  lat
 
 real(rp) coef(200)
 real(rp) value
 
-integer ic, ix_word, ixs, j, k
+integer ix_word, ixs, j, k
                            
 character(1) delim
 character(40) word_in, word
@@ -2258,12 +2261,10 @@ ixs = ele%n_slave
 ! if (ixs == 0) call warning ( &
 !        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
-ic = ele%ixx
-allocate (plat%ele(ic)%coef(ixs), plat%ele(ic)%name(ixs), &
-                                     plat%ele(ic)%attrib_name(ixs))
-plat%ele(ic)%coef = coef(1:ixs)
-plat%ele(ic)%name = name(1:ixs)
-plat%ele(ic)%attrib_name = attrib_name(1:ixs)
+allocate (pele%coef(ixs), pele%name(ixs), pele%attrib_name(ixs))
+pele%coef = coef(1:ixs)
+pele%name = name(1:ixs)
+pele%attrib_name = attrib_name(1:ixs)
 
 end subroutine
 
@@ -2467,6 +2468,8 @@ implicit none
 integer nn, nt, i
 
 ! 
+
+if (allocated(bp_com%var_name)) deallocate (bp_com%var_name, bp_com%var_value, bp_com%var_indexx)
 
 nn = 21  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &

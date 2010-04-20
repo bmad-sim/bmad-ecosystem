@@ -641,7 +641,7 @@ type (branch_struct), pointer :: branch
 type (floor_position_struct), pointer :: f0, f1
 type (coord_struct) start, end
 
-real(rp) s, slave_val(n_attrib_maxx)
+real(rp) s, slave_val(n_attrib_maxx), arg
 real(rp) d, e, r_lord, r_slave, cos_lord, cos_e, sin_lord, sin_lorde
 real(rp) ang_slave, ang_lord, ang_slave_old, d1, d2
 real(rp) cos_e2, d_theta, ang_dlord, cos_lorde1, cos_dlord
@@ -856,9 +856,16 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     do i = 1, 10  ! limit interations in case of nonconvergance
       d2 = (r_lord * (cos_lord - 1) + d1 * cos_lorde1 + r_slave * &
               (cos(ang_dlord - ang_slave) - cos_dlord)) / cos_e2
-      ang_slave = asin((r_lord * (sin(ang_dlord) - sin(d_theta)) - &
+      arg = (r_lord * (sin(ang_dlord) - sin(d_theta)) - &
                         d1 * sin(d_theta + lord%value(e1$)) + &
-                        d2 * sin(ang_dlord - lord%value(e2$))) / r_slave)
+                        d2 * sin(ang_dlord - lord%value(e2$))) / r_slave
+      if (abs(arg) > 1) then
+        call out_io (s_error$, r_name, &
+              'MULTIPASS MATCH_GLOBAL_COORDS CALC ERROR FOR: ' // lord%name, &
+              'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
+        exit
+      endif
+      ang_slave = asin(arg)
       if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
       ang_slave_old = ang_slave
     enddo
@@ -890,7 +897,14 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
       ! and the lord at the opposite end of the match end.
       do
         d = (r_lord * (cos_lord - 1) + r_slave * (cos(ang_lord - ang_slave) - cos_lord) ) / cos_e
-        ang_slave = asin((r_lord * sin_lord + d * sin_lorde) / r_slave)
+        arg = (r_lord * sin_lord + d * sin_lorde) / r_slave
+        if (abs(arg) > 1) then
+          call out_io (s_error$, r_name, &
+                'MULTIPASS MATCH_AT_ENTRANCE/EXIT CALC ERROR FOR: ' // lord%name, &
+                'MATCHING ABORTED. CURRENT PARAMETERS ARE NOT CORRECT.')
+          exit
+        endif
+        ang_slave = asin(arg)
         if (abs(ang_slave - ang_slave_old) < 1e-6 * abs(ang_slave)) exit
         ang_slave_old = ang_slave
       enddo
