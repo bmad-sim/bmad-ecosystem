@@ -126,7 +126,7 @@ In the above example the argument ``abc'' is substituted for any
 The \vn{change} command changes element attribute values or variable
 values in the \vn{model} lattice. Format:
 \begin{example}
-  change element \{n@\}<name_or_number> <attribute> <number>
+  change element <element_list> <attribute> <number>
   change \{-silent\} variable <name> <locations> <number>
   change  \{n@\}beam_start <coordinate> <number>
 \end{example}
@@ -152,12 +152,10 @@ If "\%" is prepended to \vn{<number>} then the final value will be
   final_model_value = initial_model_value * (1 + <number> / 100)
 \end{example}
 
-For \vn{change element}, the \vn{<name_or_number>} may be a name, an element number or
-list of numbers, or an element class (EG: \vn{"quadrupole"}). Element names
-may contain the wild cards \vn{"*"} which represents any number of characters
-or can be \vn{"\%"} which represents any single character. 
+Element list format (\sref{s:ele.list.format}), without any embeded
+blanks, is used for the \vn{<element_list>} argument.
 
-For \vn{change element}, and \vn{change beam_start}, The optional \vn{n@}
+For \vn{change beam_start}, The optional \vn{n@}
 universe specification (\sref{s:universe}) may be used to specify the
 universe or universes to apply the change command to.
 
@@ -177,7 +175,10 @@ vary the starting Twiss parameters where \vn{<twiss>} is one of:
 The \vn{-silent} switch, if present, suppresses the printing of what
 variables are changed.
 
-Note: To set, say, datum values, etc. use the \vn{set} command.
+Note: \vn{change element} is used for changing real (as opposed to
+integer or logical) attributes of an element. To change integer or
+logical values, use the \vn{set element} command instead. The \vn{set}
+command can also be used to, say, set datum values, etc.
 
 Examples:
 \begin{example}
@@ -739,7 +740,7 @@ variables, etc. Format:
   set bmad_com <component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
-  set element <ele_names> <on/off>
+  set element <element_list> <attribute> = <value>
   set global <component> = <value>
   set graph <graph> <component> = <value>
   set lattice \{n@\}<destination\_lat> = <source\_lat>
@@ -848,13 +849,21 @@ Examples:
 
 %% set global --------------------------------------------------------------
 
-\item[set elements <ele_names> <on/off>] \Newline
-An element that is turned off acts like a drift. The syntax
-of \vn{<ele_names>} is the element list format (\sref{s:ele.list.format}).
+\item[set element <element_list> <attribute> = <value>] \Newline
+The \vn{set element} command sets the attributes of an element. Use the
+\vn{show element} command to view the attributes of an element. 
 
-Example:
+\vn{<attribute>} and \vn{<value>} many
+
+
+Although the \vn{set element} command can be used for setting real (as
+opposed to logical or integer) attributes, the \vn{change element}
+command will generally be better for setting these attributes.
+
+Examples:
 \begin{example}
-  set ele *@rfcav::* off  ! Turns off all rfcavity elements in all universes.
+  set ele *@rfcav::* is_on = F  ! Turns off all rfcavity elements in all universes.
+  set ele q10w tracking_method = linear ! Set the tracking method
 \end{example}
 
 %% set global --------------------------------------------------------------

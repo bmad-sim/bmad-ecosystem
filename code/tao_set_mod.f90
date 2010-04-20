@@ -1272,52 +1272,42 @@ end subroutine tao_set_universe_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_set_element_cmd (ele_list, who, what)
+! Subroutine tao_set_element_cmd (ele_list, attribute, value)
 !
 ! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals
 !
 ! Input:
-!   ele_list -- Character(*): which elements.
-!   who      -- Character(*): "on", "off"
-!   what     -- Character(*): Reserved for future use.
+!   ele_list   -- Character(*): which elements.
+!   attribute  -- Character(*): Attribute to set.
+!   value      -- Character(*): Value to set.
 !-
 
-subroutine tao_set_elements_cmd (ele_list, who, what)
+subroutine tao_set_elements_cmd (ele_list, attribute, value)
 
 implicit none
 
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (tao_universe_struct), pointer :: u
 
 integer i, n_uni
 
-character(*) ele_list, who, what
-character(20) :: r_name = "tao_set_elements_cmd"
+character(*) ele_list, attribute, value
+character(24) :: r_name = "tao_set_elements_cmd"
 
 logical is_on, err, mat6_toggle
 
-
 ! Find elements
-
-if (what /= '') then
-  call out_io (s_error$, r_name, 'Extra stuff on line. Nothing done.')
-  return
-endif
 
 call tao_locate_all_elements (ele_list, eles, err)
 if (err) return
 
-if (who == 'on') then
-  is_on = .true.
-elseif (who == 'off') then
-  is_on = .false.
-else
-  call out_io (s_error$, r_name, "Choices are: 'on', 'off'")
-  return
-endif
+! Set attributes.
 
 do i = 1, size(eles)
-  eles(i)%ele%is_on = is_on
-  s%u(eles(i)%id)%lattice_recalc = .true.
+  u => s%u(eles(i)%id)
+  call set_ele_attribute (eles(i)%ele, trim(attribute) // '=' // trim(value), u%model%lat, err)
+  if (err) return
+  u%lattice_recalc = .true.
 enddo
 
 end subroutine tao_set_elements_cmd

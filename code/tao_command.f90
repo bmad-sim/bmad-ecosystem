@@ -56,7 +56,7 @@ character(16) :: cmd_names(33) = [  &
 character(16) :: set_names(14) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
-    'plot         ', 'bmad_com     ', 'elements     ', 'opti_de_param']
+    'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -458,18 +458,20 @@ case ('set')
 
   set_word = set_names(ix)
 
-  if ( (set_word == 'curve'          .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'data'           .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'wave'           .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'var'            .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'global'         .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'bmad_com'       .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'opti_de_param'  .and. cmd_word(3) /= '=') .or. &
+  if ( &
        (set_word == 'beam_init'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'plot_page'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'bmad_com'       .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'curve'          .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'data'           .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'element'        .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'global'         .and. cmd_word(3) /= '=') .or. &
        (set_word == 'graph'          .and. cmd_word(4) /= '=') .or. &
+       (set_word == 'lattice'        .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'opti_de_param'  .and. cmd_word(3) /= '=') .or. &
        (set_word == 'plot'           .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'lattice'        .and. cmd_word(3) /= '=')) then
+       (set_word == 'plot_page'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'var'            .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'wave'           .and. cmd_word(3) /= '=')) then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
     return
   endif
@@ -502,8 +504,8 @@ case ('set')
     call tao_set_plot_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('universe')    
     call tao_set_universe_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
-  case ('elements')    
-    call tao_set_elements_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
+  case ('element')    
+    call tao_set_elements_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('wave')
     call tao_set_wave_cmd (cmd_word(2), cmd_word(4) // ' ' // cmd_word(5), err)
     if (err) return

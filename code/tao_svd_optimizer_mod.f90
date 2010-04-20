@@ -71,7 +71,7 @@ if (allocated(weight)) then
 endif
 
 if (.not. allocated(weight)) then
-  allocate (weight(n_data), y_fit(n_data), b(n_data), b_old(n_data)
+  allocate (weight(n_data), y_fit(n_data), b(n_data), b_old(n_data))
   allocate (a(n_var), a_try(n_var), da(n_var), w(n_var))
   allocate (dy_da(n_data, n_var), dy_da_old(n_data, n_var), v(n_var, n_var))
   dy_da_old = 0
