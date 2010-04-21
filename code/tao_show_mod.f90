@@ -1209,8 +1209,8 @@ case ('lattice')
 
     case ('-custom')
       show_custom = .true.
-      call string_trim(stuff2(ix+1:), stuff2, ix)
       file_name = stuff2(1:ix)
+      call string_trim(stuff2(ix+1:), stuff2, ix)
       iu = lunget()
       open (iu, file = file_name, status = 'old', iostat = ios)
       if (ios /= 0) then
