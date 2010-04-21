@@ -1,10 +1,8 @@
-#include "CESR_platform.inc"
-
 module make_mat6_mod
 
-  use sim_utils
-  use physical_constants
-  use bmad_basic_mod
+use sim_utils
+use physical_constants
+use basic_bmad_mod
 
 contains
 

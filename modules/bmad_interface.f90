@@ -1,7 +1,7 @@
 module bmad_interface
 
 use matrix_mod
-use bmad_basic_mod
+use basic_bmad_mod
 use equal_mod
 use nrutil, only: reallocate
 use custom_bmad_interface

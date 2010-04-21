@@ -12,6 +12,7 @@ module bmad_utils_mod
 
 use bmad_struct
 use make_mat6_mod
+use basic_attribute_mod
 
 contains
 
@@ -642,7 +643,7 @@ end subroutine transfer_ele_taylor
 !   use bmad
 !
 ! Input:
-!   n    -- Integer: Upper bound lat%ele(0:) array is initialized to.
+!   n    -- Integer, optional: Upper bound lat%ele(0:) array is initialized to.
 !
 ! Output:
 !   lat -- lat_struct: Initialized lat.
@@ -653,12 +654,13 @@ subroutine init_lat (lat, n)
 implicit none
 
 type (lat_struct)  lat
-integer n
+integer, optional :: n
 
 !
 
+call init_attribute_name_array
 call deallocate_lat_pointers (lat)
-call allocate_lat_ele_array(lat, n)
+if (present(n)) call allocate_lat_ele_array(lat, n)
 call init_ele (lat%ele_init)
 
 allocate (lat%control(100))

@@ -1,8 +1,5 @@
-#include "CESR_platform.inc"
+module basic_bmad_mod
 
-module bmad_basic_mod
-
-  use sim_utils
   use sim_utils
   use precision_def
   use output_mod

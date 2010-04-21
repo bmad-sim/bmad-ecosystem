@@ -54,8 +54,7 @@ logical found_it, v89, v90, v91, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
-call init_ele (lat%ele_init)  ! init pointers
-call deallocate_lat_pointers (lat)
+call init_lat (lat)
 
 ! Read the digested file.
 ! Some old versions can be read even though they are not the current version.
@@ -173,11 +172,10 @@ read (d_unit, err = 9030)  &
             lat%n_ele_track, lat%n_ele_max, &
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
 
-! %control and %ic are allocated to the same length for convenience.
+! Allocate lat%ele, lat%control and lat%ic arrays
 
 call allocate_lat_ele_array(lat, lat%n_ele_max+10)
-allocate (lat%control(lat%n_control_max+10))
-allocate (lat%ic(lat%n_control_max+10))
+call reallocate_control (lat, lat%n_control_max+10)
 
 !
 
