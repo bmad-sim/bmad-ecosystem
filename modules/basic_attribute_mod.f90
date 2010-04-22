@@ -218,8 +218,9 @@ if (.not. init_needed) return
 attrib_array = null_name$
 
 do i = 1, n_key
-                                
-  if (i == monitor$ .or. i == instrument$ .or. i == marker$ .or. i == pipe$) then 
+
+  select case(i)
+  case (monitor$, instrument$, marker$, pipe$)
     attrib_array(i, x_gain_err$)     = 'X_GAIN_ERR'
     attrib_array(i, y_gain_err$)     = 'Y_GAIN_ERR'
     attrib_array(i, crunch$)         = 'CRUNCH'
@@ -234,7 +235,7 @@ do i = 1, n_key
     attrib_array(i, n_sample$)       = 'N_SAMPLE'
     attrib_array(i, de_eta_meas$)    = 'DE_ETA_MEAS'
     attrib_array(i, osc_amplitude$)  = 'OSC_AMPLITUDE'
-  endif
+  end select
 
   if (i == hybrid$)         cycle
   if (i == def_beam$)       cycle
@@ -261,6 +262,8 @@ do i = 1, n_key
   attrib_array(i, ref_end$)           = 'REF_END'
   attrib_array(i, common_lord$)       = 'COMMON_LORD'
 
+  if (i == null_ele$) cycle
+
   attrib_array(i, x_limit$)               = 'X_LIMIT'
   attrib_array(i, x1_limit$)              = 'X1_LIMIT'
   attrib_array(i, x2_limit$)              = 'X2_LIMIT'
@@ -276,6 +279,15 @@ do i = 1, n_key
 
   attrib_array(i, E_tot$)                 = 'E_TOT'
   attrib_array(i, p0c$)                   = 'P0C'
+
+  if (i /= match$) then
+    attrib_array(i, tilt$)     = 'TILT' 
+    attrib_array(i, x_offset$) = 'X_OFFSET'
+    attrib_array(i, y_offset$) = 'Y_OFFSET'
+    attrib_array(i, s_offset$) = 'S_OFFSET'
+    attrib_array(i, x_pitch$)  = 'X_PITCH'
+    attrib_array(i, y_pitch$)  = 'Y_PITCH'
+  endif
 
   if (i == mirror$)   cycle
   if (i == crystal$)  cycle
@@ -298,6 +310,8 @@ do i = 1, n_key
 
   if (i == taylor$)       cycle
 
+  attrib_array(i, l$) = 'L'
+
   attrib_array(i, integrator_order$)  = 'INTEGRATOR_ORDER'
   attrib_array(i, num_steps$)         = 'NUM_STEPS'
   attrib_array(i, ds_step$)           = 'DS_STEP'
@@ -312,22 +326,6 @@ do i = 1, n_key
   attrib_array(i, vkick$)    = 'VKICK'
   attrib_array(i, bl_hkick$) = 'BL_HKICK'
   attrib_array(i, bl_vkick$) = 'BL_VKICK'
-
-  if (i == drift$)        cycle
-  if (i == kicker$)       cycle
-  if (i == monitor$)      cycle
-  if (i == instrument$)   cycle
-  if (i == pipe$)         cycle
-
-  attrib_array(i, x_offset$) = 'X_OFFSET'
-  attrib_array(i, y_offset$) = 'Y_OFFSET'
-  attrib_array(i, s_offset$) = 'S_OFFSET'
-
-  if (i == rcollimator$) cycle
-  if (i == ecollimator$) cycle
-
-  attrib_array(i, x_pitch$)   = 'X_PITCH'
-  attrib_array(i, y_pitch$)   = 'Y_PITCH'
 
 enddo
 
@@ -406,12 +404,6 @@ attrib_array(def_beam_start$, z$)     = 'Z'
 attrib_array(def_beam_start$, pz$)    = 'PZ'
 
 attrib_array(taylor$, l$)           = 'L'
-attrib_array(taylor$, x_offset$)    = 'X_OFFSET'   
-attrib_array(taylor$, y_offset$)    = 'Y_OFFSET'   
-attrib_array(taylor$, s_offset$)    = 'S_OFFSET'   
-attrib_array(taylor$, x_pitch$)     = 'X_PITCH'   
-attrib_array(taylor$, y_pitch$)     = 'Y_PITCH'   
-attrib_array(taylor$, tilt$)        = 'TILT' 
 
 attrib_array(match$, l$)               = 'L'
 attrib_array(match$, beta_a0$)         = 'BETA_A0'
@@ -455,8 +447,6 @@ attrib_array(girder$, y_pitch$)      = 'Y_PITCH'
 attrib_array(girder$, s_center$)     = 'S_CENTER'
 attrib_array(girder$, tilt$)         = 'TILT'
 
-attrib_array(lcavity$, l$)                = 'L'
-attrib_array(lcavity$, tilt$)             = 'TILT'
 attrib_array(lcavity$, lrad$)             = 'LRAD'   ! This is for felv testing.
 attrib_array(lcavity$, p0c_start$)        = 'P0C_START'
 attrib_array(lcavity$, e_tot_start$)      = 'E_TOT_START'
@@ -487,34 +477,15 @@ attrib_array(group$, end_edge$)       = 'END_EDGE'
 attrib_array(group$, accordion_edge$) = 'ACCORDION_EDGE'
 attrib_array(group$, symmetric_edge$) = 'SYMMETRIC_EDGE'
 
-attrib_array(drift$, l$)             = 'L'
 attrib_array(drift$, is_on$)         =  null_name$    
 attrib_array(drift$, field_calc$)    = 'FIELD_CALC'
 attrib_array(drift$, field_master$)  = 'FIELD_MASTER'
 
-attrib_array(monitor$, l$)             = 'L'
-attrib_array(monitor$, x_offset$)      = 'X_OFFSET'
-attrib_array(monitor$, y_offset$)      = 'Y_OFFSET'
-attrib_array(monitor$, x_pitch$)       = 'X_PITCH'
-attrib_array(monitor$, y_pitch$)       = 'Y_PITCH'
-attrib_array(monitor$, tilt$)          = 'TILT'
 attrib_array(monitor$, field_master$)  = 'FIELD_MASTER'
 
 attrib_array(instrument$, :) = attrib_array(monitor$, :)
 attrib_array(pipe$, :)       = attrib_array(monitor$, :)
 
-attrib_array(marker$, x_offset$) = 'X_OFFSET'
-attrib_array(marker$, y_offset$) = 'Y_OFFSET'
-attrib_array(marker$, tilt$)     = 'TILT'
-
-attrib_array(rcollimator$, l$)     = 'L'
-attrib_array(rcollimator$, tilt$)  = 'TILT'
-
-attrib_array(ecollimator$, l$)     = 'L'
-attrib_array(ecollimator$, tilt$)  = 'TILT'
-
-attrib_array(hkicker$, l$)            = 'L'
-attrib_array(hkicker$, tilt$)         = 'TILT'
 attrib_array(hkicker$, kick$)         = 'KICK'
 attrib_array(hkicker$, field_calc$)   = 'FIELD_CALC'
 attrib_array(hkicker$, field_master$) = 'FIELD_MASTER'
@@ -524,8 +495,6 @@ attrib_array(hkicker$, pole_radius$)  = 'POLE_RADIUS'
 
 attrib_array(vkicker$, :)             = attrib_array(hkicker$, :)
 
-attrib_array(kicker$, l$)            = 'L'
-attrib_array(kicker$, tilt$)         = 'TILT'
 attrib_array(kicker$, h_displace$)   = 'H_DISPLACE'
 attrib_array(kicker$, v_displace$)   = 'V_DISPLACE'
 attrib_array(kicker$, radius$)       = 'RADIUS'
@@ -534,7 +503,6 @@ attrib_array(kicker$, field_master$) = 'FIELD_MASTER'
 attrib_array(kicker$, s_offset$)     = 'S_OFFSET'
 attrib_array(kicker$, pole_radius$)  = 'POLE_RADIUS'
 
-attrib_array(sbend$, l$)                  = 'L'
 attrib_array(sbend$, angle$)              = 'ANGLE'
 attrib_array(sbend$, e1$)                 = 'E1'
 attrib_array(sbend$, e2$)                 = 'E2'
@@ -563,7 +531,6 @@ attrib_array(sbend$, ref_orbit$)          = 'REF_ORBIT'
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
-attrib_array(bend_sol_quad$, l$)            = 'L'
 attrib_array(bend_sol_quad$, angle$)        = 'ANGLE'
 attrib_array(bend_sol_quad$, k1$)           = 'K1'
 attrib_array(bend_sol_quad$, g$)            = 'G'
@@ -599,8 +566,6 @@ attrib_array(patch$, theta_position$)  = 'THETA_POSITION'
 attrib_array(patch$, phi_position$)    = 'PHI_POSITION'
 attrib_array(patch$, psi_position$)    = 'PSI_POSITION'
 
-attrib_array(quadrupole$, l$)             = 'L'
-attrib_array(quadrupole$, tilt$)          = 'TILT'
 attrib_array(quadrupole$, k1$)            = 'K1'
 attrib_array(quadrupole$, B1_gradient$)   = 'B1_GRADIENT'
 attrib_array(quadrupole$, radius$)        = 'RADIUS'
@@ -608,8 +573,6 @@ attrib_array(quadrupole$, field_calc$)    = 'FIELD_CALC'
 attrib_array(quadrupole$, field_master$)  = 'FIELD_MASTER'
 attrib_array(quadrupole$, pole_radius$)   = 'POLE_RADIUS'
 
-attrib_array(sextupole$, l$)             = 'L'
-attrib_array(sextupole$, tilt$)          = 'TILT'
 attrib_array(sextupole$, k2$)            = 'K2'
 attrib_array(sextupole$, B2_gradient$)   = 'B2_GRADIENT'
 attrib_array(sextupole$, radius$)        = 'RADIUS'
@@ -617,8 +580,6 @@ attrib_array(sextupole$, field_calc$)    = 'FIELD_CALC'
 attrib_array(sextupole$, field_master$)  = 'FIELD_MASTER'
 attrib_array(sextupole$, pole_radius$)   = 'POLE_RADIUS'
 
-attrib_array(octupole$, l$)             = 'L'
-attrib_array(octupole$, tilt$)          = 'TILT'
 attrib_array(octupole$, k3$)            = 'K3'
 attrib_array(octupole$, B3_gradient$)   = 'B3_GRADIENT'
 attrib_array(octupole$, radius$)        = 'RADIUS'
@@ -626,7 +587,6 @@ attrib_array(octupole$, field_calc$)    = 'FIELD_CALC'
 attrib_array(octupole$, field_master$)  = 'FIELD_MASTER'
 attrib_array(octupole$, pole_radius$)   = 'POLE_RADIUS'
 
-attrib_array(solenoid$, l$)            = 'L'
 attrib_array(solenoid$, ks$)           = 'KS'
 attrib_array(solenoid$, bs_field$)     = 'BS_FIELD'
 attrib_array(solenoid$, radius$)       = 'RADIUS'
@@ -634,7 +594,6 @@ attrib_array(solenoid$, field_calc$)   = 'FIELD_CALC'
 attrib_array(solenoid$, field_master$) = 'FIELD_MASTER'
 attrib_array(solenoid$, pole_radius$)  = 'POLE_RADIUS'
 
-attrib_array(rfcavity$, l$)             = 'L'
 attrib_array(rfcavity$, dphi0$)         = 'DPHI0'
 attrib_array(rfcavity$, voltage$)       = 'VOLTAGE'
 attrib_array(rfcavity$, rf_frequency$)  = 'RF_FREQUENCY'
@@ -643,7 +602,6 @@ attrib_array(rfcavity$, harmon$)        = 'HARMON'
 attrib_array(rfcavity$, field_calc$)    = 'FIELD_CALC'
 attrib_array(rfcavity$, field_master$)  = 'FIELD_MASTER'
 
-attrib_array(elseparator$, l$)            = 'L'
 attrib_array(elseparator$, gap$)          = 'GAP'
 attrib_array(elseparator$, e_field$)      = 'E_FIELD'
 attrib_array(elseparator$, voltage$)      = 'VOLTAGE'
@@ -668,7 +626,6 @@ attrib_array(beambeam$, tilt$)          = 'TILT'
 attrib_array(beambeam$, field_calc$)    = 'FIELD_CALC'
 attrib_array(beambeam$, field_master$)  = 'FIELD_MASTER'
 
-attrib_array(wiggler$, l$)              = 'L'
 attrib_array(wiggler$, k1$)             = 'K1'
 attrib_array(wiggler$, l_pole$)         = 'L_POLE'
 attrib_array(wiggler$, b_max$)          = 'B_MAX'
@@ -686,7 +643,6 @@ attrib_array(wiggler$, x_ray_line_len$) = 'X_RAY_LINE_LEN'
 attrib_array(wiggler$, l_start$)        = 'L_START'
 attrib_array(wiggler$, l_end$)          = 'L_END'
 
-attrib_array(sol_quad$, l$)             = 'L'
 attrib_array(sol_quad$, k1$)            = 'K1'
 attrib_array(sol_quad$, ks$)            = 'KS'
 attrib_array(sol_quad$, tilt$)          = 'TILT'
@@ -718,8 +674,6 @@ attrib_array(ab_multipole$, x_offset$) = 'X_OFFSET'
 attrib_array(ab_multipole$, y_offset$) = 'Y_OFFSET'
 attrib_array(ab_multipole$, s_offset$) = 'S_OFFSET'
 
-attrib_array(custom$, l$)            = 'L'
-attrib_array(custom$, tilt$)         = 'TILT'
 attrib_array(custom$, val1$)         = 'VAL1'
 attrib_array(custom$, val2$)         = 'VAL2'
 attrib_array(custom$, val3$)         = 'VAL3'
@@ -732,11 +686,6 @@ attrib_array(custom$, val9$)         = 'VAL9'
 attrib_array(custom$, val10$)        = 'VAL10'
 attrib_array(custom$, val11$)        = 'VAL11'
 attrib_array(custom$, val12$)        = 'VAL12'
-attrib_array(custom$, x_offset$)     = 'X_OFFSET'
-attrib_array(custom$, y_offset$)     = 'Y_OFFSET'
-attrib_array(custom$, s_offset$)     = 'S_OFFSET'
-attrib_array(custom$, x_pitch$)      = 'X_PITCH'
-attrib_array(custom$, y_pitch$)      = 'Y_PITCH'
 attrib_array(custom$, field_calc$)   = 'FIELD_CALC'
 attrib_array(custom$, field_master$) = 'FIELD_MASTER'
 attrib_array(custom$, delta_e$)      = 'DELTA_E'
@@ -749,27 +698,24 @@ attrib_array(hybrid$, e_tot_start$)    = 'E_TOT_START'
 attrib_array(mirror$, graze_angle$)     = 'GRAZE_ANGLE'
 attrib_array(mirror$, graze_angle_err$) = 'GRAZE_ANGLE_ERR'
 attrib_array(mirror$, critical_angle$)  = 'CRITICAL_ANGLE'
-attrib_array(mirror$, tilt$)            = 'TILT'
 attrib_array(mirror$, tilt_err$)        = 'TILT_ERR'
-attrib_array(mirror$, x_offset$)        = 'X_OFFSET'   
-attrib_array(mirror$, y_offset$)        = 'Y_OFFSET'   
-attrib_array(mirror$, s_offset$)        = 'S_OFFSET'   
-attrib_array(mirror$, x_pitch$)         = 'X_PITCH'
-attrib_array(mirror$, y_pitch$)         = 'Y_PITCH'
 attrib_array(mirror$, g_graze$)         = 'G_GRAZE'
 attrib_array(mirror$, g_trans$)         = 'G_TRANS'
 
 !-----------------------------------------------------------------------
-! We make a short list to compare against to make things go faster
+! We make a short list to compare against to make things go faster.
+! for has_orientation_attributes check both tilt and x_offset attributes
+! since, for example, a solenoid does not have a tilt.
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90
-has_tilt_attributes  = .false.  ! Defined in bmad_struct.f90
+has_orientation_attributes = .false.  ! Defined in bmad_struct.f90
 
 do i = 1, n_key
-  if (attrib_array(i, tilt$)  == 'TILT')  has_tilt_attributes(i) = .true.
-  if (attrib_array(i, kick$)  == 'KICK')  has_kick_attributes(i) = .true.
-  if (attrib_array(i, hkick$) == 'HKICK') has_hkick_attributes(i) = .true.
+  if (attrib_array(i, tilt$)     == 'TILT')  has_orientation_attributes(i) = .true.
+  if (attrib_array(i, x_offset$) == 'X_OFFSET') has_orientation_attributes(i) = .true.
+  if (attrib_array(i, kick$)     == 'KICK')  has_kick_attributes(i) = .true.
+  if (attrib_array(i, hkick$)    == 'HKICK') has_hkick_attributes(i) = .true.
 
   num = 0
   do j = 1, n_attrib_special_maxx

@@ -366,6 +366,8 @@ integer, parameter :: pipe$ = 44
 
 integer, parameter :: n_key = 44
 
+! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
+
 character(16) :: key_name(n_key) = (/ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
     'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
@@ -380,11 +382,16 @@ character(16) :: key_name(n_key) = (/ &
     'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ', 'PIPE         ' /)
 
 ! These logical arrays get set in init_attribute_name_array and are used
-! to sort elements that have kick or tilt attributes from elements that do not.
+! to sort elements that have kick or orientation attributes from elements that do not.
+! The orientation attributes are: tilt, x/y/s_offset, x/y_pitch, and *_tot versions.
+! Note: A solenoid does not formally have a tilt but has everything else.
+! Rule: Any element that formally has some but not all orientation attributes is considered
+!   internally to have all attributes so any routine can safely work with all the 
+!   orientation attributes as a block.
 
 logical has_hkick_attributes(n_key)
 logical has_kick_attributes(n_key)
-logical has_tilt_attributes(n_key)
+logical has_orientation_attributes(n_key)
 
 ! Element attribute name logical definitions
 

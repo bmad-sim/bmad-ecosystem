@@ -94,7 +94,7 @@ if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
 set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
-set_t     = logic_option (.true., set_tilt) .and. has_tilt_attributes(ele%key)
+set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele%key)
 
 if (set_hv) then
   select case (ele%key)
@@ -140,7 +140,7 @@ if (set) then
 
   ! Set: Offset and pitch
 
-  if (has_tilt_attributes(ele%key)) then
+  if (has_orientation_attributes(ele%key)) then
     if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
               ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
       if (present(s_pos)) then
@@ -281,7 +281,7 @@ else
 
   ! Unset: Offset and pitch
 
-  if (has_tilt_attributes(ele%key)) then
+  if (has_orientation_attributes(ele%key)) then
     if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
               ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
       if (present(s_pos)) then

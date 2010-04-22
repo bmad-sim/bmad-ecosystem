@@ -262,7 +262,7 @@ type (ele_struct) ele
 
 !
 
-if (.not. has_tilt_attributes(ele%key)) return
+if (.not. has_orientation_attributes(ele%key)) return
 
 ele%value(tilt$) = 0
 ele%value(x_pitch$) = 0

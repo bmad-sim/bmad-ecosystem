@@ -374,7 +374,7 @@ case (elseparator$)
   if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
 end select
 
-if (has_tilt_attributes(ele%key)) then
+if (has_orientation_attributes(ele%key)) then
   if (ix_attrib == tilt_tot$) free = .false.
   if (ix_attrib == x_pitch_tot$) free = .false.
   if (ix_attrib == y_pitch_tot$) free = .false.
