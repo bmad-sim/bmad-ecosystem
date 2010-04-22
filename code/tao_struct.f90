@@ -476,7 +476,7 @@ type tao_global_struct
   real(rp) :: de_var_to_population_factor = 5 
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
-  real(rp) :: merit_finish = 1           ! Merit value below which an optimizer will stop.
+  real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
   real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   real(rp) :: random_sigma_cutoff = 4    ! cut-off in sigmas.
   integer :: u_view = 1                  ! Which universe we are viewing.

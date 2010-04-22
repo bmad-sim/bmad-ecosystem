@@ -26,6 +26,7 @@ use tao_svd_optimizer_mod
 implicit none
 
 real(rp), allocatable, save :: var_vec(:)
+real(rp) merit
 integer n_data, i
 
 character(*)  which
@@ -101,6 +102,10 @@ do i = 1, s%global%n_opti_loops
   end select
 
   if (abort) exit
+  if (s%global%merit_stop_value > 0 .and. s%global%merit_stop_value > tao_merit()) then
+    call out_io (s_info$, r_name, 'Merit value below global%merit_stop_value. Stopping optimization.')
+    exit
+  endif
 
 enddo
 

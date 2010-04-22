@@ -339,6 +339,8 @@ type tao_global_struct
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   real(rp) de_var_to_population_factor = 5 
   real(rp) floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+  real(rp) random_sigma_cutoff = 4.0  ! Cut-off in sigmas.
+  real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.
   integer u_view = 1                  ! Which universe we are viewing.
   integer n_opti_cycles = 20          ! number of optimization cycles
   integer n_opti_cycles = 1           ! number of optimization loops
@@ -348,7 +350,6 @@ type tao_global_struct
   integer random_seed = 0             ! use system clock by default
   character(16) random_engine = "pseudo"         ! Random number engine to use
   character(16) random_gauss_converter = "exact" ! Uniform to gauss conversion method
-  real(rp) random_sigma_cutoff = 4.0             ! Cut-off in sigmas.
   character(16) track_type = "single"            ! "single" or "beam" 
   character(16) prompt_string = "Tao"
   character(16) optimizer     = "de"             ! optimizer to use.
@@ -391,7 +392,12 @@ The \vn{global%derivative_recalc} logical determines whether the
 derivative matrix is recalculated every optimization loop. The
 \vn{global%derivative_uses_design} logical determines if the design
 lattice is used in the derivative matrix calculation instead of the
-model lattice.
+model lattice. 
+
+The \vn{merit_stop_value} establishes a point such that, during
+optimization, if the merit function falls below that value, the
+optimization stops. If the value is negative (the default),
+\vn{merit_stop_value} is ignored.
 
 Random numbers are used by \tao in various algorithms. For example,
 random numbers are used in generating the initial coordinates of the
