@@ -382,6 +382,7 @@ character(16) :: key_name(n_key) = (/ &
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or tilt attributes from elements that do not.
 
+logical has_hkick_attributes(n_key)
 logical has_kick_attributes(n_key)
 logical has_tilt_attributes(n_key)
 

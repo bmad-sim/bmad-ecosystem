@@ -762,12 +762,14 @@ attrib_array(mirror$, g_trans$)         = 'G_TRANS'
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster
 
-has_kick_attributes = .false.  ! Defined in bmad_struct.f90
-has_tilt_attributes = .false.  ! Defined in bmad_struct.f90
+has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
+has_kick_attributes  = .false.  ! Defined in bmad_struct.f90
+has_tilt_attributes  = .false.  ! Defined in bmad_struct.f90
 
 do i = 1, n_key
-  if (attrib_array(i, tilt$) == 'TILT') has_tilt_attributes = .true.
-  if (attrib_array(i, kick$) == 'KICK') has_kick_attributes = .true.
+  if (attrib_array(i, tilt$)  == 'TILT')  has_tilt_attributes(i) = .true.
+  if (attrib_array(i, kick$)  == 'KICK')  has_kick_attributes(i) = .true.
+  if (attrib_array(i, hkick$) == 'HKICK') has_hkick_attributes(i) = .true.
 
   num = 0
   do j = 1, n_attrib_special_maxx

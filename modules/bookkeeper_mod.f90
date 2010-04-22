@@ -1592,14 +1592,14 @@ endif
 
 ! s_del is the distance between lord and slave centers
 
-if (.not. has_tilt_attributes(slave%key)) call err_exit  ! This should not be
-
-s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
-value(x_pitch$)  = value(x_pitch_tot$)
-value(y_pitch$)  = value(y_pitch_tot$)
-value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
-value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
-value(tilt$)     = value(tilt_tot$)
+if (has_tilt_attributes(slave%key)) then
+  s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
+  value(x_pitch$)  = value(x_pitch_tot$)
+  value(y_pitch$)  = value(y_pitch_tot$)
+  value(x_offset$) = value(x_offset_tot$) + s_del * value(x_pitch_tot$)
+  value(y_offset$) = value(y_offset_tot$) + s_del * value(y_pitch_tot$)
+  value(tilt$)     = value(tilt_tot$)
+endif
 
 slave%value = value
 slave%is_on = lord%is_on
@@ -1999,7 +1999,7 @@ if (ele%field_master) then
     val(ks$) = factor * val(Bs_field$)
   end select
 
-  if (has_kick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key)) then
     val(hkick$) = factor * val(BL_hkick$)
     val(vkick$) = factor * val(BL_vkick$)
   endif
@@ -2035,7 +2035,7 @@ else
     val(Bs_field$)    = factor * val(ks$)
   end select
 
-  if (has_kick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key)) then
     val(BL_hkick$) = factor * val(hkick$)
     val(BL_vkick$) = factor * val(vkick$)
   endif

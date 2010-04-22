@@ -418,7 +418,7 @@ if (ele%field_master) then
     if (ix_attrib == kick$) free = .false.
   end select
 
-  if (has_kick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key)) then
     if (ix_attrib == hkick$) free = .false.
     if (ix_attrib == vkick$) free = .false.
   endif
@@ -445,7 +445,7 @@ else
     if (ix_attrib == bl_kick$) free = .false.
   end select
 
-  if (has_kick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key)) then
     if (ix_attrib == bl_hkick$) free = .false.
     if (ix_attrib == bl_vkick$) free = .false.
   endif

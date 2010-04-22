@@ -663,8 +663,7 @@ call deallocate_lat_pointers (lat)
 if (present(n)) call allocate_lat_ele_array(lat, n)
 call init_ele (lat%ele_init)
 
-allocate (lat%control(100))
-allocate (lat%ic(100))
+call reallocate_control (lat, 100)
 
 lat%title = ' '
 lat%name = ' '

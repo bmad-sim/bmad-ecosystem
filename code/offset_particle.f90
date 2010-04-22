@@ -92,8 +92,9 @@ set_canon = logic_option(.true., set_canonical)
 if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
 
 set_multi = logic_option (.true., set_multipoles)
-set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on
-set_t     = logic_option (.true., set_tilt)
+set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
+                   (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
+set_t     = logic_option (.true., set_tilt) .and. has_tilt_attributes(ele%key)
 
 if (set_hv) then
   select case (ele%key)
@@ -139,21 +140,23 @@ if (set) then
 
   ! Set: Offset and pitch
 
-  if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
-            ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
-    if (present(s_pos)) then
-      s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
-    else
-      s_here = -ele%value(l$) / 2
+  if (has_tilt_attributes(ele%key)) then
+    if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
+              ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
+      if (present(s_pos)) then
+        s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
+      else
+        s_here = -ele%value(l$) / 2
+      endif
+      xp = ele%value(x_pitch_tot$)
+      yp = ele%value(y_pitch_tot$)
+      coord%vec(1) = coord%vec(1) - ele%value(x_offset_tot$) - xp * s_here
+      coord%vec(2) = coord%vec(2) - xp * E_rel
+      coord%vec(3) = coord%vec(3) - ele%value(y_offset_tot$) - yp * s_here
+      coord%vec(4) = coord%vec(4) - yp * E_rel
+      coord%vec(5) = coord%vec(5) + xp * coord%vec(1) + yp * coord%vec(3) - &
+                                    (xp**2 + yp**2) * ele%value(l$) / 4
     endif
-    xp = ele%value(x_pitch_tot$)
-    yp = ele%value(y_pitch_tot$)
-    coord%vec(1) = coord%vec(1) - ele%value(x_offset_tot$) - xp * s_here
-    coord%vec(2) = coord%vec(2) - xp * E_rel
-    coord%vec(3) = coord%vec(3) - ele%value(y_offset_tot$) - yp * s_here
-    coord%vec(4) = coord%vec(4) - yp * E_rel
-    coord%vec(5) = coord%vec(5) + xp * coord%vec(1) + yp * coord%vec(3) - &
-                                  (xp**2 + yp**2) * ele%value(l$) / 4
   endif
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
@@ -278,21 +281,23 @@ else
 
   ! Unset: Offset and pitch
 
-  if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
-            ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
-    if (present(s_pos)) then
-      s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
-    else
-      s_here = ele%value(l$) / 2
+  if (has_tilt_attributes(ele%key)) then
+    if (ele%value(x_offset_tot$) /= 0 .or. ele%value(y_offset_tot$) /= 0 .or. &
+              ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0) then
+      if (present(s_pos)) then
+        s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
+      else
+        s_here = ele%value(l$) / 2
+      endif
+      xp = ele%value(x_pitch_tot$)
+      yp = ele%value(y_pitch_tot$)
+      coord%vec(5) = coord%vec(5) - xp * coord%vec(1) - yp * coord%vec(3) - &
+                                    (xp**2 + yp**2) * ele%value(l$) / 4
+      coord%vec(1) = coord%vec(1) + ele%value(x_offset_tot$) + xp * s_here
+      coord%vec(2) = coord%vec(2) + xp * E_rel
+      coord%vec(3) = coord%vec(3) + ele%value(y_offset_tot$) + yp * s_here
+      coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
-    xp = ele%value(x_pitch_tot$)
-    yp = ele%value(y_pitch_tot$)
-    coord%vec(5) = coord%vec(5) - xp * coord%vec(1) - yp * coord%vec(3) - &
-                                  (xp**2 + yp**2) * ele%value(l$) / 4
-    coord%vec(1) = coord%vec(1) + ele%value(x_offset_tot$) + xp * s_here
-    coord%vec(2) = coord%vec(2) + xp * E_rel
-    coord%vec(3) = coord%vec(3) + ele%value(y_offset_tot$) + yp * s_here
-    coord%vec(4) = coord%vec(4) + yp * E_rel
   endif
 
   if (ele%value(s_offset_tot$) /= 0) &
