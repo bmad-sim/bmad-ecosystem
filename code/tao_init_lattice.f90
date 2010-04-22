@@ -219,6 +219,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call set_on_off (rfcavity$, u%design%lat, off$)
   endif
 
+  ! In case there is a match element with match_end = T, propagate the twiss parameters which
+  ! makes the beginning Twiss of the match element match the end Twiss of the previous element
+
+  if (u%design%lat%param%lattice_type == linear_lattice$) then
+    call twiss_propagate_all (u%design%lat)
+  endif
+
   ! Custom stuff
 
   call tao_hook_init_lattice_post_parse (u)
