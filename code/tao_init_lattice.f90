@@ -210,7 +210,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Aperture limit
 
   if (tao_com%aperture_limit_on /= '') then
-   read (tao_com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
+    read (tao_com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
+    do j = 1, ubound(u%design%lat%branch, 1)
+      u%design%lat%branch(j)%param%aperture_limit_on = u%design%lat%param%aperture_limit_on
+    enddo
   endif
 
   if (u%design%lat%param%lattice_type == circular_lattice$ .and. s%global%init_lats_with_rf_off) then

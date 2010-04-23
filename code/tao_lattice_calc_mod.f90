@@ -248,9 +248,9 @@ else
     do ii = ix_lost+1, branch%n_ele_track
       orbit(ii)%vec = 0
     enddo
-    call out_io (s_blank$, r_name, "particle lost at element \I0\: " // &
+    call out_io (s_blank$, r_name, "particle lost at branch>>element \I0\>>\I0\: " // &
             trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
-            r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_lost /))
+            r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_branch, ix_lost /))
   endif
 endif
 
