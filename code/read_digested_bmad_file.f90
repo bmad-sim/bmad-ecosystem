@@ -200,7 +200,7 @@ read (d_unit, iostat = ios) lat%beam_start
 
 if (version > 86) then
   read (d_unit, err = 9060) n_branch
-  call allocate_branch_array (lat%branch, n_branch, lat)  ! Initial allocation
+  call allocate_branch_array (lat, n_branch)  ! Initial allocation
 
   do i = 1, n_branch
     branch => lat%branch(i)

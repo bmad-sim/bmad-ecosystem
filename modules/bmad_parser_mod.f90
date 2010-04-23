@@ -4092,7 +4092,7 @@ character(*), allocatable ::  in_name(:), seq_name(:)
 !
 
 nb = ubound(lat%branch, 1) + 1
-call allocate_branch_array (lat%branch, nb)
+call allocate_branch_array (lat, nb)
 branch_ele%value(ix_branch_to$) = nb
 branch => lat%branch(nb)
 if (branch_ele%key == branch$) then

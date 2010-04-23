@@ -299,7 +299,7 @@ endif
 ! branch lines
 
 n = ubound(lat_in%branch, 1)
-call allocate_branch_array (lat_out%branch, n, lat_out)
+call allocate_branch_array (lat_out, n)
 do i = 1, n
   call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
   lat_out%branch(i) = lat_in%branch(i)

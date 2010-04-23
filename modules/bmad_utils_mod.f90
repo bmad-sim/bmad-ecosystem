@@ -669,8 +669,11 @@ lat%title = ' '
 lat%name = ' '
 lat%lattice = ' '
 lat%input_file_name = ' '
+
+lat%param%unstable_factor = 0
 lat%param%stable = .true.
 lat%param%particle = positron$
+lat%param%aperture_limit_on = .true.
 
 call init_coord(lat%beam_start)
 
@@ -685,7 +688,7 @@ lat%n_ic_max = 0
 lat%input_taylor_order = 0
 lat%version = -1
 
-call allocate_branch_array (lat%branch, 0, lat)  
+call allocate_branch_array (lat, 0)
 lat%branch(0)%name = 'MAIN'
 
 !----------------------------------------
@@ -1531,21 +1534,21 @@ end subroutine allocate_element_array
 !   use bmad
 !
 ! Input:
-!   branch(:)   -- Branch_struct, pointer: Branch array.
+!   lat         -- Lat_struct: 
+!     %branch(:)  -- Branch array to be allocated.
 !   upper_bound -- Integer: Desired upper bound.
-!   lat         -- Lat_struct, optional: Needed if branch is not allocated
 ! 
 ! Output:
-!   branch(:)   -- Branch_struct, pointer: Branch array.
+!   lat         -- Lat_struct: 
+!     %branch(:)  -- Allocated branch array.
 !-
 
-subroutine allocate_branch_array (branch, upper_bound, lat)
+subroutine allocate_branch_array (lat, upper_bound)
 
 implicit none
 
-type (branch_struct), allocatable :: branch(:)
+type (lat_struct), target :: lat
 type (branch_struct), pointer :: temp_branch(:)
-type (lat_struct), optional, target :: lat
 
 integer :: upper_bound
 integer curr_ub, ub, i
@@ -1555,27 +1558,23 @@ character(20) :: r_name = 'allocate_branch_array'
 !  save branch if present
 
 ub = upper_bound
-if (allocated (branch)) then
-  if (ub == ubound(branch, 1)) return
-  curr_ub = min(ub, ubound(branch, 1))
+if (allocated (lat%branch)) then
+  if (ub == ubound(lat%branch, 1)) return
+  curr_ub = min(ub, ubound(lat%branch, 1))
   allocate (temp_branch(0:curr_ub))
-  call transfer_branches (branch(0:curr_ub), temp_branch)
-  do i = curr_ub+1, ubound(branch, 1)
-    call deallocate_ele_array_pointers(branch(i)%ele)
-    deallocate(branch(i)%n_ele_track)
-    deallocate(branch(i)%n_ele_max)
+  call transfer_branches (lat%branch(0:curr_ub), temp_branch)
+  do i = curr_ub+1, ubound(lat%branch, 1)
+    call deallocate_ele_array_pointers(lat%branch(i)%ele)
+    deallocate(lat%branch(i)%n_ele_track)
+    deallocate(lat%branch(i)%n_ele_max)
   enddo
-  deallocate (branch)
-  allocate(branch(0:ub))
-  call transfer_branches (temp_branch(0:curr_ub), branch(0:curr_ub))
+  deallocate (lat%branch)
+  allocate(lat%branch(0:ub))
+  call transfer_branches (temp_branch(0:curr_ub), lat%branch(0:curr_ub))
   deallocate (temp_branch)
 else
   curr_ub = -1
-  allocate(branch(0:ub))
-  if (.not. present(lat)) then
-    call out_io (s_fatal$, r_name, 'LAT ARGUMENT MISSING.')
-    call err_exit
-  endif
+  allocate(lat%branch(0:ub))
   lat%branch(0)%ele => lat%ele
   lat%branch(0)%param => lat%param
   lat%branch(0)%n_ele_track => lat%n_ele_track
@@ -1585,11 +1584,12 @@ endif
 ! 
 
 do i = curr_ub+1, ub
-  branch(i)%ix_branch = i
+  lat%branch(i)%ix_branch = i
   if (i == 0) cycle
-  allocate(branch(i)%n_ele_track)
-  allocate(branch(i)%n_ele_max)
-  allocate(branch(i)%param)
+  allocate(lat%branch(i)%n_ele_track)
+  allocate(lat%branch(i)%n_ele_max)
+  allocate(lat%branch(i)%param)
+  lat%branch(i)%param = lat%param
 end do
 
 end subroutine allocate_branch_array

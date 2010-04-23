@@ -111,65 +111,42 @@ endif
 
 ! Non-elemental stuff
 
-if (lat%title /= ' ') &
-          write (iu, *) 'title, "', trim(lat%title), '"'
-if (lat%lattice /= ' ') &
-          write (iu, *) 'parameter[lattice] = "', trim(lat%lattice), '"'
+if (lat%title /= ' ') write (iu, *) 'title, "', trim(lat%title), '"'
+if (lat%lattice /= ' ') write (iu, *) 'parameter[lattice] = "', trim(lat%lattice), '"'
 write (iu, *) 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_type)
 write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
 
 write (iu, *)
-write (iu, *) 'parameter[e_tot] =', &
-                    trim(str(lat%ele(0)%value(e_tot$)))
+write (iu, *) 'parameter[e_tot] =', trim(str(lat%ele(0)%value(e_tot$)))
 write (iu, *) 'parameter[particle] = ', particle_name(lat%param%particle)
-if (lat%param%n_part /= 0) &
-        write (iu, *) 'parameter[n_part] = ', lat%param%n_part
+if (.not. lat%param%aperture_limit_on) write (iu, *) 'parameter[aperture_limit_on] = F'
+if (lat%param%n_part /= 0) write (iu, *) 'parameter[n_part] = ', lat%param%n_part
 
 ele => lat%ele(0) 
 
-if (ele%floor%x /= 0) &
-      write (iu, *) 'beginning[x_position] = ', trim(str(ele%floor%x))
-if (ele%floor%y /= 0) &
-      write (iu, *) 'beginning[y_position] = ', trim(str(ele%floor%y))
-if (ele%floor%z /= 0) &
-      write (iu, *) 'beginning[z_position] = ', trim(str(ele%floor%z))
-if (ele%floor%theta /= 0) &
-  write (iu, *) 'beginning[theta_position] = ', trim(str(ele%floor%theta))
-if (ele%floor%phi /= 0) &
-      write (iu, *) 'beginning[phi_position] = ', trim(str(ele%floor%phi))
-if (ele%floor%psi /= 0) &
-      write (iu, *) 'beginning[psi_position] = ', trim(str(ele%floor%psi))
+if (ele%floor%x /= 0) write (iu, *) 'beginning[x_position] = ', trim(str(ele%floor%x))
+if (ele%floor%y /= 0) write (iu, *) 'beginning[y_position] = ', trim(str(ele%floor%y))
+if (ele%floor%z /= 0) write (iu, *) 'beginning[z_position] = ', trim(str(ele%floor%z))
+if (ele%floor%theta /= 0) write (iu, *) 'beginning[theta_position] = ', trim(str(ele%floor%theta))
+if (ele%floor%phi /= 0) write (iu, *) 'beginning[phi_position] = ', trim(str(ele%floor%phi))
+if (ele%floor%psi /= 0) write (iu, *) 'beginning[psi_position] = ', trim(str(ele%floor%psi))
 
 if (lat%param%lattice_type /= circular_lattice$) then
   write (iu, *)
-  if (ele%a%beta /= 0) &
-      write (iu, *) 'beginning[beta_a] = ', trim(str(ele%a%beta))
-  if (ele%a%alpha /= 0) &
-      write (iu, *) 'beginning[alpha_a] = ', trim(str(ele%a%alpha))
-  if (ele%a%phi /= 0) &
-      write (iu, *) 'beginning[phi_a] = ', trim(str(ele%a%phi))
-  if (ele%a%eta /= 0) &
-      write (iu, *) 'beginning[eta_a] = ', trim(str(ele%a%eta))
-  if (ele%a%etap /= 0) &
-      write (iu, *) 'beginning[etap_a] = ', trim(str(ele%a%etap))
-  if (ele%b%beta /= 0) &
-      write (iu, *) 'beginning[beta_b] = ', trim(str(ele%b%beta))
-  if (ele%b%alpha /= 0) &
-      write (iu, *) 'beginning[alpha_b] = ', trim(str(ele%b%alpha))
-  if (ele%b%phi /= 0) &
-      write (iu, *) 'beginning[phi_b] = ', trim(str(ele%b%phi))
-  if (ele%b%eta /= 0) &
-      write (iu, *) 'beginning[eta_b] = ', trim(str(ele%b%eta))
-  if (ele%b%etap /= 0) &
-      write (iu, *) 'beginning[etap_b] = ', trim(str(ele%b%etap))
-  if (ele%c_mat(1,1) /= 0) &
-      write (iu, *) 'beginning[c11] = ', trim(str(ele%c_mat(1,1)))
-  if (ele%c_mat(1,2) /= 0) &
-      write (iu, *) 'beginning[c12] = ', trim(str(ele%c_mat(1,2)))
-  if (ele%c_mat(2,1) /= 0) &
-      write (iu, *) 'beginning[c21] = ', trim(str(ele%c_mat(2,1)))
-  if (ele%c_mat(2,2) /= 0) &
-      write (iu, *) 'beginning[c22] = ', trim(str(ele%c_mat(2,2)))
+  if (ele%a%beta /= 0)     write (iu, *) 'beginning[beta_a] = ', trim(str(ele%a%beta))
+  if (ele%a%alpha /= 0)    write (iu, *) 'beginning[alpha_a] = ', trim(str(ele%a%alpha))
+  if (ele%a%phi /= 0)      write (iu, *) 'beginning[phi_a] = ', trim(str(ele%a%phi))
+  if (ele%a%eta /= 0)      write (iu, *) 'beginning[eta_a] = ', trim(str(ele%a%eta))
+  if (ele%a%etap /= 0)     write (iu, *) 'beginning[etap_a] = ', trim(str(ele%a%etap))
+  if (ele%b%beta /= 0)     write (iu, *) 'beginning[beta_b] = ', trim(str(ele%b%beta))
+  if (ele%b%alpha /= 0)    write (iu, *) 'beginning[alpha_b] = ', trim(str(ele%b%alpha))
+  if (ele%b%phi /= 0)      write (iu, *) 'beginning[phi_b] = ', trim(str(ele%b%phi))
+  if (ele%b%eta /= 0)      write (iu, *) 'beginning[eta_b] = ', trim(str(ele%b%eta))
+  if (ele%b%etap /= 0)     write (iu, *) 'beginning[etap_b] = ', trim(str(ele%b%etap))
+  if (ele%c_mat(1,1) /= 0) write (iu, *) 'beginning[c11] = ', trim(str(ele%c_mat(1,1)))
+  if (ele%c_mat(1,2) /= 0) write (iu, *) 'beginning[c12] = ', trim(str(ele%c_mat(1,2)))
+  if (ele%c_mat(2,1) /= 0) write (iu, *) 'beginning[c21] = ', trim(str(ele%c_mat(2,1)))
+  if (ele%c_mat(2,2) /= 0) write (iu, *) 'beginning[c22] = ', trim(str(ele%c_mat(2,2)))
 endif
 
 ! Element stuff
