@@ -450,7 +450,7 @@ else
   region => s%plot_region(ix)  
 endif
 
-end subroutine
+end subroutine tao_find_plot_region
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2163,7 +2163,7 @@ function tao_read_this_index (name, ixc) result (ix)
     call err_exit
   endif
 
-end function
+end function tao_read_this_index
 
 
 !-----------------------------------------------------------------------
@@ -2238,7 +2238,7 @@ else
   var_attrib_name = trim(var%ele_name) // '[' // trim(var%attrib_name) // ']'
 endif
 
-end function
+end function tao_var_attrib_name
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2314,7 +2314,7 @@ endif
 datum_name = tao_d2_d1_name (datum%d1, show_universe)
 write (datum_name, '(2a, i0, a)') trim(datum_name), '[', datum%ix_d1, ']'
 
-end function
+end function tao_datum_name
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2363,7 +2363,7 @@ endif
 if (size(s%u) > 1 .and. logic_option(.true., show_universe)) &
        write (d2_d1_name, '(i0, 2a)') d1%d2%ix_uni, '@', trim(d2_d1_name)
 
-end function
+end function tao_d2_d1_name
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2435,7 +2435,7 @@ integer i_uni, i_this_uni
 i_this_uni = i_uni
 if (i_uni == -1) i_this_uni = s%global%u_view
 
-end function
+end function tao_universe_number
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2860,31 +2860,30 @@ end subroutine tao_split_component
 
 subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting ()
 
+implicit none
+
 type (tao_universe_struct), pointer :: u
 type (tao_graph_struct), pointer :: graph
 type (tao_curve_struct), pointer :: curve
 
 integer i, j, k
-logical do_synch
 
 !
 
-do_synch = .false.
 do i = 1, size(s%plot_region)
   if (.not. s%plot_region(i)%visible) cycle
+
   do j = 1, size(s%plot_region(i)%plot%graph)
     graph => s%plot_region(i)%plot%graph(j)
     if (.not. allocated(graph%curve)) cycle
+
     do k = 1, size(graph%curve)
       curve => graph%curve(k)
       u => tao_pointer_to_universe(curve%ix_universe)
-      
-      if ((index(curve%data_type, 'emit.') /= 0) .and. &
-                        curve%data_source == 'lat') do_synch = .true. 
-      if (curve%data_type(1:8) == 'rad_int.') do_synch = .true.
+      if (u%do_rad_int_calc) cycle
 
-      if (do_synch .and. .not. u%do_synch_rad_int_calc) then
-        u%do_synch_rad_int_calc = .true. 
+      if (tao_rad_int_calc_needed(curve%data_type, curve%data_source)) then
+        u%do_rad_int_calc = .true. 
         u%lattice_recalc = .true.
       endif
 
@@ -2893,5 +2892,35 @@ do i = 1, size(s%plot_region)
 enddo
 
 end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function tao_rad_int_calc_needed (data_type, data_source) result (do_synch)
+! 
+! Routine decide if a datum or plot curve needs the radiation integrals 
+! to be evaluated.
+!-
+
+function tao_rad_int_calc_needed (data_type, data_source) result (do_synch)
+
+implicit none
+
+character(*) data_type, data_source
+logical do_synch
+
+!
+
+do_synch = .false.
+
+if (data_source /= 'lat') return
+
+if (data_type  == 'sigma.pz') do_synch = .true. 
+if (data_type(1:5)  == 'emit.') do_synch = .true. 
+if (data_type(1:10) == 'norm_emit.') do_synch = .true. 
+if (data_type(1:8)  == 'rad_int.') do_synch = .true.
+
+end function tao_rad_int_calc_needed
 
 end module tao_utils

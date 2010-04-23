@@ -1962,7 +1962,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), imt) 'Branch:   ', ix_branch
   nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
   nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
-  nl=nl+1; write (lines(nl), lmt) '%do_synch_rad_int_calc = ', u%do_synch_rad_int_calc
+  nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%do_rad_int_calc
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write (lines(nl), lmt) '%calc_beam_emittance   = ', u%calc_beam_emittance
   nl=nl+1; write (lines(nl), lmt) '%mat6_recalc_on        = ', u%mat6_recalc_on

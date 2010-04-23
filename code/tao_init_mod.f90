@@ -772,8 +772,6 @@ integer i_d1
 
 character(20) fmt
 
-logical emit_here
-
 !
 
 d1_this => u%d2_data(n_d2)%d1(i_d1)  
@@ -982,12 +980,9 @@ do j = n1, n2
   !
   data_type = dat%data_type
   source = dat%data_source
-  emit_here = (index(data_type, 'emit.') /= 0)
 
-  if ((emit_here .and. source == 'lat') .or. &
-      (data_type(1:8) == 'rad_int.') .or. &
-      (data_type == 'sigma.pz' .and. source == 'lat')) then
-    u%do_synch_rad_int_calc = .true. 
+  if (tao_rad_int_calc_needed(data_type, source)) then
+    u%do_rad_int_calc = .true. 
     if (dat%ix_branch /= 0) then
       call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
       call err_exit
@@ -997,10 +992,9 @@ do j = n1, n2
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
   if (data_type == 'unstable.orbit' .or. &
-              u%design%lat%param%lattice_type == circular_lattice$ .and. &
-              (data_type(1:6)  == 'chrom.' .or. &
-               data_type(1:13) == 'unstable.ring' .or. emit_here .or. &
-               data_type(1:17) == 'multi_turn_orbit.')) then
+              (u%design%lat%param%lattice_type == circular_lattice$ .and. &
+              (data_type(1:6)  == 'chrom.' .or. data_type(1:17) == 'multi_turn_orbit.' .or. &
+               data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0))) then
     dat%exists = .true.
     if (dat%ele_name /= '') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &

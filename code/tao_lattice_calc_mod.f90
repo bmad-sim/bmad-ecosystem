@@ -117,7 +117,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   enddo
 
-  if (u%do_synch_rad_int_calc) then
+  if (u%do_rad_int_calc) then
     call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(0)%orbit, tao_lat%modes, &
                                                              u%ix_rad_int_cache, tao_lat%rad_int)
   endif

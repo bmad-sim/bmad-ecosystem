@@ -25,14 +25,17 @@ use tao_svd_optimizer_mod
 
 implicit none
 
+type (tao_universe_struct), pointer :: u
+
 real(rp), allocatable, save :: var_vec(:)
 real(rp) merit
-integer n_data, i
+integer n_data, i, j
 
 character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
 
 logical abort
+logical, allocatable :: do_rad_int_calc(:)
 
 !
 
@@ -55,6 +58,23 @@ if (size(var_vec) == 0) then
   abort = .true.
   return
 endif
+
+! Do not do radiation_integrals calc if not needed
+
+allocate (do_rad_int_calc(size(s%u)))
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(i)
+  do_rad_int_calc(i) = u%do_rad_int_calc
+  u%do_rad_int_calc = .false.
+  do j = 1, size(u%data)
+    if (.not. u%data(j)%useit_opt) cycle
+    if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) then
+      u%do_rad_int_calc = .true.
+      exit
+    endif
+  enddo
+enddo
 
 ! See if there are any constraints
 
@@ -113,6 +133,10 @@ enddo
 ! optimization has not been updated.
 
 tao_com%optimizer_running = .false.
+
+s%u(:)%do_rad_int_calc = do_rad_int_calc
+deallocate (do_rad_int_calc)
+
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 s%u(:)%lattice_recalc = .true.
 

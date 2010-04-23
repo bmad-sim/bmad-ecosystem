@@ -111,8 +111,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
   u%is_on = .true.          ! turn universe on
   u%ix_uni = i
-  u%do_synch_rad_int_calc = .false.
-  u%do_chrom_calc         = .false.
+  u%do_rad_int_calc = .false.
+  u%do_chrom_calc   = .false.
 
   ! If unified then only read in a lattice for the common universe.
 

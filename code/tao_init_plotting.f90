@@ -653,18 +653,16 @@ do  ! Loop over plot files
           call err_exit
         endif
 
-        if ((crv%data_type(1:5) == 'emit.' .or. crv%data_type == 'sigma.pz' .or. &
-             crv%data_type(1:10) == 'norm_emit.' .or. crv%data_type(1:8) == 'rad_int.') .and. &
-                        crv%data_source == 'lat') then
+        if (tao_rad_int_calc_needed(crv%data_type, crv%data_source)) then
           if (crv%ix_branch /= 0) then
             call out_io (s_fatal$, r_name, 'PLOTTING THIS: ' // crv%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
             call err_exit
           endif
 
           if (crv%ix_universe == -1) then
-            s%u%do_synch_rad_int_calc = .true.
+            s%u%do_rad_int_calc = .true.
           else
-            s%u(i_uni)%do_synch_rad_int_calc = .true.
+            s%u(i_uni)%do_rad_int_calc = .true.
           endif
         endif
 
