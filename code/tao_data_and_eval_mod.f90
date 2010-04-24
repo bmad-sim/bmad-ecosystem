@@ -2917,7 +2917,7 @@ endif
 
 ! Look for a lat datum.
 
-if (source == 'lat') then
+if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_data (err_flag, name, stack%value, .false., &
                                 default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
   call re_allocate (stack%good, size(stack%value))
