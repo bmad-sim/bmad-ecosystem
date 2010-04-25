@@ -6,7 +6,7 @@ purpose program for simulating high energy particle beams in
 accelerators and storage rings. This manual assumes you are already
 familiar with the basics of particle beam dynamics and its
 formalism. There are several books that introduce the topics very
-well. A good place to start is \textit{The Physics of Particle
+well. A good place to start is, for example, \textit{The Physics of Particle
 Accelerators} by Klaus Wille\cite{b:wille}.
 
 \index{Bmad}
@@ -18,7 +18,7 @@ manual.
 
 So, what is \tao good for? A large variety of applications: Single and
 multiparticle tracking, lattice simulation and analysis, lattice
-design, machine commisioning and correction, etc. Furthermore, it is
+design, machine commissioning and correction, etc. Furthermore, it is
 designed to be extensible using interface ``hooks'' built into the
 program.  This versatility has been used, for example, to enable \tao
 to directly read in measurement data from Cornell's Cesr storage ring
@@ -35,6 +35,7 @@ custom calculations. For this, see Chapter~\ref{c:custom.tao}.
 %----------------------------------------------------------------
 \section{The Organization of Tao: The Super\_Universe}
 \label{s:organization}
+\index{super_universe}
 
 Many simulation problems fall into one of three categories: 
 \begin{itemize}
@@ -60,23 +61,23 @@ ingredients needed to solve these simulation problems.
 The information that \tao knows about can be divided into five
 (overlapping) categories:
 \begin{description}
-  \index{Lattice}
+  \index{lattice}
   \item[Lattice] \Newline   
 Machine layout and component strengths, and the beam orbit (\sref{s:lattice}).
-  \index{Data}
+  \index{data}
   \item[Data] \Newline
 Anything that can be measured.
 For example: The orbit of a particle or the lattice beta 
 functions, etc. (\sref{c:data})
-  \index{Variable}
+  \index{variable}
   \item[Variables] \Newline
 Essentially, any lattice parameter or initial condition that can be varied.
 For example: quadrupole strengths, etc. (\sref{s:var}).
-  \index{Plotting}
+  \index{plotting}
   \item[Plotting]  \Newline
 Information used to draw graphs, display the lattice 
 floor plan, etc. (\sref{s:plotting}).
-  \index{Global parameters}
+  \index{global parameters}
   \item[Global Parameters] \Newline
  \tao has a set of parameters to control every aspect of how it behaves from
 the random number seed \tao uses to what optimizer is used for fitting data.
@@ -85,15 +86,15 @@ the random number seed \tao uses to what optimizer is used for fitting data.
 %------------------------------------------------------------------------
 \section{The Super\_universe}
 \label{s:super.uni}
-\index{Super_universe|hyperbf}
+\index{super_universe|hyperbf}
 
-\index{Structure|hyperbf}
+\index{structure|hyperbf}
 The information in \tao deals is organized in a hierarchy of
 \vn{``structures''}. At the top level, everything known to \tao is
 placed in a single structure called the \vn{super_universe}.
 
-\index{Universe}
-\index{Variable}
+\index{universe}
+\index{variable}
 Within the \vn{super_universe}, lies one or more \vn{universes}
 (\sref{s:universe}), each \vn{universe} containing a particular
 machine lattice and its associated data. This allows for the user to
@@ -104,10 +105,10 @@ the \vn{variable}, \vn{plotting}, and \vn{global parameter} information.
 %------------------------------------------------------------------------
 \section{The Universe}
 \label{s:universe}
-\index{Universe|hyperbf}
+\index{universe|hyperbf}
 
-\index{Lattice}\index{Design lattice}\index{Model lattice}
-\index{Base lattice}\index{Data}\index{Super_universe}
+\index{lattice}\index{design lattice}\index{model lattice}
+\index{base lattice}\index{data}\index{super_universe}
 The \tao \vn{super_universe} (\sref{s:super.uni}) contains one or
 more \vn{universes}.  A \vn{universe} contains a \vn{lattice}
 (\sref{s:lattice}) plus whatever data (\sref{c:data}) one wishes to
@@ -170,32 +171,32 @@ universes. Examples:
 
 %------------------------------------------------------------------------
 \section{Lattices}
-\index{Lattice|hyperbf}
+\index{lattice|hyperbf}
 \label{s:lattice}
 
-\index{Design lattice}\index{Model lattice}
-\index{Base lattice}
+\index{design lattice}\index{model lattice}
+\index{base lattice}
 A \vn{lattice} consists of a machine description (the strength and
 placement of elements such as quadrupoles and bends, etc.), along with the
 beam orbit through them. There are actually three types of lattices:
   \vspace*{-3ex}
   \begin{description}
-  \index{Design lattice|hyperbf}
+  \index{design lattice|hyperbf}
   \item[Design Lattice] \Newline 
 The \vn{design} lattice corresponds to the lattice read in from the
 lattice description file(s) (\sref{s:init.lat}). In many instances, this
 is the particular lattice that one wants the actual physical machine
 to conform to. The \vn{design} lattice is fixed. Nothing is allowed to
 vary in this lattice.
-  \index{Model lattice|hyperbf}
+  \index{model lattice|hyperbf}
   \item[Model Lattice] \Newline
 Except for some commands that explicitly set the \vn{base} lattice,
 all \tao commands to vary lattice variables vary quantities in the
 \vn{model} lattice. In particular, things like orbit correction
 involve varying \vn{model} lattice variables until the \vn{data},
 as calculated from the \vn{model}, matches the \vn{data} as actually measured.
-  \index{Base lattice|hyperbf}
-  \index{Base lattice!using set command}
+  \index{base lattice|hyperbf}
+  \index{base lattice!using set command}
   \item[Base Lattice] \Newline
 It is sometimes convenient to designate a reference lattice so that
 changes in the \vn{model} from the reference point can be examined.
@@ -207,10 +208,10 @@ command (\sref{s:set}) is used to transfer information from the
 %------------------------------------------------------------------------
 \section{Variables}
 \label{s:var}
-\index{Variables}
+\index{variables}
 
 \index{change command}
-\index{Optimizer!variables}
+\index{optimizer!variables}
 For the \vn{model} lattice (or lattices if there are multiple
 \vn{universes}) the \vn{change} command (\sref{s:change}) can be used
 to vary lattice parameters such as element strengths, the initial
@@ -224,7 +225,7 @@ For example, the optimizer (\sref{s:optimizer}) will only work with
 \tao variables and blocks of these variables can be plotted for visual
 inspection.
 
-\index{Variables!v1_var}
+\index{variables!v1_var}
 Blocks of variables are associated with what is called a \vn{v1_var}
 structure and each of these structures has a \vn{name} with which to
 refer to them in \tao commands. For example, if \vn{quad_k1} is the
@@ -269,8 +270,8 @@ element which, in turn, can control numerous elements.
 
 Each individual variable has a number of values associated with it:
   \vspace*{-3ex}
-  \index{Variable!measured}\index{Variable!reference}
-  \index{Variable!model}\index{Variable!design}\index{Variable!base}
+  \index{variable!measured}\index{variable!reference}
+  \index{variable!model}\index{variable!design}\index{variable!base}
   \begin{description}
   \item[Measured Value] \Newline
 The Value as obtained at the time of the \vn{data} measurement.
@@ -341,7 +342,7 @@ Items in a list are separated by a blank character or a comma. Example:
 \end{example}
 
 An element name item is the name of an element or elements. The
-wildcard characters ``*'' and/or ``\%'' can be used. The ``*''wildcard
+wild card characters ``*'' and/or ``\%'' can be used. The ``*''wildcard
 matches any number of characters, The ``\%'' wildcard matches a single
 character. For example, ``q\%1*'' matches any element whose name
 begins with ``q'' and whose third character is ``1''.  If there are
@@ -360,7 +361,7 @@ Note: element names are {\em not} case sensitive.
 
 An element index item is simply the index of the number in the lattice
 list of elements. A prefix followed by the string ">>" can be used to
-specify a branch. As with element names, a universe previx can be 
+specify a branch. As with element names, a universe prefix can be 
 given. Example
 \begin{example}
   2@2>>183   ! Element number 183 of branch \# 2 of universe 2.
@@ -389,9 +390,9 @@ selects elements based upon their class (Eg: \vn{quadrupole},
   <element class>::<element name>
 \end{example}
 where \vn{<element class>} is an element class and \vn{<element
-name>} is the element name that can (and generally does) contain the wildcard characters
+name>} is the element name that can (and generally does) contain the wild card characters
 ``\%'' and ``*''. Essentially this is an extension of the \vn{element name}
-format. As with element names, a universe previx can be 
+format. As with element names, a universe prefix can be 
 given. Example:
 \begin{example}
   "4@quad::q*"   ! All quadrupole whose name starts with "q" of universe 4.
@@ -399,7 +400,7 @@ given. Example:
 
 %------------------------------------------------------------------------
 \section{Arithmetic Expressions}
-\index{Arithmetic Expressions}
+\index{arithmetic Expressions}
 \label{s:arithmetic}
 
 \tao is able to handle arithmetic expressions within commands
@@ -415,7 +416,7 @@ defined: \hfil\break \hspace*{0.15in}
   $a \, \land \, b$ & Exponentiation  \\
 \end{tabular} \newline
 The following intrinsic functions are also recognized: \hfil\break
-\index{Intrinsic functions}
+\index{intrinsic functions}
 \hspace*{0.15in}
 \begin{tabular}{ll}
   \vn{sqrt}(x)      & Square Root    \\
@@ -451,12 +452,12 @@ And for element parameters the format is
   \{<universe_range>@\}ele_mid::<element_id>[<param_name>]\{|<component>\}
 \end{example}
 \vn{lat::} will evaluate the parameter at the exit end of the element and 
-\vn{lat_mid::} will evalute the parameter at the middle of the element.
+\vn{lat_mid::} will evaluate the parameter at the middle of the element.
 The components of this syntax are:
 \begin{example}
   <universe_range>    Optional universe specification (\sref{s:universe})
   <var_or_dat_name>   Variable or data name.
-  <element_id>        Element identifyer: Name or lattice index.
+  <element_id>        Element identifier: Name or lattice index.
   <source>            Source of the data.
   <param_name>        Name of the parameter, datum, or variable.
   <index_list>        List of indexes.
@@ -565,7 +566,7 @@ Exceptions will be noted in the manual.
 
 
 %------------------------------------------------------------------------
-\section{Plotting}\index{Plotting}
+\section{Plotting}\index{plotting}
 \label{s:plotting}
 
 \begin{figure}[tb]
@@ -582,28 +583,28 @@ on the actual page the plot/region border is not visible.}
 Some definitions:
   \vspace*{-3ex}
 \begin{description}
-\index{Curve|hyperbf}
+\index{curve|hyperbf}
 \item[Curve] \Newline
 A \vn{curve} is a set of (x,y) points to be plotted.
-\index{Graph|hyperbf}
+\index{graph|hyperbf}
 \item[Graph] \Newline
 A \vn{graph} consists of horizontal and vertical axes along with a set
 of \vn{curve}s that are plotted within the graph. 
-\index{Plot|hyperbf}
+\index{plot|hyperbf}
 \item[Plot] \Newline
 A \vn{plot} is essentially a collection of \vn{graphs}.
-\index{Page|hyperbf}
+\index{page|hyperbf}
 \item[Page] \Newline
 The \vn{page} refers to the X11 window where graphics are displayed or the 
 corresponding printed graphics page.
-\index{Region}
+\index{region}
 \item[Region] \Newline
 The \vn{page} is divided up into a number of rectangles called
 \vn{regions}. \vn{Regions} may overlap.
 \end{description}
 
-\index{Template plot}\index{Region}\index{Place command}
-\index{Plot!initialization file}
+\index{template plot}\index{region}\index{place command}
+\index{plot!initialization file}
 The plot initialization file (cf.~Chapter~\ref{c:init}) defines a set
 of \vn{template plots}. A \vn{template} defines what type of data is
 to be plotted (orbit, beta function, etc.), how many \vn{graphs} there are,
@@ -725,7 +726,7 @@ the edges of the displayed elements in the \vn{lat_layout}.
 \break
 %------------------------------------------------------------------------
 \section{Single Character Input}
-\index{Single Mode}
+\index{single Mode}
 
 Sometimes it is convenient to be able to vary variables using single
 key strokes without having to type a carriage return.  With \tao, this
@@ -741,8 +742,8 @@ called a \vn{key table}. See Chapter~\sref{c:single} for more details.
 %------------------------------------------------------------------------
 \section{Aliases and Command Files}
 \label{s:command.files}
-\index{Command Files}
-\index{Alias}
+\index{command Files}
+\index{alias}
 
 Typing repetitive commands can become tedious. \tao has two constructs
 to mitigate this: Aliases and Command Files. Aliases are just like
@@ -792,11 +793,11 @@ pause the command file.
 
 %------------------------------------------------------------------------
 \section{Tracking Types}
-\index{Tracking!Types}
+\index{tracking!Types}
 
 \index{track_type}
 \index{tao_global_struct}
-\index{Global%track_type}
+\index{global%track_type}
 The are two types of tracking implemented in \tao: single particle
 tracking and many particle multi-bunch tracking.  Single particle
 tracking is just that, the tracking of a single particle through the
@@ -812,7 +813,7 @@ particle tracking. See Sections~\sref{s:globals} and \sref{s:beam.init} for
 details on setting up spin tracking.
 
 %------------------------------------------------------------------------
-\section{Lattice Calculation}\index{Lattice!calculation of}
+\section{Lattice Calculation}\index{lattice!calculation of}
 \label{s:lat.calc}
 
 After each \tao command is processed, the lattice and ``merit''

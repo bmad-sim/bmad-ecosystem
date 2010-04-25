@@ -72,7 +72,7 @@ real(rp), allocatable :: values(:)
 
 integer i, j, num, ix, ix1, ios, n_tot, n_loc
 
-logical err, valid
+logical err, valid, err_flag
 logical print_err, use_dflt_ele
 logical, allocatable, save :: this_u(:)
 
@@ -176,17 +176,18 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   else
     if (datum%ele_ref_name /= '') then
-      call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err)
+      call lat_ele_locator (datum%ele_ref_name, u%model%lat, eles, n_loc, err_flag)
+      if (err_flag) return
       if (size(eles) /= 1) then
-        call out_io (s_error$, r_name, &
+        if (print_err) call out_io (s_error$, r_name, &
                         'MULTIPLE ELEMENTS MATCH REFERENCE NAME: ' // datum%ele_ref_name)
         return
       endif
       datum%ix_ele_ref = eles(1)%ele%ix_ele
     endif
 
-    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
-    if (err) return
+    call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err_flag)
+    if (err_flag) return
   endif
 
   call re_allocate (values, n_tot + n_loc)
@@ -213,12 +214,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     case ('design')  
       call tao_evaluate_a_datum (datum, u, u%design, values(n_tot+j), valid)
     case default
-      call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // data_name)
+      if (print_err) call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // data_name)
       return
     end select
   enddo
   n_tot = n_tot + size(values)
 enddo
+
+if (n_tot == 0) then
+  if (print_err) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+  return
+endif
 
 err = .false.
 
