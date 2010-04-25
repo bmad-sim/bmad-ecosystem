@@ -196,6 +196,7 @@ Example main input file:
     wall_file    = "synrad3d.wall"   ! Vacuum chamber wall file.
     dat_file     = "synrad3d.dat"    ! Output data file.
     wall_hit_file = ''               ! If not blank: Write photon wall hit data file.
+    lat_ele_file  = ''               ! If not blank: Write lattice element data file.
 
     sr3d_params%allow_reflections = T       ! For testing purposes.
     sr3d_params%stop_if_hit_antechamber = F !
@@ -265,6 +266,27 @@ This string, if not blank, will create a data file listing the points
 where the photons hit the wall including all the reflection
 points. This will be in addition to the regular output file.  See
 below for more details.
+  \item[\vn{lat_ele_file}] \Newline
+This string, if not blank, will create a data file listing  the lattice
+elements within the emission region. For each element the following are given. 
+  \begin{enumerate}
+  \item
+    The element name
+  \item
+    The element type (quadrupole, etc.)
+  \item
+    Longitudinal position at the exit end of the element
+  \item
+    Element length.
+  \item
+    I0 radiation integral through the element.
+  \item
+    The nominal (not actual) number of photons to be generated based upon the I0 integral,
+    the total I0 integral, and the setting of \vn{num_photons}
+  \item
+    The longitudinal step size between photon emission points.
+  \end{enumerate}
+
   \item[\vn{random_seed}] \Newline
 Random number see used in by the random number generator. If set to 0, the system clock
 will be used. That is, if set to 0, the output results will vary from run to run. 

@@ -208,7 +208,7 @@ type (photon3d_coord_struct) :: photon
 type (em_field_struct) :: field
 
 real(rp) s_offset, k_wig, g_max, l_small, gx, gy
-real(rp), save :: s_old
+real(rp), save :: s_old_offset = 0
 
 integer direction, ix_ele
 
@@ -228,18 +228,18 @@ ele  => lat%ele(ix_ele)
 ! Tracking through a wiggler can take time so use twiss_and_track_intra_ele to
 !   minimize the length over which we track.
 
-if (ele_here%ix_ele /= ele%ix_ele .or. ele_here%ix_branch /= ele%ix_branch) then
+if (ele_here%ix_ele /= ele%ix_ele .or. ele_here%ix_branch /= ele%ix_branch .or. s_old_offset > s_offset) then
   ele_here = lat%ele(ix_ele-1)
   ele_here%ix_ele = ele%ix_ele
   ele_here%ix_branch = ele%ix_branch
   orb_here = orb(ix_ele-1)
-  s_old = 0
+  s_old_offset = 0
 endif
 
-call twiss_and_track_intra_ele (ele, lat%param, s_old, s_offset, .true., .true., &
+call twiss_and_track_intra_ele (ele, lat%param, s_old_offset, s_offset, .true., .true., &
                                             orb_here, orb_here, ele_here, ele_here, err)
 if (err) call err_exit
-s_old = s_offset
+s_old_offset = s_offset
 
 ! Calc the photon's g_bend value (inverse bending radius at src pt) 
 
