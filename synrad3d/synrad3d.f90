@@ -34,10 +34,10 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
 integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
-integer ix_ele_track_start, ix_ele_track_end, iu_hit_file
+integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, n_phot, ios, ix_polygon
 
-character(200) lattice_file, wall_hit_file, reflect_file
+character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file
 
 character(100) dat_file, dat2_file, wall_file, param_file
@@ -50,7 +50,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
-            photon_start_input_file, photon_start_output_file, reflect_file
+            photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file
 
 namelist / synrad3d_wall / wall_pt
 namelist / polygon_def / ix_polygon, v
@@ -86,6 +86,9 @@ s_filter_min = -1
 s_filter_max = -1
 wall_hit_file = ''
 reflect_file = ''
+lat_ele_file = ''
+iu_lat_file = 0
+iu_hit_file = 0
 sr3d_params%debug_on = .false.
 photon_start_input_file = '' 
 photon_start_output_file = ''
@@ -264,12 +267,23 @@ if (sig_e < 0) then
   print *, 'Using sig_e =', sig_e
 endif
 
-! Open hit_point file
+! Open files
 
 if (wall_hit_file /= '') then
   iu_hit_file = lunget()
   open (iu_hit_file, file = wall_hit_file)
-  print *, 'Opening photon hit point output file: ', trim(wall_hit_file)
+  print *, 'Creating photon hit point output file: ', trim(wall_hit_file)
+endif
+
+if (lat_ele_file /= '') then
+  iu_lat_file = lunget()
+  open (iu_lat_file, file = lat_ele_file, recl = 120)
+  print *, 'Creating lattice element output file: ', trim(lat_ele_file)
+    write (iu_lat_file, *) 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
+    write (iu_lat_file, *) 'I0 Radiation Integral over emission region:', i0_tot
+    write (iu_lat_file, *) ''
+    write (iu_lat_file, *) &
+        'Index  Name                Type                  S       L          I0    N_phot  ds_step'
 endif
 
 ! Track through the elements and generate photons.
@@ -329,7 +343,7 @@ else
   if (photon_start_output_file /= '') then
     iu_start = lunget()
     open (iu_start, file = photon_start_output_file, recl = 140)
-    print *, 'Opening photon start output file: ', trim(photon_start_output_file)
+    print *, 'Creating photon start output file: ', trim(photon_start_output_file)
   endif
 
   ! Allocate photons array
@@ -346,6 +360,8 @@ else
     if (ix_ele == ix_ele_track_end) then
       if (.not. filter_on .or. n_photon_array > 0.9 * num_photons) exit
       ix_ele = ix_ele_track_start
+      if (iu_lat_file > 0) close (iu_lat_file)
+      iu_lat_file = 0 ! To stop further output
     endif
 
     ix_ele = ix_ele + 1
@@ -358,6 +374,13 @@ else
 
     ds = ele%value(l$) / n_phot
     if (ds < ds_step_min) ds = (1+int(ds_step_min/ds)) * ds
+
+    ! Write info to lat_ele_file
+
+    if (iu_lat_file > 0) then
+      write (iu_lat_file, '(i6, 2x, a20, a16, f10.3, f8.3, f10.1, i9, f8.3)') ix_ele, ele%name, &
+              key_name(ele%key), ele%s, ele%value(l$), rad_int_ele%i0(ix_ele), n_phot, ds
+    endif
 
     ! Loop over all photon generating points
 
