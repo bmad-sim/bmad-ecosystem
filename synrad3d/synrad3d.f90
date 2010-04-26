@@ -29,13 +29,14 @@ type (polygon_vertex_struct) v(100)
 type (wall3d_polygon_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, radius
+real(rp) emit_a, emit_b, sig_e, g, gamma, radius, r
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 
 integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
-integer photon_direction, num_photons, n_phot, ios, ix_polygon
+integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_polygon
+integer n_photons_per_pass
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file
@@ -47,7 +48,7 @@ logical ok, filter_on, s_wrap_on, filter_this
 logical is_outside
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
-            photon_direction, num_photons, lattice_file, ds_step_min, &
+            photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file
@@ -92,6 +93,8 @@ iu_hit_file = 0
 sr3d_params%debug_on = .false.
 photon_start_input_file = '' 
 photon_start_output_file = ''
+num_photons = -1
+num_photons_per_pass = -1
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -248,7 +251,9 @@ print *, 'I0 Radiation Integral over emission region:', i0_tot
 
 ! d_i0 determines the number of photons to generatie per unit i0 integral.
 
-d_i0 = i0_tot / num_photons
+n_photons_per_pass = num_photons_per_pass
+if (n_photons_per_pass < 1) n_photons_per_pass = num_photons
+d_i0 = i0_tot / n_photons_per_pass
 
 ! Determine the emittance
 
@@ -348,10 +353,11 @@ else
 
   ! Allocate photons array
 
+  n = max(num_photons, n_photons_per_pass)
   if (filter_on) then
-    allocate (photons(nint(2.1*num_photons)))   
+    allocate (photons(nint(2.1*n)))   
   else
-    allocate (photons(nint(1.1*num_photons)))   ! Allow for some slop
+    allocate (photons(nint(1.1*n)))   ! Allow for some slop
   endif
 
   ix_ele = ix_ele_track_start
@@ -382,9 +388,12 @@ else
               key_name(ele%key), ele%s, ele%value(l$), rad_int_ele%i0(ix_ele), n_phot, ds
     endif
 
-    ! Loop over all photon generating points
+    ! Loop over all photon generating points.
+    ! First point is random in the range [0, ds] to avoid correlations between passes when
+    ! there are multiple passes.
 
-    s_offset = ds / 2
+    call ran_uniform (r)
+    s_offset = r * ds 
     i0_ele = 0         ! Integrated i0 for this element
     n_photon_ele = 0   
 
@@ -453,23 +462,24 @@ if (sr3d_params%stop_if_hit_antechamber .and. &
   print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
 endif
 
-write (1, *) 'ix_ele_track_start =', ix_ele_track_start
-write (1, *) 'ix_ele_track_end   =', ix_ele_track_end
-write (1, *) 'photon_direction   =', photon_direction
-write (1, *) 'num_photons        =', num_photons
-write (1, *) 'lattice_file       =', trim(lattice_file)
-write (1, *) 'ds_step_min        =', ds_step_min
-write (1, *) 'emit_a             =', emit_a
-write (1, *) 'emit_b             =', emit_b
-write (1, *) 'sig_e              =', sig_e
-write (1, *) 'wall_file          =', trim(wall_file)
-write (1, *) 'dat_file           =', trim(dat_file)
-write (1, *) 'random_seed        =', random_seed
+write (1, *) 'ix_ele_track_start   =', ix_ele_track_start
+write (1, *) 'ix_ele_track_end     =', ix_ele_track_end
+write (1, *) 'photon_direction     =', photon_direction
+write (1, *) 'num_photons          =', num_photons
+write (1, *) 'num_photons_per_pass =', num_photons_per_pass
+write (1, *) 'lattice_file         =', trim(lattice_file)
+write (1, *) 'ds_step_min          =', ds_step_min
+write (1, *) 'emit_a               =', emit_a
+write (1, *) 'emit_b               =', emit_b
+write (1, *) 'sig_e                =', sig_e
+write (1, *) 'wall_file            =', trim(wall_file)
+write (1, *) 'dat_file             =', trim(dat_file)
+write (1, *) 'random_seed          =', random_seed
 write (1, *) 'sr3d_params%allow_reflections =', sr3d_params%allow_reflections
-write (1, *) 'e_filter_min   =', e_filter_min
-write (1, *) 'e_filter_max   =', e_filter_max
-write (1, *) 's_filter_min   =', s_filter_min
-write (1, *) 's_filter_max   =', s_filter_max
+write (1, *) 'e_filter_min     =', e_filter_min
+write (1, *) 'e_filter_max     =', e_filter_max
+write (1, *) 's_filter_min     =', s_filter_min
+write (1, *) 's_filter_max     =', s_filter_max
 write (1, *)
 
 do i = 1, n_photon_array   

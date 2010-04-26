@@ -56,7 +56,7 @@
 
 \title{ \srthree information}
 \author{G. Dugan, D. Sagan}
-\date{\today}                                      % Activate to display a given date or no date
+\date{April 25, 2010}
 
 \begin{document}
 \maketitle
@@ -144,10 +144,10 @@ is included.
 %------------------------------------------------------------------
 \subsection{Photon scattering} 
 
-Synchrotron radiation
-photon scattering is treated as purely specular, with a scattering
-probability which depends on the photon energy and polar angle with
-respect to the chamber normal at the point of incidence.
+Photon scattering from the vacuum chamber wall is treated as purely
+specular, with a scattering probability which depends on the photon
+energy and polar angle with respect to the chamber normal at the point
+of incidence.
 
 The scattering probabilities are taken from an X-ray scattering
 database at LBNL~\cite{b.henke}. The scattering probabilities depend on
@@ -181,10 +181,11 @@ If not given, the default name for the main input file is ``\vn{synrad3d.init}''
 Example main input file:
 \begin{example}
   &synrad3d_parameters
-    ix_ele_track_start = 1    ! Radiation region start lattice element.
-    ix_ele_track_end   = 912  ! Radiation region end lattice element.
-    photon_direction = 1      ! 1 = Forward generation, -1 = Backward generation.
-    num_photons      = 50000  ! Total number of photons generated. 
+    ix_ele_track_start   = 1      ! Radiation region start lattice element.
+    ix_ele_track_end     = 912    ! Radiation region end lattice element.
+    photon_direction     = 1      ! 1 = Forward generation, -1 = Backward generation.
+    num_photons          = 50000  ! Nominal number of unfiltered photons generated. 
+    num_photons_per_pass = -1     ! Number of photons generated per pass. -1 = Use num_photons.
     ds_step_min      = 0.01   ! Photons are generated at discrete points. 
                               ! Multipole photons can be generated at each point.
                               ! This is minimum distance between points.
@@ -224,7 +225,7 @@ the exit end of the elements so no radiation is produced in the element
 with index \vn{ix_ele_track_start}. If \vn{ix_ele_track_end} is negative,
 the end of the radiation region is taken to be end of the lattice.
 If \vn{ix_ele_track_end} is positive and less than \vn{ix_ele_track_start},
-then the track region will be from \vn{ix_ele_track_start} through the
+the track region will be from \vn{ix_ele_track_start} through the
 end of the lattice and from the beginning of the lattice to \vn{ix_ele_track_end}.
   \item[\vn{photon_direction}] \Newline
 The \vn{photon_direction} parameter determines in what direction the photons
@@ -232,10 +233,17 @@ are traveling when initially created. A value of \vn{+1} indicates the photons
 are created traveling in the $+s$ direction and a value of \vn{-1} indicates
 that the photons are created in the $-s$ direction.
   \item[\vn{num_photons}] \Newline
-The \vn{num_photons} establishes the approximate number of photons
-generated.  The exact number of photons shown in the output file may vary
-slightly. If filtering is enabled (see below), the number of photons shown
-in the output file will approximately be in the range [0.9 * num_photons, 2 * num_photons]
+\vn{num_photons} establishes the minimum number of ``unfiltered''
+photons that need to be generated before \srthree will stop the
+simulation. The minimum number is actually 0.9 * \vn{num_photons}. See
+below for more details. An unfiltered photon is a photon that passes
+all filter requirements.  
+  \item[\vn{num_photons_per_pass}] \Newline
+\vn{num_photons_per_pass} sets the number of photons generated per
+``pass''.  A ``pass'' is the act of generating photons throughout the
+radiation production region. If \vn{num_photon_per_pass} is negative
+(the default), the number of photons generated per pass is taken from
+the value of \vn{num_photons}.
   \item[\vn{ds_step_min}] \Newline
 This parameter establishes the minimum distance to track a the particle beam between emission
 points. The thought was that if \srthree decided to make very small steps  between emission
@@ -340,13 +348,14 @@ for keeping a photon is from \vn{s_filter_min} through the end of the
 lattice along with the region from the start of the lattice to
 \vn{s_filter_max}. 
 
-In filtered mode, \srthree will generate a set of approximately
-\vn{num_photons} photons in the radiation production region.  After
-filtering, \srthree will check to see if the number of unfiltered
-photons is at least 0.9 * \vn{num_photons}. If so, photon generation
-will stop. If not enough photons have been generated, \srthree will
-generate another \vn{num_photons}, and so on, until at least 0.9 *
-\vn{num_photons} unfiltered photons have been generated. 
+\srthree will generate a set of approximately
+\vn{num_photons_per_pass} photons in the radiation production region.
+This is called a ``pass''.  After any filtering, \srthree will check
+to see if the number of unfiltered photons is at least 0.9 *
+\vn{num_photons}. If so, photon generation will stop. If not enough
+photons have been generated, \srthree will generate another
+\vn{num_photons_per_pass}, and so on, until at least 0.9 *
+\vn{num_photons} unfiltered photons have been generated.
 
 %------------------------------------------------------------------
 \subsection{Vacuum chamber wall definition} 
