@@ -1360,6 +1360,11 @@ case ('lattice')
         i1 = index(name, '[')
         i2 = index(name, ']')
         name = name(i1+1:i2-1)
+      elseif (index(name, 'beam::') /= 0) then
+        ix = index(name, 'beam::')
+        name = name(ix+6:)
+        i2 = index(name, '[')
+        name = name(1:i2-1)
       elseif (index(name, 'lat::') /= 0) then
         ix = index(name, 'lat::')
         name = name(ix+5:)

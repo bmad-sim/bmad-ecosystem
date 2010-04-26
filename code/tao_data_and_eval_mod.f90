@@ -1281,48 +1281,72 @@ case ('orbit.')
   select case (datum%data_type)
 
   case ('orbit.x')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
     if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
       valid_value = .false.
       why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.y')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
     if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
       valid_value = .false.
       why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.z')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
     if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
       valid_value = .false.
       why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.px')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
     if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
       valid_value = .false.
       why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.py')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
     if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
       valid_value = .false.
       why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.pz')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params%centroid%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
     if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
       valid_value = .false.
       why_invalid = 'Particle lost.'

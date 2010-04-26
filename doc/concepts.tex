@@ -448,8 +448,8 @@ For lattice and beam parameters the format is
 \end{example}
 And for element parameters the format is
 \begin{example}
-  \{<universe_range>@\}ele::<element_id>[<param_name>]\{|<component>\}
-  \{<universe_range>@\}ele_mid::<element_id>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}ele::<element_list>[<param_name>]\{|<component>\}
+  \{<universe_range>@\}ele_mid::<element_list>[<param_name>]\{|<component>\}
 \end{example}
 \vn{lat::} will evaluate the parameter at the exit end of the element and 
 \vn{lat_mid::} will evaluate the parameter at the middle of the element.
@@ -457,7 +457,6 @@ The components of this syntax are:
 \begin{example}
   <universe_range>    Optional universe specification (\sref{s:universe})
   <var_or_dat_name>   Variable or data name.
-  <element_id>        Element identifier: Name or lattice index.
   <source>            Source of the data.
   <param_name>        Name of the parameter, datum, or variable.
   <index_list>        List of indexes.
@@ -468,7 +467,8 @@ The components of this syntax are:
 Examples:
 \begin{example}
   3@lat::orbit.x[34:37]          Array of orbits at element 34 through 37 in universe 3.
-  3@lat::orbit.x[34]|model       Same as above.
+  3@lat::orbit.x[34]|model       Orbit.x model value at element 34
+  3@ele::34[orbit_x]             Same as above. 
   beam::sigma.x[q10w]            Beam sigma at element q10w.
   lat::n_particle_loss[2&56]     Particle loss between elements 2 and 56.
   3@lat::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
@@ -552,10 +552,19 @@ index, in this case \vn{10}, refers to the 10th lattice element. With the
 the \vn{orbit.x} data array which may or may not correspond to the
 10\Th lattice element and which may not even refer to orbit data.
 
-When a term has a \vn{ele} or \vn{ele_mid} source, the value of the
+Due to historical circumstances, the notation is a bit different for
+terms with an \vn{ele} or \vn{ele_mid} source as opposed to terms with
+a \vn{lat} or \vn{beam} source. With \vn{ele} or \vn{ele_mid}, the
+\vn{<element_list>} comes before the \vn{<param_name>}. Additionally,
+With \vn{ele} or \vn{ele_mid}, the \vn{<param_name>} uses the \bmad
+naming convention as opposed to the \tao convention. For example, the
+\tao name for the horizontal orbit is \vn{orbit.x} while the \bmad
+name is \vn{orbit_x}.
+
+the value of the
 term comes from an element parameter such as the element strength.
 Element list format (\sref{s:ele.list.format}) is used for the
-\vn{<element_id>} so an array of elements can be defined.  The
+\vn{<element_list>} so an array of elements can be defined.  The
 optional \vn{<component>} indicates what lattice is to be used and is
 the same as for terms with a \vn{lat} or \vn{beam} source (see above).
 
