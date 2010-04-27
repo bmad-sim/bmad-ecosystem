@@ -31,7 +31,6 @@ real(rp), allocatable, save :: y_fit(:)
 real(rp), allocatable, save :: dy_da(:, :), dy_da_old(:, :), dy_da_out(:, :), v(:, :)
 real(rp), allocatable, save :: var_value(:), var_weight(:)
 real(rp) merit0, merit
-real(rp), parameter :: tol = 1d-5
 
 integer i, j, k, status, status2
 integer n_data, n_var
@@ -104,7 +103,7 @@ call tao_svd_func (a, y_fit, dy_da, status)  ! put a -> model
 if (status /= 0) return
 
 do i = 1, n_data
-  dy_da(i, :) = dy_da(i, :) / sqrt(weight(i))
+  dy_da(i, :) = dy_da(i, :) * sqrt(weight(i))
 enddo
 
 if (any(dy_da /= dy_da_old)) then
@@ -113,8 +112,8 @@ if (any(dy_da /= dy_da_old)) then
   dy_da_out = dy_da
 endif
 
-where (w < tol * maxval(w)) w = 0
-b = y_fit / sqrt(weight)
+where (w < s%global%svd_cutoff * maxval(w)) w = 0
+b = y_fit * sqrt(weight)
 call svbksb (dy_da_out, w, v, b, da)
 a_try = a - da
 

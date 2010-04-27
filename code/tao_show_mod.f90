@@ -2469,6 +2469,7 @@ nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%
 nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
 nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
 nl=nl+1; write (lines(nl), rmt) '  %merit_stop_value              = ', s%global%merit_stop_value
+nl=nl+1; write (lines(nl), rmt) '  %svd_cutoff                    = ', s%global%svd_cutoff
 nl=nl+1; write (lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
 nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
 nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles

@@ -338,6 +338,7 @@ type tao_global_struct
   real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff. -1 => ignore this.
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   real(rp) de_var_to_population_factor = 5 
+  real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
   real(rp) floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   real(rp) random_sigma_cutoff = 4.0  ! Cut-off in sigmas.
   real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.

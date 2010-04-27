@@ -367,12 +367,18 @@ Recipes\cite{b:nr} for more details. With the \vn{svd} optimizer, the
 setting of \vn{global%n_opti_cycles} is ignored. One optimization loop
 consists of applying svd to the derivative matrix to locate a new set
 of variable values.  If the merit function decreases with the new set,
-the new valuse are retaind and the optimization loop is finished. If
+the new values are retained and the optimization loop is finished. If
 the merit function increases, and if the global variable
 \vn{global%svd_retreat_on_merit_increase} is True (the default), the
 variables are set to the original variable settings. In either case,
 an increasing merit function will stop the execution of additional
 loops.
+
+The \vn{global%svd_cutoff} variable can be used to vary the cutoff
+that SVD uses to decide what eigenvalues are sigular. See the
+documentation for the Numerical Recipes routine \vn{svdfit} for more
+details.
+
   \end{description}
 
 %------------------------------------------------------------------------
