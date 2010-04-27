@@ -60,11 +60,12 @@ call tao_get_opt_vars (var_weight = var_weight, ignore_if_weight_is_zero = .true
 n_data = size(var_weight)
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. s%u(i)%is_on) cycle
-  n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0)
+  n_data = n_data + count(s%u(i)%data(:)%useit_opt .and. s%u(i)%data(:)%weight /= 0 .and. &
+                          s%u(i)%data(:)%good_model)
 enddo
 
 if (allocated(weight)) then
- if (size(dy_da, 1) /= size(dy_da_old, 1) .or. size(dy_da, 2) /= size(dy_da_old, 2)) then
+ if (n_data /= size(dy_da_old, 1) .or. n_var /= size(dy_da_old, 2)) then
    deallocate(weight, a, a_try, da, y_fit, dy_da, dy_da_old, dy_da_out, b, w, v)
   endif
 endif
@@ -87,6 +88,7 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
+    if (.not. u%data(i)%good_model) cycle
     if (u%data(i)%weight == 0) cycle
     k = k + 1
     weight(k) = u%data(i)%weight
@@ -118,13 +120,13 @@ call svbksb (dy_da_out, w, v, b, da)
 a_try = a - da
 
 
-call tao_svd_func (a_try, y_fit, dy_da, status)  ! put a -> model
+call tao_set_opt_vars (a_try, s%global%optimizer_var_limit_warn)
 merit = tao_merit()
 call out_io (s_blank$, r_name, 'Merit after svd: \es14.4\ ', r_array = [merit])
 
 if (status /= 0 .or. (merit > merit0 .and. s%global%svd_retreat_on_merit_increase)) then
   abort = .true.   ! So no more loops
-  call tao_svd_func (a, y_fit, dy_da, status2)  ! put a -> model
+  call tao_set_opt_vars (a, s%global%optimizer_var_limit_warn)
   call out_io (s_blank$, r_name, 'Retreating to initial state.')
 endif
 
@@ -194,6 +196,7 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. u%is_on) cycle
   do i = 1, size(u%data)
     if (.not. u%data(i)%useit_opt) cycle
+    if (.not. u%data(i)%good_model) cycle
     if (u%data(i)%weight == 0) cycle
     nd = nd + 1
     y_fit(nd) = u%data(i)%delta_merit
