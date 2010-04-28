@@ -158,6 +158,7 @@ if (n_level /= 0 .and. .not. tao_com%cmd_file(n_level)%paused) then
   close (tao_com%cmd_file(n_level)%ix_unit)
   tao_com%cmd_file(n_level)%ix_unit = 0 
   tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
+  cmd_line = ''
   ! If still lower nested command file to complete then return
   if (tao_com%cmd_file_level /= 0) then
     if (tao_com%cmd_file(n_level-1)%paused) then
