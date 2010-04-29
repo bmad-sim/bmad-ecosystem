@@ -37,7 +37,8 @@ end type
 ! %crossed_lat_end -- Did the photon cross from the end of the lattice to the beginning
 !                       or vice versa?
 ! %hit_antechamber -- Did the photon hit the antechamber at the final position?
-! %ix_photon       -- Photon index. The first photon generated has index 1, etc.
+! %ix_photon       -- Unfiltered photon index. 
+! %ix_photon_generated -- The first photon generated has index 1, etc.
 ! %n_wall_hit      -- Number of wall hits.
 
 type photon3d_track_struct
@@ -46,7 +47,8 @@ type photon3d_track_struct
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
   integer ix_photon                        ! Photon index.
-  integer :: n_wall_hit = 0                     ! Number of wall hits
+  integer ix_photon_generated
+  integer :: n_wall_hit = 0                ! Number of wall hits
 end type
 
 !--------------
@@ -92,6 +94,8 @@ type sr3d_params_struct
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
   logical :: stop_if_hit_antechamber = .false. 
+  logical :: allow_absorbtion = .true.  ! If False, do not allow photon to be adsorbed at wall. 
+                                        !   Used for debugging.
   logical :: debug_on
 end type
 

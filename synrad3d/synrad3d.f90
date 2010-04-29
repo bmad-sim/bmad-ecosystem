@@ -36,7 +36,7 @@ integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_polygon
-integer n_photons_per_pass
+integer n_photons_per_pass, ix_generated_warn
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file
@@ -51,7 +51,8 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
-            photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file
+            photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
+            ix_generated_warn
 
 namelist / synrad3d_wall / wall_pt
 namelist / polygon_def / ix_polygon, v
@@ -95,6 +96,7 @@ photon_start_input_file = ''
 photon_start_output_file = ''
 num_photons = -1
 num_photons_per_pass = -1
+ix_generated_warn = -1
 
 print *, 'Input parameter file: ', trim(param_file)
 open (1, file = param_file, status = 'old')
@@ -334,7 +336,7 @@ if (photon_start_input_file /= '') then
     if (is_outside) cycle
     call sr3d_track_photon (photon, lat, wall, wall_hit)
     call check_filter_restrictions(ok)
-    if (ok) call print_hit_points (photon, wall_hit)
+    if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
   enddo
 
   close (1)
@@ -413,6 +415,12 @@ else
         endif
         photon => photons(n_photon_array)
         photon%ix_photon = n_photon_array
+        photon%ix_photon_generated = n_photon_generated
+
+        if (n_photon_generated == ix_generated_warn) then
+          print *, 'Note: At ix_generated_warn:', ix_generated_warn ! For debug purposes.
+        endif
+
         call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
                                emit_a, emit_b, sig_e, photon_direction, photon%start)
         photon%n_wall_hit = 0
@@ -431,7 +439,7 @@ else
         if (is_outside) cycle
         call sr3d_track_photon (photon, lat, wall, wall_hit)
         call check_filter_restrictions (ok)
-        if (ok) call print_hit_points (photon, wall_hit)
+        if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
 
       enddo
 
@@ -595,38 +603,6 @@ allocate(photon_array(n_size))
 photon_array(1:n_old) = temp
 
 deallocate (temp)
-
-end subroutine
-
-!--------------------------------------------------------------------------------------------
-! contains
-
-subroutine print_hit_points (photon, wall_hit)
-
-type (photon3d_track_struct), target :: photon
-type (photon3d_wall_hit_struct), pointer :: hit
-type (photon3d_wall_hit_struct), target :: wall_hit(:)
-
-integer iu, n
-
-!
-
-
-iu = iu_hit_file 
-if (iu == 0) return
-
-write (iu, *) '*********************************************'
-write (iu, '(2i8, f10.1)') photon%ix_photon, 0, photon%start%energy
-write (iu, '(6f12.6)') photon%start%vec
-
-do n = 1, photon%n_wall_hit
-  hit => wall_hit(n)
-  write (iu, *) '*********************************************'
-  write (iu, '(2i8, f10.1)') photon%ix_photon, n, hit%before_reflect%energy
-  write (iu, '(6f12.6)') hit%before_reflect%vec
-  write (iu, '(3(12x, f12.6))') hit%after_reflect%vec(2:6:2)
-  write (iu, '(3f10.4, 10x, 2f12.6)') hit%dw_perp, hit%cos_perp, hit%reflectivity
-enddo
 
 end subroutine
 

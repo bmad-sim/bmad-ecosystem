@@ -9,7 +9,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon (photon, lat, wall)
+! Subroutine sr3d_track_photon (photon, lat, wall, wall_hit)
 !
 ! Routine to propagate a synch radiation photon until it gets absorbed by a wall.
 !
@@ -46,11 +46,9 @@ photon%now = photon%start
 !
 
 do
-
-  call sr3d_track_photon_to_wall (photon, lat, wall)
+  call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
   call sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
-  if (absorbed) return
-
+  if (absorbed .and. sr3d_params%allow_absorbtion) return
 enddo
 
 end subroutine sr3d_track_photon
@@ -59,7 +57,7 @@ end subroutine sr3d_track_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon_to_wall (photon, lat, wall)
+! Subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
 !
 ! Routine to propagate a synch radiation photon until it hits a wall.
 !
@@ -75,13 +73,14 @@ end subroutine sr3d_track_photon
 !   photon    -- photon3d_coord_struct: synch radiation photon propagated to wall
 !-
 
-subroutine sr3d_track_photon_to_wall (photon, lat, wall)
+subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
+type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) v_rad_max, dlen, radius
 real(rp), pointer :: vec(:)
@@ -108,7 +107,7 @@ do
 
   call sr3d_photon_radius (photon%now, wall, radius)
   if (radius > 1) then
-    call sr3d_photon_hit_spot_calc (photon, wall, lat)
+    call sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
     return
   endif
 
@@ -335,7 +334,7 @@ end subroutine sr3d_propagate_photon_a_step
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_hit_spot_calc (photon, wall, lat)
+! Subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
 !
 ! Routine to calculate where the photon has hit the wall.
 !
@@ -352,7 +351,7 @@ end subroutine sr3d_propagate_photon_a_step
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !-
 
-subroutine sr3d_photon_hit_spot_calc (photon, wall, lat)
+subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
 
 use nr, only: zbrent
 
@@ -361,6 +360,7 @@ implicit none
 type (lat_struct) lat
 type (photon3d_track_struct) :: photon, photon1
 type (wall3d_struct), target :: wall
+type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) track_length, radius, tol, d_rad
 
@@ -379,6 +379,9 @@ do i = 1, 30
   track_length = (track_length + photon%old%track_len) / 2
   if (i == 30) then
     print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
+    print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+    print *, '       Start: ', photon%start%vec
+    call print_hit_points (10, photon, wall_hit, '(6es25.15)')
     call err_exit
   endif
 enddo
@@ -519,7 +522,7 @@ wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 call ran_uniform(r)
 absorbed = (r > reflectivity)
-if (absorbed) return  ! Do not reflect if absorbed
+if (absorbed .and. sr3d_params%allow_absorbtion) return  ! Do not reflect if absorbed
 
 ! Reflect the ray.
 ! The perpendicular component gets reflected and the parallel component is invarient.
@@ -527,5 +530,45 @@ if (absorbed) return  ! Do not reflect if absorbed
 photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 end subroutine sr3d_reflect_photon
+
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------
+
+subroutine print_hit_points (iu_hit_file, photon, wall_hit, fmt)
+
+implicit none
+
+type (photon3d_track_struct), target :: photon
+type (photon3d_wall_hit_struct), pointer :: hit
+type (photon3d_wall_hit_struct), target :: wall_hit(:)
+
+integer iu, n, iu_hit_file
+
+character(20) fm
+character(*), optional :: fmt
+!
+
+
+fm = '(6f12.6)'
+if (present(fmt)) fm = fmt
+
+iu = iu_hit_file 
+if (iu == 0) return
+
+write (iu, *) '*********************************************'
+write (iu, '(2i8, f10.1)') photon%ix_photon, 0, photon%start%energy
+write (iu, fm) photon%start%vec
+
+do n = 1, photon%n_wall_hit
+  hit => wall_hit(n)
+  write (iu, *) '*********************************************'
+  write (iu, '(2i8, f10.1)') photon%ix_photon, n, hit%before_reflect%energy
+  write (iu, fm) hit%before_reflect%vec
+  write (iu, '(3(12x, f12.6))') hit%after_reflect%vec(2:6:2)
+  write (iu, '(3f10.4, 10x, 2f12.6)') hit%dw_perp, hit%cos_perp, hit%reflectivity
+enddo
+
+end subroutine
 
 end module
