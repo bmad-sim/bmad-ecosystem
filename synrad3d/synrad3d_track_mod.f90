@@ -42,6 +42,7 @@ logical absorbed
 
 photon%start%track_len = 0
 photon%now = photon%start
+wall_hit(0)%after_reflect = photon%start
 
 !
 
@@ -362,37 +363,61 @@ type (photon3d_track_struct) :: photon, photon1
 type (wall3d_struct), target :: wall
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 
-real(rp) track_length, radius, tol, d_rad
+real(rp) track_len0, radius, d_rad, r0, r1, track_len
 
 integer i
 
-! Find where the photon hits.
+!
+
+if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
+  print *
+  print *, '*************************************************************'
+  print *, 'Hit:', photon%n_wall_hit
+  call sr3d_photon_radius (photon%old, wall, r0)
+  call sr3d_photon_radius (photon%now, wall, r1)
+  print *, 'photon%old:', photon%old%vec, photon%old%track_len, r0
+  print *, 'photon%now:', photon%now%vec, photon%now%track_len, r1
+endif
+
+! Bracket the hit point. 
 ! Note: After the first reflection, the photon will start at the wall so
-! we must avoid selecting this point as the next hit spot!
+! if photon%old is at the wall we must avoid bracketing this point.
 
 photon1 = photon
 
-track_length = (photon%now%track_len + photon%old%track_len) / 2
-do i = 1, 30
-  d_rad = photon_hit_func(track_length)
-  if (d_rad < 0) exit
-  track_length = (track_length + photon%old%track_len) / 2
-  if (i == 30) then
-    print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
-    print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
-    print *, '       Start: ', photon%start%vec
-    call print_hit_points (10, photon, wall_hit, '(6es25.15)')
-    call err_exit
-  endif
-enddo
+if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
-tol = 1e-10 * (photon%now%track_len + photon%old%track_len)
-track_length = zbrent (photon_hit_func, track_length, photon%now%track_len, tol)
+  track_len0 = (photon%now%track_len + photon%old%track_len) / 2
+  do i = 1, 30
+    d_rad = photon_hit_func(track_len0)
+    if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
+      print *
+      print *, 'track_len, d_rad:', track_len0, d_rad
+      print *, 'photon1%now:', i, photon1%now%vec, photon1%now%track_len
+    endif
+    if (d_rad < 0) exit
+    track_len0 = (track_len0 + photon%old%track_len) / 2
+    if (i == 30) then
+      print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
+      print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+      print *, '       Start: ', photon%start%vec
+      call print_hit_points (10, photon, wall_hit, '(6es25.15)')
+      call err_exit
+    endif
+  enddo
+
+else
+  track_len0 = photon%old%track_len
+endif
+
+! Find where the photon hits.
+
+track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
 
 ! Cleanup
 
 photon%now = photon%old
-call sr3d_propagate_photon_a_step (photon, track_length-photon%now%track_len, lat, wall, .false.)
+call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
 call sr3d_photon_radius (photon%now, wall, radius, in_antechamber = photon%hit_antechamber)
 
 !-----------------------------------------------------------------------
@@ -458,14 +483,14 @@ logical absorbed
 
 !
 
-n_old = size(wall_hit)
+n_old = ubound(wall_hit, 1)
 n_wall_hit = photon%n_wall_hit + 1
 if (n_old < n_wall_hit) then
-  allocate (hit_temp(n_old))
+  allocate (hit_temp(0:n_old))
   hit_temp = wall_hit
   deallocate (wall_hit)
-  allocate (wall_hit(2*n_wall_hit))
-  wall_hit(1:n_old) = hit_temp
+  allocate (wall_hit(0:2*n_wall_hit))
+  wall_hit(0:n_old) = hit_temp
   deallocate(hit_temp)
 endif
 

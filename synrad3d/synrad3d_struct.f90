@@ -97,6 +97,7 @@ type sr3d_params_struct
   logical :: allow_absorbtion = .true.  ! If False, do not allow photon to be adsorbed at wall. 
                                         !   Used for debugging.
   logical :: debug_on
+  integer ix_generated_warn             ! For debug use
 end type
 
 type (sr3d_params_struct), save :: sr3d_params
