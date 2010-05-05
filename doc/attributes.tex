@@ -219,8 +219,8 @@ from the reference orbit. They are
   tilt     = <Real>
   roll     = <Real>
 \end{example}
-\index{pitch}
-The exception here is the \vn{Patch} element which uses these
+\index{patch}
+The exception here is the \vn{patch} element which uses these
 attributes to modify the reference orbit itself.
 
 \vn{x_offset} translates an element in the local $x$--direction
@@ -243,14 +243,18 @@ point. In terms of rotation angle
   x_pitch =  dtheta
   y_pitch = -dphi
 \end{example}
-\begin{figure}[ht]
+Since \bmad uses the small angle approximation, the pitches are
+considered small so that the \vn{x_pitch} and \vn{y_pitch}
+transformations commute.
+
+\begin{figure}[t]
   \centering
   \includegraphics{pitch.eps}
   \caption{Geometry of Pitch and Offset attributes}
   \label{f:pitch}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[t]
   \centering
   \includegraphics{tilt.eps}
   \caption{Geometry of a Tilt}
@@ -261,22 +265,25 @@ The tilt attribute rotates the element in the $(x, y)$ plane as shown
 in figure~\ref{f:tilt}. The rotation axis is the $z$-axis at the
 entrance face. The reference orbit is also rotated for any element
 who's exit coordinates are not collinear with the entrance
-coordinates. For example, a \vn{bend} or \vn{mirror} with a tilt of $\pi/2$ will bend a
-beam vertically upward. The \vn{hkick} and \vn{vkick} attributes are
-not affected by \vn{tilt} except for \vn{Kicker} and \vn{ElSeparator}
-elements. Like MAD, \bmad allows the use of the \vn{tilt} attribute
-without a value to designate a skew element. For example
+coordinates. For example, a \vn{bend} or \vn{mirror} with a tilt of
+$\pi/2$ will bend a beam vertically upward. The \vn{hkick} and
+\vn{vkick} attributes are not affected by \vn{tilt} except for
+\vn{Kicker} and \vn{ElSeparator} elements. Like MAD, \bmad allows the
+use of the \vn{tilt} attribute without a value to designate a skew
+element. For example
 \begin{example}
   q1: quad, l = 0.6, x_offset = 0.03, y_pitch = 0.001, tilt
 \end{example}
+\index{rbend!tilt default}\index{sbend!tilt default}
+\index{sol_quad!tilt default}\index{quadrupole!tilt default}
+\index{sextupole!tilt default}\vn{octupole!tilt default}
 Default tilts can be used for \vn{rbend}, \vn{sbend}, \vn{sol_quad},
 \vn{quadrupole}, \vn{sextupole}, and \vn{octupole} elements.
 The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the 
 element (n = 0 for bends, n = 1 for quadrupoles etc.) 
 
-For all elements, offsets, pitches, and tilts are with
-respect to the entrance coordinates (the local coordinates just before
-the element.
+For all elements, offsets, pitches, and tilts are with respect to the
+entrance coordinates (the local coordinates just before the element.
 
 The \vn{roll} attribute is only used for bends and rotates the bend,
 along an axis that runs through the entrance point and exit point as

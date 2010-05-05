@@ -54,7 +54,7 @@ the same element multiple times. This is covered in
 An \vn{overlay} element is used to control the attributes of other elements. 
 For example: 
 \begin{example}
-  over1: overlay = \{a_ele, b_ele/2.0\}, hkick = 0.003
+  over1: overlay = \{a_ele, b_ele:2.0\}, hkick = 0.003
   over2: overlay = \{b_ele\}, hkick
   over2[hkick] = 0.9
   a_ele: quad, hkick = 0.05, ...
@@ -70,7 +70,7 @@ attribute of the "slave" elements \vn{a_ele} and
 has been assigned a value for \vn{hkick} of 0.9.
 
 There are coefficients associated with the control of a slave element. 
-The default coefficient is 1.0. To specify a coefficient use a slash "/" 
+The default coefficient is 1.0. To specify a coefficient use a vertical colon ":"
 after the element name followed by the coefficient. In the above example 
 the coefficient for the control of \vn{b_ele} from \vn{over1} is 2.0 
 and for the others the default 1.0 is used. thus 
@@ -80,6 +80,10 @@ and for the others the default 1.0 is used. thus
   b_ele[hkick] = over2[hkick] + 2 * over1[hkick] 
                = 0.906
 \end{example}
+Note: An older notation allowed a slash "/" to be used in place of the
+colon ":" for the separator between the slave name and the
+coefficient. While the slash is still accepted, its use is
+discouraged.
 
 An \vn{overlay} will control all elements of a given name.  Thus, in
 the above example, if there are multiple elements in \vn{this_line}
@@ -98,7 +102,7 @@ of \vn{over1}.
 will make \vn{c_ele[k1]} = 0. Overlays can also control more than one
 type of attribute as the following example shows
 \begin{example}
-  over4: overlay = \{this_quad[k1]/3.4, this_sextupole[k2], ...\}, hkick
+  over4: overlay = \{this_quad[k1]:5.4, this_sextupole[k2], ...\}, hkick
 \end{example}
 
 
@@ -201,7 +205,7 @@ Like \vn{overlay}s, coefficients can be specified for the individual
 elements under a \vn{group}'s control and \vn{group}s can control more
 than one type of attribute. For example
 \begin{example}
-  gr3: group = \{q1[k1]/-1.0, q2[tilt], oct1/-2.0\}, k3
+  gr3: group = \{q1[k1]:-1.0, q2[tilt], oct1:-2.0\}, k3
   gr3[command] = 2.0
   gr3[old_command] = 1.5
 \end{example}

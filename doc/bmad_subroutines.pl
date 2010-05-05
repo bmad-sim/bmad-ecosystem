@@ -5,6 +5,7 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"track_macro_beam"} = "";
 $pl_hash{"twiss_and_track_main"} = "twiss_and_track_mod.f90";
 $pl_hash{"twiss_and_track_all"} = "twiss_and_track_mod.f90";
 $pl_hash{"twiss_and_track1"} = "twiss_and_track_mod.f90";
@@ -348,7 +349,7 @@ print "Subroutines in bmad but not in subroutines.tex:\n\n";
 while (($key, $val) = each %f90_hash) {
   if (! exists $tex_hash{$key} && ! exists $pl_hash{$key}) {
 #    printf "%-30s%s\n", ":$key:", $val;
-    printf "\$pl_hash\{\"$key\"\} = \"$val\"\;\n";
+    printf "\$pl_hash\{\"$key\"\} = \"\"\;\n";
   }
 }
 

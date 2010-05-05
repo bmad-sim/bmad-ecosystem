@@ -460,7 +460,7 @@ For example:
   g_in = 1.52
   l_coef = asin(l_ch * g_in / 2) / g_in
   my_bend: rbend, l = l_ch, g = g_in
-  my_overlay: overlay = \{my_bend, my_bend[e1]/l_coef, my_bend[e2]/l_coef\}, g = g_in
+  my_overlay: overlay = \{my_bend, my_bend[e1]:l_coef, my_bend[e2]:l_coef\}, g = g_in
 \end{example}
 Notice that \vn{l_coef} is just \vn{arc_length/2}.
 

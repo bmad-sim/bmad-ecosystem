@@ -1287,9 +1287,9 @@ type (particle_struct), allocatable :: p(:)
 real(rp) beta(:), alpha(:), emit(:)
 real(rp) beta1, beta2, alpha1, alpha2, emit1, emit2
 
-integer i_I2, i_phi1, i_phi2, k, n_particle, ix1_plane, ix2_plane
+integer i_I2, i_phi1, i_phi2, k, n_particle, ix1_plane, ix2_plane, n_p1, n_p2
 
-real(rp) emit_tot, n_p1, n_p2
+real(rp) emit_tot
 real(rp) I1, I2
 real(rp) J1, J2, phi1, phi2
 real(rp) x1, x2, px1, px2, charge

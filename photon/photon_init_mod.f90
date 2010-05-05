@@ -408,9 +408,9 @@ type (photon_init_spline_struct), save :: spline(5)
 real(rp) E_rel
 real(rp), optional :: r_in
 real(rp) rr, x, r_rel, rr0, x0, xp0, x1, xp1, v, vp
-real(rp), save :: a, b, c, n
+real(rp), save :: a, b, c
 
-integer i, is, ns
+integer i, is, ns, n
 
 logical, save :: init_needed = .true.
 

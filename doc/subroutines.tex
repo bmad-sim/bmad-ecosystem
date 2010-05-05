@@ -168,6 +168,11 @@ Routine to initialize either a random or tail-weighted distribution of particles
 \item[reallocate_beam (beam, n_bunch, n_particle)] \Newline 
 Routine to reallocate memory within a beam_struct.
 
+\index[routine]{reallocate_bunch}
+\label{r:reallocate.bunch}
+\item[reallocate_bunch (bunch, n_bunch, n_particle)] \Newline 
+Subroutine to reallocate particles within a bunch_struct.
+
 \index[routine]{track1_bunch_custom}
 \label{r:track1.bunch.custom}
 \item[track1_bunch_custom (bunch_start, lat, ix_ele, bunch_end)] \Newline 
@@ -3489,6 +3494,11 @@ Routine to calculate the transfer map between two elements.
 \item[transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)] \Newline 
 Routine to calculate the transfer map between longitudinal positions
 s1 to s2.
+
+\index[routine]{transfer_twiss}
+\label{r:transfer.twiss}
+\item[transfer_twiss (ele_in, ele_out)] \Newline 
+Routine to transfer the twiss parameters from one element to another.
 
 \index[routine]{twiss_and_track}
 \item[twiss_and_track (lat, orb)] \Newline

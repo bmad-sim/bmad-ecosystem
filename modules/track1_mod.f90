@@ -378,8 +378,20 @@ end subroutine
 !+
 ! Subroutine track_bend_edge (orb, e, g, start_edge, reverse, kx, ky)
 !
-! Subroutine to track through the edge field of a bend.
-! This routine is not meant for general use.
+! Subroutine to track through the edge field of an  sbend.
+!
+! Input:
+!   orb        -- Coord_struct: Starting coords.
+!   e          -- Real(rp): Edge angle.
+!   g          -- Real(rp): 1/bending_radius
+!   start_edge -- Logical: If True then track will be through the entrance edge.
+!                          If False then track will be through the exit edge.
+!   reverse    -- Logical: If True then track backwards.
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!   kx, ky     -- Real(rp), optional: Horizontal and vertical edge focusing strengths.
+!                  Useful for constructing the edge transfer matrix.
 !-
 
 subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)

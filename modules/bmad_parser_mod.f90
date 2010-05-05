@@ -2201,7 +2201,7 @@ if (delim /= '{' .or. ix_word /= 0) call warning  &
 
 do 
 
-  call get_next_word (word_in, ix_word, '{,}/', delim, delim_found, .true.)
+  call get_next_word (word_in, ix_word, '{,}/:', delim, delim_found, .true.)
 
   ! If "{}" with no slaves... 
   if (delim == '}' .and. ix_word == 0 .and. ele%n_slave == 0) then
@@ -2229,7 +2229,7 @@ do
 
   name(ixs) = word
 
-  if (delim == '/') then
+  if (delim == '/' .or. delim == ':') then
     call evaluate_value (trim(ele%name), value, &
                                 lat, delim, delim_found, err_flag)
     if (err_flag) then
