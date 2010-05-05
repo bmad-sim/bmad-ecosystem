@@ -455,13 +455,6 @@ interface
 end interface
  
 interface
-  subroutine spawn_command (command)
-    implicit none
-    character(*) command
-  end subroutine
-end interface
- 
-interface
   subroutine string_to_int (line, default, value, err_flag)
     implicit none
     integer default
