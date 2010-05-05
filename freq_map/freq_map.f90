@@ -58,7 +58,7 @@ program freq_map
   integer fft_turns
 
   real(rp) phy_x_set, phy_y_set
-  real(rp) chromx, chromy, qp_x, qp_y
+  real(rp) delta_e/0.0/, chromx, chromy, qp_x, qp_y
   real(rp), allocatable :: dk1(:)
   real(rp) eps_rel(4), eps_abs(4)
   real(rp), allocatable :: tune(:,:,:)
@@ -250,7 +250,7 @@ program freq_map
     deallocate(dk1)
   ENDIF
 
-  CALL chrom_calc(ring,0.0_rp,chromx,chromy)
+  CALL chrom_calc(ring,delta_e,chromx,chromy)
   WRITE(*,'(A,F6.3,A,F6.3)') "Initial Chromaticity: qp_x = ", chromx, "   qp_y = ", chromy
   IF(qp_x /= 0. .and. qp_y /= 0.) THEN
     CALL qp_tune(ring,qp_x,qp_y,ok)
@@ -278,7 +278,7 @@ program freq_map
   if(de /= 0.)n_z = nint(abs((e1 - e0)/de))+1
   if(de == 0.)n_z=1
 
-  allocate(tune(n_x*n_y*n_z, 3, 2))
+  allocate(tune(0:n_x*n_y*n_z, 3, 2))
 
   dx = (x1-x0)/(n_x-1)
   dy = (y1-y0)/(n_y-1)
