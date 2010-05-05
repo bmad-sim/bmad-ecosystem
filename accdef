@@ -52,35 +52,57 @@ endif
 # absoft  -- f95            default on Darwin_powerpc
 # gnu     -- g77/g95
 #=======================================================================
-if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
-  if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
-  if ( $?ACCF90    == 0  ) then setenv ACCF90 intel
-endif
+#if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
+#  if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
+#  if ( $?ACCF90    == 0  ) then setenv ACCF90 intel
+#endif
 
-if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
-  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
-  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
-endif
+#if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
+#  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
+#  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
+#endif
 
-if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
-  if ( $?CESRF90    == 0 ) setenv CESRF90 hp
-  if ( $?ACCF90    == 0 ) setenv ACCF90 hp
-endif
+#if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
+#  if ( $?CESRF90    == 0 ) setenv CESRF90 hp
+#  if ( $?ACCF90    == 0 ) setenv ACCF90 hp
+#endif
 
-if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
-  if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
-  if ( $?ACCF90    == 0 ) setenv ACCF90 absoft
-endif
+#if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
+#  if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
+#  if ( $?ACCF90    == 0 ) setenv ACCF90 absoft
+#endif
 
 #=======================================================================
 # Only here for temporary fix of stalled login scripts
 # for users sourcing this script on x86_64 architecture
 # machines.  This provides no other functionality.
 #=======================================================================
-if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
+#if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
+#  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
+#  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
+#endif
+
+
+if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
+  if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
+  if ( $?ACCF90    == 0  ) then setenv ACCF90 intel
+else if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
   if ( $?CESRF90    == 0 ) setenv CESRF90 intel
   if ( $?ACCF90    == 0 ) setenv ACCF90 intel
+else if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
+  if ( $?CESRF90    == 0 ) setenv CESRF90 hp
+  if ( $?ACCF90    == 0 ) setenv ACCF90 hp
+else if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
+  if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
+  if ( $?ACCF90    == 0 ) setenv ACCF90 absoft
+else 
+  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
+  if ( $?ACCF90    == 0 ) setenv ACCF90 intel 
 endif
+
+
+
+
 
 
 #=======================================================================
