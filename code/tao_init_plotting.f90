@@ -278,6 +278,7 @@ do   ! Loop over plot files
 
   do   ! Loop over templates in a file
     read (iu, nml = tao_template_plot, iostat = ios, err = 9100)  
+    call out_io (s_blank$, r_name, 'Init: Read tao_template_plot ' // plot%name)
     if (ios /= 0) exit
     ip = ip + 1
   enddo
@@ -402,6 +403,7 @@ do  ! Loop over plot files
                   [blue$, red$, green$, cyan$, magenta$, yellow$]
       curve(2:7)%line%color = curve(2:7)%symbol%color
       read (iu, nml = tao_template_graph, err = 9200)
+      call out_io (s_blank$, r_name, 'Init: Read tao_template_graph ' // graph%name)
       graph_name = trim(plot%name) // '.' // graph%name
       call out_io (s_blank$, r_name, &
               'Init: Read tao_template_graph namelist: ' // graph_name)
