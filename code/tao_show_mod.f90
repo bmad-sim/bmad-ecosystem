@@ -1807,7 +1807,7 @@ case ('taylor_map')
   n_order = -1
 
   do
-    call tao_next_switch (stuff2, [ '-order', '-s' ], switch, err, ix)
+    call tao_next_switch (stuff2, ['-order', '-s    '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     select case (switch)
