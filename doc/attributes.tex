@@ -302,6 +302,23 @@ which are typically slanted towards the inside of a turn.
   \label{f:roll}
 \end{figure}
 
+\index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{s_offset_tot|hyperbf}
+\index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}
+index{tilt_tot|hyperbf}
+If an element is supported by a \vn{girder} element (\sref{s:girder}),
+the offsets, pitches and tilt of the element are with respect to the
+orientation of the \vn{girder}. The computed offsets, pitches and tilt with
+respect to the local referece coordinates are stored in the dependent attributes
+\begin{example}
+  x_offset_tot
+  y_offset_tot
+  s_offset_tot
+  x_pitch_tot
+  y_pitch_tot
+  tilt_tot
+\end{example}
+If an element is not supported by a \vn{girder}, \vn{x_offset_tot}
+will have the same value as \vn{x_offset} etc.
 
 %-----------------------------------------------------------------
 \section{Hkick, Vkick, and Kick Attributes}

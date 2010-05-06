@@ -1935,7 +1935,7 @@ real(rp), pointer :: val(:)
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed
-logical v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
+logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
 logical :: debug = .false.  ! For debugging purposes
 
@@ -2180,7 +2180,7 @@ if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
 
 if (init_needed) then
   v_mask = .true.
-  if (has_orientation_attributes(ele%key)) v_mask([x_offset$, y_offset$, s_offset$, &
+  v_mask([x_offset$, y_offset$, s_offset$, &
             tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
             tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$]) = .false.
   offset_mask = .not. v_mask
@@ -2189,9 +2189,15 @@ if (init_needed) then
   init_needed = .false.
 endif
 
-non_offset_changed = (any(val /= ele%old_value .and. v_mask))
-offset_changed =  (any(val /= ele%old_value .and. offset_mask))
-offset_nonzero = (any(val /= 0 .and. offset_mask))
+if (has_orientation_attributes(ele%key)) then
+  non_offset_changed = (any(val /= ele%old_value .and. v_mask))
+  offset_changed =  (any(val /= ele%old_value .and. offset_mask))
+  offset_nonzero = (any(val /= 0 .and. offset_mask))
+else
+  non_offset_changed = (any(val /= ele%old_value))
+  offset_changed = .false.
+  offset_nonzero = .false.
+endif
 
 ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
 ! conserve the taylor map.
