@@ -2677,7 +2677,7 @@ if (integer_option(black$, fill_color) /= transparent$) then
   enddo
 endif
 
-call qp_draw_polyline (xh, yh, color = integer_option(black$, line_color))
+call qp_draw_polyline (xh(1:2*n+2), yh(1:2*n+2), color = integer_option(black$, line_color))
 
 call qp_restore_state
 
