@@ -113,7 +113,7 @@ subroutine size_beam(ring, end, scan_params, transmit, sib_j, n_typeout, orb, ph
         co_%vec(3) = co_%vec(3) - y_offset
         end_coord(n_ok) = co_
      enddo
-     type *,' Finished tracking particle ',n_ok,'  of', scan_params%n_part
+     print *,' Finished tracking particle ',n_ok,'  of', scan_params%n_part
 
      scan_params%n_part_out = n_ok
 

@@ -110,7 +110,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 !
 
   if (track_input%x_init == 0 .or. track_input%y_init == 0) then
-    type *, ' DA_DRIVER: ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
+    print *, ' DA_DRIVER: ERROR IN DYNAMIC_APERTURE: TRACK_INPUT.X_INIT OR',  &
                                              ' TRACK_INPUT.Y_INIT = 0'
     call err_exit
   endif
@@ -147,7 +147,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
   endif
   type '(a24,1x,e12.4,1x,a8,1x,e12.4)',' DA_DRIVER: delta_fRF = ', delta_fRF,'  fRF = ', fRF
-  type *,' DA_DRIVER: Q_z = ',ring%z%tune/twopi
+  print *,' DA_DRIVER: Q_z = ',ring%z%tune/twopi
 
 
   type '(a31,1x,e12.4,1x,a9,1x,e12.4)',' DA_DRIVER: Before Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
@@ -162,7 +162,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
    print *,' DA_DRIVER: before first call custom_set_tune '
     call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
    print *,' DA_DRIVER: after first call custom_set_tune '
-    if(.not. ok) type *,' DA_DRIVER: Qtune failed'
+    if(.not. ok) print *,' DA_DRIVER: Qtune failed'
   endif
 
 
@@ -174,7 +174,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   if(Qp_x /= 0. .and. Qp_y /= 0.)then
     call qp_tune(ring, qp_x, qp_y, ok)
     if( .not. ok)then
-     type *,' DA_DRIVER: Qp_tune failed '
+     print *,' DA_DRIVER: Qp_tune failed '
     endif
   endif
   call chrom_calc(ring, delta_e, chrom_x, chrom_y) 
@@ -185,7 +185,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
    print *,' DA_DRIVER: before second call custom_set_tune '
     call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
    print *,' DA_DRIVER: after second call custom_set_tune '
-    if(.not. ok) type *,' DA_DRIVER: Second Qtune failed'
+    if(.not. ok) print *,' DA_DRIVER: Second Qtune failed'
 
   call twiss_at_start(ring)
   type '(a37,f12.4,a9,f12.4)',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi

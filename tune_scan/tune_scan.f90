@@ -174,8 +174,8 @@ program tune_scan
 
 ! find how many starting points there are
 
-  type *, 'n_x, n_y:', n_x, n_y
-  type *, 'dQ_x, dQ_y:', dQ_x, dQ_y
+  print *, 'n_x, n_y:', n_x, n_y
+  print *, 'dQ_x, dQ_y:', dQ_x, dQ_y
 
 
   ix = index(file_name,'.')
@@ -280,12 +280,12 @@ write(*,*) "B-MODE EMITTANCE: ", mode%b%emittance
 
   ring_ok = ring
 
-  type *, 'Number of starting positions:', scan_params%n_part
-  type *, 'n_x, n_y, n_z:', n_x, n_y, n_z
-  type *, 'dQ_x, dQ_y, dQ_z:', dQ_x, dQ_y, dQ_z
+  print *, 'Number of starting positions:', scan_params%n_part
+  print *, 'n_x, n_y, n_z:', n_x, n_y, n_z
+  print *, 'dQ_x, dQ_y, dQ_z:', dQ_x, dQ_y, dQ_z
 
   if (scan_params%n_part == 0) then
-    type *, 'ERROR: NO INITIAL POSITIONS SPECIFIED'
+    print *, 'ERROR: NO INITIAL POSITIONS SPECIFIED'
     stop
   endif
 

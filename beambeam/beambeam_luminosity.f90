@@ -144,8 +144,8 @@ size=2
 !           exit
 !        else
         if(ios.ne.0)then
-           type *
-           type *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
+           print *
+           print *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
         endif
         
 !     enddo

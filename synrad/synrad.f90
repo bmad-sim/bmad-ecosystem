@@ -264,7 +264,7 @@ elseif (beam_direction == 1) then
 endif
 
 close (unit = 1)
-type *, 'Written: element_power.dat'
+print *, 'Written: element_power.dat'
 
 deallocate(orb)
 deallocate(fwd_power, back_power)

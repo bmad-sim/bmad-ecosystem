@@ -88,16 +88,16 @@ subroutine res_line_calc (param, res)
   endif
 
   if (param%x_max <= param%x_min) then
-    type *, 'ERROR param%X_MAX LESS THAN OR EQUAL TO param%X_MIN'
-    type *, 'param%X_MAX =', param%x_max
-    type *, 'param%X_MIN =', param%x_min
+    print *, 'ERROR param%X_MAX LESS THAN OR EQUAL TO param%X_MIN'
+    print *, 'param%X_MAX =', param%x_max
+    print *, 'param%X_MIN =', param%x_min
     stop
   endif
 
   if (param%x_max <= param%x_min) then
-    type *, 'ERROR param%X_MAX LESS THAN OR EQUAL TO param%X_MIN'
-    type *, 'param%X_MAX =', param%x_max
-    type *, 'param%X_MIN =', param%x_min
+    print *, 'ERROR param%X_MAX LESS THAN OR EQUAL TO param%X_MIN'
+    print *, 'param%X_MAX =', param%x_max
+    print *, 'param%X_MIN =', param%x_min
     stop
   endif
 
@@ -112,7 +112,7 @@ subroutine res_line_calc (param, res)
     param%scale = 1.0
     param%places = 2
   else
-    type *, 'ERROR: BAD "param%UNITS" PARAMETER'
+    print *, 'ERROR: BAD "param%UNITS" PARAMETER'
     stop
   endif
 
@@ -123,7 +123,7 @@ subroutine res_line_calc (param, res)
   param%q_s  = param%q_s  / param%scale
 
   if (max(param%x_min-param%x_max, param%y_min-param%y_max) > 2 .or. param%q_s > 2) then
-    type *,  &
+    print *,  &
       'ERROR: param%X_MIN, param%X_MAX, param%Y_MIN, param%Y_MAX, OR param%Q_S NOT MATCHED TO AXIS_TOGGLE'
     stop
   endif
