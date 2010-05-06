@@ -2655,7 +2655,7 @@ xh(2*n+2) = xh(2*n+1)
 yh(1) = 0
 
 yh(2:2*n:2)   = y_dat(n_min:n_max)
-yh(3:2*n+1:2) = y_dat(1:n)
+yh(3:2*n+1:2) = y_dat(n_min:n_max)
 
 yh(2*n+2) = 0
 
