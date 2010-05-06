@@ -912,7 +912,7 @@ call tao_find_var (err, var_str, v_array = v_var, re_array=r_var, &
 
 ! A logical value_str is either a logical or an array of datum values.
 
-if (size(l_var) > 0) then
+if (allocated(l_var)) then
   if (is_logical(value_str)) then
     read (value_str, *) l_value
     do i = 1, size(l_var)
@@ -933,7 +933,7 @@ if (size(l_var) > 0) then
 ! Must be merit_type for a string.
 ! If value_string has "|" then it must be a datum array
 
-elseif (size(s_var) /= 0) then
+elseif (allocated(s_var)) then
   if (index(value_str, '|') == 0) then
     if (all (value_str /= merit_type_names)) then
       call out_io (s_error$, r_name, 'BAD MERIT_TYPE NAME:' // value_str)
@@ -957,7 +957,7 @@ elseif (size(s_var) /= 0) then
 ! Only possibility left is real/ The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
-elseif (size(r_var) /= 0) then
+elseif (allocated(r_var)) then
   call tao_evaluate_expression (value_str, size(r_var),  .false., r_value, good, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)
@@ -1032,7 +1032,7 @@ if (err) return
 
 ! A logical value_str is either a logical or an array of datum values.
 
-if (size(l_dat) /= 0) then
+if (allocated(l_dat)) then
   if (is_logical(value_str)) then
     read (value_str, *) l_value
     do i = 1, size(l_dat)
@@ -1052,7 +1052,7 @@ if (size(l_dat) /= 0) then
 
 ! An integer value_str is either an integer or an array of datum values.
 
-elseif (size(int_dat) /= 0) then
+elseif (allocated(int_dat)) then
 
   allocate (i_save(size(int_dat)))
 
@@ -1097,7 +1097,7 @@ elseif (size(int_dat) /= 0) then
 
 ! A string:
 
-elseif (size(s_dat) /= 0) then
+elseif (allocated(s_dat)) then
 
   ! If value_string has "|" then it must be a datum array
 
@@ -1148,7 +1148,7 @@ elseif (size(s_dat) /= 0) then
 ! Only possibility left is real. The value_str might be a number or it might 
 ! be a mathematical expression involving datum values or array of values.
 
-elseif (size(r_dat) /= 0) then
+elseif (allocated(r_dat)) then
   call tao_evaluate_expression (value_str, size(r_dat), .false., r_value, good, err)
   if (err) then
     call out_io (s_error$, r_name, 'BAD SET VALUE ' // value_str)

@@ -942,18 +942,18 @@ end subroutine tao_orbit_value
 !   data_name = '*@orbit.x'
 ! In this case d2_ptr will be nullifed since the data can refer to
 ! more than one universe. 
-! re_array & l_array will also be nullified since there is no data component specified.
+! re_array & l_array will also be deallocated since there is no data component specified.
 !
 ! Example:
 !   data_name = 'orbit'
 ! In this case the default universe will be used. The d1_array will have two components
 ! pointing to orbit.x and orbit.y.
-! re_array & l_array will also be nullified since there is no data component specified.
+! re_array & l_array will also be deallocated since there is no data component specified.
 !
 ! Example:
 !   data_name = '2@orbit.x[3,7:9]|meas'
 ! The measured values for the 3rd, 7th, 8th and 9th elements of orbit.x in universe #2.
-! r_arrray will be allocated and l_array will be nullified.
+! r_arrray will be allocated and l_array will be deallocated.
 !
 ! Example:
 !   data_name = 'orbit.x'
@@ -977,17 +977,17 @@ end subroutine tao_orbit_value
 !   err          -- Logical: Err condition
 !   d2_ptr       -- Tao_d2_data_struct, pointer, optional: Pointer to the d2 data structure
 !                     if there is a unique structure to point to. Null otherwise.
-!   d1_array(:)  -- Tao_d1_data_array_struct, allocatable, optional: Pointers to all 
+!   d1_array(:)  -- Tao_d1_data_array_struct, allocatable, optional: Array of pointers to all 
 !                     the matching d1_data structures.
-!   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Pointers to all 
+!   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Array of pointers to all 
 !                     the matching tao_data_structs.
-!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Pointers to real 
+!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Array of pointers to real 
 !                     component values.
-!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
+!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Array of pointers to
 !                     logical component values.
-!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Pointers to 
+!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Array of pointers to 
 !                     character component values.
-!   int_array(:) -- Tao_integer_array_struct, allocatable, optional: pointers to
+!   int_array(:) -- Tao_integer_array_struct, allocatable, optional: Array of pointers to
 !                     integer component values
 !   component    -- Character(*), optional: Name of the component. E.G: 'good_user'
 !                     set to ' ' if no component present.
@@ -1540,13 +1540,17 @@ end subroutine tao_find_data
 ! Subroutine tao_find_var (err, var_name, v1_array, v_array, re_array, log_array,  
 !                                                    str_array, print_err, component)
 !
-! Find a v1 variable type, and variable data then point to it.
+! Find a v1 variable type, and variable component then point to it.
 !
 ! The re_array will be used if the component is one of:
 !   model, base, design, meas, ref, old, step, weight, high_lim, low_lim 
 ! The log_array will be used if the component is one of:
 !   exists, good_var, good_user, good_opt, good_plot
 ! 
+! Note: Any of the output allocatable arrays will be deallocated if the component
+! referred to by var_name is of a different type. For example, if var_name is "model",
+! then str_array, if present, will be deallocated.
+!
 ! Example:
 !   var_name = 'quad_k1[3]|design'
 !
@@ -1557,15 +1561,15 @@ end subroutine tao_find_data
 !
 ! Output:
 !   err          -- Logical: err condition
-!   v1_array(:)  -- Tao_v1_var_array_struct, allocatable, optional: Pointers to 
+!   v1_array(:)  -- Tao_v1_var_array_struct, allocatable, optional: Array of pointers to 
 !                     all the v1_var structures.
-!   v_array(:)   -- Tao_var_array_struct, allocatable, optional: Pointers to the 
+!   v_array(:)   -- Tao_var_array_struct, allocatable, optional: Array of pointers to the 
 !                     variable data point.
-!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Pointers to real 
-!                     component values.
-!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Pointers to
+!   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Array of pointers to 
+!                     the real component values.
+!   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Array of pointers to
 !                     logical component values.
-!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Pointers to 
+!   str_array(:) -- Tao_string_array_struct, allocatable, optional: Array of pointers to 
 !                     character component values.
 !   component    -- Character(*), optional: Name of the component. E.G: 'good_user'
 !                   set to ' ' if no component present.

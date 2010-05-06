@@ -237,10 +237,13 @@ enddo
 
 call tao_open_file ('TAO_INIT_DIR', startup_file, iu, file_name, .false.)
 if (iu /= 0) then
+  close (iu)
   call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
   tao_com%cmd_from_cmd_file = .false.
   call tao_cmd_history_record ('call ' // startup_file)
   call tao_call_cmd (file_name)
+else if (startup_file /= 'tao.startup') then  ! If not default
+  call out_io (s_error$, r_name, 'Tao startup file not found: ' // file_name)
 endif
 
 ! Bookkeeping
