@@ -132,7 +132,7 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
 
   enddo
   close (unit = 1)
-  type *, 'Written: ', file1
+  print *, 'Written: ', file1
 
 end subroutine write_power_results
 
@@ -271,7 +271,7 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
   enddo
   close (unit = 1)
-  type *, 'Written: ', file1
+  print *, 'Written: ', file1
 
 end subroutine write_results
 

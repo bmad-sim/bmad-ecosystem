@@ -128,19 +128,19 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
      
   ring%param%particle = particle
   call twiss_at_start(ring)
-!  type *,' beambeam_setup:1 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
+!  print *,' beambeam_setup:1 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   co(0)%vec = 0.
   call closed_orbit_calc(ring, co, 4)
-!  type *, ' closed_orbit: co_',co(0)%vec(1:4)
+!  print *, ' closed_orbit: co_',co(0)%vec(1:4)
   call lat_make_mat6(ring,-1,co)
   call twiss_at_start(ring)
-!  type *,' beambeam_setup:2 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
+!  print *,' beambeam_setup:2 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   call twiss_propagate_all (ring)
 
 ! set up for lrbbi
   if( current == 0)then
      call out_io(s_abort$,r_name,' bunch specifications incomplete ')
-!    type *,' BEAMBEAM_SETUP: bunch specifications incomplete '
+!    print *,' BEAMBEAM_SETUP: bunch specifications incomplete '
     stop
   endif
 
@@ -155,7 +155,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
   call closed_orbit_calc(ring_oppos, co_oppos, 4)
   call lat_make_mat6(ring_oppos,-1,co_oppos)
   call twiss_at_start(ring_oppos)
-!  type *,' beambeam_setup:3 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
+!  print *,' beambeam_setup:3 beta ',ring%ele(0)%a%beta, ring%ele(0)%b%beta
   call twiss_propagate_all (ring_oppos)
   call set_on_off (rfcavity$, ring_oppos, on$)
   call set_z_tune(ring_oppos)

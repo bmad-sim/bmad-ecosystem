@@ -109,8 +109,8 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
      call out_io(s_abort$,r_name," Cannot find RAW_VCROSING7")      
      stop
   endif
-!    type *,ring%ele(ix_w)%name,ring%ele(ix_w)%value(vkick$) 
-!    type *,ring%ele(ix_e)%name,ring%ele(ix_e)%value(vkick$) 
+!    print *,ring%ele(ix_w)%name,ring%ele(ix_w)%value(vkick$) 
+!    print *,ring%ele(ix_e)%name,ring%ele(ix_e)%value(vkick$) 
   
   
   
@@ -150,7 +150,7 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
      
      n = n+1
      
-     !  type *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
+     !  print *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
 ! Set increment for kick and knob
      dv_0=-0.00001
      dvc7=0.1
@@ -217,12 +217,12 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
 !          '   dx,dxp,dy,dyp (mm) = ',delta_ip%vec(1:4)*1000.  
 !  type '(a16,f)',' CLOSE_VERT: RAW_VCROSING_7 = ', ring%ele(ix_7)%value(command$)  
 
-!  type *,' kick_w, kick_e ', kick_w , kick_e
-!  type *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
-!  type *,' kick_w, kick_e ', kick_w + dv_0, kick_e +dv_0
-!  type *,' derivative  separation: ', delta_ip_p%vec(1) - delta_ip_0%vec(1)
-!  type *,' kick_w, kick_e ', kick_w + dv, kick_e +dv
-!  type *,' Final separation: ', delta_ip%vec(1)
+!  print *,' kick_w, kick_e ', kick_w , kick_e
+!  print *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
+!  print *,' kick_w, kick_e ', kick_w + dv_0, kick_e +dv_0
+!  print *,' derivative  separation: ', delta_ip_p%vec(1) - delta_ip_0%vec(1)
+!  print *,' kick_w, kick_e ', kick_w + dv, kick_e +dv
+!  print *,' Final separation: ', delta_ip%vec(1)
 
 ! Reset initial position
      delta_ip_0%vec = delta_ip%vec
@@ -232,7 +232,7 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
   
   if(n>= 10)call out_io(s_warn$,r_name,' VERT NOT CLOSED')
   
-!  if(n>= 10)type *,' VERT NOT CLOSED'
+!  if(n>= 10)print *,' VERT NOT CLOSED'
 
   return
   

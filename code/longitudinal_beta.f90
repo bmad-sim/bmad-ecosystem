@@ -65,7 +65,7 @@
   ring%ele(0)%z%gamma = (1+ring%ele(0)%z%alpha**2)/beta_z
 
   if(abs(beta_z-ring%ele(0)%z%beta)/beta_z > 0.1)then
-    type *,' longitudinal beta: beta_z = ',beta_z,'   delta_beta_z = ', &
+    print *,' longitudinal beta: beta_z = ',beta_z,'   delta_beta_z = ', &
             beta_z-ring%ele(0)%z%beta
   endif
 

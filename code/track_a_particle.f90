@@ -63,7 +63,7 @@ subroutine track_a_particle (closed_orbit, orb0, n_turn, ring, Q_x, Q_y, Q_z)
   
   call phase_space_amplitude(ring%ele(0), coord, amp_x0, amp_y0)
   n_ele = ring%n_ele_track
-  type *,' TRACK_A_PARTICLE:'
+  print *,' TRACK_A_PARTICLE:'
   type ('(a15,6e10.2)'),'  closed_orbit ', closed_orbit%vec
   type ('(a15,6e10.2)'),'  orb(0)      ', orb(0)%vec
   do i = 1, n_turn
@@ -81,11 +81,11 @@ subroutine track_a_particle (closed_orbit, orb0, n_turn, ring, Q_x, Q_y, Q_z)
 10 continue
 !
 
-  type *, 'Track: Q_x, Q_y, Q_z ', Q_x, Q_y, Q_z
-  type *, 'Track: start', orb0%vec(1), orb0%vec(3)
-  type *, 'Track: end  ', orb(0)%vec(1), orb(0)%vec(3),'   ',i,'turns'
-  type *, 'Track: max displacement x,y ',x_max, y_max
-  type *, 'Track: max amplitude ratio x,y ',amp_x_max/amp_x0, amp_y_max/amp_y0
+  print *, 'Track: Q_x, Q_y, Q_z ', Q_x, Q_y, Q_z
+  print *, 'Track: start', orb0%vec(1), orb0%vec(3)
+  print *, 'Track: end  ', orb(0)%vec(1), orb(0)%vec(3),'   ',i,'turns'
+  print *, 'Track: max displacement x,y ',x_max, y_max
+  print *, 'Track: max amplitude ratio x,y ',amp_x_max/amp_x0, amp_y_max/amp_y0
 
   type('(3f10.5,2e12.4,2x,2e12.4,i10)'),Q_x,Q_y,Q_z, orb(0)%vec(1), orb(0)%vec(3), &
                  amp_x_max/amp_x0, amp_y_max/amp_y0, i

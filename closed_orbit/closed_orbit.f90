@@ -126,7 +126,7 @@
        call string_trim(line, line, ix)
        lat_file = line
        if(ix == 0) lat_file = 'bmad.'
-       type *, ' lat_file = ', lat_file
+       print *, ' lat_file = ', lat_file
      endif
 
       call bmad_parser (lat_file, ring_1)
@@ -208,10 +208,10 @@
    if(line(1:4) == 'TRAN')then
      if(index(line,'OFF') == 0)then
        transfer_line = .true.
-       type *,' Transfer line mode on'
+       print *,' Transfer line mode on'
       else
        transfer_line = .false.
-       type *,' Transfer line mode off'
+       print *,' Transfer line mode off'
      endif
      call set_on_off (rfcavity$, ring, off$)
      cycle
@@ -222,7 +222,7 @@
       read(5, '(a)') line
        call string_trim(line, line, ix)
        lat_file = line
-       type *, ' lat_file = ', lat_file
+       print *, ' lat_file = ', lat_file
      call bmad_parser(lat_file, ring_2)
      ring = ring_2
      exit
@@ -236,14 +236,14 @@
 
    if(line(1:2) == '6D')then
      i_dim=6
-     type *,' Compute 6-d closed orbit'
+     print *,' Compute 6-d closed orbit'
      exit
    endif
    if(line(1:2) == '4D')then
      i_dim=4
      co(0)%vec(6)=0.
      co_electron(0)%vec(6)=0.
-     type *,' Compute 4-d closed orbit'
+     print *,' Compute 4-d closed orbit'
      exit
    endif
 
@@ -253,7 +253,7 @@
      track = .true.
      call string_trim(line(ix+1:), line, ix)
      if(ix == 0)then
-       type *,' TRACK <n_turns> <x> <y> <de/e> <xp> <yp> <dl> '
+       print *,' TRACK <n_turns> <x> <y> <de/e> <xp> <yp> <dl> '
        cycle 
     else
        read(line(1:ix),*)n_turns
@@ -285,8 +285,8 @@
      call closed_orbit_calc(ring, co, i_dim)
     endif
 
-      type *, ' '
-      type *,ring%input_file_name
+      print *, ' '
+      print *,ring%input_file_name
       type '(a  ,6f10.5)',' positron closed_orbit (mm, mr)         i=0 ', &
         (co(0)%vec(i)*1000.,i=1,6)
       call element_locator('IP_L0_END', ring, ix_ele)
@@ -295,7 +295,7 @@
 
       if(track)then
         traj%vec(1:6) = co(0)%vec(1:6) + track_start%vec(1:6)       
-        type *
+        print *
         type '(1x,a6,1x,i5,1x,a6)',  'TRACK ', n_turns, ' turns'
         type '(1x,a16,1x,6e12.4)','TRACK: start    ', track_start%vec
         type '(1x,a16,1x,6e12.4)','TRACK: start+co ', co(0)%vec
@@ -322,7 +322,7 @@
      call twiss_at_start(ring)
      call calc_z_tune (ring)
 
-!      type *,' Recompute tunes with new matrices'
+!      print *,' Recompute tunes with new matrices'
       type '(3(a11,f7.4))', ' Q_x =     ',ring%a%tune/twopI,    ' Q_y =     ',ring%b%tune/twopi, &
                              ' Q_z =     ', ring%z%tune/twopi 
       type '(2(a11,f7.4))',' Beta_a* = ', ring%ele(0)%a%beta, ' Beta_b* = ', ring%ele(0)%b%beta
@@ -360,7 +360,7 @@
                                              (cbar_mat1(2,2)-cbar_mat2(2,2))/de 
 
 
-      type *,' Chromaticity'
+      print *,' Chromaticity'
       type '(2(a11,f8.4))', ' dQ_x/dE = ',(ring_two(1)%a%tune - ring_two(-1)%a%tune)/twopi/2/de, &
                              ' dQ_y/dE = ',(ring_two(1)%b%tune - ring_two(-1)%b%tune)/twopi/2/de 
       type '(2(a23,f10.4))', ' sqrt(<(dB_x/dE)^2>) = ',rms_x, ' sqrt(<(dB_y/dE)^2>) = ',rms_y
@@ -368,12 +368,12 @@
 ! sextupole detuning rate
      if( .not. transfer_line)then
       call sext_detune(ring, axx, axy, ayy)
-      type *
-      type *,' Sextupole detuning rates '
+      print *
+      print *,' Sextupole detuning rates '
       type '(a12,e12.4)',' Alpha_ax = ',axx 
       type '(a12,e12.4)',' Alpha_ay = ',axy 
       type '(a12,e12.4)',' Alpha_yy = ',ayy
-      type * 
+      print * 
      endif
 
       if(.not. transfer_line .and. cbarve)then   
@@ -467,7 +467,7 @@
      ymax0=0.
      start=0.
      end=length
-     type *,answer
+     print *,answer
      call string_trim(answer(ix+1:),answer,ix)
      type*,answer(1:ix)
      if(ix /= 0.)read(answer(1:ix),*)x_or_y
@@ -493,8 +493,8 @@
        end = p2
      endif
 
-     type *,' start =', start,'   end = ',end
-     type *,'  xmax0 =',xmax0,  '  ymax0 = ',ymax0
+     print *,' start =', start,'   end = ',end
+     print *,'  xmax0 =',xmax0,  '  ymax0 = ',ymax0
 
      if(plot_flag == last)then
        n=n+1
@@ -566,10 +566,10 @@
        y(i) = (ring_two(1)%ele(i)%b%beta - ring_two(-1)%ele(i)%b%beta)/2/de/ &
                     ring%ele(i)%b%beta
        if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
+!        print *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
        if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
-!        type *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
+!        print *,ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
       endif
 
@@ -674,7 +674,7 @@
         xdet(nd) = xx_diff(l)
         ydet(nd) = yy_diff(l)
       endif
-       type *,ring%ele(i)%name, l, zz_diff(l), xx_diff(l), yy_diff(l)       
+       print *,ring%ele(i)%name, l, zz_diff(l), xx_diff(l), yy_diff(l)       
       end do
 
      end do
@@ -696,7 +696,7 @@
          if(p<=0)p=p-1
          f=xmax/10**p
          xscale=(int(f*2+1)/2.)*10**p
-         type *,' p,f, xmax, xscale ',p,f, xmax, xscale
+         print *,' p,f, xmax, xscale ',p,f, xmax, xscale
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','x(mm)',' Closed orbit')
        endif
@@ -757,7 +757,7 @@
          if(p<=0)p=p-1
          f=ymax/10**p
          yscale=(int(f*2+1)/2.)*10**p
-         type *,' p,f, ymax, yscale ',p,f, ymax, yscale
+         print *,' p,f, ymax, yscale ',p,f, ymax, yscale
          call pgenv(start, end,-yscale,yscale,0,1)
          call pglab('z (m)','y(mm)',' Closed orbit')
        endif
@@ -816,7 +816,7 @@
 !     if(answer(1:1) == 'y' .or. answer(1:1) == 'Y')exit
 
       if(device_type(1:7) /= '/XSERVE') then
-       type *,' write ',device_type(1:index(device_type,'/')-1)
+       print *,' write ',device_type(1:index(device_type,'/')-1)
        if(istat1 > 0)call pgslct(istat1)
        call pgclos
       endif
@@ -825,8 +825,8 @@
  
 
 
-      type *,' write orbit data to fort.33'
-      type *,' plot orbit with orbit.pcm and orbit_ir.pcm'
+      print *,' write orbit data to fort.33'
+      print *,' plot orbit with orbit.pcm and orbit_ir.pcm'
       open(unit=33)
       write (33,*) ' z(meters), x,xp,y,yp (mm,mrad)'
       write(33,2)
@@ -881,24 +881,24 @@
   subroutine list_commands
     implicit none
 
-    type *
-    type *,' "READ" : to read another lattice into ring_2'
-    type *,' "RING_1(2)" : switch to ring_1(2). '
-    type *,'        Ring_1(2) is the ring structure for the lattice read at startup'
-    type *,' "RADIATION ON(OFF)" : turn radiation damping and fluctuations on(off)'
-    type *,' "CBAR_V_E ON(OFF)" : turn cbar vs energy calc on(off)'
-    type *,' "TRANSFER ON(OFF)" :transfer line mode (ON) or closed ring (OFF)'
-    type *,' "6D" :compute 6-dimensional closed orbit'
-    type *,' "4D" :compute 4-dimensional closed orbit'
-    type *,' "TRACK" :track and plot phase space'
-    type *,' At <Plot> prompt:'
-    type *,'                  type "PS" or "GIF" for hardcopy of last plot'
-    type *,'                  type "<data_type>  X  <x_min>  <x_max> " to'
-    type *,'                   set xrange' 
-    type *,'                  type "<data_type>  Y  <y_up>  <y_low> " to'
-    type *,'                   set absolute yrange for upper and lower plots' 
+    print *
+    print *,' "READ" : to read another lattice into ring_2'
+    print *,' "RING_1(2)" : switch to ring_1(2). '
+    print *,'        Ring_1(2) is the ring structure for the lattice read at startup'
+    print *,' "RADIATION ON(OFF)" : turn radiation damping and fluctuations on(off)'
+    print *,' "CBAR_V_E ON(OFF)" : turn cbar vs energy calc on(off)'
+    print *,' "TRANSFER ON(OFF)" :transfer line mode (ON) or closed ring (OFF)'
+    print *,' "6D" :compute 6-dimensional closed orbit'
+    print *,' "4D" :compute 4-dimensional closed orbit'
+    print *,' "TRACK" :track and plot phase space'
+    print *,' At <Plot> prompt:'
+    print *,'                  type "PS" or "GIF" for hardcopy of last plot'
+    print *,'                  type "<data_type>  X  <x_min>  <x_max> " to'
+    print *,'                   set xrange' 
+    print *,'                  type "<data_type>  Y  <y_up>  <y_low> " to'
+    print *,'                   set absolute yrange for upper and lower plots' 
 
-    type *
+    print *
     return
   end
  

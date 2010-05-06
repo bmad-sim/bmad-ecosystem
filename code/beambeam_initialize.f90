@@ -103,9 +103,9 @@
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)  
 
-  type *
-  type *,' BEAMBEAM_INITIALIZE: Initially '
-  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print *
+  print *,' BEAMBEAM_INITIALIZE: Initially '
+  print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
 
@@ -131,10 +131,10 @@
    call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 
-   type *
+   print *
    type '(a51,f4.1,a8)', &
         ' BEAMBEAM_INITIALIZE: After parasitic interactions added ', current,'mA/bunch' 
-   type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+   print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
   endif
@@ -152,12 +152,12 @@
     call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
 
-    type *
-    type *,' BEAMBEAM_INITIALIZE: After beambeam added '
+    print *
+    print *,' BEAMBEAM_INITIALIZE: After beambeam added '
 
     type '(a37,f4.1,a8)', &
          ' BEAMBEAM_INITIALIZE: After beambeam added ', current,'mA/bunch' 
-    type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+    print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
     type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
     write(23, *)
     write(23, '(a37,f4.1,a8)') &
@@ -206,8 +206,8 @@
     call twiss_at_start(ring)
     call twiss_propagate_all(ring)
 
-    type *
-    type *,' After CLOSE VERTICAL ' 
+    print *
+    print *,' After CLOSE VERTICAL ' 
     type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
     type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
@@ -232,7 +232,7 @@
    endif
   end do
 
-  type *,' BEAMBEAM: turn off beam beam at IP'
+  print *,' BEAMBEAM: turn off beam beam at IP'
 
 ! Qtune
       allocate(dk1(ring%n_ele_max))
@@ -252,7 +252,7 @@
         call closed_orbit_calc(ring, co, i_dim)
         call lat_make_mat6(ring, -1, co)
         call twiss_at_start(ring)
-        type *,' beam beam at IP is off'
+        print *,' beam beam at IP is off'
         type*,' after qtune and after close pretzel but before close vertical: '
     type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
       endif
@@ -272,8 +272,8 @@
   call lat_make_mat6(ring, -1, co)
   call twiss_at_start(ring)
   call beambeam_separation(ring, delta_ip, i_dim)
-  type *,' Turn Beambeam on'
-  type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print *,' Turn Beambeam on'
+  print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   type '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
 
     beambeam_ele = ring%ele(1)
@@ -294,7 +294,7 @@
   if(scan_params%radiation)then
     bmad_com%radiation_damping_on = .true.
     bmad_com%radiation_fluctuations_on = .true.
-    type *,' radiation fluctuations and damping are on'
+    print *,' radiation fluctuations and damping are on'
   endif
   forall(i=0:ring%n_ele_track) orbit(i)%vec = co(i)%vec
   call radiation_integrals (ring, orbit, mode)

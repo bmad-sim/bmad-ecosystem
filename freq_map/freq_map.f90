@@ -108,8 +108,8 @@ program freq_map
     if (ios == 0) then
       exit
     else
-      type *
-      type *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
+      print *
+      print *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
     endif
   enddo
 
@@ -139,7 +139,7 @@ program freq_map
   scan_params%sig_in                = sig_in
   scan_params%final_pos_in%vec(1:4) = final_pos_in(1:4)
 
-  type *, ' lat_file = ', lat_file
+  print *, ' lat_file = ', lat_file
 
   IF(type .eq. 'xsif') THEN
     CALL xsif_parser(lat_file, ring)

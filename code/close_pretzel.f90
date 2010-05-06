@@ -92,8 +92,8 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
      call out_io(s_abort$,r_name," Cannot find separators")
      stop
   endif
-!    type *,ring%ele(ix_w)%name,ring%ele(ix_w)%value(hkick$) 
-!    type *,ring%ele(ix_e)%name,ring%ele(ix_e)%value(hkick$) 
+!    print *,ring%ele(ix_w)%name,ring%ele(ix_w)%value(hkick$) 
+!    print *,ring%ele(ix_e)%name,ring%ele(ix_e)%value(hkick$) 
 
   
 
@@ -121,7 +121,7 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
      
      n = n+1
      
-!  type *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
+!  print *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
      dv_0=-0.00001/n
      ring%ele(ix_w)%value(hkick$) = kick_w + dv_0
      ring%ele(ix_e)%value(hkick$) = kick_e + dv_0
@@ -147,12 +147,12 @@ subroutine close_pretzel (ring, i_dim, final_pos_in, final_pos_out)
      
  
 
-!  type *,' kick_w, kick_e ', kick_w , kick_e
-!  type *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
-!  type *,' kick_w, kick_e ', kick_w + dv_0, kick_e +dv_0
-!  type *,' derivative  separation: ', delta_ip_p%vec(1) - delta_ip_0%vec(1)
-!  type *,' kick_w, kick_e ', kick_w + dv, kick_e +dv
-!  type *,' Final separation: ', delta_ip%vec(1)
+!  print *,' kick_w, kick_e ', kick_w , kick_e
+!  print *,' INITIAL SEPARATION :', delta_ip_0%vec(1)
+!  print *,' kick_w, kick_e ', kick_w + dv_0, kick_e +dv_0
+!  print *,' derivative  separation: ', delta_ip_p%vec(1) - delta_ip_0%vec(1)
+!  print *,' kick_w, kick_e ', kick_w + dv, kick_e +dv
+!  print *,' Final separation: ', delta_ip%vec(1)
 
      delta_ip_0%vec = delta_ip%vec
   end do

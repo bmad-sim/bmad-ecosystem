@@ -177,9 +177,9 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
 !only rank 0 needs to talk to the outside world
   if(rank.eq.0) then
-     type *
-     type *,' BEAMBEAM_SCAN: Initially '
-     type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+     print *
+     print *,' BEAMBEAM_SCAN: Initially '
+     print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
      type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
   endif
 
@@ -211,10 +211,10 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      
 !only 0 talks to the world
      if(rank.eq.0) then
-        type *
+        print *
         type '(a51,f4.1,a8)', &
              ' BEAMBEAM_SCAN: After parasitic interactions added ', current,'mA/bunch' 
-        type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+        print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
         type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      endif
   endif
@@ -242,11 +242,11 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 
 !things written need be done but once
      if(rank.eq.0) then
-        type *
-        type *,' BEAMBEAM_SCAN: After beambeam added '
+        print *
+        print *,' BEAMBEAM_SCAN: After beambeam added '
         type '(a37,f4.1,a8)', &
              ' BEAMBEAM_SCAN: After beambeam added ', current,'mA/bunch' 
-        type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+        print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
         type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
         write(23, *)
         write(23, '(a37,f4.1,a8)') &
@@ -295,8 +295,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call twiss_propagate_all(ring)
   
   if(rank.eq.0)then
-     type *
-     type *,' After CLOSE VERTICAL ' 
+     print *
+     print *,' After CLOSE VERTICAL ' 
      type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
      type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%a%tune/twopi - Qx, &
@@ -322,7 +322,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      endif
   end do
   if(rank.eq.0) then
-     type *,' BEAMBEAM: turn off beam beam at IP'
+     print *,' BEAMBEAM: turn off beam beam at IP'
   endif
 
   ! Qtune
@@ -339,7 +339,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
      if(rank.eq.0) then
-        type *,' beam beam at IP is off'
+        print *,' beam beam at IP is off'
         type*,' after qtune and after close pretzel but before close vertical: '
         type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
      endif
@@ -375,8 +375,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   call twiss_at_start(ring)
   call beambeam_separation(ring, delta_ip, i_dim)
   if(rank.eq.0) then
-     type *,' Turn Beambeam on'
-     type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+     print *,' Turn Beambeam on'
+     print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
      type '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
   endif
   beambeam_ele = ring%ele(1)
@@ -398,7 +398,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      bmad_com%radiation_damping_on = .true.
      bmad_com%radiation_fluctuations_on = .true.
      if(rank.eq.0) then
-        type *,' radiation fluctuations and damping are on'
+        print *,' radiation fluctuations and damping are on'
      endif
   endif
   forall(i=0:ring%n_ele_track) orb(i)%vec = co(i)%vec
@@ -776,7 +776,7 @@ end subroutine lum_tracker
 !       n_ok = n_ok +1
 !       end_coord(n_ok)%vec = end(i)%vec - orb(0)%vec
 !      write(16,'(6e12.4)')end_coord(n_ok)%vec
-!      type *,' Finished tracking particle ',n_ok,'  of', scan_params%n_part
+!      print *,' Finished tracking particle ',n_ok,'  of', scan_params%n_part
 !    enddo
 !
 !    scan_params%n_part_out = n_ok
@@ -854,7 +854,7 @@ end subroutine lum_tracker
 !         write(1:n_part)=.false.
 !      endif
 !      if(pturns > 2048)then
-!        type *,' Space for only 2048 particles in SAVE_LAST_PTURNS'
+!        print *,' Space for only 2048 particles in SAVE_LAST_PTURNS'
 !        stop
 !      endif
 !

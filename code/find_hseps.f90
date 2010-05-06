@@ -54,7 +54,7 @@
    if(ring%ele(i)%name == 'H_SEP_45E')ix(3)=i
    i=i+1
    if( i > ring%n_ele_max) then
-    type *,' FIND_HSEPS: cannot find horizontal separators'
+    print *,' FIND_HSEPS: cannot find horizontal separators'
     stop
    endif
   enddo

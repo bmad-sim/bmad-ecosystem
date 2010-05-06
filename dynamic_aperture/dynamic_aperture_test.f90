@@ -131,8 +131,8 @@ end interface
     if (ios == 0) then
       exit
     else
-      type *
-      type *, 'ERROR: CANNOT OPEN FILE: ', trim(in_file)
+      print *
+      print *, 'ERROR: CANNOT OPEN FILE: ', trim(in_file)
     endif
 
   enddo
@@ -178,7 +178,7 @@ end interface
     end do
    call set_on_off(elseparator$, ring, off$)
    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
-    if (.not. ok) type *,' Qtune failed'
+    if (.not. ok) print *,' Qtune failed'
    call set_on_off(elseparator$, ring, on$)
   endif
 
@@ -209,10 +209,10 @@ end interface
    call lat_make_mat6(ring,-1, co)
    call twiss_at_start(ring)
 
-   type *
+   print *
    type '(a51,f4.1,a8)', &
         ' BEAMBEAM_SCAN: After parasitic interactions added ', current,'mA/bunch' 
-   type *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+   print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
   endif
