@@ -334,7 +334,6 @@ beam => u%current_beam
 beam = uni_branch%ele(0)%beam
 
 lat => tao_lat%lat
-orbit => tao_lat%lat_branch(ix_branch)%orbit
 
 tao_lat%n_bunch_params2 = 0
 branch%param%ix_lost = not_lost$  ! Needed by tao_evaluate_a_datum
@@ -440,10 +439,23 @@ do j = ie1, ie2
     s%u(i_uni_to)%connect%injecting_beam = beam
   endif
 
-  ! compute centroid orbit
+  ! Lost particles
 
-  call tao_find_beam_centroid (beam, orbit(j), too_many_lost, u, j, branch%ele(j))
-  if (too_many_lost .and. .not. lost) then
+  n_bunch = s%global%bunch_to_plot
+  n_lost = count(beam%bunch(n_bunch)%particle(:)%ix_lost == j)
+  if (n_lost /= 0) then
+    if (size(s%u) == 1) then
+      call out_io (s_blank$, r_name, &
+            '\i0\ particle(s) lost at element \i0\: ' // branch%ele(j)%name, &
+            i_array = [n_lost, j])
+    else
+      call out_io (s_blank$, r_name, &
+            '\i0\ particle(s) lost in universe \i0\ at element \i0\: ' // branch%ele(j)%name, &
+            i_array = [n_lost, u%ix_uni, j])
+    endif
+  endif
+
+  if (tao_no_beam_left(beam) .and. .not. lost) then
     ix_lost = j
     lost = .true.
     call out_io (s_warn$, r_name, &
@@ -500,82 +512,30 @@ end subroutine tao_beam_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-!
-! Find the centroid of all particles in viewed bunches
-! Also keep track of lost particles if the optional arguments are passed
 
-subroutine tao_find_beam_centroid (beam, orb, too_many_lost, u, ix_ele, ele)
+function tao_no_beam_left (beam) result (no_beam)
 
 implicit none
 
 type (beam_struct), target :: beam
-type (coord_struct) :: orb, coord
-type (ele_struct), optional :: ele
-type (tao_universe_struct), optional :: u
 
-integer, optional :: ix_ele
-
-real(rp) charge_tot, charge
-
-integer n_bunch, n_part, n_lost, i_ele
-
-logical record_lost
-logical too_many_lost
-
-character(100) line
-character(24) :: r_name = "tao_find_beam_centroid"
+real(rp) charge_tot
+integer n_bunch
+logical no_beam
+character(24) :: r_name = "tao_no_beam_left"
 
 !
 
-coord%vec = 0.0
-n_lost = 0
-charge_tot = 0
 n_bunch = s%global%bunch_to_plot
-  
-! If optional arguments not present no verbose and
-!  just check if particles lost
-
-if (present(u) .or. present(ix_ele)) then
-  record_lost = .true.
-  i_ele = ix_ele
-else
-  record_lost = .false.
-  i_ele = 0
-endif
-  
-do n_part = 1, size(beam%bunch(n_bunch)%particle)
-  ! only average over particles that haven't been lost
-  if (record_lost .and. beam%bunch(n_bunch)%particle(n_part)%ix_lost == i_ele) then
-    n_lost = n_lost + 1
-    cycle
-  elseif (beam%bunch(n_bunch)%particle(n_part)%ix_lost /= not_lost$) then
-    cycle
-  endif
-  charge = beam%bunch(n_bunch)%particle(n_part)%charge
-  coord%vec = coord%vec + beam%bunch(n_bunch)%particle(n_part)%r%vec * charge
-  charge_tot = charge_tot + charge
-enddo
-      
-! Post lost particles
-
-if (record_lost .and. n_lost > 0) then
-  line = "\I4\ particle(s) lost at element \I0\: " // ele%name
-  if (size(s%u) > 1) line = trim(line) // " in universe \I3\ "
-  call out_io (s_blank$, r_name, line, i_array = (/ n_lost, ix_ele, u%ix_uni /) )
-endif
-  
-! average
+charge_tot = sum(beam%bunch(n_bunch)%particle(:)%charge)
 
 if (charge_tot /= 0) then
-  orb%vec = coord%vec / charge_tot
-  too_many_lost = .false.
+  no_beam = .false.
 else 
-  ! lost too many particles
-  too_many_lost = .true.
-  orb%vec = 0.0
+  no_beam = .true.
 endif
  
-end subroutine tao_find_beam_centroid
+end function tao_no_beam_left
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -601,7 +561,7 @@ type (branch_struct), pointer :: branch
 
 integer ix_branch, i_ele_from, i_br_from
 
-character(20) :: r_name = "inject_particle"
+character(24) :: r_name = "tao_inject_particle"
 
 ! Not main branch case
 
@@ -705,7 +665,6 @@ type (tao_universe_struct), target :: u
 type (beam_init_struct), pointer :: beam_init
 type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
-type (coord_struct), pointer :: orb0
 type (lat_param_struct), pointer :: param
 type (tao_universe_branch_struct), pointer :: uni_branch
 
@@ -715,7 +674,7 @@ integer i, j, iu, ios, n_in_file, n_in, ix_branch, ib, ie
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
 
-logical too_many_lost, err, init_ok
+logical err, init_ok
 
 ! If using beam info from a file then no init necessary.
 
@@ -741,8 +700,6 @@ endif
 
 ! Init for main branch
 
-orb0 => model%lat_branch(0)%orbit(0)
-
 beam_init => u%beam_info%beam_init
 model%lat%beam_start%vec = beam_init%center
 
@@ -765,11 +722,12 @@ if (u%beam_info%beam0_file /= "") then
                   'Read initial beam distribution from: ' // u%beam_info%beam0_file, &
                   'Centroid Offset: \6es12.3\ ', r_array = model%lat%beam_start%vec)
   endif
-  call tao_find_beam_centroid (uni_branch%ele(0)%beam, orb0, too_many_lost) 
-  if (too_many_lost) then
+
+  if (tao_no_beam_left (uni_branch%ele(0)%beam)) then
     call out_io (s_warn$, r_name, "Not enough particles for beam init!")
     call err_exit
   endif
+
   if (uni_branch%ele(0)%save_beam) uni_branch%ele(0)%beam = uni_branch%ele(0)%beam
   return
 endif
@@ -787,11 +745,12 @@ if (.not. u%connect%connected) then
         'BEAM_INIT INITIAL BEAM PROPERTIES NOT SET FOR UNIVERSE: \i4\ ', u%ix_uni)
       call err_exit
     endif
-    call tao_find_beam_centroid (uni_branch%ele(0)%beam, orb0, too_many_lost)
-    if (too_many_lost) then
+
+    if (tao_no_beam_left(uni_branch%ele(0)%beam)) then
       call out_io (s_warn$, r_name, "Not enough particles for beam init!")
       call err_exit
     endif
+
     u%beam_info%init_beam0 = .false.
   endif
   return
@@ -835,8 +794,7 @@ model%lat%ele(0)%c_mat   = extract_ele%c_mat
 model%lat%ele(0)%gamma_c = extract_ele%gamma_c
 model%lat%ele(0)%floor   = extract_ele%floor
 uni_branch%ele(0)%beam = u%connect%injecting_beam
-call tao_find_beam_centroid (u%connect%injecting_beam, orb0, too_many_lost)
-if (too_many_lost) then
+if (tao_no_beam_left(u%connect%injecting_beam)) then
   call out_io (s_warn$, r_name, "Not enough particles for beam init!")
   call err_exit
 endif
