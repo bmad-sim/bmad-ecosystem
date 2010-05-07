@@ -1,88 +1,57 @@
-!........................................................................
 !+
 ! Subroutine : query_real( parameter, default, fmt)
-!
-! Description:
-!
-! Arguments  :
-!
-! Mod/Commons:
-!
-! Calls      :
-!
-! Author     :
-!
-! Modified   :
 !-
-!........................................................................
-!
-! $Id: query.f90,v 1.1.1.1 2005/06/14 14:59:02 cesrulib Exp $
-!
-! $Log: query.f90,v $
-! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
-! Beam Simulation Code
-!
-!
-!........................................................................
-!
+
 #include "CESR_platform.h"
 
-subroutine query_real( parameter, default, fmt)
+subroutine query_real (parameter, result, fmt)
 
-  use bmadz_mod
-
-  implicit none
-  character*(*) parameter, fmt
-  character*10 string
-  character*30 fm
-  character prompt*10/' (default='/, close*3/') ?'/
-  real(rdef) default
-
-   fm = '(1x,a,a10,'//fmt//',a3,$)'
-!  fm = a,' (default=',fmt,') ?',$)
-  print fm,parameter,prompt,default,close
-  read(5, '(a)')string
-  if(string(1:10) == '          ' )return
-  read(string,*)default
-
-  return
-end
-
-subroutine query_int( parameter, default, fmt)
+  use precision_def
 
   implicit none
-  character*(*) parameter, fmt
-  character*10 string
-  character*30 fm
-  character prompt*10/' (default='/, close*3/') ?'/
-  integer default
+  character(*) parameter, fmt
+  character(10) string
+  real(rp) result
+  
+  !
 
-   fm = '(1x,a,a10,'//fmt//',a3,$)'
-!  fm = a,' (default=',fmt,') ?',$)
-  print fm,parameter,prompt,default,close
-  read(5, '(a)')string
-  if(string(1:10) == '          ' )return
-  read(string,*)default
+  write (*, '(1x, 2a,'// fmt // ', a)', advance = 'NO') parameter, ' (default = ', result, ') ?'
+  read (*, '(a)') string
+  if (string == '' ) return
+  read (string, *) result
 
-  return
-end
+end subroutine
 
+!---------------------------------------------------------------------
 
-subroutine query_character( parameter, default, fmt)
+subroutine query_int( parameter, result, fmt)
 
   implicit none
-  character*(*) parameter, fmt
-  character*72 string
-  character*30 fm
-  character prompt*10/' (default='/, close*3/') ?'/
-  character*(*) default
+  character(*) parameter, fmt
+  character(10) string
+  integer result
+  
+  !
 
-   fm = '(1x,a,a10,'//fmt//',a3,$)'
-!  fm = a,' (default=',fmt,') ?',$)
-  print fm,parameter,prompt,default,close
-  read(5, '(a)')string
-  if(string(1:10) == '          ' )return
-  default = string
+  write (*, '(1x, 2a,'// fmt // ', a)', advance = 'NO') parameter, ' (default = ', result, ') ?'
+  read (*, '(a)') string
+  if (string == '' ) return
+  read (string, *) result
 
-  return
-end
+end subroutine
+
+!---------------------------------------------------------------------
+
+subroutine query_character( parameter, result, fmt)
+
+  character(*) parameter, fmt, result
+  character(72) string
+  
+  !
+
+  write (*, '(1x, 2a,'// fmt // ', a)', advance = 'NO') parameter, ' (default = ', result, ') ?'
+  read (*, '(a)') string
+  if (string == '' ) return
+  result = string
+
+end subroutine
