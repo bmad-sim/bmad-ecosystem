@@ -942,18 +942,18 @@ end subroutine tao_orbit_value
 !   data_name = '*@orbit.x'
 ! In this case d2_ptr will be nullifed since the data can refer to
 ! more than one universe. 
-! re_array & l_array will also be deallocated since there is no data component specified.
+! re_array & l_array will have size = 0 since there is no data component specified.
 !
 ! Example:
 !   data_name = 'orbit'
 ! In this case the default universe will be used. The d1_array will have two components
 ! pointing to orbit.x and orbit.y.
-! re_array & l_array will also be deallocated since there is no data component specified.
+! re_array & l_array will have size = 0 since there is no data component specified.
 !
 ! Example:
 !   data_name = '2@orbit.x[3,7:9]|meas'
 ! The measured values for the 3rd, 7th, 8th and 9th elements of orbit.x in universe #2.
-! r_arrray will be allocated and l_array will be deallocated.
+! r_arrray will be allocated and l_array will have size = 0.
 !
 ! Example:
 !   data_name = 'orbit.x'
@@ -1042,22 +1042,45 @@ nullify (d2_ptr_loc)
 if (present(d2_ptr)) nullify(d2_ptr)
 
 if (present(d1_array)) then
-  if (allocated (d1_array)) deallocate (d1_array)
+  if (allocated (d1_array)) then
+    if (size(d1_array) /= 0) deallocate (d1_array)
+  endif
+  if (.not. allocated(d1_array)) allocate (d1_array(0))
 endif
+
 if (present(d_array)) then
-  if (allocated (d_array)) deallocate (d_array)
+  if (allocated (d_array)) then
+    if (size(d_array) /= 0) deallocate (d_array)
+  endif
+  if (.not. allocated(d_array)) allocate (d_array(0))
 endif
+
 if (present(re_array)) then
-  if (allocated (re_array)) deallocate (re_array)
+  if (allocated (re_array)) then
+    if (size(re_array) /= 0) deallocate (re_array)
+  endif
+  if (.not. allocated(re_array)) allocate (re_array(0))
 endif
+
 if (present(int_array)) then
-  if (allocated (int_array)) deallocate (int_array)
+  if (allocated (int_array)) then
+    if (size(int_array) /= 0) deallocate (int_array)
+  endif
+  if (.not. allocated(int_array)) allocate (int_array(0))
 endif
+
 if (present(log_array)) then
-  if (allocated (log_array)) deallocate (log_array)
+  if (allocated (log_array)) then
+    if (size(log_array) /= 0) deallocate (log_array)
+  endif
+  if (.not. allocated(log_array)) allocate (log_array(0))
 endif
+
 if (present(str_array)) then
-  if (allocated (str_array)) deallocate (str_array)
+  if (allocated (str_array)) then
+    if (size(str_array) /= 0) deallocate (str_array)
+  endif
+  if (.not. allocated(str_array)) allocate (str_array(0))
 endif
 
 err = .true.
@@ -1124,25 +1147,6 @@ endif
 if (this_err .or. .not. found_data) then
   if (print_error) call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
   return
-endif
-
-if (present(d1_array)) then
-  if (.not. allocated (d1_array)) allocate (d1_array(0))
-endif
-if (present(d_array)) then
-  if (.not. allocated (d_array)) allocate (d_array(0))
-endif
-if (present(re_array)) then
-  if (.not. allocated (re_array)) allocate (re_array(0))
-endif
-if (present(int_array)) then
-  if (.not. allocated (int_array)) allocate (int_array(0))
-endif
-if (present(log_array)) then
-  if (.not. allocated (log_array)) allocate (log_array(0))
-endif
-if (present(str_array)) then
-  if (.not. allocated (str_array)) allocate (str_array(0))
 endif
 
 err = .false.
@@ -1547,9 +1551,8 @@ end subroutine tao_find_data
 ! The log_array will be used if the component is one of:
 !   exists, good_var, good_user, good_opt, good_plot
 ! 
-! Note: Any of the output allocatable arrays will be deallocated if the component
-! referred to by var_name is of a different type. For example, if var_name is "model",
-! then str_array, if present, will be deallocated.
+! Note: Any of the output allocatable arrays will have size = 0 if not used.
+! For example, if var_name is "model", then str_array, if present, have size = 0.
 !
 ! Example:
 !   var_name = 'quad_k1[3]|design'
@@ -1608,19 +1611,38 @@ logical err, component_here, this_err, print_error
 print_error = logic_option(.true., print_err)
 
 if (present(v1_array)) then
-  if (allocated (v1_array)) deallocate (v1_array)
+  if (allocated (v1_array)) then
+    if (size(v1_array) /= 0) deallocate (v1_array)
+  endif
+  if (.not. allocated(v1_array)) allocate (v1_array(0))
 endif
+
 if (present(v_array)) then
-  if (allocated (v_array)) deallocate (v_array)
+  if (allocated (v_array)) then
+    if (size(v_array) /= 0) deallocate (v_array)
+  endif
+  if (.not. allocated(v_array)) allocate (v_array(0))
 endif
+
 if (present(re_array)) then
-  if (allocated (re_array)) deallocate (re_array)
+  if (allocated (re_array)) then
+    if (size(re_array) /= 0) deallocate (re_array)
+  endif
+  if (.not. allocated(re_array)) allocate (re_array(0))
 endif
+
 if (present(log_array)) then
-  if (allocated (log_array)) deallocate (log_array)
+  if (allocated (log_array)) then
+    if (size(log_array) /= 0) deallocate (log_array)
+  endif
+  if (.not. allocated(log_array)) allocate (log_array(0))
 endif
+
 if (present(str_array)) then
-  if (allocated (str_array)) deallocate (str_array)
+  if (allocated (str_array)) then
+    if (size(str_array) /= 0) deallocate (str_array)
+  endif
+  if (.not. allocated(str_array)) allocate (str_array(0))
 endif
 
 err = .true.
@@ -1718,22 +1740,6 @@ endif
 if (err) then
   if (print_error) call out_io (s_error$, r_name, "COULDN'T FIND VARIABLE: " // var_name)
   return
-endif
-
-if (present(v1_array)) then
-  if (.not. allocated (v1_array)) allocate (v1_array(0))
-endif
-if (present(v_array)) then
-  if (.not. allocated (v_array)) allocate (v_array(0))
-endif
-if (present(re_array)) then
-  if (.not. allocated (re_array)) allocate (re_array(0))
-endif
-if (present(log_array)) then
-  if (.not. allocated (log_array)) allocate (log_array(0))
-endif
-if (present(str_array)) then
-  if (.not. allocated (str_array)) allocate (str_array(0))
 endif
 
 !----------------------------------------------------------------------------
