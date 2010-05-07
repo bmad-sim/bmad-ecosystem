@@ -1713,9 +1713,11 @@ endif
 
 ! Point to the correct v1 var type 
 
-
 if (v1_name == '*') then
-  if (present(v1_array)) allocate (v1_array(s%n_v1_var_used))
+  if (present(v1_array)) then
+    deallocate (v1_array)
+    allocate (v1_array(s%n_v1_var_used))
+  endif
   do i = 1, s%n_v1_var_used
     if (present(v1_array)) v1_array(i)%v1 => s%v1_var(i)
     call find_this_var (s%v1_var(i), v_name, this_err)
@@ -1726,6 +1728,7 @@ else
   do i = 1, s%n_v1_var_used
     if (v1_name == s%v1_var(i)%name) then
       if (present(v1_array)) then
+        deallocate (v1_array)
         allocate (v1_array(1))
         v1_array(1)%v1 => s%v1_var(i)
       endif
