@@ -400,16 +400,15 @@ optimization, if the merit function falls below that value, the
 optimization stops. If the value is negative (the default),
 \vn{merit_stop_value} is ignored.
 
-Random numbers are used by \tao in various algorithms. For example,
-random numbers are used in generating the initial coordinates of the
-particles in a beam and for misaligning elements in a lattice. As
+Random number generation in \tao is divided into two categories:
+Random numbers used for generating the initial coordinates of the
+particles in a beam and random numbers used for everything else.  As
 explained below, there are four parameters that govern how random
-numbers are generated.  These can be set in the
-\vn{tao_global_struct}. For particle beam generation, these parameters
-may be overridden by setting the corresponding parameters in the
-\vn{beam_init} struct (\sref{s:beam.init}). That is, separate
-parameters may be setup for beam particle generation verses everything
-else.
+numbers are generated. For beam particle generation, three of the four
+(everything except the random number seed) are accessed through the
+\vn{beam_init} structure (\sref{s:beam.init}). For
+everything else, these parameters are accessed through the
+\vn{tao_global_struct}.
 
 \vn{global%random_seed} sets the seed number for the pseudo-random
 number generator. A value of \vn{0} (the default) causes the seed

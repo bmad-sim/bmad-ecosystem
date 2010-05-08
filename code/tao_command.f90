@@ -53,10 +53,10 @@ character(16) :: cmd_names(33) = [  &
     'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
     'pause        ', 'continue     ', 'wave         ']
 
-character(16) :: set_names(14) = [ &
+character(16) :: set_names(15) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
-    'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param']
+    'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -450,13 +450,11 @@ case ('set')
 
   call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
 
-  call match_word (cmd_word(1), set_names, ix, .true.)
+  call match_word (cmd_word(1), set_names, ix, .true., set_word)
   if (ix == 0) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     return
   endif
-
-  set_word = set_names(ix)
 
   if ( &
        (set_word == 'beam_init'      .and. cmd_word(3) /= '=') .or. &
@@ -470,6 +468,7 @@ case ('set')
        (set_word == 'opti_de_param'  .and. cmd_word(3) /= '=') .or. &
        (set_word == 'plot'           .and. cmd_word(4) /= '=') .or. &
        (set_word == 'plot_page'      .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'ran_state'      .and. cmd_word(2) /= '=') .or. &
        (set_word == 'var'            .and. cmd_word(3) /= '=') .or. &
        (set_word == 'wave'           .and. cmd_word(3) /= '=')) then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
@@ -502,12 +501,14 @@ case ('set')
     call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('plot ')
     call tao_set_plot_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
+  case ('ran_state')
+    call tao_set_ran_state_cmd (trim(cmd_word(3)) // ' ' // trim(cmd_word(4)) // ' ' // trim(cmd_word(5)))
   case ('universe')    
     call tao_set_universe_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
   case ('element')    
     call tao_set_elements_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
   case ('wave')
-    call tao_set_wave_cmd (cmd_word(2), cmd_word(4) // ' ' // cmd_word(5), err)
+    call tao_set_wave_cmd (cmd_word(2), trim(cmd_word(4)) // ' ' // cmd_word(5), err)
     if (err) return
     call tao_cmd_end_calc
     call tao_show_cmd ('wave', '')

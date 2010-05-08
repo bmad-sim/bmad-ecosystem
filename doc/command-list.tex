@@ -747,6 +747,7 @@ variables, etc. Format:
   set opti_de_param <component> = <value>
   set plot <plot> <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
+  set ran_state = <random_number_generator_state>
   set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
@@ -975,6 +976,13 @@ Example:
   set plot title = 'XYZ'  ! Set plot page title string
 \end{example}
 
+%% set ran_state --------------------------------------------------------------
+
+\item[set ran\_state = <random_number_generator_state>] \Newline
+
+Sets the state of the random number generator to a specific state. Use
+\vn{show global -ran_state} to show the random number generator state.
+
 %% set universe --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
@@ -1069,7 +1077,7 @@ Format:
   show data \{<data_name>\} 
   show derivative <data_name(s)> <var_name(s)>
   show element \{-taylor\} \{-wig_terms\} \{-data\} \{-all_attributes\} <ele_name>
-  show global \{-optimization\} \{-bmad_com\} \{-csr_param\}
+  show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
   show graph <graph_name>
   show hom
   show key_bindings
@@ -1233,17 +1241,20 @@ Example:
 
 %% show global --------------------------------------------------------------
 
-\item[show global \{-optimization\} \{-bmad_com\} \{-csr_param\}] \Newline
+\item[show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} ] \Newline
 The \vn{show global} command, used without any optional switches,
 shows information on the global parameter structure
 (\sref{s:globals}). The optional switches are
   \begin{description}
-  \item[-optimization] \Newline
-Displays optimization parameters.
   \item[-bmad_com] \Newline
 Displays \vn{bmad_com} compoents (\sref{s:globals}).
   \item[-csr_param] \Newline
 Displays \vn{csr_param} compoents (\sref{s:globals}).
+  \item[-optimization] \Newline
+Displays optimization parameters.
+  \item[-ran_state] \Newline
+Displays the state of the random number generator. Use this with the
+\vn{set ran_state} command.
   \end{description}
 
 %% show graph --------------------------------------------------------------

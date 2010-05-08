@@ -479,7 +479,7 @@ type tao_global_struct
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
   real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
-  real(rp) :: random_sigma_cutoff = 4    ! cut-off in sigmas.
+  real(rp) :: random_sigma_cutoff = -1   ! cut-off in sigmas.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops

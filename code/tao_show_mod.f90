@@ -160,6 +160,7 @@ type (taylor_struct) taylor(6)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_universe_branch_struct), pointer :: uni_branch
+type (random_state_struct) ran_state
 
 type show_lat_column_struct
   character(80) name
@@ -210,7 +211,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_wo
 logical bmad_format, good_opt_only, show_lords, show_custom
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines
-logical show_all, name_found, print_taylor, print_wig_terms, print_all
+logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_ran_state
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
@@ -309,24 +310,26 @@ case ('beam')
     if (u%beam_info%beam_all_file == '' .and. u%beam_info%beam0_file == '') then
       beam_init => u%beam_info%beam_init
       nl=nl+1; lines(nl) = 'beam_init components:'
-      nl=nl+1; write(lines(nl), amt) '  %distribution_type = ', beam_init%distribution_type
-      nl=nl+1; write(lines(nl), rmt) '  %center            = ', beam_init%center
-      nl=nl+1; write(lines(nl), rmt) '  %a_norm_emitt      = ', beam_init%a_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) '  %b_norm_emitt      = ', beam_init%b_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) '  %dPz_dz            = ', beam_init%dPz_dz
-      nl=nl+1; write(lines(nl), rmt) '  %dt_bunch          = ', beam_init%dt_bunch
-      nl=nl+1; write(lines(nl), rmt) '  %sig_z             = ', beam_init%sig_z
-      nl=nl+1; write(lines(nl), rmt) '  %sig_e             = ', beam_init%sig_e
-      nl=nl+1; write(lines(nl), rmt) '  %center_jitter     = ', beam_init%center_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %emitt_jitter      = ', beam_init%emitt_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter      = ', beam_init%sig_z_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter      = ', beam_init%sig_e_jitter
-      nl=nl+1; write(lines(nl), rmt) '  %spin%polarization = ', beam_init%spin%polarization
-      nl=nl+1; write(lines(nl), rmt) '  %spin%theta        = ', beam_init%spin%theta
-      nl=nl+1; write(lines(nl), rmt) '  %spin%phi          = ', beam_init%spin%phi
-      nl=nl+1; write(lines(nl), lmt) '  %renorm_center     = ', beam_init%renorm_center
-      nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma      = ', beam_init%renorm_sigma
-      nl=nl+1; write(lines(nl), lmt) '  %init_spin         = ', beam_init%init_spin
+      nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', beam_init%distribution_type
+      nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
+      nl=nl+1; write(lines(nl), rmt) '  %a_norm_emitt           = ', beam_init%a_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) '  %b_norm_emitt           = ', beam_init%b_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
+      nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
+      nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
+      nl=nl+1; write(lines(nl), rmt) '  %sig_e                  = ', beam_init%sig_e
+      nl=nl+1; write(lines(nl), rmt) '  %center_jitter          = ', beam_init%center_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %emitt_jitter           = ', beam_init%emitt_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %sig_z_jitter           = ', beam_init%sig_z_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %sig_e_jitter           = ', beam_init%sig_e_jitter
+      nl=nl+1; write(lines(nl), rmt) '  %spin%polarization      = ', beam_init%spin%polarization
+      nl=nl+1; write(lines(nl), rmt) '  %spin%theta             = ', beam_init%spin%theta
+      nl=nl+1; write(lines(nl), rmt) '  %spin%phi               = ', beam_init%spin%phi
+      nl=nl+1; write(lines(nl), lmt) '  %renorm_center          = ', beam_init%renorm_center
+      nl=nl+1; write(lines(nl), lmt) '  %renorm_sigma           = ', beam_init%renorm_sigma
+      nl=nl+1; write(lines(nl), amt) '  %random_engine          = ', beam_init%random_engine
+      nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter = ', beam_init%random_gauss_converter
+      nl=nl+1; write(lines(nl), f3mt)'  %random_sigma_cutoff    = ', beam_init%random_sigma_cutoff
       fmt = '(a, i1, a, es16.8)'
       do i = 1, 3
         if (beam_init%distribution_type(i) == 'ELLIPSE') then
@@ -950,16 +953,25 @@ case ('global')
   print_optimization = .false.
   print_bmad_com = .false.
   print_csr_param = .false.
+  print_ran_state = .false.
 
   do
     call tao_next_switch (stuff2, ['-optimization', '-bmad_com    ', &
-                                   '-csr_param   '], switch, err, ix)
+                                   '-csr_param   ', '-ran_state   '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     print_global = .false.
-    if (switch == '-optimization') print_optimization = .true.
-    if (switch == '-bmad_com') print_bmad_com = .true.
-    if (switch == '-csr_param') print_csr_param = .true.
+    select case (switch)
+    case ('-optimization') 
+      print_optimization = .true.
+    case ('-bmad_com') 
+      print_bmad_com = .true.
+    case ('-csr_param') 
+      print_csr_param = .true.
+    case ('-ran_state')
+      print_ran_state = .true.
+      print_global = .false.
+    end select
   enddo
 
   if (print_global) then
@@ -1001,6 +1013,11 @@ case ('global')
     nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file          = ', tao_com%init_lat_file
     nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
     nl=nl+1; write (lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
+  endif
+
+  if (print_ran_state) then
+    call ran_seed_get (state = ran_state)
+    nl=nl+1; write (lines(nl), '(a, i0, 2x, i0, l3, es26.16)') 'ran_state = ', ran_state
   endif
 
   if (print_optimization) then

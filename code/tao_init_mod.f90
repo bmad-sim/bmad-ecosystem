@@ -108,7 +108,6 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
-
 end subroutine tao_init_global
 
 !--------------------------------------------------------------------------
@@ -244,9 +243,6 @@ if (s%global%track_type == 'beam') then
       beam_init%renorm_sigma = .true.
       beam_init%n_bunch = -1
       beam_init%n_particle  = -1
-      beam_init%random_engine = s%global%random_engine
-      beam_init%random_gauss_converter = s%global%random_gauss_converter
-      beam_init%random_sigma_cutoff = s%global%random_sigma_cutoff
       beam0_file = tao_com%beam0_file        ! From the command line
       beam_all_file = tao_com%beam_all_file  ! From the command line
       beam_saved_at = ''

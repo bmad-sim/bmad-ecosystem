@@ -9,6 +9,61 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
+! Subroutine tao_set_ran_state_cmd (state_string)
+!
+! Sets the random number generator state.
+!
+! Input:
+!   state_string -- Character(*): Encoded random number state.
+!-
+
+subroutine tao_set_ran_state_cmd (state_string)
+
+implicit none
+
+type (random_state_struct) ran_state
+character(*) state_string
+character(100) state_str
+character(30) :: r_name = 'tao_set_ran_state_cmd'
+integer ix, ios
+
+!
+
+call string_trim(state_string, state_str, ix)
+read (state_str, *, iostat = ios) ran_state%ix 
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT READ FIRST RAN_STATE COMPONENT')
+  return
+endif
+
+call string_trim(state_str(ix+1:), state_str, ix)
+read (state_str, *, iostat = ios) ran_state%iy 
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT READ SECOND RAN_STATE COMPONENT')
+  return
+endif
+
+call string_trim(state_str(ix+1:), state_str, ix)
+read (state_str, *, iostat = ios) ran_state%number_stored 
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT READ THIRD RAN_STATE COMPONENT')
+  return
+endif
+
+call string_trim(state_str(ix+1:), state_str, ix)
+read (state_str, *, iostat = ios) ran_state%h_saved
+if (ios /= 0 .or. ix == 0) then
+  call out_io (s_error$, r_name, 'CANNOT READ FOURTH RAN_STATE COMPONENT')
+  return
+endif
+
+call ran_seed_put (state = ran_state)
+
+end subroutine tao_set_ran_state_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 ! Subroutine tao_set_lattice_cmd (dest_lat, source_lat)
 !
 ! Sets a lattice equal to another. This will also update the data structs
@@ -224,7 +279,16 @@ if (err) then
   return
 endif
 
-if (trim(who) == 'track_type') s%u%lattice_recalc = .true.
+select case (who)
+case ('track_type')
+  s%u%lattice_recalc = .true.
+case ('random_seed')
+  call ran_seed_put (s%global%random_seed)
+case ('random_engine')
+  call ran_engine (s%global%random_engine)
+case ('random_gauss_converter', 'random_sigma_cutoff')
+ call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
+end select
 
 end subroutine tao_set_global_cmd
 
