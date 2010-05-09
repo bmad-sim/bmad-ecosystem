@@ -2497,7 +2497,11 @@ subroutine tao_parse_command_args (error, cmd_words)
   tao_com%init_tao_file  = tao_com%default_init_tao_file
   tao_com%beam_all_file  = ''
   tao_com%beam0_file     = ''
-  tao_com%init_lat_file  = ''
+  tao_com%lat_file       = ''
+  tao_com%beam_file      = ''
+  tao_com%data_file      = ''
+  tao_com%plot_file      = ''
+  tao_com%var_file       = ''
 
 ! loop over all arguments
 
@@ -2522,15 +2526,25 @@ subroutine tao_parse_command_args (error, cmd_words)
       s%global%plot_on = .false.
 
     case ('-lat')
-      call get_next_arg (tao_com%init_lat_file)
+      call get_next_arg (tao_com%lat_file)
+
+    case ('-lattice')
+      call get_next_arg (tao_com%lattice_file)
+
+    case ('-beam')
+      call get_next_arg (tao_com%beam_file)
+
+    case ('-var')
+      call get_next_arg (tao_com%var_file)
+
+    case ('-data')
+      call get_next_arg (tao_com%data_file)
+
+    case ('-plot')
+      call get_next_arg (tao_com%plot_file)
 
     case ('help', '-help')
-      call out_io (s_blank$, r_name, (/ &
-          'Switches:                  ', &
-          '  -init <tao_init_file>    ', &
-          '  -lat <bmad_lattice_file> ', &
-          '  -beam_all <beam_all_file>', &
-          '  -beam0 <beam_init_file>  ' /) )
+      call help_out
       stop
 
     case ('')
@@ -2538,13 +2552,7 @@ subroutine tao_parse_command_args (error, cmd_words)
 
     case default
       call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
-      call out_io (s_blank$, r_name, (/ &
-          'Switches:                  ', &
-          '  -beam_all <beam_all_file>', &
-          '  -beam0 <beam_init_file>  ', &
-          '  -init <tao_init_file>    ', &
-          '  -lat <bmad_lattice_file> ', &
-          '  -noplot                  ' /) )
+      call help_out
       error = .true.
       return
     end select
@@ -2576,6 +2584,26 @@ subroutine get_next_arg(arg)
   endif
 
 end subroutine get_next_arg
+
+!-----------------------------
+! contains
+
+subroutine help_out
+
+  call out_io (s_blank$, r_name, &
+     ['Switches:                          ', &
+      '  -beam <beam_init_file>           ', &
+      '  -beam_all <beam_all_file>        ', &
+      '  -beam0 <particle_position_file>  ', &
+      '  -data <data_init_file>           ', &
+      '  -init <tao_init_file>            ', &
+      '  -lat <bmad/xsif_lattice_file>    ', &
+      '  -lattice <lattice_namelist_file> ', &
+      '  -noplot                          ', &
+      '  -plot <plot_init_file>           ', &
+      '  -var <var_init_file>             '] )
+
+end subroutine help_out
 
 end subroutine tao_parse_command_args
 

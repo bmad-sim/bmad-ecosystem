@@ -92,30 +92,30 @@ has been explicitly set.
 
 The syntax of the command line is:
 \begin{example}
-  tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
-           \{-beam0 <beam_file>\} \{-lat <lattice_file>\} \{-noplot\}
+  tao \{OPTIONS\}
 \end{example}
-
-The \vn{-init} optional argument can be used to replace the default
-initialization file name (\vn{tao.init}) with \vn{<init_file_name>}.
-An initialization file is actually not needed. In this case, a
+The optional arguments are:
+  \begin{description}
+  \item[\vn{-beam <beam_file>}] \Newline
+Overrides the \vn{beam_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-beam_all <all_beam_file>}] \Newline
+Overrides the \vn{beam_all_file} (\sref{s:beam.init}) specified in the
+\vn{tao_beam_init} namelist.
+  \item[\vn{-beam0 <beam0_file>}] \Newline
+Overrides the \vn{beam0_file} (\sref{s:beam.init}) specified in the
+\vn{tao_beam_init} namelist.
+  \item[\vn{-data <data_file>}] \Newline
+Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-init <tao_init_file>}] \Newline
+replaces the default initialization file name (\vn{tao.init}).
+A \tao initialization file is actually not needed. In this case, a
 \vn{-lat} switch is mandatory and \tao will use a set of default plot
 templates for plotting.
-
-The \vn{-beam_all} optional argument reads in a beam data file for the
-entire lattice and this data is used in place of beam tracking. This
-overrides the \vn{beam_all_file} variable (\sref{s:beam.init}).
-
-The \vn{-beam0} optional argument reads in a beam data file which is
-used to initialize the beam at the beginning of the lattice. This
-overrides the \vn{beam0_file} variable (\sref{s:beam.init}). The
-centroid of the particle distribution can be shifted using the
-\vn{change beam_start} command (\sref{s:change}).
-
-The \vn{-noplot} optional argument suppresses the opening of the plot window.
-
-The \vn{-lat} switch is used to override the \vn{design_lattice}
-lattice file specified in the initialization file
+  \item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
+Overrides the \vn{design_lattice}
+lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
   \$ACC_EXE/tao -init my.init -lat xsif::slac.xsif
@@ -126,6 +126,19 @@ Do not put any spaces in between. Example:
 \begin{example}
   \$ACC_EXE/tao -lat xsif::slac.xsif|cesr.bmad
 \end{example}
+  \item[\vn{-lattice <lattice_namelist_file>}] \Newline
+Overrides the \vn{lattice_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-noplot}] \Newline
+Suppresses the opening of the plot window.
+  \item[\vn{-plot <plot_file>}] \Newline
+Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-var <var_file>}] \Newline
+Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+
+\end{description}
 
 %-----------------------------------------------------------------
 \section{Beginning Initialization}
@@ -135,19 +148,21 @@ Do not put any spaces in between. Example:
 \index{tao_start}\index{tao.init}\index{lattice_file}
 \index{data_file}\index{var_file}\index{plot_file}
 \index{single_mode_file}\index{startup_file}\index{startup_single_mode}
-The initialization starts with an initialization file. The default name for
+\index{beam_file}
+The initialization starts with the \tao initialization file. The default name for
 this file is \vn{tao.init} (See \sref{s:command.line}).
 The first namelist block read in from this initialization file is a 
 \vn{tao_start} namelist. This block is optional (in which case the defaults
 are used).  This namelist contains the variables:
 \begin{example}
   &tao_start
-    lattice_file      = "<file_name>"  ! Default = Initialization file.
-    data_file         = "<file_name>"  ! Default = Initialization file.
-    var_file          = "<file_name>"  ! Default = Initialization file.
+    lattice_file      = "<file_name>"  ! Default = Tao initialization file.
+    beam_file         = "<file_name>"  ! Default = Tao initialization file.
+    data_file         = "<file_name>"  ! Default = Tao initialization file.
+    var_file          = "<file_name>"  ! Default = Tao initialization file.
     plot_file         = "<file_name1> \{<file_name2>\} ..."  
-                                       ! Default = Initialization file.
-    single_mode_file  = "<file_name>"  ! Default = Initialization file.
+                                       ! Default = Tao initialization file.
+    single_mode_file  = "<file_name>"  ! Default = Tao initialization file.
     startup_file      = "<file_name>"  ! Default = "tao.startup"
     init_name         = "<init_name>"  ! Default = "Tao"
   /
@@ -175,18 +190,18 @@ however, can contain \vn{tao_template_plot} and
 \centering {\tt
 \begin{tabular}{|l|l|l|l|} \hline
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
-  \vn{tao_design_lattice}        & \vn{lattice_file} & lattice files & \sref{s:init.lat}      \\ \hline
-  \vn{tao_params}                & "tao.init" & Global Variables     & \sref{s:globals}       \\ \hline
-  \vn{tao_connected_uni_init}    & "tao.init" & Connected Universes  & \sref{s:connected.uni} \\ \hline
-  \vn{tao_beam_init}             & "tao.init" & Particle beam        & \sref{s:beam.init}     \\ \hline
-  \vn{tao_var}                   & \vn{var_file}      & Variables    & \sref{s:init.var}      \\ \hline
-  \vn{tao_d2_data}               & \vn{data_file}     & Data         & \sref{s:init.data}     \\ \hline
-  \vn{tao_d1_data}               & \vn{data_file}     & Data         & \sref{s:init.data}     \\ \hline
-  \vn{tao_plot_page}             & \vn{plot_file}$^*$ & Plotting     & \sref{s:init.plot}     \\ \hline
-  \vn{element_shapes_lat_layout} & \vn{plot_file}$^*$ & Plotting     & \sref{s:ele.shape}     \\ \hline
-  \vn{element_shapes_floor_plan} & \vn{plot_file}$^*$ & Plotting     & \sref{s:ele.shape}     \\ \hline
-  \vn{tao_template_plot}         & \vn{plot_file}     & Plotting     & \sref{s:init.plot}     \\ \hline
-  \vn{tao_template_graph}        & \vn{plot_file}     & Plotting     & \sref{s:init.plot}     \\ \hline
+  \vn{tao_params}                & "tao.init"  & Global Variables     & \sref{s:globals}       \\ \hline
+  \vn{tao_connected_uni_init}    & "tao.init"  & Connected Universes  & \sref{s:connected.uni} \\ \hline
+  \vn{tao_design_lattice}        & \vn{lattice_file}  & lattice files & \sref{s:init.lat}      \\ \hline
+  \vn{tao_beam_init}             & \vn{beam_file}     & Particle beam & \sref{s:beam.init}     \\ \hline
+  \vn{tao_var}                   & \vn{var_file}      & Variables     & \sref{s:init.var}      \\ \hline
+  \vn{tao_d2_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline
+  \vn{tao_d1_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline
+  \vn{tao_plot_page}             & \vn{plot_file}$^*$ & Plotting      & \sref{s:init.plot}     \\ \hline
+  \vn{element_shapes_lat_layout} & \vn{plot_file}$^*$ & Plotting      & \sref{s:ele.shape}     \\ \hline
+  \vn{element_shapes_floor_plan} & \vn{plot_file}$^*$ & Plotting      & \sref{s:ele.shape}     \\ \hline
+  \vn{tao_template_plot}         & \vn{plot_file}     & Plotting      & \sref{s:init.plot}     \\ \hline
+  \vn{tao_template_graph}        & \vn{plot_file}     & Plotting      & \sref{s:init.plot}     \\ \hline
 \end{tabular}}
 \break
 $^*$This namelist taken from the first file in the {plot\_file} array.

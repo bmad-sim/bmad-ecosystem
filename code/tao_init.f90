@@ -29,7 +29,7 @@ real(rp), pointer :: ptr_attrib
 
 character(80) arg, arg2, startup_file
 character(100) lattice_file, plot_file, data_file, var_file, file_name
-character(100) wall_file
+character(100) wall_file, beam_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -41,7 +41,7 @@ logical err, calc_ok
 logical, optional :: err_flag
 
 namelist / tao_start / lattice_file, startup_file, wall_file, &
-               data_file, var_file, plot_file, n_universes, init_name
+               data_file, var_file, plot_file, n_universes, init_name, beam_file
 
 ! global inits
 
@@ -76,7 +76,7 @@ call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
 if (iu == 0) then ! If open failure
   call out_io (s_warn$, r_name, 'CANNOT OPEN TAO INITIALIZATION FILE!')
   if (tao_com%init_tao_file /= tao_com%default_init_tao_file .or. &
-                                    tao_com%init_lat_file == '') stop
+                                    tao_com%lat_file == '') stop
   tao_com%init_tao_file = ''
 endif
 
@@ -87,6 +87,7 @@ lattice_file       = tao_com%init_tao_file      ! set default
 plot_file          = tao_com%init_tao_file      ! set default
 data_file          = tao_com%init_tao_file      ! set default
 var_file           = tao_com%init_tao_file      ! set default
+beam_file          = tao_com%init_tao_file      ! set default
 wall_file          = ''
 n_universes        = 1              ! set default
 init_name          = "Tao"          ! set default
@@ -99,13 +100,20 @@ if (iu /= 0) then
   close (iu)
 
   if (ios /= 0) then
-    call out_io (s_info$, r_name, &
-                    'Cannot read "tao_start" namelist in file: ' // file_name)
+    call out_io (s_info$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
   endif
 
   tao_com%init_name = init_name
   tao_com%n_universes = n_universes
 endif
+
+! Command line override
+
+if (tao_com%beam_file /= '') beam_file = tao_com%beam_file
+if (tao_com%data_file /= '') data_file = tao_com%data_file
+if (tao_com%plot_file /= '') plot_file = tao_com%plot_file
+if (tao_com%var_file /= '')  var_file  = tao_com%var_file
+if (tao_com%lattice_file /= '') lattice_file = tao_com%lattice_file
 
 ! Tao inits.
 ! Data can have variable info so init vars first.
@@ -116,7 +124,8 @@ bmad_status%exit_on_error = .false.
 
 call tao_init_global(tao_com%init_tao_file)
 call tao_init_lattice (lattice_file) 
-call tao_init_beams_and_uni_connections (tao_com%init_tao_file)
+call tao_init_connected_universes (tao_com%init_tao_file)
+call tao_init_beams (beam_file)
 call tao_init_variables (var_file)
 call tao_init_data (data_file)
 call tao_init_wall (wall_file)

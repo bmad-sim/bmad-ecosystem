@@ -563,11 +563,16 @@ type tao_common_struct
   logical :: optimizer_running   = .false. 
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization
-  character(200) :: init_lat_file = ''                 ! '-lat' argument.
-  character(100) :: init_tao_file                      ! '-init' argument.
   character(100) :: default_init_tao_file = 'tao.init'          
-  character(100) :: beam_all_file = ''  ! Command line input beam data file.
-  character(100) :: beam0_file    = ''  ! Command line input beam data file.
+  character(200) :: lattice_file = ''   ! '-lattice'  command line argument.
+  character(200) :: lat_file = ''       ! '-lat'      command line argument.
+  character(100) :: init_tao_file       ! '-init'     command line argument.
+  character(100) :: beam_file = ''      ! '-beam'     command line argument.
+  character(100) :: beam_all_file = ''  ! '-beam_all' command line argument.
+  character(100) :: beam0_file    = ''  ! '-beam0'    command line argument.
+  character(100) :: data_file = ''      ! '-data'     command line argument.
+  character(100) :: plot_file = ''      ! '-plot'     command line argument.
+  character(100) :: var_file = ''       ! '-var'      command line argument.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...

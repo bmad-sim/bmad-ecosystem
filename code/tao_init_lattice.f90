@@ -104,7 +104,7 @@ endif
 
 ! Read in the lattices
 
-init_lat_file = tao_com%init_lat_file
+init_lat_file = tao_com%lat_file
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 

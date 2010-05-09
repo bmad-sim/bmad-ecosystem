@@ -1006,12 +1006,16 @@ case ('global')
     nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
     nl=nl+1; write (lines(nl), imt) 'Universe index range:          = ', lbound(s%u, 1), ubound(s%u, 1)
     nl=nl+1; write (lines(nl), lmt) 'common_lattice                 = ', tao_com%common_lattice
+    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_file              = ', tao_com%beam_file
     nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file          = ', tao_com%beam_all_file
     nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file             = ', tao_com%beam0_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%data_file              = ', tao_com%data_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%lat_file               = ', tao_com%lat_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%plot_file              = ', tao_com%plot_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%var_file               = ', tao_com%var_file
     nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
                                                 tao_com%combine_consecutive_elements_of_like_name
-    nl=nl+1; write (lines(nl), amt) 'tao_com%init_lat_file          = ', tao_com%init_lat_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
     nl=nl+1; write (lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
   endif
 

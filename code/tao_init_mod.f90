@@ -114,9 +114,9 @@ end subroutine tao_init_global
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_init_beams_and_uni_connections (init_file)
+! Subroutine tao_init_connected_universes (init_file)
 !
-! Subroutine to initialize beam stuff and universe connections for
+! Subroutine to initialize universe connections for
 ! continuing tracking from one universe to another.
 !
 ! If init_file is not in the current directory then it 
@@ -128,36 +128,27 @@ end subroutine tao_init_global
 !                  If blank, there is no file so just use the defaults.
 !-
 
-subroutine tao_init_beams_and_uni_connections (init_file)
+subroutine tao_init_connected_universes (init_file)
 
-use spin_mod
 use tao_input_struct
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (beam_init_struct) beam_init
 type (tao_connected_uni_input) connect
-type (spin_polar_struct) spin
 
 integer i, k, iu, ios, ib, n_uni
 integer n, iostat, ix_universe, to_universe
 integer ix_track_start, ix_track_end
 
 character(*) init_file
-character(40) :: r_name = 'tao_init_beams_and_uni_connections'
-character(160) beam_saved_at
-character(200) file_name, beam0_file, beam_all_file
-character(60), target :: save_beam_at(100)   ! old style syntax
+character(40) :: r_name = 'tao_init_connected_universes'
+character(200) file_name
 
 logical err
 
 namelist / tao_connected_uni_init / to_universe, connect
   
-namelist / tao_beam_init / ix_universe, beam0_file, &
-  ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
-  beam_saved_at
-         
 !-----------------------------------------------------------------------
 ! Init connected universes
 
@@ -174,138 +165,46 @@ enddo
 
 call tao_hook_init_connected_uni ()
 
-if (tao_com%init_connected_uni .and. init_file /= '') then
-  call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+if (.not. tao_com%init_connected_uni .or. init_file == '') return
 
-  do
-    to_universe = -1
-    connect%match_to_design = .false.
-    connect%from_universe = -1
-    connect%at_element = ''
-    connect%at_ele_index = -1
-    connect%at_s = -1
+!
 
-    read (iu, nml = tao_connected_uni_init, iostat = ios)
-    if (ios > 0) then
-      call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
-      rewind (iu)
-      do
-        read (iu, nml = tao_connected_uni_init)  ! generate an error message
-      enddo
-    endif
-    if (ios < 0) exit
+call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 
-    if (to_universe == -1) then
-      call out_io (s_abort$, r_name, &
-            'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET TO_UNIVERSE!')
-      call err_exit
-    endif
-    call out_io (s_blank$, r_name, &
-           'Init: Read tao_connected_uni_init namelist for universe \i3\ ', to_universe)
-    call init_connected_uni (connect, to_universe)
+do
+  to_universe = -1
+  connect%match_to_design = .false.
+  connect%from_universe = -1
+  connect%at_element = ''
+  connect%at_ele_index = -1
+  connect%at_s = -1
 
-  enddo
-
-  close (iu)
-endif
-
-!-----------------------------------------------------------------------
-! Init Beam
-
-if (s%global%track_type == 'beam') then
-
-  call tao_hook_init_beam ()
-
-  if (tao_com%init_beam) then
-    call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
-    call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
-
-    do i = lbound(s%u, 1), ubound(s%u, 1)
-      do ib = 0, ubound(s%u(i)%uni_branch, 1)
-        s%u(i)%beam_info%beam0_file = ''
-      enddo
+  read (iu, nml = tao_connected_uni_init, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_abort$, r_name, 'INIT: TAO_CONNECTED_UNI_INIT NAMELIST READ ERROR!')
+    rewind (iu)
+    do
+      read (iu, nml = tao_connected_uni_init)  ! generate an error message
     enddo
-
-    do 
-
-      ! defaults
-      ix_universe = -1
-      beam_init%distribution_type = ''
-      beam_init%a_norm_emitt  = 0.0
-      beam_init%b_norm_emitt  = 0.0
-      beam_init%dPz_dz = 0.0
-      beam_init%center(:) = 0.0
-      beam_init%bunch_charge = 0.0
-      beam_init%dt_bunch = 0
-      beam_init%sig_z   = 0.0
-      beam_init%sig_e   = 0.0
-      beam_init%renorm_center = .true.
-      beam_init%renorm_sigma = .true.
-      beam_init%n_bunch = -1
-      beam_init%n_particle  = -1
-      beam0_file = tao_com%beam0_file        ! From the command line
-      beam_all_file = tao_com%beam_all_file  ! From the command line
-      beam_saved_at = ''
-      save_beam_at  = ''
-      ix_track_start = 0
-      ix_track_end = -1
-
-      ! Read beam parameters
-
-      read (iu, nml = tao_beam_init, iostat = ios)
-      if (ios > 0) then
-        call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
-        rewind (iu)
-        do
-          read (iu, nml = tao_beam_init)  ! generate an error message
-        enddo
-      endif
-      ! transfer info from old style save_beam_at(:) to beam_saved_at
-      do i = 1, size(save_beam_at)
-        if (save_beam_at(i) == '') cycle
-        beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
-      enddo
-
-      if (ios /= 0) exit
-
-      ! Error checking
-
-      if (beam_init%n_bunch < 1) then
-        call out_io (s_fatal$, r_name, &
-          'BEAM_INIT%N_BUNCH NOT PROPERLY SET.')
-        call err_exit
-      endif
-
-      ! init
-
-      call out_io (s_blank$, r_name, &
-            'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
-      if (ix_universe == -1) then
-        do i = lbound(s%u, 1), ubound(s%u, 1)
-          call init_beam(s%u(i))
-        enddo
-      else
-        if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
-          call out_io (s_error$, r_name, &
-                'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
-          call err_exit
-        endif
-        call init_beam(s%u(ix_universe))
-      endif
-
-    enddo
-
-    close (iu)
-
   endif
-endif
+  if (ios < 0) exit
+
+  if (to_universe == -1) then
+    call out_io (s_abort$, r_name, &
+          'INIT: READ TAO_CONNECTED_UNI_INIT NAMELIST HAS NOT SET TO_UNIVERSE!')
+    call err_exit
+  endif
+  call out_io (s_blank$, r_name, &
+         'Init: Read tao_connected_uni_init namelist for universe \i3\ ', to_universe)
+  call init_connected_uni (connect, to_universe)
+
+enddo
+
+close (iu)
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
 contains
-!+
-! Initialize universe connections
-!-
 
 subroutine init_connected_uni (connect, this_uni_index)
 
@@ -395,9 +294,146 @@ endif
 
 end subroutine init_connected_uni
 
+end subroutine tao_init_connected_universes
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_init_beams (init_file)
+!
+! Subroutine to initialize beam stuff.
+!
+! If init_file is not in the current directory then it 
+! will be searched for in the directory:
+!   TAO_INIT_DIR
+!
+! Input:
+!   init_file  -- Character(*): Tao initialization file.
+!                  If blank, there is no file so just use the defaults.
+!-
+
+subroutine tao_init_beams (init_file)
+
+use spin_mod
+use tao_input_struct
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+type (beam_init_struct) beam_init
+type (spin_polar_struct) spin
+
+integer i, k, iu, ios, ib, n_uni
+integer n, iostat, ix_universe, to_universe
+integer ix_track_start, ix_track_end
+
+character(*) init_file
+character(40) :: r_name = 'tao_init_beams'
+character(160) beam_saved_at
+character(200) file_name, beam0_file, beam_all_file
+character(60), target :: save_beam_at(100)   ! old style syntax
+
+logical err
+
+namelist / tao_beam_init / ix_universe, beam0_file, &
+  ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
+  beam_saved_at
+         
+!-----------------------------------------------------------------------
+! Init Beams
+
+if (s%global%track_type /= 'beam') return
+
+call tao_hook_init_beam ()
+
+if (.not. tao_com%init_beam) return
+
+!
+
+call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  do ib = 0, ubound(s%u(i)%uni_branch, 1)
+    s%u(i)%beam_info%beam0_file = ''
+  enddo
+enddo
+
+do 
+
+  ! defaults
+  ix_universe = -1
+  beam_init%distribution_type = ''
+  beam_init%a_norm_emitt  = 0.0
+  beam_init%b_norm_emitt  = 0.0
+  beam_init%dPz_dz = 0.0
+  beam_init%center(:) = 0.0
+  beam_init%bunch_charge = 0.0
+  beam_init%dt_bunch = 0
+  beam_init%sig_z   = 0.0
+  beam_init%sig_e   = 0.0
+  beam_init%renorm_center = .true.
+  beam_init%renorm_sigma = .true.
+  beam_init%n_bunch = -1
+  beam_init%n_particle  = -1
+  beam0_file = tao_com%beam0_file        ! From the command line
+  beam_all_file = tao_com%beam_all_file  ! From the command line
+  beam_saved_at = ''
+  save_beam_at  = ''
+  ix_track_start = 0
+  ix_track_end = -1
+
+  ! Read beam parameters
+
+  read (iu, nml = tao_beam_init, iostat = ios)
+  if (ios > 0) then
+    call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
+    rewind (iu)
+    do
+      read (iu, nml = tao_beam_init)  ! generate an error message
+    enddo
+  endif
+  ! transfer info from old style save_beam_at(:) to beam_saved_at
+  do i = 1, size(save_beam_at)
+    if (save_beam_at(i) == '') cycle
+    beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
+  enddo
+
+  if (ios /= 0) exit
+
+  ! Error checking
+
+  if (beam_init%n_bunch < 1) then
+    call out_io (s_fatal$, r_name, &
+      'BEAM_INIT%N_BUNCH NOT PROPERLY SET.')
+    call err_exit
+  endif
+
+  ! init
+
+  call out_io (s_blank$, r_name, &
+        'Init: Read tao_beam_init namelist for universe \i3\ ', ix_universe)
+  if (ix_universe == -1) then
+    do i = lbound(s%u, 1), ubound(s%u, 1)
+      call init_beam(s%u(i))
+    enddo
+  else
+    if (ix_universe < lbound(s%u, 1) .or. ix_universe > ubound(s%u, 1)) then
+      call out_io (s_error$, r_name, &
+            'BAD IX_UNIVERSE IN TAO_BEAM_INIT NAMELIST: \i0\ ', ix_universe)
+      call err_exit
+    endif
+    call init_beam(s%u(ix_universe))
+  endif
+
+enddo
+
+close (iu)
+
 !----------------------------------------------------------------
 !----------------------------------------------------------------
-! contains
+contains
 !
 ! Initialize the beams. Determine which element to track beam to
 !
@@ -483,7 +519,7 @@ if (allocated(eles)) deallocate (eles)
 
 end subroutine init_beam
 
-end subroutine tao_init_beams_and_uni_connections 
+end subroutine tao_init_beams
 
 !-----------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------
