@@ -343,11 +343,9 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
 !-----------------------------------------------------------------------
 ! Init Beams
 
-if (s%global%track_type /= 'beam') return
-
 call tao_hook_init_beam ()
 
-if (.not. tao_com%init_beam) return
+if (.not. tao_com%init_beam .or. init_file == '') return
 
 !
 

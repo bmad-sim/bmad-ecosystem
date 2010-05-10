@@ -14,7 +14,7 @@ type show_common_struct
   integer ix_ele
 end type
 
-integer, parameter, private :: n_char = 500
+integer, parameter, private :: n_char = 600
 
 
 contains
@@ -169,7 +169,7 @@ type show_lat_column_struct
   character(32) label
 end type
 
-type (show_lat_column_struct) column(40)
+type (show_lat_column_struct) column(50)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
 real(rp) :: delta_e = 0

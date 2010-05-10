@@ -630,16 +630,14 @@ size squared.
 \centering 
 {\tt\small
 \begin{tabular}{|l|l|} \hline
-  {\it Data\_Type}             & {\it Description}                  \\ \hline 
+  {\it Data\_Type}            & {\it Description}                   \\ \hline 
   beta.x, beta.y  beta.z      & Projected beta function             \\ \hline 
   beta.a, beta.b              & Normal-mode beta function           \\ \hline 
 
   dpx\_dx, dpx\_dy, etc.      & Bunch <x px> / <$x^2$> \& Etc...    \\ \hline 
 
-  \begin{tabular}{@{}l}
-    emit.x, emit.y, emit.z \\
-    emit.a, emit.b, emit.c \\
-  \end{tabular}               & Emittance (global)                  \\ \hline
+  emit.x, emit.y, emit.z      & Projected emittance                 \\ \hline
+  emit.a, emit.b, emit.c      & Normal mode emittance               \\ \hline
 
   eta.x, eta.y, eta.z         & Projected dispersion                \\ \hline 
   eta.a, eta.b                & Normal-Mode dispersion              \\ \hline 
@@ -704,13 +702,13 @@ size squared.
   cbar.11, cbar.12, cbar.21, cbar.22
                                  & Coupling                           \\ \hline 
 
-  chrom.a, chrom.b               & Chromaticity for a ring (global)   \\ \hline
+  chrom.a, chrom.b               & Chromaticity for a ring            \\ \hline
 
   e\_tot                         & Beam total energy                  \\ \hline
 
   element\_param.<param\_name>   & Lattice element parameter          \\ \hline
 
-  emit.a, emit.b, emit.c         & Emittance (global)                 \\ \hline
+  emit.a, emit.b, emit.c         & Emittance                          \\ \hline
 
   eta.x, eta.y, eta.z            & Lab Frame dispersion               \\ \hline 
   eta.a, eta.b                   & Normal-mode dispersion             \\ \hline 
@@ -787,7 +785,7 @@ size squared.
 
   tune.a, tune.b                 & Tune                               \\ \hline 
   unstable.orbit                 & Nonzero if particles are lost in tracking \\ \hline
-  unstable.ring                  & Nonzero if a ring is unstable (global)    \\ \hline
+  unstable.ring                  & Nonzero if a ring is unstable             \\ \hline
 
 \end{tabular}
 } 
