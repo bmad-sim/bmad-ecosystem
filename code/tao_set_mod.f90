@@ -270,25 +270,25 @@ if (ios /= 0) then
   return
 endif
 
-old_global = s%global  ! Save
-s%global = global
-
 call tao_data_check (err)
-if (err) then
-  s%global = old_global
-  return
-endif
+if (err) return
 
 select case (who)
 case ('track_type')
+  if (set_value /= 'single' .and. set_value /= 'beam') then
+    call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
+    return
+  endif
   s%u%lattice_recalc = .true.
 case ('random_seed')
-  call ran_seed_put (s%global%random_seed)
+  call ran_seed_put (global%random_seed)
 case ('random_engine')
-  call ran_engine (s%global%random_engine)
+  call ran_engine (global%random_engine)
 case ('random_gauss_converter', 'random_sigma_cutoff')
- call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
+ call ran_gauss_converter (global%random_gauss_converter, global%random_sigma_cutoff)
 end select
+
+s%global = global
 
 end subroutine tao_set_global_cmd
 
