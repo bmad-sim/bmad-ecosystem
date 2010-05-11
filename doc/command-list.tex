@@ -738,6 +738,7 @@ variables, etc. Format:
 \begin{example}
   set beam_init \{n@\}<component> = <value>
   set bmad_com <component> = <value>
+  set csr_param <component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
   set element <element_list> <attribute> = <value>
@@ -794,6 +795,17 @@ For \vn{set bmad_com}: The \vn{show global} command will give a list of
 Example:
 \begin{example}
   set bmad_com radiation_fluctuations_on = T ! Turn on synchrotron radiation fluctuations.
+\end{example}
+
+%% set csr_param --------------------------------------------------------------
+
+\item[set csr_param <component> = <value>] \Newline
+Sets coherent synchrotron radiation parameters. Use the \vn{show
+global -csr_param} command to see a list of \vn{<component>}s.
+
+Example:
+\begin{example}
+  set csr_param n_bin = 30  ! Set number of bins used in the csr calc.
 \end{example}
 
 %% set curve --------------------------------------------------------------

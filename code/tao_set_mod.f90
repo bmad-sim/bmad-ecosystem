@@ -296,6 +296,65 @@ end subroutine tao_set_global_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_csr_param_cmd (who, set_value)
+!
+! Routine to set csr_param variables
+! 
+! Input:
+!   who       -- Character(*): which csr_param variable to set
+!   set_value -- Character(*): Value to set to.
+!
+! Output:
+!    csr_param  -- Csr_param variables structure.
+!-
+
+subroutine tao_set_csr_param_cmd (who, set_value)
+
+use csr_mod
+
+implicit none
+
+type (csr_parameter_struct) local_csr_param
+
+character(*) who, set_value
+character(20) :: r_name = 'tao_set_csr_param_cmd'
+
+integer iu, ios
+logical err
+
+namelist / params / local_csr_param
+
+! open a scratch file for a namelist read
+
+iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+write (iu, *) '&params'
+write (iu, *) ' local_csr_param%' // trim(who) // ' = ' // trim(set_value)
+write (iu, *) '/'
+rewind (iu)
+local_csr_param = csr_param  ! set defaults
+read (iu, nml = params, iostat = ios)
+close (iu)
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+  return
+endif
+
+csr_param = local_csr_param
+s%u%lattice_recalc = .true.
+
+end subroutine tao_set_csr_param_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_bmad_com_cmd (who, set_value)
 !
 ! Routine to set bmad_com variables

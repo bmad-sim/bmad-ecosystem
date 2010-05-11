@@ -53,10 +53,11 @@ character(16) :: cmd_names(33) = [  &
     'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
     'pause        ', 'continue     ', 'wave         ']
 
-character(16) :: set_names(15) = [ &
+character(16) :: set_names(16) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
-    'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ']
+    'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ', &
+    'csr_param    ']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -459,6 +460,7 @@ case ('set')
   if ( &
        (set_word == 'beam_init'      .and. cmd_word(3) /= '=') .or. &
        (set_word == 'bmad_com'       .and. cmd_word(3) /= '=') .or. &
+       (set_word == 'csr_param'      .and. cmd_word(3) /= '=') .or. &
        (set_word == 'curve'          .and. cmd_word(4) /= '=') .or. &
        (set_word == 'data'           .and. cmd_word(3) /= '=') .or. &
        (set_word == 'element'        .and. cmd_word(4) /= '=') .or. &
@@ -476,6 +478,8 @@ case ('set')
   endif
 
   select case (set_word)
+  case ('csr_param')
+    call tao_set_csr_param_cmd (cmd_word(2), cmd_word(4))
   case ('data')
     cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
     call tao_set_data_cmd (cmd_word(2), cmd_word(4))
