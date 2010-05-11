@@ -24,7 +24,7 @@
 !   do_allocation   -- Logical: If True then do an allocation if needed.
 !                       EG: The multipole An and Bn arrays need to be allocated
 !                       before their use.
-!   err_print_flag  -- Logical, optional: If present and False then supress
+!   err_print_flag  -- Logical, optional: If present and False then suppress
 !                       printing of an error message on error.
 !
 ! Output:

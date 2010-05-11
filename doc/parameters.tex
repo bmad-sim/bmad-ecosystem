@@ -96,8 +96,8 @@ the beam. The parameters of this structure are:
     type (grid_beam_init_struct) grid(3)       ! For grid beam distribution
     !!! The following are for Random distributions
     character(16) :: random_engine          ! "pseudo" (default) or "quasi". 
-    character(16) :: random_gauss_converter ! "exact" (default) or "limited". 
-    real(rp) :: random_sigma_cutoff = 4.0   ! Used with "limited" converter. 
+    character(16) :: random_gauss_converter ! "exact" (default) or "quick". 
+    real(rp) :: random_sigma_cutoff = -1    ! -1 => no cutoff used.
     real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
     real(rp) :: emitt_jitter(2)  = 0.0  ! %RMS a and b mode bunch emittance jitter
     real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
@@ -145,13 +145,13 @@ of random numbers in the interval [0, 1]. \vn{"pseudo"} is a pseudo random
 number generator and "quasi" is a quasi random generator. "quasi random" is
 a misnomer in that the distribution generated is fairly uniform.
   \item[\%random_gauss_converter, \%random_sigma_cutoff] \Newline
-To generate Gaussian random numbers, a conversion algorithm from the 
-flat distribution generated according to \vn{%random_engine} is needed.
-\vn{%random_gauss_converter} selects the algorithm. The \vn{"exact"} conversion
-uses an exact conversion. The \vn{"limited"} limits the maximum sigma generated
-to the value of \vn{%random_sigma_cutoff}. The \vn{"limited"} method is also
-somewhat faster than the \vn{"exact"} method. Note that the sigma cutoff
-is ignored in the \vn{"exact"} method.
+To generate Gaussian random numbers, a conversion algorithm from the
+flat distribution generated according to \vn{%random_engine} is
+needed.  \vn{%random_gauss_converter} selects the algorithm. The
+\vn{"exact"} conversion uses an exact conversion. The \vn{"quick"}
+method is somewhat faster than the \vn{"exact"} method but not as accurate.
+With either conversion method, if \vn{%random_sigma_cutoff} is set to a positive number,
+this limits the maximum sigma generated. 
   \item[\%n_parcicle] \Newline
 Number of random particles generated per bunch.
   \item[\%renorm_center, \%renorm_sigma] \Newline 

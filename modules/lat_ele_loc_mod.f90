@@ -42,7 +42,10 @@ contains
 ! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
-! 
+!
+! If there are multiple elements of the same name, pointers to all such elements
+! are returned.
+!
 ! loc_str is a list of element names, element indexes, or element ranges.
 ! A space or a comma delimits the elements.
 !

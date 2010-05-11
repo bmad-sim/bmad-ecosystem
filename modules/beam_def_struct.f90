@@ -75,8 +75,8 @@ type beam_init_struct
   logical :: renorm_sigma = .true.    ! Renormalize sigma?
   character(16) :: random_engine = 'pseudo' ! Or 'quasi'. Random number engine to use. 
   character(16) :: random_gauss_converter = 'exact'  
-                                            ! Or 'limited'. Uniform to gauss conversion method.
-  real(rp) :: random_sigma_cutoff = 4.0     ! Used with 'limited' converter. Cut-off in sigmas.
+                                            ! Or 'quick'. Uniform to gauss conversion method.
+  real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
   !!! The following are used  by all distribution types
   type(beam_spin_struct)  spin        ! Initialize the spin
   real(rp) a_norm_emitt               ! a-mode emittance

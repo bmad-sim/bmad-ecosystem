@@ -674,13 +674,14 @@ interface
 end interface
 
 interface
-  subroutine set_ele_attribute (ele, set_string, lat, err_flag)
+  subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct) ele
     type (lat_struct) lat
     character(*) set_string
     logical err_flag
+    logical, optional :: err_print_flag
   end subroutine
 end interface
 

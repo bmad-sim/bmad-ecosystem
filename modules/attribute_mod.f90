@@ -42,7 +42,7 @@ private check_this_attribute_free, print_error
 !   ele             -- Ele_struct: Element containing the attribute
 !   attrib_name     -- Character(*): Name of the attribute. Assumed upper case.
 !   lat             -- lat_struct: Lattice structure.
-!   err_print_flag  -- Logical, optional: If present and False then supress
+!   err_print_flag  -- Logical, optional: If present and False then suppress
 !                       printing of an error message if attribute is not free.
 !   except_overlay  -- Logical, optional: If present and True then an attribute that
 !                       is an overlay_slave will be treated as free. This is used by,
@@ -86,7 +86,7 @@ contains
 !   do_allocation   -- Logical: If True then do an allocation if needed.
 !                       EG: The multipole An and Bn arrays need to be allocated
 !                       before their use.
-!   err_print_flag  -- Logical, optional: If present and False then supress
+!   err_print_flag  -- Logical, optional: If present and False then suppress
 !                       printing of an error message on error.
 !
 ! Output:

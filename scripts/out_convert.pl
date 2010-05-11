@@ -7,8 +7,8 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/custom_emit_calc/emit_calc_custom/g;
-    s/custom_radiation_integrals/radiation_integrals_custom/g; 
+    s/type \*/print \*/i;
+    s/type \'/print \'/i;
 
     print (F_OUT);
   }

@@ -1,5 +1,5 @@
 !+
-! Subroutine set_ele_attribute (ele, set_string, lat, err_flag)
+! Subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
 !
 ! Routine to set an element's attribute.
 ! This is a general routine that will set almost any element attribute.
@@ -15,17 +15,20 @@
 !   use bmad
 !
 ! Input:
-!   ele        -- ele_struct: Element with attribute to set.
-!   set_string -- Character(*): attribute and value for set.
-!   lat        -- lat_struct: Lattice containing the element. 
-!                   Used if an evaluation is needed
+!   ele            -- ele_struct: Element with attribute to set.
+!   set_string     -- Character(*): attribute and value for set.
+!   lat            -- lat_struct: Lattice containing the element. 
+!                       Used if an evaluation is needed.
+!   err_print_flag -- Logical, optional: If present and False then suppress
+!                       printing of an error message if attribute is, for
+!                       example, not free.
 !
 ! Output:
 !   ele      -- ele_struct: Element with attribute set.
 !   err_flag -- Logical: Set True if there is an error, False otherwise.
 !-
 
-subroutine set_ele_attribute (ele, set_string, lat, err_flag)
+subroutine set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)
 
 use bmad_parser_mod
 
@@ -42,6 +45,7 @@ character(100) string
 character(1) delim
 character(20) :: r_name = 'set_ele_attribute'
 
+logical, optional :: err_print_flag
 logical err_flag, delim_found
 
 ! Check if free
@@ -55,7 +59,7 @@ if (ix == 0) then
   return
 endif
 
-if (.not. attribute_free (ele, string(1:ix-1), lat)) return
+if (.not. attribute_free (ele, string(1:ix-1), lat, err_print_flag)) return
 
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine get_attribute.
@@ -67,6 +71,7 @@ bp_com%parse_line = string
 bp_com%current_file => current_file
 current_file%full_name = ''
 
-call get_attribute (redef$, ele, lat, delim, delim_found, err_flag, .true.)
+call get_attribute (redef$, ele, lat, delim, delim_found, err_flag, &
+                                                  logic_option(.true., err_print_flag))
 
 end subroutine

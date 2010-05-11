@@ -703,6 +703,9 @@ end subroutine
 ! Subroutine init_beam_distribution (ele, param, beam_init, beam)
 !
 ! Subroutine to initialize a beam of particles. 
+! 
+! Note: This routine sets the random number generator according to the settings
+! in beam_int and at the end resets things to their initial state.
 !
 ! For more information on individual bunch initialization, see the 
 ! init_bunch_distribution routine.

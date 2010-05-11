@@ -18,7 +18,7 @@
 !     %ix_attrib     -- Index of attribute controlled
 !     %coef          -- Coefficient
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
-!   err_print_flag -- Logical, optional: If present and False then supress                                
+!   err_print_flag -- Logical, optional: If present and False then suppress
 !                       printing of an error message if attribute is not free.  
 !
 ! Output:
