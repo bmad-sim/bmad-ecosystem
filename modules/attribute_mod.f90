@@ -270,6 +270,7 @@ integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
 
 character(*) attrib_name
+character(40) a_name
 
 logical free, do_print, do_except_overlay
 
@@ -280,7 +281,7 @@ if (ix_recursion == 0) then
   attrib_name0 = attrib_name
 endif
 
-! super_slaves attributes cannot be varied
+! Check that the name corresponds to an attribute
 
 free = .false.
 
@@ -288,6 +289,15 @@ ix_attrib = attribute_index(ele, attrib_name)
 if (ix_attrib < 1) then
   if (do_print) call print_error (ele, ix_attrib, &
           'THIS ATTRIBUTE INDEX DOES NOT CORRESPOND TO A VALID ATTRIBUTE.')
+  return
+endif
+
+a_name = attribute_name (ele, ix_attrib)
+
+! csr_calc_on is always free
+
+if (a_name == 'CSR_CALC_ON') then
+  free = .true.
   return
 endif
 
@@ -311,7 +321,7 @@ if (.not. do_except_overlay) then
   enddo
 endif
 
-! Check for a super_slave
+! Super_slaves attributes cannot be varied
 
 if (ele%slave_status == super_slave$) then
   if (do_print) call print_error (ele, ix_attrib, 'THIS ELEMENT IS A SUPER_SLAVE.')

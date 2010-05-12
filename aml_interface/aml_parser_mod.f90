@@ -30,13 +30,13 @@ logical found
 
 !
 
-found = get_attribute_value(node, 'name', value)
+found = parser_set_attribute_value(node, 'name', value)
 call str_upcase(ele%name, value)
 
 node%ix = ele%ix_ele
 
 call get_child_by_name (node, "bmad_attributes", attrib_node)
-found = get_attribute_value (attrib_node, 'class', value)
+found = parser_set_attribute_value (attrib_node, 'class', value)
 ele%key = key_name_to_key_index(value)
 if (ele%key < 0) then
   call parser_error('CANNOT DETERMINE PROPER ELEMENT CLASS FOR ELEMENT: ' // ele%name)
@@ -328,7 +328,7 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
 
   ! Find the ele%slave_status. 
 
-  found = get_attribute_value (node, 'slave_rank', slave_rank)
+  found = parser_set_attribute_value (node, 'slave_rank', slave_rank)
   select case (slave_rank)
 
   case ('SUPER_SLAVE')
@@ -342,7 +342,7 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
     if (size(node%controllers) /= 0) ele%slave_status = group_slave$
     do j = lbound(node%controllers, 1), ubound(node%controllers, 1)
       controller_node => node%controllers(j)%node%parent
-      found = get_attribute_value (controller_node, 'variation', value_str)
+      found = parser_set_attribute_value (controller_node, 'variation', value_str)
       if (value_str == 'ABSOLUTE' .or. value_str == '') then
         ele%slave_status = overlay_slave$
         exit
@@ -360,7 +360,7 @@ do i = lbound(track_node%children, 1) + 1, ubound(track_node%children, 1)
   if (slave_rank == 'SUPER_SLAVE') then
     call get_child_by_name (node, 'length', child_node)
     if (.not. associated(child_node)) cycle
-    if (.not. get_attribute_value (child_node, "actual", attrib_str)) cycle
+    if (.not. parser_set_attribute_value (child_node, "actual", attrib_str)) cycle
     read (attrib_str, *) ele%value(l$)
   endif
 
@@ -379,7 +379,7 @@ do i = lbound(master_node%children, 1), ubound(master_node%children, 1)
 
   ! Find the ele%lord_type
 
-  found = get_attribute_value (node, 'lord_rank', lord_rank)
+  found = parser_set_attribute_value (node, 'lord_rank', lord_rank)
   select case (lord_rank)
   case ('SUPER_LORD')
     ele%lord_status = super_lord$
@@ -464,9 +464,9 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
   ele => lat%ele(node%ix)
 
   call get_child_by_name (node, 'bmad_attributes', attrib_node)
-  found = get_attribute_value (attrib_node, 'value', con_value_str)
-  found = get_attribute_value (attrib_node, 'coef', coef_str)
-  found = get_attribute_value (attrib_node, 'attribute', dflt_attrib)
+  found = parser_set_attribute_value (attrib_node, 'value', con_value_str)
+  found = parser_set_attribute_value (attrib_node, 'coef', coef_str)
+  found = parser_set_attribute_value (attrib_node, 'attribute', dflt_attrib)
 
   if (ele%lord_status == overlay_lord$) then
     call str_upcase (dflt_attrib, dflt_attrib)
@@ -522,7 +522,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
       lat%control(n)%ix_slave = ix_slave
       lat%control(n)%ix_lord = ele%ix_ele
 
-      found =  get_attribute_value (attrib_node%children(j), 'coef', coef_str)
+      found =  parser_set_attribute_value (attrib_node%children(j), 'coef', coef_str)
       coef = dflt_coef
       if (coef_str /= '') then
         read (coef_str, *, iostat = ios) coef_str
@@ -534,7 +534,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
       endif
       lat%control(n)%coef = coef
 
-      found = get_attribute_value (attrib_node%children(j), 'attribute', attrib_str)
+      found = parser_set_attribute_value (attrib_node%children(j), 'attribute', attrib_str)
       if (attrib_str == '') attrib_str = dflt_attrib
       call str_upcase (attrib_str, attrib_str)
       ix = attribute_index (lat%ele(ix_slave), attrib_str)

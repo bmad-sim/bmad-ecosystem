@@ -170,7 +170,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
+! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file.
@@ -178,7 +178,7 @@ contains
 ! This subroutine is not intended for general use.
 !-
 
-subroutine get_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
+subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
 
 use random_mod
        

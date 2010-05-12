@@ -62,7 +62,7 @@ endif
 if (.not. attribute_free (ele, string(1:ix-1), lat, err_print_flag)) return
 
 ! Evaluate and set.
-! This essentially is a wrapper for the bmad_parser routine get_attribute.
+! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
 
 if (.not. allocated(bp_com%var_name)) call init_bmad_parser_common
 bp_com%input_from_file = .false.
@@ -71,7 +71,7 @@ bp_com%parse_line = string
 bp_com%current_file => current_file
 current_file%full_name = ''
 
-call get_attribute (redef$, ele, lat, delim, delim_found, err_flag, &
+call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag, &
                                                   logic_option(.true., err_print_flag))
 
 end subroutine
