@@ -95,7 +95,7 @@ integer(kr4b), parameter :: im = 2147483647
 integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
 integer, private, save :: engine = pseudo_random$
 
-integer, parameter :: limited_gaussian$ = 3, exact_gaussian$ = 4
+integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4
 integer, private, save :: gauss_converter = exact_gaussian$
 real(rp), save :: gauss_sigma_cut = -1
 integer, private :: n_pts_per_sigma = 20
@@ -126,14 +126,14 @@ integer, optional :: index_quasi
 integer i, ss, ix, n_g_new
 integer, save :: n_g = -1
 
-! quasi-random must use the limited_gaussian since the exact_gaussian can
+! quasi-random must use the quick_gaussian since the exact_gaussian can
 ! use several uniform random numbers to generate a single Gaussian random number.
 ! This invalidates the algorithm used to generate a quasi-random Gaussian vector.
 
 ! g is the normalized error function and maps from the 
 ! interval [0, 0.5] to [0, infinity].
 
-if (engine == quasi_random$ .or. gauss_converter == limited_gaussian$) then
+if (engine == quasi_random$ .or. gauss_converter == quick_gaussian$) then
 
   if (gauss_sigma_cut > 0) then
     sigma_cut = gauss_sigma_cut
@@ -292,14 +292,14 @@ end subroutine
 !
 ! exact_gaussian$ is a straight forward converter as explained in Numerical recipes.
 !
-! limited_gaussian$ is a quick a dirty approximation with a cutoff so that no 
+! quick_gaussian$ is a quick a dirty approximation with a cutoff so that no 
 ! numbers will be generated beyound what is set for sigma_cut. 
 !
 ! A negative sigma_cut means that the exact_gaussian$ will not be limited
-! and the limited_gaussian$ will use a default of 10.0
+! and the quick_gaussian$ will use a default of 10.0
 !
 ! Note: Because of technical issues, when using the quasi_random$ number generator
-! (see the ran_engine routine), the limited_gaussian$ method will automatically be 
+! (see the ran_engine routine), the quick_gaussian$ method will automatically be 
 ! used independent of what was set with this routine.
 !
 ! Modules needed:
@@ -308,7 +308,7 @@ end subroutine
 ! Input:
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !             'exact'
-!             'limited'
+!             'quick'  (Old deprecated: 'limited')
 !   set_sigma_cut -- Real(rp), optional: Sigma cutoff. Initially: sigma_cut = -1.
 !
 ! Output:
@@ -328,8 +328,8 @@ character(16) :: r_name = 'ran_gauss_converter'
 
 if (present (get)) then
   select case (gauss_converter)
-  case (limited_gaussian$)
-    get = 'limited'
+  case (quick_gaussian$)
+    get = 'quick'
   case (exact_gaussian$)
     get = 'exact'
   end select
@@ -343,8 +343,8 @@ if (present(get_sigma_cut)) get_sigma_cut = gauss_sigma_cut
 
 if (present(set)) then
   select case (set)
-  case ('limited')
-    gauss_converter = limited_gaussian$
+  case ('quick', 'limited')
+    gauss_converter = quick_gaussian$
   case ('exact')
     gauss_converter = exact_gaussian$
   case default
