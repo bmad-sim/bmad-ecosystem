@@ -953,7 +953,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord, slave0
+type (ele_struct), pointer :: lord, slave0, lord1
 type (ele_struct), save :: sol_quad
 type (branch_struct), pointer :: branch
 
@@ -1119,20 +1119,20 @@ do j = 1, slave%n_lord
 
   ! Methods
 
-  if (j == slave%ic1_lord) then
+  if (j == 1) then
     slave%mat6_calc_method = lord%mat6_calc_method
     slave%tracking_method  = lord%tracking_method
   else
     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-      ix = lat%control(lat%ic(slave%ic1_lord))%ix_lord
+      lord1 => pointer_to_lord (lat, slave, 1)
       call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(branch%ele(ix)%name))
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
       call err_exit
     endif
     if (slave%tracking_method /= lord%tracking_method) then
-      ix = lat%control(lat%ic(slave%ic1_lord))%ix_lord
+      lord1 => pointer_to_lord (lat, slave, 1)
       call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
-           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(branch%ele(ix)%name))
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
       call err_exit
     endif
   endif
