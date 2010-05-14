@@ -1481,24 +1481,25 @@ implicit none
 type (ele_struct), target :: sliced_ele, ele
 type (lat_param_struct) param
 
-real(rp) l_slice, offset
+real(rp) l_slice, offset, e_len
 
 logical at_entrance_end, at_exit_end
 
 character(24) :: r_name = 'create_element_slice'
 
-! Err check
+! Err check. Remember: the element length may be negative
 
-if (l_slice < 0 .or. l_slice > ele%value(l$) + bmad_com%significant_longitudinal_length) then
+e_len = ele%value(l$)
+if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_longitudinal_length) then
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele%name, &
-        'LENGTH: \2es12.3\ ', r_array = [l_slice, ele%value(l$)])
+        'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])
   call err_exit
 endif
 
 ! Simple case where ele length is zero
 
-if (ele%value(l$) == 0) then
+if (e_len == 0) then
   sliced_ele = ele
   return
 endif
@@ -1507,7 +1508,7 @@ endif
 
 sliced_ele%value(l$) = l_slice
 call makeup_super_slave1 (sliced_ele, ele, offset, param, at_entrance_end, at_exit_end)
-sliced_ele%s = ele%s - ele%value(l$) + offset + sliced_ele%value(l$)
+sliced_ele%s = ele%s - e_len + offset + sliced_ele%value(l$)
 call attribute_bookkeeper (sliced_ele, param)
 
 end subroutine create_element_slice
