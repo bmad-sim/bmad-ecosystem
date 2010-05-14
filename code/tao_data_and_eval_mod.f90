@@ -571,7 +571,8 @@ case ('periodic.tt', 'sigma.pz')
 end select
 
 if (lat%param%ix_lost /= not_lost$ .and. ix_ele >= lat%param%ix_lost) then
-  if (data_source == 'beam' .or. data_type(1:4) == 'bpm_' .or. data_type == 'orbit.') then
+  if ((data_source == 'beam' .and. data_type /= 'n_particle_loss') .or. &
+                         data_type(1:4) == 'bpm_' .or. data_type == 'orbit.') then
     if (present(why_invalid)) why_invalid = 'CANNOT EVALUATE DUE TO PARTICLE LOSS.'
     return
   endif
@@ -1271,7 +1272,7 @@ case ('momentum_compaction')
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
-  datum_value = sum(uni_ele(ix_start:ix_ele)%n_particle_lost_here)
+  datum_value = sum(uni_ele(ix_ref:ix_ele)%n_particle_lost_here)
   valid_value = .true.
 
 !-----------
@@ -2948,7 +2949,7 @@ endif
 ! Look for a lat datum.
 
 if (source == 'lat' .or. source == 'beam') then
-  call tao_evaluate_lat_data (err_flag, name, stack%value, .false., &
+  call tao_evaluate_lat_data (err_flag, name, stack%value, print_err, &
                                 default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
@@ -2958,7 +2959,7 @@ if (source == 'lat' .or. source == 'beam') then
 ! Look for a lattice element parameter 
 
 elseif (source == 'ele') then
-  call tao_evaluate_element_parameters (err_flag, name, stack%value, .false., default_source)
+  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, default_source)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
   stack%type = ele_num$
@@ -2970,13 +2971,13 @@ else
 
   err_flag = .true.
   if (source == 'var' .or. source == '') then
-    call tao_find_var (err_flag, name, re_array = re_array, print_err = .false.)
+    call tao_find_var (err_flag, name, re_array = re_array, print_err = print_err)
     stack%type = var_num$
   endif
 
   if (source == 'dat' .or. (err_flag .and. source == '')) then
     call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
-                        dflt_index = dflt_dat_index, print_err = .false.)
+                        dflt_index = dflt_dat_index, print_err = print_err)
     stack%type = data_num$
   endif
 

@@ -248,7 +248,8 @@ else
     do ii = ix_lost+1, branch%n_ele_track
       orbit(ii)%vec = 0
     enddo
-    call out_io (s_blank$, r_name, "particle lost at branch>>element \I0\>>\I0\: " // &
+    call out_io (s_blank$, r_name, &
+            "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
             trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
             r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_branch, ix_lost /))
   endif
@@ -417,7 +418,7 @@ if (s%global%beam_timer_on) then
   old_time = 0
 endif
 
-n_alive_old = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost /= not_lost$)
+n_alive_old = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost == not_lost$)
 
 do j = ie1, ie2
 
