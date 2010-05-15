@@ -116,12 +116,12 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
 
     if (pg_com%page_type == 'X' .or. pg_com%page_type == 'TK') then
       select case (symbol_type)
+      case (4)           ! circle$
+        h = h * 0.89
       case (8)           ! circle_plus$
         h = h * 0.55
       case (9)           ! circle_dot$
         h = h * 0.59
-      case (4)           ! circle$
-        h = h * 0.89
       case (13)          ! triangle_filled$
         h = h * 1.22
       end select
