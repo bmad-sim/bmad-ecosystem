@@ -173,7 +173,9 @@ use sim_utils_interface
 use utilities_mod
 use output_mod
 
-#if defined (CESR_MACINTOSH) || defined (TEST_PLPLOT)
+#include "CESR_platform.inc"
+
+#if defined (USE_PLPLOT)
   use plplot_interface
 #else
   use pgplot_interface
