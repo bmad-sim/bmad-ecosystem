@@ -597,7 +597,7 @@ do k = 1, size(graph%curve)
 
     call tao_data_type_substitute (curve%data_type, data_type, curve%ele_ref_name, graph%component)
     call tao_evaluate_expression  (data_type, 0, .true., value, good, err, &
-                                             stack = stack, dflt_component = graph%component)
+                            stack = stack, dflt_component = graph%component, dflt_source = 'dat')
     if (err) then
       graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
       return

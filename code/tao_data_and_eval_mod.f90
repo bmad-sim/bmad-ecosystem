@@ -2874,7 +2874,7 @@ character(16) s, source
 character(60) name
 character(40) :: r_name = 'tao_param_value_routine'
 
-logical err_flag, print_err
+logical err_flag, print_err, print_error
 
 ! pi, etc
 
@@ -2970,18 +2970,26 @@ elseif (source == 'ele') then
 else
 
   err_flag = .true.
+  print_error = print_err
+  if (source == '') print_error = .false. ! Don't generate unnecessary messages
+  
   if (source == 'var' .or. source == '') then
-    call tao_find_var (err_flag, name, re_array = re_array, print_err = print_err)
+    call tao_find_var (err_flag, name, re_array = re_array, print_err = print_error)
     stack%type = var_num$
   endif
 
   if (source == 'dat' .or. (err_flag .and. source == '')) then
     call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
-                        dflt_index = dflt_dat_index, print_err = print_err)
+                        dflt_index = dflt_dat_index, print_err = print_error)
     stack%type = data_num$
   endif
 
-  if (err_flag) return
+  if (err_flag) then
+    if (source == '') call out_io (s_error$, r_name, &
+                        'Cannot evaluate as datum or var: ' // name)
+    return
+  endif
+
 endif
 
 ! Now transfer the information to the stack
