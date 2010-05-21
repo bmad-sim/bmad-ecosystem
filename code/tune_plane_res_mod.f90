@@ -531,11 +531,9 @@ subroutine res_line_plot (plot_type, param, res)
     wid = 2 * (pqr_max - abs(line%p) - abs(line%q) - abs(line%r)) + 1
 
     if (line%r == 0) then
-      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), &
-                                                              width = wid, style = solid$)
+      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), width = wid, style = solid$)
     else
-      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), &
-                                                              width = wid, style = dashed$)
+      call qp_draw_line (line%x(1), line%x(2), line%y(1), line%y(2), width = wid, style = dashed$)
     endif
 
     call qp_draw_symbol (line%x_lab, line%y_lab, type = circle_sym$)
@@ -545,7 +543,7 @@ subroutine res_line_plot (plot_type, param, res)
     ! x_off, y_off are to keep the text away from the resonance line.
 
     ang = line%angle_lab
-    call qp_from_inch_rel (-0.05 * sind(ang), 0.05 * cosd(ang), x_off, y_off, "DATA")
+    call qp_from_inch_rel (-0.05 * sin(ang*pi/180), 0.05 * cos(ang*pi/180), x_off, y_off, "DATA")
     call qp_draw_text (str, line%x_lab+x_off, line%y_lab+y_off, &
                                       justify = "CB", height = 10.0_rp, angle = ang)
 
