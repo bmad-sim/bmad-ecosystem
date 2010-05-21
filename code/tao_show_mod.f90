@@ -397,8 +397,16 @@ case ('beam')
     if (err .or. size(eles) == 0) return
     ix_ele = eles(1)%ele%ix_ele
     n = s%global%bunch_to_plot
+    n_live = bunch_p%n_particle_live
+    n_tot = bunch_p%n_particle_tot
+
     bunch_p => u%model%lat_branch(eles(1)%ele%ix_branch)%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
+    nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
+    nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
+    nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
+    nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', &
+                                                  100 * real(n_tot - n_live) / n_tot
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
                               sqrt(bunch_p%sigma([s11$, s22$, s33$, s44$, s55$, s66$]))
@@ -412,32 +420,9 @@ case ('beam')
     beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
-      call calc_bunch_params (bunch, lat%ele(ix_ele), lat%param, bunch_params, err)
-      n_live = bunch_params%n_particle_live
-      n_tot = size(bunch%particle)
-
-      nl=nl+1; lines(nl) = 'Parameters from saved beam at element:'
-      nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
-      nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
-      nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
-      nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', &
-                                                  100 * real(n_tot - n_live) / n_tot
-      nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_params%centroid%vec
-      nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
-                         sqrt(bunch_params%sigma([s11$, s22$, s33$, s44$, s55$, s66$]))
-      nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-      nl=nl+1; write (lines(nl), rmt) '  a:       ', &
-                                bunch_params%a%norm_emit, bunch_params%a%beta
-      nl=nl+1; write (lines(nl), rmt) '  b:       ', &
-                                bunch_params%b%norm_emit, bunch_params%b%beta
-      nl=nl+1; write (lines(nl), rmt) '  x:       ', &
-                                bunch_params%x%norm_emit, bunch_params%x%beta
-      nl=nl+1; write (lines(nl), rmt) '  y:       ', &
-                                bunch_params%y%norm_emit, bunch_params%y%beta
-      nl=nl+1; write (lines(nl), rmt) '  z:       ', &
-                                bunch_params%z%norm_emit, bunch_params%z%beta
+      nl=nl+1; lines(nl) = 'Note: The beam distribution is saved at this element.'
     else
-      nl=nl+1; lines(nl) = 'No allocated beam at element.'
+      nl=nl+1; lines(nl) = 'Note: The beam distribution is not saved at this element.'
     endif
   
   endif

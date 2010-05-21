@@ -1148,6 +1148,11 @@ do ii = 1, size(curve%x_line)
       bunch_params => tao_lat%bunch_params2(ix+1)
     endif
 
+    if (bunch_params%n_particle_live == 0) then
+      good(ii:) = .false.
+      return
+    endif
+
     call ele_at_s (lat, s_now, ix_ele)
     ele = branch%ele(ix_ele)
     here = bunch_params%centroid
