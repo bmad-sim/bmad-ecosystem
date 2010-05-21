@@ -114,7 +114,7 @@ endif
 if (lat%title /= ' ') write (iu, *) 'title, "', trim(lat%title), '"'
 if (lat%lattice /= ' ') write (iu, *) 'parameter[lattice] = "', trim(lat%lattice), '"'
 write (iu, *) 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_type)
-write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
+if (lat%input_taylor_order /= 0) write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
 
 write (iu, *)
 write (iu, *) 'parameter[e_tot] =', trim(str(lat%ele(0)%value(e_tot$)))
