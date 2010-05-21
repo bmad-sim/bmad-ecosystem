@@ -101,11 +101,14 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
       if (.not. this_calc_ok) then
         call out_io (s_error$, r_name, 'CANNOT TRACK BEAM CENTROID. WILL NOT TRACK BEAM...')
+        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_lost_in_ele = 0
+        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_live = 0
         exit
       endif
       call tao_inject_beam (u, tao_lat, k, this_calc_ok)
       if (.not. this_calc_ok) then
         call out_io (s_error$, r_name, 'CANNOT INJECT BEAM. WILL NOT TRACK BEAM...')
+        
         exit
       endif
       call tao_beam_track (u, tao_lat, this_calc_ok, k)
@@ -307,8 +310,9 @@ type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (tao_element_struct), pointer :: uni_ele(:)
 type (tao_universe_branch_struct), pointer :: uni_branch
+type (bunch_params_struct), pointer :: bunch_params
 
-integer what_lat, n_alive, n_alive_old
+integer what_lat
 integer i, j, i_uni, ip, ig, ic, ie1, ie2
 integer n_bunch, n_part, i_uni_to, ix_lost
 integer extract_at_ix_ele, n_lost, ix_branch
@@ -344,6 +348,7 @@ calc_ok = .true.
 too_many_lost = .false.
 
 lat_branch%bunch_params(:)%n_particle_lost_in_ele = 0
+lat_branch%bunch_params(:)%n_particle_live = 0
 
 if (branch%param%lattice_type == circular_lattice$) then
   call out_io (s_fatal$, r_name, &
@@ -418,9 +423,9 @@ if (s%global%beam_timer_on) then
   old_time = 0
 endif
 
-n_alive_old = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost == not_lost$)
-
 do j = ie1, ie2
+
+  bunch_params => lat_branch%bunch_params(j)
 
   ! track to the element and save for phase space plot
 
@@ -436,6 +441,7 @@ do j = ie1, ie2
   endif
  
   ! Save beam at location if injecting into another lattice
+
   if (extract_at_ix_ele == j) then
     s%u(i_uni_to)%connect%injecting_beam = beam
   endif
@@ -464,16 +470,21 @@ do j = ie1, ie2
             // trim(branch%ele(j)%name), j)
   endif
 
-  !
-
-  n_alive = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost == not_lost$)
-  lat_branch%bunch_params(j)%n_particle_lost_in_ele = n_alive_old - n_alive
-  n_alive_old = n_alive
+  ! calc bunch params
 
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
-                     branch%ele(j), branch%param, lat_branch%bunch_params(j), err, print_err)
+                     branch%ele(j), branch%param, bunch_params, err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, ix_branch, model$) 
+
+  if (j == ie1) then
+    bunch_params%n_particle_lost_in_ele = 0
+  else
+    bunch_params%n_particle_lost_in_ele = lat_branch%bunch_params(j-1)%n_particle_live - &
+                                                     bunch_params%n_particle_live
+  endif
+
+  ! Timer 
 
   if (s%global%beam_timer_on) then
     call run_timer ('READ', time)
