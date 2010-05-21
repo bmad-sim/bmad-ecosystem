@@ -1697,7 +1697,8 @@ s(6,5) = -1.0
 
 ! n_particle and centroid
 
-bunch_params%n_live_particle = count(bunch%particle%ix_lost == not_lost$)
+bunch_params%n_particle_tot = size(bunch%particle)
+bunch_params%n_particle_live = count(bunch%particle%ix_lost == not_lost$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
 
 if (bunch_params%charge_live == 0) then

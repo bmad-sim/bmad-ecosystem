@@ -98,7 +98,9 @@ type bunch_params_struct
   real(rp) sigma(21)               ! projected sigma matrix
   real(rp) s                       ! Longitudinal position.
   real(rp) charge_live             ! Charge of all non-lost particle
-  integer n_live_particle          ! all non-lost particles
+  integer n_particle_tot
+  integer n_particle_live          ! all non-lost particles
+  integer n_particle_lost_in_ele
 end type
 
 ! This is to suppress the ranlib "has no symbols" message
