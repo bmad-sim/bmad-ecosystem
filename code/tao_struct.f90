@@ -630,7 +630,6 @@ type tao_element_struct
   type (beam_struct) beam         ! Beam distribution at element.
   integer, allocatable :: ix_datum(:)
   integer n_datum
-  integer n_particle_lost_here    ! How many particles are lost here.
   integer ixx                     ! Scratch variable
   logical save_beam               ! Save beam here?
 end type

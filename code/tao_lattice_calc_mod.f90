@@ -343,7 +343,7 @@ lost = .false.
 calc_ok = .true.
 too_many_lost = .false.
 
-uni_ele(:)%n_particle_lost_here = 0
+lat_branch%bunch_params(:)%n_particle_lost_in_ele = 0
 
 if (branch%param%lattice_type == circular_lattice$) then
   call out_io (s_fatal$, r_name, &
@@ -467,7 +467,7 @@ do j = ie1, ie2
   !
 
   n_alive = count(beam%bunch(s%global%bunch_to_plot)%particle(:)%ix_lost == not_lost$)
-  uni_ele(j)%n_particle_lost_here = n_alive_old - n_alive
+  lat_branch%bunch_params(j)%n_particle_lost_in_ele = n_alive_old - n_alive
   n_alive_old = n_alive
 
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &

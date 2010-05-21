@@ -1272,7 +1272,7 @@ case ('momentum_compaction')
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
-  datum_value = sum(uni_ele(ix_ref:ix_ele)%n_particle_lost_here)
+  datum_value = sum(bunch_params(ix_ref:ix_ele)%n_particle_lost_in_ele)
   valid_value = .true.
 
 !-----------
@@ -1777,7 +1777,7 @@ case ('unstable.')
 
     if (data_source == 'beam') then
       do i = 1, ix_ele
-        datum_value = datum_value + (1 + ix_ele - i) * uni_ele(i)%n_particle_lost_here
+        datum_value = datum_value + (1 + ix_ele - i) * bunch_params(i)%n_particle_lost_in_ele
       enddo
       datum_value = datum_value / size(u%current_beam%bunch(s%global%bunch_to_plot)%particle)
       datum%ix_ele_merit = -1

@@ -413,7 +413,7 @@ case ('beam')
     if (allocated(beam%bunch)) then
       bunch => beam%bunch(n)
       call calc_bunch_params (bunch, lat%ele(ix_ele), lat%param, bunch_params, err)
-      n_live = bunch_params%n_live_particle
+      n_live = bunch_params%n_particle_live
       n_tot = size(bunch%particle)
 
       nl=nl+1; lines(nl) = 'Parameters from saved beam at element:'
