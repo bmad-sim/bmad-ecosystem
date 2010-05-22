@@ -62,7 +62,6 @@ call tao_next_switch (what2, ['-append', '-write '], switch, err, ix)
 if (err) return
 
 if (switch /= '') then
-  call string_trim(stuff, stuff2, ix)
   file_name = stuff2(:ix)
   call string_trim(stuff2(ix+1:), stuff2, ix)
 
@@ -1187,16 +1186,16 @@ case ('lattice')
     select case (switch)
 
     case ('-branch')
-      call string_trim(stuff2(ix+1:), stuff2, ix)
       read (stuff2(1:ix), *, iostat = ios) ix_branch
       if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
-        nl=1; write (lines(1), *) 'Branch index out of bounds:', ix_branch
+        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
+      call string_trim(stuff2(ix+1:), stuff2, ix)
 
     case ('-blank_replacement')
-      call string_trim(stuff2(ix+1:), stuff2, ix)
       replacement_for_blank = stuff2(1:ix)
+      call string_trim(stuff2(ix+1:), stuff2, ix)
 
     case ('-lords')
       show_lords = .true.
