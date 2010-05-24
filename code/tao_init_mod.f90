@@ -1298,7 +1298,7 @@ u%d2_data%name = ''  ! blank name means it doesn't exist
 if (allocated(u%dmodel_dvar)) deallocate (u%dmodel_dvar)
 allocate (u%dmodel_dvar(1,1))
 
-end subroutine
+end subroutine tao_init_data_in_universe
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1329,7 +1329,7 @@ do n = lbound(data, 1), ubound(data, 1)
   data(n)%ix_d1 = n
 enddo
 
-end subroutine 
+end subroutine tao_point_d1_to_data
 
 !-----------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------
