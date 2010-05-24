@@ -303,33 +303,35 @@ enddo
 
 ! Draw the tunnel wall
 
-do i = 1, size(s%wall)
-  pt => s%wall(i)%point
+if (allocated(s%wall)) then
+  do i = 1, size(s%wall)
+    pt => s%wall(i)%point
 
-  do j = 1, size(pt)
+    do j = 1, size(pt)
 
-    select case (pt(j)%type)
-    case (point$)
-      if (j == 1) cycle
-      call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
-      call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
-      call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
+      select case (pt(j)%type)
+      case (point$)
+        if (j == 1) cycle
+        call floor_to_screen (pt(j-1)%x, 0.0_rp, pt(j-1)%z, end1%x, end1%y)
+        call floor_to_screen (pt(j)%x, 0.0_rp, pt(j)%z, end2%x, end2%y)
+        call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
 
-    case (arc$)
-      n_bend = abs(int(100 * (pt(j)%theta2 - pt(j)%theta1))) + 1
-      do k = 0, n_bend
-        theta = pt(j)%theta1 + k * (pt(j)%theta2 - pt(j)%theta1) / n_bend
-        v_vec(1) = pt(j)%x + pt(j)%r * sin(theta)
-        v_vec(2) = 0
-        v_vec(3) = pt(j)%z + pt(j)%r * cos(theta)
-        call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
-      enddo
-      call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
-    end select
+      case (arc$)
+        n_bend = abs(int(100 * (pt(j)%theta2 - pt(j)%theta1))) + 1
+        do k = 0, n_bend
+          theta = pt(j)%theta1 + k * (pt(j)%theta2 - pt(j)%theta1) / n_bend
+          v_vec(1) = pt(j)%x + pt(j)%r * sin(theta)
+          v_vec(2) = 0
+          v_vec(3) = pt(j)%z + pt(j)%r * cos(theta)
+          call floor_to_screen (v_vec(1), v_vec(2), v_vec(3), x_bend(j), y_bend(j))
+        enddo
+        call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
+      end select
 
-  enddo
+    enddo
 
-end do
+  end do
+end if
 
 end subroutine
 
