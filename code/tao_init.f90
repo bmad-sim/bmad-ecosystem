@@ -346,32 +346,17 @@ if (allocated (s%u)) then
     ! Connected universes
     call deallocate_ele_pointers (u%connect%match_ele)
     call reallocate_beam (u%connect%injecting_beam, 0, 0)
-    
-    ! d2_data
-    do j = 1, size(u%d2_data)
-      do k = 1, size(u%d2_data(j)%d1)
-        nullify(u%d2_data(j)%d1(k)%d2)
-        nullify(u%d2_data(j)%d1(k)%d)
-      enddo
-      deallocate(u%d2_data(j)%d1, stat=istat)
-    enddo
-    deallocate(u%d2_data, stat=istat)
- 
-    ! Data
-    do j = lbound(u%data,1), ubound(u%data,1)
-      nullify(u%data(j)%d1)
-    enddo
-    deallocate(u%data, stat=istat)
-     
+
     ! Lattices
     call deallocate_lat_pointers (u%model%lat)
     call deallocate_lat_pointers (u%design%lat)
     call deallocate_lat_pointers (u%base%lat)
 
   enddo
-endif
 
-deallocate (s%u)
+  deallocate (s%u)
+
+endif
     
 end subroutine deallocate_everything
     
