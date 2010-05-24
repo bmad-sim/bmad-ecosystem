@@ -822,7 +822,7 @@ do k = 1, size(graph%curve)
       branch%ele%logic = .false.                     ! Mark if ele is in the graph
 
       ! Mark all eles in branch if they match a shape.
-      do i = 1, branch%n_ele_track
+      do i = 0, branch%n_ele_track
         ele => branch%ele(i)
         call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix)
         if (ix == 0) cycle
@@ -851,7 +851,7 @@ do k = 1, size(graph%curve)
       enddo
 
       ! Now unmark all elements in the branch that are not within the graph boundries.
-      do i = 1, branch%n_ele_track
+      do i = 0, branch%n_ele_track
         ele => branch%ele(i)
         if (.not. ele%logic) cycle
         if (graph%x%min == graph%x%max) cycle
@@ -869,7 +869,7 @@ do k = 1, size(graph%curve)
       call re_allocate_eles (eles, n_dat, exact = .true.)
 
       n = 0
-      do i = 1, branch%n_ele_max
+      do i = 0, branch%n_ele_max
         ele => branch%ele(i)
         if (.not. ele%logic) cycle
         n = n + 1
@@ -969,7 +969,7 @@ do k = 1, size(graph%curve)
       eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
       l_tot = branch%param%total_length
       branch%ele%logic = .false.
-      do i = 1, branch%n_ele_track
+      do i = 0, branch%n_ele_track
         ele => branch%ele(i)
         if (graph%x%min == graph%x%max) cycle
         s0 = ele%s - ele%value(l$)
