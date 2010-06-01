@@ -99,17 +99,6 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, k)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
-      if (.not. this_calc_ok) then
-        if (k == 0) then
-          call out_io (s_error$, r_name, 'CANNOT TRACK BEAM CENTROID. WILL NOT TRACK BEAM...')
-        else
-          call out_io (s_error$, r_name, &
-              'CANNOT TRACK BEAM CENTROID. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [k])
-        endif
-        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_lost_in_ele = 0
-        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_live = 0
-        exit
-      endif
       call tao_inject_beam (u, tao_lat, k, this_calc_ok)
       if (.not. this_calc_ok) then
         if (k == 0) then
@@ -118,6 +107,8 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
           call out_io (s_error$, r_name, &
               'CANNOT INJECT BEAM. WILL NOT TRACK BEAM FOR BRANCH \i0\ ', i_array = [k])
         endif      
+        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_lost_in_ele = 0
+        tao_lat%lat_branch(k)%bunch_params(:)%n_particle_live = 0
         exit
       endif
       call tao_beam_track (u, tao_lat, this_calc_ok, k)
