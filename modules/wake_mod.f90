@@ -153,7 +153,7 @@ do i = 1, size(ele%wake%lr)
 
   omega = twopi * lr%freq
   f_exp = omega / (2 * lr%Q)
-  ff = charge * lr%r_over_q * c_light * exp(dt * f_exp) 
+  ff = abs(charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
 
   c = cos (-dt * omega)
   s = sin (-dt * omega)
@@ -315,7 +315,7 @@ f1 = 1 - f2
 if (iw .lt. 0 .or. iw .gt. ubound(ele%wake%sr_table,1)) return
 
 bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
-      + (ele%wake%sr_table(iw)%long*f1 + ele%wake%sr_table(iw+1)%long*f2) * charge 
+      + (ele%wake%sr_table(iw)%long*f1 + ele%wake%sr_table(iw+1)%long*f2) * abs(charge) 
 
 end subroutine sr_table_add_long_kick
 
@@ -364,7 +364,7 @@ f2 = z/dz - iw  ! fractional part of z/dz
 f1 = 1 - f2
 
 fact = (ele%wake%sr_table(iw)%trans*f1 + ele%wake%sr_table(iw+1)%trans*f2) * &
-                              charge * ele%value(l$) / ele%value(p0c$)
+                              abs(charge) * ele%value(l$) / ele%value(p0c$)
 follower%vec(2) = follower%vec(2) - fact * leader%vec(1)
 follower%vec(4) = follower%vec(4) - fact * leader%vec(3)
 
@@ -412,8 +412,8 @@ do i = 1, size(ele%wake%sr_mode_long)
 
   sr_mode_long => ele%wake%sr_mode_long(i)
 
-  ff = charge * sr_mode_long%amp * exp(-orbit%vec(5) * sr_mode_long%damp) * &
-                                          ele%value(l$) / ele%value(p0c$)
+  ff = abs(charge) * sr_mode_long%amp * exp(-orbit%vec(5) * &
+                   sr_mode_long%damp) * ele%value(l$) / ele%value(p0c$)
 
   arg = sr_mode_long%phi - orbit%vec(5) * sr_mode_long%k 
   c = cos (arg)
@@ -520,7 +520,7 @@ if (.not. associated(ele%wake)) return
 
 do i = 1, size(ele%wake%sr_mode_long)
   sr_mode_long => ele%wake%sr_mode_long(i)
-  orbit%vec(6) = orbit%vec(6) - charge * sin(sr_mode_long%phi) * &
+  orbit%vec(6) = orbit%vec(6) - abs(charge) * sin(sr_mode_long%phi) * &
                          sr_mode_long%amp * ele%value(l$) / (2 * ele%value(p0c$))
 enddo
 
@@ -568,7 +568,7 @@ do i = 1, size(ele%wake%sr_mode_trans)
 
   sr_mode_trans => ele%wake%sr_mode_trans(i)
 
-  ff = charge * sr_mode_trans%amp * exp(-orbit%vec(5) * sr_mode_trans%damp) * &
+  ff = abs(charge) * sr_mode_trans%amp * exp(-orbit%vec(5) * sr_mode_trans%damp) * &
                                            ele%value(l$) / ele%value(p0c$)
 
   arg =  sr_mode_trans%phi - orbit%vec(5) * sr_mode_trans%k 

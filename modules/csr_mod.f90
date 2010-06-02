@@ -57,7 +57,8 @@ type csr_bin_struct             ! Structurture for binning particle averages
   real(rp) :: dz_bin = 0        ! Bin width
   real(rp) ds_track_step        ! True step size
   real(rp) y2                   ! Height of source particle.
-  real(rp) kick_factor           ! Coefficient to scale the kick
+  real(rp) kick_factor          ! Coefficient to scale the kick
+  integer particle              ! Particle type
   type (csr_bin1_struct), allocatable :: bin1(:)  
   type (csr_kick1_struct), allocatable :: kick1(:) ! Array of caches
 end type
@@ -511,6 +512,7 @@ e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot
 call convert_total_energy_to (e_tot, branch%param%particle, bin%gamma, beta = bin%beta)
 bin%gamma2 = bin%gamma**2
 bin%rel_mass = mass_of(lat%param%particle) / m_electron 
+bin%particle = lat%param%particle
 
 if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
 
@@ -558,7 +560,7 @@ enddo
 
 ! Now calculate the kick for a particle at the center of a bin.
 
-coef = bin%ds_track_step * r_e / (bin%rel_mass * e_charge * bin%gamma)
+coef = bin%ds_track_step * r_e / (bin%rel_mass * abs(charge_of(lat%param%particle)) * bin%gamma)
 n_bin = csr_param%n_bin
 
 if (csr_param%lcsr_component_on) then
@@ -739,7 +741,8 @@ do i = 1, csr_param%n_bin
 
 enddo
 
-factor = bin%kick_factor * bin%ds_track_step * r_e / (bin%rel_mass * e_charge * bin%gamma)
+factor = bin%kick_factor * bin%ds_track_step * r_e / (bin%rel_mass * &
+                                      abs(charge_of(bin%particle)) * bin%gamma)
 bin%bin1(:)%kick_lsc = factor * bin%bin1(:)%kick_lsc
 
 end subroutine

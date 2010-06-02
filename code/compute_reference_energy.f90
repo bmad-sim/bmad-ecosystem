@@ -58,7 +58,7 @@ do i = 1, lat%n_ele_track
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
     E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
-    E_tot = E_tot - ele%value(e_loss$) * lat%param%n_part * e_charge
+    E_tot = E_tot - ele%value(e_loss$) * lat%param%n_part * abs(charge_of(lat%param%particle))
     call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
 
   case (custom$) 

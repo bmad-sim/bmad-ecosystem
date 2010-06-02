@@ -160,7 +160,7 @@ call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (ele, bunch_end, j-1, ix_z)
+  call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
   call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
@@ -182,7 +182,7 @@ call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
   ix_z = bunch_end%particle(j)%ix_z ! z-ordered index of the particles
   if (bunch_end%particle(ix_z)%ix_lost /= not_lost$) cycle
-  call add_sr_long_wake (ele, bunch_end, j-1, ix_z)
+  call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
   call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
@@ -210,12 +210,13 @@ end subroutine track1_bunch_hom
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine add_sr_long_wake (ele, bunch, num_in_front, follower)
+! Subroutine add_sr_long_wake (ele, param, bunch, num_in_front, follower)
 !
 ! Adds the longitudinal wake for all particles in front of the follower.
 !
 ! Input:
 !  ele      -- Ele_struct: Element with wakefields.
+!  param    -- lat_param_struct: For param%particle.
 !  bunch    -- Bunch_struct: Bunch of particles
 !  num_in_front -- Integer: number of particles in front of this one
 !                   This will be the bunch%particle index number right before
@@ -226,11 +227,12 @@ end subroutine track1_bunch_hom
 !  bmad_com%grad_loss_sr_wake -- Real(rp): net gradient loss due to the leaders.
 !-
 
-subroutine add_sr_long_wake (ele, bunch, num_in_front, ix_follower)
+subroutine add_sr_long_wake (ele, param, bunch, num_in_front, ix_follower)
 
 implicit none
 
 type (ele_struct) ele
+type (lat_param_struct) param
 type (bunch_struct) bunch
 type (coord_struct), pointer :: leader
 
@@ -258,8 +260,8 @@ endif
 
 if (n_sr_table > 0) then
 
-  bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
-                        + ele%wake%sr_table(0)%long * e_charge / 2.0
+  bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake + &
+                   ele%wake%sr_table(0)%long * abs(charge_of(param%particle)) / 2.0
 
   !-----------------------------------
   ! add up all wakes from front of bunch to follower
