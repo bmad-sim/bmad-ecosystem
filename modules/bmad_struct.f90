@@ -40,12 +40,15 @@ type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
 
-! Structure for defining polygonal vacuum pipe cross sections.
-! polygon_vertex_struct structure holds the info on one vertex of the polygon.
+! Structure for defining beam pipe cross-sections at given longitudinal positions.
+! A cross-section is defined by an array of beam_pipe_vertex_struct components. 
+! Each beam_pipe_vertex_struct defines a point (vertex) on the pipe.
+! Vertices are connected by straight lines or circular arcs.
 
-type polygon_vertex_struct
-  real(rp) x, y        ! coordinates of the vertex.
-  real(rp) angle       ! angle of (x, y).
+type beam_pipe_vertex_struct
+  real(rp) x, y          ! coordinates of the vertex.
+  real(rp) :: radius = 0 ! Radius of arc. 0 => Straight line.
+  real(rp) angle         ! angle of (x, y).
 end type
 
 ! Coupling structure
