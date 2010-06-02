@@ -25,8 +25,8 @@ type (wall3d_pt_struct) wall_pt(0:100)
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
-type (polygon_vertex_struct) v(100)
-type (wall3d_polygon_struct), pointer :: poly
+type (beam_pipe_vertex_struct) v(100)
+type (wall3d_gen_shape_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius, r
@@ -35,7 +35,7 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
-integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_polygon
+integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_gen_shape
 integer n_photons_per_pass
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
@@ -54,7 +54,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file
 
 namelist / synrad3d_wall / wall_pt
-namelist / polygon_def / ix_polygon, v
+namelist / gen_shape_def / ix_gen_shape, v
 
 namelist / start / p, ran_state
 
@@ -118,16 +118,16 @@ wall_pt%ante_height2_plus = -1
 wall_pt%ante_height2_minus = -1
 wall_pt%width2_plus = -1
 wall_pt%width2_minus = -1
-wall_pt%ix_polygon = -1
+wall_pt%ix_gen_shape = -1
 
 open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
 
 n = 0
 do i = 0, ubound(wall_pt, 1)
-  if (wall_pt(i)%basic_shape == 'polygon') then
-    wall_pt(i)%ix_polygon = nint(wall_pt(i)%width2)
-    n = max (n, wall_pt(i)%ix_polygon)
+  if (wall_pt(i)%basic_shape == 'gen_shape') then
+    wall_pt(i)%ix_gen_shape = nint(wall_pt(i)%width2)
+    n = max (n, wall_pt(i)%ix_gen_shape)
   endif
   if (wall_pt(i)%basic_shape == '') then
     n_wall_pt_max = i - 1
@@ -136,20 +136,20 @@ do i = 0, ubound(wall_pt, 1)
 enddo
 
 if (n > 0) then
-  allocate (wall%polygon(n))
+  allocate (wall%gen_shape(n))
   do
-    v = polygon_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp)
-    read (1, nml = polygon_def, iostat = ios)
+    v = beam_pipe_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+    read (1, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
-      print *, 'ERROR READING POLYGON_DEF NAMELIST.'
+      print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
       rewind (1)
       do
-        read (1, nml = polygon_def) ! Generate error message
+        read (1, nml = gen_shape_def) ! Generate error message
       enddo
     endif
     if (ios < 0) exit  ! End of file
-    if (ix_polygon > n .or. ix_polygon < 1) then
-      print *, 'BAD IX_POLYGON VALUE IN WALL FILE: ', ix_polygon
+    if (ix_gen_shape > n .or. ix_gen_shape < 1) then
+      print *, 'BAD IX_GEN_SHAPE VALUE IN WALL FILE: ', ix_gen_shape
       call err_exit
     endif
 
@@ -160,8 +160,8 @@ if (n > 0) then
       if (n > 1) then
         if (v(n)%angle <= v(n-1)%angle) v(n)%angle = v(n)%angle + twopi
         if (v(n)%angle >= v(n-1)%angle + pi .or. v(n)%angle <= v(n-1)%angle) then
-          print *, 'POLYGON SHAPE IS BAD.'
-          print *, '  FOR IX_POLYGON =', ix_polygon
+          print *, 'GEN_SHAPE SHAPE IS BAD.'
+          print *, '  FOR IX_GEN_SHAPE =', ix_gen_shape
           call err_exit
         endif
       endif
@@ -170,14 +170,14 @@ if (n > 0) then
 
     if (v(1)%angle < 0 .or. v(n)%angle > twopi) then
       print *, 'FIRST VERTEX CANNOT HAVE ANGLE < 0 AND LAST VERTEX CANNOT HAVE ANGLE > 0.'
-      print *, '  FOR IX_POLYGON =', ix_polygon
+      print *, '  FOR IX_GEN_SHAPE =', ix_gen_shape
       call err_exit
     endif
 
-    poly => wall%polygon(ix_polygon)
+    poly => wall%gen_shape(ix_gen_shape)
     nn = n  ! Total number of vertices
 
-    ! If all y >= 0, only half the polygon has been specified.
+    ! If all y >= 0, only half the gen_shape has been specified.
     ! In this case, assume up/down symmetry.
 
     if (all(v(1:n)%y >= 0)) then
@@ -194,7 +194,7 @@ if (n > 0) then
     endif
 
     ! Transfer the information to the poly%v array.
-    ! The last vertex is the first vertex and closes the polygon
+    ! The last vertex is the first vertex and closes the gen_shape
 
     allocate(poly%v(nn+1))
     poly%v(1:nn) = v(1:nn)

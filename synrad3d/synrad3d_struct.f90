@@ -59,7 +59,7 @@ end type
 
 type wall3d_pt_struct
   real(rp) s                      ! Longitudinal position.
-  character(16) basic_shape       ! "elliptical", "rectangular", or "polygon"
+  character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
   real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
@@ -70,20 +70,20 @@ type wall3d_pt_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  integer ix_polygon              ! Polygon index 
+  integer ix_gen_shape            ! Gen_shape index 
 end type
 
-! Structure used to hold polygon shapes
+! Structure used to hold gen_shape shapes
 
-type wall3d_polygon_struct
-  type (polygon_vertex_struct), allocatable :: v(:)
+type wall3d_gen_shape_struct
+  type (beam_pipe_vertex_struct), allocatable :: v(:)
 end type
 
 ! This is just an array of chamber cross-sections.
 
 type wall3d_struct
   type (wall3d_pt_struct), allocatable :: pt(:)
-  type (wall3d_polygon_struct), allocatable :: polygon(:)
+  type (wall3d_gen_shape_struct), allocatable :: gen_shape(:)
   integer n_pt_max
 end type
 
