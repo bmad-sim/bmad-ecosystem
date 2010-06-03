@@ -62,6 +62,7 @@ call tao_next_switch (what2, ['-append', '-write '], switch, err, ix)
 if (err) return
 
 if (switch /= '') then
+  call string_trim(stuff2, stuff2, ix)
   file_name = stuff2(:ix)
   call string_trim(stuff2(ix+1:), stuff2, ix)
 
