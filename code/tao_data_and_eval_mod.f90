@@ -1168,6 +1168,7 @@ case ('rad_int.')
 
   case ('rad_int.i3_e7')
     if (data_source == 'beam') return
+    if (.not. allocated(tao_lat%rad_int%lin_i3_e7)) return
     if (ix_ref > 0 .or. ix_ele > 0) then
       ix_ref = max(1, ix_ref)
       if (ix_ele < 1) ix_ele = branch%n_ele_track
@@ -1184,6 +1185,7 @@ case ('rad_int.')
 
   case ('rad_int.i5a_e6')
     if (data_source == 'beam') return
+    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) return
     if (ix_ref > 0 .or. ix_ele > 0) then
       ix_ref = max(1, ix_ref)
       if (ix_ele < 1) ix_ele = branch%n_ele_track
@@ -1200,6 +1202,7 @@ case ('rad_int.')
 
   case ('rad_int.i5b_e6')
     if (data_source == 'beam') return
+    if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) return
     if (ix_ref > 0 .or. ix_ele > 0) then
       ix_ref = max(1, ix_ref)
       if (ix_ele < 1) ix_ele = branch%n_ele_track
