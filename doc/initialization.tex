@@ -346,7 +346,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
 \index{init_plot_needed}\index{lattice_calc_on}\index{command_file_print_on}
 \index{print_command}\index{default_init_file}\index{derivative_uses_design}
-\index{current_init_file}\index{var_out_file}
+\index{current_init_file}\index{var_out_file}\index{draw_curve_off_scale_warn}
 \begin{example}
 type tao_global_struct
   real(rp) y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
@@ -385,9 +385,11 @@ type tao_global_struct
   logical svd_retreat_on_merit_increase = T    
   logical command_file_print_on = T     ! Toggle printing when using a command file.
   logical beam_timer_on = F             ! For timing the beam tracking calculation.
+  logical init_lats_with_rf_off = T     ! Initalize lattices with the RF off?
   logical optimizer_var_limit_warn = T  ! Warn when variables reach a limit when
                                         !   optimizing.
-  logical init_lats_with_rf_off = T     ! Initalize lattices with the RF off?
+  logical draw_curve_off_scale_warn = T ! Display warning on graphs when any part of the 
+                                        !   curve is out-of-bounds
 end type
 \end{example}
 

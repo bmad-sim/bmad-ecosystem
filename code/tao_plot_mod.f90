@@ -959,7 +959,7 @@ endif
 
 if (.not. graph%valid) return
 
-if (graph%limited .and. graph%clip) &
+if (graph%limited .and. graph%clip .and. s%global%draw_curve_off_scale_warn) &
   call qp_draw_text ('**Curve Off Scale**', -0.30_rp, -0.15_rp, '%/GRAPH/RT', color = red$) 
 
 ! loop over all the curves of the graph and draw them
