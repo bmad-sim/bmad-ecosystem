@@ -308,7 +308,7 @@ subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
   if (track%save_track) then
     s_sav = s1 - 2.0_rp * track%ds_save
     call allocate_saved_orbit (track, n_step+1)
-    call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
+    call save_a_step (track, loc_ele, param, s1, here%vec, s_sav)
   endif
 
 ! track through the body
