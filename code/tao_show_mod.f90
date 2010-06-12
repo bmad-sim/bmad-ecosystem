@@ -397,10 +397,11 @@ case ('beam')
     if (err .or. size(eles) == 0) return
     ix_ele = eles(1)%ele%ix_ele
     n = s%global%bunch_to_plot
+
+    bunch_p => u%model%lat_branch(eles(1)%ele%ix_branch)%bunch_params(ix_ele)
     n_live = bunch_p%n_particle_live
     n_tot = bunch_p%n_particle_tot
 
-    bunch_p => u%model%lat_branch(eles(1)%ele%ix_branch)%bunch_params(ix_ele)
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
     nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
     nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
