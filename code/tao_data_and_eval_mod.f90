@@ -1871,6 +1871,12 @@ if (associated(ele)) ix_ele = ele%ix_ele
 if (associated(ele_ref)) ix_ref = ele_ref%ix_ele
 if (associated(ele_start)) ix_start = ele_start%ix_ele
 
+if (ix_ele < 0) then
+  datum%exists = .false.
+  valid_value = .false.
+  return
+endif
+
 if (ix_ele < ix_start .and. lat%param%lattice_type == linear_lattice$) then
   if (datum%useit_opt) call out_io (s_error$, r_name, &
                 'ERROR: ELEMENTS ARE REVERSED FOR: ' // tao_datum_name(datum), &
@@ -2548,7 +2554,7 @@ parsing_loop: do
     case ( ']', '[', '|', '@')
       wild = .true.
     case ('.')
-      if (index('0123456789', phrase(2:2)) /= 0) wild = .true.
+      if (index('0123456789', phrase(2:2)) == 0) wild = .true.
     end select
     ixb = index(phrase, '|')
     if (ixb == 0) wild = .false.
