@@ -69,8 +69,8 @@ end type
 ! Wiggler structures
 
 integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
-character(8), parameter :: wig_term_type_name(0:3) = (/ &
-                  'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ' /)
+character(8), parameter :: wig_term_type_name(0:3) = [ &
+                  'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ' ]
 
 type wig_term_struct
   real(rp) coef
@@ -345,7 +345,7 @@ end type
 !
 
 character(2), parameter :: coord_name(6) = &
-                              (/ "X ", "Px", "Y ", "Py", "Z ", "Pz" /)
+                              [ "X ", "Px", "Y ", "Py", "Z ", "Pz" ]
 
 ! KEY value definitions
 ! Note: sbend$ and rbend$ also used for sub_key
@@ -371,7 +371,7 @@ integer, parameter :: n_key = 44
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-character(16) :: key_name(n_key) = (/ &
+character(16) :: key_name(n_key) = [ &
     'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
     'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
     'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
@@ -382,7 +382,7 @@ character(16) :: key_name(n_key) = (/ &
     'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
     'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
     'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH', &
-    'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ', 'PIPE         ' /)
+    'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ', 'PIPE         ' ]
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -553,12 +553,12 @@ integer, parameter :: photon$     =  0
 integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 
-character(16) :: particle_name(-2:2) = (/ 'ANTIPROTON', &
-                'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ' /)
+character(16) :: particle_name(-2:2) = [ 'ANTIPROTON', &
+                'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ' ]
 
-integer, parameter :: charge_of(-2:2) = (/ -1, -1, 0, 1, 1 /)
-real(rp), parameter :: mass_of(-2:2) = (/ m_proton, m_electron, 0.0_rp, &
-                                            m_electron, m_proton /)
+real(rp), parameter :: charge_of(-2:2) = [-1, -1, 0, 1, 1] * e_charge
+real(rp), parameter :: mass_of(-2:2) = [ m_proton, m_electron, 0.0_rp, &
+                                            m_electron, m_proton ]
 
 ! lattice logical names
 
@@ -566,7 +566,7 @@ integer, parameter :: linear_lattice$ = 10
 integer, parameter :: circular_lattice$ = 12
 
 character(16) :: lattice_type(10:12) = &
-        (/ 'LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' /)
+        [ 'LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE' ]
 
 ! logicals for MAKE_HYBIRD_lat
 
@@ -579,18 +579,18 @@ integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12
 
-character(16) :: control_name(12) = (/ &
+character(16) :: control_name(12) = [ &
             'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
             'GIRDER_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
-            'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ' /)
+            'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'PATCH_IN_SLAVE ' ]
 
 ! plane list, etc
 
 integer, parameter :: x_plane$ = 1, y_plane$ = 2
 integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
 
-character(16) :: plane_name(6) = (/ 'X', 'Y', 'Z', 'N', 'S', ' ' /)
+character(16) :: plane_name(6) = [ 'X', 'Y', 'Z', 'N', 'S', ' ' ]
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
@@ -602,35 +602,35 @@ integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
 integer, parameter :: symp_lie_bmad$ = 10, no_method$ = 11
 integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
 
-character(16), parameter :: calc_method_name(0:14) = (/ &
+character(16), parameter :: calc_method_name(0:14) = [ &
       "GARBAGE!      ", "Bmad_Standard ", "Symp_Lie_PTC  ", "Runge_Kutta   ", &
       "Linear        ", "Tracking      ", "Symp_Map      ", "Custom        ", &
       "Taylor        ", "GARBAGE!      ", "Symp_Lie_Bmad ", "No_Method     ", &
-      "Boris         ", "Adaptive_Boris", "MAD           " /)
+      "Boris         ", "Adaptive_Boris", "MAD           " ]
 
 ! sbend$ and rbend$ are from key definitions.
 
 integer, parameter :: map_type$ = 1, periodic_type$ = 3
-character(16), parameter :: sub_key_name(0:18) = (/ "GARBAGE!  ", &
+character(16), parameter :: sub_key_name(0:18) = [ "GARBAGE!  ", &
      "Map       ", "SBend     ", "Periodic  ", "GARBAGE!  ", "GARBAGE!  ", &
      "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", &
      "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", "GARBAGE!  ", &
-     "GARBAGE!  ", "GARBAGE!  ", "RBend     " /)
+     "GARBAGE!  ", "GARBAGE!  ", "RBend     " ]
 
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
 integer, parameter :: no_end$ = 4
-character(16), parameter :: element_end_name(0:4) = (/ "GARBAGE!    ", &
-      "Entrance_End", "Exit_End    ", "Both_Ends   ", "No_End      " /)
+character(16), parameter :: element_end_name(0:4) = [ "GARBAGE!    ", &
+      "Entrance_End", "Exit_End    ", "Both_Ends   ", "No_End      " ]
 
 ! ref_orbit values.
 
 integer, parameter :: single_ref$ = 1, match_at_entrance$ = 2, match_at_exit$ = 3 
 integer, parameter :: match_global_coords$ = 4, patch_in$ = 5, patch_out$ = 6
-character(20), parameter :: ref_orbit_name(0:6) = (/      "GARBAGE!           ", &
+character(20), parameter :: ref_orbit_name(0:6) = [      "GARBAGE!           ", &
             "Single_Ref         ", "Match_at_Entrance  ", "Match_at_Exit      ", &
-            "Match_Global_Coords", "Patch_In           ", "Patch_Out          " /)
+            "Match_Global_Coords", "Patch_In           ", "Patch_Out          " ]
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.
@@ -685,8 +685,8 @@ type (bmad_status_struct), save :: bmad_status
 ! Units
 
 integer, parameter :: radians$ = 1, degrees$ = 2, cycles$ = 3, kHz$ = 4
-character(8) ::frequency_units_name(4) = (/ &
-            'Radians ', 'Degrees ', 'Cycles  ', 'kHz     ' /)
+character(8) ::frequency_units_name(4) = [ &
+            'Radians ', 'Degrees ', 'Cycles  ', 'kHz     ' ]
 
 ! Electric and magnetic fields.
 

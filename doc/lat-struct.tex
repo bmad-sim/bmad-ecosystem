@@ -273,15 +273,14 @@ correspond to one of the constants:
 To print the name of the particle use the function
 \vn{particle_name}. A particles mass and charge can be obtained from
 the functions \vn{mass_of} and \vn{charge_of} respectively. 
-\vn{charge_of} returns the particle's charge in units of the fundamental
-electron charge. Example:
+\vn{charge_of} returns the particle's charge in coulombs. Example:
 \begin{example}
   type (lat_struct) lat
   ...
   print *, 'Beam Particles are: ', particle_name(lat%param%particle)
   if (lat%param%particle == proton\$) print *, 'I do not like protons!'
   print *, 'Particle mass (eV):    ', mass_of(lat%param%particle)
-  print *, 'Particle charge (Coul):', e_charge * charge_of(lat%param%particle)
+  print *, 'Particle charge (Coul):', charge_of(lat%param%particle)
 \end{example}
 
 %----------------------------------------------------------------------------
