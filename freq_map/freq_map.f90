@@ -55,7 +55,8 @@ program freq_map
   integer integer_qx, integer_qy
   integer version
   integer i_dim
-  integer fft_turns
+  integer fft_turns/0/
+  integer arg_num, iargc, ind
 
   real(rp) phy_x_set, phy_y_set
   real(rp) delta_e/0.0/, chromx, chromy, qp_x, qp_y
@@ -97,21 +98,37 @@ program freq_map
                 n_turn, particle, aperture_limits,  &
                 i_train, j_car, n_trains_tot, n_cars, current, &
                 lrbbi, rec_taylor, beambeam_ip, close_pretz, close_vert, &
-                slices, sig_in, go, final_pos_in
+                slices, sig_in, go, final_pos_in, fft_turns
 
-  do   !read file with input parameters
-    type '(a, $)', ' Input command file <CR=freq_map.in>: '
-    read  '(a)', file_name
-    call string_trim (file_name, file_name, ix)
-    if (ix .eq. 0) file_name = 'freq_map.in'
-    open (unit= 1, file = file_name, status = 'old', iostat = ios)
-    if (ios == 0) then
-      exit
-    else
-      print *
-      print *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
-    endif
-  enddo
+
+
+  arg_num=iargc()
+  if(arg_num==0) then
+     file_name='freq_map.in'
+  else
+     call getarg(1, file_name)
+  end if
+  call string_trim (file_name, file_name, ix)
+  open (unit= 1, file = file_name, status = 'old', iostat = ios)
+
+  if(ios.ne.0)then
+     type *
+     type *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
+  endif
+
+!  do   !read file with input parameters
+!    type '(a, $)', ' Input command file <CR=freq_map.in>: '
+!    read  '(a)', file_name
+!    call string_trim (file_name, file_name, ix)
+!    if (ix .eq. 0) file_name = 'freq_map.in'
+!    open (unit= 1, file = file_name, status = 'old', iostat = ios)
+!    if (ios == 0) then
+!      exit
+!    else
+!      print *
+!      print *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
+!    endif
+!  enddo
 
   particle = positron$
   lrbbi = .false.
@@ -301,7 +318,7 @@ program freq_map
   ALLOCATE(fft5(1:n_turn))
   ALLOCATE(fft6(1:n_turn))
 
-  fft_turns = n_turn / 2
+  if(fft_turns == 0)fft_turns = n_turn / 2
 
   ALLOCATE(n1(1,1:fft_turns))
   ALLOCATE(n2(1,1:fft_turns))
@@ -376,9 +393,10 @@ program freq_map
 
           do j=1, fft_turns
             hanning = 2*(sin(pi*j/fft_turns)**2)
-            m1(1, j)= cmplx(fft1(j+fft_turns),  fft2(j+fft_turns)) * hanning
-            m2(1, j)= cmplx(fft3(j+fft_turns),  fft4(j+fft_turns)) * hanning
-            m3(1, j)= cmplx(fft5(j+fft_turns), -fft6(j+fft_turns)) * hanning
+            ind = n_turn - fft_turns
+            m1(1, j)= cmplx(fft1(j+ind),  fft2(j+ind)) * hanning
+            m2(1, j)= cmplx(fft3(j+ind),  fft4(j+ind)) * hanning
+            m3(1, j)= cmplx(fft5(j+ind), -fft6(j+ind)) * hanning
           enddo
 
           isign= 1
