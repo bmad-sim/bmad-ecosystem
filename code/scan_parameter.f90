@@ -42,8 +42,8 @@ module scan_parameters
   use bmad
 
   type scan_params_struct
-    character*80 lat_file
-    character*80 file_name
+    character*200 lat_file
+    character*200 file_name
     real(rp) Q_z
     real(rp) current  !mA/bunch
     real(rp) sig_in(3)   !sigx, sigy, sigz, initial distribution
