@@ -6,10 +6,10 @@
 setenv buffer1 `echo $PWD | sed 's/^.*\///'`
 
 # Change this to reflect your local jobs directory.
-setenv buffer2 "/nfs/acc/user/helms/ctf/jobs/$buffer1"
+setenv buffer2 "/home/shanksj/CesrTA/ring_ma_jobs/$buffer1"
 foreach name ($*)
 # Change this to point to your copy of q.sh
-    qsub -N $name -v inputfile=$name -v workingdir=$buffer2 /nfs/acc/user/helms/ctf/jobs/q.sh
+    qsub -N $name -v inputfile=$name -v workingdir=$buffer2 /home/shanksj/CesrTA/ring_ma_jobs/q.sh
 end
 
 #end

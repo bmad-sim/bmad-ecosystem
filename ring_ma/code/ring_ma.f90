@@ -51,10 +51,12 @@ program ring_ma
 ! Get init file from command line
 
   if (cesr_iargc() .ne. 1) then
-     write(*,*) "usage: ring_ma <init_file>"
-     stop
-  end if
-  call cesr_getarg(1, init_file)
+     !write(*,*) "usage: ring_ma <init_file>"
+     !stop
+     init_file = 'ring_ma.in'
+  else
+     call cesr_getarg(1, init_file)
+  endif
   open(1, file=init_file)
   read(1, nml=ring_ma_init)
   close(1)
@@ -192,6 +194,7 @@ program ring_ma
      end do
      if (write_orbits) close(2)
      correct_ring_params%write_elements = .false.
+     if (i_iter == n_iterations) call write_ma_ring(ma_ring, ma, correct)
   end do
 
   ! Write summary
@@ -313,6 +316,61 @@ contains
     end if
   end subroutine write_data
 
+
+!==========================================================================
+! Routine to write misaligned and corrected lattice to a file
+  subroutine write_ma_ring(ma_ring, ma_params, correct)
+    implicit none
+    type(lat_struct), intent(in), target :: ma_ring
+    type(ma_struct), intent(in), target :: ma_params(:)
+    type(correct_struct), intent(in), target :: correct(:)
+    type(ma_struct), pointer :: ma
+    type(ele_struct), pointer :: ele
+    type(detcor_grp), pointer :: cor
+    integer i_param, i_ele, i_cor, ix, jx
+
+
+    open(unit=23,file='ma_lat.bmad',status='replace')
+    write(23,'(a)') '! Misalignments and errors: '
+    do i_param = 1, size(ma_params)
+       if (ma_params(i_param)%amp == 0) cycle
+       ma => ma_params(i_param)       
+       do i_ele = 1, ma_ring%n_ele_max 
+          ele => ma_ring%ele(i_ele)
+          if (ele%key /= ma%key) cycle
+          if (match_reg(ele%name,'#')) cycle
+          if (.not. (ma%mask == "" .or. match_reg(ele%name, ma%mask))) cycle
+          write(23,'(4a,es12.3)') trim(ele%name), '[', trim(attribute_name(ele, ma%param)), &
+               '] := ', ele%value(ma%param)
+       end do
+       
+    end do
+    
+    write(23,'(a)') ''
+    write(23,'(a)') ''
+    write(23,'(a)') '! Corrections:'
+    write(23,'(a)') ''
+    write(23,'(a)') ''
+
+    corLoop1: do i_cor = 1, size(correct)
+       corLoop2: do i_param = 1, size(correct(i_cor)%cor)
+          cor => correct(i_cor)%cor(i_param)
+          if (cor%param == 0) cycle ! empty element; ignore
+          eleLoop: do i_ele = 1, ma_ring%n_ele_max 
+             ele => ma_ring%ele(i_ele)
+             if (match_reg(ele%name,'#')) cycle eleLoop
+             if (.not. match_reg(trim(ele%name), trim(cor%mask))) cycle eleLoop
+             !write(*,*) '"',trim(ele%name), '"  "', trim(cor%mask),'"'
+             write(23,'(4a,es12.3)') trim(ele%name), '[', trim(attribute_name(ele, cor%param)), &
+                  '] := ', ele%value(cor%param)
+          end do eleLoop
+       end do corLoop2
+    end do corLoop1
+
+    close(23)
+
+  end subroutine write_ma_ring
+  
 !==========================================================================
 ! Routine to compute statistical summary information for an array
 

@@ -1,5 +1,6 @@
 &ring_ma_init
-   lattice_file = "CTF_LAT:bmad_2gevdr_102105.lat"
+   !lattice_file = "/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20090516.lat"
+   lattice_file = "/home/shanksj/CesrTA/lat/cta_2085mev_20090516.lat"
    comment = ""
    write_orbits = .false.
 
@@ -28,9 +29,9 @@
    ma(9)  = 2, "", 26, 150.e-6
    ma(10) = 2, "", 15, 100.e-6
 ! Wigglers
-   ma(11) = 12, "", 25, 150.e-6
-   ma(12) = 12, "", 26, 150.e-6
-   ma(13) = 12, "", 2,  100.e-6
+   !ma(11) = 12, "", 25, 150.e-6
+   !ma(12) = 12, "", 26, 150.e-6
+   !ma(13) = 12, "", 2,  100.e-6
 
    det_abs_res   = 0.
    det_diff_res  = 0.
@@ -38,7 +39,7 @@
 
    seed          = -1
 
-   n_iterations    = 200
+   n_iterations    = 1
    n_lm_iterations = 10
 
 !    Detector keys: orbit_x=1, orbit_y=2, eta_x=3, eta_y=4
@@ -49,8 +50,12 @@
 
     correct(1)%det(1) = "^DET", 2, 1
     correct(1)%cor(1) = "^V(KICK|[0-9])", 22, 1.
-!   correct(1)%det(1) = "^DET", 7, 100
-!   correct(1)%cor(1) = "^SK",  4, 1
+    correct(1)%det(2) = "^DET", 4, 1
+    correct(1)%cor(2) = "^Q",  4, 1
+    correct(2)%det(1) = "^DET", 2, 1
+    correct(2)%cor(1) = "^V(KICK|[0-9])", 22, 1.
+    correct(2)%det(2) = "^DET", 7, 100
+    correct(2)%cor(2) = "^SK_Q",  4, 1
 !   correct(1)%cor(1) = "^SEX.*(E|W)",  -1, 1
 
 /
