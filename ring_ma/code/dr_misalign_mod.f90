@@ -51,7 +51,7 @@ contains
     type(lat_struct), intent(inout), target :: ring
     type(ma_struct), intent(in), target :: ma_params(:)
 
-    integer, parameter :: allowed_params(8) = (/ x_offset$, y_offset$, tilt$, k1$, roll$, &
+    integer, parameter :: allowed_params(9) = (/ x_offset$, y_offset$, tilt$, k1$, k2$, roll$, &
                                                s_offset$, x_pitch$, y_pitch$/)
     integer, parameter :: allowed_keys(5) = (/ sbend$, quadrupole$, sextupole$, wiggler$, &
                                              marker$ /)
@@ -97,6 +97,7 @@ contains
           ele => ring%ele(i_ele)
           if (ele%key /= ma%key) cycle
           if (.not. (ma%mask == "" .or. match_reg(ele%name, ma%mask))) cycle
+          if (match_reg(ele%name,'#')) cycle ! added 3/1/10, JSh
 
           ! Get a random number within the cutoff. If we're tying elements, and this isn't
           ! the first element, and it's the same as last element, then reuse the old numbers.
@@ -108,16 +109,16 @@ contains
              end do
           end if
 
-          ! Don't apply the multiplier to quad strengths or markers
-          if (ma%param == k1$ .or. ma%param < 0) then
+          ! Don't apply the multiplier to quad / sext strengths or markers
+          if (ma%param == k1$ .or. ma%param == k2$ .or. ma%param < 0) then
              multiplier = 1.
           else
              multiplier = dr_misalign_params%alignment_multiplier
           end if
 
-          ! Quads have to "accumulate" because there initial values are nonzero.
+          ! Quads / sexts have to "accumulate" because there initial values are nonzero.
           ! This could be fixed by storing the original quad strength.
-          if (ma%param == k1$ .or. dr_misalign_params%accumulate_errors) then
+          if (ma%param == k1$ .or. ma%param == k2$ .or. dr_misalign_params%accumulate_errors) then
              ele%value(ma%param) = ma%amp * harvest * multiplier + ele%value(ma%param)
 
           else

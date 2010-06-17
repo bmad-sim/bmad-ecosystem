@@ -33,6 +33,8 @@ module correct_ring_mod
   type(lat_struct) :: cr_model_ring
   type(coord_struct), allocatable :: cr_model_co(:)
 
+
+
 contains
 
 !==========================================================================
@@ -42,7 +44,7 @@ contains
     implicit none
     
     type(lat_struct), intent(inout) :: ring
-    type(correct_struct), intent(in) ::correct
+    type(correct_struct) correct
     real(rp), optional, intent(out) :: rms_param
 
     integer, parameter :: n_det_max = 3000
@@ -52,13 +54,12 @@ contains
        real(rp) wt, rotation, x_offset, y_offset
     end type detector_struct
     type (detector_struct) det(n_det_max)
-
     type parameter_ele_struct
        character*40 name
        integer loc, param
        real(rp) orig_val, wt
     end type parameter_ele_struct
-    type(parameter_ele_struct) p_ele(n_det_max)
+    type(parameter_ele_struct) :: p_ele(n_det_max)
 
     type measurement_struct
        real(rp) :: orbit_x, orbit_y, eta_x, eta_y, phi_a, phi_b, cbar12
