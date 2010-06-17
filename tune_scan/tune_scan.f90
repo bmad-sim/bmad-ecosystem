@@ -77,7 +77,7 @@ program tune_scan
 !New real(rp) allowing the user to define the a- and b-mode (horizontal and vertical) emittance
   real(rp) a_emittance, b_emittance
 
-  character(80) :: file_name = '', out_file, new_lat_file
+  character(200) :: file_name = '', out_file, new_lat_file
   character(10) date, time
   character(2) wordx, wordy
 
@@ -191,7 +191,7 @@ program tune_scan
 
 
   open(unit=21, file = out_file)
-  write (21, '(a13,a80)') 'Lattice   = `', new_lat_file
+  write (21, '(a13,a200)') 'Lattice   = `', new_lat_file
   write (21, *) 'File_name = `', trim(file_name)// "'"
   write (21, '(a13,1x,a4,a1,a2,a1,a2,1x,a2,a1,a2,a1,a2,a1)') 'data_date = `', &
                    date(1:4),'-',date(5:6),'-',date(7:8),time(1:2),':',time(3:4),':',time(5:6), "'"
@@ -202,7 +202,7 @@ program tune_scan
 
   out_file = file_name(1:ix)//'out'
   open(unit=21, file = out_file, status='replace')
-  write (21, '(a13,a80)') 'Lattice   = `', new_lat_file
+  write (21, '(a13,a200)') 'Lattice   = `', new_lat_file
   write (21, *) 'File_name = `', trim(file_name)// "'"
   write (21, '(a13,1x,a4,a1,a2,a1,a2,1x,a2,a1,a2,a1,a2,a1)') 'data_date = `', &
                    date(1:4),'-',date(5:6),'-',date(7:8),time(1:2),':',time(3:4),':',time(5:6), "'"
