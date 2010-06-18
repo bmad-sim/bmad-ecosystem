@@ -2076,7 +2076,7 @@ case (lcavity$)
     val(delta_e$) = val(gradient$) * val(L$) 
     phase = twopi * (val(phi0$) + val(dphi0$)) 
     E_tot = val(E_tot_start$) + val(gradient$) * val(l$) * cos(phase)
-    E_tot = E_tot - val(e_loss$) * param%n_part * abs(charge_of(param%particle))
+    E_tot = E_tot - e_loss_sr_wake(val(e_loss$), param)
     if (e_tot /= val(e_tot$)) then ! Only do this if necessary
       val(E_tot$) = E_tot
       call convert_total_energy_to (E_tot, param%particle, pc = val(p0c$))

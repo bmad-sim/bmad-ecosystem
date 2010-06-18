@@ -353,9 +353,8 @@ subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_
        if (bmad_com%grad_loss_sr_wake /= 0) then  
          ! use grad_loss_sr_wake and ignore e_loss
          gradient = gradient - bmad_com%grad_loss_sr_wake
-       else
-         gradient = gradient - ele%value(e_loss$) * param%n_part * &
-                                                     e_charge / ele%value(l$)
+       elseif (ele%value(e_loss$) /= 0) then
+         gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / ele%value(l$)
        endif
      endif
      !***

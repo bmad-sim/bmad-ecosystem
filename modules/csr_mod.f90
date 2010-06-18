@@ -560,7 +560,8 @@ enddo
 
 ! Now calculate the kick for a particle at the center of a bin.
 
-coef = bin%ds_track_step * r_e / (bin%rel_mass * abs(charge_of(lat%param%particle)) * bin%gamma)
+coef = bin%ds_track_step * r_e / &
+            (bin%rel_mass * e_charge * abs(charge_of(lat%param%particle)) * bin%gamma)
 n_bin = csr_param%n_bin
 
 if (csr_param%lcsr_component_on) then
@@ -741,8 +742,8 @@ do i = 1, csr_param%n_bin
 
 enddo
 
-factor = bin%kick_factor * bin%ds_track_step * r_e / (bin%rel_mass * &
-                                      abs(charge_of(bin%particle)) * bin%gamma)
+factor = bin%kick_factor * bin%ds_track_step * r_e / &
+          (bin%rel_mass * e_charge * abs(charge_of(bin%particle)) * bin%gamma)
 bin%bin1(:)%kick_lsc = factor * bin%bin1(:)%kick_lsc
 
 end subroutine

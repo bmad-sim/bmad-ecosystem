@@ -261,7 +261,7 @@ endif
 if (n_sr_table > 0) then
 
   bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake + &
-                   ele%wake%sr_table(0)%long * abs(charge_of(param%particle)) / 2.0
+                   ele%wake%sr_table(0)%long * e_charge * abs(charge_of(param%particle)) / 2.0
 
   !-----------------------------------
   ! add up all wakes from front of bunch to follower

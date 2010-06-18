@@ -223,9 +223,8 @@ case (lcavity$)
     if (bmad_com%grad_loss_sr_wake /= 0) then  
       ! use grad_loss_sr_wake and ignore e_loss
       gradient = gradient - bmad_com%grad_loss_sr_wake
-    else
-      gradient = gradient - ele%value(e_loss$) * param%n_part * &
-                                        abs(charge_of(param%particle)) / length
+    else if (ele%value(e_loss$) /= 0) then
+      gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / length
     endif
   endif
 

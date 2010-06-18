@@ -2134,4 +2134,38 @@ end select
 
 end subroutine calc_superimpose_key
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function e_loss_sr_wake (e_loss_factor, param) result (energy_lost)
+! 
+! Function to return the energy losst due to the short range wake.
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   e_loss_factor -- Real(rp): Energy loss factor in (V/Coul).
+!   param         -- lat_param_struct: 
+!     %n_part        -- Number of particles
+!     %particle      -- Type of particle
+!
+! Output:
+!   energy_lost -- Real(rp): Magnitude of Energy lost due to SR wakes.
+!-
+
+function e_loss_sr_wake (e_loss_factor, param) result (energy_lost)
+
+implicit none
+
+type (lat_param_struct) param
+real(rp) e_loss_factor, energy_lost
+
+!
+
+energy_lost = e_loss_factor * param%n_part * abs(charge_of(param%particle)) * e_charge
+
+end function e_loss_sr_wake
+
 end module

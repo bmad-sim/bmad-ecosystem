@@ -31,60 +31,69 @@ use lat_ele_loc_mod
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave
+type (branch_struct), pointer :: branch
+
 real(rp) E_tot, p0c, phase
 
-integer i, k, ix, ixs
+integer i, k, ib, ix, ixs
 logical, optional :: compute
 
 ! Init energy
 
 if (.not. logic_option(bmad_com%compute_ref_energy, compute)) return
 
-E_tot = lat%ele(0)%value(E_tot$)
-call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
-lat%ele(0)%value(p0c$) = p0c
-
 ! propagate the energy through the tracking part of the lattice
 
-do i = 1, lat%n_ele_track
-  ele => lat%ele(i)
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
 
-  select case (ele%key)
-  case (lcavity$) 
-    ele%value(E_tot_start$) = E_tot
-    ele%value(p0c_start$) = p0c
+  if (ib /= 0) branch%ele(0)%value(E_tot$) = &
+        lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)%value(E_tot$)
+  E_tot = branch%ele(0)%value(E_tot$)
+  call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
+  branch%ele(0)%value(p0c$) = p0c
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-    E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
-    E_tot = E_tot - ele%value(e_loss$) * lat%param%n_part * abs(charge_of(lat%param%particle))
-    call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
 
-  case (custom$) 
-    E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
-    call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
 
-  case (hybrid$)
-    ele%value(E_tot_start$) = E_tot
-    ele%value(p0c_start$) = p0c
-    E_tot = E_tot + ele%value(delta_e$)
-    call convert_total_energy_to (E_tot, lat%param%particle, pc = p0c)
+    select case (ele%key)
+    case (lcavity$) 
+      ele%value(E_tot_start$) = E_tot
+      ele%value(p0c_start$) = p0c
 
-  end select
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+      E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
+      E_tot = E_tot - e_loss_sr_wake (ele%value(e_loss$), branch%param)
+      call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
-  ele%value(E_tot$) = E_tot
-  ele%value(p0c$) = p0c
+    case (custom$) 
+      E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
+      call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
-  if (ele%key == lcavity$ .and. lat%ele(i-1)%value(E_tot$) /= E_tot) then
-    ele%ref_time = lat%ele(i-1)%ref_time + ele%value(l$) * &
-              (p0c - lat%ele(i-1)%value(p0c$)) / ((E_tot - lat%ele(i-1)%value(E_tot$)) * c_light)
-  elseif (ele%key == hybrid$) then
-    ele%ref_time = lat%ele(i-1)%ref_time + ele%value(delta_ref_time$)
-  else
-    ele%ref_time = lat%ele(i-1)%ref_time + ele%value(l$) * p0c / (E_tot * c_light)
-  endif
+    case (hybrid$)
+      ele%value(E_tot_start$) = E_tot
+      ele%value(p0c_start$) = p0c
+      E_tot = E_tot + ele%value(delta_e$)
+      call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
+    end select
+
+    ele%value(E_tot$) = E_tot
+    ele%value(p0c$) = p0c
+
+    if (ele%key == lcavity$ .and. branch%ele(i-1)%value(E_tot$) /= E_tot) then
+      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * &
+                (p0c - branch%ele(i-1)%value(p0c$)) / ((E_tot - branch%ele(i-1)%value(E_tot$)) * c_light)
+    elseif (ele%key == hybrid$) then
+      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(delta_ref_time$)
+    else
+      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * p0c / (E_tot * c_light)
+    endif
+
+  enddo
 enddo
 
 ! Put the appropriate energy values in the lord elements...
