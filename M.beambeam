@@ -138,7 +138,7 @@ ifeq "$(CESR_PLATFORM)" "CYGWIN_NT_i686"
    LOCAL_FFLAGS   := 
    LOCAL_LFLAGS   := -L/cygdrive/c/PROGRA~1/MPIPro/lib
 endif
-EXTRA_LFLAGS   := -static
+
 #--------------------------------------------------------------
 # Provide the list of libraries required for linking this job.
 # All lists should be space delimited.
