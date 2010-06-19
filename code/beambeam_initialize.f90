@@ -240,7 +240,7 @@
        call choose_quads(ring, dk1)
        call custom_set_tune (phi_x, phi_y, dk1, ring, co, ok)
       deallocate(dk1)
-      if(.not. ok)then
+      if( ok == .false.)then
         ring = ring_save
         print '(a,2f10.3,a)',' Tunes ',phi_x/twopi,phi_y/twopi, ' are unstable. Not tracking ' 
         return
