@@ -43,16 +43,16 @@ if(test > 0 .and. test < 20 .and. ios == 0) then
   print *,' trains = ', trains
   print *,' bunches = ', bunches
   print *,' spacing = ', spacing  
+con%n_trains = trains
+con%n_cars = bunches
+
+con%n_14ns_space = spacing
 else
   file = string(1:ix)
 endif
 
 print *,' file = ', file
 
-con%n_trains = trains
-con%n_cars = bunches
-
-con%n_14ns_space = spacing
 
 con%BunchPattern = file
 
