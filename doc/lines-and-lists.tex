@@ -274,11 +274,11 @@ where the particle beam can branch off, say to a beam dump.
 \vn{Photon_Branch} elements define the source point for X-ray beams.
 Example:
 \begin{example}
-  erl: line = (..., b_mark, ...)             ! Define the main lattice with a branch 
+  erl: line = (..., dump, ...)               ! Define the main lattice with a branch 
   use, erl
-  b_mark: branch, to = b_line, &             ! Define the branch point
-               direction = -1, alias = dump  
-  b_line: line = (..., q3d, ...)             ! Define the branch line
+  dump: branch, to = d_line, direction = -1  ! Define the branch point
+
+  d_line: line = (..., q3d, ...)             ! Define the branch line
 \end{example}
 
 Branch lines can themselves have branch elements. A branch line always
@@ -287,11 +287,9 @@ starts out tangential to the line it is branching from. The
 branch line is outgoing in the forward direction (direction = +1) or
 incoming (direction = -1).
 
-Branches are named after the setting of the \vn{alias} attribute of
-the branch element. In the above example, the branch line would be
-named \vn{DUMP}. If the \vn{alias} attribute is not set, the name of
-the branch line (\vn{B_LINE} in the above example) is used instead.
-Like the main lattice, \bmad always automatically creates a zeroth
-element at the beginning of the branch called \vn{BEGINNING}. The
-longitudinal \vn{s} position of an element in a branch is determined
-by the distance from the beginning of the branch.
+Branches are named after the branch element name. In the above
+example, the branch line would be named \vn{DUMP}. Like the main
+lattice, \bmad always automatically creates a zeroth element at the
+beginning of the branch called \vn{BEGINNING}. The longitudinal \vn{s}
+position of an element in a branch is determined by the distance from
+the beginning of the branch.

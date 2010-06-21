@@ -4105,12 +4105,12 @@ branch%key            = branch_ele%key
 branch%ix_branch      = nb
 branch%ix_from_branch = branch_ele%ix_branch
 branch%ix_from_ele    = branch_ele%ix_ele
-branch%name           = branch_ele%component_name
+branch%name           = branch_ele%name
+!! if (branch_ele%alias /= '') branch%name = branch_ele%alias
 call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 branch%ele(0)%key     = init_ele$
 branch%ele(0)%name    = 'BEGINNING'
-if (branch_ele%alias /= '') branch%name = branch_ele%alias
 branch%n_ele_track = n_ele_use
 branch%n_ele_max   = n_ele_use
 
