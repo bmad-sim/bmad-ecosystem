@@ -45,13 +45,14 @@ character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this
-logical is_outside
+logical is_inside, ignore_photons_generated_outside_wall
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
-            photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file
+            photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
+            ignore_photons_generated_outside_wall
 
 namelist / synrad3d_wall / wall_pt
 namelist / gen_shape_def / ix_gen_shape, v
@@ -94,6 +95,7 @@ photon_start_input_file = ''
 photon_start_output_file = ''
 num_photons = -1
 num_photons_per_pass = -1
+ignore_photons_generated_outside_wall = .false.
 
 sr3d_params%debug_on = .false.
 sr3d_params%ix_generated_warn = -1
@@ -318,13 +320,19 @@ if (photon_start_input_file /= '') then
   ! Only set the random number generator if ran_state is set in the file.
 
   do
-    ran_state%iy = -1  ! To see if ran_state is set by the read.
-    read (1, nml = start, iostat = ios)
-    if (ios < 0) exit
-    if (ios > 0) then
-      print *, 'Error reading photon starting position at photon index:', n_photon_generated
-      cycle
-    endif
+
+    do
+      ran_state%iy = -1  ! To see if ran_state is set by the read.
+      read (1, nml = start, iostat = ios)
+      if (ios < 0) exit
+      if (ios > 0) then
+        print *, 'Error reading photon starting position at photon index:', n_photon_generated
+        call err_exit
+      endif
+      call check_if_photon_init_coords_outside_wall (p, is_inside)
+      if (is_inside) exit
+    enddo
+
     n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1
     if (n_photon_array > size(photons)) call reallocate_photon_array (photons, 2*size(photons))
@@ -332,8 +340,6 @@ if (photon_start_input_file /= '') then
     photon%start = p
     photon%n_wall_hit = 0
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
-    call check_if_photon_init_coords_outside_wall (is_outside)
-    if (is_outside) cycle
     call sr3d_track_photon (photon, lat, wall, wall_hit)
     call check_filter_restrictions(ok)
     if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
@@ -421,10 +427,15 @@ else
           print *, 'Note: At sr3d_params%ix_generated_warn:', n_photon_generated ! For debug purposes.
         endif
 
-        call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
-                               emit_a, emit_b, sig_e, photon_direction, photon%start)
         photon%n_wall_hit = 0
         photon%start%ix_ele = ix_ele
+
+        do
+          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
+                               emit_a, emit_b, sig_e, photon_direction, photon%start)
+          call check_if_photon_init_coords_outside_wall (photon%start, is_inside)
+          if (is_inside) exit
+        enddo
 
         if (photon_start_output_file /= '') then
           call ran_seed_get (state = ran_state)
@@ -435,8 +446,6 @@ else
           write (iu_start, '(a)')           '/'
         endif
 
-        call check_if_photon_init_coords_outside_wall (is_outside)
-        if (is_outside) cycle
         call sr3d_track_photon (photon, lat, wall, wall_hit)
         call check_filter_restrictions (ok)
         if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
@@ -547,15 +556,29 @@ end subroutine
 !--------------------------------------------------------------------------------------------
 ! contains
 
-subroutine check_if_photon_init_coords_outside_wall (is_outside)
+subroutine check_if_photon_init_coords_outside_wall (photon_start, is_inside)
 
-logical is_outside
+type (photon3d_coord_struct) photon_start
 
-call sr3d_photon_radius (photon%start, wall, radius)
-if (radius > 1) then
+logical is_inside
+
+!
+
+is_inside = .true.
+
+call sr3d_photon_radius (photon_start, wall, radius)
+
+if (radius >= 1) then
   print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
-  print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon%start%vec      
-  n_photon_array = n_photon_array - 1
+  print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%vec      
+  is_inside = .false.
+
+  if (.not. ignore_photons_generated_outside_wall) then
+    print '(a)', '       STOPPING SYNRAD3D DUE TO PHOTON GENERATED OUTSIDE THE WALL'
+    print '(a)', '       IN THE FUTURE, SET IGNORE_PHOTONS_GENERATED_OUTSIDE_WALL TO TRUE TO KEEP GOING.'
+    stop
+  endif
+
 endif
 
 end subroutine
