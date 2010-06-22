@@ -208,6 +208,7 @@ Example main input file:
     s_filter_max = -1
     photon_start_input_file  = ''  ! File for initializing the photons
     photon_start_output_file = ''  ! File recording photon start positions
+    ignore_photons_generated_outside_wall = F  !
   /
 \end{example}
 Fortran namelist input is used.
@@ -323,6 +324,12 @@ initialization can also be specified in the file. In this case, the
 random number generator state will also be set along with the state of
 the photon. This is useful for diagnostic purposes when one wishes to
 compare the results of different versions of the \srthree program. 
+
+  \item[\vn{ignore_photons_generated_outside_wall}] \Newline
+If set to False (the default), \srthree will stop if a photon is
+generated outside of the beam chamber on the assumption that something
+is wrong. If set to True, \srthree will simply ignore the offending
+photon and generate another one at the same longitudinal position.
 
 \end{description}
 
