@@ -62,7 +62,7 @@ MAKEFILE := M.freq_map
 #           specifications. 
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS  :=
-OBJ_SRC_DIRS  := . freq_map code
+OBJ_SRC_DIRS  := .
 LOCAL_INCS    :=
 LOCAL_MODS    := ../modules
 
