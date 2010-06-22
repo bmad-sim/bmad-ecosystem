@@ -181,17 +181,16 @@ end subroutine
 !   use synrad3d_utils
 !
 ! Input:
-!   lat       -- lat_struct with twiss propagated and mat6s made
-!   ix_ele    -- integer: index of lat element to start ray from
-!   s_offset  -- real(rp): offset along the length of the element 
-!                         to use as a starting point for ray
-!   orb(0:*)  -- coord_struct: orbit of particles to use as 
-!                             source of ray
-!   direction -- integer: +1 In the direction of increasing s.
-!                         -1 In the direction of decreasing s.
+!   lat       -- lat_struct with twiss propagated and mat6s made.
+!   orb(0:*)  -- coord_struct: orbit of particles to use as source of ray.
+!   ix_ele    -- integer: index of lat element to start ray from.
+!   s_offset  -- real(rp): Distance from beginning of element to the point where the photon is emitted.
 !
 ! Output:
-!   photon    -- photon3d_coord_struct: Generated photon.
+!   ele_here  -- ele_struct: Twiss parameters at emission point.
+!   orb_here  -- coord_struct: Beam center coords at emission point.
+!   gx        -- Real(rp): Horizontal 1/bending_radius.
+!   gy        -- Real(rp): Vertical 1/bending_radius.
 !-
 
 subroutine sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
@@ -210,7 +209,7 @@ type (em_field_struct) :: field
 real(rp) s_offset, k_wig, g_max, l_small, gx, gy
 real(rp), save :: s_old_offset = 0
 
-integer direction, ix_ele
+integer ix_ele
 
 logical err
 logical, save :: init_needed = .true.
@@ -278,8 +277,10 @@ case (wiggler$)
 
     k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
     g_max = c_light * ele%value(b_max$) / (ele%value(p0c$))
-    gx = g_max * cos (k_wig * s_offset)
-    orb_here%vec(2) = orb_here%vec(2) + (g_max / k_wig) * sin (k_wig * s_offset)
+    gx = g_max * sin (k_wig * s_offset)
+    gy = 0
+    orb_here%vec(1) = (g_max / k_wig) * sin (k_wig * s_offset)
+    orb_here%vec(2) = (g_max / k_wig) * cos (k_wig * s_offset)
 
   else
 
