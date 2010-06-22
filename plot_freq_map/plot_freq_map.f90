@@ -44,7 +44,7 @@
    real, allocatable :: z(:,:)
    real delta_x, delta_y, delta_eng
    real factor
-   real saved_x(5000), saved_y(5000), saved_eng(5000)
+   real, allocatable:: saved_x(:), saved_y(:), saved_eng(:)
    real*8 sigma_x, sigma_y
    real aspect
    real z_off_scale
@@ -58,6 +58,8 @@
     if(ix == 0)file_name = 'uber.out'
 
    call read_scan(file_name, column, n)
+
+   allocate(saved_x(n), saved_y(n), saved_eng(n))
 
 !   n = size(column)
 
@@ -169,10 +171,10 @@
 !     type *,' l, saved_eng(l) ', l, saved_eng(l)
     endif
 
-    if(j > 5000 .or. k > 5000 .or. l > 5000)then
-      print *,' More than 5000 different x,y,or energy values.'
-      print *,' Increase size of saved_ array'
-    endif
+!    if(j > 5000 .or. k > 5000 .or. l > 5000)then
+!      print *,' More than 5000 different x,y,or energy values.'
+!      print *,' Increase size of saved_ array'
+!    endif
 
    end do
    n_x = j
@@ -182,7 +184,7 @@
    n_x = min(200,n_x)
    n_y = min(200,n_y)
 
-   print *,' n_x, n_y,n_eng', n_x, n_y, n_eng
+   print *,' n_x, n_y,_eng', n_x, n_y, n_eng
    print *,' Energies '
    print '(a16)',' n_eng, energy '
    print '(i5,3x,e12.4)',(i,saved_eng(i), i=1,n_eng)
