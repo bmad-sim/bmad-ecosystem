@@ -209,6 +209,7 @@ Example main input file:
     photon_start_input_file  = ''  ! File for initializing the photons
     photon_start_output_file = ''  ! File recording photon start positions
     num_ignore_generated_outside_wall = 0  !
+    turn_off_kickers_in_lattice = F        ! Zero the closed orbit?
   /
 \end{example}
 Fortran namelist input is used.
@@ -324,7 +325,6 @@ initialization can also be specified in the file. In this case, the
 random number generator state will also be set along with the state of
 the photon. This is useful for diagnostic purposes when one wishes to
 compare the results of different versions of the \srthree program. 
-
   \item[\vn{num_ignore_generated_outside_wall}] \Newline
 Photons may be generated outside of the beam chamber for various
 reasons. For example, the beam chamber can be too small or the closed
@@ -336,6 +336,9 @@ generate another one at the same longitudinal position, up to the
 number set by \vn{num_ignore_generated_outside_wal}. If the number of
 photons generated outside the wall exceeds this number, \srthree will
 print an error message and stop.
+  \item[\vn{turn_off_kickers_in_lattice}] \Newline
+If \vn{turn_off_kickers_in_lattice} is set to True (the default is
+False), then all kicks from steering elements in the lattice will be zeroed.
 
 \end{description}
 

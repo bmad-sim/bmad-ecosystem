@@ -8,6 +8,7 @@ program synrad3d
 
 use synrad3d_track_mod
 use synrad3d_utils
+use bookkeeper_mod
 
 implicit none
 
@@ -45,14 +46,14 @@ character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this
-logical is_inside
+logical is_inside, turn_off_kickers_in_lattice
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
-            num_ignore_generated_outside_wall
+            num_ignore_generated_outside_wall, turn_off_kickers_in_lattice
 
 namelist / synrad3d_wall / wall_pt
 namelist / gen_shape_def / ix_gen_shape, v
@@ -96,6 +97,7 @@ photon_start_output_file = ''
 num_photons = -1
 num_photons_per_pass = -1
 num_ignore_generated_outside_wall = 0
+turn_off_kickers_in_lattice = .false.
 
 sr3d_params%debug_on = .false.
 sr3d_params%ix_generated_warn = -1
@@ -216,6 +218,27 @@ else
   call bmad_parser (lattice_file, lat)
 endif
 
+if (turn_off_kickers_in_lattice) then
+  do i = 1, lat%n_ele_max
+    ele => lat%ele(i)
+    if (attribute_index(ele, 'HKICK') > 0) then
+      ele%value(hkick$) = 0
+      ele%value(vkick$) = 0
+      ele%value(bl_hkick$) = 0
+      ele%value(bl_vkick$) = 0
+    endif
+    if (attribute_index(ele, 'KICK') > 0) then  
+      ele%value(kick$) = 0
+      ele%value(bl_kick$) = 0
+    endif
+    if (associated(ele%a_pole)) then
+      ele%a_pole(0) = 0
+      ele%b_pole(0) = 0
+    endif
+  enddo
+  call lattice_bookkeeper (lat)
+endif
+
 call twiss_and_track (lat, orb, ok)
 if (.not. ok) stop
   
@@ -252,6 +275,8 @@ endif
 
 print *, 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
 print *, 'I0 Radiation Integral over emission region:', i0_tot
+print *, 'Closed orbit max X amplitude (meters):', maxval(abs(orb(:)%vec(1)))
+print *, 'Closed orbit max Y amplitude (meters):', maxval(abs(orb(:)%vec(3)))
 
 ! d_i0 determines the number of photons to generatie per unit i0 integral.
 
