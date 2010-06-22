@@ -3,19 +3,19 @@
    use column_mod
    implicit none
    
-   type(column_struct) column(11000)
+   type(column_struct), allocatable :: column(:)
 
    interface
     subroutine read_scan (file_name, column,size) 
      use column_mod
      implicit none
-     type(column_struct) column(11000)
-     character*80 file_name
+     type(column_struct), allocatable :: column(:)
+     character*200 file_name
      integer size
     end  subroutine
    end interface
 
-   character*80 file_name, title
+   character*200 file_name, title
    character*22 wedge_label
    character*20 device_type
 
@@ -406,8 +406,8 @@ end
    implicit none
 
 
-   type(column_struct) column(11000)
-   character*80 file_name
+   type(column_struct), allocatable, intent(out) :: column(:)
+   character*200 file_name
    character*200 line
    character*20 word
    integer i, n, ix, j, size
@@ -425,6 +425,8 @@ end
 99 continue
    close(unit=2)
    size = n 
+
+   allocate(column(n))
 
    open(unit=2, file=file_name, type='OLD')
    n=0
