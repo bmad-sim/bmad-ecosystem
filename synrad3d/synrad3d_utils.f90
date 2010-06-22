@@ -243,7 +243,8 @@ s_old_offset = s_offset
 
 ! Calc the photon's g_bend value (inverse bending radius at src pt) 
 
-if (ele%key == sbend$) then  
+select case (ele%key)
+case (sbend$)  
 
   ! sbends are easy
   gx = 1 / ele%value(rho$)
@@ -253,7 +254,7 @@ if (ele%key == sbend$) then
     gx = gx * cos(ele%value(roll$))
   endif
 
-elseif (ele%key == quadrupole$ .or. ele%key == sol_quad$ .or. ele%key == elseparator$) then
+case (quadrupole$, sol_quad$, elseparator$)
 
   ! for quads or sol_quads, get the bending radius
   ! from the change in x' and y' over a small 
@@ -267,32 +268,35 @@ elseif (ele%key == quadrupole$ .or. ele%key == sol_quad$ .or. ele%key == elsepar
   gx = orb1%vec(2) / l_small
   gy = orb1%vec(4) / l_small
 
-elseif (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+case (wiggler$)
 
-  ! for periodic wigglers, get the max g_bend from 
-  ! the max B field of the wiggler, then scale it 
-  ! by the cos of the position along the poles
+  if (ele%sub_key == periodic_type$) then
 
-  k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
-  g_max = c_light * ele%value(b_max$) / (ele%value(p0c$))
-  gx = g_max * cos (k_wig * s_offset)
-  orb_here%vec(2) = orb_here%vec(2) + (g_max / k_wig) * sin (k_wig * s_offset)
+    ! for periodic wigglers, get the max g_bend from 
+    ! the max B field of the wiggler, then scale it 
+    ! by the cos of the position along the poles
 
-elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+    k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
+    g_max = c_light * ele%value(b_max$) / (ele%value(p0c$))
+    gx = g_max * cos (k_wig * s_offset)
+    orb_here%vec(2) = orb_here%vec(2) + (g_max / k_wig) * sin (k_wig * s_offset)
 
-  ! for mapped wigglers, find the B field at the source point
-  ! Note: assumes particles are relativistic!!
+  else
 
-  call em_field_calc (ele_here, lat%param, ele_here%value(l$), orb_here, .false., field)
-  gx = field%b(2) * c_light / ele%value(p0c$)
-  gy = field%b(1) * c_light / ele%value(p0c$)
+    ! for mapped wigglers, find the B field at the source point
+    ! Note: assumes particles are relativistic!!
 
+    call em_field_calc (ele_here, lat%param, ele_here%value(l$), orb_here, .false., field)
+    gx = field%b(2) * c_light / ele%value(p0c$)
+    gy = field%b(1) * c_light / ele%value(p0c$)
 
-else
+  endif
+
+case default
 
   print *, 'ERROR: UNKNOWN ELEMENT HERE ', ele%name
 
-endif
+end select
 
 end subroutine
 
