@@ -253,7 +253,7 @@ if (ele%key == sbend$) then
     gx = gx * cos(ele%value(roll$))
   endif
 
-elseif (ele%key == quadrupole$ .or. ele%key == sol_quad$) then
+elseif (ele%key == quadrupole$ .or. ele%key == sol_quad$ .or. ele%key == elseparator$) then
 
   ! for quads or sol_quads, get the bending radius
   ! from the change in x' and y' over a small 
@@ -286,6 +286,7 @@ elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
   call em_field_calc (ele_here, lat%param, ele_here%value(l$), orb_here, .false., field)
   gx = field%b(2) * c_light / ele%value(p0c$)
   gy = field%b(1) * c_light / ele%value(p0c$)
+
 
 else
 
