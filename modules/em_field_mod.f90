@@ -4,32 +4,30 @@
 ! Module to define the electric and magnetic fields for an elemet.
 !-
 
-#include "CESR_platform.inc"      
-
 module em_field_mod
 
-  use bmad_struct
-  use bmad_interface
+use bmad_struct
+use bmad_interface
 
 ! track_com is the common block track variable.
 
-  type (track_struct), save :: track_com
+type (track_struct), save :: track_com
 
 ! Interface for custom field calc
 
-  interface 
-    subroutine em_field_custom (ele, param, s, orb, local_ref_frame, field, calc_dfield)
-      use bmad_struct
-      implicit none
-      type (ele_struct) :: ele
-      type (lat_param_struct) param
-      type (coord_struct), intent(in) :: orb
-      real(rp), intent(in) :: s
-      logical local_ref_frame
-      type (em_field_struct), intent(out) :: field
-      logical, optional :: calc_dfield
-    end subroutine
-  end interface
+interface 
+  subroutine em_field_custom (ele, param, s, orb, local_ref_frame, field, calc_dfield)
+    use bmad_struct
+    implicit none
+    type (ele_struct) :: ele
+    type (lat_param_struct) param
+    type (coord_struct), intent(in) :: orb
+    real(rp), intent(in) :: s
+    logical local_ref_frame
+    type (em_field_struct), intent(out) :: field
+    logical, optional :: calc_dfield
+  end subroutine
+end interface
 
 contains
 
@@ -116,6 +114,8 @@ end subroutine save_a_step
 ! Subroutine em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield)
 !
 ! Subroutine to calculate the E and B fields for an element.
+! 
+! Note: Zero field will be returned if an element is turned off.
 !
 ! Modules needed:
 !   use bmad

@@ -30,16 +30,18 @@ lattice is read in.
 \begin{table}[ht]
 \centering {
 \begin{tabular}{|l|l|l|} \hline
- {\em Element}                & {\em Dependent Variables}    & {\em Independent Variables}        \HH
- \vn{BeamBeam}                & \vn{bbi_constant}            & 
-                                     \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}, \vn{n_part} \HH
- \vn{Elseparator}             & \vn{e_field}, \vn{voltage}   & 
-                                          \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}    \HH
- \vn{Lcavity}                 & \vn{e_loss}, \vn{delta_e}    & \vn{gradient}, \vn{l}              \HH
- \vn{Rbend}, \vn{Sbend}       & \vn{rho}, \vn{angle}, \vn{l_chord} 
-                                                             & \vn{g}, \vn{l}                     \HH
- \vn{Wiggler} (periodic type) & \vn{k1}, \vn{rho}            & \vn{b_max}, \vn{e_tot}             \HH
- All elements                 & \vn{num_steps}               & \vn{ds_step}                       \HH
+ {\em Element}                & {\em Independent Variables}    & {\em Dependent Variables}          \HH
+ All elements                 & \vn{ds_step}                   & \vn{num_steps}                     \HH
+ \vn{BeamBeam}                & \vn{charge}, \vn{sig_x}, \vn{sig_y}, \vn{e_tot}, \vn{n_part}
+                                                               & \vn{bbi_constant}                  \HH
+ \vn{Elseparator}             & \vn{hkick}, \vn{vkick}, \vn{gap}, \vn{l}, \vn{e_tot}      
+                                                               & \vn{e_field}, \vn{voltage}         \HH
+ \vn{Lcavity}                 & \vn{gradient}, \vn{l}          & \vn{e_loss}, \vn{delta_e}          \HH
+ \vn{Rbend}, \vn{Sbend}       & \vn{g}, \vn{l}                     
+                                                               & \vn{rho}, \vn{angle}, \vn{l_chord} \HH
+
+ \vn{Wiggler} (map type)      & \vn{term(i)}                   & \vn{b_max}, \vn{k1}, \vn{rho}      \HH
+ \vn{Wiggler} (periodic type) & \vn{b_max}, \vn{e_tot}         & \vn{k1}, \vn{rho}                  \HH
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Table of dependent variables and 

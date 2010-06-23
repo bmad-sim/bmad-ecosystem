@@ -5,6 +5,7 @@ use bmad_utils_mod
 use multipole_mod
 use lat_geometry_mod
 use equality_mod
+use em_field_mod
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
@@ -1897,11 +1898,17 @@ end subroutine makeup_overlay_and_girder_slave
 !     l_chord$ = 2 * sin(Angle$/2) / G$
 !     rho$     = 1 / G$
 !
-! WIGGLER:    
+! WIGGLER (map_type):
+!     B_MAX$    
+!     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
+!     rho$ = p0c$ / (c_light * b_max$)
+!     z_patch$  
+!
+! WIGGLER (periodic_type):
 !     k1$  = -0.5 * (c_light * b_max$ / p0c$)**2
 !     rho$ = p0c$ / (c_light * b_max$)
 !     n_pole$ = L$ / l_pole$
-!     z_patch$
+!     z_patch$  
 !
 ! Modules needed:
 !   use bmad
@@ -1929,13 +1936,16 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) start, end
+type (em_field_struct) field
 
-real(rp) factor, f2, phase, E_tot, dval(n_attrib_maxx)
+real(rp) factor, f2, phase, E_tot, polarity, dval(n_attrib_maxx)
 real(rp), pointer :: val(:)
+
+integer i
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
-logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed
+logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed, is_on
 logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
 logical :: debug = .false.  ! For debugging purposes
@@ -2047,6 +2057,13 @@ endif
 ! Note: If the dependent attributes are changed then attribute_free 
 !       must be modified.
 
+! num_steps
+
+if (val(ds_step$) /= 0) ele%num_steps = abs(nint(val(l$) / val(ds_step$)))
+if (val(ds_step$) == 0 .or. ele%num_steps <= 0) ele%num_steps = 1
+
+!
+
 select case (ele%key)
 
 ! Bends
@@ -2128,6 +2145,24 @@ case (elseparator$)
 
 case (wiggler$) 
 
+  ! Calculate b_max for map_type wigglers. 
+  ! To save on computation time, only compute when z_patch calc is also needed.
+
+  if (ele%sub_key == map_type$ .and. (z_patch_calc_needed .or. ele%value(b_max$) == 0)) then
+    is_on = ele%is_on  ! Save
+    polarity = ele%value(polarity$)
+    ele%is_on = .true.
+    ele%value(polarity$) = 1
+    start%vec = 0
+    val(b_max$) = 0
+    do i = 0, ele%num_steps
+      call em_field_calc (ele, param, i * val(l$) / ele%num_steps, start, .true., field)
+      val(b_max$) = max(val(b_max$), sqrt(sum(field%b**2)))
+    enddo
+    ele%is_on = is_on
+    ele%value(polarity$) = polarity
+  endif
+
   if (val(p0c$) == 0) then
     val(k1$) = 0
   else
@@ -2168,11 +2203,6 @@ case (wiggler$)
   endif
 
 end select
-
-! num_steps
-
-if (val(ds_step$) /= 0) ele%num_steps = abs(nint(val(l$) / val(ds_step$)))
-if (val(ds_step$) == 0 .or. ele%num_steps == 0) ele%num_steps = 1
 
 ! If things have changed we need to kill the Taylor Map and gen_field.
 ! The old_value array tells us this.
@@ -2228,8 +2258,7 @@ endif
 
 if (associated(ele%const)) ele%const = -1  ! Forces recalc
 
-! compute the z_patch for a wiggler if needed.
-! This is normally zero except for split wiggler sections.
+! Compute the z_patch for a wiggler if needed.
 
 if (z_patch_calc_needed) then
   start = ele%map_ref_orb_in
@@ -2239,6 +2268,8 @@ if (z_patch_calc_needed) then
   if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
   ele%map_ref_orb_out = end             ! save for next super_slave
 endif
+
+! Set old_value = value
 
 ele%old_value = val
 

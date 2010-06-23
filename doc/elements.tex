@@ -1782,19 +1782,27 @@ momentum offsets, there is no change in the $z$ coordinate even though
 the actual trajectory through the wiggler does not follow the straight
 line reference trajectory.
 
-\index{polarity}
 \index{x_ray_line_len}
-\index{term (for a Wiggler)}
-Attributes specific to a map type \vn{wiggler} element are:
+both types of wigglers have the following attributes:
 \begin{example}
-  term(i)  = \{<Wig_Term>\} 
-  polarity = <Real>     ! Used to scale the field strength.
   x_ray_line_len = <Real>
+  polarity       = <Real> ! Used to scale the field strength.
+  k1                      ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
+  rho                     ! Bending radius. Dependent attribute (\sref{s:depend}).
 \end{example}
 \vn{x_ray_line_len} is the length of an associated x-ray synchrotron
 light line measured from the exit end of the element. This is used for
 machine geometry calculations and is irrelevant for lattice
 computations.
+
+\index{polarity}
+\index{term (for a Wiggler)}
+Attributes specific to a \vn{map type} \vn{wiggler} element are:
+\begin{example}
+  term(i)  = \{<Wig_Term>\} 
+  b_max    = <Real>   ! Maximum magnetic field (in T) on the wiggler centerline. 
+                      !   Dependent attribute (\sref{s:depend}).
+\end{example}
 
 A \vn{<Wig_Term>} is of the form $C, k_x, k_y, k_z, \phi_z$ as
 explained in \sref{s:wiggler.phys}. \vn{polarity} is used to scale the
@@ -1808,18 +1816,21 @@ Example:
   wig1[polarity] = -1  ! Reverse the polarity of the wiggler
 \end{example}
 
+The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is the
+maximum field computed for \vn{polarity} = 1. The actual maximum field
+seen in tracking is thus scaled by the \vn{polarity}.
+
+
 For the \vn{periodic type} wigglers the attributes are: 
 \index{b_max}\index{n_pole}
 \index{k1}\index{rho}
 \begin{example}  
   b_max    = <Real>  ! Maximum magnetic field (in T) on the wiggler centerline. 
-  polarity = <Real>  ! Used to scale the field strength.
   l_pole   = <Real>  ! Wiggler pole length. The period is then 2 * l_pole.
   n_pole   = <Real>  ! The number of poles (L / L_POLE). 
                      !   A settable Dependent attribute (\sref{s:depend}).
-  k1                 ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
-  rho                ! Bending radius. Dependent attribute (\sref{s:depend}).
 \end{example}
+
 Example:
 \begin{example}
   wig2: wiggler, l = 1.6, b_max = 2.1, n_pole = 7  ! periodic type wiggler
