@@ -12,6 +12,7 @@ contains
     type(data_set) :: data 
     call svd(data)
     call fft(data)
+
   end subroutine svd_fft
 
   subroutine svd(data)
@@ -152,7 +153,10 @@ contains
                                 !It saves time to do the calculation only for
                                 !the top 5-6 eigenmodes.
 
-    n_eigen = 6
+n = NUM_TURNS
+!    n_eigen = NUM_TURNS/4
+!n_eigen = int(NUM_BPMS/2)
+n_eigen = NUM_BPMS
     call powerof2(n)            !Make n the next smaller power of 2
                                 !if n is not a power of 2 already.
     allocate(data%spectrum(n,2*data%bpmproc))
@@ -214,9 +218,9 @@ contains
     fr_peak = -1
     do i=1,n
        amp(i) = 2.0_rp*sqrt(ar(i)*ar(i)+ai(i)*ai(i))/n
-       if(i >= 0 .AND. amp(i) > max_amp .and. i < n/2) then  ! find peak AC
+       if( amp(i) > max_amp .and. i <= n) then  ! find peak AC
           max_amp = amp(i)
-          fr_peak = i-1   ! because FORTRAN arrays start with 1
+          fr_peak = i
        endif
        !	  if(ar(i).ne.0.0) then
        p(i) = atan2(ai(i),ar(i))
@@ -225,6 +229,8 @@ contains
        !	    p(i) = isgn(ai(i))*pi/2.0
        !	  endif
     enddo
+
+!Print *, "Peak freq is ", fr_peak
 
     return
 
@@ -341,12 +347,15 @@ contains
          sum_b(4)                 !Sum of even rows of pi matrix
     logical :: mode(2), &         !True if a file has not been found for that
          more                     ! mode yet. 1 is A, 2 is B
+    real(rp) :: spec_i, spec_q
+    integer :: maxPos(1)
 
     mode(1) = .true.
     mode(2) = .true.
     noise_sum(1) = 0.0_rp
     noise_sum(2) = 0.0_rp
     more = .false.
+
 
     !Number of lambdas used only affects if data is rejected for
     !having too much noise.
@@ -359,15 +368,10 @@ contains
        call findNoise(data(cset)%lambda, ave(cset))
        data(cset)%noise = ave(cset)
        ave(cset) = 2.0*ave(cset)
-       print *, ave(cset)
-       print *, data(cset)%noise
+       print *, "Noise level for file", cset, ": ",data(cset)%noise 
     end do
-!    do cset = 1,nset
-!       do i = lambdas, 2*NUM_BPMS
-!          noise_sum(cset) = noise_sum(cset) + data(cset)%lambda(i)
-!       end do
-!       ave(cset) = 2.0*(noise_sum(cset)/(2*data(1)%bpmproc - lambdas))
-!    end do
+
+
 
     !Compares all BPMs to each other to find eigen mode matches.
     ! Stops at the first match.
@@ -375,12 +379,39 @@ contains
     do cset = 1, nset
        pair_cap = 0
        do i = 1, 2*data(1)%bpmproc-1
+          !The machine cannot be run at integer or half-integer tunes, so
+          !ignore peaks at 1 and numturns/2
+          if (data(cset)%fr_peak(i) == 1 .or. &
+               data(cset)%fr_peak(i) == data(1)%numturns/2) then
+Print *, "Column ", i, " appears to be an integer or half-integer signal."
+Print *, "Fr. Peak:", data(cset)%fr_peak(i)
+             cycle
+          end if
+
           do q = i+1, 2*data(1)%bpmproc-1
+             if (data(cset)%fr_peak(i) > 1 .and.data(cset)%fr_peak(i) < &
+                  data(1)%numturns) then
+                spec_i = data(cset)%spectrum(data(cset)%fr_peak(i),i)
+             else
+                cycle
+             endif
+             if (data(cset)%fr_peak(q) > 1 .and.data(cset)%fr_peak(q) < &
+                  data(1)%numturns) then
+                spec_q = data(cset)%spectrum(data(cset)%fr_peak(q),q)
+             else
+                cycle
+             endif
+
             !Finds a match if the difference between frequency peaks is greater
             !than 2 and both lambdas are above threshold.
-             if   ( iabs(data(cset)%fr_peak(i)-data(cset)%fr_peak(q)) < 2 &
+             if   ( iabs(data(cset)%fr_peak(i)-data(cset)%fr_peak(q)) < 4 &
                   .and. data(cset)%lambda(i) >= ave(cset) &
-                  .and. data(cset)%lambda(q) >= ave(cset)) then
+                  .and. data(cset)%lambda(q) >= ave(cset) &
+                ) then
+
+
+
+
                 write (*, '(1x,2a,i2,a,i2,a,i2, a/)', advance = "no") &
                      "Potential", " Eigen Mode match for file ", cset,  &
                      " found in columns:", i, "  and ", q, "."
@@ -398,12 +429,17 @@ contains
 !                endif
                 if (nset == 2 .and. pair_cap == 1) then
                    go to 101
+
+
+
+
                 end if
              end if
           end do
        end do
        if (pair_cap == 0) then
          Print *, "No eigen mode match found. Try again with a different file."
+         exit
       endif
 101    continue  
     end do
@@ -416,26 +452,21 @@ contains
     col_counta = 0
     col_countb = 0
 
+
     do c = 1,2*nset
 
-       sum_a(c) = 0.0_rp
-       sum_b(c) = 0.0_rp
+       sum_a(c) = 0.0_rp !sum of odd columns of the pi matrix (x values)
+       sum_b(c) = 0.0_rp !sum of even columns (y values)
 
-       !Sum_a(c) is the sum of odd columns of the pi matrix (x values),
-       !sum_b(c) is the sum of even columns (y values).
-       if (nset==1) then
-          call splitsum(data(1)%pi_mat(:, colu(c)), sum_a(c), sum_b(c))
-       else
-          !place is the current file number
-          place = ceiling(1.0*c/nset)
-          call splitsum(data(place)%pi_mat(:, colu(c)), sum_a(c), sum_b(c))
-       endif
-       print *, "sum a:", sum_a(c), " sum b:", sum_b(c)
+
+       place = ceiling(1.0*c/nset) !find current file number (1 or 2)
+       call splitsum(data(place)%pi_mat(:, colu(c)), sum_a(c), sum_b(c))
 
       !Assign horizontal or vertical based on which direction has a greater sum
-       if (sum_a(c) > sum_b(c)+0.5) then
+       if (sum_a(c) > sum_b(c)) then
           col_counta = col_counta + 1
           col_a_(col_counta) = colu(c)
+          !I think this is a holder for which file is in the A mode:
           af(col_counta) = ceiling(1.0*c/nset)
        else
           col_countb = col_countb + 1
@@ -460,15 +491,44 @@ contains
 
     end do
 
-    !Check for files that only have excitation in a single mode
     if (col_counta > 2 .or. col_countb > 2) then
        Print *, "Excitation for both files appears to be in the same plane."
        Print *, "Try again with different files."
-       STOP
-    endif
 
-!    write (*,'(1x,a,i2,a,i2)')"Horizontal Match: ", &
-!         col_a_(1),",",col_a_(2), "Vertical Match: ", col_b_(1),",", col_b_(2)
+       if (col_counta > 2) then
+          maxPos = maxloc(sum_b(:))
+          col_b_(1) = maxPos(1)
+          bf(1) = ceiling(1.0*maxPos(1) / nset)
+!          sum_b(maxPos(1)) = -1.0
+!          maxPos = maxloc(sum_b(:))
+          if (mod(maxPos(1),2) == 0) then
+             maxPos(1) = maxPos(1) - 1
+          else
+             maxPos(1) = maxPos(1) + 1
+          end if
+          col_b_(2) = maxPos(1)
+          bf(2) = ceiling(1.0*maxPos(1) / nset)
+
+       else
+          maxPos = maxloc(sum_a(:))
+          col_a_(1) = maxPos(1)
+          af(1) = ceiling(1.0*maxPos(1) / nset)
+!          sum_a(maxPos(1)) = -1.0
+!          maxPos = maxloc(sum_a(:))
+          if (mod(maxPos(1),2) == 0) then
+             maxPos(1) = maxPos(1) - 1
+          else
+             maxPos(1) = maxPos(1) + 1
+          end if
+
+          col_a_(2) = maxPos(1)
+          af(2) = ceiling(1.0*maxPos(1) / nset)
+       end if
+
+
+
+!       STOP
+    endif
 
     if (abs(data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) &
          - data( af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) &
@@ -533,11 +593,8 @@ contains
        print*, "bf(1) is not = bf(2)!"
     end if
 
-    !    write (*,'(1x,a,i2)') &
-    !         "Horizontal Positive: ", data_struc%col_a_p, &
-    !         "Horizontal Negative: ", data_struc%col_a_n, &
-    !         "Vertical Positive: ", data_struc%col_b_p,&
-    !         "Vertical Negative: ", data_struc%col_b_n
+
+
 
   end subroutine match_tau_column
 
@@ -550,6 +607,7 @@ contains
     sum = 0
     j = 0
     found = .false.
+
     do i = (2*NUM_BPMS-1), 6, -1
        if (lambda(i) > lambda(i+1)*10 .and. .not. found) then
           k = i
@@ -570,9 +628,6 @@ contains
        sum = lambda(12) !Arbitrary, but will be near average...
     endif
     ave = sum / j
-!    Print *, j
-!    Print *, sum
-!    Print *, ave
 
   end subroutine findNoise
 
@@ -598,6 +653,12 @@ contains
     end do
 
   end subroutine splitsum
+
+
+
+
+
+
 
 
   subroutine tune(data)
@@ -699,7 +760,6 @@ contains
 
     data_struc%tune(1) = mod(data_struc%tune(1), FREQ)
     data_struc%tune(2) = mod(data_struc%tune(2), FREQ)
-
   end subroutine tune
 
 

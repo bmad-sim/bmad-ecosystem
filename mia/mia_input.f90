@@ -4,7 +4,7 @@ module mia_input
  
 contains
 
-  subroutine read_bpm_data(data,iset,nset)
+  subroutine read_data(data,iset,nset)
 
     !Subroutine opens a file of bpm data and reads it into the module.
     !Routine reads in how many processors are active and assigns that
@@ -38,9 +38,12 @@ contains
                                            !data; # turns not known
     logical :: firstData                   !True if this is the first data
                                            !being read
+    logical :: bunchMatch
     character(30), allocatable :: tempLabel(:)
     type(cbpm_data), allocatable :: tempPosHis(:)
     type(cbpm_data) :: firstDet
+    integer :: bunchNum                    !Reads in bunch # from file
+    character(20) :: bunchReadFormat       !Format holder for reading bunch #
     character(120) :: line                 !Line of raw data from file
     character(30) :: Plane(2)          !See next line:
     data Plane/' data file 1.',' data file 2.'/
@@ -65,7 +68,6 @@ contains
                " beginning with # (ex. #03081) of", Plane(iset)
           read (*,177), data%filename
           data%filename = trim(data%filename)
-!          call strget('Enter filename: ', data%shortName)
        endif
 
 !      If data files are in the same location with the same naming pattern,
@@ -122,8 +124,13 @@ contains
     if (inputstatus > 0) stop "*** INPUT ERROR ***"
     if (inputstatus < 0) stop "*** Not enough data ***"
 
-12 format (35x,f9.6, 2x, f9.6)
+12  format (56x,f9.6, 2x, f9.6)
     inputstatus=0
+
+
+
+    !****This is not very good coding style. This section should be
+    !****rewritten eventually.
 
     !Read data from the first detector and find how many turns there are:
     do while (inputstatus .eq. 0 .and. firstData == .true.)
@@ -134,29 +141,62 @@ contains
           readData = .false.
           if (turnCount > 2) then
              firstData = .false.
+!             Print *, "Num turns: ", turnCount
              cycle
           end if
        end if
 
+       !Look for data:
        if (.not. readData) then
           if (verify(line(3:10),'Location') == 0) then
              bpmCount = 1
              write(bpm, *) line(22:len_trim(line))
              tempLabel(bpmCount) = trim(adjustl(bpm))
-             do i=1, 32                !Skip ahead 32 lines
-                Read (1, *, iostat = inputstatus) line
+
+
+             !Skip lines until data is reached
+             bunchMatch = .false.
+             do while (.not. bunchMatch)
+!                if (.not.verify(line(7:11), 'Bunch') == 0) then
+                if ( index(line, 'Bunch') == 0) then
+                   Read (1, '(a120)', iostat = inputstatus) line
+                   if (inputstatus < 0) stop "*** End of file reached during read ***"
+                else !Check bunch #
+
+
+                   !Determine appropriate format for reading in bunch #:
+                   write(bunchReadFormat,'(a3,i1,a2)'),  "(i", &
+                        (scan(line(13:20),'-')-2), ")"
+                   Read(line(13:(scan(line(13:20),'-')+11)),&
+                        trim(bunchReadFormat)), bunchNum
+
+!                   Print *, "Bunch num: ", bunchNum
+                   if (bunchNum == data%bunch) then
+                      Print *, "Bunch matched: ", bunchNum
+                      readData = .true.
+                      bunchMatch = .true.
+                   else
+                      Read (1, '(a120)', iostat = inputstatus) line
+                   endif
+
+                endif
+
              end do
-             readData = .true.
+
+
           end if
-       else !Read in data!          
+       else !Read in data!
           turnCount = turnCount+1
           Read (line, 12) firstDet%x(turnCount), &
                firstDet%y(turnCount)
        end if
 
     end do
+    if (turnCount < 1) then
+       Print *, "*** Error: no data found for bunch ", data%bunch, ". ***"
+       stop
+    end if
 
-    Print *, "Data contains ", turnCount, " turns"
     data%numturns = turnCount
     allocate(tempPosHis(1)%x(turnCount))
     allocate(tempPosHis(1)%y(turnCount))
@@ -182,13 +222,20 @@ contains
 
              write(bpm, *) line(22:len_trim(line))
              tempLabel(bpmCount) = trim(adjustl(bpm))
-             do i=1, 32                !Skip ahead 32 lines
-                Read (1, *, iostat = inputstatus) line
+             do while (index(line, 'Bunch') == 0) 
+                !Skip lines until data is reached
+                Read (1, '(a120)', iostat = inputstatus) line
              end do
+!             Read (bunchNum,'(i)', iostat = inputstatus) line(11:15)
+!             Print *, "Reading in bunch #", bunchNum
+
+
+
+
              readData = .true.
           end if
        else !Read in data!
-          turnCount = turnCount+1          
+          turnCount = turnCount+1      
           Read (line, 12) tempPosHis(bpmCount)%x(turnCount), &
                tempPosHis(bpmCount)%y(turnCount)
        end if
@@ -197,7 +244,6 @@ contains
     !Now we know how many detectors there are; copy data
     !to the final data structures
     data%bpmproc = bpmCount
-    Print *, "Data contains ", bpmCount, " detectors"
     if (.not. ALLOCATED(data%proc)) then
        allocate(data%proc(data%bpmproc))
     endif
@@ -231,34 +277,27 @@ contains
     do proc = 1, data%bpmproc
        pos_temp(:,2*proc-1) = data%cdata(proc)%x(:)  &
             /sqrt(float(data%numturns))  !feeds x arrays into odd columns
-       if (.not. pos_temp(1,2*proc-1) == pos_temp(1,2*proc-1)) then
-          Print *, "Error at 1x"
-       end if
        pos_temp(:,2*proc) = data%cdata(proc)%y(:)    &
             /sqrt(float(data%numturns))  !feeds y arrays into even columns
-       if (.not. pos_temp(1,2*proc) == pos_temp(1,2*proc)) then
-          Print *, "Error at 1y"
-       end if
 
     end do
 
 
-    sum = 0.0
+
     allocate(data%poshis(data%numturns, 2*data%bpmproc)) 
     !readies room for new 
     !posistion history matrix
     allocate(newt(data%numturns))  
     !creates a temp. place for transitional data
     do C = 1, 2*data%bpmproc
+       sum = 0.0
+       ave = 0.0
 
        do I = 1, data%numturns
           sum = sum + pos_temp(I,C)    !sums the columns of x or y
        end do
 
        ave = sum/data%numturns     !takes average of the sum of a column
-       if (.not. ave == ave) then
-          Print *, "Error at ave"
-       end if
        do s = 1, data%numturns
           newt(s) = pos_temp(s,C) - ave  
           !subtracts average value from each 
@@ -269,13 +308,41 @@ contains
 
        data%poshis(:,C) = newt    
        !assigns the new data in the temp. array to the
-       !second position history matrix         
+       !second position history matrix     
+
+
+!       Print *, "First value for col ", C, ": ", data%cdata(C)%x(data%numturns)
     end do
 
     deallocate(newt)        !Deallocate temporary arrays.
     deallocate(pos_temp)
 
-  end subroutine read_bpm_data
+  end subroutine read_data
+
+
+  subroutine bpm_ops(data,iset, nset, first_run)
+    !
+    !Calls functions that locate and match BPMs
+    !Remove if bpm numbers, pairs, etc. are not obtained
+    !from input files (ex. from CESRV or another program)
+    !
+    type(data_set) data(*)
+    integer :: iset, nset
+    logical :: first_run
+ 
+    call locate_bpm (data(iset))
+    call get_ele_sPos(data(iset),iset)
+
+    if (iset > 1) then
+       if (first_run) then
+          call find_L(nset,data)
+       end if
+
+       call match_processors (data)
+    endif
+
+  end subroutine bpm_ops
+
 
   subroutine locate_bpm (data)
 
@@ -452,6 +519,7 @@ contains
     !    enddo
     bpm_pairs(1)%number = rnum
     deallocate (bpm_old)    
+    close(2)
 
   end subroutine find_L
 

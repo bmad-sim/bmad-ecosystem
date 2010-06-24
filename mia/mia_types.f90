@@ -73,9 +73,10 @@ module mia_types
      integer :: set_num_a, set_num_b !File number (1 or 2) of the data in that mode
      type (processor_analysis), allocatable :: loc(:) !Twiss, etc calculated at BPM
      type (active_processors), allocatable :: proc(:) !BPM data (name, element #, etc)
-     real(rp) :: tune(2)                     !Tune of the machine
+     real(rp) :: tune(2)                     !Tune of the machine (A&B modes)
      real(rp) :: phi_t(2)                    !Total phase
-     real(rp) :: j_amp_ave(2,2)              !Average amplitude (A/B mode, File #)
+     real(rp) :: j_amp_ave(2)              !Average amplitude (A/B mode, File #) (no more file #)
+     integer :: intTune(2)                   !Integer tunes
   end type cbpm_analysis
 
   type data_set
@@ -83,8 +84,9 @@ module mia_types
      !Contains raw data from one input file as well as
      !results from SVD and FFT.
      !
-     character (120) :: filename    !Full filename
-     character (40) :: shortname   !Filename without path (used for printing)
+     character (120) :: filename   !Full filename
+     character (40) :: shortname   !Filename without path (used for display)
+     integer :: bunch              !Bunch # of interest (default is 1)
      real(rp), allocatable :: tau_mat(:,:), &   !Position matrix
           pi_mat(:,:), &           !Pi matrix
           poshis(:,:), &           !Position history
@@ -145,12 +147,12 @@ module mia_types
 
 contains
 
-  subroutine initialize_structures(data, nset)
+  subroutine initialize_struct(data)
     !
     !Allocate global arrays, assign global constants
     !
     type(data_set) data
-    integer :: nset, i
+    integer :: i
 
     vetoBPM = 0
     NUM_BPMS = data%bpmproc
@@ -165,7 +167,7 @@ contains
     data_struc%set_num_b = 0
     data_struc%tune(1:2) = 0.
     data_struc%phi_t(1:2) = 0.
-    data_struc%j_amp_ave(1:2,1:2) = 0.
+    data_struc%j_amp_ave(1:2) = 0.
 
     do i=1, NUM_BPMS
        data_struc%loc(i)%inv_gamma_cbar(1:2,1:2) = 0.
@@ -208,18 +210,24 @@ contains
        data_struc%proc(i)%eleNum = -999
     enddo
 
-  end subroutine initialize_structures
+  end subroutine initialize_struct
 
   subroutine allocate_bpm_pairs(length)
     integer :: length
     allocate (bpm_pairs(length))
   end subroutine allocate_bpm_pairs
 
-  subroutine clean(pairs)
-    !True if new files will be read in; 
-    !don't reread knownl.inp to get paired detectors
-    logical :: pairs
-    if (.not. pairs) then
+  subroutine clean(keepPairs)
+    !
+    !Arg is true if new files will be read in;
+    !don't reread knownl.inp to get paired detectors.
+    !
+    !Deallocates data_struc and bpm_pairs either when the program
+    !exits or when a new analysis is being done.
+    !
+
+    logical :: keepPairs
+    if (.not. keepPairs) then
        deallocate (bpm_pairs)
     endif
     deallocate (data_struc%loc)
