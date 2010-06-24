@@ -19,13 +19,13 @@ contains
     Integer :: plot               !To use plot_it or plot_it2
     logical :: printit = .false.  !To print or not to print
     logical :: plot_more          !To plot or not to plot
-    character(50) :: input         !User input for plotting options
+    character(50) :: input        !User input for plotting options
     integer :: col                !Keeps track of columns to plot
     integer :: graph_set, &       !Which set of graphs to use for debug_plots
          old_set                  !Previous value of graph_set
     logical :: gif, gifOpen       !gif is true if a GIF file is to be plotted
     character(15) :: gifName      !Filename for a gif file
-    integer ::numGif             !Number of GIF files (used for filenames)
+    integer ::numGif              !Number of GIF files (used for filenames)
     if (postScript) then
        gif = .true.
     else
@@ -34,7 +34,7 @@ contains
     col = 1
     plot_more = .true.
     windowOpen = .false.    
-    graph_set = 3
+    graph_set = 5
     old_set = 3
     gifOpen = .false.
     numGif=1
@@ -49,7 +49,6 @@ contains
                 gifName = "0" // adjustl(gifName)
              end if
              gifName = "mia" // adjustl(gifName) // ".gif"
-!             print *, gifName
              numGif = numGif+1
              call qp_open_page ("GIF-L", id, 600.0_rp, 550.0_rp, "POINTS",&
                   plot_file=gifName)
@@ -248,8 +247,11 @@ contains
     allocate (nt(NUM_TURNS))
     allocate (sPos(NUM_BPMS))
     nset = 2                 !Make nset a global variable
-    A_file = data_struc%set_num_a
-    B_file = data_struc%set_num_b
+!    A_file = data_struc%set_num_a
+!    B_file = data_struc%set_num_b
+
+A_file = 1
+B_file = 2
 
     do i=1,2*NUM_BPMS
        b(i) = i
@@ -286,7 +288,7 @@ contains
           allocate(xcoord(arr_length))
           xcoord = b(1:NUM_BPMS)
           allocate (titl(5))
-          sPoss = .true.
+!          sPoss = .true.
        end if
        allocate(ycoord(n_graphs,arr_length))
        xlength = arr_length
@@ -321,7 +323,7 @@ contains
              ycoord(5,i) = atan(data_struc%loc(i)%b%ratio(2))
           end do
        case (3)
-!          Print *, 'Welcome to case 3. Watch out for the soul train.'
+!          Print *, 'Welcome to case 3. Watch out for frogs.
           do i=1,4
              call intToChar((col+i-1),tempChar(i))
           end do
@@ -336,6 +338,7 @@ contains
              ycoord(3,i) = data(A_file)%pi_mat(i,col+2)
              ycoord(4,i) = data(A_file)%pi_mat(i,col+3)
              ycoord(5,i) = log10(data(A_file)%lambda(i))
+!             Print *, "Lambda: ", data(A_file)%lambda(i)
           end do
           col = col+4
        case(4)
