@@ -561,12 +561,17 @@ naming convention as opposed to the \tao convention. For example, the
 \tao name for the horizontal orbit is \vn{orbit.x} while the \bmad
 name is \vn{orbit_x}.
 
-the value of the
-term comes from an element parameter such as the element strength.
-Element list format (\sref{s:ele.list.format}) is used for the
-\vn{<element_list>} so an array of elements can be defined.  The
-optional \vn{<component>} indicates what lattice is to be used and is
-the same as for terms with a \vn{lat} or \vn{beam} source (see above).
+Logical attributes of an element can be referred to. For example,
+``\vn{ele::Q01W[is_on]}'' gives the on/off status of element
+\vn{Q01W}. If used in an expression, True values are converted to a
+value of \vn{1} and False value are converted to \vn{0}.
+
+the value of the term comes from an element parameter such as the
+element strength.  Element list format (\sref{s:ele.list.format}) is
+used for the \vn{<element_list>} so an array of elements can be
+defined.  The optional \vn{<component>} indicates what lattice is to
+be used and is the same as for terms with a \vn{lat} or \vn{beam}
+source (see above).
 
 Generally, if the \vn{<source>} field is not present, for example, 
 ``\vn{orbit.x[10]}'', \tao will search 

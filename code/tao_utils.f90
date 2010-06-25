@@ -760,7 +760,7 @@ character(60) name, class_ele, parameter, component
 character(40) :: r_name = 'tao_evaluate_element_parameters'
 
 real(rp), allocatable :: values(:)
-real(rp), pointer :: real_ptr
+real(rp) :: real_val
 
 integer i, j, ix, num, ixe, ix1, ios, n_tot
 
@@ -852,18 +852,18 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       else
-        call pointer_to_attribute (ele3, parameter, .true., real_ptr, err, print_err)
+        call ele_attribute_value (ele3, parameter, .true., real_val, err, print_err)
       endif
     else
       if (parameter(1:6) == 'orbit_') then
         call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
       else
-        call pointer_to_attribute (branch%ele(ixe), parameter, .true., real_ptr, err, print_err)
+        call ele_attribute_value (branch%ele(ixe), parameter, .true., real_val, err, print_err)
       endif
     endif
 
     if (err) return
-    if (parameter(1:6) /= 'orbit_') values(n_tot+j) = real_ptr
+    if (parameter(1:6) /= 'orbit_') values(n_tot+j) = real_val
   enddo
   n_tot = n_tot + size(values)
 enddo
@@ -2523,7 +2523,7 @@ subroutine tao_parse_command_args (error, cmd_words)
       call get_next_arg (tao_com%beam0_file)
 
     case ('-noplot')
-      s%global%plot_on = .false.
+      tao_com%noplot_arg_found = .true.
 
     case ('-lat')
       call get_next_arg (tao_com%lat_file)

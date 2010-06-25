@@ -562,6 +562,7 @@ type tao_common_struct
   logical :: init_data           = .true.   ! Used by custom programs to control Tao init
   logical :: parse_cmd_args      = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running   = .false. 
+  logical :: noplot_arg_found    = .false.
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization
   character(100) :: default_init_tao_file = 'tao.init'          

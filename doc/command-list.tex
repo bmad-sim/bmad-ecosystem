@@ -614,7 +614,7 @@ The \vn{reinitialize} command reinitializes various things. Format:
   reinitialize beam
   reinitialize data
   reinitialize tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
-           \{-beam0 <beam_file>\} \{-lat <lattice_file>\} \{-noplot\}
+     \{-beam0 <beam_file>\} \{-lat <lattice_file>\} \{-noplot\}
 \end{example}
 
 \vskip 0.2in 
@@ -634,16 +634,7 @@ one initialization file.  See section \sref{s:command.line} for
 details on the arguments.  If there are no arguments, the
 \vn{reinitialize} command uses the same arguments that were used in
 the last \vn{reinitialize} command, or, if this is the first
-reinitialization, what was used to start \tao. If there are arguments,
-The defaults will be used.  The default \vn{<init_file>} is what was
-used with the last reinitialization or, if this is the first
-reinitialization, what was used at startup.
-
-The \vn{-beam0} optional argument reads in a beam data file which is
-used to initialize the beam at the beginning of the lattice. This
-overrides the \vn{beam0_file} variable (\sref{s:beam.init}).
-
-The \vn{-noplot} optional argument surpresses the opening of the plot window.
+reinitialization, what was used to start \tao. 
 
 Examples:
 \begin{example}
@@ -1354,7 +1345,7 @@ To customize the output use the command \vn{show lattice -custom
     column(4) = "ele::#[key]",           "a16",   16
     column(5) = "ele::#[s]",             "f10.3", 10
     column(6) = "ele::#[beta_a]",        "f7.2",   7
-    column(7) = "1e3 * ele::#[orbit_x]   "f8.3",   8, "Orbit_x| (mm)" 
+    column(7) = "1e3 * ele::#[orbit_x]", "f8.3",   8, "Orbit_x| (mm)" 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what

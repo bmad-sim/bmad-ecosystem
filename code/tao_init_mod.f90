@@ -85,8 +85,13 @@ if (init_file /= '') then
   endif
 endif
 
-s%global = global                             ! transfer global to s%global
+! transfer global to s%global
+
+s%global = global
+if (tao_com%noplot_arg_found) s%global%plot_on = .false.
+
 ! This for backwards compatibility.
+
 if (global%n_curve_pts > 0) s%plot_page%n_curve_pts = global%n_curve_pts  
 
 if (s%global%track_type == "macro") then

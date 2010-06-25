@@ -1480,7 +1480,13 @@ case ('lattice')
           j = nc + column(i)%field_width - k
           line(j:) = undef_str(n-k+1:n)
         else
-          if (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
+          if (index(column(i)%format, 'l') /= 0 .or. index(column(i)%format, 'L') /= 0) then
+            if (value(1) == 0) then
+              write (line(nc:), column(i)%format, iostat = ios) .false.
+            else
+              write (line(nc:), column(i)%format, iostat = ios) .true.
+            endif
+          elseif (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
             write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
           else
             write (line(nc:), column(i)%format, iostat = ios) value(1)
