@@ -4,7 +4,9 @@
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
-! Note: Alternatively consider the routine pointers_to_attribute.
+! Note: Alternatively consider the routines:
+!     pointers_to_attribute
+!     ele_attribute_value
 !
 ! Modules needed:
 !   use bmad
@@ -28,9 +30,7 @@
 !                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole arrays.
 !-
 
-#include "CESR_platform.inc"
-
-Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
+subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                   ptr_attrib, err_flag, err_print_flag, ix_attrib)
 
 use bmad_struct

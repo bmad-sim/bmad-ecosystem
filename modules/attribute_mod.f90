@@ -65,6 +65,108 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Function ele_attribute_value (ele, attrib_name, do_allocation,
+!                            attrib_value, err_flag, err_print_flag, ix_attrib)
+!
+! Returns the value of an element attribute. 
+! This routine has the advantage of being able to handle logical and integer parameters.
+! Logical values are returned as 0 => False, and 1 => True  
+!
+! Note: Use attribute_free to see if the attribute may be varied independently.
+! Note: Alternatively, consider the routines:
+!     pointer_to_attribute
+!     pointers_to_attribute
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
+!                        will point to a variable within this element.
+!   attrib_name     -- Character(40): Name of attribute. Must be uppercase.
+!                       For example: "HKICK".
+!   do_allocation   -- Logical: If True then do an allocation if needed.
+!                       EG: The multipole An and Bn arrays need to be allocated
+!                       before their use.
+!   err_print_flag  -- Logical, optional: If present and False then suppress
+!                       printing of an error message on error.
+!
+! Output:
+!   attrib_value -- Real(rp): Value of the attribute.
+!   err_flag     -- Logical: Set True if attribtute not found. False otherwise.
+!   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
+!                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole arrays.
+!-
+
+subroutine ele_attribute_value (ele, attrib_name, do_allocation, &
+                  attrib_value, err_flag, err_print_flag, ix_attrib)
+
+
+type (ele_struct), target :: ele
+
+real(rp) attrib_value
+real(rp), pointer :: ptr_attrib
+
+integer, optional :: ix_attrib
+
+character(*) attrib_name
+character(24) :: r_name = 'ele_attribute_value'
+character(40) a_name
+
+logical err_flag, do_allocation
+logical, optional :: err_print_flag
+
+! Init
+
+attrib_value = 0
+err_flag = .false.
+call str_upcase (a_name, attrib_name)
+
+! Special cases
+
+
+select case (a_name)
+case ('NUM_STEPS')
+  attrib_value = ele%num_steps
+  if (present(ix_attrib)) ix_attrib = num_steps$
+  return
+case ('IS_ON')
+  attrib_value = logic_val(ele%is_on)
+  if (present(ix_attrib)) ix_attrib = is_on$
+  return
+end select
+
+!
+
+call pointer_to_attribute (ele, attrib_name, do_allocation, &
+                  ptr_attrib, err_flag, err_print_flag, ix_attrib)
+if (associated(ptr_attrib)) attrib_value = ptr_attrib
+
+
+!---------------------------------------------
+contains
+
+function logic_val (l_val) result (real_val)
+
+logical l_val
+real(rp) real_val
+
+!
+
+if (l_val) then
+  real_val = 1
+else
+  real_val = 0
+endif
+
+end function
+
+end subroutine
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
 !                                      ptr_attrib, err_flag, err_print_flag)
 !
@@ -294,14 +396,15 @@ endif
 
 a_name = attribute_name (ele, ix_attrib)
 
-! csr_calc_on is always free
+! csr_calc_on, etc. are always free
 
-if (a_name == 'CSR_CALC_ON') then
+select case (a_name)
+case ('CSR_CALC_ON', 'IS_ON')
   free = .true.
   return
-endif
+end select
 
-! If the attribute is controled by an overlay lord then it cannot be varied.
+! if the attribute is controled by an overlay lord then it cannot be varied.
 ! Exception: Multiple overlays can control the same attribute.
 
 if (.not. do_except_overlay) then
