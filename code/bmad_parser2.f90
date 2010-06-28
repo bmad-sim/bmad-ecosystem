@@ -1,6 +1,5 @@
 !+
-! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, 
-!                                 digested_file_name, digested_read_ok)
+! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, digested_file_name, digested_read_ok)
 !
 ! Subroutine parse (read in) a BMAD input file.
 ! This subrotine assumes that lat already holds an existing lattice.
@@ -45,8 +44,7 @@
 
 #include "CESR_platform.inc"
 
-subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, &
-                                           digested_file_name, digested_read_ok)
+subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, digested_file_name, digested_read_ok)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
 
@@ -55,14 +53,15 @@ implicit none
 type (lat_struct), target :: lat
 type (lat_struct), save :: lat2
 type (ele_struct), pointer :: ele
+type (parser_ele_struct), pointer :: pele
 type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele
 type (coord_struct), optional :: orbit(0:)
-type (parser_lat_struct) plat
+type (parser_lat_struct), target :: plat
 type (ele_struct), allocatable, save :: old_ele(:) 
 
 real(rp) v1, v2
 
-integer ix_word, i, ix, ix1, ix2, last_con, ixx, ele_num
+integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num
 integer key, n_max_old, digested_version
 integer, pointer :: n_max
 
@@ -105,9 +104,7 @@ debug_line = ''
 n_max => lat%n_ele_max
 n_max_old = n_max
 
-last_con = 0
-
-call allocate_plat (lat, plat)
+call allocate_plat (plat, 4)
 
 bp_com%beam_ele => beam_ele
 call init_ele(beam_ele)
@@ -115,6 +112,7 @@ beam_ele%name = 'BEAM'              ! fake beam element
 beam_ele%key = def_beam$            ! "definition of beam"
 beam_ele%value(n_part$)     = lat%param%n_part
 beam_ele%value(particle$)   = lat%param%particle
+beam_ele%ixx = 1                    ! Pointer to plat%ele() array
 
 bp_com%param_ele => param_ele
 call init_ele (param_ele)
@@ -124,11 +122,15 @@ param_ele%value(lattice_type$) = lat%param%lattice_type
 param_ele%value(taylor_order$) = lat%input_taylor_order
 param_ele%value(n_part$)       = lat%param%n_part
 param_ele%value(particle$)     = lat%param%particle
+param_ele%ixx = 2                    ! Pointer to plat%ele() array
 
 bp_com%beam_start_ele => beam_start_ele
 call init_ele (beam_start_ele)
 beam_start_ele%name = 'BEAM_START'
 beam_start_ele%key = def_beam_start$
+beam_start_ele%ixx = 3                    ! Pointer to plat%ele() array
+
+n_plat_ele = 3
 
 ! see if a digested bmad file is available
 
@@ -286,8 +288,7 @@ parsing_loop: do
         endif
         print_err = .true.
         if (word_1 == '*') print_err = .false.
-        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                      err_flag, print_err, plat%ele(ele%ixx))
+        call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag, print_err)
         if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
         found = .true.
         if (.not. err_flag) good_attrib = .true.
@@ -351,21 +352,22 @@ parsing_loop: do
   else
 
     n_max = n_max + 1
-    if (n_max > ubound(lat%ele, 1)) then
-      call allocate_lat_ele_array(lat)
-      call allocate_plat (lat, plat)
-    endif
+    if (n_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
+    ele => lat%ele(n_max)
 
-    plat%ele(n_max)%lat_file = bp_com%current_file%full_name
-    plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line
+    ele%name = word_1
 
-    lat%ele(n_max)%name = word_1
-    last_con = last_con + 1     ! next free slot
-    lat%ele(n_max)%ixx = last_con
+    n_plat_ele = n_plat_ele + 1     ! next free slot
+    ele%ixx = n_plat_ele
+    if (n_plat_ele > ubound(plat%ele, 1)) call allocate_plat (plat, 2*size(plat%ele))
+    pele => plat%ele(n_plat_ele)
+
+    pele%lat_file = bp_com%current_file%full_name
+    pele%ix_line_in_file = bp_com%current_file%i_line
 
     do i = 1, n_max-1
-      if (lat%ele(n_max)%name == lat%ele(i)%name) then
-        call warning ('DUPLICATE ELEMENT NAME ' // lat%ele(n_max)%name, ' ')
+      if (ele%name == lat%ele(i)%name) then
+        call warning ('DUPLICATE ELEMENT NAME ' // ele%name, ' ')
         exit
       endif
     enddo
@@ -377,46 +379,47 @@ parsing_loop: do
 
     do i = 1, n_max-1
       if (word_2 == lat%ele(i)%name) then
-        lat%ele(n_max) = lat%ele(i)
-        lat%ele(n_max)%ixx = n_max   ! Restore correct value
-        lat%ele(n_max)%name = word_1
+        ixx = ele%ixx  ! save
+        ele = lat%ele(i)
+        ele%ixx = ixx   ! Restore correct value
+        ele%name = word_1
         found = .true.
         exit
       endif
     enddo
 
     if (.not. found) then
-      lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
-      if (lat%ele(n_max)%key > 0) then
-        call parser_set_ele_defaults (lat%ele(n_max))
+      ele%key = key_name_to_key_index(word_2, .true.)
+      if (ele%key > 0) then
+        call parser_set_ele_defaults (ele)
         found = .true.
       endif
     endif
 
     if (.not. found) then
       call warning ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
-                    'FOR ELEMENT: ' // lat%ele(n_max)%name)
-      lat%ele(n_max)%key = 1       ! dummy value
+                    'FOR ELEMENT: ' // ele%name)
+      ele%key = 1       ! dummy value
     endif
 
     ! now get the attribute values.
-    ! For control elements lat%ele()%IXX temporarily points to
+    ! For control elements lat%ele()%ixx temporarily points to
     ! the plat structure where storage for the control lists is
                  
-    key = lat%ele(n_max)%key
+    key = ele%key
     if (key == overlay$ .or. key == group$ .or. key == girder$) then
       if (delim /= '=') then
         call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
-                    'FOR ELEMENT: ' // lat%ele(n_max)%name)
+                    'FOR ELEMENT: ' // ele%name)
       else
-        if (key == overlay$) lat%ele(n_max)%lord_status = overlay_lord$
-        if (key == group$)   lat%ele(n_max)%lord_status = group_lord$
-        if (key == girder$)  lat%ele(n_max)%lord_status = girder_lord$
-        call get_overlay_group_names(lat%ele(n_max), lat,  plat%ele(n_max), delim, delim_found)
+        if (key == overlay$) ele%lord_status = overlay_lord$
+        if (key == group$)   ele%lord_status = group_lord$
+        if (key == girder$)  ele%lord_status = girder_lord$
+        call get_overlay_group_names(ele, lat,  pele, delim, delim_found)
       endif
       if (key /= girder$ .and. .not. delim_found) then
         call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
-                      'FOR ELEMENT: ' // lat%ele(n_max)%name)
+                      'FOR ELEMENT: ' // ele%name)
         n_max = n_max - 1
         cycle parsing_loop
       endif
@@ -428,12 +431,11 @@ parsing_loop: do
         parsing = .false.           ! break loop
       elseif (delim /= ',') then
         call warning ('EXPECTING: "," BUT GOT: ' // delim,  &
-                      'FOR ELEMENT: ' // lat%ele(n_max)%name)
+                      'FOR ELEMENT: ' // ele%name)
         n_max = n_max - 1
         cycle parsing_loop
       else
-        call parser_set_attribute (def$, lat%ele(n_max), lat, delim, delim_found, &
-                                                            err_flag, .true., plat%ele(n_max))
+        call parser_set_attribute (def$, ele, lat, delim, delim_found, err_flag, .true., pele)
         if (err_flag) then
           n_max = n_max - 1
           cycle parsing_loop
@@ -444,7 +446,7 @@ parsing_loop: do
     ! Element must be a group, overlay, or superimpose element
 
     if (key /= overlay$ .and. key /= group$ .and. &
-            lat%ele(n_max)%lord_status /= super_lord$) then
+            ele%lord_status /= super_lord$) then
       call warning ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
                                            'OR GROUP: ' // word_1, ' ')
       n_max = n_max - 1

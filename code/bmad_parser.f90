@@ -130,9 +130,12 @@ call save_taylor_elements (lat, old_ele)
 ! init variables.
 
 nullify (plat%ele)
-call init_lat (in_lat, 1000)
 call init_lat (lat, 1)
-call allocate_plat (in_lat, plat)
+call init_lat (in_lat, 1000)
+do i = 0, ubound(in_lat%ele, 1)
+  in_lat%ele(i)%ixx = i   ! Pointer to plat%ele() array
+enddo
+call allocate_plat (plat, ubound(in_lat%ele, 1))
 
 bmad_status%ok = .true.
 if (bmad_status%type_out) &
@@ -493,11 +496,12 @@ parsing_loop: do
       bp_com%beam_ele => in_lat%ele(1)
       bp_com%param_ele => in_lat%ele(2)
       bp_com%beam_start_ele => in_lat%ele(3)
-      call allocate_plat (in_lat, plat)
+      call allocate_plat (plat, ubound(in_lat%ele, 1))
     endif
 
     call init_ele (in_lat%ele(n_max))
     in_lat%ele(n_max)%name = word_1
+    in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
 
     plat%ele(n_max)%lat_file = bp_com%current_file%full_name
     plat%ele(n_max)%ix_line_in_file = bp_com%current_file%i_line

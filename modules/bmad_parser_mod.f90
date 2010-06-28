@@ -3336,26 +3336,23 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine allocate_plat (lat, plat) 
+! Subroutine allocate_plat (plat, n_ele_max) 
 !
 ! Subroutine to allocate allocatable array sizes.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-Subroutine allocate_plat (lat, plat)
+Subroutine allocate_plat (plat, n_ele_max)
 
 implicit none
 
-type (lat_struct) lat
 type (parser_lat_struct) plat
 type (parser_ele_struct), pointer :: temp_pele(:)
 
 integer i, n_now, n_ele_max
 
 ! assume all the arrays have the same size
-
-n_ele_max = ubound(lat%ele, 1)
 
 if (associated(plat%ele)) then
   n_now = ubound(plat%ele, 1)
@@ -3381,7 +3378,6 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%ele_pt  = center$
   plat%ele(i)%s       = 0
   plat%ele(i)%common_lord = .false.
-  lat%ele(i)%ixx = i
 enddo
 
 end subroutine
