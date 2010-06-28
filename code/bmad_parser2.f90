@@ -77,8 +77,8 @@ character(200) call_file
 character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
-logical parsing, delim_found, found, xsif_called, err
-logical file_end, err_flag, finished, print_err, good_attrib
+logical parsing, delim_found, found, xsif_called, err, wild_here, matched
+logical file_end, err_flag, finished, print_err, good_attrib, wildcards_permitted
 
 ! Init...
 
@@ -168,7 +168,8 @@ parsing_loop: do
     word_1 = 'END_FILE'
     ix_word = 8
   else
-    call verify_valid_name(word_1, ix_word)
+    wildcards_permitted = (delim == '[')  ! For 'q*[x_offset] = ...' constructs
+    call verify_valid_name(word_1, ix_word, wildcards_permitted)
   endif
 
   ! PARSER_DEBUG
@@ -274,12 +275,27 @@ parsing_loop: do
 
     ! find associated element and evaluate the attribute value
 
+    wild_here = .false.
+    if (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) wild_here = .true.
+    matched = .false.
+
     found = .false.
     good_attrib = .false.
 
     do i = 0, n_max
+
       ele => lat%ele(i)
-      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. word_1 == '*') then
+
+      if (wild_here) then
+        select case (ele%name)
+        case ('BEGINNING', 'BEAM', 'PARAMETER', 'BEAM_START')
+          matched = .false.
+        case default
+          matched = match_wild(ele%name, word_1)
+        end select
+      endif
+
+      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. matched) then
         bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
         if (found) then   ! if not first time
           bp_com%parse_line = parse_line_save

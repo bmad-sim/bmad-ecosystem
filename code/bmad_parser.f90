@@ -75,9 +75,9 @@ character(280) parse_line_save
 character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
-logical delim_found, arg_list_found, xsif_called, err, print_err
+logical delim_found, arg_list_found, xsif_called, err, print_err, wild_here
 logical file_end, found, good_attrib, err_flag, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass
+logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
@@ -195,7 +195,8 @@ parsing_loop: do
     word_1 = 'END_FILE'
     ix_word = 8
   else
-    call verify_valid_name(word_1, ix_word)
+    wildcards_permitted = (delim == '[')  ! For 'q*[x_offset] = ...' constructs
+    call verify_valid_name(word_1, ix_word, wildcards_permitted)
   endif
 
   ! PARSER_DEBUG
@@ -361,6 +362,10 @@ parsing_loop: do
 
     ! Find associated element and evaluate the attribute value.
 
+    wild_here = .false.
+    if (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) wild_here = .true.
+    matched = .false.
+
     found = .false.
     good_attrib = .false.
 
@@ -368,7 +373,16 @@ parsing_loop: do
 
       ele => in_lat%ele(i)
 
-      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. word_1 == '*') then
+      if (wild_here) then
+        select case (ele%name)
+        case ('BEGINNING', 'BEAM', 'PARAMETER', 'BEAM_START')
+          matched = .false.
+        case default
+          matched = match_wild(ele%name, word_1)
+        end select
+      endif
+
+      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. matched) then
         bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
         if (found) then   ! if not first time
           bp_com%parse_line = parse_line_save

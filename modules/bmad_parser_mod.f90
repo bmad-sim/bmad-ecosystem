@@ -2277,22 +2277,23 @@ end subroutine
 !-
 
 
-subroutine verify_valid_name (name, ix_name)
+subroutine verify_valid_name (name, ix_name, wildcards_permitted)
 
 implicit none
 
 integer i, ix_name, ix1, ix2
 
 character(*) name
-character(27) :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
-character(44) :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
+character(27), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ' 
+character(44), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
 character(1), parameter :: tab = achar(9)
 
-logical OK
+logical, optional :: wildcards_permitted
+logical OK, wild_permit
 
-! Wild card
+! init
 
-if (name == '*') return
+wild_permit = logic_option (.false., wildcards_permitted)
 
 ! check for blank spaces
 
@@ -2315,34 +2316,34 @@ if (ix_name == 0) call warning ('BLANK NAME')
 ! check for invalid characters in name
 
 OK = .true.
-if (index(letters, name(1:1)) == 0) OK = .false.
-do i = 2, ix_name
-  if (index(valid_chars, name(i:i)) == 0) OK = .false.
+if (index(letters, name(1:1)) == 0 .and. &
+          .not. (wild_permit .and. (name(1:1) == '*' .or. name(1:1) == '%'))) OK = .false.
+
+do i = 1, ix_name
+  if (index(valid_chars, name(i:i)) == 0 .and. &
+         .not. (wild_permit .and. (name(i:i) == '*' .or. name(i:i) == '%'))) OK = .false.
 enddo
 
-if (.not. OK) call warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' &
-                                 // name)
+if (.not. OK) call warning ('INVALID NAME: UNRECOGNIZED CHARACTERS IN: ' // name)
 
-! check for non matched "(" ")" pairs
+! Check for non-matched "(" ")" pairs
 
 ix1 = index(name, '(')
 ix2 = index(name, ')')
 if (ix1 /= 0 .or. ix2 /= 0) then
   if (ix1 == 0) call warning ('UNMATCHED PARENTHESIS: ' // name)
-  if (ix2 <= ix1+1) call warning  &
-                  ('INVALID: REVERSED PARENTHESES: ' // name)
+  if (ix2 <= ix1+1) call warning  ('INVALID: REVERSED PARENTHESES: ' // name)
   if (index(name(ix1+1:), '(') /= 0 .or. index(name(ix2+1:), ')') /=  &
                  0) call warning ('INVALID: BAD PARENTHESES: ' // name)
 endif
 
-! check for non matched "[" "]" pairs
+! Check for non matched "[" "]" pairs
 
 ix1 = index(name, '[')
 ix2 = index(name, ']')
 if (ix1 /= 0 .or. ix2 /= 0) then
   if (ix1 == 0) call warning ('UNMATCHED BRACKET: ' // name)
-  if (ix2 <= ix1+1) call warning  &
-                  ('INVALID: REVERSED BRACKETS: ' // name)
+  if (ix2 <= ix1+1) call warning  ('INVALID: REVERSED BRACKETS: ' // name)
   if (index(name(ix1+1:), '[') /= 0 .or. index(name(ix2+1:), ']') /=  &
                  0) call warning ('INVALID: BAD BRACKETS: ' // name)
   if (ix2 /= len(name)) then

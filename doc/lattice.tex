@@ -150,10 +150,14 @@ be generated but otherwise program operation will be normal.
 \index{ran_gauss}
 Digested files contain the names of the lattice files used to create
 them. If a lattice file has been modified since the digested file has
-been created then the the lattice files will be reread and a new
-digested file will be generated. Additionally, if any of the random
-number functions are used in the process of creating the lattice the
-digested file will be ignored.
+been created then the lattice files will be reread and a new
+digested file will be generated. 
+
+Note: If any of the random number functions (\sref{s:functions}) are
+used in the process of creating the lattice, the digested file will be
+ignored. In this case, each time the lattice is read into a program,
+different random numbers will be generated for expressions that use such
+random numbers.
 
 Digested files can also be used for easy transport of lattices between
 programs or between sessions of a program. For example, using one
@@ -235,16 +239,26 @@ Element attributes can be set or used in an algebraic expression:
   my_const = b01w[rho] / b01w[l]      ! Use of attribute values in an expression.
 \end{example}
 Notice that there can be no space between the element name and the
-\vn{[} opening bracket.  When setting an attribute value, if more than
-one element has the \vn{element-name} then {\it all} such elements
-will be set.  When setting an attribute value, if \vn{element-name} is
-the name of a type of element, all elements of that type will be
-set. Additionally, \vn{``*''} can be used to denote all elements. For
-example
+\vn{[} opening bracket.  
+
+When setting an attribute value, if more than one element has the
+\vn{element-name} then {\it all} such elements will be set.  When
+setting an attribute value, if \vn{element-name} is the name of a type
+of element, all elements of that type will be set. For example
 \begin{example}
+  q_arc[k1] = 0.234                      ! Set all elements named Q_ARC. 
   rfcavity[voltage] = 3.7                ! Set all RFcavity elements.
-  *[tracking_method] = bmad_standard     ! Set for all elements
 \end{example}
+
+Additionally with element attribute sets, The wildcards \vn{``*''},
+and \vn{``\%''} can be used to can be used where \vn{``*''} denotes
+any number of characters and \vn{``%''} denotes a single character. Examples:
+\begin{example}
+  *[tracking_method] = bmad_standard  ! Matches all elements.
+  Q*[k1] = 0.234                      ! Matches all elements with names beginning with Q.
+  Q%1[k1] = 0.234                     ! Matches to "Q01" but not "Q10".
+\end{example}
+Note: A name with wildcards will never match to the \vn{BEGINNING} element (\sref{s:use}).
 
 \cref{c:elements} gives a list of elements with their attributes.
 
