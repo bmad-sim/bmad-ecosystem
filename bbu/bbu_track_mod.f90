@@ -47,6 +47,7 @@ type bbu_param_struct
   real(rp) enddr
   integer nrep
   integer ran_seed
+  real(rp) ran_gauss_sigma_cut
 end type
 
 contains
