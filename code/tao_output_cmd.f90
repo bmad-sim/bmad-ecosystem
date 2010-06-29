@@ -111,7 +111,7 @@ case ('beam')
 
     u => s%u(i)
 
-    if (.not. subin_uni_number (file_name0, i, file_name)) return
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call fullfilename (file_name, file_name)
 
     do ie = 1, size(eles)
@@ -186,7 +186,7 @@ case ('bmad_lattice')
   endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. subin_uni_number (file_name0, i, file_name)) return
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call write_bmad_lattice_file (file_name, s%u(i)%model%lat, err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -360,7 +360,7 @@ case ('digested')
   if (file_name0 == ' ') file_name0 = 'digested_lat_universe_#.bmad'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. subin_uni_number (file_name0, i, file_name)) return
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call write_digested_bmad_file (file_name, s%u(i)%model%lat)
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
@@ -398,7 +398,7 @@ case ('mad_lattice', 'mad8_lattice')
   if (file_name0 == ' ') file_name0 = 'lat_#.mad8'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. subin_uni_number (file_name0, i, file_name)) return
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call bmad_to_mad_or_xsif ('MAD-8', file_name, s%u(i)%model%lat, err = err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -413,7 +413,7 @@ case ('madx_lattice')
   if (file_name0 == ' ') file_name0 = 'lat_#.madx'
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. subin_uni_number (file_name0, i, file_name)) return
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call bmad_to_mad_or_xsif ('MAD-X', file_name, s%u(i)%model%lat, err = err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
@@ -548,31 +548,5 @@ case default
   call out_io (s_error$, r_name, 'UNKNOWN "WHAT": ' // what)
 
 end select
-
-!---------------------------------------------------
-contains
-
-function subin_uni_number (name_in, ix_uni, name_out) result (ok)
-
-  character(*) name_in, name_out
-  integer ix, ix_uni
-  logical ok
-
-!
-
-  ok = .true.
-  name_out = name_in
-
-  ix = index(name_out, '#')
-  if (size(s%u) > 1 .and. ix == 0) then
-    call out_io (s_info$, r_name, 'FILE NAME DOES NOT HAVE A "#" CHARACTER!', &
-      ' YOU NEED THIS TO GENERATE A UNIQUE FILE NAME FOR EACH UNIVERSE!')
-    ok = .false.
-  endif
-
-  if (ix /= 0) write (name_out, '(a, i0, a)') &
-                        name_out(1:ix-1), ix_uni, trim(name_out(ix+1:))
-
-end function
 
 end subroutine 
