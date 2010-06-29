@@ -48,6 +48,7 @@ bbu_param%enddr = 6.135
 bbu_param%use_interpolated_threshold = .true.
 bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
 bbu_param%ran_seed = 0
+bbu_param%ran_gauss_sigma_cut = -1
 
 beam_init%n_particle = 1
 
@@ -60,6 +61,11 @@ close (1)
 beam_init%dt_bunch = 1 / bbu_param%bunch_freq
 call ran_seed_put (bbu_param%ran_seed)
 print *, 'Random number seed:', bbu_param%ran_seed
+
+if (bbu_param%ran_gauss_sigma_cut > 0) then
+  call ran_gauss_converter (set_sigma_cut = bbu_param%ran_gauss_sigma_cut)
+  print *, 'ran_gauss sigma cut: ', bbu_param%ran_gauss_sigma_cut 
+endif
 
 ! Init
 
