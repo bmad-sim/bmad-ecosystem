@@ -84,12 +84,13 @@ program tune_scan
   logical ok, found
 !New logical for user to switch space charge module on
   logical trans_space_charge_on
+  logical fft/.false./
 
 
 !Now setting scan_params here, instead of local variables to be input into scan_params
   namelist / parameters / scan_params, Q_x0, Q_x1, dQ_x, n_x, Q_y0, Q_y1, dQ_y, n_y, &
                 Q_z0, Q_z1, dQ_z, Q_x_init, Q_y_init, trans_space_charge_on, &
-                a_emittance, b_emittance
+                a_emittance, b_emittance, fft
                 
 
 ! read in the parameters
@@ -130,7 +131,7 @@ program tune_scan
   a_emittance = 0
   b_emittance = 0
   ix_cache = 0
-
+  
 
   read(1, nml = parameters)
 
@@ -213,8 +214,10 @@ program tune_scan
                             '  Q_x1 = ', Q_x1, '  Q_y1 = ', Q_y1, '  Q_z = ', ring%z%tune/twopi
 
   write(21,*)
-  write(21,'(a78,a10)')'!   Q_x       Q_y       Q_z      x_end       y_end      amp_x_max   amp_y_max ',&
+  if(.not. fft)write(21,'(a78,a10)')'!   Q_x       Q_y       Q_z      x_end       y_end      amp_x_max   amp_y_max ',&
                    '  Turns   '
+  if(fft)write(21,'(a78,11x,a5,14x,a8,14x,8x,a20)')'!   Q_x       Q_y       Q_z      x_end       y_end      amp_x_max   amp_y_max ',&
+                   'Turns', 'Q(1:512)', 'Q(n_turns-512+1:512)'
 
   scan_params%file_name = out_file
 
@@ -288,6 +291,9 @@ write(*,*) "B-MODE EMITTANCE: ", mode%b%emittance
     print *, 'ERROR: NO INITIAL POSITIONS SPECIFIED'
     stop
   endif
+
+  ring%param%ixx = 0
+  if(fft)ring%param%ixx = 1
 
   do i_z = 1, n_z
 

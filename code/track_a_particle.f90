@@ -41,17 +41,31 @@ subroutine track_a_particle (closed_orbit, orb0, n_turn, ring, Q_x, Q_y, Q_z)
 
   implicit none
 
+   interface
+    subroutine fft_plane(n, co, Q)
+    use bmad
+    implicit none
+    type(coord_struct) co(:)
+    integer n
+    real(rp) Q(3)
+    end subroutine
+   end interface
+
   type (lat_struct) ring
-  type (coord_struct), allocatable,save :: orb(:)
+  type (coord_struct), allocatable,save :: orb(:), traj(:), co(:)
   type (coord_struct)  orb0, closed_orbit, coord
 
   integer n_turn
   integer n_ele, i
+  integer n_fft
 
   real(rp) x_max, y_max, amp_x_max, amp_y_max, amp_x, amp_y, amp_x0, amp_y0
   real(rp) Q_x, Q_y, Q_z
+  real(rp) Q_begin(3), Q_end(3)
 
   call reallocate_coord(orb,ring%n_ele_max)
+  call reallocate_coord(traj,n_turn)
+  call reallocate_coord(co,512)
 
   x_max = 0.
   y_max = 0.
@@ -76,8 +90,20 @@ subroutine track_a_particle (closed_orbit, orb0, n_turn, ring, Q_x, Q_y, Q_z)
       y_max = max(y_max, abs(orb(n_ele)%vec(3)))
       amp_x_max = max(amp_x_max, amp_x)
       amp_y_max = max(amp_y_max, amp_y)
-  end do
 
+      traj(i)%vec = coord%vec
+  end do
+  if(ring%param%ixx == 0)goto 10  
+  if(n_turn >=1024)then
+    n_fft = 512
+     forall(i=1:n_fft)co(i)%vec = traj(i)%vec
+     call fft_plane(n_fft,  co, Q_begin)
+     forall(i=1:n_fft)co(i)%vec = traj(n_turn-n_fft+i)%vec
+     call fft_plane(n_fft,  co, Q_end)
+   else
+    print '(a)',' N_turn < 1024. No fft '
+  endif
+       
 10 continue
 !
 
@@ -87,10 +113,18 @@ subroutine track_a_particle (closed_orbit, orb0, n_turn, ring, Q_x, Q_y, Q_z)
   print *, 'Track: max displacement x,y ',x_max, y_max
   print *, 'Track: max amplitude ratio x,y ',amp_x_max/amp_x0, amp_y_max/amp_y0
 
+
+if(ring%param%ixx == 0)then
   type('(3f10.5,2e12.4,2x,2e12.4,i10)'),Q_x,Q_y,Q_z, orb(0)%vec(1), orb(0)%vec(3), &
                  amp_x_max/amp_x0, amp_y_max/amp_y0, i
   write(21,'(3f10.5,2e12.4,2x,2e12.4,i10)')Q_x,Q_y,Q_z, orb(0)%vec(1), orb(0)%vec(3), &
                  amp_x_max/amp_x0, amp_y_max/amp_y0, i
+ else
+  type('(3f10.5,2e12.4,2x,2e12.4,i10,6e12.4)'),Q_x,Q_y,Q_z, orb(0)%vec(1), orb(0)%vec(3), &
+                 amp_x_max/amp_x0, amp_y_max/amp_y0, i,q_begin(1:3), q_end(1:3)
+  write(21,'(3f10.5,2e12.4,2x,2e12.4,i10, 6e12.4)')Q_x,Q_y,Q_z, orb(0)%vec(1), orb(0)%vec(3), &
+                 amp_x_max/amp_x0, amp_y_max/amp_y0, i, q_begin(1:3), q_end(1:3)
+endif
 
 
 end subroutine
