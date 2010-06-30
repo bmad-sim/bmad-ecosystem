@@ -11,7 +11,7 @@ type bbu_stage_struct
   integer :: ix_hom_max
   real(rp) :: hom_power_max
   real(rp) time_at_wake_ele 
-  real(rp) ave_orb(6), rms_orb(6), min_orb(6), max_orb(6)
+  real(rp) :: ave_orb(6) = 0, rms_orb(6) = 0, min_orb(6) = 0, max_orb(6) = 0
   integer n_orb
 end type
 
