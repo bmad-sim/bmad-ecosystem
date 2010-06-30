@@ -11,6 +11,8 @@ type bbu_stage_struct
   integer :: ix_hom_max
   real(rp) :: hom_power_max
   real(rp) time_at_wake_ele 
+  real(rp) ave_orb(6), rms_orb(6), min_orb(6), max_orb(6)
+  integer n_orb
 end type
 
 type bbu_beam_struct
@@ -232,6 +234,14 @@ do
   ! have passed through the lattice.
 
   if (n_period /= n_period_old) then
+
+    do i = 1, size(bbu_beam%stage)
+      if (bbu_beam%stage(i)%n_orb == 0) cycle
+      bbu_beam%stage(i)%ave_orb  = bbu_beam%stage(i)%ave_orb / bbu_beam%stage(i)%n_orb 
+      bbu_beam%stage(i)%rms_orb  = sqrt(bbu_beam%stage(i)%rms_orb/bbu_beam%stage(i)%n_orb - &
+                                                                          bbu_beam%stage(i)%ave_orb**2)
+    enddo
+
     if (n_period == 3) then
       hom_power0 = hom_power_sum / n_count
       r_period0 = r_period
@@ -246,6 +256,13 @@ do
     hom_power_sum = 0
     n_count = 0
     n_period_old = n_period
+    do i = 1, size(bbu_beam%stage)
+      bbu_beam%stage(i)%ave_orb = [0, 0, 0, 0, 0, 0]
+      bbu_beam%stage(i)%rms_orb = [0, 0, 0, 0, 0, 0]
+      bbu_beam%stage(i)%min_orb = [1, 1, 1, 1, 1, 1]        ! Something large
+      bbu_beam%stage(i)%max_orb = [-1, -1, -1, -1, -1, -1]  ! Something small
+      bbu_beam%stage(i)%n_orb = 0  
+    enddo
   endif
 
   call bbu_hom_power_calc (lat, bbu_beam)
@@ -271,8 +288,9 @@ subroutine bbu_track_a_stage (lat, bbu_beam, lost)
 implicit none
 
 type (lat_struct), target :: lat
-type (bbu_beam_struct) bbu_beam
+type (bbu_beam_struct), target :: bbu_beam
 type (lr_wake_struct), pointer :: lr
+type (bbu_stage_struct), pointer :: this_stage
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
 
@@ -286,12 +304,13 @@ logical err, lost
 ! Look at each stage track the bunch with the earliest time to finish and track this stage.
 
 i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
-bbu_beam%time_now = bbu_beam%stage(i_stage_min)%time_at_wake_ele
+this_stage => bbu_beam%stage(i_stage_min)
+bbu_beam%time_now = this_stage%time_at_wake_ele
 
-ix_ele_end = bbu_beam%stage(i_stage_min)%ix_ele_lr_wake
+ix_ele_end = this_stage%ix_ele_lr_wake
 if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
 
-ib = bbu_beam%stage(i_stage_min)%ix_head_bunch
+ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
 do j = ix_ele_start+1, ix_ele_end
@@ -300,6 +319,11 @@ do j = ix_ele_start+1, ix_ele_end
     lost = .true.
     return
   endif
+  this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(1)%r%vec
+  this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(1)%r%vec**2
+  this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
+  this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
+  this_stage%n_orb   = this_stage%n_orb + 1
 enddo
 
 ! If the next stage does not have any bunches waiting to go through then the
@@ -320,20 +344,20 @@ if (ib == bbu_beam%ix_bunch_end) then
 else
   ib2 = modulo (ib, size(bbu_beam%bunch)) + 1 ! Next bunch upstream
   if (bbu_beam%bunch(ib2)%ix_ele == ix_ele_start) then
-    bbu_beam%stage(i_stage_min)%ix_head_bunch = ib2
+    this_stage%ix_head_bunch = ib2
   else
-    bbu_beam%stage(i_stage_min)%ix_head_bunch = -1  ! No one waiting to go through this stage
+    this_stage%ix_head_bunch = -1  ! No one waiting to go through this stage
   endif
 endif
 
 ! Now correct min_time array
 
-ix_bunch = bbu_beam%stage(i_stage_min)%ix_head_bunch
+ix_bunch = this_stage%ix_head_bunch
 if (ix_bunch < 0) then
-  bbu_beam%stage(i_stage_min)%time_at_wake_ele = 1e30  ! something large
+  this_stage%time_at_wake_ele = 1e30  ! something large
 else
-  ix_ele = bbu_beam%stage(i_stage_min)%ix_ele_lr_wake
-  bbu_beam%stage(i_stage_min)%time_at_wake_ele = &
+  ix_ele = this_stage%ix_ele_lr_wake
+  this_stage%time_at_wake_ele = &
                     bbu_beam%bunch(ix_bunch)%t_center + lat%ele(ix_ele)%ref_time
 endif
 
