@@ -975,6 +975,12 @@ endif
 
 call parser_end_stuff ()
 
+if (bp_com%ran_function_was_called) then
+  if (bmad_status%type_out) call out_io(s_warn$, r_name, &
+                'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
+                '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
+endif
+
 !---------------------------------------------------------------------
 contains
 

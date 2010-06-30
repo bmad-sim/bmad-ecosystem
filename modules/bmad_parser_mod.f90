@@ -201,7 +201,7 @@ character(40) :: word, str_ix, attrib_word
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, print_err
+logical delim_found, err_flag, logic, print_err, set_done
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -691,6 +691,7 @@ case default   ! normal attribute
     ele%value(y2_limit$) = value
   else
     ele%value(ix_attrib) = value
+
     ix = len_trim(attrib_word)
     if (ix > 9 .and. index(attrib_word, '_GRADIENT') == ix-8) ele%field_master = .true.
     if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
@@ -698,7 +699,8 @@ case default   ! normal attribute
     if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
     if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
 
-    if (ix_attrib == e_tot$) then
+    select case (ix_attrib)
+    case (e_tot$)
       select case (ele%key)
       case (def_beam$)
         lat%ele(0)%value(e_tot$) = 1d9 * value
@@ -710,7 +712,12 @@ case default   ! normal attribute
       end select
       bp_com%e_tot_set = .true.
       bp_com%p0c_set   = .false.
-    elseif (ix_attrib == p0c$) then
+
+    case (lr_freq_spread$)
+      call randomize_lr_wake_frequencies (ele, set_done)
+      if (set_done) bp_com%ran_function_was_called = .true.
+
+    case (p0c$)
       select case (ele%key)
       case (def_beam$)
         lat%ele(0)%value(p0c$) = 1d9 * value
@@ -722,7 +729,7 @@ case default   ! normal attribute
       end select
       bp_com%e_tot_set = .false.
       bp_com%p0c_set   = .true.
-    endif
+    end select
 
   endif
 
@@ -785,7 +792,7 @@ bp_com%write_digested2 = .false.
 
 end subroutine
 
-end subroutine
+end subroutine parser_set_attribute 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -864,7 +871,7 @@ endif
 xsif_called = .false.
 call file_stack ('push', call_file, finished, err) ! err gets set here
 
-end subroutine
+end subroutine get_called_file
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -900,7 +907,7 @@ endif
 
 call add_taylor_term (ele%taylor(i_out), coef, expn, .true.)
 
-end subroutine
+end subroutine add_this_taylor_term
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -974,7 +981,7 @@ if (delim == ':' .and. index(delim_list, '=') /= 0 .and. &
   bp_com%parse_line = bp_com%parse_line(2:)
 endif
 
-end subroutine
+end subroutine get_next_word
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1107,7 +1114,7 @@ endif
 
 if (present(err)) err = .false.
 
-end subroutine
+end subroutine file_stack
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1196,7 +1203,7 @@ return
 file_end = .true.
 bp_com%parse_line = ' '
 
-end subroutine
+end subroutine load_parse_line
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1248,7 +1255,7 @@ do i = 1, len(word)
   endif
 enddo
 
-end function
+end function evaluate_logical
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1597,7 +1604,7 @@ if (i2 /= 1) call error_exit ('INTERNAL ERROR #03: GET HELP')
 value = stk(1)%value
 err_flag = .false.
 
-end subroutine
+end subroutine evaluate_value
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1625,7 +1632,7 @@ endif
 
 stack(i_lev) = value
 
-end subroutine
+end subroutine pushit
                      
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1749,7 +1756,7 @@ call find_indexx (word, bp_com%var_name, bp_com%var_indexx, ivar-1, ixm, ixm2)
 bp_com%var_indexx(ixm2+1:ivar) = bp_com%var_indexx(ixm2:ivar-1)
 bp_com%var_indexx(ixm2) = ivar
 
-end subroutine
+end subroutine parser_add_variable
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1818,7 +1825,7 @@ case default
   call err_exit
 end select
 
-end subroutine
+end subroutine bmad_parser_type_get
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1856,7 +1863,7 @@ type (lr_wake_input_struct) lr(500)
 integer n_row, iu, i, j, ios
 character(*) lr_file_name
 character(200) full_file_name
-
+logical set_done
 namelist / long_range_modes / lr
 
 ! Init
@@ -1931,7 +1938,10 @@ do i = 1, size(lr)
   endif
 enddo
 
-end subroutine
+call randomize_lr_wake_frequencies (ele, set_done)
+if (set_done) bp_com%ran_function_was_called = .true.
+  
+end subroutine read_lr_wake
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3821,9 +3831,6 @@ case (lcavity$)
     ele%value(gradient$) = ele%value(delta_e$) / ele%value(l$)
   endif
 
-  call randomize_lr_wake_frequencies (ele, set_done)
-  if (set_done) bp_com%ran_function_was_called = .true.
-  
 ! for a periodic_type wiggler n_pole is a dependent attribute
 
 case (wiggler$)

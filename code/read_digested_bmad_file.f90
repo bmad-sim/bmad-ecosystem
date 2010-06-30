@@ -133,9 +133,6 @@ do i = 1, n_files
   endif
 
   if (fname_read == '!RAN FUNCTION WAS CALLED') then
-    if (bmad_status%type_out) call out_io(s_warn$, r_name, &
-                'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
-                '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
     bmad_status%ok = .false.
     cycle
   endif
