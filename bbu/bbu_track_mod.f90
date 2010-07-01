@@ -35,6 +35,7 @@ type bbu_param_struct
   logical write_hom_info
   logical keep_overlays_and_groups  ! Keep when hybridizing?
   logical keep_all_lcavities        ! Keep when hybridizing?
+  logical stable_orbit_anal
   real(rp) limit_factor
   real(rp) simulation_turns_max, bunch_freq
   real(rp) init_particle_offset
@@ -249,8 +250,10 @@ do
     elseif (n_period > 3) then
       hom_power_gain = (hom_power_sum / n_count) / hom_power0
       growth_rate = log(hom_power_gain) / (r_period - r_period0)
-      if (hom_power_gain < 1/bbu_param%limit_factor) exit
-      if (hom_power_gain > bbu_param%limit_factor) exit      
+      if (.not. bbu_param%stable_orbit_anal) then
+        if (hom_power_gain < 1/bbu_param%limit_factor) exit
+        if (hom_power_gain > bbu_param%limit_factor) exit      
+      endif
     endif
 
     hom_power_sum = 0
