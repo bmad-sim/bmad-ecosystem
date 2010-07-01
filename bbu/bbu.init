@@ -7,12 +7,12 @@
   bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
   bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
 !  bbu_param%keep_all_lcavities = .true.      ! Keep when hybridizing?
-  bbu_param%current = 20e-3                   ! Starting current (amps)
+  bbu_param%current = 100e-3                   ! Starting current (amps)
   bbu_param%rel_tol = 1e-1                    ! Final threshold current accuracy.
-  bbu_param%write_hom_info = .false.  
+  bbu_param%write_hom_info = .true.  
   bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
-  bbu_param%elname = 'T1'
-  bbu_param%nstep = 50
+  bbu_param%elname = 'T1'                     ! Element to step length for DRSCAN
+  bbu_param%nstep = 50                        ! Number of steps for DRSCAN
 ! PRSTAB 2004
   bbu_param%begdr = 5.234
   bbu_param%enddr = 6.135
@@ -23,7 +23,12 @@
   bbu_param%use_interpolated_threshold = .true.
 
   bbu_param%nrep = 1500   ! Number of times to repeat threshold calculation
-  bbu_param%ran_seed = 1 ! If 0, seed is chosen from system clock
+
+  bbu_param%ran_seed = 0                       ! Set specific seed if desired (0 uses system clock)
+  bbu_param%ran_gauss_sigma_cut = 3           ! If positive, limit ran_gauss values to within N sigma
+
+  bbu_param%stable_orbit_anal = .true.  ! Write out cavity orbit data for SIMULATION_TURNS_MAX turns
+                                         ! No thresholds are calculated
+                                         ! Repeated NREP times with HOM frequencies re-randomized
 
 /
-  bbu_param%lat_file_name = 'cerl7.4_1hom_1cav_taylor.bmad'  ! Bmad lattice file name
