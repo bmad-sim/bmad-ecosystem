@@ -49,12 +49,15 @@ bbu_param%use_interpolated_threshold = .true.
 bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
 bbu_param%ran_seed = 0
 bbu_param%ran_gauss_sigma_cut = -1
+bbu_param%stable_orbit_anal = .false.
 
 beam_init%n_particle = 1
 
 open (1, file = 'bbu.init', status = 'old')
 read (1, nml = bbu_params)
 close (1)
+
+if (bbu_param%stable_orbit_anal) bbu_param%nstep = 1
 
 ! Define distance between bunches
 
@@ -106,7 +109,9 @@ if (bbu_param%nrep.gt.1)then
   open (55, file = 'rep.out', status = 'unknown')
 endif
 
+!-------------------------------------------------------
 ! DRSCAN loop. NSTEP=1 if no DRSCAN.
+
 do istep = 1, nstep
 
   if (bbu_param%drscan) then
@@ -196,37 +201,44 @@ do istep = 1, nstep
 
     ! Track to bracket threshold
 
-    print *, 'Now converging on the threshold...'
+    if (.not. bbu_param%stable_orbit_anal) then
 
-    do
-      lat = lat0 ! Restore lr wakes
-      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
-      if (lost) print *, 'Particle(s) lost. Assuming unstable...'
-      call calc_next_charge_try
-      if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
-    enddo
+      print *, 'Now converging on the threshold...'
 
-    beam_init%bunch_charge = (charge0 + charge1) / 2
-    print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
-    i = bbu_beam%ix_stage_power_max
-    j = bbu_beam%stage(i)%ix_ele_lr_wake
-    ele => lat%ele(j)
-    ele2 => ele
-    if (ele2%slave_status == multipass_slave$) then
-      ele2 => pointer_to_multipass_lord (ele, lat)
+      do
+        lat = lat0 ! Restore lr wakes
+        call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+        if (lost) print *, 'Particle(s) lost. Assuming unstable...'
+        call calc_next_charge_try
+        if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
+      enddo
+
+      beam_init%bunch_charge = (charge0 + charge1) / 2
+      print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
+      i = bbu_beam%ix_stage_power_max
+      j = bbu_beam%stage(i)%ix_ele_lr_wake
+      ele => lat%ele(j)
+      ele2 => ele
+      if (ele2%slave_status == multipass_slave$) then
+        ele2 => pointer_to_multipass_lord (ele, lat)
+      endif
+      i_lr = bbu_beam%stage(i)%ix_hom_max
+      print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
+      print *, 'Critical HOM: Input Frequency: ', ele%wake%lr(i_lr)%freq_in 
+      print *, 'Critical HOM: Actual Frequency:', ele%wake%lr(i_lr)%freq
+      print *, 'Critical HOM: R_overQ:         ', ele%wake%lr(i_lr)%r_over_q
+      print *, 'Critical HOM: Q:               ', ele%wake%lr(i_lr)%q
+      print *, 'Critical HOM: Angle:           ', ele%wake%lr(i_lr)%angle
+
+      if (bbu_param%nrep.gt.1)write(55,'(i6,e14.6,2i7,6(e14.6,1x))') &
+          irep, beam_init%bunch_charge / beam_init%dt_bunch, ele%ix_ele, ele2%ix_ele, ele%s, &
+          ele%wake%lr(i_lr)%freq_in, ele%wake%lr(i_lr)%freq, ele%wake%lr(i_lr)%r_over_q, &
+          ele%wake%lr(i_lr)%q, ele%wake%lr(i_lr)%angle
+
+    else
+      !! print track info
+
     endif
-    i_lr = bbu_beam%stage(i)%ix_hom_max
-    print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
-    print *, 'Critical HOM: Input Frequency: ', ele%wake%lr(i_lr)%freq_in 
-    print *, 'Critical HOM: Actual Frequency:', ele%wake%lr(i_lr)%freq
-    print *, 'Critical HOM: R_overQ:         ', ele%wake%lr(i_lr)%r_over_q
-    print *, 'Critical HOM: Q:               ', ele%wake%lr(i_lr)%q
-    print *, 'Critical HOM: Angle:           ', ele%wake%lr(i_lr)%angle
-
-    if (bbu_param%nrep.gt.1)write(55,'(i6,e14.6,2i7,6(e14.6,1x))') &
-        irep, beam_init%bunch_charge / beam_init%dt_bunch, ele%ix_ele, ele2%ix_ele, ele%s, &
-        ele%wake%lr(i_lr)%freq_in, ele%wake%lr(i_lr)%freq, ele%wake%lr(i_lr)%r_over_q, &
-        ele%wake%lr(i_lr)%q, ele%wake%lr(i_lr)%angle
 
     ! Re-randomize HOM frequencies
 
