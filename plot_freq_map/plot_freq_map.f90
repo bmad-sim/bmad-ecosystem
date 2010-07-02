@@ -414,47 +414,42 @@ end
    character*20 word
    integer i, n, ix, j, size
    integer k
+   integer ios
 
    open(unit=2, file=file_name, type='OLD')
-   n=0
+   ios=0
    i=0
-   do while(.true.)
-    read(2,'(a200)', end=99)line
-!    type '(a6,a200)', ' line ',line
-    i=i+1
-    if(i > 0)n=n+1
+   do while(ios >= 0)
+    read(2,'(a200)', iostat=ios)line
+    if(ios /= 0)cycle
+    if(index(line,'!') /= 0) cycle
+    i = i+1
    end do
-99 continue
-   close(unit=2)
-   size = n 
 
-   allocate(column(n))
+   if(.not. allocated(column))allocate(column(1:i))
+   size = i
 
-   open(unit=2, file=file_name, type='OLD')
-   n=0
-   type *,' i ',i
-!   i=0
-   do k= 1,i !while(.true.)   
-    read(2,'(a200)', end=100, err=100)line
-!    i=i+1
-    if(k > 0)then
-     n=n+1
-!    if(n > 180) type *, ' line n ',n,line
+   rewind(2)
+   i=0
+   ios=0
+   do while(ios >= 0)
+    read(2,'(a200)', iostat=ios)line
+    if(ios /= 0)cycle
+    if(index(line,'!') /= 0) cycle
+    i = i+1
+
      ix=0
-!     print *,' line',line
       do j=1,12
         call string_trim(line(ix+1:), line, ix)
         word=line(1:ix)
-!        type *,'n, j, word', n, j, word
         if(index(word,'NaN') /= 0)then
           column(n)%row(j) = 0.
          else
           read(word,*)column(n)%row(j)
         endif
       end do
-    endif
    end do
-100 continue
+
   close(unit=2)
   return
  end
