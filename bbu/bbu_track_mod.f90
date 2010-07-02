@@ -166,9 +166,11 @@ type (lat_struct) lat
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
+type (coord_struct), allocatable :: orbit(:)
 
 real(rp) hom_power0, hom_power_sum, r_period, r_period0, power
 real(rp) hom_power_gain, growth_rate
+real(rp) max_x,rms_x,max_y,rms_y
 
 integer i, n_period, n_count, n_period_old, ix_ele
 
@@ -186,6 +188,8 @@ bmad_com%auto_bookkeeper = .false. ! To speed things up.
 do i = 1, size(bbu_beam%bunch)
   call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
 enddo
+
+call reallocate_coord (orbit, lat%n_ele_track)
 
 ! init time at hom and hom_power
 
@@ -255,6 +259,17 @@ do
         if (hom_power_gain > bbu_param%limit_factor) exit      
       endif
     endif
+
+    print *,' time, current, period, hom_power_sum, hom_power_gain', &
+    bbu_beam%time_now,beam_init%bunch_charge / beam_init%dt_bunch, n_period,hom_power_sum,hom_power_gain
+
+    call track_all (lat, orbit)
+    max_x = maxval(abs(orbit(1:lat%n_ele_track)%vec(1)))
+    max_y = maxval(abs(orbit(1:lat%n_ele_track)%vec(3)))
+    rms_x = sqrt(sum(orbit(1:lat%n_ele_track)%vec(1)**2)/lat%n_ele_track)
+    rms_y = sqrt(sum(orbit(1:lat%n_ele_track)%vec(3)**2)/lat%n_ele_track)
+    print *,'      Orbit max and rms  X:',max_x,rms_x, &
+            '      -----------------  Y:',max_y,rms_y
 
     hom_power_sum = 0
     n_count = 0
