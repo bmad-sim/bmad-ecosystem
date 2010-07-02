@@ -30,5 +30,5 @@
   bbu_param%stable_orbit_anal = .true.  ! Write out cavity orbit data for SIMULATION_TURNS_MAX turns
                                          ! No thresholds are calculated
                                          ! Repeated NREP times with HOM frequencies re-randomized
-
+                                         ! DRSCAN disabled
 /
