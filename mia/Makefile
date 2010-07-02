@@ -197,8 +197,8 @@ LOCAL_LFLAGS   :=
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS := lapack
-CESR_LIBS  := sim_utils recipes_f-90_LEPP
-PKG_LIBS   := pgplot
+CESR_LIBS  := cesr_utils bmad sim_utils recipes_f-90_LEPP
+PKG_LIBS   := pgplot forest
 CERN_LIBS  :=
 
 

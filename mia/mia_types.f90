@@ -136,7 +136,10 @@ module mia_types
                                          !problems with input files
        silentMode,&                      !MIA runs without plotting
        phase,&                           !Plot phase advance instead of beta
-       postScript                        !Print postscript plot only
+       postScript, &                     !Print postscript plot only
+       noSPos                            !Accounts for running without 
+                                         !one_ring.det; disables plotting
+                                         !by S position and output for CESRV
   logical :: vetoBPM                     !Remove detectors; specified
                                          !as an option in the plotting routine
   real(rp) :: endLoc                     !Location of the end of the machine
@@ -147,12 +150,14 @@ module mia_types
 
 contains
 
-  subroutine initialize_struct(data)
+  subroutine initialize_struct(data, copyProcData)
     !
     !Allocate global arrays, assign global constants
     !
     type(data_set) data
     integer :: i
+    logical :: copyProcData        !True if processor data has already been
+                                   !read in; this will be copied to data_struc
 
     vetoBPM = 0
     NUM_BPMS = data%bpmproc
@@ -203,11 +208,16 @@ contains
        data_struc%loc(i)%b%inv_gamma_cbar_sqrt_betas(1:2,1:2) = 0.
        data_struc%loc(i)%b%gam2_beta = 0.
 
-       data_struc%proc(i)%label = ""
-       data_struc%proc(i)%is_west = .false.
-       data_struc%proc(i)%number = 0
-       data_struc%proc(i)%sPos = -9999.0
-       data_struc%proc(i)%eleNum = -999
+       if (copyProcData) then
+          data_struc%proc(i) = data%proc(i)
+       else
+          data_struc%proc(i)%label = ""
+          data_struc%proc(i)%is_west = .false.
+          data_struc%proc(i)%number = 0
+          data_struc%proc(i)%sPos = -9999.0
+          data_struc%proc(i)%eleNum = -999
+       end if
+
     enddo
 
   end subroutine initialize_struct

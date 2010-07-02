@@ -37,7 +37,7 @@ program mia
   do while (more_files .or. first_run)
      allocate (data(nset))
 
-     !Check for command line arguments:
+     !Check for and parse command line arguments:
      narg = IARGC()
      if (narg>0) then
         call get_args(data)
@@ -55,7 +55,7 @@ program mia
         !turns, BPMs, etc from first file (second file is expected
         !to match)
         if (i_set == 1) then
-           call initialize_struct(data(i_set))
+           call initialize_struct(data(i_set), .false.)
        end if
        !Parse detector names, get S positions, etc:
        call bpm_ops(data,i_set, nset, first_run)
@@ -70,24 +70,24 @@ program mia
 
      end do
 
-871  continue
 
      first_run = .false.
      call match_tau_column(nset,data)
 
 
-
+871  continue
      call autoCut(data)
 !     call autoVeto(data)
 567  continue
      if (vetoBPM) then
         
         call clean(.false.)
-        call initialize_struct(data(1))
-!        call find_L(nset,data)
+        call initialize_struct(data(1), .true.)
+        call findPair(nset,data)
 
         call svd_fft(data(1))
         call svd_fft(data(2))
+        call match_tau_column(nset,data)
         vetoBPM = .false.
 
         goto 871
@@ -112,9 +112,12 @@ program mia
 
 !Write the output files
      call output (data)
-     call cesrv_out()
-!     call piOut(data(1))
 
+     call fftOut(data)
+
+     if (.not. noSPos) then
+        call cesrv_out()
+     end if
 
 !Disabled to make batch analysis easier; can uncomment this
 !to give the user the option of running MIA with a new set of files

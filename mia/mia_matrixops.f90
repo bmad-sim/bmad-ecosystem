@@ -95,23 +95,6 @@ contains
     matrix = temp
   end subroutine transpose
 
-  subroutine gullotine(arr, length)
-    !
-    !Truncates an array to a certain length.
-    !
-    real(rp), allocatable :: arr(:), temp(:)
-    integer :: i, j, length
-
-    allocate(temp(length))
-    do i=1, length
-       temp(i) = arr(i)
-    enddo
-
-    deallocate(arr)
-    allocate(arr(length))
-    arr = temp
-
-  end subroutine gullotine
 
   subroutine powerof2(n)
     !
@@ -153,10 +136,11 @@ contains
                                 !It saves time to do the calculation only for
                                 !the top 5-6 eigenmodes.
 
-n = NUM_TURNS
-!    n_eigen = NUM_TURNS/4
-!n_eigen = int(NUM_BPMS/2)
-n_eigen = NUM_BPMS
+    n = NUM_TURNS
+    !n_eigen used to be used to limit the FFT to the first ~15 eigenmodes;
+    !however, doing it for half of the tau matrix (NUM_BPMS) does not seem
+    !to slow down the program noticably.
+    !   n_eigen = NUM_BPMS
     call powerof2(n)            !Make n the next smaller power of 2
                                 !if n is not a power of 2 already.
     allocate(data%spectrum(n,2*data%bpmproc))
@@ -165,7 +149,7 @@ n_eigen = NUM_BPMS
     allocate(data%fr_peak(2*data%bpmproc))
 
 
-    do i = 1, n_eigen
+    do i = 1, NUM_BPMS
 
        allocate(a(n))
        a(:) = data%tau_mat(1:n,i)
@@ -229,6 +213,7 @@ n_eigen = NUM_BPMS
        !	    p(i) = isgn(ai(i))*pi/2.0
        !	  endif
     enddo
+
 
 !Print *, "Peak freq is ", fr_peak
 
@@ -349,6 +334,7 @@ n_eigen = NUM_BPMS
          more                     ! mode yet. 1 is A, 2 is B
     real(rp) :: spec_i, spec_q
     integer :: maxPos(1)
+    real(rp) :: angle(2,2), phaseTest
 
     mode(1) = .true.
     mode(2) = .true.
@@ -371,78 +357,55 @@ n_eigen = NUM_BPMS
        print *, "Noise level for file", cset, ": ",data(cset)%noise 
     end do
 
-
-
-    !Compares all BPMs to each other to find eigen mode matches.
+    !Compares all tau frequencies to each other to find eigen mode matches.
     ! Stops at the first match.
     !*Change to find more matches?
     do cset = 1, nset
        pair_cap = 0
-       do i = 1, 2*data(1)%bpmproc-1
+       !Could check up to 2*NUM_BPMS, but we don't do the fft for that many eigenmodes.
+       do i = 1, data(1)%bpmproc-1
           !The machine cannot be run at integer or half-integer tunes, so
           !ignore peaks at 1 and numturns/2
-          if (data(cset)%fr_peak(i) == 1 .or. &
-               data(cset)%fr_peak(i) == data(1)%numturns/2) then
-Print *, "Column ", i, " appears to be an integer or half-integer signal."
-Print *, "Fr. Peak:", data(cset)%fr_peak(i)
+          if (abs(data(cset)%fr_peak(i) - 1) < 2 .or. &
+               abs(data(cset)%fr_peak(i) - data(1)%numturns/2) < 2) then
+             Print *, "Column ", i, " appears to be an integer or half-integer signal."
+             Print *, "Fr. Peak:", data(cset)%fr_peak(i)
+             Print *, (data(cset)%fr_peak(i) - 1)
+             Print *, (data(cset)%fr_peak(i) - data(1)%numturns/2)
              cycle
           end if
 
-          do q = i+1, 2*data(1)%bpmproc-1
-             if (data(cset)%fr_peak(i) > 1 .and.data(cset)%fr_peak(i) < &
-                  data(1)%numturns) then
-                spec_i = data(cset)%spectrum(data(cset)%fr_peak(i),i)
-             else
-                cycle
-             endif
-             if (data(cset)%fr_peak(q) > 1 .and.data(cset)%fr_peak(q) < &
-                  data(1)%numturns) then
-                spec_q = data(cset)%spectrum(data(cset)%fr_peak(q),q)
-             else
-                cycle
-             endif
+          do q = i+1,i+20 !data(1)%bpmproc-1
+             Print *, data(cset)%fr_peak(i), " =? ", data(cset)%fr_peak(q)
 
             !Finds a match if the difference between frequency peaks is greater
             !than 2 and both lambdas are above threshold.
-             if   ( iabs(data(cset)%fr_peak(i)-data(cset)%fr_peak(q)) < 4 &
+             if   ( (iabs(data(cset)%fr_peak(i)-data(cset)%fr_peak(q)) < 2 &
+                  .or. abs(data(cset)%fr_peak(i)-(NUM_TURNS-data(cset)%fr_peak(q)))<2) &
                   .and. data(cset)%lambda(i) >= ave(cset) &
                   .and. data(cset)%lambda(q) >= ave(cset) &
                 ) then
 
-
-
-
-                write (*, '(1x,2a,i2,a,i2,a,i2, a/)', advance = "no") &
-                     "Potential", " Eigen Mode match for file ", cset,  &
+                write (*, '(1x,a,i1,a,i2,a,i2, a/)', advance = "no") &
+                     " Eigen Mode match for file ", cset,  &
                      " found in columns:", i, "  and ", q, "."
 
-                ! Pair cap is the number of pairs to find before moving on
-                ! to the next file.
-                ! pair_cap = pair_cap + 1
-!                call logic_get('N', 'Y', 'Use this match?', more)
-                !more = .not. more
-!                if (.not. more) then
-                   colu1(cset) = i
-                   colu2(cset) = q
-                   pair_cap = pair_cap + 1
-                   goto 101
-!                endif
-                if (nset == 2 .and. pair_cap == 1) then
-                   go to 101
+                colu1(cset) = i
+                colu2(cset) = q
+                pair_cap = pair_cap + 1
+                goto 101
 
-
-
-
-                end if
              end if
           end do
        end do
+       !Return error message if no match was found for file cset
        if (pair_cap == 0) then
          Print *, "No eigen mode match found. Try again with a different file."
+         Print *, "File: ", data(cset)%filename
          exit
       endif
-101    continue  
-    end do
+101   continue  
+   end do
 
     colu(1) = colu1(1)
     colu(3) = colu1(2)
@@ -466,7 +429,7 @@ Print *, "Fr. Peak:", data(cset)%fr_peak(i)
        if (sum_a(c) > sum_b(c)) then
           col_counta = col_counta + 1
           col_a_(col_counta) = colu(c)
-          !I think this is a holder for which file is in the A mode:
+          !This is a holder for which file is in the A mode:
           af(col_counta) = ceiling(1.0*c/nset)
        else
           col_countb = col_countb + 1
@@ -491,108 +454,170 @@ Print *, "Fr. Peak:", data(cset)%fr_peak(i)
 
     end do
 
+    !Check for files that only have excitation in a single mode
     if (col_counta > 2 .or. col_countb > 2) then
+       Print *, "counta: ", col_counta
+       Print *, "countb: ", col_countb
        Print *, "Excitation for both files appears to be in the same plane."
        Print *, "Try again with different files."
-
-       if (col_counta > 2) then
-          maxPos = maxloc(sum_b(:))
-          col_b_(1) = maxPos(1)
-          bf(1) = ceiling(1.0*maxPos(1) / nset)
-!          sum_b(maxPos(1)) = -1.0
-!          maxPos = maxloc(sum_b(:))
-          if (mod(maxPos(1),2) == 0) then
-             maxPos(1) = maxPos(1) - 1
-          else
-             maxPos(1) = maxPos(1) + 1
-          end if
-          col_b_(2) = maxPos(1)
-          bf(2) = ceiling(1.0*maxPos(1) / nset)
-
-       else
-          maxPos = maxloc(sum_a(:))
-          col_a_(1) = maxPos(1)
-          af(1) = ceiling(1.0*maxPos(1) / nset)
-!          sum_a(maxPos(1)) = -1.0
-!          maxPos = maxloc(sum_a(:))
-          if (mod(maxPos(1),2) == 0) then
-             maxPos(1) = maxPos(1) - 1
-          else
-             maxPos(1) = maxPos(1) + 1
-          end if
-
-          col_a_(2) = maxPos(1)
-          af(2) = ceiling(1.0*maxPos(1) / nset)
-       end if
-
-
-
+       Print *, "Enter which file is x (1 or 2): "
+       Read (*, '(i1)'), af(1)
+       bf(1) = 2 - af(1)
+       Print *, "I am assuming file ",bf(1), "contains y excitation. Exploring the unknown..."
+       xfile = data(af(1))%filename
+       yfile = data(bf(1))%filename
+       col_a_(1) = colu(2*af(1)-1)
+       col_a_(2) = colu(2*af(1))
+       col_b_(1) = colu(2*bf(1)-1)
+       col_b_(2) = colu(2*bf(1))
 !       STOP
     endif
 
-    if (abs(data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) &
-         - data( af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) &
-         < pi) then
-       if (data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) < &
-            data(af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) &
-            then
-          data_struc%col_a_p = col_a_(1)
-          data_struc%col_a_n = col_a_(2)
-       else 
+
+
+    !The phase advance between the first detector pair is calculated
+    !in order to determine which column is positive or negative.
+    !The correct order is whatever returns a positive phase!
+    angle(1,1) = data(af(1))%lambda(col_a_(1)) * &
+         data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)-1), col_a_(1))
+    angle(2,1) = data(af(1))%lambda(col_a_(1)) * &
+         data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)-1), col_a_(1))
+    angle(1,2) = data(af(1))%lambda(col_a_(2)) * &
+         data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)-1), col_a_(2))
+    angle(2,2) = data(af(1))%lambda(col_a_(2)) * &
+         data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)-1), col_a_(2))
+    phaseTest = atan2(angle(2,1), angle(2,2)) - atan2(angle(1,1),angle(1,2))
+    Print *, phaseTest
+
+    if (phaseTest > 0) then
+       data_struc%col_a_p = col_a_(1)
+       data_struc%col_a_n = col_a_(2)
+    else
+       angle(1,1) = data(af(1))%lambda(col_a_(2)) * &
+            data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)-1), col_a_(2))
+       angle(2,1) = data(af(1))%lambda(col_a_(2)) * &
+            data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)-1), col_a_(2))
+       angle(1,2) = data(af(1))%lambda(col_a_(1)) * &
+            data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)-1), col_a_(1))
+       angle(2,2) = data(af(1))%lambda(col_a_(1)) * &
+            data(af(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)-1), col_a_(1))
+       phaseTest = atan2(angle(2,1), angle(2,2)) - atan2(angle(1,1),angle(1,2))
+       Print *, phaseTest
+       if (phaseTest > 0) then
           data_struc%col_a_p = col_a_(2)
           data_struc%col_a_n = col_a_(1)
-       end if
-
-    else 
-
-       if (data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) < &
-            data(af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) then
-          data_struc%col_a_p = col_a_(2)
-          data_struc%col_a_n = col_a_(1)
-       else 
-          data_struc%col_a_p = col_a_(1)
-          data_struc%col_a_n = col_a_(2)
+       else
+          Print *, "ERROR: Phase advance is negative."
+          STOP
        end if
     end if
 
-    if (af(1)==af(2)) then
-       data_struc%set_num_a = af(1)
-    else 
-       print*, "af(1) is not = af(2)!"
-    end if
+    angle(1,1) = data(bf(1))%lambda(col_b_(1)) * &
+         data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)), col_b_(1))
+    angle(2,1) = data(bf(1))%lambda(col_b_(1)) * &
+         data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)), col_b_(1))
+    angle(1,2) = data(bf(1))%lambda(col_b_(2)) * &
+         data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)), col_b_(2))
+    angle(2,2) = data(bf(1))%lambda(col_b_(2)) * &
+         data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)), col_b_(2))
+    phaseTest = atan2(angle(2,1), angle(2,2)) - atan2(angle(1,1),angle(1,2))
+    Print *, phaseTest
 
-    if (abs(data(bf(1))%phi_spec(data(bf(1))%fr_peak(col_b_(1)),col_b_(1)) &
-         -  data(bf(2))%phi_spec(data(bf(2))%fr_peak(col_b_(2)),col_b_(2)))&
-         < pi) then
-       if (data(bf(1))%phi_spec(data(bf(1))%fr_peak(col_b_(1)),col_b_(1)) &
-            < data(bf(2))%phi_spec(data(bf(2))%fr_peak(col_b_(2)),col_b_(2)))&
-            then
-          data_struc%col_b_p = col_b_(1)
-          data_struc%col_b_n = col_b_(2)
-       else 
-          data_struc%col_b_p = col_b_(2)
-          data_struc%col_b_n = col_b_(1)
-       end if
+    if (phaseTest > 0) then
+       data_struc%col_b_p = col_b_(1)
+       data_struc%col_b_n = col_b_(2)
+    else
+       angle(1,1) = data(bf(1))%lambda(col_b_(2)) * &
+            data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)), col_b_(2))
+       angle(2,1) = data(bf(1))%lambda(col_b_(2)) * &
+            data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)), col_b_(2))
+       angle(1,2) = data(bf(1))%lambda(col_b_(1)) * &
+            data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(1)), col_b_(1))
+       angle(2,2) = data(bf(1))%lambda(col_b_(1)) * &
+            data(bf(1))%pi_mat((2*bpm_pairs(1)%bpm_pntr(2)), col_b_(1))
 
-    else 
-
-       if (data(bf(1))%phi_spec(data(bf(1))%fr_peak(col_b_(1)),col_b_(1)) < &
-            data(bf(2))%phi_spec(data(bf(2))%fr_peak(col_b_(2)),col_b_(2))) then
+      phaseTest = atan2(angle(2,1), angle(2,2)) - atan2(angle(1,1),angle(1,2))
+       Print *, phaseTest
+       if (phaseTest > 0) then
           data_struc%col_b_p = col_b_(2)
           data_struc%col_b_n = col_b_(1)
        else
-          data_struc%col_b_p = col_b_(1)
-          data_struc%col_b_n = col_b_(2)
+          Print *, "ERROR: Phase advance is negative."
+          STOP
        end if
-
     end if
 
-    if (bf(1)==bf(2)) then
-       data_struc%set_num_b = bf(1)
-    else 
-       print*, "bf(1) is not = bf(2)!"
-    end if
+    data_struc%set_num_a = af(1)
+    data_struc%set_num_b = bf(1)
 
+!!$    if (abs(data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) &
+!!$         - data( af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) &
+!!$         < pi) then
+!!$       if (data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) < &
+!!$            data(af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) &
+!!$            then
+!!$          data_struc%col_a_p = col_a_(1)
+!!$          data_struc%col_a_n = col_a_(2)
+!!$       else 
+!!$          data_struc%col_a_p = col_a_(2)
+!!$          data_struc%col_a_n = col_a_(1)
+!!$       end if
+!!$
+!!$    else 
+!!$
+!!$       if (data(af(1))%phi_spec(data(af(1))%fr_peak(col_a_(1)),col_a_(1)) < &
+!!$            data(af(2))%phi_spec(data(af(2))%fr_peak(col_a_(2)),col_a_(2))) then
+!!$          data_struc%col_a_p = col_a_(2)
+!!$          data_struc%col_a_n = col_a_(1)
+!!$       else 
+!!$          data_struc%col_a_p = col_a_(1)
+!!$          data_struc%col_a_n = col_a_(2)
+!!$       end if
+!!$    end if
+!!$
+!!$    if (af(1)==af(2)) then
+!!$       data_struc%set_num_a = af(1)
+!!$    else 
+!!$       print*, "af(1) is not = af(2)!"
+!!$    end if
+!!$
+!!$    if (abs(data(bf(1))%phi_spec(data(bf(1))%fr_peak(col_b_(1)),col_b_(1)) &
+!!$         -  data(bf(2))%phi_spec(data(bf(2))%fr_peak(col_b_(2)),col_b_(2)))&
+!!$         < pi) then
+!!$       if (data(bf(1))%phi_spec(data(bf(1))%fr_peak(col_b_(1)),col_b_(1)) &
+!!$            < data(bf(2))%phi_spec(data(bf(2))%fr_peak(col_b_(2)),col_b_(2)))&
+!!$            then
+!!$          data_struc%col_b_p = col_b_(1)
+!!$          data_struc%col_b_n = col_b_(2)
+!!$       else 
+!!$          data_struc%col_b_p = col_b_(2)
+!!$          data_struc%col_b_n = col_b_(1)
+!!$       end if
+!!$
+!!$    else 
+!!$
+!!$       if (data(bf(1))%phi_spec(data(bf(1))%fr_peak(col_b_(1)),col_b_(1)) < &
+!!$            data(bf(2))%phi_spec(data(bf(2))%fr_peak(col_b_(2)),col_b_(2))) then
+!!$          data_struc%col_b_p = col_b_(2)
+!!$          data_struc%col_b_n = col_b_(1)
+!!$       else
+!!$          data_struc%col_b_p = col_b_(1)
+!!$          data_struc%col_b_n = col_b_(2)
+!!$       end if
+!!$
+!!$    end if
+!!$
+!!$    if (bf(1)==bf(2)) then
+!!$       data_struc%set_num_b = bf(1)
+!!$    else 
+!!$       print*, "bf(1) is not = bf(2)!"
+!!$    end if
+
+    write (*,'(1x,a,i2)') &
+         "Horizontal Positive: ", data_struc%col_a_p, &
+         "Horizontal Negative: ", data_struc%col_a_n, &
+         "Vertical Positive: ", data_struc%col_b_p,&
+         "Vertical Negative: ", data_struc%col_b_n
 
 
 
@@ -736,9 +761,9 @@ Print *, "Fr. Peak:", data(cset)%fr_peak(i)
 
           x_max = -MC(2) / (2*MC(1))
           temp_tune(n) = ((x_max / turns) * FREQ)
-          if (temp_tune(n) < FREQ) then
-             temp_tune(n) = FREQ - temp_tune(n)
-          endif
+!          if (temp_tune(n) < ( FREQ / 2) ) then
+!             temp_tune(n) = FREQ - temp_tune(n)
+!          endif
 
           temp_phi_t(n) = 2*pi*temp_tune(n) / FREQ
 
@@ -803,136 +828,136 @@ Print *, "Fr. Peak:", data(cset)%fr_peak(i)
   end subroutine det3x3
 
 
-  subroutine regen(data)
-    !
-    !Should regenerate data file read in...doesn't quite work.
-    !
-    type(data_set) data
-    real(rp), allocatable :: temp(:,:), tlambda(:,:)
-    integer :: i, j
-
-    allocate(temp(NUM_TURNS, 2*NUM_BPMS))
-    allocate(tlambda(NUM_TURNS, 2*NUM_BPMS))
-
-    do i=1, NUM_TURNS
-       do j=1, 2*NUM_BPMS
-          if(i==j) then
-             tlambda(i,j) = sqrt(data%lambda(i))
-          else
-             tlambda(i,j) = 0.
-          endif
-          temp(i,j) = 0.
-       enddo
-    enddo
-
-    temp = matmul(tlambda, data%pi_mat)
-    temp = matmul(data%tau_mat, temp)
-
-    call out(temp, "regen ")
-    deallocate(temp)
-    deallocate (tlambda)
-
-  end subroutine regen
-
-  subroutine wls()
-    !
-    !Matrix svd and regeneration experiment by Willard Louis Sigma
-    !
-    INTEGER i,j
-    INTEGER, PARAMETER :: M=2,N=3
-
-    REAL(rp) :: a(M,N) = RESHAPE((/1.0,4.0,2.0,5.0,3.0,6.0/),(/M,N/))
-    REAL(rp) :: b(N,M) = RESHAPE((/1.0,2.0,3.0,4.0,5.0,6.0/),(/N,M/))
-    REAL(rp) :: c(M,M)
-    REAL(rp) :: e(M,M)    
-    real(rp) :: lam(M,M)
-    REAL(rp) :: d(M,M) = RESHAPE((/1.0,5.0,2.0,7.0/),(/M,M/))
-    REAL(rp) :: tau(M,M), lambda(M), pi(M,M)
-
-    write(*,*) 'Matrix [a]'
-    do i=1,M
-       write(*,1000) (a(i,j),j=1,N)
-    enddo
-    write(*,*)
-
-    write(*,*) 'Matrix [b]'
-    do i=1,N
-       write(*,1000) (b(i,j),j=1,M)
-    enddo
-    write(*,*)
-
-    write(*,*) 'Matrix [d]'
-    do i=1,M
-       write(*,1000) (d(i,j),j=1,M)
-    enddo
-    write(*,*) 
-
-    c = matmul(a, b)
-    write(*,*) 'Matrix [c] = [a] x [b]'
-    do i = 1,M
-       write(*,1000) (c(i,j),j=1,M)
-    enddo
-
-    e = matmul(c, d)
-    write(*,*) 'Matrix [e] = [c] x [d]'
-    do i = 1,M
-       write(*,1000) (e(i,j),j=1,M)
-    enddo
-
-    tau = e
-    call svdcmp(tau, lambda, pi)
-    write(*,*) 'tau'
-    do i = 1,M
-       write(*,1000) (tau(i,j),j=1,M)
-    enddo
-    write(*,*) 'Lambda'
-    do i = 1,M
-       write(*,1000) (lambda(i))
-    enddo
-    write(*,*) 'pi'
-    do i = 1,M
-       write(*,1000) (pi(i,j),j=1,M)
-    enddo
-
-    lam = RESHAPE((/0.0,0.0,0.0,0.0/),(/M,M/))
-    lam(1,1) = lambda(1)
-    lam(2,2) = lambda(2)
-    e = matmul(lam, pi)
-    e = matmul(tau, e)
-    write(*,*) 'Matrix [e] = [c] x [d]'
-    do i = 1,M
-       write(*,1000) (e(i,j),j=1,M)
-    enddo
-
-1000 FORMAT(1x,1P10E14.6)
-  end subroutine wls
-
-  subroutine out(temp, name)
-    !
-    !Output function for a position history matrix.
-    !
-    implicit none
-    real(rp) :: temp(:,:)
-    integer :: i,j, openstatus
-    integer :: bpm
-    character(30) :: filename
-    character(6) ::  name
-
-    filename = "./data/" // trim(name) // ".out"
-
-!    call wls
-
-    open (unit = 27, file = trim(filename), &
-         action = "write", position = "rewind",&
-         iostat = openstatus)
-    if (openstatus > 0) print *, "*** Cannot open output file ***",&
-         openstatus
-    do i=1, NUM_BPMS
-       write(27,*) "BPM# ", i
-       do j=1, NUM_TURNS
-          write (27,*) temp(j,i), temp(j, 2*i)
-       enddo
-    enddo
-  end subroutine out
+!!$  subroutine regen(data)
+!!$    !
+!!$    !Should regenerate data file read in...doesn't quite work.
+!!$    !
+!!$    type(data_set) data
+!!$    real(rp), allocatable :: temp(:,:), tlambda(:,:)
+!!$    integer :: i, j
+!!$
+!!$    allocate(temp(NUM_TURNS, 2*NUM_BPMS))
+!!$    allocate(tlambda(NUM_TURNS, 2*NUM_BPMS))
+!!$
+!!$    do i=1, NUM_TURNS
+!!$       do j=1, 2*NUM_BPMS
+!!$          if(i==j) then
+!!$             tlambda(i,j) = sqrt(data%lambda(i))
+!!$          else
+!!$             tlambda(i,j) = 0.
+!!$          endif
+!!$          temp(i,j) = 0.
+!!$       enddo
+!!$    enddo
+!!$
+!!$    temp = matmul(tlambda, data%pi_mat)
+!!$    temp = matmul(data%tau_mat, temp)
+!!$
+!!$    call out(temp, "regen ")
+!!$    deallocate(temp)
+!!$    deallocate (tlambda)
+!!$
+!!$  end subroutine regen
+!!$
+!!$  subroutine wls()
+!!$    !
+!!$    !Matrix svd and regeneration experiment by Willard Louis Sigma
+!!$    !
+!!$    INTEGER i,j
+!!$    INTEGER, PARAMETER :: M=2,N=3
+!!$
+!!$    REAL(rp) :: a(M,N) = RESHAPE((/1.0,4.0,2.0,5.0,3.0,6.0/),(/M,N/))
+!!$    REAL(rp) :: b(N,M) = RESHAPE((/1.0,2.0,3.0,4.0,5.0,6.0/),(/N,M/))
+!!$    REAL(rp) :: c(M,M)
+!!$    REAL(rp) :: e(M,M)    
+!!$    real(rp) :: lam(M,M)
+!!$    REAL(rp) :: d(M,M) = RESHAPE((/1.0,5.0,2.0,7.0/),(/M,M/))
+!!$    REAL(rp) :: tau(M,M), lambda(M), pi(M,M)
+!!$
+!!$    write(*,*) 'Matrix [a]'
+!!$    do i=1,M
+!!$       write(*,1000) (a(i,j),j=1,N)
+!!$    enddo
+!!$    write(*,*)
+!!$
+!!$    write(*,*) 'Matrix [b]'
+!!$    do i=1,N
+!!$       write(*,1000) (b(i,j),j=1,M)
+!!$    enddo
+!!$    write(*,*)
+!!$
+!!$    write(*,*) 'Matrix [d]'
+!!$    do i=1,M
+!!$       write(*,1000) (d(i,j),j=1,M)
+!!$    enddo
+!!$    write(*,*) 
+!!$
+!!$    c = matmul(a, b)
+!!$    write(*,*) 'Matrix [c] = [a] x [b]'
+!!$    do i = 1,M
+!!$       write(*,1000) (c(i,j),j=1,M)
+!!$    enddo
+!!$
+!!$    e = matmul(c, d)
+!!$    write(*,*) 'Matrix [e] = [c] x [d]'
+!!$    do i = 1,M
+!!$       write(*,1000) (e(i,j),j=1,M)
+!!$    enddo
+!!$
+!!$    tau = e
+!!$    call svdcmp(tau, lambda, pi)
+!!$    write(*,*) 'tau'
+!!$    do i = 1,M
+!!$       write(*,1000) (tau(i,j),j=1,M)
+!!$    enddo
+!!$    write(*,*) 'Lambda'
+!!$    do i = 1,M
+!!$       write(*,1000) (lambda(i))
+!!$    enddo
+!!$    write(*,*) 'pi'
+!!$    do i = 1,M
+!!$       write(*,1000) (pi(i,j),j=1,M)
+!!$    enddo
+!!$
+!!$    lam = RESHAPE((/0.0,0.0,0.0,0.0/),(/M,M/))
+!!$    lam(1,1) = lambda(1)
+!!$    lam(2,2) = lambda(2)
+!!$    e = matmul(lam, pi)
+!!$    e = matmul(tau, e)
+!!$    write(*,*) 'Matrix [e] = [c] x [d]'
+!!$    do i = 1,M
+!!$       write(*,1000) (e(i,j),j=1,M)
+!!$    enddo
+!!$
+!!$1000 FORMAT(1x,1P10E14.6)
+!!$  end subroutine wls
+!!$
+!!$  subroutine out(temp, name)
+!!$    !
+!!$    !Output function for a position history matrix.
+!!$    !
+!!$    implicit none
+!!$    real(rp) :: temp(:,:)
+!!$    integer :: i,j, openstatus
+!!$    integer :: bpm
+!!$    character(30) :: filename
+!!$    character(6) ::  name
+!!$
+!!$    filename = "./data/" // trim(name) // ".out"
+!!$
+!!$!    call wls
+!!$
+!!$    open (unit = 27, file = trim(filename), &
+!!$         action = "write", position = "rewind",&
+!!$         iostat = openstatus)
+!!$    if (openstatus > 0) print *, "*** Cannot open output file ***",&
+!!$         openstatus
+!!$    do i=1, NUM_BPMS
+!!$       write(27,*) "BPM# ", i
+!!$       do j=1, NUM_TURNS
+!!$          write (27,*) temp(j,i), temp(j, 2*i)
+!!$       enddo
+!!$    enddo
+!!$  end subroutine out
 
 end module mia_matrixops
