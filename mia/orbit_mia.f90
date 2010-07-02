@@ -30,7 +30,7 @@ contains
          numWest
     real(rp) ::  sum_a, sum_b     !Sum of phase advances (phi) for A, B     
     integer :: east, west, bpm, n_bpm_e
-
+    real(rp) :: dS
 
     do n_bpm = 1, NUM_BPMS
 
@@ -45,6 +45,26 @@ contains
                data_struc%col_b_p, &
                data_struc%col_b_n,count, n_bpm)
        ENDDO
+!!$       If (n_bpm == 10 .or. n_bpm == 11) then
+!!$          Print *, data_struc%proc(n_bpm)%label
+!!$          Print *, "numer:", data_struc%loc(n_bpm)%a%numer(1), &
+!!$               data_struc%loc(n_bpm)%b%numer(2)
+!!$          Print *, "denom:", data_struc%loc(n_bpm)%a%denom(1),&
+!!$               data_struc%loc(n_bpm)%b%denom(2)
+!!$
+!!$          Print *, data(data_struc%set_num_a)%lambda(data_struc%col_a_p), &
+!!$               data(data_struc%set_num_a)%pi_mat(2*n_bpm-1, data_struc%col_a_p)
+!!$          Print *, data(data_struc%set_num_a)%lambda(data_struc%col_a_n), &
+!!$               data(data_struc%set_num_a)%pi_mat(2*n_bpm-1, data_struc%col_a_n)
+!!$
+!!$          Print *, data(data_struc%set_num_b)%lambda(data_struc%col_b_p), &
+!!$               data(data_struc%set_num_b)%pi_mat(2*n_bpm, data_struc%col_b_p)
+!!$          Print *, data(data_struc%set_num_b)%lambda(data_struc%col_b_n), &
+!!$               data(data_struc%set_num_b)%pi_mat(2*n_bpm, data_struc%col_b_n)
+!!$
+!!$          Print *, ""
+!!$       endif
+
     end do
 
     !
@@ -69,52 +89,36 @@ contains
     data_struc%loc(west)%b%d_phase_adv = 0.
     data_struc%loc(west)%a%gam2_beta_ratio = 1.0
     data_struc%loc(west)%b%gam2_beta_ratio = 1.0
-
-!    call phase_adv(data_struc%loc(east)%a, data_struc%loc(west)%a, 1)
-!    call phase_adv(data_struc%loc(east)%b, data_struc%loc(west)%b, 2) 
-
-!    data_struc%loc(east)%a%d_phase_adv = &
-!         mod((data_struc%loc(east)%a%d_phase_adv - &
-!         data_struc%phi_t(1))+7.0*pi, 2.0*pi) -pi
-!    data_struc%loc(east)%b%d_phase_adv = &
-!         mod((data_struc%loc(east)%b%d_phase_adv - &
-!         data_struc%phi_t(2)+7.0*pi),2.0*pi) - pi
-
-    !BPMs must be in clockwise order (first BPM is west, last BPM is east)
-    !Gives an error if they are not.
-!    if (data_struc%proc(1)%is_west) then
-       do n_bpm = 2, NUM_BPMS
-          !Calculate phase advance clockwise around the ring (skipping 0W):
-!          if (data_struc%proc(n_bpm)%is_west) then 
-
-             call phase_adv(data_struc%loc(n_bpm)%a, &
-                  data_struc%loc(n_bpm-1)%a, 1, &
-                  (data_struc%proc(n_bpm)%sPos - data_struc%proc(n_bpm-1)%sPos))
+    !dS is the physical distance between the first and last detectors
+    !The first term is the total length of the machine (freq is in kHz)
+    dS = ( 3e8/FREQ/1000) - data_struc%proc(east)%sPos + &
+         data_struc%proc(west)%sPos
+    print *, "dS: ", dS
 
 
-             call phase_adv(data_struc%loc(n_bpm)%b, &
-                  data_struc%loc(n_bpm-1)%b, 2, &
-                  (data_struc%proc(n_bpm)%sPos - data_struc%proc(n_bpm-1)%sPos))
- !         else
-             !Calculate phase counterclockwise for east BPMs (skipping 0E):
-  !           if (.not. data_struc%proc(NUM_BPMS)%is_west) then
-   !             do n_bpm_e = NUM_BPMS-1, n_bpm, -1
-    !               call phase_adv(data_struc%loc(n_bpm_e)%a, &
-     !                   data_struc%loc(n_bpm_e+1)%a, 1)
-      !             call phase_adv(data_struc%loc(n_bpm_e)%b, &
-       !                 data_struc%loc(n_bpm_e+1)%b, 2)
-        !        enddo
+    call phase_adv(data_struc%loc(east)%a, data_struc%loc(west)%a, 1, dS)
+    call phase_adv(data_struc%loc(east)%b, data_struc%loc(west)%b, 2, dS) 
+print *, "phase A initial: ", data_struc%loc(east)%a%d_phase_adv, "B: ", data_struc%loc(east)%b%d_phase_adv
 
-         !       Exit
-          !   else
-         !print *, "ERROR: Found BPMs that are not east, but last BPM is west."
-           !  endif
-         ! end if
-          end do
-!    else
-!       Print *, "***BPMs do not start in the west.***"
-!    endif
-    
+    data_struc%loc(east)%a%d_phase_adv = &
+         mod((data_struc%loc(east)%a%d_phase_adv - &
+         data_struc%phi_t(1))+7.0*pi, 2.0*pi) -pi
+    data_struc%loc(east)%b%d_phase_adv = &
+         mod((data_struc%loc(east)%b%d_phase_adv - &
+         data_struc%phi_t(2)+7.0*pi),2.0*pi) - pi
+    print *, "phase A: ", data_struc%loc(east)%a%d_phase_adv, "B: ", data_struc%loc(east)%b%d_phase_adv
+
+    do n_bpm = 2, NUM_BPMS
+
+       call phase_adv(data_struc%loc(n_bpm)%a, &
+            data_struc%loc(n_bpm-1)%a, 1, &
+            (data_struc%proc(n_bpm)%sPos - data_struc%proc(n_bpm-1)%sPos))
+       
+       call phase_adv(data_struc%loc(n_bpm)%b, &
+            data_struc%loc(n_bpm-1)%b, 2, &
+            (data_struc%proc(n_bpm)%sPos - data_struc%proc(n_bpm-1)%sPos))
+    end do
+   
     sum_a = 0.0
     sum_b = 0.0
     !Assigns phi by summing delta phase advances
@@ -211,6 +215,7 @@ contains
     twiss%ratio(count) = twiss%numer(count)/ twiss%denom(count)
     twiss%magnitude2(count) = twiss%numer(count)**2 + twiss%denom(count)**2
   
+
   end subroutine pi_calc
 
 
@@ -259,42 +264,6 @@ contains
 
   end subroutine d_delta
 
-!!$  subroutine phase_adv(twiss, twiss_old, sPos, sPos_old)
-!!$    !
-!!$    !Finds phase advance and gamma^2 beta ratio (both pg 15)
-!!$    !
-!!$    type(processor_analysis) twiss, & !Location of this numer, denom
-!!$         twiss_old                  !Location of previous number, denom
-!!$    INTEGER :: a,b                !Counter (1 for A, 2 for B mode)
-!!$    real(rp) :: sPos, sPos_old, dSPos
-!!$    a = 1
-!!$    b = 2
-!!$
-!!$    dSPos = sPos - sPos_old
-!!$    if (dSpos > 8) then
-!!$       Print *, "dSPos: ", dSPos
-!!$    end if
-!!$    !Mod function maps d_phase_advance from -pi to +pi
-!!$    twiss%a%d_phase_adv =  &
-!!$         abs(mod( atan2(twiss%a%numer(a), twiss%a%denom(a) ) - &
-!!$         atan2(twiss_old%a%numer(a), &
-!!$         twiss_old%a%denom(a)) +7.0 * pi , 2.0 * pi) - pi)
-!!$
-!!$    twiss%b%d_phase_adv =  &
-!!$         abs(mod( atan2(twiss%b%numer(b), twiss%b%denom(b) ) - &
-!!$         atan2(twiss_old%b%numer(b), &
-!!$         twiss_old%b%denom(b)) +7.0 * pi , 2.0 * pi) - pi)
-!!$
-!!$
-!!$    twiss%a%gam2_beta_ratio =  &
-!!$         twiss_old%a%magnitude2(a) / twiss%a%magnitude2(a)
-!!$
-!!$    twiss%b%gam2_beta_ratio =  &
-!!$         twiss_old%b%magnitude2(b) / twiss%b%magnitude2(b)
-!!$
-!!$
-!!$  end subroutine phase_adv
-
   subroutine phase_adv(twiss, twiss_old, count, dSPos)
     !
     !Finds phase advance and gamma^2 beta ratio (both pg 15)
@@ -305,25 +274,55 @@ contains
     real(rp) :: dSPos, dSMax
     integer :: piFactor
 
+
     !Approximate length scale for a phase advance equal to pi for A & B modes
     !Accounts for large gaps between detectors where the phase advance is greater than pi
     !***Disabled for now
-    dSMax = data_struc%intTune(count)*pi
+!    dSMax = data_struc%intTune(count)*pi
 
+!    piFactor = Floor(dSPos / dSMax)
 
-    piFactor = Floor(dSPos / dSMax)
+!    if (piFactor > 0) then
+!       Print *, "dS:", dSPos, " factor: ", piFactor
+!    end if
 
-    if (piFactor > 0) then
-       Print *, "dS:", dSPos, " factor: ", piFactor
-    end if
-       
+    twiss%d_phase_adv =  &
+         mod( atan2(twiss%numer(count), twiss%denom(count) ) - &
+         atan2(twiss_old%numer(count), twiss_old%denom(count)) + 7.0*pi, 2.0*pi)-pi
+
+!    if (twiss%d_phase_adv < 0) then
+!       twiss%d_phase_adv = twiss%d_phase_adv + pi
+!       Print *, "Numer 2: ", twiss%numer(count), " 1: ", twiss_old%numer(count)
+!       Print *, "Denom 2: ", twiss%denom(count), " 1: ", twiss_old%denom(count)
+!       Print *, "---------"
+!       Print *, atan2(twiss%numer(count),twiss%denom(count)), " - ", &
+!            atan2(twiss_old%numer(count),twiss_old%denom(count))
+!       Print *, atan2(twiss%numer(count),twiss%denom(count)) - &
+!            atan2(twiss_old%numer(count),twiss_old%denom(count))
+!       Print *, twiss%d_phase_adv
+
+!       if (atan2(twiss_old%numer(count),twiss_old%denom(count)) < &
+!            atan2(twiss%numer(count),twiss%denom(count))) then
+!          Print *,"    ", atan2(twiss%numer(count),twiss%denom(count)) - &
+!               (pi + atan2(twiss_old%numer(count),twiss_old%denom(count)))
+!       end if
+!    end if
+
+!    if (twiss%d_phase_adv < 0) then
+!       twiss%d_phase_adv =  &
+!            mod( atan2(twiss%denom(count), twiss%numer(count) ) - &
+!            atan2(twiss_old%denom(count), twiss_old%numer(count)) + 7.0*pi, 2.0*pi)-pi
+!    else 
+!       twiss%d_phase_adv = pi - twiss%d_phase_adv 
+!    end if
 
     !Mod function maps d_phase_advance from -pi to +pi
-    twiss%d_phase_adv =  &
-         abs(mod( atan2(twiss%numer(count), twiss%denom(count) ) - &
-         atan2(twiss_old%numer(count), &
-         twiss_old%denom(count)) +7.0 * pi , 2.0 * pi) - pi) !&
-!         + piFactor * pi
+ !   twiss%d_phase_adv =  &
+ !        abs(mod( atan2(twiss%numer(count), twiss%denom(count) ) - &
+ !        atan2(twiss_old%numer(count), twiss_old%denom(count)) &
+ !        +7.0 * pi , 2.0 * pi) - pi) !&
+ !        + piFactor * pi
+
 
     twiss%gam2_beta_ratio =  &
          twiss_old%magnitude2(count) / twiss%magnitude2(count)
@@ -364,9 +363,6 @@ contains
     !Second BPM:
     ring2%beta = bpm_pairs(i)%length / &
          sin(ring2%d_phase_adv) * sqrt(1/ring2%gam2_beta_ratio)
-    if (.not. ring%beta == ring%beta) then
-       Print *, "Error at beta"
-    end if
   end subroutine ring_beta
 
   subroutine alpha(twiss, d_phase_adv, i, q)
@@ -598,8 +594,9 @@ contains
                ring_p(q)%loc%gamma**2 / ring_p(q)%loc%a%beta)
 
           j_amp_b(q) = 1. * &
-               (ring_p(q)%loc%b%magnitude2(2) / &
-               ring_p(q)%loc%gamma**2 / ring_p(q)%loc%b%beta)
+               ring_p(q)%loc%b%magnitude2(2) / &
+               (ring_p(q)%loc%gamma**2 * ring_p(q)%loc%b%beta)
+Print *, "j_amp a: ", j_amp_a(q), " b: ", j_amp_b(q)
 
        enddo    !End calculations for BPMs 1, 2 (using q)
 
@@ -693,7 +690,7 @@ contains
 
 
 !***This line temporarily disables second BPM pair--should not be a permanent feature!
-n_ring = 1
+!n_ring = 1
 !To ignore data from a bpm pair, change parameters for ik.
     do ik = 1, n_ring
        do jm = 1, NUM_BPMS
@@ -826,11 +823,11 @@ n_ring = 1
        if (openstatus > 0) print *, "*** Cannot open output file ***",&
             openstatus
 !*For easy analysis of beta/cbar error with a plethora of files:
-!*      open (unit = 29, file = "./data/out.beta", &
-!            action = "write", position = "rewind",&
-!            iostat = openstatus)
-!       if (openstatus > 0) print *, "*** Cannot open output file ***",&
-!            openstatus
+      open (unit = 29, file = "./data/beta.out", &
+            action = "write", position = "rewind",&
+            iostat = openstatus)
+       if (openstatus > 0) print *, "*** Cannot open output file ***",&
+            openstatus
 !       open (unit = 31, file = "./data/out.cbar", &
 !            action = "write", position = "rewind",&
 !            iostat = openstatus)
@@ -850,7 +847,7 @@ n_ring = 1
 
 
 9   format(1x,a5,a1,2x, f11.7, a3, f11.7, a7, 5x, f11.7, a3, f11.7)
-!11  format(5x, f11.7, a2,2x, f11.7)
+47  format(5x, f11.7, a2,2x, f11.7)
 11  format(2x,a5,a1,2x, f11.7, a2,2x, f11.7)
 12  format(3(4x, a8, 7x))
 13  format(5x, e14.7, a2,2x, e14.7)
@@ -868,16 +865,20 @@ n_ring = 1
     write (27, *), "Tune B: ", data_struc%tune(2)
     write (27, *), "Phi(t) A = ", data_struc%phi_t(1)
     write (27, *), "Phi(t) B = ", data_struc%phi_t(2)
-    !Probably don't want lambda in final output...
-!    write (27, *), " Values of Lambda"
+    write (27, *), " Values of Lambda"
+!Might want to start beta file with J_amp instead of tune
+    write (29,"(4x, a22)") "<J>"
+    write (29, 13) data_struc%j_amp_ave(1),",", &
+         data_struc%j_amp_ave(2)
+!
 !*    write (29, *) "Tune A: ", data_struc%tune(1)
 !   write (29, *), "Tune B: ", data_struc%tune(2)
 !   write (31, *) "Tune A: ", data_struc%tune(1)
 !*   write (31, *), "Tune B: ", data_struc%tune(2)
 
-!    do i=1, 2*NUM_BPMS
-!       write (27, *), data(1)%lambda(i), " , ", data(2)%lambda(i)
-!    enddo
+    do i=1, 2*NUM_BPMS
+       write (27, *), data(1)%lambda(i), " , ", data(2)%lambda(i)
+    enddo
 
     do i=1, n_pairs
        do j=1, 2
@@ -917,11 +918,11 @@ n_ring = 1
             data_struc%loc(i)%b%gam2_beta
     enddo
 
-!*    write (29,"(10x, a12)") "Gamma^2 Beta"
-!    do i = 1, NUM_BPMS
-!       write (29,11) data_struc%loc(i)%a%gam2_beta, ",", &
-!            data_struc%loc(i)%b%gam2_beta
-!*    enddo
+    write (29,"(10x, a12)") "Gamma^2 Beta"
+    do i = 1, NUM_BPMS
+       write (29,47) data_struc%loc(i)%a%gam2_beta, ",", &
+            data_struc%loc(i)%b%gam2_beta
+    enddo
 
     write (27,"(20x, a15)") "1/gamma * Cbar"
     write (27,12) "(1,1)", "(1,2)", "(2,2)"
@@ -949,32 +950,57 @@ n_ring = 1
 
 
     close(27)
-!*    close(29)
+    close(29)
 !*    close(31)
 
   end subroutine output
 
-  subroutine piOut(data)
-
-    type(data_set) :: data
+  subroutine fftOut(data)
+    !
+    !Outputs fft information to a file
+    !
+    type(data_set) :: data(*)
     integer :: i,j
 
 
-    open (unit = 29, file = "./data/pi.out", &
+    open (unit = 9, file = "./data/fft-a.dat", &
          action = "write", position = "rewind")
 
-    do i=1, 8
-       do j=1, 2*NUM_BPMS
+    !*Only outputs half; to get all columns change limit to 2*NUM_BPMS
+    do i=1, NUM_BPMS
+       write(9,*), "Column ", i
+       do j=1, NUM_TURNS
 
-          write (29,*) data%pi_mat(j,i)
+          write (9,*) j,"  ,  ",  data(1)%spectrum(j,i)
 
        end do
-       write (29,*) ""
-       write (29,*) ""
-       write (29,*) ""
+       write (9,*) ""
+       write (9,*) ""
+       write (9,*) ""
 
     end do
-  end subroutine piOut
+    close(9)
+
+    open (unit = 19, file = "./data/fft-b.dat", &
+         action = "write", position = "rewind")
+
+    !*Only outputs half; to get all columns change limit to 2*NUM_BPMS
+    do i=1, NUM_BPMS
+       write(19,*), "Column ", i
+       do j=1, NUM_TURNS
+
+          write (19,*) j,"  ,  ", data(2)%spectrum(j,i)
+
+       end do
+       write (19,*) ""
+       write (19,*) ""
+       write (19,*) ""
+
+    end do
+ 
+    close(19)
+
+  end subroutine fftOut
 
   subroutine cesrv_out()
     real(rp), allocatable :: cbar_11(:), cbar_12(:),cbar_22(:)
@@ -1005,25 +1031,11 @@ n_ring = 1
          iostat = openstatus)
     if (openstatus > 0) print *, "*** Cannot open output file ***",&
          openstatus
-
-!!$    do i=1, bpm_pairs(1)%number
-!!$       bpm1 = bpm_pairs(i)%bpm_pntr(1)
-!!$       bpm2 = bpm_pairs(i)%bpm_pntr(2)
-!!$
-!!$       cbar_11(2*i-1) = data_struc%loc(bpm1)%cbar(1,1)
-!!$       cbar_11(2*i) = data_struc%loc(bpm2)%cbar(1,1)
-!!$       cbar_12(2*i-1) = data_struc%loc(bpm1)%cbar(1,2)
-!!$       cbar_12(2*i) = data_struc%loc(bpm2)%cbar(1,2)
-!!$       cbar_22(2*i-1) = data_struc%loc(bpm1)%cbar(2,2)
-!!$       cbar_22(2*i) = data_struc%loc(bpm2)%cbar(2,2)
-!!$
-!!$       driftSpaces(2*i-1) = bpm1
-!!$       driftSpaces(2*i) = bpm2
-!!$    end do
-    
+   
     write (cesrv,*) "&DATA_PARAMETERS"
     write (cesrv,*) "  file_type = 'ALL DATA'"
-    write (cesrv,*) "  lattice = 'CTA_2085MEV_20090516'"
+!    write (cesrv,*) "  lattice = 'CTA_2085MEV_20090516'"
+    write (cesrv,*) "  lattice = 'CHESS_20090225'"
     write (cesrv,*) "  comment = ", "'MIA'"
     write (cesrv,*) "/"
     Write (cesrv,*) ""
@@ -1045,8 +1057,8 @@ n_ring = 1
     end do
 
 !Added arbitrary phase offset for comparison with CESRV--remove these later
-    writeMe(1,:) = data_struc%loc(:)%a%phi! + 10.170934
-    writeMe(2,:) = data_struc%loc(:)%b%phi! + 5.67828014
+    writeMe(1,:) = data_struc%loc(:)%a%phi +0.88226148
+    writeMe(2,:) = data_struc%loc(:)%b%phi +0.14484130
 
     call writeArray(eleNum, writeMe, "phase")
     writeMe(1,:) = data_struc%loc(:)%a%gam2_beta
@@ -1054,7 +1066,6 @@ n_ring = 1
     call writeArray(eleNum, writeMe, "beta")
 
     writeMe(1,:) = data_struc%loc(:)%inv_gamma_cbar(1,1)
-!    call writeVector(driftSpaces, cbar_11, "cbar11")
     call writeVector(eleNum, writeMe(1,:), "cbar11")
     writeMe(1,:) = data_struc%loc(:)%inv_gamma_cbar(1,2)
     call writeVector(eleNum, writeMe(1,:), "cbar12")

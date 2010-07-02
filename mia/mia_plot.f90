@@ -397,7 +397,7 @@ B_file = 2
 !          tempTitle = trim(titl(graph))
           call min_max_y(ycoord(graph,:), miny, maxy, ycoord(graph,:),&
                arr_length)
-          if (sPoss) then
+          if (sPoss .and. .not. noSPos) then
              call sortsPos(xcoord, ycoord(graph,:))
           end if
           xmin = minval(xcoord)
@@ -406,11 +406,11 @@ B_file = 2
           !Draws a single graph
           call qp_save_state(.true.)
           call qp_set_box (ix, iy, ix_tot, iy_tot)
-          call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
+          call qp_set_symbol_attrib (star5_filled_sym$, height = 5.0_rp)
           call qp_set_axis ("X", xmin, xmax, div=xdiv)
           call qp_calc_and_set_axis("Y", miny, maxy, 4, 6, "GENERAL")
           call qp_draw_graph (xcoord,ycoord(graph,:),title=titl(graph))
-          if (sPoss) then
+          if (sPoss .and. .not. noSPos) then
              !Line at IP (s=0):
              call qp_draw_line(0.0_rp,0.0_rp, miny,maxy,width=5, color = 2,&
                   style=4)
@@ -589,7 +589,7 @@ B_file = 2
                miny, maxy, ycoord(:), arr_length)
           write(titl,45)
        end if
-       if (sPoss) then
+       if (sPoss .and. .not. noSPos) then
           call sortsPos(xcoord, ycoord)
        else
           xcoord = b(1:NUM_BPMS)
@@ -600,7 +600,7 @@ B_file = 2
        !Draws graph
        call qp_save_state(.true.)
        call qp_set_box (ix, iy, ix_tot, iy_tot)
-       call qp_set_symbol_attrib (star5_filled$, height = 5.0_rp)
+       call qp_set_symbol_attrib (star5_filled_sym$, height = 5.0_rp)
        call qp_set_axis ("X", xmin, xmax, div = xdiv)
        call qp_calc_and_set_axis("Y", miny, maxy, &
             4, 6, "GENERAL")

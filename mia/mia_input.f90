@@ -320,6 +320,25 @@ contains
   end subroutine read_data
 
 
+  subroutine getLatticeAndTune
+    !
+    !Gets lattice name and integer tunes for the current set of files.
+    !Not required; these are only for the CESRV output file
+    !and to check for phase errors. The integer tune is useful
+    !for MIA to check for large gaps between detectors which may
+    !cause phase errors (if the phase difference is greater than 2*pi
+    !MIA will not have the correct total phase.)
+    !
+
+    !***********
+    !Coming soon!
+    !***********
+
+
+
+  end subroutine getLatticeAndTune
+
+
   subroutine bpm_ops(data,iset, nset, first_run)
     !
     !Calls functions that locate and match BPMs
@@ -331,14 +350,14 @@ contains
     logical :: first_run
  
     call locate_bpm (data(iset))
-    call get_ele_sPos(data(iset),iset)
-
+    !****This is called for both data files--not necessary
     if (iset > 1) then
        if (first_run) then
-          call find_L(nset,data)
+          call findPair(nset,data)
        end if
 
        call match_processors (data)
+       call get_ele_sPos()
     endif
 
   end subroutine bpm_ops
@@ -405,7 +424,7 @@ contains
     !Check for BPM0E and change its number to be different than 0W:
     if (number == 0 .and. &
          .not. isWest) then
-       number = -0.0001
+       number = -0.001
     end if
 
     
@@ -414,7 +433,7 @@ contains
 
 
 
-  subroutine find_L(nset,data)
+  subroutine findPair(nset,data)
 
     !
     !Uses list of bpms from prior subroutine to find l's that are included in 
@@ -429,8 +448,6 @@ contains
     type(data_set) data(*)                !All data
     type(known_spacings), allocatable ::  bpm_old(:)   !BPM data read in
     character (30) :: temp
-    !Placed in different location because
-    !a BPM may not be in use.
 
     !knownl.inp contains a list of BPMs with known spacing.
     !Change to accept different locations for knownl.inp...
@@ -521,22 +538,29 @@ contains
     deallocate (bpm_old)    
     close(2)
 
-  end subroutine find_L
+  end subroutine findPair
 
-  subroutine get_ele_sPos(data,iset)
+  subroutine get_ele_sPos()
     !
     !Reads in a file containing bpms with their s positions and
     !element numbers and matches them with bpms in the input file.
     !
-    type(data_set) :: data    !Data set
     character(7) :: detName
-    integer :: eleNum, openstatus, i, inStat, iset, bpmInt
+    integer :: eleNum, openstatus, i, inStat, bpmInt
     real(rp) :: lastNum
     real(rp) :: sPos, bpmNum
     logical :: continue, theEnd
+
+    noSPos = .false.
+
     open (unit = 273, file = "./data/one_ring.det", &
          status = "old", iostat = openstatus)
-    if (openstatus > 0) Stop "*** Cannot open file one_ring.det ***"
+    if (openstatus > 0) then
+       Print *, "*** Cannot open file one_ring.det ***"
+       Print *, "*** No output file for CESRV will be generated. ***"
+       noSPos = .true.
+       return
+    endif
 
 188 format (1x,a7,5x,f10.6,5x,i3)
 56  format (2x,i2)
@@ -546,11 +570,7 @@ contains
     continue = .true.
 
     do while (continue)
-       !*******************************************
-       !one_ring.det not found =>
-       !sPoss, cesrvOut = .false. Then quit method
-       !*******************************************
-       read (273,188,iostat=inStat) detName, sPos, eleNum
+      read (273,188,iostat=inStat) detName, sPos, eleNum
        if (inStat>0) stop "*** Error reading one_ring.det ***"
        if (inStat < 0) then
           continue = .false.
@@ -590,33 +610,37 @@ contains
        end select
        if (.not. theEnd) then
           do i=1,num_bpms
-             if (data%proc(i)%number == bpmNum) then
-                data%proc(i)%sPos = sPos
-                data%proc(i)%eleNum = eleNum
+             if (data_struc%proc(i)%number == bpmNum) then
+                data_struc%proc(i)%sPos = sPos
+                data_struc%proc(i)%eleNum = eleNum
              end if
           end do
        end if
 
     end do
 
-    call check_sPos(data)
+    call check_sPos()
 
   end subroutine get_ele_sPos
 
-  subroutine check_sPos(data)
-
-    type(data_set) :: data
+  subroutine check_sPos()
+    !
+    !Looks for detectors whose position and element # were not found by
+    !the get_ele_sPos subroutine. Position is only used for plotting,
+    !so if a BPM is not found its position is approximated as being
+    !halfway between the two adjacent detectors. The element number
+    !passed to CESRV will be 0.
+    !
     integer :: i
 
     do i=1, NUM_BPMS
-       if (data%proc(i)%sPos == -999) then
+       if (data_struc%proc(i)%sPos == -999) then
           Print *, "Position and element number not found for detector ", &
-               data%proc(i)%label
-          Print *,"Setting element number to 0 and approximating position."
+               data_struc%proc(i)%label
           if (i>1) then
-             data%proc(i)%eleNum = 0
-             data%proc(i)%sPos = (data%proc(i-1)%sPos - &
-                  data%proc(i+1)%sPos) / 2.0
+             data_struc%proc(i)%eleNum = 0
+             data_struc%proc(i)%sPos = (data_struc%proc(i-1)%sPos - &
+                  data_struc%proc(i+1)%sPos) / 2.0
           end if
        end if
     end do
@@ -632,7 +656,7 @@ contains
     !
 
     integer :: nbpm,&            !BPM number
-         n_file_1, n_file_2, &   !File counters?
+         n_file_1, n_file_2, &   !Counters for # of BPMs in each file
          i                       !counter
     type(data_set) :: data(*)    !Data set
 
@@ -655,18 +679,22 @@ contains
                 n_file_1 = n_file_1 + 1 	
                 n_file_2 = i + 1
                 nbpm = nbpm + 1
-                go to 100
+                cycle
              end if
           end do
           n_file_1 = n_file_1 + 1
        end if
-100    continue 
     end do
 
 
     if (data(1)%bpmproc /= nbpm - 1) then
        print *, "Number of Processors don't match; Mode not supported"
        stop
+    else
+       do i=1, data(1)%bpmproc
+          data_struc%proc(i)%label = data(1)%proc(i)%label
+          data_struc%proc(i)%number = data(1)%proc(i)%number
+       end do
     end if
 
   end subroutine match_processors
