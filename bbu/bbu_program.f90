@@ -109,6 +109,15 @@ if (bbu_param%nrep.gt.1)then
   open (55, file = 'rep.out', status = 'unknown')
 endif
 
+! Open file for stable orbit analysis data
+if (bbu_param%stable_orbit_anal.eq..true.)then
+  write(6,'(a,i10,a)')&
+        ' Opening output file for stable orbit analysis'
+  open (56, file = 'stable_orbit.out', status = 'unknown')
+! Write number of repetitions and nr wake elements
+  write(56,'(2i10)'),bbu_param%nrep,size(bbu_beam%stage)
+endif
+
 !-------------------------------------------------------
 ! DRSCAN loop. NSTEP=1 if no DRSCAN.
 
@@ -178,9 +187,34 @@ do istep = 1, nstep
   ! Loop over calculation repetitions
   do irep = 1,bbu_param%nrep
 
-  ! Track to find upper limit
+     beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 
-    beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
+    if (bbu_param%stable_orbit_anal) then
+
+      print *,' Analyzing stable orbit for repetition ', irep
+
+      lat = lat0 ! Restore lr wakes
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+
+    ! Print output for stable orbit analysis
+      do i = 1, size(bbu_beam%stage)
+        write(56,'(i10,2(1x,e15.6),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
+                                               bbu_beam%stage(i)%hom_power_max,bbu_beam%stage(i)%n_orb, & 
+                      bbu_beam%stage(i)%ave_orb, bbu_beam%stage(i)%rms_orb, &
+                      bbu_beam%stage(i)%min_orb, bbu_beam%stage(i)%max_orb
+
+      enddo
+
+    ! Re-randomize HOM frequencies
+
+      do i = 1, lat0%n_ele_max
+        call randomize_lr_wake_frequencies (lat0%ele(i))
+      enddo
+! Skip threshold calculation
+      cycle
+
+    endif
+
     charge0 = 0
     charge1 = -1      ! Mark as not set yet 
     charge_old = -1   ! Mark as not set yet 
@@ -199,9 +233,7 @@ do istep = 1, nstep
       endif
     enddo
 
-    ! Track to bracket threshold
-
-    if (.not. bbu_param%stable_orbit_anal) then
+     ! Track to bracket threshold
 
       print *, 'Now converging on the threshold...'
 
@@ -235,11 +267,6 @@ do istep = 1, nstep
           ele%wake%lr(i_lr)%freq_in, ele%wake%lr(i_lr)%freq, ele%wake%lr(i_lr)%r_over_q, &
           ele%wake%lr(i_lr)%q, ele%wake%lr(i_lr)%angle
 
-    else
-      !! print track info
-
-    endif
-
     ! Re-randomize HOM frequencies
 
     do i = 1, lat0%n_ele_max
@@ -254,6 +281,7 @@ enddo  ! End of DRSCAN loop
 
 if (bbu_param%drscan) close(50)
 if (bbu_param%nrep.gt.1)close(55)
+if (bbu_param%stable_orbit_anal.eq..true.)close(56)
 
 call run_timer ('STOP', time)
 print *
