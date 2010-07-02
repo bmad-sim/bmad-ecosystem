@@ -518,7 +518,7 @@ real(rp), allocatable :: value(:)
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
 integer ix, ir, jg, i, j, ix_this
 
-logical err, smooth_curve, found, zero_average_phase, ok, ref_or_meas, valid, in_graph
+logical err, smooth_curve, found, zero_average_phase, ok, straight_line_between_syms, valid, in_graph
 logical, allocatable, save :: good(:)
 
 character(60) data_type
@@ -916,14 +916,14 @@ do k = 1, size(graph%curve)
                    (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
     smooth_curve = smooth_curve .and. curve%smooth_line_calc
 
-    if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) &
-                                                                       smooth_curve = .false.
+    if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
 
-    if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0) then
-      ref_or_meas = .true.
+    if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0 .or. &
+        curve%data_source == 'dat') then
+      straight_line_between_syms = .true.
       smooth_curve = .false.
     else
-      ref_or_meas = .false.
+      straight_line_between_syms = .false.
     endif
 
     if (smooth_curve) then
@@ -962,9 +962,20 @@ do k = 1, size(graph%curve)
       call re_allocate (curve%y_line, n_dat) ! allocate space for the data
       call re_allocate (curve%x_line, n_dat) ! allocate space for the data
 
-    ! For x_axis_type = 's' and non smooth curves: Just evaluate at the element ends.
+    ! For non-smooth curves: Draw straight lines through the symbols if
+    ! the data uses "ref" or "meas" values. Else evaluate at the element ends.
 
-    else if (plot%x_axis_type == 's' .and. .not. ref_or_meas) then
+    else if (straight_line_between_syms) then
+
+      ! allocate space for the data
+      call re_allocate (curve%y_line, n_dat) 
+      call re_allocate (curve%x_line, n_dat) 
+      curve%x_line = curve%x_symb 
+      curve%y_line = curve%y_symb 
+
+    ! Evaluate at element ends
+
+    else
 
       eps = 1e-4 * (graph%x%max - graph%x%min)             ! a small number
       l_tot = branch%param%total_length
@@ -1003,14 +1014,6 @@ do k = 1, size(graph%curve)
         curve%x_line(i) = branch%ele(eles(i)%ele%ix_ele)%s
       enddo
 
-    ! For all else just draw straight lines through the symbols.
-
-    else
-      ! allocate space for the data
-      call re_allocate (curve%y_line, n_dat) 
-      call re_allocate (curve%x_line, n_dat) 
-      curve%x_line = curve%x_symb 
-      curve%y_line = curve%y_symb 
     endif
 
   end select
