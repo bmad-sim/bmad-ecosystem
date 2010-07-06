@@ -115,7 +115,7 @@ if (bbu_param%stable_orbit_anal.eq..true.)then
         ' Opening output file for stable orbit analysis'
   open (56, file = 'stable_orbit.out', status = 'unknown')
 ! Write number of repetitions and nr wake elements
-  write(56,'(2i10)'),bbu_param%nrep,size(bbu_beam%stage)
+!  write(56,'(2i10)'),bbu_param%nrep,size(bbu_beam%stage)
 endif
 
 !-------------------------------------------------------
