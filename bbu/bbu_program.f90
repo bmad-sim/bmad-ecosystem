@@ -198,7 +198,7 @@ do istep = 1, nstep
 
     ! Print output for stable orbit analysis
       do i = 1, size(bbu_beam%stage)
-        write(56,'(i10,2(1x,e15.6),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
+        write(56,'(i10,2(1x,e15.8),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
                                                bbu_beam%stage(i)%hom_power_max,bbu_beam%stage(i)%n_orb, & 
                       bbu_beam%stage(i)%ave_orb, bbu_beam%stage(i)%rms_orb, &
                       bbu_beam%stage(i)%min_orb, bbu_beam%stage(i)%max_orb
