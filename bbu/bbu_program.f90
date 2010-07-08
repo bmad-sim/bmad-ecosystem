@@ -105,14 +105,14 @@ endif
 ! Open file for storing output of repeated threshold calculations
 if (bbu_param%nrep.gt.1)then
   write(6,'(a,i10,a)')&
-        ' Opening output file for',bbu_param%nrep,' repetitions'
+        ' Opening output file REP.OUT for',bbu_param%nrep,' repetitions'
   open (55, file = 'rep.out', status = 'unknown')
 endif
 
 ! Open file for stable orbit analysis data
 if (bbu_param%stable_orbit_anal.eq..true.)then
   write(6,'(a,i10,a)')&
-        ' Opening output file for stable orbit analysis'
+        ' Opening output file STABLE_ORBIT.OUT for stable orbit analysis'
   open (56, file = 'stable_orbit.out', status = 'unknown')
 ! Write number of repetitions and nr wake elements
 !  write(56,'(2i10)'),bbu_param%nrep,size(bbu_beam%stage)
@@ -196,13 +196,17 @@ do istep = 1, nstep
       lat = lat0 ! Restore lr wakes
       call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
 
+      if (lost) then
+        print *, 'Particle(s) lost. Assuming unstable...'
+        exit
+      endif
+
     ! Print output for stable orbit analysis
       do i = 1, size(bbu_beam%stage)
         write(56,'(i10,2(1x,e15.8),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
                                                bbu_beam%stage(i)%hom_power_max,bbu_beam%stage(i)%n_orb, & 
                       bbu_beam%stage(i)%ave_orb, bbu_beam%stage(i)%rms_orb, &
                       bbu_beam%stage(i)%min_orb, bbu_beam%stage(i)%max_orb
-
       enddo
 
     ! Re-randomize HOM frequencies

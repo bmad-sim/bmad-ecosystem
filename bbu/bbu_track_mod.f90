@@ -244,7 +244,7 @@ do
       if (bbu_beam%stage(i)%n_orb == 0) cycle
       bbu_beam%stage(i)%ave_orb  = bbu_beam%stage(i)%ave_orb / bbu_beam%stage(i)%n_orb 
       bbu_beam%stage(i)%rms_orb  = sqrt(bbu_beam%stage(i)%rms_orb/bbu_beam%stage(i)%n_orb - &
-                                                                          bbu_beam%stage(i)%ave_orb**2)
+                                                                        bbu_beam%stage(i)%ave_orb**2)
     enddo
 
     if (n_period == 3) then
@@ -257,6 +257,8 @@ do
       if (.not. bbu_param%stable_orbit_anal) then
         if (hom_power_gain < 1/bbu_param%limit_factor) exit
         if (hom_power_gain > bbu_param%limit_factor) exit      
+      else
+        write(56,'(i10,e15.6,1x,e15.6)')n_period,hom_power_sum,hom_power_gain
       endif
     endif
 
