@@ -128,8 +128,12 @@ if (bbu_param%stable_orbit_anal.eq..true.)then
   write(6,'(a,i10,a)')&
         ' Opening output file STABLE_ORBIT.OUT for stable orbit analysis'
   open (56, file = 'stable_orbit.out', status = 'unknown')
-! Write number of repetitions and nr wake elements
-!  write(56,'(2i10)'),bbu_param%nrep,size(bbu_beam%stage)
+
+! Open file for HOM power stability data
+  write(6,'(a,i10,a)')&
+        ' Opening output file HOM_POWER.OUT for stable orbit analysis'
+  open (57, file = 'hom_power.out', status = 'unknown')
+
 endif
 
 !-------------------------------------------------------
@@ -299,7 +303,10 @@ enddo  ! End of DRSCAN loop
 
 if (bbu_param%drscan) close(50)
 if (bbu_param%nrep.gt.1)close(55)
-if (bbu_param%stable_orbit_anal.eq..true.)close(56)
+if (bbu_param%stable_orbit_anal.eq..true.)then
+ close(56)
+ close(57)
+endif
 
 call run_timer ('STOP', time)
 print *
