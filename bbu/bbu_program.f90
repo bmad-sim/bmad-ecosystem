@@ -53,11 +53,25 @@ bbu_param%stable_orbit_anal = .false.
 
 beam_init%n_particle = 1
 
+print *,'================================================================'
+print *,'================         BBU_PROGRAM        ===================='
+print *,'================================================================'
+print *,'Reading input file BBU.INIT'
+print *
+
 open (1, file = 'bbu.init', status = 'old')
 read (1, nml = bbu_params)
 close (1)
 
 if (bbu_param%stable_orbit_anal) bbu_param%nstep = 1
+
+write(*,'(a,f6.1/,a,l/,a,i5/,a,l/)') &
+        ' Maximum number of turns: ',bbu_param%simulation_turns_max, &
+        ' DRSCAN analysis: ', bbu_param%drscan,&
+        ' Number of repetitions: ',bbu_param%nrep,&
+        ' Stable orbit analysis: ',bbu_param%stable_orbit_anal
+
+      
 
 ! Define distance between bunches
 
@@ -198,7 +212,7 @@ do istep = 1, nstep
 
       if (lost) then
         print *, 'Particle(s) lost. Assuming unstable...'
-        exit
+        cycle
       endif
 
     ! Print output for stable orbit analysis
