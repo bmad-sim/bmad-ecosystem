@@ -24,12 +24,13 @@ program create_orbit_data
   character*12 label
   character(8) :: labels(140)
   character*3 new_label
-  character*5 file
+  character*80 file
   real(8) gerr, noise
   real(8) :: xamp, yamp
   integer :: numturns
   character*10 :: formt
   character*20 turnschar
+  character*80 :: prefix
 
   logical :: found, err
 
@@ -70,6 +71,9 @@ program create_orbit_data
   print *, "Y shaking amplitude in m: "
   read *, yamp
 
+  Print *, "Prefix for filename: "
+  read *, prefix
+
   ! create a map of desired bpms' element index numbers
   call lat_ele_locator ("marker::det*", lat, eles, n_loc, err)
 
@@ -92,29 +96,32 @@ program create_orbit_data
 
 
   do i1=1,2	! horz then vert
+     if (i1 == 1) then
+        write(file,'(a,a6)') trim(adjustl(prefix)), "-x.dat" 
+     else
+        write(file,'(a,a6)') trim(adjustl(prefix)), "-y.dat" 
+     end if
+     
+     open(unit=21,name=file)
+     write(21,8), bpm_tot
+8    format(1x/28x,i3)
+     
+     ! Set starting amplitude
+     if(i1==1) then
+        coord_by_turn(1,0)%vec(1:6) = 0
+        coord_by_turn(1,0)%vec(1) = xamp
+     else
+        coord_by_turn(1,0)%vec(:) = 0
+        coord_by_turn(1,0)%vec(3) = yamp
+     endif
+     orb(0:) = coord_by_turn(1,0:)
 
-    write(file,6) i1
-6   format(i1,".")
-    open(unit=21,name=file,type="new")
-    write(21,8), bpm_tot
-8   format(1x/28x,i3)
-
-    ! Set starting amplitude
-    if(i1==1) then
-      coord_by_turn(1,0)%vec(1:6) = 0
-      coord_by_turn(1,0)%vec(1) = xamp
-    else
-      coord_by_turn(1,0)%vec(:) = 0
-      coord_by_turn(1,0)%vec(3) = yamp
-    endif
-    orb(0:) = coord_by_turn(1,0:)
-
-    ! track through turns
-    do iturn = 1, numturns
-      call track_all(lat, orb)
-      coord_by_turn(iturn,0:) = orb(0:)
-      orb(0) = orb(lat%n_ele_track)
-    enddo
+     ! track through turns
+     do iturn = 1, numturns
+        call track_all(lat, orb)
+        coord_by_turn(iturn,0:) = orb(0:)
+        orb(0) = orb(lat%n_ele_track)
+     enddo
 !    call track(t,x, numturns)
 
 
@@ -130,7 +137,8 @@ program create_orbit_data
       do af=1, 32
         write (21, *) "x"
       end do
-12    format (2x,a9, 11x, a)
+      write (21, *) "# --- Bunch 1 ---"
+12    format (2x,a9, 6x, a)
       do iturn = 1, numturns  ! turn number
 
         do k = 1, 2
