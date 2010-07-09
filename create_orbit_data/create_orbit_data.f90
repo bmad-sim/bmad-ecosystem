@@ -10,6 +10,8 @@ program create_orbit_data
   use cesr_basic_mod
   use precision_def
   use nr
+use sim_utils
+
 
   implicit none
 
@@ -142,7 +144,8 @@ program create_orbit_data
       do iturn = 1, numturns  ! turn number
 
         do k = 1, 2
-          call gasdev_s(gerr)
+!          call gasdev_s(gerr)
+          call ran_gauss(gerr)
           coord_by_turn(iturn,bpm_ptr)%vec(k*2-1) = &
                coord_by_turn(iturn,bpm_ptr)%vec(k*2-1) + &
                (gerr * noise).   ! m
@@ -168,17 +171,20 @@ end program create_orbit_data
 
 
 subroutine init_random_seed()
+use random_mod
   integer :: i, n, clock
   integer, dimension(:), allocatable :: seed
 
-  call random_seed(size = n)
-  allocate(seed(n))
+  call ran_seed_put(0)
 
-  call system_clock(count=clock)
+!  call random_seed(size = n)
+!  allocate(seed(n))
 
-  seed = clock + 37 * (/ (i - 1, i = 1, n) /)
-  call random_seed(put = seed)
+!  call system_clock(count=clock)
 
-  deallocate(seed)
+!  seed = clock + 37 * (/ (i - 1, i = 1, n) /)
+!  call random_seed(put = seed)
+
+ ! deallocate(seed)
 end subroutine init_random_seed
 
