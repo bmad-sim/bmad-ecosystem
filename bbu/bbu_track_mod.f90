@@ -253,12 +253,15 @@ do
         if (hom_power_gain < 1/bbu_param%limit_factor) exit
         if (hom_power_gain > bbu_param%limit_factor) exit      
       else
-        write(56,'(i10,e15.6,1x,e15.6)')n_period,hom_power_sum,hom_power_gain
+        write(56,'(i10,e13.6,1x,e15.6)')n_period,hom_power_sum,hom_power_gain
       endif
     endif
 
-    print *,' time, current, period, hom_power_sum, hom_power_gain', &
-    bbu_beam%time_now,beam_init%bunch_charge / beam_init%dt_bunch, n_period,hom_power_sum,hom_power_gain
+    write(*,'(a,i3,a,e15.6,5x,a,e15.6/,a,e13.6,5x,a,e13.6)')&
+         ' Period ', n_period,'   Time: ',bbu_beam%time_now, &
+         ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
+         ' Sum of max HOM powers: ', hom_power_sum, &
+         ' HOM power gain factor: ', hom_power_gain
 
     call track_all (lat, orbit)
     max_x = maxval(abs(orbit(1:lat%n_ele_track)%vec(1)))
