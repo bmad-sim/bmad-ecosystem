@@ -729,7 +729,7 @@ in a lattice by name or key type or a combination of both. Example:
   type (ele_pointer_struct), allocatable :: eles(:)
   integer n_loc; logical err
   ...
-  call lat_ele_locator ("quad:skew*", lat, eles, n_loc, err)
+  call lat_ele_locator ("quad::skew*", lat, eles, n_loc, err)
   print *, 'Quadrupole elements whose name begins with the string "SKEW":'
   print *, 'Name                 Branch_index        Element_index'
   do i = 1, n_loc  ! Loop over all elements found to match the search string.
