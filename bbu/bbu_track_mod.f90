@@ -219,24 +219,17 @@ do
   call bbu_track_a_stage (lat, bbu_beam, lost)
   if (lost) exit
 
-  r_period = bbu_beam%time_now / bbu_beam%one_turn_time
-  n_period = int(r_period)
-
   ! If the head bunch is finished then remove it and seed a new one.
 
   if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track) then
     call bbu_remove_head_bunch (bbu_beam)
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
-    if (r_period > bbu_param%simulation_turns_max) then
-      call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
-                                                                          r_array = (/ hom_power_gain /) )
-      exit
-    endif
   endif
 
-  ! Compute integrated power. 
-  ! The baseline hom power is computed over the 2nd period after the offset bunches 
-  ! have passed through the lattice.
+  ! Test for the end of the period
+
+  r_period = bbu_beam%time_now / bbu_beam%one_turn_time
+  n_period = int(r_period)
 
   if (n_period /= n_period_old) then
 
@@ -248,6 +241,8 @@ do
     enddo
 
     if (n_period == 3) then
+    ! The baseline/reference hom power is computed over the 2nd period after the offset bunches 
+    ! have passed through the lattice.
       hom_power0 = hom_power_sum / n_count
       r_period0 = r_period
 
@@ -273,6 +268,14 @@ do
     print *,'      Orbit max and rms  X:',max_x,rms_x, &
             '      -----------------  Y:',max_y,rms_y
 
+    ! Exit loop over periods of max period reached
+
+    if (r_period > bbu_param%simulation_turns_max) then
+      call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
+                            r_array = (/ hom_power_gain /) )
+      exit
+    endif
+
     hom_power_sum = 0
     n_count = 0
     n_period_old = n_period
@@ -285,6 +288,7 @@ do
     enddo
   endif
 
+  ! Compute integrated power. 
   call bbu_hom_power_calc (lat, bbu_beam)
   hom_power_sum = hom_power_sum + bbu_beam%hom_power_max
   n_count = n_count + 1
