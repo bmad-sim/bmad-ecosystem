@@ -253,7 +253,7 @@ do
         if (hom_power_gain < 1/bbu_param%limit_factor) exit
         if (hom_power_gain > bbu_param%limit_factor) exit      
       else
-        write(56,'(i10,e13.6,1x,e15.6)')n_period,hom_power_sum,hom_power_gain
+        write(57,'(i10,e13.6,1x,e15.6)')n_period,hom_power_sum,hom_power_gain
       endif
     endif
 
