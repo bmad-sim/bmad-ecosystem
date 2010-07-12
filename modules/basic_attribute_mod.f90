@@ -346,6 +346,8 @@ do i = 1, n_key
                                    'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                    'B11', 'B12', 'B13', 'B14', 'B15', &
                                    'B16', 'B17', 'B18', 'B19', 'B20' /)
+    if (i == ab_multipole$) cycle
+    attrib_array(i, scale_multipoles$) = 'SCALE_MULTIPOLES'
   end select
 enddo
 
@@ -632,7 +634,6 @@ attrib_array(wiggler$, b_max$)          = 'B_MAX'
 attrib_array(wiggler$, rho$)            = 'RHO'
 attrib_array(wiggler$, n_pole$)         = 'N_POLE'
 attrib_array(wiggler$, tilt$)           = 'TILT'
-attrib_array(wiggler$, radius$)         = 'RADIUS'
 attrib_array(wiggler$, term$)           = 'TERM'
 attrib_array(wiggler$, polarity$)       = 'POLARITY'
 attrib_array(wiggler$, z_patch$)        = 'Z_PATCH'

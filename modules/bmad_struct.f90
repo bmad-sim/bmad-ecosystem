@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 91
+integer, parameter :: bmad_inc_version$ = 92
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -216,8 +216,8 @@ type ele_struct
   real(rp) s                         ! longitudinal position at the exit end.
   real(rp) ref_time                  ! Time ref particle passes exit end.
   real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()        ! multipole
-  real(rp), pointer :: b_pole(:) => null()        ! multipoles
+  real(rp), pointer :: a_pole(:) => null()        ! knl for multipole elements.
+  real(rp), pointer :: b_pole(:) => null()        ! tilt for multipole elements.
   real(rp), pointer :: const(:) => null()         ! Working constants.
   integer key                ! key value
   integer sub_key            ! For wigglers: map_type$, periodic_type$
@@ -247,6 +247,8 @@ type ele_struct
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
+  logical scale_multipoles   ! Are ab_multipoles within other eleemnts (EG: quads, etc.) 
+                             !   scaled by the strength of the element?
   logical map_with_offsets   ! Taylor map calculated with element offsets?
   logical field_master       ! Calculate strength from the field value?
   logical is_on              ! For turning element on/off.
@@ -533,6 +535,7 @@ integer, parameter :: common_lord$    = 99
 integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
+integer, parameter :: scale_multipoles$ = 103
 
 integer, parameter :: a0$  = 110, k0l$  = 110
 integer, parameter :: a20$ = 130, k20l$ = 130
@@ -758,7 +761,7 @@ character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ',
 
 type bmad_common_struct
   real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
-  real(rp) :: d_orb(6)           = 1e-5      ! for the make_mat6_tracking routine.
+  real(rp) :: d_orb(6)           = 1e-5      ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
   real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
   real(rp) :: significant_longitudinal_length = 1e-10 ! meter 

@@ -306,7 +306,7 @@ which are typically slanted towards the inside of a turn.
 
 \index{x_offset_tot|hyperbf}\index{y_offset_tot|hyperbf}\index{s_offset_tot|hyperbf}
 \index{x_pitch_tot|hyperbf}\index{y_pitch_tot|hyperbf}
-index{tilt_tot|hyperbf}
+\index{tilt_tot|hyperbf}
 If an element is supported by a \vn{girder} element (\sref{s:girder}),
 the offsets, pitches and tilt of the element are with respect to the
 orientation of the \vn{girder}. The computed offsets, pitches and tilt with
@@ -546,7 +546,7 @@ have multipole attributes specify the multipoles using normal
 Here \vn{n} ranges from 0
 (dipole component) through 20. Example:
 \begin{example}
-  q1: quadrupole, b0 = 0.12, a20 = 1e7, radius = 0.045
+  q1: ab_multipole, b0 = 0.12, a20 = 1e7
 \end{example}
 
 Multipole formulas for are given in \sref{s:fields}.  Note that for
@@ -567,6 +567,11 @@ r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of the element (for
 example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the
 ``measurement radius'' and is set by the \vn{radius} attribute. The
 default value of $r_0$, if the \vn{radius} is not given, is 1.0.
+This behavior may be turned off by setting the \vn{scale_multipoles} attribute.
+Example:
+\begin{example}
+  q1: quadrupole, b0 = 0.12, a20 = 1e7, scale_multipoles = F
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}

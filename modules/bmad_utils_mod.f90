@@ -1315,6 +1315,7 @@ ele%num_steps = 0
 
 ele%is_on             = .true.
 ele%multipoles_on     = .true.
+ele%scale_multipoles  = .true.
 ele%symplectify       = .false.
 ele%map_with_offsets  = .true.
 ele%on_a_girder       = .false.

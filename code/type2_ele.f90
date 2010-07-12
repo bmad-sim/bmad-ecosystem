@@ -206,6 +206,10 @@ else
       call multipole_ele_to_ab (ele, particle, a2, b2, .true.)
     endif
 
+    if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+      nl=nl+1; write (li(nl), '(a, l1)') 'Scale_Multipoles: ', ele%scale_multipoles
+    endif
+
     do i = 0, n_pole_maxx
       if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
       write (str_i, '(i2)') i

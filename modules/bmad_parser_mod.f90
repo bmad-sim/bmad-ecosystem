@@ -646,6 +646,10 @@ case ('FIELD_MASTER')
   call get_logical ('FIELD_MASTER', ele%field_master)
   if (ios /= 0 .or. ix_word == 0) return
 
+case ('SCALE_MULTIPOLES')
+  call get_logical ('SCALE_MULTIPOLES', ele%scale_multipoles)
+  if (ios /= 0 .or. ix_word == 0) return
+
 case default   ! normal attribute
 
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
