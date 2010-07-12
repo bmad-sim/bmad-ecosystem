@@ -212,7 +212,7 @@ do istep = 1, nstep
       print *,' Analyzing stable orbit for repetition ', irep
 
       lat = lat0 ! Restore lr wakes
-      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep)
 
       if (lost) then
          print *, 'Particle(s) lost. Assuming unstable...'
@@ -246,7 +246,7 @@ do istep = 1, nstep
 
     do
       lat = lat0 ! Restore lr wakes
-      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep)
       call calc_next_charge_try
       if (hom_power_gain > 1) exit
       if (lost) then
@@ -261,7 +261,7 @@ do istep = 1, nstep
 
       do
         lat = lat0 ! Restore lr wakes
-        call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost)
+        call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep)
         if (lost) print *, 'Particle(s) lost. Assuming unstable...'
         call calc_next_charge_try
         if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit

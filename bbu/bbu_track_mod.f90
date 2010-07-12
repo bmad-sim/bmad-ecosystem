@@ -158,7 +158,7 @@ end subroutine bbu_setup
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost) 
+subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep) 
 
 implicit none
 
@@ -172,7 +172,7 @@ real(rp) hom_power0, hom_power_sum, r_period, r_period0, power
 real(rp) hom_power_gain, growth_rate
 real(rp) max_x,rms_x,max_y,rms_y
 
-integer i, n_period, n_count, n_period_old, ix_ele
+integer i, n_period, n_count, n_period_old, ix_ele,irep
 
 logical lost
 
@@ -253,7 +253,7 @@ do
         if (hom_power_gain < 1/bbu_param%limit_factor) exit
         if (hom_power_gain > bbu_param%limit_factor) exit      
       else
-        write(57,'(i10,e13.6,1x,e15.6)')n_period,hom_power_sum,hom_power_gain
+        write(57,'(2i10,e13.6,1x,e15.6)')irep,n_period,hom_power_sum,hom_power_gain
       endif
     endif
 
