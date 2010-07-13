@@ -211,7 +211,8 @@ parsing_loop: do
         call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
-        call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, err_flag, .true.)
+        call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, &
+                                        err_flag, .true., check_free = .true.)
         if (err_flag) cycle parsing_loop
       endif
     enddo
@@ -304,7 +305,8 @@ parsing_loop: do
         endif
         print_err = .true.
         if (word_1 == '*') print_err = .false.
-        call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag, print_err)
+        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
+                                                  err_flag, print_err, check_free = .true.)
         if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
         found = .true.
         if (.not. err_flag) good_attrib = .true.
@@ -451,7 +453,8 @@ parsing_loop: do
         n_max = n_max - 1
         cycle parsing_loop
       else
-        call parser_set_attribute (def$, ele, lat, delim, delim_found, err_flag, .true., pele)
+        call parser_set_attribute (def$, ele, lat, delim, delim_found, &
+                                      err_flag, .true., pele, check_free = .true.)
         if (err_flag) then
           n_max = n_max - 1
           cycle parsing_loop

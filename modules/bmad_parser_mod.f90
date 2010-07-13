@@ -11,6 +11,7 @@ module bmad_parser_mod
 use ptc_interface_mod
 use bookkeeper_mod
 use wake_mod
+use attribute_mod
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -170,15 +171,35 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
+! Subroutine parser_set_attribute (how, ele, lat, delim, delim_found, 
+!                                            err_flag, print_err, pele, check_free)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
-! an attribute from the input file.
+! an attribute from the input file and set the appropriate value in an element.
 !
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   how -- Integer: Either def$ if the element is being construct from scratch or
+!             redef$ if the element has already been formed and this is part of a
+!             "ele_name[attrib_name] = value" construct.
+!   lat -- lat_struct: Lattice. Needed if the attribute value is an expression
+!             that uses values of other elements.
+!   print_err    -- Logical: If False then do not print error messages.
+!   check_free   -- Logical, optional: If present and True then an error will be generated
+!                     if the attribute is not free to vary. Used by bmad_parser2.
+!
+! Output
+!   ele          -- ele_struct: Element whos attribute this is.
+!   delim        -- Character(1): Delimiter found where the parsing of the input line stops.
+!   delim_found  -- Logical: Delimiter found? False if end of input command.
+!   err_flag     -- Logical: Set True if there is a problem parsing the input.
+!   pele         -- parser_ele_struct, optional: Structure to hold additional 
+!                     information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, lat, delim, delim_found, err_flag, print_err, pele)
+subroutine parser_set_attribute (how, ele, lat, delim, delim_found, &
+                                             err_flag, print_err, pele, check_free)
 
 use random_mod
        
@@ -202,6 +223,7 @@ character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
 logical delim_found, err_flag, logic, print_err, set_done
+logical, optional :: check_free
 
 ! Get next WORD.
 ! If an overlay or group element then word is just an attribute to control
@@ -277,6 +299,8 @@ if (ele%key == overlay$) then
     call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
     r_ptr = value
 
+    if (attrib_free_problem(word)) return
+
   endif
 
   err_flag = .false.
@@ -319,6 +343,7 @@ if (ele%key == group$) then
     elseif (how == redef$) then
       call warning ('NO VALUE GIVEN FOR ATTRIBUTE FOR: ' // ele%name)
     endif
+    if (attrib_free_problem(word)) return
   endif
 
   err_flag = .false.
@@ -369,6 +394,8 @@ if (word == 'B_GRADIENT') call b_grad_warning (ele)
 
 ix_attrib = attribute_index(ele, word)
 attrib_word = word
+
+if (attrib_free_problem(attrib_word)) return
 
 if (ix_word == 0) then  ! no word
   call warning  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
@@ -744,6 +771,29 @@ err_flag = .false.
 !--------------------------------------------------------
 contains
 
+function attrib_free_problem (attrib_name) result (is_problem)
+
+character(*) attrib_name
+logical is_problem, is_free
+
+!
+
+is_problem = .false.
+
+if (logic_option(.false., check_free)) then
+  is_free = attribute_free (ele, attrib_name, lat)
+  if (.not. is_free) then
+    call warning ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
+    err_flag = .true.
+    is_problem = .true.
+  endif
+endif
+
+end function attrib_free_problem
+
+!--------------------------------------------------------
+! contains
+
 subroutine get_logical (name, this_logic)
 
 character(*) name
@@ -757,7 +807,7 @@ if (ios /= 0 .or. ix_word == 0) then
   call warning ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name)
 endif
 
-end subroutine
+end subroutine get_logical
 
 !--------------------------------------------------------
 ! contains

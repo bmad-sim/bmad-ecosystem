@@ -713,6 +713,8 @@ endif
 
 ! wakes
 
+if (associated(lord%wake) .and. .not. associated(slave%wake)) call transfer_wake (lord%wake, slave%wake)
+
 if (associated (slave%wake)) then
   slave%wake%sr_table      = lord%wake%sr_table
   slave%wake%sr_mode_long  = lord%wake%sr_mode_long
