@@ -86,8 +86,9 @@ photon use.
 \index{ab_multipole|hyperbf}
 
 An \vn{ab_multipole} is a thin multipole lens up to 20th order. The
-only difference between this and a \vn{multipole} (\sref{s:mult}
-is the input format. See~\sref{s:multip} for more details.
+basic difference between this and a \vn{multipole} (\sref{s:mult} is
+the input format. See section~\sref{s:fields} for how the multipole
+coefficients are defined.
 
 General \vn{ab_multipole} Attributes are:
 \begin{center}
@@ -95,7 +96,7 @@ General \vn{ab_multipole} Attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets and tilt           & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:string}  & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
 \end{tabular}
@@ -1314,9 +1315,10 @@ magnitude.
 \label{s:mult}
 \index{multipole|hyperbf}
 
-A \vn{multipole} is a thin multipole lens up to 20th order. The only
-difference between this and an \vn{ab_multipole} is the input format. See the 
-Magnetic fields section \ref{s:multip} for more details.
+A \vn{multipole} is a thin multipole lens up to 20th order. The basic
+difference between this and an \vn{ab_multipole} is the input
+format. See section~\sref{s:fields} for how the multipole coefficients
+are defined.
 
 General \vn{multipole} attributes are:
 \begin{center}

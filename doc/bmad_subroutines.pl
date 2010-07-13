@@ -30,7 +30,6 @@ $pl_hash{"check_this_attribute_free"} = "attribute_mod.f90";
 $pl_hash{"control_bookkeeper1"} = "bookkeeper_mod.f90";
 $pl_hash{"delete_underscore"} = "add_superimpose.f90";
 $pl_hash{"bmad_parser_type_get"} = "bmad_parser_mod.f90";
-$pl_hash{"flx_procedure_test"} = "f77_to_f90.f90";
 $pl_hash{"write_line"} = "f77_to_f90.f90";
 $pl_hash{"re_allocate_logical2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_string2d"} = "re_allocate_mod.f90";
@@ -272,10 +271,6 @@ $pl_hash{"read_parameter"} = "aml_parser.f90";
 $pl_hash{"mat_det"} = "mat_det.f90";
 
 $pl_hash{"convert1"} = "f77_to_f90.f90";
-$pl_hash{"write_flx"} = "f77_to_f90.f90";
-$pl_hash{"push_stack"} = "f77_to_f90.f90";
-$pl_hash{"flx_word_test"} = "f77_to_f90.f90";
-$pl_hash{"add_ampersand"} = "f77_to_f90.f90";
 
 #---------------------------------------------------------
 # make a list of names from bmad_subroutines.html

@@ -96,6 +96,7 @@ The complete structure is shown in this and the following figure.}
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
+  logical scale_multipoles   ! multipole components scaled by the strength of element?
   logical map_with_offsets   ! Taylor map calculated with element offsets?
   logical field_master       ! Calculate strength from the field value?
   logical is_on              ! For turning element on/off.
@@ -599,6 +600,7 @@ can be used for tracking purposes, etc. The setting for this
 \index{ele_struct!\%b(:)}\index{ele_struct!\%a(:)}
 \index{multipole!an, bn!in ele_struct}
 \index{multipole!KnL, Tn!in ele_struct}
+\index{multipole!\%scale_multipoles}
 The multipole components of an element (See \sref{s:fields}) are
 stored in the pointers \vn{%a(:)} and \vn{%b(:)}. If \vn{%a} and
 \vn{%b} are allocated they always have a range \vn{%a(0:n_pole_maxx)}
@@ -614,9 +616,8 @@ A list of \bmad routines for manipulating multipoles can be found in
 \section{Tracking Methods}
 \label{s:ele.tracking.methods}
 
-A number of \vn{ele_struct} components control tracking and transfer 
-map calculations.
-These are
+A number of \vn{ele_struct} components control tracking and transfer
+map calculations.  These are:
 \begin{example}
   %mat6_calc_method
   %tracking_method

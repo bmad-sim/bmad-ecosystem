@@ -479,10 +479,12 @@ do ie = npos1, npos2-1
     ele%value(s_offset$) = pdata(id+2)
   endif
 
-  ele%value(x1_limit$) = aperture
-  ele%value(x2_limit$) = aperture
-  ele%value(y1_limit$) = aperture
-  ele%value(y2_limit$) = aperture
+  if (aperture > 0) then
+    ele%value(x1_limit$) = aperture
+    ele%value(x2_limit$) = aperture
+    ele%value(y1_limit$) = aperture
+    ele%value(y2_limit$) = aperture
+  endif
 
 enddo
 

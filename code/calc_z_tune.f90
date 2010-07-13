@@ -18,7 +18,7 @@
 !     %param%t1_with_RF  -- 6x6 1-turn matrix.
 !-
 
-subroutine calc_z_tune ( lat)
+subroutine calc_z_tune (lat)
 
   use bmad_struct
   use bmad_interface, except_dummy => calc_z_tune
