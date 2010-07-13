@@ -443,9 +443,9 @@ end
         call string_trim(line(ix+1:), line, ix)
         word=line(1:ix)
         if(index(word,'NaN') /= 0)then
-          column(n)%row(j) = 0.
+          column(i)%row(j) = 0.
          else
-          read(word,*)column(n)%row(j)
+          read(word,*)column(i)%row(j)
         endif
       end do
    end do
