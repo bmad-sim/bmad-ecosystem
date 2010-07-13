@@ -346,12 +346,13 @@ do j = ix_ele_start+1, ix_ele_end
     lost = .true.
     return
   endif
-  this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(1)%r%vec
-  this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(1)%r%vec**2
-  this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
-  this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
-  this_stage%n_orb   = this_stage%n_orb + 1
 enddo
+
+this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(1)%r%vec
+this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(1)%r%vec**2
+this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
+this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
+this_stage%n_orb   = this_stage%n_orb + 1
 
 ! If the next stage does not have any bunches waiting to go through then the
 ! tracked bunch becomes the head bunch for that stage.
