@@ -10,7 +10,7 @@ program create_orbit_data
   use cesr_basic_mod
   use precision_def
   use nr
-use sim_utils
+  use sim_utils
 
 
   implicit none
@@ -42,6 +42,7 @@ use sim_utils
   character*80 :: lat_file
   type (lat_struct) :: lat
   type (coord_struct), allocatable :: orb(:), coord_by_turn(:,:)  ! Turn, ele_ix
+  type (coord_struct) :: start
   type (ele_pointer_struct), allocatable :: eles(:)
 
 !  call mpm_init('BMAD')
@@ -92,9 +93,12 @@ use sim_utils
       print *, "ERROR, couldn't find ", use_bpm(ibpm)
     end if
 
-
   enddo
+
   deallocate(eles)
+
+  call closed_orbit_calc(lat, orb, 6)
+  start = orb(0)
 
 
   do i1=1,2	! horz then vert
@@ -110,13 +114,18 @@ use sim_utils
      
      ! Set starting amplitude
      if(i1==1) then
-        coord_by_turn(1,0)%vec(1:6) = 0
-        coord_by_turn(1,0)%vec(1) = xamp
+        coord_by_turn(1,0) = start
+        coord_by_turn(1,0)%vec(1) = xamp + coord_by_turn(1,0)%vec(1) 
      else
-        coord_by_turn(1,0)%vec(:) = 0
-        coord_by_turn(1,0)%vec(3) = yamp
+        coord_by_turn(1,0) = start
+        coord_by_turn(1,0)%vec(3) = yamp + coord_by_turn(1,0)%vec(3)
      endif
-     orb(0:) = coord_by_turn(1,0:)
+     do i = 0,lat%n_ele_track
+      
+       call init_coord(orb(i))
+     enddo
+     orb(0) = coord_by_turn(1,0)
+     print *, orb(0)%vec
 
      ! track through turns
      do iturn = 1, numturns
@@ -124,7 +133,6 @@ use sim_utils
         coord_by_turn(iturn,0:) = orb(0:)
         orb(0) = orb(lat%n_ele_track)
      enddo
-!    call track(t,x, numturns)
 
 
     call init_random_seed()
@@ -144,7 +152,6 @@ use sim_utils
       do iturn = 1, numturns  ! turn number
 
         do k = 1, 2
-!          call gasdev_s(gerr)
           call ran_gauss(gerr)
           coord_by_turn(iturn,bpm_ptr)%vec(k*2-1) = &
                coord_by_turn(iturn,bpm_ptr)%vec(k*2-1) + &
@@ -171,20 +178,9 @@ end program create_orbit_data
 
 
 subroutine init_random_seed()
-use random_mod
-  integer :: i, n, clock
-  integer, dimension(:), allocatable :: seed
-
+  use random_mod
+  
   call ran_seed_put(0)
 
-!  call random_seed(size = n)
-!  allocate(seed(n))
-
-!  call system_clock(count=clock)
-
-!  seed = clock + 37 * (/ (i - 1, i = 1, n) /)
-!  call random_seed(put = seed)
-
- ! deallocate(seed)
 end subroutine init_random_seed
 
