@@ -480,7 +480,7 @@ subroutine res_line_plot (plot_type, param, res)
   integer id, places1
 
   character(*) plot_type
-  character(32) str
+  character(32) str, fmt
   character(64) lines(50)
 
 
@@ -597,7 +597,8 @@ subroutine res_line_plot (plot_type, param, res)
   if (param%r_max /= 0) then
     nl = nl + 1
     places1 = param%places + 1
-    write (lines(nl), '(a, f0.<places1>)') '  Q_s = ', param%q_s * param%scale
+    write (fmt, '(a, i0, a)') '(a, f0.', places1, ')'
+    write (lines(nl), fmt) '  Q_s = ', param%q_s * param%scale
   endif
 
   call qp_set_text_attrib ("LEGEND", height = 11.0_rp)
