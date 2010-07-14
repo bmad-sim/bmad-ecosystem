@@ -65,7 +65,6 @@ program create_orbit_data
   call init_random_seed()
 
 
-
   print*, "Enter level of noise to add to data in m"
   read *, noise
 
@@ -91,6 +90,10 @@ program create_orbit_data
     end do
     if (.not. found) then
       print *, "ERROR, couldn't find ", use_bpm(ibpm)
+      deallocate(eles)
+      deallocate(coord_by_turn)
+      deallocate(orb)
+      stop
     end if
 
   enddo
@@ -128,8 +131,17 @@ program create_orbit_data
      print *, orb(0)%vec
 
      ! track through turns
+     lat%param%aperture_limit_on = .false.
      do iturn = 1, numturns
         call track_all(lat, orb)
+        if (lat%param%lost) then
+          print *, "Particle was lost near element: ", &
+               lat%ele(lat%param%ix_lost)%name, &
+               " in turn: ", iturn, "!!!"
+          deallocate(coord_by_turn)
+          deallocate(orb)
+          stop
+        end if
         coord_by_turn(iturn,0:) = orb(0:)
         orb(0) = orb(lat%n_ele_track)
      enddo
