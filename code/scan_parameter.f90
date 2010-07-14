@@ -219,17 +219,17 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 
   
   
-!  type '(1x,a14)', ' Strong beam: '
-!  type '(1x,a12,e12.4)', '  sigma_x = ',beambeam_ele%value(sig_x$)
-!  type '(1x,a12,e12.4)', '  sigma_y = ',beambeam_ele%value(sig_y$)
-!  type '(1x,a12,e12.4)', '  sigma_z = ',beambeam_ele%value(sig_z$)
-!  type '(1x,a14,e12.4,a4,e12.4)', '  Pitch  : x= ',beambeam_ele%value(x_pitch$), &
+!  print '(1x,a14)', ' Strong beam: '
+!  print '(1x,a12,e12.4)', '  sigma_x = ',beambeam_ele%value(sig_x$)
+!  print '(1x,a12,e12.4)', '  sigma_y = ',beambeam_ele%value(sig_y$)
+!  print '(1x,a12,e12.4)', '  sigma_z = ',beambeam_ele%value(sig_z$)
+!  print '(1x,a14,e12.4,a4,e12.4)', '  Pitch  : x= ',beambeam_ele%value(x_pitch$), &
 !                                ' y= ',beambeam_ele%value(y_pitch$)
-!  type '(1x,a14,e12.4,a4,e12.4)', '  Offset : x= ',beambeam_ele%value(x_offset$), &
+!  print '(1x,a14,e12.4,a4,e12.4)', '  Offset : x= ',beambeam_ele%value(x_offset$), &
 !                                ' y= ',beambeam_ele%value(y_offset$)
-!  type '(1x,a9,e12.4)', '  Tilt = ', beambeam_ele%value(tilt$)
+!  print '(1x,a9,e12.4)', '  Tilt = ', beambeam_ele%value(tilt$)
 
-!   type '(1x,a1,5x,2x,a12,7x,a1,4x,4a9)','n','Element name','s',' x_pitch ',' y_pitch ', &
+!   print '(1x,a1,5x,2x,a12,7x,a1,4x,4a9)','n','Element name','s',' x_pitch ',' y_pitch ', &
 !             'x_offset ', &
 !             'y_offset'
 
@@ -237,7 +237,7 @@ subroutine beambeam_setup(ring, particle,  current,scan_params, slices)
 !   ele = ring%ele(i)
 !   if(ele%key == beambeam$)then
 !    n=n+1
-!   type '(i3,4x,a16,4x,f7.3,2x,4f9.5)',n,ring%ele(i)%name, ring%ele(i)%s, &
+!   print '(i3,4x,a16,4x,f7.3,2x,4f9.5)',n,ring%ele(i)%name, ring%ele(i)%s, &
 !          ele%value(x_pitch$), ele%value(y_pitch$), ele%value(x_offset$), ele%value(y_offset$)
 !   endif
 !   end do

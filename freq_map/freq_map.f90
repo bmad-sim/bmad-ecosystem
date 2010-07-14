@@ -112,12 +112,12 @@ program freq_map
   open (unit= 1, file = file_name, status = 'old', iostat = ios)
 
   if(ios.ne.0)then
-     type *
-     type *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
+     print *
+     print *, 'ERROR: CANNOT OPEN FILE: ', trim(file_name)
   endif
 
 !  do   !read file with input parameters
-!    type '(a, $)', ' Input command file <CR=freq_map.in>: '
+!    print '(a, $)', ' Input command file <CR=freq_map.in>: '
 !    read  '(a)', file_name
 !    call string_trim (file_name, file_name, ix)
 !    if (ix .eq. 0) file_name = 'freq_map.in'
@@ -177,7 +177,7 @@ program freq_map
 
   if(go)keep_trying=.false.
   do while (keep_trying)
-    type '(a, $)', ' FREQ_MAP: element change or GO> '
+    print '(a, $)', ' FREQ_MAP: element change or GO> '
     read  '(a)', line
     ix = index(line, '!')
     if (ix /= 0) line = line(:ix-1)        ! strip off comments

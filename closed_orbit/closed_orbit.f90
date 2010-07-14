@@ -121,7 +121,7 @@
        else
 
       lat_file = 'bmad.'
-      type '(a,$)',' Lattice file name ? (default= bmad.) '
+      print '(a,$)',' Lattice file name ? (default= bmad.) '
       read(5,'(a)') line
        call string_trim(line, line, ix)
        lat_file = line
@@ -165,7 +165,7 @@
  do while (.not. write_orbit)
   do while (keep_trying)
 
-10  type '(a, $)', ' CLOSED_ORBIT: element change or GO> '
+10  print '(a, $)', ' CLOSED_ORBIT: element change or GO> '
       read(5, '(a)',err=10) line
      
   ix = index(line, '!')
@@ -218,7 +218,7 @@
    endif
 
    if(line(1:4) == 'READ')then
-      type '(a,$)',' Lattice file name ? '
+      print '(a,$)',' Lattice file name ? '
       read(5, '(a)') line
        call string_trim(line, line, ix)
        lat_file = line
@@ -287,22 +287,22 @@
 
       print *, ' '
       print *,ring%input_file_name
-      type '(a  ,6f10.5)',' positron closed_orbit (mm, mr)         i=0 ', &
+      print '(a  ,6f10.5)',' positron closed_orbit (mm, mr)         i=0 ', &
         (co(0)%vec(i)*1000.,i=1,6)
       call element_locator('IP_L0_END', ring, ix_ele)
-      if(ix_ele >=0)type '(a  ,6f10.5)',' positron closed_orbit (mm, mr) i=ip_l0_end ', &
+      if(ix_ele >=0)print '(a  ,6f10.5)',' positron closed_orbit (mm, mr) i=ip_l0_end ', &
         (co(ix_ele)%vec(i)*1000.,i=1,6)
 
       if(track)then
         traj%vec(1:6) = co(0)%vec(1:6) + track_start%vec(1:6)       
         print *
-        type '(1x,a6,1x,i5,1x,a6)',  'TRACK ', n_turns, ' turns'
-        type '(1x,a16,1x,6e12.4)','TRACK: start    ', track_start%vec
-        type '(1x,a16,1x,6e12.4)','TRACK: start+co ', co(0)%vec
+        print '(1x,a6,1x,i5,1x,a6)',  'TRACK ', n_turns, ' turns'
+        print '(1x,a16,1x,6e12.4)','TRACK: start    ', track_start%vec
+        print '(1x,a16,1x,6e12.4)','TRACK: start+co ', co(0)%vec
 
         call psp(ring, co(0), traj, n_turns, istat2)
 
-        type '(1x,a16,1x,6e12.4,/)','TRACK: end      ', traj%vec
+        print '(1x,a16,1x,6e12.4,/)','TRACK: end      ', traj%vec
         track=.false.
       endif
 
@@ -311,7 +311,7 @@
      ring%param%n_part = 0.
     if(.not. transfer_line) &
      call closed_orbit_calc(ring, co_electron, i_dim)
-      type '(a  ,6f10.5)',' electron closed_orbit (mm, mr) ', &
+      print '(a  ,6f10.5)',' electron closed_orbit (mm, mr) ', &
         (co_electron(0)%vec(i)*1000.,i=1,6)
 
      ring%param%n_part = n_part_save
@@ -323,12 +323,12 @@
      call calc_z_tune (ring)
 
 !      print *,' Recompute tunes with new matrices'
-      type '(3(a11,f7.4))', ' Q_x =     ',ring%a%tune/twopI,    ' Q_y =     ',ring%b%tune/twopi, &
+      print '(3(a11,f7.4))', ' Q_x =     ',ring%a%tune/twopI,    ' Q_y =     ',ring%b%tune/twopi, &
                              ' Q_z =     ', ring%z%tune/twopi 
-      type '(2(a11,f7.4))',' Beta_a* = ', ring%ele(0)%a%beta, ' Beta_b* = ', ring%ele(0)%b%beta
-      type '(2(a11,f7.4))',' Alpha_a*= ', ring%ele(0)%a%alpha, ' Alpha_y*= ', ring%ele(0)%b%alpha
+      print '(2(a11,f7.4))',' Beta_a* = ', ring%ele(0)%a%beta, ' Beta_b* = ', ring%ele(0)%b%beta
+      print '(2(a11,f7.4))',' Alpha_a*= ', ring%ele(0)%a%alpha, ' Alpha_y*= ', ring%ele(0)%b%alpha
       call c_to_cbar(ring%ele(0),cbar_mat)
-      type '(4(a10,f7.4))',' Cbar11 = ',cbar_mat(1,1),' Cbar12 = ',cbar_mat(1,2), &
+      print '(4(a10,f7.4))',' Cbar11 = ',cbar_mat(1,1),' Cbar12 = ',cbar_mat(1,2), &
               ' Cbar22 = ',cbar_mat(2,2),' Cbar21 = ', cbar_mat(2,1)
 
       call twiss_propagate_all(ring)
@@ -349,30 +349,30 @@
       end do
       call de_dbeta(ring_two(1), ring_two(-1), de, rms_x, rms_y)
 
-      type '(1x,a12,f12.4,a12,f12.4)',' dB_x*/dE = ',(ring_two(1)%ele(0)%a%beta - ring_two(-1)%ele(0)%a%beta)/2/de, &
+      print '(1x,a12,f12.4,a12,f12.4)',' dB_x*/dE = ',(ring_two(1)%ele(0)%a%beta - ring_two(-1)%ele(0)%a%beta)/2/de, &
                              ' dB_y*/dE = ',(ring_two(1)%ele(0)%b%beta - ring_two(-1)%ele(0)%b%beta)/2/de 
 
       call c_to_cbar(ring_two(1)%ele(0),cbar_mat1)
       call c_to_cbar(ring_two(-1)%ele(0),cbar_mat2)
-      type '(1x,a13,2f12.4)',' dcbar*/dE = ',(cbar_mat1(1,1)-cbar_mat2(1,1))/de, &
+      print '(1x,a13,2f12.4)',' dcbar*/dE = ',(cbar_mat1(1,1)-cbar_mat2(1,1))/de, &
                                              (cbar_mat1(1,2)-cbar_mat2(1,2))/de 
-      type '(1x,a13,2f12.4)','             ',(cbar_mat1(2,1)-cbar_mat2(2,1))/de, &
+      print '(1x,a13,2f12.4)','             ',(cbar_mat1(2,1)-cbar_mat2(2,1))/de, &
                                              (cbar_mat1(2,2)-cbar_mat2(2,2))/de 
 
 
       print *,' Chromaticity'
-      type '(2(a11,f8.4))', ' dQ_x/dE = ',(ring_two(1)%a%tune - ring_two(-1)%a%tune)/twopi/2/de, &
+      print '(2(a11,f8.4))', ' dQ_x/dE = ',(ring_two(1)%a%tune - ring_two(-1)%a%tune)/twopi/2/de, &
                              ' dQ_y/dE = ',(ring_two(1)%b%tune - ring_two(-1)%b%tune)/twopi/2/de 
-      type '(2(a23,f10.4))', ' sqrt(<(dB_x/dE)^2>) = ',rms_x, ' sqrt(<(dB_y/dE)^2>) = ',rms_y
+      print '(2(a23,f10.4))', ' sqrt(<(dB_x/dE)^2>) = ',rms_x, ' sqrt(<(dB_y/dE)^2>) = ',rms_y
 
 ! sextupole detuning rate
      if( .not. transfer_line)then
       call sext_detune(ring, axx, axy, ayy)
       print *
       print *,' Sextupole detuning rates '
-      type '(a12,e12.4)',' Alpha_ax = ',axx 
-      type '(a12,e12.4)',' Alpha_ay = ',axy 
-      type '(a12,e12.4)',' Alpha_yy = ',ayy
+      print '(a12,e12.4)',' Alpha_ax = ',axx 
+      print '(a12,e12.4)',' Alpha_ay = ',axy 
+      print '(a12,e12.4)',' Alpha_yy = ',ayy
       print * 
      endif
 
@@ -381,47 +381,47 @@
        ele_names(2) = 'SK_Q03W'
        ele_names(3:4) = ' '
        call cbar_v_e(ring, ele_names, slopes)
-       type '(a38,a10,a4,a10)',' Energy derivative of cbar for insert ',ele_names(1),' to ',ele_names(2)
-       type '(4(a10,f7.3))',' d_Cb11 = ',slopes(1),' d_Cb12 = ',slopes(2), &
+       print '(a38,a10,a4,a10)',' Energy derivative of cbar for insert ',ele_names(1),' to ',ele_names(2)
+       print '(4(a10,f7.3))',' d_Cb11 = ',slopes(1),' d_Cb12 = ',slopes(2), &
                ' d_Cb22 = ',slopes(3),' d_Cr21 = ', slopes(4)
-       type '(4(a10,f7.4))',' Etax   = ',ring%ele(0)%a%eta,' Etax_p = ',ring%ele(0)%a%etap, &
+       print '(4(a10,f7.4))',' Etax   = ',ring%ele(0)%a%eta,' Etax_p = ',ring%ele(0)%a%etap, &
                ' Etay   = ',ring%ele(0)%b%eta,' Etay_p = ', ring%ele(0)%b%etap
       endif
 
       ix_cache = 0
       if(radiation)then
        call radiation_integrals (ring, co, mode, ix_cache)
-       type '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
+       print '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
                                     '    vertical emittance = ',mode%b%emittance
-       type '(a17,e12.4,a18,e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z
+       print '(a17,e12.4,a18,e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z
        frev=c_light/ring%ele(ring%n_ele_track)%s
-       type '(a11,e12.4)',' Revolution freq    = ', frev
+       print '(a11,e12.4)',' Revolution freq    = ', frev
        if(mode%a%alpha_damp /= 0.)then
-         type '(a22,e12.4)',' Horiz damping time = ',1/mode%a%alpha_damp/frev
-         type '(a22,e12.4)',' Vert damping time =  ',1/mode%b%alpha_damp/frev
-         type '(a22,e12.4)',' Long damping time =  ',1/mode%z%alpha_damp/frev
-         type '(a7,e12.4)',' i1  =',mode%synch_int(1)
-         type '(a7,e12.4)',' i2  =',mode%synch_int(2)
-         type '(a7,e12.4)',' i3  =',mode%synch_int(3)
-         type '(a7,e12.4)',' i4  =',mode%a%synch_int(4)
-         type '(a7,e12.4)',' i5a =',mode%a%synch_int(5)
+         print '(a22,e12.4)',' Horiz damping time = ',1/mode%a%alpha_damp/frev
+         print '(a22,e12.4)',' Vert damping time =  ',1/mode%b%alpha_damp/frev
+         print '(a22,e12.4)',' Long damping time =  ',1/mode%z%alpha_damp/frev
+         print '(a7,e12.4)',' i1  =',mode%synch_int(1)
+         print '(a7,e12.4)',' i2  =',mode%synch_int(2)
+         print '(a7,e12.4)',' i3  =',mode%synch_int(3)
+         print '(a7,e12.4)',' i4  =',mode%a%synch_int(4)
+         print '(a7,e12.4)',' i5a =',mode%a%synch_int(5)
        endif
       endif
 
       if(.not. transfer_line)then
        call sextupole_resonance(ring,rate_x, rate_y, rate_xq, rate_yq, rate_x_tot, rate_y_tot, mode%sige_e)
-       type '(a45,2e12.4)', &
+       print '(a45,2e12.4)', &
          ' Synchro-betatron sext growth rate at 0.5+Qs/2, H/V ' , rate_x, rate_y
-       type '(a45,2e12.4)', &
+       print '(a45,2e12.4)', &
          ' Synchro-betatron quad growth rate at 0.5+Qs/2, H/V ' , rate_xq, rate_yq
-       type '(a45,2e12.4)', &
+       print '(a45,2e12.4)', &
          ' Synchro-betatron tot growth rate at 0.5+Qs/2, H/V ' , rate_x_tot, rate_y_tot
 
        if(ring%z%tune /= 0.)then
          call sync_beta_path(ring, d_amp_x, d_amp_y)
-         type '(a31,4e12.4)',' (6d orbit amp- 4d orbit amp)/6d amp/ total volts  x   y', d_amp_x, d_amp_y 
+         print '(a31,4e12.4)',' (6d orbit amp- 4d orbit amp)/6d amp/ total volts  x   y', d_amp_x, d_amp_y 
          call sync_beta_volt(ring, d_amp_x, d_amp_y)
-         type '(a24,2e12.4)',' (d(amp)/d(volt))  x   y', d_amp_x, d_amp_y
+         print '(a24,2e12.4)',' (d(amp)/d(volt))  x   y', d_amp_x, d_amp_y
        endif
       endif
 
@@ -541,22 +541,22 @@
        x(i)= co(i)%vec(1)*1000.
        y(i)= co(i)%vec(3)*1000.
        if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
+!        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
        if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
+!        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
       endif
 
       if(plot_flag == beta$)then
        x(i) = ring%ele(i)%a%beta
        y(i) = ring%ele(i)%b%beta
-       if(i == 0)type '(1x,a16,3a12)','     Element    ','     z      ','   Beta_a   ','   Beta_b   '
+       if(i == 0)print '(1x,a16,3a12)','     Element    ','     z      ','   Beta_a   ','   Beta_b   '
        if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),max(x(i-1),x(i)),max(y(i-1),y(i))
+!        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),max(x(i-1),x(i)),max(y(i-1),y(i))
        endif
        if(index(ring_two(1)%ele(i)%name, 'IP_L0') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
+!        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
        endif
       endif
 
@@ -583,10 +583,10 @@
        x(i) = cbar_mat(1,2)
        y(i) = cbar_mat(2,2)
 !       if(index(ring_two(1)%ele(i)%name, 'WIG') /= 0 )then
-!        type '(1x,a16,3f12.4)',ring_two(1)%ele(ring%ni)%name,z(i),x(i),y(i)
+!        print '(1x,a16,3f12.4)',ring_two(1)%ele(ring%ni)%name,z(i),x(i),y(i)
 !       endif
 !       if(ring%ele(i)%s < 15. .or. ring%ele(ring%n_ele_track)%s - ring%ele(i)%s <15. )then
-        type '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
+        print '(1x,a16,3f12.4)',ring_two(1)%ele(i)%name,z(i),x(i),y(i)
 !       endif
       endif
 
@@ -811,7 +811,7 @@
     
 
 !     answer = ' '
-!     type '(a,$)',' Write orbit ?', answer
+!     print '(a,$)',' Write orbit ?', answer
 !     accept *,answer
 !     if(answer(1:1) == 'y' .or. answer(1:1) == 'Y')exit
 
@@ -937,7 +937,7 @@
      sum_x_imagine = sum_x_imagine +xf*sin(2*ring%ele(i)%a%phi)
      sum_y_real = sum_y_real + yf*cos(2*ring%ele(i)%b%phi)
      sum_y_imagine = sum_y_imagine + yf*sin(2*ring%ele(i)%b%phi)
-!!     type '(a16,a16,i,2e12.4)',' name, i, xf, yf', ring%ele(i)%name, i, xf, yf
+!!     print '(a16,a16,i,2e12.4)',' name, i, xf, yf', ring%ele(i)%name, i, xf, yf
    
     elseif (ring%ele(i)%key == quadrupole$ .or. index(ring%ele(i)%name,'Q01')/= 0) then
      xfq = ring%ele(i)%value(k1$) *ring%ele(i)%a%beta
@@ -946,7 +946,7 @@
      sum_x_imagineq = sum_x_imagineq +xfq*sin(2*ring%ele(i)%a%phi)
      sum_y_realq = sum_y_realq + yfq*cos(2*ring%ele(i)%b%phi)
      sum_y_imagineq = sum_y_imagineq + yfq*sin(2*ring%ele(i)%b%phi)
- !    type '( a16,2e12.4,i)', ring%ele(i)%name, xfq, sum_x_realq, ring%ele(i)%key
+ !    print '( a16,2e12.4,i)', ring%ele(i)%name, xfq, sum_x_realq, ring%ele(i)%key
    
    endif   
   

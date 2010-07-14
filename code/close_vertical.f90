@@ -129,11 +129,11 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
   call out_io(s_info$,r_name, write_line)
   call out_io(s_info$,r_name,' RAW_VCROSING_7 = \f\ ' , ring%ele(ix_7)%value(command$))
   
-!  type '(a16,i2,1x,a10,f6.3,a10,f6.3,a24,4f8.4)',' CLOSE_VERT: ',n, &
+!  print '(a16,i2,1x,a10,f6.3,a10,f6.3,a24,4f8.4)',' CLOSE_VERT: ',n, &
 !         ' 48W(mr) = ',ring%ele(ix_w)%value(vkick$)*1000., &
 !         ' 48E(mr) = ',ring%ele(ix_e)%value(vkick$)*1000., &
 !          '   dx,dxp,dy,dyp (mm) = ',delta_ip_0%vec(1:4)*1000.
-!  type '(a16,f)',' CLOSE_VERT: RAW_VCROSING_7 = ', ring%ele(ix_7)%value(command$)  
+!  print '(a16,f)',' CLOSE_VERT: RAW_VCROSING_7 = ', ring%ele(ix_7)%value(command$)  
 
   if(.not. present(final_pos_in)) then
      final_pos_in%vec(:) = 0.
@@ -211,11 +211,11 @@ subroutine close_vertical(ring, i_dim, final_pos_in, final_pos_out)
      call out_io(s_info$,r_name, write_line)
      call out_io(s_info$,r_name," RAW_VCROSING_7 = \f\ ",ring%ele(ix_7)%value(command$))
      
-!  type '(a16,i2,1x,a10,f6.3,a10,f6.3,a24,4f8.4)',' CLOSE_VERT: ',n, &
+!  print '(a16,i2,1x,a10,f6.3,a10,f6.3,a24,4f8.4)',' CLOSE_VERT: ',n, &
 !          ' 48W(mr) = ',ring%ele(ix_w)%value(vkick$)*1000., &
 !         ' 48E(mr) = ',ring%ele(ix_e)%value(vkick$)*1000., &
 !          '   dx,dxp,dy,dyp (mm) = ',delta_ip%vec(1:4)*1000.  
-!  type '(a16,f)',' CLOSE_VERT: RAW_VCROSING_7 = ', ring%ele(ix_7)%value(command$)  
+!  print '(a16,f)',' CLOSE_VERT: RAW_VCROSING_7 = ', ring%ele(ix_7)%value(command$)  
 
 !  print *,' kick_w, kick_e ', kick_w , kick_e
 !  print *,' INITIAL SEPARATION :', delta_ip_0%vec(1)

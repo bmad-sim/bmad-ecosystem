@@ -106,7 +106,7 @@
   print *
   print *,' BEAMBEAM_INITIALIZE: Initially '
   print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-  type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+  print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
 
 
@@ -132,10 +132,10 @@
    call twiss_at_start(ring)
 
    print *
-   type '(a51,f4.1,a8)', &
+   print '(a51,f4.1,a8)', &
         ' BEAMBEAM_INITIALIZE: After parasitic interactions added ', current,'mA/bunch' 
    print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+   print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
   endif
   
@@ -148,17 +148,17 @@
     call twiss_at_start(ring)
     co(0)%vec = 0.
     call closed_orbit_calc(ring, co, 4)
-   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+   print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
     call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
 
     print *
     print *,' BEAMBEAM_INITIALIZE: After beambeam added '
 
-    type '(a37,f4.1,a8)', &
+    print '(a37,f4.1,a8)', &
          ' BEAMBEAM_INITIALIZE: After beambeam added ', current,'mA/bunch' 
     print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+    print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
     write(23, *)
     write(23, '(a37,f4.1,a8)') &
          ' BEAMBEAM_INITIALIZE: After beambeam added ', current,'mA/bunch' 
@@ -194,7 +194,7 @@
     call lat_make_mat6(ring, -1, co)
     call twiss_at_start(ring)
     type*,' after close pretzel but before close vertical: '
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
+    print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
  endif
  if(scan_params%close_vert)call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
 
@@ -208,8 +208,8 @@
 
     print *
     print *,' After CLOSE VERTICAL ' 
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
-    type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+    print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
+    print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
    write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%a%tune/twopi - Qx, &
                                            '  Delta Qy =',ring%b%tune/twopi-Qy
@@ -254,7 +254,7 @@
         call twiss_at_start(ring)
         print *,' beam beam at IP is off'
         type*,' after qtune and after close pretzel but before close vertical: '
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
+    print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
       endif
       if(scan_params%close_vert)then
         call close_vertical(ring,i_dim, final_pos_in, final_pos_out)
@@ -263,7 +263,7 @@
         call lat_make_mat6(ring, -1, co)
         call twiss_at_start(ring)
         type*,' after qtune with pretzel and vert closed but beam beam at IP off: '
-    type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
+    print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
       endif
 ! Turn beambeam back on
   if(ix_ip /= 0)ring%ele(ix_ip)%value(charge$) = charge
@@ -274,7 +274,7 @@
   call beambeam_separation(ring, delta_ip, i_dim)
   print *,' Turn Beambeam on'
   print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-  type '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
+  print '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
 
     beambeam_ele = ring%ele(1)
     write(23,*)

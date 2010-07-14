@@ -180,7 +180,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      print *
      print *,' BEAMBEAM_SCAN: Initially '
      print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-     type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+     print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
   endif
 
   particle = scan_params%particle
@@ -212,10 +212,10 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
 !only 0 talks to the world
      if(rank.eq.0) then
         print *
-        type '(a51,f4.1,a8)', &
+        print '(a51,f4.1,a8)', &
              ' BEAMBEAM_SCAN: After parasitic interactions added ', current,'mA/bunch' 
         print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-        type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+        print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      endif
   endif
   
@@ -235,7 +235,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      call closed_orbit_calc(ring, co, 4)
 !only 0 talks to the world
      if(rank.eq.0) then
-        type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+        print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      endif
      call lat_make_mat6(ring, -1, co)
      call twiss_at_start(ring)
@@ -244,10 +244,10 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      if(rank.eq.0) then
         print *
         print *,' BEAMBEAM_SCAN: After beambeam added '
-        type '(a37,f4.1,a8)', &
+        print '(a37,f4.1,a8)', &
              ' BEAMBEAM_SCAN: After beambeam added ', current,'mA/bunch' 
         print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-        type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+        print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
         write(23, *)
         write(23, '(a37,f4.1,a8)') &
              ' BEAMBEAM_SCAN: After beambeam added ', current,'mA/bunch' 
@@ -280,7 +280,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      call twiss_at_start(ring)
      if(rank.eq.0) then
         type*,' after close pretzel but before close vertical: '
-        type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
+        print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
      endif
   endif
 
@@ -297,8 +297,8 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(rank.eq.0)then
      print *
      print *,' After CLOSE VERTICAL ' 
-     type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
-     type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+     print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
+     print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
      write(23,'(a36,f6.4,a12,f6.4)')' Beam beam tune shifts:  Delta Qx = ', ring%a%tune/twopi - Qx, &
           '  Delta Qy =',ring%b%tune/twopi-Qy
   endif
@@ -341,7 +341,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      if(rank.eq.0) then
         print *,' beam beam at IP is off'
         type*,' after qtune and after close pretzel but before close vertical: '
-        type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
+        print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ',ring%z%tune/twopi
      endif
   endif
   ! IF CLOSE_VERT
@@ -353,7 +353,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
      call twiss_at_start(ring)
      if(rank.eq.0) then
         type*,' after qtune with pretzel and vert closed but beam beam at IP off: '
-        type '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
+        print '(1x,3(a9,f12.4))','    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,'   Qz = ', ring%z%tune/twopi
      endif
   endif
 
@@ -377,7 +377,7 @@ subroutine beambeam_scan(ring, scan_params, phi_x, phi_y)
   if(rank.eq.0) then
      print *,' Turn Beambeam on'
      print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-     type '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
+     print '(a22,4f8.4)', ' dx,dxp,dy,dyp (mm) = ', delta_ip%vec(1:4)*1000.
   endif
   beambeam_ele = ring%ele(1)
   if(rank.eq.0) then
