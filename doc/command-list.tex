@@ -1079,7 +1079,7 @@ Format:
   show curve \{-symbol\} \{-line\} <curve_name> 
   show data \{<data_name>\} 
   show derivative <data_name(s)> <var_name(s)>
-  show element \{-taylor\} \{-wig_terms\} \{-data\} \{-all_attributes\} <ele_name>
+  show element \{-all_attributes\} \{-data\} \{-no_slaves\} \{-taylor\} \{-wig_terms\} <ele_name>
   show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
   show graph <graph_name>
   show hom
@@ -1213,8 +1213,8 @@ Example:
 
 %% show element --------------------------------------------------------------
 
-\item[show element \{-taylor\} \{-wig\_terms\} \{-data\} 
-                     \{-all\_attributes\} <ele\_name>] \Newline
+\item[show element \{-all\_attributes\} \{-data\} \{-no_slaves\} 
+                     \{-taylor\} \{-wig\_terms\} <ele\_name>] \Newline
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
 \vn{<ele_name>} contains a wild card or a class name then a list of
@@ -1223,11 +1223,6 @@ is present then information about the element whose name matches
 \vn{<ele_name>} is shown. If \vn{<ele_name>} is a number $n$, then the $n$\Th
 element in the lattice list will be shown.
 
-If the \vn{-taylor} switch is present then the Taylor map associated
-with an element, if there is one, is also displayed.  Similarly, if the
-\vn{-wig_terms} switch is present, then any associated wiggler terms for
-a \vn{map_type} \vn{wiggler} element is printed.
-
 If the \vn{-all_attributes} switch is present, then all of the element attributes
 will be displayed. The default is is to display only those attributes
 with non-zero values.
@@ -1235,11 +1230,20 @@ with non-zero values.
 If the \vn{-data} switch is present, then information about the 
 all the datums associated with the element will be listed. 
 
+When using wildcards in the element name, if the \vn{-no_slaves}
+switch is present, \vn{super_slave} and \vn{multipass} slave elements will not be listed.
+
+If the \vn{-taylor} switch is present then the Taylor map associated
+with an element, if there is one, is also displayed.  Similarly, if the
+\vn{-wig_terms} switch is present, then any associated wiggler terms for
+a \vn{map_type} \vn{wiggler} element is printed.
+
 Example:
 \begin{example}
-  show ele q*                 ! list all elements with names beginning with "q".
-  show ele q10w               ! Show a particular lattice element.
-  show ele -all_att 105       ! Show element #105 in the lattice.
+  show ele quad::z* -no_slaves  ! list all non-slave quadrupole elements with 
+                                !   names beginning with "z".
+  show ele q10w                 ! Show a particular lattice element.
+  show ele -all_att 105         ! Show element #105 in the lattice.
 \end{example}
 
 %% show global --------------------------------------------------------------

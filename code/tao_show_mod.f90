@@ -210,7 +210,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_wo
 
 logical bmad_format, good_opt_only, show_lords, show_custom
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
-logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines
+logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_ran_state
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -821,16 +821,19 @@ case ('element')
   print_wig_terms = .false.
   print_all = .false.
   print_data = .false.
+  print_slaves = .true.
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-wig_terms     ', &
-                                   '-all_attributes', '-data          '], switch, err, ix)
+                                   '-all_attributes', '-data          ', &
+                                   '-no_slaves     '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-taylor') print_taylor = .true.
     if (switch == '-wig_terms') print_wig_terms = .true.
     if (switch == '-all_attributes') print_all = .true.
     if (switch == '-data') print_data = .true.
+    if (switch == '-no_slaves') print_slaves = .false.
   enddo
 
   call str_upcase (ele_name, stuff2)
@@ -849,10 +852,13 @@ case ('element')
       call tao_locate_elements (ele_name, i_uni,eles, err, .true.)
       if (err) return
       lat => s%u(i_uni)%model%lat
-      n_tot = n_tot + size(eles)
       do i = 1, size(eles)
         ele => eles(i)%ele
+        if (.not. print_slaves) then
+          if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) cycle
+        endif
         if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
+        n_tot = n_tot + 1
         if (count(picked_uni) > 1) then
           nl=nl+1; write (lines(nl), '(i8, 2x, i0, 2a)') ele%ix_ele, i_uni, '@', ele%name
         else
