@@ -10,7 +10,7 @@
       integer ix_ele
 
       do while(line(1:1) /= 'G')
-10    print '(a, $)', '  element change or GO> '
+10    write (*, '(a)', advance = 'NO') '  element change or GO> '
       read(5, '(a)',err=10) line
      
   ix = index(line, '!')
@@ -30,7 +30,7 @@
    if(line(1:1) /= 'G')then
     call find_change( line, lat)
 
-    type '(a,$)',' Call type_ele ?'
+    write (*, '(a)', advance = 'NO') ' Call type_ele ?'
     read(5,'(a)') line
     call str_upcase(line, line)
     call string_trim(line, line, ix)
