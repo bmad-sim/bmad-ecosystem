@@ -165,7 +165,7 @@ end interface
   call twiss_at_start(ring)
   call twiss_propagate_all(ring)
 
-  type '(a28,f12.6,a9,f12.6)', &
+  print '(a28,f12.6,a9,f12.6)', &
        ' Before initial Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   if (Qx_ini /= 0. .and. Qy_ini /= 0.)then 
     int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
@@ -182,7 +182,7 @@ end interface
    call set_on_off(elseparator$, ring, on$)
   endif
 
-  type '(a28,f12.6,a9,f12.6)', &
+  print '(a28,f12.6,a9,f12.6)', &
        '  After initial Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
@@ -210,10 +210,10 @@ end interface
    call twiss_at_start(ring)
 
    print *
-   type '(a51,f4.1,a8)', &
+   print '(a51,f4.1,a8)', &
         ' BEAMBEAM_SCAN: After parasitic interactions added ', current,'mA/bunch' 
    print *,'    Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
-   type '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
+   print '(a15,4e12.4)','  Closed orbit ', co(0)%vec(1:4)
 
   endif
 

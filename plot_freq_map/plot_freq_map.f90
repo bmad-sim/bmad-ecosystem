@@ -156,19 +156,19 @@
     if(all(saved_x(1:j)-column(i)%row(ix) /= 0.))then
       j=j+1
       saved_x(j) = column(i)%row(ix)
-!      type *,' j, saved_x(j-1), column(i)%row(ix)', j, saved_x(j-1), column(i)%row(ix)
+!      print *,' j, saved_x(j-1), column(i)%row(ix)', j, saved_x(j-1), column(i)%row(ix)
      endif
 
     if(all(saved_y(1:k)-column(i)%row(iy) /= 0.))then
      k=k+1
      saved_y(k) = column(i)%row(iy)
-!     type *,' k, saved_y(k) ', k, saved_y(k)
+!     print *,' k, saved_y(k) ', k, saved_y(k)
     endif
 
     if(all(saved_eng(1:l)-column(i)%row(ieng) /= 0.))then
      l=l+1
      saved_eng(l) = column(i)%row(ieng)
-!     type *,' l, saved_eng(l) ', l, saved_eng(l)
+!     print *,' l, saved_eng(l) ', l, saved_eng(l)
     endif
 
 !    if(j > 5000 .or. k > 5000 .or. l > 5000)then

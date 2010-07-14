@@ -987,7 +987,7 @@ program anaylzer
     
 
 !     answer = ' '
-!     type '(a,$)',' Write orbit ?', answer
+!     print '(a,$)',' Write orbit ?', answer
 !     accept *,answer
 !     if(answer(1:1) == 'y' .or. answer(1:1) == 'Y')exit
 
@@ -1143,7 +1143,7 @@ program anaylzer
      sum_x_imagine = sum_x_imagine +xf*sin(2*ring%ele(i)%a%phi)
      sum_y_real = sum_y_real + yf*cos(2*ring%ele(i)%b%phi)
      sum_y_imagine = sum_y_imagine + yf*sin(2*ring%ele(i)%b%phi)
-!!     type '(a16,a16,i,2e12.4)',' name, i, xf, yf', ring%ele(i)%name, i, xf, yf
+!!     print '(a16,a16,i,2e12.4)',' name, i, xf, yf', ring%ele(i)%name, i, xf, yf
    
     elseif (ring%ele(i)%key == quadrupole$ .or. index(ring%ele(i)%name,'Q01')/= 0) then
      xfq = ring%ele(i)%value(k1$) *ring%ele(i)%a%beta
@@ -1152,7 +1152,7 @@ program anaylzer
      sum_x_imagineq = sum_x_imagineq +xfq*sin(2*ring%ele(i)%a%phi)
      sum_y_realq = sum_y_realq + yfq*cos(2*ring%ele(i)%b%phi)
      sum_y_imagineq = sum_y_imagineq + yfq*sin(2*ring%ele(i)%b%phi)
- !    type '( a16,2e12.4,i)', ring%ele(i)%name, xfq, sum_x_realq, ring%ele(i)%key
+ !    print '( a16,2e12.4,i)', ring%ele(i)%name, xfq, sum_x_realq, ring%ele(i)%key
    
    endif   
   

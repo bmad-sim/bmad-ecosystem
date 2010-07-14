@@ -247,7 +247,7 @@ end if
 !SIBREN
      if(rank.eq.0) then
         !We only want to have to enter things once, so only rank 0 does this
-        type '(a, $)', ' BEAMBEAM: element change or GO> '
+        print '(a, $)', ' BEAMBEAM: element change or GO> '
         if(trim(go)=='.false.') then
            read(*, '(a)') line
         else

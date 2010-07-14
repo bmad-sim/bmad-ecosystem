@@ -146,11 +146,11 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   call closed_orbit_calc(ring, co, i_dim)
 
   endif
-  type '(a24,1x,e12.4,1x,a8,1x,e12.4)',' DA_DRIVER: delta_fRF = ', delta_fRF,'  fRF = ', fRF
+  print '(a24,1x,e12.4,1x,a8,1x,e12.4)',' DA_DRIVER: delta_fRF = ', delta_fRF,'  fRF = ', fRF
   print *,' DA_DRIVER: Q_z = ',ring%z%tune/twopi
 
 
-  type '(a31,1x,e12.4,1x,a9,1x,e12.4)',' DA_DRIVER: Before Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print '(a31,1x,e12.4,1x,a9,1x,e12.4)',' DA_DRIVER: Before Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
   if(Qx /= 0. .and. Qy /= 0.)then 
     int_Q_x = int(ring%ele(ring%n_ele_track)%a%phi / twopi)
     int_Q_y = int(ring%ele(ring%n_ele_track)%b%phi / twopi)
@@ -167,7 +167,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 
   call twiss_at_start (ring)
-  type '(a31,f12.4,a9,f12.4)',' DA_DRIVER: After Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print '(a31,f12.4,a9,f12.4)',' DA_DRIVER: After Qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
 
 
@@ -178,9 +178,9 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     endif
   endif
   call chrom_calc(ring, delta_e, chrom_x, chrom_y) 
-  type '(a34,f12.4,a11,f12.4)',' DA_DRIVER: After Qp_tune: Qp_x = ',chrom_x,'    Qp_y = ',chrom_y
+  print '(a34,f12.4,a11,f12.4)',' DA_DRIVER: After Qp_tune: Qp_x = ',chrom_x,'    Qp_y = ',chrom_y
   call twiss_at_start(ring)
-  type '(a32,f12.4,a9,f12.4)',' DA_DRIVER: After Qp_tune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print '(a32,f12.4,a9,f12.4)',' DA_DRIVER: After Qp_tune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
    print *,' DA_DRIVER: before second call custom_set_tune '
     call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
@@ -188,7 +188,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     if(.not. ok) print *,' DA_DRIVER: Second Qtune failed'
 
   call twiss_at_start(ring)
-  type '(a37,f12.4,a9,f12.4)',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print '(a37,f12.4,a9,f12.4)',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
   call element_locator('PATCH_RF_W1',ring,ix)
    if(ix > 0) then
