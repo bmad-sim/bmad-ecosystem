@@ -24,7 +24,7 @@ subroutine run_timer(command, time)
 
   implicit none
 
-  integer t0(8), t1(8), dt(8), days_in_year0, days_in_year1
+  integer, save :: t0(8), t1(8), dt(8), days_in_year0, days_in_year1
   real(rp) time
   character(*) command
 
