@@ -1,4 +1,4 @@
-  integer, parameter :: bpm_tot = 105
+  integer, parameter :: bpm_tot = 104
   character(7), parameter :: use_bpm(bpm_tot) = (/ &
 "DET_01W",& 
 "DET_02W",&
@@ -8,18 +8,13 @@
 "DET_06W",&
 "DET_07W",&
 "DET_08W",&
+"DET_101",&
 "DET_09W",&
 "DET_10W",&
 "DET_11W",&
 "DET_12W",&
-"DET_101",&
 "DET_102",&
 "DET_103",&
-"DET_105",&
-"DET_106",&
-"DET_107",&
-"DET_108",&
-"DET_109",&
 "DET_13W",&
 "DET_14W",&
 "DET_15W",&
@@ -31,6 +26,7 @@
 "DET_21W",&
 "DET_22W",&
 "DET_23W",&
+"DET_105",&
 "DET_24W",&
 "DET_25W",&
 "DET_26W",&
@@ -43,6 +39,7 @@
 "DET_33W",&
 "DET_34W",&
 "DET_35W",&
+"DET_106",&
 "DET_36W",&
 "DET_37W",&
 "DET_38W",&
@@ -51,10 +48,12 @@
 "DET_41W",&
 "DET_42W",&
 "DET_43W",&
+"DET_107",&
 "DET_44W",&
 "DET_45W",&
 "DET_46W",&
 "DET_47W",&
+"DET_108",&
 "DET_48W",&
 "DET_49E",&
 "DET_48E",&
