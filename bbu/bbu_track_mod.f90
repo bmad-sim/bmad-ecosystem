@@ -169,7 +169,7 @@ type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: orbit(:)
 
 real(rp) hom_power0, hom_power_sum, r_period, r_period0, power
-real(rp) hom_power_gain, growth_rate
+real(rp) hom_power_gain, growth_rate, orb(6)
 real(rp) max_x,rms_x,max_y,rms_y
 
 integer i, n_period, n_count, n_period_old, ix_ele,irep
@@ -236,8 +236,9 @@ do
     do i = 1, size(bbu_beam%stage)
       if (bbu_beam%stage(i)%n_orb == 0) cycle
       bbu_beam%stage(i)%ave_orb  = bbu_beam%stage(i)%ave_orb / bbu_beam%stage(i)%n_orb 
-      bbu_beam%stage(i)%rms_orb  = sqrt(bbu_beam%stage(i)%rms_orb/bbu_beam%stage(i)%n_orb - &
-                                                                        bbu_beam%stage(i)%ave_orb**2)
+      orb  = bbu_beam%stage(i)%rms_orb/bbu_beam%stage(i)%n_orb - bbu_beam%stage(i)%ave_orb**2
+      where (orb < 0) orb = 0
+      bbu_beam%stage(i)%rms_orb = sqrt(orb)
     enddo
 
     if (n_period == 3) then
