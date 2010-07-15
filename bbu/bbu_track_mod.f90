@@ -335,25 +335,34 @@ i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
 this_stage => bbu_beam%stage(i_stage_min)
 bbu_beam%time_now = this_stage%time_at_wake_ele
 
+! With the last stage track to the end of the lattice
+
 ix_ele_end = this_stage%ix_ele_lr_wake
 if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
 
 ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
+! Track the bunch
+
 do j = ix_ele_start+1, ix_ele_end
+
   call track1_bunch (bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
   if (.not. all(bbu_beam%bunch(ib)%particle%ix_lost == not_lost$)) then
     lost = .true.
     return
   endif
-enddo
 
-this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(1)%r%vec
-this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(1)%r%vec**2
-this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
-this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
-this_stage%n_orb   = this_stage%n_orb + 1
+  ! Collect orbit stats at element with wake
+  if (j == this_stage%ix_ele_lr_wake) then
+    this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(1)%r%vec
+    this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(1)%r%vec**2
+    this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
+    this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
+    this_stage%n_orb   = this_stage%n_orb + 1
+  endif
+
+enddo
 
 ! If the next stage does not have any bunches waiting to go through then the
 ! tracked bunch becomes the head bunch for that stage.
