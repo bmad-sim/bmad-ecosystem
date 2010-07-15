@@ -60,7 +60,7 @@ MAKEFILE := M.create_orbit_data
 #           specifications. 
 #-----------------------------------------------------------------------------
 OBJ_SRC_DIRS  := ./create_orbit_data
-LOCAL_INCS    := cfortran/include mpm_utils cesr_utils/include ./include
+LOCAL_INCS    := cfortran/include cesr_utils/include ./include
 
 
 #-------------------------------------------------------------
@@ -162,7 +162,7 @@ LOCAL_LFLAGS   :=
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS := 
-CESR_LIBS  := mpm_utils cesr_utils bmad sim_utils mpmnet c_utils
+CESR_LIBS  := cesr_utils bmad sim_utils c_utils
 PKG_LIBS   := recipes_f-90_LEPP forest
 CERN_LIBS  :=
 SYS_LIBS   := 
