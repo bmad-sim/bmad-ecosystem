@@ -78,7 +78,7 @@ character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
 logical parsing, delim_found, found, xsif_called, err, wild_here, matched
-logical file_end, err_flag, finished, print_err, good_attrib, wildcards_permitted
+logical file_end, err_flag, finished, good_attrib, wildcards_permitted
 
 ! Init...
 
@@ -303,10 +303,15 @@ parsing_loop: do
         else
           parse_line_save = bp_com%parse_line
         endif
-        print_err = .true.
-        if (word_1 == '*') print_err = .false.
-        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                  err_flag, print_err, check_free = .true.)
+
+        ! For element names = "*" we ignore bad sets since this could not be a typo.
+        if (word_1 == '*') then
+          call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
+                                                  err_flag, .false., check_free = .false.)
+        else
+          call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
+                                                  err_flag, .true., check_free = .true.)
+        endif
         if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
         found = .true.
         if (.not. err_flag) good_attrib = .true.
@@ -327,7 +332,7 @@ parsing_loop: do
       call warning ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
-    if (found .and. .not. print_err .and. .not. good_attrib) then
+    if (found .and. word_1 == '*' .and. .not. good_attrib) then
       call warning ('BAD ATTRIBUTE')
     endif
 

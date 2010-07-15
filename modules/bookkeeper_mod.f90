@@ -707,8 +707,10 @@ endif
 ! multipoles
 
 if (associated (slave%a_pole)) then
-  slave%a_pole = lord%a_pole
-  slave%b_pole = lord%b_pole
+  slave%a_pole           = lord%a_pole
+  slave%b_pole           = lord%b_pole
+  slave%mltipoles_on     = lord%multipoles_on
+  slave%scale_multipoles = lord%scale_multipoles
 endif
 
 ! wakes
