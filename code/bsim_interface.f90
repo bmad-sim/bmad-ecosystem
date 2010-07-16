@@ -3,17 +3,6 @@
 module bsim_interface
   
   interface
-     subroutine close_pretzel(ring,i_dim,final_pos_in, final_pos_out)
-       use bmad_struct, only: lat_struct, coord_struct
-       implicit none
-       type (lat_struct), intent(inout) :: ring
-       type (coord_struct), optional, intent(in) :: final_pos_in
-       type (coord_struct), optional, intent(out) :: final_pos_out
-       integer, intent(in) :: i_dim
-     end subroutine close_pretzel
-  end interface
-  
-  interface
      subroutine writefile(in_file, parameters)
        use precision_def
        implicit none
