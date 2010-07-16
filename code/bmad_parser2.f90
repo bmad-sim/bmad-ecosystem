@@ -201,14 +201,14 @@ parsing_loop: do
   ! BEAM command
 
   if (word_1(:ix_word) == 'BEAM') then
-    if (delim /= ',')  call warning ('"BEAM" NOT FOLLOWED BY COMMA', ' ')
+    if (delim /= ',')  call parser_warning ('"BEAM" NOT FOLLOWED BY COMMA', ' ')
 
     parsing = .true.
     do while (parsing)
       if (.not. delim_found) then
         parsing = .false.
       elseif (delim /= ',') then
-        call warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
+        call parser_warning ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
         call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, &
@@ -226,7 +226,7 @@ parsing_loop: do
   if (word_1(:ix_word) == 'LATTICE') then
     if ((delim /= ':' .or. bp_com%parse_line(1:1) /= '=') &
                                      .and. (delim /= '=')) then
-      call warning ('"LATTICE" NOT FOLLOWED BY ":="', ' ')
+      call parser_warning ('"LATTICE" NOT FOLLOWED BY ":="', ' ')
     else
       if (delim == ':') bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
       call get_next_word (lat%lattice, ix_word, ',', &
@@ -248,6 +248,7 @@ parsing_loop: do
     endif
   endif
 
+  !---------------------------------------
   ! Variable definition or element redef...
 
   ! if an element attribute redef.
@@ -256,13 +257,13 @@ parsing_loop: do
 
     call get_next_word (word_2, ix_word, ']', delim, delim_found, .true.)
     if (.not. delim_found) then
-      call warning ('OPENING "[" FOUND WITHOUT MATCHING "]"')
+      call parser_warning ('OPENING "[" FOUND WITHOUT MATCHING "]"')
       cycle parsing_loop
     endif
 
     call get_next_word (this_name, ix_word, ':=', delim, delim_found, .true.)
     if (.not. delim_found .or. ix_word /= 0) then
-      call warning ('MALFORMED ELEMENT ATTRIBUTE REDEFINITION')
+      call parser_warning ('MALFORMED ELEMENT ATTRIBUTE REDEFINITION')
       cycle parsing_loop
     endif
 
@@ -270,7 +271,7 @@ parsing_loop: do
     ! a ':=' construction as a '=' 
 
     if (delim == ':') then
-      call warning ('MALFORMED ELEMENT ATTRIBUTE REDEF')
+      call parser_warning ('MALFORMED ELEMENT ATTRIBUTE REDEF')
       cycle parsing_loop
     endif
 
@@ -312,7 +313,7 @@ parsing_loop: do
           call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
                                                   err_flag, .true., check_free = .true.)
         endif
-        if (.not. err_flag .and. delim_found) call warning ('BAD DELIMITER: ' // delim, ' ')
+        if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim, ' ')
         found = .true.
         if (.not. err_flag) good_attrib = .true.
       endif
@@ -320,6 +321,7 @@ parsing_loop: do
 
     ! If bmad_parser2 has been called from bmad_parser then check if the
     ! element was just not used in the lattice. If so then just ignore it.
+
     if (.not. found) then
       if (bp_com%bmad_parser_calling) then
         do i = 0, bp_com%old_lat%n_ele_max
@@ -329,15 +331,16 @@ parsing_loop: do
           endif
         enddo
       endif
-      call warning ('ELEMENT NOT FOUND: ' // word_1)
+      call parser_warning ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
     if (found .and. word_1 == '*' .and. .not. good_attrib) then
-      call warning ('BAD ATTRIBUTE')
+      call parser_warning ('BAD ATTRIBUTE')
     endif
 
     cycle parsing_loop
 
+  !---------------------------------------
   ! else must be a variable
 
   elseif (delim == '=') then
@@ -350,7 +353,7 @@ parsing_loop: do
   ! bad delimiter
 
   if (delim /= ':') then
-    call warning ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
+    call parser_warning ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
                                                      'FOR: ' // word_1)
     cycle parsing_loop
   endif
@@ -368,7 +371,7 @@ parsing_loop: do
   ! if line or list then this is an error for bmad_parser2
 
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
-    call warning ('LINES OR LISTS NOT PERMITTED: ' // word_1, ' ')
+    call parser_warning ('LINES OR LISTS NOT PERMITTED: ' // word_1, ' ')
 
   ! if not line or list then must be an element
 
@@ -390,7 +393,7 @@ parsing_loop: do
 
     do i = 1, n_max-1
       if (ele%name == lat%ele(i)%name) then
-        call warning ('DUPLICATE ELEMENT NAME ' // ele%name, ' ')
+        call parser_warning ('DUPLICATE ELEMENT NAME ' // ele%name, ' ')
         exit
       endif
     enddo
@@ -420,7 +423,7 @@ parsing_loop: do
     endif
 
     if (.not. found) then
-      call warning ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
+      call parser_warning ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
                     'FOR ELEMENT: ' // ele%name)
       ele%key = 1       ! dummy value
     endif
@@ -432,7 +435,7 @@ parsing_loop: do
     key = ele%key
     if (key == overlay$ .or. key == group$ .or. key == girder$) then
       if (delim /= '=') then
-        call warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
+        call parser_warning ('EXPECTING: "=" BUT GOT: ' // delim,  &
                     'FOR ELEMENT: ' // ele%name)
       else
         if (key == overlay$) ele%lord_status = overlay_lord$
@@ -441,7 +444,7 @@ parsing_loop: do
         call get_overlay_group_names(ele, lat,  pele, delim, delim_found)
       endif
       if (key /= girder$ .and. .not. delim_found) then
-        call warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
+        call parser_warning ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
                       'FOR ELEMENT: ' // ele%name)
         n_max = n_max - 1
         cycle parsing_loop
@@ -453,13 +456,12 @@ parsing_loop: do
       if (.not. delim_found) then          ! if nothing more
         parsing = .false.           ! break loop
       elseif (delim /= ',') then
-        call warning ('EXPECTING: "," BUT GOT: ' // delim,  &
+        call parser_warning ('EXPECTING: "," BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // ele%name)
         n_max = n_max - 1
         cycle parsing_loop
       else
-        call parser_set_attribute (def$, ele, lat, delim, delim_found, &
-                                      err_flag, .true., pele, check_free = .true.)
+        call parser_set_attribute (def$, ele, lat, delim, delim_found, err_flag, .true., pele)
         if (err_flag) then
           n_max = n_max - 1
           cycle parsing_loop
@@ -471,7 +473,7 @@ parsing_loop: do
 
     if (key /= overlay$ .and. key /= group$ .and. &
             ele%lord_status /= super_lord$) then
-      call warning ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
+      call parser_warning ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
                                            'OR GROUP: ' // word_1, ' ')
       n_max = n_max - 1
       cycle parsing_loop
@@ -499,7 +501,7 @@ endif
 v1 = param_ele%value(n_part$)
 v2 = beam_ele%value(n_part$)
 if (lat%param%n_part /= v1 .and. lat%param%n_part /= v2) then
-  call warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+  call parser_warning ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
 else if (v1 /= lat%param%n_part) then
   lat%param%n_part = v1
 else
@@ -509,7 +511,7 @@ endif
 ix1 = nint(param_ele%value(particle$))
 ix2 = nint(beam_ele%value(particle$))
 if (ix1 /= lat%param%particle .and. ix2 /= lat%param%particle) &
-        call warning ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
+        call parser_warning ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
 lat%param%particle = ix1
 if (ix2 /=  lat%param%particle) lat%param%particle = ix2
 
