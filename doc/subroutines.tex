@@ -137,7 +137,9 @@ and projected
 
 \index[routine]{calc_bunch_params_slice}
 \label{r:calc.bunch.params.slice}
-\item[calc_bunch_params (bunch, ele, param, bunch_params, plane, slice_center, slice_spread, err, print_err)] \Newline 
+\item[\protect\parbox{6in}{
+    calc_bunch_params (bunch, ele, param, bunch_params, plane, slice_center, \\
+    \hspace*{1in} slice_spread, err, print_err) }] \Newline 
 Finds all bunch parameters for a slice through the beam distribution.
 
 \index[routine]{canonical_to_angle_coords}
@@ -2036,7 +2038,9 @@ Routine to create a PTC layout from a Bmad lat.
 
 \index[routine]{set_ptc}
 \label{r:set.ptc}
-\item[set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, exact_calc, exact_misalign)] \Newline
+\item[\protect\parbox{6.5in}{
+    set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, \\
+    \hspace*{1in} exact_calc, exact_misalign) }] \Newline
 Routine to initialize PTC. 
 
 \index[routine]{set_taylor_order}
@@ -2431,7 +2435,9 @@ current box. This allows qp_set_box to subdivide the current box.
 
 \index[routine]{qp_set_parameters}
 \label{r:qp.set.parameters}
-\item[qp_set_parameters (text_scale, default_draw_units, default_set_units, default_axis_slop_factor)] \Newline 
+\item[\protect\parbox{6in}{
+    qp_set_parameters (text_scale, default_draw_units, default_set_units, \\
+    \hspace*{2in} default_axis_slop_factor) }] \Newline 
 Routine to set various quick plot parameters.
 
 \index[routine]{qp_subset_box}
@@ -2499,7 +2505,9 @@ Routine to get the default line attributes.
 
 \index[routine]{qp_get_parameters}
 \label{r:qp.get.parameters}
-\item[qp_get_parameters (text_scale, default_draw_units, default_set_units, default_axis_slop_factor)] \Newline 
+\item[\protect\parbox{6in}{
+    qp_get_parameters (text_scale, default_draw_units, default_set_units, \\
+    \hspace*{2in} default_axis_slop_factor) }] \Newline 
 Routine to get various quick_plot parameters.
 
 \index[routine]{qp_get_symbol}
@@ -2633,7 +2641,9 @@ Routine to form a units from its components.
 
 \index[routine]{qp_open_page_basic}
 \label{r:qp.open.page.basic}
-\item[qp_open_page_basic (page_type, x_len, y_len, plot_file, x_page, y_page, i_chan, page_scale)] \Newline 
+\item[\protect\parbox{6.5in}{
+    qp_open_page_basic (page_type, x_len, y_len, plot_file, \\
+    \hspace*{2in} x_page, y_page, i_chan, page_scale) }] \Newline 
 Routine to Initialize a page (window) for plotting.
 
 \index[routine]{qp_paint_rectangle_basic}
@@ -3034,8 +3044,9 @@ matrix and the closed orbit offset.
 
 \index[routine]{offset_particle}
 \label{r:offset.particle}
-\item[\protect\parbox{6in}{offset_particle (ele, param, coord, set, set_canonical, \\
-\hspace*{2in} set_tilt, set_multipoles, set_hvkicks, s_pos)}] \Newline
+\item[\protect\parbox{6in}{
+    offset_particle (ele, param, coord, set, set_canonical, \\
+    \hspace*{2in} set_tilt, set_multipoles, set_hvkicks, s_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -3101,12 +3112,14 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
 \label{r:twiss.and.track.intra.ele}
 \item[\protect\parbox{6in}{
   twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, \\
-  \hspace*{2in} track_exit, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
+  \hspace*{1in} track_exit, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
 Routine to track a particle within an element.
 
 \index[routine]{twiss_and_track_partial}
 \label{r:twiss.and.track.partial}
-\item[twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, orb_start, orb_end, body_only, err)] \Newline
+\item[\protect\parbox{6in}{
+    twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, \\
+    \hspace*{1in} orb_start, orb_end, body_only, err) }] \Newline
 Routine to calculate the Twiss parameters and orbit at a particular position inside an element. 
 
 \index[routine]{twiss_from_tracking}
@@ -3124,7 +3137,9 @@ for every element in the lat.
 
 \index[routine]{odeint_bmad}
 \label{r:odeint.bmad}
-\item[odeint_bmad (start, ele, param, end, s1, s2, rel_tol, abs_tol, h1, h_min, local_ref_frame, track)] \Newline
+\item[\protect\parbox{6in}{
+    odeint_bmad (start, ele, param, end, s1, s2, rel_tol, abs_tol, h1, h_min, \\
+    \hspace*{1in} local_ref_frame, track) }] \Newline
 Routine to do Runge Kutta tracking. 
 
 \index[routine]{slice_ele_calc}
@@ -3514,7 +3529,7 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
 
 \index[routine]{twiss_at_start}
 \label{r:twiss.at.start}
-\item[twiss_at_start (lat)] \Newline
+\item[twiss_at_start (lat, ix_branch)] \Newline
 Routine to calculate the Twiss parameters at the start of the lat. 
 
 \index[routine]{twiss_from_tracking}

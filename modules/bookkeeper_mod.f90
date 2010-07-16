@@ -709,7 +709,7 @@ endif
 if (associated (slave%a_pole)) then
   slave%a_pole           = lord%a_pole
   slave%b_pole           = lord%b_pole
-  slave%mltipoles_on     = lord%multipoles_on
+  slave%multipoles_on    = lord%multipoles_on
   slave%scale_multipoles = lord%scale_multipoles
 endif
 
@@ -2483,7 +2483,7 @@ end subroutine transfer_lat_taylors
 ! Input:
 !   key          -- Integer: Key name of elements to be turned on or off.
 !                      [Key = quadrupole$, etc.]
-!   lat             -- lat_struct: lattice structure holding the elements
+!   lat          -- lat_struct: lattice structure holding the elements
 !   switch       -- Integer: 
 !                     on$            => Turn elements on.  
 !                     off$           => Turn elements off. 
@@ -2502,11 +2502,12 @@ subroutine set_on_off (key, lat, switch, orb, use_ref_orb)
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (coord_struct), optional :: orb(0:)
 type (coord_struct) ref_orb
 
-integer i, key               
+integer i, ib, key
 integer, intent(in) :: switch
 
 logical, optional :: use_ref_orb
@@ -2516,36 +2517,40 @@ character(20) :: r_name = 'set_on_off'
 
 !
 
-do i = 1, lat%n_ele_max
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
 
-  if (lat%ele(i)%key /= key) cycle
+  do i = 1, branch%n_ele_max
 
-  old_state = lat%ele(i)%is_on
+    if (branch%ele(i)%key /= key) cycle
 
-  select case (switch)
-  case (on$) 
-    lat%ele(i)%is_on = .true.
-  case (off$)
-    lat%ele(i)%is_on = .false.
-  case (save_state$)
-    lat%ele(i)%old_is_on = lat%ele(i)%is_on
-    cycle
-  case (restore_state$)
-    lat%ele(i)%is_on = lat%ele(i)%old_is_on
-  case default
-    call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
-    call err_exit
-  end select
+    old_state = branch%ele(i)%is_on
 
-  if (old_state .neqv. lat%ele(i)%is_on) then
-    if (logic_option (.false., use_ref_orb)) then
-      ref_orb = lat%ele(i)%map_ref_orb_in
-      call make_mat6(lat%ele(i), lat%param, ref_orb)
-    else
-      call lat_make_mat6(lat, i, orb)
+    select case (switch)
+    case (on$) 
+      branch%ele(i)%is_on = .true.
+    case (off$)
+      branch%ele(i)%is_on = .false.
+    case (save_state$)
+      branch%ele(i)%old_is_on = branch%ele(i)%is_on
+      cycle
+    case (restore_state$)
+      branch%ele(i)%is_on = branch%ele(i)%old_is_on
+    case default
+      call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
+      call err_exit
+    end select
+
+    if (old_state .neqv. branch%ele(i)%is_on) then
+      if (logic_option (.false., use_ref_orb)) then
+        ref_orb = branch%ele(i)%map_ref_orb_in
+        call make_mat6(branch%ele(i), branch%param, ref_orb)
+      else
+        call lat_make_mat6(lat, i, orb, ib)
+      endif
     endif
-  endif
 
+  enddo
 enddo
 
 end subroutine set_on_off

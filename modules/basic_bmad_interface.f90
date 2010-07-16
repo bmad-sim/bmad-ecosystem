@@ -897,10 +897,11 @@ interface
 end interface
 
 interface
-  subroutine twiss_at_start (lat)
+  subroutine twiss_at_start (lat, ix_branch)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
+    integer, optional :: ix_branch
   end subroutine
 end interface
 

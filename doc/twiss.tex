@@ -2,13 +2,12 @@
 \label{c:twiss}
 
 %-----------------------------------------------------------------------------
-\section{Ele\_struct Components}
+\section{Components in the Ele\_struct}
 \label{s:twiss.ele}
 
 \index{ele_struct!\%gamma_c}
 \index{ele_struct!\%c_mat}
 \index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
-
 The \vn{ele_struct} (\sref{c:ele.struct}) has a number of components that
 hold information on the Twiss parameters, dispersion, and coupling
 at the exit end of the element. The Twiss parameters of the three 
@@ -30,9 +29,10 @@ components which are of type \vn{twiss_struct}:
     real(rp) norm_emit    ! Normalized emittance
   end type 
 \end{example}
-The projected horizontal and vertical dispersions in an \vn{ele_struct}
-are contained in the \vn{%x} and \vn{%y} components. These components are
-of type \vn{xy_disp_struct}:
+\index{xy_disp_struct}
+The projected horizontal and vertical dispersions in an
+\vn{ele_struct} are contained in the \vn{ele%x} and \vn{ele%y}
+components. These components are of type \vn{xy_disp_struct}:
 \index{xy_disp_struct}
 \begin{example}
   type xy_disp_struct
@@ -41,13 +41,13 @@ of type \vn{xy_disp_struct}:
   end type 
 \end{example}
 
+\index{ele_struct!\%c}\index{ele_struct!\%gamma_c}
 The relationship between the projected and normal mode dispersions are
-given by \Eq{avx}. 
-The 2x2 coupling matrix $\bfC$ (\Eq{vgicc1}) is stored in the \vn{ele%c(2,2)}
-component of the \vn{ele_struct} and the $\gamma$ factor of \Eq{vgicc1}
-is stored in the \vn{ele%gamma_c} component.
-There are several
-routines to manipulate the coupling factors. For example:
+given by \Eq{avx}. The 2x2 coupling matrix $\bfC$ (\Eq{vgicc1}) is
+stored in the \vn{ele%c(2,2)} component of the \vn{ele_struct} and the
+$\gamma$ factor of \Eq{vgicc1} is stored in the \vn{ele%gamma_c}
+component. There are several routines to manipulate the coupling
+factors. For example:
 \begin{example}
   \Hyperref{r:c.to.cbar}{c_to_cbar}(ele, cbar_mat)             ! Form Cbar(2,2) matrix
   \Hyperref{r:make.v.mats}{make_v_mats}(ele, v_mat, v_inv_mat)   ! Form V coupling matrices.
@@ -58,7 +58,15 @@ Since the normal mode and projected dispersions are related, when one
 is changed within a program the appropriate change must be made to the
 other. To make sure everything is consistent, the
 \Hyperref{r:changed.attribute.bookkeeper}{changed_attribute_bookkeeper}
-routine can be used.
+routine can be used. Example:
+\begin{example}
+  type (lat_struct), target :: lat
+  real(rp), pointer :: attrib_ptr
+  ...
+  attrib_ptr => lat%ele(ix_ele)%value(k1$) ! Point to some attribute.
+  attrib_ptr = value                       ! Change the value.
+  call changed_attribute_bookkeeper (lat, lat%ele(ix_ele), attrib_ptr)
+\end{example}
 
 The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates
 whether the $a$ and $b$ normal modes have been flipped relative to the
@@ -120,9 +128,8 @@ used. This routine works by repeated calls to
 \Hyperref{r:twiss.propagate1}{twiss_propagate1} which does a single
 propagation from one element to another. The Twiss propagation depends
 upon the transfer matrices having already computed
-(\sref{c:tracking}).  \vn{twiss_propagate_all} also computes the twiss
-parameters for all the lattice branches. Note: Currently,
-\vn{twiss_at_start} only works with the main lattice branch.
+(\sref{c:tracking}).  \vn{twiss_propagate_all} also computes the Twiss
+parameters for all the lattice branches. 
 
 Before any Twiss parameters can be calculated, the transfer matrices
 stored in the lattice elements must be computed. 
