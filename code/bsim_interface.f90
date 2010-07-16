@@ -1,46 +1,3 @@
-!........................................................................
-!+
-! module bsim_interface
-!
-! Description:
-!
-! Mod/Commons:
-!
-! Calls      :
-!
-! Author     :
-!
-! Modified   :
-!-
-!........................................................................
-!
-! $Id$
-!
-! $Log$
-! Revision 1.6  2007/01/30 16:14:31  dcs
-! merged with branch_bmad_1.
-!
-! Revision 1.5.2.1  2006/12/22 20:30:42  dcs
-! conversion compiles.
-!
-! Revision 1.5  2005/09/21 20:59:07  dcs
-! more changes to get around compiler bug.
-!
-! Revision 1.4  2005/09/21 20:35:58  dcs
-! Put beambeam_setup in scan_parameters module.
-!
-! Revision 1.3  2005/09/21 20:19:06  dcs
-! another try to get around compiler bug.
-!
-! Revision 1.2  2005/09/20 20:25:22  dcs
-! cleaned up use statements.
-!
-! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
-! Beam Simulation Code
-!
-!
-!........................................................................
-!
 #include "CESR_platform.inc"
 
 module bsim_interface
@@ -54,23 +11,6 @@ module bsim_interface
        type (coord_struct), optional, intent(out) :: final_pos_out
        integer, intent(in) :: i_dim
      end subroutine close_pretzel
-  end interface
-  
-  interface
-     subroutine close_vertical(ring,i_dim,final_pos_in, final_pos_out)
-       use bmad_struct, only: lat_struct, coord_struct
-       implicit none
-       type(lat_struct), intent(inout) :: ring
-       type(coord_struct), optional, intent(in) :: final_pos_in
-       type(coord_struct), optional, intent(out) :: final_pos_out
-       integer, intent(in) :: i_dim
-     end subroutine close_vertical
-  end interface
-  
-  interface
-     subroutine read_turns()
-       implicit none
-     end subroutine read_turns
   end interface
   
   interface
@@ -126,18 +66,6 @@ module bsim_interface
   end interface
   
   interface
-     subroutine luminosity_calc (ele, coord, param, n_ok, lum)
-       use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, rp
-       implicit none
-       type(ele_struct) ele
-       type(coord_struct), allocatable :: coord(:)
-       type(lat_param_struct) param
-       real(rp) lum, f
-       integer n_ok
-     end subroutine luminosity_calc
-  end interface
-  
-  interface
      subroutine lum_tracker(ring,n_part, start, end)
        use bmad_struct, only: lat_struct, coord_struct
        implicit none
@@ -146,16 +74,6 @@ module bsim_interface
        type(coord_struct), allocatable, save :: co(:)
        integer n_part, i, j
      end subroutine lum_tracker
-  end interface
-  
-  interface
-     subroutine MARK_LRBBI_ONLY(master_ring, master_ring_oppos, ring, crossings)
-       use bmad_struct, only: lat_struct, rp
-       implicit none
-       type (lat_struct), dimension(:) :: ring
-       type (lat_struct) :: master_ring, master_ring_oppos
-       real(rp), dimension(:,:) :: crossings
-     end subroutine MARK_LRBBI_ONLY
   end interface
   
   interface
