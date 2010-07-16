@@ -781,9 +781,9 @@ logical is_problem, is_free
 is_problem = .false.
 
 if (logic_option(.false., check_free)) then
-  is_free = attribute_free (ele, attrib_name, lat)
+  is_free = attribute_free (ele, attrib_name, lat, print_err)
   if (.not. is_free) then
-    call parser_warning ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
+    if (print_err) call parser_warning ('ATTRIBUTE NOT FREE TO BE SET: ' // attrib_name, 'FOR: ' // ele%name)
     err_flag = .true.
     is_problem = .true.
   endif

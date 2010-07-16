@@ -77,7 +77,7 @@ character(200) call_file
 character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
-logical parsing, delim_found, found, xsif_called, err, wild_here, matched
+logical parsing, delim_found, found, xsif_called, err, wild_here, key_here
 logical file_end, err_flag, finished, good_attrib, wildcards_permitted
 
 ! Init...
@@ -279,7 +279,14 @@ parsing_loop: do
 
     wild_here = .false.
     if (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) wild_here = .true.
-    matched = .false.
+
+    key_here = .false.
+    do i = 1, size(key_name)
+      if (word_1 == key_name(i)) then
+        key_here = .true.
+        exit
+      endif
+    enddo
 
     found = .false.
     good_attrib = .false.
@@ -288,41 +295,47 @@ parsing_loop: do
 
       ele => lat%ele(i)
 
-      if (wild_here) then
+      ! See if element is a match
+
+      if (key_here) then
+        if (key_name(ele%key) /= word_1) cycle
+
+      elseif (wild_here) then
         select case (ele%name)
         case ('BEGINNING', 'BEAM', 'PARAMETER', 'BEAM_START')
-          matched = .false.
-        case default
-          matched = match_wild(ele%name, word_1)
+          cycle  ! Wild card matches not permitted for predefined elements
         end select
+        if (.not. match_wild(ele%name, word_1)) cycle
+
+      elseif (ele%name /= word_1) then
+        cycle
       endif
 
-      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. matched) then
-        bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
-        if (found) then   ! if not first time
-          bp_com%parse_line = parse_line_save
-        else
-          parse_line_save = bp_com%parse_line
-        endif
-
-        ! For element names = "*" we ignore bad sets since this could not be a typo.
-        if (word_1 == '*') then
-          call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                  err_flag, .false., check_free = .false.)
-        else
-          call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                  err_flag, .true., check_free = .true.)
-        endif
-        if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim, ' ')
-        found = .true.
-        if (.not. err_flag) good_attrib = .true.
+      bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
+      if (found) then   ! if not first time
+        bp_com%parse_line = parse_line_save
+      else
+        parse_line_save = bp_com%parse_line
       endif
+
+      ! With wild cards and key names we ignore bad sets since this could not be a typo.
+      if (wild_here .or. key_here) then
+        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
+                                                err_flag, .false., check_free = .true.)
+      else
+        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
+                                                err_flag, .true., check_free = .true.)
+      endif
+      if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim, ' ')
+      found = .true.
+      if (.not. err_flag) good_attrib = .true.
+
     enddo
 
     ! If bmad_parser2 has been called from bmad_parser then check if the
     ! element was just not used in the lattice. If so then just ignore it.
 
-    if (.not. found) then
+    if (.not. found .and. .not. key_here) then
       if (bp_com%bmad_parser_calling) then
         do i = 0, bp_com%old_lat%n_ele_max
           if (bp_com%old_lat%ele(i)%name == word_1) then
@@ -334,7 +347,7 @@ parsing_loop: do
       call parser_warning ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
-    if (found .and. word_1 == '*' .and. .not. good_attrib) then
+    if (found .and. (wild_here .or. key_here) .and. .not. good_attrib) then
       call parser_warning ('BAD ATTRIBUTE')
     endif
 
