@@ -50,16 +50,11 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := test tune_scan dynamic_aperture freq_map closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif beambeam bmad_to_autocad synrad synrad3d bbu plot_freq_map plot_sb_scan
+OBJ_SRC_DIRS := test dynamic_aperture closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif bmad_to_autocad synrad synrad3d bbu plot_freq_map plot_sb_scan
 CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
-M_FILE_LIST  := M.tune_scan M.dynamic_aperture M.freq_map M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall
-
-# beambeam_luminosity cannot be linked on OSF1 due to (intentionally) missing lammpio
-ifneq "$(CESR_PLATFORM)" "OSF1_alpha"
-  M_FILE_LIST += M.beambeam
-endif
+M_FILE_LIST  := M.dynamic_aperture M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall
 
 
 #-----------------------------------------------------------------------------
