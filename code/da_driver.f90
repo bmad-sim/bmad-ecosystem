@@ -196,9 +196,9 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
      print *,' DA_DRIVER: RF frequency shift. i_dim = ', i_dim
    endif
   call closed_orbit_calc (ring, co, i_dim)
-  open(unit=11, file = 'orbit.dat',carriagecontrol='list')
+  open(unit=11, file = 'orbit.dat')
   do j = 1,ring%n_ele_track
-   write(11,'(1x,i,1x,2e12.4)')j, ring%ele(j)%s, co(j)%vec(1)
+   write(11,'(1x,i0,1x,2e12.4)')j, ring%ele(j)%s, co(j)%vec(1)
   end do
   close(unit=11)
 
@@ -212,10 +212,9 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 ! write output
   call file_suffixer (in_file, in_file, '.dat', .true.)
-  open (unit = 2, file = in_file,   &
-                                        carriagecontrol = 'list')
-  write (2, *) 'Lattice  = ', ring.lattice
-  write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input.n_turn
+  open (unit = 2, file = in_file)
+  write (2, *) 'Lattice  = ', ring%lattice
+  write (2, '(a11,i5,3(a10,f7.5))') ' N_turn   =', track_input%n_turn
   write(2,'(a8,a1,f8.4,a1)') '  Q_x = ',"`",ring%a%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_y = ',"`",ring%b%tune/twopi,"'"
   write(2,'(a8,a1,f8.4,a1)') '  Q_z = ',"`",ring%z%tune/twopi,"'"
@@ -223,8 +222,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   write (2, *) 'n_xy_pts =', n_xy_pts
   write (2, *) 'point_range =',point_range
   write (2, *) 'n_energy_pts =', n_energy_pts
-  write (2, *) 'x_init   =', track_input.x_init
-  write (2, *) 'y_init   =', track_input.y_init
+  write (2, *) 'x_init   =', track_input%x_init
+  write (2, *) 'y_init   =', track_input%y_init
   write (2, *) 'energy    =', &
                        (energy(i),i=1, n_energy_pts)
   write (2, *) 'accuracy =', track_input%accuracy
@@ -253,8 +252,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
     call string_trim (in_file, in_file, ix)
     write (da_file, '(a, i1.1, a)') in_file(1:ix-4), i_e, '.dat'
-    open (unit = 3, file = da_file,   &
-                                        carriagecontrol = 'list')
+    open (unit = 3, file = da_file)
 
     file_name = ring%input_file_name
     ix=0

@@ -103,8 +103,8 @@ subroutine plot_pretz(lat,ncross, cross)
       xhigh = xc + bar * ( sin(-theta))
       ylow = yc - bar * ( cos(theta))
       yhigh = yc + bar * ( cos(theta))
-     write(36,'(2f10.3,i,6f10.3)') -xlow, -ylow, k, z, theta, x, xpast, y, ypast
-     write(36,'(2f10.3,i,2f10.3)') -xhigh, -yhigh, k, z, theta
+     write(36,'(2f10.3,i0,6f10.3)') -xlow, -ylow, k, z, theta, x, xpast, y, ypast
+     write(36,'(2f10.3,i0,2f10.3)') -xhigh, -yhigh, k, z, theta
      write(36,*) 
      write(36,*) 
      write(36,*) 

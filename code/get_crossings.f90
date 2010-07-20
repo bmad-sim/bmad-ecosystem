@@ -32,14 +32,14 @@ if(string(1:4) /= 'PRET')then
 endif
 
 call string_trim(string(ix+1:),string,ix)
-read (string(1:ix),'(i)', iostat = ios) test
+read (string(1:ix), *, iostat = ios) test
 print *, test
 if(test > 0 .and. test < 20 .and. ios == 0) then 
   trains = test
   call string_trim(string(ix+1:),string,ix)
-  read(string(1:ix),'(i)')bunches
+  read(string(1:ix), *)bunches
   call string_trim(string(ix+1:),string,ix)
-  read(string(1:ix),'(i)')spacing
+  read(string(1:ix), *)spacing
   print *,' trains = ', trains
   print *,' bunches = ', bunches
   print *,' spacing = ', spacing  
