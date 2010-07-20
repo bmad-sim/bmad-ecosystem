@@ -32,7 +32,7 @@ call choose_cesr_lattice (lat_name, lat_file, db_lat, ring)
 file = trim(lat_name) // '.bmad'
 print *, 'File: ', trim(file)
 
-open (1, file = file, status = 'new', carriagecontrol = 'list', recl = 500)
+open (1, file = file, recl = 500)
 
 write (1, '(2a17, 3x, 32a14)') 'Name', 'Type',  'S',  'L', &
       'Angle', 'E1', 'E2', 'K1', 'K2', 'Ks', 'Tilt', 'HKick', 'VKick', &
@@ -86,7 +86,7 @@ close (1)
 ! steering file
 
 file = 'steerings.list'
-open (1, file = file, status = 'new', carriagecontrol = 'list')
+open (1, file = file)
 
 do i = ring%n_ele_track+1, ring%n_ele_max
 
