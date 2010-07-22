@@ -10,8 +10,8 @@ the plot page) is broken up.
   plot_page%title(1)%string = 'CESR lattice: bmad_6wig_lum_20030915_v1'
   region(1) = 'top'    0.0, 1.0, 0.48, 0.95
   region(2) = 'bottom' 0.0, 1.0, 0.0,  0.48
-  place(1) = 'top', 'orbit'
-  place(2) = 'bottom', 'phase'
+  place(1) = 'top', 'quad_k1'
+!!  place(2) = 'bottom', 'phase'
 /
 
 

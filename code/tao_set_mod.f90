@@ -244,7 +244,7 @@ character(*) who, set_value
 character(20) :: r_name = 'tao_set_global_cmd'
 
 integer iu, ios
-logical err
+logical err, needs_quotes
 
 namelist / params / global
 
@@ -257,9 +257,22 @@ if (ios /= 0) then
   return
 endif
 
+needs_quotes = .false.
+select case (who)
+case ('random_engine', 'random_gauss_converter', 'track_type', &
+      'prompt_string', 'optimizer', 'print_command', 'var_out_file', 'plot_display_type')
+  needs_quotes = .true.
+end select
+if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
+
 write (iu, *) '&params'
-write (iu, *) ' global%' // trim(who) // ' = ' // trim(set_value)
+if (needs_quotes) then
+  write (iu, *) ' global%' // trim(who) // ' = "' // trim(set_value) // '"'
+else
+  write (iu, *) ' global%' // trim(who) // ' = ' // trim(set_value)
+endif
 write (iu, *) '/'
+write (iu, *)
 rewind (iu)
 global = s%global  ! set defaults
 read (iu, nml = params, iostat = ios)
