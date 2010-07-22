@@ -788,7 +788,7 @@ do k = 1, size(graph%curve)
       return
     end if
 
-    curve%y_symb = pack(value, mask = d1_ptr%d%useit_plot)
+    curve%y_symb = pack(value, mask = v1_ptr%v%useit_plot)
 
   !----------------------------------------------------------------------------
   ! Case: data_source is from lattice, or beam
