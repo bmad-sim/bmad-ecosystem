@@ -53,9 +53,8 @@ shows:
     var_array(8:)   = 2*34 2*81      ! Also equivalent
     var_array(1:2) = 1 2 3           ! Error: Too many RHS values.
     string_arr = '1st' "2nd" '3rd'   ! Setting a string array.
-    string_arr(1:3) = 1st 2nd 3rd    ! Same as above. Quotes are not needed if the 
-                                     ! strings do not have any special characters.
-    string_arr(1:3) = 1st,2nd,3rd    ! Same as above!
+    string_arr(1:3) = 1st 2nd 3rd    ! Same as above? Some compilers will not accept this!
+    string_arr(1:3) = 1st,2nd,3rd    ! Same as above? Some compilers will not accept this!
     string_arr = 'A B' "2/" "&"      ! Quotes needed here.
   /
 \end{example}
@@ -66,7 +65,10 @@ values on the RHS, only \vn{n} values in the array are set. Notice the notation
 multiple values. Also note that the compiler may be picky about blanks so 
 that ``2*34'' will be accepted but ``2 * 34'' may not.
 
-Special characters where quotes are needed for string input are:
+For string input it is always best to use quotes. Some compilers will
+accept strings without quotes. Even thouse that do will generally not
+accept strings with special characters.  Thus the following characters
+should not be used in unquoted strings:
 \begin{example}
   Blank or Tab character.
   Period if it is the first character in the string.
