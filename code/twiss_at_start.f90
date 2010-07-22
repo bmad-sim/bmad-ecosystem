@@ -113,12 +113,13 @@ branch%param%t1_no_RF = mat6
 ! compute twiss parameters
 
 call twiss_from_mat6 (mat6, map0, branch%ele(0), branch%param%stable, branch%param%unstable_factor)
-branch%ele(0)%a%phi = 0
-branch%ele(0)%b%phi = 0
 
 if (integer_option(0, ix_branch) == 0) then
   lat%a%tune = lat%ele(0)%a%phi
   lat%b%tune = lat%ele(0)%b%phi
 endif
+
+branch%ele(0)%a%phi = 0
+branch%ele(0)%b%phi = 0
 
 end subroutine
