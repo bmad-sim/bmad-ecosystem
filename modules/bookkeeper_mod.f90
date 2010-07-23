@@ -1933,8 +1933,6 @@ end subroutine makeup_overlay_and_girder_slave
 
 subroutine attribute_bookkeeper (ele, param)
 
-use symp_lie_mod, only: symp_lie_bmad
-
 implicit none
 
 type (ele_struct), target :: ele
@@ -2264,20 +2262,60 @@ if (associated(ele%const)) ele%const = -1  ! Forces recalc
 
 ! Compute the z_patch for a wiggler if needed.
 
-if (z_patch_calc_needed) then
-  start = ele%map_ref_orb_in
-  call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
-  val(z_patch$) = end%vec(5) - start%vec(5)
-  end%vec(5) = 0
-  if (val(z_patch$) == 0) val(z_patch$) = 1e-30 ! something non-zero.
-  ele%map_ref_orb_out = end             ! save for next super_slave
-endif
+if (z_patch_calc_needed) call z_patch_calc (ele, param)
 
 ! Set old_value = value
 
 ele%old_value = val
 
 end subroutine attribute_bookkeeper
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine z_patch_calc (ele, param)
+!
+! Routine to calculate the ele%value(z_patch$) value for a wiggler.
+! The z_patch accounts for the problem where a tracked particle that starts
+! out on the reference orbit accumulates a non-zero change in z due to the fact
+! that the particle trajectory is non-zero. With RF cavities in the 
+! machine this can lead to energy shifts. The solution is that the z_patch
+! is applied after tracking through a wiggler to make the change in z for
+! a particle on the reference orbit zero.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele   -- ele_struct: Wiggler element 
+!   param -- lat_param_struct: Lattice parameter values.
+!
+! Output:
+!   ele   -- ele_struct:
+!     %value(z_patch$) -- z_patch value.
+!-
+
+subroutine z_patch_calc (ele, param)
+
+use symp_lie_mod, only: symp_lie_bmad
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) param
+type (coord_struct) start, end
+
+!
+
+start = ele%map_ref_orb_in
+call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
+ele%value(z_patch$) = end%vec(5) - start%vec(5)
+if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
+ele%map_ref_orb_out = end             ! save for next super_slave
+ele%map_ref_orb_out%vec(5) = 0
+
+end subroutine
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
