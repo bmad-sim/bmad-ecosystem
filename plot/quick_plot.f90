@@ -2962,11 +2962,10 @@ end subroutine
 ! Subroutine qp_draw_circle (x0, y0, r, angle0, del_angle, 
 !                                    units, width, color, style, clip)
 !
-! Subroutine to plot a section of an ellipse.
+! Subroutine to plot a section of a circle.
 ! Drawn is:
-!     (x, y) = (x0, y0) + M * (r * cos(theta), r * sin(theta))
-! Where M is a rotation matrix with rotation angle theta_xy, 
-! and theta goes from angle0 to angle0 + del_angle.
+!     (x, y) = (x0, y0) + r * (cos(theta), sin(theta))
+! where theta goes from angle0 to angle0 + del_angle.
 !
 ! Note: Currently this routine can only draw solid lines.
 !
