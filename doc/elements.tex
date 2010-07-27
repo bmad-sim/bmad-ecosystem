@@ -361,7 +361,7 @@ The difference between \vn{rbend} and \vn{sbend} elements
 is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
 To ease the bookkeeping burden, after reading in a lattice, \bmad will
 internally convert all \vn{rbend}s into \vn{sbend}s. 
-this is done on using the following transformation on \vn{rbend}s:
+This is done using the following transformation on \vn{rbend}s:
 \begin{example}
   l_chord(internal) = l(input)
   l(internal) = 2 * asin(l_chord * g / 2) / g
@@ -383,8 +383,8 @@ this is done on using the following transformation on \vn{rbend}s:
   \begin{description}
   \index{l}\index{l_chord}
   \item[l, l_chord]  \Newline
-For a \vn{rbend}, \vn{l} is the chord length and not the arc length as
-it is for a \vn{sbend}.  However, after reading in a lattice, \bmad will
+For an \vn{rbend}, \vn{l} is the chord length and not the arc length as
+it is for an \vn{sbend}.  However, after reading in a lattice, \bmad will
 internally convert all \vn{rbend}s into \vn{sbend}s, additionally, the
 \vn{l_chord} attribute will be set to the input \vn{l}, and \vn{l} 
 will be set to the true path length (see above).
@@ -396,11 +396,11 @@ are not yet implemented in terms of tracking and other calculations.
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
 the rotation angle of the entrance pole face is \vn{e1} and at the
-exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{Rbend}
+exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend}
 gives a rectangular magnet  (Figure~\ref{f:bend}a). Zero \vn{e1} and \vn{e2}
-for a \vn{Sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
-An \vn{Sbend} with an \vn{e1} = \vn{e2} =
-\vn{angle}/2 is equivalent to an \vn{Rbend} with \vn{e1} = \vn{e2} =
+for an \vn{sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
+An \vn{sbend} with an \vn{e1} = \vn{e2} =
+\vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} =
 0 (see above).
   \index{angle}
   \item[angle] \Newline
@@ -452,7 +452,7 @@ specified for an element \bmad will calculate the appropriate value
 for the third.  After reading in a lattice, \vn{angle} is considered a
 dependent variable (\sref{s:depend}).
 
-Since internally all \vn{Rbend}s are converted to \vn{Sbend}s, if one wants to
+Since internally all \vn{rbend}s are converted to \vn{sbend}s, if one wants to
 vary the \vn{g} attribute of a bend and still keep the bend rectangular, an
 overlay (\sref{s:overlay}) can be constructed to maintain the proper face angles.
 For example:

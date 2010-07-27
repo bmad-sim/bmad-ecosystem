@@ -182,18 +182,22 @@ major divisions to be between 4 and 8. For the horizontal axis, as can be
 seen in Figure~\ref{f:plot.out}, it chooses 5 divisions.
 
 After drawing the first data curve (the solid curve) in the left
-graph, the routines \Hyperref{r:qp.set.symbol.attrib}{qp_set_symbol_attrib} and
-\Hyperref{r:qp.set.line.attrib}{qp_set_line_attrib} are called on lines 44 and 45 to plot the
-next data curve in blue with a dashed line style. By default, this
-curve goes where the last one did: in the left graph. To keep the
-setting of the line and symbol attributes from affecting other plots
-the routines \Hyperref{r:qp.save.state}{qp_save_state} and 
-\Hyperref{r:qp.restore.state}{qp_restore_state} on lines
-43 and 47 are used. \Hyperref{r:qp.save.state}{qp_save_state} saves the current attributes
-in a attribute stack. \Hyperref{r:qp.restore.state}{qp_restore_state} restores the saved
-attributes from the attribute stack. \Hyperref{r:qp.draw.axes}{qp_draw_axes} is called on
-line 40 to draw the $x$ and $y$-axes along, and \vn{qp_draw_data} is called
-on lines 41 and 46 to draw the two data curves.
+graph, the routines
+\Hyperref{r:qp.set.symbol.attrib}{qp_set_symbol_attrib} and
+\Hyperref{r:qp.set.line.attrib}{qp_set_line_attrib} are called on
+lines 44 and 45 to plot the next data curve in blue with a dashed line
+style. By default, this curve goes where the last one did: in the left
+graph. To keep the setting of the line and symbol attributes from
+affecting other plots the routines
+\Hyperref{r:qp.save.state}{qp_save_state} and
+\Hyperref{r:qp.restore.state}{qp_restore_state} on lines 43 and 47 are
+used. \Hyperref{r:qp.save.state}{qp_save_state} saves the current
+attributes in an attribute
+stack. \Hyperref{r:qp.restore.state}{qp_restore_state} restores the
+saved attributes from the attribute
+stack. \Hyperref{r:qp.draw.axes}{qp_draw_axes} is called on line 40 to
+draw the $x$ and $y$-axes along, and \vn{qp_draw_data} is called on
+lines 41 and 46 to draw the two data curves.
 
 Lines 50 through 60 draw the third curve in the right hand graph.  The
 \vn{qp_set_axis} call on lines 55/56 sets a log scale for the \vn{y2}

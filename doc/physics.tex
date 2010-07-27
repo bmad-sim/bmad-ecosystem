@@ -255,13 +255,14 @@ like this:
    ---------------------------------------------------
       6:      1.000000000000  0  0  0  0  0  1        1       0.000000000
 \end{example}
-Each line in the example represents a single taylor term. The Taylor
-terms are grouped into 6 Taylor series, one each output phase space
-coordinate.  The first column in the example, labeled ``out'',
-(corresponding to the $i$ index in \Eq{rcr}) indicates the Taylor
-series: $1 = x(out)$, $2 = p_x(out)$, etc. The 6 exponent columns give
-the $e_{ijk}$ of \Eq{rcr}. In this example, the second Taylor series
-(\vn{out} = 2), when expressed as a formula, would read:
+Each line in the example represents a single \vn{Taylor term}. The
+Taylor terms are grouped into 6 \vn{Taylor series}. There is one
+series for each of the output phase space coordinate. The first
+column in the example, labeled ``out'', (corresponding to the $i$
+index in \Eq{rcr}) indicates the Taylor series: $1 = x(out)$, $2 =
+p_x(out)$, etc. The 6 exponent columns give the $e_{ijk}$ of
+\Eq{rcr}. In this example, the second Taylor series (\vn{out} = 2),
+when expressed as a formula, would read:
 \Begineq
   p_x(out) = -0.185 + 1.3 \, p_x(in) + 3.8 \, x^2(in) \, p_z(in)
 \Endeq
@@ -1295,7 +1296,7 @@ extended to six dimensions.
 \label{ss:kv.init}
 
 The Kapchinsky-Vladimirsky (\vn{KV}) distribution can be thought of as
-a four dimensional alalog of the \vn{ellipse} distribution with only one
+a four dimensional analog of the \vn{ellipse} distribution with only one
 elliptical shell. Consider a 4D phase space $(x,x', y,y')$.  
 Using this framework, a 4D Gaussian distribution is
 \begin{align}
@@ -1830,7 +1831,7 @@ of the storage ring. Finally the emittances are given by
 For a non-circular machine, radiation integrals are still of interest
 if there are bends or steering elements. However, in this case, the
 appropriate energy factors must be included to take account any
-changes in energy due to any \vn{LCavity} elements.  For a
+changes in energy due to any \vn{lcavity} elements.  For a
 non-circular machine, the $I_1$ integral is not altered and the $I_4$
 integrals are not relevant. The other integrals become
   \Begineqs
