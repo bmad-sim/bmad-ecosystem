@@ -154,7 +154,8 @@ LOCAL_LFLAGS   :=
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS := 
-CESR_LIBS  := cesr_utils bmad xsif nonlin_bpm CesrBPM sim_utils recipes_f-90_LEPP c_utils
+#CESR_LIBS  := cesr_utils bmad xsif nonlin_bpm CesrBPM sim_utils recipes_f-90_LEPP c_utils
+CESR_LIBS  := cesr_utils bmad xsif nonlin_bpm sim_utils recipes_f-90_LEPP c_utils
 PKG_LIBS   := forest pgplot
 SYS_LIBS   := readline curses
 CERN_LIBS  :=
