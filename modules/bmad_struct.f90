@@ -374,17 +374,17 @@ integer, parameter :: n_key = 44
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
 character(16) :: key_name(n_key) = [ &
-    'DRIFT        ', 'SBEND        ', 'QUADRUPOLE   ', 'GROUP        ', &
-    'SEXTUPOLE    ', 'OVERLAY      ', 'CUSTOM       ', 'TAYLOR       ', &
-    'RFCAVITY     ', 'ELSEPARATOR  ', 'BEAMBEAM     ', 'WIGGLER      ', &
-    'SOL_QUAD     ', 'MARKER       ', 'KICKER       ', 'HYBRID       ', &
-    'OCTUPOLE     ', 'RBEND        ', 'MULTIPOLE    ', 'BEND_SOL_    ', &
-    'DEF_BEAM     ', 'AB_MULTIPOLE ', 'SOLENOID     ', 'PATCH        ', &
-    'LCAVITY      ', 'DEF_PARAMETER', 'NULL_ELE     ', 'INIT_ELE     ', &
-    'HOM          ', 'MATCH        ', 'MONITOR      ', 'INSTRUMENT   ', &
-    'HKICKER      ', 'VKICKER      ', 'RCOLLIMATOR  ', 'ECOLLIMATOR  ', &
-    'GIRDER       ', 'BEND_SOL_QUAD', 'BEAM_START   ', 'PHOTON_BRANCH', &
-    'BRANCH       ', 'MIRROR       ', 'CRYSTAL      ', 'PIPE         ']
+    'DRIFT         ', 'SBEND         ', 'QUADRUPOLE    ', 'GROUP         ', &
+    'SEXTUPOLE     ', 'OVERLAY       ', 'CUSTOM        ', 'TAYLOR        ', &
+    'RFCAVITY      ', 'ELSEPARATOR   ', 'BEAMBEAM      ', 'WIGGLER       ', &
+    'SOL_QUAD      ', 'MARKER        ', 'KICKER        ', 'HYBRID        ', &
+    'OCTUPOLE      ', 'RBEND         ', 'MULTIPOLE     ', 'BEND_SOL_     ', &
+    'DEF_BEAM      ', 'AB_MULTIPOLE  ', 'SOLENOID      ', 'PATCH         ', &
+    'LCAVITY       ', 'DEF_PARAMETER ', 'NULL_ELE      ', 'INIT_ELE      ', &
+    'HOM           ', 'MATCH         ', 'MONITOR       ', 'INSTRUMENT    ', &
+    'HKICKER       ', 'VKICKER       ', 'RCOLLIMATOR   ', 'ECOLLIMATOR   ', &
+    'GIRDER        ', 'BEND_SOL_QUAD ', 'DEF_BEAM_START', 'PHOTON_BRANCH ', &
+    'BRANCH        ', 'MIRROR        ', 'CRYSTAL       ', 'PIPE          ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -422,31 +422,31 @@ integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
-integer, parameter :: direction$=3, graze_angle$=3
+integer, parameter :: direction$=3, graze_angle$=3, tilt_corr$ = 3
 integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4
 integer, parameter ::       graze_angle_err$ = 4
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
-integer, parameter ::       critical_angle$ = 5
+integer, parameter ::       critical_angle$ = 5, graze_angle_in$ = 5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
-integer, parameter ::       dks_ds$=6, lrad$=6   ! lrad -> felv testing.
+integer, parameter ::       dks_ds$=6, graze_angle_out$ = 6, lrad$=6   ! lrad -> felv testing.
 integer, parameter :: g$=7, ks$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter ::       g_graze$ = 7
 integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8, g_trans$=8
-integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9
-integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10
-integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11
-integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12
-integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13
+integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9, psi$ = 9
+integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10, d_spacing$=10
+integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, v_unitcell$=11
+integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12, b_param$=12
+integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13, f0_re$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
-integer, parameter ::       de_eta_meas$=14
-integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
+integer, parameter ::       de_eta_meas$=14, f0_im$=14
+integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15, fh_re$=15
 integer, parameter :: n_sample$=15, delta_ref_time$=15
-integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16
-integer, parameter :: l_start$=17, h1$=17, x_quad$=17
+integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16, fh_im$ = 16
+integer, parameter :: l_start$=17, h1$=17, x_quad$=17, gamma_factor$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
-integer, parameter :: hkick$=21    
+integer, parameter :: hkick$=21
 integer, parameter :: vkick$=22    
 integer, parameter :: BL_hkick$=23 
 integer, parameter :: BL_vkick$=24 
@@ -459,8 +459,8 @@ integer, parameter :: n_ref_pass$=30  ! Assumed unique. Do not overload.
 integer, parameter :: tilt_err$=31    
 integer, parameter :: p0c$=32         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=33       ! Assumed unique. Do not overload.
-integer, parameter :: Bs_field$=34
-integer, parameter :: B_field$=35, E_field$=35
+integer, parameter :: Bs_field$=34, wave_length$=34
+integer, parameter :: B_field$=35, E_field$=35, k_wave$=35
 integer, parameter :: B_gradient$=36, E_gradient$=36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
 integer, parameter :: B2_gradient$=38, E2_gradient$=38, patch_end$ = 38
@@ -618,6 +618,11 @@ character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!  ', &
         'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', &
         'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', &
         'GARBAGE!  ', 'GARBAGE!  ', 'RBend     ']
+
+! Crystal sub_key values.
+
+integer, parameter :: bragg$ = 1, laue$ = 2
+character(8), parameter :: reflection_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
 
 ! ele%aperture_at logical definitions.
 

@@ -79,6 +79,7 @@ character(80) debug_line
 logical, optional :: make_mats6, digested_read_ok
 logical parsing, delim_found, found, xsif_called, err, wild_here, key_here
 logical file_end, err_flag, finished, good_attrib, wildcards_permitted
+logical print_err, check
 
 ! Init...
 
@@ -136,8 +137,7 @@ n_plat_ele = 3
 
 if (present(digested_file_name)) then
   digested_name = digested_file_name
-  if (digested_file_name == '*') &
-                call form_digested_bmad_file_name (lat_file, digested_name)
+  if (digested_file_name == '*') call form_digested_bmad_file_name (lat_file, digested_name)
   call read_digested_bmad_file (digested_name, lat2, digested_version)
   if (bmad_status%ok) then
     lat = lat2
@@ -147,8 +147,7 @@ if (present(digested_file_name)) then
   call save_taylor_elements (lat2, old_ele)
   call deallocate_lat_pointers (lat2)
   if (digested_version <= bmad_inc_version$) bp_com%write_digested2 = .true.
-  if (bmad_status%type_out) &
-           call out_io (s_info$, r_name, 'Creating new digested file...')
+  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Creating new digested file...')
 endif
 
 bmad_status%ok = .true.
@@ -224,21 +223,18 @@ parsing_loop: do
   ! LATTICE command
 
   if (word_1(:ix_word) == 'LATTICE') then
-    if ((delim /= ':' .or. bp_com%parse_line(1:1) /= '=') &
-                                     .and. (delim /= '=')) then
+    if ((delim /= ':' .or. bp_com%parse_line(1:1) /= '=') .and. (delim /= '=')) then
       call parser_warning ('"LATTICE" NOT FOLLOWED BY ":="', ' ')
     else
       if (delim == ':') bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
-      call get_next_word (lat%lattice, ix_word, ',', &
-                                          delim, delim_found, .true.)
+      call get_next_word (lat%lattice, ix_word, ',', delim, delim_found, .true.)
     endif
     cycle parsing_loop
   endif
 
   ! RETURN or END_FILE command
 
-  if (word_1(:ix_word) == 'RETURN' .or.  &
-                                  word_1(:ix_word) == 'END_FILE') then
+  if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
     call file_stack ('pop', ' ', finished, err)
     if (err) return
     if (finished) then
@@ -297,8 +293,14 @@ parsing_loop: do
 
       ! See if element is a match
 
+      print_err = .true.
+      check = .true.
+
+      ! With wild cards and key names we ignore bad sets since this could not be a typo.
+
       if (key_here) then
         if (key_name(ele%key) /= word_1) cycle
+        print_err = .false.
 
       elseif (wild_here) then
         select case (ele%name)
@@ -306,7 +308,14 @@ parsing_loop: do
           cycle  ! Wild card matches not permitted for predefined elements
         end select
         if (.not. match_wild(ele%name, word_1)) cycle
+        print_err = .false.
 
+      elseif (word_1  == 'PARAMETER') then
+        ele => param_ele
+        check = .false.
+      elseif (word_1  == 'BEAM_START') then
+        ele => beam_start_ele
+        check = .false.
       elseif (ele%name /= word_1) then
         cycle
       endif
@@ -318,17 +327,13 @@ parsing_loop: do
         parse_line_save = bp_com%parse_line
       endif
 
-      ! With wild cards and key names we ignore bad sets since this could not be a typo.
-      if (wild_here .or. key_here) then
-        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                err_flag, .false., check_free = .true.)
-      else
-        call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
-                                                err_flag, .true., check_free = .true.)
-      endif
+      call parser_set_attribute (redef$, ele, lat, delim, delim_found, &
+                                                err_flag, print_err, check_free = check)
       if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim, ' ')
       found = .true.
       if (.not. err_flag) good_attrib = .true.
+
+      if (word_1  == 'PARAMETER' .or. word_1  == 'BEAM_START') cycle parsing_loop
 
     enddo
 
@@ -366,8 +371,7 @@ parsing_loop: do
   ! bad delimiter
 
   if (delim /= ':') then
-    call parser_warning ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  &
-                                                     'FOR: ' // word_1)
+    call parser_warning ('1ST DELIMITER IS NOT ":". IT IS: ' // delim,  'FOR: ' // word_1)
     cycle parsing_loop
   endif
 
@@ -484,8 +488,7 @@ parsing_loop: do
 
     ! Element must be a group, overlay, or superimpose element
 
-    if (key /= overlay$ .and. key /= group$ .and. &
-            ele%lord_status /= super_lord$) then
+    if (key /= overlay$ .and. key /= group$ .and. ele%lord_status /= super_lord$) then
       call parser_warning ('ELEMENT MUST BE AN OVERLAY, SUPERIMPOSE, ' //  &
                                            'OR GROUP: ' // word_1, ' ')
       n_max = n_max - 1
@@ -503,6 +506,11 @@ bp_com%input_line_meaningful = .false.
 
 lat%param%lattice_type = nint(param_ele%value(lattice_type$))
 lat%input_taylor_order = nint(param_ele%value(taylor_order$))
+
+if (associated(bp_com%param_ele%descrip)) then
+  lat%lattice = bp_com%param_ele%descrip
+  deallocate (bp_com%param_ele%descrip)
+endif
 
 if (bp_com%p0c_set) then
   call convert_pc_to (lat%ele(0)%value(p0c$), lat%param%particle, e_tot = lat%ele(0)%value(e_tot$))
