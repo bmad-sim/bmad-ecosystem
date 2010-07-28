@@ -1171,6 +1171,18 @@ case ('rad_int.')
     datum_value = tao_lat%modes%synch_int(2)
     valid_value = .true.
 
+  case ('rad_int.i2_e4')
+    if (data_source == 'beam') return
+    if (.not. allocated(tao_lat%rad_int%lin_i2_e4)) return
+    if (ix_ref > 0 .or. ix_ele > 0) then
+      ix_ref = max(1, ix_ref)
+      if (ix_ele < 1) ix_ele = branch%n_ele_track
+      datum_value = sum(tao_lat%rad_int%lin_i2_e4(ix_ref:ix_ele))
+    else
+      datum_value = tao_lat%modes%lin%i2_e4
+    endif
+    valid_value = .true.
+
   case ('rad_int.i3')
     if (data_source == 'beam') return
     datum_value = tao_lat%modes%synch_int(3)
