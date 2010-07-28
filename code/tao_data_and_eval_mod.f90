@@ -1161,6 +1161,16 @@ case ('gamma.')
 case ('rad_int.')
 
   select case (datum%data_type)
+  case ('rad_int.i1')
+    if (data_source == 'beam') return
+    datum_value = tao_lat%modes%synch_int(1)
+    valid_value = .true.
+
+  case ('rad_int.i2')
+    if (data_source == 'beam') return
+    datum_value = tao_lat%modes%synch_int(2)
+    valid_value = .true.
+
   case ('rad_int.i3')
     if (data_source == 'beam') return
     datum_value = tao_lat%modes%synch_int(3)
