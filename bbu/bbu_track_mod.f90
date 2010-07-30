@@ -516,7 +516,7 @@ integer i, j, i1, ixm, ix
 
 ! Only need to update the last stage tracked
 
-hom_power_max = 0
+hom_power_max = -1
 i = bbu_beam%ix_last_stage_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1
 ix = bbu_beam%stage(i1)%ix_ele_lr_wake

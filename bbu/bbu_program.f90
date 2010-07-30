@@ -219,9 +219,10 @@ do istep = 1, nstep
       else
     ! Print output for stable orbit analysis
                   do i = 1, size(bbu_beam%stage)
+                     j = bbu_beam%stage(i)%ix_stage_pass1
           write(56,'(i10,3(1x,e15.8),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
-                      real(bbu_beam%stage(i)%hom_power_max), &
-                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%wake%lr(bbu_beam%stage(i)%ix_hom_max)%freq), &
+                      real(bbu_beam%stage(j)%hom_power_max), &
+                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%wake%lr(bbu_beam%stage(j)%ix_hom_max)%freq), &
                       bbu_beam%stage(i)%n_orb, & 
                       bbu_beam%stage(i)%ave_orb, bbu_beam%stage(i)%rms_orb, &
                       bbu_beam%stage(i)%min_orb, bbu_beam%stage(i)%max_orb
