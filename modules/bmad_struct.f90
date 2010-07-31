@@ -442,7 +442,7 @@ integer, parameter ::       de_eta_meas$=14, f0_re$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, delta_ref_time$=15, f0_im$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16, fh_re$=16
-integer, parameter :: l_start$=17, h1$=17, x_quad$=17, gamma_factor$=17, fh_im$=17
+integer, parameter :: l_start$=17, h1$=17, x_quad$=17, bragg_angle$=17, fh_im$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
