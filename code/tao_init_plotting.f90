@@ -757,7 +757,9 @@ integer n, n_shape
 
 n_shape = 0
 do n = 1, size(ele_shape)
-  call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
+  ! Bmad wants ele names upper case but Tao data is case sensitive.
+  if (ele_shape(n)%ele_name(1:5) /= 'dat::') &
+                     call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
   call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
   call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
   call downcase_string (ele_shape(n)%label_type)

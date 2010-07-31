@@ -2014,11 +2014,12 @@ The namelist syntax is the same for both:
 For Example:                 
 \begin{example}
   &element_shapes_floor_plan
-    !               element_list       Shape     Color     Size   Label_Type
-    ele_shape(1) = "quadrupole::q*"   "box"     "red"     30     name 
-    ele_shape(2) = "quadrupole::*"    "xbox"    "red"     30     none 
-    ele_shape(3) = "sbend::*"         "box"     "blue"    15     none
-    ele_shape(4) = "wiggler::*"       "xbox"    "green"   20     name
+    !              element_list             Shape     Color     Size   Label_Type
+    ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     name 
+    ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
+    ele_shape(3) = "sbend::*"               "box"     "blue"    15     none
+    ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     name
+    ele_shape(5) = "dat::orbit.x|useit_opt" "x"       "orange"  10     name
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
@@ -2029,6 +2030,9 @@ match all quadrupoles. If an element matches more than one shape the
 first shape matched will be used. For a floor plan, for \vn{wiggler}s that have an
 \vn{x_ray_line_len} attribute, The X-ray line will be drawn if an
 \vn{ele_shape} for a \vn{photon_branch} is present.
+
+Data can also be specified to be drawn. In the above example, \vn{orbit.x} data
+will de drawn but only for datums whose \vn{useit_opt} parameter is True.
 
 The \vn{<shape>} parameter is the shape of the figure
 drawn. Valid Shapes are:
@@ -2042,6 +2046,7 @@ drawn. Valid Shapes are:
   "diamond"         -- Diamond shape.
   "bow_tie"         -- Bow-tie shape.
   "circle"          -- Circle centered at center of element.
+  "x"               -- "X" centered at center of element
 \end{example}
 The height of a \vn{var_height_box} is proportional to the element
 strength. For example, for a quadrupole the height is proportional to

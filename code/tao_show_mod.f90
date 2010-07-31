@@ -204,7 +204,7 @@ character(n_char) stuff2
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
-integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv
+integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
@@ -911,14 +911,19 @@ case ('element')
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
   endif
 
-  orb = u%model%lat_branch(eles(1)%ele%ix_branch)%orbit(eles(1)%ele%ix_ele)
-  fmt = '(2x, a, 3p2f15.8)'
-  lines(nl+1) = ' '
-  lines(nl+2) = 'Orbit: [mm, mrad]'
-  write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
-  write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
-  write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
-  nl = nl + 5
+
+  ele => eles(1)%ele
+  stat = ele%lord_status
+  if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$) then
+    orb = u%model%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
+    fmt = '(2x, a, 3p2f15.8)'
+    lines(nl+1) = ' '
+    lines(nl+2) = 'Orbit: [mm, mrad]'
+    write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
+    write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
+    write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
+    nl = nl + 5
+  endif
 
   found = .false.
   do i = 2, size(eles)

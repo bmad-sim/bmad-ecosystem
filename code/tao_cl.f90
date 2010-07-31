@@ -30,7 +30,6 @@ subroutine tao_cl (prompt_string)
 
   s_ptr => s
   t_ptr => tao_com
-  tao_com%init_tao_file  = tao_com%default_init_tao_file
 
   call tao_parse_command_args (err)
   if (err) stop

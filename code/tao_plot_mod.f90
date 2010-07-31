@@ -363,18 +363,20 @@ type (tao_ele_shape_struct), pointer :: ele_shape
 
 integer i, j, k, ix_shape, icol, isu, n_bend, n, ix, ixs, ic
 
-real(rp) off, off1, off2, angle, rho, x0, y0, dx1, dy1, dx2, dy2
+real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
-real(rp) x_inch, y_inch, x1, x2, y1, y2
+real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2
 
 character(80) str
 character(40) name
 character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
 character(16) shape
 character(2) justify
+
+logical shape_has_box
 
 !
 
@@ -453,7 +455,7 @@ ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
 shape = ele_shape%shape
 
 select case (shape)
-case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE')
+case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
 case default
   print *, 'ERROR: UNKNOWN SHAPE: ', shape
   call err_exit
@@ -531,6 +533,8 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   endif
 endif
 
+shape_has_box = (index(shape, 'BOX') /= 0)
+
 ! Draw diamond
 
 if (shape == 'DIAMOND') then
@@ -559,9 +563,26 @@ if (shape == 'CIRCLE') then
                                                   units = 'POINTS', color = icol)
 endif
 
-! Draw top and bottom
+! Draw an X.
 
-if (shape /= 'DIAMOND' .and. shape /= 'CIRCLE') then
+if (shape == 'X') then
+  if (ele%key == sbend$) then
+    n = n_bend / 2
+    x0  = x_bend(n)
+    y0  = y_bend(n)
+    dx1 = dx_bend(n)
+    dy1 = dy_bend(n)
+  else
+    x0 = (end1%x + end2%x) / 2
+    y0 = (end1%y + end2%y) / 2
+  endif
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = 'POINTS', color = icol) 
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = 'POINTS', color = icol) 
+endif
+
+! Draw top and bottom of boxes and bow_tiw
+
+if (shape == 'BOW_TIE' .or. shape_has_box) then
   if (ele%key == sbend$) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
                           y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
@@ -576,9 +597,9 @@ if (shape /= 'DIAMOND' .and. shape /= 'CIRCLE') then
   endif
 endif
 
-! Draw sides
+! Draw sides of boxes
 
-if (shape /= 'BOW_TIE' .and. shape /= 'CIRCLE' .and. shape /= 'DIAMOND') then
+if (shape_has_box) then
   if (ele%key == sbend$) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
                        y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = 'POINTS', color = icol)
@@ -660,19 +681,24 @@ type (tao_plot_struct) :: plot
 type (tao_graph_struct) :: graph
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele, ele1, ele2
-type (tao_ele_shape_struct), pointer :: ele_shape(:)
+type (tao_ele_shape_struct), pointer :: ele_shapes(:), ele_shape
 type (branch_struct), pointer :: branch
+type (tao_data_array_struct), allocatable, target :: d_array(:)
+type (tao_logical_array_struct), allocatable :: logic_array(:)
+type (tao_data_struct), pointer :: datum
 
-real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top
-real(rp) lat_len, height, dy, key_number_height
+real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, x0, y0
+real(rp) lat_len, height, dx, dy, key_number_height, dummy
 
 integer i, j, ix_shape, k, kk, ix, ix1, isu
 integer icol, ix_var, ixv
 
+logical shape_has_box, err
+
 character(80) str
 character(40) name
 character(20) :: r_name = 'tao_plot_lat_layout'
-character(20) this_shape
+character(20) shape_name
 
 ! Init
 
@@ -732,13 +758,14 @@ endif
 ! loop over all elements in the lattice. Only draw those element that
 ! are within bounds.
 
-ele_shape => tao_com%ele_shape_lat_layout
+ele_shapes => tao_com%ele_shape_lat_layout
 height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
 do i = 1, branch%n_ele_max
 
   ele => branch%ele(i)
-  call tao_find_ele_shape (ele, tao_com%ele_shape_lat_layout, ix_shape)
+  call tao_find_ele_shape (ele, ele_shapes, ix_shape)
+  ele_shape => ele_shapes(ix_shape)
 
   if (ele%lord_status == multipass_lord$) cycle
   if (ele%slave_status == super_slave$) cycle
@@ -772,37 +799,35 @@ do i = 1, branch%n_ele_max
     return
   endif
     
-
   if (x1 > graph%x%max) cycle
   if (x2 < graph%x%min) cycle
 
   ! Only those elements with ix_shape > 0 are to be drawn.
   ! All others have the zero line drawn through them.
 
-  if (ix_shape < 1) then
-    call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
-    cycle
-  endif
+  call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
+
+  if (ix_shape < 1) cycle
 
   ! Here if element is to be drawn...
 
-  this_shape = ele_shape(ix_shape)%shape
+  shape_name = ele_shape%shape
 
-  select case (this_shape)
-  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE')
+  select case (shape_name)
+  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
   case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', this_shape
+    print *, 'ERROR: UNKNOWN SHAPE: ', shape_name
     call err_exit
   end select
 
-  call qp_translate_to_color_index (ele_shape(ix_shape)%color, icol)
+  call qp_translate_to_color_index (ele_shape%color, icol)
 
   ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-  y = ele_shape(ix_shape)%dy_pix
+  y = ele_shape%dy_pix
   y1 = -y
   y2 =  y
-  if (this_shape == 'VAR_BOX' .or. this_shape == 'ASYM_VAR_BOX') then
+  if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
     select case (ele%key)
     case (quadrupole$)
       y2 = y * ele%value(k1$)
@@ -815,58 +840,42 @@ do i = 1, branch%n_ele_max
     end select
     y2 = max(-s%plot_page%shape_height_max, min(y2, s%plot_page%shape_height_max))
     y1 = -y2
-    if (this_shape == 'ASYM_VAR_BOX') y1 = 0
+    if (shape_name == 'ASYM_VAR_BOX') y1 = 0
   end if
 
   y1 = max(y_bottom, min(y1, y_top))
   y2 = max(y_bottom, min(y2, y_top))
 
-  ! Draw the shape
+  call draw_this_shape (ele%name, ele%s - ele%value(l$) / 2)
 
-  if (this_shape == 'DIAMOND') then
-    call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, color = icol)
-    call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, color = icol)
-    call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, color = icol)
-    call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, color = icol)
-  elseif (this_shape == 'BOW_TIE') then
-    call qp_draw_line (x1, x2, y1, y1, color = icol)
-    call qp_draw_line (x1, x2, y2, y2, color = icol)
-  else
-    call qp_draw_rectangle (x1, x2, y1, y2, color = icol)
-  endif
+enddo
 
-  if (this_shape == 'XBOX' .or. this_shape == 'BOW_TIE') then
-    call qp_draw_line (x1, x2, y2, y1, color = icol)
-    call qp_draw_line (x1, x2, y1, y2, color = icol)
-  endif
+! Draw data
 
-  ! Put on a label
-  
-  if (s%global%label_lattice_elements) then
-
-    
-    if (ele_shape(ix_shape)%label_type == 'name') then
-      name = ele%name
-    elseif (ele_shape(ix_shape)%label_type == 's') then
-      write (name, '(f16.2)') ele%s - ele%value(l$) / 2
-      call string_trim (name, name, ix)
-    elseif (ele_shape(ix_shape)%label_type /= 'none') then
-      call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape(ix_shape)%label_type)
-      call err_exit
-    endif 
-
-    if (ele_shape(ix_shape)%label_type /= 'none') then
-      y_off = y_bottom   
-      s_pos = ele%s - ele%value(l$)/2
-      if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
-      call qp_draw_text (name, s_pos, y_off, &
-                                   height = height, justify = 'LC', ANGLE = 90.0_rp)
+do i = 1, size(ele_shapes)
+  if (plot%x_axis_type /= 's') exit
+  ele_shape => ele_shapes(i)
+  if (ele_shape%ele_name(1:5) /= 'dat::') cycle
+  call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
+  if (err) cycle
+  do j = 1, size(d_array)
+    datum => d_array(j)%d
+    if (datum%ix_branch /= graph%ix_branch) cycle
+    if (size(logic_array) /= 0) then
+      if (.not. logic_array(j)%l) cycle
     endif
-
-  endif
-
-  call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
-
+    x0 = datum%s 
+    if (x0 > graph%x%max) cycle
+    if (x0 < graph%x%min) cycle
+    y1 = ele_shape%dy_pix
+    y1 = max(y_bottom, min(y1, y_top))
+    y2 = -y1
+    call qp_convert_point_rel (dummy, y1, 'DATA', dummy, y, 'INCH') 
+    call qp_convert_point_rel (y, dummy, 'INCH', dx, dummy, 'DATA')
+    x1 = x0 - dx
+    x2 = x0 + dx
+    call draw_this_shape (tao_datum_name(datum), datum%s)
+  enddo
 enddo
 
 ! Draw x-axis min max
@@ -908,6 +917,75 @@ if (s%global%label_keys) then
     enddo
   enddo
 endif
+
+!-----------------------------------------------------------
+contains 
+subroutine draw_this_shape (name_in, s_pos)
+
+real(rp) s_pos
+character(*) name_in
+
+!
+
+shape_has_box = (index(shape_name, 'BOX') /= 0)
+
+! Draw the shape
+
+if (shape_name == 'DIAMOND') then
+  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y1, color = icol)
+  call qp_draw_line (x1, (x1+x2)/2, 0.0_rp, y2, color = icol)
+  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y1, color = icol)
+  call qp_draw_line (x2, (x1+x2)/2, 0.0_rp, y2, color = icol)
+endif
+
+if (shape_name == 'CIRCLE') then
+  call qp_convert_point_rel ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
+  call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', color = icol)
+endif
+
+if (shape_name == 'X') then
+  call qp_convert_point_rel ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
+  call qp_draw_line (x0-y1, x0+y1, y0-y1, y0+y1, units = 'POINTS', color = icol)
+  call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', color = icol)
+endif
+
+if (shape_name == 'BOW_TIE') then
+  call qp_draw_line (x1, x2, y1, y1, color = icol)
+  call qp_draw_line (x1, x2, y2, y2, color = icol)
+endif
+
+if (shape_has_box) then
+  call qp_draw_rectangle (x1, x2, y1, y2, color = icol)
+endif
+
+! Draw X for XBOX or BOW_TIE
+
+if (shape_name == 'XBOX' .or. shape_name == 'BOW_TIE') then
+  call qp_draw_line (x1, x2, y2, y1, color = icol)
+  call qp_draw_line (x1, x2, y1, y2, color = icol)
+endif
+
+! Put on a label
+
+if (s%global%label_lattice_elements .and. ele_shape%label_type /= 'none') then
+  
+  if (ele_shape%label_type == 'name') then
+    name = name_in
+  elseif (ele_shape%label_type == 's') then
+    write (name, '(f16.2)') s_pos
+    call string_trim (name, name, ix)
+  else
+    call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label_type)
+    call err_exit
+  endif 
+
+  y_off = y_bottom   
+  if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
+  call qp_draw_text (name, s_pos, y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
+
+endif
+
+end subroutine draw_this_shape
 
 end subroutine tao_plot_lat_layout
 
@@ -1060,6 +1138,7 @@ if (ele%slave_status == super_slave$) return
 do k = 1, size(ele_shapes)
 
   if (ele_shapes(k)%ele_name == '') cycle
+  if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
 
   call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
   if (err) then

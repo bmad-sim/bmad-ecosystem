@@ -563,9 +563,9 @@ type tao_common_struct
   logical :: parse_cmd_args      = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running   = .false. 
   logical :: noplot_arg_found    = .false.
+  logical :: init_tao_file_set_on_command_line = .false.
   character(100) :: cmd                                ! Used for the cmd history
-  character(16) :: init_name = 'Tao'                   ! label for initialization
-  character(100) :: default_init_tao_file = 'tao.init'          
+  character(16) :: init_name = 'Tao'                   ! label for initialization          
   character(200) :: lattice_file = ''   ! '-lattice'  command line argument.
   character(200) :: lat_file = ''       ! '-lat'      command line argument.
   character(100) :: init_tao_file       ! '-init'     command line argument.
