@@ -45,6 +45,8 @@ type (coord_struct) orb_start, orb_end
 type (ele_struct), pointer :: ele, slave
 type (branch_struct), pointer :: branch
 
+real(rp), pointer :: mat6(:,:), vec0(:)
+
 integer, optional :: ix_ele, ix_branch
 integer i, j, ie, i1, n_taylor, i_ele, i_branch
 integer, save, allocatable :: ix_taylor(:)
@@ -153,6 +155,23 @@ if (i_ele < 0) then
 
   enddo
 
+  ! calc super_lord matrices
+
+  do i = branch%n_ele_track+1, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%lord_status /= super_lord$) cycle
+    mat6 => ele%mat6
+    vec0 => ele%vec0
+    slave => pointer_to_slave (lat, ele, 1)
+    mat6 = slave%mat6
+    vec0 = slave%vec0
+    do j = 2, ele%n_slave
+      slave => pointer_to_slave (lat, ele, j)
+      mat6 = matmul(slave%mat6, mat6)
+      vec0 = matmul(slave%mat6, vec0) + slave%vec0
+    enddo
+  enddo 
+
   return
 
 endif
@@ -177,13 +196,27 @@ endif
 
 ! for a control element
 
+if (ele%lord_status == super_lord$) then
+  mat6 => ele%mat6
+  call mat_make_unit(mat6)
+  vec0 => ele%vec0
+  vec0 = 0
+endif
+
 do i = 1, ele%n_slave
   slave => pointer_to_slave (lat, ele, i)
-   if (present(ref_orb)) then
-     call lat_make_mat6 (lat, slave%ix_ele, ref_orb, slave%ix_branch)
-   else
-     call lat_make_mat6 (lat, slave%ix_ele, ix_branch = slave%ix_branch)
-   endif
+
+  if (present(ref_orb)) then
+    call lat_make_mat6 (lat, slave%ix_ele, ref_orb, slave%ix_branch)
+  else
+    call lat_make_mat6 (lat, slave%ix_ele, ix_branch = slave%ix_branch)
+  endif
+
+  if (ele%lord_status == super_lord$) then
+    mat6 = matmul(slave%mat6, mat6)
+    vec0 = matmul(slave%mat6, vec0) + slave%vec0
+  endif
 enddo
+
 
 end subroutine

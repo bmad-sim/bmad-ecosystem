@@ -79,6 +79,9 @@ do ib = 0, ubound(lat%branch, 1)
       E_tot = E_tot + ele%value(delta_e$)
       call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
+    case (crystal$, mirror$)
+      ele%value(ref_wave_length$) = c_light * h_planck / E_tot
+
     end select
 
     ele%value(E_tot$) = E_tot

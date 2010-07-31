@@ -610,7 +610,8 @@ case ('OFFSET')
   if (.not. present(pele)) call parser_warning ('INTERNAL ERROR...')
   pele%s = value
 
-case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', 'REF_PATCH')
+case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
+     'REF_PATCH', 'CRYSTAL_TYPE')
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found)
 
 case ('SYMPLECTIFY') 
@@ -676,6 +677,10 @@ case ('FIELD_MASTER')
 case ('SCALE_MULTIPOLES')
   call get_logical ('SCALE_MULTIPOLES', ele%scale_multipoles)
   if (ios /= 0 .or. ix_word == 0) return
+
+case ('DIFFRACTION_TYPE')
+  call match_word (attrib_word, diffraction_type_name(1:), ele%sub_key)
+  if (ele%sub_key < 1) call parser_warning ('BAD DIFFRACTION_TYPE ATTRIBUTE.')
 
 case default   ! normal attribute
 
@@ -1872,6 +1877,9 @@ case ('SR_WAKE_FILE')
 case ('LR_WAKE_FILE') 
   call read_lr_wake (ele, type_name)
 case ('TO', 'REF_PATCH')
+  ele%component_name = type_name
+  call upcase_string (ele%component_name)
+case ('CRYSTAL_TYPE')
   ele%component_name = type_name
   call upcase_string (ele%component_name)
 case default

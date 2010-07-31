@@ -231,7 +231,16 @@ interface
 end interface
 
 interface
-  Subroutine dispersion_to_orbit (ele, disp_orb)
+  subroutine crystal_type_to_crystal_params (ele, err_flag)
+    use bmad_struct, only: ele_struct
+    implicit none
+    type (ele_struct) ele
+    logical err_flag
+  end subroutine
+end interface
+
+interface
+  subroutine dispersion_to_orbit (ele, disp_orb)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
     type (ele_struct) :: ele
@@ -532,7 +541,7 @@ interface
 end interface
 
 interface
-  Subroutine orbit_to_dispersion (orb_diff, ele)
+  subroutine orbit_to_dispersion (orb_diff, ele)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none
     type (coord_struct), intent(in) :: orb_diff
@@ -562,7 +571,7 @@ interface
 end interface
 
 interface
-  Subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
+  subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
                     ptr_attrib, err_flag, err_print_flag, ix_attrib)
     use bmad_struct, only: ele_struct, rp
     implicit none
@@ -577,7 +586,7 @@ interface
 end interface
 
 interface
-  Subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
+  subroutine pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, &
                     ptr_array, err_flag, err_print_flag, eles, ix_attrib)
     use bmad_struct, only: lat_struct, real_pointer_struct, ele_pointer_struct
     implicit none

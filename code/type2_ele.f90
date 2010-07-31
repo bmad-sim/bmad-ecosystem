@@ -242,11 +242,11 @@ endif
 
 if (associated(ele%wig_term)) then
   if (logic_option(.false., type_wig_terms)) then
-    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 7x, a)') ' Term#', &
+    nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 9x, a)') ' Term#', &
                                 'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
     do i = 1, size(ele%wig_term)
       term => ele%wig_term(i)
-      write (li(nl+i), '(i4, 5f12.6, 3x, a)') i, term%coef, &
+      write (li(nl+i), '(i4, 4f12.6, f14.6, 3x, a)') i, term%coef, &
             term%kx, term%ky, term%kz, term%phi_z, wig_term_type_name(term%type)
     enddo
     nl = nl + size(ele%wig_term)
@@ -272,6 +272,10 @@ write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
 write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
 
 nl=nl+1; write (li(nl), *) ' '
+
+if (attribute_index(ele, 'CRYSTAL_TYPE') /= 0) then
+  nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
+endif
 
 if (attribute_index(ele, 'TRACKING_METHOD') /= 0) then
   nl=nl+1; write (li(nl), fmt_a) &
@@ -501,7 +505,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     nl = nl + nl2
   endif
 
-! Encode mat6 info
+  ! Encode mat6 info
 
   n = integer_option (6, type_mat6)
 
@@ -522,7 +526,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     enddo
   endif
 
-! Encode taylor series
+  ! Encode taylor series
 
   if (associated(ele%taylor(1)%term)) then
     nl=nl+1; li(nl) = ' '

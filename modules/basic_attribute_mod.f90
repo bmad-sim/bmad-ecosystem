@@ -691,17 +691,40 @@ attrib_array(custom$, field_calc$)   = 'FIELD_CALC'
 attrib_array(custom$, field_master$) = 'FIELD_MASTER'
 attrib_array(custom$, delta_e$)      = 'DELTA_E'
 
-attrib_array(hybrid$, l$)              = 'L'
-attrib_array(hybrid$, delta_e$)        = 'DELTA_E'
-attrib_array(hybrid$, delta_ref_time$) = 'DELTA_REF_TIME'
-attrib_array(hybrid$, e_tot_start$)    = 'E_TOT_START'
+attrib_array(hybrid$, l$)                = 'L'
+attrib_array(hybrid$, delta_e$)          = 'DELTA_E'
+attrib_array(hybrid$, delta_ref_time$)   = 'DELTA_REF_TIME'
+attrib_array(hybrid$, e_tot_start$)      = 'E_TOT_START'
 
-attrib_array(mirror$, graze_angle$)     = 'GRAZE_ANGLE'
-attrib_array(mirror$, graze_angle_err$) = 'GRAZE_ANGLE_ERR'
-attrib_array(mirror$, critical_angle$)  = 'CRITICAL_ANGLE'
-attrib_array(mirror$, tilt_err$)        = 'TILT_ERR'
-attrib_array(mirror$, g_graze$)         = 'G_GRAZE'
-attrib_array(mirror$, g_trans$)         = 'G_TRANS'
+attrib_array(mirror$, graze_angle$)      = 'GRAZE_ANGLE'
+attrib_array(mirror$, graze_angle_err$)  = 'GRAZE_ANGLE_ERR'
+attrib_array(mirror$, critical_angle$)   = 'CRITICAL_ANGLE'
+attrib_array(mirror$, tilt_err$)         = 'TILT_ERR'
+attrib_array(mirror$, g_graze$)          = 'G_GRAZE'
+attrib_array(mirror$, g_trans$)          = 'G_TRANS'
+attrib_array(mirror$, ref_wave_length$)  = 'REF_WAVE_LENGTH'
+
+attrib_array(crystal$, graze_angle_in$)   = 'GRAZE_ANGLE_IN'
+attrib_array(crystal$, graze_angle_out$)  = 'GRAZE_ANGLE_OUT'
+attrib_array(crystal$, graze_angle_err$)  = 'GRAZE_ANGLE_ERR'
+attrib_array(crystal$, psi_angle$)        = 'PSI_ANGLE'
+attrib_array(crystal$, alpha_angle$)      = 'ALPHA_ANGLE'
+attrib_array(crystal$, tilt_err$)         = 'TILT_ERR'
+attrib_array(crystal$, tilt_corr$)        = 'TILT_CORR'
+attrib_array(crystal$, d_spacing$)        = 'D_SPACING'
+attrib_array(crystal$, v_unitcell$)       = 'V_UNITCELL'
+attrib_array(crystal$, f0_re$)            = 'F0_RE'
+attrib_array(crystal$, f0_im$)            = 'F0_IM'
+attrib_array(crystal$, fh_re$)            = 'FH_RE'
+attrib_array(crystal$, fh_im$)            = 'FH_IM'
+attrib_array(crystal$, b_param$)          = 'B_PARAM'
+attrib_array(crystal$, gamma_factor$)     = 'GAMMA_FACTOR'
+attrib_array(crystal$, g_graze$)          = 'G_GRAZE'
+attrib_array(crystal$, g_trans$)          = 'G_TRANS'
+attrib_array(crystal$, ref_wave_length$)  = 'REF_WAVE_LENGTH'
+attrib_array(crystal$, diffraction_type$) = 'DIFFRACTION_TYPE'
+attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
+
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -741,6 +764,9 @@ end subroutine init_attribute_name_array
 !
 ! Routine to return the type (logical, integer, real, or named) of an attribute.
 !
+! A "Named" attribute is an attribute whose integer value corresponds to some string.
+! For example, the "COUPLER_AT" attirbute with value 1 corresponds to "ENTRANCE_END", etc. 
+!
 ! If this is a named attribute, attribute_value_name can be used to print the 
 ! name corresponding to the attribute's value.
 !
@@ -767,7 +793,7 @@ integer attrib_type
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER')
   attrib_type = is_logical$
-case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'N_POLE', 'DIRECTION', &
+case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
       'IX_BRANCH_TO')
   attrib_type = is_integer$
 case ('COUPLER_AT', 'ATTRIBUTE_TYPE')

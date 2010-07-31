@@ -207,9 +207,14 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
 
   ! mirror
 
-  case (mirror$)
+  case (mirror$, crystal$)
     
-    angle = 2 * ele%value(graze_angle$)
+    if (ele%key == mirror$) then
+      angle = 2 * ele%value(graze_angle$)
+    else
+      angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
+    endif
+
     tlt = ele%value(tilt_tot$)
     s_ang = sin(angle); c_ang = cos(angle)
 
