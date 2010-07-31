@@ -1885,6 +1885,11 @@ end subroutine makeup_overlay_and_girder_slave
 !     bbi_const$ = param%n_part * charge$ * classical_radius_factor /
 !                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
 !
+! CRYSTAL:
+!     graze_angle_in$
+!     graze_angle_out$
+!     tilt_corr$
+!
 ! ELSEPARATOR:
 !     e_field$ = sqrt(hkick$**2 + vkick$**2) * p0c$ / l$
 !     voltage$ = e_field$ * gap$ 
@@ -2130,6 +2135,12 @@ case (beambeam$)
 
   endif
 
+! Crystal
+
+case (crystal$)
+
+  call crystal_attribute_bookkeeper (ele)
+
 ! Elseparator
 
 case (elseparator$)
@@ -2188,19 +2199,20 @@ case (wiggler$)
   ! on-axis ends on-axis. For this to be true, there must be an integer number
   ! of poles.
 
+  ! For super_slave elements, the phi_z is set by the position with respect to the lord.
+
   if (ele%sub_key == periodic_type$) then
     if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
 
     if (val(l$) == 0) then
       ele%wig_term(1)%ky = 0
     else
-      ! Use an integer number of poles in calculating ky.
       ele%wig_term(1)%ky = pi * val(n_pole$) / val(l$)
     endif
     ele%wig_term(1)%coef   = val(b_max$)
     ele%wig_term(1)%kx     = 0
     ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-    ele%wig_term(1)%phi_z  = -ele%wig_term(1)%ky * val(l$) / 2 
+    if (ele%slave_status /= super_slave$) ele%wig_term(1)%phi_z  = -ele%wig_term(1)%kz * val(l$) / 2 
     ele%wig_term(1)%type   = hyper_y$
   endif
 
