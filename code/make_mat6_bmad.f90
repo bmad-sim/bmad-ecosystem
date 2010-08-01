@@ -931,11 +931,12 @@ contains
 subroutine add_multipoles_and_s_offset
 
 if (associated(ele%a_pole) .and. key /= multipole$ .and. key /= ab_multipole$) then
-  mat6_m = 0
   call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
+  mat6_m = 0
   call mat6_multipole (knl, tilt, c0%vec, 0.5_rp, mat6_m)
   mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
   mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
+  mat6_m = 0
   call mat6_multipole (knl, tilt, c1%vec, 0.5_rp, mat6_m)
   mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
   mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)

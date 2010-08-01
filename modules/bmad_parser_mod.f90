@@ -133,6 +133,12 @@ parameter (redef$ = 2)
 
 integer, parameter :: n_parse_line = 280
 
+type bp_var_struct
+  character(40) name   ! variable name
+  real(rp) value       ! variable value
+  integer indexx       ! variable sort index
+end type
+
 type bp_common_struct
   type (ele_struct), pointer :: param_ele, beam_ele, beam_start_ele
   logical e_tot_set, p0c_set
@@ -140,9 +146,7 @@ type bp_common_struct
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
   type (used_seq_struct), allocatable ::  used_line(:)
-  character(40), allocatable :: var_name(:)   ! variable name
-  real(rp), allocatable :: var_value(:)       ! variable value
-  integer, allocatable :: var_indexx(:)       ! variable sort index
+  type (bp_var_struct), allocatable :: var(:)   ! variable name
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
@@ -1733,12 +1737,12 @@ call verify_valid_name (word, ix_word)
 
 ix1 = index(word, '[')
 if (ix1 == 0) then   
-  call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
+  call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
   if (i == 0) then
     call parser_warning ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
     value = 0
   else
-    value = bp_com%var_value(i)
+    value = bp_com%var(i)%value
   endif
   return
 endif
@@ -1790,30 +1794,29 @@ logical delim_found, err_flag
 
 !
 
-call find_indexx (word, bp_com%var_name, bp_com%var_indexx, bp_com%ivar_tot, i)
+call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
 if (i /= 0) then
   call parser_warning ('VARIABLES ARE NOT ALLOWED TO BE REDEFINED: ' // word)
-  call evaluate_value (word, bp_com%var_value(i), lat, &
-                                            delim, delim_found, err_flag)
+  call evaluate_value (word, bp_com%var(i)%value, lat, delim, delim_found, err_flag)
   return
 endif
 
 bp_com%ivar_tot = bp_com%ivar_tot + 1
-if (bp_com%ivar_tot > size(bp_com%var_name)) call reallocate_bp_com_var()
+if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
 ivar = bp_com%ivar_tot
-bp_com%var_name(ivar) = word
-call evaluate_value (bp_com%var_name(ivar), bp_com%var_value(ivar), &
+bp_com%var(ivar)%name = word
+call evaluate_value (bp_com%var(ivar)%name, bp_com%var(ivar)%value, &
                                      lat, delim, delim_found, err_flag)
 if (delim_found .and. .not. err_flag) call parser_warning  &
                   ('EXTRA CHARACTERS ON RHS: ' // bp_com%parse_line,  &
-                   'FOR VARIABLE: ' // bp_com%var_name(ivar))
+                   'FOR VARIABLE: ' // bp_com%var(ivar)%name)
 
 ! Reindex.
 
-call find_indexx (word, bp_com%var_name, bp_com%var_indexx, ivar-1, ixm, ixm2)
+call find_indexx (word, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
 
-bp_com%var_indexx(ixm2+1:ivar) = bp_com%var_indexx(ixm2:ivar-1)
-bp_com%var_indexx(ixm2) = ivar
+bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
+bp_com%var(ixm2)%indexx = ivar
 
 end subroutine parser_add_variable
 
@@ -2542,7 +2545,7 @@ integer nn, nt, i
 
 ! 
 
-if (allocated(bp_com%var_name)) deallocate (bp_com%var_name, bp_com%var_value, bp_com%var_indexx)
+if (allocated(bp_com%var)) deallocate (bp_com%var)
 
 nn = 21  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
@@ -2550,96 +2553,84 @@ bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
 bp_com%ivar_tot = bp_com%ivar_init
 
 nt = bp_com%ivar_tot
-allocate (bp_com%var_name(nt), bp_com%var_value(nt), bp_com%var_indexx(nt))
+allocate (bp_com%var(nt))
 
-bp_com%var_name(1)  = 'PI'
-bp_com%var_value(1) = pi
+bp_com%var(1)%name  = 'PI'
+bp_com%var(1)%value = pi
 
-bp_com%var_name(2)  = 'TWOPI'
-bp_com%var_value(2) = twopi
+bp_com%var(2)%name  = 'TWOPI'
+bp_com%var(2)%value = twopi
 
-bp_com%var_name(3)  = 'DEGRAD'
-bp_com%var_value(3) = 180 / pi
+bp_com%var(3)%name  = 'DEGRAD'
+bp_com%var(3)%value = 180 / pi
 
-bp_com%var_name(4)  = 'RADDEG'
-bp_com%var_value(4) = pi / 180
+bp_com%var(4)%name  = 'RADDEG'
+bp_com%var(4)%value = pi / 180
 
-bp_com%var_name(5)  = 'E_LOG'
-bp_com%var_value(5) = 2.718281828459
+bp_com%var(5)%name  = 'E_LOG'
+bp_com%var(5)%value = 2.718281828459
 
-bp_com%var_name(6)  = 'E_MASS'
-bp_com%var_value(6) = e_mass
+bp_com%var(6)%name  = 'E_MASS'
+bp_com%var(6)%value = e_mass
 
-bp_com%var_name(7)  = 'C_LIGHT'
-bp_com%var_value(7) = c_light
+bp_com%var(7)%name  = 'C_LIGHT'
+bp_com%var(7)%value = c_light
 
-bp_com%var_name(8)  = 'POSITRON'
-bp_com%var_value(8) = positron$
+bp_com%var(10)%name  = 'R_P'
+bp_com%var(10)%value = r_p
 
-bp_com%var_name(9)  = 'ELECTRON'
-bp_com%var_value(9) = electron$
+bp_com%var(11)%name  = 'E_CHARGE'
+bp_com%var(11)%value = e_charge
 
-bp_com%var_name(10)  = 'R_P'
-bp_com%var_value(10) = r_p
+bp_com%var(12)%name  = 'EMASS'      ! old style
+bp_com%var(12)%value = e_mass
 
-bp_com%var_name(11)  = 'E_CHARGE'
-bp_com%var_value(11) = e_charge
+bp_com%var(13)%name  = 'CLIGHT'     ! old style
+bp_com%var(13)%value = c_light
 
-bp_com%var_name(12)  = 'EMASS'      ! old style
-bp_com%var_value(12) = e_mass
+bp_com%var(14)%name  = 'LINEAR_LATTICE'
+bp_com%var(14)%value = linear_lattice$
 
-bp_com%var_name(13)  = 'CLIGHT'     ! old style
-bp_com%var_value(13) = c_light
+bp_com%var(15)%name  = 'CIRCULAR_LATTICE'
+bp_com%var(15)%value = circular_lattice$
 
-bp_com%var_name(14)  = 'LINEAR_LATTICE'
-bp_com%var_value(14) = linear_lattice$
+bp_com%var(16)%name  = 'R_E'
+bp_com%var(16)%value = r_e
 
-bp_com%var_name(15)  = 'CIRCULAR_LATTICE'
-bp_com%var_value(15) = circular_lattice$
+bp_com%var(19)%name  = 'M_ELECTRON'
+bp_com%var(19)%value = m_electron
 
-bp_com%var_name(16)  = 'R_E'
-bp_com%var_value(16) = r_e
+bp_com%var(20)%name  = 'M_PROTON'
+bp_com%var(20)%value = m_proton
 
-bp_com%var_name(17)  = 'PROTON'
-bp_com%var_value(17) = proton$
-
-bp_com%var_name(18)  = 'ANTIPROTON'
-bp_com%var_value(18) = antiproton$
-
-bp_com%var_name(19)  = 'M_ELECTRON'
-bp_com%var_value(19) = m_electron
-
-bp_com%var_name(20)  = 'M_PROTON'
-bp_com%var_value(20) = m_proton
-
-bp_com%var_name(20)  = 'DEGREES'
-bp_com%var_value(20) = 180 / pi
+bp_com%var(20)%name  = 'DEGREES'
+bp_com%var(20)%value = 180 / pi
 
 do i = 1, ubound(calc_method_name, 1)
   nn = nn + 1
-  call str_upcase (bp_com%var_name(nn), calc_method_name(i))
-  bp_com%var_value(nn) = i
+  call str_upcase (bp_com%var(nn)%name, calc_method_name(i))
+  bp_com%var(nn)%value = i
 enddo
 
 do i = 1, ubound(element_end_name, 1)
   nn = nn + 1
-  call str_upcase (bp_com%var_name(nn), element_end_name(i))
-  bp_com%var_value(nn) = i
+  call str_upcase (bp_com%var(nn)%name, element_end_name(i))
+  bp_com%var(nn)%value = i
 enddo
 
 do i = 1, ubound(ref_orbit_name, 1)
   nn = nn + 1
-  call str_upcase (bp_com%var_name(nn), ref_orbit_name(i))
-  bp_com%var_value(nn) = i
+  call str_upcase (bp_com%var(nn)%name, ref_orbit_name(i))
+  bp_com%var(nn)%value = i
 enddo
 
 do i = 1, ubound(shape_name, 1)
   nn = nn + 1
-  call str_upcase (bp_com%var_name(nn), shape_name(i))
-  bp_com%var_value(nn) = i
+  call str_upcase (bp_com%var(nn)%name, shape_name(i))
+  bp_com%var(nn)%value = i
 enddo
 
-call indexx (bp_com%var_name(1:nt), bp_com%var_indexx(1:nt))
+call indexx (bp_com%var(1:nt)%name, bp_com%var(1:nt)%indexx)
 
 end subroutine
 
@@ -2741,27 +2732,21 @@ subroutine reallocate_bp_com_var()
 
 implicit none
 
-character(40) :: var_name_temp(size(bp_com%var_name))
-real(rp) :: var_value_temp(size(bp_com%var_value))
-integer :: var_indexx_temp(size(bp_com%var_indexx))
+type (bp_var_struct) :: var_temp(size(bp_com%var))
 
 integer n
 
 !
 
-var_name_temp = bp_com%var_name
-var_value_temp = bp_com%var_value
-var_indexx_temp = bp_com%var_indexx
+var_temp = bp_com%var
 
-deallocate (bp_com%var_name, bp_com%var_value, bp_com%var_indexx)
+deallocate (bp_com%var)
 
 n = bp_com%ivar_tot+200
-allocate (bp_com%var_name(n), bp_com%var_value(n), bp_com%var_indexx(n))
+allocate (bp_com%var(n))
 
-n = size(var_indexx_temp)
-bp_com%var_name(1:n) = var_name_temp
-bp_com%var_value(1:n) = var_value_temp
-bp_com%var_indexx(1:n) = var_indexx_temp
+n = size(var_temp)
+bp_com%var(1:n) = var_temp
 
 
 end subroutine
@@ -4557,8 +4542,8 @@ if (index(debug_line, 'VAR') /= 0) then
   do i = bp_com%ivar_init+1, bp_com%ivar_tot
     print *
     print *, 'Var #', i
-    print *, 'Name: ', bp_com%var_name(i)
-    print *, 'Value:', bp_com%var_value(i)
+    print *, 'Name: ', bp_com%var(i)%name
+    print *, 'Value:', bp_com%var(i)%value
   enddo
 endif
 

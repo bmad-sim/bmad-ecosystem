@@ -764,7 +764,7 @@ enddo
 
 do i = 1, bp_com%ivar_tot
 
-  if (bp_com%var_name(i) == 'LATTICE_TYPE') then
+  if (bp_com%var(i)%name == 'LATTICE_TYPE') then
     do j = 1, 10
       print *, '*********************************************************'
     enddo
@@ -776,10 +776,10 @@ do i = 1, bp_com%ivar_tot
     enddo
     print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
     bp_com%write_digested = .false.
-    lat%param%lattice_type = nint(bp_com%var_value(i))
+    lat%param%lattice_type = nint(bp_com%var(i)%value)
   endif
 
-  if (bp_com%var_name(i) == 'TAYLOR_ORDER') then
+  if (bp_com%var(i)%name == 'TAYLOR_ORDER') then
     do j = 1, 10
       print *, '*********************************************************'
     enddo
@@ -791,7 +791,7 @@ do i = 1, bp_com%ivar_tot
     enddo
     print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
     bp_com%write_digested = .false.
-    lat%input_taylor_order = nint(bp_com%var_value(i))
+    lat%input_taylor_order = nint(bp_com%var(i)%value)
   endif
 
 enddo

@@ -64,7 +64,7 @@ if (.not. attribute_free (ele, string(1:ix-1), lat, err_print_flag)) return
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.
 
-if (.not. allocated(bp_com%var_name)) call init_bmad_parser_common
+if (.not. allocated(bp_com%var)) call init_bmad_parser_common
 bp_com%input_from_file = .false.
 bp_com%parser_name = r_name
 bp_com%parse_line = string
