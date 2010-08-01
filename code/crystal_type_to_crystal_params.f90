@@ -199,9 +199,9 @@ enddo
 ele%value(fh_re$) = fh_re
 ele%value(fh_im$) = fh_im
 
-ele%value(bragg_angle$) = asin(ele%value(wave_length$) / (2 * d))
+ele%value(bragg_angle$) = asin(ele%value(ref_wave_length$) / (2 * d))
 bp = ele%value(b_param$)
-ele%value(alpha_angle$) = atan(tan(ele%value(theta_bragg$)) * (bp + 1) / (bp - 1))
+ele%value(alpha_angle$) = atan(tan(ele%value(bragg_angle$)) * (bp + 1) / (bp - 1))
 
 err_flag = .false.
 
