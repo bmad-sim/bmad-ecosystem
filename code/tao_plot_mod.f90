@@ -247,6 +247,10 @@ type (floor_position_struct) end1, end2, floor
 type (tao_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
+type (tao_ele_shape_struct), pointer :: ele_shape
+type (tao_data_struct), pointer :: datum
+type (tao_data_array_struct), allocatable, target :: d_array(:)
+type (tao_logical_array_struct), allocatable :: logic_array(:)
 
 real(rp) theta, v_vec(3)
 real(rp) x_bend(0:1000), y_bend(0:1000)
@@ -254,6 +258,8 @@ real(rp) x_bend(0:1000), y_bend(0:1000)
 integer i, j, k, n, n_bend, isu, ic, ix_shape
 
 character(20) :: r_name = 'tao_plot_floor_plan'
+
+logical err
 
 ! Each graph is a separate floor plan plot (presumably for different universes). 
 ! setup the placement of the graph on the plot page.
@@ -293,11 +299,29 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave
-        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), ix_shape)
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), ix_shape, .false.)
       enddo
     else
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape, .false.)
     endif
+  enddo
+enddo
+
+! Draw data
+
+do i = 1, size(tao_com%ele_shape_floor_plan)
+  ele_shape => tao_com%ele_shape_floor_plan(i)
+  if (ele_shape%ele_name(1:5) /= 'dat::') cycle
+  call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
+  if (err) cycle
+  do j = 1, size(d_array)
+    datum => d_array(j)%d
+    if (datum%ix_branch /= graph%ix_branch) cycle
+    if (size(logic_array) /= 0) then
+      if (.not. logic_array(j)%l) cycle
+    endif
+    ele => pointer_to_ele (lat, datum%ix_branch, datum%ix_ele)
+    call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, i, .true.)
   enddo
 enddo
 
@@ -347,7 +371,7 @@ end subroutine
 !   ix_shape
 !-
 
-recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape, is_data)
 
 implicit none
 
@@ -376,12 +400,20 @@ character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
 character(16) shape
 character(2) justify
 
-logical shape_has_box
+logical is_data
+logical shape_has_box, is_bend
 
 !
 
 call find_element_ends (lat, ele, ele1, ele2)
 if (.not. associated(ele1)) return
+
+if (is_data) then  ! pretend this is zero length element
+  ele1 => ele2
+  is_bend = .false.
+else
+  is_bend = (ele%key == sbend$)
+endif
 
 call floor_to_screen_coords (ele1%floor, end1)
 call floor_to_screen_coords (ele2%floor, end2)
@@ -397,7 +429,7 @@ if ((end1%x < graph%x%min .or. graph%x%max < end1%x .or. &
 ! Bends are parameterized by a set of points (x_bend, y_bend) along their  
 ! centerline and a set of vectors (dx_bend, dy_bend) perpendicular to the centerline.
 
-if (ele%key == sbend$) then
+if (is_bend) then
 
   if (ele%value(g$) == 0) then
     n_bend = 1
@@ -441,7 +473,7 @@ endif
 ! All others are drawn with a simple line or arc
 
 if (ix_shape < 1) then
-  if (ele%key == sbend$) then
+  if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend))
   else
     call qp_draw_line(end1%x, end2%x, end1%y, end2%y)
@@ -510,7 +542,7 @@ call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y,
 dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
 dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
 
-if (ele%key == sbend$) then
+if (is_bend) then
   do j = 0, n_bend
     call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), 'POINTS')
     call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, 'POINTS')
@@ -538,7 +570,7 @@ shape_has_box = (index(shape, 'BOX') /= 0)
 ! Draw diamond
 
 if (shape == 'DIAMOND') then
-  if (ele%key == sbend$) then
+  if (is_bend) then
     n = n_bend / 2
     x1 = (x_bend(n) + dx_bend(n)) / 2
     x2 = (x_bend(n) - dx_bend(n)) / 2
@@ -566,7 +598,7 @@ endif
 ! Draw an X.
 
 if (shape == 'X') then
-  if (ele%key == sbend$) then
+  if (is_bend) then
     n = n_bend / 2
     x0  = x_bend(n)
     y0  = y_bend(n)
@@ -583,7 +615,7 @@ endif
 ! Draw top and bottom of boxes and bow_tiw
 
 if (shape == 'BOW_TIE' .or. shape_has_box) then
-  if (ele%key == sbend$) then
+  if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
                           y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
     call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
@@ -600,7 +632,7 @@ endif
 ! Draw sides of boxes
 
 if (shape_has_box) then
-  if (ele%key == sbend$) then
+  if (is_bend) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
                        y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = 'POINTS', color = icol)
     n = n_bend
@@ -765,7 +797,6 @@ do i = 1, branch%n_ele_max
 
   ele => branch%ele(i)
   call tao_find_ele_shape (ele, ele_shapes, ix_shape)
-  ele_shape => ele_shapes(ix_shape)
 
   if (ele%lord_status == multipass_lord$) cycle
   if (ele%slave_status == super_slave$) cycle
@@ -808,10 +839,10 @@ do i = 1, branch%n_ele_max
   call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
   if (ix_shape < 1) cycle
+  ele_shape => ele_shapes(ix_shape)
+  shape_name = ele_shape%shape
 
   ! Here if element is to be drawn...
-
-  shape_name = ele_shape%shape
 
   select case (shape_name)
   case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
@@ -846,7 +877,7 @@ do i = 1, branch%n_ele_max
   y1 = max(y_bottom, min(y1, y_top))
   y2 = max(y_bottom, min(y2, y_top))
 
-  call draw_this_shape (ele%name, ele%s - ele%value(l$) / 2)
+  call draw_this_shape (ele%name, ele%s - ele%value(l$) / 2, ele_shape)
 
 enddo
 
@@ -874,7 +905,7 @@ do i = 1, size(ele_shapes)
     call qp_convert_point_rel (y, dummy, 'INCH', dx, dummy, 'DATA')
     x1 = x0 - dx
     x2 = x0 + dx
-    call draw_this_shape (tao_datum_name(datum), datum%s)
+    call draw_this_shape (tao_datum_name(datum), datum%s, ele_shape)
   enddo
 enddo
 
@@ -920,13 +951,16 @@ endif
 
 !-----------------------------------------------------------
 contains 
-subroutine draw_this_shape (name_in, s_pos)
+subroutine draw_this_shape (name_in, s_pos, ele_shape)
 
+type (tao_ele_shape_struct) ele_shape
 real(rp) s_pos
 character(*) name_in
+character(20) shape_name
 
 !
 
+shape_name = ele_shape%shape
 shape_has_box = (index(shape_name, 'BOX') /= 0)
 
 ! Draw the shape
@@ -939,12 +973,14 @@ if (shape_name == 'DIAMOND') then
 endif
 
 if (shape_name == 'CIRCLE') then
-  call qp_convert_point_rel ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
+  call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
   call qp_draw_circle (x0, y0, abs(y1), units = 'POINTS', color = icol)
 endif
 
 if (shape_name == 'X') then
-  call qp_convert_point_rel ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
+  call qp_convert_point_abs ((x1+x2)/2, (y1+y2)/2, 'DATA', x0, y0, 'POINTS')
+  call qp_convert_point_rel (x1, y1, 'DATA', x1, y1, 'POINTS')
+  call qp_convert_point_rel (x2, y2, 'DATA', x2, y2, 'POINTS')
   call qp_draw_line (x0-y1, x0+y1, y0-y1, y0+y1, units = 'POINTS', color = icol)
   call qp_draw_line (x0-y1, x0+y1, y0+y1, y0-y1, units = 'POINTS', color = icol)
 endif

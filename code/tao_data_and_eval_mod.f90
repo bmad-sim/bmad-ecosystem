@@ -373,9 +373,6 @@ do i = 1, size(ix_datum)
   select case (who_dat)
   case (model$)
     call tao_evaluate_a_datum (datum, u, u%model, datum%model_value, datum%good_model)
-    if (datum%ix_ele_merit > -1) then
-      datum%s = u%model%lat%branch(datum%ix_branch)%ele(datum%ix_ele_merit)%s
-    endif
   case (design$)
     call tao_evaluate_a_datum (datum, u, u%design, datum%design_value, good)
   case (base$)
@@ -1855,6 +1852,15 @@ case default
   return
 
 end select
+
+! Set s position
+
+if (datum%ix_ele_merit > -1) then
+  datum%s = lat%branch(datum%ix_branch)%ele(datum%ix_ele_merit)%s
+elseif (associated(ele)) then
+  datum%s = ele%s
+endif
+
 
 end subroutine tao_evaluate_a_datum
 

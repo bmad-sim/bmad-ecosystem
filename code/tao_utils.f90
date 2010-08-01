@@ -1017,9 +1017,9 @@ character(80) dat_name, component_name
 character(16), parameter :: real_components(9) = &
           (/ 'model  ', 'base   ', 'design ', 'meas   ', 'ref    ', &
              'old    ', 'fit    ', 'weight ', 'invalid' /)
-character(16), parameter :: logic_components(6) = &
-          (/ 'exists   ', 'good_meas', 'good_ref ', 'good_user', 'good_opt ', &
-             'good_plot' /)
+character(16), parameter :: logic_components(8) = &
+          (/ 'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
+             'good_plot ', 'useit_opt ', 'useit_plot' /)
 character(16), parameter :: integer_components(5) = &
           (/ 'ix_ele      ', 'ix_ele_start', 'ix_ele_ref  ', &
              'ix_d1       ', 'ix_uni      ' /)
@@ -1485,6 +1485,10 @@ if (present(log_array) .and. any(component_name == logic_components)) then
         log_array(j)%l => d1%d(i)%good_opt
       case ('good_plot')
         log_array(j)%l => d1%d(i)%good_plot
+      case ('useit_opt')
+        log_array(j)%l => d1%d(i)%useit_opt
+      case ('useit_plot')
+        log_array(j)%l => d1%d(i)%useit_plot
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC DATA")
         call err_exit
@@ -2166,15 +2170,15 @@ end subroutine tao_lat_bookkeeper
 
 function tao_read_this_index (name, ixc) result (ix)
 
-  character(*) name
-  integer ix, ixc
-  character(20) :: r_name = 'tao_read_this_index'
+character(*) name
+integer ix, ixc
+character(20) :: r_name = 'tao_read_this_index'
 
-  ix = index('123456', name(ixc:ixc))
-  if (ix == 0) then
-    call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // name)
-    call err_exit
-  endif
+ix = index('123456', name(ixc:ixc))
+if (ix == 0) then
+  call out_io (s_abort$, r_name, 'BAD INDEX CONSTRAINT: ' // name)
+  call err_exit
+endif
 
 end function tao_read_this_index
 
@@ -2467,123 +2471,109 @@ end function tao_universe_number
 
 subroutine tao_parse_command_args (error, cmd_words)
 
-  implicit none
+implicit none
 
-  character(*), optional :: cmd_words(:)
-  character(80) arg0
-  character(24) :: r_name = 'tao_parse_command_args'
+character(*), optional :: cmd_words(:)
+character(80) arg0
+character(24) :: r_name = 'tao_parse_command_args'
 
-  integer n_arg, i_arg
-  logical error
+integer n_arg, i_arg
+logical error
 
 ! Get command line input
 
-  error = .false.
+error = .false.
 
-  call tao_hook_parse_command_args()
-  if (.not. tao_com%parse_cmd_args) return
+call tao_hook_parse_command_args()
+if (.not. tao_com%parse_cmd_args) return
 
-  if (present(cmd_words)) then
-    n_arg = size(cmd_words)
-    if (cmd_words(1) == '') return
-  else
-    n_arg = cesr_iargc()
-    if (n_arg == 0) return
-  endif
-
-
-! since there are arguments reset things to their initial state
-
-  tao_com%init_tao_file_set_on_command_line = .false.
-  tao_com%init_tao_file  = 'tao.init'
-  tao_com%beam_all_file  = ''
-  tao_com%beam0_file     = ''
-  tao_com%lat_file       = ''
-  tao_com%beam_file      = ''
-  tao_com%data_file      = ''
-  tao_com%plot_file      = ''
-  tao_com%var_file       = ''
+if (present(cmd_words)) then
+  n_arg = size(cmd_words)
+  if (cmd_words(1) == '') return
+else
+  n_arg = cesr_iargc()
+  if (n_arg == 0) return
+endif
 
 ! loop over all arguments
 
-  i_arg = 0
+i_arg = 0
 
-  do 
+do 
 
-    if (i_arg == n_arg) exit
-    call get_next_arg (arg0)
+  if (i_arg == n_arg) exit
+  call get_next_arg (arg0)
 
-    select case (arg0)
-    case ('-init')
-      call get_next_arg (tao_com%init_tao_file)
-      tao_com%init_tao_file_set_on_command_line = .true.
+  select case (arg0)
+  case ('-init')
+    call get_next_arg (tao_com%init_tao_file)
+    tao_com%init_tao_file_set_on_command_line = .true.
 
-    case ('-beam_all')
-      call get_next_arg (tao_com%beam_all_file)
+  case ('-beam_all')
+    call get_next_arg (tao_com%beam_all_file)
 
-    case ('-beam0')
-      call get_next_arg (tao_com%beam0_file)
+  case ('-beam0')
+    call get_next_arg (tao_com%beam0_file)
 
-    case ('-noplot')
-      tao_com%noplot_arg_found = .true.
+  case ('-noplot')
+    tao_com%noplot_arg_found = .true.
 
-    case ('-lat')
-      call get_next_arg (tao_com%lat_file)
+  case ('-lat')
+    call get_next_arg (tao_com%lat_file)
 
-    case ('-lattice')
-      call get_next_arg (tao_com%lattice_file)
+  case ('-lattice')
+    call get_next_arg (tao_com%lattice_file)
 
-    case ('-beam')
-      call get_next_arg (tao_com%beam_file)
+  case ('-beam')
+    call get_next_arg (tao_com%beam_file)
 
-    case ('-var')
-      call get_next_arg (tao_com%var_file)
+  case ('-var')
+    call get_next_arg (tao_com%var_file)
 
-    case ('-data')
-      call get_next_arg (tao_com%data_file)
+  case ('-data')
+    call get_next_arg (tao_com%data_file)
 
-    case ('-plot')
-      call get_next_arg (tao_com%plot_file)
+  case ('-plot')
+    call get_next_arg (tao_com%plot_file)
 
-    case ('help', '-help')
-      call help_out
-      stop
+  case ('help', '-help')
+    call help_out
+    stop
 
-    case ('')
-      exit
+  case ('')
+    exit
 
-    case default
-      call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
-      call help_out
-      error = .true.
-      return
-    end select
+  case default
+    call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
+    call help_out
+    error = .true.
+    return
+  end select
 
-  enddo
+enddo
 
 !-----------------------------
 contains
 
 subroutine get_next_arg(arg)
 
-  character(*) arg
+character(*) arg
 
 !
 
-  if (i_arg == n_arg) then
-    call out_io (s_error$, r_name, &
-                      'MISSING COMMAND LINE ARGUMENT FOR: ' // arg0)
-    error = .true.
-    return
-  endif
+if (i_arg == n_arg) then
+  call out_io (s_error$, r_name, 'MISSING COMMAND LINE ARGUMENT FOR: ' // arg0)
+  error = .true.
+  return
+endif
 
-  i_arg = i_arg + 1
+i_arg = i_arg + 1
 
-  if (present(cmd_words)) then
-    arg = cmd_words(i_arg)
-  else
-    call cesr_getarg(i_arg, arg)
-  endif
+if (present(cmd_words)) then
+  arg = cmd_words(i_arg)
+else
+  call cesr_getarg(i_arg, arg)
+endif
 
 end subroutine get_next_arg
 
@@ -2592,18 +2582,18 @@ end subroutine get_next_arg
 
 subroutine help_out
 
-  call out_io (s_blank$, r_name, &
-     ['Switches:                          ', &
-      '  -beam <beam_init_file>           ', &
-      '  -beam_all <beam_all_file>        ', &
-      '  -beam0 <particle_position_file>  ', &
-      '  -data <data_init_file>           ', &
-      '  -init <tao_init_file>            ', &
-      '  -lat <bmad/xsif_lattice_file>    ', &
-      '  -lattice <lattice_namelist_file> ', &
-      '  -noplot                          ', &
-      '  -plot <plot_init_file>           ', &
-      '  -var <var_init_file>             '] )
+call out_io (s_blank$, r_name, &
+   ['Switches:                          ', &
+    '  -beam <beam_init_file>           ', &
+    '  -beam_all <beam_all_file>        ', &
+    '  -beam0 <particle_position_file>  ', &
+    '  -data <data_init_file>           ', &
+    '  -init <tao_init_file>            ', &
+    '  -lat <bmad/xsif_lattice_file>    ', &
+    '  -lattice <lattice_namelist_file> ', &
+    '  -noplot                          ', &
+    '  -plot <plot_init_file>           ', &
+    '  -var <var_init_file>             '] )
 
 end subroutine help_out
 

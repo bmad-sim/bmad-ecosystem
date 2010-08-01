@@ -2019,7 +2019,8 @@ For Example:
     ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
     ele_shape(3) = "sbend::*"               "box"     "blue"    15     none
     ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     name
-    ele_shape(5) = "dat::orbit.x|useit_opt" "x"       "orange"  10     name
+    ele_shape(5) = "dat::beta.x"            "x"       "orange"  10     name
+    ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  10     name
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
@@ -2031,7 +2032,8 @@ first shape matched will be used. For a floor plan, for \vn{wiggler}s that have 
 \vn{x_ray_line_len} attribute, The X-ray line will be drawn if an
 \vn{ele_shape} for a \vn{photon_branch} is present.
 
-Data can also be specified to be drawn. In the above example, \vn{orbit.x} data
+Data can also be specified to be drawn. In the above example, an ``x'' will be drawn
+at each location where \vn{beta.x} data is evaluated. For the \vn{orbit.x} data, an ``x''
 will de drawn but only for datums whose \vn{useit_opt} parameter is True.
 
 The \vn{<shape>} parameter is the shape of the figure
