@@ -236,6 +236,7 @@ do j = 1, size(s%var)
   zero_dmodel = .true.
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
+    if (.not. u%is_on) cycle
     if (any(u%dmodel_dvar(:,nv) /= 0)) zero_dmodel = .false.
   enddo
   if (zero_dmodel) then
