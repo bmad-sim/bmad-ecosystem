@@ -424,26 +424,26 @@ integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
 integer, parameter :: direction$=3, graze_angle$=3, tilt_corr$ = 3
 integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4
-integer, parameter ::       graze_angle_err$ = 4
+integer, parameter ::       graze_angle_in$ = 4
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
-integer, parameter ::       critical_angle$ = 5, graze_angle_in$ = 5
+integer, parameter ::       graze_angle_out$ = 5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
-integer, parameter ::       dks_ds$=6, graze_angle_out$ = 6, lrad$=6   ! lrad -> felv testing.
+integer, parameter ::       dks_ds$=6, graze_angle_err$ = 6, lrad$=6   ! lrad -> felv testing.
 integer, parameter :: g$=7, ks$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
-integer, parameter ::       g_graze$ = 7
-integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8, g_trans$=8
-integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9, psi_angle$=9
+integer, parameter ::       critical_angle$ = 7, b_param$ = 7
+integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8, psi_angle$=8
+integer, parameter :: n_slice$=9, e2$=9, rf_frequency$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: fint$=10, polarity$=10, gradient$=10, crunch_calib$=10, alpha_angle$=10
 integer, parameter :: fintx$=11, z_patch$=11, phi0$=11, x_offset_calib$=11, d_spacing$=11
-integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12, b_param$=12
-integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13, v_unitcell$=13
+integer, parameter :: rho$=12, s_center$=12, p0c_start$=12, y_offset_calib$=12, v_unitcell$=12
+integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13, f0_re$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
-integer, parameter ::       de_eta_meas$=14, f0_re$=14
+integer, parameter ::       de_eta_meas$=14, f0_im$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
-integer, parameter :: n_sample$=15, delta_ref_time$=15, f0_im$=15
-integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16, fh_re$=16
-integer, parameter :: l_start$=17, h1$=17, x_quad$=17, bragg_angle$=17, fh_im$=17
-integer, parameter :: l_end$=18, h2$=18, y_quad$=18
+integer, parameter :: n_sample$=15, delta_ref_time$=15, fh_re$=15
+integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16, fh_im$=16
+integer, parameter :: l_start$=17, h1$=17, x_quad$=17, g_graze$=17
+integer, parameter :: l_end$=18, h2$=18, y_quad$=18, g_trans$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
 integer, parameter :: hkick$=21

@@ -156,10 +156,9 @@ endif
 
 ! General case where layout is not in the horizontal plane
 
-if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-             (key == mirror$  .and. ele%value(tilt_tot$) /= 0) .or. &
-             (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0) .or. &
-             (key == sbend$ .and. ele%value(tilt_tot$) /= 0)) then
+if (((key == mirror$  .or. key == crystal$ .or. key == sbend$) .and. ele%value(tilt_tot$) /= 0) .or. &
+         phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
+         (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
   if (old_theta /= theta .or. old_phi /= phi .or. old_psi /= psi) then
     call floor_angles_to_w_mat (theta, phi, psi, w_mat)
@@ -306,6 +305,9 @@ else
     chord_len = 0
   case (mirror$)
     angle = 2 * ele%value(graze_angle$)
+    chord_len = 0
+  case (crystal$)
+    angle = ele%value(graze_angle_in$) + ele%value(graze_angle_out$)
     chord_len = 0
   case default
     angle = 0
