@@ -44,7 +44,7 @@ type (ele_struct) ele
 type (atom_vec_struct) r_atom(8), f1f2(100)
 
 real(rp) f_h_factor, f_0_factor, f_0h, f_1, f_2, fh_re, fh_im
-real(rp) a(10), b(10), c, d, a0, hkl(3), arg, bp
+real(rp) a(10), b(10), c, d, a0, hkl(3), arg, bp, r
 
 integer i, ix, n, ios, n_atom, n_f1f2
 
@@ -199,9 +199,18 @@ enddo
 ele%value(fh_re$) = fh_re
 ele%value(fh_im$) = fh_im
 
-ele%value(bragg_angle$) = asin(ele%value(ref_wave_length$) / (2 * d))
-bp = ele%value(b_param$)
-ele%value(alpha_angle$) = atan(tan(ele%value(bragg_angle$)) * (bp + 1) / (bp - 1))
+! Set bragg and alpha angles to zero if bragg condition is not satisfied.
+
+r = ele%value(ref_wave_length$) / (2 * d)
+
+if (r < 1) then
+  ele%value(bragg_angle$) = asin(r)
+  bp = ele%value(b_param$)
+  ele%value(alpha_angle$) = atan(tan(ele%value(bragg_angle$)) * (bp + 1) / (bp - 1))
+else
+  ele%value(bragg_angle$) = 0
+  ele%value(alpha_angle$) = 0
+endif
 
 err_flag = .false.
 

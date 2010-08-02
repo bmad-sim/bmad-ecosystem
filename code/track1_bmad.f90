@@ -161,6 +161,12 @@ case (bend_sol_quad$)
 !-----------------------------------------------
 ! drift
 
+case (crystal$) 
+
+
+!-----------------------------------------------
+! drift
+
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)

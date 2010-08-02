@@ -2547,64 +2547,38 @@ integer nn, nt, i
 
 if (allocated(bp_com%var)) deallocate (bp_com%var)
 
-nn = 21  ! number of "constant" variables
+nn = 17  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-           ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(shape_name, 1)
+           ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(shape_name, 1) + &
+           size(particle_name)
 bp_com%ivar_tot = bp_com%ivar_init
 
 nt = bp_com%ivar_tot
 allocate (bp_com%var(nt))
 
-bp_com%var(1)%name  = 'PI'
-bp_com%var(1)%value = pi
+bp_com%var( 1) = bp_var_struct('PI', pi, 0)
+bp_com%var( 2) = bp_var_struct('TWOPI', twopi, 0)
+bp_com%var( 3) = bp_var_struct('DEGRAD', 180 / pi, 0)
+bp_com%var( 4) = bp_var_struct('RADDEG', pi / 180, 0)
+bp_com%var( 5) = bp_var_struct('E_LOG', 2.718281828459_rp, 0)
+bp_com%var( 6) = bp_var_struct('E_MASS', e_mass, 0)
+bp_com%var( 7) = bp_var_struct('C_LIGHT', c_light, 0)
+bp_com%var( 8) = bp_var_struct('M_ELECTRON', m_electron, 0)
+bp_com%var( 9) = bp_var_struct('M_PROTON', m_proton, 0)
+bp_com%var(10) = bp_var_struct('R_P', r_p, 0)
+bp_com%var(11) = bp_var_struct('E_CHARGE', e_charge, 0)
+bp_com%var(12) = bp_var_struct('EMASS', e_mass, 0)
+bp_com%var(13) = bp_var_struct('CLIGHT', c_light, 0)
+bp_com%var(14) = bp_var_struct('LINEAR_LATTICE', real(linear_lattice$, rp), 0)
+bp_com%var(15) = bp_var_struct('CIRCULAR_LATTICE', real(circular_lattice$, rp), 0)
+bp_com%var(16) = bp_var_struct('R_E', r_e, 0)
+bp_com%var(17) = bp_var_struct('DEGREES', 180 / pi, 0)
 
-bp_com%var(2)%name  = 'TWOPI'
-bp_com%var(2)%value = twopi
-
-bp_com%var(3)%name  = 'DEGRAD'
-bp_com%var(3)%value = 180 / pi
-
-bp_com%var(4)%name  = 'RADDEG'
-bp_com%var(4)%value = pi / 180
-
-bp_com%var(5)%name  = 'E_LOG'
-bp_com%var(5)%value = 2.718281828459
-
-bp_com%var(6)%name  = 'E_MASS'
-bp_com%var(6)%value = e_mass
-
-bp_com%var(7)%name  = 'C_LIGHT'
-bp_com%var(7)%value = c_light
-
-bp_com%var(10)%name  = 'R_P'
-bp_com%var(10)%value = r_p
-
-bp_com%var(11)%name  = 'E_CHARGE'
-bp_com%var(11)%value = e_charge
-
-bp_com%var(12)%name  = 'EMASS'      ! old style
-bp_com%var(12)%value = e_mass
-
-bp_com%var(13)%name  = 'CLIGHT'     ! old style
-bp_com%var(13)%value = c_light
-
-bp_com%var(14)%name  = 'LINEAR_LATTICE'
-bp_com%var(14)%value = linear_lattice$
-
-bp_com%var(15)%name  = 'CIRCULAR_LATTICE'
-bp_com%var(15)%value = circular_lattice$
-
-bp_com%var(16)%name  = 'R_E'
-bp_com%var(16)%value = r_e
-
-bp_com%var(19)%name  = 'M_ELECTRON'
-bp_com%var(19)%value = m_electron
-
-bp_com%var(20)%name  = 'M_PROTON'
-bp_com%var(20)%value = m_proton
-
-bp_com%var(20)%name  = 'DEGREES'
-bp_com%var(20)%value = 180 / pi
+do i = lbound(particle_name, 1), ubound(particle_name, 1)
+  nn = nn + 1
+  call str_upcase (bp_com%var(nn)%name, particle_name(i))
+  bp_com%var(nn)%value = i
+enddo
 
 do i = 1, ubound(calc_method_name, 1)
   nn = nn + 1

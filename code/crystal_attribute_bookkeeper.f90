@@ -10,9 +10,10 @@ real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) cos_theta0, sin_theta0, graze_angle_in
 real(rp) h_x, h_y, h_z, nx_out, ny_out, nz_out
 
-! If the photon energy is not set then cannot do the calc yet.
+! If the photon energy or the bragg angle has not been set then cannot do the calc yet.
 
 if (ele%value(e_tot$) == 0) return
+if (ele%value(bragg_angle$) == 0) return
 
 !
 

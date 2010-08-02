@@ -1952,6 +1952,7 @@ integer i
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
+logical err_flag
 logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed, is_on
 logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
@@ -2139,6 +2140,7 @@ case (beambeam$)
 
 case (crystal$)
 
+  call crystal_type_to_crystal_params (ele, err_flag)
   call crystal_attribute_bookkeeper (ele)
 
 ! Elseparator
