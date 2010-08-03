@@ -723,7 +723,7 @@ real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, x0, y0
 real(rp) lat_len, height, dx, dy, key_number_height, dummy
 
 integer i, j, ix_shape, k, kk, ix, ix1, isu
-integer icol, ix_var, ixv
+integer ix_var, ixv
 
 logical shape_has_box, err
 
@@ -851,8 +851,6 @@ do i = 1, branch%n_ele_max
     call err_exit
   end select
 
-  call qp_translate_to_color_index (ele_shape%color, icol)
-
   ! r1 and r2 are the scale factors for the lines below and above the center line.
 
   y = ele_shape%dy_pix
@@ -955,6 +953,7 @@ subroutine draw_this_shape (name_in, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
 real(rp) s_pos
+integer icol
 character(*) name_in
 character(20) shape_name
 
@@ -962,6 +961,8 @@ character(20) shape_name
 
 shape_name = ele_shape%shape
 shape_has_box = (index(shape_name, 'BOX') /= 0)
+call qp_translate_to_color_index (ele_shape%color, icol)
+
 
 ! Draw the shape
 
