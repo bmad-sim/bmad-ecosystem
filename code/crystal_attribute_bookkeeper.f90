@@ -31,7 +31,7 @@ h_x = -cos(alpha) / d
 h_y = sin(alpha) * sin(psi) / d
 h_z = sin(alpha) * cos(psi) / d
 
-theta0 = asin(lambda_in / (2 * sqrt(d**2 - h_y**2))) - atan(h_z/h_x)
+theta0 = asin(lambda_in / (2 * d * sqrt(1 - (d * h_y)**2))) - atan(h_z/h_x)
 cos_theta0 = cos(theta0)
 sin_theta0 = sin(theta0)
 
