@@ -8,6 +8,10 @@
 ! Note: The presence of an LCavity element in the input file (even if it is not
 ! used in the lattice) will make lat%lattice_type = linear_lattice$.
 !
+! Note: xsif has default 1 meter apertures. This is problematical for some programs
+! that expect the default to be zero (no aperture present). 
+! To rectify this, all 1 meter apertures are converted to zero.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -338,18 +342,20 @@ do ie = npos1, npos2-1
     case (mad_ecoll)
       call add_ele (ecollimator$)
       ele%value(l$)       = pdata(dat_indx)
-      ele%value(x1_limit$) = pdata(dat_indx+1)
-      ele%value(x2_limit$) = pdata(dat_indx+1)
-      ele%value(y1_limit$) = pdata(dat_indx+2)
-      ele%value(y2_limit$) = pdata(dat_indx+2)
+      ! 1 meter aperture is xsif default so do not set unless value is different
+      if (pdata(dat_indx+1) /= 1) ele%value(x1_limit$) = pdata(dat_indx+1)
+      if (pdata(dat_indx+1) /= 1) ele%value(x2_limit$) = pdata(dat_indx+1)
+      if (pdata(dat_indx+2) /= 1) ele%value(y1_limit$) = pdata(dat_indx+2)
+      if (pdata(dat_indx+2) /= 1) ele%value(y2_limit$) = pdata(dat_indx+2)
 
     case (mad_rcoll)
       call add_ele (rcollimator$)
       ele%value(l$)       = pdata(dat_indx)
-      ele%value(x1_limit$) = pdata(dat_indx+1)
-      ele%value(x2_limit$) = pdata(dat_indx+1)
-      ele%value(y1_limit$) = pdata(dat_indx+2)
-      ele%value(y2_limit$) = pdata(dat_indx+2)
+      ! 1 meter aperture is xsif default so do not set unless value is different
+      if (pdata(dat_indx+1) /= 1) ele%value(x1_limit$) = pdata(dat_indx+1)
+      if (pdata(dat_indx+1) /= 1) ele%value(x2_limit$) = pdata(dat_indx+1)
+      if (pdata(dat_indx+2) /= 1) ele%value(y1_limit$) = pdata(dat_indx+2)
+      if (pdata(dat_indx+2) /= 1) ele%value(y2_limit$) = pdata(dat_indx+2)
 
 
     case (mad_quse)  ! Quad/Sextupole
@@ -479,7 +485,8 @@ do ie = npos1, npos2-1
     ele%value(s_offset$) = pdata(id+2)
   endif
 
-  if (aperture > 0) then
+  ! 1 meter aperture is xsif default so do not set unless value is different
+  if (aperture /= 1 .and. aperture /= 0) then  
     ele%value(x1_limit$) = aperture
     ele%value(x2_limit$) = aperture
     ele%value(y1_limit$) = aperture
