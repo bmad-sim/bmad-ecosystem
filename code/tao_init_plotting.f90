@@ -252,6 +252,30 @@ if (ios < 0) then
 
 endif
 
+! Error check
+
+if (allocated(tao_com%ele_shape_lat_layout)) then
+  do i = 1, size(tao_com%ele_shape_lat_layout)
+    select case (tao_com%ele_shape_lat_layout(i)%shape)
+    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
+    case default
+      print *, 'ERROR: UNKNOWN ELE_SHAPE: ', tao_com%ele_shape_lat_layout(i)%shape
+      call err_exit
+    end select
+  enddo
+endif
+
+if (allocated(tao_com%ele_shape_floor_plan)) then
+  do i = 1, size(tao_com%ele_shape_floor_plan)
+    select case (tao_com%ele_shape_floor_plan(i)%shape)
+    case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
+    case default
+      print *, 'ERROR: UNKNOWN ELE_SHAPE: ', tao_com%ele_shape_floor_plan(i)%shape
+      call err_exit
+    end select
+  enddo
+endif
+
 close (iu)
 
 !------------------------------------------------------------------------------------

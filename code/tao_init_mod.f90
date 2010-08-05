@@ -2112,7 +2112,8 @@ end subroutine tao_init_find_elements
 !+
 ! Subroutine tao_pointer_to_var_in_lattice (var, ix_uni, ele, err)
 ! 
-! Routine to set a pointer to the appropriate variable in a lattice
+! Routine to add a pointer from a given Tao variable
+! to the appropriate variable in a lattice.
 !
 ! Input:
 !   var       -- Tao_var_struct: Structure has the info of where to point.
@@ -2120,7 +2121,7 @@ end subroutine tao_init_find_elements
 !   ix_ele    -- Integer: Index of element.
 !
 ! Output:
-!   var%this(ix_this) -- Tao_this_var_struct: 
+!   var%this(ix_this) -- Tao_this_var_struct: New component of %this(:) array is added. 
 !     %model_ptr
 !     %base_ptr
 !     %ix_ele

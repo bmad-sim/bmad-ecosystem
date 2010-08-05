@@ -486,13 +486,6 @@ endif
 ele_shape => tao_com%ele_shape_floor_plan(ix_shape)
 shape = ele_shape%shape
 
-select case (shape)
-case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
-case default
-  print *, 'ERROR: UNKNOWN SHAPE: ', shape
-  call err_exit
-end select
-
 call qp_translate_to_color_index (ele_shape%color, icol)
 
 off = ele_shape%dy_pix
@@ -716,11 +709,13 @@ type (ele_struct), pointer :: ele, ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shapes(:), ele_shape
 type (branch_struct), pointer :: branch
 type (tao_data_array_struct), allocatable, target :: d_array(:)
+type (tao_var_array_struct), allocatable, target :: v_array(:)
 type (tao_logical_array_struct), allocatable :: logic_array(:)
 type (tao_data_struct), pointer :: datum
+type (tao_var_struct), pointer :: var
 
 real(rp) x1, x2, y1, y2, y, s_pos, y_off, y_bottom, y_top, x0, y0
-real(rp) lat_len, height, dx, dy, key_number_height, dummy
+real(rp) lat_len, height, dx, dy, key_number_height, dummy, l2
 
 integer i, j, ix_shape, k, kk, ix, ix1, isu
 integer ix_var, ixv
@@ -787,6 +782,8 @@ else
   return
 endif
     
+call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
+
 ! loop over all elements in the lattice. Only draw those element that
 ! are within bounds.
 
@@ -836,20 +833,12 @@ do i = 1, branch%n_ele_max
   ! Only those elements with ix_shape > 0 are to be drawn.
   ! All others have the zero line drawn through them.
 
-  call qp_draw_line (x1, x2, 0.0_rp, 0.0_rp)
 
   if (ix_shape < 1) cycle
   ele_shape => ele_shapes(ix_shape)
   shape_name = ele_shape%shape
 
   ! Here if element is to be drawn...
-
-  select case (shape_name)
-  case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
-  case default
-    print *, 'ERROR: UNKNOWN SHAPE: ', shape_name
-    call err_exit
-  end select
 
   ! r1 and r2 are the scale factors for the lines below and above the center line.
 
@@ -907,6 +896,17 @@ do i = 1, size(ele_shapes)
   enddo
 enddo
 
+! Draw variables
+
+do i = 1, size(ele_shapes)
+  if (plot%x_axis_type /= 's') exit
+  ele_shape => ele_shapes(i)
+  if (ele_shape%ele_name(1:5) /= 'var::') cycle
+  call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
+
+enddo
+
+
 ! Draw x-axis min max
 
 if (graph%x%draw_numbers) then
@@ -926,22 +926,25 @@ if (s%global%label_keys) then
     if (k > ubound(s%key, 1)) cycle
     ix_var = s%key(k)
     if (ix_var < 1) cycle
-    do ixv = 1, size(s%var(ix_var)%this)
-      if (s%var(ix_var)%this(ixv)%ix_uni /= isu) cycle
-      ix = s%var(ix_var)%this(ixv)%ix_ele
-      write (str, '(i1)') mod(kk, 10)
-      if (ix > branch%n_ele_track) then
-        do j = branch%ele(ix)%ix1_slave, branch%ele(ix)%ix2_slave
-          ix1 = lat%control(j)%ix_slave
-          s_pos = ele1%s - ele1%value(l$)/2
+    write (str, '(i1)') mod(kk, 10)
+    var => s%var(ix_var)
+    do ixv = 1, size(var%this)
+      if (var%this(ixv)%ix_uni /= isu) cycle
+      ele => pointer_to_ele(lat, var%this(ixv)%ix_ele, var%this(ixv)%ix_branch)
+      if (ele%n_slave /= 0 .and. ele%lord_status /= super_lord$) then
+        do j = 1, ele%n_slave
+          ele1 => pointer_to_slave (lat, ele, j)
+          l2 = ele1%value(l$) / 2
+          s_pos = ele1%s - l2
           if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
-          call qp_draw_text (trim(str), s_pos, y_top, &
-                              justify = 'CT', height = key_number_height)  
+          if (s_pos + l2 < graph%x%min .or. s_pos - l2 > graph%x%max) cycle
+          call qp_draw_text (trim(str), s_pos, y_top, justify = 'CT', height = key_number_height)  
         enddo
       else
-        s_pos = branch%ele(ix)%s - branch%ele(ix)%value(l$)/2
-        call qp_draw_text (trim(str), s_pos, y_top, &
-                                justify = 'CT', height = key_number_height)  
+        s_pos = ele%s - ele%value(l$)/2
+        if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
+        if (s_pos + l2 < graph%x%min .or. s_pos - l2 > graph%x%max) cycle
+        call qp_draw_text (trim(str), s_pos, y_top, justify = 'CT', height = key_number_height)  
       endif
     enddo
   enddo

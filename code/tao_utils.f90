@@ -1598,8 +1598,9 @@ integer i, ix, n_var, ios
 character(16), parameter :: real_components(10) = &
           (/ 'model   ', 'base    ', 'design  ', 'meas    ', 'ref     ', &
              'old     ', 'step    ', 'weight  ', 'high_lim', 'low_lim ' /)
-character(16), parameter :: logic_components(5) = &
-          (/ 'exists   ', 'good_var ', 'good_user', 'good_opt ', 'good_plot' /)
+character(16), parameter :: logic_components(7) = &
+          (/ 'exists    ', 'good_var  ', 'good_user ', 'good_opt  ', 'good_plot ', &
+             'useit_opt ', 'useit_plot' /)
 character(16), parameter :: string_components(1) = (/ 'merit_type' /)
 
 character(*) :: var_name
@@ -1905,6 +1906,10 @@ if (present(log_array) .and. any(component_name == logic_components)) then
         log_array(j)%l => v1%v(i)%good_opt
       case ('good_plot')
         log_array(j)%l => v1%v(i)%good_plot
+      case ('useit_opt')
+        log_array(j)%l => v1%v(i)%useit_opt
+      case ('useit_plot')
+        log_array(j)%l => v1%v(i)%useit_plot
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC VAR")
         call err_exit

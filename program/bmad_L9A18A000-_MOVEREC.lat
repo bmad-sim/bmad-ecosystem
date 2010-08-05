@@ -1,7 +1,7 @@
 ! BMAD input file
 
 parameter[lattice] =  L9A18A000-_MOVEREC
- 
+ parameter[particle] = electron
 call, file=bmad_CESR_RECMOVE.layout
  
 ! cleo solenoid
