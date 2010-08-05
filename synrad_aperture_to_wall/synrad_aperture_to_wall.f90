@@ -31,7 +31,7 @@ call cesr_getarg(1, lat_name)
 print *,"Using ", lat_name
 call file_suffixer (lat_name, outfile_name, '.wall_dat', .true.)
 
-call bmad_parser (lat_name, lat)
+call bmad_and_xsif_parser (lat_name, lat)
 call twiss_and_track (lat, orb, ok)
 
 open(1, file = outfile_name)
