@@ -46,7 +46,7 @@ integer ix
 
 ix = index(lat_file, 'xsif::')
 if (ix /= 0) then
-  if (lat_file(1:ix) /= '') ix = 0
+  if (lat_file(1:ix-1) /= '') ix = 0
 endif
 
 if (ix == 0) then
