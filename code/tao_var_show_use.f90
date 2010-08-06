@@ -31,6 +31,7 @@ write (line, '(2x, 2a, i0, a, i0, a, t50, 2a)') trim(v1_var%name), &
                       'Using: ' // trim(line)
 
 if (present(lines)) then
+  if (nl + 10 > size(lines)) call re_allocate(lines, nl+10, .false.)
   nl=nl+1; lines(nl) = line
 else
   call out_io (s_blank$, r_name, line)

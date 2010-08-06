@@ -38,6 +38,7 @@ do i = 1, size(d2_data%d1)
             '[', lbound(d1%d, 1), ':', ubound(d1%d, 1), ']', 'Using: ', trim(line)
 
   if (present(lines)) then
+    if (nl + 10 > size(lines)) call re_allocate(lines, nl+10, .false.)
     nl=nl+1; lines(nl) = line
   else
     call out_io (s_blank$, r_name, line)

@@ -2110,11 +2110,18 @@ case ('use')
       call re_allocate (lines, nl+size(d2_ptr%d1)+10, .false.)
       do k = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
         d1_ptr => d2_ptr%d1(k)
-        call location_encode(line, d1_ptr%d%useit_opt, &
-                                  d1_ptr%d%exists, lbound(d1_ptr%d, 1))
-        if (line == '') cycle
-        nl=nl+1; write (lines(nl), '(5a)') 'use data ', &
-                      trim(tao_d2_d1_name(d1_ptr)), '[', trim(line), ']'
+        call location_encode(line, d1_ptr%d%useit_opt, d1_ptr%d%exists, lbound(d1_ptr%d, 1), err_flag = err)
+        if (err .or. len_trim(line) + 50 > len(line)) then
+          nl=nl+1; lines(nl) = 'veto data ' // trim(d1_ptr%name)
+          do n = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+            if (.not. d1_ptr%d(n)%useit_opt) cycle
+            if (nl + 100 > size(lines)) call re_allocate(lines, nl+100, .false.)
+            nl=nl+1; write (lines(nl), '(3a, i0, a)') 'restore data ', trim(d1_ptr%name), '[', n, ']'
+          enddo
+        else
+          if (line == '') cycle
+          nl=nl+1; write (lines(nl), '(5a)') 'use data ', trim(tao_d2_d1_name(d1_ptr)), '[', trim(line), ']'
+        endif
       enddo
     enddo
   enddo
@@ -2126,11 +2133,12 @@ case ('use')
     if (v1_ptr%name == ' ') cycle
     call re_allocate (lines, nl+200, .false.)
     call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1), err_flag = err)
-    if (err .or. len_trim(line) +50 > len(line)) then
+    if (err .or. len_trim(line) + 50 > len(line)) then
       nl=nl+1; lines(nl) = 'veto var ' // trim(v1_ptr%name)
       do j = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
         if (.not. v1_ptr%v(j)%useit_opt) cycle
-        nl=nl+1; write (lines(nl), '(4a, i0, a)') 'restore var ', trim(v1_ptr%name), '[', j, ']'
+        if (nl + 100 > size(lines)) call re_allocate(lines, nl+100, .false.)
+        nl=nl+1; write (lines(nl), '(3a, i0, a)') 'restore var ', trim(v1_ptr%name), '[', j, ']'
       enddo
     else
       nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
