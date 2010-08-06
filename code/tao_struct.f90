@@ -580,6 +580,8 @@ type tao_common_struct
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
 end type
 
+integer, parameter :: n_char_show = 600
+
 !------------------------------------------------------------------------
 ! for connected universes
 

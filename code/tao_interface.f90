@@ -66,10 +66,12 @@ interface
 end interface
  
 interface
-  subroutine tao_data_show_use (d2_data)
+  subroutine tao_data_show_use (d2_data, lines, nl)
     use tao_struct, only: tao_d2_data_struct
     implicit none
     type (tao_d2_data_struct) :: d2_data
+    character(*), optional, allocatable :: lines(:)
+    integer, optional :: nl
   end subroutine
 end interface
 
@@ -426,10 +428,12 @@ interface
 end interface
  
 interface
-  subroutine tao_var_show_use (v1_var)
+  subroutine tao_var_show_use (v1_var, lines, nl)
     use tao_struct, only: tao_v1_var_struct
     implicit none
     type (tao_v1_var_struct) :: v1_var
+    character(*), optional, allocatable :: lines(:)
+    integer, optional :: nl
   end subroutine
 end interface
 

@@ -14,9 +14,6 @@ type show_common_struct
   integer ix_ele
 end type
 
-integer, parameter, private :: n_char = 600
-
-
 contains
 
 !--------------------------------------------------------------------
@@ -44,7 +41,7 @@ character(*) what, stuff
 character(100) file_name, result_id
 character(len(what)) what2
 character(len(stuff)) stuff2
-character(n_char), allocatable, save :: lines(:)
+character(n_char_show), allocatable, save :: lines(:)
 character(16) :: r_name = 'tao_show_cmd'
 character(20) switch
 
@@ -74,9 +71,9 @@ if (switch /= '') then
 
   iu = lunget()
   if (switch == '-append') then
-    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char)
+    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show)
   else
-    open (iu, file = file_name, status = 'REPLACE', recl = n_char)
+    open (iu, file = file_name, status = 'REPLACE', recl = n_char_show)
   endif
 
   call output_direct (iu)  ! tell out_io to write to a file
@@ -199,8 +196,8 @@ character(16) :: show_what, show_names(25) = [ &
 
 character(*), allocatable :: lines(:)
 character(*) result_id
-character(n_char) line, line1, line2, line3
-character(n_char) stuff2
+character(n_char_show) line, line1, line2, line3
+character(n_char_show) stuff2
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
@@ -597,14 +594,7 @@ case ('data')
       do i = 1, size(u%d2_data)
         d2_ptr => u%d2_data(i)
         if (d2_ptr%name == ' ') cycle
-        do j = lbound(d2_ptr%d1, 1), ubound(d2_ptr%d1, 1)
-          d1_ptr => d2_ptr%d1(j)
-          call location_encode(line, d1_ptr%d%useit_opt, &
-                                  d1_ptr%d%exists, lbound(d1_ptr%d, 1))
-          nl=nl+1; write (lines(nl), '(2a, i0, a, i0, a, t40, a)') &
-                  trim(tao_d2_d1_name(d1_ptr)), '[', &
-                  lbound(d1_ptr%d, 1), ':', ubound(d1_ptr%d, 1), ']', trim(line)
-        enddo
+        call tao_data_show_use (d2_ptr, lines, nl)
       enddo
     enddo
 
@@ -1544,19 +1534,20 @@ case ('optimizer')
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
-    call out_io (s_blank$, r_name, ' ', 'Data Used:')
-    write (lines(1), '(a, i4)') 'Universe: ', i
-    if (size(s%u) > 1) call out_io (s_blank$, r_name, lines(1))
+    nl=nl+1; lines(nl) = 'Data Used:'
+    if (size(s%u) > 1) then
+      nl=nl+1; write (lines(nl), '(a, i4)') 'Universe: ', i
+    endif
     do j = 1, size(u%d2_data)
       if (u%d2_data(j)%name == ' ') cycle
-      call tao_data_show_use (u%d2_data(j))
+      call tao_data_show_use (u%d2_data(j), lines, nl)
     enddo
   enddo
 
-  call out_io (s_blank$, r_name, ' ', 'Variables Used:')
+  nl=nl+1; lines(nl) = 'Variables Used:'
   do j = 1, size(s%v1_var)
     if (s%v1_var(j)%name == ' ') cycle
-    call tao_var_show_use (s%v1_var(j))
+    call tao_var_show_use (s%v1_var(j), lines, nl)
   enddo
 
   nl=nl+1; lines(nl) = ' '
@@ -2112,7 +2103,6 @@ case ('universe')
 case ('use')  
 
   nl=nl+1; lines(nl) = 'veto data *@*'
-  nl=nl+1; lines(nl) = ''
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     do j = 1, s%u(i)%n_d2_data_used
@@ -2135,8 +2125,16 @@ case ('use')
     v1_ptr => s%v1_var(i)
     if (v1_ptr%name == ' ') cycle
     call re_allocate (lines, nl+200, .false.)
-    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
-    nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
+    call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1), err_flag = err)
+    if (err .or. len_trim(line) +50 > len(line)) then
+      nl=nl+1; lines(nl) = 'veto var ' // trim(v1_ptr%name)
+      do j = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
+        if (.not. v1_ptr%v(j)%useit_opt) cycle
+        nl=nl+1; write (lines(nl), '(4a, i0, a)') 'restore var ', trim(v1_ptr%name), '[', j, ']'
+      enddo
+    else
+      nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
+    endif
   enddo
 
   result_id = show_what
