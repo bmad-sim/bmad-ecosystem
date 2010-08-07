@@ -182,7 +182,7 @@ PKG_OBJS   :=
 LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
-LOCAL_LFLAGS   :=  -lplplotf77d -lplplotf77cd -lplplotd 
+LOCAL_LFLAGS   :=  -L/opt/local/lib -lplplotf77d -lplplotf77cd -lplplotd 
 
 ## -Wl,-rpath -L/home/dcs/dcs/usr_local/lib 
 
