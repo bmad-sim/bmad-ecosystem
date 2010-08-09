@@ -77,18 +77,19 @@ class C_coord {
 public:
   Real_Array vec;      // size = 6
   Complx_Array spin;   // size = 2
+  double intensity;
 
-  C_coord(Re v[6], CComplx s[2] = 0) : vec(v, 6), spin(s, 2) {}
+  C_coord(Re v[6], CComplx s[2] = 0, double intens = 1) : vec(v, 6), spin(s, 2), intensity(intens) {}
 
   C_coord(double v0, double v1, double v2, double v3, double v4, double v5) :
-     spin(2)
+     spin(2), intensity(1)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
 
-  C_coord(Re v = 0) : vec(v, 6), spin(2) {}
+  C_coord(Re v = 0) : vec(v, 6), spin(2), intensity(1) {}
 
-  C_coord(Int i) : vec(double(i), 6), spin(2) {}
+  C_coord(Int i) : vec(double(i), 6), spin(2), intensity(1) {}
 
-  C_coord(Real_Array v) : vec(v), spin(2) {}
+  C_coord(Real_Array v) : vec(v), spin(2), intensity(1) {}
 
 };    // End Class
 
@@ -741,8 +742,6 @@ public:
   int mat6_calc_method;         // bmad_standard$, taylor$, etc.
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
-  int num_steps;                // number of slices for DA_maps
-  int integrator_order;         // For Etiennes' PTC: 2, 4, or 6.
   int ref_orbit;                 // For setting the ptc kind type.
   int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...

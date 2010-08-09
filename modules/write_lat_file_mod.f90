@@ -474,8 +474,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%aperture_type /= default_val) line = trim(line) // &
                                 ', aperture_type = ' // shape_name(ele%aperture_type)
 
-    if (ele%integrator_order /= bmad_com%default_integ_order) write (line, '(a, i0)') &
-                   trim(line) // ', integrator_order = ', ele%integrator_order
     if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
 
     ! Multipass lord 

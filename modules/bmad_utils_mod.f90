@@ -747,7 +747,7 @@ equiv = .false.
 if (ele1%key /= ele2%key) return
 if (ele1%sub_key /= ele2%sub_key) return
 if (ele1%map_with_offsets .neqv. ele2%map_with_offsets) return
-if (ele1%integrator_order /= ele2%integrator_order) return
+if (ele1%value(integrator_order$) /= ele2%value(integrator_order$)) return
 if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
 vmask = .true.
@@ -1309,9 +1309,7 @@ call init_floor (ele%floor)
 ele%mat6_calc_method = bmad_standard$
 ele%tracking_method  = bmad_standard$
 ele%field_calc       = bmad_standard$
-ele%integrator_order = bmad_com%default_integ_order
 ele%ref_orbit  = 0
-ele%num_steps = 0
 
 ele%is_on             = .true.
 ele%multipoles_on     = .true.

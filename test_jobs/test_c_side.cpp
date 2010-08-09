@@ -174,8 +174,6 @@ void init_all_c_structs () {
   c_ele_in.mat6_calc_method = 67;
   c_ele_in.tracking_method = 68;
   c_ele_in.field_calc = 69;
-  c_ele_in.num_steps = 70;
-  c_ele_in.integrator_order = 71;
   c_ele_in.ref_orbit = 72;
   c_ele_in.taylor_order = 73;
   c_ele_in.aperture_at = 74;

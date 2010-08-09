@@ -42,7 +42,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine coord_to_f2 (f_coord, vec)
+! Subroutine coord_to_f2 (f_coord, vec, spin, intensity)
 !
 ! Subroutine used by coord_to_f to convert a C++ C_coord into
 ! a Bmad coord_struct. This routine is not for general use.
@@ -57,9 +57,10 @@ use bmad_interface
 implicit none
 
 type (coord_struct) f_coord
-real(rp) vec(6)
+real(rp) vec(6), intensity
+complex spin(2)
 
-f_coord%vec = vec
+f_coord = coord_struct(vec, spin, intensity)
 
 end subroutine
 
@@ -1348,7 +1349,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%sub_key, f%lord_status, f%slave_status, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
-      f%num_steps, f%integrator_order, f%ref_orbit, f%taylor_order, &
+      f%ref_orbit, f%taylor_order, &
       f%aperture_at, f%aperture_type, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
       f%field_master, f%is_on, f%old_is_on, f%logic, f%on_a_girder, &
@@ -1372,7 +1373,7 @@ end subroutine
 !    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
 !    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
 !    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
-!    ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, steps, int_ord, &
+!    ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, &
 !    ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad,  &
 !    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
 !
@@ -1385,8 +1386,8 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
     tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
     n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, &
-    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, steps, &
-    int_ord, ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad, &
+    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, &
+    ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad, &
     f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
 
 use fortran_and_cpp
@@ -1402,8 +1403,8 @@ type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
 type (genfield), target :: gen
 
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub, lord_status, slave_status, ixv, nsl, ix1s, &
-    ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, steps, &
-    int_ord, ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
+    ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, &
+    ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
     on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_lat, &
     n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 
@@ -1456,8 +1457,6 @@ f%ix_branch        = ix_lat
 f%mat6_calc_method      = m6_meth
 f%tracking_method       = tk_meth
 f%field_calc            = f_calc
-f%num_steps             = steps
-f%integrator_order      = int_ord
 f%ref_orbit              = ptc
 f%taylor_order          = tlr_ord
 f%aperture_at           = aperture_at

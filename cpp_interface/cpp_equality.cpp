@@ -211,7 +211,6 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.ix_pointer == y.ix_pointer) && (x.ixx == y.ixx) && 
     (x.ix_ele == y.ix_ele) && (x.mat6_calc_method == y.mat6_calc_method) && 
     (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
-    (x.num_steps == y.num_steps) && (x.integrator_order == y.integrator_order) && 
     (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
     (x.aperture_at == y.aperture_at) && (x.aperture_type == y.aperture_type) && 
     (x.symplectify == y.symplectify) && 
@@ -270,7 +269,6 @@ void ele_comp (const C_ele& x, const C_ele& y) {
       (x.ix_ele == y.ix_ele)) << endl;
   cout << "logic: " << ((x.mat6_calc_method == y.mat6_calc_method) && 
       (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
-      (x.num_steps == y.num_steps) && (x.integrator_order == y.integrator_order) && 
       (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
       (x.aperture_at == y.aperture_at) && (x.aperture_type == y.aperture_type) && 
       (x.symplectify == y.symplectify) && 

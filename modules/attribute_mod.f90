@@ -126,10 +126,6 @@ call str_upcase (a_name, attrib_name)
 
 
 select case (a_name)
-case ('NUM_STEPS')
-  attrib_value = ele%num_steps
-  if (present(ix_attrib)) ix_attrib = num_steps$
-  return
 case ('IS_ON')
   attrib_value = logic_val(ele%is_on)
   if (present(ix_attrib)) ix_attrib = is_on$

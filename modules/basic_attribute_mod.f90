@@ -794,7 +794,7 @@ select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER')
   attrib_type = is_logical$
 case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
-      'IX_BRANCH_TO')
+      'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER')
   attrib_type = is_integer$
 case ('COUPLER_AT', 'ATTRIBUTE_TYPE')
   attrib_type = is_name$

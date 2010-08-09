@@ -56,6 +56,12 @@ real(rp) phase0, dphase, dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
+real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wave_length
+real(rp) k_in_norm(3), h_norm(3), kk_out_norm(3)
+real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
+
+complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel
+
 integer i, n, n_slice, key
 
 logical err
@@ -163,6 +169,77 @@ case (bend_sol_quad$)
 
 case (crystal$) 
 
+  call offset_photon (ele, param, end, set$)
+
+  ! Rotate normalized (px, py, 1) to crystal coords
+
+  sin_a = sin(ele%value(graze_angle_in$))
+  cos_a = cos(ele%value(graze_angle_in$))
+  f = sqrt (1 + end%vec(2)**2 + end%vec(4)**2)
+
+  k_in_norm(1) = f * (cos_a * end%vec(2) + sin_a)
+  k_in_norm(2) = f * end%vec(4)
+  k_in_norm(3) = f * (-sin_a * end%vec(2) + cos_a)
+
+  ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
+
+  P_factor = 1  ! Assume sigma polarization state
+
+  sin_alpha = sin(ele%value(alpha_angle$))
+  cos_alpha = cos(ele%value(alpha_angle$))
+  sin_psi = sin(ele%value(psi_angle$))
+  cos_psi = cos(ele%value(psi_angle$))
+
+  wave_length = ele%value(ref_wave_length$) / (1 + end%vec(6))
+
+  h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wave_length / ele%value(d_spacing$)
+  cap_gamma = r_e * wave_length**2 / (pi * ele%value(v_unitcell$)) 
+  gamma_0 = k_in_norm(1)
+  gamma_h = k_in_norm(1) + h_norm(1)
+  b_eff = gamma_0 / gamma_h
+  dtheta_sin_2theta = dot_product(h_norm + 2 * k_in_norm, h_norm)
+  f0 = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
+  fh = cmplx(ele%value(fh_re$), ele%value(fh_im$))
+  f0_g = cap_gamma * f0 / 2
+  eta = b_eff * dtheta_sin_2theta + f0_g * &
+        (1 - b_eff) / (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
+  eta1 = sqrt(eta**2 + sign(1.0_rp, b_eff))
+
+  f_cmp = abs(p_factor) * sqrt(abs(b_eff)) * cap_gamma * fh / 2
+  if (abs(eta+eta1) > abs(eta-eta1)) then
+    xi_0k = f_cmp * (eta - eta1)
+    xi_hk = f_cmp / (abs(b_eff) * (eta - eta1))
+  else        
+    xi_0k = f_cmp * (eta + eta1)
+    xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
+  endif
+
+  ! Calculate phase and intensity 
+
+  e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
+  end%vec(5) = end%vec(5) + atan2(imag(e_rel), real(e_rel)) * wave_length / twopi
+  end%intensity = end%intensity * abs(e_rel)**2
+
+  ! Calculate out ray in crystal coords.
+
+  kk_out_norm = k_in_norm + h_norm 
+  kk_out_norm(1) = kk_out_norm(1) + real(xi_0k - f0_g) / gamma_h - real(xi_hk - f0_g) / gamma_0
+
+  ! Convert to output reference frame
+
+  sin_a = sin(ele%value(graze_angle_out$))
+  cos_a = cos(ele%value(graze_angle_out$))
+
+  end%vec(2) = cos_a * kk_out_norm(1) + sin_a * kk_out_norm(3)
+  end%vec(4) = kk_out_norm(2)
+
+  end%vec(1) = -end%vec(1)
+
+  ! tilt_cor correction
+
+
+
+  call offset_photon (ele, param, end, unset$)
 
 !-----------------------------------------------
 ! drift

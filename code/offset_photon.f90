@@ -63,12 +63,16 @@ logical :: set
 !----------------------------------------------------------------
 ! Set...
 
-p   => ele%value  !parameter
+p   => ele%value  ! parameter
 vec => coord%vec
 
 if (set) then
 
-  graze = p(graze_angle$) + p(graze_angle_err$)
+  if (ele%key == mirror$) then
+    graze = p(graze_angle$) + p(graze_angle_err$)
+  else  ! Crystal
+    graze = p(graze_angle_in$) + p(graze_angle_err$)
+  endif
 
   ! Set: s_offset
 
@@ -101,8 +105,14 @@ if (set) then
 
 else
 
-  c2g = cos(2*p(graze_angle$)) 
-  s2g = sin(2*p(graze_angle$))
+  if (ele%key == mirror$) then
+    c2g = cos(2*p(graze_angle$)) 
+    s2g = sin(2*p(graze_angle$))
+  else
+    c2g = cos(2*p(graze_angle_out$)) 
+    s2g = sin(2*p(graze_angle_out$))
+  endif
+
   ct = cos(p(tilt$)) 
   st = sin(p(tilt$))
 

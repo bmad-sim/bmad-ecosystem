@@ -100,8 +100,8 @@ end forall
 
 !
 
-coord_in  = coord_struct(vec6_a, spinor2_a)
-coord_out = coord_struct(vec6_b, spinor2_b)
+coord_in  = coord_struct(vec6_a, spinor2_a, 1.0_rp)
+coord_out = coord_struct(vec6_b, spinor2_b, 2.0_rp)
 
 twiss_in  = twiss_struct(1.0_rp, 2.0_rp, 3.0_rp, 4.0_rp, 5.0_rp, 6.0_rp, &
                                       7.0_rp, 8.0_rp, 9.0_rp, 10.0_rp)
@@ -228,8 +228,6 @@ ele_in%ix_ele = 66
 ele_in%mat6_calc_method = 67
 ele_in%tracking_method = 68
 ele_in%field_calc = 69
-ele_in%num_steps = 70
-ele_in%integrator_order = 71
 ele_in%ref_orbit = 72
 ele_in%taylor_order = 73
 ele_in%aperture_at = 74

@@ -307,14 +307,6 @@ if (ele%ref_orbit /= 0) then
   nl=nl+1; write (li(nl), fmt_a) 'REF_ORBIT', '=', ref_orbit_name(ele%ref_orbit) 
 endif
 
-if (attribute_index(ele, 'INTEGRATOR_ORDER') /= 0) then
-  nl=nl+1; write (li(nl), fmt_i) 'INTEGRATOR_ORDER:', '=', ele%integrator_order 
-endif
-
-if (attribute_index(ele, 'NUM_STEPS') /= 0) then
-  nl=nl+1; write (li(nl), fmt_i) 'NUM_STEPS', '=', ele%num_steps 
-endif
-
 if (attribute_index(ele, 'SYMPLECTIFY') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'SYMPLECTIFY', '=', ele%symplectify
 endif

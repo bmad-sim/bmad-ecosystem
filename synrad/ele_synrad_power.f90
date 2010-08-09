@@ -82,7 +82,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
       n_slice = max(1, nint(n_slice * ele%value(n_pole$)))
     else
       ! Rather arbitrary choice of 10 * n_slice for non-periodic wigglers
-      n_slice = max(10*n_slice, ele%num_steps)
+      n_slice = max(10*n_slice, nint(ele%value(num_steps$)))
     endif      
   endif
 

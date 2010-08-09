@@ -86,8 +86,6 @@ The complete structure is shown in this and the following figure.}
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
-  integer num_steps          ! number of slices for DA_maps
-  integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
   integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, etc.
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
@@ -621,8 +619,6 @@ map calculations.  These are:
 \begin{example}
   %mat6_calc_method
   %tracking_method
-  %num_steps
-  %integrator_order
   %taylor_order
   %symplectify
   %multipoles_on

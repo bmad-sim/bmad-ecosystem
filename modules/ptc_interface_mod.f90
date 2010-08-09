@@ -1706,9 +1706,9 @@ end subroutine
 !
 ! Input:
 !   ele   -- Element_struct: 
-!     %integrator_order  -- Order for the symplectic integrator: 2, 4, or 6.
-!     %value(ds_step$)   -- Integrater step size.
-!     %map_with_offsets  -- Make Taylor map with element offsets, pitches, and tilt?
+!     %valueintegrator_order$)  -- Order for the symplectic integrator: 2, 4, or 6.
+!     %value(ds_step$)          -- Integrater step size.
+!     %map_with_offsets         -- Make Taylor map with element offsets, pitches, and tilt?
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor map 
 !              is evaluated.
 !   param -- lat_param_struct: 
@@ -2000,7 +2000,7 @@ end subroutine
 !   use_offsets -- Logical: Does fiber include element offsets, pitches and tilt?
 !   integ_order -- Integer, optional: Order for the 
 !                    sympletic integrator. Possibilities are: 2, 4, or 6
-!                    Overrides ele%integrator_order.
+!                    Overrides ele%value(integrator_order$).
 !                    default = 2 (if not set with set_ptc).
 !   steps       -- Integer, optional: Number of integration steps.
 !                    Overrides ele%value(ds_step$).
@@ -2064,7 +2064,8 @@ else
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
 endif
 
-ptc_key%method = ele%integrator_order  
+ptc_key%method = nint(ele%value(integrator_order$))
+if (ptc_key%method == 0) ptc_key%method = bmad_com%default_integ_order 
 if (present(integ_order)) ptc_key%method = integ_order
 
 !

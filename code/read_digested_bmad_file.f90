@@ -33,8 +33,14 @@ use multipole_mod
 
 implicit none
 
+type old_coord_struct            ! Particle coordinates at a single point
+  real(rp) :: vec(6) = 0     ! (x, px, y, py, z, pz)
+  complex(rp) :: spin(2) = 0 ! Spin in spinor notation
+end type
+
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
+type (old_coord_struct) map_ref_orb_in, map_ref_orb_out
 
 real(rp) value(n_attrib_maxx)
 
@@ -42,6 +48,7 @@ integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
 integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at
+integer num_steps, integrator_order
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
@@ -50,7 +57,7 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
-logical found_it, v89, v90, v91, v92, v_old, mode3, error, is_open
+logical found_it, v91, v92, v93, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -71,12 +78,11 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9010) n_files, version
 
-v89 = (version == 89)
-v90 = (version == 90)
 v91 = (version == 91)
 v92 = (version == 92)
+v93 = (version == 93)
 
-v_old = v89 .or. v90 .or. v91
+v_old = v91 .or. v92
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -196,23 +202,21 @@ read (d_unit, iostat = ios) lat%beam_start
 
 ! read branch lines
 
-if (version > 86) then
-  read (d_unit, err = 9060) n_branch
-  call allocate_branch_array (lat, n_branch)  ! Initial allocation
+read (d_unit, err = 9060) n_branch
+call allocate_branch_array (lat, n_branch)  ! Initial allocation
 
-  do i = 1, n_branch
-    branch => lat%branch(i)
-    branch%ix_branch = i
-    read (d_unit) branch%param
-    read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
-                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
-    call allocate_lat_ele_array (lat, branch%n_ele_max, i)
-    do j = 0, branch%n_ele_max
-      call read_this_ele (branch%ele(j), j, error)
-      if (error) return
-    enddo
+do i = 1, n_branch
+  branch => lat%branch(i)
+  branch%ix_branch = i
+  read (d_unit) branch%param
+  read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+                branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
+  call allocate_lat_ele_array (lat, branch%n_ele_max, i)
+  do j = 0, branch%n_ele_max
+    call read_this_ele (branch%ele(j), j, error)
+    if (error) return
   enddo
-endif
+enddo
 
 ! And finish
 
@@ -306,7 +310,7 @@ logical error
 
 error = .true.
 
-if (v90) then
+if (v91) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -316,34 +320,13 @@ if (v90) then
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          coupler_at, ele%on_a_girder, ele%csr_calc_on, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time 
-
-          ele%scale_multipoles = .true.
-
-elseif (v91) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
+          num_steps, integrator_order, ele%ref_orbit, &
           ele%taylor_order, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time 
-
           ele%scale_multipoles = .true.
 
 elseif (v92) then
@@ -356,8 +339,26 @@ elseif (v92) then
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%num_steps, ele%integrator_order, ele%ref_orbit, &
+          num_steps, integrator_order, ele%ref_orbit, &
           ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
+          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles
+
+
+elseif (v93) then
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
@@ -373,6 +374,15 @@ read (d_unit, err = 9120) ix_value(1:k_max), value(1:k_max)
 do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
+
+if (v91 .or. v92) then
+  ele%value(num_steps$) = num_steps
+  ele%value(integrator_order$) = integrator_order
+  ele%map_ref_orb_in%vec = map_ref_orb_in%vec
+  ele%map_ref_orb_in%spin = map_ref_orb_in%spin
+  ele%map_ref_orb_out%vec = map_ref_orb_out%vec
+  ele%map_ref_orb_out%spin = map_ref_orb_out%spin
+endif
 
 !
 

@@ -1948,7 +1948,7 @@ type (em_field_struct) field
 real(rp) factor, f2, phase, E_tot, polarity, dval(n_attrib_maxx)
 real(rp), pointer :: val(:)
 
-integer i
+integer i, n
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -2067,8 +2067,8 @@ endif
 
 ! num_steps
 
-if (val(ds_step$) /= 0) ele%num_steps = abs(nint(val(l$) / val(ds_step$)))
-if (val(ds_step$) == 0 .or. ele%num_steps <= 0) ele%num_steps = 1
+if (val(ds_step$) /= 0) ele%value(num_steps$) = nint(abs(val(l$) / val(ds_step$)))
+if (val(ds_step$) == 0 .or. ele%value(num_steps$) <= 0) ele%value(num_steps$) = 1
 
 !
 
@@ -2170,8 +2170,9 @@ case (wiggler$)
     ele%value(polarity$) = 1
     start%vec = 0
     val(b_max$) = 0
-    do i = 0, ele%num_steps
-      call em_field_calc (ele, param, i * val(l$) / ele%num_steps, start, .true., field)
+    n = nint(ele%value(num_steps$))
+    do i = 0, n
+      call em_field_calc (ele, param, i * val(l$) / n, start, .true., field)
       val(b_max$) = max(val(b_max$), sqrt(sum(field%b**2)))
     enddo
     ele%is_on = is_on

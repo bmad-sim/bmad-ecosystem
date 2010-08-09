@@ -704,11 +704,6 @@ case default   ! normal attribute
     ele%field_calc = nint(value)
   elseif (ix_attrib == tracking_method$) then
     ele%tracking_method = nint(value)
-  elseif (ix_attrib == num_steps$) then
-    ele%num_steps = nint(value)
-    ele%value(ds_step$) = abs(ele%value(l$) * ele%num_steps)
-  elseif (ix_attrib == integrator_order$) then
-    ele%integrator_order = nint(value)
   elseif (ix_attrib == ref_orbit$) then
     ele%ref_orbit = nint(value)
   elseif (ix_attrib == aperture_at$) then
@@ -740,6 +735,10 @@ case default   ! normal attribute
     if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
 
     select case (ix_attrib)
+
+    case (num_steps$)
+      ele%value(ds_step$) = abs(ele%value(l$) * nint(ele%value(num_steps$)))
+
     case (e_tot$)
       select case (ele%key)
       case (def_beam$)
@@ -3901,8 +3900,8 @@ end select
 ! set ds_step if not already set.
 
 if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for this element...
-  if (ele%num_steps > 0) then
-    ele%value(ds_step$) = abs(ele%value(l$) / ele%num_steps)
+  if (ele%value(num_steps$) > 0) then
+    ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
   elseif (ele%value(ds_step$) == 0) then
     if (ele%key == wiggler$ .and. ele%value(l_pole$) /= 0) then
       ele%value(ds_step$) = ele%value(l_pole$) / 10

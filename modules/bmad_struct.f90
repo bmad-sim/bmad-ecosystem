@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 92
+integer, parameter :: bmad_inc_version$ = 93
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -34,6 +34,7 @@ integer, parameter :: n_attrib_maxx = 60
 type coord_struct            ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0     ! (x, px, y, py, z, pz)
   complex(rp) :: spin(2) = 0 ! Spin in spinor notation
+  real(rp) :: intensity = 1
 end type
 
 type coord_array_struct
@@ -237,8 +238,6 @@ type ele_struct
   integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
   integer tracking_method    ! bmad_standard$, taylor$, etc.
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
-  integer num_steps          ! number of slices for DA_maps
-  integer integrator_order   ! For Etiennes' PTC: 2, 4, or 6.
   integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, 
                              !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
   integer taylor_order       ! Order of the taylor series.
@@ -459,22 +458,22 @@ integer, parameter :: n_ref_pass$=30  ! Assumed unique. Do not overload.
 integer, parameter :: tilt_err$=31    
 integer, parameter :: p0c$=32         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=33       ! Assumed unique. Do not overload.
-integer, parameter :: Bs_field$=34, ref_wave_length$=34
-integer, parameter :: B_field$=35, E_field$=35
-integer, parameter :: B_gradient$=36, E_gradient$=36
+integer, parameter :: Bs_field$=34, ref_wave_length$=34, coupler_strength$ = 34, Pz_offset$ = 34
+integer, parameter :: B_field$=35, E_field$=35, coupler_phase$ = 35
+integer, parameter :: B_gradient$=36, E_gradient$=36, coupler_angle$ = 36
 integer, parameter :: B1_gradient$=37, E1_gradient$=37
 integer, parameter :: B2_gradient$=38, E2_gradient$=38, patch_end$ = 38
 integer, parameter :: B3_gradient$=39, E3_gradient$=39, translate_after$=39
-integer, parameter :: tilt_tot$=40      
-integer, parameter :: x_pitch_tot$=41   
-integer, parameter :: y_pitch_tot$=42   
-integer, parameter :: x_offset_tot$=43  
-integer, parameter :: y_offset_tot$=44  
-integer, parameter :: s_offset_tot$=45  
-integer, parameter :: coupler_strength$ = 46, Pz_offset$ = 46
-integer, parameter :: coupler_phase$ = 47
-integer, parameter :: coupler_angle$ = 48
-integer, parameter :: pole_radius$ = 49, coupler_at$ = 49
+integer, parameter :: pole_radius$ = 40, coupler_at$ = 40
+integer, parameter :: tilt_tot$=41
+integer, parameter :: x_pitch_tot$=42
+integer, parameter :: y_pitch_tot$=43
+integer, parameter :: x_offset_tot$=44
+integer, parameter :: y_offset_tot$=45
+integer, parameter :: s_offset_tot$=46
+! 47
+integer, parameter :: integrator_order$ = 48   ! For Etiennes' PTC: 2, 4, or 6.
+integer, parameter :: num_steps$ = 49
 integer, parameter :: ds_step$ = 50
 integer, parameter :: general1$ = 51   ! For general use
 integer, parameter :: general2$ = 52   ! For general use
@@ -511,8 +510,7 @@ integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
 integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80
 integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
 integer, parameter :: tracking_method$  = 82, s_long$ = 82
-integer, parameter :: num_steps$ = 83, ref_time$ = 83
-integer, parameter :: integrator_order$ = 84
+integer, parameter :: ref_time$ = 83
 integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86
 integer, parameter :: y_limit$ = 87
