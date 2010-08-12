@@ -816,6 +816,7 @@ else
   d1_this%name = d1_data%name    ! stuff in the data
 endif
 
+!-----------------------------------------
 ! Check if we are searching for elements or repeating elements
 ! and record the element names in the data structs.
     
@@ -858,6 +859,13 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%ix_bunch       = datum(ix1)%ix_bunch
   u%data(n1:n2)%data_source    = datum(ix1)%data_source
 
+  u%data(n1:n2)%data_type     = datum(ix1)%data_type
+  u%data(n1:n2)%merit_type    = datum(ix1)%merit_type
+  u%data(n1:n2)%weight        = datum(ix1)%weight
+  u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
+  u%data(n1:n2)%meas_value    = 0  
+
+!-----------------------------------------
 ! use_same_lat_eles_as
 
 elseif (use_same_lat_eles_as /= '') then
@@ -885,6 +893,13 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%data_source     = d1_array(1)%d1%d%data_source
   u%data(n1:n2)%invalid_value   = d1_array(1)%d1%d%invalid_value
 
+  u%data(n1:n2)%data_type     = datum(ix1)%data_type
+  u%data(n1:n2)%merit_type    = datum(ix1)%merit_type
+  u%data(n1:n2)%weight        = datum(ix1)%weight
+  u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
+  u%data(n1:n2)%meas_value = 0  
+
+!-----------------------------------------
 ! Not SEARCH or SAME:
 
 else
@@ -920,6 +935,18 @@ else
   u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
   u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
   u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
+
+  u%data(n1:n2)%data_type     = datum(ix1:ix2)%data_type
+  u%data(n1:n2)%merit_type    = datum(ix1:ix2)%merit_type
+  u%data(n1:n2)%weight        = datum(ix1:ix2)%weight
+  u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
+
+  u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
+  where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
+    u%data(n1:n2)%meas_value = 0  
+  else where
+    u%data(n1:n2)%good_meas = .true.
+  end where
 
   ! Find elements associated with the data
 
@@ -964,21 +991,6 @@ else
   enddo
 
 endif
-
-!-----------------------------------------------------------
-! If %meas_value was set then %good_meas is set to True
-
-u%data(n1:n2)%data_type     = datum(ix1:ix2)%data_type
-u%data(n1:n2)%merit_type    = datum(ix1:ix2)%merit_type
-u%data(n1:n2)%weight        = datum(ix1:ix2)%weight
-u%data(n1:n2)%invalid_value = datum(ix1:ix2)%invalid_value
-
-u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
-where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
-  u%data(n1:n2)%meas_value = 0  
-elsewhere
-  u%data(n1:n2)%good_meas = .true.
-end where
 
 !--------------------------------------------
 ! use default_data_type if given, if not, auto-generate the data_type
