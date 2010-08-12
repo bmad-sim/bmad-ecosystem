@@ -57,7 +57,7 @@ real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wave_length
-real(rp) k_in_norm(3), h_norm(3), kk_out_norm(3)
+real(rp) k_in_norm(3), h_norm(3), kk_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
 complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel
@@ -614,7 +614,11 @@ case (patch$)
   end%vec(1) = end%vec(1) - ele%value(x_offset$)
   end%vec(3) = end%vec(3) - ele%value(y_offset$)
   end%vec(5) = end%vec(5) - ele%value(z_offset$)
-  end%vec(6) = end%vec(6) - ele%value(pz_offset$)
+  if (ele%value(e_tot_offset$) /= 0) then
+    call convert_pc_to (ele%value(p0c$) * rel_pc, param%particle, e_tot = e_tot)
+    call convert_total_energy_to (e_tot - ele%value(e_tot_offset$), param%particle, pc = pc)
+    end%vec(6) = pc / ele%value(p0c$) - 1
+  endif
 
 !-----------------------------------------------
 ! quadrupole

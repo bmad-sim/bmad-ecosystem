@@ -378,7 +378,10 @@ do ie = npos1, npos2-1
       ele%value(y_offset$) = pdata(dat_indx+3)
       ele%value(y_pitch$)  = pdata(dat_indx+4)
       ele%value(l$)        = pdata(dat_indx+5)
-      ele%value(pz_offset$)= pdata(dat_indx+6)
+      if (pdata(dat_indx+6) /= 0) then
+        !! ele%value(pz_offset$)= pdata(dat_indx+6)
+        call xsif_error ('PZ_OFFSET WITH GKICK NOT YET IMPLEMENTED!')
+      endif
       ele%value(tilt$)     = pdata(dat_indx+7)
       ele%value(z_offset$) = pdata(dat_indx+8)
 

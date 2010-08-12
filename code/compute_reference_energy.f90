@@ -82,6 +82,14 @@ do ib = 0, ubound(lat%branch, 1)
     case (crystal$, mirror$)
       ele%value(ref_wave_length$) = c_light * h_planck / E_tot
 
+    case (patch$) 
+      if (ele%is_on) then
+        ele%value(e_tot$) = e_tot + ele%value(e_tot_offset$)
+        e_tot = ele%value(e_tot$)
+        call convert_total_energy_to (e_tot, branch%param%particle, pc = p0c)
+        ele%value(p0c$) = p0c
+      endif
+
     end select
 
     ele%value(E_tot$) = E_tot
