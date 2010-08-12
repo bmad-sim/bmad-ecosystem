@@ -850,13 +850,13 @@ if (search_for_lat_eles /= '') then
     jj = jj + 1
   enddo
 
-  u%data(n1:n2)%good_user      = datum(ix1:ix2)%good_user
-  u%data(n1:n2)%weight         = datum(ix1:ix2)%weight
-  u%data(n1:n2)%invalid_value  = datum(ix1:ix2)%invalid_value
-  u%data(n1:n2)%ele_start_name = datum(ix1:ix2)%ele_start_name
-  u%data(n1:n2)%ele_ref_name   = datum(ix1:ix2)%ele_ref_name
-  u%data(n1:n2)%ix_bunch       = datum(ix1:ix2)%ix_bunch
-  u%data(n1:n2)%data_source    = datum(ix1:ix2)%data_source
+  u%data(n1:n2)%good_user      = datum(ix1)%good_user
+  u%data(n1:n2)%weight         = datum(ix1)%weight
+  u%data(n1:n2)%invalid_value  = datum(ix1)%invalid_value
+  u%data(n1:n2)%ele_start_name = datum(ix1)%ele_start_name
+  u%data(n1:n2)%ele_ref_name   = datum(ix1)%ele_ref_name
+  u%data(n1:n2)%ix_bunch       = datum(ix1)%ix_bunch
+  u%data(n1:n2)%data_source    = datum(ix1)%data_source
 
 ! use_same_lat_eles_as
 
@@ -2065,7 +2065,7 @@ enddo
 
 ! Find elements
 
-call tao_locate_elements (string, u%ix_uni, eles, err)
+call tao_locate_elements (string, u%ix_uni, eles, err, print_err = .false.)
 
 warn_given = .false.
 n_ele = 0

@@ -250,7 +250,9 @@ type (branch_struct), pointer :: branch
 type (tao_ele_shape_struct), pointer :: ele_shape
 type (tao_data_struct), pointer :: datum
 type (tao_data_array_struct), allocatable, target :: d_array(:)
+type (tao_var_array_struct), allocatable, target :: v_array(:)
 type (tao_logical_array_struct), allocatable :: logic_array(:)
+type (tao_var_struct), pointer :: var
 
 real(rp) theta, v_vec(3)
 real(rp) x_bend(0:1000), y_bend(0:1000)
@@ -299,10 +301,10 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave
-        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), ix_shape, .false.)
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), '', ix_shape, .false.)
       enddo
     else
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape, .false.)
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, '', ix_shape, .false.)
     endif
   enddo
 enddo
@@ -321,7 +323,27 @@ do i = 1, size(tao_com%ele_shape_floor_plan)
       if (.not. logic_array(j)%l) cycle
     endif
     ele => pointer_to_ele (lat, datum%ix_branch, datum%ix_ele)
-    call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, i, .true.)
+    call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_datum_name(datum), i, .true.)
+  enddo
+enddo
+
+! Draw variables
+
+do i = 1, size(tao_com%ele_shape_floor_plan)
+  ele_shape => tao_com%ele_shape_floor_plan(i)
+  if (ele_shape%ele_name(1:5) /= 'var::') cycle
+  call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
+  if (err) cycle
+  do j = 1, size(v_array)
+    var => v_array(j)%v
+    if (size(logic_array) /= 0) then
+      if (.not. logic_array(j)%l) cycle
+    endif
+    do k = 1, size(var%this)
+      if (var%this(k)%ix_branch /= graph%ix_branch) cycle
+      ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
+      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_var1_name(var), i, .true.)
+    enddo
   enddo
 enddo
 
@@ -371,7 +393,7 @@ end subroutine
 !   ix_shape
 !-
 
-recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, ix_shape, is_data)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ix_shape, is_data)
 
 implicit none
 
@@ -394,6 +416,7 @@ real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
 real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2
 
+character(*) name_in
 character(80) str
 character(40) name
 character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
@@ -653,7 +676,9 @@ endif
 ! Also place a bend's label to the outside of the bend.
 
 if (ele_shape%label_type == 'name') then
-  if (ele%slave_status == multipass_slave$) then
+  if (name_in /= '') then
+    name = name_in
+  elseif (ele%slave_status == multipass_slave$) then
     ix = ele%ic1_lord
     ix = lat%control(lat%ic(ix))%ix_lord
     name = lat%ele(ix)%name
@@ -731,6 +756,25 @@ character(20) shape_name
 
 if (.not. graph%valid) return
 
+select case (plot%x_axis_type)
+case ('index')
+  call out_io (s_error$, r_name, '"index" x-axis type not valid with lat_layout')
+  graph%valid = .false.
+  return
+
+case ('ele_index')
+  call out_io (s_error$, r_name, '"ele_index" x-axis type not valid with lat_layout')
+  graph%valid = .false.
+  return
+
+case ('s')
+
+case default
+  call out_io (s_warn$, r_name, "Unknown x_axis_type")
+  graph%valid = .false.
+  return
+end select
+
 isu = tao_universe_number(graph%ix_universe)
 lat => s%u(isu)%model%lat
 branch => lat%branch(graph%ix_branch)
@@ -762,116 +806,31 @@ endif
 
 call qp_set_axis ('Y', y_bottom, y_top, 1, 0)
 
-! Figure out x axis
-! If it's not 's' then just draw a vertical line at the proper index
-
-if (plot%x_axis_type == 's') then
-  ! continue
-elseif (plot%x_axis_type == 'index') then
-  ! cannot plot layout in this case!
-  graph%valid = .false.
-  return
-elseif (plot%x_axis_type == 'ele_index') then
-  ! plot vertical line at ele_index
-  ! temporarily turn this off until I get scaling working
-  graph%valid = .false.
-  return
-else
-  call out_io (s_warn$, r_name, "Unknown x_axis_type")
-  graph%valid = .false.
-  return
-endif
-    
 call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 
-! loop over all elements in the lattice. Only draw those element that
+! loop over all elements in the branch. Only draw those element that
 ! are within bounds.
 
 ele_shapes => tao_com%ele_shape_lat_layout
 height = s%plot_page%text_height * s%plot_page%legend_text_scale
 
-do i = 1, branch%n_ele_max
-
+do i = 1, branch%n_ele_track
   ele => branch%ele(i)
-  call tao_find_ele_shape (ele, ele_shapes, ix_shape)
-
-  if (ele%lord_status == multipass_lord$) cycle
   if (ele%slave_status == super_slave$) cycle
-  if (i > branch%n_ele_track .and. ix_shape < 1) cycle
+  call draw_lat_layout_ele_shape (ele, ele%name)
+enddo
 
-  if (plot%x_axis_type == 's') then
-    call find_element_ends (lat, ele, ele1, ele2)
-    if (.not. associated(ele1)) cycle
-    if (ele1%ix_branch /= graph%ix_branch) cycle
-    x1 = ele1%s
-    x2 = ele2%s
-    ! If out of range then try a negative position
-    if (branch%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
-      x1 = x1 - lat_len
-      x2 = x2 - lat_len
-    endif
+! Loop over all control elements.
 
-  elseif (plot%x_axis_type == 'index') then
-    ! shouldn't be here!
-    call out_io (s_error$, r_name, "Shouldn't be here!")
-    graph%valid = .false.
-    return
-
-  elseif (plot%x_axis_type == 'ele_index') then
-    x1 = i
-    x2 = i
-
-  else
-    call out_io (s_warn$, r_name, "Unknown x_axis_type")
-    graph%valid = .false.
-    return
-  endif
-    
-  if (x1 > graph%x%max) cycle
-  if (x2 < graph%x%min) cycle
-
-  ! Only those elements with ix_shape > 0 are to be drawn.
-  ! All others have the zero line drawn through them.
-
-
-  if (ix_shape < 1) cycle
-  ele_shape => ele_shapes(ix_shape)
-  shape_name = ele_shape%shape
-
-  ! Here if element is to be drawn...
-
-  ! r1 and r2 are the scale factors for the lines below and above the center line.
-
-  y = ele_shape%dy_pix
-  y1 = -y
-  y2 =  y
-  if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
-    select case (ele%key)
-    case (quadrupole$)
-      y2 = y * ele%value(k1$)
-    case (sextupole$)
-      y2 = y * ele%value(k2$)
-    case (octupole$)
-      y2 = y * ele%value(k3$)
-    case (solenoid$)
-      y2 = y * ele%value(ks$)
-    end select
-    y2 = max(-s%plot_page%shape_height_max, min(y2, s%plot_page%shape_height_max))
-    y1 = -y2
-    if (shape_name == 'ASYM_VAR_BOX') y1 = 0
-  end if
-
-  y1 = max(y_bottom, min(y1, y_top))
-  y2 = max(y_bottom, min(y2, y_top))
-
-  call draw_this_shape (ele%name, ele%s - ele%value(l$) / 2, ele_shape)
-
+do i = lat%n_ele_track+1, lat%n_ele_max
+  ele => branch%ele(i)
+  if (ele%lord_status == multipass_lord$) cycle
+  call draw_lat_layout_ele_shape (ele, ele%name)
 enddo
 
 ! Draw data
 
 do i = 1, size(ele_shapes)
-  if (plot%x_axis_type /= 's') exit
   ele_shape => ele_shapes(i)
   if (ele_shape%ele_name(1:5) /= 'dat::') cycle
   call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
@@ -892,7 +851,7 @@ do i = 1, size(ele_shapes)
     call qp_convert_point_rel (y, dummy, 'INCH', dx, dummy, 'DATA')
     x1 = x0 - dx
     x2 = x0 + dx
-    call draw_this_shape (tao_datum_name(datum), datum%s, ele_shape)
+    call draw_lat_layout_shape (tao_datum_name(datum), datum%s, ele_shape)
   enddo
 enddo
 
@@ -903,9 +862,19 @@ do i = 1, size(ele_shapes)
   ele_shape => ele_shapes(i)
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
-
+  if (err) cycle
+  do j = 1, size(v_array)
+    var => v_array(j)%v
+    if (size(logic_array) /= 0) then
+      if (.not. logic_array(j)%l) cycle
+    endif
+    do k = 1, size(var%this)
+      if (var%this(k)%ix_branch /= graph%ix_branch) cycle
+      ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
+      call draw_lat_layout_ele_shape(ele, tao_var1_name(var), ele_shape)
+    enddo
+  enddo
 enddo
-
 
 ! Draw x-axis min max
 
@@ -952,7 +921,77 @@ endif
 
 !-----------------------------------------------------------
 contains 
-subroutine draw_this_shape (name_in, s_pos, ele_shape)
+
+subroutine draw_lat_layout_ele_shape (ele, name_in, ele_shape_in)
+
+type (ele_struct) ele
+type (ele_struct), pointer :: ele1, ele2
+type (tao_ele_shape_struct), optional, target :: ele_shape_in
+type (tao_ele_shape_struct), pointer :: ele_shape
+
+character(*) name_in
+
+!
+
+if (present(ele_shape_in)) then
+  ele_shape => ele_shape_in
+else
+  call tao_find_ele_shape (ele, ele_shapes, ix_shape)
+  if (ix_shape < 1) return
+  ele_shape => ele_shapes(ix_shape)
+endif
+
+shape_name = ele_shape%shape
+
+if (plot%x_axis_type == 's') then
+  call find_element_ends (lat, ele, ele1, ele2)
+  if (.not. associated(ele1)) return
+  if (ele1%ix_branch /= graph%ix_branch) return
+  x1 = ele1%s
+  x2 = ele2%s
+  ! If out of range then try a negative position
+  if (branch%param%lattice_type == circular_lattice$ .and. x1 > graph%x%max) then
+    x1 = x1 - lat_len
+    x2 = x2 - lat_len
+  endif
+endif
+  
+if (x1 > graph%x%max) return
+if (x2 < graph%x%min) return
+
+! Here if element is to be drawn...
+! r1 and r2 are the scale factors for the lines below and above the center line.
+
+y = ele_shape%dy_pix
+y1 = -y
+y2 =  y
+if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
+  select case (ele%key)
+  case (quadrupole$)
+    y2 = y * ele%value(k1$)
+  case (sextupole$)
+    y2 = y * ele%value(k2$)
+  case (octupole$)
+    y2 = y * ele%value(k3$)
+  case (solenoid$)
+    y2 = y * ele%value(ks$)
+  end select
+  y2 = max(-s%plot_page%shape_height_max, min(y2, s%plot_page%shape_height_max))
+  y1 = -y2
+  if (shape_name == 'ASYM_VAR_BOX') y1 = 0
+end if
+
+y1 = max(y_bottom, min(y1, y_top))
+y2 = max(y_bottom, min(y2, y_top))
+
+call draw_lat_layout_shape (name_in, ele%s - ele%value(l$) / 2, ele_shape)
+
+end subroutine draw_lat_layout_ele_shape
+
+!------------------------------------------------------
+! contains
+
+subroutine draw_lat_layout_shape (name_in, s_pos, ele_shape)
 
 type (tao_ele_shape_struct) ele_shape
 real(rp) s_pos
@@ -1025,7 +1064,7 @@ if (s%global%label_lattice_elements .and. ele_shape%label_type /= 'none') then
 
 endif
 
-end subroutine draw_this_shape
+end subroutine draw_lat_layout_shape
 
 end subroutine tao_plot_lat_layout
 
@@ -1179,6 +1218,7 @@ do k = 1, size(ele_shapes)
 
   if (ele_shapes(k)%ele_name == '') cycle
   if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
+  if (ele_shapes(k)%ele_name(1:5) == 'var::') cycle
 
   call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
   if (err) then

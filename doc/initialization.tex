@@ -66,7 +66,7 @@ multiple values. Also note that the compiler may be picky about blanks so
 that ``2*34'' will be accepted but ``2 * 34'' may not.
 
 For string input it is always best to use quotes. Some compilers will
-accept strings without quotes. Even thouse that do will generally not
+accept strings without quotes. Even those that do will generally not
 accept strings with special characters.  Thus the following characters
 should not be used in unquoted strings:
 \begin{example}
@@ -387,7 +387,7 @@ type tao_global_struct
   logical svd_retreat_on_merit_increase = T    
   logical command_file_print_on = T     ! Toggle printing when using a command file.
   logical beam_timer_on = F             ! For timing the beam tracking calculation.
-  logical init_lats_with_rf_off = T     ! Initalize lattices with the RF off?
+  logical init_lats_with_rf_off = T     ! Initialize lattices with the RF off?
   logical optimizer_var_limit_warn = T  ! Warn when variables reach a limit when
                                         !   optimizing.
   logical draw_curve_off_scale_warn = T ! Display warning on graphs when any part of the 
@@ -406,7 +406,7 @@ The setting of the \vn{global%track_type} parameter can be
 The \vn{"single"} setting is used when single particle tracking is
 desired and \vn{"beam"} is used when tracking with a beam of
 particles. Note that with \vn{"single"} tracking, synchrotron
-radiation fluctuations (but not dampling) is always turned off.
+radiation fluctuations (but not damping) is always turned off.
 
 The \vn{global%derivative_recalc} logical determines whether the
 derivative matrix is recalculated every optimization loop. The
@@ -1213,7 +1213,7 @@ each data type by using the syntax:
 \end{example}
 \vn{<element_list>} specifies elements using the standard element list
 format (\sref{s:ele.list.format}). The \vn{-no_lords} and
-\vn{-no_slaves} switchs, if present, are used to restrict the counting
+\vn{-no_slaves} switches, if present, are used to restrict the counting
 of lord or slave elements. The \vn{-no_lords} switch excludes all group,
 overlay, and girder elements. The \vn{-no_slaves} switch vetoes
 superposition or multipass slave elements. For example:
@@ -1878,7 +1878,7 @@ using an \vn{element_shapes_lat_layout} namelist. See Section~\sref{s:ele.shape}
 for more details.
 
 The longitudinal distance markers at either end of the lattice layout can be 
-supressed by setting
+suppressed by setting
 \begin{example}
   graph%x%draw_numbers = F
 \end{example}
@@ -2019,7 +2019,7 @@ For Example:
     ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
     ele_shape(3) = "sbend::*"               "box"     "blue"    15     none
     ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     name
-    ele_shape(5) = "dat::beta.x"            "x"       "orange"  10     name
+    ele_shape(5) = "var::quad_k1"           "circle"  "purple"  10     name
     ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  10     name
   /
 \end{example}
@@ -2032,9 +2032,12 @@ first shape matched will be used. For a floor plan, for \vn{wiggler}s that have 
 \vn{x_ray_line_len} attribute, The X-ray line will be drawn if an
 \vn{ele_shape} for a \vn{photon_branch} is present.
 
-Data can also be specified to be drawn. In the above example, an ``x'' will be drawn
-at each location where \vn{beta.x} data is evaluated. For the \vn{orbit.x} data, an ``x''
-will de drawn but only for datums whose \vn{useit_opt} parameter is True.
+Data and variables can also be specified to be drawn. In the above
+example, it is assumed that a \vn{quad_k1} variable array and a
+\vn{orbit.x} data array have been setup. A circle will be drawn at
+each element under control of a \vn{quad_k1} variable. For the
+\vn{orbit.x} data, an ``x'' will de drawn where the data is being
+evaluated but only for datums whose \vn{useit_opt} parameter is True.
 
 The \vn{<shape>} parameter is the shape of the figure
 drawn. Valid Shapes are:
@@ -2050,9 +2053,19 @@ drawn. Valid Shapes are:
   "circle"          -- Circle centered at center of element.
   "x"               -- "X" centered at center of element
 \end{example}
-The height of a \vn{var_height_box} is proportional to the element
-strength. For example, for a quadrupole the height is proportional to
-the \vn{K1} focusing strength. Not all lattice elements can be used with a
+The width of a drawn shape is the width of the associated element. The
+exception is the \vn{"x"} shape whose width is always the same as the
+height determined by the \vn{<v_size>} setting.
+
+\vn{<v_size>} is the vertical half height of the shape in points (72 points =
+1 inch). The measurement is from the centerline so, for example, a
+\vn{box} element will have a total height of twice \vn{<v_size>}. Since
+a \vn{var_box} or \vn{asym_var_box} can get arbitrarily large, the  
+parameter \vn{plot_page%shape_height_max} (\sref{s:plot.page}).
+sets the maximum drawn size. The height of a
+\vn{var_height_box} is proportional to the element strength. For
+example, for a quadrupole the height is proportional to the \vn{K1}
+focusing strength. Not all lattice elements can be used with a
 \vn{var_height_box}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:
@@ -2068,13 +2081,6 @@ the \vn{K1} focusing strength. Not all lattice elements can be used with a
   "blue"
   "purple"
 \end{example}
-
-\vn{<v_size>} is the vertical size of the shape in points (72 points =
-1 inch). The measurement is from the centerline so, for example, a
-\vn{box} element will have a total height of twice \vn{<v_size>}. Since
-a \vn{var_box} or \vn{asym_var_box} can get arbitrarily large, the  
-parameter \vn{plot_page%shape_height_max} (\sref{s:plot.page}).
-sets the maximum drawn size.
 
 Finally \vn{<Label_Type>} indicates what type of label to print next to the corresponding
 element glyph. Possibilities are:

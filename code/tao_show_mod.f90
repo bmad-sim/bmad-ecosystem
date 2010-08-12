@@ -2116,7 +2116,7 @@ case ('use')
           do n = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
             if (.not. d1_ptr%d(n)%useit_opt) cycle
             if (nl + 100 > size(lines)) call re_allocate(lines, nl+100, .false.)
-            nl=nl+1; write (lines(nl), '(3a, i0, a)') 'restore data ', trim(d1_ptr%name), '[', n, ']'
+            nl=nl+1; write (lines(nl), '(3a, i0, a)') 'restore data ', trim(tao_d2_d1_name(d1_ptr)), '[', n, ']'
           enddo
         else
           if (line == '') cycle
