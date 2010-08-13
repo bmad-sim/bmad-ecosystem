@@ -829,7 +829,7 @@ format for this is
 \begin{example}
   &tao_var
     v1_var%name          = "<var_array_name>"  ! Variable array name.
-    use_same_lat_eles_as = "<d1_name>"         ! Reuse previous element list.
+    use_same_lat_eles_as = "<d1_name>"         ! Reuse a previous element list.
     search_for_lat_eles  = "<element_list>"    ! Find elements by name.
     default_universe     = "<integer>"         ! Universe variables belong in.
     default_attribute    = "<attribute_name>"  ! Attribute to control.
@@ -961,7 +961,7 @@ If elements in the \vn{var} array do not exist the corresponding
 using the syntax:
 \index{use_same_lat_eles_as}
 \begin{example}
-  use_same_lat_eles_as = "<d1_name>"     ! Reuse previous element list.
+  use_same_lat_eles_as = "<d1_name>"     ! Reuse a previous element list.
 \end{example}
 For example:
 \begin{example}
@@ -1209,7 +1209,7 @@ For example:
 \tao can search for the elements in the lattice to be associated with 
 each data type by using the syntax:
 \begin{example}
-   search_for_lat_eles = "{-no_lords} {-no_slaves} <element_list>"
+   search_for_lat_eles = "\{-no_lords\} \{-no_slaves\} <element_list>"
 \end{example}
 \vn{<element_list>} specifies elements using the standard element list
 format (\sref{s:ele.list.format}). The \vn{-no_lords} and

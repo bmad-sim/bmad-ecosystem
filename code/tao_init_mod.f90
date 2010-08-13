@@ -944,7 +944,7 @@ else
   u%data(n1:n2)%meas_value = datum(ix1:ix2)%meas
   where (u%data(n1:n2)%meas_value == real_garbage$)  ! where %meas_value was set
     u%data(n1:n2)%meas_value = 0  
-  else where
+  elsewhere
     u%data(n1:n2)%good_meas = .true.
   end where
 
