@@ -264,7 +264,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       n = nint(ele%value(ix_branch_to$))
-      line = trim(line) // ', to = ' // trim(lat%branch(n)%name)
+      line = trim(line) // ', to = ' // trim(lat%branch(n)%name) // '_line'
     endif
 
     ! Other elements
@@ -700,7 +700,7 @@ do ib = 1, ubound(lat%branch, 1)
   write (iu, *)
   write (iu, '(a)') '!-------------------------------------------------------'
   write (iu, *)
-  line = trim(branch%name) // ': line = ('
+  line = trim(branch%name) // '_line: line = ('
 
   do ie = 1, branch%n_ele_track
     call write_line_element (line, iu, branch%ele(ie), lat) 
