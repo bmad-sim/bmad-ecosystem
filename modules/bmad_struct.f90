@@ -459,9 +459,9 @@ integer, parameter :: tilt_err$=31
 integer, parameter :: p0c$=32         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=33       ! Assumed unique. Do not overload.
 integer, parameter :: Bs_field$=34, ref_wave_length$=34, coupler_strength$ = 34, e_tot_offset$ = 34
-integer, parameter :: B_field$=35, E_field$=35, coupler_phase$ = 35
-integer, parameter :: B_gradient$=36, E_gradient$=36, coupler_angle$ = 36
-integer, parameter :: B1_gradient$=37, E1_gradient$=37
+integer, parameter :: B_field$=35, E_field$=35, coupler_phase$ = 35, nx_out$ = 35
+integer, parameter :: B_gradient$=36, E_gradient$=36, coupler_angle$ = 36, ny_out$ = 36
+integer, parameter :: B1_gradient$=37, E1_gradient$=37, nz_out$ = 37 
 integer, parameter :: B2_gradient$=38, E2_gradient$=38, patch_end$ = 38
 integer, parameter :: B3_gradient$=39, E3_gradient$=39, translate_after$=39
 integer, parameter :: pole_radius$ = 40, coupler_at$ = 40

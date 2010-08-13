@@ -559,7 +559,7 @@ details. Example:
 \label{s:crystal}
 \index{crystal|hyperbf}
 
-A \vn{crystal} element is used for photon diffraction.
+A \vn{crystal} element represents a crystal used for photon diffraction.
 
 General \vn{crystal} attributes are:
 \begin{center}
@@ -573,6 +573,59 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
+
+Attributes specific to a \vn{crystal} element are:
+\begin{example}
+  graze_angle_in   = <Real>    ! Angle between incoming beam and mirror surface.
+  graze_angle_out  = <Real>    ! Angle between incoming beam and mirror surface.
+  graze_angle_err  = <Real>    ! Error in the graze angle.
+  psi_angle        = <Real>    ! 
+  alpha_angle      = <Real>    ! 
+  tilt_corr        = <Real>    ! 
+  d_spacing        = <Real>    ! 
+  v_unitcell       = <Real>    ! 
+  f0_re            = <Real>    ! 
+  f0_im            = <Real>    ! 
+  fh_re            = <Real>    ! 
+  fh_im            = <Real>    ! 
+  b_param          = <Real>    ! 
+  bragg_angle      = <Real>    ! 
+  ref_wave_length  = <Real>    ! 
+  diffraction_type = <Real>    ! 
+  crystal_type     = <Real>    ! 
+  tilt_err         = <Real>    ! Error in the tilt angle.
+  g_graze          = <Real>    ! 1/Radius-of-curvature in the bend plane.
+  g_trans          = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+\end{example}
+
+The reference trajectory for a
+\vn{crystal} is that of a zero length bend (\sref{s:crystal.coords}) and
+hence the length (\vn{l}) parameter of a crystal is fixed at zero. The
+reference trajectory is determined by the values of the
+\vn{graze_angle} and \vn{tilt} parameters. A positive \vn{graze_angle}
+bends the reference trajectory in the same direction as a positive
+\vn{g} for a bend element. The \vn{graze_angle_err} and \vn{tilt_err}
+parameters affect the orientation of the \vn{crystal} in the global
+reference system but do not affect the reference trajectory.
+
+The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
+\vn{R_graze} is the radius of curvature of the crystal surface in the
+bend plane as shown in Fig.~\ref{f:crystal}. A positive \vn{g_graze}
+indicates that the crystal is concave from the point of view of the
+photons. Similarly, the \vn{g_trans} parameter is equal to
+1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
+crystal surface in the plane transverse to the bend plane. Again, a
+positive \vn{g_trans} indicates that the crystal is concave from the
+point of view of the photons.
+
+A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
+local reference coordinates are used for these misalignments. The
+\vn{x_pitch} and \vn{y_pitch} parameters can be related to the
+\vn{graze-angle_err} and \vn{tilt_err} parameters. For example, with
+zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
+\vn{graze_angle_err} of the same magnitude, and a positive
+\vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
+magnitude.
 
 
 %-----------------------------------------------------------------

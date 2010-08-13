@@ -246,25 +246,32 @@ just after the reflection.}  \label{f:mirror}
 \end{figure}
 
 %-----------------------------------------------------------------------------
-\subsection{Mirror Element}
+\subsection{Crystal and Mirror Elements}
 \label{s:mirror.coords}
 
-\index{mirror}\index{tilt}
-A \vn{mirror} element (\sref{s:mirror}) reflects photons.  A mirror
-can be thought of as a zero length bend ($\widetilde \Bf L = (0, 0,
-0)$) with the total bend angle being twice the graze angle. The
-orientation of the exit coordinates (the local coordinates after the
-reflection) are only affected by the mirror's tilt and graze angle
-parameters and is independent of all other mirror parameters such as
-the radius of curvature of the mirror surface, etc. The local $z$-axis
-of the entrance coordinates along with the $z$-axis of the exit
-coordinates form a plane which is called the mirror's \vn{bend plane}.
+\index{crystal}\index{mirror}\index{tilt}
+A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a
+\vn{mirror} element (\sref{s:mirror}) reflects them.  In both coses,
+the reference orbit for such elements are modeled as zero length bends
+with $\widetilde \Bf L = (0, 0, 0)$.
+The total bending angle for a \vn{crystal} is 
+\begin{example}
+  total_bend_angle = graze_angle_in + graze_angle_out   ! Crystal
+  total_bend_angle = 2 * graze_angle                    ! Mirror
+\end{example}
+The orientation
+of the exit coordinates (the local coordinates after the reflection)
+are only affected by the element's tilt and graze angle parameters and
+is independent of all other parameters such as the radius of
+curvature of the surface, etc. The local $z$-axis of the
+entrance coordinates along with the $z$-axis of the exit coordinates
+form a plane which is called the elements's \vn{bend plane}.
 
 An example is shown in Fig.~\ref{f:mirror}. This example is
 appropriate for a tilt angle of $\theta_t = 0$ (the rotation axis is
-here the $y$-axis). Since the mirror is modeled to be of zero length,
-the origin (marked $\cal O$ in the figure) of the entrance and exit
-local coordinates is the same.
+here the $y$-axis). Since the element is modeled to be of zero length,
+the origin points (marked $\cal O$ in the figure) of the entrance and exit
+local coordinates are the same.
 
 %-----------------------------------------------------------------------------
 \subsection{Patch Element}

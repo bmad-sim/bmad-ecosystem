@@ -724,6 +724,9 @@ attrib_array(crystal$, g_trans$)          = 'G_TRANS'
 attrib_array(crystal$, ref_wave_length$)  = 'REF_WAVE_LENGTH'
 attrib_array(crystal$, diffraction_type$) = 'DIFFRACTION_TYPE'
 attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
+!! attrib_array(crystal$, nx_out$)           = 'NX_OUT'   ! Hidden value
+!! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
+!! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
 
 
 !-----------------------------------------------------------------------

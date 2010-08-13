@@ -1040,7 +1040,7 @@ do i = 1, lat%n_ele_max
   if (ele%key /= wiggler$) cycle
   if (ele%sub_key /= periodic_type$) cycle
   if (ele%slave_status == super_slave$) cycle
-  if (abs(mod(ele%value(n_pole$) / 2, 1.0_rp)) > 0.01) then
+  if (abs(modulo2(ele%value(n_pole$) / 2, 0.5_rp)) > 0.01) then
     call out_io (s_warn$, r_name, (/ &
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
           '!!!!! WARNING! WIGGLER: ' // ele%name, &

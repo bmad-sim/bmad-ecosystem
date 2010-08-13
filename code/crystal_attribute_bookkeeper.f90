@@ -44,6 +44,9 @@ ny_out =  lambda * h_y
 nz_out = lambda * h_z + cos_theta0 / delta1
 nx_out = -sqrt(1 - ny_out**2 - nz_out**2)
 
+ele%value(nx_out$) = nx_out
+ele%value(ny_out$) = ny_out
+ele%value(nz_out$) = nz_out
 
 nxx_out = nz_out * sin_graze_in - nx_out * cos_graze_in
 nyy_out = ny_out
