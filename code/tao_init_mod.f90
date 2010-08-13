@@ -175,6 +175,10 @@ if (.not. tao_com%init_connected_uni .or. init_file == '') return
 !
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
+if (iu == 0) then
+  call out_io (s_fatal$, r_name, 'CANNOT OPEN CONNECTED UNIVERSES INIT FILE: ' // init_file)
+  call err_exit
+endif
 
 do
   to_universe = -1
@@ -356,6 +360,10 @@ if (.not. tao_com%init_beam .or. init_file == '') return
 
 call tao_open_file ('TAO_INIT_DIR', init_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening File: ' // file_name)
+if (iu == 0) then
+  call out_io (s_fatal$, r_name, 'CANNOT OPEN BEAM INIT FILE: ' // init_file)
+  call err_exit
+endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   do ib = 0, ubound(s%u(i)%uni_branch, 1)
@@ -595,6 +603,10 @@ endif
 
 call tao_open_file ('TAO_INIT_DIR', data_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Data File: ' // file_name)
+if (iu == 0) then
+  call out_io (s_fatal$, r_name, 'CANNOT OPEN DATA INIT FILE: ' // data_file)
+  call err_exit
+endif
 
 n_d2_data = 0
 
@@ -1427,6 +1439,10 @@ endif
 
 call tao_open_file ('TAO_INIT_DIR', var_file, iu, file_name)
 call out_io (s_blank$, r_name, '*Init: Opening Variable File: ' // file_name)
+if (iu == 0) then
+  call out_io (s_fatal$, r_name, 'CANNOT OPEN VARIABLE INIT FILE: ' // var_file)
+  call err_exit
+endif
 
 ! Count how many v1_var definitions there are
 

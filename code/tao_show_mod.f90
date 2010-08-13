@@ -45,48 +45,58 @@ character(n_char_show), allocatable, save :: lines(:)
 character(16) :: r_name = 'tao_show_cmd'
 character(20) switch
 
-logical opened, err
+logical opened, err, doprint
 
 ! Init
 
 what2 = what
 stuff2 = stuff
 opened = .false.
+doprint = .true.
 
 ! See if the results need to be written to a file.
 
-call tao_next_switch (what2, ['-append', '-write '], switch, err, ix)
-if (err) return
+do
+  call tao_next_switch (what2, ['-append ', '-write  ', '-noprint'], switch, err, ix)
+  if (err) return
+  if (switch == '') exit
 
-if (switch /= '') then
-  call string_trim(stuff2, stuff2, ix)
-  file_name = stuff2(:ix)
-  call string_trim(stuff2(ix+1:), stuff2, ix)
+  select case (switch)
+  case ('-noprint')
+    doprint = .false.
 
-  ix = index(file_name, '*')
-  if (ix /= 0) then
-    n_write_file = n_write_file + 1
-    write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
-  endif
+  case ('-append', '-write')
+    call string_trim(stuff2, stuff2, ix)
+    file_name = stuff2(:ix)
+    call string_trim(stuff2(ix+1:), stuff2, ix)
 
-  iu = lunget()
-  if (switch == '-append') then
-    open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show)
-  else
-    open (iu, file = file_name, status = 'REPLACE', recl = n_char_show)
-  endif
+    ix = index(file_name, '*')
+    if (ix /= 0) then
+      n_write_file = n_write_file + 1
+      write (file_name, '(a, i3.3, a)') file_name(1:ix-1), n_write_file, trim(file_name(ix+1:))
+    endif
 
-  call output_direct (iu)  ! tell out_io to write to a file
+    iu = lunget()
+    if (switch == '-append') then
+      open (iu, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show)
+    else
+      open (iu, file = file_name, status = 'REPLACE', recl = n_char_show)
+    endif
+
+    opened = .true.
+  end select
 
   call string_trim (stuff2, stuff2, ix)
   what2 = stuff2(1:ix)
   stuff2 = stuff2(ix+1:)
-  opened = .true.
-endif
+
+end do
 
 ! Get restults.
 ! Result_id is for tao_show_this to show exactly what it did.
 ! This info can be helpful in tao_hook_show_cmd.
+
+if (opened) call output_direct (iu)  ! tell out_io to write to a file
 
 call tao_show_this (what2, stuff2, result_id, lines, nl)  
 call tao_hook_show_cmd (what2, stuff2, result_id, lines, nl)
@@ -95,18 +105,18 @@ if (nl > 0) then
   if (result_id == 'ERROR') then
     call out_io (s_error$, r_name, lines(1:nl))
   else
+    call output_direct (do_print = doprint)
     call out_io (s_blank$, r_name, lines(1:nl))
   endif
 endif
 
 ! Finish
 
-if (opened) then
-  call output_direct (0)  ! reset to not write to a file
-  close (iu)
-  call out_io (s_blank$, r_name, 'Written to file: ' // file_name)
+call output_direct (0, .true.)  ! reset to not write to a file
 
-  call tao_show_this (what, stuff, result_id, lines, nl)
+if (opened) then
+  close (iu)
+  call out_io (s_blank$, r_name, '', 'Written to file: ' // file_name)
 endif
 
 end subroutine
@@ -779,6 +789,20 @@ case ('derivative')
   call tao_find_var(err, stuff2(:ix_word), v_array = v_array) 
   if (err) return
 
+  i1 = 0
+  do id = 1, size(d_array)
+    if (d_array(id)%d%ix_dmodel == 0) cycle
+    i1 = i1 + 1
+  enddo
+
+  i2 = 0
+  do iv = 1, size(v_array)
+    if (v_array(iv)%v%ix_dvar == 0) cycle
+    i2 = i2 + 1
+  enddo
+
+  call re_allocate (lines, nl+i1*i2+10, .false.)
+
   found = .false.
   do id = 1, size(d_array)
     do iv = 1, size(v_array)
@@ -790,7 +814,6 @@ case ('derivative')
       if (jd /= 0 .and. jv /= 0) then
         nl=nl+1; write (lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
                                   tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
-        if (size(lines) < nl + 1) call re_allocate (lines, nl+200, .false.)
         found = .true.
       endif
     enddo
