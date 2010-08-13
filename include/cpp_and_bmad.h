@@ -77,19 +77,24 @@ class C_coord {
 public:
   Real_Array vec;      // size = 6
   Complx_Array spin;   // size = 2
-  double intensity;
+  double intensity_x;
+  double intensity_y;
+  double phase_x;
+  double phase_y;
 
-  C_coord(Re v[6], CComplx s[2] = 0, double intens = 1) : vec(v, 6), spin(s, 2), intensity(intens) {}
+  C_coord(Re v[6], CComplx s[2] = 0, double intens_x = 0, double intens_y = 0, 
+          double p_x = 0, double p_y = 0) : vec(v, 6), spin(s, 2), 
+          intensity_x(intens_x), intensity_y(intens_y), phase_x(p_x), phase_y(p_y) {}
 
   C_coord(double v0, double v1, double v2, double v3, double v4, double v5) :
-     spin(2), intensity(1)
+     spin(2), intensity_x(0), intensity_y(0), phase_x(0), phase_y(0)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
 
-  C_coord(Re v = 0) : vec(v, 6), spin(2), intensity(1) {}
+  C_coord(Re v = 0) : vec(v, 6), spin(2), intensity_x(0), intensity_y(0), phase_x(0), phase_y(0) {}
 
-  C_coord(Int i) : vec(double(i), 6), spin(2), intensity(1) {}
+  C_coord(Int i) : vec(double(i), 6), spin(2), intensity_x(0), intensity_y(0), phase_x(0), phase_y(0) {}
 
-  C_coord(Real_Array v) : vec(v), spin(2), intensity(1) {}
+  C_coord(Real_Array v) : vec(v), spin(2), intensity_x(0), intensity_y(0), phase_x(0), phase_y(0) {}
 
 };    // End Class
 

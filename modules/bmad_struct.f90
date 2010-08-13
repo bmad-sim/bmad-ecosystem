@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 93
+integer, parameter :: bmad_inc_version$ = 94
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -31,10 +31,13 @@ integer, parameter :: n_attrib_maxx = 60
 
 ! coordinate def
 
-type coord_struct            ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0     ! (x, px, y, py, z, pz)
-  complex(rp) :: spin(2) = 0 ! Spin in spinor notation
-  real(rp) :: intensity = 1
+type coord_struct                ! Particle coordinates at a single point
+  real(rp) :: vec(6) = 0         ! (x, px, y, py, z, pz)
+  complex(rp) :: spin(2) = 0     ! Spin in spinor notation
+  real(rp) :: intensity_x = 0    ! Photon intensity, x-axis component
+  real(rp) :: intensity_y = 0    ! Photon intensity, y-axis component
+  real(rp) :: phase_x = 0        ! Photon phase, x-axis component
+  real(rp) :: phase_y = 0        ! Photon phase, y-axis component
 end type
 
 type coord_array_struct

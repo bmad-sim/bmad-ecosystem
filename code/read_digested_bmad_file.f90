@@ -57,7 +57,7 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
-logical found_it, v91, v92, v93, v_old, mode3, error, is_open
+logical found_it, v91, v92, v93, v94, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -81,8 +81,9 @@ read (d_unit, err = 9010) n_files, version
 v91 = (version == 91)
 v92 = (version == 92)
 v93 = (version == 93)
+v94 = (version == 94)
 
-v_old = v91 .or. v92
+v_old = v91 .or. v92 .or. v93
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -181,7 +182,9 @@ read (d_unit, err = 9030)  &
 call allocate_lat_ele_array(lat, lat%n_ele_max+10)
 call reallocate_control (lat, lat%n_control_max+10)
 
-!
+! v93 only existed for a short time so will ignore files created with this version.
+
+if (v93) return
 
 do i = 0, lat%n_ele_max
   call read_this_ele(lat%ele(i), i, error)
@@ -298,6 +301,7 @@ bmad_status%ok = .false.
 return
 
 !-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
 contains
 
 subroutine read_this_ele (ele, ix_ele, error)
@@ -348,7 +352,7 @@ elseif (v92) then
           ele%ix_branch, ele%ref_time, ele%scale_multipoles
 
 
-elseif (v93) then
+elseif (v94) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -364,7 +368,6 @@ elseif (v93) then
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles
-
 endif
 
 ! Decompress value array

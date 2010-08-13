@@ -218,7 +218,7 @@ case (crystal$)
 
   e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
   end%vec(5) = end%vec(5) + atan2(imag(e_rel), real(e_rel)) * wave_length / twopi
-  end%intensity = end%intensity * abs(e_rel)**2
+  end%intensity_x = end%intensity_x * abs(e_rel)**2
 
   ! Calculate out ray in crystal coords.
 
