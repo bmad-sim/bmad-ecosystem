@@ -6,7 +6,7 @@ module location_encode_mod
 ! Subroutine to encode a list of locations.
 ! This routine is an overloaded name for:
 !  location_encode1 (string, loc, exists, ix_min, names, separator, err_flag)
-!  location_encode2 (string, loc_array, separator, err_falg)
+!  location_encode2 (string, loc_array, separator, err_flag)
 !
 ! Modules needed:
 !   use location_encode_mod
