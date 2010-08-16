@@ -178,6 +178,7 @@ void init_all_c_structs () {
   c_ele_in.taylor_order = 73;
   c_ele_in.aperture_at = 74;
   c_ele_in.aperture_type = 75;
+  c_ele_in.attribute_status = 76;
   c_ele_in.symplectify = T;
   c_ele_in.mode_flip = F;
   c_ele_in.multipoles_on = T;

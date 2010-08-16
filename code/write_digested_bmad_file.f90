@@ -225,7 +225,7 @@ write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
 
 ! This compresses the ele%value array
 

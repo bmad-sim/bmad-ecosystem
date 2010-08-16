@@ -96,7 +96,28 @@ if (ele_name == 'BEAM_START') then
       return
     endif
     if (present(ix_attrib)) ix_attrib = ix
-    ptr_array(1)%r => lat%beam_start%vec(ix)
+    select case (ix)
+    case (x$)
+      ptr_array(1)%r => lat%beam_start%vec(1)
+    case (px$)
+      ptr_array(1)%r => lat%beam_start%vec(2)
+    case (y$)
+      ptr_array(1)%r => lat%beam_start%vec(3)
+    case (py$)
+      ptr_array(1)%r => lat%beam_start%vec(4)
+    case (z$)
+      ptr_array(1)%r => lat%beam_start%vec(5)
+    case (pz$)
+      ptr_array(1)%r => lat%beam_start%vec(6)
+    case (intensity_x$)
+      ptr_array(1)%r => lat%beam_start%intensity_x
+    case (intensity_y$)
+      ptr_array(1)%r => lat%beam_start%intensity_y
+    case (phase_x$)
+      ptr_array(1)%r => lat%beam_start%phase_x
+    case (phase_y$)
+      ptr_array(1)%r => lat%beam_start%phase_y
+    end select
   end select
 
   return

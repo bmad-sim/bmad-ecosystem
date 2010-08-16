@@ -751,6 +751,7 @@ public:
   int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
   int aperture_type;            // Where aperture is applied. exit_end$, ...
+  int attribute_status;         // Element attributes have been modified?
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off

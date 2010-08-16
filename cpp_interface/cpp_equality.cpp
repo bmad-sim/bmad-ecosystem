@@ -213,7 +213,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
     (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
     (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
     (x.aperture_at == y.aperture_at) && (x.aperture_type == y.aperture_type) && 
-    (x.symplectify == y.symplectify) && 
+    (x.attribute_status == y.attribute_status) && (x.symplectify == y.symplectify) && 
     (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
     (x.map_with_offsets == y.map_with_offsets) && 
     (x.field_master == y.field_master) && 

@@ -19,7 +19,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 94
+integer, parameter :: bmad_inc_version$ = 95
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -246,6 +246,7 @@ type ele_struct
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer aperture_type      ! rectangular$, elliptical$, or star_shape$
+  integer attribute_status   ! Element attributes have been modified?
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
@@ -259,7 +260,7 @@ type ele_struct
   logical bmad_logic         ! For Bmad internal use only.
   logical on_a_girder        ! Have an Girder overlay_lord?
   logical csr_calc_on        ! Coherent synchrotron radiation calculation
-  logical offset_moves_aperture  ! element offsets affects aperture?          
+  logical offset_moves_aperture  ! element offsets affects aperture?
 end type
 
 ! struct for element to element control
@@ -416,10 +417,11 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           eta_x1$ = 16, etap_x1$ = 17, eta_y1$ = 18, etap_y1$ = 19, &
           match_end$ = 20, &
           x0$ = 21, px0$ = 22, y0$ = 23, py0$ = 24, z0$ = 25, pz0$ = 26, &
-          x1$ = 34, px1$ = 35, y1$ = 36, py1$ = 37, z1$ = 38, pz1$ = 39, &
-          match_end_orbit$ = 40, c_11$ = 46, c_12$ = 47, c_21$ = 48, c_22$ = 49, gamma_c$ = 50 
+          x1$ = 27, px1$ = 28, y1$ = 29, py1$ = 30, z1$ = 31, pz1$ = 32, &
+          match_end_orbit$ = 33, c_11$ = 34, c_12$ = 35, c_21$ = 36, c_22$ = 37, gamma_c$ = 39 
 
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
+integer, parameter :: intensity_x$ = 10,  intensity_y$ = 11, phase_x$ = 12, phase_y$ = 13
 
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
 integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
@@ -452,29 +454,29 @@ integer, parameter :: hkick$=21
 integer, parameter :: vkick$=22    
 integer, parameter :: BL_hkick$=23 
 integer, parameter :: BL_vkick$=24 
-integer, parameter :: x_offset$=25 
-integer, parameter :: y_offset$=26 
-integer, parameter :: s_offset$=27, z_offset$=27 ! Assumed unique. Do not overload further.
-integer, parameter :: B_field_err$=28, BL_kick$ = 28
-integer, parameter :: radius$=29
-integer, parameter :: n_ref_pass$=30  ! Assumed unique. Do not overload.
-integer, parameter :: tilt_err$=31    
-integer, parameter :: p0c$=32         ! Assumed unique. Do not overload.
-integer, parameter :: e_tot$=33       ! Assumed unique. Do not overload.
-integer, parameter :: Bs_field$=34, ref_wave_length$=34, coupler_strength$ = 34, e_tot_offset$ = 34
-integer, parameter :: B_field$=35, E_field$=35, coupler_phase$ = 35, nx_out$ = 35
-integer, parameter :: B_gradient$=36, E_gradient$=36, coupler_angle$ = 36, ny_out$ = 36
-integer, parameter :: B1_gradient$=37, E1_gradient$=37, nz_out$ = 37 
-integer, parameter :: B2_gradient$=38, E2_gradient$=38, patch_end$ = 38
-integer, parameter :: B3_gradient$=39, E3_gradient$=39, translate_after$=39
-integer, parameter :: pole_radius$ = 40, coupler_at$ = 40
-integer, parameter :: tilt_tot$=41
-integer, parameter :: x_pitch_tot$=42
-integer, parameter :: y_pitch_tot$=43
-integer, parameter :: x_offset_tot$=44
-integer, parameter :: y_offset_tot$=45
-integer, parameter :: s_offset_tot$=46
-! 47
+integer, parameter :: B_field_err$=25, BL_kick$ = 25
+integer, parameter :: radius$=26
+integer, parameter :: tilt_err$=27    
+integer, parameter :: pole_radius$ = 28, coupler_at$ = 28
+integer, parameter :: Bs_field$=29, ref_wave_length$=29, coupler_strength$ = 29, e_tot_offset$ = 29
+integer, parameter :: B_field$=30, E_field$=30, coupler_phase$ = 30, nx_out$ = 30
+integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, ny_out$ = 31
+integer, parameter :: B1_gradient$=32, E1_gradient$=32, nz_out$ = 32 
+integer, parameter :: B2_gradient$=33, E2_gradient$=33, patch_end$ = 33
+integer, parameter :: B3_gradient$=34, E3_gradient$=34, translate_after$=34
+! 35
+integer, parameter :: x_offset$=36 
+integer, parameter :: y_offset$=37 
+integer, parameter :: s_offset$=38, z_offset$=38 ! Assumed unique. Do not overload further.
+integer, parameter :: tilt_tot$=39
+integer, parameter :: x_pitch_tot$=40
+integer, parameter :: y_pitch_tot$=41
+integer, parameter :: x_offset_tot$=42
+integer, parameter :: y_offset_tot$=43
+integer, parameter :: s_offset_tot$=44
+integer, parameter :: n_ref_pass$=45  ! Assumed unique. Do not overload.
+integer, parameter :: p0c$=46         ! Assumed unique. Do not overload.
+integer, parameter :: e_tot$=47       ! Assumed unique. Do not overload.
 integer, parameter :: integrator_order$ = 48   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 49
 integer, parameter :: ds_step$ = 50
@@ -753,6 +755,10 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ =
 
 integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
 character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
+
+! Attribute_status values
+
+integer, parameter :: no_modifications$ = 1, has_modifications$ = 2, attribute_bookkeeping_done$ = 3 
 
 !------------------------------------------------------------------------------
 ! common stuff

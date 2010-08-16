@@ -91,6 +91,7 @@ The complete structure is shown in this and the following figure.}
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer aperture_type      ! Type of aperture: rectanular$, or elliptical$.
   integer coupler_at         ! Lcavity coupler location: exit_end$, ...
+  integer attribute_status   ! Element attributes have been modified?
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
@@ -660,6 +661,8 @@ only. These are:
   %bmad_logic
   %const(:)
 \end{example}
+
+The \vn{%ixx} and \vn{%bmad_logic} components are used for internal \bmad bookkeeping purposes. 
 
 %--------------------------------------------------------------------------
 \section{Creating Element Slices}

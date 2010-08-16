@@ -1351,7 +1351,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
       f%ref_orbit, f%taylor_order, &
-      f%aperture_at, f%aperture_type, f%symplectify, f%mode_flip, &
+      f%aperture_at, f%aperture_type, f%attribute_status, f%symplectify, f%mode_flip, &
       f%multipoles_on, f%map_with_offsets, &
       f%field_master, f%is_on, f%old_is_on, f%logic, f%on_a_girder, &
       f%csr_calc_on)
@@ -1360,8 +1360,7 @@ if (associated(f%r)) deallocate(r_arr)
 
 do i = 1, n_wig
   w => f_ele%wig_term(i)
-  call wig_term_in_ele_to_c2 (c_ele, i, &
-                      w%coef, w%kx, w%ky, w%kz, w%phi_z, w%type)
+  call wig_term_in_ele_to_c2 (c_ele, i, w%coef, w%kx, w%ky, w%kz, w%phi_z, w%type)
 end do
 
 end subroutine
@@ -1374,8 +1373,8 @@ end subroutine
 !    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
 !    tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
 !    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
-!    ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, &
-!    ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad,  &
+!    ixp, ixx, ixe, ix_branch, m6_meth, tk_meth, f_calc, &
+!    ptc, tlr_ord, aperture_at, aperture_type, attrib_stat, symp, mode, mult, ex_rad,  &
 !    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
 !
 ! Subroutine used by ele_to_f to convert a C++ C_ele into
@@ -1387,8 +1386,8 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
     a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
     tlr5, tlr6, wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
     n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, &
-    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_lat, m6_meth, tk_meth, f_calc, &
-    ptc, tlr_ord, aperture_at, aperture_type, symp, mode, mult, ex_rad, &
+    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_branch, m6_meth, tk_meth, f_calc, &
+    ptc, tlr_ord, aperture_at, aperture_type, attrib_stat, symp, mode, mult, ex_rad, &
     f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
 
 use fortran_and_cpp
@@ -1405,8 +1404,8 @@ type (genfield), target :: gen
 
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub, lord_status, slave_status, ixv, nsl, ix1s, &
     ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, &
-    ptc, tlr_ord, aperture_at, symp, mode, mult, ex_rad, f_master, &
-    on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_lat, &
+    ptc, tlr_ord, aperture_at, attrib_stat, symp, mode, mult, ex_rad, f_master, &
+    on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_branch, &
     n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 
 real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s, ref_t
@@ -1454,7 +1453,7 @@ f%ic2_lord              = ic2_l
 f%ix_pointer            = ixp
 f%ixx                   = ixx
 f%ix_ele                = ixe
-f%ix_branch        = ix_lat
+f%ix_branch             = ix_branch
 f%mat6_calc_method      = m6_meth
 f%tracking_method       = tk_meth
 f%field_calc            = f_calc
@@ -1462,6 +1461,7 @@ f%ref_orbit              = ptc
 f%taylor_order          = tlr_ord
 f%aperture_at           = aperture_at
 f%aperture_type         = aperture_type
+f%attribute_status      = attrib_stat
 f%symplectify           = f_logic(symp)
 f%mode_flip             = f_logic(mode)
 f%multipoles_on         = f_logic(mult)

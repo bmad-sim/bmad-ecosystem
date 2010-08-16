@@ -33,14 +33,8 @@ use multipole_mod
 
 implicit none
 
-type old_coord_struct            ! Particle coordinates at a single point
-  real(rp) :: vec(6) = 0     ! (x, px, y, py, z, pz)
-  complex(rp) :: spin(2) = 0 ! Spin in spinor notation
-end type
-
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
-type (old_coord_struct) map_ref_orb_in, map_ref_orb_out
 
 real(rp) value(n_attrib_maxx)
 
@@ -57,7 +51,7 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
-logical found_it, v91, v92, v93, v94, v_old, mode3, error, is_open
+logical found_it, v95, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -78,12 +72,9 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9010) n_files, version
 
-v91 = (version == 91)
-v92 = (version == 92)
-v93 = (version == 93)
-v94 = (version == 94)
+v95 = (version == 95)
 
-v_old = v91 .or. v92 .or. v93
+v_old = .false.
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -182,16 +173,12 @@ read (d_unit, err = 9030)  &
 call allocate_lat_ele_array(lat, lat%n_ele_max+10)
 call reallocate_control (lat, lat%n_control_max+10)
 
-! v93 only existed for a short time so will ignore files created with this version.
-
-if (v93) return
+!
 
 do i = 0, lat%n_ele_max
   call read_this_ele(lat%ele(i), i, error)
   if (error) return
 enddo
-
-!
 
 do i = 1, lat%n_control_max
   read (d_unit, err = 9040) lat%control(i)
@@ -314,45 +301,7 @@ logical error
 
 error = .true.
 
-if (v91) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          num_steps, integrator_order, ele%ref_orbit, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
-          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time 
-          ele%scale_multipoles = .true.
-
-elseif (v92) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          num_steps, integrator_order, ele%ref_orbit, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
-          map_ref_orb_in, map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles
-
-
-elseif (v94) then
+if (v95) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -367,7 +316,7 @@ elseif (v94) then
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
 endif
 
 ! Decompress value array
@@ -377,15 +326,6 @@ read (d_unit, err = 9120) ix_value(1:k_max), value(1:k_max)
 do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
-
-if (v91 .or. v92) then
-  ele%value(num_steps$) = num_steps
-  ele%value(integrator_order$) = integrator_order
-  ele%map_ref_orb_in%vec = map_ref_orb_in%vec
-  ele%map_ref_orb_in%spin = map_ref_orb_in%spin
-  ele%map_ref_orb_out%vec = map_ref_orb_out%vec
-  ele%map_ref_orb_out%spin = map_ref_orb_out%spin
-endif
 
 !
 

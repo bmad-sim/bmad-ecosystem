@@ -119,27 +119,25 @@ This syntax is obsolete since a typographical error is not easily caught.
 \label{s:beam.start}
 \index{beam_start statement|hyperbf}
 
-\index{x}
-\index{px}
-\index{y}
-\index{py}
-\index{z}
-\index{pz}
-\index{emittance_a}
-\index{emittance_b}
-\index{emittance_z}
+\index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
+\index{emittance_a}\index{emittance_b}\index{emittance_z}
+\index{intensity_x}\index{intensity_y}\index{phase_x}\index{phase_y}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking
 \begin{example}
-  beam_start[x]    = <Real> ! Horizontal position.
-  beam_start[px]   = <Real> ! Horizontal momentum.
-  beam_start[y]    = <Real> ! Vertical position.
-  beam_start[py]   = <Real> ! Vertical momentum.
-  beam_start[z]    = <Real> ! Longitudinal position.
-  beam_start[pz]   = <Real> ! Longitudinal momentum (energy deviation).
-  beam_start[emittance_a] = <Real> ! A-mode emittance
-  beam_start[emittance_b] = <Real> ! B-mode emittance
-  beam_start[emittance_z] = <Real> ! Z-mode emittance
+  beam_start[x]           = <Real>   ! Horizontal position.
+  beam_start[px]          = <Real>   ! Horizontal momentum.
+  beam_start[y]           = <Real>   ! Vertical position.
+  beam_start[py]          = <Real>   ! Vertical momentum.
+  beam_start[z]           = <Real>   ! Longitudinal position.
+  beam_start[pz]          = <Real>   ! Longitudinal momentum (energy deviation).
+  beam_start[emittance_a] = <Real>   ! A-mode emittance
+  beam_start[emittance_b] = <Real>   ! B-mode emittance
+  beam_start[emittance_z] = <Real>   ! Z-mode emittance
+  beam_start[intensity_x] = <Real>   ! Photon beam intensity along x-axis
+  beam_start[intensity_y] = <Real>   ! Photon beam intensity along y-axis
+  beam_start[phase_x]     = <Real>   ! Photon beam phase along x-axis
+  beam_start[phase_y]     = <Real>   ! Photon beam phase along y-axis
 \end{example}
 
 \noindent

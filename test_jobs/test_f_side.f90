@@ -232,6 +232,7 @@ ele_in%ref_orbit = 72
 ele_in%taylor_order = 73
 ele_in%aperture_at = 74
 ele_in%aperture_type = 75
+ele_in%attribute_status = 76
 ele_in%symplectify = T
 ele_in%mode_flip = F
 ele_in%multipoles_on = T
