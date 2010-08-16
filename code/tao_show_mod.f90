@@ -929,13 +929,19 @@ case ('element')
   stat = ele%lord_status
   if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$) then
     orb = u%model%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
-    fmt = '(2x, a, 3p2f15.8)'
-    lines(nl+1) = ' '
-    lines(nl+2) = 'Orbit: [mm, mrad]'
-    write (lines(nl+3), fmt) "X  X':", orb%vec(1:2)
-    write (lines(nl+4), fmt) "Y  Y':", orb%vec(3:4)
-    write (lines(nl+5), fmt) "Z  Z':", orb%vec(5:6)
-    nl = nl + 5
+    fmt = '(2x, a, 3p2f15.8, f10.6, f11.6)'
+    nl=nl+1; lines(nl) = ' '
+    if (lat%branch(ele%ix_branch)%param%particle == photon$) then
+      nl=nl+1; lines(nl) = 'Orbit: Position[mm]   Momentum[mrad]  Intensity      phase'
+      nl=nl+1; write (lines(nl), fmt) "X:  ", orb%vec(1:2), orb%intensity_x, orb%phase_x
+      nl=nl+1; write (lines(nl), fmt) "Y:  ", orb%vec(3:4), orb%intensity_y, orb%phase_y
+      nl=nl+1; write (lines(nl), fmt) "Z:  ", orb%vec(5:6)
+    else
+      nl=nl+1; lines(nl) = 'Orbit: Position[mm]   Momentum[mrad]'
+      nl=nl+1; write (lines(nl), fmt) "X:  ", orb%vec(1:2)
+      nl=nl+1; write (lines(nl), fmt) "Y:  ", orb%vec(3:4)
+      nl=nl+1; write (lines(nl), fmt) "Z:  ", orb%vec(5:6)
+    endif
   endif
 
   found = .false.
