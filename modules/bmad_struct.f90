@@ -758,7 +758,7 @@ character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ',
 
 ! Attribute_status values
 
-integer, parameter :: no_modifications$ = 1, has_modifications$ = 2, attribute_bookkeeping_done$ = 3 
+integer, parameter :: unmodified$ = 1, is_modified$ = 2, attribute_bookkeeping_done$ = 3 
 
 !------------------------------------------------------------------------------
 ! common stuff

@@ -1,37 +1,9 @@
-\documentclass{book}
-
-\usepackage{graphicx}
-\usepackage{moreverb}
-\usepackage{amsmath}
-\usepackage{alltt}
-\usepackage{rotating}
-\usepackage{subfigure}
-\usepackage{toc}
-\usepackage{xspace}
-\usepackage{makeidx}
-
-\input{macros.tex}
-
-\setlength{\textwidth}{6.25in}
-\setlength{\hoffset}{0.0in}
-\setlength{\oddsidemargin}{0.25in}
-\setlength{\evensidemargin}{0.0in}
-\setlength{\textheight}{8.5in}
-\setlength{\topmargin}{0in}
-
-\makeindex
-
-\begin{document}
-
-\setlength{\parskip}{\dPar}
-\setlength{\parindent}{0ex}
-
 \newcommand{\bfM}{{\bf M}}
 \newcommand{\bfK}{{\bf K}}
 
 %-----------------------------------------------------------------
 \chapter{Bmad\_Standard Transfer Map Calculations}
-\label{c:bmad.standard}
+\label{c:bmad.std}
 
 For tracking and transfer map calculations (here generically called
 ``tracking''), \bmad has various methods that can be applied to a
@@ -155,10 +127,10 @@ coordinates and quadratic for $r_i = z$.
 
 %-----------------------------------------
 \section{BeamBeam Element Tracking}
-\label{s:beambeam.standard}
+\label{s:beambeam.std}
 \index{beambeam}
 
-A beam-beam element (\sref{s:beambeam}) simulates the effect on a tracked
+A beam-beam element (\sref{s:bbi}) simulates the effect on a tracked
 particle of an opposing beam of particles moving in the opposite
 direction. The opposing beam, called the ``strong'' beam, is assumed
 to be Gaussian in shape.
@@ -175,19 +147,19 @@ point are identical. The longitudinal $s$--position of the
 \vn{BeamBeam} element is at the center of the strong bunch. For
 example, with \vn{n_slice} = 2 the calculation would proceed as
 follows:
-\begin{example}
-  0) Start with the reference particle at the center of the strong bunch.
-  1) Propagate (drift) backwards to the center of the first slice.
-  2) Apply the beam--beam kick due to the first slice.
-  3) Propagate (drift) forwards to the center of the second slice.
-  4) Apply the beam--beam kick due to the second slice.
-  5) Propagate (drift) backwards to end up with the reference particle
+\begin{enumerate}
+  \item  Start with the reference particle at the center of the strong bunch.
+  \item  Propagate (drift) backwards to the center of the first slice.
+  \item  Apply the beam--beam kick due to the first slice.
+  \item  Propagate (drift) forwards to the center of the second slice.
+  \item  Apply the beam--beam kick due to the second slice.
+  \item  Propagate (drift) backwards to end up with the reference particle
      at the center of the strong bunch.
-\end{example}
+\end{enumerate}
 
 %-----------------------------------------
 \section{Bend Element: Fringe Tracking}
-\label{s:.bend.fringe.standard}
+\label{s:.bend.fringe.std}
 \index{sbend}
 
 The transformation for the entrance face of an \vn{sbend} is
@@ -207,7 +179,7 @@ bend.
 
 %-----------------------------------------
 \section{Bend Element: Body Tracking}
-\label{s:bend.body.standard}
+\label{s:bend.body.std}
 \index{sbend}
 
 The Hamiltonian for the body of an \vn{sbend} is
@@ -261,7 +233,7 @@ and
 
 %-----------------------------------------
 \section{Drift Element Tracking}
-\label{s:drift.standard}
+\label{s:drift.std}
 \index{drift} 
 
 \Eq{h1gx1} for a drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a
@@ -281,7 +253,7 @@ This gives the map
 
 %-----------------------------------------
 \section{Kicker, Hkicker, Vkicker, and Elseparator Element Tracking}
-\label{s:kicker.standard}
+\label{s:kicker.std}
 \index{kicker}
 \index{hkicker}
 \index{vkicker}
@@ -305,7 +277,7 @@ The generalization when the kick is not in the horizontal plane is easily derive
 
 %-----------------------------------------
 \section{LCavity Element Tracking}
-\label{s:lcavity.standard}
+\label{s:lcavity.std}
 \index{lcavity}
 
 The transverse trajectory through an \vn{Lcavity} is modeled using equations
@@ -386,14 +358,14 @@ where
 
 %-----------------------------------------
 \section{Mirror Element Tracking}
-\label{s:mirror.standard}
+\label{s:mirror.std}
 \index{mirror}
 
 Tracking through
 
 %-----------------------------------------
 \section{Octupole Element Tracking}
-\label{s:octupole.standard}
+\label{s:octupole.std}
 \index{octupole}
 
 The Hamiltonian for an upright octupole is
@@ -405,7 +377,7 @@ An octupole is modeled using a kick-drift-kick model.
 
 %-----------------------------------------
 \section{Quadrupole Element Tracking}
-\label{s:quadrupole.standard}
+\label{s:quadrupole.std}
 \index{quadrupole}
 
 The \vn{bmad_standard} calculates the transfer map through an upright
@@ -453,12 +425,12 @@ with this
 
 %-----------------------------------------
 \section{RFcavity Element Tracking}
-\label{s:rfcavity.standard}
+\label{s:rfcavity.std}
 \index{rfcavity}
 
 %-----------------------------------------
 \section{Sextupole Element Tracking}
-\label{s:sextupole.standard}
+\label{s:sextupole.std}
 \index{sextupole}
 
 The Hamiltonian for an upright octupole is
@@ -470,7 +442,7 @@ A sextupoleis modeled using a kick-drift-kick model.
 
 %-----------------------------------------
 \section{Sol\_Quad Element Tracking}
-\label{s:sol.quad.standard}
+\label{s:sol.quad.std}
 \index{sol_quad}
 
 The Hamiltonian is
@@ -557,7 +529,7 @@ brevity are not reproduced here.
 
 %-----------------------------------------
 \section{Solenoid Element Tracking}
-\label{s:solenoid.standard}
+\label{s:solenoid.std}
 \index{solenoid}
 
 The Hamiltonian is
@@ -588,7 +560,7 @@ where
 
 %-----------------------------------------
 \section{Map\_type Wiggler Element Tracking}
-\label{s:wiggler.map.standard}
+\label{s:wiggler.map.std}
 \index{wiggler}
 
 \index{wiggler}
@@ -641,8 +613,8 @@ where
 And the vector potential $\bfA$ is obtained from $\bfB$ via
 \begin{align}
   A_x(x,y,s) &= 0 \CRNO
-  A_y(x,y,s) &=  \int_0^x d\tilde x \, B_z(\tilde x, y, s) \\
-  \label{a0a0a0}
+  A_y(x,y,s) &=  \int_0^x d\tilde x \, B_z(\tilde x, y, s) 
+  \label{a0a0a0} \\
   A_s(x,y,s) &= -\int_0^x d\tilde x \, B_y(\tilde x, y, s) \nonumber
 \end{align}
 
@@ -676,7 +648,7 @@ Given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
 
 %-----------------------------------------
 \section{Periodic\_Type Wiggler Element Tracking}
-\label{s:.wiggler.periodic.standard}
+\label{s:wiggler.periodic.std}
 \index{wiggler}
 
 The horizontal motion looks like a drift with a superimposed
@@ -709,7 +681,7 @@ giving a kick\cite{b:corbett}
 \Endeq
 where
 \begin{alignat}{1}
-  k_1 &= \frac{-1}{2} \, \left( \frac{c \, B_{\max}}{P_0 \, (1 + p_s)} \right)^2 
+  k_1 &= \frac{-1}{2} \, \left( \frac{e \, B_{\max}}{P_0 \, (1 + p_s)} \right)^2 
 \end{alignat}
 with $k_1$ being the linear focusing constant. For radiation
 calculations the true horizontal trajectory with $y = 0$ is needed
@@ -727,6 +699,3 @@ the center of the wiggler
 \Endeq
 With this choice, a particle that enters the wiggler on-axis will
 leave the wiggler on-axis provided there is an even number of poles.
-
-
-\end{document}

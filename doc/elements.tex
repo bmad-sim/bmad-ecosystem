@@ -181,36 +181,26 @@ will be set by a program rather than from the lattice file.
 \index{y_pitch}
 \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a
 crossing angle. This is the full crossing angle, not the half-angle.
+See~\sref{s:beambeam.std} for details on how a \vn{beambeam} element is tracked.
 
-The strong beam is divided up into \vn{n_slice} equal charge (not equal
-thickness) slices. The default for \vn{n_slice} is 1. Propagation
-through the strong beam involves a kick at the charge center of each
-slice with drifts in between the kicks. The kicks are calculated using
-the standard Bassetti--Erskine formula.  Even though the strong beam can
-have a finite \vn{sig_z} the length of the element is always considered
-to be zero. This is achieved by adding drifts at either end of any
-tracking so that the longitudinal starting point and ending point are
-identical. The longitudinal $s$--position of the
-\vn{BeamBeam} element is at the center of the strong bunch. For example,
-with \vn{n_slice} = 2 the calculation would proceed as follows:
-\begin{example}
-  0) Start with the reference particle at the center of the strong bunch.
-  1) Propagate (drift) backwards to the center of the first slice.
-  2) Apply the beam--beam kick due to the first slice.
-  3) Propagate (drift) forwards to the center of the second slice.
-  4) Apply the beam--beam kick due to the second slice.
-  5) Propagate (drift) backwards to end up with the reference particle
-     at the center of the strong bunch.
-\end{example}
-
-\vn{bbi_constant}: $ C_{bbi} = 
-N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))$ 
-is a measure of the beam--beam interaction strength. For example,
-in the linear region near $x = y = 0$ the horizontal component of the
+The \vn{bbi_constant} is a measure of the beam--beam interaction
+strength.  It is a dependent variable and is calculated from the
+equation
+\Begineq
+  C_{bbi} = N \, m_e \, r_e / (2 \, \pi \, \gamma \, (\sigma_x + \sigma_y))
+\Endeq
+In the linear region, near $x = y = 0$, the 
 beam--beam kick is approximately 
-$k_x = -4\, \pi \, x \, C_{bbi} / \sigma_x$ and the
-horizontal beam--beam tune shift is 
-$dQ_x = C_{bbi} \, \beta_a / \sigma_x$.
+\begin{align}
+  k_x &= -4\, \pi \, x \, C_{bbi} / \sigma_x \CRNO
+  k_y &= -4\, \pi \, y \, C_{bbi} / \sigma_y 
+\end{align}
+
+The beam--beam tune shift is 
+\begin{align}
+  dQ_x &= C_{bbi} \, \beta_x / \sigma_x \CRNO
+  dQ_y &= C_{bbi} \, \beta_y / \sigma_y \CRNO
+\end{align}
 
 Example:
 \begin{example}
@@ -573,7 +563,6 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
-
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
   graze_angle_in   = <Real>    ! Angle between incoming beam and mirror surface.
@@ -599,7 +588,7 @@ Attributes specific to a \vn{crystal} element are:
 \end{example}
 
 The reference trajectory for a
-\vn{crystal} is that of a zero length bend (\sref{s:crystal.coords}) and
+\vn{crystal} is that of a zero length bend (\sref{s:mirror.coords}) and
 hence the length (\vn{l}) parameter of a crystal is fixed at zero. The
 reference trajectory is determined by the values of the
 \vn{graze_angle} and \vn{tilt} parameters. A positive \vn{graze_angle}
@@ -610,7 +599,7 @@ reference system but do not affect the reference trajectory.
 
 The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
 \vn{R_graze} is the radius of curvature of the crystal surface in the
-bend plane as shown in Fig.~\ref{f:crystal}. A positive \vn{g_graze}
+bend plane as shown in Fig.~\ref{f:mirror}. A positive \vn{g_graze}
 indicates that the crystal is concave from the point of view of the
 photons. Similarly, the \vn{g_trans} parameter is equal to
 1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
@@ -1843,11 +1832,11 @@ General \vn{wiggler} attributes are:
 There are two types of wigglers. Those that that are described using a
 magnetic field map (``map type'') and those that are described
 assuming a periodic field (``periodic type''). See
-\sref{s:wiggler.phys} for more details.  Tracking a particle through a
-wiggler is always done so that if the particle starts on-axis with no
-momentum offsets, there is no change in the $z$ coordinate even though
-the actual trajectory through the wiggler does not follow the straight
-line reference trajectory.
+\sref{s:wiggler.map.std} and \sref{s:wiggler.periodic.std} for more
+details.  Tracking a particle through a wiggler is always done so that
+if the particle starts on-axis with no momentum offsets, there is no
+change in the $z$ coordinate even though the actual trajectory through
+the wiggler does not follow the straight line reference trajectory.
 
 \index{x_ray_line_len}
 both types of wigglers have the following attributes:
@@ -1872,7 +1861,7 @@ Attributes specific to a \vn{map type} \vn{wiggler} element are:
 \end{example}
 
 A \vn{<Wig_Term>} is of the form $C, k_x, k_y, k_z, \phi_z$ as
-explained in \sref{s:wiggler.phys}. \vn{polarity} is used to scale the
+explained in \sref{s:wiggler.map.std}. \vn{polarity} is used to scale the
 magnetic field. By default, \vn{polarity} has a value of 1.0. 
 Example:
 \begin{example}
@@ -1908,4 +1897,4 @@ terms. If present, the wiggler is classed as a \vn{map type}.
 
 Note: When using Taylor maps and symplectic tracking with a
 \vn{periodic} type wiggler, the number of poles must be even as
-explained in section~\sref{s:wiggler.phys}.
+explained in section~\sref{s:wiggler.periodic.std}.

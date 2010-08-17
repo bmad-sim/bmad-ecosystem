@@ -956,6 +956,12 @@ do i = 1, lat%n_ele_max
 
 enddo 
 
+! Mark elements as unmodified
+
+do i = 0, ubound(lat%branch, 1)
+  lat%branch(i)%ele(:)%attribute_status = unmodified$
+enddo
+
 !-------------------------------------------------------------------------
 ! write out if debug is on
 

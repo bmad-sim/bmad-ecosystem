@@ -176,6 +176,7 @@ and \vn{patch} elements are limited to first order.
   \vn{ab_multipole}            &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{beambeam}                &   & D &   & X & X &   &     &     &     &     &      \\  
   \vn{bend_sol_quad}           &   &   &   & X &   &   &     &  D  &     &     &      \\  
+  \vn{crystal}                 &   & D &   &   &   &   &     &     &     &     &      \\  
   \vn{custom}                  & X &   & X & D & X &   &  X  &     &     &     &      \\  
   \vn{drift}                   & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\  
   \vn{ecollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
@@ -187,6 +188,7 @@ and \vn{patch} elements are limited to first order.
   \vn{marker}                  &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{match}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
   \vn{monitor}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
+  \vn{mirror}                  &   & D &   &   &   &   &     &     &     &     &      \\  
   \vn{multipole}               &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{octupole}                & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
   \vn{patch}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
@@ -202,7 +204,7 @@ and \vn{patch} elements are limited to first order.
   \vn{vkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
   \vn{wiggler} (map type)      & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  X   \\ 
   \vn{wiggler} (periodic type) &   & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$ \\ \bottomrule
-   \multicolumn{12}{l}{$^a$See \sref{s:wiggler.phys} for more details} \\
+   \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic.std} for more details} \\
 \end{tabular}
 } 
 \caption[Table of available {\bf tracking_method}\ switches for a
@@ -335,6 +337,7 @@ is that it is directly related to any tracking results.
   \vn{ab_multipole}            & D & X &   & X &     &  X  &  X  &   \\  
   \vn{beambeam}                & D & X &   & X &     &     &     & X \\  
   \vn{bend_sol_quad}           &   & X &   & X &  D  &     &     & X \\  
+  \vn{crystal}                 &   & D &   &   &     &     &     &   \\  
   \vn{custom}                  &   & D &   & X &     &     &     & X \\  
   \vn{drift}                   & D & X & X & X &     &  X  &  X  & X \\  
   \vn{ecollimator}             & D & X &   & X &     &  X  &  X  & X \\  
@@ -345,6 +348,7 @@ is that it is directly related to any tracking results.
   \vn{lcavity}                 & D & X &   & X &     &     &     & X \\  
   \vn{marker}                  & D & X &   & X &     &  X  &  X  & X \\  
   \vn{match}                   & D & X &   & X &     &     &     &   \\  
+  \vn{mirror}                  &   & D &   &   &     &     &     &   \\  
   \vn{monitor}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{multipole}               & D & X &   & X &     &  X  &  X  &   \\  
   \vn{octupole}                & D & X &   & X &     &  X  &  X  & X \\ 
@@ -361,7 +365,7 @@ is that it is directly related to any tracking results.
   \vn{vkicker}                 & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{wiggler} (map type)      & D & X &   & X &  X  &  X  &  X  & X \\ 
   \vn{wiggler} (periodic type) & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ \bottomrule
-  \multicolumn{9}{l}{$^a$See \sref{s:wiggler.phys} for more details} \\
+  \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic.std} for more details} \\
 \end{tabular}
 }
 
