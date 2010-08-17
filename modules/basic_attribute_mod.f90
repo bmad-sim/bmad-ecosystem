@@ -557,6 +557,8 @@ attrib_array(bend_sol_quad$, field_calc$)   = 'FIELD_CALC'
 attrib_array(bend_sol_quad$, field_master$) = 'FIELD_MASTER'
 
 attrib_array(patch$, l$)               = 'L'
+attrib_array(patch$, p0c_start$)       = 'P0C_START'
+attrib_array(patch$, e_tot_start$)     = 'E_TOT_START'
 attrib_array(patch$, x_pitch$)         = 'X_PITCH'
 attrib_array(patch$, y_pitch$)         = 'Y_PITCH'
 attrib_array(patch$, x_offset$)        = 'X_OFFSET'

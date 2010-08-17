@@ -83,6 +83,9 @@ do ib = 0, ubound(lat%branch, 1)
       ele%value(ref_wave_length$) = c_light * h_planck / E_tot
 
     case (patch$) 
+      ele%value(E_tot_start$) = E_tot
+      ele%value(p0c_start$) = p0c
+
       if (ele%is_on) then
         ele%value(e_tot$) = e_tot + ele%value(e_tot_offset$)
         e_tot = ele%value(e_tot$)
