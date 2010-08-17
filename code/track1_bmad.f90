@@ -600,11 +600,8 @@ case (patch$)
   end%vec(1) = end%vec(1) - ele%value(x_offset$)
   end%vec(3) = end%vec(3) - ele%value(y_offset$)
   end%vec(5) = end%vec(5) - ele%value(z_offset$)
-  if (ele%value(e_tot_offset$) /= 0) then
-    call convert_pc_to (ele%value(p0c_start$) * rel_pc, param%particle, e_tot = e_tot)
-    call convert_total_energy_to (e_tot - ele%value(e_tot_offset$), param%particle, pc = pc)
-    end%vec(6) = pc / ele%value(p0c$) - 1
-  endif
+  end%vec(6) = end%vec(6) * ele%value(p0c_start$) / ele%value(p0c$) + &
+                                        (ele%value(p0c_start$) - ele%value(p0c$))
 
 !-----------------------------------------------
 ! quadrupole
