@@ -600,8 +600,8 @@ case (patch$)
   end%vec(1) = end%vec(1) - ele%value(x_offset$)
   end%vec(3) = end%vec(3) - ele%value(y_offset$)
   end%vec(5) = end%vec(5) - ele%value(z_offset$)
-  end%vec(6) = end%vec(6) * ele%value(p0c_start$) / ele%value(p0c$) + &
-                                        (ele%value(p0c_start$) - ele%value(p0c$))
+  end%vec(6) = (end%vec(6) * ele%value(p0c_start$) + &
+                                      (ele%value(p0c_start$) - ele%value(p0c$))) / ele%value(p0c$) 
 
 !-----------------------------------------------
 ! quadrupole
