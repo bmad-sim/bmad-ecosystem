@@ -173,11 +173,12 @@ do
     ! Kill the saved taylor map if it does not apply to the present integration step.
 
     kill_it = .false.
+
     if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
       kill_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
-    elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+    elseif (ele%key == wiggler$) then
       kill_it = .true.
     elseif (ele%key == lcavity$) then
       kill_it = .true.
@@ -383,7 +384,7 @@ do
       kill_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
-    elseif (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
+    elseif (ele%key == wiggler$) then
       kill_it = .true.
     elseif (ele%key == lcavity$) then
       kill_it = .true.

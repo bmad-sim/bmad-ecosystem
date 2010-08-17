@@ -1514,6 +1514,11 @@ endif
 sliced_ele%value(l$) = l_slice
 call makeup_super_slave1 (sliced_ele, ele, offset, param, at_entrance_end, at_exit_end)
 sliced_ele%s = ele%s - e_len + offset + sliced_ele%value(l$)
+
+! Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
+! periodic wiggler phi_z values.
+
+sliced_ele%slave_status = super_slave$
 call attribute_bookkeeper (sliced_ele, param)
 
 end subroutine create_element_slice
@@ -2207,7 +2212,8 @@ case (wiggler$)
   ! on-axis ends on-axis. For this to be true, there must be an integer number
   ! of poles.
 
-  ! For super_slave elements, the phi_z is set by the position with respect to the lord.
+  ! For super_slave elements, the phi_z is set by the position with respect to the lord in
+  ! the routine makeup_super_slave1 and so should not be touched here.
 
   if (ele%sub_key == periodic_type$) then
     if (.not. associated(ele%wig_term)) allocate (ele%wig_term(1))
