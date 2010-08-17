@@ -331,8 +331,7 @@ case (lcavity$)
   endif
 
   pc_start = pc_start_ref * rel_pc
-  call convert_pc_to (pc_start, param%particle, &
-                                    E_tot = E_start, beta = beta_start)
+  call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
   E_end = E_start + gradient * length
   if (E_end <= mass_of(param%particle)) then
     param%lost = .true.
@@ -341,8 +340,7 @@ case (lcavity$)
     return
   endif
 
-  call convert_total_energy_to (E_end, param%particle, &
-                                           pc = pc_end, beta = beta_end)
+  call convert_total_energy_to (E_end, param%particle, pc = pc_end, beta = beta_end)
   E_ratio = E_end / E_start
 
   call offset_particle (ele, param, end, set$)
@@ -490,8 +488,7 @@ case (lcavity$)
   yp0 = start%vec(4) / rel_pc
   yp1 = end%vec(4) / (1 + end%vec(6))
 
-  end%vec(5) = end%vec(5) - (length / 6) * &
-          (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
+  end%vec(5) = end%vec(5) - (length / 6) * (xp0**2 + xp1**2 + xp0*xp1 + yp0**2 + yp1**2 + yp0*yp1)
 
 !-----------------------------------------------
 ! marker
@@ -546,14 +543,12 @@ case (mirror$)
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, param, end, set$, &
-                        set_canonical = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, end, set$, set_canonical = .false., set_multipoles = .false.)
 
   call multipole_ele_to_kt(ele, param%particle, knl, tilt, .false.)
   call multipole_kicks (knl, tilt, end, .true.)
 
-  call offset_particle (ele, param, end, unset$, &
-                         set_canonical = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, end, unset$, set_canonical = .false., set_multipoles = .false.)
 
 !-----------------------------------------------
 ! octupole
@@ -567,25 +562,19 @@ case (octupole$)
 
   call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
-  end%vec(2) = end%vec(2) + k3l *  &
-                  (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
-  end%vec(4) = end%vec(4) + k3l *  &
-                  (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
+  end%vec(2) = end%vec(2) + k3l *  (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
+  end%vec(4) = end%vec(4) + k3l *  (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
 
   do i = 1, n_slice
 
     call track_a_drift (end%vec, length / n_slice)
 
     if (i == n_slice) then
-      end%vec(2) = end%vec(2) + k3l *  &
-                      (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
-      end%vec(4) = end%vec(4) + k3l *  &
-                      (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
+      end%vec(2) = end%vec(2) + k3l *  (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
+      end%vec(4) = end%vec(4) + k3l *  (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 12
     else
-      end%vec(2) = end%vec(2) + k3l *  &
-                      (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 6
-      end%vec(4) = end%vec(4) + k3l *  &
-                      (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 6
+      end%vec(2) = end%vec(2) + k3l *  (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 6
+      end%vec(4) = end%vec(4) + k3l *  (3*end%vec(3)*end%vec(1)**2 - end%vec(3)**3) / 6
     endif
 
   enddo
@@ -604,8 +593,7 @@ case (patch$)
 
   end%vec(2) = end%vec(2) - ele%value(x_pitch$) * rel_pc
   end%vec(4) = end%vec(4) - ele%value(y_pitch$) * rel_pc
-  end%vec(5) = end%vec(5) + ele%value(x_pitch$) * end%vec(1) + &
-                            ele%value(y_pitch$) * end%vec(3) 
+  end%vec(5) = end%vec(5) + ele%value(x_pitch$) * end%vec(1) + ele%value(y_pitch$) * end%vec(3) 
 
   if (ele%value(tilt$) /= 0) call tilt_coords (ele%value(tilt$), end%vec, set$)
 
@@ -791,8 +779,7 @@ case (wiggler$)
   else
     k_z = pi / ele%value(l_pole$)
   endif
-  k1 = -0.5 * (c_light * ele%value(b_max$) / &
-                  (ele%value(p0c$) * rel_pc))**2
+  k1 = -0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_pc))**2
 
   ! 1/2 of the octupole octupole kick at the entrance face.
 
