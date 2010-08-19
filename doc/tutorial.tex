@@ -53,7 +53,7 @@ the appropriate files.
 
 %----------------------------------------------------------------
 \section{Initializing Tao}
-\index{Initializing!Files}
+\index{initializing!files}
 \label{s:initializing}
 
 Initialization occurs when \tao is started. The initialization
@@ -96,7 +96,7 @@ files it needs to read to initialize itself.
 \label{s:get.info}
 
 %----------------------------------------------------------------
-\subsection{The Plotting Window}\index{Plotting}
+\subsection{The Plotting Window}\index{plotting}
 
 When \tao first starts up, \tao will create a new window for
 displaying plots. This window will be called the \vn{plot}
@@ -177,7 +177,7 @@ between the model and design phases (as documented in the plot title
 as [model - design]). Two plot regions are defined in \tao
 \vn{top} and \vn{bottom}.
 
-\index{Commands!plot}
+\index{commands!plot}
 As a first step let's view the absolute model phase. Use the command:
 \begin{example}
   plot bottom model
@@ -185,7 +185,7 @@ As a first step let's view the absolute model phase. Use the command:
 This will change the data plotted in the bottom two graphs to just the
 model.  The plots are now way off scale. Let \tao automatically set
 the scale by typing:
-\index{Commands!scale}
+\index{commands!scale}
 \begin{example}
   scale bottom
 \end{example}
@@ -199,12 +199,12 @@ data. To set this back to relative phase type:
 \end{example}
 
 Let's now look at the beta function by typing
-\index{Commands!place}
+\index{commands!place}
 \begin{example}
   place bottom beta
 \end{example}
 Again, we need to rescale the plots by typing
-\index{Commands!scale}
+\index{commands!scale}
 \begin{example}
   scale bottom
 \end{example}
@@ -213,7 +213,7 @@ corresponds to small vertical beta and vice versa.
 
 Likewise, we can look at the dispersion in the top two graphs by
 typing
-\index{Commands!scale}
+\index{commands!scale}
 \begin{example}
   place top eta
   scale top
@@ -240,7 +240,7 @@ should now look like Figure~\ref{f:plot.coupling.no.IR}.
 The x-axis is currently the BPM index number. It is sometimes
 convenient to plot the data versus longitudinal position. This is done
 by typing
-\index{Commands!x-axis}
+\index{commands!x-axis}
 \begin{example}
   x-axis * s
 \end{example}
@@ -256,8 +256,8 @@ the following to view the quadrupole k1 values:
 \begin{example}
   place bottom quad_k1
 \end{example}
-\index{Commands!plot}
-\index{Commands!place}
+\index{commands!plot}
+\index{commands!place}
 
 \begin{figure}
   \centering
@@ -286,7 +286,7 @@ the following to view the quadrupole k1 values:
 Anything in the super-universe can be displayed using the \cmd{show}
 command (\sref{s:show}). To get a list of the data elements currently
 defined in \tao type
-\index{Commands!show}
+\index{commands!show}
 \begin{example}
   show data
 \end{example}
@@ -392,10 +392,10 @@ be printed to a file by typing
 \begin{example}
   show -write <file_name> <what_to_show>
 \end{example}
-\index{Commands!show}
+\index{commands!show}
 
 A list of all intrinsic \vn{tao} commands can be found by typing
-\index{Commands!help}
+\index{commands!help}
 \begin{example}
   help
 \end{example}
@@ -428,7 +428,7 @@ omitted):
 \end{example}
 
 The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
-\index{Commands!change}
+\index{commands!change}
 \begin{example}
   change var quad\_k1[5] 0.01
   scale
@@ -457,11 +457,11 @@ By modifying the element directly with the \cmd{change ele} command
 you can modify almost any attribute of the element listed in the
 output of \cmd{show ele Q05W}.  The ``d'' before the value is used to
 set the variable relative to the design value.
-\index{Commands!change}
+\index{commands!change}
 
 If you've changed the lattice around a lot using variables, a great
 way to set all variables back to their design values is to type
-\index{Commands!set}
+\index{commands!set}
 \begin{example}
   set var *|model = *|design
 \end{example}
@@ -479,7 +479,7 @@ bookkeeping is done for you.
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 \section{Using the Optimizer for Lattice Correction and Design}
-\index{Optimization}
+\index{optimization}
 \label{s:optimizer}
 
 \index{lm!optimizer}\index{de!optimizer}
@@ -655,7 +655,7 @@ input format (\sref{s:init.data}). For example:
 
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-\section{Single Mode}\index{Single Mode}
+\section{Single Mode}\index{single Mode}
 \label{s:single.mode}
 
 \tao has a \vn{single mode} in which single keystrokes are interpreted

@@ -46,12 +46,13 @@ plot_loop: do ir = 1, size(s%plot_region)
   if (.not. s%plot_region(ir)%visible) cycle  
 
   select case (plot%x_axis_type)
-  case ('index', 's', 'ele_index', 'phase_space', 'data', 'none', 'floor')
+  case ('index', 's', 'ele_index', 'phase_space', 'data', 'none', 'floor', 'lat',  'var')
   case default
     call out_io (s_abort$, r_name, &
                     'BAD X_AXIS_TYPE: ' // plot%x_axis_type, &
                     'FOR PLOT: ' // plot%name)
     plot%graph%valid = .false.
+    plot%graph%why_invalid = 'BAD X_AXIS_TYPE: ' // plot%x_axis_type
     cycle
   endselect
 

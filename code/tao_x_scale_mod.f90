@@ -206,6 +206,8 @@ real(rp) x_min, x_max
 real(rp) this_min, this_max
 logical curve_here
 
+character(24) :: r_name = 'tao_x_scale_graph'
+
 ! If specific min/max values are given then life is easy.
 
 if (graph%type == 'key_table') return
@@ -247,6 +249,7 @@ if (graph%type == 'floor_plan') then
     enddo
   enddo
   curve_here = .true.
+
 else if (graph%p%x_axis_type == 's') then
   if (allocated(graph%curve)) then
     do i = 1, size(graph%curve)
@@ -264,6 +267,11 @@ else if (graph%p%x_axis_type == 's') then
     this_max = max (this_max, s%u(iu)%model%lat%branch(ib)%ele(ix)%s)
   endif
   curve_here = .true.
+
+else if (graph%p%x_axis_type == 'var' .or. graph%p%x_axis_type == 'lat') then
+  call out_io (s_error$, r_name, 'CANNOT AUTO X-SCALE A PLOT WITH X_AXIS_TYPE OF: ' // graph%p%x_axis_type)
+  return
+
 else
   if (.not. allocated(graph%curve)) return
   if (x_min == x_max) then

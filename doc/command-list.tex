@@ -11,7 +11,7 @@ how they affect a lattice but the number of commands in Single Mode is
 limited. To put \tao into \vn{single mode} use the \vn{single-mode}
 command (\sref{s:sing}).
 
-\index{Commands!Command List} 
+\index{commands!Command List} 
 Commands are case sensitive. The list of commands is shown in
 Table~\ref{t:commands}. Multiple commands may be entered on one line
 using the semicolon ``;'' character as a separator.  [However, a
@@ -58,7 +58,7 @@ of the line is ignored.  Example:
 \break
 
 %% alias --------------------------------------------------------------
-\section{alias}\index{Commands!alias}
+\section{alias}\index{commands!alias}
 \label{s:alias}
 
 The \vn{alias} command defines command shortcuts. Format:
@@ -91,7 +91,7 @@ model''.  When the command xyzzy is used ``top'' is substituted
 for ``[[1]]'' in the string.
 
 %% call --------------------------------------------------------------
-\section{call}\index{Commands!call}
+\section{call}\index{commands!call}
 \label{s:call}
 
 The \vn{call} command opens a command file (\sref{s:command.files}) and
@@ -120,7 +120,7 @@ In the above example the argument ``abc'' is substituted for any
 \Newline
 
 %% change --------------------------------------------------------------
-\section{change}\index{Commands!change}
+\section{change}\index{commands!change}
 \label{s:change}
 
 The \vn{change} command changes element attribute values or variable
@@ -194,7 +194,7 @@ Examples:
 
 
 %% clip --------------------------------------------------------------
-\section{clip}\index{Commands!clip}
+\section{clip}\index{commands!clip}
 \label{s:clip}
 
 The \vn{clip} command vetoes data points for plotting and
@@ -240,7 +240,7 @@ Examples:
 \end{example}
 
 %% continue --------------------------------------------------------------
-\section{continue}\index{Commands!continue}
+\section{continue}\index{commands!continue}
 \label{s:continue}
 
 The \vn{continue} command is used to continue reading of a suspended
@@ -252,7 +252,7 @@ command file (\sref{s:command.files}) after a \vn{pause} command
 
 %% end-file --------------------------------------------------------------
 \section{end-file} \label{s:end.file}
-\index{Commands!end-file}
+\index{commands!end-file}
 
 The \vn{end-file} command is used in command files
 (\sref{s:command.files}) to signal the end of the file. Everything
@@ -264,7 +264,7 @@ Format:
 \end{example}
 
 %% exit --------------------------------------------------------------
-\section{exit}\index{Commands!exit}
+\section{exit}\index{commands!exit}
 \label{s:exit}
 
 The \vn{exit} command exits the program. Same as \vn{Quit}.  Format:
@@ -273,7 +273,7 @@ The \vn{exit} command exits the program. Same as \vn{Quit}.  Format:
 \end{example}
 
 %% derivative --------------------------------------------------------------
-\section{derivative}\index{Commands!derivative}
+\section{derivative}\index{commands!derivative}
 \label{s:deriv}
 
 The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative
@@ -284,7 +284,7 @@ Format:
 \end{example}
 
 %% flatten --------------------------------------------------------------
-\section{flatten}\index{Commands!flatten}
+\section{flatten}\index{commands!flatten}
 \label{s:flatten}
 
 The \vn{Flatten} command runs the optimizer to minimize the merit
@@ -297,7 +297,7 @@ See the \vn{run_optimizer} command for more details.  Format:
 \vskip 0.2in
 
 %% help --------------------------------------------------------------
-\section{help}\index{Commands!help}
+\section{help}\index{commands!help}
 \label{s:help}
 
 The \vn{help} command gives help on \tao commands. Format:
@@ -327,7 +327,7 @@ be appropriately defined. Generally, \vn{TAO_DIR} will be defined if
 the \bmad library setup scripts have been run.
 
 %% history --------------------------------------------------------------
-\section{history}\index{Commands!history}
+\section{history}\index{commands!history}
 \label{s:history}
 
 The \vn{history} command shows or reruns prior commands.  Format:
@@ -348,7 +348,7 @@ Examples
 \end{example}
 
 %% misalign --------------------------------------------------------------
-\section{misalign}\index{Command!misalign}
+\section{misalign}\index{command!misalign}
 \label{s:misalign}
 
 The \vn{misalign} command misaligns a set of lattice elements. Format:
@@ -400,7 +400,7 @@ Examples
 \end{example}
 
 %% output --------------------------------------------------------------
-\section{output}\index{Commands!output}
+\section{output}\index{commands!output}
 \label{s:output}
 
 The \vn{output} command creates various files.
@@ -481,7 +481,7 @@ Note: PGPLOT does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
 
 %% pause --------------------------------------------------------------
-\section{pause}\index{Commands!pause}
+\section{pause}\index{commands!pause}
 \label{s:pause}
 
 The \vn{pause} command is used to pause \tao when executing a command
@@ -512,7 +512,7 @@ Example:
 \end{example}
 
 %% place --------------------------------------------------------------
-\section{place}\index{Commands!place}
+\section{place}\index{commands!place}
 \label{s:place}
 
 The \vn{place} command is used to associate a \vn{<template>} plot
@@ -537,7 +537,7 @@ Examples:
 \end{example}
 
 %% plot --------------------------------------------------------------
-\section{plot}\index{Commands!plot}
+\section{plot}\index{commands!plot}
 \label{s:plot}
 
 The \vn{plot} command is used to determine what components are plotted
@@ -557,7 +557,7 @@ Examples:
 \end{example}
 
 %% quit --------------------------------------------------------------
-\section{quit}\index{Commands!quit}
+\section{quit}\index{commands!quit}
 \label{s:quit}
 
 \vn{Quit} exits the program. Same as \vn{exit}.
@@ -567,7 +567,7 @@ Format:
 \end{example}
 
 %% read --------------------------------------------------------------
-\section{read}\index{Commands!read}
+\section{read}\index{commands!read}
 \label{s:read}
 
 The \vn{read} command is used to modify the currently
@@ -582,7 +582,7 @@ the \vn{read} command can be used to misalign the lattice
 elements. The input file must be in Bmad standard lattice format.
 
 %% restore --------------------------------------------------------------
-\section{restore}\index{Commands!restore}
+\section{restore}\index{commands!restore}
 \label{s:restore}
 
 The \vn{restore} command cancels data or variable
@@ -606,7 +606,7 @@ Examples:
 \end{example}
 
 %% reinitialize -------------------------------------------------------
-\section{reinitialize}\index{Commands!reinitialize}
+\section{reinitialize}\index{commands!reinitialize}
 \label{s:reinit}
 
 The \vn{reinitialize} command reinitializes various things. Format:
@@ -645,7 +645,7 @@ Examples:
 
 
 %% run --------------------------------------------------------------
-\section{run_optimizer}\index{Commands!run}
+\section{run_optimizer}\index{commands!run}
 \label{s:run}
 
 The \vn{run_optimizer} command runs an optimizer. Format:
@@ -675,7 +675,7 @@ Examples:
 \end{example}
 
 %% scale --------------------------------------------------------------
-\section{scale}\index{Commands!scale}
+\section{scale}\index{commands!scale}
 \label{s:scale}
 
 The \vn{scale} command scales the vertical axis of a graph or set of graphs.
@@ -720,7 +720,7 @@ Examples:
 
 
 %% set --------------------------------------------------------------
-\section{set}\index{Commands!set}
+\section{set}\index{commands!set}
 \label{s:set}
 
 
@@ -1065,7 +1065,7 @@ Example:
 \end{description}
 
 %% show --------------------------------------------------------------
-\section{show}\index{Commands!show}
+\section{show}\index{commands!show}
 \label{s:show}
 
 The \vn{show} command is used to display information.
@@ -1564,7 +1564,7 @@ analysis (\sref{c:wave}).
 \end{description}
 
 %% single-mode --------------------------------------------------------------
-\section{single-mode}\index{Commands!single-mode}
+\section{single-mode}\index{commands!single-mode}
 \label{s:sing}
 
 The \vn{sing-mode} command puts \tao into \vn{single mode} (\sref{c:single}).
@@ -1574,7 +1574,7 @@ Format:
 \end{example}
 
 %% spawn --------------------------------------------------------------
-\section{spawn}\index{Commands!spawn}
+\section{spawn}\index{commands!spawn}
 \label{s:spawn}
 
 The \vn{spawn} command is used to pass a command to the command shell. Format:
@@ -1596,7 +1596,7 @@ Examples:
 \end{example}
 
 %% use --------------------------------------------------------------
-\section{use}\index{Commands!use}
+\section{use}\index{commands!use}
 \label{s:use}
 
 The \vn{use} command un-vetoes data or variables and sets a veto for
@@ -1622,7 +1622,7 @@ Examples:
 
 
 %% veto --------------------------------------------------------------
-\section{veto}\index{Commands!veto}
+\section{veto}\index{commands!veto}
 \label{s:veto}
 
 The \vn{veto} command vetoes data or variables. Format:
@@ -1652,7 +1652,7 @@ indexes for the d1\_data structures do not all point to the same lattice
 elements. 
 
 %% view --------------------------------------------------------------
-\section{view}\index{Commands!view}
+\section{view}\index{commands!view}
 \label{s:view}
 
 The \vn{view} command changes which universe data is taken from for
@@ -1672,7 +1672,7 @@ Examples:
 \end{example}
 
 %% wave --------------------------------------------------------------
-\section{wave}\index{Commands!wave}
+\section{wave}\index{commands!wave}
 \label{s:wave}
 
 The \vn{wave} command sets what data is to be used for the wave
@@ -1697,7 +1697,7 @@ Examples:
 \end{example}
 
 %% x-axis --------------------------------------------------------------
-\section{x-axis}\index{Commands!x-axis}
+\section{x-axis}\index{commands!x-axis}
 \label{s:x.axis}
 
 The \vn{x-axis} command sets the data type used for the x-axis coordinate.
@@ -1725,7 +1725,7 @@ Examples:
 \end{example}
 
 %% x-scale --------------------------------------------------------------
-\section{x-scale}\index{Commands!x-scale}
+\section{x-scale}\index{commands!x-scale}
 \label{s:x.scale}
 
 The \vn{x-scale} command scales the horizontal axis of a graph or set of graphs.
@@ -1768,7 +1768,7 @@ Example:
 \end{example}
 
 %% xy-scale --------------------------------------------------------------
-\section{xy-scale}\index{Commands!xy-scale}
+\section{xy-scale}\index{commands!xy-scale}
 \label{s:xy.scale}
 
 The \vn{xy-scale} command sets horizontal and vertical axis bounds. Format:

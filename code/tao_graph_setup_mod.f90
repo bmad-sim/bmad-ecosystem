@@ -511,17 +511,22 @@ type (tao_data_var_component_struct), allocatable, save :: comp(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_eval_stack1_struct), allocatable, save :: stack(:)
+type (tao_var_array_struct), allocatable, target :: var_array(:)
+type (real_pointer_struct), allocatable, target :: attribs(:)
 
-real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min
-real(rp), allocatable :: value(:)
+real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0
+real(rp), allocatable :: value_arr(:)
+real(rp), pointer :: var_ptr
 
 integer ii, k, m, n, n_dat, ie, jj, iv, ic
-integer ix, ir, jg, i, j, ix_this
+integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2
 
 logical err, smooth_curve, found, zero_average_phase, ok, straight_line_between_syms, valid, in_graph
 logical, allocatable, save :: good(:)
+logical, allocatable, save :: this_u(:)
 
-character(60) data_type
+character(60) data_type, name
+character(16) data_source
 character(12) :: u_view_char
 character(30) :: r_name = 'tao_graph_data_setup'
 
@@ -537,13 +542,12 @@ graph%title_suffix = '[' // trim(graph%component) // ']'
 ! Note: if %label is blank and %draw_label = T then the x-axis_type is printed elsewhere.
  
 if (graph%x%label == '' .and. .not. graph%x%draw_label) then
-  if (plot%x_axis_type == 'index') then
-    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: index'
-  elseif (plot%x_axis_type == 'ele_index') then
-    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: ele_index'
-  elseif (plot%x_axis_type == 's') then
-    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: s'
-  endif  
+  if (plot%x_axis_type == "lat" .or. plot%x_axis_type == "var") then
+    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: ' // &
+              trim(plot%x_axis_type) // '::' // graph%curve(1)%data_type_x
+  else
+    graph%title_suffix = trim(graph%title_suffix) // ',  X-axis: ' // plot%x_axis_type
+  endif
 endif
 
 !-------------------------------------------------------------------------------
@@ -586,7 +590,93 @@ do k = 1, size(graph%curve)
   !----------------------------------------------------------------------------
   ! Calculate where the symbols are to be drawn on the graph.
 
-  select case (curve%data_source)
+  data_source = curve%data_source
+  if (plot%x_axis_type == "lat" .or. plot%x_axis_type == "var") data_source = "variation"
+
+  select case (data_source)
+
+  !----------------------------------------------------------------------------
+  ! Case: x-axis uses a variable.
+
+  case ('variation')
+
+    call re_allocate (curve%ix_symb, s%plot_page%n_curve_pts)
+    call re_allocate (curve%x_symb, s%plot_page%n_curve_pts)
+    call re_allocate (curve%y_symb, s%plot_page%n_curve_pts)
+    call re_allocate (curve%x_line, s%plot_page%n_curve_pts)
+    call re_allocate (curve%y_line, s%plot_page%n_curve_pts)
+
+    if (plot%x_axis_type == 'lat') then
+
+      call tao_pick_universe (curve%data_type_x, name, this_u, err, ix_uni)
+      if (err .or. count(this_u) /= 1) then
+        graph%why_invalid = 'BAD UNIVERSE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+        return
+      endif
+
+      call upcase_string(name)
+      ix1 = index(name, '[')
+      ix2 = index(name, ']')
+      if (ix1 == 0 .or. ix2 == 0 .or. ix2 /= len_trim(name)) then
+        graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+        return
+      endif
+
+      u => tao_pointer_to_universe(ix_uni)
+      call pointers_to_attribute (u%model%lat, name(1:ix1-1), name(ix1+1:ix2-1), .true., attribs, err)
+      if (err .or. size(attribs) /= 1) then
+        graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+        return
+      endif
+      var_ptr => attribs(1)%r
+
+    else  ! x_axis_type == 'var'
+      call tao_find_var (err, curve%data_type_x, v_array = var_array)
+      if (err .or. size(var_array) /= 1) then
+        graph%why_invalid = 'BAD VARIABLE CONSTRUCT IN CURVE%DATA_TYPE_X: ' // trim(curve%data_type_x)
+        return
+      endif
+      var_ptr => var_array(1)%v%model_value
+    endif
+
+    ! Get datum values as a function of the variable
+
+    val0 = var_ptr
+
+    do i = 1, s%plot_page%n_curve_pts 
+      val = graph%x%min + (graph%x%max - graph%x%min) * (i - 1.0_rp) / (s%plot_page%n_curve_pts - 1)
+      if (plot%x_axis_type == 'lat')then
+        var_ptr = val
+        s%u(ix_uni)%lattice_recalc = .true.
+      else
+        call tao_set_var_model_value (var_array(1)%v, val)
+      endif
+      call tao_lattice_calc (valid)
+
+      call tao_evaluate_expression (curve%data_type, 0, .false., value_arr, good, err, &
+                            dflt_component = graph%component, dflt_source = curve%data_source)
+      if (.not. valid .or. err .or. size(value_arr) /= 1) then
+        graph%why_invalid = 'BAD CONSTRUCT IN CURVE%DATA_TYPE: ' // trim(curve%data_type)
+        return
+      endif
+
+      curve%x_symb(i) = val      
+      curve%y_symb(i) = value_arr(1)
+
+      curve%x_line(i) = val      
+      curve%y_line(i) = value_arr(1)
+
+    enddo
+
+    ! Reset
+
+    if (plot%x_axis_type == 'lat')then
+      var_ptr = val0
+      s%u(ix_uni)%lattice_recalc = .true.
+    else
+      call tao_set_var_model_value (var_array(1)%v, val0)
+    endif
+    call tao_lattice_calc (valid)
 
   !----------------------------------------------------------------------------
   ! Case: data_source is a data_array
@@ -596,7 +686,7 @@ do k = 1, size(graph%curve)
     ! Calculate values
 
     call tao_data_type_substitute (curve%data_type, data_type, curve%ele_ref_name, graph%component)
-    call tao_evaluate_expression  (data_type, 0, .true., value, good, err, &
+    call tao_evaluate_expression  (data_type, 0, .true., value_arr, good, err, &
                             stack = stack, dflt_component = graph%component, dflt_source = 'dat')
     if (err) then
       graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
@@ -711,7 +801,7 @@ do k = 1, size(graph%curve)
 
     ! calculate the y-axis data point values.
 
-    curve%y_symb = pack(value, mask = d1_ptr%d%useit_plot)
+    curve%y_symb = pack(value_arr, mask = d1_ptr%d%useit_plot)
 
   !----------------------------------------------------------------------------
   ! Case: data_source is a var_array
@@ -782,13 +872,13 @@ do k = 1, size(graph%curve)
     ! calculate the y-axis data point values.
 
     data_type = trim(curve%data_type) // '|' // graph%component
-    call tao_evaluate_expression (data_type, 0, .true., value, good, err)
+    call tao_evaluate_expression (data_type, 0, .true., value_arr, good, err)
     if (err) then
       call out_io (s_error$, r_name, 'BAD PLOT COMPONENT: ' // data_type)
       return
     end if
 
-    curve%y_symb = pack(value, mask = v1_ptr%v%useit_plot)
+    curve%y_symb = pack(value_arr, mask = v1_ptr%v%useit_plot)
 
   !----------------------------------------------------------------------------
   ! Case: data_source is from lattice, or beam

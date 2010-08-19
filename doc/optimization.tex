@@ -1,8 +1,8 @@
 \chapter{Lattice Correction and Design}
 \label{c:opti}
 
-\index{Optimization|hyperbf}
-\index{Merit function}
+\index{optimization|hyperbf}
+\index{merit function}
 This chapter covers the process of \vn{optimization} which involves
 minimization of a
 \vn{Merit Function} to correct and to design lattices. Examples
@@ -23,10 +23,10 @@ discussed in Section~\sref{s:generalized.design}.
 %------------------------------------------------------------------------
 \section{Lattice Corrections}
 \label{s:lattice.correction}
-\index{Modeling Data}
-\index{Lattice Corrections}
+\index{modeling data}
+\index{lattice corrections}
 
-\index{Optimization!Merit Function}
+\index{optimization!merit function}
 Consider the problem of problem of modifying the orbit of a beam
 through a lattice to conform to some desired orbit (typically a ``flat'' orbit
 running through the centers of the quadrupoles). The process
@@ -132,8 +132,8 @@ process is controlled by the \vn{use}, \vn{veto}, \vn{restore}, and
 %------------------------------------------------------------------------
 \section{Lattice Design}
 \label{s:lattice.design}
-\index{Optimization!Lattice Design}
-\index{Optimization!Constraints}
+\index{optimization!lattice design}
+\index{optimization!constraints}
 
 Lattice design is the process of calculating \vn{variable} strengths
 to meet a number of criteria called constraints. For example, one
@@ -165,7 +165,7 @@ optimization process is in deciding what the values should be for any
 %------------------------------------------------------------------------
 \section{Generalized Design}
 \label{s:generalized.design}
-\index{Optimization!Generalized Merit function}
+\index{optimization!generalized merit function}
 
 Since lattice correction and design are similar, \tao
 combines the two into one generalized process. In this
@@ -229,7 +229,7 @@ types as given in Table~\ref{t:con.type}.
 \caption{Constraint Type List.}
 \label{t:con.type}
 \end{table}
-\index{Optimization!Optimize with Reference}
+\index{optimization!optimize with reference}
 
 For variables, the form of the terms $V_i$ is determined by its \vn{merit_type}.
 Here the \vn{merit_type} may be:
@@ -270,7 +270,7 @@ chosen to be included in an optimization.
 %------------------------------------------------------------------------
 \section{Optimizers in Tao}
 \label{s:tao.opti}
-\index{Optimization!Optimizer}
+\index{optimization!optimizer}
 
 The algorithm used to vary the \vn{model} variables to minimize \vn{M}
 is called an \vn{optimizer}. In \vn{command line mode} the \vn{run}
@@ -384,7 +384,7 @@ details.
 %------------------------------------------------------------------------
 \section{Common Base Lattice (CBL) Analysis}
 \label{s:cbl}
-\index{Common Base Lattice}
+\index{common base lattice}
 
 Some data analysis problems involve varying variables in a both the
 \vn{model} and \vn{base} lattices simultaneously. Such is the case

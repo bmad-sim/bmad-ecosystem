@@ -212,7 +212,7 @@ $^*$This namelist taken from the first file in the {plot\_file} array.
 \end{table}
 
 %-----------------------------------------------------------------
-\section{Lattice Initialization}\index{Initialization!Lattice}
+\section{Lattice Initialization}\index{initialization!lattice}
 \label{s:init.lat} 
 
 In the \vn{tao_start} namelist, the \vn{lattice_file} variable gives
@@ -315,7 +315,7 @@ lattice that is common to all universes. See \sref{s:cbl} for more
 details.
 
 %-----------------------------------------------------------------
-\section{Initializing Globals}\index{Initialization!Globals}
+\section{Initializing Globals}\index{initialization!globals}
 \label{s:globals} 
 
 Global variables are initialized in the \vn{data_and_var_file} using a
@@ -535,7 +535,7 @@ See \sref{s:lattice.correction} for more details on
 
 %-----------------------------------------------------------------
 \section{Initializing Connected Universes}
-\index{Initialization!Connected Universes}
+\index{initialization!connected universes}
 \label{s:connected.uni}
 
 \index{tao_connected_uni_init}\index{connect}\index{connect!from_universe}
@@ -620,7 +620,7 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Initializing Particle Beams}\index{Initialization!Beams}
+\section{Initializing Particle Beams}\index{initialization!beams}
 \label{s:beam.init}
 
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.
@@ -813,7 +813,7 @@ for beam particle generation verses everything else.  These parameters
 are explained in Section~\sref{s:globals}.
 
 %-----------------------------------------------------------------
-\section{Initializing Variables}\index{Initialization!Variables}
+\section{Initializing Variables}\index{initialization!variables}
 \label{s:init.var} 
 
 \vn{Variable}s are initialized using the \vn{tao_var} namelist. The
@@ -1000,7 +1000,7 @@ used together.
 
 %-----------------------------------------------------------------
 \section{Initializing Data and
-Constraints}\index{Initialization!Data}\index{Initialization!Constants}
+Constraints}\index{initialization!data}\index{initialization!constants}
 \label{s:init.data} 
 
 A set of data (\sref{c:data}) is initialized using a \vn{tao_d2_data}
@@ -1241,12 +1241,12 @@ merit function. If not present then the default weight of
 \vni{default_weight} is used. 
 
 %-----------------------------------------------------------------
-\section{Initializing Plotting}\index{Plotting Initializing}
+\section{Initializing Plotting}\index{plotting initializing}
 \label{s:init.plot} 
 
 \subsection{Plot Window}
 \label{s:plot.page}
-\index{Initialization!Plotting!Plot Window}
+\index{initialization!plotting!plot window}
 
 \begin{figure}
   \centering
@@ -1381,7 +1381,7 @@ max are set to 100 and 200 respectively.
 %-----------------------------------------------------------------
 \subsection{Plot Templates}
 \label{s:template}
-\index{Plot Templates}
+\index{plot templates}
 
 As shown in Figure~\ref{f:plot}, a ``plot'' is made up of a collection
 of ``graphs'' and a graph consists of axes plus a set of ``curves''.
@@ -1408,14 +1408,15 @@ Template plots are defined using namelists with a name of
   &tao_template_plot
     plot%name        = "<plot_name>"
     plot%x           = <qp_axis_struct>
-    plot%x_axis_type = "<x_axis_type>"   ! "index" or "s". Default is "index".
-    plot%ix_universe = <number> ! used for lat_layout plots
+    plot%x_axis_type = "<x_axis_type>"   ! "index", "ele_index" "s", "lat", or "var". 
+                                         ! Default is "index".
+    plot%ix_universe = <number>          ! used for lat_layout plots
     plot%n_graph     = <n_graphs>
-    plot%autoscale_gang_x = <logical>  ! Default: True.
-    plot%autoscale_gang_y = <logical>  ! Default: True.
-    plot%autoscale_x = <logical>       ! Default: False.
-    plot%autoscale_y = <logical>       ! Default: False.
-    default_graph%...                  ! See below
+    plot%autoscale_gang_x = <logical>    ! Default: True.
+    plot%autoscale_gang_y = <logical>    ! Default: True.
+    plot%autoscale_x = <logical>         ! Default: False.
+    plot%autoscale_y = <logical>         ! Default: False.
+    default_graph%...                    ! See below
   /
 \end{example}
 For example:
@@ -1493,6 +1494,9 @@ the plot. It is important that this name not contain any blank spaces since
     "ele_index"  ! Element lattice number index
     "s"          ! Longitudinal position in the lattice.
     "data"       ! From a data array
+    "lat"        ! Lattice variable. See \sref{s:plot.var}.
+    "var"        ! Tao variable value. See \sref{s:plot.var}.
+
 \end{example}
 The \vn{ele_index} switch is used when plotting data arrays. In this
 case the \vn{index} switch refers to the index of the data array and
@@ -1513,7 +1517,7 @@ namelists should be placed directly after their respective
 \index{Curve!use_y2}\index{Curve!line}\index{Curve!ele_ref_name}
 \index{Curve!draw_line}\index{Curve!draw_symbols}\index{Curve!ix_universe}
 \index{Curve!symbol}\index{Curve!symbol_every}\index{Curve!convert}
-\index{Curve!ix_bunch}\index{Curve!ix_ele_ref}
+\index{Curve!ix_bunch}\index{Curve!ix_ele_ref}\index{Curve!data_type_x}
 \begin{example}
   &tao_template_graph
     graph_index            = <number>
@@ -1533,7 +1537,7 @@ namelists should be placed directly after their respective
     graph%x_axis_scale_factor = <factor>      ! Scale the x-axis by this.
     curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
     curve(i)%data_source         = "<string>" ! Source for the data curve points
-    curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data".
+    curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data" or "var".
     curve(i)%data_type           = "<string>" ! Default = plot%name.graph%name
     curve(i)%data_index          = "<string>" ! Index number for data points.
     curve(i)%legend_text         = "<string>" ! Text for curve legend. 
@@ -1596,7 +1600,7 @@ blank spaces since \tao uses this fact in parsing the command line.
 \vn{graph%component} sets what variable or data components are to be
 plotted. In the above example, what will be plotted is \vn{model -
 design}. Possible components are:
-\index{Model}\index{Design}\index{Base}\index{Meas}\index{Ref}
+\index{model}\index{design}\index{base}\index{meas}\index{ref}
 \begin{example}
   "model"     ! model values.
   "design"    ! design values.
@@ -1609,8 +1613,8 @@ specified, is for the graph will show \vn{model} values.
 
 \vn{graph%type} is the type of graph. \tao knows about the
 following types:
-\index{Data}\index{Lat_layout}\index{Key_table}\index{Phase_space}
-\index{Floor_plan}
+\index{data}\index{lat_layout}\index{key_table}\index{phase_space}
+\index{floor_plan}
 \begin{example}
   "data"         ! Data plots (default) 
   "floor_plan"   ! A 2-dimensional birds-eye view of the machine (\sref{s:floor.plan}).
@@ -1644,8 +1648,8 @@ documentation in the \bmad reference manual. In the above example the
 graph divides the region into two vertically stacked boxes and places
 itself into the bottom one. 
 
-\index{dat}\index{var}\index{Calculation}
-\index{Curve!data_source}
+\index{dat}\index{var}\index{calculation}
+\index{curve!data_source}
 The \vn{curve} structure is used to define the curves that are plotted
 in each graph. \vn{curve%data_source} is the type of information for
 the source of the data points. \vn{curve%data_source} must be one of:
@@ -1725,7 +1729,47 @@ component. If it is desired to have differing scales for different
 graphs, the \vn{graph%x} component can be used.
 
 %-----------------------------------------------------------------
-\subsection{Graphing a Data Slice}\index{Data Slice}
+\subsection{Plotting With a Variable Value on the X-Axis}
+\index{plot!plotting as a function of a variable}
+\label{s:plot.var}
+
+Data can be plotted as a function of a variable by setting
+\vn{plot%x_axis_type} to \vn{"lat"} (for lattice variables) or
+\vn{"var"} (for \tao variables) and setting \vn{curve(:)%data_type_x}
+to the name of the variable. In this case, the \vn{curve(:)%data_type}
+must evaluate to a single number.
+
+Example:
+\begin{example}
+  &tao_template_plot
+    plot%x_axis_type = "lat"
+    ...
+  /
+
+  &tao_template_graph
+    ...
+    curve(1)%data_type_x = "beam_start[x]"  ! Starting beam x-position.
+    curve(1)%data_type   = "orbit.x[10]"    ! Evaluates to a single value.
+    ...
+  /
+\end{example}
+
+Note: \tao treats the \vn{design} and \vn{base} lattices as static so
+that varying a variable will not affect these lattices. Thus,
+constructing a plot with \vn{graph%component} set to, for example,
+\vn{"model - design"} will {\em not} produce a plot that is the
+difference between varying a variable in both \vn{model} and
+\vn{design} lattices. In the case where such a plot is desired, a
+second universe needs to be established. In this case, one would set
+\vn{curve(:)%data_type} to something like
+\begin{example}
+    curve(1)%data_type   = "1@orbit.x[10] - 2@orbit.x[10]"    
+\end{example}
+where the universe \#2 \vn{model} lattice would be setup to be equal
+to the universe \#1 \vn{design} lattice.
+
+%-----------------------------------------------------------------
+\subsection{Graphing a Data Slice}\index{plot!data slice}
 \label{s:graph.data.slice}
 
 The standard data graph, as presented in the previous subsection,
@@ -1734,7 +1778,7 @@ graph data that has been ``sliced'' in other ways. For example,
 suppose a number of universes have been established, with each
 universe representing the same machine but with different steerings
 powered. If in each universe an \vn{orbit} \vn{d2_data} structure has
-been defined then an example of a data slice is the collection of
+been defined, an example of a data slice is the collection of
 points (x, y) where:
 \begin{example}
   (x, y) = (<n>@orbit.x[23], <n>@orbit.y[23]),   <n> = 1, ..., n_universe
@@ -1807,7 +1851,7 @@ components are specified, the \vn{graph%component} settings are ignored for
 that expression.
 
 %-----------------------------------------------------------------
-\subsection{Drawing a Lattice Layout}\index{Lattice Layout}
+\subsection{Drawing a Lattice Layout}\index{lattice layout}
 \label{s:lat.layout}
 
 \begin{figure}
@@ -1827,11 +1871,11 @@ A lattice layout plot draws the lattice
 along a straight line with colored rectangles representing the various elements.
 An example is shown in Figure~\ref{f:layout.table}.
 The \vn{tao_template_plot} needed to define a lattice layout looks like:
-\index{Tao_template_plot}\index{Plot!name}
-\index{Plot!x!min}\index{Plot!x!max}\index{Plot!n_graph}
-\index{Tao_template_graph}\index{Graph_index}\index{Graph!name}
-\index{Graph!type}\index{Graph!title}\index{Graph!box}
-\index{Graph!ix_universe}\index{Graph!margin}\index{Graph!n_curve}
+\index{tao_template_plot}\index{plot!name}
+\index{plot!x!min}\index{plot!x!max}\index{plot!n_graph}
+\index{tao_template_graph}\index{graph_index}\index{graph!name}
+\index{graph!type}\index{graph!title}\index{graph!box}
+\index{graph!ix_universe}\index{graph!margin}\index{graph!n_curve}
 \begin{example}
   &tao_template_plot
     plot%name        = "<plot_name>"
@@ -1885,7 +1929,7 @@ suppressed by setting
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Key Table}
-\index{Key Table}
+\index{key table}
 \label{s:key.table}
 
 The \vn{key table} is explained more fully in
@@ -1923,7 +1967,7 @@ the key index number will be displayed just above the element's glyph
 
 %-----------------------------------------------------------------
 \subsection{Floor Plan Drawing}
-\index{Floor Plan Drawing}
+\index{floor plan drawing}
 \label{s:floor.plan}
 
 \begin{figure}
@@ -1990,7 +2034,7 @@ to the vertical scale.
 
 %-----------------------------------------------------------------
 \subsection{Element Shapes}
-\index{Element Shapes}
+\index{element shapes}
 \label{s:ele.shape}
 
 \vn{Floor plan} (\sref{s:floor.plan}) and \vn{lattice layout} drawings
@@ -2041,7 +2085,7 @@ evaluated but only for datums whose \vn{useit_opt} parameter is True.
 
 The \vn{<shape>} parameter is the shape of the figure
 drawn. Valid Shapes are:
-\index{Box}\index{Xbox}
+\index{box}\index{xbox}
 \begin{example}
   "box"             -- Rectangular box
   "xbox"            -- Rectangular box with an x through it.
@@ -2069,7 +2113,7 @@ focusing strength. Not all lattice elements can be used with a
 \vn{var_height_box}.
 
 \vn{<color>} is the color of the shape. Good colors to use are:
-\index{Element shape!color}
+\index{element shape!color}
 \begin{example}
   "black"
   "red"
@@ -2095,7 +2139,7 @@ Note: There is an old, deprecated syntax where both the lattice layout and floor
 drawings are specified via one \vn{element_shapes} namelist. 
 
 %-----------------------------------------------------------------
-\subsection{Phase Space Plotting}\index{Phase Space Plotting}
+\subsection{Phase Space Plotting}\index{phase space plotting}
 \label{s:phase.space}
 
 \begin{figure}
@@ -2154,7 +2198,7 @@ In this example above, the $x$-axis of the plot will correspond to the
 $x$ phase space coordinate and the $y$-axis will correspond to the
 $px$ coordinate.
 
-\index{Curve!ele_ref_name}\index{Curve!ix_ele_ref}
+\index{curve!ele_ref_name}\index{curve!ix_ele_ref}
 To change the place at which the \vn{phase_space} curve is drawn use
 the \vn{set curve ele_ref_name} or \vn{set curve ix_ele_ref} commands.
 

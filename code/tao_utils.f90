@@ -152,6 +152,9 @@ end subroutine tao_data_check
 !   "[1:30,34]@..."   -- Choose universes 1 through 30 and 34
 !   No "@" in name    -- Choose universe s%global%u_view.
 !
+! Also see:
+!   tao_pointer_to_universe
+!
 ! Input:
 !   name_in    -- Character(*): data name.
 !
@@ -2615,6 +2618,9 @@ end subroutine tao_parse_command_args
 !
 ! Routine to set a pointer to a universe.
 ! If ix_uni is -1 then u(s%global%u_view) will be used.
+!
+! Also see:
+!   tao_pick_universe
 !
 ! Input:
 !   ix_uni -- Integer: Index to the s%u(:) array
