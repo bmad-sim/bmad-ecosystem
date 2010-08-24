@@ -144,7 +144,6 @@ type (tao_connected_uni_input) connect
 
 integer i, k, iu, ios, ib, n_uni
 integer n, iostat, ix_universe, to_universe
-integer ix_track_start, ix_track_end
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_connected_universes'
@@ -339,6 +338,7 @@ integer ix_track_start, ix_track_end
 
 character(*) init_file
 character(40) :: r_name = 'tao_init_beams'
+character(40) track_start, track_end
 character(160) beam_saved_at
 character(200) file_name, beam0_file, beam_all_file
 character(60), target :: save_beam_at(100)   ! old style syntax
@@ -347,7 +347,7 @@ logical err
 
 namelist / tao_beam_init / ix_universe, beam0_file, &
   ix_track_start, ix_track_end, beam_all_file, beam_init, beam_saved_at, &
-  beam_saved_at
+  beam_saved_at, track_start, track_end
          
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -392,6 +392,8 @@ do
   beam_all_file = tao_com%beam_all_file  ! From the command line
   beam_saved_at = ''
   save_beam_at  = ''
+  track_start = ''
+  track_end = ''
   ix_track_start = 0
   ix_track_end = -1
 
@@ -462,15 +464,45 @@ type (tao_universe_branch_struct), pointer :: uni_branch0
 type (branch_struct), pointer :: branch
 
 real(rp) v(6), bunch_charge, gamma
-integer i, j, ix, iu, n_part, ix_class, n_bunch, n_particle
+integer i, j, ix, iu, n_part, ix_class, n_bunch, n_particle, n_loc
 character(60) at, class, ele_name, line
 
 ! Set tracking start/stop
 
 uni_branch0 => u%uni_branch(0)
 
-uni_branch0%ix_track_start = ix_track_start
-uni_branch0%ix_track_end   = ix_track_end
+uni_branch0%track_start = track_start
+uni_branch0%track_end   = track_end
+
+if (track_start /= '') then
+  call lat_ele_locator (track_start, u%design%lat, eles, n_loc, err)
+  if (err .or. n_loc == 0) then
+    call out_io (s_fatal$, r_name, 'TRACK_START ELEMENT NOT FOUND: ' // track_start)
+    call err_exit
+  endif
+  if (n_loc > 1) then
+    call out_io (s_fatal$, r_name, 'MULTIPLE TRACK_START ELEMENTS FOUND: ' // track_start)
+    call err_exit
+  endif
+  uni_branch0%ix_track_start = eles(1)%ele%ix_ele
+else
+  uni_branch0%ix_track_start = ix_track_start
+endif
+
+if (track_end /= '') then
+  call lat_ele_locator (track_end, u%design%lat, eles, n_loc, err)
+  if (err .or. n_loc == 0) then
+    call out_io (s_fatal$, r_name, 'TRACK_END ELEMENT NOT FOUND: ' // track_end)
+    call err_exit
+  endif
+  if (n_loc > 1) then
+    call out_io (s_fatal$, r_name, 'MULTIPLE TRACK_END ELEMENTS FOUND: ' // track_end)
+    call err_exit
+  endif
+  uni_branch0%ix_track_end = eles(1)%ele%ix_ele
+else
+  uni_branch0%ix_track_end = ix_track_end
+endif
 
 u%beam_info%beam_init = beam_init
 u%beam_info%beam0_file = beam0_file

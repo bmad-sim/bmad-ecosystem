@@ -634,15 +634,15 @@ The syntax is as follows:
 \index{beam_init!renorm_center}\index{beam_init!renorm_sigma}
 \index{beam_init!center_jitter}\index{beam_init!emitt_jitter}
 \index{beam_init!sig_z_jitter}\index{beam_init!sig_e_jitter}
-\index{beam_init!polarization}
+\index{beam_init!polarization}\index{track_start}\index{track_end}
 \begin{example}
   &tao_beam_init
     ix_universe             = <integer>
     beam0_file              = <string>         ! File used in place of beam_init.
     beam_all_file           = <string>         ! File used in place of beam tracking.
     beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
-    ix_track_start          = <integer>        ! Lattice element start tracking index.
-    ix_track_end            = <integer>        ! Lattice element end tracking index.
+    track_start             = "<ele_name>"     ! Lattice element start tracking name or index.
+    track_end               = "<ele_name>"     ! Lattice element end tracking name or index.
     beam_init%a_norm_emitt  = <number>         ! A-mode emittance
     beam_init%b_norm_emitt  = <number>         ! B-mode emittance
     beam_init%dPz_dZ        = <number>         ! Energy-Z correlation
@@ -752,16 +752,14 @@ circular lattices the Twiss parameters will be found from the closed
 orbit, and the emittance will be calculated using the \bmad routine
 \vn{radiation_integrals}.
 
-\vn{ix_track_start} and \vn{ix_track_end} are used when it is desired
+\vn{track_start} and \vn{track_end} are used when it is desired
 to only track the beam through part of the lattice.
-\vn{ix_track_start} gives the starting element index. Tracking will
+\vn{track_start} gives the starting element name or index. Tracking will
 start at the exit end of this element so the beam {\em will not} be
 tracked through this element. The tracking will end at the exit end of
-the lattice element with index \vn{ix_track_end}. The default, if
-\vn{ix_track_start} and \vn{ix_track_end} are not present, is to track
-through the entire lattice. In this case, \vn{ix_track_start} and
-\vn{ix_track_end} will be given values of \vn{-1} to indicate that they
-have not been set.
+the lattice element with name or index \vn{track_end}. The default, if
+\vn{track_start} and \vn{track_end} are not present, is to track
+through the entire lattice.
 
 If spin tracking is desired then \vn{beam_init%init_spin} must be set
 to true.  If it is desired to use the exact same distribution of

@@ -388,11 +388,13 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
     nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt)  'global%track_type          = ', s%global%track_type
-    nl=nl+1; write(lines(nl), lmt)  'global%beam_timer_on       = ', s%global%beam_timer_on
-    nl=nl+1; write (lines(nl), imt) 'ix_track_start             = ', uni_branch%ix_track_start 
-    nl=nl+1; write (lines(nl), imt) 'ix_track_end               = ', uni_branch%ix_track_end
-    nl=nl+1; write(lines(nl), amt)  'u%beam_saved_at:           = ', trim(u%beam_saved_at)
+    nl=nl+1; write(lines(nl), amt) 'global%track_type          = ', s%global%track_type
+    nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on       = ', s%global%beam_timer_on
+    nl=nl+1; write(lines(nl), amt) 'track_start                = ', trim(uni_branch%track_start)
+    nl=nl+1; write(lines(nl), amt) 'track_end                  = ', trim(uni_branch%track_end)
+    nl=nl+1; write(lines(nl), imt) 'ix_track_start             = ', uni_branch%ix_track_start 
+    nl=nl+1; write(lines(nl), imt) 'ix_track_end               = ', uni_branch%ix_track_end
+    nl=nl+1; write(lines(nl), amt) 'u%beam_saved_at:           = ', trim(u%beam_saved_at)
 
   ! have element index
 

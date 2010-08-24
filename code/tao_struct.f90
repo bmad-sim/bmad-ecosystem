@@ -647,6 +647,7 @@ end type
 
 type tao_universe_branch_struct
   type (tao_element_struct), allocatable :: ele(:) ! Per element information
+  character(40) track_start, track_end   
   integer ix_track_start                 ! Element start index of tracking
   integer ix_track_end                   ! Element end index of tracking
 end type
