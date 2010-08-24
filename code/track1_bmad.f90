@@ -558,10 +558,11 @@ case (match$)
   endif
 
   call match_ele_to_mat6 (ele, vec0, mat6, err)
-  if (err) then
-    call out_io (s_error$, r_name, &
-          'MATCH ELEMENT DOES NOT HAVE BEGINNING TWISS PARAMETERS: ' // ele%name)
-  endif
+!!  if (err) then
+!!    call out_io (s_error$, r_name, &
+!!          'MATCH ELEMENT HAS MATCH_END SET BUT BEGINNING BETA_A0 OR BETA_B0 PARAMETERS HAVE ', &
+!!          'NOT BEEN SET FROM PREVIOUS ELEMENT: ' // ele%name)
+!!  endif
 
   end%vec = matmul (mat6, end%vec) + vec0
 

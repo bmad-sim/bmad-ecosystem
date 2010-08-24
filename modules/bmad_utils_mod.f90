@@ -1833,7 +1833,7 @@ logical err_flag
 ! Special case where match_end is set but there is no beginning beta value yet.
 ! In this case, just return the unit matrix and set the err_flag.
 
-if (ele%value(match_end$) /= 0 .and. ele%value(beta_a0$) == 0) then
+if (ele%value(match_end$) /= 0 .and. (ele%value(beta_a0$) == 0 .or. ele%value(beta_b0$) == 0)) then
   call mat_make_unit (mat6)
   vec0 = 0
   err_flag = .true.
