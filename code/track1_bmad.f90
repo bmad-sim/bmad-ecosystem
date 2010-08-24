@@ -60,7 +60,10 @@ real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wave_length
 real(rp) k_in_norm(3), h_norm(3), kk_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
-complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel
+real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
+real(rp) test, nn, mm, temp_vec(3)
+
+complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
 integer i, n, n_slice, key
 
@@ -175,11 +178,11 @@ case (crystal$)
 
   sin_a = sin(ele%value(graze_angle_in$))
   cos_a = cos(ele%value(graze_angle_in$))
-  f = sqrt (1 + end%vec(2)**2 + end%vec(4)**2)
+  f = sqrt (1 - end%vec(2)**2 - end%vec(4)**2)
 
-  k_in_norm(1) = f * (cos_a * end%vec(2) + sin_a)
-  k_in_norm(2) = f * end%vec(4)
-  k_in_norm(3) = f * (-sin_a * end%vec(2) + cos_a)
+  k_in_norm(1) = cos_a * end%vec(2) + f * sin_a
+  k_in_norm(2) = end%vec(4)
+  k_in_norm(3) = -sin_a * end%vec(2) + f * cos_a
 
   ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
 
@@ -197,12 +200,12 @@ case (crystal$)
   gamma_0 = k_in_norm(1)
   gamma_h = k_in_norm(1) + h_norm(1)
   b_eff = gamma_0 / gamma_h
-  dtheta_sin_2theta = dot_product(h_norm + 2 * k_in_norm, h_norm)
+  dtheta_sin_2theta = dot_product(h_norm + 2 * k_in_norm, h_norm) / 2
   f0 = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
   fh = cmplx(ele%value(fh_re$), ele%value(fh_im$))
   f0_g = cap_gamma * f0 / 2
-  eta = b_eff * dtheta_sin_2theta + f0_g * &
-        (1 - b_eff) / (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
+  eta = (b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
+            (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
   eta1 = sqrt(eta**2 + sign(1.0_rp, b_eff))
 
   f_cmp = abs(p_factor) * sqrt(abs(b_eff)) * cap_gamma * fh / 2
@@ -214,30 +217,69 @@ case (crystal$)
     xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
   endif
 
-  ! Calculate phase and intensity 
+  !====Find M_in and M_out
 
-  e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
-  end%vec(5) = end%vec(5) + atan2(imag(e_rel), real(e_rel)) * wave_length / twopi
-  end%intensity_x = end%intensity_x * abs(e_rel)**2
+  m_in = reshape((/cos_a,0,-sin_a,0,1,0,sin_a,0,cos_a/),(/3,3/))
 
-  ! Calculate out ray in crystal coords.
+  sin_a = sin(ele%value(tilt_corr$))
+  cos_a = cos(ele%value(tilt_corr$))
+  y_out = matmul(m_in,(/0,1,0/))
+  y_out = matmul(reshape((/cos_a,sin_a,0,-sin_a,cos_a,0,0,0,1/),(/3,3/)), y_out)
+  y_out = matmul(transpose(m_in),y_out)
+
+  x_out(1) = y_out(2)*ele%value(nz_out$)-y_out(3)*ele%value(ny_out$)
+  x_out(2) = -y_out(1)*ele%value(nz_out$)+y_out(3)*ele%value(nx_out$)
+  x_out(3) = y_out(1)*ele%value(ny_out$)-y_out(2)*ele%value(nx_out$)
+  
+  k_out(1) = ele%value(nx_out$)
+  k_out(2) = ele%value(ny_out$)
+  k_out(3) = ele%value(nz_out$)
+  m_out = reshape( (/x_out,y_out,k_out/),(/3,3/))
+
+  !===================David's Way
 
   kk_out_norm = k_in_norm + h_norm 
   kk_out_norm(1) = kk_out_norm(1) + real(xi_0k - f0_g) / gamma_h - real(xi_hk - f0_g) / gamma_0
 
-  ! Convert to output reference frame
+  !===================My Way
+  
+  temp_vec = matmul(transpose(m_out),(h_norm+k_in_norm))
+  Nn = 1/m_out(3,3)*(1-temp_vec(3)) 
+  kk_out_norm = (/Nn,0,0/)+h_norm+k_in_norm
 
-  sin_a = sin(ele%value(graze_angle_out$))
-  cos_a = cos(ele%value(graze_angle_out$))
+  test = kk_out_norm(1)**2+kk_out_norm(2)**2+kk_out_norm(3)**2
+  temp_vec = matmul(transpose(m_out),kk_out_norm)
 
-  end%vec(2) = cos_a * kk_out_norm(1) + sin_a * kk_out_norm(3)
-  end%vec(4) = kk_out_norm(2)
+  end%vec(2) = temp_vec(1)
+  end%vec(4) = temp_vec(2)
 
-  end%vec(1) = -end%vec(1)
+  !======= Position in Phase Space
+  
+  temp_vec = matmul(m_in,(/end%vec(1),end%vec(3),0/))
+  nn = -dot_product( (/1,0,0/), temp_vec )
+  nn = nn/dot_product( (/1,0,0/), k_in_norm )
 
-  ! tilt_cor correction
+  temp_vec = temp_vec + nn * k_in_norm
+  
+  mm = -dot_product( k_out, temp_vec)
+  mm = nn/dot_product(k_out, kk_out_norm)
+  
+  temp_vec = temp_vec + mm * kk_out_norm
+
+  temp_vec = matmul(transpose(m_out),temp_vec)
+
+  end%vec(1) = temp_vec(1)
+  end%vec(3) = temp_vec(3)
 
 
+  !======== Calculate phase and intensity 
+
+  e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
+  e_rel2 = sqrt(xi_0k/xi_hk)
+
+  end%intensity_x = end%intensity_x * abs(e_rel)**2
+
+  end%vec(5) = nn + mm + wave_length*atan2(imag(e_rel),real(e_rel)) / twopi
 
   call offset_photon (ele, param, end, unset$)
 

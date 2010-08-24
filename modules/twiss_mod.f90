@@ -15,8 +15,8 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g,
-!                                                     twiss1, twiss2, type_out)
+! Subroutine mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, 
+!                                                      twiss1, twiss2, gamma, type_out)
 !
 ! Subroutine to find the symplectic eigen modes of the
 ! one turn 4x4 coupled transfer matrix T0.
@@ -38,11 +38,10 @@ contains
 !   twiss2  -- Twiss_struct: Twiss params for the "lower right" mode.
 !   u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4) -- Real(rp): See
 !                 MGB CBN 85-2 and PPB/DLR PAC89 papers for more info.
-!
+!   gamma   -- Real(rp): gamma_c factor.
 !-
 
-subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
-                                             twiss1, twiss2, type_out)
+subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2, gamma, type_out)
 
   implicit none
 
@@ -50,23 +49,14 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   integer i, j, stat
 
-  real(rp) t0(4,4), unit4(4,4), U(4,4), V(4,4), V_inv(4,4)
+  real(rp) t0(4,4), U(4,4), V(4,4), V_inv(4,4)
   real(rp) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
   real(rp) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
   real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
   real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
   real(rp) gamma, det_H, det,  trace_t0_diff, denom
   real(rp) scaler, tol
-
   logical type_out
-
-! define some matraces
-! remember that array storage is column first!
-
-  data unit4 /  1,  0,  0,  0,  &
-             0,  1,  0,  0,  &
-             0,  0,  1,  0,  &
-             0,  0,  0,  1 /
 
 ! check input matrix
 
@@ -121,7 +111,8 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
 ! Compute matrix V and inverse V_INV (MGB Eq. 10)
 
-  V = gamma * unit4
+  V = 0
+  forall (i = 1:4) v(i,i) = gamma 
   V(1:2,3:4) = c
   V(3:4,1:2) = -c_conj
 
@@ -141,8 +132,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
 ! check that the eigen modes are stable
 
-  if (abs(U(1,1) + U(2,2)) > 2 .or.  &
-                               abs(U(3,3) + U(4,4)) > 2) then
+  if (abs(U(1,1) + U(2,2)) > 2 .or. abs(U(3,3) + U(4,4)) > 2) then
     stat = unstable$
     return
   endif
@@ -151,15 +141,13 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  &
 
   call twiss_from_mat2 (U(1:2,1:2), det, twiss1, stat, tol, .false.)
   if (stat /= ok$) then
-    if (type_out) print *,  &
-      'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "A" mode TWISS'
+    if (type_out) print *, 'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "A" mode TWISS'
     return
   endif
 
   call twiss_from_mat2 (U(3:4,3:4), det, twiss2, stat, tol, .false.)
   if (stat /= ok$) then
-    if (type_out) print *,  &
-      'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "B" mode TWISS'
+    if (type_out) print *, 'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "B" mode TWISS'
     return
   endif
 
@@ -256,8 +244,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
   endif
 
   if (abs(det - 1) > tol) then
-    if (type_out) print *,  &
-                    'WARNING IN TWISS_FROM_MAT: MATRIX DETERMINANT >< 1:', det
+    if (type_out) print *, 'WARNING IN TWISS_FROM_MAT: MATRIX DETERMINANT >< 1:', det
     stat = non_symplectic$
   endif
 

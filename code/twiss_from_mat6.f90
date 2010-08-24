@@ -41,7 +41,7 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 
   real(rp) mat4(4,4), eta_vec(4), vec(4), orb(4)
   real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
-  real(rp) det, rate1, rate2
+  real(rp) rate1, rate2
   real(rp) :: tol = 1.0e-3
 
   integer i
@@ -55,7 +55,7 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   !
 
   call mat_symp_decouple (mat4, tol, bmad_status%status, u, v, ubar, &
-                                             vbar, g, ele%a, ele%b, .false.)
+                                             vbar, g, ele%a, ele%b, ele%gamma_c, .false.)
 
   if (bmad_status%status /= ok$) then
     if (bmad_status%type_out) then
@@ -83,8 +83,6 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   if (ele%a%beta /= 0 .and. ele%b%beta /= 0) then
     ele%mode_flip = .false.
     ele%c_mat = v(1:2,3:4)
-    call mat_det (ele%c_mat, det)
-    ele%gamma_c = sqrt(1-det)
   endif
 
   ! Compute normal mode and lab dispersion.

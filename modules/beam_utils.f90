@@ -666,7 +666,7 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine reallocate_bunch (bunch, n_bunch, n_particle)
+! Subroutine reallocate_bunch (bunch, n_particle)
 ! 
 ! Subroutine to reallocate particles within a bunch_struct.
 !
@@ -867,6 +867,8 @@ ran_gauss_here = .false.
 
 ! Fill the corresponding struct and generate the distribution for each phase plane.
 ! init_random_distribution must be called last.
+
+call reallocate_bunch (bunch, 0)
 
 do i = 1, 3
   call str_upcase (beam_init%distribution_type(i), beam_init%distribution_type(i))
@@ -1431,6 +1433,7 @@ else
       bunch%particle(i)%r%vec(2*k-1:2*k) = particle(i)%r%vec(2*k-1:2*k)
     enddo
   enddo
+  deallocate(particle)
 endif
 
 end subroutine combine_bunch_distributions
