@@ -669,11 +669,12 @@ type tao_universe_struct
   real(rp), allocatable :: dModel_dVar(:,:)              ! Derivative matrix.
   character(160) beam_saved_at
   integer ix_uni                         ! Universe index.
-  integer n_d2_data_used
-  integer n_data_used
-  integer ix_rad_int_cache
-  logical do_rad_int_calc
-  logical do_chrom_calc
+  integer n_d2_data_used                 ! Number of used %d2_data(:) components.
+  integer n_data_used                    ! Number of used %data(:) components.
+  integer ix_rad_int_cache               ! Radiation integrals cache index.
+  logical do_rad_int_calc_data           ! Do the radiation integrals need to be computed due 
+  logical do_rad_int_calc_plotting       !   to data or a plot depending upon the calc?
+  logical do_chrom_calc                  ! Does the chromaticity need to be computed?
   logical is_on                          ! universe turned on
   logical calc_beam_emittance            ! for a lat calculate emittance
   logical lattice_recalc                 ! Used to indicate which lattices need tracking done.

@@ -35,7 +35,7 @@ character(*)  which
 character(40) :: r_name = 'tao_run_cmd', my_opti
 
 logical abort
-logical, allocatable :: do_rad_int_calc(:)
+logical, allocatable :: do_rad_int_data(:), do_rad_int_plotting(:)
 
 !
 
@@ -61,16 +61,18 @@ endif
 
 ! Do not do radiation_integrals calc if not needed
 
-allocate (do_rad_int_calc(size(s%u)))
+allocate (do_rad_int_data(size(s%u)), do_rad_int_plotting(size(s%u)))
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(i)
-  do_rad_int_calc(i) = u%do_rad_int_calc
-  u%do_rad_int_calc = .false.
+  do_rad_int_data(i) = u%do_rad_int_calc_data
+  do_rad_int_plotting(i) = u%do_rad_int_calc_plotting
+  u%do_rad_int_calc_data = .false.
+  u%do_rad_int_calc_plotting = .false.
   do j = 1, size(u%data)
     if (.not. u%data(j)%useit_opt) cycle
     if (tao_rad_int_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) then
-      u%do_rad_int_calc = .true.
+      u%do_rad_int_calc_data = .true.
       exit
     endif
   enddo
@@ -134,8 +136,9 @@ enddo
 
 tao_com%optimizer_running = .false.
 
-s%u(:)%do_rad_int_calc = do_rad_int_calc
-deallocate (do_rad_int_calc)
+s%u(:)%do_rad_int_calc_data = do_rad_int_data
+s%u(:)%do_rad_int_calc_plotting = do_rad_int_plotting
+deallocate (do_rad_int_data, do_rad_int_plotting)
 
 if (s%global%orm_analysis) s%u(:)%mat6_recalc_on = .true.
 s%u(:)%lattice_recalc = .true.

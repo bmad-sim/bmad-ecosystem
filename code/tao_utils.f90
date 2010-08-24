@@ -2914,7 +2914,11 @@ type (tao_curve_struct), pointer :: curve
 
 integer i, j, k
 
+character(60) :: r_name = 'tao_turn_on_rad_int_calc_if_needed_for_plotting'
+
 !
+
+s%u(:)%do_rad_int_calc_plotting = .false.
 
 do i = 1, size(s%plot_region)
   if (.not. s%plot_region(i)%visible) cycle
@@ -2926,10 +2930,15 @@ do i = 1, size(s%plot_region)
     do k = 1, size(graph%curve)
       curve => graph%curve(k)
       u => tao_pointer_to_universe(curve%ix_universe)
-      if (u%do_rad_int_calc) cycle
 
       if (tao_rad_int_calc_needed(curve%data_type, curve%data_source)) then
-        u%do_rad_int_calc = .true. 
+
+        if (curve%ix_branch /= 0) then
+          call out_io (s_fatal$, r_name, 'PLOTTING THIS: ' // curve%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
+          call err_exit
+        endif
+
+        u%do_rad_int_calc_plotting = .true. 
         u%lattice_recalc = .true.
       endif
 

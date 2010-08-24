@@ -1073,7 +1073,7 @@ do j = n1, n2
   source = dat%data_source
 
   if (tao_rad_int_calc_needed(data_type, source)) then
-    u%do_rad_int_calc = .true. 
+    u%do_rad_int_calc_data = .true. 
     if (dat%ix_branch /= 0) then
       call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
       call err_exit

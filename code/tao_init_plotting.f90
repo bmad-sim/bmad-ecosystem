@@ -679,19 +679,6 @@ do  ! Loop over plot files
           call err_exit
         endif
 
-        if (tao_rad_int_calc_needed(crv%data_type, crv%data_source)) then
-          if (crv%ix_branch /= 0) then
-            call out_io (s_fatal$, r_name, 'PLOTTING THIS: ' // crv%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
-            call err_exit
-          endif
-
-          if (crv%ix_universe == -1) then
-            s%u%do_rad_int_calc = .true.
-          else
-            s%u(i_uni)%do_rad_int_calc = .true.
-          endif
-        endif
-
         ! Find the ele_ref info if either ele_ref_name or ix_ele_ref has been set.
         ! If plotting something like the phase then the default is for ele_ref 
         ! to be the beginning element.
