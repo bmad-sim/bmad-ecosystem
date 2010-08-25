@@ -69,7 +69,7 @@ SHELL=/bin/sh
 # If this file is not renamed to Makefile before use, the user needs to 
 # set MAKEFILE to the name of the file
 #-----------------------------------------------------------------------------
-MAKEFILE := M.tao.plplot
+MAKEFILE := M.tao.plplot.dyn
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into

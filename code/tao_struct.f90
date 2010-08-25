@@ -206,9 +206,9 @@ end type
 ! Note that the qp_com structure of quick_plot also is used to hold 
 ! plot page info.
 
-type tao_plot_page_struct               
+type tao_plot_page_struct
+  character(8) :: plot_display_type = 'TK'       ! 'X' or 'TK'
   character(80) ps_scale             ! scaling when creating PS files.
-  character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
   real(rp) :: shape_height_max = 40  ! maximum half height for drawing elements.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
