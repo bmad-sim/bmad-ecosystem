@@ -723,6 +723,7 @@ end subroutine
 !   page_type -- Character(*). Device name for the type of plot.
 !                 TYPE is passed to GG_SETUP. E.g.
 !                 TYPE = 'X'     --> Open an X-window.
+!                 TYPE = 'TK'    --> Open a tk window.
 !                 TYPE = 'GIF'   --> To create a gif file.
 !                 TYPE = 'GIF-L' --> Gif w/ landscape page orientation.
 !                 TYPE = 'PS'    --> To create a Color PostScript file.
