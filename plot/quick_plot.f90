@@ -1346,7 +1346,7 @@ call qp_clear_page_basic
 if (qp_com%page_type(1:3) == 'GIF') then
   call qp_paint_rectangle (qp_com%page%x1, qp_com%page%x2, &
                            qp_com%page%y1, qp_com%page%y2, &
-                           color = white$, fill_pattern = solid_fill$)
+                           'INCH', color = white$, fill_pattern = solid_fill$)
 endif
 
 end subroutine
@@ -1366,7 +1366,7 @@ subroutine qp_clear_box
 
 call qp_paint_rectangle (qp_com%box%x1, qp_com%box%x2, &
                          qp_com%box%y1, qp_com%box%y2, &
-                           color = white$, fill_pattern = solid_fill$)
+                         'INCH', color = white$, fill_pattern = solid_fill$)
 
 end subroutine
 
@@ -1385,7 +1385,7 @@ end subroutine
 !   y1  -- Real(rp): Bottom edge
 !   y2  -- Real(rp): Top edge.
 !   units        -- Character(*), optional: Units of returned numbers.
-!                     Default = 'INCH'   (unless default_set_units is changed).
+!                     Default = 'DATA/GRAPH/LB'
 !   color        -- Integer, optional: Color to paint the rectangle.
 !                     Default is to use the symbol color.
 !   fill_pattern -- Integer, optional: Fill pattern. 
@@ -1405,10 +1405,8 @@ integer, optional :: color, fill_pattern
 
 if (x1 == x2 .or. y1 == y2) return
 
-qp_com%dflt_units = dflt_set$
 call qp_to_inch_abs (x1, y1, x1_inch, y1_inch, units)
 call qp_to_inch_abs (x2, y2, x2_inch, y2_inch, units)
-qp_com%dflt_units = dflt_draw$
  
 call qp_paint_rectangle_basic (x1_inch, x2_inch, y1_inch, y2_inch, &
               integer_option(qp_com%symbol%color, color), &
