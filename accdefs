@@ -53,35 +53,6 @@ fi
 # absoft  -- f95          default on Darwin_powerpc
 # gnu     -- g77/g95
 #======================================================
-#if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
-#  CESRF90=${CESRF90:-intel}
-#  ACCF90=${ACCF90:-intel}
-#fi
-#if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
-#  CESRF90=${CESRF90:-intel}
-#  ACCF90=${ACCF90:-intel}
-#fi
-#if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
-#  CESRF90=${CESRF90:-hp}
-#  ACCF90=${ACCF90:-hp}
-#fi
-#if ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then 
-#  CESRF90=${CESRF90:-absoft}
-#  ACCF90=${ACCF90:-absoft}
-#fi
-
-
-
-#=======================================================
-# Only here for temporary fix of stalled login scripts
-# for users sourcing this script on x86_64 architecture  
-# machines.  This provides no other functionality.
-#=======================================================
-#if ( [ "${PLATFORM_TAG}" = "Linux_x86_64" ] ) then
-#  CESRF90=${CESRF90:-intel}  
-#  ACCF90=${ACCF90:-intel}
-#fi
-
 
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
   CESRF90=${CESRF90:-intel}
@@ -106,6 +77,7 @@ elif ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
 else
   CESRF90=${CESRF90:-intel}
   ACCF90=${ACCF90:-intel}
+  PLATFORM_TAG="Linux_i686"
 fi
 
 
@@ -232,7 +204,7 @@ while ( [ ${users_done} -eq 0 ] && [ ${lock_count} -lt ${max_count} ] ) do
       touch ${lock_file}
       echo "`date` - `whoami` `hostname -s` `basename ${SHELL}` ${ACC_PLATFORM}_${ACC_F90} ${ACCLIB}" >> ${users_file}
       users_done=1
-      rm ${lock_file}
+      rm ${lock_file} &> /dev/null
     fi
 done
 unset lock_count

@@ -206,7 +206,7 @@ while ( ${lock_count} < ${max_count} )
     else
       touch ${lock_file}
       echo "`date` - `whoami` `hostname -s` $SHELL:t ${ACC_PLATFORM}_${ACC_F90} ${ACCLIB}" >> ${users_file}
-      rm ${lock_file}
+      rm ${lock_file} >& /dev/null
       break
     endif
 end 
