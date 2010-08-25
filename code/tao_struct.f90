@@ -495,7 +495,6 @@ type tao_global_struct
   character(16) :: optimizer     = 'de'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
-  character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
   logical :: var_limits_on = .true.             ! Respect the variable limits?
   logical :: opt_with_ref = .false.             ! use reference data in optimization?
   logical :: opt_with_base = .false.            ! use base data in optimization?

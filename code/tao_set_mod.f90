@@ -260,7 +260,7 @@ endif
 needs_quotes = .false.
 select case (who)
 case ('random_engine', 'random_gauss_converter', 'track_type', &
-      'prompt_string', 'optimizer', 'print_command', 'var_out_file', 'plot_display_type')
+      'prompt_string', 'optimizer', 'print_command', 'var_out_file')
   needs_quotes = .true.
 end select
 if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
