@@ -219,13 +219,13 @@ case (crystal$)
 
   !====Find M_in and M_out
 
-  m_in = reshape((/cos_a,0,-sin_a,0,1,0,sin_a,0,cos_a/),(/3,3/))
+  m_in = reshape([cos_a, 0.0_rp, -sin_a, 0.0_rp, 1.0_rp, 0.0_rp, sin_a, 0.0_rp, cos_a], [3,3])
 
   sin_a = sin(ele%value(tilt_corr$))
   cos_a = cos(ele%value(tilt_corr$))
-  y_out = matmul(m_in,(/0,1,0/))
-  y_out = matmul(reshape((/cos_a,sin_a,0,-sin_a,cos_a,0,0,0,1/),(/3,3/)), y_out)
-  y_out = matmul(transpose(m_in),y_out)
+  y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
+  y_out = matmul(reshape([cos_a, sin_a, 0.0_rp, -sin_a, cos_a, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]),  y_out)
+  y_out = matmul(transpose(m_in), y_out)
 
   x_out(1) = y_out(2)*ele%value(nz_out$)-y_out(3)*ele%value(ny_out$)
   x_out(2) = -y_out(1)*ele%value(nz_out$)+y_out(3)*ele%value(nx_out$)
@@ -234,7 +234,7 @@ case (crystal$)
   k_out(1) = ele%value(nx_out$)
   k_out(2) = ele%value(ny_out$)
   k_out(3) = ele%value(nz_out$)
-  m_out = reshape( (/x_out,y_out,k_out/),(/3,3/))
+  m_out = reshape( [x_out, y_out, k_out], [3, 3])
 
   !===================David's Way
 
@@ -243,30 +243,30 @@ case (crystal$)
 
   !===================My Way
   
-  temp_vec = matmul(transpose(m_out),(h_norm+k_in_norm))
-  Nn = 1/m_out(3,3)*(1-temp_vec(3)) 
-  kk_out_norm = (/Nn,0,0/)+h_norm+k_in_norm
+  temp_vec = matmul(transpose(m_out), (h_norm+k_in_norm))
+  Nn = 1/m_out(3, 3)*(1-temp_vec(3)) 
+  kk_out_norm = [Nn, 0.0_rp, 0.0_rp] + h_norm + k_in_norm
 
-  test = kk_out_norm(1)**2+kk_out_norm(2)**2+kk_out_norm(3)**2
-  temp_vec = matmul(transpose(m_out),kk_out_norm)
+  test = kk_out_norm(1)**2 + kk_out_norm(2)**2 + kk_out_norm(3)**2
+  temp_vec = matmul(transpose(m_out), kk_out_norm)
 
   end%vec(2) = temp_vec(1)
   end%vec(4) = temp_vec(2)
 
   !======= Position in Phase Space
   
-  temp_vec = matmul(m_in,(/end%vec(1),end%vec(3),0/))
-  nn = -dot_product( (/1,0,0/), temp_vec )
-  nn = nn/dot_product( (/1,0,0/), k_in_norm )
+  temp_vec = matmul(m_in, [end%vec(1), end%vec(3), 0.0_rp])
+  nn = -dot_product( [1.0_rp, 0.0_rp, 0.0_rp], temp_vec )
+  nn = nn/dot_product( [1.0_rp, 0.0_rp, 0.0_rp], k_in_norm )
 
   temp_vec = temp_vec + nn * k_in_norm
   
-  mm = -dot_product( k_out, temp_vec)
+  mm = -dot_product(k_out, temp_vec)
   mm = nn/dot_product(k_out, kk_out_norm)
   
   temp_vec = temp_vec + mm * kk_out_norm
 
-  temp_vec = matmul(transpose(m_out),temp_vec)
+  temp_vec = matmul(transpose(m_out), temp_vec)
 
   end%vec(1) = temp_vec(1)
   end%vec(3) = temp_vec(3)
@@ -279,7 +279,7 @@ case (crystal$)
 
   end%intensity_x = end%intensity_x * abs(e_rel)**2
 
-  end%vec(5) = nn + mm + wave_length*atan2(imag(e_rel),real(e_rel)) / twopi
+  end%vec(5) = nn + mm + wave_length*atan2(imag(e_rel), real(e_rel)) / twopi
 
   call offset_photon (ele, param, end, unset$)
 
@@ -551,18 +551,19 @@ case (match$)
     ele%value(py0$) = start%vec(4)
     ele%value(z0$)  = start%vec(5)
     ele%value(pz0$) = start%vec(6)
-    end%vec = (/ ele%value(x1$), ele%value(px1$), &
-                 ele%value(y1$), ele%value(py1$), &
-                 ele%value(z1$), ele%value(pz1$) /)
+    end%vec = [ ele%value(x1$), ele%value(px1$), &
+                ele%value(y1$), ele%value(py1$), &
+                ele%value(z1$), ele%value(pz1$) ]
     return
   endif
 
   call match_ele_to_mat6 (ele, vec0, mat6, err)
-!!  if (err) then
+  if (err) then
+    param%lost = .true.
 !!    call out_io (s_error$, r_name, &
 !!          'MATCH ELEMENT HAS MATCH_END SET BUT BEGINNING BETA_A0 OR BETA_B0 PARAMETERS HAVE ', &
 !!          'NOT BEEN SET FROM PREVIOUS ELEMENT: ' // ele%name)
-!!  endif
+  endif
 
   end%vec = matmul (mat6, end%vec) + vec0
 
@@ -573,11 +574,11 @@ case (mirror$)
 
   call offset_photon (ele, param, end, set$)
 
-  end%vec(1:4) = (/ &
+  end%vec(1:4) = [ &
         -end%vec(1), &
         -end%vec(2) + 2 * end%vec(1) * ele%value(g_graze$) / sin(ele%value(graze_angle$)), &
          end%vec(3), &
-         end%vec(4) - 2 * end%vec(3) * ele%value(g_trans$) /)
+         end%vec(4) - 2 * end%vec(3) * ele%value(g_trans$)]
 
   call offset_photon (ele, param, end, unset$)
 
