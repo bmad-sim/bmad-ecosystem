@@ -258,11 +258,11 @@ do
       endif
     endif
 
-    write(*,'(a,i3,a,e15.6,5x,a,e15.6/,a,e13.6/,a,i8,a/,a,e13.6)')&
+    write(*,'(a,i3,a,e15.6,5x,a,e15.6/,a,e13.6,a,i9,a/,a,e13.6)')&
          ' Period ', n_period,'   Time: ',bbu_beam%time_now, &
          ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
          ' Sum of max HOM wake amplitudes (V): ', hom_power_sum, &
-         '   over ', n_count, ' bunch passages'&
+         '   over ', n_count, ' bunch passages', &
          ' HOM power gain factor: ', hom_power_gain
 
     call track_all (lat, orbit)
