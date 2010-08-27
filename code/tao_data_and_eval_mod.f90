@@ -3022,7 +3022,7 @@ else
 
   if (err_flag) then
     if (source == '') call out_io (s_error$, r_name, &
-                        'Cannot evaluate as datum or var: ' // name)
+                        'CANNOT EVALUATE AS DATUM OR VARIABLE VALUE: ' // name)
     return
   endif
 
@@ -3061,7 +3061,8 @@ elseif (size(int_array) /= 0) then
 
 else
   if (print_err) call out_io (s_warn$, r_name, &
-               "This doesn't seem to be datum value or variable value: " // name)
+               'THIS IS NOT A DATUM OR A VARIABLE VALUE: ' // name, &
+               '[PERHAPS MISSING "|<component>" SUFFIX.]')
   err_flag = .true.
   return
 endif

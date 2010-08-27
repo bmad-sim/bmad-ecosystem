@@ -1521,11 +1521,11 @@ be read in with a \vn{call} command.
 
 %% show value --------------------------------------------------------------
 
-\item[show value <expression>]
+\item[show value <expression>] \Newline
+
 Shows the value of an expression. Examples:
 \begin{example}
-  show value 3@lat:orbit.x[34]  ! orbit at lattice element #34 
-  show value sin(0.35)
+  show value sqrt(3@lat:orbit.x[34]|model) + sin(0.35)
 \end{example}
 
 
