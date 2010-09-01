@@ -38,7 +38,7 @@
 # THE FOLLOWING LINE SHOULD BE MODIFIED TO REFLECT THE 
 # USER'S LOCAL INSTALLATION
 
-BMAD_=${BMAD_:-/home/cesrulib/cesr_libs/bmad_dist}
+BMAD_=${BMAD_:-/home/mcr/tmp/dist_testing/bmad_dist}
 
 #BMAD_=/cygdrive/w/cesr_libs/bmad_dist
 #
@@ -69,30 +69,30 @@ SYSTEM_TAG="`uname -s | cut -d- -f1`"
 # BMADF90=${BMADF90:-gfortran}
 # BMADF90=${BMADF90:-intel}
 
+
+
+
+
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then 
   BMADF90=${BMADF90:-intel}
-# set physical disk for BMAD library area (here w:)
-# and  disk  for your local  working area (here c:) 
-     export BMAD_PD=w
-     export LOCAL_PD=c
-fi
-
-if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
+elif ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then 
   BMADF90=${BMADF90:-intel}
-fi
-
-if ( [ "${PLATFORM_TAG}" = "Linux_athlon" ] ) then 
-  BMADF90=${BMADF90:-intel}
+elif ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
+  BMADF90=${BMADF90:-hp}
+elif ( [ "${SYSTEM_TAG}" = "Darwin" ] ) then 
+  BMADF90=${BMADF90:-absoft}
+else
+  BMADF90=${BMADF90:-gfortran}
   PLATFORM_TAG="Linux_i686"
 fi
 
-if ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
-  BMADF90=${BMADF90:-hp}
-fi
 
-if ( [ "${SYSTEM_TAG}" = "Darwin" ] ) then 
-  BMADF90=${BMADF90:-gfortran}
-fi
+#
+# Set flag to enable use of PLPLOT for distrubution builds
+#
+USE_PLPLOT=Y
+
+
 
 #
 # Export the BMAD environment variable structure
@@ -135,61 +135,4 @@ else
   MPI="FALSE"
 fi
 export MPI
-
-#==========================================================
-#
-# $Id$
-#
-# $Log$
-# Revision 1.8  2006/03/13 18:53:25  cesrulib
-# merging with win_port
-#
-# Revision 1.7.2.1  2006/02/15 20:42:03  cesrulib
-# windows porting BMAD environment added
-#
-# Revision 1.7  2005/06/02 18:32:52  cesrulib
-# Intel ifort is default on Linux now...
-#
-# Revision 1.6  2005/05/15 01:32:29  cesrulib
-# New environment variables and some changes have been introduced in order
-# make switches between FORTRAN compilers more easy.
-# These variables are:
-# CESR_F90 for standard release and
-# BMAD_F90   for bmad distribution.
-# The value of CESR_F90 (or BMAD_F90) depending on platform may be:
-#  value   --  compiler    --  platform:
-#
-#  intel   --  ifort       --  (test in progress on Linux_i686)
-#  lahey   --  lf95        --  default on Linux_i686
-#  hp      --  f77/f90/f95 --  default on OSF1_alpha
-#  ibm     --  xlf
-#  absoft  --  f95         --  default on Darwin_powerpc (test in progress)
-#  gnu     --  g77/g95
-#
-# List of files with the change:
-# util/
-# cesrdefs cesrdef cesrenv do_release f90_mod_list.perl cesrmakedepend
-# bmad_defs bmad_def bmadenv do_bmad_dist
-# Gmake/
-# M.tail M.release M.distribution
-#
-# Revision 1.5  2004/11/16 16:01:37  palmer
-# Update environment variable structure including support for Windows and
-# new naming conventions.
-#
-# Revision 1.4  2004/11/15 19:42:52  palmer
-# Bug fix for compatibility when running on OSF1.
-#
-# Revision 1.3  2003/11/26 11:43:59  cesrulib
-# Bug fix in BMADENV override capability.
-#
-# Revision 1.2  2003/11/26 11:05:40  cesrulib
-# Fix bug in environment setup.
-#
-# Revision 1.1  2003/11/10 02:35:06  palmer
-# Add bmad_def, bmad_defs, bmadenv scripts to set up bmad distribution
-# environment variables.  Modify cesrenv for compatibility with new
-# bmad environment scripts.
-#
-#
 
