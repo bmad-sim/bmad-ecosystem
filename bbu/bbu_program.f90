@@ -18,7 +18,7 @@ integer :: nstep = 100
 integer irep
 
 real(rp) deldr,dr, charge_try
-real(rp) hom_power_gain, charge0, charge1, charge_old, charge_threshold
+real(rp) hom_voltage_gain, charge0, charge1, charge_old, charge_threshold
 real(rp) trtb, currth, growth_rate, growth_rate0, growth_rate1, growth_rate_old
 real(rp) time
 
@@ -129,10 +129,10 @@ if (bbu_param%stable_orbit_anal.eq..true.)then
         ' Opening output file STABLE_ORBIT.OUT for stable orbit analysis'
   open (56, file = 'stable_orbit.out', status = 'unknown')
 
-! Open file for HOM power stability data
+! Open file for HOM voltage stability data
   write(6,'(a,i10,a)')&
-        ' Opening output file HOM_POWER.OUT for stable orbit analysis'
-  open (57, file = 'hom_power.out', status = 'unknown')
+        ' Opening output file HOM_VOLTAGE.OUT for stable orbit analysis'
+  open (57, file = 'hom_voltage.out', status = 'unknown')
 
 endif
 
@@ -212,7 +212,7 @@ do istep = 1, nstep
       print *,' Analyzing stable orbit for repetition ', irep
 
       lat = lat0 ! Restore lr wakes
-      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep)
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 
       if (lost) then
          print *, 'Particle(s) lost. Assuming unstable...'
@@ -221,7 +221,7 @@ do istep = 1, nstep
                   do i = 1, size(bbu_beam%stage)
                      j = bbu_beam%stage(i)%ix_stage_pass1
           write(56,'(i10,3(1x,e15.8),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
-                      real(bbu_beam%stage(j)%hom_power_max), &
+                      real(bbu_beam%stage(j)%hom_voltage_max), &
                       real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%wake%lr(bbu_beam%stage(j)%ix_hom_max)%freq), &
                       bbu_beam%stage(i)%n_orb, & 
                       bbu_beam%stage(i)%ave_orb, bbu_beam%stage(i)%rms_orb, &
@@ -249,9 +249,9 @@ do istep = 1, nstep
 
     do
       lat = lat0 ! Restore lr wakes
-      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep)
+      call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
       call calc_next_charge_try
-      if (hom_power_gain > 1) exit
+      if (hom_voltage_gain > 1) exit
       if (lost) then
         print *, 'Particle(s) lost. Assuming unstable...'
         exit
@@ -264,7 +264,7 @@ do istep = 1, nstep
 
       do
         lat = lat0 ! Restore lr wakes
-        call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep)
+        call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
         if (lost) print *, 'Particle(s) lost. Assuming unstable...'
         call calc_next_charge_try
         if (charge1 - charge0 < charge1 * bbu_param%rel_tol) exit
@@ -272,7 +272,7 @@ do istep = 1, nstep
 
       beam_init%bunch_charge = (charge0 + charge1) / 2
       print *, 'Threshold Current (A):', beam_init%bunch_charge / beam_init%dt_bunch 
-      i = bbu_beam%ix_stage_power_max
+      i = bbu_beam%ix_stage_voltage_max
       j = bbu_beam%stage(i)%ix_ele_lr_wake
       ele => lat%ele(j)
       ele2 => ele
