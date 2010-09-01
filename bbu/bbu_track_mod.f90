@@ -9,7 +9,7 @@ type bbu_stage_struct
   integer :: ix_stage_pass1   ! Index of corresponding stage on first pass
   integer :: ix_head_bunch
   integer :: ix_hom_max
-  real(rp) :: hom_power_max
+  real(rp) :: hom_voltage_max
   real(rp) time_at_wake_ele 
   real(rp) :: ave_orb(6) = 0, rms_orb(6) = 0, min_orb(6) = 0, max_orb(6) = 0
   integer n_orb
@@ -21,10 +21,10 @@ type bbu_beam_struct
   integer ix_bunch_head       ! Index to head bunch(:)
   integer ix_bunch_end        ! Index of the end bunch(:). -1 -> no bunches.
   integer n_bunch_in_lat      ! Number of bunches transversing the lattice.
-  integer ix_stage_power_max
+  integer ix_stage_voltage_max
   integer ix_last_stage_tracked
   type (bbu_stage_struct), allocatable :: stage(:)
-  real(rp) hom_power_max
+  real(rp) hom_voltage_max
   real(rp) time_now
   real(rp) one_turn_time
 end type
@@ -158,7 +158,7 @@ end subroutine bbu_setup
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_power_gain, growth_rate, lost, irep) 
+subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep) 
 
 implicit none
 
@@ -168,8 +168,8 @@ type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: orbit(:)
 
-real(rp) hom_power0, hom_power_sum, r_period, r_period0, power
-real(rp) hom_power_gain, growth_rate, orb(6)
+real(rp) hom_voltage0, hom_voltage_sum, r_period, r_period0, voltage
+real(rp) hom_voltage_gain, growth_rate, orb(6)
 real(rp) max_x,rms_x,max_y,rms_y
 
 integer i, n_period, n_count, n_period_old, ix_ele,irep
@@ -191,11 +191,11 @@ enddo
 
 call reallocate_coord (orbit, lat%n_ele_track)
 
-! init time at hom and hom_power
+! init time at hom and hom_voltage
 
-bbu_beam%stage%hom_power_max = 0
-bbu_beam%hom_power_max = 0
-bbu_beam%ix_stage_power_max = 1
+bbu_beam%stage%hom_voltage_max = 0
+bbu_beam%hom_voltage_max = 0
+bbu_beam%ix_stage_voltage_max = 1
 growth_rate = real_garbage$
 
 
@@ -204,14 +204,14 @@ ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
 bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele)%ref_time
 
 ! Track...
-! To decide whether things are stable or unstable we look at the HOM power integrated
-! over one turn period. The power is integrated over one period since there can 
-! be a large variation in HOM power within a period.
+! To decide whether things are stable or unstable we look at the HOM voltage integrated
+! over one turn period. The voltage is integrated over one period since there can 
+! be a large variation in HOM voltage within a period.
 ! And since it is in the first period that all the stages are getting populated with bunches,
 ! We don't start integrating until the second period.
 
 n_period_old = 0
-hom_power_sum = 0
+hom_voltage_sum = 0
 n_count = 0
 
 do
@@ -242,28 +242,28 @@ do
     enddo
 
     if (n_period == 3) then
-    ! The baseline/reference hom power is computed over the 2nd period after the offset bunches 
+    ! The baseline/reference hom voltage is computed over the 2nd period after the offset bunches 
     ! have passed through the lattice.
-      hom_power0 = hom_power_sum / n_count
+      hom_voltage0 = hom_voltage_sum / n_count
       r_period0 = r_period
 
     elseif (n_period > 3) then
-      hom_power_gain = (hom_power_sum / n_count) / hom_power0
-      growth_rate = log(hom_power_gain) / (r_period - r_period0)
+      hom_voltage_gain = (hom_voltage_sum / n_count) / hom_voltage0
+      growth_rate = log(hom_voltage_gain) / (r_period - r_period0)
       if (.not. bbu_param%stable_orbit_anal) then
-        if (hom_power_gain < 1/bbu_param%limit_factor) exit
-        if (hom_power_gain > bbu_param%limit_factor) exit      
+        if (hom_voltage_gain < 1/bbu_param%limit_factor) exit
+        if (hom_voltage_gain > bbu_param%limit_factor) exit      
       else
-        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period,hom_power_sum,n_count,hom_power_gain
+        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period,hom_voltage_sum,n_count,hom_voltage_gain
       endif
     endif
 
     write(*,'(a,i3,a,e15.6,5x,a,e15.6/,a,e13.6,a,i9,a/,a,e13.6)')&
          ' Period ', n_period,'   Time: ',bbu_beam%time_now, &
          ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
-         ' Sum of max HOM wake amplitudes (V): ', hom_power_sum, &
+         ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
          '   over ', n_count, ' bunch passages', &
-         ' HOM power gain factor: ', hom_power_gain
+         ' HOM voltage gain factor: ', hom_voltage_gain
 
     call track_all (lat, orbit)
     max_x = maxval(abs(orbit(1:lat%n_ele_track)%vec(1)))
@@ -277,11 +277,11 @@ do
 
     if (r_period > bbu_param%simulation_turns_max) then
       call out_io (s_warn$, r_name, 'SIMULATION_TURNS_MAX EXCEEDED. ENDING TRACKING. \f10.2\ ', &
-                            r_array = (/ hom_power_gain /) )
+                            r_array = (/ hom_voltage_gain /) )
       exit
     endif
 
-    hom_power_sum = 0
+    hom_voltage_sum = 0
     n_count = 0
     n_period_old = n_period
     do i = 1, size(bbu_beam%stage)
@@ -293,9 +293,9 @@ do
     enddo
   endif
 
-  ! Compute integrated power. 
-  call bbu_hom_power_calc (lat, bbu_beam)
-  hom_power_sum = hom_power_sum + bbu_beam%hom_power_max
+  ! Compute integrated voltage. 
+  call bbu_hom_voltage_calc (lat, bbu_beam)
+  hom_voltage_sum = hom_voltage_sum + bbu_beam%hom_voltage_max
   n_count = n_count + 1
   
 enddo
@@ -501,9 +501,9 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
-! Calculates power in mode with maximal amplitude
+! Calculates voltage in mode with maximal amplitude
 
-subroutine bbu_hom_power_calc (lat, bbu_beam)
+subroutine bbu_hom_voltage_calc (lat, bbu_beam)
 
 implicit none
 
@@ -511,43 +511,43 @@ type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
 type (lr_wake_struct), pointer :: lr
 
-real(rp) hom_power_max, hom_power2
+real(rp) hom_voltage_max, hom_voltage2
 
 integer i, j, i1, ixm, ix
 
 ! Only need to update the last stage tracked
 
-hom_power_max = -1
+hom_voltage_max = -1
 i = bbu_beam%ix_last_stage_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1
 ix = bbu_beam%stage(i1)%ix_ele_lr_wake
 do j = 1, size(lat%ele(ix)%wake%lr)
   lr => lat%ele(ix)%wake%lr(j)
-  hom_power2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
-  if (hom_power_max < hom_power2) then
-    hom_power_max = hom_power2
+  hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
+  if (hom_voltage_max < hom_voltage2) then
+    hom_voltage_max = hom_voltage2
     bbu_beam%stage(i1)%ix_hom_max = j
   endif
 enddo
 
-! Update the new hom power.
+! Update the new hom voltage.
 
-hom_power_max = sqrt(hom_power_max)
-bbu_beam%stage(i1)%hom_power_max = hom_power_max
+hom_voltage_max = sqrt(hom_voltage_max)
+bbu_beam%stage(i1)%hom_voltage_max = hom_voltage_max
 
-! Find the maximum hom power in any element.
+! Find the maximum hom voltage in any element.
 
-if (hom_power_max > bbu_beam%hom_power_max) then
-  bbu_beam%ix_stage_power_max = i1
-  bbu_beam%hom_power_max = hom_power_max
+if (hom_voltage_max > bbu_beam%hom_voltage_max) then
+  bbu_beam%ix_stage_voltage_max = i1
+  bbu_beam%hom_voltage_max = hom_voltage_max
 
-elseif (i1 == bbu_beam%ix_stage_power_max) then
-  ixm = maxloc(bbu_beam%stage%hom_power_max, 1)
-  bbu_beam%ix_stage_power_max = ixm
-  bbu_beam%hom_power_max = bbu_beam%stage(ixm)%hom_power_max
+elseif (i1 == bbu_beam%ix_stage_voltage_max) then
+  ixm = maxloc(bbu_beam%stage%hom_voltage_max, 1)
+  bbu_beam%ix_stage_voltage_max = ixm
+  bbu_beam%hom_voltage_max = bbu_beam%stage(ixm)%hom_voltage_max
 endif
 
-end subroutine bbu_hom_power_calc
+end subroutine bbu_hom_voltage_calc
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
