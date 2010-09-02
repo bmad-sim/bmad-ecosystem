@@ -18,7 +18,7 @@ type (tao_d2_data_struct), intent(in), target :: d2_data
 type (tao_d1_data_struct), pointer :: d1
 
 character(17) :: r_name = "tao_data_show_use"
-character(n_char_show) line
+character(n_char_show) line, line2
 
 character(*), optional, allocatable :: lines(:)
 integer, optional :: nl
@@ -34,14 +34,14 @@ do i = 1, size(d2_data%d1)
   call location_encode (line, d1%d%useit_opt, d1%d%exists, lbound(d1%d, 1))
   if (len_trim(line) > len(line) - 60) line = line(1:len(line)-70) // ' ...etc...'
 
-  write (line, '(2x, 2a, i0, a, i0, a, t50, 2a)') trim(tao_d2_d1_name(d1)), &
+  write (line2, '(2x, 2a, i0, a, i0, a, t50, 2a)') trim(tao_d2_d1_name(d1)), &
             '[', lbound(d1%d, 1), ':', ubound(d1%d, 1), ']', 'Using: ', trim(line)
 
   if (present(lines)) then
     if (nl + 10 > size(lines)) call re_allocate(lines, nl+10, .false.)
-    nl=nl+1; lines(nl) = line
+    nl=nl+1; lines(nl) = line2
   else
-    call out_io (s_blank$, r_name, line)
+    call out_io (s_blank$, r_name, line2)
   endif
 
 enddo

@@ -1300,6 +1300,12 @@ case ('n_particle_loss')
 
 case ('orbit.')
 
+  if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
+    valid_value = .false.
+    why_invalid = 'Particle lost.'
+    return
+  endif
+
   select case (datum%data_type)
 
   case ('orbit.x')
@@ -1309,21 +1315,11 @@ case ('orbit.')
       call tao_load_this_datum (orbit(:)%vec(1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
-
   case ('orbit.y')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params%centroid%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
       call tao_load_this_datum (orbit(:)%vec(3), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    endif
-
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.z')
@@ -1333,21 +1329,11 @@ case ('orbit.')
       call tao_load_this_datum (orbit(:)%vec(5), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
-
   case ('orbit.px')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params%centroid%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
       call tao_load_this_datum (orbit(:)%vec(2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    endif
-
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
     endif
 
   case ('orbit.py')
@@ -1357,11 +1343,6 @@ case ('orbit.')
       call tao_load_this_datum (orbit(:)%vec(4), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
-
   case ('orbit.pz')
     if (data_source == 'beam') then
       call tao_load_this_datum (bunch_params%centroid%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
@@ -1369,42 +1350,41 @@ case ('orbit.')
       call tao_load_this_datum (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
+  case ('orbit.intensity_x')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+  case ('orbit.intensity_y')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+  case ('orbit.intensity')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%intensity_x + orbit(:)%intensity_y, ele_ref, ele_start, ele, &
+                                                                           datum_value, valid_value, datum, lat, why_invalid)
+  case ('orbit.phase_x')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+  case ('orbit.phase_y')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   case ('orbit.amp_a')
     if (data_source == 'beam') return ! bad
     call tao_load_this_datum (cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
 
   case ('orbit.amp_b')
     if (data_source == 'beam') return ! bad
     call tao_load_this_datum (cc%amp_b, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
 
   case ('orbit.norm_amp_a')
     if (data_source == 'beam') return ! bad
     call tao_load_this_datum (cc%amp_na, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
 
   case ('orbit.norm_amp_b')
     if (data_source == 'beam') return ! bad
     call tao_load_this_datum (cc%amp_nb, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
-    if (lat%param%ix_lost /= not_lost$ .and. ix_ele > lat%param%ix_lost) then
-      valid_value = .false.
-      why_invalid = 'Particle lost.'
-    endif
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
