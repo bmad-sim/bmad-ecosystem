@@ -57,6 +57,7 @@ type (coord_struct), target :: coord
 real(rp) c2g, s2g, ct, st, offset(6), tilt, graze
 real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3)
 real(rp), pointer :: p(:), vec(:)
+complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
 
 logical :: set
 
@@ -99,6 +100,18 @@ if (set) then
 
   vec(2) = vec(2) + p(graze_angle_err$)
   vec(5) = vec(5) - vec(1) * p(graze_angle_err$)
+
+  ! Set: intensities
+  efield_x = sqrt(coord%intensity_x) * cmplx(cos(coord%phase_x), sin(coord%phase_x) )
+  efield_y = sqrt(coord%intensity_y) * cmplx(cos(coord%phase_y), sin(coord%phase_y) )
+  tilt = p(tilt_tot$) + p(tilt_err$)
+  efieldout_x = cos(tilt) * efield_x + sin(tilt)*efield_y
+  efieldout_y = -sin(tilt) * efield_x + cos(tilt)*efield_y
+  coord%intensity_x = sqrt(abs(efieldout_x))
+  coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
+  coord%intensity_y = sqrt(abs(efieldout_y))
+  coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
+  
 
 !----------------------------------------------------------------
 ! Unset... 
@@ -168,6 +181,18 @@ else
     vec(3) = vec(3) - vec(4) * off(3)
     vec(5) = vec(5) + off(3)
   endif
+
+  ! Unset: intensities
+
+  efield_x = cmplx(sqrt(coord%intensity_x)*cos(coord%phase_x),sqrt(coord%intensity_x)*sin(coord%phase_x) )
+  efield_y = cmplx(sqrt(coord%intensity_y)*cos(coord%phase_y),sqrt(coord%intensity_y)*sin(coord%phase_y) )
+  tilt = p(tilt_tot$) + p(tilt_err$)
+  efieldout_x = cos(tilt) * efield_x - sin(tilt)*efield_y
+  efieldout_y = sin(tilt) * efield_x + cos(tilt)*efield_y
+  coord%intensity_x = sqrt(abs(efieldout_x))
+  coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
+  coord%intensity_y = sqrt(abs(efieldout_y))
+  coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
 
 endif
 

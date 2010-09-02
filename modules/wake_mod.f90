@@ -131,7 +131,7 @@ type (lr_wake_struct), pointer :: lr
 
 integer i
 real(rp) charge, t_ref, dt, omega, f_exp, ff, c, s, kx, ky
-real(rp) c_a, s_a, kxx, exp_shift, dt_part, a_sin, b_sin
+real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
 
 ! Check if we have to do any calculations
 
@@ -148,29 +148,9 @@ if (.not. associated(ele%wake)) return
 do i = 1, size(ele%wake%lr)
 
   lr => ele%wake%lr(i)
-  dt_part = - orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
-  dt = t_ref + dt_part - lr%t_ref
 
   omega = twopi * lr%freq
   f_exp = omega / (2 * lr%Q)
-  ff = abs(charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
-
-  c = cos (-dt * omega)
-  s = sin (-dt * omega)
-
-  call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
-
-  if (lr%polarized) then
-    c_a = cos(twopi*lr%angle); s_a = sin(twopi*lr%angle)
-    kxx = kx
-    kx = kxx * c_a * c_a + ky * s_a * c_a
-    ky = kxx * c_a * s_a + ky * s_a * s_a
-  endif
-
-  lr%b_sin = lr%b_sin - kx * c
-  lr%b_cos = lr%b_cos + kx * s
-  lr%a_sin = lr%a_sin - ky * c
-  lr%a_cos = lr%a_cos + ky * s
 
   if (t_ref /= lr%t_ref) then
     dt = t_ref - lr%t_ref 
@@ -185,6 +165,26 @@ do i = 1, size(ele%wake%lr)
     lr%a_sin = exp_shift * ( c * a_sin + s * lr%a_cos)
     lr%a_cos = exp_shift * (-s * a_sin + c * lr%a_cos)
   endif
+
+  dt = - orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  ff = abs(charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
+
+  call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
+
+  if (lr%polarized) then
+    c_a = cos(twopi*lr%angle); s_a = sin(twopi*lr%angle)
+    kxx = kx
+    kx = kxx * c_a * c_a + ky * s_a * c_a
+    ky = kxx * c_a * s_a + ky * s_a * s_a
+  endif
+
+  c = cos (-dt * omega)
+  s = sin (-dt * omega)
+
+  lr%b_sin = lr%b_sin - kx * c
+  lr%b_cos = lr%b_cos + kx * s
+  lr%a_sin = lr%a_sin - ky * c
+  lr%a_cos = lr%a_cos + ky * s
 
 enddo
 

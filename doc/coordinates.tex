@@ -2,7 +2,7 @@
 \index{coordinates|hyperbf}
 
 %-----------------------------------------------------------------------------
-\section{Reference Orbit}
+\section{Local Reference Orbit}
 \label{s:ref}
 \index{reference orbit|hyperbf}
 
@@ -17,18 +17,22 @@ This is not to be confused with the phase space $z$ coordinate (\sref{s:phase.sp
 \label{f:local.coords}
 \end{figure}
 
-The \vn{reference orbit} is the curved path used to define a coordinate
-system for particles as shown in Figure~\ref{f:local.coords}.  At a
-given time $t$, a particle's position can be described by a point on
-the reference orbit a distance $s$ relative to the reference orbit's
-zero position plus a transverse offset. This point on the reference
-orbit is used as the origin of the local $(x, y, z)$ coordinate system
-with the $z$--axis tangent to the reference orbit and pointing in the
-direction of increasing $s$. The $x$ and $y$--axes are
-perpendicular to the reference orbit. If the lattice has no vertical
-bends, the $y$--axis is in the vertical direction and the $x$--axis is
-in the horizontal plane. Notice that by construction, the particle is
-always at $z = 0$.
+The \vn{local reference orbit} is the curved path used to define a
+coordinate system for particles as shown in
+Figure~\ref{f:local.coords}. At a given time $t$, a particle's
+position can be described by a point on the reference orbit a distance
+$s$ relative to the reference orbit's zero position plus a transverse
+offset. This point on the reference orbit is used as the origin of the
+local $(x, y, z)$ coordinate system with the $z$--axis tangent to the
+reference orbit and pointing in the direction of increasing $s$. The
+$x$ and $y$--axes are perpendicular to the reference orbit. If the
+lattice has no vertical bends, the $y$--axis is in the vertical
+direction and the $x$--axis is in the horizontal plane. Notice that by
+construction, the particle is always at $z = 0$. The coordinate system
+so constructed is called the \vn{local coordinate system} or sometimes
+the \vn{laboratory coordinate system} when there is need to
+distinguish it from the \vn{element coordinate system}
+(\sref{s:misalign-track}.
 
 \index{sbend}
 \index{rbend}
@@ -240,8 +244,8 @@ represents a downward pointing bend.
 \centering \includegraphics{mirror.eps} \caption[Reflection by a
 mirror or crystal] {Reflection by a mirror or crystal.  The geometry
 shown here is appropriate for a tilt angle of $\theta_t = 0$.
-$theta_g$ is the graze angle of the incomming reference coordinates,
-$alpha$ is the bend angle of the coordinates.  Point $\cal O$ is the
+$\theta_g$ is the graze angle of the incomming (entrance) reference coordinates,
+$\alpha$ is the bend angle of the coordinates.  Point $\cal O$ is the
 origin of both the local coordinates just before and just after the
 reflection.}  \label{f:mirror}
 \end{figure}
@@ -312,7 +316,7 @@ The $\Bf S$ matrix corresponding to a non-zero \vn{x_pitch} of a
   \end{pmatrix}
 \Endeq
 \index{y_pitch}
-where $theta_x$ is the value of \vn{x_pitch}. Finally, the $\Bf S$
+where $\theta_x$ is the value of \vn{x_pitch}. Finally, the $\Bf S$
 matrix corresponding to a non-zero \vn{y_pitch} of a \vn{patch}
 element is
 \Begineq
@@ -323,7 +327,7 @@ element is
     0 & -\sin\theta_y & \cos\theta_y 
   \end{pmatrix}
 \Endeq
-where $theta_y$ is the value of \vn{y_pitch}. 
+where $\theta_y$ is the value of \vn{y_pitch}. 
 
 If a \vn{patch}'s \vn{translate_after} is set to True, the offsets are
 applied after the pitches and tilts. In this case, \Eq{vwlv} is
@@ -424,7 +428,6 @@ particle's energy from the reference energy. For an \vn{Lcavity}
 element (\sref{s:lcav}) the reference momentum is {\it not} constant
 so the tracking for an \vn{Lcavity} is not canonical.
 
-
 \index{phase space coordinates!MAD convention}
 \index{MAD!phase space convention}
 \mad uses a different coordinate system where $(z, p_z)$ is
@@ -466,9 +469,33 @@ by default, a different coordinate system where $(z, p_z)$ is replaced
 by $(p_z, -z)$. However, PTC also has the ability to switch to the
 $(p_t, c \Delta t)$ coordinate system.
 
+A particle can also have a spin. The spin is characterized by the
+spinor $\Psi = \left( \psi_{1}, \psi_{2} \right)^{T}$ where
+$\psi_{1,2}$ are complex numbers (\sref{s:spin.dyn}).
+
 %-----------------------------------------------------------------------------
 \section{Photon Phase Space Coordinate System}
 \label{s:photon.phase.space}
 \index{photon!phase space coordinates|hyperbf}
 
-The phase space coordinates for a photon are the same as for a particle with $v = c$. 
+The phase space coordinates $(x, p_x, y, p_y, z, p_z)$ for a photon
+are the same as for a particle with $v = c$. The photon frequency $\omega$ and
+wave number $k$ are given by the standard formulas
+\begin{align}
+  \omega &= \hbar \, c \, P_0 (1 + p_z)
+  k &= \frac{2 \, \pi}{\lambda} = \frac{\omega}{c}
+\end{align}
+
+In addition to the above, a photon has
+four extra parameters $I_x, \phi_x$, and $I_y, \phi_y$ specifying the
+intensity and phase of the field along the $x$ and $y$ axes. Since
+$I_x$ and $I_y$ are intensities, the electric and magnetic field
+components are proportional to the square root of these
+quantities. The normalization between field and intensity is
+determined by the individual simulation programs and is not part of
+the \bmad standard. The electric field oscillates as
+\Begineqs
+  E_x &\sim \sqrt{I_x} \, e^{i (k \, x - \omega \, t + \phi_x)} \CRNO
+  E_y &\sim \sqrt{I_y} \, e^{i (k \, x - \omega \, t + \phi_y)} \CRNO
+\Endeqs
+and this defines the phases $\phi_x$ and $\phi_y$.

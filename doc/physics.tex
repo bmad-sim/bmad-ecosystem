@@ -1454,19 +1454,20 @@ modes are used.
 
 Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are
 characterized by a set of cavity modes. The wake function $W$ for a
-mode is given by
+mode of order $m$ is given by
 \Begineq
-  W(z) = c \, \left( \frac{R}{Q} \right) \,\,
+  W_m(z) = c \, \left( \frac{R}{Q} \right)_m \,\,
   e^{k z/ 2 Q} \, \sin (k \, z)
   \label{wcrq}
 \Endeq
-where the wake number $k$ is related to the mode frequency $\omega$ by
+where the mode wave number $k$ is related to the mode frequency $\omega$ by
 \Begineq
   k = \omega / c
 \Endeq
 Here $z$ is the distance behind the particle generating the wake. $z$
-is negative for all particles affected by the wake so $W(z)$ is a
-decaying exponential as expected.
+is negative for all particles affected by the wake so $W_m(z)$ is a
+decaying exponential as expected. The mode strength $(R/Q)_m$ has
+units of Volts/meter$^{2m}$.
 
 Assuming that the macroparticle generating the wake is offset a
 distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
@@ -1481,7 +1482,7 @@ distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
 \end{align}
 where $m$ is the order of the mode, $C$ is given by
 \Begineq
-  C = \frac{e}{v \, P_0}
+  C = \frac{e}{c \, P_0}
 \Endeq
  and
 \Begineq
@@ -1490,10 +1491,10 @@ where $m$ is the order of the mode, $C$ is given by
 with $q_w$ being the magnitude of the charge on the particle. 
 Generalizing the above, a macroparticle at $(r_w, \theta_w)$ will generate a wake
 \begin{align}
-  -\Delta p_x + i\Delta p_y &= C \, I_m \, W(z) \, 
+  -\Delta p_x + i\Delta p_y &= C \, I_m \, W_m(z) \, 
     m \, r^{m-1} \, e^{-i m \theta_w} \, e^{i (m-1) \theta} 
     \label{ppcimr} \\
-  \Delta p_z &= C \, I_m \, W'(z) \, r^m \, \cos [m(\theta - \theta_w)]
+  \Delta p_z &= C \, I_m \, W'_m(z) \, r^m \, \cos [m(\theta - \theta_w)]
     \label{pciwr}
 \end{align}
 Comparing \Eq{ppcimr} to \eq{bib1nb}, and using the relationship between
@@ -1519,17 +1520,17 @@ and $b_{\sin}$. For a mode of order $m$, a particle passing through at
 a distance $z_w$ with respect to the reference particle will produce
 wake components
 \begin{alignat}{2}
-  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \sin(m \theta_w) 
     \CRNO
-  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \sin(m \theta_w) 
     \label{ac2rq} 
     \\
-  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \cos(m \theta_w) 
     \CRNO
-  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \cos(m \theta_w) 
     \nonumber
 \end{alignat}
@@ -1574,22 +1575,22 @@ same frequency. In this case, one has to consider a mode's polarization
 angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged. 
 In place of \Eq{ac2rq}, the contribution of a particle to a mode is
 \begin{alignat}{2}
-  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
-  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[ 
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \\
-  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
-  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right) \,
+  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
     e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]

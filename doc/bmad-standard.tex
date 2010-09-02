@@ -13,39 +13,150 @@ element types.
 
 %-----------------------------------------------------------------
 \section{Tracking with Non-Zero Offsets, Pitches, or Tilt}
+\index{s:misalign-track}
 
-The general procedure for tracking through an element that has a
-non-zero tilt, offset, or pitch (\sref{s:offset}), is to use a three
+\index{element reference coordinates}
+The general procedure for tracking through an element makes use of the
+\vn{element reference coordinates} Without any offsets, pitches or
+tilt, (henseforth called ``misalignments''), the element reference
+coordinates are the same as the \vn{laboratory reference coordinates}
+(\sref{s:ref}). With misalignments, the \vn{element reference
+coordinates} will stay fixed relative to the element and will
+therefore shift as the element shifts in the laboratory fram.
+
+\index{crystal}\index{mirror}
+For \vn{crystal} (\sref{s:crystal} and \vn{mirror} (\sref{s:mirror})
+elements, the non-straight reference trajectory through the element
+complicates the calculation. For these elements, two element reference
+coordinates are used. The first set of coordinates are called the
+\vn{entrance element coordinates} and the second set the \vn{exit
+element coordinates} as shown in \ref{f:local-coords}.
+the \vn{element coordinates}, the vector normal to the surface is in
+the $x-z$ plane.
+
+Tracking a particle through an element is therefore a three
 step transformation:
 \begin{enumerate}
 \item
-At the entrance end of the element, transform from the \vn{local} referece
-coordinates (\sref{s:ref}) to the \vn{element} reference frame where
-the tilt, offsets and pitches are zero.
+At the entrance end of the element, transform from the
+laboratory reference coordinates to the (entrance) \vn{element coordinates}.
 \item
-Track through the element
+Track through the element ignoring any misalignments. For \vn{crystal}
+and \vn{mirror} elements, this includes the transformation from
+\vn{entrance} to \vn{exit element coordinates}.
 \item
-At the exit end of the element, transform from the \vn{element}
-reference from to the \vn{local} reference frame.
+At the exit end of the element, transform from the \vn{element
+reference from} to the \vn{laboratory reference frame}.
 \end{enumerate}
-Note that it is assumed that pitches are are small so that second
-order terms can be ignored.
 
 The transformation between \vn{local} and \vn{element} reference frames
 will depend upon whether \vn{local} reference frame through the
-element is curved or not. 
+element is straight or not. 
 
 %-----------------------------------------------------------------
-\subsection{Transformation for a Straight Element}
+\section{Transformation for a Straight Element Between 
+Laboratory and Element Coordinates}
 
-The transformation from the \vn{local} reference coordinates to
-\vn{element} reference coordinates for an element that has a
-``straight'' (non-curved) reference trajectory through it is as
-follows.
+It is assumed that pitches are are small so that second
+order terms can be ignored.
+
+The transformation from the laboratory coordinates to
+element coordinates for an element that has a
+straight reference trajectory through it is accomplished in a number of steps.
 \begin{enumerate}
 \item
 Track as in a drift a distance \vn{s_offset_tot}.
 \item
+Apply offsets and pitches
+\begin{align}
+  x_1    &= x_0 - x_{off} + \frac{L}{2} x'_{pitch}
+  p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch}
+  y_1    &= y_0 - y_{off} + \frac{L}{2} y'_{pitch}
+  p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch}
+  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
+    \frac{L}{4} (x^{'2}_{pitch} + y^{'2}_{pitch})
+\end{align}
+Notice that $z_1$ is written in terms of $x_1$ and $y_1$
+\item
+Apply any tilt $\theta_t$
+\begin{align}
+  x_2    &=  \cos(\theta_t) \, x_1    + \sin(\theta_t) \, y_1
+  p_{x2} &=  \cos(\theta_t) \, p_{x1} + \sin(\theta_t) \, p_{y1}
+  y_2    &= -\sin(\theta_t) \, x_1    + \cos(\theta_t) \, y_1
+  p_{y2} &= -\sin(\theta_t) \, p_{x1} + \cos(\theta_t) \, p_{y1}
+\end{align}
+\end{enumerate}
+The back transformation from element to laboratory coordinates is
+accomplished by the transformation
+\begin{enumerate}
+\item
+Apply any tilt $\theta_t$
+\begin{align}
+  x_1    &=  \cos(\theta_t) \, x_0    - \sin(\theta_t) \, y_0
+  p_{x1} &=  \cos(\theta_t) \, p_{x0} - \sin(\theta_t) \, p_{y0}
+  y_1    &=  \sin(\theta_t) \, x_0    + \cos(\theta_t) \, y_0
+  p_{y1} &=  \sin(\theta_t) \, p_{x0} + \cos(\theta_t) \, p_{y0}
+\end{align}
+\item
+Apply offsets and pitches
+\begin{align}
+  x_2    &= x_1 + x_{off} + \frac{L}{2} x'_{pitch}
+  p_{x2} &= p_{x1} + (1 + p_{z1}) \, x'_{pitch}
+  y_2    &= y_1 + y_{off} + \frac{L}{2} y'_{pitch}
+  p_{y2} &= p_{x1} + (1 + p_{z1}) \, y'_{pitch}
+  z_2    &= z_1 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
+    \frac{L}{4} (x^{'2}_{pitch} + y^{'2}_{pitch})
+\end{align}
+\item
+Track as in a drift a distance \vn{-s_offset_tot}.
+\end{enumerate}
+
+
+%-----------------------------------------------------------------
+\section{Transformation for Mirror and Crystal Elements Between 
+Laboratory and Element Coordinates}
+
+It is assumed that pitches are are small so that second
+order terms can be ignored.
+
+With photons, the intensities must also be transformed.
+The transformation from the the entrance laboratory coordinates to
+the entrance element coordinates is:
+\begin{enumerate}
+\item
+Track as in a drift a distance \vn{s_offset_tot}.
+\item
+Apply offsets and pitches. Here the origin of the element coordinates is the same point
+around which the element is pitched so the effective ``length'' of the element is zero.
+\begin{align}
+  x_1    &= x_0 - x_{off}
+  p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch}
+  y_1    &= y_0 - y_{off} 
+  p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch}
+  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 
+\end{align}
+\item
+Apply \vn{tilt} and \vn{tilt_err}
+Apply any tilt $\theta_t$
+\begin{align}
+  x_2    &=  \cos(\theta_{tot}) \, x_1    + \sin(\theta_{tot}) \, y_1
+  p_{x2} &=  \cos(\theta_{tot}) \, p_{x1} + \sin(\theta_{tot}) \, p_{y1}
+  y_2    &= -\sin(\theta_{tot}) \, x_1    + \cos(\theta_{tot}) \, y_1
+  p_{y2} &= -\sin(\theta_{tot}) \, p_{x1} + \cos(\theta_{tot}) \, p_{y1}
+  I_{x2}    &= 
+  \phi_{x2} &=  
+\end{align}
+where $\theta_{tot}$ is the sum of \vn{tilt} and \vn{tilt_err}.
+\item
+Apply \vn{graze_angle_err}
+\begin{align}
+  x_3    &= x_2
+  p_{x3} &= p_{x2} + \theta_{gerr}
+  y_3    &= y_2
+  p_{y3} &= p_{Y2}
+  z_3    &= z_1 - x_2 \, \theta_{gerr}
+  p_{z3} &= p_{z1}
+\end{align}
 
 
 \end{enumerate}
