@@ -90,7 +90,7 @@ fi
 #
 # Set flag to enable use of PLPLOT for distrubution builds
 #
-USE_PLPLOT=Y
+export BMAD_USE_PLPLOT=Y
 
 
 
