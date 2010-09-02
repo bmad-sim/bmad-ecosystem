@@ -179,8 +179,22 @@ if (n > 0) then
     endif
 
     poly => wall%gen_shape(ix_gen_shape)
-    nn = n  ! Total number of vertices
 
+    ! If all (x, y) are in the first quadrent then must propagate to the second quadrent.
+
+    if (all(v(1:n)%x >= 0)) then
+      nn = 2 * n
+      if (v(n)%x == 0) then ! Do not duplicate v(n) vertex
+        nn = nn - 1
+        v(n+1:nn) = v(n-1:1:-1)
+      else
+        v(n+1:nn) = v(n:1:-1)
+      endif
+      v(n+1:nn)%x     = -v(n+1:nn)%x
+      v(n+1:nn)%angle = pi - v(n+1:nn)%angle
+      n = nn
+    endif
+        
     ! If all y >= 0, only half the gen_shape has been specified.
     ! In this case, assume up/down symmetry.
 
@@ -195,15 +209,16 @@ if (n > 0) then
       v(n+1:nn)%y     = -v(n+1:nn)%y
       v(n+1:nn)%angle = twopi - v(n+1:nn)%angle
       if (v(1)%y == 0) nn = nn - 1  ! Do not duplicate v(1) vertex
+      n = nn
     endif
 
     ! Transfer the information to the poly%v array.
     ! The last vertex is the first vertex and closes the gen_shape
 
-    allocate(poly%v(nn+1))
-    poly%v(1:nn) = v(1:nn)
-    poly%v(nn+1) = v(1)
-    poly%v(nn+1)%angle = v(1)%angle + twopi
+    allocate(poly%v(n+1))
+    poly%v(1:n) = v(1:n)
+    poly%v(n+1) = v(1)
+    poly%v(n+1)%angle = v(1)%angle + twopi
 
   enddo
 endif
