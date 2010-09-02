@@ -155,7 +155,7 @@ LOCAL_LFLAGS   :=
 #--------------------------------------------------------------
 LOCAL_LIBS := 
 CESR_LIBS  := cesr_utils bmad sim_utils recipes_f-90_LEPP
-PKG_LIBS   := forest pgplot
+PKG_LIBS   := forest
 SYS_LIBS   := 
 CERN_LIBS  :=
 
