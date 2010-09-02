@@ -533,7 +533,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
                   file_name(1:ix_hash-1), i, trim(file_name(ix_hash+1:))
 
-  open (iu, file = file_name, recl = 100, iostat = ios)
+  open (iu, file = file_name, recl = 200, iostat = ios)
   if (ios /= 0) then
     call out_io (s_error$, r_name, &
                           'ERROR IN VAR_WRITE: CANNOT OPEN FILE: ' // file_name)
