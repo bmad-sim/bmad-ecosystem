@@ -234,6 +234,7 @@ case (crystal$)
   k_out(1) = ele%value(nx_out$)
   k_out(2) = ele%value(ny_out$)
   k_out(3) = ele%value(nz_out$)
+  test = dot_product( k_out, y_out )
   m_out = reshape( [x_out, y_out, k_out], [3, 3])
 
   !===================David's Way
@@ -243,11 +244,9 @@ case (crystal$)
 
   !===================My Way
   
-  temp_vec = matmul(transpose(m_out), (h_norm+k_in_norm))
-  Nn = 1/m_out(3, 3)*(1-temp_vec(3)) 
-  kk_out_norm = [Nn, 0.0_rp, 0.0_rp] + h_norm + k_in_norm
+  kk_out_norm = k_in_norm + h_norm
+  kk_out_norm(1) = - sqrt( 1 - kk_out_norm(2)**2 - kk_out_norm(3)**2)
 
-  test = kk_out_norm(1)**2 + kk_out_norm(2)**2 + kk_out_norm(3)**2
   temp_vec = matmul(transpose(m_out), kk_out_norm)
 
   end%vec(2) = temp_vec(1)
@@ -269,7 +268,7 @@ case (crystal$)
   temp_vec = matmul(transpose(m_out), temp_vec)
 
   end%vec(1) = temp_vec(1)
-  end%vec(3) = temp_vec(3)
+  end%vec(3) = temp_vec(2)
 
 
   !======== Calculate phase and intensity 
@@ -279,7 +278,8 @@ case (crystal$)
 
   end%intensity_x = end%intensity_x * abs(e_rel)**2
 
-  end%vec(5) = nn + mm + wave_length*atan2(imag(e_rel), real(e_rel)) / twopi
+  end%vec(5) = nn + mm 
+  ! + wave_length*atan2(imag(e_rel), real(e_rel)) / twopi
 
   call offset_photon (ele, param, end, unset$)
 
