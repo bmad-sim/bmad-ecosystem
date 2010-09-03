@@ -460,11 +460,11 @@ loop: do
   endif
   do i = ix-1, 1, -1
     if (name_out(i:i) == '/') then
-      name_out = name_out(:i-1) // name_out(ix+3:)
+      name_out = name_out(:i) // name_out(ix+4:)
       cycle loop
     endif
   enddo
-  name_out = name_out(ix+3:)
+  name_out = name_out(ix+4:)
 enddo loop
 
 end subroutine
