@@ -501,7 +501,7 @@ implicit none
 
 type (wall3d_pt_struct) wall_pt, pt
 type (wall3d_struct), target :: wall
-type (beam_pipe_vertex_struct), pointer :: v(:)
+type (cross_section_vertex_struct), pointer :: v(:)
 
 real(rp) g, dw_x, dw_y, vec(6), r_p, r_w, theta, numer, denom
 real(rp) x_mid, y_mid, dx, dy, dl2, a, b, c, x_c, y_c, gx, gy
@@ -518,7 +518,7 @@ if (wall_pt%basic_shape == 'gen_shape') then
   if (theta < v(1)%angle) theta = ceiling((v(1)%angle-theta)/twopi) * twopi + theta
   call bracket_index (v%angle, 1, size(v), theta, ix)
 
-  if (v(ix+1)%radius == 0) then ! straight line
+  if (v(ix+1)%radius_x == 0) then ! straight line
     numer = (v(ix)%x * v(ix+1)%y - v(ix)%y * v(ix+1)%x)
     denom = (vec(1) * (v(ix+1)%y - v(ix)%y) - vec(3) * (v(ix+1)%x - v(ix)%x))
     g = numer / denom
@@ -530,14 +530,14 @@ if (wall_pt%basic_shape == 'gen_shape') then
     dx = (v(ix+1)%x - v(ix)%x) / 2
     dy = (v(ix+1)%y - v(ix)%y) / 2
     dl2 = dx**2 + dy**2
-    c = sqrt((v(ix+1)%radius**2 - dl2) / dl2)
-    if (v(ix+1)%radius < 0) c = -c
+    c = sqrt((v(ix+1)%radius_x**2 - dl2) / dl2)
+    if (v(ix+1)%radius_x < 0) c = -c
     x_c = x_mid - c * dy   ! Center of circle
     y_c = y_mid + c * dx
     a = vec(1)**2 + vec(3)**2
     b = 2 * (vec(1) * x_c + vec(3) * y_c)
     c = x_c**2 + y_c**2
-    if (v(ix+1)%radius < 0) then
+    if (v(ix+1)%radius_x < 0) then
       g = (b - sqrt(b**2 - 4 * a * c)) / (2 * a)
     else
       g = (b + sqrt(b**2 - 4 * a * c)) / (2 * a)
