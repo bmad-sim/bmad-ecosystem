@@ -76,7 +76,7 @@ end type
 ! Structure used to hold gen_shape shapes
 
 type wall3d_gen_shape_struct
-  type (beam_pipe_vertex_struct), allocatable :: v(:)
+  type (cross_section_vertex_struct), allocatable :: v(:)
 end type
 
 ! This is just an array of chamber cross-sections.

@@ -26,7 +26,7 @@ type (wall3d_pt_struct) wall_pt(0:100)
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
-type (beam_pipe_vertex_struct) v(100)
+type (cross_section_vertex_struct) v(100)
 type (wall3d_gen_shape_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
@@ -142,7 +142,7 @@ enddo
 if (n > 0) then
   allocate (wall%gen_shape(n))
   do
-    v = beam_pipe_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+    v = cross_section_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
     read (1, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
       print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
