@@ -39,7 +39,7 @@ type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot, default_plot
 type (tao_graph_input) graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
-type (tao_curve_input) curve(n_curve_maxx)
+type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
 type (tao_place_input) place(10)
 type (old_tao_ele_shape_struct) shape(20)
 type (tao_ele_shape_struct) ele_shape(20)
@@ -61,7 +61,7 @@ character(20) :: r_name = 'tao_init_plotting'
 
 namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place
 namelist / tao_template_plot / plot, default_graph
-namelist / tao_template_graph / graph, graph_index, curve
+namelist / tao_template_graph / graph, graph_index, curve, curve1, curve2, curve3, curve4
 namelist / element_shapes / shape
 namelist / element_shapes_floor_plan / ele_shape
 namelist / element_shapes_lat_layout / ele_shape
@@ -426,6 +426,9 @@ do  ! Loop over plot files
       curve(2:7)%symbol%color = &
                   [blue$, red$, green$, cyan$, magenta$, yellow$]
       curve(2:7)%line%color = curve(2:7)%symbol%color
+      ! to get around gfortran compiler bug.
+      curve1 = curve(1); curve2 = curve(2); curve3 = curve(3); curve4 = curve(4)
+
       read (iu, nml = tao_template_graph, err = 9200)
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph ' // graph%name)
       graph_name = trim(plot%name) // '.' // graph%name
@@ -546,6 +549,14 @@ do  ! Loop over plot files
 
       do j = 1, graph%n_curve
         crv => grph%curve(j)
+
+        select case (j)
+        case (1); if (curve1%data_type /= '') curve(1) = curve1
+        case (2); if (curve2%data_type /= '') curve(2) = curve2
+        case (3); if (curve3%data_type /= '') curve(3) = curve3
+        case (4); if (curve4%data_type /= '') curve(4) = curve4
+        end select
+
         crv%g                    => grph
         crv%data_source          = curve(j)%data_source
         crv%data_index           = curve(j)%data_index
