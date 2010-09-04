@@ -44,15 +44,29 @@ type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
 end type
 
-! Structure for defining beam pipe cross-sections at given longitudinal positions.
-! A cross-section is defined by an array of beam_pipe_vertex_struct components. 
-! Each beam_pipe_vertex_struct defines a point (vertex) on the pipe.
-! Vertices are connected by straight lines or circular arcs.
+! Structure for defining cross-sections of beam pipes and capillaries
+! at given longitudinal positions.
+! A cross-section is defined by an array of cross_section_vertex_struct components. 
+! Each cross_section_vertex_struct defines a point (vertex) on the pipe/capillary.
+! Vertices are connected by straight lines, circular arcs, or ellipses.
+! The radius and tilt values are for the arc from the preceding vertex to this one.
 
-type beam_pipe_vertex_struct
-  real(rp) x, y          ! coordinates of the vertex.
-  real(rp) :: radius = 0 ! Radius of arc. 0 => Straight line.
-  real(rp) angle         ! angle of (x, y).
+type cross_section_vertex_struct
+  real(rp) x, y             ! Coordinates of the vertex.
+  real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
+  real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
+  real(rp) :: tilt = 0      ! Tilt of ellipse
+  real(rp) angle            ! Angle of (x, y).
+end type
+
+! A beam pipe or capillary cross section is a collection of vertexes.
+! Vertices are always ordered in increasing angle.
+
+type cross_section_struct
+  real(rp) s                            ! Longitudinal position
+  type (cross_section_vertex_struct), allocatable :: v(:) 
+                                        ! Array of vertices
+  real(rp) c1, c2, c3                   ! Longitudinal spline coefs. 
 end type
 
 ! Coupling structure
@@ -203,13 +217,14 @@ type ele_struct
   type (xy_disp_struct) x, y           ! Projected dispersions.
   type (floor_position_struct) floor   ! Global floor position at end of ele.
   type (mode3_struct), pointer :: mode3 => null()
-  type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
-  type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
+  type (coord_struct) map_ref_orb_in              ! Ref orbit at entrance of element.
+  type (coord_struct) map_ref_orb_out             ! Ref orbit at exit of element.
   type (genfield), pointer :: gen_field => null() ! For symp_map$
   type (taylor_struct) :: taylor(6)               ! Taylor terms
   type (wake_struct), pointer :: wake => null()   ! Wakefields
-  type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
+  type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
   type (trans_space_charge_struct), pointer :: trans_sc => null()
+  type (cross_section_struct), pointer :: cross_section(:) => null()  ! For capillaries.
   real(rp) value(n_attrib_maxx)      ! attribute values.
   real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                   ! constant part of the genfield map.

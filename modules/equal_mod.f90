@@ -147,6 +147,22 @@ else
   if (associated (ele_save%mode3)) deallocate (ele_save%mode3)
 endif
 
+if (associated(ele2%cross_section)) then
+  if (associated (ele_save%cross_section)) then
+    if (size(ele_save%cross_section) == size(ele2%cross_section)) then
+      ele1%cross_section => ele_save%cross_section
+    else
+      deallocate (ele_save%cross_section)
+      allocate (ele1%cross_section(size(ele2%cross_section)))
+    endif
+  else
+    allocate (ele1%cross_section(size(ele2%cross_section)))
+  endif
+  ele1%cross_section = ele2%cross_section
+else
+  if (associated (ele_save%cross_section)) deallocate (ele_save%cross_section)
+endif
+
 if (associated(ele2%trans_sc)) then
   if (associated (ele_save%trans_sc)) then
     ele1%trans_sc => ele_save%trans_sc

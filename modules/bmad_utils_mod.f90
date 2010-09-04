@@ -1181,18 +1181,20 @@ if (present (nullify_only)) then
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
     nullify (ele%gen_field)
     nullify (ele%mode3)
+    nullify (ele%cross_section)
     return
   endif
 endif
 
 ! Normal deallocate
 
-if (associated (ele%wig_term)) deallocate (ele%wig_term)
-if (associated (ele%const))    deallocate (ele%const)
-if (associated (ele%r))        deallocate (ele%r)
-if (associated (ele%descrip))  deallocate (ele%descrip)
-if (associated (ele%a_pole))   deallocate (ele%a_pole, ele%b_pole)
-if (associated (ele%mode3))    deallocate (ele%mode3)
+if (associated (ele%wig_term))       deallocate (ele%wig_term)
+if (associated (ele%const))          deallocate (ele%const)
+if (associated (ele%r))              deallocate (ele%r)
+if (associated (ele%descrip))        deallocate (ele%descrip)
+if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
+if (associated (ele%mode3))          deallocate (ele%mode3)
+if (associated (ele%cross_section))  deallocate (ele%cross_section)
 
 if (associated (ele%wake)) then
   if (associated (ele%wake%sr_table))       deallocate (ele%wake%sr_table)

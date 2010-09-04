@@ -71,13 +71,15 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 ! Start and end calculation for the lord elements
 
   select case (ele%lord_status)
-  case (multipass_lord$)
-    if (present(start)) start = pointer_to_slave(lat, ele, 1)
-    if (present(end)) end = pointer_to_slave(lat, ele, ele%n_slave)
-
-  case (super_lord$, girder_lord$)
-    if (present(start)) start = pointer_to_slave(lat, ele, 1)
-    if (present(end)) end = pointer_to_slave(lat, ele, ele%n_slave)
+  case (multipass_lord$, super_lord$, girder_lord$)
+    if (present(start)) then
+      ele => pointer_to_slave(lat, ele, 1)
+      start = ele
+    endif
+    if (present(end)) then
+      ele => pointer_to_slave(lat, ele, ele%n_slave)
+      end = ele
+    endif
 
   case default   ! overlay_lord$ or group_lord$
 
