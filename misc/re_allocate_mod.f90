@@ -922,9 +922,7 @@ subroutine re_associate_string (str, n, exact)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     n_save = min(n, n_old)
-    allocate (temp_str(n_save))
-    temp_str = str(1:n_save)
-    deallocate (str)
+    temp_str => str
     allocate (str(n))
     str(1:n_save) = temp_str
     deallocate (temp_str)  
@@ -974,9 +972,7 @@ subroutine re_associate_integer (inte, n, exact)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     n_save = min(n, n_old)
-    allocate (temp_inte(n_save))
-    temp_inte = inte(1:n_save)
-    deallocate (inte)
+    temp_inte => inte
     allocate (inte(n))
     inte(1:n_save) = temp_inte
     deallocate (temp_inte)  
@@ -1026,9 +1022,7 @@ subroutine re_associate_real (re, n, exact)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     n_save = min(n, n_old)
-    allocate (temp_re(n_save))
-    temp_re = re(1:n_save)
-    deallocate (re)
+    temp_re => re
     allocate (re(n))
     re(1:n_save) = temp_re
     deallocate (temp_re)  
@@ -1079,9 +1073,7 @@ subroutine re_associate_logical (logic, n, exact)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     n_save = min(n, n_old)
-    allocate (temp_logic(n_save))
-    temp_logic = logic(1:n_save)
-    deallocate (logic)
+    temp_logic => logic
     allocate (logic(n))
     logic(1:n_save) = temp_logic
     deallocate (temp_logic)  
