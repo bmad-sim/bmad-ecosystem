@@ -1318,6 +1318,7 @@ integer ix_start, ix
 
 character(*) load_type
 character(n_parse_line+20), save :: line, saved_line
+character(1), parameter :: tab = achar(9)
 
 logical :: have_saved_line = .false., end_of_file
 
@@ -1387,6 +1388,7 @@ enddo
 
 ! now simply append the line to %parse_line starting at ix_start
 
+call str_substitute (line)
 bp_com%parse_line(ix_start:) = line
 
 return

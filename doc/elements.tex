@@ -557,6 +557,7 @@ The syntax to define a capillary is
     s = <longitudinal_position>, 
     v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
     v(2) = ...
+    ...
   \}, 
   s_spline = \{<coef_1>, <coef_2>\}, 
   cross = \{
@@ -569,10 +570,8 @@ Example:
 \begin{example}
   this_cap: capillary, 
     cross = \{   ! Cross section with top/bottom symmetry
-      s = 0, 
-      v(1) =  \{0.02, 0.00\}, 
-      v(2) =  \{0.00, 0.02, 0.02\}, 
-      v(3) = \{-0.01, 0.01\}, 
+      s = 0, v(1) =  \{0.02, 0.00\}, 
+      v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\}, 
     \}, 
     s_spline = \{0.1, 0.7\}, 
     cross = \{  ! Cross-section that is a tilted ellipse.
@@ -624,8 +623,9 @@ segment.
 The vertex points must be arranged in a clockwise manner. That is, If
 the (\vn{<x>}, \vn{<y>}) point of vertex \vn{<v(i)>} is expressed in
 polar $(r, \theta)$ coordinates, the inequality $\theta_{i+1} >
-\theta_i$ must hold for all vertex pairs. Another restriction is that
-the origin $(0,0)$ must be in the interier of all cross-sections.
+\theta_i$ must hold for all vertex pairs. Additionally, the origin
+$(0,0)$ must be in the interier of all cross-sections and all cross
+sections must be convex.
 
 Given two vertices \vn{v(i)} and \vn{v(i+1)}, if the segment between
 them is specified to be a circle or ellipse, there will, in general,
@@ -667,10 +667,7 @@ tilted ellipse with center at $(0.003, -0.001)$. If a cross-section
 has a single vertex and \vn{<radius_x>} is
 not specified, the cross-section is a rectangle. For example
 \begin{example}
-    cross = \{  ! Rectangular cross-section with x/y symmetry.
-      s = 0.34
-      v(1) = \{0.03, 0.01\}
-    \}
+    cross = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
 \end{example}
 
 Between cross-sections, the capillary wall is defined using a spline
