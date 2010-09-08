@@ -56,17 +56,18 @@ type cross_section_vertex_struct
   real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
   real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
   real(rp) :: tilt = 0      ! Tilt of ellipse
-  real(rp) angle            ! Angle of (x, y).
+  real(rp) angle            ! Angle of (x, y) point.
+  real(rp) x0, y0           ! Center of ellipse
 end type
 
 ! A beam pipe or capillary cross section is a collection of vertexes.
 ! Vertices are always ordered in increasing angle.
 
 type cross_section_struct
-  real(rp) s                            ! Longitudinal position
+  real(rp) :: s = 0                     ! Longitudinal position
+  real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
   type (cross_section_vertex_struct), allocatable :: v(:) 
                                         ! Array of vertices
-  real(rp) c1, c2, c3                   ! Longitudinal spline coefs. 
 end type
 
 ! Coupling structure
@@ -385,9 +386,9 @@ integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
-integer, parameter :: pipe$ = 44
+integer, parameter :: pipe$ = 44, capillary$ = 45
 
-integer, parameter :: n_key = 44
+integer, parameter :: n_key = 45
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -402,7 +403,8 @@ character(16) :: key_name(n_key) = [ &
     'HOM           ', 'MATCH         ', 'MONITOR       ', 'INSTRUMENT    ', &
     'HKICKER       ', 'VKICKER       ', 'RCOLLIMATOR   ', 'ECOLLIMATOR   ', &
     'GIRDER        ', 'BEND_SOL_QUAD ', 'DEF_BEAM_START', 'PHOTON_BRANCH ', &
-    'BRANCH        ', 'MIRROR        ', 'CRYSTAL       ', 'PIPE          ']
+    'BRANCH        ', 'MIRROR        ', 'CRYSTAL       ', 'PIPE          ', &
+    'CAPILLARY     ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -508,8 +510,8 @@ integer, parameter :: check_sum$ = 60  ! Assumed unique. Do not overload.
 
 !! 61 = 1 + n_attrib_maxx
 
-integer, parameter :: ref_orbit$ = 61, term$ = 61
-integer, parameter :: x_position$ = 62
+integer, parameter :: ref_orbit$ = 61, term$ = 61, cross$ = 61
+integer, parameter :: x_position$ = 62, s_spline$ = 62
 integer, parameter :: symplectify$ = 63, y_position$ = 63
 integer, parameter :: descrip$ = 64, z_position$ = 64
 integer, parameter :: is_on$ = 65, theta_position$ = 65

@@ -56,11 +56,12 @@ photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
-  Crystal        & \ref{s:crystal}   &  Match         & \ref{s:match}    \HH
-  Custom         & \ref{s:custom}    &  Monitor       & \ref{s:monitor}  \HH 
-  Drift          & \ref{s:drift}     &  Mirror        & \ref{s:mirror}   \HH
-  Instrument     & \ref{s:monitor}   &  Patch         & \ref{s:patch}    \HH
-  Marker         & \ref{s:mark}      &  Pipe          & \ref{s:monitor}  \HH
+  Capillary      & \ref{s:capillary} &  Match         & \ref{s:match}    \HH
+  Crystal        & \ref{s:crystal}   &  Monitor       & \ref{s:monitor}  \HH 
+  Custom         & \ref{s:custom}    &  Mirror        & \ref{s:mirror}   \HH
+  Drift          & \ref{s:drift}     &  Patch         & \ref{s:patch}    \HH
+  Instrument     & \ref{s:monitor}   &  Pipe          & \ref{s:monitor}  \HH
+  Marker         & \ref{s:mark}      &                &                  \HH
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with photons.}
@@ -501,22 +502,207 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+%-----------------------------------------------------------------
+\section{Capillary}
+\label{s:capillary}
+\index{capillary|hyperbf}
 
-Attributes specific to a \vn{branch} and \vn{photon_branch} element are:
+\begin{figure}[tb]
+  \centering
+  %% \includegraphics{capillary.eps}
+  \caption[cross-sectional slices of a capilary.]
+{The inside wall of a capillary is defined by a number of 
+cross-sectional slices.  Each cross-section is made up of a number of vertices.
+The segment between vertices can be either a line segment, the arg of a circle, 
+or a section an ellipse.}
+  \label{f:capillary}
+\end{figure}
+
+\begin{figure}[tb]
+  \centering
+  %% \includegraphics{cap_arc.eps}
+  \caption[Construction of the arc for a cross-section segment.]
+{Given a radius there are four solutions to the problem of 
+constructing an arc between two given points. The one choisen (a) for 
+the construction of a cross-section segment is the one that is convex 
+with respect to the origin and of shortest length. The same logic applies 
+to the construction of an ellipse segment.}
+  \label{f:cap.arc}
+\end{figure}
+
+A \vn{capillary} element is a glass tube that is used to focus x-ray
+beams.
+
+General \vn{capillary} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Is_on                      & \ref{s:is.on}   \HH 
+\end{tabular}
+\end{center}
+\toffset
+
+The inside wall of a capillary is defined by a number of
+cross-sectional slices as shown in Fig.~\ref{f:capillary}. Each
+cross-section is defined by a number of vertices. The arc between each
+verticy may be either a straight line, an arc of a circle, or a
+section of an ellipse. 
+
+The syntax to define a capillary is
 \begin{example}
-  direction = <Integer>  ! +1 for outgoing branch (default). -1 for an incoming branch.
-  to = <line_name>       ! Name of line connected at the branch point.
+  cross = \{ 
+    s = <longitudinal_position>, 
+    v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+    v(2) = ...
+  \}, 
+  s_spline = \{<coef_1>, <coef_2>\}, 
+  cross = \{
+    s = <longitudinal_position>, 
+    v(1) = \{...
+    ...
+  \}
 \end{example}
-
 Example:
 \begin{example}
-  b_mark: branch, to = b_line
-  b_line: line = (...)
+  this_cap: capillary, 
+    cross = \{   ! Cross section with top/bottom symmetry
+      s = 0, 
+      v(1) =  \{0.02, 0.00\}, 
+      v(2) =  \{0.00, 0.02, 0.02\}, 
+      v(3) = \{-0.01, 0.01\}, 
+    \}, 
+    s_spline = \{0.1, 0.7\}, 
+    cross = \{  ! Cross-section that is a tilted ellipse.
+      s = 0.34, 
+      v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\}, 
+    \}
 \end{example}
 
+Each individual cross_section begins with the word \vn{cross}. The
+\vn{s} parameter of a cross-section gives the longitudinal position of
+the cross-section. \vn{s} must be zero for the first cross-section and
+the length of the capillary is given by the value of \vn{s} of the
+last cross-section.
+
+The \vn{v(<j>)} parameters within a cross-section define the vertices
+for each cross section. Each \vn{v(<j>)} in turn has five
+parameters. It is manditory to specify the first two parameters
+\vn{<x>} and \vn{<y>}. Specifying the rest, \vn{<radius_x>},
+\vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if
+not specified, is zero. The point (\vn{<x>}, \vn{<y>}) defines the
+position of the vertex. The parameters \vn{<radius_x>},
+\vn{<radius_y>}, and \vn{<tilt>} define the shape of the segment of
+the cross section between the given vertex and the preceeding one.
+\begin{example}
+  <radius_x>  = 0, <radius_y>  = 0   --> Straight line segment.
+  <radius_x> != 0, <radius_y>  = 0   --> Circular arc with radius = radius_x
+  <radius_x>  = 0, <radius_y> != 0   --> Illeagle!
+  <radius_x> != 0, <radius_y> != 0   --> Ellipse section.
+\end{example}
+When an ellipse is specified, \vn{<radius_x>}, and \vn{<radius_y>} are
+the half width and half height of the semi-major axes and the
+\vn{<tilt>} parameter gives the tilt of the ellipse. \vn{<radius_x>}
+and \vn{<radius_y>} must not be negative. In general, for a given
+radius, there are four circular arcs that can be constructed to
+connect two points (as long as the points are not too far apart). The
+arc used to construct a circular segment of a cross-section is the arc
+that is convex with respect to the origin and of shortest distance as
+shown in Fig.~\ref{f:cap.arc}. The same logic applies 
+to the construction of an ellipse segment.
+
+In the example above, for the first cross-section, \vn{v(2)}
+specifies a non-zero \vn{<radius_x>} and, by default, \vn{<radius_y>}
+is zero. Thus the segment of the cross-section between \vn{v(1)} and
+\vn{v(2)} is circular in nature with a radius of 0.02. Since \vn{v(3)}
+does not specify \vn{<radius_x>} nor \vn{<radius_y>}, the
+cross-section between \vn{v(2)} and \vn{v(3)} is a straight line
+segment.
+
+The vertex points must be arranged in a clockwise manner. That is, If
+the (\vn{<x>}, \vn{<y>}) point of vertex \vn{<v(i)>} is expressed in
+polar $(r, \theta)$ coordinates, the inequality $\theta_{i+1} >
+\theta_i$ must hold for all vertex pairs. Another restriction is that
+the origin $(0,0)$ must be in the interier of all cross-sections.
+
+Given two vertices \vn{v(i)} and \vn{v(i+1)}, if the segment between
+them is specified to be a circle or ellipse, there will, in general,
+be two solutions as to how the circle or ellipse can be
+constructed. The solution choisen will be the shorter one. With this
+choice, and with the restriction that the $\theta$ angle of the
+vertices must be strictly increasing, A line drawn from the origin at
+any given angle $\theta$ will intersect the cross-section at exactly
+one point as shown in Fig.~\ref{f:capillary}. This is an important
+point in the construction of the capillary wall between cross-sections
+as explained below.
+
+The last vertex specified, call it \vn{<v(n)>}, should not have the
+same \vn{<x>}, \vn{<y>} values as the first vertex \vn{<v(1)>}. That
+is, there will be a segment of the cross-section connecting
+\vn{<v(n)>} to \vn{<v(1)>}. The geometry of this segment is determined
+by the parameters of \vn{<v(1)>}.
+
+If there is mirror symmetry about the $x$ or $y$ axis for a
+cross-section, the ``mirrored'' vertices, on the ``negative'' side of
+the mirror plane, do not have to be specified. Thus if all the vertex
+points of a cross section are in the first quadrent, that is, all
+\vn{<x>} and \vn{<y>} are zero or positive, mirror symmetry about both the
+$x$ and $y$ axes is assumed. If all the \vn{<y>} values are zero or
+positive and some \vn{<x>} values are positive and some are negative,
+mirror symmetry about the $x$ axis is assumed. Finally, if all the
+\vn{<x>} values are zero or positive but some \vn{<y>} values are
+positive and some are negative, symmetry about the $y$ axis is
+assumed. For example, for the first in the above example, since
+all the \vn{<y>} values are non-negative and there are positive and
+negative \vn{<x>} values, symmetry about the $x$ axis is assumed.
+
+The one exception to the above rule that (\vn{<x>}, \vn{<y>}) is the
+vertex center is when a single vertex \vn{v(1)} is specified for a
+cross-section with a non-zero \vn{<radius_x>}. In this case,
+(\vn{<x>}, \vn{<y>}) are taken to be the center of the circle or
+ellipse. In the example above, the second cross-section is a
+tilted ellipse with center at $(0.003, -0.001)$. If a cross-section
+has a single vertex and \vn{<radius_x>} is
+not specified, the cross-section is a rectangle. For example
+\begin{example}
+    cross = \{  ! Rectangular cross-section with x/y symmetry.
+      s = 0.34
+      v(1) = \{0.03, 0.01\}
+    \}
+\end{example}
+
+Between cross-sections, the capillary wall is defined using a spline
+interpolation: In $(r, \theta)$ cylindrical coordinates, let
+$r_{c1}(\theta)$ be the radius of the capillary as a function of
+$\theta$ for a given cross-section defined at $s = s_1$. Let
+$r_{c2}(\theta)$ be the radius function at the next defined
+cross-section at $s = s_2$. The capillary wall $r_c(\theta, s)$ at any
+point $s$ between $s_1$ and $s_2$ is defined by the equation
+\Begineq
+  r_c(\theta, s) \equiv (1 - P(ds)) \, r_{c1}(\theta) + P(ds) \, r_{c2}(\theta)
+\Endeq
+where
+\Begineq
+  ds \equiv \frac{s - s_1}{s_2 - s_1}
+\Endeq
+and $P(s)$ is a cubic polynomial spline
+\Begineq
+  P(s) = c_1 \, s + c_2 \, s^2 + c_3 \, s^3
+\Endeq
+where $c_1$, $c_2$, and $c_3$ are constants. The $c_0$ constant has
+been set to zero by the requirement that $P(0) = 0$. The requirement
+that $P(1) = 1$ constrains $c_3$
+\Begineq
+  c_3 = 1 - (c_1 + c_2)
+\Endeq
+ $c_1$ and $c_2$ are given by the \vn{s_spline} parameter between 
+cross-sections. If not defined, the default is linear interpolation
+with $c_1 = 1$ and $c_2 = 0$.
+
 %-----------------------------------------------------------------
-\section{Collimators: Ecollimator and Rcollimator}
-\label{s:col}
+\section{Collimators: Ecollimator and Rcollimator} \label{s:col}
 \index{ecollimator|hyperbf}
 \index{rcollimator|hyperbf}
 

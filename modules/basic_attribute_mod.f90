@@ -289,14 +289,15 @@ do i = 1, n_key
     attrib_array(i, y_pitch$)  = 'Y_PITCH'
   endif
 
-  if (i == mirror$)   cycle
-  if (i == crystal$)  cycle
+  if (i == mirror$)     cycle
+  if (i == crystal$)    cycle
 
   attrib_array(i, is_on$)       = 'IS_ON'
 
   if (i == photon_branch$) cycle
   if (i == branch$) cycle
 
+  if (i == capillary$)  cycle
   if (i == marker$)       cycle
   if (i == match$)        cycle
   if (i == patch$)        cycle
@@ -738,6 +739,8 @@ attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
 !! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
 !! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
 
+attrib_array(capillary$, cross$)          = 'CROSS'
+attrib_array(capillary$, s_spline$)       = 'S_SPLINE'
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.

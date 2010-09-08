@@ -12,6 +12,7 @@ use ptc_interface_mod
 use bookkeeper_mod
 use wake_mod
 use attribute_mod
+use cross_section_mod
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -215,18 +216,19 @@ type (ele_struct), target ::  ele
 type (ele_struct), target, save ::  ele0
 type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
+type (cross_section_struct), pointer :: cross
 
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
 
-integer i, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
-integer expn(6), ix_attrib
+integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
+integer expn(6), ix_attrib, i_cross, ix_v
 
 character(40) :: word, str_ix, attrib_word
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, print_err, set_done
+logical delim_found, err_flag, logic, print_err, set_done, end_of_file
 logical, optional :: check_free
 
 ! Get next WORD.
@@ -410,6 +412,126 @@ if (ix_attrib < 1) then
   return
 endif
 
+! Capillary cross-section definition
+
+if (ix_attrib == cross$ .and. ele%key == capillary$) then
+  if (associated (ele%cross_section)) then
+    call re_associate (ele%cross_section, size(ele%cross_section) + 1)
+  else
+    allocate (ele%cross_section(1))
+  endif
+
+  i_cross = size(ele%cross_section)
+  cross => ele%cross_section(i_cross)
+  ix_v = 0
+
+  if (delim /= '=') then
+    call parser_warning ('NO "=" SIGN FOUND AFTER "CROSS"', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  ! Expect "{"
+  call get_next_word (word, ix_word, '{,()', delim, delim_found)
+  if (delim /= '{') then
+    call parser_warning ('NO "{" SIGN FOUND AFTER "CROSS ="', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  do
+    ! Expect "s", "v"
+    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+    if (word == 's' .and. delim == '=') then
+      call evaluate_value (trim(ele%name), cross%s, lat, delim, delim_found, err_flag, ',}')
+      if (err_flag) return
+      if (delim == '}') exit
+
+    elseif (word == 'v' .and. delim == '(') then
+      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+      ix_v = ix_v + 1
+      read (j, '(i)', iostat = ios) word
+      if (ios /= 0 .or. ix_v /= j) then
+        call parser_warning ('BAD OR OUT OF ORDER CROSS-SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
+        return
+      endif
+
+      call get_next_word (word, ix_word, '{},()', delim2, delim_found)
+      if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
+        call parser_warning ('MALFORMED ORDER CROSS-SECTION VERTEX FOR: ' // ele%name)
+        return
+      endif
+
+      call evaluate_value (trim(ele%name), cross%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
+      if (err_flag) return
+
+      call evaluate_value (trim(ele%name), cross%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
+      if (err_flag) return
+
+      if (delim == ',') then
+        call evaluate_value (trim(ele%name), cross%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
+        if (err_flag) return
+      endif
+
+      if (delim == ',') then
+        call evaluate_value (trim(ele%name), cross%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
+        if (err_flag) return
+      endif
+
+      if (delim == ',') then
+        call evaluate_value (trim(ele%name), cross%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
+        if (err_flag) return
+      endif
+
+      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+      if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
+        call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      if (delim == '}') exit
+
+    else
+      call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
+      return
+    endif
+
+  enddo
+
+  call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+  if (word /= '' .or. (delim /= ' ' .and. delim /= ',')) then
+    call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+endif
+
+! Capillary s_spline definition
+
+if (ix_attrib == s_spline$ .and. ele%key == capillary$) then
+
+  if (delim /= '=') then
+    call parser_warning ('NO "=" SIGN FOUND AFTER "CROSS"', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  ! Expect "{"
+  call get_next_word (word, ix_word, '{,()', delim, delim_found)
+  if (delim /= '{') then
+    call parser_warning ('NO "{" SIGN FOUND AFTER "CROSS ="', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  i_cross = size(ele%cross_section)
+  cross => ele%cross_section(i_cross)
+
+  call evaluate_value (trim(ele%name), cross%s_spline(1), lat, delim, delim_found, err_flag, ',}')
+  if (err_flag) return
+
+  if (delim == ',') then
+    call evaluate_value (trim(ele%name), cross%s_spline(2), lat, delim, delim_found, err_flag, '}')
+    if (err_flag) return
+  endif
+
+  return
+endif
+
 ! wiggler term attribute
 
 if (ix_attrib == term$ .and. ele%key == wiggler$) then
@@ -458,27 +580,20 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
 
   err_str = trim(ele%name) // ' ' // str_ix
 
-  call evaluate_value (err_str, ele%wig_term(ix)%coef, lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%coef, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
  
-  call evaluate_value (err_str, ele%wig_term(ix)%kx, lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%kx, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%ky, lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%ky, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%kz, lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%kz, lat, delim, delim_found, err_flag, ',')
   if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig_term(ix)%phi_z, lat, delim, delim_found, err_flag)
+  call evaluate_value (err_str, ele%wig_term(ix)%phi_z, lat, delim, delim_found, err_flag, '}')
   if (err_flag) return
-
-
-  if (delim /= '}') then
-    call parser_warning ('ENDING "}" NOT FOUND FOR WIGGLER: ' // ele%name, str_ix)
-    err_flag = .true.
-    return
-  endif
 
   kx = ele%wig_term(ix)%kx
   ky = ele%wig_term(ix)%ky
@@ -988,7 +1103,7 @@ end subroutine add_this_taylor_term
 !                       upper case. Default is True.
 !
 ! Output
-!   ix_word     -- Integer: length of WORD
+!   ix_word     -- Integer: length of word argument
 !   delim       -- Character1: Actual delimiter found
 !   delim_found -- Logical: Set true if a delimiter found. A delimiter
 !                    may not be found if the end of the line is reached first.
@@ -1002,8 +1117,10 @@ implicit none
 integer ix_a, ix_word
 
 character(*) word, delim_list, delim
-                         
-logical delim_found, file_end
+
+integer n
+
+logical delim_found, end_of_file
 logical, optional :: upper_case_word
 
 ! check for continuation character and, if found, then load more characters
@@ -1011,11 +1128,15 @@ logical, optional :: upper_case_word
 ! If the input is not from a file then skip this.
 
 if (bp_com%input_from_file) then 
-  do
-    ix_a = index(bp_com%parse_line, '&')
-    if (ix_a == 0 .or. ix_a > n_parse_line/2) exit
-    call load_parse_line('continue', ix_a, file_end)
-  enddo
+  n = len_trim(bp_com%parse_line)
+  if (n > 0 .and. n < len(bp_com%parse_line)/2) then
+    select case (bp_com%parse_line(n:n))
+    case (',', '+', '-', '*', '/', '(', '{', '[', '=')
+      call load_parse_line('continue', n+2, end_of_file)
+    case ('&')
+      call load_parse_line('continue', n, end_of_file)
+    end select
+  endif
 endif
 
 ! Get the first word in bp_com%parse_line
@@ -1182,50 +1303,58 @@ end subroutine file_stack
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine load_parse_line (how, ix_cmd, file_end) 
+! Subroutine load_parse_line (load_type, ix_start, end_of_file) 
 !
 ! Subroutine to load characters from the input file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine load_parse_line (how, ix_cmd, file_end)
+subroutine load_parse_line (load_type, ix_start, end_of_file)
 
 implicit none
 
-integer ix_cmd, ix
+integer ix_start, ix
 
-character(*) how
-character(n_parse_line+20), save :: line, pending_line
+character(*) load_type
+character(n_parse_line+20), save :: line, saved_line
 
-logical :: cmd_pending = .false., file_end
+logical :: have_saved_line = .false., end_of_file
 
 !
 
-file_end = .false.
+end_of_file = .false.
 
-1000    continue
-  if (cmd_pending) then
-    line = pending_line
-    cmd_pending = .false.
+do
+
+  ! Read a line or use saved_line if it exists
+
+  if (have_saved_line) then
+    line = saved_line
+    have_saved_line = .false.
   else
     read (bp_com%current_file%f_unit, '(a)', end = 9000) line
     bp_com%current_file%i_line = bp_com%current_file%i_line + 1
-    if (line(n_parse_line-ix_cmd-20:) /= ' ') &
+    if (line(n_parse_line-ix_start-20:) /= ' ') &
       call parser_warning ('INPUT LINE HAS TOO MANY CHARACTERS:', line)
   endif
 
-  if (how == 'continue') then
+  ! %input_line1 and %input_line2 are for error messages if needed.
+  ! Only the input string being parsed is saved in these lines.
+  ! 'normal' load_type means we are loading a new input string so start from scratch.
+  ! 'continue' load_type means keep the existing input string.
+
+  if (load_type == 'continue') then
     bp_com%input_line1 = bp_com%input_line2
     bp_com%input_line2 = line
-  elseif (how == 'normal') then
+  elseif (load_type == 'normal') then
     bp_com%input_line1 = ' '
     bp_com%input_line2 = line
   else
     call error_exit ('INTERNAL ERROR #4: CALL HELP')    
   endif
 
-! strip off comments
+  ! strip off comments
 
   ix = index(line, '!')
   if (ix == 1) then
@@ -1234,35 +1363,38 @@ file_end = .false.
     line = line(:ix-1)
   endif
 
-! semi-colon delimiter means that we need to split the line
-! and save the 2nd piece for the next time around.
+  ! semi-colon delimiter means that we need to split the line
+  ! and save the 2nd piece for the next time around.
 
   ix = index(line, ';')
   if (ix == 1) then
-    cmd_pending = .true.
-    pending_line = line(ix+1:)
+    have_saved_line = .true.
+    saved_line = line(ix+1:)
     line = ' '
   elseif (ix > 1) then
-    cmd_pending = .true.
-    pending_line = line(ix+1:)
+    have_saved_line = .true.
+    saved_line = line(ix+1:)
     line = line(:ix-1)
   else
-    cmd_pending = .false.
+    have_saved_line = .false.
   endif
 
-! if the command line is blank then go back for more input
+  ! if the command line is blank then go back for more input
 
-call string_trim (line, line, ix)
-if (ix == 0 .and. .not. cmd_pending) goto 1000
+  call string_trim (line, line, ix)
+  if (ix /= 0 .or. have_saved_line) exit
+enddo
 
-bp_com%parse_line(ix_cmd:) = line
+! now simply append the line to %parse_line starting at ix_start
+
+bp_com%parse_line(ix_start:) = line
 
 return
 
 !
 
 9000  continue
-file_end = .true.
+end_of_file = .true.
 bp_com%parse_line = ' '
 
 end subroutine load_parse_line
@@ -1323,7 +1455,7 @@ end function evaluate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
+! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
 !
 ! This routine creates an "evaluation stack" structure which can be used 
 ! to evaluate an arithmethic expression.
@@ -1332,7 +1464,7 @@ end function evaluate_logical
 ! This subroutine is not intended for general use.
 !-
 
-subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag)
+subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
 
 use random_mod
 
@@ -1348,6 +1480,7 @@ integer op(200), ix_word, i_delim, i2, ix_word2
 real(rp) value
 
 character(*) err_str
+character(*), optional :: end_delims
 character(1) delim
 character(80) word, word2
 
@@ -1660,11 +1793,20 @@ do i = 1, i_lev
   endif
 enddo
 
-
 if (i2 /= 1) call error_exit ('INTERNAL ERROR #03: GET HELP')
 
 value = stk(1)%value
 err_flag = .false.
+
+! Check that final delim matches.
+
+if (present(end_delims)) then
+  if (.not. delim_found .or. index(end_delims, delim) == 0) then
+    call parser_warning ('BAD DELIMITOR AFTER VALUE FOR: ' // err_str)
+    err_flag = .true.
+  endif
+endif
+
 
 end subroutine evaluate_value
 
@@ -2262,7 +2404,7 @@ character(1) delim
 character(40) word_in, word
 character(40) name(200), attrib_name(200)
 
-logical delim_found, err_flag, file_end
+logical delim_found, err_flag, end_of_file
                     
 !
 
@@ -2309,7 +2451,7 @@ do
     if (err_flag) then
       call parser_warning ('BAD COEFFICIENT: ' // word_in,  &
                                         'FOR ELEMENT: ' // ele%name)
-      call load_parse_line ('normal', 1, file_end)         ! next line
+      call load_parse_line ('normal', 1, end_of_file)         ! next line
       return
     endif
     coef(ixs) = value

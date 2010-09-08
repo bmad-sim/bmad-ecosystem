@@ -70,7 +70,7 @@ The following (rather silly) example shows some of the features of a
   ! This is a comment
   parameter[E_TOT] = 5e9                   ! Parameter definition
   pa1 = sin(3.47 * pi / c_light)                 ! Constant definition
-  bend1: sbend, type = "arc bend", l = 2.3, &    ! An element definition
+  bend1: sbend, type = "arc bend", l = 2.3,      ! An element definition
       g = 2*pa1, tracking_method = bmad_standard
   bend2: bend1, l = 3.4                          ! Another element def
   bend2[g] = 105 - exp(2.3) / 37.5               ! Redefining an attribute
@@ -80,15 +80,23 @@ The following (rather silly) example shows some of the features of a
   use, ln2                                       ! Which line to use for the lattice
 \end{example}
 
-A \bmad lattice file consists of a sequence of statements. Normally a
-statement occupies a single line in the file. Several statements may
-be placed on the same line by inserting a semicolon (;) between
-them. A long statement can occupy multiple lines by putting an
-ampersand (\&) at the end of each line of a statement except for the
-last line. An exclamation mark (!) denotes a comment and the
-exclamation mark and everything after the exclamation mark on a line
-are ignored.  \bmad is case insensitive. All names are converted to
-uppercase except strings (\sref{s:var.types}).
+\index{"! comment symbol}
+\index{comment symbol ("!)}
+A \bmad lattice file consists of a sequence of statements. An
+exclamation mark (!) denotes a comment and the exclamation mark and
+everything after the exclamation mark on a line are ignored.  \bmad is
+case insensitive. All names are converted to uppercase except strings
+(\sref{s:var.types}).
+
+\index{& continuation symbol}
+\index{continuation symbol (&)}
+Normally a statement occupies a single line in the file. Several
+statements may be placed on the same line by inserting a semicolon
+(``;'') between them. A long statement can occupy multiple lines by
+putting an ampersand (``\&'') at the end of each line of the statement
+except for the last line. Additionally, lines that end with ``,''
+(comma), ``+'', ``-'', ``*'', ``/'', ``('', ``{'', ``['', or ``='' are automatically
+considered to be continued to the next line.
 
 \index{lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 40

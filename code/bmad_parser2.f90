@@ -78,7 +78,7 @@ character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
 logical parsing, delim_found, found, xsif_called, err, wild_here, key_here
-logical file_end, err_flag, finished, good_attrib, wildcards_permitted
+logical end_of_file, err_flag, finished, good_attrib, wildcards_permitted
 logical print_err, check
 
 ! Init...
@@ -161,9 +161,9 @@ parsing_loop: do
 
   ! get a line from the input file and parse out the first word
 
-  call load_parse_line ('normal', 1, file_end)  ! load an input line
+  call load_parse_line ('normal', 1, end_of_file)  ! load an input line
   call get_next_word (word_1, ix_word, '[:](,)=', delim, delim_found, .true.)
-  if (file_end) then
+  if (end_of_file) then
     word_1 = 'END_FILE'
     ix_word = 8
   else
