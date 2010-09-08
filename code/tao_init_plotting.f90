@@ -118,6 +118,7 @@ default_graph%y2%major_div          = -1
 default_graph%y2%major_div_nominal  = -1
 default_graph%y2%label_color        = blue$
 default_graph%y2%draw_numbers       = .false.
+default_graph%ix_branch             = 0
 default_graph%ix_universe           = -1
 default_graph%clip                  = .true.
 default_graph%draw_axes             = .true.
