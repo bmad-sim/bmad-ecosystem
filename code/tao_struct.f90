@@ -156,10 +156,11 @@ type tao_graph_struct
   type (qp_axis_struct) y       ! Y-axis attributes.
   type (qp_axis_struct) y2      ! Y-axis attributes.
   type (qp_rect_struct) margin  ! Margin around the graph.
-  real(rp) :: x_axis_scale_factor = 1  ! x-axis conversion from internal to plotting units.
+  real(rp) x_axis_scale_factor  ! x-axis conversion from internal to plotting units.
+  real(rp) symbol_size_scale    ! Symbol size scale factor for phase_space plots.
   integer box(4)                ! Defines which box the plot is put in.
-  integer :: ix_branch = 0
-  integer :: ix_universe = -1   ! Used for lat_layout plots.
+  integer ix_branch         
+  integer ix_universe           ! Used for lat_layout plots.
   logical clip                  ! Clip plot at graph boundary.
   logical valid                 ! valid if all curve y_dat computed OK.
   logical y2_mirrors_y          ! Y2-axis same as Y-axis?

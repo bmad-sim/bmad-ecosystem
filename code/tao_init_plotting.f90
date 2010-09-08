@@ -130,6 +130,8 @@ default_graph%who%sign              = 1
 default_graph%box     = [1, 1, 1, 1]
 default_graph%margin  = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 default_graph%n_curve = 0
+default_graph%x_axis_scale_factor = 1
+default_graph%symbol_size_scale = 0
 
 ! If there is no plot file then use the built-in defaults.
 
@@ -391,8 +393,7 @@ do  ! Loop over plot files
     do i_graph = 1, ng
       graph_index = 0         ! setup defaults
       graph = default_graph
-      graph%x = plot%x
-      graph%x_axis_scale_factor = 1
+      graph%x = plot%x      
       write (graph%name, '(a, i0)') 'g', i_graph
       do j = 1, size(curve)
         write (curve(j)%name, '(a, i0)') 'c', j
@@ -449,6 +450,7 @@ do  ! Loop over plot files
       grph%type          = graph%type
       grph%component     = graph%component
       grph%x_axis_scale_factor = graph%x_axis_scale_factor 
+      grph%symbol_size_scale   = graph%symbol_size_scale   
       if (graph%who(1)%name /= '') then  ! Old style
         call out_io (s_error$, r_name, [&
             '**********************************************************', &

@@ -119,6 +119,7 @@ type tao_graph_input
   integer ix_branch
   integer n_curve
   real(rp) x_axis_scale_factor
+  real(rp) symbol_size_scale 
   logical clip
   logical draw_axes
   logical correct_xy_distortion

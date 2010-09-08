@@ -1111,6 +1111,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
 
     nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
+    nl=nl+1; write (lines(nl), rmt) 'symbol_size_scale     = ', g%symbol_size_scale
     nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
     nl=nl+1; write (lines(nl), imt) 'x%major_div           = ', g%x%major_div
