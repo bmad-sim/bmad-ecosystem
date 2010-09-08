@@ -142,7 +142,7 @@ enddo
 if (n > 0) then
   allocate (wall%gen_shape(n))
   do
-    v = cross_section_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+    v = cross_section_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
     read (1, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
       print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
