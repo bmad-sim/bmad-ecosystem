@@ -448,7 +448,7 @@ if (ix_attrib == cross$ .and. ele%key == capillary$) then
     elseif (word == 'v' .and. delim == '(') then
       call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
       ix_v = ix_v + 1
-      read (j, '(i)', iostat = ios) word
+      read (j, *, iostat = ios) word
       if (ios /= 0 .or. ix_v /= j) then
         call parser_warning ('BAD OR OUT OF ORDER CROSS-SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
         return
