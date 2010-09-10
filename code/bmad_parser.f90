@@ -889,6 +889,10 @@ call remove_eles_from_lat (lat, .false.)
 
 call parser_add_lord (in_lat, n_max, plat, lat)
 
+! Consistancy check
+
+call check_lat_controls (lat, .true.)
+
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
@@ -966,16 +970,12 @@ enddo
 
 if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
-if (.not. bp_com%error_flag) then
-            
-  call check_lat_controls (lat, .true.)
+! write to digested file
 
-  ! write to digested file
-
-  bp_com%write_digested = bp_com%write_digested .and. &
-                                  digested_version <= bmad_inc_version$
+if (.not. bp_com%error_flag) then            
+  bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) call write_digested_bmad_file (digested_file, &
-                              lat, bp_com%num_lat_files, bp_com%lat_file_names)
+                                      lat, bp_com%num_lat_files, bp_com%lat_file_names)
 endif
 
 call parser_end_stuff ()

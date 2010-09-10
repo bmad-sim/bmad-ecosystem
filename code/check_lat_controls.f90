@@ -24,7 +24,7 @@ type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2
 type (branch_struct), pointer :: branch
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
-integer ix1, ix2, ii, i_b, i_b2
+integer ix1, ix2, ii, i_b, i_b2, n_pass
 
 character(10) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'check_lat_controls'
@@ -43,11 +43,11 @@ endif
 ! good_control specifies what elements can control what other elements.
 
 good_control = .false.
-good_control(group_lord$, (/ group_slave$, overlay_slave$, multipass_slave$ /)) = .true.
-good_control(girder_lord$, (/ overlay_slave$, multipass_slave$ /)) = .true.
-good_control(overlay_lord$, (/ overlay_slave$, multipass_slave$ /)) = .true.
-good_control(super_lord$, (/ super_slave$ /)) = .true.
-good_control(multipass_lord$, (/ multipass_slave$, patch_in_slave$ /)) = .true.
+good_control(group_lord$, [group_slave$, overlay_slave$, multipass_slave$]) = .true.
+good_control(girder_lord$, [overlay_slave$, multipass_slave$]) = .true.
+good_control(overlay_lord$, [overlay_slave$, multipass_slave$]) = .true.
+good_control(super_lord$, [super_slave$]) = .true.
+good_control(multipass_lord$, [multipass_slave$, patch_in_slave$]) = .true.
 
 found_err = .false.
            
@@ -61,7 +61,7 @@ do i_b = 0, ubound(lat%branch, 1)
     call out_io (s_fatal$, r_name, &
               'BRANCH: ' // branch%name, &
               'IS OUT OF ORDER IN THE BRANCH(:) ARRAY \i0\ ', &
-              i_array = (/ branch%ix_branch /) )
+              i_array = [branch%ix_branch] )
     found_err = .true.
   endif
 
@@ -72,14 +72,14 @@ do i_b = 0, ubound(lat%branch, 1)
     if (ix < 0 .or. ix == i_b .or. ix > ubound(lat%branch, 1)) then 
       call out_io (s_fatal$, r_name, &
                 'BRANCH: ' // branch%name, &
-                'HAS A IX_FROM_BRANCH INDEX OUT OF RANGE: \i0\ ', i_array = (/ ix /) )
+                'HAS A IX_FROM_BRANCH INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
       found_err = .true.
     endif
 
     if (branch%ix_from_ele < 1 .or. branch%ix_from_ele > lat%branch(ix)%n_ele_track) then
       call out_io (s_fatal$, r_name, &
                 'BRANCH: ' // branch%name, &
-                'HAS A IX_FROM_ELE INDEX OUT OF RANGE: \i0\ ', i_array = (/ branch%ix_from_ele /) )
+                'HAS A IX_FROM_ELE INDEX OUT OF RANGE: \i0\ ', i_array = [branch%ix_from_ele] )
       found_err = .true.
     endif
 
@@ -108,7 +108,7 @@ do i_b = 0, ubound(lat%branch, 1)
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // ele%name, &
                 'HAS BAD %IX_ELE INDEX: \i0\  (\i0\)', &
-                'SHOULD BE: \i0\ ', i_array = (/ ele%ix_ele, ele%ix_branch, i_t /) )
+                'SHOULD BE: \i0\ ', i_array = [ele%ix_ele, ele%ix_branch, i_t] )
       found_err = .true.
     endif
 
@@ -116,7 +116,7 @@ do i_b = 0, ubound(lat%branch, 1)
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
                 'HAS BAD %IX_BRANCH INDEX: \i0\  (\i0\)', &
-                'SHOULD BE: \i0\ ', i_array = (/ ele%ix_ele, ele%ix_branch, i_b /) )
+                'SHOULD BE: \i0\ ', i_array = [ele%ix_ele, ele%ix_branch, i_b] )
       found_err = .true.
     endif
 
@@ -128,7 +128,7 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WHICH IS A: BRANCH OR PHOTON_BRANCH ELEMENT', &
-                  'HAS A IX_BRANCH_TO INDEX OUT OF RANGE: \i0\ ', i_array = (/ ix /) )
+                  'HAS A IX_BRANCH_TO INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
         found_err = .true.
       endif
     endif
@@ -150,16 +150,29 @@ do i_b = 0, ubound(lat%branch, 1)
 
     l_stat = ele%lord_status
     s_stat = ele%slave_status
+    n_pass = nint(ele%value(n_ref_pass$))
 
     if (ele%key == patch$ .and. l_stat == multipass_lord$) then
-      if (ele%ref_orbit /= 0 .and. ele%value(n_ref_pass$) /= 1) then
+      if (ele%ref_orbit /= 0 .and. n_pass /= 1) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WHICH IS A PATCH ELEMENT AND A MULTIPASS_LORD.', &
                   'HAS REF_ORBIT = ' // ref_orbit_name(ele%ref_orbit), &
-                  'BUT N_REF_PASS IS NOT 1! \i0\ ', i_array = (/ nint(ele%value(n_ref_pass$)) /))
+                  'BUT N_REF_PASS IS NOT 1! \i0\ ', i_array = [nint(ele%value(n_ref_pass$))])
         found_err = .true.
       endif
+    endif
+
+    ! If n_ref_pass is set for a multipass_lord then check that there the appropriate 
+    ! slave exists
+
+    if (l_stat == multipass_lord$ .and. n_pass /= 0 .and. ele%n_slave < n_pass) then
+      call out_io (s_fatal$, r_name, &
+                  'MULTIPASS_LORD: ' // ele%name, &
+                  'HAS N_REF_PASS = \i0\ ', &
+                  'BUT NUMBER OF PASSES FOR THIS LORD IS: \i0\ ', &
+                  i_array = [n_pass, ele%n_slave])
+      found_err = .true.
     endif
 
     ! sbend multipass lord must have non-zero ref_energy.
@@ -221,7 +234,7 @@ do i_b = 0, ubound(lat%branch, 1)
                   'ELEMENT: ' // ele%name, &
                   'WITH SLAVE_STATUS: ' // control_name(s_stat), &
                   'IS *NOT* IN THE TRACKING PART OF LAT LIST AT: \i0\ ', &
-                  i_array = (/ i_t /) )
+                  i_array = [i_t] )
         found_err = .true.
       endif                                             
     else                                                         
@@ -231,24 +244,24 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
-                  'IS IN THE TRACKING PART OF LAT LIST AT: \i0\ ', i_array = (/ i_t /) )
+                  'IS IN THE TRACKING PART OF LAT LIST AT: \i0\ ', i_array = [i_t] )
         found_err = .true.
       endif
     endif
 
-    if (.not. any( (/ not_a_lord$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
-                      multipass_lord$ /) == l_stat)) then
+    if (.not. any( [not_a_lord$, girder_lord$, super_lord$, overlay_lord$, group_lord$, &
+                      multipass_lord$] == l_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS UNKNOWN LORD_STATUS INDEX: \i0\ ', i_array = (/ i_t, l_stat /) )
+                'HAS UNKNOWN LORD_STATUS INDEX: \i0\ ', i_array = [i_t, l_stat] )
       found_err = .true.
     endif
 
-    if (.not. any( (/ free$, group_slave$, super_slave$, overlay_slave$, &
-                      multipass_slave$, patch_in_slave$ /) == s_stat)) then
+    if (.not. any( [free$, group_slave$, super_slave$, overlay_slave$, &
+                      multipass_slave$, patch_in_slave$] == s_stat)) then
       call out_io (s_fatal$, r_name, &
                 'ELEMENT: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = (/ i_t, s_stat /) )
+                'HAS UNKNOWN SLAVE_STATUS INDEX: \i0\ ', i_array = [i_t, s_stat] )
       found_err = .true.
     endif
 
@@ -256,7 +269,7 @@ do i_b = 0, ubound(lat%branch, 1)
       call out_io (s_fatal$, r_name, &
                 'LORD: ' // trim(ele%name) // '  (\i0\)',  &
                 'HAS SLAVE NUMBER MISMATCH: \3i5\ ', &
-                i_array = (/ i_t, ele%n_slave, ele%ix1_slave, ele%ix2_slave /) )
+                i_array = [i_t, ele%n_slave, ele%ix1_slave, ele%ix2_slave] )
       found_err = .true.
       cycle
     endif
@@ -265,7 +278,7 @@ do i_b = 0, ubound(lat%branch, 1)
       call out_io (s_fatal$, r_name, &
                 'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
                 'HAS LORD NUMBER MISMATCH: \3i5\ ', &
-                i_array = (/ i_t, ele%n_lord, ele%ic1_lord, ele%ic2_lord /) )
+                i_array = [i_t, ele%n_lord, ele%ic1_lord, ele%ic2_lord] )
       found_err = .true.
       cycle
     endif
@@ -273,14 +286,14 @@ do i_b = 0, ubound(lat%branch, 1)
     if ((s_stat == overlay_slave$ .or. s_stat == group_slave$) .and. ele%n_lord == 0) then
       call out_io (s_fatal$, r_name, &
                 'OVERLAY OR GROUP SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ZERO LORDS!', i_array = (/ i_t /) )
+                'HAS ZERO LORDS!', i_array = [i_t] )
       found_err = .true.
     endif
 
     if (s_stat == super_slave$ .and. ele%n_lord == 0) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ZERO LORDS!', i_array = (/ i_t /) )
+                'HAS ZERO LORDS!', i_array = [i_t] )
       found_err = .true.
     endif
 
@@ -305,7 +318,7 @@ do i_b = 0, ubound(lat%branch, 1)
           call out_io (s_fatal$, r_name, &
                     'DUPLICATE SUPER_SLAVES: ', trim(lat%ele(ix1)%name) // '  (\i0)', &
                     'FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                    i_array = (/ ix1, i_t /) )
+                    i_array = [ix1, i_t] )
           found_err = .true.
         endif
       enddo
@@ -326,7 +339,7 @@ do i_b = 0, ubound(lat%branch, 1)
                     '                          : ' // trim(slave2%name) // '  (\i0\)', &
                     'ARE OUT OF ORDER IN THE LORD LIST', &
                     'FOR MULTIPASS_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                    i_array = (/ slave1%ix_ele, slave2%ix_ele, i_t /) )
+                    i_array = [slave1%ix_ele, slave2%ix_ele, i_t] )
           found_err = .true.
         endif
       enddo
@@ -340,7 +353,7 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'LORD: ' // trim(ele%name)  // '  (\i0\)', &
                   'HAS IX_SLAVE INDEX OUT OF BOUNDS: \2i5\ ', &
-                  i_array = (/ i_t, ele%ix1_slave, ele%ix2_slave /) )
+                  i_array = [i_t, ele%ix1_slave, ele%ix2_slave] )
         found_err = .true.
       endif
 
@@ -349,7 +362,7 @@ do i_b = 0, ubound(lat%branch, 1)
                   'LORD: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS A %IX_LORD POINTER MISMATCH: \i0\ ', &
                   'AT: \i0\ ', &
-                  i_array = (/ i_t, lat%control(j)%ix_lord, j /) )
+                  i_array = [i_t, lat%control(j)%ix_lord, j] )
         found_err = .true.
       endif
 
@@ -361,7 +374,7 @@ do i_b = 0, ubound(lat%branch, 1)
                   'LORD: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS A SLAVE INDEX OUT OF RANGE: \i0\ ', &
                   'AT: \i0\ ', &
-                  i_array = (/ i_t, i_t2, j /) )
+                  i_array = [i_t, i_t2, j] )
         found_err = .true.
         cycle
       endif
@@ -377,19 +390,19 @@ do i_b = 0, ubound(lat%branch, 1)
                   'WITH LORD_STATUS: ' // control_name(l_stat), &
                   'HAS A SLAVE: ' // trim(slave%name) // '  (\i0\)', &
                   'WITH SLAVE_STATUS: ' // control_name(t2_type), &
-                  i_array = (/ i_t, i_t2 /) )
+                  i_array = [i_t, i_t2] )
         found_err = .true.
       endif
 
       if (l_stat /= group_lord$ .and. l_stat /= girder_lord$) then
         n = slave%ic2_lord - slave%ic1_lord + 1
-        cc(1:n) = (/ (lat%ic(i), i = slave%ic1_lord, slave%ic2_lord) /)
+        cc(1:n) = [(lat%ic(i), i = slave%ic1_lord, slave%ic2_lord)]
         if (.not. any(lat%control(cc(1:n))%ix_lord == i_t)) then
           call out_io (s_fatal$, r_name, &
                     'SLAVE: ', trim(slave%name) // '  (\i0\)', &
                     'WITH SLAVE_STATUS: ' // control_name(t2_type), &
                     'DOES NOT HAVE A POINTER TO ITS LORD: ' // trim(ele%name) // '  (\i0\)', &
-                    i_array = (/ i_t2, i_t /) )
+                    i_array = [i_t2, i_t] )
           found_err = .true.
         endif
       endif
@@ -406,7 +419,7 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS IC_LORD INDEX OUT OF BOUNDS: \2i5\ ', &
-                  i_array = (/ i_t, ele%ic1_lord, ele%ic2_lord /) )
+                  i_array = [i_t, ele%ic1_lord, ele%ic2_lord] )
         found_err = .true.
       endif
 
@@ -416,7 +429,7 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS IC INDEX OUT OF BOUNDS: \2i5\ ', & 
-                  i_array = (/ i_t, ix, j /) )
+                  i_array = [i_t, ix, j] )
         found_err = .true.
       endif
           
@@ -426,7 +439,7 @@ do i_b = 0, ubound(lat%branch, 1)
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // ' ' // str_ix_ele, &
                   'HAS A LORD INDEX OUT OF RANGE: \3i7\ ', &
-                  i_array = (/ ix, j, i_t2 /) )
+                  i_array = [ix, j, i_t2] )
         found_err = .true.
         cycle
       endif
@@ -436,7 +449,7 @@ do i_b = 0, ubound(lat%branch, 1)
                   'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
                   'HAS A %IX_SLAVE POINTER MISMATCH: \i0\ ', &
                   'AT: \2i7\ ', &
-                  i_array = (/ lat%control(j)%ix_slave, ix, j /) )
+                  i_array = [lat%control(j)%ix_slave, ix, j] )
         found_err = .true.
       endif
 
@@ -450,7 +463,7 @@ do i_b = 0, ubound(lat%branch, 1)
                   'WITH SLAVE_STATUS: ' // control_name(s_stat), &
                   'HAS A LORD: ' // trim(lord%name) // '  (\i0\)', &
                   'WITH LORD_STATUS: ' // control_name(t2_type), &
-                  i_array = (/ i_t2 /) )
+                  i_array = [i_t2] )
         found_err = .true.
       endif
 
@@ -459,7 +472,7 @@ do i_b = 0, ubound(lat%branch, 1)
           call out_io (s_fatal$, r_name, &
                     'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
                     'HAS MORE THAN ONE GIRDER_LORD.', &
-                    i_array = (/ i_t /) )
+                    i_array = [i_t] )
           found_err = .true.
         endif
         girder_here = .true.
@@ -483,7 +496,7 @@ return
 call out_io (s_fatal$, r_name, &
             'SUPER_SLAVES: ' // trim(branch%ele(ix1)%name) // ', ' // branch%ele(ix2)%name, &
             'NOT IN CORRECT ORDER FOR SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
-            i_array = (/ i_t /) )
+            i_array = [i_t] )
 
 if (exit_on_error) call err_exit
 
