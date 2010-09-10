@@ -1,6 +1,6 @@
-#include "CESR_platform.inc"
-
 module indexx_mod
+
+use utilities_mod
 
 interface indexx
   module procedure indexx_char
@@ -12,16 +12,19 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
+! Subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list)
 !
 ! Subroutine to find a matching name in a list of names.
 ! The routine indexx should be used to create an_indexx.
 !
-! After calling find_indexx, the name can be added to the names list and
-! an_indexx can be updated using the code:
+! If add_to_list = True, name is added to the names_list and
+! an_indexx is updated using the prescription:
+!   Find ix2_match.
 !   an_indexx(ix2_match+1:n_max+1) = an_indexx(ix2_match:n_max)
-!   an_indexx(ix2_match) = n_max + 1
-!   names(n_max+1) = name
+!   n_max = n_max + 1
+!   an_indexx(ix2_match) = n_max
+!   names(n_max) = name
+!   ix_match = n_max
 !
 ! Modules neede:
 !   use indexx_mod
@@ -32,6 +35,8 @@ contains
 !   an_indexx(:) -- Integer: Sorted index for names(:) array.
 !                     names(an_indexx(i)) is in alphabetical order.
 !   n_max        -- Integer: Use only names(1:n_max) part of array.
+!   add_to_list  -- Logical, optional: If present and True then add name to names array and
+!                     update an_index array.
 !
 ! Output:
 !   ix_match  -- Integer: If a match is found then:
@@ -46,65 +51,79 @@ contains
 !                              names(j) > name
 !                    and if ix2_match > 1 then for j = an_indexx(ix2_match-1):
 !                              names(j) < name
+!   names(:)     -- Character(40): Updated if add_to_list = True.
+!   an_indexx(:) -- Integer: Updated if add_to_list = True.
+!   n_max        -- Integer: Incremented by 1 if add_to_list = True.
 !-
 
-subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match)
+subroutine find_indexx (name, names, an_indexx, n_max, ix_match, ix2_match, add_to_list)
 
-  implicit none
+implicit none
 
-  integer ix1, ix2, ix3, n_max, ix_match
-  integer, optional :: ix2_match
-  integer an_indexx(:)
+integer ix1, ix2, ix3, n_max, ix_match
+integer, optional :: ix2_match
+integer an_indexx(:)
 
-  character(40) name, names(:)
-  character(40) this_name
+character(40) name, names(:)
+character(40) this_name
+
+logical, optional :: add_to_list
 
 ! simple case
 
-  if (n_max == 0) then
-    ix_match = 0
-    if (present(ix2_match)) ix2_match = 1
-    return
+if (n_max == 0) then
+  if (present(ix2_match)) ix2_match = 1
+  ix_match = 0
+  if (logic_option(.false., add_to_list)) then
+    ix_match = 1
+    an_indexx(1) = 1
+    names(1) = name
+    n_max = 1
   endif
+  return
+endif
 
 !
 
-  ix1 = 1
-  ix3 = n_max
+ix1 = 1
+ix3 = n_max
 
-  do
+do
 
-    ix2 = (ix1 + ix3) / 2 
-    this_name = names(an_indexx(ix2))
+  ix2 = (ix1 + ix3) / 2 
+  this_name = names(an_indexx(ix2))
 
-    if (this_name == name) then
-      do ! if there are duplicate names in the list choose the first one
-        if (ix2 == 1) exit
-        if (names(an_indexx(ix2-1)) /= this_name) exit
-        ix2 = ix2 - 1
-      enddo
-      ix_match = an_indexx(ix2)
-      if (present(ix2_match)) ix2_match = ix2
-      return
-    elseif (this_name < name) then
-      ix1 = ix2 + 1
-    else
-      ix3 = ix2 - 1
-    endif
-                       
-    if (ix1 > ix3) then
-      ix_match = 0
-      if (present(ix2_match)) then
-        if (this_name < name) then
-          ix2_match = ix2 + 1
-        else
-          ix2_match = ix2
-        endif
-      endif
-      return
-    endif
+  if (this_name == name) then
+    do ! if there are duplicate names in the list choose the first one
+      if (ix2 == 1) exit
+      if (names(an_indexx(ix2-1)) /= this_name) exit
+      ix2 = ix2 - 1
+    enddo
+    ix_match = an_indexx(ix2)
+    exit
+  elseif (this_name < name) then
+    ix1 = ix2 + 1
+  else
+    ix3 = ix2 - 1
+  endif
+                     
+  if (ix1 > ix3) then
+    ix_match = 0
+    if (this_name < name) ix2 = ix2 + 1
+    exit
+  endif
 
-  enddo
+enddo
+
+if (present(ix2_match)) ix2_match = ix2
+
+if (logic_option(.false., add_to_list)) then
+  an_indexx(ix2+1:n_max+1) = an_indexx(ix2:n_max)
+  n_max = n_max + 1
+  an_indexx(ix2) = n_max
+  names(n_max) = name
+  ix_match = n_max
+endif
 
 end subroutine
 
