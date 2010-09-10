@@ -3581,7 +3581,7 @@ type (parser_lat_struct) plat
 type (control_struct), pointer, save :: cs(:) => null()
 type (branch_struct), pointer :: branch
 
-integer ixx, i, ic, n, n2, k, k2, ix, j, ie, ix1, ix2, ns, ixs
+integer ixx, i, ic, n, n2, k, k2, ix, j, ie, n_list, ix2, ns, ixs, ii
 integer ix_lord, k_slave, ix_ele_original
 integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
 
@@ -3602,18 +3602,18 @@ enddo
 allocate (name_list(n), ix_ele(n), ix_branch(n), r_indexx(n))
 allocate (cs(1000))
 
-ix1 = 0
+n_list = 0
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   n = branch%n_ele_max
-  ix2 = ix1 + n
-  name_list(ix1+1:ix2) = branch%ele(1:n)%name
-  ix_ele(ix1+1:ix2)    = branch%ele(1:n)%ix_ele
-  ix_branch(ix1+1:ix2) = branch%ele(1:n)%ix_branch
-  ix1 = ix2
+  ix2 = n_list + n
+  name_list(n_list+1:ix2) = branch%ele(1:n)%name
+  ix_ele(n_list+1:ix2)    = branch%ele(1:n)%ix_ele
+  ix_branch(n_list+1:ix2) = branch%ele(1:n)%ix_branch
+  n_list = ix2
 enddo
 
-call indexx (name_list(1:ix1), r_indexx(1:ix1)) ! get sorted list
+call indexx (name_list(1:n_list), r_indexx(1:n_list)) ! get sorted list
 
 ! loop over elements
 
@@ -3642,7 +3642,7 @@ main_loop: do n = 1, n2
     do i = 1, lord%n_slave
 
       name = plat%ele(ixx)%name(i)
-      call find_indexx (name, name_list, r_indexx, ix1, k, k2)
+      call find_indexx (name, name_list, r_indexx, n_list, k, k2)
 
       if (k == 0) then
         slave_not_in_lat = .true.
@@ -3689,7 +3689,7 @@ main_loop: do n = 1, n2
           cycle main_loop
         endif
         k2 = k2 + 1
-        if (k2 > ix1) exit
+        if (k2 > n_list) exit
         k = r_indexx(k2)
         slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
         ! exit loop if no more matches
@@ -3709,13 +3709,16 @@ main_loop: do n = 1, n2
 
     ! put the element name in the list r_indexx list
 
-    call find_indexx (lord%name, lat%ele(1:ix1)%name, r_indexx(1:ix1), ix1, k, k2)
-    ix1 = ix1 + 1
-    r_indexx(k2+1:ix1) = r_indexx(k2:ix1-1)
-    r_indexx(k2) = ix1
-    name_list(ix1) = lord%name
-    ix_ele(ix1) = ix_lord
-    ix_branch(ix1) = 0
+    call find_indexx (lord%name, name_list, r_indexx, n_list, k, add_to_list = .true.)
+    ix_ele(k) = ix_lord
+    ix_branch(k) = 0
+
+    do ii = 1, n_list-1
+      if (name_list(r_indexx(ii)) > name_list(r_indexx(ii+1))) then
+        print *, n, ii, r_indexx(ii)
+        call err_exit
+      endif
+    enddo
 
     ! create the lord
 
@@ -3741,7 +3744,7 @@ main_loop: do n = 1, n2
     ixx = lord%ixx
     name1 = plat%ele(ixx)%name(1)
 
-    call find_indexx (name1, name_list, r_indexx, ix1, k_slave, k2)
+    call find_indexx (name1, name_list, r_indexx, n_list, k_slave, k2)
     if (k_slave == 0) then
       call parser_warning ('CANNOT FIND START ELEMENT FOR GIRDER: ' // lord%name, &
                     'CANNOT FIND: '// name, pele = plat%ele(ixx))

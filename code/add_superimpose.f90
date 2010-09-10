@@ -208,12 +208,16 @@ if (all_drift) then
   branch%ele(ix_super)%slave_status = free$
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   ! If a single drift was split give the runt drifts on either end 
-  ! Unique names by adding "#1" and "#2" suffixes.
+  ! names by adding "#RUNT" suffix if this suffix is not already present.
   if (split1_done .and. split2_done) then
     if (branch%ele(ix_super-1)%name == branch%ele(ix_super+1)%name .and. &
                                   branch%ele(ix_super-1)%key == drift$) then
-      branch%ele(ix_super-1)%name = trim(branch%ele(ix_super-1)%name) // '#1'
-      branch%ele(ix_super+1)%name = trim(branch%ele(ix_super+1)%name) // '#2'
+      n = len_trim(branch%ele(ix_super-1)%name)
+      if (branch%ele(ix_super-1)%name(n-4:n) /= '#RUNT') then
+        n = min(len(branch%ele(ix_super-1)%name)-5, n)
+        branch%ele(ix_super-1)%name = branch%ele(ix_super-1)%name(1:n) // '#RUNT'
+        branch%ele(ix_super+1)%name = branch%ele(ix_super+1)%name(1:n) // '#RUNT'
+      endif
     endif
   endif
   return
