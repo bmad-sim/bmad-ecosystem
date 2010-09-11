@@ -85,7 +85,11 @@ if (.not. logic_option (.false., end_in)) then
   else
     call track1 (c0, ele, param, c1)
   endif
-  if (param%lost) then
+  ! If the particle has been lost in tracking this is an error.
+  ! Exception: A match element with match_end set to True. 
+  ! Here the problem is most likely that twiss_propagate_all has not yet 
+  ! been called so ignore this case.
+  if (param%lost .and. (ele%key /= match$ .or. ele%value(match_end$) == 0)) then
     mat6 = 0
     if (present(err)) err = .true.
     call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // ele%name)
