@@ -3145,12 +3145,13 @@ end subroutine
 ! Input:
 !   page_type -- Character(*). Device name for the type of plot.
 !                 TYPE is passed to GG_SETUP. E.g.
-!                 TYPE = 'X'     --> Open an X-window.
-!                 TYPE = 'TK'    --> Open a tk window. plplot only. Will map to X for PGPLOT.
 !                 TYPE = 'GIF'   --> To create a gif file.
 !                 TYPE = 'GIF-L' --> Gif w/ landscape page orientation.
+!                 TYPE = 'PDF'   -- > pdf file. [plplot only.]
 !                 TYPE = 'PS'    --> To create a Color PostScript file.
 !                 TYPE = 'PS-L'  --> PostScript w/ landscape page orientation.
+!                 TYPE = 'TK'    --> Open a tk window. plplot only. Will map to X for PGPLOT.
+!                 TYPE = 'X'     --> Open an X-window.
 !   x_len     -- Real(rp), optional: Page horizontal width before scaling. Default: See above.
 !   y_len     -- Real(rp), optional: Page vertical width before scaling. Default: See above.
 !   units     -- Character(*), optional: units for x_len and y_len.
@@ -3183,19 +3184,27 @@ character(*) page_type
 character(*), optional :: units, plot_file
 character(16) :: r_name = 'qp_open_page'
 
-logical saved_state
+logical saved_state, landscape, output_to_file
 
-!
+! Init
 
 call qp_save_state (.false.)
 
 qp_com%dflt_units = dflt_set$
 qp_com%page_type = page_type
 
+landscape = .false.
+if (index(qp_com%page_type, '-L') /= 0) landscape = .true.
+
+output_to_file = .true.
+if (qp_com%page_type == 'X' .or. qp_com%page_type == 'TK') output_to_file = .false.
+
 ! set the name for the output plot file.
 
 if (qp_com%page_type(1:3) == 'GIF') then
   qp_com%plot_file = 'quick_plot.gif'
+elseif (qp_com%page_type(1:3) == 'PDF') then
+  qp_com%plot_file = 'quick_plot.pdf'
 else
   qp_com%plot_file = 'quick_plot.ps'
 endif
@@ -3236,22 +3245,24 @@ page_scale = real_option(1.0_rp, scale)
 
 if (page_scale == 0) then ! Auto scale to fit standard paper size.
 
-  if (qp_com%page_type == 'PS' .or. qp_com%page_type == 'GIF') then
-    if (x_inch/y_inch > print_page_short_len/print_page_long_len) then  ! x_inch is larger
-      page_scale = print_page_short_len / x_inch
-    else
-      page_scale = print_page_long_len / y_inch
-    endif
-  elseif (qp_com%page_type == 'PS-L' .or. qp_com%page_type == 'GIF-L') then
+  if (.not. output_to_file) then
+    call out_io (s_abort$, r_name, &
+                  'SCALE = 0 CAN NOT BE USE WITH PAGE_TYPE = ' // qp_com%page_type)
+    call err_exit
+  endif
+
+  if (landscape) then
     if (x_inch/y_inch > print_page_long_len/print_page_short_len) then  ! x_inch is larger
       page_scale = print_page_long_len / x_inch
     else
       page_scale = print_page_short_len / y_inch
     endif
   else
-    call out_io (s_abort$, r_name, &
-                  'SCALE = 0 CAN NOT BE USE WITH PAGE_TYPE = ' // qp_com%page_type)
-    call err_exit
+    if (x_inch/y_inch > print_page_short_len/print_page_long_len) then  ! x_inch is larger
+      page_scale = print_page_short_len / x_inch
+    else
+      page_scale = print_page_long_len / y_inch
+    endif
   endif
 
   call qp_open_page_basic (qp_com%page_type, 0.0_rp, 0.0_rp, &

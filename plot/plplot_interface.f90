@@ -777,30 +777,38 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   endif
 
 
-  if (page_type == 'X') then
+  select case (page_type)
+  case ('X')
     call plsdev ('xwin')
 
-  elseif (page_type == 'TK') then
+  case ('TK')
     call plsdev ('tk')
 
-  elseif (page_type == 'PS') then
+  case ('PS')
     call plsori(1)   ! portrait mode
     call plsdev ('psc')
 
-  elseif (page_type == 'PS-L') then
+  case ('PS-L')
     call plsdev ('psc')
 
-  elseif (page_type == 'GIF') then
+  case ('GIF')
     call plsori(1)   ! portrait mode
     call plsdev ('png')
 
-  elseif (page_type == 'GIF-L') then
+  case ('GIF-L')
     call plsdev ('png')
 
-  else
+  case ('PDF')
+    call plsdev ('pdf')
+
+  case ('PDF-L')
+    call plsori(1)   ! portrait mode
+    call plsdev ('pdf')
+
+  case default
     call out_io (s_abort$, r_name, 'ERROR: UNKNOWN PAGE_TYPE: ' // page_type)
     call err_exit
-  endif
+  end select
 
 ! Set output file name  
 
