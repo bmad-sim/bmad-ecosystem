@@ -1,10 +1,10 @@
 !+
 ! Subroutine tao_output_cmd (what)
 !
+! Routine to write output to a file or files or send the output to the printer.
 ! 
 ! Input:
-!
-!  Output:
+!   what -- Character(*): What to output. See the code for more details.
 !-
 
 subroutine tao_output_cmd (what)
@@ -35,11 +35,12 @@ character(20) :: r_name = 'tao_output_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(16) = (/ &
+character(20) :: names(18) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
-      'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ' /)
+      'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
+      'pdf              ', 'pdf-l            ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam
@@ -80,7 +81,7 @@ case ('beam')
   at_switch = .false.
 
   do
-    call tao_next_switch (what2, (/ '-ascii', '-at   ' /), switch, err, ix)
+    call tao_next_switch (what2, ['-ascii', '-at   '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-ascii') ascii = .true.
@@ -430,7 +431,7 @@ case ('orbit')
     i = i + 1
     if (word(i) == '') exit
     call match_word (word(i), &
-                      (/ '-beam_index', '-design    ', '-base      ' /), n, .true., name)
+                      ['-beam_index', '-design    ', '-base      '], n, .true., name)
     if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
       call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
       return
@@ -484,15 +485,16 @@ case ('orbit')
 !---------------------------------------------------
 ! ps
 
-case ('ps', 'ps-l', 'gif', 'gif-l')
+case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
 
   file_name = "tao.ps"
   if (action(1:3) == 'gif') file_name = 'tao.gif'
+  if (action(1:3) == 'pdf') file_name = 'tao.pdf'
   call str_upcase (action, action)
 
   scale = 0
   do
-    call tao_next_switch (what2, (/ '-scale' /), switch, err, ix)
+    call tao_next_switch (what2, ['-scale'], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-scale') then
@@ -528,7 +530,7 @@ case ('variable')
 
   good_opt_only = .false.
   do 
-    call tao_next_switch (what2, (/ '-good_opt_only' /), switch, err, ix)
+    call tao_next_switch (what2, ['-good_opt_only'], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-good_opt_only') good_opt_only = .true.
