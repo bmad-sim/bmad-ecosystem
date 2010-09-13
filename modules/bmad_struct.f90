@@ -68,6 +68,7 @@ type cross_section_struct
   real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
   type (cross_section_vertex_struct), allocatable :: v(:) 
                                         ! Array of vertices
+  integer n_vertex_input                ! Number of vertices specified by the user.
 end type
 
 ! Coupling structure
@@ -773,9 +774,17 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ =
 integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
 character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
 
-! Attribute_status values
+! ele%attribute_status values.
+! The idea [NOT YET IMPLEMENTED!]:
+!   When an element attribute is modified, a program will set ele%attribute_status to 
+!     is_modified$ to trigger the bookkeeping routines.
+!   The bookkeeping routines will set to all_bookkeeping_done$ when
+!     the bookkeeping is done.
+!   The program can optionally set to unmodified$ if it has calculations that it only
+!     wants to do if element attributes are modified.
 
-integer, parameter :: unmodified$ = 1, is_modified$ = 2, attribute_bookkeeping_done$ = 3 
+integer, parameter :: unmodified$ = 1, all_bookkeeping_done$ = 2
+integer, parameter :: attribute_bookkeeping_done$ = 3,  is_modified$ = 4
 
 !------------------------------------------------------------------------------
 ! common stuff

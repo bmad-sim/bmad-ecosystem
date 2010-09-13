@@ -24,7 +24,7 @@ type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2
 type (branch_struct), pointer :: branch
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i
-integer ix1, ix2, ii, i_b, i_b2, n_pass
+integer ix1, ix2, ii, i_b, i_b2, n_pass, k
 
 character(10) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'check_lat_controls'
@@ -131,6 +131,20 @@ do i_b = 0, ubound(lat%branch, 1)
                   'HAS A IX_BRANCH_TO INDEX OUT OF RANGE: \i0\ ', i_array = [ix] )
         found_err = .true.
       endif
+    endif
+
+    ! Capillary check
+
+    if (associated(ele%cross_section)) then
+      do k = 1, size(ele%cross_section)
+        if (k > 1) then
+          if (ele%cross_section(k-1)%s > ele%cross_section(k)%s) then
+            call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'S VALUES FOR CROSS SECTIONS NOT INCREASING.')
+          endif
+        endif
+      enddo
     endif
 
     ! match elements with match_end set should only appear in linear_lattices

@@ -42,6 +42,7 @@ use bmad_parser_mod, except_dummy => bmad_parser
 use sim_utils
 use multipole_mod
 use random_mod
+use cross_section_mod
 
 implicit none
 

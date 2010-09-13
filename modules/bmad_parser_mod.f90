@@ -437,17 +437,22 @@ if (ix_attrib == cross$ .and. ele%key == capillary$) then
   endif
 
   do
-    ! Expect "s", "v"
+    ! Expect "S", "V"
     call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
-    if (word == 's' .and. delim == '=') then
+    if (word == 'S' .and. delim == '=') then
       call evaluate_value (trim(ele%name), cross%s, lat, delim, delim_found, err_flag, ',}')
       if (err_flag) return
+      ele%value(l$) = cross%s
       if (delim == '}') exit
 
-    elseif (word == 'v' .and. delim == '(') then
+    elseif (word == 'V' .and. delim == '(') then
       call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
       ix_v = ix_v + 1
+      cross%n_vertex_input = ix_v
+      call re_allocate (cross%v, ix_v)
+
       read (j, *, iostat = ios) word
       if (ios /= 0 .or. ix_v /= j) then
         call parser_warning ('BAD OR OUT OF ORDER CROSS-SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)

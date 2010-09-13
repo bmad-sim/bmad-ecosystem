@@ -152,11 +152,25 @@ logical err
 
 character(40) :: r_name = 'cross_section_initializer'
 
-! Compute angle
+! Init
 
 err = .true.
 v => cross%v
-n = size(v)
+n = cross%n_vertex_input
+
+! Calculate s_spline(3)
+
+cross%s_spline(3) = 1 - cross%s_spline(1) - cross%s_spline(2)
+
+! Single vertex is special.
+
+if (n == 1) then
+  v(1)%x0 = v(1)%x; v(1)%y0 = v(1)%y
+  err = .false.
+  return
+endif
+
+! Compute angle
 
 do i = 1, n
   v(i)%angle = atan2(v(i)%y, v(i)%x)
@@ -176,9 +190,8 @@ endif
 
 ! If all (x, y) are in the first quadrent then assume left/right symmetry and 
 ! propagate vertices to the second quadrent.
-! Exception: Single vertex specifying a circle or ellipse.
 
-if (all(v%x >= 0) .and. all(v%y >= 0) .and. (n > 1 .or. v(1)%radius_x /= 0)) then
+if (all(v%x >= 0) .and. all(v%y >= 0)) then
   if (v(n)%x == 0) then
     nn = 2*n - 1
     call re_allocate(cross%v, 2*nn+1, .false.)
@@ -195,9 +208,8 @@ endif
 
 ! If everything is in the upper half plane assume up/down symmetry and
 ! propagate vertices to the bottom half.
-! Exception: Single vertex specifying a circle or ellipse.
 
-if (all(v(1:n)%y >= 0) .and. (n > 1 .or. v(1)%radius_x /= 0)) then
+if (all(v(1:n)%y >= 0)) then
   if (v(n)%y == 0) then  ! Do not duplicate v(n) vertex
     nn = 2*n - 1
     call re_allocate(cross%v, nn+1, .false.)
