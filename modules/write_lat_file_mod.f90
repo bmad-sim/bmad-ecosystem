@@ -1050,7 +1050,7 @@ end subroutine
 !   use write_lat_file_mod
 !
 ! Input:
-!   out_type      -- Character(*): Either 'XSIF', 'MAD-8' or 'MAD-X'.
+!   out_type      -- Character(*): Either 'XSIF', 'MAD-8', 'MAD-X', or 'OPAL-T'.
 !   out_file_name -- Character(*): Name of the mad output lattice file.
 !   lat           -- lat_struct: Holds the lattice information.
 !   use_matrix_model
@@ -1109,7 +1109,7 @@ endif
 
 ! Init
 
-if (out_type == 'MAD-X') then
+if (out_type == 'MAD-X' .or. out_type == 'OPAL-T') then
   continue_char = ''
   eol_char = ';'
 elseif (out_type == 'MAD-8' .or. out_type == 'XSIF') then
@@ -1337,6 +1337,11 @@ do ix_ele = ie1, ie2
   n_list = n_list + 1
   if (n_list > size(name_list)) call re_allocate(name_list, 2*size(name_list))
   name_list(n_list) = ele%name
+
+  ! OPAL case
+
+  if (out_type == 'OPAL-T') then
+  endif
 
   ! select key
 
