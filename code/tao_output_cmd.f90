@@ -35,12 +35,12 @@ character(20) :: r_name = 'tao_output_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(18) = [ &
+character(20) :: names(19) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
-      'pdf              ', 'pdf-l            ']
+      'pdf              ', 'pdf-l            ', 'opal_lattice     ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam
@@ -416,6 +416,21 @@ case ('madx_lattice')
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
     call bmad_to_mad_or_xsif ('MAD-X', file_name, s%u(i)%model%lat, err = err)
+    if (err) return
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  enddo
+
+!---------------------------------------------------
+! opal_lattice
+
+case ('opal_lattice')
+
+  file_name0 = word(1)
+  if (file_name0 == ' ') file_name0 = 'lat_#.opal'
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
+    call bmad_to_mad_or_xsif ('OPAL-T', file_name, s%u(i)%model%lat, err = err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
