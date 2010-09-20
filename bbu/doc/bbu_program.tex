@@ -1,0 +1,149 @@
+\documentclass[11pt]{article}
+%%\documentclass{book}
+\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{xspace}
+\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
+%\geometry{landscape}            % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{alltt}
+%\usepackage{epstopdf}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+
+\usepackage{hyperref}
+
+%---------------------------------------------------------------------------------
+
+\newcommand{\bbup}{\texttt{BBU_PROGRAM}\xspace}
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+\newcommand{\fig}[1]{Figure~\ref{#1}}
+\newcommand{\vn}{\ttcmd}           
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Newline}{\hfil \\}
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-0.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-0.0ex}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
+
+%---------------------------------------------------------------------------------
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+%---------------------------------------------------------------------------------
+
+\title{ {\bbup}: BMAD Implementation of Beam Breakup Phenomena}
+\author{J.A. Crittenden, D. Sagan}
+\date{September 20, 2010}
+
+\begin{document}
+\maketitle
+
+%------------------------------------------------------------------
+\section{Introduction} 
+
+\bbup is a program which calculates a variety of beam breakup phenomena
+given a lattice model. It is implemented in the context of the BMAD library~\cite{ref:bmad}.
+
+%------------------------------------------------------------------------
+\section{Simulation technique}
+%------------------------------------------------------------------
+\subsection{Main input file} 
+
+The main input file can be specified on the command line invoking {\bbup}.
+If not given, the default name for the main input file is ``\vn{bbu.init}''.
+Example main input file:
+\begin{example}
+&bbu_params
+  bbu_param%lat_file_name = 'erl.lat'         ! Lattice file name
+  bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
+  bbu_param%init_particle_offset = 1e-8       ! Initial particle offset for particles born 
+                                              !  in the first turn period.
+  bbu_param%limit_factor = 2                  ! Init_hom_amp * limit_factor = simulation unstable limit
+                                              ! Must be greater than 2
+  bbu_param%simulation_turns_max = 11         ! Must be greater than 10
+  bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
+  bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
+  bbu_param%keep_all_lcavities = .false.      ! Keep when hybridizing?
+  bbu_param%current = 20e-3                  ! Starting current (amps)
+  bbu_param%rel_tol = 1e-2                    ! Final threshold current accuracy.
+  bbu_param%write_hom_info = .true.  
+  bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
+  bbu_param%elname = 'T1'                     ! Element to step length for DRSCAN
+  bbu_param%nstep = 50                        ! Number of steps for DRSCAN
+  bbu_param%begdr = 5.234                     ! Beginning DR value for DRSCAN
+  bbu_param%enddr = 6.135                     ! End DR value for DRSCAN
+  bbu_param%use_interpolated_threshold = .true.
+  bbu_param%nrep = 10                         ! Number of times to repeat threshold or stable orbit calculation
+  bbu_param%ran_seed = 0                      ! Set specific seed if desired (0 uses system clock)
+  bbu_param%ran_gauss_sigma_cut = 3           ! If positive, limit ran_gauss values to within N sigma
+  bbu_param%stable_orbit_anal = .false.       ! Write out cavity orbit data for SIMULATION_TURNS_MAX turns
+                                              ! No thresholds are calculated
+                                              ! Repeated NREP times with HOM frequencies re-randomized
+                                              ! DRSCAN disabled
+/
+\end{example}
+Fortran namelist input is used.
+The namelist begins on the line starting with \vn{"\&bbu_params"}
+and ends with the line containing the slash \vn{"/"}. Anything outside
+of this is ignored. Within the namelist, anything after an exclamation
+mark \vn{"!"} is ignored including the exclamation mark. 
+
+  \begin{description}
+  \item[\vn{lat_file_name}] \Newline
+The \vn{lat_file_name} parameter specifies the lattice file to be used.
+  \item[\vn{ran_seed}] \Newline
+Random number see used in by the random number generator. If set to 0, the system clock
+will be used. That is, if set to 0, the output results will vary from run to run. 
+
+\end{description}
+
+%------------------------------------------------------------------
+\subsection{DRSCAN: Scan BBU threshold current calculations through return times} 
+
+%------------------------------------------------------------------
+\subsection{Stable Orbit Analysis} 
+
+%------------------------------------------------------------------
+\section{Output files} 
+
+%------------------------------------------------------------------
+\subsection{Main output file}
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+
+\bibitem{ref:bmad}
+D. Sagan, {\em Bmad: A Relativistic Charged Particle Simulation Library},
+Nuc. Instrum. \& Methods {\bf A558}, 356 (2006).
+The Bmad manual can be obtained at {\tt http://www.lepp.cornell.edu/{$\sim$}dcs}
+
+\bibitem{ref:Hoffstaetter04} G.H.~Hoffstaetter, I.V.~Bazarov, \emph{
+Beam-Breakup Instability Theory for Energy Recovery Linacs},
+Phys.~Rev.~ST-AB {\bf 7}, 054401 (2004)
+
+\end{thebibliography}
+\end{document}  
