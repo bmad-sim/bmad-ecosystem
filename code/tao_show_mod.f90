@@ -215,7 +215,7 @@ integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
-logical bmad_format, good_opt_only, show_lords, show_custom
+logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_ran_state
@@ -836,12 +836,13 @@ case ('element')
   print_wig_terms = .false.
   print_all = .false.
   print_data = .false.
+  print_cross_section = .false.
   print_slaves = .true.
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-wig_terms     ', &
                                    '-all_attributes', '-data          ', &
-                                   '-no_slaves     '], switch, err, ix)
+                                   '-no_slaves     ', '-cross_section '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-taylor') print_taylor = .true.
@@ -849,6 +850,7 @@ case ('element')
     if (switch == '-all_attributes') print_all = .true.
     if (switch == '-data') print_data = .true.
     if (switch == '-no_slaves') print_slaves = .false.
+    if (switch == '-cross_section') print_cross_section = .true.
   enddo
 
   call str_upcase (ele_name, stuff2)
@@ -915,7 +917,7 @@ case ('element')
     call tao_lattice_calc (ok)
   endif
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
-            .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms)
+            .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms, print_cross_section)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)

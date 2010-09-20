@@ -1083,7 +1083,8 @@ Format:
    curve \{-symbol\} \{-line\} <curve_name> 
    data \{<data_name>\} 
    derivative <data_name(s)> <var_name(s)>
-   element \{-all_attributes\} \{-data\} \{-no_slaves\} \{-taylor\} \{-wig_terms\} <ele_name>
+   element \{-all_attributes\} \{-cross_section\} \{-data\} \{-no_slaves\} 
+         \{-taylor\} \{-wig_terms\} <ele_name>
    global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
    graph <graph_name>
    hom
@@ -1214,7 +1215,7 @@ Example:
 
 %% show element --------------------------------------------------------------
 
-\item[show element \{-all\_attributes\} \{-data\} \{-no_slaves\} 
+\item[show element \{-all\_attributes\} \{-cross_section\} \{-data\} \{-no_slaves\} 
                      \{-taylor\} \{-wig\_terms\} <ele\_name>] \Newline
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
@@ -1226,7 +1227,11 @@ element in the lattice list will be shown.
 
 If the \vn{-all_attributes} switch is present, then all of the element attributes
 will be displayed. The default is is to display only those attributes
-with non-zero values.
+with non-zero values. ``Attributes'' here does not include the cross-section,
+Taylor map and wiggler element parameters.
+
+If the \vn{-cross_section} switch is present, the cross-section
+information for a \vn{capillary} element is displayed.
 
 If the \vn{-data} switch is present, then information about the 
 all the datums associated with the element will be listed. 
