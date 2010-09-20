@@ -80,14 +80,14 @@ Example main input file:
   bbu_param%lat_file_name = 'erl.lat'         ! Lattice file name
   bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
   bbu_param%init_particle_offset = 1e-8       ! Initial particle offset for particles born 
-                                              !  in the first turn period.
+                                              ! in the first turn period.
   bbu_param%limit_factor = 2                  ! Init_hom_amp * limit_factor = simulation unstable limit
                                               ! Must be greater than 2
   bbu_param%simulation_turns_max = 11         ! Must be greater than 10
   bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
   bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
   bbu_param%keep_all_lcavities = .false.      ! Keep when hybridizing?
-  bbu_param%current = 20e-3                  ! Starting current (amps)
+  bbu_param%current = 20e-3                   ! Starting current (amps)
   bbu_param%rel_tol = 1e-2                    ! Final threshold current accuracy.
   bbu_param%write_hom_info = .true.  
   bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
@@ -114,18 +114,29 @@ mark \vn{"!"} is ignored including the exclamation mark.
   \begin{description}
   \item[\vn{lat_file_name}] \Newline
 The \vn{lat_file_name} parameter specifies the lattice file to be used.
+  \item[\vn{write_hom_info}] \Newline
+If this parameter is set true, the HOM parameters are written to the main output file.
+  \item[\vn{drscan}] \Newline
+If enabled, the threshold current is calculated for over the range in return times
+corresponding to the range from \vn{begdr} to \vn{enddr} in  \vn{nstep} steps,
+lengthening the \vn{elname} element in the lattice accordingly. If the toy lattice
+of Ref.~\cite{ref:Hoffstaetter04} is used, then its Fig.~3 is reproduced.
+  \item[\vn{nrep}] \Newline
+The BBU threshold current calculations are repeated \vn{nrep} times. This is useful
+to estimate the effect of randomizing the HOM frequencies, since they are re-randomized for
+each calculation.
   \item[\vn{ran_seed}] \Newline
 Random number see used in by the random number generator. If set to 0, the system clock
 will be used. That is, if set to 0, the output results will vary from run to run. 
+  \item[\vn{ran_gauss_sigma_cut}] \Newline
+Any randomized values in the lattice, such as HOM frequency spread or position jitter
+are limited to a maximum deviation of \vn{ran_gauss_sigma_cut} rms deviations. 
+  \item[\vn{stable_orbit_anal}] \Newline
+If this parameter is set true, then the output files \tt{stable_orbit.out} and \tt{hom_voltage.out}
+are written for each bunch train passage and each repetition, allowing the orbit deviations
+and HOM loading to be analyzed as the equilibrium level is reached.
 
 \end{description}
-
-%------------------------------------------------------------------
-\subsection{DRSCAN: Scan BBU threshold current calculations through return times} 
-
-%------------------------------------------------------------------
-\subsection{Stable Orbit Analysis} 
-
 %------------------------------------------------------------------
 \section{Output files} 
 
