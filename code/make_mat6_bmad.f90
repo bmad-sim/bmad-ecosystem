@@ -101,12 +101,12 @@ c00 = c0
 c11 = c1
 
 !--------------------------------------------------------
-! drift or element is off or
+! Drift or element is off or
 ! Electric Separator or Kicker.
 
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-if (any (key == (/ drift$, elseparator$, kicker$, rcollimator$, &
+if (any (key == (/ drift$, capillary$, elseparator$, kicker$, rcollimator$, &
         ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ /) )) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
   call add_multipoles_and_s_offset
@@ -179,6 +179,7 @@ case (beambeam$)
 
 case (crystal$)
 
+  ! Not yet implemented
 
 !--------------------------------------------------------
 ! Custom

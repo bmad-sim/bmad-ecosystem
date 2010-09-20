@@ -1,6 +1,7 @@
 
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
-!        twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)
+!        twiss_out, type_control, lattice, type_wake, type_floor_coords, 
+!        type_wig_terms, type_cross_section)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -9,34 +10,35 @@
 !   use bmad
 !
 ! Input:
-!   ele              -- Ele_struct: Element
-!   type_zero_attrib -- Logical, optional: If False then surpress printing of
-!                          attributes whose value is 0. Default is False.
-!   type_mat6      -- Integer, optional:
-!                         = 0   => Do not type ele%mat6
-!                         = 4   => Type 4X4 xy submatrix
-!                         = 6   => Type full 6x6 matrix (Default)
-!   type_taylor    -- Logical, optional: Print out taylor map terms?
-!                       If ele%taylor is not allocated then this is ignored.
-!                       Default is False.
-!   twiss_out      -- Integer, optional: Print the Twiss parameters at the 
-!                         element end?
-!                       = 0         => Do not print the Twiss parameters
-!                       = radians$  => Print Twiss, phi in radians (Default).
-!                       = degrees$  => Print Twiss, phi in degrees.
-!                       = cycles$   => Print Twiss, phi in radians/2pi.
-!   type_control   -- Logical, optional: If True then print control status.
-!                       Default: False if lattice is not present. Otherwise True.
-!   lattice        -- lat_struct, optional: Needed for control typeout.
-!   type_wake      -- Logical, optional: If True then print the long-range and 
-!                       short-range wakes information. If False then just print
-!                       how many terms the wake has. Default is True.
-!                       If ele%wake is not allocated then this is ignored.
+!   ele               -- Ele_struct: Element
+!   type_zero_attrib  -- Logical, optional: If False then surpress printing of
+!                           attributes whose value is 0. Default is False.
+!   type_mat6         -- Integer, optional:
+!                            = 0   => Do not type ele%mat6
+!                            = 4   => Type 4X4 xy submatrix
+!                            = 6   => Type full 6x6 matrix (Default)
+!   type_taylor       -- Logical, optional: Print out taylor map terms?
+!                          If ele%taylor is not allocated then this is ignored.
+!                          Default is False.
+!   twiss_out         -- Integer, optional: Print the Twiss parameters at the element end?
+!                          = 0         => Do not print the Twiss parameters
+!                          = radians$  => Print Twiss, phi in radians (Default).
+!                          = degrees$  => Print Twiss, phi in degrees.
+!                          = cycles$   => Print Twiss, phi in radians/2pi.
+!   type_control      -- Logical, optional: If True then print control status.
+!                          Default: False if lattice is not present. Otherwise True.
+!   lattice           -- lat_struct, optional: Needed for control typeout.
+!   type_wake         -- Logical, optional: If True then print the long-range and 
+!                          short-range wakes information. If False then just print
+!                          how many terms the wake has. Default is True.
+!                          If ele%wake is not allocated then this is ignored.
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
-!   type_wig_terms -- Logical, optional: If True then print the wiggler terms for
-!                        a map_type wiggler. Default is False.
+!   type_wig_terms    -- Logical, optional: If True then print the wiggler terms for
+!                           a map_type wiggler. Default is False.
+!   type_cross_section -- Logical, optional: If True then print cross-section info
+!                           for a capillary. Default is False.
 !
 ! Output       
 !   lines(:)     -- Character(100), pointer: Character array to hold the 
@@ -48,7 +50,7 @@
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_taylor, twiss_out, type_control, lattice, type_wake, &
-                type_floor_coords, type_wig_terms)
+                type_floor_coords, type_wig_terms, type_cross_section)
 
 use bmad_struct
 use bmad_interface, except_dummy => type2_ele
@@ -64,6 +66,8 @@ type (wig_term_struct), pointer :: term
 type (lr_wake_struct), pointer :: lr
 type (sr_table_wake_struct), pointer :: sr_table
 type (sr_mode_wake_struct), pointer :: sr_m
+type (cross_section_struct), pointer :: cs
+type (cross_section_vertex_struct), pointer :: v
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
@@ -86,7 +90,7 @@ character(2) str_i
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional :: type_floor_coords, type_wig_terms
+logical, optional :: type_floor_coords, type_wig_terms, type_cross_section
 logical type_zero, err_flag, print_it, is_default
 
 ! init
@@ -252,6 +256,28 @@ if (associated(ele%wig_term)) then
     nl = nl + size(ele%wig_term)
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of wiggler terms:', size(ele%wig_term)
+  endif
+endif
+
+! cross-section
+
+if (associated(ele%cross_section)) then
+  if (logic_option(.false., type_cross_section)) then
+    do i = 1, size(ele%cross_section)
+      cs => ele%cross_section(i)
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Section# ', i, ':  S =', cs%s
+      do j = 1, size(cs%v)
+        v => cs%v(i)
+        nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
+                              'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
+      enddo
+      if (i == size(ele%cross_section)) exit
+      nl=nl+1; li(nl) = ''
+      nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline =', cs%s_spline
+    enddo
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of cross-sections:', size(ele%cross_section)
   endif
 endif
 

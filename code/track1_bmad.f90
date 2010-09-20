@@ -168,7 +168,12 @@ case (bend_sol_quad$)
   call offset_particle (ele, param, end, unset$)
 
 !-----------------------------------------------
-! drift
+! capillary
+
+case (capillary$) 
+
+!-----------------------------------------------
+! crystal
 
 case (crystal$) 
 

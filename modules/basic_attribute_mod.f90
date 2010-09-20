@@ -297,7 +297,7 @@ do i = 1, n_key
   if (i == photon_branch$) cycle
   if (i == branch$) cycle
 
-  if (i == capillary$)  cycle
+  if (i == capillary$)    cycle
   if (i == marker$)       cycle
   if (i == match$)        cycle
   if (i == patch$)        cycle
@@ -739,6 +739,7 @@ attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
 !! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
 !! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
 
+attrib_array(capillary$, l$)              = 'L'
 attrib_array(capillary$, cross$)          = 'CROSS'
 attrib_array(capillary$, s_spline$)       = 'S_SPLINE'
 

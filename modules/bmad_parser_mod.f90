@@ -453,7 +453,7 @@ if (ix_attrib == cross$ .and. ele%key == capillary$) then
       cross%n_vertex_input = ix_v
       call re_allocate (cross%v, ix_v)
 
-      read (j, *, iostat = ios) word
+      read (word, *, iostat = ios) j 
       if (ios /= 0 .or. ix_v /= j) then
         call parser_warning ('BAD OR OUT OF ORDER CROSS-SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
         return
@@ -503,8 +503,9 @@ if (ix_attrib == cross$ .and. ele%key == capillary$) then
   call get_next_word (word, ix_word, '{},()=', delim, delim_found)
   if (word /= '' .or. (delim /= ' ' .and. delim /= ',')) then
     call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
-    return
   endif
+
+  return
 
 endif
 
