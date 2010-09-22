@@ -2710,15 +2710,15 @@ end subroutine tao_ele_to_ele_track
 !+
 ! Subroutine tao_string_to_element_id (str, ix_class, ele_name, err, print_err)
 !
-! Routine to split a string in the form str = "xxx:yyy" into an element class
+! Routine to split a string in the form str = "xxx::yyy" into an element class
 ! and an element name. Example: 
-!   str = "quad:q*".
+!   str = "quad::q*".
 ! gives
 !   ix_class = quadrupole$
 !   ele_name = "Q*"
 !
-! If ":" is not found then ix_class is set to 0 (all classes).
-! If str is of the form: "*:yyy" then ix_class is set to 0 (all classes).
+! If "::" is not found then ix_class is set to 0 (all classes).
+! If str is of the form: "*::yyy" then ix_class is set to 0 (all classes).
 ! Class abbreviations and lower case names accepted 
 ! ele_name will be converted to upper case
 !
