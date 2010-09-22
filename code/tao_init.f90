@@ -96,12 +96,18 @@ startup_file       = "tao.startup"
 
 if (iu /= 0) then
   read (iu, nml = tao_start, iostat = ios)
-  close (iu)
 
-  if (ios /= 0) then
+  if (ios < 0) then
     call out_io (s_info$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
   endif
 
+  if (ios > 0) then
+    call out_io (s_abort$, r_name, 'Error in reading "tao_start" namelist in file: ' // file_name)
+    rewind (iu)
+    read (iu, nml = tao_start)  ! And generate error message.    
+  endif
+
+  close (iu)
   tao_com%init_name = init_name
   tao_com%n_universes = n_universes
 endif

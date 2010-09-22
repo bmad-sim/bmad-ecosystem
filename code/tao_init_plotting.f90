@@ -66,7 +66,6 @@ namelist / element_shapes / shape
 namelist / element_shapes_floor_plan / ele_shape
 namelist / element_shapes_lat_layout / ele_shape
 
-
 logical err
 
 ! See if this routine has been called before
@@ -312,6 +311,14 @@ do   ! Loop over plot files
 
   close (iu)
 enddo
+
+! If no plots have been defined then use default
+
+if (ip == 0) then
+  deallocate(tao_com%ele_shape_floor_plan, tao_com%ele_shape_lat_layout, s%plot_region)
+  call tao_setup_default_plotting()
+  return
+endif
 
 allocate (s%template_plot(ip))
 
