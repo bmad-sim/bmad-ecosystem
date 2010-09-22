@@ -54,7 +54,7 @@
 
 %---------------------------------------------------------------------------------
 
-\title{ {\bbup}: BMAD Implementation of Beam Breakup Phenomena}
+\title{ {\bbup}: Simulation of the Beam Breakup Instability}
 \author{J.A. Crittenden, D. Sagan}
 \date{September 20, 2010}
 
@@ -64,45 +64,83 @@
 %------------------------------------------------------------------
 \section{Introduction} 
 
-\bbup is a program which calculates a variety of beam breakup phenomena
-given a lattice model. It is implemented in the context of the BMAD library~\cite{ref:bmad}.
+\bbup is a program which simulates the beam breakup
+instability~\cite{ref:Hoffstaetter04}. The beam breakup instability
+occurs when a particle beam is recirculated through a cavity as in an
+Energy Recovery Linac. The bunches of the beam are kicked by the
+wakefields in a cavity and this kick generates an orbit distortion so
+that when the bunches return to the cavity, their off-axis orbit
+through the cavity will create additional wake fields. Given the right
+conditions, this regenerative feedback can lead to instabilities.
+\bbup works by direct simulation. A train of bunches is tracked though 
+a lattice and the wakefields and orbit can be monitored.
 
 %------------------------------------------------------------------------
 \section{Simulation technique}
+
+In order to correctly calculate the HOM fields, bunches are tracked
+through a given cavity in the correct time order. That is, \bbup
+``simultaneously'' tracks a sequence of bunches that fill the lattice,
+starting and stopping bunches as appropriate to make sure that the
+bunches going through a cavity are tracked in the correct order.
+
+In \bbup, time ($t$) is measured in ``\vn{turns}'' (Abbreviated
+``\vn{T}''). One turn is the time it takes a bunch to travel from the
+start of the lattice to the end. At the start of a simulation, at time
+equal zero, the HOM power in the cavities is set to zero. Bunches are
+then started at the beginning of the lattice and tracked through to
+the end. To minimize computation time, a single particle is used to
+represent each bunch. 
+
+Bunches that are initialized at a time between 0 and 1T are given a
+random transverse offset. The offset distribution is Gaussian in shape
+and the sigma is determined by the parameter
+\vn{bbu_param%init_particle_offset} (see below). After the zeroth turn
+period (which is the period ($0 \le t \le 1T$) , bunches will be
+initialized with zero transverse offset. In the second turn period
+($2T \le t \le 3T$), the averaged ``maximum field strength'',
+$V_{max}(2)$ which is the field strength of the strongest HOM mode in
+all the cavities, is taken as a baseline to determine whether the
+fields are growing or decaying. At the end of the simulation, after a
+set number of turn periods $n$, the beam is declared stable or
+unstable depending upon whether the ratio $V_{max}(n-1)/V_{max}(2}$ is
+less than or greater than 1. Additionally, in order to shorten the
+computation time, if $V_{max}(m)/V_{max}(2}$ for some turn period $m$
+is lower then a user defined limit, the simulation is aborted and the
+beam is declared to be stable. If $V_{max}(m)/V_{max}(2}$ goes
+above a user defined upper limit, the simulation is aborted and the beam is
+declared to be unstable.
+
 %------------------------------------------------------------------
 \subsection{Main input file} 
 
+When \bbup is run, \bbup first reads the \vn{main input file}.
 The main input file can be specified on the command line invoking {\bbup}.
 If not given, the default name for the main input file is ``\vn{bbu.init}''.
 Example main input file:
 \begin{example}
 &bbu_params
-  bbu_param%lat_file_name = 'erl.lat'         ! Lattice file name
-  bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
-  bbu_param%init_particle_offset = 1e-8       ! Initial particle offset for particles born 
-                                              ! in the first turn period.
-  bbu_param%limit_factor = 2                  ! Init_hom_amp * limit_factor = simulation unstable limit
-                                              ! Must be greater than 2
-  bbu_param%simulation_turns_max = 11         ! Must be greater than 10
-  bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
-  bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
-  bbu_param%keep_all_lcavities = .false.      ! Keep when hybridizing?
-  bbu_param%current = 20e-3                   ! Starting current (amps)
-  bbu_param%rel_tol = 1e-2                    ! Final threshold current accuracy.
-  bbu_param%write_hom_info = .true.  
-  bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
-  bbu_param%elname = 'T1'                     ! Element to step length for DRSCAN
-  bbu_param%nstep = 50                        ! Number of steps for DRSCAN
-  bbu_param%begdr = 5.234                     ! Beginning DR value for DRSCAN
-  bbu_param%enddr = 6.135                     ! End DR value for DRSCAN
-  bbu_param%use_interpolated_threshold = .true.
-  bbu_param%nrep = 10                         ! Number of times to repeat threshold or stable orbit calculation
-  bbu_param%ran_seed = 0                      ! Set specific seed if desired (0 uses system clock)
-  bbu_param%ran_gauss_sigma_cut = 3           ! If positive, limit ran_gauss values to within N sigma
-  bbu_param%stable_orbit_anal = .false.       ! Write out cavity orbit data for SIMULATION_TURNS_MAX turns
-                                              ! No thresholds are calculated
-                                              ! Repeated NREP times with HOM frequencies re-randomized
-                                              ! DRSCAN disabled
+  bbu_param%lat_file_name = 'erl.lat'       ! Bmad Lattice file name.
+  bbu_param%bunch_freq = 1.3e9              ! Bunch-to-bunch frequency in Hz.
+  bbu_param%init_particle_offset = 1e-8     ! Initial particle offset sigma.
+  bbu_param%limit_factor = 2                ! Simulation unstable limit.
+  bbu_param%simulation_turns_max = 11       ! Simulation time.
+  bbu_param%hybridize = T                   ! Combine non-hom elements in the simulation?
+  bbu_param%keep_overlays_and_groups = F    ! Keep when hybridizing?
+  bbu_param%keep_all_lcavities = F          ! Keep when hybridizing?
+  bbu_param%current = 20e-3                 ! Starting current (amps).
+  bbu_param%rel_tol = 1e-2                  ! Final threshold current accuracy.
+  bbu_param%write_hom_info = T  
+  bbu_param%drscan = F                      ! Do DR scan as in PRSTAB 7 (2004) Fig. 3?
+  bbu_param%elname = 'T1'                   ! Element to step length for DRSCAN.
+  bbu_param%nstep = 50                      ! Number of steps for DRSCAN.
+  bbu_param%begdr = 5.234                   ! Beginning DR value for DRSCAN.
+  bbu_param%enddr = 6.135                   ! End DR value for DRSCAN.
+  bbu_param%use_interpolated_threshold = T
+  bbu_param%nrep = 10                       ! Threshold or stable orbit calculation reps.
+  bbu_param%ran_seed = 0                    ! Set specific seedd (0 uses system clock).
+  bbu_param%ran_gauss_sigma_cut = 3         ! Limit ran_gauss values to within N sigma.
+  bbu_param%stable_orbit_anal = F           ! Write out cavity orbit data.
 /
 \end{example}
 Fortran namelist input is used.
@@ -113,17 +151,41 @@ mark \vn{"!"} is ignored including the exclamation mark.
 
   \begin{description}
   \item[\vn{lat_file_name}] \Newline
-The \vn{lat_file_name} parameter specifies the lattice file to be used.
+The \vn{lat_file_name} parameter specifies the lattice file to be
+used.  Lattices are in Bmad standard format~\cite{ref:bmad}. In order
+to simulate BBU, \vn{multipass} lines which contain \vn{lcavity}
+elements must be specified in the lattice. The long range wakes in the
+\vn{lcavity} elements are responsible for the BBU instability. See
+the Bmad manual for more details.
   \item[\vn{bunch_freq}] \Newline
+The \vn{bunch_freq} is the bunch-to-bunch frequency in Hz.
   \item[\vn{init_particle_offset}] \Newline
+This is the $1\sigma$ half width, in meters, of the distribution of
+the initial transverse coordinates for bunches initialized during the
+zeroth turn period.
   \item[\vn{limit_factor}] \Newline
+If the ratio $V_{max}(m)/V_{max}(2)$ goes above \vn{limit_factor} the
+beam is declared unstable and if $V_{max}(m)/V_{max}(2)$ goes below
+\vn{1/limit_factor} the beam is declared stable.
   \item[\vn{simulation_turns_max}] \Newline
+The \vn{simulation_turns_max} parameter sets the duration of the simulation.
   \item[\vn{hybridize}] \Newline
+Hybridization is the process of combining all the elements between
+two cavities into one element. Tracking through a hybridized element
+is done using linear transport. This speeds up the calculation but
+there is a possible loss of accuracy.
   \item[\vn{keep_overlays_and_groups}] \Newline
+
   \item[\vn{keep_all_cavities}] \Newline
+When hybridizing, if \vn{keep_all_cavities} is set to False, then
+\vn{lcavity} elements that do not have HOM elements will be
+hybridized. If \vn{lcavity} elements without HOMs are hybridized, this
+will speed up the simulation but can possibly lead to inaccurate
+results.
   \item[\vn{current}] \Newline
   \item[\vn{write_hom_info}] \Newline
-If this parameter is set true, the HOM parameters are written to the main output file.
+If this parameter is set true, the HOM parameters are written to the
+main output file.
   \item[\vn{drscan}] \Newline
 If enabled, the threshold current is calculated for over the range in return times
 corresponding to the range from \vn{begdr} to \vn{enddr} in  \vn{nstep} steps,
@@ -159,14 +221,14 @@ and HOM loading to be analyzed as the equilibrium level is reached.
 \begin{thebibliography}{9}
 
 
+\bibitem{ref:Hoffstaetter04} G.H.~Hoffstaetter, I.V.~Bazarov, \emph{
+Beam-Breakup Instability Theory for Energy Recovery Linacs},
+Phys.~Rev.~ST-AB {\bf 7}, 054401 (2004)
+
 \bibitem{ref:bmad}
 D. Sagan, {\em Bmad: A Relativistic Charged Particle Simulation Library},
 Nuc. Instrum. \& Methods {\bf A558}, 356 (2006).
 The Bmad manual can be obtained at {\tt http://www.lepp.cornell.edu/{$\sim$}dcs}
-
-\bibitem{ref:Hoffstaetter04} G.H.~Hoffstaetter, I.V.~Bazarov, \emph{
-Beam-Breakup Instability Theory for Energy Recovery Linacs},
-Phys.~Rev.~ST-AB {\bf 7}, 054401 (2004)
 
 \end{thebibliography}
 \end{document}  
