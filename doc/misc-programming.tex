@@ -37,21 +37,46 @@ corresponding custom routine.
    \Hyperref{r:track1.bunch.custom}{track1_bunch_custom}
 
 %-----------------------------------------------------------------------------
-\section{Physical Constants}
+\section{Physical and Mathematical Constants}
 \label{s:physical.constants}
 
 \index{constants}
-Common physical constants that can be used in any expression
-are defined in the file
+Common physical and mathematical constants that can be used in any expression
+are defined in the file:
 \begin{example}
  sim_utils/interfaces/physical_constants.f90
 \end{example}
-This includes the constants given in Section~\sref{s:constants} along with
+
+The following constants are defined
 \begin{example}
-  mu_0_vac           ! Permeability of free space
-  eps_0_vac          ! Permittivity of free space
-  g_factor_electron  ! Electron anomalous gyro-magnetic moment
-  g_factor_proton    ! Proton anomalous gyro-magnetic moment
+  pi = 3.14159265358979d0
+  twopi = 2 * pi
+  fourpi = 4 * pi
+  sqrt_2 = 1.41421356237310d0
+  sqrt_3 = 1.73205080757d0
+  complex: i_imaginary = (0.0d0, 1.0d0)
+
+  e_mass = 0.51099906d-3   ! DO NOT USE! In GeV
+  p_mass   = 0.938271998d0   ! DO NOT USE! In GeV
+
+  m_electron = 0.51099906d6  ! Mass in eV
+  m_proton   = 0.938271998d9 ! Mass in eV
+
+  c_light = 2.99792458d8             ! speed of light
+  r_e = 2.8179380d-15                ! classical electron radius
+  r_p = r_e * m_electron / m_proton  ! proton radius
+  e_charge = 1.6021892d-19           ! electron charge
+
+  h_planck = 4.13566733d-15          ! eV*sec Planck's constant
+  h_bar_planck = 6.58211899d-16      ! eV*sec h_planck/twopi
+
+  mu_0_vac = fourpi * 1e-7                   ! Permeability of free space
+  eps_0_vac = 1 / (c_light**2 * mu_0_vac)    ! Permittivity of free space
+
+  classical_radius_factor = r_e * m_electron ! Radiation constant
+
+  g_factor_electron = 0.001159652193    ! Anomalous gyro-magnetic moment
+  g_factor_proton   = 1.79285           ! Anomalous gyro-magnetic moment
 \end{example}
 
 %-----------------------------------------------------------------------------
@@ -60,6 +85,18 @@ This includes the constants given in Section~\sref{s:constants} along with
 
 \index{global coordinates}
 \index{s-positions}
+
+The routine \Hyperref{r:lat.geometry}{lat_geometry} will compute the
+global floor coordinates at the end of every element in a lattice.
+\vn{lat_geometry} works by repeated calls to \Hyperref{r:ele.geometry}{ele_geometry} which
+takes the floor coordinates at the end of one element and calculates
+the coordinates at the end of the next. For conversion between
+orientation matrix $\Bf W$ (\sref{s:global}) and the orientation
+angles $\theta, \phi, \psi$, the routines \Hyperref{r:floor.angles.to.w.mat}{floor_angles_to_w_mat}
+and \Hyperref{r:floor.w.mat.to.angles}{floor_w_mat_to_angles} can be used.
+
+The routine \Hyperref{r:s.calc}{s_calc} calculates the longitudinal $s$ positions for
+the elements in a lattice.
 
 %-----------------------------------------------------------------------------
 \section{Common Structures}

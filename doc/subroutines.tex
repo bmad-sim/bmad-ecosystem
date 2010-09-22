@@ -1424,16 +1424,6 @@ c_multi(n, m) = +/- ("n choose m")/n!
 \item[compute_reference_energy (lat, compute)] \Newline
 Routine to compute the reference energy for each element in a lattice. 
 
-\index[routine]{convert_total_energy_to}
-\label{r:convert.total.energy.to}
-\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
-Routine to calculate the momentum, etc. from a particle's total energy. 
-
-\index[routine]{convert_pc_to}
-\label{r:convert.pc.to}
-\item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)] \Newline
-Routine to calculate the energy, etc. from a particle's momentum. 
-
 \index[routine]{field_interpolate_3d}
 \label{r:field.interpolate.3d}
 \item[field_interpolate_3d (position, field_mesh, deltas)] \Newline
@@ -1941,6 +1931,16 @@ structure equal to another.
 \item[convert_coords (in_type_str, coord_in, ele, out_type_str, coord_out)] \Newline
 Routine to convert between lab frame, normal mode, normalized normal mode, 
 and action-angle coordinates. 
+
+\index[routine]{convert_pc_to}
+\label{r:convert.pc.to}
+\item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)] \Newline
+Routine to calculate the energy, etc. from a particle's momentum. 
+
+\index[routine]{convert_total_energy_to}
+\label{r:convert.total.energy.to}
+\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
+Routine to calculate the momentum, etc. from a particle's total energy. 
 
 \index[routine]{init_coord}
 \label{r:init.coord}

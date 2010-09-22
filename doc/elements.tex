@@ -559,13 +559,15 @@ The syntax to define a capillary is
     v(2) = ...
     ...
   \}, 
-  s_spline = \{<coef_1>, <coef_2>\}, 
+  s_spline = \{<coef_1>, <coef_2>\},
+  n_slice_spline = <num> 
   cross = \{
     s = <longitudinal_position>, 
     v(1) = \{...
     ...
   \}
 \end{example}
+Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
 Example:
 \begin{example}
   this_cap: capillary, 
@@ -573,7 +575,8 @@ Example:
       s = 0, v(1) =  \{0.02, 0.00\}, 
       v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\}, 
     \}, 
-    s_spline = \{0.1, 0.7\}, 
+    s_splin = \{0.1, 0.7\}, 
+    n_slice_spline = 4
     cross = \{  ! Cross-section that is a tilted ellipse.
       s = 0.34, 
       v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\}, 
@@ -670,7 +673,34 @@ not specified, the cross-section is a rectangle. For example
     cross = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
 \end{example}
 
-Between cross-sections, the capillary wall is defined using a spline
+Between cross-sections, the capillary wall is defined using a linear
+interpolation scheme.  let $r_{c1}(\theta)$ be the radius of the
+capillary as a function of $\theta$ for a given cross-section defined
+at $s = s_1$. Let $r_{c2}(\theta)$ be the radius function at the next
+defined cross-section at $s = s_2$. The capillary wall $r_c(\theta,
+s)$ at any point $s$ between $s_1$ and $s_2$ is defined by the
+equation
+\Begineq
+  r_c(\theta, s) \equiv (1 - \stilde) \, r_{c1}(\theta) + \stilde \, r_{c2}(\theta)
+\Endeq
+where
+\Begineq
+  \stilde \equiv \frac{s - s_1}{s_2 - s_1}
+\Endeq
+In order for \bmad to quickly track photons through the capillary,
+\bmad assumes that the cross section $r_c(\theta, s)$ at any given $s$
+is convex. Note that it is {\em not} sufficient for $r_c(\theta, s)$ to be
+convex at the specified cross sections.
+
+To help reduce the complexity of specifying a capillary, ``virtual''
+cross-sections may be defined by specifying a cubic interpolating
+spline between two consecutive cross-sections and by specifying
+a value for \vn{n_slice_spline}. The region between the two cross-sections will then be divided into \vn{n_slice_spline} 
+
+. In this case, 
+
+
+using a spline
 interpolation: In $(r, \theta)$ cylindrical coordinates, let
 $r_{c1}(\theta)$ be the radius of the capillary as a function of
 $\theta$ for a given cross-section defined at $s = s_1$. Let
@@ -678,19 +708,19 @@ $r_{c2}(\theta)$ be the radius function at the next defined
 cross-section at $s = s_2$. The capillary wall $r_c(\theta, s)$ at any
 point $s$ between $s_1$ and $s_2$ is defined by the equation
 \Begineq
-  r_c(\theta, s) \equiv (1 - P(ds)) \, r_{c1}(\theta) + P(ds) \, r_{c2}(\theta)
+  r_c(\theta, s) \equiv (1 - P(\stilde)) \, r_{c1}(\theta) + P(\stilde) \, r_{c2}(\theta)
 \Endeq
 where
 \Begineq
-  ds \equiv \frac{s - s_1}{s_2 - s_1}
+  \stilde \equiv \frac{s - s_1}{s_2 - s_1}
 \Endeq
 and $P(s)$ is a cubic polynomial spline
 \Begineq
-  P(s) = c_1 \, s + c_2 \, s^2 + c_3 \, s^3
+  P(\stilde) = c_1 \, \stilde + c_2 \, \stilde^2 + c_3 \, \stilde^3
 \Endeq
 where $c_1$, $c_2$, and $c_3$ are constants. The $c_0$ constant has
 been set to zero by the requirement that $P(0) = 0$. The requirement
-that $P(1) = 1$ constrains $c_3$
+that $P(1) = 1$ constrains $c_3$:
 \Begineq
   c_3 = 1 - (c_1 + c_2)
 \Endeq

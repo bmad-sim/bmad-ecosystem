@@ -76,22 +76,23 @@ Notice that $z_1$ is written in terms of $x_1$ and $y_1$
 \item
 Apply any tilt $\theta_t$
 \begin{align}
-  x_2    &=  \cos(\theta_t) \, x_1    + \sin(\theta_t) \, y_1    \CRNO
-  p_{x2} &=  \cos(\theta_t) \, p_{x1} + \sin(\theta_t) \, p_{y1} \CRNO
-  y_2    &= -\sin(\theta_t) \, x_1    + \cos(\theta_t) \, y_1    \\
-  p_{y2} &= -\sin(\theta_t) \, p_{x1} + \cos(\theta_t) \, p_{y1} \nonumber
+  x_2    &=  x_1    \, \cos\theta_t + y_1    \, \sin\theta_t \CRNO
+  p_{x2} &=  p_{x1} \, \cos\theta_t + p_{y1} \, \sin\theta_t \CRNO
+  y_2    &= -x_1    \, \sin\theta_t + y_1    \, \cos\theta_t \\
+  p_{y2} &= -p_{x1} \, \sin\theta_t + p_{y1} \, \cos\theta_t \nonumber
 \end{align}
 \end{enumerate}
+
 The back transformation from element to laboratory coordinates is
 accomplished by the transformation
 \begin{enumerate}
 \item
 Apply any tilt $\theta_t$
 \begin{align}
-  x_1    &=  \cos(\theta_t) \, x_0    - \sin(\theta_t) \, y_0    \CRNO
-  p_{x1} &=  \cos(\theta_t) \, p_{x0} - \sin(\theta_t) \, p_{y0} \CRNO
-  y_1    &=  \sin(\theta_t) \, x_0    + \cos(\theta_t) \, y_0    \\
-  p_{y1} &=  \sin(\theta_t) \, p_{x0} + \cos(\theta_t) \, p_{y0} \nonumber
+  x_1    &=  x_0    \, \cos\theta_t - y_0    \, \sin\theta_t \CRNO
+  p_{x1} &=  p_{x0} \, \cos\theta_t - p_{y0} \, \sin\theta_t \CRNO
+  y_1    &=  x_0    \, \sin\theta_t + y_0    \, \cos\theta_t \\
+  p_{y1} &=  p_{x0} \, \sin\theta_t + p_{y0} \, \cos\theta_t \nonumber
 \end{align}
 \item
 Apply offsets and pitches
@@ -125,24 +126,28 @@ Track as in a drift a distance \vn{s_offset_tot}.
 Apply offsets and pitches. Here the origin of the element coordinates is the same point
 around which the element is pitched so the effective ``length'' of the element is zero.
 \begin{align}
-  x_1    &= x_0 - x_{off}
-  p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch}
-  y_1    &= y_0 - y_{off} 
-  p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch}
-  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 
+  x_1    &= x_0 - x_{off} \CRNO
+  p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
+  y_1    &= y_0 - y_{off} \\
+  p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
+  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 \CRNO
 \end{align}
 \item
 Apply \vn{tilt} and \vn{tilt_err}
 Apply any tilt $\theta_t$
 \begin{align}
-  x_2    &=  \cos(\theta_{tot}) \, x_1    + \sin(\theta_{tot}) \, y_1
-  p_{x2} &=  \cos(\theta_{tot}) \, p_{x1} + \sin(\theta_{tot}) \, p_{y1}
-  y_2    &= -\sin(\theta_{tot}) \, x_1    + \cos(\theta_{tot}) \, y_1
-  p_{y2} &= -\sin(\theta_{tot}) \, p_{x1} + \cos(\theta_{tot}) \, p_{y1}
-  I_{x2}    &= 
-  \phi_{x2} &=  
+  x_2    &=  x_1    \, \cos\theta_{tot} + y_1    \, \sin\theta_{tot}  \CRNO
+  y_2    &= -x_1    \, \sin\theta_{tot} + y_1    \, \cos\theta_{tot}  \\
+  p_{x2} &=  p_{x1} \, \cos\theta_{tot} + p_{y1} \, \sin\theta_{tot}  \CRNO
+  p_{y2} &= -p_{x1} \, \sin\theta_{tot} + p_{y1} \, \cos\theta_{tot}  \CRNO
+  E_{x2} &=  E_{x1} \, \cos\theta_{tot} + E_{y1} \, \sin\theta_{tot}  \CRNO
+  E_{y2} &= -E_{x1} \, \sin\theta_{tot} + E_{y1} \, \cos\theta_{tot}  \CRNO
 \end{align}
-where $\theta_{tot}$ is the sum of \vn{tilt} and \vn{tilt_err}.
+where $\theta_{tot}$ is the sum of \vn{tilt} and \vn{tilt_err} and $E$ is shorthand notation for
+\Begineq
+  E \equiv \sqrt{I} \, e^{i \, \phi}
+\Endeq
+where $I$ is the field intensity and $\phi$ is the field phase angle.
 \item
 Apply \vn{graze_angle_err}
 \begin{align}
@@ -153,14 +158,14 @@ Apply \vn{graze_angle_err}
   z_3    &= z_1 - x_2 \, \theta_{gerr}
   p_{z3} &= p_{z1}
 \end{align}
-
-
 \end{enumerate}
 
+The back transformation from exit element to exit laboratory coordinates is
+accomplished by the transformation
+\begin{enumerate}
+\item
 
-%-----------------------------------------------------------------
-\subsection{Mirror Element}
-
+\end{enumerate}
 
 %-----------------------------------------------------------------
 \section{Hamiltonian for a Magnetic Element}

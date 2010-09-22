@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# converts something like "\zzz{lat_geometry} to "\Hyperref{r:lat.geometry}{lat_geometry}"
 
 import sys, os
 
