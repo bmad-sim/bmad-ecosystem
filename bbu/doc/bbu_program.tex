@@ -103,11 +103,11 @@ $V_{max}(2)$ which is the field strength of the strongest HOM mode in
 all the cavities, is taken as a baseline to determine whether the
 fields are growing or decaying. At the end of the simulation, after a
 set number of turn periods $n$, the beam is declared stable or
-unstable depending upon whether the ratio $V_{max}(n-1)/V_{max}(2}$ is
+unstable depending upon whether the ratio $V_{max}(n-1)/V_{max}(2)$ is
 less than or greater than 1. Additionally, in order to shorten the
-computation time, if $V_{max}(m)/V_{max}(2}$ for some turn period $m$
+computation time, if $V_{max}(m)/V_{max}(2)$ for some turn period $m$
 is lower then a user defined limit, the simulation is aborted and the
-beam is declared to be stable. If $V_{max}(m)/V_{max}(2}$ goes
+beam is declared to be stable. If $V_{max}(m)/V_{max}(2)$ goes
 above a user defined upper limit, the simulation is aborted and the beam is
 declared to be unstable.
 
@@ -190,7 +190,7 @@ main output file.
 If enabled, the threshold current is calculated for over the range in return times
 corresponding to the range from \vn{begdr} to \vn{enddr} in  \vn{nstep} steps,
 lengthening the \vn{elname} element in the lattice accordingly. If the toy lattice
-of Ref.~\cite{ref:Hoffstaetter04} is used, then its Fig.~3 is reproduced.
+of Ref.~\cite{ref:Hoffstaetter04} (see the Appendix) is used, then its Fig.~3 is reproduced.
   \item[\vn{nrep}] \Newline
 The BBU threshold current calculations are repeated \vn{nrep} times. This is useful
 to estimate the effect of randomizing the HOM frequencies, since they are re-randomized for
@@ -217,6 +217,42 @@ and HOM loading to be analyzed as the equilibrium level is reached.
 \subsection{\tt{hom_voltage.out}}
 \subsection{\tt{stable_orbit.out}}
 
+%------------------------------------------------------------------
+\section{Appendix}
+The BBU threshold calculations produced by setting the parameter \vn{drscan}
+true and using the default values of \vn{begdr}, \vn{enddr} and \vn{nstep} reproduce
+the results of Fig.~3 of Ref.~\cite{ref:Hoffstaetter04}, writing them to
+the output file \tt{drscan.out} when the following Bmad lattice file is used:\\
+\tt{
+parameter[lattice] = "PRSTAB 7, 2004 Toy Lattice"\\
+betaa=20\\
+betab=20\\
+alphaa=0\\
+alphab=0\\
+beginning[beta_a]  =    betaa\\
+beginning[alpha_a]=   alphaa\\
+beginning[beta_b] =    betab\\
+beginning[alpha_b] =   alphab\\
+beginning[e_tot] = 5e9\\
+parameter[lattice_type] = linear_lattice\\
+rfw: lcavity, l = 0, gradient = 0.0, lr_wake_file="prstab2004.dat", lr_freq_spread=0.0E-3, rf_frequency = 1.3e9\\
+m1: match, beta_a1=betaa, alpha_a1=alphaa, beta_b1=betab, alpha_b1=alphab, dphi_a=1, dphi_b=1, l=1.269, match_end=.true.\\
+m12=-5e9*1.0e-6\\
+t1: Taylor, {1:   m12,  0 1 0 0 0 0}, l=1.269\\
+simple: line[multipass] = (rfw, t1)\\
+dual: line = (simple,simple)\\
+use, dual\\
+}
+
+The required HOM parameter file \tt{prstab2004.dat} is
+\begin{verbatim}
+          Frequency           R/Q           Q         n     Polarization_Angle
+           [Hz]           [Ohm/m^(2n)]                        [Radians/2pi]
+
+&long_range_modes
+ lr(1) =     2.0e9            8.78e4        10000     1        0.0
+/
+\end{verbatim}
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
 
