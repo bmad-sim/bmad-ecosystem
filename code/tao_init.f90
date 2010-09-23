@@ -102,7 +102,7 @@ if (iu /= 0) then
   endif
 
   if (ios > 0) then
-    call out_io (s_abort$, r_name, 'Error in reading "tao_start" namelist in file: ' // file_name)
+    call out_io (s_abort$, r_name, 'ERROR IN READING "TAO_START" NAMELIST IN FILE: ' // file_name)
     rewind (iu)
     read (iu, nml = tao_start)  ! And generate error message.    
   endif
