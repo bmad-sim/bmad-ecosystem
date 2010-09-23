@@ -3332,6 +3332,7 @@ real(rp) rcount
 character(40) word
 character(1) delim, c_delim
 character(40) str, name
+character(n_parse_line) parse_line_saved
 
 logical delim_found, replacement_line_here, c_delim_found
 logical err_flag, top_level
@@ -3370,11 +3371,19 @@ do
 
   ix = index(word, '*')          ! E.g. word = '-3*LINE'
   if (ix /= 0) then
-    bp_com%parse_line = word(:ix-1) // "," // bp_com%parse_line
+    ! Evaluate the rep count. The ":" is to prevent confusion if the rep count
+    ! has an ending like "," that would signal line continuation.
+    parse_line_saved = bp_com%parse_line
+    bp_com%parse_line = word(:ix-1) // ":" 
     call evaluate_value (trim(seq%name) // ' Repetition Count', rcount, &
                             lat, c_delim, c_delim_found, err_flag)
     this_ele%rep_count = nint(rcount)
     if (err_flag) return
+    if (bp_com%parse_line /= '' .or. c_delim /= ":") then
+      call parser_warning ('MALFORMED REPETION COUNT FOUND IN SEQUENCE: ' // seq%name)
+      return
+    endif
+    bp_com%parse_line = parse_line_saved
     this_ele%name = word(ix+1:)
     if (this_ele%rep_count < 0) then
       this_ele%reflect = .true.
