@@ -1343,10 +1343,40 @@ do ix_ele = ie1, ie2
   name_list(n_list) = ele%name
 
   ! OPAL case
-
+  
   if (out_type == 'OPAL-T') then
-    call element_out
-    cycle
+
+     select case (ele%key)
+
+     case (marker$)
+        write (line_out, '(a, es13.5)') trim(ele%name) // ': marker'
+        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+
+     case (drift$)
+        write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+     case (sbend$)
+        write (line_out, '(a, es13.5)') trim(ele%name) // ': sbend, l =', val(l$)
+        call value_to_line (line_out, val(b_field$), 'k0', 'es13.5', 'R')
+        call value_to_line (line_out, val(e_tot$), 'designenergy', 'es13.5', 'R')
+        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+     case (quadrupole$)
+        write (line_out, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
+        !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
+        call value_to_line (line_out, -1*val(b1_gradient$), 'k1', 'es13.5', 'R')
+        !elemedge The edge of the field is specifieda bsolute (floor space co-ordinates) in m.
+        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+
+     case default
+        call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+             'CONVERTING TO DRIFT')
+        write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+
+     end select
+
+     call element_out
+     cycle
   endif
 
   ! For anything else but opal
