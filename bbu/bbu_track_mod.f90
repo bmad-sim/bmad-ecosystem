@@ -210,7 +210,7 @@ bbu_beam%stage(1)%time_at_wake_ele = bbu_beam%bunch(1)%t_center + lat%ele(ix_ele
 ! And since it is in the first period that all the stages are getting populated with bunches,
 ! We don't start integrating until the second period.
 
-n_period_old = 0
+n_period_old = 1
 hom_voltage_sum = 0
 n_count = 0
 
@@ -229,7 +229,7 @@ do
   ! Test for the end of the period
 
   r_period = bbu_beam%time_now / bbu_beam%one_turn_time
-  n_period = int(r_period)
+  n_period = int(r_period) + 1
 
   if (n_period /= n_period_old) then
 
@@ -241,25 +241,25 @@ do
       bbu_beam%stage(i)%rms_orb = sqrt(orb)
     enddo
 
-    if (n_period == 3) then
+    if (n_period_old == 3) then
     ! The baseline/reference hom voltage is computed over the 2nd period after the offset bunches 
     ! have passed through the lattice.
       hom_voltage0 = hom_voltage_sum / n_count
       r_period0 = r_period
 
-    elseif (n_period > 3) then
+    elseif (n_period_old > 3) then
       hom_voltage_gain = (hom_voltage_sum / n_count) / hom_voltage0
       growth_rate = log(hom_voltage_gain) / (r_period - r_period0)
       if (.not. bbu_param%stable_orbit_anal) then
         if (hom_voltage_gain < 1/bbu_param%limit_factor) exit
         if (hom_voltage_gain > bbu_param%limit_factor) exit      
       else
-        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period,hom_voltage_sum,n_count,hom_voltage_gain
+        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period_old,hom_voltage_sum,n_count,hom_voltage_gain
       endif
     endif
 
     write(*,'(a,i3,a,e15.6,5x,a,e15.6/,a,e13.6,a,i9,a/,a,e13.6)')&
-         ' Period ', n_period,'   Time: ',bbu_beam%time_now, &
+         ' Period ', n_period_old,'   Time: ',bbu_beam%time_now, &
          ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
          ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
          '   over ', n_count, ' bunch passages', &

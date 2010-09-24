@@ -72,17 +72,11 @@ wakefields in a cavity and this kick generates an orbit distortion so
 that when the bunches return to the cavity, their off-axis orbit
 through the cavity will create additional wake fields. Given the right
 conditions, this regenerative feedback can lead to instabilities.
-\bbup works by direct simulation. A train of bunches is tracked though 
-a lattice and the wakefields and orbit can be monitored.
+\bbup works by direct simulation: A train of bunches is tracked though 
+a lattice whose cavity elements can con contain wakefields.
 
 %------------------------------------------------------------------------
 \section{Simulation technique}
-
-In order to correctly calculate the HOM fields, bunches are tracked
-through a given cavity in the correct time order. That is, \bbup
-``simultaneously'' tracks a sequence of bunches that fill the lattice,
-starting and stopping bunches as appropriate to make sure that the
-bunches going through a cavity are tracked in the correct order.
 
 In \bbup, time ($t$) is measured in ``\vn{turns}'' (Abbreviated
 ``\vn{T}''). One turn is the time it takes a bunch to travel from the
@@ -92,24 +86,35 @@ then started at the beginning of the lattice and tracked through to
 the end. To minimize computation time, a single particle is used to
 represent each bunch. 
 
-Bunches that are initialized at a time between 0 and 1T are given a
-random transverse offset. The offset distribution is Gaussian in shape
-and the sigma is determined by the parameter
-\vn{bbu_param%init_particle_offset} (see below). After the zeroth turn
-period (which is the period ($0 \le t \le 1T$) , bunches will be
-initialized with zero transverse offset. In the second turn period
-($2T \le t \le 3T$), the averaged ``maximum field strength'',
-$V_{max}(2)$ which is the field strength of the strongest HOM mode in
-all the cavities, is taken as a baseline to determine whether the
-fields are growing or decaying. At the end of the simulation, after a
-set number of turn periods $n$, the beam is declared stable or
-unstable depending upon whether the ratio $V_{max}(n-1)/V_{max}(2)$ is
-less than or greater than 1. Additionally, in order to shorten the
-computation time, if $V_{max}(m)/V_{max}(2)$ for some turn period $m$
-is lower then a user defined limit, the simulation is aborted and the
-beam is declared to be stable. If $V_{max}(m)/V_{max}(2)$ goes
-above a user defined upper limit, the simulation is aborted and the beam is
-declared to be unstable.
+Bunches that are initialized in the first turn period, with $0 \le t
+\le 1T$, are given a random transverse offset. The offset distribution
+is Gaussian in shape and the sigma is determined by the parameter
+\vn{bbu_param%init_particle_offset} (see below). After the first turn
+period, bunches will be initialized with zero
+transverse offset. In the third turn period ($2T \le t \le 3T$), the
+averaged ``maximum field strength'', $V_{max}(3)$, which is the field
+strength of the strongest HOM mode in all the cavities, is taken as a
+baseline to determine whether the fields are growing or decaying. At
+the end of the simulation, the beam is declared stable or unstable
+depending upon whether the ratio $V_{max}(n)/V_{max}(3)$ is less than
+or greater than 1 where $n$ is the number of turns simulateed which is set the
+user. Additionally, in order to shorten the computation time, if
+$V_{max}(m)/V_{max}(3)$ for some turn period $m$ is lower then a user
+defined limit, the simulation is aborted and the beam is declared to
+be stable. If $V_{max}(m)/V_{max}(3)$ goes above a user defined upper
+limit, the simulation is aborted and the beam is declared to be
+unstable.
+
+Care must be taken in tracking the bunches through the lattice since,
+to correctly calculate the HOM fields within a given cavity, bunches
+must be tracked through a given cavity in the correct time order.  Since a
+bunch goes through the same physical cavity multiple times in its
+trajectory from the beginning of the lattice to the end, a prior bunch
+may enter a cavity for, say, the first time before a latter bunch goes
+through for the second time. Because of this, \bbup ``simultaneously''
+tracks a sequence of bunches that fill the lattice, starting and
+stopping bunches as appropriate to make sure that the bunches going
+through a given cavity are tracked through in the correct time order.
 
 %------------------------------------------------------------------
 \subsection{Main input file} 
@@ -117,7 +122,7 @@ declared to be unstable.
 When \bbup is run, \bbup first reads the \vn{main input file}.
 The main input file can be specified on the command line invoking {\bbup}.
 If not given, the default name for the main input file is ``\vn{bbu.init}''.
-Example main input file:
+the main input file will look like:
 \begin{example}
 &bbu_params
   bbu_param%lat_file_name = 'erl.lat'       ! Bmad Lattice file name.
@@ -164,8 +169,8 @@ This is the $1\sigma$ half width, in meters, of the distribution of
 the initial transverse coordinates for bunches initialized during the
 zeroth turn period.
   \item[\vn{limit_factor}] \Newline
-If the ratio $V_{max}(m)/V_{max}(2)$ goes above \vn{limit_factor} the
-beam is declared unstable and if $V_{max}(m)/V_{max}(2)$ goes below
+If the ratio $V_{max}(m)/V_{max}(3)$ goes above \vn{limit_factor} the
+beam is declared unstable and if $V_{max}(m)/V_{max}(3)$ goes below
 \vn{1/limit_factor} the beam is declared stable.
   \item[\vn{simulation_turns_max}] \Newline
 The \vn{simulation_turns_max} parameter sets the duration of the simulation.
@@ -175,7 +180,7 @@ two cavities into one element. Tracking through a hybridized element
 is done using linear transport. This speeds up the calculation but
 there is a possible loss of accuracy.
   \item[\vn{keep_overlays_and_groups}] \Newline
-
+Keep overlay and group elements if hybridization is done? Under normal circumstances this should nat affect the simulation.
   \item[\vn{keep_all_cavities}] \Newline
 When hybridizing, if \vn{keep_all_cavities} is set to False, then
 \vn{lcavity} elements that do not have HOM elements will be
@@ -183,6 +188,7 @@ hybridized. If \vn{lcavity} elements without HOMs are hybridized, this
 will speed up the simulation but can possibly lead to inaccurate
 results.
   \item[\vn{current}] \Newline
+Initial beam current to use for the simulation.
   \item[\vn{write_hom_info}] \Newline
 If this parameter is set true, the HOM parameters are written to the
 main output file.
