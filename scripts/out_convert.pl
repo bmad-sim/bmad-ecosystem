@@ -7,8 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/type \*/print \*/i;
-    s/type \'/print \'/i;
+    s/\%exp/\%expn/g;
 
     print (F_OUT);
   }

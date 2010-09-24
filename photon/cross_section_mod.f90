@@ -260,9 +260,11 @@ real(rp) a, a2, ct, st
 
 logical err
 
-! Convert (x, y) into unrotated frame if needed.
-
+! If straight line nothing to be done
 if (v2%radius_x == 0) return
+
+! Convert (x, y) into unrotated frame if tilted ellipse
+
 x1 = v1%x; y1 = v1%y
 x2 = v2%x; y2 = v2%y
 
@@ -274,7 +276,7 @@ if (v2%tilt /= 0) then
   y2 = -st * v2%x + ct * v2%y
 endif
 
-! If ellipse then shrink y
+! If ellipse then shrink y-axis
 
 if (v2%radius_y /= 0) then
   y1 = y1 * v2%radius_x / v2%radius_y
@@ -317,5 +319,112 @@ endif
 end subroutine calc_vertex_center
 
 end subroutine cross_section_initializer
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! Subroutine calc_wall_radius (v, theta, r_wall, gradient)
+!
+! Routine to calculate the wall radius at a given angle for a given cross-section
+! Additionally, the transverse directional derivative is calculated.
+!
+! Module needed:
+!   use cross_setction_mod
+!
+! Input:
+!   v(:)        -- cross_section_vertex_struct: Array of vertices.
+!   theta       -- Real(rp): Angle to evaluate at.
+!
+! Output:
+!   r_wall      -- Real(rp): Wall radius at given angle
+!   gradient(2) -- Real(rp): (dx, dy) directional 
+!-
+
+subroutine calc_wall_radius (v, theta, r_wall, gradient)
+
+implicit none
+
+type (cross_section_vertex_struct), target :: v(:)
+type (cross_section_vertex_struct), pointer :: v1, v2
+
+
+real(rp) theta, r_wall, gradient(2)
+real(rp) angle, numer, denom, ct, st, x0, y0, gx, gy, a, b, c
+real(rp) cos_ang, sin_ang
+
+integer ix
+
+! Bracket index
+
+angle = theta
+if (angle < v(1)%angle) angle = ceiling((v(1)%angle-angle)/twopi) * twopi + angle
+call bracket_index (v%angle, 1, size(v), angle, ix)
+
+v1 => v(ix)
+v2 => v(ix+1)
+
+! Straight line case
+
+if (v2%radius_x == 0) then
+  numer = (v1%x * v2%y - v1%y * v2%x)
+  denom = (cos(theta) * (v2%y - v1%y) - sin(theta) * (v2%x - v1%x))
+  r_wall = numer / denom
+  gradient =  [v2%y - v1%y, -(v2%x - v1%x)] * numer / denom**2
+  return
+endif
+
+! Convert into unrotated frame if tilted ellipse
+
+x0 = v2%x0; y0 = v2%y0
+
+if (v2%tilt /= 0) then
+  angle = angle - v2%tilt
+  ct = cos(v2%tilt); st = sin(v2%tilt)
+  x0 =  ct * v2%x0 + st * v2%y0
+  y0 = -st * v2%x0 + ct * v2%y0
+endif
+
+! If ellipse then shrink along y-axis
+
+if (v2%radius_y /= 0) then
+  y0 = y0 * v2%radius_x / v2%radius_y
+  angle = atan2(sin(angle) * v2%radius_x / v2%radius_y, cos(angle))
+endif
+
+cos_ang = cos(angle)
+sin_ang = sin(angle)
+
+! Find wall point and derivative
+
+a = 1
+b = 2 * (cos_ang * x0 + sin_ang * y0)
+c = x0**2 + y0**2
+if (v2%radius_x < 0) then
+  r_wall = (b - sqrt(b**2 - 4 * a * c)) / (2 * a)
+else
+  r_wall = (b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+endif
+gx = r_wall * cos_ang - x0
+gy = r_wall * sin_ang - y0
+gradient = [gx, gy] * r_wall / (cos_ang * gx + sin_ang * gy)
+
+! If an ellipse then expand along y-axis
+
+if (v2%radius_y /= 0) then
+  r_wall = r_wall * sqrt(cos_ang**2 + (sin_ang * v2%radius_y / v2%radius_x)**2)
+  gradient(2) = gradient(2) * v2%radius_y / v2%radius_x
+  gradient = gradient / sqrt(1 + (v2%radius_y / v2%radius_x)**2)
+endif
+
+! If a tilted ellipse then rotate
+
+if (v2%tilt /= 0) then
+  ct = cos(v2%tilt); st = sin(v2%tilt)
+  gradient =  [ct * gradient(1) + -st * gradient(2), &
+               st * gradient(1) +  ct * gradient(2)]
+endif
+
+end subroutine calc_wall_radius
 
 end module
