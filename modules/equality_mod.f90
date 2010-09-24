@@ -125,7 +125,7 @@ logical is_eq
 
 !
 
-is_eq = (f1%coef == f2%coef) .and. all(f1%exp == f2%exp)
+is_eq = (f1%coef == f2%coef) .and. all(f1%expn == f2%expn)
 
 end function
 

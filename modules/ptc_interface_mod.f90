@@ -888,12 +888,12 @@ do i = 1, 6
 
   do j = 1, n
     if (switch) then
-      u_t%j(j,:) = bmad_taylor(i)%term(j)%exp((/1,2,3,4,6,5/))
+      u_t%j(j,:) = bmad_taylor(i)%term(j)%expn((/1,2,3,4,6,5/))
       u_t%c(j) = bmad_taylor(i)%term(j)%coef * &
-                                    (-1)**bmad_taylor(i)%term(j)%exp(5)
+                                    (-1)**bmad_taylor(i)%term(j)%expn(5)
       if (i == 5) u_t%c(j) = -u_t%c(j)
     else
-      u_t%j(j,:) = bmad_taylor(i)%term(j)%exp(:)
+      u_t%j(j,:) = bmad_taylor(i)%term(j)%expn(:)
       u_t%c(j) = bmad_taylor(i)%term(j)%coef
     endif
   enddo
@@ -1116,13 +1116,13 @@ do i = 1, 6
     if (u_taylor(ii)%c(j) == 0) cycle
     k = k + 1
     if (switch) then
-      bmad_taylor(i)%term(k)%exp  = u_taylor(ii)%j(j, (/1,2,3,4,6,5/))
+      bmad_taylor(i)%term(k)%expn  = u_taylor(ii)%j(j, (/1,2,3,4,6,5/))
       bmad_taylor(i)%term(k)%coef = u_taylor(ii)%c(j)
       bmad_taylor(i)%term(k)%coef = bmad_taylor(i)%term(k)%coef * &
-                                    (-1)**bmad_taylor(i)%term(k)%exp(5)
+                                    (-1)**bmad_taylor(i)%term(k)%expn(5)
       if (i == 5) bmad_taylor(i)%term(k)%coef = -bmad_taylor(i)%term(k)%coef
     else
-      bmad_taylor(i)%term(k)%exp  = u_taylor(ii)%j(j,:)
+      bmad_taylor(i)%term(k)%expn  = u_taylor(ii)%j(j,:)
       bmad_taylor(i)%term(k)%coef = u_taylor(ii)%c(j)
     endif
   enddo
@@ -1308,12 +1308,12 @@ do i = 1, 6
   n = size(taylor_in(i)%term)
 
   do j = 1, size(taylor_in(i)%term)
-    if (all(taylor_in(i)%term(j)%exp == 0)) then
+    if (all(taylor_in(i)%term(j)%expn == 0)) then
       n = n - 1
       c0(i) = taylor_in(i)%term(j)%coef
     endif
     if (remove_higher_order_terms) then
-      if (sum(taylor_in(i)%term(j)%exp) > bmad_com%taylor_order) n = n - 1
+      if (sum(taylor_in(i)%term(j)%expn) > bmad_com%taylor_order) n = n - 1
     endif
   enddo
 
@@ -1324,7 +1324,7 @@ do i = 1, 6
 
   nn = 0
   do j = 1, size(taylor_in(i)%term)
-    ss = sum(taylor_in(i)%term(j)%exp)
+    ss = sum(taylor_in(i)%term(j)%expn)
     if (ss == 0 .or. (remove_higher_order_terms .and. &
                                           ss > bmad_com%taylor_order)) cycle
     nn = nn + 1

@@ -323,7 +323,7 @@ type (taylor_term_struct), pointer :: f
 type (c_dummy_struct) c_taylor_term
 
 f => f_taylor_term
-call taylor_term_to_c2 (c_taylor_term, f%coef, f%exp)
+call taylor_term_to_c2 (c_taylor_term, f%coef, f%expn)
 
 end subroutine
 
@@ -389,7 +389,7 @@ if (associated(f%term)) n_term = size(f%term)
 call taylor_to_c2 (c_taylor, n_term, f%ref)
 
 do i = 1, n_term
-  call taylor_term_in_taylor_to_c2 (c_taylor, i, f%term(i)%coef, f%term(i)%exp)
+  call taylor_term_in_taylor_to_c2 (c_taylor, i, f%term(i)%coef, f%term(i)%expn)
 end do
 
 end subroutine

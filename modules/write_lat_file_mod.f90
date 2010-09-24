@@ -499,17 +499,17 @@ do ib = 0, ubound(lat%branch, 1)
         do k = 1, size(ele%taylor(j)%term)
           tm = ele%taylor(j)%term(k)
           write_term = .false.
-          if (all(tm%exp == unit)) then
+          if (all(tm%expn == unit)) then
             unit_found = .true.
             if (tm%coef /= 1) write_term = .true.
           else
             write_term = .true.
           endif
           if (write_term) write (line, '(2a, i1, 3a, 6i2, a)') &
-                trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%exp, '}'
+                trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%expn, '}'
         enddo
         if (.not. unit_found) write (line, '(2a, i1, a, 6i2, a)') &
-                trim(line), ', {', j, ': 0,', tm%exp, '}'
+                trim(line), ', {', j, ': 0,', tm%expn, '}'
       enddo
     endif
 
@@ -1488,9 +1488,9 @@ do ix_ele = ie1, ie2
       do k = 1, size(ele%taylor(i)%term)
         term = ele%taylor(i)%term(k)
 
-        select case (sum(term%exp))
+        select case (sum(term%expn))
         case (1)
-          j = maxloc(term%exp, 1)
+          j = maxloc(term%expn, 1)
           if (out_type == 'MAD-8') then
             write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
           elseif (out_type == 'MAD-X') then
@@ -1501,9 +1501,9 @@ do ix_ele = ie1, ie2
           call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
           
         case (2)
-          j = maxloc(term%exp, 1)
-          term%exp(j) = term%exp(j) - 1
-          j2 = maxloc(term%exp, 1)
+          j = maxloc(term%expn, 1)
+          term%expn(j) = term%expn(j) - 1
+          j2 = maxloc(term%expn, 1)
           if (out_type == 'MAD-8') then
             write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
           elseif (out_type == 'MAD-X') then
@@ -1519,7 +1519,7 @@ do ix_ele = ie1, ie2
                   'TAYLOR TERM: \es12.2\ : \6i3\ ', &
                   'IN ELEMENT: ' // ele%name, &
                   'CANNOT BE CONVERTED TO MAD MATRIX TERM', &
-                  r_array = (/ term%coef /), i_array = term%exp)
+                  r_array = (/ term%coef /), i_array = term%expn)
         end select
       enddo
 

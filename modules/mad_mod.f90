@@ -1881,7 +1881,7 @@ subroutine mad_map_to_taylor (map, taylor)
     endif
 
     do n = 1, nt
-      taylor(i)%term(n)%exp = 0
+      taylor(i)%term(n)%expn = 0
     enddo
 
   enddo
@@ -1902,7 +1902,7 @@ subroutine mad_map_to_taylor (map, taylor)
       if (map%r(i,j) /= 0) then
         nt = nt + 1
         taylor(i)%term(nt)%coef = map%r(i,j)
-        taylor(i)%term(nt)%exp(j) = 1
+        taylor(i)%term(nt)%expn(j) = 1
       endif
 
       do k = j, 6
@@ -1911,11 +1911,11 @@ subroutine mad_map_to_taylor (map, taylor)
           nt = nt + 1
           if (k == j) then
             taylor(i)%term(nt)%coef = map%t(i,j,k)
-            taylor(i)%term(nt)%exp(j) = 2
+            taylor(i)%term(nt)%expn(j) = 2
           else
             taylor(i)%term(nt)%coef = 2 * map%t(i,j,k)
-            taylor(i)%term(nt)%exp(j) = 1
-            taylor(i)%term(nt)%exp(k) = 1
+            taylor(i)%term(nt)%expn(j) = 1
+            taylor(i)%term(nt)%expn(k) = 1
           endif
         endif
 
@@ -1964,23 +1964,23 @@ subroutine taylor_to_mad_map (taylor, map)
     n_loop: do n = 1, size(taylor(i)%term)
 
       tt = taylor(i)%term(n)
-      sm = sum(tt%exp)
+      sm = sum(tt%expn)
       select case (sm)
 
       case (0)
         map%k(i) = tt%coef
 
       case (1)
-        j = maxloc (tt%exp, 1)      
+        j = maxloc (tt%expn, 1)      
         map%r(i,j) = tt%coef
 
       case (2)
-        j = maxloc (tt%exp, 1)
-        if (tt%exp(j) == 2) then
+        j = maxloc (tt%expn, 1)
+        if (tt%expn(j) == 2) then
           map%t(i,j,j) = tt%coef
         else
           do k = j+1, 6
-            if (tt%exp(k) == 1) then
+            if (tt%expn(k) == 1) then
               map%t(i,j,k) = tt%coef / 2
               map%t(i,k,j) = tt%coef / 2
               cycle n_loop

@@ -613,7 +613,7 @@ integer it, ix, k
 do it = 1, 6
   ix = 0
   do k = 1, size(ele_in%taylor(it)%term)
-   if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= taylor_order) ix = ix + 1
+   if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) ix = ix + 1
   enddo
   if (.not. associated(ele_out%taylor(it)%term)) &
                           allocate (ele_out%taylor(it)%term(ix))
@@ -621,7 +621,7 @@ do it = 1, 6
                           allocate (ele_out%taylor(it)%term(ix))
   ix = 0
   do k = 1, size(ele_in%taylor(it)%term)
-   if (sum(ele_in%taylor(it)%term(k)%exp(:)) <= taylor_order) then
+   if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) then
       ix = ix + 1
       ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
     endif      

@@ -419,8 +419,8 @@ do ie = npos1, npos2-1
         call add_t_term (ele%taylor(i)%term, it, 0, ip0+1)  ! Rij terms
         if (it == 0) then
           ele%taylor(i)%term(1)%coef = 1
-          ele%taylor(i)%term(1)%exp = 0
-          ele%taylor(i)%term(1)%exp(i) = 1
+          ele%taylor(i)%term(1)%expn = 0
+          ele%taylor(i)%term(1)%expn(i) = 1
           it = 1
         endif
         call add_t_term (ele%taylor(i)%term, it, 1, ip0+7)  ! Ti1k terms
@@ -659,10 +659,10 @@ do j = ip1, ip2
   if (pdata(j) == 0) cycle
   it = it + 1
   term(it)%coef = pdata(j)
-  term(it)%exp = 0
-  if (i1 /= 0) term(it)%exp(i1) = term(it)%exp(i1) + 1
+  term(it)%expn = 0
+  if (i1 /= 0) term(it)%expn(i1) = term(it)%expn(i1) + 1
   ix = 6 - ip2 + j
-  term(it)%exp(ix) = term(it)%exp(ix) + 1
+  term(it)%expn(ix) = term(it)%expn(ix) + 1
 enddo
 
 end subroutine
@@ -784,22 +784,22 @@ call twiss_to_1_turn_mat (twiss, phi, mat2)
 
 allocate (ele%taylor(i0+1)%term(2))
 
-ele%taylor(i0+1)%term(1)%exp = 0
-ele%taylor(i0+1)%term(1)%exp(i0+1) = 1
+ele%taylor(i0+1)%term(1)%expn = 0
+ele%taylor(i0+1)%term(1)%expn(i0+1) = 1
 ele%taylor(i0+1)%term(1)%coef = mat2(1,1)
 
-ele%taylor(i0+1)%term(2)%exp = 0
-ele%taylor(i0+1)%term(2)%exp(i0+2) = 1
+ele%taylor(i0+1)%term(2)%expn = 0
+ele%taylor(i0+1)%term(2)%expn(i0+2) = 1
 ele%taylor(i0+1)%term(2)%coef = mat2(1,2)
 
 allocate (ele%taylor(i0+2)%term(2))
 
-ele%taylor(i0+2)%term(1)%exp = 0
-ele%taylor(i0+2)%term(1)%exp(i0+1) = 1
+ele%taylor(i0+2)%term(1)%expn = 0
+ele%taylor(i0+2)%term(1)%expn(i0+1) = 1
 ele%taylor(i0+2)%term(1)%coef = mat2(2,1)
 
-ele%taylor(i0+2)%term(2)%exp = 0
-ele%taylor(i0+2)%term(2)%exp(i0+2) = 1
+ele%taylor(i0+2)%term(2)%expn = 0
+ele%taylor(i0+2)%term(2)%expn(i0+2) = 1
 ele%taylor(i0+2)%term(2)%coef = mat2(2,2)
 
 end subroutine

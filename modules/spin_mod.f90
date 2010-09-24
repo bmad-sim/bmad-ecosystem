@@ -544,23 +544,23 @@ case (quadrupole$)
   
   call allocate_map (map, 2, 2, 0, 0)
 
-  map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+  map%gamma1(1)%expn(:) = (/ 0, 0, 1, 0, 0, 0 /)
   map%gamma1(1)%coef   = -(1.0/2.0) * xi * omega1 * sinh(u)
   ! take into account sign of quadrupole (focusing or defocusing)
   map%gamma1(1)%coef   = sign(1.0_rp, ele%value(k1$)) * map%gamma1(1)%coef
-  map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+  map%gamma1(2)%expn(:) = (/ 0, 0, 0, 1, 0, 0 /)
   map%gamma1(2)%coef   = -xi * (sinh (u / 2.0))**2
 
-  map%gamma2(1)%exp(:) = (/ 1, 0, 0, 0, 0, 0 /)
+  map%gamma2(1)%expn(:) = (/ 1, 0, 0, 0, 0, 0 /)
   map%gamma2(1)%coef   = -(1.0/2.0) * xi * omega1 * sin(u)
   ! take into account sign of quadrupole (focusing or defocusing)
   map%gamma2(1)%coef   = sign(1.0_rp, ele%value(k1$)) * map%gamma2(1)%coef
-  map%gamma2(2)%exp(:) = (/ 0, 1, 0, 0, 0, 0 /)
+  map%gamma2(2)%expn(:) = (/ 0, 1, 0, 0, 0, 0 /)
   map%gamma2(2)%coef   = -xi * (sin (u / 2.0))**2
 
   ! no gamma3 terms
   
-!   map%kappa(1)%exp(:)  = (/ 0, 0, 0, 0, 0, 0 /)
+!   map%kappa(1)%expn(:)  = (/ 0, 0, 0, 0, 0, 0 /)
 !   map%kappa(1)%coef    = 1.0
 
 !-----------------------------------------------
@@ -580,26 +580,26 @@ case (sbend$)
 
   ! No first order gamma1
   
-  map%gamma2(1)%exp(:) = (/ 0, 0, 0, 0, 0, 0 /)
+  map%gamma2(1)%expn(:) = (/ 0, 0, 0, 0, 0, 0 /)
   map%gamma2(1)%coef   = -sin(x / 2.0d0)
-  map%gamma2(2)%exp(:) = (/ 1, 0, 0, 0, 0, 0 /)
+  map%gamma2(2)%expn(:) = (/ 1, 0, 0, 0, 0, 0 /)
   map%gamma2(2)%coef   = -(1.0d0/2.0d0) * xi * ele%value(g$) * sin(v) * cos(x / 2.0d0)
-  map%gamma2(3)%exp(:) = (/ 0, 1, 0, 0, 0, 0 /)
+  map%gamma2(3)%expn(:) = (/ 0, 1, 0, 0, 0, 0 /)
   map%gamma2(3)%coef   = -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2
-  map%gamma2(4)%exp(:) = (/ 0, 0, 0, 0, 0, 1 /)
+  map%gamma2(4)%expn(:) = (/ 0, 0, 0, 0, 0, 1 /)
   map%gamma2(4)%coef = ((xi * gamma0 * sin(v) - g_factor * (1+gamma0) * (gamma0-1) * v) / &
        (2.0d0 * (1+gamma0))) * cos(x / 2.0d0)
 
-  map%gamma3(1)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+  map%gamma3(1)%expn(:) = (/ 0, 0, 0, 1, 0, 0 /)
   map%gamma3(1)%coef   = (gamma0-1)/gamma0 * sin(x / 2.0d0)
 
-!   map%kappa(1)%exp(:) = (/ 0, 0, 0, 0, 0, 0 /)
+!   map%kappa(1)%expn(:) = (/ 0, 0, 0, 0, 0, 0 /)
 !   map%kappa(1)%coef   = cos(x / 2.0d0)
-!   map%kappa(2)%exp(:) = (/ 1, 0, 0, 0, 0, 0 /)
+!   map%kappa(2)%expn(:) = (/ 1, 0, 0, 0, 0, 0 /)
 !   map%kappa(2)%coef   = -(1.0/2.0) * xi * ele%value(g$) * sin(v) *  sin(x / 2.0d0)
-!   map%kappa(3)%exp(:) = (/ 0, 1, 0, 0, 0, 0 /)
+!   map%kappa(3)%expn(:) = (/ 0, 1, 0, 0, 0, 0 /)
 !   map%kappa(3)%coef   =  -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0)
-!   map%kappa(4)%exp(:) = (/ 0, 0, 0, 0, 0, 1 /)
+!   map%kappa(4)%expn(:) = (/ 0, 0, 0, 0, 0, 1 /)
 !   map%kappa(4)%coef   = ((xi * gamma0 * sin(v) - g_factor * (1+gamma0) * (gamma0-1) * v) / &
 !        (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
 
@@ -618,10 +618,10 @@ case (solenoid$)
   
   call allocate_map (map, 0, 0, 1, 0)
 
-  map%gamma3(1)%exp(:) = (/ 0, 0, 0, 0, 0, 0 /)
+  map%gamma3(1)%expn(:) = (/ 0, 0, 0, 0, 0, 0 /)
   map%gamma3(1)%coef   = sin(alpha/2.0)
 
-!   map%kappa(1)%exp(:)  = (/ 0, 0, 0, 0, 0, 0 /)
+!   map%kappa(1)%expn(:)  = (/ 0, 0, 0, 0, 0, 0 /)
 !   map%kappa(1)%coef    = cos(alpha/2.0)
   
 !-----------------------------------------------
@@ -684,14 +684,14 @@ case (lcavity$)
   
   call allocate_map (map, 2, 2, 0, 0)
 
-  map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+  map%gamma1(1)%expn(:) = (/ 0, 0, 1, 0, 0, 0 /)
   map%gamma1(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
-  map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+  map%gamma1(2)%expn(:) = (/ 0, 0, 0, 1, 0, 0 /)
   map%gamma1(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
 
-  map%gamma2(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+  map%gamma2(1)%expn(:) = (/ 0, 0, 1, 0, 0, 0 /)
   map%gamma2(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
-  map%gamma2(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+  map%gamma2(2)%expn(:) = (/ 0, 0, 0, 1, 0, 0 /)
   map%gamma2(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
 
   ! exit kick is a defocusing kick (just add to the entrance kick)
@@ -703,15 +703,15 @@ case (lcavity$)
   k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gammaf))) / &
                  (omega_el * e_mass * c_light**2 * (1 + gammaf))
 
- !   map%gamma1(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+ !   map%gamma1(1)%expn(:) = (/ 0, 0, 1, 0, 0, 0 /)
    map%gamma1(1)%coef   = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
- !   map%gamma1(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+ !   map%gamma1(2)%expn(:) = (/ 0, 0, 0, 1, 0, 0 /)
    map%gamma1(2)%coef   = map%gamma1(2)%coef + &
                                 (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
  
- !   map%gamma2(1)%exp(:) = (/ 0, 0, 1, 0, 0, 0 /)
+ !   map%gamma2(1)%expn(:) = (/ 0, 0, 1, 0, 0, 0 /)
    map%gamma2(1)%coef   = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
- !   map%gamma2(2)%exp(:) = (/ 0, 0, 0, 1, 0, 0 /)
+ !   map%gamma2(2)%expn(:) = (/ 0, 0, 0, 1, 0, 0 /)
    map%gamma2(2)%coef   = map%gamma2(2)%coef + &
                                 (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
 
@@ -820,7 +820,7 @@ if (.not. associated(map)) return
 do i = 1, size(map)
   a_part = 1.0
   do j = 1, 6
-    a_part = a_part * start%vec(j)**map(i)%exp(j)
+    a_part = a_part * start%vec(j)**map(i)%expn(j)
   enddo
   a_part = map(i)%coef * a_part
   a = a + a_part

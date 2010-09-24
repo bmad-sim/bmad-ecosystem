@@ -8,7 +8,7 @@ use sim_utils
 
 type taylor_term_struct
   real(rp) :: coef
-  integer :: exp(6)  
+  integer :: expn(6)  
 end type
 
 type taylor_struct
@@ -231,7 +231,7 @@ integer i
 coef = 0
 
 do i = 1, size(bmad_taylor%term)
-  if (all(bmad_taylor%term(i)%exp == exp)) then
+  if (all(bmad_taylor%term(i)%expn == exp)) then
     coef = bmad_taylor%term(i)%coef
     return
   endif
@@ -278,7 +278,7 @@ if (present (i9)) exp(i9) = exp(i9) + 1
 coef = 0
 
 do i = 1, size(bmad_taylor%term)
-  if (all(bmad_taylor%term(i)%exp == exp)) then
+  if (all(bmad_taylor%term(i)%expn == exp)) then
     coef = bmad_taylor%term(i)%coef
     return
   endif
@@ -398,7 +398,7 @@ do i = 1, 6
     tt => tlr%term(j)
 
     if (present(max_order)) then
-      if (sum(tt%exp) > max_order) cycle
+      if (sum(tt%expn) > max_order) cycle
     endif
 
     if (abs(tt%coef) < 1e5) then
@@ -409,10 +409,10 @@ do i = 1, 6
 
     if (j == 1) then
       nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-                  (tt%exp(k), k = 1, 6), sum(tt%exp), bmad_taylor(i)%ref
+                  (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
     else
       nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-                  (tt%exp(k), k = 1, 6), sum(tt%exp)
+                  (tt%expn(k), k = 1, 6), sum(tt%expn)
     endif
   enddo
 
@@ -451,8 +451,8 @@ integer i
 do i = 1, size(bmad_taylor)
   call init_taylor_series (bmad_taylor(i), 1)
   bmad_taylor(i)%term(1)%coef = 1.0
-  bmad_taylor(i)%term(1)%exp = 0
-  bmad_taylor(i)%term(1)%exp(i) = 1
+  bmad_taylor(i)%term(1)%expn = 0
+  bmad_taylor(i)%term(1)%expn(i) = 1
   bmad_taylor(i)%ref = 0
 enddo
 
@@ -486,7 +486,7 @@ logical, optional :: replace
 n = size(bmad_taylor%term)
 
 do i = 1, n
-  if (all(bmad_taylor%term(i)%exp == expn)) then
+  if (all(bmad_taylor%term(i)%expn == expn)) then
     if (logic_option(.false., replace)) then
       bmad_taylor%term(i)%coef = coef
     else
@@ -504,7 +504,7 @@ enddo
 
 call init_taylor_series (bmad_taylor, n+1, .true.)
 bmad_taylor%term(n+1)%coef = coef
-bmad_taylor%term(n+1)%exp = expn
+bmad_taylor%term(n+1)%expn = expn
 
 end subroutine
 
@@ -706,7 +706,7 @@ allocate(taylor_sorted%term(n), ix(n), ord(n), tt(n))
 tt = taylor_in%term
 
 do i = 1, n
-  expn = tt(i)%exp
+  expn = tt(i)%expn
   ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
               expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
 enddo
@@ -770,8 +770,8 @@ do i = 1, 6
  
     t_out = term%coef
     do l = 1, 6
-      if (term%exp(l) == 0) cycle
-      t(l) = r_in(l) ** term%exp(l)
+      if (term%expn(l) == 0) cycle
+      t(l) = r_in(l) ** term%expn(l)
       t_out = t_out * t(l)
     enddo
 
@@ -779,17 +779,17 @@ do i = 1, 6
  
     do j = 1, 6
  
-      if (term%exp(j) == 0) cycle
-      if (term%exp(j) > 1 .and. r_in(j) == 0) cycle
+      if (term%expn(j) == 0) cycle
+      if (term%expn(j) > 1 .and. r_in(j) == 0) cycle
 
-      if (term%exp(j) > 1)then
-        prod = term%coef * term%exp(j) * r_in(j) ** (term%exp(j)-1)
-      else  ! term%exp(j) == 1
+      if (term%expn(j) > 1)then
+        prod = term%coef * term%expn(j) * r_in(j) ** (term%expn(j)-1)
+      else  ! term%expn(j) == 1
         prod = term%coef
       endif
 
       do l = 1, 6
-        if (term%exp(l) == 0) cycle
+        if (term%expn(l) == 0) cycle
         if (l == j) cycle
         prod = prod * t(l)
       enddo
@@ -852,15 +852,15 @@ do i = 1, 6
   if (vec0(i) /= 0) then
     n = n + 1
     bmad_taylor(i)%term(1)%coef = vec0(i)
-    bmad_taylor(i)%term(1)%exp = 0
+    bmad_taylor(i)%term(1)%expn = 0
   endif
 
   do j = 1, 6
     if (mat6(i,j) /= 0) then
       n = n + 1
       bmad_taylor(i)%term(n)%coef = mat6(i,j)
-      bmad_taylor(i)%term(n)%exp = 0
-      bmad_taylor(i)%term(n)%exp(j) = 1
+      bmad_taylor(i)%term(n)%expn = 0
+      bmad_taylor(i)%term(n)%expn(j) = 1
     endif
   enddo
 
@@ -908,7 +908,7 @@ i_max = size(bmad_taylor)
 
 do i = 1, i_max
   do j = 1, size(bmad_taylor(i)%term)
-    e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%exp)) 
+    e_max = max (e_max, maxval(bmad_taylor(i)%term(j)%expn)) 
   enddo
 enddo
 
@@ -940,7 +940,7 @@ do i = 1, i_max
   j_loop: do j = 1, size(bmad_taylor(i)%term)
     delta =  bmad_taylor(i)%term(j)%coef
     do k = 1, 6
-      ie = bmad_taylor(i)%term(j)%exp(k) 
+      ie = bmad_taylor(i)%term(j)%expn(k) 
       if (ie == 0) cycle
       if (s0(k) == 0) cycle j_loop  ! delta = 0 in this case 
       delta = delta * expn(k, ie)
@@ -991,14 +991,14 @@ do i = 1, size(taylor_in)
 
   n = 0
   do j = 1, size(taylor%term)
-    if (sum(taylor%term(j)%exp) <= order) n = n + 1
+    if (sum(taylor%term(j)%expn) <= order) n = n + 1
   enddo
 
   call init_taylor_series (taylor_out(i), n)
 
   n = 0
   do j = 1, size(taylor%term)
-    if (sum(taylor%term(j)%exp) > order) cycle
+    if (sum(taylor%term(j)%expn) > order) cycle
     n = n + 1
     taylor_out(i)%term(n) = taylor%term(j)
   enddo

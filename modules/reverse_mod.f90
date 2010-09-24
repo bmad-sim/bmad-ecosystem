@@ -249,8 +249,8 @@ if (associated(ele%taylor(1)%term)) then
 
   do i = 1, 6
     do j = 1, size(ele%taylor(i)%term)
-      sum245 = ele%taylor(i)%term(j)%exp(2) + ele%taylor(i)%term(j)%exp(4) + &
-                                                ele%taylor(i)%term(j)%exp(5)
+      sum245 = ele%taylor(i)%term(j)%expn(2) + ele%taylor(i)%term(j)%expn(4) + &
+                                                ele%taylor(i)%term(j)%expn(5)
       if (mod(sum245, 2) == 1) ele%taylor(i)%term(j)%coef = &
                                                   -ele%taylor(i)%term(j)%coef
     end do
