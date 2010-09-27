@@ -12,6 +12,7 @@ use sim_utils_struct
 ! array will be lost if n is less than the original size of the array
 ! 
 ! Note: For pointers to an array use the re_associate routine.
+! Note: Also see the re_allocate2 routine.
 ! 
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
@@ -62,7 +63,8 @@ end interface
 ! array will be lost if n is less than the original size of the array
 ! 
 ! Note: For pointers to an array use the re_associate routine.
-! 
+! Note: Alos see the re_allocate routine.
+!
 ! Note: using exact = False can increase computation speed by
 ! preventing unneccessary deallocations/reallocations.
 !

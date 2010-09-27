@@ -16,6 +16,7 @@ contains
 !
 ! Subroutine to find a matching name in a list of names.
 ! The routine indexx should be used to create an_indexx.
+! Also see: find_indexx2
 !
 ! If add_to_list = True, name is added to the names_list and
 ! an_indexx is updated using the prescription:
@@ -125,7 +126,128 @@ if (logic_option(.false., add_to_list)) then
   ix_match = n_max
 endif
 
-end subroutine
+end subroutine find_indexx
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine find_indexx2 (name, names, an_indexx, n_min, n_max, ix_match, ix2_match, add_to_list)
+!
+! Subroutine to find a matching name in a list of names.
+! The routine indexx should be used to create an_indexx.
+! Also see: find_indexx
+!
+! If add_to_list = True, name is added to the names_list and
+! an_indexx is updated using the prescription:
+!   Find ix2_match.
+!   an_indexx(ix2_match+1:n_max+1) = an_indexx(ix2_match:n_max)
+!   n_max = n_max + 1
+!   an_indexx(ix2_match) = n_max
+!   names(n_max) = name
+!   ix_match = n_max
+!
+! Modules neede:
+!   use indexx_mod
+!
+! Input:
+!   name         -- Character(40): Name to match to.
+!   names(:)     -- Character(40): Array of names.
+!   an_indexx(:) -- Integer: Sorted index for names(:) array.
+!                     names(an_indexx(i)) is in alphabetical order.
+!   n_min        -- Integer: Lower bound of names(:) array.
+!   n_max        -- Integer: Use only names(n_min:n_max) part of array.
+!   add_to_list  -- Logical, optional: If present and True then add name to names array and
+!                     update an_index array.
+!
+! Output:
+!   ix_match  -- Integer: If a match is found then:
+!                             names(ix_match) = name
+!                  If no match is found then ix_match = 0.
+!   ix2_match -- Integer, optional: 
+!                  If a match is found then
+!                              an_indexx(ix2_match) = ix_match
+!                              names(an_indexx(ix2_match-1)) /= name
+!                  If no match is found then 
+!                    for j = an_indexx(ix2_match):
+!                              names(j) > name
+!                    and if ix2_match > 1 then for j = an_indexx(ix2_match-1):
+!                              names(j) < name
+!   names(:)     -- Character(40): Updated if add_to_list = True.
+!   an_indexx(:) -- Integer: Updated if add_to_list = True.
+!   n_max        -- Integer: Incremented by 1 if add_to_list = True.
+!-
+
+subroutine find_indexx2 (name, names, an_indexx, n_min, n_max, ix_match, ix2_match, add_to_list)
+
+implicit none
+
+integer ix1, ix2, ix3, n_min, n_max, ix_match
+integer, optional :: ix2_match
+integer an_indexx(:)
+
+character(40) name, names(n_min:)
+character(40) this_name
+
+logical, optional :: add_to_list
+
+! simple case
+
+if (n_max < n_min) then
+  if (present(ix2_match)) ix2_match = n_min
+  ix_match = 0
+  if (logic_option(.false., add_to_list)) then
+    ix_match = n_min
+    an_indexx(1) = n_min
+    names(n_min) = name
+    n_max = n_min
+  endif
+  return
+endif
+
+!
+
+ix1 = n_min
+ix3 = n_max
+
+do
+
+  ix2 = (ix1 + ix3) / 2 
+  this_name = names(an_indexx(ix2))
+
+  if (this_name == name) then
+    do ! if there are duplicate names in the list choose the first one
+      if (ix2 == n_min) exit
+      if (names(an_indexx(ix2-1)) /= this_name) exit
+      ix2 = ix2 - 1
+    enddo
+    ix_match = an_indexx(ix2)
+    exit
+  elseif (this_name < name) then
+    ix1 = ix2 + 1
+  else
+    ix3 = ix2 - 1
+  endif
+                     
+  if (ix1 > ix3) then
+    ix_match = 0
+    if (this_name < name) ix2 = ix2 + 1
+    exit
+  endif
+
+enddo
+
+if (present(ix2_match)) ix2_match = ix2
+
+if (logic_option(.false., add_to_list)) then
+  an_indexx(ix2+1:n_max+1) = an_indexx(ix2:n_max)
+  n_max = n_max + 1
+  an_indexx(ix2) = n_max
+  names(n_max) = name
+  ix_match = n_max
+endif
+
+end subroutine find_indexx2
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -141,8 +263,8 @@ end subroutine
 !   use sim_utils
 !-
 
-	SUBROUTINE indexx_char(arr,index)
-	USE nrtype; USE nrutil, ONLY : arth,assert_eq,nrerror,swap
+  SUBROUTINE indexx_char(arr,index)
+  USE nrtype; USE nrutil, ONLY : arth,assert_eq,nrerror,swap
   IMPLICIT NONE
   character(*), DIMENSION(:), INTENT(IN) :: arr
   INTEGER(I4B), DIMENSION(:), INTENT(OUT) :: index
