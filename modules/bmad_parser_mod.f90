@@ -4357,7 +4357,7 @@ character(40) name, multipass_line
 ! find line corresponding to the "use" statement.
 
 iseq_tot = size(seq_indexx)
-n_max = size(in_name)
+n_max = in_lat%n_ele_max
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
 if (i_use == 0) then

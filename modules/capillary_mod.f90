@@ -13,6 +13,14 @@ type photon_track_struct
   type (photon_coord_struct) old, now
 end type
 
+! This is for passing info to the photon_hit_func routine used by zbrent
+
+type (photon_track_struct), pointer, private :: photon_com
+type (photon_track_struct), private :: photon1_com
+type (ele_struct), private, pointer :: ele_com
+
+private photon_hit_func
+
 contains
 
 !---------------------------------------------------------------------------
@@ -254,7 +262,7 @@ use nr, only: zbrent
 implicit none
 
 type (ele_struct), target :: ele
-type (photon_track_struct), target :: photon, photon1
+type (photon_track_struct), target :: photon
 
 real(rp) d_rad, track_len0, track_len
 
@@ -266,7 +274,7 @@ character(40) :: r_name = 'capillary_photon_hit_spot_calc'
 ! Note: After the first reflection, the photon will start at the wall so
 ! if photon%old is at the wall we must avoid bracketing this point.
 
-photon1 = photon
+photon1_com = photon
 
 track_len0 = (photon%now%track_len + photon%old%track_len) / 2
 do i = 1, 30
@@ -281,6 +289,8 @@ enddo
 
 ! Find where the photon hits.
 
+photon_com => photon
+ele_com => ele
 track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
 
 ! Cleanup
@@ -288,38 +298,50 @@ track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
 photon%now = photon%old
 call capillary_propagate_photon_a_step (photon, ele, track_len-photon%now%track_len, .false.)
 
+end subroutine capillary_photon_hit_spot_calc
 
-!-----------------------------------------------------------------------
-contains
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function photon_hit_func (track_len) result (d_radius)
+! 
+! Routine to be used as an argument in zbrent in the capillary_photon_hit_spot_calc.
+!
+! Input:
+!   track_len -- Real(rp): Place to position the photon.
+!
+! Output:
+!   d_radius -- Real(rp): 
 
 function photon_hit_func (track_len) result (d_radius)
 
-real(rp) track_len, d_radius, radius, d_track
+real(rp), intent(in) :: track_len
+real(rp) :: d_radius
+real(rp) radius, d_track
 
 ! Easy case
 
-if (track_len == photon%now%track_len) then
-  d_radius = capillary_photon_radius (photon%now, ele) - 1
+if (track_len == photon_com%now%track_len) then
+  d_radius = capillary_photon_radius (photon_com%now, ele_com) - 1
   return
 endif
 
-! Track starting from the present position (photon1%now) if track_length > photon1%now%track_len.
+! Track starting from the present position (photon1_com%now) if track_length > photon1_com%now%track_len.
 ! Otherwise, track starting from the beginning of the region (photon%old).
 
-if (track_len < photon1%now%track_len) then
-  photon1 = photon
-  photon1%now = photon%old
+if (track_len < photon1_com%now%track_len) then
+  photon1_com = photon_com
+  photon1_com%now = photon_com%old
 endif
 
 ! And track
 
-d_track = track_len - photon1%now%track_len
-call capillary_propagate_photon_a_step (photon1, ele, d_track, .false.)
-d_radius = capillary_photon_radius (photon1%now, ele) - 1
+d_track = track_len - photon1_com%now%track_len
+call capillary_propagate_photon_a_step (photon1_com, ele_com, d_track, .false.)
+d_radius = capillary_photon_radius (photon1_com%now, ele_com) - 1
 
-end function
-
-end subroutine capillary_photon_hit_spot_calc
+end function photon_hit_func
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
