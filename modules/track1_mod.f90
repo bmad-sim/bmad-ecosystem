@@ -155,7 +155,7 @@ case default
   call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE FOR ELEMENT: ' // ele%name)
 end select
 
-end subroutine
+end subroutine check_aperture_limit
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ orb(1) = orb(1) + length * orb(2) / rel_E
 orb(3) = orb(3) + length * orb(4) / rel_E
 orb(5) = orb(5) - length * (orb(2)**2 + orb(4)**2) / (2 * rel_E**2)
 
-end subroutine
+end subroutine track_a_drift
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -370,7 +370,7 @@ enddo
 call track_bend_edge (end, ele, .false., .false.)
 call offset_particle (ele, param, end, unset$, set_canonical = .false., set_multipoles = .false.)
 
-end subroutine
+end subroutine track_a_bend
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -434,6 +434,6 @@ if (reverse) then
   if (present(ky)) ky = -ky
 endif
 
-end subroutine
+end subroutine track_bend_edge
 
 end module

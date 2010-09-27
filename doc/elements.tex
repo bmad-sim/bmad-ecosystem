@@ -502,6 +502,7 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+
 %-----------------------------------------------------------------
 \section{Capillary}
 \label{s:capillary}
@@ -545,12 +546,23 @@ General \vn{capillary} attributes are:
 \end{center}
 \toffset
 
+\index{critical_angle_factor|hyperbf}
+Attributes specific to a \vn{capillary} element are:
+\begin{example}
+  critical_angle_factor = <Real>    ! Critical angle * Energy (rad * eV)
+\end{example}
+The critical angle above which photons striking the capillary surface are
+refracted into the capillary material scales as 1/Energy. The
+constant of critical angle * energy is given by the \vn{critical_angle_factor}.
+
 The inside wall of a capillary is defined by a number of
 cross-sectional slices as shown in Fig.~\ref{f:capillary}. Each
 cross-section is defined by a number of vertices. The arc between each
 verticy may be either a straight line, an arc of a circle, or a
 section of an ellipse. 
 
+\index{cross}\index{s (capillary attribute)}\index{v (capillary attribute)}
+\index{s_spline}\index{n_slice_spline}
 The syntax to define a capillary is
 \begin{example}
   cross = \{ 
@@ -694,27 +706,16 @@ convex at the specified cross sections.
 
 To help reduce the complexity of specifying a capillary, ``virtual''
 cross-sections may be defined by specifying a cubic interpolating
-spline between two consecutive cross-sections and by specifying
-a value for \vn{n_slice_spline}. The region between the two cross-sections will then be divided into \vn{n_slice_spline} 
-
-. In this case, 
-
-
-using a spline
-interpolation: In $(r, \theta)$ cylindrical coordinates, let
-$r_{c1}(\theta)$ be the radius of the capillary as a function of
-$\theta$ for a given cross-section defined at $s = s_1$. Let
-$r_{c2}(\theta)$ be the radius function at the next defined
-cross-section at $s = s_2$. The capillary wall $r_c(\theta, s)$ at any
-point $s$ between $s_1$ and $s_2$ is defined by the equation
+spline between two consecutive cross-sections and by specifying a
+value for \vn{n_slice_spline}. The region between the two
+cross-sections will then be divided into \vn{n_slice_spline} equal
+longitudinal length regions. Between each region virtual
+cross-sections are constructed defined by
 \Begineq
-  r_c(\theta, s) \equiv (1 - P(\stilde)) \, r_{c1}(\theta) + P(\stilde) \, r_{c2}(\theta)
+  r_c(\theta, s) = (1 - P(\stilde)) \, r_{c1}(\theta) + P(\stilde) \, r_{c2}(\theta)
 \Endeq
-where
-\Begineq
-  \stilde \equiv \frac{s - s_1}{s_2 - s_1}
-\Endeq
-and $P(s)$ is a cubic polynomial spline
+where $s$ is the longitudinal position of the phantom cross-section and
+$P(s)$ is a cubic polynomial spline
 \Begineq
   P(\stilde) = c_1 \, \stilde + c_2 \, \stilde^2 + c_3 \, \stilde^3
 \Endeq
@@ -726,7 +727,19 @@ that $P(1) = 1$ constrains $c_3$:
 \Endeq
  $c_1$ and $c_2$ are given by the \vn{s_spline} parameter between 
 cross-sections. If not defined, the default is linear interpolation
-with $c_1 = 1$ and $c_2 = 0$.
+with $c_1 = 1$ and $c_2 = 0$. Linear interpolation, is used to define
+the wall between virtual cross-sections just as it is used for regular
+cross-sections.
+
+To refer to a cross-section parameters after an element has been
+defined, the following syntax is used:
+\begin{example}
+  ele_name[cross(n).v(j).x]     ! x value of j^th vertex of n^th cross-section
+  ele_name[n_slice_spline(n)]   ! n_slice_spline value set between n^th and 
+                                !     n+1^th cross-sections.
+  ele_name[s_spline(n).coef(k)] ! k^th coefficient (k = 1, 2, or 3) of s_spline 
+                                !     set between n^th and n+1^th cross-sections.
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator} \label{s:col}

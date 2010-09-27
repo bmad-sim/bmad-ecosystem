@@ -274,7 +274,8 @@ if (associated(ele%cross_section)) then
       enddo
       if (i == size(ele%cross_section)) exit
       nl=nl+1; li(nl) = ''
-      nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline =', cs%s_spline
+      nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline       =', cs%s_spline
+      nl=nl+1; write (li(nl), '(a, i0)')    ' N_Slice_Spline =', nint(cs%n_slice_spline)
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of cross-sections:', size(ele%cross_section)

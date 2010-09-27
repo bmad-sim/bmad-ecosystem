@@ -32,6 +32,7 @@
 subroutine track1_bmad (start, ele, param, end)
 
 use bmad, except_dummy => track1_bmad
+use capillary_mod
 
 implicit none
 
@@ -171,6 +172,10 @@ case (bend_sol_quad$)
 ! capillary
 
 case (capillary$) 
+
+  call offset_photon (ele, param, end, set$)
+  call track_a_capillary (end, ele, param%lost)
+  call offset_particle (ele, param, end, unset$)  
 
 !-----------------------------------------------
 ! crystal

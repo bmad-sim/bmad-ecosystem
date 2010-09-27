@@ -67,6 +67,7 @@ type cross_section_struct
   integer type
   real(rp) :: s = 0                     ! Longitudinal position
   real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
+  real(rp) :: n_slice_spline = 1        ! Number of slices used for the spline.
   type (cross_section_vertex_struct), allocatable :: v(:) 
                                         ! Array of vertices
   integer n_vertex_input                ! Number of vertices specified by the user.
@@ -449,7 +450,7 @@ integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
 integer, parameter :: direction$=3, graze_angle$=3, tilt_corr$ = 3
 integer, parameter :: k1$=4, sig_x$=4, harmon$=4, h_displace$=4, e_loss$=4, y_gain_err$=4
-integer, parameter ::       graze_angle_in$ = 4
+integer, parameter ::       graze_angle_in$ = 4, critical_angle_factor$ = 4
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
 integer, parameter ::       graze_angle_out$ = 5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
@@ -516,7 +517,7 @@ integer, parameter :: check_sum$ = 60  ! Assumed unique. Do not overload.
 
 integer, parameter :: ref_orbit$ = 61, term$ = 61, cross$ = 61
 integer, parameter :: x_position$ = 62, s_spline$ = 62
-integer, parameter :: symplectify$ = 63, y_position$ = 63
+integer, parameter :: symplectify$ = 63, y_position$ = 63, n_slice_spline$ = 63
 integer, parameter :: descrip$ = 64, z_position$ = 64
 integer, parameter :: is_on$ = 65, theta_position$ = 65
 integer, parameter :: field_calc$ = 66, phi_position$ = 66
