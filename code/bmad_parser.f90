@@ -79,9 +79,13 @@ logical, optional :: make_mats6, digested_read_ok
 logical delim_found, arg_list_found, xsif_called, err, print_err, wild_here
 logical end_of_file, found, good_attrib, err_flag, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wildcards_permitted, matched
+logical auto_bookkeeper_saved
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
+
+auto_bookkeeper_saved = bmad_com%auto_bookkeeper
+bmad_com%auto_bookkeeper = .true.  
 
 bp_com%error_flag = .false.              ! set to true on an error
 bp_com%parser_name = 'BMAD_PARSER'       ! Used for error messages.
@@ -144,7 +148,11 @@ if (bmad_status%type_out) &
 
 call file_stack('init')
 call file_stack('push', lat_file, finished, err)  ! open file on stack
-if (err) return
+if (err) then
+  call parser_end_stuff (.false.)
+  return
+endif
+
 iseq_tot = 0                            ! number of sequences encountered
 
 bp_com%input_line_meaningful = .true.
@@ -265,7 +273,10 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'CALL') then
     call get_called_file(delim, call_file, xsif_called, err)
-    if (err) return
+    if (err) then
+      call parser_end_stuff ()
+      return
+    endif
 
     if (xsif_called) then
       call parser_warning ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
@@ -329,7 +340,10 @@ parsing_loop: do
   if (word_1(:ix_word) == 'RETURN' .or.  &
                                   word_1(:ix_word) == 'END_FILE') then
     call file_stack ('pop', ' ', finished, err)
-    if (err) return
+    if (err) then
+      call parser_end_stuff ()
+      return
+    endif
     if (finished) exit parsing_loop ! break loop
     cycle parsing_loop
   endif
@@ -822,6 +836,7 @@ if (lat%input_taylor_order /= 0) &
 
 if (lat%ele(0)%value(e_tot$) /= 0 .and. lat%ele(0)%value(p0c$) /= 0) then
   call parser_warning ('BOTH REFERENCE ENERGY AND P0C HAVE BEEN DEFINED!', stop_here = .true.)
+  call parser_end_stuff ()
   return
 endif
 
@@ -993,6 +1008,11 @@ contains
 subroutine parser_end_stuff (do_dealloc)
 
 logical, optional :: do_dealloc
+integer i, j
+
+! Restore auto_bookkeeper flag
+
+bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 
 ! deallocate pointers
 

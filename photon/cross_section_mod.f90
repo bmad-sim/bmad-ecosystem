@@ -198,7 +198,7 @@ if (all(v%x >= 0) .and. all(v%y >= 0)) then
     v(n+1:nn) = v(n-1:1:-1)
   else
     nn = 2*n
-    call re_allocate(cross%v, 2*nn+1)
+    call re_allocate(cross%v, 2*nn+1, .false.)
     v(n+1:nn) = v(n:1:-1)
   endif
   v(n+1:nn)%x = -v(n+1:nn)%x
@@ -421,7 +421,7 @@ endif
 
 if (v2%tilt /= 0) then
   ct = cos(v2%tilt); st = sin(v2%tilt)
-  gradient =  [ct * gradient(1) + -st * gradient(2), &
+  gradient =  [ct * gradient(1) -  st * gradient(2), &
                st * gradient(1) +  ct * gradient(2)]
 endif
 

@@ -6,6 +6,7 @@ use multipole_mod
 use lat_geometry_mod
 use equality_mod
 use em_field_mod
+use cross_section_mod
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
@@ -1972,10 +1973,10 @@ val(check_sum$) = 0
 if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
 z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0)
 
-if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
+if (all(val == ele%old_value) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
 if (debug) dval = val - ele%old_value
 
-! Setting attribute_status to attribute_bookeeping_done$ indicates that this routine has 
+! Setting attribute_status to attribute_bookeeping_done$ indicates that this routine has
 ! modified some attribute values.
 
 ele%attribute_status = attribute_bookkeeping_done$
@@ -1989,6 +1990,14 @@ if (.not. ele%on_a_girder .and. has_orientation_attributes(ele%key)) then
   val(s_offset_tot$) = val(s_offset$)
   val(x_pitch_tot$)  = val(x_pitch$)
   val(y_pitch_tot$)  = val(y_pitch$)
+endif
+
+! Capillary element
+
+if (ele%key == capillary$ .and. associated(ele%cross_section)) then
+  do i = 1, size(ele%cross_section)
+    call cross_section_initializer(ele%cross_section(i), err_flag)
+  enddo
 endif
 
 ! Field_master...
@@ -2376,6 +2385,8 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4)
 logical coupling_change
 
 !
+
+ele%attribute_status = is_modified$
 
 if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
 
