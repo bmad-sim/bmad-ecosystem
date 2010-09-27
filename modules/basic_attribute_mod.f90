@@ -739,9 +739,11 @@ attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
 !! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
 !! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
 
-attrib_array(capillary$, l$)              = 'L'
-attrib_array(capillary$, cross$)          = 'CROSS'
-attrib_array(capillary$, s_spline$)       = 'S_SPLINE'
+attrib_array(capillary$, l$)                     = 'L'
+attrib_array(capillary$, cross$)                 = 'CROSS'
+attrib_array(capillary$, s_spline$)              = 'S_SPLINE'
+attrib_array(capillary$, n_slice_spline$)        = 'N_SLICE_SPLINE'
+attrib_array(capillary$, critical_angle_factor$) = 'CRITICAL_ANGLE_FACTOR'
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -911,11 +913,13 @@ function n_attrib_string_max_len () result (max_len)
 
 implicit none
 integer max_len
+integer, save :: max_length = 0
 
 !
 
 if (init_needed) call init_attribute_name_array
-max_len = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_special_maxx)))
+if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key, 1:n_attrib_special_maxx)))
+max_len = max_length
 
 end function
 

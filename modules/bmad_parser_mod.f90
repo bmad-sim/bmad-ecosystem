@@ -845,6 +845,13 @@ case default   ! normal attribute
   elseif (ix_attrib == y_limit$) then
     ele%value(y1_limit$) = value
     ele%value(y2_limit$) = value
+  elseif (ix_attrib == n_slice_spline$) then
+    ix = size(ele%cross_section)
+    if (.not. associated(ele%cross_section) .or. ix == 0) then
+      call parser_warning ('N_SLICE_SPLINE BEFORE FIRST CROSS IS NOT VALID')
+      return
+    endif
+    ele%cross_section(ix)%n_slice_spline = value
   else
     ele%value(ix_attrib) = value
 

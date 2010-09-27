@@ -45,13 +45,13 @@ type (lr_wake_struct), allocatable :: lr(:)
 real(rp), pointer :: ptr_attrib
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr, ix_a, ix1, ix2
+integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix
 
 character(*) attrib_name
 character(40) a_name
 character(24) :: r_name = 'pointer_to_attribute'
 
-logical err_flag, do_allocation, do_print
+logical err_flag, do_allocation, do_print, err, out_of_bounds
 logical, optional :: err_print_flag
 
 ! init check
@@ -101,6 +101,64 @@ if (a_name(1:3) == 'LR(') then
   err_flag = .false.
   return
 
+endif
+
+! Cross-section: s_spline
+
+out_of_bounds = .false.
+
+if (a_name(1:8) == 'S_SPLINE') then
+  if (.not. associated(ele%cross_section)) goto 9210
+  n_cc = get_cross_index(a_name, 9, err, 1, size(ele%cross_section)-1)
+  if (err .or. a_name(1:5) /= '.COEF') goto 9200
+  n_coef = get_cross_index(a_name, 6, err, 1, 3)
+  if (err .or. a_name /= '') goto 9200
+  ptr_attrib => ele%cross_section(n_cc)%s_spline(n_coef)
+  err_flag = .false.
+  return
+endif
+
+! Cross-section: n_slice_spline
+
+if (a_name(1:14) == 'N_SLICE_SPLINE') then
+  if (.not. associated(ele%cross_section)) goto 9210
+  n_cc = get_cross_index(a_name, 15, err, 1, size(ele%cross_section)-1)
+  if (err .or. a_name /= '') goto 9200
+  ptr_attrib => ele%cross_section(n_cc)%n_slice_spline
+  err_flag = .false.
+  return
+endif
+
+! Cross-section
+
+if (a_name(1:5) == 'CROSS') then
+  if (.not. associated(ele%cross_section)) goto 9210
+  n_cc = get_cross_index(a_name, 6, err, 1, size(ele%cross_section))
+  if (err) goto 9200
+
+  if (a_name == 'S') then
+    if (n_cc == 1) goto 9210  ! must have s = 0
+    ptr_attrib => ele%cross_section(n_cc)%s
+    err_flag = .false.
+    return
+  endif
+
+  if (a_name(1:1) == 'V') then
+    n_v = get_cross_index(a_name, 2, err, 1, size(ele%cross_section(n_cc)%v))
+    if (err) goto 9200
+    select case (a_name)
+    case ('.X');        ptr_attrib => ele%cross_section(n_cc)%v(n_v)%x
+    case ('.Y');        ptr_attrib => ele%cross_section(n_cc)%v(n_v)%y
+    case ('.RADIUS_X'); ptr_attrib => ele%cross_section(n_cc)%v(n_v)%radius_x
+    case ('.RADIUS_Y'); ptr_attrib => ele%cross_section(n_cc)%v(n_v)%radius_y
+    case ('.TILT');     ptr_attrib => ele%cross_section(n_cc)%v(n_v)%tilt
+    case default;       goto 9200
+    err_flag = .false.
+    end select
+    return
+  endif
+
+  goto 9200
 endif
 
 ! Special cases
@@ -164,7 +222,7 @@ if (len(a_name) >= 6) then
   ix1 = index('123456', a_name(6:6))
   ix2 = index('123456', a_name(7:7))
   if (a_name(1:5) == "XMAT_" .and. ix1 /= 0 .and. ix2 /= 0) then
-    ptr_attrib =>ele%mat6(ix1,ix2)
+    ptr_attrib => ele%mat6(ix1,ix2)
   endif
 endif
 
@@ -181,6 +239,7 @@ call pointer_to_indexed_attribute (ele, ix_a, do_allocation, &
                                       ptr_attrib, err_flag, err_print_flag)
 return
 
+!----------------------------------------
 ! Error message and return
 
 9000 continue
@@ -188,10 +247,73 @@ if (do_print) call out_io (s_error$, r_name, &
           'INVALID ATTRIBUTE: ' // a_name, 'FOR THIS ELEMENT: ' // ele%name)
 return
 
+!----------------------------------------
 9100 continue
 if (do_print) call out_io (s_error$, r_name, &
                  'WAKE ATTRIBUTE NOT ALLOCATED: ' // a_name, &
                  'FOR THIS ELEMENT: ' // ele%name)
 return
+
+!----------------------------------------
+9200 continue
+if (do_print) then
+  if (out_of_bounds) then
+    call out_io (s_error$, r_name, &
+        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // attrib_name, &
+        'FOR THIS ELEMENT: ' // ele%name)
+  else
+    call out_io (s_error$, r_name, &
+        'MALFORMED ATTRIBUTE: ' // attrib_name, &
+        'FOR THIS ELEMENT: ' // ele%name)
+  endif
+endif
+return
+
+!----------------------------------------
+9210 continue
+if (do_print) call out_io (s_error$, r_name, &
+        'CROSS-SECTION NOT DEFINED SO CANNOT SET ATTRIBUTE: ' // attrib_name, &
+        'FOR THIS ELEMENT: ' // ele%name)
+return
+
+!---------------------------------------------------------------
+contains
+
+!+
+! Function reads number of the form "...(num)" and checks to
+! see if num is between n_min and n_max.
+! Function also chops "...(num)" from name.
+!-
+
+function get_cross_index(name, ix_name, err, n_min, n_max) result (ixc)
+
+character(*) name
+
+integer ix_name, n_min, n_max, ixc, ios
+
+logical err
+
+!
+
+err = .true.
+
+if (name(ix_name:ix_name) /= '(') return
+name = name(ix_name+1:)
+
+ix = index(name, ')')
+if (ix < 2) return
+
+read (name(1:ix-1), *, iostat = ios) ixc
+if (ios /= 0 .or. name(1:ix-1) == '') return
+name = name(ix+1:)
+
+if (ixc < n_min .or. ixc > n_max) then
+  out_of_bounds = .true.
+  return
+endif
+
+err = .false.
+
+end function
 
 end subroutine

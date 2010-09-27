@@ -164,7 +164,7 @@ cross%s_spline(3) = 1 - cross%s_spline(1) - cross%s_spline(2)
 
 ! Single vertex is special.
 
-if (n == 1) then
+if (n == 1 .and. v(1)%radius_x /= 0) then
   v(1)%x0 = v(1)%x; v(1)%y0 = v(1)%y
   err = .false.
   return
