@@ -17,6 +17,7 @@
 
 %---------------------------------------------------------------------------------
 
+\newcommand{\sref}[1]{$\S$\ref{#1}}
 \newcommand{\srthree}{\texttt{SYNRAD3D}\xspace}
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
@@ -161,7 +162,7 @@ The scattering probabilities in the table currently used by the
 simulation were computed for a photon p-polarization (electric field
 in the plane of incidence), for an aluminum substrate with a 8 nm
 layer of Al$_2$O$_3$, and a surface roughness of 2 nm. See
-Fig.~\ref{f.reflect} for some example reflectivity curves, compared with
+Fig.~\ref{f:reflect} for some example reflectivity curves, compared with
 radiation spectra for wigglers and dipoles in CesrTA at 2 GeV.
 
 \begin{figure}[tb]
@@ -169,7 +170,7 @@ radiation spectra for wigglers and dipoles in CesrTA at 2 GeV.
 \includegraphics[width=5in]{reflectivity.eps}
 \caption{Reflectivity vs. energy for several grazing angles. 
 Points shown are a measurement from INFN~\cite{b.mehne}}
-\label{f.reflect}
+\label{f:reflect}
 \end{center}
 \end{figure}
 
@@ -196,27 +197,30 @@ Example main input file:
     lattice_file = "../lattice/cesr/bmad/bmad_6wig_8nm_2085.lat" 
     wall_file    = "synrad3d.wall"   ! Vacuum chamber wall file.
     dat_file     = "synrad3d.dat"    ! Output data file.
-    wall_hit_file = ''               ! If not blank: Write photon wall hit data file.
-    lat_ele_file  = ''               ! If not blank: Write lattice element data file.
+    wall_hit_file = ''               ! Photon wall hit data file.
+    lat_ele_file  = ''               ! Write lattice element data file.
 
-    sr3d_params%allow_reflections = T       ! For testing purposes.
-    sr3d_params%stop_if_hit_antechamber = F !
-    random_seed = 123456                    ! 0 -> Use sys clock.
-    e_filter_min = -1           ! Min energy filter Output file photon filter
-    e_filter_max = -1
-    s_filter_min = -1
-    s_filter_max = -1
-    photon_start_input_file  = ''  ! File for initializing the photons
-    photon_start_output_file = ''  ! File recording photon start positions
+    random_seed = 123456             ! 0 -> Use sys clock.
+    e_filter_min = -1                ! Min energy filter param.
+    e_filter_max = -1                ! Max energy filter param.
+    s_filter_min = -1                ! Min S position filter param.
+    s_filter_max = -1                ! Max S position filter param.
+    photon_start_input_file  = ''    ! File for initializing the photons
+    photon_start_output_file = ''    ! File recording photon start positions
     num_ignore_generated_outside_wall = 0  !
     turn_off_kickers_in_lattice = F        ! Zero the closed orbit?
+
+    sr3d_params%ds_track_step_max = 3    ! Photon propagation step size 
+    sr3d_params%dr_track_step_max = 0.1  ! Photon propagation step size 
+    sr3d_params%allow_reflections = T    ! For testing purposes.
+    sr3d_params%stop_if_hit_antechamber = F 
   /
 \end{example}
-Fortran namelist input is used.
-The namelist begins on the line starting with \vn{"\&synrad3d_parameters"}
-and ends with the line containing the slash \vn{"/"}. Anything outside
-of this is ignored. Within the namelist, anything after an exclamation
-mark \vn{"!"} is ignored including the exclamation mark. 
+Fortran namelist input is used.  The tag \vn{"\&synrad3d_parameters"}
+marks the start of the namelist and the namelist ends with the slash
+\vn{"/"} tag. Anything outside of this is ignored. Within the
+namelist, anything after an exclamation mark \vn{"!"} is ignored
+including the exclamation mark.
 
   \begin{description}
   \item[\vn{ix_ele_track_start}, \vn{ix_ele_track_end}] \Newline
@@ -247,9 +251,10 @@ radiation production region. If \vn{num_photon_per_pass} is negative
 (the default), the number of photons generated per pass is taken from
 the value of \vn{num_photons}.
   \item[\vn{ds_step_min}] \Newline
-This parameter establishes the minimum distance to track a the particle beam between emission
+This parameter establishes the minimum distance to track the particle beam between emission
 points. The thought was that if \srthree decided to make very small steps  between emission
-points, this might slow the calculation down. This has not been tested...
+points, this might slow the calculation down. This has not been tested. This parameter
+does not influence photon tracking.
   \item[\vn{emit_a}, \vn{emit_b}, \vn{sig_e}] \Newline
 These parameters set the particle beam size and so will affect the starting coordinates of
 the photons. A negative set of any of these parameters will result in \srthree 
@@ -271,6 +276,9 @@ it hits the chamber wall.
   \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
 This parameter, if set True, will cause \srthree to stop tracking a given photon once
 it hits part of an antechamber wall.
+  \item[\vn{sr3d_params\%ds_track_step_max}, \vn{sr3d_params\%dr_track_step_max}] \Newline
+These parameters determine the maximum distance a photon is tracked in
+a given ``step'' see \sref{s:track} for more details.
   \item[\vn{wall_hit_file}] \Newline
 This string, if not blank, will create a data file listing the points
 where the photons hit the wall including all the reflection
@@ -333,7 +341,7 @@ the beam emittance is large enough so that, from time-to-time, a
 photon generated at large amplitude will be generated outside the
 wall. \srthree will ignore photons generated outside the wall, and
 generate another one at the same longitudinal position, up to the
-number set by \vn{num_ignore_generated_outside_wal}. If the number of
+number set by \vn{num_ignore_generated_outside_Wall}. If the number of
 photons generated outside the wall exceeds this number, \srthree will
 print an error message and stop.
   \item[\vn{turn_off_kickers_in_lattice}] \Newline
@@ -382,7 +390,7 @@ photons have been generated, \srthree will generate another
 \caption{Example vacuum chamber cross-section for an \vn{elliptical} 
 chamber with an antechamber on the $+x$ side of the chamber and an
 aperture on the $-x$ side.}
-\label{f.chamber}
+\label{f:chamber}
 \end{center}
 \end{figure}
 
@@ -395,11 +403,12 @@ shapes:
   elliptical
   rectangular
   gen_shape
+  gen_shape_mesh
 \end{example}
-The \vn{gen_shape} shape is discussed later. An example \vn{elliptical}
-cross-section is shown in \fig{f.chamber}.  For \vn{elliptical} or
-\vn{rectangular} shapes, the parameters needed to specify the chamber
-are:
+The \vn{gen_shape} and \vn{gen_shape_mesh} shapes are discussed
+later. An example \vn{elliptical} cross-section is shown in
+\fig{f:chamber}.  For \vn{elliptical} or \vn{rectangular} shapes, the
+parameters needed to specify the chamber are:
 \begin{example}
   s                   ! Longitudinal position
   basic_shape         ! Either "elliptical" or "rectangular"
@@ -421,7 +430,7 @@ Antechambers on the $+x$ side and/or $-x$ side of the chamber can be
 added to the basic shape. On the $+x$ side, an antechamber is formed
 if the \vn{ante_height2_plus} parameter is set to a positive value. If
 \vn{ante_height2_plus} is set to a positive value, as shown in
-\fig{f.chamber}, the parameter \vn{width2_plus} specifies the
+\fig{f:chamber}, the parameter \vn{width2_plus} specifies the
 horizontal distance from the chamber center to the far end of the $+x$
 side antechamber. In this case, the value of \vn{width2_plus} must be
 large enough so that the antechamber far wall does not stick back into
@@ -437,7 +446,7 @@ defines an aperture on the $+x$ side of the chamber. In this case, the
 value of \vn{width2_plus} must be less than the value of
 \vn{width2}. Similarly, if \vn{ante_height2_minus} is not set, a set of
 \vn{width2_minus} defines an aperture on the $-x$ side of the chamber.
-A $-x$ aperture is shown in \fig{f.chamber}.
+A $-x$ aperture is shown in \fig{f:chamber}.
 
 For the \vn{gen_shape} shape, the parameters are:
 \begin{example}
@@ -445,8 +454,7 @@ For the \vn{gen_shape} shape, the parameters are:
   basic_shape         ! "gen_shape".
   ix_gen_shape        ! Index of gen_shape definition to use.
 \end{example}
-The \vn{basic_shape} attribute must be set to \vn{"gen_shape"} for a
-\vn{gen_shape} shape. The \vn{ix_gen_shape} index referrs to a gen_shape
+The \vn{ix_gen_shape} index refers to a gen_shape
 specification which has the parameters
 \begin{example}
   ix_gen_shape        ! Index of this gen_shape definition.
@@ -485,7 +493,7 @@ mark \vn{"!"} is ignored including the exclamation mark.
 
 In the \vn{synrad3d_wall} namelist, \vn{wall_pt(i)} gives the
 parameters for the $i$\Th cross-section. The format for an \vn{elliptical}
-or \vn{rectangualr} \vn{wall_pt} is
+or \vn{rectangular} \vn{wall_pt} is
 \begin{example}
   wall_pt(<i>) = <s>, <basic_shape>, <width2>, <height2>, <width2_plus>, 
                   <ante_height2_plus>, <width2_minus>, <ante_height2_minus>
@@ -508,8 +516,8 @@ For \vn{elliptical} and \vn{rectangular} shapes, the first four parameters -- \v
 specified. Values for the other parameters are optional and default to
 the ``unset'' value of -1.
 
-For \vn{gen_shape} shapes, the \vn{ix_gen_shape} referrs to a
-corressponding \vn{gen_shape_def} namelist that specifies the exact
+For \vn{gen_shape} shapes, the \vn{ix_gen_shape} refers to a
+corresponding \vn{gen_shape_def} namelist that specifies the exact
 shape of the wall.  The format of the \vn{gen_shape_def}
 namelist is:
 \begin{example}
@@ -527,9 +535,11 @@ expressed in terms of $(r, \theta)$ coordinates, the vertices must be
 in order of increasing $theta$. If all the vertex points have
 non-negative $y$ values, it is assumed that the gen_shape is symmetric
 with respect to the $x$-axis and that only half the vertex points are
-being specified. 
+being specified. If all the vertex points have both non-negative $x$
+and $y$ values, it is assumed that the gen_shape is symmetric with
+respect to both the $x$ and $y$ axes.
 
-Between verticies, the wall is assumed to be a straight line except if
+Between vertices, the wall is assumed to be a straight line except if
 a \vn{<radius>} is given. If \vn{<radius>} is set to a non-zero value
 for a given vertex, the wall segment between that vertex and the
 vertex before it is the arc of a circle with the given radius. If
@@ -538,23 +548,64 @@ vertex before it is the arc of a circle with the given radius. If
 
 In the example above, \vn{wall_pt(1)} at $s = 74.3$~meters is a
 \vn{gen_shape} whose definition is given by the first \vn{gen_shape_def}
-nameslist with an \vn{ix_gen_shape} value of 1. This definition defines
+namelist with an \vn{ix_gen_shape} value of 1. This definition defines
 a rectangle and is equivalent to \vn{wall_pt(2)}. Additionally, the
 second \vn{gen_shape_def} namelist with an \vn{ix_gen_shape} value of
-2. defines a symmetrix gen_shape which has the exact same shape as the
+2. defines a symmetric gen_shape which has the exact same shape as the
 first gen_shape.
+
+The \vn{gen_shape_mesh} shape syntax is exactly the same as the
+\vn{gen_shape} syntax except that \vn{basic_shape} is set to
+"\vn{gen_shape_mesh}". For \vn{gen_shape_mesh} there is also the added
+restriction that the wall between vertices must be straight lines. The
+real difference is in the way that the chamber wall is constructed for
+\vn{gen_shape_mesh} cross-sections as detailed in \sref{s:wall}.
 
 %------------------------------------------------------------------
 \subsection{Vacuum Chamber Wall Interpolation} 
+\label{s:wall}
 
 Once a set of chamber cross-sections have been defined, the
 cross-section of the chamber at a given longitudinal position is
-computed using a linear interpolation: In cylindrical coordinates,
-let $r_{w1}(\theta)$ be the radius of the wall as a function of
-$\theta$ at some point $s_1$ where the chamber cross-section has been
-defined. Let $r_{w2}(\theta)$ be the radius of the wall at the next
-defined cross-section at $s_2$. The radius of the wall cross-section,
-$r_w(\theta, s)$ at some position $s$ with $s_1 \le s \le s_2$ is
+computed using either a triangular mesh or linear interpolation. The
+reason for using two schemes is that originally \srthree only
+implemented linear interpolation.  Conceptually, as detailed in in
+\sref{s:track}, there are problems with using linear interpolation
+with certain chamber geometries. In particular when there is an
+antechamber. To get around this, the mesh approach was implemented.
+The mesh approach has it's own problems: Potentially it can be slow
+and using flat planer surfaces will not model a chamber as well as
+linear interpolation which can use curved surfaces. Currently there
+is not enough experience running \srthree so it is not clear whether
+the conceptual problem with linear interpolation is, on a practical
+level, significant. Time will tell but in the meantime both approaches
+are available for use. Note that a chamber can uses the mesh approach
+in some places and linear interpolation in others.
+
+The triangular mesh approach is associated with \vn{gen_shape_mesh}
+cross-sections. In particular, if a given cross-section has been
+declared \vn{gen_shape_mesh}, the section of the chamber from the
+preceding cross-section (called $C_1$) to the \vn{gen_shape_mesh}
+cross-section (called $C_2$) will be constructed using a mesh. In this
+case, the preceding cross-section must be of type \vn{gen_shape} or
+\vn{gen_shape_mesh} and must use only straight lines between
+vertices. Additionally, both cross-sections must have the same number
+of vertices.The mesh is then constructed as follows: Let $v_1(i)$ be
+the vertices in $C_1$ and let $v_2(i)$ be the vertices in $C_2$ with
+$i$ ranging from 1 to $N$. Construct two sets of triangles. The first
+set consists of all triangles with vertices in the form $v_1(i),
+v_1(i+1), v_2(i)$ for some $i$ in the range 1 to $N$. The second set
+of triangles consists of all triangles of the form $v_1(i), v_2(i),
+v_2(i+1)$. The union of these two sets defines the chamber.
+
+The linear interpolation approach is used where ever the mesh approach
+is not.  With linear interpolation, the cross-section at some point
+$s_1$ where the chamber cross-section has been defined is expressed in
+cylindrical coordinates.  Thus let $r_{w1}(\theta)$ be the radius of
+the wall as a function of $\theta$ at $s_1$.  Let $r_{w2}(\theta)$ be
+the radius of the wall at the next defined cross-section at $s_2$. The
+radius of the wall cross-section, $r_w(\theta, s)$ at some position
+$s$ with $s_1 \le s \le s_2$ is
 \Begineq
   r_w(\theta, s) = \frac{s_2 - s}{s_2 - s_1} \, r_{w1} + \frac{s_1 - s}{s_1 - s_2} \, r_{w2}
 \Endeq
@@ -563,8 +614,9 @@ single valued functions. For \vn{gen_shape} shapes, this is equivalent
 to having the $\theta$ value of the list of vertices be in increasing (or
 decreasing) order.
 
-To determine if a photon at position $(r, \theta, s)$ is inside or outside the
-chamber, the normalized radius $r_n$ is evaluated:
+With linear interpolation, to determine if a photon at position $(r,
+\theta, s)$ is inside or outside the chamber, the normalized radius
+$r_n$ is evaluated:
 \Begineq
   r_n(r, \theta, s) = r / r_w(\theta, s)
 \Endeq
@@ -578,10 +630,85 @@ expressed in $(x, y, s)$ coordinates as this turns out to be
 especially easy to evaluate.
 
 %------------------------------------------------------------------
+\subsection{Photon Tracking}
+\label{s:track}
+
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=6in]{chamber-problem.eps}
+\caption{A) A convex cross-section can lead to problems with linear interpolation.
+since it is assumed that if the beginning and ending points are inside the chamber 
+the entire track is inside the chamber. The track shown violates this assumption.
+B) With linear interpolation, convex cross-sections are not a guarantee that 
+intermediate cross-sections are convex. B1 and B3 are the defined cross sections 
+at $s = 0$ and $s = 1$ respectively. These cross sections are ellipses with 5:1 
+aspect ratio. The interpolated cross-section B2 at $s = 0.5$ is seen to be concave.}
+\label{f:convex-chamber}
+\end{center}
+\end{figure}
+
+Photons are tracked in ``steps''. A step consists of propagating a
+photon from it's current position to some new position that is a
+certain distance away. The length to propagate the photon in a given
+step is determined by a number of factors. Maximum lengths are set by
+the input parameters 
+\begin{example}
+  sr3d_params%ds_track_step_max
+  sr3d_params%dr_track_step_max
+\end{example}
+These set longitudinal (\vn{ds_track_step_max}) and transverse
+(\vn{dr_track_step_max}) distances. Additionally, a single step will
+always be terminated at, and never cross over, a defined cross-section
+plane. steps will also be terminated at the boundaries of bend magnets
+and at the point in a bend where a trajectory is closest to the center
+of the bending radius.
+
+After a step, the new photon position is checked to see if it is still
+inside the chamber. If it is not, the point where it has struck the
+chamber wall is calculated via a root finding algorithm.
+
+If the new photon position is inside the chamber, there is still the
+question as to whether the photon trajectory between the beginning
+step point and the end step point is inside the chamber. If linear
+interpolation is being used locally, \srthree assumes that the chamber
+is ``locally convex''. That is, given the two end points of a step
+with points inside the chamber, it is assumed that the line drawn
+between these two points never touches or goes outside the
+chamber. This locally convex assumption will be true if every
+cross-section $r_w(\theta, s)$ for fixed $s$ is convex where $s$ is in
+the range of longitudinal $s$ positions covered by the step in
+question.
+
+The presence of antechambers clearly violates the locally convex
+assumption as shown in Fig.~\ref{f:convex-chamber}A. Even if two
+cross-sections are themselves convex, an intermediate cross-section
+can be concave as shown in Fig.~\ref{f:convex-chamber}B. How much of a
+problem the possibility that \srthree will not detect some photons
+leaving and then entering the chamber will, of course, depend upon the
+chamber geometry and what is being calculated. One way to treat this
+is to reduce the track step length limits:
+\begin{example}
+    sr3d_params%ds_track_step_max
+    sr3d_params%dr_track_step_max
+\end{example}
+This will reduce the possibility of mistracking at the cost of
+increased computing time.  If the results do not change significantly
+when the track limits are reduced. This is good evidence that the 
+results are valid.
+
+When the chamber is locally specified using a triangular mesh. Each
+triangle is checked to see whether the trajectory of a step intersects
+it. If so, the photon has hit the chamber wall. This method avoids the
+convex assumption so has the advantage of being able to work with
+complicated geometries. However, the speed of execution will be dependent
+upon the number of triangles.
+
+%------------------------------------------------------------------
 \section{Output files} 
 
 %------------------------------------------------------------------
 \subsection{Main output file}
+
 The first 20 lines of this file echo the
 information provided in the file \vn{synrad3d.init}.
 Subsequently, \vn{dat_file} contains 4 lines for each photon

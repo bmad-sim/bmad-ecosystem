@@ -167,7 +167,9 @@ photon%old = photon%now  ! Save for hit spot calc
 now => photon%now
 dl_left = dl_step
 
-! propagate the photon until we have gone a distance dl_step
+! propagate the photon a number of sub-steps until we have gone a distance dl_step
+! A sub-step might be to the next element boundary since tracking in a bend is
+!  different from all other elements.
 
 propagation_loop: do
 

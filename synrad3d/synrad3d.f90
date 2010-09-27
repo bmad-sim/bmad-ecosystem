@@ -27,7 +27,7 @@ type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 type (cross_section_vertex_struct) v(100)
-type (wall3d_gen_shape_struct), pointer :: poly
+type (cross_section_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius, r
@@ -45,7 +45,7 @@ character(200) photon_start_input_file, photon_start_output_file
 character(100) dat_file, dat2_file, wall_file, param_file
 character(16) :: r_name = 'synrad3d'
 
-logical ok, filter_on, s_wrap_on, filter_this
+logical ok, filter_on, s_wrap_on, filter_this, err
 logical is_inside, turn_off_kickers_in_lattice
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
@@ -123,16 +123,18 @@ wall_pt%ante_height2_minus = -1
 wall_pt%width2_plus = -1
 wall_pt%width2_minus = -1
 wall_pt%ix_gen_shape = -1
+wall_pt%surface_type = linear_surface$
 
 open (1, file = wall_file, status = 'old')
 read (1, nml = synrad3d_wall)
 
 n = 0
 do i = 0, ubound(wall_pt, 1)
-  if (wall_pt(i)%basic_shape == 'gen_shape') then
+  if (wall_pt(i)%basic_shape(1:9) == 'gen_shape') then
     wall_pt(i)%ix_gen_shape = nint(wall_pt(i)%width2)
     n = max (n, wall_pt(i)%ix_gen_shape)
   endif
+  if (wall_pt(i)%basic_shape == 'gen_shape_mesh') wall_pt(i)%surface_type = mesh_surface$
   if (wall_pt(i)%basic_shape == '') then
     n_wall_pt_max = i - 1
     exit
@@ -159,66 +161,15 @@ if (n > 0) then
 
     ! Count number of vertices and calc angles.
 
-    do n = 1, size(v)
-      v(n)%angle = atan2(v(n)%y, v(n)%x)
-      if (n > 1) then
-        if (v(n)%angle <= v(n-1)%angle) v(n)%angle = v(n)%angle + twopi
-        if (v(n)%angle >= v(n-1)%angle + pi .or. v(n)%angle <= v(n-1)%angle) then
-          print *, 'GEN_SHAPE SHAPE IS BAD.'
-          print *, '  FOR IX_GEN_SHAPE =', ix_gen_shape
-          call err_exit
-        endif
-      endif
-      if (v(n+1)%x == 0 .and. v(n+1)%y == 0) exit
+     poly => wall%gen_shape(ix_gen_shape)
+     do n = 1, size(v)
+      if (v(n)%x /= 0 .or. v(n)%y /= 0) cycle
+      allocate(poly%v(n-1))
+      poly%n_vertex_input = n-1
     enddo
 
-    if (v(1)%angle < 0 .or. v(n)%angle > twopi) then
-      print *, 'FIRST VERTEX CANNOT HAVE ANGLE < 0 AND LAST VERTEX CANNOT HAVE ANGLE > 0.'
-      print *, '  FOR IX_GEN_SHAPE =', ix_gen_shape
-      call err_exit
-    endif
-
-    poly => wall%gen_shape(ix_gen_shape)
-
-    ! If all (x, y) are in the first quadrent then must propagate to the second quadrent.
-
-    if (all(v(1:n)%x >= 0)) then
-      nn = 2 * n
-      if (v(n)%x == 0) then ! Do not duplicate v(n) vertex
-        nn = nn - 1
-        v(n+1:nn) = v(n-1:1:-1)
-      else
-        v(n+1:nn) = v(n:1:-1)
-      endif
-      v(n+1:nn)%x     = -v(n+1:nn)%x
-      v(n+1:nn)%angle = pi - v(n+1:nn)%angle
-      n = nn
-    endif
-        
-    ! If all y >= 0, only half the gen_shape has been specified.
-    ! In this case, assume up/down symmetry.
-
-    if (all(v(1:n)%y >= 0)) then
-      nn = 2 * n ! Total number of vetices
-      if (v(n)%y == 0) then  ! Do not duplicate v(n) vertex
-        nn = nn - 1
-        v(n+1:nn) = v(n-1:1:-1)
-      else
-        v(n+1:nn) = v(n:1:-1)
-      endif
-      v(n+1:nn)%y     = -v(n+1:nn)%y
-      v(n+1:nn)%angle = twopi - v(n+1:nn)%angle
-      if (v(1)%y == 0) nn = nn - 1  ! Do not duplicate v(1) vertex
-      n = nn
-    endif
-
-    ! Transfer the information to the poly%v array.
-    ! The last vertex is the first vertex and closes the gen_shape
-
-    allocate(poly%v(n+1))
-    poly%v(1:n) = v(1:n)
-    poly%v(n+1) = v(1)
-    poly%v(n+1)%angle = v(1)%angle + twopi
+    call cross_section_initializer (poly, err)
+    if (err) call err_exit
 
   enddo
 endif
@@ -532,11 +483,13 @@ write (1, *) 'sig_e                =', sig_e
 write (1, *) 'wall_file            =', trim(wall_file)
 write (1, *) 'dat_file             =', trim(dat_file)
 write (1, *) 'random_seed          =', random_seed
-write (1, *) 'sr3d_params%allow_reflections =', sr3d_params%allow_reflections
-write (1, *) 'e_filter_min     =', e_filter_min
-write (1, *) 'e_filter_max     =', e_filter_max
-write (1, *) 's_filter_min     =', s_filter_min
-write (1, *) 's_filter_max     =', s_filter_max
+write (1, *) 'e_filter_min       =', e_filter_min
+write (1, *) 'e_filter_max       =', e_filter_max
+write (1, *) 's_filter_min       =', s_filter_min
+write (1, *) 's_filter_max       =', s_filter_max
+write (1, *) 'sr3d_params%allow_reflections  =', sr3d_params%allow_reflections
+write (1, *) 'sr3d_params%ds_track_step_max  =', sr3d_params%ds_track_step_max
+write (1, *) 'sr3d_params%dr_track_step_max  =', sr3d_params%dr_track_step_max
 write (1, *)
 
 do i = 1, n_photon_array   
