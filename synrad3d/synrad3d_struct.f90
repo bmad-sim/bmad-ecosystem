@@ -71,19 +71,14 @@ type wall3d_pt_struct
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
   integer ix_gen_shape            ! Gen_shape index 
-end type
-
-! Structure used to hold gen_shape shapes
-
-type wall3d_gen_shape_struct
-  type (cross_section_vertex_struct), allocatable :: v(:)
+  integer surface_type
 end type
 
 ! This is just an array of chamber cross-sections.
 
 type wall3d_struct
   type (wall3d_pt_struct), allocatable :: pt(:)
-  type (wall3d_gen_shape_struct), allocatable :: gen_shape(:)
+  type (cross_section_struct), allocatable :: gen_shape(:)
   integer n_pt_max
 end type
 
