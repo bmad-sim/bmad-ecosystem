@@ -3,6 +3,11 @@ module synrad3d_track_mod
 use synrad3d_utils
 use photon_reflection_mod
 
+private sr3d_photon_hit_func
+type (photon3d_track_struct), pointer, private :: photon_com
+type (photon3d_track_struct), private :: com, photon1_com
+
+
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -361,7 +366,7 @@ use nr, only: zbrent
 implicit none
 
 type (lat_struct) lat
-type (photon3d_track_struct) :: photon, photon1
+type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 
@@ -385,17 +390,18 @@ endif
 ! Note: After the first reflection, the photon will start at the wall so
 ! if photon%old is at the wall we must avoid bracketing this point.
 
-photon1 = photon
+photon1_com = photon
+photon_com => photon
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
   track_len0 = (photon%now%track_len + photon%old%track_len) / 2
   do i = 1, 30
-    d_rad = photon_hit_func(track_len0)
+    d_rad = sr3d_photon_hit_func(track_len0)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
       print *
       print *, 'track_len, d_rad:', track_len0, d_rad
-      print *, 'photon1%now:', i, photon1%now%vec, photon1%now%track_len
+      print *, 'photon1_com%now:', i, photon1_com%now%vec, photon1_com%now%track_len
     endif
     if (d_rad < 0) exit
     track_len0 = (track_len0 + photon%old%track_len) / 2
@@ -414,7 +420,7 @@ endif
 
 ! Find where the photon hits.
 
-track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
+track_len = zbrent (sr3d_photon_hit_func, track_len0, photon%now%track_len, 1d-10)
 
 ! Cleanup
 
@@ -422,39 +428,51 @@ photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
 call sr3d_photon_radius (photon%now, wall, radius, in_antechamber = photon%hit_antechamber)
 
-!-----------------------------------------------------------------------
-contains
+end subroutine sr3d_photon_hit_spot_calc 
 
-function photon_hit_func (track_len) result (d_radius)
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function sr3d_photon_hit_func (track_len) result (d_radius)
+! 
+! Routine to be used as an argument in zbrent in the sr3d_photon_hit_spot_calc.
+!
+! Input:
+!   track_len -- Real(rp): Place to position the photon.
+!
+! Output:
+!   d_radius -- Real(rp): 
+!-
+function sr3d_photon_hit_func (track_len) result (d_radius)
 
-real(rp) track_len, d_radius, radius, d_track
+real(rp), intent(in) :: track_len
+real(rp) d_radius, radius, d_track
 
 ! Easy case
 
-if (track_len == photon%now%track_len) then
-  call sr3d_photon_radius (photon%now, wall, radius)
+if (track_len == photon_com%now%track_len) then
+  call sr3d_photon_com_radius (photon_com%now, wall, radius)
   d_radius = radius - 1
   return
 endif
 
-! Track starting from the present position (photon1%now) if track_length > photon1%now%track_len.
-! Otherwise, track starting from the beginning of the region (photon%old).
+! Track starting from the present position (photon1_com%now) if track_length > photon1_com%now%track_len.
+! Otherwise, track starting from the beginning of the region (photon_com%old).
 
-if (track_len < photon1%now%track_len) then
-  photon1 = photon
-  photon1%now = photon%old
+if (track_len < photon1_com%now%track_len) then
+  photon1_com = photon_com
+  photon1_com%now = photon_com%old
 endif
 
 ! And track
 
-d_track = track_len - photon1%now%track_len
-call sr3d_propagate_photon_a_step (photon1, d_track, lat, wall, .false.)
-call sr3d_photon_radius (photon1%now, wall, radius)
+d_track = track_len - photon1_com%now%track_len
+call sr3d_propagate_photon_com_a_step (photon1_com, d_track, lat, wall, .false.)
+call sr3d_photon_com_radius (photon1_com%now, wall, radius)
 d_radius = radius - 1
 
-end function
-
-end subroutine sr3d_photon_hit_spot_calc 
+end function sr3d_photon_hit_func
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

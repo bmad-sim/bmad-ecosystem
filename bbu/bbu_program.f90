@@ -124,7 +124,7 @@ if (bbu_param%nrep.gt.1)then
 endif
 
 ! Open file for stable orbit analysis data
-if (bbu_param%stable_orbit_anal.eq..true.)then
+if (bbu_param%stable_orbit_anal)then
   write(6,'(a,i10,a)')&
         ' Opening output file STABLE_ORBIT.OUT for stable orbit analysis'
   open (56, file = 'stable_orbit.out', status = 'unknown')
@@ -308,7 +308,7 @@ enddo  ! End of DRSCAN loop
 
 if (bbu_param%drscan) close(50)
 if (bbu_param%nrep.gt.1)close(55)
-if (bbu_param%stable_orbit_anal.eq..true.)then
+if (bbu_param%stable_orbit_anal) then
  close(56)
  close(57)
 endif
