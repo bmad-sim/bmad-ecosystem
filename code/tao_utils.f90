@@ -2546,6 +2546,9 @@ do
   case ('-plot')
     call get_next_arg (tao_com%plot_file)
 
+  case ('-startup')
+    call get_next_arg (tao_com%startup_file)
+
   case ('help', '-help')
     call help_out
     stop

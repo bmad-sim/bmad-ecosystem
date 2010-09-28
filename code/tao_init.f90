@@ -114,10 +114,11 @@ endif
 
 ! Command line override
 
-if (tao_com%beam_file /= '') beam_file = tao_com%beam_file
-if (tao_com%data_file /= '') data_file = tao_com%data_file
-if (tao_com%plot_file /= '') plot_file = tao_com%plot_file
-if (tao_com%var_file /= '')  var_file  = tao_com%var_file
+if (tao_com%beam_file /= '')    beam_file    = tao_com%beam_file
+if (tao_com%data_file /= '')    data_file    = tao_com%data_file
+if (tao_com%plot_file /= '')    plot_file    = tao_com%plot_file
+if (tao_com%startup_file /= '') startup_file = tao_com%startup_file
+if (tao_com%var_file /= '')     var_file     = tao_com%var_file
 if (tao_com%lattice_file /= '') lattice_file = tao_com%lattice_file
 
 ! Tao inits.

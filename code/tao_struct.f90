@@ -574,6 +574,7 @@ type tao_common_struct
   character(100) :: beam0_file    = ''         ! '-beam0'    command line argument.
   character(100) :: data_file = ''             ! '-data'     command line argument.
   character(100) :: plot_file = ''             ! '-plot'     command line argument.
+  character(100) :: startup_file = ''          ! '-startup'  command line argument.
   character(100) :: var_file = ''              ! '-var'      command line argument.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix

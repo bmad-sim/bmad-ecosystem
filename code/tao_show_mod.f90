@@ -1040,6 +1040,7 @@ case ('global')
     nl=nl+1; write (lines(nl), amt) 'tao_com%lat_file               = ', tao_com%lat_file
     nl=nl+1; write (lines(nl), amt) 'tao_com%plot_file              = ', tao_com%plot_file
     nl=nl+1; write (lines(nl), amt) 'tao_com%var_file               = ', tao_com%var_file
+    nl=nl+1; write (lines(nl), amt) 'tao_com%startup_file           = ', tao_com%startup_file
     nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
                                                 tao_com%combine_consecutive_elements_of_like_name
     nl=nl+1; write (lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
