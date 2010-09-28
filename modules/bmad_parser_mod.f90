@@ -3732,6 +3732,7 @@ main_loop: do n = 1, n2
     ! put the element name in the list r_indexx list
 
     call find_indexx (lord%name, name_list, r_indexx, n_list, k, add_to_list = .true.)
+    n_list = n_list + 1
     ix_ele(k) = ix_lord
     ix_branch(k) = 0
 
@@ -4387,8 +4388,8 @@ do k = 1, iseq_tot
       cycle
     endif
 
-    call find_indexx (name, in_name, in_indexx, n_max, j)
-    if (j == 0) then  ! if not an element it must be a sequence
+    call find_indexx2 (name, in_name, in_indexx, 0, n_max, j)
+    if (j < 0) then  ! if not an element it must be a sequence
       call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
       if (j == 0) then  ! if not a sequence then I don't know what it is
         s_ele%ix_ele = -1
@@ -4482,8 +4483,8 @@ line_expansion: do
     name = seq%corresponding_actual_arg(ix)
     s_ele => dummy_seq_ele
     s_ele%name = name
-    call find_indexx (name, in_name, in_indexx, n_max, j)
-    if (j == 0) then  ! if not an element it must be a sequence
+    call find_indexx2 (name, in_name, in_indexx, 0, n_max, j)
+    if (j < 0) then  ! if not an element it must be a sequence
       call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
       if (j == 0) then  ! if not a sequence then I don't know what it is
         call parser_warning ('CANNOT FIND DEFINITION FOR: ' // name, &
