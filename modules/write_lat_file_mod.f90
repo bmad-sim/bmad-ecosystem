@@ -71,12 +71,13 @@ character(40) :: r_name = 'write_bmad_lattice_file'
 character(10) angle
 
 integer j, k, n, ix, iu, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
-integer unit(6), ix_names, ix_match
+integer unit(6), n_names, ix_match
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
 integer ix_top, ix_super, default_val
+integer, allocatable :: an_indexx(:)
 
 logical, optional :: err
-logical unit_found, write_term, match_found, found, in_multi_region, expand_lat_out
+logical unit_found, write_term, found, in_multi_region, expand_lat_out
 logical is_multi_sup, x_lim_good, y_lim_good, is_default, need_new_region
 
 ! Init...
@@ -156,8 +157,8 @@ write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, *)
 
 ixs = 0
-ix_names = 0
-allocate (names(lat%n_ele_max))
+n_names = 0
+allocate (names(lat%n_ele_max), an_indexx(lat%n_ele_max))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -191,13 +192,15 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Do not write anything for elements that have a duplicate name.
 
-    call find1_indexx (ele%name, names, ix_names, ix_match, match_found)
-    if (match_found) cycle
+    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+    if (ix_match > 0) cycle
 
-    if (size(names) < ix_names + 1) call re_allocate(names, 2*size(names))
-    names(ix_match+1:ix_names+1) = names(ix_match:ix_names)
-    names(ix_match) = ele%name
-    ix_names = ix_names + 1
+    if (size(names) < n_names + 1) then
+      call re_allocate(names, 2*size(names))
+      call re_allocate(an_indexx, 2*size(names))
+    endif
+    call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+    n_names = n_names + 1
 
     ! Overlays and groups
 
@@ -947,89 +950,6 @@ else
 endif
 
 end subroutine
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine find1_indexx (name, names, n_max, ix_match, match_found)
-!
-! Subroutine to find a matching name in a list of names sorted in increasing
-! alphabetical order.
-!
-! Input:
-!   name     -- Character(40): Name to match to.
-!   names(:) -- Character(40): Array of sorted names.
-!   n_max    -- Integer Only names(1:n_max) are used.   
-!
-! Output:
-!   ix_match  -- Integer: 
-!                  If a match is found then:
-!                      names(ix_match) = name
-!                      names(ix_match-1) /= name
-!                  If no match is found then:
-!                      names(ix_match) > name  ! ix_match may be > size(names)
-!                      names(ix_match-1) < name
-!   match_found -- Logical: Set True if a match is found. False otherwise
-!-
-
-subroutine find1_indexx (name, names, n_max, ix_match, match_found)
-
-implicit none
-
-integer ix1, ix2, ix3, n_max, ix_match
-
-character(40) name, names(:)
-character(40) this_name
-
-logical match_found
-
-! simple case
-
-match_found = .false.
-
-if (n_max == 0) then
-  ix_match = 1
-  return
-endif
-
-!
-
-ix1 = 1
-ix3 = n_max
-
-do
-
-  ix2 = (ix1 + ix3) / 2 
-  this_name = names(ix2)
-
-  if (this_name == name) then
-    do ! if there are duplicate names in the list choose the first one
-      if (ix2 == 1) exit
-      if (names(ix2-1) /= this_name) exit
-      ix2 = ix2 - 1
-    enddo
-    ix_match = ix2
-    match_found = .true.
-    return
-  elseif (this_name < name) then
-    ix1 = ix2 + 1
-  else
-    ix3 = ix2 - 1
-  endif
-                     
-  if (ix1 > ix3) then
-    if (this_name < name) then
-      ix_match = ix2 + 1
-    else
-      ix_match = ix2
-    endif
-    return
-  endif
-
-enddo
 
 end subroutine
 
