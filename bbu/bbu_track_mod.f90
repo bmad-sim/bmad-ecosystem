@@ -778,10 +778,8 @@ do i=0, lat%n_ele_track
 enddo
 
 ! Analytic approxmation is valid only for a single HOM in a single cavity
-if (anavalid.eq..false.)then
- currth = 0.
-endif
 
+if (.not. anavalid) currth = 0.0
 deallocate (erlmat, erltime)
 
 end subroutine write_homs

@@ -469,12 +469,12 @@
      end=length
      print *,answer
      call string_trim(answer(ix+1:),answer,ix)
-     type*,answer(1:ix)
+     print *,answer(1:ix)
      if(ix /= 0.)read(answer(1:ix),*)x_or_y
      call string_trim(answer(ix+1:),answer,ix)
      if(ix /= 0.)read(answer(1:ix),*)p1
      call string_trim(answer(ix+1:),answer,ix)
-     type*,answer(1:ix)
+     print *,answer(1:ix)
      if(ix /= 0.)read(answer(1:ix),*)p2
      
      xmax=0.

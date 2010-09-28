@@ -278,7 +278,7 @@ do i = ix_start, ix_end
     prop_name(1:5) = (/ "strength         ", "alpha            ", &
                         "horizontal_offset", "vertical_offset  ", &
                         "poles            " /)
-    prop_value(1:5) = (/ sqrt(hk**2 + vk**2), ele%value(tilt$)*deg + atan2d(vk, hk), &
+    prop_value(1:5) = (/ sqrt(hk**2 + vk**2), ele%value(tilt$)*deg + atan2(vk, hk)*180/pi, &
                           ele%value(x_offset$), ele%value(y_offset$), 2.0_rp /)
     prop_fmt(1:5) = (/ "f0.6", "f0.4", "f0.6", "f0.6", "i3  " /)
 

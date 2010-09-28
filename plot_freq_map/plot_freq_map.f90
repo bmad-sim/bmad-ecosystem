@@ -188,8 +188,8 @@
    print *,' Energies '
    print '(a16)',' n_eng, energy '
    print '(i5,3x,e12.4)',(i,saved_eng(i), i=1,n_eng)
-   print '(a,$)', ' Choose an energy (integer) ?'
-   read (*,'(i)') ,ix_energy
+   write (*, '(a)', advance = 'no') ' Choose an energy (integer) ?'
+   read (*, *) ix_energy
 
 !   delta_x = (xmax-xmin)/(n_x-1)
 !   delta_y = (ymax-ymin)/(n_y-1)
@@ -416,7 +416,7 @@ end
    integer k
    integer ios
 
-   open(unit=2, file=file_name, type='OLD')
+   open(unit=2, file=file_name, status='OLD')
    ios=0
    i=0
    do while(ios >= 0)
