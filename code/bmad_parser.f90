@@ -571,8 +571,8 @@ parsing_loop: do
 
     found = .false.  ! found a match?
 
-    call find_indexx2 (word_2, in_name, in_indexx, 0, n_max-1, i)
-    if (i >= 0) then
+    call find_indexx2 (word_2, in_name, in_indexx, 0, n_max, i)
+    if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
       in_lat%ele(n_max) = in_lat%ele(i)
       in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
       in_lat%ele(n_max)%name = word_1
