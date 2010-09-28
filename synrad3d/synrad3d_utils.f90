@@ -3,6 +3,7 @@ module synrad3d_utils
 use synrad3d_struct
 use random_mod
 use photon_init_mod
+use cross_section_mod
 
 private sr3d_wall_pt_params
 
