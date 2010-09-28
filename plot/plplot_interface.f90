@@ -843,8 +843,9 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Get page size info.
   call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
-  if (page_type == 'X' .or. page_type == 'TK') then
-    !! call plschr(.7*point_to_mm_conv, 1.0_rp)
+  if (page_type == 'X') then 
+    call plschr(0.7 * point_to_mm_conv, 1.0_rp)
+  elseif (page_type == 'TK') then
     call plschr(point_to_mm_conv, 1.0_rp)
   else
     call plschr(point_to_mm_conv, 1.0_rp)
