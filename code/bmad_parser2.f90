@@ -42,8 +42,6 @@
 !   lat    -- lat_struct: lattice with modifications.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, digested_file_name, digested_read_ok)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
@@ -64,11 +62,13 @@ real(rp) v1, v2
 integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num
 integer key, n_max_old, digested_version
 integer, pointer :: n_max
+integer, allocatable :: lat_indexx(:)
 
 character(*) lat_file
 character(*), optional :: digested_file_name
 character(1) delim 
 character(40) word_2, name
+character(40), allocatable :: lat_name(:)
 character(16) :: r_name = 'bmad_parser2'
 character(32) word_1
 character(40) this_name
@@ -610,7 +610,8 @@ do i = lbound(plat%ele, 1) , ubound(plat%ele, 1)
   endif
 enddo
 
-if (associated (plat%ele))        deallocate (plat%ele)
+if (associated (plat%ele))      deallocate (plat%ele)
+if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
 
 do i = 1, size(lat2%ele)
   call deallocate_ele_pointers (lat2%ele(i))

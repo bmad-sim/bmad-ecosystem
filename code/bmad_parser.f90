@@ -134,13 +134,16 @@ call save_taylor_elements (lat, old_ele)
 ! here if not OK bmad_status. So we have to do everything from scratch...
 ! init variables.
 
-nullify (plat%ele)
 call init_lat (lat, 1)
 call init_lat (in_lat, 1000)
+allocate (in_indexx(0:1000), in_name(0:1000))
+
+nullify (plat%ele)
+call allocate_plat (plat, ubound(in_lat%ele, 1))
+
 do i = 0, ubound(in_lat%ele, 1)
   in_lat%ele(i)%ixx = i   ! Pointer to plat%ele() array
 enddo
-call allocate_plat (plat, ubound(in_lat%ele, 1))
 
 bmad_status%ok = .true.
 if (bmad_status%type_out) &
@@ -163,12 +166,14 @@ bp_com%p0c_set   = .false.
 call init_ele (in_lat%ele(0))
 in_lat%ele(0)%name = 'BEGINNING'     ! Beginning element
 in_lat%ele(0)%key = init_ele$
+call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 bp_com%beam_ele => in_lat%ele(1)
 call init_ele (bp_com%beam_ele)
 bp_com%beam_ele%name = 'BEAM'                 ! fake beam element
 bp_com%beam_ele%key = def_beam$               ! "definition of beam"
 bp_com%beam_ele%value(particle$) = positron$  ! default
+call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
 
 bp_com%param_ele => in_lat%ele(2)
 call init_ele (bp_com%param_ele)
@@ -176,11 +181,13 @@ bp_com%param_ele%name = 'PARAMETER'           ! For parameters
 bp_com%param_ele%key = def_parameter$
 bp_com%param_ele%value(lattice_type$) = -1
 bp_com%param_ele%value(particle$)     = positron$  ! default
+call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 
 bp_com%beam_start_ele => in_lat%ele(3)
 call init_ele (bp_com%beam_start_ele)
 bp_com%beam_start_ele%name = 'BEAM_START'           ! For parameters 
 bp_com%beam_start_ele%key = def_beam_start$
+call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
 
 n_max => in_lat%n_ele_max
 n_max = 3                              ! Number of elements encountered
@@ -383,36 +390,58 @@ parsing_loop: do
     found = .false.
     good_attrib = .false.
 
-    do i = 0, n_max
+    print_err = .true.
+    if (word_1 == '*') print_err = .false.
 
-      ele => in_lat%ele(i)
+    if (wild_here .or. any(word_1 == key_name)) then
+      do i = 0, n_max
 
-      if (wild_here) then
+        ele => in_lat%ele(i)
+
         select case (ele%name)
         case ('BEGINNING', 'BEAM', 'PARAMETER', 'BEAM_START')
           matched = .false.
         case default
           matched = match_wild(ele%name, word_1)
         end select
-      endif
 
-      if (ele%name == word_1 .or. key_name(ele%key) == word_1 .or. matched) then
+        if (ele%name /= word_1 .and. key_name(ele%key) /= word_1 .and. .not. matched) cycle
+
         bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
         if (found) then   ! if not first time
           bp_com%parse_line = parse_line_save
         else
           parse_line_save = bp_com%parse_line
         endif
-        print_err = .true.
-        if (word_1 == '*') print_err = .false.
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
                                                   err_flag, print_err, plat%ele(ele%ixx))
         if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim)
         found = .true.
         if (.not. err_flag) good_attrib = .true.
-      endif
 
-    enddo
+      enddo
+
+    else  ! Not wild
+
+      call find_indexx2 (word_1, in_name, in_indexx, 0, n_max, ix, ix2)
+      do i = ix2, n_max
+        if (in_name(in_indexx(i)) /= word_1) exit
+
+        ele => in_lat%ele(in_indexx(i))
+        bp_com%parse_line = trim(word_2) // ' = ' // bp_com%parse_line 
+        if (found) then   ! if not first time
+          bp_com%parse_line = parse_line_save
+        else
+          parse_line_save = bp_com%parse_line
+        endif
+        call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, &
+                                                    err_flag, print_err, plat%ele(ele%ixx))
+        if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim)
+        found = .true.
+        if (.not. err_flag) good_attrib = .true.
+      enddo
+
+    endif
 
     ! If not found then issue a warning except if a general key redef ("quadrupole[...] = ...").
 
@@ -521,6 +550,8 @@ parsing_loop: do
     n_max = n_max + 1
     if (n_max > ubound(in_lat%ele, 1)) then
       call allocate_lat_ele_array (in_lat)
+      call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
+      call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
       bp_com%beam_ele => in_lat%ele(1)
       bp_com%param_ele => in_lat%ele(2)
       bp_com%beam_start_ele => in_lat%ele(3)
@@ -529,6 +560,7 @@ parsing_loop: do
 
     call init_ele (in_lat%ele(n_max))
     in_lat%ele(n_max)%name = word_1
+    call find_indexx2 (in_lat%ele(n_max)%name, in_name, in_indexx, 0, n_max-1, ix, add_to_list = .true.)
     in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
 
     plat%ele(n_max)%lat_file = bp_com%current_file%full_name
@@ -539,15 +571,13 @@ parsing_loop: do
 
     found = .false.  ! found a match?
 
-    do i = 1, n_max-1
-      if (word_2 == in_lat%ele(i)%name) then
-        in_lat%ele(n_max) = in_lat%ele(i)
-        in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
-        in_lat%ele(n_max)%name = word_1
-        found = .true.
-        exit
-      endif
-    enddo
+    call find_indexx2 (word_2, in_name, in_indexx, 0, n_max-1, i)
+    if (i >= 0) then
+      in_lat%ele(n_max) = in_lat%ele(i)
+      in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
+      in_lat%ele(n_max)%name = word_1
+      found = .true.
+    endif
 
     if (.not. found) then
       in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
@@ -621,10 +651,6 @@ allocate (seq_indexx(iseq_tot), seq_name(iseq_tot))
 seq_name = sequence(1:iseq_tot)%name
 call indexx (seq_name, seq_indexx)
 
-allocate (in_indexx(n_max), in_name(n_max))
-in_name = in_lat%ele(1:n_max)%name
-call indexx (in_name, in_indexx)
-
 do i = 1, iseq_tot-1
   ix1 = seq_indexx(i)
   ix2 = seq_indexx(i+1)
@@ -676,8 +702,8 @@ if (bp_com%error_flag) then
   return
 endif
 
-lat%n_ele_track        = n_ele_use
-lat%n_ele_max          = n_ele_use
+lat%n_ele_track = n_ele_use
+lat%n_ele_max   = n_ele_use
 
 !---------------------------------------------------------------
 ! we now have the line to use in constructing the lat.
