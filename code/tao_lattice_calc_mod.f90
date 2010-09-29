@@ -299,6 +299,7 @@ implicit none
 
 type (tao_lattice_struct), target :: tao_lat
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele
 type (tao_universe_struct), target :: u
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
@@ -426,6 +427,7 @@ endif
 do j = ie1, ie2
 
   bunch_params => lat_branch%bunch_params(j)
+  ele => branch%ele(j)
 
   ! track to the element and save for phase space plot
 
@@ -434,10 +436,11 @@ do j = ie1, ie2
 
   else
     if (j /= ie1) then 
-      call track_beam (lat, beam, branch%ele(j-1), branch%ele(j), too_many_lost)
+      call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost)
     endif
 
-    if (uni_ele(j)%save_beam) uni_ele(j)%beam = beam
+    if (uni_ele(j)%save_beam .or. ele%key == branch$ .or. &
+                                  ele%key == photon_branch$) uni_ele(j)%beam = beam
   endif
  
   ! Save beam at location if injecting into another lattice
@@ -453,11 +456,11 @@ do j = ie1, ie2
   if (n_lost /= 0) then
     if (size(s%u) == 1) then
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost at element \i0\: ' // branch%ele(j)%name, &
+            '\i0\ particle(s) lost at element \i0\: ' // ele%name, &
             i_array = [n_lost, j])
     else
       call out_io (s_blank$, r_name, &
-            '\i0\ particle(s) lost in universe \i0\ at element \i0\: ' // branch%ele(j)%name, &
+            '\i0\ particle(s) lost in universe \i0\ at element \i0\: ' // ele%name, &
             i_array = [n_lost, u%ix_uni, j])
     endif
   endif
@@ -467,13 +470,13 @@ do j = ie1, ie2
     lost = .true.
     call out_io (s_warn$, r_name, &
             "TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT #\i0\: " &
-            // trim(branch%ele(j)%name), j)
+            // trim(ele%name), j)
   endif
 
   ! calc bunch params
 
   call calc_bunch_params (u%current_beam%bunch(s%global%bunch_to_plot), &
-                     branch%ele(j), branch%param, bunch_params, err, print_err)
+                     ele, branch%param, bunch_params, err, print_err)
   if (err) print_err = .false.  ! Only generate one message.
   call tao_load_data_array (u, j, ix_branch, model$) 
 
@@ -705,8 +708,9 @@ if (ix_branch > 0) then
     call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // &
                                       u%model%lat%branch(ib)%ele(ie)%name)
     init_ok = .false.
+  else
+    uni_branch%ele(0)%beam = u%uni_branch(ib)%ele(ie)%beam
   endif
-  uni_branch%ele(0)%beam = u%uni_branch(ib)%ele(ie)%beam
   return
 endif
 
