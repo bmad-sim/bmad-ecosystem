@@ -2919,9 +2919,10 @@ integer i, j, k
 
 character(60) :: r_name = 'tao_turn_on_rad_int_calc_if_needed_for_plotting'
 
-!
+! Go through all the plots and find which universes need rad_int_calc.
+! u%picked_uni = True => need calc.
 
-s%u(:)%do_rad_int_calc_plotting = .false.
+s%u(:)%picked_uni = .false.  
 
 do i = 1, size(s%plot_region)
   if (.not. s%plot_region(i)%visible) cycle
@@ -2941,12 +2942,21 @@ do i = 1, size(s%plot_region)
           call err_exit
         endif
 
-        u%do_rad_int_calc_plotting = .true. 
-        u%lattice_recalc = .true.
+        u%picked_uni = .true. ! Need calc
       endif
 
     enddo
   enddo
+enddo
+
+! Now set u%do_rad_int_calc_plotting.
+
+do i = 1, size(s%u)
+  ! If a rad_int_calc (from plotting or data demand) is being toggled on, also set u%lattice_recalc = T
+  if (s%u(i)%picked_uni .and. .not. (s%u(i)%do_rad_int_calc_plotting .or. s%u(i)%do_rad_int_calc_data)) then
+    u%lattice_recalc = .true.
+  endif
+  s%u(i)%do_rad_int_calc_plotting = s%u(i)%picked_uni
 enddo
 
 end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting

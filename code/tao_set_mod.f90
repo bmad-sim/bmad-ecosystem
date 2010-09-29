@@ -576,35 +576,41 @@ call tao_pick_universe (who, who2, picked_uni, err)
 ! open a scratch file for a namelist read
 
 iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+write (iu, *) '&params'
+write (iu, *) ' beam_init%' // trim(who2) // ' = ' // trim(set_value)
+write (iu, *) '/'
+
+!
+
 do i = lbound(s%u, 1), ubound(s%u, 1)
+  if (.not. picked_uni(i)) cycle
 
-  open (iu, status = 'scratch', iostat = ios)
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
-    return
-  endif
-
-  write (iu, *) '&params'
-  write (iu, *) ' beam_init%' // trim(who2) // ' = ' // trim(set_value)
-  write (iu, *) '/'
   rewind (iu)
   u => s%u(i)
   beam_init = u%beam_info%beam_init  ! set defaults
   read (iu, nml = params, iostat = ios)
-  close (iu)
 
   call tao_data_check (err)
-  if (err) return
+  if (err) exit
 
   if (ios == 0) then
     u%beam_info%beam_init = beam_init
     u%lattice_recalc = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
-    return
+    exit
   endif
 
 enddo
+
+close (iu)
+deallocate (picked_uni)
 
 end subroutine tao_set_beam_init_cmd
 
