@@ -183,7 +183,7 @@ do i = 1, n
   endif
 enddo
 
-if (v(n)%angle - v(1)%angle <= twopi) then
+if (v(n)%angle - v(1)%angle > twopi) then
   call out_io (s_error$, r_name, 'CROSS-SECTION WINDS BY MORE THAN 2PI!')
   return
 endif
@@ -191,14 +191,14 @@ endif
 ! If all (x, y) are in the first quadrent then assume left/right symmetry and 
 ! propagate vertices to the second quadrent.
 
-if (all(v%x >= 0) .and. all(v%y >= 0)) then
+if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
   if (v(n)%x == 0) then
     nn = 2*n - 1
-    call re_allocate(cross%v, 2*nn+1, .false.)
+    call re_allocate(cross%v, nn, .false.); v => cross%v
     v(n+1:nn) = v(n-1:1:-1)
   else
     nn = 2*n
-    call re_allocate(cross%v, 2*nn+1, .false.)
+    call re_allocate(cross%v, nn, .false.); v => cross%v
     v(n+1:nn) = v(n:1:-1)
   endif
   v(n+1:nn)%x = -v(n+1:nn)%x
@@ -212,11 +212,11 @@ endif
 if (all(v(1:n)%y >= 0)) then
   if (v(n)%y == 0) then  ! Do not duplicate v(n) vertex
     nn = 2*n - 1
-    call re_allocate(cross%v, nn+1, .false.)
+    call re_allocate(cross%v, nn, .false.); v => cross%v
     v(n+1:nn) = v(n-1:1:-1)
   else
     nn = 2*n ! Total number of vetices
-    call re_allocate(cross%v, nn+1, .false.)
+    call re_allocate(cross%v, nn, .false.); v => cross%v
     v(n+1:nn) = v(n:1:-1)
   endif
 
@@ -227,15 +227,12 @@ if (all(v(1:n)%y >= 0)) then
   n = nn
 endif
 
-! Add end vertex which is the same as v(1)
+! Add end vertex which is the same as v(1).
 
-if (v(1)%y /= 0) then
-  n = n + 1
-  v(n) = v(1)
-endif
+if (v(n)%y /= v(1)%y .or. v(n)%x /= v(1)%x) n = n + 1
+call re_allocate(cross%v, n); v => cross%v
+v(n) = v(1)
 v(n)%angle = v(1)%angle + twopi
-
-call re_allocate(cross%v, n)
 
 ! Calculate center of circle/ellipses...
 
