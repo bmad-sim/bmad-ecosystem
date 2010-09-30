@@ -136,7 +136,7 @@ do
     dr_max = 2 * max(maxval(abs(cross%v%x)), maxval(abs(cross%v%y)))
   endif
 
-  ds_max = ele%s
+  ds_max = 2 * ele%s
   p_max = max(abs(vec(2)), abs(vec(4)))
  
   if (dr_max * abs(vec(6)) > ds_max * p_max) then
@@ -210,8 +210,8 @@ vec => photon%now%orb%vec
 
 if (.not. stop_at_boundary) then
   vec(1) = vec(1) + dlen * vec(2)
-  vec(4) = vec(3) + dlen * vec(4)
-  vec(6) = vec(5) + dlen * vec(6)
+  vec(3) = vec(3) + dlen * vec(4)
+  vec(5) = vec(5) + dlen * vec(6)
   photon%now%track_len = photon%now%track_len + dlen
   return
 endif
@@ -233,8 +233,8 @@ else
 endif
 
 vec(1) = vec(1) + dl * vec(2)
-vec(4) = vec(3) + dl * vec(4)
-vec(6) = vec(5) + dl * vec(6)
+vec(3) = vec(3) + dl * vec(4)
+vec(5) = vec(5) + dl * vec(6)
 photon%now%track_len = photon%now%track_len + dl
 
 end subroutine capillary_propagate_photon_a_step
@@ -275,6 +275,8 @@ character(40) :: r_name = 'capillary_photon_hit_spot_calc'
 ! if photon%old is at the wall we must avoid bracketing this point.
 
 photon1_com = photon
+photon_com => photon
+ele_com => ele
 
 track_len0 = (photon%now%track_len + photon%old%track_len) / 2
 do i = 1, 30
@@ -289,8 +291,6 @@ enddo
 
 ! Find where the photon hits.
 
-photon_com => photon
-ele_com => ele
 track_len = zbrent (photon_hit_func, track_len0, photon%now%track_len, 1d-10)
 
 ! Cleanup
