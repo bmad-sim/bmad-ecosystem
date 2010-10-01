@@ -6,6 +6,8 @@ use photon_reflection_mod
 private sr3d_photon_hit_func
 type (photon3d_track_struct), pointer, private :: photon_com
 type (photon3d_track_struct), private :: com, photon1_com
+type (wall3d_struct), private, pointer :: wall_com
+type (lat_struct), private, pointer :: lat_com
 
 
 contains
@@ -365,7 +367,7 @@ use nr, only: zbrent
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
@@ -392,6 +394,8 @@ endif
 
 photon1_com = photon
 photon_com => photon
+wall_com => wall
+lat_com => lat
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
@@ -452,7 +456,7 @@ real(rp) d_radius, radius, d_track
 ! Easy case
 
 if (track_len == photon_com%now%track_len) then
-  call sr3d_photon_com_radius (photon_com%now, wall, radius)
+  call sr3d_photon_radius (photon_com%now, wall_com, radius)
   d_radius = radius - 1
   return
 endif
@@ -468,8 +472,8 @@ endif
 ! And track
 
 d_track = track_len - photon1_com%now%track_len
-call sr3d_propagate_photon_com_a_step (photon1_com, d_track, lat, wall, .false.)
-call sr3d_photon_com_radius (photon1_com%now, wall, radius)
+call sr3d_propagate_photon_a_step (photon1_com, d_track, lat_com, wall_com, .false.)
+call sr3d_photon_radius (photon1_com%now, wall_com, radius)
 d_radius = radius - 1
 
 end function sr3d_photon_hit_func
