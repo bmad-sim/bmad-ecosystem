@@ -193,11 +193,12 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_track_struct), target :: photon
+type (cross_section_struct), pointer :: cross(:)
 
 real(rp) dlen, dl, s_stop 
 real(rp), pointer :: vec(:)
 
-integer ixc
+integer ix, ixc
 
 logical stop_at_boundary
 
@@ -218,12 +219,23 @@ endif
 
 ! Stop at boundary
 
-call bracket_index(ele%cross_section%s, 1, size(ele%cross_section), vec(5), ixc)
+cross => ele%cross_section
+call bracket_index(cross%s, 1, size(cross), vec(5), ixc)
 
 if (vec(6) > 0) then
-  s_stop = ele%cross_section(ixc+1)%s
+  if (cross(ixc)%n_slice_spline > 1) then
+    ix = int(cross(ixc)%n_slice_spline * (vec(5) - cross(ixc)%s) / (cross(ixc+1)%s - cross(ixc)%s))
+    s_stop = cross(ixc)%s + (ix+1) * (cross(ixc+1)%s - cross(ixc)%s)
+  else
+    s_stop = cross(ixc+1)%s
+  endif
 else
-  s_stop = ele%cross_section(ixc)%s
+  if (cross(ixc)%n_slice_spline > 1) then
+    ix = int(cross(ixc)%n_slice_spline * (vec(5) - cross(ixc)%s) / (cross(ixc+1)%s - cross(ixc)%s))
+    s_stop = cross(ixc)%s + ix * (cross(ixc+1)%s - cross(ixc)%s)
+  else
+    s_stop = cross(ixc)%s
+  endif
 endif
 
 if (abs(vec(6)) * dlen > abs(s_stop - vec(5))) then
