@@ -2601,11 +2601,13 @@ call out_io (s_blank$, r_name, &
     '  -beam_all <beam_all_file>        ', &
     '  -beam0 <particle_position_file>  ', &
     '  -data <data_init_file>           ', &
+    '  -help                            ', &
     '  -init <tao_init_file>            ', &
     '  -lat <bmad/xsif_lattice_file>    ', &
     '  -lattice <lattice_namelist_file> ', &
     '  -noplot                          ', &
     '  -plot <plot_init_file>           ', &
+    '  -startup <startup_file>          ', &
     '  -var <var_init_file>             '] )
 
 end subroutine help_out
