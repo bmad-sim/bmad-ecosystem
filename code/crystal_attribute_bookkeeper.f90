@@ -1,4 +1,27 @@
-broutine crystal_attribute_bookkeeper (ele)
+!+
+! Subroutine crystal_attribute_bookkeeper (ele)
+! 
+! Routine to orient the crystal element.
+!
+! Input:
+!   ele   -- Ele_struct: Crystal element.
+!     %value(bragg_angle$)     -- Bragg angle.
+!     %value(e_tot$)           -- Photon reference energy.
+!     %value(alpha_angle$)     --
+!     %value(d_spacing$)       --
+!     ... etc ...
+!
+! Output
+!   ele   -- Ele_struct: Crystal element.
+!     %value(graze_angle_in$)
+!     %value(graze_angle_out$)
+!     %value(tilt_corr$)
+!     %value(nx_out$
+!     %value(ny_out$)
+!     %value(nz_out$)
+!-
+
+subroutine crystal_attribute_bookkeeper (ele)
 
 use bmad_struct
 
