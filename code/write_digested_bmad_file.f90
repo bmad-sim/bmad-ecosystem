@@ -61,6 +61,7 @@ d_unit = lunget()
 
 call fullfilename (digested_name, full_digested_name)
 inquire (file = full_digested_name, name = full_digested_name)
+call simplify_path (full_digested_name, full_digested_name)
 open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000)
 
 ! Ran function called?
@@ -90,7 +91,7 @@ write (d_unit) fname, stat_b(10)  ! stat_b(10) = Modification date
 ! write other file names.
 
 do j = 1, n_file
-  fname = file_names(j)
+  call simplify_path (file_names(j), fname)
   stat_b = 0
 #if defined (CESR_VMS) 
   call get_file_time_stamp (fname, time_stamp)
