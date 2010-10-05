@@ -131,7 +131,7 @@ do
   ! Calculate a resonable step size
 
   if (size(cross%v) == 1) then
-    dr_max = 2 * max(cross%v(1)%radius_x, cross%v(2)%radius_y)
+    dr_max = 2 * max(cross%v(1)%radius_x, cross%v(1)%radius_y)
   else
     dr_max = 2 * max(maxval(abs(cross%v%x)), maxval(abs(cross%v%y)))
   endif
@@ -412,7 +412,8 @@ type (ele_struct), target :: ele
 type (photon_coord_struct), target :: p_orb
 type (cross_section_struct), pointer :: cc0, cc1
 
-real(rp) radius, g0, g1, g00, g11, s00, s11, dw_x0, dw_x1, dw_y0, dw_y1, f, spline
+real(rp) radius, s00, s11, f, spline, r00_wall, r11_wall
+real(rp) r0_wall, r1_wall, gradient0(2), gradient1(2), f_eff, ds_spline, theta_photon
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:)
 
@@ -450,8 +451,9 @@ endif
 cc0 => ele%cross_section(ix)
 cc1 => ele%cross_section(ix+1)
 
-call capillary_cross_section_params (cc0, vec, g0, dw_x0, dw_y0)
-call capillary_cross_section_params (cc1, vec, g1, dw_x1, dw_y1)
+theta_photon = atan2(vec(3), vec(1))
+call calc_wall_radius (cc0%v, theta_photon, r0_wall, gradient0)
+call calc_wall_radius (cc1%v, theta_photon, r1_wall, gradient1)
 
 ! Phanom slices
 
@@ -461,71 +463,156 @@ if (n_slice > 1) then
 
   s00 = float(ix) / n_slice
   spline = cc0%s_spline(1) * s00 + cc0%s_spline(2) * s00**2 + cc0%s_spline(3) * s00**3
-  g00 = (1 - spline) * g0 + spline * g1
+  r00_wall = (1 - spline) * r0_wall + spline * r1_wall
 
   s11 = float(ix+1) / n_slice
   spline = cc0%s_spline(1) * s11 + cc0%s_spline(2) * s11**2 + cc0%s_spline(3) * s11**3
-  g11 = (1 - spline) * g0 + spline * g1
+  r11_wall = (1 - spline) * r0_wall + spline * r1_wall
 
 else
   s00 = cc0%s
   s11 = cc1%s
-  g00 = g0
-  g11 = g1
+  r00_wall = r0_wall
+  r11_wall = r1_wall
 endif
 
 !
 
 f = (vec(5) - s00) / (s11 - s00)
 
-radius = 1 / ((1 - f) * g00 + f * g11)
+if (n_slice == 0) then
+  f_eff = cc0%s_spline(1) * f + cc0%s_spline(2) * f**2 + cc0%s_spline(3) * f**3
+else
+  f_eff = f
+  ds_spline = s11 - s00
+endif
+
+radius = sqrt(vec(1)**2 + vec(3)**2) / ((1 - f_eff) * r00_wall + f_eff * r11_wall)
 
 if (present (perp)) then
-  perp(1) = (1 - f) * dw_x0 + f * dw_x1
-  perp(2) = (1 - f) * dw_y0 + f * dw_y1
-  perp(3) = (g00 - g11) / (s11 - s00)
+  perp(1:2) = (1 - f_eff) * gradient0 + f_eff * gradient1
+  perp(3)   = -(r11_wall - r00_wall) / ds_spline
   perp = perp / sqrt(sum(perp**2))  ! Normalize
 endif
 
 end function capillary_photon_radius
 
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
 !+
-! Subroutine cross_section_params (cross, vec, g, dw_x, dw_y)
+! Subroutine calc_wall_radius (v, theta, r_wall, gradient)
 !
-! Routine to compute parameters needed by capillary_photon_radius routine.
+! Routine to calculate the wall radius at a given angle for a given cross-section
+! Additionally, the transverse directional derivative is calculated.
+!
+! Module needed:
+!   use cross_setction_mod
 !
 ! Input:
-!   cross   -- cross_section_struct: cross-section at a particular longitudinal location.
-!   vec(6)  -- Real(rp): Photon phase space coords. 
+!   v(:)        -- cross_section_vertex_struct: Array of vertices.
+!   theta       -- Real(rp): Angle to evaluate at.
 !
 ! Output:
-!   g              -- Real(rp): Radius of the wall / radius of the photon.
-!   [dw_x, dw_y]   -- Real(rp): Transverse directional derivatives of -g.
+!   r_wall      -- Real(rp): Wall radius at given angle
+!   gradient(2) -- Real(rp): (dx, dy) directional derivative of f = r - r_w(theta)
+!                              evaluated at r = r_wall.
 !-
 
-subroutine capillary_cross_section_params (cross, vec, g, dw_x, dw_y)
+subroutine calc_wall_radius (v, theta, r_wall, gradient)
 
 implicit none
 
-type (cross_section_struct) cross, pt
-type (cross_section_vertex_struct), pointer :: v(:)
+type (cross_section_vertex_struct), target :: v(:)
+type (cross_section_vertex_struct), pointer :: v1, v2
 
-real(rp) g, dw_x, dw_y, vec(6)
-real(rp) r_wall, r_photon, gradient(2)
+
+real(rp) theta, r_wall, gradient(2)
+real(rp) angle, numer, denom, ct, st, x0, y0, gx, gy, a, b, c
+real(rp) cos_ang, sin_ang, radx, f
 
 integer ix
 
-! 
+! Bracket index if there is more than one vertex
+! If there is only one vertex then must be an ellipse or circle
 
-call calc_wall_radius (cross%v, atan2(vec(3), vec(1)), r_wall, gradient)
-r_photon = sqrt(vec(1)**2 + vec(3)**2)
-g = r_wall / r_photon
-dw_x = gradient(1) * g / r_photon
-dw_y = gradient(2) * g / r_photon
+angle = theta
 
-end subroutine capillary_cross_section_params
+if (size(v) == 1) then
+  v2 => v(1)
+else
+  if (angle < v(1)%angle) angle = ceiling((v(1)%angle-angle)/twopi) * twopi + angle
+  call bracket_index (v%angle, 1, size(v), angle, ix)
+
+  v1 => v(ix)
+  v2 => v(ix+1)
+endif
+
+! Straight line case
+
+if (v2%radius_x == 0) then
+  cos_ang = cos(theta)
+  sin_ang = sin(theta)
+  numer = (v1%x * v2%y - v1%y * v2%x)
+  denom = (cos_ang * (v2%y - v1%y) - sin_ang * (v2%x - v1%x))
+  r_wall = numer / denom
+  gradient =  [cos_ang, sin_ang] + [-sin_ang, cos_ang] * &
+                      (sin_ang * (v2%y - v1%y) + cos_ang * (v2%x - v1%x)) * numer / denom**2
+  return
+endif
+
+! Convert into unrotated frame if tilted ellipse
+
+x0 = v2%x0; y0 = v2%y0
+
+if (v2%tilt /= 0) then
+  angle = angle - v2%tilt
+  ct = cos(v2%tilt); st = sin(v2%tilt)
+  x0 =  ct * v2%x0 + st * v2%y0
+  y0 = -st * v2%x0 + ct * v2%y0
+endif
+
+! If ellipse then shrink along y-axis
+
+if (v2%radius_y /= 0) then
+  y0 = y0 * v2%radius_x / v2%radius_y
+  angle = atan2(sin(angle) * v2%radius_x / v2%radius_y, cos(angle))
+endif
+
+cos_ang = cos(angle)
+sin_ang = sin(angle)
+
+! Find wall point and derivative
+
+a = 1
+b = 2 * (cos_ang * x0 + sin_ang * y0)
+c = x0**2 + y0**2 - v2%radius_x**2
+radx = sqrt(b**2 - 4 * a * c)
+if (v2%radius_x < 0) then
+  r_wall = (b - radx) / (2 * a)
+  f = (-1 - b/radx) / (2 * a)
+else
+  r_wall = (b + radx) / (2 * a)
+  f = (-1 + b/radx) / (2 * a)
+endif
+gradient = [cos_ang, sin_ang] - [sin_ang, -cos_ang] * f * 2 * (sin_ang * x0 - cos_ang * y0)
+
+! If an ellipse then expand along y-axis
+
+if (v2%radius_y /= 0) then
+  r_wall = r_wall * sqrt(cos_ang**2 + (sin_ang * v2%radius_y / v2%radius_x)**2)
+  gradient(2) = gradient(2) * v2%radius_y / v2%radius_x
+  gradient = gradient / sqrt(1 + (v2%radius_y / v2%radius_x)**2)
+endif
+
+! If a tilted ellipse then rotate
+
+if (v2%tilt /= 0) then
+  ct = cos(v2%tilt); st = sin(v2%tilt)
+  gradient =  [ct * gradient(1) -  st * gradient(2), &
+               st * gradient(1) +  ct * gradient(2)]
+endif
+
+end subroutine calc_wall_radius
 
 end module
