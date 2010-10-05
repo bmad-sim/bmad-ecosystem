@@ -1,4 +1,4 @@
-subroutine crystal_attribute_bookkeeper (ele)
+broutine crystal_attribute_bookkeeper (ele)
 
 use bmad_struct
 
@@ -16,11 +16,9 @@ real(rp) cos_graze_in, sin_graze_in
 if (ele%value(e_tot$) == 0) return
 if (ele%value(bragg_angle$) == 0) return
 
-!
-
 lambda = ele%value(ref_wave_length$)
 gamma = lambda**2 * r_e / (pi * ele%value(v_unitcell$))
-delta1 = 1 + gamma * ele%value(f0_re$) / 2
+delta1 = 1 / sqrt( 1 - gamma * ele%value(f0_re$) )
 lambda_in = lambda * delta1
 d = ele%value(d_spacing$)
 
@@ -56,6 +54,5 @@ ele%value(tilt_corr$) = atan2(nyy_out, nxx_out)
 
 ang_tot = atan2(sqrt(nxx_out**2 + nyy_out**2), nzz_out)
 ele%value(graze_angle_out$) = ang_tot - graze_angle_in
-
 
 end subroutine

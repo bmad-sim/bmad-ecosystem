@@ -43,8 +43,9 @@ end type
 type (ele_struct) ele
 type (atom_vec_struct) r_atom(8), f1f2(100)
 
-real(rp) f_h_factor, f_0_factor, f_0h, f_1, f_2, fh_re, fh_im
-real(rp) a(10), b(10), c, d, a0, hkl(3), arg, bp, r
+real(rp) f0_e, f0_h, f0_re, f0_im, fh_re, fh_im
+real(rp) a(10), b(10), c, d, a0, hkl(3), bp, r, test(3)
+complex(rp) arg, atomsum
 
 integer i, ix, n, ios, n_atom, n_f1f2
 
@@ -70,7 +71,7 @@ if (ele%component_name(1:2) == 'SI') then
   b(1:5) = [2.53600438, 29.97580504, 0.08254945, 88.73513838, 1.16712390]
   c = 0.15142442
   n = 5
-  a0 = 5.4309d-10
+  a0 = 5.4309e-10
   hkl_str = ele%component_name(3:)
 
   r_atom(1)%vec = [0.00, 0.00, 0.00]
@@ -166,35 +167,48 @@ ele%value(v_unitcell$) = a0**3
 d = a0 / sqrt(sum(hkl**2))
 ele%value(d_spacing$) = d
 
-f_0h = sum(a(1:n)*exp(-b(1:n)/(4*d*d))) + c
-
-! Interpolate f1 and f2 table
+! Interpolate f1 and f2 table, which should really be called the f0+f1 and f2 table
+! Note throughout this code, f0_re, f0_im, fh_re, fh_im refer to ATOMIC scattering
+! form factors instead of the CRYSTAL structure factors, unlike in the ele struct
 
 call bracket_index (f1f2%vec(1), 1, n_f1f2, ele%value(e_tot$), ix)
 if (ix == 0) then
-  f_1 = f1f2(1)%vec(2)
-  f_2 = f1f2(1)%vec(3)
+  f0_re = f1f2(1)%vec(2)
+  f0_im = f1f2(1)%vec(3)
 elseif (ix == n_f1f2) then
-  f_1 = f1f2(n_f1f2)%vec(2)
-  f_2 = f1f2(n_f1f2)%vec(3)
+  f0_re = f1f2(n_f1f2)%vec(2)
+  f0_im = f1f2(n_f1f2)%vec(3)
 else
-  f_1 = (f1f2(ix)%vec(2)   * (f1f2(ix+1)%vec(1) - ele%value(e_tot$)) + &
-         f1f2(ix+1)%vec(2) * (ele%value(e_tot$)) - f1f2(ix)%vec(1)) / (f1f2(ix+1)%vec(1) - f1f2(ix)%vec(1))
-  f_2 = (f1f2(ix)%vec(3)   * (f1f2(ix+1)%vec(1) - ele%value(e_tot$)) + &
-         f1f2(ix+1)%vec(3) * (ele%value(e_tot$)) - f1f2(ix)%vec(1)) / (f1f2(ix+1)%vec(1) - f1f2(ix)%vec(1))
+  f0_re = (f1f2(ix)%vec(2)   * (f1f2(ix+1)%vec(1) - ele%value(e_tot$)) + &
+         f1f2(ix+1)%vec(2) * (ele%value(e_tot$) - f1f2(ix)%vec(1))) / (f1f2(ix+1)%vec(1) - f1f2(ix)%vec(1))
+  f0_im = (f1f2(ix)%vec(3)   * (f1f2(ix+1)%vec(1) - ele%value(e_tot$)) + &
+         f1f2(ix+1)%vec(3) * (ele%value(e_tot$) - f1f2(ix)%vec(1))) / (f1f2(ix+1)%vec(1) - f1f2(ix)%vec(1))
 endif
 
-ele%value(f0_re$) = n_atom * (f_0h + f_1)
-ele%value(f0_im$) = n_atom * f_2
+!Multiply by number of atoms to get CRYSTAL STRUCTURE FACTORS
 
-fh_re = 0
-fh_im = 0
+ele%value(f0_re$) = n_atom * (f0_re)
+ele%value(f0_im$) = n_atom * (f0_im)
 
+! Calculate the hkl dependent part of the f evaluated at f0
+f0_h = sum(a(1:n)) + c
+
+! Subtract to obtain the energy dependent part
+f0_e = f0_re - f0_h
+
+! Calculate the new hkl dependent part
+f0_h = sum( a(1:n) * exp( -b(1:n)/(4*d*d*1e20) ) ) + c
+
+atomsum = 0
 do i = 1, n_atom
-  arg = twopi * sum(hkl * r_atom(i)%vec)
-  fh_re = fh_re + cos(arg) * (f_0h + f_1) - sin(arg) * f_2
-  fh_im = fh_im + cos(arg) * f_2 + sin(arg) * (f_0h + f_1)
+  test = hkl * r_atom(i)%vec
+  test(1) = sum(hkl * r_atom(i)%vec)
+  arg = cmplx(0.0,twopi * sum(hkl * r_atom(i)%vec))
+  atomsum = atomsum + exp(arg)
 enddo
+
+fh_re = abs(atomsum)*(f0_h+f0_e)
+fh_im = abs(atomsum)*(f0_im)
 
 ele%value(fh_re$) = fh_re
 ele%value(fh_im$) = fh_im
@@ -211,6 +225,7 @@ else
   ele%value(bragg_angle$) = 0
   ele%value(alpha_angle$) = 0
 endif
+
 
 err_flag = .false.
 
