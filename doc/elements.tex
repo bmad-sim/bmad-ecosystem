@@ -416,19 +416,36 @@ unchanged but varies a particle's orbit.
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
-  F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_0 - B_y(s))}
-  {2 H_{gap} B_0^2}
+  F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_{y0} - B_y(s))}
+  {2 H_{gap} B_{y0}^2}
 \Endeq
-with a similar equation for \vn{fintx}. \vn{hgap} and \vn{hgapx} are
-the half gaps at the entrance and exit faces. If \vn{fint} or
-\vn{fintx} is given without a value then a value of 0.5 is used. If
-\vn{fint} or \vn{fintx} is not present then the default value of 0 is
-used. Note: \mad does not have the \vn{fintx} and \vn{hgapx}
-attributes. \mad just assumes that the values are the same for the
-entrance and exit faces. For compatibility with \mad, if \vn{fint} is
-given but \vn{fintx} is not, then \vn{fintx} is set equal to
-\vn{fint}. Similarly, \vn{hgapx} will be set to \vn{hgap} if
-\vn{hgapx} is not given.
+with a similar equation for \vn{fintx}. In the equation $B_{y0}$ is
+the field in the interior of the dipole and $H_{gap}$ is the pole half
+gap.  The parameters \vn{hgap} and \vn{hgapx} are the half gaps at the
+entrance and exit faces. If \vn{fint} or \vn{fintx} is given without a
+value then a value of 0.5 is used. If \vn{fint} or \vn{fintx} is not
+present, the default value of 0 is used. Note: \mad does not have the
+\vn{fintx} and \vn{hgapx} attributes. \mad just assumes that the
+values are the same for the entrance and exit faces. For compatibility
+with \mad, if \vn{fint} is given but \vn{fintx} is not, then
+\vn{fintx} is set equal to \vn{fint}. Similarly, \vn{hgapx} will be
+set to \vn{hgap} if \vn{hgapx} is not given.
+
+\index{Enge function}
+\vn{fint} and \vn{hgap} can be related to the Enge function which is sometimes
+used to model the fringe field. The Enge function is of the form
+\Begineq
+  B_y(s) = \frac{B_{y0}}{1 + \exp[P(s)]}
+\Endeq
+where
+\Begineq
+  P(s) = C_0 + C_1 \, s + C_2 \, s^2 + C_3 \, s^3 + \, \ldots
+\Endeq
+The C_0 term simply shifts where the edge of the bend is. If all the $C_n$
+are zero except for $C_1$ then 
+\Begineq
+  C_1 = \frac{H_{gap}}{F_{int}}
+\Endeq
   \index{tilt}
   \item[tilt] \Newline
 The roll angle about the longitudinal axis at the entrance face of the
@@ -510,12 +527,12 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 
 \begin{figure}[tb]
   \centering
-  %% \includegraphics{capillary.eps}
-  \caption[cross-sectional slices of a capilary.]
-{The inside wall of a capillary is defined by a number of 
-cross-sectional slices.  Each cross-section is made up of a number of vertices.
-The segment between vertices can be either a line segment, the arg of a circle, 
-or a section an ellipse.}
+  \includegraphics{capillary.eps}
+  \caption[cross-sectional slices of a capillary.]
+{A) The inside wall of a capillary is defined by a number of 
+cross-sectional slices.  B) Each cross-section is made up of a number of vertices.
+The segments between the vertices can be either a line segment, the arc of a circle, 
+or a section of an ellipse.}
   \label{f:capillary}
 \end{figure}
 
@@ -524,7 +541,7 @@ or a section an ellipse.}
   %% \includegraphics{cap_arc.eps}
   \caption[Construction of the arc for a cross-section segment.]
 {Given a radius there are four solutions to the problem of 
-constructing an arc between two given points. The one choisen (a) for 
+constructing an arc between two given points. The one chosen (a) for 
 the construction of a cross-section segment is the one that is convex 
 with respect to the origin and of shortest length. The same logic applies 
 to the construction of an ellipse segment.}
@@ -558,8 +575,10 @@ constant of critical angle * energy is given by the \vn{critical_angle_factor}.
 The inside wall of a capillary is defined by a number of
 cross-sectional slices as shown in Fig.~\ref{f:capillary}. Each
 cross-section is defined by a number of vertices. The arc between each
-verticy may be either a straight line, an arc of a circle, or a
-section of an ellipse. 
+vertex may be either a straight line, an arc of a circle, or a section
+of an ellipse. It is manditory that a cross-section be convex. That
+is, given any two points within the cross-section, all points on the
+line segment connecting them must be within the cross-section.
 
 \index{cross}\index{s (capillary attribute)}\index{v (capillary attribute)}
 \index{s_spline}\index{n_slice_spline}
@@ -583,11 +602,11 @@ Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
 Example:
 \begin{example}
   this_cap: capillary, 
-    cross = \{   ! Cross section with top/bottom symmetry
+    cross = \{   ! cross-section with top/bottom symmetry
       s = 0, v(1) =  \{0.02, 0.00\}, 
       v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\}, 
     \}, 
-    s_splin = \{0.1, 0.7\}, 
+    s_spline = \{0.1, 0.7\}, 
     n_slice_spline = 4
     cross = \{  ! Cross-section that is a tilted ellipse.
       s = 0.34, 
@@ -595,25 +614,25 @@ Example:
     \}
 \end{example}
 
-Each individual cross_section begins with the word \vn{cross}. The
+Each individual cross-section begins with the word \vn{cross}. The
 \vn{s} parameter of a cross-section gives the longitudinal position of
 the cross-section. \vn{s} must be zero for the first cross-section and
 the length of the capillary is given by the value of \vn{s} of the
 last cross-section.
 
-The \vn{v(<j>)} parameters within a cross-section define the vertices
-for each cross section. Each \vn{v(<j>)} in turn has five
-parameters. It is manditory to specify the first two parameters
+The \vn{v(<j>)} within a cross-section define the vertices
+for each cross-section. Each \vn{v(<j>)} in turn has five
+parameters. It is mandatory to specify the first two parameters
 \vn{<x>} and \vn{<y>}. Specifying the rest, \vn{<radius_x>},
 \vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if
 not specified, is zero. The point (\vn{<x>}, \vn{<y>}) defines the
 position of the vertex. The parameters \vn{<radius_x>},
 \vn{<radius_y>}, and \vn{<tilt>} define the shape of the segment of
-the cross section between the given vertex and the preceeding one.
+the cross-section between the given vertex and the preceding one.
 \begin{example}
   <radius_x>  = 0, <radius_y>  = 0   --> Straight line segment.
   <radius_x> != 0, <radius_y>  = 0   --> Circular arc with radius = radius_x
-  <radius_x>  = 0, <radius_y> != 0   --> Illeagle!
+  <radius_x>  = 0, <radius_y> != 0   --> Illegal!
   <radius_x> != 0, <radius_y> != 0   --> Ellipse section.
 \end{example}
 When an ellipse is specified, \vn{<radius_x>}, and \vn{<radius_y>} are
@@ -622,10 +641,10 @@ the half width and half height of the semi-major axes and the
 and \vn{<radius_y>} must not be negative. In general, for a given
 radius, there are four circular arcs that can be constructed to
 connect two points (as long as the points are not too far apart). The
-arc used to construct a circular segment of a cross-section is the arc
-that is convex with respect to the origin and of shortest distance as
-shown in Fig.~\ref{f:cap.arc}. The same logic applies 
-to the construction of an ellipse segment.
+arc used to construct a circular segment of a cross-section is the
+``convex'' arc. That is, the arc that maintains the convexivity of the
+cross-section as a whole as shown in Fig.~\ref{f:cap.arc}. The same
+logic applies to the construction of an ellipse segment.
 
 In the example above, for the first cross-section, \vn{v(2)}
 specifies a non-zero \vn{<radius_x>} and, by default, \vn{<radius_y>}
@@ -639,13 +658,13 @@ The vertex points must be arranged in a clockwise manner. That is, If
 the (\vn{<x>}, \vn{<y>}) point of vertex \vn{<v(i)>} is expressed in
 polar $(r, \theta)$ coordinates, the inequality $\theta_{i+1} >
 \theta_i$ must hold for all vertex pairs. Additionally, the origin
-$(0,0)$ must be in the interier of all cross-sections and all cross
+$(0,0)$ must be in the interior of all cross-sections and all cross
 sections must be convex.
 
 Given two vertices \vn{v(i)} and \vn{v(i+1)}, if the segment between
 them is specified to be a circle or ellipse, there will, in general,
 be two solutions as to how the circle or ellipse can be
-constructed. The solution choisen will be the shorter one. With this
+constructed. The solution chosen will be the shorter one. With this
 choice, and with the restriction that the $\theta$ angle of the
 vertices must be strictly increasing, A line drawn from the origin at
 any given angle $\theta$ will intersect the cross-section at exactly
@@ -662,7 +681,7 @@ by the parameters of \vn{<v(1)>}.
 If there is mirror symmetry about the $x$ or $y$ axis for a
 cross-section, the ``mirrored'' vertices, on the ``negative'' side of
 the mirror plane, do not have to be specified. Thus if all the vertex
-points of a cross section are in the first quadrent, that is, all
+points of a cross-section are in the first quadrant, that is, all
 \vn{<x>} and \vn{<y>} are zero or positive, mirror symmetry about both the
 $x$ and $y$ axes is assumed. If all the \vn{<y>} values are zero or
 positive and some \vn{<x>} values are positive and some are negative,
@@ -685,13 +704,13 @@ not specified, the cross-section is a rectangle. For example
     cross = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
 \end{example}
 
-Between cross-sections, the capillary wall is defined using a linear
-interpolation scheme.  let $r_{c1}(\theta)$ be the radius of the
-capillary as a function of $\theta$ for a given cross-section defined
-at $s = s_1$. Let $r_{c2}(\theta)$ be the radius function at the next
-defined cross-section at $s = s_2$. The capillary wall $r_c(\theta,
-s)$ at any point $s$ between $s_1$ and $s_2$ is defined by the
-equation
+Between cross-sections, the capillary wall is defined by
+interpolation. The default is a linear interpolation scheme.  let
+$r_{c1}(\theta)$ be the radius of the capillary as a function of
+$\theta$ for a given cross-section defined at $s = s_1$. Let
+$r_{c2}(\theta)$ be the radius function at the next defined
+cross-section at $s = s_2$. The capillary wall $r_c(\theta, s)$ at any
+point $s$ between $s_1$ and $s_2$ is defined by the equation
 \Begineq
   r_c(\theta, s) \equiv (1 - \stilde) \, r_{c1}(\theta) + \stilde \, r_{c2}(\theta)
 \Endeq
@@ -700,9 +719,12 @@ where
   \stilde \equiv \frac{s - s_1}{s_2 - s_1}
 \Endeq
 In order for \bmad to quickly track photons through the capillary,
-\bmad assumes that the cross section $r_c(\theta, s)$ at any given $s$
-is convex. Note that it is {\em not} sufficient for $r_c(\theta, s)$ to be
-convex at the specified cross sections.
+\bmad assumes that the volume between the cross-sections is
+convex. The volume will be convex if each cross-section $r_c(\theta,
+s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
+for $r_c(\theta, s)$ to be convex at the specified cross-sections as
+shown in Fig.~\ref{f:cap.arc}. Also note that it is perfectly fine for the
+total capillary volume to not be convex.
 
 To help reduce the complexity of specifying a capillary, ``virtual''
 cross-sections may be defined by specifying a cubic interpolating
@@ -713,6 +735,7 @@ longitudinal length regions. Between each region virtual
 cross-sections are constructed defined by
 \Begineq
   r_c(\theta, s) = (1 - P(\stilde)) \, r_{c1}(\theta) + P(\stilde) \, r_{c2}(\theta)
+  \label{r1prp}
 \Endeq
 where $s$ is the longitudinal position of the phantom cross-section and
 $P(s)$ is a cubic polynomial spline
@@ -730,6 +753,11 @@ cross-sections. If not defined, the default is linear interpolation
 with $c_1 = 1$ and $c_2 = 0$. Linear interpolation, is used to define
 the wall between virtual cross-sections just as it is used for regular
 cross-sections.
+
+A non-linear interpolation scheme is used if \vn{n_splice_spline} is
+set to 0.  In this case, the wall between the cross-sections is
+constructed using \Eq{r1prp}. The volume between the cross-sections so
+constructed must be convex.
 
 To refer to a cross-section parameters after an element has been
 defined, the following syntax is used:
