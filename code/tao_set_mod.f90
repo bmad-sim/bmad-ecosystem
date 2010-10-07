@@ -146,6 +146,7 @@ err = .false.
 
 select case (dest1_name)
 case ('model')
+  u%lattice_recalc = .true.
   dest1_lat => u%model
   dest_data => u%data%model_value
   dest_good => u%data%good_model
@@ -162,7 +163,6 @@ end select
 select case (source_lat)
 case ('model')
   ! make sure model data is up to date
-  u%lattice_recalc = .true.
   call tao_lattice_calc (calc_ok)
   source1_lat => u%model
   source_data => u%data%model_value
