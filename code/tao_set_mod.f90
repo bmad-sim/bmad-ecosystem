@@ -67,7 +67,6 @@ end subroutine tao_set_ran_state_cmd
 ! Subroutine tao_set_lattice_cmd (dest_lat, source_lat)
 !
 ! Sets a lattice equal to another. This will also update the data structs
-! If the 
 !
 ! Input:
 !   dest_lat -- Character(*): Maybe: 'model', 'design', or 'base' with 
@@ -86,14 +85,14 @@ character(*) dest_lat, source_lat
 character(16) dest1_name
 character(20) :: r_name = 'tao_set_lattice_cmd'
 
-real(rp) :: dest_var
+real(rp) source_val
 
-integer i, ib
+integer i, j
 
 logical, allocatable, save :: this_u(:)
 logical err
 
-!
+! Lattice transfer
 
 call tao_pick_universe (dest_lat, dest1_name, this_u, err)
 if (err) return
@@ -104,25 +103,30 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (err) return
 enddo
 
-! variable set
+! Variable transfer for those variables which vary parameters of the affected universe(s).
+! This only needs to be done when dest_lat is a model lattice.
 
-do i = 1, size(s%var)
-  select case (dest1_name)
-  case ('model')
-    dest_var  = s%var(i)%model_value
-  case ('base')
-    dest_var  = s%var(i)%base_value
-  end select
+if (dest1_name == 'model') then
+  do i = 1, size(s%var)
 
-  select case (source_lat)
-  case ('model')
-    s%var(i)%model_value = dest_var
-  case ('base')
-    s%var(i)%base_value = dest_var
-  case ('design')
-    s%var(i)%design_value = dest_var
-  end select
-enddo
+    do j = 1, size(s%var(i)%this)
+      if (.not. this_u(s%var(i)%this(j)%ix_uni)) cycle
+
+      select case (source_lat)
+      case ('model')
+        source_val = s%var(i)%this(j)%model_value
+      case ('base')
+        source_val = s%var(i)%this(j)%base_value
+      case ('design')
+        source_val = s%var(i)%design_value
+      end select
+
+      call tao_set_var_model_value (s%var(i), source_val)
+      exit
+    enddo
+
+  enddo
+endif
 
 !-------------------------------------------
 contains
@@ -138,7 +142,7 @@ real(rp), pointer :: dest_data(:), source_data(:)
 logical, pointer :: dest_good(:), source_good(:)
 logical calc_ok
 
-integer j
+integer j, ib
 
 !
 

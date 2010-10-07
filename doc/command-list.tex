@@ -927,6 +927,13 @@ The source lattice can be:
   design      ! design lattice
 \end{example}
 
+Note: \tao variables that control parameters in multiple universes can
+complicate things. If, for example, there are two universes, and a
+\tao variable controls, say, the quadrupole strength of quadrupoles in
+both universes, then a ``set lat 2@model = design'' will result in the
+quadrupole strengths of those quadrupoles controlled by the variable
+in universe 1 being changed.
+
 Example:
 \begin{example}
   set lattice *@model = design  ! Set the model lattice to the design in 
