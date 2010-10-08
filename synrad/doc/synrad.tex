@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+%%\documentclass{book}
+\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{xspace}
+\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
+%\geometry{landscape}            % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{alltt}
+%\usepackage{epstopdf}
+%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+
+\usepackage{hyperref}
+
+%---------------------------------------------------------------------------------
+
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+\newcommand{\fig}[1]{Figure~\ref{#1}}
+\newcommand{\vn}{\ttcmd}           
+\newcommand{\Th}{$^{th}$\xspace}
+\newcommand{\Newline}{\hfil \\}
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-0.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-0.0ex}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
+
+%---------------------------------------------------------------------------------
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+%---------------------------------------------------------------------------------
+
+\title{ Synrad Information}
+\author{}
+\date{October 1, 2010}
+
+\begin{document}
+\maketitle
+
+%------------------------------------------------------------------
+\section{Introduction} 
+
+Synrad is a program for calculating the synchrotron radiation power
+deposition on the beam chamber walls in a storage ring or
+accelerator. Synrad works by tracking photons from creation at the
+beam to absorbion at the chamber wall. Tracking is in the horizontal
+plane only and reflections from the wall are not considered.  The
+vertical extent of the radiation stripe at the wall, important for
+calculating the power deposition per unit area, is calculated using
+the vertical emittance.
+
+The chamber wall is specified in the horizontal plane by a set of
+vertex points with a straight line between points. Exit and entrance
+lines like x-ray beam lines or dumps can be modeled in
+synrad. Shadowing of parts of the wall by other parts is taken into
+account in the calculation.
+
+Synrad output includes power deposition per longitudinal length, per
+unit area on the beam center line and photon flux. The beam orbit is
+not constrained to be zero so calculations to see the affect of
+varying the orbit are possible.
+
+Synrad is not to be confused with another program called Synrad3D.
+The Synrad3D program uses a full three dimensional chamber model along
+with a model for the scattering the photons. The aim here is to
+simulate
+
+%------------------------------------------------------------------
+\section{Main Input File} 
+
+The main input file can be specified on the command line invoking synrad3d.
+If not given, the default name for the main input file is ``\vn{synrad.init}''.
+Example main input file:
+\begin{example}
+  &synrad_params
+    sr_param%lat_file = "lat.bmad"   ! Input lattice.
+    sr_param%i_beam = 0.1            ! Single-beam current.
+    sr_param%epsilon_y = 10e-12      ! Vertical emittance.
+    sr_param%n_slice = 20            ! # of slices per element or wiggler pole
+    seg_len = 0.1                    ! Segment length for calculation.
+    beam_direction = 0               ! -1 = track backwards only,
+                                     !  0 = track both directions, 1 = forward.
+    wall_file = "wall.dat"           ! "NONE" => Use a wall with a fixed offset from the beam.
+    wall_offset = 0.045              ! Used when wall_file is set to "NONE"
+    forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
+    backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
+    use_ele_ix = 0   ! If using only a single element, this is the element index number to use
+          ! Otherwise, use 0 for power from all elements
+  /
+\end{example}
+ Fortran namelist input is used.  The tag \vn{"\&synrad3d_parameters"}
+marks the start of the namelist and the namelist ends with the slash
+\vn{"/"} tag. Anything outside of this is ignored. Within the
+namelist, anything after an exclamation mark \vn{"!"} is ignored
+including the exclamation mark.
+
+  \begin{description}
+  \item[\vn{sr_param\%lat_file}] \Newline
+The \vn{lat_file_name} parameter specifies the lattice file to be
+used.  Lattices are in Bmad standard format~\cite{b:bmad.web}.
+  \item[\vn{sr_param\%i_beam}] \Newline
+  \item[\vn{sr_param\%epsilon_y}] \Newline
+  \item[\vn{sr_param\%n_slice}] \Newline
+  \item[\vn{sr_param\%seg_len}] \Newline
+  \item[\vn{beam_direction}] \Newline
+  \item[\vn{wall_file}] \Newline
+  \item[\vn{wall_offset}] \Newline
+  \item[\vn{forward_beam}] \Newline
+  \item[\vn{backward_beam}] \Newline
+  \item[\vn{use_ele_ix}] \Newline
+  \end{description}
+
+%------------------------------------------------------------------
+\section{Vacuum Chamber Wall Definition} 
+
+
+%------------------------------------------------------------------
+\section{Simulation Technique} 
+
+Photon generation is based on the standard synchrotron radiation
+formulas, applicable for dipoles quadrupoles, and wigglers. The
+radiation is assumed to be incoherent, so this program cannot treat
+undulator radiation. 
+
+
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem[Bmad]{b:bmad.web}
+The Bmad web site:
+\hfill\break
+\hspace*{0.3in} \url{http://www.lepp.cornell.edu/~dcs/bmad}
+
+\end{thebibliography}
+
+\end{document}  
