@@ -351,12 +351,12 @@ interface
 end interface
  
 interface
-  subroutine mat_type (mat, nunit, header)
+  subroutine mat_type (mat, nunit, header, num_form)
     use precision_def
     implicit none
     real(rp) mat(:,:)
-    integer, optional, intent(in) :: nunit
-    character(*), optional, intent(in) :: header
+    integer, optional :: nunit
+    character(*), optional :: header, num_form
   end subroutine
 end interface
  

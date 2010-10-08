@@ -1,5 +1,5 @@
 !+
-! subroutine mat_type (mat, nunit, header)
+! subroutine mat_type (mat, nunit, header, num_form)
 !
 ! subroutine to output matraces to the terminal or to a file
 !
@@ -12,12 +12,12 @@
 !                    > 0 output to file only with unit = nunit
 !                    = 0 output to terminal only (default)
 !                    < 0 output to terminal and file with unit = abs(nunit).
-!   header   -- Character, optional: Title to print above matrix.
+!   header   -- Character(*), optional: Title to print above matrix.
+!   num_form -- Character(*), optional: Format for the numbers. Default
+!                    is "es13.5" if any |term| > 100 and "f11.6" otherwise.
 !-
 
-#include "CESR_platform.inc"
-
-subroutine mat_type (mat, nunit, header)
+subroutine mat_type (mat, nunit, header, num_form)
 
 use precision_def
 
@@ -28,7 +28,7 @@ integer size1, size2, munit, i, j, iu
 
 real(rp) mat(:,:)
 
-character(*), optional, intent(in) :: header
+character(*), optional :: header, num_form
 character(24) format1
 
 !
@@ -39,8 +39,10 @@ if (present(nunit)) iu = nunit
 size1 = size(mat, 1)
 size2 = size(mat, 2)
 
-if (any(abs(mat) > 100)) then
-  write (format1, '(a, i2.2, a)') '(3x, 1p, ', size2, 'e13.5)'
+if (present(num_form)) then
+  format1 = num_form
+elseif (any(abs(mat) > 100)) then
+  write (format1, '(a, i2.2, a)') '(3x, 1p, ', size2, 'es13.5)'
 else
   write (format1, '(a, i2.2, a)') '(3x, ', size2, 'f11.6)'
 endif
