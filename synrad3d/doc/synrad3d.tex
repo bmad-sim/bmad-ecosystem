@@ -201,6 +201,8 @@ Example main input file:
     lat_ele_file  = ''               ! Write lattice element data file.
 
     random_seed = 123456             ! 0 -> Use sys clock.
+    e_init_filter_min = -1           ! Min energy filter param.
+    e_init_filter_max = -1           ! Max energy filter param.
     e_filter_min = -1                ! Min energy filter param.
     e_filter_max = -1                ! Max energy filter param.
     s_filter_min = -1                ! Min S position filter param.
@@ -308,6 +310,9 @@ elements within the emission region. For each element the following are given.
   \item[\vn{random_seed}] \Newline
 Random number see used in by the random number generator. If set to 0, the system clock
 will be used. That is, if set to 0, the output results will vary from run to run. 
+  \item[\vn{e_init_filter_min}, \vn{e_init_filter_max}] \Newline
+Minimum and maximum initial energy filter values. A negative filter value
+indicates that the particular filter is not used. See below.
   \item[\vn{e_filter_min}, \vn{e_filter_max}] \Newline
 Minimum and maximum energy filter values. A negative filter value
 indicates that the particular filter is not used. See below.
@@ -350,12 +355,14 @@ False), then all kicks from steering elements in the lattice will be zeroed.
 
 \end{description}
 
-The four "filter" parameters are:
+The six "filter" parameters are:
 \begin{example}
-  e_filter_min   ! min energy filter.
-  e_filter_max   ! max energy filter.
-  s_filter_min   ! min longitudinal position filter.
-  s_filter_max   ! max longitudinal position filter.
+  e_init_filter_min   ! min initial energy filter.
+  e_init_filter_max   ! max initial energy filter.
+  e_filter_min        ! min energy filter.
+  e_filter_max        ! max energy filter.
+  s_filter_min        ! min longitudinal position filter.
+  s_filter_max        ! max longitudinal position filter.
 \end{example}
 A filter parameter is "unset" if its value is negative and is "set"
 otherwise.  \srthree can run in "filtered" or "unfiltered"
@@ -365,12 +372,15 @@ the output file.
 
 In filtered mode, with at least one of the filter parameters set,
 photons that do not satisfy the set filter values are discarded. The
+\vn{e_init_filter_min} and \vn{e_init_filter_max} parameters are 
+compared against the initial photon energy, and the other four
 filter parameters are compared against the final photon position and
-energy. If both \vn{s_filter_min} and \vn{s_filter_max} have been set,
-and \vn{s_filter_min} is greater than \vn{s_filter_max}, the region
+energy. The s-filter can wrap around $s = 0$: That is,
+if both \vn{s_filter_min} and \vn{s_filter_max} have been set,
+and \vn{s_filter_min} is {\em greater} than \vn{s_filter_max}, the region
 for keeping a photon is from \vn{s_filter_min} through the end of the
 lattice along with the region from the start of the lattice to
-\vn{s_filter_max}. 
+\vn{s_filter_max}.
 
 \srthree will generate a set of approximately
 \vn{num_photons_per_pass} photons in the radiation production region.
