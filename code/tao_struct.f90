@@ -107,31 +107,31 @@ end type
 ! for example the horizontal orbit is one curve.
 
 type tao_curve_struct
-  character(40) :: name = ''               ! Name identifying the curve.
-  character(40) :: data_source  = ''       ! 'lat', 'dat', 'var', etc.
-  character(100) :: data_index  = ''       ! Used for calculating %ix_symb(:).
-  character(100) :: data_type_x = ''       ! Used for data slices and phase space plots.
-  character(100) :: data_type   = ''       ! 'orbit.x', etc.
-  character(40) :: ele_ref_name = ''       ! Reference element.
-  character(40) :: legend_text = ''        ! String to print in a curve legend. 
-  type (tao_graph_struct), pointer :: g    ! pointer to parent graph 
-  real(rp), allocatable :: x_line(:)       ! Coords for drawing a curve
+  character(40) :: name = ''             ! Name identifying the curve.
+  character(40) :: data_source  = ''     ! 'lat', 'dat', 'var', etc.
+  character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
+  character(100) :: data_type_x = ''     ! Used for data slices and phase space plots.
+  character(100) :: data_type   = ''     ! 'orbit.x', etc.
+  character(40) :: ele_ref_name = ''     ! Reference element.
+  character(40) :: legend_text = ''      ! String to print in a curve legend. 
+  type (tao_graph_struct), pointer :: g  ! pointer to parent graph 
+  real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
-  real(rp), allocatable :: x_symb(:)       ! Coords for drawing the symbols
+  real(rp), allocatable :: x_symb(:)     ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
-  integer, allocatable :: ix_symb(:)       ! Corresponding index in d1_data%d(:) array.
-  real(rp) :: y_axis_scale_factor = 1  ! y-axis conversion from internal to plotting units.
-  type (qp_line_struct) line       ! Line attributes
-  type (qp_symbol_struct) symbol   ! Symbol attributes
-  integer :: ix_universe = -1      ! Universe where data is. -1 => use s%global%u_view
-  integer :: symbol_every = 1      ! Symbol every how many points.
+  integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
+  real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
+  type (qp_line_struct) line             ! Line attributes
+  type (qp_symbol_struct) symbol         ! Symbol attributes
+  integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%u_view
+  integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
-  integer :: ix_ele_ref = -1       ! Index in lattice of reference element.
-  integer :: ix_ele_ref_track = -1 ! = ix_ele_ref except for super_lord elements.
-  integer :: ix_bunch = 0          ! Bunch to plot.
-  logical :: use_y2 = .false.      ! Use y2 axis?
-  logical :: draw_line = .true.    ! Draw a line through the data points?
-  logical :: draw_symbols = .true. ! Draw a symbol at the data points?
+  integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
+  integer :: ix_ele_ref_track = -1       ! = ix_ele_ref except for super_lord elements.
+  integer :: ix_bunch = 0                ! Bunch to plot.
+  logical :: use_y2 = .false.            ! Use y2 axis?
+  logical :: draw_line = .true.          ! Draw a line through the data points?
+  logical :: draw_symbols = .true.       ! Draw a symbol at the data points?
   logical :: draw_symbol_index = .false. ! Draw the symbol index number curve%ix_symb?
   logical :: smooth_line_calc = .true.   ! Calculate data between element edge points?
 end type
@@ -141,34 +141,34 @@ end type
 ! contain both overlayed horizontal and vertical orbits.
 
 type tao_graph_struct
-  character(40) name            ! Name identifying the graph
-  character(40) type            ! 'data', 'lat_layout', 'key_table', 'phase_space'
+  character(40) name                  ! Name identifying the graph
+  character(40) type                  ! 'data', 'lat_layout', 'key_table', 'phase_space'
   character(100) title
   character(100) title_suffix 
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
-  character(60) component       ! Who to plot. Eg: 'meas - design'
-  character(80) why_invalid     ! Informative string to print.
+  character(60) component             ! Who to plot. Eg: 'meas - design'
+  character(80) why_invalid           ! Informative string to print.
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) text_legend_origin
   type (qp_point_struct) curve_legend_origin
-  type (qp_axis_struct) x       ! X-axis parameters.
-  type (qp_axis_struct) y       ! Y-axis attributes.
-  type (qp_axis_struct) y2      ! Y-axis attributes.
-  type (qp_rect_struct) margin  ! Margin around the graph.
-  real(rp) x_axis_scale_factor  ! x-axis conversion from internal to plotting units.
-  real(rp) symbol_size_scale    ! Symbol size scale factor for phase_space plots.
-  integer box(4)                ! Defines which box the plot is put in.
-  integer :: ix_branch = 0
-  integer :: ix_universe = -1   ! Used for lat_layout plots.
-  logical clip                  ! Clip plot at graph boundary.
-  logical valid                 ! valid if all curve y_dat computed OK.
-  logical y2_mirrors_y          ! Y2-axis same as Y-axis?
-  logical limited               ! True if at least one data point past graph bounds.
-  logical draw_axes             ! Draw axes, labels, etc?
-  logical correct_xy_distortion ! T -> Shrink floor plan along one axis to give both axes the same scale.
-  logical draw_curve_legend     ! Legend for displaying curve info.
-  logical :: visible = .true.   ! To draw or not to draw. 
+  type (qp_axis_struct) x             ! X-axis parameters.
+  type (qp_axis_struct) y             ! Y-axis attributes.
+  type (qp_axis_struct) y2            ! Y-axis attributes.
+  type (qp_rect_struct) margin        ! Margin around the graph.
+  real(rp) :: x_axis_scale_factor = 1 ! x-axis conversion from internal to plotting units.
+  real(rp) symbol_size_scale          ! Symbol size scale factor for phase_space plots.
+  integer box(4)                      ! Defines which box the plot is put in.
+  integer :: ix_branch = 0            ! Branch in lattice.
+  integer :: ix_universe = -1         ! Used for lat_layout plots.
+  logical clip                        ! Clip plot at graph boundary.
+  logical valid                       ! valid if all curve y_dat computed OK.
+  logical y2_mirrors_y                ! Y2-axis same as Y-axis?
+  logical limited                     ! True if at least one data point past graph bounds.
+  logical draw_axes                   ! Draw axes, labels, etc?
+  logical correct_xy_distortion       ! T -> Shrink one axis in floor plan so x-scale = y-scale.
+  logical draw_curve_legend           ! Legend for displaying curve info.
+  logical :: visible = .true.         ! To draw or not to draw. 
 end type
 
 ! A plot is collection of graphs.
