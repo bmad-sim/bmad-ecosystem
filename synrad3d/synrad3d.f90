@@ -22,7 +22,7 @@ type (normal_modes_struct) modes
 type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct), target :: wall
-type (wall3d_pt_struct) wall_pt(0:100)
+type (wall3d_pt_struct) wall_pt(0:1000)
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
@@ -32,6 +32,7 @@ type (cross_section_struct), pointer :: poly
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, radius, r
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
+real(rp) e_init_filter_min, e_init_filter_max
 
 integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
@@ -53,7 +54,8 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             emit_a, emit_b, sig_e, sr3d_params, wall_file, dat_file, random_seed, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
-            num_ignore_generated_outside_wall, turn_off_kickers_in_lattice
+            num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
+            e_init_filter_min, e_init_filter_max
 
 namelist / synrad3d_wall / wall_pt
 namelist / gen_shape_def / ix_gen_shape, v
@@ -83,6 +85,8 @@ sig_e  = -1
 dat_file = 'synrad3d.dat'
 wall_file = 'synrad3d.wall'
 photon_direction = 1
+e_init_filter_min = -1
+e_init_filter_max = -1
 e_filter_min = -1
 e_filter_max = -1
 s_filter_min = -1
@@ -111,7 +115,8 @@ if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
 
 ! When a filter parameter is set, only photons that satisfy the filter criteria are kept
 
-filter_on = (e_filter_min > 0) .or. (e_filter_max > 0) .or. (s_filter_min >= 0) .or. (s_filter_max >= 0)
+filter_on = (e_init_filter_min > 0) .or. (e_init_filter_max > 0) .or. &
+            (e_filter_min > 0) .or. (e_filter_max > 0) .or. (s_filter_min >= 0) .or. (s_filter_max >= 0)
 s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > s_filter_max)
 
 ! Get wall info
@@ -331,8 +336,10 @@ if (photon_start_input_file /= '') then
     photon%start = p
     photon%n_wall_hit = 0
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
+    call check_filter_restrictions(ok, .true.)
+    if (.not. ok) cycle
     call sr3d_track_photon (photon, lat, wall, wall_hit)
-    call check_filter_restrictions(ok)
+    call check_filter_restrictions(ok, .false.)
     if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
   enddo photon_loop
 
@@ -437,8 +444,10 @@ else
           write (iu_start, '(a)')           '/'
         endif
 
+        call check_filter_restrictions(ok, .true.)
+        if (.not. ok) cycle
         call sr3d_track_photon (photon, lat, wall, wall_hit)
-        call check_filter_restrictions (ok)
+        call check_filter_restrictions (ok, .false.)
         if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
 
       enddo
@@ -483,6 +492,8 @@ write (1, *) 'sig_e                =', sig_e
 write (1, *) 'wall_file            =', trim(wall_file)
 write (1, *) 'dat_file             =', trim(dat_file)
 write (1, *) 'random_seed          =', random_seed
+write (1, *) 'e_init_filter_min  =', e_init_filter_min
+write (1, *) 'e_init_filter_max  =', e_init_filter_max
 write (1, *) 'e_filter_min       =', e_filter_min
 write (1, *) 'e_filter_max       =', e_filter_max
 write (1, *) 's_filter_min       =', s_filter_min
@@ -510,7 +521,7 @@ close (1)
 contains
 
 !+
-! Subroutine check_filter_restrictions (ok)
+! Subroutine check_filter_restrictions (ok, init_filter)
 !
 ! Routine to check if a photon has passed the filter requirements.
 !
@@ -518,9 +529,9 @@ contains
 !   ok -- logical: Set True if passed. False otherwise.
 !-
 
-subroutine check_filter_restrictions (ok)
+subroutine check_filter_restrictions (ok, init_filter)
 
-logical ok
+logical ok, init_filter
 
 ! Check filter restrictions
 
@@ -528,13 +539,18 @@ ok = .true.
 
 if (filter_on) then
   filter_this = .false.
-  if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
-  if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
-  if (s_wrap_on) then
-    if (photon%now%vec(5) > s_filter_max .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+  if (init_filter) then
+    if (e_init_filter_min > 0 .and. photon%now%energy < e_init_filter_min) filter_this = .true.
+    if (e_init_filter_max > 0 .and. photon%now%energy > e_init_filter_max) filter_this = .true.
   else
-    if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
-    if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+    if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
+    if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
+    if (s_wrap_on) then
+      if (photon%now%vec(5) > s_filter_max .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+    else
+      if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+      if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+    endif
   endif
 
   if (filter_this) then
