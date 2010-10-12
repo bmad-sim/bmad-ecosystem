@@ -525,29 +525,6 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \label{s:capillary}
 \index{capillary|hyperbf}
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=6in]{capillary.pdf}
-  \caption[cross-sectional slices of a capillary.]
-{A) The inside wall of a capillary is defined by a number of 
-cross-sectional slices.  B) Each cross-section is made up of a number of vertices.
-The segments between the vertices can be either a line segment, the arc of a circle, 
-or a section of an ellipse.}
-  \label{f:capillary}
-\end{figure}
-
-\begin{figure}[tb]
-  \centering
-  %% \includegraphics[width=6in]{cap_arc.pdf}
-  \caption[Construction of the arc for a cross-section segment.]
-{Given a radius there are four solutions to the problem of 
-constructing an arc between two given points. The one chosen (a) for 
-the construction of a cross-section segment is the one that is convex 
-with respect to the origin and of shortest length. The same logic applies 
-to the construction of an ellipse segment.}
-  \label{f:cap.arc}
-\end{figure}
-
 A \vn{capillary} element is a glass tube that is used to focus x-ray
 beams.
 
@@ -573,7 +550,7 @@ refracted into the capillary material scales as 1/Energy. The
 constant of critical angle * energy is given by the \vn{critical_angle_factor}.
 
 The inside wall of a capillary is defined by a number of
-cross-sectional slices as shown in Fig.~\ref{f:capillary}. Each
+cross-sectional slices as shown in Fig.~\ref{f:capillary}A. Each
 cross-section is defined by a number of vertices. The arc between each
 vertex may be either a straight line, an arc of a circle, or a section
 of an ellipse. It is manditory that a cross-section be convex. That
@@ -614,6 +591,23 @@ Example:
     \}
 \end{example}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{capillary.pdf}
+  \caption[cross-sectional slices of a capillary.]
+{A) The inside wall of a capillary is defined by a number of
+cross-sectional slices.  B) Each cross-section is made up of a number
+of vertices. The segments between the vertices can be either a line
+segment, the arc of a circle, or a section of an ellipse. The red line
+segment with one end at the center of the arc and the other end
+traversing the arc from, in this case $V(2)$ to $V(3)$, rotates in
+counter clockwise manner. There are two solutions for connstructing an
+arc between two vertices. The solution with the center point furthest
+from the origin, the dashed line between $V(2)$ and $V(3)$ in the
+figure, is rejected.}
+  \label{f:capillary}
+\end{figure}
+
 Each individual cross-section begins with the word \vn{cross}. The
 \vn{s} parameter of a cross-section gives the longitudinal position of
 the cross-section. \vn{s} must be zero for the first cross-section and
@@ -638,13 +632,7 @@ the cross-section between the given vertex and the preceding one.
 When an ellipse is specified, \vn{<radius_x>}, and \vn{<radius_y>} are
 the half width and half height of the semi-major axes and the
 \vn{<tilt>} parameter gives the tilt of the ellipse. \vn{<radius_x>}
-and \vn{<radius_y>} must not be negative. In general, for a given
-radius, there are four circular arcs that can be constructed to
-connect two points (as long as the points are not too far apart). The
-arc used to construct a circular segment of a cross-section is the
-``convex'' arc. That is, the arc that maintains the convexivity of the
-cross-section as a whole as shown in Fig.~\ref{f:cap.arc}. The same
-logic applies to the construction of an ellipse segment.
+and \vn{<radius_y>} must not be negative.
 
 In the example above, for the first cross-section, \vn{v(2)}
 specifies a non-zero \vn{<radius_x>} and, by default, \vn{<radius_y>}
@@ -654,21 +642,24 @@ does not specify \vn{<radius_x>} nor \vn{<radius_y>}, the
 cross-section between \vn{v(2)} and \vn{v(3)} is a straight line
 segment.
 
-The vertex points must be arranged in a clockwise manner. That is, If
-the (\vn{<x>}, \vn{<y>}) point of vertex \vn{<v(i)>} is expressed in
-polar $(r, \theta)$ coordinates, the inequality $\theta_{i+1} >
-\theta_i$ must hold for all vertex pairs. Additionally, the origin
-$(0,0)$ must be in the interior of all cross-sections and all cross
-sections must be convex.
-
-Given two vertices \vn{v(i)} and \vn{v(i+1)}, if the segment between
-them is specified to be a circle or ellipse, there will, in general,
-be two solutions as to how the circle or ellipse can be
-constructed. The solution chosen will be the shorter one. With this
-choice, and with the restriction that the $\theta$ angle of the
-vertices must be strictly increasing, A line drawn from the origin at
+The vertex points must be arranged in a ``counter clockwise manner''. 
+For vertices \vn{<v(i)>} and \vn{<v(i+1)>} connected by a line segment
+this translates to
+\Begineq
+  0 < \theta_{i+1} - \theta_{i} \pmod{2\pi} < \pi
+\Endeq
+where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$
+vertex. For vertices connected by an arc, ``counter clockwise manner''
+means that the line segment with one end at the center of the arc and
+the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
+rotates in counter clockwise as shown in Fig.~\ref{f:capillary}B. In
+general, there are two solutions for constructing such an arc. The
+solution chosen is the one whose center is closest to the origin.
+With these restrictions, and with the restriction that the cross-section be convex,
+it can be shown that the origin $(0,0)$ will be in the interior of any
+cross-section and that for any cross-section a line drawn from the origin at
 any given angle $\theta$ will intersect the cross-section at exactly
-one point as shown in Fig.~\ref{f:capillary}. This is an important
+one point as shown in Fig.~\ref{f:capillary}B. This is an important
 point in the construction of the capillary wall between cross-sections
 as explained below.
 
@@ -704,6 +695,17 @@ not specified, the cross-section is a rectangle. For example
     cross = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
 \end{example}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=4in]{concave-capillary.pdf}
+  \caption[Convex cross-sections do not guarantee a convex volume.]
+{Example where convex cross-sections do not produce a convex volume.
+Cross-sections (A) and (C) are ellipses with a 5 to 1 aspect ratio.
+Half way in between, linear interpolation produces a convex cross-section
+as shown in (B).} 
+  \label{f:concave-capillary}
+\end{figure}
+
 Between cross-sections, the capillary wall is defined by
 interpolation. The default is a linear interpolation scheme.  let
 $r_{c1}(\theta)$ be the radius of the capillary as a function of
@@ -723,8 +725,8 @@ In order for \bmad to quickly track photons through the capillary,
 convex. The volume will be convex if each cross-section $r_c(\theta,
 s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
 for $r_c(\theta, s)$ to be convex at the specified cross-sections as
-shown in Fig.~\ref{f:cap.arc}. Also note that it is perfectly fine for the
-total capillary volume to not be convex.
+shown in Fig.~\ref{f:convex-capillar}. Also note that it is perfectly
+fine for the total capillary volume to not be convex.
 
 To help reduce the complexity of specifying a capillary, ``virtual''
 cross-sections may be defined by specifying a cubic interpolating

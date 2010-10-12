@@ -649,7 +649,7 @@ case (patch$)
   end%vec(4) = end%vec(4) - ele%value(y_pitch$) * rel_pc
   end%vec(5) = end%vec(5) + ele%value(x_pitch$) * end%vec(1) + ele%value(y_pitch$) * end%vec(3) 
 
-  if (ele%value(tilt$) /= 0) call tilt_coords (ele%value(tilt$), end%vec, set$)
+  if (ele%value(tilt$) /= 0) call tilt_coords (ele%value(tilt$), end%vec)
 
   end%vec(1) = end%vec(1) - ele%value(x_offset$)
   end%vec(3) = end%vec(3) - ele%value(y_offset$)

@@ -54,7 +54,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 type (coord_struct), target :: coord
 
-real(rp) c2g, s2g, ct, st, offset(6), tilt, graze
+real(rp) c2g, s2g, ct, st, offset(6), tilt
 real(rp) off(3), rot(3), project_x(3), project_y(3), project_s(3)
 real(rp), pointer :: p(:), vec(:)
 complex(rp) efield_x, efield_y, efieldout_x, efieldout_y
@@ -68,12 +68,6 @@ p   => ele%value  ! parameter
 vec => coord%vec
 
 if (set) then
-
-  if (ele%key == mirror$) then
-    graze = p(graze_angle$) + p(graze_angle_err$)
-  else  ! Crystal
-    graze = p(graze_angle_in$) + p(graze_angle_err$)
-  endif
 
   ! Set: s_offset
 
@@ -94,44 +88,29 @@ if (set) then
 
   ! Set: tilt
 
-  call tilt_coords (p(tilt_tot$) + p(tilt_err$), vec, set$)
+  tilt = p(tilt_tot$) + p(tilt_err$)
+  call tilt_coords (tilt, vec)
 
   ! Set: graze_angle_err
 
   vec(2) = vec(2) + p(graze_angle_err$)
   vec(5) = vec(5) - vec(1) * p(graze_angle_err$)
 
-  ! Set: intensities
+  ! Set: intensity and phase rotation due to the tilt + tilt_err
+
   efield_x = sqrt(coord%intensity_x) * cmplx(cos(coord%phase_x), sin(coord%phase_x) )
   efield_y = sqrt(coord%intensity_y) * cmplx(cos(coord%phase_y), sin(coord%phase_y) )
-  tilt = p(tilt_tot$) + p(tilt_err$)
   efieldout_x = cos(tilt) * efield_x + sin(tilt)*efield_y
   efieldout_y = -sin(tilt) * efield_x + cos(tilt)*efield_y
   coord%intensity_x = sqrt(abs(efieldout_x))
   coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
   coord%intensity_y = sqrt(abs(efieldout_y))
   coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
-  
 
 !----------------------------------------------------------------
 ! Unset... 
 
 else
-
-  if (ele%key == mirror$) then
-    c2g = cos(2*p(graze_angle$)) 
-    s2g = sin(2*p(graze_angle$))
-  else
-    c2g = cos(2*p(graze_angle_out$)) 
-    s2g = sin(2*p(graze_angle_out$))
-  endif
-
-  ct = cos(p(tilt$)) 
-  st = sin(p(tilt$))
-
-  project_x = (/ c2g * ct**2 + st**2, -ct * st + c2g * ct * st, -ct * s2g /)
-  project_y = (/ -ct * st + c2g * ct * st, ct**2 + c2g * st**2, -s2g * st /) 
-  project_s = (/ ct * s2g, s2g * st, c2g /)
 
   ! Unset: graze_angle_err
 
@@ -140,7 +119,7 @@ else
 
   ! Unset: tilt
 
-  call tilt_coords (p(tilt_tot$), vec, unset$)
+  call tilt_coords (-p(tilt_tot$), vec)
 
   ! Unset: tilt_err
   ! The difference between tilt and tilt_err is that tilt also rotates the output 
@@ -148,11 +127,26 @@ else
   ! The difference between tilt_err with Set vs Unset is that the tilt_err is 
   ! expressed in terms of the input lab coords.
 
+  if (ele%key == mirror$) then
+    c2g = cos(2*p(graze_angle$)) 
+    s2g = sin(2*p(graze_angle$))
+  else
+    c2g = cos(p(graze_angle_in$)+p(graze_angle_out$)) 
+    s2g = sin(p(graze_angle_in$)+p(graze_angle_out$))
+  endif
+
+  ct = cos(p(tilt_tot$)) 
+  st = sin(p(tilt_tot$))
+
+  project_x = [c2g * ct**2 + st**2,      -ct * st + c2g * ct * st, -ct * s2g ]
+  project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2,      -s2g * st ] 
+  project_s = [ct * s2g,                 s2g * st,                 c2g       ]
+
   if (p(tilt_err$) /= 0) then
 
     rot = project_s * p(tilt_err$)
 
-    call tilt_coords (rot(3), vec, unset$)
+    call tilt_coords (-rot(3), vec)
 
     vec(2) = vec(2) + rot(2) 
     vec(4) = vec(4) - rot(1)
@@ -186,7 +180,7 @@ else
 
   efield_x = cmplx(sqrt(coord%intensity_x)*cos(coord%phase_x),sqrt(coord%intensity_x)*sin(coord%phase_x) )
   efield_y = cmplx(sqrt(coord%intensity_y)*cos(coord%phase_y),sqrt(coord%intensity_y)*sin(coord%phase_y) )
-  tilt = p(tilt_tot$) + p(tilt_err$)
+  tilt = p(tilt_tot$) + rot(3)
   efieldout_x = cos(tilt) * efield_x - sin(tilt)*efield_y
   efieldout_y = sin(tilt) * efield_x + cos(tilt)*efield_y
   coord%intensity_x = sqrt(abs(efieldout_x))

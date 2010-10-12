@@ -1393,7 +1393,7 @@ case (solenoid$, sol_quad$, quadrupole$)
     if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) return
 
     t_2 = (/ x_o, x_p, y_o, y_p /)
-    call tilt_coords (tilt, t_2, .true.)  ! set
+    call tilt_coords (tilt, t_2)
 
     l_slave = slave%value(l$)
 
@@ -1424,7 +1424,7 @@ case (solenoid$, sol_quad$, quadrupole$)
     call mat_inverse (mat4, mat4_inv)
     beta = matmul (mat4_inv, r_off)
 
-    call tilt_coords (tilt, beta, .false.)  ! unset
+    call tilt_coords (-tilt, beta)
 
     slave%value(x_offset$) = beta(1) + x_o_sol
     slave%value(x_pitch$)  = beta(2) + x_p_sol

@@ -123,49 +123,129 @@ the entrance element coordinates is:
 \item
 Track as in a drift a distance \vn{s_offset_tot}.
 \item
-Apply offsets and pitches. Here the origin of the element coordinates is the same point
+Apply offsets and pitches: Here the origin of the element coordinates is the same point
 around which the element is pitched so the effective ``length'' of the element is zero.
 \begin{align}
   x_1    &= x_0 - x_{off} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
   y_1    &= y_0 - y_{off} \\
   p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
-  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 \CRNO
+  z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 \nonumber
 \end{align}
 \item
-Apply \vn{tilt} and \vn{tilt_err}
-Apply any tilt $\theta_t$
+Apply \vn{tilt} and \vn{tilt_err}:
 \begin{align}
-  x_2    &=  x_1    \, \cos\theta_{tot} + y_1    \, \sin\theta_{tot}  \CRNO
-  y_2    &= -x_1    \, \sin\theta_{tot} + y_1    \, \cos\theta_{tot}  \\
-  p_{x2} &=  p_{x1} \, \cos\theta_{tot} + p_{y1} \, \sin\theta_{tot}  \CRNO
-  p_{y2} &= -p_{x1} \, \sin\theta_{tot} + p_{y1} \, \cos\theta_{tot}  \CRNO
-  E_{x2} &=  E_{x1} \, \cos\theta_{tot} + E_{y1} \, \sin\theta_{tot}  \CRNO
-  E_{y2} &= -E_{x1} \, \sin\theta_{tot} + E_{y1} \, \cos\theta_{tot}  \CRNO
+  \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
+    \bR (\theta_{tot}) \,   \begin{pmatrix} x_1 \\ y_1 \end{pmatrix} \CRNO
+  \begin{pmatrix} p_{x2} \\ p_{y2} \end{pmatrix} &=
+    \bR (\theta_{tot}) \,   \begin{pmatrix} p_{x1} \\ p_{y1} \end{pmatrix} \\
+  \begin{pmatrix} \bE_{x2} \\ \bE_{y2} \end{pmatrix} &=
+    \bR (\theta_{tot}) \,   \begin{pmatrix} \bE_{x1} \\ \bE_{y1} \end{pmatrix} \nonumber
 \end{align}
-where $\theta_{tot}$ is the sum of \vn{tilt} and \vn{tilt_err} and $E$ is shorthand notation for
+where $\bR$ is the rotation matrix
 \Begineq
-  E \equiv \sqrt{I} \, e^{i \, \phi}
+  \bR(\theta) = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
+\Endeq
+$\theta_{tot}$  is \vn{tilt} + \vn{tilt_err}, and $E$ is shorthand notation for
+\Begineq
+  \bE \equiv \sqrt{I} \, e^{i \, \phi}
 \Endeq
 where $I$ is the field intensity and $\phi$ is the field phase angle.
 \item
-Apply \vn{graze_angle_err}
+Apply \vn{graze_angle_err}:
 \begin{align}
-  x_3    &= x_2
-  p_{x3} &= p_{x2} + \theta_{gerr}
-  y_3    &= y_2
-  p_{y3} &= p_{Y2}
-  z_3    &= z_1 - x_2 \, \theta_{gerr}
-  p_{z3} &= p_{z1}
+  p_{x3} &= p_{x2} + \theta_{gerr} \CRNO
+  z_3    &= z_2 - x_2 \, \theta_{gerr} 
 \end{align}
 \end{enumerate}
 
-The back transformation from exit element to exit laboratory coordinates is
-accomplished by the transformation
-\begin{enumerate}
-\item
+The back transformation from exit element coordinates to exit
+laboratory coordinates is accomplished by the transformation
+  \begin{enumerate}
+  \item
+Unapply \vn{graze_angle_err}:
+\begin{align}
+  p_{x1} &= p_{x0} - \theta_{gerr} \CRNO
+  z_1    &= z_0 + x_0 \, \theta_{gerr} 
+\end{align}
+  \item
+Unapply \vn{tilt} and \vn{tilt_err}: \vn{tilt} rotates the exit
+laboratory coordinants with respect to the exit element coordinates in
+the same way \vn{tilt} rotates the entrance laboratory coordinates
+with respect to the entrance element coordinants. The forward and back
+transformations are thus just inverses of each other.  With
+\vn{tilt_err}, this is not true. \vn{tilt_err}, unlike \vn{tilt}, does
+not rotate the output laboratory coordinates.  There is the further
+complication in that \vn{tilt_err} is a rotation about the {\em
+entrance} laboratory coordinates. The first step is to express
+\vn{tilt_err} with respect to the exit coordinants. This is done with
+the help of the $\bS$ matrix of \Eq{r001s} with $\alpha$ given by
+\Eq{agg}. The effect of the \vn{tilt_err} can be modeled as a rotation
+vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
+along the $z$-axis
+\Begineq
+ \Bf e_{in} = (0, 0, \mbox{tilt_err})
+\Endeq
+In the exit laboritory coordinates, the vector $\Bf e_{out}$ is
+\Begineq
+  \Bf e_{out} = \bS \, \Bf e_{in}
+\Endeq
+The $z$ component of $\Bf e_{out}$ combines with \vn{titlt} to give
+the transformation
+\begin{align}
+  \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
+    \bR (-\theta_{t}) \,   \begin{pmatrix} x_1 \\ y_1 \end{pmatrix} \CRNO
+  \begin{pmatrix} p_{x2} \\ p_{y2} \end{pmatrix} &=
+    \bR (-\theta_{t}) \,   \begin{pmatrix} p_{x1} \\ p_{y1} \end{pmatrix} \\
+  \begin{pmatrix} \bE_{x2} \\ \bE_{y2} \end{pmatrix} &=
+    \bR (-\theta_{t}) \,   \begin{pmatrix} \bE_{x1} \\ \bE_{y1} \end{pmatrix} \nonumber
+\end{align}
+where $\theta_t$ is $\mbox{tilt} + \Bf e_{out,z}$. The $x$ and $y$ components
+of $\Bf e_{out}$ give rotations around the $x$ and $y$ axes
+\begin{align}
+  p_{x3} &= p_{x2} - \Bf e_{out,y} \CRNO
+  p_{y3} &= p_{y2} + \Bf e_{out,x} \\
+  z_3    &= z_2 + x_2 \, \Bf e_{out,y} - y_2 \, \Bf e_{out,x}
+\end{align}
+  \item
+Unapply pitches: Since pitches are defined with
+respect to the entrance laboratory coordinates, they have to be
+translated to the exit laboratory coordinates
+\Begineq
+  \bP_{out} = \bS \, \bP_{in}
+\Endeq
+where $\bP_{in} = (x'_{pitch}, y'_{pitch}, 0)$ is the pitch vector in
+the entrance laboratory frame and $\bP_{out}$ is the vetor in the exit
+laboratory frame. The transformation is then
+\begin{align}
+  p_{x4} &= p_{x3} - \bP_{out,y} \CRNO
+  p_{y4} &= p_{y3} + \bP_{out,x} \\
+  z_4    &= z_3 + x_3 \, \bP_{out,y} - y_3 \, \bP_{out,x}
+\end{align}
+  \item
+Unapply offsets: Again, offsets are defined with respect to the
+entrance laboratory coordinates. Like pitches, the translation is
+\Begineq
+  \bO_{out} = \bS \, \bO_{in}
+\Endeq
+where $\bO_{in} = (x_{off}, y_{off}, s_{off})$ is the offset in the
+entrance laboratory frame. The transformation is
+\begin{align}
+  x_5 &= x_4 + \bO_{out,x} - p_{x4} \, \bO_{out,z} \CRNO
+  y_5 &= y_4 + \bO_{out,y} - p_{y4} \, \bO_{out,z} \\
+  z_5 &= z_4 + \bO_{out,z} 
+\end{align}
+  \end{enumerate}
 
-\end{enumerate}
+%-----------------------------------------------------------------
+\section{Crystal Element Tracking}
+\label{s:crystal.tracking}
+
+\textit{\large [Crystal tracking developed by Jing Yee Chee, Ken Finkelstein, and David Sagan]}
+
+Crystal diffraction is modeled using dynamical diffraction
+theory\cite{b:batterman}.
+
 
 %-----------------------------------------------------------------
 \section{Hamiltonian for a Magnetic Element}
