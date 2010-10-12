@@ -21,6 +21,7 @@ use sim_utils_struct
 !   Subroutine re_allocate_string (str, n, exact)
 !   Subroutine re_allocate_integer (inte, n, exact)
 !   Subroutine re_allocate_real (re, n, exact)
+!   Subroutine re_allocate_complex (cmpl, n, exact)
 !   Subroutine re_allocate_logical (logic, n, exact)
 !   Subroutine re_allocate_real_pointer (re_ptr, n, exact)
 !
@@ -32,6 +33,7 @@ use sim_utils_struct
 !   inte(:)     -- Integer, allocatable: Integer array.
 !   re(:)       -- Real(rp), Allocatable: Real array.
 !   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   cmpl(:)     -- Complex(rp), Allocatable: Complex array.
 !   logic(:)    -- Logical, allocatable: Logical array.
 !   n           -- Integer: Minimum size needed for 1-dimensional arrays.
 !   exact       -- Logical, optional: If present and False then the size of 
@@ -43,6 +45,7 @@ use sim_utils_struct
 !   inte(:)     -- Integer, allocatable: Allocated array. 
 !   re(:)       -- Real(rp), Allocatable: Allocated array. 
 !   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   cmpl(:)     -- Complex(rp), Allocatable: Allocated Array.
 !   logic(:)    -- Logical, allocatable: Allocated array.
 !-
 
@@ -52,6 +55,7 @@ interface re_allocate
   module procedure re_allocate_logical
   module procedure re_allocate_real
   module procedure re_allocate_real_pointer
+  module procedure re_allocate_complex
 end interface
 
 !+
@@ -72,6 +76,7 @@ end interface
 !   Subroutine re_allocate2_string (str, n_min, n_max, exact)
 !   Subroutine re_allocate2_integer (inte, n_min, n_max, exact)
 !   Subroutine re_allocate2_real (re, n_min, n_max, exact)
+!   Subroutine re_allocate2_complex (cmpl, n_min, n_max, exact)
 !   Subroutine re_allocate2_logical (logic, n_min, n_max, exact)
 !
 ! Modules needed:
@@ -82,6 +87,7 @@ end interface
 !   inte(:)     -- Integer, allocatable: Integer array.
 !   re(:)       -- Real(rp), Allocatable: Real array.
 !   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   cmpl(:)     -- Complex(rp), Allocatable: Complex array.
 !   logic(:)    -- Logical, allocatable: Logical array.
 !   n_min       -- Integer: Desired lower bound.
 !   n_max       -- Integer: Desired upper bound.
@@ -94,6 +100,7 @@ end interface
 !   inte(:)     -- Integer, allocatable: Allocated array. 
 !   re(:)       -- Real(rp), Allocatable: Allocated array. 
 !   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   cmpl(:)     -- Complex(rp), Allocatable: Allocated Array.
 !   logic(:)    -- Logical, allocatable: Allocated array.
 !-
 
@@ -102,6 +109,8 @@ interface re_allocate2
   module procedure re_allocate2_integer
   module procedure re_allocate2_logical
   module procedure re_allocate2_real
+  module procedure re_allocate2_real_pointer
+  module procedure re_allocate2_complex
 end interface
 
 !+
@@ -248,7 +257,7 @@ subroutine re_allocate_string (str, n, exact)
     allocate (str(n))
   endif
 
-end subroutine
+end subroutine re_allocate_string
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -300,7 +309,59 @@ subroutine re_allocate_integer (inte, n, exact)
     allocate (inte(n))
   endif
 
-end subroutine
+end subroutine re_allocate_integer
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine re_allocate_complex (cmpl, n, exact)
+!
+! Routine to reallocate an array of complex numbers.
+! This is modeled after the reallocate functions in Numerical Recipes.
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+!
+! Input:
+!   cmpl(:)  -- Complex(rp), Allocatable: Complex array.
+!   n      -- Integer: Size wanted.
+!   exact  -- Logical, optional: If present and False then the size of 
+!                 the output array is permitted to be larger than n. 
+!                 Default is True.
+!
+! Output:
+!   cmpl(:)  -- Complex(rp), Allocatable: Allocated array with size(cmpl) >= n.
+!-
+
+subroutine re_allocate_complex (cmpl, n, exact)
+
+  implicit none
+
+  complex(rp), allocatable :: cmpl(:), temp_cmpl(:)
+
+  integer, intent(in) :: n
+  integer n_save, n_old
+
+  logical, optional :: exact
+
+!
+
+  if (allocated(cmpl)) then
+    n_old = size(cmpl)
+    if (n == n_old) return
+    if (.not. logic_option(.true., exact) .and. n < n_old) return
+    n_save = min(n, n_old)
+    allocate (temp_cmpl(n_save))
+    temp_cmpl = cmpl(1:n_save)
+    deallocate (cmpl)
+    allocate (cmpl(n))
+    cmpl(1:n_save) = temp_cmpl
+    deallocate (temp_cmpl)  
+  else
+    allocate (cmpl(n))
+  endif
+
+end subroutine re_allocate_complex
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -352,7 +413,7 @@ subroutine re_allocate_real (re, n, exact)
     allocate (re(n))
   endif
 
-end subroutine
+end subroutine re_allocate_real
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -404,7 +465,7 @@ subroutine re_allocate_real_pointer (re_ptr, n, exact)
     allocate (re_ptr(n))
   endif
 
-end subroutine
+end subroutine re_allocate_real_pointer
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -456,8 +517,7 @@ subroutine re_allocate_logical (logic, n, exact)
     allocate (logic(n))
   endif
 
-
-end subroutine
+end subroutine re_allocate_logical
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -510,7 +570,7 @@ subroutine re_allocate2_string (str, n1, n2, exact)
     allocate (str(n1:n2))
   endif
 
-end subroutine
+end subroutine re_allocate2_string
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -564,7 +624,61 @@ subroutine re_allocate2_integer (inte, n1, n2, exact)
     allocate (inte(n1:n2))
   endif
 
-end subroutine
+end subroutine re_allocate2_integer
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine re_allocate2_complex (cmpl, n1, n2, exact)
+!
+! Routine to reallocate an array of complex numbers.
+! This is modeled after the reallocate functions in Numerical Recipes.
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if [n1, n2] is less than the original size of the array
+!
+! Input:
+!   cmpl(:)  -- Complex(rp), Allocatable: Complex array.
+!   n1     -- Integer: Desired lower bound.
+!   n2     -- Integer: Desired upper bound.
+!   exact  -- Logical, optional: If present and False then the size of 
+!                 the output array is permitted to be larger than n. 
+!                 Default is True.
+!
+! Output:
+!   cmpl(:)  -- Complex(rp), Allocatable: Allocated array with 
+!                bounds spanning at least [n1, n2]
+!-
+
+subroutine re_allocate2_complex (cmpl, n1, n2, exact)
+
+  implicit none
+
+  complex(rp), allocatable :: cmpl(:), temp_cmpl(:)
+
+  integer, intent(in) :: n1, n2
+  integer n1_save, n2_save, n1_old, n2_old
+
+  logical, optional :: exact
+
+!
+
+  if (allocated(cmpl)) then
+    n1_old = lbound(cmpl, 1); n2_old = ubound(cmpl, 1)
+    if (n1 == n1_old .and. n2 == n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    allocate (temp_cmpl(n1_save:n2_save))
+    temp_cmpl = cmpl(n1_save:n2_save)
+    deallocate (cmpl)
+    allocate (cmpl(n1:n2))
+    cmpl(n1_save:n2_save) = temp_cmpl
+    deallocate (temp_cmpl)  
+  else
+    allocate (cmpl(n1:n2))
+  endif
+
+end subroutine re_allocate2_complex
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -618,7 +732,61 @@ subroutine re_allocate2_real (re, n1, n2, exact)
     allocate (re(n1:n2))
   endif
 
-end subroutine
+end subroutine re_allocate2_real
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
+!
+! Routine to reallocate an array of reals.
+! This is modeled after the reallocate functions in Numerical Recipes.
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if [n1, n2] is less than the original size of the array
+!
+! Input:
+!   re_ptr(:) -- Real_pointer_struct, allocatable: Real array.
+!   n1     -- Integer: Desired lower bound.
+!   n2     -- Integer: Desired upper bound.
+!   exact  -- Logical, optional: If present and False then the size of 
+!                 the output array is permitted to be larger than n. 
+!                 Default is True.
+!
+! Output:
+!   re_ptr(:)  -- Real_pointer_struct, allocatable: Allocated array with 
+!                  bounds spanning at least [n1, n2]
+!-
+
+subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
+
+  implicit none
+
+  type(real_pointer_struct), allocatable :: re_ptr(:), temp_re_ptr(:)
+
+  integer, intent(in) :: n1, n2
+  integer n1_save, n2_save, n1_old, n2_old
+
+  logical, optional :: exact
+
+!
+
+  if (allocated(re_ptr)) then
+    n1_old = lbound(re_ptr, 1); n2_old = ubound(re_ptr, 1)
+    if (n1 == n1_old .and. n2 == n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
+    allocate (temp_re_ptr(n1_save:n2_save))
+    temp_re_ptr = re_ptr(n1_save:n2_save)
+    deallocate (re_ptr)
+    allocate (re_ptr(n1:n2))
+    re_ptr(n1_save:n2_save) = temp_re_ptr
+    deallocate (temp_re_ptr)  
+  else
+    allocate (re_ptr(n1:n2))
+  endif
+
+end subroutine re_allocate2_real_pointer
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -672,7 +840,7 @@ subroutine re_allocate2_logical (logic, n1, n2, exact)
     allocate (logic(n1:n2))
   endif
 
-end subroutine
+end subroutine  re_allocate2_logical
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -724,7 +892,7 @@ subroutine re_allocate_string2d (str2, n1, n2, exact)
     allocate (str2(n1,n2))
   endif
 
-end subroutine
+end subroutine re_allocate_string2d
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -777,7 +945,7 @@ subroutine re_allocate_integer2d (inte2, n1, n2, exact)
     allocate (inte2(n1,n2))
   endif
 
-end subroutine
+end subroutine re_allocate_integer2d
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -830,7 +998,7 @@ subroutine re_allocate_real2d (re2, n1, n2, exact)
     allocate (re2(n1,n2))
   endif
 
-end subroutine
+end subroutine re_allocate_real2d
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -883,7 +1051,7 @@ subroutine re_allocate_logical2d (logic2, n1, n2, exact)
     allocate (logic2(n1,n2))
   endif
 
-end subroutine
+end subroutine re_allocate_logical2d
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -932,7 +1100,7 @@ subroutine re_associate_string (str, n, exact)
     allocate (str(n))
   endif
 
-end subroutine
+end subroutine re_associate_string
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -982,7 +1150,7 @@ subroutine re_associate_integer (inte, n, exact)
     allocate (inte(n))
   endif
 
-end subroutine
+end subroutine re_associate_integer
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1033,7 +1201,7 @@ subroutine re_associate_real (re, n, exact)
   endif
 
 
-end subroutine
+end subroutine re_associate_real
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1084,6 +1252,6 @@ subroutine re_associate_logical (logic, n, exact)
   endif
 
 
-end subroutine
+end subroutine re_associate_logical
 
 end module
