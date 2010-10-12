@@ -260,10 +260,11 @@ A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a
 the reference orbit for such elements are modeled as zero length bends
 with $\widetilde \Bf L = (0, 0, 0)$.
 The total bending angle for a \vn{crystal} is 
-\begin{example}
-  total_bend_angle = graze_angle_in + graze_angle_out   ! Crystal
-  total_bend_angle = 2 * graze_angle                    ! Mirror
-\end{example}
+\begin{align}
+  \alpha &= \mbox{graze_angle_in} + \mbox{graze_angle_out} &\mbox{! Crystal} \CRNO
+  \alpha &= 2 \, \mbox{graze_angle}                        &\mbox{! Mirror}
+  \label{agg}
+\end{align}
 The orientation
 of the exit coordinates (the local coordinates after the reflection)
 are only affected by the element's tilt and graze angle parameters and

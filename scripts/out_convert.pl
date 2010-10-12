@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\%exp/\%expn/g;
+    s/\.eps\}/\.pdf\}/g;
 
     print (F_OUT);
   }

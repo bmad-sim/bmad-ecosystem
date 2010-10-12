@@ -188,9 +188,9 @@ if (set) then
         coord%vec(2) = coord%vec(2) + del_x_vel
         coord%vec(4) = coord%vec(4) + del_y_vel
       endif
-      call tilt_coords (ele%value(tilt_tot$)+ele%value(roll$), coord%vec, set$)
+      call tilt_coords (ele%value(tilt_tot$)+ele%value(roll$), coord%vec)
     else
-      call tilt_coords (ele%value(tilt_tot$), coord%vec, set$)
+      call tilt_coords (ele%value(tilt_tot$), coord%vec)
     endif
 
   endif
@@ -252,13 +252,13 @@ else
   if (set_t) then
 
     if (ele%key == sbend$) then
-      call tilt_coords (ele%value(tilt_tot$)+ele%value(roll$), coord%vec, unset$) 
+      call tilt_coords (-(ele%value(tilt_tot$)+ele%value(roll$)), coord%vec) 
       if (ele%value(roll$) /= 0) then  
         coord%vec(2) = coord%vec(2) + del_x_vel
         coord%vec(4) = coord%vec(4) + del_y_vel
       endif
     else
-      call tilt_coords (ele%value(tilt_tot$), coord%vec, unset$)   
+      call tilt_coords (-ele%value(tilt_tot$), coord%vec)   
     endif
 
   endif

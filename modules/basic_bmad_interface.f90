@@ -740,12 +740,11 @@ interface
 end interface
 
 interface
-  subroutine tilt_coords (tilt_val, coord, set)
+  subroutine tilt_coords (tilt_val, coord)
     use precision_def
     implicit none
     real(rp) tilt_val
     real(rp) coord(:)
-    logical set
   end subroutine
 end interface
 
