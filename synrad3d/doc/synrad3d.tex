@@ -473,15 +473,14 @@ specification which has the parameters
 
 An example wall definition file is:
 \begin{example}
-  ! Anything outside the namelist is ignored.
-  &synrad3d_wall
-    wall_pt(0) =   0.0, "elliptical", 0.045, 0.025
-    wall_pt(1) =  74.3, "gen_shape", 1
-    wall_pt(2) =  82.9, "rectangular", 0.045, 0.025
-    wall_pt(3) =  91.1, "rectangular", 0.045, 0.025, -1, -1, 0.08, 0.01
-    wall_pt(4) = 101.3, "elliptical", 0.045, 0.025
-    wall_pt(5) =   0.0, "elliptical", 0.045, 0.025
-  /
+  ! Anything outside the namelists is ignored.
+  &wall_def section =   0.0, "elliptical", 0.045, 0.025 /
+  &wall_def section =  74.3, "gen_shape", 1 /
+  &wall_def section =  82.9, "rectangular", 0.045, 0.025 /
+  &wall_def section =  91.1, "rectangular", 0.045, 0.025, -1, -1, 0.08, 0.01 /
+  &wall_def section = 101.3, "elliptical", 0.045, 0.025 / 
+  &wall_def section =   0.0, "elliptical", 0.045, 0.025 /
+
   &gen_shape_def
     ix_gen_shape = 1
     v(1) =  0.045,  0.025
@@ -496,33 +495,29 @@ An example wall definition file is:
   /
 \end{example}
 Fortran namelist input is used. 
-The main namelist begins on the line starting with \vn{"\&synrad3d_wall"}
-and ends with the line containing the slash \vn{"/"}. Anything outside
-of this is ignored. Within the namelist, anything after an exclamation
+The \vn{wall_def} namelists begin with \vn{"\&wall_def"}
+and ends with a slash \vn{"/"}. Each namelist specifies one cross-section.
+Within the namelist, anything after an exclamation
 mark \vn{"!"} is ignored including the exclamation mark. 
 
-In the \vn{synrad3d_wall} namelist, \vn{wall_pt(i)} gives the
-parameters for the $i$\Th cross-section. The format for an \vn{elliptical}
-or \vn{rectangular} \vn{wall_pt} is
+The format for an \vn{elliptical} or \vn{rectangular} cross-section is
 \begin{example}
-  wall_pt(<i>) = <s>, <basic_shape>, <width2>, <height2>, <width2_plus>, 
-                  <ante_height2_plus>, <width2_minus>, <ante_height2_minus>
+  &wall_def section = <s>, <basic_shape>, <width2>, <height2>, <width2_plus>, 
+                  <ante_height2_plus>, <width2_minus>, <ante_height2_minus> /
 \end{example}
-The format for a \vn{gen_shape} \vn{wall_pt} is
+The format for a \vn{gen_shape} cross-section is
 \begin{example}
-  wall_pt(<i>) = <s>, "gen_shape", <ix_gen_shape>
+  &wall_def section = <s>, "gen_shape", <ix_gen_shape> /
 \end{example}
 
-The index $<i>$ of \vn{wall_pt(<i>)} runs from zero which gives the
-cross-section at the beginning of the lattice up to the index for the
-last cross-section at the end of the lattice. The $<s>$ values for the
-wall points must be in increasing order starting at $<s> = 0$ for
-\vn{wall_pt(<i>)}. The exception is that the $<s>$ value for the last
-\vn{wall_pt(<i>)} is immaterial since \srthree will automatically substitute
+The $<s>$ values for the
+cross-sections must be in increasing order starting at $<s> = 0$ for
+the first cross-section. The exception is that the $<s>$ value for the last
+cross-section is immaterial since \srthree will automatically substitute
 the appropriate $<s>$ value at the end of the lattice.
 
 For \vn{elliptical} and \vn{rectangular} shapes, the first four parameters -- \vn{<s>},
-\vn{<basic_shape>}, \vn{<width2>}, and \vn{<height2>} -- of \vn{wall_pt(<i>)} must be
+\vn{<basic_shape>}, \vn{<width2>}, and \vn{<height2>} -- of a cross-section must be
 specified. Values for the other parameters are optional and default to
 the ``unset'' value of -1.
 
@@ -533,9 +528,9 @@ namelist is:
 \begin{example}
   &gen_shape_def
     ix_gen_shape = <index>
-    v(1) = <x1> <y1> <radius1>
-    v(2) = <x2> <y2> <radius2>
-    v(3) = <x3> <y3> <radius3>
+    v(1) = <x1> <y1> <radius_x1> <radius_y1> <tilt1>
+    v(2) = <x2> <y2> <radius_x2> <radius_y2> <tilt2>
+    v(3) = <x3> <y3> <radius_x3> <radius_y3> <tilt3>
     ... etc ...
   /
 \end{example}
@@ -550,19 +545,19 @@ and $y$ values, it is assumed that the gen_shape is symmetric with
 respect to both the $x$ and $y$ axes.
 
 Between vertices, the wall is assumed to be a straight line except if
-a \vn{<radius>} is given. If \vn{<radius>} is set to a non-zero value
-for a given vertex, the wall segment between that vertex and the
-vertex before it is the arc of a circle with the given radius. If
-\vn{<radius>} is positive, the wall segment is convex and if the
-\vn{<radius>} is negative then the wall segment is concave.
+a \vn{<radius_x>} is given. If \vn{<radius_x>} is set to a non-zero
+value for a given vertex, the wall segment between that vertex and the
+vertex before it is the arc of a circle with the given radius. If, in
+addition, \vn{<radius_y>} is given, the arc will be a section of an
+ellipse.  If \vn{<tilt>} is given then the ellipse will be tilted.
 
-In the example above, \vn{wall_pt(1)} at $s = 74.3$~meters is a
-\vn{gen_shape} whose definition is given by the first \vn{gen_shape_def}
-namelist with an \vn{ix_gen_shape} value of 1. This definition defines
-a rectangle and is equivalent to \vn{wall_pt(2)}. Additionally, the
-second \vn{gen_shape_def} namelist with an \vn{ix_gen_shape} value of
-2. defines a symmetric gen_shape which has the exact same shape as the
-first gen_shape.
+In the example above, the cross-section at $s = 74.3$~meters is a
+\vn{gen_shape} whose definition is given by the first
+\vn{gen_shape_def} namelist with an \vn{ix_gen_shape} value of 1. This
+definition defines a rectangle and is equivalent to the cross-section
+at 82.9~meters. Additionally, the second \vn{gen_shape_def} namelist
+with an \vn{ix_gen_shape} value of 2. defines a symmetric gen_shape
+which has the exact same shape as the first gen_shape.
 
 The \vn{gen_shape_mesh} shape syntax is exactly the same as the
 \vn{gen_shape} syntax except that \vn{basic_shape} is set to

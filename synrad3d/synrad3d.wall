@@ -1,19 +1,16 @@
 !+
 ! Example wall specification:
 !
-!  &synrad3d_wall
-!    wall_pt(0) = 0.0, 'elliptical', 0.045, 0.025
-!    wall_pt(1) = 80.01, 'rectangular', 0.045, 0.025, 0.01, 0.006
-!  /
+!  &wall_def section = 0.0, 'elliptical', 0.045, 0.025 /
+!  &wall_def section = 80.01, 'rectangular', 0.045, 0.025, 0.01, 0.006 /
 !
 ! The format to specify a wall point is:
-!    wall_pt(n) = z, shape, x_half_width, y_half_height, antechamber_half_height(+x side), 
-!                                                            antechamber_half_height(-x side)
+!    &wall_def section(n) = z, shape, x_half_width, y_half_height, antechamber_half_height(+x side), 
+!                                                            antechamber_half_height(-x side) /
 !
 ! Wall point parameters:
-!   n             -- Wall point index. The index starts at 0 and runs to to the last point.
 !   z             -- Longitudinal distance from the start of the lattice. 
-!                      For wall_pt(0): z must be 0.
+!                      For the first cross-section z must be 0.
 !                      For the last wall point the z value will be set by 
 !                      synrad3d to the z at the end of the lattice. 
 !   shape         -- Chamber shapes. Possible values are:
@@ -34,11 +31,9 @@
 ! exists for a given section of wall.
 !-
 
-&synrad3d_wall
-  wall_pt(0) = 0.0, 'elliptical', 0.02, 0.01
-  wall_pt(1) = 80.0, 'elliptical', 0.04, 0.02
-  wall_pt(2) = 80.01, 'rectangular', 0.045, 0.025
-  wall_pt(3) = 100.0, 'rectangular', 0.045, 0.025, 0.02, 0.05, 0.02, 0.05
-  wall_pt(4) = 100.01, 'elliptical', 0.045, 0.025
-  wall_pt(5) = 0.0, 'elliptical', 0.045, 0.025 
-/
+&wall_def section = 0.0, 'elliptical', 0.02, 0.01 /
+&wall_def section = 80.0, 'elliptical', 0.04, 0.02 /
+&wall_def section = 80.01, 'rectangular', 0.045, 0.025 /
+&wall_def section = 100.0, 'rectangular', 0.045, 0.025, 0.02, 0.05, 0.02, 0.05 /
+&wall_def section = 100.01, 'elliptical', 0.045, 0.025 /
+&wall_def section = 0.0, 'elliptical', 0.045, 0.025  /
