@@ -136,8 +136,8 @@ PKG_OBJS   :=
 LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
-ifneq "$(BMAD_USE_PLPLOT)" ""
-  LOCAL_LFLAGS   :=  -L/opt/local/lib -lplplotf77d -lplplotf77cd -lplplotd
+ifneq "$(USE_PLPLOT)" ""
+  LOCAL_LFLAGS   :=  -L$(PLPLOT_LIBDIR) -lplplotf77d -lplplotf77cd -lplplotd
 else
   LOCAL_LFLAGS   :=
 endif
@@ -163,7 +163,7 @@ endif
 #--------------------------------------------------------------
 LOCAL_LIBS := 
 CESR_LIBS  := tao bmad sim_utils recipes_f-90_LEPP 
-ifneq "$(BMAD_USE_PLPLOT)" ""
+ifneq "$(USE_PLPLOT)" ""
   PKG_LIBS   := forest xsif
 else
   PKG_LIBS   := forest pgplot xsif
