@@ -54,7 +54,15 @@ OBJ_SRC_DIRS := test dynamic_aperture closed_orbit analyzer tune_plane_res_plot 
 CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
-M_FILE_LIST  := M.dynamic_aperture M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall M.ring_ma
+
+ifneq (,$(findstring $(USE_PGPLOT),yY))
+  M_FILE_LIST  := M.dynamic_aperture M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall
+else
+  M_FILE_LIST  := M.dynamic_aperture M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall
+endif
+
+
+
 
 
 #-----------------------------------------------------------------------------
