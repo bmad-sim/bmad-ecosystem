@@ -529,6 +529,10 @@ enddo
 
 close (1)
 
+! For custom output
+
+include 'custom_output.inc'
+
 !--------------------------------------------------------------------------------------------
 contains
 
