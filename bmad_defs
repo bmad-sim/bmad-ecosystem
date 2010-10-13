@@ -90,7 +90,10 @@ fi
 #
 # Set flag to enable use of PLPLOT for distrubution builds
 #
-export BMAD_USE_PLPLOT=Y
+export USE_PLPLOT=Y
+export PLPLOT_LIBDIR=/opt/local/lib
+
+export USE_PGPLOT=Y
 
 
 
