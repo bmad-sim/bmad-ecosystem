@@ -22,7 +22,7 @@ type (normal_modes_struct) modes
 type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct), target :: wall
-type (wall3d_pt_struct) wall_pt(0:1000)
+type (wall3d_pt_struct) section
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
@@ -57,7 +57,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
             e_init_filter_min, e_init_filter_max
 
-namelist / synrad3d_wall / wall_pt
+namelist / wall_def / section
 namelist / gen_shape_def / ix_gen_shape, v
 
 namelist / start / p, ran_state
@@ -120,33 +120,53 @@ filter_on = (e_init_filter_min > 0) .or. (e_init_filter_max > 0) .or. &
 s_wrap_on = (s_filter_min >= 0) .and. (s_filter_max >= 0) .and. (s_filter_min > s_filter_max)
 
 ! Get wall info
-
-n_wall_pt_max = -1
-wall_pt%basic_shape = ''
-wall_pt%ante_height2_plus = -1
-wall_pt%ante_height2_minus = -1
-wall_pt%width2_plus = -1
-wall_pt%width2_minus = -1
-wall_pt%ix_gen_shape = -1
-wall_pt%surface_type = linear_surface$
+! First count the cross-section number
 
 open (1, file = wall_file, status = 'old')
-read (1, nml = synrad3d_wall)
-
-n = 0
-do i = 0, ubound(wall_pt, 1)
-  if (wall_pt(i)%basic_shape(1:9) == 'gen_shape') then
-    wall_pt(i)%ix_gen_shape = nint(wall_pt(i)%width2)
-    n = max (n, wall_pt(i)%ix_gen_shape)
+n_wall_pt_max = -1
+do
+  read (1, nml = wall_def, iostat = ios)
+  if (ios > 0) then ! error
+    rewind (1)
+    do
+      read (1, nml = wall_def) ! will bomb program with error message
+    enddo  
   endif
-  if (wall_pt(i)%basic_shape == 'gen_shape_mesh') wall_pt(i)%surface_type = mesh_surface$
-  if (wall_pt(i)%basic_shape == '') then
-    n_wall_pt_max = i - 1
-    exit
-  endif
+  if (ios < 0) exit   ! End of file reached
+  n_wall_pt_max = n_wall_pt_max + 1
 enddo
 
+print *, 'number of wall cross-sections read:', n_wall_pt_max + 1
+allocate (wall%pt(0:n_wall_pt_max))
+wall%n_pt_max = n_wall_pt_max
+
+! Now transfer info from the file to the wall%pt array
+
+n = -1
+rewind (1)
+do i = 0, n_wall_pt_max
+  section%basic_shape = ''
+  section%ante_height2_plus = -1
+  section%ante_height2_minus = -1
+  section%width2_plus = -1
+  section%width2_minus = -1
+  section%ix_gen_shape = -1
+  section%surface_type = linear_surface$
+  read (1, nml = wall_def)
+
+  wall%pt(i) = section
+
+  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
+    wall%pt(i)%ix_gen_shape = nint(wall%pt(i)%width2)
+    n = max (n, wall%pt(i)%ix_gen_shape)
+  endif
+  if (wall%pt(i)%basic_shape == 'gen_shape_mesh') wall%pt(i)%surface_type = mesh_surface$
+enddo
+
+! Get the gen_shape info
+
 if (n > 0) then
+  rewind(1)
   allocate (wall%gen_shape(n))
   do
     v = cross_section_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
@@ -189,6 +209,9 @@ else
   call bmad_parser (lattice_file, lat)
 endif
 
+wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
+call sr3d_check_wall (wall)
+
 if (turn_off_kickers_in_lattice) then
   do i = 1, lat%n_ele_max
     ele => lat%ele(i)
@@ -216,17 +239,6 @@ if (.not. ok) stop
 if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
 
 call ran_seed_put (random_seed)
-
-! Transfer info from wall_pt to wall%pt
-
-print *, 'n_wall_pt_max:', n_wall_pt_max
-
-allocate (wall%pt(0:n_wall_pt_max))
-wall%pt = wall_pt(0:n_wall_pt_max)
-wall%n_pt_max = n_wall_pt_max
-wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
-
-call sr3d_check_wall (wall)
 
 ! Find out much radiation is produced
 
@@ -472,8 +484,8 @@ open (1, file = dat_file)
 print *, 'Data file is: ', trim(dat_file)
 
 if (sr3d_params%stop_if_hit_antechamber .and. &
-    (any(wall_pt%ante_height2_plus > 0) .or. &
-     any(wall_pt%ante_height2_minus > 0))) then
+    (any(wall%pt%ante_height2_plus > 0) .or. &
+     any(wall%pt%ante_height2_minus > 0))) then
   dat2_file = trim(dat_file) // '.antechamber'
   open (2, file = dat2_file)
   print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
