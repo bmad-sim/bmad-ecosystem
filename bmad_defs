@@ -93,7 +93,7 @@ fi
 export USE_PLPLOT=Y
 export PLPLOT_LIBDIR=/opt/local/lib
 
-export USE_PGPLOT=Y
+export USE_PGPLOT=N
 
 
 
