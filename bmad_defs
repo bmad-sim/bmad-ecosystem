@@ -46,6 +46,30 @@ BMAD_=${BMAD_:-/home/mcr/tmp/dist_testing/bmad_dist}
 #
 BMAD_BIN=${BMAD_}/bin
 
+
+
+#
+# Set flag to enable use of PLPLOT for distrubution builds
+#
+export USE_PLPLOT=Y
+export PLPLOT_LIBDIR=/opt/local/lib
+
+export USE_PGPLOT=N
+
+
+#-------------------------------------------------------------
+# This controls whether or not standalone programs are built
+# along with the library resources being built.
+#-------------------------------------------------------------
+export DO_EXTRA_MAKES=Y
+
+
+
+#================================================================
+# Non user-customizable options below
+#================================================================
+
+
 #
 # Get platform/OS tags
 #
@@ -87,13 +111,7 @@ else
 fi
 
 
-#
-# Set flag to enable use of PLPLOT for distrubution builds
-#
-export USE_PLPLOT=Y
-export PLPLOT_LIBDIR=/opt/local/lib
 
-export USE_PGPLOT=N
 
 
 
