@@ -28,6 +28,10 @@
 ! To get the defaults used for optional arguments use the routines:
 !   qp_get_line
 !   gp get_symbol
+!   qp_get_axis_attrib
+!   qp_get_text_atttrib
+!   qp_get_layout_attrib
+!   qp_get_parameters
 !
 !--------------------------------------------------------------------
 !
@@ -636,7 +640,36 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_get_axis (axis_str, a_min, a_max, div, places, label, 
+! USE QP_GET_AXIS_ATTRIB INSTEAD!
+!-
+
+subroutine qp_get_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
+                draw_numbers, minor_div, mirror, number_offset, &
+                label_offset, major_tick_len, minor_tick_len, ax_type)
+
+implicit none
+
+type (qp_axis_struct), pointer :: this_axis
+real(rp), optional :: a_min, a_max, number_offset
+real(rp), optional :: label_offset, major_tick_len, minor_tick_len
+
+integer, optional :: div, places, minor_div
+logical, optional :: draw_label, draw_numbers, mirror
+
+character(*), optional :: label, ax_type
+character(*) axis_str
+
+call qp_get_axis_attrib (axis_str, a_min, a_max, div, places, label, draw_label, &
+                draw_numbers, minor_div, mirror, number_offset, &
+                label_offset, major_tick_len, minor_tick_len, ax_type)
+
+end subroutine qp_get_axis
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_get_axis_attrib (axis_str, a_min, a_max, div, places, label, 
 !               draw_label, draw_numbers, minor_div, mirror, number_offset, 
 !               label_offset, major_tick_len, minor_tick_len, ax_type)
 !   
@@ -669,7 +702,7 @@ end subroutine
 !   ax_type        -- Character(16): Axis type. 'LINEAR', or 'LOG'.
 !-
 
-subroutine qp_get_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
+subroutine qp_get_axis_attrib (axis_str, a_min, a_max, div, places, label, draw_label, &
                 draw_numbers, minor_div, mirror, number_offset, &
                 label_offset, major_tick_len, minor_tick_len, ax_type)
 
@@ -3673,7 +3706,20 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+  
-! Subroutine qp_get_symbol (symbol)
+! USE QP_GET_SYMBOL_ATTRIB INSTEAD!
+!-
+
+subroutine qp_get_symbol (symbol)
+implicit none
+type (qp_symbol_struct) symbol
+symbol = qp_com%symbol
+end subroutine
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+  
+! Subroutine qp_get_symbol_attrib (symbol)
 !
 ! Subroutine to get the symbol parameters used in plotting data.
 ! Use qp_set_symbol or qp_set_symbol_attrib to set symbol attributes.
@@ -3688,7 +3734,7 @@ end subroutine
 !     %line_width    -- Integer: Line width.
 !-
 
-subroutine qp_get_symbol (symbol)
+subroutine qp_get_symbol_attrib (symbol)
 
 implicit none
 
@@ -3753,7 +3799,21 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_get_line (who, line)
+! USE QP_GET_LINE_ATTRIB INSTEAD!
+!-
+
+subroutine qp_get_line (who, line)
+implicit none
+type (qp_line_struct) line
+character(*) who
+call qp_get_line_attrib (who, line)
+end subroutine qp_get_line
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine qp_get_line_attrib (who, line)
 !
 ! Subroutine to get the default line attributes.
 ! See the quick_plot documentation for more details.
@@ -3773,13 +3833,13 @@ end subroutine
 !     %color   -- Integer: Line color.
 !-
 
-subroutine qp_get_line (who, line)
+subroutine qp_get_line_attrib (who, line)
 
 implicit none
 
 type (qp_line_struct) line
 character(*) who
-character(16) :: r_name = 'qp_get_line'
+character(24) :: r_name = 'qp_get_line_attrib'
 
 !
 
@@ -3941,6 +4001,97 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
+! Subroutine qp_get_text_attrib (who, height, color, background, &
+!                                       uniform_spacing, spacing_factor)
+!
+! Routine to get the default text attributes for titles, legends, etc.
+! See the quick_plot documentation for more details.
+! Note: The background color index is common to all types of text.
+!
+! Input:                                        
+!   who -- Character(*):     Used by:             Comment
+!            "TEXT"          qp_draw_text         General text.
+!            "MAIN_TITLE"    qp_draw_main_title   Title at top of page.
+!            "GRAPH_TITLE"   qp_draw_graph_title  Title above a graph.
+!            "LEGEND"        qp_draw_text_legend  Legend.
+!            "LEGEND"        qp_draw_label_legend Legend.
+!            "AXIS_NUMBERS"  qp_draw_graph        Axes Numbers.
+!            "AXIS_LABEL"    qp_draw_graph        Axis label.
+!   height      -- Real(rp), optional: Character height.
+!   color       -- Integer, optional: Color index.
+!   background  -- Integer, optional: Background color index.
+!   uniform_spacing -- Logical, optional: If T then the distance between 
+!                      characters is uniform.
+!   spacing_factor  -- Real(rp), optional: Spacing factor for the 
+!             uniform_spacing option. This is set globally for all "who".
+!-
+
+subroutine qp_get_text_attrib (who, height, color, background, &
+                                             uniform_spacing, spacing_factor)
+
+implicit none
+
+integer, optional :: color, background
+real(rp), optional :: height, spacing_factor
+logical, optional :: uniform_spacing
+character(*) who
+character(24) :: r_name = 'qp_set_text_attrib'
+
+!
+
+if (who == "MAIN_TITLE") then
+  call qp_get_this_text_attrib (qp_com%main_title)
+elseif (who == "GRAPH_TITLE") then
+  call qp_get_this_text_attrib (qp_com%graph_title)
+elseif (who == "LEGEND") then
+  call qp_get_this_text_attrib (qp_com%legend)
+elseif (who == "TEXT") then
+  call qp_get_this_text_attrib (qp_com%text)
+elseif (who == "AXIS_NUMBERS") then
+  call qp_get_this_text_attrib (qp_com%axis_number)
+elseif (who == "AXIS_LABEL") then
+  call qp_get_this_text_attrib (qp_com%axis_label)
+else
+  call out_io (s_fatal$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
+  call err_exit
+endif
+
+!----------------------------------------------------------------
+contains
+
+subroutine qp_get_this_text_attrib (this_text)
+
+type (qp_text_struct) this_text
+real(rp) text_height
+
+!
+
+if (present(spacing_factor)) spacing_factor = qp_com%text_spacing_factor 
+
+if (present(height)) then
+  height = this_text%height
+endif
+
+if (present(color)) then
+  color = this_text%color
+endif
+
+if (present(background)) then
+  background = qp_com%text_background
+endif
+
+if (present(uniform_spacing)) then
+  uniform_spacing = this_text%uniform_spacing
+endif
+
+end subroutine
+
+end subroutine qp_get_text_attrib
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
 ! Subroutine qp_set_text_attrib (who, height, color, background, &
 !                                       uniform_spacing, spacing_factor)
 !
@@ -3983,27 +4134,26 @@ character(16) :: r_name = 'qp_set_text_attrib'
 !
 
 if (who == "MAIN_TITLE") then
-  call qp_set_this_char_size (qp_com%main_title)
+  call qp_set_this_text_attrib (qp_com%main_title)
 elseif (who == "GRAPH_TITLE") then
-  call qp_set_this_char_size (qp_com%graph_title)
+  call qp_set_this_text_attrib (qp_com%graph_title)
 elseif (who == "LEGEND") then
-  call qp_set_this_char_size (qp_com%legend)
+  call qp_set_this_text_attrib (qp_com%legend)
 elseif (who == "TEXT") then
-  call qp_set_this_char_size (qp_com%text)
+  call qp_set_this_text_attrib (qp_com%text)
 elseif (who == "AXIS_NUMBERS") then
-  call qp_set_this_char_size (qp_com%axis_number)
+  call qp_set_this_text_attrib (qp_com%axis_number)
 elseif (who == "AXIS_LABEL") then
-  call qp_set_this_char_size (qp_com%axis_label)
+  call qp_set_this_text_attrib (qp_com%axis_label)
 else
   call out_io (s_fatal$, r_name, 'BAD "WHO": "' // trim(who) // '"' )
   call err_exit
-
 endif
 
 !----------------------------------------------------------------
 contains
 
-subroutine qp_set_this_char_size (this_text)
+subroutine qp_set_this_text_attrib (this_text)
 
 type (qp_text_struct) this_text
 real(rp) text_height
@@ -4749,8 +4899,8 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_get_parameters (text_scaledefault_draw_units, default_set_units, &
-!                           default_axis_slop_factor)
+! Subroutine qp_get_parameters (text_scale, default_draw_units, &
+!                           default_set_units, default_axis_slop_factor)
 !
 ! Routine to get various quick_plot parameters.
 ! The routine qp_set_parameters can be used to set these parameters.
