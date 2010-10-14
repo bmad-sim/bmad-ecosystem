@@ -1018,7 +1018,7 @@ if (axis%type == 'LOG') then
 
   if (data_min <= 0 .or. data_max <= 0) then
     call out_io (s_abort$, r_name, &
-                    'DATA IS NEGATIVE FOR LOG AXIS CALC: \i\ ', min(data_min, data_max))
+                    'DATA IS NEGATIVE FOR LOG AXIS CALC: \2es12.2\ ', min(data_min, data_max))
     call err_exit
   endif
 
