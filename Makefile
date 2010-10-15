@@ -52,7 +52,7 @@
 LIB_SRC_DIRS := code
 OBJ_SRC_DIRS := test dynamic_aperture closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif bmad_to_autocad synrad synrad3d bbu plot_freq_map plot_sb_scan
 CONFIG_DIRS  :=
-LOCAL_INCS   :=
+LOCAL_INCS   := synrad3d
 SRC_EXCLUDE  :=
 
 ifneq (,$(findstring $(USE_PGPLOT),yY))
