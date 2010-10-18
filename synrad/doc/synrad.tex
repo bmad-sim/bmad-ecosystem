@@ -67,8 +67,8 @@
 Synrad is a program for calculating the synchrotron radiation power
 deposition on the beam chamber walls in a storage ring or
 accelerator. Synrad works by tracking photons from creation at the
-beam to absorbion at the chamber wall. Tracking is in the horizontal
-plane only and reflections from the wall are not considered.  The
+beam to absorption at the chamber wall. The tracking uses horizontal
+apertures only and reflections from the wall are not considered.  The
 vertical extent of the radiation stripe at the wall, important for
 calculating the power deposition per unit area, is calculated using
 the vertical emittance.
@@ -86,8 +86,10 @@ varying the orbit are possible.
 
 Synrad is not to be confused with another program called Synrad3D.
 The Synrad3D program uses a full three dimensional chamber model along
-with a model for the scattering the photons. The aim here is to
-simulate
+with a model for the scattering the photons. The aim in Synrad is to
+calculate the synchrotron radiation power hitting the inside 
+and outside walls.  The inside wall is defined as the wall having negative
+x values, and the outside wall has positive x values.
 
 %------------------------------------------------------------------
 \section{Main Input File} 
@@ -123,20 +125,50 @@ including the exclamation mark.
 The \vn{lat_file_name} parameter specifies the lattice file to be
 used.  Lattices are in Bmad standard format~\cite{b:bmad.web}.
   \item[\vn{sr_param\%i_beam}] \Newline
+The \vn{i_beam} parameter specifies the current (Amps) in a single beam.
   \item[\vn{sr_param\%epsilon_y}] \Newline
+The \vn{epsilon_y} parameter specifies the vertical emittance to use 
+in the simulation.
   \item[\vn{sr_param\%n_slice}] \Newline
+The \vn{n_slice} parameter specifies the number of slices to divide
+magnetic elements into.  More slices gives a more accurate depiction 
+of the radiation but increases the computation time. 
   \item[\vn{sr_param\%seg_len}] \Newline
+The \vn{seg_len} parameter sets the maximum size of a wall segment. 
+A smaller size can give better power deposition resolution but 
+increases the computation time.
   \item[\vn{beam_direction}] \Newline
+The \vn{beam_direction} parameter specifies the direction of the tracking
+to use: -1 = track backwards only (e- in CESR), 1 = track forward only 
+(e+ in CESR), and 0 = track both directions.
   \item[\vn{wall_file}] \Newline
+The \vn{wall_file} parameter specifies a file giving a list of
+x inside, x outside, and s vertices to define the horizontal aperture 
+of the wall.
   \item[\vn{wall_offset}] \Newline
+The \vn{wall_offset} parameter specifies an offset (meters) to use if
+a wall file is not specified.  In this case the wall would be defined 
+as plus and minus the offset from the design beam orbit.
   \item[\vn{forward_beam}] \Newline
+The \vn{forward_beam} parameter specifies which species moves in the
+positive s direction.
+Should be POSITRON for CESR.
   \item[\vn{backward_beam}] \Newline
+The \vn{backward_beam} parameter specifies which species moves in the
+negative s direction.
+Should be ELECTRON for CESR.
   \item[\vn{use_ele_ix}] \Newline
+The \vn{use_ele_ix} parameter specifies the index a single element 
+from which to generate synchrotron radiation.  If this is 0, then
+generate power from all bends, quads and wigglers.
   \end{description}
 
 %------------------------------------------------------------------
 \section{Vacuum Chamber Wall Definition} 
 
+Wall files define a series of wall vertices.  The definition 
+includes the s position (meters), and the corresponding 
+inside and outside wall offsets at that location (meters).
 
 %------------------------------------------------------------------
 \section{Simulation Technique} 
