@@ -173,7 +173,7 @@ do istep = 1, nstep
       endif
       call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
     enddo
-    call make_hybrid_lat (lat_in, keep_ele, .true., lat)
+    call make_hybrid_lat (lat_in, keep_ele, .false., lat)
     deallocate (keep_ele)
   else
     lat = lat_in
