@@ -51,6 +51,8 @@ type bbu_param_struct
   integer nrep
   integer ran_seed
   real(rp) ran_gauss_sigma_cut
+  character(40) ele_track_end
+  integer ix_ele_track_end
 end type
 
 contains
@@ -172,7 +174,7 @@ real(rp) hom_voltage0, hom_voltage_sum, r_period, r_period0, voltage
 real(rp) hom_voltage_gain, growth_rate, orb(6)
 real(rp) max_x,rms_x,max_y,rms_y
 
-integer i, n_period, n_count, n_period_old, ix_ele,irep
+integer i, n, n_period, n_count, n_period_old, ix_ele,irep
 
 logical lost
 
@@ -216,12 +218,13 @@ n_count = 0
 
 do
 
-  call bbu_track_a_stage (lat, bbu_beam, lost)
+  call bbu_track_a_stage (lat, bbu_beam, bbu_param, lost)
   if (lost) exit
 
   ! If the head bunch is finished then remove it and seed a new one.
 
-  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track) then
+  if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == lat%n_ele_track .or. &
+      bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == bbu_param%ix_ele_track_end) then
     call bbu_remove_head_bunch (bbu_beam)
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
   endif
@@ -266,10 +269,12 @@ do
          ' HOM voltage gain factor: ', hom_voltage_gain
 
     call track_all (lat, orbit)
-    max_x = maxval(abs(orbit(1:lat%n_ele_track)%vec(1)))
-    max_y = maxval(abs(orbit(1:lat%n_ele_track)%vec(3)))
-    rms_x = sqrt(sum(orbit(1:lat%n_ele_track)%vec(1)**2)/lat%n_ele_track)
-    rms_y = sqrt(sum(orbit(1:lat%n_ele_track)%vec(3)**2)/lat%n_ele_track)
+    n = lat%n_ele_track
+    if (bbu_param%ix_ele_track_end > 0) n = bbu_param%ix_ele_track_end
+    max_x = maxval(abs(orbit(1:n)%vec(1)))
+    max_y = maxval(abs(orbit(1:n)%vec(3)))
+    rms_x = sqrt(sum(orbit(1:n)%vec(1)**2)/n)
+    rms_y = sqrt(sum(orbit(1:n)%vec(3)**2)/n)
     print *,'      Orbit max and rms  X:',max_x,rms_x, &
             '      -----------------  Y:',max_y,rms_y
 
@@ -312,12 +317,13 @@ end subroutine bbu_track_all
 !------------------------------------------------------------------------------
 ! This routine tracks one bunch through one stage.
 
-subroutine bbu_track_a_stage (lat, bbu_beam, lost)
+subroutine bbu_track_a_stage (lat, bbu_beam, bbu_param, lost)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (bbu_beam_struct), target :: bbu_beam
+type (bbu_param_struct) bbu_param
 type (lr_wake_struct), pointer :: lr
 type (bbu_stage_struct), pointer :: this_stage
 
@@ -340,6 +346,7 @@ bbu_beam%time_now = this_stage%time_at_wake_ele
 
 ix_ele_end = this_stage%ix_ele_lr_wake
 if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
+if (bbu_param%ix_ele_track_end > 0) ix_ele_end = bbu_param%ix_ele_track_end
 
 ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele

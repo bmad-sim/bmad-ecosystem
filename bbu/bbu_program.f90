@@ -4,6 +4,10 @@ use bbu_track_mod
 
 implicit none
 
+type (ele_pointer_struct), allocatable :: eles(:)
+integer n_loc
+logical err
+
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
@@ -50,6 +54,8 @@ bbu_param%nrep = 1     ! Number of times to repeat threshold calculation
 bbu_param%ran_seed = 0
 bbu_param%ran_gauss_sigma_cut = -1
 bbu_param%stable_orbit_anal = .false.
+bbu_param%ele_track_end = ' '
+bbu_param%ix_ele_track_end = -1
 
 beam_init%n_particle = 1
 
@@ -70,8 +76,6 @@ write(*,'(a,f6.1/,a,l/,a,i5/,a,l/)') &
         ' DRSCAN analysis: ', bbu_param%drscan,&
         ' Number of repetitions: ',bbu_param%nrep,&
         ' Stable orbit analysis: ',bbu_param%stable_orbit_anal
-
-      
 
 ! Define distance between bunches
 
@@ -157,6 +161,11 @@ do istep = 1, nstep
     allocate (keep_ele(lat_in%n_ele_max))
     keep_ele = .false.
     do i = 1, lat_in%n_ele_max
+! Keep element if defined as end of tracking
+      if(lat_in%ele(i)%name == bbu_param%ele_track_end)then
+         call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
+         cycle
+      endif
       if (lat_in%ele(i)%key /= lcavity$) cycle
       if (.not. bbu_param%keep_all_lcavities) then
         if (.not. associated (lat_in%ele(i)%wake)) cycle
@@ -178,6 +187,28 @@ do istep = 1, nstep
   print '(2a)', ' Lattice Name: ', trim(lat%lattice)
   print '(a, i7)', ' Nr Tracking Elements: ', lat%n_ele_track
   print '(a, es12.2)', ' Beam Energy: ', lat%ele(0)%value(e_tot$)
+
+  ! Define element at which tracking ends
+if (bbu_param%ele_track_end.ne.' ')then
+      call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
+      if(err)call err_exit
+      if(n_loc.eq.0)then
+       print '(2a)', 'No matching element found for ',bbu_param%ele_track_end  
+       call err_exit
+      elseif(n_loc.gt.1) then
+       print '(2a)', 'Multiple matching elements found for ',bbu_param%ele_track_end  
+       print '(a)', 'Will use the first instance as the end of the tracking'
+      endif
+      ele => eles(1)%ele
+      if (eles(1)%ele%lord_status == super_lord$) ele => pointer_to_slave(lat, ele, ele%n_slave)
+      ix = ele%ix_ele
+      if (ix > lat%n_ele_track) then
+         print *, 'STOPPING ELEMENT IS A LORD! ', bbu_param%ele_track_end
+         call err_exit
+      endif
+      bbu_param%ix_ele_track_end = ix
+      print *,' Tracking will be halted after element ',bbu_param%ele_track_end
+endif
 
   if (bbu_param%write_hom_info) then
    call write_homs(lat, bbu_param%bunch_freq, trtb, currth)
