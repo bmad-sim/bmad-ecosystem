@@ -34,7 +34,7 @@ contains
 !                         a warning message. Default is False.
 ! Output:
 !   mat_inv(:,:) -- Real(rp): inverse of mat1
-!   ok           -- Logical, optional: Set true for a singular input matrix.
+!   ok           -- Logical, optional: Set False for a singular input matrix.
 !-
 
 subroutine mat_inverse (mat, mat_inv, ok, print_err)

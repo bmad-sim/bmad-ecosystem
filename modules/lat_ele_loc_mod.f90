@@ -516,7 +516,7 @@ end function
 ! Input:
 !   lat      -- lat_struct: Lattice containing the lord
 !   lord     -- Ele_struct: Pointer to the lord element
-!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_lord
+!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave
 !
 ! Output:
 !   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
