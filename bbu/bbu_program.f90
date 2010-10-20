@@ -29,7 +29,7 @@ real(rp) time
 logical lost
 logical, allocatable :: keep_ele(:)
 
-namelist / bbu_params / bbu_param, beam_init 
+namelist / bbu_params / bbu_param, beam_init, bmad_com
 
 ! Read in parameters
 

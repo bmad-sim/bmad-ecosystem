@@ -174,6 +174,39 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Function d3_pt (cross_section, ix_vertex) result (point)
+!
+! Routine to return the three dimensional coordinates of a vertex point.
+!
+! Input:
+!   cross_section -- cross_section_struct: Cross-section
+!     %s             -- S coordinate
+!   ix_vertex     -- Integer: index of cross_section%v(:) vertex.
+!
+! Output:
+!   point(3)   -- Real(rp): 3D (x, y, s) coordinates
+!-
+
+function d3_pt (cross_section, ix_vertex) result (point)
+
+implicit none
+
+type (cross_section_struct) cross_section
+
+real(rp) point(3)
+
+integer ix_vertex
+
+! 
+
+point = [cross_section%v(ix_vertex)%x, cross_section%v(ix_vertex)%y, cross_section%s]
+
+end function d3_pt 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orb_here, gx, gy)
 !
 ! Routine to get the parameters at a photon emission point.

@@ -114,7 +114,7 @@ do
   ! wall boundry and return
 
   call sr3d_photon_radius (photon%now, wall, radius)
-  if (radius > 1) then
+  if (sr3d_photon_through_wall(photon, wall)) then
     call sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
     return
   endif
@@ -122,6 +122,124 @@ do
 enddo
 
 end subroutine sr3d_track_photon_to_wall
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function sr3d_photon_through_wall (photon, wall) result (is_through)
+!
+! Routine to determine if a photon has crossed through the wall
+!
+! Input:
+!   photon  -- photon3d_track_struct
+!   wall    -- wall3d_struct: Wall
+!
+! Output:
+!   is_through -- Logical: True if through.
+!-
+
+function sr3d_photon_through_wall (photon, wall) result (is_through)
+
+implicit none
+
+type (photon3d_track_struct) photon
+type (wall3d_struct) wall
+
+real(rp) radius
+
+integer i, ig0, ig1, ix
+
+logical is_through
+
+! The present position is between wall%pt(ix)%s and wall%pt(ix+1)%s
+
+call bracket_index (wall%pt%s, 0, wall%n_pt_max, photon%now%vec(5), ix)
+if (photon%now%vec(5) == wall%pt(ix)%s .and. photon%now%vec(6) > 0) then
+  if (ix /= 0) then
+    ix = ix - 1
+  endif
+endif
+
+! 
+
+if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
+  ig0 = wall%pt(ix)%ix_gen_shape
+  ig1 = wall%pt(ix+1)%ix_gen_shape
+  do i = 1, size(wall%gen_shape(ig0)%v) - 1
+    call sr3d_mesh_triangle_intersect (photon, d3_pt(wall%gen_shape(ig0), i), &
+            d3_pt(wall%gen_shape(ig0), i+1), d3_pt(wall%gen_shape(ig1), i), is_through)
+    if (is_through) return 
+    call sr3d_mesh_triangle_intersect (photon, d3_pt(wall%gen_shape(ig0), i+1), &
+            d3_pt(wall%gen_shape(ig1), i), d3_pt(wall%gen_shape(ig1), i+1), is_through) 
+    if (is_through) return 
+  enddo
+else
+  call sr3d_photon_radius (photon%now, wall, radius)
+  is_through = (radius > 1)
+endif
+
+end function sr3d_photon_through_wall
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect)
+!
+! Routine to find the intersection point between the photon trajectory
+! and a triangular mesh surface. 
+!
+!
+! Note: This calculation assumes a straight reference coordinates.
+!
+! Input:
+!   photon    -- photon3d_track_struct:
+!     %old        -- Original point
+!     %now        -- current point                
+!   pt0(3), pt1(3), pt2(3) 
+!             -- Real(rp): Triangle vertex points.
+!
+! Output:
+!   intersect  -- Logical: True if there is an intersection.
+!               
+!-
+
+subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect)
+
+implicit none
+
+type (photon3d_track_struct) photon
+
+real(rp) pt0(3), pt1(3), pt2(3)
+real(rp) ratio
+real(rp) mat3(3,3), abc_vec(3)
+
+logical intersect, ok
+
+! Solve the matrix equation:
+!   photon_old + a * (photon_now - photon_old) = pt0 + b * (pt1 - pt0) + c * (pt2 = pt0)
+
+mat3(1:3,1) = photon%now%vec(1:5:2) - photon%old%vec(1:5:2)
+mat3(1:3,2) = pt0 - pt1
+mat3(1:3,3) = pt0 - pt2
+
+call mat_inverse (mat3, mat3, ok)
+if (.not. ok) call err_exit
+
+abc_vec = matmul(mat3, pt0  - photon%old%vec(1:5:2))
+
+! Intersection of photon trajectory between "old" and "now" positions with the triangle if:
+!   0 < a < 1
+!   0 < b
+!   0 < c
+!   b + c < 1
+
+intersect = (abc_vec(1) >= 0 .and. abc_vec(1) <= 1 .and. &
+             abc_vec(2) >= 0 .and. abc_vec(3) >= 0 .and. &
+             abc_vec(2) + abc_vec(3) <= 1)
+
+end subroutine sr3d_mesh_triangle_intersect
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
