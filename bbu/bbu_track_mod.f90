@@ -329,7 +329,7 @@ type (bbu_stage_struct), pointer :: this_stage
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
 
-integer i, i_stage_min, ix_bunch, ix_ele
+integer i, i_stage_min, ix_bunch, ix_ele, ie
 integer ix_ele_start, ix_ele_end, j, ib, ib2
 
 character(20) :: r_name = 'bbu_track_a_stage'
@@ -346,7 +346,8 @@ bbu_beam%time_now = this_stage%time_at_wake_ele
 
 ix_ele_end = this_stage%ix_ele_lr_wake
 if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = lat%n_ele_track
-if (bbu_param%ix_ele_track_end > 0) ix_ele_end = bbu_param%ix_ele_track_end
+ie = bbu_param%ix_ele_track_end
+if (ie > 0 .and. ix_ele_end > ie) ix_ele_end = ie
 
 ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
