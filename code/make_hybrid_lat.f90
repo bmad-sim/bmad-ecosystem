@@ -71,7 +71,7 @@ type (coord_struct), optional, volatile :: orb0(0:)
 type (coord_struct) c0, c2
 type (ele_struct), pointer :: ele_in, ele_out
 
-real(rp) e_vec(4), ref_time0
+real(rp) ref_time0
 
 integer j_in, i_out, k, n
 integer j, ix, ic, o_key, n_con, n_ic, n_lord
@@ -79,7 +79,7 @@ integer, allocatable, save :: ica(:)
 integer, optional :: ix_out(:)
 
 logical init_hybrid_needed, remove_markers, keep_ele(:)
-logical z_decoupled, do_taylor
+logical do_taylor
 logical, optional :: use_taylor
 
 ! Init
@@ -91,12 +91,6 @@ if (present(use_taylor)) then
   do_taylor = use_taylor
 else
   do_taylor = .false.
-endif
-
-if (all(r_in%ele(1:r_in%n_ele_track)%mat6(6,5) == 0) .and. .not. do_taylor) then
-  z_decoupled = .true.
-else
-  z_decoupled = .false.
 endif
 
 i_out = 0                        ! index for current out lat
@@ -118,13 +112,6 @@ do j_in = 1, r_in%n_ele_track
 
   if (keep_ele(j_in)) then
 
-    ! if current out-element is a hybrid then calculate dispersion part of mat6
-
-    if (i_out /= 0) then
-      if (ele_out%key == hybrid$ .and. z_decoupled) &
-                      call mat6_dispersion (e_vec, ele_out%mat6)
-    endif
-
     ! on to the next out-element which is a simple element
 
     if (remove_markers .and. (ele_in%key == marker$ .or. &
@@ -142,7 +129,7 @@ do j_in = 1, r_in%n_ele_track
 
   ! here if no match found...
   ! If this is the first element after a matched element then just transfer in
-  ! to out. Else modify the out mat6 transfer matrix using the in MAT6 matrix.
+  ! to out. Else modify the ele_out%mat6 matrix using the ele_in%mat6 matrix.
 
   else
 
@@ -168,15 +155,12 @@ do j_in = 1, r_in%n_ele_track
       ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
       ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
 
-      if (present (orb0)) then
-        c0 = orb0(j_in)
-      else
-        c0%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
-      endif
-
-      if (z_decoupled) then
-        e_vec(1:4) = ele_out%mat6(1:4, 6)
-      elseif (do_taylor) then
+      if (do_taylor) then
+        if (present (orb0)) then
+          c0 = orb0(j_in)
+        else
+          c0%vec = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        endif
         ele_out%tracking_method = taylor$
         ele_out%mat6_calc_method = taylor$
         if (.not. associated(ele_out%taylor(1)%term)) then ! construct taylor
@@ -187,15 +171,9 @@ do j_in = 1, r_in%n_ele_track
       init_hybrid_needed = .false.
 
     else
-      if (ele_in%key == marker$ .or. ele_in%key == photon_branch$ .or. &
-                                                     ele_in%key == branch$) cycle
+      if (ele_in%key == marker$ .or. ele_in%key == photon_branch$ .or. ele_in%key == branch$) cycle
 
-      if (z_decoupled) then
-        e_vec = matmul(ele_in%mat6(1:4,1:4), e_vec)
-        e_vec(1:4) = e_vec(1:4) + ele_in%mat6(1:4, 6)
-        ele_out%mat6(1:4,1:4) = matmul(ele_in%mat6(1:4,1:4), &
-                                                    ele_out%mat6(1:4,1:4))
-      elseif (do_taylor) then
+      if (do_taylor) then
         if (associated(ele_in%taylor(1)%term)) then
           call concat_ele_taylor (ele_out%taylor, ele_in, ele_out%taylor)
         else
@@ -203,6 +181,7 @@ do j_in = 1, r_in%n_ele_track
         endif
       else
         ele_out%mat6 = matmul(ele_in%mat6, ele_out%mat6)
+        ele_out%vec0 = ele_in%vec0 + matmul(ele_in%mat6, ele_out%vec0)
       endif
 
       ele_out%s = ele_in%s
@@ -223,7 +202,7 @@ do j_in = 1, r_in%n_ele_track
       ele_out%value(y1_limit$)       = ele_in%value(y1_limit$)
       ele_out%value(y2_limit$)       = ele_in%value(y2_limit$)
       ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)
-      ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0 
+      ele_out%value(delta_ref_time$) = ele_in%ref_time - ref_time0
 
       o_key = ele_out%key 
       if (ele_in%key == drift$ .and. (o_key == drift$ .or. &
@@ -242,22 +221,11 @@ do j_in = 1, r_in%n_ele_track
 
     endif
 
-    if (ele_out%key == hybrid$ .and. .not. do_taylor) then
-      if (present(orb0)) then
-        ele_out%vec0 = orb0(j_in)%vec - matmul(ele_out%mat6, c0%vec)
-      else
-        ele_out%vec0 = 0
-      endif
-    endif
-
   endif ! keep_ele
 
 enddo
 
 ! end cleanup
-
-if (ele_out%key == hybrid$ .and. z_decoupled)  &
-                        call mat6_dispersion (e_vec, ele_out%mat6)
 
 call transfer_lat_parameters (r_in, r_out)
 r_out%n_ele_track  = i_out
