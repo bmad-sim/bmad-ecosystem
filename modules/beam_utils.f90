@@ -139,7 +139,7 @@ enddo
 value_save = ele%value
 ele%value(l$)      = ele%value(l$) / 2
 ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
-ele%value(p0c$)    = (ele%value(p0c_start$) + ele%value(p0c$)) / 2
+call convert_total_energy_to (ele%value(e_tot$), param%particle, pc = ele%value(p0c$))
 ele%value(e_loss$) = 0
 
 ! zero all offsets and kicks (offsetting already performed above)
