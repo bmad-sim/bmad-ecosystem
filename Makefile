@@ -1,6 +1,5 @@
 #=============================================================================
-#
-# File:     Makefile
+# File:     tao/Makefile
 #
 # Purpose:  Simple Makefile to build the tao library and executable
 #
@@ -9,31 +8,6 @@
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
-#
-#=============================================================================
-#
-# $Id$
-#
-# $Log$
-# Revision 1.6  2005/08/09 13:37:04  cesrulib
-# M.tao is added to extra make file list
-#
-# Revision 1.5  2004/06/21 03:29:22  js344
-# minor changes
-#
-# Revision 1.4  2004/04/25 19:11:43  dcs
-# Modified.
-#
-# Revision 1.3  2004/04/18 22:06:29  dcs
-# added readline routine.
-#
-# Revision 1.2  2004/04/04 07:42:58  js344
-# added font size option in plotting
-#
-# Revision 1.1.1.1  2004/03/24 17:33:11  cesrulib
-# Create new tao package
-#
-#
 #=============================================================================
 
 #-----------------------------------------------------------------------------
@@ -126,8 +100,8 @@ OBJ_OUT_DIR = $(locallib)
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-ifeq "$(BMAD_DIST)" "TRUE"
-  include $(BMAD_GMAKE)/M.tail
+ifeq "$(DIST_BUILD)" "TRUE"
+  include $(DIST_GMAKE)/M.tail
 else
   include $(CESR_GMAKE)/M.tail
 endif
