@@ -3,12 +3,13 @@ module synrad3d_track_mod
 use synrad3d_utils
 use photon_reflection_mod
 
+! These common variables are needed for the Num Rec routine zbrent.
+
 private sr3d_photon_hit_func
 type (photon3d_track_struct), pointer, private :: photon_com
 type (photon3d_track_struct), private :: com, photon1_com
 type (wall3d_struct), private, pointer :: wall_com
 type (lat_struct), private, pointer :: lat_com
-
 
 contains
 
@@ -113,7 +114,6 @@ do
   ! If so we calculate the exact hit spot where the photon crossed the
   ! wall boundry and return
 
-  call sr3d_photon_radius (photon%now, wall, radius)
   if (sr3d_photon_through_wall(photon, wall)) then
     call sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
     return
@@ -146,7 +146,8 @@ implicit none
 type (photon3d_track_struct) photon
 type (wall3d_struct) wall
 
-real(rp) radius
+real(rp) d_radius
+real(rp) pt0(3), pt1(3), pt2(3)
 
 integer i, ig0, ig1, ix
 
@@ -154,29 +155,19 @@ logical is_through
 
 ! The present position is between wall%pt(ix)%s and wall%pt(ix+1)%s
 
-call bracket_index (wall%pt%s, 0, wall%n_pt_max, photon%now%vec(5), ix)
-if (photon%now%vec(5) == wall%pt(ix)%s .and. photon%now%vec(6) > 0) then
-  if (ix /= 0) then
-    ix = ix - 1
-  endif
-endif
-
-! 
+call sr3d_get_wall_index (photon%now, wall, ix)
 
 if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
   ig0 = wall%pt(ix)%ix_gen_shape
   ig1 = wall%pt(ix+1)%ix_gen_shape
-  do i = 1, size(wall%gen_shape(ig0)%v) - 1
-    call sr3d_mesh_triangle_intersect (photon, d3_pt(wall%gen_shape(ig0), i), &
-            d3_pt(wall%gen_shape(ig0), i+1), d3_pt(wall%gen_shape(ig1), i), is_through)
-    if (is_through) return 
-    call sr3d_mesh_triangle_intersect (photon, d3_pt(wall%gen_shape(ig0), i+1), &
-            d3_pt(wall%gen_shape(ig1), i), d3_pt(wall%gen_shape(ig1), i+1), is_through) 
+  do i = 1, 2*size(wall%gen_shape(ig0)%v)
+    call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), i, pt0, pt1, pt2)
+    call sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, is_through)
     if (is_through) return 
   enddo
 else
-  call sr3d_photon_radius (photon%now, wall, radius)
-  is_through = (radius > 1)
+  call sr3d_photon_d_radius (photon%now, wall, d_radius)
+  is_through = (d_radius > 0)
 endif
 
 end function sr3d_photon_through_wall
@@ -185,10 +176,10 @@ end function sr3d_photon_through_wall
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect)
+! Subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect, dtrack_len)
 !
 ! Routine to find the intersection point between the photon trajectory
-! and a triangular mesh surface. 
+! and a triangular mesh surface between the points photon%old and photon%now. 
 !
 !
 ! Note: This calculation assumes a straight reference coordinates.
@@ -202,16 +193,17 @@ end function sr3d_photon_through_wall
 !
 ! Output:
 !   intersect  -- Logical: True if there is an intersection.
-!               
+!   dlen       -- Real(rp), optional: track length from photon%old to intersection point.
 !-
 
-subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect)
+subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect, dtrack_len)
 
 implicit none
 
 type (photon3d_track_struct) photon
 
 real(rp) pt0(3), pt1(3), pt2(3)
+real(rp), optional :: dtrack_len
 real(rp) ratio
 real(rp) mat3(3,3), abc_vec(3)
 
@@ -225,7 +217,10 @@ mat3(1:3,2) = pt0 - pt1
 mat3(1:3,3) = pt0 - pt2
 
 call mat_inverse (mat3, mat3, ok)
-if (.not. ok) call err_exit
+if (.not. ok) then   ! Can happen if photon trajectory is parallel to triangle surface.
+  intersect = .false.
+  return
+endif
 
 abc_vec = matmul(mat3, pt0  - photon%old%vec(1:5:2))
 
@@ -238,6 +233,8 @@ abc_vec = matmul(mat3, pt0  - photon%old%vec(1:5:2))
 intersect = (abc_vec(1) >= 0 .and. abc_vec(1) <= 1 .and. &
              abc_vec(2) >= 0 .and. abc_vec(3) >= 0 .and. &
              abc_vec(2) + abc_vec(3) <= 1)
+
+if (present(dtrack_len)) dtrack_len = abc_vec(1) * sqrt(sum((photon%now%vec(1:5:2) - photon%old%vec(1:5:2))**2))
 
 end subroutine sr3d_mesh_triangle_intersect
 
@@ -494,14 +491,14 @@ real(rp) track_len0, radius, d_rad, r0, r1, track_len
 
 integer i
 
-!
+! For debugging
 
 if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
   print *
   print *, '*************************************************************'
   print *, 'Hit:', photon%n_wall_hit
-  call sr3d_photon_radius (photon%old, wall, r0)
-  call sr3d_photon_radius (photon%now, wall, r1)
+  call sr3d_photon_d_radius (photon%old, wall, r0)
+  call sr3d_photon_d_radius (photon%now, wall, r1)
   print *, 'photon%old:', photon%old%vec, photon%old%track_len, r0
   print *, 'photon%now:', photon%now%vec, photon%now%track_len, r1
 endif
@@ -514,6 +511,7 @@ photon1_com = photon
 photon_com => photon
 wall_com => wall
 lat_com => lat
+photon_com%now%ix_triangle = -1
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
@@ -548,7 +546,7 @@ track_len = zbrent (sr3d_photon_hit_func, track_len0, photon%now%track_len, 1d-1
 
 photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
-call sr3d_photon_radius (photon%now, wall, radius, in_antechamber = photon%hit_antechamber)
+call sr3d_photon_d_radius (photon%now, wall, in_antechamber = photon%hit_antechamber)
 
 end subroutine sr3d_photon_hit_spot_calc 
 
@@ -566,7 +564,10 @@ end subroutine sr3d_photon_hit_spot_calc
 ! Output:
 !   d_radius -- Real(rp): 
 !-
+
 function sr3d_photon_hit_func (track_len) result (d_radius)
+
+implicit none
 
 real(rp), intent(in) :: track_len
 real(rp) d_radius, radius, d_track
@@ -574,27 +575,103 @@ real(rp) d_radius, radius, d_track
 ! Easy case
 
 if (track_len == photon_com%now%track_len) then
-  call sr3d_photon_radius (photon_com%now, wall_com, radius)
-  d_radius = radius - 1
+  if (wall_com%pt(photon_com%now%ix_wall)%basic_shape == 'gen_shape_mesh') then
+    call sr3d_mesh_d_radius (photon_com, wall_com, d_radius)
+  else
+    call sr3d_photon_d_radius (photon_com%now, wall_com, d_radius)
+  endif
   return
 endif
 
-! Track starting from the present position (photon1_com%now) if track_length > photon1_com%now%track_len.
-! Otherwise, track starting from the beginning of the region (photon_com%old).
+! Determine start of tracking.
+! If track_length > photon1_com%now%track_len: 
+!   Track starting from the present position (photon1_com%now).
+! Otherwise:
+!   Track starting from the beginning of the region (photon_com%old).
 
 if (track_len < photon1_com%now%track_len) then
   photon1_com = photon_com
   photon1_com%now = photon_com%old
 endif
 
-! And track
+! And track to track_len position.
 
 d_track = track_len - photon1_com%now%track_len
 call sr3d_propagate_photon_a_step (photon1_com, d_track, lat_com, wall_com, .false.)
-call sr3d_photon_radius (photon1_com%now, wall_com, radius)
-d_radius = radius - 1
+
+if (wall_com%pt(photon_com%now%ix_wall)%basic_shape == 'gen_shape_mesh') then
+  call sr3d_mesh_d_radius (photon1_com, wall_com, d_radius)
+else
+  call sr3d_photon_d_radius (photon1_com%now, wall_com, d_radius)
+endif
 
 end function sr3d_photon_hit_func
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_mesh_d_radius (photon, wall, d_radius)
+!
+! Routine to calculate an effective d_radius for a photon
+!-
+
+subroutine sr3d_mesh_d_radius (photon, wall, d_radius)
+
+implicit none
+
+type (photon3d_track_struct), target :: photon
+type (wall3d_struct), target :: wall
+
+real(rp) d_radius, dlen, dlen_min
+real(rp) pt0(3), pt1(3), pt2(3)
+
+integer i, ix, ig0, ig1
+
+logical is_through
+
+character(20) :: r_name = 'sr3d_mesh_d_radius'
+
+! 
+
+ix = photon%now%ix_wall
+ig0 = wall%pt(ix)%ix_gen_shape
+ig1 = wall%pt(ix+1)%ix_gen_shape
+
+! To save time try old triangle
+
+if (photon_com%now%ix_triangle > 0) then
+  call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), photon_com%now%ix_triangle, pt0, pt1, pt2)
+  call sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, is_through, dlen)
+  if (is_through) then
+    d_radius = (photon%now%track_len - photon%old%track_len) - dlen 
+    return
+  endif
+endif
+
+! Now must look at all triangles and pick first tirangle through
+
+photon_com%now%ix_triangle = -1
+dlen_min = 1d30   ! Something large
+
+do i = 1, 2*size(wall%gen_shape(ig0)%v)
+  call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), i, pt0, pt1, pt2)
+  call sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, is_through, dlen)
+  if (.not. is_through) cycle
+  if (dlen < dlen_min) then
+    photon_com%now%ix_triangle = i
+    dlen_min = dlen
+  endif
+enddo
+
+if (photon_com%now%ix_triangle == -1) then
+  call out_io (s_fatal$, r_name, 'NO INTERSECTION WITH WALL FOUND!')
+  call err_exit
+endif
+
+d_radius = (photon%now%track_len - photon%old%track_len) - dlen 
+
+end subroutine sr3d_mesh_d_radius
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -615,8 +692,8 @@ type (wall3d_pt_struct), pointer :: wall0, wall1
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
 type (photon3d_wall_hit_struct), allocatable :: hit_temp(:)
 
-real(rp) cos_perp, dw_perp(3), denom, f
-real(rp) r, graze_angle, reflectivity, dvec(3)
+real(rp) cos_perp, dw_perp(3), denom, f, r
+real(rp) graze_angle, reflectivity, dvec(3)
 
 integer ix, iu
 integer n_old, n_wall_hit
@@ -658,7 +735,7 @@ endif
 
 photon%old = photon%now
 
-call sr3d_photon_radius (photon%now, wall, r, dw_perp)
+call sr3d_photon_d_radius (photon%now, wall, dw_perp = dw_perp)
 
 ! cos_perp is the component of the photon velocity perpendicular to the wall.
 ! since the photon is striking the wall from the inside this must be positive.

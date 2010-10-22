@@ -16,7 +16,8 @@ type photon3d_coord_struct
   real(rp) energy             ! In eV
   real(rp) track_len          ! length of the track from the start
   integer ix_ele              ! index of lattice element we are in.
-  integer ix_wall             ! Index to wall cross-section array
+  integer :: ix_wall = 0      ! Index to wall cross-section array
+  integer ix_triangle         ! Index to wall triangle if using gen_shape_mesh 
 end type
 
 type photon3d_wall_hit_struct

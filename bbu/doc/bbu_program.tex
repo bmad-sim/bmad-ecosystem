@@ -180,7 +180,8 @@ two cavities into one element. Tracking through a hybridized element
 is done using linear transport. This speeds up the calculation but
 there is a possible loss of accuracy.
   \item[\vn{keep_overlays_and_groups}] \Newline
-Keep overlay and group elements if hybridization is done? Under normal circumstances this should nat affect the simulation.
+Keep overlay and group elements if hybridization is done? 
+Under normal circumstances this should nat affect the simulation.
   \item[\vn{keep_all_cavities}] \Newline
 When hybridizing, if \vn{keep_all_cavities} is set to False, then
 \vn{lcavity} elements that do not have HOM elements will be
@@ -211,8 +212,13 @@ are limited to a maximum deviation of \vn{ran_gauss_sigma_cut} rms deviations.
 If this parameter is set true, then the output files \tt{stable_orbit.out} and \tt{hom_voltage.out}
 are written for each bunch train passage and each repetition, allowing the orbit deviations
 and HOM loading to be analyzed as the equilibrium level is reached.
-
 \end{description}
+
+Additionally, \vn{bmad_com} parameters may be set. \vn{bmad_com}
+parameters that affect the simulation include switches to turn on
+radiation damping and fluctuations. See the Bmad\cite{ref:bmad} manual
+for more details.
+
 %------------------------------------------------------------------
 \section{Output files} 
 

@@ -30,7 +30,7 @@ type (cross_section_vertex_struct) v(100)
 type (cross_section_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, radius, r
+real(rp) emit_a, emit_b, sig_e, g, gamma, r
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max
 
@@ -585,15 +585,17 @@ subroutine check_if_photon_init_coords_outside_wall (photon_start, is_inside)
 
 type (photon3d_coord_struct) photon_start
 
+real(rp) d_radius
+
 logical is_inside
 
 !
 
 is_inside = .true.
 
-call sr3d_photon_radius (photon_start, wall, radius)
+call sr3d_photon_d_radius (photon_start, wall, d_radius)
 
-if (radius >= 1) then
+if (d_radius >= 0) then
   print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
   print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%vec      
   is_inside = .false.
