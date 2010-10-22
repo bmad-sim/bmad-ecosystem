@@ -147,7 +147,7 @@ if (present(digested_file_name)) then
   call save_taylor_elements (lat2, old_ele)
   call deallocate_lat_pointers (lat2)
   if (digested_version <= bmad_inc_version$) bp_com%write_digested2 = .true.
-  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Creating new digested file...')
+  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
 endif
 
 bmad_status%ok = .true.
@@ -619,7 +619,9 @@ enddo
 
 ! write to digested file
 
-if (bp_com%write_digested2) call write_digested_bmad_file (digested_name, &
-                             lat, bp_com%num_lat_files, bp_com%lat_file_names)
+if (bp_com%write_digested2) then
+  call write_digested_bmad_file (digested_name, lat, bp_com%num_lat_files, bp_com%lat_file_names)
+  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+endif
 
 end subroutine
