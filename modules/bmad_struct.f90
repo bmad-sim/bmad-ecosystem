@@ -46,10 +46,12 @@ end type
 
 ! Structure for defining cross-sections of beam pipes and capillaries
 ! at given longitudinal positions.
-! A cross-section is defined by an array of cross_section_vertex_struct components. 
-! Each cross_section_vertex_struct defines a point (vertex) on the pipe/capillary.
+! A cross-section is defined by an array v(:) of cross_section_vertex_structs.
+! Each v(i) defines a point (vertex) on the pipe/capillary.
 ! Vertices are connected by straight lines, circular arcs, or ellipses.
 ! The radius and tilt values are for the arc from the preceding vertex to this one.
+! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
+!   n = upper bound of v(:) array.
 
 type cross_section_vertex_struct
   real(rp) x, y             ! Coordinates of the vertex.
