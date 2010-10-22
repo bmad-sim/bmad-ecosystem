@@ -1,18 +1,14 @@
 #=============================================================================
-#
-# File:     M.job
+# File:     bsim/M.ring_ma
 #
 # Purpose:  Simple Makefile to build local code and a CESR executable
-#           Uses the standard $(C_GMAKE)/M.tail 
 #
 # Author:   M. Palmer   7/24/00
 #
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
-#
 #=============================================================================
-
 
 #-----------------------------------------------------------------------------
 # Specify the SHELL in which to operate
@@ -175,8 +171,11 @@ BUILD_EXE := Y
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-include $(CESR_GMAKE)/M.tail
-
+ifeq "$(DIST_BUILD)" "TRUE"
+  include $(DIST_GMAKE)/M.tail
+else
+  include $(CESR_GMAKE)/M.tail
+endif
 
 
 

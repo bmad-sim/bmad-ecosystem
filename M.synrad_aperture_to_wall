@@ -1,5 +1,4 @@
 #=============================================================================
-#
 # File:     M.new_bmad_to_autocad
 #
 # Purpose:  Simple Makefile to build the new_bmad_to_autocad executable
@@ -9,7 +8,6 @@
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
-#
 #=============================================================================
 
 #-----------------------------------------------------------------------------
@@ -175,8 +173,8 @@ BUILD_EXE := Y
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-ifeq "$(BMAD_DIST)" "TRUE"
-  include $(BMAD_GMAKE)/M.tail
+ifeq "$(DIST_BUILD)" "TRUE"
+  include $(DIST_GMAKE)/M.tail
 else
   include $(CESR_GMAKE)/M.tail
 endif
