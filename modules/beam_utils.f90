@@ -111,8 +111,7 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
-    call track1_particle (bunch_start%particle(j), &
-                                      ele, param, bunch_end%particle(j))
+    call track1_particle (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
 
 
@@ -130,8 +129,7 @@ endif
 ! wakes applied in cononical coords so don't do canonical coord conversion
 
 do i = 1, size(bunch_end%particle)
-  call offset_particle (ele, param, bunch_end%particle(i)%r, set$, &
-      set_canonical = .false.)
+  call offset_particle (ele, param, bunch_end%particle(i)%r, set$, set_canonical = .false.)
 enddo
 
 ! Modify ele temporarily so we can track through half the cavity.
@@ -191,6 +189,11 @@ bmad_com%grad_loss_sr_wake = 0.0
 bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                          mask = (bunch_end%particle(:)%ix_lost == not_lost$))
 
+! Unmodify ele
+
+ele%value = value_save
+if (associated(a_pole_save)) ele%a_pole => a_pole_save
+      
 ! Unset the cavity offset.
 ! Wakes applied in cononical coords so don't do canonical coord conversion
 
@@ -199,11 +202,6 @@ do i = 1, size(bunch_end%particle)
       set_canonical = .false.)
 enddo
 
-! Unmodify ele
-
-ele%value = value_save
-if (associated(a_pole_save)) ele%a_pole => a_pole_save
-      
 end subroutine track1_bunch_hom
 
 !--------------------------------------------------------------------------
