@@ -1269,9 +1269,10 @@ enddo
 ! set defaults
 
 do i = n0+1, size(u%data)
-  u%data(i)%exists         = .false.       ! set default
+  u%data(i)%exists         = .false.   ! set default
   u%data(i)%good_meas      = .false.   ! set default
   u%data(i)%good_ref       = .false.   ! set default
+  u%data(i)%good_base      = .false.   ! set default
   u%data(i)%good_user      = .true.    ! set default
   u%data(i)%good_opt       = .true.
   u%data(i)%merit_type     = 'target'  ! set default
