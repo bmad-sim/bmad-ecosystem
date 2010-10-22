@@ -26,9 +26,9 @@ subroutine sr3d_check_wall (wall)
 implicit none
 
 type (wall3d_struct), target :: wall
-type (wall3d_pt_struct), pointer :: pt
+type (wall3d_pt_struct), pointer :: pt, pt0
 
-integer i
+integer i, ig0, ig1
 
 character(20) :: r_name = 'sr3d_check_wall'
 
@@ -48,23 +48,48 @@ do i = 0, wall%n_pt_max
     endif
   endif
 
-  if (.not. any(pt%basic_shape == ['elliptical ', 'rectangular', 'gen_shape  '])) then
+  if (.not. any(pt%basic_shape == ['elliptical    ', 'rectangular   ', 'gen_shape     ', 'gen_shape_mesh'])) then
     call out_io (s_fatal$, r_name, &
               'BAD WALL%PT(i)%BASIC_SHAPE: ' // pt%basic_shape, &
               '    FOR I = \i0\ ', i_array = [i])
     call err_exit
   endif
 
-  if (pt%basic_shape == 'gen_shape') then
+  ! Gen_shape and gen_shape_mesh checks
+
+  if (pt%basic_shape == 'gen_shape' .or. pt%basic_shape == 'gen_shape_mesh') then
     if (pt%ix_gen_shape < 1) then
       call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(I)%IX_GEN_SHAPE INDEX FOR I = \i0\ ', i_array = [i])
+              'BAD WALL%PT(I)%IX_GEN_SHAPE SECTION NUMBER \i0\ ', i_array = [i])
+      call err_exit
+    endif
+    if (pt%basic_shape == 'gen_shape') cycle
+    if (i == 0) cycle
+
+    pt0 => wall%pt(i-1)
+    if (pt0%basic_shape /= 'gen_shape' .and. pt0%basic_shape /= 'gen_shape_mesh') then
+      call out_io (s_fatal$, r_name, &
+              'BASIC_SHAPE FOR SECTION PRECEEDING "gen_shape_mesh" SECTION MUST BE ', &
+              '"gen_shape" OR "gen_shape_mesh" SECTION NUMBER \i0\ ', i_array = [i])
+      call err_exit
+    endif
+
+    ig0 = pt0%ix_gen_shape
+    ig1 = pt%ix_gen_shape
+
+    if (size(wall%gen_shape(ig0)%v) /= size(wall%gen_shape(ig1)%v)) then
+      call out_io (s_fatal$, r_name, &
+              '"gen_shape_mesh" CONSTRUCT MUST HAVE THE SAME NUMBER OF VERTEX POINTS ON', &
+              'SUCCESIVE CROSS-SECTIONS  \2i0\ ', i_array = [i-1, i])
       call err_exit
     endif
 
     cycle
   endif
 
+
+
+  ! Checks for everything else
 
   if (pt%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
@@ -168,40 +193,7 @@ do i = 0, wall%n_pt_max
 
 enddo
 
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Function d3_pt (cross_section, ix_vertex) result (point)
-!
-! Routine to return the three dimensional coordinates of a vertex point.
-!
-! Input:
-!   cross_section -- cross_section_struct: Cross-section
-!     %s             -- S coordinate
-!   ix_vertex     -- Integer: index of cross_section%v(:) vertex.
-!
-! Output:
-!   point(3)   -- Real(rp): 3D (x, y, s) coordinates
-!-
-
-function d3_pt (cross_section, ix_vertex) result (point)
-
-implicit none
-
-type (cross_section_struct) cross_section
-
-real(rp) point(3)
-
-integer ix_vertex
-
-! 
-
-point = [cross_section%v(ix_vertex)%x, cross_section%v(ix_vertex)%y, cross_section%s]
-
-end function d3_pt 
+end subroutine sr3d_check_wall 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -333,7 +325,7 @@ case default
 
 end select
 
-end subroutine
+end subroutine sr3d_get_emission_pt_params 
 
 
 !-------------------------------------------------------------------------
@@ -420,19 +412,16 @@ p_orb%vec(5) = ele_here%s
 
 p_orb%vec(6) = photon_direction * sqrt(1 - orb(2)**2 - orb(4)**2)
 
-end subroutine
+end subroutine sr3d_emit_photon
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, in_antechamber)
+! Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, dw_perp, in_antechamber)
 !
 ! Routine to calculate the normalized transverse position of the photon 
 ! relative to the wall: 
-!     radius = 0 => Center of the beam pipe 
-!     radius = 1 => at wall.
-!     radius > 1 => Outside the beam pipe.
 !
 ! Modules needed:
 !   use photon_utils
@@ -442,94 +431,195 @@ end subroutine
 !   s    -- Real(rp): Longitudinal position.
 !
 ! Output:
-!   radius       -- real(rp): Radius of beam relative to the wall.
+!   radius       -- real(rp): r_photon - r_wall
 !   dw_perp(3)   -- real(rp), optional: Outward normal vector perpendicular to the wall.
 !   in_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine sr3d_photon_radius (p_orb, wall, radius, dw_perp, in_antechamber)
+Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, dw_perp, in_antechamber, ix_tri)
 
 implicit none
 
 type (wall3d_struct), target :: wall
 type (photon3d_coord_struct), target :: p_orb
 
-real(rp), optional :: dw_perp(:)
-real(rp) g0, g1, f, radius
-real(rp) dw_x0, dw_y0, dw_x1, dw_y1
-real(rp), pointer :: vec(:)
+real(rp), optional :: d_radius, dw_perp(3)
+real(rp) radius0, radius1, f, cos_ang, sin_ang, r_photon
+real(rp) dr0_dtheta, dr1_dtheta, pt0(3), pt1(3), pt2(3), dp1(3), dp2(3)
 
-integer ix
+integer, optional :: ix_tri
+integer ix, ig0, ig1
 
 logical, optional :: in_antechamber
 logical in_ante0, in_ante1
 
-! There is a sigularity in the calculation when the photon is at the origin.
-! To avoid this, just return radius = 0 for small radii.
+!
 
-vec => p_orb%vec
+call sr3d_get_wall_index (p_orb, wall, ix)
 
-if (abs(vec(1)) < 1e-6 .and. abs(vec(3)) < 1e-6) then
-  radius = 0
-  if (present (dw_perp)) dw_perp = 0
-  if (present(in_antechamber)) in_antechamber = .false.
+! gen_shape_mesh calc
+
+if (wall%pt(ix+1)%basic_shape == 'gen_shape') then
+  if (.not. present(dw_perp)) return
+  ig0 = wall%pt(ix)%ix_gen_shape
+  ig1 = wall%pt(ix+1)%ix_gen_shape
+  call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), p_orb%ix_triangle, pt0, pt1, pt2)
+  dp1 = pt1 - pt0
+  dp2 = pt2 - pt0
+  dw_perp = [dp1(2)*dp2(3) - dp1(3)*dp2(2), dp1(3)*dp2(1) - dp1(1)*dp2(3), dp1(1)*dp2(2) - dp1(2)*dp2(1)]
+  dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
   return
 endif
 
-!
+! Get the parameters at the defined cross-sections to either side of the photon position.
 
-call bracket_index (wall%pt%s, 0, wall%n_pt_max, vec(5), ix)
-p_orb%ix_wall = ix
-
-if (ix == wall%n_pt_max) ix = wall%n_pt_max - 1
-
-! The outward normal vector is discontinuous at the wall points.
-! If at a wall point, use the correct part of the wall.
-
-if (vec(5) == wall%pt(ix)%s .and. vec(6) > 0) then
-  if (ix /= 0) then
-    ix = ix - 1
-  endif
+if (p_orb%vec(1) == 0 .and. p_orb%vec(3) == 0) then
+  r_photon = 0
+  cos_ang = 1
+  sin_ang = 0
+else
+  r_photon = sqrt(p_orb%vec(1)**2 + p_orb%vec(3)**2)
+  cos_ang = p_orb%vec(1) / r_photon
+  sin_ang = p_orb%vec(3) / r_photon
 endif
 
-!
+call sr3d_wall_pt_params (wall%pt(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0, wall)
+call sr3d_wall_pt_params (wall%pt(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1, wall)
 
-call sr3d_wall_pt_params (wall%pt(ix),   vec, g0, dw_x0, dw_y0, in_ante0, wall)
-call sr3d_wall_pt_params (wall%pt(ix+1), vec, g1, dw_x1, dw_y1, in_ante1, wall)
+f = (p_orb%vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
 
-f = (vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
-radius = 1 / ((1 - f) * g0 + f * g1)
+if (present(d_radius)) d_radius = r_photon - ((1 - f) * radius0 + f * radius1)
 
 if (present (dw_perp)) then
-  dw_perp(1) = (1 - f) * dw_x0 + f * dw_x1
-  dw_perp(2) = (1 - f) * dw_y0 + f * dw_y1
-  dw_perp(3) = (g0 - g1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+  dw_perp(1:2) = [-p_orb%vec(3), p_orb%vec(1)] - &
+              ((1 - f) * dr0_dtheta + f * dr1_dtheta) * [-1/p_orb%vec(3), 1/p_orb%vec(1)]
+  dw_perp(3) = (radius0 - radius1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
   dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
 endif
 
 if (present(in_antechamber)) in_antechamber = (in_ante0 .or. in_ante1)
 
-end subroutine sr3d_photon_radius
+end subroutine sr3d_photon_d_radius
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, in_antechamber, wall)
+! Subroutine sr3d_get_wall_index (p_orb, wall, ix_wall)
 !
-! Routine to compute parameters needed by sr3d_photon_radius routine.
+! Routine to get the wall index such that 
+! For p_orb%vec(6) > 0 (forward motion):
+!   wall%pt(ix_wall)%s < p_orb%vec(5) <= wall%pt(ix_wall+1)%s
+! For p_orb%vec(6) < 0 (backward motion):
+!   wall%pt(ix_wall)%s <= p_orb%vec(5) < wall%pt(ix_wall+1)%s
+! Exceptions:
+!   If p_orb%vec(5) == wall%pt(0)%s (= 0)       -> ix_wall = 0
+!   If p_orb%vec(5) == wall%pt(wall%n_pt_max)%s -> ix_wall = wall%n_pt_max - 1
+!
+! Input:
+!   p_orb  -- photon3d_coord_struct: Photon position.
+!   wall   -- wall3d_struct: Wall structure
+!
+! Output:
+!   ix_wall -- Integer: Wall index
+!-
+
+subroutine sr3d_get_wall_index (p_orb, wall, ix_wall)
+
+implicit none
+
+type (photon3d_coord_struct) :: p_orb
+type (wall3d_struct), target :: wall
+
+integer ix_wall
+
+! 
+
+if (p_orb%vec(5) < wall%pt(ix_wall)%s .or. p_orb%vec(5) > wall%pt(ix_wall+1)%s) then
+  call bracket_index (wall%pt%s, 0, wall%n_pt_max, p_orb%vec(5), ix_wall)
+  if (ix_wall == wall%n_pt_max) ix_wall = wall%n_pt_max - 1
+endif
+
+! vec(5) at boundary cases
+
+if (p_orb%vec(5) == wall%pt(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
+if (p_orb%vec(5) == wall%pt(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_pt_max-1) ix_wall = ix_wall + 1
+p_orb%ix_wall = ix_wall
+
+end subroutine sr3d_get_wall_index
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_get_mesh_wall_triangle_pts (cross1, cross2, ix_tri, pt0, pt1, pt2)
+!
+! Routine to return the three vertex points for a triangular wall surface element between
+! two cross-sections.
+!
+! Input:
+!   cross1 -- cross_section_struct: A cross-section.
+!   cross2 -- cross_section_struct: Second cross-section.
+!   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(cross1%v).
+!               [Note: size(cross1%v) = size(cross2%v)]
+!
+! Output:
+!   pt0(3), pt1(3), pt2(3)
+!         -- Real(rp): (x, y, s) vertex points for the triangle.
+!             Looking from the outside, the points are in counter-clockwise order.
+!             This is important in determining the outward normal vector
+!-
+
+subroutine sr3d_get_mesh_wall_triangle_pts (cross1, cross2, ix_tri, pt0, pt1, pt2)
+
+implicit none
+
+type (cross_section_struct) cross1, cross2
+
+integer ix_tri
+integer ix1, ix2
+
+real(rp) pt0(3), pt1(3), pt2(3)
+
+! 
+
+ix1 = (ix_tri + 1) / 2
+ix2 = ix1 + 1
+if (ix2 > size(cross1%v)) ix2 = 1
+
+if (odd(ix_tri)) then
+  pt0 = [cross1%v(ix1)%x, cross1%v(ix1)%y, cross1%s]
+  pt1 = [cross2%v(ix1)%x, cross2%v(ix1)%y, cross2%s]
+  pt2 = [cross1%v(ix2)%x, cross1%v(ix2)%y, cross1%s]
+else
+  pt1 = [cross1%v(ix2)%x, cross1%v(ix2)%y, cross1%s]
+  pt2 = [cross2%v(ix1)%x, cross2%v(ix1)%y, cross2%s]
+  pt0 = [cross2%v(ix2)%x, cross2%v(ix2)%y, cross2%s]
+endif
+
+end subroutine sr3d_get_mesh_wall_triangle_pts
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber, wall)
+!
+! Routine to compute parameters needed by sr3d_photon_d_radius routine.
 !
 ! Input:
 !   wall_pt -- wall3d_pt_struct: Wall outline at a particular longitudinal location.
-!   vec(6)  -- Real(rp): Photon phase space coords. 
+!   cos_photon -- Real(rp): Cosine of the photon transverse position.
+!   sin_photon -- Real(rp): Sine of the photon transverse position.
+!   wall       -- wall3d_struct: Needed to determine the basic_shape.
 !
 ! Output:
-!   g              -- Real(rp): Radius of the wall / radius of the photon.
-!   [dw_x, dw_y]   -- Real(rp): Transverse directional derivatives of -g.
+!   r_wall         -- Real(rp): Radius of the wall
+!   dr_dtheta      -- Real(rp): Transverse directional derivatives: d(r_wall)/d(theta)
 !   in_antechamber -- Logical: Set true of particle is in antechamber
 !-
 
-subroutine sr3d_wall_pt_params (wall_pt, vec, g, dw_x, dw_y, in_antechamber, wall)
+subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber, wall)
 
 implicit none
 
@@ -537,8 +627,8 @@ type (wall3d_pt_struct) wall_pt, pt
 type (wall3d_struct), target :: wall
 type (cross_section_vertex_struct), pointer :: v(:)
 
-real(rp) g, dw_x, dw_y, vec(6), r_p, r_w, theta, numer, denom
-real(rp) r_wall, r_photon, gradient(2)
+real(rp) dr_dtheta, cos_photon, sin_photon 
+real(rp) r_wall
 
 integer ix
 
@@ -551,12 +641,15 @@ in_antechamber = .false.
 ! general shape
 
 if (wall_pt%basic_shape == 'gen_shape') then
-  call calc_wall_radius (wall%gen_shape(wall_pt%ix_gen_shape)%v, atan2(vec(3), vec(1)), r_wall, gradient)
-  r_photon = sqrt(vec(1)**2 + vec(3)**2)
-  g = r_wall / r_photon
-  dw_x = gradient(1) * g / r_photon
-  dw_y = gradient(2) * g / r_photon
+  call calc_wall_radius (wall%gen_shape(wall_pt%ix_gen_shape)%v, sin_photon, cos_photon, r_wall, dr_dtheta)
   return
+endif
+
+
+! general shape: Should not be here
+
+if (wall_pt%basic_shape == 'gen_shape_mesh') then
+  call err_exit
 endif
 
 ! Check for antechamber or beam stop...
@@ -568,21 +661,21 @@ endif
 
 pt = wall_pt
 
-if (vec(1) > 0) then
+if (cos_photon > 0) then
 
   ! If there is an antechamber...
   if (pt%ante_height2_plus > 0) then
 
-    if (abs(vec(3)/vec(1)) < pt%ante_height2_plus/pt%ante_x0_plus) then  
+    if (abs(sin_photon/cos_photon) < pt%ante_height2_plus/pt%ante_x0_plus) then  
       pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_plus
       pt%height2 = pt%ante_height2_plus
-      if (vec(1) >= pt%ante_x0_plus) in_antechamber = .true.
+      if (cos_photon >= pt%ante_x0_plus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...
   elseif (pt%width2_plus > 0) then
-    if (abs(vec(3)/vec(1)) < pt%y0_plus/pt%width2_plus) then 
+    if (abs(sin_photon/cos_photon) < pt%y0_plus/pt%width2_plus) then 
       pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_plus
     endif
@@ -591,21 +684,21 @@ if (vec(1) > 0) then
 
 ! Negative x side check
 
-elseif (vec(1) < 0) then
+elseif (cos_photon < 0) then
 
   ! If there is an antechamber...
   if (pt%ante_height2_minus > 0) then
 
-    if (abs(vec(3)/vec(1)) < pt%ante_height2_minus/pt%ante_x0_minus) then  
+    if (abs(sin_photon/cos_photon) < pt%ante_height2_minus/pt%ante_x0_minus) then  
       pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_minus
       pt%height2 = pt%ante_height2_minus
-      if (vec(1) >= pt%ante_x0_minus) in_antechamber = .true.
+      if (cos_photon >= pt%ante_x0_minus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...
   elseif (pt%width2_minus > 0) then
-    if (abs(vec(3) / vec(1)) < pt%y0_minus/pt%width2_minus) then 
+    if (abs(sin_photon / cos_photon) < pt%y0_minus/pt%width2_minus) then 
       pt%basic_shape = 'rectangular'
       pt%width2 = pt%width2_minus
     endif
@@ -617,23 +710,19 @@ endif
 ! Compute parameters
 
 if (pt%basic_shape == 'rectangular') then
-  if (abs(vec(1)/pt%width2) > abs(vec(3)/pt%height2)) then
-    g = pt%width2 / abs(vec(1)) 
-    dw_x = g / vec(1)
-    dw_y = 0
+  if (abs(cos_photon/pt%width2) > abs(sin_photon/pt%height2)) then
+    r_wall = pt%width2 / abs(cos_photon)
+    dr_dtheta = r_wall * sin_photon / cos_photon
   else
-    g = pt%height2 / abs(vec(3))
-    dw_x = 0
-    dw_y = g / vec(3)
+    r_wall = pt%height2 / abs(sin_photon)
+    dr_dtheta = -r_wall * cos_photon / sin_photon
   endif
 
 elseif (pt%basic_shape == 'elliptical') then
-  g = 1 / sqrt((vec(1)/pt%width2)**2 + (vec(3)/pt%height2)**2)
-  dw_x = vec(1) * g**3 / pt%width2**2
-  dw_y = vec(3) * g**3 / pt%height2**2
-
+  r_wall = 1 / sqrt((cos_photon/pt%width2)**2 + (sin_photon/pt%height2)**2)
+  dr_dtheta = r_wall**3 * cos_photon * sin_photon * (1/pt%width2**2 - 1/pt%height2**2)
 endif
 
-end subroutine
+end subroutine sr3d_wall_pt_params
 
 end module
