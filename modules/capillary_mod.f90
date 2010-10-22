@@ -149,7 +149,7 @@ do
 
   call capillary_propagate_photon_a_step (photon, ele, dlen, .true.)
 
-  if (capillary_photon_radius (photon%now, ele) > 1) then
+  if (capillary_photon_d_radius (photon%now, ele) > 0) then
     call capillary_photon_hit_spot_calc (photon, ele)
     return
   endif
@@ -255,7 +255,7 @@ end subroutine capillary_propagate_photon_a_step
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine capillary_photon_hit_spot_calc (photon, ele) result (radius)
+! Subroutine capillary_photon_hit_spot_calc (photon, ele)
 !
 ! Routine to interpolate to where the photon has hit the capillary.
 !
@@ -324,7 +324,7 @@ end subroutine capillary_photon_hit_spot_calc
 !   track_len -- Real(rp): Place to position the photon.
 !
 ! Output:
-!   d_radius -- Real(rp): 
+!   d_radius -- Real(rp): r_photon - r_wall
 
 function photon_hit_func (track_len) result (d_radius)
 
@@ -335,7 +335,7 @@ real(rp) radius, d_track
 ! Easy case
 
 if (track_len == photon_com%now%track_len) then
-  d_radius = capillary_photon_radius (photon_com%now, ele_com) - 1
+  d_radius = capillary_photon_d_radius (photon_com%now, ele_com)
   return
 endif
 
@@ -351,7 +351,7 @@ endif
 
 d_track = track_len - photon1_com%now%track_len
 call capillary_propagate_photon_a_step (photon1_com, ele_com, d_track, .false.)
-d_radius = capillary_photon_radius (photon1_com%now, ele_com) - 1
+d_radius = capillary_photon_d_radius (photon1_com%now, ele_com) 
 
 end function photon_hit_func
 
@@ -387,7 +387,7 @@ logical absorbed
 !
 
 photon%old = photon%now
-r = capillary_photon_radius (photon%now, ele, perp)
+r = capillary_photon_d_radius (photon%now, ele, perp)
 
 vec => photon%now%orb%vec
 cos_perp = dot_product (vec(2:6:2), perp)
@@ -403,7 +403,7 @@ end subroutine capillary_reflect_photon
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function capillary_photon_radius (p_orb, ele, perp) result (radius)
+! Function capillary_photon_d_radius (p_orb, ele, perp) result (d_radius)
 !
 ! Routine to calculate the normalized radius = photon_radius / wall_radius.
 !
@@ -412,11 +412,11 @@ end subroutine capillary_reflect_photon
 !   ele     -- ele_struct: Capillary element
 !
 ! Output:
-!   radius  -- Real(rp), Normalized radius: r_photon / r_wall
+!   d_radius -- Real(rp), Normalized radius: r_photon - r_wall
 !   perp(3) -- Real(rp), optional: Perpendicular normal to the wall.
 !-
 
-function capillary_photon_radius (p_orb, ele, perp) result (radius)
+function capillary_photon_d_radius (p_orb, ele, perp) result (d_radius)
 
 implicit none
 
@@ -424,50 +424,42 @@ type (ele_struct), target :: ele
 type (photon_coord_struct), target :: p_orb
 type (cross_section_struct), pointer :: cc0, cc1
 
-real(rp) radius, s00, s11, f, spline, r00_wall, r11_wall
-real(rp) r0_wall, r1_wall, gradient0(2), gradient1(2), f_eff, ds_spline, theta_photon
+real(rp) d_radius, s00, s11, r_photon, f, spline, r00_wall, r11_wall, cos_theta, sin_theta
+real(rp) r0_wall, r1_wall, dr0_dtheta, dr1_dtheta, f_eff, ds_spline
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:)
 
 integer ix, n_slice
 
-! There is a sigularity in the calculation when the photon is at the origin.
-! To avoid this, just return radius = 0 for small radii.
-
-vec => p_orb%orb%vec
-
-if (abs(vec(1)) < 1e-10 .and. abs(vec(3)) < 1e-10) then
-  radius = 0
-  if (present (perp)) perp = 0
-  return
-endif
-
-!
-
-call bracket_index (ele%cross_section%s, 1, size(ele%cross_section), vec(5), ix)
-p_orb%ix_cross = ix
-
-if (ix == size(ele%cross_section)) ix = size(ele%cross_section) - 1
-
 ! The outward normal vector is discontinuous at the wall points.
 ! If at a wall point, use the correct part of the wall.
 
-if (vec(5) == ele%cross_section(ix)%s .and. vec(6) > 0) then
-  if (ix /= 0) then
-    ix = ix - 1
-  endif
-endif
+vec => p_orb%orb%vec
+
+call bracket_index (ele%cross_section%s, 1, size(ele%cross_section), vec(5), ix)
+if (ix == size(ele%cross_section)) ix = size(ele%cross_section) - 1
+if (vec(5) == ele%cross_section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
+p_orb%ix_cross = ix
 
 !
 
 cc0 => ele%cross_section(ix)
 cc1 => ele%cross_section(ix+1)
 
-theta_photon = atan2(vec(3), vec(1))
-call calc_wall_radius (cc0%v, theta_photon, r0_wall, gradient0)
-call calc_wall_radius (cc1%v, theta_photon, r1_wall, gradient1)
+if (vec(1) == 0 .and. vec(3) == 0) then
+  r_photon = 0
+  cos_theta = 1
+  sin_theta = 0
+else
+  r_photon = sqrt(vec(1)**2 + vec(3)**2)
+  cos_theta = vec(1) / r_photon
+  sin_theta = vec(3) / r_photon
+endif
 
-! Phanom slices
+call calc_wall_radius (cc0%v, cos_theta, sin_theta, r0_wall, dr0_dtheta)
+call calc_wall_radius (cc1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+
+! Phantom slices
 
 n_slice = nint(cc0%n_slice_spline)
 if (n_slice > 1) then
@@ -499,21 +491,22 @@ else
   ds_spline = s11 - s00
 endif
 
-radius = sqrt(vec(1)**2 + vec(3)**2) / ((1 - f_eff) * r00_wall + f_eff * r11_wall)
+d_radius = r_photon - ((1 - f_eff) * r00_wall + f_eff * r11_wall)
 
 if (present (perp)) then
-  perp(1:2) = (1 - f_eff) * gradient0 + f_eff * gradient1
+  perp(1:2) = [-vec(3), vec(1)] - &
+                ((1 - f_eff) * dr0_dtheta + f_eff * dr1_dtheta) * [-1/vec(3), 1/vec(1)]
   perp(3)   = -(r11_wall - r00_wall) / ds_spline
   perp = perp / sqrt(sum(perp**2))  ! Normalize
 endif
 
-end function capillary_photon_radius
+end function capillary_photon_d_radius
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine calc_wall_radius (v, theta, r_wall, gradient)
+! Subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
 !
 ! Routine to calculate the wall radius at a given angle for a given cross-section
 ! Additionally, the transverse directional derivative is calculated.
@@ -522,16 +515,16 @@ end function capillary_photon_radius
 !   use cross_setction_mod
 !
 ! Input:
-!   v(:)        -- cross_section_vertex_struct: Array of vertices.
-!   theta       -- Real(rp): Angle to evaluate at.
+!   v(:)         -- cross_section_vertex_struct: Array of vertices.
+!   cos_ang      -- Real(rp): cosine of the transverse photon position.
+!   sin_ang      -- Real(rp): sine of the transverse photon position.
 !
 ! Output:
-!   r_wall      -- Real(rp): Wall radius at given angle
-!   gradient(2) -- Real(rp): (dx, dy) directional derivative of f = r - r_w(theta)
-!                              evaluated at r = r_wall.
+!   r_wall      -- Real(rp): Wall radius at given angle.
+!   dr_dtheta   -- Real(rp): derivative of r_wall.
 !-
 
-subroutine calc_wall_radius (v, theta, r_wall, gradient)
+subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
 
 implicit none
 
@@ -539,16 +532,16 @@ type (cross_section_vertex_struct), target :: v(:)
 type (cross_section_vertex_struct), pointer :: v1, v2
 
 
-real(rp) theta, r_wall, gradient(2)
-real(rp) angle, numer, denom, ct, st, x0, y0, gx, gy, a, b, c
-real(rp) cos_ang, sin_ang, radx, f
+real(rp) r_wall, dr_dtheta, rx, ry, da, db, angle
+real(rp) numer, denom, ct, st, x0, y0, a, b, c
+real(rp) cos_ang, sin_ang, radx, cos_a, sin_a
 
 integer ix
 
 ! Bracket index if there is more than one vertex
 ! If there is only one vertex then must be an ellipse or circle
 
-angle = theta
+angle = atan2(sin_ang, cos_ang)
 
 if (size(v) == 1) then
   v2 => v(1)
@@ -557,73 +550,63 @@ else
   call bracket_index (v%angle, 1, size(v), angle, ix)
 
   v1 => v(ix)
-  v2 => v(ix+1)
+  if (ix == size(v)) then
+    v2 => v(1)
+  else
+    v2 => v(ix+1)
+  endif
 endif
 
 ! Straight line case
 
 if (v2%radius_x == 0) then
-  cos_ang = cos(theta)
-  sin_ang = sin(theta)
   numer = (v1%x * v2%y - v1%y * v2%x)
   denom = (cos_ang * (v2%y - v1%y) - sin_ang * (v2%x - v1%x))
   r_wall = numer / denom
-  gradient =  [cos_ang, sin_ang] + [-sin_ang, cos_ang] * &
-                      (sin_ang * (v2%y - v1%y) + cos_ang * (v2%x - v1%x)) * numer / denom**2
+  dr_dtheta = numer * (sin_ang * (v2%y - v1%y) + cos_ang * (v2%x - v1%x)) / denom**2
   return
 endif
 
 ! Convert into unrotated frame if tilted ellipse
 
-x0 = v2%x0; y0 = v2%y0
-
 if (v2%tilt /= 0) then
-  angle = angle - v2%tilt
   ct = cos(v2%tilt); st = sin(v2%tilt)
   x0 =  ct * v2%x0 + st * v2%y0
   y0 = -st * v2%x0 + ct * v2%y0
+  cos_a = cos_ang * ct + sin_ang * st
+  sin_a = sin_ang * ct - cos_ang * st
+else
+  x0 = v2%x0; y0 = v2%y0
+  cos_a = cos_ang; sin_a = sin_ang
 endif
 
-! If ellipse then shrink along y-axis
+! If ellipse...
 
 if (v2%radius_y /= 0) then
-  y0 = y0 * v2%radius_x / v2%radius_y
-  angle = atan2(sin(angle) * v2%radius_x / v2%radius_y, cos(angle))
+  rx = v2%radius_x; ry = v2%radius_y
+  a = (cos_a/rx)**2 + (sin_a/ry)**2
+  b = -2 * (cos_a * x0 / rx**2 + sin_a * y0 / ry**2)
+  c = (x0/rx)**2 + (y0/ry)**2 - 1
+  radx = sqrt(b**2 - 4 * a * c)
+
+  r_wall = (-b + radx) / (2 * a)
+ 
+  da = 2 * cos_a * sin_a * (1/ry**2 - 1/rx**2)
+  db = 2 * (sin_a * x0 / rx**2 - cos_a * y0 / ry**2)
+  dr_dtheta = -db * r_wall / radx - da * (r_wall / a + (c / (a * radx)))
+
+  return
 endif
 
-cos_ang = cos(angle)
-sin_ang = sin(angle)
-
-! Find wall point and derivative
+! Else must be a circle
 
 a = 1
-b = 2 * (cos_ang * x0 + sin_ang * y0)
+b = -2 * (cos_a * x0 + sin_a * y0)
 c = x0**2 + y0**2 - v2%radius_x**2
 radx = sqrt(b**2 - 4 * a * c)
-if (v2%radius_x < 0) then
-  r_wall = (b - radx) / (2 * a)
-  f = (-1 - b/radx) / (2 * a)
-else
-  r_wall = (b + radx) / (2 * a)
-  f = (-1 + b/radx) / (2 * a)
-endif
-gradient = [cos_ang, sin_ang] - [sin_ang, -cos_ang] * f * 2 * (sin_ang * x0 - cos_ang * y0)
 
-! If an ellipse then expand along y-axis
-
-if (v2%radius_y /= 0) then
-  r_wall = r_wall * sqrt(cos_ang**2 + (sin_ang * v2%radius_y / v2%radius_x)**2)
-  gradient(2) = gradient(2) * v2%radius_y / v2%radius_x
-  gradient = gradient / sqrt(1 + (v2%radius_y / v2%radius_x)**2)
-endif
-
-! If a tilted ellipse then rotate
-
-if (v2%tilt /= 0) then
-  ct = cos(v2%tilt); st = sin(v2%tilt)
-  gradient =  [ct * gradient(1) -  st * gradient(2), &
-               st * gradient(1) +  ct * gradient(2)]
-endif
+r_wall = (-b + radx) / (2 * a)
+dr_dtheta = (sin_a * x0 - cos_a * y0) * (-1 + b / radx) / (2 * a)
 
 end subroutine calc_wall_radius
 

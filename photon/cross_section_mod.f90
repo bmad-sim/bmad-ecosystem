@@ -125,8 +125,7 @@ end subroutine re_associate_cross_section_array
 ! Routine to initialize a cross_section_struct:
 !   1) Add vertex points if there is symmetry.
 !   2) Compute circular and elliptical centers.
-!   3) Add an end vertex which is the same as the first vertex.
-!   4) Calc s_spline(3)
+!   3) Calc s_spline(3)
 !
 ! Modules needed:
 !   use cross_section_mod
@@ -183,7 +182,7 @@ do i = 1, n
   endif
 enddo
 
-if (v(n)%angle - v(1)%angle > twopi) then
+if (v(n)%angle - v(1)%angle >= twopi) then
   call out_io (s_error$, r_name, 'CROSS-SECTION WINDS BY MORE THAN 2PI!')
   return
 endif
@@ -226,13 +225,6 @@ if (all(v(1:n)%y >= 0)) then
   if (v(1)%y == 0) nn = nn - 1  ! Do not duplicate v(1) vertex
   n = nn
 endif
-
-! Add end vertex which is the same as v(1).
-
-if (v(n)%y /= v(1)%y .or. v(n)%x /= v(1)%x) n = n + 1
-call re_allocate(cross%v, n); v => cross%v
-v(n) = v(1)
-v(n)%angle = v(1)%angle + twopi
 
 ! Calculate center of circle/ellipses...
 
