@@ -1,5 +1,4 @@
 #=============================================================================
-#
 # File:     Makefile
 #
 # Purpose:  Library makefile for the bsim package
@@ -9,9 +8,7 @@
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
-#
 #=============================================================================
-
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into
@@ -115,8 +112,8 @@ OBJ_OUT_DIR   = $(locallib)
 #------------------------------------------------
 # Include the standard CESR M.tail makefile
 #------------------------------------------------
-ifeq "$(BMAD_DIST)" "TRUE"
-  include $(BMAD_GMAKE)/M.tail
+ifeq "$(DIST_BUILD)" "TRUE"
+  include $(DIST_GMAKE)/M.tail
 else
   include $(CESR_GMAKE)/M.tail
 endif
