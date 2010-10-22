@@ -146,8 +146,7 @@ do i = 0, ubound(in_lat%ele, 1)
 enddo
 
 bmad_status%ok = .true.
-if (bmad_status%type_out) &
-     call out_io (s_info$, r_name, 'Creating new digested file...')
+if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
 
 call file_stack('init')
 call file_stack('push', lat_file, finished, err)  ! open file on stack
@@ -1017,8 +1016,10 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
 if (.not. bp_com%error_flag) then            
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
-  if (bp_com%write_digested) call write_digested_bmad_file (digested_file, &
-                                      lat, bp_com%num_lat_files, bp_com%lat_file_names)
+  if (bp_com%write_digested) then
+    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names)
+    if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+  endif
 endif
 
 call parser_end_stuff ()
