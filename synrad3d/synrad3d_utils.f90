@@ -459,7 +459,7 @@ call sr3d_get_wall_index (p_orb, wall, ix)
 
 ! gen_shape_mesh calc
 
-if (wall%pt(ix+1)%basic_shape == 'gen_shape') then
+if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
   if (.not. present(dw_perp)) return
   ig0 = wall%pt(ix)%ix_gen_shape
   ig1 = wall%pt(ix+1)%ix_gen_shape
@@ -491,8 +491,8 @@ f = (p_orb%vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
 if (present(d_radius)) d_radius = r_photon - ((1 - f) * radius0 + f * radius1)
 
 if (present (dw_perp)) then
-  dw_perp(1:2) = [-p_orb%vec(3), p_orb%vec(1)] - &
-              ((1 - f) * dr0_dtheta + f * dr1_dtheta) * [-1/p_orb%vec(3), 1/p_orb%vec(1)]
+  dw_perp(1:2) = [cos_ang, sin_ang] - [-sin_ang, cos_ang] * &
+                            ((1 - f) * dr0_dtheta + f * dr1_dtheta) / r_photon
   dw_perp(3) = (radius0 - radius1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
   dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
 endif
@@ -532,9 +532,11 @@ type (photon3d_coord_struct) :: p_orb
 type (wall3d_struct), target :: wall
 
 integer ix_wall
+integer, save :: ix_wall_old = 0
 
 ! 
 
+ix_wall = ix_wall_old
 if (p_orb%vec(5) < wall%pt(ix_wall)%s .or. p_orb%vec(5) > wall%pt(ix_wall+1)%s) then
   call bracket_index (wall%pt%s, 0, wall%n_pt_max, p_orb%vec(5), ix_wall)
   if (ix_wall == wall%n_pt_max) ix_wall = wall%n_pt_max - 1
@@ -544,7 +546,9 @@ endif
 
 if (p_orb%vec(5) == wall%pt(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
 if (p_orb%vec(5) == wall%pt(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_pt_max-1) ix_wall = ix_wall + 1
+
 p_orb%ix_wall = ix_wall
+ix_wall_old = ix_wall
 
 end subroutine sr3d_get_wall_index
 
@@ -641,7 +645,7 @@ in_antechamber = .false.
 ! general shape
 
 if (wall_pt%basic_shape == 'gen_shape') then
-  call calc_wall_radius (wall%gen_shape(wall_pt%ix_gen_shape)%v, sin_photon, cos_photon, r_wall, dr_dtheta)
+  call calc_wall_radius (wall%gen_shape(wall_pt%ix_gen_shape)%v, cos_photon, sin_photon, r_wall, dr_dtheta)
   return
 endif
 

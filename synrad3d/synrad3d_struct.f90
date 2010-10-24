@@ -78,7 +78,7 @@ end type
 ! This is just an array of chamber cross-sections.
 
 type wall3d_struct
-  type (wall3d_pt_struct), allocatable :: pt(:)
+  type (wall3d_pt_struct), allocatable :: pt(:)  ! lbound index = 0
   type (cross_section_struct), allocatable :: gen_shape(:)
   integer n_pt_max
 end type

@@ -612,27 +612,14 @@ the radius of the wall at the next defined cross-section at $s_2$. The
 radius of the wall cross-section, $r_w(\theta, s)$ at some position
 $s$ with $s_1 \le s \le s_2$ is
 \Begineq
-  r_w(\theta, s) = \frac{s_2 - s}{s_2 - s_1} \, r_{w1} + \frac{s_1 - s}{s_1 - s_2} \, r_{w2}
+  r_w(\theta, s) = 
+  \frac{s_2 - s}{s_2 - s_1} \, r_{w1}(\theta) + 
+  \frac{s_1 - s}{s_1 - s_2} \, r_{w2}(\theta)
 \Endeq
-The foregoing construction works as long as $r_{w1}$ and $r_{w2}$ are
-single valued functions. For \vn{gen_shape} shapes, this is equivalent
-to having the $\theta$ value of the list of vertices be in increasing (or
-decreasing) order.
-
-With linear interpolation, to determine if a photon at position $(r,
-\theta, s)$ is inside or outside the chamber, the normalized radius
-$r_n$ is evaluated:
+A photon at $(r,\theta, s)$ is inside the chamber if
 \Begineq
-  r_n(r, \theta, s) = r / r_w(\theta, s)
+  r < r_w(\theta, s)
 \Endeq
-The photon is outside if $r_n > 1$ and inside if $r_n < 1$. The wall
-itself is defined by the equation $r_n = 1$. This being the case, the
-gradient $\nabla r_n$, evaluated at the chamber wall, gives a vector
-that is outward normal to the surface. This is useful when calculating
-the grazing angle of the photon as it reflects off the
-surface. Actually, \srthree calculates the gradient of $-1/r_n$
-expressed in $(x, y, s)$ coordinates as this turns out to be
-especially easy to evaluate.
 
 %------------------------------------------------------------------
 \subsection{Photon Tracking}
