@@ -60,7 +60,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
 namelist / wall_def / section
 namelist / gen_shape_def / ix_gen_shape, v
 
-namelist / start / p, ran_state
+namelist / start / p, ran_state, random_seed
 
 ! Get parameter file name
 
@@ -185,14 +185,23 @@ if (n > 0) then
     endif
 
     ! Count number of vertices and calc angles.
+    ! 
 
-     poly => wall%gen_shape(ix_gen_shape)
-     do n = 1, size(v)
-      if (v(n)%x /= 0 .or. v(n)%y /= 0) cycle
-      allocate(poly%v(n-1))
-      poly%n_vertex_input = n-1
+    poly => wall%gen_shape(ix_gen_shape)
+    do n = 1, size(v)
+      if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
     enddo
 
+    if (any(v(n:)%x /= 0) .or. any(v(n:)%y /= 0) .or. &
+        any(v(n:)%radius_x /= 0) .or. any(v(n:)%radius_y /= 0)) then
+      print *, 'MALFORMED GEN_SHAPE. NUMBER:', ix_gen_shape
+      call err_exit
+    endif
+
+    allocate(poly%v(n-1))
+    poly%v = v(1:n-1)
+    poly%n_vertex_input = n-1
+      
     call cross_section_initializer (poly, err)
     if (err) call err_exit
 
@@ -251,10 +260,14 @@ else
            sum(rad_int_ele%i0(1:ix_ele_track_end))
 endif
 
-if (i0_tot == 0) then
+! To generate photons we either need bends or wigglers or a photon init file.
+
+if (i0_tot == 0 .and. photon_start_input_file == '') then
   call out_io (s_fatal$, r_name, 'No bends in region of interest')
   call err_exit
 endif
+
+! Print some info
 
 print *, 'I0 Radiation Integral of entire lattice:', modes%synch_int(0)
 print *, 'I0 Radiation Integral over emission region:', i0_tot
@@ -331,6 +344,7 @@ if (photon_start_input_file /= '') then
 
     do
       ran_state%iy = -1  ! To see if ran_state is set by the read.
+      random_seed = -1
       read (1, nml = start, iostat = ios)
       if (ios < 0) exit photon_loop
       if (ios > 0) then
@@ -348,6 +362,7 @@ if (photon_start_input_file /= '') then
     photon%start = p
     photon%n_wall_hit = 0
     if (ran_state%iy > 0) call ran_seed_put (state = ran_state)
+    if (random_seed > -1) call ran_seed_put (seed = random_seed)
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
     call sr3d_track_photon (photon, lat, wall, wall_hit)
@@ -584,21 +599,23 @@ end subroutine
 subroutine check_if_photon_init_coords_outside_wall (photon_start, is_inside)
 
 type (photon3d_coord_struct) photon_start
+type (photon3d_track_struct) photon
 
 real(rp) d_radius
 
 logical is_inside
 
-!
+! For gen_shape_mesh "outside wall" is defined here to be true if a ray from the 
+! center to photon_start crosses a wall boundary.
 
-is_inside = .true.
+photon%now = photon_start
+photon%old = photon_start
+photon%old%vec(1:3:2) = 0   ! 
+is_inside = .not. sr3d_photon_through_wall (photon, wall)
 
-call sr3d_photon_d_radius (photon_start, wall, d_radius)
-
-if (d_radius >= 0) then
+if (.not. is_inside) then
   print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
   print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%vec      
-  is_inside = .false.
 
   num_ignore_generated_outside_wall = num_ignore_generated_outside_wall - 1
   if (num_ignore_generated_outside_wall < 0) then
