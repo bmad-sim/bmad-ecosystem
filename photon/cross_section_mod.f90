@@ -224,6 +224,7 @@ if (all(v(1:n)%y >= 0)) then
 
   if (v(1)%y == 0) nn = nn - 1  ! Do not duplicate v(1) vertex
   n = nn
+  call re_allocate(cross%v, nn, .true.); v => cross%v
 endif
 
 ! Calculate center of circle/ellipses...
