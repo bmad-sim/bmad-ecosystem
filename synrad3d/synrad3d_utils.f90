@@ -28,7 +28,7 @@ implicit none
 type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: pt, pt0
 
-integer i, ig0, ig1
+integer i
 
 character(20) :: r_name = 'sr3d_check_wall'
 
@@ -58,7 +58,7 @@ do i = 0, wall%n_pt_max
   ! Gen_shape and gen_shape_mesh checks
 
   if (pt%basic_shape == 'gen_shape' .or. pt%basic_shape == 'gen_shape_mesh') then
-    if (pt%ix_gen_shape < 1) then
+    if (.not. associated (pt%gen_shape)) then
       call out_io (s_fatal$, r_name, &
               'BAD WALL%PT(I)%IX_GEN_SHAPE SECTION NUMBER \i0\ ', i_array = [i])
       call err_exit
@@ -74,10 +74,7 @@ do i = 0, wall%n_pt_max
       call err_exit
     endif
 
-    ig0 = pt0%ix_gen_shape
-    ig1 = pt%ix_gen_shape
-
-    if (size(wall%gen_shape(ig0)%v) /= size(wall%gen_shape(ig1)%v)) then
+    if (size(pt0%gen_shape%v) /= size(pt%gen_shape%v)) then
       call out_io (s_fatal$, r_name, &
               '"gen_shape_mesh" CONSTRUCT MUST HAVE THE SAME NUMBER OF VERTEX POINTS ON', &
               'SUCCESIVE CROSS-SECTIONS  \2i0\ ', i_array = [i-1, i])
@@ -448,7 +445,7 @@ real(rp) radius0, radius1, f, cos_ang, sin_ang, r_photon
 real(rp) dr0_dtheta, dr1_dtheta, pt0(3), pt1(3), pt2(3), dp1(3), dp2(3)
 
 integer, optional :: ix_tri
-integer ix, ig0, ig1
+integer ix
 
 logical, optional :: in_antechamber
 logical in_ante0, in_ante1
@@ -457,13 +454,12 @@ logical in_ante0, in_ante1
 
 call sr3d_get_wall_index (p_orb, wall, ix)
 
-! gen_shape_mesh calc
+! gen_shape_mesh calc.
+! The wall outward normal is just given by the cross product: (pt1-pt0) x (pt2-pt2)
 
 if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
   if (.not. present(dw_perp)) return
-  ig0 = wall%pt(ix)%ix_gen_shape
-  ig1 = wall%pt(ix+1)%ix_gen_shape
-  call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), p_orb%ix_triangle, pt0, pt1, pt2)
+  call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), p_orb%ix_triangle, pt0, pt1, pt2)
   dp1 = pt1 - pt0
   dp2 = pt2 - pt0
   dw_perp = [dp1(2)*dp2(3) - dp1(3)*dp2(2), dp1(3)*dp2(1) - dp1(1)*dp2(3), dp1(1)*dp2(2) - dp1(2)*dp2(1)]
@@ -483,8 +479,8 @@ else
   sin_ang = p_orb%vec(3) / r_photon
 endif
 
-call sr3d_wall_pt_params (wall%pt(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0, wall)
-call sr3d_wall_pt_params (wall%pt(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1, wall)
+call sr3d_wall_pt_params (wall%pt(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
+call sr3d_wall_pt_params (wall%pt(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
 
 f = (p_orb%vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
 
@@ -556,49 +552,49 @@ end subroutine sr3d_get_wall_index
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_get_mesh_wall_triangle_pts (cross1, cross2, ix_tri, pt0, pt1, pt2)
+! Subroutine sr3d_get_mesh_wall_triangle_pts (pt1, pt2, ix_tri, tri_vert0, tri_vert1, tri_vert2)
 !
 ! Routine to return the three vertex points for a triangular wall surface element between
 ! two cross-sections.
 !
 ! Input:
-!   cross1 -- cross_section_struct: A cross-section.
-!   cross2 -- cross_section_struct: Second cross-section.
-!   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(cross1%v).
-!               [Note: size(cross1%v) = size(cross2%v)]
+!   pt1 -- wall3d_pt_struct: A gen_shape or gen_shape_mesh cross-section.
+!   pt2 -- wall3d_pt_struct: Second cross-section. Should be gen_shape_mesh.
+!   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(pt1%gen_shape%v).
+!               [Note: size(pt1%gen_shape%v) = size(pt2%gen_shape%v)]
 !
 ! Output:
-!   pt0(3), pt1(3), pt2(3)
+!   tri_vert0(3), tri_vert1(3), tri_vert2(3)
 !         -- Real(rp): (x, y, s) vertex points for the triangle.
 !             Looking from the outside, the points are in counter-clockwise order.
 !             This is important in determining the outward normal vector
 !-
 
-subroutine sr3d_get_mesh_wall_triangle_pts (cross1, cross2, ix_tri, pt0, pt1, pt2)
+subroutine sr3d_get_mesh_wall_triangle_pts (pt1, pt2, ix_tri, tri_vert0, tri_vert1, tri_vert2)
 
 implicit none
 
-type (cross_section_struct) cross1, cross2
+type (wall3d_pt_struct) pt1, pt2
 
 integer ix_tri
 integer ix1, ix2
 
-real(rp) pt0(3), pt1(3), pt2(3)
+real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
 
 ! 
 
 ix1 = (ix_tri + 1) / 2
 ix2 = ix1 + 1
-if (ix2 > size(cross1%v)) ix2 = 1
+if (ix2 > size(pt1%gen_shape%v)) ix2 = 1
 
 if (odd(ix_tri)) then
-  pt0 = [cross1%v(ix1)%x, cross1%v(ix1)%y, cross1%s]
-  pt1 = [cross2%v(ix1)%x, cross2%v(ix1)%y, cross2%s]
-  pt2 = [cross1%v(ix2)%x, cross1%v(ix2)%y, cross1%s]
+  tri_vert0 = [pt1%gen_shape%v(ix1)%x, pt1%gen_shape%v(ix1)%y, pt1%s]
+  tri_vert1 = [pt1%gen_shape%v(ix2)%x, pt1%gen_shape%v(ix2)%y, pt1%s]
+  tri_vert2 = [pt2%gen_shape%v(ix1)%x, pt2%gen_shape%v(ix1)%y, pt2%s]
 else
-  pt1 = [cross1%v(ix2)%x, cross1%v(ix2)%y, cross1%s]
-  pt2 = [cross2%v(ix1)%x, cross2%v(ix1)%y, cross2%s]
-  pt0 = [cross2%v(ix2)%x, cross2%v(ix2)%y, cross2%s]
+  tri_vert0 = [pt1%gen_shape%v(ix2)%x, pt1%gen_shape%v(ix2)%y, pt1%s]
+  tri_vert1 = [pt2%gen_shape%v(ix2)%x, pt2%gen_shape%v(ix2)%y, pt2%s]
+  tri_vert2 = [pt2%gen_shape%v(ix1)%x, pt2%gen_shape%v(ix1)%y, pt2%s]
 endif
 
 end subroutine sr3d_get_mesh_wall_triangle_pts
@@ -623,12 +619,11 @@ end subroutine sr3d_get_mesh_wall_triangle_pts
 !   in_antechamber -- Logical: Set true of particle is in antechamber
 !-
 
-subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber, wall)
+subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber)
 
 implicit none
 
 type (wall3d_pt_struct) wall_pt, pt
-type (wall3d_struct), target :: wall
 type (cross_section_vertex_struct), pointer :: v(:)
 
 real(rp) dr_dtheta, cos_photon, sin_photon 
@@ -645,7 +640,7 @@ in_antechamber = .false.
 ! general shape
 
 if (wall_pt%basic_shape == 'gen_shape') then
-  call calc_wall_radius (wall%gen_shape(wall_pt%ix_gen_shape)%v, cos_photon, sin_photon, r_wall, dr_dtheta)
+  call calc_wall_radius (wall_pt%gen_shape%v, cos_photon, sin_photon, r_wall, dr_dtheta)
   return
 endif
 
