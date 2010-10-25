@@ -147,9 +147,9 @@ type (photon3d_track_struct) photon
 type (wall3d_struct) wall
 
 real(rp) d_radius
-real(rp) pt0(3), pt1(3), pt2(3)
+real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
 
-integer i, ig0, ig1, ix
+integer i, ix
 
 logical is_through
 
@@ -158,11 +158,9 @@ logical is_through
 call sr3d_get_wall_index (photon%now, wall, ix)
 
 if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
-  ig0 = wall%pt(ix)%ix_gen_shape
-  ig1 = wall%pt(ix+1)%ix_gen_shape
-  do i = 1, 2*size(wall%gen_shape(ig0)%v)
-    call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), i, pt0, pt1, pt2)
-    call sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, is_through)
+  do i = 1, 2*size(wall%pt(ix)%gen_shape%v)
+    call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
+    call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through)
     if (is_through) return 
   enddo
 else
@@ -192,8 +190,9 @@ end function sr3d_photon_through_wall
 !             -- Real(rp): Triangle vertex points.
 !
 ! Output:
-!   intersect  -- Logical: True if there is an intersection.
+!   intersect  -- Logical: True if there is an intersection. between photon%old and photon%now.
 !   dlen       -- Real(rp), optional: track length from photon%old to intersection point.
+!                  Negative if no intersection.
 !-
 
 subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect, dtrack_len)
@@ -207,7 +206,11 @@ real(rp), optional :: dtrack_len
 real(rp) ratio
 real(rp) mat3(3,3), abc_vec(3)
 
-logical intersect, ok
+logical intersect, ok, line_intersect
+
+!
+
+if (present(dtrack_len)) dtrack_len = -1
 
 ! Solve the matrix equation:
 !   photon_old + a * (photon_now - photon_old) = pt0 + b * (pt1 - pt0) + c * (pt2 = pt0)
@@ -217,7 +220,7 @@ mat3(1:3,2) = pt0 - pt1
 mat3(1:3,3) = pt0 - pt2
 
 call mat_inverse (mat3, mat3, ok)
-if (.not. ok) then   ! Can happen if photon trajectory is parallel to triangle surface.
+if (.not. ok) then   ! EG: photon trajectory is parallel to triangle surface.
   intersect = .false.
   return
 endif
@@ -230,11 +233,14 @@ abc_vec = matmul(mat3, pt0  - photon%old%vec(1:5:2))
 !   0 < c
 !   b + c < 1
 
-intersect = (abc_vec(1) >= 0 .and. abc_vec(1) <= 1 .and. &
-             abc_vec(2) >= 0 .and. abc_vec(3) >= 0 .and. &
-             abc_vec(2) + abc_vec(3) <= 1)
+line_intersect = (abc_vec(1) >= 0 .and. abc_vec(2) >= 0 .and. &
+                  abc_vec(3) >= 0 .and. abc_vec(2) + abc_vec(3) <= 1)
 
-if (present(dtrack_len)) dtrack_len = abc_vec(1) * sqrt(sum((photon%now%vec(1:5:2) - photon%old%vec(1:5:2))**2))
+intersect = (line_intersect .and. abc_vec(1) <= 1)
+
+if (present(dtrack_len) .and. line_intersect) then
+  dtrack_len = abc_vec(1) * (photon%now%track_len - photon%old%track_len)
+endif
 
 end subroutine sr3d_mesh_triangle_intersect
 
@@ -547,6 +553,7 @@ track_len = zbrent (sr3d_photon_hit_func, track_len0, photon%now%track_len, 1d-1
 photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
 call sr3d_photon_d_radius (photon%now, wall, in_antechamber = photon%hit_antechamber)
+photon_com%now%ix_triangle = photon1_com%now%ix_triangle
 
 end subroutine sr3d_photon_hit_spot_calc 
 
@@ -572,14 +579,24 @@ implicit none
 real(rp), intent(in) :: track_len
 real(rp) d_radius, radius, d_track
 
-! Easy case
+! Easy case at the end of the track
 
 if (track_len == photon_com%now%track_len) then
-  if (wall_com%pt(photon_com%now%ix_wall)%basic_shape == 'gen_shape_mesh') then
+  if (wall_com%pt(photon_com%now%ix_wall+1)%basic_shape == 'gen_shape_mesh') then
     call sr3d_mesh_d_radius (photon_com, wall_com, d_radius)
   else
     call sr3d_photon_d_radius (photon_com%now, wall_com, d_radius)
   endif
+  return
+endif
+
+! At the beginning of the track the mesh calc has porblems with zero length steps.
+! So just interpolate from the end
+
+if (track_len == photon_com%old%track_len .and. &
+      wall_com%pt(photon_com%now%ix_wall+1)%basic_shape == 'gen_shape_mesh') then
+  call sr3d_mesh_d_radius (photon_com, wall_com, d_radius)
+  d_radius = d_radius - (photon_com%now%track_len - photon_com%old%track_len)  
   return
 endif
 
@@ -599,7 +616,7 @@ endif
 d_track = track_len - photon1_com%now%track_len
 call sr3d_propagate_photon_a_step (photon1_com, d_track, lat_com, wall_com, .false.)
 
-if (wall_com%pt(photon_com%now%ix_wall)%basic_shape == 'gen_shape_mesh') then
+if (wall_com%pt(photon_com%now%ix_wall+1)%basic_shape == 'gen_shape_mesh') then
   call sr3d_mesh_d_radius (photon1_com, wall_com, d_radius)
 else
   call sr3d_photon_d_radius (photon1_com%now, wall_com, d_radius)
@@ -624,9 +641,9 @@ type (photon3d_track_struct), target :: photon
 type (wall3d_struct), target :: wall
 
 real(rp) d_radius, dlen, dlen_min
-real(rp) pt0(3), pt1(3), pt2(3)
+real(rp) tv0(3), tv1(3), tv2(3)
 
-integer i, ix, ig0, ig1
+integer i, ix
 
 logical is_through
 
@@ -635,15 +652,13 @@ character(20) :: r_name = 'sr3d_mesh_d_radius'
 ! 
 
 ix = photon%now%ix_wall
-ig0 = wall%pt(ix)%ix_gen_shape
-ig1 = wall%pt(ix+1)%ix_gen_shape
 
 ! To save time try old triangle
 
-if (photon_com%now%ix_triangle > 0) then
-  call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), photon_com%now%ix_triangle, pt0, pt1, pt2)
-  call sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, is_through, dlen)
-  if (is_through) then
+if (photon%now%ix_triangle > 0) then
+  call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), photon%now%ix_triangle, tv0, tv1, tv2)
+  call sr3d_mesh_triangle_intersect (photon, tv0, tv1, tv2, is_through, dlen)
+  if (dlen > 0) then
     d_radius = (photon%now%track_len - photon%old%track_len) - dlen 
     return
   endif
@@ -651,25 +666,25 @@ endif
 
 ! Now must look at all triangles and pick first tirangle through
 
-photon_com%now%ix_triangle = -1
+photon%now%ix_triangle = -1
 dlen_min = 1d30   ! Something large
 
-do i = 1, 2*size(wall%gen_shape(ig0)%v)
-  call sr3d_get_mesh_wall_triangle_pts (wall%gen_shape(ig0), wall%gen_shape(ig1), i, pt0, pt1, pt2)
-  call sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, is_through, dlen)
-  if (.not. is_through) cycle
+do i = 1, 2*size(wall%pt(ix)%gen_shape%v)
+  call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tv0, tv1, tv2)
+  call sr3d_mesh_triangle_intersect (photon, tv0, tv1, tv2, is_through, dlen)
+  if (dlen <= 0) cycle
   if (dlen < dlen_min) then
-    photon_com%now%ix_triangle = i
+    photon%now%ix_triangle = i
     dlen_min = dlen
   endif
 enddo
 
-if (photon_com%now%ix_triangle == -1) then
+if (photon%now%ix_triangle == -1) then
   call out_io (s_fatal$, r_name, 'NO INTERSECTION WITH WALL FOUND!')
   call err_exit
 endif
 
-d_radius = (photon%now%track_len - photon%old%track_len) - dlen 
+d_radius = (photon%now%track_len - photon%old%track_len) - dlen_min
 
 end subroutine sr3d_mesh_d_radius
 

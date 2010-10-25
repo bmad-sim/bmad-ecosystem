@@ -22,7 +22,7 @@ type (normal_modes_struct) modes
 type (photon3d_track_struct), allocatable, target :: photons(:)
 type (photon3d_track_struct), pointer :: photon
 type (wall3d_struct), target :: wall
-type (wall3d_pt_struct) section
+type (wall3d_pt_input) section
 type (photon3d_coord_struct) p
 type (random_state_struct) ran_state
 type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
@@ -150,17 +150,17 @@ do i = 0, n_wall_pt_max
   section%ante_height2_minus = -1
   section%width2_plus = -1
   section%width2_minus = -1
-  section%ix_gen_shape = -1
-  section%surface_type = linear_surface$
   read (1, nml = wall_def)
 
-  wall%pt(i) = section
+  wall%pt(i) = wall3d_pt_struct( &
+          section%s, section%basic_shape, section%width2, section%height2, &
+          section%ante_height2_plus, section%width2_plus, section%ante_height2_minus, &
+          section%width2_minus, section%ante_x0_plus, section%ante_x0_minus, &
+          section%y0_plus, section%y0_minus, null())
 
   if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
-    wall%pt(i)%ix_gen_shape = nint(wall%pt(i)%width2)
-    n = max (n, wall%pt(i)%ix_gen_shape)
+    n = max (n, nint(wall%pt(i)%width2))
   endif
-  if (wall%pt(i)%basic_shape == 'gen_shape_mesh') wall%pt(i)%surface_type = mesh_surface$
 enddo
 
 ! Get the gen_shape info
@@ -209,6 +209,15 @@ if (n > 0) then
 endif
 
 close (1)
+
+! point to gen_shapes
+
+do i = 0, n_wall_pt_max
+  if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
+    wall%pt(i)%gen_shape => wall%gen_shape(nint(wall%pt(i)%width2))
+  endif
+enddo
+
 
 ! Get lattice
 

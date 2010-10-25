@@ -71,8 +71,24 @@ type wall3d_pt_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  integer ix_gen_shape            ! Gen_shape index 
-  integer surface_type
+  type (cross_section_struct), pointer :: gen_shape            ! Gen_shape info
+end type
+
+! Needed since Fortran does not allow pointers to be part of a namelist
+
+type wall3d_pt_input
+  real(rp) s                      ! Longitudinal position.
+  character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
+  real(rp) width2                 ! Half width ignoring antechamber.
+  real(rp) height2                ! Half height ignoring antechamber.
+  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
+  real(rp) width2_plus            ! Distance from pipe center to +x side edge.
+  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
+  real(rp) width2_minus           ! Distance from pipe center -x side edge.
+  real(rp) ante_x0_plus           ! Computed: x coord at +x antechamber opening.
+  real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
+  real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
+  real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
 end type
 
 ! This is just an array of chamber cross-sections.
