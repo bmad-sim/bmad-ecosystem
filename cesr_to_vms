@@ -8,23 +8,6 @@
 # Inputs: (1)  Name of the release to compress and transfer
 #
 # Author:  M. Palmer  01/09/02
-#
-#---------------------------------------------------------------
-#
-# $Id$
-#
-# $Log$
-# Revision 1.3  2006/11/09 16:10:40  cesrulib
-# Script now handles FTPing of source code zip file to VMS on its own.
-#
-# Revision 1.2  2006/11/07 18:00:27  cesrulib
-# No longer performs zipping operation on the solaris machine.
-# Some extra output information as well.
-#
-# Revision 1.1  2004/10/19 19:21:28  cesrulib
-# VMS porting.
-#
-#
 #---------------------------------------------------------------
 # One hardcoded line here necessary for subsequent getting of config vars.
 UTIL_DIR=`/home/cesrulib/bin/util/getcfg Paths UTIL_DIR`
@@ -70,7 +53,7 @@ ftp cesr2f <<EOF
 		cd $VMS_ZIPDIR
 		put ${NAME}.zip
 EOF
-ftp_success=${?}
+ftp_success=${?} # FIXME: Need better error checking here.
 
 # Notify of completion
 if ( [ ${ftp_success} -eq 0 ] ) then

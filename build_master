@@ -786,9 +786,14 @@ class builder:
 
       # Copy the bmad distribution environment setup scripts
       os.mkdir(self.full_rel_name + "/bin")
-      shutil.copy(util_dir + "/bmadenv", self.full_rel_name + "/bin")
-      shutil.copy(util_dir + "/bmad_def", self.full_rel_name + "/bin")
-      shutil.copy(util_dir + "/bmad_defs", self.full_rel_name + "/bin")
+
+      # Copies here exist in highest level script because of difference between
+      # '-bmad' and '-bmad_build' command line arguments.
+      # '-bmad' does not call subscript for distribution composition and must
+      # perform copy at this level.
+      shutil.copy(self.full_rel_name + "/util/bmadenv", self.full_rel_name + "/bin")
+      shutil.copy(self.full_rel_name + "/util/bmad_def", self.full_rel_name + "/bin")
+      shutil.copy(self.full_rel_name + "/util/bmad_defs", self.full_rel_name + "/bin")
       print "Environment scripts copied to distribution bin directory."
       
       ## Create the distribution source tarball
@@ -1189,17 +1194,19 @@ if devel:
 #==============================================================================
 #== Check to see if this release is a current candidate
 #==============================================================================
-if build_type == "RELEASE":
-  if (not os.system(util_dir+"/query_current_rotation")):
-    print "Rotating this release into DEVEL.."
-    lines = os.popen(util_dir+"/rotate_release -mail -tag "+rel_name)
-    for line in lines:
-      print line.strip()
-    print "Proceeding with rotating latest devel to CURRENT.."
-    lines = os.popen(util_dir+"/rotate_release -current -mail -tag "+os.readlink("/home/cesrulib/cesr_libs/Linux_i686_intel/devel")).readlines()
-    for line in lines:
-      print line.strip()
-    print "Rotation successful"
+#if build_type == "RELEASE":
+#  if (not os.system(util_dir+"/query_current_rotation")):
+#    print "Proceeding with rotating latest devel to CURRENT.."
+#    lines = os.popen(util_dir+"/rotate_release -current -mail -tag "+os.readlink("/home/cesrulib/cesr_libs/Linux_i686_intel/devel")).readlines()
+#    for line in lines:
+#      print line.strip()
+#
+#    print "Rotating this release into DEVEL.."
+#    lines = os.popen(util_dir+"/rotate_release -mail -tag "+rel_name)
+#    for line in lines:
+#      print line.strip()
+
+#    print "Rotation successful"
 
 
 #==============================================================================
@@ -1258,8 +1265,8 @@ if bmad_build:
 #    error_msg = error_msg + "ERROR:  There was a problem generating the repository statistics reports.\n"
 if not fixes:
     print "Starting a remote, independent HTML repository statistics report.."
-    os.spawnl(os.P_NOWAIT,util_dir + "/"+reporter+" > /home/cesrulib/output.dat","src")
-
+#    os.spawnl(os.P_NOWAIT,util_dir + "/"+reporter+" > /home/cesrulib/output.dat","src")
+    os.spawnl(os.P_NOWAIT,util_dir+"/stat_maker "+util_dir+" "+reporter)
 print "\n================== Build process finished completely. ====================\n"
 
 if recommendation == 0 and not defer:             

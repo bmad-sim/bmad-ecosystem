@@ -59,7 +59,8 @@ setenv CESR_REL     $CESR_BASE/$CESRLIB
 setenv CESR_CONFIG  $CESR_REL/config
 setenv CESR_SRC     $CESR_REL/src
 setenv CESR_EXE     $CESR_REL/bin
-setenv CESR_GMAKE   $CESR_REL/Gmake
+#setenv CESR_GMAKE   $CESR_REL/Gmake
+setenv CESR_GMAKE   /home/cesrulib/bin/Gmake
 setenv CESR_LIB     $CESR_REL/lib
 setenv CESR_MOD     $CESR_REL/modules
 setenv CESR_RUN     $CESR_REL/run

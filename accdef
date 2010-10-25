@@ -1,4 +1,4 @@
-#---- cesrdef ----
+#---- accdef ----
 #
 # Define cesr specific environment variables;
 # to be used by csh-like shells: csh,tcsh.

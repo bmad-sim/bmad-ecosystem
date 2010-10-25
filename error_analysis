@@ -36,6 +36,7 @@ config.read(cfg_file)
 # Get values
 ################
 platforms=[]
+ACCR = config.get("Repository","URL")
 LOG_DIR = config.get("Paths","LOG_DIR")
 platforms_all   = config.options("Platforms")
 for platform in platforms_all:
@@ -44,14 +45,18 @@ for platform in platforms_all:
     platforms=platforms+[platform] # we only take platforms that have activity status "FULL"
 
 def getauthor(repopath):#this function gets the last changed author of a repository path
-  repo_logs = os.popen("svn info $ACCR/trunk"+repopath).readlines() #repopath starts with /
+  repo_logs = os.popen("svn info "+ACCR+"trunk"+repopath).readlines() #repopath starts with /
   for entry in repo_logs:
     if (entry.find("Last Changed Author: ") != -1):
       return entry[entry.find("Last Changed Author: ")+len("Last Changed Author: "):len(entry)].strip()
+#  tmp=open("/home/cesrulib/temporaryfile.txt","w")
+#  for line in os.popen("svn info $ACCR/trunk"+repopath).readlines()
+#    tmp.write(line)
+#  tmp.close()
   return ""
-
-## main script starts here
-
+#################
+## Main script starts here
+#################
 time.sleep(60*5) #wait for 5 minutes to make sure that the build_master script has stopped
 
 
@@ -93,7 +98,7 @@ if (errorcode=="11"): #means some changes in repository have caused some fatal p
     for line in error_message:
     	log.write(line)
     log.close()
-    os.popen('mail -s "Build failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.popen('mail -s "Build failure notification" cesrulib@lepp.cornell.edu < '+messagepath)
     os.remove(messagepath)
 
     
@@ -102,15 +107,15 @@ elif (errorcode=="13"): #means the testing suite has failed
     log.write("Testing suite has failed")
     log.close()
     #insert code to deal with the test suite failure    	
-    os.popen('mail -s "Test suite failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.popen('mail -s "Test suite failure notification" cesrulib@lepp.cornell.edu < '+messagepath)
     os.remove(messagepath)
     
 elif (errorcode=="14"): #means the bmad distribution failed
     #insert code to deal with the bmad distribution failure
-    os.popen('mail -s "Bmad build failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.popen('mail -s "Bmad build failure notification" cesrulib@lepp.cornell.edu < '+messagepath)
     os.remove(messagepath)
 
 else:                 #just notify the librarian about what happened
-    os.popen('mail -s "Build/other failure notification" sv222@cornell.edu,cesrulib@lepp.cornell.edu < '+messagepath)
+    os.popen('mail -s "Build/other failure notification" cesrulib@lepp.cornell.edu < '+messagepath)
     os.remove(messagepath)    
 sys.exit(0)

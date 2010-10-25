@@ -10,6 +10,7 @@ exit
 EOI
 SIGNAL="/nfs/cesr/libs_vms/flags/buildstarted.flag"
 SIGNAL_NOTENOUGHSPACE="/nfs/cesr/libs_vms/flags/notenoughspace.flag"
+SIGNAL_ZIPNOTFOUND="/nfs/cesr/libs_vms/flags/zipnotfound.flag"
 echo "Please wait..."
 sleep 5
 STARTTIME=$(date +%s)
@@ -27,6 +28,16 @@ do
       sleep 2
       ssh -T -t lnx190c << EOI
 rm "$SIGNAL_NOTENOUGHSPACE"      
+exit
+EOI
+      exit
+    fi
+    if [ -f $SIGNAL_ZIPNOTFOUND ];
+then
+      echo "Appropriate zip file not found. Check release name spelling"
+      sleep 2
+      ssh -T -t lnx190c << EOI
+rm "$SIGNAL_ZIPNOTFOUND"
 exit
 EOI
       exit
