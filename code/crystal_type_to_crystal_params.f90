@@ -49,7 +49,7 @@ type (ele_struct) ele
 type (atom_position_struct) r_atom(8)
 type (f_factor_struct) factor(100)
 
-real(rp) f0_e, f0_h, f0_re, f0_im, fh_re, fh_im
+real(rp) f_re, f_im, f_e, f_h, fh_re, fh_im
 real(rp) a(10), b(10), c, d, a0, hkl(3), bp, r, test(3)
 complex(rp) arg, atomsum
 
@@ -173,37 +173,36 @@ ele%value(v_unitcell$) = a0**3
 d = a0 / sqrt(sum(hkl**2))
 ele%value(d_spacing$) = d
 
-! Interpolate f1 and f2 table, which should really be called the f0+f1 and f2 table
-! Note throughout this code, f0_re, f0_im, fh_re, fh_im refer to ATOMIC scattering
-! form factors instead of the CRYSTAL structure factors, unlike in the ele struct
+! Interpolate ATOMIC structure factors from factor struct, which are evaluated at hkl=0
 
 call bracket_index (factor%energy, 1, n_factor, ele%value(e_tot$), ix)
 if (ix == 0) then
-  f0_re = factor(1)%f0_re
-  f0_im = factor(1)%f0_im
+  f_re = factor(1)%f0_re
+  f_im = factor(1)%f0_im
 elseif (ix == n_factor) then
-  f0_re = factor(n_factor)%f0_re
-  f0_im = factor(n_factor)%f0_im
+  f_re = factor(n_factor)%f0_re
+  f_im = factor(n_factor)%f0_im
 else
-  f0_re = (factor(ix)%f0_re   * (factor(ix+1)%energy - ele%value(e_tot$)) + &
+  f_re = (factor(ix)%f0_re   * (factor(ix+1)%energy - ele%value(e_tot$)) + &
          factor(ix+1)%f0_re * (ele%value(e_tot$) - factor(ix)%energy)) / (factor(ix+1)%energy - factor(ix)%energy)
-  f0_im = (factor(ix)%f0_im   * (factor(ix+1)%energy - ele%value(e_tot$)) + &
+  f_im = (factor(ix)%f0_im   * (factor(ix+1)%energy - ele%value(e_tot$)) + &
          factor(ix+1)%f0_im * (ele%value(e_tot$) - factor(ix)%energy)) / (factor(ix+1)%energy - factor(ix)%energy)
 endif
 
-!Multiply by number of atoms to get CRYSTAL STRUCTURE FACTORS
+!Multiply by number of atoms to get CRYSTAL structure factor, ie f0_re and f0_im
 
-ele%value(f0_re$) = n_atom * (f0_re)
-ele%value(f0_im$) = n_atom * (f0_im)
+ele%value(f0_re$) = n_atom * (f_re)
+ele%value(f0_im$) = n_atom * (f_im)
 
-! Calculate the hkl dependent part of the f evaluated at f0
-f0_h = sum(a(1:n)) + c
+! Calculate the hkl dependent part of f
+f_h = sum(a(1:n)) + c
 
-! Subtract to obtain the energy dependent part
-f0_e = f0_re - f0_h
+! Subtract from f(hkl=0) to obtain the energy dependent part
+f_e = f_re - f_h
 
-! Calculate the new hkl dependent part
-f0_h = sum( a(1:n) * exp( -b(1:n)/(4*d*d*1e20) ) ) + c
+! Calculate hkl dependent part of f
+! factor of 1e20 due to units of d
+f_h = sum( a(1:n) * exp( -b(1:n)/(4*d*d*1e20) ) ) + c
 
 atomsum = 0
 do i = 1, n_atom
@@ -213,8 +212,8 @@ do i = 1, n_atom
   atomsum = atomsum + exp(arg)
 enddo
 
-fh_re = abs(atomsum)*(f0_h+f0_e)
-fh_im = abs(atomsum)*(f0_im)
+fh_re = abs(atomsum)*(f_h+f_e)
+fh_im = abs(atomsum)*(f_im)
 
 ele%value(fh_re$) = fh_re
 ele%value(fh_im$) = fh_im

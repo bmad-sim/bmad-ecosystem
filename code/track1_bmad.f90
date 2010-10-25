@@ -58,7 +58,7 @@ real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wave_length
-real(rp) k_in_norm(3), h_norm(3), kk_out_norm(3), e_tot, pc
+real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
@@ -183,20 +183,16 @@ case (capillary$)
 case (crystal$) 
 
   call offset_photon (ele, param, end, set$)
-
+  
   ! Rotate normalized (px, py, 1) to crystal coords
-
   sin_a = sin(ele%value(graze_angle_in$))
   cos_a = cos(ele%value(graze_angle_in$))
   f = sqrt (1 - end%vec(2)**2 - end%vec(4)**2)
-
+  
+  !k_in_norm is incoming wavevector * wavelength, has unit length
   k_in_norm(1) = cos_a * end%vec(2) + f * sin_a
   k_in_norm(2) = end%vec(4)
   k_in_norm(3) = -sin_a * end%vec(2) + f * cos_a
-
-  ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
-
-  P_factor = 1  ! Assume sigma polarization state
 
   sin_alpha = sin(ele%value(alpha_angle$))
   cos_alpha = cos(ele%value(alpha_angle$))
@@ -204,28 +200,9 @@ case (crystal$)
   cos_psi = cos(ele%value(psi_angle$))
 
   wave_length = ele%value(ref_wave_length$) / (1 + end%vec(6))
-
+  
+  !h_norm is H vector * wavelength
   h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wave_length / ele%value(d_spacing$)
-  cap_gamma = r_e * wave_length**2 / (pi * ele%value(v_unitcell$)) 
-  gamma_0 = k_in_norm(1)
-  gamma_h = k_in_norm(1) + h_norm(1)
-  b_eff = gamma_0 / gamma_h
-  dtheta_sin_2theta = dot_product(h_norm + 2 * k_in_norm, h_norm) / 2
-  f0 = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
-  fh = cmplx(ele%value(fh_re$), ele%value(fh_im$))
-  f0_g = cap_gamma * f0 / 2
-  eta = (b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
-            (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
-  eta1 = sqrt(eta**2 + sign(1.0_rp, b_eff))
-
-  f_cmp = abs(p_factor) * sqrt(abs(b_eff)) * cap_gamma * fh / 2
-  if (abs(eta+eta1) > abs(eta-eta1)) then
-    xi_0k = f_cmp * (eta - eta1)
-    xi_hk = f_cmp / (abs(b_eff) * (eta - eta1))
-  else        
-    xi_0k = f_cmp * (eta + eta1)
-    xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
-  endif
 
   !====Find M_in and M_out
 
@@ -244,20 +221,15 @@ case (crystal$)
   k_out(1) = ele%value(nx_out$)
   k_out(2) = ele%value(ny_out$)
   k_out(3) = ele%value(nz_out$)
-  test = dot_product( k_out, y_out )
+  test = dot_product( k_out, y_out ) ! assert 0
   m_out = reshape( [x_out, y_out, k_out], [3, 3])
 
-  !===================David's Way
-
-  kk_out_norm = k_in_norm + h_norm 
-  kk_out_norm(1) = kk_out_norm(1) + real(xi_0k - f0_g) / gamma_h - real(xi_hk - f0_g) / gamma_0
-
-  !===================My Way
   
-  kk_out_norm = k_in_norm + h_norm
-  kk_out_norm(1) = - sqrt( 1 - kk_out_norm(2)**2 - kk_out_norm(3)**2)
+  !k_out_norm is the outgoing wavevector outside the crystal
+  k_out_norm = k_in_norm + h_norm
+  k_out_norm(1) = - sqrt( 1 - k_out_norm(2)**2 - k_out_norm(3)**2)
 
-  temp_vec = matmul(transpose(m_out), kk_out_norm)
+  temp_vec = matmul(transpose(m_out), k_out_norm)
 
   end%vec(2) = temp_vec(1)
   end%vec(4) = temp_vec(2)
@@ -271,25 +243,74 @@ case (crystal$)
   temp_vec = temp_vec + nn * k_in_norm
   
   mm = -dot_product(k_out, temp_vec)
-  mm = nn/dot_product(k_out, kk_out_norm)
+  mm = nn/dot_product(k_out, k_out_norm)
   
-  temp_vec = temp_vec + mm * kk_out_norm
+  temp_vec = temp_vec + mm * k_out_norm
 
   temp_vec = matmul(transpose(m_out), temp_vec)
 
   end%vec(1) = temp_vec(1)
   end%vec(3) = temp_vec(2)
+  ! %vec(5) doesn't include phase change due to wave nature of radiation
+  end%vec(5) = nn + mm 
 
 
-  !======== Calculate phase and intensity 
+  !======== Calculate phase and intensity
+  cap_gamma = r_e * wave_length**2 / (pi * ele%value(v_unitcell$)) 
+  gamma_0 = k_in_norm(1)
+  gamma_h = k_out_norm(1)
 
+  b_eff = gamma_0 / gamma_h
+  dtheta_sin_2theta = dot_product(h_norm + 2 * k_in_norm, h_norm) / 2
+  f0 = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
+  fh = cmplx(ele%value(fh_re$), ele%value(fh_im$))
+  f0_g = cap_gamma * f0 / 2
+
+  !======== Calculate phase and intensity for the x direction
+  ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
+  p_factor = cos(2*ele%value(graze_angle_in$))
+  eta = (-b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
+            (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
+  eta1 = sqrt(eta**2 + sign(1.0_rp, b_eff))
+
+  f_cmp = abs(p_factor) * sqrt(abs(b_eff)) * cap_gamma * fh / 2
+  if (abs(eta+eta1) > abs(eta-eta1)) then
+    xi_0k = f_cmp * (eta - eta1)
+    xi_hk = f_cmp / (abs(b_eff) * (eta - eta1))
+  else        
+    xi_0k = f_cmp * (eta + eta1)
+    xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
+  endif
+
+  !relative electric field, or reflectivity calculated in 2 equivalent ways
   e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
-  e_rel2 = sqrt(xi_0k/xi_hk)
+  e_rel2 = sqrt(xi_0k/xi_hk) ! assert = e_rel
 
   end%intensity_x = end%intensity_x * abs(e_rel)**2
+  end%phase_x = atan2(aimag(e_rel),real(e_rel))+end%phase_x
 
-  end%vec(5) = nn + mm 
-  ! + wave_length*atan2(imag(e_rel), real(e_rel)) / twopi
+  !======== Calculate phase and intensity for the y direction
+  
+  p_factor = 1
+  eta = (-b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
+            (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
+  eta1 = sqrt(eta**2 + sign(1.0_rp, b_eff))
+
+  f_cmp = abs(p_factor) * sqrt(abs(b_eff)) * cap_gamma * fh / 2
+  if (abs(eta+eta1) > abs(eta-eta1)) then
+    xi_0k = f_cmp * (eta - eta1)
+    xi_hk = f_cmp / (abs(b_eff) * (eta - eta1))
+  else        
+    xi_0k = f_cmp * (eta + eta1)
+    xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
+  endif
+
+  !relative electric field, or reflectivity calculated in 2 equivalent ways
+  e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
+  e_rel2 = sqrt(xi_0k/xi_hk)! assert = e_rel
+
+  end%intensity_y = end%intensity_y * abs(e_rel)**2
+  end%phase_y = atan2(aimag(e_rel),real(e_rel))+end%phase_y
 
   call offset_photon (ele, param, end, unset$)
 
