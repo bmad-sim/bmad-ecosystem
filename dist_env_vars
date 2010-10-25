@@ -1,0 +1,70 @@
+#--------------------------------------------------------------
+#  distenv
+#  -------
+#
+# Set BMAD distribution build system environment variables
+#--------------------------------------------------------------
+
+
+#--------------------------------------------------------------
+# Distribution control and setup variables
+#--------------------------------------------------------------
+export DIST_BUILD="TRUE"
+
+export DIST_PLATFORM=$PLATFORM_TAG
+export DIST_SYSTEM=$SYSTEM_TAG
+
+
+
+#--------------------------------------------------------------
+# Distribution directory tree assignments
+#--------------------------------------------------------------
+##export BMAD_          $BMAD_
+export DIST_BASE_DIR=$BASE_DIR
+export DIST_CONFIG=$DIST_BASE_DIR/config
+export DIST_EXE=$DIST_BASE_DIR/bin
+export DIST_GMAKE=$DIST_BASE_DIR/Gmake
+export DIST_LIB=$DIST_BASE_DIR/lib
+export DIST_MOD=$DIST_BASE_DIR/modules
+export DIST_UTIL=$DIST_BASE_DIR/util
+export DIST_INC=$DIST_BASE_DIR/include
+
+
+
+#--------------------------------------------------------------
+# PGPLOT server/font directory specification
+#--------------------------------------------------------------
+export PGPLOT_DIR=$DIST_BASE_DIR/PGPLOT
+export PGPLOT_FONTS=$DIST_BASE_DIR/PGPLOT
+
+
+
+#--------------------------------------------------------------
+# BMAD configuration files
+#--------------------------------------------------------------
+export BMAD_LAT=$DIST_CONFIG/bmad/lat
+export BMAD_LAYOUT=$DIST_CONFIG/bmad/layout
+
+
+
+#--------------------------------------------------------------
+# TAO help file search path
+#--------------------------------------------------------------
+export TAO_DIR=$DIST_BASE_DIR/tao
+
+
+
+#--------------------------------------------------------------
+# Fortran compiler to use for building the distribution
+#--------------------------------------------------------------
+export DIST_F90=$TEMP_SETUP_F90
+
+
+
+#--------------------------------------------------------------
+# Define useful aliases
+#--------------------------------------------------------------
+##alias getf  $DIST_BASE_DIR/bin/getf.pl
+##alias listf $DIST_BASE_DIR/bin/listf.pl
+
+

@@ -1,0 +1,39 @@
+#----------------------------------------------------------
+#  dist_source_me
+#  --------------
+#   
+#  This is a multi-shell script meant to be sourced
+#  into your environment to set up a Unix/Linux account
+#  for using the LEPP BMAD Distribution build system.
+#
+#  The following syntax will set up your environment
+#  while working in any of the following shells:
+#    csh / tcsh / sh / ksh / bash / ash
+#
+# USAGE:
+#  This mechanism may be invoked by a profile or login
+#  script or manually once a session is started.
+#
+#----------------------------------------------------------
+
+
+#----------------------------------------------------------
+# Generate temporary file containing all environment
+# changes necesary for the build system to function.
+#----------------------------------------------------------
+sh /home/mcr/tmp/shell_testing/dist_gen_env > ${HOME}/.dist_env_setup.tmp
+
+
+
+#----------------------------------------------------------
+# Apply the changes generated above.
+#----------------------------------------------------------
+source ${HOME}/.dist_env_setup.tmp
+
+
+
+#----------------------------------------------------------
+# Clean up
+#----------------------------------------------------------
+## rm ${HOME}/.dist_env_setup.tmp
+

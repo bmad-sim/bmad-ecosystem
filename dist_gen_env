@@ -1,0 +1,180 @@
+#-----------------------------------------------------------
+#  dist_gen_env
+#  ------------
+#
+# Generates a list of environment variables that are to be 
+# sourced to allow use of the distribution build system and
+# utilities.
+#
+# To be used as a component of the environment setup 
+# procedure.  This script is not intended to be run directly
+# by the user.
+#
+#
+#  Depends upon system tools:
+#     sed
+#-----------------------------------------------------------
+
+DIST_TOPLEVEL_CHECKLIST="bin bmad Gmake include util"
+
+
+ENV_SNAP_1="${HOME}/.dist_env_snapshot_1.tmp"
+ENV_SNAP_2="${HOME}/.dist_env_snapshot_2.tmp"
+printenv > ${ENV_SNAP_1}
+
+
+
+#-----------------------------------------------------------
+# Set flag to enable use of PLPLOT for distrubution builds
+#-----------------------------------------------------------
+export USE_PLPLOT=Y
+export PLPLOT_LIBDIR=/opt/local/lib
+
+export USE_PGPLOT=N
+
+
+
+#-----------------------------------------------------------
+# If this script is run in the top-level directory of a 
+# distribution source tree, use that directory, otherwise
+# check to see if a directory has been given as an argument.
+#
+# If neither, cough up an error message prompting the user
+# to try again.
+#
+# Check for a distribution signature in subdirectories of 
+# the current working directory.
+#-----------------------------------------------------------
+CWD=`pwd`
+PERFORM_ENVIRONMENT_SETUP=YES
+
+
+for DIR in ${DIST_TOPLEVEL_CHECKLIST};
+do
+  if ! [ -d ${CWD}/${DIR} ]; then
+    echo "" >&2
+    echo "The current working directory does not appear to be" >&2
+    echo "the top-level directory of a valid source distribution." >&2
+    echo "" >&2
+    PERFORM_ENVIRONMENT_SETUP=NO
+    break
+  fi
+done
+
+
+
+if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
+
+  echo "Directory appears to be the top-level of a source distribuiton... GOOD." >&2
+
+  BASE_DIR=${CWD}
+
+
+
+  #--------------------------------------------------------------
+  # Define the distribution's bin area
+  #--------------------------------------------------------------
+  DIST_BIN=${BASE_DIR}/bin
+
+
+
+  #--------------------------------------------------------------
+  # Source the common environment setup script
+  #   This is used for ACC build system setup as well as 
+  #   offsite distribution build system setup.
+  #--------------------------------------------------------------
+  source /home/mcr/tmp/shell_testing/common_env_setup
+
+#### SYSTEM_TAG="`uname -s | cut -d- -f1`"
+
+
+
+  #--------------------------------------------------------------
+  # Source the main DISTRIBUTION environment variable list into 
+  # this script's environment.
+  #--------------------------------------------------------------
+  DISTENV=/home/mcr/tmp/shell_testing/dist_env_vars
+  source ${DISTENV}
+
+
+
+  #--------------------------------------------------------------
+  #  Add the distribution's bin area to user's PATH
+  #--------------------------------------------------------------
+  PATH_LIST=`echo $PATH | sed s/:/\ /g`
+  found=0
+  for dir in ${PATH_LIST}; do
+    if ( [ "${dir}" = "${BMAD_BIN}" ] ) then 
+      found=1
+    fi
+  done
+  if ( [ ${found} -eq 0 ] ) then
+    PATH=${PATH}:${BMAD_BIN}
+    export PATH
+  fi
+
+  unset BMADF90
+  unset BMADENV
+
+
+
+  #--------------------------------------------------------------
+  # Check for presence of MPI parallel computing headers in
+  # the following paths only:
+  #
+  # If the appropriate header exists, enable build system MPI
+  # support
+  #--------------------------------------------------------------
+  [ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+
+  if ( [ $? = 0 ] ) then
+    MPI="TRUE"
+  else
+    MPI="FALSE"
+  fi
+  export MPI
+
+
+  #------------------------------------------------------------
+  # Store second environment snapshot
+  #------------------------------------------------------------
+  printenv > ${ENV_SNAP_2}
+
+
+
+  #------------------------------------------------------------
+  # Diff the two environment snapshots and compose an 
+  # environment definition list that can be sourced by the 
+  # shell type that started the environment setup process.
+  #  Explicitly supported shells are:
+  #   Bourne-type shells: sh  / bash / ash 
+  #   C-type shells     : csh / tcsh 
+  #
+  # For each line that has changed or that is new in the most
+  # recent environment snapshot, add quotes to the value of
+  # each variable's contents to safeguard against whitespace.
+  #
+  #    For Bourne-type shells:
+  #  1st 'sed' - replace  (=)   with  (=")
+  #  2nd 'sed' - replace  (> )  with  (export )
+  #  3rd 'sed' - replace   LF   with  (")LF
+  #
+  #    For C-type shells:
+  #  1st 'sed' - replace  (=)   with  ( ")
+  #  2nd 'sed' - replace  (> )  with  (setenv )
+  #  3rd 'sed' - replace   LF   with  (")LF
+  #------------------------------------------------------------
+  if `echo ${SHELL} | grep "csh" 1>/dev/null 2>&1`
+  then
+    diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g'
+  else
+    diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/=\"/g' | sed 's/> /export /g' | sed 's/$/\"/g'
+  fi
+
+
+
+
+fi  # endIF [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]
+
+
+
