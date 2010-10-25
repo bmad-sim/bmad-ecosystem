@@ -83,7 +83,7 @@ if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
   #   This is used for ACC build system setup as well as 
   #   offsite distribution build system setup.
   #--------------------------------------------------------------
-  source /home/mcr/tmp/shell_testing/common_env_setup
+  source ./util/common_env_setup
 
 #### SYSTEM_TAG="`uname -s | cut -d- -f1`"
 
@@ -93,7 +93,7 @@ if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
   # Source the main DISTRIBUTION environment variable list into 
   # this script's environment.
   #--------------------------------------------------------------
-  DISTENV=/home/mcr/tmp/shell_testing/dist_env_vars
+  DISTENV=./util/dist_env_vars
   source ${DISTENV}
 
 

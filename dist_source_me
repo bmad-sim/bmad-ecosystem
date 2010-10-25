@@ -21,7 +21,7 @@
 # Generate temporary file containing all environment
 # changes necesary for the build system to function.
 #----------------------------------------------------------
-sh /home/mcr/tmp/shell_testing/dist_gen_env > ${HOME}/.dist_env_setup.tmp
+sh ./util/dist_gen_env > ${HOME}/.dist_env_setup.tmp
 
 
 

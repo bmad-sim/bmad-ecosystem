@@ -1,0 +1,50 @@
+#!/bin/sh
+#--------------------------------------------------------------
+# common_env_setup
+# -----------------
+#
+# Meant to be sourced into the environment of the calling
+# script.
+#
+# Provides variable definitions:
+#    PLATFORM_TAG
+#    TEMP_SETUP_F90
+#--------------------------------------------------------------
+
+#--------------------------------------------------------------
+# Compose the "Platform" tag.
+#   This is a unique string comprised of:
+#     - the simple OS name
+#     - the processor architecture
+#--------------------------------------------------------------
+PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
+
+
+#--------------------------------------------------------------
+# Determine the fortran compiler name and set accelerator 
+# Physics Code Libraries archive directory by platform type
+# recognized.
+#
+# intel   -- ifort        default on  Linux_i686 
+# hp      -- f77/f90/f95  default on OSF1_alpha
+# absoft  -- f95          default on Darwin_powerpc
+# gnu     -- g77/g95
+#--------------------------------------------------------------
+if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
+  TEMP_SETUP_F90=${TEMP_SETUP_F90:-intel}
+
+elif ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
+  TEMP_SETUP_F90=${TEMP_SETUP_F90:-intel}
+
+elif ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
+  TEMP_SETUP_F90=${TEMP_SETUP_F90:-hp} 
+
+elif ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then
+  TEMP_SETUP_F90=${TEMP_SETUP_F90:-absoft}
+
+# Fall through to default if platform is unrecognizable.
+else
+  TEMP_SETUP_F90=${TEMP_SETUP_F90:-intel}
+fi
+
+
