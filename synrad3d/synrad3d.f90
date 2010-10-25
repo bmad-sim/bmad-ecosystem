@@ -137,6 +137,11 @@ do
 enddo
 
 print *, 'number of wall cross-sections read:', n_wall_pt_max + 1
+if (n_wall_pt_max < 1) then
+  print *, 'NO WALL SPECIFIED. WILL STOP HERE.'
+  stop
+endif
+
 allocate (wall%pt(0:n_wall_pt_max))
 wall%n_pt_max = n_wall_pt_max
 
