@@ -6,12 +6,11 @@
 
 foreach $file (@ARGV)
 {
-  $cesrplatf=`printenv |grep CESR_PLATFORM|cut -d= -f2`;
+  $cesrplatf=`printenv |grep ACC_PLATFORM|cut -d= -f2`;
   chomp $cesrplatf;
-  $cesrlib= `printenv |grep CESR_REL`;
+  $cesrlib= `printenv |grep ACC_REL`;
   chomp $cesrlib;
   $cesrlib=~s/.*$cesrplatf\///g;
-#  print "*****************$cesrlib,\n";
 	$file=~s/^-f//;
 	$host=`hostname | cut -d. -f1`;
 	chomp $host;
@@ -21,10 +20,9 @@ foreach $file (@ARGV)
 	 {
 		s/ \/disk(.+?)\// \/cdat\/$host\/disk$1\//g;
 		s/ \/a\/(.+?)\// \//g;
-   # s/\.\.\/include/\$\(CESR_INC\)/g;
-    s/(?:\s\w\:)??\/\S*\/$cesrlib\/cvssrc\/include/\$\(CESR_INC\)/g;
-    s/(?:\s\w\:)??\/\S*\/$cesrlib\/modules/\$\(CESR_MOD\)/g;
-    s/(?:\s\w\:)??\/\S*\/$cesrlib\/packages/ \$\(CESR_PKG\)/g;
+    s/(?:\s\w\:)??\/\S*\/$cesrlib\/cvssrc\/include/\$\(ACC_INC\)/g;
+    s/(?:\s\w\:)??\/\S*\/$cesrlib\/modules/\$\(ACC_MOD\)/g;
+    s/(?:\s\w\:)??\/\S*\/$cesrlib\/packages/ \$\(ACC_PKG\)/g;
 		print (F_out);
    }
 	close(F_in);
