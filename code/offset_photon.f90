@@ -102,9 +102,9 @@ if (set) then
   efield_y = sqrt(coord%intensity_y) * cmplx(cos(coord%phase_y), sin(coord%phase_y) )
   efieldout_x = cos(tilt) * efield_x + sin(tilt)*efield_y
   efieldout_y = -sin(tilt) * efield_x + cos(tilt)*efield_y
-  coord%intensity_x = sqrt(abs(efieldout_x))
+  coord%intensity_x = (abs(efieldout_x))**2
   coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  coord%intensity_y = sqrt(abs(efieldout_y))
+  coord%intensity_y = (abs(efieldout_y))**2
   coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
 
 !----------------------------------------------------------------
@@ -138,6 +138,10 @@ else
   ct = cos(p(tilt_tot$)) 
   st = sin(p(tilt_tot$))
 
+  ! [project_x,project_y,project_z] is the matrix product of the matrices T.G.T^-1
+  ! T rotates x to y by tilt_tot, G rotates z to x by sum of graze angles
+  ! project_x is the projection of the x-basis vector in the original basis onto the new basis
+
   project_x = [c2g * ct**2 + st**2,      -ct * st + c2g * ct * st, -ct * s2g ]
   project_y = [-ct * st + c2g * ct * st, ct**2 + c2g * st**2,      -s2g * st ] 
   project_s = [ct * s2g,                 s2g * st,                 c2g       ]
@@ -159,6 +163,7 @@ else
   ! to translate to the local output coords.
 
   rot = project_x * p(y_pitch_tot$) - project_y * p(x_pitch_tot$)
+
   vec(2) = vec(2) - rot(2)
   vec(4) = vec(4) + rot(1)
   vec(5) = vec(5) + vec(1) * rot(2) - vec(3) * rot(1)
@@ -183,9 +188,9 @@ else
   tilt = p(tilt_tot$) + rot(3)
   efieldout_x = cos(tilt) * efield_x - sin(tilt)*efield_y
   efieldout_y = sin(tilt) * efield_x + cos(tilt)*efield_y
-  coord%intensity_x = sqrt(abs(efieldout_x))
+  coord%intensity_x = (abs(efieldout_x))**2
   coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  coord%intensity_y = sqrt(abs(efieldout_y))
+  coord%intensity_y = (abs(efieldout_y))**2
   coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
 
 endif
