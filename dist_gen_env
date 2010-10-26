@@ -25,12 +25,11 @@ printenv > ${ENV_SNAP_1}
 
 
 #-----------------------------------------------------------
-# Set flag to enable use of PLPLOT for distrubution builds
+# Incorporate the distribution build user preference
+# variables that dictate how the build should be carried
+# out.
 #-----------------------------------------------------------
-export USE_PLPLOT=Y
-export PLPLOT_LIBDIR=/opt/local/lib
-
-export USE_PGPLOT=N
+source ./util/dist_prefs
 
 
 
@@ -54,7 +53,7 @@ do
   if ! [ -d ${CWD}/${DIR} ]; then
     echo "" >&2
     echo "The current working directory does not appear to be" >&2
-    echo "the top-level directory of a valid source distribution." >&2
+    echo "the top level directory of a valid source distribution." >&2
     echo "" >&2
     PERFORM_ENVIRONMENT_SETUP=NO
     break
@@ -65,7 +64,7 @@ done
 
 if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
 
-  echo "Directory appears to be the top-level of a source distribuiton... GOOD." >&2
+  echo "Directory appears to be the top level of a source distribution... GOOD." >&2
 
   BASE_DIR=${CWD}
 

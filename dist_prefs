@@ -1,0 +1,55 @@
+#-----------------------------------------------------------
+# dist_prefs
+# ----------
+#
+# The variables in this file control how a distribution
+# build will proceed.  It allows the user to enable and
+# disable the use and building of various support libraries
+# and to specify locations of 3rd-party libraries installed
+# by the user whose functionality is supported by the 
+# distribution code.
+#
+# All values should be enclosed in quotes " ".
+#-----------------------------------------------------------
+
+#-----------------------------------------------------------
+# Set value to 'Y' to enable use of PGPLOT for distrubution
+# build or 'N' to disable the use of the PGPLOT library.
+#
+# The PGPLOT source is actually upplied along with the 
+# distribution and will be built if this variable is set.
+#-----------------------------------------------------------
+export USE_PGPLOT="N"
+
+
+
+#-----------------------------------------------------------
+# PLPLOT preferences:
+#
+# PLPLOT is not maintained as a component of the distribution
+# like PGPLOT, and it is the users's responsibility to obtain
+# and install that library if they wish to use it.
+#
+# - USE_PLPLOT
+#   Set value to 'Y' to enable use of PLPLOT for 
+#   distrubution build or 'N' to disable the use of the
+#   PLPLOT library.
+#
+# - PLPLOT_LIBDIR
+#   If the previous value is set to 'Y', this value should
+#   be the path where the PLPLOT library file can be found
+#   for linking purposes.  The file is typically an ".so"
+#   file.  The directory will be the one where that file
+#   is located.
+#-----------------------------------------------------------
+export USE_PLPLOT="Y"
+export PLPLOT_LIBDIR="/opt/local/lib"
+
+
+
+#-----------------------------------------------------------
+# Set this to 'Y' to enable the linking of applications 
+# along with the building of libraries.  Set to 'N' to 
+# disable the creation of application binaries.
+#-----------------------------------------------------------
+export DO_EXTRA_MAKES="Y"
