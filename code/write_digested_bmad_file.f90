@@ -1,35 +1,42 @@
 !+
-! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names)
+! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, pb_com)
 !
 ! Subroutine to write a digested file. The names of the original files used
 ! to create the LAT structure are also put in the digested file and are used
 ! by other routines to check if the digested file is out of date.
 !
+! The ran_p argument is used to encode in the digested file information about
+! whether a random number generator was used to construct the lattice.
+!
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!     digested_name -- Character(*): Name for the digested file.
-!     lat           -- lat_struct: Input lat structure.
-!     n_files       -- Integer, optional: Number of original files
-!     file_names(:) -- Character(*), optional: Names of the original 
-!                       files used to create the lat structure.
+!   digested_name -- Character(*): Name for the digested file.
+!   lat           -- lat_struct: Input lat structure.
+!   n_files       -- Integer, optional: Number of original files
+!   file_names(:) -- Character(*), optional: Names of the original 
+!                     files used to create the lat structure.
+!   ran_p         -- ran_parsing_struct, optional: 
+!     %ran_function_was_called
+!     %deterministic_ran_function_was_called
+!     %initial_state
 !-
 
 #include "CESR_platform.inc"
 
-subroutine write_digested_bmad_file (digested_name, lat,  &
-                                                  n_files, file_names)
+subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran_p)
 
 use bmad_struct
 use equality_mod, only: operator(==)
-use bmad_parser_mod, except_dummy => write_digested_bmad_file
 
 implicit none
 
 type (lat_struct), target, intent(in) :: lat
 type (branch_struct), pointer :: branch
-  
+type (ran_parsing_struct), optional :: ran_p
+type (random_state_struct), save :: dummy_ran_state
+
 real(rp) value(n_attrib_maxx)
 
 integer, intent(in), optional :: n_files
@@ -66,10 +73,18 @@ open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000
 
 ! Ran function called?
 
-if (bp_com%ran_function_was_called) then
-  write (d_unit, err = 9010) n_file+2, bmad_inc_version$
-  fname = '!RAN FUNCTION WAS CALLED'
-  write (d_unit) fname, 0
+if (present(ran_p)) then
+  if (ran_p%ran_function_was_called) then
+    write (d_unit, err = 9010) n_file+2, bmad_inc_version$
+    fname = '!RAN FUNCTION WAS CALLED'
+    write (d_unit) fname, 0
+  elseif (ran_p%deterministic_ran_function_was_called) then
+    write (d_unit, err = 9010) n_file+2, bmad_inc_version$
+    fname = '!DETERMINISTIC RAN FUNCTION WAS CALLED'
+    write (d_unit) fname, 0
+  else
+    write (d_unit, err = 9010) n_file+1, bmad_inc_version$
+  endif
 else
   write (d_unit, err = 9010) n_file+1, bmad_inc_version$
 endif
@@ -141,6 +156,14 @@ do i = 1, ubound(lat%branch, 1)
     call write_this_ele(branch%ele(j))
   enddo
 enddo
+
+! Write random state info
+
+if (present(ran_p)) then
+  write (d_unit) ran_p%initial_state
+else
+  write (d_unit) dummy_ran_state
+endif
 
 close (d_unit)
 

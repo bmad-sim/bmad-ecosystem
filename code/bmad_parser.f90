@@ -157,8 +157,16 @@ endif
 
 iseq_tot = 0                            ! number of sequences encountered
 
+call ran_seed_get (state = bp_com%ran%initial_state) ! Get initial random state.
+if (bp_com%ran%initial_state%ix == -1) then
+  bp_com%ran%deterministic = 0
+else
+  bp_com%ran%deterministic = 1
+endif
+
 bp_com%input_line_meaningful = .true.
-bp_com%ran_function_was_called = .false.
+bp_com%ran%ran_function_was_called = .false.
+bp_com%ran%deterministic_ran_function_was_called = .false.
 bp_com%e_tot_set = .false.
 bp_com%p0c_set   = .false.
 
@@ -1017,14 +1025,14 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 if (.not. bp_com%error_flag) then            
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) then
-    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names)
+    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names, bp_com%ran)
     if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif
 
 call parser_end_stuff ()
 
-if (bp_com%ran_function_was_called) then
+if (bp_com%ran%ran_function_was_called) then
   if (bmad_status%type_out) call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')

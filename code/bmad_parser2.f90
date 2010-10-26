@@ -620,7 +620,7 @@ enddo
 ! write to digested file
 
 if (bp_com%write_digested2) then
-  call write_digested_bmad_file (digested_name, lat, bp_com%num_lat_files, bp_com%lat_file_names)
+  call write_digested_bmad_file (digested_name, lat, bp_com%num_lat_files, bp_com%lat_file_names, bp_com%ran)
   if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
 endif
 

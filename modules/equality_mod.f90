@@ -27,7 +27,9 @@ logical is_eq
 
 !
 
-is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin))
+is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
+        (f1%intensity_x == f2%intensity_x) .and. (f1%intensity_y == f2%intensity_y) .and. &
+        (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y)
 
 end function
 
@@ -473,7 +475,8 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .a
     (associated(f1%r) .eqv. associated(f2%r)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
     (associated(f1%wig_term) .eqv. associated(f2%wig_term)) .and. &
-    (associated(f1%wake) .eqv. associated(f2%wake))
+    (associated(f1%wake) .eqv. associated(f2%wake)) .and. &
+    (associated(f1%cross_section) .eqv. associated(f2%cross_section))
 
 
 if (.not. is_eq) return
@@ -511,6 +514,11 @@ endif
 
 if (associated(f1%gen_field)) then
   if (.not. associated(f1%gen_field, f2%gen_field)) return
+endif
+
+if (associated(f1%cross_section)) then
+  if (.not. associated(f2%cross_section)) return
+  if (size(f1%cross_section) /= size(f2%cross_section)) return
 endif
 
 is_eq = .true.
