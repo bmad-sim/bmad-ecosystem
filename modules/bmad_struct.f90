@@ -8,6 +8,7 @@ module bmad_struct
 
 use twiss_mod
 use bmad_taylor_mod
+use random_mod
 
 use tpsalie_analysis, only: genfield
 
@@ -19,7 +20,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 95
+integer, parameter :: bmad_inc_version$ = 96
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -791,6 +792,16 @@ character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ',
 
 integer, parameter :: unmodified$ = 1, all_bookkeeping_done$ = 2
 integer, parameter :: attribute_bookkeeping_done$ = 3,  is_modified$ = 4
+
+! Used by parsing routines.
+
+type ran_parsing_struct
+  type (random_state_struct) :: initial_state
+  integer deterministic   ! 0 = Not, 1 = Ran state on input deterministic, 2 = ran state deterministice
+                          !  will be generated in exactly the same way every time?
+  logical ran_function_was_called ! only set True when ran function is called with ran_determinisitc = 0.
+  logical deterministic_ran_function_was_called ! only set True when ran function is called with ran_determinisitc = 1.
+end type
 
 !------------------------------------------------------------------------------
 ! common stuff

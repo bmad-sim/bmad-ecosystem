@@ -6,7 +6,7 @@
 ! is current with respect to the original BMAD files that were used. [See
 ! write_digested_bmad_file.]
 !
-! Note: This subroutine also reads in the common structures for BMAD_PARSER2
+! Note: This subroutine also reads in the common structures for bmad_parser2
 !
 ! Modules Needed:
 !   use bmad
@@ -35,6 +35,7 @@ implicit none
 
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
+type (random_state_struct) :: ran_state, digested_ran_state
 
 real(rp) value(n_attrib_maxx)
 
@@ -51,7 +52,8 @@ character(200), allocatable :: file_names(:)
 character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
-logical found_it, v95, v_old, mode3, error, is_open
+logical deterministic_ran_function_used
+logical found_it, v95, v96, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -63,6 +65,7 @@ call init_lat (lat)
 d_unit = lunget()
 bmad_status%ok = .true.
 lat%n_ele_track = 0
+deterministic_ran_function_used = .false.
 
 call fullfilename (digested_name, full_digested_name)
 inquire (file = full_digested_name, name = full_digested_name)
@@ -73,6 +76,7 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 read (d_unit, err = 9010) n_files, version
 
 v95 = (version == 95)
+v96 = (version == 96)
 
 v_old = .false.
 
@@ -131,8 +135,13 @@ do i = 1, n_files
     cycle
   endif
 
-  if (fname_read == '!RAN FUNCTION WAS CALLED') then
+  if (fname_read == '!RAN FUNCTION WAS CALLED') then ! Not deterministic
     bmad_status%ok = .false.
+    cycle
+  endif
+
+  if (fname_read == '!DETERMINISTIC RAN FUNCTION WAS CALLED') then
+    deterministic_ran_function_used = .true.
     cycle
   endif
 
@@ -188,11 +197,15 @@ do i = 1, lat%n_ic_max
   read (d_unit, err = 9050) lat%ic(i)
 enddo
 
-read (d_unit, iostat = ios) lat%beam_start
+if (v96) then
+  read (d_unit, err = 9060) lat%beam_start
+else
+  read (d_unit, iostat = ios) lat%beam_start
+endif
 
 ! read branch lines
 
-read (d_unit, err = 9060) n_branch
+read (d_unit, err = 9070) n_branch
 call allocate_branch_array (lat, n_branch)  ! Initial allocation
 
 do i = 1, n_branch
@@ -207,6 +220,17 @@ do i = 1, n_branch
     if (error) return
   enddo
 enddo
+
+! Random state check
+
+if (v96) then
+  read (d_unit, err = 9080) digested_ran_state
+  call ran_seed_get (state = ran_state) ! Get initial random state.
+  if (deterministic_ran_function_used .and. (ran_state%ix /= digested_ran_state%ix .or. &
+                                             ran_state%engine /= digested_ran_state%engine)) then
+    bmad_status%ok = .false.
+  endif
+endif
 
 ! And finish
 
@@ -281,7 +305,27 @@ return
 
 9060  continue
 if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED BEAM_INIT.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9070  continue
+if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE N_BRANCH.')
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+!--------------------------------------------------------------
+
+9080  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED RANDOM NUMBER STATE.')
 endif
 close (d_unit)
 bmad_status%ok = .false.
@@ -301,7 +345,7 @@ logical error
 
 error = .true.
 
-if (v95) then
+if (v95 .or. v96) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &

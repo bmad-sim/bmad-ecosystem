@@ -142,12 +142,12 @@ end type
 
 type bp_common_struct
   type (ele_struct), pointer :: param_ele, beam_ele, beam_start_ele
-  logical e_tot_set, p0c_set
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
   type (used_seq_struct), allocatable ::  used_line(:)
   type (bp_var_struct), allocatable :: var(:)   ! variable name
+  type (ran_parsing_struct) ran
   integer num_lat_files               ! Number of files opened
   integer ivar_tot, ivar_init
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
@@ -159,11 +159,11 @@ type bp_common_struct
   logical :: bmad_parser_calling = .false.     ! used for expand_lattice
   logical error_flag     ! Needed since bmad_status%ok gets set by many routines.
   logical input_line_meaningful
-  logical ran_function_was_called
   logical do_superimpose
   logical write_digested      ! For bmad_parser
   logical write_digested2     ! For bmad_parser2
   logical input_from_file     ! Input is from a lattice file?
+  logical e_tot_set, p0c_set
 end type
 
 !
@@ -833,7 +833,11 @@ case default   ! normal attribute
     ele%aperture_type = nint(value)
   elseif (ix_attrib == ran_seed$) then
     call ran_seed_put (nint(value))  ! init random number generator
-    bp_com%ran_function_was_called = .true.
+    if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
+      bp_com%ran%deterministic = 0
+    else
+      bp_com%ran%deterministic = 2
+    endif
   elseif (ix_attrib == aperture$) then
     ele%value(x1_limit$) = value
     ele%value(x2_limit$) = value
@@ -882,7 +886,7 @@ case default   ! normal attribute
 
     case (lr_freq_spread$)
       call randomize_lr_wake_frequencies (ele, set_done)
-      if (set_done) bp_com%ran_function_was_called = .true.
+      if (set_done) call bp_set_ran_status
 
     case (p0c$)
       select case (ele%key)
@@ -1605,11 +1609,11 @@ parsing_loop: do
       case ('RAN') 
         call pushit (op, i_op, ran$)
         ran_function_pending = .true.
-        bp_com%ran_function_was_called = .true.
+        call bp_set_ran_status
       case ('RAN_GAUSS') 
         call pushit (op, i_op, ran_gauss$)
         ran_function_pending = .true.
-        bp_com%ran_function_was_called = .true.
+        call bp_set_ran_status
       case default
         call parser_warning ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                 'FOR: ' // err_str)
@@ -2160,8 +2164,8 @@ do i = 1, size(lr)
 enddo
 
 call randomize_lr_wake_frequencies (ele, set_done)
-if (set_done) bp_com%ran_function_was_called = .true.
-  
+if (set_done) call bp_set_ran_status
+
 end subroutine read_lr_wake
 
 !-------------------------------------------------------------------------
@@ -2183,7 +2187,7 @@ end subroutine read_lr_wake
 !     %wake%sr_mode_long(:)  -- Short-range wake potential.
 !     %wake%sr_mode_trans(:) -- Short-range wake potential.
 !-
-      
+
 subroutine read_sr_wake (ele, sr_file_name)
 
 implicit none
@@ -4656,6 +4660,25 @@ deallocate (ix_lat)
 
 end subroutine parser_expand_line
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine bp_set_ran_status
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine bp_set_ran_status
+
+if (bp_com%ran%deterministic == 0) then
+  bp_com%ran%ran_function_was_called = .true.
+elseif (bp_com%ran%deterministic == 1) then
+  bp_com%ran%deterministic_ran_function_was_called = .true.
+endif
+
+end subroutine bp_set_ran_status
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
