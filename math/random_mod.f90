@@ -13,13 +13,27 @@ use sim_utils_interface
 
 integer, parameter :: kr4b = selected_int_kind(9)
 
+! common variables for random number generator.
+
+integer, private, save :: my_seed = 0
+real(sp), private, save :: am
+integer(kr4b), parameter :: im = 2147483647
+
+integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
+integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4
+
 type random_state_struct
   integer(kr4b) :: ix = -1, iy = -1
   logical :: number_stored = .false.
   real(rp) :: h_saved = 0
+  integer :: engine = pseudo_random$
 end type
 
 type (random_state_struct), private, save :: r_state
+
+integer, private, save :: gauss_converter = exact_gaussian$
+real(rp), private, save :: gauss_sigma_cut = -1
+integer, private, save :: n_pts_per_sigma = 20
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -86,20 +100,6 @@ interface ran_uniform
   module procedure ran_uniform_vector
 end interface
 
-! common variables for random number generator.
-
-integer, private, save :: my_seed = 0
-real(sp), private, save :: am
-integer(kr4b), parameter :: im = 2147483647
-
-integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
-integer, private, save :: engine = pseudo_random$
-
-integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4
-integer, private, save :: gauss_converter = exact_gaussian$
-real(rp), save :: gauss_sigma_cut = -1
-integer, private :: n_pts_per_sigma = 20
-
 contains
 
 !-----------------------------------------------------------------------------
@@ -133,7 +133,7 @@ integer, save :: n_g = -1
 ! g is the normalized error function and maps from the 
 ! interval [0, 0.5] to [0, infinity].
 
-if (engine == quasi_random$ .or. gauss_converter == quick_gaussian$) then
+if (r_state%engine == quasi_random$ .or. gauss_converter == quick_gaussian$) then
 
   if (gauss_sigma_cut > 0) then
     sigma_cut = gauss_sigma_cut
@@ -255,7 +255,7 @@ character(16) :: r_name = 'ran_engine'
 ! get
 
 if (present (get)) then
-  select case (engine)
+  select case (r_state%engine)
   case (pseudo_random$)
     get = 'pseudo'
   case (quasi_random$)
@@ -268,9 +268,9 @@ endif
 if (present(set)) then
   select case (set)
   case ('pseudo')
-    engine = pseudo_random$
+    r_state%engine = pseudo_random$
   case ('quasi')
-    engine = quasi_random$
+    r_state%engine = quasi_random$
     r_state%number_stored = .false.
   case default
     call out_io (s_error$, r_name, 'BAD RANDOM NUMBER ENGINE NAME: ' // set)
@@ -491,7 +491,7 @@ if (r_state%iy < 0) call ran_seed_put(my_seed)
 
 ! quasi-random
 
-if (engine == quasi_random$) then
+if (r_state%engine == quasi_random$) then
   ix_q = integer_option(1, index_quasi)
   if (ix_q == 1) call sobseq (r)
   if (ix_q > 6) then
