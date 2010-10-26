@@ -20,7 +20,7 @@ export DIST_SYSTEM=$SYSTEM_TAG
 # Distribution directory tree assignments
 #--------------------------------------------------------------
 ##export BMAD_          $BMAD_
-export DIST_BASE_DIR=$BASE_DIR
+##export DIST_BASE_DIR=$BASE_DIR
 export DIST_CONFIG=$DIST_BASE_DIR/config
 export DIST_EXE=$DIST_BASE_DIR/bin
 export DIST_GMAKE=$DIST_BASE_DIR/Gmake

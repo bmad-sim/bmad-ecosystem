@@ -17,20 +17,23 @@
 
 DIST_TOPLEVEL_CHECKLIST="bin bmad Gmake include util"
 
+ENV_SETUP_FILE="${HOME}/.dist_env_setup.tmp"
 
 ENV_SNAP_1="${HOME}/.dist_env_snapshot_1.tmp"
 ENV_SNAP_2="${HOME}/.dist_env_snapshot_2.tmp"
 printenv > ${ENV_SNAP_1}
 
 
-
 #-----------------------------------------------------------
-# Incorporate the distribution build user preference
-# variables that dictate how the build should be carried
-# out.
+# Logfile for saving and displaying status and errors
 #-----------------------------------------------------------
-source ./util/dist_prefs
-
+if ( [ "${DIST_SETUP_QUIET}" == "Y" ] )then
+  rm -f ${HOME}/.dist_setup_log.tmp
+  touch ${HOME}/.dist_setup_log.tmp
+  DIST_SETUP_LOG="/dev/null"
+else
+  DIST_SETUP_LOG=${HOME}/.dist_setup_log.tmp
+fi
 
 
 #-----------------------------------------------------------
@@ -45,28 +48,91 @@ source ./util/dist_prefs
 # the current working directory.
 #-----------------------------------------------------------
 CWD=`pwd`
-PERFORM_ENVIRONMENT_SETUP=YES
+
+USE_OVERRIDE_BASEDIR=NO
+USE_CWD_BASEDIR=NO
+
+echo "" > ${DIST_SETUP_LOG}
 
 
-for DIR in ${DIST_TOPLEVEL_CHECKLIST};
-do
-  if ! [ -d ${CWD}/${DIR} ]; then
-    echo "" >&2
-    echo "The current working directory does not appear to be" >&2
-    echo "the top level directory of a valid source distribution." >&2
-    echo "" >&2
-    PERFORM_ENVIRONMENT_SETUP=NO
-    break
+#----------------------------------------------------------
+# Check for DIST_BASE_DIR override variable.
+#----------------------------------------------------------
+echo "Checking for DIST_BASE_DIR override definition..." >> ${DIST_SETUP_LOG}
+if [ -d "${DIST_BASE_DIR}" ]; then
+
+  USE_OVERRIDE_BASEDIR=YES
+
+  for DIR in ${DIST_TOPLEVEL_CHECKLIST};
+  do
+    if ! [ -d "${DIST_BASE_DIR}/${DIR}" ]; then
+      echo "" >> $DIST_SETUP_LOG
+      echo "The directory specified in DIST_BASE_DIR does not appear to be" >> $DIST_SETUP_LOG
+      echo "the top level directory of a valid source distribution." >> $DIST_SETUP_LOG
+      echo "" >> $DIST_SETUP_LOG
+      USE_OVERRIDE_BASEDIR=NO
+      break
+    fi
+  done
+
+else
+
+  echo "No DIST_BASE_DIR override value found" >> $DIST_SETUP_LOG
+
+fi
+
+
+
+#----------------------------------------------------------
+# If DIST_BASE_DIR override variable is not the location
+# of a valid distribution tree, try the current working
+# directory.
+#----------------------------------------------------------
+if [ "${USE_OVERRIDE_BASEDIR}" == "NO" ]; then
+
+  USE_CWD_BASEDIR=YES
+
+  echo "Override basedir invalid or not specified, checking current working directory..." >> $DIST_SETUP_LOG
+
+  for DIR in ${DIST_TOPLEVEL_CHECKLIST};
+  do
+    if ! [ -d "${CWD}/${DIR}" ]; then
+      echo "" >> $DIST_SETUP_LOG
+      echo "The current working directory does not appear to be" >> $DIST_SETUP_LOG
+      echo "the top level directory of a valid source distribution." >> $DIST_SETUP_LOG
+      echo "" >> $DIST_SETUP_LOG
+      USE_CWD_BASEDIR=NO
+      break
+    fi
+  done
+
+fi
+
+
+
+#----------------------------------------------------------
+# If a valid distribution tree base directory has been 
+# provided or found, continue with setting up the 
+# environment.  Otherwise, print error mesasge and do
+# nothing else.
+#----------------------------------------------------------
+if [ "${USE_OVERRIDE_BASEDIR}" == "YES" ] || [ "${USE_CWD_BASEDIR}" == "YES" ]; then
+
+  echo "Directory appears to be the top level of a source distribution... GOOD." >> $DIST_SETUP_LOG
+  echo "" >> $DIST_SETUP_LOG
+
+  if [ "${USE_CWD_BASEDIR}" == "YES" ]; then
+    DIST_BASE_DIR=${CWD}
   fi
-done
+  echo "Dist base dir = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
 
-
-
-if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
-
-  echo "Directory appears to be the top level of a source distribution... GOOD." >&2
-
-  BASE_DIR=${CWD}
+  #--------------------------------------------------------------
+  # Incorporate the distribution build user preference
+  # variables that dictate how the build should be carried
+  # out.
+  #--------------------------------------------------------------
+  echo "Sourcing build preferences..." >> $DIST_SETUP_LOG
+  source ${DIST_BASE_DIR}/util/dist_prefs
 
 
 
@@ -82,9 +148,8 @@ if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
   #   This is used for ACC build system setup as well as 
   #   offsite distribution build system setup.
   #--------------------------------------------------------------
-  source ./util/common_env_setup
-
-#### SYSTEM_TAG="`uname -s | cut -d- -f1`"
+  echo "Sourcing common parts..." >> $DIST_SETUP_LOG
+  source ${DIST_BASE_DIR}/util/common_env_setup
 
 
 
@@ -92,8 +157,7 @@ if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
   # Source the main DISTRIBUTION environment variable list into 
   # this script's environment.
   #--------------------------------------------------------------
-  DISTENV=./util/dist_env_vars
-  source ${DISTENV}
+  source ${DIST_BASE_DIR}/util/dist_env_vars
 
 
 
@@ -165,15 +229,20 @@ if [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]; then
   #------------------------------------------------------------
   if `echo ${SHELL} | grep "csh" 1>/dev/null 2>&1`
   then
-    diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g'
+    diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g' >> ${ENV_SETUP_FILE}
   else
-    diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/=\"/g' | sed 's/> /export /g' | sed 's/$/\"/g'
+    diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/=\"/g' | sed 's/> /export /g' | sed 's/$/\"/g' >> ${ENV_SETUP_FILE}
   fi
 
 
+else
 
+  echo "No valid distribution tree base directory was found.  Please check" >> $DIST_SETUP_LOG
+  echo "the value of the DIST_BASE_DIR variable, if set, or make sure your" >> $DIST_SETUP_LOG
+  echo "current working directory is the top-level directory of a" >> $DIST_SETUP_LOG
+  echo "distribution source tree." >> $DIST_SETUP_LOG
 
-fi  # endIF [ "${PERFORM_ENVIRONMENT_SETUP}" == "YES" ]
+fi  
 
 
 
