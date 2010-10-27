@@ -1,4 +1,4 @@
-#-----------------------------------------------------------
+##-----------------------------------------------------------
 #  dist_gen_env
 #  ------------
 #
@@ -91,6 +91,7 @@ fi
 if [ "${USE_OVERRIDE_BASEDIR}" == "NO" ]; then
 
   USE_CWD_BASEDIR=YES
+  DIST_BASE_DIR="${CWD}"  
 
   echo "Override basedir invalid or not specified, checking current working directory..." >> $DIST_SETUP_LOG
 
