@@ -11,13 +11,13 @@ use physical_constants
 use output_mod
 use sim_utils_interface
 
-integer, parameter :: kr4b = selected_int_kind(9)
+integer, private, parameter :: kr4b = selected_int_kind(9)
 
 ! common variables for random number generator.
 
 integer, private, save :: my_seed = 0
 real(sp), private, save :: am
-integer(kr4b), parameter :: im = 2147483647
+integer(kr4b), private, parameter :: im = 2147483647
 
 integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
 integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4
