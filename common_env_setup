@@ -18,7 +18,7 @@
 #     - the processor architecture
 #--------------------------------------------------------------
 PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
-
+OS_TAG="`uname`"
 
 #--------------------------------------------------------------
 # Determine the fortran compiler name and set accelerator 
@@ -31,20 +31,23 @@ PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
 # gnu     -- g77/g95
 #--------------------------------------------------------------
 if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
-  TEMP_SETUP_F90=${TEMP_SETUP_F90:-intel}
+  TEMP_SETUP_F90="intel"
 
 elif ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
-  TEMP_SETUP_F90=${TEMP_SETUP_F90:-intel}
+  TEMP_SETUP_F90="intel"
 
 elif ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
-  TEMP_SETUP_F90=${TEMP_SETUP_F90:-hp} 
+  TEMP_SETUP_F90="hp" 
 
 elif ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then
-  TEMP_SETUP_F90=${TEMP_SETUP_F90:-absoft}
+  TEMP_SETUP_F90="absoft"
+
+elif ( [ "${PLATFORM_TAG}" = "Darwin_i386" ] ) then
+  TEMP_SETUP_F90="gfortran"
 
 # Fall through to default if platform is unrecognizable.
 else
-  TEMP_SETUP_F90=${TEMP_SETUP_F90:-intel}
+  TEMP_SETUP_F90=gfortran
 fi
 
 

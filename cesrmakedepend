@@ -18,7 +18,7 @@ use File::Basename;
 get_args(@ARGV);
 #print "includes: @includes\n";
 #print "cplusplus: $cplusplus, c: $c, fortran: $fortran \n";
-#print "$prefix\n";
+#print "$prefix";
 setup_commands();
 run_command();
 convert_to_cesr();
@@ -112,7 +112,6 @@ sub get_args {
             push(@includes, $arg);
         }
         elsif($arg=~/^-MOD(.+)/) {
-#            $local_mods="-MOD\"$1\"";
             $local_mods0="$1";
         }
         elsif($arg=~/^-MP(.+)/) {
@@ -123,9 +122,9 @@ sub get_args {
         }
         elsif($arg=~/^-cpp_file(.+)/) {
             $cpp_file=$1;
+	    print "-------->>$cpp_file<<\n"
         }
         elsif($arg=~/^-cpp(.+)/) {
-#            $cpp="-cpp\"$1\"";
              $cpp="$1";
         }
         elsif($arg=~/^-out(.+)/) {
@@ -133,7 +132,6 @@ sub get_args {
         } 
         elsif($arg=~/^-o(.+)/) {
             $suffix=$1;
-#            $suffix=~s/\s//g;
         }
         elsif($arg=~/^-p(.+)/) {
             $prefix=$1;
