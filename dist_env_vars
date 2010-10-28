@@ -14,8 +14,6 @@ export DIST_BUILD="TRUE"
 export DIST_OS=$OS_TAG
 export DIST_PLATFORM=$PLATFORM_TAG
 
-#export DIST_SYSTEM=$SYSTEM_TAG
-
 
 
 #--------------------------------------------------------------
