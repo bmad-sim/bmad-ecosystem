@@ -122,7 +122,6 @@ sub get_args {
         }
         elsif($arg=~/^-cpp_file(.+)/) {
             $cpp_file=$1;
-	    print "-------->>$cpp_file<<\n"
         }
         elsif($arg=~/^-cpp(.+)/) {
              $cpp="$1";
