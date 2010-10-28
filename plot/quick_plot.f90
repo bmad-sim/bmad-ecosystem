@@ -253,7 +253,7 @@ if (present(margin)) call qp_set_margin (margin%x1, margin%x2, &
 if (present(page_border)) call qp_set_page_border (page_border%x1, &
            page_border%x2, page_border%y1, page_border%y2, page_border%units)
 
-end subroutine
+end subroutine qp_set_layout
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -319,7 +319,7 @@ call qp_from_inch_abs (rect%x2, rect%y2, x2, y2, units)
 
 qp_com%dflt_units = dflt_draw$
 
-end subroutine
+end subroutine qp_get_layout_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -344,7 +344,7 @@ qp_com%plot%y2 = qp_com%plot%x2
 qp_com%plot%xx_points_to_x = .true.
 qp_com%plot%yy_points_to_y = .true.
 
-end subroutine
+end subroutine qp_init_com_struct
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -408,7 +408,7 @@ else
   qp_com%plot%yy => qp_com%plot%y2
 endif
 
-end subroutine  
+end subroutine qp_save_state
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -438,7 +438,7 @@ endif
 ix_qp_com = ix_qp_com - 1
 qp_com => qp_save_com(ix_qp_com)
 
-end subroutine  
+end subroutine qp_restore_state
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -483,7 +483,7 @@ else
   call err_exit
 endif
 
-end subroutine
+end subroutine qp_pointer_to_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -533,7 +533,7 @@ if (present(y)) then
   end select
 endif
 
-end subroutine
+end subroutine qp_use_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -634,7 +634,7 @@ if (present(major_tick_len)) this_axis%major_tick_len = major_tick_len
 if (present(minor_tick_len)) this_axis%minor_tick_len = minor_tick_len
 if (present(ax_type))        this_axis%type = ax_type
 
-end subroutine
+end subroutine qp_set_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -743,7 +743,7 @@ if (present(major_tick_len)) major_tick_len = this_axis%major_tick_len
 if (present(minor_tick_len)) minor_tick_len = this_axis%minor_tick_len  
 if (present(ax_type))        ax_type        = this_axis%type
 
-end subroutine
+end subroutine qp_get_axis_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -809,7 +809,7 @@ ax%type = 'LINEAR'
 if (present(axis_type)) ax%type = axis_type
 call qp_calc_axis_params (data_min, data_max, div_min, div_max, ax, slop_factor)
 
-end subroutine
+end subroutine qp_calc_and_set_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -885,7 +885,7 @@ enddo
 axis%major_div = div_best
 call qp_calc_axis_scale (d_min, d_max, axis, score, slop_factor)
 
-end subroutine
+end subroutine qp_calc_axis_params
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -958,7 +958,7 @@ enddo
 width = abs(a_max - a_min) / axis%major_div
 axis%places = max(axis%places, floor(-log10(width)+0.9))
 
-end subroutine
+end subroutine qp_calc_axis_places
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1192,7 +1192,7 @@ if (data_min > data_max) then
   axis%max = aa
 endif
 
-end subroutine
+end subroutine qp_calc_axis_scale
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1258,7 +1258,7 @@ enddo
 
 score = score + 20 * (2 - log10(float(imax - imin)))
 
-end function
+end function qp_axis_niceness 
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1312,7 +1312,7 @@ do i = div_min, div_max
   endif
 enddo
 
-end subroutine
+end subroutine qp_calc_axis_divisions
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1355,7 +1355,7 @@ if (graph%x1 < graph%x2 .and. graph%y1 < graph%y2) then
   call qp_set_graph_position_basic (graph%x1, graph%x2, y1, y2)
 endif
 
-end subroutine
+end subroutine qp_set_graph_limits
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1382,7 +1382,7 @@ if (qp_com%page_type(1:3) == 'GIF') then
                            'INCH', color = white$, fill_pattern = solid_fill$)
 endif
 
-end subroutine
+end subroutine qp_clear_page
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1401,7 +1401,7 @@ call qp_paint_rectangle (qp_com%box%x1, qp_com%box%x2, &
                          qp_com%box%y1, qp_com%box%y2, &
                          'INCH', color = white$, fill_pattern = solid_fill$)
 
-end subroutine
+end subroutine qp_clear_box
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1445,7 +1445,7 @@ call qp_paint_rectangle_basic (x1_inch, x2_inch, y1_inch, y2_inch, &
               integer_option(qp_com%symbol%color, color), &
               integer_option(qp_com%symbol%fill_pattern, fill_pattern))
 
-end subroutine
+end subroutine qp_paint_rectangle
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1492,7 +1492,7 @@ qp_com%box%y2 = qp_com%box%y1 + w_y / iy_tot
 qp_com%subgraph_on = .false.   
 call qp_set_graph_limits 
 
-end subroutine
+end subroutine qp_set_box
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1514,7 +1514,7 @@ qp_com%border%y1 = qp_com%box%y1 - qp_com%page%y1
 qp_com%border%x2 = qp_com%page%x2 - qp_com%box%x2
 qp_com%border%y2 = qp_com%page%y2 - qp_com%box%y2
   
-end subroutine
+end subroutine qp_set_page_border_to_box
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1554,7 +1554,7 @@ qp_com%dflt_units = dflt_draw$
 
 call qp_set_graph_limits
 
-end subroutine
+end subroutine qp_set_page_border
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1567,7 +1567,8 @@ end subroutine
 !
 ! Input:
 !   x_inch, y_inch -- Real(rp): lengths in inches.
-!   units  -- Character(*), optional: Units of x_inch and y_inch
+!   units  -- Character(*), optional: Units of x and y
+!                   Default is: 'DATA/GRAPH/LB'
 !
 ! Output:
 !   x, y   -- Real(rp): Lengths to convert.
@@ -1620,7 +1621,7 @@ elseif (u_type == 'DATA') then
   endif
 endif
 
-end subroutine
+end subroutine qp_from_inch_rel
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1634,6 +1635,7 @@ end subroutine
 ! Input:
 !   x_inch, y_inch -- Real(rp): Position in inches from LB corner of the page.
 !   units  -- Character(*), optional: Units of x and y
+!                   Default is: 'DATA/GRAPH/LB'
 !
 ! Output:
 !   x, y   -- Real(rp): Position in new coords
@@ -1698,7 +1700,7 @@ endif
 
 call qp_from_inch_rel (x0, y0, x, y, units)
 
-end subroutine
+end subroutine qp_from_inch_abs
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1711,6 +1713,7 @@ end subroutine
 ! Input:
 !   x, y   -- Real(rp): Lengths to convert.
 !   units  -- Character(*), optional: Units of x and y
+!                   Default is: 'DATA/GRAPH/LB'
 !
 ! Output:
 !   x_inch, y_inch -- Real(rp): lengths in inches.
@@ -1764,7 +1767,7 @@ elseif (u_type == 'DATA') then
   endif
 endif
 
-end subroutine
+end subroutine qp_to_inch_rel
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1777,6 +1780,7 @@ end subroutine
 ! Input:
 !   x(:), y(:) -- Real(rp): Lengths to convert.
 !   units      -- Character(*), optional: Units of x and y
+!                   Default is: 'DATA/GRAPH/LB'
 !
 ! Output:
 !   x_inch(:), y_inch(:) -- Real(rp): lengths in inches.
@@ -1798,7 +1802,7 @@ do i = 1, size(x)
   call qp_to_inch_rel (x(i), y(i), x_inch(i), y_inch(i), units)
 enddo
 
-end subroutine
+end subroutine qp_to_inches_rel
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1876,7 +1880,7 @@ else
   y_inch = y_inch + ref%y2 
 endif
 
-end subroutine
+end subroutine qp_to_inch_abs
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1911,7 +1915,7 @@ do i = 1, size(x)
   call qp_to_inch_abs (x(i), y(i), x_inch(i), y_inch(i), units)
 enddo
 
-end subroutine
+end subroutine qp_to_inches_abs
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1943,7 +1947,7 @@ character(*) units_in, units_out
 call qp_to_inch_rel   (x_in, y_in, x_out, y_out, units_in)
 call qp_from_inch_rel (x_out, y_out, x_out, y_out, units_out)
 
-end subroutine
+end subroutine qp_convert_point_rel
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1975,7 +1979,7 @@ character(*) units_in, units_out
 call qp_to_inch_abs   (x_in, y_in, x_out, y_out, units_in)
 call qp_from_inch_abs (x_out, y_out, x_out, y_out, units_out)
 
-end subroutine
+end subroutine qp_convert_point_abs
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2012,7 +2016,7 @@ call qp_convert_point_rel (rect1%x1, rect1%y1, rect1%units, &
 call qp_convert_point_rel (rect1%x2, rect1%y2, rect1%units, &
                            rect2%x2, rect2%y2, rect2%units)
 
-end subroutine
+end subroutine qp_convert_rectangle_rel
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2042,7 +2046,7 @@ character(*) units
 
 units = u_type // '/' // region // '/' // corner
 
-end subroutine
+end subroutine qp_join_units_string
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2139,7 +2143,7 @@ if (ix /= 0) then
   call err_exit
 endif
 
-end subroutine
+end subroutine qp_split_units_string
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2188,7 +2192,7 @@ qp_com%dflt_units = dflt_draw$
 
 call qp_set_graph_limits
 
-end subroutine
+end subroutine qp_set_graph_placement
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2232,7 +2236,7 @@ qp_com%dflt_units = dflt_draw$
 
 call qp_set_graph_limits
 
-end subroutine
+end subroutine qp_set_margin
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2274,7 +2278,7 @@ if (x1 == x2 .or. y1 == y2) return
 call qp_draw_polyline ((/ x1, x1, x2, x2, x1 /), (/ y1, y2, y2, y1, y1 /), &
                                             units, width, color, style, clip)
 
-end subroutine
+end subroutine qp_draw_rectangle
                                      
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2289,6 +2293,7 @@ end subroutine
 !   x, y         -- Real(rp): Symbol coordinates in data units.
 !                     x and y may be vectors.
 !   units        -- Character(*), optional: Units of (x, y)
+!                     Default is: 'DATA/GRAPH/LB'
 !   type         -- Integer, optional: Symbol type. 
 !   height       -- Real(rp), optional: Size of the symbol.
 !   color        -- Integer, optional: Symbol color.
@@ -2321,7 +2326,7 @@ call qp_draw_symbol_basic (x_inch, y_inch, qp_com%symbol%type)
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_symbol
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2374,21 +2379,16 @@ if (size(x) /= size(y)) then
   call err_exit
 endif
 
-i_skip = 1
-if (present(symbol_every)) then
-  i_skip = symbol_every
-endif
-
+i_skip = integer_option(1, symbol_every)
 if (i_skip < 1) return
 
 do i = 1, size(x)
   if (mod(i-1, i_skip) /= 0) cycle
-  call qp_draw_symbol (x(i), y(i), units, type, height, color, fill_pattern, &
-                                                          line_width, clip)
+  call qp_draw_symbol (x(i), y(i), units, type, height, color, fill_pattern, line_width, clip)
 enddo
 
 
-end subroutine
+end subroutine qp_draw_symbols
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2410,7 +2410,7 @@ character(*), optional :: title
 
 if (present(title)) qp_com%plot%title = title
 
-end subroutine
+end subroutine qp_set_graph
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2474,7 +2474,7 @@ endif
 call qp_draw_axes (x_lab, y_lab, title)
 call qp_draw_data (x_dat, y_dat, draw_line, symbol_every, clip)
 
-end subroutine
+end subroutine qp_draw_graph
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2482,7 +2482,9 @@ end subroutine
 !+
 ! Subroutine qp_draw_data (x, y, draw_line, symbol_every, clip)
 !
-! Subroutine to plot data.
+! Subroutine to draw a symbol at the data points and optionaly connect
+! the symbols with line segments.
+!
 ! See qp_draw_graph for a routine that will draw the axes as well.
 ! See qp_draw_axes for a routine to only draw the axes.
 !
@@ -2502,8 +2504,9 @@ subroutine qp_draw_data (x_dat, y_dat, draw_line, symbol_every, clip)
 
 implicit none      
 
-real(rp) x_dat(:), y_dat(:)                        
+real(rp) x_dat(:), y_dat(:)
 
+integer i_skip, n 
 integer, optional :: symbol_every
 logical, optional :: draw_line, clip
 
@@ -2515,7 +2518,13 @@ call qp_save_state (.true.)
 
 if (logic_option (.true., draw_line)) then
   call qp_set_line_attrib ('PLOT', clip = clip)
-  call qp_draw_polyline_no_set (x_dat, y_dat)
+  i_skip = integer_option(1, symbol_every)
+  if (i_skip > 1) then
+    n = size(x_dat)
+    call qp_draw_polyline_no_set (x_dat(1:n:i_skip), y_dat(1:n:i_skip))
+  else
+    call qp_draw_polyline_no_set (x_dat, y_dat)
+  endif
 endif
 
 ! plot symbols
@@ -2526,7 +2535,7 @@ call qp_draw_symbols (x_dat, y_dat, symbol_every = symbol_every, clip = clip)
 
 call qp_restore_state
 
-end subroutine      
+end subroutine qp_draw_data
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2569,7 +2578,7 @@ if (qp_com%plot%draw_title) call qp_draw_graph_title (qp_com%plot%title)
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_axes
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2599,7 +2608,7 @@ call qp_set_text_attrib ('GRAPH_TITLE')
 call qp_to_inch_rel (0.5_rp, 1.0_rp, xt, yt, '%GRAPH')
 call qp_draw_text_no_set (title, xt, yt+0.05, 'INCH', 'CB')
 
-end subroutine
+end subroutine qp_draw_graph_title
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2714,7 +2723,7 @@ call qp_draw_polyline (xh(1:2*n+2), yh(1:2*n+2), color = integer_option(black$, 
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_histogram
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2769,7 +2778,7 @@ enddo
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_text_legend
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2889,7 +2898,7 @@ enddo
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_curve_legend
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2984,7 +2993,7 @@ call qp_draw_polyline_no_set (x(1:i), y(1:i), 'INCH/PAGE/LB')
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_ellipse
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3036,7 +3045,7 @@ logical, optional :: clip
 call qp_draw_ellipse (x0, y0, r, r, 0.0_rp, angle0, del_angle, &
                                         units, width, color, style, clip)
 
-end subroutine
+end subroutine qp_draw_circle
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3078,7 +3087,7 @@ call qp_to_inches_abs (x, y, xd, yd, units)
 call qp_draw_polyline_basic (xd, yd)
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_polyline
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3109,7 +3118,7 @@ character(*), optional :: units
 call qp_to_inches_abs (x, y, xd, yd, units)
 call qp_draw_polyline_basic (xd, yd)
 
-end subroutine
+end subroutine qp_draw_polyline_no_set
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3150,7 +3159,7 @@ call qp_set_line_attrib ('STD', width, color, style, clip)
 call qp_draw_polyline_no_set ((/ x1, x2 /), (/ y1, y2 /), units)
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_line
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3315,7 +3324,7 @@ qp_com%dflt_units = dflt_draw$
 
 if (qp_com%page_type(1:3) == 'GIF') call qp_clear_page
 
-end subroutine
+end subroutine qp_open_page
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3339,7 +3348,7 @@ integer iw
 
 call qp_select_page_basic (iw)
 
-end subroutine
+end subroutine qp_select_page
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3384,7 +3393,7 @@ if (qp_com%page_type(1:2) == 'PS' .or. qp_com%page_type(1:3) == 'GIF') then
 
 endif
 
-end subroutine
+end subroutine qp_close_page
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3440,7 +3449,7 @@ call qp_draw_text_no_set (text, x, y, units, justify, angle)
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_text
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3521,7 +3530,7 @@ else
   call qp_draw_text_basic (text, len_trim(text), x_inch, y_inch, ang, qp_justify(justify))
 endif
 
-end subroutine         
+end subroutine qp_draw_text_no_set
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3565,7 +3574,7 @@ if (present(justify)) then
   endif
 endif
 
-end function
+end function qp_justify
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3614,7 +3623,7 @@ enddo
 
 call qp_restore_state
 
-end subroutine         
+end subroutine qp_draw_main_title
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3642,7 +3651,7 @@ type (qp_symbol_struct) symbol
 
 qp_com%symbol = symbol
 
-end subroutine
+end subroutine qp_set_symbol
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3700,7 +3709,7 @@ call qp_set_color_basic (qp_com%symbol%color)
 call qp_set_symbol_fill_basic (qp_com%symbol%fill_pattern)       
 call qp_set_line_width_basic (qp_com%symbol%line_width)
 
-end subroutine
+end subroutine qp_set_symbol_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3713,7 +3722,7 @@ subroutine qp_get_symbol (symbol)
 implicit none
 type (qp_symbol_struct) symbol
 symbol = qp_com%symbol
-end subroutine
+end subroutine qp_get_symbol
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3742,7 +3751,7 @@ type (qp_symbol_struct) symbol
 
 symbol = qp_com%symbol
 
-end subroutine
+end subroutine qp_get_symbol_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3793,7 +3802,7 @@ endif
 
 call qp_set_line_attrib (who)
 
-end subroutine
+end subroutine qp_set_line
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3858,7 +3867,7 @@ else
   call err_exit
 endif
 
-end subroutine
+end subroutine qp_get_line_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3922,7 +3931,7 @@ call qp_set_color_basic (this%color)
 call qp_set_line_width_basic (this%width)
 call qp_set_line_style_basic (this%style)       
 
-end subroutine
+end subroutine qp_set_line_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3946,7 +3955,7 @@ logical, optional :: clip
 if (present(clip)) qp_com%clip = clip
 call qp_set_clip_basic (qp_com%clip)
 
-end subroutine
+end subroutine qp_set_clip
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -3995,7 +4004,7 @@ qp_com%graph%y2 = qp_com%graph%y1 + y_width
 qp_com%subgraph_on = .true.   
 call qp_set_graph_limits 
 
-end subroutine
+end subroutine qp_subset_box
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4084,7 +4093,7 @@ if (present(uniform_spacing)) then
   uniform_spacing = this_text%uniform_spacing
 endif
 
-end subroutine
+end subroutine qp_get_this_text_attrib
 
 end subroutine qp_get_text_attrib
 
@@ -4187,9 +4196,9 @@ call qp_set_line_width_basic (1)
 
 qp_com%this_text = this_text
 
-end subroutine
+end subroutine qp_set_this_text_attrib 
 
-end subroutine
+end subroutine qp_set_text_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4351,7 +4360,7 @@ endif
 
 call qp_restore_state
 
-end subroutine
+end subroutine qp_draw_x_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4522,7 +4531,7 @@ endif
 
 call qp_restore_state
                    
-end subroutine
+end subroutine qp_draw_y_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4659,7 +4668,7 @@ endif
 
 call string_trim (text, text, i)
 
-end subroutine
+end subroutine qp_to_axis_number_text
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4689,7 +4698,7 @@ character(*) text
 
 t_len = qp_text_len_basic (text, len_trim(text))
 
-end function
+end function qp_text_len
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4715,7 +4724,7 @@ logical, optional :: draw_grid, draw_title
 if (present(draw_grid))  qp_com%plot%draw_grid  = draw_grid
 if (present(draw_title)) qp_com%plot%draw_title = draw_title
 
-end subroutine
+end subroutine qp_set_graph_attrib
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4778,7 +4787,7 @@ enddo
 
 call qp_restore_state 
 
-end subroutine
+end subroutine qp_draw_grid 
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4853,7 +4862,7 @@ do divisions = div_max, 1, -1
   if (mod(idel, divisions) == 0) return
 enddo
 
-end subroutine
+end subroutine qp_calc_minor_div
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4893,7 +4902,7 @@ enddo
 call out_io (s_error$, r_name, 'UNKNOWN COLOR NAME: ' // name)
 index = -1
 
-end subroutine
+end subroutine qp_translate_to_color_index
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4939,7 +4948,7 @@ if (present(default_axis_slop_factor)) &
 
 
 
-end subroutine
+end subroutine qp_get_parameters
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -4990,7 +4999,7 @@ endif
 if (present(default_axis_slop_factor)) &
          qp_com%dflt_axis_slop_factor = default_axis_slop_factor
 
-end subroutine
+end subroutine qp_set_parameters
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -5017,7 +5026,7 @@ real(rp) height_pt, height_inch, fudge_factor
 fudge_factor = 0.68  ! pgplot fudge factor!!!
 height_inch = fudge_factor * height_pt * qp_com%text_scale / 72.0
 
-end function
+end function qp_text_height_to_inches
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -5207,9 +5216,9 @@ deallocate (t)
 allocate (t(i_size+id))
 t = xyz(1:i_size+id)
 
-end subroutine
+end subroutine load_data
 
-end subroutine
+end subroutine qp_read_data
 
 
 !-----------------------------------------------------------------------
@@ -5256,6 +5265,6 @@ endif
 
 call qp_set_graph_limits
 
-end subroutine
+end subroutine qp_eliminate_xy_distortion
 
 end module
