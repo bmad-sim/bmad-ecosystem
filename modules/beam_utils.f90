@@ -8,7 +8,7 @@ use wake_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
-private recenter_bunch, combine_bunch_distributions
+private recenter_bunch, combine_bunch_distributions, calc_this_emit
 
 contains
 
@@ -823,10 +823,10 @@ type (bunch_struct), target :: bunch
 type (particle_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 
-real(rp) beta(3), alpha(3), emitt(3), covar
+real(rp) beta(3), alpha(3), emit(3), covar
 real(rp) v_mat(4,4), v_inv(4,4)
 
-integer i,j,k
+integer i, j, k, n
 integer :: n_kv     ! counts how many phase planes are of KV type
 integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
@@ -837,8 +837,7 @@ logical ran_gauss_here
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
-  call out_io (s_abort$, r_name, &
-              "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
+  call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   call err_exit
 endif
 
@@ -849,13 +848,13 @@ beta(1) = ele%a%beta
 beta(2) = ele%b%beta
 alpha(1) = ele%a%alpha
 alpha(2) = ele%b%alpha
-emitt(1) = beam_init%a_norm_emitt * mass_of(param%particle) / ele%value(E_TOT$)
-emitt(2) = beam_init%b_norm_emitt * mass_of(param%particle) / ele%value(E_TOT$)
+
+call calc_this_emit (beam_init, ele, param, emit) 
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
-emitt(3) = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
-beta(3) = beam_init%sig_z**2 / emitt(3)
-alpha(3) = - covar / emitt(3)
+emit(3) = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
+beta(3) = beam_init%sig_z**2 / emit(3)
+alpha(3) = - covar / emit(3)
 
 ! Init
 
@@ -874,7 +873,7 @@ do i = 1, 3
   case ('', 'RAN_GAUSS')
     ran_gauss_here = .true.
   case ('ELLIPSE')
-    call init_ellipse_distribution (i, beam_init%ellipse(i), beta(i), alpha(i), emitt(i), bunch)
+    call init_ellipse_distribution (i, beam_init%ellipse(i), beta(i), alpha(i), emit(i), bunch)
   case ('GRID')
     call init_grid_distribution (i, beam_init%grid(i), bunch)
   case ('KV') 
@@ -886,8 +885,7 @@ do i = 1, 3
   end select
 enddo
 
-if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, beta, &
-                                          alpha, emitt, bunch)
+if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, beta, alpha, emit, bunch)
 
 if (ran_gauss_here) call init_random_distribution (ele, param, beam_init, bunch)
 
@@ -920,7 +918,82 @@ bunch%ix_bunch = 1  ! Default
 
 call init_spin_distribution (beam_init, bunch)
 
+! Photons:
+! For now just give one half intensity_x = 1 and one half intensity_y = 1
+
+if (param%particle == photon$) then
+  n = size(bunch%particle)
+  bunch%particle(1:n:2)%r%intensity_x = 1
+  bunch%particle(1:n:2)%r%intensity_y = 1
+endif
+
 end subroutine init_bunch_distribution
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine calc_this_emit (beam_init, ele, param, emit)
+!
+! Private routine to calculate the emittances
+!
+! Input:
+!   beam_init -- beam_init_struct: 
+!   ele       -- ele_struct:
+!   param     -- lat_param_struct:
+!
+! Ouput:
+!   emit(2)  -- Real(rp): emittances
+!-
+
+subroutine calc_this_emit (beam_init, ele, param, emit)
+
+implicit none
+
+type (beam_init_struct) beam_init
+type (ele_struct) ele
+type (lat_param_struct) param
+
+real(rp) emit(:), ran_g(2)
+
+character(16) :: r_name = 'calc_this_emit'
+
+! Convert old style emit components to new style
+
+if (beam_init%a_norm_emitt /= 0) beam_init%a_norm_emit = beam_init%a_norm_emitt 
+if (beam_init%b_norm_emitt /= 0) beam_init%b_norm_emit = beam_init%b_norm_emitt 
+if (any(beam_init%emitt_jitter /= 0)) beam_init%emit_jitter = beam_init%emitt_jitter
+
+! Check
+
+if ((beam_init%a_norm_emit /= 0 .and. beam_init%a_emit /= 0) .or. &
+    (beam_init%b_norm_emit /= 0 .and. beam_init%b_emit /= 0)) then
+  call out_io (s_fatal$, r_name, 'SETTING BOTH NORM_EMIT AND EMIT IN BEAM_INIT STRUCTURE IS NOT ALLOWED.')
+  call err_exit
+endif
+
+!
+
+if (beam_init%a_norm_emit /= 0) then
+  emit(1) = beam_init%a_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
+else
+  emit(1) = beam_init%a_emit
+endif
+
+if (beam_init%b_norm_emit /= 0) then
+  emit(2) = beam_init%b_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
+else
+  emit(2) = beam_init%b_emit 
+endif
+
+! Add jitter if needed
+
+if (any(beam_init%emit_jitter /= 0)) then
+  call ran_gauss(ran_g) ! ran(3:4) for z and e jitter used below
+  emit(1:2) = emit(1:2) * (1 + beam_init%emit_jitter * ran_g) 
+endif
+
+end subroutine calc_this_emit 
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -948,10 +1021,10 @@ type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
 type (particle_struct), allocatable :: p(:)
   
-real(rp) dpz_dz, denom
-real(rp) a_emitt, b_emitt, y, a, b
+real(rp) dpz_dz, denom, emit(2)
+real(rp) a_emit, b_emit, y, a, b
 real(rp) ave(6), sigma(6), alpha(6), sig_mat(6,6), r(6)
-real(rp) center(6), ran(6), old_cutoff
+real(rp) center(6), ran_g(2), old_cutoff
 
 integer i, j, j2, n, i_bunch, n_particle
 
@@ -1053,22 +1126,19 @@ if (.not. beam_init%renorm_center) then
   enddo
 endif
 
-! Scale by the emittances, etc. and put in jitter
+! Compute sigmas
 
-call ran_gauss(ran(1:4)) ! ran(3:4) for z and e jitter used below
-a_emitt = beam_init%a_norm_emitt*(1+beam_init%emitt_jitter(1)*ran(1)) &
-                                        * mass_of(param%particle) / ele%value(e_tot$)
-b_emitt = beam_init%b_norm_emitt*(1+beam_init%emitt_jitter(2)*ran(2)) &
-                                        * mass_of(param%particle) / ele%value(e_tot$)
-  
+call calc_this_emit(beam_init, ele, param, emit)
+
 dpz_dz = beam_init%dpz_dz
   
-sigma(1) = sqrt(a_emitt * ele%a%beta)
-sigma(2) = sqrt(a_emitt / ele%a%beta)
-sigma(3) = sqrt(b_emitt * ele%b%beta)
-sigma(4) = sqrt(b_emitt / ele%b%beta)
-sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran(3))
-sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran(4))
+call ran_gauss(ran_g) 
+sigma(1) = sqrt(emit(1) * ele%a%beta)
+sigma(2) = sqrt(emit(1) / ele%a%beta)
+sigma(3) = sqrt(emit(2) * ele%b%beta)
+sigma(4) = sqrt(emit(2) / ele%b%beta)
+sigma(5) = beam_init%sig_z * (1 + beam_init%sig_z_jitter*ran_g(1))
+sigma(6) = beam_init%sig_e * (1 + beam_init%sig_e_jitter*ran_g(2))
 
 if (sigma(6) == 0 .or. dpz_dz == 0) then
   a = 0
@@ -1176,20 +1246,19 @@ end subroutine init_grid_distribution
 !----------------------------------------------------------
 !----------------------------------------------------------
 !+
-! Subroutine init_ellipse_distribution (ix_plane, ellipse, ix_plane, beta, alpha, emitt, bunch)
+! Subroutine init_ellipse_distribution (ix_plane, ellipse, ix_plane, beta, alpha, emit, bunch)
 !
 ! Subroutine to initalize a phase space distribution as a set of concentric
 ! ellipses of macroparticles representing a Gaussian distribution.
 !
 ! Input:
-!    ix_plane       -- Integer: Index of plane of this distribution: 1, 2, or 3
 !   ellipse           -- ellipse_distribution_struct: Init info.
 !     %n_ellipse         -- number of ellipses (>= 1)
 !     %part_per_ellipse  -- number of particles per ellipse
 !     %sigma_cutoff      -- sigma cutoff of the representation
-!    ix_plane          -- Integer: Plane of distribution. 1, 2, or 3.
+!   ix_plane          -- Integer: Plane of distribution. 1, 2, or 3.
 !   beta, alpha       -- Twiss parameters
-!   emitt             -- emittance
+!   emit              -- emittance
 !
 ! Output:
 !   bunch     -- Bunch_struct: Bunch structure
@@ -1197,7 +1266,7 @@ end subroutine init_grid_distribution
 ! See manual for more details.
 !-
 
-subroutine init_ellipse_distribution (ix_plane, ellipse, beta, alpha, emitt, bunch)
+subroutine init_ellipse_distribution (ix_plane, ellipse, beta, alpha, emit, bunch)
 
 implicit none
 
@@ -1206,7 +1275,7 @@ type (particle_struct), allocatable :: p(:)
 type (ellipse_beam_init_struct), target :: ellipse
 type (ellipse_beam_init_struct), pointer :: e
 
-real(rp) beta, alpha, emitt
+real(rp) beta, alpha, emit
 
 integer ix_plane, n_particle
 integer n, m, k
@@ -1235,10 +1304,10 @@ do n = 1, e%n_ellipse
   if (n == e%n_ellipse) then
     ! This is the ellipse that represents the distribution out to infinity
     charge = exp(-b_inner)       ! q_n
-    J = emitt * (b_inner + 1.0) * exp(-b_inner) / charge   ! J_n
+    J = emit * (b_inner + 1.0) * exp(-b_inner) / charge   ! J_n
   else
     charge = exp(-b_inner) - exp(-b_outer)   ! q_n
-    J = emitt * ((b_inner + 1.0) * exp(-b_inner) - (b_outer + 1.0) * exp(-b_outer)) / charge   ! J_n
+    J = emit * ((b_inner + 1.0) * exp(-b_inner) - (b_outer + 1.0) * exp(-b_outer)) / charge   ! J_n
   endif
 
   do m = 1, e%part_per_ellipse
@@ -1641,10 +1710,10 @@ end subroutine calc_bunch_params_slice
 !   bunch_params -- bunch_params_struct:
 !     %a,%b,%z       -- Projected parameters
 !       %alpha; %beta; %gamma
-!       %eta, %etap, %norm_emitt
+!       %eta, %etap, %norm_emit
 !     %a,%b,%c       -- Normal-Mode parameters
 !       %alpha; %beta; %gamma
-!       %eta, %etap, %norm_emitt
+!       %eta, %etap, %norm_emit
 !     %sigma         -- Projected Sigma Matrix
 !     %sigma_normal  -- Normal-Mode Sigma Matrix
 !     %centroid
@@ -1666,16 +1735,11 @@ type (lat_param_struct) param
 type (bunch_params_struct) bunch_params
 
 real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
-real(rp) avg_energy, temp6(6)
-real(rp) eta, etap
-real(rp) :: sigma_s(6,6) 
-real(rp) :: s(6,6)
-real(rp) :: sigma_s_save(6,6) = 0.0
-real(rp) :: sigma(6,6) = 0.0
+real(rp) avg_energy, temp6(6), eta, etap
+real(rp) :: sigma_s(6,6), s(6,6), sigma_s_save(6,6) = 0.0, sigma(6,6) = 0.0
 real(rp) :: d_r(6) = 0.0, d_i(6) = 0.0, e_r(6,6) = 0.0, e_i(6,6) = 0.0
-real(rp) :: u(6,6)
-real(rp) :: n_real(6,6)
-real(rp) :: beta_66_iii
+real(rp) :: u(6,6), n_real(6,6), beta_66_iii, charge_live
+real(rp), allocatable, save :: charge(:)
 
 complex(rp) :: sigma_s_complex(6,6) = 0.0
 complex(rp) :: n(6,6), e(6,6), q(6,6)
@@ -1687,8 +1751,8 @@ logical err, err1
 
 character(18) :: r_name = "calc_bunch_params"
 
-!
-  
+! Init
+
 s = 0.0
 
 s(1,2) =  1.0 
@@ -1698,13 +1762,28 @@ s(4,3) = -1.0
 s(5,6) =  1.0 
 s(6,5) = -1.0
 
+call re_allocate (charge, size(bunch%particle))
+
 ! n_particle and centroid
 
 bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%ix_lost == not_lost$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
 
-if (bunch_params%charge_live == 0) then
+bunch_params%centroid%intensity_x = sum(bunch%particle%r%intensity_x, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%centroid%intensity_y = sum(bunch%particle%r%intensity_y, mask = (bunch%particle%ix_lost == not_lost$))
+
+if (param%particle == photon$) then
+  charge = bunch%particle%r%intensity_x + bunch%particle%r%intensity_y
+else
+  charge = bunch%particle%charge
+endif
+
+charge_live = sum(charge, mask = (bunch%particle%ix_lost == not_lost$))
+
+!
+
+if (charge_live == 0) then
   bunch_params%centroid%vec = 0.0     ! zero everything
   bunch_params%sigma = 0
   call zero_plane (bunch_params%x)
@@ -1718,13 +1797,12 @@ endif
   
 ! average the energy
 
-avg_energy = sum((1+bunch%particle%r%vec(6))*bunch%particle%charge, & 
-                              mask = (bunch%particle%ix_lost == not_lost$))
-avg_energy = avg_energy * ele%value(E_TOT$) / bunch_params%charge_live
+avg_energy = sum((1+bunch%particle%r%vec(6)) * charge, mask = (bunch%particle%ix_lost == not_lost$))
+avg_energy = avg_energy * ele%value(E_TOT$) / charge_live
 
 ! Convert to geometric coords and find the sigma matrix
 
-call find_bunch_sigma_matrix (bunch%particle, bunch_params%centroid%vec, bunch_params%sigma, sigma_s)
+call find_bunch_sigma_matrix (bunch%particle, charge, bunch_params%centroid%vec, bunch_params%sigma, sigma_s)
 
 ! X, Y, & Z Projected Parameters
 call projected_twiss_calc ('X', bunch_params%x, bunch_params%sigma(s11$), bunch_params%sigma(s22$), &
@@ -1845,7 +1923,7 @@ implicit none
 type (twiss_struct) :: twiss
 
 real(rp), intent(in) :: exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
-real(rp) emitt, x2, x_px, px2
+real(rp) emit, x2, x_px, px2
 
 logical err
 
@@ -1862,14 +1940,14 @@ x2   = exp_x2
 x_px = exp_x_px 
 px2  = exp_px2  
 
-emitt = sqrt(x2*px2 - x_px**2)
+emit = sqrt(x2*px2 - x_px**2)
 
-twiss%norm_emit = (avg_energy/mass_of(param%particle)) * emitt
+twiss%norm_emit = (avg_energy/mass_of(param%particle)) * emit
 
-if (emitt /= 0) then
-  twiss%alpha = -x_px / emitt
-  twiss%beta  = x2 / emitt
-  twiss%gamma = px2 / emitt
+if (emit /= 0) then
+  twiss%alpha = -x_px / emit
+  twiss%beta  = x2 / emit
+  twiss%gamma = px2 / emit
 endif
 
 end subroutine projected_twiss_calc
@@ -1934,10 +2012,10 @@ ave_vec = 0.0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%ix_lost /= not_lost$) cycle
   call spinor_to_vec (bunch%particle(i)%r, vec)
-  ave_vec = ave_vec + vec * bunch%particle(i)%charge
+  ave_vec = ave_vec + vec * charge
 enddo
 
-ave_vec = ave_vec / bunch_params%charge_live
+ave_vec = ave_vec / charge_live
 call vec_to_polar (ave_vec, ave_polar)
 bunch_params%spin%theta = ave_polar%theta
 bunch_params%spin%phi   = ave_polar%phi
@@ -1951,10 +2029,10 @@ do i = 1, size(bunch%particle)
   if (bunch%particle(i)%ix_lost /= not_lost$) cycle
   call spinor_to_polar (bunch%particle(i)%r, polar)
   bunch_params%spin%polarization = bunch_params%spin%polarization + &
-           cos(angle_between_polars (polar, ave_polar)) * bunch%particle(i)%charge
+           cos(angle_between_polars (polar, ave_polar)) * charge(i)
 enddo
 
-bunch_params%spin%polarization = bunch_params%spin%polarization / bunch_params%charge_live
+bunch_params%spin%polarization = bunch_params%spin%polarization / charge_live
     
 end subroutine calc_spin_params
 
@@ -1964,7 +2042,7 @@ end subroutine calc_bunch_params
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine find_bunch_sigma_matrix (particle, ave, sigma, sigma_s)
+! Subroutine find_bunch_sigma_matrix (particle, charge, ave, sigma, sigma_s)
 !
 ! Routine to find the sigma matrix elements of a particle distribution.
 ! 
@@ -1973,54 +2051,53 @@ end subroutine calc_bunch_params
 !
 ! Input:
 !   particle(:) -- Particle_struct: Array of particles.
-!
+!   charge(:)   -- real(rp): Particle charge or photon intensity.
 ! Output:
 !   sigma(21)    -- Real(rp): Sigma matrix elements.
 !   ave(6)       -- Real(rp): Bunch Centroid.
 !   sigma_S(6,6) -- Sigma x S matrix for Wolski normal-modes
 !-
 
-subroutine find_bunch_sigma_matrix (particle, avg, sigma, sigma_s)
+subroutine find_bunch_sigma_matrix (particle, charge, avg, sigma, sigma_s)
 
 implicit none
 
 type (particle_struct) :: particle(:)
 
 real(rp) charge_live, avg(6), sigma(21)
-real(rp) sigma_s(6,6), s(6,6)
+real(rp) sigma_s(6,6), s(6,6), charge(:)
 
 integer i
 
 !
 
-charge_live = sum(particle%charge, mask = (particle%ix_lost == not_lost$))
+charge_live = sum(charge, mask = (particle%ix_lost == not_lost$))
 
 do i = 1, 6
-  avg(i) = sum(particle(:)%r%vec(i)*particle(:)%charge, &
-                      mask = (particle(:)%ix_lost == not_lost$)) / charge_live
+  avg(i) = sum(particle(:)%r%vec(i) * charge, mask = (particle(:)%ix_lost == not_lost$)) / charge_live
 enddo
 
-sigma(s11$) = exp_calc (particle, 1, 1, avg)
-sigma(s12$) = exp_calc (particle, 1, 2, avg)
-sigma(s13$) = exp_calc (particle, 1, 3, avg)
-sigma(s14$) = exp_calc (particle, 1, 4, avg)
-sigma(s15$) = exp_calc (particle, 1, 5, avg)
-sigma(s16$) = exp_calc (particle, 1, 6, avg)
-sigma(s22$) = exp_calc (particle, 2, 2, avg)
-sigma(s23$) = exp_calc (particle, 2, 3, avg)
-sigma(s24$) = exp_calc (particle, 2, 4, avg)
-sigma(s25$) = exp_calc (particle, 2, 5, avg)
-sigma(s26$) = exp_calc (particle, 2, 6, avg)
-sigma(s33$) = exp_calc (particle, 3, 3, avg)
-sigma(s34$) = exp_calc (particle, 3, 4, avg)
-sigma(s35$) = exp_calc (particle, 3, 5, avg)
-sigma(s36$) = exp_calc (particle, 3, 6, avg)
-sigma(s44$) = exp_calc (particle, 4, 4, avg)
-sigma(s45$) = exp_calc (particle, 4, 5, avg)
-sigma(s46$) = exp_calc (particle, 4, 6, avg)
-sigma(s55$) = exp_calc (particle, 5, 5, avg)
-sigma(s56$) = exp_calc (particle, 5, 6, avg)
-sigma(s66$) = exp_calc (particle, 6, 6, avg)
+sigma(s11$) = exp_calc (particle, charge, 1, 1, avg)
+sigma(s12$) = exp_calc (particle, charge, 1, 2, avg)
+sigma(s13$) = exp_calc (particle, charge, 1, 3, avg)
+sigma(s14$) = exp_calc (particle, charge, 1, 4, avg)
+sigma(s15$) = exp_calc (particle, charge, 1, 5, avg)
+sigma(s16$) = exp_calc (particle, charge, 1, 6, avg)
+sigma(s22$) = exp_calc (particle, charge, 2, 2, avg)
+sigma(s23$) = exp_calc (particle, charge, 2, 3, avg)
+sigma(s24$) = exp_calc (particle, charge, 2, 4, avg)
+sigma(s25$) = exp_calc (particle, charge, 2, 5, avg)
+sigma(s26$) = exp_calc (particle, charge, 2, 6, avg)
+sigma(s33$) = exp_calc (particle, charge, 3, 3, avg)
+sigma(s34$) = exp_calc (particle, charge, 3, 4, avg)
+sigma(s35$) = exp_calc (particle, charge, 3, 5, avg)
+sigma(s36$) = exp_calc (particle, charge, 3, 6, avg)
+sigma(s44$) = exp_calc (particle, charge, 4, 4, avg)
+sigma(s45$) = exp_calc (particle, charge, 4, 5, avg)
+sigma(s46$) = exp_calc (particle, charge, 4, 6, avg)
+sigma(s55$) = exp_calc (particle, charge, 5, 5, avg)
+sigma(s56$) = exp_calc (particle, charge, 5, 6, avg)
+sigma(s66$) = exp_calc (particle, charge, 6, 6, avg)
 
 ! make sigma.S matrix
 
@@ -2075,20 +2152,19 @@ sigma_s = matmul(sigma_s, s)
 !----------------------------------------------------------------------
 contains
 
-function exp_calc (particle, ix1, ix2, avg) result (this_sigma)
+function exp_calc (particle, charge, ix1, ix2, avg) result (this_sigma)
 
 implicit none
 
 type (particle_struct) particle(:)
-real(rp) avg(:)
+real(rp) charge(:), avg(:)
 real(rp) this_sigma
 
 integer ix1, ix2
 
 !
                                     
-this_sigma = sum((particle(:)%r%vec(ix1) - avg(ix1)) * &
-                               (particle(:)%r%vec(ix2) - avg(ix2)) * particle(:)%charge, &
+this_sigma = sum((particle(:)%r%vec(ix1) - avg(ix1)) * (particle(:)%r%vec(ix2) - avg(ix2)) * charge(:), &
                                mask = (particle%ix_lost == not_lost$))
 
 this_sigma = this_sigma / charge_live

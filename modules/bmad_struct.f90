@@ -848,7 +848,7 @@ type (bmad_common_struct), save :: bmad_com
 type (coord_struct), pointer :: multi_turn_func_common(:) 
 
 ! This structure stores the radiation integrals for the individual elements except
-! lin_norm_emittance_a and lin_norm_emittance_b are running sums.
+! lin_norm_emit_a and lin_norm_emit_b are running sums.
 
 type rad_int_common_struct
   real(rp), allocatable :: i0(:)          ! Noe: All arrays are indexed from 0
