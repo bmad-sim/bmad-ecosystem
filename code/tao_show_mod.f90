@@ -2227,13 +2227,27 @@ case ('variable')
 
   good_opt_only = .false.
   bmad_format = .false.
+  print_header_lines = .true.
+
   do
-    call tao_next_switch (stuff2, [ '-bmad_format  ', '-good_opt_only' ], switch, err, ix)
+    call tao_next_switch (stuff2, [ '-bmad_format     ', '-good_opt_only   ', & 
+                                    '-no_label_lines  '], switch, err, ix_word)
     if (err) return
-    if (switch == '') exit
-    if (switch == '-bmad_format') bmad_format = .true.
-    if (switch == '-good_opt_only') good_opt_only = .true.
+
+    select case (switch)  
+    case ('') 
+      exit
+    case ('-bmad_format') 
+      bmad_format = .true.
+    case ('-good_opt_only') 
+      good_opt_only = .true.
+    case ('-no_label_lines')
+      print_header_lines = .false.
+    end select
+
   enddo
+
+  word1 = stuff2(1:ix_word)
   
   if (.not. allocated (s%v1_var)) then
     nl=1; lines(1) = 'NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!'
@@ -2266,10 +2280,13 @@ case ('variable')
         return
       endif
     endif
-    write (lines(1), '(a, i4)') 'Variables controlling universe:', ix_u
-    write (lines(2), '(5x, a)') '                    '
-    write (lines(3), '(5x, a)') 'Name                '
-    nl = 3
+
+    if (print_header_lines) then
+      nl=nl+1; write (lines(nl), '(a, i4)') 'Variables controlling universe:', ix_u
+      nl=nl+1; write (lines(nl), '(5x, a)') '                    '
+      nl=nl+1; write (lines(nl), '(5x, a)') 'Name                '
+    endif
+
     do i = 1, size(s%var)
       if (.not. s%var(i)%exists) cycle
       found = .false.
@@ -2287,7 +2304,9 @@ case ('variable')
 ! If just "show var" then show all names
 
   if (word1 == ' ') then
-    nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
+    if (print_header_lines) then
+      nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
+    endif
     do i = 1, size(s%v1_var)
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle

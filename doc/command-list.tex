@@ -1112,9 +1112,9 @@ Format:
    universe -connections
    use
    value <expression>
-   variable \{<var_name>\}
-   variable <universe_number>@
-   variable -bmad_format \{-good_opt_only\}
+   variable \{-no_label_lines\} \{<var_name>\}
+   variable \{-no_label_lines\} <universe_number>@
+   variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format
    wave
 \end{example}
 
@@ -1544,9 +1544,9 @@ Shows the value of an expression. Examples:
 %% show variable --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-        show variable \{<var\_name> <locations>\} \\
-        show variable <universe\_number>@  \\
-        show variable -bmad\_format \{-good\_opt\_only\} }] \Newline
+        show variable \{-no\_label\_lines\} \{<var\_name> <locations>\} \\
+        show variable \{-no\_label\_lines\} <universe\_number>@  \\
+        show variable \{-good\_opt\_only\} \{-no\_label\_lines\} -bmad\_format }] \Newline
 Shows variable information. If \vn{<var_name>} is not
 present,  a list of all \vn{v1_var} classes is printed. To show variables
 associated with the \vn{n}th universe use the syntax \vn{show var n@}.
@@ -1557,6 +1557,9 @@ format. This is the same syntax used in generating the variable files
 when an optimizer is run. If \vn{-good_opt_only} is used in conjunction with
 \vn{-bmad_format} then the list of variables will be restricted to ones that
 are currently being used in the optimization.
+
+If present, the \vn{-no_label_lines} switch will prevent the printing
+of the header (containing the column labels) lines.
 
 Examples:
 \begin{example}
