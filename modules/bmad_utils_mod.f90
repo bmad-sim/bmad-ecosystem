@@ -349,8 +349,7 @@ end subroutine mat6_add_pitch
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine convert_total_energy_to (E_tot, particle, 
-!                                         gamma, kinetic, beta, pc, brho)
+! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)
 !
 ! Routine to calculate the momentum, etc. from a particle's total energy.
 !
@@ -362,15 +361,14 @@ end subroutine mat6_add_pitch
 !   particle -- Integer: Type of particle. positron$, etc.
 !
 ! Output:
-!   gamma   -- Real(rp), optional: Gamma factor.
+!   gamma   -- Real(rp), optional: Gamma factor. Set to -1 for photons.
 !   kinetic -- Real(rp), optional: Kinetic energy
 !   beta    -- Real(rp), optional: velocity / c_light
 !   pc      -- Real(rp), optional: Particle momentum
 !   brho    -- Real(rp), optional: Nominal B_field*rho_bend
 !-
 
-subroutine convert_total_energy_to (E_tot, particle, &
-                                         gamma, kinetic, beta, pc, brho)
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)
 
 implicit none
 
@@ -395,7 +393,13 @@ if (present(pc))     pc     = pc_new
 if (present(beta))    beta    = pc_new / E_tot  
 if (present(kinetic)) kinetic = E_tot - mc2
 if (present(brho))    brho    = pc_new / c_light
-if (present(gamma))   gamma   = E_tot / mc2
+if (present(gamma)) then
+  if (mc2 == 0) then
+    gamma = -1
+  else
+    gamma   = E_tot / mc2
+  endif
+endif
 
 end subroutine convert_total_energy_to
 

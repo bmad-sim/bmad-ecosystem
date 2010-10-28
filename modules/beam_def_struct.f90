@@ -67,7 +67,7 @@ type beam_init_struct
   type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
   !!! The following are for Random distributions
   real(rp) :: center_jitter(6) = 0.0  ! Bunch center rms jitter
-  real(rp) :: emitt_jitter(2)  = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
+  real(rp) :: emit_jitter(2)   = 0.0  ! a and b bunch emittance rms jitter normalized to emittance
   real(rp) :: sig_z_jitter     = 0.0  ! bunch length RMS jitter 
   real(rp) :: sig_e_jitter     = 0.0  ! energy spread RMS jitter 
   integer :: n_particle = 0           ! Number of random particles per bunch.
@@ -79,8 +79,10 @@ type beam_init_struct
   real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
   !!! The following are used  by all distribution types
   type(beam_spin_struct)  spin        ! Initialize the spin
-  real(rp) a_norm_emitt               ! a-mode emittance
-  real(rp) b_norm_emitt               ! b-mode emittance
+  real(rp) :: a_norm_emit = 0         ! a-mode normalized emittance (emit * gamma)
+  real(rp) :: b_norm_emit = 0         ! b-mode normalized emittance (emit * gamma)
+  real(rp) :: a_emit = 0              ! a-mode emittance
+  real(rp) :: b_emit = 0              ! b-mode emittance
   real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0           ! Bench center offset relative to reference.
   real(rp) dt_bunch                   ! Time between bunches.
@@ -89,6 +91,10 @@ type beam_init_struct
   real(rp) bunch_charge               ! charge in a bunch.
   integer :: n_bunch = 1              ! Number of bunches.
   logical :: init_spin     = .false.  ! initialize beam spinors
+  ! OLD. DO NOT USE!
+  real(rp) :: a_norm_emitt = 0           ! OLD DO NOT USE!
+  real(rp) :: b_norm_emitt = 0           ! OLD DO NOT USE!
+  real(rp) :: emitt_jitter(2)  = 0.0     ! OLD DO NOT USE!
 end type
 
 type bunch_params_struct
