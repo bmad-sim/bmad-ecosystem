@@ -237,6 +237,7 @@ type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
+type (particle_struct), pointer :: p(:)
 
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
@@ -313,28 +314,35 @@ do k = 1, size(graph%curve)
     if (curve%ix_bunch == 0) then
       n = 0
       do ib = 1,  size(beam%bunch)
-        n = n + size(beam%bunch(ib)%particle)
+        n = n + count(beam%bunch(ib)%particle%ix_lost == not_lost$)
       enddo
     else
-      n = size(beam%bunch(curve%ix_bunch)%particle)
+      n = count(beam%bunch(curve%ix_bunch)%particle%ix_lost == not_lost$)
     endif
 
     call re_allocate (curve%ix_symb, n)
     call re_allocate (curve%x_symb, n)
     call re_allocate (curve%y_symb, n)
+    if (graph%symbol_size_scale > 0) call re_allocate (curve%symb_size, n)
 
     if (curve%ix_bunch == 0) then
       n = 0
       do ib = 1, size(beam%bunch)
-        m = size(beam%bunch(ib)%particle)
-        curve%x_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix1_ax)
-        curve%y_symb(n+1:n+m) = beam%bunch(ib)%particle(:)%r%vec(ix2_ax)
-        forall (i = 1:m) curve%ix_symb(n+i) = i
-        n = n + m
+        p => beam%bunch(ib)%particle
+        m = size(p)
+        curve%x_symb(n+1:n+m) = pack(p(:)%r%vec(ix1_ax), mask = (p%ix_lost == not_lost$))
+        curve%y_symb(n+1:n+m) = pack(p(:)%r%vec(ix2_ax), mask = (p%ix_lost == not_lost$))
+        if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
+                             sqrt(p(:)%r%intensity_x + p(:)%r%intensity_y), mask = (p%ix_lost == not_lost$))
+        curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%ix_lost == not_lost$))
+        n = n + count(p%ix_lost == not_lost$)
       enddo
     else
-      curve%x_symb = beam%bunch(curve%ix_bunch)%particle(:)%r%vec(ix1_ax)
-      curve%y_symb = beam%bunch(curve%ix_bunch)%particle(:)%r%vec(ix2_ax)
+      p => beam%bunch(curve%ix_bunch)%particle
+      curve%x_symb = pack(p(:)%r%vec(ix1_ax), mask = (p%ix_lost == not_lost$))
+      curve%y_symb = pack(p(:)%r%vec(ix2_ax), mask = (p%ix_lost == not_lost$))
+      if (graph%symbol_size_scale > 0) curve%symb_size = pack(graph%symbol_size_scale * &
+                            sqrt(p(:)%r%intensity_x + p(:)%r%intensity_y), mask = (p%ix_lost == not_lost$))
       forall (i = 1:m) curve%ix_symb(i) = i
     endif
 

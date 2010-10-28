@@ -629,13 +629,13 @@ Example:
 A particle beam is initialized in the \vn{tao_beam_init} namelist block.
 The syntax is as follows:
 \index{tao_beam_init}\index{ix_universe}
-\index{beam_init}\index{beam_init!a_norm_emitt}
-\index{beam_init!b_norm_emitt}
+\index{beam_init}\index{beam_init!a_norm_emit}
+\index{beam_init!b_norm_emit}
 \index{beam_init!dPz_dZ}\index{beam_init!center}\index{beam_init!sig_e}
 \index{beam_init!sig_z}\index{beam_init!n_bunch}\index{beam_init!dt_bunch}
 \index{beam_init!n_particle}\index{beam_init!bunch_charge}
 \index{beam_init!renorm_center}\index{beam_init!renorm_sigma}
-\index{beam_init!center_jitter}\index{beam_init!emitt_jitter}
+\index{beam_init!center_jitter}\index{beam_init!emit_jitter}
 \index{beam_init!sig_z_jitter}\index{beam_init!sig_e_jitter}
 \index{beam_init!polarization}\index{track_start}\index{track_end}
 \begin{example}
@@ -646,8 +646,8 @@ The syntax is as follows:
     beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
     track_start             = "<ele_name>"     ! Lattice element start tracking name or index.
     track_end               = "<ele_name>"     ! Lattice element end tracking name or index.
-    beam_init%a_norm_emitt  = <number>         ! A-mode emittance
-    beam_init%b_norm_emitt  = <number>         ! B-mode emittance
+    beam_init%a_norm_emit   = <number>         ! A-mode emittance
+    beam_init%b_norm_emit   = <number>         ! B-mode emittance
     beam_init%dPz_dZ        = <number>         ! Energy-Z correlation
     beam_init%center        = <number>*6       ! Bunch center offset relative to
                                                ! reference particle (BMAD coords)
@@ -660,7 +660,7 @@ The syntax is as follows:
     beam_init%renorm_center = <logical>        ! Default is T
     beam_init%renorm_sigma  = <logical>        ! Default is F
     beam_init%center_jitter = <number>*6       ! Bunch center rms jitter (meters)
-    beam_init%emitt_jitter  = <bumber>*2       ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
+    beam_init%emit_jitter   = <bumber>*2       ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
     beam_init%sig_z_jitter  = <number>         ! bunch length rms jitter (dz/z)
     beam_init%sig_e_jitter  = <number>         ! bunch energy spread rms jitter (dE/E)
     beam_init%spin%polarization = <number>     ! spin polarization (1.0 = 100%)
@@ -678,7 +678,7 @@ the \vn{beam_init} parameters refer to. The charge per particle is set to
 $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
 
-\vn{%a_norm_emitt} and \vn{%b_norm_emitt} are the normalized emittances used to
+\vn{%a_norm_emit} and \vn{%b_norm_emit} are the normalized emittances used to
 construct the beam's particle distribution. If not set then the emittances set in
 the lattice file are used. These emittances are also used as the initial emittance
 in a linear lattice for the emittance calculation using the radiation integrals.
@@ -1509,16 +1509,17 @@ each one needs a \vn{tao_template_graph} namelist to define it. These
 namelists should be placed directly after their respective
 \vn{tao_template_graph} namelists. The general format of the
 \vn{tao_template_graph} namelist is:
-\index{Tao_template_graph}\index{Graph!y}\index{Curve!name}
-\index{Graph_index}\index{Graph}\index{Graph!name}\index{Curve}
-\index{Graph!type}\index{Graph!box}\index{Graph!title}\index{Graph!margin}
-\index{Graph!y2}\index{Graph!n_curve}\index{Graph!clip}\index{Graph!component}
-\index{Curve!data_type}\index{Curve!data_source}
-\index{Curve!x_axis_units_factor}\index{Curve!y_axis_units_factor}
-\index{Curve!use_y2}\index{Curve!line}\index{Curve!ele_ref_name}
-\index{Curve!draw_line}\index{Curve!draw_symbols}\index{Curve!ix_universe}
-\index{Curve!symbol}\index{Curve!symbol_every}\index{Curve!convert}
-\index{Curve!ix_bunch}\index{Curve!ix_ele_ref}\index{Curve!data_type_x}
+\index{tao_template_graph}\index{graph!y}\index{curve!name}
+\index{graph_index}\index{graph}\index{graph!name}\index{curve}
+\index{graph!type}\index{graph!box}\index{graph!title}\index{graph!margin}
+\index{graph!y2}\index{graph!n_curve}\index{graph!clip}\index{graph!component}
+\index{graph%symbol_size_scale}
+\index{curve!data_type}\index{curve!data_source}
+\index{curve!x_axis_units_factor}\index{curve!y_axis_units_factor}
+\index{curve!use_y2}\index{curve!line}\index{curve!ele_ref_name}
+\index{curve!draw_line}\index{curve!draw_symbols}\index{curve!ix_universe}
+\index{curve!symbol}\index{curve!symbol_every}\index{curve!convert}
+\index{curve!ix_bunch}\index{curve!ix_ele_ref}\index{curve!data_type_x}
 \begin{example}
   &tao_template_graph
     graph_index            = <number>
@@ -1534,8 +1535,9 @@ namelists should be placed directly after their respective
     graph%clip             = <logical>        ! Clip curves at boundary? Default = T
     graph%draw_axes        = <logical>        ! Default = T
     graph%component        = "<string>"       ! Eg: "model - design"
+    graph%symbol_size_scale      = <real>     ! Symbol size scale factor for phase_space plots.
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
-    graph%x_axis_scale_factor = <factor>      ! Scale the x-axis by this.
+    graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
     curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
     curve(i)%data_source         = "<string>" ! Source for the data curve points
     curve(i)%data_type_x         = "<string>" ! Used with plot%x_axis_type = "data" or "var".

@@ -319,8 +319,10 @@ case ('beam')
       nl=nl+1; lines(nl) = 'beam_init components:'
       nl=nl+1; write(lines(nl), amt) '  %distribution_type      = ', beam_init%distribution_type
       nl=nl+1; write(lines(nl), rmt) '  %center                 = ', beam_init%center
-      nl=nl+1; write(lines(nl), rmt) '  %a_norm_emitt           = ', beam_init%a_norm_emitt
-      nl=nl+1; write(lines(nl), rmt) '  %b_norm_emitt           = ', beam_init%b_norm_emitt
+      nl=nl+1; write(lines(nl), rmt) '  %a_norm_emit            = ', beam_init%a_norm_emit
+      nl=nl+1; write(lines(nl), rmt) '  %b_norm_emit            = ', beam_init%b_norm_emit
+      nl=nl+1; write(lines(nl), rmt) '  %a_emit                 = ', beam_init%a_emit
+      nl=nl+1; write(lines(nl), rmt) '  %b_emit                 = ', beam_init%b_emit
       nl=nl+1; write(lines(nl), rmt) '  %dPz_dz                 = ', beam_init%dPz_dz
       nl=nl+1; write(lines(nl), rmt) '  %dt_bunch               = ', beam_init%dt_bunch
       nl=nl+1; write(lines(nl), rmt) '  %sig_z                  = ', beam_init%sig_z
@@ -382,11 +384,16 @@ case ('beam')
     nl=nl+1; write(lines(nl), lmt) '  %ix1_ele_csr          = ', csr_param%ix1_ele_csr
     nl=nl+1; write(lines(nl), lmt) '  %ix2_ele_csr          = ', csr_param%ix2_ele_csr
     nl=nl+1; lines(nl) = ''
-    call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma = gam)
-    nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
-    nl=nl+1; write(lines(nl), rmt) '          a%emit (normalized)  = ', lat%a%emit * gam
-    nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
-    nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
+    if (lat%param%particle == photon$) then
+      nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
+      nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
+    else
+      call convert_total_energy_to (lat%ele(0)%value(e_tot$), lat%param%particle, gamma = gam)
+      nl=nl+1; write(lines(nl), rmt) 'model%lat%a%emit               = ', lat%a%emit
+      nl=nl+1; write(lines(nl), rmt) '          a%emit (normalized)  = ', lat%a%emit * gam
+      nl=nl+1; write(lines(nl), rmt) 'model%lat%b%emit               = ', lat%b%emit
+      nl=nl+1; write(lines(nl), rmt) '          b%emit (normalized)  = ', lat%b%emit * gam
+    endif
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'global%track_type          = ', s%global%track_type
     nl=nl+1; write(lines(nl), lmt) 'global%beam_timer_on       = ', s%global%beam_timer_on
@@ -405,9 +412,10 @@ case ('beam')
     call tao_locate_elements (word1, ix_u, eles, err)
     if (err .or. size(eles) == 0) return
     ix_ele = eles(1)%ele%ix_ele
+    ix_branch = eles(1)%ele%ix_branch
     n = s%global%bunch_to_plot
 
-    bunch_p => u%model%lat_branch(eles(1)%ele%ix_branch)%bunch_params(ix_ele)
+    bunch_p => u%model%lat_branch(ix_branch)%bunch_params(ix_ele)
     n_live = bunch_p%n_particle_live
     n_tot = bunch_p%n_particle_tot
 
@@ -415,17 +423,22 @@ case ('beam')
     nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
     nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
     nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
-    nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', &
-                                                  100 * real(n_tot - n_live) / n_tot
+    nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', 100 * real(n_tot - n_live) / n_tot
+    if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
+      nl=nl+1; write (lines(nl), rmt)  '  Intensity:                  ', &
+                        bunch_p%centroid%intensity_x + bunch_p%centroid%intensity_y
+    endif
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
                               sqrt(bunch_p%sigma([s11$, s22$, s33$, s44$, s55$, s66$]))
-    nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-    nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta
-    nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta
-    nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta
-    nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta
-    nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
+    if (u%model%lat%branch(eles(1)%ele%ix_branch)%param%particle /= photon$) then
+      nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
+      nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta
+      nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta
+      nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta
+      nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta
+      nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
+    endif
 
     beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
     if (allocated(beam%bunch)) then
@@ -1665,7 +1678,7 @@ case ('particle')
     call tao_locate_elements (ele_name, ix_u, eles, err)
     if (err) return
     ix_ele = eles(1)%ele%ix_ele
-    ix_branch = eles(2)%ele%ix_ele
+    ix_branch = eles(1)%ele%ix_branch
   endif
 
   uni_branch => u%uni_branch(ix_branch)
@@ -1688,9 +1701,15 @@ case ('particle')
   endif
 
   nl=nl+1; write (lines(nl), imt) 'At lattice element:', ix_ele
-  nl=nl+1; write (lines(nl), imt) 'Bunch:    ', nb
-  nl=nl+1; write (lines(nl), imt) 'Particle: ', ix_p
-  nl=nl+1; write (lines(nl), lmt) 'Is Alive? ', bunch%particle(ix_p)%ix_lost == not_lost$
+  nl=nl+1; write (lines(nl), imt) 'Bunch:       ', nb
+  nl=nl+1; write (lines(nl), imt) 'Particle:    ', ix_p
+  nl=nl+1; write (lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%ix_lost == not_lost$
+  if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
+    nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%r%intensity_x
+    nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%r%intensity_y
+  else
+    nl=nl+1; write (lines(nl), rmt) 'Charge:      ', bunch%particle(ix_p)%charge
+  endif
   nl=nl+1; write (lines(nl), lmt) 'Coords: '
   nl=nl+1; write (lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%r%vec
 

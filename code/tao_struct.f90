@@ -119,6 +119,7 @@ type tao_curve_struct
   real(rp), allocatable :: y_line(:) 
   real(rp), allocatable :: x_symb(:)     ! Coords for drawing the symbols
   real(rp), allocatable :: y_symb(:) 
+  real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
   type (qp_line_struct) line             ! Line attributes

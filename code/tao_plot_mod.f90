@@ -1131,7 +1131,13 @@ do k = 1, size(graph%curve)
 
   if (curve%draw_symbols .and. allocated(curve%x_symb)) then
     if (size(curve%x_symb) > 0) have_data = .true.
-    call qp_draw_data (curve%x_symb, curve%y_symb, .false., curve%symbol_every, graph%clip)
+    if (graph%symbol_size_scale > 0) then
+      do i = 1, size(curve%x_symb), max(1, curve%symbol_every)
+        call qp_draw_symbol (curve%x_symb(i), curve%y_symb(i), height = curve%symb_size(i), clip = graph%clip)
+      enddo
+    else
+      call qp_draw_symbols (curve%x_symb, curve%y_symb, symbol_every = curve%symbol_every, clip = graph%clip)
+    endif
   endif
 
   if (curve%draw_symbol_index .and. allocated(curve%ix_symb)) then
@@ -1148,7 +1154,7 @@ do k = 1, size(graph%curve)
 
   if (curve%draw_line .and. allocated(curve%x_line)) then
     if (size(curve%x_line) > 0) have_data = .true.
-    call qp_draw_data (curve%x_line, curve%y_line, curve%draw_line, 0, graph%clip)
+    call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip)
   endif
 
   call qp_use_axis (y = 'Y')  ! reset

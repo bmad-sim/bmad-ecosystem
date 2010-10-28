@@ -465,7 +465,7 @@ do j = ie1, ie2
     endif
   endif
 
-  if (tao_no_beam_left(beam) .and. .not. lost) then
+  if (tao_no_beam_left(beam, branch%param%particle) .and. .not. lost) then
     ix_lost = j
     lost = .true.
     call out_io (s_warn$, r_name, &
@@ -528,28 +528,32 @@ end subroutine tao_beam_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-function tao_no_beam_left (beam) result (no_beam)
+function tao_no_beam_left (beam, particle) result (no_beam)
 
 implicit none
 
 type (beam_struct), target :: beam
+type (particle_struct), pointer :: p(:)
 
 real(rp) charge_tot
-integer n_bunch
-logical no_beam
+integer n_bunch, particle
+logical no_beam, all_lost
 character(24) :: r_name = "tao_no_beam_left"
 
 !
 
-n_bunch = s%global%bunch_to_plot
-charge_tot = sum(beam%bunch(n_bunch)%particle(:)%charge)
+no_beam = .false.
 
-if (charge_tot /= 0) then
-  no_beam = .false.
-else 
-  no_beam = .true.
+n_bunch = s%global%bunch_to_plot
+p =>beam%bunch(n_bunch)%particle(:)
+all_lost = all(p%ix_lost /= not_lost$)
+
+if (particle == photon$) then
+  if (sum(p%r%intensity_x) + sum(p%r%intensity_y) == 0 .or. all_lost) no_beam = .true.
+else
+  if (sum(p%charge) == 0 .or. all_lost) no_beam = .true.
 endif
- 
+
 end function tao_no_beam_left
 
 !------------------------------------------------------------------------------
@@ -682,6 +686,7 @@ type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
 type (lat_param_struct), pointer :: param
 type (tao_universe_branch_struct), pointer :: uni_branch
+type (branch_struct), pointer :: branch
 
 real(rp) v(6)
 integer i, j, iu, ios, n_in_file, n_in, ix_branch, ib, ie
@@ -700,13 +705,14 @@ if (tao_com%use_saved_beam_in_tracking) return
 ! if injecting into a branch then use the branch point as the starting distribution.
 
 uni_branch => u%uni_branch(ix_branch)
+branch => model%lat%branch(ix_branch)
 
 if (ix_branch > 0) then
-  ib = model%lat%branch(ix_branch)%ix_from_branch
-  ie = model%lat%branch(ix_branch)%ix_from_ele
+  ib = branch%ix_from_branch
+  ie = branch%ix_from_ele
   if (.not. allocated (u%uni_branch(ib)%ele(ie)%beam%bunch)) then
     call out_io (s_error$, r_name, 'CANNOT INJECT INTO BRANCH FROM: ' // &
-                                      u%model%lat%branch(ib)%ele(ie)%name)
+                                                   u%model%lat%branch(ib)%ele(ie)%name)
     init_ok = .false.
   else
     uni_branch%ele(0)%beam = u%uni_branch(ib)%ele(ie)%beam
@@ -739,8 +745,8 @@ if (u%beam_info%beam0_file /= "") then
                   'Centroid Offset: \6es12.3\ ', r_array = model%lat%beam_start%vec)
   endif
 
-  if (tao_no_beam_left (uni_branch%ele(0)%beam)) then
-    call out_io (s_warn$, r_name, "Not enough particles for beam init!")
+  if (tao_no_beam_left (uni_branch%ele(0)%beam, branch%param%particle)) then
+    call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
     call err_exit
   endif
 
@@ -762,8 +768,8 @@ if (.not. u%connect%connected) then
       call err_exit
     endif
 
-    if (tao_no_beam_left(uni_branch%ele(0)%beam)) then
-      call out_io (s_warn$, r_name, "Not enough particles for beam init!")
+    if (tao_no_beam_left(uni_branch%ele(0)%beam, branch%param%particle)) then
+      call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
       call err_exit
     endif
 
@@ -810,8 +816,8 @@ model%lat%ele(0)%c_mat   = extract_ele%c_mat
 model%lat%ele(0)%gamma_c = extract_ele%gamma_c
 model%lat%ele(0)%floor   = extract_ele%floor
 uni_branch%ele(0)%beam = u%connect%injecting_beam
-if (tao_no_beam_left(u%connect%injecting_beam)) then
-  call out_io (s_warn$, r_name, "Not enough particles for beam init!")
+if (tao_no_beam_left(u%connect%injecting_beam, model%lat%param%particle)) then
+  call out_io (s_warn$, r_name, "Not enough particles or no charge/intensity for beam init!")
   call err_exit
 endif
 
