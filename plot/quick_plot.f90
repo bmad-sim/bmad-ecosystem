@@ -93,7 +93,43 @@
 !
 !--------------------------------------------------------------------
 !
-! The line styles:
+! A line's appearance is specified by three quantities:
+!      pattern     [solid, dashed, etc.]
+!      width   
+!      color
+!
+! These three quantities are collectively called a "style".
+! Different styles can be associated with different parts of a drawing using
+! the qp_set_line_attrib routine. The parts of the graph are:
+!    'AXIS'     -- Graph axis.
+!    'GRID'     -- Graph grid.
+!    'LEGEND'   -- Line legend.
+!    'PLOT'     -- Plot data lines.
+!    'STD'      -- Everything else.
+!
+!--------------------------------------------------------------------
+!
+! The appearance of text is specified by the factors:
+!     height
+!     color
+!     background color
+!     spacing between characters
+!
+! These three quantities are collectively called a "style".
+! Different styles can be associated with different parts of a drawing using
+! the qp_set_text_attrib routine. The parts of the graph are:
+!            Style:          used by:             Comment:
+!            "MAIN_TITLE"    qp_draw_main_title   Title at top of page.
+!            "GRAPH_TITLE"   qp_draw_graph_title  Title above a graph.
+!            "LEGEND"        qp_draw_text_legend  Legend.
+!            "LEGEND"        qp_draw_label_legend Legend.
+!            "AXIS_NUMBERS"  qp_draw_graph        Axes Numbers.
+!            "AXIS_LABEL"    qp_draw_graph        Axis label.
+!            "TEXT"          qp_draw_text         Everything else.
+!
+!--------------------------------------------------------------------
+!
+! The line patterns are:
 !     1 - solid$                  Solid
 !     2 - dashed$                 Dashed
 !     3 - dash_dot$               Dash dot 
@@ -123,7 +159,7 @@
 !
 !--------------------------------------------------------------------
 !
-! The fill styles are:
+! The fill patterns are:
 !     1 - solid_fill$        
 !     2 - no_fill$           
 !     3 - hatched$           
@@ -635,35 +671,6 @@ if (present(minor_tick_len)) this_axis%minor_tick_len = minor_tick_len
 if (present(ax_type))        this_axis%type = ax_type
 
 end subroutine qp_set_axis
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! USE QP_GET_AXIS_ATTRIB INSTEAD!
-!-
-
-subroutine qp_get_axis (axis_str, a_min, a_max, div, places, label, draw_label, &
-                draw_numbers, minor_div, mirror, number_offset, &
-                label_offset, major_tick_len, minor_tick_len, ax_type)
-
-implicit none
-
-type (qp_axis_struct), pointer :: this_axis
-real(rp), optional :: a_min, a_max, number_offset
-real(rp), optional :: label_offset, major_tick_len, minor_tick_len
-
-integer, optional :: div, places, minor_div
-logical, optional :: draw_label, draw_numbers, mirror
-
-character(*), optional :: label, ax_type
-character(*) axis_str
-
-call qp_get_axis_attrib (axis_str, a_min, a_max, div, places, label, draw_label, &
-                draw_numbers, minor_div, mirror, number_offset, &
-                label_offset, major_tick_len, minor_tick_len, ax_type)
-
-end subroutine qp_get_axis
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -2242,32 +2249,33 @@ end subroutine qp_set_margin
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, 
-!                                                          style, clip)
+! Subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, line_pattern, clip, style)
 !
 ! Subroutine to draw a rectangular box.
 !
 ! Input:
-!   x1, y1 -- Real(rp): (x, y) corner of box.
-!   x2, y2 -- Real(rp): (x, y) opposite corner of box.
-!   units  -- Character(*), optional: Units of x and y.
-!                 Default is: 'DATA/GRAPH/LB'
-!                 See quick_plot writeup for more details.
-!   color   -- Integer, optional: Color index for the box
-!   width   -- Integer, optional: Width of the line. Default = 1
-!   style   -- Integer, optional: Line style. 
-!   clip    -- Logical, optional: Clip at the graph boundary?
+!   x1, y1       -- Real(rp): (x, y) corner of box.
+!   x2, y2       -- Real(rp): (x, y) opposite corner of box.
+!   units        -- Character(*), optional: Units of x and y.
+!                     Default is: 'DATA/GRAPH/LB'
+!                     See quick_plot writeup for more details.
+!   color        -- Integer, optional: Color index for the box
+!   width        -- Integer, optional: Width of the line. Default = 1
+!   line_pattern -- Integer, optional: Line type (dashed$, etc). 
+!   clip         -- Logical, optional: Clip at the graph boundary?
+!   style        -- Character(*): Default line style to use if not specified by the other arguments.
+!                     Default is 'STD'. See qp_set_line_attrib for more details.
 !-
 
-subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)
+subroutine qp_draw_rectangle (x1, x2, y1, y2, units, color, width, line_pattern, clip, style)
 
 implicit none
 
 real(rp) x1, y1, x2, y2
 
-integer, optional :: color, width, style
+integer, optional :: color, width, line_pattern
 
-character(*), optional :: units
+character(*), optional :: units, style
 
 logical, optional :: clip
 
@@ -2276,7 +2284,7 @@ logical, optional :: clip
 if (x1 == x2 .or. y1 == y2) return
 
 call qp_draw_polyline ((/ x1, x1, x2, x2, x1 /), (/ y1, y2, y2, y1, y1 /), &
-                                            units, width, color, style, clip)
+                                            units, width, color, line_pattern, clip, style)
 
 end subroutine qp_draw_rectangle
                                      
@@ -2416,8 +2424,7 @@ end subroutine qp_set_graph
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_graph (x, y, x_lab, y_lab, title, &
-!                                        draw_line, symbol_every, clip)
+! Subroutine qp_draw_graph (x, y, x_lab, y_lab, title, draw_line, symbol_every, clip)
 !
 ! Subroutine to plot data, axes with labels, a grid, and a title.
 ! Use the routine qp_draw_data just to draw the data.
@@ -2444,8 +2451,7 @@ end subroutine qp_set_graph
 !   qp_set_axis           for setting up the axis scales.
 !-
 
-subroutine qp_draw_graph (x_dat, y_dat, x_lab, y_lab, title, &
-                                            draw_line, symbol_every, clip)
+subroutine qp_draw_graph (x_dat, y_dat, x_lab, y_lab, title, draw_line, symbol_every, clip)
 
 implicit none      
 
@@ -2484,6 +2490,7 @@ end subroutine qp_draw_graph
 !
 ! Subroutine to draw a symbol at the data points and optionaly connect
 ! the symbols with line segments.
+! The line segments use the PLOT line style attributes (see qp_set_line_attrib).
 !
 ! See qp_draw_graph for a routine that will draw the axes as well.
 ! See qp_draw_axes for a routine to only draw the axes.
@@ -2803,6 +2810,7 @@ end subroutine qp_draw_text_legend
 !                    Set symbol(i)%type < 0 to suppress drawing of the i^th symbol.
 !   test(:)     -- Character(*), optional: Array of text lines.
 !   draw_line   -- Logical, optional: Draw lines? Default is True.
+!                   Line style set by the LEGEND line style. See qp_set_line_attrib.
 !   draw_symbol -- Logical, optional: Draw symbols? Default is True.
 !   draw_text   -- Logical, optional: Draw text? Default is True.
 !-
@@ -2905,7 +2913,7 @@ end subroutine qp_draw_curve_legend
 !-----------------------------------------------------------------------
 !+
 ! Subroutine qp_draw_ellipse (x0, y0, r_x, r_y, theta_xy, angle0, 
-!                              del_angle, units, width, color, style, clip)
+!                              del_angle, units, width, color, line_pattern, clip)
 !
 ! Subroutine to plot a section of an ellipse.
 ! Drawn is:
@@ -2916,26 +2924,26 @@ end subroutine qp_draw_curve_legend
 ! Note: Currently this routine can only draw solid lines.
 !
 ! Input:
-!   x0, y0    -- Real(rp): Center of arc.
-!   r_x       -- Real(rp): Horizontal radius.
-!   r_y       -- Real(rp): Vertical radius.
-!   theta_xy  -- Real(rp), optional: Ellipse tilt. Default = 0.
-!   angle0    -- Real(rp), optional: Starting angle of arc to draw in radians.
-!                 Default is 0
-!   del_angle -- Real(rp), optional: Angle of arc to draw. 
-!                 Default is 2pi.
-!   units     -- Character(*), optional: Units of x, y.
-!                 Default is: 'DATA/GRAPH/LB'
-!                 See quick_plot writeup for more details.
-!   width     -- Integer, optional: Width of line
-!   color     -- Integer, optional: Line color.
-!   style     -- Integer, optional: Line style. 
-!                 Currently can only be 1 (solid line).
-!   clip      -- Logical, optional: Clip at graph boundary?
+!   x0, y0       -- Real(rp): Center of arc.
+!   r_x          -- Real(rp): Horizontal radius.
+!   r_y          -- Real(rp): Vertical radius.
+!   theta_xy     -- Real(rp), optional: Ellipse tilt. Default = 0.
+!   angle0       -- Real(rp), optional: Starting angle of arc to draw in radians.
+!                    Default is 0
+!   del_angle    -- Real(rp), optional: Angle of arc to draw. 
+!                    Default is 2pi.
+!   units        -- Character(*), optional: Units of x, y.
+!                    Default is: 'DATA/GRAPH/LB'
+!                    See quick_plot writeup for more details.
+!   width        -- Integer, optional: Width of line
+!   color        -- Integer, optional: Line color.
+!   line_pattern -- Integer, optional: Line type. 
+!                    Currently can only be 1 (solid line).
+!   clip         -- Logical, optional: Clip at graph boundary?
 !-
 
 subroutine qp_draw_ellipse (x0, y0, r_x, r_y, theta_xy, angle0, &
-                          del_angle, units, width, color, style, clip)
+                          del_angle, units, width, color, line_pattern, clip)
 
 implicit none
 
@@ -2944,7 +2952,7 @@ real(rp), optional :: theta_xy, angle0, del_angle
 real(rp) x(1000), y(1000), ang22, del, ang, cos_xy, sin_xy
 real(rp) xx0, yy0, rr_x, rr_y, ang0, del_ang, t_xy, dx, dy
 
-integer, optional :: width, color, style
+integer, optional :: width, color, line_pattern
 integer i
 
 character(*), optional :: units
@@ -2953,7 +2961,7 @@ logical, optional :: clip
 
 !
 
-if (present(style)) i = style   ! so compiler will not complain
+if (present(line_pattern)) i = line_pattern   ! so compiler will not complain
 
 call qp_save_state (.true.)
 
@@ -3000,7 +3008,7 @@ end subroutine qp_draw_ellipse
 !-----------------------------------------------------------------------
 !+
 ! Subroutine qp_draw_circle (x0, y0, r, angle0, del_angle, 
-!                                    units, width, color, style, clip)
+!                                    units, width, color, line_pattern, clip)
 !
 ! Subroutine to plot a section of a circle.
 ! Drawn is:
@@ -3010,31 +3018,31 @@ end subroutine qp_draw_ellipse
 ! Note: Currently this routine can only draw solid lines.
 !
 ! Input:
-!   x0, y0    -- Real(rp): Center of arc.
-!   r         -- Real(rp): Radius.
-!   angle0    -- Real(rp), optional: Starting angle of arc to draw in radians.
-!                 Default is 0
-!   del_angle -- Real(rp), optional: Angle of arc to draw. 
-!                 Default is 2pi.
-!   units     -- Character(*), optional: Units of x, y.
-!                 Default is: 'DATA/GRAPH/LB'
-!                 See quick_plot writeup for more details.
-!   width     -- Integer, optional: Width of line
-!   color     -- Integer, optional: Line color.
-!   style     -- Integer, optional: Line style. 
-!                 Currently can only be 1 (solid line).
-!   clip      -- Logical, optional: Clip at graph boundary?
+!   x0, y0       -- Real(rp): Center of arc.
+!   r            -- Real(rp): Radius.
+!   angle0       -- Real(rp), optional: Starting angle of arc to draw in radians.
+!                    Default is 0
+!   del_angle    -- Real(rp), optional: Angle of arc to draw. 
+!                    Default is 2pi.
+!   units        -- Character(*), optional: Units of x, y.
+!                    Default is: 'DATA/GRAPH/LB'
+!                    See quick_plot writeup for more details.
+!   width        -- Integer, optional: Width of line
+!   color        -- Integer, optional: Line color.
+!   line_pattern -- Integer, optional: Line type. 
+!                    Currently can only be 1 (solid line).
+!   clip         -- Logical, optional: Clip at graph boundary?
 !-
 
 subroutine qp_draw_circle (x0, y0, r, angle0, &
-                        del_angle, units, width, color, style, clip)
+                        del_angle, units, width, color, line_pattern, clip)
 
 implicit none
 
 real(rp) x0, y0, r
 real(rp), optional :: angle0, del_angle
 
-integer, optional :: width, color, style
+integer, optional :: width, color, line_pattern
 
 character(*), optional :: units
 
@@ -3043,7 +3051,7 @@ logical, optional :: clip
 !
 
 call qp_draw_ellipse (x0, y0, r, r, 0.0_rp, angle0, del_angle, &
-                                        units, width, color, style, clip)
+                                        units, width, color, line_pattern, clip)
 
 end subroutine qp_draw_circle
 
@@ -3051,38 +3059,38 @@ end subroutine qp_draw_circle
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_polyline (x, y, units, width, color, style, clip)
+! Subroutine qp_draw_polyline (x, y, units, width, color, line_pattern, clip, style)
 !
 ! Subroutine to draw a polyline.
 !
 ! Input:
-!   x(:), y(:) -- Real(rp): (x, y) points for the polyline.
-!   units      -- Character(*), optional: Units of x, y.
-!                   Default is: 'DATA/GRAPH/LB'
-!                   See quick_plot writeup for more details.
-!   width      -- Integer, optional: Width of line
-!   color      -- Integer, optional: Line color.
-!   style      -- Integer, optional: Line style. 
-!   clip       -- Logical, optional: Clip at graph boundary?
+!   x(:), y(:)    -- Real(rp): (x, y) points for the polyline.
+!   units         -- Character(*), optional: Units of x, y.
+!                      Default is: 'DATA/GRAPH/LB'
+!                      See quick_plot writeup for more details.
+!   width         -- Integer, optional: Width of line
+!   color         -- Integer, optional: Line color.
+!   line_pattern  -- Integer, optional: Line type. 
+!   clip          -- Logical, optional: Clip at graph boundary?
 !-
 
-subroutine qp_draw_polyline (x, y, units, width, color, style, clip)
+subroutine qp_draw_polyline (x, y, units, width, color, line_pattern, clip, style)
 
 implicit none
 
 real(rp) :: x(:), y(:)
 real(rp) :: xd(size(x)), yd(size(y))
 
-integer, optional :: width, color, style
+integer, optional :: width, color, line_pattern
 
-character(*), optional :: units
+character(*), optional :: units, style
 
 logical, optional :: clip
 
 !
 
 call qp_save_state (.true.)
-call qp_set_line_attrib ('STD', width, color, style, clip)
+call qp_set_line_attrib (style, width, color, line_pattern, clip)
 call qp_to_inches_abs (x, y, xd, yd, units)
 call qp_draw_polyline_basic (xd, yd)
 call qp_restore_state
@@ -3124,38 +3132,40 @@ end subroutine qp_draw_polyline_no_set
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_draw_line (x1, x2, y1, y2, units, width, color, style, clip)
+! Subroutine qp_draw_line (x1, x2, y1, y2, units, width, color, line_pattern, clip, style)
 !
 ! Subroutine to draw a line.
 !
 ! Input:
-!   x1, x2     -- Real(rp): X-coords of line endpoints
-!   y1, y2     -- Real(rp): Y-coords of line endpoints
-!   units      -- Character(*), optional: Units of x, y.
-!                   Default is: 'DATA/GRAPH/LB'
-!                   See quick_plot writeup for more details.
-!   width      -- Integer, optional: Width of line
-!   color      -- Integer, optional: Line color.
-!   style      -- Integer, optional: Line style. 
-!   clip       -- Logical, optional: Clip at graph boundary?
+!   x1, x2        -- Real(rp): X-coords of line endpoints
+!   y1, y2        -- Real(rp): Y-coords of line endpoints
+!   units         -- Character(*), optional: Units of x, y.
+!                      Default is: 'DATA/GRAPH/LB'
+!                      See quick_plot writeup for more details.
+!   width         -- Integer, optional: Width of line
+!   color         -- Integer, optional: Line color.
+!   line_pattern  -- Integer, optional: Line type. 
+!   clip          -- Logical, optional: Clip at graph boundary?
+!   style         -- Character(*): Default line style to use if not specified by the other arguments.
+!                      Default is 'STD'. See qp_set_line_attrib for more details.
 !-
 
-subroutine qp_draw_line (x1, x2, y1, y2, units, width, color, style, clip)
+subroutine qp_draw_line (x1, x2, y1, y2, units, width, color, line_pattern, clip, style)
 
 implicit none
 
 real(rp) :: x1, x2, y1, y2
 
-integer, optional :: width, color, style
+integer, optional :: width, color, line_pattern
 
-character(*), optional :: units
+character(*), optional :: units, style
 
 logical, optional :: clip
 
 !
 
 call qp_save_state (.true.)
-call qp_set_line_attrib ('STD', width, color, style, clip)
+call qp_set_line_attrib (style, width, color, line_pattern, clip)
 call qp_draw_polyline_no_set ((/ x1, x2 /), (/ y1, y2 /), units)
 call qp_restore_state
 
@@ -3715,19 +3725,6 @@ end subroutine qp_set_symbol_attrib
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+  
-! USE QP_GET_SYMBOL_ATTRIB INSTEAD!
-!-
-
-subroutine qp_get_symbol (symbol)
-implicit none
-type (qp_symbol_struct) symbol
-symbol = qp_com%symbol
-end subroutine qp_get_symbol
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+  
 ! Subroutine qp_get_symbol_attrib (symbol)
 !
 ! Subroutine to get the symbol parameters used in plotting data.
@@ -3770,9 +3767,9 @@ end subroutine qp_get_symbol_attrib
 !                 'PLOT'     -- Plot data lines.
 !                 'STD'      -- Everything else.
 !   line    -- qp_line_struct: Attributes of a line
-!     %style   -- Integer: Line style.
-!     %width   -- Integer: Size of the line.
-!     %color   -- Integer: Line color.
+!     %type -- Integer: Line type.
+!     %width     -- Integer: Size of the line.
+!     %color     -- Integer: Line color.
 !-
 
 subroutine qp_set_line (who, line)
@@ -3808,27 +3805,13 @@ end subroutine qp_set_line
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! USE QP_GET_LINE_ATTRIB INSTEAD!
-!-
-
-subroutine qp_get_line (who, line)
-implicit none
-type (qp_line_struct) line
-character(*) who
-call qp_get_line_attrib (who, line)
-end subroutine qp_get_line
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!+
-! Subroutine qp_get_line_attrib (who, line)
+! Subroutine qp_get_line_attrib (style, line)
 !
 ! Subroutine to get the default line attributes.
 ! See the quick_plot documentation for more details.
 !
 ! Input:
-!   who     -- Character(*): 
+!   style   -- Character(*): 
 !                 'AXIS'     -- Graph axis.
 !                 'GRID'     -- Graph grid.
 !                 'LEGEND'   -- Line legend.
@@ -3837,33 +3820,33 @@ end subroutine qp_get_line
 !
 ! Output:
 !   line    -- qp_line_struct: Attributes of a line
-!     %style   -- Integer: Line style.
-!     %width   -- Integer: Size of the line.
-!     %color   -- Integer: Line color.
+!     %pattern   -- Integer: Line type.
+!     %width     -- Integer: Size of the line.
+!     %color     -- Integer: Line color.
 !-
 
-subroutine qp_get_line_attrib (who, line)
+subroutine qp_get_line_attrib (style, line)
 
 implicit none
 
 type (qp_line_struct) line
-character(*) who
+character(*) style
 character(24) :: r_name = 'qp_get_line_attrib'
 
 !
 
-if (who == 'STD') then
+if (style == 'STD') then
   line = qp_com%std_line
-elseif (who == 'GRID') then
+elseif (style == 'GRID') then
   line = qp_com%grid_line
-elseif (who == 'PLOT') then
+elseif (style == 'PLOT') then
   line = qp_com%plot_line
-elseif (who == 'AXIS') then
+elseif (style == 'AXIS') then
   line = qp_com%axis_line
-elseif (who == 'LEGEND') then
+elseif (style == 'LEGEND') then
   line = qp_com%legend_line
 else
-  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "WHO": ' // who)
+  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
   call err_exit
 endif
 
@@ -3873,63 +3856,66 @@ end subroutine qp_get_line_attrib
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_line_attrib (who, width, color, style, clip)
+! Subroutine qp_set_line_attrib (style, width, color, pattern, clip)
 !        
-! Subroutine to set the default line attributes.
+! Subroutine to set the default line attributes for different parts of the drawing.
+! Also: Sets the current line attributes to the style indicated by "style".
 ! See the quick_plot documentation for more details.
 !
 ! Input:
-!   who     -- Character(*): 
+!   style       -- Character(*), optional: Part of drawing default is set for.
 !                 'PLOT'     -- Plot data lines.
 !                 'GRID'     -- Graph grid.
 !                 'AXIS'     -- Graph axis.
 !                 'LEGEND    -- Line legend.
-!                 'STD'      -- Everything else.
-!   style   -- Integer, optional: Line style.
-!   width   -- Integer, optional: Size of the line.
-!   color   -- Integer, optional: Line color.
-!   clip    -- Logical, optional: Clip at graph boundary?
-!               Note: This sets the symbol clip also.
+!                 'STD'      -- Everything else. Default.
+!   pattern   -- Integer, optional: Line type.
+!   width     -- Integer, optional: Size of the line.
+!   color     -- Integer, optional: Line color.
+!   clip      -- Logical, optional: Clip at graph boundary?
+!                  Note: This sets the symbol clip also.
 !-
 
-subroutine qp_set_line_attrib (who, width, color, style, clip)
+subroutine qp_set_line_attrib (style, width, color, pattern, clip)
 
 implicit none
 
 type (qp_line_struct), pointer :: this
 
-integer, optional :: style, width, color
+integer, optional :: pattern, width, color
 logical, optional :: clip
 
-character(*) who
+character(*), optional :: style
 character(16) :: r_name = 'qp_set_line_attrib'
 
 
 !
 
-if (who == 'STD') then
+if (.not. present(style)) then
   this => qp_com%std_line
-elseif (who == 'GRID') then
+elseif (style == 'STD') then
+  this => qp_com%std_line
+elseif (style == 'GRID') then
   this => qp_com%grid_line
-elseif (who == 'PLOT') then
+elseif (style == 'PLOT') then
   this => qp_com%plot_line
-elseif (who == 'AXIS') then
+elseif (style == 'AXIS') then
   this => qp_com%axis_line
-elseif (who == 'LEGEND') then
+elseif (style == 'LEGEND') then
   this => qp_com%legend_line
 else
-  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "WHO": ' // who)
+  call out_io (s_fatal$, r_name, 'UNKNOWN LINE "STYLE": ' // style)
   call err_exit
 endif
 
 if (present(width)) this%width = width
 if (present(color)) this%color = color
-if (present(style)) this%style = style
+if (present(pattern)) this%pattern = pattern
 
 call qp_set_clip (clip)
 call qp_set_color_basic (this%color)
 call qp_set_line_width_basic (this%width)
-call qp_set_line_style_basic (this%style)       
+call qp_set_line_pattern_basic (this%pattern)       
 
 end subroutine qp_set_line_attrib
 
@@ -4113,13 +4099,13 @@ end subroutine qp_get_text_attrib
 !
 ! Input:                                        
 !   who -- Character(*):     Used by:             Comment
-!            "TEXT"          qp_draw_text         General text.
 !            "MAIN_TITLE"    qp_draw_main_title   Title at top of page.
 !            "GRAPH_TITLE"   qp_draw_graph_title  Title above a graph.
 !            "LEGEND"        qp_draw_text_legend  Legend.
 !            "LEGEND"        qp_draw_label_legend Legend.
 !            "AXIS_NUMBERS"  qp_draw_graph        Axes Numbers.
 !            "AXIS_LABEL"    qp_draw_graph        Axis label.
+!            "TEXT"          qp_draw_text         Everything else.
 !   height      -- Real(rp), optional: Character height.
 !   color       -- Integer, optional: Color index.
 !   background  -- Integer, optional: Background color index.

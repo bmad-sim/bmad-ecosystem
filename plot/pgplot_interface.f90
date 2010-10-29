@@ -141,10 +141,10 @@ end subroutine
 !+
 ! Subroutine qp_set_symbol_fill_basic (fill)
 !
-! Subroutine to set the symbol fill style.
+! Subroutine to set the symbol fill pattern.
 !
 ! Input:
-!   fill -- Integer: Fill style.
+!   fill -- Integer: fill pattern.
 !+
 
 subroutine qp_set_symbol_fill_basic (fill)
@@ -175,18 +175,18 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_line_style_basic (style)
+! Subroutine qp_set_line_pattern_basic (line_pattern)
 !
-! Subroutine to set the line style.
+! Subroutine to set the line type.
 !
 ! Input:
-!   style -- Integer: Line style.
+!   line_pattern -- Integer: Line type.
 !+
 
-subroutine qp_set_line_style_basic (style)
+subroutine qp_set_line_pattern_basic (line_pattern)
   implicit none
-  integer style
-  call pgsls  (style)       ! Set style
+  integer line_pattern
+  call pgsls  (line_pattern)       ! Set line type
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -426,7 +426,7 @@ end subroutine
 !   x1, y1       -- Real(rp): Bottom left corner of box.
 !   x2, y2       -- Real(rp): Upper right corner of box.
 !   color        -- Integer: Color of rectangle.
-!   fill_pattern -- Integer: Fill style.
+!   fill_pattern -- Integer: fill pattern.
 !   page_type    -- Character(*): Type of page ('GIF', 'X', etc).
 !-
 
@@ -449,7 +449,7 @@ subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
   f = pg_com%page_scale
 
   call qp_set_color_basic(color)        ! Set color index to background
-  call pgsfs(fill_pattern)              ! Set fill-area style to solid
+  call pgsfs(fill_pattern)              ! Set fill-area pattern to solid
 
   call pgqwin (xw1, xw2, yw1, yw2)      ! get graph data min/max
   call pgqvp (0, xv1, xv2, yv1, yv2)    ! get viewport coords

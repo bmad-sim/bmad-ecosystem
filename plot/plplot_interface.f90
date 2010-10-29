@@ -43,9 +43,9 @@ type pl_interface_struct
   character(16) page_type
   type (viewport_size) :: graph_pos
   integer :: i_chan = -1
-  integer :: fill_style
+  integer :: fill_pattern
   integer :: line_width
-  integer :: line_style
+  integer :: line_pattern
   real(rp) :: char_size
   real(rp) :: sym_size
   integer :: fg_color
@@ -197,7 +197,7 @@ end subroutine
 !   x1, y1       -- Real(rp): Bottom left corner of box.
 !   x2, y2       -- Real(rp): Upper right corner of box.
 !   color        -- Integer: Color of rectangle.
-!   fill_pattern -- Integer: Fill style.
+!   fill_pattern -- Integer: Fill pattern.
 !-
 
 subroutine qp_paint_rectangle_basic (x1, x2, y1, y2, color, fill_pattern)
@@ -246,10 +246,10 @@ end subroutine
 !+
 ! Subroutine qp_set_symbol_fill_basic (fill)
 !
-! Subroutine to set the symbol fill style.
+! Subroutine to set the symbol fill pattern.
 !
 ! Input:
-!   fill -- Integer: Fill style.
+!   fill -- Integer: Fill pattern.
 !+
 
 subroutine qp_set_symbol_fill_basic (fill)
@@ -259,7 +259,7 @@ subroutine qp_set_symbol_fill_basic (fill)
   call plpsty (fill)       ! set fill
 
   !Save this state
-  pl_com%fill_style = fill
+  pl_com%fill_pattern = fill
 
 end subroutine
 
@@ -290,22 +290,22 @@ end subroutine
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_set_line_style_basic (style)
+! Subroutine qp_set_line_pattern_basic (line_pattern)
 !
-! Subroutine to set the line style.
+! Subroutine to set the line type.
 !
 ! Input:
-!   style -- Integer: Line style.
+!   line_pattern -- Integer: Line type.
 !+
 
-subroutine qp_set_line_style_basic (style)
+subroutine qp_set_line_pattern_basic (line_pattern)
   implicit none
-  integer style
+  integer line_pattern
 
-  call pllsty (style)       ! Set style
+  call pllsty (line_pattern)       ! Set line_pattern
 
   !Save this state
-  pl_com%line_style = style
+  pl_com%line_pattern = line_pattern
 
 end subroutine
 
@@ -542,14 +542,14 @@ subroutine qp_restore_state_basic ()
 
   call plssym(pl_com%sym_size, 1.0_rp)  ! Set symbol scale factor
 
-  if(pl_com%fill_style /= 0) then
-     call plpsty(pl_com%fill_style)
+  if(pl_com%fill_pattern /= 0) then
+     call plpsty(pl_com%fill_pattern)
   endif
 
   call plwid(pl_com%line_width)
   
-  if(pl_com%line_style /= 0) then
-     call pllsty(pl_com%line_style)
+  if(pl_com%line_pattern /= 0) then
+     call pllsty(pl_com%line_pattern)
   endif
 
   call plcol0(pl_com%fg_color)
@@ -663,7 +663,7 @@ subroutine qp_clear_box_basic (x1, x2, y1, y2)
   call qp_save_state_basic              ! Buffer the following calls
 
   call qp_set_color_basic(0)            ! Set color index to background
-  call plpsty(0)                        ! Set fill-area style to solid
+  call plpsty(0)                        ! Set fill-area pattern to solid
   
   x_vec = (/x1m, x2m, x2m, x1m, x1m/)
   y_vec = (/y1m, y1m, y2m, y2m, y1m/)

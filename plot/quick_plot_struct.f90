@@ -17,7 +17,7 @@ character(16), parameter :: qp_color_name(0:16) =   ['White        ', &
 integer, parameter :: solid$ = 1, dashed$ = 2, dash_dot$ = 3
 integer, parameter :: dotted$ = 4, dash_dot3$ = 5
 
-character(16) :: qp_line_style_name(5) = (/ 'solid    ', &
+character(16) :: qp_line_pattern_name(5) = (/ 'solid    ', &
     'dashed   ', 'dash_dot ', 'dotted   ', 'dash_dot3' /)
 
 integer, parameter :: solid_fill$ = 1, no_fill$ = 2
@@ -105,7 +105,7 @@ end type
 type qp_line_struct
   integer :: width = 1
   integer :: color = black$
-  integer :: style = solid$
+  integer :: pattern = solid$
 end type
 
 type qp_symbol_struct

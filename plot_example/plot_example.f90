@@ -151,7 +151,7 @@ call qp_draw_data (x, y, symbol_every = 0)
 
 call qp_save_state (.true.)
 call qp_set_symbol_attrib (times_sym$, color = blue$, height = 20.0_rp)
-call qp_set_line_attrib ('PLOT', color = blue$, style = dashed$)
+call qp_set_line_attrib ('PLOT', color = blue$, pattern = dashed$)
 call qp_draw_data (x, z, symbol_every = 5)
 call qp_restore_state
 
