@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module bsim_interface
   
   interface
@@ -83,6 +81,8 @@ module bsim_interface
    logical path_length_patch
   end subroutine implement_pathlength_patch
  end interface
+
+integer, private :: private_dummy ! This is to suppress the ranlib "has no symbols" message
 
 end module bsim_interface
 
