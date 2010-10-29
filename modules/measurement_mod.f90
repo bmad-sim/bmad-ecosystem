@@ -40,7 +40,7 @@ character(40) :: r_name = 'check_if_ele_is_monitor'
 if (ele%key /= monitor$ .and. ele%key /= instrument$ .and. ele%key /= marker$) then
   call out_io (s_error$, r_name, &
                 'MONITOR CALCULATION CALLED FOR ELEMENT THAT IS NEITHER', &
-                'A MONITOR, INSTRUMENT OR MARKER')
+                'A MONITOR, INSTRUMENT OR MARKER: ' // ele%name)
   err = .true.
   return
 else
@@ -160,13 +160,15 @@ character(20) :: r_name = "to_orbit_reading"
 
 logical err
 
-!
+! Monitor check is currently disabled.
 
 reading = 0.0
-call check_if_ele_is_monitor (ele, err)
-if (err) return
+
+!call check_if_ele_is_monitor (ele, err)
+!if (err) return
 
 err = .true.
+if (.not. ele%is_on) return
 
 call compute_bpm_transformation_numbers (ele)
 
@@ -243,17 +245,18 @@ character(20) :: r_name = "to_eta_reading"
 
 logical err
 
-!
+! Monitor check is currently disabled.
 
 reading = 0.0
 
-call check_if_ele_is_monitor (ele, err)
-if (err) return
-if (.not. ele%is_on) return
+!call check_if_ele_is_monitor (ele, err)
+!if (err) return
 
 !
 
 err = .true.
+if (.not. ele%is_on) return
+
 
 if (ele%value(noise$) /= 0) then
   if (ele%value(de_eta_meas$) == 0) then
@@ -328,20 +331,20 @@ character(40) :: r_name = "to_phase_and_coupling_reading"
 
 logical err
 
-! 
+! Monitor check is currently disabled
 
 mon%K_22a = 0
 mon%K_12a = 0
 mon%K_11b = 0
 mon%K_12b = 0
 
-call check_if_ele_is_monitor (ele, err)
-if (err) return
-if (.not. ele%is_on) return
+! call check_if_ele_is_monitor (ele, err)
+! if (err) return
 
 !
 
 err = .true.
+if (.not. ele%is_on) return
 
 call compute_bpm_transformation_numbers (ele)
 
