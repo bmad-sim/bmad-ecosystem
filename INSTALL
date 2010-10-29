@@ -1,0 +1,373 @@
+                                                                 Edited: 27-Oct-2010
+
+*****************************************************************************
+INTRODUCTION
+-------------
+
+This file describes what needs to be done to build a "BMAD code distribution",
+otherwise simply known as "a distribution", on machines that are not part of
+the Laboratory for Elementary Particle Physics (LEPP) network.  The 
+distribution is not a single library or executable but is a collection of 
+libraries and standardized tools used to build them.  Roughly speaking, the
+pieces of the distribution can be broken into three parts:
+
+1) Some scripts to set up environment variables which are needed for the 
+   Makefiles to work. 
+2) A set of GNU Makefiles to build libraries and user executables based on 
+   those libraries.
+3) The source code.
+
+Details of how to obtain and build the code are provided below.
+
+
+*****************************************************************************
+OBTAINING HELP
+---------------
+
+General questions, installation problems, code building problems contact:
+  CESR Unix Librarian (cesrulib@mail.lepp.cornell.edu)
+  Mark Palmer (map36@cornell.edu)
+  David Sagan (dcs16@cornell.edu)
+
+Questions on the BMAD code contact:
+  David Sagan (dcs16@cornell.edu)
+
+
+
+*****************************************************************************
+COMPILER, MAKE AND MISCELLANEOUS SUPPORT PACKAGE ISSUES
+--------------------------------------------------------
+
+At present, the BMAD distribution, which includes Fortran 77/90, C, and C++ sources,
+is known to build with the following compiler combinations:
+
+
+LINUX (i686)
+  gcc/gfortran Version 4.4.4 
+  gcc (GCC) 3.2.3 (Red Hat Linux 3.2.3-59)
+- or -
+  Intel-ifort Fortran 95 Compiler (ifort v9.1)
+  gcc (GCC) 3.2.3 (Red Hat Linux 3.2.3-59)
+
+TRU64 [OSF1] (alpha)
+  HP Fortran V5.6-104654
+  HP Fortran Compiler T5.6a-104657-48FB1
+  DEC C V5.9-008 on Digital UNIX V4.0 (Rev. 1229)
+  Compaq C++ V6.5-032 for Digital UNIX V4.0F  (Rev. 1229)
+
+Mac OSX/Darwin (intel processor)
+  gcc/gfortran 4.4.4
+
+
+*****************************************************************************
+IMPORTANT!
+-------------
+
+NOTE: The relevant compilers for your platform (eg, gfortran on Linux) must
+appear in each user's default PATH, otherwise the makefiles and scripts in 
+the distribution will not work!
+
+
+*****************************************************************************
+LICENSING ISSUES
+-----------------
+
+This distribution includes a modified version of the Numerical Recipes code.
+It is the responsibility of the end user to ensure that they have a valid
+Numerical Recipes license for any computer on which they build the BMAD 
+distribution.  Numerical Recipes licensing information (for individual
+computers or sites) can be obtained at www.nr.com.
+
+This distribution includes the FPP/PTC (Polymorphic Tracking Code) package from 
+Etienne Forest there are no licensing issues with this software.
+
+This distribution includes the PGPLOT (pretty good plotting) package from Tim Pearson. 
+The web page for this package is:
+  http://www.astro.caltech.edu/~tjp/pgplot/
+From the PGPLOT web page:
+  PGPLOT is not public-domain software. However, it is freely available for non-commercial use. 
+  The source code and documentation are copyrighted by California Institute of Technology, 
+  and may not be redistributed or placed on public Web servers without permission. 
+  The software is provided ``as is'' with no warranty. 
+
+
+*****************************************************************************
+SOFTWARE PREREQUISITES
+-----------------------
+
+Building the BMAD distribution relies on GNU make makefiles so you need to 
+have GNU make installed.  If you have GNU make installed as 'make', you will 
+need to create a softlink gmake->make to insure that things build.
+
+In summary, The complete list of (very common) dependencies that your system
+will need to have installed before attempting to build the code found within
+the distribution:
+ 
+Utilities:
+  sh/bash/ash - A Bourne-compatible    - shell
+  gmake       - GNU make               - Popular software building tool 
+  sed         - Stream editor          - Very common unix command line tool
+  perl        - Perl interpreter       - Pathologically ecclectic rubbish lister
+  makedepend  - X11-project dependency - calculator               
+
+Libraries:
+
+The BMAD distribution depends on one external library at this time.  For proper
+operation you will need to have the PLPLOT library installed on your system as
+as shared object library (.so file) and will need to have the path containing 
+that library present in the contents of your LD_LIBRARY_PATH environment 
+variable before the build begins.
+
+
+*****************************************************************************
+PLOTTING ISSUES
+
+Some programs in the distribution use plotting software for displaying results. 
+There are two plotting packages in use: 
+	PGPLOT
+	PLPLOT
+
+Originally PGPLOT was the used for plotting. Since PGPLOT is not currently being
+maintained, the PLPLOT package has been introduced as its replacement but not
+all programs have been converted to use PLPLOT. 
+
+Programs that can use PLPLOT or PGPLOT
+	tao
+
+Programs that can only use PGPLOT
+	bmadz
+  closed_orbit 
+  analyzer 
+  tune_plane_res_plot 
+
+PLplot is free software primarily licensed under the GNU LGPL licence.
+The PLPLOT package is not part of the Bmad distribution. Rather it should
+be downloaded and installed separately. 
+PLPLOT can be obtained at: 
+  http://plplot.sourceforge.net/
+
+Note: PLPLOT fortran libraries need to be built along with the other PLPLOT libraries.
+The fortran libraries are not part of the default build.
+To build the fortran libraries on the Mac using MacPorts use the command:
+	sudo port install plplot +gcc44
+
+
+*****************************************************************************
+INSTRUCTIONS FOR OBTAINING THE LATEST DISTRIBUTION
+---------------------------------------------------
+
+Distribution tarballs can be downloaded via the web at:
+  http://www.lepp.cornell.edu/~cesrulib/downloads
+
+Specific releases are of the form:
+  http://www.lepp.cornell.edu/~cesrulib/downloads/bmad_dist_YYYY_MMDD_d.tar.gz
+where YYYY_MMDD is the year_month-day tag of the release.
+
+
+*****************************************************************************
+INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
+-----------------------------------------------------------------------
+
+0) Install PLPLOT if needed. See the PLOTTING ISSUES sections for more details.
+
+1) Unzip and extract the tar archive into a directory of your choice which 
+   we will hereafter refer to as DIR.  DIR can be owned by system or a 
+   "master account" (Individual users will be able to set up some environment 
+   variables, see below, which will allow them to link to libraries and 
+   modules in this area).  The resulting distribution will then be in 
+   DIR/bmad_dist_yyyy_mmdd_d.  The bmad_dist_yyy_mmdd_d directory should 
+   contain the following areas:
+
+
+   bin                   -  Output directory for executables and map files.
+                            Also contains copies of the BMAD environment setup
+                            scripts.
+   bmad                  -  The BMAD source code
+   bmadz                 -  Cesr storage ring design program.
+   bsim                  -  Beam simulation programs. 
+   cesr_utils            -  A utility library needed by BMAD
+   examples              -  Simple programs demonstrating library usage
+   forest                -  The Polymorphic Tracking Code package from 
+                            Etienne Forest.  Needed by BMAD
+   Gmake                 -  Contains GNU makefiles
+   include               -  A master include file area containing include 
+                            files needed by multiple libraries
+   lattice               -  Machine lattice definition files
+   lib                   -  Output directory for archive libraries
+   modules               -  Output directory for F90 module files
+   PGPLOT                -  The PGPLOT library from Tim Pearson at CalTech
+                            See http://astro.caltech.edu/~tjp/pgplot/ for 
+                            details.
+   recipes_f-90_LEPP     -  The LEPP version of the Numerical Recipes 
+                            libraries.  See the licensing issues above.
+   sim_utils             -  Utilities necessary for simulation code
+   tao                   -  Tool for Accelerator Optics program
+   util                  -  Contains various utility scripts needed to build 
+                            CESR libraries
+   xsif                  -  XSIF lattice parser.
+
+
+2) (Optional) Create a softlink in the DIR directory:
+
+   ln -s bmad_dist_yyyy_mmdd_d bmad_dist
+
+   This often makes it easier to reference locations in the distribution should
+   the need arise, for instance, when setting up other user's login scripts to
+   reference a pre-built release location upon session startup.
+
+
+3) A file is provided that holds supported preferences that you may adjust
+   to alter the behavior of the build. 
+
+   This file is named "dist_prefs".
+   It can be found in DIR/util.  The contents are documented within and explain
+   the options so that you may customize the build simply by editing and saving
+   the "dist_prefs" file.  If you choose not to edit the file, the build process
+   will attempt to honor the defaults specified here:
+
+     A) Expect that the "PLPLOT" library will be used for the build, and that 
+        is installed in /opt/local/lib
+     B) Attempt to create application executables along with libraries in all
+        libraries that ship with second-tier makefiles set up for that purpose.
+
+
+4) Next, a set of environment variables needs to be incorporated into the user's
+   command shell environment to allow proper functioning of the build system.  In 
+   order to peform this setup, simply navigate to the top level directory of the
+   distribution tree, in this case DIR, and run the following command:
+
+      source util/dist_source_me
+
+   This environment setup step has been verified to work with Bourne-compatible
+   shells sh / bash / ash, and also the C-style shells csh / tcsh.
+
+   For dynamically linked library types, you may need to set your 
+   LD_LIBRARY_PATH variable or equivalent to reflect the location of the
+   necessary .so library files.
+
+
+5) The final step is to start building the source.  This can be done from within
+   the top-level directory, DIR, by running:
+
+      gmake -f ${DIST_GMAKE}/M.distribution
+
+
+*****************************************************************************
+INSTRUCTIONS FOR SETTING UP A GENERIC USER ACCOUNT TO USE THE DISTRIBUTION
+---------------------------------------------------------------------------
+
+1) Users should add one of the following to their local account 
+   login or profile files:
+
+   The default behavior is for the setup process to print out informational
+   messages.  To suppress this output, you may define the environment
+   variable DIST_SETUP_QUIET to have the value "Y".  This is shown as the
+   first line in the login script examples below, but it is entirely
+   optional.
+
+   For csh/tcsh users - add the text found between the lines, replacing
+   DIR for the full path to the directory where the distribution archive
+   was unpacked.
+      ______________________________________________
+       setenv DIST_SETUP_QUIET Y
+       setenv DIST_BASE_DIR "DIR"
+       source ${DIST_BASE_DIR}/util/dist_source_me
+      ______________________________________________
+
+
+   For sh/ksh/bash users - likewise
+      ______________________________________________
+       export DIST_SETUP_QUIET=Y
+       export DIST_BASE_DIR="DIR"
+       source ${DIST_BASE_DIR}/util/dist_source_me
+      ______________________________________________
+
+   The default behavior is for the setup process to print out informational
+   messages.  To suppress this output, you may define the environment
+   variable
+
+
+2) Each user should make sure that there is a 'gmake' executable available 
+   which points to the GNU version of make.  This can typically be 
+   accomplished by making a softlink in /home/user/bin called gmake which 
+   points to the GNU make executable.  Alternatively, the system 
+   administrator can simply put such a softlink in the /usr/local/bin 
+   area.
+
+
+*****************************************************************************
+BASIC CODE BUILDS
+------------------
+
+1) Users can copy the DIR/bmad_dist/twiss_track_test directory to 
+   a directory that they name according to the job they are working 
+   on.  The Makefile in that directory is generic.  It will build 
+   any code living in the directory where it resides.  It will also 
+   find any include files in that directory.  It will automatically 
+   search for standard BMAD distribution modules and libraries in 
+   the DIR/bmad_dist area.
+
+2) The user needs to make sure that environment setup has been performed
+   (Step 4 in "INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE 
+   DISTRIBUTION", above) and that the command 'gmake' exists.
+
+3) In the local working directory, simply type 'gmake'.  The standard 
+   Makefile will build any local code and link the local program which 
+   will be placed in the ../bin directory and will carry the same name 
+   as the directory in which it was created.  Output F90 modules will
+   appear in an automatically created directory ../modules.  By default,
+   both 'production', ie non-debug, and debug (_g) executables will be
+   created.
+
+
+*****************************************************************************
+A QUICK INTRODUCTION TO THE MAKEFILE STRUCTURE
+-----------------------------------------------
+
+1) A generic user Makefile can be found in: 
+
+   DIR/bmad_dist/twiss_track_test/Makefile. 
+
+   This Makefile is intended for building all code in a local directory where 
+   one of the files contains a main PROGRAM.  It will automatically link  
+   an executable that uses the code in that area and code in the BMAD 
+   distribution that has been installed.  Makefile itself just contains 
+   basic "setup information" and includes another makefile, called M.tail,  
+   that does all the "heavy lifting".  M.tail can be found in:
+
+   DIR/bmad_dist/Gmake/M.tail.  
+
+
+2) A detailed document describing all the build scripts and Makefiles is 
+   underway.  It will be included in a future BMAD distribution.
+
+
+*****************************************************************************
+HANDLING DIFFERENT FORTRAN COMPILERS
+------------------------------------
+
+1) The  variable DIST_F90 specifies Fortran compiler which is used
+   by the M.tail master makefile. 
+
+   The value of  DIST_F90 depending on platform may be:
+   value    --  compiler      --  platform:
+
+   gfortran --  gfortran      --  default on Linux_i686    
+   intel        Intel fortran --  Also supported on Linux_i686
+   hp       --  f77/f90/f95   --  default on OSF1_alpha
+
+
+   Please make sure your chosen compiler is installed and configured
+   correctly for your user environment before attempting to build
+   a BMAD distribution.  Many commercial compilers ship with scripts
+   that must be run upon login, or immediately prior to using the 
+   compiler to ensure proper operation.  Consult your compiler's
+   documentation for details.
+
+
+2) For using non-default compiler DIST_F90 must be set
+   to appropriate value (see table above).
+
+
+3) After changing compiler do not forget to recompile the entire bmad distribution. 
+
