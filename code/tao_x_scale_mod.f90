@@ -178,7 +178,7 @@ if (do_gang) then
       graph => plot%graph(i)
       if (.not. graph%visible) cycle
       call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
-      call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
+      call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
     enddo
   endif
 
@@ -308,7 +308,7 @@ else
 endif
 
 call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
-call qp_get_axis ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
+call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
 
 end subroutine 
 

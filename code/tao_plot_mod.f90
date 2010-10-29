@@ -1127,7 +1127,6 @@ do k = 1, size(graph%curve)
   curve => graph%curve(k)
   if (curve%use_y2) call qp_use_axis (y = 'Y2')
   call qp_set_symbol (curve%symbol)
-  call qp_set_line ('PLOT', curve%line) 
 
   if (curve%draw_symbols .and. allocated(curve%x_symb)) then
     if (size(curve%x_symb) > 0) have_data = .true.
@@ -1154,7 +1153,8 @@ do k = 1, size(graph%curve)
 
   if (curve%draw_line .and. allocated(curve%x_line)) then
     if (size(curve%x_line) > 0) have_data = .true.
-    call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip)
+    call qp_set_line ('PLOT', curve%line) 
+    call qp_draw_polyline (curve%x_line, curve%y_line, clip = graph%clip, style = 'PLOT')
   endif
 
   call qp_use_axis (y = 'Y')  ! reset

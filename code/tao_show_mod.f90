@@ -539,7 +539,7 @@ case ('curve')
     nl=nl+1; write (lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
     nl=nl+1; write (lines(nl), iamt) 'line%width           = ', c1%line%width
     nl=nl+1; write (lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
-    nl=nl+1; write (lines(nl), iamt) 'line%style           = ', c1%line%style, qp_line_style_name(c1%line%style)
+    nl=nl+1; write (lines(nl), iamt) 'line%pattern         = ', c1%line%pattern, qp_line_pattern_name(c1%line%pattern)
     nl=nl+1; write (lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
     nl=nl+1; write (lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
     nl=nl+1; write (lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
