@@ -758,7 +758,7 @@ check if an attribute is free to vary.
   type (lat_struct) lat
   integer ix_ele
   ...
-  call lat_ele_locator ('Q10W', lat, eles, n_loc, err)   ! look for a element 'Q10W'
+  call lat_ele_locator ('Q10W', lat, eles, n_loc, err)   ! look for an element 'Q10W'
   free = attribute_free (eles(i)%ele, 'K1', lat, .false.)
   if (.not. free) print *, 'Cannot vary k1 attribute of element Q10W'
 \end{example}

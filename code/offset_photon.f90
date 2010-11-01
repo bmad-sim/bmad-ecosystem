@@ -89,6 +89,8 @@ if (set) then
   ! Set: tilt
 
   tilt = p(tilt_tot$) + p(tilt_err$)
+  if (ele%key == crystal$) tilt = tilt - p(tilt_corr$)
+
   call tilt_coords (tilt, vec)
 
   ! Set: graze_angle_err
