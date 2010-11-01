@@ -561,7 +561,7 @@ where
 \Endeq
 $\xi$ is a Gaussian distributed random number with unit sigma and zero mean.
 
-Using \Eqs{k2r3g} and \eq{k55rh} The total change in $p_z$ can be written as
+Using \Eqs{k2r3g} and \eq{k55rh} the total change in $p_z$ can be written as
 \Begineq
   \Delta p_z = \frac{\Delta E}{E_0} = -k_E \, (1 + p_z)
 \Endeq
@@ -1102,7 +1102,7 @@ previous subsection, the phase $\phi$ is
 \label{s:bunch.init}
 \index{bunch initialization|hyperbf}
 
-\textit{\large [Bunch initialization developed by Michael Saelim]}
+\textit{[Developed by Michael Saelim]}
 
 To better visualize the evolution of a particle beam, it is 
 sometimes convenient to initialize the beam with
@@ -1462,32 +1462,25 @@ modes are used.
 \index{wake fields!long-range}
 
 Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are
-characterized by a set of cavity modes. The wake function $W$ for a
+characterized by a set of cavity modes. The wake function $W_m$ for a
 mode of order $m$ is given by
 \Begineq
-  W_m(z) = c \, \left( \frac{R}{Q} \right)_m \,\,
-  e^{k z/ 2 Q} \, \sin (k \, z)
+  W_m(t) = -c \, \left( \frac{R}{Q} \right)_m \,\,
+  e^{-\omega \, t/ 2 Q} \, \sin (\omega \, z)
   \label{wcrq}
 \Endeq
-where the mode wave number $k$ is related to the mode frequency $\omega$ by
-\Begineq
-  k = \omega / c
-\Endeq
-Here $z$ is the distance behind the particle generating the wake. $z$
-is negative for all particles affected by the wake so $W_m(z)$ is a
-decaying exponential as expected. The mode strength $(R/Q)_m$ has
-units of Volts/meter$^{2m}$.
+The mode strength $(R/Q)_m$ has units of Volts/meter$^{2m}$.
 
 Assuming that the macroparticle generating the wake is offset a
 distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
 \begin{align}
   \Delta {\Bf p}_\perp &= 
-    -C \, I_m \, W_m(z) \, m \, r^{m-1} \, \left( 
+    -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
     {\bf\hat r} \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
-  &= -C \, I_m \, W_m(z) \, m \, r^{m-1} \, \left( 
+  &= -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
     {\bf\hat x} \cos [(m-1) \theta] - 
     {\bf\hat y} \sin [(m-1)\theta] \right) \CRNO
-  \Delta p_z &= -C \, I_m \, W'_m(z) \, r^m \, \cos m\theta
+  \Delta p_z &= -C \, I_m \, W'_m(t) \, r^m \, \cos m\theta
 \end{align}
 where $m$ is the order of the mode, $C$ is given by
 \Begineq
@@ -1500,10 +1493,10 @@ where $m$ is the order of the mode, $C$ is given by
 with $q_w$ being the magnitude of the charge on the particle. 
 Generalizing the above, a macroparticle at $(r_w, \theta_w)$ will generate a wake
 \begin{align}
-  -\Delta p_x + i\Delta p_y &= C \, I_m \, W_m(z) \, 
+  -\Delta p_x + i\Delta p_y &= C \, I_m \, W_m(t) \, 
     m \, r^{m-1} \, e^{-i m \theta_w} \, e^{i (m-1) \theta} 
     \label{ppcimr} \\
-  \Delta p_z &= C \, I_m \, W'_m(z) \, r^m \, \cos [m(\theta - \theta_w)]
+  \Delta p_z &= C \, I_m \, W'_m(t) \, r^m \, \cos [m(\theta - \theta_w)]
     \label{pciwr}
 \end{align}
 Comparing \Eq{ppcimr} to \eq{bib1nb}, and using the relationship between
@@ -1526,21 +1519,21 @@ components.  Spatially, there are normal and skew components and
 temporally there are sin and cosine components. This gives 4
 components which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$,
 and $b_{\sin}$. For a mode of order $m$, a particle passing through at
-a distance $z_w$ with respect to the reference particle will produce
+a time $t_w$ with respect to the reference particle will produce
 wake components
 \begin{alignat}{2}
   \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \sin(m \theta_w) 
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
     \CRNO
   \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \sin(m \theta_w) 
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
     \label{ac2rq} 
     \\
   \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \cos(m \theta_w) 
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
     \CRNO
   \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \cos(m \theta_w) 
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
     \nonumber
 \end{alignat}
 These are added to the existing wake components. The total is
@@ -1551,30 +1544,30 @@ with similar equations for $a_{\cos, m}$ etc. Here the sum is over all particles
 that cross the cavity before the kicked particle. To calculate the kick
 due to wake, the normal and skew components are added together
 \begin{align}
-  a_m &= e^{k z/ 2 Q} \, \left( 
-    a_{\cos, m} \, \cos (k \, z) + a_{\sin, m} \, \sin (k \, z) \right) 
+  a_m &= e^{-\omega \, t/ 2 Q} \, \left( 
+    a_{\cos, m} \, \cos (\omega \, t) - a_{\sin, m} \, \sin (\omega \, t) \right) 
     \label{akz2q} \\
-  b_m &= e^{k z/ 2 Q} \, \left(
-    b_{\cos, m} \, \cos (k \, z) + b_{\sin, m} \, \sin (k \, z) \right) \nonumber 
+  b_m &= e^{-\omega \, t/ 2 Q} \, \left(
+    b_{\cos, m} \, \cos (\omega \, t) - b_{\sin, m} \, \sin (\omega \, t) \right) \nonumber 
 \end{align}
-Here $z$ is the distance of the particle with respect to the
+Here $t$ is the passage time of the particle with respect to the
 reference particle. In analogy to \Eq{ppcimr} and \eq{pciwr}, the kick
 is
 \begin{align}
   -\Delta p_x + i\Delta p_y &= C \, 
     m \, (b_m + i a_m) \, r^{m-1} \, e^{i (m-1) \theta} 
     \label{ppcmbar} \\
-  \Delta p_z &= C \, r^m \, \left( 
+  \Delta p_z &= -C \, r^m \, \left( 
     (b_m' + i a_m') e^{i m\theta} + (b_m' - i a_m') e^{-i m\theta} \right)
 \end{align}
-where $a' \equiv da/dz$ and $b' \equiv db/dz$.
+where $a' \equiv da/dt$ and $b' \equiv db/dt$.
 
-When simulating trains of bunches, the exponential factor $-k z_w / 2
+When simulating trains of bunches, the exponential factor $\omega \, t_w / 2
 Q$ in \Eq{ac2rq} can become very large. To prevent numerical overflow,
-\bmad uses a reference time $z_{\mbox{ref}}$ so that all longitudinal
-positions $z$ in the above equations are replaced by
+\bmad uses a reference time $z_{\mbox{ref}}$ so that all times
+$t$ in the above equations are replaced by
 \Begineq
-  z \longrightarrow z - z_{\mbox{ref}}
+  t \longrightarrow t - t_{\mbox{ref}}
 \Endeq
 
 The above equations were developed assuming cylindrical symmetry. With
@@ -1585,22 +1578,22 @@ angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged.
 In place of \Eq{ac2rq}, the contribution of a particle to a mode is
 \begin{alignat}{2}
   \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \left[
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
   \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[ 
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \left[ 
     \sin(m \theta_w) \, \sin^2(m \phi) + 
     \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \\
   \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \cos (k \, z_w) \, I_m \, \left[
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \CRNO
   \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
-    e^{-k z_w/ 2 Q} \, \sin (k \, z_w) \, I_m \, \left[
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \left[
     \cos(m \theta_w) \, \cos^2(m \phi) + 
     \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
     \nonumber

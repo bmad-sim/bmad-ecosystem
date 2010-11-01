@@ -725,7 +725,7 @@ In order for \bmad to quickly track photons through the capillary,
 convex. The volume will be convex if each cross-section $r_c(\theta,
 s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
 for $r_c(\theta, s)$ to be convex at the specified cross-sections as
-shown in Fig.~\ref{f:convex-capillar}. Also note that it is perfectly
+shown in Fig.~\ref{f:concave-capillary}. Also note that it is perfectly
 fine for the total capillary volume to not be convex.
 
 To help reduce the complexity of specifying a capillary, ``virtual''
@@ -1039,7 +1039,7 @@ lattice file but are created by a program, usually for speed purposes.
 \label{s:girder}
 \index{girder|hyperbf}
 
-An \vn{girder} is a support structure that orients the elements that
+A \vn{girder} is a support structure that orients the elements that
 are attached to it in space.
 
 General \vn{girder} attributes are:
@@ -1052,7 +1052,7 @@ General \vn{girder} attributes are:
 \end{center}
 \toffset
 
-Attributes specific to an \vn{girder} are:
+Attributes specific to a \vn{girder} are:
 \begin{example}
   girder = \{<List>\}   ! List of elements on the Girder
 \end{example}
@@ -1060,10 +1060,10 @@ Attributes specific to an \vn{girder} are:
 \index{x_offset}
 \index{y_pitch}
 \index{tilt}
-When an \vn{girder} overlays an element, then that elements
+When a \vn{girder} overlays an element, then that elements
 orientation attributes (\vn{x_offset}, \vn{y_pitch}, \vn{tilt}, etc.) 
 give the orientation of
-the element with respect to the \vn{Girder}. An example will make this clear:
+the element with respect to the \vn{girder}. An example will make this clear:
 \begin{example}
   q1: quad, l = 10
   q2: quad, l = 5, x_offset = 0.2, x_pitch = 0.01
@@ -1076,13 +1076,13 @@ In this example \vn{ib} supports elements \vn{q1} and \vn{q2}. The
 center of \vn{ib} is at $s = 7.5$ (\vn{ib} starts at $s = 0$ which is
 the beginning of \vn{q1} and ends at $s = 15$ which is the end of
 \vn{q2}). Like other elements, pitch is calculated from the center of
-an \vn{Girder} element (see Sec.~\ref{s:offset}). The center of
+a \vn{girder} element (see Sec.~\ref{s:offset}). The center of
 \vn{q2} is at $s = 12.5$ so the distance between the center of \vn{ib}
 and \vn{q2} is $ds = 5$. The pitch of \vn{ib} produces an offset at
 the center of \vn{q2} of $0.5 = 0.1 * 5$. This, added to the offsets
 of \vn{ib} and \vn{q2}, give the total offset of \vn{q2} to be $1.0 =
 0.5 + 0.3 + 0.2$. The total \vn{x_pitch} of \vn{q2} is $0.11 = 0.1 +
-0.01$. From the above example it can be seen that an \vn{Girder} looks
+0.01$. From the above example it can be seen that a \vn{girder} looks
 similar to an \vn{Overlay} (see Sec.~\ref{s:overlay}). It would,
 however, take six \vn{Overlays} to simulate the effect of a single
 \vn{girder}.
