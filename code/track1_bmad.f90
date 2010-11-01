@@ -58,6 +58,7 @@ real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wave_length
+real(rp) cos_g, sin_g, cos_tc, sin_tc
 real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
@@ -185,14 +186,14 @@ case (crystal$)
   call offset_photon (ele, param, end, set$)
   
   ! Rotate normalized (px, py, 1) to crystal coords
-  sin_a = sin(ele%value(graze_angle_in$))
-  cos_a = cos(ele%value(graze_angle_in$))
+  sin_g = sin(ele%value(graze_angle_in$))
+  cos_g = cos(ele%value(graze_angle_in$))
   f = sqrt (1 - end%vec(2)**2 - end%vec(4)**2)
   
   !k_in_norm is incoming wavevector * wavelength, has unit length
-  k_in_norm(1) = cos_a * end%vec(2) + f * sin_a
+  k_in_norm(1) = cos_g * end%vec(2) + f * sin_g
   k_in_norm(2) = end%vec(4)
-  k_in_norm(3) = -sin_a * end%vec(2) + f * cos_a
+  k_in_norm(3) = -sin_g * end%vec(2) + f * cos_g
 
   sin_alpha = sin(ele%value(alpha_angle$))
   cos_alpha = cos(ele%value(alpha_angle$))
@@ -204,16 +205,21 @@ case (crystal$)
   !h_norm is H vector * wavelength
   h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wave_length / ele%value(d_spacing$)
 
-  !====Find M_in and M_out
+  !====Find m_in and m_out
+  !m_in = [x_in y_in k_in]
+  !m_out = [x_out y_out k_out]
 
-  m_in = reshape([cos_a, 0.0_rp, -sin_a, 0.0_rp, 1.0_rp, 0.0_rp, sin_a, 0.0_rp, cos_a], [3,3])
+  m_in = reshape([cos_g, 0.0_rp, -sin_g, 0.0_rp, 1.0_rp, 0.0_rp, sin_g, 0.0_rp, cos_g], [3,3])
 
-  sin_a = sin(ele%value(tilt_corr$))
-  cos_a = cos(ele%value(tilt_corr$))
+  sin_tc = sin(ele%value(tilt_corr$))
+  cos_tc = cos(ele%value(tilt_corr$))
+
+  ! y_out = inverse(m_in) . m_tiltcorr . m_in . (0,1,0)
   y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
-  y_out = matmul(reshape([cos_a, sin_a, 0.0_rp, -sin_a, cos_a, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]),  y_out)
+  y_out = matmul(reshape([cos_tc, sin_tc, 0.0_rp, -sin_tc, cos_tc, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]),  y_out)
   y_out = matmul(transpose(m_in), y_out)
 
+  ! x_out = vector orthogonal to y and z
   x_out(1) = y_out(2)*ele%value(nz_out$)-y_out(3)*ele%value(ny_out$)
   x_out(2) = -y_out(1)*ele%value(nz_out$)+y_out(3)*ele%value(nx_out$)
   x_out(3) = y_out(1)*ele%value(ny_out$)-y_out(2)*ele%value(nx_out$)
@@ -266,7 +272,7 @@ case (crystal$)
   fh = cmplx(ele%value(fh_re$), ele%value(fh_im$))
   f0_g = cap_gamma * f0 / 2
 
-  !======== Calculate phase and intensity for the x direction
+  ! For the x direction
   ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
   p_factor = cos(2*ele%value(graze_angle_in$))
   eta = (-b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
@@ -289,8 +295,8 @@ case (crystal$)
   end%intensity_x = end%intensity_x * abs(e_rel)**2
   end%phase_x = atan2(aimag(e_rel),real(e_rel))+end%phase_x
 
-  !======== Calculate phase and intensity for the y direction
-  
+  ! For the y direction
+  ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
   p_factor = 1
   eta = (-b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
             (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
