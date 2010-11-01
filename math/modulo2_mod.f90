@@ -53,14 +53,15 @@ contains
 !   mod2 -- Real(sp): Result
 !-
 
-function modulo2_sp (x, amp) result (mod2)
+elemental function modulo2_sp (x, amp) result (mod2)
 
 
   use precision_def
 
   implicit none
 
-  real(sp) mod2, x, amp
+  real(sp), intent(in) :: x, amp
+  real(sp) mod2
 
 !
 
@@ -91,14 +92,15 @@ end function
 !   mod2 -- Real(dp): Result
 !-
 
-function modulo2_dp (x, amp) result (mod2)
+elemental function modulo2_dp (x, amp) result (mod2)
 
 
   use precision_def
 
   implicit none
 
-  real(dp) mod2, x, amp
+  real(dp), intent(in) :: x, amp
+  real(dp) mod2
 
 !
 
@@ -129,14 +131,15 @@ end function
 !   mod2 -- Integer: Result
 !-
 
-function modulo2_int (x, amp) result (mod2)
+elemental function modulo2_int (x, amp) result (mod2)
 
 
   use precision_def
 
   implicit none
 
-  integer mod2, x, amp
+  integer, intent(in) :: x, amp
+  integer mod2
 
 !
 
