@@ -287,7 +287,7 @@ if (a2 < 0) then
   return
 endif
 
-a = sqrt(a)
+a = sqrt(a2)
 if (x_mid * dy > y_mid * dx) a = -a
 v2%x0 = x_mid + a * dy
 v2%y0 = y_mid - a * dx
