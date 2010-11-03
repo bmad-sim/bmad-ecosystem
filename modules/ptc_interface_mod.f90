@@ -643,6 +643,12 @@ logical params_present
 
 character(16) :: r_name = 'set_ptc'
 
+! ptc cannot be used with photons
+
+if (present(particle)) then
+  if (particle == photon$) return
+endif
+
 ! do not call set_mad
 
 params_present = present(e_tot) .and. present(particle)

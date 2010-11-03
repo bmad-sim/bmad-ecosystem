@@ -189,6 +189,7 @@ endif
 
 ! If all (x, y) are in the first quadrent then assume left/right symmetry and 
 ! propagate vertices to the second quadrent.
+! Also radius and tilt info must be moved to the correct vertex.
 
 if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
   if (v(n)%x == 0) then
@@ -199,9 +200,14 @@ if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
     nn = 2*n
     call re_allocate(cross%v, nn, .false.); v => cross%v
     v(n+1:nn) = v(n:1:-1)
+    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
-  v(n+1:nn)%x = -v(n+1:nn)%x
+  v(n+1:nn)%x     = -v(n+1:nn)%x
   v(n+1:nn)%angle = pi - v(n+1:nn)%angle
+  v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
+  v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
+  v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
+
   n = nn
 endif
 
@@ -217,14 +223,22 @@ if (all(v(1:n)%y >= 0)) then
     nn = 2*n ! Total number of vetices
     call re_allocate(cross%v, nn, .false.); v => cross%v
     v(n+1:nn) = v(n:1:-1)
+    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
 
   v(n+1:nn)%y     = -v(n+1:nn)%y
   v(n+1:nn)%angle = twopi - v(n+1:nn)%angle
+  v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
+  v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
+  v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
 
-  if (v(1)%y == 0) nn = nn - 1  ! Do not duplicate v(1) vertex
+  if (v(1)%y == 0) then ! Do not duplicate v(1) vertex
+    v(1) = v(nn)
+    nn = nn - 1
+  endif
+
   n = nn
-  call re_allocate(cross%v, nn, .true.); v => cross%v
+  call re_allocate(cross%v, n, .true.); v => cross%v
 endif
 
 ! Calculate center of circle/ellipses...
