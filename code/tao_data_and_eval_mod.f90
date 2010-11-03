@@ -825,7 +825,7 @@ case ('dpx_dx')
   if (data_source == 'lat') return
 
   if (ix_start == ix_ele) then
-    if (ix_ref > -1) value_vec(ix_ref) =  bunch_params(ix_ref)%sigma(s12$) / bunch_params(ix_ref)%sigma(s11$)
+    if (ix_ref > -1) value_vec(ix_ref) = bunch_params(ix_ref)%sigma(s12$) / bunch_params(ix_ref)%sigma(s11$)
     value_vec(ix_ele) = bunch_params(ix_ele)%sigma(s12$) / bunch_params(ix_ele)%sigma(s11$)
     call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
   else
@@ -1350,26 +1350,6 @@ case ('orbit.')
       call tao_load_this_datum (orbit(:)%vec(6), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
-  case ('orbit.intensity_x')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-
-  case ('orbit.intensity_y')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-
-  case ('orbit.intensity')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%intensity_x + orbit(:)%intensity_y, ele_ref, ele_start, ele, &
-                                                                           datum_value, valid_value, datum, lat, why_invalid)
-  case ('orbit.phase_x')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-
-  case ('orbit.phase_y')
-    if (data_source == 'beam') return ! bad
-    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-
   case ('orbit.amp_a')
     if (data_source == 'beam') return ! bad
     call tao_load_this_datum (cc%amp_a, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
@@ -1389,6 +1369,45 @@ case ('orbit.')
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
+
+  end select
+
+!-----------
+
+case ('photon.')
+
+  select case (datum%data_type)
+
+  case ('photon.intensity_x')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%centroid%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('photon.intensity_y')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%centroid%intensity_y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%intensity_y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('photon.intensity')
+    if (data_source == 'beam') then
+      call tao_load_this_datum (bunch_params(:)%centroid%intensity_x+bunch_params(:)%centroid%intensity_y, &
+                                                                      ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+    else
+      call tao_load_this_datum (orbit(:)%intensity_x + orbit(:)%intensity_y, ele_ref, ele_start, ele, &
+                                                                           datum_value, valid_value, datum, lat, why_invalid)
+    endif
+
+  case ('photon.phase_x')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+  case ('photon.phase_y')
+    if (data_source == 'beam') return ! bad
+    call tao_load_this_datum (orbit(:)%phase_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
   end select
 

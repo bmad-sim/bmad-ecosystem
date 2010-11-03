@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-`latex tao`;
+`pdflatex tao`;
 `makeindex tao`;
 
 open (FC, "tao.ind") || die ("Cannot open File: tao.idx\n");
@@ -17,4 +17,4 @@ close (F_OUT);
 `mv temp.out tao.ind`;
 
 
-`latex tao`;
+`pdflatex tao`;

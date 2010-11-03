@@ -533,11 +533,14 @@ The correct syntax is
 \end{example}
 
 The optional \vn{<ref_element>} specifies a reference
-element for the evaluation. For example, ``\vn{lat::r.56[q0\&qa:qb]}'' is
-an array of the $r(5,6)$ matrix element of the transport map between
-element \vn{q0} and each element in the range from element \vn{qa} and 
-\vn{qb}. The optional \vn{<component>} indicates what lattice 
-is to be used. Possible components are 
+element for the evaluation. For example
+\begin{example}
+  lat::r.56[q0\&qa:qb]
+\end{example}  
+is an array of the $r(5,6)$ matrix element of the transport map
+between element \vn{q0} and each element in the range from element
+\vn{qa} and \vn{qb}. The optional \vn{<component>} indicates what
+lattice is to be used. Possible components are
 \begin{example}
   model (default)
   base

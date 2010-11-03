@@ -242,6 +242,7 @@ type (particle_struct), pointer :: p(:)
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
 real(rp) emit_a, emit_b
+real(rp), pointer :: axis1(:), axis2(:)
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 
@@ -295,8 +296,8 @@ do k = 1, size(graph%curve)
   ! find phase space axes to plot
 
   err = .false.
-  call tao_phase_space_axis (curve%data_type_x, ix1_ax, err); if (err) return
-  call tao_phase_space_axis (curve%data_type,   ix2_ax, err); if (err) return
+  call tao_phase_space_axis (curve%data_type_x, ix1_ax, err = err); if (err) return
+  call tao_phase_space_axis (curve%data_type,   ix2_ax, err = err); if (err) return
 
   ! fill the curve data arrays
 
@@ -330,8 +331,10 @@ do k = 1, size(graph%curve)
       do ib = 1, size(beam%bunch)
         p => beam%bunch(ib)%particle
         m = size(p)
-        curve%x_symb(n+1:n+m) = pack(p(:)%r%vec(ix1_ax), mask = (p%ix_lost == not_lost$))
-        curve%y_symb(n+1:n+m) = pack(p(:)%r%vec(ix2_ax), mask = (p%ix_lost == not_lost$))
+        call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, axis1)
+        call tao_phase_space_axis (curve%data_type,   ix2_ax, p, axis2)
+        curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%ix_lost == not_lost$))
+        curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%ix_lost == not_lost$))
         if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
                              sqrt(p(:)%r%intensity_x + p(:)%r%intensity_y), mask = (p%ix_lost == not_lost$))
         curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%ix_lost == not_lost$))
@@ -339,8 +342,10 @@ do k = 1, size(graph%curve)
       enddo
     else
       p => beam%bunch(curve%ix_bunch)%particle
-      curve%x_symb = pack(p(:)%r%vec(ix1_ax), mask = (p%ix_lost == not_lost$))
-      curve%y_symb = pack(p(:)%r%vec(ix2_ax), mask = (p%ix_lost == not_lost$))
+      call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, axis1)
+      call tao_phase_space_axis (curve%data_type,   ix2_ax, p, axis2)
+      curve%x_symb = pack(axis1, mask = (p%ix_lost == not_lost$))
+      curve%y_symb = pack(axis2, mask = (p%ix_lost == not_lost$))
       if (graph%symbol_size_scale > 0) curve%symb_size = pack(graph%symbol_size_scale * &
                             sqrt(p(:)%r%intensity_x + p(:)%r%intensity_y), mask = (p%ix_lost == not_lost$))
       forall (i = 1:m) curve%ix_symb(i) = i
@@ -466,28 +471,46 @@ end subroutine tao_graph_phase_space_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_phase_space_axis (data_type, ix_axis, err)
+subroutine tao_phase_space_axis (data_type, ix_axis, p, axis, err)
 
 implicit none
 
-character(*) data_type
+type (particle_struct), optional, target :: p(:)
+
+real(rp), pointer, optional :: axis(:)
+
 integer ix_axis
-logical err
+
+logical, optional :: err
+
+character(*) data_type
 character(16) :: r_name = 'phase_space_axis'
 
 !
 
 select case (data_type)
-case ('x');   ix_axis = 1
-case ('px');  ix_axis = 2
-case ('y');   ix_axis = 3
-case ('py');  ix_axis = 4
-case ('z');   ix_axis = 5
-case ('pz');  ix_axis = 6
+case ('x');   ix_axis = 1; if (present(p)) axis => p%r%vec(1)
+case ('px');  ix_axis = 2; if (present(p)) axis => p%r%vec(2)
+case ('y');   ix_axis = 3; if (present(p)) axis => p%r%vec(3)
+case ('py');  ix_axis = 4; if (present(p)) axis => p%r%vec(4)
+case ('z');   ix_axis = 5; if (present(p)) axis => p%r%vec(5)
+case ('pz');  ix_axis = 6; if (present(p)) axis => p%r%vec(6)
+case ('intensity_x'); ix_axis =  7; if (present(p)) axis => p%r%intensity_x
+case ('intensity_y'); ix_axis =  8; if (present(p)) axis => p%r%intensity_y
+case ('phase_x');     ix_axis =  9; if (present(p)) axis => p%r%phase_x
+case ('phase_y');     ix_axis = 10; if (present(p)) axis => p%r%phase_y
+
+case ('intensity')
+  ix_axis = 11
+  if (present(p)) then
+    p%charge = p%r%intensity_x + p%r%intensity_y
+    axis => p%charge
+  endif
+
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)
   call err_exit
-  err = .true.
+  if (present(err)) err = .true.
 end select
 
 end subroutine tao_phase_space_axis
