@@ -207,7 +207,7 @@ logical stop_at_boundary
 photon%old = photon%now
 vec => photon%now%orb%vec
 
-! no stop is easy
+! If we do not have to stop at a boundary then propagation is easy.
 
 if (.not. stop_at_boundary) then
   vec(1) = vec(1) + dlen * vec(2)
@@ -217,19 +217,20 @@ if (.not. stop_at_boundary) then
   return
 endif
 
-! Stop at boundary
+! Here if stopping at a boundary plane is to be done...
+! First see where we need to stop.
 
 cross => ele%cross_section
 call bracket_index(cross%s, 1, size(cross), vec(5), ixc)
 
-if (vec(6) > 0) then
+if (vec(6) > 0) then   ! Forward going photon
   if (cross(ixc)%n_slice_spline > 1) then
     ix = int(cross(ixc)%n_slice_spline * (vec(5) - cross(ixc)%s) / (cross(ixc+1)%s - cross(ixc)%s))
     s_stop = cross(ixc)%s + (ix+1) * (cross(ixc+1)%s - cross(ixc)%s)
   else
     s_stop = cross(ixc+1)%s
   endif
-else
+else   ! Backward going photon
   if (cross(ixc)%n_slice_spline > 1) then
     ix = int(cross(ixc)%n_slice_spline * (vec(5) - cross(ixc)%s) / (cross(ixc+1)%s - cross(ixc)%s))
     s_stop = cross(ixc)%s + ix * (cross(ixc+1)%s - cross(ixc)%s)
@@ -238,11 +239,15 @@ else
   endif
 endif
 
+! Now calculate the distance to track
+
 if (abs(vec(6)) * dlen > abs(s_stop - vec(5))) then
   dl = (s_stop - vec(5)) / vec(6)
 else
   dl = dlen
 endif
+
+! And track to the stopping point.
 
 vec(1) = vec(1) + dl * vec(2)
 vec(3) = vec(3) + dl * vec(4)
@@ -384,14 +389,19 @@ real(rp), pointer :: vec(:)
 
 logical absorbed
 
-!
+! perp is a vector perpendicular to the surface tangent plane
 
 photon%old = photon%now
 r = capillary_photon_d_radius (photon%now, ele, perp)
 
+! The component of the photon velocity that is perpendicular to the surface 
+! tangent gets reflected.
+
 vec => photon%now%orb%vec
 cos_perp = dot_product (vec(2:6:2), perp)
 vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * perp
+
+! Check for absorbtion if the graze angle is too large.
 
 absorbed = .false.
 graze_angle = pi/2 - acos(cos_perp)
@@ -441,7 +451,7 @@ if (ix == size(ele%cross_section)) ix = size(ele%cross_section) - 1
 if (vec(5) == ele%cross_section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
 p_orb%ix_cross = ix
 
-!
+! cc0 and cc1 are the cross-sections to either side of the photon.
 
 cc0 => ele%cross_section(ix)
 cc1 => ele%cross_section(ix+1)
@@ -455,6 +465,8 @@ else
   cos_theta = vec(1) / r_photon
   sin_theta = vec(3) / r_photon
 endif
+
+! Calculate the radius values at the cross-sections.
 
 call calc_wall_radius (cc0%v, cos_theta, sin_theta, r0_wall, dr0_dtheta)
 call calc_wall_radius (cc1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
@@ -480,7 +492,7 @@ else
   r11_wall = r1_wall
 endif
 
-!
+! Interpolate to get d_radius
 
 f = (vec(5) - s00) / (s11 - s00)
 
@@ -493,11 +505,13 @@ endif
 
 d_radius = r_photon - ((1 - f_eff) * r00_wall + f_eff * r11_wall)
 
+! Calculate the surface normal vector
+
 if (present (perp)) then
-  perp(1:2) = [-vec(3), vec(1)] - &
-                ((1 - f_eff) * dr0_dtheta + f_eff * dr1_dtheta) * [-1/vec(3), 1/vec(1)]
+  perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
+                        ((1 - f_eff) * dr0_dtheta + f_eff * dr1_dtheta) / r_photon
   perp(3)   = -(r11_wall - r00_wall) / ds_spline
-  perp = perp / sqrt(sum(perp**2))  ! Normalize
+  perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
 endif
 
 end function capillary_photon_d_radius
@@ -515,7 +529,7 @@ end function capillary_photon_d_radius
 !   use cross_setction_mod
 !
 ! Input:
-!   v(:)         -- cross_section_vertex_struct: Array of vertices.
+!   v(:)         -- cross_section_vertex_struct: Array of vertices that make up the cross-section.
 !   cos_ang      -- Real(rp): cosine of the transverse photon position.
 !   sin_ang      -- Real(rp): sine of the transverse photon position.
 !
