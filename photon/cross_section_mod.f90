@@ -233,6 +233,7 @@ if (all(v(1:n)%y >= 0)) then
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
 
   if (v(1)%y == 0) then ! Do not duplicate v(1) vertex
+    v(nn)%angle = v(1)%angle
     v(1) = v(nn)
     nn = nn - 1
   endif

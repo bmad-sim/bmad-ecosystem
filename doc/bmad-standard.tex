@@ -138,7 +138,7 @@ Apply \vn{tilt} and \vn{tilt_err}:
   \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
     \bR (\theta_{tot}) \,   \begin{pmatrix} x_1 \\ y_1 \end{pmatrix} \CRNO
   \begin{pmatrix} p_{x2} \\ p_{y2} \end{pmatrix} &=
-    \bR (\theta_{tot}) \,   \begin{pmatrix} p_{x1} \\ p_{y1} \end{pmatrix} \\
+    \bR (\theta_{tot}) \,   \begin{pmatrix} p_{x1} \\ p_{y1} \end{pmatrix} \\ \label{xyrtxy}
   \begin{pmatrix} \bE_{x2} \\ \bE_{y2} \end{pmatrix} &=
     \bR (\theta_{tot}) \,   \begin{pmatrix} \bE_{x1} \\ \bE_{y1} \end{pmatrix} \nonumber
 \end{align}
@@ -146,7 +146,15 @@ where $\bR$ is the rotation matrix
 \Begineq
   \bR(\theta) = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
 \Endeq
-$\theta_{tot}$  is \vn{tilt} + \vn{tilt_err}, and $E$ is shorthand notation for
+$\theta_{tot}$  is 
+\Begineq
+  $\theta_{tot}$  = 
+  \begin{cases}
+    \vn{tilt} + \vn{tilt_err} + \vn{tilt_err} \\ \vn{for crystal elements}
+    \vn{tilt} + \vn{tilt_err} \\ \vn{for mirror elements}
+  \end{cases}
+\Endeq
+In \Eqs{xyrtxy} $E$ is shorthand notation for
 \Begineq
   \bE \equiv \sqrt{I} \, e^{i \, \phi}
 \Endeq
