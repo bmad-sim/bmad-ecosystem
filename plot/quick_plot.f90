@@ -1370,7 +1370,8 @@ end subroutine qp_set_graph_limits
 !+
 ! Subroutine qp_clear_page ()
 !
-! Subroutine to clear all drawing from the page.
+! Subroutine to clear all drawing from the displayed page.
+! If outputting to a file: End current page and start a new one.
 !-
 
 subroutine qp_clear_page ()
