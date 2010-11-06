@@ -15,9 +15,9 @@ end type
 
 ! This is for passing info to the photon_hit_func routine used by zbrent
 
-type (photon_track_struct), pointer, private :: photon_com
-type (photon_track_struct), private :: photon1_com
-type (ele_struct), private, pointer :: ele_com
+type (photon_track_struct), pointer, private, save :: photon_com
+type (photon_track_struct), private, save :: photon1_com
+type (ele_struct), private, pointer, save :: ele_com
 
 private photon_hit_func
 
