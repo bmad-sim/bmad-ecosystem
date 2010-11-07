@@ -242,7 +242,7 @@ type (particle_struct), pointer :: p(:)
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
 real(rp) emit_a, emit_b
-real(rp), pointer :: axis1(:), axis2(:)
+real(rp), allocatable, save :: axis1(:), axis2(:)
 
 integer k, n, m, ib, ix1_ax, ix2_ax, ix, i
 
@@ -477,7 +477,7 @@ implicit none
 
 type (particle_struct), optional, target :: p(:)
 
-real(rp), pointer, optional :: axis(:)
+real(rp), allocatable, optional :: axis(:)
 
 integer ix_axis
 
@@ -488,23 +488,25 @@ character(16) :: r_name = 'phase_space_axis'
 
 !
 
+if (present(p)) call re_allocate (axis, size(p))
+
 select case (data_type)
-case ('x');   ix_axis = 1; if (present(p)) axis => p%r%vec(1)
-case ('px');  ix_axis = 2; if (present(p)) axis => p%r%vec(2)
-case ('y');   ix_axis = 3; if (present(p)) axis => p%r%vec(3)
-case ('py');  ix_axis = 4; if (present(p)) axis => p%r%vec(4)
-case ('z');   ix_axis = 5; if (present(p)) axis => p%r%vec(5)
-case ('pz');  ix_axis = 6; if (present(p)) axis => p%r%vec(6)
-case ('intensity_x'); ix_axis =  7; if (present(p)) axis => p%r%intensity_x
-case ('intensity_y'); ix_axis =  8; if (present(p)) axis => p%r%intensity_y
-case ('phase_x');     ix_axis =  9; if (present(p)) axis => p%r%phase_x
-case ('phase_y');     ix_axis = 10; if (present(p)) axis => p%r%phase_y
+case ('x');   ix_axis = 1; if (present(p)) axis = p%r%vec(1)
+case ('px');  ix_axis = 2; if (present(p)) axis = p%r%vec(2)
+case ('y');   ix_axis = 3; if (present(p)) axis = p%r%vec(3)
+case ('py');  ix_axis = 4; if (present(p)) axis = p%r%vec(4)
+case ('z');   ix_axis = 5; if (present(p)) axis = p%r%vec(5)
+case ('pz');  ix_axis = 6; if (present(p)) axis = p%r%vec(6)
+case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%r%intensity_x
+case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%r%intensity_y
+case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%r%phase_x
+case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%r%phase_y
 
 case ('intensity')
   ix_axis = 11
   if (present(p)) then
     p%charge = p%r%intensity_x + p%r%intensity_y
-    axis => p%charge
+    axis = p%charge
   endif
 
 case default
