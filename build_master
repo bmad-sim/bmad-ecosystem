@@ -795,6 +795,9 @@ class builder:
       shutil.copy(self.full_rel_name + "/util/bmad_def", self.full_rel_name + "/bin")
       shutil.copy(self.full_rel_name + "/util/bmad_defs", self.full_rel_name + "/bin")
       print "Environment scripts copied to distribution bin directory."
+      shutil.copy(self.full_rel_name + "/util/INSTALL", self.full_rel_name)
+      print "Documentation copied to distribution root directory."
+
       
       ## Create the distribution source tarball
       print "\nCreating distribution tarball..."

@@ -89,7 +89,8 @@ print "\nSuccessfully launched remote build process.\n"
 accdefs  = ". " + bin_dir + "/accdefs; "      # command to source the accdefs:accenv environment setup scripts
     ####accdefs  = ". " + bin_dir + "/accdefs-ifort11.1; "  # Use this to test a new compiler.
 
-bmad_defs = ". " + bin_dir + "/bmad_defs; "
+##bmad_defs = ". " + bin_dir + "/bmad_defs; "
+bmad_defs = ". " + bin_dir + "/dist_source_me; "
 env_setup3 = ""
 test_script = bin_dir + "/util/CESRbuild_test_suite"
 
