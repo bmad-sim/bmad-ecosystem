@@ -75,7 +75,13 @@ if (present(err_flag)) err_flag = .true.
 call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
 if (iu == 0) then ! If open failure
   call out_io (s_warn$, r_name, 'CANNOT OPEN TAO INITIALIZATION FILE!')
-  if (tao_com%init_tao_file_set_on_command_line .or. tao_com%lat_file == '') stop
+  if (tao_com%init_tao_file_set_on_command_line .or. tao_com%lat_file == '') then
+    call out_io (s_info$, r_name, &
+            'Note: To run Tao, you either need a Tao initialization file or', &
+            '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
+            '  See the Tao manual for more details...'
+    stop
+  endif
   tao_com%init_tao_file = ''
 endif
 
