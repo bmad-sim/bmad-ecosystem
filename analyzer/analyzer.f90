@@ -1,5 +1,6 @@
 program anaylzer
 
+  use bmad
   use bmadz_interface
   use cesr_utils
   use cbar_mod
@@ -211,12 +212,23 @@ program anaylzer
      ring = ring_2
      exit
    endif
+
+
    if(line(1:4) == 'RING')then
      if(index(line(6:),'1') /= 0)ring=ring_1
      if(index(line(6:),'2') /= 0)ring=ring_2
      exit
    endif
+
+
 !  lat_file = line
+
+   if(line(1:4) == 'REVE')then
+     ring_1 = ring
+     call lat_reverse(ring_1, ring_2)
+     print '(a)', "RING 2 is the reverse of RING 1"
+     exit
+   endif
 
    if(line(1:2) == '6D')then
      i_dim=6
@@ -814,7 +826,12 @@ program anaylzer
          xscale=(int(xmax/10.)+1)*10
          x_low = 0.
          if(diff)x_low = -xscale
-         call pgenv(start, end,x_low,xscale,0,1)
+         if(start >= 0)then
+          call pgenv(start, end,x_low,xscale,0,1)
+         else
+          call pgenv(0., end,x_low,xscale,0,1)
+          call pgenv(length+start, length,x_low,xscale,0,1)
+         endif
          call pglab('z (m)','Bx(m)',' Beta')
        endif
        if(plot_flag == de_beta$)then
@@ -911,7 +928,12 @@ program anaylzer
          yscale=(int(ymax/10.)+1)*10
          y_low = 0.
          if(diff)y_low=-yscale
-         call pgenv(start, end, y_low, yscale,0,1)
+         if(start >=0)then
+          call pgenv(start, end, y_low, yscale,0,1)
+         else
+          call pgenv(0., end, y_low, yscale,0,1)
+          call pgenv(length+start, length, y_low, yscale,0,1)
+         endif
          call pglab('z (m)','By(m)',' Beta')
        endif
        if(plot_flag == de_beta$)then
@@ -1015,8 +1037,8 @@ program anaylzer
 1      format(1x,a13,f8.3,4f8.2,2e12.4) 
        close(unit=33)
 
-      print *,' write geometry data to fort.34'
-      open(unit=34)
+      print *,' write geometry data to "geometry.dat"'
+      open(unit=34, file='geometry.dat')
       write(34,'(1x,a13,6a12)')'  Ele name  ','     s       ', &
                                               '     x       ','     y      ','     z      ',&
                                               '   theta     ','    phi     ','    psi     ' 
@@ -1030,6 +1052,18 @@ program anaylzer
 
        close(unit=34)
 
+      print *,' write beta and eta data to "beta_eta.dat"'
+      open(unit=34,file="beta_eta.dat")
+      write(34,'(a13,5a12)')'Element','s','beta x','beta y','eta x','eta y'
+       do i=1,ring%n_ele_track
+  write(34,'(1x,a13,5e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
+                        ring%ele(i)%a%beta,ring%ele(i)%b%beta,ring%ele(i)%x%eta, &
+                        ring%ele(i)%y%eta
+
+       end do
+
+       close(unit=34)
+   
 
 
       end
