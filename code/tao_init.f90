@@ -76,10 +76,27 @@ call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
 if (iu == 0) then ! If open failure
   call out_io (s_warn$, r_name, 'CANNOT OPEN TAO INITIALIZATION FILE!')
   if (tao_com%init_tao_file_set_on_command_line .or. tao_com%lat_file == '') then
+    call output_direct (0, .true.)
     call out_io (s_info$, r_name, &
             'Note: To run Tao, you either need a Tao initialization file or', &
             '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
-            '  See the Tao manual for more details...'
+            '  See the Tao manual for more details...')
+    call out_io (s_info$, r_name, [ &
+            'Syntax:                            ', &
+            '  tao {OPTIONS}                    ', &
+            'Options are:                       ', &
+            '  -beam <beam_file>                ', &
+            '  -beam_all <all_beam_file>        ', &
+            '  -beam0 <beam0_file>              ', &
+            '  -data <data_file>                ', &
+            '  -init <tao_init_file>            ', &
+            '  -lat <bmad_lattice_file>         ', &
+            '  -lat XSIF::<xsif_lattice_file>   ', &
+            '  -lattice <lattice_namelist_file> ', &
+            '  -noplot                          ', &
+            '  -plot <plot_file>                ', &
+            '  -startup <starup_command_file>   ', &
+            '  -var <var_file>                  '])
     stop
   endif
   tao_com%init_tao_file = ''
