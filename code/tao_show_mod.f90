@@ -2401,8 +2401,8 @@ case ('variable')
 
     result_id = 'variable:1:' // word1
 
-! check if there is a variable number
-! if no variable number requested, show a range
+  ! check if there is a variable number
+  ! if no variable number requested, show a range
 
   elseif (size(v1_array) == 1) then
 
@@ -2413,12 +2413,14 @@ case ('variable')
       nc = max(nc, len_trim(tao_var_attrib_name(v_ptr)))
     enddo
 
-    write(lines(1), '(2a)') 'Variable name:  ', v1_array(1)%v1%name
-    lines(2) = ' '
-    line1 = '       Name'
-    line1(nc+17:) = 'Meas         Model        Design  Useit_opt'
-    lines(3) = line1
-    nl = 3
+    if (print_header_lines) then
+      line1 = '       Name'
+      line1(nc+17:) = 'Meas         Model        Design  Useit_opt'
+      nl=nl+1; write(lines(nl), '(2a)') 'Variable name:  ', v1_array(1)%v1%name
+      nl=nl+1; lines(nl) = ' '
+      nl=nl+1; lines(nl) = line1
+    endif
+
     ! if a range is specified, show the variable range   
     do i = 1, size(v_array)
       v_ptr => v_array(i)%v
@@ -2429,7 +2431,10 @@ case ('variable')
       write(lines(nl)(nc+9:), '(3es14.4, 7x, l)') v_ptr%meas_value, &
                  v_ptr%model_value, v_ptr%design_value, v_ptr%useit_opt
     enddo
-    nl=nl+1; lines(nl) = line1
+
+    if (print_header_lines) then
+      nl=nl+1; lines(nl) = line1
+    endif
 
   else
     nl=1; lines(1) = '???'
