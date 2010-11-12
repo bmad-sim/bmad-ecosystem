@@ -170,13 +170,18 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
 
 0) Install PLPLOT if needed. See the PLOTTING ISSUES sections for more details.
 
-1) Unzip and extract the tar archive into a directory of your choice which 
-   we will hereafter refer to as DIR.  DIR can be owned by system or a 
-   "master account" (Individual users will be able to set up some environment 
-   variables, see below, which will allow them to link to libraries and 
-   modules in this area).  The resulting distribution will then be in 
-   DIR/bmad_dist_yyyy_mmdd_d.  The bmad_dist_yyy_mmdd_d directory should 
-   contain the following areas:
+1) Unzip and extract the tar archive into a working directory of your choice
+   with the command:
+
+      tar zxvf 'filename'
+
+   This will create a directory in that working directory with a name similar
+   to "bmad_dist_2010_mmdd_d".  This newly-created directory will be referred
+   to from now on as "DIR" and can be owned by system or a "master account"
+   (Individual users will be able to set up some environment variables, see 
+   below, which will allow them to link to libraries and modules in this area).
+   The resulting bmad_dist_yyy_mmdd_d directory should contain the following
+   subdirectories:
 
 
    bin                   -  Output directory for executables and map files.
@@ -207,7 +212,9 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
    xsif                  -  XSIF lattice parser.
 
 
-2) (Optional) Create a softlink in the DIR directory:
+2) (Optional) Create a softlink to the DIR directory:
+
+   In the directory where the archive was unpacked, you may run this command.
 
    ln -s bmad_dist_yyyy_mmdd_d bmad_dist
 
