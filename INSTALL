@@ -177,7 +177,7 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
 
    This will create a directory in that working directory with a name similar
    to "bmad_dist_2010_mmdd_d".  This newly-created directory will be referred
-   to from now on as "DIR" and can be owned by system or a "master account"
+   to from now on as "DIR" and can be owned by a system or "master account"
    (Individual users will be able to set up some environment variables, see 
    below, which will allow them to link to libraries and modules in this area).
    The resulting bmad_dist_yyy_mmdd_d directory should contain the following
