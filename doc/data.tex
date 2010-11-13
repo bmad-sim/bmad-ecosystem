@@ -292,9 +292,9 @@ types, like \vn{dpx_dx}, only make sense with a \vn{"beam"}
 case, such datums will have a different value depending upon what
 \vn{data_source} is used.  Table~\ref{t:data.beam} lists the
 predefined data types in \tao that are valid for a \vn{"beam"}
-\vn{data_source} (\sref{s:init.data}) and
-Table~\ref{t:data.lattice} lists the predefined data types in
-\tao that are valid for a \vn{"lattice"} \vn{data_source}.
+\vn{data_source} (\sref{s:init.data}) and Tables~\ref{t:data.lattice1}
+and \ref{t:data.lattice2} lists the predefined data types in \tao that
+are valid for a \vn{"lattice"} \vn{data_source}.
 
 It is important to note the difference between the \vn{d2.d1} name
 that is used to refer to a given set of data and the actual type of
@@ -726,7 +726,20 @@ size squared.
 
   floor.x, floor.y, floor.z, floor.theta 
                                  & Global (``floor'') position        \\ \hline 
+\end{tabular}
+} 
+\label{t:data.lattice1}
+\caption{Part I. Predefined Data Types for \vn{"lattice"} data\_source. 
+This list is continued on the next table.}
+\end{table}
 
+%----------------------------------------------------------------------------------------------
+
+\begin{table}[ht] 
+\centering 
+{\tt\small
+\begin{tabular}{|l|l|} \hline
+  {\it Data\_Type}               & {\it Description}                  \\ \hline 
   gamma.a, gamma.b               & Normal-mode gamma function         \\ \hline 
 
   rad\_int.i1                    & I1 radiation integral              \\ \hline
@@ -802,8 +815,9 @@ size squared.
 
 \end{tabular}
 } 
-\label{t:data.lattice}
-\caption{Predefined Data Types for \vn{"lattice"} data\_source}
+\label{t:data.lattice2}
+\caption{Part II. Predefined Data Types for \vn{"lattice"} data\_source. 
+This list is continued from the previous table.}
 \end{table}
 
 \vfill \break
