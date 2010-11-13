@@ -547,7 +547,7 @@ if (data_type  == 'rad_int.') then
   endif
 endif
 
-if (data_source /= 'lat' .and. data_source /= 'beam') then
+if (data_source /= 'lat' .and. data_source /= 'beam' .and. data_type /= 'expression:') then
   call out_io (s_error$, r_name, &
           'UNKNOWN DATA_SOURCE: ' // data_source, &
           'FOR DATUM: ' // tao_datum_name(datum))
