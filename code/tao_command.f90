@@ -31,7 +31,7 @@ use tao_wave_mod
 
 implicit none
 
-integer i, j, iu, ios
+integer i, j, iu, ios, n_word, n_eq
 integer ix, ix_line, ix_cmd, which
 integer int1, int2, uni, wrt, n_level
 
@@ -53,11 +53,11 @@ character(16) :: cmd_names(33) = [  &
     'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
     'pause        ', 'continue     ', 'wave         ']
 
-character(16) :: set_names(16) = [ &
+character(16) :: set_names(17) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
     'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ', &
-    'csr_param    ']
+    'csr_param    ', 'shape        ']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -449,7 +449,7 @@ case ('scale')
 
 case ('set')
 
-  call tao_cmd_split (cmd_line, 5, cmd_word, .false., err, '=')
+  call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
 
   call match_word (cmd_word(1), set_names, ix, .true., set_word)
   if (ix == 0) then
@@ -457,62 +457,58 @@ case ('set')
     return
   endif
 
-  if ( &
-       (set_word == 'beam_init'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'bmad_com'       .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'csr_param'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'curve'          .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'data'           .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'element'        .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'global'         .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'graph'          .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'lattice'        .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'opti_de_param'  .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'plot'           .and. cmd_word(4) /= '=') .or. &
-       (set_word == 'plot_page'      .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'ran_state'      .and. cmd_word(2) /= '=') .or. &
-       (set_word == 'var'            .and. cmd_word(3) /= '=') .or. &
-       (set_word == 'wave'           .and. cmd_word(3) /= '=')) then
+  cmd_line = cmd_word(2)
+  select case (set_word)
+  case ('ran_state'); n_word = 2; n_eq = 1
+  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', & &
+        'lattice', 'opti_de_param', 'var', 'wave'); n_word = 3; n_eq = 2
+  case ('universe'); n_word = 3; n_eq = 10
+  case ('plot_page'); n_word = 4; n_eq = 2
+  case ('curve', 'element', 'graph', 'plot', 'shape'); n_word = 4; n_eq = 3
+  end select
+
+  call tao_cmd_split (cmd_line, n_word, cmd_word, .false., err, '=')
+
+  if (set_word /= 'universe' .and. cmd_word(n_eq) /= '=') then
     call out_io (s_error$, r_name, 'SYNTAX PROBLEM. "=" NOT IN CORRECT PLACE.')
     return
   endif
 
   select case (set_word)
-  case ('csr_param')
-    call tao_set_csr_param_cmd (cmd_word(2), cmd_word(4))
-  case ('data')
-    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
-    call tao_set_data_cmd (cmd_word(2), cmd_word(4))
-  case ('var')
-    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
-    call tao_set_var_cmd (cmd_word(2), cmd_word(4))
-  case ('lattice')
-    cmd_word(4) = trim(cmd_word(4)) // cmd_word(5)
-    call tao_set_lattice_cmd (cmd_word(2), cmd_word(4)) 
-  case ('curve')
-    call tao_set_curve_cmd (cmd_word(2), cmd_word(3), cmd_word(5)) 
-  case ('global')
-    call tao_set_global_cmd (cmd_word(2), cmd_word(4))
-  case ('bmad_com')
-    call tao_set_bmad_com_cmd (cmd_word(2), cmd_word(4))
-  case ('opti_de_param')
-    call tao_set_opti_de_param_cmd (cmd_word(2), cmd_word(4))
   case ('beam_init')
-    call tao_set_beam_init_cmd (cmd_word(2), cmd_word(4))
-  case ('plot_page')
-    call tao_set_plot_page_cmd (cmd_word(2), cmd_word(4), cmd_word(5))
-  case ('graph')
-    call tao_set_graph_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
-  case ('plot ')
-    call tao_set_plot_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
-  case ('ran_state')
-    call tao_set_ran_state_cmd (trim(cmd_word(3)) // ' ' // trim(cmd_word(4)) // ' ' // trim(cmd_word(5)))
-  case ('universe')    
-    call tao_set_universe_cmd (cmd_word(2), cmd_word(3), cmd_word(4))
+    call tao_set_beam_init_cmd (cmd_word(1), cmd_word(3))
+  case ('bmad_com')
+    call tao_set_bmad_com_cmd (cmd_word(1), cmd_word(3))
+  case ('csr_param')
+    call tao_set_csr_param_cmd (cmd_word(1), cmd_word(3))
+  case ('curve')
+    call tao_set_curve_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
+  case ('data')
+    call tao_set_data_cmd (cmd_word(1), cmd_word(3))
   case ('element')    
-    call tao_set_elements_cmd (cmd_word(2), cmd_word(3), cmd_word(5))
+    call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('global')
+    call tao_set_global_cmd (cmd_word(1), cmd_word(3))
+  case ('graph')
+    call tao_set_graph_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('lattice')
+    call tao_set_lattice_cmd (cmd_word(1), cmd_word(3))
+  case ('opti_de_param')
+    call tao_set_opti_de_param_cmd (cmd_word(1), cmd_word(3))
+  case ('plot ')
+    call tao_set_plot_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('plot_page')
+    call tao_set_plot_page_cmd (cmd_word(1), cmd_word(3), cmd_word(4))
+  case ('ran_state')
+    call tao_set_ran_state_cmd (cmd_word(2))
+  case ('shape')
+    call tao_set_shape_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('universe')    
+    call tao_set_universe_cmd (cmd_word(1), cmd_word(2), cmd_word(3))
+  case ('var')
+    call tao_set_var_cmd (cmd_word(1), cmd_word(3))
   case ('wave')
-    call tao_set_wave_cmd (cmd_word(2), trim(cmd_word(4)) // ' ' // cmd_word(5), err)
+    call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err)
     if (err) return
     call tao_cmd_end_calc
     call tao_show_cmd ('wave', '')

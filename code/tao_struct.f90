@@ -58,11 +58,13 @@ end type
 !----------------------------------------------------------------------
 
 type tao_ele_shape_struct    ! for the element layout plot
-  character(60) ele_name     ! element name
-  character(16) shape        ! plot shape
-  character(16) color        ! plot color
-  real(rp) dy_pix            ! plot vertical height 
-  character(16) label_type 
+  character(60) ele_name     ! element name to match to.
+  character(16) shape        ! Shape to draw
+  character(16) color        ! Color of shape
+  real(rp) size              ! plot vertical height 
+  character(16) label        ! Can be: 'name', 's', 'none' 
+  logical draw               ! Draw the shape?
+  character(20) shape_name   ! shape name for "set shape" command
 end type
 
 type tao_wave_kick_pt_struct

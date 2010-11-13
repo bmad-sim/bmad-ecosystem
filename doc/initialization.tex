@@ -2052,32 +2052,35 @@ and lattice layouts.
 The namelist syntax is the same for both:
 \begin{example}
   &element_shapes_lat_layout
-    ele_shape(i) = "<element_list>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+    ele_shape(i) = "<ele_name>" "<shape>" "<color>" "<v_size>" "<label>" <draw> "<shape_name>"
   /
   &element_shapes_floor_plan
-    ele_shape(i) = "<element_list>" "<shape>" "<color>" "<v_size>" "<Label_type>"
+    ele_shape(i) = "<ele_name>" "<shape>" "<color>" "<v_size>" "<label>" <draw> "<shape_name>"
   /
 \end{example}
 For Example:                 
 \begin{example}
   &element_shapes_floor_plan
-    !              element_list             Shape     Color     Size   Label_Type
-    ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     name 
+    !              ele_name                 Shape     Color   Size    Label Draw? Shape_name
+    ele_shape(1) = "quadrupole::q*"         "box"     "red"     30     name  T      "qq"
     ele_shape(2) = "quadrupole::*"          "xbox"    "red"     30     none 
-    ele_shape(3) = "sbend::*"               "box"     "blue"    15     none
+    ele_shape(3) = "sbend::*"               "box"     "blue"    15     none  F
     ele_shape(4) = "wiggler::*"             "xbox"    "green"   20     name
     ele_shape(5) = "var::quad_k1"           "circle"  "purple"  10     name
     ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  10     name
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
-\vn{<element_list>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
+\vn{<ele_name>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
 Thus, in the example above, \vn{ele_shape(1)} will match to all
 quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
 match all quadrupoles. If an element matches more than one shape the
 first shape matched will be used. For a floor plan, for \vn{wiggler}s that have an
 \vn{x_ray_line_len} attribute, The X-ray line will be drawn if an
 \vn{ele_shape} for a \vn{photon_branch} is present.
+
+Use the \vn{show plot -shape} command to see the defined shapes.
+use the \vn{set shape} command to set shape parameters on the command line.
 
 Data and variables can also be specified to be drawn. In the above
 example, it is assumed that a \vn{quad_k1} variable array and a
@@ -2129,14 +2132,23 @@ focusing strength. Not all lattice elements can be used with a
   "purple"
 \end{example}
 
-Finally \vn{<Label_Type>} indicates what type of label to print next to the corresponding
+The \vn{<label>} indicates what type of label to print next to the corresponding
 element glyph. Possibilities are:
 \begin{example}
-  name            -- The element name
+  name            -- The element name (default).
   none            -- No label is drawn.
   s               -- Draw longitudinal s position.
 \end{example}
 The default is \vn{"name"}
+
+The \vn{<draw>} field determines if a shape is drawn or not. The
+default is \vn{T}. This can be useful for toggling on and off the
+drawing of shapes using the \vn{set shape} command (\sref{s:set}).
+
+The \vn{<shape_name>} field establishes the name for an element shape that
+can be used with the \vn{set shape} command. Default names are ``\vn{l<n>}''
+for \vn{element_shapes_lat_layout} shapes where \vn{<n>} is the shape index number,
+and ``\vn{f<n>}'' for \vn[element_shapes_floor_plan} shapes.
 
 Note: There is an old, deprecated syntax where both the lattice layout and floor plan
 drawings are specified via one \vn{element_shapes} namelist. 

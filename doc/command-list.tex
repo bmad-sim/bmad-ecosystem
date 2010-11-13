@@ -740,6 +740,7 @@ variables, etc. Format:
   set plot <plot> <component> = <value>
   set plot_page <component> = <value1> \{<value2>\}
   set ran_state = <random_number_generator_state>
+  set shape <shape_name> <component> = <value>
   set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
@@ -992,6 +993,18 @@ Example:
 
 Sets the state of the random number generator to a specific state. Use
 \vn{show global -ran_state} to show the random number generator state.
+
+%% set shape --------------------------------------------------------------
+
+\item[set shape <shape_name> <component> = <value>] \Newline
+
+Sets shape parameters for \vn{floor_plan} and \vn{lat_layout} plots.
+Use \vn{show plot -shape} to see a listing of all shapes. 
+
+Example:
+\begin{example}
+  set shape f2 draw = F  ! Veto drawing of shape f2 
+\end{example}
 
 %% set universe --------------------------------------------------------------
 
@@ -1475,7 +1488,8 @@ in which regions and also all available templates. See
 plot. 
 
 If the \vn{-shapes} switch is present, the shapes used in drawing 
-\vn{floor_plan} or \vn{lat_layout} plots are printed.
+\vn{floor_plan} or \vn{lat_layout} plots are printed. Use the \vn{set shape}
+command to set shape parameters.
 
 %% show top10 --------------------------------------------------------------
 

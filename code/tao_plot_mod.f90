@@ -314,6 +314,7 @@ enddo
 do i = 1, size(tao_com%ele_shape_floor_plan)
   ele_shape => tao_com%ele_shape_floor_plan(i)
   if (ele_shape%ele_name(1:5) /= 'dat::') cycle
+  if (.not. ele_shape%draw) cycle
   call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(d_array)
@@ -332,6 +333,7 @@ enddo
 do i = 1, size(tao_com%ele_shape_floor_plan)
   ele_shape => tao_com%ele_shape_floor_plan(i)
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
+  if (.not. ele_shape%draw) cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(v_array)
@@ -511,7 +513,7 @@ shape = ele_shape%shape
 
 call qp_translate_to_color_index (ele_shape%color, icol)
 
-off = ele_shape%dy_pix
+off = ele_shape%size
 off1 = off
 off2 = off
 if (shape == 'VAR_BOX' .or. shape == 'ASYM_VAR_BOX') then
@@ -675,7 +677,7 @@ endif
 ! Since multipass slaves are on top of one another, just draw the multipass lord's name.
 ! Also place a bend's label to the outside of the bend.
 
-if (ele_shape%label_type == 'name') then
+if (ele_shape%label == 'name') then
   if (name_in /= '') then
     name = name_in
   elseif (ele%slave_status == multipass_slave$) then
@@ -685,15 +687,15 @@ if (ele_shape%label_type == 'name') then
   else
     name = ele%name
   endif
-elseif (ele_shape%label_type == 's') then
+elseif (ele_shape%label == 's') then
   write (name, '(f16.2)') ele%s - ele%value(l$) / 2
   call string_trim (name, name, ix)
-elseif (ele_shape%label_type /= 'none') then
-  call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label_type)
+elseif (ele_shape%label /= 'none') then
+  call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label)
   call err_exit
 endif 
 
-if (ele_shape%label_type /= 'none') then
+if (ele_shape%label /= 'none') then
   if (ele%key /= sbend$ .or. ele%value(g$) == 0) then
     x_center = (end1%x + end2%x) / 2 
     y_center = (end1%y + end2%y) / 2 
@@ -833,6 +835,7 @@ enddo
 do i = 1, size(ele_shapes)
   ele_shape => ele_shapes(i)
   if (ele_shape%ele_name(1:5) /= 'dat::') cycle
+  if (.not. ele_shape%draw) cycle
   call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(d_array)
@@ -844,7 +847,7 @@ do i = 1, size(ele_shapes)
     x0 = datum%s 
     if (x0 > graph%x%max) cycle
     if (x0 < graph%x%min) cycle
-    y1 = ele_shape%dy_pix
+    y1 = ele_shape%size
     y1 = max(y_bottom, min(y1, y_top))
     y2 = -y1
     call qp_convert_point_rel (dummy, y1, 'DATA', dummy, y, 'INCH') 
@@ -859,6 +862,7 @@ enddo
 
 do i = 1, size(ele_shapes)
   if (plot%x_axis_type /= 's') exit
+  if (.not. ele_shape%draw) cycle
   ele_shape => ele_shapes(i)
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
@@ -962,7 +966,7 @@ if (x2 < graph%x%min) return
 ! Here if element is to be drawn...
 ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-y = ele_shape%dy_pix
+y = ele_shape%size
 y1 = -y
 y2 =  y
 if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
@@ -1046,15 +1050,15 @@ endif
 
 ! Put on a label
 
-if (s%global%label_lattice_elements .and. ele_shape%label_type /= 'none') then
+if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
   
-  if (ele_shape%label_type == 'name') then
+  if (ele_shape%label == 'name') then
     name = name_in
-  elseif (ele_shape%label_type == 's') then
+  elseif (ele_shape%label == 's') then
     write (name, '(f16.2)') s_pos
     call string_trim (name, name, ix)
   else
-    call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label_type)
+    call out_io (s_error$, r_name, 'BAD ELEMENT LABEL: ' // ele_shape%label)
     call err_exit
   endif 
 
@@ -1225,6 +1229,7 @@ do k = 1, size(ele_shapes)
   if (ele_shapes(k)%ele_name == '') cycle
   if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
   if (ele_shapes(k)%ele_name(1:5) == 'var::') cycle
+  if (.not. ele_shapes(k)%draw) cycle
 
   call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
   if (err) then

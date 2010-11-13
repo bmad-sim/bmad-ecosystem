@@ -1627,4 +1627,106 @@ error = .false.
 
 end subroutine
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_set_shape_cmd (shape_name, component, set_value)
+!
+! Routine to set element shape variables.
+! 
+! Input:
+!   who       -- Character(*): which shape variable to set
+!   set_value -- Character(*): Value to set to.
+!
+! Output:
+!    s%shape  -- Shape variables structure.
+!-
+
+subroutine tao_set_shape_cmd (shape_name, component, set_value)
+
+implicit none
+
+type (tao_ele_shape_struct) shape
+type (tao_ele_shape_struct), pointer :: shape0
+
+character(*) shape_name, component, set_value
+character(20) :: r_name = 'tao_set_shape_cmd'
+
+integer iu, ios, i
+logical err, needs_quotes
+
+namelist / params / shape
+
+! Find which shape to modify
+
+nullify (shape0)
+
+do i = 1, size(tao_com%ele_shape_floor_plan)
+  if (shape_name == tao_com%ele_shape_floor_plan(i)%shape_name) then
+    if (associated (shape0)) then
+      call out_io (s_error$, r_name, 'DUPLICATE NAME! ', shape_name)
+      return
+    endif
+    shape0 => tao_com%ele_shape_floor_plan(i)
+  endif
+enddo
+
+do i = 1, size(tao_com%ele_shape_lat_layout)
+  if (shape_name == tao_com%ele_shape_lat_layout(i)%shape_name) then
+    if (associated (shape0)) then
+      call out_io (s_error$, r_name, 'DUPLICATE NAME! ', shape_name)
+      return
+    endif
+    shape0 => tao_com%ele_shape_lat_layout(i)
+  endif
+enddo
+
+! open a scratch file for a namelist read
+
+iu = lunget()
+open (iu, status = 'scratch', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN A SCRATCH FILE!')
+  return
+endif
+
+needs_quotes = .false.
+select case (component)
+case ('shape', 'color', 'label', 'ele_name')
+  needs_quotes = .true.
+end select
+if (set_value(1:1) == "'" .or. set_value(1:1) == '"') needs_quotes = .false.
+
+write (iu, *) '&params'
+if (needs_quotes) then
+  write (iu, *) ' shape%' // trim(component) // ' = "' // trim(set_value) // '"'
+else
+  write (iu, *) ' shape%' // trim(component) // ' = ' // trim(set_value)
+endif
+write (iu, *) '/'
+write (iu, *)
+rewind (iu)
+shape = shape0  ! set defaults
+read (iu, nml = params, iostat = ios)
+close (iu)
+
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+  return
+endif
+
+shape0 = shape
+
+! Cleanup
+
+if (shape0%ele_name(1:5) /= 'dat::' .and. shape0%ele_name(1:5) /= 'var::') &
+                   call str_upcase (shape0%ele_name, shape0%ele_name)
+call str_upcase (shape0%shape,    shape0%shape)
+call str_upcase (shape0%color,    shape0%color)
+call downcase_string (shape0%label)
+
+
+end subroutine tao_set_shape_cmd
+
 end module tao_set_mod

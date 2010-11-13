@@ -26,8 +26,8 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   character(40) ele_name     ! element name
   character(16) shape        ! plot shape
   character(16) color        ! plot color
-  real(rp) dy_pix            ! plot vertical height 
-  Logical :: draw_name = .true.
+  real(rp) size              ! plot vertical height 
+  Logical :: draw_name  = .true.
   integer key                ! Element key index to match to
 end type
 
@@ -185,6 +185,7 @@ enddo
 
 !-----------------------------------------------------------------------------------
 ! Read in element shapes
+! Look for old style namelist 
 
 rewind (iu)
 shape(:)%key_name = ''
@@ -204,28 +205,37 @@ if (ios == 0) then
     ele_shape(i)%ele_name = shape(i)%ele_name
     if (shape(i)%key_name /= '') &
             ele_shape(i)%ele_name = trim(shape(i)%key_name) // '::' // ele_shape(i)%ele_name
-    ele_shape(i)%shape     = shape(i)%shape
-    ele_shape(i)%color     = shape(i)%color
-    ele_shape(i)%dy_pix    = shape(i)%dy_pix
+    ele_shape(i)%shape      = shape(i)%shape
+    ele_shape(i)%color      = shape(i)%color
+    ele_shape(i)%size       = shape(i)%size
+    ele_shape(i)%draw       = .true.
+    ele_shape(i)%shape_name = ''
     if (shape(i)%draw_name) then
-      ele_shape(i)%label_type = 'name'
+      ele_shape(i)%label = 'name'
     else
-      ele_shape(i)%label_type = 'none'
+      ele_shape(i)%label = 'none'
     endif
   enddo
 
-  call tao_uppercase_shapes (n)
+  call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%ele_shape_floor_plan(n), tao_com%ele_shape_lat_layout(n))
   tao_com%ele_shape_floor_plan = ele_shape(1:n)
+  do i = 1, n
+    ele_shape(i)%shape_name(1:1) = 'l'
+  enddo
   tao_com%ele_shape_lat_layout = ele_shape(1:n)
 endif
 
+! Look for new style shape namelist if could not find old style
 
 if (ios < 0) then
 
+  ! Read element_shapes_floor_plan namelist
   rewind (iu)
-  ele_shape(:)%ele_name = ' '
-  ele_shape(:)%label_type = 'name'
+  ele_shape(:)%ele_name   = ''
+  ele_shape(:)%label      = 'name'
+  ele_shape(:)%draw       = .true.
+  ele_shape(:)%shape_name = ''
   read (iu, nml = element_shapes_floor_plan, iostat = ios)
 
   if (ios > 0) then
@@ -234,12 +244,16 @@ if (ios < 0) then
     read (iu, nml = element_shapes_floor_plan)  ! To generate error message
   endif
 
-  call tao_uppercase_shapes (n)
+  call tao_uppercase_shapes (ele_shape, n, 'f')
   allocate (tao_com%ele_shape_floor_plan(n))
   tao_com%ele_shape_floor_plan = ele_shape(1:n)
 
+  ! Read element_shapes_lat_layout namelist
   rewind (iu)
-  ele_shape(:)%ele_name = ' '
+  ele_shape(:)%ele_name   = ''
+  ele_shape(:)%label      = 'name'
+  ele_shape(:)%draw       = .true.
+  ele_shape(:)%shape_name = ''
   read (iu, nml = element_shapes_lat_layout, iostat = ios)
 
   if (ios > 0) then
@@ -248,7 +262,7 @@ if (ios < 0) then
     read (iu, nml = element_shapes_lat_layout)  ! To generate error message
   endif
 
-  call tao_uppercase_shapes (n)
+  call tao_uppercase_shapes (ele_shape, n, 'l')
   allocate (tao_com%ele_shape_lat_layout(n))
   tao_com%ele_shape_lat_layout = ele_shape(1:n)
 
@@ -781,9 +795,11 @@ enddo
 !----------------------------------------------------------------------------------------
 contains
 
-subroutine tao_uppercase_shapes (n_shape)
+subroutine tao_uppercase_shapes (ele_shape, n_shape, prefix)
 
+type (tao_ele_shape_struct) ele_shape(:)
 integer n, n_shape
+character(1) prefix
 
 !
 
@@ -794,10 +810,11 @@ do n = 1, size(ele_shape)
                      call str_upcase (ele_shape(n)%ele_name, ele_shape(n)%ele_name)
   call str_upcase (ele_shape(n)%shape,    ele_shape(n)%shape)
   call str_upcase (ele_shape(n)%color,    ele_shape(n)%color)
-  call downcase_string (ele_shape(n)%label_type)
-  if (ele_shape(n)%label_type == '') ele_shape(n)%label_type = 'name'
-  if (index('false', trim(ele_shape(n)%label_type)) == 1) ele_shape(n)%label_type = 'none'
-  if (index('true', trim(ele_shape(n)%label_type)) == 1) ele_shape(n)%label_type = 'name'
+  call downcase_string (ele_shape(n)%label)
+  if (ele_shape(n)%label == '') ele_shape(n)%label = 'name'
+  if (index('false', trim(ele_shape(n)%label)) == 1) ele_shape(n)%label = 'none'
+  if (index('true', trim(ele_shape(n)%label)) == 1) ele_shape(n)%label = 'name'
+  if (ele_shape(n)%shape_name == '') write (ele_shape(n)%shape_name, '(a, i0)') prefix, n
   ! Convert old class:name format to new class::name format
   ix = index(ele_shape(n)%ele_name, ":")
   if (ix /= 0 .and. ele_shape(n)%ele_name(ix+1:ix+1) /= ':') &
@@ -823,11 +840,11 @@ allocate (tao_com%ele_shape_floor_plan(10), tao_com%ele_shape_lat_layout(10))
 
 tao_com%ele_shape_floor_plan(:)%ele_name = ''
 tao_com%ele_shape_floor_plan(1:5) = [&
-          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none'), &
-          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name'), &
-          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none'), &
-          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none'), &
-          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none')]
+          tao_ele_shape_struct('SBEND::*',      'BOX',  'BLUE',    08.0_rp, 'none', .true., ''), &
+          tao_ele_shape_struct('QUADRUPOLE::*', 'XBOX', 'MAGENTA', 15.0_rp, 'name', .true., ''), &
+          tao_ele_shape_struct('SEXTUPOLE::*',  'XBOX', 'GREEN',   15.0_rp, 'none', .true., ''), &
+          tao_ele_shape_struct('LCAVITY::*',    'XBOX', 'RED',     20.0_rp, 'none', .true., ''), &
+          tao_ele_shape_struct('RFCAVITY::*',   'XBOX', 'RED',     20.0_rp, 'none', .true., '')]
 
 tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
 
