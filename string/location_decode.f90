@@ -102,7 +102,7 @@ do
 
   ! Check for an error
 
-  if (index > ubound(array,1)) then
+  if (index < ix_min .or. index > ubound(array,1)) then
     print *, 'ERROR: LOCATION OUT OF BOUNDS: ', str(:ix_word)
     num = -1
     return
