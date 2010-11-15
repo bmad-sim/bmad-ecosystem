@@ -663,7 +663,6 @@ case ('data')
     nl=nl+1; write(lines(nl), rmt)  '%ref               = ', d_ptr%ref_value
     nl=nl+1; write(lines(nl), rmt)  '%base              = ', d_ptr%base_value
     nl=nl+1; write(lines(nl), rmt)  '%old               = ', d_ptr%old_value   
-    nl=nl+1; write(lines(nl), rmt)  '%fit               = ', d_ptr%fit_value
     nl=nl+1; write(lines(nl), rmt)  '%invalid           = ', d_ptr%invalid_value
     nl=nl+1; write(lines(nl), rmt)  '%s                 = ', d_ptr%s
     nl=nl+1; write(lines(nl), amt)  '%merit_type        = ', d_ptr%merit_type

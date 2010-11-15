@@ -1022,9 +1022,9 @@ character(80) dat_name, component_name
 character(16), parameter :: real_components(9) = &
           (/ 'model  ', 'base   ', 'design ', 'meas   ', 'ref    ', &
              'old    ', 'fit    ', 'weight ', 'invalid' /)
-character(16), parameter :: logic_components(8) = &
+character(16), parameter :: logic_components(9) = &
           (/ 'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
-             'good_plot ', 'useit_opt ', 'useit_plot' /)
+             'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot' /)
 character(16), parameter :: integer_components(5) = &
           (/ 'ix_ele      ', 'ix_ele_start', 'ix_ele_ref  ', &
              'ix_d1       ', 'ix_uni      ' /)
@@ -1418,7 +1418,7 @@ if (present(re_array) .and.  any(component_name == real_components)) then
       case ('base')
         re_array(j)%r => d1%d(i)%base_value
         re_array(j)%good_user  => d1%d(i)%good_user
-        re_array(j)%good_value => d1%d(i)%good_model
+        re_array(j)%good_value => d1%d(i)%good_base
       case ('design')
         re_array(j)%r => d1%d(i)%design_value
         re_array(j)%good_user  => d1%d(i)%good_user
@@ -1433,10 +1433,6 @@ if (present(re_array) .and.  any(component_name == real_components)) then
         re_array(j)%good_value => d1%d(i)%good_ref
       case ('old')
         re_array(j)%r => d1%d(i)%old_value
-        re_array(j)%good_user  => d1%d(i)%good_user
-        re_array(j)%good_value => forever_true$
-      case ('fit')
-        re_array(j)%r => d1%d(i)%fit_value
         re_array(j)%good_user  => d1%d(i)%good_user
         re_array(j)%good_value => forever_true$
       case ('invalid')
@@ -1480,6 +1476,8 @@ if (present(log_array) .and. any(component_name == logic_components)) then
       select case (component_name)
       case ('exists')
         log_array(j)%l => d1%d(i)%exists
+      case ('good_base')
+        log_array(j)%l => d1%d(i)%good_base
       case ('good_meas')
         log_array(j)%l => d1%d(i)%good_meas
       case ('good_ref')

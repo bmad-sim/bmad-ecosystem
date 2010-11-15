@@ -295,7 +295,6 @@ type tao_data_struct
   real(rp) design_value      ! What the datum value is in the design lattice.
   real(rp) old_value         ! The model_value at some previous time.
   real(rp) base_value        ! The value as calculated from the base model.
-  real(rp) fit_value         ! The value as calculated from a fitting procedure.
   real(rp) delta_merit       ! Diff used to calculate the merit function term 
   real(rp) weight            ! Weight for the merit function term
   real(rp) invalid_value     ! Value used in merit calc if good_model = False.
