@@ -1305,6 +1305,7 @@ elseif (size(r_dat) /= 0) then
     r_dat(i)%r = r_value(i)
     if (component == 'meas') d_dat(i)%d%good_meas = .true.
     if (component == 'ref')  d_dat(i)%d%good_ref = .true.
+    if (component == 'base') d_dat(i)%d%good_base = .true.
   enddo
 
 endif
