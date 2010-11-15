@@ -55,6 +55,16 @@ SRC_EXCLUDE   :=
 
 M_FILE_LIST   := M.tao
 
+ifneq (,$(findstring $(USE_PGPLOT),yY))
+  M_FILE_LIST   := M.tao
+else ifneq (,$(findstring $(USE_PLPLOT),yY))
+  M_FILE_LIST   := M.tao
+else
+  M_FILE_LIST   :=
+endif
+
+
+
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  
 # These variables are automatically appended to the relevant search paths and
