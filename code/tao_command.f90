@@ -460,7 +460,7 @@ case ('set')
   cmd_line = cmd_word(2)
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
-  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', & &
+  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', &
         'lattice', 'opti_de_param', 'var', 'wave'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
