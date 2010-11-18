@@ -17,14 +17,15 @@
 #
 # Developer notes:
 # This script is designed to be shell-agnostic.  It
-# employs only basic syntax to perform the necessary 
+# employs only basic syntax to perform the necessary
 # status logging and script sourcing and has been verified
 # to work under Bourne-compatible and C-style shells
 # (bash & tcsh).  If its functionality is extended, please
 # bear this requirement in mind.
 #
 # The entire setup sequence of scripts and variables lists
-# requires the following system tools to operate:
+# requires the following GNU system tools to operate:
+#  grep
 #  sed
 #----------------------------------------------------------
 
