@@ -36,6 +36,10 @@ if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
 elif ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
   TEMP_SETUP_F90="intel"
 
+elif ( [ "${PLATFORM_TAG}" = "Linux_x86_64" ] ) then
+  PLATFORM_TAG="Linux_i686"
+  TEMP_SETUP_F90="---------intel"
+
 elif ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
   TEMP_SETUP_F90="hp" 
 
