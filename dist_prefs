@@ -13,6 +13,21 @@
 #-----------------------------------------------------------
 
 #-----------------------------------------------------------
+# Setting the variable DIST_F90_REQUEST here to the name
+# of the desired Fortran compiler will allow for its use
+# during the build.
+#  Common options are:
+#   "intel"
+#   "gfortran"
+# 
+# If commented out, the defaults defined for a given 
+# platform will be used as found in the file 
+# common_env_setup.
+#-----------------------------------------------------------
+#export DIST_F90_REQUEST="gfortan"
+
+
+#-----------------------------------------------------------
 # Set value to 'Y' to enable use of PGPLOT for distrubution
 # build or 'N' to disable the use of the PGPLOT library.
 #

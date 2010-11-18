@@ -133,6 +133,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "YES" ] || [ "${USE_CWD_BASEDIR}" == "YES" ]; 
   # out.
   #--------------------------------------------------------------
   echo "Sourcing build preferences..." >> $DIST_SETUP_LOG
+  unset DIST_F90_REQUEST
   source ${DIST_BASE_DIR}/util/dist_prefs
 
 
@@ -160,6 +161,14 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "YES" ] || [ "${USE_CWD_BASEDIR}" == "YES" ]; 
   #--------------------------------------------------------------
   source ${DIST_BASE_DIR}/util/dist_env_vars
 
+
+  #--------------------------------------------------------------
+  # Allow for override of the Fortran compiler to use.
+  #--------------------------------------------------------------
+  if ( [ "${DIST_F90_REQUEST}" != "" ] );
+  then
+	export DIST_F90=${DIST_F90_REQUEST}
+  fi
 
 
   #--------------------------------------------------------------
