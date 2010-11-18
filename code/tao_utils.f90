@@ -2851,7 +2851,7 @@ subroutine tao_split_component (comp_str, comp, err)
 
 type (tao_data_var_component_struct), allocatable :: comp(:)
 
-integer i, n, ix
+integer i, n, ix, ix1, ix2
 
 character(*) comp_str
 character(60) str
@@ -2889,6 +2889,20 @@ do n = 1, size(comp)
   endif
 
   call string_trim(str(2:), str, ix)
+
+  if (n == size(comp)) then
+    comp(n)%name = str
+    exit
+  endif
+
+  ix1 = index(str, "+")
+  ix2 = index(str, "-")
+  if (ix1 /= 0 .and. ix2 /= 0) then
+    ix = min(ix1, ix2) - 1
+  else
+    ix = max(ix1, ix2) - 1
+  endif
+
   comp(n)%name = str(1:ix)
   call string_trim(str(ix+1:), str, ix)
 
