@@ -153,7 +153,7 @@ and \vn{patch} elements are limited to first order.
 \index{match}\index{monitor}\index{multipole}\index{octupole}
 \index{patch}\index{quadrupole}\index{rbend}\index{rcollimator}
 \index{rfcavity}\index{sbend}\index{sextupole}\index{solenoid}
-\index{sol_quad}\index{taylor}\index{vkicker}\index{wiggler}
+\index{sol_quad}\index{taylor}\index{vkicker}\index{wiggler}\index{capillary}
 \index{element!table of class types}
 \begin{table}[pht]
 \centering {
@@ -176,6 +176,7 @@ and \vn{patch} elements are limited to first order.
   \vn{ab_multipole}            &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{beambeam}                &   & D &   & X & X &   &     &     &     &     &      \\  
   \vn{bend_sol_quad}           &   &   &   & X &   &   &     &  D  &     &     &      \\  
+  \vn{capillary}               &   & D &   &   &   &   &     &     &     &     &      \\  
   \vn{crystal}                 &   & D &   &   &   &   &     &     &     &     &      \\  
   \vn{custom}                  & X &   & X & D & X &   &  X  &     &     &     &      \\  
   \vn{drift}                   & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\  
@@ -320,6 +321,7 @@ is that it is directly related to any tracking results.
 \index{patch}\index{quadrupole}\index{rbend}\index{rcollimator}
 \index{rfcavity}\index{sbend}\index{sextupole}\index{solenoid}
 \index{sol_quad}\index{taylor}\index{vkicker}\index{wiggler}
+\index{crystal}\index{capillary}
 \begin{table}[pth]
 \centering {
 \begin{tabular}{lcccccccc} \toprule
@@ -337,6 +339,7 @@ is that it is directly related to any tracking results.
   \vn{ab_multipole}            & D & X &   & X &     &  X  &  X  &   \\  
   \vn{beambeam}                & D & X &   & X &     &     &     & X \\  
   \vn{bend_sol_quad}           &   & X &   & X &  D  &     &     & X \\  
+  \vn{capillary}               &   & D &   &   &     &     &     &   \\  
   \vn{crystal}                 &   & D &   &   &     &     &     &   \\  
   \vn{custom}                  &   & D &   & X &     &     &     & X \\  
   \vn{drift}                   & D & X & X & X &     &  X  &  X  & X \\  

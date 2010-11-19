@@ -809,11 +809,12 @@ details. Example:
   \centering
   \includegraphics{crystal-ele.pdf}
   \caption[width=5in][Crystal element geometry.]
-{Crystal element geometry. The geometry shown is appropriate for zero
+{Crystal element geometry for Bragg reflections. 
+The geometry shown is appropriate for zero
 \vn{tilt} (reference trajectory in the $x$-$z$ plane). The angle
 $\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bH$ vector with
 respect to the surface normal $\bfhat n$. For $psi$ (\vn{psi_angle})
-zero, the Incoming reference orbit, the Outgoing reference orbit,
+zero, the incoming reference orbit, the outgoing reference orbit,
 $\bfhat n$ and $\bH$ are all coplainer.}
   \label{f:bend}
 \end{figure}
@@ -835,34 +836,44 @@ General \vn{crystal} attributes are:
 \index{graze_angle_err}\index{psi_angle}
 \index{b_param}\index{bragg_angle}\index{crystal_type}
 \index{tilt_err}\index{g_graze}\index{g_trans}
+\index{d_detec}\index{d_source}
+\index{c2_curve}\index{c3_curve}\index{c4_curve}
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
-  graze_angle_err  = <Real>    ! Error in the graze angle.
-  psi_angle        = <Real>    ! Rotation of H-vector about the surface normal.
   b_param          = <Real>    ! b parameter
   crystal_type     = <String>  ! Crystal material and reflaction plane.
-  tilt_err         = <Real>    ! Error in the tilt angle.
-  g_graze          = <Real>    ! 1/Radius-of-curvature in the bend plane.
+  c2_curve         = <Real>    ! C2 curvature coefficient.
+  c3_curve         = <Real>    ! C3 curvature coefficient.
+  c4_curve         = <Real>    ! C4 curvature coefficient.
+  d_detec          = <Real>    ! Detector distance.
+  d_source         = <Real>    ! Source distance.
   g_trans          = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+  graze_angle_err  = <Real>    ! Error in the graze angle.
+  psi_angle        = <Real>    ! Rotation of H-vector about the surface normal.
+  tilt_err         = <Real>    ! Error in the tilt angle.
 \end{example}
 
 \index{graze_angle_in}\index{graze_angle_out}\index{alpha_angle}
 \index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{f0_re}
 \index{f0_im}\index{fh_re}\index{fh_im}\index{ref_wave_length}
+\index{c2_curve_tot}\index{c3_curve_tot}\index{c4_curve_tot}
 Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
   alpha_angle      ! Angle of H-vector with respect to the surface normal.
   bragg_angle      ! Nominal Bragg angle at the reference wave length. 
-  graze_angle_in   ! Angle between incoming beam and mirror surface.
-  graze_angle_out  ! Angle between incoming beam and mirror surface.
-  tilt_corr        ! Tilt correction due to a finite psi_angle.
+  c2_curve_tot     ! Total C2 curvature coefficient.
+  c3_curve_tot     ! Total C3 curvature coefficient.
+  c4_curve_tot     ! Total C4 curvature coefficient.
   d_spacing        ! Lattice plane spacing. 
-  v_unitcell       ! Unit cell volume. 
   f0_re            ! Real part of f0
   f0_im            ! Imaginary part of f0
   fh_re            ! Real part of fh
   fh_im            ! Imaginary part of fh
+  graze_angle_in   ! Angle between incoming beam and mirror surface.
+  graze_angle_out  ! Angle between incoming beam and mirror surface.
   ref_wave_length  ! Reference wavelength
+  tilt_corr        ! Tilt correction due to a finite psi_angle.
+  v_unitcell       ! Unit cell volume. 
 \end{example}
 
 The \vn{crystal_type} attribute defines the crystal material and
@@ -882,10 +893,17 @@ where $\theta_B$ is the Bragg angle (\vn{bragg_angle})
 \Begineq
   \theta_B = \frac{\lambda}{d \, \sin\theta}
 \Endeq
-and $\alpha_H$
-(\vn{alpha_angle}) is the angle of the reciprical lattice $\bH$ vector
-with respect to the surface normal as shown in Fig.~\ref{f:crystal}.
-If 
+and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprical
+lattice $\bH$ vector with respect to the surface normal as shown in
+Fig.~\ref{f:crystal}.  If \vn{b_param} is set to -1 then there is
+Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1
+then there is Laure diffraction again with \vn{alpha_H} zero. With the
+orientation shown in Fig.~\ref{f:crystal}, \vn{alpha_H} is positive.
+
+If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
+reference orbit, $\bfhat n$ and $\bH$ are all coplainer. A non-zero
+\vn{psi_angle} Rotates the $\bH$ vector around the $+\bfhat x$ axis
+of the \vn{Element Reference Frame} (See  Fig.~\ref{f:crystal}).
 
 The reference trajectory for a \vn{crystal} is that of a zero length
 bend (\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter
@@ -896,6 +914,8 @@ direction as a positive \vn{g} for a bend element. The
 \vn{graze_angle_err} and \vn{tilt_err} parameters affect the
 orientation of the \vn{crystal} in the global reference system but do
 not affect the reference trajectory.
+
+
 
 The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
 \vn{R_graze} is the radius of curvature of the crystal surface in the

@@ -121,7 +121,7 @@ This syntax is obsolete since a typographical error is not easily caught.
 
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
-\index{intensity_x}\index{intensity_y}\index{phase_x}\index{phase_y}
+\index{e_field_x}\index{e_field_y}\index{phase_x}\index{phase_y}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking
 \begin{example}
@@ -134,8 +134,8 @@ for particle tracking
   beam_start[emittance_a] = <Real>   ! A-mode emittance
   beam_start[emittance_b] = <Real>   ! B-mode emittance
   beam_start[emittance_z] = <Real>   ! Z-mode emittance
-  beam_start[intensity_x] = <Real>   ! Photon beam intensity along x-axis
-  beam_start[intensity_y] = <Real>   ! Photon beam intensity along y-axis
+  beam_start[e_field_x]   = <Real>   ! Photon beam field along x-axis
+  beam_start[e_field_y]   = <Real>   ! Photon beam field along y-axis
   beam_start[phase_x]     = <Real>   ! Photon beam phase along x-axis
   beam_start[phase_y]     = <Real>   ! Photon beam phase along y-axis
 \end{example}

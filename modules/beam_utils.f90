@@ -919,12 +919,12 @@ bunch%ix_bunch = 1  ! Default
 call init_spin_distribution (beam_init, bunch)
 
 ! Photons:
-! For now just give one half intensity_x = 1 and one half intensity_y = 1
+! For now just give one half e_field_x = 1 and one half e_field_y = 1
 
 if (param%particle == photon$) then
   n = size(bunch%particle)
-  bunch%particle(1:n:2)%r%intensity_x = 1
-  bunch%particle(1:n:2)%r%intensity_y = 1
+  bunch%particle(1:n:2)%r%e_field_x = 1
+  bunch%particle(2:n:2)%r%e_field_y = 1
 endif
 
 end subroutine init_bunch_distribution
@@ -1770,11 +1770,11 @@ bunch_params%n_particle_tot = size(bunch%particle)
 bunch_params%n_particle_live = count(bunch%particle%ix_lost == not_lost$)
 bunch_params%charge_live = sum(bunch%particle%charge, mask = (bunch%particle%ix_lost == not_lost$))
 
-bunch_params%centroid%intensity_x = sum(bunch%particle%r%intensity_x, mask = (bunch%particle%ix_lost == not_lost$))
-bunch_params%centroid%intensity_y = sum(bunch%particle%r%intensity_y, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%centroid%e_field_x = sum(bunch%particle%r%e_field_x, mask = (bunch%particle%ix_lost == not_lost$))
+bunch_params%centroid%e_field_y = sum(bunch%particle%r%e_field_y, mask = (bunch%particle%ix_lost == not_lost$))
 
 if (param%particle == photon$) then
-  charge = bunch%particle%r%intensity_x + bunch%particle%r%intensity_y
+  charge = bunch%particle%r%e_field_x**2 + bunch%particle%r%e_field_y**2
 else
   charge = bunch%particle%charge
 endif

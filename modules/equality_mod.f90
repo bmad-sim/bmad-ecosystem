@@ -28,7 +28,7 @@ logical is_eq
 !
 
 is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
-        (f1%intensity_x == f2%intensity_x) .and. (f1%intensity_y == f2%intensity_y) .and. &
+        (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y)
 
 end function
