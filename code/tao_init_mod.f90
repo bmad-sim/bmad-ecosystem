@@ -612,7 +612,8 @@ character(200) file_name
 character(40) name,  universe, default_universe, d_typ
 character(40) default_merit_type, default_attribute, data_type, default_data_source
 character(40) use_same_lat_eles_as, source
-character(100) line, default_data_type, search_for_lat_eles
+character(100) search_for_lat_eles
+character(200) line, default_data_type
 
 logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))

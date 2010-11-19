@@ -112,8 +112,8 @@ type tao_curve_struct
   character(40) :: name = ''             ! Name identifying the curve.
   character(40) :: data_source  = ''     ! 'lat', 'dat', 'var', etc.
   character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
-  character(100) :: data_type_x = ''     ! Used for data slices and phase space plots.
-  character(100) :: data_type   = ''     ! 'orbit.x', etc.
+  character(200) :: data_type_x = ''     ! Used for data slices and phase space plots.
+  character(200) :: data_type   = ''     ! 'orbit.x', etc.
   character(40) :: ele_ref_name = ''     ! Reference element.
   character(40) :: legend_text = ''      ! String to print in a curve legend. 
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph 
@@ -277,7 +277,7 @@ type tao_data_struct
   character(40) ele_name        ! Name of the lattice element where datum is evaluated.
   character(40) ele_start_name  ! Name of starting lattice element when there is a range 
   character(40) ele_ref_name    ! Name of reference lattice element
-  character(100) data_type   ! Type of data: 'orbit.x', etc.
+  character(200) data_type   ! Type of data: 'orbit.x', etc.
   character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
   character(20) data_source  ! 'lat', or 'beam'
   integer ix_bunch           ! Bunch number to get the data from.
