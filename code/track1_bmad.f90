@@ -301,7 +301,7 @@ case (crystal$)
   e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
   e_rel2 = sqrt(xi_0k/xi_hk) ! assert = e_rel
 
-  end%intensity_x = end%intensity_x * abs(e_rel)**2
+  end%e_field_x = end%e_field_x * abs(e_rel)
   end%phase_x = atan2(aimag(e_rel),real(e_rel))+end%phase_x
 
   ! For the y direction
@@ -325,7 +325,7 @@ case (crystal$)
   e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
   e_rel2 = sqrt(xi_0k/xi_hk)! assert = e_rel
 
-  end%intensity_y = end%intensity_y * abs(e_rel)**2
+  end%e_field_y = end%e_field_y * abs(e_rel)
   end%phase_y = atan2(aimag(e_rel),real(e_rel))+end%phase_y
 
   call offset_photon (ele, param, end, unset$)

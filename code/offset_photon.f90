@@ -100,13 +100,13 @@ if (set) then
 
   ! Set: intensity and phase rotation due to the tilt + tilt_err
 
-  efield_x = sqrt(coord%intensity_x) * cmplx(cos(coord%phase_x), sin(coord%phase_x) )
-  efield_y = sqrt(coord%intensity_y) * cmplx(cos(coord%phase_y), sin(coord%phase_y) )
+  efield_x = coord%e_field_x * cmplx(cos(coord%phase_x), sin(coord%phase_x) )
+  efield_y = coord%e_field_y * cmplx(cos(coord%phase_y), sin(coord%phase_y) )
   efieldout_x = cos(tilt) * efield_x + sin(tilt)*efield_y
   efieldout_y = -sin(tilt) * efield_x + cos(tilt)*efield_y
-  coord%intensity_x = (abs(efieldout_x))**2
+  coord%e_field_x = abs(efieldout_x)
   coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  coord%intensity_y = (abs(efieldout_y))**2
+  coord%e_field_y = abs(efieldout_y)
   coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
 
 !----------------------------------------------------------------
@@ -185,14 +185,14 @@ else
 
   ! Unset: intensities
 
-  efield_x = cmplx(sqrt(coord%intensity_x)*cos(coord%phase_x),sqrt(coord%intensity_x)*sin(coord%phase_x) )
-  efield_y = cmplx(sqrt(coord%intensity_y)*cos(coord%phase_y),sqrt(coord%intensity_y)*sin(coord%phase_y) )
+  efield_x = cmplx(coord%e_field_x*cos(coord%phase_x), coord%e_field_x*sin(coord%phase_x))
+  efield_y = cmplx(coord%e_field_y*cos(coord%phase_y), coord%e_field_y*sin(coord%phase_y))
   tilt = p(tilt_tot$) + rot(3)
   efieldout_x = cos(tilt) * efield_x - sin(tilt)*efield_y
   efieldout_y = sin(tilt) * efield_x + cos(tilt)*efield_y
-  coord%intensity_x = (abs(efieldout_x))**2
+  coord%e_field_x = abs(efieldout_x)
   coord%phase_x = atan2(aimag(efieldout_x),real(efieldout_x))
-  coord%intensity_y = (abs(efieldout_y))**2
+  coord%e_field_y = abs(efieldout_y)
   coord%phase_y = atan2(aimag(efieldout_y),real(efieldout_y))
 
 endif

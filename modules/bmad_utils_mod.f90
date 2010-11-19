@@ -172,11 +172,11 @@ real(rp), optional :: vec(:)
 orb%vec = 0
 if (present(vec)) orb%vec = vec
 
-orb%spin = 0
-orb%intensity_x = 0
-orb%intensity_y = 0
-orb%phase_x = 0
-orb%phase_y = 0
+orb%spin      = 0
+orb%e_field_x = 0
+orb%e_field_y = 0
+orb%phase_x   = 0
+orb%phase_y   = 0
 
 end subroutine init_coord
 

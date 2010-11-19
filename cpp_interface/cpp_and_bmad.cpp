@@ -66,15 +66,15 @@ void matrix_to_array (const Real_Matrix& mat, double* arr) {
 extern "C" void coord_to_f2_(coord_struct*, ReArr, const Complx*, Re&, Re&, Re&, Re&);
 
 //extern "C" void coord_to_f_(C_coord& c, coord_struct* f) {
-//  coord_to_f2_(f, &c.vec[0], &c.spin[0], &c.intensity_x, &c.intensity_y, &c.phase_x, &c.phase_y);
+//  coord_to_f2_(f, &c.vec[0], &c.spin[0], &c.e_field_x, &c.e_field_y, &c.phase_x, &c.phase_y);
 //}
 
 extern "C" void coord_to_c2_(C_coord& c, double vec[], Complx spin[], 
-                             Re& intens_x, Re& intens_y, Re& p_x, Re& p_y) {
+                             Re& field_x, Re& field_y, Re& p_x, Re& p_y) {
   c.vec << vec;
   c.spin << spin;
-  c.intensity_x = intens_x;
-  c.intensity_y = intens_y;
+  c.e_field_x = field_x;
+  c.e_field_y = field_y;
   c.phase_x = p_x;
   c.phase_y = p_y;
 }

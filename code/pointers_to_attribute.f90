@@ -109,10 +109,10 @@ if (ele_name == 'BEAM_START') then
       ptr_array(1)%r => lat%beam_start%vec(5)
     case (pz$)
       ptr_array(1)%r => lat%beam_start%vec(6)
-    case (intensity_x$)
-      ptr_array(1)%r => lat%beam_start%intensity_x
-    case (intensity_y$)
-      ptr_array(1)%r => lat%beam_start%intensity_y
+    case (e_field_x$)
+      ptr_array(1)%r => lat%beam_start%e_field_x
+    case (e_field_y$)
+      ptr_array(1)%r => lat%beam_start%e_field_y
     case (phase_x$)
       ptr_array(1)%r => lat%beam_start%phase_x
     case (phase_y$)
