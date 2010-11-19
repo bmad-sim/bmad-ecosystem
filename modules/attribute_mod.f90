@@ -392,11 +392,15 @@ endif
 
 a_name = attribute_name (ele, ix_attrib)
 
-! csr_calc_on, etc. are always free
+! csr_calc_on, etc. are always free.
+! x_offset_tot, etc are never free.
 
 select case (a_name)
 case ('CSR_CALC_ON', 'IS_ON')
   free = .true.
+  return
+case ('X_OFFSET_TOT', 'Y_OFFSET_TOT', 'S_OFFSET_TOT', 'TILT_TOT', &
+      'X_PITCH_TOT', 'Y_PITCH_TOT')
   return
 end select
 

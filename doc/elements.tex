@@ -805,6 +805,19 @@ details. Example:
 \label{s:crystal}
 \index{crystal|hyperbf}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics{crystal-ele.pdf}
+  \caption[width=5in][Crystal element geometry.]
+{Crystal element geometry. The geometry shown is appropriate for zero
+\vn{tilt} (reference trajectory in the $x$-$z$ plane). The angle
+$\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bH$ vector with
+respect to the surface normal $\bfhat n$. For $psi$ (\vn{psi_angle})
+zero, the Incoming reference orbit, the Outgoing reference orbit,
+$\bfhat n$ and $\bH$ are all coplainer.}
+  \label{f:bend}
+\end{figure}
+
 A \vn{crystal} element represents a crystal used for photon diffraction.
 
 General \vn{crystal} attributes are:
@@ -819,39 +832,70 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
+\index{graze_angle_err}\index{psi_angle}
+\index{b_param}\index{bragg_angle}\index{crystal_type}
+\index{tilt_err}\index{g_graze}\index{g_trans}
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
-  graze_angle_in   = <Real>    ! Angle between incoming beam and mirror surface.
-  graze_angle_out  = <Real>    ! Angle between incoming beam and mirror surface.
   graze_angle_err  = <Real>    ! Error in the graze angle.
-  psi_angle        = <Real>    ! 
-  alpha_angle      = <Real>    ! 
-  tilt_corr        = <Real>    ! 
-  d_spacing        = <Real>    ! 
-  v_unitcell       = <Real>    ! 
-  f0_re            = <Real>    ! 
-  f0_im            = <Real>    ! 
-  fh_re            = <Real>    ! 
-  fh_im            = <Real>    ! 
-  b_param          = <Real>    ! 
-  bragg_angle      = <Real>    ! 
-  ref_wave_length  = <Real>    ! 
-  diffraction_type = <Real>    ! 
-  crystal_type     = <Real>    ! 
+  psi_angle        = <Real>    ! Rotation of H-vector about the surface normal.
+  b_param          = <Real>    ! b parameter
+  crystal_type     = <String>  ! Crystal material and reflaction plane.
   tilt_err         = <Real>    ! Error in the tilt angle.
   g_graze          = <Real>    ! 1/Radius-of-curvature in the bend plane.
   g_trans          = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
 \end{example}
 
-The reference trajectory for a
-\vn{crystal} is that of a zero length bend (\sref{s:mirror.coords}) and
-hence the length (\vn{l}) parameter of a crystal is fixed at zero. The
-reference trajectory is determined by the values of the
-\vn{graze_angle} and \vn{tilt} parameters. A positive \vn{graze_angle}
-bends the reference trajectory in the same direction as a positive
-\vn{g} for a bend element. The \vn{graze_angle_err} and \vn{tilt_err}
-parameters affect the orientation of the \vn{crystal} in the global
-reference system but do not affect the reference trajectory.
+\index{graze_angle_in}\index{graze_angle_out}\index{alpha_angle}
+\index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{f0_re}
+\index{f0_im}\index{fh_re}\index{fh_im}\index{ref_wave_length}
+Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
+\begin{example}
+  alpha_angle      ! Angle of H-vector with respect to the surface normal.
+  bragg_angle      ! Nominal Bragg angle at the reference wave length. 
+  graze_angle_in   ! Angle between incoming beam and mirror surface.
+  graze_angle_out  ! Angle between incoming beam and mirror surface.
+  tilt_corr        ! Tilt correction due to a finite psi_angle.
+  d_spacing        ! Lattice plane spacing. 
+  v_unitcell       ! Unit cell volume. 
+  f0_re            ! Real part of f0
+  f0_im            ! Imaginary part of f0
+  fh_re            ! Real part of fh
+  fh_im            ! Imaginary part of fh
+  ref_wave_length  ! Reference wavelength
+\end{example}
+
+The \vn{crystal_type} attribute defines the crystal material and
+diffraction lattice plane. The syntax is \vn{"ZZijk"} where \vn{ZZ} is
+the atomic symbol for the material and \vn{ijk} are the Miller indices
+for the diffraction plane. For example, \vn{"si111"}. From this, and
+the reference photon energy (\sref{s:energy}), the spacing between
+lattice planes (\vn{d_spacing}), the unit cell volume
+(\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
+\vn{f0_re}, \vn{f0_im}, \vn{fh_re}, \vn{fh_im} can be computed.
+
+The \vn{b_param} is the standard assymetry factor
+\Begineq
+  b = \frac{\sin(\alpha_H + \theta_B)}{\sin(\alpha_H - \theta_B)} 
+\Endeq
+where $\theta_B$ is the Bragg angle (\vn{bragg_angle}) 
+\Begineq
+  \theta_B = \frac{\lambda}{d \, \sin\theta}
+\Endeq
+and $\alpha_H$
+(\vn{alpha_angle}) is the angle of the reciprical lattice $\bH$ vector
+with respect to the surface normal as shown in Fig.~\ref{f:crystal}.
+If 
+
+The reference trajectory for a \vn{crystal} is that of a zero length
+bend (\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter
+of a crystal is fixed at zero. The reference trajectory is determined
+by the values of the \vn{graze_angle} and \vn{tilt} parameters. A
+positive \vn{graze_angle} bends the reference trajectory in the same
+direction as a positive \vn{g} for a bend element. The
+\vn{graze_angle_err} and \vn{tilt_err} parameters affect the
+orientation of the \vn{crystal} in the global reference system but do
+not affect the reference trajectory.
 
 The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
 \vn{R_graze} is the radius of curvature of the crystal surface in the
@@ -866,12 +910,16 @@ point of view of the photons.
 A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
 local reference coordinates are used for these misalignments. The
 \vn{x_pitch} and \vn{y_pitch} parameters can be related to the
-\vn{graze-angle_err} and \vn{tilt_err} parameters. For example, with
+\vn{graze_angle_err} and \vn{tilt_err} parameters. For example, with
 zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
 \vn{graze_angle_err} of the same magnitude, and a positive
 \vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
 magnitude.
 
+Example:
+\begin{example}
+  crystal_ele: crystal, crystal_type = 'si111', b_param = -1
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Custom}
@@ -1614,7 +1662,7 @@ point of view of the photons.
 A \vn{mirror} may be offset and pitched (\ref{s:offset}). The incoming
 local reference coordinates are used for these misalignments. The
 \vn{x_pitch} and \vn{y_pitch} parameters can be related to the
-\vn{graze-angle_err} and \vn{tilt_err} parameters. For example, with
+\vn{graze_angle_err} and \vn{tilt_err} parameters. For example, with
 zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
 \vn{graze_angle_err} of the same magnitude, and a positive
 \vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same

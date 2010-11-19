@@ -475,7 +475,7 @@ The transverse trajectory through an \vn{Lcavity} is modeled using equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig} with
 \Begineqs
   b_0 &= 1 \CRNO
-  b_{-1} &= 1 \nonumber
+  b_{-1} &= 1 
 \Endeqs
 and all other $b_n$ set to zero.
 
@@ -670,14 +670,14 @@ Where $\bfG$ is given by
   \Endeq  
 with 
   \Begineq
-    \Bf G_a = 
+    \bfG_a = 
     \begin{pmatrix}
       \frac{\tstyle 1}{\tstyle \sqrt{\beta_a}} & 0 \cr
       \frac{\tstyle \alpha_a}{\tstyle \sqrt{\beta_a}} & \sqrt{\beta_a}
     \end{pmatrix}
     , \label{g1b0a} 
   \Endeq
-with a similar equation for $\Bf G_b$. With this definition, the corresponding
+with a similar equation for $\bfG_b$. With this definition, the corresponding
 $\BAR\bfA$ and $\BAR\bfB$ (cf.~\Eq{ua00b}) are just rotation matrices.
 The relationship between $\bfT$ and $\BAR\bfU$ is 
   \Begineq
@@ -1476,10 +1476,10 @@ distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
 \begin{align}
   \Delta {\Bf p}_\perp &= 
     -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
-    {\bf\hat r} \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
+    \bfhatr \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
   &= -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
-    {\bf\hat x} \cos [(m-1) \theta] - 
-    {\bf\hat y} \sin [(m-1)\theta] \right) \CRNO
+    \bfhatx \cos [(m-1) \theta] - 
+    \bfhaty \sin [(m-1)\theta] \right) \CRNO
   \Delta p_z &= -C \, I_m \, W'_m(t) \, r^m \, \cos m\theta
 \end{align}
 where $m$ is the order of the mode, $C$ is given by
@@ -1616,36 +1616,34 @@ factor of 2 in \Eq{wcrq} to compensate.
 \label{s:synch.ints}
 \index{synchrotron radiation!integrals}
 
-The synchrotron radiation integrals are used to compute
-emittances, the energy spread, etc.
-The standard formulas assume no
-coupling between the horizontal and vertical
-planes\cite{b:helm,b:jowett}. With coupling, the equations need to be
-generalized and this is detailed below.
+The synchrotron radiation integrals are used to compute emittances,
+the energy spread, etc. The standard formulas assume no coupling
+between the horizontal and vertical planes\cite{b:helm,b:jowett}. With
+coupling, the equations need to be generalized and this is detailed
+below.
 
 \index{dispersion}
-In the general case the curvature vector $\Bf G = (G_x, G_y)$, which
-points away from the center of curvature of the particle's orbit (see
-Figure~\ref{f:local.coords}), does not lie in the horizontal
-plane. $\Bf G$ has a magnitude $|\Bg G| = 1/\rho$ and a positive $G_y$
-indicates a downward bend in the negative $y$ direction.  Similarly,
-the dispersion $\bfeta\two = (\eta_x, \eta_y)$ will not lie in the
-horizontal plane. With this notation, the synchrotron Integrals for coupled
-motion are:
+In the general case, the curvature vector $\bfg = (g_x, g_y)$, which
+points away from the center of curvature of the particle's orbit and
+has a magnitude of $|\bfg| = 1/\rho$, where $\rho$ is the radius of
+curvature (see Figure~\ref{f:local.coords}), does not lie in the
+horizontal plane. Similarly, the dispersion $\bfeta\two =
+(\eta_x, \eta_y)$ will not lie in the horizontal plane. With this
+notation, the synchrotron integrals for coupled motion are:
   \Begineqs
-    I_0 &=& \oint ds \, \gamma_0 \, G \\
-    I_1 &=& \oint ds \, \Bf G \cdot \bfeta 
-         \equiv \oint ds \, (G_x \, \eta_x + G_y \, \eta_y) \\
-    I_2 &=& \oint ds \, G^2 \\
-    I_3 &=& \oint ds \, G^3 \\
-    I_{4a} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_a + 
-         \nabla G^2 \cdot \bfeta\two_a \right] \\
-    I_{4b} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two_b + 
-         \nabla G^2 \cdot \bfeta\two_b \right] \\
-    I_{4z} &=& \oint ds \, \left[ G^2 \, \Bf G \cdot \bfeta\two + 
-         \nabla G^2 \cdot \bfeta\two \right] \\
-    I_{5a} &=& \oint ds \, G^3 \, \calh_a \\
-    I_{5b} &=& \oint ds \, G^3 \, \calh_b
+    I_0 &=& \oint ds \, \gamma_0 \, g \\
+    I_1 &=& \oint ds \, \bfg \cdot \bfeta 
+         \equiv \oint ds \, (g_x \, \eta_x + g_y \, \eta_y) \\
+    I_2 &=& \oint ds \, g^2 \\
+    I_3 &=& \oint ds \, g^3 \\
+    I_{4a} &=& \oint ds \, \left[ g^2 \, \bfg \cdot \bfeta\two_a + 
+         \nabla g^2 \cdot \bfeta\two_a \right] \\
+    I_{4b} &=& \oint ds \, \left[ g^2 \, \bfg \cdot \bfeta\two_b + 
+         \nabla g^2 \cdot \bfeta\two_b \right] \\
+    I_{4z} &=& \oint ds \, \left[ g^2 \, \bfg \cdot \bfeta\two + 
+         \nabla g^2 \cdot \bfeta\two \right] \\
+    I_{5a} &=& \oint ds \, g^3 \, \calh_a \\
+    I_{5b} &=& \oint ds \, g^3 \, \calh_b
   \Endeqs
 where $\gamma_0$ is that usual relativistic factor and $\calh_a$ is 
   \Begineq
@@ -1659,13 +1657,13 @@ $x$--$y$ space (these 2--vectors are not to be confused with the
 dispersion 4--vectors used in the previous section). The position
 dependence of the curvature function is:
   \Begineqs
-    G_x(x,y) = G_{x} + x \, k_1 + y \, s_1 \CRNO
-    G_y(x,y) = G_{y} + x \, s_1 - y \, k_1 
+    g_x(x,y) = g_{x} + x \, k_1 + y \, s_1 \CRNO
+    g_y(x,y) = g_{y} + x \, s_1 - y \, k_1 
   \Endeqs
 where $k_1$ is the quadrupole moment and $s_1$ is the skew--quadrupole moment.
 Using this gives on--axis ($x = y = 0$)
   \Begineq
-    \nabla G^2 = 2 \left( G_x k_1 + G_y s_1, \, G_x s_1 - G_y k_1 \right)
+    \nabla g^2 = 2 \left( g_x k_1 + g_y s_1, \, g_x s_1 - g_y k_1 \right)
     \label{g2gkg}
   \Endeq
 
@@ -1673,15 +1671,15 @@ Note: $I_0$ is not a standard radiation integral. It is useful,
 though, in calculating the average number of photons emitted.
 
 In a dipole a non--zero $e_1$ or $e_2$ gives a contribution to $I_4$
-via the $\nabla G^2 \cdot \bfeta$ term. The edge field is modeled as a
+via the $\nabla g^2 \cdot \bfeta$ term. The edge field is modeled as a
 thin quadrupole of length $\delta$ and strength $k = -\tan(e) /
-\delta$. It is assumed that $\Bf G$ rises linearly within the edge field
+\delta$. It is assumed that $\bfg$ rises linearly within the edge field
 from zero on the outside edge of the edge field to its full value on the inside 
 edge of the edge field. 
 Using this in \Eq{g2gkg} and integrating over the edge field gives the contribution
 to $I_4$ from a non--zero $e_1$ as
   \Begineq
-    I_{4z} = -\tan(e_1) \, G^2
+    I_{4z} = -\tan(e_1) \, g^2
     \left( \cos(\theta) \, \eta_x + \sin(\theta) \, \eta_y \right)
     \label{iegct}
   \Endeq
@@ -1691,7 +1689,7 @@ in place of $\bfeta\two$.  In \Eq{iegct} $\theta$ is the \vn{tilt}
 angle which is non--zero if the bend is not in the horizontal plane.
 
 The above integrals are invariant under rotation of the $(x,y)$ coordinate
-system and reduce to the standard equations when $G_y = 0$ as they should.
+system and reduce to the standard equations when $g_y = 0$ as they should.
 
 There are various parameters that can be expressed in terms of these
 integrals.  The $I_1$ integral can be related to the momentum
@@ -1753,10 +1751,10 @@ changes in energy due to any \vn{lcavity} elements.  For a
 non-circular machine, the $I_1$ integral is not altered and the $I_4$
 integrals are not relevant. The other integrals become
   \Begineqs
-    L_2 &=& \int ds \, G^2 \, \gamma_0^4 \\
-    L_3 &=& \int ds \, G^3 \, \gamma_0^7 \\
-    L_{5a} &=& \int ds \, G^3 \, \calh_a \, \gamma_0^6 \\
-    L_{5b} &=& \int ds \, G^3 \, \calh_b \, \gamma_0^6
+    L_2 &=& \int ds \, g^2 \, \gamma_0^4 \\
+    L_3 &=& \int ds \, g^3 \, \gamma_0^7 \\
+    L_{5a} &=& \int ds \, g^3 \, \calh_a \, \gamma_0^6 \\
+    L_{5b} &=& \int ds \, g^3 \, \calh_b \, \gamma_0^6
   \Endeqs
 In terms of these integrals, the energy loss through the lattice is
   \Begineq
@@ -1790,37 +1788,34 @@ Where $\gamma_f$ is the final gamma.
 \index{spin|hyperbf}   
     
 The classical spin vector $\Bf S$ is described in the   
-local referece frame (\sref{s:ref}) by\cite{b:spin}
+local referece frame (\sref{s:ref}) by a
+modified Thomas-Bargmann-Michel-Telegdi (T-BMT) equation\cite{b:spin}
 \Begineq
-  \frac{\mathrm{d}}{\mathrm{d}s} \Bf S = \left\{ \frac{(1+\Bf r_t \cdot \Bf G) \, p}{v \, p_s} \, 
-  \pmb\Omega}_{BMT} (\mathbf{r,p},s) - \Bf G \cross \zhat  \right\} \times \mathbf{S}
+  \frac{\mathrm{d}}{\mathrm{d}s} \Bf S = 
+  \left\{ \frac{(1+\Bf r_t \cdot \bfg) \, P}{v \, P_s} \, 
+  {\pmb\Omega}_{BMT} (\mathbf{r,P},s) - \bfg \times \bfhatz \right\} \times \mathbf{S}
 \Endeq
-where $\Bf G$ is the curvature function which
-points away from the center of curvature of the particle's orbit (see
-Figure~\ref{f:local.coords}), $\Bf r_t = (x, y)$ are the transverse coordinates, $p$ is the momentum,
-$p_s$ is the longitudinal momentum, $\zhat$ is the unit vector in the $z$ direction, and 
+where $\bfg$ is the curvature function which points away from the
+center of curvature of the particle's orbit (see
+Figure~\ref{f:local.coords}), $\Bf r_t = (x, y)$ are the transverse
+coordinates, $P$ is the momentum, $P_s$ is the longitudinal momentum,
+$v$ is the velocity, $\bfhatz$ is the unit vector in the
+$z$-direction, and
 \Begineq
-  \pmb\Omega}_{BMT} \mathbf{r,p},t) = - \frac{q}{m \gamma} \left[\left(1   
-  + G \gamma \right) \Bf B - \frac{G \Bf p \cdot \Bf B}{\left( \gamma   
-  + 1\right) m^{2} c^{2}} \Bf p - \frac{1}{m c^{2}}\left(G +   
-  \frac{1}{1 + \gamma}\right)\mathbf{ p \times  E}\right],   
+  {\pmb\Omega}_{BMT} (\mathbf{r,P},t) = - \frac{q}{m \gamma} \left[\left(1   
+  + G \gamma \right) \Bf B - \frac{G \Bf P \cdot \Bf B}{\left( \gamma   
+  + 1\right) m^{2} c^{2}} \Bf P - \frac{1}{m c^{2}}\left(G +   
+  \frac{1}{1 + \gamma}\right)\mathbf{ P \times  E}\right],   
 \Endeq  
-
-
-
-
-frame by the Thomas-Bargmann-Michel-Telegdi (T-BMT) equation,   
-
-
-where $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and magnetic   
-fields in the laboratory frame, $\Bf p$ and $\gamma$ are the particle's momentum   
-and relativistic gamma factor in the laboratory frame, $q$ and $m$ are the   
-particle's charge and mass, and $G = \frac{\left(g-2\right)}{2}$ is the   
-particle's anomalous gyro-magnetic g-factor which is $1.793$ for protons and   
-$0.00116$ for electrons and positrons.   
+Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and
+magnetic fields, $\gamma$ is the particle's relativistic gamma factor,
+$q$ and $m$ are the particle's charge and mass, and $G =
+\frac{\left(g-2\right)}{2}$ is the particle's anomalous gyro-magnetic
+g-factor which is $1.793$ for protons and $0.00116$ for electrons and
+positrons.
    
-The matrix representation of the observable corresponding to the measurement of   
-spin along the unit vector $\Bf u$ in the ${ |+> = \left(\begin{matrix}1 \\ 0   
+The matrix representation of the observable $S_{\Bf u}$ corresponding to the measurement of   
+spin $\Bf S$ along the unit vector $\Bf u$ in the ${ |+> = \left(\begin{matrix}1 \\ 0   
 \end{matrix} \right), |-> =  \left(\begin{matrix} 0 \\ 1 \end{matrix} \right) }$ 
 basis is   
   \Begineqs   
@@ -1834,19 +1829,19 @@ basis is
                      \sin \theta e^{i \phi} & - \cos \theta   
                    \end{matrix} \right)   
   \Endeqs   
-where $\theta$ and $\phi$ are the polar angles characterizing the vector $\Bf u$   
-and $\sigma_{x,y,z}$ are the three Pauli matrices.   
-The expectation value of this operator representing the spin of a particle   
-satisfies the equation of motion of a classical spin vector in the particle's   
-instantaneous rest frame. 
+where $\theta$ and $\phi$ are the polar angles characterizing the
+vector $\Bf u$ and $\sigma_{x,y,z}$ are the three Pauli matrices.  The
+expectation value of this operator representing the spin of a particle
+satisfies the equation of motion of a classical spin vector in the
+particle's instantaneous rest frame.
 
 
-For a distribution of spins the polarization $P$ along the unit vector $\Bf u$ is
-defined as the absolute   
-value of the average expectation value of the spin over all N particles times   
-$\frac{2}{\hbar}$,   
+For a distribution of spins, the polarization $P_s$ along the unit
+vector $\Bf u$ is defined as the absolute value of the average
+expectation value of the spin over all N particles times
+$\frac{2}{\hbar}$,
   \Begineqs   
-    P &=& \frac{2}{\hbar} \| \frac{1}{N} \sum_{j=1}^{N}<+|S_{\Bf u}|+> \| \\   
+    P_s &=& \frac{2}{\hbar} \| \frac{1}{N} \sum_{j=1}^{N}<+|S_{\Bf u}|+> \| \\   
       &=& \| \frac{1}{N} \sum_{j=1}^{N} \cos \theta \|.   
   \Endeqs   
    
@@ -1855,7 +1850,7 @@ describing rotations of spin. In the SU(2) representation, a spin $\Bf s$ is
 written as a spinor $\Psi = \left( \psi_{1}, \psi_{2} \right)^{T}$ where   
 $\psi_{1,2}$ are complex numbers and   
   \Begineqs   
-                    \Bf s &=& \Psi^{\dagger} \Bf \sigma \Psi \\   
+                    \Bf S &=& \Psi^{\dagger} \Bf \sigma \Psi \\   
     \leftrightarrow \Psi  &=& \frac{1}{\sqrt{2 \left(s_{3}+1\right)}}   
              \left( \begin{matrix} 1+s_{3} \\ s_{1}+i s_{2} \end{matrix}   
              \right),   
@@ -1867,7 +1862,7 @@ or in polar coordinates,
                      \sin \frac{\phi}{2} e^{i \phi}   
                      \end{matrix} \right) \\   
          \leftrightarrow   
-    \Bf s &=& \left( \begin{matrix} \sin \theta \cos \phi \\   
+    \Bf S &=& \left( \begin{matrix} \sin \theta \cos \phi \\   
                                     \sin \theta \sin \phi \\   
                                     \cos \theta \end{matrix} \right).   
   \Endeqs   

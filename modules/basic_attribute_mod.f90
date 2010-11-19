@@ -287,6 +287,12 @@ do i = 1, n_key
     attrib_array(i, s_offset$) = 'S_OFFSET'
     attrib_array(i, x_pitch$)  = 'X_PITCH'
     attrib_array(i, y_pitch$)  = 'Y_PITCH'
+    attrib_array(i, tilt_tot$)     = 'TILT_TOT'
+    attrib_array(i, x_offset_tot$) = 'X_OFFSET_TOT'
+    attrib_array(i, y_offset_tot$) = 'Y_OFFSET_TOT'
+    attrib_array(i, s_offset_tot$) = 'S_OFFSET_TOT'
+    attrib_array(i, x_pitch_tot$)  = 'X_PITCH_TOT'
+    attrib_array(i, y_pitch_tot$)  = 'Y_PITCH_TOT'
   endif
 
   if (i == mirror$)     cycle
@@ -713,7 +719,7 @@ attrib_array(mirror$, critical_angle$)   = 'CRITICAL_ANGLE'
 attrib_array(mirror$, tilt_err$)         = 'TILT_ERR'
 attrib_array(mirror$, g_graze$)          = 'G_GRAZE'
 attrib_array(mirror$, g_trans$)          = 'G_TRANS'
-attrib_array(mirror$, ref_wave_length$)  = 'REF_WAVE_LENGTH'
+attrib_array(mirror$, ref_wavelength$)   = 'REF_WAVELENGTH'
 
 attrib_array(crystal$, graze_angle_in$)   = 'GRAZE_ANGLE_IN'
 attrib_array(crystal$, graze_angle_out$)  = 'GRAZE_ANGLE_OUT'
@@ -730,11 +736,19 @@ attrib_array(crystal$, fh_re$)            = 'FH_RE'
 attrib_array(crystal$, fh_im$)            = 'FH_IM'
 attrib_array(crystal$, b_param$)          = 'B_PARAM'
 attrib_array(crystal$, bragg_angle$)      = 'BRAGG_ANGLE' 
-attrib_array(crystal$, g_graze$)          = 'G_GRAZE'
 attrib_array(crystal$, g_trans$)          = 'G_TRANS'
-attrib_array(crystal$, ref_wave_length$)  = 'REF_WAVE_LENGTH'
+attrib_array(crystal$, ref_wavelength$)   = 'REF_WAVELENGTH'
 attrib_array(crystal$, diffraction_type$) = 'DIFFRACTION_TYPE'
 attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
+attrib_array(crystal$, d_source$)         = 'D_SOURCE'
+attrib_array(crystal$, d_detec$)          = 'D_DETEC'
+attrib_array(crystal$, c2_bend$)          = 'C2_BEND'
+attrib_array(crystal$, c3_bend$)          = 'C3_BEND'
+attrib_array(crystal$, c4_bend$)          = 'C4_BEND'
+attrib_array(crystal$, c2_bend_tot$)      = 'C2_BEND_TOT'
+attrib_array(crystal$, c3_bend_tot$)      = 'C3_BEND_TOT'
+attrib_array(crystal$, c4_bend_tot$)      = 'C4_BEND_TOT'
+
 !! attrib_array(crystal$, nx_out$)           = 'NX_OUT'   ! Hidden value
 !! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
 !! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
@@ -822,6 +836,104 @@ case default
 end select
 
 end function attribute_type 
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function corresponding_tot_attribute_index (ele, ix_attrib) result (ix_tot_attrib)
+!
+! Function to return the index of the corresponding "_tot" attribute.
+! Corresponding attributes are:
+!   Attribute         "_tot" attribute
+!   ---------         -----------------
+!   x_offset          x_offset_tot
+!   x_pitch           x_pitch_tot
+!   tilt              tilt_tot
+!   c2_bend          c2_bend_tot
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   ele       -- Ele_struct: Element
+!   ix_attrib -- Integer: Index of attribute
+!
+! Output:
+!   ix_tot_attrib -- Integer: Index of corresponding _tot attribute.
+!                      Set to -1 if no corresponding attribute.
+!-
+
+function corresponding_tot_attribute_index (ele, ix_attrib) result (ix_tot_attrib)
+
+implicit none
+
+type (ele_struct) ele
+integer ix_attrib, ix_tot_attrib
+
+!
+
+select case (attribute_name(ele, ix_attrib))
+case ('X_PITCH');     ix_tot_attrib = x_pitch_tot$
+case ('Y_PITCH');     ix_tot_attrib = y_pitch_tot$
+case ('X_OFFSET');    ix_tot_attrib = x_offset_tot$
+case ('Y_OFFSET');    ix_tot_attrib = y_offset_tot$
+case ('S_OFFSET');    ix_tot_attrib = s_offset_tot$
+case ('TILT');        ix_tot_attrib = tilt_tot$
+case ('C2_BEND');    ix_tot_attrib = c2_bend_tot$
+case ('C3_BEND');    ix_tot_attrib = c3_bend_tot$
+case ('C4_BEND');    ix_tot_attrib = c4_bend_tot$
+case default;         ix_tot_attrib = -1
+end select
+
+end function corresponding_tot_attribute_index 
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function is_a_tot_attribute (ele, ix_attrib) result (is_a_tot_attrib)
+!
+! Function returns True if ix_attrib corresponds to a "_tot" attribute.
+! Example _tot attributes are:
+!   "_tot" attribute
+!   -----------------
+!   x_offset_tot
+!   x_pitch_tot
+!   tilt_tot
+!   c2_bend_tot
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   ele       -- Ele_struct: Element
+!   ix_attrib -- Integer: Index of attribute
+!
+! Output:
+!   is_a_tot_attrib -- Logical: True if a _tot attribute. False otherwise.
+!   
+!-
+
+function is_a_tot_attribute (ele, ix_attrib) result (is_a_tot_attrib)
+
+implicit none
+
+type (ele_struct) ele
+integer ix_attrib
+logical is_a_tot_attrib
+
+!
+
+select case (attribute_name(ele, ix_attrib))
+case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', &
+      'S_OFFSET_TOT', 'TILT_TOT', 'C2_BEND_TOT', 'C3_BEND_TOT', 'C4_BEND_TOT')
+  is_a_tot_attrib = .true.
+case default
+  is_a_tot_attrib = .false.
+end select
+
+end function is_a_tot_attribute
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

@@ -14,7 +14,7 @@
 {The local reference coordinate system. 
 By construction, a particles's $z$ coordinate is zero. 
 This is not to be confused with the phase space $z$ coordinate (\sref{s:phase.space}).
-The curvature vector $\Bf G$ has a magnitude of $1/\rho$ where $\rho$ is the bending radius.}
+The curvature vector $\bfg$ has a magnitude of $1/\rho$ where $\rho$ is the bending radius.}
 \label{f:local.coords}
 \end{figure}
 
@@ -204,14 +204,14 @@ where
 \Begineq
   \widetilde \Bf L = 
   \begin{pmatrix}
-    \rho (\cos\alpha - 1) \\ 0 \\ \rho \, \sin\alpha
+    \rho (\cos\alpha_b - 1) \\ 0 \\ \rho \, \sin\alpha_b
   \end{pmatrix}, 
   \quad
   \widetilde \Bf S = 
   \begin{pmatrix}
-    \cos\alpha & 0 & -\sin\alpha \\
+    \cos\alpha_b & 0 & -\sin\alpha_b \\
     0          & 1 & 0           \\
-    \sin\alpha & 0 & \cos\alpha
+    \sin\alpha_b & 0 & \cos\alpha_b
   \end{pmatrix},
   \quad
   \Bf T = 
@@ -221,7 +221,7 @@ where
     0            &  0            & 1                
   \end{pmatrix}
 \Endeq
-with $\rho$ being the bend radius (\vn{rho}), $\alpha$ is the bend
+with $\rho$ being the bend radius (\vn{rho}), $\alpha_b$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
 (\sref{s:offset}). Without a tilt, $\Bf T$ is the unit matrix
 resulting in $\Bf L = \widetilde \Bf L$ and $\Bf S = \widetilde \Bf
@@ -246,7 +246,7 @@ represents a downward pointing bend.
 mirror or crystal] {Reflection by a mirror or crystal.  The geometry
 shown here is appropriate for a tilt angle of $\theta_t = 0$.
 $\theta_g$ is the graze angle of the incomming (entrance) reference coordinates,
-$\alpha$ is the bend angle of the coordinates.  Point $\cal O$ is the
+$\alpha_b$ is the bend angle of the coordinates.  Point $\cal O$ is the
 origin of both the local coordinates just before and just after the
 reflection.}  \label{f:mirror}
 \end{figure}
@@ -262,8 +262,8 @@ the reference orbit for such elements are modeled as zero length bends
 with $\widetilde \Bf L = (0, 0, 0)$.
 The total bending angle for a \vn{crystal} is 
 \begin{align}
-  \alpha &= \mbox{graze_angle_in} + \mbox{graze_angle_out} &\mbox{! Crystal} \CRNO
-  \alpha &= 2 \, \mbox{graze_angle}                        &\mbox{! Mirror}
+  \alpha_b &= \mbox{graze_angle_in} + \mbox{graze_angle_out} &\mbox{! Crystal} \CRNO
+  \alpha_b &= 2 \, \mbox{graze_angle}                        &\mbox{! Mirror}
   \label{agg}
 \end{align}
 The orientation
