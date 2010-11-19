@@ -24,7 +24,7 @@
 # platform will be used as found in the file 
 # common_env_setup.
 #-----------------------------------------------------------
-#export DIST_F90_REQUEST="gfortan"
+#export DIST_F90_REQUEST="gfortran"
 
 
 #-----------------------------------------------------------
