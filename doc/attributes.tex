@@ -166,23 +166,23 @@ comma (,) or the end of the line marks the end of the string. Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Beam_Energy and P0C Attributes}
+\section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and ref_wavelength }
 \label{s:energy}
 \index{parameter statement}\index{e_tot}
 \index{e_tot_start}\index{p0c_start}
 \index{patch}\index{lcavity}\index{p0c}
-\index{n_ref_pass}
+\index{n_ref_pass}\index{ref_wave_length}
 The attributes that define the reference energy and momentum at an element are:
 \begin{example}
   e_tot  = <Real>  ! Total energy in eV.
   p0c    = <Real>  ! Momentum in eV.
 \end{example}
 The energy and momentum are defined at the exit end of the element.
-For ultra--relativistic particles these two values are the same
-(\sref{s:phase.space}). Except for multipass elements
+For ultra--relativistic particles, and for photons, these two values
+are the same (\sref{s:phase.space}). Except for multipass elements
 (\sref{s:multipass}), \vn{e_tot} and \vn{p0c} are dependent attributes
 and, except for multipass elements, any setting of \vn{e_tot} and
-\vn{p0c} in the lattice input file will be ignored. The value of
+\vn{p0c} in the lattice input file is an error. The value of
 \vn{e_tot} and \vn{p0c} for an element is calculated by \bmad to be
 the same as the previous element except for \vn{Lcavity} and
 \vn{patch} elements. To set the \vn{e_tot} or \vn{p0c} at the start of
@@ -198,6 +198,9 @@ which are just the reference energy and momentum at the start of the element.
 For \vn{multipass} elements, the reference energy is set by specifying
 one of \vn{e_tot}, \vn{p0c}, or \vn{n_ref_pass} as described in
 \sref{s:multipass}.
+
+For photons, the reference wavelength, \vn{ref_wavelength} is also a
+dependent attribute calculated from the reference energy.
 
 %-----------------------------------------------------------------
 \section{Offset, Pitch, Tilt, and Roll Attributes}
@@ -362,7 +365,8 @@ they appear in the lattice file (\sref{s:depend}).
 \begin{figure}[ht]
   \centering
   \includegraphics{apertures.pdf}
-  \caption{Apertures for ecollimator and rcollimator elements. 
+  \caption[Apertures for ecollimator and rcollimator elements.]
+  {Apertures for ecollimator and rcollimator elements. 
   Positive $s$ points up out of the page.}
   \label{f:limit}
 \end{figure}

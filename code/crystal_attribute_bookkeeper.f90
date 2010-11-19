@@ -39,7 +39,7 @@ real(rp) cos_graze_in, sin_graze_in
 if (ele%value(e_tot$) == 0) return
 if (ele%value(bragg_angle$) == 0) return
 
-lambda = ele%value(ref_wave_length$)
+lambda = ele%value(ref_wavelength$)
 gamma = lambda**2 * r_e / (pi * ele%value(v_unitcell$))
 delta1 = 1 / sqrt( 1 - gamma * ele%value(f0_re$) )
 lambda_in = lambda * delta1

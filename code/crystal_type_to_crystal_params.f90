@@ -220,7 +220,7 @@ ele%value(fh_im$) = fh_im
 
 ! Set bragg and alpha angles to zero if bragg condition is not satisfied.
 
-r = ele%value(ref_wave_length$) / (2 * d)
+r = ele%value(ref_wavelength$) / (2 * d)
 
 if (r < 1) then
   ele%value(bragg_angle$) = asin(r)

@@ -80,7 +80,7 @@ do ib = 0, ubound(lat%branch, 1)
       call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
     case (crystal$, mirror$)
-      ele%value(ref_wave_length$) = c_light * h_planck / E_tot
+      ele%value(ref_wavelength$) = c_light * h_planck / E_tot
 
     case (patch$) 
       ele%value(E_tot_start$) = E_tot

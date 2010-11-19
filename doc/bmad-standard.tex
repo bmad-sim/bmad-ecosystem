@@ -110,12 +110,14 @@ Track as in a drift a distance \vn{-s_offset_tot}.
 
 
 %-----------------------------------------------------------------
-\section{Transformation for Mirror and Crystal Elements Between 
+\section[Mirror and Crystal Elements]{Transformation for Mirror and Crystal Elements Between 
 Laboratory and Element Coordinates}
 
+\index{mirror}\index{crystal}
 It is assumed that pitches are are small so that second
 order terms can be ignored.
 
+\index{s_offset_tot}
 With photons, the intensities must also be transformed.
 The transformation from the the entrance laboratory coordinates to
 the entrance element coordinates is:
@@ -123,8 +125,10 @@ the entrance element coordinates is:
 \item
 Track as in a drift a distance \vn{s_offset_tot}.
 \item
-Apply offsets and pitches: Here the origin of the element coordinates is the same point
-around which the element is pitched so the effective ``length'' of the element is zero.
+\index{x_offset}\index{x_pitch}\index{y_offset}\index{y_pitch}
+Apply offsets and pitches: The effective ``length'' of the element is
+zero (\sref{s:mirror.coords}) so the origin of the element coordinates
+is the same point around which the element is pitched so
 \begin{align}
   x_1    &= x_0 - x_{off} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
@@ -132,35 +136,41 @@ around which the element is pitched so the effective ``length'' of the element i
   p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
   z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 \nonumber
 \end{align}
+where $x_{off} \equiv \vn{x_offset}$, $x'_{pitch} \equiv \vn{x_pitch}$, etc.
 \item
 Apply \vn{tilt} and \vn{tilt_err}:
 \begin{align}
   \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
-    \bR (\theta_{tot}) \,   \begin{pmatrix} x_1 \\ y_1 \end{pmatrix} \CRNO
+    \bR (\theta_{tot}) \,   
+  \begin{pmatrix} x_1 \\ y_1 \end{pmatrix} \CRNO
   \begin{pmatrix} p_{x2} \\ p_{y2} \end{pmatrix} &=
-    \bR (\theta_{tot}) \,   \begin{pmatrix} p_{x1} \\ p_{y1} \end{pmatrix} \\ \label{xyrtxy}
+    \bR (\theta_{tot}) \, 
+  \begin{pmatrix} p_{x1} \\ p_{y1} \end{pmatrix} \label{xyrtxy} \\ 
   \begin{pmatrix} \bE_{x2} \\ \bE_{y2} \end{pmatrix} &=
     \bR (\theta_{tot}) \,   \begin{pmatrix} \bE_{x1} \\ \bE_{y1} \end{pmatrix} \nonumber
 \end{align}
-where $\bR$ is the rotation matrix
-\Begineq
-  \bR(\theta) = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
-\Endeq
-$\theta_{tot}$  is 
-\Begineq
-  $\theta_{tot}$  = 
-  \begin{cases}
-    \vn{tilt} + \vn{tilt_err} + \vn{tilt_err} \\ \vn{for crystal elements}
-    \vn{tilt} + \vn{tilt_err} \\ \vn{for mirror elements}
-  \end{cases}
-\Endeq
-In \Eqs{xyrtxy} $E$ is shorthand notation for
+where $\bE$ is shorthand notation for
 \Begineq
   \bE \equiv \sqrt{I} \, e^{i \, \phi}
 \Endeq
-where $I$ is the field intensity and $\phi$ is the field phase angle.
+with $I$ being the field intensity and $\phi$ being the field phase angle.
+In the above equations $\bR$ is the rotation matrix
+\Begineq
+  \bR(\theta) = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
+\Endeq
+\index{tilt}\index{tilt_err}\index{tilt_corr}
+with $\theta_{tot}$ being 
+\Begineq
+  \theta_{tot}  = 
+  \begin{cases}
+    \vn{tilt} + \vn{tilt_err} + \vn{tilt_corr} & \vn{for crystal elements} \\
+    \vn{tilt} + \vn{tilt_err} & \vn{for mirror elements}
+  \end{cases}
+\Endeq
+The \vn{tilt_corr} correction is explained below.
 \item
-Apply \vn{graze_angle_err}:
+\index{graze_angle_err}
+Apply \vn{graze_angle_err} ($\theta_{gerr}$):
 \begin{align}
   p_{x3} &= p_{x2} + \theta_{gerr} \CRNO
   z_3    &= z_2 - x_2 \, \theta_{gerr} 
@@ -187,7 +197,7 @@ not rotate the output laboratory coordinates.  There is the further
 complication in that \vn{tilt_err} is a rotation about the {\em
 entrance} laboratory coordinates. The first step is to express
 \vn{tilt_err} with respect to the exit coordinants. This is done with
-the help of the $\bS$ matrix of \Eq{r001s} with $\alpha$ given by
+the help of the $\bS$ matrix of \Eq{r00ls} with $\alpha$ given by
 \Eq{agg}. The effect of the \vn{tilt_err} can be modeled as a rotation
 vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
 along the $z$-axis
@@ -365,7 +375,7 @@ follows:
 The transformation for the entrance face of an \vn{sbend} is
 \begin{align}
   p_{x2} &= p_{x1} + k_x \, x_1 \CRNO
-  p_{y2} &= p_{y1} + k_y \, y_1 \\
+  p_{y2} &= p_{y1} + k_y \, y_1
 \end{align}
 where
 \begin{align}
@@ -394,7 +404,7 @@ This is simply solved
   x_2    &= c_x \, (x - x_c) + s_x \, \frac{p_{x1}}{1 + p_{z1}} + x_c \CRNO
   p_{x2} &= \tau_x \, \om_x^2 \, \, (1 + p_{z1}) \, s_x \, (x -x_c) + c_x \, p_{x1} \CRNO
   y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
-  p_{y2} &= \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \CRNO
+  p_{y2} &= \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \\
   z_2    &= z_1 + m_5 + m_{51} (x - x_c) + m_{52} p_{x1} + \CRNO
          &\hspace*{20ex} m_{511} \, (x-x_c)^2 + m_{512} \, (x-x_c) \, p_{x1} + m_{522} \, p_{x1}^2 + 
                          m_{533} \, y^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
@@ -405,16 +415,16 @@ where
   k_x &= k_1 + g \, k_0 & \qqquad
   \om_x &\equiv \sqrt{\frac{|k_x|}{1 + p_{z1}}} \CRNO
   x_c &= \frac{g \, (1 + p_{z1}) - k_0}{k_x} & \qqquad
-  \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}} \CRNO
+  \om_y &\equiv \sqrt{\frac{|k_1|}{1 + p_{z1}}} 
 \end{alignat}
 and
 \begin{alignat}{6}
          &\hspace*{3ex}  && k_x > 0          &\hspace*{3ex}& k_x < 0 & \qqquad
          &\hspace*{3ex}  && k_1 > 0          &\hspace*{3ex}& k_1 < 0 \CRNO
      c_x &=   && \cos  (\om_x \, L)               && \cosh (\om_x \, L) & \qqquad
-     c_y &=   && \cosh (\om_y \, L)               && \cos  (\om_y \, L) \\
+     c_y &=   && \cosh (\om_y \, L)               && \cos  (\om_y \, L) \CRNO
      s_x &=   && \frac{\sin  (\om_x \, L)}{\om_x} && \frac{\sinh (\om_x \, L)}{\om_x} & \qqquad
-     s_y &=   && \frac{\sinh (\om_y \, L)}{\om_y} && \frac{\sin  (\om_y \, L)}{\om_y} \CRNO
+     s_y &=   && \frac{\sinh (\om_y \, L)}{\om_y} && \frac{\sin  (\om_y \, L)}{\om_y} \\
   \tau_x &=   && {-}1             && {+}1             & \qqquad
   \tau_y &=   && {+}1             && {-}1             \nonumber
 \end{alignat}
@@ -484,7 +494,7 @@ The transverse trajectory through an \vn{Lcavity} is modeled using equations
 developed by Rosenzweig and Serafini\cite{b:rosenzweig} with
 \Begineqs
   b_0 &= 1 \CRNO
-  b_{-1} &= 1 \nonumber
+  b_{-1} &= 1 
 \Endeqs
 and all other $b_n$ set to zero.
 
@@ -592,7 +602,7 @@ This is simply solved
   x_2    &= c_x \, x_1 + s_x \, \frac{p_{x1}}{1 + p_{z1}} \CRNO
   p_{x2} &= \tau_x \, \om^2 \, \, (1 + p_{z1}) \, s_x \, x_1 + c_x \, p_{x1} \CRNO
   y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
-  p_{y2} &= \tau_y \, \om^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \CRNO
+  p_{y2} &= \tau_y \, \om^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \\
   z_2    &= z_1 + m_{511} \, x_1^2 + m_{512} \, x_1 \, p_{x1} + m_{522} \, p_{x1}^2 + 
                    m_{533} \, y_1^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
   p_{z2} &= p_{z1} \nonumber
@@ -617,7 +627,7 @@ with this
   m_{511} &= \frac{\tau_x \,\, \om^2}{4} \, (L - c_x \, s_x) & \qqquad
   m_{533} &= \frac{\tau_y \,\, \om^2}{4} \, (L - c_y \, s_y) \CRNO
   m_{512} &= \frac{-\tau_x \,\, \om^2}{2 \, (1 + p_{z1})} \, s_x^2 & \qqquad
-  m_{534} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_{z1})} \, s_y^2 \CRNO
+  m_{534} &= \frac{-\tau_y \,\, \om^2}{2 \, (1 + p_{z1})} \, s_y^2 \\
   m_{522} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_x \, s_x) & \qqquad
   m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
@@ -655,7 +665,7 @@ Solving the equations of motion gives
   x_2    &= m_{11} \, x_1 + m_{12} \, p_{x1} + m_{13} \, y_1 + m_{14} \, p_{y1} \CRNO
   p_{x2} &= m_{21} \, x_1 + m_{22} \, p_{x1} + m_{23} \, y_1 + m_{24} \, p_{y1} \CRNO
   y_2    &= m_{31} \, x_1 + m_{32} \, p_{x1} + m_{33} \, y_1 + m_{34} \, p_{y1} \CRNO
-  p_{y2} &= m_{41} \, x_1 + m_{42} \, p_{x1} + m_{43} \, y_1 + m_{44} \, p_{y1} \CRNO
+  p_{y2} &= m_{41} \, x_1 + m_{42} \, p_{x1} + m_{43} \, y_1 + m_{44} \, p_{y1} \\
   z_2    &= z_1 + \sum_{j = 1}^4 \sum_{k = j}^4 m_{5jk} \, r_j \, r_k  \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
@@ -674,7 +684,7 @@ where
             \left( \frac{f_{+-}}{\om_+} \, s + \frac{f_{-+}}{\om_-} \, s_h \right) \CRNO
   m_{21} &= \frac{-(1 + p_{z1})}{8 \, f} \, 
             \left( \frac{\xi_{1+}}{\om_+} \, s + \frac{\xi_{2+}}{\om_-} s_h \right) & \qqquad
-  m_{41} &= -m_{23} \CRNO
+  m_{41} &= -m_{23} \\
   m_{22} &= m_{11} & \qqquad
   m_{42} &= -m_{13} \CRNO
   m_{23} &= \frac{\ks^3 \, (1 + p_{z1})}{4 \, f} \, \left( c - c_h \right) & \qqquad
@@ -778,22 +788,22 @@ form is
 \begin{alignat}{4}
   B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
   B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \label{f1}
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \label{f1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \nonumber
 \end{alignat}
 The second form is
 \begin{alignat}{4}
   B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
   B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \CRneg
-  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \label{f2}
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \label{f2} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \nonumber
 \end{alignat}
 The third form is
 \begin{alignat}{4}
   B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
   B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \CRneg
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \label{f3}
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \label{f3} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \nonumber
 \end{alignat}
 The relationship between $k_x$, $k_y$, and $k_s$ ensures that
 Maxwell's equations are satisfied.
@@ -837,7 +847,7 @@ And the other integrator components are
 The evaluation if $I_{y/2}$ is tracky since it involves both transverse
 position and momentum variables. The trick is to split the integration into three parts
 \begin{align}
-  I_{y/2} &= \exp \left( : -\frac{ds}{2} \frac{(p_y - A_y)^2}{2 (1 + \delta)} : \right) \\
+  I_{y/2} &= \exp \left( : -\frac{ds}{2} \frac{(p_y - A_y)^2}{2 (1 + \delta)} : \right) \CRNO
   &= \exp \left( : -\int A_y \, dy : \right) \,
      \exp \left( : -\frac{ds}{2} \frac{p_y^2}{2 (1 + \delta)} : \right) \,
      \exp \left( : \int A_y \, dy : \right)

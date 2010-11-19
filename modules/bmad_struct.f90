@@ -475,20 +475,20 @@ integer, parameter :: l_start$=17, h1$=17, x_quad$=17, g_graze$=17
 integer, parameter :: l_end$=18, h2$=18, y_quad$=18, g_trans$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
-integer, parameter :: hkick$=21
-integer, parameter :: vkick$=22    
-integer, parameter :: BL_hkick$=23 
-integer, parameter :: BL_vkick$=24 
-integer, parameter :: B_field_err$=25, BL_kick$ = 25
-integer, parameter :: radius$=26
+integer, parameter :: hkick$=21, c2_bend$=21
+integer, parameter :: vkick$=22, c3_bend$=22
+integer, parameter :: BL_hkick$=23, c4_bend$=23
+integer, parameter :: BL_vkick$=24, c2_bend_tot$=24
+integer, parameter :: B_field_err$=25, BL_kick$ = 25, c3_bend_tot$=25
+integer, parameter :: radius$=26, c4_bend_tot$=26
 integer, parameter :: tilt_err$=27    
 integer, parameter :: pole_radius$ = 28, coupler_at$ = 28
-integer, parameter :: Bs_field$=29, ref_wave_length$=29, coupler_strength$ = 29, e_tot_offset$ = 29
+integer, parameter :: Bs_field$=29, ref_wavelength$=29, coupler_strength$ = 29, e_tot_offset$ = 29
 integer, parameter :: B_field$=30, E_field$=30, coupler_phase$ = 30, nx_out$ = 30
 integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, ny_out$ = 31
 integer, parameter :: B1_gradient$=32, E1_gradient$=32, nz_out$ = 32 
-integer, parameter :: B2_gradient$=33, E2_gradient$=33, patch_end$ = 33
-integer, parameter :: B3_gradient$=34, E3_gradient$=34, translate_after$=34
+integer, parameter :: B2_gradient$=33, E2_gradient$=33, patch_end$ = 33, d_source$=33
+integer, parameter :: B3_gradient$=34, E3_gradient$=34, translate_after$=34, d_detec$=34
 ! 35
 integer, parameter :: x_offset$=36 
 integer, parameter :: y_offset$=37 

@@ -133,7 +133,7 @@ is used by older code, points to the same memory block as
 the \vn{lat%%branch(0)%ele}
 array. Similarly, \vn{%branch(0)%n_ele_track},
 \vn{%branch(0)%n_ele_max}, and \vn{%branch(0)%param} point to
-\vn{lat%n_ele_track}, \vn{lat%n_ele_max}, \vn{lat%param} respectively.
+\vn{lat%n_ele_track}, \vn{lat%n_ele_max}, and \vn{lat%param} respectively.
 
 The \vn{%branch%ele(:)} array is always allocated with zero as the
 lower bound.  \vn{%ele(0)} is a marker element with its \vn{%name} component
@@ -154,8 +154,9 @@ of these two parts is given in Table~\ref{t:part.extent}.
 tracking      & 0                  & \vn{%n_ele_track}    \\ 
 control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}     \\ \bottomrule
 \end{tabular} 
-\caption{Bounds of the tracking and control parts 
-of the main lattice \vn{\%branch(0)\%ele(:)} array.}
+\caption[Bounds of the main lattice array.]
+{Bounds of the tracking and control parts 
+of the main lattice (\vn{lat\%branch(0)\%ele(:)}) array.}
 \end{center}
 \label{t:part.extent}
 \end{table}
@@ -164,6 +165,15 @@ Only the main branch has a lord section so
 all other branches. Since the main branch can also be accessed via the \vn{lat%ele(:)}
 array, code that deals with the lord section of the lattice may use \vn{lat%ele(:)}
 in place of \vn{lat%branch(0)%ele(:)}.
+
+The index of the associated branch for a given \vn{branch} or
+\vn{photon_branch} element is stored in \vn{%value(ix_branch_to$)}:
+\begin{example}
+  ! Associated branch is: lat%branch(ix_branch)
+  ix_branch = nint(branch_ele%value(ix_branch_to$))  
+  direction = nint(branch_ele%value(direction$))
+\end{example}
+The direction will be +1 for forward branching and -1 for backward branching.
 
 %----------------------------------------------------------------------------
 \section{Param_struct Component}

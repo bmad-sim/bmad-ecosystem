@@ -57,7 +57,7 @@ real(rp) phase0, dphase, dcos_phi, dgradient, dpz
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 
-real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wave_length
+real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc
 real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
@@ -185,29 +185,32 @@ case (crystal$)
 
   call offset_photon (ele, param, end, set$)
   
-  ! Rotate normalized (px, py, 1) to crystal coords
+  wavelength = ele%value(ref_wavelength$) / (1 + end%vec(6))
+  
+  ! (px, py, sart(1-px^2+py^2)) coords are with respect to the incoming reference trajectory.
+  ! Convert this vector to k_in_norm with are coords with respect to crystal surface.
+  ! k_in_norm is incoming wavevector * wavelength so has unit length.
+
   sin_g = sin(ele%value(graze_angle_in$))
   cos_g = cos(ele%value(graze_angle_in$))
   f = sqrt (1 - end%vec(2)**2 - end%vec(4)**2)
   
-  !k_in_norm is incoming wavevector * wavelength, has unit length
-  k_in_norm(1) = cos_g * end%vec(2) + f * sin_g
+  k_in_norm(1) =  cos_g * end%vec(2) + f * sin_g
   k_in_norm(2) = end%vec(4)
   k_in_norm(3) = -sin_g * end%vec(2) + f * cos_g
+
+  ! Construct h_norm = H vector * wavelength
 
   sin_alpha = sin(ele%value(alpha_angle$))
   cos_alpha = cos(ele%value(alpha_angle$))
   sin_psi = sin(ele%value(psi_angle$))
   cos_psi = cos(ele%value(psi_angle$))
 
-  wave_length = ele%value(ref_wave_length$) / (1 + end%vec(6))
-  
-  !h_norm is H vector * wavelength
-  h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wave_length / ele%value(d_spacing$)
+  h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wavelength / ele%value(d_spacing$)
 
-  !====Find m_in and m_out
-  !m_in = [x_in y_in k_in]
-  !m_out = [x_out y_out k_out]
+  ! Construct m_in and m_out matrices
+  ! m_in = [x_in y_in k_in]
+  ! m_out = [x_out y_out k_out]
 
   m_in = reshape([cos_g, 0.0_rp, -sin_g, 0.0_rp, 1.0_rp, 0.0_rp, sin_g, 0.0_rp, cos_g], [3,3])
 
@@ -215,11 +218,13 @@ case (crystal$)
   cos_tc = cos(ele%value(tilt_corr$))
 
   ! y_out = inverse(m_in) . m_tiltcorr . m_in . (0,1,0)
+
   y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
   y_out = matmul(reshape([cos_tc, sin_tc, 0.0_rp, -sin_tc, cos_tc, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]),  y_out)
   y_out = matmul(transpose(m_in), y_out)
 
   ! x_out = vector orthogonal to y and z
+
   x_out(1) = y_out(2)*ele%value(nz_out$)-y_out(3)*ele%value(ny_out$)
   x_out(2) = -y_out(1)*ele%value(nz_out$)+y_out(3)*ele%value(nx_out$)
   x_out(3) = y_out(1)*ele%value(ny_out$)-y_out(2)*ele%value(nx_out$)
@@ -231,7 +236,8 @@ case (crystal$)
   m_out = reshape( [x_out, y_out, k_out], [3, 3])
 
   
-  !k_out_norm is the outgoing wavevector outside the crystal
+  ! k_out_norm is the outgoing wavevector outside the crystal
+
   k_out_norm = k_in_norm + h_norm
   k_out_norm(1) = - sqrt( 1 - k_out_norm(2)**2 - k_out_norm(3)**2)
 
@@ -262,7 +268,8 @@ case (crystal$)
 
 
   !======== Calculate phase and intensity
-  cap_gamma = r_e * wave_length**2 / (pi * ele%value(v_unitcell$)) 
+
+  cap_gamma = r_e * wavelength**2 / (pi * ele%value(v_unitcell$)) 
   gamma_0 = k_in_norm(1)
   gamma_h = k_out_norm(1)
 
@@ -274,6 +281,7 @@ case (crystal$)
 
   ! For the x direction
   ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
+
   p_factor = cos(2*ele%value(graze_angle_in$))
   eta = (-b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
             (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
@@ -288,7 +296,8 @@ case (crystal$)
     xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
   endif
 
-  !relative electric field, or reflectivity calculated in 2 equivalent ways
+  ! relative electric field, or reflectivity calculated in 2 equivalent ways
+
   e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
   e_rel2 = sqrt(xi_0k/xi_hk) ! assert = e_rel
 
@@ -297,6 +306,7 @@ case (crystal$)
 
   ! For the y direction
   ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
+
   p_factor = 1
   eta = (-b_eff * dtheta_sin_2theta + f0_g * (1 - b_eff)) / &
             (cap_gamma * abs(p_factor) * sqrt(abs(b_eff)) * fh) 
@@ -311,7 +321,7 @@ case (crystal$)
     xi_hk = f_cmp / (abs(b_eff) * (eta + eta1))
   endif
 
-  !relative electric field, or reflectivity calculated in 2 equivalent ways
+  ! relative electric field, or reflectivity calculated in 2 equivalent ways
   e_rel = -2 * xi_0k / (p_factor * cap_gamma * fh)
   e_rel2 = sqrt(xi_0k/xi_hk)! assert = e_rel
 

@@ -71,9 +71,8 @@ type (cross_section_vertex_struct), pointer :: v
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
-integer i, i1, j, n, ix, iv, ic, nl2, l_status, a_type, default_val
+integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_max, particle, n_term, n_att, attrib_type
-integer pos_tot(n_attrib_maxx)
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -96,16 +95,6 @@ logical type_zero, err_flag, print_it, is_default
 ! init
 
 allocate (li(300))
-
-pos_tot = 0
-if (ele%lord_status /= group_lord$  .and. ele%lord_status /= overlay_lord$) then
-  if (attribute_name(ele, x_offset$) == 'X_OFFSET') pos_tot(x_offset$) = x_offset_tot$
-  IF (attribute_name(ele, y_offset$) == 'Y_OFFSET') pos_tot(y_offset$) = y_offset_tot$
-  IF (attribute_name(ele, s_offset$) == 'S_OFFSET') pos_tot(s_offset$) = s_offset_tot$
-  IF (attribute_name(ele, tilt$)     == 'TILT')    pos_tot(tilt$)      = tilt_tot$
-  IF (attribute_name(ele, x_pitch$)  == 'X_PITCH') pos_tot(x_pitch$)   = x_pitch_tot$
-  IF (attribute_name(ele, y_pitch$)  == 'Y_PITCH') pos_tot(y_pitch$)   = y_pitch_tot$
-endif
 
 type_zero = logic_option(.false., type_zero_attrib)
 
@@ -164,15 +153,21 @@ if (ele%lord_status == overlay_lord$) then
   call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
   name = ele%component_name
-  nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)') i, name(1:n_att), '=', r_ptr
+  nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)') i, name(1:n_att), '=', r_ptr
 
 else
   do i = 1, n_attrib_maxx
     a_name = attribute_name(ele, i)
     if (a_name == null_name$) cycle
-    ix = pos_tot(i)
-    if (ix == 0) then
+    ix_tot = corresponding_tot_attribute_index (ele, i)
+    if (ix_tot > 0) then
+      if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
+      nl=nl+1; write (li(nl), '(i6, 3x, a, a, es15.7, a, i7, 3x, a16, a, es15.7)') &
+                                  i, a_name(1:n_att), '=', ele%value(i), ',', &
+                                  ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
+    else
       attrib_type = attribute_type(a_name)
+      if (is_a_tot_attribute(ele, i)) cycle
       if (ele%value(i) == 0 .and. .not. type_zero .and. attrib_type /= is_logical$) cycle
       select case (attrib_type)
       case (is_logical$)
@@ -182,7 +177,7 @@ else
       case (is_integer$)
         nl=nl+1; write (li(nl), '(i6, 3x, 2a, i0)')  i, a_name(1:n_att), '= ', nint(ele%value(i))
       case (is_real$)
-        nl=nl+1; write (li(nl), '(i6, 3x, 2a, 1pe15.7)')  i, a_name(1:n_att), '=', ele%value(i)
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
       case (is_name$)
         name = attribute_value_name (a_name, ele%value(i), ele, is_default)
         if (.not. is_default .or. type_zero) then
@@ -190,11 +185,6 @@ else
                                                         name, ' (', nint(ele%value(i)), ')'
         endif
       end select
-    else
-      if (ele%value(i) == 0 .and. ele%value(ix) == 0 .and. &
-                                               .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i6, 3x, a, a, 1pe15.7, 4x, a, e15.7)')  i, &
-                      a_name(1:n_att), '=', ele%value(i), 'Total:', ele%value(ix)
     endif
   enddo
 
@@ -219,19 +209,19 @@ else
       write (str_i, '(i2)') i
       call string_trim (str_i, str_i, ix)
       if (ele%key == ab_multipole$) then
-        write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
+        write (li(nl+1), '(5x, 2a, 2(a, es11.3))') &
                'A', str_i, ' =', ele%a_pole(i), '   W/Tilt:', a2(i)
-        write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
+        write (li(nl+2), '(5x, 2a, 2(a, es11.3))') &
                'B', str_i, ' =', ele%b_pole(i), '   W/Tilt:', b2(i)
       elseif (ele%key == multipole$) then
-        write (li(nl+1), '(5x, 2a, 2(a, 1pe11.3))') &
+        write (li(nl+1), '(5x, 2a, 2(a, es11.3))') &
                'K', trim(str_i), 'L =', ele%a_pole(i), '   W/Tilt:', a2(i)
-        write (li(nl+2), '(5x, 2a, 2(a, 1pe11.3))') &
+        write (li(nl+2), '(5x, 2a, 2(a, es11.3))') &
                'T', trim(str_i), '  =', ele%b_pole(i), '   W/Tilt:', b2(i)
       else
-        write (li(nl+1), '(5x, 2a, 3(a, 1pe11.3))') 'A', str_i, ' =', &
+        write (li(nl+1), '(5x, 2a, 3(a, es11.3))') 'A', str_i, ' =', &
                ele%a_pole(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
-        write (li(nl+2), '(5x, 2a, 3(a, 1pe11.3))') 'B', str_i, ' =', &
+        write (li(nl+2), '(5x, 2a, 3(a, es11.3))') 'B', str_i, ' =', &
                ele%b_pole(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
       endif
 
