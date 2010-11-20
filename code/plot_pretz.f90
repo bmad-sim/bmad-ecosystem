@@ -165,6 +165,7 @@ subroutine plot_pretz(lat,ncross, cross)
        xx(3) = x +magg*sin(-theta)
        yy(3) = y +magg*cos(theta)
 
+      write(41,'(a,/)')'#'
       do l=1,4
         write(41,'(2f10.3)')-xx(l),-yy(l)
       end do
