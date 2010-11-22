@@ -1,3 +1,4 @@
+
                                                                  Edited: 12-Nov-2010
 
 *****************************************************************************
@@ -122,20 +123,24 @@ variable before the build begins.
 *****************************************************************************
 PLOTTING ISSUES
 
-Some programs in the distribution use plotting software for displaying results. 
-There are two plotting packages in use: 
-	PGPLOT
-	PLPLOT
+Some programs (listed below) in the distribution use plotting software for 
+displaying results. There are two plotting packages in use: 
+  PGPLOT
+  PLPLOT
+Note: The programs that rely on plotting software will not be linked if the
+plotting software is not enabled. Which plotting software is enabled
+is set in the "dist_prefs" file. See the INSTRUCTIONS FOR INSTALLING  section
+for more details.
 
 Originally PGPLOT was the used for plotting. Since PGPLOT is not currently being
 maintained, the PLPLOT package has been introduced as its replacement but not
 all programs have been converted to use PLPLOT. 
 
 Programs that can use PLPLOT or PGPLOT
-	tao
+  tao
 
 Programs that can only use PGPLOT
-	bmadz
+  bmadz
   closed_orbit 
   analyzer 
   tune_plane_res_plot 
@@ -149,7 +154,7 @@ PLPLOT can be obtained at:
 Note: PLPLOT fortran libraries need to be built along with the other PLPLOT libraries.
 The fortran libraries are not part of the default build.
 To build the fortran libraries on the Mac using MacPorts use the command:
-	sudo port install plplot +gcc44
+  sudo port install plplot +gcc44
 
 
 *****************************************************************************
@@ -236,6 +241,8 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
         is installed in /opt/local/lib
      B) Attempt to create application executables along with libraries in all
         libraries that ship with second-tier makefiles set up for that purpose.
+
+   Enableing both PLPLOT and PGPLOT is allowed. 
 
 
 4) Next, a set of environment variables needs to be incorporated into the user's
@@ -377,4 +384,5 @@ HANDLING DIFFERENT FORTRAN COMPILERS
 
 
 3) After changing compiler do not forget to recompile the entire bmad distribution. 
+
 

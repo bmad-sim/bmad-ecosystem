@@ -195,7 +195,7 @@ show_status   = 1              # Flag to indicate if periodic status updates of 
 nightly       = 0              # Build is a nightly.  If successful, this will delete the previously-built release.
 rotate        = 0              # EXPERIMENTAL: if -rotate flag given, ATTEMPT a DEVEL rotation IF certain repository
                                #               characteristics are present. i.e. commits in critical areas in last X days.
-prec          = "DBL"         # precision flag
+prec          = "DBL"          # precision flag
 rank          = 0
 devel         = 0
 tag_release   = 0
@@ -251,6 +251,7 @@ def print_help():
   print "   REV=<revision num>    Specify a SVN revision number to check out."
   print "                          [Default is the most recent revision]"
   print ""
+
 
 #=== Function to notify about build failure by mail ===========================
 def report_errors(nightly, code):
@@ -416,17 +417,14 @@ datecode   = year + '_' + month + day
 
 
 #=== Generic Parameters ================================
-rel_prefix    = "cesr"                                  # WAS rel_tag
-pkg_prefix    = "packages"                             # WAS pkg_tag
+rel_prefix    = "cesr"
+pkg_prefix    = "packages"
 bmad_prefix   = "bmad_dist"
 fixes_prefix  = "fixes"
 general_log   = ""
 checkout      = 1
-
-tagname       = ""                                      # WAS CVS_tagname
+tagname       = ""
 branch        = "TRUNK"
-gmake_override= 0                                       # needed?
-util_override = 0                                       
 gmake         = "gmake"
 
 
@@ -458,8 +456,6 @@ def get_build_name(type, initial_name):
     prefix = pkg_prefix
   elif type == "BMAD DISTRIBUTION":
     prefix = bmad_prefix
-  #elif type == "FIXES":
-  #  prefix = fixes_prefix
 
   full_logname_to_test = libs_dir + '/log/' + build_name + '.genlog'
 
@@ -547,8 +543,8 @@ def dump_parameters():
 #===================================================================================================
 #== This class will allow the creation of a builder object, the responsibility of which will
 #== be to set up all the variables needed to initiate a build process on a remote machine.
-#== This involves checking out the necessary code for either a release build, a packages build
-#== or both(NO) initiating the build, monitoring it to completion or abort due to error, and
+#== This involves checking out the necessary code for either a release build, a packages build,
+#== or a distribution, initiating the build, monitoring it to completion or abort due to error, and
 #== optionally making realtime reports of the status of the build.
 #===================================================================================================
 class builder:
@@ -714,8 +710,6 @@ class builder:
       
     #####################################################################################
     if self.build_type == "FIXES":
-      #self.full_rel_name = self.base_dir + '/' + self.rel_name
-      #self.base_dir     = self.libs_dir_loc + "/fixes/staging"
       self.base_dir     = fixes_dir + "/staging"
       self.full_rel_name = self.base_dir + '/' + self.platform
       self.full_logfile  = self.libs_dir_loc + "/log/" + self.platform + '/' + self.rel_name + ".log"
@@ -791,9 +785,6 @@ class builder:
       # '-bmad' and '-bmad_build' command line arguments.
       # '-bmad' does not call subscript for distribution composition and must
       # perform copy at this level.
-      shutil.copy(self.full_rel_name + "/util/bmadenv", self.full_rel_name + "/bin")
-      shutil.copy(self.full_rel_name + "/util/bmad_def", self.full_rel_name + "/bin")
-      shutil.copy(self.full_rel_name + "/util/bmad_defs", self.full_rel_name + "/bin")
       print "Environment scripts copied to distribution bin directory."
       shutil.copy(self.full_rel_name + "/util/INSTALL", self.full_rel_name)
       print "Documentation copied to distribution root directory."
