@@ -164,7 +164,7 @@ endif
 #--------------------------------------------------------------
 LOCAL_LIBS := 
 CESR_LIBS  := tao bmad sim_utils recipes_f-90_LEPP 
-ifneq "$(USE_PLPLOT)" ""
+ifeq "$(USE_PLPLOT)" "Y"
   PKG_LIBS   := forest xsif
 else
   PKG_LIBS   := forest pgplot xsif
