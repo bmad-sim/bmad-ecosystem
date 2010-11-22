@@ -4,6 +4,8 @@
 ! Subroutine to make the 6x6 1st order transfer matrix for an element 
 ! along with the 0th order transfer vector.
 !
+! Note: Radiation fluctuations (but not damping) is turned off for the calculation.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -49,7 +51,7 @@ type (coord_struct) a_start, a_end
 integer mat6_calc_method
 
 logical, optional :: end_in, err
-logical end_input
+logical end_input, rad_fluct_save
 
 !--------------------------------------------------------
 ! init
@@ -77,6 +79,11 @@ else
 endif
 
 if (end_input) a_end = end
+
+rad_fluct_save = bmad_com%radiation_fluctuations_on
+bmad_com%radiation_fluctuations_on = .false.
+
+!
 
 select case (mat6_calc_method)
 
@@ -114,8 +121,7 @@ end select
 
 ! Add space charge effects
 
-if (bmad_com%trans_space_charge_on) &
-                call make_mat6_trans_space_charge (ele, param)
+if (bmad_com%trans_space_charge_on) call make_mat6_trans_space_charge (ele, param)
 
 ! symplectify if wanted
 
@@ -130,6 +136,9 @@ endif
 
 ele%map_ref_orb_out = a_end
 if (present(end) .and. .not. end_input) end = a_end
+
+bmad_com%radiation_fluctuations_on = rad_fluct_save
+
 
 end subroutine
 
