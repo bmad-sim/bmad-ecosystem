@@ -1,0 +1,204 @@
+#--------------------------------------------------------------
+#  acc_gen_env
+#  -----------
+#
+# "ACC generate environment"
+#
+# Generates a list of environment variables that are to be 
+# sourced to allow use of the ACC build system and utilities.
+# 
+# To be used as a component of the environment setup procedure.  
+# This script is not intended to be run directly by the user.
+#
+#
+#  Depends upon system tools:
+#     grep
+#     sed
+#--------------------------------------------------------------
+
+ACC_ARCHIVE_BASE_DIR=/nfs/acc/libs
+
+ENV_SNAP_1="${HOME}/.acc_env_snapshot_1.tmp"
+ENV_SNAP_2="${HOME}/.acc_env_snapshot_2.tmp"
+printenv > ${ENV_SNAP_1}
+
+
+
+#--------------------------------------------------------------
+# Set the location of the directory containing all the 
+# necessary environment setup scripts.
+#--------------------------------------------------------------
+ACC_SCRIPTS=/home/cesrulib/bin/util
+
+
+
+#--------------------------------------------------------------
+# Source the common environment setup script
+#   This is used for ACC build system setup as well as 
+#   offsite distribution build system setup.
+#--------------------------------------------------------------
+source /home/cesrulib/bin/util/common_env_setup
+
+
+
+#--------------------------------------------------------------
+# CERNlib-specific paths
+#--------------------------------------------------------------
+CERN=${CERN:-/nfs/cern}
+CERN_LEVEL=${CERN_LEVEL:-pro}
+
+
+
+#--------------------------------------------------------------
+# Accelerator library version to take default value here 
+# unless overridden above.
+#--------------------------------------------------------------
+ACC_RELTYPE=${ACC_RELTYPE:-current}
+
+
+
+#--------------------------------------------------------------
+# Source the main ACC environment variable list into this
+# script's environment.
+#--------------------------------------------------------------
+ACCENV=${ACCENV:-${ACC_SCRIPTS}/acc_env_vars}
+source ${ACCENV}
+
+
+
+#--------------------------------------------------------------
+# Add build system bin area to user's PATH
+#--------------------------------------------------------------
+PATH_LIST=`echo $PATH | sed s/:/\ /g`
+
+found=0
+for dir in ${PATH_LIST}; do
+  if ( [ "${dir}" = "${ACC_EXE}" ] ) then 
+    found=1
+  fi
+done
+
+
+
+#--------------------------------------------------------------
+# Add prebuilt accelerator applications area to user's PATH 
+# if its not there already
+#--------------------------------------------------------------
+if ( [ ${found} -eq 0 ] ) then
+  PATH=${PATH}:${ACC_EXE}
+  export PATH
+fi
+
+
+
+#--------------------------------------------------------------
+# Log the user's running of this script so that notifications 
+# of changes can be sent to all active users.
+#--------------------------------------------------------------
+lock_count=0
+lock_file=/home/cesrulib/user_log/users.lock
+users_done=0
+users_file=/home/cesrulib/user_log/users.list
+max_count=2
+while ( [ ${users_done} -eq 0 ] && [ ${lock_count} -lt ${max_count} ] ) do
+    if ( [ -f ${lock_file} ] ) then
+      sleep 1
+      lock_count=`expr ${lock_count} + 1`
+    else
+      touch ${lock_file}
+      echo "`date` - `whoami` `hostname -s` `basename ${SHELL}` ${ACC_PLATFORM}_${ACC_F90} ${ACC_RELTYPE}" >> ${users_file}
+      users_done=1
+      rm ${lock_file} &> /dev/null
+    fi
+done
+unset lock_count
+unset lock_file
+unset users_done
+unset users_file
+unset max_count
+
+
+
+#--------------------------------------------------------------
+# Clean up variables used only within this script.
+#--------------------------------------------------------------
+unset ACC_SCRIPTS
+unset ACCENV
+unset TEMP_SETUP_F90
+unset ACC_RELTYPE
+
+
+
+#--------------------------------------------------------------
+# Check for presence of MPI parallel computing headers in
+# the following paths only:
+#
+# If the appropriate header exists, enable build system MPI
+# support
+#--------------------------------------------------------------
+[ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+
+if ( [ $? = 0 ] ) then
+  MPI="TRUE"
+else
+  MPI="FALSE"
+fi
+export MPI
+
+
+
+#--------------------------------------------------------------
+# Run vendor-supplied compiler setup scripts for all platforms
+# and compilers that require it.
+#--------------------------------------------------------------
+if ( [ "${ACC_PLATFORM}" = "Linux_i686" ] ) then
+    . /nfs/opt/ifc/bin/ifortvars.sh
+    . /nfs/opt/lf9562/bash_setup
+fi
+
+
+
+#------------------------------------------------------------
+# Store second environment snapshot
+#------------------------------------------------------------
+printenv > ${ENV_SNAP_2}
+
+
+
+#------------------------------------------------------------
+# Diff the two environment snapshots and compose an 
+# environment definition list that can be sourced by the 
+# shell type that started the environment setup process.
+#  Explicitly supported shells are:
+#   Bourne-type shells: sh  / bash / ash 
+#   C-type shells     : csh / tcsh 
+#
+# For each line that has changed or that is new in the most
+# recent environment snapshot, add quotes to the value of
+# each variable's contents to safeguard against whitespace.
+#
+#    For Bourne-type shells:
+#  1st 'sed' - replace  (=)   with  (=")
+#  2nd 'sed' - replace  (> )  with  (export )
+#  3rd 'sed' - replace   LF   with  (")LF
+#
+#    For C-type shells:
+#  1st 'sed' - replace  (=)   with  ( ")
+#  2nd 'sed' - replace  (> )  with  (setenv )
+#  3rd 'sed' - replace   LF   with  (")LF
+#------------------------------------------------------------
+if `echo ${SHELL} | grep "csh" 1>/dev/null 2>&1`
+then
+  diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g'
+else
+  diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/=\"/g' | sed 's/> /export /g' | sed 's/$/\"/g'
+fi
+
+
+
+#----------------------------------------------------------
+# Clean up
+#----------------------------------------------------------
+rm -f ${ENV_SNAP_1} > /dev/null
+rm -f ${ENV_SNAP_2} > /dev/null
+

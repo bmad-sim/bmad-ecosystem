@@ -1,0 +1,128 @@
+#--------------------------------------------------------------
+#  accenv
+#  ------
+#
+# Core build system environment variable assignments
+#--------------------------------------------------------------
+
+
+#--------------------------------------------------------------
+#  Turn OFF any BMAD distribution identifier
+#--------------------------------------------------------------
+export BMAD_DIST     FALSE
+
+
+
+#--------------------------------------------------------------
+#   CERN Libraries
+#
+# Set CERN stuff up here even though it may already be  
+# done by the standard LEPP login scripts
+#
+# NOTE:  /nfs/cern automount point is always set up for 
+#        the specific platform (ie, OSF1/Linux/Solaris)
+#        on LEPP machines so this script does not need 
+#        to handle any ${CERN} platform dependence.
+#--------------------------------------------------------------
+export CERN_ROOT=$CERN/$CERN_LEVEL
+export CERNLIB=$CERN_ROOT/lib
+export CERNSRC=$CERN_ROOT/src
+
+
+
+#--------------------------------------------------------------
+#  ACC fortran compiler
+#--------------------------------------------------------------
+export ACC_F90=$TEMP_SETUP_F90
+
+
+
+#--------------------------------------------------------------
+#  ACC releases-related paths
+#--------------------------------------------------------------
+export ACC_PLATFORM=$PLATFORM_TAG
+export ACC_BASE=${ACC_ARCHIVE_BASE_DIR}/${ACC_PLATFORM}_${ACC_F90}
+
+
+
+#--------------------------------------------------------------
+#  ACC documentation
+#--------------------------------------------------------------
+export ACC_DOC=${ACC_BASE}/doc
+
+
+
+#--------------------------------------------------------------
+#  Build system-specific variables
+# Define a holdover variable with a different name but the 
+# same value to preserve compatibiltiy with all the older
+# makefiles still out there that use $CESR_GMAKE.
+#--------------------------------------------------------------
+export ACC_GMAKE=/home/cesrulib/bin/Gmake
+export CESR_GMAKE=/home/cesrulib/bin/Gmake
+
+
+
+#--------------------------------------------------------------
+#  ACC Subversion repository URL
+# A variable conforming to the convention established here as
+# well as a shortened form for convenience.
+#--------------------------------------------------------------
+export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
+export ACCR=https://accserv.lepp.cornell.edu/svn/
+
+
+
+#--------------------------------------------------------------
+#  ACC_REL : release directory tree
+#--------------------------------------------------------------
+export ACC_REL=$ACC_BASE/$ACC_RELTYPE
+export ACC_CONFIG=$ACC_REL/config
+export ACC_SRC=$ACC_REL/src
+export ACC_EXE=$ACC_REL/bin
+export ACC_LIB=$ACC_REL/lib
+export ACC_MOD=$ACC_REL/modules
+export ACC_RUN=$ACC_REL/run
+export ACC_UTIL=$ACC_REL/util
+export ACC_INC=$ACC_SRC/include
+export ACC_PKG=$ACC_REL/packages
+
+
+
+#--------------------------------------------------------------
+#  "Fixes" Mechanism Area
+#--------------------------------------------------------------
+export ACC_FIX=${ACC_ARCHIVE_BASE_DIR}/fixes
+export ACC_FIX_EXE=$ACC_FIX/${ACC_PLATFORM}_${ACC_F90}/bin
+
+
+
+#--------------------------------------------------------------
+#  3rd-Party Packages
+#--------------------------------------------------------------
+export PKG_LIB=$ACC_PKG/lib
+export PKG_MOD=$ACC_PKG/modules
+export PKG_INC=$ACC_PKG/include
+export PGPLOT_DIR=$ACC_PKG/PGPLOT
+export PGPLOT_FONTS=$ACC_PKG/PGPLOT
+
+export USE_PGPLOT="Y"
+export USE_PLPLOT="N"
+
+
+#--------------------------------------------------------------
+#  LATTICE and configuration files
+#--------------------------------------------------------------
+export CESR_LAT=$ACC_CONFIG/cesr
+export CTA_LAT=$ACC_CONFIG/cta
+export ERL_LAT=$ACC_CONFIG/erl
+export ILC_LAT=$ACC_CONFIG/ilc
+export BMAD_LAT=$CESR_LAT/bmad
+export BMAD_LAYOUT=$CESR_LAT/bmad
+
+
+
+#--------------------------------------------------------------
+#  TOAD help file search path
+#--------------------------------------------------------------
+export TOAD_DIR=$ACC_SRC/toad

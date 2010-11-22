@@ -1,0 +1,64 @@
+#----------------------------------------------------------
+#  acc_source_me
+#  -------------
+#   
+#  This is a multi-shell script meant to be sourced
+#  into your environment to set up your LEPP account
+#  for using the ACCelerator build system.
+#
+#  The following syntax will set up your environment
+#  while working in any of the following shells:
+#    csh / tcsh / sh / ksh / bash / ash
+#
+# USAGE:
+#  This mechanism may be invoked by a profile or login
+#  script or manually once a session is started.
+#
+#   1) Upon Login
+#       Place one of the following stanzas in your 
+#       ~/.profile or ~/.<shell>rc script.
+#
+#       Bourne-type shells should use this:
+#
+#         export ACC_RELTYPE=devel
+#         ACCDEFS=/home/mcr/tmp/shell_testing/source-me
+#         [ -f $ACCDEF ] && . $ACCDEFS
+#         unset ACC_RELTYPE
+#
+#
+#       C-type shells should use this:
+#
+#         setenv ACC_RELTYPE devel
+#         setenv ACCDEF /home/mcr/tmp/shell_testing/source-me
+#         source $ACCDEF
+#         unset $ACC_RELTYPE
+#
+#      
+#   2) Manually
+#       "ACC_RELTYPE=devel . ACC_source_me"
+#       Where the value of "ACC_RELTYPE" determines which
+#       ACC prebuilt release type to configure the
+#       build system to use.
+#----------------------------------------------------------
+
+
+#----------------------------------------------------------
+# Generate temporary file containing all environment 
+# changes necesary for the build system to function.
+#----------------------------------------------------------
+sh /home/cesrulib/bin/util/acc_gen_env > ${HOME}/.acc_env_setup.tmp
+
+
+
+#----------------------------------------------------------
+# Apply the changes generated above.
+#----------------------------------------------------------
+source ${HOME}/.acc_env_setup.tmp
+
+
+
+#----------------------------------------------------------
+# Clean up
+#----------------------------------------------------------
+rm ${HOME}/.acc_env_setup.tmp
+
