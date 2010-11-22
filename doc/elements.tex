@@ -815,7 +815,10 @@ The geometry shown is appropriate for zero
 $\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bH$ vector with
 respect to the surface normal $\bfhat n$. For $psi$ (\vn{psi_angle})
 zero, the incoming reference orbit, the outgoing reference orbit,
-$\bfhat n$ and $\bH$ are all coplainer.}
+$\bfhat n$ and $\bH$ are all coplainer. The element reference coordinates
+where $\bfhat x$ is parallel to the surface normal establishes the coordinates
+for specifying a rotation of $\bH$ around the surface normal and specifying
+a curveature of the surface.}
   \label{f:bend}
 \end{figure}
 
@@ -903,19 +906,73 @@ orientation shown in Fig.~\ref{f:crystal}, \vn{alpha_H} is positive.
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bH$ are all coplainer. A non-zero
 \vn{psi_angle} Rotates the $\bH$ vector around the $+\bfhat x$ axis
-of the \vn{Element Reference Frame} (See  Fig.~\ref{f:crystal}).
+of the \vn{Element Reference Frame} (See Fig.~\ref{f:crystal}).
 
 The reference trajectory for a \vn{crystal} is that of a zero length
 bend (\sref{s:mirror.coords}) and hence the length (\vn{l}) parameter
-of a crystal is fixed at zero. The reference trajectory is determined
-by the values of the \vn{graze_angle} and \vn{tilt} parameters. A
-positive \vn{graze_angle} bends the reference trajectory in the same
+of a crystal is fixed at zero. The orientation of the reference
+trajectory with respect to the crystal surface is specified by the
+incoming graze angle \vn{graze_angle_in} ($\theta_{g,in}$) and
+outgoing graze angle \vn{graze_angle_out} ($\theta_{g,out}$) as shown
+in Fig.~\ref{f:crystal}. These angles are computed from the photon
+reference energy and the other crystal parameters such that a photon
+with the reference energy traveling along the reference trajectory
+will be in the center of the Darwin curve. 
+
+The reference trajectory in the global coordinate system
+(\sref{s:global}) is determined by the value of the \vn{tilt}
+parameter along with the value of \vn{graze_angle_in} +
+\vn{graze_angle_out}. A positive \vn{graze_angle_in} +
+\vn{graze_angle_out} bends the reference trajectory in the same
 direction as a positive \vn{g} for a bend element. The
 \vn{graze_angle_err} and \vn{tilt_err} parameters affect the
 orientation of the \vn{crystal} in the global reference system but do
 not affect the reference trajectory.
 
+A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
+local reference coordinates are used for these misalignments. The
+\vn{x_pitch} and \vn{y_pitch} parameters can be related to the
+\vn{graze_angle_err} and \vn{tilt_err} parameters. For example, with
+zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
+\vn{graze_angle_err} of the same magnitude, and a positive
+\vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
+magnitude.
 
+The curvature of the surface in the plane of the $x$-$z$ plane of the
+Element Reference Frame (see Fig.~\ref{f:crystal}) is determined by
+the \vn{d_source}, \vn{d_detec}, \vn{c2_curve}, \vn{c2_curve}, and
+\vn{c2_curve} parameters. The curvature is surface is parameterized by
+a fourth order polynomial
+\Begineq
+  -x = c_{2,tot} \, z^2 + c_{3,tot} \, z^3 + c_{4,tot} \, z^4
+\Endeq
+The coefficients of the polynomial are determined by
+\begin{align}
+  c_{2,tot} &= \mbox{c2_curve} + frac{1}{2 \, R_c} \CRNO
+  c_{3,tot} &= \mbox{c3_curve}
+  c_{4,tot} &= \mbox{c4_curve} + frac{1}{4 \, R_c^3} \CRNO
+\end{example}
+where 
+\Begineq
+  \frac{2}{R_c} = \frac{\theta_{g,in}}{d_s} + 
+                  \frac{\theta_{g,out}}{d_d}
+\Endeq
+and
+\begin{align}
+  d_s &= \begin{cases} 
+    \infty & \mbox{d_source} = 0 \\
+    \mbox{d_source} & \mbox{otherwise}
+  \end{cases} \CRNO
+  d_d &= \begin{cases} 
+    \infty & \mbox{d_detec} = 0 \\
+    \mbox{d_detec} & \mbox{otherwise}
+  \end{cases} \CRNO
+  d_d
+\vn{d_source} and \vn{d_detec} can be thought of as distances from the
+crystal to the photon source and detector of photons.  With the above
+definitions, and with \vn{c2_curve}, \vn{c3_curve}, and \vn{c4_curve}
+equal to zero, photons from the source will be focused on the
+detector.
 
 The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
 \vn{R_graze} is the radius of curvature of the crystal surface in the
@@ -926,15 +983,6 @@ photons. Similarly, the \vn{g_trans} parameter is equal to
 crystal surface in the plane transverse to the bend plane. Again, a
 positive \vn{g_trans} indicates that the crystal is concave from the
 point of view of the photons.
-
-A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
-local reference coordinates are used for these misalignments. The
-\vn{x_pitch} and \vn{y_pitch} parameters can be related to the
-\vn{graze_angle_err} and \vn{tilt_err} parameters. For example, with
-zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
-\vn{graze_angle_err} of the same magnitude, and a positive
-\vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
-magnitude.
 
 Example:
 \begin{example}

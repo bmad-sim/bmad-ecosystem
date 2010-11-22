@@ -742,12 +742,12 @@ attrib_array(crystal$, diffraction_type$) = 'DIFFRACTION_TYPE'
 attrib_array(crystal$, crystal_type$)     = 'CRYSTAL_TYPE'
 attrib_array(crystal$, d_source$)         = 'D_SOURCE'
 attrib_array(crystal$, d_detec$)          = 'D_DETEC'
-attrib_array(crystal$, c2_bend$)          = 'C2_BEND'
-attrib_array(crystal$, c3_bend$)          = 'C3_BEND'
-attrib_array(crystal$, c4_bend$)          = 'C4_BEND'
-attrib_array(crystal$, c2_bend_tot$)      = 'C2_BEND_TOT'
-attrib_array(crystal$, c3_bend_tot$)      = 'C3_BEND_TOT'
-attrib_array(crystal$, c4_bend_tot$)      = 'C4_BEND_TOT'
+attrib_array(crystal$, c2_curve$)         = 'C2_CURVE'
+attrib_array(crystal$, c3_curve$)         = 'C3_CURVE'
+attrib_array(crystal$, c4_curve$)         = 'C4_CURVE'
+attrib_array(crystal$, c2_curve_tot$)     = 'C2_CURVE_TOT'
+attrib_array(crystal$, c3_curve_tot$)     = 'C3_CURVE_TOT'
+attrib_array(crystal$, c4_curve_tot$)     = 'C4_CURVE_TOT'
 
 !! attrib_array(crystal$, nx_out$)           = 'NX_OUT'   ! Hidden value
 !! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
@@ -850,7 +850,7 @@ end function attribute_type
 !   x_offset          x_offset_tot
 !   x_pitch           x_pitch_tot
 !   tilt              tilt_tot
-!   c2_bend          c2_bend_tot
+!   c2_curve          c2_curve_tot
 !
 ! Module needed:
 !   use bmad
@@ -880,9 +880,9 @@ case ('X_OFFSET');    ix_tot_attrib = x_offset_tot$
 case ('Y_OFFSET');    ix_tot_attrib = y_offset_tot$
 case ('S_OFFSET');    ix_tot_attrib = s_offset_tot$
 case ('TILT');        ix_tot_attrib = tilt_tot$
-case ('C2_BEND');    ix_tot_attrib = c2_bend_tot$
-case ('C3_BEND');    ix_tot_attrib = c3_bend_tot$
-case ('C4_BEND');    ix_tot_attrib = c4_bend_tot$
+case ('C2_CURVE');    ix_tot_attrib = c2_curve_tot$
+case ('C3_CURVE');    ix_tot_attrib = c3_curve_tot$
+case ('C4_CURVE');    ix_tot_attrib = c4_curve_tot$
 case default;         ix_tot_attrib = -1
 end select
 
@@ -901,7 +901,7 @@ end function corresponding_tot_attribute_index
 !   x_offset_tot
 !   x_pitch_tot
 !   tilt_tot
-!   c2_bend_tot
+!   c2_curve_tot
 !
 ! Module needed:
 !   use bmad
@@ -927,7 +927,7 @@ logical is_a_tot_attrib
 
 select case (attribute_name(ele, ix_attrib))
 case ('X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', 'Y_OFFSET_TOT', &
-      'S_OFFSET_TOT', 'TILT_TOT', 'C2_BEND_TOT', 'C3_BEND_TOT', 'C4_BEND_TOT')
+      'S_OFFSET_TOT', 'TILT_TOT', 'C2_CURVE_TOT', 'C3_CURVE_TOT', 'C4_CURVE_TOT')
   is_a_tot_attrib = .true.
 case default
   is_a_tot_attrib = .false.
