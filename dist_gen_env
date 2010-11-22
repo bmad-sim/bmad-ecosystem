@@ -240,8 +240,12 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "YES" ] || [ "${USE_CWD_BASEDIR}" == "YES" ]; 
   if `echo ${SHELL} | grep "csh" 1>/dev/null 2>&1`
   then
     diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g' >> ${ENV_SETUP_FILE}
+    echo "alias listf '${DIST_BASE_DIR}/util/listf.pl'" >> ${ENV_SETUP_FILE}
+    echo "alias getf '${DIST_BASE_DIR}/util/getf.pl'" >> ${ENV_SETUP_FILE}
   else
     diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/=\"/g' | sed 's/> /export /g' | sed 's/$/\"/g' >> ${ENV_SETUP_FILE}
+    echo "alias listf=\"${DIST_BASE_DIR}/util/listf.pl\"" >> ${ENV_SETUP_FILE}
+    echo "alias getf=\"${DIST_BASE_DIR}/util/getf.pl\"" >> ${ENV_SETUP_FILE}
   fi
 
 
