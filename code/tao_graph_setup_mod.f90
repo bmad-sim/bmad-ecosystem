@@ -336,7 +336,7 @@ do k = 1, size(graph%curve)
         curve%x_symb(n+1:n+m) = pack(axis1, mask = (p%ix_lost == not_lost$))
         curve%y_symb(n+1:n+m) = pack(axis2, mask = (p%ix_lost == not_lost$))
         if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
-                             sqrt(p(:)%r%intensity_x + p(:)%r%intensity_y), mask = (p%ix_lost == not_lost$))
+                             sqrt(p(:)%r%e_field_x**2 + p(:)%r%e_field_y**2), mask = (p%ix_lost == not_lost$))
         curve%ix_symb(n+1:n+m) = pack([(i, i = 1,m)], mask = (p%ix_lost == not_lost$))
         n = n + count(p%ix_lost == not_lost$)
       enddo
@@ -347,7 +347,7 @@ do k = 1, size(graph%curve)
       curve%x_symb = pack(axis1, mask = (p%ix_lost == not_lost$))
       curve%y_symb = pack(axis2, mask = (p%ix_lost == not_lost$))
       if (graph%symbol_size_scale > 0) curve%symb_size = pack(graph%symbol_size_scale * &
-                            sqrt(p(:)%r%intensity_x + p(:)%r%intensity_y), mask = (p%ix_lost == not_lost$))
+                            sqrt(p(:)%r%e_field_x**2 + p(:)%r%e_field_y**2), mask = (p%ix_lost == not_lost$))
       forall (i = 1:m) curve%ix_symb(i) = i
     endif
 
@@ -497,15 +497,15 @@ case ('y');   ix_axis = 3; if (present(p)) axis = p%r%vec(3)
 case ('py');  ix_axis = 4; if (present(p)) axis = p%r%vec(4)
 case ('z');   ix_axis = 5; if (present(p)) axis = p%r%vec(5)
 case ('pz');  ix_axis = 6; if (present(p)) axis = p%r%vec(6)
-case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%r%intensity_x
-case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%r%intensity_y
+case ('intensity_x'); ix_axis =  7; if (present(p)) axis = p%r%e_field_x**2
+case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%r%e_field_y**2
 case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%r%phase_x
 case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%r%phase_y
 
 case ('intensity')
   ix_axis = 11
   if (present(p)) then
-    p%charge = p%r%intensity_x + p%r%intensity_y
+    p%charge = p%r%e_field_x**2 + p%r%e_field_y**2
     axis = p%charge
   endif
 

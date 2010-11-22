@@ -1380,24 +1380,24 @@ case ('photon.')
 
   case ('photon.intensity_x')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%centroid%e_field_x**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call tao_load_this_datum (orbit(:)%intensity_x, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (orbit(:)%e_field_x**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
   case ('photon.intensity_y')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%intensity_y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (bunch_params(:)%centroid%e_field_y**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call tao_load_this_datum (orbit(:)%intensity_y, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      call tao_load_this_datum (orbit(:)%e_field_y**2, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     endif
 
   case ('photon.intensity')
     if (data_source == 'beam') then
-      call tao_load_this_datum (bunch_params(:)%centroid%intensity_x+bunch_params(:)%centroid%intensity_y, &
+      call tao_load_this_datum (bunch_params(:)%centroid%e_field_x**2+bunch_params(:)%centroid%e_field_y**2, &
                                                                       ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     else
-      call tao_load_this_datum (orbit(:)%intensity_x + orbit(:)%intensity_y, ele_ref, ele_start, ele, &
+      call tao_load_this_datum (orbit(:)%e_field_x**2 + orbit(:)%e_field_y**2, ele_ref, ele_start, ele, &
                                                                            datum_value, valid_value, datum, lat, why_invalid)
     endif
 

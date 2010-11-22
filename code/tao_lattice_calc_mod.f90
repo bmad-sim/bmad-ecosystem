@@ -549,7 +549,7 @@ p =>beam%bunch(n_bunch)%particle(:)
 all_lost = all(p%ix_lost /= not_lost$)
 
 if (particle == photon$) then
-  if (sum(p%r%intensity_x) + sum(p%r%intensity_y) == 0 .or. all_lost) no_beam = .true.
+  if (sum(p%r%e_field_x**2) + sum(p%r%e_field_y**2) == 0 .or. all_lost) no_beam = .true.
 else
   if (sum(p%charge) == 0 .or. all_lost) no_beam = .true.
 endif
