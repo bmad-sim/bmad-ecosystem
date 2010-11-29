@@ -199,7 +199,7 @@ subroutine res_line_calc (param, res)
           res%num_line = res%num_line + 1
           line => res%line(res%num_line)
 
-          line%angle_lab = atan2d(float(-p), float(q))
+          line%angle_lab = atan2(float(-p), float(q)) * 180 / pi
           if (q == 0) line%angle_lab = 90.0   ! instead of -90
 
           line%p = p
