@@ -6,10 +6,10 @@ use photon_reflection_mod
 ! These common variables are needed for the Num Rec routine zbrent.
 
 private sr3d_photon_hit_func
-type (photon3d_track_struct), pointer, private :: photon_com
-type (photon3d_track_struct), private :: com, photon1_com
-type (wall3d_struct), private, pointer :: wall_com
-type (lat_struct), private, pointer :: lat_com
+type (photon3d_track_struct), pointer, private, save :: photon_com
+type (photon3d_track_struct), private, save :: photon1_com
+type (wall3d_struct), pointer, private, save :: wall_com
+type (lat_struct), pointer, private, save :: lat_com
 
 contains
 
