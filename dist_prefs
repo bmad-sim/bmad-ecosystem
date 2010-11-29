@@ -34,7 +34,7 @@
 # The PGPLOT source is actually upplied along with the 
 # distribution and will be built if this variable is set.
 #-----------------------------------------------------------
-export USE_PGPLOT="N"
+export USE_PGPLOT="Y"
 
 
 
@@ -57,7 +57,7 @@ export USE_PGPLOT="N"
 #   file.  The directory will be the one where that file
 #   is located.
 #-----------------------------------------------------------
-export USE_PLPLOT="Y"
+export USE_PLPLOT="N"
 export PLPLOT_LIBDIR="/opt/local/lib"
 
 
