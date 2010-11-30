@@ -34,6 +34,6 @@ close (F_IN);
 close (F_OUT);
 
 `cp /home/dcs/public_html/bmad/tao.html /home/dcs/public_html/bmad/tao.html.$rev`;
-`cp tao.html  /home/dcs/public_html/bmad`;
+`mv tao.html  /home/dcs/public_html/bmad`;
 `cp tao.pdf   /home/dcs/public_html/bmad/tao-manual-$rev.pdf`;
 
