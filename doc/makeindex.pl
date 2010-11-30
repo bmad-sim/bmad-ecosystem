@@ -16,5 +16,4 @@ close (FC);
 close (F_OUT);
 `mv temp.out tao.ind`;
 
-
 `pdflatex tao`;
