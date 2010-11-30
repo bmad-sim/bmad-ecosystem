@@ -26,10 +26,10 @@ if (-r catfile( $curdir, "bmad", "modules", "bmad_struct.f90" )) {
   $bmad_dir = catfile( $updir, "bmad" );
 } elsif (-r catfile( $updir, $updir, "bmad", "modules", "bmad_struct.f90")) {
   $bmad_dir = catfile( $updir, $updir, "bmad" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "bmad", "modules", "bmad_struct.f90")) {
-  $bmad_dir = catfile( $ENV{"CESR_SRC"}, "bmad" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "bmad", "modules", "bmad_struct.f90")) {
+  $bmad_dir = catfile( $ENV{"ACC_SRC"}, "bmad" );
 } else {
-  $bmad_dir = catfile( $ENV{"BMAD_SRC"}, "bmad" );
+  $bmad_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmad" );
 }
 
 if (-r catfile( $curdir, "cesr_utils", "modules", "cesr_utils.f90" )) {
@@ -38,10 +38,10 @@ if (-r catfile( $curdir, "cesr_utils", "modules", "cesr_utils.f90" )) {
   $cesr_utils_dir = catfile( $updir, "cesr_utils" );
 } elsif (-r catfile( $updir, $updir, "cesr_utils", "modules", "cesr_utils.f90")) {
   $cesr_utils_dir = catfile( $updir, $updir, "cesr_utils" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "cesr_utils")) {
-  $cesr_utils_dir = catfile( $ENV{"CESR_SRC"}, "cesr_utils" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "cesr_utils")) {
+  $cesr_utils_dir = catfile( $ENV{"ACC_SRC"}, "cesr_utils" );
 } else {
-  $cesr_utils_dir = catfile( $ENV{"BMAD_SRC"}, "cesr_utils" );
+  $cesr_utils_dir = catfile( $ENV{"DIST_BASE_DIR"}, "cesr_utils" );
 }
 
 
@@ -51,10 +51,10 @@ if (-r catfile( $curdir, "sim_utils", "interfaces", "sim_utils.f90" )) {
   $sim_utils_dir = catfile( $updir, "sim_utils" );
 } elsif (-r catfile( $updir, $updir, "sim_utils", "interfaces", "sim_utils.f90")) {
   $sim_utils_dir = catfile( $updir, $updir, "sim_utils" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "sim_utils")) {
-  $sim_utils_dir = catfile( $ENV{"CESR_SRC"}, "sim_utils" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "sim_utils")) {
+  $sim_utils_dir = catfile( $ENV{"ACC_SRC"}, "sim_utils" );
 } else {
-  $sim_utils_dir = catfile( $ENV{"BMAD_SRC"}, "sim_utils" );
+  $sim_utils_dir = catfile( $ENV{"DIST_BASE_DIR"}, "sim_utils" );
 }
 
 if (-r catfile( $curdir, "mpm_utils", "code", "butout.f90" )) {
@@ -63,10 +63,10 @@ if (-r catfile( $curdir, "mpm_utils", "code", "butout.f90" )) {
   $mpm_utils_dir = catfile( $updir, "mpm_utils" );
 } elsif (-r catfile( $updir, $updir, "mpm_utils", "code", "butout.f90")) {
   $mpm_utils_dir = catfile( $updir, $updir, "mpm_utils" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "mpm_utils")) {
-  $mpm_utils_dir = catfile( $ENV{"CESR_SRC"}, "mpm_utils" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "mpm_utils")) {
+  $mpm_utils_dir = catfile( $ENV{"ACC_SRC"}, "mpm_utils" );
 } else {
-  $mpm_utils_dir = catfile( $ENV{"BMAD_SRC"}, "mpm_utils" );
+  $mpm_utils_dir = catfile( $ENV{"DIST_BASE_DIR"}, "mpm_utils" );
 }
 
 
@@ -76,10 +76,10 @@ if (-r catfile( $curdir, "recipes_f-90_LEPP", "lib_src", "nr.f90" )) {
   $recipes_dir = catfile( $updir, "recipes_f-90_LEPP" );
 } elsif (-r catfile( $updir, $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
   $recipes_dir = catfile( $updir, $updir, "recipes_f-90_LEPP" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP")) {
-  $recipes_dir = catfile( $ENV{"CESR_SRC"}, "recipes_f-90_LEPP" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "recipes_f-90_LEPP")) {
+  $recipes_dir = catfile( $ENV{"ACC_SRC"}, "recipes_f-90_LEPP" );
 } else {
-  $recipes_dir = catfile( $ENV{"BMAD_SRC"}, "recipes_f-90_LEPP" );
+  $recipes_dir = catfile( $ENV{"DIST_BASE_DIR"}, "recipes_f-90_LEPP" );
 }
 
 
@@ -89,10 +89,10 @@ if (-r catfile( $curdir, "forest", "code", "i_tpsa.f90" )) {
   $forest_dir = catfile( $updir, "forest" );
 } elsif (-r catfile( $updir, $updir, "forest", "code", "i_tpsa.f90")) {
   $forest_dir = catfile( $updir, $updir, "forest" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "forest")) {
-  $forest_dir = catfile( $ENV{"CESR_SRC"}, "forest" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "forest")) {
+  $forest_dir = catfile( $ENV{"ACC_SRC"}, "forest" );
 } else {
-  $forest_dir = catfile( $ENV{"BMAD_SRC"}, "forest" );
+  $forest_dir = catfile( $ENV{"DIST_BASE_DIR"}, "forest" );
 }
 
 if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
@@ -101,10 +101,10 @@ if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
   $tao_dir = catfile( $updir, "tao" );
 } elsif (-r catfile( $updir, $updir, "tao", "code", "tao_struct.f90")) {
   $tao_dir = catfile( $updir, $updir, "tao" );
-} elsif (-r catfile( $ENV{"CESR_SRC"}, "tao")) {
-  $tao_dir = catfile( $ENV{"CESR_SRC"}, "tao" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "tao")) {
+  $tao_dir = catfile( $ENV{"ACC_SRC"}, "tao" );
 } else {
-  $tao_dir = catfile( $ENV{"BMAD_SRC"}, "tao" );
+  $tao_dir = catfile( $ENV{"DIST_BASE_DIR"}, "tao" );
 }
 
 # Look for arguments
