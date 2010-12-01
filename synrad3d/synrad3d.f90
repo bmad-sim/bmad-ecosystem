@@ -232,8 +232,7 @@ else
   call bmad_parser (lattice_file, lat)
 endif
 
-wall%pt(n_wall_pt_max)%s = lat%ele(lat%n_ele_track)%s
-call sr3d_check_wall (wall)
+call sr3d_init_and_check_wall (wall, lat)
 
 if (turn_off_kickers_in_lattice) then
   do i = 1, lat%n_ele_max
@@ -625,9 +624,12 @@ logical is_inside
 photon%now = photon_start
 photon%old = photon_start
 photon%old%vec(1:3:2) = 0   ! 
-is_inside = .not. sr3d_photon_through_wall (photon, wall)
+call sr3d_photon_status_calc (photon, wall)
 
-if (.not. is_inside) then
+is_inside = .true.
+
+if (photon%status /= inside_the_wall$ .and. photon%status /= at_lat_end$) then
+  is_inside = .false.
   print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', n_photon_generated
   print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%vec      
 

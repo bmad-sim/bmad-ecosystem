@@ -114,7 +114,9 @@ do
   ! If so we calculate the exact hit spot where the photon crossed the
   ! wall boundry and return
 
-  if (sr3d_photon_through_wall(photon, wall)) then
+  call sr3d_photon_status_calc (photon, wall)
+  if (photon%status == at_lat_end$) return
+  if (photon%status == is_through_wall$) then
     call sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
     return
   endif
@@ -127,19 +129,20 @@ end subroutine sr3d_track_photon_to_wall
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Function sr3d_photon_through_wall (photon, wall) result (is_through)
+! Subroutine sr3d_photon_status_calc (photon, wall) 
 !
-! Routine to determine if a photon has crossed through the wall
+! Routine to determine if a photon has crossed through the wall or
+! is at the end of a linear lattice
 !
 ! Input:
 !   photon  -- photon3d_track_struct
 !   wall    -- wall3d_struct: Wall
 !
 ! Output:
-!   is_through -- Logical: True if through.
+!   photon%status -- Integer: is_through_wall$, at_lat_end$, or inside_the_wall$
 !-
 
-function sr3d_photon_through_wall (photon, wall) result (is_through)
+subroutine sr3d_photon_status_calc (photon, wall) 
 
 implicit none
 
@@ -157,18 +160,34 @@ logical is_through
 
 call sr3d_get_wall_index (photon%now, wall, ix)
 
+photon%status = inside_the_wall$
+
 if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
   do i = 1, 2*size(wall%pt(ix)%gen_shape%v)
     call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), i, tri_vert0, tri_vert1, tri_vert2)
     call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through)
-    if (is_through) return 
+    if (is_through) then
+      photon%status = is_through_wall$
+      return 
+    endif
   enddo
+
 else
   call sr3d_photon_d_radius (photon%now, wall, d_radius)
-  is_through = (d_radius > 0)
+  if (d_radius > 0) then
+      photon%status = is_through_wall$
+      return 
+    endif    
 endif
 
-end function sr3d_photon_through_wall
+! Is through if at ends of a linear lattice
+
+if (wall%lattice_type == linear_lattice$) then
+  if (photon%now%vec(5) == 0 .and. photon%now%vec(6) < 0) photon%status = at_lat_end$
+  if (photon%now%vec(5) == wall%pt(wall%n_pt_max)%s .and. photon%now%vec(6) > 0) photon%status = at_lat_end$
+endif
+
+end subroutine sr3d_photon_status_calc
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -286,7 +305,7 @@ real(rp), pointer :: vec(:)
 
 integer ixw
 
-logical stop_at_check_pt, s_stop_is_check_pt, will_stop_at_s_stop
+logical stop_at_check_pt, check_pt_here
 
 
 ! update old 
@@ -301,7 +320,7 @@ dl_left = dl_step
 
 propagation_loop: do
 
-  s_stop_is_check_pt = .false.
+  check_pt_here = .false.
   if (stop_at_check_pt) call bracket_index (wall%pt%s, 0, wall%n_pt_max, now%vec(5), ixw)
 
   ! If we are crossing over to a new element then update now%ix_ele.
@@ -310,6 +329,7 @@ propagation_loop: do
     do
       if (now%vec(5) >= lat%ele(now%ix_ele)%s) then
         if (now%ix_ele == lat%n_ele_track) then
+          if (lat%param%lattice_type == linear_lattice$) return
           now%vec(5) = now%vec(5) - lat%param%total_length
           now%ix_ele = 1
           photon%crossed_lat_end = .not. photon%crossed_lat_end
@@ -332,7 +352,7 @@ propagation_loop: do
     if (stop_at_check_pt .and. ixw < wall%n_pt_max) then
       if (wall%pt(ixw+1)%s < s_stop) then
         s_stop = wall%pt(ixw+1)%s
-        s_stop_is_check_pt = .true.
+        check_pt_here = .true.
       endif
     endif
 
@@ -340,6 +360,7 @@ propagation_loop: do
     do
       if (now%vec(5) <= lat%ele(now%ix_ele-1)%s) then
         if (now%ix_ele <= 0) then
+          if (lat%param%lattice_type == linear_lattice$) return
           now%vec(5) = now%vec(5) + lat%param%total_length
           now%ix_ele = lat%n_ele_track
           photon%crossed_lat_end = .not. photon%crossed_lat_end
@@ -363,7 +384,7 @@ propagation_loop: do
       if (wall%pt(ixw)%s == now%vec(5)) ixw = ixw - 1
       if (wall%pt(ixw)%s > s_stop) then
         s_stop = wall%pt(ixw)%s
-        s_stop_is_check_pt = .true.
+        check_pt_here = .true.
       endif
     endif
 
@@ -388,10 +409,10 @@ propagation_loop: do
       dl = dl_left
       tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
       theta = atan(tan_t)
-      will_stop_at_s_stop = .false.
+      check_pt_here = .false.
+      s_stop = now%vec(5) + radius * theta
     else
       dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
-      will_stop_at_s_stop = .true.
     endif
 
     ! Check if we should actually be stopping at the extremum (minimal x)
@@ -403,13 +424,13 @@ propagation_loop: do
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
         s_stop = now%vec(5) + radius * theta
-        will_stop_at_s_stop = .true.
-        s_stop_is_check_pt = .true.
+        check_pt_here = .true.
       endif
     endif
 
     ! Move to the stop point. 
     ! Need to remember that radius can be negative.
+
     st = dl * now%vec(6)
     ct = radius + now%vec(1) + dl * now%vec(2)
     if (abs(st) < 1e-3 * ct) then
@@ -420,10 +441,11 @@ propagation_loop: do
     sin_t = st / denom
     cos_t = ct / denom
     v_x = now%vec(2); v_s = now%vec(6)
+
     now%vec(1) = denom - radius
     now%vec(2) = v_s * sin_t + v_x * cos_t
     now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%vec(5) = now%vec(5) + radius * theta
+    now%vec(5) = s_stop
     now%vec(6) = v_s * cos_t - v_x * sin_t
 
   ! Else we are not in a bend
@@ -434,20 +456,18 @@ propagation_loop: do
 
     if (abs(now%vec(6)) * dl_left > abs(s_stop - now%vec(5))) then
       dl = (s_stop - now%vec(5)) / now%vec(6)
-      will_stop_at_s_stop = .true.
     else
       dl = dl_left
-      will_stop_at_s_stop = .false.
+      check_pt_here = .false.
+      s_stop = now%vec(5) + dl * now%vec(6)
     endif
 
     ! And move to the next position
 
     now%vec(1) = now%vec(1) + dl * now%vec(2)
     now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%vec(5) = now%vec(5) + dl * now%vec(6)
+    now%vec(5) = s_stop
   endif
-
-  if (will_stop_at_s_stop) now%vec(5) = s_stop ! Needed to avoid roundoff errors.
 
   !
 
@@ -455,7 +475,7 @@ propagation_loop: do
   dl_left = dl_left - dl
 
   if (dl_left == 0) return
-  if (stop_at_check_pt .and. will_stop_at_s_stop .and. s_stop_is_check_pt) return
+  if (stop_at_check_pt .and. check_pt_here) return
 
 enddo propagation_loop
 
@@ -736,7 +756,7 @@ wall_hit(n_wall_hit)%reflectivity = -1
 
 ! Check if reflections allowed or hit antechamber
 
-if (.not. sr3d_params%allow_reflections .or. &
+if (.not. sr3d_params%allow_reflections .or. photon%status == at_lat_end$ .or. &
     (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber)) then
   wall_hit(n_wall_hit)%dw_perp = 0
   wall_hit(n_wall_hit)%cos_perp = 0
