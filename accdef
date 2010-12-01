@@ -200,8 +200,7 @@ set users_file=/home/cesrulib/user_log/users.list
 set max_count=2
 while ( ${lock_count} < ${max_count} )
     if ( `filetest -e ${lock_file}` ) then
-      #echo "Waiting for ACL setup lock!"
-      sleep 0.4
+      sleep 1
       set lock_count=`expr ${lock_count} + 1`
     else
       touch ${lock_file}
