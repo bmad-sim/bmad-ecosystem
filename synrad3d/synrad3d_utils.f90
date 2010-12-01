@@ -13,29 +13,43 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_check_wall (wall)
+! Subroutine sr3d_init_and_check_wall (wall, circular_lat)
 !
 ! Routine to check the vacuum chamber wall for problematic values.
+! Also compute some wall parameters
 !
 ! Input:
-!   wall -- wall3d_struct: wall structure.
+!   wall -- wall3d_struct: Wall structure.
+!   lat  -- lat_struct: lattice
+!
+! Output:
+!   wall -- wall3d_struct: Wall structure with computed parameters.
 !-
 
-subroutine sr3d_check_wall (wall)
+subroutine sr3d_init_and_check_wall (wall, lat)
 
 implicit none
 
 type (wall3d_struct), target :: wall
+type (lat_struct) lat
 type (wall3d_pt_struct), pointer :: pt, pt0
+
 
 integer i
 
-character(20) :: r_name = 'sr3d_check_wall'
+logical circular_lat
+
+character(28), parameter :: r_name = 'sr3d_init_and_check_wall'
 
 !
 
+wall%pt(wall%n_pt_max)%s = lat%ele(lat%n_ele_track)%s
+wall%lattice_type = lat%param%lattice_type
+
 do i = 0, wall%n_pt_max
   pt => wall%pt(i)
+
+  ! Check s ordering
 
   if (i > 0) then
     if (pt%s <= wall%pt(i-1)%s) then
@@ -47,6 +61,8 @@ do i = 0, wall%n_pt_max
       call err_exit
     endif
   endif
+
+  ! Check %basic_shape
 
   if (.not. any(pt%basic_shape == ['elliptical    ', 'rectangular   ', 'gen_shape     ', 'gen_shape_mesh'])) then
     call out_io (s_fatal$, r_name, &
@@ -83,8 +99,6 @@ do i = 0, wall%n_pt_max
 
     cycle
   endif
-
-
 
   ! Checks for everything else
 
@@ -129,6 +143,20 @@ do i = 0, wall%n_pt_max
   endif
 
 enddo
+
+! If circular lattice then start and end shapes must match
+
+if (wall%lattice_type == circular_lattice$) then
+  pt0 => wall%pt(0)
+  pt  => wall%pt(wall%n_pt_max)
+  if (pt0%basic_shape /= pt%basic_shape .or. pt0%width2 /= pt%width2 .or. pt0%height2 /= pt%height2 .or. &
+        pt0%ante_height2_plus /= pt%ante_height2_plus .or. pt0%width2_plus /= pt%width2_plus .or. &
+        pt0%ante_height2_minus /= pt%ante_height2_minus .or. pt0%width2_minus /= pt%width2_minus) then
+      call out_io (s_fatal$, r_name, &
+              'FOR A "CIRCULAR" LATTICE THE LAST WALL CROSS-SECTION MUST BE THE SAME AS THE FIRST.')
+      call err_exit
+  endif
+endif
 
 ! computations
 
@@ -190,7 +218,7 @@ do i = 0, wall%n_pt_max
 
 enddo
 
-end subroutine sr3d_check_wall 
+end subroutine sr3d_init_and_check_wall 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

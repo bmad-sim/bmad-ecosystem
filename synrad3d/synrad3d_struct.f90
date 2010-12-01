@@ -50,6 +50,7 @@ type photon3d_track_struct
   integer ix_photon                        ! Photon index.
   integer ix_photon_generated
   integer :: n_wall_hit = 0                ! Number of wall hits
+  integer :: status                        ! is_through_wall$, at_lat_end$, or inside_the_wall$
 end type
 
 !--------------
@@ -97,6 +98,7 @@ type wall3d_struct
   type (wall3d_pt_struct), allocatable :: pt(:)  ! lbound index = 0
   type (cross_section_struct), allocatable :: gen_shape(:)
   integer n_pt_max
+  integer lattice_type   ! linear_lattice$ or circular_lattice$
 end type
 
 ! Some parameters that can be set. 
@@ -113,5 +115,9 @@ type sr3d_params_struct
 end type
 
 type (sr3d_params_struct), save :: sr3d_params
+
+! Misc
+
+integer, parameter :: is_through_wall$ = 0, at_lat_end$ = 1, inside_the_wall$ = 2
 
 end module
