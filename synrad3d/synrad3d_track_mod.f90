@@ -820,7 +820,7 @@ implicit none
 
 type (photon3d_track_struct), target :: photon
 type (photon3d_wall_hit_struct), pointer :: hit
-type (photon3d_wall_hit_struct), target :: wall_hit(:)
+type (photon3d_wall_hit_struct), target :: wall_hit(0:)
 
 integer iu, n, iu_hit_file
 
