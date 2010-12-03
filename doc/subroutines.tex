@@ -70,7 +70,7 @@ Adds the longitudinal wake for all particles in front of the follower.
 
 \index[routine]{find_bunch_sigma_matrix}
 \label{r:find.bunch.sigma.matrix}
-\item[find_bunch_sigma_matrix (particle, avg, sigma, sigma_s)] \Newline 
+\item[find_bunch_sigma_matrix (particle, charge, avg, sigma, sigma_s)] \Newline 
 Routine to find the sigma matrix elements of a particle distribution.
 
 \index[routine]{init_spin_distribution}
@@ -705,7 +705,7 @@ Routine to take the symplectic conjugate of a square matrix.
 
 \index[routine]{mat_symp_decouple}
 \label{r:mat.symp.decouple}
-\item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, type_out)] \Newline
+\item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, gamma, type_out)] \Newline
 Routine to find the symplectic eigen--modes of the one turn 4x4 coupled 
 transfer matrix T0. 
 
@@ -854,13 +854,13 @@ length of the first word.
 
 \index[routine]{string_trim2}
 \label{r:string.trim2}
-\item[string_trim2 (in_str, delimiters, out_str, ix_word, delim, ix_next)] \Newline 
+\item[string_trim2 (in_str, delimitors, out_str, ix_word, delim, ix_next)] \Newline 
 Routine to trim a string of leading delimiters and also to return the
 length of the first word.
 
 \index[routine]{str_downcase}
 \label{r:str.downcase}
-\item[str_downcase (destination, source)] \Newline 
+\item[str_downcase (dst, src)] \Newline 
 Routine to convert a string to down case.
 
 \index[routine]{str_substitute}
@@ -887,35 +887,11 @@ Routine to convert a string to uppercase:
  This module computes the beam lifetime due to
  the diffusion process according to equation 12
 
-\index[routine]{bjmt}
-\label{r:bjmt}
-\item[bjmt(lat, mode, rates)] \Newline 
- This is a private routine.  To access this routine, call
- ibs_rates.
-
-\index[routine]{bane}
-\label{r:bane}
-\item[bane(lat, mode, rates)] \Newline 
- This is a private routine. To access this routine, call
- ibs_rates.
-
-\index[routine]{cimp}
-\label{r:cimp}
-\item[cimp(lat, mode, rates)] \Newline 
- This is a private routine. To access this routine, call
- ibs_rates.
-
 \index[routine]{g}
 \label{r:g}
 \item[g(u)] \Newline 
  This is an 13-degree piecewise polynomial interpolation of the
  integral for the CIMP ibs formulation.
-
-\index[routine]{mtto}
-\label{r:mtto}
-\item[mtto(lat, mode, rates)] \Newline 
- NOTE:  The Mtingwa-Tollerstrup formula gives different from the other
- formulations in this module.
 
 \end{description}
 
@@ -1016,7 +992,7 @@ name known to bmad.
 \label{r:pointer.to.indexed.attribute}
 \item[\protect\parbox{6in}{
   pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, \\
-  \hspace*{2in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
+  \hspace*{1in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
 Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
 
 \index[routine]{pointer_to_lord}
@@ -1035,14 +1011,16 @@ Function to point to a slave of a lord.
 
 \index[routine]{type_ele}
 \label{r:type.ele}
-\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, \\ 
-\hspace*{1in} type_taylor, twiss_out, type_control, lat, type_wake, type_floor_coords, type_wig_terms, nunit)}] \Newline
+\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, \\ 
+\hspace*{1in} type_control, lattice, type_wake, type_floor_coords, type_wig_terms, \\
+\hspace*{1in} type_cross_section, nunit)}] \Newline
 Routine to print the contents of an element at the terminal. 
 
 \index[routine]{type2_ele}
 \label{r:type2.ele}
 \item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
-\hspace*{1in} type_taylor, twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms)}] \Newline
+\hspace*{1in} type_taylor, twiss_out, type_control, lattice, type_wake, \\
+\hspace*{1in} type_floor_coords, type_wig_terms, type_cross_section)}] \Newline
 Like \vn{type_ele} but the output is stored in a string array. 
 
 \index[routine]{type_twiss}
@@ -1119,7 +1097,7 @@ lat structure.
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
     create_element_slice (sliced_ele, ele, l_slice, offset, \\
-    \hspace*{2in} param, at_entrance_end, at_exit_end)} ] \Newline 
+    \hspace*{1in} param, at_entrance_end, at_exit_end)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
 
@@ -1137,14 +1115,14 @@ Routine to create a new control element.
 \label{r:pointer.to.attribute}
 \item[\protect\parbox{6in}{
   pointer_to_attribute (ele, attrib_name, do_allocation, \\
-  \hspace*{2in} ptr_attrib, err_flag, err_print_flag, ix_attrib)}] \Newline
+  \hspace*{1in} ptr_attrib, err_flag, err_print_flag, ix_attrib)}] \Newline
 Returns a pointer to an attribute of an element with name attrib_name. 
 
 \index[routine]{pointers_to_attribute}
 \label{r:pointers.to.attribute}
 \item[\protect\parbox{6in}{
     pointers_to_attribute (lat, ele_name, attrib_name, do_allocation, \\
-    \hspace*{2in} ptr_array, err_flag, err_print_flag, eles, ix_attrib)} ] \Newline 
+    \hspace*{1in} ptr_array, err_flag, err_print_flag, eles, ix_attrib)} ] \Newline 
 Returns an array of pointers to an attribute with name attrib_name within 
 elements with name ele_name.
 
@@ -1426,7 +1404,7 @@ Routine to compute the reference energy for each element in a lattice.
 
 \index[routine]{field_interpolate_3d}
 \label{r:field.interpolate.3d}
-\item[field_interpolate_3d (position, field_mesh, deltas)] \Newline
+\item[field_interpolate_3d (position, field_mesh, deltas, position0)] \Newline
 Function to interpolate a 3d field. 
 
 \index[routine]{name_to_list}
@@ -1466,7 +1444,7 @@ Routine to parse an AML input file and put the information in a lat_struct.
 
 \index[routine]{bmad_and_xsif_parser}
 \label{r:bmad.and.xsif.parser}
-\item[bmad_and_xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
+\item[bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
 Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice files.
 
 \index[routine]{bmad_parser}
@@ -1482,7 +1460,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 \index[routine]{bmad_to_mad_or_xsif}
 \label{r:bmad.to.mad.or.xsif}
 \item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, out_file_name, lat, use_matrix_model, \\
-  \hspace*{2in} ix_start, ix_end, converted_lat, err)}] \Newline 
+  \hspace*{1in} ix_start, ix_end, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 
@@ -1517,12 +1495,12 @@ a lat_struct.
 
 \index[routine]{write_digested_bmad_file}
 \label{r:write.digested.bmad.file}
-\item[write_digested_bmad_file (digested_name, lat, n_files, file_names)] \Newline
+\item[write_digested_bmad_file (digested_name, lat, n_files, file_names, ran_p)] \Newline
 Routine to write a digested file. 
 
 \index[routine]{xsif_parser}
 \label{r:xsif.parser}
-\item[xsif_parser (xsif_file, lat, make_mats6, use_line)] \Newline 
+\item[xsif_parser (xsif_file, lat, make_mats6, digested_read_ok, use_line)] \Newline 
      Routine to parse an XSIF (extended standard input format) lattice file.
 
 \end{description}
@@ -1574,7 +1552,7 @@ coordinates with the beta function removed.
 
 \index[routine]{make_mat6}
 \label{r:make.mat6}
-\item[make_mat6 (ele, param, c0, c1)] \Newline
+\item[make_mat6 (ele, param, start, end, end_in, err)] \Newline
 Routine to make the 6x6 transfer matrix for an element. 
 
 \index[routine]{make_v_mats}
@@ -1698,12 +1676,6 @@ coupling measurements
 \item[check_if_ele_is_monitor (ele, err)] \Newline
 Routine to check that the element is either an instrument, monitor, or marker.
 This routine is private and not meant for general use.
-
-\index[routine]{compute_bpm_transformation_numbers}
-\label{r:compute.bpm.transformation.numbers}
-\item[compute_bpm_transformation_numbers (ele)] \Newline
-Routine to compute the numbers associated with the transformation between
-the actual orbit, phase, eta, and coupling, and what the measured values.
 
 \index[routine]{to_eta_reading}
 \label{r:to.eta.reading}
@@ -1831,7 +1803,7 @@ Reverse communication routine.
 \index[routine]{super_mrqmin}
 \label{r:super.mrqmin}
 \item[\protect\parbox{6in}{super_mrqmin (y, weight, a, covar, alpha, chisq, funcs, \\
-  \hspace*{2in} alamda, status, maska)}] \Newline 
+  \hspace*{1in} alamda, status, maska)}] \Newline 
 Routine to do non-linear optimizations. 
 This routine is essentially mrqmin from Numerical Recipes with some added features.
 
@@ -2150,14 +2122,14 @@ The higher the score the nicer.
 \index[routine]{qp_calc_and_set_axis}
 \item[\protect\parbox{6in}{
     qp_calc_and_set_axis (axis_str, data_min, data_max, div_min, div_max, \\
-    \hspace*{2in} bounds, axis_type, slop_factor)}] \Newline
+    \hspace*{1in} bounds, axis_type, slop_factor)}] \Newline
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index[routine]{qp_calc_axis_params}
 \label{r:qp.calc.axis.params}
 \item[\protect\parbox{6in}{qp_calc_axis_params (data_min, data_max, div_min, \\ 
-      \hspace*{2in} div_max, axis, slop_factor)}] \Newline 
+      \hspace*{1in} div_max, axis, slop_factor)}] \Newline 
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. This is similar to calc_axis_scale.
 
@@ -2175,14 +2147,13 @@ of major divisions for fixed axis minimum and maximum.
 
 \index[routine]{qp_calc_axis_scale}
 \label{r:qp.calc.axis.scale}
-\item[\protect\parbox{6in}{qp_calc_axis_scale (data_min, data_max, divisions, how, \\ 
-\hspace*{2in} places, axis_min, axis_max, niceness_score)}] \Newline 
+\item[qp_calc_axis_scale (data_min, data_max, axis, niceness_score, slop_factor)] \Newline 
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
 \index[routine]{qp_calc_minor_div}
 \label{r:qp.calc.minor.div}
-\item[qp_calc_minor_div (data_min, data_max, axis, niceness_score, slop_factor)] \Newline 
+\item[qp_calc_minor_div (delta, div_max, divisions)] \Newline 
      Routine to calculate the number of minor divisions an axis should have.
 
 \index[routine]{qp_convert_rectangle_rel}
@@ -2212,14 +2183,14 @@ Routine to clear all drawing from the page.
 \label{r:qp.draw.circle}
 \item[\protect\parbox{6in}{
       qp_draw_circle (x0, y0, r, angle0, del_angle, \\
-      \hspace*{2in} units, width, color, style, clip)}] \Newline 
+      \hspace*{1in} units, width, color, line_pattern, clip)}] \Newline 
 Routine to plot a section of an ellipse.
 
 \index[routine]{qp_draw_ellipse}
 \label{r:qp.draw.ellipse}
 \item[\protect\parbox{6in}{
     qp_draw_ellipse (x0, y0, r_x, r_y, theta_xy, \\
-    \hspace*{2in} angle0, del_angle, units, width, color, style, clip) }] \Newline 
+    \hspace*{1in} angle0, del_angle, units, width, color, line_pattern, clip) }] \Newline 
      Routine to plot a section of an ellipse.
 
 \index[routine]{qp_draw_axes}
@@ -2235,7 +2206,7 @@ Routine to plot a section of an ellipse.
 \index[routine]{qp_draw_graph}
 \label{r:qp.draw.graph}
 \item[\protect\parbox{6in}{qp_draw_graph (x_dat, y_dat, x_lab, y_lab, title, \\
-  \hspace*{2in} draw_line, symbol_every, clip) }] \Newline 
+  \hspace*{1in} draw_line, symbol_every, clip) }] \Newline 
      Routine to plot data, axes with labels, a grid, and a title.
 
 \index[routine]{qp_draw_graph_title}
@@ -2256,7 +2227,7 @@ Routine to plot a section of an ellipse.
 \index[routine]{qp_draw_curve_legend}
 \label{r:qp.draw.curve.legend}
 \item[\protect\parbox{6in}{qp_draw_curve_legend (origin, text_offset, line_length, \\ 
-\hspace*{2in}  line, symbol, text, draw_line, draw_symbol, draw_text) }] \Newline
+\hspace*{1in}  line, symbol, text, draw_line, draw_symbol, draw_text) }] \Newline
 Routine to draw a legend with each line in the legend having
   a line, a symbol, some text.
 
@@ -2272,7 +2243,7 @@ Routine to draw a legend of lines of text.
 
 \index[routine]{qp_draw_polyline}
 \label{r:qp.draw.polyline}
-\item[qp_draw_polyline (x, y, units, width, color, style, clip)] \Newline 
+\item[qp_draw_polyline (x, y, units, width, color, line_pattern, clip, style)] \Newline 
      Routine to draw a polyline.
 
 \index[routine]{qp_draw_polyline_no_set}
@@ -2288,12 +2259,12 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 
 \index[routine]{qp_draw_line}
 \label{r:qp.draw.line}
-\item[qp_draw_line (x1, x2, y1, y2, units, width, color, style, clip)] \Newline 
+\item[qp_draw_line (x1, x2, y1, y2, units, width, color, line_pattern, clip, style)] \Newline 
      Routine to draw a line.
 
 \index[routine]{qp_draw_rectangle}
 \label{r:qp.draw.rectangle}
-\item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width, style, clip)] \Newline 
+\item[qp_draw_rectangle (x1, x2, y1, y2, units, color, width, line_pattern, clip, style)] \Newline 
      Routine to draw a rectangular box.
 
 \index[routine]{qp_draw_symbol}
@@ -2304,14 +2275,14 @@ This is similar to qp_draw_polyline except qp_set_line_attrib is not called.
 \index[routine]{qp_draw_symbols}
 \label{r:qp.draw.symbols}
 \item[\protect\parbox{6in}{qp_draw_symbols (x, y, units, type, height, color, \\
-  \hspace*{2in} fill_pattern, line_width, clip, symbol_every)} ] \Newline 
+  \hspace*{1in} fill_pattern, line_width, clip, symbol_every)} ] \Newline 
      Draws a symbol at the (x, y) points. 
 
 \index[routine]{qp_draw_text}
 \label{r:qp.draw.text}
 \item[\protect\parbox{6in}{
   qp_draw_text (text, x, y, units, justify, height, color, angle, \\
-  \hspace*{2in} background, uniform_spacing, spacing_factor) }] \Newline 
+  \hspace*{1in} background, uniform_spacing, spacing_factor) }] \Newline 
      Routine to draw text.
 
 \index[routine]{qp_draw_text_no_set}
@@ -2358,7 +2329,7 @@ The default color is the background color (white\$).
 \label{r:qp.calc.and.set.axis}
 \item[\protect\parbox{6in}{
   qp_calc_and_set_axis (axis, data_min, data_max, \\
-  \hspace*{2in} div_min, div_max, bounds, axis_type, slop_factor)}] \Newline
+  \hspace*{1in} div_min, div_max, bounds, axis_type, slop_factor)}] \Newline
      Routine to calculate a "nice" plot scale given the minimum and maximum
      of the data. 
 
@@ -2371,8 +2342,8 @@ between data units and page units is the same for the x and y axes.
 \index[routine]{qp_set_axis}
 \label{r:qp.set.axis}
 \item[\protect\parbox{6in}{qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, \\
-\hspace*{2in} draw_numbers, minor_div, minor_div_max, mirror, \\
-\hspace*{2in} number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
+\hspace*{1in} draw_numbers, minor_div, minor_div_max, mirror, \\
+\hspace*{1in} number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
     Routine to set (but not plot) the min, max and divisions for the axes of the graph.
 
 \index[routine]{qp_set_box}
@@ -2402,7 +2373,7 @@ This routine can be used in place of qp_set_margin.
 \label{r:qp.set.layout}
 \item[\protect\parbox{6in}{
   qp_set_layout (x_axis, y_axis, x2_axis, y2_axis, \\
-  \hspace*{2in} x2_mirrors_x, y2_mirrors_y, box, margin, page_border) }] \Newline 
+  \hspace*{1in} x2_mirrors_x, y2_mirrors_y, box, margin, page_border) }] \Newline 
      Routine to set various attributes. This routine can be used
      in place of other qp_set_* routines.
 
@@ -2437,7 +2408,7 @@ current box. This allows qp_set_box to subdivide the current box.
 \label{r:qp.set.parameters}
 \item[\protect\parbox{6in}{
     qp_set_parameters (text_scale, default_draw_units, default_set_units, \\
-    \hspace*{2in} default_axis_slop_factor) }] \Newline 
+    \hspace*{1in} default_axis_slop_factor) }] \Newline 
 Routine to set various quick plot parameters.
 
 \index[routine]{qp_subset_box}
@@ -2459,7 +2430,7 @@ Routine to set various quick plot parameters.
 
 \index[routine]{qp_set_line_attrib}
 \label{r:qp.set.line.attrib}
-\item[qp_set_line_attrib (who, width, color, style, clip)] \Newline 
+\item[qp_set_line_attrib (style, width, color, pattern, clip)] \Newline 
      Routine to set the default line attributes.
 
 \index[routine]{qp_set_graph_attrib}
@@ -2470,7 +2441,7 @@ Routine to set various quick plot parameters.
 \index[routine]{qp_set_text_attrib}
 \label{r:qp.set.text.attrib}
 \item[\protect\parbox{6in}{qp_set_text_attrib (who, height, color, \\
-  \hspace*{2in} background, uniform_spacing, spacing_factor)} ] \Newline 
+  \hspace*{1in} background, uniform_spacing, spacing_factor)} ] \Newline 
      Routine to set the default text attributes.
 
 \index[routine]{qp_use_axis}
@@ -2489,8 +2460,8 @@ Routine to set what axis to use: X or X2, Y or Y2.
 \label{r:qp.get.axis}
 \item[\protect\parbox{6in}{
   qp_get_axis_attrib (axis_str, a_min, a_max, div,  places, label, \\
-  \hspace*{2in} draw_label, draw_numbers, minor_div, mirror, number_offset, \\
-  \hspace*{2in} label_offset, major_tick_len, minor_tick_len, ax_type) }] \Newline
+  \hspace*{1in} draw_label, draw_numbers, minor_div, mirror, number_offset, \\
+  \hspace*{1in} label_offset, major_tick_len, minor_tick_len, ax_type) }] \Newline
      Routine to get the min, max, divisions etc. for the X and Y axes.
 
 \index[routine]{qp_get_layout_attrib}
@@ -2500,14 +2471,14 @@ Routine to set what axis to use: X or X2, Y or Y2.
 
 \index[routine]{qp_get_line_attrib}
 \label{r:qp.get.line}
-\item[qp_get_line (who, line)] \Newline 
+\item[qp_get_line (style, line)] \Newline 
 Routine to get the default line attributes.
 
 \index[routine]{qp_get_parameters}
 \label{r:qp.get.parameters}
 \item[\protect\parbox{6in}{
     qp_get_parameters (text_scale, default_draw_units, default_set_units, \\
-    \hspace*{2in} default_axis_slop_factor) }] \Newline 
+    \hspace*{1in} default_axis_slop_factor) }] \Newline 
 Routine to get various quick_plot parameters.
 
 \index[routine]{qp_get_symbol_attrib}
@@ -2643,7 +2614,7 @@ Routine to form a units from its components.
 \label{r:qp.open.page.basic}
 \item[\protect\parbox{6.5in}{
     qp_open_page_basic (page_type, x_len, y_len, plot_file, \\
-    \hspace*{2in} x_page, y_page, i_chan, page_scale) }] \Newline 
+    \hspace*{1in} x_page, y_page, i_chan, page_scale) }] \Newline 
 Routine to Initialize a page (window) for plotting.
 
 \index[routine]{qp_paint_rectangle_basic}
@@ -2670,7 +2641,7 @@ Routine to restore the print state.
 
 \index[routine]{qp_save_state}
 \label{r:qp.save.state}
-\item[qp_save_state (buffer)] \Newline 
+\item[qp_save_state (buffer_basic)] \Newline 
      Routine to save the current attributes. 
      Use qp_restore_state to restore the saved state.
 
@@ -3046,7 +3017,7 @@ matrix and the closed orbit offset.
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
     offset_particle (ele, param, coord, set, set_canonical, \\
-    \hspace*{2in} set_tilt, set_multipoles, set_hvkicks, s_pos)}] \Newline
+    \hspace*{1in} set_tilt, set_multipoles, set_hvkicks, s_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -3150,7 +3121,7 @@ This routine can be used for detailed tracking through an element.
 
 \index[routine]{track1_boris_partial}
 \label{r:track1.boris.partial}
-\item[track1_boris_partial (start, ele, param, end, track, s_start, s_end)] \Newline
+\item[track1_boris_partial (start, ele, param, s, ds, end)] \Newline
 Routine to track 1 step using boris tracking. 
 This routine is used by track1_boris and track1_adaptive_boris. 
 
@@ -3217,7 +3188,7 @@ Routine to reallocate memory within a beam_struct.
 
 \index[routine]{track1_macro_beam}
 \label{r:track1.macro.beam}
-\item[track1_macro_beam (start, ele, param, end)] \Newline
+\item[track1_macro_beam (beam_start, ele, param, beam_end)] \Newline
 Routine to track a beam of macroparticles through an element.
 
 \index[routine]{track_macro_beam}
@@ -3391,7 +3362,7 @@ Routine to do Boris tracking with adaptive step size control.
 
 \index[routine]{track1_boris}
 \label{r:track1.boris}
-\item[track1_boris (start, ele, param, end, s_start, s_end)] \Newline
+\item[track1_boris (start, ele, param, end, track, s_start, s_end)] \Newline
 Routine to do Boris tracking.  
 
 \index[routine]{track1_bmad}

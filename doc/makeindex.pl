@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-`latex bmad`;
+`pdflatex bmad`;
 `makeindex bmad`;
 `makeindex bmad.rdx -o bmad.rnd`;
 
@@ -15,4 +15,4 @@
 #close (F_OUT);
 #`mv temp.out bmad.ind`;
 
-`latex bmad`;
+`pdflatex bmad`;

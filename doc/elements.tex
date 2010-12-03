@@ -553,7 +553,7 @@ The inside wall of a capillary is defined by a number of
 cross-sectional slices as shown in Fig.~\ref{f:capillary}A. Each
 cross-section is defined by a number of vertices. The arc between each
 vertex may be either a straight line, an arc of a circle, or a section
-of an ellipse. It is manditory that a cross-section be convex. That
+of an ellipse. It is mandatory that a cross-section be convex. That
 is, given any two points within the cross-section, all points on the
 line segment connecting them must be within the cross-section.
 
@@ -601,7 +601,7 @@ of vertices. The segments between the vertices can be either a line
 segment, the arc of a circle, or a section of an ellipse. The red line
 segment with one end at the center of the arc and the other end
 traversing the arc from, in this case $V(2)$ to $V(3)$, rotates in
-counter clockwise manner. There are two solutions for connstructing an
+counter clockwise manner. There are two solutions for constructing an
 arc between two vertices. The solution with the center point furthest
 from the origin, the dashed line between $V(2)$ and $V(3)$ in the
 figure, is rejected.}
@@ -807,19 +807,19 @@ details. Example:
 
 \begin{figure}[tb]
   \centering
-  \includegraphics{crystal-ele.pdf}
-  \caption[width=5in][Crystal element geometry.]
+  \includegraphics[width=5in]{crystal-ele.pdf}
+  \caption[Crystal element geometry.]
 {Crystal element geometry for Bragg reflections. 
 The geometry shown is appropriate for zero
 \vn{tilt} (reference trajectory in the $x$-$z$ plane). The angle
 $\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bH$ vector with
 respect to the surface normal $\bfhat n$. For $psi$ (\vn{psi_angle})
 zero, the incoming reference orbit, the outgoing reference orbit,
-$\bfhat n$ and $\bH$ are all coplainer. The element reference coordinates
+$\bfhat n$ and $\bH$ are all coplanar. The element reference coordinates
 where $\bfhat x$ is parallel to the surface normal establishes the coordinates
 for specifying a rotation of $\bH$ around the surface normal and specifying
-a curveature of the surface.}
-  \label{f:bend}
+a curvature of the surface.}
+  \label{f:crystal}
 \end{figure}
 
 A \vn{crystal} element represents a crystal used for photon diffraction.
@@ -844,7 +844,7 @@ General \vn{crystal} attributes are:
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
   b_param          = <Real>    ! b parameter
-  crystal_type     = <String>  ! Crystal material and reflaction plane.
+  crystal_type     = <String>  ! Crystal material and reflection plane.
   c2_curve         = <Real>    ! C2 curvature coefficient.
   c3_curve         = <Real>    ! C3 curvature coefficient.
   c4_curve         = <Real>    ! C4 curvature coefficient.
@@ -888,7 +888,7 @@ lattice planes (\vn{d_spacing}), the unit cell volume
 (\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
 \vn{f0_re}, \vn{f0_im}, \vn{fh_re}, \vn{fh_im} can be computed.
 
-The \vn{b_param} is the standard assymetry factor
+The \vn{b_param} is the standard asymmetry factor
 \Begineq
   b = \frac{\sin(\alpha_H + \theta_B)}{\sin(\alpha_H - \theta_B)} 
 \Endeq
@@ -896,7 +896,7 @@ where $\theta_B$ is the Bragg angle (\vn{bragg_angle})
 \Begineq
   \theta_B = \frac{\lambda}{d \, \sin\theta}
 \Endeq
-and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprical
+and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal
 lattice $\bH$ vector with respect to the surface normal as shown in
 Fig.~\ref{f:crystal}.  If \vn{b_param} is set to -1 then there is
 Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1
@@ -904,7 +904,7 @@ then there is Laure diffraction again with \vn{alpha_H} zero. With the
 orientation shown in Fig.~\ref{f:crystal}, \vn{alpha_H} is positive.
 
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
-reference orbit, $\bfhat n$ and $\bH$ are all coplainer. A non-zero
+reference orbit, $\bfhat n$ and $\bH$ are all coplanar. A non-zero
 \vn{psi_angle} Rotates the $\bH$ vector around the $+\bfhat x$ axis
 of the \vn{Element Reference Frame} (See Fig.~\ref{f:crystal}).
 
@@ -917,7 +917,7 @@ outgoing graze angle \vn{graze_angle_out} ($\theta_{g,out}$) as shown
 in Fig.~\ref{f:crystal}. These angles are computed from the photon
 reference energy and the other crystal parameters such that a photon
 with the reference energy traveling along the reference trajectory
-will be in the center of the Darwin curve. 
+will be in the center of the Darwin curve (\sref{s:crystal.tracking}). 
 
 The reference trajectory in the global coordinate system
 (\sref{s:global}) is determined by the value of the \vn{tilt}
@@ -948,10 +948,10 @@ a fourth order polynomial
 \Endeq
 The coefficients of the polynomial are determined by
 \begin{align}
-  c_{2,tot} &= \mbox{c2_curve} + frac{1}{2 \, R_c} \CRNO
-  c_{3,tot} &= \mbox{c3_curve}
-  c_{4,tot} &= \mbox{c4_curve} + frac{1}{4 \, R_c^3} \CRNO
-\end{example}
+  c_{2,tot} &= \mbox{c2_curve} + \frac{1}{2 \, R_c} \CRNO
+  c_{3,tot} &= \mbox{c3_curve} \\
+  c_{4,tot} &= \mbox{c4_curve} + \frac{1}{4 \, R_c^3} \CRNO
+\end{align}
 where 
 \Begineq
   \frac{2}{R_c} = \frac{\theta_{g,in}}{d_s} + 
@@ -966,8 +966,8 @@ and
   d_d &= \begin{cases} 
     \infty & \mbox{d_detec} = 0 \\
     \mbox{d_detec} & \mbox{otherwise}
-  \end{cases} \CRNO
-  d_d
+  \end{cases}
+\end{align}
 \vn{d_source} and \vn{d_detec} can be thought of as distances from the
 crystal to the photon source and detector of photons.  With the above
 definitions, and with \vn{c2_curve}, \vn{c3_curve}, and \vn{c4_curve}

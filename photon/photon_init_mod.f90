@@ -59,8 +59,9 @@ contains
 !   gamma  -- Real(rp): Relativistic beam gamma factor.
 !
 ! output:
-!   orbit(4) -- Real(rp): Vertical angle. Limited to be less than 1
-!   orbit(6) -- Real(rp): Orbit at the emission point.
+!   orbit(6) -- Real(rp): Photon orbit.
+!                orbit(4) = Vertical angle. Limited to be less than 1
+!                orbit(6) = Energy in EV.
 !-
 
 subroutine photon_init (g_bend, gamma, orbit)
