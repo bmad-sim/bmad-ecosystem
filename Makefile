@@ -104,7 +104,7 @@ OBJ_OUT_DIR = $(locallib)
 ifeq "$(DIST_BUILD)" "TRUE"
   include $(DIST_GMAKE)/M.tail
 else
-  include $(CESR_GMAKE)/M.tail
+  include $(ACC_GMAKE)/M.tail
 endif
 
 
