@@ -6,38 +6,19 @@ use File::Find;
 # List of subroutines too low level to be mentioned
 
 $pl_hash{"track_macro_beam"} = "";
-$pl_hash{"twiss_and_track_main"} = "twiss_and_track_mod.f90";
-$pl_hash{"twiss_and_track_all"} = "twiss_and_track_mod.f90";
-$pl_hash{"twiss_and_track1"} = "twiss_and_track_mod.f90";
 $pl_hash{"offset_photon_mat6"} = "make_mat6_bmad.f90";
-$pl_hash{"photon_init_spline_coef_calc"} = "photon_init_mod.f90";
-$pl_hash{"photon_init_spline_fit"} = "photon_init_mod.f90";
 $pl_hash{"adjust_super_slave_names"} = "add_superimpose.f90";
-$pl_hash{"pointer_to_ele2"} = "lat_ele_loc_mod.f90";
-$pl_hash{"pointer_to_ele1"} = "lat_ele_loc_mod.f90";
-$pl_hash{"lat_ele1_locator"} = "lat_ele_loc_mod.f90";
-$pl_hash{"init_kv_distribution"} = "beam_utils.f90";
-$pl_hash{"init_grid_distribution"} = "beam_utils.f90";
-$pl_hash{"init_ellipse_distribution"} = "beam_utils.f90";
-$pl_hash{"recenter_bunch"} = "beam_utils.f90";
-$pl_hash{"makeup_group_lord"} = "bookkeeper_mod.f90";
 $pl_hash{"super_lord_length_bookkeeper"} = "bookkeeper_mod.f90";
 $pl_hash{"attribute_free1"} = "attribute_mod.f90";
 $pl_hash{"attribute_free2"} = "attribute_mod.f90";
 $pl_hash{"attribute_free3"} = "attribute_mod.f90";
-$pl_hash{"print_error"} = "attribute_mod.f90";
-$pl_hash{"check_this_attribute_free"} = "attribute_mod.f90";
-$pl_hash{"control_bookkeeper1"} = "bookkeeper_mod.f90";
 $pl_hash{"delete_underscore"} = "add_superimpose.f90";
 $pl_hash{"bmad_parser_type_get"} = "bmad_parser_mod.f90";
-$pl_hash{"write_line"} = "f77_to_f90.f90";
 $pl_hash{"re_allocate_logical2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_string2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_integer2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_real_pointer"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_real2d"} = "re_allocate_mod.f90";
-$pl_hash{"add_taylor_term1"} = "bmad_taylor_mod.f90";
-$pl_hash{"add_taylor_term2"} = "bmad_taylor_mod.f90";
 $pl_hash{"lsc_y0_kick_calc"} = "csr_mod.f90";
 $pl_hash{"test_f_xy_disp"} = "test_f_side.f90";
 $pl_hash{"re_allocate2_real"} = "re_allocate_mod.f90";
@@ -53,17 +34,10 @@ $pl_hash{"settable_dep_var_bookkeeping"} = "bmad_parser_mod.f90";
 $pl_hash{"find_this_file"} = "bmad_parser_mod.f90";
 $pl_hash{"parser_set_ele_defaults"} = "bmad_parser_mod.f90";
 $pl_hash{"save_taylor_elements"} = "bmad_parser_mod.f90";
-$pl_hash{"initialize_pauli_vector"} = "spin_mod.f90";
 $pl_hash{"track1_macro_sr_trans_wake"} = "macroparticle_mod.f90";
 $pl_hash{"track1_macro_lr_wake"} = "macroparticle_mod.f90";
-$pl_hash{"makeup_overlay_and_girder_slave"} = "bookkeeper_mod.f90";
 $pl_hash{"compute_slave_coupler"} = "bookkeeper_mod.f90";
 $pl_hash{"makeup_multipass_slave"} = "bookkeeper_mod.f90";
-$pl_hash{"modulo2_sp"} = "modulo2_mod.f90";
-$pl_hash{"modulo2_int"} = "modulo2_mod.f90";
-$pl_hash{"modulo2_dp"} = "modulo2_mod.f90";
-$pl_hash{"taylor_coef1"} = "bmad_taylor_mod.f90";
-$pl_hash{"taylor_coef2"} = "bmad_taylor_mod.f90";
 $pl_hash{"coord_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"amode_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"param_to_f2"} = "bmad_and_cpp.f90";
@@ -121,9 +95,6 @@ $pl_hash{"taylor_term_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"control_to_f2"} = "bmad_and_cpp.f90";
 $pl_hash{"parser_add_variable"} = "bmad_parser_mod.f90";
 $pl_hash{"quad_mat2_calc"} = "make_mat6_mod.f90";
-$pl_hash{"write_out"} = "io_mod.f90";
-$pl_hash{"str"} = "io_mod.f90";
-$pl_hash{"rchomp"} = "io_mod.f90";
 $pl_hash{"qrfac"} = "lmdif_mod.f90";
 $pl_hash{"if_error"} = "if_error.f90";
 $pl_hash{"track_bend_edge"} = "track1_mod.f90";
@@ -140,7 +111,6 @@ $pl_hash{"add_taylor_term"} = "bmad_parser_mod.f90";
 $pl_hash{"file_stack"} = "bmad_parser_mod.f90";
 $pl_hash{"draw_graphs"} = "plot_example.f90";
 $pl_hash{"find_indexx"} = "bmad_parser_mod.f90";
-$pl_hash{"get_attribute"} = "bmad_parser_mod.f90";
 $pl_hash{"get_next_word"} = "bmad_parser_mod.f90";
 $pl_hash{"get_overlay_group_names"} = "bmad_parser_mod.f90";
 $pl_hash{"load_parse_line"} = "bmad_parser_mod.f90";
@@ -154,7 +124,6 @@ $pl_hash{"reallocate_control"} = "bmad_utils_mod.f90";
 $pl_hash{"compute_super_lord_s"} = "bmad_parser_mod.f90";
 $pl_hash{"save_a_step"} = "em_field_mod.f90";
 $pl_hash{"verify_valid_name"} = "bmad_parser_mod.f90";
-$pl_hash{"warning"} = "bmad_parser_mod.f90";
 $pl_hash{"bbi_kick_matrix"} = "make_mat6_bmad.f90";
 $pl_hash{"track_solenoid_edge"} = "boris_mod.f90";
 $pl_hash{"get_called_file"} = "bmad_parser_mod.f90";
@@ -162,7 +131,6 @@ $pl_hash{"mexp"} = "bmad_basic_mod.f90";
 $pl_hash{"integration_timer_fibre"} = "integration_timer_mod.f90";
 $pl_hash{"propagate_part_way"} = "rad_int_common.f90";
 $pl_hash{"add_all_superimpose"} = "bmad_parser_mod.f90";
-$pl_hash{"diff"} = "integration_timer_mod.f90";
 $pl_hash{"multi_turn_func"} = "multi_turn_tracking_to_mat.f90";
 $pl_hash{"evaluate_value"} = "bmad_parser_mod.f90";
 $pl_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
@@ -173,7 +141,6 @@ $pl_hash{"word_to_value"} = "bmad_parser_mod.f90";
 $pl_hash{"rkck_bmad"} = "runge_kutta_mod.f90";
 $pl_hash{"term_diff"} = "integration_timer_mod.f90";
 $pl_hash{"pushit"} = "bmad_parser_mod.f90";
-$pl_hash{"get_taylor"} = "integration_timer_mod.f90";
 $pl_hash{"order_macroparticles_in_z"} = "macro_particle_mod.f90";
 $pl_hash{"integration_timer_ele"} = "integration_timer_mod.f90";
 $pl_hash{"lr_wake_add_to"} = "wake_mod.f90";
@@ -194,11 +161,9 @@ $pl_hash{"ran_gauss_scaler"} = "random_mod.f90";
 $pl_hash{"compute_slave_aperture"} = "bookkeeper_mod.f90";
 $pl_hash{"test_f_sr_mode_wake"} = "test_f_side.f90";
 $pl_hash{"norm66"} = "eigen_mod.f90";
-$pl_hash{"find_format"} = "output_mod.f90";
 $pl_hash{"bjmt_int_v"} = "ibs_mod.f90";
 $pl_hash{"probability_funct"} = "probability_funct.f90";
 $pl_hash{"integer_read"} = "integer_read.f90";
-$pl_hash{"output_real"} = "output_mod.f90";
 $pl_hash{"re_associate_real"} = "reallocate_mod.f90";
 $pl_hash{"run_timer"} = "run_timer.f90";
 $pl_hash{"str_upcase"} = "str_upcase.f90";
@@ -208,13 +173,11 @@ $pl_hash{"re_associate_string"} = "reallocate_mod.f90";
 $pl_hash{"sbend_body_with_k1_map"} = "make_mat6_mod.f90";
 $pl_hash{"fullfilename"} = "fullfilename.f90";
 $pl_hash{"bjmt_int_p"} = "ibs_mod.f90";
-$pl_hash{"output_int"} = "output_mod.f90";
 $pl_hash{"re_allocate_real"} = "reallocate_mod.f90";
 $pl_hash{"transfer_wake"} = "bmad_utils_mod.f90";
 $pl_hash{"ordersys"} = "eigen_mod.f90";
 $pl_hash{"i_size"} = "bmad_and_cpp.f90";
 $pl_hash{"indexx"} = "indexx_mod.f90";
-$pl_hash{"output_lines"} = "output_mod.f90";
 $pl_hash{"lmpar"} = "lmdif_mod.f90";
 $pl_hash{"brent2"} = "brent2.f90";
 $pl_hash{"ety"} = "eigen_mod.f90";
@@ -226,9 +189,6 @@ $pl_hash{"spin_omega_at"} = "spin_mod.f90";
 $pl_hash{"eigensys"} = "eigen_mod.f90";
 $pl_hash{"re_allocate_string"} = "reallocate_mod.f90";
 $pl_hash{"query_string"} = "query_string.f90";
-$pl_hash{"header_io"} = "output_mod.f90";
-$pl_hash{"output_line4"} = "output_mod.f90";
-$pl_hash{"output_logical"} = "output_mod.f90";
 $pl_hash{"add_this_taylor_term"} = "bmad_parser_mod.f90";
 $pl_hash{"r_size"} = "bmad_and_cpp.f90";
 $pl_hash{"track1_trans_space_charge"} = "trans_space_charge_mod.f90";
@@ -253,13 +213,11 @@ $pl_hash{"etyt"} = "eigen_mod.f90";
 $pl_hash{"out_io_line_out"} = "output_mod.f90";
 $pl_hash{"etdiv"} = "eigen_mod.f90";
 $pl_hash{"mp_slice_equal_mp_slice"} = "macroparticle_mod.f90";
-$pl_hash{"insert_numbers"} = "output_mod.f90";
 $pl_hash{"print_eq_ele"} = "equality_mod.f90";
 $pl_hash{"inverse"} = "inverse.f90";
 $pl_hash{"track1_macro_bunch"} = "macroparticle_mod.f90";
 $pl_hash{"re_allocate_integer"} = "reallocate_mod.f90";
 $pl_hash{"calc_wiggler_g_params"} = "rad_int_common.f90";
-$pl_hash{"find1_indexx"} = "io_mod.f90";
 $pl_hash{"mp_bunch_equal_mp_bunch"} = "macroparticle_mod.f90";
 $pl_hash{"re_allocate_logical"} = "reallocate_mod.f90";
 $pl_hash{"mat6_add_offsets"} = "mat6_add_offsets.f90";
@@ -342,7 +300,7 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in bmad but not in subroutines.tex:\n\n";
 
 while (($key, $val) = each %f90_hash) {
-  if (! exists $tex_hash{$key} && ! exists $pl_hash{$key}) {
+  if (! exists $tex_hash{$key} && ! exists $pl_hash{$key} && ! exists $private_hash{$key}) {
 #    printf "%-30s%s\n", ":$key:", $val;
     printf "\$pl_hash\{\"$key\"\} = \"\"\;\n";
   }
@@ -355,7 +313,7 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in subroutines.tex that are not in bmad:\n\n";
 
 while (($key, $val) = each %tex_hash) {
-  if (! exists $f90_hash{$key}) {
+  if (! exists $f90_hash{$key} || exists $private_hash{$key}) {
     print ":$key:\n";
   }
 }
@@ -367,8 +325,8 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in bmad_subroutines.pl that are not in bmad:\n\n";
 
 while (($key, $val) = each %pl_hash) {
-  if (! exists $f90_hash{$key}) {
-    print ":$key:\n";
+  if (! exists $f90_hash{$key} || exists $private_hash{$key}) {
+    print "\"$key\"\n";
   }
 }
 
@@ -379,9 +337,11 @@ print "\n---------------------------------------------------\n";
 print "Arg lists that are different in bmad and in subroutines.tex:\n\n";
 
 while (($key, $f90_val) = each %f90_hash) {
+  if (exists $private_hash{$key}) {next;}
   if (!exists $tex_hash{$key}) {next;}
   $tex_val = $tex_hash{$key};
-  if ($tex_val eq $f90_val) {next;}
+  if (lc($tex_val) eq lc($f90_val)) {next;}
+  if ($f90_val eq "") {next;}  # Ignore if f90 arg list is blank.
   printf "\n";
   printf "$key\n";
   printf "    f90: $f90_val\n";
@@ -404,7 +364,21 @@ sub searchit {
   while (<F_IN>) {
     $now = $_;
 
-    if (/^ *interface *$/i) {    # skip interface blocks
+    # record private routines
+
+    if (/^ *private */i) {
+      $this = $';   #' strip off "private"
+      @names = split(/ *, */, $this);
+      foreach $nam (@names) {
+        chomp $nam;
+        $private_hash{$nam} = "";
+      }
+      next;
+    }
+
+    # skip interface blocks
+
+    if (/^ *interface *$/i) {    
       while (<F_IN>) {
         if (/^ *end interface/i) {last;}
       }
@@ -422,7 +396,7 @@ sub searchit {
         $name =~ s/ *\(.*//;    # strip off " (..."
         $name =~ s/ +$//;       # strip off trailing blanks if no arg list.
         # print "Found: $name\n";
-        if (!exists $tex_hash{$name} && !exists $pl_hash{$name}) {
+        if (!exists $tex_hash{$name} && !exists $pl_hash{$name} && !exists $private_hash{$name}) {
           print "\nFile: $file\n";
           $this2 = $this; 
           $this2 =~ s/\s*\(.*//;

@@ -1,10 +1,10 @@
 module basic_bmad_mod
 
-  use sim_utils
-  use precision_def
-  use output_mod
+use sim_utils
+use precision_def
+use output_mod
 
-  integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
+integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 
 contains
 
@@ -12,7 +12,7 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Function field_interpolate_3d (position, field_mesh, deltas, position0)
+! Function field_interpolate_3d (position, field_mesh, deltas, position0) result (field)
 !
 ! Function to interpolate a 3d field.
 ! The interpolation is such that the derivative is continuous.
@@ -32,45 +32,45 @@ contains
 !                            filed_mesh(i, j, k) array. If not present then
 !                            position0 is taken to be (0.0, 0.0, 0.0)
 ! Output:
-!   field_interpolate_3d -- Real(rp): interpolated field.
+!   field -- Real(rp): interpolated field.
 !-
 
-real(rp) function field_interpolate_3d (position, &
-                                         field_mesh, deltas, position0)
+function field_interpolate_3d (position, field_mesh, deltas, position0) result (field)
 
-  implicit none
+implicit none
 
-  real(rp), optional, intent(in) :: position0(3)
-  real(rp), intent(in) :: position(3), field_mesh(0:,0:,0:), deltas(3)
+real(rp), optional, intent(in) :: position0(3)
+real(rp), intent(in) :: position(3), field_mesh(0:,0:,0:), deltas(3)
+real(rp) field
 
-  real(rp) r(3), f(-1:2), g(-1:2), h(-1:2), r_frac(3)
+real(rp) r(3), f(-1:2), g(-1:2), h(-1:2), r_frac(3)
 
-  integer i0(3), ix, iy, iz, iix, iiy, iiz
+integer i0(3), ix, iy, iz, iix, iiy, iiz
 
 !
 
-  if (present(position0)) then
-    r = (position - position0) / deltas
-  else
-    r = position / deltas
-  endif
+if (present(position0)) then
+  r = (position - position0) / deltas
+else
+  r = position / deltas
+endif
 
-  i0 = int(r)
-  r_frac = r - i0
+i0 = int(r)
+r_frac = r - i0
 
-  do ix = -1, 2
-   iix = min(max(ix + i0(1), 0), ubound(field_mesh, 1))
-   do iy = -1, 2
-      iiy = min(max(iy + i0(2), 0), ubound(field_mesh, 2))
-      do iz = -1, 2
-        iiz = min(max(iz + i0(3), 0), ubound(field_mesh, 3))
-        f(iz) = field_mesh(iix, iiy, iiz)
-      enddo
-      g(iy) = interpolate_1d (r_frac(3), f)
+do ix = -1, 2
+ iix = min(max(ix + i0(1), 0), ubound(field_mesh, 1))
+ do iy = -1, 2
+    iiy = min(max(iy + i0(2), 0), ubound(field_mesh, 2))
+    do iz = -1, 2
+      iiz = min(max(iz + i0(3), 0), ubound(field_mesh, 3))
+      f(iz) = field_mesh(iix, iiy, iiz)
     enddo
-    h(ix) = interpolate_1d (r_frac(2), g)
+    g(iy) = interpolate_1d (r_frac(3), f)
   enddo
-  field_interpolate_3d = interpolate_1d (r_frac(1), h)
+  h(ix) = interpolate_1d (r_frac(2), g)
+enddo
+field = interpolate_1d (r_frac(1), h)
 
 !---------------------------------------------------------------
 
@@ -83,28 +83,28 @@ contains
 ! Interpolation is done so that the derivative is continuous.
 ! The interpolation uses a cubic polynomial
 
-real function interpolate_1d (x, field_1d)
+function interpolate_1d (x, field1_in) result (field1)
 
-  implicit none
+implicit none
 
-  real(rp) x, field_1d(4), df_2, df_3
-  real(rp) c0, c1, c2, c3
+real(rp) field1, x, field1_in(4), df_2, df_3
+real(rp) c0, c1, c2, c3
 
 !
 
-  df_2 = (field_1d(3) - field_1d(1)) / 2   ! derivative at P2
-  df_3 = (field_1d(4) - field_1d(2)) / 2   ! derivative at P3
+df_2 = (field1_in(3) - field1_in(1)) / 2   ! derivative at P2
+df_3 = (field1_in(4) - field1_in(2)) / 2   ! derivative at P3
 
-  c0 = field_1d(2)
-  c1 = df_2
-  c2 = 3 * field_1d(3) - df_3 - 3 * field_1d(2) - 2 * df_2
-  c3 = df_3 - 2 * field_1d(3) + 2 * field_1d(2) + df_2
+c0 = field1_in(2)
+c1 = df_2
+c2 = 3 * field1_in(3) - df_3 - 3 * field1_in(2) - 2 * df_2
+c3 = df_3 - 2 * field1_in(3) + 2 * field1_in(2) + df_2
 
-  interpolate_1d = c0 + c1 * x + c2 * x**2 + c3 * x**3
+field1 = c0 + c1 * x + c2 * x**2 + c3 * x**3
 
-end function
+end function interpolate_1d
 
-end function
+end function field_interpolate_3d 
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -131,18 +131,18 @@ end function
 
 subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
 
-  implicit none
+implicit none
 
-  real(rp) ds_in, length, ds_default, ds_out
-  integer n_step
+real(rp) ds_in, length, ds_default, ds_out
+integer n_step
 
 !
 
-  ds_out = ds_in
-  if (ds_out == 0) ds_out = ds_default
-  n_step = nint(length / ds_out)
-  if (n_step == 0) n_step = 1
-  ds_out = length / n_step  
+ds_out = ds_in
+if (ds_out == 0) ds_out = ds_default
+n_step = nint(length / ds_out)
+if (n_step == 0) n_step = 1
+ds_out = length / n_step  
 
 end subroutine
 
@@ -167,56 +167,56 @@ end subroutine
 
 function c_multi (n, m, no_n_fact) result (c_out)
 
-  implicit none
+implicit none
 
-  integer, intent(in) :: n, m
-  integer in, im
+integer, intent(in) :: n, m
+integer in, im
 
-  real(rp) c_out
-  real(rp), save :: factorial(0:n_pole_maxx)
-  real(rp), save :: c(0:n_pole_maxx, 0:n_pole_maxx)
+real(rp) c_out
+real(rp), save :: factorial(0:n_pole_maxx)
+real(rp), save :: c(0:n_pole_maxx, 0:n_pole_maxx)
 
-  logical, save :: init_needed = .true.
-  logical, optional :: no_n_fact
+logical, save :: init_needed = .true.
+logical, optional :: no_n_fact
 
 ! The magnitude of c(n, m) is number of combinations normalized by n!
 
-  if (init_needed) then
+if (init_needed) then
 
-    c(0, 0) = 1
+  c(0, 0) = 1
 
-    do in = 1, n_pole_maxx
-      c(in, 0) = 1
-      c(in, in) = 1
-      do im = 1, in-1
-        c(in, im) = c(in-1, im-1) + c(in-1, im)
-      enddo
+  do in = 1, n_pole_maxx
+    c(in, 0) = 1
+    c(in, in) = 1
+    do im = 1, in-1
+      c(in, im) = c(in-1, im-1) + c(in-1, im)
     enddo
+  enddo
 
-    factorial(0) = 1
+  factorial(0) = 1
 
-    do in = 0, n_pole_maxx
-      if (in > 0) factorial(in) = in * factorial(in-1)
-      do im = 0, in
-        c(in, im) = c(in, im) / factorial(in)
-        if (mod(im, 4) == 0) c(in, im) = -c(in, im)
-        if (mod(im, 4) == 3) c(in, im) = -c(in, im)
-      enddo
+  do in = 0, n_pole_maxx
+    if (in > 0) factorial(in) = in * factorial(in-1)
+    do im = 0, in
+      c(in, im) = c(in, im) / factorial(in)
+      if (mod(im, 4) == 0) c(in, im) = -c(in, im)
+      if (mod(im, 4) == 3) c(in, im) = -c(in, im)
     enddo
+  enddo
 
-    init_needed = .false.
+  init_needed = .false.
 
-  endif
+endif
 
 !
 
-  if (logic_option (.false., no_n_fact)) then
-    c_out = c(n, m) * factorial(n)
-  else
-    c_out = c(n, m)
-  endif
+if (logic_option (.false., no_n_fact)) then
+  c_out = c(n, m) * factorial(n)
+else
+  c_out = c(n, m)
+endif
 
-end function
+end function c_multi
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -239,21 +239,21 @@ end function
 
 function mexp (x, m) result (this_exp)
 
-  implicit none
+implicit none
 
-  real(rp) x, this_exp
-  integer m
+real(rp) x, this_exp
+integer m
 
 !
 
-  if (m < 0) then
-    this_exp = 0
-  elseif (m == 0) then
-    this_exp = 1
-  else
-    this_exp = x**m
-  endif
+if (m < 0) then
+  this_exp = 0
+elseif (m == 0) then
+  this_exp = 1
+else
+  this_exp = x**m
+endif
 
-end function
+end function mexp
 
 end module

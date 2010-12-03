@@ -1,5 +1,5 @@
 !+
-! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, pb_com)
+! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, ran_p)
 !
 ! Subroutine to write a digested file. The names of the original files used
 ! to create the LAT structure are also put in the digested file and are used

@@ -11,24 +11,44 @@ element types.
 \section{Tracking with Non-Zero Offsets, Pitches, or Tilt}
 \label{s:misalign.track}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{photon-ele-coords.pdf}
+  \caption[Crystal and Mirror Element Coordinates.]
+{Element coordinates for \vn{crystal} and \vn{mirror} elements.  For
+clarity, all three coordinate systems are displaced from each
+other. In actuality, all three share a common origin.  Independent of
+any ``misalignments'', all three coordinate systems share a common $y$
+axis (pointing out of the page in the figure) and for all three
+reference frames the surface normal $\bfhat n_s$ is in the $x$-$z$
+plane.}
+  \label{f:photon.ele.coords}
+\end{figure}
+
 \index{element reference coordinates}
 The general procedure for tracking through an element makes use of the
-\vn{element reference coordinates} Without any offsets, pitches or
-tilt, (henseforth called ``misalignments''), the element reference
+\vn{``element reference coordinates''} Without any offsets, pitches or
+tilt, (henceforth called ``misalignments''), the element reference
 coordinates are the same as the \vn{laboratory reference coordinates}
 (\sref{s:ref}). With misalignments, the \vn{element reference
 coordinates} will stay fixed relative to the element and will
-therefore shift as the element shifts in the laboratory fram.
+therefore shift as the element shifts in the laboratory frame.
 
 \index{crystal}\index{mirror}
-For \vn{crystal} (\sref{s:crystal} and \vn{mirror} (\sref{s:mirror})
+For \vn{crystal} (\sref{s:crystal}) and \vn{mirror} (\sref{s:mirror})
 elements, the non-straight reference trajectory through the element
-complicates the calculation. For these elements, two element reference
-coordinates are used. The first set of coordinates are called the
-\vn{entrance element coordinates} and the second set the \vn{exit
-element coordinates} as shown in \ref{f:local.coords}.
-the \vn{element coordinates}, the vector normal to the surface is in
-the $x-z$ plane.
+complicates the geometry. For these elements, three element reference
+coordinates are used as shown in Fig.~\ref{f:photon.ele.coords}. The
+first set of coordinates are the \vn{element entrance coordinates}.
+Without misalignment, these coordinates are the same as the
+\vn{laboratory entrance coordinates} shown in
+Fig.~\ref{f:local.coords}. The second set of coordinates are the
+\vn{element body coordinates} which always have the $x$ coordinate
+pointing into the element antiparallel to the outward surface normal
+$\bfhat n_s$. The third set of coordinates are the \vn{element exit
+coordinates}.  Without misalignment, these coordinates are the same as
+the \vn{laboratory exit coordinates} shown in
+Fig.~\ref{f:local.coords}.
 
 Tracking a particle through an element is therefore a three
 step transformation:
@@ -112,6 +132,7 @@ Track as in a drift a distance \vn{-s_offset_tot}.
 %-----------------------------------------------------------------
 \section[Mirror and Crystal Elements]{Transformation for Mirror and Crystal Elements Between 
 Laboratory and Element Coordinates}
+\label{s:lab-ele-transform}
 
 \index{mirror}\index{crystal}
 It is assumed that pitches are are small so that second
@@ -151,9 +172,9 @@ Apply \vn{tilt} and \vn{tilt_err}:
 \end{align}
 where $\bE$ is shorthand notation for
 \Begineq
-  \bE \equiv \sqrt{I} \, e^{i \, \phi}
+  \bE \equiv E \, e^{i \, \phi}
 \Endeq
-with $I$ being the field intensity and $\phi$ being the field phase angle.
+with $E$ being the field intensity and $\phi$ being the field phase angle.
 In the above equations $\bR$ is the rotation matrix
 \Begineq
   \bR(\theta) = \begin{pmatrix} \cos\theta & \sin\theta \\ -\sin\theta & \cos\theta \end{pmatrix}
@@ -188,15 +209,15 @@ Unapply \vn{graze_angle_err}:
 \end{align}
   \item
 Unapply \vn{tilt} and \vn{tilt_err}: \vn{tilt} rotates the exit
-laboratory coordinants with respect to the exit element coordinates in
+laboratory coordinates with respect to the exit element coordinates in
 the same way \vn{tilt} rotates the entrance laboratory coordinates
-with respect to the entrance element coordinants. The forward and back
+with respect to the entrance element coordinates. The forward and back
 transformations are thus just inverses of each other.  With
 \vn{tilt_err}, this is not true. \vn{tilt_err}, unlike \vn{tilt}, does
 not rotate the output laboratory coordinates.  There is the further
 complication in that \vn{tilt_err} is a rotation about the {\em
 entrance} laboratory coordinates. The first step is to express
-\vn{tilt_err} with respect to the exit coordinants. This is done with
+\vn{tilt_err} with respect to the exit coordinates. This is done with
 the help of the $\bS$ matrix of \Eq{r00ls} with $\alpha$ given by
 \Eq{agg}. The effect of the \vn{tilt_err} can be modeled as a rotation
 vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
@@ -204,11 +225,11 @@ along the $z$-axis
 \Begineq
  \Bf e_{in} = (0, 0, \mbox{tilt_err})
 \Endeq
-In the exit laboritory coordinates, the vector $\Bf e_{out}$ is
+In the exit laboratory coordinates, the vector $\Bf e_{out}$ is
 \Begineq
   \Bf e_{out} = \bS \, \Bf e_{in}
 \Endeq
-The $z$ component of $\Bf e_{out}$ combines with \vn{titlt} to give
+The $z$ component of $\Bf e_{out}$ combines with \vn{tilt} to give
 the transformation
 \begin{align}
   \begin{pmatrix} x_2 \\ y_2 \end{pmatrix} &=
@@ -233,7 +254,7 @@ translated to the exit laboratory coordinates
   \bP_{out} = \bS \, \bP_{in}
 \Endeq
 where $\bP_{in} = (x'_{pitch}, y'_{pitch}, 0)$ is the pitch vector in
-the entrance laboratory frame and $\bP_{out}$ is the vetor in the exit
+the entrance laboratory frame and $\bP_{out}$ is the vector in the exit
 laboratory frame. The transformation is then
 \begin{align}
   p_{x4} &= p_{x3} - \bP_{out,y} \CRNO
@@ -255,6 +276,20 @@ entrance laboratory frame. The transformation is
 \end{align}
   \end{enumerate}
 
+%-----------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{crystal-diffraction.pdf}
+  \caption[Crystal diffraction diagram.]
+{Reciprical space diagram showing crystal diffraction. The coordinates
+shown are the element body coordinates. All points in the diagram are
+in the plane of the paper except for the tip of $H$.  $K_{0}$ and
+$K_{H}$ are the wave vectors inside the crystal and $k_{0}$ and
+$k_{H}$ are the wave vectors outside the crystal.}
+  \label{f:crystal.diffraction}
+\end{figure}
+
 %-----------------------------------------------------------------
 \section{Crystal Element Tracking}
 \label{s:crystal.tracking}
@@ -262,7 +297,46 @@ entrance laboratory frame. The transformation is
 \textit{\large [Crystal tracking developed by Jing Yee Chee, Ken Finkelstein, and David Sagan]}
 
 Crystal diffraction is modeled using dynamical diffraction
-theory\cite{b:batterman}.
+theory\cite{b:batterman}. Before any photon tracking is done, the
+incoming grazing angle $\theta_{g,in}$ and outgoing grazing angle
+$\theta_{g,out}$ must be computed to orient the reference trajectory
+with respect to the crystal surface. Fig.~\ref{f:crystal.diffraction}
+shows the geometry of the problem. The graze angles are calculated
+such that a photon with the reference energy on the reference
+trajectory will be in the center of the Darwin curve. That is The
+internal wave vectors $K_0$ and $K_H$ originate from point $Q$ (See
+\cite{b:batterman} Figs.~8 and 29). The $H$ vector in the element body
+coordinate system is
+
+
+
+
+
+The starting photon coordinates are
+specified in the laboratory entrance coordinates. The transformation
+from laboratory entrance coordinates to element entrance coordinates $\tilde k_{in}$
+is given in \sref{s:lab-ele-transform}. The diffraction algorithm is 
+then
+  \begin{enumerate}
+  \item
+Transform to \vn{element body coordinates} $k_{in}$
+\begin{align}
+  k_{in,x} &=  \tilde k_{in,x} \, \cos \, \theta_{g,in} + \tilde k_{in,z} \, \sin \, \theta_{g,in} \CRNO
+  k_{in,y} &=  \tilde k_{in,y} \\
+  k_{in,z} &= -\tilde k_{in,x} \, \sin \, \theta_{g,in} + \tilde k_{in,z} \, \cos \, \theta_{g,in} \CRNO
+\end{align}
+Construct $\bH_n$ which is the $H$ vector normalized by the photon wavelength $\lambda$
+\Begineq
+  H_n = \frac{\lambds}{d}
+  \begin{pmatrix}
+    -\cos \alpha_H \\
+    \sin \alpha_H \, \sin \psi \\
+    \sin \alpha_H \, \cos \psi
+  \end{pmatrix}
+\Endeq
+where $d$ is the spacing between the reflection planes.
+
+  \end{enumerate}
 
 
 %-----------------------------------------------------------------
@@ -405,8 +479,8 @@ This is simply solved
   p_{x2} &= \tau_x \, \om_x^2 \, \, (1 + p_{z1}) \, s_x \, (x -x_c) + c_x \, p_{x1} \CRNO
   y_2    &= c_y \, y_1 + s_y \, \frac{p_{y1}}{1 + p_{z1}} \CRNO
   p_{y2} &= \tau_y \, \om_y^2 \, \, (1 + p_{z1}) \, s_y \, y_1 + c_y \, p_{y1} \\
-  z_2    &= z_1 + m_5 + m_{51} (x - x_c) + m_{52} p_{x1} + \CRNO
-         &\hspace*{20ex} m_{511} \, (x-x_c)^2 + m_{512} \, (x-x_c) \, p_{x1} + m_{522} \, p_{x1}^2 + 
+  z_2    &= z_1 + m_5 + m_{51} (x - x_c) + m_{52} p_{x1} + m_{511} \, (x-x_c)^2 \, + \CRNO
+         &\hspace*{20ex} m_{512} \, (x-x_c) \, p_{x1} + m_{522} \, p_{x1}^2 + 
                          m_{533} \, y^2 + m_{534} \, y_1 \, p_{y1} + m_{544} \, p_{y1}^2 \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
@@ -486,7 +560,7 @@ This gives the map
 The generalization when the kick is not in the horizontal plane is easily derived.
 
 %-----------------------------------------
-\section{LCavity Element Tracking}
+\section{Lcavity Element Tracking}
 \label{s:lcavity.std}
 \index{lcavity}
 
@@ -648,7 +722,7 @@ The Hamiltonian for an upright octupole is
   H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_2}{6} (x^3 - 3 \, x \, y^2)
 \Endeq
 
-A sextupoleis modeled using a kick-drift-kick model.
+A sextupoles modeled using a kick-drift-kick model.
 
 %-----------------------------------------
 \section{Sol\_Quad Element Tracking}
@@ -844,7 +918,7 @@ And the other integrator components are
   I_{y/2} &= \exp \left( : -\frac{ds}{2} H_y : \right) \\
   I_{s}   &= \exp \left( : -ds \, H_s : \right) \nonumber
 \end{align}
-The evaluation if $I_{y/2}$ is tracky since it involves both transverse
+The evaluation if $I_{y/2}$ is tricky since it involves both transverse
 position and momentum variables. The trick is to split the integration into three parts
 \begin{align}
   I_{y/2} &= \exp \left( : -\frac{ds}{2} \frac{(p_y - A_y)^2}{2 (1 + \delta)} : \right) \CRNO
@@ -854,7 +928,7 @@ position and momentum variables. The trick is to split the integration into thre
   \label{ids2}
 \end{align}
 Given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
-\eq{f3}, the intgrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
+\eq{f3}, the integrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
 
 %-----------------------------------------
 \section{Periodic\_Type Wiggler Element Tracking}
