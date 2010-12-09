@@ -143,7 +143,7 @@ type qp_state_struct
   integer :: max_axis_zero_digits = 3
   integer :: dflt_units = dflt_draw$
   integer :: max_digits = 8
-  character(80) plot_file
+  character(200) plot_file
   character(16) page_type       ! 'PS', 'X', etc.
   character(8) :: dflt_draw_units(3) = (/ 'DATA ', 'GRAPH', 'LB   ' /)
   character(8) :: dflt_set_units(3)  = (/ 'INCH ', 'PAGE ', 'LB   ' /)
