@@ -183,18 +183,10 @@ call transfer_wake (ele2%wake, ele1%wake)
 if (associated(ele_save%gen_field)) call kill_gen_field (ele_save%gen_field)
 if (associated(ele1%gen_field)) nullify (ele1%gen_field)
 
-!  if (associated(ele2%gen_field)) then
-!    if (associated (ele_save%gen_field)) then
-!      ele1%gen_field => ele_save%gen_field
-!      call kill (ele1%gen_field)
-!    else
-!      allocate (ele1%gen_field)
-!    endif
-!    ele1%gen_field = ele2%gen_field
-!  else
-!    if (associated (ele_save%gen_field)) &
-!                              call kill_gen_field (ele_save%gen_field)
-!  endif
+! In case the program cares, change %attribute_status from unmodified$ to all_bookkeeping_done$.
+! This will not affect any routine in the bmad library.
+
+if (ele2%attribute_status == unmodified$) ele1%attribute_status = all_bookkeeping_done$
 
 end subroutine
 

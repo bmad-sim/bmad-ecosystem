@@ -782,7 +782,7 @@ integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
 character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
 
 ! ele%attribute_status values.
-! The idea [NOT YET IMPLEMENTED!]:
+! The idea:
 !   When an element attribute is modified, a program will set ele%attribute_status to 
 !     is_modified$ to trigger the bookkeeping routines.
 !   The bookkeeping routines will set to all_bookkeeping_done$ when
@@ -793,14 +793,20 @@ character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ',
 integer, parameter :: unmodified$ = 1, all_bookkeeping_done$ = 2
 integer, parameter :: attribute_bookkeeping_done$ = 3,  is_modified$ = 4
 
-! Used by parsing routines.
+! ran_parsing_struct is used by parsing routines.
+! %deterministic:
+!   0 = Not, 1 = Ran state on input deterministic, 2 = ran state deterministice
+!   will be generated in exactly the same way every time?
+! %ran_function_was_called:
+!   Only set True when ran function is called with ran_determinisitc = 0.
+! %determinisitc_ran_function_was_called:
+!   Only set True when ran function is called with ran_determinisitc = 1.
 
 type ran_parsing_struct
   type (random_state_struct) :: initial_state
-  integer deterministic   ! 0 = Not, 1 = Ran state on input deterministic, 2 = ran state deterministice
-                          !  will be generated in exactly the same way every time?
-  logical ran_function_was_called ! only set True when ran function is called with ran_determinisitc = 0.
-  logical deterministic_ran_function_was_called ! only set True when ran function is called with ran_determinisitc = 1.
+  integer deterministic   
+  logical ran_function_was_called 
+  logical deterministic_ran_function_was_called 
 end type
 
 !------------------------------------------------------------------------------

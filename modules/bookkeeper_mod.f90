@@ -217,7 +217,8 @@ if (sm_only) then
       ele%lord_status /= multipass_lord$ .and. ele%slave_status /= multipass_slave$) return
 endif
 
-! Make sure the bookkeeping for this element is correct.
+! First make sure the attribute bookkeeping for this element is correct since
+! the makeup_*_slave routines may need it.
 
 call attribute_bookkeeper (ele, lat%param)
 
@@ -251,7 +252,11 @@ elseif (ele%lord_status == super_lord$) then
 
 endif
 
-! 
+! If bookkeeping has been done by a makeup_*_salve routine then
+! attribute_bookkeeper must be called again.
+! This is true even if the lattice is static since a slave element
+! can have its lord's dependent attribute values.
+! Example: super_slave will, at this point, have its lord's num_steps value.
 
 if (called_a_bookkeeper) call attribute_bookkeeper (ele, lat%param)
 
@@ -1579,7 +1584,7 @@ else
 endif
 
 value = lord%value
-value(l$) = slave%value(l$)                 ! do not change slave length
+value(l$) = slave%value(l$)                  ! do not change slave length
 
 if (lord%key == wiggler$) then
   value(z_patch$) = slave%value(z_patch$)
@@ -1976,11 +1981,6 @@ z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0
 if (all(val == ele%old_value) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
 if (debug) dval = val - ele%old_value
 
-! Setting attribute_status to attribute_bookeeping_done$ indicates that this routine has
-! modified some attribute values.
-
-ele%attribute_status = attribute_bookkeeping_done$
-
 ! Transfer tilt to tilt_tot, etc.
 
 if (.not. ele%on_a_girder .and. has_orientation_attributes(ele%key)) then
@@ -2241,10 +2241,21 @@ case (wiggler$)
 
 end select
 
-! If things have changed we need to kill the Taylor Map and gen_field.
-! The old_value array tells us this.
+! It might be true that value == old_value here even though this was not true at the start
+! of this routine. For example: A super_slave, via makeup_super_slave (which will be
+! called by control_bookkeeper1 before calling this routine), will inherit its lords 
+! num_steps value but then this routine will reset num_steps to be the correct value.
+
+! So stop here if nothing has truely changed.
 
 if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
+
+! Setting attribute_status to attribute_bookeeping_done$ indicates that this routine has
+! modified some attribute values.
+
+ele%attribute_status = attribute_bookkeeping_done$
+
+! Since things have changed we need to kill the Taylor Map and gen_field.
 
 if (init_needed) then
   v_mask = .true.
