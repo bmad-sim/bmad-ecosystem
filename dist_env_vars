@@ -61,10 +61,3 @@ export DIST_F90=$TEMP_SETUP_F90
 
 
 
-#--------------------------------------------------------------
-# Define useful aliases
-#--------------------------------------------------------------
-##alias getf  $DIST_BASE_DIR/bin/getf.pl
-##alias listf $DIST_BASE_DIR/bin/listf.pl
-
-
