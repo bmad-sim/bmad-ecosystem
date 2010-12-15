@@ -121,3 +121,9 @@ setenv TAO_DIR     $CESR_SRC/tao
 #   VMS:   CESR_MOUNT:[]
 #
 setenv CESR_MNT     /nfs/cesr/mnt
+
+
+setenv USE_PGPLOT "Y"
+setenv USE_PLPLOT "N"
+
+

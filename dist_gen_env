@@ -1,4 +1,4 @@
-##-----------------------------------------------------------
+#-----------------------------------------------------------
 #  dist_gen_env
 #  ------------
 #
@@ -24,6 +24,7 @@ ENV_SNAP_2="${HOME}/.dist_env_snapshot_2.tmp"
 "printenv" > ${ENV_SNAP_1}
 
 
+
 #-----------------------------------------------------------
 # Logfile for saving and displaying status and errors
 #-----------------------------------------------------------
@@ -34,6 +35,7 @@ if ( [ "${DIST_SETUP_QUIET}" == "Y" ] )then
 else
   DIST_SETUP_LOG=${HOME}/.dist_setup_log.tmp
 fi
+
 
 
 #-----------------------------------------------------------
@@ -49,63 +51,78 @@ fi
 #-----------------------------------------------------------
 CWD=`pwd`
 
-USE_OVERRIDE_BASEDIR=NO
-USE_CWD_BASEDIR=NO
+USE_OVERRIDE_BASEDIR=N
+USE_CWD_BASEDIR=N
 
 "echo" "" > ${DIST_SETUP_LOG}
 
 
-#----------------------------------------------------------
-# Check for DIST_BASE_DIR override variable.
-#----------------------------------------------------------
-"echo" "Checking for DIST_BASE_DIR override definition..." >> ${DIST_SETUP_LOG}
-if [ -d "${DIST_BASE_DIR}" ]; then
 
-  USE_OVERRIDE_BASEDIR=YES
+#-----------------------------------------------------------
+# Function used to determine if the passed-in directory
+# is the top-level directory of a valid distribution
+# source tree.
+#  Accepts: Full pathname of directory to test
+#-----------------------------------------------------------
+is_dir_toplevel() {
+
+  TESTDIR=$1
+  RETVAL="Y"
 
   for DIR in ${DIST_TOPLEVEL_CHECKLIST};
   do
-    if ! [ -d "${DIST_BASE_DIR}/${DIR}" ]; then
+    if ! [ -d "${TESTDIR}/${DIR}" ]; then
       "echo" "" >> $DIST_SETUP_LOG
       "echo" "The directory specified in DIST_BASE_DIR does not appear to be" >> $DIST_SETUP_LOG
       "echo" "the top level directory of a valid source distribution." >> $DIST_SETUP_LOG
       "echo" "" >> $DIST_SETUP_LOG
-      USE_OVERRIDE_BASEDIR=NO
+      RETVAL="N"
       break
     fi
   done
 
-else
+  echo RETVAL
+}
 
-  "echo" "No DIST_BASE_DIR override value found" >> $DIST_SETUP_LOG
 
+
+#----------------------------------------------------------
+# Determine if current working directory is the top level
+# of a distribution source tree.
+#----------------------------------------------------------
+USE_CWD_BASEDIR="Y"
+export DIST_BASE_DIR="${CWD}"
+
+"echo" "Override basedir invalid or not specified, checking current working directory..." >> $DIST_SETUP_LOG
+
+if ( [ `is_dir_toplevel ${CWD}` == "N" ] ); then
+  USE_CWD_BASEDIR="N"
 fi
 
 
 
 #----------------------------------------------------------
-# If DIST_BASE_DIR override variable is not the location
-# of a valid distribution tree, try the current working
-# directory.
+# If current working directory is not the top level, 
+# check for DIST_BASE_DIR override variable and determine
+# if IT is the top level of a distribution source tree.
 #----------------------------------------------------------
-if [ "${USE_OVERRIDE_BASEDIR}" == "NO" ]; then
+if [ "${USE_CWD_BASEDIR}" == "N" ]; then
 
-  USE_CWD_BASEDIR=YES
-  export DIST_BASE_DIR="${CWD}"
+  "echo" "Checking for DIST_BASE_DIR override definition..." >> ${DIST_SETUP_LOG}
+  if [ -d "${DIST_BASE_DIR}" ];
+  then
 
-  "echo" "Override basedir invalid or not specified, checking current working directory..." >> $DIST_SETUP_LOG
+    USE_OVERRIDE_BASEDIR="Y"
 
-  for DIR in ${DIST_TOPLEVEL_CHECKLIST};
-  do
-    if ! [ -d "${CWD}/${DIR}" ]; then
-      "echo" "" >> $DIST_SETUP_LOG
-      "echo" "The current working directory does not appear to be" >> $DIST_SETUP_LOG
-      "echo" "the top level directory of a valid source distribution." >> $DIST_SETUP_LOG
-      "echo" "" >> $DIST_SETUP_LOG
-      USE_CWD_BASEDIR=NO
-      break
+    if ( [ `is_dir_toplevel ${DIST_BASE_DIR}` == "N" ] ); then
+      USE_OVERRIDE_BASEDIR="N"
     fi
-  done
+
+  else
+
+    "echo" "No DIST_BASE_DIR override value found" >> $DIST_SETUP_LOG
+
+  fi
 
 fi
 
@@ -117,12 +134,12 @@ fi
 # environment.  Otherwise, print error mesasge and do
 # nothing else.
 #----------------------------------------------------------
-if [ "${USE_OVERRIDE_BASEDIR}" == "YES" ] || [ "${USE_CWD_BASEDIR}" == "YES" ]; then
+if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
 
   "echo" "Directory appears to be the top level of a source distribution... GOOD." >> $DIST_SETUP_LOG
   "echo" "" >> $DIST_SETUP_LOG
 
-  if [ "${USE_CWD_BASEDIR}" == "YES" ]; then
+  if [ "${USE_CWD_BASEDIR}" == "Y" ]; then
     DIST_BASE_DIR=${CWD}
   fi
   "echo" "Dist base dir = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
