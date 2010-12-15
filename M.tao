@@ -170,7 +170,7 @@ else
   PKG_LIBS   := forest pgplot xsif
 endif
 CERN_LIBS  :=
-SYS_LIBS   := readline curses
+SYS_LIBS   := readline curses termcap
 
 
 #-------------------------------------------------------------
