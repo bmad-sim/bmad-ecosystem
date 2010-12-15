@@ -106,6 +106,8 @@ new_merit = tao_merit()
 
 if (max_val > 100) then
   fmt = '(5x, I5, 2x, f12.0, a, 4f12.0)'
+elseif (max_val < 1d-4) then
+  fmt = '(5x, I5, 2x, es12.9, a, 4es12.9)'
 else
   fmt = '(5x, I5, 2x, f12.6, a, 4f12.6)'
 endif
@@ -138,8 +140,7 @@ nl=nl+1; lines(nl) = ' '
 nl=nl+1; write (lines(nl), fmt) 'Merit:      ', old_merit, '  ->', new_merit
 nl=nl+1; write (lines(nl), fmt) 'dMerit:     ', new_merit - old_merit
 if (delta /= 0) then
-  nl=nl+1; write (lines(nl), '(5x, a, es12.3)') 'dMerit/dVar:', &
-                                     (new_merit-old_merit) / delta
+  nl=nl+1; write (lines(nl), '(5x, a, es12.3)') 'dMerit/dVar:', (new_merit-old_merit) / delta
 endif
 
 if (.not. silent) call out_io (s_blank$, r_name, lines(1:nl))
@@ -174,7 +175,7 @@ type (real_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
-real(rp) new_merit, old_merit, new_value, delta
+real(rp) new_merit, old_merit, new_value, delta, max_val
 
 integer i, ix, iu, nl, len_name
 integer, parameter :: len_lines = 200
@@ -283,9 +284,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       call changed_attribute_bookkeeper (u%model%lat, eles(i)%ele, m_ptr(i)%r)
     endif
 
+    max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 
     fmt = '(5f14.6, 4x, a)'
-    if (max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) > 100) &
-                                                            fmt = '(5f14.0, 4x, a)'
+    if (max_val > 100) fmt = '(5f14.0, 4x, a)'
+    if (max_val < 1d-4) fmt = '(5es14.4, 4x, a)'
 
     ! Record change but only for the first 10 variables.
 
