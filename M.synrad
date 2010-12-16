@@ -157,7 +157,7 @@ LOCAL_LIBS :=
 #CESR_LIBS  := cesr_utils bmad xsif nonlin_bpm CesrBPM sim_utils recipes_f-90_LEPP
 CESR_LIBS  := cesr_utils bmad xsif sim_utils recipes_f-90_LEPP
 PKG_LIBS   := forest
-SYS_LIBS   := readline curses
+SYS_LIBS   := readline curses termcap
 CERN_LIBS  :=
 
 
