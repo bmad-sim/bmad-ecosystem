@@ -5,6 +5,11 @@ use File::Find;
 #---------------------------------------------------------
 # List of subroutines too low level to be mentioned
 
+$pl_hash{"re_allocate2_complex"} = "re_allocate_mod.f90";
+$pl_hash{"re_allocate2_real_pointer"} = "re_allocate_mod.f90";
+$pl_hash{"z_patch_calc"} = "bookkeeper_mod.f90";
+$pl_hash{"palett"} = "pgsubs.f90";
+$pl_hash{"draw_histogram"} = "plot_example.f90";
 $pl_hash{"track_macro_beam"} = "";
 $pl_hash{"offset_photon_mat6"} = "make_mat6_bmad.f90";
 $pl_hash{"adjust_super_slave_names"} = "add_superimpose.f90";
@@ -13,6 +18,10 @@ $pl_hash{"attribute_free1"} = "attribute_mod.f90";
 $pl_hash{"attribute_free2"} = "attribute_mod.f90";
 $pl_hash{"attribute_free3"} = "attribute_mod.f90";
 $pl_hash{"delete_underscore"} = "add_superimpose.f90";
+$pl_hash{"parser_warning"} = "bmad_parser_mod.f90";
+$pl_hash{"parser_add_branch"} = "bmad_parser_mod.f90";
+$pl_hash{"parser_set_attribute"} = "bmad_parser_mod.f90";
+$pl_hash{"bp_set_ran_status"} = "bmad_parser_mod.f90";
 $pl_hash{"bmad_parser_type_get"} = "bmad_parser_mod.f90";
 $pl_hash{"re_allocate_logical2d"} = "re_allocate_mod.f90";
 $pl_hash{"re_allocate_string2d"} = "re_allocate_mod.f90";
@@ -299,10 +308,10 @@ find (\&searchit, '../../sim_utils');
 print "\n---------------------------------------------------\n";
 print "Subroutines in bmad but not in subroutines.tex:\n\n";
 
-while (($key, $val) = each %f90_hash) {
+while (($key, $val) = each %actual_arg_hash) {
   if (! exists $tex_hash{$key} && ! exists $pl_hash{$key} && ! exists $private_hash{$key}) {
 #    printf "%-30s%s\n", ":$key:", $val;
-    printf "\$pl_hash\{\"$key\"\} = \"\"\;\n";
+    printf "\$pl_hash\{\"$key\"\} = \"$f90_hash{$key}\"\;\n";
   }
 }
 
@@ -313,7 +322,7 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in subroutines.tex that are not in bmad:\n\n";
 
 while (($key, $val) = each %tex_hash) {
-  if (! exists $f90_hash{$key} || exists $private_hash{$key}) {
+  if (! exists $actual_arg_hash{$key} || exists $private_hash{$key}) {
     print ":$key:\n";
   }
 }
@@ -325,7 +334,7 @@ print "\n---------------------------------------------------\n";
 print "Subroutines in bmad_subroutines.pl that are not in bmad:\n\n";
 
 while (($key, $val) = each %pl_hash) {
-  if (! exists $f90_hash{$key} || exists $private_hash{$key}) {
+  if (! exists $actual_arg_hash{$key} || exists $private_hash{$key}) {
     print "\"$key\"\n";
   }
 }
@@ -336,15 +345,15 @@ while (($key, $val) = each %pl_hash) {
 print "\n---------------------------------------------------\n";
 print "Arg lists that are different in bmad and in subroutines.tex:\n\n";
 
-while (($key, $f90_val) = each %f90_hash) {
+while (($key, $actual_arg) = each %actual_arg_hash) {
   if (exists $private_hash{$key}) {next;}
   if (!exists $tex_hash{$key}) {next;}
   $tex_val = $tex_hash{$key};
-  if (lc($tex_val) eq lc($f90_val)) {next;}
-  if ($f90_val eq "") {next;}  # Ignore if f90 arg list is blank.
+  if (lc($tex_val) eq lc($actual_arg)) {next;}
+  if ($actual_arg eq "") {next;}  # Ignore if f90 arg list is blank.
   printf "\n";
   printf "$key\n";
-  printf "    f90: $f90_val\n";
+  printf "    f90: $actual_arg\n";
   printf "    tex: $tex_val\n";
 }
 
@@ -449,7 +458,10 @@ sub searchit {
       $arg_list =~ s/ {2,}/ /g;         # Multiple space to single space
         
       # print "Hashed: $name\n";
-     if (! exists $f90_hash{$name}) { $f90_hash{$name} = $arg_list; }
+     if (! exists $actual_arg_hash{$name}) { 
+       $actual_arg_hash{$name} = $arg_list; 
+       $f90_hash{$name} = $file;
+     }
 
       # skip rest of routine including contained routines
 

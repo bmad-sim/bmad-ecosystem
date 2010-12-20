@@ -11,70 +11,81 @@ element types.
 \section{Tracking with Non-Zero Offsets, Pitches, or Tilt}
 \label{s:misalign.track}
 
+\index{element reference coordinates}
+The general procedure for tracking through an element makes use of
+three sets of coordinates called \vn{``element reference
+coordinates''} (or simply \vn{element coordinates}).  With
+misalignments, the \vn{element coordinates} will stay fixed relative
+to the element and will therefore shift with the element in the
+laboratory frame of reference.  Here \vn{``misalignment''} is {\em
+defined} to be any offset, pitch or tilt (\sref{s:offset}).
+
+The three coordinate systems are named \vn{element entrance
+coordinates}, \vn{element body coordinates}, and \vn{element exit
+coordinates}. Without any \vn{``misalignments''}, the \vn{element
+entrance coordinates} and \vn{element exit coordinates} are the same
+as the laboratory coordinate system (\sref{s:ref}) at the entrance and
+exit ends of the element respectively. [The one exception is when
+a \vn{crystal} element has a non-zero \vn{psi_angle} value. See
+\sref{s:crystal.ref}.] The \vn{body coorinate system} will be
+discussed below. The general procedure for tracking a praticle through
+a given element is then a three step process: At the start, the
+particle is at the entrance end of the element and the particle's
+coordinates are given with respect to the laboratory coordinates.
+\begin{enumerate}
+\item
+Transform from the laboratory reference coordinates to the element
+entrance coordinates.
+\item
+Track through the element ignoring any misalignments ending up with
+the particle at the exit end of the element with the particle's
+coordinates given with respect to the element exit coordinates.
+\item
+Transform from the element exit coordinates to the laboratory
+coordinates.
+\end{enumerate}
+
 \begin{figure}[tb]
   \centering
   \includegraphics[width=5in]{photon-ele-coords.pdf}
   \caption[Crystal and Mirror Element Coordinates.]
-{Element coordinates for \vn{crystal} and \vn{mirror} elements.  For
-clarity, all three coordinate systems are displaced from each
-other. In actuality, all three share a common origin.  Independent of
-any ``misalignments'', all three coordinate systems share a common $y$
-axis (pointing out of the page in the figure) and for all three
-reference frames the surface normal $\bfhat n_s$ is in the $x$-$z$
-plane.}
+{Element coordinates for \vn{crystal} and \vn{mirror} elements. For
+clarity, the three coordinate systems are displaced from each
+other. In actuality, the origin $\Bf O$ of all three is the same.
+$\bfhat n$ is the normal to the element surface}
   \label{f:photon.ele.coords}
 \end{figure}
 
-\index{element reference coordinates}
-The general procedure for tracking through an element makes use of the
-\vn{``element reference coordinates''} Without any offsets, pitches or
-tilt, (henceforth called ``misalignments''), the element reference
-coordinates are the same as the \vn{laboratory reference coordinates}
-(\sref{s:ref}). With misalignments, the \vn{element reference
-coordinates} will stay fixed relative to the element and will
-therefore shift as the element shifts in the laboratory frame.
-
 \index{crystal}\index{mirror}
-For \vn{crystal} (\sref{s:crystal}) and \vn{mirror} (\sref{s:mirror})
-elements, the non-straight reference trajectory through the element
-complicates the geometry. For these elements, three element reference
-coordinates are used as shown in Fig.~\ref{f:photon.ele.coords}. The
-first set of coordinates are the \vn{element entrance coordinates}.
-Without misalignment, these coordinates are the same as the
-\vn{laboratory entrance coordinates} shown in
-Fig.~\ref{f:local.coords}. The second set of coordinates are the
-\vn{element body coordinates} which always have the $x$ coordinate
-pointing into the element antiparallel to the outward surface normal
-$\bfhat n_s$. The third set of coordinates are the \vn{element exit
-coordinates}.  Without misalignment, these coordinates are the same as
-the \vn{laboratory exit coordinates} shown in
-Fig.~\ref{f:local.coords}.
-
-Tracking a particle through an element is therefore a three
-step transformation:
-\begin{enumerate}
-\item
-At the entrance end of the element, transform from the
-laboratory reference coordinates to the (entrance) \vn{element coordinates}.
-\item
-Track through the element ignoring any misalignments. For \vn{crystal}
-and \vn{mirror} elements, this includes the transformation from
-\vn{entrance} to \vn{exit element coordinates}.
-\item
-At the exit end of the element, transform from the \vn{element
-reference from} to the \vn{laboratory reference frame}.
-\end{enumerate}
-
-The transformation between \vn{local} and \vn{element} reference frames
-will depend upon whether \vn{local} reference frame through the
-element is straight or not. 
+For \vn{straight} elements (\sref{s:ref}), all three element
+coordinate systems are the same and, in this case, all three are
+simply referred to as \vn{element coordinates}.  For \vn{crystal}
+(\sref{s:crystal}) and \vn{mirror} (\sref{s:mirror}) elements, the
+non-straight reference trajectory complicates the geometry. For these
+elements, the three element coordinate systems are shown in
+Fig.~\ref{f:photon.ele.coords}. In the \vn{element entrance
+coordinates}, the surface normal $\bfhat n$ is in the $x$-$z$ plane
+and the $y$ axis will be parallel to the surface. This is a
+consequence of the convention that, with no tilt, the bend is about
+the $y$-axis (\sref{s:global}). The \vn{element body coordinates} are
+derived from the \vn{element entrance coordinates} by a rotation about
+the $y$-axis so that in the body coordinates, the $x$ axis points
+opposite the $\bfhat n$ vector and the $z$-axis is parallel to the
+surface. The \vn{element exit coordinates} will genarally have it's
+$y$-axis aligned with the $y$-axes of the other two coordinate
+systems. The exceptional case occures for a \vn{crystal} element when
+\vn{phi_angle} is nonzero (\sref{s:crystal.ref}).
 
 %-----------------------------------------------------------------
-\section{Transformation for a Straight Element Between 
+\section{Transformation for Straight Elements Between 
 Laboratory and Element Coordinates}
+\label{s:straight-lab-ele}
 
 It is assumed that pitches are are small so that second
 order terms can be ignored.
+
+%-----------------------------------------------------------------
+\subsection{Transformation from Laboratory to Element Coordinates}
 
 The transformation from the laboratory coordinates to
 element coordinates for an element that has a
@@ -102,6 +113,9 @@ Apply any tilt $\theta_t$
   p_{y2} &= -p_{x1} \, \sin\theta_t + p_{y1} \, \cos\theta_t \nonumber
 \end{align}
 \end{enumerate}
+
+%-----------------------------------------------------------------
+\subsection{Transformation from Element to Latboratory Coordinates}
 
 The back transformation from element to laboratory coordinates is
 accomplished by the transformation
@@ -132,11 +146,14 @@ Track as in a drift a distance \vn{-s_offset_tot}.
 %-----------------------------------------------------------------
 \section[Mirror and Crystal Elements]{Transformation for Mirror and Crystal Elements Between 
 Laboratory and Element Coordinates}
-\label{s:lab-ele-transform}
+\label{s:photon-lab-ele}
 
 \index{mirror}\index{crystal}
 It is assumed that pitches are are small so that second
 order terms can be ignored.
+
+%-----------------------------------------------------------------
+\subsection{Transformation from Laboratory to Element Coordinates}
 
 \index{s_offset_tot}
 With photons, the intensities must also be transformed.
@@ -197,6 +214,9 @@ Apply \vn{graze_angle_err} ($\theta_{gerr}$):
   z_3    &= z_2 - x_2 \, \theta_{gerr} 
 \end{align}
 \end{enumerate}
+
+%-----------------------------------------------------------------
+\subsection{Transformation from Element to Latboratory Coordinates}
 
 The back transformation from exit element coordinates to exit
 laboratory coordinates is accomplished by the transformation
@@ -284,9 +304,11 @@ entrance laboratory frame. The transformation is
   \caption[Crystal diffraction diagram.]
 {Reciprical space diagram showing crystal diffraction. The coordinates
 shown are the element body coordinates. All points in the diagram are
-in the plane of the paper except for the tip of $H$.  $K_{0}$ and
-$K_{H}$ are the wave vectors inside the crystal and $k_{0}$ and
-$k_{H}$ are the wave vectors outside the crystal.}
+in the plane of the paper except for the tip of $\bH$.  $\bK_{0}$ and
+$\Bf K_{H}$ are the wave vectors inside the crystal and $\Bf k_{0}$ and
+$\Bf k_{H}$ are the wave vectors outside the crystal. The reference
+photon travelong along the reference trajectory has $\bK_0$ and
+$\bK_H$ originating at the $Q$ point.}
   \label{f:crystal.diffraction}
 \end{figure}
 
@@ -296,47 +318,221 @@ $k_{H}$ are the wave vectors outside the crystal.}
 
 \textit{\large [Crystal tracking developed by Jing Yee Chee, Ken Finkelstein, and David Sagan]}
 
-Crystal diffraction is modeled using dynamical diffraction
-theory\cite{b:batterman}. Before any photon tracking is done, the
-incoming grazing angle $\theta_{g,in}$ and outgoing grazing angle
-$\theta_{g,out}$ must be computed to orient the reference trajectory
-with respect to the crystal surface. Fig.~\ref{f:crystal.diffraction}
-shows the geometry of the problem. The graze angles are calculated
-such that a photon with the reference energy on the reference
-trajectory will be in the center of the Darwin curve. That is The
-internal wave vectors $K_0$ and $K_H$ originate from point $Q$ (See
-\cite{b:batterman} Figs.~8 and 29). The $H$ vector in the element body
-coordinate system is
+%-----------------------------------------------------------------
+\subsection{Crystal Element Reference Trajectory}
+\label{s:crystal.ref}
 
+Crystal diffraction is modeled using dynamical diffraction theory. The
+notation here follows Batterman and Cole\cite{b:batterman}. Before any
+photon tracking is done, the incoming grazing angle $\theta_{g,in}$
+and outgoing grazing angle $\theta_{g,out}$ must be computed to orient
+the reference trajectory with respect to the crystal surface.
+Fig.~\ref{f:crystal.diffraction} shows the geometry of the
+problem. The graze angles are calculated such that a photon with the
+reference energy on the reference trajectory will be in the center of
+the Darwin curve. That is, the internal wave vectors $\bK_0$ and
+$\bK_H$ originate from the $Q$ point (See \cite{b:batterman} Figs.~8
+and 29).
 
-
-
-
-The starting photon coordinates are
-specified in the laboratory entrance coordinates. The transformation
-from laboratory entrance coordinates to element entrance coordinates $\tilde k_{in}$
-is given in \sref{s:lab-ele-transform}. The diffraction algorithm is 
-then
-  \begin{enumerate}
-  \item
-Transform to \vn{element body coordinates} $k_{in}$
-\begin{align}
-  k_{in,x} &=  \tilde k_{in,x} \, \cos \, \theta_{g,in} + \tilde k_{in,z} \, \sin \, \theta_{g,in} \CRNO
-  k_{in,y} &=  \tilde k_{in,y} \\
-  k_{in,z} &= -\tilde k_{in,x} \, \sin \, \theta_{g,in} + \tilde k_{in,z} \, \cos \, \theta_{g,in} \CRNO
-\end{align}
-Construct $\bH_n$ which is the $H$ vector normalized by the photon wavelength $\lambda$
+The calculation of the incoming graze angle $\theta_{g,in}$
+(\vn{graze_angle_in}) is as follows. The external incoming wave vector
+$\Bf k_0$, which is coincident with the element entrance trajectory,
+lies along the element entrance coordinates $z$ axis. In element body
+coordinates (which will be the coordinate system used henceforth),
+$\Bf k_0$ thus lies in the $x$-$z$ plane. $\bK_0$ is related to $\Bf
+k_0$ via Batterman Eq.~(25)
 \Begineq
-  H_n = \frac{\lambds}{d}
+  \bK_0 = \Bf k_0 + q_a \, \bfhat n
+\Endeq
+where the value of $q_a$ is determined, in part, by the requirement on
+the lengths of the vectors
+\begin{align}
+  |\bf k_0| &= |\bf k_H| = \frac{1}{\lambda} \CRNO
+  |\bK_0| &= |\bK_H| = \frac{1}{\lambda \, (1 + \delta)}
+  \label{kk1l}
+\end{align}
+where 
+\Begineq
+  \delta = \frac{\lambda^2 r_e}{2 \, \pi \, V} \, |F_0|
+\Endeq
+with $r_e$ begin the classical electron radius, $V$ the unit cell
+volume, and $F_0$ is the $F_{(0,0,0)}$ structure factor. Since both
+$\bf k_0$ and $\bfhat n$ lie in the $x$-$z$ plane, $\bK_0$ lies in the
+$x$-$z$ plane and can thus be written in the form
+\Begineq
+  \bK_0 = \frac{1}{\lambda \, (1 + \delta)} \, 
+    \begin{pmatrix}
+    \sin\theta_0 \\
+    0 \\
+    \cos\theta_0
+    \end{pmatrix}
+\Endeq
+where $\theta_0$ is the angle between $\bK_0$ and $z$ as shown in
+Fig.~\ref{f:crystal.diffraction}.
+The vectors $\bK_0$ and $\bH$ must add up to the reciprical lattice vector $\bK_H$
+\Begineq
+  \bK_H + \bK_0 + \bH
+\Endeq
+or equivalently
+\Begineq
+  \frac{1}{\lambda \, (1 + \delta)} \, \bfhat K_H
+  =
+  \frac{1}{\lambda \, (1 + \delta)} \, 
+  \begin{pmatrix} \sin\theta_0 \\ 0 \\ \cos\theta_0 \end{pmatrix}
+  +
+  \frac{1}{d}
+  \begin{pmatrix} -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi \\ \sin \alpha_H \, \cos \psi \end{pmatrix}
+  \label{1l1dk}
+\Endeq
+where $\bfhat K_H$ has unit length and $\alpha_H$ (\vn{alpha_anlge})
+and $\psi$ (\vn{psi_angle}) characterize the orientation of $H$.
+Taking the length of both sides gives
+\Begineq
+  \frac{\lambda (1 + \delta)}{2 \, d} = \cos\alpha_H \, \sin\theta_0 = 
+  \sin\alpha_H \, \cos\psi \, \cos\theta_0
+\Endeq
+Solving for $\theta_0$ gives
+\Begineq
+  \theta_0 = \sin^{-1} \frac{\lambda (1 + \delta)}{2 \, d \, \sqrt{1 - \sin^2\alpha_H \, \sin^2\psi}} +
+  \tan^{-1} (\tan\alpha_H \, \cos\psi)
+\Endeq
+From this, the incoming graze angle is
+\Begineq
+  \cos\theta_{g,in} = \frac{\cos\theta_0}{1 + \delta}
+\Endeq
+
+The outgoing graze angle $\theta_{g,out}$ is computed as follows. The
+vector $\bK_H$ and $\Bf k_h$ share the same $y$ and $z$ coordinates so
+from \Eq{1l1dk} 
+\begin{align}
+  k_{H,y} &= \frac{1}{d} \sin\alpha_H \, \sin\psi \CRNO
+  k_{H,z} &= \frac{1}{d} \sin\alpha_H \, cos\psi + \frac{1}{\lambda \, (1 + \delta)} \, \cos\theta_0
+\end{align}
+And the $x$ component is obtained from \Eq{kk1l}
+\Begineq
+  k_{H,x} = -\sqrt{\frac{1}{\lambda^2} - k_{H,y}^2 - k_{H,z}^2}
+\Endeq
+The outgoing graze angle is then the total bending angle minus the incoming graze angle
+\Begineq
+  \theta_{g,out} = \tan^{-1}\frac{\wt k_{H,z}}{\sqrt{\wt k_{H,x}^2 + \wt k_{H,y}^2}}
+\Endeq
+where the tilde indicates that the components of $\Bf k_H$ are expressed in the is 
+
+In order to track photons, transformation matricies between coordinate
+systems are needed. To keep the discussion simple here, it is assumed that there is no misalignments.
+When $\psi$ zero, 
+the transformation matrix $T_{in}$ between laboratory entrance coordinates and
+element entrance coordinates is, as it is for every other type of
+element, just the unit matrix. That is, the two coordinate systems are
+identical.
+The transformation $M_{in}$ from element entrance coordinates to body coordinates is
+a rotation around the $y$ axis
+\Begineq
+  M_{in} = \begin{pmatrix}
+     \cos\theta_{g,in} & 0 & \sin\theta_{g,in} \\
+     0                 & 1 & 0                 \\
+    -\sin\theta_{g,in} & 0 & \cos\theta_{g,in} \\
+  \end{pmatrix}
+  \label{mt0t010}
+\Endeq
+The transformation from element body coordinates to element exit coordinatates is
+another rotation around the $y$ axis and the transformation from element exit
+coordinates to laboratory exit coordinates is the unity matrix. Thus, the combind
+transformation from laboratory entrance to laboratory exit coordinates is a rotation
+around the $y$ axis as explained in section \sref{s:global}.
+
+\index{tilt}
+When $\psi$ is non-zero the situation is complicated since, if the above
+transformations for the coordinate systems are used, the vector $\Bf k_H$
+would be bent out of the $x$-$z$ plane. 
+By {\em definition}, the reference trajectory has the form
+given \Eq{lrca1} with the $\bT$ matrix depending only upon the \vn{tilt} parameter.
+That is, the crystal must be reorientated to keep the
+$\Bf k_H$ vector in the $x$-$z$ plane of the laboratory entrance coordinates. 
+The reorientation is done by rotating the crystal
+about the laboratory entrance $\Bf z$ axis by an amount $\theta_{corr}$ (\vn{tilt_corr})
+that is determined as follows. With this ``tilt correction'' rotation, the transformation $\bT_{in}$
+is 
+\Begineq
+  \bT_{in} = 
   \begin{pmatrix}
-    -\cos \alpha_H \\
-    \sin \alpha_H \, \sin \psi \\
-    \sin \alpha_H \, \cos \psi
+    \cos\theta_{corr} & -\sin\theta_{corr} & 0 \\
+    \sin\theta_{corr} &  \cos\theta_{corr} & 0 \\
+    0                 &  0                 & 1                
   \end{pmatrix}
 \Endeq
-where $d$ is the spacing between the reflection planes.
+The transformation from element entrance coordinates to element body coordinates
+is not affected by a finite $\psi$ and so \Eq{mt0t010} is unmodified. The $\Bf k_H$
+vector, expressed in laboratory entrance coordinates, must have zero $y$ component
+\Begineq
+  \left( \bT_{in}^{-1} \, \bM_{in}^{-1} \, \Bf k_H \right) \cdot
+  \begin{pmatrix} 0 \\ 1 \\ 0 \end{pmatrix}
+  = 0
+\Endeq
+Solving gives
+\Begineq
+  \theta_{corr} = \tan^{-1} 
+  \frac{k_{H,y}}{k_{H,z} \, \sin\theta_{g,in} - k_{H,x} \, \cos\theta_{g,in}}
+\Endeq
+The transformation $\bM_{out}$ from element body coordinates to element exit coordinates
+is now obtaind by requiring that the total transformation from laboratory
+entrance to laboratory exit coordinates be the $\wt\bS$ matrix given in
+\Eq{lrca1}
+\Begineq
+  \bM_{out} \, \bM_{in} \, \bT_{in} = 
+  \begin{pmatrix}
+    \cos\alpha_b & 0 & -\sin\alpha_b \\
+    0          & 1 & 0           \\
+    \sin\alpha_b & 0 & \cos\alpha_b
+  \end{pmatrix}
+\Endeq
+where $alpha_b = \theta_{g,in} + \theta_{g_out}$. In the above equation,
+the transformation $T_{out}$ from element exit coordinates
+to laboratory exit coordinates has been dropped since it is the
+unit matrix independent of $\psi$. 
 
-  \end{enumerate}
+With misalignments, the transformation between laboratory and
+element coordinates is more complicated as outlined in 
+section \sref{s:photon-lab-ele}
+
+%-----------------------------------------------------------------
+\subsection{Crystal Element Tracking}
+
+The starting photon coordinates are specified in the laboratory
+entrance coordinates. The transformation from laboratory entrance
+coordinates to element entrance coordinates $\wt \Bf k_0$ is given
+in \sref{s:photon-lab-ele}. The transformation to element body coordinates $k_{in}$
+is
+\begin{equation}
+  \Bf k_0 =  \bM_{in} \, \wt\Bf k_0
+\end{equation}
+with $\bM_{in}$ given by \Eq{mt0t010}.
+
+The equation to be solved is (\cite{b:batterman} Eq.~(21))
+\Begineq
+  \xi_0 \, \xi_H = \frac{1}{4} \, k^2 \, P^2 \, \Lambda^2 \, F_H \, F_{\bar H}
+\Enedeq
+where $\xi_0$ and $\xi_H$ are given by \cite{b:batterman} Eq.~(18)
+and $P$ is the polaraization factor
+\Begineq
+  P = 
+  \begin{cases}
+    1               & \sigma \mbox{polarization state} \\
+    \cos 2\theta_g  & \pi \mbox{polarization state}
+  \end{cases
+\Endeq
+$2\theta_g$ is the angle between $\bK_0$ and $\bK_H$ which is well
+approximated by $\theta_{g,in}$ and $\theta_{g_out}$.
+
+The relationship between the outside and inside wave vectors is 
+(\cite{b:batterman} Eq.~(26))
+\begin{align}
+  \bK_0 = \Bf k_0 + q \, k \, \bfhat n \CRNO
+  \bK_H = \Bf k_0 + \bH + q \, k \, \bfhat n 
+\end{align}
+
+
+
 
 
 %-----------------------------------------------------------------
@@ -897,9 +1093,9 @@ where
 And the vector potential $\bfA$ is obtained from $\bfB$ via
 \begin{align}
   A_x(x,y,s) &= 0 \CRNO
-  A_y(x,y,s) &=  \int_0^x d\tilde x \, B_z(\tilde x, y, s) 
+  A_y(x,y,s) &=  \int_0^x d\wt x \, B_z(\wt x, y, s) 
   \label{a0a0a0} \\
-  A_s(x,y,s) &= -\int_0^x d\tilde x \, B_y(\tilde x, y, s) \nonumber
+  A_s(x,y,s) &= -\int_0^x d\wt x \, B_y(\wt x, y, s) \nonumber
 \end{align}
 
 For tracking, the wiggler is broken up into a number of slices set by
