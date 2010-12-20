@@ -8,14 +8,15 @@
 
 
 \begin{figure}[!b]
-\centering
-\includegraphics[height=8.4cm]{local-coords.pdf}
-\caption[The Local Reference System.]
-{The local reference coordinate system. 
-By construction, a particles's $z$ coordinate is zero. 
-This is not to be confused with the phase space $z$ coordinate (\sref{s:phase.space}).
-The curvature vector $\bfg$ has a magnitude of $1/\rho$ where $\rho$ is the bending radius.}
-\label{f:local.coords}
+  \centering
+  \includegraphics[height=8.4cm]{local-coords.pdf}
+  \caption[The Local Reference System.]
+{The local reference coordinate system. By construction, a
+particle's $z$ coordinate is zero.  This is not to be confused with
+the phase space $z$ coordinate (\sref{s:phase.space}).  The curvature
+vector $\bfg$ has a magnitude of $1/\rho$ where $\rho$ is the bending
+radius.}
+  \label{f:local.coords}
 \end{figure}
 
 The \vn{local reference orbit} is the curved path used to define a
@@ -35,25 +36,26 @@ the \vn{``laboratory coordinate system''} when there is need to
 distinguish it from the \vn{``element coordinate system''}
 (\sref{s:misalign.track}).
 
-\index{sbend}
-\index{rbend}
-\index{entrance_end}
-\index{exit_end}
-\index{patch}
+\index{sbend}\index{rbend}
+\index{crystal}\index{mirror}\index{entrance_end}
+\index{exit_end}\index{patch}
 In \bmad, a lattice is comprised of a sequence of elements such as
 quadrupoles, bends, RF cavities, etc. Each element has an entrance
 point, an exit point, and a reference curve between them. For a
-\vn{bend}, the reference curve is a segment of a circular arc. For all
-other elements, the reference curve is a straight line segment. The
-reference orbit itself is constructed by arranging the elements so
-that the exit point of one element coincides with the entrance point
-of the next with the reference curves forming an arc with no kinks.
-The reference orbit is then the sum of the reference
-curves. Exceptions to this construction method may be made by using
-\vn{Patch} elements which can arbitrarily offset the entrance point of
-an element with respect to the exit point of the previous element.
-See \sref{s:patch}.  If not specified otherwise, the $s = 0$ position
-is the entrance point of the first element.
+\vn{bend} (\sref{s:bend}), the reference curve is a segment of a
+circular arc. For \vn{crystal} and \vn{mirror} elements, the reference
+curve is a zero length bend (\sref{s:mirror.coords}). All other
+elements are ``straight''. That is, the reference curve is a straight
+line segment. With multiple elements, the reference orbit is
+constructed by arranging the elements so that the reference orbit at
+exit point of one element coincides, and is collinear with, the
+reference curve at the entrance point of the next element. The
+reference orbit is then the sum of the reference curves. Exceptions to
+this construction method may be made by using \vn{patch}
+(\sref{s:patch}) elements which can arbitrarily orient the entrance
+point of an element with respect to the exit point of the previous
+element. If not specified otherwise, the $s = 0$ position is the
+entrance point of the first element.
 
 \index{x_offset}
 \index{y_offset}
@@ -62,10 +64,10 @@ is the entrance point of the first element.
 \index{wiggler}
 Notice that, in a \vn{Wiggler}, the reference orbit, which is a
 straight line, does {\em not} correspond to the orbit that any actual
-particle could travel. Typically the physical entity of an element is
-centered about the reference curve. However, by specifying offsets and
-pitches (See \sref{s:offset}), the physical element may be
-arbitrarily offset with respect to its reference curve.  Shifting a
+particle could travel. Typically the physical element is
+centered with respect to the reference curve. However, by specifying offsets, 
+pitches or a tilt (See \sref{s:offset}), the physical element may be
+arbitrarily shifted with respect to its reference curve.  Shifting a
 physical magnet with respect to its reference curve generally means
 that the reference curve does {\em not} correspond to the orbit that
 any actual particle could travel.
@@ -220,6 +222,7 @@ where
     \sin\theta_t &  \cos\theta_t & 0 \\
     0            &  0            & 1                
   \end{pmatrix}
+  \label{lrca1}
 \Endeq
 with $\rho$ being the bend radius (\vn{rho}), $\alpha_b$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
@@ -245,14 +248,14 @@ represents a downward pointing bend.
 \centering \includegraphics{mirror.pdf} \caption[Reflection by a
 mirror or crystal] {Reflection by a mirror or crystal.  The geometry
 shown here is appropriate for a tilt angle of $\theta_t = 0$.
-$\theta_g$ is the graze angle of the incomming (entrance) reference coordinates,
+$\theta_g$ is the graze angle of the incoming (entrance) reference coordinates,
 $\alpha_b$ is the bend angle of the coordinates.  Point $\cal O$ is the
 origin of both the local coordinates just before and just after the
 reflection.}  \label{f:mirror}
 \end{figure}
 
 %-----------------------------------------------------------------------------
-\subsection{Crystal and Mirror Elements}
+\subsection{Crystal and Mirror Element Coordinate Transformation}
 \label{s:mirror.coords}
 
 \index{crystal}\index{mirror}\index{tilt}
@@ -272,7 +275,7 @@ are only affected by the element's tilt and graze angle parameters and
 is independent of all other parameters such as the radius of
 curvature of the surface, etc. The local $z$-axis of the
 entrance coordinates along with the $z$-axis of the exit coordinates
-form a plane which is called the elements's \vn{bend plane}.
+form a plane which is called the element's \vn{bend plane}.
 
 An example is shown in Fig.~\ref{f:mirror}. This example is
 appropriate for a tilt angle of $\theta_t = 0$ (the rotation axis is
@@ -484,20 +487,16 @@ The phase space coordinates $(x, p_x, y, p_y, z, p_z)$ for a photon
 are the same as for a particle with $v = c$. The photon frequency $\omega$ and
 wave number $k$ are given by the standard formulas
 \begin{align}
-  \omega &= \hbar \, c \, P_0 (1 + p_z)
+  \omega &= \hbar \, c \, P_0 (1 + p_z) \CRNO
   k &= \frac{2 \, \pi}{\lambda} = \frac{\omega}{c}
 \end{align}
 
 In addition to the above, a photon has
-four extra parameters $I_x, \phi_x$, and $I_y, \phi_y$ specifying the
-intensity and phase of the field along the $x$ and $y$ axes. Since
-$I_x$ and $I_y$ are intensities, the electric and magnetic field
-components are proportional to the square root of these
-quantities. The normalization between field and intensity is
-determined by the individual simulation programs and is not part of
-the \bmad standard. The electric field oscillates as
+four extra parameters $E_x, \phi_x$, and $E_y, \phi_y$ specifying the
+intensity and phase of the field along the $x$ and $y$ axes.
 \Begineqs
-  E_x &\sim \sqrt{I_x} \, e^{i (k \, x - \omega \, t + \phi_x)} \CRNO
-  E_y &\sim \sqrt{I_y} \, e^{i (k \, x - \omega \, t + \phi_y)} \CRNO
+  E_x (\Bf r, t) &\sim |E_x| \, e^{i (k \, z - \omega \, t + \phi_x)} \CRNO
+  E_y (\Bf r, t) &\sim |E_y| \, e^{i (k \, z - \omega \, t + \phi_y)} \CRNO
 \Endeqs
-and this defines the phases $\phi_x$ and $\phi_y$.
+The normalization between field and intensity is determined by the
+individual simulation programs and is not part of the \bmad standard.
