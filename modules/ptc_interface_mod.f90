@@ -168,7 +168,7 @@ end function
 !   order         -- Integer: Taylor order.
 !                     If order = 0. then nothing is done.
 !   override_flag -- Logical, optional: If False then if the taylor order 
-!                     has been previously set do not reset.
+!                     has been previously set do not reset. Default is True.
 !-
 
 subroutine set_taylor_order (order, override_flag)
@@ -176,8 +176,7 @@ subroutine set_taylor_order (order, override_flag)
 implicit none
 
 integer, intent(in) :: order
-logical, optional, intent(in) :: override_flag
-logical override
+logical, optional :: override_flag
 
 ! do nothing if order = 0
 
@@ -190,9 +189,7 @@ endif
 
 ! check for override_flag and do nothing if the taylor order has been set
 
-override = .true.
-if (present(override_flag)) override = override_flag
-if (.not. override .and. ptc_com%taylor_order_set) return
+if (.not. logic_option(.true., override_flag) .and. ptc_com%taylor_order_set) return
 
 ! set the taylor order.
 
