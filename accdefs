@@ -281,5 +281,13 @@ if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
 fi
 
 
-alias getf="/home/cesrulib/bin/util/getf.pl"
-alias listf="/home/cesrulib/bin/util/listf.pl"
+function getf {
+  /home/cesrulib/bin/util/getf.pl "${@}"
+}
+
+
+function listf {
+  /home/cesrulib/bin/util/listf.pl "${@}"
+}
+
+

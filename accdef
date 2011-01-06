@@ -296,6 +296,6 @@ if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
 endif
 
 
-alias getf '/home/cesrulib/bin/util/getf.pl'
-alias listf '/home/cesrulib/bin/util/listf.pl'
+alias getf '/home/cesrulib/bin/util/getf.pl "\!*"'
+alias listf '/home/cesrulib/bin/util/listf.pl "\!*"'
 
