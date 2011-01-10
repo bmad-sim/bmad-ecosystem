@@ -414,13 +414,14 @@ real(rp), save :: a, b, c
 integer i, is, ns, n
 
 logical, save :: init_needed = .true.
+character(20) :: r_name = 'photon_energy_init'
 
 ! Check for r_in
 
 if (present(r_in)) then
   rr = r_in
   if (rr < 0  .or. rr > 1) then
-    print *, 'ERROR: RR IS OUT OF RANGE: ', rr
+    call out_io (s_fatal$, r_name, 'RR IS OUT OF RANGE: \es12.4\ ', rr)
     stop
   endif
 else

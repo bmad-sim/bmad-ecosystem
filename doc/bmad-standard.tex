@@ -27,8 +27,8 @@ entrance coordinates} and \vn{element exit coordinates} are the same
 as the laboratory coordinate system (\sref{s:ref}) at the entrance and
 exit ends of the element respectively. [The one exception is when
 a \vn{crystal} element has a non-zero \vn{psi_angle} value. See
-\sref{s:crystal.ref}.] The \vn{body coorinate system} will be
-discussed below. The general procedure for tracking a praticle through
+\sref{s:crystal.ref}.] The \vn{body coordinate system} will be
+discussed below. The general procedure for tracking a particle through
 a given element is then a three step process: At the start, the
 particle is at the entrance end of the element and the particle's
 coordinates are given with respect to the laboratory coordinates.
@@ -71,9 +71,9 @@ the $y$-axis (\sref{s:global}). The \vn{element body coordinates} are
 derived from the \vn{element entrance coordinates} by a rotation about
 the $y$-axis so that in the body coordinates, the $x$ axis points
 opposite the $\bfhat n$ vector and the $z$-axis is parallel to the
-surface. The \vn{element exit coordinates} will genarally have it's
+surface. The \vn{element exit coordinates} will generally have it's
 $y$-axis aligned with the $y$-axes of the other two coordinate
-systems. The exceptional case occures for a \vn{crystal} element when
+systems. The exceptional case occurs for a \vn{crystal} element when
 \vn{phi_angle} is nonzero (\sref{s:crystal.ref}).
 
 %-----------------------------------------------------------------
@@ -115,7 +115,7 @@ Apply any tilt $\theta_t$
 \end{enumerate}
 
 %-----------------------------------------------------------------
-\subsection{Transformation from Element to Latboratory Coordinates}
+\subsection{Transformation from Element to Laboratory Coordinates}
 
 The back transformation from element to laboratory coordinates is
 accomplished by the transformation
@@ -216,19 +216,19 @@ Apply \vn{graze_angle_err} ($\theta_{gerr}$):
 \end{enumerate}
 
 %-----------------------------------------------------------------
-\subsection{Transformation from Element to Latboratory Coordinates}
+\subsection{Transformation from Element to Laboratory Coordinates}
 
 The back transformation from exit element coordinates to exit
 laboratory coordinates is accomplished by the transformation
   \begin{enumerate}
   \item
-Unapply \vn{graze_angle_err}:
+Apply \vn{graze_angle_err}:
 \begin{align}
   p_{x1} &= p_{x0} - \theta_{gerr} \CRNO
   z_1    &= z_0 + x_0 \, \theta_{gerr} 
 \end{align}
   \item
-Unapply \vn{tilt} and \vn{tilt_err}: \vn{tilt} rotates the exit
+Apply \vn{tilt} and \vn{tilt_err}: \vn{tilt} rotates the exit
 laboratory coordinates with respect to the exit element coordinates in
 the same way \vn{tilt} rotates the entrance laboratory coordinates
 with respect to the entrance element coordinates. The forward and back
@@ -267,7 +267,7 @@ of $\Bf e_{out}$ give rotations around the $x$ and $y$ axes
   z_3    &= z_2 + x_2 \, \Bf e_{out,y} - y_2 \, \Bf e_{out,x}
 \end{align}
   \item
-Unapply pitches: Since pitches are defined with
+Apply pitches: Since pitches are defined with
 respect to the entrance laboratory coordinates, they have to be
 translated to the exit laboratory coordinates
 \Begineq
@@ -282,7 +282,7 @@ laboratory frame. The transformation is then
   z_4    &= z_3 + x_3 \, \bP_{out,y} - y_3 \, \bP_{out,x}
 \end{align}
   \item
-Unapply offsets: Again, offsets are defined with respect to the
+Apply offsets: Again, offsets are defined with respect to the
 entrance laboratory coordinates. Like pitches, the translation is
 \Begineq
   \bO_{out} = \bS \, \bO_{in}
@@ -302,13 +302,14 @@ entrance laboratory frame. The transformation is
   \centering
   \includegraphics[width=5in]{crystal-diffraction.pdf}
   \caption[Crystal diffraction diagram.]
-{Reciprical space diagram showing crystal diffraction. The coordinates
-shown are the element body coordinates. All points in the diagram are
-in the plane of the paper except for the tip of $\bH$.  $\bK_{0}$ and
-$\Bf K_{H}$ are the wave vectors inside the crystal and $\Bf k_{0}$ and
-$\Bf k_{H}$ are the wave vectors outside the crystal. The reference
-photon travelong along the reference trajectory has $\bK_0$ and
-$\bK_H$ originating at the $Q$ point.}
+{Reciprocal space diagram showing crystal diffraction for Bragg
+reflection. The coordinates shown are the element body 
+coordinates. All points in the diagram are in the plane of the paper
+except for the tip of $\bH$.  $\bK_{0}$ and $\Bf K_{H}$ are the wave
+vectors inside the crystal and $\Bf k_{0}$ and $\Bf k_{H}$ are the
+wave vectors outside the crystal. The reference photon traveling along
+the reference trajectory has $\bK_0$ and $\bK_H$ originating at the
+$Q$ point.}
   \label{f:crystal.diffraction}
 \end{figure}
 
@@ -347,9 +348,10 @@ k_0$ via Batterman Eq.~(25)
 where the value of $q_a$ is determined, in part, by the requirement on
 the lengths of the vectors
 \begin{align}
-  |\bf k_0| &= |\bf k_H| = \frac{1}{\lambda} \CRNO
+  |\bf k_0| &= |\bf k_H| = \frac{1}{\lambda} 
+  \label{kk1l1} \\
   |\bK_0| &= |\bK_H| = \frac{1}{\lambda \, (1 + \delta)}
-  \label{kk1l}
+  \label{kk1l2}
 \end{align}
 where 
 \Begineq
@@ -366,14 +368,21 @@ $x$-$z$ plane and can thus be written in the form
     0 \\
     \cos\theta_0
     \end{pmatrix}
+  \label{k1l1d}
 \Endeq
 where $\theta_0$ is the angle between $\bK_0$ and $z$ as shown in
 Fig.~\ref{f:crystal.diffraction}.
-The vectors $\bK_0$ and $\bH$ must add up to the reciprical lattice vector $\bK_H$
+The vectors $\bK_0$ and $\bH$ must add up to the reciprocal lattice vector $\bK_H$
 \Begineq
   \bK_H + \bK_0 + \bH
 \Endeq
-or equivalently
+Using
+\Begineq
+  \bH = \frac{1}{d}
+  \begin{pmatrix} -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H \end{pmatrix}
+  \label{h1daa}
+\Endeq
+gives
 \Begineq
   \frac{1}{\lambda \, (1 + \delta)} \, \bfhat K_H
   =
@@ -381,52 +390,64 @@ or equivalently
   \begin{pmatrix} \sin\theta_0 \\ 0 \\ \cos\theta_0 \end{pmatrix}
   +
   \frac{1}{d}
-  \begin{pmatrix} -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi \\ \sin \alpha_H \, \cos \psi \end{pmatrix}
+  \begin{pmatrix} -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H \end{pmatrix}
   \label{1l1dk}
 \Endeq
-where $\bfhat K_H$ has unit length and $\alpha_H$ (\vn{alpha_anlge})
-and $\psi$ (\vn{psi_angle}) characterize the orientation of $H$.
+where $\bfhat K_H$ has unit length and $\alpha_H$ (\vn{alpha_angle})
+and $\psi_H$ (\vn{psi_angle}) characterize the orientation of $H$.
 Taking the length of both sides gives
 \Begineq
   \frac{\lambda (1 + \delta)}{2 \, d} = \cos\alpha_H \, \sin\theta_0 = 
-  \sin\alpha_H \, \cos\psi \, \cos\theta_0
+  \sin\alpha_H \, \cos\psi_H \, \cos\theta_0
 \Endeq
 Solving for $\theta_0$ gives
 \Begineq
-  \theta_0 = \sin^{-1} \frac{\lambda (1 + \delta)}{2 \, d \, \sqrt{1 - \sin^2\alpha_H \, \sin^2\psi}} +
-  \tan^{-1} (\tan\alpha_H \, \cos\psi)
+  \theta_0 = \sin^{-1} \frac{\lambda (1 + \delta)}{2 \, d \, \sqrt{1 - \sin^2\alpha_H \, \sin^2\psi_H}} +
+  \tan^{-1} (\tan\alpha_H \, \cos\psi_H)
 \Endeq
 From this, the incoming graze angle is
 \Begineq
   \cos\theta_{g,in} = \frac{\cos\theta_0}{1 + \delta}
 \Endeq
 
-The outgoing graze angle $\theta_{g,out}$ is computed as follows. The
-vector $\bK_H$ and $\Bf k_h$ share the same $y$ and $z$ coordinates so
+The outgoing reference wave vector $k_H$ is computed by noting that
+vectors $\bK_H$ and $\Bf k_h$ share the same $y$ and $z$ coordinates. Thus,
 from \Eq{1l1dk} 
 \begin{align}
-  k_{H,y} &= \frac{1}{d} \sin\alpha_H \, \sin\psi \CRNO
-  k_{H,z} &= \frac{1}{d} \sin\alpha_H \, cos\psi + \frac{1}{\lambda \, (1 + \delta)} \, \cos\theta_0
+  k_{H,y} &= \frac{1}{d} \sin\alpha_H \, \sin\psi_H \CRNO
+  k_{H,z} &= \frac{1}{d} \sin\alpha_H \, cos\psi_H + \frac{1}{\lambda \, (1 + \delta)} \, \cos\theta_0
+  \label{k1dap}
 \end{align}
-And the $x$ component is obtained from \Eq{kk1l}
+And the $x$ component is obtained from \Eq{kk1l1}
 \Begineq
   k_{H,x} = -\sqrt{\frac{1}{\lambda^2} - k_{H,y}^2 - k_{H,z}^2}
+  \label{k1lkk}
 \Endeq
-The outgoing graze angle is then the total bending angle minus the incoming graze angle
+The total bending angle of the reference trajectory is then
 \Begineq
-  \theta_{g,out} = \tan^{-1}\frac{\wt k_{H,z}}{\sqrt{\wt k_{H,x}^2 + \wt k_{H,y}^2}}
+  \theta_{bend} = \tan^{-1} \left( \frac{ | \Bf k_0 \times \Bf k_H | }{\Bf k_0 \cdot \Bf k_H} \right)
 \Endeq
-where the tilde indicates that the components of $\Bf k_H$ are expressed in the is 
+The outgoing graze angle $\theta_{g,out}$ is then {\em defined} to be
+the difference between the total bend angle and the entrance graze angle.
+\Begineq
+  \theta_{g,out} \equiv \theta_{bend} - \theta_{g,in}
+\Endeq
 
-In order to track photons, transformation matricies between coordinate
-systems are needed. To keep the discussion simple here, it is assumed that there is no misalignments.
-When $\psi$ zero, 
-the transformation matrix $T_{in}$ between laboratory entrance coordinates and
-element entrance coordinates is, as it is for every other type of
-element, just the unit matrix. That is, the two coordinate systems are
-identical.
-The transformation $M_{in}$ from element entrance coordinates to body coordinates is
-a rotation around the $y$ axis
+In order to track photons, the transformations between coordinate
+systems are needed. In particular, as shown below, a ``tilt
+correction'' needs to be applied when $\psi_H$ is nonzero.  Since the
+tilt correction is independent of any misalignments, it is assumed
+here that there are no misalignments. The full transformations between
+coordinate systems with misalignments are given in section
+\sref{s:photon-lab-ele}
+
+Without misalignments, and with
+$\psi_H$ zero, the transformation matrix $T_{in}$ between laboratory
+entrance coordinates and element entrance coordinates is (as it is for
+every other type of element) just the unit matrix. That is, the two
+coordinate systems are identical. Furthermore, the transformation $M_{in}$ from
+element entrance coordinates to body coordinates is a rotation around
+the $y$ axis
 \Begineq
   M_{in} = \begin{pmatrix}
      \cos\theta_{g,in} & 0 & \sin\theta_{g,in} \\
@@ -435,24 +456,27 @@ a rotation around the $y$ axis
   \end{pmatrix}
   \label{mt0t010}
 \Endeq
-The transformation from element body coordinates to element exit coordinatates is
-another rotation around the $y$ axis and the transformation from element exit
-coordinates to laboratory exit coordinates is the unity matrix. Thus, the combind
-transformation from laboratory entrance to laboratory exit coordinates is a rotation
-around the $y$ axis as explained in section \sref{s:global}.
+The transformation from element body coordinates to element exit
+coordinates is another rotation around the $y$ axis with angle
+$\theta_{g,out}$ and the transformation from element exit coordinates
+to laboratory exit coordinates is the unity matrix. Thus, the combined
+transformation from laboratory entrance to laboratory exit coordinates
+is a rotation around the $y$ axis of $\theta_{g,in}+\theta_{g,out}$ as
+explained in section \sref{s:global}.
 
-\index{tilt}
-When $\psi$ is non-zero the situation is complicated since, if the above
-transformations for the coordinate systems are used, the vector $\Bf k_H$
-would be bent out of the $x$-$z$ plane. 
-By {\em definition}, the reference trajectory has the form
-given \Eq{lrca1} with the $\bT$ matrix depending only upon the \vn{tilt} parameter.
-That is, the crystal must be reorientated to keep the
-$\Bf k_H$ vector in the $x$-$z$ plane of the laboratory entrance coordinates. 
-The reorientation is done by rotating the crystal
-about the laboratory entrance $\Bf z$ axis by an amount $\theta_{corr}$ (\vn{tilt_corr})
-that is determined as follows. With this ``tilt correction'' rotation, the transformation $\bT_{in}$
-is 
+\index{tilt}\index{psi_angle}
+When $\psi_H$ is non-zero the situation is complicated since, if the
+above transformations for the coordinate systems are used, the vector
+$\Bf k_H$ would be bent out of the $x$-$z$ plane.  By {\em
+definition}, the reference trajectory has the form given by \Eq{lrca1}
+with the $\bT$ matrix depending only upon the \vn{tilt} parameter.  To
+satisfy \Eq{lrca1}, the crystal must be reorientated to keep the $\Bf
+k_H$ vector in the $x$-$z$ plane of the laboratory entrance
+coordinates.  The reorientation is done by rotating the crystal about
+the laboratory entrance $\Bf z$ axis by an amount $\theta_{corr}$
+(\vn{tilt_corr}). With this ``tilt correction'' rotation, the
+transformation $\bT_{in}$ between laboratory entrance coordinates and
+element entrance coordinates is
 \Begineq
   \bT_{in} = 
   \begin{pmatrix}
@@ -461,9 +485,12 @@ is
     0                 &  0                 & 1                
   \end{pmatrix}
 \Endeq
-The transformation from element entrance coordinates to element body coordinates
-is not affected by a finite $\psi$ and so \Eq{mt0t010} is unmodified. The $\Bf k_H$
-vector, expressed in laboratory entrance coordinates, must have zero $y$ component
+The transformation from element entrance coordinates to element body
+coordinates is not affected by a finite $\psi_H$ and so \Eq{mt0t010}
+is unmodified. The $\Bf k_H$ vector, expressed in laboratory entrance
+coordinates, is $\bT_{in}^{-1} \, \bM_{in}^{-1} \, \Bf k_H$ where the
+components of $\Bf k_H$ are given by \Eqs{k1dap} and \eq{k1lkk}. To
+satisfy \Eq{lrca1}, this vector must have zero $y$ component
 \Begineq
   \left( \bT_{in}^{-1} \, \bM_{in}^{-1} \, \Bf k_H \right) \cdot
   \begin{pmatrix} 0 \\ 1 \\ 0 \end{pmatrix}
@@ -474,66 +501,91 @@ Solving gives
   \theta_{corr} = \tan^{-1} 
   \frac{k_{H,y}}{k_{H,z} \, \sin\theta_{g,in} - k_{H,x} \, \cos\theta_{g,in}}
 \Endeq
-The transformation $\bM_{out}$ from element body coordinates to element exit coordinates
-is now obtaind by requiring that the total transformation from laboratory
-entrance to laboratory exit coordinates be the $\wt\bS$ matrix given in
-\Eq{lrca1}
+The transformation $\bM_{out}$ from element body coordinates to
+element exit coordinates is now obtained by requiring that the total
+transformation from laboratory entrance to laboratory exit coordinates
+be the $\bftilde S$ matrix given in \Eq{lrca1}
 \Begineq
   \bM_{out} \, \bM_{in} \, \bT_{in} = 
   \begin{pmatrix}
-    \cos\alpha_b & 0 & -\sin\alpha_b \\
+    \cos\theta_{bend} & 0 & -\sin\theta_{bend} \\
     0          & 1 & 0           \\
-    \sin\alpha_b & 0 & \cos\alpha_b
+    \sin\theta_{bend} & 0 & \cos\theta_{bend}
   \end{pmatrix}
 \Endeq
-where $alpha_b = \theta_{g,in} + \theta_{g_out}$. In the above equation,
-the transformation $T_{out}$ from element exit coordinates
-to laboratory exit coordinates has been dropped since it is the
-unit matrix independent of $\psi$. 
-
-With misalignments, the transformation between laboratory and
-element coordinates is more complicated as outlined in 
-section \sref{s:photon-lab-ele}
+In the above equation, the transformation $T_{out}$ from element exit
+coordinates to laboratory exit coordinates has been dropped since it
+is the unit matrix independent of $\psi_H$.
 
 %-----------------------------------------------------------------
 \subsection{Crystal Element Tracking}
 
 The starting photon coordinates are specified in the laboratory
 entrance coordinates. The transformation from laboratory entrance
-coordinates to element entrance coordinates $\wt \Bf k_0$ is given
-in \sref{s:photon-lab-ele}. The transformation to element body coordinates $k_{in}$
-is
+coordinates to element entrance coordinates $\bftilde k_0$ is given in
+\sref{s:photon-lab-ele}. The transformation to element body
+coordinates $k_{in}$ is
 \begin{equation}
-  \Bf k_0 =  \bM_{in} \, \wt\Bf k_0
+  \Bf k_0 =  \bM_{in} \, \bftilde k_0
 \end{equation}
 with $\bM_{in}$ given by \Eq{mt0t010}.
+The outgoing wave vector $k_H$ is related to $k_0$ via
+\Begineq
+  \Bf k_H =  \Bf k_0 + \bH + q_t \, \bfhat n
+\Endeq
+where $q_t$ is determined by using \Eqs{k1l1d} and \eq{h1daa} in \Eq{kk1l1}
+\Begineq
+  \frac{1}{\lambda} =
+  \left| \frac{1}{d}
+  \begin{pmatrix} -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H \end{pmatrix}
+  +
+  \frac{1}{\lambda \, (1 + \delta)} \, 
+  \begin{pmatrix} \sin\theta_0 \\ 0 \\ \cos\theta_0 \end{pmatrix}
+  -
+  \begin{pmatrix} q_t \\ 0 \\ 0 \end{pmatrix} \right|
+\Endeq  
 
-The equation to be solved is (\cite{b:batterman} Eq.~(21))
+To compute the field amplitude of the outgoing photon, the equation to
+be solved is (\cite{b:batterman} Eq.~(21))
 \Begineq
   \xi_0 \, \xi_H = \frac{1}{4} \, k^2 \, P^2 \, \Lambda^2 \, F_H \, F_{\bar H}
-\Enedeq
+\Endeq
 where $\xi_0$ and $\xi_H$ are given by \cite{b:batterman} Eq.~(18)
-and $P$ is the polaraization factor
+and $P$ is the polarization factor
 \Begineq
   P = 
   \begin{cases}
-    1               & \sigma \mbox{polarization state} \\
-    \cos 2\theta_g  & \pi \mbox{polarization state}
-  \end{cases
+    1               & \sigma \mbox{ polarization state} \\
+    \cos 2\theta_g  & \pi \mbox{ polarization state}
+  \end{cases}
 \Endeq
 $2\theta_g$ is the angle between $\bK_0$ and $\bK_H$ which is well
-approximated by $\theta_{g,in}$ and $\theta_{g_out}$.
+approximated by $\theta_{g,in} + \theta_{g,out}$.
 
-The relationship between the outside and inside wave vectors is 
-(\cite{b:batterman} Eq.~(26))
+The solution is (\cite{b:batterman} Eq.~(31))
 \begin{align}
-  \bK_0 = \Bf k_0 + q \, k \, \bfhat n \CRNO
-  \bK_H = \Bf k_0 + \bH + q \, k \, \bfhat n 
+  \xi_0 &= \frac{1}{2} \, k \, |P| \, \Gamma \, [F_H \, F_{\bar H}]^{1/2} \, 
+    |b|^{1/2} \, [\eta \pm (\eta^2 + \sign(b))^{1/2}] \CRNO
+  \xi_H &= \frac{1}{2} \, k \, |P| \, \Gamma \, [F_H \, F_{\bar H}]^{1/2} \, 
+    \frac{1}{|b|^{1/2} \, [\eta \pm (\eta^2 + \sign(b))^{1/2}]}
 \end{align}
-
-
-
-
+where $\sign$ is the sign function
+\Begineq
+  \sign(b) \equiv \begin{cases} 1 & b > 0 \\ -1 & b < 0 \end{cases}
+\Endeq
+and $\eta$ is given by \cite{b:blasdell} Eq.~(5)
+\Begineq
+  \eta = \frac{-b \, a + \Gamma \, F_0 \, (1 - b)}{2 \, \Gamma \, |P| \, \sqrt{|b| \, F_H \, F_{\bar H}}}
+\Endeq
+with the asymmetry factor $b$ for the photon being tracked being given
+by \cite{b:blasdell} Eq.~(3)
+\Begineq
+  b \equiv \frac{\bfhat n \cdot \bfhat k_0}{\bfhat n \cdot \widehat{{\Bf k_0 + \bH}}}
+\Endeq
+and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
+\Begineq
+  a \equiv \frac{H^2 + 2 \, \Bf k_0 \cdot \bH}{k_0^2}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Hamiltonian for a Magnetic Element}
