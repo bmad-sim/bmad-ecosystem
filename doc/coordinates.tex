@@ -198,18 +198,18 @@ $\Bf L$ and $\Bf S$ are
 Where $L$ is the length of the element. For a \vn{bend}, $\Bf L$ and
 $\Bf S$ are given by
 \Begineq
-  \Bf L = \Bf T \, \widetilde \Bf L, \quad
-  \Bf S = \Bf T \, \widetilde \Bf S \, \Bf T^{-1}
+  \Bf L = \Bf T \, \bftilde L, \quad
+  \Bf S = \Bf T \, \bftilde S \, \Bf T^{-1}
   \label{r00ls}
 \Endeq
 where
 \Begineq
-  \widetilde \Bf L = 
+  \bftilde L = 
   \begin{pmatrix}
     \rho (\cos\alpha_b - 1) \\ 0 \\ \rho \, \sin\alpha_b
   \end{pmatrix}, 
   \quad
-  \widetilde \Bf S = 
+  \bftilde S = 
   \begin{pmatrix}
     \cos\alpha_b & 0 & -\sin\alpha_b \\
     0          & 1 & 0           \\
@@ -227,7 +227,7 @@ where
 with $\rho$ being the bend radius (\vn{rho}), $\alpha_b$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{tilt} angle
 (\sref{s:offset}). Without a tilt, $\Bf T$ is the unit matrix
-resulting in $\Bf L = \widetilde \Bf L$ and $\Bf S = \widetilde \Bf
+resulting in $\Bf L = \bftilde L$ and $\Bf S = \bftilde
 S$. Notice that for a bend in the horizontal $X-Z$ plane, a positive
 bend \vn{angle} will result in a decreasing azimuth angle $\theta$.
 
@@ -262,7 +262,7 @@ reflection.}  \label{f:mirror}
 A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a
 \vn{mirror} element (\sref{s:mirror}) reflects them.  In both coses,
 the reference orbit for such elements are modeled as zero length bends
-with $\widetilde \Bf L = (0, 0, 0)$.
+with $\bftilde L = (0, 0, 0)$.
 The total bending angle for a \vn{crystal} is 
 \begin{align}
   \alpha_b &= \mbox{graze_angle_in} + \mbox{graze_angle_out} &\mbox{! Crystal} \CRNO

@@ -244,7 +244,7 @@ return
 
 9000  continue
 if (bmad_status%type_out) then
-   call out_io (s_warn$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
+   call out_io (s_info$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
 endif
 close (d_unit)
 bmad_status%ok = .false.
