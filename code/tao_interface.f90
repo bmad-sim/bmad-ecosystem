@@ -35,9 +35,8 @@ interface
 end interface
  
 interface
-  subroutine tao_cl (prompt_string)
+  subroutine tao_top_level ()
     implicit none
-    character(*), optional :: prompt_string
   end subroutine
 end interface
  

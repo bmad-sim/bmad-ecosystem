@@ -1,7 +1,7 @@
 !+
-! Program tao_command_line
+! Program tao_program
 !
-! Command Line version of tao.
+! Program wrapper
 !-
 
 program tao_program
@@ -10,8 +10,8 @@ use tao_mod
 
 implicit none
 
-!
+! Call tao_top_level and we are done.
 
-call tao_cl()
+call tao_top_level()
 
 end program
