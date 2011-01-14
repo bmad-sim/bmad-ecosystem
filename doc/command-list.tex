@@ -1257,12 +1257,19 @@ If the \vn{-data} switch is present, then information about the
 all the datums associated with the element will be listed. 
 
 When using wild cards in the element name, if the \vn{-no_slaves}
-switch is present, \vn{super_slave} and \vn{multipass} slave elements will not be listed.
+switch is present, \vn{super_slave} and \vn{multipass} slave elements
+will not be listed.
 
-If the \vn{-taylor} switch is present then the Taylor map associated
-with an element, if there is one, is also displayed.  Similarly, if the
-\vn{-wig_terms} switch is present, then any associated wiggler terms for
-a \vn{map_type} \vn{wiggler} element is printed.
+If the \vn{-taylor} switch is present, the Taylor map associated with
+an element, if there is one, is also displayed. An element will have
+an associated Taylor map if tracking or transfer matrix calculations
+for the element call for one. For example, if an elements
+\vn{tracking_method} is set to \vn{Taylor}, it will have an associated
+Taylor map. To see the Taylor map for an element that does not have an
+associated map, use the \vn{show taylor} command.
+
+If the \vn{-wig_terms} switch is present, any associated wiggler
+terms for a \vn{map_type} \vn{wiggler} element is printed.
 
 Example:
 \begin{example}
@@ -1506,15 +1513,28 @@ be shown.
 %% show taylor_map --------------------------------------------------------------
 
 \item[show taylor\_map \{-order <n\_order>\} \{-s\} \{loc1 \{loc2\}\}] \Newline
+
 Shows the Taylor transfer map for the \vn{model} lattice of the
-currently \vn{view}ed universe from the exit end of the element given
-by \vn{loc1} to the exit end of the element given by \vn{loc2} where
-\vn{loc1} and \vn{loc2} are element names or indexes. The exception is
-that if \vn{loc1} is present but \vn{loc2} is not then the map is from
-the beginning of the lattice to the exit end of \vn{loc2}. If neither
-\vn{loc1} nor \vn{loc2} are present, the transfer map is computed for
-the entire lattice. If the \vn{-s} switch is present, \vn{loc1}
-and \vn{loc2} will be interpreted as longitudinal s-positions.
+currently \vn{view}ed universe.
+
+If neither \vn{loc1} nor \vn{loc2} are present, the transfer map is
+computed for the entire lattice.
+
+if \vn{loc1} and \vn{loc2} are the same, the 1-turn transfer map is
+computed. If the s-position of \vn{loc1} is greater than the
+s-position of \vn{loc2}, the map from \vn{loc1} to the end of the
+lattice with the map from the beginning to \vn{loc2} is computed.
+
+If the \vn{-s} switch is present, \vn{loc1} and \vn{loc2} will be
+interpreted as longitudinal s-positions. In this case, if \vn{loc2} is
+not present, the map will be the 1-turn map if the lattice is circular
+and the map from the beginning to \vn{loc1} if the map is not.
+
+If the \vn{-s} switch is not present, \vn{loc1} and \vn{loc2} will be
+interpreted as element names or indexes. Here the map will be from the
+exit end of the \vn{loc1} element to the exit end of the \vn{loc2}
+element. In this case, if \vn{loc2} is not present, the map will be
+the for the element given by \vn{loc1}
 
 The \vn{-order} switch, if present, gives the limiting order to
 display. In any case, the maximum order of the map is limited to the
@@ -1522,8 +1542,8 @@ order set by the lattice file.
 
 Examples:
 \begin{example}
-  show taylor -order 1 q10e q10w  ! 0th and 1st order maps from q10e to q10w
-  show taylor 45                  ! Transfer map from the beginning to #45
+  show taylor -order 1 q10w q10e  ! 0th and 1st order maps from q10e to q10w
+  show taylor 45                  ! Transfer map of element #45
   show taylor -s 13.4  23.6       ! Transfer map from s = 13.4 meters to 23.6 meters. 
 \end{example} 
 

@@ -1894,6 +1894,12 @@ case ('taylor_map')
         return
       endif
       call string_trim (stuff2(ix+1:), stuff2, ix)
+      if (n_order > bmad_com%taylor_order) then
+        nl=1; write (lines(nl), '(a, i0)') &
+                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS', &
+                  bmad_com%taylor_order
+        return
+      endif        
     end select
   enddo
 
@@ -1921,7 +1927,7 @@ case ('taylor_map')
 
     if (ele2 == '') then
       s2 = s1
-      s1 = 0
+      if (lat%param%lattice_type == linear_lattice$) s1 = 0
     else 
       read (ele2, *, iostat = ios) s2
       if (ios /= 0) then
@@ -1930,7 +1936,7 @@ case ('taylor_map')
       endif
     endif
 
-    call transfer_map_calc_at_s (lat, taylor, s1, s2)
+    call transfer_map_calc_at_s (lat, taylor, s1, s2, one_turn = .true.)
 
   ! By element
 
@@ -1951,7 +1957,11 @@ case ('taylor_map')
 
     if (ele2 == '') then
       ix2 = ix1
-      ix1 = 0
+      if (lat%param%lattice_type == linear_lattice$) then
+        ix1 = 0
+      else
+        ix1 = ix1 - 1
+      endif
     else
       call tao_locate_elements (ele2, u%ix_uni, eles, err)
       if (size(eles) > 1) then
@@ -1962,7 +1972,7 @@ case ('taylor_map')
       ix2 = eles(1)%ele%ix_ele
     endif
 
-    call transfer_map_calc (lat, taylor, ix1, ix2)
+    call transfer_map_calc (lat, taylor, ix1, ix2, one_turn = .true.)
 
   endif
 
