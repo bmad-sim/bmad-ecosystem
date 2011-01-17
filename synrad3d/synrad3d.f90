@@ -159,9 +159,9 @@ do i = 0, n_wall_pt_max
 
   wall%pt(i) = wall3d_pt_struct( &
           section%s, section%basic_shape, section%width2, section%height2, &
-          section%ante_height2_plus, section%width2_plus, section%ante_height2_minus, &
-          section%width2_minus, section%ante_x0_plus, section%ante_x0_minus, &
-          section%y0_plus, section%y0_minus, null())
+          section%width2_plus, section%ante_height2_plus, &
+          section%width2_minus, section%ante_height2_minus, &
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null())
 
   if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
     n = max (n, nint(wall%pt(i)%width2))
