@@ -64,10 +64,10 @@ type wall3d_pt_struct
   character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
-  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
   real(rp) width2_plus            ! Distance from pipe center to +x side edge.
-  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
+  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
   real(rp) width2_minus           ! Distance from pipe center -x side edge.
+  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
   real(rp) ante_x0_plus           ! Computed: x coord at +x antechamber opening.
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
@@ -82,14 +82,10 @@ type wall3d_pt_input
   character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
-  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
   real(rp) width2_plus            ! Distance from pipe center to +x side edge.
-  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
+  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
   real(rp) width2_minus           ! Distance from pipe center -x side edge.
-  real(rp) ante_x0_plus           ! Computed: x coord at +x antechamber opening.
-  real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
-  real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
-  real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
+  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
 end type
 
 ! This is just an array of chamber cross-sections.
