@@ -73,11 +73,12 @@ interface
 end interface
 
 interface
-  subroutine check_wall (wall, s_lat)
+  subroutine check_wall (wall, s_lat, lat_type)
     use synrad_struct, only: wall_struct, rp
     implicit none
     type (wall_struct) wall
     real(rp) s_lat
+    integer lat_type
   end subroutine
 end interface
 
@@ -154,12 +155,13 @@ interface
 end interface
 
 interface
-  subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, walls)
+  subroutine synrad_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, lat_type, walls)
     use synrad_struct, only: walls_struct, rp
     implicit none
     character(*) wall_file, component_file, dflt_dir
     type (walls_struct) walls
     real(rp) s_lat
+    integer lat_type
     logical type_warning
   end subroutine
 end interface

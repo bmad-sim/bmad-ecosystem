@@ -221,7 +221,7 @@ do i = 2, i_ray
     if (wall%side == negative_x$ .and. theta_rel*ray2%direction > 0) cycle
 
     ! Normally wall%pt(i)%s is an increasing function of i. 
-    ! When there are x-ray lines with crothes things are more complicated.
+    ! When there are x-ray lines with crotches things are more complicated.
     ! An x-ray line branching off from the beam pipe is called an "alley". 
     ! Where there is an alley, at a given s position, there can be three wall pieces:
     !  The outer and middle wall pieces define the x-ray line.
@@ -251,7 +251,7 @@ do i = 2, i_ray
     ray%direction = -ray2%direction  ! track backwards
     ray%now = ray%start
     ray%now%vec(1) = ray%start%vec(1) + 1.0e-7 * ray%direction * tan(theta)
-    ray%now%vec(5) = ray%start%vec(5) + 1.0e-7 * ray%direction
+    ray%now%vec(5) = modulo (ray%start%vec(5) + 1.0e-7 * ray%direction, lat%param%total_length)
     ray%track_len = 0
     ray%crossed_end = ray2%crossed_end
     track_len = abs((1 - rr)*ray1%start%vec(5) + &
