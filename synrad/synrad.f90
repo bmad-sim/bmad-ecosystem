@@ -198,8 +198,8 @@ call init_wall(neg_x_wall)
 call init_wall_ends(walls)
 
 n = lat%n_ele_track
-call check_wall (pos_x_wall, lat%ele(n)%s)
-call check_wall (neg_x_wall, lat%ele(n)%s)
+call check_wall (pos_x_wall, lat%ele(n)%s, lat%param%lattice_type)
+call check_wall (neg_x_wall, lat%ele(n)%s, lat%param%lattice_type)
 
 
 ! Synch calculation
