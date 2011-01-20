@@ -130,7 +130,12 @@ PKG_OBJS   :=
 LOCAL_FFLAGS   :=
 LOCAL_CFLAGS   :=
 LOCAL_CXXFLAGS :=
-LOCAL_LFLAGS   :=
+
+ifeq "$(USE_PLPLOT)" "Y"
+  LOCAL_LFLAGS   :=  -L$(PLPLOT_LIBDIR) -lplplotf77d -lplplotf77cd -lplplotd
+else
+  LOCAL_LFLAGS   :=
+endif
 
 
 #--------------------------------------------------------------
@@ -152,9 +157,13 @@ LOCAL_LFLAGS   :=
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS := 
-CESR_LIBS  := bmad xsif sim_utils recipes_f-90_LEPP
+ifeq "$(USE_PLPLOT)" "Y"
+  CESR_LIBS  := bmad xsif sim_utils recipes_f-90_LEPP
+else
+  CESR_LIBS  := bmad xsif sim_utils recipes_f-90_LEPP pgplot
+endif
 PKG_LIBS   := forest
-SYS_LIBS   := 
+SYS_LIBS   := readline curses termcap
 CERN_LIBS  :=
 
 
