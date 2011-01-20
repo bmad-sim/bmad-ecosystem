@@ -6,8 +6,7 @@
 
 program synrad3d
 
-use synrad3d_track_mod
-use synrad3d_utils
+use sr3d_plot_mod
 use bookkeeper_mod
 
 implicit none
@@ -43,11 +42,11 @@ integer n_photons_per_pass, num_ignore_generated_outside_wall
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file
 
-character(100) dat_file, dat2_file, wall_file, param_file
+character(100) dat_file, dat2_file, wall_file, param_file, arg
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this, err
-logical is_inside, turn_off_kickers_in_lattice
+logical is_inside, turn_off_kickers_in_lattice, plot_wall
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
@@ -62,15 +61,41 @@ namelist / gen_shape_def / ix_gen_shape, v
 
 namelist / start / p, ran_state, random_seed
 
-! Get parameter file name
+! Parse command line args
 
-if (cesr_iargc() > 1) then
-  print *, 'TOO MANY ARGUMENTS ON THE COMMAND LINE!'
-  stop
+ok = .true.
+plot_wall = .false.
+param_file = ''
+
+if (cesr_iargc() > 0) then
+  call cesr_getarg(1, arg)
+  if (arg == 'plot') then
+    plot_wall = .true.
+  else
+    param_file = arg
+  endif
 endif
 
-param_file = 'synrad3d.init'
-if (cesr_iargc() == 1) call cesr_getarg(1, param_file)
+if (cesr_iargc() > 1) then
+  call cesr_getarg(2, arg)
+  if (arg == 'plot') then
+    if (plot_wall) ok = .false.  ! "plot plot" is error.
+    plot_wall = .true.
+  else
+    if (param_file /= '') ok = .false.  ! "abc.init abc.init" is error
+    param_file = arg
+  endif
+endif
+
+if (param_file == '') param_file = 'synrad3d.init'
+
+if (cesr_iargc() > 2 .or. .not. ok) then
+  print *, 'Usage:'
+  print *, '  synrad3d {plot} {<init_file>}'
+  print *, 'Default:'
+  print *, '  <init_file> = synrad3d.init'
+  stop
+endif
 
 ! Get parameters.
 ! Radiation is produced from the end of ix_ele_track_start to the end of ix_ele_track_end.
@@ -223,6 +248,10 @@ do i = 0, n_wall_pt_max
   endif
 enddo
 
+! Plot wall cross-sections. 
+! This routine never returns back to the main program.
+
+if (plot_wall) call sr3d_plot_wall_cross_sections (wall)
 
 ! Get lattice
 

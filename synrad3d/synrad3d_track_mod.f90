@@ -210,7 +210,7 @@ end subroutine sr3d_photon_status_calc
 !
 ! Output:
 !   intersect  -- Logical: True if there is an intersection. between photon%old and photon%now.
-!   dlen       -- Real(rp), optional: track length from photon%old to intersection point.
+!   dtrack_len -- Real(rp), optional: track length from photon%old to intersection point.
 !                  Negative if no intersection.
 !-
 

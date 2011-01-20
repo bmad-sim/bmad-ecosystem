@@ -456,8 +456,8 @@ end subroutine sr3d_emit_photon
 !   s    -- Real(rp): Longitudinal position.
 !
 ! Output:
-!   radius       -- real(rp): r_photon - r_wall
-!   dw_perp(3)   -- real(rp), optional: Outward normal vector perpendicular to the wall.
+!   d_radius       -- real(rp): r_photon - r_wall
+!   dw_perp(3)     -- real(rp), optional: Outward normal vector perpendicular to the wall.
 !   in_antechamber -- Logical, optional: At antechamber wall?
 !-
 
