@@ -13,14 +13,14 @@
 #ifndef CESR_WINCVF
 void read_line_(char* tag, char* str, int tag_len, int str_len) {
 #ifndef CESR_VMS
-  printf ("\n");
+  /* printf ("\n"); */
   char* str2 = readline (tag);
   strcpy (str, str2);
   int ii;
   for (ii = strlen(str2); ii < str_len; ii++) 
     str[ii] = ' ';
 
-/* If the line has any text in it, save it on the history stack */
+  /* If the line has any text in it, save it on the history stack */
 
   if (str2 && *str2) add_history (str2);
 
