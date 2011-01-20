@@ -936,10 +936,11 @@ if (axis%min == axis%max) return
 if (axis%major_div < 1) return
 
 ! sort true min and max
+! huge(0) is used here so that nint(num2) will not overflow.
 
 a_min = min (axis%min, axis%max)
 a_max = max (axis%min, axis%max)
-max_d = 10.0_rp**qp_com%max_digits
+max_d = min(10.0_rp**qp_com%max_digits, 0.999_rp * huge(0))
 effective_zero = max(abs(a_max), abs(a_min)) / max_d
 
 ! First calculation: Take each axis number and find how many digits it has.
@@ -952,8 +953,9 @@ do i = 0, axis%major_div
   if (abs(num) < effective_zero) cycle  ! Ignore zero
   axis%places = max(axis%places, floor(-log10(abs(num))))
   do
-    num2 = num * 10d0**axis%places
-    if (abs(num2 - nint(num2)) < 0.01 .or. abs(num2) > max_d) exit
+    num2 = abs(num * 10d0**axis%places)
+    if (num2 > max_d) exit
+    if (abs(num2 - nint(num2)) < 0.01) exit
     axis%places = axis%places + 1
   enddo
 enddo
