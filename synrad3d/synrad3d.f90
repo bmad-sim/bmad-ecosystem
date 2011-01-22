@@ -248,11 +248,6 @@ do i = 0, n_wall_pt_max
   endif
 enddo
 
-! Plot wall cross-sections. 
-! This routine never returns back to the main program.
-
-if (plot_wall) call sr3d_plot_wall_cross_sections (wall)
-
 ! Get lattice
 
 if (lattice_file(1:6) == 'xsif::') then
@@ -290,6 +285,11 @@ if (.not. ok) stop
 if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
 
 call ran_seed_put (random_seed)
+
+! Plot wall cross-sections. 
+! This routine never returns back to the main program.
+
+if (plot_wall) call sr3d_plot_wall_cross_sections (wall)
 
 ! Find out much radiation is produced
 

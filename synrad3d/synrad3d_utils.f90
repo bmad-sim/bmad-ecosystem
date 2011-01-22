@@ -163,7 +163,8 @@ endif
 do i = 0, wall%n_pt_max
   pt => wall%pt(i)
 
-  ! +x side computation
+  ! +x side computation...
+  ! If ante_height2_plus > 0 --> Has +x antechamber
 
   if (pt%ante_height2_plus > 0) then
     if (pt%basic_shape == 'elliptical') then
@@ -180,6 +181,8 @@ do i = 0, wall%n_pt_max
               r_array = [pt%width2_plus, pt%ante_x0_plus], i_array = [i])
       call err_exit
     endif
+
+  ! if width2_plus > 0 (and ante_height2_plus < 0) --> beam stop
 
   elseif (pt%width2_plus > 0) then
     if (pt%basic_shape == 'elliptical') then
