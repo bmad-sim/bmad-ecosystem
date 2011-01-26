@@ -46,15 +46,14 @@ type (track_struct) track
 real(rp) rel_tol, abs_tol, del_s_step, del_s_min
 
 ! Track.
-! Remember: offset_particle converts from cononical momentum P_x, P_y to x', y'
 
 del_s_step = 1e-3
 del_s_min = 1e-8
 
-call offset_particle (ele, param, end, set$)
+call offset_particle (ele, param, end, set$, set_canonical = .false.)
 call odeint_bmad (start, ele, param, end, 0.0_rp, ele%value(l$), &
         bmad_com%rel_tol_adaptive_tracking, bmad_com%abs_tol_adaptive_tracking, &
         del_s_step, del_s_min, .true., track)
-call offset_particle (ele, param, end, unset$)
+call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 end subroutine

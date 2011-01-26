@@ -27,7 +27,7 @@ contains
 !   use bmad
 !
 ! Input: 
-!   start   -- Coord_struct: Starting coords: (x, x', y, y', z, delta).
+!   start   -- Coord_struct: Starting coords: (x, px, y, py, z, delta).
 !   ele     -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -53,7 +53,7 @@ contains
 !     %save_track -- Logical: Set True if track is to be saved.
 !
 ! Output:
-!   end     -- Coord_struct: Ending coords: (x, x', y, y', z, delta).
+!   end     -- Coord_struct: Ending coords: (x, px, y, py, z, delta).
 !   track   -- Track_struct: Structure holding the track information.
 !-
 
@@ -95,7 +95,7 @@ bmad_status%ok = .true.
 
 do n_step = 1, max_step
 
-  call em_field_kick (ele, param, s, r, local_ref_frame, dr_ds)
+  call em_field_kick_vector (ele, param, s, r, local_ref_frame, dr_ds)
 
   sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
   rel_tol_eff = rel_tol / sqrt_N
@@ -235,15 +235,15 @@ logical local_ref_frame
 !
 
 r_temp=r+b21*h*dr_ds
-call em_field_kick(ele, param, s+a2*h, r_temp, local_ref_frame, ak2)
+call em_field_kick_vector(ele, param, s+a2*h, r_temp, local_ref_frame, ak2)
 r_temp=r+h*(b31*dr_ds+b32*ak2)
-call em_field_kick(ele, param, s+a3*h, r_temp, local_ref_frame, ak3) 
+call em_field_kick_vector(ele, param, s+a3*h, r_temp, local_ref_frame, ak3) 
 r_temp=r+h*(b41*dr_ds+b42*ak2+b43*ak3)
-call em_field_kick(ele, param, s+a4*h, r_temp, local_ref_frame, ak4)
+call em_field_kick_vector(ele, param, s+a4*h, r_temp, local_ref_frame, ak4)
 r_temp=r+h*(b51*dr_ds+b52*ak2+b53*ak3+b54*ak4)
-call em_field_kick(ele, param, s+a5*h, r_temp, local_ref_frame, ak5)
+call em_field_kick_vector(ele, param, s+a5*h, r_temp, local_ref_frame, ak5)
 r_temp=r+h*(b61*dr_ds+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
-call em_field_kick(ele, param, s+a6*h, r_temp, local_ref_frame, ak6)
+call em_field_kick_vector(ele, param, s+a6*h, r_temp, local_ref_frame, ak6)
 r_out=r+h*(c1*dr_ds+c3*ak3+c4*ak4+c6*ak6)
 r_err=h*(dc1*dr_ds+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)
 

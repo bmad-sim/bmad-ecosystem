@@ -377,7 +377,8 @@ if (associated(info%cache_ele)) then
 endif
 
 !--------------------------------------
-! No caching
+! No caching...
+! Note: calc_wiggler_g_params assumes that orb is lab (not element) coords.
 
 dz = 1e-3
 z1 = z_here + dz
@@ -423,22 +424,21 @@ type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
 type (ele_struct) ele
 
-real(rp) dk(3,3), z
-real(rp) kick_0(6)
+real(rp) z, g(3), dg(3,3)
 
-! 
+! Note: em_field_g_bend assumes orb is lab (not element) coords.
 
-call em_field_kick (ele, info%lat%param, z, orb%vec, .false., kick_0, dk)
+call em_field_g_bend (ele, info%lat%param, z, orb%vec, g, dg)
 
-pt%g_x0 = -kick_0(2)
-pt%g_y0 = -kick_0(4)
-pt%dgx_dx = -dk(1,1)
-pt%dgx_dy = -dk(1,2)
-pt%dgy_dx = -dk(2,1)
-pt%dgy_dy = -dk(2,2)
+pt%g_x0 = g(1)
+pt%g_y0 = g(2)
+pt%dgx_dx = dg(1,1)
+pt%dgx_dy = dg(1,2)
+pt%dgy_dx = dg(2,1)
+pt%dgy_dy = dg(2,2)
 
-info%g_x = -kick_0(2)
-info%g_y = -kick_0(4)
+info%g_x = g(1)
+info%g_y = g(2)
 
 end subroutine
 

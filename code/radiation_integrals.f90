@@ -278,6 +278,9 @@ if (init_cache) then
     j = j + 1
     cache_ele => cache%ele(j)
 
+    ! Calculation is effectively done in element reference frame with ele2 having
+    ! no offsets.
+
     ele2 = lat%ele(i)
     call zero_ele_offsets (ele2)
     start = orbit(i-1)
@@ -302,15 +305,14 @@ if (init_cache) then
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
       track%save_track = .true.
-      call symp_lie_bmad (ele2, lat%param, start, end, &
-                                      calc_mat6 = .true., track = track)
+      call symp_lie_bmad (ele2, lat%param, start, end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
         z_here = track%pt(k)%s 
         end = track%pt(k)%orb
         call calc_wiggler_g_params (ele2, z_here, end, c_pt, ri_info)
-        c_pt%mat6        = track%pt(k)%mat6
-        c_pt%vec0        = track%pt(k)%vec0
+        c_pt%mat6 = track%pt(k)%mat6
+        c_pt%vec0 = track%pt(k)%vec0
         c_pt%map_ref_orb_in  = start
         c_pt%map_ref_orb_out = end
       enddo
@@ -334,10 +336,8 @@ if (init_cache) then
 
         c_pt => cache_ele%pt(k)
         if (ele2%key == wiggler$) start%vec = 0  ! keep things simple.
-        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
-                                                      z_here, runt, start, end)
-        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, &
-                                           z1, orb_start = start, orb_end = end1)
+        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, z_here, runt, start, end)
+        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, z1, orb_start = start, orb_end = end1)
         c_pt%mat6 = runt%mat6
         c_pt%vec0 = runt%vec0
         c_pt%map_ref_orb_in  = start

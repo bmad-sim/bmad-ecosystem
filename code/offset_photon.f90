@@ -46,7 +46,6 @@
 subroutine offset_photon (ele, param, coord, set)
 
 use bmad_interface !!!!, except_dummy => offset_photon
-use track1_mod, only: track_a_drift
 
 implicit none
 

@@ -724,16 +724,11 @@ character(8) ::frequency_units_name(4) = ['Radians ', 'Degrees ', 'Cycles  ', 'k
 
 ! Electric and magnetic fields.
 
-integer, parameter :: kick_field$ = 1, em_field$ = 2
-
 type em_field_struct
   real(rp) E(3)         ! electric field
   real(rp) B(3)         ! magnetic field
-  real(rp) kick(3)      ! kick
   real(rp) dE(3,3)      ! electric field gradient
   real(rp) dB(3,3)      ! magnetic field gradient
-  real(rp) dkick(3,3)   ! kick gradiant
-  integer  type         ! kick_field$ or em_field$
 end type
 
 ! Structures for saving the track through an element.

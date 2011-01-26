@@ -336,7 +336,7 @@ case (crystal$)
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
-  call track_a_drift (end%vec, length)
+  call track_a_drift (end%vec, length, ele, param)
   if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
 
 !-----------------------------------------------
@@ -414,7 +414,7 @@ case (lcavity$)
 
   if (gradient == 0 .and. gradient_ref == 0) then
     if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
-    call track_a_drift (end%vec, length)
+    call track_a_drift (end%vec, length, ele, param)
     if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
     return
   endif
@@ -658,7 +658,7 @@ case (octupole$)
 
   do i = 1, n_slice
 
-    call track_a_drift (end%vec, length / n_slice)
+    call track_a_drift (end%vec, length / n_slice, ele, param)
 
     if (i == n_slice) then
       end%vec(2) = end%vec(2) + k3l *  (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
@@ -716,6 +716,10 @@ case (quadrupole$)
                             dz_coef(3) * end%vec(4)**2 
 
   end%vec(3:4) = matmul(mat2, end%vec(3:4))
+
+  pz = end%vec(6)
+  end%vec(5) = end%vec(5) + length * &
+          pz * (1 + pz/2) * (mass_of(param%particle)/(ele%value(p0c$) * rel_pc))**2
 
   call offset_particle (ele, param, end, unset$)  
 
@@ -788,7 +792,7 @@ case (sextupole$)
   end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
 
   do i = 1, n_slice
-    call track_a_drift (end%vec, length/n_slice)
+    call track_a_drift (end%vec, length/n_slice, ele, param)
     if (i == n_slice) then
       end%vec(2) = end%vec(2) + k2l * (end%vec(3)**2 - end%vec(1)**2)/4
       end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2

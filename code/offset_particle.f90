@@ -9,10 +9,14 @@
 ! However: This can be overridden by using the s_pos argument.
 !
 ! Options:
-!   Conversion between angle (x', y') and canonical (P_x, P_y) momenta.
 !   Using the element tilt in the offset.
 !   Using the HV kicks.
 !   Using the multipoles.
+!   Conversion between canonical momenta: 
+!       (p_x, p_y) = (P_x/P0, P_y/P0)
+!   And "angle" coords:
+!       (P_x/P, P_y/P) = (x', y') * (1 + g*x) 
+!   where g = 1/R is the inverse bending radius of the reference orbit.
 !
 ! Modules Needed:
 !   use bmad
@@ -32,8 +36,8 @@
 !                                     element coords.
 !                   F (= unset$) -> Translate back to lab coords.
 !   set_canonical  -- Logical, optional: Default is True.
-!                   T -> Convert between (P_x, P_y) and (x', y') also.
-!                   F -> No conversion between (P_x, P_y) and (x', y').
+!                   T -> Convert between (p_x, p_y) and angle coords also.
+!                   F -> No conversion between (p_x, p_y) and angle coords.
 !   set_tilt       -- Logical, optional: Default is True.
 !                   T -> Rotate using ele%value(tilt$) and 
 !                            ele%value(roll$) for sbends.
@@ -136,7 +140,7 @@ if (set) then
   ! Set s_offset
 
   if (ele%value(s_offset_tot$) /= 0) &
-                    call track_a_drift (coord%vec, ele%value(s_offset_tot$))
+                    call track_a_drift (coord%vec, ele%value(s_offset_tot$), ele, param)
 
   ! Set: Offset and pitch
 
@@ -212,7 +216,7 @@ if (set) then
     endif
   endif
 
-  ! Set: P_x, P_y -> x', y' 
+  ! Set: (p_x, p_y) -> (P_x/P, P_y/P)  
 
   if (set_canon .and. coord%vec(6) /= 0) then
     coord%vec(2) = coord%vec(2) / E_rel
@@ -224,7 +228,7 @@ if (set) then
 
 else
 
-  ! Unset: x', y' -> P_x, P_y 
+  ! Unset: (P_x/P, P_y/P) -> (p_x, p_y) 
 
   if (set_canon .and. coord%vec(6) /= 0) then
     coord%vec(2) = coord%vec(2) * E_rel
@@ -301,7 +305,7 @@ else
   endif
 
   if (ele%value(s_offset_tot$) /= 0) &
-                    call track_a_drift (coord%vec, -ele%value(s_offset_tot$))
+                    call track_a_drift (coord%vec, -ele%value(s_offset_tot$), ele, param)
 
 endif
 

@@ -45,7 +45,7 @@ subroutine release_rad_int_cache (ix_cache)
   rad_int_cache_common(ix_cache)%set = .false.
   ix_cache = 0
 
-end subroutine
+end subroutine release_rad_int_cache 
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -61,7 +61,7 @@ end subroutine
 !   use radiation_mod
 !
 ! Input:
-!   start -- Coord_struct: Starting particle position.
+!   start -- Coord_struct: Particle position before radiation applied.
 !   ele   -- Ele_struct: Element that causes radiation.
 !   edge  -- Integer: Where the particle is: start_edge$ or end_edge$.
 !
@@ -79,12 +79,12 @@ subroutine track1_radiation (start, ele, param, end, edge)
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
   type (coord_struct) :: end
-  type (coord_struct) start2
+  type (coord_struct), save :: start2
 
   integer :: edge
 
-  real(rp), save :: z_start
-  real(rp) s_len, g, g2, g3, g_x, g_y, this_ran, mc2
+  real(rp), save :: z_start, g2, g3
+  real(rp) s_len, g, g_x, g_y, this_ran, mc2
   real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
   real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
                                                   h_bar_planck * c_light / (24 * sqrt_3)
@@ -129,8 +129,10 @@ subroutine track1_radiation (start, ele, param, end, edge)
 
   ! Get the coords in the frame of reference of the element
 
-  start2 = start
-  call offset_particle (ele, param, start2, set)
+  if (ele%key /= wiggler$) then
+    start2 = start
+    call offset_particle (ele, param, start2, set)
+  endif
 
   ! Calculate the radius of curvature for an on-energy particle
 
@@ -168,12 +170,15 @@ subroutine track1_radiation (start, ele, param, end, edge)
     endif
 
   case (wiggler$)
+    ! Reuse g2 and g3 values from start_edge
     if (ele%sub_key == map_type$) then
-      if (.not. associated(ele%const)) call calc_radiation_tracking_consts(ele, param)
-      if (ele%const(10) < 0) call calc_radiation_tracking_consts(ele, param)
-      g2 = ele%const(10) + dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(11:14))
-      g3 = ele%const(20) + dot_product(start2%vec(1:4)-ele%const(1:4), ele%const(21:24))
-      if (g3 < 0) g3 = 0
+      if (edge == start_edge$) then
+        if (.not. associated(ele%const)) call calc_radiation_tracking_consts(ele, param)
+        if (ele%const(10) < 0) call calc_radiation_tracking_consts(ele, param)
+        g2 = ele%const(10) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(11:14))
+        g3 = ele%const(20) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(21:24))
+        if (g3 < 0) g3 = 0
+      endif
     elseif (ele%sub_key == periodic_type$) then
       g2 = abs(ele%value(k1$))
       g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
@@ -209,7 +214,7 @@ subroutine track1_radiation (start, ele, param, end, edge)
     synch_rad_com%i3 = synch_rad_com%i3 + g3 * s_len
   endif
 
-end subroutine
+end subroutine track1_radiation 
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -243,42 +248,34 @@ type (lat_param_struct) param
 type (coord_struct) start1, start, end
 type (track_struct), save :: track
 
-real(rp), save :: del_orb(6) = (/ 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-5 /)
+real(rp), parameter :: del_orb = 1e-4
 real(rp) g2, g3
 
 integer i, j
 
 ! Compute for a map_type wiggler the change in g2 and g3 
-!   with respect to transverse orbit for an on-energy particle..
-! This is done with (x, x', y, y') to take out the energy dependence.
-! start0 is in local coords                    
-! start1 is lab coords with vec(6) = dE/E = 0 
+!   with respect to transverse orbit for an on-energy particle.
 
 if (ele%key /= wiggler$) return
 if (ele%sub_key /= map_type$) return
 
-track%save_track = .true.
+ele%const(1:6) = ele%map_ref_orb_in%vec
 
 start1 = ele%map_ref_orb_in
-
-call offset_particle (ele, param, ele%map_ref_orb_in, set$)
-
-start1%vec(2) = ele%map_ref_orb_in%vec(2)
-start1%vec(4) = ele%map_ref_orb_in%vec(4)
-start1%vec(6) = 0
+track%save_track = .true.
+call symp_lie_bmad (ele, param, start1, end, .false., track)
 
 if (.not. associated(ele%const)) allocate (ele%const(1:26))
-ele%const(1:6) = ele%map_ref_orb_in%vec  ! Local coords
-call symp_lie_bmad (ele, param, start1, end, .false., track)
+
 call calc_g (track, ele%const(10), ele%const(20))
 
 do j = 1, 4
   start = start1
-  start%vec(j) = start%vec(j) + del_orb(j)
+  start%vec(j) = start%vec(j) + del_orb
   call symp_lie_bmad (ele, param, start, end, .false., track)
   call calc_g (track, g2, g3)
-  ele%const(j+10) = (g2 - ele%const(10)) / del_orb(j)
-  ele%const(j+20) = (g3 - ele%const(20)) / del_orb(j)
+  ele%const(j+10) = (g2 - ele%const(10)) / del_orb
+  ele%const(j+20) = (g3 - ele%const(20)) / del_orb
 enddo
 
 !-------------------------------------------------------
@@ -287,10 +284,13 @@ contains
 subroutine calc_g (track, g2, g3)
 
 type (track_struct) track
-real(rp) g2, g3, k2, k3, kick(6)
+real(rp) g2, g3, g2_here, g3_here, g(3), f
 integer j, n0, n1
 
-! g2 is the average kick^2 over the element.
+! g2 is the average g^2 over the element for an on-energy particle.
+! Note: em_field_g_bend assumes orb is lab (not local) coords.
+
+track%pt(:)%orb%vec(6) = 0  ! on-energy
 
 g2 = 0; g3 = 0
 
@@ -298,18 +298,18 @@ n0 = lbound(track%pt, 1)
 n1 = track%n_pt
 do j = n0, n1
 
-  call em_field_kick (ele, param, track%pt(j)%s, track%pt(j)%orb%vec, .false., kick)
+  call em_field_g_bend (ele, param, track%pt(j)%s, track%pt(j)%orb%vec, g)
 
-  k2 = kick(2)**2 + kick(4)**2
-  k3 = sqrt(k2)**3
+  g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
+  g3_here = sqrt(g2_here)**3
 
   if (i == n0 .or. i == n1) then
-    k2 = k2 / 2
-    k3 = k3 / 2
+    g2_here = g2_here / 2
+    g3_here = g3_here / 2
   endif
 
-  g2 = g2 + k2
-  g3 = g3 + k3
+  g2 = g2 + g2_here
+  g3 = g3 + g3_here
 
 enddo
 
@@ -318,6 +318,6 @@ g3 = g3 / (n1 - n0 + 1)
 
 end subroutine
 
-end subroutine
+end subroutine calc_radiation_tracking_consts
 
 end module
