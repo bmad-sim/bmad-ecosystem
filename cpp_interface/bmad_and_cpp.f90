@@ -1252,21 +1252,20 @@ type (c_dummy_struct) c_em_field
 
 f => f_em_field
 
-call em_field_to_c2 (c_em_field, f%E, f%b, f%kick, &
-            mat2arr(f%dE), mat2arr(f%dB), mat2arr(f%dkick), f%type)
+call em_field_to_c2 (c_em_field, f%E, f%b, mat2arr(f%dE), mat2arr(f%dB))
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine em_field_to_f2 (f_em_field, e, b, k, de, db, dk, tp)
+! Subroutine em_field_to_f2 (f_em_field, e, b, de, db)
 !
 ! Subroutine used by em_field_to_f to convert a C++ C_em_field into
 ! a Bmad em_field_struct. This routine is not for general use.
 !-
 
-subroutine em_field_to_f2 (f_em_field, e, b, k, de, db, dk, tp)
+subroutine em_field_to_f2 (f_em_field, e, b, de, db)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1275,11 +1274,9 @@ use bmad_interface
 implicit none
 
 type (em_field_struct) f_em_field
-real(rp) e(3), b(3), k(3), de(9), db(9), dk(9)
-integer tp
+real(rp) e(3), b(3), de(9), db(9)
 
-f_em_field = em_field_struct(e, b, k, &
-               arr2mat(de, 3, 3), arr2mat(db, 3, 3), arr2mat(dk, 3, 3), tp)
+f_em_field = em_field_struct(e, b, arr2mat(de, 3, 3), arr2mat(db, 3, 3))
 
 end subroutine
 

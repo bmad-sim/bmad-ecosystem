@@ -420,9 +420,7 @@ logical is_eq
 !
 
 is_eq = all(f1%E == f2%E) .and. all(f1%b == f2%b) .and. &
-    all(f1%kick == f2%kick) .and. all(f1%dE == f2%dE) .and. &
-    all(f1%dB == f2%dB) .and. all(f1%dkick == f2%dkick) .and. &
-    (f1%type == f2%type)
+    all(f1%dE == f2%dE) .and. all(f1%dB == f2%dB) 
 
 end function
 
