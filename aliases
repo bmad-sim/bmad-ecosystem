@@ -1,0 +1,11 @@
+
+function getf()
+{
+  /home/cesrulib/bin/util/getf.pl "${@}"
+}
+
+function listf()
+{
+  /home/cesrulib/bin/util/listf.pl "${@}"
+}
+

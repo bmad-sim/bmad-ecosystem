@@ -281,18 +281,11 @@ if ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
 fi
 
 
-
+# Bash 2.0 on OSF1 does not react nicely to functions being defined here.
+# Guard against it by placing definitions in an external flle.
 if ( [ "${PLATFORM_TAG}" != "OSF1_alpha" ] ) then
 
-function getf()
-{
-  /home/cesrulib/bin/util/getf.pl "${@}"
-}
-
-function listf()
-{
-  /home/cesrulib/bin/util/listf.pl "${@}"
-}
+source /home/cesrulib/bin/util/aliases
 
 fi
 
