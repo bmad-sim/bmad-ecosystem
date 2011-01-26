@@ -284,11 +284,13 @@ fi
 
 if ( [ "${PLATFORM_TAG}" != "OSF1_alpha" ] ) then
 
-function getf {
+function getf()
+{
   /home/cesrulib/bin/util/getf.pl "${@}"
 }
 
-function listf {
+function listf()
+{
   /home/cesrulib/bin/util/listf.pl "${@}"
 }
 
