@@ -29,24 +29,24 @@ of the line is ignored.  Example:
 \begin{table}[h]
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\it Command} & {\it Section}  & {\it Command} & {\it Section}    \\ \hline
-  alias      & \sref{s:alias}    & quit          & \sref{s:quit}     \\ \hline
-  call       & \sref{s:call}     & read          & \sref{s:read}     \\ \hline
-  change     & \sref{s:change}   & restore       & \sref{s:restore}  \\ \hline 
-  clip       & \sref{s:clip}     & reinitialize  & \sref{s:reinit}   \\ \hline 
-  continue   & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ \hline 
-  derivative & \sref{s:deriv}    & scale         & \sref{s:scale}    \\ \hline 
-  end-file   & \sref{s:end.file} & set           & \sref{s:set}      \\ \hline  
-  exit       & \sref{s:exit}     & show          & \sref{s:show}     \\ \hline 
-  flatten    & \sref{s:flatten}  & single-mode   & \sref{s:sing}     \\ \hline 
-  help       & \sref{s:help}     & spawn         & \sref{s:spawn}    \\ \hline 
-  history    & \sref{s:history}  & use           & \sref{s:use}      \\ \hline 
-  misalign   & \sref{s:misalign} & veto          & \sref{s:veto}     \\ \hline 
-  output     & \sref{s:output}   & view          & \sref{s:view}     \\ \hline 
-  pause      & \sref{s:pause}    & wave          & \sref{s:wave}     \\ \hline
-  place      & \sref{s:place}    & x-axis        & \sref{s:x.axis}   \\ \hline 
-  plot       & \sref{s:plot}     & x-scale       & \sref{s:x.scale}  \\ \hline 
-             &                   & xy-scale      & \sref{s:xy.scale} \\ \hline
+  {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \hline
+  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\ \hline
+  call          & \sref{s:call}     & restore       & \sref{s:restore}  \\ \hline 
+  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ \hline 
+  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ \hline 
+  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ \hline 
+  derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\ \hline  
+  end-file      & \sref{s:end.file} & show          & \sref{s:show}     \\ \hline 
+  exit          & \sref{s:exit}     & single-mode   & \sref{s:sing}     \\ \hline 
+  flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ \hline 
+  help          & \sref{s:help}     & timer         & \sref{s:timer}    \\ \hline
+  history       & \sref{s:history}  & use           & \sref{s:use}      \\ \hline 
+  misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ \hline 
+  output        & \sref{s:output}   & view          & \sref{s:view}     \\ \hline 
+  pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\ \hline
+  place         & \sref{s:place}    & x-axis        & \sref{s:x.axis}   \\ \hline 
+  plot          & \sref{s:plot}     & x-scale       & \sref{s:x.scale}  \\ \hline 
+  quit          & \sref{s:quit}     & xy-scale      & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -1643,6 +1643,31 @@ Examples:
   spawn tcsh                    ! launch a new tcsh shell 
                                 ! (type 'exit' to return to TAO)
 \end{example}
+
+%% timer --------------------------------------------------------------
+\section{timer}
+\index{commands!timer}
+\label{s:timer}
+
+The \vn{timer} command is used to show computation time. Format:
+\begin{example}
+  timer start      ! Start (reset) the timer
+  timer read       ! Display the time from the last \vn{timer start} command.    
+  timer beam       ! Toggle beam timing mode on/off.
+\end{example}
+The timer has a \vn{beam timing} mode which can be toggled using the
+\vn{timer beam} command. The initial state, when \tao is started, is for
+\vn{beam timing} to be off. With \vn{beam timing} mode on, when \tao
+is tracking a particle beam through the lattice, \tao will print,
+about once a minute, the element number and the elapsed time.
+
+The \vn{timer start} and \vn{timer read} commands can
+be used to time execution times. Example:
+\begin{example}
+  timer start ; call my_cmd_file ; timer stop
+\end{example}
+
+Note: \vn{timer start} will toggle \vn{beam timing} off.
 
 %% use --------------------------------------------------------------
 \section{use}\index{commands!use}

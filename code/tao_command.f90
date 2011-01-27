@@ -12,8 +12,6 @@
 !  Output:
 !-
 
-#include "CESR_platform.inc"
-
 subroutine tao_command (command_line, err)
 
 use tao_mod
@@ -44,14 +42,14 @@ character(200) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(33) = [  &
+character(16) :: cmd_names(34) = [  &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'output       ', 'change       ', 'set          ', &
     'call         ', 'view         ', 'alias        ', 'help         ', 'history      ', &
     'single-mode  ', 'reinitialize ', 'x-scale      ', 'x-axis       ', 'derivative   ', &
     'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
-    'pause        ', 'continue     ', 'wave         ']
+    'pause        ', 'continue     ', 'wave         ', 'timer        ']
 
 character(16) :: set_names(17) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
@@ -353,7 +351,9 @@ case ('reinitialize')
   call tao_cmd_split(cmd_line, 10, cmd_word, .false., err)
   if (err) return
 
-  select case (cmd_word(1))
+  call match_word (cmd_word(1), ['data', 'tao ', 'beam'], ix, .true., word)
+
+  select case (word)
 
   case ('beam') 
     do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -385,7 +385,7 @@ case ('reinitialize')
     return
 
   case default
-    call out_io (s_error$, r_name, 'REINIT WHAT? CHOICES ARE: "beam" OR "tao".')
+    call out_io (s_error$, r_name, 'Reinit what? Choices are: "beam", "data", or "tao".')
     return
     
   end select
@@ -551,6 +551,14 @@ case ('single-mode')
 case ('spawn')
 
   call system_command (cmd_line)
+  return
+
+!--------------------------------
+! timer
+
+case ('timer')
+
+  call tao_timer (cmd_line)
   return
 
 !--------------------------------
