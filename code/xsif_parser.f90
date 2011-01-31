@@ -83,6 +83,7 @@ if (bmad_status%ok) then
 endif
 
 if (present(digested_read_ok)) digested_read_ok = .false.
+bp_com%write_digested = .true.
 
 ! Init the xsif routines.
 ! If XSIF_IO_SETUP returns bad status it means that one of the file-open 
@@ -155,8 +156,7 @@ lat%param%lattice_type = circular_lattice$
 do ie = 1, maxelm
   if (ietyp(ie) == mad_lcav) then
     lat%param%lattice_type = linear_lattice$
-    call out_io (s_info$, r_name, &
-          'LCavity is present. This implies a Linear Lattice')
+    call xsif_warning ('LCavity is present. Assuming a Linear Lattice')
     exit
   endif
 enddo
@@ -444,8 +444,7 @@ do ie = npos1, npos2-1
       ix2 = nint(pdata(dat_indx+8))
 
       if ((ix1 /= 0) .neqv. (ix2 /= 0)) then
-        call xsif_error ( &
-          'LCAVITY DOES NOT HAVE BOTH L AND T WAKE FILES: ' // ele%name)
+        call xsif_error ( 'LCAVITY DOES NOT HAVE BOTH L AND T WAKE FILES: ' // ele%name)
         call err_exit
       endif
 
@@ -577,7 +576,7 @@ lat%n_control_max      = 0
 lat%name = ktext  ! ktext is global xsif variable
 
 if (lat%ele(0)%value(e_tot$) == 0) then
-  call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
+  call xsif_warning ('REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
   lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
 endif
 
@@ -607,17 +606,29 @@ endif
 err_flag = .false.
 bmad_status%ok = .true.
 
+! Check for xsif warnings. nwarn is defined in the xsif_inout.f file in the xsif library.
+
+if (nwarn /= 0) call xsif_warning ('WARNINGS FROM XSIF DETECTED.')
+
+! Cleanup
+
 call xsif_io_close
 
 ! Make a digested file
 
-call file_name_list_show (file_names, n_names)
-do i = 1, n_names
-  call fullfilename (file_names(i), file_names(i))
-  inquire (file = file_names(i), name = file_names(i))
-enddo
-call write_digested_bmad_file (digested_file, lat, n_names, file_names) 
-deallocate (file_names)
+
+if (bp_com%write_digested) then
+  call file_name_list_show (file_names, n_names)
+  do i = 1, n_names
+    call fullfilename (file_names(i), file_names(i))
+    inquire (file = file_names(i), name = file_names(i))
+  enddo
+  call write_digested_bmad_file (digested_file, lat, n_names, file_names) 
+  deallocate (file_names)
+  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+else
+  if (bmad_status%type_out) call out_io (s_info$, r_name, 'NOT crating a digested file due to warnings.')
+endif
 
 !------------------------------------------------------------------------
 contains
@@ -814,9 +825,29 @@ character(*), optional :: line2
 
 !
 
+if (.not. bmad_status%type_out) return
 print *, 'ERROR IN XSIF_PARSER: ', trim(line1)
 if (present(line2)) print *, '      ', trim(line2)
 print *, '      FOR XSIF FILE: ', trim(xsif_file)
+bp_com%write_digested = .false.
+
+end subroutine
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine xsif_warning (line1, line2)
+
+character(*) line1
+character(*), optional :: line2
+
+!
+
+if (.not. bmad_status%type_out) return
+print *, 'WARNING FROM XSIF_PARSER: ', trim(line1)
+if (present(line2)) print *, '      ', trim(line2)
+print *, '      FOR XSIF FILE: ', trim(xsif_file)
+bp_com%write_digested = .false.
 
 end subroutine
 

@@ -75,6 +75,25 @@ end subroutine
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
+! +
+! Subroutine save_a_step (track, ele, param, s, here, s_sav)
+!
+! Routine used by Runge-Kutta and Boris tracking routines to save
+! the trajectory through an element.
+!
+! Note: It is assumed by this routine that here(:) is the orbit in local 
+! element coordinates. The actual track saved will be in laboratory coordinates.
+!
+! Input:
+!   ele      -- ele_struct: Element being tracked through.
+!   param    -- lat_param_struct: Lattice parameters.
+!   s        -- Real(rp): S-position
+!   here(6)  -- Real(rp): trajectory at s with respect to element coordinates.
+!
+! Ouput:
+!   track    -- track_struct: Trajectory structure to save to.
+!   s_sav    -- Real(rp): Set equal to s.
+
 
 subroutine save_a_step (track, ele, param, s, here, s_sav)
 

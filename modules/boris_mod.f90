@@ -110,13 +110,11 @@ endif
 s = s1
 ds = sign(track%step0, s2-s1)
 
+! To save time the tracking is done in the local element frame of reference.
+! To do this, an element without any offsets is created.
+
 call transfer_ele (ele, loc_ele)
-loc_ele%value(x_offset$) = 0
-loc_ele%value(y_offset$) = 0
-loc_ele%value(s_offset$) = 0
-loc_ele%value(x_pitch$)  = 0
-loc_ele%value(y_pitch$)  = 0
-loc_ele%value(tilt$)     = 0
+call zero_ele_offsets (loc_ele)
 
 here = start
 call boris_energy_correction (ele, param, here, .false.)
@@ -285,12 +283,7 @@ call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, d
 ! go to local coords
 
 call transfer_ele (ele, loc_ele)
-loc_ele%value(x_offset$) = 0
-loc_ele%value(y_offset$) = 0
-loc_ele%value(s_offset$) = 0
-loc_ele%value(x_pitch$)  = 0
-loc_ele%value(y_pitch$)  = 0
-loc_ele%value(tilt$)     = 0
+call zero_ele_offsets (loc_ele)
 
 here = start
 call boris_energy_correction (ele, param, here, .false.)
