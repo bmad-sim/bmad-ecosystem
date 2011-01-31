@@ -173,6 +173,34 @@ subroutine plot_pretz(lat,ncross, cross)
       write(41,*)
      endif
 
+   if(ele%key == quadrupole$)then
+      write(43,'(a,/)')'#'
+      do l=1,4
+        write(43,'(2f10.3)')-xx(l),-yy(l)
+      end do
+        write(43,'(2f10.3)')-xx(1),-yy(1)
+      write(43,*)
+     endif
+
+   if(ele%key == sbend$ .or. ele%key == rbend$)then
+      write(42,'(a,/)')'#'
+      do l=1,4
+        write(42,'(2f10.3)')-xx(l),-yy(l)
+      end do
+        write(42,'(2f10.3)')-xx(1),-yy(1)
+      write(42,*)
+     endif
+
+   if(ele%key == wiggler$)then
+      write(44,'(a,/)')'#'
+      do l=1,4
+        write(44,'(2f10.3)')-xx(l),-yy(l)
+      end do
+        write(44,'(2f10.3)')-xx(1),-yy(1)
+      write(44,*)
+     endif
+
+
      if(ele%key == quadrupole$)then
        xpast = lat%ele(i-1)%floor%z
        ypast = lat%ele(i-1)%floor%x
