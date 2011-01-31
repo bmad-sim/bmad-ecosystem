@@ -42,6 +42,7 @@ program anaylzer
   integer plot_flag, last
   integer, parameter :: orbit$=1,beta$=2,cbar$=3,diff$=4, de_beta$=5
   integer, parameter :: eta$=6, de_cbar$=7, eta_prop$=8, rad_int$=9, sext$=10
+  integer, parameter :: phase$=11, de_phase$=12
   integer ix_cache
   integer, allocatable :: n_ele(:)
   integer i_dim/4/
@@ -112,7 +113,8 @@ program anaylzer
     print *, ' lat_file = ', lat_file
   endif
 
-  call bmad_parser (lat_file, ring_1)
+!  call bmad_parser (lat_file, ring_1)
+  call bmad_and_xsif_parser(lat_file, ring_1)
   ring  = ring_1
   call implement_pathlength_patch(path_length_patch, ring)
 
@@ -131,20 +133,20 @@ program anaylzer
   co_low(0)%vec=0
   track_start%vec = 0.
 
-  allocate(track_meth(0:ring%n_ele_max))
-  allocate(x(0:ring%n_ele_max))
-  allocate(y(0:ring%n_ele_max))
-  allocate(z(0:ring%n_ele_max))
-  allocate(xx_diff(0:ring%n_ele_max))
-  allocate(yy_diff(0:ring%n_ele_max))
-  allocate(zz_diff(0:ring%n_ele_max))
-  allocate(yy(0:ring%n_ele_max,1:5))
-  allocate(xx(0:ring%n_ele_max,1:5))
-  allocate(zz(0:ring%n_ele_max,1:5))
+  allocate(track_meth(0:ring%n_ele_max+100))
+  allocate(x(0:ring%n_ele_max+100))
+  allocate(y(0:ring%n_ele_max+100))
+  allocate(z(0:ring%n_ele_max+100))
+  allocate(xx_diff(0:ring%n_ele_max+100))
+  allocate(yy_diff(0:ring%n_ele_max+100))
+  allocate(zz_diff(0:ring%n_ele_max+100))
+  allocate(yy(0:ring%n_ele_max+100,1:5))
+  allocate(xx(0:ring%n_ele_max+100,1:5))
+  allocate(zz(0:ring%n_ele_max+100,1:5))
   allocate(n_ele(1:5))
 
   length = ring%ele(ring%n_ele_track)%s
-  
+
   last = 0
 
   do while (.not. write_orbit)
@@ -172,6 +174,7 @@ program anaylzer
     if(index(line, 'OFF') /= 0) radiation = .false.
     exit 
   endif
+    
 
    if(index(line, 'CBAR_V_E') /= 0)then
     if(index(line, 'ON') /= 0) cbarve = .true.
@@ -531,7 +534,7 @@ program anaylzer
      diff=.false.
 
 20   print *, ' '
-     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, ETA, DCBAR/DE, RAD_INT, DIFF, SEXT]) > '
+     print '(a,$)',' Plot ? ([ORBIT,BETA,CBAR, DBETA/DE, DPHASE/DE,  ETA, DCBAR/DE, RAD_INT, DIFF, SEXT, PHASE]) > '
      read(5, '(a)', err=20)answer
      save_answer = answer
 
@@ -549,6 +552,8 @@ program anaylzer
        plot_flag=beta$
       elseif(index(answer(1:ix),'DB') /= 0)then
        plot_flag=de_beta$
+      elseif(index(answer(1:ix),'DP') /= 0)then
+       plot_flag=de_phase$
       elseif(index(answer(1:ix),'CB') /= 0)then
        plot_flag=cbar$
       elseif(index(answer(1:ix),'ETA_PROP') /= 0)then
@@ -561,6 +566,8 @@ program anaylzer
        plot_flag=rad_int$
       elseif(index(answer(1:ix),'SEX') /=0)then
        plot_flag=sext$
+      elseif(index(answer(1:ix),'PHA') /=0)then
+       plot_flag=phase$
       elseif(index(answer,'DI') /= 0 .or. diff)then
        diff = .true.
       else
@@ -653,12 +660,21 @@ program anaylzer
        x(0:n_all) = ring%ele(0:n_all)%a%beta
        y(0:n_all) = ring%ele(0:n_all)%b%beta
       endif
+      if(plot_flag == phase$)then
+       x(0:n_all) = ring%ele(0:n_all)%a%phi
+       y(0:n_all) = ring%ele(0:n_all)%b%phi
+      endif
 
       if(plot_flag == de_beta$)then
        x(0:n_all) = (ring_two(1)%ele(0:n_all)%a%beta - ring_two(-1)%ele(0:n_all)%a%beta)/2/de/ &
                    ring%ele(0:n_all)%a%beta
        y(0:n_all) = (ring_two(1)%ele(0:n_all)%b%beta - ring_two(-1)%ele(0:n_all)%b%beta)/2/de/ &
                     ring%ele(0:n_all)%b%beta
+      endif
+
+      if(plot_flag == de_phase$)then
+       x(0:n_all) = (ring_two(1)%ele(0:n_all)%a%phi - ring_two(-1)%ele(0:n_all)%a%phi)/2/de
+       y(0:n_all) = (ring_two(1)%ele(0:n_all)%b%phi - ring_two(-1)%ele(0:n_all)%b%phi)/2/de
       endif
 
       if(plot_flag == eta$)then
@@ -752,11 +768,21 @@ program anaylzer
        yy_diff(l) = ring%ele(i)%b%beta -y(j)
       endif
 
+      if(plot_flag == phase$)then
+       xx_diff(l) = ring%ele(i)%a%phi -x(j)
+       yy_diff(l) = ring%ele(i)%b%phi -y(j)
+      endif
+
       if(plot_flag == de_beta$)then
        xx_diff(l) = (ring_two(1)%ele(i)%a%beta - ring_two(-1)%ele(i)%a%beta)/2/de/ &
                   ring%ele(i)%a%beta - x(j)
        yy_diff(l) = (ring_two(1)%ele(i)%b%beta - ring_two(-1)%ele(i)%b%beta)/2/de/ &
                   ring%ele(i)%b%beta - y(j)
+      endif
+
+      if(plot_flag == de_phase$)then
+       xx_diff(l) = (ring_two(1)%ele(i)%a%phi - ring_two(-1)%ele(i)%a%phi)/2/de - x(j)
+       yy_diff(l) = (ring_two(1)%ele(i)%b%phi - ring_two(-1)%ele(i)%b%phi)/2/de - y(j)
       endif
 
       if(plot_flag == eta$)then
@@ -834,14 +860,35 @@ program anaylzer
          endif
          call pglab('z (m)','Bx(m)',' Beta')
        endif
+       if(plot_flag == phase$)then
+         xscale=(int(xmax/10)+1)*10
+         x_low = 0
+         if(diff)then
+           xscale=(int(xmax/0.1)+1)*0.1
+           x_low = -xscale
+         endif
+         if(start >= 0)then
+          call pgenv(start, end,x_low,xscale,0,1)
+         else
+          call pgenv(0., end,x_low,xscale,0,1)
+          call pgenv(length+start, length,x_low,xscale,0,1)
+         endif
+         call pglab('z (m)','Phi_x(m)',' Phase')
+       endif
        if(plot_flag == de_beta$)then
          xscale=(int(xmax/5.)+1)*5
 
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','dBx/dE(m)',' dBeta/dE')
        endif
+       if(plot_flag == de_phase$)then
+         xscale=(int(xmax/0.1)+1)*0.1
+
+         call pgenv(start, end,-xscale,xscale,0,1)
+         call pglab('z (m)','dPhix/dE(m)',' dPhi/dE')
+       endif
        if(plot_flag == eta$ .or. plot_flag == eta_prop$)then
-         xscale=(int(xmax/5.)+1)*5
+         xscale=(int(xmax/1.)+1)*1
          if(xmax0 /= 0.)xscale = xmax0
          call pgenv(start, end,-xscale,xscale,0,1)
          call pglab('z (m)','etax',' eta')
@@ -936,11 +983,32 @@ program anaylzer
          endif
          call pglab('z (m)','By(m)',' Beta')
        endif
+       if(plot_flag == phase$)then
+         yscale=(int(ymax/10.)+1)*10
+         y_low = 0.
+         if(diff)then
+            yscale = (int(ymax/0.1)+1)*0.1
+            y_low=-yscale
+         endif
+         if(start >=0)then
+          call pgenv(start, end, y_low, yscale,0,1)
+         else
+          call pgenv(0., end, y_low, yscale,0,1)
+          call pgenv(length+start, length, y_low, yscale,0,1)
+         endif
+         call pglab('z (m)','Phi_y(m)',' Phase')
+       endif
        if(plot_flag == de_beta$)then
          yscale=(int(ymax/5.)+1)*5
 
          call pgenv(start, end,-yscale,yscale,0,1)
          call pglab('z (m)','dBy/dE(m)',' dBeta/dE')
+       endif
+       if(plot_flag == de_phase$)then
+         yscale=(int(ymax/0.1)+1)*0.1
+
+         call pgenv(start, end,-yscale,yscale,0,1)
+         call pglab('z (m)','dPhiy/dE(m)',' dPhi/dE')
        endif
        if(plot_flag == eta$ .or. plot_flag == eta_prop$)then
          yscale=(int(ymax/0.5)+1)*0.5
@@ -1125,6 +1193,9 @@ program anaylzer
     print *,'           fort.39 - Location of feedback kickers'
     print *,'           fort.38 - hard bends and xray wigglers '
     print *,'           fort.41 - Location and outline of quadrupoles, bends and wigglers'
+    print *,'           fort.42 - Location and outline of bends'
+    print *,'           fort.43 - Location and outline of quadrupoles'
+    print *,'           fort.44 - Location and outline of wigglers'
     print *,'           Use "/home/dlr/gnuplot_macro/plot_pretz.gnu" to plot' 
     print *,'                                            pretzel and crossing points'
     print *,'           Use "/home/dlr/gnuplot_macro/plot_hb.gnu" to plot'
