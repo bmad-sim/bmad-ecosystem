@@ -50,7 +50,7 @@ character(20) :: r_name = 'tao_top10_print'
 
 n = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  do j = 1, size(s%u(i)%d2_data)
+  do j = 1, s%u(i)%n_d2_data_used
     n = n + size(s%u(i)%d2_data(j)%d1(:))
   enddo
 enddo
@@ -63,7 +63,7 @@ n_points(:) = 0
 
 num = 0
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  do j = 1, size(s%u(i)%d2_data)
+  do j = 1, s%u(i)%n_d2_data_used
     do k = 1, size(s%u(i)%d2_data(j)%d1)
       d1 => s%u(i)%d2_data(j)%d1(k)
       name = trim(s%u(i)%d2_data(j)%name) // '.' // trim(d1%name)

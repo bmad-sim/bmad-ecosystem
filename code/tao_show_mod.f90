@@ -616,7 +616,7 @@ case ('data')
 
       u => s%u(iu)
 
-      do i = 1, size(u%d2_data)
+      do i = 1, u%n_d2_data_used
         d2_ptr => u%d2_data(i)
         if (d2_ptr%name == ' ') cycle
         call tao_data_show_use (d2_ptr, lines, nl)
@@ -1585,7 +1585,7 @@ case ('optimizer')
     if (size(s%u) > 1) then
       nl=nl+1; write (lines(nl), '(a, i4)') 'Universe: ', i
     endif
-    do j = 1, size(u%d2_data)
+    do j = 1, u%n_d2_data_used
       if (u%d2_data(j)%name == ' ') cycle
       call tao_data_show_use (u%d2_data(j), lines, nl)
     enddo
