@@ -43,7 +43,7 @@ if (present(calc_ok)) calc_ok = ok
 !----------------------------------------
 ! Merit contribution from the variables.
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
 
   var => s%var(j)
   var%delta_merit = 0

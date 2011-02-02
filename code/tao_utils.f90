@@ -1657,7 +1657,7 @@ err = .true.
 
 ! Error if no variables exist
 
-if (size(s%var) == 0) then
+if (s%n_var_used == 0) then
   if (print_error) call out_io (s_warn$, r_name, &
                         "NO VARIABLES HAVE BEEN DEFINED IN THE INPUT FILES!")
   return
@@ -1983,7 +1983,7 @@ integer i, j
 
 !
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
   var => s%var(j)
   var%correction_value = var%meas_value + (var%design_value - var%model_value)
 enddo
@@ -2120,7 +2120,7 @@ if (associated(u%common)) then
 
   ! First put in the common values
 
-  do i = 1, size(s%var)
+  do i = 1, s%n_var_used
     do j = 1, size(s%var(i)%this)
       s%var(i)%this(j)%model_value = s%var(i)%common%model_value
       s%var(i)%this(j)%base_value  = s%var(i)%common%base_value
@@ -2129,7 +2129,7 @@ if (associated(u%common)) then
 
   ! Then put in the values for this universe
 
-  do i = 1, size(s%var)
+  do i = 1, s%n_var_used
     do j = 1, size(s%var(i)%this)
       if (s%var(i)%this(j)%ix_uni /= u%ix_uni) cycle
       s%var(i)%this(j)%model_value = s%var(i)%model_value

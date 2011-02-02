@@ -87,7 +87,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 nv = 0
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
   if (.not. s%var(j)%useit_opt) then
     s%var(j)%ix_dvar = 0
     cycle
@@ -111,7 +111,7 @@ call out_io (s_info$, r_name, 'Remaking dModel_dVar derivative matrix.', &
 ! switching to the design lattice since var%model_value is a pointer.
 
 if (s%global%derivative_uses_design) then
-  do j = 1, size(s%var)
+  do j = 1, s%n_var_used
     s%var(j)%scratch_value = s%var(j)%model_value  ! Save
     call tao_set_var_model_value (s%var(j), s%var(j)%design_value)
   enddo
@@ -150,7 +150,7 @@ enddo
 
 ! Loop over all variables to vary
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
 
   if (.not. s%var(j)%useit_opt) cycle
 
@@ -203,7 +203,7 @@ if (s%global%derivative_uses_design) then
   do i = 1, size(s%u)
     s%u(i)%model%lat = s%u(i)%scratch_lat
   enddo
-  do j = 1, size(s%var)
+  do j = 1, s%n_var_used
     call tao_set_var_model_value (s%var(j), s%var(j)%scratch_value)
   enddo
 endif
@@ -230,7 +230,7 @@ character(40) :: r_name = 'tao_veto_vars_with_zero_dmodel'
 
 !
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
   if (.not. s%var(j)%useit_opt) cycle
   nv = s%var(j)%ix_dvar
   zero_dmodel = .true.
@@ -268,7 +268,7 @@ call tao_dmodel_dvar_calc (.false.)
 
 s%var(:)%dmerit_dvar = 0
 
-do i = 1, size(s%var)
+do i = 1, s%n_var_used
 
   if (.not. s%var(i)%useit_opt) cycle
   s%var(i)%dmerit_dvar = 2 * s%var(i)%weight * s%var(i)%delta_merit

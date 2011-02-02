@@ -219,7 +219,7 @@ case ('covariance_matrix')
   write (iu, *)
   write (iu, *) '! Index   Variable'
 
-  do i = 1, size(s%var)
+  do i = 1, s%n_var_used
     if (.not. s%var(i)%useit_opt) cycle
     write (iu, '(i7, 3x, a)') s%var(i)%ix_dvar, tao_var1_name(s%var(i))
   enddo
@@ -319,7 +319,7 @@ case ('derivative_matrix')
   write (iu, *)
   write (iu, *) '! Index   Variable'
 
-  do i = 1, size(s%var)
+  do i = 1, s%n_var_used
     if (.not. s%var(i)%useit_opt) cycle
     write (iu, '(i7, 3x, a)') s%var(i)%ix_dvar, tao_var1_name(s%var(i))
   enddo

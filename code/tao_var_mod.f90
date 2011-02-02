@@ -49,7 +49,7 @@ ignore_weight_is_zero = logic_option(.false., ignore_if_weight_is_zero)
 ignore_not_limited    = logic_option(.false., ignore_if_not_limited)
 
 n_var = 0
-do i = 1, size(s%var)
+do i = 1, s%n_var_used
   if (.not. s%var(i)%useit_opt) cycle
   if (ignore_weight_is_zero .and. s%var(i)%weight == 0) cycle
   if (ignore_not_limited .and. s%var(i)%merit_type == 'limit' .and. s%var(i)%delta_merit == 0) cycle
@@ -67,7 +67,7 @@ if (present(var_ix))      call re_allocate (var_ix, n_var)
 ! Load info into arrays
 
 j = 0
-do i = 1, size(s%var)
+do i = 1, s%n_var_used
   if (.not. s%var(i)%useit_opt) cycle
   if (ignore_weight_is_zero .and. s%var(i)%weight == 0) cycle
   if (ignore_not_limited .and. s%var(i)%merit_type == 'limit' .and. s%var(i)%delta_merit == 0) cycle
@@ -114,7 +114,7 @@ logical, optional :: print_limit_warning
 ! Transfer the values from var_vec to the variables of each universe.
 
 j = 0
-do i = 1, size(s%var)
+do i = 1, s%n_var_used
   if (.not. s%var(i)%useit_opt) cycle
   j = j + 1
   call tao_set_var_model_value (s%var(i), var_vec(j), print_limit_warning)

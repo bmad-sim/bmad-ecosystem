@@ -166,7 +166,7 @@ call tao_hook_init1 (tao_com%init_tao_file)
 
 call tao_set_var_useit_opt
 
-do i = 1, size(s%var)
+do i = 1, s%n_var_used
   var => s%var(i)
   if (.not. var%exists) cycle
   do j = 1, size(var%this)
@@ -185,10 +185,10 @@ enddo
 
 ! make sure two variables do not vary the same attribute
 
-do i = 1, size(s%var)
+do i = 1, s%n_var_used
   if (.not. allocated(s%var(i)%this)) cycle
   do j = 1, size(s%var(i)%this)
-    do i2 = i, size(s%var)
+    do i2 = i, s%n_var_used
       if (.not. allocated(s%var(i2)%this)) cycle
       do j2 = 1, size(s%var(i2)%this)
         if (i == i2 .and. j == j2) cycle

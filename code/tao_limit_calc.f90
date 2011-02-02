@@ -37,7 +37,7 @@ limited = .false.
 if (.not. s%global%var_limits_on) return
 call tao_var_target_calc ()
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
 
   var => s%var(j)
   if (.not. var%exists) cycle

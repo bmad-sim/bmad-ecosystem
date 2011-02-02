@@ -202,7 +202,7 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
     y_fit(nd) = u%data(i)%delta_merit
     im = u%data(i)%ix_dModel
     nn = 0
-    do n = 1, size(s%var)
+    do n = 1, s%n_var_used
       if (.not. s%var(n)%useit_opt) cycle
       nn = nn + 1
       iv = s%var(n)%ix_dVar

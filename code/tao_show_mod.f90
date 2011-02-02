@@ -1592,7 +1592,7 @@ case ('optimizer')
   enddo
 
   nl=nl+1; lines(nl) = 'Variables Used:'
-  do j = 1, size(s%v1_var)
+  do j = 1, s%n_v1_var_used
     if (s%v1_var(j)%name == ' ') cycle
     call tao_var_show_use (s%v1_var(j), lines, nl)
   enddo
@@ -2190,8 +2190,8 @@ case ('use')
   enddo
   nl=nl+1; lines(nl) = ''
 
-  call re_allocate (lines, nl+size(s%v1_var)+10, .false.)
-  do i = 1, size(s%v1_var)
+  call re_allocate (lines, nl+s%n_v1_var_used+10, .false.)
+  do i = 1, s%n_v1_var_used
     v1_ptr => s%v1_var(i)
     if (v1_ptr%name == ' ') cycle
     call re_allocate (lines, nl+200, .false.)
@@ -2296,7 +2296,7 @@ case ('variable')
       nl=nl+1; write (lines(nl), '(5x, a)') 'Name                '
     endif
 
-    do i = 1, size(s%var)
+    do i = 1, s%n_var_used
       if (.not. s%var(i)%exists) cycle
       found = .false.
       do j = 1, size(s%var(i)%this)
@@ -2316,7 +2316,7 @@ case ('variable')
     if (print_header_lines) then
       nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
     endif
-    do i = 1, size(s%v1_var)
+    do i = 1, s%n_v1_var_used
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == ' ') cycle
       call re_allocate (lines, nl+200, .false.)

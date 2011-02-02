@@ -63,7 +63,7 @@ enddo
 
 call tao_set_var_useit_opt()
 
-do i = 1, size(s%v1_var)
+do i = 1, s%n_v1_var_used
   if (s%v1_var(i)%name == ' ') cycle
   call tao_var_show_use (s%v1_var(i))
 enddo

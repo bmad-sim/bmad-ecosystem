@@ -160,7 +160,7 @@ top_dmerit(:)%value = 0; top_dmerit(:)%index = 0
 top_delta(:)%valid  = .false.; top_delta(:)%name  = ' '
 top_delta(:)%value = 0; top_delta(:)%index = 0
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
   if (.not. s%var(j)%useit_opt) cycle
   name = s%var(j)%v1%name
   call tao_to_top10 (top_dmerit, s%var(j)%dmerit_dvar, name, &
@@ -569,7 +569,7 @@ if (tao_com%common_lattice) then
   file_name = 'lat_specific_vars.list'
   open (iu, file = file_name, recl = 300, iostat = ios)
 
-  do j = 1, size(s%var)
+  do j = 1, s%n_var_used
     if (.not. s%var(j)%exists) cycle
     if (all (s%var(j)%this(:)%ix_uni == 0)) cycle
     if (logic_option(.false., show_good_opt_only) .and. .not. s%var(j)%useit_opt) cycle
@@ -601,7 +601,7 @@ logical, optional :: show_good_opt_only
 
 !
 
-do j = 1, size(s%var)
+do j = 1, s%n_var_used
   if (.not. s%var(j)%exists) cycle
   if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == ix_uni)) cycle
   if (logic_option(.false., show_good_opt_only) .and. .not. s%var(j)%useit_opt) cycle

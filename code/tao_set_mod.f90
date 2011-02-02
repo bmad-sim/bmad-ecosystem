@@ -107,7 +107,7 @@ enddo
 ! This only needs to be done when dest_lat is a model lattice.
 
 if (dest1_name == 'model') then
-  do i = 1, size(s%var)
+  do i = 1, s%n_var_used
 
     do j = 1, size(s%var(i)%this)
       if (.not. this_u(s%var(i)%this(j)%ix_uni)) cycle
