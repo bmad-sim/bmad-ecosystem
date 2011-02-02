@@ -330,7 +330,7 @@ interface
 end interface
  
 interface
-  subroutine tao_output_cmd (what)
+  subroutine tao_write_cmd (what)
     implicit none
     character(*) :: what
   end subroutine

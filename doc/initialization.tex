@@ -684,12 +684,12 @@ in a linear lattice for the emittance calculation using the radiation integrals.
 
 \label{s:beamfile}
 The \vn{beam0_file} component specifies a beam data file (which can be
-created with the \vn{output beam -at <ele_name>} command) which
+created with the \vn{write beam -at <ele_name>} command) which
 contains a beam's particle coordinates which are to be used at the
 start of the lattice.  Note: The file name can be overridden by using
 the \vn{-beam0} argument on the command line
 (\sref{s:command.line}). The file can either be in binary format
-(binary files can be created by the \vn{output beam} command), or
+(binary files can be created by the \vn{write beam} command), or
 written in ASCII. The ASCII file format is:
 \begin{example}
   <ix_ele>         ! Lattice element index. This is ignored.
@@ -739,7 +739,7 @@ is set in the \tao input file, this will override the setting of
 \vn{bunch_charge} in the beam file.
 
 The \vn{beam_all_file} component specifies a beam data file (which can
-be created with the \vn{output beam} command) which contains the
+be created with the \vn{write beam} command) which contains the
 particle coordinates of the tracked beam at every element. This causes
 \tao to use the data from the file in lieu of actual tracking. This
 can be helpful when the time for \tao to track a bunch through the

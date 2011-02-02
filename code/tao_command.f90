@@ -42,14 +42,15 @@ character(200) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(34) = [  &
+character(16) :: cmd_names(36) = [  &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'output       ', 'change       ', 'set          ', &
     'call         ', 'view         ', 'alias        ', 'help         ', 'history      ', &
     'single-mode  ', 'reinitialize ', 'x-scale      ', 'x-axis       ', 'derivative   ', &
     'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
-    'pause        ', 'continue     ', 'wave         ', 'timer        ']
+    'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
+    'GUI:         ']
 
 character(16) :: set_names(17) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
@@ -260,11 +261,11 @@ case ('misalign')
 
 
 !--------------------------------
-! OUTPUT
+! write, [output is old name]
 
-case ('output')
+case ('write', 'output')
 
-  call tao_output_cmd (cmd_line)
+  call tao_write_cmd (cmd_line)
   return
 
 !--------------------------------

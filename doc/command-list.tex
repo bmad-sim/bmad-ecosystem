@@ -30,23 +30,23 @@ of the line is ignored.  Example:
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \hline
-  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\ \hline
-  call          & \sref{s:call}     & restore       & \sref{s:restore}  \\ \hline 
-  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ \hline 
-  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ \hline 
-  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ \hline 
-  derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\ \hline  
-  end-file      & \sref{s:end.file} & show          & \sref{s:show}     \\ \hline 
-  exit          & \sref{s:exit}     & single-mode   & \sref{s:sing}     \\ \hline 
-  flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ \hline 
-  help          & \sref{s:help}     & timer         & \sref{s:timer}    \\ \hline
-  history       & \sref{s:history}  & use           & \sref{s:use}      \\ \hline 
-  misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ \hline 
-  output        & \sref{s:output}   & view          & \sref{s:view}     \\ \hline 
+  alias         & \sref{s:alias}    & restore       & \sref{s:restore}  \\ \hline 
+  call          & \sref{s:call}     & reinitialize  & \sref{s:reinit}   \\ \hline 
+  change        & \sref{s:change}   & run_optimizer & \sref{s:run}      \\ \hline 
+  clip          & \sref{s:clip}     & scale         & \sref{s:scale}    \\ \hline 
+  continue      & \sref{s:continue} & set           & \sref{s:set}      \\ \hline  
+  derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ \hline 
+  end-file      & \sref{s:end.file} & single-mode   & \sref{s:sing}     \\ \hline 
+  exit          & \sref{s:exit}     & spawn         & \sref{s:spawn}    \\ \hline 
+  flatten       & \sref{s:flatten}  & timer         & \sref{s:timer}    \\ \hline
+  help          & \sref{s:help}     & use           & \sref{s:use}      \\ \hline 
+  history       & \sref{s:history}  & veto          & \sref{s:veto}     \\ \hline 
+  misalign      & \sref{s:misalign} & view          & \sref{s:view}     \\ \hline 
   pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\ \hline
-  place         & \sref{s:place}    & x-axis        & \sref{s:x.axis}   \\ \hline 
-  plot          & \sref{s:plot}     & x-scale       & \sref{s:x.scale}  \\ \hline 
-  quit          & \sref{s:quit}     & xy-scale      & \sref{s:xy.scale} \\ \hline
+  place         & \sref{s:place}    & write         & \sref{s:write}    \\ \hline 
+  plot          & \sref{s:plot}     & x-axis        & \sref{s:x.axis}   \\ \hline 
+  quit          & \sref{s:quit}     & x-scale       & \sref{s:x.scale}  \\ \hline 
+  read          & \sref{s:read}     & xy-scale      & \sref{s:xy.scale} \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -398,87 +398,6 @@ Examples
    ! the entire lattice with respect to the design value by 1%.
   misalign wrt_design *@quadrupole ALL k1 x0.01
 \end{example}
-
-%% output --------------------------------------------------------------
-\section{output}\index{commands!output}
-\label{s:output}
-
-The \vn{output} command creates various files.
-Format:
-\begin{example}
-  output bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
-  output beam \{-ascii\} -at <element_list> \{<file_name>\} 
-                                          ! Write beam distribution data (\sref{s:beamfile}).
-  output covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
-                                          !   from the Levenburg (lm) optimization.
-  output curve <curve_name> \{<file_name>\} ! Write the curve data
-  output derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
-  output digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
-  output gif \{<file_name>\}          ! create a gif file of the plot window.
-  output hard                       ! Print the plot window to a printer.
-  output hard-l                     ! Like "hard" except use landscape orientation. 
-  output mad8_lattice \{<file_name>\} ! Write a MAD-8 lattice file of the model
-  output madx_lattice \{<file_name>\} ! Write a MAD-X lattice file of the model
-  output ps \{-scale <scale>\} \{<file_name>\}      
-                                    ! Create a PS file of the plot window.
-  output ps-l \{-scale <scale>\} \{<file_name>\}    
-                                    ! Create a PS file with landscape orientation.
-  output variable \{-good_var_only\} \{<file_name>\} 
-                                    ! Create a Bmad file of variable values.
-\end{example}
-
-\vskip 0.2in 
-
-If \vn{<file_name>} is not given then the defaults are:
-\begin{example}
-  Command                         Default File Name
-  ------------------              ------------------
-  output bmad_lattice             lat_#.bmad
-  output beam                     beam_#.dat
-  output curve                    curve
-  output derivative_mat           derivative_matrix.dat              
-  output digested                 digested8_lat_universe_#.bmad
-  output gif                      tao.gif
-  output mad8_lattice             lat_#.mad8
-  output madx_lattice             lat_#.madx
-  output ps                       tao.ps
-  output variable                 global%var_out_file
-\end{example}
-where \vn{\#} is replaced by the universe number. \vn{output
-curve} will produce two or three files: 
-\begin{example}
-  <file_name>.symbol_dat    ! Symbol coordinates file
-  <file_name>.line_dat      ! Curve coords.
-  <file_name>.particle_dat  ! Particle data file
-\end{example}
-The particle data file is only produced if particle
-data is associated with the curve.
-The curve coordinates are the the set of points that are used to draw the
-(possibly smooth) curve through the symbols.
-
-For \vn{ps} and \vn{ps-l}, the optional \vn{-scale} switch sets the
-scale for the PostScript file. The default is 0 which autoscales to fit an
-8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
-2.0 will double the size, etc.
-
-The \vn{output variable} command has an optional \vn{-good_var_only}
-switch.  If present, only the information on variables that are
-currently used in the optimization is written.
-
-\vn{output beam} will create a file of the particle positions when
-beam tracking is being used. The \vn{-at} switch specifies at what
-elements the particle positions are written. Element list format
-(\sref{s:ele.list.format}), without any embedded blanks, is used for
-the \vn{<element_list>} argument to the \vn{-at} switch. The
-\vn{-ascii} switch is for writing text files. The default is to write
-with a compressed binary format.  Note: Beam files can be used to
-initialize \tao (\sref{s:command.line}). Example
-\begin{example}
-  output beam -at *   ! Output beam at every element.
-\end{example}
-
-Note: PGPLOT does a poor job producing gif files so consider
-making a postscript file instead and using a ps to gif converter.
 
 %% pause --------------------------------------------------------------
 \section{pause}\index{commands!pause}
@@ -1769,6 +1688,87 @@ Examples:
   wave top.x bottom ! Use the curve in top.x and the results of the 
                     !  wave analysis are put in the bottom region.
 \end{example}
+
+%% write --------------------------------------------------------------
+\section{write}\index{commands!write}
+\label{s:write}
+
+The \vn{write} command creates various files.
+Format:
+\begin{example}
+  write bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
+  write beam \{-ascii\} -at <element_list> \{<file_name>\} 
+                                         ! Write beam distribution data (\sref{s:beamfile}).
+  write covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
+                                         !   from the Levenburg (lm) optimization.
+  write curve <curve_name> \{<file_name>\} ! Write the curve data
+  write derivative_matrix \{file_name\}    ! Write the \vn{dModel_Data/dVar} matrix.
+  write digested \{<file_name>\}     ! Write a digested Bmad lattice file of the model.
+  write gif \{<file_name>\}          ! create a gif file of the plot window.
+  write hard                       ! Print the plot window to a printer.
+  write hard-l                     ! Like "hard" except use landscape orientation. 
+  write mad8_lattice \{<file_name>\} ! Write a MAD-8 lattice file of the model
+  write madx_lattice \{<file_name>\} ! Write a MAD-X lattice file of the model
+  write ps \{-scale <scale>\} \{<file_name>\}      
+                                   ! Create a PS file of the plot window.
+  write ps-l \{-scale <scale>\} \{<file_name>\}    
+                                   ! Create a PS file with landscape orientation.
+  write variable \{-good_var_only\} \{<file_name>\} 
+                                   ! Create a Bmad file of variable values.
+\end{example}
+
+\vskip 0.2in 
+
+If \vn{<file_name>} is not given then the defaults are:
+\begin{example}
+  Command                         Default File Name
+  ------------------              ------------------
+  write bmad_lattice             lat_#.bmad
+  write beam                     beam_#.dat
+  write curve                    curve
+  write derivative_mat           derivative_matrix.dat              
+  write digested                 digested8_lat_universe_#.bmad
+  write gif                      tao.gif
+  write mad8_lattice             lat_#.mad8
+  write madx_lattice             lat_#.madx
+  write ps                       tao.ps
+  write variable                 global%var_out_file
+\end{example}
+where \vn{\#} is replaced by the universe number. \vn{write
+curve} will produce two or three files: 
+\begin{example}
+  <file_name>.symbol_dat    ! Symbol coordinates file
+  <file_name>.line_dat      ! Curve coords.
+  <file_name>.particle_dat  ! Particle data file
+\end{example}
+The particle data file is only produced if particle
+data is associated with the curve.
+The curve coordinates are the the set of points that are used to draw the
+(possibly smooth) curve through the symbols.
+
+For \vn{ps} and \vn{ps-l}, the optional \vn{-scale} switch sets the
+scale for the PostScript file. The default is 0 which autoscales to fit an
+8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
+2.0 will double the size, etc.
+
+The \vn{write variable} command has an optional \vn{-good_var_only}
+switch.  If present, only the information on variables that are
+currently used in the optimization is written.
+
+\vn{write beam} will create a file of the particle positions when
+beam tracking is being used. The \vn{-at} switch specifies at what
+elements the particle positions are written. Element list format
+(\sref{s:ele.list.format}), without any embedded blanks, is used for
+the \vn{<element_list>} argument to the \vn{-at} switch. The
+\vn{-ascii} switch is for writing text files. The default is to write
+with a compressed binary format.  Note: Beam files can be used to
+initialize \tao (\sref{s:command.line}). Example
+\begin{example}
+  write beam -at *   ! Output beam at every element.
+\end{example}
+
+Note: PGPLOT does a poor job producing gif files so consider
+making a postscript file instead and using a ps to gif converter.
 
 %% x-axis --------------------------------------------------------------
 \section{x-axis}\index{commands!x-axis}

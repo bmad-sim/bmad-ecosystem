@@ -486,12 +486,12 @@ case ('/')
   ! '/p' Just create a postscript file.
 
   case ('p')
-    call tao_output_cmd ('ps')
+    call tao_write_cmd ('ps')
 
   ! '/P' Print a hardcopy.
 
   case ('P')
-    call tao_output_cmd ('hard')
+    call tao_write_cmd ('hard')
 
   ! '/u' View universe 
 

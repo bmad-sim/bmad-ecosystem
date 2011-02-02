@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_output_cmd (what)
+! Subroutine tao_write_cmd (what)
 !
 ! Routine to write output to a file or files or send the output to the printer.
 ! 
@@ -7,7 +7,7 @@
 !   what -- Character(*): What to output. See the code for more details.
 !-
 
-subroutine tao_output_cmd (what)
+subroutine tao_write_cmd (what)
 
 use tao_mod
 use tao_top10_mod
@@ -31,7 +31,7 @@ real(rp) scale
 character(*) what
 character(20) action, name
 character(40) switch
-character(20) :: r_name = 'tao_output_cmd'
+character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
