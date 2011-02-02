@@ -2066,6 +2066,7 @@ integer i, j
 ! Key table setup
 
 allocate (s%key(count(s%var%ix_key_table > 0)))
+s%key = -1
 
 j = 0
 do i = 1, s%n_var_used
