@@ -24,14 +24,14 @@
 # platform will be used as found in the file 
 # common_env_setup.
 #-----------------------------------------------------------
-#export DIST_F90_REQUEST="gfortran"
+export DIST_F90_REQUEST="gfortran"
 
 
 #-----------------------------------------------------------
 # Set value to 'Y' to enable use of PGPLOT for distrubution
 # build or 'N' to disable the use of the PGPLOT library.
 #
-# The PGPLOT source is actually upplied along with the 
+# The PGPLOT source is actually supplied along with the 
 # distribution and will be built if this variable is set.
 #-----------------------------------------------------------
 export USE_PGPLOT="Y"

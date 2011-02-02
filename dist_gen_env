@@ -12,16 +12,48 @@
 #
 #
 #  Depends upon system tools:
-#     sed
+#     bash sed grep 
 #-----------------------------------------------------------
-
-DIST_TOPLEVEL_CHECKLIST="bin bmad Gmake include util"
 
 ENV_SETUP_FILE="${HOME}/.dist_env_setup.tmp"
 
 ENV_SNAP_1="${HOME}/.dist_env_snapshot_1.tmp"
 ENV_SNAP_2="${HOME}/.dist_env_snapshot_2.tmp"
 "printenv" > ${ENV_SNAP_1}
+
+
+#===========================================================================================
+# Function definitions
+#===========================================================================================
+#-----------------------------------------------------------
+# Function used to determine if the passed-in directory
+# is the top-level directory of a valid distribution
+# source tree.
+#  Accepts: Full pathname of directory to test
+#-----------------------------------------------------------
+is_dir_toplevel() {
+
+  DIST_TOPLEVEL_CHECKLIST="bin bmad Gmake include util"
+
+  TESTDIR=$1
+  RETVAL="Y"
+
+  for DIR in ${DIST_TOPLEVEL_CHECKLIST};
+  do
+    if ! [ -d "${TESTDIR}/${DIR}" ]; then
+      "echo" "" >> $DIST_SETUP_LOG
+      "echo" "The directory ${TESTDIR} does not appear to be" >> $DIST_SETUP_LOG
+      "echo" "the top level directory of a valid source distribution." >> $DIST_SETUP_LOG
+      "echo" "" >> $DIST_SETUP_LOG
+      RETVAL="N"
+      break
+    fi
+  done
+
+  echo ${RETVAL}
+}
+
+#===========================================================================================
 
 
 
@@ -41,7 +73,8 @@ fi
 #-----------------------------------------------------------
 # If this script is run in the top-level directory of a 
 # distribution source tree, use that directory, otherwise
-# check to see if a directory has been given as an argument.
+# check to see if a directory has been specified in the
+# DIST_BASE_DIR environment variable.
 #
 # If neither, cough up an error message prompting the user
 # to try again.
@@ -52,37 +85,9 @@ fi
 CWD=`pwd`
 
 USE_OVERRIDE_BASEDIR=N
-USE_CWD_BASEDIR=N
+#USE_CWD_BASEDIR=N
 
 "echo" "" > ${DIST_SETUP_LOG}
-
-
-
-#-----------------------------------------------------------
-# Function used to determine if the passed-in directory
-# is the top-level directory of a valid distribution
-# source tree.
-#  Accepts: Full pathname of directory to test
-#-----------------------------------------------------------
-is_dir_toplevel() {
-
-  TESTDIR=$1
-  RETVAL="Y"
-
-  for DIR in ${DIST_TOPLEVEL_CHECKLIST};
-  do
-    if ! [ -d "${TESTDIR}/${DIR}" ]; then
-      "echo" "" >> $DIST_SETUP_LOG
-      "echo" "The directory specified in DIST_BASE_DIR does not appear to be" >> $DIST_SETUP_LOG
-      "echo" "the top level directory of a valid source distribution." >> $DIST_SETUP_LOG
-      "echo" "" >> $DIST_SETUP_LOG
-      RETVAL="N"
-      break
-    fi
-  done
-
-  echo RETVAL
-}
 
 
 
@@ -90,13 +95,16 @@ is_dir_toplevel() {
 # Determine if current working directory is the top level
 # of a distribution source tree.
 #----------------------------------------------------------
-USE_CWD_BASEDIR="Y"
-export DIST_BASE_DIR="${CWD}"
+USE_CWD_BASEDIR="N"
 
-"echo" "Override basedir invalid or not specified, checking current working directory..." >> $DIST_SETUP_LOG
+"echo" "Checking current working directory..." >> $DIST_SETUP_LOG
 
-if ( [ `is_dir_toplevel ${CWD}` == "N" ] ); then
-  USE_CWD_BASEDIR="N"
+DIRCHECK=`is_dir_toplevel ${CWD}`
+
+if ( [ "${DIRCHECK}" == "Y" ] ); then
+  "echo" "Current working directory is the root of a distribution tree." >> ${DIST_SETUP_LOG}
+  USE_CWD_BASEDIR="Y"
+  DIST_BASE_DIR="${CWD}"
 fi
 
 
@@ -139,10 +147,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   "echo" "Directory appears to be the top level of a source distribution... GOOD." >> $DIST_SETUP_LOG
   "echo" "" >> $DIST_SETUP_LOG
 
-  if [ "${USE_CWD_BASEDIR}" == "Y" ]; then
-    DIST_BASE_DIR=${CWD}
-  fi
-  "echo" "Dist base dir = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
+  "echo" "\$DIST_BASE_DIR = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
 
   #--------------------------------------------------------------
   # Incorporate the distribution build user preference
