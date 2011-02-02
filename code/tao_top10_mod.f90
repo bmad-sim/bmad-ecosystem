@@ -357,7 +357,7 @@ enddo
 
 ! Variable constraints
 
-do i = 1, size(s%var(:))
+do i = 1, s%n_var_used
   var => s%var(i)
   if (.not. var%useit_opt) cycle
   nc = nc + 1

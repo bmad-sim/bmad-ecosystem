@@ -2021,7 +2021,7 @@ logical err, good_unis(lbound(s%u, 1):), found
 
 if (var%ele_name == '') then
   var%exists = .false.
-  var%ix_key_table = -1
+  var%ix_key_table = 0
   return
 endif
 
