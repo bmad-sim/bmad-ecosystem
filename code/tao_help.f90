@@ -64,6 +64,7 @@ do
     call out_io (s_error$, r_name, &
            'CANNOT FIND ANY INFO FOR: ' // trim(what1) // ' ' // trim(what2), &
            'IN FILE: ' // file_name)
+    close(iu)
     return
   endif
   ! If a match for what1 then check for a match for what2.
@@ -94,8 +95,8 @@ in_example = .false.
 
 do
   read (iu, '(a)', iostat = ios) line
-  if (ios /= 0) return
-  if (line(1:2) == '%%') return
+  if (ios /= 0) exit
+  if (line(1:2) == '%%') exit
 
   if (index(line, '\begin{example}') /= 0) in_example = .true.
   if (index(line, '\end{example}') /= 0) in_example = .true.
