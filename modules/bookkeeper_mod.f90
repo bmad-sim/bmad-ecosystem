@@ -1956,7 +1956,7 @@ type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
 
-real(rp) factor, f2, phase, E_tot, polarity, dval(n_attrib_maxx)
+real(rp) factor, gc, f2, phase, E_tot, polarity, dval(n_attrib_maxx)
 real(rp), pointer :: val(:)
 
 integer i, n
@@ -2089,7 +2089,8 @@ endif
 if (val(ds_step$) /= 0) ele%value(num_steps$) = nint(abs(val(l$) / val(ds_step$)))
 if (val(ds_step$) == 0 .or. ele%value(num_steps$) <= 0) ele%value(num_steps$) = 1
 
-!
+!----------------------------------
+! General bookkeeping...
 
 select case (ele%key)
 
@@ -2161,6 +2162,14 @@ case (crystal$)
 
   call crystal_type_to_crystal_params (ele, err_flag)
   call crystal_attribute_bookkeeper (ele)
+
+  gc = 0
+  if (ele%value(d_source$) /= 0) gc = ele%value(graze_angle_in$) / (2 * ele%value(d_source$))
+  if (ele%value(d_detec$) /= 0)  gc = gc + ele%value(graze_angle_out$) / (2 * ele%value(d_detec$))
+
+  ele%value(c2_curve_tot$) = ele%value(c2_curve$) + gc / 2
+  ele%value(c3_curve_tot$) = ele%value(c3_curve$)
+  ele%value(c4_curve_tot$) = ele%value(c4_curve$) + gc**3 / 4
 
 ! Elseparator
 
