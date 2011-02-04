@@ -107,6 +107,18 @@ if (-r catfile( $curdir, "tao", "code", "tao_struct.f90" )) {
   $tao_dir = catfile( $ENV{"DIST_BASE_DIR"}, "tao" );
 }
 
+if (-r catfile( $curdir, "bmadz", "modules", "bmadz_struct.f90" )) {
+  $bmadz_dir = catfile( $curdir, "bmadz" );
+} elsif (-r catfile( $updir, "bmadz", "modules", "bmadz_struct.f90")) {
+  $bmadz_dir = catfile( $updir, "bmadz" );
+} elsif (-r catfile( $updir, $updir, "bmadz", "modules", "bmadz_struct.f90")) {
+  $bmadz_dir = catfile( $updir, $updir, "bmadz" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "bmadz")) {
+  $bmadz_dir = catfile( $ENV{"ACC_SRC"}, "bmadz" );
+} else {
+  $bmadz_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmadz" );
+}
+
 # Look for arguments
 
 $extra = 0;
@@ -143,6 +155,7 @@ find(\&searchit, $sim_utils_dir);
 find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
 find(\&searchit, $mpm_utils_dir);
+## find(\&searchit, $bmadz_dir);
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
