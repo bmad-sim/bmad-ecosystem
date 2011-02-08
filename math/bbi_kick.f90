@@ -2,7 +2,12 @@
 ! Subroutine bbi_kick (x_norm, y_norm, r, kx, ky)
 !
 ! This function computes the normalized kick due to the beam-beam
-! interaction using the normalized position for input
+! interaction using the normalized position for input.
+!
+! The calculation assumes the kicking beam has a Gaussian cross-section and
+! the standard Bassetti-Erskine formula is evaluated.
+!
+! Additionally, this routine can be used to compute the beam-ion kick.
 !
 ! Modules needed:
 !   use sim_utils
@@ -13,11 +18,11 @@
 !   r -- Real(rp): Aspect ratio (sigma_y / sigma_x)
 !
 ! Output:
-!   kx -- Real(rp): Normalized kick_x.
+!   kx -- Real(rp): Normalized, dimensionless, kick_x.
 !           = kick_x / (xi_x * sigma_x / beta_x)
 !           = -4 * pi * x /sigma_x  in the linear region
 !
-!   ky -- Real(rp): Normalized kick_y.
+!   ky -- Real(rp): Normalized, dimensionless, kick_y.
 !          = kick_y / (xi_y * sigma_y / beta_y)
 !          = -4 * pi * y / sigma_y in the linear region
 !
@@ -38,19 +43,17 @@
 !          = -4 * pi * bbi_const * y / sigma_y                        [linear region]
 !          = -2 * N_p * r_e * y / (gamma * sig_y * (sig_x + sig_y))   [linear region]
 !
-! For the beam-ion kick the formulas are:
+! For the beam-ion kick, assuming the ion velocity is neglegeble, the formulas are:
 !   kick_x = ion_const * kx
-!          = -4 * pi * ion_const * x / sigma_x                        [linear region]
-!          = -2 * N_p * r_p * x / (gamma * sig_x * (sig_x + sig_y))   [linear region]
+!          = -4 * pi * ion_const * x / sigma_x                             [linear region]
+!          = -2 * N_p * r_p * c_light * x / (sig_x * (sig_x + sig_y) * A)  [linear region]
 !   kick_y = ion_const * ky
-!          = -4 * pi * ion_const * y / sigma_y                        [linear region]
-!          = -2 * N_p * r_p * y / (gamma * sig_y * (sig_x + sig_y))   [linear region]
+!          = -4 * pi * ion_const * y / sigma_y                             [linear region]
+!          = -2 * N_p * r_p * c_light * y / (sig_y * (sig_x + sig_y) * A)  [linear region]
 ! where
 !  ion_const = N_particles_bunch * r_p * c_light / (2 * pi * (sig_x + sig_y) * A)
 !  A = Mass of ion in AMU.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine bbi_kick (x_norm, y_norm, r, kx, ky)
 
