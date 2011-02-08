@@ -1,6 +1,4 @@
-#include "CESR_platform.inc"
-
-module trans_space_charge_mod
+module space_charge_mod
 
 use bmad_struct
 use bmad_interface
@@ -12,14 +10,14 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
+! Subroutine setup_ultra_rel_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
 !
-! Subroutine to initialize constants needed by the transverse space charge 
+! Routine to initialize constants needed by the ultra relativistic space charge 
 ! tracking routine track1_space_charge. This routine must be called if 
 ! the lattice or any of the other input parameters are changed.
 !
 ! Modules needed:
-!   use trans_space_charge_mod
+!   use space_charge_mod
 !
 ! Input:
 !   calc_on    -- Logical: True turns on the space charge calculation.
@@ -34,14 +32,14 @@ contains
 !                       the closed orbit is taken to be zero. 
 !-
 
-subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
+subroutine setup_ultra_rel_space_charge_calc (calc_on, lattice, n_part, mode, closed_orb)
 
   implicit none
 
   type (lat_struct), target :: lattice
   type (coord_struct), optional :: closed_orb(0:)
   type (normal_modes_struct) mode
-  type (trans_space_charge_struct), pointer :: sc
+  type (space_charge_struct), pointer :: sc
   type (ele_struct), pointer :: ele
   type (twiss_struct), pointer :: a, b
   type (xy_disp_struct), pointer :: x, y
@@ -54,7 +52,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed
 
 ! Transfer some data to the common block for later use
 
-  bmad_com%trans_space_charge_on = calc_on
+  bmad_com%space_charge_on = calc_on
 
 ! Allocate space in the common block.
 
@@ -64,8 +62,8 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed
   do i = 1, lattice%n_ele_track
 
     ele => lattice%ele(i)
-    if (.not. associated(ele%trans_sc)) allocate(ele%trans_sc)
-    sc => ele%trans_sc
+    if (.not. associated(ele%space_charge)) allocate(ele%space_charge)
+    sc => ele%space_charge
 
     sc%sig_z = mode%sig_z
 
@@ -130,7 +128,7 @@ subroutine setup_trans_space_charge_calc (calc_on, lattice, n_part, mode, closed
 !   "Space Charge Problems in the TESLA Damping Ring"
 !   EPAC 2000, Vienna.
 ! The extra factor of 4pi comes from the normalization of 
-!   the bbi_kick routine used in track1_trans_space_charge.
+!   the bbi_kick routine used in track1_space_charge.
 
     mc2 = mass_of(lattice%param%particle)
     g3 = (ele%value(p0c$) / mc2)**3
@@ -145,16 +143,16 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine track1_trans_space_charge (start, ele, param, end)
+! Subroutine track1_ultra_rel_space_charge (start, ele, param, end)
 !
-! Routine to apply the space charge kick to a particle at the end of 
-! an element. The routine setup_trans_space_charge_calc must be called
+! Routine to apply the ultra-relative space charge kick to a particle at the end of 
+! an element. The routine setup_space_charge_calc must be called
 ! initially before any tracking is done. This routine assumes a Gaussian 
 ! bunch and is only valid with relativistic particles where the effect
 ! of the space charge is small.
 !
 ! Modules needed:
-!   use trans_space_charge_mod
+!   use space_charge_mod
 !
 ! Input:
 !   start  -- Coord_struct: Starting position
@@ -165,7 +163,7 @@ end subroutine
 !   end   -- Coord_struct: End position
 !-
 
-subroutine track1_trans_space_charge (start, ele, param, end)
+subroutine track1_ultra_rel_space_charge (start, ele, param, end)
 
   implicit none
 
@@ -173,7 +171,7 @@ subroutine track1_trans_space_charge (start, ele, param, end)
   type (coord_struct), intent(out) :: end
   type (ele_struct), target, intent(inout)  :: ele
   type (lat_param_struct), intent(inout) :: param
-  type (trans_space_charge_struct), pointer :: sc
+  type (space_charge_struct), pointer :: sc
 
   real(rp) x, y, x_rel, y_rel, kx_rot, ky_rot
   real(rp) kx, ky, kick_const
@@ -181,9 +179,9 @@ subroutine track1_trans_space_charge (start, ele, param, end)
 ! Init
 
   end = start
-  if (.not. associated(ele%trans_sc)) return
+  if (.not. associated(ele%space_charge)) return
 
-  sc => ele%trans_sc
+  sc => ele%space_charge
 
 ! Rotate into frame where beam is not tilted.
 
@@ -213,16 +211,16 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine make_mat6_trans_space_charge (ele, param)
+! Subroutine make_mat6_ultra_rel_space_charge (ele, param)
 !
-! Routine to add the space charge kick to the element transfer matrix.
-! The routine setup_trans_space_charge_calc must be called
+! Routine to add the ultra relativistic space charge kick to the element transfer matrix.
+! The routine setup_space_charge_calc must be called
 ! initially before any tracking is done. This routine assumes a Gaussian 
 ! bunch and is only valid with relativistic particles where the effect
 ! of the space charge is small.
 !
 ! Modules needed:
-!   use trans_space_charge_mod
+!   use space_charge_mod
 !
 ! Input:
 !   start  -- Coord_struct: Starting position
@@ -233,21 +231,21 @@ end subroutine
 !   end   -- Coord_struct: End position
 !-
 
-subroutine make_mat6_trans_space_charge (ele, param)
+subroutine make_mat6_ultra_rel_space_charge (ele, param)
 
   implicit none
 
   type (ele_struct), target, intent(inout)  :: ele
   type (lat_param_struct), intent(inout) :: param
-  type (trans_space_charge_struct), pointer :: sc
+  type (space_charge_struct), pointer :: sc
 
   real(rp) kx_rot, ky_rot, kick_const, sc_kick_mat(6,6)
 
 ! Setup the space charge kick matrix and concatenate it with the 
 ! existing element transfer matrix.
 
-  if (.not. associated(ele%trans_sc)) return
-  sc => ele%trans_sc
+  if (.not. associated(ele%space_charge)) return
+  sc => ele%space_charge
 
   call mat_make_unit (sc_kick_mat)
 

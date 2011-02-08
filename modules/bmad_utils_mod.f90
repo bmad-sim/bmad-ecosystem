@@ -349,7 +349,7 @@ end subroutine mat6_add_pitch
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)
+! Subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta)
 !
 ! Routine to calculate the momentum, etc. from a particle's total energy.
 !
@@ -366,15 +366,16 @@ end subroutine mat6_add_pitch
 !   beta    -- Real(rp), optional: velocity / c_light
 !   pc      -- Real(rp), optional: Particle momentum
 !   brho    -- Real(rp), optional: Nominal B_field*rho_bend
+!   dbeta   -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
 !-
 
-subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)
+subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta)
 
 implicit none
 
 real(rp), intent(in) :: E_tot
-real(rp), intent(out), optional :: kinetic, beta, pc, brho, gamma
-real(rp) pc_new, mc2
+real(rp), intent(out), optional :: kinetic, beta, pc, brho, gamma, dbeta
+real(rp) pc_new, mc2, g2
 
 integer, intent(in) :: particle
 character(20) :: r_name = 'convert_total_energy_to'
@@ -393,11 +394,21 @@ if (present(pc))     pc     = pc_new
 if (present(beta))    beta    = pc_new / E_tot  
 if (present(kinetic)) kinetic = E_tot - mc2
 if (present(brho))    brho    = pc_new / c_light
+
 if (present(gamma)) then
   if (mc2 == 0) then
     gamma = -1
   else
     gamma   = E_tot / mc2
+  endif
+endif
+
+if (present(dbeta)) then
+  if (E_tot/mc2 > 100) then
+    g2 = (E_tot / mc2)**2
+    dbeta = 1/(2*g2) + 1/(8*g2**2)
+  else
+    dbeta = 1 - pc_new / E_tot
   endif
 endif
 
@@ -407,7 +418,7 @@ end subroutine convert_total_energy_to
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)
+! Subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta)
 !
 ! Routine to calculate the energy, etc. from a particle's momentum.
 !
@@ -424,15 +435,16 @@ end subroutine convert_total_energy_to
 !   kinetic -- Real(rp), optional: Kinetic energy
 !   beta    -- Real(rp), optional: velocity / c_light
 !   brho    -- Real(rp), optional: Nominal B_field*rho_bend
+!   dbeta   -- Real(rp), optional: 1 - beta. Equal to 1/(2*gamma^2) in ultra-rel limit.
 !-
 
-subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)
+subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta)
 
 implicit none
 
 real(rp), intent(in) :: pc
-real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma
-real(rp) E_tot_new, mc2
+real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
+real(rp) E_tot_new, mc2, g2
 
 integer, intent(in) :: particle
 character(20) :: r_name = 'convert_pc_to'
@@ -447,6 +459,15 @@ if (present(beta))    beta    = pc / E_tot_new
 if (present(kinetic)) kinetic = E_tot_new - mc2
 if (present(brho))    brho    = pc / c_light
 if (present(gamma))   gamma   = E_tot_new / mc2
+
+if (present(dbeta)) then
+  if (E_tot/mc2 > 100) then
+    g2 = (E_tot_new / mc2)**2
+    dbeta = 1/(2*g2) + 1/(8*g2**2)
+  else
+    dbeta = 1 - pc / E_tot_new
+  endif
+endif
 
 end subroutine convert_pc_to
 

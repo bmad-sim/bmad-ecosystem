@@ -555,8 +555,8 @@ switch that can take the values:
   match_global_coords   ! Must be used with n_ref_pass = 1
   match_at_entrance
   match_at_exit
-  patch_in              ! Used with patch elements.
-  patch_out             !   And must be used with n_ref_pass = 1.
+  patch_in              ! Used with patch elements,
+  patch_out             !   and must be used with n_ref_pass = 1.
 \end{example}
 A value of \vn{single_ref} (the default) means that the {\em same}
 reference orbit will be used for all passes. The \vn{match_global_coords},
@@ -648,7 +648,7 @@ orbit on a given pass is determined by the global coordinates
   B: sbend, l = 1, b_field = 1.0, n_ref_pass = 1, ref_orbit = match_global_coords
 \end{example}
 As will be explained, when using \vn{match_global_coords},
-\vn{n_ref_pass} must be present and set to one. With
+\vn{n_ref_pass} must be present and set to 1. With
 \vn{match_global_coords}, \vn{B\B1} will have the same parameters as
 \vn{B} and this will determine the reference orbit for \vn{B\B1}. See
 Figure~\ref{f:multipass.bend}B). For the second pass, the reference
@@ -676,6 +676,13 @@ complicated, the use of \vn{match_global_coords} is restricted to
 lattices that lie horizontally in the global $X-Z$ plane. Also, the
 restriction to \vn{n_ref_pass = 1} is necessary since the calculation
 becomes nondeterministic otherwise. 
+
+Additionally, for a bend, with \vn{ref_orbit} set to
+\vn{match_at_entrance}, \vn{mathc_at_exit} or
+\vn{match_global_coords}, the bend must be a pure dipole. That is, no
+quadrupole or higher order components. This assumption is
+necessary since the reference orbit calculation assumes that the
+orbit within the bend is circular for all reference orbits.
 
 %-----------------------------------------------------------------------------
 \subsection{Using Patch elements to Vary the Reference Orbit in a Multipass Line}

@@ -813,7 +813,22 @@ endif
 
 if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) then
 
+  if (lord%ref_orbit /= single_ref$) then
+    if (lord%value(k1$) /= 0 .or. lord%value(k2$) /= 0 .or. associated(lord%a_pole)) then
+      call out_io (s_fatal$, r_name, &
+            'MULTIPASS BEND ELEMENT: ' // lord%name, &
+            'WITH THE REF_ORBIT ATTRIBUTE SET TO: ' // ref_orbit_name(lord%ref_orbit), &
+            'HAS A NONZERO HIGHER ORDER MULTIPOLE!', &
+            'THIS IS NOT ALLOWED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
+      call err_exit
+    endif
+  endif
+
+  ! 
+
   select case (lord%ref_orbit)
+
+  ! %ref_orbit = single_ref$
 
   case (single_ref$)
     slave%value(b_field$)     = lord%value(b_field$) * slave%value(p0c$) / lord%value(p0c$) 
@@ -822,6 +837,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     slave%value(g_err$) = (lord%value(g$) + lord%value(g_err$)) * &
                                     lord%value(p0c$) / slave%value(p0c$) - lord%value(g$)
 
+  ! %ref_orbit = match_global_coords$
 
   case (match_global_coords$)
 
@@ -887,6 +903,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
     slave%value(e1$) = lord%value(e1$) + d_theta
     slave%value(e2$) = lord%value(e2$) + ang_slave - ang_lord - d_theta
 
+  ! %ref_orbit = match_at_entrance$ or match_at_exit$
 
   case (match_at_entrance$, match_at_exit$)
     slave%value(g$) = lord%value(g$) * lord%value(p0c$) / slave%value(p0c$)
@@ -927,15 +944,6 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
       else
         slave%value(e1$) = e + ang_slave - ang_lord 
       endif
-    endif
-
-    if (lord%value(k1$) /= 0 .or. lord%value(k2$) /= 0 .or. associated(lord%a_pole)) then
-      call out_io (s_fatal$, r_name, &
-            'MULTIPASS BEND ELEMENT: ' // lord%name, &
-            'WITH THE REF_ORBIT ATTRIBUTE SET TO: ' // ref_orbit_name(lord%ref_orbit), &
-            'HAS A NONZERO HIGHER ORDER MULTIPOLE!', &
-            'THIS IS NOT ALLOWED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
-      call err_exit
     endif
 
   case default

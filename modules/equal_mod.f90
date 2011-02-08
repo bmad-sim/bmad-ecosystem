@@ -163,15 +163,15 @@ else
   if (associated (ele_save%cross_section)) deallocate (ele_save%cross_section)
 endif
 
-if (associated(ele2%trans_sc)) then
-  if (associated (ele_save%trans_sc)) then
-    ele1%trans_sc => ele_save%trans_sc
+if (associated(ele2%space_charge)) then
+  if (associated (ele_save%space_charge)) then
+    ele1%space_charge => ele_save%space_charge
   else
-    allocate (ele1%trans_sc)
+    allocate (ele1%space_charge)
   endif
-  ele1%trans_sc = ele2%trans_sc
+  ele1%space_charge = ele2%space_charge
 else
-  if (associated (ele_save%trans_sc)) deallocate (ele_save%trans_sc)
+  if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
 endif
 
 ele1%wake => ele_save%wake  ! reinstate
