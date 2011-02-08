@@ -1181,7 +1181,7 @@ call bmad_com_to_c2 (c_bmad_com, &
       c_logic(f%canonical_coords), &
       c_logic(f%sr_wakes_on), c_logic(f%lr_wakes_on), &
       c_logic(f%mat6_track_symmetric), c_logic(f%auto_bookkeeper), & 
-      c_logic(f%trans_space_charge_on), c_logic(f%coherent_synch_rad_on), &
+      c_logic(f%space_charge_on), c_logic(f%coherent_synch_rad_on), &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
       c_logic(f%compute_ref_energy), c_logic(f%conserve_taylor_maps))

@@ -38,7 +38,7 @@ use symp_lie_mod, only: symp_lie_bmad
 use bookkeeper_mod, only: attribute_bookkeeper
 use mad_mod, only: make_mat6_mad
 use em_field_mod, only: track_com
-use trans_space_charge_mod, except_dummy => make_mat6
+use space_charge_mod, except_dummy => make_mat6
 use equality_mod
 
 implicit none
@@ -121,7 +121,7 @@ end select
 
 ! Add space charge effects
 
-if (bmad_com%trans_space_charge_on) call make_mat6_trans_space_charge (ele, param)
+if (bmad_com%space_charge_on) call make_mat6_ultra_rel_space_charge (ele, param)
 
 ! symplectify if wanted
 

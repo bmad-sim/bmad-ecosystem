@@ -145,7 +145,7 @@ logical, parameter :: t = .true., f = .false.
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
-bmad_com%trans_space_charge_on = .false.
+bmad_com%space_charge_on = .false.
 
 if (allocated(rad_int%i1)) then
   if (ubound(rad_int%i1, 1) < lat%n_ele_max) then 

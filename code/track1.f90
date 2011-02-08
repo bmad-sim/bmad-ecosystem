@@ -28,14 +28,12 @@
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine track1 (start, ele, param, end)
 
   use bmad, except_dummy1 => track1
   use mad_mod, only: track1_mad
   use boris_mod, only: track1_boris, track1_adaptive_boris
-  use trans_space_charge_mod, except_dummy2 => track1
+  use space_charge_mod, except_dummy2 => track1
   use spin_mod, except_dummy3 => track1
 
   implicit none
@@ -127,8 +125,8 @@ subroutine track1 (start, ele, param, end)
 
 ! space charge
 
-  if (bmad_com%trans_space_charge_on) &
-        call track1_trans_space_charge (end, ele, param, end)
+  if (bmad_com%space_charge_on) &
+        call track1_ultra_rel_space_charge (end, ele, param, end)
 
 ! spin tracking
  	 

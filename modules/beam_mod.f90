@@ -202,13 +202,15 @@ integer i, j, n, im, ix_pass, ixs, ix, n_links
 logical csr_on, err
 
 !------------------------------------------------
-! space charge tracking will also include wakes if they are on too.
+! Custom tracking
 
 if (ele%tracking_method == custom$) then
   call track1_bunch_custom (bunch_start, lat, ele, bunch_end)
   bunch_end%ix_ele = ele%ix_ele
   return
 endif
+
+! CSR tracking
 
 csr_on = bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on
 if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele > csr_param%ix1_ele_csr) 
@@ -220,7 +222,7 @@ if (csr_on) then
   return
 endif
 
-! Non-csr tracking
+! Non csr / non space-charge tracking
 
 err = .false.
 call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end)

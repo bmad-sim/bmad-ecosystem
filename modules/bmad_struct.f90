@@ -165,10 +165,9 @@ type floor_position_struct
   real(rp) theta, phi, psi    ! angular orientation
 end type
 
-! Transverse space charge structure. This structure contains information
-! about the beam as a whole.
+! Space charge structure. This structure contains information about the beam as a whole.
 
-type trans_space_charge_struct
+type space_charge_struct
   type (coord_struct) closed_orb   ! beam orbit
   real(rp) kick_const
   real(rp) sig_x
@@ -232,7 +231,7 @@ type ele_struct
   type (taylor_struct) :: taylor(6)               ! Taylor terms
   type (wake_struct), pointer :: wake => null()   ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
-  type (trans_space_charge_struct), pointer :: trans_sc => null()
+  type (space_charge_struct), pointer :: space_charge => null()
   type (cross_section_struct), pointer :: cross_section(:) => null()  ! For capillaries.
   real(rp) value(n_attrib_maxx)      ! attribute values.
   real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
@@ -823,18 +822,18 @@ type bmad_common_struct
   real(rp) :: significant_longitudinal_length = 1e-10 ! meter 
   real(rp) :: rel_tolerance = 1e-5
   real(rp) :: abs_tolerance = 1e-8
-  real(rp) :: rel_tol_adaptive_tracking = 1e-6  ! Adaptive tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1e-7  ! Adaptive tracking absolute tolerance.
-  integer :: taylor_order = 3                ! 3rd order is default
-  integer :: default_integ_order = 2         ! PTC integration order
-  logical :: canonical_coords = .true.       ! NOT USED.
-  logical :: sr_wakes_on = .true.            ! Short range wakefields?
-  logical :: lr_wakes_on = .true.            ! Long range wakefields
-  logical :: mat6_track_symmetric = .true.   ! symmetric offsets
-  logical :: auto_bookkeeper = .true.        ! Automatic bookkeeping?
-  logical :: trans_space_charge_on = .false. ! Space charge switch
-  logical :: coherent_synch_rad_on = .false. ! csr 
-  logical :: spin_tracking_on = .false.      ! spin tracking?
+  real(rp) :: rel_tol_adaptive_tracking = 1e-6    ! Adaptive tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1e-7    ! Adaptive tracking absolute tolerance.
+  integer :: taylor_order = 3                     ! 3rd order is default
+  integer :: default_integ_order = 2              ! PTC integration order
+  logical :: canonical_coords = .true.            ! NOT USED.
+  logical :: sr_wakes_on = .true.                 ! Short range wakefields?
+  logical :: lr_wakes_on = .true.                 ! Long range wakefields
+  logical :: mat6_track_symmetric = .true.        ! symmetric offsets
+  logical :: auto_bookkeeper = .true.             ! Automatic bookkeeping?
+  logical :: space_charge_on = .false.            ! Space charge switch
+  logical :: coherent_synch_rad_on = .false.      ! csr 
+  logical :: spin_tracking_on = .false.           ! spin tracking?
   logical :: radiation_damping_on = .false.       ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
   logical :: compute_ref_energy = .true.          ! Enable recomputation?

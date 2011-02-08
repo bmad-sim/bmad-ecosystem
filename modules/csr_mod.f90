@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module csr_mod
 
 use make_mat6_mod
@@ -42,8 +40,8 @@ end type
 type csr_kick1_struct ! Sub-structure for csr calculation cache
   real(rp) I_csr         ! Kick integral.
   real(rp) I_int_csr     ! Integrated Kick integral.
-  real(rp) kick_csr      ! Kick.
-  real(rp) kick_lsc      ! Kick.
+  real(rp) k_csr         ! Kick.
+  real(rp) k_lsc         ! Kick.
   real(rp) phi           ! Source point angle.
   real(rp) d             ! Distance between source point and end of element.
   real(rp) dz_particles  ! Distance between source and kicked particles.
@@ -63,19 +61,6 @@ type csr_bin_struct             ! Structurture for binning particle averages
   type (csr_kick1_struct), allocatable :: kick1(:) ! Array of caches
 end type
 
-!
-
-type tsc_struct   ! transverse space charge structure
-  type (coord_struct) closed_orb
-  real(rp) kick_const
-  real(rp) sig_x
-  real(rp) sig_y
-  real(rp) sig_z
-  real(rp) phi      ! Rotation angle to go from lab frame to rotated frame.
-  real(rp) sin_phi
-  real(rp) cos_phi
-end type    
-
 !+
 ! Note: Shielding is simulated via the image current due to the 
 ! top and bottom walls. The side walls are neglected.
@@ -93,7 +78,7 @@ type csr_parameter_struct                ! Common block for csr calc
   integer :: ix2_ele_csr = -1            ! Stop index for csr tracking
   logical :: lcsr_component_on = .true.  ! Longitudinal csr component
   logical :: lsc_component_on = .true.   ! Longitudinal space charge component
-  logical :: tsc_component_on = .true.   ! Transverse space charge component
+  logical :: tsc_component_on = .false.  ! Transverse space charge component
   logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
 end type
 
@@ -223,6 +208,7 @@ do i = 0, n_step
   do ns = 0, csr_param%n_shield_images
 
     ! %kick_factor takes into account that at the endpoints we are only putting in a half kick.
+
     bin%kick_factor = 1
     if (i == 0 .or. i == n_step) bin%kick_factor = 0.5
 
@@ -254,7 +240,7 @@ enddo
 bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 err = .false.
 
-end subroutine
+end subroutine track1_bunch_csr
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -312,7 +298,8 @@ character(20) :: r_name = 'csr_bin_particles'
 ! The right edge of bin%bin1(n_bin) is at z_max
 ! The first and last bins are empty.
 
-if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
+if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
+    .not. csr_param%tsc_component_on) return
 
 z_maxval = maxval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
 z_minval = minval(particle(:)%r%vec(5), mask = (particle(:)%ix_lost == not_lost$))
@@ -421,8 +408,7 @@ do ib = 1, csr_param%n_bin
   if (bin1%sig_x == 0 .and. bin1%sig_y == 0) then
     bin1%lsc_d1 = 0
   else
-    bin1%lsc_d1 = (bin1%sig_x**2 + bin1%sig_y**2) / &
-                                        (bin1%sig_x + bin1%sig_y)
+    bin1%lsc_d1 = (bin1%sig_x**2 + bin1%sig_y**2) / (bin1%sig_x + bin1%sig_y)
   endif
 enddo
 
@@ -457,7 +443,7 @@ endif
 
 end function
 
-end subroutine
+end subroutine csr_bin_particles
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -514,7 +500,8 @@ bin%gamma2 = bin%gamma**2
 bin%rel_mass = mass_of(lat%param%particle) / m_electron 
 bin%particle = lat%param%particle
 
-if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on) return
+if (.not. csr_param%lcsr_component_on .and. .not. csr_param%lsc_component_on .and. &
+    .not. csr_param%tsc_component_on) return
 
 ! The kick point P is fixed.
 ! The source point P' varies from bin to bin.
@@ -573,7 +560,7 @@ if (csr_param%lcsr_component_on) then
   else
     do i = 1, n_bin
       bin%bin1(i)%kick_csr = bin%bin1(i)%kick_csr + coef * &
-                    dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_csr, bin%bin1(1:n_bin)%charge)
+                    dot_product(bin%kick1(i-1:i-n_bin:-1)%k_csr, bin%bin1(1:n_bin)%charge)
     enddo
   endif
 endif
@@ -585,7 +572,7 @@ if (csr_param%lsc_component_on) then
   else
     do i = 1, n_bin
       bin%bin1(i)%kick_lsc = bin%bin1(i)%kick_lsc + coef * &
-                  dot_product(bin%kick1(i-1:i-n_bin:-1)%kick_lsc, bin%bin1(1:n_bin)%charge)
+                  dot_product(bin%kick1(i-1:i-n_bin:-1)%k_lsc, bin%bin1(1:n_bin)%charge)
     enddo
   endif
 endif
@@ -670,9 +657,9 @@ do i = n_ele_pp, 1, -1
 
 enddo
 
-end subroutine
+end subroutine next_element_params_calc
 
-end subroutine
+end subroutine csr_bin_kicks
   
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -709,9 +696,9 @@ integer i, j
 character(16) :: r_name = 'lsc_bin_kicks'
 
 ! If there are too few particles in a bin the sigma calc may give a bad value.
-! This can be a problem if the computed sigma is small to ignore any bins
-! with a very small sigma. 
-! To know what is "small" compute the average sigma
+! This can be a problem if the computed sigma is small.
+! Therefore  ignore any bins with a very small sigma. 
+! To know what is "small" is, compute the average sigma
 
 sig_x_ave = dot_product(bin%bin1(:)%sig_x, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
 sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
@@ -727,8 +714,11 @@ do i = 1, csr_param%n_bin
   bin1 => bin%bin1(i)
   sx = bin1%sig_x
   sy = bin1%sig_y
-  if (sx < sig_x_ave * csr_param%sigma_cutoff .or. &
-                          sy < sig_y_ave * csr_param%sigma_cutoff) cycle
+  if (sx < sig_x_ave * csr_param%sigma_cutoff .or. sy < sig_y_ave * csr_param%sigma_cutoff) then
+    bin1%sig_x = 0  ! Mark for tsc calc.
+    bin1%sig_y = 0
+    cycle
+  endif
   a = sx * sy
   b = bin%gamma * (sx**2 + sy**2) / (sx + sy)
   c = bin%gamma**2
@@ -746,7 +736,7 @@ factor = bin%kick_factor * bin%ds_track_step * r_e / &
           (bin%rel_mass * e_charge * abs(charge_of(bin%particle)) * bin%gamma)
 bin%bin1(:)%kick_lsc = factor * bin%bin1(:)%kick_lsc
 
-end subroutine
+end subroutine lsc_y0_kick_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -812,7 +802,7 @@ if (i_bin == 1 .and.k_factor%v1 == 0) then
   kick1%I_int_csr = bin%kick_factor * (-(d*g)**2 / 4 + log(2*gam2 * z / d) / gam2)
 endif
 
-end subroutine
+end subroutine I_csr
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -826,14 +816,14 @@ end subroutine
 !   use csr_mod
 !
 ! Input:
-!   kick1 -- Csr_kick1_struct: 
+!   kick1    -- Csr_kick1_struct: 
 !     %dz_particles -- Real(rp): Distance between source and kicked particles.
 !     %d            -- Real(rp): Distance between source and kick points.
 !   k_factor -- csr_kick_factor_struct: Other parameters needed in the calculation.
 !   bin      -- Csr_bin_struct:
 !
 ! Output:
-!   kick1 -- Csr_kick1_struct: 
+!   kick1    -- Csr_kick1_struct: 
 !     %kick_csr -- Real(rp): CSR kick.
 !-
 
@@ -852,8 +842,8 @@ real(rp) phi, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, coulomb2
 
 !
 
-kick1%kick_csr = 0
-kick1%kick_lsc = 0
+kick1%k_csr = 0
+kick1%k_lsc = 0
 
 z = kick1%dz_particles
 d = kick1%d
@@ -880,11 +870,11 @@ coulomb2 = bin%gamma * z / ((bin%gamma * z)**2 + bin%y2**2)**(1.5)
 if (csr_param%lcsr_component_on) then
   radiate  = dot_product (B_vec, rad_cross_vec) / (kf%L * OneNBp3)
   coulomb1 = dot_product (B_vec, NBp_vec) / (bin%gamma2 * kf%L**2 * OneNBp3)
-  kick1%kick_csr = bin%kick_factor * (radiate + coulomb1 - coulomb2)
+  kick1%k_csr = bin%kick_factor * (radiate + coulomb1 - coulomb2)
 endif
 
 if (csr_param%lsc_component_on) then
-  kick1%kick_lsc = bin%kick_factor * coulomb2
+  kick1%k_lsc = bin%kick_factor * coulomb2
 endif
 
 !-----------------------------------------------------------------------------
@@ -900,7 +890,7 @@ c_vec(3) = a_vec(1) * b_vec(2) - a_vec(2) * b_vec(1)
 
 end function
 
-end subroutine
+end subroutine kick_csr_lsc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1043,7 +1033,7 @@ enddo
 call out_io (s_abort$, r_name, 'ALGORITHM NOT CONVERGING.')
 call err_exit
 
-end function
+end function d_calc_csr
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1141,7 +1131,7 @@ else
 
 endif
 
-end function
+end function z_calc_csr
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1167,10 +1157,12 @@ subroutine csr_kick_calc (bin, particle)
 
 implicit none
 
-type (csr_bin_struct) bin
-type (particle_struct) particle
+type (csr_bin_struct), target :: bin
+type (particle_struct), target :: particle
+type (csr_bin1_struct), pointer :: bin1
 
-real(rp) zp, r1, r2, dz, dpz
+real(rp) zp, r1, r0, dz, dpz, kx, ky, f0, f
+real(rp), pointer :: vec(:)
 integer i, i0, i_del
 
 ! We use a weighted average between %kick1(j)%I_csr and %kick1(j+1)%I_csr
@@ -1179,7 +1171,8 @@ integer i, i0, i_del
 zp = particle%r%vec(5)
 i0 = int((zp - bin%bin1(1)%z_center) / bin%dz_bin) + 1
 r1 = (zp - bin%bin1(i0)%z_center) / bin%dz_bin
-r2 = 1 - r1
+r0 = 1 - r1
+vec => particle%r%vec
 
 if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
   print *, 'CSR INTERNAL ERROR!'
@@ -1187,15 +1180,190 @@ if (r1 < 0 .or. r1 > 1 .or. i0 < 1 .or. i0 >= csr_param%n_bin) then
 endif
 
 if (csr_param%lcsr_component_on) then
-  particle%r%vec(6) = particle%r%vec(6) + &
-              r2 * bin%bin1(i0)%kick_csr + r1 * bin%bin1(i0+1)%kick_csr
+  vec(6) = vec(6) + r0 * bin%bin1(i0)%kick_csr + r1 * bin%bin1(i0+1)%kick_csr
 endif
+
+! Longitudinal space charge
 
 if (csr_param%lsc_component_on) then
-  particle%r%vec(6) = particle%r%vec(6) + &
-              r2 * bin%bin1(i0)%kick_lsc + r1 * bin%bin1(i0+1)%kick_lsc
+  vec(6) = vec(6) + r0 * bin%bin1(i0)%kick_lsc + r1 * bin%bin1(i0+1)%kick_lsc
 endif
 
-end subroutine
+! Transverse space charge.
+
+if (csr_param%tsc_component_on) then
+  f0 = bin%kick_factor * bin%ds_track_step * r_e / &
+             (bin%rel_mass * e_charge * abs(charge_of(bin%particle)) * bin%gamma)
+
+  bin1 => bin%bin1(i0)
+  if (bin1%sig_x /= 0) then
+    call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
+                                                       bin1%sig_y/bin1%sig_x, kx, ky)
+    f = f0 * r0 * bin1%charge / (pi * (bin1%sig_x + bin1%sig_y))
+    vec(2) = vec(2) + kx * f
+    vec(4) = vec(4) + ky * f
+  endif
+
+  bin1 => bin%bin1(i0+1)
+  if (bin1%sig_x /= 0) then
+    call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
+                                                       bin1%sig_y/bin1%sig_x, kx, ky)
+    f = f0 * r1 * bin1%charge / (pi * (bin1%sig_x + bin1%sig_y))
+    vec(2) = vec(2) + kx * f
+    vec(4) = vec(4) + ky * f
+  endif
+
+endif
+
+end subroutine csr_kick_calc
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+!+
+! Subroutine track1_bunch_space_charge (bunch_start, lat, ele, bunch_end, err)
+!
+! Routine to track a bunch of particles through an element with space charge effects.
+! The calculation is simple: 
+!    1) Slice the bunch up longitudinally.
+!    2) Assume each slice is Gaussian and calculate the centroid and sigmas.
+!    3) Use basetti-erskine formula to calculate the transverse kick
+!
+! Modules needed:
+!   use csr_mod
+!
+! Input:
+!   bunch_start -- Bunch_struct: Starting bunch position.
+!   lat         -- lat_struct: Lattice.
+!   ele         -- Ele_struct: The element to track through.
+!
+! Output:
+!   bunch_end -- Bunch_struct: Ending bunch position.
+!   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
+!-
+
+subroutine track1_bunch_space_charge (bunch_start, lat, ele, bunch_end, err)
+
+implicit none
+
+type (lat_struct) lat
+type (bunch_struct), target :: bunch_start, bunch_end
+type (particle_struct), pointer :: pt
+type (ele_struct) :: ele
+type (ele_struct), save :: runt
+type (csr_bin_struct), save :: bin
+
+real(rp) s_start
+integer i, j, ns, nb, n_step, n_live
+
+character(20) :: r_name = 'track1_bunch_csr'
+logical err, auto_bookkeeper
+
+! Init
+
+err = .true.
+
+! No space charge for a zero length element.
+
+if (ele%value(l$) == 0) then
+  ele%csr_calc_on = .false.
+  call track1_bunch_hom (bunch_end, ele, lat%param, bunch_end)
+  err = .false.
+  return
+endif
+
+! n_step is the number of steps to take when tracking through the element.
+! bin%ds_step is the true step length.
+
+bunch_end = bunch_start
+
+if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
+  call out_io (s_fatal$, r_name, &
+            'CSR_PARAM%N_BIN MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1!')
+  call err_exit
+endif
+
+if (csr_param%ds_track_step == 0) then
+  call out_io (s_fatal$, r_name, 'CSR_PARAM%DS_TRACK_STEP NOT SET!')
+  call err_exit
+endif
+
+! make sure that ele_len / track_step is an integer.
+
+n_step = max (1, nint(ele%value(l$) / csr_param%ds_track_step))
+bin%ds_track_step = ele%value(l$) / n_step
+
+auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
+bmad_com%auto_bookkeeper = .false.   ! make things go faster
+
+! Loop over the tracking steps
+! runt is the element that is tracked through at each step.
+
+do i = 0, n_step
+
+  ! track through the runt
+
+  if (i /= 0) then
+    call slice_ele_calc (ele, lat%param, i, n_step, runt)
+    runt%csr_calc_on = .false.
+    call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
+  endif
+
+  s_start = i * bin%ds_track_step
+
+  ! Cannot do a realistic calculation if there are less particles than bins
+
+  n_live = count(bunch_end%particle%ix_lost == not_lost$)
+  if (n_live < csr_param%n_bin) then
+    call out_io (s_error$, r_name, 'NUMBER OF LIVE PARTICLES: \i0\ ', &
+                          'LESS THAN NUMBER OF BINS FOR CSR CALC.', &
+                          'AT ELEMENT: ' // trim(ele%name) // '  [# \i0\] ', &
+                          i_array = (/ n_live, ele%ix_ele /) )
+    return
+  endif
+
+  call csr_bin_particles (bunch_end%particle, bin)    
+
+  ! ns = 0 is the unshielded kick.
+  ! For the shielding image currents never use the small angle approximation
+
+  bin%bin1(:)%kick_csr = 0
+  bin%bin1(:)%kick_lsc = 0
+
+  do ns = 0, csr_param%n_shield_images
+
+    ! %kick_factor takes into account that at the endpoints we are only putting in a half kick.
+    bin%kick_factor = 1
+    if (i == 0 .or. i == n_step) bin%kick_factor = 0.5
+
+    bin%y2 = ns * csr_param%beam_chamber_height
+
+    if (ns == 0) then
+      call csr_bin_kicks (lat, ele, s_start, bin, csr_param%small_angle_approx)
+
+    else
+      ! The factor of two is due to there being image currents both above and below.
+      ! The factor of -1^ns accounts for the sign of the image currents
+      bin%kick_factor = bin%kick_factor * 2 * (-1)**ns
+      call csr_bin_kicks (lat, ele, s_start, bin, .false.)
+    endif
+
+  enddo
+
+  ! loop over all particles and give them a kick
+
+  do j = 1, size(bunch_end%particle)
+    if (bunch_end%particle(j)%ix_lost /= not_lost$) cycle
+    call csr_kick_calc (bin, bunch_end%particle(j))
+  enddo
+
+  call save_bunch_track (bunch_end, ele, s_start)
+
+enddo
+
+bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
+err = .false.
+
+end subroutine track1_bunch_space_charge
 
 end module
