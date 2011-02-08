@@ -4,11 +4,11 @@ Class for piping in commands to Tao from python and for grabbing Tao output
 The module needs the pexpect module which can be downloaded from:
   <http://sourceforge.net/projects/pexpect/>
 
-Usage:
+Example:
   import tao_pipe
-  pipe = tao_pipe.tao_io("<init_string>")
-  pipe.command("<tao_cmd_line>")
-
+  pipe = tao_pipe.tao_io("../bin/tao -lat my_lat.bmad")  # Init
+  pipe.cmd("show top10")                                 # Issue a command
+  tao_output = pipe.output                               # Get the output of command
 """
 
 import pexpect
@@ -28,21 +28,35 @@ class tao_io:
       self.pipe.close
       self.is_open = False
 
-    print self.pipe.before
+    print (self.pipe.before)
 
-  # command method will print the output from Tao to the terminal.
+  # tao_io.cmd_in method sends a command to Tao and puts the output in tao_io.output
+  # Note: self.pipe.after will always be the expect string which is generally "Tao>"
 
-  def command (self, cmd_str):
+  def cmd_in (self, cmd_str):
     if not self.is_open: 
-      print 'Not connected to Tao...'
+      print ('Not connected to Tao...')
       return
 
     self.pipe.sendline (cmd_str)
     try:
       self.pipe.expect (self.expect_str)
     except pexpect.EOF:
-      print self.pipe.before
       self.pipe.close
       self.is_open = False
   
-    print self.pipe.after + self.pipe.before
+    # pipe.before is a multiline string. The first line is the command string.
+    # This first line is striped off before storing it in self.output.
+
+    self.output = self.pipe.before.partition('\n')[2].strip()
+    self.cmd_str = cmd_str
+
+  # tao_io.cmd method calls tao_io.cmd and prints the output, including 
+  # the command and Tao prompt, to the terminal.
+
+  def cmd (self, cmd_str):
+    self.cmd_in(cmd_str)
+    if self.is_open:
+      print (self.pipe.after + self.pipe.before)
+    else:
+      print ('Not connected to Tao...')

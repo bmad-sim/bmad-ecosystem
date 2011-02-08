@@ -364,7 +364,7 @@ case ('beam')
     nl=nl+1; lines(nl) = 'bmad_com components:'
     nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on               = ', bmad_com%sr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on               = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
@@ -1072,7 +1072,7 @@ case ('global')
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
     nl=nl+1; write (lines(nl), imt) '  %taylor_order              = ', bmad_com%taylor_order
     nl=nl+1; write (lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
-    nl=nl+1; write (lines(nl), lmt) '  %trans_space_charge_on     = ', bmad_com%trans_space_charge_on
+    nl=nl+1; write (lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
     nl=nl+1; write (lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
     nl=nl+1; write (lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
     nl=nl+1; write (lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on

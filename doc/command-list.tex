@@ -45,8 +45,9 @@ of the line is ignored.  Example:
   pause         & \sref{s:pause}    & wave          & \sref{s:wave}     \\ \hline
   place         & \sref{s:place}    & write         & \sref{s:write}    \\ \hline 
   plot          & \sref{s:plot}     & x-axis        & \sref{s:x.axis}   \\ \hline 
-  quit          & \sref{s:quit}     & x-scale       & \sref{s:x.scale}  \\ \hline 
-  read          & \sref{s:read}     & xy-scale      & \sref{s:xy.scale} \\ \hline
+  python        & \sref{s:python}   & x-scale       & \sref{s:x.scale}  \\ \hline 
+  quit          & \sref{s:quit}     & xy-scale      & \sref{s:xy.scale} \\ \hline
+  read          & \sref{s:read}     &                                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -474,6 +475,31 @@ Examples:
   plot bottom model - design       ! Plot model - design in the bottom region
   plot top meas - model + design - ref 
 \end{example}
+
+%% python -----------------------------------------------------------
+\section{python}\index{commands!python}
+\label{s:python}
+
+The \vn{python} command is like the \vn{show} command in that the
+\vn{python} command prints information to the terminal.  The
+difference is that the output from the \vn{show} command is meant for
+viewing by the user while the output of the \vn{python} command is
+meant for easy parsing.
+
+The \vn{python} command can be used to pass information to an external
+process when \tao is run as a subprocess withing within the process.
+The external process may be any scripting program like Python, Perl,
+Tcl, etc.  In particular, see \sref{c:python} for details on how to
+run \tao as a Python subprocess.
+
+For long term maintainability of python scripts, the advantage of
+using the \vn{python} command in the scripts over the \vn{show}
+command comes from the fact that the output syntax of the 
+\vn{show} command can (and does) change. 
+
+Note: At this point in time, the \vn{python} command is just beginning
+to be developed. And this manual will be updated as things evolve. If
+you have a specific need, please contact David Sagan.
 
 %% quit --------------------------------------------------------------
 \section{quit}\index{commands!quit}

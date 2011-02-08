@@ -50,7 +50,7 @@ character(16) :: cmd_names(36) = [  &
     'single-mode  ', 'reinitialize ', 'x-scale      ', 'x-axis       ', 'derivative   ', &
     'spawn        ', 'xy-scale     ', 'read         ', 'misalign     ', 'end-file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'GUI:         ']
+    'python       ']
 
 character(16) :: set_names(17) = [ &
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
@@ -316,6 +316,13 @@ case ('plot')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err)
   call tao_plot_cmd (cmd_word(1), cmd_word(2))
+
+!--------------------------------
+! python
+
+case ('python')
+
+  call out_io (s_error$, r_name, "python COMMAND NOT YET IMPLEMENTED. IF YOU HAVE A SPECIFIC NEED PLEASE SEE DCS.")
 
 !--------------------------------
 ! VETO, RESTORE, USE
