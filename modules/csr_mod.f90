@@ -1192,14 +1192,14 @@ endif
 ! Transverse space charge.
 
 if (csr_param%tsc_component_on) then
-  f0 = bin%kick_factor * bin%ds_track_step * r_e / &
-             (bin%rel_mass * e_charge * abs(charge_of(bin%particle)) * bin%gamma)
+  f0 = bin%kick_factor * bin%ds_track_step * r_e / (twopi * &
+           bin%dz_bin * bin%rel_mass * e_charge * abs(charge_of(bin%particle)) * bin%gamma**3)
 
   bin1 => bin%bin1(i0)
   if (bin1%sig_x /= 0) then
     call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
                                                        bin1%sig_y/bin1%sig_x, kx, ky)
-    f = f0 * r0 * bin1%charge / (pi * (bin1%sig_x + bin1%sig_y))
+    f = f0 * r0 * bin1%charge / (bin1%sig_x + bin1%sig_y)
     vec(2) = vec(2) + kx * f
     vec(4) = vec(4) + ky * f
   endif
@@ -1208,7 +1208,7 @@ if (csr_param%tsc_component_on) then
   if (bin1%sig_x /= 0) then
     call bbi_kick ((vec(1)-bin1%x0)/bin1%sig_x, (vec(3)-bin1%y0)/bin1%sig_y, &
                                                        bin1%sig_y/bin1%sig_x, kx, ky)
-    f = f0 * r1 * bin1%charge / (pi * (bin1%sig_x + bin1%sig_y))
+    f = f0 * r1 * bin1%charge / (bin1%sig_x + bin1%sig_y)
     vec(2) = vec(2) + kx * f
     vec(4) = vec(4) + ky * f
   endif
