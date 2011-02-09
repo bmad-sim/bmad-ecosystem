@@ -538,7 +538,7 @@ real(rp), optional :: dk(2,2)
 real(rp) kx, ky, f
 
 
-integer n, m
+integer n, m, n1
 
 ! Init
 
@@ -556,8 +556,6 @@ if (a == 0 .and. b == 0) return
 x = coord%vec(1)
 y = coord%vec(3)
 
-if (x == 0 .or. y == 0) return
-
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
   kx = kx + b * f
@@ -573,25 +571,26 @@ enddo
 ! dk calc
 
 if (present(dk)) then
+
+  n1 = n - 1
   
-  do m = 2, n, 2
-    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m-1) * mexp(y, m)
+  do m = 0, n1, 2
+    f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
     dk(1,1) = dk(1,1) + b * f
     dk(2,1) = dk(2,1) - a * f
 
-    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m) * mexp(y, m-1)
     dk(1,2) = dk(1,2) + b * f
-    dk(2,2) = dk(2,2) - a * f
+    dk(2,2) = dk(2,2) + a * f
   enddo
 
-  do m = 1, n, 2
-    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m-1) * mexp(y, m)
-    dk(1,1) = dk(1,1) + a * f
-    dk(2,1) = dk(2,1) + b * f
 
-    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m) * mexp(y, m-1)
+  do m = 1, n1, 2
+    f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
     dk(1,2) = dk(1,2) + b * f
     dk(2,2) = dk(2,2) - a * f
+
+    dk(1,1) = dk(1,1) + a * f
+    dk(2,1) = dk(2,1) + b * f
   enddo
 
 endif

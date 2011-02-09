@@ -4443,27 +4443,32 @@ if (stack(1)%multipass) then
   call err_exit
 endif
 
+!-------------------------------------------------------------------------
 ! Expand "used" line...
 
 line_expansion: do
 
-  ! if rep_count is zero then change %ix_ele index by +/- 1 and reset the rep_count.
-  ! if we have got to the end of the current line then pop the stack back to
-  ! the next lower level.
-  ! Also check if we have gotten to level 0 which says that we are done.
-  ! If we have stepped out of a multipass line which has been transversed in reverse
-  !   then we need to do some bookkeeping to keep the elements straight.
+  ! If rep_count is zero then we are finished with the current element.
 
   if (stack(i_lev)%rep_count == 0) then      ! goto next element in the sequence
+    ! goto the next element by changing %ix_ele index by +/- 1 
     stack(i_lev)%ix_ele = stack(i_lev)%ix_ele + stack(i_lev)%direction 
     ix = stack(i_lev)%ix_ele
 
-    if (ix > 0 .and. ix <= size(seq%ele)) then
-      stack(i_lev)%rep_count = seq%ele(ix)%rep_count
-    else
+    ! Check if off the end of the current line...
+    if (ix > 0 .and. ix <= size(seq%ele)) then  ! Nope. Still have more element to process
+      stack(i_lev)%rep_count = seq%ele(ix)%rep_count  ! set the rep_count for the next ele.
+      if (stack(i_lev)%rep_count == 0) cycle          ! For "0*sub_line" construct.
+
+    ! If we have got to the end of the current line then pop the stack back to
+    ! the next lower level.
+    else  
       i_lev = i_lev - 1
-      if (i_lev == 0) exit line_expansion
+      if (i_lev == 0) exit line_expansion    ! level 0 -> we are done.
       seq => sequence(stack(i_lev)%ix_seq)
+
+      ! If we have stepped out of a multipass line which has been transversed in reverse
+      !   then we need to do some bookkeeping to keep the elements straight.
       if (.not. stack(i_lev)%multipass .and. stack(i_lev+1)%multipass) then
         if (stack(i_lev+1)%direction == -1) then
           bp_com%used_line(n0_multi:n_ele_use)%ix_multipass = &
@@ -4570,7 +4575,7 @@ line_expansion: do
   case (line$, replacement_line$)
     i_lev = i_lev + 1
     if (i_lev > size(stack)) then
-      call parser_warning ('NESTED LINES EXCEED STACK DEPTH!')
+      call parser_warning ('NESTED LINES EXCEED STACK DEPTH! SUSPECT INFINITE LOOP!')
       call err_exit
     endif
     if (s_ele%type == replacement_line$) then
