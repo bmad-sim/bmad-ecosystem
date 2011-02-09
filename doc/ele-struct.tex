@@ -40,7 +40,7 @@ type ele_struct
   type (taylor_struct) :: taylor(6)               ! Taylor terms
   type (wake_struct), pointer :: wake => null()   ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
-  type (trans_space_charge_struct), pointer :: trans_sc => null()
+  type (space_charge_struct), pointer :: space_charge => null()
   real(rp) value(n_attrib_maxx)      ! attribute values.
   real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                   ! constant part of the genfield map.

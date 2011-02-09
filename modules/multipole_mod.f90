@@ -508,7 +508,7 @@ end subroutine multipole_kick
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky)
+! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
 !
@@ -522,25 +522,32 @@ end subroutine multipole_kick
 !   coord -- Coord_struct:
 !
 ! Output:
-!   kx -- Real(rp): X kick.
-!   ky -- Real(rp): Y kick.
+!   kx      -- Real(rp): X kick.
+!   ky      -- Real(rp): Y kick.
+!   dk(2,2) -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
 !-
 
-subroutine ab_multipole_kick (a, b, n, coord, kx, ky)
+subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
 
 implicit none
 
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
+real(rp), optional :: dk(2,2)
 real(rp) kx, ky, f
+
 
 integer n, m
 
-! simple case
+! Init
 
 kx = 0
 ky = 0
+
+if (present(dk)) dk = 0
+
+! simple case
 
 if (a == 0 .and. b == 0) return
 
@@ -548,6 +555,8 @@ if (a == 0 .and. b == 0) return
 
 x = coord%vec(1)
 y = coord%vec(3)
+
+if (x == 0 .or. y == 0) return
 
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
@@ -560,6 +569,32 @@ do m = 1, n, 2
   kx = kx + a * f
   ky = ky + b * f
 enddo
+
+! dk calc
+
+if (present(dk)) then
+  
+  do m = 2, n, 2
+    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m-1) * mexp(y, m)
+    dk(1,1) = dk(1,1) + b * f
+    dk(2,1) = dk(2,1) - a * f
+
+    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m) * mexp(y, m-1)
+    dk(1,2) = dk(1,2) + b * f
+    dk(2,2) = dk(2,2) - a * f
+  enddo
+
+  do m = 1, n, 2
+    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m-1) * mexp(y, m)
+    dk(1,1) = dk(1,1) + a * f
+    dk(2,1) = dk(2,1) + b * f
+
+    f = n * c_multi(n-1, m-1, .true.) * mexp(x, n-m) * mexp(y, m-1)
+    dk(1,2) = dk(1,2) + b * f
+    dk(2,2) = dk(2,2) - a * f
+  enddo
+
+endif
 
 end subroutine ab_multipole_kick
 

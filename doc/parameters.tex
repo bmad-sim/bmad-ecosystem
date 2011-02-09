@@ -37,7 +37,7 @@ Section~\sref{s:bmad.params} the syntax is
 \index{taylor_order}\index{default_integ_order}
 \index{sr_wakes_on}\index{lr_wakes_on}
 \index{mat6_track_symmetric}\index{auto_bookkeeper}
-\index{trans_space_charge_on}\index{coherent_synch_rad_on}
+\index{space_charge_on}\index{coherent_synch_rad_on}
 \index{spin_tracking_on}\index{radiation_damping_on}
 \index{radiation_fluctuations_on}\index{compute_ref_energy}
 Some overall parameters are stored in the \vn{bmad_common_struct}
@@ -60,7 +60,7 @@ this structure are:
     logical :: lr_wakes_on = .true.            ! Long range wake fields
     logical :: mat6_track_symmetric = .true.   ! symmetric offsets
     logical :: auto_bookkeeper = .true.        ! Automatic bookkeeping?
-    logical :: trans_space_charge_on = .false. ! Space charge switch
+    logical :: space_charge_on = .false.       ! Space charge switch
     logical :: coherent_synch_rad_on = .false. ! csr 
     logical :: spin_tracking_on = .false.      ! spin tracking?
     logical :: radiation_damping_on = .false.       ! Damping toggle.

@@ -159,7 +159,7 @@ end subroutine
 ! Input:
 !   n,m       -- Integer: For n choose m
 !   no_n_fact -- Logical, optional: If present and true then
-!                 c_out = +/- "n choose m" without the n!.
+!                 c_out = +/- "n choose m".
 !
 ! Output:
 !   c_out  -- Real(rp): Multipole factor.
@@ -224,7 +224,7 @@ end function c_multi
 !+
 ! Function mexp (x, m) result (this_exp)
 !
-! Returns x**m with 0**0 = 0.
+! Returns x^m with 0^0 = 1.
 !
 ! Modules needed:
 !   use bmad
