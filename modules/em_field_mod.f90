@@ -168,9 +168,9 @@ type (coord_struct), optional :: local_orbit
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
 
-real(rp) :: x, y, xx, yy, s, s_pos, f, dk(3,3), charge
+real(rp) :: x, y, xx, yy, s, s_pos, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
-real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y
+real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, phi, r, E_r, B_phi
 
 integer i, sign_charge
@@ -224,7 +224,7 @@ x = local_orb%vec(1)
 y = local_orb%vec(3)
 s = s_pos
 
-! Init
+f_p0c = sign_charge * ele%value(p0c$) / c_light
 
 !------------------------------------------
 
@@ -301,13 +301,12 @@ case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$)
 
 case (quadrupole$) 
 
-  f = sign_charge * ele%value(p0c$) / c_light
-  field%b(1) = y * ele%value(k1$) * f 
-  field%b(2) = x * ele%value(k1$) * f 
+  field%b(1) = y * ele%value(k1$) * f_p0c 
+  field%b(2) = x * ele%value(k1$) * f_p0c 
 
   if (df_calc) then
-    field%dB(1,1) =  ele%value(k1$) * f
-    field%dB(2,2) = -ele%value(k1$) * f
+    field%dB(1,1) =  ele%value(k1$) * f_p0c
+    field%dB(2,2) = -ele%value(k1$) * f_p0c
   endif
 
 !------------------------------------------
@@ -315,15 +314,14 @@ case (quadrupole$)
 
 case (sextupole$)
 
-  f = sign_charge * ele%value(p0c$) / c_light
-  field%b(1) = x * y * ele%value(k2$) * f
-  field%b(2) = -ele%value(k2$) * f * (x**2 - y**2) / 2
+  field%b(1) = x * y * ele%value(k2$) * f_p0c
+  field%b(2) = -(x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
 
   if (df_calc) then
-    field%dB(1,1) =  y * ele%value(k2$) * f
-    field%dB(1,2) =  x * ele%value(k2$) * f
-    field%dB(2,1) = -ele%value(k2$) * f * x
-    field%dB(2,2) = -ele%value(k2$) * f * y
+    field%dB(1,1) =  y * ele%value(k2$) * f_p0c
+    field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+    field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+    field%dB(2,2) = -y * ele%value(k2$) * f_p0c
   endif
 
 !------------------------------------------
@@ -331,14 +329,13 @@ case (sextupole$)
 
 case (sol_quad$)
 
-  f = sign_charge * ele%value(p0c$) / c_light
-  field%b(1) = y * ele%value(k1$) * f 
-  field%b(2) = x * ele%value(k1$) * f 
-  field%b(3) = ele%value(ks$) * f
+  field%b(1) = y * ele%value(k1$) * f_p0c 
+  field%b(2) = x * ele%value(k1$) * f_p0c 
+  field%b(3) = ele%value(ks$) * f_p0c
 
   if (df_calc) then
-    field%dB(1,1) =  ele%value(k1$) * f
-    field%dB(2,2) = -ele%value(k1$) * f
+    field%dB(1,1) =  ele%value(k1$) * f_p0c
+    field%dB(2,2) = -ele%value(k1$) * f_p0c
   endif
 
 !------------------------------------------
@@ -346,8 +343,7 @@ case (sol_quad$)
 
 case (solenoid$)
 
-  f = sign_charge * ele%value(p0c$) / c_light
-  field%b(3) = ele%value(ks$) * f
+  field%b(3) = ele%value(ks$) * f_p0c
 
   if (df_calc) then
   endif
@@ -357,13 +353,14 @@ case (solenoid$)
 
 case (sbend$)
 
-  f = sign_charge * ele%value(p0c$) / c_light
-  field%b(1) = y * ele%value(k1$) * f 
-  field%b(2) = (x * ele%value(k1$) + ele%value(g$) + ele%value(g_err$)) * f 
+  field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
+  field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
 
   if (df_calc) then
-    field%dB(1,1) =  ele%value(k1$) * f
-    field%dB(2,2) = -ele%value(k1$) * f
+    field%dB(1,1) =  ele%value(k1$) * f_p0c + y * ele%value(k2$) * f_p0c
+    field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+    field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+    field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
   endif
 
 
@@ -426,6 +423,34 @@ case default
   print *, '      FOR: ', ele%name
   call err_exit
 end select
+
+!---------------------------------------------------------------------
+! Add multipoles
+
+if (associated(ele%a_pole)) then
+  if (ele%value(l$) == 0) then
+    print *, 'ERROR IN EM_FILED_CALC: dField NOT YET IMPLEMENTED FOR MULTIPOLES!'
+    call err_exit
+  endif
+
+  do i = 0, ubound(ele%a_pole, 1)
+    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+    if (df_calc) then
+      call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky, dkm)
+    else
+      call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky)
+    endif
+    field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
+    field%B(2) = field%B(2) + -f_p0c * kx / ele%value(l$)
+    if (df_calc) then
+      field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
+      field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
+      field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
+      field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
+    endif
+  enddo
+
+endif
 
 !----------------------
 ! convert fields to lab coords
