@@ -212,7 +212,7 @@ if (all_drift) then
   if (split1_done .and. split2_done) then
     if (branch%ele(ix_super-1)%name == branch%ele(ix_super+1)%name .and. &
                                   branch%ele(ix_super-1)%key == drift$) then
-      n = len_trim(branch%ele(ix_super-1)%name)
+      n = max(5, len_trim(branch%ele(ix_super-1)%name))
       if (branch%ele(ix_super-1)%name(n-4:n) /= '#RUNT') then
         n = min(len(branch%ele(ix_super-1)%name)-5, n)
         branch%ele(ix_super-1)%name = branch%ele(ix_super-1)%name(1:n) // '#RUNT'
