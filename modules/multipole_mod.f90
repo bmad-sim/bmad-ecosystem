@@ -552,6 +552,7 @@ if (present(dk)) dk = 0
 if (a == 0 .and. b == 0) return
 
 ! normal case
+! Note that c_multi can be + or -
 
 x = coord%vec(1)
 y = coord%vec(3)
@@ -579,8 +580,8 @@ if (present(dk)) then
     dk(1,1) = dk(1,1) + b * f
     dk(2,1) = dk(2,1) - a * f
 
-    dk(1,2) = dk(1,2) + b * f
-    dk(2,2) = dk(2,2) + a * f
+    dk(1,2) = dk(1,2) - a * f
+    dk(2,2) = dk(2,2) - b * f
   enddo
 
 
