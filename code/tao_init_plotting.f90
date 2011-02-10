@@ -334,11 +334,23 @@ if (ip == 0) then
   return
 endif
 
-allocate (s%template_plot(ip))
+!---------------
+! Allocate the template plot and define a scratch plot
+
+allocate (s%template_plot(ip+1))
+
+plt => s%template_plot(ip+1)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+plt%graph(1)%p => plt
+plt%name = 'scratch'
+plt%graph(1)%name = 'g1'
 
 ! Now read in the plots
 
-ip = 0   ! number of template plots
+ip = 0   ! template plot index
 plot_file_array = plot_file_in
 
 do  ! Loop over plot files
@@ -848,9 +860,10 @@ tao_com%ele_shape_floor_plan(1:5) = [&
 
 tao_com%ele_shape_lat_layout = tao_com%ele_shape_floor_plan
 
-! beta
+!---------------
+! beta plot
 
-allocate (s%template_plot(5))
+allocate (s%template_plot(6))
 plt => s%template_plot(1)
 
 nullify(plt%r)
@@ -895,7 +908,8 @@ grph%box           = [1, 1, 1, 2]
 crv => grph%curve(1)
 crv%data_type = 'beta.b'
 
-! eta
+!---------------
+! eta plot
 
 plt => s%template_plot(2)
 
@@ -925,7 +939,8 @@ grph%y%label       = '\gy\dY\u'
 crv => grph%curve(1)
 crv%data_type = 'eta.y'
 
-! Orbit
+!---------------
+! Orbit plot
 
 plt => s%template_plot(3)
 
@@ -955,7 +970,8 @@ grph%y%label       = 'Y'
 crv => grph%curve(1)
 crv%data_type = 'orbit.y'
 
-! Lat Layout
+!---------------
+! Lat Layout plot
 
 plt => s%template_plot(4)
 
@@ -975,7 +991,8 @@ grph%type          = 'lat_layout'
 grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%x             = init_axis
 
-! Floor Plan
+!---------------
+! Floor Plan plot
 
 plt => s%template_plot(5)
 
@@ -996,6 +1013,17 @@ grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%correct_xy_distortion = .true.
 grph%x             = init_axis
 grph%y             = init_axis
+
+!---------------
+! Scratch plot
+
+plt => s%template_plot(6)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+plt%graph(1)%p => plt
+plt%name = 'scratch'
 
 ! Regions
 

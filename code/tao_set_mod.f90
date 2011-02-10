@@ -822,6 +822,18 @@ case ('draw_symbols')
 case ('draw_symbol_index')
   call tao_logical_set_value (this_curve%draw_symbol_index, component, set_value, error)
 
+case ('data_source')
+  this_curve%data_source = set_value
+
+case ('data_index')
+  this_curve%data_index = set_value
+
+case ('data_type')
+  this_curve%data_type = set_value
+
+case ('data_type_x')
+  this_curve%data_type_x = set_value
+
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
   return

@@ -486,9 +486,9 @@ difference is that the output from the \vn{show} command is meant for
 viewing by the user while the output of the \vn{python} command is
 meant for easy parsing.
 
-The \vn{python} command can be used to pass information to an external
-process when \tao is run as a subprocess withing within the process.
-The external process may be any scripting program like Python, Perl,
+The \vn{python} command can be used to pass information to a parent
+process when \tao is run as a subprocess.
+The parent process may be any scripting program like Python, Perl,
 Tcl, etc.  In particular, see \sref{c:python} for details on how to
 run \tao as a Python subprocess.
 
@@ -1090,6 +1090,10 @@ used.  Example:
 
 The \vn{-noprint} option suppresses printing and is useful when writing
 large amounts of data to a file.
+
+Note: When running \tao as a subprocess, consider using the
+\vn{python} command (\sref{s:python}) instead of the \vn{show} command
+for communicating with the parent process.
 
 % Use the command:
 %   help show <what>

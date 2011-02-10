@@ -322,7 +322,8 @@ case ('plot')
 
 case ('python')
 
-  call out_io (s_error$, r_name, "python COMMAND NOT YET IMPLEMENTED. IF YOU HAVE A SPECIFIC NEED PLEASE SEE DCS.")
+  call tao_python_cmd (cmd_line)
+  return
 
 !--------------------------------
 ! VETO, RESTORE, USE

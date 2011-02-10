@@ -1792,6 +1792,7 @@ case ('plot')
     do i = 1, size(s%template_plot)
       p => s%template_plot(i)
       if (p%name == '') cycle
+      if (p%name == 'scratch') cycle
       if (allocated(p%graph)) then
           nl=nl+1; write (lines(nl), '(3x, a, 100(2a, 2x))') &
                             p%name(1:20), ('.', trim(p%graph(j)%name), j = 1, size(p%graph))
