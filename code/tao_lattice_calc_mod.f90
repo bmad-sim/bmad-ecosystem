@@ -754,7 +754,8 @@ if (u%beam_info%beam0_file /= "") then
   return
 endif
 
-! Not connected case
+! Not connected case...
+! Only reinit beam has not already been initialized or if commanded via %init_beam0.
 
 if (.not. u%connect%connected) then
   if (u%beam_info%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
