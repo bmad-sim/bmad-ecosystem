@@ -91,7 +91,6 @@ integer, private :: numeric$ = 100
 integer, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
                             9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
 
-
 type eval_stack_struct
   integer type
   real(rp) value
@@ -216,15 +215,16 @@ type (ele_struct), target ::  ele
 type (ele_struct), target, save ::  ele0
 type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
-type (cross_section_struct), pointer :: cross
+type (cross_section_struct), pointer :: section
+type (cross_section_vertex_struct), pointer :: v_ptr
 
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
 
-integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out
-integer expn(6), ix_attrib, i_cross, ix_v
+integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
+integer expn(6), ix_attrib, i_section, ix_v, ix_sec
 
-character(40) :: word, str_ix, attrib_word
+character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
@@ -236,7 +236,7 @@ logical, optional :: check_free
 ! [except for a "GROUP[COMMAND] = 0.343" redef construct]
 
 err_flag = .true.  ! assume the worst
-call get_next_word (word, ix_word, ':, =()', delim, delim_found, .true.)
+call get_next_word (word, ix_word, ':, =()', delim, delim_found)
 
 ! taylor
 
@@ -252,7 +252,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   call evaluate_value (str, coef, lat, delim, delim_found, err_flag)
   if (err_flag) return
 
-  call get_next_word (line, ix_word, '},', delim, delim_found, .true.)
+  call get_next_word (line, ix_word, '},', delim, delim_found)
   read (line, *, iostat = ios) expn
   if (delim /= '}' .or. ix_word == 0 .or. ios /= 0) then
     call parser_warning ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
@@ -260,7 +260,7 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   endif
 
   call add_this_taylor_term (ele, i_out, coef, expn)
-  call get_next_word (word, ix_word, '},', delim, delim_found, .true.)
+  call get_next_word (word, ix_word, '},', delim, delim_found)
 
   if (ix_word /= 0 .or. (delim_found .and. delim /= ',')) then
     call parser_warning ('BAD TERM ENDING FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
@@ -298,8 +298,7 @@ if (ele%key == overlay$) then
 
     value = 0
     if (delim == '=') then  ! value
-      call evaluate_value (trim(ele%name) // ' ' // word, value, &
-                                    lat, delim, delim_found, err_flag)
+      call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
       if (err_flag) return
     endif
     call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
@@ -377,7 +376,7 @@ endif
 
 if (word == 'LR' .and. delim == '(') then
 
-  call get_next_word (word, ix_word, '=', delim, delim_found, .true.)
+  call get_next_word (word, ix_word, '=', delim, delim_found)
   if (.not. delim_found) then
     call parser_warning ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
     return
@@ -389,6 +388,85 @@ if (word == 'LR' .and. delim == '(') then
   endif
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   r_ptr = value
+  return
+endif
+
+! "WALL." redef
+
+if (word(1:5) == 'WALL.') then
+  if (delim /= '(') then
+    call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+    return
+  endif
+
+  ix_sec = evaluate_integer (err_flag, ')', word2, '(=', delim)
+  if (err_flag .or. .not. associated(ele%wall_section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall_section)) then
+    call parser_warning('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+  section => ele%wall_section(ix_sec)
+
+  select case (word(6:))
+  case ('SECTION')
+
+    if (word2 == '.S' .and. delim == '=') then
+      r_ptr => section%s
+
+    elseif (word2 == '.V' .and. delim == '(') then
+      ix_v = evaluate_integer (err_flag, ')', word, '=', delim)
+      if (err_flag .or. ix_v < 0 .or. ix_v > size(section%v)) then
+        call parser_warning('BAD VERTEX INDEX',  'FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      v_ptr => section%v(ix_v)
+
+      select case (word)
+      case ('.X')
+        r_ptr => v_ptr%x
+      case ('.Y')
+        r_ptr => v_ptr%y
+      case ('.RADIUS_X')
+        r_ptr => v_ptr%radius_x
+      case ('.RADIUS_Y')
+        r_ptr => v_ptr%radius_y
+      case ('.TILT')
+        r_ptr => v_ptr%tilt
+      case default
+        call parser_warning('BAD WALL SECTION VERTEX COMPONENT: ' // word, 'FOR ELEMENT: ' // ele%name)
+        return
+      end select
+    else
+      call parser_warning('BAD WALL SECTION COMPONENT: ' // word2, 'FOR ELEMENT: ' // ele%name)
+      return
+    endif
+
+  case ('N_SLICE_SPLINE')
+    if (word2 /= '' .or. delim /= '=') then
+      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+      return
+    endif
+    r_ptr => section%n_slice_spline
+
+  case ('S_SPLINE')
+    if (word2 /= '.COEF' .or. delim /= '(') then
+      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    ix_coef = evaluate_integer (err_flag, ')', word, '=', delim)
+    if (err_flag .or. ix_coef < 0 .or. ix_coef > size(section%s_spline) )then
+      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    r_ptr => section%s_spline(ix_coef)
+
+  case default
+    call parser_warning ('BAD WALL COMPONENT REDEF: ' // word, 'IN ELEMENT: ' // ele%name)
+  end select
+
+  call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag)
+
   return
 endif
 
@@ -407,135 +485,200 @@ if (ix_word == 0) then  ! no word
   call parser_warning  ('"," NOT FOLLOWED BY ATTRIBUTE NAME FOR: ' // ele%name)
   return
 endif
+
 if (ix_attrib < 1) then
   if (print_err) call parser_warning  ('BAD ATTRIBUTE NAME: ' // word, 'FOR ELEMENT: ' // ele%name)
   return
 endif
 
-! Capillary cross-section definition
+! wall cross-section definition
 
-if (ix_attrib == cross$ .and. ele%key == capillary$) then
-  if (associated (ele%cross_section)) then
-    call re_associate (ele%cross_section, size(ele%cross_section) + 1)
-  else
-    allocate (ele%cross_section(1))
+if (attrib_word == 'WALL') then
+  if (associated (ele%wall_section)) then
+    call parser_warning ('MULTIPLE WALL DEFINITIONS FOR ELEMENT: ' // ele%name)
+    return
   endif
-
-  i_cross = size(ele%cross_section)
-  cross => ele%cross_section(i_cross)
-  ix_v = 0
 
   if (delim /= '=') then
-    call parser_warning ('NO "=" SIGN FOUND AFTER "CROSS"', 'FOR ELEMENT: ' // ele%name)
+    call parser_warning ('NO "=" SIGN FOUND AFTER "WALL"', 'FOR ELEMENT: ' // ele%name)
     return
   endif
+
   ! Expect "{"
   call get_next_word (word, ix_word, '{,()', delim, delim_found)
-  if (delim /= '{') then
-    call parser_warning ('NO "{" SIGN FOUND AFTER "CROSS ="', 'FOR ELEMENT: ' // ele%name)
+  if (delim /= '{' .or. word /= '') then
+    call parser_warning ('NO "{" SIGN FOUND AFTER "WALL ="', 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
-  do
-    ! Expect "S", "V"
-    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
-    if (word == 'S' .and. delim == '=') then
-      call evaluate_value (trim(ele%name), cross%s, lat, delim, delim_found, err_flag, ',}')
-      if (err_flag) return
-      ele%value(l$) = cross%s
-      if (delim == '}') exit
+  i_section = 0
+  do    ! Loop over all sections
 
-    elseif (word == 'V' .and. delim == '(') then
-      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+    ! Possible "}" is end of wall 
+    if (delim /= '}' .and. word == '') exit
 
-      ix_v = ix_v + 1
-      cross%n_vertex_input = ix_v
-      call re_allocate (cross%v, ix_v)
-
-      read (word, *, iostat = ios) j 
-      if (ios /= 0 .or. ix_v /= j) then
-        call parser_warning ('BAD OR OUT OF ORDER CROSS-SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
-        return
-      endif
-
-      call get_next_word (word, ix_word, '{},()', delim2, delim_found)
-      if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
-        call parser_warning ('MALFORMED ORDER CROSS-SECTION VERTEX FOR: ' // ele%name)
-        return
-      endif
-
-      call evaluate_value (trim(ele%name), cross%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
-      if (err_flag) return
-
-      call evaluate_value (trim(ele%name), cross%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
-      if (err_flag) return
-
-      if (delim == ',') then
-        call evaluate_value (trim(ele%name), cross%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
-        if (err_flag) return
-      endif
-
-      if (delim == ',') then
-        call evaluate_value (trim(ele%name), cross%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
-        if (err_flag) return
-      endif
-
-      if (delim == ',') then
-        call evaluate_value (trim(ele%name), cross%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
-        if (err_flag) return
-      endif
-
-      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-      if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
-        call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      if (delim == '}') exit
-
-    else
-      call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
+    ! Expect "section ="
+    if (word /= 'SECTION' .or. delim /= '=') then
+      call parser_warning ('NO "SECTION =" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
       return
     endif
 
+    ! Expect "{"
+    call get_next_word (word, ix_word, '{},()', delim, delim_found)
+    if (delim /= '{' .or. word /= '') then
+      call parser_warning ('NO "{" SIGN FOUND AFTER "SECTION ="', 'FOR ELEMENT: ' // ele%name)
+      return
+    endif
+
+    i_section = i_section + 1
+    call re_associate (ele%wall_section, i_section)
+    section => ele%wall_section(i_section)
+
+    ! Expect "S ="
+    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+    if (word /= 'S' .or. delim /= '=') then
+      call parser_warning ('EXPECTED "S =" AT START OF WALL SECTION BUT GOT: ' // trim(word) // delim, &
+                           'FOR: ' // ele%name)
+      return
+    endif
+
+    call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',')
+    if (err_flag) return
+    ele%value(l$) = section%s
+
+    ! Parse "V() = ..." constructs.
+
+    ix_v = 0
+
+    do
+      ! Expect "V ("
+      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+      if (word == 'V' .and. delim == '(') then
+        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+        ix_v = ix_v + 1
+        section%n_vertex_input = ix_v
+        call re_allocate (section%v, ix_v)
+
+        read (word, *, iostat = ios) j 
+        if (ios /= 0 .or. ix_v /= j) then
+          call parser_warning ('BAD OR OUT OF ORDER WALL SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
+          return
+        endif
+
+        call get_next_word (word, ix_word, '{},()', delim2, delim_found)
+        if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
+          call parser_warning ('MALFORMED ORDER WALL SECTION VERTEX FOR: ' // ele%name)
+          return
+        endif
+
+        call evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
+        if (err_flag) return
+
+        call evaluate_value (trim(ele%name), section%v(ix_v)%y, lat, delim, delim_found, err_flag, ',}')
+        if (err_flag) return
+
+        if (delim == ',') then
+          call evaluate_value (trim(ele%name), section%v(ix_v)%radius_x, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
+        endif
+
+        if (delim == ',') then
+          call evaluate_value (trim(ele%name), section%v(ix_v)%radius_y, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
+        endif
+
+        if (delim == ',') then
+          call evaluate_value (trim(ele%name), section%v(ix_v)%tilt, lat, delim, delim_found, err_flag, '}')
+          if (err_flag) return
+        endif
+
+        call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+        if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
+          call parser_warning ('BAD SYNTAX IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+          return
+        endif
+        if (delim == '}') exit
+
+      else
+        call parser_warning ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
+                             'IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+        return
+      endif
+
+    enddo
+
+    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+    ! Possible "}" is end of wall structure
+    if (delim == '}' .and. word == '') exit
+
+    ! Must be ","
+    if (word /= '' .or. delim /= ',') then
+      call parser_warning ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
+    endif
+
+
+    ! Expect "s_spline" or "n_slice_spline" or "section" 
+
+    do
+
+      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+
+      if (delim /= '=') then
+        call parser_warning ('NO "=" SIGN FOUND AFTER: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+
+      if (word == 'SECTION') exit
+
+      if (word == 'S_SPLINE') then
+
+        ! Expect "{"
+        call get_next_word (word, ix_word, '{,()', delim, delim_found)
+        if (delim /= '{') then
+          call parser_warning ('NO "{" SIGN FOUND AFTER "SECTION ="', 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+          return
+        endif
+
+        call evaluate_value (trim(ele%name), section%s_spline(1), lat, delim, delim_found, err_flag, ',}')
+        if (err_flag) return
+
+        if (delim == ',') then
+          call evaluate_value (trim(ele%name), section%s_spline(2), lat, delim, delim_found, err_flag, '}')
+          if (err_flag) return
+        endif
+
+        ! Expect ","
+        call get_next_word (word, ix_word, '{},()', delim, delim_found)
+        if (word /= '' .or. delim /= ',') then
+          call parser_warning ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
+        endif
+
+      elseif (word == 'N_SLICE_SPLINE') then
+        ! Expect value
+        call evaluate_value (trim(ele%name), section%s_spline(2), lat, delim, delim_found, err_flag, ',')
+        if (err_flag) return
+
+      else
+        call parser_warning('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+
+    enddo
+
   enddo
 
-  call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-  if (word /= '' .or. (delim /= ' ' .and. delim /= ',')) then
-    call parser_warning ('BAD SYNTAX IN CROSS DEFINITION FOR ELEMENT: ' // ele%name)
-  endif
+  ! Check for next thing on line and return
 
+  call get_next_word (word, ix_word, '{},()', delim, delim_found)
+  if (word /= '') call parser_warning('EXTRA CHARACTERS AT END OF WALL SPECIFICATION IN ELEMENT: ' // ele%name) 
   return
 
-endif
-
-! Capillary s_spline definition
-
-if (ix_attrib == s_spline$ .and. ele%key == capillary$) then
-
-  if (delim /= '=') then
-    call parser_warning ('NO "=" SIGN FOUND AFTER "CROSS"', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-  ! Expect "{"
-  call get_next_word (word, ix_word, '{,()', delim, delim_found)
-  if (delim /= '{') then
-    call parser_warning ('NO "{" SIGN FOUND AFTER "CROSS ="', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-
-  i_cross = size(ele%cross_section)
-  cross => ele%cross_section(i_cross)
-
-  call evaluate_value (trim(ele%name), cross%s_spline(1), lat, delim, delim_found, err_flag, ',}')
-  if (err_flag) return
-
-  if (delim == ',') then
-    call evaluate_value (trim(ele%name), cross%s_spline(2), lat, delim, delim_found, err_flag, '}')
-    if (err_flag) return
-  endif
-
-  return
 endif
 
 ! wiggler term attribute
@@ -849,13 +992,6 @@ case default   ! normal attribute
   elseif (ix_attrib == y_limit$) then
     ele%value(y1_limit$) = value
     ele%value(y2_limit$) = value
-  elseif (ix_attrib == n_slice_spline$) then
-    ix = size(ele%cross_section)
-    if (.not. associated(ele%cross_section) .or. ix == 0) then
-      call parser_warning ('N_SLICE_SPLINE BEFORE FIRST CROSS IS NOT VALID')
-      return
-    endif
-    ele%cross_section(ix)%n_slice_spline = value
   else
     ele%value(ix_attrib) = value
 
@@ -1158,8 +1294,7 @@ endif
 
 ! Get the first word in bp_com%parse_line
 
-call word_read (bp_com%parse_line, delim_list,  &
-                       word, ix_word, delim, delim_found, bp_com%parse_line)
+call word_read (bp_com%parse_line, delim_list,  word, ix_word, delim, delim_found, bp_com%parse_line)
 
 if (len(word) < ix_word) then
   call parser_warning ('BAD WORD: ' // bp_com%parse_line)
@@ -1422,6 +1557,56 @@ end subroutine load_parse_line
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Function evaluate_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
+!
+! Function of evaluate an integer and do some additional parsing
+!
+! Input:
+!   delim_list1 -- Character(1): Delimitor after the integer. Normally ')'
+!   word2       -- Character(*): Word after delim1
+!   delim_list2 -- Character(*): Delimitor list to mark the end of word2.
+!   delim2      -- Character(1): Actual delimitor found after word2.
+!
+! Output:
+!   err_flag -- Logical: Set True if there is an error. False otherwise.
+!   this_int -- Integer: Integer value
+!-
+
+function evaluate_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
+
+implicit none
+
+character(*) delim_list1, word2, delim_list2, delim2
+integer this_int, ix_word
+character(1) delim
+character(20) word
+logical err_flag, delim_found
+
+
+! Init
+
+err_flag = .true.
+this_int = -1
+
+! Get integer
+
+call get_next_word (word, ix_word, delim_list1, delim, delim_found)
+if (.not. delim_found) return
+
+if (.not. is_integer(word)) return
+read (word, *) this_int
+
+! Get word after integer
+
+call get_next_word (word2, ix_word, delim_list2, delim2, delim_found)
+if (delim_found) err_flag = .false.
+
+end function evaluate_integer
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Function evaluate_logical (word, iostat) result (this_logic)
 !
 ! Function of convert a string into a logical value.
@@ -1432,10 +1617,10 @@ end subroutine load_parse_line
 !
 ! Input:
 !   word   -- Character(*): Input string.
-!   iostat -- Integer: Status: Returns 0 if conversion successful. 
 !
 ! Output:
 !   this_logic -- Logical: Result.
+!   iostat -- Integer: Status: Returns 0 if conversion successful. 
 !-
 
 function evaluate_logical (word, iostat) result (this_logic)

@@ -1206,7 +1206,7 @@ if (present (nullify_only)) then
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
     nullify (ele%gen_field)
     nullify (ele%mode3)
-    nullify (ele%cross_section)
+    nullify (ele%wall_section)
     return
   endif
 endif
@@ -1219,13 +1219,13 @@ if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%mode3))          deallocate (ele%mode3)
-if (associated (ele%cross_section))  deallocate (ele%cross_section)
+if (associated (ele%wall_section))   deallocate (ele%wall_section)
 
 if (associated (ele%wake)) then
-  if (associated (ele%wake%sr_table))       deallocate (ele%wake%sr_table)
+  if (associated (ele%wake%sr_table))      deallocate (ele%wake%sr_table)
   if (associated (ele%wake%sr_mode_long))  deallocate (ele%wake%sr_mode_long)
   if (associated (ele%wake%sr_mode_trans)) deallocate (ele%wake%sr_mode_trans)
-  if (associated (ele%wake%lr))        deallocate (ele%wake%lr)
+  if (associated (ele%wake%lr))            deallocate (ele%wake%lr)
   deallocate (ele%wake)
 endif
 

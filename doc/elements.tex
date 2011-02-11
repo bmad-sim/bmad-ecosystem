@@ -557,21 +557,25 @@ of an ellipse. It is mandatory that a cross-section be convex. That
 is, given any two points within the cross-section, all points on the
 line segment connecting them must be within the cross-section.
 
-\index{cross}\index{s (capillary attribute)}\index{v (capillary attribute)}
+\index{wall}\vn{section}\index{s (capillary attribute)}\index{v (capillary attribute)}
 \index{s_spline}\index{n_slice_spline}
-The syntax to define a capillary is
+The capillay \vn{wall structure} defines the capillay wall.  The
+syntax of the wall structure is:
 \begin{example}
-  cross = \{ 
-    s = <longitudinal_position>, 
-    v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
-    v(2) = ...
-    ...
-  \}, 
-  s_spline = \{<coef_1>, <coef_2>\},
-  n_slice_spline = <num> 
-  cross = \{
-    s = <longitudinal_position>, 
-    v(1) = \{...
+  wall = \{
+    section = \{ 
+      s = <longitudinal_position>, 
+      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+      v(2) = ...
+      ...
+    \}, 
+    s_spline = \{<coef_1>, <coef_2>\},
+    n_slice_spline = <num> 
+    section = \{
+      s = <longitudinal_position>, 
+      v(1) = \{...
+      ...
+    \}
     ...
   \}
 \end{example}
@@ -579,16 +583,15 @@ Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
 Example:
 \begin{example}
   this_cap: capillary, 
-    cross = \{   ! cross-section with top/bottom symmetry
-      s = 0, v(1) =  \{0.02, 0.00\}, 
-      v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\}, 
-    \}, 
-    s_spline = \{0.1, 0.7\}, 
-    n_slice_spline = 4
-    cross = \{  ! Cross-section that is a tilted ellipse.
-      s = 0.34, 
-      v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\}, 
-    \}
+    wall = \{   
+      section = \{ ! cross-section with top/bottom symmetry
+        s = 0, v(1) =  \{0.02, 0.00\}, 
+        v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\} \}, 
+      s_spline = \{0.1, 0.7\}, 
+      n_slice_spline = 4,
+      section = \{  ! Cross-section that is a tilted ellipse.
+        s = 0.34, 
+        v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\} \} \}
 \end{example}
 
 \begin{figure}[tb]
@@ -608,11 +611,13 @@ figure, is rejected.}
   \label{f:capillary}
 \end{figure}
 
-Each individual cross-section begins with the word \vn{cross}. The
-\vn{s} parameter of a cross-section gives the longitudinal position of
-the cross-section. \vn{s} must be zero for the first cross-section and
-the length of the capillary is given by the value of \vn{s} of the
-last cross-section.
+The capillary wall structure begins with ``\vn{wall = \{}'' and ends
+with a ``\vn{\}}''. Inbetween are a number of individual cross-section
+structures.  Each individual cross-section begins with ``\vn{section =
+\{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
+cross-section gives the longitudinal position of the cross-section.
+\vn{s} must be zero for the first cross-section and the length of the
+capillary is given by the value of \vn{s} of the last cross-section.
 
 The \vn{v(<j>)} within a cross-section define the vertices
 for each cross-section. Each \vn{v(<j>)} in turn has five
@@ -692,7 +697,7 @@ tilted ellipse with center at $(0.003, -0.001)$. If a cross-section
 has a single vertex and \vn{<radius_x>} is
 not specified, the cross-section is a rectangle. For example
 \begin{example}
-    cross = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
+    section = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
 \end{example}
 
 \begin{figure}[tb]
@@ -764,11 +769,11 @@ constructed must be convex.
 To refer to a cross-section parameters after an element has been
 defined, the following syntax is used:
 \begin{example}
-  ele_name[cross(n).v(j).x]     ! x value of j^th vertex of n^th cross-section
-  ele_name[n_slice_spline(n)]   ! n_slice_spline value set between n^th and 
-                                !     n+1^th cross-sections.
-  ele_name[s_spline(n).coef(k)] ! k^th coefficient (k = 1, 2, or 3) of s_spline 
-                                !     set between n^th and n+1^th cross-sections.
+  ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
+  ele_name[wall.n_slice_spline(n)]   ! n_slice_spline value set between n^th and 
+                                     !     n+1^th cross-sections.
+  ele_name[wall.s_spline(n).coef(k)] ! k^th coefficient (k = 1, 2, or 3) of s_spline 
+                                     !     set between n^th and n+1^th cross-sections.
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1892,7 +1897,7 @@ tracking through such an element.
 The \vn{l} length attribute is used to set the longitudinal $s$
 distance between the previous and next elements and a program can, for
 example, use \vn{l} to compute the time it takes to go through the
-element. Otherwise, the value of \vn{l} is not used tracking or
+element. Otherwise, the value of \vn{l} does not affect tracking or
 transfer matrix calculations.
 
 Example:

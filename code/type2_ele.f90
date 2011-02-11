@@ -251,24 +251,24 @@ endif
 
 ! cross-section
 
-if (associated(ele%cross_section)) then
+if (associated(ele%wall_section)) then
   if (logic_option(.false., type_cross_section)) then
-    do i = 1, size(ele%cross_section)
-      cs => ele%cross_section(i)
+    do i = 1, size(ele%wall_section)
+      cs => ele%wall_section(i)
       nl=nl+1; li(nl) = ''
-      nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Section# ', i, ':  S =', cs%s
+      nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall.Section# ', i, ':  S =', cs%s
       do j = 1, size(cs%v)
         v => cs%v(j)
         nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
                               'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
       enddo
-      if (i == size(ele%cross_section)) exit
+      if (i == size(ele%wall_section)) exit
       nl=nl+1; li(nl) = ''
       nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline       =', cs%s_spline
       nl=nl+1; write (li(nl), '(a, i0)')    ' N_Slice_Spline =', nint(cs%n_slice_spline)
     enddo
   else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of cross-sections:', size(ele%cross_section)
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of wall cross-sections:', size(ele%wall_section)
   endif
 endif
 

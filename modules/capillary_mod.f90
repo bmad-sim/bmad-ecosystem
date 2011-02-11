@@ -125,7 +125,7 @@ character(40) :: r_name = 'capillary_track_photon_to_wall'
 
 do
 
-  cross => ele%cross_section(photon%now%ix_cross)
+  cross => ele%wall_section(photon%now%ix_cross)
   vec => photon%now%orb%vec
 
   ! Calculate a resonable step size
@@ -220,7 +220,7 @@ endif
 ! Here if stopping at a boundary plane is to be done...
 ! First see where we need to stop.
 
-cross => ele%cross_section
+cross => ele%wall_section
 call bracket_index(cross%s, 1, size(cross), vec(5), ixc)
 
 if (vec(6) > 0) then   ! Forward going photon
@@ -446,15 +446,15 @@ integer ix, n_slice
 
 vec => p_orb%orb%vec
 
-call bracket_index (ele%cross_section%s, 1, size(ele%cross_section), vec(5), ix)
-if (ix == size(ele%cross_section)) ix = size(ele%cross_section) - 1
-if (vec(5) == ele%cross_section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
+call bracket_index (ele%wall_section%s, 1, size(ele%wall_section), vec(5), ix)
+if (ix == size(ele%wall_section)) ix = size(ele%wall_section) - 1
+if (vec(5) == ele%wall_section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
 p_orb%ix_cross = ix
 
 ! cc0 and cc1 are the cross-sections to either side of the photon.
 
-cc0 => ele%cross_section(ix)
-cc1 => ele%cross_section(ix+1)
+cc0 => ele%wall_section(ix)
+cc1 => ele%wall_section(ix+1)
 
 if (vec(1) == 0 .and. vec(3) == 0) then
   r_photon = 0
