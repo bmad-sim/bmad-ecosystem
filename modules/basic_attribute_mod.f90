@@ -754,7 +754,7 @@ attrib_array(crystal$, c4_curve_tot$)     = 'C4_CURVE_TOT'
 !! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
 
 attrib_array(capillary$, l$)                     = 'L'
-attrib_array(capillary$, cross$)                 = 'CROSS'
+attrib_array(capillary$, wall$)                  = 'WALL'
 attrib_array(capillary$, s_spline$)              = 'S_SPLINE'
 attrib_array(capillary$, n_slice_spline$)        = 'N_SLICE_SPLINE'
 attrib_array(capillary$, critical_angle_factor$) = 'CRITICAL_ANGLE_FACTOR'
@@ -763,6 +763,7 @@ attrib_array(capillary$, critical_angle_factor$) = 'CRITICAL_ANGLE_FACTOR'
 ! We make a short list to compare against to make things go faster.
 ! for has_orientation_attributes check both tilt and x_offset attributes
 ! since, for example, a solenoid does not have a tilt.
+! Also note: A patch element has a z_offset, not an s_offset
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90

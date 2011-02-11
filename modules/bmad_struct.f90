@@ -232,7 +232,7 @@ type ele_struct
   type (wake_struct), pointer :: wake => null()   ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  type (cross_section_struct), pointer :: cross_section(:) => null()  ! For capillaries.
+  type (cross_section_struct), pointer :: wall_section(:) => null()  
   real(rp) value(n_attrib_maxx)      ! attribute values.
   real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                   ! constant part of the genfield map.
@@ -517,7 +517,7 @@ integer, parameter :: check_sum$ = 60  ! Assumed unique. Do not overload.
 
 !! 61 = 1 + n_attrib_maxx
 
-integer, parameter :: ref_orbit$ = 61, term$ = 61, cross$ = 61
+integer, parameter :: ref_orbit$ = 61, term$ = 61
 integer, parameter :: x_position$ = 62, s_spline$ = 62
 integer, parameter :: symplectify$ = 63, y_position$ = 63, n_slice_spline$ = 63
 integer, parameter :: descrip$ = 64, z_position$ = 64
@@ -525,7 +525,7 @@ integer, parameter :: is_on$ = 65, theta_position$ = 65
 integer, parameter :: field_calc$ = 66, phi_position$ = 66
 integer, parameter :: type$ = 67, psi_position$ = 67
 integer, parameter :: aperture_at$ = 68, beta_a$ = 68
-integer, parameter :: ran_seed$ = 69, beta_b$ = 69
+integer, parameter :: ran_seed$ = 69, beta_b$ = 69, wall$ = 69
 integer, parameter :: sr_wake_file$ = 70, alpha_a$ = 70, ref_patch$ = 70
 integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
 integer, parameter :: alias$ =72, eta_x$ = 72

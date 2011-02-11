@@ -287,15 +287,19 @@ Default tilts can be used for \vn{rbend}, \vn{sbend}, \vn{sol_quad},
 The default tilt is $\pi/(2(n+1))$ where $n$ is the order of the 
 element (n = 0 for bends, n = 1 for quadrupoles etc.) 
 
-For all elements, offsets, pitches, and tilts are with respect to the
-entrance coordinates (the local coordinates just before the element.
+\index{sbend}\index{rbend}\index{crystal}\index{mirror}
+For all elements, except \vn{crystal} and \vn{mirror} elements,
+offsets and pitches and are measured with respect to the local coordinates at the
+center of the element. \vn{Crystal} and \vn{mirror} elements measurure
+their offsets and pitches with respect to the entrance coordinates.
+Note that all element define \vn{tilt} with respect to the entrance
+coordinates.
 
 The \vn{roll} attribute is only used for bends and rotates the bend,
 along an axis that runs through the entrance point and exit point as
-shown in figure~\ref{f:roll}. A \vn{roll} does not affect the
+shown in figure~\ref{f:roll}. A \vn{roll}, unlike a \vn{tilt}, does not affect the
 reference orbit. The major effect of a \vn{roll} is to give a vertical
-kick to the beam. A positive \vn{roll} is similar to a positive
-\vn{tilt}. That is, with a bend with positive bend angle, a positive
+kick to the beam. For a bend with positive bend angle, a positive
 \vn{roll} will move the outside portion ($+x$ side) of the bend upward
 and the inside portion (-$x$ side) downward. Much like car racetracks
 which are typically slanted towards the inside of a turn.
@@ -303,7 +307,12 @@ which are typically slanted towards the inside of a turn.
 \begin{figure}[ht]
   \centering
   \includegraphics{roll.pdf}
-  \caption{Geometry of a Roll}
+  \caption[Geometry of a Bend]{
+Geometry of a Bend. A roll is a rotation around the axis passing
+through the entrance and exit points. Like most other elements,
+offsets and pitches are calculated with respect to the coordinates at
+the center of the bend. Shown here is the geometry for a bend with
+\vn{tilt} = 0. That is, the bend is in the $x-s$ plane.}
   \label{f:roll}
 \end{figure}
 

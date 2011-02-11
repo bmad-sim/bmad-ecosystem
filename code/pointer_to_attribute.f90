@@ -108,12 +108,12 @@ endif
 out_of_bounds = .false.
 
 if (a_name(1:8) == 'S_SPLINE') then
-  if (.not. associated(ele%cross_section)) goto 9210
-  n_cc = get_cross_index(a_name, 9, err, 1, size(ele%cross_section)-1)
+  if (.not. associated(ele%wall_section)) goto 9210
+  n_cc = get_cross_index(a_name, 9, err, 1, size(ele%wall_section)-1)
   if (err .or. a_name(1:5) /= '.COEF') goto 9200
   n_coef = get_cross_index(a_name, 6, err, 1, 3)
   if (err .or. a_name /= '') goto 9200
-  ptr_attrib => ele%cross_section(n_cc)%s_spline(n_coef)
+  ptr_attrib => ele%wall_section(n_cc)%s_spline(n_coef)
   err_flag = .false.
   return
 endif
@@ -121,10 +121,10 @@ endif
 ! Cross-section: n_slice_spline
 
 if (a_name(1:14) == 'N_SLICE_SPLINE') then
-  if (.not. associated(ele%cross_section)) goto 9210
-  n_cc = get_cross_index(a_name, 15, err, 1, size(ele%cross_section)-1)
+  if (.not. associated(ele%wall_section)) goto 9210
+  n_cc = get_cross_index(a_name, 15, err, 1, size(ele%wall_section)-1)
   if (err .or. a_name /= '') goto 9200
-  ptr_attrib => ele%cross_section(n_cc)%n_slice_spline
+  ptr_attrib => ele%wall_section(n_cc)%n_slice_spline
   err_flag = .false.
   return
 endif
@@ -132,26 +132,26 @@ endif
 ! Cross-section
 
 if (a_name(1:5) == 'CROSS') then
-  if (.not. associated(ele%cross_section)) goto 9210
-  n_cc = get_cross_index(a_name, 6, err, 1, size(ele%cross_section))
+  if (.not. associated(ele%wall_section)) goto 9210
+  n_cc = get_cross_index(a_name, 6, err, 1, size(ele%wall_section))
   if (err) goto 9200
 
   if (a_name == 'S') then
     if (n_cc == 1) goto 9210  ! must have s = 0
-    ptr_attrib => ele%cross_section(n_cc)%s
+    ptr_attrib => ele%wall_section(n_cc)%s
     err_flag = .false.
     return
   endif
 
   if (a_name(1:1) == 'V') then
-    n_v = get_cross_index(a_name, 2, err, 1, size(ele%cross_section(n_cc)%v))
+    n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall_section(n_cc)%v))
     if (err) goto 9200
     select case (a_name)
-    case ('.X');        ptr_attrib => ele%cross_section(n_cc)%v(n_v)%x
-    case ('.Y');        ptr_attrib => ele%cross_section(n_cc)%v(n_v)%y
-    case ('.RADIUS_X'); ptr_attrib => ele%cross_section(n_cc)%v(n_v)%radius_x
-    case ('.RADIUS_Y'); ptr_attrib => ele%cross_section(n_cc)%v(n_v)%radius_y
-    case ('.TILT');     ptr_attrib => ele%cross_section(n_cc)%v(n_v)%tilt
+    case ('.X');        ptr_attrib => ele%wall_section(n_cc)%v(n_v)%x
+    case ('.Y');        ptr_attrib => ele%wall_section(n_cc)%v(n_v)%y
+    case ('.RADIUS_X'); ptr_attrib => ele%wall_section(n_cc)%v(n_v)%radius_x
+    case ('.RADIUS_Y'); ptr_attrib => ele%wall_section(n_cc)%v(n_v)%radius_y
+    case ('.TILT');     ptr_attrib => ele%wall_section(n_cc)%v(n_v)%tilt
     case default;       goto 9200
     err_flag = .false.
     end select

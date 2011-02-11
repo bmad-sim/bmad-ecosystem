@@ -474,7 +474,7 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .a
     (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
     (associated(f1%wig_term) .eqv. associated(f2%wig_term)) .and. &
     (associated(f1%wake) .eqv. associated(f2%wake)) .and. &
-    (associated(f1%cross_section) .eqv. associated(f2%cross_section))
+    (associated(f1%wall_section) .eqv. associated(f2%wall_section))
 
 
 if (.not. is_eq) return
@@ -514,9 +514,9 @@ if (associated(f1%gen_field)) then
   if (.not. associated(f1%gen_field, f2%gen_field)) return
 endif
 
-if (associated(f1%cross_section)) then
-  if (.not. associated(f2%cross_section)) return
-  if (size(f1%cross_section) /= size(f2%cross_section)) return
+if (associated(f1%wall_section)) then
+  if (.not. associated(f2%wall_section)) return
+  if (size(f1%wall_section) /= size(f2%wall_section)) return
 endif
 
 is_eq = .true.

@@ -2002,9 +2002,9 @@ endif
 
 ! Capillary element
 
-if (ele%key == capillary$ .and. associated(ele%cross_section)) then
-  do i = 1, size(ele%cross_section)
-    call cross_section_initializer(ele%cross_section(i), err_flag)
+if (ele%key == capillary$ .and. associated(ele%wall_section)) then
+  do i = 1, size(ele%wall_section)
+    call cross_section_initializer(ele%wall_section(i), err_flag)
   enddo
 endif
 
