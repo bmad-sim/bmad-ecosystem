@@ -33,7 +33,7 @@ real(rp) emit_a, emit_b, sig_e, g, gamma, r
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max
 
-integer i, j, n, nn, iu, n_wall_pt_max, random_seed, iu_start
+integer i, j, n, iu, n_wall_pt_max, random_seed, iu_start, n_shape_max
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_gen_shape
@@ -69,7 +69,7 @@ param_file = ''
 
 if (cesr_iargc() > 0) then
   call cesr_getarg(1, arg)
-  if (arg == 'plot') then
+  if (arg == '-plot') then
     plot_wall = .true.
   else
     param_file = arg
@@ -78,7 +78,7 @@ endif
 
 if (cesr_iargc() > 1) then
   call cesr_getarg(2, arg)
-  if (arg == 'plot') then
+  if (arg == '-plot') then
     if (plot_wall) ok = .false.  ! "plot plot" is error.
     plot_wall = .true.
   else
@@ -91,7 +91,7 @@ if (param_file == '') param_file = 'synrad3d.init'
 
 if (cesr_iargc() > 2 .or. .not. ok) then
   print *, 'Usage:'
-  print *, '  synrad3d {plot} {<init_file>}'
+  print *, '  synrad3d {-plot} {<init_file>}'
   print *, 'Default:'
   print *, '  <init_file> = synrad3d.init'
   stop
@@ -172,7 +172,7 @@ wall%n_pt_max = n_wall_pt_max
 
 ! Now transfer info from the file to the wall%pt array
 
-n = -1
+n_shape_max = -1
 rewind (1)
 do i = 0, n_wall_pt_max
   section%basic_shape = ''
@@ -189,15 +189,15 @@ do i = 0, n_wall_pt_max
           -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null())
 
   if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
-    n = max (n, nint(wall%pt(i)%width2))
+    n_shape_max = max (n_shape_max, nint(wall%pt(i)%width2))
   endif
 enddo
 
 ! Get the gen_shape info
 
-if (n > 0) then
+if (n_shape_max > 0) then
   rewind(1)
-  allocate (wall%gen_shape(n))
+  allocate (wall%gen_shape(n_shape_max))
   do
     v = cross_section_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
     read (1, nml = gen_shape_def, iostat = ios)
@@ -209,7 +209,8 @@ if (n > 0) then
       enddo
     endif
     if (ios < 0) exit  ! End of file
-    if (ix_gen_shape > n .or. ix_gen_shape < 1) then
+    if (ix_gen_shape > n_shape_max) cycle  ! Allow shape defs that are not used.
+    if (ix_gen_shape < 1) then
       print *, 'BAD IX_GEN_SHAPE VALUE IN WALL FILE: ', ix_gen_shape
       call err_exit
     endif

@@ -87,6 +87,26 @@ is fast and directly gives wall heating numbers. The advantage of
 \srthree is that it tracks photons in three dimensions and it does
 simulate scattering from the wall.
 
+Syntax for involking \srthree:
+\begin{example}
+  synrad3d \{-plot\} \{<main_input_file_name>\}
+\end{example}
+Example:
+\begin{example}
+  synrad3d my_input_file.init
+\end{example}
+
+\srthree has two optional command line arguments. The \vn{-plot}
+optional argument is for viewing of wall cross-sections at any point
+in the machine. This is just for diagnostic purposes. When \vn{-plot}
+is given, no photon tracking is done and instead a plot window is
+displayed and \srthree will ask for the longitudinal position to
+compute the cross-section.
+
+The \vn{<main_input_file_name>} optional argument is used to set the
+main input file name. The default is ``\vn{synrad3d.init}''. 
+
+
 %------------------------------------------------------------------------
 \section{Simulation technique and physics models}
 \subsection{Simulation technique} 
@@ -176,6 +196,7 @@ Points shown are a measurement from INFN~\cite{b.mehne}}
 
 %------------------------------------------------------------------
 \subsection{Main input file} 
+\label{s:main.file}
 
 The main input file can be specified on the command line invoking synrad3d.
 If not given, the default name for the main input file is ``\vn{synrad3d.init}''.

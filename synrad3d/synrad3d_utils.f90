@@ -54,8 +54,8 @@ do i = 0, wall%n_pt_max
   if (i > 0) then
     if (pt%s <= wall%pt(i-1)%s) then
       call out_io (s_fatal$, r_name, &
-                'WALL%PT(i)%S: \es12.2\ ', &
-                '    IS LESS THAN PT(i-1)%S: \es12.2\ ', &
+                'WALL%PT(i)%S: \f0.4\ ', &
+                '    IS LESS THAN PT(i-1)%S: \f0.4\ ', &
                 '    FOR I = \i0\ ', &
                 r_array = [pt%s, wall%pt(i-1)%s], i_array = [i])
       call err_exit
@@ -104,14 +104,14 @@ do i = 0, wall%n_pt_max
 
   if (pt%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(i)%WIDTH2: \es12.2\ ', &
+              'BAD WALL%PT(i)%WIDTH2: \f0.4\ ', &
               '    FOR I = \i0\ ', r_array = [pt%width2], i_array = [i])
     call err_exit
   endif
 
   if (pt%width2 <= 0) then
     call out_io (s_fatal$, r_name, &
-              'BAD WALL%PT(i)%HEIGHT2: \es12.2\ ', &
+              'BAD WALL%PT(i)%HEIGHT2: \f0.4\ ', &
               '    FOR I = \i0\ ', r_array = [pt%height2], i_array = [i])
     call err_exit
   endif
@@ -121,8 +121,8 @@ do i = 0, wall%n_pt_max
   if (pt%ante_height2_plus < 0 .and.pt%width2_plus > 0) then
     if (pt%width2_plus > pt%width2) then
       call out_io (s_fatal$, r_name, &
-              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
-              '    MUST BE LESS THEN WIDTH2 \es12.2\ ', &
+              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \f0.4\ ', &
+              '    MUST BE LESS THEN WIDTH2 \f0.4\ ', &
               '    FOR I = \i0\ ', &
               r_array = [pt%width2_plus, pt%width2], i_array = [i])
       call err_exit
@@ -134,8 +134,8 @@ do i = 0, wall%n_pt_max
   if (pt%ante_height2_minus < 0 .and. pt%width2_minus > 0) then
     if (pt%width2_minus > pt%width2) then
       call out_io (s_fatal$, r_name, &
-              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
-              '    MUST BE LESS THEN WIDTH2 \es12.2\ ', &
+              'WITHOUT AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \f0.4\ ', &
+              '    MUST BE LESS THEN WIDTH2 \f0.4\ ', &
               '    FOR I = \i0\ ', &
               r_array = [pt%width2_minus, pt%width2], i_array = [i])
       call err_exit
@@ -175,8 +175,8 @@ do i = 0, wall%n_pt_max
 
     if (pt%width2_plus <= pt%ante_x0_plus) then
       call out_io (s_fatal$, r_name, &
-              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \es12.2\ ', &
-              '    MUST BE GREATER THEN: \es12.2\ ', &
+              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_PLUS \f0.4\ ', &
+              '    MUST BE GREATER THEN: \f0.4\ ', &
               '    FOR I = \i0\ ', &
               r_array = [pt%width2_plus, pt%ante_x0_plus], i_array = [i])
       call err_exit
@@ -203,8 +203,8 @@ do i = 0, wall%n_pt_max
 
     if (pt%width2_minus <= pt%ante_x0_minus) then
       call out_io (s_fatal$, r_name, &
-              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \es12.2\ ', &
-              '    MUST BE GREATER THEN: \es12.2\ ', &
+              'WITH AN ANTECHAMBER: WALL%PT(i)%WIDTH2_MINUS \f0.4\ ', &
+              '    MUST BE GREATER THEN: \f0.4\ ', &
               '    FOR I = \i0\ ', &
               r_array = [pt%width2_minus, pt%ante_x0_minus], i_array = [i])
 
