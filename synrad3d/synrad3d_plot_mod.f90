@@ -27,19 +27,22 @@ type (wall3d_struct), target :: wall
 type (wall3d_pt_struct), pointer :: pt
 type (photon3d_track_struct) photon
 
-real(rp) s_pos, dtrack, x(400), y(400), x_max, y_max, theta, d_radius
-real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
+real(rp) s_pos, dtrack, x(400), y(400), x_max, y_max, theta, d_radius, r
+real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3), x_max_user
 
 integer i, j, ix, i_last, i_in, ios, i_chan, ixp
 
 character(40) ans, label
 
-logical is_through
+logical is_through, first
 
 ! Open plotting window
 
-call qp_open_page ('X', i_chan, 500.0_rp, 400.0_rp, 'POINTS')
+call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+
+x_max_user = -1
+first = .true.
 
 ! Print wall info
 
@@ -54,9 +57,15 @@ i_last = wall%n_pt_max
 
 do
 
-  ! Get s-position
+  ! Query
 
-  call read_a_line ('Input: "<Number>" (# of section), "s <s_value>", <CR> = Next section', ans)
+  if (first) then
+    first = .false.
+    ans = ''
+  else
+    call read_a_line ('Input: "<Section_Number>", "<CR>" (Next section), "s <s_value>", "x <x_max>" (negative -> autoscale)', ans)
+  endif
+
   call string_trim (ans, ans, ix)
   if (ans(1:1) == 's') then
     read (ans(2:), *, iostat = ios) s_pos
@@ -64,6 +73,14 @@ do
       print *, 'Cannot read s-position or s-position out of range.'
       cycle
     endif
+
+  elseif (ans(1:1) == 'x') then
+    read (ans(2:), *, iostat = ios) r
+    if (ios /= 0) then
+      print *, 'Cannot read x-scale'
+      cycle
+    endif
+    x_max_user = r
 
   else
     if (ans == '') then
@@ -136,7 +153,8 @@ do
 
   write (label, '(a, f0.2)') 'S: ', s_pos
   call qp_clear_page
-  x_max = maxval(abs(x)); y_max = maxval(abs(y))
+  x_max = 1.01 * maxval(abs(x)); y_max = 1.01 *maxval(abs(y))
+  if (x_max_user > 0) x_max = x_max_user
   call qp_calc_and_set_axis ('X', -x_max, x_max, 6, 10, 'ZERO_SYMMETRIC')
   call qp_calc_and_set_axis ('Y', -y_max, y_max, 6, 10, 'ZERO_SYMMETRIC')
   call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
