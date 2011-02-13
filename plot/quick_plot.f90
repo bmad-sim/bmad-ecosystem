@@ -5218,41 +5218,81 @@ end subroutine qp_read_data
 !
 ! This subroutine will increase the x or y margins so that the conversion
 ! between data units and page units is the same for the x and y axes.
-!
-! In other words, This routine will make sure that the following:
-!   call qp_draw_line (0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 'DATA')
-!   call qp_draw_line (0.0_rp, 1.0_rp, 0.0_rp, 0.0_rp, 'DATA')
-!   call qp_draw_line (1.0_rp, 1.0_rp, 0.0_rp, 1.0_rp, 'DATA')
-!   call qp_draw_line (0.0_rp, 1.0_rp, 1.0_rp, 1.0_rp, 'DATA')
-! will look like a square (and not a rectangle) when drawn.
+! In other words, This routine will make sure that a square in data units
+! looks like a square when drawn.
 ! This routine is useful in drawing maps.
+!
+! This routine will, if needed, make sure that the distance between
+! ticks is the same for both axes. This may involve the changing
+! of the [min, max] interval for one of the axes.
 !-
 
 subroutine qp_eliminate_xy_distortion
 
 implicit none
 
-real(rp) x_scale, y_scale, r, d
+real(rp) x_scale, y_scale
 
-!
+! Adjust one axis scale
 
 call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
 
 if (x_scale > y_scale) then  ! shrink in x
-  r = (x_scale - y_scale) / x_scale 
-  d = qp_com%graph%x2 - qp_com%graph%x1
-  qp_com%margin%x1 = qp_com%margin%x1 + r * d / 2
-  qp_com%margin%x2 = qp_com%margin%x2 + r * d / 2
+  call axis_scale (qp_com%plot%x, qp_com%plot%y, y_scale / x_scale)
+else  ! shrink in y
+  call axis_scale (qp_com%plot%y, qp_com%plot%x, x_scale / y_scale)
+endif
+
+! Now adjust the margins
+
+call qp_set_graph_limits
+call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
+
+if (x_scale > y_scale) then  ! shrink in x
+  call margin_scale (y_scale / x_scale, qp_com%graph%x1, qp_com%graph%x2, &
+                                           qp_com%margin%x1, qp_com%margin%x2) 
 
 else  ! shrink in y
-  r = (y_scale - x_scale) / y_scale 
-  d = qp_com%graph%y2 - qp_com%graph%y1
-  qp_com%margin%y1 = qp_com%margin%y1 + r * d / 2
-  qp_com%margin%y2 = qp_com%margin%y2 + r * d / 2
-
+  call margin_scale (x_scale / y_scale, qp_com%graph%y1, qp_com%graph%y2, &
+                                           qp_com%margin%y1, qp_com%margin%y2) 
 endif
 
 call qp_set_graph_limits
+
+!----------------------------------------------------
+contains
+
+subroutine axis_scale (axis_z, axis_t, tz_ratio)
+
+type (qp_axis_struct) axis_z, axis_t
+
+real(rp) tz_ratio, div_t
+
+! Change z-axis to match t-axis
+
+div_t = (axis_t%max - axis_t%min) /axis_t%major_div
+axis_z%max = div_t * ceiling (0.99999 * axis_z%max / div_t)
+axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
+axis_z%places = axis_t%places
+axis_z%major_div = nint((axis_z%max - axis_z%min) / div_t)
+axis_z%minor_div = axis_t%minor_div
+
+end subroutine
+
+!----------------------------------------------------
+! contains
+
+subroutine margin_scale (tz_ratio, graph_z1, graph_z2, margin_z1, margin_z2)
+
+real(rp) rd, tz_ratio, graph_z1, graph_z2, margin_z1, margin_z2
+
+! Scale margins
+
+rd = (1 - tz_ratio) * (graph_z2 - graph_z1) / 2
+margin_z1 = margin_z1 + rd
+margin_z2 = margin_z2 + rd
+
+end subroutine
 
 end subroutine qp_eliminate_xy_distortion
 

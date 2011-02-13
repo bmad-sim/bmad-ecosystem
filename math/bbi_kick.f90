@@ -37,19 +37,24 @@
 !
 ! In the calling routine the formulas for computing the kicks, kick_x and kick_y, are:
 !   kick_x = bbi_const * kx 
-!          = -4 * pi * bbi_const * x / sigma_x                        [linear region]
-!          = -2 * N_p * r_e * x / (gamma * sig_x * (sig_x + sig_y))   [linear region]
+!          ~ -4 * pi * bbi_const * x / sigma_x                        [linear region]
+!          ~ -2 * N_p * r_e * x / (gamma * sig_x * (sig_x + sig_y))   [linear region]
+!          ~ -2 * N_p * r_e * x / (gamma * (x^2 + y^2))               [far from beam]
 !   kick_y = bbi_const * ky
-!          = -4 * pi * bbi_const * y / sigma_y                        [linear region]
-!          = -2 * N_p * r_e * y / (gamma * sig_y * (sig_x + sig_y))   [linear region]
+!          ~ -4 * pi * bbi_const * y / sigma_y                        [linear region]
+!          ~ -2 * N_p * r_e * y / (gamma * sig_y * (sig_x + sig_y))   [linear region]
+!          ~ -2 * N_p * r_e * y / (gamma * (x^2 + y^2))               [far from beam]
 !
 ! For the beam-ion kick, assuming the ion velocity is neglegeble, the formulas are:
 !   kick_x = ion_const * kx
-!          = -4 * pi * ion_const * x / sigma_x                             [linear region]
-!          = -2 * N_p * r_p * c_light * x / (sig_x * (sig_x + sig_y) * A)  [linear region]
+!          ~ -4 * pi * ion_const * x / sigma_x                             [linear region]
+!          ~ -2 * N_p * r_p * c_light * x / (sig_x * (sig_x + sig_y) * A)  [linear region]
+!          ~ -2 * N_p * r_p * c_light * x / ((x^2 + y^2) * A)              [far from beam]
 !   kick_y = ion_const * ky
-!          = -4 * pi * ion_const * y / sigma_y                             [linear region]
-!          = -2 * N_p * r_p * c_light * y / (sig_y * (sig_x + sig_y) * A)  [linear region]
+!          ~ -4 * pi * ion_const * y / sigma_y                             [linear region]
+!          ~ -2 * N_p * r_p * c_light * y / (sig_y * (sig_x + sig_y) * A)  [linear region]
+!          ~ -2 * N_p * r_p * c_light * y / ((x^2 + y^2) * A)              [far from beam]
+!
 ! where
 !  ion_const = N_particles_bunch * r_p * c_light / (2 * pi * (sig_x + sig_y) * A)
 !  A = Mass of ion in AMU.
