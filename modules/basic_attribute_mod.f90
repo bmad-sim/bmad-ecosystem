@@ -264,6 +264,7 @@ do i = 1, n_key
 
   if (i == null_ele$) cycle
 
+  attrib_array(i, wall$)                  = 'WALL'
   attrib_array(i, x_limit$)               = 'X_LIMIT'
   attrib_array(i, x1_limit$)              = 'X1_LIMIT'
   attrib_array(i, x2_limit$)              = 'X2_LIMIT'
@@ -393,6 +394,7 @@ attrib_array(init_ele$, e_field_x$)       = 'E_FIELD_X'
 attrib_array(init_ele$, e_field_y$)       = 'E_FIELD_Y'
 attrib_array(init_ele$, phase_x$)         = 'PHASE_X'
 attrib_array(init_ele$, phase_y$)         = 'PHASE_Y'
+attrib_array(init_ele$, wall$)            = 'WALL'
 
 attrib_array(def_parameter$, e_tot$)              = 'E_TOT'
 attrib_array(def_parameter$, p0c$)                = 'P0C'
@@ -754,7 +756,6 @@ attrib_array(crystal$, c4_curve_tot$)     = 'C4_CURVE_TOT'
 !! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
 
 attrib_array(capillary$, l$)                     = 'L'
-attrib_array(capillary$, wall$)                  = 'WALL'
 attrib_array(capillary$, s_spline$)              = 'S_SPLINE'
 attrib_array(capillary$, n_slice_spline$)        = 'N_SLICE_SPLINE'
 attrib_array(capillary$, critical_angle_factor$) = 'CRITICAL_ANGLE_FACTOR'

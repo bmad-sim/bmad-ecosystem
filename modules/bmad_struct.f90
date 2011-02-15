@@ -9,6 +9,7 @@ module bmad_struct
 use twiss_mod
 use bmad_taylor_mod
 use random_mod
+use wall3d_mod
 
 use tpsalie_analysis, only: genfield
 
@@ -20,7 +21,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 96
+integer, parameter :: bmad_inc_version$ = 97
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -43,37 +44,6 @@ end type
 
 type coord_array_struct
   type (coord_struct), allocatable :: orb(:)
-end type
-
-! Structure for defining cross-sections of beam pipes and capillaries
-! at given longitudinal positions.
-! A cross-section is defined by an array v(:) of cross_section_vertex_structs.
-! Each v(i) defines a point (vertex) on the pipe/capillary.
-! Vertices are connected by straight lines, circular arcs, or ellipses.
-! The radius and tilt values are for the arc from the preceding vertex to this one.
-! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
-!   n = upper bound of v(:) array.
-
-type cross_section_vertex_struct
-  real(rp) x, y             ! Coordinates of the vertex.
-  real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
-  real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
-  real(rp) :: tilt = 0      ! Tilt of ellipse
-  real(rp) angle            ! Angle of (x, y) point.
-  real(rp) x0, y0           ! Center of ellipse
-end type
-
-! A beam pipe or capillary cross section is a collection of vertexes.
-! Vertices are always ordered in increasing angle.
-
-type cross_section_struct
-  integer type
-  real(rp) :: s = 0                     ! Longitudinal position
-  real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
-  real(rp) :: n_slice_spline = 1        ! Number of slices used for the spline.
-  type (cross_section_vertex_struct), allocatable :: v(:) 
-                                        ! Array of vertices
-  integer n_vertex_input                ! Number of vertices specified by the user.
 end type
 
 integer, parameter :: mesh_surface$ = 1, linear_surface$ = 2
@@ -232,7 +202,7 @@ type ele_struct
   type (wake_struct), pointer :: wake => null()   ! Wakefields
   type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  type (cross_section_struct), pointer :: wall_section(:) => null()  
+  type (wall3d_struct) :: wall3d         ! Chamber or capillary wall
   real(rp) value(n_attrib_maxx)      ! attribute values.
   real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                   ! constant part of the genfield map.
@@ -335,6 +305,7 @@ type branch_struct
   integer, pointer :: n_ele_max
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
+  type (wall3d_struct), pointer :: wall3d => null()
 end type
 
 type dummy_parameter_struct
@@ -358,6 +329,7 @@ type lat_struct
   type (lat_param_struct) param       ! Parameters
   type (ele_struct)  ele_init         ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
+  type (wall3d_struct) wall3d
   type (branch_struct), allocatable :: branch(:)   ! Branch arrays
   type (control_struct), allocatable :: control(:) ! Control list
   type (coord_struct) beam_start      ! Starting coords
@@ -525,7 +497,7 @@ integer, parameter :: is_on$ = 65, theta_position$ = 65
 integer, parameter :: field_calc$ = 66, phi_position$ = 66
 integer, parameter :: type$ = 67, psi_position$ = 67
 integer, parameter :: aperture_at$ = 68, beta_a$ = 68
-integer, parameter :: ran_seed$ = 69, beta_b$ = 69, wall$ = 69
+integer, parameter :: ran_seed$ = 69, beta_b$ = 69
 integer, parameter :: sr_wake_file$ = 70, alpha_a$ = 70, ref_patch$ = 70
 integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71
 integer, parameter :: alias$ =72, eta_x$ = 72
@@ -563,6 +535,7 @@ integer, parameter :: to$ = 100
 integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
 integer, parameter :: scale_multipoles$ = 103
+integer, parameter :: wall$ = 104
 
 integer, parameter :: a0$  = 110, k0l$  = 110
 integer, parameter :: a20$ = 130, k20l$ = 130

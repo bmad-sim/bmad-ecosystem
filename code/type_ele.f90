@@ -1,7 +1,7 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, 
 !        type_control, lattice, type_wake, type_floor_coords, type_wig_terms, 
-!        type_cross_section, nunit)
+!        type_wall, nunit)
 !
 ! Subroutine to type out information on an element. 
 ! See also the subroutine type2_ele.
@@ -38,7 +38,7 @@
 !                           Default is False.
 !   type_wig_terms     -- Logical, optional: If True then print the wiggler terms for
 !                           a map_type wiggler. Default is False.
-!   type_cross_section -- Logical, optional: If True then print cross-section info
+!   type_wall          -- Logical, optional: If True then print wall info
 !                           for a capillary. Default is False.
 !   nunit              -- Integer, optional: Unit for writing:
 !                             > 0 output to file only with unit = nunit
@@ -48,7 +48,7 @@
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
       type_control, lattice, type_wake, type_floor_coords, type_wig_terms, &
-      type_cross_section, nunit)
+      type_wall, nunit)
 
 use bmad_struct
 use bmad_interface, except_dummy => type_ele
@@ -62,7 +62,7 @@ integer n_lines, i, iu
 integer, optional :: type_mat6, twiss_out, nunit
 
 logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
-logical, optional :: type_floor_coords, type_wig_terms, type_cross_section
+logical, optional :: type_floor_coords, type_wig_terms, type_wall
 
 character(200), pointer :: lines(:) 
 
@@ -72,7 +72,7 @@ nullify (lines)
 
 call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, &
       twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms, &
-      type_cross_section)
+      type_wall)
 
 iu = integer_option(0, nunit)
 

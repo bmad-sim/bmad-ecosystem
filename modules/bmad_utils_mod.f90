@@ -565,8 +565,8 @@ end subroutine wiggler_vec_potential
 ! Subroutine transfer_lat_parameters (lat_in, lat_out)
 !
 ! Subroutine to transfer the lat parameters (such as lat%name, lat%param, etc.)
-! from one lat to another. The only stuff that is not transfered are the
-! arrays and lat%ele_init.
+! from one lat to another. The only stuff that is not transfered are things
+! that are (or have) pointers or arrays
 !
 ! Modules needed:
 !   use bmad
@@ -1206,7 +1206,7 @@ if (present (nullify_only)) then
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
     nullify (ele%gen_field)
     nullify (ele%mode3)
-    nullify (ele%wall_section)
+    nullify (ele%wall3d%section)
     return
   endif
 endif
@@ -1219,7 +1219,7 @@ if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%mode3))          deallocate (ele%mode3)
-if (associated (ele%wall_section))   deallocate (ele%wall_section)
+if (associated (ele%wall3d%section)) deallocate (ele%wall3d%section)
 
 if (associated (ele%wake)) then
   if (associated (ele%wake%sr_table))      deallocate (ele%wake%sr_table)
@@ -1605,10 +1605,11 @@ if (allocated (lat%branch)) then
 else
   curr_ub = -1
   allocate(lat%branch(0:ub))
-  lat%branch(0)%ele => lat%ele
-  lat%branch(0)%param => lat%param
-  lat%branch(0)%n_ele_track => lat%n_ele_track
-  lat%branch(0)%n_ele_max => lat%n_ele_max
+  lat%branch(0)%ele            => lat%ele
+  lat%branch(0)%param          => lat%param
+  lat%branch(0)%wall3d         => lat%wall3d
+  lat%branch(0)%n_ele_track    => lat%n_ele_track
+  lat%branch(0)%n_ele_max      => lat%n_ele_max
 endif
 
 ! 
@@ -1619,6 +1620,7 @@ do i = curr_ub+1, ub
   allocate(lat%branch(i)%n_ele_track)
   allocate(lat%branch(i)%n_ele_max)
   allocate(lat%branch(i)%param)
+  allocate(lat%branch(i)%wall3d)
   lat%branch(i)%param = lat%param
 end do
 
@@ -1658,49 +1660,26 @@ if (associated (lat%ele)) then
   deallocate (lat%ic)
 endif
 
-call deallocate_branch (lat%branch)
+if (associated(lat%wall3d%section)) deallocate(lat%wall3d%section)
+
+! Do not need to deallocate stuff in lat%branch(0) since
+! these pointers have been deallocated above.
+
+if (allocated (lat%branch)) then
+  do i = 1, ubound(lat%branch, 1)
+    call deallocate_ele_array_pointers (lat%branch(i)%ele)
+    deallocate (lat%branch(i)%param)
+    if (associated(lat%branch(i)%wall3d%section)) deallocate(lat%branch(i)%wall3d%section)
+  enddo
+  deallocate (lat%branch)
+endif
+
+!
 
 lat%n_ele_track  = -1
 lat%n_ele_max  = -1
 
 end subroutine deallocate_lat_pointers
-
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!--------------------------------------------------------------------
-!+
-! Subroutine deallocate_branch (branch)
-!
-! Subroutine to deallocate a branch array and everything in it.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   branch(:) -- Branch_struct, allocatable: Array of lines.
-!
-! Output:
-!   branch(:) -- Branch_struct, allocatable: Deallocated array.
-!-
-
-subroutine deallocate_branch (branch)
-
-implicit none
-
-type (branch_struct), allocatable :: branch(:)
-integer i
-
-!
-
-if (allocated (branch)) then
-  do i = 1, ubound(branch, 1)
-    call deallocate_ele_array_pointers (branch(i)%ele)
-    deallocate (branch(i)%param)
-  enddo
-  deallocate (branch)
-endif
-
-end subroutine deallocate_branch
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------

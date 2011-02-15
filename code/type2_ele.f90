@@ -1,7 +1,7 @@
 
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
 !        twiss_out, type_control, lattice, type_wake, type_floor_coords, 
-!        type_wig_terms, type_cross_section)
+!        type_wig_terms, type_wall)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -37,8 +37,7 @@
 !                          Default is False.
 !   type_wig_terms    -- Logical, optional: If True then print the wiggler terms for
 !                           a map_type wiggler. Default is False.
-!   type_cross_section -- Logical, optional: If True then print cross-section info
-!                           for a capillary. Default is False.
+!   type_wall          -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
 !   lines(:)     -- Character(100), pointer: Character array to hold the 
@@ -50,7 +49,7 @@
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_taylor, twiss_out, type_control, lattice, type_wake, &
-                type_floor_coords, type_wig_terms, type_cross_section)
+                type_floor_coords, type_wig_terms, type_wall)
 
 use bmad_struct
 use bmad_interface, except_dummy => type2_ele
@@ -66,8 +65,8 @@ type (wig_term_struct), pointer :: term
 type (lr_wake_struct), pointer :: lr
 type (sr_table_wake_struct), pointer :: sr_table
 type (sr_mode_wake_struct), pointer :: sr_m
-type (cross_section_struct), pointer :: cs
-type (cross_section_vertex_struct), pointer :: v
+type (wall3d_section_struct), pointer :: section
+type (wall3d_vertex_struct), pointer :: v
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, intent(out) :: n_lines
@@ -89,7 +88,7 @@ character(2) str_i
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional :: type_floor_coords, type_wig_terms, type_cross_section
+logical, optional :: type_floor_coords, type_wig_terms, type_wall
 logical type_zero, err_flag, print_it, is_default
 
 ! init
@@ -249,26 +248,26 @@ if (associated(ele%wig_term)) then
   endif
 endif
 
-! cross-section
+! wall3d cross-sections
 
-if (associated(ele%wall_section)) then
-  if (logic_option(.false., type_cross_section)) then
-    do i = 1, size(ele%wall_section)
-      cs => ele%wall_section(i)
+if (associated(ele%wall3d%section)) then
+  if (logic_option(.false., type_wall)) then
+    do i = 1, size(ele%wall3d%section)
+      section => ele%wall3d%section(i)
       nl=nl+1; li(nl) = ''
-      nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall.Section# ', i, ':  S =', cs%s
-      do j = 1, size(cs%v)
-        v => cs%v(j)
+      nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall.Section# ', i, ':  S =', section%s
+      do j = 1, size(section%v)
+        v => section%v(j)
         nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
                               'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
       enddo
-      if (i == size(ele%wall_section)) exit
+      if (i == size(ele%wall3d%section)) exit
       nl=nl+1; li(nl) = ''
-      nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline       =', cs%s_spline
-      nl=nl+1; write (li(nl), '(a, i0)')    ' N_Slice_Spline =', nint(cs%n_slice_spline)
+      nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline       =', section%s_spline
+      nl=nl+1; write (li(nl), '(a, i0)')    ' N_Slice_Spline =', nint(section%n_slice_spline)
     enddo
   else
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of wall cross-sections:', size(ele%wall_section)
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
   endif
 endif
 

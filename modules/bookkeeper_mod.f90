@@ -6,7 +6,6 @@ use multipole_mod
 use lat_geometry_mod
 use equality_mod
 use em_field_mod
-use cross_section_mod
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
@@ -2000,11 +1999,11 @@ if (.not. ele%on_a_girder .and. has_orientation_attributes(ele%key)) then
   val(y_pitch_tot$)  = val(y_pitch$)
 endif
 
-! Capillary element
+! Wall3d
 
-if (ele%key == capillary$ .and. associated(ele%wall_section)) then
-  do i = 1, size(ele%wall_section)
-    call cross_section_initializer(ele%wall_section(i), err_flag)
+if (associated(ele%wall3d%section)) then
+  do i = 1, size(ele%wall3d%section)
+    call wall3d_section_initializer(ele%wall3d%section(i), err_flag)
   enddo
 endif
 
