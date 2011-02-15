@@ -16,25 +16,25 @@ contains
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   wall -- wall3d_struct: Wall structure.
+!   wall -- sr3d_wall_struct: Wall structure.
 !-
 
 subroutine sr3d_plot_wall_cross_sections (wall)
 
 implicit none
 
-type (wall3d_struct), target :: wall
-type (wall3d_pt_struct), pointer :: pt
-type (photon3d_track_struct) photon
+type (sr3d_wall_struct), target :: wall
+type (sr3d_wall_pt_struct), pointer :: pt
+type (sr3d_photon_track_struct) photon
 
 real(rp) s_pos, dtrack, x(400), y(400), x_max, y_max, theta, d_radius, r
 real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3), x_max_user
 
-integer i, j, ix, i_last, i_in, ios, i_chan, ixp
+integer i, j, ix, ix_section, i_in, ios, i_chan, ixp
 
 character(40) ans, label
 
-logical is_through, first
+logical is_through, first, at_section
 
 ! Open plotting window
 
@@ -51,7 +51,7 @@ do i = 0, wall%n_pt_max
   print '(i4, 2x, a, f12.2)', i, pt%basic_shape(1:12), pt%s
 enddo
 
-i_last = wall%n_pt_max
+ix_section = wall%n_pt_max
 
 ! Loop
 
@@ -73,6 +73,7 @@ do
       print *, 'Cannot read s-position or s-position out of range.'
       cycle
     endif
+    at_section = .false.
 
   elseif (ans(1:1) == 'x') then
     read (ans(2:), *, iostat = ios) r
@@ -84,7 +85,7 @@ do
 
   else
     if (ans == '') then
-      i_last = modulo(i_last + 1, wall%n_pt_max + 1)
+      ix_section = modulo(ix_section + 1, wall%n_pt_max + 1)
     else
       read (ans, *, iostat = ios) i_in
       if (ios /= 0) then
@@ -95,9 +96,10 @@ do
         print *, 'Number is out of range!'
         cycle
       endif
-      i_last = i_in
+      ix_section = i_in
     endif
-    s_pos = wall%pt(i_last)%s
+    s_pos = wall%pt(ix_section)%s
+    at_section = .true.
 
   endif
 
@@ -151,7 +153,11 @@ do
 
   ! Now plot
 
-  write (label, '(a, f0.2)') 'S: ', s_pos
+  if (at_section) then
+    write (label, '(a, f0.2, a, i0)') 'S: ', s_pos, '   Section #: ', ix_section
+  else
+    write (label, '(a, f0.2)') 'S: ', s_pos
+  endif
   call qp_clear_page
   x_max = 1.01 * maxval(abs(x)); y_max = 1.01 *maxval(abs(y))
   if (x_max_user > 0) x_max = x_max_user

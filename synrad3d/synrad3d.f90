@@ -18,15 +18,15 @@ type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orbit_here
 type (rad_int_common_struct) rad_int_ele
 type (normal_modes_struct) modes
-type (photon3d_track_struct), allocatable, target :: photons(:)
-type (photon3d_track_struct), pointer :: photon
-type (wall3d_struct), target :: wall
-type (wall3d_pt_input) section
-type (photon3d_coord_struct) p
+type (sr3d_photon_track_struct), allocatable, target :: photons(:)
+type (sr3d_photon_track_struct), pointer :: photon
+type (sr3d_wall_struct), target :: wall
+type (sr3d_wall_pt_input) section
+type (sr3d_photon_coord_struct) p
 type (random_state_struct) ran_state
-type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
-type (cross_section_vertex_struct) v(100)
-type (cross_section_struct), pointer :: poly
+type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
+type (wall3d_vertex_struct) v(100)
+type (wall3d_section_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, r
@@ -182,7 +182,7 @@ do i = 0, n_wall_pt_max
   section%width2_minus = -1
   read (1, nml = wall_def)
 
-  wall%pt(i) = wall3d_pt_struct( &
+  wall%pt(i) = sr3d_wall_pt_struct( &
           section%s, section%basic_shape, section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
@@ -199,7 +199,7 @@ if (n_shape_max > 0) then
   rewind(1)
   allocate (wall%gen_shape(n_shape_max))
   do
-    v = cross_section_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+    v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
     read (1, nml = gen_shape_def, iostat = ios)
     if (ios > 0) then ! If error
       print *, 'ERROR READING GEN_SHAPE_DEF NAMELIST.'
@@ -233,7 +233,7 @@ if (n_shape_max > 0) then
     poly%v = v(1:n-1)
     poly%n_vertex_input = n-1
       
-    call cross_section_initializer (poly, err)
+    call wall3d_section_initializer (poly, err)
     if (err) call err_exit
 
   enddo
@@ -641,8 +641,8 @@ end subroutine
 
 subroutine check_if_photon_init_coords_outside_wall (photon_start, is_inside)
 
-type (photon3d_coord_struct) photon_start
-type (photon3d_track_struct) photon
+type (sr3d_photon_coord_struct) photon_start
+type (sr3d_photon_track_struct) photon
 
 real(rp) d_radius
 
@@ -684,18 +684,18 @@ end subroutine
 ! The final size will be at least n_size.
 !
 ! Input:
-!   photon_array(:) -- photon3d_track_struct, allocatable: Array of photons
+!   photon_array(:) -- sr3d_photon_track_struct, allocatable: Array of photons
 !   n_size          -- Integer: Minimum size
 !
 ! Output:
-!   photon_array(:) -- photon3d_track_struct, allocatable: Array with size at least n_size.
+!   photon_array(:) -- sr3d_photon_track_struct, allocatable: Array with size at least n_size.
 !-
 
 subroutine reallocate_photon_array (photon_array, n_size)
 
 implicit none
 
-type (photon3d_track_struct), allocatable :: photon_array(:), temp(:)
+type (sr3d_photon_track_struct), allocatable :: photon_array(:), temp(:)
 integer n, n_size, n_old, j
 
 !

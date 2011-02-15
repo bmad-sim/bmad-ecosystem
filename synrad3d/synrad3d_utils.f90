@@ -19,20 +19,20 @@ contains
 ! Also compute some wall parameters
 !
 ! Input:
-!   wall -- wall3d_struct: Wall structure.
+!   wall -- sr3d_wall_struct: Wall structure.
 !   lat  -- lat_struct: lattice
 !
 ! Output:
-!   wall -- wall3d_struct: Wall structure with computed parameters.
+!   wall -- sr3d_wall_struct: Wall structure with computed parameters.
 !-
 
 subroutine sr3d_init_and_check_wall (wall, lat)
 
 implicit none
 
-type (wall3d_struct), target :: wall
+type (sr3d_wall_struct), target :: wall
 type (lat_struct) lat
-type (wall3d_pt_struct), pointer :: pt, pt0
+type (sr3d_wall_pt_struct), pointer :: pt, pt0
 
 
 integer i
@@ -257,7 +257,7 @@ type (lat_struct), target :: lat
 type (coord_struct) :: orb(0:), orb_here, orb1
 type (ele_struct), pointer :: ele
 type (ele_struct) ele_here
-type (photon3d_coord_struct) :: photon
+type (sr3d_photon_coord_struct) :: photon
 type (em_field_struct) :: field
 
 real(rp) s_offset, k_wig, g_max, l_small, gx, gy
@@ -387,7 +387,7 @@ implicit none
 
 type (ele_struct), target :: ele_here
 type (coord_struct) :: orb_here
-type (photon3d_coord_struct) :: p_orb
+type (sr3d_photon_coord_struct) :: p_orb
 type (twiss_struct), pointer :: t
 
 real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma
@@ -455,7 +455,7 @@ end subroutine sr3d_emit_photon
 !   use photon_utils
 !
 ! Input:
-!   wall -- wall3d_struct: Wall
+!   wall -- sr3d_wall_struct: Wall
 !   s    -- Real(rp): Longitudinal position.
 !
 ! Output:
@@ -468,8 +468,8 @@ Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, dw_perp, in_antechamber,
 
 implicit none
 
-type (wall3d_struct), target :: wall
-type (photon3d_coord_struct), target :: p_orb
+type (sr3d_wall_struct), target :: wall
+type (sr3d_photon_coord_struct), target :: p_orb
 
 real(rp), optional :: d_radius, dw_perp(3)
 real(rp) radius0, radius1, f, cos_ang, sin_ang, r_photon
@@ -544,8 +544,8 @@ end subroutine sr3d_photon_d_radius
 !   If p_orb%vec(5) == wall%pt(wall%n_pt_max)%s -> ix_wall = wall%n_pt_max - 1
 !
 ! Input:
-!   p_orb  -- photon3d_coord_struct: Photon position.
-!   wall   -- wall3d_struct: Wall structure
+!   p_orb  -- sr3d_photon_coord_struct: Photon position.
+!   wall   -- sr3d_wall_struct: Wall structure
 !
 ! Output:
 !   ix_wall -- Integer: Wall index
@@ -555,8 +555,8 @@ subroutine sr3d_get_wall_index (p_orb, wall, ix_wall)
 
 implicit none
 
-type (photon3d_coord_struct) :: p_orb
-type (wall3d_struct), target :: wall
+type (sr3d_photon_coord_struct) :: p_orb
+type (sr3d_wall_struct), target :: wall
 
 integer ix_wall
 integer, save :: ix_wall_old = 0
@@ -589,8 +589,8 @@ end subroutine sr3d_get_wall_index
 ! two cross-sections.
 !
 ! Input:
-!   pt1 -- wall3d_pt_struct: A gen_shape or gen_shape_mesh cross-section.
-!   pt2 -- wall3d_pt_struct: Second cross-section. Should be gen_shape_mesh.
+!   pt1 -- sr3d_wall_pt_struct: A gen_shape or gen_shape_mesh cross-section.
+!   pt2 -- sr3d_wall_pt_struct: Second cross-section. Should be gen_shape_mesh.
 !   ix_tr  -- Integer: Triangle index. Must be between 1 and 2*size(pt1%gen_shape%v).
 !               [Note: size(pt1%gen_shape%v) = size(pt2%gen_shape%v)]
 !
@@ -605,7 +605,7 @@ subroutine sr3d_get_mesh_wall_triangle_pts (pt1, pt2, ix_tri, tri_vert0, tri_ver
 
 implicit none
 
-type (wall3d_pt_struct) pt1, pt2
+type (sr3d_wall_pt_struct) pt1, pt2
 
 integer ix_tri
 integer ix1, ix2
@@ -639,10 +639,10 @@ end subroutine sr3d_get_mesh_wall_triangle_pts
 ! Routine to compute parameters needed by sr3d_photon_d_radius routine.
 !
 ! Input:
-!   wall_pt -- wall3d_pt_struct: Wall outline at a particular longitudinal location.
+!   wall_pt -- sr3d_wall_pt_struct: Wall outline at a particular longitudinal location.
 !   cos_photon -- Real(rp): Cosine of the photon transverse position.
 !   sin_photon -- Real(rp): Sine of the photon transverse position.
-!   wall       -- wall3d_struct: Needed to determine the basic_shape.
+!   wall       -- sr3d_wall_struct: Needed to determine the basic_shape.
 !
 ! Output:
 !   r_wall         -- Real(rp): Radius of the wall
@@ -654,8 +654,8 @@ subroutine sr3d_wall_pt_params (wall_pt, cos_photon, sin_photon, r_wall, dr_dthe
 
 implicit none
 
-type (wall3d_pt_struct) wall_pt, pt
-type (cross_section_vertex_struct), pointer :: v(:)
+type (sr3d_wall_pt_struct) wall_pt, pt
+type (wall3d_vertex_struct), pointer :: v(:)
 
 real(rp) dr_dtheta, cos_photon, sin_photon 
 real(rp) r_wall

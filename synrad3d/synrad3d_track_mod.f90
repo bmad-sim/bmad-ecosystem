@@ -6,9 +6,9 @@ use photon_reflection_mod
 ! These common variables are needed for the Num Rec routine zbrent.
 
 private sr3d_photon_hit_func
-type (photon3d_track_struct), pointer, private, save :: photon_com
-type (photon3d_track_struct), private, save :: photon1_com
-type (wall3d_struct), pointer, private, save :: wall_com
+type (sr3d_photon_track_struct), pointer, private, save :: photon_com
+type (sr3d_photon_track_struct), private, save :: photon1_com
+type (sr3d_wall_struct), pointer, private, save :: wall_com
 type (lat_struct), pointer, private, save :: lat_com
 
 contains
@@ -25,14 +25,14 @@ contains
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon    -- photon3d_coord_struct: photon with starting parameters set.
+!   photon    -- sr3d_photon_coord_struct: photon with starting parameters set.
 !     %start    -- Starting coords.
 !   lat       -- lat_struct: with twiss propagated and mat6s made
-!   wall      -- wall3d_struct: Beam chamber walls
+!   wall      -- sr3d_wall_struct: Beam chamber walls
 !
 ! Output:
-!   photon      -- photon3d_coord_struct: synch radiation photon propagated until absorbtion.
-!   wall_hit(:) -- photon3d_wall_hit_struct: Array of wall hit data.
+!   photon      -- sr3d_photon_coord_struct: synch radiation photon propagated until absorbtion.
+!   wall_hit(:) -- sr3d_photon_wall_hit_struct: Array of wall hit data.
 !-
 
 subroutine sr3d_track_photon (photon, lat, wall, wall_hit)
@@ -40,9 +40,9 @@ subroutine sr3d_track_photon (photon, lat, wall, wall_hit)
 implicit none
 
 type (lat_struct), target :: lat
-type (photon3d_track_struct), target :: photon
-type (wall3d_struct), target :: wall
-type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_wall_struct), target :: wall
+type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 logical absorbed
 
@@ -74,12 +74,12 @@ end subroutine sr3d_track_photon
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon    -- photon3d_coord_struct: photon with starting parameters set
+!   photon    -- sr3d_photon_coord_struct: photon with starting parameters set
 !   lat       -- lat_struct: with twiss propagated and mat6s made
-!   wall      -- wall3d_struct: Beam chamber walls
+!   wall      -- sr3d_wall_struct: Beam chamber walls
 !
 ! Output:
-!   photon    -- photon3d_coord_struct: synch radiation photon propagated to wall
+!   photon    -- sr3d_photon_coord_struct: synch radiation photon propagated to wall
 !-
 
 subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
@@ -87,9 +87,9 @@ subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
 implicit none
 
 type (lat_struct), target :: lat
-type (photon3d_track_struct), target :: photon
-type (wall3d_struct), target :: wall
-type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_wall_struct), target :: wall
+type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) v_rad_max, dlen, radius
 real(rp), pointer :: vec(:)
@@ -135,8 +135,8 @@ end subroutine sr3d_track_photon_to_wall
 ! is at the end of a linear lattice
 !
 ! Input:
-!   photon  -- photon3d_track_struct
-!   wall    -- wall3d_struct: Wall
+!   photon  -- sr3d_photon_track_struct
+!   wall    -- sr3d_wall_struct: Wall
 !
 ! Output:
 !   photon%status -- Integer: is_through_wall$, at_lat_end$, or inside_the_wall$
@@ -146,8 +146,8 @@ subroutine sr3d_photon_status_calc (photon, wall)
 
 implicit none
 
-type (photon3d_track_struct) photon
-type (wall3d_struct) wall
+type (sr3d_photon_track_struct) photon
+type (sr3d_wall_struct) wall
 
 real(rp) d_radius
 real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
@@ -202,7 +202,7 @@ end subroutine sr3d_photon_status_calc
 ! Note: This calculation assumes a straight reference coordinates.
 !
 ! Input:
-!   photon    -- photon3d_track_struct:
+!   photon    -- sr3d_photon_track_struct:
 !     %old        -- Original point
 !     %now        -- current point                
 !   pt0(3), pt1(3), pt2(3) 
@@ -218,7 +218,7 @@ subroutine sr3d_mesh_triangle_intersect (photon, pt0, pt1, pt2, intersect, dtrac
 
 implicit none
 
-type (photon3d_track_struct) photon
+type (sr3d_photon_track_struct) photon
 
 real(rp) pt0(3), pt1(3), pt2(3)
 real(rp), optional :: dtrack_len
@@ -275,7 +275,7 @@ end subroutine sr3d_mesh_triangle_intersect
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon  -- photon3d_coord_struct: Photon to track.
+!   photon  -- sr3d_photon_coord_struct: Photon to track.
 !   dl_step -- Real(rp): Distance to track. Note: the propagation distance may not be exact
 !               when going long distances.
 !   lat     -- lat_struct: Lattice to track through.
@@ -286,7 +286,7 @@ end subroutine sr3d_mesh_triangle_intersect
 !              Note: (b) guarantees that there will be check points at the ends of the lattice.
 !
 ! Output:
-!   photon  -- photon3d_coord_struct: 
+!   photon  -- sr3d_photon_coord_struct: 
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !-
 
@@ -295,9 +295,9 @@ subroutine sr3d_propagate_photon_a_step (photon, dl_step, lat, wall, stop_at_che
 implicit none
 
 type (lat_struct), target :: lat
-type (photon3d_track_struct), target :: photon
-type (wall3d_struct) wall
-type (photon3d_coord_struct), pointer :: now
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_wall_struct) wall
+type (sr3d_photon_coord_struct), pointer :: now
 
 real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t
 real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st
@@ -493,12 +493,12 @@ end subroutine sr3d_propagate_photon_a_step
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon  -- photon3d_coord_struct:
-!   wall    -- wall3d_struct: 
+!   photon  -- sr3d_photon_coord_struct:
+!   wall    -- sr3d_wall_struct: 
 !   lat     -- lat_struct: Lattice
 !
 ! Output:
-!   photon  -- photon3d_coord_struct: 
+!   photon  -- sr3d_photon_coord_struct: 
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !-
 
@@ -509,9 +509,9 @@ use nr, only: zbrent
 implicit none
 
 type (lat_struct), target :: lat
-type (photon3d_track_struct), target :: photon
-type (wall3d_struct), target :: wall
-type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_wall_struct), target :: wall
+type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) track_len0, radius, d_rad, r0, r1, track_len
 
@@ -657,8 +657,8 @@ subroutine sr3d_mesh_d_radius (photon, wall, d_radius)
 
 implicit none
 
-type (photon3d_track_struct), target :: photon
-type (wall3d_struct), target :: wall
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_wall_struct), target :: wall
 
 real(rp) d_radius, dlen, dlen_min
 real(rp) tv0(3), tv1(3), tv2(3)
@@ -721,11 +721,11 @@ subroutine sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
 
 implicit none
 
-type (photon3d_track_struct), target :: photon
-type (wall3d_struct), target :: wall
-type (wall3d_pt_struct), pointer :: wall0, wall1
-type (photon3d_wall_hit_struct), allocatable :: wall_hit(:)
-type (photon3d_wall_hit_struct), allocatable :: hit_temp(:)
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_wall_struct), target :: wall
+type (sr3d_wall_pt_struct), pointer :: wall0, wall1
+type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
+type (sr3d_photon_wall_hit_struct), allocatable :: hit_temp(:)
 
 real(rp) cos_perp, dw_perp(3), denom, f, r
 real(rp) graze_angle, reflectivity, dvec(3)
@@ -818,9 +818,9 @@ subroutine print_hit_points (iu_hit_file, photon, wall_hit, fmt)
 
 implicit none
 
-type (photon3d_track_struct), target :: photon
-type (photon3d_wall_hit_struct), pointer :: hit
-type (photon3d_wall_hit_struct), target :: wall_hit(0:)
+type (sr3d_photon_track_struct), target :: photon
+type (sr3d_photon_wall_hit_struct), pointer :: hit
+type (sr3d_photon_wall_hit_struct), target :: wall_hit(0:)
 
 integer iu, n, iu_hit_file
 
