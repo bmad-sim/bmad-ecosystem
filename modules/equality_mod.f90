@@ -8,7 +8,7 @@ interface operator (==)
   module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake
   module procedure eq_wake, eq_control, eq_param, eq_amode, eq_linac_mode
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
-  module procedure eq_lat
+  module procedure eq_lat, eq_wall3d
 end interface
 
 contains
@@ -17,8 +17,6 @@ contains
 !------------------------------------------------------------------------------
 
 elemental function eq_coord (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -37,8 +35,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_twiss (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -60,8 +56,6 @@ end function
 
 elemental function eq_xy_disp (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (xy_disp_struct), intent(in) :: f1, f2
@@ -77,8 +71,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_floor_position (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -98,8 +90,6 @@ end function
 
 elemental function eq_wig_term (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (wig_term_struct), intent(in) :: f1, f2
@@ -118,8 +108,6 @@ end function
 
 elemental function eq_taylor_term (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (taylor_term_struct), intent(in) :: f1, f2
@@ -135,8 +123,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_taylor (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -163,8 +149,6 @@ end function
 
 elemental function eq_sr_table_wake (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (sr_table_wake_struct), intent(in) :: f1, f2
@@ -180,8 +164,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_sr_mode_wake (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -201,8 +183,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_lr_wake (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -225,8 +205,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_wake (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -265,8 +243,6 @@ end function
 
 elemental function eq_control (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (control_struct), intent(in) :: f1, f2
@@ -283,8 +259,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_param (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -310,8 +284,6 @@ end function
 
 elemental function eq_amode (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (anormal_mode_struct), intent(in) :: f1, f2
@@ -330,8 +302,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_linac_mode (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -352,8 +322,6 @@ end function
 
 elemental function eq_modes (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (normal_modes_struct), intent(in) :: f1, f2
@@ -372,8 +340,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_bmad_com (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -410,8 +376,6 @@ end function
 
 elemental function eq_em_field (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (em_field_struct), intent(in) :: f1, f2
@@ -428,8 +392,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_ele (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -473,9 +435,7 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .a
     (associated(f1%r) .eqv. associated(f2%r)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
     (associated(f1%wig_term) .eqv. associated(f2%wig_term)) .and. &
-    (associated(f1%wake) .eqv. associated(f2%wake)) .and. &
-    (associated(f1%wall_section) .eqv. associated(f2%wall_section))
-
+    (associated(f1%wake) .eqv. associated(f2%wake))
 
 if (.not. is_eq) return
 is_eq = .false.
@@ -514,10 +474,7 @@ if (associated(f1%gen_field)) then
   if (.not. associated(f1%gen_field, f2%gen_field)) return
 endif
 
-if (associated(f1%wall_section)) then
-  if (.not. associated(f2%wall_section)) return
-  if (size(f1%wall_section) /= size(f2%wall_section)) return
-endif
+if (.not. f1%wall3d == f2%wall3d) return
 
 is_eq = .true.
 
@@ -526,9 +483,45 @@ end function
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine print_eq_ele (f1, f2)
+elemental function eq_wall3d (f1, f2) result (is_eq)
 
-use bmad_struct
+implicit none
+
+type (wall3d_struct), intent(in) :: f1, f2
+logical is_eq
+integer i
+
+!
+
+is_eq = .false.
+
+if (associated(f1%section)) then
+  if (.not. associated(f2%section)) return
+  if (size(f1%section) /= size(f2%section)) return
+  do i = 1, size(f1%section)
+    if (f1%section(i)%s               /= f2%section(i)%s) return
+    if (any(f1%section(i)%s_spline /= f2%section(i)%s_spline)) return
+    if (f1%section(i)%n_slice_spline  /= f2%section(i)%n_slice_spline) return
+    if (f1%section(i)%type            /= f2%section(i)%type) return
+    if (size(f1%section(i)%v) /= size(f2%section(i)%v)) return
+    if (any(f1%section(i)%v%x /= f2%section(i)%v%x)) return
+    if (any(f1%section(i)%v%y /= f2%section(i)%v%y)) return
+    if (any(f1%section(i)%v%radius_x /= f2%section(i)%v%radius_x)) return
+    if (any(f1%section(i)%v%radius_y /= f2%section(i)%v%radius_y)) return
+    if (any(f1%section(i)%v%tilt /= f2%section(i)%v%tilt)) return
+    if (any(f1%section(i)%v%angle /= f2%section(i)%v%angle)) return
+    if (any(f1%section(i)%v%x0 /= f2%section(i)%v%x0)) return
+    if (any(f1%section(i)%v%y0 /= f2%section(i)%v%y0)) return
+  enddo
+endif
+
+is_eq = .true.
+
+end function
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+subroutine print_eq_ele (f1, f2)
 
 implicit none
 
@@ -626,8 +619,6 @@ end subroutine
 
 elemental function eq_mode_info (f1, f2) result (is_eq)
 
-use bmad_struct
-
 implicit none
 
 type (mode_info_struct), intent(in) :: f1, f2
@@ -643,8 +634,6 @@ end function
 !------------------------------------------------------------------------------
 
 elemental function eq_lat (f1, f2) result (is_eq)
-
-use bmad_struct
 
 implicit none
 
@@ -672,6 +661,7 @@ is_eq = is_eq .and. (f1%ele_init == f2%ele_init)
 is_eq = is_eq .and. (size(f1%ele) == size(f2%ele)) 
 is_eq = is_eq .and. (size(f1%control) == size(f2%control)) 
 is_eq = is_eq .and. (size(f1%ic) == size(f2%ic)) 
+is_eq = is_eq .and. (f1%wall3d == f2%wall3d)
 
 if (.not. is_eq) return
 

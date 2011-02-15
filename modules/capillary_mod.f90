@@ -1,12 +1,13 @@
 module capillary_mod
 
-use cross_section_mod
+use bmad_struct
+use bmad_interface
 
 type photon_coord_struct
   type (coord_struct) orb       ! Phase space: orb%vec = (x, vx/c, y, vy/c, s, vs/c)
   real(rp) energy
   real(rp) track_len
-  integer ix_cross              ! Cross section index
+  integer ix_section            ! Cross section index
 end type
 
 type photon_track_struct
@@ -63,7 +64,7 @@ photon%now%orb%vec(5) = 0
 photon%now%orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 photon%now%energy = ele%value(e_tot$) * (1 + orb%vec(6))
 photon%now%track_len = 0
-photon%now%ix_cross = 1
+photon%now%ix_section = 1
 
 ! Loop over all bounces
 
@@ -112,7 +113,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_track_struct), target :: photon
-type (cross_section_struct), pointer :: cross
+type (wall3d_section_struct), pointer :: section
 
 real(rp) dr_max, ds_max, p_max, dlen
 real(rp), pointer :: vec(:)
@@ -125,15 +126,15 @@ character(40) :: r_name = 'capillary_track_photon_to_wall'
 
 do
 
-  cross => ele%wall_section(photon%now%ix_cross)
+  section => ele%wall3d%section(photon%now%ix_section)
   vec => photon%now%orb%vec
 
   ! Calculate a resonable step size
 
-  if (size(cross%v) == 1) then
-    dr_max = 2 * max(cross%v(1)%radius_x, cross%v(1)%radius_y)
+  if (size(section%v) == 1) then
+    dr_max = 2 * max(section%v(1)%radius_x, section%v(1)%radius_y)
   else
-    dr_max = 2 * max(maxval(abs(cross%v%x)), maxval(abs(cross%v%y)))
+    dr_max = 2 * max(maxval(abs(section%v%x)), maxval(abs(section%v%y)))
   endif
 
   ds_max = 2 * ele%s
@@ -193,7 +194,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_track_struct), target :: photon
-type (cross_section_struct), pointer :: cross(:)
+type (wall3d_section_struct), pointer :: section(:)
 
 real(rp) dlen, dl, s_stop 
 real(rp), pointer :: vec(:)
@@ -220,22 +221,22 @@ endif
 ! Here if stopping at a boundary plane is to be done...
 ! First see where we need to stop.
 
-cross => ele%wall_section
-call bracket_index(cross%s, 1, size(cross), vec(5), ixc)
+section => ele%wall3d%section
+call bracket_index(section%s, 1, size(section), vec(5), ixc)
 
 if (vec(6) > 0) then   ! Forward going photon
-  if (cross(ixc)%n_slice_spline > 1) then
-    ix = int(cross(ixc)%n_slice_spline * (vec(5) - cross(ixc)%s) / (cross(ixc+1)%s - cross(ixc)%s))
-    s_stop = cross(ixc)%s + (ix+1) * (cross(ixc+1)%s - cross(ixc)%s)
+  if (section(ixc)%n_slice_spline > 1) then
+    ix = int(section(ixc)%n_slice_spline * (vec(5) - section(ixc)%s) / (section(ixc+1)%s - section(ixc)%s))
+    s_stop = section(ixc)%s + (ix+1) * (section(ixc+1)%s - section(ixc)%s)
   else
-    s_stop = cross(ixc+1)%s
+    s_stop = section(ixc+1)%s
   endif
 else   ! Backward going photon
-  if (cross(ixc)%n_slice_spline > 1) then
-    ix = int(cross(ixc)%n_slice_spline * (vec(5) - cross(ixc)%s) / (cross(ixc+1)%s - cross(ixc)%s))
-    s_stop = cross(ixc)%s + ix * (cross(ixc+1)%s - cross(ixc)%s)
+  if (section(ixc)%n_slice_spline > 1) then
+    ix = int(section(ixc)%n_slice_spline * (vec(5) - section(ixc)%s) / (section(ixc+1)%s - section(ixc)%s))
+    s_stop = section(ixc)%s + ix * (section(ixc+1)%s - section(ixc)%s)
   else
-    s_stop = cross(ixc)%s
+    s_stop = section(ixc)%s
   endif
 endif
 
@@ -432,7 +433,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_coord_struct), target :: p_orb
-type (cross_section_struct), pointer :: cc0, cc1
+type (wall3d_section_struct), pointer :: sec0, sec1
 
 real(rp) d_radius, s00, s11, r_photon, f, spline, r00_wall, r11_wall, cos_theta, sin_theta
 real(rp) r0_wall, r1_wall, dr0_dtheta, dr1_dtheta, f_eff, ds_spline
@@ -446,15 +447,15 @@ integer ix, n_slice
 
 vec => p_orb%orb%vec
 
-call bracket_index (ele%wall_section%s, 1, size(ele%wall_section), vec(5), ix)
-if (ix == size(ele%wall_section)) ix = size(ele%wall_section) - 1
-if (vec(5) == ele%wall_section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
-p_orb%ix_cross = ix
+call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix)
+if (ix == size(ele%wall3d%section)) ix = size(ele%wall3d%section) - 1
+if (vec(5) == ele%wall3d%section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
+p_orb%ix_section = ix
 
-! cc0 and cc1 are the cross-sections to either side of the photon.
+! sec0 and sec1 are the cross-sections to either side of the photon.
 
-cc0 => ele%wall_section(ix)
-cc1 => ele%wall_section(ix+1)
+sec0 => ele%wall3d%section(ix)
+sec1 => ele%wall3d%section(ix+1)
 
 if (vec(1) == 0 .and. vec(3) == 0) then
   r_photon = 0
@@ -468,26 +469,26 @@ endif
 
 ! Calculate the radius values at the cross-sections.
 
-call calc_wall_radius (cc0%v, cos_theta, sin_theta, r0_wall, dr0_dtheta)
-call calc_wall_radius (cc1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+call calc_wall_radius (sec0%v, cos_theta, sin_theta, r0_wall, dr0_dtheta)
+call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 
 ! Phantom slices
 
-n_slice = nint(cc0%n_slice_spline)
+n_slice = nint(sec0%n_slice_spline)
 if (n_slice > 1) then
   ix = min(int(f * n_slice), n_slice - 1)
 
   s00 = float(ix) / n_slice
-  spline = cc0%s_spline(1) * s00 + cc0%s_spline(2) * s00**2 + cc0%s_spline(3) * s00**3
+  spline = sec0%s_spline(1) * s00 + sec0%s_spline(2) * s00**2 + sec0%s_spline(3) * s00**3
   r00_wall = (1 - spline) * r0_wall + spline * r1_wall
 
   s11 = float(ix+1) / n_slice
-  spline = cc0%s_spline(1) * s11 + cc0%s_spline(2) * s11**2 + cc0%s_spline(3) * s11**3
+  spline = sec0%s_spline(1) * s11 + sec0%s_spline(2) * s11**2 + sec0%s_spline(3) * s11**3
   r11_wall = (1 - spline) * r0_wall + spline * r1_wall
 
 else
-  s00 = cc0%s
-  s11 = cc1%s
+  s00 = sec0%s
+  s11 = sec1%s
   r00_wall = r0_wall
   r11_wall = r1_wall
 endif
@@ -497,7 +498,7 @@ endif
 f = (vec(5) - s00) / (s11 - s00)
 
 if (n_slice == 0) then
-  f_eff = cc0%s_spline(1) * f + cc0%s_spline(2) * f**2 + cc0%s_spline(3) * f**3
+  f_eff = sec0%s_spline(1) * f + sec0%s_spline(2) * f**2 + sec0%s_spline(3) * f**3
 else
   f_eff = f
   ds_spline = s11 - s00
@@ -526,10 +527,10 @@ end function capillary_photon_d_radius
 ! Additionally, the transverse directional derivative is calculated.
 !
 ! Module needed:
-!   use cross_setction_mod
+!   use capillary_mod
 !
 ! Input:
-!   v(:)         -- cross_section_vertex_struct: Array of vertices that make up the cross-section.
+!   v(:)         -- wall3d_vertex_struct: Array of vertices that make up the cross-section.
 !   cos_ang      -- Real(rp): cosine of the transverse photon position.
 !   sin_ang      -- Real(rp): sine of the transverse photon position.
 !
@@ -542,8 +543,8 @@ subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
 
 implicit none
 
-type (cross_section_vertex_struct), target :: v(:)
-type (cross_section_vertex_struct), pointer :: v1, v2
+type (wall3d_vertex_struct), target :: v(:)
+type (wall3d_vertex_struct), pointer :: v1, v2
 
 
 real(rp) r_wall, dr_dtheta, rx, ry, da, db, angle

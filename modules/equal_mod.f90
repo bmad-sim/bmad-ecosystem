@@ -10,6 +10,7 @@ interface assignment (=)
   module procedure lat_equal_lat 
   module procedure lat_vec_equal_lat_vec 
   module procedure branch_equal_branch
+  module procedure wall3d_equal_wall3d
 end interface
 
 contains
@@ -59,6 +60,8 @@ ele1%ix_branch = ele_save%ix_branch ! this should not change.
 ! When finished ele1's pointers will be pointing to a different memory
 ! location from ele2's so that the elements are truely separate.
 
+! %wig_term
+
 if (associated(ele2%wig_term)) then
   if (associated (ele_save%wig_term)) then
     if (size(ele_save%wig_term) == size(ele2%wig_term)) then
@@ -75,6 +78,8 @@ else
   if (associated (ele_save%wig_term)) deallocate (ele_save%wig_term)
 endif
 
+! %const
+
 if (associated(ele2%const)) then
   if (associated (ele_save%const)) then
     if (size(ele_save%const) == size(ele2%const)) then
@@ -90,6 +95,8 @@ if (associated(ele2%const)) then
 else
   if (associated (ele_save%const)) deallocate (ele_save%const)
 endif
+
+! %r
 
 if (associated(ele2%r)) then
   if (associated (ele_save%r)) then
@@ -110,10 +117,19 @@ else
   if (associated (ele_save%r)) deallocate (ele_save%r)
 endif
 
+! %taylor
+
 do i = 1, 6
   ele1%taylor(i)%term => ele_save%taylor(i)%term ! reinstate
   ele1%taylor(i) = ele2%taylor(i)      ! use overloaded taylor_equal_taylor
 enddo
+
+! %wall3d
+
+ele1%wall3d%section => ele_save%wall3d%section  ! reinstate
+ele1%wall3d = ele2%wall3d                       ! use overloaded wall3d_equal_wall3d
+
+! %a_pole, and %b_pole
 
 if (associated(ele2%a_pole)) then
   ele1%a_pole => ele_save%a_pole   ! reinstate
@@ -124,6 +140,8 @@ if (associated(ele2%a_pole)) then
 else
   if (associated (ele_save%a_pole)) deallocate (ele_save%a_pole, ele_save%b_pole)
 endif
+
+! %descrip
 
 if (associated(ele2%descrip)) then
   if (associated (ele_save%descrip)) then
@@ -136,6 +154,8 @@ else
   if (associated (ele_save%descrip)) deallocate (ele_save%descrip)
 endif
 
+! %mode3
+
 if (associated(ele2%mode3)) then
   if (associated (ele_save%mode3)) then
     ele1%mode3 => ele_save%mode3
@@ -147,21 +167,7 @@ else
   if (associated (ele_save%mode3)) deallocate (ele_save%mode3)
 endif
 
-if (associated(ele2%wall_section)) then
-  if (associated (ele_save%wall_section)) then
-    if (size(ele_save%wall_section) == size(ele2%wall_section)) then
-      ele1%wall_section => ele_save%wall_section
-    else
-      deallocate (ele_save%wall_section)
-      allocate (ele1%wall_section(size(ele2%wall_section)))
-    endif
-  else
-    allocate (ele1%wall_section(size(ele2%wall_section)))
-  endif
-  ele1%wall_section = ele2%wall_section
-else
-  if (associated (ele_save%wall_section)) deallocate (ele_save%wall_section)
-endif
+! %space_charge
 
 if (associated(ele2%space_charge)) then
   if (associated (ele_save%space_charge)) then
@@ -174,10 +180,12 @@ else
   if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
 endif
 
+! %wake
+
 ele1%wake => ele_save%wake  ! reinstate
 call transfer_wake (ele2%wake, ele1%wake)
 
-! gen_fields are hard because it involves pointers in PTC.
+! %gen_fields are hard because it involves pointers in PTC.
 ! just kill the gen_field in ele1 for now.
 
 if (associated(ele_save%gen_field)) call kill_gen_field (ele_save%gen_field)
@@ -304,7 +312,9 @@ else
   if (allocated(lat_out%ic)) deallocate (lat_out%ic)
 endif
 
-! branch lines
+lat_out%wall3d = lat_in%wall3d
+
+! branch lines (except main branch which was handled above)
 
 n = ubound(lat_in%branch, 1)
 call allocate_branch_array (lat_out, n)
@@ -409,9 +419,9 @@ call allocate_element_array (branch1%ele, ubound(branch2%ele, 1))
 branch1%ele            = branch2%ele
 branch1%param          = branch2%param
 branch1%ele%ix_branch  = branch2%ix_branch
+branch1%wall3d         = branch2%wall3d   
 
 end subroutine
-
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -442,6 +452,61 @@ type (coord_struct), intent(in) :: coord2
 
 coord1%vec = coord2%vec
 coord1%spin = coord2%spin
+ 
+end subroutine
+
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine wall3d_equal_wall3d (wall3d_out, wall3d_in)
+!
+! Subroutine that is used to set one wall3d equal to another. 
+!
+! Note: This subroutine is called by the overloaded equal sign:
+!		wall3d_out = wall3d_in
+!
+! Input:
+!   wall3d_in -- wall3d_struct: Input wall3d.
+!
+! Output:
+!   wall3d_out -- wall3d_struct: Output wall3d.
+!-
+
+elemental subroutine wall3d_equal_wall3d (wall3d_out, wall3d_in)
+
+implicit none
+	
+type (wall3d_struct), intent(inout) :: wall3d_out
+type (wall3d_struct), intent(in) :: wall3d_in
+
+integer i, n_sec, nv
+
+!
+
+if (associated(wall3d_in%section)) then
+  n_sec = size(wall3d_in%section)
+  if (associated(wall3d_out%section)) then
+    if (size(wall3d_out%section) /= n_sec) deallocate (wall3d_out%section)
+  endif
+  if (.not. associated(wall3d_out%section)) allocate(wall3d_out%section(n_sec))
+
+  do i = 1, n_sec
+    if (allocated(wall3d_in%section(i)%v)) then
+      nv = size(wall3d_in%section(i)%v)
+      if (allocated(wall3d_out%section(i)%v)) then
+        if (size(wall3d_out%section(i)%v) /= nv) deallocate(wall3d_out%section(i)%v)
+      endif
+      if (.not. allocated(wall3d_out%section(i)%v)) allocate(wall3d_out%section(i)%v(nv))
+    else
+      if (allocated(wall3d_out%section(i)%v)) deallocate(wall3d_out%section(i)%v)
+    endif
+    wall3d_out%section(i) = wall3d_in%section(i)
+  enddo 
+
+else
+  if (associated(wall3d_out%section)) deallocate(wall3d_out%section)
+endif
  
 end subroutine
 

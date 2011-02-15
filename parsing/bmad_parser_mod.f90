@@ -12,7 +12,6 @@ use ptc_interface_mod
 use bookkeeper_mod
 use wake_mod
 use attribute_mod
-use cross_section_mod
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
@@ -215,8 +214,8 @@ type (ele_struct), target ::  ele
 type (ele_struct), target, save ::  ele0
 type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
-type (cross_section_struct), pointer :: section
-type (cross_section_vertex_struct), pointer :: v_ptr
+type (wall3d_section_struct), pointer :: section
+type (wall3d_vertex_struct), pointer :: v_ptr
 
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
@@ -400,11 +399,11 @@ if (word(1:5) == 'WALL.') then
   endif
 
   ix_sec = evaluate_integer (err_flag, ')', word2, '(=', delim)
-  if (err_flag .or. .not. associated(ele%wall_section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall_section)) then
+  if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall3d%section)) then
     call parser_warning('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
     return
   endif
-  section => ele%wall_section(ix_sec)
+  section => ele%wall3d%section(ix_sec)
 
   select case (word(6:))
   case ('SECTION')
@@ -494,7 +493,7 @@ endif
 ! wall cross-section definition
 
 if (attrib_word == 'WALL') then
-  if (associated (ele%wall_section)) then
+  if (associated (ele%wall3d%section)) then
     call parser_warning ('MULTIPLE WALL DEFINITIONS FOR ELEMENT: ' // ele%name)
     return
   endif
@@ -533,8 +532,8 @@ if (attrib_word == 'WALL') then
     endif
 
     i_section = i_section + 1
-    call re_associate (ele%wall_section, i_section)
-    section => ele%wall_section(i_section)
+    call re_associate (ele%wall3d%section, i_section)
+    section => ele%wall3d%section(i_section)
 
     ! Expect "S ="
     call get_next_word (word, ix_word, '{},()=', delim, delim_found)

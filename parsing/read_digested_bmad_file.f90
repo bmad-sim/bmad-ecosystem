@@ -43,7 +43,7 @@ integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
 integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at
-integer num_steps, integrator_order
+integer num_steps, integrator_order, n_wall_section, idum1
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
@@ -53,7 +53,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, v95, v96, v_old, mode3, error, is_open
+logical found_it, v95, v96, v97, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -77,8 +77,9 @@ read (d_unit, err = 9010) n_files, version
 
 v95 = (version == 95)
 v96 = (version == 96)
+v97 = (version == 97)
 
-v_old = .false.
+v_old = v95 .or. v96
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -212,13 +213,20 @@ do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit) branch%param
-  read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
-                branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
+  if (v95 .or. v96) then
+    read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
+    n_wall_section = 0
+  else  ! > 96
+    read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, idum1
+  endif
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
     call read_this_ele (branch%ele(j), j, error)
     if (error) return
   enddo
+  call read_this_wall3d (branch%wall3d, n_wall_section)
 enddo
 
 ! Random state check
@@ -338,7 +346,7 @@ contains
 subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct) ele
-integer j, ix_ele
+integer j, ix_ele, n_wall_section, idum1, idum2
 logical error
 
 !
@@ -348,6 +356,24 @@ error = .true.
 if (v95 .or. v96) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
+          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
+  n_wall_section = 0
+else ! > v96
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, idum1, idum2
+  read (d_unit, err = 9100) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -440,6 +466,10 @@ if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. i
     read (d_unit, err = 9860) ele%wake%z_sr_mode_max
   endif
 endif
+
+call read_this_wall3d (ele%wall3d, n_wall_section)
+
+!
 
 ele%value(check_sum$) = 0
 if (associated(ele%a_pole)) ele%value(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
@@ -607,6 +637,35 @@ endif
 close (d_unit)
 bmad_status%ok = .false.
 return
+
+end subroutine
+
+!-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
+! contains
+
+subroutine read_this_wall3d (wall3d, n_wall_section)
+
+type (wall3d_struct) wall3d
+type (wall3d_section_struct), pointer :: sec
+type (wall3d_vertex_struct), pointer :: v
+
+integer j, k, nv, n_wall_section
+
+!
+
+if (n_wall_section < 1) return
+
+call re_associate (wall3d%section, n_wall_section)
+
+do j = 1, n_wall_section
+  sec => wall3d%section(j)
+  read (d_unit) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, nv
+  allocate(sec%v(nv))
+  do k = 1, nv
+    read (d_unit) sec%v(k)
+  enddo
+enddo
 
 end subroutine
 

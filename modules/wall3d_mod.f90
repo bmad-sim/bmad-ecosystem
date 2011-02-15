@@ -1,9 +1,46 @@
-module cross_section_mod
+module wall3d_mod
 
-use bmad_struct
+use re_allocate_mod
+use output_mod
+
+! Structures for defining cross-sections of beam pipes and capillaries
+! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
+! Each vertex v(i) defines a point on the pipe/capillary.
+! Vertices are connected by straight lines, circular arcs, or ellipses.
+! The radius and tilt values are for the arc from the preceding vertex to this one.
+! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
+!   n = upper bound of v(:) array.
+
+type wall3d_vertex_struct
+  real(rp) x, y             ! Coordinates of the vertex.
+  real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
+  real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
+  real(rp) :: tilt = 0      ! Tilt of ellipse
+  real(rp) angle            ! Angle of (x, y) point.
+  real(rp) x0, y0           ! Center of ellipse
+end type
+
+! A beam pipe or capillary cross section is a collection of vertexes.
+! Vertices are always ordered in increasing angle.
+
+type wall3d_section_struct
+  integer type
+  real(rp) :: s = 0                     ! Longitudinal position
+  real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
+  real(rp) :: n_slice_spline = 1        ! Number of slices used for the spline.
+  type (wall3d_vertex_struct), allocatable :: v(:) 
+                                        ! Array of vertices
+  integer n_vertex_input                ! Number of vertices specified by the user.
+end type
+
+type wall3d_struct
+  type (wall3d_section_struct), pointer :: section(:) => null()  
+end type  
+
+!
 
 interface re_associate
-  module procedure re_associate_cross_section_array
+  module procedure re_associate_section_array
 end interface
 
 interface re_allocate
@@ -22,24 +59,24 @@ contains
 ! Overloaded by re_allocate.
 !
 ! Modules needed:
-!   use cross_section_mod
+!   use wall3d_mod
 !
 ! Input:
-!   v(:)  -- cross_section_vertex_struct, allocatable: Array of vertices
+!   v(:)  -- wall3d_vertex_struct, allocatable: Array of vertices
 !   n     -- Integer: Minimum size needed for array.
 !   exact -- Logical, optional: If present and False then the size of
 !                    the output array is permitted to be larger than n.
 !                    Default is True.
 !
 ! Output:
-!   v(:)  -- Cross_section_vertex_struct: Allocated array.
+!   v(:)  -- Wall3d_vertex_struct: Allocated array.
 !-
 
 subroutine re_allocate_vertex_array (v, n, exact)
 
 implicit none
 
-type (cross_section_vertex_struct), allocatable :: v(:), temp_v(:)
+type (wall3d_vertex_struct), allocatable :: v(:), temp_v(:)
 
 integer, intent(in) :: n
 integer n_save, n_old
@@ -69,30 +106,30 @@ end subroutine re_allocate_vertex_array
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine re_associate_cross_section_array (cross, n, exact)
+! Subroutine re_associate_section_array (section, n, exact)
 !
-! Routine to reassociate an array of cross_section structures.
+! Routine to reassociate an array of wall3d%section(:).
 ! Overloaded by re_associate.
 !
 ! Modules needed:
-!   use cross_section_mod
+!   use wall3d_mod
 !
 ! Input:
-!   cross(:) -- cross_section_struct, pointer: Array of vertices
+!   section(:) -- wall3d_section_struct, pointer: Array of vertices
 !   n        -- Integer: Minimum size needed for array.
 !   exact    -- Logical, optional: If present and False then the size of
 !                    the output array is permitted to be larger than n.
 !                    Default is True.
 !
 ! Output:
-!   criss(:) -- Cross_section_struct, pointer: Associated array.
+!   criss(:) -- Wall3d_section_struct, pointer: Associated array.
 !-
 
-subroutine re_associate_cross_section_array (cross, n, exact)
+subroutine re_associate_section_array (section, n, exact)
 
 implicit none
 
-type (cross_section_struct), pointer :: cross(:), temp_cross(:)
+type (wall3d_section_struct), pointer :: section(:), temp_section(:)
 
 integer, intent(in) :: n
 integer n_save, n_old
@@ -101,65 +138,65 @@ logical, optional :: exact
 
 !
 
-if (associated(cross)) then
-  n_old = size(cross)
+if (associated(section)) then
+  n_old = size(section)
   if (n == n_old) return
   if (.not. logic_option(.true., exact) .and. n < n_old) return
   n_save = min(n, n_old)
-  temp_cross => cross 
-  allocate (cross(n))
-  cross(1:n_save) = temp_cross
-  deallocate (temp_cross)
+  temp_section => section 
+  allocate (section(n))
+  section(1:n_save) = temp_section
+  deallocate (temp_section)
 else
-  allocate (cross(n))
+  allocate (section(n))
 endif
 
-end subroutine re_associate_cross_section_array
+end subroutine re_associate_section_array
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine cross_section_initializer (cross, err)
+! Subroutine wall3d_section_initializer (section, err)
 !
-! Routine to initialize a cross_section_struct:
+! Routine to initialize a wall3d_section_struct:
 !   1) Add vertex points if there is symmetry.
 !   2) Compute circular and elliptical centers.
 !   3) Calc s_spline(3)
 !
 ! Modules needed:
-!   use cross_section_mod
+!   use wall3d_section_mod
 !
 ! Input:
-!   cross  -- Cross_section_struct: Cross-section.
+!   section  -- Wall3d_section_struct: Wall3d section.
 !   
 ! Output:
-!   cross  -- Cross_section_struct: Initialized cross-section.
+!   section  -- Wall3d_section_struct: Initialized section-section.
 !   err    -- Logical: Set true if there is a problem. EG: Convex section, etc.
 !-
 
-subroutine cross_section_initializer (cross, err)
+subroutine wall3d_section_initializer (section, err)
 
 implicit none
 
-type (cross_section_struct), target :: cross
-type (cross_section_vertex_struct), pointer :: v(:)
+type (wall3d_section_struct), target :: section
+type (wall3d_vertex_struct), pointer :: v(:)
 
 integer i, n, nn
 
 logical err
 
-character(40) :: r_name = 'cross_section_initializer'
+character(40) :: r_name = 'wall3d_section_initializer'
 
 ! Init
 
 err = .true.
-v => cross%v
-n = cross%n_vertex_input
+v => section%v
+n = section%n_vertex_input
 
 ! Calculate s_spline(3)
 
-cross%s_spline(3) = 1 - cross%s_spline(1) - cross%s_spline(2)
+section%s_spline(3) = 1 - section%s_spline(1) - section%s_spline(2)
 
 ! Single vertex is special.
 
@@ -176,14 +213,14 @@ do i = 1, n
   if (i == 1) cycle
   if (v(i)%angle <= v(i-1)%angle) v(i)%angle = v(i)%angle + twopi
   if (v(i)%angle >= v(i-1)%angle + pi .or. v(i)%angle <= v(i-1)%angle) then
-    call out_io (s_error$, r_name, 'CROSS-SECTION VERTEX NOT IN CLOCKWISE ORDER: (\2F10.5\)', &
+    call out_io (s_error$, r_name, 'WALL SECTION VERTEX NOT IN CLOCKWISE ORDER: (\2F10.5\)', &
                  r_array = [v(i)%x, v(i)%y])
     return
   endif
 enddo
 
 if (v(n)%angle - v(1)%angle >= twopi) then
-  call out_io (s_error$, r_name, 'CROSS-SECTION WINDS BY MORE THAN 2PI!')
+  call out_io (s_error$, r_name, 'WALL SECTION WINDS BY MORE THAN 2PI!')
   return
 endif
 
@@ -194,11 +231,11 @@ endif
 if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
   if (v(n)%x == 0) then
     nn = 2*n - 1
-    call re_allocate(cross%v, nn, .false.); v => cross%v
+    call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n-1:1:-1)
   else
     nn = 2*n
-    call re_allocate(cross%v, nn, .false.); v => cross%v
+    call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n:1:-1)
     v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
@@ -217,11 +254,11 @@ endif
 if (all(v(1:n)%y >= 0)) then
   if (v(n)%y == 0) then  ! Do not duplicate v(n) vertex
     nn = 2*n - 1
-    call re_allocate(cross%v, nn, .false.); v => cross%v
+    call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n-1:1:-1)
   else
     nn = 2*n ! Total number of vetices
-    call re_allocate(cross%v, nn, .false.); v => cross%v
+    call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n:1:-1)
     v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
   endif
@@ -239,7 +276,7 @@ if (all(v(1:n)%y >= 0)) then
   endif
 
   n = nn
-  call re_allocate(cross%v, n, .true.); v => cross%v
+  call re_allocate(section%v, n, .true.); v => section%v
 endif
 
 ! Calculate center of circle/ellipses...
@@ -257,7 +294,7 @@ contains
 
 subroutine calc_vertex_center (v1, v2, err)
 
-type (cross_section_vertex_struct) v1, v2
+type (wall3d_vertex_struct) v1, v2
 
 real(rp) x1, y1, x2, y2, x, y
 real(rp) x_mid, y_mid, dx, dy
@@ -297,7 +334,7 @@ dx    = (x2 - x1)/2; dy    = (y2 - y1)/2
 
 a2 = (v2%radius_x**2 - dx**2 - dy**2) / (dx**2 + dy**2)
 if (a2 < 0) then
-  call out_io (s_error$, r_name, 'CROSS-SECTION VERTEX POINTS TOO FAR APART FOR CIRCLE OR ELLIPSE')
+  call out_io (s_error$, r_name, 'WALL SECTION VERTEX POINTS TOO FAR APART FOR CIRCLE OR ELLIPSE')
   err = .true.
   return
 endif
@@ -323,6 +360,6 @@ endif
 
 end subroutine calc_vertex_center
 
-end subroutine cross_section_initializer
+end subroutine wall3d_section_initializer
 
 end module

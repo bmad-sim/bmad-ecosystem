@@ -986,7 +986,7 @@ end interface
 interface
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
         twiss_type, type_control, lattice, type_wake, type_floor_coords, &
-        type_wig_terms, type_cross_section, nunit)
+        type_wig_terms, type_wall, nunit)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct) ele
@@ -995,7 +995,7 @@ interface
     integer, optional :: twiss_type
     logical, optional :: type_zero_attrib, type_floor_coords
     logical, optional :: type_control, type_taylor, type_wake
-    logical, optional :: type_wig_terms, type_cross_section
+    logical, optional :: type_wig_terms, type_wall
     integer, optional :: nunit
   end subroutine
 end interface
@@ -1012,7 +1012,7 @@ end interface
 interface
   subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
         type_taylor, twiss_type, type_control, lattice, type_wake, &
-        type_floor_coords, type_wig_terms, type_cross_section)
+        type_floor_coords, type_wig_terms, type_wall)
     use bmad_struct, only: lat_struct, ele_struct
     implicit none
     type (ele_struct), target :: ele
@@ -1022,7 +1022,7 @@ interface
     integer, optional, intent(in) :: twiss_type
     logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
     logical, optional, intent(in) :: type_zero_attrib, type_wake
-    logical, optional :: type_wig_terms, type_cross_section
+    logical, optional :: type_wig_terms, type_wall
     character(*), pointer :: lines(:)
   end subroutine
 end interface

@@ -40,10 +40,8 @@ type (random_state_struct), save :: dummy_ran_state
 real(rp) value(n_attrib_maxx)
 
 integer, intent(in), optional :: n_files
-integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx)
-integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
-integer stat_b(24), stat, n_wake
-integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr
+integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx), ierr
+integer stat_b(24), stat, n_wake, n_section
 integer :: ix_wake(lat%n_ele_max)
 
 character(*) digested_name
@@ -149,12 +147,15 @@ write (d_unit) lat%beam_start
 write (d_unit) ubound(lat%branch, 1)
 do i = 1, ubound(lat%branch, 1)
   branch => lat%branch(i)
+  n_section = 0
+  if (associated(branch%wall3d%section)) n_section = size(branch%wall3d%section)
   write (d_unit) branch%param
   write (d_unit) branch%name, branch%key, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_section, 0
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
+  call write_this_wall3d (branch%wall3d)
 enddo
 
 ! Write random state info
@@ -193,7 +194,9 @@ type (ele_struct), target :: ele
 type (taylor_struct), pointer :: tt(:)
 type (wake_struct), pointer :: wake
 
-integer j
+integer ix_wig, n_section, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
+integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
+integer j, k
 
 !
 
@@ -201,15 +204,16 @@ tt => ele%taylor
     
 ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
 ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
-mode3 = .false.
+mode3 = .false.; n_section = 0
 
-if (associated(ele%mode3))    mode3 = .true.
-if (associated(ele%wig_term)) ix_wig = size(ele%wig_term)
-if (associated(ele%const))    ix_const = size(ele%const)
-if (associated(ele%r))        ix_r = (/ lbound(ele%r), ubound(ele%r) /)
-if (associated(ele%descrip))  ix_d = 1
-if (associated(ele%a_pole))   ix_m = 1
-if (associated(tt(1)%term))   ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
+if (associated(ele%mode3))          mode3 = .true.
+if (associated(ele%wig_term))       ix_wig = size(ele%wig_term)
+if (associated(ele%const))          ix_const = size(ele%const)
+if (associated(ele%r))              ix_r = (/ lbound(ele%r), ubound(ele%r) /)
+if (associated(ele%descrip))        ix_d = 1
+if (associated(ele%a_pole))         ix_m = 1
+if (associated(tt(1)%term))         ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
+if (associated(ele%wall3d%section)) n_section = size(ele%wall3d%section)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing 
 ! the wake info we only write a wake when needed.
@@ -233,10 +237,12 @@ if (associated(ele%wake)) then
   endif
 endif
 
-! Now write the element info
+! Now write the element info. 
 
 write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_section, 0, 0
+
+write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
           ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -293,6 +299,33 @@ if (associated(ele%wake) .and. write_wake) then
   write (d_unit) ele%wake%lr
   write (d_unit) ele%wake%z_sr_mode_max
 endif
+
+call write_this_wall3d (ele%wall3d)
+
+end subroutine
+
+!-------------------------------------------------------------------------------------
+! contains
+
+subroutine write_this_wall3d (wall3d)
+
+type (wall3d_struct) wall3d
+type (wall3d_section_struct), pointer :: sec
+type (wall3d_vertex_struct), pointer :: v
+
+integer j, k
+
+!
+
+if (.not. associated(wall3d%section)) return
+
+do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
+  sec => wall3d%section(j)
+  write (d_unit) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, size(sec%v)
+  do k = 1, size(sec%v)
+    write (d_unit) sec%v(k)
+  enddo
+enddo
 
 end subroutine
 

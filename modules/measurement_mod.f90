@@ -140,6 +140,7 @@ end subroutine compute_bpm_transformation_numbers
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
+!  err      -- Logical: Set True if ele%is_on = False.
 !-
 
 subroutine to_orbit_reading (orb, ele, axis, reading, err)
@@ -163,9 +164,6 @@ logical err
 ! Monitor check is currently disabled.
 
 reading = 0.0
-
-!call check_if_ele_is_monitor (ele, err)
-!if (err) return
 
 err = .true.
 if (.not. ele%is_on) return
@@ -224,7 +222,7 @@ end subroutine to_orbit_reading
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
-!  err -- Logical: Set True if there is an error. False otherwise.
+!  err      -- Logical: Set True if there is an error. False otherwise.
 !-
 
 subroutine to_eta_reading (eta_actual, ele, axis, reading, err)
@@ -292,7 +290,7 @@ end subroutine to_eta_reading
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine to_phase_and_coupling_reading (ele, mon, err)
+! Subroutine to_phase_and_coupling_reading (ele, reading, err)
 !
 ! Find the measured coupling values given the actual ones
 !
@@ -308,18 +306,18 @@ end subroutine to_eta_reading
 !    %value(phase_noise$) -- RMS Noise in radians.
 !
 ! Output:
-!  mon -- bpm_phase_coupling_struct: K and Cbar coupling parameters
-!  err -- Logical: Set True if there is an error. False otherwise.
+!  reading -- bpm_phase_coupling_struct: K and Cbar coupling parameters
+!  err     -- Logical: Set True if there is an error. False otherwise.
 !-
 
-subroutine to_phase_and_coupling_reading (ele, mon, err)
+subroutine to_phase_and_coupling_reading (ele, reading, err)
 
 use random_mod
 
 implicit none
 
 type (ele_struct) ele
-type (bpm_phase_coupling_struct) mon, lab
+type (bpm_phase_coupling_struct) reading, lab
 
 real(rp) ran_num(6), cbar_lab(2,2), denom, ratio
 real(rp) q_a1_lab(2), q_a2_lab(2), q_b1_lab(2), q_b2_lab(2)
@@ -333,10 +331,10 @@ logical err
 
 ! Monitor check is currently disabled
 
-mon%K_22a = 0
-mon%K_12a = 0
-mon%K_11b = 0
-mon%K_12b = 0
+reading%K_22a = 0
+reading%K_12a = 0
+reading%K_11b = 0
+reading%K_12b = 0
 
 ! call check_if_ele_is_monitor (ele, err)
 ! if (err) return
@@ -393,33 +391,33 @@ q_b2_mon = matmul(m_com%M_m, q_b2_lab)
 ! q_mon to k_mon
 
 denom = q_a1_mon(1)**2 + q_a2_mon(1)**2
-mon%K_22a = (q_a1_mon(1) * q_a1_mon(2) + q_a2_mon(1) * q_a2_mon(2)) / denom
-mon%K_12a = (q_a1_mon(1) * q_a2_mon(2) - q_a2_mon(1) * q_a1_mon(2)) / denom
+reading%K_22a = (q_a1_mon(1) * q_a1_mon(2) + q_a2_mon(1) * q_a2_mon(2)) / denom
+reading%K_12a = (q_a1_mon(1) * q_a2_mon(2) - q_a2_mon(1) * q_a1_mon(2)) / denom
 
 denom = q_b1_mon(2)**2 + q_b2_mon(2)**2
-mon%K_11b = (q_b1_mon(2) * q_b1_mon(1) + q_b2_mon(2) * q_b2_mon(1)) / denom
-mon%K_12b = (q_b1_mon(2) * q_b2_mon(1) - q_b2_mon(2) * q_b1_mon(1)) / denom
+reading%K_11b = (q_b1_mon(2) * q_b1_mon(1) + q_b2_mon(2) * q_b2_mon(1)) / denom
+reading%K_12b = (q_b1_mon(2) * q_b2_mon(1) - q_b2_mon(2) * q_b1_mon(1)) / denom
 
 ! Add random terms to k_mon
 
 if (ele%value(noise$) /= 0) then
-  mon%K_22a = mon%K_22a + ran_num(1)
-  mon%K_12a = mon%K_12a + ran_num(2)
-  mon%K_11b = mon%K_11b + ran_num(3)
-  mon%K_12b = mon%K_12b + ran_num(4)
+  reading%K_22a = reading%K_22a + ran_num(1)
+  reading%K_12a = reading%K_12a + ran_num(2)
+  reading%K_11b = reading%K_11b + ran_num(3)
+  reading%K_12b = reading%K_12b + ran_num(4)
 endif
 
 ! k_mon to Cbar_mon
 
-mon%cbar22_a = -mon%K_22a * ele%gamma_c / ratio 
-mon%cbar12_a = -mon%K_12a * ele%gamma_c / ratio 
-mon%cbar11_b =  mon%K_11b * ele%gamma_c * ratio
-mon%cbar12_b = -mon%K_12b * ele%gamma_c * ratio
+reading%cbar22_a = -reading%K_22a * ele%gamma_c / ratio 
+reading%cbar12_a = -reading%K_12a * ele%gamma_c / ratio 
+reading%cbar11_b =  reading%K_11b * ele%gamma_c * ratio
+reading%cbar12_b = -reading%K_12b * ele%gamma_c * ratio
 
 ! Phase calc
 
-mon%phi_a = ele%a%phi - atan2(q_a2_mon(1), q_a1_mon(1)) + ran_num(5)
-mon%phi_b = ele%b%phi - atan2(q_b2_mon(2), q_b1_mon(2)) + ran_num(6)
+reading%phi_a = ele%a%phi - atan2(q_a2_mon(1), q_a1_mon(1)) + ran_num(5)
+reading%phi_b = ele%b%phi - atan2(q_b2_mon(2), q_b1_mon(2)) + ran_num(6)
 
 err = .false.
 

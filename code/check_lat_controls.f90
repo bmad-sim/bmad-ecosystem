@@ -135,13 +135,13 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ! Capillary check
 
-    if (associated(ele%wall_section)) then
-      do k = 1, size(ele%wall_section)
+    if (associated(ele%wall3d%section)) then
+      do k = 1, size(ele%wall3d%section)
         if (k > 1) then
-          if (ele%wall_section(k-1)%s > ele%wall_section(k)%s) then
+          if (ele%wall3d%section(k-1)%s > ele%wall3d%section(k)%s) then
             call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
-                  'S VALUES FOR CROSS SECTIONS NOT INCREASING.')
+                  'S VALUES FOR WALL3D SECTIONS NOT INCREASING.')
           endif
         endif
       enddo

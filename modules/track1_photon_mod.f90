@@ -1,6 +1,7 @@
 module track1_photon_mod
 
-use cross_section_mod
+use bmad_struct
+use bmad_interface
 
 ! This is for passing info to the photon_hit_func routine used by zbrent
 
