@@ -11,7 +11,7 @@ use twiss_and_track_mod
 ! Notice that vec(1)^2 + vec(3)^2 + vec(5)^2 = 1
 
 
-type photon3d_coord_struct
+type sr3d_photon_coord_struct
   real(rp) vec(6)             ! Photon position: (x, vx/c, y, vy/c, s, vz/c)
   real(rp) energy             ! In eV
   real(rp) track_len          ! length of the track from the start
@@ -20,9 +20,9 @@ type photon3d_coord_struct
   integer ix_triangle         ! Index to wall triangle if using gen_shape_mesh 
 end type
 
-type photon3d_wall_hit_struct
-  type (photon3d_coord_struct) before_reflect   ! Coords before reflection.
-  type (photon3d_coord_struct) after_reflect    ! Coords after reflection.
+type sr3d_photon_wall_hit_struct
+  type (sr3d_photon_coord_struct) before_reflect   ! Coords before reflection.
+  type (sr3d_photon_coord_struct) after_reflect    ! Coords after reflection.
   real(rp) dw_perp(3)                   ! Wall perpendicular vector
   real(rp) cos_perp                     ! Cosine of hit angle
   real(rp) reflectivity                 ! Reflectivity probability
@@ -42,8 +42,8 @@ end type
 ! %ix_photon_generated -- The first photon generated has index 1, etc.
 ! %n_wall_hit      -- Number of wall hits.
 
-type photon3d_track_struct
-  type (photon3d_coord_struct) start, old, now  ! coords:
+type sr3d_photon_track_struct
+  type (sr3d_photon_coord_struct) start, old, now  ! coords:
   real(rp) intensity          ! Intensity of this macro-photon in Photons/(beam_particle*turn)
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
@@ -55,11 +55,12 @@ end type
 
 !--------------
 ! The wall is specified by an array of points at given s locations.
-! The wall between point i-1 and i is associated with wall%pt(i) (see the photon3d_coord_struct).
+! The wall between point i-1 and i is associated with wall%pt(i) 
+! (see the sr3d_photon_coord_struct).
 ! If there is an antechamber: width2_plus and width2_minus are the antechamber horizontal extent.
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
-type wall3d_pt_struct
+type sr3d_wall_pt_struct
   real(rp) s                      ! Longitudinal position.
   character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
   real(rp) width2                 ! Half width ignoring antechamber.
@@ -72,12 +73,12 @@ type wall3d_pt_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  type (cross_section_struct), pointer :: gen_shape            ! Gen_shape info
+  type (wall3d_section_struct), pointer :: gen_shape            ! Gen_shape info
 end type
 
 ! Needed since Fortran does not allow pointers to be part of a namelist
 
-type wall3d_pt_input
+type sr3d_wall_pt_input
   real(rp) s                      ! Longitudinal position.
   character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
   real(rp) width2                 ! Half width ignoring antechamber.
@@ -90,9 +91,9 @@ end type
 
 ! This is just an array of chamber cross-sections.
 
-type wall3d_struct
-  type (wall3d_pt_struct), allocatable :: pt(:)  ! lbound index = 0
-  type (cross_section_struct), allocatable :: gen_shape(:)
+type sr3d_wall_struct
+  type (sr3d_wall_pt_struct), allocatable :: pt(:)  ! lbound index = 0
+  type (wall3d_section_struct), allocatable :: gen_shape(:)
   integer n_pt_max
   integer lattice_type   ! linear_lattice$ or circular_lattice$
 end type
