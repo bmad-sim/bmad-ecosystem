@@ -164,7 +164,7 @@ SUBROUTINE gfit1D(xreal,params)
   END DO
 
   ! calculate nbin using eqn from "Probability Density Estimation" by Don Johnson, 8-20-03
-  width = ((9.0*(rvar**5.0)*SQRT(2*3.14159))/(2.0*(size(xreal))*exp(-(1.0/2.0)*(rmean/rvar)**2.0)*(1-(rmean/rvar)**2.0)**2.0))**(1.0/5.0)
+  width = ((9.0*(rvar**5)*SQRT(2*3.14159))/(2.0*(size(xreal))*exp(-(1.0/2.0)*(rmean/rvar)**2)*(1-(rmean/rvar)**2)**2))**(1.0/5.0)
   nbin = INT((xmax-xmin)/width)
   IF(nbin < 4) nbin = 4
 
