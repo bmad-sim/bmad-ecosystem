@@ -55,7 +55,7 @@ type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
-type (lr_wake_struct), pointer :: lr
+type (rf_wake_lr_struct), pointer :: lr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 
 real(rp) s0, x_lim, y_lim, val
@@ -90,9 +90,9 @@ n_sr = 0
 n_lr = 0
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
-  if (.not. associated(ele%wake)) cycle
-  if (ele%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
-  if (ele%wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
+  if (.not. associated(ele%rf%wake)) cycle
+  if (ele%rf%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
+  if (ele%rf%wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
 enddo
 call re_allocate(sr_wake_name, n_sr)
 call re_allocate(lr_wake_name, n_lr)
@@ -301,13 +301,13 @@ do ib = 0, ubound(lat%branch, 1)
     ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
     ! If first three characters of the file name are '...' then it is a foreign file.
 
-    if (associated(ele%wake)) then
+    if (associated(ele%rf%wake)) then
 
       ! Short-range
 
-      if (ele%wake%sr_file /= ' ') then
+      if (ele%rf%wake%sr_file /= ' ') then
 
-        wake_name = ele%wake%sr_file
+        wake_name = ele%rf%wake%sr_file
 
         if (wake_name(1:3) == '...') then
           found = .false.
@@ -329,9 +329,9 @@ do ib = 0, ubound(lat%branch, 1)
             open (iuw, file = wake_name)
             write (iuw, *) '!      z           Wz             Wt'
             write (iuw, *) '!     [m]       [V/C/m]       [V/C/m^2]'
-            do n = lbound(ele%wake%sr_table, 1), ubound(ele%wake%sr_table, 1)
-              write (iuw, '(3es14.5)') ele%wake%sr_table(n)%z, &
-                                    ele%wake%sr_table(n)%long, ele%wake%sr_table(n)%trans
+            do n = lbound(ele%rf%wake%sr_table, 1), ubound(ele%rf%wake%sr_table, 1)
+              write (iuw, '(3es14.5)') ele%rf%wake%sr_table(n)%z, &
+                                    ele%rf%wake%sr_table(n)%long, ele%rf%wake%sr_table(n)%trans
             enddo
             close(iuw)
           endif
@@ -343,9 +343,9 @@ do ib = 0, ubound(lat%branch, 1)
 
       ! Long-range
 
-      if (ele%wake%lr_file /= ' ') then
+      if (ele%rf%wake%lr_file /= ' ') then
 
-        wake_name = ele%wake%lr_file
+        wake_name = ele%rf%wake%lr_file
 
         if (wake_name(1:3) == '...') then
           found = .false.
@@ -369,8 +369,8 @@ do ib = 0, ubound(lat%branch, 1)
    'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
             write (iuw, '(14x, a)') &
               '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
-            do n = lbound(ele%wake%lr, 1), ubound(ele%wake%lr, 1)
-              lr => ele%wake%lr(n)
+            do n = lbound(ele%rf%wake%lr, 1), ubound(ele%rf%wake%lr, 1)
+              lr => ele%rf%wake%lr(n)
               if (lr%polarized) then
                 write (angle, '(f10.6)') lr%angle
               else

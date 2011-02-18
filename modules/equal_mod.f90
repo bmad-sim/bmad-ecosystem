@@ -180,10 +180,10 @@ else
   if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
 endif
 
-! %wake
+! %rf%wake
 
-ele1%wake => ele_save%wake  ! reinstate
-call transfer_wake (ele2%wake, ele1%wake)
+ele1%rf%wake => ele_save%rf%wake  ! reinstate
+call transfer_wake (ele2%rf%wake, ele1%rf%wake)
 
 ! %gen_fields are hard because it involves pointers in PTC.
 ! just kill the gen_field in ele1 for now.

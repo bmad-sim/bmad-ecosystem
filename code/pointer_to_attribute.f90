@@ -40,7 +40,7 @@ use multipole_mod
 implicit none
 
 type (ele_struct), target :: ele
-type (lr_wake_struct), allocatable :: lr(:)
+type (rf_wake_lr_struct), allocatable :: lr(:)
 
 real(rp), pointer :: ptr_attrib
 
@@ -72,29 +72,29 @@ if (a_name(1:3) == 'LR(') then
   if (ios /= 0) goto 9000
   if (n < 0) goto 9000
 
-  if (.not. associated (ele%wake)) then
+  if (.not. associated (ele%rf%wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%wake, 0, 0, 0, n)
+    call init_wake (ele%rf%wake, 0, 0, 0, n)
   endif
 
-  n_lr = size(ele%wake%lr)
+  n_lr = size(ele%rf%wake%lr)
   if (n_lr < n) then
     if (.not. do_allocation) goto 9100
     allocate (lr(n_lr))
-    lr = ele%wake%lr
-    deallocate (ele%wake%lr)
-    allocate (ele%wake%lr(n))
-    ele%wake%lr = lr_wake_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
-                                  0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
-    ele%wake%lr(1:n_lr) = lr
+    lr = ele%rf%wake%lr
+    deallocate (ele%rf%wake%lr)
+    allocate (ele%rf%wake%lr(n))
+    ele%rf%wake%lr = rf_wake_lr_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
+                                        0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
+    ele%rf%wake%lr(1:n_lr) = lr
     deallocate (lr)
   endif
 
   select case (a_name(ix_d+2:))
-  case ('FREQ');      ptr_attrib => ele%wake%lr(n)%freq
-  case ('R_OVER_Q');  ptr_attrib => ele%wake%lr(n)%r_over_q
-  case ('Q');         ptr_attrib => ele%wake%lr(n)%q
-  case ('ANGLE');     ptr_attrib => ele%wake%lr(n)%angle
+  case ('FREQ');      ptr_attrib => ele%rf%wake%lr(n)%freq
+  case ('R_OVER_Q');  ptr_attrib => ele%rf%wake%lr(n)%r_over_q
+  case ('Q');         ptr_attrib => ele%rf%wake%lr(n)%q
+  case ('ANGLE');     ptr_attrib => ele%rf%wake%lr(n)%angle
   case default;       goto 9000
   end select    
 

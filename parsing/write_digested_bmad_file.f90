@@ -192,7 +192,7 @@ subroutine write_this_ele (ele)
 
 type (ele_struct), target :: ele
 type (taylor_struct), pointer :: tt(:)
-type (wake_struct), pointer :: wake
+type (rf_wake_struct), pointer :: wake
 
 integer ix_wig, n_section, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
@@ -220,18 +220,18 @@ if (associated(ele%wall3d%section)) n_section = size(ele%wall3d%section)
 ! The idea is that ix_lr serves as a pointer to a previously written wake.
 
 write_wake = .true.
-if (associated(ele%wake)) then
+if (associated(ele%rf%wake)) then
   do j = 1, n_wake
-    if (.not. lat%ele(ix_wake(j))%wake == ele%wake) cycle
+    if (.not. lat%ele(ix_wake(j))%rf%wake == ele%rf%wake) cycle
     write_wake = .false.
     ix_lr = -ix_wake(j)        
   enddo
 
   if (write_wake) then
-    if (associated(ele%wake%sr_table))      ix_sr_table      = size(ele%wake%sr_table)
-    if (associated(ele%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%wake%sr_mode_long)
-    if (associated(ele%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%wake%sr_mode_trans)
-    if (associated(ele%wake%lr))            ix_lr            = size(ele%wake%lr)
+    if (associated(ele%rf%wake%sr_table))      ix_sr_table      = size(ele%rf%wake%sr_table)
+    if (associated(ele%rf%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%rf%wake%sr_mode_long)
+    if (associated(ele%rf%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%rf%wake%sr_mode_trans)
+    if (associated(ele%rf%wake%lr))            ix_lr            = size(ele%rf%wake%lr)
     n_wake = n_wake + 1
     ix_wake(n_wake) = i
   endif
@@ -290,14 +290,14 @@ do j = 1, 6
   enddo
 enddo
 
-if (associated(ele%wake) .and. write_wake) then
-  write (d_unit) ele%wake%sr_file
-  write (d_unit) ele%wake%sr_table
-  write (d_unit) ele%wake%sr_mode_long
-  write (d_unit) ele%wake%sr_mode_trans
-  write (d_unit) ele%wake%lr_file
-  write (d_unit) ele%wake%lr
-  write (d_unit) ele%wake%z_sr_mode_max
+if (associated(ele%rf%wake) .and. write_wake) then
+  write (d_unit) ele%rf%wake%sr_file
+  write (d_unit) ele%rf%wake%sr_table
+  write (d_unit) ele%rf%wake%sr_mode_long
+  write (d_unit) ele%rf%wake%sr_mode_trans
+  write (d_unit) ele%rf%wake%lr_file
+  write (d_unit) ele%rf%wake%lr
+  write (d_unit) ele%rf%wake%z_sr_mode_max
 endif
 
 call write_this_wall3d (ele%wall3d)

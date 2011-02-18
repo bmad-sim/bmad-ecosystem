@@ -33,10 +33,10 @@ type (floor_position_struct), save ::  floor_position_in, floor_position_out
 type (wig_term_struct), save ::        wig_term_in, wig_term_out
 type (taylor_term_struct), save ::     taylor_term_in, taylor_term_out
 type (taylor_struct), save ::          taylor_in, taylor_out
-type (sr_table_wake_struct), save ::   sr_table_wake_in, sr_table_wake_out
-type (sr_mode_wake_struct), save ::    sr_mode_wake_in, sr_mode_wake_out
-type (lr_wake_struct), save ::         lr_wake_in, lr_wake_out
-type (wake_struct), save, target ::    wake_in, wake_out
+type (rf_wake_sr_table_struct), save ::   sr_table_wake_in, sr_table_wake_out
+type (rf_wake_sr_mode_struct), save ::    sr_mode_wake_in, sr_mode_wake_out
+type (rf_wake_lr_struct), save ::         lr_wake_in, lr_wake_out
+type (rf_wake_struct), save, target ::    wake_in, wake_out
 type (control_struct), save ::         control_in, control_out
 type (lat_param_struct), save ::       param_in, param_out
 type (anormal_mode_struct), save ::    amode_in, amode_out
@@ -261,7 +261,7 @@ allocate (ele_in%r(2,3), ele_in%const(6), ele_in%descrip, ele_in%wig_term(2), el
 
 ele_in%descrip = "descrip"
 ele_in%const = -vec6_b
-ele_in%wake => wake_in
+ele_in%rf%wake => wake_in
 ele_in%wig_term(1) = wig_term_in
 ele_in%wig_term(2) = wig_term_out
 ele_in%taylor(1) = taylor_in
@@ -320,10 +320,10 @@ type (floor_position_struct) floor_position1, floor_position2
 type (wig_term_struct)       wig_term1, wig_term2
 type (taylor_term_struct)    taylor_term1, taylor_term2
 type (taylor_struct)         taylor1, taylor2
-type (sr_table_wake_struct)  sr_table_wake1, sr_table_wake2
-type (sr_mode_wake_struct)   sr_mode_wake1, sr_mode_wake2
-type (lr_wake_struct)        lr_wake1, lr_wake2
-type (wake_struct)           wake1, wake2
+type (rf_wake_sr_table_struct)  sr_table_wake1, sr_table_wake2
+type (rf_wake_sr_mode_struct)   sr_mode_wake1, sr_mode_wake2
+type (rf_wake_lr_struct)        lr_wake1, lr_wake2
+type (rf_wake_struct)           wake1, wake2
 type (control_struct)        control1, control2
 type (lat_param_struct)      param1, param2
 type (anormal_mode_struct)   amode1, amode2
@@ -916,7 +916,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (sr_table_wake_struct) f1, f2
+type (rf_wake_sr_table_struct) f1, f2
 
 !
 
@@ -946,7 +946,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (sr_mode_wake_struct) f1, f2
+type (rf_wake_sr_mode_struct) f1, f2
 
 !
 
@@ -976,7 +976,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (lr_wake_struct) f1, f2
+type (rf_wake_lr_struct) f1, f2
 
 !
 
@@ -1006,7 +1006,7 @@ use test_mod
 implicit none
 
 type (c_dummy_struct) c1, c2
-type (wake_struct) f1, f2
+type (rf_wake_struct) f1, f2
 
 !
 

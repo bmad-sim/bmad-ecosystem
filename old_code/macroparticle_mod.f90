@@ -151,9 +151,9 @@ subroutine track1_macro_beam (beam_start, ele, param, beam_end)
 
 ! zero the long-range wakes if they exist.
 
-  if (associated(ele%wake)) then
-    ele%wake%lr%norm_sin = 0; ele%wake%lr%norm_cos = 0
-    ele%wake%lr%skew_sin = 0; ele%wake%lr%skew_cos = 0
+  if (associated(ele%rf%wake)) then
+    ele%rf%wake%lr%norm_sin = 0; ele%rf%wake%lr%norm_cos = 0
+    ele%rf%wake%lr%skew_sin = 0; ele%rf%wake%lr%skew_cos = 0
   endif
 
 ! loop over all bunches in a beam
@@ -320,8 +320,8 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
 ! no wake file: just use e_loss$ factor
 
   wake_here = .true.
-  if (.not. associated(ele%wake)) wake_here = .false.
-  if (wake_here) n_wake = size (ele%wake%sr_table) - 1
+  if (.not. associated(ele%rf%wake)) wake_here = .false.
+  if (wake_here) n_wake = size (ele%rf%wake%sr_table) - 1
     
   if (.not. wake_here .or. n_wake == -1) then 
     do i = 1, size(bunch%slice)
@@ -337,8 +337,8 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
     bunch%slice(i)%macro(:)%grad_loss_sr_wake = 0
   enddo
 
-  dz_wake = ele%wake%sr_table(n_wake)%z / n_wake
-  sr02 = ele%wake%sr_table(0)%long / 2
+  dz_wake = ele%rf%wake%sr_table(n_wake)%z / n_wake
+  sr02 = ele%rf%wake%sr_table(0)%long / 2
 
 ! Loop over all slices
 
@@ -408,14 +408,14 @@ subroutine grad_loss_macro_sr_wake_calc (bunch, ele)
         endif
         if (iw+1 > n_wake) then
           call out_io (s_error$, r_name, &
-             'SHORT RANGE WAKE ARRAY FROM FILE: ' // ele%wake%sr_file, &
+             'SHORT RANGE WAKE ARRAY FROM FILE: ' // ele%rf%wake%sr_file, &
              'DOES NOT COVER MACROPARTICLE LENGTH')
           cycle
         endif
         f2 = z/dz_wake - iw
         f1 = 1 - f2
         macro2(k)%grad_loss_sr_wake = macro2(k)%grad_loss_sr_wake + charge * &
-                  (ele%wake%sr_table(iw)%long * f1 + ele%wake%sr_table(iw+1)%long * f2)
+                  (ele%rf%wake%sr_table(iw)%long * f1 + ele%rf%wake%sr_table(iw+1)%long * f2)
       enddo
     enddo
 
@@ -445,8 +445,8 @@ subroutine track1_macro_lr_wake (bunch, ele)
 
 ! Check to see if we need to do any calc
 
-  if (.not. associated(ele%wake)) return
-  n_mode = size(ele%wake%lr)
+  if (.not. associated(ele%rf%wake)) return
+  n_mode = size(ele%rf%wake%lr)
   if (n_mode == 0 .or. .not. bmad_com%lr_wakes_on) return  
 
 ! Give the macroparticles a kick
@@ -498,13 +498,13 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
 
 ! Init
 
-  if (.not. associated(ele%wake)) return
-  n_wake = size(ele%wake%sr_table) - 1
+  if (.not. associated(ele%rf%wake)) return
+  n_wake = size(ele%rf%wake%sr_table) - 1
   if (n_wake == -1 .or. .not. bmad_com%sr_wakes_on) return
 
   call order_macroparticles_in_z (bunch)
 
-  dz_wake = ele%wake%sr_table(n_wake)%z / n_wake
+  dz_wake = ele%rf%wake%sr_table(n_wake)%z / n_wake
 
 ! Loop over all slices
 
@@ -544,7 +544,7 @@ subroutine track1_macro_sr_trans_wake (bunch, ele)
         iw = min(n_wake-1, iw)    ! effectively do an extrapolation.
         f2 = z/dz_wake - iw
         f1 = 1 - f2
-        fact = (ele%wake%sr_table(iw)%trans*f1 + ele%wake%sr_table(iw+1)%trans*f2) * &
+        fact = (ele%rf%wake%sr_table(iw)%trans*f1 + ele%rf%wake%sr_table(iw+1)%trans*f2) * &
                               charge * ele%value(l$) / ele%value(p0c$)
         macro2(k)%r%vec(2) = macro2(k)%r%vec(2) - fact * x_ave 
         macro2(k)%r%vec(4) = macro2(k)%r%vec(4) - fact * y_ave

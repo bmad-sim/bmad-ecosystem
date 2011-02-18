@@ -79,13 +79,13 @@ end type
 ! Wakefield structs...
 ! Each sr_wake_struct represents a point on the wake vs. z curve.
 
-type sr_table_wake_struct    ! Tabular short-Range Wake struct
+type rf_wake_sr_table_struct    ! Tabular short-Range Wake struct
   real(rp) z            ! Distance behind the leading particle
   real(rp) long         ! Longitudinal wake in V/C/m
   real(rp) trans        ! Transverse wake in V/C/m^2
 end type
 
-type sr_mode_wake_struct  ! Psudo-mode short-Range Wake struct 
+type rf_wake_sr_mode_struct  ! Psudo-mode short-Range Wake struct 
   real(rp) amp        ! Amplitude
   real(rp) damp       ! Dampling factor.
   real(rp) k          ! k factor
@@ -96,10 +96,10 @@ type sr_mode_wake_struct  ! Psudo-mode short-Range Wake struct
   real(rp) a_cos      ! skew cos-like component of the wake
 end type
 
-! Each lr_wake_struct represents a different mode.
+! Each rf_wake_lr_struct represents a different mode.
 ! A non-zero lr_freq_spread attribute value will make freq different from freq_in.
 
-type lr_wake_struct    ! Long-Range Wake struct.
+type rf_wake_lr_struct    ! Long-Range Wake struct.
   real(rp) freq        ! Actual Frequency in Hz.
   real(rp) freq_in     ! Input frequency in Hz.
   real(rp) R_over_Q    ! Strength in V/C/m^2.
@@ -116,16 +116,40 @@ type lr_wake_struct    ! Long-Range Wake struct.
 end type
 
 ! Note: Bmad routines observe the following rule: 
-!   All pointers within a wake_struct are assumed to be allocated.
+!   All pointers within a rf_wake_struct are assumed to be allocated.
 
-type wake_struct
+type rf_wake_struct
   character(200) :: sr_file = ' '
   character(200) :: lr_file = ' '
-  type (sr_table_wake_struct), pointer :: sr_table(:) => null()
-  type (sr_mode_wake_struct), pointer :: sr_mode_long(:) => null()
-  type (sr_mode_wake_struct), pointer :: sr_mode_trans(:) => null()
-  type (lr_wake_struct), pointer :: lr(:) => null()
+  type (rf_wake_sr_table_struct), pointer :: sr_table(:) => null()
+  type (rf_wake_sr_mode_struct), pointer :: sr_mode_long(:) => null()
+  type (rf_wake_sr_mode_struct), pointer :: sr_mode_trans(:) => null()
+  type (rf_wake_lr_struct), pointer :: lr(:) => null()
   real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
+end type
+
+! RF field structure
+! See: 
+!    Dan Abell, PRST-AB 9, 052001 (2006)
+!   "Numerical computation of high-order transfer maps for rf cavities."
+
+type rf_mode_term_struct
+  integer m
+  real(rp) k, e, f, a, b
+end type
+
+type rf_mode_struct
+  real(rp) freq
+  type (rf_mode_term_struct), allocatable :: term(:)
+end type
+
+type rf_field_struct
+  type (rf_mode_struct), allocatable :: mode(:)
+end type
+
+type rf_struct
+  type (rf_field_struct), pointer :: field
+  type (rf_wake_struct), pointer :: wake
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -199,23 +223,23 @@ type ele_struct
   type (coord_struct) map_ref_orb_out             ! Ref orbit at exit of element.
   type (genfield), pointer :: gen_field => null() ! For symp_map$
   type (taylor_struct) :: taylor(6)               ! Taylor terms
-  type (wake_struct), pointer :: wake => null()   ! Wakefields
+  type (rf_struct) :: rf                     ! Rf fields
   type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  type (wall3d_struct) :: wall3d         ! Chamber or capillary wall
-  real(rp) value(n_attrib_maxx)      ! attribute values.
-  real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                   ! constant part of the genfield map.
-  real(rp) vec0(6)                   ! 0th order transport vector.
-  real(rp) mat6(6,6)                 ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                ! 2x2 C coupling matrix
-  real(rp) gamma_c                   ! gamma associated with C matrix
-  real(rp) s                         ! longitudinal position at the exit end.
-  real(rp) ref_time                  ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()        ! knl for multipole elements.
-  real(rp), pointer :: b_pole(:) => null()        ! tilt for multipole elements.
-  real(rp), pointer :: const(:) => null()         ! Working constants.
+  type (wall3d_struct) :: wall3d             ! Chamber or capillary wall
+  real(rp) value(n_attrib_maxx)              ! attribute values.
+  real(rp) old_value(n_attrib_maxx)          ! Used to see if %value(:) array has changed.
+  real(rp) gen0(6)                           ! constant part of the genfield map.
+  real(rp) vec0(6)                           ! 0th order transport vector.
+  real(rp) mat6(6,6)                         ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                        ! 2x2 C coupling matrix
+  real(rp) gamma_c                           ! gamma associated with C matrix
+  real(rp) s                                 ! longitudinal position at the exit end.
+  real(rp) ref_time                          ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:) => null()      ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()   ! knl for multipole elements.
+  real(rp), pointer :: b_pole(:) => null()   ! tilt for multipole elements.
+  real(rp), pointer :: const(:) => null()    ! Working constants.
   integer key                ! key value
   integer sub_key            ! For wigglers: map_type$, periodic_type$
   integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
