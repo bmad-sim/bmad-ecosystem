@@ -865,7 +865,7 @@ NBp_vec = N_vec - Bp_vec
 NBpG_vec = cross(NBp_vec, G_vec)
 rad_cross_vec = cross(N_vec, NBpG_vec)
 
-coulomb2 = bin%gamma * z / ((bin%gamma * z)**2 + bin%y2**2)**(1.5)
+coulomb2 = bin%gamma * z / (sqrt((bin%gamma * z)**2 + bin%y2**2))**3
 
 if (csr_param%lcsr_component_on) then
   radiate  = dot_product (B_vec, rad_cross_vec) / (kf%L * OneNBp3)
