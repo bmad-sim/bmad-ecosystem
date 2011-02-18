@@ -157,7 +157,7 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
-type (lr_wake_struct), pointer :: lr
+type (rf_wake_lr_struct), pointer :: lr
 type (ele_struct), pointer :: ele
 type (coord_struct), target :: orb
 type (ele_struct), target :: ele3
@@ -1179,8 +1179,8 @@ case ('hom')
     if (ele%key /= lcavity$) cycle
     if (ele%slave_status == multipass_slave$) cycle
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
-    do j = 1, size(ele%wake%lr)
-      lr => ele%wake%lr(j)
+    do j = 1, size(ele%rf%wake%lr)
+      lr => ele%rf%wake%lr(j)
       angle = '-'
       if (lr%polarized) write (angle, '(f9.4)') lr%angle
       nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &

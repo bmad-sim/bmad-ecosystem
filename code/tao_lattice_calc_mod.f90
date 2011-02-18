@@ -361,8 +361,8 @@ endif
 ! Transfer wakes from  design
 
 do i = 1, branch%n_ele_max
-  if (associated(branch%ele(i)%wake)) branch%ele(i)%wake%lr = &
-                                        u%design%lat%branch(ix_branch)%ele(i)%wake%lr
+  if (associated(branch%ele(i)%rf%wake)) branch%ele(i)%rf%wake%lr = &
+                                        u%design%lat%branch(ix_branch)%ele(i)%rf%wake%lr
 enddo
 
 call zero_lr_wakes_in_lat (lat)
