@@ -449,14 +449,14 @@ do ie = npos1, npos2-1
       endif
 
       if ((ix1 /= 0) .and. (ix2 /= 0)) then
-        allocate (ele%wake)
-        allocate (ele%wake%sr_mode_long(0), ele%wake%sr_mode_trans(0), ele%wake%lr(0))
+        allocate (ele%rf%wake)
+        allocate (ele%rf%wake%sr_mode_long(0), ele%rf%wake%sr_mode_trans(0), ele%rf%wake%lr(0))
         name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
         name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
-        ele%wake%sr_file = 'xsif:: ' // trim(name1) // ' | ' // trim(name2)
-        call read_xsif_wake (ele%wake%sr_table, name1, 'LONG')
-        call read_xsif_wake (ele%wake%sr_table, name2, 'TRANS')
-        ele%wake%z_sr_mode_max = 0
+        ele%rf%wake%sr_file = 'xsif:: ' // trim(name1) // ' | ' // trim(name2)
+        call read_xsif_wake (ele%rf%wake%sr_table, name1, 'LONG')
+        call read_xsif_wake (ele%rf%wake%sr_table, name2, 'TRANS')
+        ele%rf%wake%z_sr_mode_max = 0
       endif
 
       lat%param%lattice_type = linear_lattice$
@@ -683,7 +683,7 @@ end subroutine
 
 subroutine read_xsif_wake (wake, file_name, this)
 
-type (sr_table_wake_struct), pointer :: wake(:)
+type (rf_wake_sr_table_struct), pointer :: wake(:)
 
 real(rp) s_pos(1000), field(1000), ds
 

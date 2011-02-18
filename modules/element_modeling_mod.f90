@@ -1,3 +1,16 @@
+!+
+! Module containing routines to create simplified models of certain Bmad lattice elements.
+!
+! This is used for creating lattices for external programs, such as the MAD program, 
+! which do not implement all of the Bmad lattice elements.
+!
+! For example, the create_wiggler_model routine models a wiggler as a
+! series of bends and drifts.
+!
+! At this point only the wiggler model has been implemented.
+! sol_quad and bend_sol_quad models will be coded as needed.
+!-
+
 module element_modeling_mod
 
 use bmad

@@ -31,7 +31,7 @@
 !   type_wake         -- Logical, optional: If True then print the long-range and 
 !                          short-range wakes information. If False then just print
 !                          how many terms the wake has. Default is True.
-!                          If ele%wake is not allocated then this is ignored.
+!                          If ele%rf%wake is not allocated then this is ignored.
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
@@ -62,9 +62,9 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, slave
 type (lat_struct), optional, target :: lattice
 type (wig_term_struct), pointer :: term
-type (lr_wake_struct), pointer :: lr
-type (sr_table_wake_struct), pointer :: sr_table
-type (sr_mode_wake_struct), pointer :: sr_m
+type (rf_wake_lr_struct), pointer :: lr
+type (rf_wake_sr_table_struct), pointer :: sr_table
+type (rf_wake_sr_mode_struct), pointer :: sr_m
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 
@@ -559,32 +559,32 @@ endif
 
 ! Encode HOM info
 
-if (associated(ele%wake)) then
+if (associated(ele%rf%wake)) then
 
-  if (size(ele%wake%sr_table) /= 0) then
+  if (size(ele%rf%wake%sr_table) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%wake%sr_table)+100)
+      call re_associate (li, nl+size(ele%rf%wake%sr_table)+100)
       nl=nl+1; li(nl) = 'Short-range wake table:'
       nl=nl+1; li(nl) = &
             '   #           Z   Longitudinal     Transverse'
-      do i = 0, ubound(ele%wake%sr_table,1)
-        sr_table => ele%wake%sr_table(i)
+      do i = 0, ubound(ele%rf%wake%sr_table,1)
+        sr_table => ele%rf%wake%sr_table(i)
         nl=nl+1; write (li(nl), '(i4, es12.4, 2es15.4)') i, sr_table%z, sr_table%long, sr_table%trans
       enddo
     else
-      nl=nl+1; write (li(nl), *) 'Number of short-range wake table rows:', size(ele%wake%sr_table)
+      nl=nl+1; write (li(nl), *) 'Number of short-range wake table rows:', size(ele%rf%wake%sr_table)
     endif
   endif
 
-  if (size(ele%wake%sr_mode_long) /= 0) then
+  if (size(ele%rf%wake%sr_mode_long) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       nl=nl+1; li(nl) = 'Short-range pseudo modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%wake%sr_mode_long)
-        sr_m => ele%wake%sr_mode_long(i)
+      do i = 1, size(ele%rf%wake%sr_mode_long)
+        sr_m => ele%rf%wake%sr_mode_long(i)
         nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_m%amp, sr_m%damp, sr_m%k, sr_m%phi
       enddo
     else
@@ -592,14 +592,14 @@ if (associated(ele%wake)) then
     endif
   endif
 
-  if (size(ele%wake%sr_mode_trans) /= 0) then
+  if (size(ele%rf%wake%sr_mode_trans) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       nl=nl+1; li(nl) = 'Short-range pseudo modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%wake%sr_mode_trans)
-        sr_m => ele%wake%sr_mode_trans(i)
+      do i = 1, size(ele%rf%wake%sr_mode_trans)
+        sr_m => ele%rf%wake%sr_mode_trans(i)
         nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_m%amp, sr_m%damp, sr_m%k, sr_m%phi
       enddo
     else
@@ -607,15 +607,15 @@ if (associated(ele%wake)) then
     endif
   endif
 
-  if (size(ele%wake%lr) /= 0) then
+  if (size(ele%rf%wake%lr) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
       nl=nl+1; li(nl) = 'Long-range HOM modes:'
       nl=nl+1; li(nl) = &
             '  #       Freq         R/Q           Q   m   Angle' // &
             '    b_sin     b_cos     a_sin     a_cos     t_ref'
-      do i = 1, size(ele%wake%lr)
-        lr => ele%wake%lr(i)
+      do i = 1, size(ele%rf%wake%lr)
+        lr => ele%rf%wake%lr(i)
         angle = ' unpolar'
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
         nl=nl+1; write (li(nl), '(i3, 3es12.4, i3, a, 5es10.2)') i, &

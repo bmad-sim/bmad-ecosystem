@@ -722,15 +722,15 @@ endif
 
 ! wakes
 
-if (associated(lord%wake) .and. .not. associated(slave%wake)) call transfer_wake (lord%wake, slave%wake)
+if (associated(lord%rf%wake) .and. .not. associated(slave%rf%wake)) call transfer_wake (lord%rf%wake, slave%rf%wake)
 
-if (associated (slave%wake)) then
-  slave%wake%sr_table      = lord%wake%sr_table
-  slave%wake%sr_mode_long  = lord%wake%sr_mode_long
-  slave%wake%sr_mode_trans = lord%wake%sr_mode_trans
-  slave%wake%lr            = lord%wake%lr
-  do i = 1, size(lord%wake%lr)
-    slave%wake%lr(i)%t_ref = lord%wake%lr(i)%t_ref - slave%ref_time
+if (associated (slave%rf%wake)) then
+  slave%rf%wake%sr_table      = lord%rf%wake%sr_table
+  slave%rf%wake%sr_mode_long  = lord%rf%wake%sr_mode_long
+  slave%rf%wake%sr_mode_trans = lord%rf%wake%sr_mode_trans
+  slave%rf%wake%lr            = lord%rf%wake%lr
+  do i = 1, size(lord%rf%wake%lr)
+    slave%rf%wake%lr(i)%t_ref = lord%rf%wake%lr(i)%t_ref - slave%ref_time
   enddo
 endif
 
@@ -1105,7 +1105,7 @@ do j = 1, slave%n_lord
     call err_exit
   endif
 
-  if (associated(lord%wake)) then
+  if (associated(lord%rf%wake)) then
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
@@ -1560,7 +1560,7 @@ end subroutine create_element_slice
 !+
 ! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 !
-! Routine to transfer the %value, %wig_term, and %wake%lr information from a 
+! Routine to transfer the %value, %wig_term, and %rf%wake%lr information from a 
 ! superposition lord to a slave when the slave has only one lord.
 !
 ! Note: attribute_bookkeeper needs to be called after calling this routine.
@@ -1710,14 +1710,14 @@ endif
 
 ! If there are long range wakes they must be scaled.
 
-if (associated (slave%wake)) then
-  slave%wake%lr%freq_in   = lord%wake%lr%freq_in
-  slave%wake%lr%freq      = lord%wake%lr%freq
-  slave%wake%lr%Q         = lord%wake%lr%Q
-  slave%wake%lr%angle     = lord%wake%lr%angle
-  slave%wake%lr%m         = lord%wake%lr%m
-  slave%wake%lr%polarized = lord%wake%lr%polarized
-  slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
+if (associated (slave%rf%wake)) then
+  slave%rf%wake%lr%freq_in   = lord%rf%wake%lr%freq_in
+  slave%rf%wake%lr%freq      = lord%rf%wake%lr%freq
+  slave%rf%wake%lr%Q         = lord%rf%wake%lr%Q
+  slave%rf%wake%lr%angle     = lord%rf%wake%lr%angle
+  slave%rf%wake%lr%m         = lord%rf%wake%lr%m
+  slave%rf%wake%lr%polarized = lord%rf%wake%lr%polarized
+  slave%rf%wake%lr%r_over_q  = lord%rf%wake%lr%r_over_q * coef
 endif
 
 ! lcavity energy bookkeeping

@@ -453,17 +453,17 @@ enddo
 
 if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
-    call transfer_wake (lat%ele(abs(ix_lr))%wake, ele%wake)
+    call transfer_wake (lat%ele(abs(ix_lr))%rf%wake, ele%rf%wake)
 
   else
-    call init_wake (ele%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
-    read (d_unit, err = 9800) ele%wake%sr_file
-    read (d_unit, err = 9810) ele%wake%sr_table
-    read (d_unit, err = 9840) ele%wake%sr_mode_long
-    read (d_unit, err = 9850) ele%wake%sr_mode_trans
-    read (d_unit, err = 9820) ele%wake%lr_file
-    read (d_unit, err = 9830) ele%wake%lr
-    read (d_unit, err = 9860) ele%wake%z_sr_mode_max
+    call init_wake (ele%rf%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
+    read (d_unit, err = 9800) ele%rf%wake%sr_file
+    read (d_unit, err = 9810) ele%rf%wake%sr_table
+    read (d_unit, err = 9840) ele%rf%wake%sr_mode_long
+    read (d_unit, err = 9850) ele%rf%wake%sr_mode_trans
+    read (d_unit, err = 9820) ele%rf%wake%lr_file
+    read (d_unit, err = 9830) ele%rf%wake%lr
+    read (d_unit, err = 9860) ele%rf%wake%z_sr_mode_max
   endif
 endif
 

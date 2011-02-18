@@ -151,7 +151,7 @@ elemental function eq_sr_table_wake (f1, f2) result (is_eq)
 
 implicit none
 
-type (sr_table_wake_struct), intent(in) :: f1, f2
+type (rf_wake_sr_table_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -167,7 +167,7 @@ elemental function eq_sr_mode_wake (f1, f2) result (is_eq)
 
 implicit none
 
-type (sr_mode_wake_struct), intent(in) :: f1, f2
+type (rf_wake_sr_mode_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -186,7 +186,7 @@ elemental function eq_lr_wake (f1, f2) result (is_eq)
 
 implicit none
 
-type (lr_wake_struct), intent(in) :: f1, f2
+type (rf_wake_lr_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -208,7 +208,7 @@ elemental function eq_wake (f1, f2) result (is_eq)
 
 implicit none
 
-type (wake_struct), intent(in) :: f1, f2
+type (rf_wake_struct), intent(in) :: f1, f2
 integer i
 logical is_eq
 
@@ -435,7 +435,7 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .a
     (associated(f1%r) .eqv. associated(f2%r)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
     (associated(f1%wig_term) .eqv. associated(f2%wig_term)) .and. &
-    (associated(f1%wake) .eqv. associated(f2%wake))
+    (associated(f1%rf%wake) .eqv. associated(f2%rf%wake))
 
 if (.not. is_eq) return
 is_eq = .false.
@@ -466,8 +466,8 @@ do i = 1, size(f1%taylor)
   if (.not. (f1%taylor(i) == f2%taylor(i))) return
 enddo
 
-if (associated(f1%wake)) then
-  if (.not. (f1%wake == f2%wake)) return
+if (associated(f1%rf%wake)) then
+  if (.not. (f1%rf%wake == f2%rf%wake)) return
 endif
 
 if (associated(f1%gen_field)) then
@@ -569,7 +569,7 @@ print *, 'Associated: ', (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .an
     (associated(f1%const) .eqv. associated(f2%const)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip))
 print *, 'A wig:      ', (associated(f1%wig_term) .eqv. associated(f2%wig_term))
-print *, 'A wake:     ', (associated(f1%wake) .eqv. associated(f2%wake))
+print *, 'A wake:     ', (associated(f1%rf%wake) .eqv. associated(f2%rf%wake))
 print *, 'A gen_field:', (associated(f1%gen_field) .eqv. associated(f2%gen_field))
 print *, 'A r:        ', (associated(f1%r) .eqv. associated(f2%r))
 
@@ -608,8 +608,8 @@ do i = 1, size(f1%taylor)
   print *, 'taylor:   ', i, (f1%taylor(i) == f2%taylor(i))
 enddo
 
-if (associated(f1%wake) .and. associated(f2%wake)) then
-  print *, 'wake:     ', (f1%wake == f2%wake)
+if (associated(f1%rf%wake) .and. associated(f2%rf%wake)) then
+  print *, 'wake:     ', (f1%rf%wake == f2%rf%wake)
 endif
 
 end subroutine

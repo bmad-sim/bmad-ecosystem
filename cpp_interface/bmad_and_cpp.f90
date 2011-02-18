@@ -451,10 +451,10 @@ end subroutine
 !+
 ! Subroutine sr_table_wake_to_c (f_sr_table_wake, c_sr_table_wake)
 !
-! Subroutine to convert a Bmad sr_table_wake_struct to a C++ C_sr_table_wake.
+! Subroutine to convert a Bmad rf_wake_sr_table_struct to a C++ C_sr_table_wake.
 !
 ! Input:
-!   f_sr_table_wake -- sr_table_wake_struct: Input Bmad sr_table_wake_struct.
+!   f_sr_table_wake -- rf_wake_sr_table_struct: Input Bmad rf_wake_sr_table_struct.
 !
 ! Output:
 !   c_sr_table_wake -- c_dummy_struct: Output C_sr_table_wake.
@@ -468,8 +468,8 @@ use bmad_interface
 
 implicit none
 
-type (sr_table_wake_struct), target :: f_sr_table_wake
-type (sr_table_wake_struct), pointer :: f
+type (rf_wake_sr_table_struct), target :: f_sr_table_wake
+type (rf_wake_sr_table_struct), pointer :: f
 type (c_dummy_struct) c_sr_table_wake
 
 f => f_sr_table_wake
@@ -483,7 +483,7 @@ end subroutine
 ! Subroutine sr_table_wake_to_f2 (f_sr_table_wake, z, long, trans)
 !
 ! Subroutine used by sr_table_wake_to_f to convert a C++ C_sr_table_wake into
-! a Bmad sr_table_wake_struct. This routine is not for general use.
+! a Bmad rf_wake_sr_table_struct. This routine is not for general use.
 !-
 
 subroutine sr_table_wake_to_f2 (f_sr_table_wake, z, long, trans)
@@ -494,10 +494,10 @@ use bmad_interface
 
 implicit none
 
-type (sr_table_wake_struct) f_sr_table_wake
+type (rf_wake_sr_table_struct) f_sr_table_wake
 real(rp) z, long, trans
 
-f_sr_table_wake = sr_table_wake_struct(z, long, trans)
+f_sr_table_wake = rf_wake_sr_table_struct(z, long, trans)
 
 end subroutine
 
@@ -507,10 +507,10 @@ end subroutine
 !+
 ! Subroutine sr_mode_wake_to_c (f_sr_mode_wake, c_sr_mode_wake)
 !
-! Subroutine to convert a Bmad sr_mode_wake_struct to a C++ C_sr_mode_wake.
+! Subroutine to convert a Bmad rf_wake_sr_mode_struct to a C++ C_sr_mode_wake.
 !
 ! Input:
-!   f_sr_mode_wake -- sr_mode_wake_struct: Input Bmad sr_mode_wake_struct.
+!   f_sr_mode_wake -- rf_wake_sr_mode_struct: Input Bmad rf_wake_sr_mode_struct.
 !
 ! Output:
 !   c_sr_mode_wake -- c_dummy_struct: Output C_sr_mode_wake.
@@ -524,8 +524,8 @@ use bmad_interface
 
 implicit none
 
-type (sr_mode_wake_struct), target :: f_sr_mode_wake
-type (sr_mode_wake_struct), pointer :: f
+type (rf_wake_sr_mode_struct), target :: f_sr_mode_wake
+type (rf_wake_sr_mode_struct), pointer :: f
 type (c_dummy_struct) c_sr_mode_wake
 
 f => f_sr_mode_wake
@@ -541,7 +541,7 @@ end subroutine
 !                                     b_sin, b_cos, a_sin, a_cos)
 !
 ! Subroutine used by sr_mode_wake_to_f to convert a C++ C_sr_mode_wake into
-! a Bmad sr_mode_wake_struct. This routine is not for general use.
+! a Bmad rf_wake_sr_mode_struct. This routine is not for general use.
 !-
 
 subroutine sr_mode_wake_to_f2 (f_sr_mode_wake, amp, damp, freq, phi, &
@@ -553,10 +553,10 @@ use bmad_interface
 
 implicit none
 
-type (sr_mode_wake_struct) f_sr_mode_wake
+type (rf_wake_sr_mode_struct) f_sr_mode_wake
 real(rp) amp, damp, freq, phi, b_sin, b_cos, a_sin, a_cos
 
-f_sr_mode_wake = sr_mode_wake_struct(amp, damp, freq, phi, &
+f_sr_mode_wake = rf_wake_sr_mode_struct(amp, damp, freq, phi, &
                                       b_sin, b_cos, a_sin, a_cos)
 
 end subroutine
@@ -567,10 +567,10 @@ end subroutine
 !+
 ! Subroutine lr_wake_to_c (f_lr_wake, c_lr_wake)
 !
-! Subroutine to convert a Bmad lr_wake_struct to a C++ C_lr_wake.
+! Subroutine to convert a Bmad rf_wake_lr_struct to a C++ C_lr_wake.
 !
 ! Input:
-!   f_lr_wake -- Lr_wake_struct: Input Bmad lr_wake_struct.
+!   f_lr_wake -- Lr_wake_struct: Input Bmad rf_wake_lr_struct.
 !
 ! Output:
 !   c_lr_wake -- c_dummy_struct: Output C_lr_wake.
@@ -584,8 +584,8 @@ use bmad_interface
 
 implicit none
 
-type (lr_wake_struct), target :: f_lr_wake
-type (lr_wake_struct), pointer :: f
+type (rf_wake_lr_struct), target :: f_lr_wake
+type (rf_wake_lr_struct), pointer :: f
 type (c_dummy_struct) c_lr_wake
 
 f => f_lr_wake
@@ -601,7 +601,7 @@ end subroutine
 !                                   n_sin, n_cos, s_cos, s_sin, t_ref, m, polarized)
 !
 ! Subroutine used by lr_wake_to_f to convert a C++ C_lr_wake into
-! a Bmad lr_wake_struct. This routine is not for general use.
+! a Bmad rf_wake_lr_struct. This routine is not for general use.
 !-
 
 subroutine lr_wake_to_f2 (f_lr_wake, freq, freq_in, r_over_q, q, angle, &
@@ -614,13 +614,13 @@ use bmad_interface
 
 implicit none
 
-type (lr_wake_struct) f_lr_wake
+type (rf_wake_lr_struct) f_lr_wake
 real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, s_ref
 real(rp) angle, t_ref
 integer m
 logical polarized
 
-f_lr_wake = lr_wake_struct(freq, freq_in, r_over_q, q, angle, &
+f_lr_wake = rf_wake_lr_struct(freq, freq_in, r_over_q, q, angle, &
                                    n_sin, n_cos, s_cos, s_sin, t_ref, m, polarized)
 
 end subroutine
@@ -649,9 +649,9 @@ use bmad_interface
 
 implicit none
 
-type (wake_struct), target :: f_wake
-type (wake_struct), pointer :: f
-type (sr_mode_wake_struct), pointer :: sr_mode
+type (rf_wake_struct), target :: f_wake
+type (rf_wake_struct), pointer :: f
+type (rf_wake_sr_mode_struct), pointer :: sr_mode
 type (c_dummy_struct) c_wake
 integer i, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
 
@@ -710,7 +710,7 @@ use bmad_interface
 
 implicit none
 
-type (wake_struct) f_wake
+type (rf_wake_struct) f_wake
 integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, n_srf, n_lrf
 real(rp) z_sr_mode_max
 character(n_srf) :: sr_file
@@ -745,11 +745,11 @@ use bmad_interface
 
 implicit none
 
-type (wake_struct) f_wake
+type (rf_wake_struct) f_wake
 real(rp) z, long, trans
 integer it
 
-f_wake%sr_table(it) = sr_table_wake_struct(z, long, trans)
+f_wake%sr_table(it) = rf_wake_sr_table_struct(z, long, trans)
 
 end subroutine
 
@@ -772,11 +772,11 @@ use bmad_interface
 
 implicit none
 
-type (wake_struct) f_wake
+type (rf_wake_struct) f_wake
 real(rp) amp, damp, freq, phi, b_sin, b_cos, a_sin, a_cos
 integer it
 
-f_wake%sr_mode_long(it) = sr_mode_wake_struct(amp, damp, freq, phi, &
+f_wake%sr_mode_long(it) = rf_wake_sr_mode_struct(amp, damp, freq, phi, &
                                         b_sin, b_cos, a_sin, a_cos)
 
 end subroutine
@@ -800,11 +800,11 @@ use bmad_interface
 
 implicit none
 
-type (wake_struct) f_wake
+type (rf_wake_struct) f_wake
 real(rp) amp, damp, freq, phi, b_sin, b_cos, a_sin, a_cos
 integer it
 
-f_wake%sr_mode_trans(it) = sr_mode_wake_struct(amp, damp, freq, phi, &
+f_wake%sr_mode_trans(it) = rf_wake_sr_mode_struct(amp, damp, freq, phi, &
                                         b_sin, b_cos, a_sin, a_cos)
 
 end subroutine
@@ -828,12 +828,12 @@ use bmad_interface
 
 implicit none
 
-type (wake_struct) f_wake
+type (rf_wake_struct) f_wake
 real(rp) freq, freq_in, r_over_q, q, n_sin, n_cos, s_cos, s_sin, angle, t_ref
 integer it, m
 logical polarized
 
-f_wake%lr(it) = lr_wake_struct(freq, freq_in, r_over_q, q, angle, &
+f_wake%lr(it) = rf_wake_lr_struct(freq, freq_in, r_over_q, q, angle, &
                               n_sin, n_cos, s_cos, s_sin, t_ref, m, polarized)
 
 end subroutine
@@ -1342,8 +1342,8 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
       r_arr, nr1, nr2, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
       c_str(descrip), f%gen_field, f%taylor(1), f%taylor(2), f%taylor(3), &
-      f%taylor(4), f%taylor(5), f%taylor(6), f%wake, &
-      c_logic(associated(f%wake)), n_wig, f%key, &
+      f%taylor(4), f%taylor(5), f%taylor(6), f%rf%wake, &
+      c_logic(associated(f%rf%wake)), n_wig, f%key, &
       f%sub_key, f%lord_status, f%slave_status, f%ix_value, f%n_slave, f%ix1_slave, &
       f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
       f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
@@ -1523,8 +1523,8 @@ call taylor_to_f (tlr4, f%taylor(4))
 call taylor_to_f (tlr5, f%taylor(5))
 call taylor_to_f (tlr6, f%taylor(6))
 
-call init_wake (f%wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
-if (associated(f%wake)) call wake_to_f (wake, f%wake)
+call init_wake (f%rf%wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
+if (associated(f%rf%wake)) call wake_to_f (wake, f%rf%wake)
 
 if (n_wig == 0) then
   if (associated(f%wig_term)) deallocate (f%wig_term)

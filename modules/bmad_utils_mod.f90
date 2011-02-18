@@ -1201,7 +1201,7 @@ if (present (nullify_only)) then
     nullify (ele%r)
     nullify (ele%descrip)
     nullify (ele%a_pole, ele%b_pole)
-    nullify (ele%wake)
+    nullify (ele%rf%wake)
     nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
     nullify (ele%gen_field)
@@ -1221,12 +1221,12 @@ if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%mode3))          deallocate (ele%mode3)
 if (associated (ele%wall3d%section)) deallocate (ele%wall3d%section)
 
-if (associated (ele%wake)) then
-  if (associated (ele%wake%sr_table))      deallocate (ele%wake%sr_table)
-  if (associated (ele%wake%sr_mode_long))  deallocate (ele%wake%sr_mode_long)
-  if (associated (ele%wake%sr_mode_trans)) deallocate (ele%wake%sr_mode_trans)
-  if (associated (ele%wake%lr))            deallocate (ele%wake%lr)
-  deallocate (ele%wake)
+if (associated (ele%rf%wake)) then
+  if (associated (ele%rf%wake%sr_table))      deallocate (ele%rf%wake%sr_table)
+  if (associated (ele%rf%wake%sr_mode_long))  deallocate (ele%rf%wake%sr_mode_long)
+  if (associated (ele%rf%wake%sr_mode_trans)) deallocate (ele%rf%wake%sr_mode_trans)
+  if (associated (ele%rf%wake%lr))            deallocate (ele%rf%wake%lr)
+  deallocate (ele%rf%wake)
 endif
 
 if (associated (ele%taylor(1)%term)) deallocate &
@@ -1917,7 +1917,7 @@ subroutine transfer_wake (wake_in, wake_out)
 
 implicit none
 
-type (wake_struct), pointer :: wake_in, wake_out
+type (rf_wake_struct), pointer :: wake_in, wake_out
 integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
 
 !
@@ -1967,7 +1967,7 @@ subroutine init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
 
 implicit none
 
-type (wake_struct), pointer :: wake
+type (rf_wake_struct), pointer :: wake
 integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
 
 ! Deallocate wake if all inputs are zero.

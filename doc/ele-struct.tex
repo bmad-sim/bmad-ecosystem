@@ -38,7 +38,7 @@ type ele_struct
   type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
   type (genfield), pointer :: gen_field => null() ! For symp_map
   type (taylor_struct) :: taylor(6)               ! Taylor terms
-  type (wake_struct), pointer :: wake => null()   ! Wakefields
+  type (rf_struct) rf                             ! RF field and wake structure.
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
   real(rp) value(n_attrib_maxx)      ! attribute values.
@@ -458,57 +458,72 @@ PTC library (\sref{s:libs}). The PTC partially inverted map does not have any
 zeroth order terms so the zeroth order terms are stored in the \vn{%gen0(6)} vector.
 
 %--------------------------------------------------------------------------
-\section {Wake fields}
+\section {RF fields and wakes}
 \index{wake fields!in ele_struct}
 
-\index{ele_struct!\%wake}
-See \sref{s:wake fields} for the equations used in wake field
-calculations.  Wake fields are stored in the \vn{%wake} struct:
+\index{ele_struct!\%rf}
+\index{lcavity}\index{rfcavity}
+For \vn{lcavity} and \vn{rfcavity} elements, the \vn{ele_struct%rf}
+structure holds information on ``rf fields'' and ``rf wakes.''
+Actually the two are not totally disjoint since the field substructure
+can hold information about the HOM modes. The \vn{%rf} component
+is of type \vn{rf_struct}:
 \begin{example}
-  type wake_struct
-    character(200) :: sr_file = ' '
-    character(200) :: lr_file = ' '
-    type (sr_table_wake_struct), pointer :: sr_table(0:) => null()
-    type (sr_mode_wake_struct), pointer :: sr_mode_long(:) => null()
-    type (sr_mode_wake_struct), pointer :: sr_mode_trans(:) => null()
-    type (lr_wake_struct), pointer :: lr(:) => null()
-    real(rp) :: z_sr_mode_max = 0   
+  type rf_struct
+    type (rf_field_struct), pointer :: field
+    type (rf_wake_struct), pointer :: wake
   end type
 \end{example}
-Since \vn{%wake} is a pointer its association status must be tested
-before any of its sub--components are accessed.
+Since \vn{%rf%wake} and \vn{%rf%field} are pointers their association
+status must be tested before any of its sub--components are accessed.
 \begin{example}
   type (ele_struct) ele
   ...
-  if (associated(ele%wake)) then
+  if (associated(ele%rf%wake)) then
     ...
 \end{example}
-
-\bmad observes the following rule: If \vn{%wake} is associated then it
-is assumed that all the sub--components (\vn{%wake%sr_table}, etc.) are
+\bmad observes the following rule: If \vn{rf%wake} or \vn{rf%field} are associated then it
+is assumed that all the sub--components (\vn{rf%wake%sr_table}, etc.) are
 associated. This simplifies programming in that you do not have to
 test directly the association status of the sub--components.
 
+\index{ele_struct!\%rf%wake}
+See \sref{s:wake.fields} for the equations used in wake field
+calculations.  Wake fields are stored in the \vn{%rf%wake} struct:
+\begin{example}
+  type rf_wake_struct
+    character(200) :: sr_file = ' '
+    character(200) :: lr_file = ' '
+    type (rf_wake_sr_table_struct), pointer :: sr_table(0:) => null()
+    type (rf_wake_sr_mode_struct), pointer :: sr_mode_long(:) => null()
+    type (rf_wake_sr_mode_struct), pointer :: sr_mode_trans(:) => null()
+    type (rf_wake_lr_struct), pointer :: lr(:) => null()
+    real(rp) :: z_sr_mode_max = 0   
+  end type
+\end{example}
+
+\index{rf_wake_sr_table_struct}
 The short--range wake can be parameterized in either of two ways.
 One parameterization uses a table of wake verses z position. 
 If this parameterization utilizes the \vn{%wake%sr_table(0:)} array
 The structure of each element in this array is:
 \begin{example}
-  type sr_table_wake_struct  ! Tabular short-Range Wake struct
+  type rf_wake_sr_table_struct  ! Tabular short-Range Wake struct
     real(rp) z               ! Distance behind the leading particle
     real(rp) long            ! Longitudinal wake in V/C/m
     real(rp) trans           ! Transverse wake in V/C/m^2
   end type
 \end{example}
-All \vn{%wake%sr_table(0:)%z} must be negative except \vn{%wake%sr_table(0)%z} 
+All \vn{%rf%wake%sr_table(0:)%z} must be negative except \vn{%rf%wake%sr_table(0)%z} 
 = 0. Wake field kicks are applied using \Eqs{delvp} and \eq{pelqxw}.
 
+\index{rf_wake_sr_mode_struct}
 The alternative short--range wake parameterization uses pseudo--modes (\Eq{wadzk}).
-This parameterization utilizes the \vn{%wake%sr_mode_long}, and \vn{%wake%sr_mode_trans}
+This parameterization utilizes the \vn{%rf%wake%sr_mode_long}, and \vn{%rf%wake%sr_mode_trans}
 arrays for the longitudinal and transverse modes respectively.
 The structure used for the elements of these arrays are:
 \begin{example}
-  type sr_mode_wake_struct  ! Pseudo-mode short-range wake struct 
+  type rf_wake_sr_mode_struct  ! Pseudo-mode short-range wake struct 
     real(rp) amp        ! Amplitude
     real(rp) damp       ! Damping factor.
     real(rp) freq       ! Frequency in Hz
@@ -527,14 +542,14 @@ set to zero and as each particle passes through the cavity the
 contribution to the wake due to the particle is calculated and added
 the components.
 
-\vn{%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo
+\vn{%rf%wake%z_sr_mode_max} is the maximum $z$ value beyond which the pseudo
 mode representation is not valid. This is set in the input lattice file.
 
-\index{lr_wake_struct}
-The \vn{%wake%lr} array stores the long--range wake modes. The
+\index{rf_wake_lr_struct}
+The \vn{%rf%wake%lr} array stores the long--range wake modes. The
 structure definition is:
 \begin{example}
-  type lr_wake_struct   ! Long-Range Wake struct 
+  type rf_wake_lr_struct   ! Long-Range Wake struct 
     real(rp) freq       ! Actual Frequency in Hz
     real(rp) freq_in    ! Input frequency in Hz
     real(rp) R_over_Q   ! Strength in V/C/m^2
