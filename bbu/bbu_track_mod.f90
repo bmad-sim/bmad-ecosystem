@@ -324,7 +324,7 @@ implicit none
 type (lat_struct), target :: lat
 type (bbu_beam_struct), target :: bbu_beam
 type (bbu_param_struct) bbu_param
-type (lr_wake_struct), pointer :: lr
+type (rf_wake_lr_struct), pointer :: lr
 type (bbu_stage_struct), pointer :: this_stage
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
@@ -517,7 +517,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (bbu_beam_struct) bbu_beam
-type (lr_wake_struct), pointer :: lr
+type (rf_wake_lr_struct), pointer :: lr
 
 real(rp) hom_voltage_max, hom_voltage2
 
