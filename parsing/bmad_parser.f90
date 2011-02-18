@@ -57,7 +57,7 @@ type (lat_ele_loc_struct) m_slaves(100)
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 character(40), allocatable ::  in_name(:), seq_name(:)
 
-integer ix_word, i_use, i, j, k, n, ix, ix1, ix2
+integer ix_word, i_use, i, j, k, n, ix, ix1, ix2, n_wall
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, ix_multipass, n_ele_max, n_multi, n0, n_ele
 integer, pointer :: n_max
@@ -1007,6 +1007,32 @@ do i = 1, lat%n_ele_max
   endif
 
 enddo 
+
+! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+
+  n_wall = 0
+  do j = 0, branch%n_ele_track
+    if (branch%ele(i)%key == capillary$) cycle
+    if (associated(branch%ele(i)%wall3d%section)) n_wall = n_wall + size(branch%ele(i)%wall3d%section)
+  enddo
+  if (n_wall == 0) cycle
+
+  allocate (branch%wall3d%section(n_wall))
+  n_wall = 0
+  do j = 0, branch%n_ele_track
+    if (branch%ele(i)%key == capillary$) cycle
+    if (.not. associated(branch%ele(i)%wall3d%section)) cycle
+    n = size(branch%ele(i)%wall3d%section)
+    branch%wall3d%section(n_wall+1:n_wall+n) = branch%ele(i)%wall3d%section
+    branch%wall3d%section(n_wall+1:n_wall+n)%s = branch%wall3d%section(n_wall+1:n_wall+n)%s + &
+                                                          branch%ele(i)%s - branch%ele(i)%value(l$)
+    n_wall = n_wall + n
+  enddo
+
+enddo
 
 ! Mark elements as unmodified
 
