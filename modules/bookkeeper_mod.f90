@@ -674,6 +674,8 @@ if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
   slave%value(p0c_start$)    = slave_val(p0c_start$)
 endif
 
+if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
+
 ! A slave's field_master = T irregardless of the lord's setting.
 ! This is to make attribute_bookkeeper compute the correct normalized field strength.
 
@@ -987,7 +989,7 @@ real(rp) ks_yp_sum, ks_yo_sum, l_slave, r_off(4), leng, offset
 real(rp) t_1(4), t_2(4), T_end(4,4), mat4(4,4), mat4_inv(4,4), beta(4)
 real(rp) T_tot(4,4), x_o_sol, x_p_sol, y_o_sol, y_p_sol
 
-logical is_first, is_last
+logical is_first, is_last, wall3d_here
 logical, save :: init_needed = .true.
 
 character(20) :: r_name = 'makeup_super_slave'
@@ -1047,6 +1049,8 @@ if (slave%n_lord == 1) then
 
   call makeup_super_slave1 (slave, lord, offset, lat%param, is_first, is_last)
 
+  if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
+
   return
 
 endif
@@ -1081,6 +1085,8 @@ value(p0c$) = slave%value(p0c$)
 s_slave = slave%s - value(l$)/2  ! center of slave
 slave%is_on = .false.
 
+wall3d_here = .false.
+
 ! sum over all lords...
 
 do j = 1, slave%n_lord
@@ -1104,6 +1110,18 @@ do j = 1, slave%n_lord
             'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
     call err_exit
+  endif
+
+  ! Transfer wall3d info
+
+  if (associated(lord%wall3d%section)) then
+    if (wall3d_here) then
+      call out_io (s_abort$, r_name, &
+            'SUPERPOSITION SLAVE CANNOT INHERIT WALL PROFILES FROM MULTIPLE LORDS! ' // slave%name)
+      call err_exit
+    endif
+    slave%wall3d = lord%wall3d
+    wall3d_here = .true.
   endif
 
   ! Physically, the lord length cannot be less than the slave length.
