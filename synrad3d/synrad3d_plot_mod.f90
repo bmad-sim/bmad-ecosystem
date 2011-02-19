@@ -32,7 +32,7 @@ real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3), x_max_user
 
 integer i, j, ix, ix_section, i_in, ios, i_chan, ixp
 
-character(40) ans, label
+character(80) ans, label
 
 logical is_through, first, at_section
 
@@ -154,12 +154,12 @@ do
   ! Now plot
 
   if (at_section) then
-    write (label, '(a, f0.2, a, i0)') 'S: ', s_pos, '   Section #: ', ix_section
+    write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
   else
-    write (label, '(a, f0.2)') 'S: ', s_pos
+    write (label, '(a, f0.3)') 'S: ', s_pos
   endif
   call qp_clear_page
-  x_max = 1.01 * maxval(abs(x)); y_max = 1.01 *maxval(abs(y))
+  x_max = 1.01 * maxval(abs(x)); y_max = 1.01 * maxval(abs(y))
   if (x_max_user > 0) x_max = x_max_user
   call qp_calc_and_set_axis ('X', -x_max, x_max, 6, 10, 'ZERO_SYMMETRIC')
   call qp_calc_and_set_axis ('Y', -y_max, y_max, 6, 10, 'ZERO_SYMMETRIC')

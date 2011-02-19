@@ -43,6 +43,7 @@ character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file
 
 character(100) dat_file, dat2_file, wall_file, param_file, arg
+character(40) name
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this, err
@@ -56,7 +57,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
             e_init_filter_min, e_init_filter_max
 
-namelist / wall_def / section
+namelist / wall_def / section, name
 namelist / gen_shape_def / ix_gen_shape, v
 
 namelist / start / p, ran_state, random_seed
@@ -180,14 +181,14 @@ do i = 0, n_wall_pt_max
   section%ante_height2_minus = -1
   section%width2_plus = -1
   section%width2_minus = -1
+  name = ''
   read (1, nml = wall_def)
 
-  wall%pt(i) = sr3d_wall_pt_struct( &
+  wall%pt(i) = sr3d_wall_pt_struct(name, &
           section%s, section%basic_shape, section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
           -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null())
-
   if (wall%pt(i)%basic_shape(1:9) == 'gen_shape') then
     n_shape_max = max (n_shape_max, nint(wall%pt(i)%width2))
   endif

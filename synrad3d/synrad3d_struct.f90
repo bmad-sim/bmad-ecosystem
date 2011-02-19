@@ -61,6 +61,7 @@ end type
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
 type sr3d_wall_pt_struct
+  character(40) name     ! Name of associated lattice element
   real(rp) s                      ! Longitudinal position.
   character(16) basic_shape       ! "elliptical", "rectangular", or "gen_shape"
   real(rp) width2                 ! Half width ignoring antechamber.
