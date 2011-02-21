@@ -853,8 +853,13 @@ call calc_this_emit (beam_init, ele, param, emit)
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
 emit(3) = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
-beta(3) = beam_init%sig_z**2 / emit(3)
-alpha(3) = - covar / emit(3)
+if (emit(3) == 0) then
+  beta(3) = 1
+  alpha(3) = 0
+else
+  beta(3) = beam_init%sig_z**2 / emit(3)
+  alpha(3) = - covar / emit(3)
+endif
 
 ! Init
 
@@ -1031,7 +1036,7 @@ integer i, j, j2, n, i_bunch, n_particle
 logical is_ran_plane(3)
 
 character(16) old_engine, old_converter  
-character(22) :: r_name = "init_random_distribution"
+character(28) :: r_name = "init_random_distribution"
 
 ! If random is to be combined with other distributions, the number
 ! of particles is set by the other distributions.
@@ -1040,6 +1045,11 @@ is_ran_plane = (beam_init%distribution_type == '' .or. beam_init%distribution_ty
 
 n_particle = beam_init%n_particle
 if (any(.not. is_ran_plane)) n_particle = size(bunch%particle)
+
+if (n_particle < 1) then
+  call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
+  call err_exit
+endif
 
 allocate(p(n_particle))
 
@@ -1205,9 +1215,16 @@ real(rp) x, px
 
 logical where(3)
 
+character(28) :: r_name = 'init_grid_distribution'
+
 !
 
 n_particle = grid%n_x * grid%n_px       ! total number of particles
+if (n_particle < 1) then
+  call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
+  call err_exit
+endif
+
 allocate (p(n_particle))
 
 k = 1
@@ -1287,10 +1304,17 @@ real(rp) x, px, charge
 
 logical where(3)
 
+character(28) :: r_name = 'init_ellipse_distribution'
+
 !
 
 e => ellipse
 n_particle = e%n_ellipse * e%part_per_ellipse
+if (n_particle < 1) then
+  call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
+  call err_exit
+endif
+
 allocate (p(n_particle))
 
 k = 0
@@ -1370,6 +1394,8 @@ real(rp) x1, x2, px1, px2, charge
 
 logical where(3)
 
+character(28) :: r_name = 'init_kv_distribution'
+
 !
 
 beta1 = beta(ix1_plane); beta2 = beta(ix2_plane)
@@ -1380,6 +1406,10 @@ n_p1 = kv%part_per_phi(1)
 n_p2 = kv%part_per_phi(2)
 
 n_particle = kv%n_i2 * n_p1 * n_p2
+if (n_particle < 1) then
+  call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
+  call err_exit
+endif
 
 allocate (p(n_particle))
 

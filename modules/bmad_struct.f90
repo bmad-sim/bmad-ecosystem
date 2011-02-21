@@ -134,12 +134,15 @@ end type
 !   "Numerical computation of high-order transfer maps for rf cavities."
 
 type rf_mode_term_struct
-  integer m
   real(rp) k, e, f, a, b
 end type
 
 type rf_mode_struct
   real(rp) freq
+  real(rp) f_damp        ! 1/Q damping factor 
+  real(rp) stored_energy ! epsilon_0/2 * \int_vol |E|^2 [Joules]
+  integer m              ! Mode varies as cos(m*phi - phi_0)
+  real(rp) phi_0
   type (rf_mode_term_struct), allocatable :: term(:)
 end type
 
