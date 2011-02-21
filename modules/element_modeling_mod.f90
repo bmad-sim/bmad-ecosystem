@@ -70,7 +70,7 @@ character(40) :: r_name = 'create_sol_quad_model'
 
 !
 
-call out_io (s_fatal$, r_name, 'THIS ROUTINE NOT YET IMPLEMENTED!')
+call out_io (s_fatal$, r_name, 'THIS ROUTINE NOT YET IMPLEMENTED! PLEASE CONTACT DCS')
 call err_exit
 
 end subroutine
