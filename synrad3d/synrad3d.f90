@@ -6,7 +6,8 @@
 
 program synrad3d
 
-use sr3d_plot_mod
+use synrad3d_plot_mod
+use synrad3d_output_mod
 use bookkeeper_mod
 
 implicit none

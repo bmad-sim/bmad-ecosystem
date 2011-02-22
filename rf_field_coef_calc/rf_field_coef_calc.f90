@@ -18,23 +18,25 @@ implicit none
 
 integer, parameter :: m_max = 4  ! Maximum mode m value considered.
 
+type (rf_mode_struct) mode(-m_max:m_max)
+
 type cylinder_coords
   complex(rp) :: rho = 0, phi = 0, z = 0
 end type
 
 type (cylinder_coords), allocatable :: E(:,:)  ! phi, z
 
-complex(rp) expi, ez_coef, erho_coef, ephi_coef
-complex(rp), allocatable :: Ez_fft(:), Ephi_fft(:), Erho_fft(:), e0(:), f0(:)
+complex(rp) expi, ez_coef, erho_coef, ephi_coef, E_cos, E_sin, E_zm
+complex(rp), allocatable :: Ez_fft(:), Ephi_fft(:), Erho_fft(:), Ez_resid(:,:)
 
-real(rp) radius, e_mag, e_phase(3), e_re(3), e_im(3), b_mag, b_phase(3), b_re(3), b_im(3), rdummy4(4)
-real(rp) rad_in, x, y, z, k_z, k_l, dz, k_zz
-real(rp) kappa2_l, kappa_l, freq_l, r_hat(2), m_cos_max(0:m_max), m_sin_max(0:m_max)
-real(rp), allocatable :: z_pos(:), phi_pos(:)
+real(rp) e_mag, e_phase(3), e_re(3), e_im(3), b_mag, b_phase(3), b_re(3), b_im(3), rdummy4(4)
+real(rp) radius, rad_in, x, y, z, k_z, k_l, dz, k_zz, cos_amp, sin_amp
+real(rp) kappa2_l, kappa_l, freq_l, r_hat(2), amp_E_zm(-m_max:m_max)
+real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:)
 
 integer i, j, m, ios, n_phi, n_z, n2_z
 
-logical m_cos_mode(0:m_max), m_sin_mode(0:m_max) 
+logical significant_mode(-m_max:m_max)
 
 character(100) file_name, field_file, line
 
@@ -56,6 +58,7 @@ open (1, file = file_name, status = 'old')
 read (1, nml = params)
 close (1)
 
+mode(:)%freq = freq_l
 k_l = twopi * freq_l / c_light
 
 ! Read in the field values...
@@ -82,13 +85,21 @@ do
   endif
 enddo
 
+mode(:)%sample_radius = radius
+print *, 'Sample_radius:', radius
+
 ! Now read in the data
 
 n_phi = 1
 n_z = i
 n2_z = 2**ceiling(0.99999 * log(real(n_z)) / log(2.0))
-allocate (E(n_phi,n2_z), z_pos(n_z), phi_pos(n_phi), e0(n2_z), f0(n2_z))
+
+allocate (E(n_phi,n2_z), z_pos(n_z), phi_pos(n_phi), Ez_resid(n_phi, n2_z), cos_term(n_phi))
 allocate (Ez_fft(n2_z), Erho_fft(n2_z), Ephi_fft(n2_z))
+
+do i = -m_max, m_max
+  allocate(mode(i)%term(n2_z))
+enddo
 
 print *, 'Number of data points in z:', n_z
 print *, 'Array size for FFT:        ', n2_z
@@ -118,87 +129,88 @@ do i = 2, n_z
   endif
 enddo
 
-! Analyze the phi dependence
+! Analyze the phi dependence to get the best phi0.
+! mode(-m) is out-of-phase with mode(m) and if there is only a single mode present, it
+! will be assocaited with mode(m) and mode(-m) will have zero amplitude.
 
 do m = 1, m_max
   if (modulo(n_phi, max(1, 4*m)) /= 0) then
-    print *, 'Note: Not considering modes with m =', m
+    print *, 'Note: Due to number of points in phi, will not consider modes with m =', m
     cycle
   endif
 
-  E_cos_tot = 0; E_sin_tot = 0
+  cos_amp = 0; sin_amp = 0
   do i = 1, n2_z
 
-    c = 0; s = 0
+    E_cos = 0; E_sin = 0
     do j = 1, n_phi
-      c = c + E(j, i)%z * cos(m * (j - 1) * twopi / n_phi)
-      s = s + E(j, i)%z * sin(m * (j - 1) * twopi / n_phi)
+      E_cos = E_cos + E(j, i)%z * cos(m * (j - 1) * twopi / n_phi)
+      E_sin = E_sin + E(j, i)%z * sin(m * (j - 1) * twopi / n_phi)
     enddo
 
-    if (c > 0) then
-      E_cos_tot = E_cos_tot + c / (2 * n_phi)
-      E_sin_tot = E_sin_tot + s / (2 * n_phi)
+    if (real(E_cos) > 0) then
+      cos_amp = cos_amp + real(E_cos)
+      sin_amp = sin_amp + real(E_sin)
     else
-      E_cos_tot = E_cos_tot - c / (2 * n_phi)
-      E_sin_tot = E_sin_tot - s / (2 * n_phi)
+      cos_amp = cos_amp - real(E_cos)
+      sin_amp = sin_amp - real(E_sin)
+    endif
+
+    if (aimag(E_cos) > 0) then
+      cos_amp = cos_amp + aimag(E_cos)
+      sin_amp = sin_amp + aimag(E_sin)
+    else
+      cos_amp = cos_amp - aimag(E_cos)
+      sin_amp = sin_amp - aimag(E_sin)
     endif
 
   enddo
 
-  phase(m) = modulo2 (atan2(E_sin_tot, E_cos_tot), pi/(2*m))
-  phase(-m) = phase(m) + pi / (2*m)
-  do i = 1, n2_z
-    c = 0, c2 = 0
-    do j = 1, n_phi
-      c = c + E(j, i)%z * cos(m * (j - 1) * twopi / n_phi - phase(m))
-      c2 = c2 + E(j, i)%z * cos(m * (j - 1) * twopi / n_phi - phase(-m))
-    enddo
-
-    E_zm( m,i) = c / (2 * n_phi)
-    E_zm(-m,i) = c2 / (2 * n_phi)
-  enddo
+  mode(m)%phi_0 = modulo2 (atan2(sin_amp, cos_amp), pi/(2*m))
+  mode(-m)%phi_0 = mode(m)%phi_0 + pi / (2*m) ! Out-of-phase with mode(m)
 
 enddo
 
-E_zm = 0
-
-E_zm(0, :) = sum(E(:,:)%z, 1) / n_phi
-
-! Choose largest modes
+! Compute mode amplitudes and choose largest modes
 
 Ez_resid = E%z
+significant_mode = .false.
+
 do m = -m_max, m_max
-  E_zm_amp = 0
-  do i = 1, n2_z
-    do j = 1, n_phi
-      dE = E_zm(m, i) * cos(m * (j - 1) * twopi / n_phi - phase(m))
-      E_zm_amp(m) = E_zm_amp(m) + abs(dE)
-      Ez_resid = Ez_resid - dE
-    enddo
+
+  if (modulo(n_phi, max(1, 4*abs(m))) /= 0) cycle
+  significant_mode = .true.
+
+  do j = 1, n_phi
+    cos_term(j) = cos(m * (j - 1) * twopi / n_phi - mode(m)%phi_0)
   enddo
-  E_zm_amp(m) = E_zm_amp(m) / (n2_z * n_phi)
+
+  do i = 1, n2_z
+    E_zm = sum(E(:, i)%z * cos_term) / (2 * n_phi)
+    amp_E_zm(m) = amp_E_zm(m) + abs(E_zm) * sum(abs(cos_term)) / n2_z
+    Ez_resid(:, i) = Ez_resid(:, i) - E_zm * cos_term
+  enddo
+
 enddo
 
 print *
 print *, '  m, <|E_zm|>'
 do m = -m_max, m_max
-  print *, m, E_zm_amp(m)
+  print *, amp_E_zm(m), '  ', significant_mode(m)
 enddo
 
 print *
 print *, '<|E_z|>           ', sum(abs(E%z)) / (n2_z * n_phi)
 print *, '<|E_z - E_z(fit)|>', sum(abs(Ez_resid)) / (n2_z * n_phi)
 
-! Find coefficients
+! Find coefficients for m == 0
 
-do m = -m_max, m_max
+if (significant_mode(0)) then
 
-  
-
-  Ez_fft(i) = E_zm(m)sum(E(:,:)%z, 1) / n_phi
+  Ez_fft(:) = sum(E(:,:)%z, 1) / n_phi
   call four1(Ez_fft, -1)
 
-  Ephi_fft(i) = sum(E(:,:)%phi, 1) / n_phi
+  Ephi_fft(:) = sum(E(:,:)%phi, 1) / n_phi
   call four1(Ephi_fft, -1)
 
   do i = 1, n2_z
@@ -207,19 +219,29 @@ do m = -m_max, m_max
     kappa2_l = k_z**2 - k_l**2
     kappa_l = sqrt(abs(kappa2_l))
   
-    e0(i) = Ez_fft(i) / (R(0, kappa2_l, kappa_l, radius) * n2_z)
-    f0(i) = Ephi_fft(i) / (R(1, kappa2_l, kappa_l, radius) * n2_z)
+    mode(0)%term(i)%e = Ez_fft(i) / (R(0, kappa2_l, kappa_l, radius) * n2_z)
+    mode(0)%term(i)%f = Ephi_fft(i) / (R(1, kappa2_l, kappa_l, radius) * n2_z)
   enddo
 endif
 
-! m > 0
+! Find coefficients for m /= 0
 
-do m = 1, m_max
-  Ez_fft(i) = sum(E(:,:)%z, 1) / n_phi
+do m = -m_max, m_max
+
+  if (m == 0) cycle
+  if (.not. significant_mode(m)) cycle
+
+  do j = 1, n_phi
+    cos_term(j) = cos(m * (j - 1) * twopi / n_phi - mode(m)%phi_0)
+  enddo
+
+  do i = 1, n2_z
+    Ez_fft(i)   = sum(E(:, i)%z * cos_term) / (2 * n_phi)
+    Erho_fft(i) = sum(E(:, i)%rho * cos_term) / (2 * n_phi)
+  enddo
+
   call four1(Ez_fft, -1)
-
-  Ephi_fft(i) = sum(E(:,:)%phi, 1) / n_phi
-  call four1(Ephi_fft, -1)
+  call four1(Erho_fft, -1)
 
   do i = 1, n2_z
     k_z = twopi * (i - 1) / (n2_z * dz)  
@@ -227,11 +249,12 @@ do m = 1, m_max
     kappa2_l = k_z**2 - k_l**2
     kappa_l = sqrt(abs(kappa2_l))
   
-    e0(i) = Ez_fft(i) / (R(0, kappa2_l, kappa_l, radius) * n2_z)
-    f0(i) = Ephi_fft(i) / (R(1, kappa2_l, kappa_l, radius) * n2_z)
+    mode(m)%term(i)%e = Ez_fft(i) / (R(m, kappa2_l, kappa_l, radius) * n2_z)
+    mode(m)%term(i)%b = (radius / n2_z) * ( &
+                       kappa_l * Erho_fft(i) / R(m, kappa2_l, kappa_l, radius) + &
+                       i_imaginary * k_z * radius * Ez_fft(i) * R(m+1, kappa2_l, kappa_l, radius))
   enddo
 
-  call err_exit
 enddo
 
 !--------------------------------------------------------------------
@@ -242,14 +265,15 @@ Erho_fft = 0
 Ephi_fft = 0
 
 do i = 1, n2_z
+  call e_field_calc (0.03_rp, 
   k_z = twopi * (i - 1) / (n2_z * dz)
   if (2 * i > n2_z) k_z = k_z - twopi / dz
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
 
-  Ez_coef = e0(i) * R(0, kappa2_l, kappa_l, radius)
-  Erho_coef = (-i_imaginary * k_z / kappa_l) * e0(i) * R(1, kappa2_l, kappa_l, radius)
-  Ephi_coef = f0(i) * R(1, kappa2_l, kappa_l, radius) 
+  Ez_coef = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, radius)
+  Erho_coef = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, radius)
+  Ephi_coef = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, radius) 
 
   do j = 1, n2_z
     expi = cmplx(cos(dz*k_z*(j-1)), sin(dz*k_z*(j-1)))
@@ -275,9 +299,9 @@ do i = 1, n2_z
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
 
-  Ez_fft(i) = e0(i) * R(0, kappa2_l, kappa_l, radius)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * e0(i) * R(1, kappa2_l, kappa_l, radius)
-  Ephi_fft(i) = f0(i) * R(1, kappa2_l, kappa_l, radius) 
+  Ez_fft(i) = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, radius)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, radius)
+  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, radius) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -310,9 +334,9 @@ do i = 1, n2_z
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
 
-  Ez_fft(i) = e0(i) * R(0, kappa2_l, kappa_l, radius/2)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * e0(i) * R(1, kappa2_l, kappa_l, radius/2)
-  Ephi_fft(i) = f0(i) * R(1, kappa2_l, kappa_l, radius/2) 
+  Ez_fft(i) = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, radius/2)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, radius/2)
+  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, radius/2) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -345,9 +369,9 @@ do i = 1, n2_z
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
 
-  Ez_fft(i) = e0(i) * R(0, kappa2_l, kappa_l, 0.0_rp)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * e0(i) * R(1, kappa2_l, kappa_l, 0.0_rp)
-  Ephi_fft(i) = f0(i) * R(1, kappa2_l, kappa_l, 0.0_rp) 
+  Ez_fft(i) = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, 0.0_rp)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, 0.0_rp)
+  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, 0.0_rp) 
 enddo
 
 call four1(Ez_fft, 1)
