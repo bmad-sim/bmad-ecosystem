@@ -1,4 +1,4 @@
-module sr3d_plot_mod
+module synrad3d_plot_mod
 
 use synrad3d_track_mod
 use quick_plot
