@@ -128,23 +128,29 @@ type rf_wake_struct
   real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
 end type
 
-! RF field structure
+type rf_mode_term_struct
+  real(rp) e, f, b
+end type
+
+! RF mode structure
 ! See: 
 !    Dan Abell, PRST-AB 9, 052001 (2006)
 !   "Numerical computation of high-order transfer maps for rf cavities."
-
-type rf_mode_term_struct
-  real(rp) k, e, f, a, b
-end type
+!
+! Each %term(n) in this structure has a wavelength k = (n-1) * twopi / %dz
 
 type rf_mode_struct
   real(rp) freq
-  real(rp) f_damp        ! 1/Q damping factor 
+  real(rp) :: f_damp = 0 ! 1/Q damping factor 
   real(rp) stored_energy ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   integer m              ! Mode varies as cos(m*phi - phi_0)
   real(rp) phi_0
-  type (rf_mode_term_struct), allocatable :: term(:)
+  real(rp) dz            ! Distance between sampled field points.
+  real(rp) sample_radius ! For informational purposes. Not used in calculations.
+  type (rf_mode_term_struct), allocatable :: term(:) 
 end type
+
+! The RF field may be characterized by a collection of modes.
 
 type rf_field_struct
   type (rf_mode_struct), allocatable :: mode(:)

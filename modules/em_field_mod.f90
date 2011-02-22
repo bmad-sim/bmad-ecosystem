@@ -441,7 +441,7 @@ if (associated(ele%a_pole)) then
       call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky)
     endif
     field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
-    field%B(2) = field%B(2) + -f_p0c * kx / ele%value(l$)
+    field%B(2) = field%B(2) -  f_p0c * kx / ele%value(l$)
     if (df_calc) then
       field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
       field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
