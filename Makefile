@@ -47,15 +47,15 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code
-OBJ_SRC_DIRS := test dynamic_aperture closed_orbit analyzer tune_plane_res_plot bmad_to_csrtrack bmad_to_mad_and_xsif bmad_to_autocad synrad synrad3d bbu plot_freq_map plot_sb_scan
+OBJ_SRC_DIRS := test dynamic_aperture analyzer tune_plane_res_plot synrad synrad3d bbu plot_freq_map plot_sb_scan
 CONFIG_DIRS  :=
 LOCAL_INCS   := synrad3d
 SRC_EXCLUDE  :=
 
 ifneq (,$(findstring $(USE_PGPLOT),yY))
-  M_FILE_LIST  := M.dynamic_aperture M.closed_orbit M.analyzer M.tune_plane_res_plot M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall
+  M_FILE_LIST  := M.dynamic_aperture M.synrad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall M.analyzer M.tune_plane_res_plot 
 else
-  M_FILE_LIST  := M.dynamic_aperture M.bmad_to_mad_and_xsif M.synrad M.bmad_to_autocad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall
+  M_FILE_LIST  := M.dynamic_aperture M.synrad M.bbu M.synrad M.synrad3d M.synrad_aperture_to_wall 
 endif
 
 
