@@ -45,7 +45,7 @@
 # LOCAL_MODS      - Local directories to search for F90 compiled module files
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := code custom modules cpp_interface synrad photon parsing
-OBJ_SRC_DIRS := test_jobs simple_program
+OBJ_SRC_DIRS := test_jobs
 
 CONFIG_DIRS  :=
 LOCAL_INCS   := ./include ../include
