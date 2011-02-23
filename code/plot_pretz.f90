@@ -53,7 +53,7 @@ subroutine plot_pretz(lat,ncross, cross)
    x = ele%floor%z
    y = ele%floor%x
    s = lat%ele(i)%s
-   if(s >0. .and. x==0. .and. y == 0.)cycle
+   if(s >=0. .and. x==0. .and. y == 0.)cycle
    j=1
    do while((x-xlast == 0. .and. y-ylast == 0.) .or. (slast >0. .and. xlast == 0. .and. ylast == 0.))
     j=j+1

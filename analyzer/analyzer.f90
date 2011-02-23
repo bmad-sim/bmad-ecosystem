@@ -116,7 +116,7 @@ program anaylzer
 !  call bmad_parser (lat_file, ring_1)
   call bmad_and_xsif_parser(lat_file, ring_1)
   ring  = ring_1
-  call implement_pathlength_patch(path_length_patch, ring)
+!  call implement_pathlength_patch(path_length_patch, ring)
 
   call reallocate_coord (co, ring%n_ele_max)
   call reallocate_coord (co_electron, ring%n_ele_max)
