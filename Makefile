@@ -51,7 +51,7 @@ CONFIG_DIRS  :=
 LOCAL_INCS   := ./include ../include
 LOCAL_MODS   := ../modules 
 
-M_FILE_LIST  := M.simple_program
+M_FILE_LIST  :=
 
 #-----------------------------------------------------------------------------
 # "EXTRA" variables can be specified at the command line or hardwired here.  

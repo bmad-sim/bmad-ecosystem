@@ -10,10 +10,12 @@ chapter analyzes an example test program.
 \label{s:first.program}
 \index{programming!example program}
 
-Consider the example program shown in Figure~\ref{f:program}.
-This program is provided with the \bmad distribution in a file called
-\vn{simple_program.f90}. \vn{simple_program.f90} is in the \vn{bmad}
-library area in a directory called \vn{bmad/simple_program}.
+Consider the example program shown in Figure~\ref{f:program}.  This
+program is provided with the \bmad distribution in a file called
+\vn{simple_program.f90}. \vn{simple_program.f90} is in the library
+area in a directory called \vn{examples/simple_program}. Directions on
+how to compile and run the program are given on the \bmad web
+page\cite{b:bmad.web}. On the \bmad web page, click on the ``Run Programs''
 
 \begin{figure}[htp]
 \index[routine]{bmad_parser}
@@ -38,7 +40,7 @@ program test
 
   ! Read in a lattice and calculate the twiss parameters.
 
-  call bmad_parser ("simple_program/lat.bmad", lat) ! Read in a lattice.
+  call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
   if (lat%param%lattice_type == circular_lattice$) &
            call twiss_at_start (lat)  ! Calculate starting Twiss params.
   call twiss_propagate_all (lat)      ! Propagate Twiss parameters
