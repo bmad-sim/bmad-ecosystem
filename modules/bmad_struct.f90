@@ -157,8 +157,8 @@ type rf_field_struct
 end type
 
 type rf_struct
-  type (rf_field_struct), pointer :: field
-  type (rf_wake_struct), pointer :: wake
+  type (rf_field_struct), pointer :: field => null()
+  type (rf_wake_struct), pointer :: wake => null()
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -334,8 +334,8 @@ type branch_struct
   integer ix_branch
   integer ix_from_branch    ! 0 => main lattice line
   integer ix_from_ele
-  integer, pointer :: n_ele_track
-  integer, pointer :: n_ele_max
+  integer, pointer :: n_ele_track => null()
+  integer, pointer :: n_ele_max => null()
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d => null()
@@ -765,7 +765,7 @@ end type
 ! This is for debugging radiation damping and fluctuations.
 
 type synch_rad_common_struct
-  type (ele_struct), pointer :: ele0    ! Previous element. For i5 calc.
+  type (ele_struct), pointer :: ele0 => null()   ! Previous element. For i5 calc.
   real(rp) :: scale = 1.0               ! used to scale the radiation
   real(rp) :: i2 = 0, i3 = 0            ! radiation integrals
   real(rp) :: i5a = 0, i5b = 0
@@ -851,7 +851,7 @@ type (bmad_common_struct), save :: bmad_com
 
 ! multi_turn_func_common is for multi_turn_tracking_to_mat.
 
-type (coord_struct), pointer :: multi_turn_func_common(:) 
+type (coord_struct), pointer :: multi_turn_func_common(:) => null()
 
 ! This structure stores the radiation integrals for the individual elements except
 ! lin_norm_emit_a and lin_norm_emit_b are running sums.
