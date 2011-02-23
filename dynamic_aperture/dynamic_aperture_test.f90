@@ -153,7 +153,7 @@ end interface
   ap_mult = aperture_multiplier
   close (unit = 1)
 
-  call bmad_parser (lat_file, ring)
+  call bmad_and_xsif_parser (lat_file, ring)
   if(delta_fRF /= 0.)then
      path_length_patch = .false.
      call implement_pathlength_patch(path_length_patch,ring, delta_fRF, fRF)
