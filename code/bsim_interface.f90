@@ -42,17 +42,6 @@ module bsim_interface
   end interface
   
   interface
-     subroutine histogram_new (ele, coord, in_file, sig)
-       use bmad_struct, only: coord_struct, ele_struct, rp
-       implicit none
-       type (coord_struct) coord(:)
-       type (ele_struct) ele
-       real(rp) sig(3)
-       character*60 in_file
-     end subroutine histogram_new
-  end interface
-  
-  interface
      subroutine lum_tracker(ring,n_part, start, end)
        use bmad_struct, only: lat_struct, coord_struct
        implicit none
