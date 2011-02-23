@@ -22,7 +22,7 @@ character(200) line
 character(20) cmd, command
 character(20) :: r_name = 'tao_python_cmd'
 character(20) :: cmd_names(5) = &
-          ['visible_plots ', 'template_plots', 'graph         ', 'curve      ', &
+          ['visible_plots ', 'template_plots', 'graph         ', 'curve         ', &
            'plot          ']
 
 integer i, j, ix, ix_cmd, nl
