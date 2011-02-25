@@ -129,7 +129,7 @@ type rf_wake_struct
 end type
 
 type rf_mode_term_struct
-  real(rp) e, f, b
+  complex(rp) e, f, b
 end type
 
 ! RF mode structure

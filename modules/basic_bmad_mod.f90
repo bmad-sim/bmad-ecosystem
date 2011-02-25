@@ -173,7 +173,7 @@ integer, intent(in) :: n, m
 integer in, im
 
 real(rp) c_out
-real(rp), save :: factorial(0:n_pole_maxx)
+real(rp), save :: n_factorial(0:n_pole_maxx)
 real(rp), save :: c(0:n_pole_maxx, 0:n_pole_maxx)
 
 logical, save :: init_needed = .true.
@@ -193,12 +193,12 @@ if (init_needed) then
     enddo
   enddo
 
-  factorial(0) = 1
+  n_factorial(0) = 1
 
   do in = 0, n_pole_maxx
-    if (in > 0) factorial(in) = in * factorial(in-1)
+    if (in > 0) n_factorial(in) = in * n_factorial(in-1)
     do im = 0, in
-      c(in, im) = c(in, im) / factorial(in)
+      c(in, im) = c(in, im) / n_factorial(in)
       if (mod(im, 4) == 0) c(in, im) = -c(in, im)
       if (mod(im, 4) == 3) c(in, im) = -c(in, im)
     enddo
@@ -211,7 +211,7 @@ endif
 !
 
 if (logic_option (.false., no_n_fact)) then
-  c_out = c(n, m) * factorial(n)
+  c_out = c(n, m) * n_factorial(n)
 else
   c_out = c(n, m)
 endif
