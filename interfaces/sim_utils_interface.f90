@@ -98,6 +98,15 @@ interface
 end interface
  
 interface
+  function factorial(n) result (fact)
+    use precision_def
+    implicit none
+    real(rp) fact
+    integer n
+  end function
+end interface
+ 
+interface
   subroutine fff_sub(line, error)
     implicit none
     character(*) line
