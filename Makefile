@@ -47,12 +47,12 @@
 #                   file names should be used here)
 #-----------------------------------------------------------------------------
 LIB_SRC_DIRS := 
-OBJ_SRC_DIRS := bmad_to_csrtrack bmad_to_mad_and_xsif bmad_to_autocad 
+OBJ_SRC_DIRS := bmad_to_csrtrack bmad_to_mad_and_xsif bmad_to_autocad f77_to_f90
 CONFIG_DIRS  :=
 LOCAL_INCS   :=
 SRC_EXCLUDE  :=
 
-M_FILE_LIST  := M.bmad_to_mad_and_xsif M.bmad_to_autocad M.bmad_to_csrtrack
+M_FILE_LIST  := M.bmad_to_mad_and_xsif M.bmad_to_autocad M.bmad_to_csrtrack M.f77_to_f90
 
 
 
