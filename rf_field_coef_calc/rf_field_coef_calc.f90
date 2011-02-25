@@ -35,8 +35,8 @@ complex(rp) expi, ez_coef, erho_coef, ephi_coef, E_cos, E_sin, E_zm
 complex(rp), allocatable :: Ez_fft(:), Ephi_fft(:), Erho_fft(:), Ez_resid(:,:)
 
 real(rp) e_mag, e_phase(3), e_re(3), e_im(3), b_mag, b_phase(3), b_re(3), b_im(3), rdummy4(4)
-real(rp) radius, rad_in, x, y, z, k_z, k_l, dz, k_zz, cos_amp, sin_amp
-real(rp) kappa2_l, kappa_l, freq_l, r_hat(2), amp_E_zm(-m_max:m_max)
+real(rp) radius, rad_in, x, y, z, k_z, k_l, dz, k_zz, cos_amp, sin_amp, z_here
+real(rp) kappa2_l, kappa_l, kap_rho, freq_l, r_hat(2), amp_E_zm(-m_max:m_max)
 real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:)
 
 integer i, j, m, ios, n_phi, n_z, n2_z
@@ -104,7 +104,7 @@ allocate (Ez_fft(n2_z), Erho_fft(n2_z), Ephi_fft(n2_z))
 
 do m = -m_max, m_max
   allocate(mode(m)%term(n2_z))
-  mode(i)%m = abs(m)
+  mode(m)%m = abs(m)
 enddo
 
 print *, 'Number of data points in z:', n_z
@@ -128,6 +128,8 @@ close(1)
 ! Error check
 
 dz = (z_pos(n_z) - z_pos(1)) / (n_z - 1)
+mode%dz = dz
+
 do i = 2, n_z
   if (abs(z_pos(i) - z_pos(1) - (i - 1) * dz) > 2e-5) then
     print *, 'Z POSITIONS NOT EVENLY SPACED!', i, z_pos(i) - z_pos(1), (i - 1) * dz
@@ -141,7 +143,7 @@ enddo
 
 do m = 1, m_max
   if (modulo(n_phi, max(1, 4*m)) /= 0) then
-    print *, 'Note: Due to number of points in phi, will not consider modes with m =', m
+    print '(a, i0)', 'Note: Due to number of points in phi, will not consider modes with m = ', m
     cycle
   endif
 
@@ -179,20 +181,24 @@ enddo
 
 ! Compute mode amplitudes and choose largest modes
 
-Ez_resid = E%z
+Ez_resid = E_dat%z
 significant_mode = .false.
 
 do m = -m_max, m_max
 
   if (modulo(n_phi, max(1, 4*abs(m))) /= 0) cycle
-  significant_mode = .true.
+  significant_mode(m) = .true.
 
   do j = 1, n_phi
     cos_term(j) = cos(m * (j - 1) * twopi / n_phi - mode(m)%phi_0)
   enddo
 
   do i = 1, n2_z
-    E_zm = sum(E_dat(:, i)%z * cos_term) / (2 * n_phi)
+    if (m == 0) then
+      E_zm = sum(E_dat(:, i)%z * cos_term) / n_phi
+    else
+      E_zm = sum(E_dat(:, i)%z * cos_term) / (2 * n_phi)
+    endif
     amp_E_zm(m) = amp_E_zm(m) + abs(E_zm) * sum(abs(cos_term)) / n2_z
     Ez_resid(:, i) = Ez_resid(:, i) - E_zm * cos_term
   enddo
@@ -200,13 +206,13 @@ do m = -m_max, m_max
 enddo
 
 print *
-print *, '  m, <|E_zm|>'
+print *, '  m      <|E_zm|>'
 do m = -m_max, m_max
-  print *, amp_E_zm(m), '  ', significant_mode(m)
+  print '(i4, f14.4, a, l)', m, amp_E_zm(m), '  ', significant_mode(m)
 enddo
 
 print *
-print *, '<|E_z|>           ', sum(abs(E%z)) / (n2_z * n_phi)
+print *, '<|E_z|>           ', sum(abs(E_dat%z)) / (n2_z * n_phi)
 print *, '<|E_z - E_z(fit)|>', sum(abs(Ez_resid)) / (n2_z * n_phi)
 
 ! Find coefficients for m == 0
@@ -224,9 +230,10 @@ if (significant_mode(0)) then
     if (2 * i > n2_z) k_z = k_z - twopi / dz
     kappa2_l = k_z**2 - k_l**2
     kappa_l = sqrt(abs(kappa2_l))
+    kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
   
-    mode(0)%term(i)%e = Ez_fft(i) / (R(0, kappa2_l, kappa_l, radius) * n2_z)
-    mode(0)%term(i)%f = Ephi_fft(i) / (R(1, kappa2_l, kappa_l, radius) * n2_z)
+    mode(0)%term(i)%e = Ez_fft(i) / (R(0, kap_rho) * n2_z)
+    mode(0)%term(i)%f = Ephi_fft(i) / (R(1, kap_rho) * n2_z)
   enddo
 endif
 
@@ -254,11 +261,11 @@ do m = -m_max, m_max
     if (2 * i > n2_z) k_z = k_z - twopi / dz
     kappa2_l = k_z**2 - k_l**2
     kappa_l = sqrt(abs(kappa2_l))
+    kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
   
-    mode(m)%term(i)%e = Ez_fft(i) / (R(m, kappa2_l, kappa_l, radius) * n2_z)
-    mode(m)%term(i)%b = (radius / n2_z) * ( &
-                       kappa_l * Erho_fft(i) / R(m, kappa2_l, kappa_l, radius) + &
-                       i_imaginary * k_z * radius * Ez_fft(i) * R(m+1, kappa2_l, kappa_l, radius))
+    mode(m)%term(i)%e = Ez_fft(i) / (R(m, kap_rho) * n2_z)
+    mode(m)%term(i)%b = (radius / n2_z) * (kappa_l * Erho_fft(i) / R(m, kap_rho) + &
+                       i_imaginary * k_z * radius * Ez_fft(i) * R(m+1, kap_rho))
   enddo
 
 enddo
@@ -270,18 +277,18 @@ Ez_fft = 0
 Erho_fft = 0
 Ephi_fft = 0
 
-do i = 1, n2_z
-  E_here = e_field_calc (0.03_rp, 0.0_rp, (i-1)*dz, mode, .not. significant_mode)
-  Ez_fft(j)   = E_here%z
-  Erho_fft(j) = E_here%rho
-  Ephi_fft(j) = E_here%phi
-enddo  
-
 open (1, file = 'check30_fft', recl = 200)
-do i = 1, n2_z
-  write (1, '(i6, 6(2es13.3, 2x))') i, real(Ez_fft(i)), real(E_dat(1,i)%z), aimag(Ez_fft(i)), aimag(E_dat(1,i)%z), &
+
+do i = 1, n2_z / 4
+  z_here = 4 * (i-1) * dz
+  E_here = e_field_calc (0.03_rp, 0.0_rp, z_here, mode, significant_mode)
+  Ez_fft(i)   = E_here%z
+  Erho_fft(i) = E_here%rho
+  Ephi_fft(i) = E_here%phi
+
+  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), real(E_dat(1,i)%z), aimag(Ez_fft(i)), aimag(E_dat(1,i)%z), &
                          real(Erho_fft(i)), real(E_dat(1,i)%rho), aimag(Erho_fft(i)), aimag(E_dat(1,i)%rho), &
-                         real(Ephi_fft(i)), real(E_dat(1,i)%phi), aimag(Ephi_fft(i)), aimag(E_dat(1,i)%phi) 
+                         real(Ephi_fft(i)), real(E_dat(1,i)%phi), aimag(Ephi_fft(i)), aimag(E_dat(1,i)%phi), i
 enddo
 close (1)
 
@@ -292,10 +299,11 @@ do i = 1, n2_z
   if (2 * i > n2_z) k_z = k_z - twopi / dz
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
+  kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
 
-  Ez_fft(i) = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, radius)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, radius)
-  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, radius) 
+  Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kap_rho)
+  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kap_rho) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -313,9 +321,10 @@ do i = 1, n2_z
   else
     read (2, *, iostat = ios) e_mag, e_phase, e_re, e_im, b_mag, b_phase, b_re, b_im, rdummy4, x, y, z 
   endif
-  write (1, '(i6, 6(2es13.3, 2x))') i, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
+  z_here = (i-1) * dz
+  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
-                         real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1)
+                         real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
 enddo
 close (1)
 close (2)
@@ -327,10 +336,11 @@ do i = 1, n2_z
   if (2 * i > n2_z) k_z = k_z - twopi / dz
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
+  kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
 
-  Ez_fft(i) = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, radius/2)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, radius/2)
-  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, radius/2) 
+  Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho/2)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kap_rho/2)
+  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kap_rho/2) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -348,9 +358,10 @@ do i = 1, n2_z
   else
     read (2, *, iostat = ios) e_mag, e_phase, e_re, e_im, b_mag, b_phase, b_re, b_im, rdummy4, x, y, z 
   endif
-  write (1, '(i6, 6(2es13.3, 2x))') i, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
+  z_here = (i-1) * dz
+  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
-                         real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1)
+                         real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
 enddo
 close (1)
 close (2)
@@ -362,10 +373,11 @@ do i = 1, n2_z
   if (2 * i > n2_z) k_z = k_z - twopi / dz
   kappa2_l = k_z**2 - k_l**2
   kappa_l = sqrt(abs(kappa2_l))
+  kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
 
-  Ez_fft(i) = mode(0)%term(i)%e * R(0, kappa2_l, kappa_l, 0.0_rp)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kappa2_l, kappa_l, 0.0_rp)
-  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kappa2_l, kappa_l, 0.0_rp) 
+  Ez_fft(i) = mode(0)%term(i)%e * R(0, 0.0_rp)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, 0.0_rp)
+  Ephi_fft(i) = mode(0)%term(i)%f * R(1, 0.0_rp) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -383,9 +395,10 @@ do i = 1, n2_z
   else
     read (2, *, iostat = ios) e_mag, e_phase, e_re, e_im, b_mag, b_phase, b_re, b_im, rdummy4, x, y, z 
   endif
-  write (1, '(i6, 6(2es13.3, 2x))') i, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
+  z_here = (i-1) * dz
+  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
-                         real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1)
+                         real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
 enddo
 close (1)
 close (2)
@@ -393,48 +406,77 @@ close (2)
 !------------------------------------------------------------------
 contains
 
-function R(m, kappa2_l, kappa_l, rho) result (r_out)
+function R(m, kap_rho) result (r_out)
 
 integer m
-real(rp) rho, r_out
-real(rp) kappa2_l, kappa_l
+real(rp) kap_rho, r_out
 
 !
 
 if (m == 0) then
-  if (kappa2_l > 0) then
-    r_out = bessi0(kappa_l * rho)
+  if (kap_rho > 0) then
+    r_out = bessi0(kap_rho)
   else
-    r_out = bessj0(kappa_l * rho)
+    r_out = bessj0(-kap_rho)
   endif
 elseif (m == 1) then
-  if (kappa2_l > 0) then
-    r_out = bessi1(kappa_l * rho)
+  if (kap_rho > 0) then
+    r_out = bessi1(kap_rho)
   else
-    r_out = bessj1(kappa_l * rho)
+    r_out = bessj1(-kap_rho)
   endif
 else
-  if (kappa2_l > 0) then
-    r_out = bessi(m, kappa_l * rho)
+  if (kap_rho > 0) then
+    r_out = bessi(m, kap_rho)
   else
-    r_out = bessj(m, kappa_l * rho)
+    r_out = bessj(m, -kap_rho)
   endif
 endif
 
 end function
 
 !------------------------------------------------------------------
+! contains
+
+! Function to evaluate R(m, kap_rho) /kap_rho
+! Note: This function is only called with m > 0
+
+
+function R_norm(m, kap_rho) result (r_out)
+
+integer m
+real(rp) kap_rho, r_out, sgn
+
+
+! If kap_rho is large enough then just use the R function
+
+if (abs(kap_rho) > 1e-4) then
+  r_out = R(m, kap_rho) / kap_rho
+  return
+endif
+
+! Expansion for small kap_rho
+
+sgn = sign(1.0_rp, kap_rho)
+r_out = (abs(kap_rho))**(m-1) / factorial(m) + sgn * (abs(kap_rho))**(m+1) / factorial(m+1)
+
+end function
+
+!------------------------------------------------------------------
 !contains
 
-function e_field_calc (rho, phi, z, modes, use_mode) resut (E)
+function e_field_calc (rho, phi, z, modes, use_mode) result (E)
 
 type (rf_mode_struct), target :: modes(:)
 type (rf_mode_struct), pointer :: mode
 type (field_cylinder_values) E
 
-real(rp) rho, phi, z, k_l, kappa2_l, kappa_l
+complex(rp) ikkl, expi
 
-integer i, 
+real(rp) rho, phi, z, k_l, kappa2_l, kap_rho, c, s
+real(rp) Rm_minus, Rm, Rm_plus, Rm_norm
+
+integer i, im
 
 logical :: use_mode(:)
 
@@ -454,19 +496,28 @@ do im = 1, size(modes)
     if (2 * i > n2_z) k_z = k_z - twopi / dz
     kappa2_l = k_z**2 - k_l**2
     kappa_l = sqrt(abs(kappa2_l))
-    expi = cmplx(cos(k_z * z), sin(k_z * z)
+    kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+    expi = cmplx(cos(k_z * z), sin(k_z * z))
 
     if (mode%m == 0) then
-      E%z   = E%z   + mode%term(i)%e * R(0, kappa2_l, kappa_l, radius) * expi
-      E%rho = E%rho + (-i_imaginary * k_z / kappa_l) * mode%term(i)%e * R(1, kappa2_l, kappa_l, radius) * expi
-      E%phi = E%phi + mode%term(i)%f * R(1, kappa2_l, kappa_l, radius) * expi
+      Rm      = R(0, kap_rho)
+      Rm_plus = R(1, kap_rho)
+      E%rho = E%rho + (-i_imaginary * k_z / kappa_l) * mode%term(i)%e * Rm_plus * expi
+      E%phi = E%phi + mode%term(i)%f * Rm_plus * expi
+      E%z   = E%z   + mode%term(i)%e * Rm * expi
 
     else
       c = cos(mode%m * phi - mode%phi_0)
       s = sin(mode%m * phi - mode%phi_0)
-      E%z   = E%z   + mode%term(i)%e * R(mode%m, kappa2_l, kappa_l, radius) * expi
-      E%rho = E%rho + (-i_imaginary * k_z / kappa_l) * mode%term(i)%e * R(1, kappa2_l, kappa_l, radius) * expi
-      E%phi = E%phi + mode%term(i)%f * R(1, kappa2_l, kappa_l, radius) * expi
+      Rm_plus  = R(mode%m+1, kap_rho)
+      Rm_minus = R(mode%m-1, kap_rho) 
+      Rm_norm  = (Rm_minus + sign(1.0_rp, kappa2_l) * Rm_minus) / (2 * mode%m) ! R_norm(mode%m, kap_rho)
+      Rm       = kap_rho * Rm_norm                                             ! R(mode%m, kap_rho) 
+
+      ikkl = -i_imaginary * k_z / kappa_l
+      E%rho = E%rho + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi
+      E%phi = E%phi + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * (Rm_norm - Rm_minus / mode%m)) * s * expi
+      E%z   = E%z   + mode%term(i)%e * Rm * c * expi
 
     endif
 
