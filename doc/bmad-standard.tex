@@ -357,8 +357,8 @@ where
 \Begineq
   \delta = \frac{\lambda^2 r_e}{2 \, \pi \, V} \, |F_0|
 \Endeq
-with $r_e$ begin the classical electron radius, $V$ the unit cell
-volume, and $F_0$ is the $F_{(0,0,0)}$ structure factor. Since both
+with $r_e$ being the classical electron radius, $V$ the unit cell
+volume, and $F_0$ the $F_{(0,0,0)}$ structure factor. Since both
 $\bf k_0$ and $\bfhat n$ lie in the $x$-$z$ plane, $\bK_0$ lies in the
 $x$-$z$ plane and can thus be written in the form
 \Begineq
@@ -374,7 +374,7 @@ where $\theta_0$ is the angle between $\bK_0$ and $z$ as shown in
 Fig.~\ref{f:crystal.diffraction}.
 The vectors $\bK_0$ and $\bH$ must add up to the reciprocal lattice vector $\bK_H$
 \Begineq
-  \bK_H + \bK_0 + \bH
+  \bK_H = \bK_0 + \bH
 \Endeq
 Using
 \Begineq
@@ -439,7 +439,7 @@ correction'' needs to be applied when $\psi_H$ is nonzero.  Since the
 tilt correction is independent of any misalignments, it is assumed
 here that there are no misalignments. The full transformations between
 coordinate systems with misalignments are given in section
-\sref{s:photon-lab-ele}
+\sref{s:photon-lab-ele}.
 
 Without misalignments, and with
 $\psi_H$ zero, the transformation matrix $T_{in}$ between laboratory
@@ -449,7 +449,7 @@ coordinate systems are identical. Furthermore, the transformation $M_{in}$ from
 element entrance coordinates to body coordinates is a rotation around
 the $y$ axis
 \Begineq
-  M_{in} = \begin{pmatrix}
+  \bM_{in} = \begin{pmatrix}
      \cos\theta_{g,in} & 0 & \sin\theta_{g,in} \\
      0                 & 1 & 0                 \\
     -\sin\theta_{g,in} & 0 & \cos\theta_{g,in} \\
@@ -524,12 +524,12 @@ The starting photon coordinates are specified in the laboratory
 entrance coordinates. The transformation from laboratory entrance
 coordinates to element entrance coordinates $\bftilde k_0$ is given in
 \sref{s:photon-lab-ele}. The transformation to element body
-coordinates $k_{in}$ is
+coordinates $\Bf k_0$ is
 \begin{equation}
   \Bf k_0 =  \bM_{in} \, \bftilde k_0
 \end{equation}
 with $\bM_{in}$ given by \Eq{mt0t010}.
-The outgoing wave vector $k_H$ is related to $k_0$ via
+The outgoing wave vector $\Bf k_H$ is related to $\Bf k_0$ via
 \Begineq
   \Bf k_H =  \Bf k_0 + \bH + q_t \, \bfhat n
 \Endeq
@@ -561,6 +561,12 @@ and $P$ is the polarization factor
 \Endeq
 $2\theta_g$ is the angle between $\bK_0$ and $\bK_H$ which is well
 approximated by $\theta_{g,in} + \theta_{g,out}$.
+
+With this definition, the ratio of the incoming and outgoing fields are given by (\cite{b:batterman} Eq.~(24))
+\Begineq
+  \frac{E_H}{E_0} = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
+     = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H}
+\Endeq
 
 The solution is (\cite{b:batterman} Eq.~(31))
 \begin{align}
