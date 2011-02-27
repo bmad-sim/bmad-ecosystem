@@ -74,16 +74,12 @@ if (s_use < branch%ele(0)%s .or. s_use > branch%ele(i)%s) then
 endif
 
 ! Propagate to position
-! Test if we have the correct element. The factor of 1e-5 is for roundoff.
-
-
-do i = 1, branch%n_ele_track
-  if (s_use - branch%ele(i)%s < 1e-5) exit
-enddo
-
+! Test if we have the correct element. The %significant_longitudinal_length is for roundoff.
 ! If close enough to edge of element just use element info.
 
-if (s_use - branch%ele(i)%s > -1e-5) then
+call ele_at_s (lat, s_use, i, ix_branch)
+
+if (s_use - branch%ele(i)%s > bmad_com%significant_longitudinal_length) then
   if (present(ele)) ele = branch%ele(i)
   if (present(orb_at_s)) orb_at_s = orb(i)
   if (present(err)) err = .false.
