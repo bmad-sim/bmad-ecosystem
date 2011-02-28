@@ -10,17 +10,19 @@
 !
 ! Input:
 !   lat         -- lat_struct: Lattice to track through
-!     %branch(ix_branch)%param -- Structure holding the info if the particle is lost.
-!       %lost          -- Set True If the particle cannot make it through an element.
-!                           Set False otherwise.
-!       %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
-!                           z_plane$ (turned around in an lcavity).
-!     %param%end_lost_at   -- entrance_end$ or exit_end$.
 !   s_start     -- Real(rp): Starting s-position.
 !   s_end       -- Real(rp): Ending s-position. If <= s_start then will wrap
 !   orbit_start -- coord_struct: Starting coordinates.
-!   orbit_end   -- coord_struct: Ending coordinates.
 !   ix_branch   -- Integer, optional: Lattice branch index. Default is 0 (main branch).
+!
+! Output:
+!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
+!     %lost          -- Set True If the particle cannot make it through an element.
+!                         Set False otherwise.
+!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
+!                         z_plane$ (turned around in an lcavity).
+!     %end_lost_at   -- entrance_end$ or exit_end$.
+!   orbit_end   -- coord_struct: Ending coordinates.
 !-   
 
 subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, ix_branch)
