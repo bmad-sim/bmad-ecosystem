@@ -1,5 +1,4 @@
 #=============================================================================
-#
 # File:     bmad/Makefile
 #
 # Purpose:  Makefile to build the CESR BMAD Library
@@ -9,9 +8,7 @@
 # Acknowledgements:  Simon Patton's CLEO Makefile infrastructure
 #                    Dave Sagan's descrip.mms 
 #                    Mike Marsh and his makefiles
-#
-# Modifications:  MAP - 7/24/00-9/23/01 - Many bug fixes and improvements
-#
+#-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
 # Specify default source directories for code to be compiled and put into
