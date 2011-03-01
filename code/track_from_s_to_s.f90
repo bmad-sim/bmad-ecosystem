@@ -66,7 +66,7 @@ call ele_at_s (lat, s_start, ix_start, ix_branch)
 if (branch%ele(ix_start)%s == s_start) then
   ix_start = modulo (ix_start, branch%n_ele_track) + 1
 endif
-s0 = lat%ele(ix_start)%s
+s0 = lat%ele(ix_start-1)%s
 
 call ele_at_s (lat, s_end, ix_end, ix_branch)
 
