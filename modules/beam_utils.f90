@@ -122,7 +122,7 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%rf%wake) .or. &
 endif
 
 !------------------------------------------------
-! This calculation is for an lcavity with wakefields.
+! This calculation is for an cavity with wakefields.
 ! Put the sr wakefield transverse kicks at the half way point.
 
 ! first offset the cavity
@@ -169,10 +169,12 @@ bmad_com%grad_loss_sr_wake = 0.0
 call track1_sr_wake (bunch_end, ele)
 call track1_lr_wake (bunch_end, ele)
 
-! Track the last half of the lcavity.  This includes the sr longitudinal wakes 
+! Track the last half of the cavity. This includes the sr longitudinal wakes 
 
-ele%value(e_tot_start$)  = ele%value(e_tot$)
-ele%value(p0c_start$)    = ele%value(p0c$)
+if (ele%key == lcavity$) then
+  ele%value(e_tot_start$)  = ele%value(e_tot$)
+  ele%value(p0c_start$)    = ele%value(p0c$)
+endif
 ele%value(e_tot$)        = value_save(e_tot$)
 ele%value(p0c$)          = value_save(p0c$)
 

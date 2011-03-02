@@ -850,12 +850,13 @@ interface
 end interface
 
 interface
-  subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, ix_branch)
+  subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)
     use bmad_struct, only: rp, ele_struct, lat_struct, coord_struct
     implicit none
     type (lat_struct) lat
-    real(rp) s_start, s_end
     type (coord_struct) orbit_start, orbit_end
+    type (coord_struct), optional, allocatable :: all_orb(:)
+    real(rp) s_start, s_end
     integer, optional :: ix_branch
   end subroutine
 end interface

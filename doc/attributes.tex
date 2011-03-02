@@ -588,6 +588,167 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{RF Couplers}
+\label{s:rf.couplers}
+
+\index{coupler_at}\index{coupler_strength}
+\index{coupler_angle}\index{coupler_phase}
+For \vn{lcavity} and \vn{rfcavity} elements, the attributes that
+characterize the dipole transverse kick due to a coupler port are:
+\begin{example}
+  coupler_at       = <Switch> ! What end the coupler is at
+  coupler_strength = <Real>   ! Normalized strength
+  coupler_angle    = <Real>   ! Polarization angle (rad/2\(\pi\))
+  coupler_phase    = <Real>   ! Phase angle with respect to the RF (rad/2\(\pi\))
+\end{example}
+The possible \vn{coupler_at} settings are:
+\begin{example}
+  entrance_end
+  exit_end  ! default
+  both_ends
+\end{example}
+For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
+\begin{example}
+  dp_x = gradient * coupler_strength * 
+                        cos(twopi * (phi_ref + coupler_phase + phi(z))) / (c * P_0) 
+  dp_y = 0
+\end{example}
+
+Example:
+\begin{example}
+  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends, coupler_strength = 0.037
+\end{example}
+
+%-----------------------------------------------------------------
+\section{RF Wakes}
+\label{s:rf.wakes}
+
+Wake fields can be specified for \vn{lcavity} and \vn{rfcavity} elements.
+The attributes that characterize the wakes are:
+\index{sr_wake_file}\index{lr_wake_file}\index{lr_freq_spread}
+\begin{example}
+  sr_wake_file     = <String> ! Short range wake field definition file.
+  lr_wake_file     = <String> ! Long range wake field definition file.
+  lr_freq_spread   = <Real>   ! Frequency spread of the LR wake fields.
+\end{example}
+
+The formulas used to compute the wake field are given in
+\sref{s:wake.fields}.  The input file name for the short--range
+wake fields is specified using the \vn{sr_wake_file} attribute. The
+file gives both monopole longitudinal and dipole transverse
+wakes. Comment lines may be included by starting a line with an
+exclamation mark (!). Blank lines are also ignored.  An example input
+file is:
+\begin{example}
+  !    z           Wz             Wt
+  !   [m]       [V/C/m]       [V/C/m^2]
+   0.000E+00  1.61125E+15   0.00000E+00     1 
+  -1.000E-05  1.44516E+15  -1.30560E+15     2 
+  -2.000E-05  1.38148E+15  -2.50665E+15     3 
+  .. etc ..
+  -1.970E-03  3.49958E+14  -7.95507E+16   198 
+  -1.980E-03  3.48606E+14  -7.97253E+16   199  
+  -1.990E-03  3.47263E+14  -7.98989E+16   200
+     END_SECTION
+
+
+  ! Pseudo Wake modes:
+  !                      Amp       damp          k      phase
+  ! Longitudinal:      [V/C/m]     [1/m]      [1/m]     [rad]  
+  ! Transverse:      [V/C/m^2]     [1/m]      [1/m]     [rad]  
+
+  &short_range_modes
+    longitudinal(1) = 3.23e14     1.23e3     3.62e3     0.123
+    longitudinal(2) = 6.95e13     5.02e2     1.90e3    -1.503
+    .. etc ..
+    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789
+    transverse(2) =   8.40e13     5.94e2     1.92e3     1.455
+     .. etc ..
+    z_max = -1.3e-3
+  /
+\end{example}
+The file is divided into two sections with a line containing the word
+\vn{END_SECTION} marking the division between the sections.  Wakes can
+be specified via a table of wake versus longitudinal position $z$
+and/or using a set of ``pseudo'' modes (\sref{s:wake.fields}). The
+first section gives the wake vs $z$ table, and the second section
+gives the longitudinal monopole and transverse dipole pseudo modes.
+The range of the table is from $0$ to $z_{cut}$ where $z_{cut}$ is the
+$z$ value in the last line of the table. If the longitudinal distance
+$dz$ between two particles is within the range of the table then the
+table will be used to calculate the wake kick for this pair. If $dz$
+is larger than $z_{cut}$ the pseudo modes will be used. The pseudo
+modes are valid from $z_{cut}$ to \vn{z_max}. 
+
+In the first section with the table of wake vs. $z$, the first column is the
+longitudinal distance $z$. $z$ must start at 0 and must increment by the a
+constant amount from row to row. $z$ is negative since the wake extends behind
+a particle. The second column is the longitudinal wake function in $V/C/m$. The
+third column is the transverse wake in $V/C/m^2$. Any additional columns are
+ignored.  Wake field formulas are to be found in \sref{s:wake.fields}.  The
+wake field file is only used with macroparticle and particle distribution
+tracking.  When the short--range wake field file is used with either of these
+the \vn{e_loss} attribute is ignored. However, even in this case, a finite
+\vn{e_loss} value will affect the reference energy. Since the quantities like
+quadrupole k1 strengths and bend strengths are referenced to the reference
+energy, The value of \vn{e_loss} will affect the results even with a
+short--range wake field file.
+
+The input file name for the long--range wake fields is specified using
+the \vn{lr_wake_file} attribute. The file gives the
+wake modes by specifying the frequency (in Hz), R/Q (in
+$\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the
+polarization angle (in radians/2pi) for each cavity mode. The input
+uses Fortran90 namelist syntax: The data begins with the string
+\vn{\&long_range_modes} and ends with a \vn{/}. Everything outside is
+ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
+index. An example input file is:
+\begin{example}
+              Freq      R/Q      Q    m   Polar   b_sin  b_cos a_sin  a_cos  t_ref 
+                      [Ohm/               Angle 
+              [Hz]     m^(2m)]           [Rad/2pi]
+  &long_range_modes
+    lr(1) = 1.650e9    0.76    7.0e4  1    unpol
+    lr(2) = 1.699e9   11.21    5.0e4  1    0.15
+  /
+\end{example}
+If ``\vn{unpolarized}'' is used for the polarization angle, the mode
+is taken to be unpolarized.
+
+\vn{lr_freq_spread} is used to randomly spread out the long range mode
+frequencies among different cavities. The spread is Gaussian in shape
+with an RMS of \vn{lr_freq_spread} * $F$ where $F$ is the frequency of a
+mode.  After the long--range modes have been defined they can be
+referenced or redefined using the notation
+\begin{example}
+  lr(n)%freq      ! Frequency
+  lr(n)%r_over_q  ! R/Q
+  lr(n)%q         ! Q
+  lr(n)%angle     ! Polarization Angle
+\end{example}
+Example:
+\begin{example}
+  lcav[lr(2)%freq] = 1.1 * lcav[lr(2)%freq] ! Raise frequency by 10\%
+\end{example}
+
+Example:
+\begin{example}
+  rf1: lcav, l = 4.5, gradient = 1.2e6, sr_wake_file = "sr1.dat"
+\end{example}
+
+%-----------------------------------------------------------------
+\section{RF Fields}
+\label{s:rf.fields}
+
+For \vn{lcavity} and \vn{rfcavity} elements, the RF field can be
+parameterized as the sum over a number of modes. With such a
+characterization, particles can be tracked through a cavity using
+\vn{boris}, \vn{adaptive_boris}, \vn{runge_kutta}, or
+\vn{symp_lie_bmad} tracking (\sref{s:tkm}).
+
+The syn
+
+%-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}
 \label{s:meas.attrib}
 
