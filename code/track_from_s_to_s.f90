@@ -86,7 +86,11 @@ endif
 
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
-if (present(all_orb)) all_orb(ix_start) = orbit_end
+
+if (present(all_orb)) then
+  call reallocate_coord(all_orb, branch%n_ele_max)
+  all_orb(ix_start) = orbit_end
+endif
 
 ! Track to ending element
 
