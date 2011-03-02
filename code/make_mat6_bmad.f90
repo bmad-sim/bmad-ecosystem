@@ -21,8 +21,6 @@
 !   err    -- Logical, optional: Set True if there is an error. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
 use bmad, except_dummy => make_mat6_bmad
@@ -309,36 +307,9 @@ case (lcavity$)
   mat6(2,:) = (1 + c1%vec(6)) * mat6(2,:) 
   mat6(4,:) = (1 + c1%vec(6)) * mat6(4,:)
 
-  ! coupler kicks
-  ! dp_x_coupler ~ (2,5) matrix term
-  ! dp_y_coupler ~ (4,5) matrix term
+  ! Coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) then
-
-    f = twopi * ele%value(rf_frequency$) / c_light
-    dp_coupler = ele%value(gradient$) * ele%value(coupler_strength$) * &
-                            f * sin(phase + twopi * ele%value(coupler_phase$))
-    dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
-    dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
-
-    if (nint(ele%value(coupler_at$)) == both_ends$) then
-      dp_x_coupler = dp_x_coupler / 2
-      dp_y_coupler = dp_y_coupler / 2
-    endif
-
-    if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
-        nint(ele%value(coupler_at$)) == both_ends$) then
-      mat6(:,5) = mat6(:,5) + &
-          (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
-    endif
-
-    if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
-        nint(ele%value(coupler_at$)) == both_ends$) then
-      mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
-      mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end
-    endif
-
-  endif
+  if (ele%value(coupler_strength$) /= 0) call coupler_kick()
 
   ! multipoles and s_offset
 
@@ -561,6 +532,12 @@ case (rfcavity$)
   mat6(6,4) = k*py*L * (-1/(2*E2) + dE0/3)
   mat6(6,5) = k * (1 + pxy2*L*k/6)
   mat6(6,6) = 1 + pxy2*k*L/(2*E2*E)
+
+  ! Coupler kick
+
+  if (ele%value(coupler_strength$) /= 0) call coupler_kick()
+
+  !
 
   call add_multipoles_and_s_offset
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -967,7 +944,42 @@ call mat6_add_pitch (ele, ele%mat6)
 
 end subroutine
 
-end subroutine
+!----------------------------------------------------------------
+! contains
+
+subroutine coupler_kick()
+
+! coupler kicks
+! dp_x_coupler ~ (2,5) matrix term
+! dp_y_coupler ~ (4,5) matrix term
+
+
+f = twopi * ele%value(rf_frequency$) / c_light
+dp_coupler = ele%value(gradient$) * ele%value(coupler_strength$) * &
+                        f * sin(phase + twopi * ele%value(coupler_phase$))
+dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
+dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
+
+if (nint(ele%value(coupler_at$)) == both_ends$) then
+  dp_x_coupler = dp_x_coupler / 2
+  dp_y_coupler = dp_y_coupler / 2
+endif
+
+if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
+    nint(ele%value(coupler_at$)) == both_ends$) then
+  mat6(:,5) = mat6(:,5) + &
+      (mat6(:,2) * dp_x_coupler + mat6(:,4) * dp_y_coupler) / p0c_start
+endif
+
+if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
+    nint(ele%value(coupler_at$)) == both_ends$) then
+  mat6(2,:) = mat6(2,:) + dp_x_coupler * mat6(5,:) / p0c_end
+  mat6(4,:) = mat6(4,:) + dp_y_coupler * mat6(5,:) / p0c_end
+endif
+
+end subroutine coupler_kick
+
+end subroutine make_mat6_bmad
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1021,7 +1033,7 @@ coef = bbi_const / (ele%value(n_slice$) * del * (1 + orb%vec(6)))
 mat6(2,1) = coef * (k1_x - k0_x) / sig_x
 mat6(4,3) = coef * (k1_y - k0_y) / sig_y
 
-end subroutine
+end subroutine bbi_kick_matrix
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1173,5 +1185,5 @@ off = project_x * p(x_offset_tot$) + project_y * p(y_offset_tot$) + project_s * 
 mat6(1,:) = mat6(1,:) - off(3) * mat6(2,:)
 mat6(3,:) = mat6(3,:) - off(3) * mat6(4,:)
 
-end subroutine
+end subroutine offset_photon_mat6
 

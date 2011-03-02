@@ -386,13 +386,13 @@ and exit pole faces. They are present for compatibility with MAD but
 are not yet implemented in terms of tracking and other calculations.
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
-the rotation angle of the entrance pole face is \vn{e1} and at the
+The rotation angle of the entrance pole face is \vn{e1} and at the
 exit face it is \vn{e2}. Zero \vn{e1} and \vn{e2} for an \vn{rbend}
 gives a rectangular magnet  (Figure~\ref{f:bend}a). Zero \vn{e1} and \vn{e2}
 for an \vn{sbend} gives a wedge shaped magnet (Figure~\ref{f:bend}b).
-An \vn{sbend} with an \vn{e1} = \vn{e2} =
-\vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} =
-0 (see above).
+An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
+to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
+This formula holds for both positive and negative angles.
   \index{angle}
   \item[angle] \Newline
 The total design bend angle. A positive \vn{angle} represents a
@@ -559,25 +559,22 @@ line segment connecting them must be within the cross-section.
 
 \index{wall}\vn{section}\index{s (capillary attribute)}\index{v (capillary attribute)}
 \index{s_spline}\index{n_slice_spline}
-The capillay \vn{wall structure} defines the capillay wall.  The
+The capillary \vn{wall structure} defines the capillary wall.  The
 syntax of the wall structure is:
 \begin{example}
   wall = \{
     section = \{ 
       s = <longitudinal_position>, 
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
-      v(2) = ...
-      ...
-    \}, 
+      v(2) = \{ ... \},
+      ...}
     s_spline = \{<coef_1>, <coef_2>\},
     n_slice_spline = <num> 
     section = \{
       s = <longitudinal_position>, 
-      v(1) = \{...
-      ...
-    \}
-    ...
-  \}
+      v(1) = \{... \},
+      ... \}
+    ... \}
 \end{example}
 Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
 Example:
@@ -612,7 +609,7 @@ figure, is rejected.}
 \end{figure}
 
 The capillary wall structure begins with ``\vn{wall = \{}'' and ends
-with a ``\vn{\}}''. Inbetween are a number of individual cross-section
+with a ``\vn{\}}''. In between are a number of individual cross-section
 structures.  Each individual cross-section begins with ``\vn{section =
 \{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
 cross-section gives the longitudinal position of the cross-section.
@@ -1320,21 +1317,22 @@ Example:
 \index{lcavity|hyperbf}
 
 An \vn{lcavity} is a LINAC accelerating cavity.
-The transverse trajectory through an \vn{lcavity} is modeled using equations
-developed by Rosenzweig and Serafini\cite{b:rosenzweig} modified to give the 
-correct phase-space area at non ultra-relativistic energies. 
-See Section \sref{s:lcav.phys} for more details.
+The main difference between an \vn{rfcavity} and an
+\vn{lcavity} is that, unlike an \vn{rfcavity}, the reference energy
+(\sref{s:phase.space}) through an \vn{rfcavity} is not constant.
 
 General \vn{lcavity} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, and pitches       & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & Integration settings       & \ref{s:integ}   \HH
+  {\sl Attribute Class}  & \s                 & {\sl Attribute Class}      & \s               \HH
+  Symplectify            & \ref{s:symp}       & Offsets, and pitches       & \ref{s:offset}   \HH
+  Description strings    & \ref{s:string}     & Is_on                      & \ref{s:is.on}    \HH 
+  Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}  \HH
+  Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}        \HH
+  Hkick \& Vkick         & \ref{s:kick}       & Integration settings       & \ref{s:integ}    \HH
+  RF Couplers            & \ref{s:rf.coupler} & RF Wakes                   & \ref{s:rf.wakes} \HH
+  RF Fields              & \ref{s:rf.fields}  &                            &                  \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1346,13 +1344,7 @@ The attributes specific to an \vn{lcavity} are
 \index{e_loss}
 \index{rf_frequency}
 \index{delta_e}
-\index{sr_wake_file}
-\index{lr_wake_file}
 \begin{example}
-  coupler_at       = <Switch> ! Location of a coupler giving a transverse kick.
-  coupler_strength = <Real>   ! Strength of the coupler.
-  coupler_angle    = <Real>   ! Angle of the kick.
-  coupler_phase    = <Real>   ! Phase of the kick.
   gradient         = <Real>   ! Accelerating gradient (V/m).
   gradient_err     = <Real>   ! Accelerating gradient error (V/m).
   phi0             = <Real>   ! Phase (rad/2\(\pi\)) of the reference particle with 
@@ -1363,9 +1355,6 @@ The attributes specific to an \vn{lcavity} are
   rf_frequency     = <Real>   ! Rf frequency (Hz).
   delta_e                     ! Change in energy of an on-crest particle. 
                               !   Dependent attribute (\sref{s:depend}).
-  sr_wake_file     = <String> ! Short range wake field definition file.
-  lr_wake_file     = <String> ! Long range wake field definition file.
-  lr_freq_spread   = <Real>   ! Frequency spread of the LR wake fields.
 \end{example}
 The dependent variable \vn{delta_e} attribute can be used in place of
 \vn{gradient} as discussed in \sref{s:depend}.  \vn{delta_e} is a
@@ -1411,138 +1400,17 @@ sign. Essentially the MAD8 documentation gives
 \end{example}
 This is incorrect. 
 
-Note: The transfer matrix for an \vn{lcavity} with finite
-\vn{gradient} is never symplectic. See \sref{s:phase.space}.
+The transverse trajectory through an \vn{lcavity} is modeled using
+equations developed by Rosenzweig and Serafini\cite{b:rosenzweig}
+modified to give the correct phase-space area at non
+ultra-relativistic energies.  See Section \sref{s:lcav.phys} for more
+details.  Note: The transfer matrix for an \vn{lcavity} with finite
+\vn{gradient} is never symplectic. See \sref{s:phase.space}. In
+addition, couplers (\sref{s:rf.couplers}) and HOM wakes
+(\sref{s:rf.wakes} can be modeled.
 
-\index{coupler_at}
-\index{coupler_strength}
-\index{coupler_angle}
-\index{coupler_phase}
-The attributes that characterize the dipole transverse kick due to a
-coupler port are:
-\begin{example}
-  coupler_at       = <Switch> ! What end the coupler is at
-  coupler_strength = <Real>   ! Normalized strength
-  coupler_angle    = <Real>   ! Polarization angle (rad/2\(\pi\))
-  coupler_phase    = <Real>   ! Phase angle with respect to the RF (rad/2\(\pi\))
-\end{example}
-The possible \vn{coupler_at} settings are:
-\begin{example}
-  entrance_end
-  exit_end  ! default
-  both_ends
-\end{example}
-For \vn{coupler_angle} = 0 the transverse kick due to the coupler is
-\begin{example}
-  dp_x = gradient * coupler_strength * 
-                        cos(twopi * (phi_ref + coupler_phase + phi(z))) / (c * P_0) 
-  dp_y = 0
-\end{example}
-
-\index{wake fields!in Lcavity}
-The formulas used to compute the wake field are given in
-\sref{s:wake.fields}.  The input file name for the short--range
-wake fields is specified using the \vn{sr_wake_file} attribute. The
-file gives both monopole longitudinal and dipole transverse
-wakes. Comment lines may be included by starting a line with an
-exclamation mark (!). Blank lines are also ignored.  An example input
-file is:
-\begin{example}
-  !    z           Wz             Wt
-  !   [m]       [V/C/m]       [V/C/m^2]
-   0.000E+00  1.61125E+15   0.00000E+00     1 
-  -1.000E-05  1.44516E+15  -1.30560E+15     2 
-  -2.000E-05  1.38148E+15  -2.50665E+15     3 
-  .. etc ..
-  -1.970E-03  3.49958E+14  -7.95507E+16   198 
-  -1.980E-03  3.48606E+14  -7.97253E+16   199  
-  -1.990E-03  3.47263E+14  -7.98989E+16   200
-     END_SECTION
-
-
-  ! Pseudo Wake modes:
-  !                      Amp       damp          k      phase
-  ! Longitudinal:      [V/C/m]     [1/m]      [1/m]     [rad]  
-  ! Transverse:      [V/C/m^2]     [1/m]      [1/m]     [rad]  
-
-  &short_range_modes
-    longitudinal(1) = 3.23e14     1.23e3     3.62e3     0.123
-    longitudinal(2) = 6.95e13     5.02e2     1.90e3    -1.503
-    .. etc ..
-    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789
-    transverse(2) =   8.40e13     5.94e2     1.92e3     1.455
-     .. etc ..
-    z_max = -1.3e-3
-  /
-\end{example}
-The file is divided into two sections with a line containing the word
-\vn{END_SECTION} marking the division between the sections.  Wakes can
-be specified via a table of wake versus longitudinal position $z$
-and/or using a set of ``pseudo'' modes (\sref{s:wake.fields}). The
-first section gives the wake vs $z$ table, and the second section
-gives the longitudinal monopole and transverse dipole pseudo modes.
-The range of the table is from $0$ to $z_{cut}$ where $z_{cut}$ is the
-$z$ value in the last line of the table. If the longitudinal distance
-$dz$ between two particles is within the range of the table then the
-table will be used to calculate the wake kick for this pair. If $dz$
-is larger than $z_{cut}$ the pseudo modes will be used. The pseudo
-modes are valid from $z_{cut}$ to \vn{z_max}. 
-
-In the first section with the table of wake vs. $z$, the first column is the
-longitudinal distance $z$. $z$ must start at 0 and must increment by the a
-constant amount from row to row. $z$ is negative since the wake extends behind
-a particle. The second column is the longitudinal wake function in $V/C/m$. The
-third column is the transverse wake in $V/C/m^2$. Any additional columns are
-ignored.  Wake field formulas are to be found in \sref{s:wake.fields}.  The
-wake field file is only used with macroparticle and particle distribution
-tracking.  When the short--range wake field file is used with either of these
-the \vn{e_loss} attribute is ignored. However, even in this case, a finite
-\vn{e_loss} value will affect the reference energy. Since the quantities like
-quadrupole k1 strengths and bend strengths are referenced to the reference
-energy, The value of \vn{e_loss} will affect the results even with a
-short--range wake field file.
-
-The input file name for the long--range wake fields is specified using
-the \vn{lr_wake_file} attribute. The file gives the
-wake modes by specifying the frequency (in Hz), R/Q (in
-$\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the
-polarization angle (in radians/2pi) for each cavity mode. The input
-uses Fortran90 namelist syntax: The data begins with the string
-\vn{\&long_range_modes} and ends with a \vn{/}. Everything outside is
-ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
-index. An example input file is:
-\begin{example}
-              Freq      R/Q      Q    m   Polar   b_sin  b_cos a_sin  a_cos  t_ref 
-                      [Ohm/               Angle 
-              [Hz]     m^(2m)]           [Rad/2pi]
-  &long_range_modes
-    lr(1) = 1.650e9    0.76    7.0e4  1    unpol
-    lr(2) = 1.699e9   11.21    5.0e4  1    0.15
-  /
-\end{example}
-If ``\vn{unpolarized}'' is used for the polarization angle, the mode
-is taken to be unpolarized.
-
-\vn{lr_freq_spread} is used to randomly spread out the long range mode
-frequencies among different cavities. The spread is Gaussian in shape
-with an RMS of \vn{lr_freq_spread} * $F$ where $F$ is the frequency of a
-mode.  After the long--range modes have been defined they can be
-referenced or redefined using the notation
-\begin{example}
-  lr(n)%freq      ! Frequency
-  lr(n)%r_over_q  ! R/Q
-  lr(n)%q         ! Q
-  lr(n)%angle     ! Polarization Angle
-\end{example}
-Example:
-\begin{example}
-  lcav[lr(2)%freq] = 1.1 * lcav[lr(2)%freq] ! Raise frequency by 10\%
-\end{example}
-
-Example:
-\begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, sr_wake_file = "sr1.dat"
-\end{example}
+If a field map is specified (\sref{s:rf.fields}), tracking using  
+an integrator is possible.
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -1945,7 +1813,7 @@ Example:
 \end{example}
 
 For a quadrupole with zero \vn{tilt} and a positive \vn{k1}, the
-quadrupole is horizontally focusing and vertically defocusing
+quadrupole is horizontally focusing and vertically defocussing
 (\sref{s:fields}).
 
 %-----------------------------------------------------------------
@@ -1954,18 +1822,21 @@ quadrupole is horizontally focusing and vertically defocusing
 \index{rfcavity|hyperbf}
 
 An \vn{rfcavity} is an RF cavity without acceleration generally used
-in a storage ring.
+in a storage ring. The main difference between an \vn{rfcavity} and an
+\vn{lcavity} is that, unlike an \vn{lcavity}, the reference energy
+(\sref{s:phase.space}) through an \vn{rfcavity} is constant.
 
 General \vn{rfcavity} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & Offsets, \& pitches        & \ref{s:offset}  \HH
-  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    &                            &                 \HH
+  {\sl Attribute Class}  & \s                 & {\sl Attribute Class}      & \s                \HH
+  Symplectify            & \ref{s:symp}       & Offsets, \& pitches        & \ref{s:offset}    \HH
+  Description strings    & \ref{s:string}     & Is_on                      & \ref{s:is.on}     \HH 
+  Reference energy       & \ref{s:energy}     & Tracking \& transfer map   & \ref{c:methods}   \HH
+  Aperture Limits        & \ref{s:limit}      & Length                     & \ref{s:l}         \HH
+  Hkick \& Vkick         & \ref{s:kick}       & RF Fields                  & \ref{s:rf.fields} \HH
+  RF Couplers            & \ref{s:rf.coupler} & RF Wakes                   & \ref{s:rf.wakes}  \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2002,6 +1873,10 @@ attribute calculated by
   rf_frequency = harmon * c_light / L_lattice 
 \end{example}
 where \vn{L_lattice} is the total lattice length.
+
+Couplers (\sref{s:rf.couplers}) and HOM wakes (\sref{s:rf.wakes} can
+be modeled. In addition, if a field map is specified
+(\sref{s:rf.fields}), tracking using an integrator is possible.
 
 Example:
 \begin{example}

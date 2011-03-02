@@ -301,25 +301,7 @@ case (lcavity$)
 
   ! coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) then
-
-    dp_coupler = (ele%value(gradient$) * ele%value(gradient_err$)) * &
-          ele%value(coupler_strength$) * cos(phase + twopi * ele%value(coupler_phase$))
-    dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
-    dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
-
-    if (nint(ele%value(coupler_at$)) == both_ends$) then
-      dp_x_coupler = dp_x_coupler / 2
-      dp_y_coupler = dp_y_coupler / 2
-    endif
-
-    if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
-        nint(ele%value(coupler_at$)) == both_ends$) then
-      end%vec(2) = end%vec(2) + dp_x_coupler / pc_start
-      end%vec(4) = end%vec(4) + dp_y_coupler / pc_start
-    endif
-
-  endif
+  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
 
   ! track body...
   ! Note: dimad/liar formulas are:
@@ -355,13 +337,7 @@ case (lcavity$)
 
   ! coupler kick
 
-  if (ele%value(coupler_strength$) /= 0) then
-    if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
-        nint(ele%value(coupler_at$)) == both_ends$) then
-      end%vec(2) = end%vec(2) + dp_x_coupler / pc_end
-      end%vec(4) = end%vec(4) + dp_y_coupler / pc_end
-    endif
-  endif
+  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
 
   ! exit kick
 
@@ -589,6 +565,12 @@ case (rfcavity$)
 
   call offset_particle (ele, param, end, set$, set_canonical = .false.)
 
+  ! coupler kick
+
+  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
+
+  !
+
   x = end%vec(1)
   y = end%vec(3)
   z = end%vec(5)
@@ -618,14 +600,18 @@ case (rfcavity$)
   E2 = E**2
   pxy2 = px**2 + py**2
 
-!
+  !
 
   end = start
   end%vec(1) = x + px*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3) 
   end%vec(3) = y + py*L * (1/E - dE0/2 + pxy2*L/12 + pz*dE0 + dE0**2/3)
   end%vec(5) = z + pxy2*L * (-1/(2*E2) + dE0/2)
   end%vec(6) = pz + dE0 + k*pxy2*L * (-1/(4*E2) + dE0/6) 
-       
+
+  ! coupler kick
+
+  if (ele%value(coupler_strength$) /= 0) call coupler_kick_entrance()
+
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 !-----------------------------------------------
@@ -774,6 +760,42 @@ subroutine end_z_calc
 end%vec(5) = end%vec(5) - (length / rel_pc**2) * &
       (start%vec(2)**2 + end%vec(2)**2 + start%vec(2) * end%vec(2) + &
        start%vec(4)**2 + end%vec(4)**2 + start%vec(4) * end%vec(4)) / 6
+
+end subroutine
+
+!--------------------------------------------------------------
+! contains
+
+subroutine coupler_kick_entrance ()
+
+dp_coupler = (ele%value(gradient$) * ele%value(gradient_err$)) * &
+      ele%value(coupler_strength$) * cos(phase + twopi * ele%value(coupler_phase$))
+dp_x_coupler = dp_coupler * cos (twopi * ele%value(coupler_angle$))
+dp_y_coupler = dp_coupler * sin (twopi * ele%value(coupler_angle$))
+
+if (nint(ele%value(coupler_at$)) == both_ends$) then
+  dp_x_coupler = dp_x_coupler / 2
+  dp_y_coupler = dp_y_coupler / 2
+endif
+
+if (nint(ele%value(coupler_at$)) == entrance_end$ .or. &
+    nint(ele%value(coupler_at$)) == both_ends$) then
+  end%vec(2) = end%vec(2) + dp_x_coupler / pc_start
+  end%vec(4) = end%vec(4) + dp_y_coupler / pc_start
+endif
+
+end subroutine
+
+!--------------------------------------------------------------
+! contains
+
+subroutine coupler_kick_exit ()
+
+if (nint(ele%value(coupler_at$)) == exit_end$ .or. &
+    nint(ele%value(coupler_at$)) == both_ends$) then
+  end%vec(2) = end%vec(2) + dp_x_coupler / pc_end
+  end%vec(4) = end%vec(4) + dp_y_coupler / pc_end
+endif
 
 end subroutine
 

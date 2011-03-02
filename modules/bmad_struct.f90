@@ -461,7 +461,7 @@ integer, parameter ::       graze_angle_in$ = 4, critical_angle_factor$ = 4
 integer, parameter :: k2$=5, sig_y$=5, b_max$=5, v_displace$=5, phi0_err$=5, crunch$=5
 integer, parameter ::       graze_angle_out$ = 5
 integer, parameter :: k3$=6, sig_z$=6, rf_wavelength$=6, g_err$=6, noise$=6
-integer, parameter ::       dks_ds$=6, graze_angle_err$ = 6, lrad$=6   ! lrad -> felv testing.
+integer, parameter ::       dks_ds$=6, graze_angle_err$ = 6
 integer, parameter :: g$=7, ks$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter ::       critical_angle$ = 7, b_param$ = 7
 integer, parameter :: e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8, psi_angle$=8

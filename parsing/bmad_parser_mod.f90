@@ -71,8 +71,10 @@ type stack_file_struct
   character(200) logical_name
   character(200) :: full_name = ''
   character(200) :: dir = './'
+  character(200) parse_line_saved
   integer i_line
   integer f_unit
+  logical inline_call_active
 end type
 
 !-----------------------------------------------------------
@@ -161,6 +163,7 @@ type bp_common_struct
   logical write_digested      ! For bmad_parser
   logical write_digested2     ! For bmad_parser2
   logical input_from_file     ! Input is from a lattice file?
+  logical inline_call_active
   logical e_tot_set, p0c_set
 end type
 
@@ -235,7 +238,7 @@ logical, optional :: check_free
 ! [except for a "GROUP[COMMAND] = 0.343" redef construct]
 
 err_flag = .true.  ! assume the worst
-call get_next_word (word, ix_word, ':, =()', delim, delim_found)
+call get_next_word (word, ix_word, ':, =()', delim, delim_found, call_check = .true.)
 
 ! taylor
 
@@ -268,6 +271,8 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
 
   return
 endif
+
+! overlay
 
 if (ele%key == overlay$) then
   i = attribute_index(ele, word)       ! general attribute search
@@ -504,7 +509,7 @@ if (attrib_word == 'WALL') then
   endif
 
   ! Expect "{"
-  call get_next_word (word, ix_word, '{,()', delim, delim_found)
+  call get_next_word (word, ix_word, '{,()', delim, delim_found, call_check = .true.)
   if (delim /= '{' .or. word /= '') then
     call parser_warning ('NO "{" SIGN FOUND AFTER "WALL ="', 'FOR ELEMENT: ' // ele%name)
     return
@@ -718,8 +723,8 @@ if (ix_attrib == term$ .and. ele%key == wiggler$) then
 
 ! 1) chop "=", 2) chop to "{", 3) chop to "}", 4) chop to "," if it exists
 
-  call get_next_word (word, ix_word1, ':,={}', delim1, delim_found, .true.)  
-  call get_next_word (word, ix_word2, ':,={}', delim2, delim_found, .true.)  
+  call get_next_word (word, ix_word1, ':,={}', delim1, delim_found, .true.) 
+  call get_next_word (word, ix_word2, ':,={}', delim2, delim_found, .true., call_check = .true.)  
 
   if (delim1 /= '=' .or. delim2 /= '{' .or. ix_word1 /= 0 .or. ix_word2 /= 0) then
     call parser_warning ('CONFUSED SYNTAX FOR TERM IN WIGGLER: ' // ele%name, str_ix)
@@ -1198,7 +1203,7 @@ if (call_file(1:6) == 'xsif::') then
 endif
 
 xsif_called = .false.
-call file_stack ('push', call_file, finished, err) ! err gets set here
+call parser_file_stack ('push', call_file, finished, err) ! err gets set here
 
 end subroutine get_called_file
 
@@ -1253,6 +1258,7 @@ end subroutine add_this_taylor_term
 !   delim_list      -- Character(*): List of valid delimiters
 !   upper_case_word -- Logical, optional: if True then convert word to 
 !                       upper case. Default is True.
+!   call_check      -- Logical, optional: If present and True then check for 'call::<filename>' construct.
 !
 ! Output
 !   ix_word     -- Integer: length of word argument
@@ -1262,7 +1268,7 @@ end subroutine add_this_taylor_term
 !-
 
 
-subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word)
+subroutine get_next_word (word, ix_word, delim_list, delim, delim_found, upper_case_word, call_check)
 
 implicit none
 
@@ -1270,10 +1276,26 @@ integer ix_a, ix_word
 
 character(*) word, delim_list, delim
 
-integer n
+integer n, ix
 
 logical delim_found, end_of_file
-logical, optional :: upper_case_word
+logical, optional :: upper_case_word, call_check
+
+character(100) line
+character(6) str
+
+! Possible inline call...
+
+if (logic_option(.false., call_check)) then
+  call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+  call str_upcase (str, bp_com%parse_line(1:6))
+  if (str == 'CALL::') then
+    bp_com%parse_line = bp_com%parse_line(7:)
+    call word_read (bp_com%parse_line, ', ',  line, ix_word, delim, delim_found, bp_com%parse_line)
+    bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.
+    call parser_file_stack ('push_inline', line)
+  endif
+endif
 
 ! check for continuation character and, if found, then load more characters
 ! into the parse line from the lattice file. 
@@ -1281,12 +1303,29 @@ logical, optional :: upper_case_word
 
 if (bp_com%input_from_file) then 
   n = len_trim(bp_com%parse_line)
-  if (n > 0 .and. n < len(bp_com%parse_line)/2) then
+  if (n > 0 .and. n < 60) then
     select case (bp_com%parse_line(n:n))
     case (',', '+', '-', '*', '/', '(', '{', '[', '=')
       call load_parse_line('continue', n+2, end_of_file)
     case ('&')
       call load_parse_line('continue', n, end_of_file)
+
+    case default
+      ! If in an inline called file then make sure the rest of the file is blank and
+      ! return to the calling file
+      if (bp_com%inline_call_active) then
+        call load_parse_line('continue', n+2, end_of_file)
+        if (bp_com%parse_line(n+1:) /= '') then
+          call string_trim (bp_com%parse_line(n+1:), line, ix)
+          call str_upcase (line(1:10), line(1:10))
+          if (line /= 'END_FILE') THEN
+            call parser_warning ('EXTRA STUFF IN FILE')
+          endif
+        endif
+        bp_com%parse_line(n+1:) = ''
+        call parser_file_stack ('pop')
+      endif
+
     end select
   endif
 endif
@@ -1309,8 +1348,7 @@ endif
 ! Note: "var := num" is old-style variable definition syntax.
 ! If delim is ":" and next char is "=" then use "=" as the delim
 
-if (delim == ':' .and. index(delim_list, '=') /= 0 .and. &
-                                        bp_com%parse_line(1:1) == '=') then
+if (delim == ':' .and. index(delim_list, '=') /= 0 .and. bp_com%parse_line(1:1) == '=') then
   delim = '='
   bp_com%parse_line = bp_com%parse_line(2:)
 endif
@@ -1321,14 +1359,14 @@ end subroutine get_next_word
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine file_stack (how, file_name_in, finished, err)
+! Subroutine parser_file_stack (how, file_name_in, finished, err)
 !
 ! Subroutine to keep track of the files that are opened for reading.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine file_stack (how, file_name_in, finished, err)
+subroutine parser_file_stack (how, file_name_in, finished, err)
 
 implicit none
 
@@ -1341,6 +1379,7 @@ integer i, ix, ios, n
 character(*) how
 character(*), optional :: file_name_in
 character(200) file_name, basename, file_name2
+
 logical, optional :: finished, err
 logical found_it, is_relative, valid, err_flag
 
@@ -1355,19 +1394,28 @@ if (how == 'init') then
   file(:)%dir = file_name
   if (present(err)) err = .false.
   if (.not. allocated(bp_com%lat_file_names)) allocate(bp_com%lat_file_names(100))
+  bp_com%inline_call_active = .false.
   return
 endif
 
 ! "push" means open a file and put its name on the stack.
 
-finished = .false.
+if (present(finished)) finished = .false.
 
-if (how == 'push') then
+select case (how)
+case ('push', 'push_inline')
 
   i_level = i_level + 1    ! number of files currently open
   if (i_level > f_maxx) then
     print *, 'ERROR: CALL NESTING GREATER THAN 20 LEVELS'
     call err_exit
+  endif
+
+  if (how == 'push_inline') then
+    file(i_level)%parse_line_saved = bp_com%parse_line
+    file(i_level)%inline_call_active = .true.    
+    bp_com%parse_line = '&'
+    bp_com%inline_call_active = .true.
   endif
 
   bp_com%current_file => file(i_level)
@@ -1429,7 +1477,7 @@ if (how == 'push') then
 
 ! "pop" means close the current file and pop its name off the stack
 
-elseif (how == 'pop') then
+case ('pop')
   close (unit = bp_com%current_file%f_unit)
   i_level = i_level - 1
   if (i_level < 0) then
@@ -1439,16 +1487,26 @@ elseif (how == 'pop') then
     bp_com%current_file => file(i_level)
     bp_com%calling_file => file(i_level-1)
   else    ! i_level == 0
-    finished = .true.
+    if (present(finished)) finished = .true.
   endif
-else
-  print *, 'BMAD_PARSER: INTERNAL ERROR IN FILE_STACK SUBROUTINE'
+
+  if (bp_com%inline_call_active) then
+    bp_com%parse_line = trim(bp_com%parse_line) // ' ' // file(i_level+1)%parse_line_saved
+    bp_com%inline_call_active = file(i_level+1)%inline_call_active
+  endif
+
+  bp_com%inline_call_active = .false.
+
+! Programming error
+
+case default
+  print *, 'BMAD_PARSER: INTERNAL ERROR IN PARSER_FILE_STACK SUBROUTINE'
   call err_exit
-endif
+end select
 
 if (present(err)) err = .false.
 
-end subroutine file_stack
+end subroutine parser_file_stack
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1459,6 +1517,14 @@ end subroutine file_stack
 ! Subroutine to load characters from the input file.
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   load_type -- Character(*): 'continue' or 'normal'
+!   ix_start  -- Integer: index in bp_com%parse_line string where to append stuff.
+!
+! Output:
+!   end_of_file       -- Logical: 
+!   bp_com%parse_line -- String to append to.
 !-
 
 subroutine load_parse_line (load_type, ix_start, end_of_file)
@@ -1548,7 +1614,10 @@ return
 
 9000  continue
 end_of_file = .true.
-bp_com%parse_line = ' '
+
+if (bp_com%parse_line /= '' .and. .not. bp_com%inline_call_active) then
+  call parser_warning ('FILE ENDED BEFORE PARSING FINISHED', stop_here = .true.)
+endif
 
 end subroutine load_parse_line
 
@@ -1687,7 +1756,7 @@ character(*), optional :: end_delims
 character(1) delim
 character(80) word, word2
 
-logical delim_found, split, ran_function_pending
+logical delim_found, split, ran_function_pending, first_get_next_word_call
 logical err_flag
 
 ! The general idea is to rewrite the expression on a stack in reverse polish.
@@ -1705,6 +1774,7 @@ err_flag = .true.
 i_lev = 0
 i_op = 0
 ran_function_pending = .false.
+first_get_next_word_call = .true.
 
 ! parsing loop to build up the stack.
 
@@ -1712,7 +1782,12 @@ parsing_loop: do
 
 ! get a word
 
-  call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found)
+  if (first_get_next_word_call) then
+    call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found, call_check = .true.)
+    first_get_next_word_call = .false.
+  else
+    call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found)
+  endif
 
   if (delim == '*' .and. word(1:1) == '*') then
     call parser_warning ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &
@@ -4909,7 +4984,7 @@ if (index(debug_line, 'SLAVE') /= 0) then
   do i = 1, lat%n_ele_track
     print *, '-------------'
     print *, 'Ele #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat, .true., .false., .true., .true.)
   enddo
 endif
 
@@ -4920,7 +4995,7 @@ if (index(debug_line, 'LORD') /= 0) then
   do i = lat%n_ele_track+1, lat%n_ele_max
     print *, '-------------'
     print *, 'Ele #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat, .true., .false., .true., .true.)
   enddo
 endif
 
@@ -4952,7 +5027,7 @@ if (ix /= 0) then
     print *
     print *, '----------------------------------------'
     print *, 'Element #', i
-    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., lat)
+    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat, .true., .false., .true., .true.)
     call string_trim (debug_line(ix+1:), debug_line, ix)
   enddo
 endif

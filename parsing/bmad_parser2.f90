@@ -96,8 +96,8 @@ bp_com%p0c_set   = .false.
 
 if (lat_file /= 'FROM: BMAD_PARSER') then
   bp_com%do_superimpose = .true.
-  call file_stack('init')
-  call file_stack('push', lat_file, finished, err)   ! open file on stack
+  call parser_file_stack('init')
+  call parser_file_stack('push', lat_file, finished, err)   ! open file on stack
   if (err) return
 endif
 
@@ -235,7 +235,7 @@ parsing_loop: do
   ! RETURN or END_FILE command
 
   if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
-    call file_stack ('pop', ' ', finished, err)
+    call parser_file_stack ('pop', ' ', finished, err)
     if (err) return
     if (finished) then
       exit parsing_loop

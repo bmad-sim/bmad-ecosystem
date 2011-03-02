@@ -147,8 +147,8 @@ enddo
 bmad_status%ok = .true.
 if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
 
-call file_stack('init')
-call file_stack('push', lat_file, finished, err)  ! open file on stack
+call parser_file_stack('init')
+call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
   call parser_end_stuff (.false.)
   return
@@ -350,9 +350,8 @@ parsing_loop: do
 
   ! RETURN or END_FILE command
 
-  if (word_1(:ix_word) == 'RETURN' .or.  &
-                                  word_1(:ix_word) == 'END_FILE') then
-    call file_stack ('pop', ' ', finished, err)
+  if (word_1(:ix_word) == 'RETURN' .or.  word_1(:ix_word) == 'END_FILE') then
+    call parser_file_stack ('pop', ' ', finished, err)
     if (err) then
       call parser_end_stuff ()
       return
@@ -600,7 +599,7 @@ parsing_loop: do
     endif
 
     ! Element definition...
-    ! First: set defaults.
+    ! Overlay/group/girder case.
 
     key = in_lat%ele(n_max)%key
     if (key == overlay$ .or. key == group$ .or. key == girder$) then
@@ -625,10 +624,11 @@ parsing_loop: do
 
     endif
 
-    ! Second: We need to get the attribute values for the element.
+    ! Not overlay/group/girder case.
+    ! Loop over all attributes...
 
     do 
-      if (.not. delim_found) exit          ! if nothing more
+      if (.not. delim_found) exit   ! If no delim then we are finished with this element.
       if (delim /= ',') then
         call parser_warning ('EXPECTING: "," BUT GOT: ' // delim,  &
                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
