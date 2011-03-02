@@ -1,5 +1,5 @@
 !+
-! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, ix_branch)
+! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)
 !
 ! Routine to track a particle between two s-positions.
 ! If the particle is lost in tracking, end_orb will hold the coordinates at the point of loss.
@@ -23,9 +23,11 @@
 !                         z_plane$ (turned around in an lcavity).
 !     %end_lost_at   -- entrance_end$ or exit_end$.
 !   orbit_end   -- coord_struct: Ending coordinates.
+!   all_orb(0:) -- coord_struct, allocatable, optional: If present then the orbit at the exit ends
+!                   of the elements tracked through will be recorded in this structure. 
 !-   
 
-subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, ix_branch)
+subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch)
 
 use bookkeeper_mod
 
@@ -34,6 +36,7 @@ implicit none
 type (lat_struct), target :: lat
 type (coord_struct) orbit_start, orbit_end
 type (branch_struct), pointer :: branch
+type (coord_struct), optional, allocatable :: all_orb(:)
 
 real(rp) s_start, s_end
 real(rp) s0
@@ -83,6 +86,7 @@ endif
 
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
+if (present(all_orb)) all_orb(ix_start) = orbit_end
 
 ! Track to ending element
 
@@ -91,6 +95,8 @@ do
   if (ix_ele == ix_end) exit
 
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
+  if (present(all_orb)) all_orb(ix_ele) = orbit_end
+
   if (branch%param%lost) then
     branch%param%ix_lost = ix_ele
     return
