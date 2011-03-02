@@ -63,7 +63,7 @@ do
     first = .false.
     ans = ''
   else
-    call read_a_line ('Input: "<Section_Number>", "<CR>" (Next section), "s <s_value>", "x <x_max>" (negative -> autoscale)', ans)
+    call read_a_line ('Input: "<Section #>", "<CR>" (Next sec), "b" (Back sec), "s <s_value>", "x <x_max>" (neg -> autoscale)', ans)
   endif
 
   call string_trim (ans, ans, ix)
@@ -83,21 +83,27 @@ do
     endif
     x_max_user = r
 
+  elseif (ans == '') then
+    ix_section = modulo(ix_section + 1, wall%n_pt_max + 1)
+    s_pos = wall%pt(ix_section)%s
+    at_section = .true.
+
+  elseif (ans == '') then
+    ix_section = modulo(ix_section - 1, wall%n_pt_max + 1)
+    s_pos = wall%pt(ix_section)%s
+    at_section = .true.
+
   else
-    if (ans == '') then
-      ix_section = modulo(ix_section + 1, wall%n_pt_max + 1)
-    else
-      read (ans, *, iostat = ios) i_in
-      if (ios /= 0) then
-        print *, 'Cannot read section index number'
-        cycle
-      endif
-      if (i_in < 0 .or. i_in > wall%n_pt_max) then
-        print *, 'Number is out of range!'
-        cycle
-      endif
-      ix_section = i_in
+    read (ans, *, iostat = ios) i_in
+    if (ios /= 0) then
+      print *, 'Cannot read section index number'
+      cycle
     endif
+    if (i_in < 0 .or. i_in > wall%n_pt_max) then
+      print *, 'Number is out of range!'
+      cycle
+    endif
+    ix_section = i_in
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
 
