@@ -231,13 +231,20 @@ if (n_shape_max > 0) then
       call err_exit
     endif
 
+    if (allocated(poly%v)) then
+      print *, 'ERROR: DUPLICATE IX_GEN_SHAPE =', ix_gen_shape
+      call err_exit
+    endif
+
     allocate(poly%v(n-1))
     poly%v = v(1:n-1)
     poly%n_vertex_input = n-1
       
     call wall3d_section_initializer (poly, err)
-    if (err) call err_exit
-
+    if (err) then
+      print *, 'ERROR AT IX_GEN_SHAPE =', ix_gen_shape
+      call err_exit
+    endif
   enddo
 endif
 
