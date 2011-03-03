@@ -550,6 +550,7 @@ type (wall3d_vertex_struct), pointer :: v1, v2
 real(rp) r_wall, dr_dtheta, rx, ry, da, db, angle
 real(rp) numer, denom, ct, st, x0, y0, a, b, c
 real(rp) cos_ang, sin_ang, radx, cos_a, sin_a
+real(rp) r_x, r_y, dr_x, dr_y
 
 integer ix
 
@@ -613,7 +614,16 @@ if (v2%radius_y /= 0) then
   return
 endif
 
-! Else must be a circle
+! Else must be a circle.
+! Solve for r_wall: (r_wall * cos_a - x0)^2 + (r_wall * sin_a - y0)^2 = radius^2
+! dr_theta comes from the equations:
+!   x = x0 + radius * cos(phi)
+!   y = y0 + radius * sin(phi)
+!   r = sqrt(x^2 + y^2)
+!   Tan(theta) = y/x
+! Then
+!   dr_vec = (dx, dy) = (-radius * sin(phi), radius * cos(phi)) * dphi
+!   dr/dtheta = r * (r_vec dot dr_vec) / (r_vec cross dr_vec)
 
 a = 1
 b = -2 * (cos_a * x0 + sin_a * y0)
@@ -621,7 +631,11 @@ c = x0**2 + y0**2 - v2%radius_x**2
 radx = sqrt(b**2 - 4 * a * c)
 
 r_wall = (-b + radx) / (2 * a)
-dr_dtheta = (sin_a * x0 - cos_a * y0) * (-1 + b / radx) / (2 * a)
+
+r_x = r_wall * cos_a; r_y = r_wall * sin_a
+dr_x = -(r_y - y0);    dr_y = r_x - x0
+
+dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
 
 end subroutine calc_wall_radius
 
