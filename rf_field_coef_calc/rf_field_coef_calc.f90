@@ -233,7 +233,7 @@ if (significant_mode(0)) then
     kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
   
     mode(0)%term(i)%e = Ez_fft(i) / (R(0, kap_rho) * n2_z)
-    mode(0)%term(i)%f = Ephi_fft(i) / (R(1, kap_rho) * n2_z)
+    mode(0)%term(i)%b = Ephi_fft(i) / (R(1, kap_rho) * n2_z)
   enddo
 endif
 
@@ -303,7 +303,7 @@ do i = 1, n2_z
 
   Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho)
   Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kap_rho)
-  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kap_rho) 
+  Ephi_fft(i) = mode(0)%term(i)%b * R(1, kap_rho) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -340,7 +340,7 @@ do i = 1, n2_z
 
   Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho/2)
   Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kap_rho/2)
-  Ephi_fft(i) = mode(0)%term(i)%f * R(1, kap_rho/2) 
+  Ephi_fft(i) = mode(0)%term(i)%b * R(1, kap_rho/2) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -377,7 +377,7 @@ do i = 1, n2_z
 
   Ez_fft(i) = mode(0)%term(i)%e * R(0, 0.0_rp)
   Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, 0.0_rp)
-  Ephi_fft(i) = mode(0)%term(i)%f * R(1, 0.0_rp) 
+  Ephi_fft(i) = mode(0)%term(i)%b * R(1, 0.0_rp) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -451,7 +451,7 @@ real(rp) kap_rho, r_out, sgn
 ! If kap_rho is large enough then just use the R function
 
 if (abs(kap_rho) > 1e-4) then
-  r_out = R(m, kap_rho) / kap_rho
+  r_out = R(m, kap_rho) / abs(kap_rho)
   return
 endif
 
@@ -503,7 +503,7 @@ do im = 1, size(modes)
       Rm      = R(0, kap_rho)
       Rm_plus = R(1, kap_rho)
       E%rho = E%rho + (-i_imaginary * k_z / kappa_l) * mode%term(i)%e * Rm_plus * expi
-      E%phi = E%phi + mode%term(i)%f * Rm_plus * expi
+      E%phi = E%phi + mode%term(i)%b * Rm_plus * expi
       E%z   = E%z   + mode%term(i)%e * Rm * expi
 
     else
@@ -512,7 +512,7 @@ do im = 1, size(modes)
       Rm_plus  = R(mode%m+1, kap_rho)
       Rm_minus = R(mode%m-1, kap_rho) 
       Rm_norm  = (Rm_minus + sign(1.0_rp, kappa2_l) * Rm_minus) / (2 * mode%m) ! R_norm(mode%m, kap_rho)
-      Rm       = kap_rho * Rm_norm                                             ! R(mode%m, kap_rho) 
+      Rm       = kappa_l * radius * Rm_norm                                    ! R(mode%m, kap_rho) 
 
       ikkl = -i_imaginary * k_z / kappa_l
       E%rho = E%rho + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi

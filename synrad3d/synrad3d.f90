@@ -48,7 +48,7 @@ character(40) name
 character(16) :: r_name = 'synrad3d'
 
 logical ok, filter_on, s_wrap_on, filter_this, err
-logical is_inside, turn_off_kickers_in_lattice, plot_wall
+logical is_inside, turn_off_kickers_in_lattice, plot_wall, plot_norm
 
 namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             photon_direction, num_photons, lattice_file, ds_step_min, num_photons_per_pass, &
@@ -67,12 +67,16 @@ namelist / start / p, ran_state, random_seed
 
 ok = .true.
 plot_wall = .false.
+plot_norm = .false.
 param_file = ''
 
 if (cesr_iargc() > 0) then
   call cesr_getarg(1, arg)
   if (arg == '-plot') then
     plot_wall = .true.
+  elseif (arg == '-norm') then
+    plot_wall = .true.
+    plot_norm = .true.
   else
     param_file = arg
   endif
@@ -83,6 +87,9 @@ if (cesr_iargc() > 1) then
   if (arg == '-plot') then
     if (plot_wall) ok = .false.  ! "plot plot" is error.
     plot_wall = .true.
+  elseif (arg == '-norm') then
+    plot_wall = .true.
+    plot_norm = .true.
   else
     if (param_file /= '') ok = .false.  ! "abc.init abc.init" is error
     param_file = arg
@@ -299,7 +306,7 @@ call ran_seed_put (random_seed)
 ! Plot wall cross-sections. 
 ! This routine never returns back to the main program.
 
-if (plot_wall) call sr3d_plot_wall_cross_sections (wall)
+if (plot_wall) call sr3d_plot_wall_cross_sections (wall, plot_norm)
 
 ! Find out much radiation is produced
 

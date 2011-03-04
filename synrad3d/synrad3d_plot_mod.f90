@@ -10,7 +10,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (wall)
+! Subroutine sr3d_plot_wall_cross_sections (wall, plot_norm)
 !
 ! Routine to interactively plot wall cross-sections
 ! Note: This routine never returns to the main program.
@@ -19,7 +19,7 @@ contains
 !   wall -- sr3d_wall_struct: Wall structure.
 !-
 
-subroutine sr3d_plot_wall_cross_sections (wall)
+subroutine sr3d_plot_wall_cross_sections (wall, plot_norm)
 
 implicit none
 
@@ -28,13 +28,14 @@ type (sr3d_wall_pt_struct), pointer :: pt
 type (sr3d_photon_track_struct) photon
 
 real(rp) s_pos, dtrack, x(400), y(400), x_max, y_max, theta, d_radius, r
-real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3), x_max_user
+real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3), x_max_user, r_max
+real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100), dw_perp(3)
 
 integer i, j, ix, ix_section, i_in, ios, i_chan, ixp
 
 character(80) ans, label
 
-logical is_through, first, at_section
+logical plot_norm, is_through, first, at_section
 
 ! Open plotting window
 
@@ -43,6 +44,7 @@ call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
 x_max_user = -1
 first = .true.
+r_max = 100
 
 ! Print wall info
 
@@ -88,7 +90,7 @@ do
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
 
-  elseif (ans == '') then
+  elseif (ans == 'b') then
     ix_section = modulo(ix_section - 1, wall%n_pt_max + 1)
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
@@ -127,8 +129,8 @@ do
     ! photon%now is at 1 meter radius which is assumed to be outside the wall.
 
     theta = (i-1) * twopi / (size(x) - 1)
-    photon%now%vec(1) = cos(theta)  
-    photon%now%vec(3) = sin(theta)
+    photon%now%vec(1) = r_max * cos(theta)  
+    photon%now%vec(3) = r_max * sin(theta)
 
     if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
       do j = 1, 2*size(wall%pt(ixp)%gen_shape%v)
@@ -151,8 +153,16 @@ do
         print *, 'INTERNAL COMPUTATION ERROR!'
         call err_exit
       endif
-      x(i) = (1 - d_radius) * photon%now%vec(1)
-      y(i) = (1 - d_radius) * photon%now%vec(3)
+      x(i) = (r_max - d_radius) * photon%now%vec(1)
+      y(i) = (r_max - d_radius) * photon%now%vec(3)
+
+      if (plot_norm .and. modulo(i, 4) == 0) then
+        photon%now%vec(1) = x(i); photon%now%vec(3) = y(i)
+        call sr3d_photon_d_radius (photon%now, wall, d_radius, dw_perp)
+        j = (i / 4)
+        x1_norm(j) = x(i);                  y1_norm(j) = y(i)
+        x2_norm(j) = x(i) + dw_perp(1)/100; y2_norm(j) = y(i) + dw_perp(2)/100
+      endif
 
     endif
   enddo
@@ -173,6 +183,11 @@ do
   call qp_eliminate_xy_distortion()
   call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
 
+  if (plot_norm) then
+    do j = 1, size(x1_norm)
+      call qp_draw_line(x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+    enddo
+  endif
 
 enddo
 
