@@ -134,9 +134,10 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   call twiss_at_start (ring)
   call twiss_propagate_all(ring)
 
-  if(Qz /= 0.)then
    ring%z%tune = Qz * twopi
    call set_z_tune(ring)
+
+  if(Qz /= 0.)then
 
   call element_locator('PATCH_RF_W1',ring,ix)
    if(ix > 0) then
