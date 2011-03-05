@@ -171,7 +171,7 @@
    call query_real(' fmax ? ', fmax_dp, 'f10.3')
    fmin=fmin_dp
    fmax=fmax_dp
-
+   print *,' fmin = ' , fmin,' fmax = ', fmax
    do j=1,nx
     do k=1,ny
       z(j,k)=0.
