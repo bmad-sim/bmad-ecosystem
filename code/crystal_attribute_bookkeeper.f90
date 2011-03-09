@@ -33,6 +33,7 @@ real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) cos_theta0, sin_theta0, graze_angle_in, ang_tot
 real(rp) h_x, h_y, h_z, nx_out, ny_out, nz_out, nxx_out, nyy_out, nzz_out
 real(rp) cos_graze_in, sin_graze_in
+real(rp) source_r,detect_r,r_c
 
 ! If the photon energy or the bragg angle has not been set then cannot do the calc yet.
 
@@ -77,5 +78,23 @@ ele%value(tilt_corr$) = atan2(nyy_out, nxx_out)
 
 ang_tot = atan2(sqrt(nxx_out**2 + nyy_out**2), nzz_out)
 ele%value(graze_angle_out$) = ang_tot - graze_angle_in
+
+! Attributes for to curved crystal
+! source_r and detect_r are reciprocrals of distance multipled by angle
+if ( ele%value(d_source$) == 0) then
+    source_r = 0.0_rp
+else
+    source_r=ele%value(graze_angle_in$)/ele%value(d_source$)
+endif
+
+if ( ele%value(d_detec$) == 0) then
+    detect_r = 0.0_rp
+else
+    detect_r = ele%value(graze_angle_out$)/ele%value(d_detec$)
+endif
+
+ele%value(c2_curve_tot$)=ele%value(c2_curve$)+(detect_r+source_r)*0.25_rp
+ele%value(c4_curve_tot$)=ele%value(c4_curve$)+0.03125_rp*(detect_r+source_r)**3
+
 
 end subroutine

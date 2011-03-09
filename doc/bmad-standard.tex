@@ -7,7 +7,8 @@ given element (\sref{c:methods}). This chapter discusses the
 \vn{bmad_standard} calculation that is the default for almost all
 element types.
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
 \section{Tracking with Non-Zero Offsets, Pitches, or Tilt}
 \label{s:misalign.track}
 
@@ -76,7 +77,8 @@ $y$-axis aligned with the $y$-axes of the other two coordinate
 systems. The exceptional case occurs for a \vn{crystal} element when
 \vn{phi_angle} is nonzero (\sref{s:crystal.ref}).
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
 \section{Transformation for Straight Elements Between 
 Laboratory and Element Coordinates}
 \label{s:straight-lab-ele}
@@ -84,7 +86,7 @@ Laboratory and Element Coordinates}
 It is assumed that pitches are are small so that second
 order terms can be ignored.
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
 \subsection{Transformation from Laboratory to Element Coordinates}
 
 The transformation from the laboratory coordinates to
@@ -114,7 +116,7 @@ Apply any tilt $\theta_t$
 \end{align}
 \end{enumerate}
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
 \subsection{Transformation from Element to Laboratory Coordinates}
 
 The back transformation from element to laboratory coordinates is
@@ -143,7 +145,8 @@ Track as in a drift a distance \vn{-s_offset_tot}.
 \end{enumerate}
 
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
 \section[Mirror and Crystal Elements]{Transformation for Mirror and Crystal Elements Between 
 Laboratory and Element Coordinates}
 \label{s:photon-lab-ele}
@@ -152,7 +155,7 @@ Laboratory and Element Coordinates}
 It is assumed that pitches are are small so that second
 order terms can be ignored.
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
 \subsection{Transformation from Laboratory to Element Coordinates}
 
 \index{s_offset_tot}
@@ -215,7 +218,7 @@ Apply \vn{graze_angle_err} ($\theta_{gerr}$):
 \end{align}
 \end{enumerate}
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
 \subsection{Transformation from Element to Laboratory Coordinates}
 
 The back transformation from exit element coordinates to exit
@@ -296,7 +299,7 @@ entrance laboratory frame. The transformation is
 \end{align}
   \end{enumerate}
 
-%-----------------------
+%-------------------------------------------------------------------------
 
 \begin{figure}[tb]
   \centering
@@ -313,13 +316,14 @@ $Q$ point.}
   \label{f:crystal.diffraction}
 \end{figure}
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
 \section{Crystal Element Tracking}
 \label{s:crystal.tracking}
 
 \textit{\large [Crystal tracking developed by Jing Yee Chee, Ken Finkelstein, and David Sagan]}
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
 \subsection{Crystal Element Reference Trajectory}
 \label{s:crystal.ref}
 
@@ -517,7 +521,7 @@ In the above equation, the transformation $T_{out}$ from element exit
 coordinates to laboratory exit coordinates has been dropped since it
 is the unit matrix independent of $\psi_H$.
 
-%-----------------------------------------------------------------
+%-------------------------------------------------------------------------
 \subsection{Crystal Element Tracking}
 
 The starting photon coordinates are specified in the laboratory
@@ -593,41 +597,36 @@ and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
   a \equiv \frac{H^2 + 2 \, \Bf k_0 \cdot \bH}{k_0^2}
 \Endeq
 
-%-----------------------------------------------------------------
-\section{Hamiltonian for a Magnetic Element}
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
+\section{Hamiltonian}
 \label{s:mag.hamiltonian}
 
-Without any electric fields, the Hamiltonian is
+The general Hamiltonian is
 \Begineq
-  H = p_z - (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - 
-  (1 + g \, x) \, a_s
+  H = p_z - (1 + g \, x) \sqrt{(1 + p_z + \wt\psi)^2 - (m \, c / P_0)^2 - 
+  (p_x - a_x)^2 - (p_y - a_y)^2} - (1 + g \, x) \, a_s
   \label{h1gx1}
 \Endeq
 Here $(x, p_x, y, p_y, z, p_z)$ are the canonical coordinates
 (\sref{s:phase.space}), $g = 1/\rho$ with $\rho$ being the local
-radius of curvature of the reference particle, and $\Bf a(x,y,s)$ is
-the normalized vector potential which is related to the vector
-potential $\Bf A(x,y,s)$ via
+radius of curvature of the reference particle, and $\Bf a$ and
+$\wt\psi$ are the normalized vector and scaler potentials:
 \Begineq
-  \Bf a = \frac{q \, \Bf A}{P_0 \, c}
+  \Bf a(x,y,z;s) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
+  \wt\psi(x,y,z;s) = \frac{q \, \psi}{P_0 \, c^2}
 \Endeq
 The equations of motion are
-\begin{align}
-  \frac{dq_i}{ds} &= \frac{\partial H}{\partial p_i} \CRNO
-  \frac{dp_i}{ds} &= -\frac{\partial H}{\partial q_i}
+\begin{equation}
+  \frac{dq_i}{ds} = \frac{\partial H}{\partial p_i} \qquad
+  \frac{dp_i}{ds} = -\frac{\partial H}{\partial q_i}
   \label{rshp}
-\end{align}
-
-Assuming mid--plane symmetry of the magnetic field, so
-that $a_x$ and $a_y$ can be set to zero\cite{b:madphysics}, The vector
-potential up to second order is (cf.~\Eq{byx0b})
-\Begineq
-  a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
-  \frac{1}{2} k_1 \left( x^2 - y^2 \right)
-\Endeq
+\end{equation}
 
 \label{paraxial approximation}
-Using the paraxial approximation (\sref{s:phase.space}), \Eq{h1gx1} becomes
+Without an electric field, $\psi$ is zero. Ignoring the $(m \, c) / P_0$ term,
+assuming a non-curved coordinate system ($g = 0$),
+and using the paraxial approximation (\sref{s:phase.space}), \Eq{h1gx1} becomes
 \Begineq
   H = \frac{(p_x - a_x)^2}{2 (1 + p_z)} + \frac{(p_y - a_y)^2}{2 (1 + p_z)} - 
   (1 + g \, x) \, a_s 
@@ -663,7 +662,74 @@ where the map coefficients $m_{ij\cdots}$ are functions of $p_z$.  For
 linear elements, the transfer map is linear for the transverse
 coordinates and quadratic for $r_i = z$.
 
-%-----------------------------------------
+Assuming mid--plane symmetry of the magnetic field, so
+that $a_x$ and $a_y$ can be set to zero\cite{b:madphysics}, The vector
+potential up to second order is (cf.~\Eq{byx0b})
+\Begineq
+  a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
+  \frac{1}{2} k_1 \left( x^2 - y^2 \right)
+\Endeq
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Symplectic Integration}
+\label{s:symp.track}
+\index{symplectic integration}
+
+Using \Eq{hpapa} the Hamiltonian is written in the form
+\Begineq
+  H = H_x + H_y + H_z
+\Endeq
+where
+\begin{equation}
+  H_x = \frac{(p_x - a_x^2}{2 (1 + \delta)}, \qquad
+  H_y = \frac{(p_y - a_y)^2}{2 (1 + \delta)}, \qquad
+  H_s = - a_s \nonumber
+\end{equation}
+
+For tracking, the element is broken up into a number of slices set by
+the element's \vn{ds_step} attribute. For each slice, the tracking
+uses a quadratic symplectic integrator $I$:
+\Begineq
+  I = T_{s/2} \; I_{x/2} \; I_{y/2} \; I_s \; I_{y/2} \; I_{x/2} \; T_{s/2}
+\Endeq
+$T_{s/2}$ is just a translation of the $s$ variable:
+\Begineq
+  s \rightarrow s + \frac{ds}{2}
+\Endeq
+And the other integrator components are
+\begin{align}
+  I_{x/2} &= \exp \left( : -\frac{ds}{2} H_x : \right) \CRNO
+  I_{y/2} &= \exp \left( : -\frac{ds}{2} H_y : \right) \\
+  I_{s}   &= \exp \left( : -ds \, H_s : \right) \nonumber
+\end{align}
+The evaluation of $I_{x/2}$ and $I_{y/2}$ is tricky since it involves both transverse
+position and momentum variables. The trick is to split the integration into three parts
+For $I_{x/2}$ this is
+\begin{align}
+  I_{x/2} &= \exp \left( : -\frac{ds}{2} \frac{(p_x - A_x)^2}{2 (1 + \delta)} : \right) \CRNO
+  &= \exp \left( : -\int A_x \, dx : \right) \,
+     \exp \left( : -\frac{ds}{2} \frac{p_x^2}{2 (1 + \delta)} : \right) \,
+     \exp \left( : \int A_x \, dx : \right)
+  \label{ids2}
+\end{align}
+With an analogus expression for $I_{y/2}$.
+
+For a map type wiggler (\sref{s:wiggler})
+
+Given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
+\eq{f3}, the integrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
+
+And the vector potential $\bfA$ is obtained from $\bfB$ via
+\begin{align}
+  A_x(x,y,s) &= 0 \CRNO
+  A_y(x,y,s) &=  \int_0^x d\wt x \, B_z(\wt x, y, s) 
+  \label{a0a0a0} \\
+  A_s(x,y,s) &= -\int_0^x d\wt x \, B_y(\wt x, y, s) \nonumber
+\end{align}
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{BeamBeam Element Tracking}
 \label{s:beambeam.std}
 \index{beambeam}
@@ -695,7 +761,8 @@ follows:
      at the center of the strong bunch.
 \end{enumerate}
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Bend Element: Fringe Tracking}
 \label{s:.bend.fringe.std}
 \index{sbend}
@@ -715,7 +782,8 @@ where $g_{tot}$ is the total bending strength (design +
 error). Similar equations are used for tracking the exit edge of the
 bend.
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Bend Element: Body Tracking}
 \label{s:bend.body.std}
 \index{sbend}
@@ -769,7 +837,8 @@ and
   m_{544} &= \frac{-1}{4 \, (1 + p_{z1})^2} \, (L + c_y \, s_y) \nonumber
 \end{alignat}
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Drift Element Tracking}
 \label{s:drift.std}
 \index{drift} 
@@ -789,7 +858,8 @@ This gives the map
   p_{z2} &= p_{z1} \nonumber
 \end{align}
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Kicker, Hkicker, Vkicker, and Elseparator Element Tracking}
 \label{s:kicker.std}
 \index{kicker}
@@ -813,7 +883,8 @@ This gives the map
 \end{align}
 The generalization when the kick is not in the horizontal plane is easily derived.
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Lcavity Element Tracking}
 \label{s:lcavity.std}
 \index{lcavity}
@@ -894,14 +965,16 @@ where
   \frac{dcP_2}{dz_1}        &= m_{65} \, c\Pbar_{2}  \nonumber
 \end{align}
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Mirror Element Tracking}
 \label{s:mirror.std}
 \index{mirror}
 
 Tracking through
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Octupole Element Tracking}
 \label{s:octupole.std}
 \index{octupole}
@@ -913,7 +986,8 @@ The Hamiltonian for an upright octupole is
 
 An octupole is modeled using a kick-drift-kick model.
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Quadrupole Element Tracking}
 \label{s:quadrupole.std}
 \index{quadrupole}
@@ -961,12 +1035,14 @@ with this
 \end{alignat}
 
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{RFcavity Element Tracking}
 \label{s:rfcavity.std}
 \index{rfcavity}
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Sextupole Element Tracking}
 \label{s:sextupole.std}
 \index{sextupole}
@@ -978,7 +1054,8 @@ The Hamiltonian for an upright octupole is
 
 A sextupoles modeled using a kick-drift-kick model.
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Sol\_Quad Element Tracking}
 \label{s:sol.quad.std}
 \index{sol_quad}
@@ -1065,7 +1142,8 @@ hyperbolic functions. These integrals are trivial to do but the
 explicit equations for $m_{5jk}$ are quite long and in the interests of
 brevity are not reproduced here.
 
-%-----------------------------------------
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Solenoid Element Tracking}
 \label{s:solenoid.std}
 \index{solenoid}
@@ -1095,145 +1173,3 @@ where
   c &= \cos \left( \frac{k_s}{2} \, L \right) \CRNO
   s &= \sin \left( \frac{k_s}{2} \, L \right)
 \end{align}
-
-%-----------------------------------------
-\section{Map\_type Wiggler Element Tracking}
-\label{s:wiggler.map.std}
-\index{wiggler}
-
-\index{wiggler}
-As discussed in \sref{s:wiggler}, \bmad wiggler elements are
-split into two classes: \vn{map type} and \vn{periodic type}. The 
-\vn{map type} wigglers are modeled using the method of Sagan, Crittenden,
-and Rubin\cite{b:wiggler}. In this model the magnetic field is written
-as a sum of terms $B_i$
-\Begineq
-  \bfB(x,y,s) = \sum_i \bfB_i(x, y, s; C, k_x, k_y, k_s, \phi_s)
-\Endeq 
-Each term $B_i$ is specified using five numbers: 
-$(C, k_x, k_y, k_s, \phi_s)$. A term can take one of three forms: The first
-form is
-\begin{alignat}{4}
-  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \label{f1} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \nonumber
-\end{alignat}
-The second form is
-\begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \label{f2} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \nonumber
-\end{alignat}
-The third form is
-\begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
-  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \label{f3} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \nonumber
-\end{alignat}
-The relationship between $k_x$, $k_y$, and $k_s$ ensures that
-Maxwell's equations are satisfied.
-
-There is no \vn{bmad_standard} tracking for a \vn{map_type}
-\vn{wiggler}. The following describes the \vn{symp_lie_bmad} type tracking.
-The Hamiltonian for the wiggler is 
-\Begineq
-  H = H_x + H_y + H_z
-\Endeq
-where
-\begin{align}
-  H_x &= \frac{p_x^2}{2 (1 + \delta)} \CRNO
-  H_y &= \frac{(p_y - A_y)^2}{2 (1 + \delta)} \\
-  H_s &= - A_s \nonumber
-\end{align}
-And the vector potential $\bfA$ is obtained from $\bfB$ via
-\begin{align}
-  A_x(x,y,s) &= 0 \CRNO
-  A_y(x,y,s) &=  \int_0^x d\wt x \, B_z(\wt x, y, s) 
-  \label{a0a0a0} \\
-  A_s(x,y,s) &= -\int_0^x d\wt x \, B_y(\wt x, y, s) \nonumber
-\end{align}
-
-For tracking, the wiggler is broken up into a number of slices set by
-the element's \vn{ds_step} attribute. For each slice, the tracking
-uses a quadratic symplectic integrator $I$:
-\Begineq
-  I = T_{s/2} \; I_{x/2} \; I_{y/2} \; I_s \; I_{y/2} \; I_{x/2} \; T_{s/2}
-\Endeq
-$T_{s/2}$ is just a translation of the $s$ variable:
-\Begineq
-  s \rightarrow s + \frac{ds}{2}
-\Endeq
-And the other integrator components are
-\begin{align}
-  I_{x/2} &= \exp \left( : -\frac{ds}{2} H_x : \right) \CRNO
-  I_{y/2} &= \exp \left( : -\frac{ds}{2} H_y : \right) \\
-  I_{s}   &= \exp \left( : -ds \, H_s : \right) \nonumber
-\end{align}
-The evaluation if $I_{y/2}$ is tricky since it involves both transverse
-position and momentum variables. The trick is to split the integration into three parts
-\begin{align}
-  I_{y/2} &= \exp \left( : -\frac{ds}{2} \frac{(p_y - A_y)^2}{2 (1 + \delta)} : \right) \CRNO
-  &= \exp \left( : -\int A_y \, dy : \right) \,
-     \exp \left( : -\frac{ds}{2} \frac{p_y^2}{2 (1 + \delta)} : \right) \,
-     \exp \left( : \int A_y \, dy : \right)
-  \label{ids2}
-\end{align}
-Given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
-\eq{f3}, the integrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
-
-%-----------------------------------------
-\section{Periodic\_Type Wiggler Element Tracking}
-\label{s:wiggler.periodic.std}
-\index{wiggler}
-
-The horizontal motion looks like a drift with a superimposed
-sinusoidal oscillation. It is assumed that there is an integer number
-of periods in the oscillation so that the exit horizontal coordinates
-can be calculated from the initial coordinates using the equations for
-a drift. The vertical motion is a quadratic superimposed with a
-octupole. Vertical motion is calculated using a kick-drift-kick model.
-
-\vn{Periodic type} wigglers use a simplified model where the magnetic
-field components are
-\begin{alignat}{1}
-  B_y &= \hphantom{-} B_{\max} \, \cosh(k_s \, y) \, \cos(ksss) \CRNO
-  B_s &= -B_{\max} \, \sinh(k_s \, y) \, \sin(ksss) 
-  \label{bbkyks}
-\end{alignat}
-where $B_{\max}$ is the maximum field on the centerline and $k$ is
-given in terms of the pole length (\vn{l_pole}) by
-\Begineq
-  k_s = \frac{\pi}{l_{\mbox{pole}}}
-\Endeq
-This type of wiggler has infinitely wide poles. With
-\vn{bmad_standard} tracking and transfer matrix calculations the
-vertical focusing is assumed small so averaged over a period the
-horizontal motion looks like a drift and the vertical motion is
-modeled as a combination focusing quadrupole and focusing octupole
-giving a kick\cite{b:corbett}
-\Begineq
-  \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_s^2 \, y^3 \right)
-\Endeq
-where
-\begin{alignat}{1}
-  k_1 &= \frac{-1}{2} \, \left( \frac{e \, B_{\max}}{P_0 \, (1 + p_s)} \right)^2 
-\end{alignat}
-with $k_1$ being the linear focusing constant. For radiation
-calculations the true horizontal trajectory with $y = 0$ is needed
-\Begineq
-  x = \frac{\sqrt{2 \, |k_1|}}{k_s^2} \, \cos (k_s \, s)
-\Endeq
-
-With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
-phase $\phi_s$ in \Eqs{bbkyks} is irrelevant. When the tracking
-involves Taylor maps and symplectic integration, the phase is
-important. Here the phase is chosen so that $B_y$ is symmetric about
-the center of the wiggler
-\Begineq
-  \phi_s = \frac{-k_y \, L}{2}
-\Endeq
-With this choice, a particle that enters the wiggler on-axis will
-leave the wiggler on-axis provided there is an even number of poles.

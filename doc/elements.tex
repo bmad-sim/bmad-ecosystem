@@ -567,7 +567,7 @@ syntax of the wall structure is:
       s = <longitudinal_position>, 
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
-      ...}
+      ...\}
     s_spline = \{<coef_1>, <coef_2>\},
     n_slice_spline = <num> 
     section = \{
@@ -1406,7 +1406,7 @@ modified to give the correct phase-space area at non
 ultra-relativistic energies.  See Section \sref{s:lcav.phys} for more
 details.  Note: The transfer matrix for an \vn{lcavity} with finite
 \vn{gradient} is never symplectic. See \sref{s:phase.space}. In
-addition, couplers (\sref{s:rf.couplers}) and HOM wakes
+addition, couplers (\sref{s:rf.coupler}) and HOM wakes
 (\sref{s:rf.wakes} can be modeled.
 
 If a field map is specified (\sref{s:rf.fields}), tracking using  
@@ -1874,7 +1874,7 @@ attribute calculated by
 \end{example}
 where \vn{L_lattice} is the total lattice length.
 
-Couplers (\sref{s:rf.couplers}) and HOM wakes (\sref{s:rf.wakes} can
+Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:rf.wakes} can
 be modeled. In addition, if a field map is specified
 (\sref{s:rf.fields}), tracking using an integrator is possible.
 
@@ -2087,25 +2087,42 @@ General \vn{wiggler} attributes are:
 
 There are two types of wigglers. Those that that are described using a
 magnetic field map (``map type'') and those that are described
-assuming a periodic field (``periodic type''). See
-\sref{s:wiggler.map.std} and \sref{s:wiggler.periodic.std} for more
-details.  Tracking a particle through a wiggler is always done so that
-if the particle starts on-axis with no momentum offsets, there is no
-change in the $z$ coordinate even though the actual trajectory through
-the wiggler does not follow the straight line reference trajectory.
+assuming a periodic field (``periodic type''). 
 
-\index{x_ray_line_len}
-both types of wigglers have the following attributes:
-\begin{example}
-  x_ray_line_len = <Real>
-  polarity       = <Real> ! Used to scale the field strength.
-  k1                      ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
-  rho                     ! Bending radius. Dependent attribute (\sref{s:depend}).
-\end{example}
-\vn{x_ray_line_len} is the length of an associated x-ray synchrotron
-light line measured from the exit end of the element. This is used for
-machine geometry calculations and is irrelevant for lattice
-computations.
+%-----------------------------------------------------
+\subsection{Map\_Type Wigglers}
+
+The \vn{map type} wigglers are modeled using the method of Sagan,
+Crittenden, and Rubin\cite{b:wiggler}. In this model the magnetic
+field is written as a sum of terms $B_i$
+\Begineq
+  \bfB(x,y,s) = \sum_i \bfB_i(x, y, s; C, k_x, k_y, k_s, \phi_s)
+\Endeq 
+Each term $B_i$ is specified using five numbers: 
+$(C, k_x, k_y, k_s, \phi_s)$. A term can take one of three forms: The first
+form is
+\begin{alignat}{4}
+  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\ksss) \label{f1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_s^2$ .} &&&  \nonumber
+\end{alignat}
+The second form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\ksss) \label{f2} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_s^2 - k_x^2$ ,} &&&  \nonumber
+\end{alignat}
+The third form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\ksss) \CRNEG
+  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\ksss) \CRNEG
+  B_s &= -&C &\dfrac{k_s}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\ksss) \label{f3} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_s^2$ .} &&& \nonumber
+\end{alignat}
+The relationship between $k_x$, $k_y$, and $k_s$ ensures that
+Maxwell's equations are satisfied.
 
 \index{polarity}
 \index{term (for a Wiggler)}
@@ -2132,6 +2149,11 @@ The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is the
 maximum field computed for \vn{polarity} = 1. The actual maximum field
 seen in tracking is thus scaled by the \vn{polarity}.
 
+There is no \vn{bmad_standard} tracking for a \vn{map_type}
+\vn{wiggler}. \vn{symp_lie_bmad} type tracking is discussed in \sref{s:symp.track}
+
+%-----------------------------------------------------
+\subsection{Periodic\_Type Wiggler Element Tracking}
 
 For the \vn{periodic type} wigglers the attributes are: 
 \index{b_max}\index{n_pole}
@@ -2152,5 +2174,74 @@ The type of wiggler is determined by whether there are \vn{term(i)}
 terms. If present, the wiggler is classed as a \vn{map type}.
 
 Note: When using Taylor maps and symplectic tracking with a
-\vn{periodic} type wiggler, the number of poles must be even as
-explained in section~\sref{s:wiggler.periodic.std}.
+\vn{periodic} type wiggler, the number of poles must be even.
+
+The horizontal motion looks like a drift with a superimposed
+sinusoidal oscillation. It is assumed that there is an integer number
+of periods in the oscillation so that the exit horizontal coordinates
+can be calculated from the initial coordinates using the equations for
+a drift. The vertical motion is a quadratic superimposed with a
+octupole. Vertical motion is calculated using a kick-drift-kick model.
+
+\vn{Periodic type} wigglers use a simplified model where the magnetic
+field components are
+\begin{alignat}{1}
+  B_y &= \hphantom{-} B_{\max} \, \cosh(k_s \, y) \, \cos(k_s \, s) \CRNO
+  B_s &= -B_{\max} \, \sinh(k_s \, y) \, \sin(ks \, s) 
+  \label{bbkyks}
+\end{alignat}
+where $B_{\max}$ is the maximum field on the centerline and $k$ is
+given in terms of the pole length (\vn{l_pole}) by
+\Begineq
+  k_s = \frac{\pi}{l_{\mbox{pole}}}
+\Endeq
+This type of wiggler has infinitely wide poles. With
+\vn{bmad_standard} tracking and transfer matrix calculations the
+vertical focusing is assumed small so averaged over a period the
+horizontal motion looks like a drift and the vertical motion is
+modeled as a combination focusing quadrupole and focusing octupole
+giving a kick\cite{b:corbett}
+\Begineq
+  \frac{dp_y}{ds} = k_1 \left( y + \frac{2}{3} \, k_s^2 \, y^3 \right)
+\Endeq
+where
+\begin{alignat}{1}
+  k_1 &= \frac{-1}{2} \, \left( \frac{e \, B_{\max}}{P_0 \, (1 + p_s)} \right)^2 
+\end{alignat}
+with $k_1$ being the linear focusing constant. For radiation
+calculations the true horizontal trajectory with $y = 0$ is needed
+\Begineq
+  x = \frac{\sqrt{2 \, |k_1|}}{k_s^2} \, \cos (k_s \, s)
+\Endeq
+
+With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
+phase $\phi_s$ in \Eqs{bbkyks} is irrelevant. When the tracking
+involves Taylor maps and symplectic integration, the phase is
+important. Here the phase is chosen so that $B_y$ is symmetric about
+the center of the wiggler
+\Begineq
+  \phi_s = \frac{-k_y \, L}{2}
+\Endeq
+With this choice, a particle that enters the wiggler on-axis will
+leave the wiggler on-axis provided there is an even number of poles.
+
+%-----------------------------------------------------
+\subsection{Common Parameters}
+
+Tracking a particle through a wiggler is always done so that
+if the particle starts on-axis with no momentum offsets, there is no
+change in the $z$ coordinate even though the actual trajectory through
+the wiggler does not follow the straight line reference trajectory.
+
+\index{x_ray_line_len}
+both types of wigglers have the following attributes:
+\begin{example}
+  x_ray_line_len = <Real>
+  polarity       = <Real> ! Used to scale the field strength.
+  k1                      ! Vertical focusing strength. Dependent attribute (\sref{s:depend}).
+  rho                     ! Bending radius. Dependent attribute (\sref{s:depend}).
+\end{example}
+\vn{x_ray_line_len} is the length of an associated x-ray synchrotron
+light line measured from the exit end of the element. This is used for
+machine geometry calculations and is irrelevant for lattice
+computations.
