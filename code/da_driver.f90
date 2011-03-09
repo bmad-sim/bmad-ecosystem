@@ -10,6 +10,7 @@
 ! Modules Needed:
 !   use bmad_struct
 !   use bmad_interface
+!   use bmadz_interface
 !
 ! Input:
 !   RING    -- lat_struct: Ring containing the lattice.
@@ -61,7 +62,7 @@
 
 subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                                energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
-                               delta_fRF, fRF)
+                               delta_fRF, fRF, qp_tune1, qp_tune2)
 
 !  use bmad_struct
 !  use bmad_interface
@@ -106,6 +107,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   character date_str*20
   character * 9 particle_type(-1:1)/'electrons',' ','positrons'/
   character*200 file_name
+  character*16 qp_tune1, qp_tune2
 
 !
 
@@ -173,7 +175,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 
   if(Qp_x /= 0. .and. Qp_y /= 0.)then
-    call qp_tune(ring, qp_x, qp_y, ok)
+    call qp_tune(ring, qp_x, qp_y, ok, qp_tune1, qp_tune2)
     if( .not. ok)then
      print *,' DA_DRIVER: Qp_tune failed '
     endif
