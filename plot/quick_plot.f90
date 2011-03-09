@@ -2889,14 +2889,18 @@ yc = yc - 1.1 * height
 do i = 1, n_rows
   yc2 = yc + 0.5 * height
 
-  if (has_line .and. line(i)%width > -1) then
-    call qp_set_line ('STD', line(i))
-    call qp_draw_line (xc, xc + line_len, yc2, yc2, 'INCH/PAGE/LB')
+  if (has_line) then
+    if (line(i)%width > -1) then
+      call qp_set_line ('STD', line(i))
+      call qp_draw_line (xc, xc + line_len, yc2, yc2, 'INCH/PAGE/LB')
+    endif
   endif
 
-  if (has_symbol .and. symbol(i)%type > -1) then
-    call qp_set_symbol (symbol(i))
-    call qp_draw_symbol (xc + line_len/2, yc2, 'INCH/PAGE/LB')
+  if (has_symbol) then 
+    if (symbol(i)%type > -1) then
+      call qp_set_symbol (symbol(i))
+      call qp_draw_symbol (xc + line_len/2, yc2, 'INCH/PAGE/LB')
+    endif
   endif
 
   if (has_text) then
@@ -4244,8 +4248,6 @@ endif
 ! the axis line itself
 
 call qp_set_line_attrib ('AXIS')
-call qp_set_text_attrib ('AXIS_NUMBERS')
-
 call qp_draw_polyline_no_set ((/ 0.0_rp, 1.0_rp /), &
                                 (/y_pos, y_pos /), '%GRAPH')  
 
@@ -4290,11 +4292,9 @@ else
   justify = 'CT'
 endif
 
-!--------------------------------------------------------------------
-! axis ticks and numbers
+! major and minor ticks
 
-
-do i = 0, divisions
+do i = 0, divisions - 1
 
   x1 = i*dx0 + xl0
   y1 = y0 + ax1%number_side * who_sign * ax1%number_offset
@@ -4302,6 +4302,29 @@ do i = 0, divisions
   ! major ticks
   call qp_draw_polyline_no_set ((/x1, x1 /), (/ y0+dy1, y0+dy2 /), 'INCH')
 
+  ! Minor ticks
+
+  if (ax1%type == 'LOG') then
+    do j = 2, 9
+      x11 = (i + log10(real(j))) * dx0 + xl0
+      call qp_draw_polyline_no_set ((/ x11, x11 /), (/ y0+dy11, y0+dy22 /), 'INCH')
+    enddo
+  else
+    do j = 1, m_div - 1
+      x11 = (i + real(j) / m_div) * dx0 + xl0
+      call qp_draw_polyline_no_set ((/ x11, x11 /), (/ y0+dy11, y0+dy22 /), 'INCH')
+    enddo
+  endif
+enddo
+
+! Axis numbers
+
+call qp_set_text_attrib ('AXIS_NUMBERS')
+do i = 0, divisions
+
+  x1 = i*dx0 + xl0
+  y1 = y0 + ax1%number_side * who_sign * ax1%number_offset
+ 
   if (.not. ax2%draw_numbers) cycle
   if (n_draw * (i/n_draw) /= i) cycle
 
@@ -4316,22 +4339,6 @@ do i = 0, divisions
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
   endif
 
-enddo
-
-! minor ticks
-
-do i = 0, divisions - 1
-  if (ax1%type == 'LOG') then
-    do j = 2, 9
-      x11 = (i + log10(real(j))) * dx0 + xl0
-      call qp_draw_polyline_no_set ((/ x11, x11 /), (/ y0+dy11, y0+dy22 /), 'INCH')
-    enddo
-  else
-    do j = 1, m_div - 1
-      x11 = (i + real(j) / m_div) * dx0 + xl0
-      call qp_draw_polyline_no_set ((/ x11, x11 /), (/ y0+dy11, y0+dy22 /), 'INCH')
-    enddo
-  endif
 enddo
 
 !--------------------------------------------------------------------
@@ -4409,8 +4416,6 @@ number_side = ax1%number_side * who_sign
 ! draw axis line itself
 
 call qp_set_line_attrib ('AXIS')
-call qp_set_text_attrib ('AXIS_NUMBERS')
-
 call qp_draw_polyline_no_set ((/x_pos, x_pos/), (/0.0_rp, 1.0_rp/), '%GRAPH')
 
 ! major and minor divisions calc
@@ -4450,12 +4455,9 @@ endif
 
 dy0 = dg / divisions
 
+! Major and minor ticks
 
-! draw axis ticks and numbers
-
-number_len = 0   ! length in inches
-
-do i = 0, divisions
+do i = 0, divisions-1
 
   x1 = x0 + number_side * ax1%number_offset
   y1 = i*dy0 + yl0
@@ -4463,7 +4465,31 @@ do i = 0, divisions
   ! major ticks
   call qp_draw_polyline_no_set ((/ x0+dx1, x0+dx2 /), (/ y1, y1 /), 'INCH')
 
-  ! numbers
+  ! Minor ticks
+
+  if (ax1%type == 'LOG') then
+    do j = 2, 9
+      y11 = (i + log10(real(j))) * dy0 + yl0
+      call qp_draw_polyline_no_set ((/ x0+dx11, x0+dx22 /), (/ y11, y11 /), 'INCH')
+    enddo
+  else
+    do j = 1, m_div - 1
+      y11 = (i + real(j) / m_div) * dy0 + yl0
+      call qp_draw_polyline_no_set ((/ x0+dx11, x0+dx22 /), (/ y11, y11 /), 'INCH')
+    enddo
+  endif
+enddo
+
+! draw axis numbers
+
+call qp_set_text_attrib ('AXIS_NUMBERS')
+
+number_len = 0   ! length in inches
+
+do i = 0, divisions
+
+  x1 = x0 + number_side * ax1%number_offset
+  y1 = i*dy0 + yl0
 
   if (.not. ax2%draw_numbers) cycle
   if (n_draw * (i/n_draw) /= i) cycle
@@ -4488,22 +4514,6 @@ do i = 0, divisions
 
   number_len = max (number_len, qp_text_len(str))
 
-enddo
-
-! minor ticks
-
-do i = 0, divisions-1
-  if (ax1%type == 'LOG') then
-    do j = 2, 9
-      y11 = (i + log10(real(j))) * dy0 + yl0
-      call qp_draw_polyline_no_set ((/ x0+dx11, x0+dx22 /), (/ y11, y11 /), 'INCH')
-    enddo
-  else
-    do j = 1, m_div - 1
-      y11 = (i + real(j) / m_div) * dy0 + yl0
-      call qp_draw_polyline_no_set ((/ x0+dx11, x0+dx22 /), (/ y11, y11 /), 'INCH')
-    enddo
-  endif
 enddo
 
 ! draw label
