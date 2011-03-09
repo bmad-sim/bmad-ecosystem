@@ -185,8 +185,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%slave_status == super_slave$) then
       ixs = ixs + 1
       ele%ixx = ixs
-      write (iu, '(a, i3.3, 2a)') 'slave_drift_', ixs, &
-                                        ': drift, l = ', trim(str(ele%value(l$)))
+      write (iu, '(a, i3.3, 2a)') 'slave_drift_', ixs, ': drift, l = ', trim(str(ele%value(l$)))
       cycle
     endif
 
@@ -835,16 +834,14 @@ endif
 pl = floor(log10(abs(rel)))
 
 if (pl > 5) then
-  fmt = '(2a, i1)'
-  if (pl > 9) fmt = '(2a, i2)'
+  fmt = '(2a, i0)'
   write (str_out, fmt) trim(rchomp(rel/10.0**pl, 0)), 'E', pl
 
 elseif (pl > -3) then
   str_out = rchomp(rel, pl)
 
 else
-  fmt = '(2a, i2)'
-  if (pl < -9)  fmt = '(2a, i3)'
+  fmt = '(2a, i0)'
   write (str_out, fmt) trim(rchomp(rel*10.0**(-pl), 0)), 'E', pl
 
 endif
@@ -1702,3 +1699,4 @@ endif
 end subroutine value_to_line
 
 end module
+

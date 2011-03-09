@@ -141,12 +141,13 @@ end type
 
 type rf_mode_struct
   real(rp) freq
-  real(rp) :: f_damp = 0 ! 1/Q damping factor 
-  real(rp) stored_energy ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  integer m              ! Mode varies as cos(m*phi - phi_0)
-  real(rp) phi_0
-  real(rp) dz            ! Distance between sampled field points.
-  real(rp) sample_radius ! For informational purposes. Not used in calculations.
+  real(rp) :: f_damp = 0    ! 1/Q damping factor 
+  real(rp) :: theta_t0 = 0  ! Mode oscillates as: omega * t - theta_t0
+  real(rp) stored_energy    ! epsilon_0/2 * \int_vol |E|^2 [Joules]
+  integer m                 ! Mode varies as cos(m*phi - phi_0)
+  real(rp) phi_0            ! Azimuthal orientation of mode.
+  real(rp) dz               ! Distance between sampled field points.
+  real(rp) sample_radius    ! For informational purposes. Not used in calculations.
   type (rf_mode_term_struct), allocatable :: term(:) 
 end type
 

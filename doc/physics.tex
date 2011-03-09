@@ -1388,94 +1388,123 @@ distribution where the energy width $dE_{mp}$ is
 \index{rf fields|hyperbf}
 
 The RF fields in an RF cavity can be parameterized as the sum over a
-number of modes. This parameterization essentially follows
-Abell\cite{b:rf.abell}. The electric field is written in the form
+number of modes. This parameterization used by \bmad essentially
+follows Abell\cite{b:rf.abell}. The electric field is written in the
+form
 \Begineq
-  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr)
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \theta_j)}
+  \label{eseei}
 \Endeq
 where $M$ is the number of modes. Each mode satisfies the vector Helmohltz
 equation
 \Begineq
-  \nabla^2 \bfE_j + k_t^2 \, \bfE_j = 0
+  \nabla^2 \bfE_j + k_j^2 \, \bfE_j = 0
+  \label{bke}
 \Endeq
-where $k_t = \omega/c$ with $\omega$ being the mode frequency.
+where $k_j = \omega_j/c$ with $\omega_j$ being the mode frequency.
 
-In cylindrical coordinates, it is
-assumed that for each mode $j$, the field can be written in the form
-\Begineq
-  E_\rho(R, \phi, z) = \wt E_\rho(R, z) \, \cos(m \, \phi - \phi_0)
-  E_\phi(R, \phi, z) = \wt E_\phi(R, z) \, \sin(m \, \phi - \phi_0)
-  E_z(R, \phi, z)    = \wt E_z(R, z)    \, \cos(m \, \phi - \phi_0)
-\Endeq
-where in this, and subsequent equations, the subscript $j$ has been
-dropped.  $\wt E_\rho$, $\wt E_\phi$, $\wt E_z$, $m$, and $\phi_0$ are
-obtained from data of $\bfE_j$ on the surface of a cylinder of radius
-$R$.
+For a given mode, the electric field can be characterized by the values on 
+a cyclindrical surface of some radius $R$. The field will be of the form
+\begin{align}
+  E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, (\phi - \phi_0)) \CRNO
+  E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, (\phi - \phi_0)) \\
+  E_z(R, \phi, z)    &= E_{z c}(R, z)    \, \cos(m \, (\phi - \phi_0)) \nonumber
+\end{align}
+where in this, and subsequent equations, the mode index $j$ has been
+dropped.
 
 The azimuthal mode number $m_j$ is a non-negative integer. If $m_j
 = 0$, there are two different modes, one with $\phi_{0j} = 0$ and
 the other with $\phi_{0j} = -\pi/2$. The $\phi_{0j} = 0$ mode is an
 accelerating mode with the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= -\sum_{n=-N/2+1}^{N/2}\exp{i \, n \, z / dz} \, 
-    e_0(n) \, \frac{i \, k_z(n) \, I_1(\kappa(n) \, \rho)}{\kappa(n)} \CRNO
-  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}\exp{i \, n \, z / dz} \, 
-    e_0(n) \, I_0(\kappa(n) \, \rho) 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, n \, z / dz} \, 
+    e_0(n) \, \frac{i \, k_{zn} \, I_1(\kappa_n \, \rho)}{\kappa_n} \CRNO
+  E_\phi(\bfr) &= 0 \\
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+    e_0(n) \, I_0(\kappa_n \, \rho) \nonumber
 \end{align}
 The $e_0$ coefficients are obtained from the equation
+\begin{align}
+  e_0(n) &= \frac{1}{I_0(\kappa_n \, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
+    e^{-i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
+  &\equiv \frac{\wt E_{zc}(R, n)}{I_0(\kappa_n \, R)} 
+\end{align}
+where $I_m$ is a modified Bessel function and $\kappa_n$ is given by
 \Begineq
-  e_0(n) = \frac{1}{N \, I_0(\kappa(n)) \, R} \sum_{p=0}^{N-1}
-    \exp{i \, n \, p / N} \, \wt E_z(R, p \, dz)
-\Endeq
-where $I_n$ is a modified Bessel function and $\kappa(n)$ is given by
-\Begineq
-  \kappa(n) = \begin{cases}
-    \sqrt{k_z^2(n) - k_t^2} & |k_z(n)| > k_t \\
-    -i \, \sqrt{k_t^2 - k_z^2(n)} & k_t > |k_z(n)|
+  \kappa_n = \sqrt{k_{zn}^2 - k_j^2} = 
+  \begin{cases}
+    \sqrt{k_{zn}^2 - k_j^2} & |k_{zn}| > k_j \\
+    -i \, \sqrt{k_j^2 - k_{zn}^2} & k_j > |k_{zn}|
   \end{cases}
 \Endeq
 with
 \Begineq
-  k_z(n) = \frac{2 \pi \, n}{N \, dz}
-\End
-$N$ is the number of points where $\wt E_z$ is evaluated and $dz$ is
-the distance between points.
+  k_{zn} = \frac{2 \pi \, n}{N \, dz}
+\Endeq
+$N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
+the distance between points. When
 
 The non-accelerating $m = 0$ mode with $\phi_0 = -pi/2$ has an
 electric field in the form
 \begin{align}
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}\exp{i \, n \, z / dz} \, 
-    b_0(n) \, I_1(\kappa(n) \, \rho)
+  E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+    b_0(n) \, I_1(\kappa_n \, \rho)
 \end{align}
 where
 \Begineq
-  b_0(n) = \frac{1}{N \, I_1(\kappa(n)) \, R} \sum_{p=0}^{N-1}
-    \exp{i \, n \, p / N} \, \wt E_\phi(R, p \, dz)
+  b_0(n) = \frac{\wt E_{\phi s}(R, n)}{I_1(\kappa_n \, R)} 
 \Endeq
 
 For positive $m$, the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}\exp{i \, n \, z / dz} \, 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
     \left[ 
-    -e_m(n) \, \frac{i \, k_z(n) \, I_1(\kappa(n) \, \rho)}{\kappa(n)} +
-    b_m(n) \, \frac{I_m(\kappa(n))}{\kappa(n) \, \rho}
+    -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} +
+    b_m(n) \, \frac{I_m(\kappa_n \, \rho)}{\kappa_n \, \rho}
     \right]
-    \cos(m \, \phi - \phi_0) \CRNO
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}\exp{i \, n \, z / dz} \, 
+    \cos(m \, (\phi - \phi_0)) \CRNO
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
     \left[
-    -e_m(n) \, \frac{i \, k_z(n) \, I_{m+1}(\kappa(n) \, rho)}{\kappa(n)} + 
-    b_m(n) \, \left( \frac{I_m(\kappa(n) \, \rho}{\kappa(n) \, \rho} - 
-    \frac{1}{m} \, I_{m-1}(\kappa(n) \, \rho)
+    -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} \, + \right. \\
+  & \left. \qquad \qquad \qquad \qquad \qquad \qquad
+    b_m(n) \, \left( \frac{I_m(\kappa_n \, \rho)}{\kappa_n \, \rho} - 
+    \frac{1}{m} \, I_{m-1}(\kappa_n \, \rho) \right)
     \right] 
-    b_0(n) \, I_1(\kappa(n) \, \rho) \sin(m \, \phi - \phi_0) \\
-  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}\exp{i \, n \, z / dz} \, 
-    e_m(n) \, I_m(\kappa(n) \, \rho) \cos(m \, \phi - \phi_0) \nonumber
+    \sin(m \, (\phi - \phi_0)) \CRNO
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+    e_m(n) \, I_m(\kappa_n \, \rho) \cos(m \, (\phi - \phi_0)) \nonumber
 \end{align}
 with
+\begin{align}
+  e_m(n) &= \frac{\wt E_{zc}(R, n)}{I_m(\kappa_n \, R)} \CRNO
+  b_m(n) &= \frac{1}{I_m(\kappa_n \, R)} \left[
+    \kappa_n \, R \, \wt E_{\rho c} + i \, k \, R \, e_m(n) \, I_{m+1}(\kappa_n \, R)
+    \right]
+\end{align}
+
+The above mode decomposition was done in the gauge where the scaler
+potential $\psi$ is zero. The electric and magnetic fields are thus
+related to the vector potential $\bfA$ via
 \Begineq
-  e_m(n) = \frac{1}{N \, I_m(\kappa(n)) \, R} \sum_{p=0}^{N-1}
-    \exp{i \, n \, p / N} \, \wt E_z(R, p \, dz)
+  \bfE = -\partial_t \, \bfA, \qquad \bfB = \nabla \times \bfA
 \Endeq
+Using \Eq{eseei}, the vector potential can be obtained from the
+electric field via
+\Begineq
+  \bfA_j = \frac{-i \, \bfE_j}{\omega_j}
+\Endeq
+Once the vector potential has been calculated, the magnetic field can
+easily be evaluated. The differential of $I_m$ is needed which is
+\begin{align}
+  \frac{d}{d\rho} I_m(\kappa \, \rho) = \begin{cases}
+    \kappa \, I_1(\kappa \, \rho)  & m = 0 \\
+    \kappa \, I_{m-1}(\kappa \, \rho) - \frac{m}{\rho} \, I_m(\kappa \, \rho)
+  \end{cases}
+\end{align}
+ 
+Symplectic tracking through the RF field is discussed in Section~\sref{s:symp.track}.
 
 %-----------------------------------------------------------------
 \section{Wake fields}
