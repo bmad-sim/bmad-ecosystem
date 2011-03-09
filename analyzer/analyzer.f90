@@ -1341,7 +1341,8 @@ program anaylzer
   ring%param%aperture_limit_on = .true.
 
   orbit(ix_start)%vec = traj%vec
-  open(unit = 51, file = 'phase_space.dat')
+  open(unit = 51, file = 'phase_space_cesr_bpm.dat')
+  open(unit = 52, file = 'phase_space_start.dat')
    write(51,'(a6,a12,6a12)')' turn ','  Element   ','     x      ','     xp     ','     y      ','    yp      ', &
                                                                                   '   delta l  ','  delta E/E '
   call string_trim(ring%ele(ix_end)%name, end_name, ix)
@@ -1392,7 +1393,9 @@ program anaylzer
 
   end do
    close(unit=51)
-   print *,' Write phase space data to: phase_space.dat'
+   close(unit=52)
+   print *,' Write phase space data at cesr BPMs to: phase_space_cesr_bpm.dat'
+   print *,' Write phase space data at cesr BPMs to: phase_space_start.dat'
   number_turns = i-1
   print *,' Number of turns = ', number_turns
   traj%vec = orbit(0)%vec

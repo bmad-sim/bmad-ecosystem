@@ -46,7 +46,7 @@ program dynamic_aperture_test
 interface
  subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                                energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
-                               delta_fRF, fRF)
+                               delta_fRF, fRF, qp_tune1, qp_tune2)
 
 !  use bmad_struct
 !  use bmad_interface
@@ -70,6 +70,7 @@ interface
 
 
   character*60 in_file
+  character*16 qp_tune1, qp_tune2
 
  end subroutine da_driver
 end interface
@@ -105,6 +106,7 @@ end interface
   character*60 da_file, in_file
   character*100 lat_file
   character date_str*20
+  character*16 qp_tune1, qp_tune2 ! elements for changing chromaticity (like RAW_XQUNEING_1 and 2)
 
   logical ok
   logical rec_taylor
@@ -114,7 +116,7 @@ end interface
                      x_init, y_init, e_max, energy, accuracy, &
                      aperture_multiplier, Qx, Qy, Qz, particle, &
                      i_train, j_car, n_trains_tot, n_cars, current, lat_file, &
-                     Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF
+                     Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF, qp_tune1, qp_tune2
 
 ! init
 
@@ -145,12 +147,17 @@ end interface
   particle = positron$
   rec_taylor = .true.
   fRF = 5.e8
+  qp_tune1 = 'RAW_XQUNEING_1'
+  qp_tune2 = 'RAW_XQUNEING_2'
+
+
   read (1, nml = input)
   track_input%n_turn = n_turn
   track_input%x_init = x_init
   track_input%y_init = y_init
   track_input%accuracy = accuracy
   ap_mult = aperture_multiplier
+
   close (unit = 1)
 
   call bmad_and_xsif_parser (lat_file, ring)
@@ -243,7 +250,7 @@ end interface
 
   call da_driver (ring, track_input,n_xy_pts, &
                         point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz,particle, Qp_x, Qp_y, &
-                        delta_fRF, fRF)
+                        delta_fRF, fRF, qp_tune1, qp_tune2)
 
   deallocate(dk1)
 
