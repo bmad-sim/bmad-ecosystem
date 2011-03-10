@@ -223,9 +223,19 @@ Case (wiggler$)
 !----------------------------------------------------------------------------
 ! bend_sol_quad
 
-case (bend_sol_quad$, solenoid$, quadrupole$)
+case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
-  if (ele%key == bend_sol_quad$) then
+  g_x = 0
+  g_y = 0
+  x_q = 0
+  y_q = 0
+  dks_ds = 0
+  k1_norm = 0
+  k1_skew = 0
+  ks = 0
+
+  select case (ele%key)
+  case (bend_sol_quad$)
     g_x = ele%value(g$) * cos (ele%value(bend_tilt$))
     g_y = ele%value(g$) * sin (ele%value(bend_tilt$))
     k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$))
@@ -234,25 +244,14 @@ case (bend_sol_quad$, solenoid$, quadrupole$)
     y_q = ele%value(y_quad$)
     ks = ele%value(ks$)
     dks_ds = ele%value(dks_ds$)
-  elseif (ele%key == solenoid$) then
-    g_x = 0
-    g_y = 0
-    k1_norm = 0
-    k1_skew = 0
-    x_q = 0
-    y_q = 0
+  case (solenoid$)
     ks = ele%value(ks$)
-    dks_ds = 0
-  elseif (ele%key == quadrupole$) then
-    g_x = 0
-    g_y = 0
+  case (quadrupole$)
     k1_norm = ele%value(k1$) 
-    k1_skew = 0
-    x_q = 0
-    y_q = 0
-    ks = 0
-    dks_ds = 0
-  endif
+  case (sol_quad$)
+    k1_norm = ele%value(k1$) 
+    ks = ele%value(ks$)
+  end select
 
 ! loop over all steps
 

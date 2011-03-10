@@ -2091,6 +2091,7 @@ assuming a periodic field (``periodic type'').
 
 %-----------------------------------------------------
 \subsection{Map\_Type Wigglers}
+\label{s:wiggler.map}
 
 The \vn{map type} wigglers are modeled using the method of Sagan,
 Crittenden, and Rubin\cite{b:wiggler}. In this model the magnetic
@@ -2134,7 +2135,7 @@ Attributes specific to a \vn{map type} \vn{wiggler} element are:
 \end{example}
 
 A \vn{<Wig_Term>} is of the form $C, k_x, k_y, k_z, \phi_z$ as
-explained in \sref{s:wiggler.map.std}. \vn{polarity} is used to scale the
+explained in above. \vn{polarity} is used to scale the
 magnetic field. By default, \vn{polarity} has a value of 1.0. 
 Example:
 \begin{example}
@@ -2154,6 +2155,7 @@ There is no \vn{bmad_standard} tracking for a \vn{map_type}
 
 %-----------------------------------------------------
 \subsection{Periodic\_Type Wiggler Element Tracking}
+\label{s:wiggler.periodic}
 
 For the \vn{periodic type} wigglers the attributes are: 
 \index{b_max}\index{n_pole}
@@ -2226,7 +2228,7 @@ With this choice, a particle that enters the wiggler on-axis will
 leave the wiggler on-axis provided there is an even number of poles.
 
 %-----------------------------------------------------
-\subsection{Common Parameters}
+\subsection{Common Wiggler Parameters}
 
 Tracking a particle through a wiggler is always done so that
 if the particle starts on-axis with no momentum offsets, there is no

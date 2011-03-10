@@ -1494,13 +1494,14 @@ Using \Eq{eseei}, the vector potential can be obtained from the
 electric field via
 \Begineq
   \bfA_j = \frac{-i \, \bfE_j}{\omega_j}
+  \label{aiew}
 \Endeq
 Once the vector potential has been calculated, the magnetic field can
 easily be evaluated. The differential of $I_m$ is needed which is
 \begin{align}
   \frac{d}{d\rho} I_m(\kappa \, \rho) = \begin{cases}
     \kappa \, I_1(\kappa \, \rho)  & m = 0 \\
-    \kappa \, I_{m-1}(\kappa \, \rho) - \frac{m}{\rho} \, I_m(\kappa \, \rho)
+    \kappa \, I_{m-1}(\kappa \, \rho) - \frac{m}{\rho} \, I_m(\kappa \, \rho) & m > 0
   \end{cases}
 \end{align}
  
@@ -1910,7 +1911,9 @@ Where $\gamma_f$ is the final gamma.
 \section{Spin Dynamics}   
 \label{s:spin.dyn}   
 \index{spin|hyperbf}   
-    
+
+\textit{\large [Spin dynamics developed by Jeff Smith]}
+
 The classical spin vector $\Bf S$ is described in the   
 local referece frame (\sref{s:ref}) by a
 modified Thomas-Bargmann-Michel-Telegdi (T-BMT) equation\cite{b:spin}

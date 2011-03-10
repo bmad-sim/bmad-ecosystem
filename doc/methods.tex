@@ -57,16 +57,16 @@ a fixed step size.
 Second order Boris integration\cite{b:boris} with adaptive step size control.
 This should be nearly symplectic but slow.
 
-\index{boris}
-\item[\vn{Boris!tracking method}]
+\index{boris!tracking method}
+\item[\vn{Boris}]
 Second order Boris Integration\cite{b:boris}. Like \vn{Runge_Kutta},
 \vn{Boris} does tracking by integrating the equation of
 motion. \vn{Boris} handles both electric and magnetic fields and does
 not assume that the particle is ultra--relativistic. \vn{Boris} preserves
 conserved quantities more accurately than \vn{Runge_Kutta}.
 
-\index{bmad_standard}
-\item[\vn{Bmad_Standard!tracking method}]
+\index{bmad_standard!tracking method}
+\item[\vn{Bmad_Standard}]
 Uses formulas for tracking. The emphasis here is on speed. Note: If an
 element has non-zero multipole values, \vn{Bmad_Standard} tracking
 will generally put half the multipole kick at the beginning of the
@@ -75,8 +75,8 @@ but in it can result in differences between this and tracking methods
 like \vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
 throughout an element.
 
-\index{custom}
-\item[\vn{Custom!tracking method}]
+\index{custom!tracking method}
+\item[\vn{Custom}]
 This method will call a routine \vn{track1_custom} which must be
 supplied by the programmer implementing the custom tracking. The
 default \vn{track1_custom} supplied with the \bmad release will print
@@ -93,28 +93,27 @@ matrix was generated this may or may not be symplectic.
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map.
 
-\index{none}
-\item[\vn{None!tracking method}]
+\index{none!tracking method}
+\item[\vn{None}]
 This prevents the transfer matrix from being recomputed.
 Using \vn{None} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
 Typically \vn{None} is used internally in a program to prevent recomputation.
 
-\index{runge_kutta}
-\item[\vn{runge_kutta!tracking method}]
+\index{runge_kutta!tracking method}
+\item[\vn{runge_kutta}]
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
 accurate. This method is non-symplectic.
 
-\index{symp_lie_Bmad}
-\item[\vn{Symp_Lie_Bmad!tracking method}]
+\index{symp_lie_Bmad!tracking method}
+\item[\vn{Symp_Lie_Bmad}]
 Symplectic tracking using a Hamiltonian with Lie operation techniques.
 This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad routine. By bypassing some of the generality inherent in PTC's routines
+\bmad routine. By bypassing some of the generality inherent in PTC
 \vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
-\vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
-currently only implemented for Wigglers.
+\vn{Symp_Lie_PTC}.
 
 \index{symp_lie_ptc!tracking method}
 \item[\vn{Symp_Lie_PTC}]
@@ -193,19 +192,19 @@ and \vn{patch} elements are limited to first order.
   \vn{multipole}               &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{octupole}                & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
   \vn{patch}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
-  \vn{quadrupole}              & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\ 
+  \vn{quadrupole}              & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
   \vn{rbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X   \\ 
   \vn{rcollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
   \vn{rfcavity}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
   \vn{sbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X   \\ 
   \vn{sextupole}               & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\ 
-  \vn{solenoid}                & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\ 
-  \vn{sol_quad}                & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\ 
+  \vn{solenoid}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
+  \vn{sol_quad}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
   \vn{taylor}                  &   & D &   & X & X &   &     &     &     &     &      \\ 
   \vn{vkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
   \vn{wiggler} (map type)      & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  X   \\ 
   \vn{wiggler} (periodic type) &   & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$ \\ \bottomrule
-   \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic.std} for more details} \\
+   \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 
 \caption[Table of available {\bf tracking_method}\ switches for a
@@ -277,12 +276,12 @@ Typically \vn{None} is used internally in a program to prevent recomputation.
 
 \index{symp_lie_bmad!transfer map method}
 \item[\vn{Symp_Lie_Bmad}]
-A Symplectic calculation using a Hamiltonian with Lie operator techniques.
-This is similar to \vn{Symp_Lie_PTC} (see below) except this uses a
-\bmad routine. By bypassing some of the generality inherent in PTC's routines
-\vn{Symp_Lie_Bmad} achieves about a factor of 10 improvement in speed over
-\vn{Symp_Lie_PTC}. However, \vn{Symp_Lie_Bmad} is
-currently only implemented for Wigglers.
+A Symplectic calculation using a Hamiltonian with Lie operator
+techniques.  This is similar to \vn{Symp_Lie_PTC} (see below) except
+this uses a \bmad routine. By bypassing some of the generality
+inherent in PTC, \vn{Symp_Lie_Bmad} achieves about a factor
+of 10 improvement in speed over \vn{Symp_Lie_PTC}. However,
+\vn{Symp_Lie_Bmad} cannot generate maps above first order.
 
 \index{symp_lie_ptc!transfer map method}
 \item[\vn{Symp_Lie_PTC}]
@@ -348,7 +347,7 @@ is that it is directly related to any tracking results.
   \vn{hkicker}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{instrument}              & D & X &   & X &     &  X  &  X  & X \\  
   \vn{kicker}                  & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{lcavity}                 & D & X &   & X &     &  X  &     & X \\  
+  \vn{lcavity}                 & D & X &   & X &  X  &  X  &     & X \\  
   \vn{marker}                  & D & X &   & X &     &  X  &  X  & X \\  
   \vn{match}                   & D & X &   & X &     &     &     &   \\  
   \vn{mirror}                  &   & D &   &   &     &     &     &   \\  
@@ -356,19 +355,19 @@ is that it is directly related to any tracking results.
   \vn{multipole}               & D & X &   & X &     &  X  &  X  &   \\  
   \vn{octupole}                & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{patch}                   & D & X &   & X &     &     &     &   \\ 
-  \vn{quadrupole}              & D & X & X & X &     &  X  &  X  & X \\ 
+  \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  & X \\ 
   \vn{rbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{rcollimator}             & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{rfcavity}                & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{sbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{sextupole}               & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{solenoid}                & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{sol_quad}                & D & X & X & X &     &  X  &  X  & X \\ 
+  \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{sol_quad}                & D & X & X & X &  X  &  X  &  X  & X \\ 
   \vn{taylor}                  & D & X &   & X &     &     &     &   \\ 
   \vn{vkicker}                 & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{wiggler} (map type)      & D & X &   & X &  X  &  X  &  X  & X \\ 
   \vn{wiggler} (periodic type) & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ \bottomrule
-  \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic.std} for more details} \\
+  \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 }
 
