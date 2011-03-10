@@ -1,11 +1,13 @@
-\chapter{Bmad\_Standard Transfer Map Calculations}
+\chapter[Tracking and Transfer Map Calculations]
+{Bmad\_Standard and Symp\_Lie\_Bmad Tracking and Transfer Map Calculations}
 \label{c:bmad.std}
 
 For tracking and transfer map calculations (here generically called
 ``tracking''), \bmad has various methods that can be applied to a
 given element (\sref{c:methods}). This chapter discusses the
 \vn{bmad_standard} calculation that is the default for almost all
-element types.
+element types and the \vn{symp_lie_bmad} calculation that does
+symplectic integration.
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
@@ -147,7 +149,8 @@ Track as in a drift a distance \vn{-s_offset_tot}.
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
-\section[Mirror and Crystal Elements]{Transformation for Mirror and Crystal Elements Between 
+\section[Mirror and Crystal Element Transformation]
+{Transformation for Mirror and Crystal Elements Between 
 Laboratory and Element Coordinates}
 \label{s:photon-lab-ele}
 
@@ -668,6 +671,7 @@ potential up to second order is (cf.~\Eq{byx0b})
 \Begineq
   a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
   \frac{1}{2} k_1 \left( x^2 - y^2 \right)
+  \label{akxgx}
 \Endeq
 
 %---------------------------------------------------------------------------------
@@ -682,7 +686,7 @@ Using \Eq{hpapa} the Hamiltonian is written in the form
 \Endeq
 where
 \begin{equation}
-  H_x = \frac{(p_x - a_x^2}{2 (1 + \delta)}, \qquad
+  H_x = \frac{(p_x - a_x)^2}{2 (1 + \delta)}, \qquad
   H_y = \frac{(p_y - a_y)^2}{2 (1 + \delta)}, \qquad
   H_s = - a_s \nonumber
 \end{equation}
@@ -715,18 +719,22 @@ For $I_{x/2}$ this is
 \end{align}
 With an analogus expression for $I_{y/2}$.
 
-For a map type wiggler (\sref{s:wiggler})
-
-Given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
-\eq{f3}, the integrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
-
-And the vector potential $\bfA$ is obtained from $\bfB$ via
+\index{quadrupole}\index{sextupole}\index{wiggler}
+For magnetic elements that do not have longitudianl fields
+(quadrupoles, sextupoles, etc.), $a_x$ and $a_y$ can be taken to be
+zero (cf.~\Eq{akxgx}). For wigglers (\sref{s:wiggler}), \bmad computes $\Bf A$ using
 \begin{align}
   A_x(x,y,s) &= 0 \CRNO
   A_y(x,y,s) &=  \int_0^x d\wt x \, B_z(\wt x, y, s) 
   \label{a0a0a0} \\
-  A_s(x,y,s) &= -\int_0^x d\wt x \, B_y(\wt x, y, s) \nonumber
+  A_s(x,y,s) &= -\int_0^y d\wt x \, B_y(\wt x, y, s) \nonumber
 \end{align}
+given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
+\eq{f3}, the integrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
+
+\index{lcavity}\index{rfcavity}
+For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed from
+\Eq{aiew}.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
