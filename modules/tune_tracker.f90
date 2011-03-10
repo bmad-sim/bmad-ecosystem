@@ -231,11 +231,11 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
     tt_state(id)%Dphi = AB*tt_param(id)%LPalpha + (1.0_rp-tt_param(id)%LPalpha)*tt_state(id)%Dphi
 
     ! Calculate Integral Channel
-    tt_state(id)%intDphi = tt_state(id)%intDphi + \
+    tt_state(id)%intDphi = tt_state(id)%intDphi + &
                            tt_param(id)%Ki*tt_state(id)%Dphi*tt_param(id)%fastPeriod
 
     ! Update modulator angle
-    tt_state(id)%psi = tt_state(id)%psi + \
+    tt_state(id)%psi = tt_state(id)%psi + &
                        (tt_param(id)%modw0 + tt_state(id)%deltaw)*tt_param(id)%fastPeriod
     tt_state(id)%psi = MOD(tt_state(id)%psi,2.0_rp*pi)
 
