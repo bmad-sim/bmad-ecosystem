@@ -606,6 +606,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (ios == 0) then
     u%beam_info%beam_init = beam_init
     u%beam_info%init_beam0 = .true.  ! Force reinit
+    u%model%lat%beam_start%vec = u%beam_info%beam_init%center
     u%lattice_recalc = .true.
   else
     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')

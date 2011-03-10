@@ -136,8 +136,8 @@ Suppresses the opening of the plot window.
   \item[\vn{-plot <plot_file>}] \Newline
 Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
-  \item[\vn{-startup <starup_command_file>}]
-Overrides the \vn{starup_file} (\sref{s:init.global}) specified in the
+  \item[\vn{-startup <startup_command_file>}]
+Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
   \item[\vn{-var <var_file>}] \Newline
 Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
@@ -737,6 +737,12 @@ particles will be scaled by a factor to make the bunch charge equal
 to \vn{<bunch_charge>}. Additionally, if \vn{beam_init%bunch_charge}
 is set in the \tao input file, this will override the setting of
 \vn{bunch_charge} in the beam file.
+
+\index{change}\index{beam_start}\index{beam_init}
+When the particle coordinates are read in from the \vn{beam0_file},
+the centroid will be shifted by the setting of \vn{beam_init%center}.
+To vary the centroid of the beam on the \tao command line, the \vn{set
+beam_init%center} command (\sref{s:set}) can be used.
 
 The \vn{beam_all_file} component specifies a beam data file (which can
 be created with the \vn{write beam} command) which contains the
