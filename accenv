@@ -91,10 +91,10 @@ setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
 #
 #-- LATTICE and configuration files --
 #
-setenv CESR_LAT     $CESR_CONFIG/cesr
-setenv CTA_LAT      $CESR_CONFIG/cta
-setenv ERL_LAT      $CESR_CONFIG/erl
-setenv ILC_LAT      $CESR_CONFIG/ilc
+setenv CESR_LAT     $CESR_CONFIG/lattice/cesr
+setenv CTA_LAT      $CESR_CONFIG/lattice/cta
+setenv ERL_LAT      $CESR_CONFIG/lattice/erl
+setenv ILC_LAT      $CESR_CONFIG/lattice/ilc
 
 setenv BMAD_LAT     $CESR_LAT/bmad
 
