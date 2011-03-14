@@ -21,7 +21,8 @@
 !
 ! init_dTT is the constructor and is passed the tune tracker parameters in tt_param_struct
 ! The contents of tt_param_struct are below
-! cesr_dTT is passed one BPM measurement per call.  It returns the kick amplitude (normalized to one) to be used on the next turn.
+! cesr_dTT is passed one BPM measurement per call.  
+! It returns the kick amplitude (normalized to one) to be used on the next turn.
 ! dest_dTT is the destructor.  It is passed the id of the tune tracker to destroy.
 !-
 MODULE tune_tracker_mod
@@ -36,12 +37,12 @@ INTEGER, PARAMETER :: max_tt = 3 !number of tune trackers to allocate memory for
 
 ! Structure to hold parameters of tune tracker.
 TYPE tt_param_struct
+  LOGICAL :: useSaveState = .false. ! If true then save TT state vars to file on exit, 
+                                    ! and load TT state vars on initialization.
   REAL(rp) phi_to_kicker  ! phase advance from x phase at bpm to xdot phase at kicker
   REAL(rp) Dt             ! time between data points (usually set to ring period)
   REAL(rp) fastPeriod     ! period of PLL electronics.  e.g. 14 ns for CESR 
   REAL(rp) LPalpha        ! low-pass filter constant
-  REAL(rp) alpha          ! Twiss alpha.  Needed by elliptical_oscillator
-  REAL(rp) beta           ! Twiss alpha.  Needed by elliptical_oscillator
   REAL(rp) Ki             ! Integrator gain
   REAL(rp) Kp             ! Proportional gain
   REAL(rp) Kvco           ! Redundant, because total gain looks like Kvco*(Ki*x + Kp*y)
@@ -64,7 +65,7 @@ TYPE tt_param_struct
   REAL(rp) LPinertia      ! inertial of lowpass filter that follows mixer
   REAL(rp) kickAmplitude  ! amplitude of kicks
   CHARACTER orientation   ! 'h', 'v', or 'l'
-  INTEGER Onum            ! 1 for horiz, 3 for vert, 5 for longitudinal
+  INTEGER Onum            ! Element of coord_struct used by bpm.  1 for horiz, 3 for vert, 5 for longitudinal
 END TYPE tt_param_struct
 
 ! Structures to hold the state variables of the tune tracker.
@@ -72,8 +73,10 @@ TYPE tt_state_struct
   REAL(rp) deltaw               ! w_vco = w0 + deltaw
   REAL(rp) intDphi              ! integrated Dphi
   REAL(rp) bpm_msmt_last        ! stashes previous bpm measurement
-  REAL(rp) t                    ! time
-  REAL(rp) psi                  ! modulator angle
+  REAL(rp) t_fast               ! keeps track of current time of fast electronics iteration
+  REAL(rp) t_cesr               ! keeps track of current time of storage ring
+  REAL(rp) psi_fast             ! keeps track of angle used by fast electronics
+  REAL(rp) psi_cesr             ! keeps track of angle used by kicker
   REAL(rp) Dphi                 ! Delta Phi - angle that comes out of filters mixer signal
   REAL(rp) gain                 ! bpm gain
 END TYPE tt_state_struct
@@ -88,21 +91,28 @@ PUBLIC cesr_dTT
 PUBLIC dest_dTT
 PUBLIC get_dTT
 PRIVATE modulator
-PRIVATE elliptical_modulator
+!PRIVATE elliptical_modulator
 
 CONTAINS
 
 !+
 ! Function id = init_dTT(incoming_tt_param)
-! 
+!
 ! Constructor for cesr_dTT module.  This function creates a new instance of the tune tracker by assigning
 ! an id and copying the tune tracker parameters to the module saved data.  It also initializes the tune tracker's
 ! state variables.
-! 
+!
 ! This function opens one log file "tt_log_<id>.out", which needs to be closed by calling the destructor.
+!
+! IMPORTANT: This module obtains Twiss parameters from the mode3 struct.  Make sure mode3 has been populated
+!            prior to calling this routine.  One way to do this is to use:
+!                 CALL twiss3_at_start(ring,error)
+!                 CALL twiss3_propagate_all(ring)
+!            instead of the usual twiss_at_start and twiss_propagate_all.
 !
 ! Modules needed:
 !   use tune_tracker_mod
+!   use mode3_mod
 !
 ! Input:
 !   incoming_tt_param    -- TYPE(tt_param_struct): Tune tracker parameters.  See structure definition for details.
@@ -110,11 +120,15 @@ CONTAINS
 ! Output:
 !   <return value>       -- INTEGER: id of the tune tracker instance created.
 !-
-FUNCTION init_dTT(incoming_tt_param) RESULT(id)
+FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   TYPE(tt_param_struct) :: incoming_tt_param
+  TYPE(coord_struct), OPTIONAL :: saved_coords
   INTEGER id
+  INTEGER ios
   CHARACTER id_str
   CHARACTER(12) tt_log_name
+  CHARACTER(10) state_name
+  LOGICAL state_read
 
   tt_ids = tt_ids + 1
   IF(tt_ids .gt. max_tt) THEN
@@ -125,17 +139,44 @@ FUNCTION init_dTT(incoming_tt_param) RESULT(id)
 
   tt_param(id) = incoming_tt_param
 
+  WRITE(id_str,'(I1)') id
+
   ! Initialize state variables
-  tt_state(id)%deltaw = 0.0
-  tt_state(id)%intDphi = 0.0
-  tt_state(id)%bpm_msmt_last = 0.0
-  tt_state(id)%gain = 0.001
-  tt_state(id)%psi = 0.0
+  state_read = .false.
+  IF(tt_param(id)%useSaveState) THEN
+    IF(PRESENT(saved_coords)) THEN
+      state_name = "tt_state."//id_str
+      OPEN(UNIT=9999,FILE=state_name,STATUS='OLD',ACTION='READ',IOSTAT=ios)
+      IF(ios == 0) THEN
+        READ(9999,*) saved_coords, tt_state(id)
+        state_read = .true.
+        CLOSE(9999)
+        WRITE(*,'(A,I2,A)') "NOTICE: Save state found for TT #", id, ":"
+        WRITE(*,'(A,F10.7)') "        VCO frequency set to ", (tt_state(id)%deltaw+tt_param(id)%modw0)* &
+                                                    tt_param(id)%Dt / 2.0_rp / pi
+      ELSE
+        WRITE(*,*) "NOTICE: Tune tracker warning for TT #", id, ":"
+        WRITE(*,*) "        Unable to open file: ", state_name
+        WRITE(*,*) "        Setting initial TT state variables to defaults."
+        WRITE(*,*) "        Leaving initial coordinates unchanged."
+      ENDIF
+    ENDIF
+  ENDIF
+  IF(.not. state_read) THEN
+    tt_state(id)%deltaw = 0.0_rp
+    tt_state(id)%intDphi = 0.0_rp
+    tt_state(id)%bpm_msmt_last = 0.0_rp
+    tt_state(id)%t_fast = 0.0_rp
+    tt_state(id)%t_cesr = 0.0_rp
+    tt_state(id)%psi_fast = 0.0_rp
+    tt_state(id)%psi_cesr = 0.0_rp
+    tt_state(id)%Dphi = 0.0_rp
+    tt_state(id)%gain = 0.001_rp
+  ENDIF
 
   !calculate lp filter parameter
-  tt_param(id)%LPalpha = 1.0_rp / ( 1.0_rp + (tt_param(id)%LPinertia/2.0/pi) )
+  tt_param(id)%LPalpha = 1.0_rp / ( 1.0_rp + (tt_param(id)%LPinertia/2.0_rp/pi) )
 
-  WRITE(id_str,'(I1)') id
   tt_log_name = "tt_log_"//id_str//".out"
   OPEN(UNIT=500+id,NAME=tt_log_name,STATUS='REPLACE')
 
@@ -157,21 +198,33 @@ END FUNCTION init_dTT
 ! Output:
 !   none
 !-
-SUBROUTINE dest_dTT(id)
+SUBROUTINE dest_dTT(id,coords)
   INTEGER, INTENT(IN) :: id
+  CHARACTER id_str
+  CHARACTER(10) state_name
+  TYPE(coord_struct), OPTIONAL :: coords
+
+  IF(tt_param(id)%useSaveState) THEN
+    IF(PRESENT(coords)) THEN
+      WRITE(id_str,'(I1)') id
+      state_name = "tt_state."//id_str
+      OPEN(UNIT=9999,FILE=state_name,STATUS='REPLACE',ACTION='WRITE')
+      WRITE(9999,*) coords, tt_state(id)
+      CLOSE(9999)
+    ENDIF
+  ENDIF
 
   IF(tt_param(id)%use_D_chan) THEN
     CLOSE(500+id)
   ENDIF
-
 END SUBROUTINE dest_dTT
 
 !+
 ! Function z = cesr_dTT(bpm_msmt,id)
 !
 ! Main function of the tune tracker module.  This funcion is given one new data point each turn,
-! and it returns the phase of the kicker to be used on the next turn.  The incoming data is mixed with 
-! the modulator signal and passed to a low-pass filter which returns the phase difference between the 
+! and it returns the phase of the kicker to be used on the next turn.  The incoming data is mixed with
+! the modulator signal and passed to a low-pass filter which returns the phase difference between the
 ! bpm data and the modulator.  The phase difference is passed to a PID controller which adjusts the VCO frequency.
 !
 ! This function returns the phi of the VCO plus an offset set during initialization.  The offset is the phase
@@ -189,35 +242,39 @@ END SUBROUTINE dest_dTT
 FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
   IMPLICIT NONE
 
-  REAL(rp), PARAMETER :: ga = 0.05     !bpm gain time constant
+  REAL(rp), PARAMETER :: ga = 0.05_rp     !bpm gain time constant
 
   REAL(rp) :: bpm_msmt [VALUE]
   INTEGER, INTENT(IN) :: id
   REAL(rp) :: z
 
-  REAL(rp) t0  ! set to time at beginning of current cycle
   REAL(rp) AB  ! mixed signal
   REAL(rp) sinout, sqrout  ! modulator output
   REAL(rp) proDphi  !proportional to Dphi
   REAL(rp) dirDphi  !first derivative of Dphi
-  REAL(rp) PIout ! P + I
+  REAL(rp) PIDout ! P + I + D
   REAL(rp) bpm
+  REAL(rp) aNloops
 
   ! Adjust bpm data for closed orbit offset and apply gain
   bpm_msmt = bpm_msmt - tt_param(id)%offset
   ! Gain adjusted to keep bpm average at unity.
-  tt_state(id)%gain = ga*ABS(bpm_msmt) + (1.0-ga)*tt_state(id)%gain
+  tt_state(id)%gain = ga*ABS(bpm_msmt) + (1.0_rp-ga)*tt_state(id)%gain
   bpm_msmt = bpm_msmt/tt_state(id)%gain
 
-  t0=tt_state(id)%t
-  !This loop represents the tune tracker fast elecronics (typically 183 per cesr period).
-  DO WHILE(tt_state(id)%t < t0+tt_param(id)%Dt)
-    IF( tt_state(id)%t < t0+tt_param(id)%Dt/2.0 ) THEN
+  aNloops = tt_param(id)%Dt/tt_param(id)%fastPeriod !approximate number of fast loops per turn
+                                                    !used to normalize integrator gain
+
+  tt_state(id)%t_cesr = tt_state(id)%t_cesr + tt_param(id)%Dt
+
+  !This loop represents the tune tracker fast elecronics (typically 14ns)
+  DO WHILE((tt_state(id)%t_fast+tt_param(id)%fastPeriod) < tt_state(id)%t_cesr)
+    IF( tt_state(id)%t_fast < (tt_state(id)%t_cesr-tt_param(id)%Dt/2.0_rp) ) THEN
       bpm = tt_state(id)%bpm_msmt_last
     ELSE
       bpm = bpm_msmt
     ENDIF
-    CALL modulator(tt_state(id)%psi,sinout,sqrout)
+    CALL modulator(tt_state(id)%psi_fast,sinout,sqrout)
 
     ! Phase Detector: mixer followed by low-pass filter
     IF( tt_param(id)%mixmode == 'sqr' ) THEN
@@ -231,32 +288,38 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
     tt_state(id)%Dphi = AB*tt_param(id)%LPalpha + (1.0_rp-tt_param(id)%LPalpha)*tt_state(id)%Dphi
 
     ! Calculate Integral Channel
-    tt_state(id)%intDphi = tt_state(id)%intDphi + &
-                           tt_param(id)%Ki*tt_state(id)%Dphi*tt_param(id)%fastPeriod
+    tt_state(id)%intDphi = tt_state(id)%intDphi + (tt_param(id)%Ki/aNloops)*tt_state(id)%Dphi
 
     ! Update modulator angle
-    tt_state(id)%psi = tt_state(id)%psi + &
+    tt_state(id)%psi_fast = tt_state(id)%psi_fast + &
                        (tt_param(id)%modw0 + tt_state(id)%deltaw)*tt_param(id)%fastPeriod
-    tt_state(id)%psi = MOD(tt_state(id)%psi,2.0_rp*pi)
+    tt_state(id)%psi_fast = MOD(tt_state(id)%psi_fast,2.0_rp*pi)
 
-    tt_state(id)%t = tt_state(id)%t + tt_param(id)%fastPeriod
+    tt_state(id)%t_fast = tt_state(id)%t_fast + tt_param(id)%fastPeriod
   ENDDO
   tt_state(id)%bpm_msmt_last = bpm_msmt
 
-  !The following calculates the proportional channel and derivative channel obtained from an LS fit.
+  !The following calculates the proportional and derivative channels
   proDphi = tt_param(id)%Kp * tt_state(id)%Dphi
   IF( tt_param(id)%use_D_chan ) THEN
     dirDphi = fixedWindowLS(tt_state(id)%intDphi,tt_param(id)%wls_id)
-    PIout = tt_state(id)%intDphi + proDphi + dirDphi*tt_param(id)%Kd
-    !This statement writes the state of each PID channel to the tt_log_n.out file.
-    WRITE(500+id,'(4ES14.4)') tt_state(id)%t, tt_state(id)%intDphi, proDphi, dirDphi
+    PIDout = tt_state(id)%intDphi + proDphi + dirDphi*tt_param(id)%Kd
   ELSE
-    PIout = tt_state(id)%intDphi + proDphi
-    WRITE(500+id,'(3ES14.4)') tt_state(id)%t, tt_state(id)%intDphi, proDphi
+    PIDout = tt_state(id)%intDphi + proDphi
   ENDIF
-  tt_state(id)%deltaw = tt_param(id)%Kvco * PIout
+  !Update modulator frequency
+  tt_state(id)%deltaw = tt_param(id)%Kvco * PIDout
 
-  CALL modulator(tt_state(id)%psi+tt_param(id)%phi_to_kicker,sinout,sqrout)
+  IF( tt_param(id)%use_D_chan ) THEN
+    !This statement writes the state of each PID channel to the tt_log_n.out file.
+    WRITE(500+id,'(4ES14.4)') tt_state(id)%t_cesr, tt_state(id)%intDphi, proDphi, dirDphi
+  ELSE
+    WRITE(500+id,'(3ES14.4)') tt_state(id)%t_cesr, tt_state(id)%intDphi, proDphi
+  ENDIF
+
+  tt_state(id)%psi_cesr = tt_state(id)%psi_cesr + (tt_param(id)%modw0 + tt_state(id)%deltaw)*tt_param(id)%Dt
+
+  CALL modulator(tt_state(id)%psi_cesr+tt_param(id)%phi_to_kicker, sinout, sqrout)
   !CALL elliptical_modulator(id,sinout)
   z = sinout
 
@@ -292,7 +355,6 @@ FUNCTION get_dTT(name,id) RESULT(z)
   ENDIF
 END FUNCTION get_dTT
 
-
 !+
 ! Subroutine modulator(psi,sinout,sqrout)
 !
@@ -321,24 +383,6 @@ SUBROUTINE modulator(psi,sinout,sqrout)
   ENDIF
 
 END SUBROUTINE modulator
-
-!+
-! Subroutine elliptical_modulator(id,waveout)
-!
-! Experimental modulator.  Not working and not in use.
-!-
-SUBROUTINE elliptical_modulator(id,waveout)
-  INTEGER, INTENT(IN) :: id
-  REAL(rp), INTENT(OUT) :: waveout
-  REAL(rp) alpha, beta, x, psi
-
-  psi = tt_state(id)%psi + tt_param(id)%phi_to_kicker
-  alpha = tt_param(id)%alpha
-  beta = tt_param(id)%beta
-
-  x = (-alpha*SIN(psi)+COS(psi)) / -ABS(COS(psi)) / beta
-  waveout = x/SQRT(1+x*x)
-END SUBROUTINE elliptical_modulator
 
 END MODULE tune_tracker_mod
 
