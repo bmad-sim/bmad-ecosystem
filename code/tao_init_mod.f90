@@ -367,7 +367,8 @@ endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   do ib = 0, ubound(s%u(i)%uni_branch, 1)
-    s%u(i)%beam_info%beam0_file = ''
+    s%u(i)%beam_info%beam0_file = tao_com%beam0_file
+    s%u(i)%beam_info%beam_all_file = tao_com%beam_all_file
   enddo
 enddo
 
