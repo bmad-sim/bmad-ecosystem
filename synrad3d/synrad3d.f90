@@ -77,6 +77,12 @@ do i = 1, cesr_iargc()
     plotting = 'cross-norm'
   elseif (arg == '-xs') then
     plotting = 'xs'
+  elseif (arg == '-ys') then
+    plotting = 'ys'
+  elseif (arg(1:1) == '-') then
+    print *, 'I DO NOT UNDERSTAND: ', trim(arg)
+    print *
+    ok = .false.
   else
     param_file = arg
   endif
@@ -86,7 +92,7 @@ if (param_file == '') param_file = 'synrad3d.init'
 
 if (.not. ok) then
   print *, 'Usage:'
-  print *, '  synrad3d {-cross} {-norm} {-xs} {<init_file>}'
+  print *, '  synrad3d {-cross} {-norm} {-xs} {-ys} {<init_file>}'
   print *, 'Default:'
   print *, '  <init_file> = synrad3d.init'
   stop
@@ -294,8 +300,8 @@ call ran_seed_put (random_seed)
 
 if (plotting(1:5) == 'cross') then
   call sr3d_plot_wall_cross_sections (wall, (plotting(7:) == 'norm'))
-elseif (plotting == 'xs') then
-  call sr3d_plot_wall_xs (wall)
+elseif (plotting /= '') then
+  call sr3d_plot_wall_vs_s (wall, plotting(1:1))
 endif
 
 ! Find out much radiation is produced
