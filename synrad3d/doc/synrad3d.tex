@@ -87,21 +87,25 @@ is fast and directly gives wall heating numbers. The advantage of
 \srthree is that it tracks photons in three dimensions and it does
 simulate scattering from the wall.
 
-Syntax for involking \srthree:
+Syntax for invoking \srthree:
 \begin{example}
-  synrad3d \{-plot\} \{<main_input_file_name>\}
+  synrad3d \{-cross\} \{-norm\} \{-xs\} \{<main_input_file_name>\}
 \end{example}
-Example:
+Examples:
 \begin{example}
   synrad3d my_input_file.init
+  synrad3d -cross my_input_file.init
 \end{example}
 
-\srthree has two optional command line arguments. The \vn{-plot}
+\srthree has two optional command line arguments. The \vn{-cross}
 optional argument is for viewing of wall cross-sections at any point
-in the machine. This is just for diagnostic purposes. When \vn{-plot}
-is given, no photon tracking is done and instead a plot window is
-displayed and \srthree will ask for the longitudinal position to
-compute the cross-section.
+in the machine. The \vn{-norm} is like \vn{-cross} except, in
+addition, a number of line segments normal to the wall are
+additionally plotted.  The \vn{-xs} optional argument plots the wall
+outline in the $x$-$s$ plane at $y = 0$.  These three plot options are
+just for diagnostic purposes. When a plot option is given, 
+no photon tracking is done and instead a plot window is displayed and
+\srthree will ask for the appropriate parameters for making a plot.
 
 The \vn{<main_input_file_name>} optional argument is used to set the
 main input file name. The default is ``\vn{synrad3d.init}''. 
@@ -359,7 +363,7 @@ initialization can also be specified in the file. In this case, the
 random number generator state will also be set along with the state of
 the photon. This is useful for diagnostic purposes when one wishes to
 compare the results of different versions of the \srthree program. The
-syntax for this file is the same as the sytax used to generate the
+syntax for this file is the same as the syntax used to generate the
 \vn{photon_start_output_file}. 
   \item[\vn{num_ignore_generated_outside_wall}] \Newline
 Photons may be generated outside of the beam chamber for various
@@ -622,7 +626,7 @@ of vertices.The mesh is then constructed as follows: Let $v_1(i)$ be
 the vertices in $C_1$ and let $v_2(i)$ be the vertices in $C_2$ with
 $i$ ranging from 1 to $N$. Construct two sets of triangles. The first
 set consists of all triangles with vertices in the form $v_1(i),
-v_1(i+1), v_2(i)$ for $i$ in the range 1 to $N$. [Modulo arithmatic is
+v_1(i+1), v_2(i)$ for $i$ in the range 1 to $N$. [Modulo arithmetic is
 being used here so vertex $v(N+1)$ is equivalent to vertex $v(1)$.]
 The second set of triangles consists of all triangles of the form
 $v_1(i+1), v_2(i), v_2(i+1)$. These $2 \cdot N$ triangles define the
@@ -708,7 +712,7 @@ is to reduce the track step length limits:
     sr3d_params%ds_track_step_max
     sr3d_params%dr_track_step_max
 \end{example}
-This will reduce the possibility of mistracking at the cost of
+This will reduce the possibility of mis-tracking at the cost of
 increased computing time.  If the results do not change significantly
 when the track limits are reduced. This is good evidence that the 
 results are valid.
