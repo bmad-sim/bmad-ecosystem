@@ -10,13 +10,148 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine sr3d_plot_wall_xs (wall)
+!
+! Routine to interactively plot (x, s) section of the wall.
+! Note: This routine never returns to the main program.
+!
+! Input:
+!   wall -- sr3d_wall_struct: Wall structure.
+!-
+
+subroutine sr3d_plot_wall_xs (wall)
+
+implicit none
+
+type (sr3d_wall_struct), target :: wall
+type (sr3d_photon_track_struct) photon
+
+real(rp) x_min, x_max, s_min, s_max, r_max, r_dum
+real(rp) s(200), x_in(200), x_out(200)
+
+integer i, ix, i_chan, ios
+
+character(40) :: ans = 'first'
+
+logical x_user_good, s_user_good
+
+! Open plotting window
+
+call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
+call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+
+x_user_good = .false.
+s_user_good = .false.
+r_max = 100
+
+! Print wall info
+
+do i = 0, wall%n_pt_max
+  print '(i4, 2x, a, f12.2)', i, wall%pt(i)%basic_shape(1:12), wall%pt(i)%s
+enddo
+
+! Loop
+
+do
+
+  ! Query
+
+  if (ans /= 'first') then
+    call read_a_line ('Input: "x <x_min> <x_max>", or "s <s_min> <s_max>" (<x/s_min> = "auto" --> autoscale)', ans)
+  endif
+
+  call string_trim (ans, ans, ix)
+  if (ans(1:2) == 's ') then
+    call string_trim(ans(2:), ans, ix)
+    if (ans == 'auto') then
+      s_user_good = .false.
+    else
+      read (ans, *, iostat = ios) s_min, s_max
+      if (ios /= 0) then
+        print *, 'CANNOT DECODE MIN/MAX VALUES'
+      else
+        s_user_good = .true.
+      endif
+    endif
+
+  elseif (ans(1:2) == 'x ') then
+    call string_trim(ans(2:), ans, ix)
+    if (ans == 'auto') then
+      x_user_good = .false.
+    else
+      read (ans, *, iostat = ios) x_min, x_max
+      if (ios /= 0) then
+        print *, 'CANNOT DECODE MIN/MAX VALUES'
+      else
+        x_user_good = .true.
+      endif
+    endif
+
+  elseif (ans == 'first') then
+    ans = ''
+
+  else
+    print *, 'I DO NOT UNDERSTAND THIS...'
+  endif
+
+  ! Determine s min/max
+
+  if (.not. s_user_good) then
+    s_min = wall%pt(0)%s
+    s_max = wall%pt(wall%n_pt_max)%s
+  endif
+
+  call qp_calc_and_set_axis ('X', s_min, s_max, 6, 10, 'GENERAL')
+
+  ! Get xy data points
+
+  do i = 1, size(s)
+
+    s(i) = s_min + (i - 1) * (s_max - s_min) / (size(s) - 1)
+
+    photon%now%vec    = 0
+    photon%now%vec(5) = s(i)
+
+    photon%now%vec(1) = -r_max
+    call sr3d_find_wall_point (wall, photon, x_in(i), r_dum)
+
+    photon%now%vec(1) = r_max
+    call sr3d_find_wall_point (wall, photon, x_out(i), r_dum)
+
+  enddo
+
+  x_in = x_in * 100; x_out = x_out * 100
+
+  ! Now plot
+
+  call qp_clear_page
+  if (.not. x_user_good) then
+    x_min = 1.01 * minval(x_in)
+    x_max = 1.01 * maxval(x_out)
+  endif
+
+  call qp_calc_and_set_axis ('Y', x_min, x_max, 6, 10, 'GENERAL')
+  call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+  call qp_draw_graph (s, x_in, 'X', 'Y', '', .true., 0)
+  call qp_draw_polyline (s, x_out)
+
+enddo
+
+end subroutine sr3d_plot_wall_xs 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine sr3d_plot_wall_cross_sections (wall, plot_norm)
 !
 ! Routine to interactively plot wall cross-sections
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   wall -- sr3d_wall_struct: Wall structure.
+!   wall      -- sr3d_wall_struct: Wall structure.
+!   plot_norm -- logical: If True then also plot a set of lines normal to the wall.
+!                  This is used as a check to the wall normal calculation.
 !-
 
 subroutine sr3d_plot_wall_cross_sections (wall, plot_norm)
@@ -27,15 +162,14 @@ type (sr3d_wall_struct), target :: wall
 type (sr3d_wall_pt_struct), pointer :: pt
 type (sr3d_photon_track_struct) photon
 
-real(rp) s_pos, dtrack, x(400), y(400), x_max, y_max, theta, d_radius, r
-real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3), x_max_user, r_max
-real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100), dw_perp(3)
+real(rp) s_pos, x(400), y(400), x_max, y_max, theta, r, x_max_user, r_max
+real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100)
 
-integer i, j, ix, ix_section, i_in, ios, i_chan, ixp
+integer i, j, ix, ix_section, i_in, ios, i_chan
 
-character(80) ans, label
+character(80) :: ans = 'first', label
 
-logical plot_norm, is_through, first, at_section
+logical plot_norm, at_section
 
 ! Open plotting window
 
@@ -43,7 +177,6 @@ call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
 x_max_user = -1
-first = .true.
 r_max = 100
 
 ! Print wall info
@@ -61,14 +194,13 @@ do
 
   ! Query
 
-  if (first) then
-    first = .false.
-    ans = ''
-  else
-    call read_a_line ('Input: "<Section #>", "<CR>" (Next sec), "b" (Back sec), "s <s_value>", "x <x_max>" (neg -> autoscale)', ans)
+  if (ans /= 'first') then
+    call read_a_line ('Input: "<Section #>", "<CR>" (Next sec), "b" (Back sec), "s <s_value>", "x <x_max>" ("x auto" -> autoscale)', ans)
   endif
 
   call string_trim (ans, ans, ix)
+  if (ans == 'first') ans = ''
+
   if (ans(1:1) == 's') then
     read (ans(2:), *, iostat = ios) s_pos
     if (ios /= 0 .or. s_pos < wall%pt(0)%s .or. s_pos > wall%pt(wall%n_pt_max)%s) then
@@ -78,12 +210,17 @@ do
     at_section = .false.
 
   elseif (ans(1:1) == 'x') then
-    read (ans(2:), *, iostat = ios) r
-    if (ios /= 0) then
-      print *, 'Cannot read x-scale'
-      cycle
+    call string_trim(ans(2:), ans, ix)
+    if (ans == 'auto') then
+      x_max_user = -1
+    else
+      read (ans(2:), *, iostat = ios) r
+      if (ios /= 0) then
+        print *, 'Cannot read x-scale'
+        cycle
+      endif
+      x_max_user = r
     endif
-    x_max_user = r
 
   elseif (ans == '') then
     ix_section = modulo(ix_section + 1, wall%n_pt_max + 1)
@@ -117,11 +254,7 @@ do
   ! This is an approximation to the true shape but it is good enough for plotting and serves as
   ! an independent check on the routines used to detect intersections of the photon with the wall.
 
-  photon%old%vec = 0
-  photon%old%vec(5) = s_pos
   photon%now%vec(5) = s_pos
-
-  call sr3d_get_wall_index (photon%now, wall, ixp)
 
   do i = 1, size(x)
 
@@ -132,40 +265,18 @@ do
     photon%now%vec(1) = r_max * cos(theta)  
     photon%now%vec(3) = r_max * sin(theta)
 
-    if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
-      do j = 1, 2*size(wall%pt(ixp)%gen_shape%v)
-        call sr3d_get_mesh_wall_triangle_pts (wall%pt(ixp), wall%pt(ixp+1), j, tri_vert0, tri_vert1, tri_vert2)
-        call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through, dtrack)
-        if (is_through) then
-          x(i) = dtrack * photon%now%vec(1)
-          y(i) = dtrack * photon%now%vec(3)
-          exit
-        endif
-      enddo
-      if (.not. is_through) then  ! did not find intersection with meshes
-        print *, 'INTERNAL COMPUTATION ERROR!'
-        call err_exit
-      endif
-
+    if (plot_norm .and. modulo(i, 4) == 0) then
+      j = (i / 4)
+      call sr3d_find_wall_point (wall, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
     else
-      call sr3d_photon_d_radius (photon%now, wall, d_radius)
-      if (d_radius < 0) then
-        print *, 'INTERNAL COMPUTATION ERROR!'
-        call err_exit
-      endif
-      x(i) = (r_max - d_radius) * photon%now%vec(1)
-      y(i) = (r_max - d_radius) * photon%now%vec(3)
-
-      if (plot_norm .and. modulo(i, 4) == 0) then
-        photon%now%vec(1) = x(i); photon%now%vec(3) = y(i)
-        call sr3d_photon_d_radius (photon%now, wall, d_radius, dw_perp)
-        j = (i / 4)
-        x1_norm(j) = x(i);                  y1_norm(j) = y(i)
-        x2_norm(j) = x(i) + dw_perp(1)/100; y2_norm(j) = y(i) + dw_perp(2)/100
-      endif
-
+      call sr3d_find_wall_point (wall, photon, x(i), y(i))
     endif
+
   enddo
+
+  x = x * 100; y = y * 100
+  x1_norm = x1_norm * 100; x2_norm = x2_norm * 100
+  y1_norm = y1_norm * 100; y2_norm = y2_norm * 100
 
   ! Now plot
 
@@ -192,5 +303,71 @@ do
 enddo
 
 end subroutine sr3d_plot_wall_cross_sections
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+
+subroutine sr3d_find_wall_point (wall, photon, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm)
+
+implicit none
+
+type (sr3d_wall_struct), target :: wall
+type (sr3d_photon_track_struct) photon
+
+real(rp) x_wall, y_wall
+real(rp), optional :: x1_norm, x2_norm, y1_norm, y2_norm
+
+real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
+real(rp) dtrack, d_radius, r_old, dw_perp(3)
+
+integer j, ixp
+
+logical plot_norm, is_through
+
+!
+
+call sr3d_get_wall_index (photon%now, wall, ixp)
+
+photon%old%vec = 0
+photon%old%vec(5) = photon%now%vec(5)
+r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
+
+if (wall%pt(ixp+1)%basic_shape == 'gen_shape_mesh') then
+  do j = 1, 2*size(wall%pt(ixp)%gen_shape%v)
+    call sr3d_get_mesh_wall_triangle_pts (wall%pt(ixp), wall%pt(ixp+1), j, tri_vert0, tri_vert1, tri_vert2)
+    call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through, dtrack)
+    if (is_through) then
+      x_wall = dtrack * photon%now%vec(1) / r_old
+      y_wall = dtrack * photon%now%vec(3) / r_old
+      exit
+    endif
+  enddo
+  if (.not. is_through) then  ! did not find intersection with meshes
+    print *, 'INTERNAL COMPUTATION ERROR!'
+    call err_exit
+  endif
+
+else
+  call sr3d_photon_d_radius (photon%now, wall, d_radius)
+  if (d_radius < 0) then
+    print *, 'INTERNAL COMPUTATION ERROR!'
+    call err_exit
+  endif
+  x_wall = (r_old - d_radius) * photon%now%vec(1) / r_old
+  y_wall = (r_old - d_radius) * photon%now%vec(3) / r_old
+
+  ! The length of the normal vector is 1 cm.
+
+  if (present(x1_norm)) then
+    photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
+    call sr3d_photon_d_radius (photon%now, wall, d_radius, dw_perp)
+    x1_norm = x_wall;                  y1_norm = y_wall
+    x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
+  endif
+
+endif
+
+end subroutine sr3d_find_wall_point
 
 end module
