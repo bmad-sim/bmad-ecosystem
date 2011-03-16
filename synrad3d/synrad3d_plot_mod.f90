@@ -10,39 +10,55 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_xs (wall)
+! Subroutine sr3d_plot_wall_vs_s (wall, plane)
 !
-! Routine to interactively plot (x, s) section of the wall.
+! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   wall -- sr3d_wall_struct: Wall structure.
+!   wall    -- sr3d_wall_struct: Wall structure.
+!   plane   -- Character(*): section. 'x' or. 'y'
 !-
 
-subroutine sr3d_plot_wall_xs (wall)
+subroutine sr3d_plot_wall_vs_s (wall, plane)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
-type (sr3d_photon_track_struct) photon
+type (sr3d_photon_track_struct), target :: photon
 
-real(rp) x_min, x_max, s_min, s_max, r_max, r_dum
-real(rp) s(200), x_in(200), x_out(200)
+real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
+real(rp) s(200), xy_in(200), xy_out(200)
+real(rp), pointer :: photon_xy, wall_xy
 
 integer i, ix, i_chan, ios
 
+character(*) plane
+character(16) plane_str
 character(40) :: ans = 'first'
 
-logical x_user_good, s_user_good
+logical xy_user_good, s_user_good
 
 ! Open plotting window
 
 call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
-x_user_good = .false.
+xy_user_good = .false.
 s_user_good = .false.
 r_max = 100
+
+if (plane == 'x') then
+  plane_str = 'X (cm)'
+  photon_xy => photon%now%vec(1)
+  wall_xy => x_wall
+elseif (plane == 'y') then
+  plane_str = 'Y (cm)'
+  photon_xy => photon%now%vec(3)
+  wall_xy => y_wall
+else
+  call err_exit
+endif
 
 ! Print wall info
 
@@ -57,7 +73,9 @@ do
   ! Query
 
   if (ans /= 'first') then
-    call read_a_line ('Input: "x <x_min> <x_max>", or "s <s_min> <s_max>" (<x/s_min> = "auto" --> autoscale)', ans)
+    print *, 'Syntax: "x", "y", or "s" followed by <min> <max> values.'
+    print *, '[<min> = "auto" --> autoscale] Example: "x auto", "s 10 60"'
+    call read_a_line ('Input: ', ans)
   endif
 
   call string_trim (ans, ans, ix)
@@ -74,16 +92,16 @@ do
       endif
     endif
 
-  elseif (ans(1:2) == 'x ') then
+  elseif (ans(1:2) == 'x ' .or. ans(1:2) == 'y ') then
     call string_trim(ans(2:), ans, ix)
     if (ans == 'auto') then
-      x_user_good = .false.
+      xy_user_good = .false.
     else
-      read (ans, *, iostat = ios) x_min, x_max
+      read (ans, *, iostat = ios) xy_min, xy_max
       if (ios /= 0) then
         print *, 'CANNOT DECODE MIN/MAX VALUES'
       else
-        x_user_good = .true.
+        xy_user_good = .true.
       endif
     endif
 
@@ -112,32 +130,34 @@ do
     photon%now%vec    = 0
     photon%now%vec(5) = s(i)
 
-    photon%now%vec(1) = -r_max
-    call sr3d_find_wall_point (wall, photon, x_in(i), r_dum)
+    photon_xy = -r_max
+    call sr3d_find_wall_point (wall, photon, x_wall, y_wall)
+    xy_in(i) = wall_xy
 
-    photon%now%vec(1) = r_max
-    call sr3d_find_wall_point (wall, photon, x_out(i), r_dum)
+    photon_xy = r_max
+    call sr3d_find_wall_point (wall, photon, x_wall, y_wall)
+    xy_out(i) = wall_xy
 
   enddo
 
-  x_in = x_in * 100; x_out = x_out * 100
+  xy_in = xy_in * 100; xy_out = xy_out * 100
 
   ! Now plot
 
   call qp_clear_page
-  if (.not. x_user_good) then
-    x_min = 1.01 * minval(x_in)
-    x_max = 1.01 * maxval(x_out)
+  if (.not. xy_user_good) then
+    xy_min = 1.01 * minval(xy_in)
+    xy_max = 1.01 * maxval(xy_out)
   endif
 
-  call qp_calc_and_set_axis ('Y', x_min, x_max, 6, 10, 'GENERAL')
+  call qp_calc_and_set_axis ('Y', xy_min, xy_max, 6, 10, 'GENERAL')
   call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
-  call qp_draw_graph (s, x_in, 'X', 'Y', '', .true., 0)
-  call qp_draw_polyline (s, x_out)
+  call qp_draw_graph (s, xy_in, 'S (m)', plane_str, '', .true., 0)
+  call qp_draw_polyline (s, xy_out)
 
 enddo
 
-end subroutine sr3d_plot_wall_xs 
+end subroutine sr3d_plot_wall_vs_s 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
