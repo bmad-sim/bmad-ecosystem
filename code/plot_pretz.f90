@@ -201,26 +201,13 @@ subroutine plot_pretz(lat,ncross, cross)
      endif
 
 
-     if(ele%key == quadrupole$)then
-       xpast = lat%ele(i-1)%floor%z
-       ypast = lat%ele(i-1)%floor%x
-       xx(1) = xpast -magg*sin(-theta)
-       yy(1) = ypast -magg*cos(theta)
-
-       xx(2) = xpast +magg*sin(-theta)
-       yy(2) = ypast +magg*cos(theta)
-
-       xx(4) = x -magg*sin(-theta)
-       yy(4) = y -magg*cos(theta)
-
-       xx(3) = x +magg*sin(-theta)
-       yy(3) = y +magg*cos(theta)
-
+     if(ele%key == rfcavity$)then
+      write(45,'(a,/)')'#'
       do l=1,4
-        write(42,'(2f10.3)')-xx(l),-yy(l)
+        write(45,'(2f10.3)')-xx(l),-yy(l)
       end do
-        write(42,'(2f10.3)')-xx(1),-yy(1)
-      write(42,*)
+        write(45,'(2f10.3)')-xx(1),-yy(1)
+      write(45,*)
      endif
 
 
