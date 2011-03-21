@@ -219,12 +219,17 @@ type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
+type (rf_field_mode_struct), allocatable, target :: rf_mode(:)
+type (rf_field_mode_struct), pointer :: mode
 
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
+real(rp), allocatable :: array(:)
+
+complex(rp), pointer :: c_ptr(:)
 
 integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
-integer expn(6), ix_attrib, i_section, ix_v, ix_sec
+integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode
 
 character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
@@ -403,7 +408,7 @@ if (word(1:5) == 'WALL.') then
     return
   endif
 
-  ix_sec = evaluate_integer (err_flag, ')', word2, '(=', delim)
+  ix_sec = evaluate_array_integer (err_flag, ')', word2, '(=', delim)
   if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall3d%section)) then
     call parser_warning('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
     return
@@ -417,7 +422,7 @@ if (word(1:5) == 'WALL.') then
       r_ptr => section%s
 
     elseif (word2 == '.V' .and. delim == '(') then
-      ix_v = evaluate_integer (err_flag, ')', word, '=', delim)
+      ix_v = evaluate_array_integer (err_flag, ')', word, '=', delim)
       if (err_flag .or. ix_v < 0 .or. ix_v > size(section%v)) then
         call parser_warning('BAD VERTEX INDEX',  'FOR ELEMENT: ' // ele%name)
         return
@@ -425,16 +430,11 @@ if (word(1:5) == 'WALL.') then
       v_ptr => section%v(ix_v)
 
       select case (word)
-      case ('.X')
-        r_ptr => v_ptr%x
-      case ('.Y')
-        r_ptr => v_ptr%y
-      case ('.RADIUS_X')
-        r_ptr => v_ptr%radius_x
-      case ('.RADIUS_Y')
-        r_ptr => v_ptr%radius_y
-      case ('.TILT')
-        r_ptr => v_ptr%tilt
+      case ('.X');        r_ptr => v_ptr%x
+      case ('.Y');        r_ptr => v_ptr%y
+      case ('.RADIUS_X'); r_ptr => v_ptr%radius_x
+      case ('.RADIUS_Y'); r_ptr => v_ptr%radius_y
+      case ('.TILT');     r_ptr => v_ptr%tilt
       case default
         call parser_warning('BAD WALL SECTION VERTEX COMPONENT: ' // word, 'FOR ELEMENT: ' // ele%name)
         return
@@ -457,7 +457,7 @@ if (word(1:5) == 'WALL.') then
       return
     endif
 
-    ix_coef = evaluate_integer (err_flag, ')', word, '=', delim)
+    ix_coef = evaluate_array_integer (err_flag, ')', word, '=', delim)
     if (err_flag .or. ix_coef < 0 .or. ix_coef > size(section%s_spline) )then
       call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
       return
@@ -503,38 +503,31 @@ if (attrib_word == 'WALL') then
     return
   endif
 
-  if (delim /= '=') then
-    call parser_warning ('NO "=" SIGN FOUND AFTER "WALL"', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-
-  ! Expect "{"
-  call get_next_word (word, ix_word, '{,()', delim, delim_found, call_check = .true.)
-  if (delim /= '{' .or. word /= '') then
-    call parser_warning ('NO "{" SIGN FOUND AFTER "WALL ="', 'FOR ELEMENT: ' // ele%name)
+  ! Expect "= {"
+  call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
+  if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
+    call parser_warning ('NO "= {" FOUND AFTER "WALL"', 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
+  ! Loop over all sections
+
   i_section = 0
-  do    ! Loop over all sections
+  do    
 
     ! Possible "}" is end of wall 
     if (delim /= '}' .and. word == '') exit
 
-    ! Expect "section ="
-    if (word /= 'SECTION' .or. delim /= '=') then
-      call parser_warning ('NO "SECTION =" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
+    ! Expect "section = {"
+    call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
+    if (word /= 'SECTION' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
+      call parser_warning ('NO "SECTION = {" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
       return
     endif
 
-    ! Expect "{"
-    call get_next_word (word, ix_word, '{},()', delim, delim_found)
-    if (delim /= '{' .or. word /= '') then
-      call parser_warning ('NO "{" SIGN FOUND AFTER "SECTION ="', 'FOR ELEMENT: ' // ele%name)
-      return
-    endif
+    ! Read in section
 
     i_section = i_section + 1
     call re_associate (ele%wall3d%section, i_section)
@@ -682,6 +675,148 @@ if (attrib_word == 'WALL') then
   call get_next_word (word, ix_word, '{},()', delim, delim_found)
   if (word /= '') call parser_warning('EXTRA CHARACTERS AT END OF WALL SPECIFICATION IN ELEMENT: ' // ele%name) 
   return
+
+endif
+
+! rf field
+
+if (attrib_word == 'RF_FIELD') then
+
+  ! Expect "= {"
+  call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
+  if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
+    call parser_warning ('NO "= {" FOUND AFTER "RF_FIELD"', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+  ! Loop over all modes
+
+  if (.not. allocated(rf_mode)) allocate(rf_mode(20))
+  do i_mode = 1, size(rf_mode)
+
+    mode => rf_mode(i_mode)
+    if (allocated(mode%term)) deallocate(mode%term)
+
+    ! Possible "}" is end of rf_field
+    if (delim /= '}' .and. word == '') exit
+
+    ! Expect "MODE = {"
+    call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
+    if (word /= 'MODE' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
+      call parser_warning ('NO "MODE = {" SIGN FOUND IN RF_FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
+      return
+    endif
+
+    ! Read in mode...
+
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+    do
+
+      ! Possible "}" is end of mode
+      if (delim /= '}' .and. word == '') exit
+
+      ! Expect "<component> = "
+
+      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+      if (delim /= '=') then
+        call parser_warning ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      endif
+
+      word2 = word
+      select case (word2)
+      case ('M')
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        if (is_integer(word)) read (word, *) mode%m
+        if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
+          call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
+                               'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+          return
+        endif
+        cycle
+
+      case ('E_RE', 'E_IM', 'B_RE', 'B_IM')
+        ! Expect "("
+        call get_next_word (word, ix_word, ',({', delim, delim_found)
+        if (word /= '' .or. delim /= '(') then
+          call parser_warning ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
+                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+          return
+        endif
+
+        ! Read list of values.
+        call re_allocate(array, 1024, .false.)
+        do i = 1, 100000
+          call get_next_word (word, ix_word, '{},()', delim, delim_found)
+          if (delim == ')') exit
+          if (delim /= ',' .or. .not. is_real(word)) then
+            call parser_warning ('ERROR PARSING ARRAY FOR: ' // word2, &
+                                 'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+            return
+          endif
+          if (i > size(array)) call re_allocate(array, 2*size(array))
+          read (word, *) array(i)
+        enddo
+
+        if (allocated(mode%term)) then
+          if (size(mode%term) /= i - 1) then
+            call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
+                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+            return
+          endif
+        else
+          allocate(mode%term(i-1))
+        endif
+
+        select case (word2)
+        case ('E_RE', 'E_IM'); c_ptr => mode%term%e 
+        case ('B_RE', 'B_IM'); c_ptr => mode%term%b
+        end select
+
+        if (word2(3:4) == 'RE') then
+          if (any(real(c_ptr) /= 0)) then
+            call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
+                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+            return
+          endif
+          c_ptr = c_ptr + array(1:i-1)
+
+        else
+          if (any(aimag(c_ptr) /= 0)) then
+            call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
+                               'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+            return
+          endif
+          c_ptr = c_ptr + i_imaginary * array(1:i-1)
+        endif
+
+
+      case ('FREQ');          r_ptr => mode%freq
+      case ('F_DAMP');        r_ptr => mode%f_damp
+      case ('THETA_T0');      r_ptr => mode%theta_t0
+      case ('STORED_ENERGY'); r_ptr => mode%stored_energy
+      case ('PHI_0');         r_ptr => mode%phi_0
+      case ('DZ');            r_ptr => mode%dz
+      case ('SAMPLE_RADIUS'); r_ptr => mode%sample_radius
+
+      case default
+        call parser_warning ('UNKNOWN MODE COMPONENT: ' // word, &
+                             'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+        return
+      end select
+
+      call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag, ',}')
+
+    enddo
+
+  enddo
+
+  deallocate(rf_mode)
+  if (allocated(array)) deallocate(array)
 
 endif
 
@@ -1625,7 +1760,7 @@ end subroutine load_parse_line
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function evaluate_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
+! Function evaluate_array_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
 !
 ! Function of evaluate an integer and do some additional parsing
 !
@@ -1640,7 +1775,7 @@ end subroutine load_parse_line
 !   this_int -- Integer: Integer value
 !-
 
-function evaluate_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
+function evaluate_array_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
 
 implicit none
 
@@ -1669,7 +1804,7 @@ read (word, *) this_int
 call get_next_word (word2, ix_word, delim_list2, delim2, delim_found)
 if (delim_found) err_flag = .false.
 
-end function evaluate_integer
+end function evaluate_array_integer
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

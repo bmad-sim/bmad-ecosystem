@@ -64,8 +64,8 @@ IMPLICIT NONE
 
 TYPE(normal_modes_struct), INTENT(IN) :: mode
 REAL(rp), INTENT(OUT) :: Tl
-TYPE(lat_struct), INTENT(IN), target :: ring
-TYPE(coord_struct), INTENT(IN) :: orb(0:)
+TYPE(lat_struct), target :: ring
+TYPE(coord_struct) :: orb(0:)
 
 TYPE(ele_struct), pointer :: ele
 
@@ -81,6 +81,8 @@ REAL(rp) sigma_h2
 REAL(rp) sigma_x_t2
 
 INTEGER i
+
+character(24), parameter :: r_name = 'touschek_lifetime'
 
 !
 
@@ -121,6 +123,11 @@ DO i=1,ring%n_ele_track
   sigma_x2 = sigma_x_beta2 + (Dx**2)*sigma_p2
   sigma_y2 = sigma_y_beta2 + (Dy**2)*sigma_p2
   sigma_x_t2 = sigma_x2 + sigma_p2*(Dxt**2)
+
+  if (beta_a2 == 0 .or. beta_b2 == 0 .or. sigma_x2 == 0 .or. sigma_y2 == 0) then
+    call out_io (s_fatal$, r_name, 'BETA OR EMITTANCE IS ZERO! WILL STOP PROGRAM HERE.')
+    call err_exit
+  endif
 
   sigma_h2 = 1/( 1/sigma_p2 &
     + ( (Dx**2)+(Dxt**2))/sigma_x_beta2 + ((Dy**2)+(Dyt**2))/sigma_y_beta2 )

@@ -1899,7 +1899,116 @@ end subroutine match_ele_to_mat6
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_wake (wake_in, wake_out)
+! Subroutine transfer_rf_field (field_in, field_out)
+!
+! Subroutine to transfer the field info from one struct to another.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   field_in -- Field_struct, pointer: Input RF field.
+!
+! Output:
+!   field_out -- Field_struct, pointer: Output RF field.
+!-
+
+subroutine transfer_rf_field (field_in, field_out)
+
+implicit none
+
+type (rf_field_struct), pointer :: field_in, field_out
+integer i, n
+integer, allocatable, save :: n_terms(:)
+
+! Rule: If field_in or field_out is associated then %mode must be allocated
+
+if (associated (field_in)) then
+
+  call re_allocate(n_terms, size(field_in%mode), .false.)
+  do i = 1, size(field_in%mode)
+    n_terms(i) = size(Field_in%mode(i)%term)
+  enddo
+
+  call init_rf_field (field_out, size(field_in%mode), n_terms)
+
+  do i = 1, size(field_in%mode)
+    field_out%mode(i) = field_in%mode(i)
+  enddo
+
+elseif (associated(field_out)) then
+  if (allocated(field_out%mode)) deallocate(field_out%mode)
+  deallocate(field_out)
+endif
+
+end subroutine transfer_rf_field
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine init_rf_field (rf_field, n_mode, n_terms)
+!
+! Subroutine to initialize a rf_field_struct pointer.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   n_mode     -- Integer: Number of modes. If 0, nullify rf_field
+!   n_terms(:) -- Integer, optional: Array of sizes for rf_field%mode%term(:)
+!                   If not present then %term(:) arrays will not be allocated or deallocated.
+!
+! Output:
+!   rf_field -- rf_field_struct, pointer: Initialized structure.
+!-
+
+subroutine init_rf_field (rf_field, n_mode, n_terms)
+
+type (rf_field_struct), pointer :: rf_field
+
+integer n_mode
+integer, optional :: n_terms(:)
+
+integer i
+
+
+! Case for n_mode not positive.
+
+if (n_mode < 1) then
+  if (associated(rf_field)) nullify(rf_field)
+  return
+endif
+
+! n_mode > 0 case.
+
+if (.not. associated (rf_field)) then
+  allocate(rf_field)
+  allocate(rf_field%mode(n_mode))
+endif
+
+if (size(rf_field%mode) /= n_mode) then
+  deallocate(rf_field%mode)
+  allocate(rf_field%mode(n_mode))
+endif
+
+if (.not. present(n_terms)) return
+
+do i = 1, n_mode
+  if (.not. allocated(rf_field%mode(i)%term)) allocate(rf_field%mode(i)%term(n_terms(i)))
+  if (size(rf_field%mode(i)%term) /= n_terms(i)) then
+    deallocate (rf_field%mode(i)%term)
+    allocate (rf_field%mode(i)%term(n_terms(i)))
+  endif
+enddo
+
+end subroutine init_rf_field
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine transfer_rf_wake (wake_in, wake_out)
 !
 ! Subroutine to transfer the wake info from one struct to another.
 !
@@ -1913,7 +2022,7 @@ end subroutine match_ele_to_mat6
 !   wake_out -- Wake_struct, pointer: Output wake.
 !-
 
-subroutine transfer_wake (wake_in, wake_out)
+subroutine transfer_rf_wake (wake_in, wake_out)
 
 implicit none
 
@@ -1924,22 +2033,22 @@ integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
 
 if (associated (wake_in)) then
   n_sr_table       = size(wake_in%sr_table)
-  n_sr_mode_long  = size(wake_in%sr_mode_long)
-  n_sr_mode_trans = size(wake_in%sr_mode_trans)
-  n_lr        = size(wake_in%lr)
+  n_sr_mode_long   = size(wake_in%sr_mode_long)
+  n_sr_mode_trans  = size(wake_in%sr_mode_trans)
+  n_lr             = size(wake_in%lr)
   call init_wake (wake_out, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
-  wake_out%sr_file   = wake_in%sr_file
-  wake_out%lr_file   = wake_in%lr_file
+  wake_out%sr_file        = wake_in%sr_file
+  wake_out%lr_file        = wake_in%lr_file
   wake_out%z_sr_mode_max  = wake_in%z_sr_mode_max
   wake_out%sr_table       = wake_in%sr_table
-  wake_out%sr_mode_long  = wake_in%sr_mode_long
-  wake_out%sr_mode_trans = wake_in%sr_mode_trans
-  wake_out%lr        = wake_in%lr
+  wake_out%sr_mode_long   = wake_in%sr_mode_long
+  wake_out%sr_mode_trans  = wake_in%sr_mode_trans
+  wake_out%lr             = wake_in%lr
 else
   if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0, 0)
 endif
 
-end subroutine transfer_wake
+end subroutine transfer_rf_wake
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1953,10 +2062,10 @@ end subroutine transfer_wake
 !   use bmad
 !
 ! Input:
-!   n_sr_table       -- Integer: Number of terms: wake%sr_table(0:n_sr-1).
+!   n_sr_table      -- Integer: Number of terms: wake%sr_table(0:n_sr-1).
 !   n_sr_mode_long  -- Integer: Number of terms: wake%nr(n_sr_mode_long).
 !   n_sr_mode_trans -- Integer: Number of terms: wake%nr(n_sr_mode_trans).
-!   n_lr        -- Integer: Number of terms: wake%nr(n_lr)
+!   n_lr            -- Integer: Number of terms: wake%nr(n_lr)
 !
 ! Output:
 !   wake -- Wake_struct, pointer: Initialized structure. 

@@ -720,15 +720,13 @@ if (associated (slave%a_pole)) then
   slave%scale_multipoles = lord%scale_multipoles
 endif
 
-! wakes
+! RF wakes and fields
 
-if (associated(lord%rf%wake) .and. .not. associated(slave%rf%wake)) call transfer_wake (lord%rf%wake, slave%rf%wake)
+call transfer_rf_field (lord%rf%field, slave%rf%field)
+
+call transfer_rf_wake (lord%rf%wake, slave%rf%wake)
 
 if (associated (slave%rf%wake)) then
-  slave%rf%wake%sr_table      = lord%rf%wake%sr_table
-  slave%rf%wake%sr_mode_long  = lord%rf%wake%sr_mode_long
-  slave%rf%wake%sr_mode_trans = lord%rf%wake%sr_mode_trans
-  slave%rf%wake%lr            = lord%rf%wake%lr
   do i = 1, size(lord%rf%wake%lr)
     slave%rf%wake%lr(i)%t_ref = lord%rf%wake%lr(i)%t_ref - slave%ref_time
   enddo

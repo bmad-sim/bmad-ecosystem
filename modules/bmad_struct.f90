@@ -128,8 +128,8 @@ type rf_wake_struct
   real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
 end type
 
-type rf_mode_term_struct
-  complex(rp) e, b
+type rf_field_mode_term_struct
+  complex(rp) :: e = 0, b = 0
 end type
 
 ! RF mode structure
@@ -139,7 +139,7 @@ end type
 !
 ! Each %term(n) in this structure has a wavelength k = (n-1) * twopi / %dz
 
-type rf_mode_struct
+type rf_field_mode_struct
   real(rp) freq
   real(rp) :: f_damp = 0    ! 1/Q damping factor 
   real(rp) :: theta_t0 = 0  ! Mode oscillates as: omega * t - theta_t0
@@ -148,13 +148,13 @@ type rf_mode_struct
   real(rp) phi_0            ! Azimuthal orientation of mode.
   real(rp) dz               ! Distance between sampled field points.
   real(rp) sample_radius    ! For informational purposes. Not used in calculations.
-  type (rf_mode_term_struct), allocatable :: term(:) 
+  type (rf_field_mode_term_struct), allocatable :: term(:) 
 end type
 
 ! The RF field may be characterized by a collection of modes.
 
 type rf_field_struct
-  type (rf_mode_struct), allocatable :: mode(:)
+  type (rf_field_mode_struct), allocatable :: mode(:)
 end type
 
 type rf_struct
