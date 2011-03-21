@@ -1408,6 +1408,7 @@ a cyclindrical surface of some radius $R$. The field will be of the form
 \begin{align}
   E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, (\phi - \phi_0)) \CRNO
   E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, (\phi - \phi_0)) \\
+  \label{erpze}
   E_z(R, \phi, z)    &= E_{z c}(R, z)    \, \cos(m \, (\phi - \phi_0)) \nonumber
 \end{align}
 where in this, and subsequent equations, the mode index $j$ has been
@@ -1418,10 +1419,10 @@ The azimuthal mode number $m_j$ is a non-negative integer. If $m_j
 the other with $\phi_{0j} = -\pi/2$. The $\phi_{0j} = 0$ mode is an
 accelerating mode with the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, n \, z / dz} \, 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, n \, z / N \, dz} \, 
     e_0(n) \, \frac{i \, k_{zn} \, I_1(\kappa_n \, \rho)}{\kappa_n} \CRNO
   E_\phi(\bfr) &= 0 \\
-  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
     e_0(n) \, I_0(\kappa_n \, \rho) \nonumber
 \end{align}
 The $e_0$ coefficients are obtained from the equation
@@ -1445,11 +1446,11 @@ with
 $N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
 the distance between points. When
 
-The non-accelerating $m = 0$ mode with $\phi_0 = -pi/2$ has an
+The non-accelerating $m = 0$ mode with $\phi_0 = -\pi/2$ has an
 electric field in the form
 \begin{align}
   E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
     b_0(n) \, I_1(\kappa_n \, \rho)
 \end{align}
 where
@@ -1459,13 +1460,13 @@ where
 
 For positive $m$, the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
     \left[ 
     -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} +
     b_m(n) \, \frac{I_m(\kappa_n \, \rho)}{\kappa_n \, \rho}
     \right]
     \cos(m \, (\phi - \phi_0)) \CRNO
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
     \left[
     -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} \, + \right. \\
   & \left. \qquad \qquad \qquad \qquad \qquad \qquad
@@ -1473,7 +1474,7 @@ For positive $m$, the electric field is in the form
     \frac{1}{m} \, I_{m-1}(\kappa_n \, \rho) \right)
     \right] 
     \sin(m \, (\phi - \phi_0)) \CRNO
-  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / dz} \, 
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
     e_m(n) \, I_m(\kappa_n \, \rho) \cos(m \, (\phi - \phi_0)) \nonumber
 \end{align}
 with

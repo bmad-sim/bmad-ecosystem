@@ -41,7 +41,7 @@ real(rp) value(n_attrib_maxx)
 
 integer, intent(in), optional :: n_files
 integer d_unit, i, j, k, n_file, ix_value(n_attrib_maxx), ierr
-integer stat_b(24), stat, n_wake, n_section
+integer stat_b(24), stat, n_wake, n_wall_section
 integer :: ix_wake(lat%n_ele_max)
 
 character(*) digested_name
@@ -147,11 +147,11 @@ write (d_unit) lat%beam_start
 write (d_unit) ubound(lat%branch, 1)
 do i = 1, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  n_section = 0
-  if (associated(branch%wall3d%section)) n_section = size(branch%wall3d%section)
+  n_wall_section = 0
+  if (associated(branch%wall3d%section)) n_wall_section = size(branch%wall3d%section)
   write (d_unit) branch%param
   write (d_unit) branch%name, branch%key, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_section, 0
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, 0
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
@@ -193,10 +193,11 @@ subroutine write_this_ele (ele)
 type (ele_struct), target :: ele
 type (taylor_struct), pointer :: tt(:)
 type (rf_wake_struct), pointer :: wake
+type (rf_field_mode_struct), pointer :: mode
 
-integer ix_wig, n_section, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
+integer ix_wig, n_wall_section, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
-integer j, k
+integer j, k, n_rf_field_mode
 
 !
 
@@ -204,7 +205,7 @@ tt => ele%taylor
     
 ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_const = 0; ix_r = 0
 ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
-mode3 = .false.; n_section = 0
+mode3 = .false.; n_wall_section = 0; n_rf_field_mode = 0
 
 if (associated(ele%mode3))          mode3 = .true.
 if (associated(ele%wig_term))       ix_wig = size(ele%wig_term)
@@ -213,7 +214,8 @@ if (associated(ele%r))              ix_r = (/ lbound(ele%r), ubound(ele%r) /)
 if (associated(ele%descrip))        ix_d = 1
 if (associated(ele%a_pole))         ix_m = 1
 if (associated(tt(1)%term))         ix_t = (/ (size(tt(j)%term), j = 1, 6) /)
-if (associated(ele%wall3d%section)) n_section = size(ele%wall3d%section)
+if (associated(ele%wall3d%section)) n_wall_section = size(ele%wall3d%section)
+if (associated(ele%rf%field))       n_rf_field_mode = size(ele%rf%field%mode)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing 
 ! the wake info we only write a wake when needed.
@@ -238,9 +240,10 @@ if (associated(ele%rf%wake)) then
 endif
 
 ! Now write the element info. 
+! The last zero is for future use.
 
 write (d_unit) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_section, 0, 0
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, 0
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -269,7 +272,16 @@ do j = 1, size(ele%value)
 write (d_unit) k
 write (d_unit) ix_value(1:k), value(1:k)
 
-! 
+! RF field def
+
+do i = 1, n_rf_field_mode
+  mode => ele%rf%field%mode(i)
+  write (d_unit) size(mode%term), mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+                                  mode%m, mode%phi_0, mode%dz, mode%sample_radius 
+  write (d_unit) mode%term
+enddo 
+
+!
 
 if (mode3) write (d_unit) ele%mode3
 

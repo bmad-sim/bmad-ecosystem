@@ -6,9 +6,9 @@ interface operator (==)
   module procedure eq_coord, eq_twiss, eq_xy_disp, eq_floor_position
   module procedure eq_taylor_term, eq_taylor, eq_wig_term
   module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake
-  module procedure eq_wake, eq_control, eq_param, eq_amode, eq_linac_mode
+  module procedure eq_rf_wake, eq_rf_field_mode, eq_rf_field
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
-  module procedure eq_lat, eq_wall3d
+  module procedure eq_lat, eq_wall3d, eq_control, eq_param, eq_amode, eq_linac_mode
 end interface
 
 contains
@@ -29,7 +29,7 @@ is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
         (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y)
 
-end function
+end function eq_coord
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ is_eq = (f1%beta == f2%beta) .and. (f1%alpha == f2%alpha) .and. &
           (f1%sigma == f2%sigma) .and. (f1%emit == f2%emit) .and. &
           (f1%norm_emit == f2%norm_emit)
 
-end function
+end function eq_twiss
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -65,7 +65,7 @@ logical is_eq
 
 is_eq = (f1%eta == f2%eta) .and. (f1%etap == f2%etap)
 
-end function
+end function eq_xy_disp
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ is_eq = (f1%x == f2%x) .and. (f1%y == f2%y) .and. &
           (f1%z == f2%z) .and. (f1%theta == f2%theta) .and. &
           (f1%phi == f2%phi) .and. (f1%psi == f2%psi)
 
-end function
+end function eq_floor_position
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -101,7 +101,7 @@ is_eq = (f1%coef == f2%coef) .and. (f1%kx == f2%kx) .and. &
           (f1%ky == f2%ky) .and. (f1%kz == f2%kz) .and. &
           (f1%phi_z == f2%phi_z) .and. (f1%type == f2%type)
 
-end function
+end function eq_wig_term
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ logical is_eq
 
 is_eq = (f1%coef == f2%coef) .and. all(f1%expn == f2%expn)
 
-end function
+end function eq_taylor_term
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ if (associated(f1%term)) then
   enddo
 endif
 
-end function
+end function eq_taylor
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ logical is_eq
 
 is_eq = (f1%z == f2%z) .and. (f1%long == f2%long) .and. (f1%trans == f2%trans)
 
-end function
+end function eq_sr_table_wake
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ is_eq = (f1%amp == f2%amp) .and. (f1%damp == f2%damp) .and. &
         (f1%b_sin == f2%b_sin) .and. (f1%b_cos == f2%b_cos) .and. &
         (f1%a_sin == f2%a_sin) .and. (f1%a_cos == f2%a_cos)
 
-end function
+end function eq_sr_mode_wake
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -199,12 +199,60 @@ is_eq = (f1%freq == f2%freq) .and. (f1%r_over_q == f2%r_over_q) .and. &
         (f1%m == f2%m) .and. (f1%angle == f2%angle) .and. &
         (f1%polarized .eqv. f2%polarized)
 
-end function
+end function eq_lr_wake
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_wake (f1, f2) result (is_eq)
+elemental function eq_rf_field_mode (f1, f2) result (is_eq)
+
+implicit none
+
+type (rf_field_mode_struct), intent(in) :: f1, f2
+integer i
+logical is_eq
+
+!
+
+is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%theta_t0 == f2%theta_t0) .and. &
+        (f1%stored_energy == f2%stored_energy) .and. (f1%m == f2%m) .and. (f1%phi_0 == f2%phi_0) .and. &
+        (f1%dz == f2%dz) .and. (f1%sample_radius == f2%sample_radius) .and. (size(f1%term) == size(f2%term))
+if (.not. is_eq) return
+
+do i = 1, size(f1%term)
+  is_eq = (f1%term(i)%e == f2%term(i)%e) .and. (f1%term(i)%b == f2%term(i)%b) 
+  if (.not. is_eq) return
+enddo
+
+end function eq_rf_field_mode
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_rf_field (f1, f2) result (is_eq)
+
+implicit none
+
+type (rf_field_struct), intent(in) :: f1, f2
+integer i
+logical is_eq
+
+!
+
+is_eq = (size(f1%mode) == size(f2%mode))
+if (.not. is_eq) return
+
+do i = 1, size(f1%mode)
+  is_eq = (f1%mode(i) == f2%mode(i))
+  if (.not. is_eq) return
+enddo
+
+end function eq_rf_field
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_rf_wake (f1, f2) result (is_eq)
 
 implicit none
 
@@ -236,7 +284,7 @@ do i = lbound(f1%lr, 1), ubound(f1%lr, 1)
   is_eq = is_eq .and. (f1%lr(i) == f2%lr(i)) 
 enddo
 
-end function
+end function eq_rf_wake
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -253,7 +301,7 @@ logical is_eq
 is_eq = (f1%coef == f2%coef) .and. (f1%ix_lord == f2%ix_lord) .and. &
         (f1%ix_slave == f2%ix_slave) .and. (f1%ix_attrib == f2%ix_attrib)
 
-end function
+end function eq_control
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -277,7 +325,7 @@ is_eq = (f1%n_part == f2%n_part) .and. (f1%total_length == f2%total_length) .and
      (f1%ixx == f2%ixx) .and. (f1%stable .eqv. f2%stable) .and. &
      (f1%aperture_limit_on .eqv. f2%aperture_limit_on) .and. (f1%lost .eqv. f2%lost) 
 
-end function
+end function eq_param
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -296,7 +344,7 @@ is_eq = (f1%emittance == f2%emittance) .and. &
          (f1%j_damp == f2%j_damp) .and. (f1%alpha_damp == f2%alpha_damp) .and. &
          (f1%chrom == f2%chrom) .and. (f1%tune == f2%tune)
 
-end function
+end function eq_amode
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -315,7 +363,7 @@ is_eq = (f1%i2_E4 == f2%i2_E4) .and. (f1%i3_E7 == f2%i3_E7) .and. &
          (f1%a_emittance_end == f2%a_emittance_end) .and. &
          (f1%b_emittance_end == f2%b_emittance_end)
 
-end function
+end function eq_linac_mode
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -334,7 +382,7 @@ is_eq = all(f1%synch_int == f2%synch_int) .and. (f1%sige_e == f2%sige_e) .and. &
  (f1%pz_aperture == f2%pz_aperture) .and. (f1%a == f2%a) .and. &
  (f1%b == f2%b) .and. (f1%z == f2%z) .and. (f1%lin == f2%lin)
 
-end function
+end function eq_modes
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -369,7 +417,7 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%compute_ref_energy .eqv. f2%compute_ref_energy) .and. &
       (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 
-end function
+end function eq_bmad_com
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -386,7 +434,7 @@ logical is_eq
 is_eq = all(f1%E == f2%E) .and. all(f1%b == f2%b) .and. &
     all(f1%dE == f2%dE) .and. all(f1%dB == f2%dB) 
 
-end function
+end function eq_em_field
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -478,7 +526,7 @@ if (.not. f1%wall3d == f2%wall3d) return
 
 is_eq = .true.
 
-end function
+end function eq_ele
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -517,7 +565,7 @@ endif
 
 is_eq = .true.
 
-end function
+end function eq_wall3d
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -628,7 +676,7 @@ logical is_eq
 
 is_eq = (f1%tune == f2%tune) .and. (f1%emit == f2%emit) .and. (f1%chrom == f2%chrom)
 
-end function
+end function eq_mode_info
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -677,7 +725,7 @@ do i = 1, size(f1%ic)
   is_eq = is_eq .and. (f1%ic(i) == f2%ic(i))
 enddo
 
-end function
+end function eq_lat
 
 end module
 

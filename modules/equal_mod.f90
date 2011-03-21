@@ -183,7 +183,12 @@ endif
 ! %rf%wake
 
 ele1%rf%wake => ele_save%rf%wake  ! reinstate
-call transfer_wake (ele2%rf%wake, ele1%rf%wake)
+call transfer_rf_wake (ele2%rf%wake, ele1%rf%wake)
+
+! %rf%field
+
+ele1%rf%field => ele_save%rf%field  ! reinstate
+call transfer_rf_field (ele2%rf%field, ele1%rf%field)
 
 ! %gen_fields are hard because it involves pointers in PTC.
 ! just kill the gen_field in ele1 for now.

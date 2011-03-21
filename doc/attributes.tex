@@ -290,7 +290,7 @@ element (n = 0 for bends, n = 1 for quadrupoles etc.)
 \index{sbend}\index{rbend}\index{crystal}\index{mirror}
 For all elements, except \vn{crystal} and \vn{mirror} elements,
 offsets and pitches and are measured with respect to the local coordinates at the
-center of the element. \vn{Crystal} and \vn{mirror} elements measurure
+center of the element. \vn{Crystal} and \vn{mirror} elements measure
 their offsets and pitches with respect to the entrance coordinates.
 Note that all element define \vn{tilt} with respect to the entrance
 coordinates.
@@ -322,7 +322,7 @@ the center of the bend. Shown here is the geometry for a bend with
 If an element is supported by a \vn{girder} element (\sref{s:girder}),
 the offsets, pitches and tilt of the element are with respect to the
 orientation of the \vn{girder}. The computed offsets, pitches and tilt with
-respect to the local referece coordinates are stored in the dependent attributes
+respect to the local reference coordinates are stored in the dependent attributes
 \begin{example}
   x_offset_tot
   y_offset_tot
@@ -415,7 +415,7 @@ rectangular except that an \vn{Ecollimator} has a elliptical aperture.
 This can be changed by setting the \vn{aperture_type} attribute. The possible 
 values of this attribute are:
 \begin{example}
-  rectanular
+  rectangular
   elliptical
 \end{example}
 
@@ -750,8 +750,51 @@ The basic equations used for the mode decomposition of the rf fields
 are given in Section~\sref{s:rf.fields.phys}. The syntax for specifying the 
 RF fields is
 \begin{example}
-
+  rf_field = {
+    mode = {
+      m             = <Integer>,
+      freq          = <Real>,  ! frequency of oscillations.
+      theta_t0      = <Real>,  ! Phase of oscillations. Default = 0.
+      f_damp        = <Real>,  ! Oscillation damping factor. Default = 0.
+      stored_energy = <Real>,  ! Default = 0.
+      dz            = <Real>,  ! Distance between sampled field points.
+      sample_radius = <Real>,  ! Default = 0.
+      phi_0         = <Real>,  ! Azimuthal orientation.
+      e_re = (<Real>, <Real>, ....),  ! Real part of e.
+      e_im = (<Real>, <Real>, ....),  ! Imaginary part of e.
+      b_re = (<Real>, <Real>, ....),  ! Real part of b.
+      b_im = (<Real>, <Real>, ....)}, ! Imaginary part of b.
+    mode = {...}}
 \end{example}
+The \vn{sample_radius} of a mode gives the radius $R$ where the field
+data was calculated (cf.~\Eq{erpze}). This quantity is not needed for
+tracking and is not used by any \bmad routines.
+
+\vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and
+\vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
+of these vectors must be present and have the same length. The
+exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be
+omitted and will default to zero. To be complete, the number of terms $N$
+for the $e$ or $b$ vectors is
+\begin{equation}
+  N = \frac{L}{dz} + 1
+\end{equation}
+where $L$ is the length of the RF element. $N$ must be even. The
+$n$\Th element in the $e$ or $b$ arrays, with $n$ running from 0 to
+$N-1$, is associated with a frequency $\omega_n$
+\begin{equation}
+  \omega_n = \begin{cases}
+    \frac{n}{N \, dz} & n < \frac{N}{2} \\
+    \frac{n-N}{N \, dz} & \mbox{otherwise}
+  \end{cases}
+\end{equation}
+This convention follows the convention used by Numerical
+Recipes\cite{b:nr}.  In practice, the terms at the highest frequencies
+(at $n \sim N/2$) may be small. These terms may be dropped from the
+$e$ and $b$ arrays. In this case, if there are only $\wt N$ terms
+specified, $\wt N$ must be even. The first $\wt N/2$ terms are associated
+with $n = 0, \ldots, \wt N/2$ and the last $\wt N/2$ terms are associated
+with $n = N - \wt N/2, \ldots, N - 1$.
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}

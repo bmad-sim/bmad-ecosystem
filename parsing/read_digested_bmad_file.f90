@@ -40,10 +40,8 @@ type (random_state_struct) :: ran_state, digested_ran_state
 real(rp) value(n_attrib_maxx)
 
 integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
-integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
-integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ierr, stat
-integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at
-integer num_steps, integrator_order, n_wall_section, idum1
+integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at, idum1
+integer ierr, stat, ios, n_wall_section
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
@@ -345,8 +343,14 @@ contains
 
 subroutine read_this_ele (ele, ix_ele, error)
 
-type (ele_struct) ele
-integer j, ix_ele, n_wall_section, idum1, idum2
+type (ele_struct), target :: ele
+type (rf_field_mode_struct), pointer :: mode
+
+integer i, j, ix_ele, n_wall_section, idum1, idum2
+integer n_rf_field_mode
+integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
+integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
+
 logical error
 
 !
@@ -370,9 +374,10 @@ if (v95 .or. v96) then
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
   n_wall_section = 0
+  n_rf_field_mode = 0
 else ! > v96
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, idum1, idum2
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum2
   read (d_unit, err = 9100) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -397,7 +402,22 @@ do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
 
-!
+! RF field def
+
+call init_rf_field (ele%rf%field, n_rf_field_mode)
+do i = 1, n_rf_field_mode
+  mode => ele%rf%field%mode(i)
+  read (d_unit, err = 9140) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+                               mode%m, mode%phi_0, mode%dz, mode%sample_radius 
+
+  if (allocated(mode%term)) then
+    if (size(mode%term) /= n) deallocate(mode%term)
+  endif
+  if (size(mode%term) /= n) allocate (mode%term(n))
+  read (d_unit, err = 9140) mode%term
+enddo
+
+! Mode3
 
 if (mode3) then
   allocate(ele%mode3)
@@ -453,7 +473,7 @@ enddo
 
 if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
-    call transfer_wake (lat%ele(abs(ix_lr))%rf%wake, ele%rf%wake)
+    call transfer_rf_wake (lat%ele(abs(ix_lr))%rf%wake, ele%rf%wake)
 
   else
     call init_wake (ele%rf%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
@@ -507,6 +527,15 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING VALUES OF ELEMENT # \i0\ ', &
                                   i_array = (/ ix_ele /) )
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+9140  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+        'ERROR READING RF%FIELD COMPONENT FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 bmad_status%ok = .false.
