@@ -50,8 +50,6 @@ character(200) fname, full_digested_name
 character(32) :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp
 
-logical write_wake, mode3
-
 !! external stat ! Removed because it caused a mac link problem. DCS.
 
 ! Write input file names to the digested file
@@ -197,7 +195,9 @@ type (rf_field_mode_struct), pointer :: mode
 
 integer ix_wig, n_wall_section, ix_const, ix_r(4), ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
-integer j, k, n_rf_field_mode
+integer i, j, k, n_rf_field_mode
+
+logical write_wake, mode3
 
 !
 
