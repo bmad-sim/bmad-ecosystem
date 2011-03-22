@@ -448,10 +448,12 @@ parsing_loop: do
 
     endif
 
+    ! If not found then the parse line must be cleared.
     ! If not found then issue a warning except if a general key redef ("quadrupole[...] = ...").
 
-    if (.not. found .and. key_name_to_key_index (word_1, .false.) == -1) then
-      call parser_warning ('ELEMENT NOT FOUND: ' // word_1)
+    if (.not. found) then
+      bp_com%parse_line = ''
+      if (key_name_to_key_index (word_1, .false.) == -1) call parser_warning ('ELEMENT NOT FOUND: ' // word_1)
     endif
 
     if (found .and. .not. print_err .and. .not. good_attrib) then

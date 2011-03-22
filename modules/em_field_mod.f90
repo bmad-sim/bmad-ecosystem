@@ -167,13 +167,14 @@ type (coord_struct) :: orbit, local_orb
 type (coord_struct), optional :: local_orbit
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
+type (rf_field_mode_struct), pointer :: mode
 
 real(rp) :: x, y, xx, yy, s, s_pos, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, phi, r, E_r, B_phi
 
-integer i, sign_charge
+integer i, j, sign_charge
 
 logical :: local_ref_frame
 logical, optional :: calc_dfield
@@ -231,14 +232,85 @@ f_p0c = sign_charge * ele%value(p0c$) / c_light
 select case (ele%key)
 
 !------------------------------------------
+! RFcavity and Lcavity
+
+case(rfcavity$, lcavity$)
+
+  if (.not. associated(ele%rf%field)) then
+    print *, 'ERROR IN EM_FIELD_CALC: RF FIELD NOT DEFINED FOR: ' // ele%name
+    call err_exit
+  endif
+
+  do i = 1, size(ele%rf%field%mode)
+    mode => ele%rf%field%mode(i)
+    if (mode%m /= 0) then
+      print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M /= 0 NOT YET IMPLEMENTED FOR: ' // ele%name
+      call err_exit
+    endif
+
+    if (any(mode%term%b /= 0)) then
+      print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M == 0 NON-ACCELERATING NOT YET IMPLEMENTED FOR: ' // ele%name
+      call err_exit
+    endif
+
+    do j = 1, size(mode%term)
+
+
+    enddo
+
+  enddo
+
+
+  ! This is taken from the gradient as calculated in
+  !       J. Rosenzweig and L. Serafini
+  !       Phys Rev E, Vol. 49, p. 1599, (1994)
+  !
+  ! Right now only works at relativistic energies
+
+  ! This is taken from track1_bmad
+  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+                      local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
+  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
+  if (.not. ele%is_on) gradient = 0
+   
+  if (bmad_com%sr_wakes_on) then
+    if (bmad_com%grad_loss_sr_wake /= 0) then  
+      ! use grad_loss_sr_wake and ignore e_loss
+      gradient = gradient - bmad_com%grad_loss_sr_wake
+    elseif (ele%value(e_loss$) /= 0) then
+      gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / ele%value(l$)
+    endif
+  endif
+
+  dEz_dz = gradient * sign(1, charge_of(param%particle))
+
+  if (x .eq. 0.0) then
+    theta = 0.0
+  else
+    theta = atan(y/x)   
+  endif
+  r = sqrt(x**2 + y**2)                                           
+  E_r =  - (r/2.0) * dEz_dz                                       
+  B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
+                                                                   
+                                                                   
+  field%E(1) = E_r * cos (theta)                                  
+  field%E(2) = E_r * sin (theta)
+  field%E(3) = gradient * sin (f + phase)
+  
+  phi = pi - theta
+  field%B(1) =   B_phi * cos (phi)
+  field%B(2) = - B_phi * sin (phi)
+
+  if (df_calc) then
+    print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
+    call err_exit
+  endif
+
+!------------------------------------------
 ! Wiggler
 
 case(wiggler$)
-
-  if (ele%sub_key /= map_type$) then
-    print *, 'ERROR IN EM_FIELD_CALC: PERIODIC WIGGLER NOT YET IMPLEMENTED!'
-    call err_exit
-  endif
 
   do i = 1, size(ele%wig_term)
     t => ele%wig_term(i)
@@ -361,58 +433,6 @@ case (sbend$)
     field%dB(1,2) =  x * ele%value(k2$) * f_p0c
     field%dB(2,1) = -x * ele%value(k2$) * f_p0c
     field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
-  endif
-
-
-!------------------------------------------
-! Lcavity
-!
-! This is taken from the gradient as calculated in
-!       J. Rosenzweig and L. Serafini
-!       Phys Rev E, Vol. 49, p. 1599, (1994)
-!
-! Right now only works at relativistic energies
-
-case (lcavity$)
-
-  ! This is taken from track1_bmad
-  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
-                      local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
-  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
-  if (.not. ele%is_on) gradient = 0
-   
-  if (bmad_com%sr_wakes_on) then
-    if (bmad_com%grad_loss_sr_wake /= 0) then  
-      ! use grad_loss_sr_wake and ignore e_loss
-      gradient = gradient - bmad_com%grad_loss_sr_wake
-    elseif (ele%value(e_loss$) /= 0) then
-      gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / ele%value(l$)
-    endif
-  endif
-
-  dEz_dz = gradient * sign(1, charge_of(param%particle))
-
-  if (x .eq. 0.0) then
-    theta = 0.0
-  else
-    theta = atan(y/x)   
-  endif
-  r = sqrt(x**2 + y**2)                                           
-  E_r =  - (r/2.0) * dEz_dz                                       
-  B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
-                                                                   
-                                                                   
-  field%E(1) = E_r * cos (theta)                                  
-  field%E(2) = E_r * sin (theta)
-  field%E(3) = gradient * sin (f + phase)
-  
-  phi = pi - theta
-  field%B(1) =   B_phi * cos (phi)
-  field%B(2) = - B_phi * sin (phi)
-
-  if (df_calc) then
-    print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
-    call err_exit
   endif
 
 !------------------------------------------
