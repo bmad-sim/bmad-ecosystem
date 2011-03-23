@@ -1,7 +1,7 @@
 !+
 ! Subroutine da_driver (RING, TRACK_INPUT, n_xy_pts, &
 !                         point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz, particle, Qp_x, Qp_y, &
-!                          delta_fRF, fRF)
+!                          delta_fRF, fRF, qp_tune1, qp_tune2, qtune_match)
 !
 ! Subroutine to determine starting point for dynamic aperture tracking.
 ! The subroutine works by determining where on a radial line y = const * x
@@ -10,6 +10,7 @@
 ! Modules Needed:
 !   use bmad_struct
 !   use bmad_interface
+!
 !   use bmadz_interface
 !
 ! Input:
@@ -25,6 +26,8 @@
 !    N_ENERGY_PTS   -- Number of off energy runs to do.
 !    Qp_x, Qp_y     -- Real: Chromaticity
 !    delta_fRF, fRF -- Real: RF frequency offset and RF frequency
+!    qp_tune1, 2    -- Character: names of sextupoles to adjust chromaticity. This works if there are two families with just two names
+!    qtune_match    -- Logical : if true use insert and use match element to qtune
 !
 !    IN_FILE        -- name of input file 
 !
@@ -62,8 +65,7 @@
 
 subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                                energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
-                               delta_fRF, fRF, qp_tune1, qp_tune2)
-
+                               delta_fRF, fRF, qp_tune1, qp_tune2, qtune_match)
 !  use bmad_struct
 !  use bmad_interface
   use bmad
@@ -102,6 +104,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
   logical aperture_bracketed, track_on
   logical ok
+  logical qtune_match
 
   character*60 da_file, in_file
   character date_str*20
@@ -163,7 +166,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     call calc_z_tune(ring)
     print *,' DA_DRIVER: z_tune = ', ring%z%tune
    print *,' DA_DRIVER: before first call custom_set_tune '
-    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
+    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok, match = qtune_match) 
    print *,' DA_DRIVER: after first call custom_set_tune '
     if(.not. ok) print *,' DA_DRIVER: Qtune failed'
   endif
@@ -186,12 +189,12 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   print '(a32,f12.4,a9,f12.4)',' DA_DRIVER: After Qp_tune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
 
    print *,' DA_DRIVER: before second call custom_set_tune '
-    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
+    call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok, match=qtune_match) 
    print *,' DA_DRIVER: after second call custom_set_tune '
     if(.not. ok) print *,' DA_DRIVER: Second Qtune failed'
 
   call twiss_at_start(ring)
-  print '(a37,f12.4,a9,f12.4)',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi
+  print '(a37,f12.4,a9,f10.4,2(a,f10.4))',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi, '    beta_x = ', ring%ele(0)%a%beta,'    beta_y = ', ring%ele(0)%b%beta
 
   call element_locator('PATCH_RF_W1',ring,ix)
    if(ix > 0) then
