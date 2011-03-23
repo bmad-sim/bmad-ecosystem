@@ -354,7 +354,7 @@ contains
 ! minimize. This is essentially just a wrapper for passing values to
 ! RING_TO_Y.
 
-  subroutine lmfunc(a,y,dyda)
+  subroutine lmfunc(a,y,dyda, status)
     implicit none
     real(rp), dimension(:), intent(in) :: a
     real(rp), dimension(:), intent(out) :: y
@@ -363,6 +363,7 @@ contains
     real(rp), dimension(size(a)) :: a2
     real(rp), dimension(size(y)) :: y1, y2
     real(rp), parameter :: delta = 1.e-7
+    integer status
     integer ia
 
     call ring_to_y(a, y)

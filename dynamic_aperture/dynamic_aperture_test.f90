@@ -46,7 +46,7 @@ program dynamic_aperture_test
 interface
  subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                                energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
-                               delta_fRF, fRF, qp_tune1, qp_tune2)
+                               delta_fRF, fRF, qp_tune1, qp_tune2, qtune_match)
 
 !  use bmad_struct
 !  use bmad_interface
@@ -70,8 +70,8 @@ interface
 
 
   character*60 in_file
-  character*16 qp_tune1, qp_tune2
-
+  character*16 qp_tune1, qp_tune2 ! if these elements exist use them to adjust chromaticity. This works if there are jsut two families and two names
+  logical qtune_match  !if true insert match element when setting tune in custom set tune
  end subroutine da_driver
 end interface
 
@@ -107,16 +107,18 @@ end interface
   character*100 lat_file
   character date_str*20
   character*16 qp_tune1, qp_tune2 ! elements for changing chromaticity (like RAW_XQUNEING_1 and 2)
-
+    
   logical ok
   logical rec_taylor
   logical path_length_patch/.false./
+  logical qtune_match !if true insert match element in custom_set_tune to qtune
 
   namelist / input / lat_file,n_turn, n_xy_pts, point_range, n_energy_pts,  &
                      x_init, y_init, e_max, energy, accuracy, &
                      aperture_multiplier, Qx, Qy, Qz, particle, &
                      i_train, j_car, n_trains_tot, n_cars, current, lat_file, &
-                     Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF, qp_tune1, qp_tune2
+                     Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF, &
+                     qp_tune1, qp_tune2, qtune_match
 
 ! init
 
@@ -149,6 +151,7 @@ end interface
   fRF = 5.e8
   qp_tune1 = 'RAW_XQUNEING_1'
   qp_tune2 = 'RAW_XQUNEING_2'
+  qtune_match = .false.
 
 
   read (1, nml = input)
@@ -184,7 +187,8 @@ end interface
      co(i)%vec = 0
     end do
    call set_on_off(elseparator$, ring, off$)
-   call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok) 
+   print *, ' Just before initial qtune '
+   call custom_set_tune (phy_x_set, phy_y_set, dk1, ring, co, ok, match = qtune_match) 
     if (.not. ok) print *,' Qtune failed'
    call set_on_off(elseparator$, ring, on$)
   endif
@@ -250,7 +254,7 @@ end interface
 
   call da_driver (ring, track_input,n_xy_pts, &
                         point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz,particle, Qp_x, Qp_y, &
-                        delta_fRF, fRF, qp_tune1, qp_tune2)
+                        delta_fRF, fRF, qp_tune1, qp_tune2, qtune_match)
 
   deallocate(dk1)
 

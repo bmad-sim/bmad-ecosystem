@@ -58,7 +58,7 @@ program anaylzer
   real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
   real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
 
-  real*4 width/7./, aspect/1.4/
+  real*4 width/7./, aspect/1.3/
   real*4 xmax/0./, ymax/0./, xmax0, ymax0
   real*4 xscale, yscale, x_low, y_low
   real*4 xa(4), za(4)
@@ -494,7 +494,8 @@ program anaylzer
        call radiation_integrals (ring, co, mode, ix_cache, rad_int)
        print '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
                                     '    vertical emittance = ',mode%b%emittance
-       print '(a17,e12.4,a18,e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z
+       print '(a17,e12.4,a18,e12.4, a, e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z ,&
+                                     ' Energy loss/turn [MeV] ',mode%e_loss/1.e6
        print '(a11,e12.4)',' Revolution freq    = ', frev
        if(mode%a%alpha_damp /= 0.)then
          print '(a22,e12.4)',' Horiz damping time = ',1/mode%a%alpha_damp/frev
@@ -1437,7 +1438,7 @@ program anaylzer
 
 !  icall = icall +1
   call pgslct(istat2)
-  call pgpap(4.5,2.4)
+  call pgpap(4.5,2.2)
   call pgsubp(1,3)
        call pgscr(0, 1., 1., 1.)
        call pgscr(1,0.,0.,0.)

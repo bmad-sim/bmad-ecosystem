@@ -1,7 +1,7 @@
 #=============================================================================
 # File:     M.dynamic_aperture
 #
-# Purpose:  Makefile to build the  dynamic_aperture_test executable
+# Purpose:  Makefile to build the  dynamic_aperture executable
 #
 # Author:   M. Palmer   7/24/00
 #
