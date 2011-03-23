@@ -3001,7 +3001,7 @@ if (data_source /= 'lat') return
 if (data_type  == 'sigma.pz') do_synch = .true. 
 if (data_type(1:5)  == 'emit.') do_synch = .true. 
 if (data_type(1:10) == 'norm_emit.') do_synch = .true. 
-if (data_type(1:8)  == 'rad_int.') do_synch = .true.
+if (data_type(1:7)  == 'rad_int') do_synch = .true.
 
 end function tao_rad_int_calc_needed
 

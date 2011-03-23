@@ -472,7 +472,7 @@ a universe number, the value of the datum will be independent of the
 universe it is in.
 
   \index{floor.}
-  \item[floor.]
+  \item[floor.] \Newline
 This is the global floor position at the exit end of evaluation element. See the
 \bmad manual for details on the global coordinate system. See also
 \vn{rel_floor.}.
@@ -519,7 +519,7 @@ element is the same as the evaluation element, this data type cannot
 be used with a linear lattice.
 
   \index{phase.}
-  \item[phase.]
+  \item[phase.] \Newline
 This is the betatron phase.  If a \vn{d1_data} array has a set of
 \vn{phase} datums, and if the reference element is {\em not}
 specified, the average phase used for optimizations ($D$ in
@@ -532,14 +532,23 @@ since one does not have to worry about arbitrary offsets between the
 \vn{model} and \vn{measured} values. If the reference element is
 specified then there is no arbitrary constant in the evalustion.
 
+  \index{rad_int.}
+  \item[rad_int, rad_int1] \Newline
+The \vn{rad_int.} datums are the radiation integrals from the start of
+the lattice. The \vn{rad_int1.} datums are the radiation integrals on
+an element-by-element basis. That is, if \vn{ele_ref} is not specified,
+\vn{rad_int.} will give the radiation integral from the start of the 
+lattice through the evaluation element, and \vn{rad_int1.} will give
+the radiation integral integrated over just the evaluation element.
+
   \index{ref_time}
-  \item[ref_time]
+  \item[ref_time] \Newline
 This is the time the reference particle passes the exit end of the element.
 If the particle is ultra-relativistic then this is just $c * s$ where $s$
 is the longitudinal distance from the start of the lattice.
 
   \index{rel_floor.}
-  \item[rel\_floor.]
+  \item[rel\_floor.] \Newline
 This is the global floor position at the exit end of the evaluation
 element relative to the exit end of the reference element in a global
 coordinate system where the exit end of the reference element is taken to be at

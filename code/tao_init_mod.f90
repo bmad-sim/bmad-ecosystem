@@ -1147,7 +1147,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. data%exists) cycle
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
       cycle ! Does not get evaluated by tao_lattice_calc_mod
-    elseif (data%data_type(1:8) == 'rad_int.') then
+    elseif (data%data_type(1:7) == 'rad_int') then
       ix_ele = -1
     elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
       ix_ele = -1
@@ -1185,7 +1185,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. data%exists) cycle
     if (data%data_type(1:17) == 'multi_turn_orbit.') then
       cycle ! Does not get evaluated by tao_lattice_calc_mod
-    elseif (data%data_type(1:8) == 'rad_int.') then
+    elseif (data%data_type(1:7) == 'rad_int') then
       ix_ele = -1
     elseif (data%ix_ele > s%u(data%d1%d2%ix_uni)%model%lat%n_ele_track) then
       ix_ele = -1

@@ -222,7 +222,7 @@ logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_ra
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
-logical print_global, print_optimization, print_bmad_com, print_csr_param 
+logical print_global, print_optimization, print_bmad_com, print_csr_param, print_rad_int
 
 namelist / custom_show_list / column
 
@@ -1225,14 +1225,15 @@ case ('lattice')
   show_custom = .false.
   column(:)%name = ""
   column(:)%label = ""
+  print_rad_int = .false.
 
   ! get command line switches
 
   do
     call tao_next_switch (stuff2, [ &
-        '-branch           ', '-blank_replacement', '-lords            ', '-middle           ', &
-        '-all_tracking     ', '-0undef           ', '-no_label_lines   ', '-no_tail_lines    ', &
-        '-custom           ', '-s                '], switch, err, ix)
+        '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
+        '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
+        '-custom             ', '-s                  ', '-radiation_integrals'], switch, err, ix)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -1244,6 +1245,9 @@ case ('lattice')
         return
       endif
       call string_trim(stuff2(ix+1:), stuff2, ix)
+
+    case ('-radiation_integrals')
+      print_rad_int = .true.
 
     case ('-blank_replacement')
       replacement_for_blank = stuff2(1:ix)
@@ -1306,6 +1310,27 @@ case ('lattice')
       column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',    10, '')
       column(6)  = show_lat_column_struct('x',                   'x',         2, '')
       column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '') 
+    elseif (print_rad_int) then
+      column(1)  = show_lat_column_struct('#',                     'i6',        6, '')
+      column(2)  = show_lat_column_struct('x',                     'x',         2, '')
+      column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '')
+      column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '')
+      column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '')
+      if (branch%param%lattice_type == linear_lattice$) then
+        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '')
+        column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '')
+        column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '')
+        column(9)  = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '')
+        column(10) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '')
+      else
+        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '')
+        column(7)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '')
+        column(8)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '')
+        column(9)  = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '')
+        column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '')
+        column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '')
+        column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '')
+      endif
     else
       column(1)  = show_lat_column_struct('#',                 'i6',        6, '')
       column(2)  = show_lat_column_struct('x',                 'x',         2, '')
@@ -1323,6 +1348,16 @@ case ('lattice')
       column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
     endif
   endif
+
+  ! Need to compute radiation integrals?
+
+  do i = 1, size(column)
+    if (index(column(i)%name, 'rad_int') /= 0) then
+      call radiation_integrals (lat, u%model%lat_branch(0)%orbit, &
+                                             u%model%modes, u%ix_rad_int_cache, u%model%rad_int)
+      exit
+    endif
+  enddo
 
   ! Find elements to use
 
@@ -1442,7 +1477,8 @@ case ('lattice')
         name = ''
       endif
 
-      ix = index(name, '_')
+      ix = index(name, '.')
+      if (ix == 0) ix = index(name, '_')
       n = len_trim(name)
       if (column(i)%format(2:2) == 'a') then
         line2(ix1:) = name
@@ -2091,15 +2127,11 @@ case ('universe')
     return
   endif
  
-  call radiation_integrals (lat, &
-                     u%model%lat_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
-  call radiation_integrals (u%design%lat, &
-                     u%design%lat_branch(0)%orbit, u%design%modes, u%ix_rad_int_cache)
+  call radiation_integrals (lat, u%model%lat_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
+  call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%ix_rad_int_cache)
   if (lat%param%lattice_type == circular_lattice$) then
-    call chrom_calc (lat, delta_e, &
-                        u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
-    call chrom_calc (u%design%lat, delta_e, &
-                        u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
+    call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
+    call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
   endif
 
   nl=nl+1; lines(nl) = ''
