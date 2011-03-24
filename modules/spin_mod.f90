@@ -121,12 +121,7 @@ phi(2) = atan2 (imag(coord%spin(2)), real(coord%spin(2)))
 polar%xi = phi(1)
 polar%phi = phi(2) - phi(1)
 
-if (abs(coord%spin(1)) .gt. 1.0) then
-  polar%theta = 0.0
-else
-  val = abs(coord%spin(1))
-  polar%theta  = modulo(2.0d0 * acos (val), pi)
-endif
+polar%theta = 2 * atan2(abs(coord%spin(2)), abs(coord%spin(1))) 
 
 end subroutine spinor_to_polar
 
@@ -229,12 +224,12 @@ real(rp), optional :: phase
 
 polar%xi = real_option (0.0d0, phase)
 
-if (vec(3) .eq. 0.0_rp) then
-  polar%theta = pi/2.0_rp
+if (vec(3) .eq. 0.0) then
+  polar%theta = pi/2.0
 else
   polar%theta = atan(sqrt(vec(1)**2 + vec(2)**2) / abs(vec(3)))
   ! get hemisphere correct
-  if (vec(3) .lt. 0.0_rp) polar%theta = pi - polar%theta
+  if (vec(3) .lt. 0.0) polar%theta = pi - polar%theta
 endif
 
 polar%phi = atan2(vec(2), vec(1))
@@ -492,7 +487,7 @@ end select
 
 call offset_particle (ele, param, temp, set$, set_canonical = .false., &
                         set_hvkicks = .false.)
-call offset_spin (ele, param, temp, set$, (doesAffectSpin .or. isKicker), (doesAffectSpin .or. isKicker))
+! call offset_spin (ele, param, temp, set$, (doesAffectSpin .or. isKicker), (doesAffectSpin .or. isKicker))
 
 if(doesAffectSpin) then
   select case (key)
@@ -717,7 +712,7 @@ if(doesAffectSpin) then
   call quaternion_track (a, start, temp)
 endif
 
-call offset_spin (ele, param, temp, unset$, (doesAffectSpin .or. isKicker), (doesAffectSpin .or. isKicker))
+! call offset_spin (ele, param, temp, unset$, (doesAffectSpin .or. isKicker), (doesAffectSpin .or. isKicker))
 call offset_particle (ele, param, temp, unset$, set_canonical = .false., & 
                         set_hvkicks = .false.)
 
@@ -1084,8 +1079,8 @@ if (set) then
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
-      call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * ele%value(vkick$) / 2)
+      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
+      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
   endif
 
   ! Set: Multipoles
@@ -1123,12 +1118,12 @@ if (set) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * ele%value(kick$) / 2)
+      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
     elseif (ele%key == vkicker$) then
-      call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * ele%value(kick$) / 2)
+      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
     else ! i.e. elseif (ele%key == kicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * ele%value(vkick$) / 2)
+      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
+      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
     endif
   endif
 
@@ -1145,12 +1140,12 @@ else
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * ele%value(kick$) / 2)
+      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
     elseif (ele%key == vkicker$) then
-      call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * ele%value(kick$) / 2)
+      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
     else ! i.e. elseif (ele%key == kicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * ele%value(vkick$) / 2)
+      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
+      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
     endif
   endif
 
@@ -1185,8 +1180,8 @@ else
   ! canonical momentum.
 
   if (set_hv1) then
-      call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * ele%value(vkick$) / 2)
+      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
+      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
   endif
 
   ! Unset: (Offset and) pitch
