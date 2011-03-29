@@ -30,7 +30,7 @@ type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), pointer :: poly
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
-real(rp) emit_a, emit_b, sig_e, g, gamma, r
+real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max
 
@@ -561,25 +561,26 @@ if (sr3d_params%stop_if_hit_antechamber .and. &
   print *, 'Data file for photons hitting the antechamber: ', trim(dat_file)
 endif
 
-write (1, *) 'ix_ele_track_start   =', ix_ele_track_start
-write (1, *) 'ix_ele_track_end     =', ix_ele_track_end
-write (1, *) 'photon_direction     =', photon_direction
-write (1, *) 'num_photons          =', num_photons
-write (1, *) 'num_photons_per_pass =', num_photons_per_pass
-write (1, *) 'lattice_file         =', trim(lattice_file)
-write (1, *) 'ds_step_min          =', ds_step_min
-write (1, *) 'emit_a               =', emit_a
-write (1, *) 'emit_b               =', emit_b
-write (1, *) 'sig_e                =', sig_e
-write (1, *) 'wall_file            =', trim(wall_file)
-write (1, *) 'dat_file             =', trim(dat_file)
-write (1, *) 'random_seed          =', random_seed
-write (1, *) 'e_init_filter_min  =', e_init_filter_min
-write (1, *) 'e_init_filter_max  =', e_init_filter_max
-write (1, *) 'e_filter_min       =', e_filter_min
-write (1, *) 'e_filter_max       =', e_filter_max
-write (1, *) 's_filter_min       =', s_filter_min
-write (1, *) 's_filter_max       =', s_filter_max
+write (1, *) 'ix_ele_track_start      =', ix_ele_track_start
+write (1, *) 'ix_ele_track_end        =', ix_ele_track_end
+write (1, *) 'photon_direction        =', photon_direction
+write (1, *) 'num_photons             =', num_photons
+write (1, *) 'num_photons_per_pass    =', num_photons_per_pass
+write (1, *) 'lattice_file            = ', trim(lattice_file)
+write (1, *) 'ds_step_min             =', ds_step_min
+write (1, *) 'emit_a                  =', emit_a
+write (1, *) 'emit_b                  =', emit_b
+write (1, *) 'sig_e                   =', sig_e
+write (1, *) 'photon_start_input_file = ', trim(photon_start_input_file)
+write (1, *) 'wall_file               = ', trim(wall_file)
+write (1, *) 'dat_file                = ', trim(dat_file)
+write (1, *) 'random_seed             =', random_seed
+write (1, *) 'e_init_filter_min       =', e_init_filter_min
+write (1, *) 'e_init_filter_max       =', e_init_filter_max
+write (1, *) 'e_filter_min            =', e_filter_min
+write (1, *) 'e_filter_max            =', e_filter_max
+write (1, *) 's_filter_min            =', s_filter_min
+write (1, *) 's_filter_max            =', s_filter_max
 write (1, *) 'sr3d_params%allow_reflections  =', sr3d_params%allow_reflections
 write (1, *) 'sr3d_params%ds_track_step_max  =', sr3d_params%ds_track_step_max
 write (1, *) 'sr3d_params%dr_track_step_max  =', sr3d_params%dr_track_step_max
@@ -593,6 +594,10 @@ do i = 1, n_photon_array
                                              '! index, n_wall_hit, eV, intensity'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
   write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
+  write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
+  dtrack = photon%now%track_len - photon_direction * (photon%now%vec(5) - photon%start%vec(5))
+  if (photon%crossed_lat_end) dtrack = dtrack - lat%param%total_length
+  write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - beam_track_len'
   j = photon%now%ix_ele
   write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
 enddo
