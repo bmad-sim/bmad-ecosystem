@@ -597,7 +597,7 @@ do i = 1, n_photon_array
   write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
   dtrack = photon%now%track_len - photon_direction * (photon%now%vec(5) - photon%start%vec(5))
   if (photon%crossed_lat_end) dtrack = dtrack - lat%param%total_length
-  write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - beam_track_len'
+  write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - ds_beam'
   j = photon%now%ix_ele
   write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
 enddo
