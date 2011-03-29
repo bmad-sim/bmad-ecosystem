@@ -41,7 +41,6 @@ TYPE tt_param_struct
                                     ! and load TT state vars on initialization.
   REAL(rp) phi_to_kicker  ! phase advance from x phase at bpm to xdot phase at kicker
   REAL(rp) Dt             ! time between data points (usually set to ring period)
-  REAL(rp) fastPeriod     ! period of PLL electronics.  e.g. 14 ns for CESR 
   REAL(rp) LPalpha        ! low-pass filter constant
   REAL(rp) Ki             ! Integrator gain
   REAL(rp) Kp             ! Proportional gain
@@ -49,6 +48,8 @@ TYPE tt_param_struct
   REAL(rp) modw0          ! Modulator base frequency (initial guess of beam frac tune)
   REAL(rp) offset         ! Closed orbit at bpm.
   CHARACTER(3) mixmode    ! To mix BPM data with square wave or sine wave
+  INTEGER cyc_per_turn    ! Number of times tune tracker cycles per turn.  Usually an integer
+                          !   fraction of the harmonic number.
 
   !Parameters specific to D channel
   LOGICAL :: use_D_chan = .FALSE.      ! Whether to use the D channel.  Disable D channel if not in use
@@ -73,10 +74,8 @@ TYPE tt_state_struct
   REAL(rp) deltaw               ! w_vco = w0 + deltaw
   REAL(rp) intDphi              ! integrated Dphi
   REAL(rp) bpm_msmt_last        ! stashes previous bpm measurement
-  REAL(rp) t_fast               ! keeps track of current time of fast electronics iteration
-  REAL(rp) t_cesr               ! keeps track of current time of storage ring
-  REAL(rp) psi_fast             ! keeps track of angle used by fast electronics
-  REAL(rp) psi_cesr             ! keeps track of angle used by kicker
+  REAL(rp) t                    ! keeps track of time
+  REAL(rp) psi                  ! keeps track of modulator angle
   REAL(rp) Dphi                 ! Delta Phi - angle that comes out of filters mixer signal
   REAL(rp) gain                 ! bpm gain
 END TYPE tt_state_struct
@@ -166,10 +165,8 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
     tt_state(id)%deltaw = 0.0_rp
     tt_state(id)%intDphi = 0.0_rp
     tt_state(id)%bpm_msmt_last = 0.0_rp
-    tt_state(id)%t_fast = 0.0_rp
-    tt_state(id)%t_cesr = 0.0_rp
-    tt_state(id)%psi_fast = 0.0_rp
-    tt_state(id)%psi_cesr = 0.0_rp
+    tt_state(id)%t = 0.0_rp
+    tt_state(id)%psi = 0.0_rp
     tt_state(id)%Dphi = 0.0_rp
     tt_state(id)%gain = 0.001_rp
   ENDIF
@@ -181,7 +178,7 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   OPEN(UNIT=500+id,NAME=tt_log_name,STATUS='REPLACE')
 
   IF(tt_param(id)%use_D_chan) THEN
-    tt_param(id)%wls_id = initFixedWindowLS(tt_param(id)%wls_N,tt_param(id)%Dt,tt_param(id)%wls_order,2)
+    tt_param(id)%wls_id = initFixedWindowLS(tt_param(id)%wls_N,tt_param(id)%Dt,tt_param(id)%wls_order,1)
   ENDIF
 END FUNCTION init_dTT
 
@@ -254,7 +251,9 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
   REAL(rp) dirDphi  !first derivative of Dphi
   REAL(rp) PIDout ! P + I + D
   REAL(rp) bpm
-  REAL(rp) aNloops
+  REAL(rp) fastPeriod
+
+  INTEGER i
 
   ! Adjust bpm data for closed orbit offset and apply gain
   bpm_msmt = bpm_msmt - tt_param(id)%offset
@@ -262,19 +261,16 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
   tt_state(id)%gain = ga*ABS(bpm_msmt) + (1.0_rp-ga)*tt_state(id)%gain
   bpm_msmt = bpm_msmt/tt_state(id)%gain
 
-  aNloops = tt_param(id)%Dt/tt_param(id)%fastPeriod !approximate number of fast loops per turn
-                                                    !used to normalize integrator gain
-
-  tt_state(id)%t_cesr = tt_state(id)%t_cesr + tt_param(id)%Dt
+  fastPeriod = tt_param(id)%Dt / tt_param(id)%cyc_per_turn
 
   !This loop represents the tune tracker fast elecronics (typically 14ns)
-  DO WHILE((tt_state(id)%t_fast+tt_param(id)%fastPeriod) < tt_state(id)%t_cesr)
-    IF( tt_state(id)%t_fast < (tt_state(id)%t_cesr-tt_param(id)%Dt/2.0_rp) ) THEN
+  DO i=1, tt_param(id)%cyc_per_turn
+    IF( i <= FLOOR(tt_param(id)%cyc_per_turn / 2.0) ) THEN
       bpm = tt_state(id)%bpm_msmt_last
     ELSE
       bpm = bpm_msmt
     ENDIF
-    CALL modulator(tt_state(id)%psi_fast,sinout,sqrout)
+    CALL modulator(tt_state(id)%psi,sinout,sqrout)
 
     ! Phase Detector: mixer followed by low-pass filter
     IF( tt_param(id)%mixmode == 'sqr' ) THEN
@@ -288,39 +284,41 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
     tt_state(id)%Dphi = AB*tt_param(id)%LPalpha + (1.0_rp-tt_param(id)%LPalpha)*tt_state(id)%Dphi
 
     ! Calculate Integral Channel
-    tt_state(id)%intDphi = tt_state(id)%intDphi + (tt_param(id)%Ki/aNloops)*tt_state(id)%Dphi
+    tt_state(id)%intDphi = tt_state(id)%intDphi + &
+                           (tt_param(id)%Ki/tt_param(id)%cyc_per_turn)*tt_state(id)%Dphi
 
     ! Update modulator angle
-    tt_state(id)%psi_fast = tt_state(id)%psi_fast + &
-                       (tt_param(id)%modw0 + tt_state(id)%deltaw)*tt_param(id)%fastPeriod
-    tt_state(id)%psi_fast = MOD(tt_state(id)%psi_fast,2.0_rp*pi)
+    tt_state(id)%psi = tt_state(id)%psi + (tt_param(id)%modw0 + tt_state(id)%deltaw)*fastPeriod
+    tt_state(id)%psi = MOD(tt_state(id)%psi,2.0_rp*pi)
 
-    tt_state(id)%t_fast = tt_state(id)%t_fast + tt_param(id)%fastPeriod
+    tt_state(id)%t = tt_state(id)%t + fastPeriod !needed for log file
   ENDDO
   tt_state(id)%bpm_msmt_last = bpm_msmt
 
   !The following calculates the proportional and derivative channels
   proDphi = tt_param(id)%Kp * tt_state(id)%Dphi
   IF( tt_param(id)%use_D_chan ) THEN
-    dirDphi = fixedWindowLS(tt_state(id)%intDphi,tt_param(id)%wls_id)
-    PIDout = tt_state(id)%intDphi + proDphi + dirDphi*tt_param(id)%Kd
+    dirDphi = fixedWindowLS(proDphi,tt_param(id)%wls_id)
+    PIDout = tt_state(id)%intDphi + proDphi - dirDphi*tt_param(id)%Kd
   ELSE
     PIDout = tt_state(id)%intDphi + proDphi
   ENDIF
+
   !Update modulator frequency
   tt_state(id)%deltaw = tt_param(id)%Kvco * PIDout
 
+  !Write to log file
   IF( tt_param(id)%use_D_chan ) THEN
     !This statement writes the state of each PID channel to the tt_log_n.out file.
-    WRITE(500+id,'(4ES14.4)') tt_state(id)%t_cesr, tt_state(id)%intDphi, proDphi, dirDphi
+    WRITE(500+id,'(4ES14.4)') tt_state(id)%t, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                              tt_param(id)%Kp*proDphi, &
+                                             -tt_param(id)%Kd*dirDphi
   ELSE
-    WRITE(500+id,'(3ES14.4)') tt_state(id)%t_cesr, tt_state(id)%intDphi, proDphi
+    WRITE(500+id,'(3ES14.4)') tt_state(id)%t, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                              tt_param(id)%Kp*proDphi
   ENDIF
 
-  tt_state(id)%psi_cesr = tt_state(id)%psi_cesr + (tt_param(id)%modw0 + tt_state(id)%deltaw)*tt_param(id)%Dt
-
-  CALL modulator(tt_state(id)%psi_cesr+tt_param(id)%phi_to_kicker, sinout, sqrout)
-  !CALL elliptical_modulator(id,sinout)
+  CALL modulator(tt_state(id)%psi + tt_param(id)%phi_to_kicker, sinout, sqrout)
   z = sinout
 
 END FUNCTION cesr_dTT
