@@ -140,14 +140,14 @@ end type
 ! Each %term(n) in this structure has a wavelength k = (n-1) * twopi / %dz
 
 type rf_field_mode_struct
-  real(rp) freq
+  integer m                 ! Mode varies as cos(m*phi - phi_0)
+  real(rp) freq             ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0    ! 1/Q damping factor 
   real(rp) :: theta_t0 = 0  ! Mode oscillates as: omega * t - theta_t0
   real(rp) stored_energy    ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  integer m                 ! Mode varies as cos(m*phi - phi_0)
   real(rp) phi_0            ! Azimuthal orientation of mode.
   real(rp) dz               ! Distance between sampled field points.
-  real(rp) sample_radius    ! For informational purposes. Not used in calculations.
+  real(rp) f_scale          ! Factor to scale the fields by
   type (rf_field_mode_term_struct), allocatable :: term(:) 
 end type
 
@@ -155,6 +155,8 @@ end type
 
 type rf_field_struct
   type (rf_field_mode_struct), allocatable :: mode(:)
+  real(rp), allocatable :: t_ref(:)       ! Reference time as a function of s.
+  real(rp), allocatable :: E_tot_ref(:)   ! Reference energy as a function of s.
 end type
 
 type rf_struct
@@ -786,10 +788,10 @@ character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ',
 ! The idea:
 !   When an element attribute is modified, a program will set ele%attribute_status to 
 !     is_modified$ to trigger the bookkeeping routines.
-!   The bookkeeping routines will set to all_bookkeeping_done$ when
+!   The bookkeeping routines will set %attribute_status to all_bookkeeping_done$ when
 !     the bookkeeping is done.
-!   The program can optionally set to unmodified$ if it has calculations that it only
-!     wants to do if element attributes are modified.
+!   After this, the program can optionally set %attribute_status to unmodified$ if it 
+!     has calculations that it only wants to do if element attributes are modified.
 
 integer, parameter :: unmodified$ = 1, all_bookkeeping_done$ = 2
 integer, parameter :: attribute_bookkeeping_done$ = 3,  is_modified$ = 4
