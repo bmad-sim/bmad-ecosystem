@@ -37,36 +37,44 @@ INTEGER, PARAMETER :: max_tt = 3 !number of tune trackers to allocate memory for
 
 ! Structure to hold parameters of tune tracker.
 TYPE tt_param_struct
-  LOGICAL :: useSaveState = .false. ! If true then save TT state vars to file on exit, 
+  LOGICAL :: useSaveState = .false. ! If true then save TT state vars to file on exit,
                                     ! and load TT state vars on initialization.
   REAL(rp) phi_to_kicker  ! phase advance from x phase at bpm to xdot phase at kicker
   REAL(rp) Dt             ! time between data points (usually set to ring period)
-  REAL(rp) LPalpha        ! low-pass filter constant
+  REAL(rp) LPinertia      ! inertia of lowpass filter that follows mixer. Try 2^15
   REAL(rp) Ki             ! Integrator gain
   REAL(rp) Kp             ! Proportional gain
-  REAL(rp) Kvco           ! Redundant, because total gain looks like Kvco*(Ki*x + Kp*y)
-  REAL(rp) modw0          ! Modulator base frequency (initial guess of beam frac tune)
+  REAL(rp) Kvco           ! VCO gain
+  REAL(rp) modw0          ! VCO base frequency (initial guess of beam frac tune)
   REAL(rp) offset         ! Closed orbit at bpm.
   CHARACTER(3) mixmode    ! To mix BPM data with square wave or sine wave
-  INTEGER cyc_per_turn    ! Number of times tune tracker cycles per turn.  Usually an integer
-                          !   fraction of the harmonic number.
+  INTEGER cyc_per_turn    ! Number of times tune tracker cycles per turn.
+                          ! Usually an integer fraction of the harmonic number.
+                          ! Try 183
 
   !Parameters specific to D channel
-  LOGICAL :: use_D_chan = .FALSE.      ! Whether to use the D channel.  Disable D channel if not in use
+  !Note:  The D channel is not compatible with save states.
+  LOGICAL :: use_D_chan = .FALSE.      ! Whether to use the D channel.
+                                       ! Disable D channel if not in use
   REAL(rp) Kd             ! Differential gain
-  INTEGER wls_id          ! Instance ID for window LS module for differential channel
   INTEGER wls_N           ! Number of data poins for window LS
   INTEGER wls_order       ! Order of fit polynomial
 
-  ! The following entries are to facilitate namelist input in whatever program is used to drive this module.
-  ! This module does not use these parameters.
+  ! The following parameters are overwritten by the init_dTT
+  REAL(rp) LPalpha        ! low-pass filter constant. Calculated from LPinertia
+  INTEGER wls_id          ! Instance ID for window LS module for D channel
+
+  ! The following parameters are likely to be needed by any program
+  ! that makes use of the tune tracker module.
+  ! This module does not actually use these parameters.
+  ! For examples, see the tune tracker driver program.
   INTEGER bpm_loc         ! Location of BPM
   INTEGER kck_loc         ! Location of kicker
   REAL(rp) modTfrac0      ! initial fractional tune of kicker modulator
-  REAL(rp) LPinertia      ! inertial of lowpass filter that follows mixer
   REAL(rp) kickAmplitude  ! amplitude of kicks
   CHARACTER orientation   ! 'h', 'v', or 'l'
-  INTEGER Onum            ! Element of coord_struct used by bpm.  1 for horiz, 3 for vert, 5 for longitudinal
+  INTEGER Onum            ! Element of coord_struct used by bpm.
+                          !1 for horiz, 3 for vert, 5 for longitudinal
 END TYPE tt_param_struct
 
 ! Structures to hold the state variables of the tune tracker.
@@ -74,10 +82,10 @@ TYPE tt_state_struct
   REAL(rp) deltaw               ! w_vco = w0 + deltaw
   REAL(rp) intDphi              ! integrated Dphi
   REAL(rp) bpm_msmt_last        ! stashes previous bpm measurement
-  REAL(rp) t                    ! keeps track of time
   REAL(rp) psi                  ! keeps track of modulator angle
   REAL(rp) Dphi                 ! Delta Phi - angle that comes out of filters mixer signal
   REAL(rp) gain                 ! bpm gain
+  INTEGER  counter              ! counts number of times cesr_dTT called.  Needed for log file.
 END TYPE tt_state_struct
 
 ! Variables related to multiple TT instances
@@ -103,15 +111,8 @@ CONTAINS
 !
 ! This function opens one log file "tt_log_<id>.out", which needs to be closed by calling the destructor.
 !
-! IMPORTANT: This module obtains Twiss parameters from the mode3 struct.  Make sure mode3 has been populated
-!            prior to calling this routine.  One way to do this is to use:
-!                 CALL twiss3_at_start(ring,error)
-!                 CALL twiss3_propagate_all(ring)
-!            instead of the usual twiss_at_start and twiss_propagate_all.
-!
 ! Modules needed:
 !   use tune_tracker_mod
-!   use mode3_mod
 !
 ! Input:
 !   incoming_tt_param    -- TYPE(tt_param_struct): Tune tracker parameters.  See structure definition for details.
@@ -165,10 +166,10 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
     tt_state(id)%deltaw = 0.0_rp
     tt_state(id)%intDphi = 0.0_rp
     tt_state(id)%bpm_msmt_last = 0.0_rp
-    tt_state(id)%t = 0.0_rp
     tt_state(id)%psi = 0.0_rp
     tt_state(id)%Dphi = 0.0_rp
     tt_state(id)%gain = 0.001_rp
+    tt_state(id)%counter = 0
   ENDIF
 
   !calculate lp filter parameter
@@ -178,7 +179,13 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   OPEN(UNIT=500+id,NAME=tt_log_name,STATUS='REPLACE')
 
   IF(tt_param(id)%use_D_chan) THEN
-    tt_param(id)%wls_id = initFixedWindowLS(tt_param(id)%wls_N,tt_param(id)%Dt,tt_param(id)%wls_order,1)
+    IF( .not. tt_param(id)%useSaveState ) THEN
+      tt_param(id)%wls_id = initFixedWindowLS(tt_param(id)%wls_N,tt_param(id)%Dt,tt_param(id)%wls_order,1)
+    ELSE
+      WRITE(*,*) "WARNING: D channel calculations are not compatible with save states."
+      WRITE(*,*) "         D channel will be disabled."
+      tt_param(id)%use_D_chan = .FALSE.
+    ENDIF
   ENDIF
 END FUNCTION init_dTT
 
@@ -255,6 +262,8 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
 
   INTEGER i
 
+  tt_state(id)%counter = tt_state(id)%counter + 1    !needed for log file
+
   ! Adjust bpm data for closed orbit offset and apply gain
   bpm_msmt = bpm_msmt - tt_param(id)%offset
   ! Gain adjusted to keep bpm average at unity.
@@ -291,7 +300,6 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
     tt_state(id)%psi = tt_state(id)%psi + (tt_param(id)%modw0 + tt_state(id)%deltaw)*fastPeriod
     tt_state(id)%psi = MOD(tt_state(id)%psi,2.0_rp*pi)
 
-    tt_state(id)%t = tt_state(id)%t + fastPeriod !needed for log file
   ENDDO
   tt_state(id)%bpm_msmt_last = bpm_msmt
 
@@ -310,12 +318,12 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
   !Write to log file
   IF( tt_param(id)%use_D_chan ) THEN
     !This statement writes the state of each PID channel to the tt_log_n.out file.
-    WRITE(500+id,'(4ES14.4)') tt_state(id)%t, tt_param(id)%Ki*tt_state(id)%intDphi, &
-                                              tt_param(id)%Kp*proDphi, &
-                                             -tt_param(id)%Kd*dirDphi
+    WRITE(500+id,'(I8,3ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                                    tt_param(id)%Kp*proDphi, &
+                                                   -tt_param(id)%Kd*dirDphi
   ELSE
-    WRITE(500+id,'(3ES14.4)') tt_state(id)%t, tt_param(id)%Ki*tt_state(id)%intDphi, &
-                                              tt_param(id)%Kp*proDphi
+    WRITE(500+id,'(I8,2ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                                    tt_param(id)%Kp*proDphi
   ENDIF
 
   CALL modulator(tt_state(id)%psi + tt_param(id)%phi_to_kicker, sinout, sqrout)
