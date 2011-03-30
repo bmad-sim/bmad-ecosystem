@@ -1976,7 +1976,7 @@ integer i
 ! Case for n_mode not positive.
 
 if (n_mode < 1) then
-  if (associated(rf_field)) nullify(rf_field)
+  if (associated(rf_field)) deallocate(rf_field)
   return
 endif
 

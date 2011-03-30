@@ -12,6 +12,61 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
+! Function R_bessel(m, arg) result (r_out)
+!
+! Function to return the bessel function:
+!   J_bessel(m, arg)   arg > 0
+!   I_bessel(m, -arg)  arg < 0
+!
+! Modules needed:
+!   use basic_bmad_mod
+!
+! Input:
+!   m    -- Integer: Bessel order.
+!   arg  -- Real(rp): Bessel argument.
+!
+! Output:
+!   r_out -- Real(rp): Bessel value.
+!-
+
+function R_bessel(m, arg) result (r_out)
+
+use nr
+
+integer m
+real(rp) arg, r_out
+
+!
+
+select case(m)
+case (0)
+  if (arg > 0) then
+    r_out = bessi0(arg)
+  else
+    r_out = bessj0(-arg)
+  endif
+
+case (1)
+  if (arg > 0) then
+    r_out = bessi1(arg)
+  else
+    r_out = bessj1(-arg)
+  endif
+
+case default
+  if (arg > 0) then
+    r_out = bessi(m, arg)
+  else
+    r_out = bessj(m, -arg)
+  endif
+end select
+
+end function r_bessel
+
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!--------------------------------------------------------------------
+!+
 ! Function field_interpolate_3d (position, field_mesh, deltas, position0) result (field)
 !
 ! Function to interpolate a 3d field.
@@ -144,7 +199,7 @@ n_step = nint(length / ds_out)
 if (n_step == 0) n_step = 1
 ds_out = length / n_step  
 
-end subroutine
+end subroutine compute_even_steps
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

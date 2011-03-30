@@ -387,7 +387,9 @@ end subroutine track_a_bend
 !+
 ! Subroutine track_bend_edge (orb, e, g, start_edge, reverse, kx, ky)
 !
-! Subroutine to track through the edge field of an  sbend.
+! Subroutine to track through the edge field of an sbend.
+! Reverse tracking starts with the particle just outside the bend and
+! returns the orbit that the particle had just inside the bend.
 !
 ! Input:
 !   orb        -- Coord_struct: Starting coords.
@@ -395,12 +397,15 @@ end subroutine track_a_bend
 !   g          -- Real(rp): 1/bending_radius
 !   start_edge -- Logical: If True then track will be through the entrance edge.
 !                          If False then track will be through the exit edge.
-!   reverse    -- Logical: If True then track backwards.
+!   reverse    -- Logical: If True then take the input orb as the position
+!                   just outside the bend and output the position just inside the bend. 
+!                   This does not affect the values of kx and ky
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !   kx, ky     -- Real(rp), optional: Horizontal and vertical edge focusing strengths.
 !                  Useful for constructing the edge transfer matrix.
+!                  The values of kx and ky are not affected by the reverse argument.
 !-
 
 subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
@@ -408,40 +413,36 @@ subroutine track_bend_edge (orb, ele, start_edge, reverse, kx, ky)
 type (ele_struct) ele
 type (coord_struct) orb
 real(rp), optional :: kx, ky
-real(rp) e, g_tot, del
+real(rp) e, g_tot, fint, hgap, k1x, k1y
 logical start_edge, reverse
 
 ! Track through the entrence face. Treat as thin lens.
 
 g_tot = ele%value(g$) + ele%value(g_err$)
-if (reverse) g_tot = -g_tot
 
 if (start_edge) then
-  e = ele%value(e1$)
-  del = tan(e) * g_tot
-  if (present(kx)) kx = del 
-  orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-  if (ele%value(fint$) /= 0) del = g_tot * tan(e - 2 * ele%value(fint$) * &
-                    abs(g_tot) * ele%value(hgap$) *  (1 + sin(e)**2) / cos(e))
-  if (present(ky)) ky = -del
-  orb%vec(4) = orb%vec(4) - del * orb%vec(3)
-
+  e = ele%value(e1$); fint = ele%value(fint$); hgap = ele%value(hgap$)
 else
-  e = ele%value(e2$)
-  del = tan(e) * g_tot
-  if (present(ky)) kx = del
-  orb%vec(2) = orb%vec(2) + del * orb%vec(1)
-  if (ele%value(fintx$) /= 0) del = g_tot * tan(e - 2 * ele%value(fintx$) * &
-                    abs(g_tot) * ele%value(hgapx$) *  (1 + sin(e)**2) / cos(e))
-  if (present(ky)) ky = -del
-  orb%vec(4) = orb%vec(4) - del * orb%vec(3)
+  e = ele%value(e2$); fint = ele%value(fintx$); hgap = ele%value(hgapx$)
+endif
 
+k1x = g_tot * tan(e)
+if (fint == 0) then
+  k1y = -k1x
+else
+  k1y = -g_tot * tan(e - 2 * fint * g_tot * hgap * (1 + sin(e)**2) / cos(e))
 endif
 
 if (reverse) then
-  if (present(kx)) kx = -kx
-  if (present(ky)) ky = -ky
+  orb%vec(2) = orb%vec(2) - k1x * orb%vec(1)
+  orb%vec(4) = orb%vec(4) - k1y * orb%vec(3)
+else
+  orb%vec(2) = orb%vec(2) + k1x * orb%vec(1)
+  orb%vec(4) = orb%vec(4) + k1y * orb%vec(3)
 endif
+
+if (present(kx)) kx = k1x 
+if (present(ky)) ky = k1y
 
 end subroutine track_bend_edge
 

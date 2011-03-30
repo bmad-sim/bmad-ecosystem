@@ -557,10 +557,13 @@ case (sbend$)
     return
   endif
 
+  ! Reverse track here for c11 since c11 needs to be the orbit just inside the bend.
+  ! Notice that kx_2 and ky_2 are not affected by reverse tracking
+
   call offset_particle (ele, param, c00, set$, set_canonical = .false.)
   call offset_particle (ele, param, c11, set$, set_canonical = .false., s_pos = length)
   call track_bend_edge (c00, ele, .true., .false., kx_1, ky_1)
-  call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  ! track backwards
+  call track_bend_edge (c11, ele, .false., .true., kx_2, ky_2)  
 
   ! Body
 

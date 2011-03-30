@@ -197,7 +197,7 @@ if (associated(ele_save%gen_field)) call kill_gen_field (ele_save%gen_field)
 if (associated(ele1%gen_field)) nullify (ele1%gen_field)
 
 ! In case the program cares, change %attribute_status from unmodified$ to all_bookkeeping_done$.
-! This will not affect any routine in the bmad library.
+! This will not affect how any routine in the bmad library treats the element.
 
 if (ele2%attribute_status == unmodified$) ele1%attribute_status = all_bookkeeping_done$
 

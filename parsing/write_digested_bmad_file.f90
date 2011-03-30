@@ -274,12 +274,18 @@ write (d_unit) ix_value(1:k), value(1:k)
 
 ! RF field def
 
-do i = 1, n_rf_field_mode
-  mode => ele%rf%field%mode(i)
-  write (d_unit) size(mode%term), mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
-                                  mode%m, mode%phi_0, mode%dz, mode%sample_radius 
-  write (d_unit) mode%term
-enddo 
+if (n_rf_field_mode > 0) then
+  do i = 1, n_rf_field_mode
+    mode => ele%rf%field%mode(i)
+    write (d_unit) size(mode%term), mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+                                    mode%m, mode%phi_0, mode%dz, mode%f_scale
+    write (d_unit) mode%term
+  enddo 
+
+  write (d_unit) ubound(ele%rf%field%t_ref, 1)
+  write (d_unit) ele%rf%field%t_ref
+  write (d_unit) ele%rf%field%e_tot_ref
+endif
 
 !
 

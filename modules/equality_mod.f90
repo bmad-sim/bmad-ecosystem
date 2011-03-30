@@ -216,13 +216,21 @@ logical is_eq
 
 is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%theta_t0 == f2%theta_t0) .and. &
         (f1%stored_energy == f2%stored_energy) .and. (f1%m == f2%m) .and. (f1%phi_0 == f2%phi_0) .and. &
-        (f1%dz == f2%dz) .and. (f1%sample_radius == f2%sample_radius) .and. (size(f1%term) == size(f2%term))
+        (f1%dz == f2%dz) .and. (f1%f_scale == f2%f_scale)
 if (.not. is_eq) return
 
-do i = 1, size(f1%term)
-  is_eq = (f1%term(i)%e == f2%term(i)%e) .and. (f1%term(i)%b == f2%term(i)%b) 
-  if (.not. is_eq) return
-enddo
+is_eq  = (allocated(f1%term) .eqv. allocated(f2%term))
+if (.not. is_eq) return
+
+if (allocated(f1%term)) is_eq = is_eq .and. (size(f1%term) == size(f2%term))
+if (.not. is_eq) return
+
+if (allocated(f1%term)) then
+  do i = 1, size(f1%term)
+    is_eq = (f1%term(i)%e == f2%term(i)%e) .and. (f1%term(i)%b == f2%term(i)%b) 
+    if (.not. is_eq) return
+  enddo
+endif
 
 end function eq_rf_field_mode
 
@@ -239,13 +247,27 @@ logical is_eq
 
 !
 
-is_eq = (size(f1%mode) == size(f2%mode))
+is_eq  = (allocated(f1%t_ref) .eqv. allocated(f2%t_ref)) .and. &
+         (allocated(f1%e_tot_ref) .eqv. allocated(f2%e_tot_ref)) .and. &
+         (allocated(f1%mode) .eqv. allocated(f2%mode))
 if (.not. is_eq) return
 
-do i = 1, size(f1%mode)
-  is_eq = (f1%mode(i) == f2%mode(i))
+if (allocated(f1%mode)) then
+  is_eq = (size(f1%mode) == size(f2%mode))
   if (.not. is_eq) return
-enddo
+
+  do i = 1, size(f1%mode)
+    is_eq = (f1%mode(i) == f2%mode(i))
+    if (.not. is_eq) return
+  enddo
+endif
+
+if (allocated(f1%t_ref)) is_eq = is_eq .and. (size(f1%t_ref) == size(f2%t_ref))
+if (allocated(f1%e_tot_ref)) is_eq = is_eq .and. (size(f1%e_tot_ref) == size(f2%e_tot_ref))
+if (.not. is_eq) return
+
+if (allocated(f1%t_ref)) is_eq = is_eq .and. all(f1%t_ref == f2%t_ref)
+if (allocated(f1%e_tot_ref)) is_eq = is_eq .and. all(f1%e_tot_ref == f2%e_tot_ref)
 
 end function eq_rf_field
 

@@ -2432,6 +2432,7 @@ logical coupling_change
 ele%attribute_status = is_modified$
 
 if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
+if (associated(ele%rf%field)) ele%rf%field%t_ref(0) = -1
 
 if (ele%key == init_ele$) then
   coupling_change = .false.
@@ -2448,8 +2449,7 @@ if (ele%key == init_ele$) then
 
   if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
           associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
-    ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + &
-                                                ele%c_mat(1,2)*ele%c_mat(2,1))
+    ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
     coupling_change = .true.
   endif
 

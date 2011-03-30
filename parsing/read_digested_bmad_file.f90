@@ -405,17 +405,23 @@ enddo
 ! RF field def
 
 call init_rf_field (ele%rf%field, n_rf_field_mode)
-do i = 1, n_rf_field_mode
-  mode => ele%rf%field%mode(i)
-  read (d_unit, err = 9140) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
-                               mode%m, mode%phi_0, mode%dz, mode%sample_radius 
+if (n_rf_field_mode > 0) then
+  do i = 1, n_rf_field_mode
+    mode => ele%rf%field%mode(i)
+    read (d_unit, err = 9140) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+                                 mode%m, mode%phi_0, mode%dz, mode%f_scale 
 
-  if (allocated(mode%term)) then
-    if (size(mode%term) /= n) deallocate(mode%term)
-  endif
-  if (size(mode%term) /= n) allocate (mode%term(n))
-  read (d_unit, err = 9140) mode%term
-enddo
+    if (allocated(mode%term)) then
+      if (size(mode%term) /= n) deallocate(mode%term)
+    endif
+    if (size(mode%term) /= n) allocate (mode%term(n))
+    read (d_unit, err = 9140) mode%term
+  enddo
+
+  read (d_unit, err = 9140) n
+  call re_allocate2(ele%rf%field%t_ref, 0, n)
+  call re_allocate2(ele%rf%field%e_tot_ref, 0, n)
+endif
 
 ! Mode3
 
