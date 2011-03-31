@@ -1,7 +1,7 @@
 !+
 ! Module tune_tracker_mod
 !
-! This module simulates the CESR Digital tune tracker.  In short, it consists of a PLL
+! This module simulates a digital tune tracker.  In short, it consists of a PLL
 ! that locks onto bpm data.  The PLL output is used to modulate a kicker that fires
 ! on every turn to excite the beam at resonance.  The result is a kicker modulator
 ! that excites the beam at its natural fractional tune.
@@ -13,7 +13,7 @@
 !   DO
 !     <track a turn, store in orb>
 !     bpm_meas = orb(somewhere)%vec(1)
-!     sinphi = cesr_dTT(bpm_meas, id)
+!     sinphi = TT_update(bpm_meas, id)
 !     kick = sinphi * kickamplitude
 !     <set element kick attribute>
 !   ENDDO
@@ -21,7 +21,7 @@
 !
 ! init_dTT is the constructor and is passed the tune tracker parameters in tt_param_struct
 ! The contents of tt_param_struct are below
-! cesr_dTT is passed one BPM measurement per call.  
+! TT_update is passed one BPM measurement per call.  
 ! It returns the kick amplitude (normalized to one) to be used on the next turn.
 ! dest_dTT is the destructor.  It is passed the id of the tune tracker to destroy.
 !-
@@ -85,7 +85,7 @@ TYPE tt_state_struct
   REAL(rp) psi                  ! keeps track of modulator angle
   REAL(rp) Dphi                 ! Delta Phi - angle that comes out of filters mixer signal
   REAL(rp) gain                 ! bpm gain
-  INTEGER  counter              ! counts number of times cesr_dTT called.  Needed for log file.
+  INTEGER  counter              ! counts number of times TT_update called.  Needed for log file.
 END TYPE tt_state_struct
 
 ! Variables related to multiple TT instances
@@ -94,7 +94,7 @@ TYPE(tt_param_struct), PRIVATE, SAVE :: tt_param(max_tt)
 TYPE(tt_state_struct), PRIVATE, SAVE :: tt_state(max_tt)
 
 PUBLIC init_dTT
-PUBLIC cesr_dTT
+PUBLIC TT_update
 PUBLIC dest_dTT
 PUBLIC get_dTT
 PRIVATE modulator
@@ -105,7 +105,7 @@ CONTAINS
 !+
 ! Function id = init_dTT(incoming_tt_param)
 !
-! Constructor for cesr_dTT module.  This function creates a new instance of the tune tracker by assigning
+! Constructor for TT_update module.  This function creates a new instance of the tune tracker by assigning
 ! an id and copying the tune tracker parameters to the module saved data.  It also initializes the tune tracker's
 ! state variables.
 !
@@ -224,7 +224,7 @@ SUBROUTINE dest_dTT(id,coords)
 END SUBROUTINE dest_dTT
 
 !+
-! Function z = cesr_dTT(bpm_msmt,id)
+! Function z = TT_update(bpm_msmt,id)
 !
 ! Main function of the tune tracker module.  This funcion is given one new data point each turn,
 ! and it returns the phase of the kicker to be used on the next turn.  The incoming data is mixed with
@@ -243,7 +243,7 @@ END SUBROUTINE dest_dTT
 ! Output:
 !   z            -- Double precision: sin(modulator_angle + phase_advance_to_kicker)
 !-
-FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
+FUNCTION TT_update(bpm_msmt,id) RESULT(z)
   IMPLICIT NONE
 
   REAL(rp), PARAMETER :: ga = 0.05_rp     !bpm gain time constant
@@ -329,7 +329,7 @@ FUNCTION cesr_dTT(bpm_msmt,id) RESULT(z)
   CALL modulator(tt_state(id)%psi + tt_param(id)%phi_to_kicker, sinout, sqrout)
   z = sinout
 
-END FUNCTION cesr_dTT
+END FUNCTION TT_update
 
 !+
 ! Function z = get_dTT(name,id)
