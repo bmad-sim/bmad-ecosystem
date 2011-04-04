@@ -163,18 +163,20 @@ end subroutine sr3d_plot_wall_vs_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (wall, plot_norm)
+! Subroutine sr3d_plot_wall_cross_sections (wall, extra)
 !
 ! Routine to interactively plot wall cross-sections
 ! Note: This routine never returns to the main program.
 !
 ! Input:
 !   wall      -- sr3d_wall_struct: Wall structure.
-!   plot_norm -- logical: If True then also plot a set of lines normal to the wall.
-!                  This is used as a check to the wall normal calculation.
+!   extra     -- Character(*): 
+!                   'norm' -> Also plot a set of lines normal to the wall.
+!                             This is used as a check to the wall normal calculation.
+!                   'reverse' -> flip x-axis
 !-
 
-subroutine sr3d_plot_wall_cross_sections (wall, plot_norm)
+subroutine sr3d_plot_wall_cross_sections (wall, extra)
 
 implicit none
 
@@ -184,12 +186,14 @@ type (sr3d_photon_track_struct) photon
 
 real(rp) s_pos, x(400), y(400), x_max, y_max, theta, r, x_max_user, r_max
 real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100)
+real(rp) minn, maxx
 
 integer i, j, ix, ix_section, i_in, ios, i_chan
 
 character(80) :: ans = 'first', label
+character(*) extra
 
-logical plot_norm, at_section
+logical at_section
 
 ! Open plotting window
 
@@ -234,7 +238,7 @@ do
     if (ans == 'auto') then
       x_max_user = -1
     else
-      read (ans(2:), *, iostat = ios) r
+      read (ans, *, iostat = ios) r
       if (ios /= 0) then
         print *, 'Cannot read x-scale'
         cycle
@@ -285,7 +289,7 @@ do
     photon%now%vec(1) = r_max * cos(theta)  
     photon%now%vec(3) = r_max * sin(theta)
 
-    if (plot_norm .and. modulo(i, 4) == 0) then
+    if (extra == 'norm' .and. modulo(i, 4) == 0) then
       j = (i / 4)
       call sr3d_find_wall_point (wall, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
     else
@@ -308,13 +312,24 @@ do
   call qp_clear_page
   x_max = 1.01 * maxval(abs(x)); y_max = 1.01 * maxval(abs(y))
   if (x_max_user > 0) x_max = x_max_user
-  call qp_calc_and_set_axis ('X', -x_max, x_max, 6, 10, 'ZERO_SYMMETRIC')
+  call qp_calc_and_set_axis ('X', -x_max, x_max, 10, 16, 'ZERO_SYMMETRIC')
   call qp_calc_and_set_axis ('Y', -y_max, y_max, 6, 10, 'ZERO_SYMMETRIC')
   call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
-  call qp_eliminate_xy_distortion()
+
+  if (x_max_user > 0) then
+    call qp_eliminate_xy_distortion('Y')
+  else
+    call qp_eliminate_xy_distortion()
+  endif
+
+  if (extra == 'reverse') then
+    call qp_get_axis_attrib('X', minn, maxx)
+    call qp_set_axis ('X', maxx, minn) 
+  endif
+
   call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
 
-  if (plot_norm) then
+  if (extra == 'norm') then
     do j = 1, size(x1_norm)
       call qp_draw_line(x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
     enddo
@@ -343,7 +358,7 @@ real(rp) dtrack, d_radius, r_old, dw_perp(3)
 
 integer j, ixp
 
-logical plot_norm, is_through
+logical is_through
 
 !
 
