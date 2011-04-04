@@ -73,6 +73,8 @@ do i = 1, cesr_iargc()
   call cesr_getarg(i, arg)
   if (arg == '-plot' .or. arg == '-cross') then
     plotting = 'cross'
+  elseif (arg == '-rcross') then
+    plotting = 'cross-reverse'
   elseif (arg == '-norm') then
     plotting = 'cross-norm'
   elseif (arg == '-xs') then
@@ -92,7 +94,7 @@ if (param_file == '') param_file = 'synrad3d.init'
 
 if (.not. ok) then
   print *, 'Usage:'
-  print *, '  synrad3d {-cross} {-norm} {-xs} {-ys} {<init_file>}'
+  print *, '  synrad3d {-cross | -rcross | -norm | -xs | -ys} {<init_file>}'
   print *, 'Default:'
   print *, '  <init_file> = synrad3d.init'
   stop
@@ -299,7 +301,7 @@ call ran_seed_put (random_seed)
 ! The plotting routines never return back to the main program.
 
 if (plotting(1:5) == 'cross') then
-  call sr3d_plot_wall_cross_sections (wall, (plotting(7:) == 'norm'))
+  call sr3d_plot_wall_cross_sections (wall, plotting(7:))
 elseif (plotting /= '') then
   call sr3d_plot_wall_vs_s (wall, plotting(1:1))
 endif

@@ -89,7 +89,7 @@ simulate scattering from the wall.
 
 Syntax for invoking \srthree:
 \begin{example}
-  synrad3d \{-cross\} \{-norm\} \{-xs\} \{-ys\} \{<main_input_file_name>\}
+  synrad3d \{-cross | -rcross | -norm | -xs | -ys\} \{<main_input_file_name>\}
 \end{example}
 Examples:
 \begin{example}
@@ -97,13 +97,23 @@ Examples:
   synrad3d -cross my_input_file.init
 \end{example}
 
-\srthree has two optional command line arguments. The \vn{-cross}
-optional argument is for viewing of wall cross-sections at any point
-in the machine. The \vn{-norm} is like \vn{-cross} except, in
+\srthree has two optional command line arguments. 
+The first optional argument may be one of
+\begin{example}
+  -cross
+  -rcross
+  -norm
+  -xs
+  -yx
+\end{example}
+The \vn{-cross}
+option is for viewing of wall cross-sections at any point
+in the machine. The \vn{-rcross} option is like \vn{-cross} except 
+the $x$-axis is flipped. The \vn{-norm} option is like \vn{-cross} except, in
 addition, a number of line segments normal to the wall are
-additionally plotted. The \vn{-xs} optional argument plots the wall
-outline in the $x$-$s$ plane at $y = 0$. The \vn{-ys} optional
-argument plots the wall outline in the $y$-$s$ plane at $x = 0$. These
+additionally plotted. The \vn{-xs} option plots the wall
+outline in the $x$-$s$ plane at $y = 0$. The \vn{-ys} option
+plots the wall outline in the $y$-$s$ plane at $x = 0$. These
 four plot options are just for diagnostic purposes. When a plot option
 is given, no photon tracking is done and instead a plot window is
 displayed and \srthree will ask for the appropriate parameters for
