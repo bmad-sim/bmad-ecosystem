@@ -4820,8 +4820,8 @@ integer id5, id10
 
 ! scale delta so it is in the range of [10, 100)
 
-log_del = log10 (delta * 1.000000001_dp)
-idel = nint(delta / 10d0**(floor(log_del)-1))
+log_del = log10 (abs(delta) * 1.000000001_dp)
+idel = nint(abs(delta) / 10d0**(floor(log_del)-1))
 
 ! First look for a division that gives a width that is a multiple of 5 or 10.
 ! Choose id10 over id5 except when id5 >= 2 * id10
@@ -5224,7 +5224,7 @@ end subroutine qp_read_data
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine qp_eliminate_xy_distortion
+! Subroutine qp_eliminate_xy_distortion (axis_to_scale)
 !
 ! This subroutine will increase the x or y margins so that the conversion
 ! between data units and page units is the same for the x and y axes.
@@ -5235,22 +5235,40 @@ end subroutine qp_read_data
 ! This routine will, if needed, make sure that the distance between
 ! ticks is the same for both axes. This may involve the changing
 ! of the [min, max] interval for one of the axes.
+!
+! Input:
+!   axis_to_scale -- Logical, optional: 
+!                         ''  -> Vary x or y margin (default).
+!                         'X' -> Vary x margin.
+!                         'Y' -> Vary y margin.
 !-
 
-subroutine qp_eliminate_xy_distortion
+subroutine qp_eliminate_xy_distortion (axis_to_scale)
 
 implicit none
 
-real(rp) x_scale, y_scale
+real(rp) x_scale, y_scale, dx_graph, dy_graph
 
-! Adjust one axis scale
+character(*), optional :: axis_to_scale
+character(1) ax_to_scale
+
+! 
+
+ax_to_scale = ''
+if (present(axis_to_scale)) ax_to_scale = axis_to_scale
+if (ax_to_scale /= '' .and. ax_to_scale /= 'X' .and. ax_to_scale /= 'Y') call err_exit
 
 call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
 
-if (x_scale > y_scale) then  ! shrink in x
-  call axis_scale (qp_com%plot%x, qp_com%plot%y, y_scale / x_scale)
+! Adjust one axis scale
+
+dx_graph = qp_com%graph%x2 - qp_com%graph%x1
+dy_graph = qp_com%graph%y2 - qp_com%graph%y1
+
+if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == '')) then  ! shrink in x
+  call axis_scale (qp_com%plot%x, qp_com%plot%y, y_scale/x_scale, dy_graph/dx_graph)
 else  ! shrink in y
-  call axis_scale (qp_com%plot%y, qp_com%plot%x, x_scale / y_scale)
+  call axis_scale (qp_com%plot%y, qp_com%plot%x, x_scale/y_scale, dx_graph/dy_graph)
 endif
 
 ! Now adjust the margins
@@ -5258,7 +5276,7 @@ endif
 call qp_set_graph_limits
 call qp_to_inch_rel (1.0_rp, 1.0_rp, x_scale, y_scale)
 
-if (x_scale > y_scale) then  ! shrink in x
+if (ax_to_scale == 'X' .or. (x_scale > y_scale .and. ax_to_scale == '')) then  ! shrink in x
   call margin_scale (y_scale / x_scale, qp_com%graph%x1, qp_com%graph%x2, &
                                            qp_com%margin%x1, qp_com%margin%x2) 
 
@@ -5272,19 +5290,30 @@ call qp_set_graph_limits
 !----------------------------------------------------
 contains
 
-subroutine axis_scale (axis_z, axis_t, tz_ratio)
+subroutine axis_scale (axis_z, axis_t, tz_scale_ratio, tz_graph_ratio)
 
 type (qp_axis_struct) axis_z, axis_t
 
-real(rp) tz_ratio, div_t
+real(rp) tz_scale_ratio, tz_graph_ratio, div_t, dz_max
 
 ! Change z-axis to match t-axis
 
 div_t = (axis_t%max - axis_t%min) /axis_t%major_div
+
 axis_z%max = div_t * ceiling (0.99999 * axis_z%max / div_t)
 axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
-axis_z%places = axis_t%places
+
+dz_max = (axis_t%max - axis_t%min) / tz_graph_ratio
+if (axis_z%max - axis_z%min > dz_max) then
+  axis_z%min = div_t * nint((axis_z%max + axis_z%min - dz_max) / (2 * div_t)) 
+  dz_max = div_t * int(1.0001 * dz_max / div_t)
+  if (dz_max == 0) dz_max = div_t 
+  axis_z%max = axis_z%min + dz_max
+endif
+
 axis_z%major_div = nint((axis_z%max - axis_z%min) / div_t)
+
+axis_z%places = axis_t%places
 axis_z%minor_div = axis_t%minor_div
 
 end subroutine
@@ -5292,13 +5321,13 @@ end subroutine
 !----------------------------------------------------
 ! contains
 
-subroutine margin_scale (tz_ratio, graph_z1, graph_z2, margin_z1, margin_z2)
+subroutine margin_scale (tz_scale_ratio, graph_z1, graph_z2, margin_z1, margin_z2)
 
-real(rp) rd, tz_ratio, graph_z1, graph_z2, margin_z1, margin_z2
+real(rp) rd, tz_scale_ratio, graph_z1, graph_z2, margin_z1, margin_z2
 
 ! Scale margins
 
-rd = (1 - tz_ratio) * (graph_z2 - graph_z1) / 2
+rd = (1 - tz_scale_ratio) * (graph_z2 - graph_z1) / 2
 margin_z1 = margin_z1 + rd
 margin_z2 = margin_z2 + rd
 
