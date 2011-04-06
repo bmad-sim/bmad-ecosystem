@@ -5296,20 +5296,28 @@ type (qp_axis_struct) axis_z, axis_t
 
 real(rp) tz_scale_ratio, tz_graph_ratio, div_t, dz_max
 
-! Change z-axis to match t-axis
+! Change z-axis min/max to match t-axis
 
 div_t = (axis_t%max - axis_t%min) /axis_t%major_div
 
 axis_z%max = div_t * ceiling (0.99999 * axis_z%max / div_t)
 axis_z%min = div_t * floor (0.99999 * axis_z%min / div_t)
 
-dz_max = (axis_t%max - axis_t%min) / tz_graph_ratio
-if (axis_z%max - axis_z%min > dz_max) then
-  axis_z%min = div_t * nint((axis_z%max + axis_z%min - dz_max) / (2 * div_t)) 
-  dz_max = div_t * int(1.0001 * dz_max / div_t)
-  if (dz_max == 0) dz_max = div_t 
-  axis_z%max = axis_z%min + dz_max
+! Need to reduce the z-axis min/max range if there is not enought z-margin
+! Only need to do this with axis_to_scale = "X" or "y".
+! With axis_to_scale = "", the t-margin is allowed to be adjusted.
+
+if (ax_to_scale /= '') then
+  dz_max = (axis_t%max - axis_t%min) / tz_graph_ratio
+  if (axis_z%max - axis_z%min > dz_max) then
+    axis_z%min = div_t * nint((axis_z%max + axis_z%min - dz_max) / (2 * div_t)) 
+    dz_max = div_t * int(1.0001 * dz_max / div_t)
+    if (dz_max == 0) dz_max = div_t 
+    axis_z%max = axis_z%min + dz_max
+  endif
 endif
+
+! adjust z-axis major_div, etc. to match t-axis.
 
 axis_z%major_div = nint((axis_z%max - axis_z%min) / div_t)
 
