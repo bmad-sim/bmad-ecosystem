@@ -1968,9 +1968,15 @@ if (bunch_params%sigma(s66$) /= 0) then
   twiss%etap  = exp_px_d / bunch_params%sigma(s66$)
 endif
 
-x2   = exp_x2   
-x_px = exp_x_px 
-px2  = exp_px2  
+if (bunch_params%sigma(s66$) == 0) then
+  x2   = exp_x2 
+  x_px = exp_x_px 
+  px2  = exp_px2  
+else
+  x2   = exp_x2 - exp_x_d**2 / bunch_params%sigma(s66$)
+  x_px = exp_x_px - exp_x_d * exp_px_d / bunch_params%sigma(s66$)
+  px2  = exp_px2  - exp_px2**2 / bunch_params%sigma(s66$)
+endif
 
 emit = sqrt(x2*px2 - x_px**2)
 

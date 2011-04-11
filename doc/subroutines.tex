@@ -448,7 +448,7 @@ by iterating over the equilibrium equations.
 
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
-\item[em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield)] \Newline 
+\item[em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield, local_orbit)] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -612,7 +612,7 @@ in the interval [-amp, amp].
 
 \index[routine]{ran_engine}
 \label{r:ran.engine}
-\item[ran_engine (set, get)] \Newline 
+\item[ran_engine (set, get, ix_generator)] \Newline 
 Routine to set what random number generator algorithm is used.
 If this routine is never called then pseudo_random\$ is used.
 
@@ -623,18 +623,18 @@ Routine to return a Gaussian distributed random number with unit sigma.
 
 \index[routine]{ran_gauss_converter}
 \label{r:ran.gauss.converter}
-\item[ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut)] \Newline 
+\item[ran_gauss_converter (set, set_sigma_cut, get, get_sigma_cut, ix_generator)] \Newline 
 Routine to set what conversion routine is used for converting
 uniformly distributed random numbers to Gaussian distributed random numbers.
 
 \index[routine]{ran_seed_put}
 \label{r:ran.seed.put}
-\item[ran_seed_put (seed, state)] \Newline 
+\item[ran_seed_put (seed, state, ix_generator)] \Newline 
 Routine to seed the random number generator. 
 
 \index[routine]{ran_seed_get}
 \label{r:ran.seed.get}
-\item[ran_seed_get (seed, state)] \Newline 
+\item[ran_seed_get (seed, state, ix_generator)] \Newline 
 Routine to return the seed used for the random number generator.
 
 \index[routine]{ran_uniform}
@@ -1013,7 +1013,7 @@ Function to point to a slave of a lord.
 \label{r:type.ele}
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, \\ 
 \hspace*{1in} type_control, lattice, type_wake, type_floor_coords, type_wig_terms, \\
-\hspace*{1in} type_cross_section, nunit)}] \Newline
+\hspace*{1in} type_cross_section, type_cross_section, nunit)}] \Newline
 Routine to print the contents of an element at the terminal. 
 
 \index[routine]{type2_ele}
@@ -1691,7 +1691,7 @@ BPM's offsets, noise, etc.
 
 \index[routine]{to_phase_and_coupling_reading}
 \label{r:to.phase.and.coupling.reading}
-\item[to_phase_and_coupling_reading (ele, mon, err)] \Newline
+\item[to_phase_and_coupling_reading (ele, reading, err)] \Newline
 Find the measured coupling values given the actual ones
 
 
@@ -1732,7 +1732,7 @@ A multi_lord will be found for:
 
 \index[routine]{ab_multipole_kick}
 \label{r:ab.multipole.kick}
-\item[ab_multipole_kick (a, b, n, coord, kx, ky)] \Newline 
+\item[ab_multipole_kick (a, b, n, coord, kx, ky, dk)] \Newline 
 Routine to put in the kick due to an ab_multipole.
 
 \index[routine]{multipole_kicks}
@@ -1906,12 +1906,12 @@ and action-angle coordinates.
 
 \index[routine]{convert_pc_to}
 \label{r:convert.pc.to}
-\item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho)] \Newline
+\item[convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta)] \Newline
 Routine to calculate the energy, etc. from a particle's momentum. 
 
 \index[routine]{convert_total_energy_to}
 \label{r:convert.total.energy.to}
-\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho)] \Newline
+\item[convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta)] \Newline
 Routine to calculate the momentum, etc. from a particle's total energy. 
 
 \index[routine]{init_coord}
@@ -3132,7 +3132,7 @@ This routine is used by track1_boris and track1_adaptive_boris.
 
 \index[routine]{track_a_drift}
 \label{r:track.a.drift}
-\item[track_a_drift (orb, length)] \Newline
+\item[track_a_drift (orb, length, ele, param)] \Newline
 Routine to track through a drift. 
 
 \index[routine]{track_a_bend}
