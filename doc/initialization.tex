@@ -645,8 +645,10 @@ The syntax is as follows:
     beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
     track_start             = "<ele_name>"     ! Lattice element start tracking name or index.
     track_end               = "<ele_name>"     ! Lattice element end tracking name or index.
-    beam_init%a_norm_emit   = <number>         ! A-mode emittance
-    beam_init%b_norm_emit   = <number>         ! B-mode emittance
+    beam_init%a_norm_emit   = <number>         ! A-mode energy normalized emittance
+    beam_init%b_norm_emit   = <number>         ! B-mode energy normalized emittance
+    beam_init%a_emit        = <number>         ! A-mode emittance
+    beam_init%b_emit        = <number>         ! B-mode emittance
     beam_init%dPz_dZ        = <number>         ! Energy-Z correlation
     beam_init%center        = <number>*6       ! Bunch center offset relative to
                                                ! reference particle (BMAD coords)
@@ -677,10 +679,13 @@ the \vn{beam_init} parameters refer to. The charge per particle is set to
 $\vn{bunch_charge} / \vn{n_particle}$ and is used when calculating wakefield
 effects.
 
-\vn{%a_norm_emit} and \vn{%b_norm_emit} are the normalized emittances used to
-construct the beam's particle distribution. If not set then the emittances set in
-the lattice file are used. These emittances are also used as the initial emittance
-in a linear lattice for the emittance calculation using the radiation integrals.
+The emittances used construct to the beam's particle distribution can
+be set using the energy normalized emittances \vn{%a_norm_emit} and
+\vn{%b_norm_emit} or the unnormalized (``geometric'') \vn{%a_emit} and
+\vn{%b_emit}. If not set, the emittances set in the lattice file
+are used. These emittances are also used as the initial emittance in a
+linear lattice for the emittance calculation using the radiation
+integrals.
 
 \label{s:beamfile}
 The \vn{beam0_file} component specifies a beam data file (which can be

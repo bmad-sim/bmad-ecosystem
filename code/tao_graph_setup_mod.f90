@@ -1324,6 +1324,22 @@ do ii = 1, size(curve%x_line)
     value = ele%a%alpha
   case ('alpha.b')
     value = ele%b%alpha
+  case ('emit.x')
+    if (curve%data_source == 'beam') then
+      value = bunch_params%x%norm_emit
+      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
+      value = value / gamma
+    else
+      value = tao_projected_emit_calc (x_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+    endif
+  case ('emit.y')
+    if (curve%data_source == 'beam') then
+      value = bunch_params%y%norm_emit
+      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
+      value = value / gamma
+    else
+      value = tao_projected_emit_calc (y_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+    endif
   case ('eta.x')
     value = ele%x%eta
   case ('eta.y')
@@ -1395,20 +1411,30 @@ do ii = 1, size(curve%x_line)
   case ('norm_emit.b')
     value = bunch_params%b%norm_emit
   case ('norm_emit.x')
-    value = bunch_params%x%norm_emit
+    if (curve%data_source == 'beam') then
+      value = bunch_params%x%norm_emit
+    else
+      value = tao_projected_emit_calc (x_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
+      value = value * gamma
+    endif
   case ('norm_emit.y')
-    value = bunch_params%y%norm_emit
+    if (curve%data_source == 'beam') then
+      value = bunch_params%y%norm_emit
+    else
+      value = tao_projected_emit_calc (y_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
+      value = value * gamma
+    endif
   case ('norm_emit.z')
     value = bunch_params%z%norm_emit
   case ('emit.a')
     value = bunch_params%a%norm_emit
-    call convert_total_energy_to (ele%value(E_tot$), &
-                                              branch%param%particle, gamma)
+    call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
     value = value / gamma
   case ('emit.b')
     value = bunch_params%b%norm_emit
-    call convert_total_energy_to (ele%value(E_tot$), &
-                                              branch%param%particle, gamma)
+    call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
     value = value / gamma
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)

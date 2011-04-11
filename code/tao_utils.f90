@@ -2979,29 +2979,30 @@ end subroutine tao_turn_on_rad_int_calc_if_needed_for_plotting
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function tao_rad_int_calc_needed (data_type, data_source) result (do_synch)
+! Function tao_rad_int_calc_needed (data_type, data_source) result (do_rad_int)
 ! 
 ! Routine decide if a datum or plot curve needs the radiation integrals 
 ! to be evaluated.
 !-
 
-function tao_rad_int_calc_needed (data_type, data_source) result (do_synch)
+function tao_rad_int_calc_needed (data_type, data_source) result (do_rad_int)
 
 implicit none
 
 character(*) data_type, data_source
-logical do_synch
+logical do_rad_int
 
 !
 
-do_synch = .false.
+do_rad_int = .false.
 
 if (data_source /= 'lat') return
 
-if (data_type  == 'sigma.pz') do_synch = .true. 
-if (data_type(1:5)  == 'emit.') do_synch = .true. 
-if (data_type(1:10) == 'norm_emit.') do_synch = .true. 
-if (data_type(1:7)  == 'rad_int') do_synch = .true.
+if (data_type  == 'sigma.pz') do_rad_int = .true. 
+if (data_type(1:5)  == 'emit.') do_rad_int = .true. 
+if (data_type(1:10) == 'norm_emit.') do_rad_int = .true. 
+if (data_type(1:7)  == 'rad_int') do_rad_int = .true.
+if (data_type(1:16)  == 'apparent_rad_int') do_rad_int = .true.
 
 end function tao_rad_int_calc_needed
 
@@ -3049,5 +3050,113 @@ if (ix /= 0) write (name_out, '(a, i0, a)') &
                         name_out(1:ix-1), ix_uni, trim(name_out(ix+1:))
 
 end function tao_subin_uni_number
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function tao_projected_emit_calc (plane, ele, emit_a, emit_b) result (projected_emit)
+!
+! Routine to calculate the "projected" emittance:
+!   emit = sqrt(sigma_xx * sigma_pp - sigma_xp^2)
+! Where the sigmas are calculated including coupling effects but assuming 
+! that sigma_pz = 0.
+!
+! Input:
+!   plane   -- Integer: x_plane$ or y_plane$.
+!   ele     -- ele_struct: Element holding the Twiss and coupling parameters.
+!   emit_a  -- Real(rp): a-mode emittance.
+!   emit_b  -- Real(rp): b-mode emittance.
+!
+! Output:
+!   projected_emit -- Real(rp): projected emittance.
+!-
+
+function tao_projected_emit_calc (plane, ele, emit_a, emit_b) result (projected_emit)
+
+implicit none
+
+type (ele_struct) ele
+real(rp) emit_a, emit_b, s_mat(4,4), v_mat(4,4), projected_emit
+real(rp), save :: a_mat(4,4) = 0
+integer plane
+
+!
+
+a_mat(1,1) =  emit_a * ele%a%beta
+a_mat(1,2) = -emit_a * ele%a%alpha
+a_mat(2,2) =  emit_a * ele%a%gamma
+a_mat(2,1) = a_mat(1,2)
+
+a_mat(3,3) =  emit_b * ele%b%beta
+a_mat(3,4) = -emit_b * ele%b%alpha
+a_mat(4,4) =  emit_b * ele%b%gamma
+a_mat(4,3) = a_mat(3,4)
+
+call make_v_mats (ele, v_mat)
+s_mat = matmul(matmul(v_mat, a_mat), transpose(v_mat))
+
+if (plane == x_plane$) then
+  projected_emit = sqrt(s_mat(1,1) * s_mat(2,2) - s_mat(1,2)**2)
+elseif (plane == y_plane$) then
+  projected_emit = sqrt(s_mat(3,3) * s_mat(4,4) - s_mat(3,4)**2)
+else
+  call err_exit
+endif
+
+end function tao_projected_emit_calc
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function tao_apparent_emit_calc (plane, ele, emit_a, emit_b) result (apparent_emit)
+!
+! Routine to make the 4x4 transverse sigma matrix in the presence of coupling.
+! Note: This calculation ignores dispersion and finite sigma_pz effects.
+!
+! Input:
+!   plane   -- Integer: x_plane$ or y_plane$.
+!   ele     -- ele_struct: Element holding the Twiss and coupling parameters.
+!   emit_a  -- Real(rp): a-mode emittance.
+!   emit_b  -- Real(rp): b-mode emittance.
+!
+! Output:
+!   apparent_emit -- Real(rp): Apparent emittance.
+!-
+
+function tao_apparent_emit_calc (plane, ele, emit_a, emit_b) result (apparent_emit)
+
+implicit none
+
+type (ele_struct) ele
+real(rp) emit_a, emit_b, s_mat(4,4), v_mat(4,4), apparent_emit
+real(rp), save :: a_mat(4,4) = 0
+integer plane
+
+!
+
+a_mat(1,1) =  emit_a * ele%a%beta
+a_mat(1,2) = -emit_a * ele%a%alpha
+a_mat(2,2) =  emit_a * ele%a%gamma
+a_mat(2,1) = a_mat(1,2)
+
+a_mat(3,3) =  emit_b * ele%b%beta
+a_mat(3,4) = -emit_b * ele%b%alpha
+a_mat(4,4) =  emit_b * ele%b%gamma
+a_mat(4,3) = a_mat(3,4)
+
+call make_v_mats (ele, v_mat)
+s_mat = matmul(matmul(v_mat, a_mat), transpose(v_mat))
+
+if (plane == x_plane$) then
+  apparent_emit = s_mat(1,1) / ele%a%beta
+elseif (plane == y_plane$) then
+  apparent_emit = s_mat(3,3) / ele%b%beta
+else
+  call err_exit
+endif
+
+end function tao_apparent_emit_calc
 
 end module tao_utils

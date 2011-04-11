@@ -380,33 +380,11 @@ if (i_uni_to > -1) then
   extract_at_ix_ele = s%u(i_uni_to)%connect%from_uni_ix_ele
 endif
 
-! If beam is injected into this lattice then no initialization wanted.
-! At present this code is not used.
+! Don't know what to do if not connected and the lattice is circular.
 
-if (.not. u%connect%connected) then
-  if (branch%param%lattice_type == circular_lattice$) then
-    call tao_single_track (u, tao_lat, calc_ok, ix_branch) 
-    if (extract_at_ix_ele /= -1) then
-      if (u%calc_beam_emittance) then
-        call radiation_integrals (lat, lat_branch%orbit, modes)
-        f = branch%ele(extract_at_ix_ele)%value(E_tot$) * &
-             (1+orbit(extract_at_ix_ele)%vec(6)) / mass_of(branch%param%particle)
-        beam_init%a_norm_emitt  = modes%a%emittance * f
-        beam_init%b_norm_emitt  = modes%b%emittance * f
-      endif
-      beam_init%center  = tao_lat%lat%beam_start%vec
-      ! other beam_init parameters will be as in tao.init, or as above
-      if (beam_init%a_norm_emitt == 0 .and. beam_init%b_norm_emitt == 0) then
-        call out_io (s_abort$, r_name, &
-                          'BOTH BEAM_INIT%A_NORM_EMITT AND %B_NORM_EMITT NOT SET!')
-        call err_exit
-      endif
-      call init_beam_distribution (branch%ele(extract_at_ix_ele), branch%param, &
-                               beam_init, s%u(i_uni_to)%connect%injecting_beam)
-    endif
-    ! no beam tracking in circular lattices
-    return
-  endif
+if (.not. u%connect%connected .and. branch%param%lattice_type == circular_lattice$) then
+  call out_io (s_abort$, r_name, 'BEAM TRACKING IN CIRCULAR LATTICE WHEN NOT CONNECTED NOT YET IMPLEMENTED!')
+  call err_exit
 endif
 
 ! track through the lattice elements.

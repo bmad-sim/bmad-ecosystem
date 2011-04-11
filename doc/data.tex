@@ -295,9 +295,9 @@ types, like \vn{dpx_dx}, only make sense with a \vn{"beam"}
 case, such datums will have a different value depending upon what
 \vn{data_source} is used.  Table~\ref{t:data.beam} lists the
 predefined data types in \tao that are valid for a \vn{"beam"}
-\vn{data_source} (\sref{s:init.data}) and Tables~\ref{t:data.lattice1}
-and \ref{t:data.lattice2} lists the predefined data types in \tao that
-are valid for a \vn{"lattice"} \vn{data_source}.
+\vn{data_source} (\sref{s:init.data}) and Table~\ref{t:data.lattice}
+lists the predefined data types in \tao that are valid for a
+\vn{"lattice"} \vn{data_source}.
 
 It is important to note the difference between the \vn{d2.d1} name
 that is used to refer to a given set of data and the actual type of
@@ -390,6 +390,17 @@ as the starting point in constructing a transfer matrix.
 The individual data types are described below:
 
   \begin{description}
+  \index{apparent_emit.}
+  \item[apparent_emit.] \Newline
+The apparent emittances \vn{apparent_emit.x} is
+\begin{equation}
+  E_x = \frac{\sigma_{xx} - \eta_x^2 \, \sigma_{p_zp_z}}{\beta_a}
+\end{equation}
+with a similar equation for \vn{apparent_emit.y}. Here $\sigma$ is the beam size matrix
+\begin{equation}
+  \sigma_{r_1r_2} \equiv \left< r_1 \, r_2 \right>
+\end{equation}
+
   \index{beta.}
   \item[beta.] \Newline
 \vn{beta.a} and \vn{beta.b} are the lattice beta functions. \vn{beta.x} and
@@ -409,21 +420,19 @@ calculate it from a tracked beam. The other is from the lattice using
 the standard radiation integrals (see the Bmad manual). For a linear
 lattice, the emittance varies along the length of the line while for a
 circular lattice there is a single emittance number. \vn{emit.a}
-and \vn{emit.b} are the standard normal mode emittances. With
-beam tracking, there are also \vn{projected emittances} which give an
-indication of what the beam looks like if projected onto the $x$ or
-$y$ axes:
+and \vn{emit.b} are the standard normal mode emittances. \vn{emit.a}
+and \vn{emit.b} are the \vn{projected emittances}:
 \begin{equation}
-  \mbox{emit.x} \equiv \sqrt{<x^2> <p_x^2> - <x p_x>^2}
+  \epsilon_x = \sqrt{ \wt\sigma_{xx} \, \wt\sigma_{p_xp_x} - \wt\sigma_{xp_x}^2}
 \end{equation}
-Notice that this does {\emph not} correspond to the standard emittance
-definition in one dimension:
+With a similar equation for $\epsilon_y$. Here $\wt\sigma$ is the energy normalized
+beam size:
 \begin{equation}
-  \epsilon_x = \sqrt{<(x - \eta_x \, p_z)^2> <(p_x - \eta'_x \, p_z)^2> - 
-  <(x - \eta_x \, p_z) \, (p_x - \eta'_x \, p_z)>^2}
+  \wt\sigma_{xx} = \langle x \, x \rangle - 
+  \frac{\langle x \, p_z \rangle \, \langle x \, p_z \rangle}{\langle p_z \, p_z \rangle}
 \end{equation}
-\vn{emit.x} and \vn{emit.y} are the projected emittances.
-Also notice that the projected emittance is sometimes defined using
+with similar definitions for the other $\wt\sigma$ components. 
+Note that the projected emittance is sometimes defined using
 $x'$ and $y'$ in place of $p_x$ and $p_y$. However, in the vast
 majority of cases, this does not appreciably affect the numeric
 results.
@@ -639,50 +648,53 @@ size squared.
 \index{dpb_db}\index{rad_int.i1}\index{rad_int.i2}\index{rad_int.i2_e4}
 \index{rad_int.i3}\index{rad_int.i3_e7}
 
-\begin{table}[ht] 
+\vfill\break
+
+\begin{table}[h] 
 \centering 
 {\tt\small
-\begin{tabular}{|l|l|} \hline
-  {\it Data\_Type}            & {\it Description}                   \\ \hline 
-  beta.x, beta.y  beta.z      & Projected beta function             \\ \hline 
-  beta.a, beta.b              & Normal-mode beta function           \\ \hline 
+\begin{tabular}{ll} \hline
+  {\it Data\_Type}                & {\it Description}                       \\ \hline\hline
+  beta.x, beta.y  beta.z          & Projected beta function                 \\ \hline 
+  beta.a, beta.b                  & Normal-mode beta function               \\ \hline 
 
-  dpx\_dx, dpx\_dy, etc.      & Bunch <x px> / <$x^2$> \& Etc...    \\ \hline 
+  dpx\_dx, dpx\_dy, etc.          & Bunch <x px> / <$x^2$> \& Etc...        \\ \hline 
 
-  emit.x, emit.y, emit.z      & Projected emittance                 \\ \hline
-  emit.a, emit.b, emit.c      & Normal mode emittance               \\ \hline
+  emit.a, emit.b, emit.c          & Normal mode emittance                   \\ \hline
+  emit.x, emit.y, emit.z          & Projected emittance                     \\ \hline
 
-  eta.x, eta.y, eta.z         & Projected dispersion                \\ \hline 
-  eta.a, eta.b                & Normal-Mode dispersion              \\ \hline 
-  etap.x, etap.y              & Projected dispersion derivative     \\ \hline 
-  etap.a, etap.b              & Normal-Mode dispersion derivative   \\ \hline 
+  eta.x, eta.y, eta.z             & Projected dispersion                    \\ \hline 
+  eta.a, eta.b                    & Normal-Mode dispersion                  \\ \hline 
+  etap.x, etap.y                  & Projected dispersion derivative         \\ \hline 
+  etap.a, etap.b                  & Normal-Mode dispersion derivative       \\ \hline 
 
-  n\_particle\_loss           & Number of particles lost            \\ \hline 
+  n\_particle\_loss               & Number of particles lost                \\ \hline 
 
-  \begin{tabular}{@{}l}  
-    norm\_emit.x, norm\_emit.x, norm\_emit.z \\ 
-    norm\_emit.a, norm\_emit.b, norm\_emit.c 
-  \end{tabular}               & Normalized beam emittance           \\ \hline 
+  norm\_emit.a, norm\_emit.b, norm\_emit.c 
+                                  & Energy normalized normal-mode emittance \\ \hline 
 
-  orbit.x, orbit.y, orbit.z      & Average orbit                   \\ \hline 
-  orbit.px, orbit.py, orbit.pz   & Average momenta                 \\ \hline 
+  norm\_emit.x, norm\_emit.y, norm\_emit.z
+                                  & Energy Normalized projected emittance   \\ \hline 
+
+  orbit.x, orbit.y, orbit.z       & Average orbit                           \\ \hline 
+  orbit.px, orbit.py, orbit.pz    & Average momenta                         \\ \hline 
 
   photon.intensity_x, photon.intensity_y
-                                 & Photon intensity                   \\ \hline
-  photon.intensity               & Photon total intensity             \\ \hline 
-  photon.phase_x, photon.phase_y & Photon phase                       \\ \hline
+                                  & Photon intensity                        \\ \hline
+  photon.intensity                & Photon total intensity                  \\ \hline 
+  photon.phase_x, photon.phase_y  & Photon phase                            \\ \hline
 
-  ref\_time                   & Reference time                      \\ \hline
+  ref\_time                       & Reference time                          \\ \hline
 
   \begin{tabular}{@{}l}   
     sigma.x, sigma.y, sigma.z \\ 
     sigma.px, sigma.py, sigma.pz
-  \end{tabular}               & Bunch size                          \\ \hline 
+  \end{tabular}                   & Bunch size                              \\ \hline 
 
   spin.polarization, spin.theta, spin.phi
-                              & Particle spin                       \\ \hline 
+                                  & Particle spin                           \\ \hline 
 
-  wire.<angle>                & Wire scanner at wire angle <angle>  \\ \hline
+  wire.<angle>                    & Wire scanner at wire angle <angle>      \\ \hline
 
 
 \end{tabular}
@@ -693,13 +705,21 @@ size squared.
 
 %----------------------------------------------------------------------------------------------
 
-\begin{table}[ht] 
-\centering 
-{\tt\small
-\begin{tabular}{|l|l|} \hline
-  {\it Data\_Type}               & {\it Description}                  \\ \hline 
+\begin{longtable}{ll} 
+  \caption{Predefined Data Types for \vn{"lattice"} data\_source.}
+  \label{t:data.lattice}
+  \\ \hline
+
+  {\it Data\_Type}               & {\it Description}                  \\ \hline\hline 
+  \endfirsthead
+
+  \caption[]{(continued)} \\ \hline
+  {\it Data\_Type}               & {\it Description}                  \\ \hline\hline 
+  \endhead
 
   alpha.a, alpha.b               & Normal-Mode alpha function         \\ \hline 
+  apparent_emit.x, apparent_emit.y, apparent_emit.z 
+                                 & Apparent emittance                 \\ \hline
   beta.a, beta.b                 & Normal-mode beta function          \\ \hline 
   bpm\_orbit.x, bpm\_orbit.y     & Measured orbit                     \\ \hline
   bpm\_phase.a, bpm\_phase.b     & Measured betatron phase            \\ \hline
@@ -738,20 +758,7 @@ size squared.
 
   floor.x, floor.y, floor.z, floor.theta 
                                  & Global (``floor'') position        \\ \hline 
-\end{tabular}
-} 
-\label{t:data.lattice1}
-\caption{Part I. Predefined Data Types for \vn{"lattice"} data\_source. 
-This list is continued on the next table.}
-\end{table}
 
-%----------------------------------------------------------------------------------------------
-
-\begin{table}[ht] 
-\centering 
-{\tt\small
-\begin{tabular}{|l|l|} \hline
-  {\it Data\_Type}               & {\it Description}                  \\ \hline 
   gamma.a, gamma.b               & Normal-mode gamma function         \\ \hline 
 
   rad\_int.i1                    & I1 radiation integral              \\ \hline
@@ -825,12 +832,5 @@ This list is continued on the next table.}
   unstable.orbit                 & Nonzero if particles are lost in tracking \\ \hline
   unstable.ring                  & Nonzero if a ring is unstable             \\ \hline
 
-\end{tabular}
-} 
-\label{t:data.lattice2}
-\caption{Part II. Predefined Data Types for \vn{"lattice"} data\_source. 
-This list is continued from the previous table.}
-\end{table}
+\end{longtable}
 
-\vfill \break
-{\vfill}

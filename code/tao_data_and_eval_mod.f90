@@ -874,22 +874,56 @@ case ('emit.', 'norm_emit.')
   select case (datum%data_type)
 
   case ('emit.x', 'norm_emit.x')
-    call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%x%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+    if (data_source == 'lat') then
+      do i = ix_start, ix_ele
+        value_vec(i) = tao_projected_emit_calc (x_plane$, branch%ele(i), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      enddo
+      if (ix_ref > -1) then
+        value_vec(ix_ref) = tao_projected_emit_calc (x_plane$, branch%ele(ix_ref), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      endif
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      if (data_type == 'norm_emit.x') then
+        call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
+        datum_value = datum_value * gamma
+      endif
+
+    else
+      call tao_load_this_datum (bunch_params(:)%x%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      if (data_type == 'emit.x') then
+        call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
+        datum_value = datum_value / gamma
+      endif
+    endif
 
   case ('emit.y', 'norm_emit.y')  
-    call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
-    if (data_source == 'lat') return
-    call tao_load_this_datum (bunch_params(:)%y%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+    if (data_source == 'lat') then
+      do i = ix_start, ix_ele
+        value_vec(i) = tao_projected_emit_calc (y_plane$, branch%ele(i), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      enddo
+      if (ix_ref > -1) then
+        value_vec(ix_ref) = tao_projected_emit_calc (y_plane$, branch%ele(ix_ref), tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      endif
+      call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      if (data_type == 'norm_emit.y') then
+        call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
+        datum_value = datum_value * gamma
+      endif
+
+    else
+      call tao_load_this_datum (bunch_params(:)%y%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+      if (data_type == 'emit.y') then
+        call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
+        datum_value = datum_value / gamma
+      endif
+    endif
 
   case ('emit.z', 'norm_emit.z')
-    call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
     if (data_source == 'lat') return
     call tao_load_this_datum (bunch_params(:)%z%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
-    if (data_type(1:4) == 'emit') datum_value = datum_value / gamma
+    if (data_type(1:4) == 'emit') then
+      call convert_total_energy_to (ele%value(E_tot$), lat%param%particle, gamma)
+      datum_value = datum_value / gamma
+    endif
 
   case ('emit.a', 'norm_emit.a')
     call convert_total_energy_to (lat%ele(0)%value(E_tot$), lat%param%particle, gamma)

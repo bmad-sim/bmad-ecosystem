@@ -679,7 +679,6 @@ type tao_universe_struct
   logical do_rad_int_calc_plotting       !   to data or a plot depending upon the calc?
   logical do_chrom_calc                  ! Does the chromaticity need to be computed?
   logical is_on                          ! universe turned on
-  logical calc_beam_emittance            ! for a lat calculate emittance
   logical lattice_recalc                 ! Used to indicate which lattices need tracking done.
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
   logical picked_uni                     ! Scratch logical.
