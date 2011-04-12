@@ -85,7 +85,6 @@ fi
 CWD=`pwd`
 
 USE_OVERRIDE_BASEDIR=N
-#USE_CWD_BASEDIR=N
 
 "echo" "" > ${DIST_SETUP_LOG}
 
@@ -105,6 +104,7 @@ if ( [ "${DIRCHECK}" == "Y" ] ); then
   "echo" "Current working directory is the root of a distribution tree." >> ${DIST_SETUP_LOG}
   USE_CWD_BASEDIR="Y"
   export DIST_BASE_DIR="${CWD}"
+  "echo" "Current working directory is not the top level of a distribution tree." >> $DIST_SETUP_LOG
 fi
 
 
@@ -243,7 +243,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   # shell type that started the environment setup process.
   #  Explicitly supported shells are:
   #   Bourne-type shells: sh  / bash / ash 
-  #   C-type shells     : csh / tcsh 
+  #   C-type shells     : csh / tcsh
   #
   # For each line that has changed or that is new in the most
   # recent environment snapshot, add quotes to the value of

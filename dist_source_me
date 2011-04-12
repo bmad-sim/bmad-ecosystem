@@ -67,7 +67,9 @@
 # variable to locate a particular distribution top level
 # directory.
 #----------------------------------------------------------
-("sh" ./util/dist_gen_env) >& /dev/null || (sh /${DIST_BASE_DIR}/util/dist_gen_env) >& /dev/null || false
+"echo" "Running ${DIST_BASE_DIR}/util/dist_gen_env..." >> ${HOME}/.dist_setup_log.tmp
+
+("sh" ./util/dist_gen_env) >& /dev/null || ("sh" /${DIST_BASE_DIR}/util/dist_gen_env) >& /dev/null || "echo" "Locating dist_gen_env script failed." >> ${HOME}/.dist_setup_log.tmp
 
 
 
