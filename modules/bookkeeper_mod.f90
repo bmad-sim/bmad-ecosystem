@@ -1492,6 +1492,10 @@ end subroutine makeup_super_slave
 !    sliced_ele = ele_in 
 ! needs to be done.
 !
+! Note: To save tracking computation time, if ele_in has taylor, symp_lie_ptc, or symp_map 
+! for trackint_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
+! for wigglers and bmad_standard for everything else.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -1507,12 +1511,12 @@ end subroutine makeup_super_slave
 !   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
 !-
 
-subroutine create_element_slice (sliced_ele, ele, l_slice, offset, &
+subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
                                                        param, at_entrance_end, at_exit_end)
 
 implicit none
 
-type (ele_struct), target :: sliced_ele, ele
+type (ele_struct), target :: sliced_ele, ele_in
 type (lat_param_struct) param
 
 real(rp) l_slice, offset, e_len
@@ -1523,10 +1527,10 @@ character(24) :: r_name = 'create_element_slice'
 
 ! Err check. Remember: the element length may be negative
 
-e_len = ele%value(l$)
+e_len = ele_in%value(l$)
 if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_longitudinal_length) then
   call out_io (s_fatal$, r_name, &
-        'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele%name, &
+        'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele_in%name, &
         'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])
   call err_exit
 endif
@@ -1534,21 +1538,39 @@ endif
 ! Simple case where ele length is zero
 
 if (e_len == 0) then
-  sliced_ele = ele
+  sliced_ele = ele_in
   return
 endif
 
 !
 
 sliced_ele%value(l$) = l_slice
-call makeup_super_slave1 (sliced_ele, ele, offset, param, at_entrance_end, at_exit_end)
-sliced_ele%s = ele%s - e_len + offset + sliced_ele%value(l$)
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
+sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 
 ! Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
 ! periodic wiggler phi_z values.
 
 sliced_ele%slave_status = super_slave$
 call attribute_bookkeeper (sliced_ele, param)
+
+! Use a speedier tracking method.
+
+select case (sliced_ele%tracking_method)
+case (taylor$, symp_map$, symp_lie_ptc$)
+  select case (sliced_ele%key)
+  case (wiggler$); sliced_ele%tracking_method = symp_lie_bmad$
+  case default;    sliced_ele%tracking_method = bmad_standard$
+  end select
+end select
+
+select case (sliced_ele%mat6_calc_method)
+case (taylor$, symp_map$, symp_lie_ptc$)
+  select case (sliced_ele%key)
+  case (wiggler$); sliced_ele%mat6_calc_method = symp_lie_bmad$
+  case default;    sliced_ele%mat6_calc_method = bmad_standard$
+  end select
+end select
 
 end subroutine create_element_slice
 
