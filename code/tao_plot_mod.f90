@@ -1189,9 +1189,9 @@ do i = 1, n
 enddo
 
 if (graph%draw_curve_legend .and. n > 1) then
-  call qp_draw_curve_legend (graph%curve_legend_origin, &
-            s%plot_page%curve_legend_text_offset, s%plot_page%curve_legend_line_len, &
-            line, symbol, text)
+  call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
+            graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
+            symbol, text, s%plot_page%curve_legend_text_offset)
 endif
 
 deallocate (text, symbol, line)
