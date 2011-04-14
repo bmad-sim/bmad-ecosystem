@@ -444,26 +444,6 @@ interface
 end interface
  
 interface
-  subroutine spline_akima (spline, ok)
-    use sim_utils_struct
-    implicit none
-    type (spline_struct) :: spline(:)
-    logical ok
-  end subroutine
-end interface
-
-interface
-  subroutine spline_evaluate (spline, x, ok, y, dy)
-    use sim_utils_struct
-    type (spline_struct), target :: spline(:)
-    real(rp) :: x
-    real(rp), optional :: y
-    real(rp), optional :: dy
-    logical ok
-  end subroutine
-end interface
- 
-interface
   subroutine string_to_int (line, default, value, err_flag)
     implicit none
     integer default
