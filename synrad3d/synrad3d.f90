@@ -71,33 +71,35 @@ param_file = ''
 
 do i = 1, cesr_iargc()
   call cesr_getarg(i, arg)
-  if (arg == '-plot' .or. arg == '-cross') then
-    plotting = 'cross'
-  elseif (arg == '-rcross') then
-    plotting = 'cross-reverse'
-  elseif (arg == '-norm') then
-    plotting = 'cross-norm'
-  elseif (arg == '-xs') then
-    plotting = 'xs'
-  elseif (arg == '-ys') then
-    plotting = 'ys'
-  elseif (arg(1:1) == '-') then
-    print *, 'I DO NOT UNDERSTAND: ', trim(arg)
-    print *
-    ok = .false.
-  else
+  select case (arg)
+  case ('-plot')
+    plotting = '-cross'
+  case ('-rcross', '-norm', '-xs', '-ys', '-reflect')
+    plotting = arg
+  case default
+    if (arg(1:1) == '-') then
+      print *, 'I DO NOT UNDERSTAND: ', trim(arg)
+      print *
+      ok = .false.
+    endif
     param_file = arg
-  endif
+  end select
 enddo
 
 if (param_file == '') param_file = 'synrad3d.init'
 
 if (.not. ok) then
   print *, 'Usage:'
-  print *, '  synrad3d {-cross | -rcross | -norm | -xs | -ys} {<init_file>}'
+  print *, '  synrad3d {-cross | -rcross | -norm | -xs | -ys | -reflect} {<init_file>}'
   print *, 'Default:'
   print *, '  <init_file> = synrad3d.init'
   stop
+endif
+
+! Reflection plotting
+
+if (plotting == '-reflect') then
+  call sr3d_plot_reflection_probability()
 endif
 
 ! Get parameters.
@@ -300,10 +302,10 @@ call ran_seed_put (random_seed)
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
 
-if (plotting(1:5) == 'cross') then
-  call sr3d_plot_wall_cross_sections (wall, plotting(7:))
+if (plotting == '-cross' .or. plotting == '-rcross') then
+  call sr3d_plot_wall_cross_sections (wall, plotting)
 elseif (plotting /= '') then
-  call sr3d_plot_wall_vs_s (wall, plotting(1:1))
+  call sr3d_plot_wall_vs_s (wall, plotting(2:2))
 endif
 
 ! Find out much radiation is produced

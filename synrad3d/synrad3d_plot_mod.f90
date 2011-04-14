@@ -10,7 +10,171 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_vs_s (wall, plane)
+! Subroutine sr3d_plot_reflection_probability ()
+!
+! Routine to plot reflection probabilit curves
+!-
+
+subroutine sr3d_plot_reflection_probability ()
+
+use photon_reflection_mod
+
+implicit none
+
+integer, parameter :: n_pt = 200
+
+type yplot
+  real(rp) y(n_pt)
+  character(40) label
+  type (qp_line_struct) line
+end type
+
+type (yplot), allocatable :: ny(:)
+
+real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
+real(rp) x(n_pt), value, y_min, y_max
+real(rp), pointer :: var_ptr
+
+integer i, j, ix, ios, n_lines, i_chan
+
+logical fixed_energy, logic
+
+character(80) ans
+character(16) x_lab, y_lab
+
+! init
+
+angle_min = 0
+angle_max = 40
+
+ev_min = 50
+ev_max = 150
+
+fixed_energy = .true.
+y_lab = 'Reflectivity'
+
+n_lines = 3
+allocate (ny(n_lines))
+
+call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
+call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+call qp_set_margin (0.07_rp, 0.05_rp, 0.10_rp, 0.05_rp, '%PAGE')
+
+! Endless plotting loop:
+
+do 
+
+  ! Get data
+
+  do i = 1, n_lines
+    do j = 1, n_pt
+      if (fixed_energy) then
+        angle = angle_min + (j - 1) * (angle_max - angle_min) / (n_pt - 1)
+        ev = ev_min + (i - 1) * (ev_max - ev_min) / max(1, (n_lines - 1))
+        write (ny(i)%label, '(a, f0.1)') 'Energy (eV) = ', ev
+        x(j) = angle
+        x_lab = 'Angle'
+      else
+        ev = ev_min + (j - 1) * (ev_max - ev_min) / (n_pt - 1)
+        angle = angle_min + (i - 1) * (angle_max - angle_min) / max(1, (n_lines - 1))
+        write (ny(i)%label, '(a, f0.1)') 'Angle = ', angle
+        x(j) = ev
+        x_lab = 'Energy (eV)'
+      endif
+      call photon_reflectivity (angle*pi/180, ev, ny(i)%y(j))
+    enddo
+  enddo
+
+  ! plot
+
+  y_min = ny(1)%y(1)
+  y_max = ny(1)%y(1)
+
+  do i = 1, n_lines
+    y_min = min(y_min, minval(ny(i)%y))
+    y_max = max(y_max, maxval(ny(i)%y))
+  enddo
+
+  call qp_calc_and_set_axis ('X', x(1), x(n_pt), 10, 16, 'GENERAL')
+  call qp_calc_and_set_axis ('Y', y_min, y_max, 6, 10, 'GENERAL')
+
+  call qp_clear_page
+
+  call qp_draw_graph (x, ny(1)%y, x_lab, y_lab, 'Reflectivity', .true., 0)
+
+  do i = 1, n_lines
+    call qp_draw_polyline (x, ny(i)%y, line_pattern = i)
+    ny(i)%line%pattern = i
+  enddo
+
+  call qp_draw_curve_legend (0.5_rp, 0.0_rp, '%GRAPH/LT', ny(:)%line, 40.0_rp, text = ny(:)%label, text_offset = 10.0_rp)
+
+  ! Get input:
+
+  print *
+  print '(a)', 'Syntax: "<parameter> <value>"'
+  print '(a)', 'Possible <Parameter>s: "ev_min", "ev_max", "angle_min", angle_max", "n_lines", "fixed_energy".'
+  print '(a)', '"n_lines" is how many lines to plot.'
+  print '(a)', '"<value> for "fixed_energy" is either "t" or "f". '
+  print '(a)', '"fixed_energy t" means plot lines with fixed energy and horizontal scale is angle.' 
+  print '(a)', '"fixed_energy f" means plot lines with fixed angle and horizontal scale is energy.' 
+  call read_a_line ('Input: ', ans)
+  call string_trim(ans, ans, ix)
+  if (ix == 0) cycle
+  select case (ans(1:ix))
+  case ('ev_min')
+    var_ptr => ev_min
+  case ('ev_max')
+    var_ptr => ev_max
+  case ('angle_min')
+    var_ptr => angle_min
+  case ('angle_max')
+    var_ptr => angle_max
+  case ('n_lines')
+    read (ans(ix+1:), *, iostat = ios) n_lines
+    if (ans(ix+1:) == '' .or. ios /= 0) then
+      print *, 'CANNOT READ VALUE'
+      cycle
+    endif
+    n_lines = max(1, n_lines)
+    deallocate (ny)
+    allocate (ny(n_lines))
+
+  case ('fixed_energy')
+    read (ans(ix+1:), *, iostat = ios) logic
+    if (ans(ix+1:) == '' .or. ios /= 0) then
+      print *, 'CANNOT READ VALUE'
+      cycle
+    endif
+    fixed_energy = logic
+
+  case default
+    print *, 'CANNOT PARSE THIS.'
+    cycle
+  end select
+
+  read (ans(ix+1:), *, iostat = ios) value
+  
+  if (ans(ix+1:) == '' .or. ios /= 0) then
+    print *, 'CANNOT READ VALUE'
+    cycle
+  endif
+
+  var_ptr = value
+
+  angle_min = max(0.0_rp, angle_min)
+  angle_max = min(90.0_rp, angle_max)
+  ev_min = max(0.0_rp, ev_min)
+
+enddo
+
+end subroutine sr3d_plot_reflection_probability
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! subroutine sr3d_plot_wall_vs_s (wall, plane)
 !
 ! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
@@ -35,7 +199,7 @@ integer i, ix, i_chan, ios
 
 character(*) plane
 character(16) plane_str
-character(40) :: ans = 'first'
+character(40) :: ans
 
 logical xy_user_good, s_user_good
 
@@ -70,48 +234,6 @@ enddo
 
 do
 
-  ! Query
-
-  if (ans /= 'first') then
-    print *, 'Syntax: "x", "y", or "s" followed by <min> <max> values.'
-    print *, '[<min> = "auto" --> autoscale] Example: "x auto", "s 10 60"'
-    call read_a_line ('Input: ', ans)
-  endif
-
-  call string_trim (ans, ans, ix)
-  if (ans(1:2) == 's ') then
-    call string_trim(ans(2:), ans, ix)
-    if (ans == 'auto') then
-      s_user_good = .false.
-    else
-      read (ans, *, iostat = ios) s_min, s_max
-      if (ios /= 0) then
-        print *, 'CANNOT DECODE MIN/MAX VALUES'
-      else
-        s_user_good = .true.
-      endif
-    endif
-
-  elseif (ans(1:2) == 'x ' .or. ans(1:2) == 'y ') then
-    call string_trim(ans(2:), ans, ix)
-    if (ans == 'auto') then
-      xy_user_good = .false.
-    else
-      read (ans, *, iostat = ios) xy_min, xy_max
-      if (ios /= 0) then
-        print *, 'CANNOT DECODE MIN/MAX VALUES'
-      else
-        xy_user_good = .true.
-      endif
-    endif
-
-  elseif (ans == 'first') then
-    ans = ''
-
-  else
-    print *, 'I DO NOT UNDERSTAND THIS...'
-  endif
-
   ! Determine s min/max
 
   if (.not. s_user_good) then
@@ -119,7 +241,7 @@ do
     s_max = wall%pt(wall%n_pt_max)%s
   endif
 
-  call qp_calc_and_set_axis ('X', s_min, s_max, 6, 10, 'GENERAL')
+  call qp_calc_and_set_axis ('X', s_min, s_max, 10, 16, 'GENERAL')
 
   ! Get xy data points
 
@@ -155,6 +277,43 @@ do
   call qp_draw_graph (s, xy_in, 'S (m)', plane_str, '', .true., 0)
   call qp_draw_polyline (s, xy_out)
 
+  ! Query
+
+  print *, 'Syntax: "x", "y", or "s" followed by <min> <max> values.'
+  print *, '[<min> = "auto" --> autoscale] Example: "x auto", "s 10 60"'
+  call read_a_line ('Input: ', ans)
+
+  call string_trim (ans, ans, ix)
+  if (ans(1:2) == 's ') then
+    call string_trim(ans(2:), ans, ix)
+    if (ans == 'auto') then
+      s_user_good = .false.
+    else
+      read (ans, *, iostat = ios) s_min, s_max
+      if (ios /= 0) then
+        print *, 'CANNOT DECODE MIN/MAX VALUES'
+      else
+        s_user_good = .true.
+      endif
+    endif
+
+  elseif (ans(1:2) == 'x ' .or. ans(1:2) == 'y ') then
+    call string_trim(ans(2:), ans, ix)
+    if (ans == 'auto') then
+      xy_user_good = .false.
+    else
+      read (ans, *, iostat = ios) xy_min, xy_max
+      if (ios /= 0) then
+        print *, 'CANNOT DECODE MIN/MAX VALUES'
+      else
+        xy_user_good = .true.
+      endif
+    endif
+
+  else
+    print *, 'I DO NOT UNDERSTAND THIS...'
+  endif
+
 enddo
 
 end subroutine sr3d_plot_wall_vs_s 
@@ -171,9 +330,9 @@ end subroutine sr3d_plot_wall_vs_s
 ! Input:
 !   wall      -- sr3d_wall_struct: Wall structure.
 !   extra     -- Character(*): 
-!                   'norm' -> Also plot a set of lines normal to the wall.
+!                   '-norm' -> Also plot a set of lines normal to the wall.
 !                             This is used as a check to the wall normal calculation.
-!                   'reverse' -> flip x-axis
+!                   '-rcross' -> flip x-axis
 !-
 
 subroutine sr3d_plot_wall_cross_sections (wall, extra)
@@ -184,13 +343,13 @@ type (sr3d_wall_struct), target :: wall
 type (sr3d_wall_pt_struct), pointer :: pt
 type (sr3d_photon_track_struct) photon
 
-real(rp) s_pos, x(400), y(400), x_max, y_max, theta, r, x_max_user, r_max
+real(rp) s_pos, x(400), y(400), x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100)
 real(rp) minn, maxx
 
 integer i, j, ix, ix_section, i_in, ios, i_chan
 
-character(80) :: ans = 'first', label
+character(80) :: ans, label
 character(*) extra
 
 logical at_section
@@ -210,20 +369,88 @@ do i = 0, wall%n_pt_max
   print '(i4, 2x, a, f12.2)', i, pt%basic_shape(1:12), pt%s
 enddo
 
-ix_section = wall%n_pt_max
+ix_section = 0
+s_pos = wall%pt(ix_section)%s
+s_pos_old = s_pos
+at_section = .true.
 
 ! Loop
 
 do
 
-  ! Query
+  ! Find the wall cross-section at the given s value.
+  ! We characterize the cross-section by an array of points with straight lines drawn between the points.
+  ! The i^th point can be characterized by (r_i, theta_i) with theta_i being linear in i.
+  ! This is an approximation to the true shape but it is good enough for plotting and serves as
+  ! an independent check on the routines used to detect intersections of the photon with the wall.
 
-  if (ans /= 'first') then
-    call read_a_line ('Input: "<Section #>", "<CR>" (Next sec), "b" (Back sec), "s <s_value>", "x <x_max>" ("x auto" -> autoscale)', ans)
+  photon%now%vec(5) = s_pos
+
+  do i = 1, size(x)
+
+    ! Idea is to see where photon path from photon%old (at the origin) to %now intersects the wall.
+    ! photon%now is at 1 meter radius which is assumed to be outside the wall.
+
+    theta = (i-1) * twopi / (size(x) - 1)
+    photon%now%vec(1) = r_max * cos(theta)  
+    photon%now%vec(3) = r_max * sin(theta)
+
+    if (extra == '-norm' .and. modulo(i, 4) == 0) then
+      j = (i / 4)
+      call sr3d_find_wall_point (wall, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+    else
+      call sr3d_find_wall_point (wall, photon, x(i), y(i))
+    endif
+
+  enddo
+
+  x = x * 100; y = y * 100
+  x1_norm = x1_norm * 100; x2_norm = x2_norm * 100
+  y1_norm = y1_norm * 100; y2_norm = y2_norm * 100
+
+  ! Now plot
+
+  if (at_section) then
+    if (s_pos_old == s_pos) then
+      write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
+    else
+      write (label, '(2(a, f0.3), a, i0, 2a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
+                                '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
+    endif
+  else
+    write (label, '(a, f0.3)') 'S: ', s_pos
+  endif
+  call qp_clear_page
+  x_max = 1.01 * maxval(abs(x)); y_max = 1.01 * maxval(abs(y))
+  if (x_max_user > 0) x_max = x_max_user
+  call qp_calc_and_set_axis ('X', -x_max, x_max, 10, 16, 'ZERO_SYMMETRIC')
+  call qp_calc_and_set_axis ('Y', -y_max, y_max, 6, 10, 'ZERO_SYMMETRIC')
+  call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
+
+  if (x_max_user > 0) then
+    call qp_eliminate_xy_distortion('Y')
+  else
+    call qp_eliminate_xy_distortion()
   endif
 
+  if (extra == '-rcross') then
+    call qp_get_axis_attrib('X', minn, maxx)
+    call qp_set_axis ('X', maxx, minn) 
+  endif
+
+  call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
+
+  if (extra == '-norm') then
+    do j = 1, size(x1_norm)
+      call qp_draw_line(x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+    enddo
+  endif
+
+  ! Query
+
+  call read_a_line ('Input: "<Section #>", "<CR>" (Next sec), "b" (Back sec), "s <s_value>", "x <x_max>" ("x auto" -> autoscale)', ans)
+
   call string_trim (ans, ans, ix)
-  if (ans == 'first') ans = ''
 
   if (ans(1:1) == 's') then
     read (ans(2:), *, iostat = ios) s_pos
@@ -248,11 +475,13 @@ do
 
   elseif (ans == '') then
     ix_section = modulo(ix_section + 1, wall%n_pt_max + 1)
+    s_pos_old = s_pos
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
 
   elseif (ans == 'b') then
     ix_section = modulo(ix_section - 1, wall%n_pt_max + 1)
+    s_pos_old = s_pos
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
 
@@ -267,72 +496,10 @@ do
       cycle
     endif
     ix_section = i_in
+    s_pos_old = s_pos
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
 
-  endif
-
-  ! Find the wall cross-section at the given s value.
-  ! We characterize the cross-section by an array of points with straight lines drawn between the points.
-  ! The i^th point can be characterized by (r_i, theta_i) with theta_i being linear in i.
-  ! This is an approximation to the true shape but it is good enough for plotting and serves as
-  ! an independent check on the routines used to detect intersections of the photon with the wall.
-
-  photon%now%vec(5) = s_pos
-
-  do i = 1, size(x)
-
-    ! Idea is to see where photon path from photon%old (at the origin) to %now intersects the wall.
-    ! photon%now is at 1 meter radius which is assumed to be outside the wall.
-
-    theta = (i-1) * twopi / (size(x) - 1)
-    photon%now%vec(1) = r_max * cos(theta)  
-    photon%now%vec(3) = r_max * sin(theta)
-
-    if (extra == 'norm' .and. modulo(i, 4) == 0) then
-      j = (i / 4)
-      call sr3d_find_wall_point (wall, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
-    else
-      call sr3d_find_wall_point (wall, photon, x(i), y(i))
-    endif
-
-  enddo
-
-  x = x * 100; y = y * 100
-  x1_norm = x1_norm * 100; x2_norm = x2_norm * 100
-  y1_norm = y1_norm * 100; y2_norm = y2_norm * 100
-
-  ! Now plot
-
-  if (at_section) then
-    write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
-  else
-    write (label, '(a, f0.3)') 'S: ', s_pos
-  endif
-  call qp_clear_page
-  x_max = 1.01 * maxval(abs(x)); y_max = 1.01 * maxval(abs(y))
-  if (x_max_user > 0) x_max = x_max_user
-  call qp_calc_and_set_axis ('X', -x_max, x_max, 10, 16, 'ZERO_SYMMETRIC')
-  call qp_calc_and_set_axis ('Y', -y_max, y_max, 6, 10, 'ZERO_SYMMETRIC')
-  call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
-
-  if (x_max_user > 0) then
-    call qp_eliminate_xy_distortion('Y')
-  else
-    call qp_eliminate_xy_distortion()
-  endif
-
-  if (extra == 'reverse') then
-    call qp_get_axis_attrib('X', minn, maxx)
-    call qp_set_axis ('X', maxx, minn) 
-  endif
-
-  call qp_draw_graph (x, y, 'X', 'Y', label, .true., 0)
-
-  if (extra == 'norm') then
-    do j = 1, size(x1_norm)
-      call qp_draw_line(x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
-    enddo
   endif
 
 enddo
