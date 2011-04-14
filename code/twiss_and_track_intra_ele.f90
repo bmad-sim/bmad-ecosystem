@@ -58,8 +58,6 @@ type (ele_struct), save :: runt
 
 real(rp) l_start, l_end
 
-integer track, mat6
-
 logical track_entrance, track_exit, do_entrance, do_exit
 logical, optional :: err
 
@@ -88,20 +86,6 @@ runt = ele
 do_entrance = (track_entrance .and. l_start == 0)
 do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_longitudinal_length)
 call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit)
-
-track = runt%tracking_method
-mat6  = runt%mat6_calc_method
-
-select case (runt%key)
-case (wiggler$) 
-  if (track == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
-                                                runt%tracking_method = symp_lie_bmad$
-  if (mat6 == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
-                                                runt%mat6_calc_method = symp_lie_bmad$
-case default
-  if (track == taylor$ .or. track == symp_map$) runt%tracking_method  = bmad_standard$
-  if (mat6 == taylor$ .or. track == symp_map$)  runt%mat6_calc_method = bmad_standard$
-end select
 
 ! Now track
 

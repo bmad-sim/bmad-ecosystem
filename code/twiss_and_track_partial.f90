@@ -61,9 +61,10 @@ type (coord_struct) c0, c1
 type (lat_param_struct) param
 
 real(rp) del_s, l_orig, ratio
-integer track, mat6
+
 character(24) :: r_name = 'twiss_and_track_partial'
 character(80) line
+
 logical, optional :: body_only, err
 logical error, track_entrance
 
@@ -114,20 +115,6 @@ if (present(orb_start)) then
 else
   c0%vec = 0
 endif
-
-track = runt%tracking_method
-mat6 = runt%mat6_calc_method
-
-select case (runt%key)
-case (wiggler$) 
-  if (track == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
-                                                runt%tracking_method = symp_lie_bmad$
-  if (mat6 == taylor$ .or. track == symp_map$ .or. track == symp_lie_ptc$) &
-                                                runt%mat6_calc_method = symp_lie_bmad$
-case default
-  if (track == taylor$ .or. track == symp_map$) runt%tracking_method = bmad_standard$
-  if (mat6 == taylor$ .or. track == symp_map$)  runt%mat6_calc_method = bmad_standard$
-end select
 
 call track1 (c0, runt, param, c1)
 if (param%lost) return
