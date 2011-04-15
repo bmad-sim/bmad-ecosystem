@@ -1,18 +1,13 @@
 \documentclass[11pt]{article}
-%%\documentclass{book}
 \usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
 \usepackage{xspace}
 \geometry{letterpaper}           % ... or a4paper or a5paper or ... 
-%\geometry{landscape}            % Activate for for rotated page geometry
 %\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
 \usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{alltt}
-%\usepackage{epstopdf}
-%\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
 \usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
 \usepackage[strings]{underscore}    % to use "_" in text
-
 \usepackage{hyperref}
 
 %---------------------------------------------------------------------------------
@@ -204,7 +199,7 @@ dipoles in CesrTA at 2 GeV.
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=5in]{reflectivity.eps}
+\includegraphics[width=5in]{reflectivity_4nm.png}
 \caption{Reflectivity vs. energy for several grazing angles. 
 Points shown are a measurement from INFN~\cite{b.mehne}}
 \label{f:reflect}
@@ -436,7 +431,7 @@ photons have been generated, \srthree will generate another
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=5in]{chamber.eps}
+\includegraphics[width=6in]{chamber.pdf}
 \caption{Example vacuum chamber cross-section for an \vn{elliptical} 
 chamber with an antechamber on the $+x$ side of the chamber and an
 aperture on the $-x$ side.}
@@ -669,7 +664,7 @@ A photon at $(r,\theta, s)$ is inside the chamber if
 
 \begin{figure}[tb]
 \begin{center}
-\includegraphics[width=6in]{chamber-problem.eps}
+\includegraphics[width=6in]{chamber-problem.pdf}
 \caption{A) A convex cross-section can lead to problems with linear interpolation.
 since it is assumed that if the beginning and ending points are inside the chamber 
 the entire track is inside the chamber. The track shown violates this assumption.
