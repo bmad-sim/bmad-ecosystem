@@ -92,6 +92,7 @@ END TYPE tt_state_struct
 INTEGER, PRIVATE, SAVE :: tt_ids = 0  !number of tune trackers instantiated
 TYPE(tt_param_struct), PRIVATE, SAVE :: tt_param(max_tt)
 TYPE(tt_state_struct), PRIVATE, SAVE :: tt_state(max_tt)
+INTEGER, PRIVATE, SAVE :: log_luns(max_tt)
 
 PUBLIC init_dTT
 PUBLIC TT_update
@@ -176,7 +177,8 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   tt_param(id)%LPalpha = 1.0_rp / ( 1.0_rp + (tt_param(id)%LPinertia/2.0_rp/pi) )
 
   tt_log_name = "tt_log_"//id_str//".out"
-  OPEN(UNIT=500+id,NAME=tt_log_name,STATUS='REPLACE')
+  CALL GETLUN(log_luns(id))
+  OPEN(UNIT=log_luns(id),FILE=tt_log_name,STATUS='REPLACE')
 
   IF(tt_param(id)%use_D_chan) THEN
     IF( .not. tt_param(id)%useSaveState ) THEN
@@ -218,9 +220,7 @@ SUBROUTINE dest_dTT(id,coords)
     ENDIF
   ENDIF
 
-  IF(tt_param(id)%use_D_chan) THEN
-    CLOSE(500+id)
-  ENDIF
+  CLOSE(log_luns(id))
 END SUBROUTINE dest_dTT
 
 !+
@@ -238,7 +238,7 @@ END SUBROUTINE dest_dTT
 !   use tune_tracker_mod
 !
 ! Input:
-!   bpm_msmt     -- REAL(rp) [VALUE]: new bpm measurement. passed by value.
+!   bpm_msmt     -- REAL(rp): new bpm measurement. passed by value.
 !   id           -- INTEGER, INTENT(IN): instance id of tune tracker
 ! Output:
 !   z            -- Double precision: sin(modulator_angle + phase_advance_to_kicker)
@@ -248,7 +248,8 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
 
   REAL(rp), PARAMETER :: ga = 0.05_rp     !bpm gain time constant
 
-  REAL(rp) :: bpm_msmt [VALUE]
+  REAL(rp) :: bpm_msmt
+  REAL(rp) bpm_msmt_nrml
   INTEGER, INTENT(IN) :: id
   REAL(rp) :: z
 
@@ -265,10 +266,11 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
   tt_state(id)%counter = tt_state(id)%counter + 1    !needed for log file
 
   ! Adjust bpm data for closed orbit offset and apply gain
-  bpm_msmt = bpm_msmt - tt_param(id)%offset
-  ! Gain adjusted to keep bpm average at unity.
-  tt_state(id)%gain = ga*ABS(bpm_msmt) + (1.0_rp-ga)*tt_state(id)%gain
-  bpm_msmt = bpm_msmt/tt_state(id)%gain
+  bpm_msmt_nrml = bpm_msmt - tt_param(id)%offset
+  ! Update gain.  Gain adjusted to keep bpm average at unity.
+  tt_state(id)%gain = ga*ABS(bpm_msmt_nrml) + (1.0_rp-ga)*tt_state(id)%gain
+  ! Apply gain.
+  bpm_msmt_nrml = bpm_msmt_nrml/tt_state(id)%gain
 
   fastPeriod = tt_param(id)%Dt / tt_param(id)%cyc_per_turn
 
@@ -277,7 +279,7 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
     IF( i <= FLOOR(tt_param(id)%cyc_per_turn / 2.0) ) THEN
       bpm = tt_state(id)%bpm_msmt_last
     ELSE
-      bpm = bpm_msmt
+      bpm = bpm_msmt_nrml
     ENDIF
     CALL modulator(tt_state(id)%psi,sinout,sqrout)
 
@@ -301,7 +303,7 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
     tt_state(id)%psi = MOD(tt_state(id)%psi,2.0_rp*pi)
 
   ENDDO
-  tt_state(id)%bpm_msmt_last = bpm_msmt
+  tt_state(id)%bpm_msmt_last = bpm_msmt_nrml
 
   !The following calculates the proportional and derivative channels
   proDphi = tt_param(id)%Kp * tt_state(id)%Dphi
@@ -318,12 +320,12 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
   !Write to log file
   IF( tt_param(id)%use_D_chan ) THEN
     !This statement writes the state of each PID channel to the tt_log_n.out file.
-    WRITE(500+id,'(I8,3ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
-                                                    tt_param(id)%Kp*proDphi, &
-                                                   -tt_param(id)%Kd*dirDphi
+    WRITE(log_luns(id),'(I8,3ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                                             tt_param(id)%Kp*proDphi, &
+                                                             -tt_param(id)%Kd*dirDphi
   ELSE
-    WRITE(500+id,'(I8,2ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
-                                                    tt_param(id)%Kp*proDphi
+    WRITE(log_luns(id),'(I8,2ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                                             tt_param(id)%Kp*proDphi
   ENDIF
 
   CALL modulator(tt_state(id)%psi + tt_param(id)%phi_to_kicker, sinout, sqrout)
