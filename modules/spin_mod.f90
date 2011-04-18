@@ -186,8 +186,9 @@ type (coord_struct) coord
 !
 
  coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
- coord%spin(2) = Exp(i_imaginary * polar%xi) * sin(polar%theta / 2.0d0) * &
-                              Exp(i_imaginary * polar%phi)
+ coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+!  coord%spin(2) = Exp(i_imaginary * polar%xi) * sin(polar%theta / 2.0d0) * &
+!                               Exp(i_imaginary * polar%phi)
 
 end subroutine polar_to_spinor
 
@@ -259,29 +260,33 @@ subroutine spinor_to_vec (coord, vec)
 implicit none
 
 type (coord_struct) coord
-type (spin_polar_struct) polar
+! type (spin_polar_struct) polar
 
 real(rp) vec(3)
 
-complex(rp) complex(3), complex2(2)
+! complex(rp) complex(3), complex2(2)
 
-integer i
+! integer i
 
 !
 
-call initialize_pauli_vector
+! call initialize_pauli_vector
 
 ! complex2 = conjg(coord%spin)
-! 
+!
 ! forall (i=1:3)
 !   complex(i) = dot_product(conjg(coord%spin), matmul(pauli(i)%sigma, coord%spin))
 ! endforall
 
 ! vec = real(complex)
 
-call spinor_to_polar (coord, polar)
- 
-call polar_to_vec (polar, vec)
+! call spinor_to_polar (coord, polar)
+! call polar_to_vec (polar, vec)
+
+! vec = conjg(coord%spin) * pauli(i)%sigma * coord%spin done explicitly
+vec(1) = 2.*( real(coord%spin(1))*real(coord%spin(2))+aimag(coord%spin(1))*aimag(coord%spin(2)) )
+vec(2) = 2.*( real(coord%spin(1))*aimag(coord%spin(2))-aimag(coord%spin(1))*real(coord%spin(2)) )
+vec(3) = real(coord%spin(1))**2+aimag(coord%spin(1))**2-real(coord%spin(2))**2-aimag(coord%spin(2))**2
 
 end subroutine spinor_to_vec
 
@@ -322,7 +327,6 @@ real(rp) set_phase
 set_phase = real_option (0.0d0, phase)
 
 call vec_to_polar (vec, polar, set_phase)
-
 call polar_to_spinor (polar, coord)
 
 end subroutine vec_to_spinor
@@ -399,7 +403,7 @@ complex(rp) a_quat(2,2) ! The quaternion from the Euler parameters
 
 call initialize_pauli_vector
 
-a_quat(1,:) = [(1.0d0, 0.0d0), (0.0d0, 0.0d0)] 
+a_quat(1,:) = [(1.0d0, 0.0d0), (0.0d0, 0.0d0)]
 a_quat(2,:) = [(0.0d0, 0.0d0), (1.0d0, 0.0d0)]
 
 a_quat = a(4) * a_quat
@@ -421,7 +425,7 @@ end subroutine quaternion_track
 !
 ! Uses Nonlinear Spin Transfer Maps from C. Weissbaecker and G. H. Hoffstaetter
 !
-! For now just does first order transpport. The kappa term is determined fom the
+! For now just does first order transport. The kappa term is determined fom the
 ! unitarity condition.
 !
 ! Modules needed:
@@ -434,7 +438,8 @@ end subroutine quaternion_track
 !     %particle     -- Type of particle used
 !
 ! Output:
-!   end        -- Coord_struct: Ending coords.
+!   end        -- Coord_struct: Ending coords. (contains already ending %vec,
+!                                               %vec may not be changed)
 !      %spin      -- complex(rp): Ending spinor
 !-
 
@@ -443,7 +448,7 @@ subroutine track1_spin (start, ele, param, end_)
 implicit none
 
 type (coord_struct), intent(in) :: start
-type (coord_struct) :: temp
+type (coord_struct) :: temp, temp2
 type (coord_struct) :: end_
 type (ele_struct) :: ele
 type (lat_param_struct), intent(in) :: param
@@ -471,7 +476,7 @@ end_%spin = start%spin     ! transfer start to end
 key = ele%key
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-temp = end_
+temp = start
 
 select case (key)
 case (quadrupole$, sbend$, solenoid$, lcavity$)
@@ -485,9 +490,8 @@ case default
   isKicker = .false.
 end select
 
-call offset_particle (ele, param, temp, set$, set_canonical = .false., &
-                        set_hvkicks = .false.)
-! call offset_spin (ele, param, temp, set$, (doesAffectSpin .or. isKicker), (doesAffectSpin .or. isKicker))
+call offset_particle (ele, param, temp, set$, set_canonical = .false.)
+call offset_spin (ele, param, temp, set$, (doesAffectSpin .or. isKicker))
 
 if(doesAffectSpin) then
   select case (key)
@@ -517,7 +521,7 @@ if(doesAffectSpin) then
     u = omega1*ele%value(l$)
 
     xi = 1 + g_factor * &
-          ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
+          ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
 
     map => maps(quadrupole$)
 
@@ -547,9 +551,9 @@ if(doesAffectSpin) then
 
   case (sbend$)
 
-    gamma0 = ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
+    gamma0 = ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
     xi = 1 + g_factor * &
-          ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
+          ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
     v = ele%value(g$)*ele%value(l$)
     x = g_factor*gamma0*v
 
@@ -609,14 +613,14 @@ if(doesAffectSpin) then
   ! Simulates the cavity edge field kicks as electrostatic quadrupoles
   ! since the quaternions for these have already been found.
   !
-  ! Uses the fringe field as calulcated by Hartman and Rosenzweig
+  ! Uses the fringe field as calculated by Hartman and Rosenzweig
 
   case (lcavity$)
 
     ! For now, just set to one
     g_ratio = 1
 
-    gamma0 = ((1+start%vec(6)) * ele%value(E_TOT$)) / m_particle
+    gamma0 = ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
 
     if (ele%value(E_TOT_START$) == 0) then
       print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
@@ -625,6 +629,7 @@ if(doesAffectSpin) then
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
                         end_%vec(5) * ele%value(rf_frequency$) / c_light)
+    ! end_%vec(5) does not take offsets into account!
     cos_phi = cos(phase)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
     if (.not. ele%is_on) gradient = 0
@@ -639,60 +644,62 @@ if(doesAffectSpin) then
       endif
     endif
 
-    if (gradient == 0) then
-      return
-    endif
+!     if (gradient == 0) then
+!       return
+!     endif
 
-    pc_start = ele%value(p0c_start$) * (1+start%vec(6))
-    call convert_pc_to (pc_start, param%particle, &
+    if (gradient /= 0) then
+      pc_start = ele%value(p0c_start$) * (1+temp%vec(6))
+      call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
-    e_end = e_start + gradient * ele%value(l$)
-    gammaf = gamma0 * (e_end / e_start)
+      e_end = e_start + gradient * ele%value(l$)
+      gammaf = gamma0 * (e_end / e_start)
 
-    ! entrance kick is a focusing kick
+      ! entrance kick is a focusing kick
 
-    k_el = gradient / (2 * pc_start)
-    omega_el = sqrt(k_el)
+      k_el = gradient / (2 * pc_start)
+      omega_el = sqrt(k_el)
 
-    k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gamma0))) / &
-                  (omega_el * e_mass * c_light**2 * (1 + gamma0))
-    ! The edge field length of a cavity is about 1 quarter wavelength
-    edge_length = (c_light * beta_start / ele%value(rf_frequency$)) / 4.0
+      k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gamma0))) / &
+                    (omega_el * e_mass * c_light**2 * (1 + gamma0))
+      ! The edge field length of a cavity is about 1 quarter wavelength
+      edge_length = (c_light * beta_start / ele%value(rf_frequency$)) / 4.0
 
-    map => maps(lcavity$)
+      map => maps(lcavity$)
 
-    call allocate_map (map, 2, 2, 0, 0)
+      call allocate_map (map, 2, 2, 0, 0)
 
-    map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-    map%gamma1(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
-    map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-    map%gamma1(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
+      map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
+      map%gamma1(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
+      map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
+      map%gamma1(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
 
-    map%gamma2(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-    map%gamma2(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
-    map%gamma2(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-    map%gamma2(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
+      map%gamma2(1)%expn(:) = [0, 0, 1, 0, 0, 0]
+      map%gamma2(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
+      map%gamma2(2)%expn(:) = [0, 0, 0, 1, 0, 0]
+      map%gamma2(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
 
-    ! exit kick is a defocusing kick (just add to the entrance kick)
+      ! exit kick is a defocusing kick (just add to the entrance kick)
 
-    call convert_total_energy_to (e_end, param%particle, &
+      call convert_total_energy_to (e_end, param%particle, &
                                             pc = pc_end, beta = beta_end)
-    k_el = gradient / (2 * pc_end)
-    omega_el = sqrt(k_el)
-    k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gammaf))) / &
+      k_el = gradient / (2 * pc_end)
+      omega_el = sqrt(k_el)
+      k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gammaf))) / &
                   (omega_el * e_mass * c_light**2 * (1 + gammaf))
 
-  !   map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-    map%gamma1(1)%coef   = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-  !   map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-    map%gamma1(2)%coef   = map%gamma1(2)%coef + &
+      ! map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
+      map%gamma1(1)%coef   = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+      ! map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
+      map%gamma1(2)%coef   = map%gamma1(2)%coef + &
                                   (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
 
-  !   map%gamma2(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-    map%gamma2(1)%coef   = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-  !   map%gamma2(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-    map%gamma2(2)%coef   = map%gamma2(2)%coef + &
+      ! map%gamma2(1)%expn(:) = [0, 0, 1, 0, 0, 0]
+      map%gamma2(1)%coef   = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+      ! map%gamma2(2)%expn(:) = [0, 0, 0, 1, 0, 0]
+      map%gamma2(2)%coef   = map%gamma2(2)%coef + &
                                   (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+    endif
 
   !-----------------------------------------------
   ! everything else, just use a drift
@@ -702,19 +709,23 @@ if(doesAffectSpin) then
 
   end select
 
-  call compute_quaternion (map%gamma1, a(1))
-  call compute_quaternion (map%gamma2, a(2))
-  call compute_quaternion (map%gamma3, a(3))
-  ! call compute_quaternion (map%kappa, a(4))
+  if ( (key /= lcavity$) .or. (gradient /= 0) ) then
+    call compute_quaternion (map%gamma1, a(1))
+    call compute_quaternion (map%gamma2, a(2))
+    call compute_quaternion (map%gamma3, a(3))
+    ! call compute_quaternion (map%kappa, a(4))
 
-  a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
+    a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
 
-  call quaternion_track (a, start, temp)
+    call quaternion_track (a, temp, temp2)
+    temp%spin = temp2%spin
+  endif
 endif
 
-! call offset_spin (ele, param, temp, unset$, (doesAffectSpin .or. isKicker), (doesAffectSpin .or. isKicker))
-call offset_particle (ele, param, temp, unset$, set_canonical = .false., & 
-                        set_hvkicks = .false.)
+call offset_spin (ele, param, temp, unset$, (doesAffectSpin .or. isKicker))
+! call offset_particle (ele, param, temp, unset$, set_canonical = .false., & 
+!                         set_hvkicks = .false.)
+! no offset_particle (..., temp, unset$, ...) necessary, since temp%vec is not used any longer
 
 end_%spin = temp%spin
 
@@ -794,7 +805,7 @@ if (.not. associated(map)) return
 do i = 1, size(map)
   a_part = 1.0
   do j = 1, 6
-    a_part = a_part * start%vec(j)**map(i)%expn(j)
+    a_part = a_part * temp%vec(j)**map(i)%expn(j)
   enddo
   a_part = map(i)%coef * a_part
   a = a + a_part
@@ -941,7 +952,7 @@ end function normalized_quaternion
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine offset_spin (ele, param, coord, set, set_tilt, set_pitch,
+! Subroutine offset_spin (ele, param, coord, set, set_tilt,
 !                               set_multipoles, set_hvkicks)
 ! Subroutine to effectively offset an element by instead offsetting
 ! the spin vectors to correspond to the local element coordinates.
@@ -952,7 +963,7 @@ end function normalized_quaternion
 ! Options:
 !   Using the element tilt in the offset.
 !   Using the HV kicks.
-!   Using the multipoles.
+!   [Using the multipoles.]
 !
 ! Modules Needed:
 !   use bmad
@@ -975,12 +986,8 @@ end function normalized_quaternion
 !                   T -> Rotate using ele%value(tilt$) and 
 !                            ele%value(roll$) for sbends.
 !                   F -> Do not rotate
-!   set_pitch      -- Logical, optional: Default is True.
-!                   T -> Rotate using ele%value(x_pitch_tot$) and 
-!                            ele%value(x_pitch_tot$).
-!                   F -> Do not rotate
-!   set_multipoles -- Logical, optional: Default is True.
-!                   T -> 1/2 of the multipole is applied.
+!   [set_multipoles -- Logical, optional: Default is True.
+!                   T -> 1/2 of the multipole is applied.]
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                   T -> Apply 1/2 any hkick or vkick.
 !
@@ -990,12 +997,11 @@ end function normalized_quaternion
 ! Currently not implemented: multipoles and elseparators
 !-
 
-subroutine offset_spin (ele, param, coord, set, set_tilt, set_pitch, &
+subroutine offset_spin (ele, param, coord, set, set_tilt, &
                               set_multipoles, set_hvkicks)
 
 use bmad_interface  ! , except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
-! use track1_mod, only: track_a_drift
 
 implicit none
 
@@ -1011,20 +1017,22 @@ real(rp) angle, spinvec(3), a_gamma_plus
 integer n
 
 logical, intent(in) :: set
-logical, optional, intent(in) :: set_tilt, set_pitch, set_multipoles
+logical, optional, intent(in) :: set_tilt, set_multipoles
 logical, optional, intent(in) :: set_hvkicks
-logical set_multi, set_hv, set_t, set_p, set_hv1, set_hv2
+logical set_multi, set_hv, set_t, set_hv1, set_hv2
 
-!---------------------------------------------------------------         
-
-call spinor_to_vec (coord, spinvec)
-a_gamma_plus = g_factor_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(param%particle) + 1
+!---------------------------------------------------------------
 
 set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele%key)
-set_p     = logic_option (.true., set_pitch) .and. has_orientation_attributes(ele%key)
+
+! return if there is nothing to do
+if ( (x_pitch_tot$==0.) .and. (y_pitch_tot$==0.) .and. (.not. set_multi) &
+                        .and. (.not. set_hv) .and. (.not. set_t) ) then
+  return
+endif
 
 if (set_hv) then
   select case (ele%key)
@@ -1058,6 +1066,9 @@ if (set_t .and. ele%key == sbend$) then
   endif
 endif
 
+call spinor_to_vec (coord, spinvec)
+a_gamma_plus = g_factor_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(param%particle) + 1
+
 !----------------------------------------------------------------
 ! Set...
 
@@ -1067,10 +1078,8 @@ if (set) then
 
   ! Set: (Offset and) pitch
   ! MB: contrary to coord%vec(2,4) no E_rel, since p_x=P_X/P_0 depends on E_rel but not spinvec
-  if (set_p) then
-    call rotate_vector (spinvec(1), spinvec(3), ele%value(x_pitch_tot$))
-    call rotate_vector (spinvec(2), spinvec(3), ele%value(y_pitch_tot$))
-  endif
+  call rotate_vector (spinvec(1), spinvec(3), ele%value(x_pitch_tot$))
+  call rotate_vector (spinvec(2), spinvec(3), ele%value(y_pitch_tot$))
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
   ! HV kicks must come after s_offset but before any tilts are applied.
@@ -1186,10 +1195,8 @@ else
 
   ! Unset: (Offset and) pitch
 
-  if (set_p) then
-    call rotate_vector (spinvec(2), spinvec(3), -ele%value(y_pitch_tot$))
-    call rotate_vector (spinvec(1), spinvec(3), -ele%value(x_pitch_tot$))
-  endif
+  call rotate_vector (spinvec(2), spinvec(3), -ele%value(y_pitch_tot$))
+  call rotate_vector (spinvec(1), spinvec(3), -ele%value(x_pitch_tot$))
 
 endif
 
@@ -1204,7 +1211,7 @@ subroutine rotate_vector (v1, v2, rot_angle)
 
   real(rp) v1, v2, rot_angle, c, s, old1
 
-  if (rot_angle == 0) return
+  if (rot_angle == 0.) return
 
   c = cos(rot_angle)
   s = sin(rot_angle)
