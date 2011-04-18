@@ -99,7 +99,6 @@ PUBLIC TT_update
 PUBLIC dest_dTT
 PUBLIC get_dTT
 PRIVATE modulator
-PRIVATE getlun
 
 CONTAINS
 
@@ -177,7 +176,7 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   tt_param(id)%LPalpha = 1.0_rp / ( 1.0_rp + (tt_param(id)%LPinertia/2.0_rp/pi) )
 
   tt_log_name = "tt_log_"//id_str//".out"
-  CALL GETLUN(log_luns(id))
+  log_luns(id) = lunget()
   OPEN(UNIT=log_luns(id),FILE=tt_log_name,STATUS='REPLACE')
 
   IF(tt_param(id)%use_D_chan) THEN
@@ -392,35 +391,4 @@ SUBROUTINE modulator(psi,sinout,sqrout)
 
 END SUBROUTINE modulator
 
-SUBROUTINE GETLUN(lun)
-  ! by Steve Lionel, Ron Shepherd, William Clodius, Cleve Page,
-  ! Jeff Drummond. and others as posed at comp.lang.fortran on
-  ! 9 September 1997
-  INTEGER, INTENT(OUT) :: lun
-  INTEGER i
-  LOGICAL exs, opn
-
-  lun = -1
-  DO i=7, 9999
-    INQUIRE(UNIT=i,EXIST=exs,OPENED=opn)
-      IF (exs .AND. .NOT. opn) THEN
-        lun = i
-        RETURN
-      ENDIF
-  ENDDO
-
-  WRITE (*,*) "There are no free Fortran logical units available."
-  STOP
-END SUBROUTINE GETLUN
-
 END MODULE tune_tracker_mod
-
-
-
-
-
-
-
-
-
-
