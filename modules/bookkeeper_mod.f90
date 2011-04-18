@@ -1671,16 +1671,11 @@ slave%tracking_method  = lord%tracking_method
 ! If a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.
 ! This is for anything which does not try to make a homogeneous approximation.
-! l_original is the length of the unsplit original wiggler.
 ! l_start is the starting point with respect to the original wiggler.
-! l_end is the ending point with respect to the original wiggler.
 
 if (slave%key == wiggler$) then
   slave%value(n_pole$) = lord%value(n_pole$) * coef
-  slave%value(l_original$) = lord%value(l$)
-
   slave%value(l_start$) = offset
-  slave%value(l_end$)   = slave%value(l_start$) + slave%value(l$)
 
   if (associated(lord%wig_term)) then
     if (.not. associated (slave%wig_term) .or. &
@@ -1706,7 +1701,6 @@ endif
 if (slave%key == custom$) then
   slave%value(l_original$) = lord%value(l$)
   slave%value(l_start$)    = offset
-  slave%value(l_end$)      = slave%value(l_start$) + slave%value(l$)
 endif
 
 ! If an sbend:

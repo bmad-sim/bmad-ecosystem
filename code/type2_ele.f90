@@ -1,7 +1,7 @@
 
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
 !        twiss_out, type_control, lattice, type_wake, type_floor_coords, 
-!        type_wig_terms, type_wall)
+!        type_field, type_wall)
 !
 ! Subroutine to put information on an element in a string array. 
 ! See also the subroutine: type_ele.
@@ -35,9 +35,11 @@
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
-!   type_wig_terms    -- Logical, optional: If True then print the wiggler terms for
-!                           a map_type wiggler. Default is False.
-!   type_wall          -- Logical, optional: If True then print wall info. Default is False.
+!   type_field        -- Logical, optional: If True then print:
+!                          Wiggler terms for a a map_type wiggler or
+!                          RF field coefficients for a lcavity or rfcavity.
+!                          Default is False.
+!   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
 !   lines(:)     -- Character(100), pointer: Character array to hold the 
@@ -49,7 +51,7 @@
 
 subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
                 type_taylor, twiss_out, type_control, lattice, type_wake, &
-                type_floor_coords, type_wig_terms, type_wall)
+                type_floor_coords, type_field, type_wall)
 
 use bmad_struct
 use bmad_interface, except_dummy => type2_ele
@@ -65,6 +67,7 @@ type (wig_term_struct), pointer :: term
 type (rf_wake_lr_struct), pointer :: lr
 type (rf_wake_sr_table_struct), pointer :: sr_table
 type (rf_wake_sr_mode_struct), pointer :: sr_m
+type (rf_field_mode_struct), pointer :: rfm
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 
@@ -88,7 +91,7 @@ character(2) str_i
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
-logical, optional :: type_floor_coords, type_wig_terms, type_wall
+logical, optional :: type_floor_coords, type_field, type_wall
 logical type_zero, err_flag, print_it, is_default
 
 ! init
@@ -234,7 +237,7 @@ endif
 ! wiggler terms
 
 if (associated(ele%wig_term)) then
-  if (logic_option(.false., type_wig_terms)) then
+  if (logic_option(.false., type_field)) then
     nl=nl+1; write (li(nl), '(a, 6x, a, 3(9x, a), 9x, a)') ' Term#', &
                                 'Coef', 'K_x', 'K_y', 'K_z', 'phi_z   Type'
     do i = 1, size(ele%wig_term)
@@ -245,6 +248,31 @@ if (associated(ele%wig_term)) then
     nl = nl + size(ele%wig_term)
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of wiggler terms:', size(ele%wig_term)
+  endif
+endif
+
+! RF field coefs
+
+if (associated(ele%rf%field)) then
+  if (logic_option(.false., type_field)) then
+    do i = 1, size(ele%rf%field%mode)
+      rfm => ele%rf%field%mode(i)
+      nl=nl+1; write (li(nl), '(a, i0)')     'Mode #:', i
+      nl=nl+1; write (li(nl), '(a, i0)')     '    m:       ', rfm%m
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    freq:    ', rfm%freq
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    f_damp:  ', rfm%f_damp
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    theta_t0:', rfm%theta_t0
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    phi_0:   ', rfm%phi_0
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    dz:      ', rfm%dz
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    f_scale: ', rfm%f_scale
+      nl=nl+1; write (li(nl), '(a)')         '         e           b'
+      do j = 1, size(rfm%term)
+        nl=nl+1; write (li(nl), '(a, i5, 2(a, 2es12.4), a)') '    #, e, b:', j, &
+                                                       '(', rfm%term(j)%e, ')  (', rfm%term(j)%b, ')'
+      enddo
+    enddo
+  else
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Field modes:', size(ele%rf%field%mode)
   endif
 endif
 

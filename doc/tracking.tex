@@ -62,7 +62,7 @@ of \vn{coord_struct}s:
   type (lat_struct) lat
   ...
   call reallocate_coord (orbit, lat%branch(i)%n_ele_max)
-  orbits(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
+  orbit(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
   ...
   deallocate(orbit) ! Needed if orbit is a local var
 \end{example}
@@ -134,7 +134,7 @@ last tracked element within a loop:
   type (coord_struct), allocatable :: orbit(:)
   ...
   call reallocate_coord (orbit, lat%branch(1)%n_ele_max)
-  orbits(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
+  orbit(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
   do i = 1, n_turns
     call track_all (lat, orbit, 1)
     orbit(0) = orbit(lat%branch(1)%n_ele_track)
@@ -147,7 +147,7 @@ In this case, the above reduces to
   type (coord_struct), allocatable :: orbit(:)
   ...
   call reallocate_coord (orbit, lat%n_ele_max)
-  orbits(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
+  orbit(0)%vec = [0.01, 0.2, 0.3, 0.4, 0.0, 0.0] ! init
   do i = 1, n_turns
     call track_all (lat, orbit)
     orbit(0) = orbit(lat%n_ele_track)
