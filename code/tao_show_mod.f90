@@ -218,7 +218,7 @@ integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_wo
 logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
-logical show_all, name_found, print_taylor, print_wig_terms, print_all, print_ran_state
+logical show_all, name_found, print_taylor, print_field_coefs, print_all, print_ran_state
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
@@ -845,20 +845,20 @@ case ('derivative')
 case ('element')
 
   print_taylor = .false.
-  print_wig_terms = .false.
+  print_field_coefs = .false.
   print_all = .false.
   print_data = .false.
   print_cross_section = .false.
   print_slaves = .true.
 
   do
-    call tao_next_switch (stuff2, ['-taylor        ', '-wig_terms     ', &
+    call tao_next_switch (stuff2, ['-taylor        ', '-field_coefs   ', &
                                    '-all_attributes', '-data          ', &
                                    '-no_slaves     ', '-cross_section '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-taylor') print_taylor = .true.
-    if (switch == '-wig_terms') print_wig_terms = .true.
+    if (switch == '-field_coefs') print_field_coefs = .true.
     if (switch == '-all_attributes') print_all = .true.
     if (switch == '-data') print_data = .true.
     if (switch == '-no_slaves') print_slaves = .false.
@@ -929,7 +929,7 @@ case ('element')
     call tao_lattice_calc (ok)
   endif
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
-            .true., s%u(ix_u)%model%lat, .true., .true., print_wig_terms, print_cross_section)
+            .true., s%u(ix_u)%model%lat, .true., .true., print_field_coefs, print_cross_section)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)

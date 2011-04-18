@@ -1050,7 +1050,7 @@ Format:
    data \{<data_name>\} 
    derivative <data_name(s)> <var_name(s)>
    element \{-all_attributes\} \{-cross_section\} \{-data\} \{-no_slaves\} 
-         \{-taylor\} \{-wig_terms\} <ele_name>
+         \{-taylor\} \{-field_coefs\} <ele_name>
    global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
    graph <graph_name>
    hom
@@ -1188,7 +1188,7 @@ Example:
 
 \item[\protect\parbox{6in}{
   show element \{-all\_attributes\} \{-cross_section\} \\
-  \hspace*{0.35in} \{-data\} \{-no_slaves\} \{-taylor\} \{-wig\_terms\} <ele\_name> }] \Newline
+  \hspace*{0.35in} \{-data\} \{-no_slaves\} \{-taylor\} \{-field\_coefs\} <ele\_name> }] \Newline
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
 \vn{<ele_name>} contains a wild card or a class name then a list of
@@ -1220,8 +1220,9 @@ for the element call for one. For example, if an elements
 Taylor map. To see the Taylor map for an element that does not have an
 associated map, use the \vn{show taylor} command.
 
-If the \vn{-wig_terms} switch is present, any associated wiggler
-terms for a \vn{map_type} \vn{wiggler} element is printed.
+If the \vn{-field_coefs} switch is present, any associated wiggler
+terms for a \vn{map_type} \vn{wiggler} element is printed. Additionally,
+RF field coefficients for \vn{lcavity} and \vn{rfcavity} elements are printed.
 
 Example:
 \begin{example}
