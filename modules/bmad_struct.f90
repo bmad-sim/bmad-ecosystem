@@ -479,7 +479,7 @@ integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_le
 integer, parameter :: n_sample$=15, delta_ref_time$=15, fh_re$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16, fh_im$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17, g_graze$=17
-integer, parameter :: l_end$=18, h2$=18, y_quad$=18, g_trans$=18
+integer, parameter :: h2$=18, y_quad$=18, g_trans$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
 integer, parameter :: hkick$=21, c2_curve$=21
@@ -572,6 +572,7 @@ integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall$ = 104
+integer, parameter :: rf_field$ = 105
 
 integer, parameter :: a0$  = 110, k0l$  = 110
 integer, parameter :: a20$ = 130, k20l$ = 130

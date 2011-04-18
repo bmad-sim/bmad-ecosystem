@@ -1,6 +1,6 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, 
-!        type_control, lattice, type_wake, type_floor_coords, type_wig_terms, 
+!        type_control, lattice, type_wake, type_floor_coords, type_field, 
 !        type_wall, nunit)
 !
 ! Subroutine to type out information on an element. 
@@ -36,8 +36,10 @@
 !   type_floor_coords  -- Logical, optional: If True then print the global ("floor")
 !                           coordinates at the exit end of the element.
 !                           Default is False.
-!   type_wig_terms     -- Logical, optional: If True then print the wiggler terms for
-!                           a map_type wiggler. Default is False.
+!   type_field         -- Logical, optional: If True then print:
+!                           Wiggler terms for a a map_type wiggler or
+!                           RF field coefficients for a lcavity or rfcavity.
+!                           Default is False.
 !   type_wall          -- Logical, optional: If True then print wall info
 !                           for a capillary. Default is False.
 !   nunit              -- Integer, optional: Unit for writing:
@@ -47,7 +49,7 @@
 !-
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
-      type_control, lattice, type_wake, type_floor_coords, type_wig_terms, &
+      type_control, lattice, type_wake, type_floor_coords, type_field, &
       type_wall, nunit)
 
 use bmad_struct
@@ -62,7 +64,7 @@ integer n_lines, i, iu
 integer, optional :: type_mat6, twiss_out, nunit
 
 logical, optional :: type_control, type_zero_attrib, type_taylor, type_wake
-logical, optional :: type_floor_coords, type_wig_terms, type_wall
+logical, optional :: type_floor_coords, type_field, type_wall
 
 character(200), pointer :: lines(:) 
 
@@ -71,7 +73,7 @@ character(200), pointer :: lines(:)
 nullify (lines)
 
 call type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, &
-      twiss_out, type_control, lattice, type_wake, type_floor_coords, type_wig_terms, &
+      twiss_out, type_control, lattice, type_wake, type_floor_coords, type_field, &
       type_wall)
 
 iu = integer_option(0, nunit)

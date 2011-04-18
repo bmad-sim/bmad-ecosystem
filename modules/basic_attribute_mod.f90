@@ -485,6 +485,7 @@ attrib_array(lcavity$, coupler_phase$)    = 'COUPLER_PHASE'
 attrib_array(lcavity$, coupler_at$)       = 'COUPLER_AT'
 attrib_array(lcavity$, gradient_err$)     = 'GRADIENT_ERR'
 attrib_array(lcavity$, phi0_err$)         = 'PHI0_ERR'
+attrib_array(lcavity$, rf_field$)         = 'RF_FIELD'
 
 
 attrib_array(group$, command$)        = 'COMMAND'
@@ -628,6 +629,7 @@ attrib_array(rfcavity$, coupler_strength$) = 'COUPLER_STRENGTH'
 attrib_array(rfcavity$, coupler_angle$)    = 'COUPLER_ANGLE'
 attrib_array(rfcavity$, coupler_phase$)    = 'COUPLER_PHASE'
 attrib_array(rfcavity$, coupler_at$)       = 'COUPLER_AT'
+attrib_array(rfcavity$, rf_field$)         = 'RF_FIELD'
 
 
 attrib_array(elseparator$, gap$)          = 'GAP'
@@ -668,7 +670,6 @@ attrib_array(wiggler$, field_calc$)     = 'FIELD_CALC'
 attrib_array(wiggler$, field_master$)   = 'FIELD_MASTER'
 attrib_array(wiggler$, x_ray_line_len$) = 'X_RAY_LINE_LEN'
 attrib_array(wiggler$, l_start$)        = 'L_START'
-attrib_array(wiggler$, l_end$)          = 'L_END'
 
 attrib_array(sol_quad$, k1$)            = 'K1'
 attrib_array(sol_quad$, ks$)            = 'KS'

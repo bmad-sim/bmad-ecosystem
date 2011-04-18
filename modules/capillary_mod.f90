@@ -73,8 +73,8 @@ at_end = 0
 
 do
   call capillary_track_photon_to_wall (photon, ele, at_end)
-  if (at_end == l_start$) return  ! Reflected backwards
-  if (at_end == l_end$) exit      ! And done
+  if (at_end == entrance_end$) return  ! Reflected backwards
+  if (at_end == exit_end$) exit      ! And done
   call capillary_reflect_photon (photon, ele, lost)
   if (lost) return
 enddo
@@ -104,7 +104,7 @@ end subroutine track_a_capillary
 !
 ! Output:
 !   photon -- Photon_struct: Output coordinates.
-!   at_end -- Integer: Set to l_start$, or l_end$ if at an end.
+!   at_end -- Integer: Set to entrance_end$, or exit_end$ if at an end.
 !-
 
 subroutine capillary_track_photon_to_wall (photon, ele, at_end)
@@ -156,12 +156,12 @@ do
   endif
 
   if (vec(5) == 0) then
-    at_end = l_start$
+    at_end = entrance_end$
     return
   endif
 
   if (vec(5) == ele%s) then
-    at_end = l_end$
+    at_end = exit_end$
     return
   endif
 
