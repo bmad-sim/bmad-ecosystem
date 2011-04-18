@@ -99,7 +99,7 @@ PUBLIC TT_update
 PUBLIC dest_dTT
 PUBLIC get_dTT
 PRIVATE modulator
-!PRIVATE elliptical_modulator
+PRIVATE getlun
 
 CONTAINS
 
@@ -391,6 +391,27 @@ SUBROUTINE modulator(psi,sinout,sqrout)
   ENDIF
 
 END SUBROUTINE modulator
+
+SUBROUTINE GETLUN(lun)
+  ! by Steve Lionel, Ron Shepherd, William Clodius, Cleve Page,
+  ! Jeff Drummond. and others as posed at comp.lang.fortran on
+  ! 9 September 1997
+  INTEGER, INTENT(OUT) :: lun
+  INTEGER i
+  LOGICAL exs, opn
+
+  lun = -1
+  DO i=7, 9999
+    INQUIRE(UNIT=i,EXIST=exs,OPENED=opn)
+      IF (exs .AND. .NOT. opn) THEN
+        lun = i
+        RETURN
+      ENDIF
+  ENDDO
+
+  WRITE (*,*) "There are no free Fortran logical units available."
+  STOP
+END SUBROUTINE GETLUN
 
 END MODULE tune_tracker_mod
 
