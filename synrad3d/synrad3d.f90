@@ -74,7 +74,7 @@ do i = 1, cesr_iargc()
   select case (arg)
   case ('-plot')
     plotting = '-cross'
-  case ('-rcross', '-norm', '-xs', '-ys', '-reflect')
+  case ('-cross', '-rcross', '-norm', '-xs', '-ys', '-reflect')
     plotting = arg
   case default
     if (arg(1:1) == '-') then
