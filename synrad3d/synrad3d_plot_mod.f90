@@ -349,7 +349,7 @@ real(rp) minn, maxx
 
 integer i, j, ix, ix_section, i_in, ios, i_chan
 
-character(80) :: ans, label
+character(100) :: ans, label
 character(*) extra
 
 logical at_section
@@ -414,6 +414,8 @@ do
     if (s_pos_old == s_pos) then
       write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
     else
+      print '(2(a, f0.3), a, i0, 2a)', 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
+                                '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
       write (label, '(2(a, f0.3), a, i0, 2a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
                                 '   Section #: ', ix_section, '  Name: ', wall%pt(ix_section)%name
     endif
