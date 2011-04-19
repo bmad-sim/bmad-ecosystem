@@ -265,9 +265,9 @@ if (associated(ele%rf%field)) then
       nl=nl+1; write (li(nl), '(a, es12.4)') '    phi_0:   ', rfm%phi_0
       nl=nl+1; write (li(nl), '(a, es12.4)') '    dz:      ', rfm%dz
       nl=nl+1; write (li(nl), '(a, es12.4)') '    f_scale: ', rfm%f_scale
-      nl=nl+1; write (li(nl), '(a)')         '         e           b'
+      nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
       do j = 1, size(rfm%term)
-        nl=nl+1; write (li(nl), '(a, i5, 2(a, 2es12.4), a)') '    #, e, b:', j, &
+        nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
                                                        '(', rfm%term(j)%e, ')  (', rfm%term(j)%b, ')'
       enddo
     enddo

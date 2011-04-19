@@ -229,13 +229,13 @@ real(rp), allocatable :: array(:)
 complex(rp), pointer :: c_ptr(:)
 
 integer i, j, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef
-integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode
+integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term
 
 character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, print_err, set_done, end_of_file
+logical delim_found, err_flag, logic, print_err, set_done, end_of_file, do_evaluate
 logical, optional :: check_free
 
 ! Get next WORD.
@@ -689,8 +689,6 @@ if (attrib_word == 'RF_FIELD') then
     return
   endif
 
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
   ! Loop over all modes
 
   if (.not. allocated(rf_mode)) allocate(rf_mode(20))
@@ -699,10 +697,9 @@ if (attrib_word == 'RF_FIELD') then
     mode => rf_mode(i_mode)
     if (allocated(mode%term)) deallocate(mode%term)
 
-    ! Possible "}" is end of rf_field
-    if (delim /= '}' .and. word == '') exit
-
     ! Expect "MODE = {"
+
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
     if (word /= 'MODE' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
       call parser_warning ('NO "MODE = {" SIGN FOUND IN RF_FIELD STRUCTURE', 'FOR ELEMENT: ' // ele%name)
@@ -715,20 +712,18 @@ if (attrib_word == 'RF_FIELD') then
 
     do
 
-      ! Possible "}" is end of mode
-      if (delim /= '}' .and. word == '') exit
-
       ! Expect "<component> = "
-
-      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
       if (delim /= '=') then
         call parser_warning ('NO "=" SIGN FOUND IN MODE DEFINITION', 'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
 
+      do_evaluate = .true.
       word2 = word
+
       select case (word2)
+
       case ('M')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         if (is_integer(word)) read (word, *) mode%m
@@ -737,7 +732,7 @@ if (attrib_word == 'RF_FIELD') then
                                'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
           return
         endif
-        cycle
+        do_evaluate = .false.
 
       case ('E_RE', 'E_IM', 'B_RE', 'B_IM')
         ! Expect "("
@@ -750,26 +745,26 @@ if (attrib_word == 'RF_FIELD') then
 
         ! Read list of values.
         call re_allocate(array, 1024, .false.)
-        do i = 1, 100000
+        do i_term = 1, 100000
           call get_next_word (word, ix_word, '{},()', delim, delim_found)
-          if (delim == ')') exit
-          if (delim /= ',' .or. .not. is_real(word)) then
+          if ((delim /= ',' .and. delim /= ')') .or. .not. is_real(word)) then
             call parser_warning ('ERROR PARSING ARRAY FOR: ' // word2, &
                                  'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
-          if (i > size(array)) call re_allocate(array, 2*size(array))
-          read (word, *) array(i)
+          if (i_term > size(array)) call re_allocate(array, 2*size(array))
+          read (word, *) array(i_term)
+          if (delim == ')') exit
         enddo
 
         if (allocated(mode%term)) then
-          if (size(mode%term) /= i - 1) then
+          if (size(mode%term) /= i_term) then
             call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
         else
-          allocate(mode%term(i-1))
+          allocate(mode%term(i_term))
         endif
 
         select case (word2)
@@ -783,7 +778,7 @@ if (attrib_word == 'RF_FIELD') then
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
-          c_ptr = c_ptr + array(1:i-1)
+          c_ptr = c_ptr + array(1:i_term)
 
         else
           if (any(aimag(c_ptr) /= 0)) then
@@ -791,9 +786,18 @@ if (attrib_word == 'RF_FIELD') then
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
-          c_ptr = c_ptr + i_imaginary * array(1:i-1)
+          c_ptr = c_ptr + i_imaginary * array(1:i_term)
         endif
 
+        ! Expect "," or "}"
+        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+        if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
+          call parser_warning ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
+                               'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+          return
+        endif
+
+        do_evaluate = .false.
 
       case ('FREQ');          r_ptr => mode%freq
       case ('F_DAMP');        r_ptr => mode%f_damp
@@ -809,14 +813,41 @@ if (attrib_word == 'RF_FIELD') then
         return
       end select
 
-      call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag, ',}')
+      if (do_evaluate) call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag, ',}')
+
+      ! Possible "}" is end of mode
+      if (delim == '}') exit
+
+      call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
     enddo
 
+    ! Expect "," or "}"
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+    if (word /= '' .or. (delim /= '}' .and. delim /= ',')) then
+      call parser_warning ('NO "," OR "}" FOUND AFTER MODE DEFINITION', &
+                           'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+      return
+    endif
+
+    if (delim == '}') exit
+
   enddo
 
-  deallocate(rf_mode)
-  if (allocated(array)) deallocate(array)
+  if (.not. associated(ele%rf%field)) allocate (ele%rf%field)
+  if (allocated(ele%rf%field%mode)) then
+    call parser_warning ('MULTIPLE RF_FIELD DEFINITIONS FOR A SINGLE ELEMENT NOT YET IMPLEMENTED!', &
+                         'IN ELEMENT: ' // ele%name)
+  else
+    allocate (ele%rf%field%mode(i_mode))
+    ele%rf%field%mode = rf_mode(1:i_mode)
+    deallocate(rf_mode)
+    if (allocated(array)) deallocate(array)
+  endif
+
+  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  return
 
 endif
 
