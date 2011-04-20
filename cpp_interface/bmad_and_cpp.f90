@@ -43,13 +43,13 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine coord_to_f2 (f_coord, vec, spin, e_field_x, e_field_y, phase_x, phase_y)
+! Subroutine coord_to_f2 (f_coord, vec, spin, e_field_x, e_field_y, phase_x, phase_y, s, t)
 !
 ! Subroutine used by coord_to_f to convert a C++ C_coord into
 ! a Bmad coord_struct. This routine is not for general use.
 !-
 
-subroutine coord_to_f2 (f_coord, vec, spin, e_field_x, e_field_y, phase_x, phase_y)
+subroutine coord_to_f2 (f_coord, vec, spin, e_field_x, e_field_y, phase_x, phase_y, s, t)
 
 use fortran_and_cpp
 use bmad_struct
@@ -58,10 +58,10 @@ use bmad_interface
 implicit none
 
 type (coord_struct) f_coord
-real(rp) vec(6), e_field_x, e_field_y, phase_x, phase_y
+real(rp) vec(6), e_field_x, e_field_y, phase_x, phase_y, s, t
 complex spin(2)
 
-f_coord = coord_struct(vec, spin, e_field_x, e_field_y, phase_x, phase_y)
+f_coord = coord_struct(vec, spin, e_field_x, e_field_y, phase_x, phase_y, s, t)
 
 end subroutine
 

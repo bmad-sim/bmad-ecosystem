@@ -21,7 +21,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 97
+integer, parameter :: bmad_inc_version$ = 98
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -40,6 +40,8 @@ type coord_struct                ! Particle coordinates at a single point
   real(rp) :: e_field_y = 0      ! Photon field intensity, y-axis component
   real(rp) :: phase_x = 0        ! Photon phase, x-axis component
   real(rp) :: phase_y = 0        ! Photon phase, y-axis component
+  real(rp) :: s = 0              ! Longitudinal position 
+  real(rp) :: t = 0              ! Time
 end type
 
 type coord_array_struct
@@ -743,15 +745,15 @@ end type
 ! Structures for saving the track through an element.
 ! track%pt(0:n)  goes from 0 to n = track%n_pt
 
-type track_point_struct
-  real(rp) s              ! Longitudinal distance from beginning of element.
+type track_map_struct
   type (coord_struct) orb ! position of a point.
   real(rp) vec0(6)        ! 0th order part of xfer map from the beginning.
   real(rp) mat6(6,6)      ! 1st order part of xfer map (transfer matrix).
 end type
 
 type track_struct
-  type (track_point_struct), pointer :: pt(:) => null() ! An array of track points. 
+  type (coord_struct), pointer :: orb(:) => null() ! An array of track points. 
+  type (track_map_struct), pointer :: map(:) => null() ! An array of maps.
   real(rp) :: ds_save = 1e-3         ! min distance between points
   real(rp) :: step0 = 1e-3           ! Initial step size.
   real(rp) :: step_min = 1e-8        ! min step size to step below which

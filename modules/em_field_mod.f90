@@ -41,11 +41,12 @@ contains
 !
 ! Input:
 !   track -- Track_struct: Structure to initialize.
-!   n_pt  -- Integer: Upper bound of track%pt(1:n).
+!   n_pt  -- Integer: Upper bound of track%orb(0:n) and track%map(0:n).
 !
 ! Output:
 !   track -- Track_struct: structure for holding the track
-!     %pt(1:n)  -- Track_point_struct: n will be at least n_pt
+!     %orb(1:n) -- Coord_struct: n will be at least n_pt
+!     %map(1:n) -- Track_map_struct: n will be at least n_pt
 !     %n_bad    -- Reset to 0
 !     %n_ok     -- Reset to 0
 !     %n_pt     -- Reset to -1
@@ -60,10 +61,14 @@ integer n_pt
 
 !
 
-if (.not. associated (track%pt)) allocate(track%pt(0:n_pt))
-if (ubound(track%pt, 1) < n_pt) then
-  deallocate(track%pt)
-  allocate(track%pt(0:n_pt))
+if (.not. associated (track%orb)) then
+  allocate(track%orb(0:n_pt))
+  allocate(track%map(0:n_pt))
+endif
+
+if (ubound(track%orb, 1) < n_pt) then
+  deallocate(track%orb, track%map)
+  allocate(track%orb(0:n_pt), track%map(0:n_pt))
 endif
 
 track%n_ok = 0
@@ -87,7 +92,7 @@ end subroutine
 ! Input:
 !   ele      -- ele_struct: Element being tracked through.
 !   param    -- lat_param_struct: Lattice parameters.
-!   s        -- Real(rp): S-position
+!   s        -- Real(rp): S-position with respect to start of element
 !   here(6)  -- Real(rp): trajectory at s with respect to element coordinates.
 !
 ! Ouput:
@@ -111,7 +116,7 @@ real(rp) s, s_sav, here(:)
 track%n_pt = track%n_pt + 1
 n_pt = track%n_pt 
 
-if (n_pt > ubound(track%pt, 1)) then
+if (n_pt > ubound(track%orb, 1)) then
   print *, 'ERROR IN SAVE_A_STEP: ARRAY OVERFLOW!'
   call err_exit
 end if
@@ -119,9 +124,9 @@ end if
 orb%vec = here
 call offset_particle (ele, param, orb, unset$, set_canonical = .false., s_pos = s)
 
-track%pt(n_pt)%s = s
-track%pt(n_pt)%orb = orb
-track%pt(n_pt)%mat6 = 0
+track%orb(n_pt) = orb
+track%orb(n_pt)%s = s
+track%map(n_pt)%mat6 = 0
 s_sav = s
 
 end subroutine save_a_step

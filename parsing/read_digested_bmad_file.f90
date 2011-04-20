@@ -33,9 +33,19 @@ use multipole_mod
 
 implicit none
 
+type old_coord_struct                ! Particle coordinates at a single point
+  real(rp) :: vec(6) = 0         ! (x, px, y, py, z, pz)
+  complex(rp) :: spin(2) = 0     ! Spin in spinor notation
+  real(rp) :: e_field_x = 0      ! Photon field intensity, x-axis component
+  real(rp) :: e_field_y = 0      ! Photon field intensity, y-axis component
+  real(rp) :: phase_x = 0        ! Photon phase, x-axis component
+  real(rp) :: phase_y = 0        ! Photon phase, y-axis component
+end type
+
 type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (random_state_struct) :: ran_state, digested_ran_state
+type (old_coord_struct) old_beam_start
 
 real(rp) value(n_attrib_maxx)
 
@@ -51,7 +61,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, v95, v96, v97, v_old, mode3, error, is_open
+logical found_it, v95, v96, v97, v98, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -76,8 +86,9 @@ read (d_unit, err = 9010) n_files, version
 v95 = (version == 95)
 v96 = (version == 96)
 v97 = (version == 97)
+v98 = (version == 98)
 
-v_old = v95 .or. v96
+v_old = v95 .or. v96 .or. v97
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -197,7 +208,11 @@ do i = 1, lat%n_ic_max
 enddo
 
 if (v96) then
-  read (d_unit, err = 9060) lat%beam_start
+  read (d_unit, err = 9060) old_beam_start
+  call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
+else if (version < v98) then
+  read (d_unit, iostat = ios) old_beam_start
+  call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
 else
   read (d_unit, iostat = ios) lat%beam_start
 endif
@@ -345,6 +360,7 @@ subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct), target :: ele
 type (rf_field_mode_struct), pointer :: mode
+type (old_coord_struct) map_in, map_out
 
 integer i, j, ix_ele, n_wall_section, idum1, idum2
 integer n_rf_field_mode
@@ -371,11 +387,34 @@ if (v95 .or. v96) then
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
-          ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
+          map_in, map_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
   n_wall_section = 0
   n_rf_field_mode = 0
-else ! > v96
+  call transfer_coord_old_to_new (map_in, ele%map_ref_orb_in)
+  call transfer_coord_old_to_new (map_out, ele%map_ref_orb_out)
+
+elseif (v97) then
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum2
+  read (d_unit, err = 9100) &
+          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
+          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
+          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
+          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
+          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
+          ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
+          map_in, map_out, ele%offset_moves_aperture, &
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
+  call transfer_coord_old_to_new (map_in, ele%map_ref_orb_in)
+  call transfer_coord_old_to_new (map_out, ele%map_ref_orb_out)
+
+else ! v98++
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum2
   read (d_unit, err = 9100) &
@@ -704,4 +743,24 @@ enddo
 
 end subroutine
 
+!-----------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------
+! contains
+
+subroutine transfer_coord_old_to_new (old, new)
+
+type (old_coord_struct) old
+type (coord_struct) new
+
+!
+
+new%vec  = old%vec
+new%spin = old%spin
+new%e_field_x = old%e_field_x
+new%e_field_y = old%e_field_y
+new%phase_x = old%phase_x
+new%phase_y = old%phase_y
+
+end subroutine
+  
 end subroutine

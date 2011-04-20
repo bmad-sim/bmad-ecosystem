@@ -1,9 +1,9 @@
 module radiation_mod
 
-  use bmad_struct
-  use bmad_interface
-  use runge_kutta_mod
-  use rad_int_common
+use bmad_struct
+use bmad_interface
+use runge_kutta_mod
+use rad_int_common
 
 contains
 
@@ -28,22 +28,14 @@ contains
 
 subroutine release_rad_int_cache (ix_cache)
 
-  implicit none
+implicit none
 
-  integer i, ix_cache
+integer i, ix_cache
 
-  !
+!
 
-  !  do i = 1, size(rad_int_cache_common(ix_cache)%ele)
-  !    if (allocated(rad_int_cache_common(ix_cache)%ele(i)%pt)) &
-  !                                deallocate (rad_int_cache_common(ix_cache)%ele(i)%pt)
-  !  enddo
-
-  !  deallocate (rad_int_cache_common(ix_cache)%ele)
-  !  deallocate (rad_int_cache_common(ix_cache)%ix_ele)
-
-  rad_int_cache_common(ix_cache)%set = .false.
-  ix_cache = 0
+rad_int_cache_common(ix_cache)%set = .false.
+ix_cache = 0
 
 end subroutine release_rad_int_cache 
 
@@ -71,148 +63,148 @@ end subroutine release_rad_int_cache
 
 subroutine track1_radiation (start, ele, param, end, edge)
 
-  use random_mod
+use random_mod
 
-  implicit none
+implicit none
 
-  type (coord_struct) :: start
-  type (ele_struct) :: ele
-  type (lat_param_struct) :: param
-  type (coord_struct) :: end
-  type (coord_struct), save :: start2
+type (coord_struct) :: start
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+type (coord_struct) :: end
+type (coord_struct), save :: start2
 
-  integer :: edge
+integer :: edge
 
-  real(rp), save :: z_start, g2, g3
-  real(rp) s_len, g, g_x, g_y, this_ran, mc2
-  real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
-  real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
-                                                  h_bar_planck * c_light / (24 * sqrt_3)
+real(rp), save :: z_start, g2, g3
+real(rp) s_len, g, g_x, g_y, this_ran, mc2
+real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
+real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
+                                                h_bar_planck * c_light / (24 * sqrt_3)
 
-  integer direc
+integer direc
 
-  logical set
-  logical :: init_needed = .true.
+logical set
+logical :: init_needed = .true.
 
-  character(20) :: r_name = 'track1_radiation'
+character(20) :: r_name = 'track1_radiation'
 
-  ! If not a magnetic element then nothing to do.
-  ! Also symplectic tracking handles the radiation.
+! If not a magnetic element then nothing to do.
+! Also symplectic tracking handles the radiation.
 
-  if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
-            [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$])) then
-    end = start
-    return
-  endif
+if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
+          [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$])) then
+  end = start
+  return
+endif
 
-  ! The total radiation length is the element length + any change in path length.
-  ! If entering the element then the length over which radiation is generated
-  ! is taken to be 1/2 the element length.
-  ! If leaving the element the radiation length is taken to be 1/2 the element
-  ! length + delta_Z
+! The total radiation length is the element length + any change in path length.
+! If entering the element then the length over which radiation is generated
+! is taken to be 1/2 the element length.
+! If leaving the element the radiation length is taken to be 1/2 the element
+! length + delta_Z
 
-  if (edge == start_edge$) then
-    set = set$
-    s_len = ele%value(l$) / 2
-    direc = +1
-    z_start = start%vec(5)
-  elseif (edge == end_edge$) then
-    set = unset$
-    s_len = ele%value(l$)/2 + (start%vec(5) - z_start)
-    direc = -1
+if (edge == start_edge$) then
+  set = set$
+  s_len = ele%value(l$) / 2
+  direc = +1
+  z_start = start%vec(5)
+elseif (edge == end_edge$) then
+  set = unset$
+  s_len = ele%value(l$)/2 + (start%vec(5) - z_start)
+  direc = -1
+else
+  call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
+  call err_exit
+endif
+
+if (s_len < 0) s_len = 0
+
+! Get the coords in the frame of reference of the element
+
+if (ele%key /= wiggler$) then
+  start2 = start
+  call offset_particle (ele, param, start2, set)
+endif
+
+! Calculate the radius of curvature for an on-energy particle
+
+select case (ele%key)
+
+case (quadrupole$, sol_quad$)
+  x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
+  y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
+  g_x =  ele%value(k1$) * x_ave
+  g_y = -ele%value(k1$) * y_ave
+  g2 = g_x**2 + g_y**2
+  if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
+
+case (sextupole$)
+  g = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
+  g2 = g**2
+  if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
+
+case (octupole$)
+  g2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
+  if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
+
+case (sbend$)
+  if (ele%value(k1$) == 0) then
+    g = ele%value(g$) + ele%value(g_err$)
+    g2 = g**2 
+    if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
   else
-    call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
-    call err_exit
-  endif
-
-  if (s_len < 0) s_len = 0
-
-  ! Get the coords in the frame of reference of the element
-
-  if (ele%key /= wiggler$) then
-    start2 = start
-    call offset_particle (ele, param, start2, set)
-  endif
-
-  ! Calculate the radius of curvature for an on-energy particle
-
-  select case (ele%key)
-
-  case (quadrupole$, sol_quad$)
     x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
     y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
-    g_x =  ele%value(k1$) * x_ave
-    g_y = -ele%value(k1$) * y_ave
+    g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
+    g_y = ele%value(k1$) * y_ave
     g2 = g_x**2 + g_y**2
     if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
-
-  case (sextupole$)
-    g = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
-    g2 = g**2
-    if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
-
-  case (octupole$)
-    g2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
-    if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
-
-  case (sbend$)
-    if (ele%value(k1$) == 0) then
-      g = ele%value(g$) + ele%value(g_err$)
-      g2 = g**2 
-      if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
-    else
-      x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
-      y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
-      g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
-      g_y = ele%value(k1$) * y_ave
-      g2 = g_x**2 + g_y**2
-      if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
-    endif
-
-  case (wiggler$)
-    ! Reuse g2 and g3 values from start_edge
-    if (ele%sub_key == map_type$) then
-      if (edge == start_edge$) then
-        if (.not. associated(ele%const)) call calc_radiation_tracking_consts(ele, param)
-        if (ele%const(10) < 0) call calc_radiation_tracking_consts(ele, param)
-        g2 = ele%const(10) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(11:14))
-        g3 = ele%const(20) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(21:24))
-        if (g3 < 0) g3 = 0
-      endif
-    elseif (ele%sub_key == periodic_type$) then
-      g2 = abs(ele%value(k1$))
-      g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
-    endif
-
-  end select
-
-  ! Apply the radiation kicks
-  ! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
-  ! where xi is a random number with sigma = 1.
-
-  mc2 = mass_of(param%particle)
-  gamma_0 = ele%value(e_tot$) / mc2
-
-  fact_d = 0
-  if (bmad_com%radiation_damping_on) fact_d = 2 * classical_radius_factor * gamma_0**3 * g2 * s_len / (3 * mc2)
-
-  fact_f = 0
-  if (bmad_com%radiation_fluctuations_on) then
-    call ran_gauss (this_ran)
-    fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mc2
   endif
 
-  dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
-
-  end = start
-  end%vec(2) = end%vec(2) * (1 - dE_p)
-  end%vec(4) = end%vec(4) * (1 - dE_p)
-  end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
-
-  if (synch_rad_com%i_calc_on) then
-    synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
-    synch_rad_com%i3 = synch_rad_com%i3 + g3 * s_len
+case (wiggler$)
+  ! Reuse g2 and g3 values from start_edge
+  if (ele%sub_key == map_type$) then
+    if (edge == start_edge$) then
+      if (.not. associated(ele%const)) call calc_radiation_tracking_consts(ele, param)
+      if (ele%const(10) < 0) call calc_radiation_tracking_consts(ele, param)
+      g2 = ele%const(10) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(11:14))
+      g3 = ele%const(20) + dot_product(start%vec(1:4)-ele%const(1:4), ele%const(21:24))
+      if (g3 < 0) g3 = 0
+    endif
+  elseif (ele%sub_key == periodic_type$) then
+    g2 = abs(ele%value(k1$))
+    g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
   endif
+
+end select
+
+! Apply the radiation kicks
+! Basic equation is E_radiated = xi * (dE/dt) * sqrt(L) / c_light
+! where xi is a random number with sigma = 1.
+
+mc2 = mass_of(param%particle)
+gamma_0 = ele%value(e_tot$) / mc2
+
+fact_d = 0
+if (bmad_com%radiation_damping_on) fact_d = 2 * classical_radius_factor * gamma_0**3 * g2 * s_len / (3 * mc2)
+
+fact_f = 0
+if (bmad_com%radiation_fluctuations_on) then
+  call ran_gauss (this_ran)
+  fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mc2
+endif
+
+dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
+
+end = start
+end%vec(2) = end%vec(2) * (1 - dE_p)
+end%vec(4) = end%vec(4) * (1 - dE_p)
+end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
+
+if (synch_rad_com%i_calc_on) then
+  synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
+  synch_rad_com%i3 = synch_rad_com%i3 + g3 * s_len
+endif
 
 end subroutine track1_radiation 
 
@@ -290,15 +282,15 @@ integer j, n0, n1
 ! g2 is the average g^2 over the element for an on-energy particle.
 ! Note: em_field_g_bend assumes orb is lab (not local) coords.
 
-track%pt(:)%orb%vec(6) = 0  ! on-energy
+track%orb(:)%vec(6) = 0  ! on-energy
 
 g2 = 0; g3 = 0
 
-n0 = lbound(track%pt, 1)
+n0 = lbound(track%orb, 1)
 n1 = track%n_pt
 do j = n0, n1
 
-  call em_field_g_bend (ele, param, track%pt(j)%s, track%pt(j)%orb%vec, g)
+  call em_field_g_bend (ele, param, track%orb(j)%s, track%orb(j)%vec, g)
 
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3
