@@ -7,7 +7,7 @@
 # script.
 #
 # Provides variable definitions:
-#    PLATFORM_TAG
+#    PLATFORM_ID
 #    TEMP_SETUP_F90
 #--------------------------------------------------------------
 
@@ -17,8 +17,8 @@
 #     - the simple OS name
 #     - the processor architecture
 #--------------------------------------------------------------
-PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -m`"
-OS_TAG="`uname`"
+PLATFORM_ID="`uname -s | cut -d- -f1`_`uname -m`"
+OS_ID="`uname`"
 
 #--------------------------------------------------------------
 # Determine the fortran compiler name and set accelerator 
@@ -30,23 +30,23 @@ OS_TAG="`uname`"
 # absoft  -- f95          default on Darwin_powerpc
 # gnu     -- g77/g95
 #--------------------------------------------------------------
-if ( [ "${PLATFORM_TAG}" = "CYGWIN_NT_i686" ] ) then
+if ( [ "${PLATFORM_ID}" = "CYGWIN_NT_i686" ] ) then
   TEMP_SETUP_F90="intel"
 
-elif ( [ "${PLATFORM_TAG}" = "Linux_i686" ] ) then
+elif ( [ "${PLATFORM_ID}" = "Linux_i686" ] ) then
   TEMP_SETUP_F90="intel"
 
-elif ( [ "${PLATFORM_TAG}" = "Linux_x86_64" ] ) then
-  PLATFORM_TAG="Linux_i686"
+elif ( [ "${PLATFORM_ID}" = "Linux_x86_64" ] ) then
+  #PLATFORM_ID="Linux_i686"
   TEMP_SETUP_F90="intel"
 
-elif ( [ "${PLATFORM_TAG}" = "OSF1_alpha" ] ) then
+elif ( [ "${PLATFORM_ID}" = "OSF1_alpha" ] ) then
   TEMP_SETUP_F90="hp" 
 
-elif ( [ "${PLATFORM_TAG}" = "Darwin_powerpc" ] ) then
+elif ( [ "${PLATFORM_ID}" = "Darwin_powerpc" ] ) then
   TEMP_SETUP_F90="absoft"
 
-elif ( [ "${PLATFORM_TAG}" = "Darwin_i386" ] ) then
+elif ( [ "${PLATFORM_ID}" = "Darwin_i386" ] ) then
   TEMP_SETUP_F90="gfortran"
 
 # Fall through to default if platform is unrecognizable.
