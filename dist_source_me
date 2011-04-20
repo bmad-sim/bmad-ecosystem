@@ -25,6 +25,7 @@
 #
 # The entire setup sequence of scripts and variables lists
 # requires the following GNU system tools to operate:
+#  bash
 #  grep
 #  sed
 #----------------------------------------------------------
@@ -69,7 +70,7 @@
 #----------------------------------------------------------
 "echo" "Running ${DIST_BASE_DIR}/util/dist_gen_env..." >> ${HOME}/.dist_setup_log.tmp
 
-("sh" ./util/dist_gen_env) >& /dev/null || ("sh" /${DIST_BASE_DIR}/util/dist_gen_env) >& /dev/null || "echo" "Locating dist_gen_env script failed." >> ${HOME}/.dist_setup_log.tmp
+("/bin/bash" ./util/dist_gen_env) >& /dev/null || ("/bin/bash" /${DIST_BASE_DIR}/util/dist_gen_env) >& /dev/null || "echo" "Locating dist_gen_env script failed." >> ${HOME}/.dist_setup_log.tmp
 
 
 
