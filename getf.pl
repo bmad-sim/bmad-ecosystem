@@ -119,6 +119,18 @@ if (-r catfile( $curdir, "bmadz", "modules", "bmadz_struct.f90" )) {
   $bmadz_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmadz" );
 }
 
+if (-r catfile( $curdir, "nonlin_bpm", "code", "nonlin_bpm_init.f90" )) {
+  $nonlin_bpm_dir = catfile( $curdir, "nonlin_bpm" );
+} elsif (-r catfile( $updir, "nonlin_bpm", "code", "nonlin_bpm_init.f90")) {
+  $nonlin_bpm_dir = catfile( $updir, "nonlin_bpm" );
+} elsif (-r catfile( $updir, $updir, "nonlin_bpm", "code", "nonlin_bpm_init.f90")) {
+  $nonlin_bpm_dir = catfile( $updir, $updir, "nonlin_bpm" );
+} elsif (-r catfile( $ENV{"ACC_SRC"}, "nonlin_bpm")) {
+  $nonlin_bpm_dir = catfile( $ENV{"ACC_SRC"}, "nonlin_bpm" );
+} else {
+  $nonlin_bpm_dir = catfile( $ENV{"DIST_BASE_DIR"}, "nonlin_bpm" );
+}
+
 # Look for arguments
 
 $extra = 0;
@@ -155,11 +167,15 @@ find(\&searchit, $sim_utils_dir);
 find(\&searchit, $cesr_utils_dir);
 find(\&searchit, $tao_dir);
 find(\&searchit, $mpm_utils_dir);
-## find(\&searchit, $bmadz_dir);
+find(\&searchit, $bmadz_dir);
+find(\&searchit, $nonlin_bpm_dir);
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
-if ($found_one == 0) {print "Cannot match String! $match_str";}
+if ($found_one == 0) {
+  print "Cannot match String! $match_str\n";
+  print "Note: getf does not search numerical recipes, forest, nor any program directories.";
+}
 print "\n";
 
 #---------------------------------------------------------
