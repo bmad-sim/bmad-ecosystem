@@ -194,8 +194,10 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
     if(.not. ok) print *,' DA_DRIVER: Second Qtune failed'
 
   call twiss_at_start(ring)
-  print '(a37,f12.4,a9,f10.4,2(a,f10.4))',' DA_DRIVER: After second qtune: Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi, '    beta_x = ', ring%ele(0)%a%beta,'    beta_y = ', ring%ele(0)%b%beta
-
+  print '(a)',' DA_DRIVER: After second qtune:'
+  print '(a6,f12.4,a9,f10.4,4(a,f10.4))',' Qx = ',ring%a%tune/twopi,'    Qy = ',ring%b%tune/twopi,&
+                           '    beta_x = ',  ring%ele(0)%a%beta,'    beta_y = ', ring%ele(0)%b%beta,&
+                           '   alpha_x = ',ring%ele(0)%a%alpha,'   alpha_y = ', ring%ele(0)%b%alpha
   call element_locator('PATCH_RF_W1',ring,ix)
    if(ix > 0) then
      i_dim = 6  ! to get closed orbit right when there is an rf frequency shift

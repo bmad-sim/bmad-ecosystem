@@ -21,7 +21,7 @@ subroutine plot_pretz(lat,ncross, cross)
   real(rp) r,xp,yp,xe,ye, x, y
   real(rp) xlast, ylast
   real(rp) slast,s, z, xc, yc,xlow,xhigh,ylow,yhigh,bar/1.5/,mag/3.0/
-  real(rp) magg/1.5/
+  real(rp) magg/1.5/, magg_wig/1.5/
   real(rp) spast, xpast, ypast
   real(rp) inj/0.02/
   real(rp) zero/0.0/
@@ -149,8 +149,11 @@ subroutine plot_pretz(lat,ncross, cross)
      endif
     end do 
 
+     magg=0.6
+     if(ele%key == wiggler$)magg=magg_wig
      if(ele%key == quadrupole$ .or. ele%key == sbend$ .or.ele%key == rbend$ &
-                             .or. ele%key == wiggler$)then
+                             .or. ele%key == wiggler$ .or. ele%key == rfcavity$)then
+       
        xpast = lat%ele(i-1)%floor%z
        ypast = lat%ele(i-1)%floor%x
        xx(1) = xpast -magg*sin(-theta)
