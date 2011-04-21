@@ -746,7 +746,6 @@ end type
 ! track%pt(0:n)  goes from 0 to n = track%n_pt
 
 type track_map_struct
-  type (coord_struct) orb ! position of a point.
   real(rp) vec0(6)        ! 0th order part of xfer map from the beginning.
   real(rp) mat6(6,6)      ! 1st order part of xfer map (transfer matrix).
 end type
