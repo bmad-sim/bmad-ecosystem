@@ -24,6 +24,7 @@
     current = 0.
     delta_fRF = 2.8e3
     frf = 5.e8
+    qtune_match = .true.
  /
 
 
