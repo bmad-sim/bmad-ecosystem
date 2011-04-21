@@ -15,7 +15,7 @@ parameter calculations, etc.). This first part is called the
 \vn{tracking} part of the lattice.
 Elements in the \vn{tracking} part are either
 \vn{slave} elements if they have a controlling lord or \vn{free}
-elements if they do not.  The second section consists solely of
+elements if they do not. The second section consists solely of
 \vn{lord} elements. \vn{Lord} elements can control other \vn{lord}
 elements and a hierarchy of \vn{lord} elements may be established.
 
@@ -85,7 +85,7 @@ colon ":" for the separator between the slave name and the
 coefficient. While the slash is still accepted, its use is
 discouraged.
 
-An \vn{overlay} will control all elements of a given name.  Thus, in
+An \vn{overlay} will control all elements of a given name. Thus, in
 the above example, if there are multiple elements in \vn{this_line}
 with the name \vn{b_ele} then the \vn{over1} and \vn{over2} overlays
 will control the hkick attribute of all of them.
@@ -112,7 +112,7 @@ type of attribute as the following example shows
 \index{group}
  
 \vn{group} is like \vn{overlay} in that a \vn{group} element controls
-the attribute values of other ``slave'' elements.  A \vn{group}
+the attribute values of other ``slave'' elements. A \vn{group}
 element is used to make changes in value. This is unlike an
 \vn{overlay} which sets a specific value directly. An example will
 make this clear
@@ -124,7 +124,7 @@ make this clear
 \end{example}
 In this example the group \vn{gr} controls the \vn{k1} attribute of
 the element \vn{q1}. Unlike overlays, values are assigned to group
-elements using the \vn{command} attribute.  When a lattice file is
+elements using the \vn{command} attribute. When a lattice file is
 read in then command values for any groups are always applied
 last. This is independent of the order that they appear in the file.
 Thus in this example the value of q1[k1] would be $0.91 = 0.57 + 0.34$.
@@ -165,7 +165,7 @@ varies. With \vn{accordion_edge} a change of, say, 0.1 in a
 \vn{group}'s \vn{command} attribute moves both edges of the element by
 0.1 meters so that the length of the element changes by 0.2 meters. To
 keep the total lattice length invariant the lengths of the elements to
-either side are varied accordingly.  For example
+either side are varied accordingly. For example
 \begin{example}
   q10: quad, l = ...
   q11: quad, l = ...
@@ -210,8 +210,8 @@ than one type of attribute. For example
   gr3[old_command] = 1.5
 \end{example}
 In this example \vn{gr3} controls 3 attributes of 3 different
-elements.  The change in \vn{gr3} when the lattice is read in is $0.5
-= 2.0 - 1.5$.  this 0.5 change will change \vn{q1[k1]} by $-0.5 = -1
+elements. The change in \vn{gr3} when the lattice is read in is $0.5
+= 2.0 - 1.5$. this 0.5 change will change \vn{q1[k1]} by $-0.5 = -1
 \times 0.5$, \vn{q2[tilt]} will change by 0.5 and \vn{oct1[k3]} will
 change by $-1.0 = -2.0 * 0.5$.
 
@@ -245,10 +245,10 @@ lattice list (the part that one does tracking through) Looks like:
   4)    D{\#}2       Drift        8       20
 \end{example}
 What \bmad has done is to split the original elements \vn{(Q, D)} at
-the edges of \vn{S}.  The first element in the lattice, \vn{Q\#1}, is
+the edges of \vn{S}. The first element in the lattice, \vn{Q\#1}, is
 the part of \vn{Q} that is outside of \vn{S}. Since this is only part
 of \vn{Q}, \bmad has put a \vn{\#1} in the name so that there will be
-no confusion.  (\vn{\#} has no special meaning other than the fact
+no confusion. (\vn{\#} has no special meaning other than the fact
 that \bmad uses it for mangling names). The next element, \vn{Q{\B}S},
 is the part of \vn{Q} that is inside \vn{S}. \vn{Q{\B}S} is a
 combination solenoid/quadrupole element as one could
@@ -269,7 +269,7 @@ that can be easily analyzed. However, the original elements \vn{Q} and
 \vn{S} still exist within the lord section of the lattice. \bmad has
 bookkeeping routines so that if a change is made to the \vn{Q} or
 \vn{S} elements then these changes can get propagated to the
-corresponding slaves.  It does not matter which element is
+corresponding slaves. It does not matter which element is
 superimposed. Thus, in the above example, \vn{S} could have been put
 in the Beam Line (with a drift before it) and \vn{Q} could then have
 been superimposed on top and the result would have been the same
@@ -277,7 +277,7 @@ been superimposed on top and the result would have been the same
 
 Superpositions are restricted in that \bmad may not have an
 appropriate element for the superimposed fields. For example, a
-solenoid can not be superimposed over an octupole.  If a zero length
+solenoid can not be superimposed over an octupole. If a zero length
 element, such as a marker, is superimposed with some other element (or
 vice versa) the element is just split in two. For example:
 \begin{example}
@@ -354,15 +354,21 @@ The lattice will have three elements in the tracking section:
 \end{example}
 The lord section of the lattice will have the element \vn{Q}. 
 
-When a superposition is made that overlaps a drift the drift, not being a "real" 
-element, vanishes. That is, it does not get put in the lord section of the lattice.
-Thus, it is an error if a second superposition uses the drift as the reference element.
-For example
+When a superposition is made that overlaps a drift the drift, not
+being a "real" element, vanishes. That is, it does not get put in the
+lord section of the lattice. Thus, it is an error if a second
+superposition uses the drift as the reference element. For example
 \begin{example}
   dft1: drift, l = 10
   q1: quad, l = 1, superposition, ref = dft1   ! OK 
   q2: quad, l = 2, superposition, ref = dft1   ! ERROR! 
 \end{example}
+Also note that if aperture limits (\sref{s:limit}) have been assigned
+to a drift, the aperture limits can ``disappear'' when the
+superposition is done. Explicitly, if the exit end of a drift has been
+assigned aperture limits, the limits will disappear if the
+superimposed element overlays the exit end of the drift. A similar
+situation applies to the entrance end of a drift.
 
 %-----------------------------------------------------------------------------
 \subsection{Changing Element Lengths when there is Superposition}
@@ -584,7 +590,7 @@ orbit is related to the field and momentum by
 \begin{example}
   rho = p0c / (c_light * b_field)
 \end{example}
-In this case, this translates into a bending radius of 16.7~m.  In the
+In this case, this translates into a bending radius of 16.7~m. In the
 tracking lattice, the first pass element \vn{B\B1} will have a value
 for \vn{b_field} of 1~Tesla just like its lord element. Also,
 like its lord element, \vn{B\B1} will have an error field,
@@ -678,7 +684,7 @@ restriction to \vn{n_ref_pass = 1} is necessary since the calculation
 becomes nondeterministic otherwise. 
 
 Additionally, for a bend, with \vn{ref_orbit} set to
-\vn{match_at_entrance}, \vn{mathc_at_exit} or
+\vn{match_at_entrance}, \vn{match_at_exit} or
 \vn{match_global_coords}, the bend must be a pure dipole. That is, no
 quadrupole or higher order components. This assumption is
 necessary since the reference orbit calculation assumes that the
@@ -722,7 +728,7 @@ corresponding lattice file would look like
 \end{example}
 The \vn{ref_orbit} parameter for \vn{p1} and \vn{p2} indicate whether
 the patch is just before (\vn{patch_in}) or just after
-(\vn{patch_out}) the section of interest.  In this example,
+(\vn{patch_out}) the section of interest. In this example,
 \vn{x_offset} and \vn{x_pitch} parameters for the first pass slave
 \vn{p1\B1} are set in the lattice file. This determines the
 orientation of the reference orbit through \vn{S} (labeled $b$-$c$ in

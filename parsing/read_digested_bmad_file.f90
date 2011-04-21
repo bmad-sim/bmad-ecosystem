@@ -207,14 +207,14 @@ do i = 1, lat%n_ic_max
   read (d_unit, err = 9050) lat%ic(i)
 enddo
 
-if (v96) then
-  read (d_unit, err = 9060) old_beam_start
-  call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
-else if (version < v98) then
+if (v95 .or. v96) then
   read (d_unit, iostat = ios) old_beam_start
   call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
+else if (v97) then
+  read (d_unit, err = 9060) old_beam_start
+  call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
 else
-  read (d_unit, iostat = ios) lat%beam_start
+  read (d_unit, err = 9060) lat%beam_start
 endif
 
 ! read branch lines
