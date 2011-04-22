@@ -30,115 +30,132 @@
 
 subroutine track1 (start, ele, param, end)
 
-  use bmad, except_dummy1 => track1
-  use mad_mod, only: track1_mad
-  use boris_mod, only: track1_boris, track1_adaptive_boris
-  use space_charge_mod, except_dummy2 => track1
-  use spin_mod, except_dummy3 => track1
+use bmad, except_dummy1 => track1
+use mad_mod, only: track1_mad
+use boris_mod, only: track1_boris, track1_adaptive_boris
+use space_charge_mod, except_dummy2 => track1
+use spin_mod, except_dummy3 => track1
 
-  implicit none
+implicit none
 
-  type (coord_struct) :: start
-  type (coord_struct) :: end
-  type (coord_struct) :: orb
-  type (ele_struct)   :: ele
-  type (lat_param_struct) :: param
+type (coord_struct) :: start
+type (coord_struct) :: end
+type (coord_struct) :: orb
+type (ele_struct)   :: ele
+type (lat_param_struct) :: param
 
-  integer tracking_method
+real(rp) beta, pc, E_tot, pc_start, E_tot_start
+
+integer tracking_method
 
 ! Init
 
-  param%lost = .false.  ! assume everything will be OK
-  if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
+param%lost = .false.  ! assume everything will be OK
+if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 ! check for particles outside aperture
 
-  if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
-                  call check_aperture_limit (start, ele, entrance_end$, param)
-  if (param%lost) then
-    param%end_lost_at = entrance_end$
-    call init_coord (end)      ! it never got to the end so zero this.
-    return
-  endif
+if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
+                call check_aperture_limit (start, ele, entrance_end$, param)
+if (param%lost) then
+  param%end_lost_at = entrance_end$
+  call init_coord (end)      ! it never got to the end so zero this.
+  return
+endif
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
-  if ((bmad_com%radiation_damping_on .or. &
-              bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
-    call track1_radiation (start, ele, param, orb, start_edge$) 
-  else
-    orb = start
-  endif
+if ((bmad_com%radiation_damping_on .or. &
+            bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
+  call track1_radiation (start, ele, param, orb, start_edge$) 
+else
+  orb = start
+endif
 
 ! bmad_standard handles the case when the element is turned off.
 
-  tracking_method = ele%tracking_method
-  if (.not. ele%is_on) tracking_method = bmad_standard$
+tracking_method = ele%tracking_method
+if (.not. ele%is_on) tracking_method = bmad_standard$
 
-  select case (tracking_method)
+select case (tracking_method)
 
-  case (bmad_standard$) 
-    call track1_bmad (orb, ele, param, end)
+case (bmad_standard$) 
+  call track1_bmad (orb, ele, param, end)
 
-  case (runge_kutta$) 
-    call track1_runge_kutta (orb, ele, param, end, track_com)
+case (runge_kutta$) 
+  call track1_runge_kutta (orb, ele, param, end, track_com)
 
-  case (linear$) 
-    call track1_linear (orb, ele, param, end)
+case (linear$) 
+  call track1_linear (orb, ele, param, end)
 
-  case (custom$) 
-    call track1_custom (orb, ele, param, end)
+case (custom$) 
+  call track1_custom (orb, ele, param, end)
 
-  case (taylor$) 
-    call track1_taylor (orb, ele, param, end)
+case (taylor$) 
+  call track1_taylor (orb, ele, param, end)
 
-  case (symp_map$) 
-    call track1_symp_map (orb, ele, param, end)
+case (symp_map$) 
+  call track1_symp_map (orb, ele, param, end)
 
-  case (symp_lie_bmad$) 
-    call symp_lie_bmad (ele, param, orb, end, .false., track_com)
+case (symp_lie_bmad$) 
+  call symp_lie_bmad (ele, param, orb, end, .false., track_com)
 
-  case (symp_lie_ptc$) 
-    call track1_symp_lie_ptc (orb, ele, param, end)
+case (symp_lie_ptc$) 
+  call track1_symp_lie_ptc (orb, ele, param, end)
 
-  case (adaptive_boris$) 
-    call track1_adaptive_boris (orb, ele, param, end, track_com)
+case (adaptive_boris$) 
+  call track1_adaptive_boris (orb, ele, param, end, track_com)
 
-  case (boris$) 
-    call track1_boris (orb, ele, param, end, track_com)
+case (boris$) 
+  call track1_boris (orb, ele, param, end, track_com)
 
-  case (mad$)
-    call track1_mad (orb, ele, param, end)
+case (mad$)
+  call track1_mad (orb, ele, param, end)
 
-  case default
-    print *, 'ERROR IN TRACK1: UNKNOWN TRACKING_METHOD: ', ele%tracking_method
-    call err_exit
+case default
+  print *, 'ERROR IN TRACK1: UNKNOWN TRACKING_METHOD: ', ele%tracking_method
+  call err_exit
 
-  end select
+end select
+
+! s and time update
+
+end%s = ele%s
+
+pc = ele%value(p0c$) * (1 + end%vec(6))
+if (ele%key == lcavity$ .and. ele%value(E_tot_start$) /= ele%value(E_tot$)) then
+  call convert_pc_to (pc, param%particle, E_tot = E_tot)
+  pc_start = ele%value(p0c$) * (1 + start%vec(6))
+  call convert_pc_to (pc_start, param%particle, E_tot = E_tot_start)
+  end%t = start%t + ele%value(l$) * (pc - pc_start) / ((E_tot - E_tot_start) * c_light)
+else
+  call convert_pc_to (pc, param%particle, beta = beta)
+  end%t = start%t + (ele%value(l$) - end%vec(5) + start%vec(5)) / (beta * c_light)
+endif
 
 ! Radiation damping and/or fluctuations for the last half of the element
 
-  if ((bmad_com%radiation_damping_on .or. &
-                    bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
-    call track1_radiation (end, ele, param, end, end_edge$) 
-  endif
+if ((bmad_com%radiation_damping_on .or. &
+                  bmad_com%radiation_fluctuations_on) .and. ele%is_on) then
+  call track1_radiation (end, ele, param, end, end_edge$) 
+endif
 
 ! space charge
 
-  if (bmad_com%space_charge_on) &
-        call track1_ultra_rel_space_charge (end, ele, param, end)
+if (bmad_com%space_charge_on) &
+      call track1_ultra_rel_space_charge (end, ele, param, end)
 
 ! spin tracking
- 	 
-  if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end)
+ 
+if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end)
 
 ! check for particles outside aperture
 
-  if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
-                    call check_aperture_limit (end, ele, exit_end$, param)
-  if (param%lost) then
-    param%end_lost_at = exit_end$
-    return
-  endif
+if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
+                  call check_aperture_limit (end, ele, exit_end$, param)
+if (param%lost) then
+  param%end_lost_at = exit_end$
+  return
+endif
 
 end subroutine
