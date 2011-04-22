@@ -67,8 +67,7 @@ real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
 real(rp) dE_p, dpx, dpy, mc2
-real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
-                                                  h_bar_planck * c_light / (24 * sqrt_3)
+real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 
 integer i, n_step
 
@@ -106,8 +105,7 @@ if (do_offset) call offset_particle (ele, param, end, set$, set_canonical = .fal
 
 ! init
 
-call compute_even_steps (ele%value(ds_step$), ele%value(l$), &
-                                    bmad_com%default_ds_step, ds, n_step)
+call compute_even_steps (ele%value(ds_step$), ele%value(l$), bmad_com%default_ds_step, ds, n_step)
 ds2 = ds / 2
 
 s = 0   ! longitudianl position
@@ -186,10 +184,8 @@ Case (wiggler$)
     call radiation_kick()
 
     if (calculate_mat6) then
-      mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + &
-                                                ds * da_z_dx__dy() * mat6(3,1:6)
-      mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + &
-                                                ds * da_z_dy__dy() * mat6(3,1:6)
+      mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + ds * da_z_dx__dy() * mat6(3,1:6)
+      mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + ds * da_z_dy__dy() * mat6(3,1:6)
     endif 
 
     ! Drift_2
@@ -291,8 +287,7 @@ if (calculate_mat6) then
   call drift_mat6_calc (m6, -ele%value(s_offset_tot$), end%vec)
   mat6(1,1:6) = mat6(1,1:6) + m6(1,2) * mat6(2,1:6) + m6(1,6) * mat6(6,1:6)
   mat6(3,1:6) = mat6(3,1:6) + m6(3,4) * mat6(4,1:6) + m6(3,6) * mat6(6,1:6)
-  mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + &
-                                                                 m6(5,6) * mat6(6,1:6)
+  mat6(5,1:6) = mat6(5,1:6) + m6(5,2) * mat6(2,1:6) + m6(5,4) * mat6(4,1:6) + m6(5,6) * mat6(6,1:6)
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele%value(tilt_tot$))
   if (x_pitch /= 0 .or. y_pitch /= 0) call mat6_add_pitch (ele, mat6)
@@ -492,10 +487,8 @@ end%vec(2) = end%vec(2) + sgn * dint_a_y_dx()
 end%vec(4) = end%vec(4) + sgn * a_y()
 
 if (do_mat6) then
-  mat6(2,1:6) = mat6(2,1:6) + sgn * &
-          (dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6))
-  mat6(4,1:6) = mat6(4,1:6) + sgn * &
-          (a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6))
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6))
 endif      
 
 end subroutine
@@ -885,14 +878,10 @@ if (synch_rad_com%i_calc_on) then
   temp_ele%map_ref_orb_in = start
   temp_ele%map_ref_orb_out = end
   call twiss_propagate1 (synch_rad_com%ele0, temp_ele)
-  synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * &
-                (temp_ele%a%gamma * temp_ele%a%eta**2 + &
-                2 * temp_ele%a%alpha * temp_ele%a%eta * temp_ele%a%etap + &
-                temp_ele%a%beta * temp_ele%a%etap**2)
-  synch_rad_com%i5b = synch_rad_com%i5b + g3 * ds * &
-                (temp_ele%b%gamma * temp_ele%b%eta**2 + &
-                2 * temp_ele%b%alpha * temp_ele%b%eta * temp_ele%b%etap + &
-                temp_ele%b%beta * temp_ele%b%etap**2)
+  synch_rad_com%i5a = synch_rad_com%i5a + g3 * ds * (temp_ele%a%gamma * temp_ele%a%eta**2 + &
+        2 * temp_ele%a%alpha * temp_ele%a%eta * temp_ele%a%etap + temp_ele%a%beta * temp_ele%a%etap**2)
+  synch_rad_com%i5b = synch_rad_com%i5b + g3 * ds * (temp_ele%b%gamma * temp_ele%b%eta**2 + &
+        2 * temp_ele%b%alpha * temp_ele%b%eta * temp_ele%b%etap + temp_ele%b%beta * temp_ele%b%etap**2)
 endif
 
 end subroutine radiation_kick

@@ -1678,15 +1678,13 @@ if (slave%key == wiggler$) then
   slave%value(l_start$) = offset
 
   if (associated(lord%wig_term)) then
-    if (.not. associated (slave%wig_term) .or. &
-            size(slave%wig_term) /= size(lord%wig_term)) then
+    if (.not. associated (slave%wig_term) .or. size(slave%wig_term) /= size(lord%wig_term)) then
       if (associated (slave%wig_term)) deallocate (slave%wig_term)
       allocate (slave%wig_term(size(lord%wig_term)))
     endif
     do i = 1, size(lord%wig_term)
       slave%wig_term(i) = lord%wig_term(i)
-      slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + &
-                             lord%wig_term(i)%kz * slave%value(l_start$)
+      slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + lord%wig_term(i)%kz * slave%value(l_start$)
     enddo
   else
     if (associated (slave%wig_term)) deallocate (slave%wig_term)
