@@ -74,7 +74,7 @@ TYPE tt_param_struct
   REAL(rp) kickAmplitude  ! amplitude of kicks
   CHARACTER orientation   ! 'h', 'v', or 'l'
   INTEGER Onum            ! Element of coord_struct used by bpm.
-                          !1 for horiz, 3 for vert, 5 for longitudinal
+                          ! 1 for horiz, 3 for vert, 1 for longitudinal
 END TYPE tt_param_struct
 
 ! Structures to hold the state variables of the tune tracker.
