@@ -126,10 +126,57 @@ if (-r catfile( $curdir, "nonlin_bpm", "code", "nonlin_bpm_init.f90" )) {
   $nonlin_bpm_dir = catfile( $ENV{"DIST_BASE_DIR"}, "nonlin_bpm" );
 }
 
-# Look for arguments.
+# Look for arguments
 
-$str = @ARGV[0];
-$str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
+$extra = 0;
+$also_match_params = 1;
+
+$_ = "@ARGV";  
+@field = split;
+
+for ($i = 0; $i <= @field; $i++) {
+
+  $_ = $field[$i];
+
+  if (! /^\-/) {last;}
+
+  if ($_ eq '-d') {
+    $extra = 1; 
+    $extra_dir = $field[$i+1];
+    $i = $i + 1;
+    next;
+  }
+
+  if ($_ eq '-p') {
+    $also_match_params = 1; 
+    next;
+  }
+
+  last;
+
+}
+
+#
+
+$match_str = @field[$i];
+$match_str =~ s/\*/\\w\*/g;  # replace "*" by "\w*"
+
+$match_param_str = $match_str;
+if ($match_param_str =~ /\\w\*$/) {$match_param_str = $match_param_str . '\\$*';}
+if ($match_param_str =~ /\$$/) {$match_param_str =~ s/\$$/\\\$/;}
+
+# Help if needed
+
+if ($match_str eq "") {
+  print "Usage:\n";
+  print "  listf {options} <search_string>\n\n";
+  print "Options:\n";
+  print "   -d <dir>    # Search files in <dir> and sub-directories for matches.\n";
+  ## print "   -p          # Match to parameters as well.\n";
+  exit;
+}
+
+# Search for a match
 
 find(\&searchit, $bmad_dir);
 find(\&searchit, $sim_utils_dir);
@@ -138,14 +185,18 @@ find(\&searchit, $tao_dir);
 find(\&searchit, $mpm_utils_dir);
 find(\&searchit, $bmadz_dir);
 find(\&searchit, $nonlin_bpm_dir);
+if ($extra == 1) {find(\&searchit, $extra_dir);}
 ## find(\&searchit, $recipes_dir);
 ## find(\&searchit, $forest_dir);
 
 if ($found_one == 0) {
-  print "Cannot match String! $match_str\n";
-  print "Note: listff does not search numerical recipes, forest, nor any program directories.";
+  print "Cannot match string! $match_str\n";
+  ## if ($also_match_params == 1) {print "Also cannot match parameter string $match_param_str\n";}
+  print "Note: getf does not search numerical recipes, forest, nor any program directories.\n";
+  ## if ($also_match_params == 0) {print "Note: Use '-p' option to search for parameters as well as routines and structures.\n";}
+} else {
+  print "\n";
 }
-print "\n";
 
 #---------------------------------------------------------
 
@@ -161,6 +212,7 @@ sub searchit {
   if ($file =~ /\.f90$/i) {
 
     $found_in_file = 0;
+    $in_module_header = 0;
 
     $stat = open (F_IN, $file); 
     if (! $stat) {
@@ -179,13 +231,56 @@ sub searchit {
 
       if (/^ *type *\(/i) {next;}   # skip "type (" constructs
 
+      # is this a module?
+
+      if (/^ *module /i) {
+        $in_module_header = 1;
+      }
+
+      # is this a parameter?
+
+      if ($also_match_params ==1 && $in_module_header ==1 && /, *parameter *::/i) {
+        $rest_of_line = $';              #' grab the parameter name
+        $line = $_;
+        $param_match = 0;
+        while (1) {
+          ## print "1: $rest_of_line\n";
+          if ($rest_of_line eq "") {last;}
+          if (! ($rest_of_line =~ /^\s*(\w+\$*) *([\(=])/)) {last;} 
+          $param_name = $1;
+          $rest_of_line = $';      #'
+          if ($2 eq "\(") {$rest_of_line =~ s/^.*?\) *=//;}
+          ## print "2: $param_name &&& $rest_of_line\n";
+          if ($param_name =~ /^$match_param_str$/i) {
+            $param_match = 1;
+            last;
+          }
+          # strip off param value
+          if ($rest_of_line =~ /^ *\(/) {          # For "param = (/ ... /)," construct
+            $rest_of_line =~ s/^ *\(.*?\) *, *//; 
+          } elsif ($rest_of_line =~ /^ *\[/) {     # For "param = [ ... ]," construct     
+            $rest_of_line =~ s/^ *\[.*?\] *, *//;
+          } else {
+            $rest_of_line =~ s/^.*?, *//;
+          }
+
+        }
+
+        if ($param_match == 1) {
+          if ($file eq "$_\.f90") {$matches_file_name = 1;}
+          $found_one = 1;
+          if ($found_in_file == 0) {print "File: $File::Find::name\n";}
+          print "  $line";
+        }
+      }
+
       # if a routine then look for match
 
       if (&routine_here) {
 
         # If a match then print info
 
-        if ($routine_name =~ /^\s*$str[ \(\n]/i) {
+        if ($routine_name =~ /^\s*$match_str[ \(\n]/i) {
           if ($found_in_file == 0) {print "File: $File::Find::name\n";}
           $found_one = 1;
           $found_in_file = 1;
@@ -233,7 +328,7 @@ sub searchit {
     while (<F_IN>) {
 
       if (/^ *class +(\w+) +\{ *$/) {     # match to "class xyz {"
-        if ($1 =~ /^$str$/i) {
+        if ($1 =~ /^$match_str$/i) {
           $found_one = 1;
           if (!$found_in_file) {print "\n$File::Find::name\n";}
 
@@ -247,7 +342,7 @@ sub searchit {
   
 # See if the file name matches.
 
-  if (/^$str\.f90$/ && $found_in_file == 0) {
+  if (/^$match_str\.f90$/ && $found_in_file == 0) {
     $found_one = 1;
     print "$File::Find::name\n";
   }
