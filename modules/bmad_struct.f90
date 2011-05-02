@@ -35,13 +35,13 @@ integer, parameter :: n_attrib_maxx = 60
 
 type coord_struct                ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0         ! (x, px, y, py, z, pz)
+  real(rp) :: s = 0              ! Longitudinal position 
+  real(rp) :: t = 0              ! Time
   complex(rp) :: spin(2) = 0     ! Spin in spinor notation
   real(rp) :: e_field_x = 0      ! Photon field intensity, x-axis component
   real(rp) :: e_field_y = 0      ! Photon field intensity, y-axis component
   real(rp) :: phase_x = 0        ! Photon phase, x-axis component
   real(rp) :: phase_y = 0        ! Photon phase, y-axis component
-  real(rp) :: s = 0              ! Longitudinal position 
-  real(rp) :: t = 0              ! Time
 end type
 
 type coord_array_struct
@@ -68,8 +68,7 @@ end type
 ! Wiggler structures
 
 integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
-character(8), parameter :: wig_term_type_name(0:3) = [ &
-                  'Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ']
+character(8), parameter :: wig_term_type_name(0:3) = ['Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ']
 
 type wig_term_struct
   real(rp) coef
@@ -184,7 +183,7 @@ type space_charge_struct
   real(rp) sin_phi
   real(rp) cos_phi
   real(rp) sig_z
-endtype    
+end type    
 
 type xy_disp_struct
   real(rp) eta, etap
@@ -248,7 +247,7 @@ type ele_struct
   real(rp) mat6(6,6)                         ! 1st order transport matrix.
   real(rp) c_mat(2,2)                        ! 2x2 C coupling matrix
   real(rp) gamma_c                           ! gamma associated with C matrix
-  real(rp) s                                 ! longitudinal position at the exit end.
+  real(rp) s                                 ! longitudinal ref position at the exit end.
   real(rp) ref_time                          ! Time ref particle passes exit end.
   real(rp), pointer :: r(:,:) => null()      ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()   ! knl for multipole elements.
@@ -380,10 +379,7 @@ type lat_struct
   integer, allocatable :: ic(:)       ! Index to %control(:)
 end type
 
-!
-
-character(2), parameter :: coord_name(6) = &
-                              ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
+character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
 
 ! KEY value definitions
 ! Note: sbend$ and rbend$ also used for sub_key
@@ -409,7 +405,7 @@ integer, parameter :: n_key = 45
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-character(16) :: key_name(n_key) = [ &
+character(16), parameter :: key_name(n_key) = [ &
     'DRIFT         ', 'SBEND         ', 'QUADRUPOLE    ', 'GROUP         ', &
     'SEXTUPOLE     ', 'OVERLAY       ', 'CUSTOM        ', 'TAYLOR        ', &
     'RFCAVITY      ', 'ELSEPARATOR   ', 'BEAMBEAM      ', 'WIGGLER       ', &
@@ -478,7 +474,7 @@ integer, parameter :: hgap$=13, e_tot_start$=13, tilt_calib$=13, f0_re$=13
 integer, parameter :: coef$=14, current$=14, hgapx$=14, delta_e$=14, l_pole$=14
 integer, parameter ::       de_eta_meas$=14, f0_im$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
-integer, parameter :: n_sample$=15, delta_ref_time$=15, fh_re$=15
+integer, parameter :: n_sample$=15, fh_re$=15
 integer, parameter :: l_original$=16, l_chord$=16, bend_tilt$=16, fh_im$=16
 integer, parameter :: l_start$=17, h1$=17, x_quad$=17, g_graze$=17
 integer, parameter :: h2$=18, y_quad$=18, g_trans$=18
@@ -498,7 +494,7 @@ integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, ny_ou
 integer, parameter :: B1_gradient$=32, E1_gradient$=32, nz_out$ = 32 
 integer, parameter :: B2_gradient$=33, E2_gradient$=33, patch_end$ = 33, d_source$=33
 integer, parameter :: B3_gradient$=34, E3_gradient$=34, translate_after$=34, d_detec$=34
-! 35
+integer, parameter :: delta_ref_time$=35 ! Assumed unique Do not overload.
 integer, parameter :: x_offset$=36 
 integer, parameter :: y_offset$=37 
 integer, parameter :: s_offset$=38, z_offset$=38 ! Assumed unique. Do not overload further.
@@ -595,8 +591,8 @@ integer, parameter :: photon$     =  0
 integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 
-character(16) :: particle_name(-2:2) = ['ANTIPROTON', &
-               'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ']
+character(16), parameter :: particle_name(-2:2) = ['ANTIPROTON', &
+                       'ELECTRON  ', 'PHOTON    ', 'POSITRON  ', 'PROTON    ']
 
 integer, parameter :: charge_of(-2:2) = [-1, -1, 0, 1, 1]
 real(rp), parameter :: mass_of(-2:2) = [m_proton, m_electron, 0.0_rp, m_electron, m_proton]
@@ -606,8 +602,7 @@ real(rp), parameter :: mass_of(-2:2) = [m_proton, m_electron, 0.0_rp, m_electron
 integer, parameter :: linear_lattice$ = 10
 integer, parameter :: circular_lattice$ = 12
 
-character(16) :: lattice_type(10:12) = &
-        ['LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE']
+character(16), parameter :: lattice_type(10:12) = ['LINEAR_LATTICE  ', 'GARBAGE!        ', 'CIRCULAR_LATTICE']
 
 ! logicals for MAKE_HYBIRD_lat
 
@@ -620,7 +615,7 @@ integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, patch_in_slave$ = 12
 
-character(16) :: control_name(12) = [ &
+character(16), parameter :: control_name(12) = [ &
             'FREE           ', 'SUPER_SLAVE    ', 'OVERLAY_SLAVE  ', &
             'GROUP_LORD     ', 'SUPER_LORD     ', 'OVERLAY_LORD   ', &
             'GIRDER_LORD    ', 'MULTIPASS_LORD ', 'MULTIPASS_SLAVE', &
@@ -631,7 +626,7 @@ character(16) :: control_name(12) = [ &
 integer, parameter :: x_plane$ = 1, y_plane$ = 2
 integer, parameter :: z_plane$ = 3, n_plane$ = 4, s_plane$ = 5
 
-character(16) :: plane_name(6) = ['X', 'Y', 'Z', 'N', 'S', ' ']
+character(1), parameter :: plane_name(6) = ['X', 'Y', 'Z', 'N', 'S', ' ']
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
@@ -731,7 +726,7 @@ type (bmad_status_struct), save :: bmad_status
 ! Units
 
 integer, parameter :: radians$ = 1, degrees$ = 2, cycles$ = 3, kHz$ = 4
-character(8) ::frequency_units_name(4) = ['Radians ', 'Degrees ', 'Cycles  ', 'kHz     ']
+character(8), parameter :: frequency_units_name(4) = ['Radians ', 'Degrees ', 'Cycles  ', 'kHz     ']
 
 ! Electric and magnetic fields.
 
@@ -754,10 +749,6 @@ type track_struct
   type (coord_struct), pointer :: orb(:) => null() ! An array of track points. 
   type (track_map_struct), pointer :: map(:) => null() ! An array of maps.
   real(rp) :: ds_save = 1e-3         ! min distance between points
-  real(rp) :: step0 = 1e-3           ! Initial step size.
-  real(rp) :: step_min = 1e-8        ! min step size to step below which
-                                     !   track1_adaptive_boris gives up
-  integer :: max_step = 10000        ! maximum number of steps allowed
   logical :: save_track = .false.    ! save orbit?
   integer :: n_pt                    ! upper bound of track%pt(0:n)
   integer :: n_bad
@@ -784,7 +775,7 @@ integer, parameter :: not_lost$ = -1
 integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ = 4
 
 integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
-character(16) :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
+character(16), parameter :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
 
 ! ele%attribute_status values.
 ! The idea:

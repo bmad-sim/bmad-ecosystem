@@ -1,12 +1,12 @@
 !+
 ! Subroutine offset_particle (ele, param, coord, set, set_canonical, 
-!                               set_tilt, set_multipoles, set_hvkicks, s_pos)
+!                               set_tilt, set_multipoles, set_hvkicks, ds_pos)
 ! Subroutine to effectively offset an element by instead offsetting
 ! the particle position to correspond to the local element coordinates.
 ! 
 ! set = set$ assumes the particle is at the entrance end of the element.
 ! set = unset$ assumes the particle is at the exit end of the element.
-! However: This can be overridden by using the s_pos argument.
+! However: This can be overridden by using the ds_pos argument.
 !
 ! Options:
 !   Using the element tilt in the offset.
@@ -22,40 +22,40 @@
 !   use bmad
 !
 ! Input:
-!   ele       -- Ele_struct: Element
+!   ele            -- Ele_struct: Element
 !     %value(x_offset$) -- Horizontal offset of element.
 !     %value(x_pitch$)  -- Horizontal roll of element.
 !     %value(tilt$)     -- tilt of element.
-!   coord     -- Coord_struct: Coordinates of the particle.
-!     %vec(6)            -- Energy deviation dE/E. 
+!   coord          -- Coord_struct: Coordinates of the particle.
+!     %vec(6)           -- Energy deviation dE/E. 
 !                          Used to modify %vec(2) and %vec(4)
-!   param     -- lat_param_struct:
-!     %particle   -- What kind of particle (for elseparator elements).
-!   set       -- Logical: 
-!                   T (= set$)   -> Translate from lab coords to the local 
-!                                     element coords.
-!                   F (= unset$) -> Translate back to lab coords.
+!   param          -- lat_param_struct:
+!     %particle    -- What kind of particle (for elseparator elements).
+!   set            -- Logical: 
+!                    T (= set$)   -> Translate from lab coords to the local 
+!                                      element coords.
+!                    F (= unset$) -> Translate back to lab coords.
 !   set_canonical  -- Logical, optional: Default is True.
-!                   T -> Convert between (p_x, p_y) and angle coords also.
-!                   F -> No conversion between (p_x, p_y) and angle coords.
+!                    T -> Convert between (p_x, p_y) and angle coords also.
+!                    F -> No conversion between (p_x, p_y) and angle coords.
 !   set_tilt       -- Logical, optional: Default is True.
-!                   T -> Rotate using ele%value(tilt$) and 
-!                            ele%value(roll$) for sbends.
-!                   F -> Do not rotate
+!                    T -> Rotate using ele%value(tilt$) and 
+!                             ele%value(roll$) for sbends.
+!                    F -> Do not rotate
 !   set_multipoles -- Logical, optional: Default is True.
-!                   T -> 1/2 of the multipole is applied.
+!                    T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
-!                   T -> Apply 1/2 any hkick or vkick.
-!   s_pos          -- Real(rp), optional: Longitudinal position of the
-!                   particle. If not present then s_pos = 0 is assumed when
-!                   set = T and s_pos = ele%value(l$) when set = F
+!                    T -> Apply 1/2 any hkick or vkick.
+!   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to entrance end. 
+!                    If not present then ds_pos = 0 is assumed when set = T and 
+!                    ds_pos = ele%value(l$) when set = F.
 !                                               
 ! Output:
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
 subroutine offset_particle (ele, param, coord, set, set_canonical, &
-                              set_tilt, set_multipoles, set_hvkicks, s_pos)
+                              set_tilt, set_multipoles, set_hvkicks, ds_pos)
 
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
@@ -67,7 +67,7 @@ type (ele_struct) :: ele
 type (lat_param_struct), intent(in) :: param
 type (coord_struct), intent(inout) :: coord
 
-real(rp), optional, intent(in) :: s_pos
+real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp), save :: old_angle = 0, old_roll = 0
 real(rp), save :: del_x_vel = 0, del_y_vel = 0
@@ -146,8 +146,8 @@ if (set) then
     ! to the entrance coordinates. This rotation is just the coordinate transformation for the
     ! whole bend except with half the bending angle.
 
-    if (present(s_pos)) then
-      s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
+    if (present(ds_pos)) then
+      s_here = ds_pos - ele%value(l$) / 2  ! position relative to center.
     else
       s_here = -ele%value(l$) / 2
     endif
@@ -169,7 +169,7 @@ if (set) then
       x_off = vec(1); y_off = vec(2); s_off = vec(3)
     endif
 
-    if (s_off /= 0) call track_a_drift (coord%vec, s_off, ele, param)
+    if (s_off /= 0) call track_a_drift (coord, s_off, ele%value(p0c$), param)
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
       coord%vec(1) = coord%vec(1) - x_off - xp * s_here
@@ -308,8 +308,8 @@ else
     ! to the exit coordinates. This rotation is just the coordinate transformation for the
     ! whole bend except with half the bending angle.
 
-    if (present(s_pos)) then
-      s_here = s_pos - ele%value(l$) / 2  ! position relative to center.
+    if (present(ds_pos)) then
+      s_here = ds_pos - ele%value(l$) / 2  ! position relative to center.
     else
       s_here = ele%value(l$) / 2
     endif
@@ -339,7 +339,7 @@ else
       coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
 
-    if (s_off /= 0) call track_a_drift (coord%vec, -s_off, ele, param)
+    if (s_off /= 0) call track_a_drift (coord, -s_off, ele%value(p0c$), param)
   endif
 
 endif

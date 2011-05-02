@@ -1,5 +1,5 @@
 !+
-! Subroutine track1 (start, ele, param, end)
+! Subroutine track1 (start, ele, param, end, track)
 !
 ! Particle tracking through a single element. 
 ! Optionally synchrotron radiation and space charge kicks can included.
@@ -22,13 +22,15 @@
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
 !     %end_lost_at   -- entrance_end$ or exit_end$.
+!   track -- track_struct, optional: Structure holding the track information if the 
+!             tracking method does tracking step-by-step.
 !
 ! Notes:
 ! It is assumed that HKICK and VKICK are the kicks in the horizontal
 ! and vertical kicks irregardless of the value for TILT.
 !-
 
-subroutine track1 (start, ele, param, end)
+subroutine track1 (start, ele, param, end, track)
 
 use bmad, except_dummy1 => track1
 use mad_mod, only: track1_mad
@@ -43,8 +45,9 @@ type (coord_struct) :: end
 type (coord_struct) :: orb
 type (ele_struct)   :: ele
 type (lat_param_struct) :: param
+type (track_struct), optional :: track
 
-real(rp) beta, pc, E_tot, pc_start, E_tot_start
+real(rp) beta, beta_start
 
 integer tracking_method
 
@@ -83,13 +86,13 @@ case (bmad_standard$)
   call track1_bmad (orb, ele, param, end)
 
 case (runge_kutta$) 
-  call track1_runge_kutta (orb, ele, param, end, track_com)
+  call track1_runge_kutta (orb, ele, param, end, track)
 
 case (linear$) 
   call track1_linear (orb, ele, param, end)
 
 case (custom$) 
-  call track1_custom (orb, ele, param, end)
+  call track1_custom (orb, ele, param, end, track)
 
 case (taylor$) 
   call track1_taylor (orb, ele, param, end)
@@ -98,16 +101,16 @@ case (symp_map$)
   call track1_symp_map (orb, ele, param, end)
 
 case (symp_lie_bmad$) 
-  call symp_lie_bmad (ele, param, orb, end, .false., track_com)
+  call symp_lie_bmad (ele, param, orb, end, .false., track)
 
 case (symp_lie_ptc$) 
   call track1_symp_lie_ptc (orb, ele, param, end)
 
 case (adaptive_boris$) 
-  call track1_adaptive_boris (orb, ele, param, end, track_com)
+  call track1_adaptive_boris (orb, ele, param, end, track)
 
 case (boris$) 
-  call track1_boris (orb, ele, param, end, track_com)
+  call track1_boris (orb, ele, param, end, track)
 
 case (mad$)
   call track1_mad (orb, ele, param, end)
@@ -122,15 +125,14 @@ end select
 
 end%s = ele%s
 
-pc = ele%value(p0c$) * (1 + end%vec(6))
-if (ele%key == lcavity$ .and. ele%value(E_tot_start$) /= ele%value(E_tot$)) then
-  call convert_pc_to (pc, param%particle, E_tot = E_tot)
-  pc_start = ele%value(p0c$) * (1 + start%vec(6))
-  call convert_pc_to (pc_start, param%particle, E_tot = E_tot_start)
-  end%t = start%t + ele%value(l$) * (pc - pc_start) / ((E_tot - E_tot_start) * c_light)
+if (ele%key == lcavity$ .or. ele%key == custom$) then
+  call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
+  call convert_pc_to (ele%value(p0c_start$) * (1 + start%vec(6)), param%particle, beta = beta_start)
+  end%t = start%t + ele%value(delta_ref_time$) + &
+                          start%vec(5) / (beta_start * c_light) - end%vec(5) / (beta * c_light)
 else
-  call convert_pc_to (pc, param%particle, beta = beta)
-  end%t = start%t + (ele%value(l$) - end%vec(5) + start%vec(5)) / (beta * c_light)
+  call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
+  end%t = start%t + ele%value(delta_ref_time$) + (start%vec(5) - end%vec(5)) / (beta * c_light)
 endif
 
 ! Radiation damping and/or fluctuations for the last half of the element

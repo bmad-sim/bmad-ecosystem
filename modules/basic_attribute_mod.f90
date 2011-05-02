@@ -280,6 +280,7 @@ do i = 1, n_key
 
   attrib_array(i, E_tot$)                 = 'E_TOT'
   attrib_array(i, p0c$)                   = 'P0C'
+  attrib_array(i, delta_ref_time$)        = 'DELTA_REF_TIME'
 
   if (i /= match$) then
     attrib_array(i, tilt$)     = 'TILT' 

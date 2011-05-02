@@ -257,8 +257,6 @@ ele%const(1:6) = ele%map_ref_orb_in%vec
 start1 = ele%map_ref_orb_in
 track%save_track = .true.
 call symp_lie_bmad (ele, param, start1, end, .false., track)
-
-
 call calc_g (track, ele%const(10), ele%const(20))
 
 do j = 1, 4
@@ -276,7 +274,7 @@ contains
 subroutine calc_g (track, g2, g3)
 
 type (track_struct) track
-real(rp) g2, g3, g2_here, g3_here, g(3), f
+real(rp) g2, g3, g2_here, g3_here, g(3), f, s0
 integer j, n0, n1
 
 ! g2 is the average g^2 over the element for an on-energy particle.
@@ -288,9 +286,11 @@ g2 = 0; g3 = 0
 
 n0 = lbound(track%orb, 1)
 n1 = track%n_pt
+s0 = ele%s - ele%value(l$)
+
 do j = n0, n1
 
-  call em_field_g_bend (ele, param, track%orb(j)%s, track%orb(j)%vec, g)
+  call em_field_g_bend (ele, param, track%orb(j)%s - s0, track%orb(j)%vec, g)
 
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3

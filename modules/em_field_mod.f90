@@ -9,10 +9,6 @@ module em_field_mod
 use bmad_struct
 use bmad_interface
 
-! track_com is the common block track variable.
-
-type (track_struct), save :: track_com
-
 ! Interface for custom field calc
 
 interface 
@@ -35,9 +31,9 @@ contains
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine allocate_saved_orbit (track, n_pt)
+! Subroutine init_saved_orbit (track, n_pt)
 !
-! Subroutine to allocate space for the track structure.
+! Subroutine to initialize the track structure.
 !
 ! Input:
 !   track -- Track_struct: Structure to initialize.
@@ -52,7 +48,7 @@ contains
 !     %n_pt     -- Reset to -1
 !-
 
-subroutine allocate_saved_orbit (track, n_pt)
+subroutine init_saved_orbit (track, n_pt)
 
 implicit none
 
@@ -104,11 +100,11 @@ subroutine save_a_step (track, ele, param, s, here, s_sav)
 
 implicit none
 
-type (track_struct) track
+type (track_struct) track, track2
 type (ele_struct) :: ele
 type (lat_param_struct), intent(in) :: param
 type (coord_struct) orb
-integer n_pt
+integer n_pt, n, n_old
 real(rp) s, s_sav, here(:)
 
 !
@@ -117,8 +113,14 @@ track%n_pt = track%n_pt + 1
 n_pt = track%n_pt 
 
 if (n_pt > ubound(track%orb, 1)) then
-  print *, 'ERROR IN SAVE_A_STEP: ARRAY OVERFLOW!'
-  call err_exit
+  n = 1.5 * n_pt
+  n_old = ubound(track%orb, 1)
+  allocate(track2%orb(0:n_old), track2%map(0:n_old))
+  track2 = track
+  deallocate(track%orb, track%map)
+  allocate(track%orb(0:n), track%map(0:n))
+  track%orb(:n_old) = track2%orb; track%map(:n_old) = track2%map
+  deallocate(track2%orb, track2%map)
 end if
 
 orb%vec = here
@@ -179,9 +181,9 @@ real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r, B_phi
 real(rp) k_t, k_z, kappa2_t, kappa_t, kap_rho, Rm, Rm_plus, Rm_minus, Rm_norm
-real(rp) radius, phi, z
+real(rp) radius, phi
 
-complex(rp) expi, E_rho, E_phi, E_z, ikkl
+complex(rp) expi, E_rho, E_phi, E_z, Er, Ep, Ez, ikkl, expt
 
 integer i, j, sign_charge
 
@@ -253,7 +255,6 @@ case(rfcavity$, lcavity$)
   E_rho = 0; E_phi = 0; E_z = 0
   radius = sqrt(x**2 + y**2)
   phi = atan2(y, x)
-  z = s_pos
 
   do i = 1, size(ele%rf%field%mode)
     mode => ele%rf%field%mode(i)
@@ -270,19 +271,21 @@ case(rfcavity$, lcavity$)
     k_t = twopi * mode%freq / c_light
 
     do j = 1, size(mode%term)
+
+      Er = 0; Ep = 0; Ez = 0
       k_z = twopi * (i - 1) / (size(mode%term) * mode%dz)
       if (2 * i > size(mode%term)) k_z = k_z - twopi / mode%dz
       kappa2_t = k_z**2 - k_t**2
       kappa_t = sqrt(abs(kappa2_t))
       kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
-      expi = cmplx(cos(k_z * z), sin(k_z * z))
+      expi = cmplx(cos(k_z * s_pos), sin(k_z * s_pos))
 
       if (mode%m == 0) then
         Rm      = R_bessel(0, kap_rho)
         Rm_plus = R_bessel(1, kap_rho)
-        E_rho = E_rho + (-i_imaginary * k_z / kappa_t) * mode%term(i)%e * Rm_plus * expi
-        E_phi = E_phi + mode%term(i)%b * Rm_plus * expi
-        E_z   = E_z   + mode%term(i)%e * Rm * expi
+        Er = Er + (-i_imaginary * k_z / kappa_t) * mode%term(i)%e * Rm_plus * expi
+        Ep = Ep + mode%term(i)%b * Rm_plus * expi
+        Ez = Ez + mode%term(i)%e * Rm * expi
 
       else
         c = cos(mode%m * phi - mode%phi_0)
@@ -293,15 +296,21 @@ case(rfcavity$, lcavity$)
         Rm       = kappa_t * radius * Rm_norm                                    ! R_bessel(mode%m, kap_rho)
 
         ikkl = -i_imaginary * k_z / kappa_t
-        E_rho = E_rho + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi
-        E_phi = E_phi + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * (Rm_norm - Rm_minus / mode%m)) * s * expi
-        E_z   = E_z   + mode%term(i)%e * Rm * c * expi
+        Er = Er + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi
+        Ep = Ep + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * (Rm_norm - Rm_minus / mode%m)) * s * expi
+        Ez = Ez + mode%term(i)%e * Rm * c * expi
       endif
       
-
     enddo
 
+    expt = exp(-I_imaginary * twopi * (mode%freq * local_orb%t + mode%theta_t0))
+    E_rho = E_rho + Er * expt
+    E_phi = E_phi + Ep * expt
+    E_z   = E_z   + Ez * expt
+
   enddo
+
+
 
 
   return

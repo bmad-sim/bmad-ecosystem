@@ -37,7 +37,6 @@ subroutine make_mat6 (ele, param, start, end, end_in, err)
 use symp_lie_mod, only: symp_lie_bmad
 use bookkeeper_mod, only: attribute_bookkeeper
 use mad_mod, only: make_mat6_mad
-use em_field_mod, only: track_com
 use space_charge_mod, except_dummy => make_mat6
 use equality_mod
 
@@ -102,7 +101,7 @@ case (symp_lie_ptc$)
   if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
 
 case (symp_lie_bmad$)
-  call symp_lie_bmad (ele, param, a_start, a_end, .true., track_com)
+  call symp_lie_bmad (ele, param, a_start, a_end, .true.)
 
 case (tracking$)
   call make_mat6_tracking (ele, param, a_start, a_end)
