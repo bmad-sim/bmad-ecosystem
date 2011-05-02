@@ -36,8 +36,8 @@ contains
 !   param   -- lat_param_struct: Beam parameters.
 !     %enegy       -- Energy in GeV
 !     %particle    -- Particle type [positron$, or electron$]
-!   s1      -- Real: Starting point.
-!   s2      -- Real: Ending point.
+!   s1      -- Real: Starting point relative to physical entrance.
+!   s2      -- Real: Ending point relative physical entrance.
 !   rel_tol -- Real: Same as eps for odeint scalled by sqrt(h/(s2-s1))
 !               where h is the step size for the current step. rel_tol
 !               sets the %error of the result
@@ -57,7 +57,7 @@ contains
 !   track   -- Track_struct: Structure holding the track information.
 !-
 
-subroutine odeint_bmad (start, ele, param, end, s1, s2, &
+subroutine odeint_bmad (start, ele, param, end, s1, d2, &
                     rel_tol, abs_tol, h1, h_min, local_ref_frame, track)
 
 implicit none
@@ -68,7 +68,7 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
 
-real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
+real(rp), intent(in) :: s1, d2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
 real(rp) :: dr_ds(6), r(6), r_scal(6)
@@ -81,7 +81,7 @@ logical local_ref_frame, save_track
 ! init
 
 s = s1
-h = sign(h1, s2-s1)
+h = sign(h1, d2-s1)
 r = start%vec
 
 save_track = .false.
@@ -89,7 +89,7 @@ if (present(track)) save_track = track%save_track
 
 if (save_track) then
   s_sav = s - 2.0_rp * track%ds_save
-  call init_saved_orbit (track, int(abs(s2-s1)/track%ds_save)+1)
+  call init_saved_orbit (track, int(abs(d2-s1)/track%ds_save)+1)
 endif
 
 ! now track
@@ -100,7 +100,7 @@ do n_step = 1, max_step
 
   call em_field_kick_vector (ele, param, s, r, local_ref_frame, dr_ds)
 
-  sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
+  sqrt_N = sqrt(abs((d2-s1)/h))  ! number of steps we would take with this h
   rel_tol_eff = rel_tol / sqrt_N
   abs_tol_eff = abs_tol / sqrt_N
   r_scal(:) = abs(r(:)) + abs(h*dr_ds(:)) + TINY
@@ -109,7 +109,7 @@ do n_step = 1, max_step
     if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, s, r, s_sav)
   endif
 
-  if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
+  if ((s+h-d2)*(s+h-s1) > 0.0) h = d2-s
 
   call rkqs_bmad (ele, param, r, dr_ds, s, h, rel_tol_eff, abs_tol_eff, &
                                              r_scal, h_did, h_next, local_ref_frame)
@@ -123,7 +123,7 @@ do n_step = 1, max_step
     end if
   endif
 
-  if ((s-s2)*(s2-s1) >= 0.0) then
+  if ((s-d2)*(d2-s1) >= 0.0) then
     end%vec = r
     if (save_track) call save_a_step (track, ele, param, s, r, s_sav)
     return

@@ -12,10 +12,10 @@
 ! dispersion, which makes the formula useful in cases where the beam pipe
 ! aperture is significant to the momentum aperture.
 !-
+
 MODULE touschek_mod
 
 USE bmad
-USE nr
 
 ! This common block is needed in order to pass parameters to
 ! integrand.  We use NR's qromb function, which requires that the
@@ -48,6 +48,9 @@ PUBLIC momentum_aperture_struct
 
 CONTAINS
 
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
 !+
 ! Subroutine touschek_lifetime(mode, Tl, lat)
 !
@@ -84,9 +87,8 @@ CONTAINS
 !   Tl               -- Real(rp): Touschek lifetime in seconds
 !
 !-
-SUBROUTINE touschek_lifetime(mode, Tl, lat)
 
-USE bmad
+SUBROUTINE touschek_lifetime(mode, Tl, lat)
 
 IMPLICIT NONE
 
@@ -115,6 +117,9 @@ Tl = 1 / norm_sum_Tl_inv
 
 END SUBROUTINE touschek_lifetime
 
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
 !+
 ! Subroutine touschek_lifetime_detailed_aperture(mode, Tl, lat, momentum_aperture)
 !
@@ -153,9 +158,8 @@ END SUBROUTINE touschek_lifetime
 ! Output:
 !   Tl                       -- Real(rp): Touschek lifetime in seconds
 !-
-SUBROUTINE touschek_lifetime_with_aperture(mode, Tl, lat, momentum_aperture)
 
-USE bmad
+SUBROUTINE touschek_lifetime_with_aperture(mode, Tl, lat, momentum_aperture)
 
 IMPLICIT NONE
 
@@ -194,6 +198,9 @@ Tl = 1 / norm_sum_Tl_inv
 
 END SUBROUTINE touschek_lifetime_with_aperture
 
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
 !+
 ! Subroutine touschek_rate1(mode, rate, lat, s=s)
 ! Subroutine touschek_rate1(mode, rate, lat, ix=ix)
@@ -246,7 +253,10 @@ END SUBROUTINE touschek_lifetime_with_aperture
 !   rate            -- REAL(rp), INTENT(OUT): Touschek rate, in units particle per second, assuming
 !                                two particles per event.
 !-
+
 SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
+
+  use nr, only: qtrap
 
   IMPLICIT NONE
 
@@ -334,10 +344,10 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
     beta_a2/2.0_rp/beta2/g2/sigma_x_beta2*(1.0_rp - sigma_h2*(Dxt**2)/sigma_x_beta2) &
     + beta_b2/2.0_rp/beta2/g2/sigma_y_beta2*(1.0_rp - sigma_h2*(Dyt**2)/sigma_y_beta2) 
 
-  touschek_com%B2 = SQRT( (0.25_rp)/(beta2**2)/(g2**2) \
-                    *( beta_a2/sigma_x_beta2*(1._rp-sigma_h2*(Dxt**2)/sigma_x_beta2) - \
-                      beta_b2/sigma_y_beta2*(1._rp-sigma_h2*(Dyt**2)/sigma_y_beta2) )**2 \
-                    + ( (sigma_h2**2)*beta_a2*beta_b2*(Dxt**2)*(Dyt**2)/(beta2**2)/(g2**2) \
+  touschek_com%B2 = SQRT( (0.25_rp)/(beta2**2)/(g2**2) &
+                    *( beta_a2/sigma_x_beta2*(1._rp-sigma_h2*(Dxt**2)/sigma_x_beta2) - &
+                      beta_b2/sigma_y_beta2*(1._rp-sigma_h2*(Dyt**2)/sigma_y_beta2) )**2 &
+                    + ( (sigma_h2**2)*beta_a2*beta_b2*(Dxt**2)*(Dyt**2)/(beta2**2)/(g2**2) &
                         /(sigma_x_beta2**2)/(sigma_x_beta2**2) ) )
 
   tau_min = touschek_com%tau_m
@@ -345,14 +355,17 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
 
   integral = qtrap(integrand_base_cov, LOG(tau_min), LOG(tau_max))
 
-  rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ \
-         (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* \
+  rate = (r_e**2)*c_light*(NB**2)/8.0_rp/SQRT(pi)/ &
+         (g2*g2)/beta2/sigma_z/SQRT(sigma_p2/sigma_h2)/emit_x/emit_y* &
          integral
 
   IF(rate .lt. 0.0_rp) rate = 0.0_rp
 
 END SUBROUTINE touschek_rate1
 
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------
 !+
 ! Function integrand_base(t)
 !
@@ -371,8 +384,13 @@ END SUBROUTINE touschek_rate1
 ! Output:
 !   <return value> -- REAL(rp): Array of reals containing values of integrand at t(:).
 !-
+
 FUNCTION integrand_base(t)
+
 !this is the the integral in equation 42 from Piwinski 1998
+
+implicit none
+
 REAL(rp), DIMENSION(:), INTENT(IN) :: t
 REAL(rp), DIMENSION(size(t)) :: integrand_base
 REAL(rp) tm, B1, B2
@@ -384,8 +402,8 @@ B1 = touschek_com%B1
 B2 = touschek_com%B2
 
 DO i=1, size(t)
-  integrand_base(i) = ( (2._rp+1._rp/t(i))**2*(t(i)/tm/(1.+t(i))-1._rp)+ 1._rp - SQRT(1._rp+t(i))/SQRT(t(i)/tm) \
-                        - 0.5_rp/t(i)*(4._rp+1._rp/t(i))*LOG(t(i)/tm/(1._rp+t(i))) ) * SQRT(t(i)) / SQRT(1._rp+t(i)) \
+  integrand_base(i) = ( (2._rp+1._rp/t(i))**2*(t(i)/tm/(1.+t(i))-1._rp)+ 1._rp - SQRT(1._rp+t(i))/SQRT(t(i)/tm) &
+                        - 0.5_rp/t(i)*(4._rp+1._rp/t(i))*LOG(t(i)/tm/(1._rp+t(i))) ) * SQRT(t(i)) / SQRT(1._rp+t(i)) &
                       * exp_bessi0(t(i), B1, B2)
   integrand_base(i) = MAX(integrand_base(i),0._rp)
 ENDDO
@@ -405,7 +423,11 @@ END FUNCTION integrand_base
 ! Output:
 !   <return value> -- Real(rp): Array of reals containing the values of the integrand evaluated at t(:)
 !-
+
 FUNCTION integrand_base_cov(y)
+
+implicit none
+
 REAL(rp), DIMENSION(:), INTENT(IN) :: y
 REAL(rp), DIMENSION(size(y)) :: integrand_base_cov
 
@@ -433,39 +455,25 @@ END FUNCTION integrand_base_cov
 FUNCTION exp_bessi0(t, B1, B2)
 
 USE nrtype; USE nrutil, ONLY : poly
+
 IMPLICIT NONE
+
 REAL(rp), INTENT(IN) :: t, B1, B2
 REAL(rp) :: b2t
 REAL(rp) :: exp_bessi0
 
-REAL(rp), DIMENSION(7) :: p = (/1.0_dp,3.5156229_dp,&
-  3.0899424_dp,1.2067492_dp,0.2659732_dp,0.360768e-1_dp,&
-  0.45813e-2_dp/)
-REAL(rp), DIMENSION(9) :: q = (/0.39894228_dp,0.1328592e-1_dp,&
-  0.225319e-2_dp,-0.157565e-2_dp,0.916281e-2_dp,&
-  -0.2057706e-1_dp,0.2635537e-1_dp,-0.1647633e-1_dp,&
-  0.392377e-2_dp/)
+REAL(rp), DIMENSION(7) :: p = [1.0_dp, 3.5156229_dp, 3.0899424_dp, 1.2067492_dp, 0.2659732_dp, &
+                              0.360768e-1_dp, 0.45813e-2_dp]
+REAL(rp), DIMENSION(9) :: q = [0.39894228_dp, 0.1328592e-1_dp, 0.225319e-2_dp, -0.157565e-2_dp, &
+                   0.916281e-2_dp, -0.2057706e-1_dp, 0.2635537e-1_dp, -0.1647633e-1_dp, 0.392377e-2_dp]
 b2t = B2 * t
-  IF (b2t < 3.75) THEN
-    exp_bessi0=POLY(REAL((b2t/3.75_dp)**2,dp),p) * EXP(-B1*t)
-  ELSE
-    exp_bessi0=(EXP((B2-B1)*t)/SQRT(b2t))*POLY(REAL(3.75_dp/(b2t),dp),q)
-  ENDIF
+
+IF (b2t < 3.75) THEN
+  exp_bessi0=POLY(REAL((b2t/3.75_dp)**2,dp),p) * EXP(-B1*t)
+ELSE
+  exp_bessi0=(EXP((B2-B1)*t)/SQRT(b2t))*POLY(REAL(3.75_dp/(b2t),dp),q)
+ENDIF
 
 END FUNCTION exp_bessi0
 
 END MODULE touschek_mod
-
-
-
-
-
-
-
-
-
-
-
-
-
-
