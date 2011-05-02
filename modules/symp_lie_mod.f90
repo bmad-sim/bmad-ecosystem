@@ -36,16 +36,14 @@ contains
 !   param      -- lat_param_struct: Parameters are needed for some elements.
 !   start      -- Coord_struct: Coordinates at the beginning of element. 
 !   calc_mat6  -- Logical: If True then make the 6x6 transfer matrix.
-!   track      -- Track_struct, optional: Structure holding the track information.
-!     %save_track -- Logical: Set True if track is to be saved.
 !   offset_ele -- Logical, optional: Offset the element using ele%value(x_offset$), etc.
 !                   Default is True.
 !
 ! Output:
-!   ele    -- Ele_struct: Element with transfer matrix.
-!     %mat6(6,6) -- 6x6 transfer matrix.
-!     %vec0(6)   -- 0th order part of the transfer matrix.
-!   end    -- Coord_struct: Coordinates at the end of element.
+!   ele        -- Ele_struct: Element with transfer matrix.
+!     %mat6(6,6)  -- 6x6 transfer matrix.
+!     %vec0(6)    -- 0th order part of the transfer matrix.
+!   end        -- Coord_struct: Coordinates at the end of element.
 !   track      -- Track_struct, optional: Structure holding the track information.
 !-
 
@@ -71,7 +69,7 @@ real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_pl
 
 integer i, n_step
 
-logical calc_mat6, calculate_mat6, err, save_track, do_offset
+logical calc_mat6, calculate_mat6, err, do_offset
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
@@ -91,9 +89,6 @@ err = .false.
 x_pitch = ele%value(x_pitch_tot$)
 y_pitch = ele%value(y_pitch_tot$)
 
-save_track = present(track)
-if (save_track) save_track = track%save_track 
-
 ! element offset 
 
 if (calculate_mat6) then
@@ -110,7 +105,7 @@ ds2 = ds / 2
 
 s = 0   ! longitudianl position
 
-if (save_track) then
+if (present(track)) then
   call init_saved_orbit (track, n_step)
   track%n_pt = n_step
   call save_this_track_pt (0, 0.0_rp)
@@ -203,7 +198,7 @@ Case (wiggler$)
 
     s = s + ds2
 
-    if (save_track) call save_this_track_pt (i, s)
+    if (present(track)) call save_this_track_pt (i, s)
 
   enddo
 
@@ -266,7 +261,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
 
-    if (save_track) call save_this_track_pt (i, s)
+    if (present(track)) call save_this_track_pt (i, s)
 
   enddo
 

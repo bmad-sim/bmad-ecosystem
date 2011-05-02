@@ -255,7 +255,6 @@ if (.not. associated(ele%const)) allocate (ele%const(1:26))
 ele%const(1:6) = ele%map_ref_orb_in%vec
 
 start1 = ele%map_ref_orb_in
-track%save_track = .true.
 call symp_lie_bmad (ele, param, start1, end, .false., track)
 call calc_g (track, ele%const(10), ele%const(20))
 

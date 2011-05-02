@@ -156,8 +156,6 @@ end type
 
 type rf_field_struct
   type (rf_field_mode_struct), allocatable :: mode(:)
-  real(rp), allocatable :: t_ref(:)       ! Reference time as a function of s.
-  real(rp), allocatable :: E_tot_ref(:)   ! Reference energy as a function of s.
 end type
 
 type rf_struct
@@ -746,13 +744,12 @@ type track_map_struct
 end type
 
 type track_struct
-  type (coord_struct), pointer :: orb(:) => null() ! An array of track points. 
-  type (track_map_struct), pointer :: map(:) => null() ! An array of maps.
-  real(rp) :: ds_save = 1e-3         ! min distance between points
-  logical :: save_track = .false.    ! save orbit?
-  integer :: n_pt                    ! upper bound of track%pt(0:n)
-  integer :: n_bad
-  integer :: n_ok
+  type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:) 
+  type (track_map_struct), allocatable :: map(:)  ! An array of maps: %map(0:)
+  real(rp) :: ds_save = 1e-3                      ! Min distance between points.
+  integer :: n_pt                                 ! Actual track upper bound for %orb(0:) and  %map(0:)
+  integer :: n_bad                                ! Number of bad steps when adaptive tracking is done.
+  integer :: n_ok                                 ! Number of good steps when adaptive tracking is done.
 end type
 
 !------------------------------------------------------------------------------

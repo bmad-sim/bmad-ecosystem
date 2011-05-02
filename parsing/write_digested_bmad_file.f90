@@ -281,10 +281,6 @@ if (n_rf_field_mode > 0) then
                                     mode%m, mode%phi_0, mode%dz, mode%f_scale
     write (d_unit) mode%term
   enddo 
-
-  write (d_unit) ubound(ele%rf%field%t_ref, 1)
-  write (d_unit) ele%rf%field%t_ref
-  write (d_unit) ele%rf%field%e_tot_ref
 endif
 
 !

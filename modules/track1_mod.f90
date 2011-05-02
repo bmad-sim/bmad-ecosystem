@@ -185,7 +185,7 @@ implicit none
 
 type (coord_struct) orb
 type (lat_param_struct) param
-real(rp) length, rel_pc, p0c, dz, beta0, beta
+real(rp) length, rel_pc, p0c, dz, beta
 
 !
 
@@ -197,10 +197,9 @@ dz = - length * ((orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2) - &
           orb%vec(6) * (1 + orb%vec(6)/2) * (mass_of(param%particle)/(p0c * rel_pc))**2)
 orb%vec(5) = orb%vec(5) + dz
 
-call convert_pc_to (p0c, param%particle, beta = beta0)
 call convert_pc_to (p0c * rel_pc, param%particle, beta = beta)
 orb%s = orb%s + length
-orb%t = orb%t + length / (c_light * beta0) - dz / (c_light * beta)
+orb%t = orb%t + length * (1 + (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)) / (c_light * beta)
 
 end subroutine track_a_drift
 

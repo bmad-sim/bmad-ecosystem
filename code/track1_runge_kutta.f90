@@ -15,8 +15,6 @@
 !   param      -- lat_param_struct: Beam parameters.
 !     %enegy     -- Energy in GeV
 !     %particle  -- Particle type [positron$, or electron$]
-!   track      -- Track_struct: Structure holding the track information.
-!     %save_track -- Logical: Set True if track is to be saved.
 !
 !   bmad_com -- Bmad common block.
 !     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1e-6.
@@ -37,8 +35,7 @@ use runge_kutta_mod, except_dummy => track1_runge_kutta
 
 implicit none
 
-type (coord_struct) :: start
-type (coord_struct) :: end
+type (coord_struct) :: start, end, start2
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
@@ -50,10 +47,10 @@ real(rp) rel_tol, abs_tol, del_s_step, del_s_min
 del_s_step = 1e-3
 del_s_min = 1e-8
 
-call offset_particle (ele, param, end, set$, set_canonical = .false.)
-call odeint_bmad (start, ele, param, end, 0.0_rp, ele%value(l$), &
-        bmad_com%rel_tol_adaptive_tracking, bmad_com%abs_tol_adaptive_tracking, &
-        del_s_step, del_s_min, .true., track)
+start2 = start
+call offset_particle (ele, param, start2, set$, set_canonical = .false.)
+call odeint_bmad (start2, ele, param, end, 0.0_rp, ele%value(l$), bmad_com%rel_tol_adaptive_tracking, &
+                  bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., track)
 call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
 end subroutine

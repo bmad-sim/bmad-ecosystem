@@ -455,10 +455,6 @@ if (n_rf_field_mode > 0) then
     if (size(mode%term) /= n) allocate (mode%term(n))
     read (d_unit, err = 9140) mode%term
   enddo
-
-  read (d_unit, err = 9140) n
-  call re_allocate2(ele%rf%field%t_ref, 0, n)
-  call re_allocate2(ele%rf%field%e_tot_ref, 0, n)
 endif
 
 ! Mode3

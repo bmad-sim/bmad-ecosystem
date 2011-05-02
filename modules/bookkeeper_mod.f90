@@ -2446,7 +2446,6 @@ logical coupling_change
 ele%attribute_status = is_modified$
 
 if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
-if (associated(ele%rf%field)) ele%rf%field%t_ref(0) = -1
 
 if (ele%key == init_ele$) then
   coupling_change = .false.
