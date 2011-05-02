@@ -57,7 +57,7 @@ integer n_pt
 
 !
 
-if (.not. associated (track%orb)) then
+if (.not. allocated (track%orb)) then
   allocate(track%orb(0:n_pt))
   allocate(track%map(0:n_pt))
 endif
@@ -77,7 +77,7 @@ end subroutine
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 ! +
-! Subroutine save_a_step (track, ele, param, s, here, s_sav)
+! Subroutine save_a_step (track, ele, param, local_ref_frame, s, here, s_sav)
 !
 ! Routine used by Runge-Kutta and Boris tracking routines to save
 ! the trajectory through an element.
@@ -88,24 +88,26 @@ end subroutine
 ! Input:
 !   ele      -- ele_struct: Element being tracked through.
 !   param    -- lat_param_struct: Lattice parameters.
+!   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
 !   s        -- Real(rp): S-position with respect to start of element
-!   here(6)  -- Real(rp): trajectory at s with respect to element coordinates.
+!   orb      -- Coord_struct: trajectory at s with respect to element coordinates.
 !
 ! Ouput:
 !   track    -- track_struct: Trajectory structure to save to.
 !   s_sav    -- Real(rp): Set equal to s.
 
 
-subroutine save_a_step (track, ele, param, s, here, s_sav)
+subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav)
 
 implicit none
 
 type (track_struct) track, track2
 type (ele_struct) :: ele
 type (lat_param_struct), intent(in) :: param
-type (coord_struct) orb
+type (coord_struct) orb, orb2
 integer n_pt, n, n_old
-real(rp) s, s_sav, here(:)
+real(rp) s, s_sav
+logical local_ref_frame
 
 !
 
@@ -123,11 +125,10 @@ if (n_pt > ubound(track%orb, 1)) then
   deallocate(track2%orb, track2%map)
 end if
 
-orb%vec = here
-call offset_particle (ele, param, orb, unset$, set_canonical = .false., s_pos = s)
+orb2 = orb
+if (local_ref_frame) call offset_particle (ele, param, orb2, unset$, set_canonical = .false., s_pos = s)
 
-track%orb(n_pt) = orb
-track%orb(n_pt)%s = s
+track%orb(n_pt) = orb2
 track%map(n_pt)%mat6 = 0
 s_sav = s
 

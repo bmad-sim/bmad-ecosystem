@@ -22,6 +22,116 @@ use spin_mod
 
 contains
 
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
+!
+! Subroutine to do Boris tracking. For more information on Boris tracking 
+! see the boris_mod module documentation.
+! 
+! Modules needed:
+!   use bmad
+!
+! Input: 
+!   start    -- Coord_struct: Starting coords.
+!   ele      -- Ele_struct: Element to track through.
+!     %tracking_method -- Determines which subroutine to use to calculate the 
+!                         field. Note: BMAD does no supply em_field_custom.
+!                           == custom$ then use em_field_custom
+!                           /= custom$ then use em_field
+!     %value(ds_step$) -- Step size.
+!   param    -- lat_param_struct: Beam parameters.
+!     %particle    -- Particle type [positron$, or electron$]
+!   s_start  -- Real, optional: Starting point.
+!   s_end    -- Real, optional: Ending point.
+!
+! Output:
+!   end        -- Coord_struct: Ending coords.
+!   track      -- Track_struct, optional: Structure holding the track information.
+!-
+
+subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
+
+implicit none
+
+type (coord_struct), intent(in) :: start
+type (coord_struct), intent(out) :: end
+type (ele_struct) ele
+type (ele_struct), save :: loc_ele
+type (lat_param_struct) param
+type (track_struct), optional :: track
+type (coord_struct) here
+
+real(rp), optional, intent(in) :: s_start, s_end
+real(rp) s1, s2, s_sav, ds, s
+
+integer i, n_step
+
+logical, save :: init_needed = .false.
+
+! init
+
+if (init_needed) then
+  call init_ele(loc_ele)
+  init_needed = .false.
+endif
+
+if (present(s_start)) then
+  s1 = s_start
+else
+  s1 = 0
+endif
+
+if (present(s_end)) then
+  s2 = s_end
+else 
+  s2 = ele%value(l$)
+endif
+
+call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
+
+! go to local coords
+
+call transfer_ele (ele, loc_ele)
+call zero_ele_offsets (loc_ele)
+
+here = start
+here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+
+call boris_energy_correction (ele, param, here, .false.)
+call offset_particle (ele, param, here, set$, set_canonical = .false.)
+call track_solenoid_edge (loc_ele, param, set$, here)
+
+! if we are saving the trajectory then allocate enough space in the arrays
+
+if (present(track)) then
+  s_sav = s1 - 2.0_rp * track%ds_save
+  call init_saved_orbit (track, n_step+1)
+  call save_a_step (track, loc_ele, param, .true., s1, here, s_sav)
+endif
+
+! track through the body
+
+s = s1
+
+do i = 1, n_step
+  call track1_boris_partial (here, loc_ele, param, s, ds, here)
+  s = s + ds
+  if (present(track)) call save_a_step (track, loc_ele, param, .true., s, here, s_sav)
+enddo
+
+! back to lab coords
+
+call track_solenoid_edge (loc_ele, param, unset$, here)
+call offset_particle (ele, param, here, unset$, set_canonical = .false.)
+call boris_energy_correction (ele, param, here, .true.)
+
+end = here
+
+end subroutine
+
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !-----------------------------------------------------------
@@ -44,7 +154,7 @@ contains
 !   use bmad
 !
 ! Input: 
-!   start    -- Coord_struct: Starting coords.
+!   start    -- Coord_struct: Starting coords in element frame.
 !   ele      -- Ele_struct: Element to track through.
 !     %tracking_method -- Determines which subroutine to use to calculate the 
 !                         field. Note: BMAD does no supply em_field_custom.
@@ -52,8 +162,6 @@ contains
 !                           /= custom$ then use em_field
 !   param    -- lat_param_struct: Beam parameters.
 !     %particle    -- Particle type [positron$, or electron$]
-!   track    -- Track_struct: Structure holding the track information.
-!     %save_track -- Logical: Set True if track is to be saved.
 !   s_start  -- Real, optional: Starting point.
 !   s_end    -- Real, optional: Ending point.
 !
@@ -87,16 +195,12 @@ real(rp) :: scale_spin, ds_in, step_min
 integer :: n_step, max_step
 
 logical, save :: init_needed = .false.
-logical save_track
 
 ! init
 
 ds_in = 1d-3
 step_min = 1e-8
 max_step = 10000
-
-save_track = .false.
-if (present(track)) save_track = track%save_track
 
 if (init_needed) then
   call init_ele(loc_ele)
@@ -125,13 +229,15 @@ call transfer_ele (ele, loc_ele)
 call zero_ele_offsets (loc_ele)
 
 here = start
+here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+
 call boris_energy_correction (ele, param, here, .false.)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
 call track_solenoid_edge (loc_ele, param, set$, here)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 
-if (save_track) then
+if (present(track)) then
   s_sav = s - 2 * track%ds_save
   call init_saved_orbit (track, int(abs((s2-s1)/track%ds_save))+1)
 endif
@@ -148,8 +254,8 @@ do n_step = 1, max_step
 
   ! record a track if we went far enough.
 
-  if (save_track) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
+  if (present(track)) then
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, loc_ele, param, .true., s, here, s_sav)
   endif
 
   if ((s+ds-s2)*(s+ds-s1) > 0.0) ds = s2-s
@@ -199,7 +305,7 @@ do n_step = 1, max_step
   ! check if we are done
 
   if ((s-s2)*(s2-s1) >= 0.0) then
-    if (save_track) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
+    if (present(track)) call save_a_step (track, loc_ele, param, .true., s, here, s_sav)
     call track_solenoid_edge (loc_ele, param, unset$, here)
     call offset_particle (ele, param, here, unset$, set_canonical = .false.)
     call boris_energy_correction (ele, param, here, .true.)
@@ -215,121 +321,6 @@ if (bmad_status%type_out) &
 if (bmad_status%exit_on_error) call err_exit
 
 end subroutine track1_adaptive_boris
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
-!
-! Subroutine to do Boris tracking. For more information on Boris tracking 
-! see the boris_mod module documentation.
-! 
-! Modules needed:
-!   use bmad
-!
-! Input: 
-!   start    -- Coord_struct: Starting coords.
-!   ele      -- Ele_struct: Element to track through.
-!     %tracking_method -- Determines which subroutine to use to calculate the 
-!                         field. Note: BMAD does no supply em_field_custom.
-!                           == custom$ then use em_field_custom
-!                           /= custom$ then use em_field
-!     %value(ds_step$) -- Step size.
-!   param    -- lat_param_struct: Beam parameters.
-!     %particle    -- Particle type [positron$, or electron$]
-!   track      -- Track_struct, optional: Structure holding the track information.
-!     %save_track -- Logical: Set True if track is to be saved.
-!   s_start  -- Real, optional: Starting point.
-!   s_end    -- Real, optional: Ending point.
-!
-! Output:
-!   end        -- Coord_struct: Ending coords.
-!   track      -- Track_struct: Structure holding the track information.
-!     %save_track -- Logical: Set True if track is to be saved.
-!-
-
-subroutine track1_boris (start, ele, param, end, track, s_start, s_end)
-
-implicit none
-
-type (coord_struct), intent(in) :: start
-type (coord_struct), intent(out) :: end
-type (ele_struct) ele
-type (ele_struct), save :: loc_ele
-type (lat_param_struct) param
-type (track_struct), optional :: track
-type (coord_struct) here
-
-real(rp), optional, intent(in) :: s_start, s_end
-real(rp) s1, s2, s_sav, ds, s
-
-integer i, n_step
-
-logical, save :: init_needed = .false.
-logical save_track
-
-! init
-
-save_track = .false.
-if (present(track)) save_track = track%save_track
-
-if (init_needed) then
-  call init_ele(loc_ele)
-  init_needed = .false.
-endif
-
-if (present(s_start)) then
-  s1 = s_start
-else
-  s1 = 0
-endif
-
-if (present(s_end)) then
-  s2 = s_end
-else 
-  s2 = ele%value(l$)
-endif
-
-call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
-
-! go to local coords
-
-call transfer_ele (ele, loc_ele)
-call zero_ele_offsets (loc_ele)
-
-here = start
-call boris_energy_correction (ele, param, here, .false.)
-call offset_particle (ele, param, here, set$, set_canonical = .false.)
-call track_solenoid_edge (loc_ele, param, set$, here)
-
-! if we are saving the trajectory then allocate enough space in the arrays
-
-if (save_track) then
-  s_sav = s1 - 2.0_rp * track%ds_save
-  call init_saved_orbit (track, n_step+1)
-  call save_a_step (track, loc_ele, param, s1, here%vec, s_sav)
-endif
-
-! track through the body
-
-s = s1
-
-do i = 1, n_step
-  call track1_boris_partial (here, loc_ele, param, s, ds, here)
-  s = s + ds
-  if (save_track) call save_a_step (track, loc_ele, param, s, here%vec, s_sav)
-enddo
-
-! back to lab coords
-
-call track_solenoid_edge (loc_ele, param, unset$, here)
-call offset_particle (ele, param, here, unset$, set_canonical = .false.)
-call boris_energy_correction (ele, param, here, .true.)
-
-end = here
-
-end subroutine
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -372,9 +363,9 @@ type (coord_struct) :: start, end
 type (em_field_struct) :: field
 
 real(rp), intent(in) :: s, ds
-real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot
+real(rp) :: f, p_z, d2, alpha, dxv, dyv, ds2_f, charge, U_tot, p_tot, ds2
 real(rp) :: r(3,3), w(3), ex, ey, ex2, ey2, exy, bz, bz2, mass, old_beta, beta
-real(rp) :: Omega(3)
+real(rp) :: Omega(3), p2
 
 complex(rp) :: dspin_dz(2), quaternion(2,2)
 
@@ -384,12 +375,13 @@ charge = charge_of(param%particle)
 mass = mass_of(param%particle) / ele%value(p0c$)
 
 end = start
+ds2 = ds / 2
 
 ! 1) Push the position 1/2 step
 
 p_tot = 1 + end%vec(6)
 p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
-ds2_f = ds / (2 * p_z)
+ds2_f = ds2 / p_z
 U_tot = sqrt (p_tot**2 + mass**2)
 old_beta = p_tot / U_tot  ! particle velocity: v/c
 
@@ -397,28 +389,30 @@ end%vec(1) = end%vec(1) + ds2_f * end%vec(2)
 end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
 end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
 
+end%s = end%s + ds2
+end%t = end%t + ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (old_beta * c_light)
+
 ! 2) Evaluate the fields.
 
-call em_field_calc (ele, param, s+ds/2, end, .true., field)
+call em_field_calc (ele, param, s+ds2, end, .true., field)
 
 ! 2.5) Push the spin 1/2 step
-! This uses the momentum at the beginning 
-!  and the fields at (ds/2)
+! This uses the momentum at the beginning and the fields at (ds2)
 
 if (bmad_com%spin_tracking_on) then
   ! this uses a modified Omega' = -Omega/v_z
-  Omega = spin_omega_at (field, start, ele, param, s+ds/2)
+  Omega = spin_omega_at (field, start, ele, param, s+ds2)
   quaternion = (i_imaginary/2.0_rp)* &
         (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
   ! normalizing the quaternion is slow, so only do if needed
   !   quaternion = normalized_quaternion (quaternion)
   dspin_dz = matmul(quaternion, start%spin)
-  end%spin = start%spin + dspin_dz * (ds/2.0_rp)
+  end%spin = start%spin + dspin_dz * ds2
 endif
   
 ! 3) Push the momenta a 1/2 step using only the "b" term.
 
-f = ds * charge * c_light / (2 * ele%value(p0c$))
+f = ds2 * charge * c_light / ele%value(p0c$)
 
 end%vec(2) = end%vec(2) - field%B(2) * f
 end%vec(4) = end%vec(4) + field%B(1) * f
@@ -428,7 +422,7 @@ p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
 
 ! 4) Push the momenta a full step using the "R" matrix.
 
-d2 = ds * charge * c_light / (2 * p_z * ele%value(p0c$)) 
+d2 = ds2 * charge * c_light / (p_z * ele%value(p0c$)) 
 
 if (field%e(1) == 0 .and. field%e(2) == 0) then
   if (field%B(3) /= 0) then
@@ -469,27 +463,30 @@ end%vec(5) = end%vec(5) * beta / old_beta
 ! 6) Push the position 1/2 step.
 
 p_z = sqrt(p_tot**2 - end%vec(2)**2 - end%vec(4)**2)
-ds2_f = ds / (2 * p_z)
+ds2_f = ds2 / p_z
 
 end%vec(1) = end%vec(1) + ds2_f * end%vec(2) 
 end%vec(3) = end%vec(3) + ds2_f * end%vec(4)
 end%vec(5) = end%vec(5) + ds2_f * (p_z - p_tot) 
 end%vec(6) = p_tot - 1
 
+end%s = end%s + ds2
+end%t = end%t + ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (beta * c_light)
+  
 ! 6.5) Push the spin 1/2 step
 ! This uses the momentum at the end 
-!  and the fields at (ds/2)
+!  and the fields at (ds2)
 
 if (bmad_com%spin_tracking_on) then
   ! this uses a modified Omega' = -Omega/v_z
-  Omega = spin_omega_at (field, end, ele, param, s+ds)
+  Omega = spin_omega_at (field, end, ele, param, s+ds2)
   quaternion = (i_imaginary/2.0_rp)*&
         (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
   !   quaternion = normalized_quaternion (quaternion)
   dspin_dz = matmul(quaternion, end%spin)
-  end%spin = end%spin + dspin_dz * (ds/2.0_rp)
+  end%spin = end%spin + dspin_dz * ds2
 endif
-  
+
 end subroutine
 
 !-------------------------------------------------------------------------

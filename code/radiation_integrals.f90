@@ -304,7 +304,6 @@ if (init_cache) then
     ! map_type wiggler
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
-      track%save_track = .true.
       call symp_lie_bmad (ele2, lat%param, start, end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
