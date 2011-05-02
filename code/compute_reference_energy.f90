@@ -55,7 +55,6 @@ do ib = 0, ubound(lat%branch, 1)
   call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
   branch%ele(0)%value(p0c$) = p0c
 
-
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
 
@@ -106,6 +105,11 @@ do ib = 0, ubound(lat%branch, 1)
     else
       ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * p0c / (E_tot * c_light)
     endif
+
+    ele%value(delta_ref_time$) = ele%ref_time - branch%ele(i-1)%ref_time
+
+    ! %old_value is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
+    ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
 
   enddo
 enddo

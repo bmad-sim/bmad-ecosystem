@@ -39,12 +39,19 @@ longitudinal position in the lattice. The definition of the
 \vn{coord_struct} is
 \begin{example}
   type coord_struct
-    real(rp) vec(6)     ! (x, px, y, py, z, pz)
-    complex(rp) spin(2) ! particle spin in spinor notation
+    real(rp) vec(6)       ! (x, px, y, py, z, pz)
+    complex(rp) spin(2)   ! particle spin in spinor notation
+    real(rp) e_field_x    ! Photon field intensity, x-axis component
+    real(rp) e_field_y    ! Photon field intensity, y-axis component
+    real(rp) phase_x      ! Photon phase, x-axis component
+    real(rp) phase_y      ! Photon phase, y-axis component
+    real(rp) s            ! Longitudinal position 
+    real(rp) t            ! Time
   end type
 \end{example}
 The \vn{%vec(6)} array defines the phase space coordinants
-(\sref{s:phase.space}) and spin (\sref{s:spin.dyn}).
+(\sref{s:phase.space}) and spin (\sref{s:spin.dyn}). The \vn{%s}
+component gives the s-position of the particle and \vn{%t} gives the time.
 
 When associated with a lattice element, a \vn{coord_struct} variable
 gives a particle's position at the exit end of the element.  To get an
@@ -108,6 +115,29 @@ The routine \Hyperref{r:reallocate.coord.array}{reallocate_coord_array} will all
   ...
   deallocate(all_orbit) ! Needed if all_orbit is a local var
 \end{example}
+
+%----------------------------------------------------------------
+\section{Tracking Through a Lattice Element}
+\label{s:ele-track}
+
+The ``entrance'' and ``exit'' ends of a lattice element are, by definition,
+where the physical ends of the element would be if there were no
+offsets. In particular, if an element has a finite \vn{s_offset}
+(\sref{s:ele-offset}), the physical ends will be displaced from
+the entrance and exit ends. Thus, the position \vn{ds} of a particle with
+respect to the physical beginning of the element is
+\begin{example}
+  ds = coord%s - (ele%s + ele%value(s_offset_tot\$) - ele%value(l\$))
+\end{example}
+
+When tracking through a lattice element that has finite offsets, the
+\Hyperref{r:offset_particle}{offset_particle} routine can be called to
+convert between laboratory and element coordinates
+(\sref{s:misalign.track}). In particular, if there is a finite
+\vn{s_offset}, the \vn{offset_particle} routine will insert drifts
+just before and just after the tracking of the body of the element so
+that the particle begins at the entrance face and ends at the exit
+face independent of the actual physical placement of the element.
 
 %----------------------------------------------------------------
 \section{Closed Orbit and Particle Tracking}
@@ -218,7 +248,6 @@ n\caption{Condensed track_all code.}
 \section{Apertures}
 \label{s:tracking.apertures}
 \index{tracking!apertures}
-
 
 The routine \Hyperref{r:check.aperture.limit}{check_aperture_limit} checks
 the aperture at a given element. The \vn{%aperture_type} component determines

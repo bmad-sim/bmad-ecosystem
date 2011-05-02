@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_custom (start, ele, param, end)
+! Subroutine track1_custom (start, ele, param, end, track)
 !
 ! Dummy routine for custom tracking. 
 ! If called, this routine will generate an error message and quit.
@@ -17,11 +17,13 @@
 !   end   -- Coord_struct: End position.
 !   param -- lat_param_struct: Lattice parameters.
 !     %lost -- Logical. Set to true if a particle is lost.
+!   track -- track_struct, optional: Structure holding the track information if the 
+!             tracking method does tracking step-by-step.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine track1_custom (start, ele, param, end)
+subroutine track1_custom (start, ele, param, end, track)
 
   use bmad_interface, except_dummy => track1_custom
 
@@ -31,6 +33,7 @@ subroutine track1_custom (start, ele, param, end)
   type (coord_struct) :: end
   type (ele_struct) :: ele
   type (lat_param_struct) :: param
+  type (track_struct), optional :: track
 
 !
 

@@ -111,7 +111,7 @@ ds2 = ds / 2
 s = 0   ! longitudianl position
 
 if (save_track) then
-  call allocate_saved_orbit (track, n_step)
+  call init_saved_orbit (track, n_step)
   track%n_pt = n_step
   call save_this_track_pt (0, 0.0_rp)
 endif
@@ -335,7 +335,6 @@ integer ix
 !
 
 track%orb(ix) = end
-track%orb(ix)%s = s
 call offset_particle (ele, param, track%orb(ix), unset$, set_canonical = .false.)
   
 if (calculate_mat6) track%map(ix)%mat6 = mat6
@@ -359,6 +358,7 @@ logical do_mat6
 
 end%vec(1) = end%vec(1) + ds2 * end%vec(2) / rel_E
 end%vec(5) = end%vec(5) - ds2 * end%vec(2)**2 / (2*rel_E2)
+end%s = end%s + ds2
 
 if (do_mat6) then
   mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)           * mat6(2,1:6) - (ds2*end%vec(2)/rel_E2)    * mat6(6,1:6) 

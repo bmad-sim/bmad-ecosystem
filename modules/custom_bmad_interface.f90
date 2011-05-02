@@ -32,13 +32,14 @@ interface
 end interface
 
 interface
-  subroutine track1_custom (start, ele, param, end)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
+  subroutine track1_custom (start, ele, param, end, track)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start
     type (coord_struct) :: end
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
+    type (track_struct), optional :: track
   end subroutine
 end interface
 

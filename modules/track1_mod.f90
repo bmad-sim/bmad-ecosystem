@@ -161,41 +161,46 @@ end subroutine check_aperture_limit
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift (orb, length, ele, param)
+! Subroutine track_a_drift (orb, length, p0c, param)
 !
-! Subroutine to track through a drift.
+! Subroutine to track a particle as through a drift.
 !
 ! Modules needed:
 !   use precision_def
 !
 ! Input:
-!   orb(6) -- Real(rp): Orbit at start of the drift
+!   orb(6) -- coord_struct: Orbit at start of the drift
 !   length -- Real(rp): Length of drift.
-!   ele    -- ele_struct: Element tracking through.
-!     %value(p0c$) -- Reference momentom. Needed for orb(5) calc.
+!   p0c    -- Real(rp): Reference momentom. Needed for orb(5) calc.
 !   param  -- lat_param_struct: lattice parameters.
 !     %particle -- Needed for orb(5) calc.
 !
 ! Output:
-!   orb(6) -- Real(rp): Orbit at end of the drift
+!   orb(6) -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift (orb, length, ele, param)
+subroutine track_a_drift (orb, length, p0c, param)
 
 implicit none
 
-type (ele_struct) ele
+type (coord_struct) orb
 type (lat_param_struct) param
-real(rp) orb(6), length, rel_pc
+real(rp) length, rel_pc, p0c, dz, beta0, beta
 
 !
 
-rel_pc = 1 + orb(6)
+rel_pc = 1 + orb%vec(6)
 
-orb(1) = orb(1) + length * orb(2) / rel_pc
-orb(3) = orb(3) + length * orb(4) / rel_pc
-orb(5) = orb(5) - length * ((orb(2)**2 + orb(4)**2) / (2 * rel_pc**2) - &
-          orb(6) * (1 + orb(6)/2) * (mass_of(param%particle)/(ele%value(p0c$) * rel_pc))**2)
+orb%vec(1) = orb%vec(1) + length * orb%vec(2) / rel_pc
+orb%vec(3) = orb%vec(3) + length * orb%vec(4) / rel_pc
+dz = - length * ((orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2) - &
+          orb%vec(6) * (1 + orb%vec(6)/2) * (mass_of(param%particle)/(p0c * rel_pc))**2)
+orb%vec(5) = orb%vec(5) + dz
+
+call convert_pc_to (p0c, param%particle, beta = beta0)
+call convert_pc_to (p0c * rel_pc, param%particle, beta = beta)
+orb%s = orb%s + length
+orb%t = orb%t + length / (c_light * beta0) - dz / (c_light * beta)
 
 end subroutine track_a_drift
 
@@ -247,7 +252,7 @@ if (ele%value(g$) == 0) then
   length = ele%value(l$)
   end = start
   end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end%vec, length, ele, param)
+  call track_a_drift (end, length, ele%value(p0c$), param)
   end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
   return
 endif

@@ -66,7 +66,7 @@ type (coord_struct), intent(in) :: start
 type (coord_struct), intent(out) :: end
 type (ele_struct) ele
 type (lat_param_struct) param
-type (track_struct) track
+type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
@@ -76,7 +76,7 @@ real(rp) :: dr_ds(6), r(6), r_scal(6)
 integer, parameter :: max_step = 10000
 integer :: n_step
 
-logical local_ref_frame
+logical local_ref_frame, save_track
 
 ! init
 
@@ -84,9 +84,12 @@ s = s1
 h = sign(h1, s2-s1)
 r = start%vec
 
-if (track%save_track) then
+save_track = .false.
+if (present(track)) save_track = track%save_track
+
+if (save_track) then
   s_sav = s - 2.0_rp * track%ds_save
-  call allocate_saved_orbit (track, int(abs(s2-s1)/track%ds_save)+1)
+  call init_saved_orbit (track, int(abs(s2-s1)/track%ds_save)+1)
 endif
 
 ! now track
@@ -102,23 +105,27 @@ do n_step = 1, max_step
   abs_tol_eff = abs_tol / sqrt_N
   r_scal(:) = abs(r(:)) + abs(h*dr_ds(:)) + TINY
 
-  if (track%save_track .and. (abs(s-s_sav) > track%ds_save)) &
-                           call save_a_step (track, ele, param, s, r, s_sav)
+  if (save_track) then
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, s, r, s_sav)
+  endif
+
   if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
   call rkqs_bmad (ele, param, r, dr_ds, s, h, rel_tol_eff, abs_tol_eff, &
                                              r_scal, h_did, h_next, local_ref_frame)
   if (.not. bmad_status%ok) return
 
-  if (h_did == h) then
-    track%n_ok = track%n_ok + 1
-  else
-    track%n_bad = track%n_bad + 1
-  end if
+  if (save_track) then
+    if (h_did == h) then
+      track%n_ok = track%n_ok + 1
+    else
+      track%n_bad = track%n_bad + 1
+    end if
+  endif
 
   if ((s-s2)*(s2-s1) >= 0.0) then
     end%vec = r
-    if (track%save_track) call save_a_step (track, ele, param, s, r, s_sav)
+    if (save_track) call save_a_step (track, ele, param, s, r, s_sav)
     return
   end if
 

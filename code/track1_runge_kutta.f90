@@ -28,7 +28,7 @@
 !                  Thus for a wiggler, where the "zero" orbit path_length 
 !                  is not s_len, there needs to be a correction term:
 !                    end%vec(5) = end%vec(5) + zero_orbit_path_length - s_len
-!   track      -- Track_struct: Structure holding the track information.
+!   track      -- Track_struct, optional: Structure holding the track information.
 !- 
 
 subroutine track1_runge_kutta (start, ele, param, end, track)
@@ -41,7 +41,7 @@ type (coord_struct) :: start
 type (coord_struct) :: end
 type (lat_param_struct), target, intent(inout) :: param
 type (ele_struct), target, intent(inout) :: ele
-type (track_struct) track
+type (track_struct), optional :: track
 
 real(rp) rel_tol, abs_tol, del_s_step, del_s_min
 

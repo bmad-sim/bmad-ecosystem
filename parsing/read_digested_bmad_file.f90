@@ -87,8 +87,7 @@ v95 = (version == 95)
 v96 = (version == 96)
 v97 = (version == 97)
 v98 = (version == 98)
-
-v_old = v95 .or. v96 .or. v97
+v_old = .not. v98
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &

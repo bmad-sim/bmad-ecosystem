@@ -308,7 +308,7 @@ if (init_cache) then
       call symp_lie_bmad (ele2, lat%param, start, end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
-        z_here = track%orb(k)%s 
+        z_here = track%orb(k)%s - (ele2%s - ele2%value(l$)) 
         end = track%orb(k)
         call calc_wiggler_g_params (ele2, z_here, end, c_pt, ri_info)
         c_pt%mat6 = track%map(k)%mat6

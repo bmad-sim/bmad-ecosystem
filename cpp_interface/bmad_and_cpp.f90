@@ -35,7 +35,7 @@ implicit none
 type (coord_struct) f_coord
 type (c_dummy_struct) c_coord
 
-call coord_to_c2 (c_coord, f_coord%vec, f_coord%spin(1), &
+call coord_to_c2 (c_coord, f_coord%vec, f_coord%s, f_coord%t, f_coord%spin(1), &
           f_coord%e_field_x, f_coord%e_field_y, f_coord%phase_x, f_coord%phase_y)
 
 end subroutine
@@ -43,7 +43,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine coord_to_f2 (f_coord, vec, spin, e_field_x, e_field_y, phase_x, phase_y, s, t)
+! Subroutine coord_to_f2 (f_coord, vec, s, t, spin, e_field_x, e_field_y, phase_x, phase_y)
 !
 ! Subroutine used by coord_to_f to convert a C++ C_coord into
 ! a Bmad coord_struct. This routine is not for general use.
@@ -61,7 +61,7 @@ type (coord_struct) f_coord
 real(rp) vec(6), e_field_x, e_field_y, phase_x, phase_y, s, t
 complex spin(2)
 
-f_coord = coord_struct(vec, spin, e_field_x, e_field_y, phase_x, phase_y, s, t)
+f_coord = coord_struct(vec, s, t, spin, e_field_x, e_field_y, phase_x, phase_y)
 
 end subroutine
 

@@ -323,7 +323,14 @@ This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struc
 
 %--------------------------------------------------------------------------
 \section{Coordinates, Offsets, etc.}
+\label{s:ele-offset}
 \index{global coordinates!in ele_struct}
+
+The ``entrance'' and ``exit'' ends of an element are, by definition,
+where the physical ends of the element would be if there were no
+offsets. In particular, if an element has a finite \vn{s_offset}, the
+physical ends will be displaced from entrance and exit ends. See
+\sref{s:ele-track} for more details.
 
 \index{ele_struct!\%floor}
 \index{floor_position_struct}
@@ -348,6 +355,7 @@ from the reference orbit are stored in
 \begin{example}
   %value(x_offset\$)
   %value(y_offset\$)
+  %value(s_offset\$)
   %value(x_pitch\$)
   %value(y_pitch\$)
   %value(tilt\$)
@@ -360,6 +368,7 @@ reference coordinate system is stored in:
 \begin{example}
   %value(x_offset_tot\$)
   %value(y_offset_tot\$)
+  %value(s_offset_tot\$)
   %value(x_pitch_tot\$)
   %value(y_pitch_tot\$)
   %value(tilt_tot\$)
