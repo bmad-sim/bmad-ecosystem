@@ -135,14 +135,18 @@ atry=a+unpack(da(1:mfit, 1), mask, 0.0_rp)
 call super_mrqcof(atry, y, covar, da(1:mfit, 1), weight, chisq, funcs, status, mask)
 if (status /= 0) return
 
+! Increase alamda by 2 (Instead of 10 as in NR version) gives better convergence. See:
+!   "The Geometry of Nonlinear Least Squares, with applications to Sloppy Models and Optimization"
+!   Mark K Transtrum, et. al.
+
 if (chisq < ochisq) then
-  alamda=0.1_rp*alamda
+  alamda=0.1_rp * alamda
   ochisq=chisq
   alpha(1:mfit, 1:mfit)=covar(1:mfit, 1:mfit)
   beta(1:mfit)=da(1:mfit, 1)
   a=atry
 else
-  alamda=10.0_rp*alamda
+  alamda=2.0_rp * alamda
   chisq=ochisq
 end if
 
