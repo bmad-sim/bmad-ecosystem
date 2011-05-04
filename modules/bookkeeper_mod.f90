@@ -219,7 +219,7 @@ endif
 ! First make sure the attribute bookkeeping for this element is correct since
 ! the makeup_*_slave routines may need it.
 
-call attribute_bookkeeper (ele, lat%param)
+if (ele%key /= overlay$ .and. ele%key /= group$) call attribute_bookkeeper (ele, lat%param)
 
 ! Slave bookkeeping
 
@@ -1629,7 +1629,9 @@ else
 endif
 
 value = lord%value
-value(l$) = slave%value(l$)                  ! do not change slave length
+value(l$)              = slave%value(l$)                ! do not change slave length, etc.
+value(delta_ref_time$) = slave%value(delta_ref_time$)
+value(num_steps$)      = slave%value(num_steps$)
 
 if (lord%key == wiggler$) then
   value(z_patch$) = slave%value(z_patch$)

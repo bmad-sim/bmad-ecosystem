@@ -180,11 +180,11 @@ type (rf_field_mode_struct), pointer :: mode
 real(rp) :: x, y, xx, yy, c, s, s_pos, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
-real(rp) phase, gradient, dEz_dz, theta, r, E_r, B_phi
+real(rp) phase, gradient, dEz_dz, theta, r, E_r
 real(rp) k_t, k_z, kappa2_t, kappa_t, kap_rho, Rm, Rm_plus, Rm_minus, Rm_norm
 real(rp) radius, phi
 
-complex(rp) expi, E_rho, E_phi, E_z, Er, Ep, Ez, ikkl, expt
+complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, ikkl, expt
 
 integer i, j, sign_charge
 
@@ -254,6 +254,8 @@ case(rfcavity$, lcavity$)
   endif
 
   E_rho = 0; E_phi = 0; E_z = 0
+  B_rho = 0; B_phi = 0; B_z = 0
+
   radius = sqrt(x**2 + y**2)
   phi = atan2(y, x)
 
@@ -274,6 +276,8 @@ case(rfcavity$, lcavity$)
     do j = 1, size(mode%term)
 
       Er = 0; Ep = 0; Ez = 0
+      Br = 0; Bp = 0; Bz = 0
+
       k_z = twopi * (i - 1) / (size(mode%term) * mode%dz)
       if (2 * i > size(mode%term)) k_z = k_z - twopi / mode%dz
       kappa2_t = k_z**2 - k_t**2
@@ -284,9 +288,14 @@ case(rfcavity$, lcavity$)
       if (mode%m == 0) then
         Rm      = R_bessel(0, kap_rho)
         Rm_plus = R_bessel(1, kap_rho)
-        Er = Er + (-i_imaginary * k_z / kappa_t) * mode%term(i)%e * Rm_plus * expi
+
+        Er = Er + mode%term(i)%e * (-i_imaginary * k_z / kappa_t) * Rm_plus * expi
         Ep = Ep + mode%term(i)%b * Rm_plus * expi
         Ez = Ez + mode%term(i)%e * Rm * expi
+
+        Br = Br + mode%term(i)%b * Rm_plus * expi
+        Bp = Bp + mode%term(i)%e * Rm_plus * expi * ((k_z**2 / kappa_t) - k_z) 
+        Bz = Bz + mode%term(i)%b * Rm_plus * expi
 
       else
         c = cos(mode%m * phi - mode%phi_0)
@@ -309,10 +318,15 @@ case(rfcavity$, lcavity$)
     E_phi = E_phi + Ep * expt
     E_z   = E_z   + Ez * expt
 
+    expt = -I_imaginary * expt / (twopi * mode%freq)
+    B_rho = B_rho + Br * expt
+    B_phi = B_phi + Bp * expt
+    B_z   = B_z   + Bz * expt
+
   enddo
 
-
-
+  field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
+  field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
 
   return
 
