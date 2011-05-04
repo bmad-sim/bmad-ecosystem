@@ -1419,16 +1419,16 @@ The azimuthal mode number $m_j$ is a non-negative integer. If $m_j
 the other with $\phi_{0j} = -\pi/2$. The $\phi_{0j} = 0$ mode is an
 accelerating mode with the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, n \, z / N \, dz} \, 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, k_{zn} \, z} \, 
     e_0(n) \, \frac{i \, k_{zn} \, I_1(\kappa_n \, \rho)}{\kappa_n} \CRNO
   E_\phi(\bfr) &= 0 \\
-  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
     e_0(n) \, I_0(\kappa_n \, \rho) \nonumber
 \end{align}
 The $e_0$ coefficients are obtained from the equation
 \begin{align}
   e_0(n) &= \frac{1}{I_0(\kappa_n \, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
-    e^{-i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
+    e^{-2 \, \pi \, i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
   &\equiv \frac{\wt E_{zc}(R, n)}{I_0(\kappa_n \, R)} 
 \end{align}
 where $I_m$ is a modified Bessel function and $\kappa_n$ is given by
@@ -1450,7 +1450,7 @@ The non-accelerating $m = 0$ mode with $\phi_0 = -\pi/2$ has an
 electric field in the form
 \begin{align}
   E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
     b_0(n) \, I_1(\kappa_n \, \rho)
 \end{align}
 where
@@ -1460,13 +1460,13 @@ where
 
 For positive $m$, the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
     \left[ 
     -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} +
     b_m(n) \, \frac{I_m(\kappa_n \, \rho)}{\kappa_n \, \rho}
     \right]
     \cos(m \, (\phi - \phi_0)) \CRNO
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
     \left[
     -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} \, + \right. \\
   & \left. \qquad \qquad \qquad \qquad \qquad \qquad
@@ -1474,14 +1474,14 @@ For positive $m$, the electric field is in the form
     \frac{1}{m} \, I_{m-1}(\kappa_n \, \rho) \right)
     \right] 
     \sin(m \, (\phi - \phi_0)) \CRNO
-  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, n \, z / N \, dz} \, 
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
     e_m(n) \, I_m(\kappa_n \, \rho) \cos(m \, (\phi - \phi_0)) \nonumber
 \end{align}
 with
 \begin{align}
   e_m(n) &= \frac{\wt E_{zc}(R, n)}{I_m(\kappa_n \, R)} \CRNO
   b_m(n) &= \frac{1}{I_m(\kappa_n \, R)} \left[
-    \kappa_n \, R \, \wt E_{\rho c} + i \, k \, R \, e_m(n) \, I_{m+1}(\kappa_n \, R)
+    \kappa_n \, R \, \wt E_{\rho c} + i \, k_{nz} \, R \, e_m(n) \, I_{m+1}(\kappa_n \, R)
     \right]
 \end{align}
 

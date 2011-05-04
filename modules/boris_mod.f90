@@ -109,7 +109,7 @@ call track_solenoid_edge (loc_ele, param, set$, here)
 if (present(track)) then
   s_sav = s1 - 2.0_rp * track%ds_save
   call init_saved_orbit (track, n_step+1)
-  call save_a_step (track, loc_ele, param, .true., s1, here, s_sav)
+  call save_a_step (track, ele, param, .true., s1, here, s_sav)
 endif
 
 ! track through the body
@@ -119,7 +119,7 @@ s = s1
 do i = 1, n_step
   call track1_boris_partial (here, loc_ele, param, s, ds, here)
   s = s + ds
-  if (present(track)) call save_a_step (track, loc_ele, param, .true., s, here, s_sav)
+  if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
 enddo
 
 ! back to lab coords
@@ -255,7 +255,7 @@ do n_step = 1, max_step
   ! record a track if we went far enough.
 
   if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, loc_ele, param, .true., s, here, s_sav)
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, .true., s, here, s_sav)
   endif
 
   if ((s+ds-s2)*(s+ds-s1) > 0.0) ds = s2-s
@@ -305,7 +305,7 @@ do n_step = 1, max_step
   ! check if we are done
 
   if ((s-s2)*(s2-s1) >= 0.0) then
-    if (present(track)) call save_a_step (track, loc_ele, param, .true., s, here, s_sav)
+    if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
     call track_solenoid_edge (loc_ele, param, unset$, here)
     call offset_particle (ele, param, here, unset$, set_canonical = .false.)
     call boris_energy_correction (ele, param, here, .true.)
