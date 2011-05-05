@@ -39,7 +39,9 @@ complex(rp), allocatable :: Ez_fft(:), Ephi_fft(:), Erho_fft(:), Ez_resid(:,:)
 real(rp) e_mag, e_phase(3), e_re(3), e_im(3), b_mag, b_phase(3), b_re(3), b_im(3), rdummy4(4)
 real(rp) radius, rad_in, x, y, z, k_z, k_t, dz, k_zz, cos_amp, sin_amp, z_here, amp_E_z_dat
 real(rp) kappa2_t, kappa_t, kap_rho, freq_t, r_hat(2), amp_E_zm(-m_max:m_max)
-real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:), length
+real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:)
+real(rp) ez_dat_rms, ez_fit_rms, length
+
 
 integer i, j, m, n, ios, n_phi, n_z, n2_z
 
@@ -92,7 +94,6 @@ do
   endif
 enddo
 
-mode(:)%sample_radius = radius
 print *, 'Sample_radius:', radius
 
 ! Now read in the data
@@ -299,8 +300,6 @@ do m = -m_max, m_max
   write (1, '(4x, a, f0.4, a)')   'phi_0         =', md%phi_0,         ','
   write (1, '(4x, a, f0.6, a)')   'dz            =', md%dz,            ','
   write (1, '(4x, a, f0.1, a)')   'stored_energy =', 0.0_rp,           ','
-  write (1, '(4x, a, f0.5, a)')   'sample_radius =', md%sample_radius, ','
-
   
   n = size(md%term)
 
@@ -360,6 +359,7 @@ do i = 1, n2_z / 4
 enddo
 close (1)
 
+!----------------------------------
 ! Check at full radius
 
 do i = 1, n2_z
@@ -382,6 +382,9 @@ open (1, file = 'check30', recl = 200)
 open (2, file = 'fundamental_r30.csv', status = 'old')
 read (2, *) line
 
+ez_dat_rms = 0
+ez_fit_rms = 0
+
 do i = 1, n2_z
   if (i > n_z) then
     e_re = 0
@@ -393,10 +396,18 @@ do i = 1, n2_z
   write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
                          real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
+  ez_dat_rms = ez_dat_rms + e_re(3)**2
+  ez_fit_rms = ez_fit_rms + real(Ez_fft(i))**2
 enddo
+
+print *
+print *, 'RMS Dat:', sqrt(ez_dat_rms / n2_z)
+print *, 'RMS Fit:', sqrt(ez_fit_rms / n2_z)
+
 close (1)
 close (2)
 
+!----------------------------------
 ! Check at half radius
 
 do i = 1, n2_z
@@ -434,6 +445,7 @@ enddo
 close (1)
 close (2)
 
+!----------------------------------
 ! Check on centerline
 
 do i = 1, n2_z
