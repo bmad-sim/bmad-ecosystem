@@ -1444,7 +1444,12 @@ with
   k_{zn} = \frac{2 \pi \, n}{N \, dz}
 \Endeq
 $N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
-the distance between points. When
+the distance between points. When $\kappa_n$ is imaginary, $I_n(\kappa_n \, \rho)$
+can be evaluated through the relation
+\Begineq
+  I_n(-i \, x) = i^{-n} \, J_n(x)
+\Endeq
+where $J_n$ is a Bessel function of the first kind.
 
 The non-accelerating $m = 0$ mode with $\phi_0 = -\pi/2$ has an
 electric field in the form
@@ -1484,6 +1489,8 @@ with
     \kappa_n \, R \, \wt E_{\rho c} + i \, k_{nz} \, R \, e_m(n) \, I_{m+1}(\kappa_n \, R)
     \right]
 \end{align}
+Notice that the definitions of $e_m$ and $b_m$ here differ by a factor
+of $i^m$ from the definition used by Abell when $\kappa_n$ is imaginary.
 
 The above mode decomposition was done in the gauge where the scaler
 potential $\psi$ is zero. The electric and magnetic fields are thus
