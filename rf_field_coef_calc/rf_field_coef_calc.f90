@@ -33,12 +33,12 @@ end type
 type (field_cylinder_values), allocatable :: E_dat(:,:)  ! phi, z
 type (field_cylinder_values) E_here
 
-complex(rp) expi, ez_coef, erho_coef, ephi_coef, E_cos, E_sin, E_zm
+complex(rp) expi, ez_coef, erho_coef, ephi_coef, E_cos, E_sin, E_zm, kappa_n
 complex(rp), allocatable :: Ez_fft(:), Ephi_fft(:), Erho_fft(:), Ez_resid(:,:)
 
 real(rp) e_mag, e_phase(3), e_re(3), e_im(3), b_mag, b_phase(3), b_re(3), b_im(3), rdummy4(4)
 real(rp) radius, rad_in, x, y, z, k_z, k_t, dz, k_zz, cos_amp, sin_amp, z_here, amp_E_z_dat
-real(rp) kappa2_t, kappa_t, kap_rho, freq_t, r_hat(2), amp_E_zm(-m_max:m_max)
+real(rp) kappa2_n, kap_rho, freq_t, r_hat(2), amp_E_zm(-m_max:m_max)
 real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:)
 real(rp) ez_dat_rms, ez_fit_rms, length
 
@@ -238,12 +238,16 @@ if (significant_mode(0)) then
   do i = 1, n2_z
     k_z = twopi * (i - 1) / (n2_z * dz)  
     if (2 * i > n2_z) k_z = k_z - twopi / dz
-    kappa2_t = k_z**2 - k_t**2
-    kappa_t = sqrt(abs(kappa2_t))
-    kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
+    kappa2_n = k_z**2 - k_t**2
+    kappa_n = sqrt(abs(kappa2_n))
+    kap_rho = kappa_n * radius
+    if (kappa2_n < 0) then
+      kappa_n = -i_imaginary * kappa_n
+      kap_rho = -kap_rho
+    endif
   
-    mode(0)%term(i)%e = Ez_fft(i) / (R(0, kap_rho) * n2_z)
-    mode(0)%term(i)%b = Ephi_fft(i) / (R(1, kap_rho) * n2_z)
+    mode(0)%term(i)%e = Ez_fft(i) / (I_bessel(0, kap_rho) * n2_z)
+    mode(0)%term(i)%b = Ephi_fft(i) / (I_bessel(1, kap_rho) * n2_z)
   enddo
 endif
 
@@ -269,13 +273,17 @@ do m = -m_max, m_max
   do i = 1, n2_z
     k_z = twopi * (i - 1) / (n2_z * dz)  
     if (2 * i > n2_z) k_z = k_z - twopi / dz
-    kappa2_t = k_z**2 - k_t**2
-    kappa_t = sqrt(abs(kappa2_t))
-    kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
+    kappa2_n = k_z**2 - k_t**2
+    kappa_n = sqrt(abs(kappa2_n))
+    kap_rho = kappa_n * radius
+    if (kappa2_n < 0) then
+      kappa_n = -i_imaginary * kappa_n
+      kap_rho = -kap_rho
+    endif
   
-    mode(m)%term(i)%e = Ez_fft(i) / (R(m, kap_rho) * n2_z)
-    mode(m)%term(i)%b = (radius / n2_z) * (kappa_t * Erho_fft(i) / R(m, kap_rho) + &
-                       i_imaginary * k_z * radius * Ez_fft(i) * R(m+1, kap_rho))
+    mode(m)%term(i)%e = Ez_fft(i) / (I_bessel(m, kap_rho) * n2_z)
+    mode(m)%term(i)%b = (radius / n2_z) * (kappa_n * Erho_fft(i) / I_bessel(m, kap_rho) + &
+                       i_imaginary * k_z * radius * Ez_fft(i) * I_bessel(m+1, kap_rho))
   enddo
 
 enddo
@@ -365,13 +373,17 @@ close (1)
 do i = 1, n2_z
   k_z = twopi * (i - 1) / (n2_z * dz)  
   if (2 * i > n2_z) k_z = k_z - twopi / dz
-  kappa2_t = k_z**2 - k_t**2
-  kappa_t = sqrt(abs(kappa2_t))
-  kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
+  kappa2_n = k_z**2 - k_t**2
+  kappa_n = sqrt(abs(kappa2_n))
+  kap_rho = kappa_n * radius
+  if (kappa2_n < 0) then
+    kappa_n = -i_imaginary * kappa_n
+    kap_rho = -kap_rho
+  endif
 
-  Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_t) * mode(0)%term(i)%e * R(1, kap_rho)
-  Ephi_fft(i) = mode(0)%term(i)%b * R(1, kap_rho) 
+  Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, kap_rho)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_n) * mode(0)%term(i)%e * I_bessel(1, kap_rho)
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, kap_rho) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -413,13 +425,17 @@ close (2)
 do i = 1, n2_z
   k_z = twopi * (i - 1) / (n2_z * dz)  
   if (2 * i > n2_z) k_z = k_z - twopi / dz
-  kappa2_t = k_z**2 - k_t**2
-  kappa_t = sqrt(abs(kappa2_t))
-  kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
+  kappa2_n = k_z**2 - k_t**2
+  kappa_n = sqrt(abs(kappa2_n))
+  kap_rho = kappa_n * radius
+  if (kappa2_n < 0) then
+    kappa_n = -i_imaginary * kappa_n
+    kap_rho = -kap_rho
+  endif
 
-  Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho/2)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_t) * mode(0)%term(i)%e * R(1, kap_rho/2)
-  Ephi_fft(i) = mode(0)%term(i)%b * R(1, kap_rho/2) 
+  Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, kap_rho/2)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_n) * mode(0)%term(i)%e * I_bessel(1, kap_rho/2)
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, kap_rho/2) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -451,13 +467,17 @@ close (2)
 do i = 1, n2_z
   k_z = twopi * (i - 1) / (n2_z * dz)  
   if (2 * i > n2_z) k_z = k_z - twopi / dz
-  kappa2_t = k_z**2 - k_t**2
-  kappa_t = sqrt(abs(kappa2_t))
-  kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
+  kappa2_n = k_z**2 - k_t**2
+  kappa_n = sqrt(abs(kappa2_n))
+  kap_rho = kappa_n * radius
+  if (kappa2_n < 0) then
+    kappa_n = -i_imaginary * kappa_n
+    kap_rho = -kap_rho
+  endif
 
-  Ez_fft(i) = mode(0)%term(i)%e * R(0, 0.0_rp)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_t) * mode(0)%term(i)%e * R(1, 0.0_rp)
-  Ephi_fft(i) = mode(0)%term(i)%b * R(1, 0.0_rp) 
+  Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, 0.0_rp)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_n) * mode(0)%term(i)%e * I_bessel(1, 0.0_rp)
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, 0.0_rp) 
 enddo
 
 call four1(Ez_fft, 1)
@@ -486,59 +506,41 @@ close (2)
 !------------------------------------------------------------------
 contains
 
-function R(m, kap_rho) result (r_out)
+!+
+! Function I_bessel(m, arg) result (I_bes)
+!
+! Function to evaluate the modified bessel function I:
+!   I_bes = I_m(arg)                         for arg > 0
+!   I_bes = I_m(-i*arg) = i^{-m} * J(arg)    for arg < 0
+!-
+
+function I_bessel(m, arg) result (I_bes)
 
 integer m
-real(rp) kap_rho, r_out
+real(rp) arg
+complex(rp) I_bes
 
 !
 
 if (m == 0) then
-  if (kap_rho > 0) then
-    r_out = bessi0(kap_rho)
+  if (arg > 0) then
+    I_bes = bessi0(arg)
   else
-    r_out = bessj0(-kap_rho)
+    I_bes = bessj0(-arg)
   endif
 elseif (m == 1) then
-  if (kap_rho > 0) then
-    r_out = bessi1(kap_rho)
+  if (arg > 0) then
+    I_bes = bessi1(arg)
   else
-    r_out = bessj1(-kap_rho)
+    I_bes = -I_imaginary * bessj1(-arg)
   endif
 else
-  if (kap_rho > 0) then
-    r_out = bessi(m, kap_rho)
+  if (arg > 0) then
+    I_bes = bessi(m, arg)
   else
-    r_out = bessj(m, -kap_rho)
+    I_bes = (-i_imaginary)**m * bessj(m, -arg)
   endif
 endif
-
-end function
-
-!------------------------------------------------------------------
-! contains
-
-! Function to evaluate R(m, kap_rho) /kap_rho
-! Note: This function is only called with m > 0
-
-
-function R_norm(m, kap_rho) result (r_out)
-
-integer m
-real(rp) kap_rho, r_out, sgn
-
-
-! If kap_rho is large enough then just use the R function
-
-if (abs(kap_rho) > 1e-4) then
-  r_out = R(m, kap_rho) / abs(kap_rho)
-  return
-endif
-
-! Expansion for small kap_rho
-
-sgn = sign(1.0_rp, kap_rho)
-r_out = (abs(kap_rho))**(m-1) / factorial(m) + sgn * (abs(kap_rho))**(m+1) / factorial(m+1)
 
 end function
 
@@ -553,10 +555,10 @@ type (field_cylinder_values) E
 
 complex(rp) ikkl, expi
 
-real(rp) rho, phi, z, k_t, kappa2_t, kap_rho, c, s
-real(rp) Rm_minus, Rm, Rm_plus, Rm_norm
+real(rp) rho, phi, z, k_t, kappa2_n, kap_rho, c, s
+real(rp) Im_minus, Im, Im_plus, Im_norm
 
-integer i, im
+integer i, imode
 
 logical :: use_mode(:)
 
@@ -564,40 +566,44 @@ logical :: use_mode(:)
 
 E%rho = 0; E%phi = 0; E%z = 0
 
-do im = 1, size(modes)
+do imode = 1, size(modes)
 
-  if (.not. use_mode(im)) cycle
-  mode => modes(im)
+  if (.not. use_mode(imode)) cycle
+  mode => modes(imode)
 
   k_t = twopi * mode%freq / c_light
 
   do i = 1, size(mode%term)
     k_z = twopi * (i - 1) / (size(mode%term) * mode%dz)
     if (2 * i > n2_z) k_z = k_z - twopi / dz
-    kappa2_t = k_z**2 - k_t**2
-    kappa_t = sqrt(abs(kappa2_t))
-    kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * rho
+    kappa2_n = k_z**2 - k_t**2
+    kappa_n = sqrt(abs(kappa2_n))
+    kap_rho = kappa_n * radius
+    if (kappa2_n < 0) then
+      kappa_n = -i_imaginary * kappa_n
+      kap_rho = -kap_rho
+    endif
     expi = cmplx(cos(k_z * z), sin(k_z * z))
 
     if (mode%m == 0) then
-      Rm      = R(0, kap_rho)
-      Rm_plus = R(1, kap_rho)
-      E%rho = E%rho + (-i_imaginary * k_z / kappa_t) * mode%term(i)%e * Rm_plus * expi
-      E%phi = E%phi + mode%term(i)%b * Rm_plus * expi
-      E%z   = E%z   + mode%term(i)%e * Rm * expi
+      Im      = I_bessel(0, kap_rho)
+      Im_plus = I_bessel(1, kap_rho)
+      E%rho = E%rho + (-i_imaginary * k_z / kappa_n) * mode%term(i)%e * Im_plus * expi
+      E%phi = E%phi + mode%term(i)%b * Im_plus * expi
+      E%z   = E%z   + mode%term(i)%e * Im * expi
 
     else
       c = cos(mode%m * phi - mode%phi_0)
       s = sin(mode%m * phi - mode%phi_0)
-      Rm_plus  = R(mode%m+1, kap_rho)
-      Rm_minus = R(mode%m-1, kap_rho) 
-      Rm_norm  = (Rm_minus + sign(1.0_rp, kappa2_t) * Rm_minus) / (2 * mode%m) ! R_norm(mode%m, kap_rho)
-      Rm       = kappa_t * rho * Rm_norm                                    ! R(mode%m, kap_rho) 
+      Im_plus  = I_bessel(mode%m+1, kap_rho)
+      Im_minus = I_bessel(mode%m-1, kap_rho) 
+      Im_norm  = (Im_minus + sign(1.0_rp, kappa2_n) * Im_minus) / (2 * mode%m) ! I_norm(mode%m, kap_rho)
+      Im       = kappa_n * rho * Im_norm                                       ! I_bessel(mode%m, kap_rho) 
 
-      ikkl = -i_imaginary * k_z / kappa_t
-      E%rho = E%rho + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi
-      E%phi = E%phi + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * (Rm_norm - Rm_minus / mode%m)) * s * expi
-      E%z   = E%z   + mode%term(i)%e * Rm * c * expi
+      ikkl = -i_imaginary * k_z / kappa_n
+      E%rho = E%rho + (ikkl * mode%term(i)%e * Im_plus + mode%term(i)%b * Im_norm) * c * expi
+      E%phi = E%phi + (ikkl * mode%term(i)%e * Im_plus + mode%term(i)%b * (Im_norm - Im_minus / mode%m)) * s * expi
+      E%z   = E%z   + mode%term(i)%e * Im * c * expi
 
     endif
 
