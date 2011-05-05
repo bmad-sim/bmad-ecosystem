@@ -4658,14 +4658,19 @@ type (ele_struct), allocatable :: ele_array(:)
 
 integer i, j
 
-! Reuse the old taylor series if they exist
-! and the old taylor series has the same attributes.
+! Reuse the old taylor series for an element if: 
+!   1) The old map exists and 
+!   2) The new element has need of the map and
+!   3) The old element and new element have the same attributes.
 
 if (.not. allocated(ele_array)) return
 
 do i = 1, lat%n_ele_max
 
   ele => lat%ele(i)
+  if (ele%tracking_method /= taylor$ .and. ele%tracking_method /= symp_map$ .and. &
+      ele%mat6_calc_method /= taylor$ .and. ele%mat6_calc_method /= symp_map$) cycle
+
   call attribute_bookkeeper (ele, lat%param) ! for equivalent_taylor_attributes test
 
   do j = 1, size(ele_array)
@@ -5193,7 +5198,7 @@ if (ix /= 0) then
     print *
     print *, '----------------------------------------'
     print *, 'Element #', i
-    call type_ele (lat%ele(i), .false., 0, .false., 0, .true., lat, .true., .false., .true., .true.)
+    call type_ele (lat%ele(i), .false., 0, .true., 0, .true., lat, .true., .true., .true., .true.)
     call string_trim (debug_line(ix+1:), debug_line, ix)
   enddo
 endif

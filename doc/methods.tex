@@ -67,12 +67,13 @@ conserved quantities more accurately than \vn{Runge_Kutta}.
 
 \index{bmad_standard!tracking method}
 \item[\vn{Bmad_Standard}]
-Uses formulas for tracking. The emphasis here is on speed. Note: If an
-element has non-zero multipole values, \vn{Bmad_Standard} tracking
-will generally put half the multipole kick at the beginning of the
-element and half at the end. This is generally a good approximation
-but in it can result in differences between this and tracking methods
-like \vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
+Uses formulas for tracking. The formulas generally use the paraxial
+approximation.  The emphasis here is on speed. Note: If an element has
+non-zero multipole values, \vn{Bmad_Standard} tracking will generally
+put half the multipole kick at the beginning of the element and half
+at the end. This is generally a good approximation but in it can
+result in differences between this and tracking methods like
+\vn{Symp_Lie_PTC} which model multipoles as as distributed evenly
 throughout an element.
 
 \index{custom!tracking method}
@@ -253,7 +254,8 @@ integration order does not necessarily imply higher accuracy.
 
 \index{bmad_standard!transfer map method}
 \item[\vn{Bmad_Standard}]
-Uses formulas for the calculation. The emphasis here is on speed
+Uses formulas for the calculation. The formulas generally use the
+paraxial approximation. The emphasis here is on speed
 
 \index{custom}
 \item[\vn{Custom}]
