@@ -18,7 +18,9 @@ implicit none
 
 integer, parameter :: m_max = 4  ! Maximum mode m value considered.
 
-type (rf_mode_struct) mode(-m_max:m_max)
+type (rf_field_mode_struct), target :: mode(-m_max:m_max)
+type (rf_field_mode_struct), pointer :: md
+
 
 type field_cylinder_values
   complex(rp) :: rho = 0, phi = 0, z = 0
@@ -35,17 +37,17 @@ complex(rp) expi, ez_coef, erho_coef, ephi_coef, E_cos, E_sin, E_zm
 complex(rp), allocatable :: Ez_fft(:), Ephi_fft(:), Erho_fft(:), Ez_resid(:,:)
 
 real(rp) e_mag, e_phase(3), e_re(3), e_im(3), b_mag, b_phase(3), b_re(3), b_im(3), rdummy4(4)
-real(rp) radius, rad_in, x, y, z, k_z, k_l, dz, k_zz, cos_amp, sin_amp, z_here
-real(rp) kappa2_l, kappa_l, kap_rho, freq_l, r_hat(2), amp_E_zm(-m_max:m_max)
-real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:)
+real(rp) radius, rad_in, x, y, z, k_z, k_t, dz, k_zz, cos_amp, sin_amp, z_here, amp_E_z_dat
+real(rp) kappa2_t, kappa_t, kap_rho, freq_t, r_hat(2), amp_E_zm(-m_max:m_max)
+real(rp), allocatable :: z_pos(:), phi_pos(:), cos_term(:), length
 
-integer i, j, m, ios, n_phi, n_z, n2_z
+integer i, j, m, n, ios, n_phi, n_z, n2_z
 
 logical significant_mode(-m_max:m_max)
 
 character(100) file_name, field_file, line
 
-namelist / params / field_file, freq_l
+namelist / params / field_file, freq_t
 
 ! Read in the parameters
 
@@ -63,8 +65,8 @@ open (1, file = file_name, status = 'old')
 read (1, nml = params)
 close (1)
 
-mode(:)%freq = freq_l
-k_l = twopi * freq_l / c_light
+mode(:)%freq = freq_t
+k_t = twopi * freq_t / c_light
 
 ! Read in the field values...
 ! First count the number of points
@@ -127,7 +129,8 @@ close(1)
 
 ! Error check
 
-dz = (z_pos(n_z) - z_pos(1)) / (n_z - 1)
+length = z_pos(n_z) - z_pos(1)
+dz = length / (n_z - 1)
 mode%dz = dz
 
 do i = 2, n_z
@@ -182,12 +185,13 @@ enddo
 ! Compute mode amplitudes and choose largest modes
 
 Ez_resid = E_dat%z
+amp_E_z_dat = sum(abs(E_dat%z)) / (n2_z * n_phi)
 significant_mode = .false.
+amp_E_zm = 0
 
 do m = -m_max, m_max
 
   if (modulo(n_phi, max(1, 4*abs(m))) /= 0) cycle
-  significant_mode(m) = .true.
 
   do j = 1, n_phi
     cos_term(j) = cos(m * (j - 1) * twopi / n_phi - mode(m)%phi_0)
@@ -203,6 +207,8 @@ do m = -m_max, m_max
     Ez_resid(:, i) = Ez_resid(:, i) - E_zm * cos_term
   enddo
 
+  significant_mode(m) = (amp_E_zm(m) > 0.01 * Amp_E_z_dat) 
+
 enddo
 
 print *
@@ -212,8 +218,10 @@ do m = -m_max, m_max
 enddo
 
 print *
-print *, '<|E_z|>           ', sum(abs(E_dat%z)) / (n2_z * n_phi)
+print *, '<|E_z|>           ', amp_E_z_dat
 print *, '<|E_z - E_z(fit)|>', sum(abs(Ez_resid)) / (n2_z * n_phi)
+print *, '<|E_phi|>         ', sum(abs(E_dat%phi)) / (n2_z * n_phi)
+print *, '<|E_rho|>         ', sum(abs(E_dat%rho)) / (n2_z * n_phi)
 
 !--------------------------------------------------
 ! Find coefficients for m == 0
@@ -229,9 +237,9 @@ if (significant_mode(0)) then
   do i = 1, n2_z
     k_z = twopi * (i - 1) / (n2_z * dz)  
     if (2 * i > n2_z) k_z = k_z - twopi / dz
-    kappa2_l = k_z**2 - k_l**2
-    kappa_l = sqrt(abs(kappa2_l))
-    kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+    kappa2_t = k_z**2 - k_t**2
+    kappa_t = sqrt(abs(kappa2_t))
+    kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
   
     mode(0)%term(i)%e = Ez_fft(i) / (R(0, kap_rho) * n2_z)
     mode(0)%term(i)%b = Ephi_fft(i) / (R(1, kap_rho) * n2_z)
@@ -260,28 +268,78 @@ do m = -m_max, m_max
   do i = 1, n2_z
     k_z = twopi * (i - 1) / (n2_z * dz)  
     if (2 * i > n2_z) k_z = k_z - twopi / dz
-    kappa2_l = k_z**2 - k_l**2
-    kappa_l = sqrt(abs(kappa2_l))
-    kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+    kappa2_t = k_z**2 - k_t**2
+    kappa_t = sqrt(abs(kappa2_t))
+    kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
   
     mode(m)%term(i)%e = Ez_fft(i) / (R(m, kap_rho) * n2_z)
-    mode(m)%term(i)%b = (radius / n2_z) * (kappa_l * Erho_fft(i) / R(m, kap_rho) + &
+    mode(m)%term(i)%b = (radius / n2_z) * (kappa_t * Erho_fft(i) / R(m, kap_rho) + &
                        i_imaginary * k_z * radius * Ez_fft(i) * R(m+1, kap_rho))
   enddo
 
 enddo
 
+!--------------------------------------------------------------------
+! Write coefs
+
 open (1, file = 'rf_field_coef.dat')
+
+write (1, '(a, f10.5, a)') 'l = ', length, ','
+write (1, '(a)') 'rf_field = {'
 
 do m = -m_max, m_max
   if (.not. significant_mode(m)) cycle
-  write (1, '()') 'rf_field = {freq =' freq_l, 
+  md => mode(m)
 
+  write (1, '(2x, a)') 'mode = {' 
+  write (1, '(4x, a, i0, a)')     'm             =', abs(m),           ','
+  write (1, '(4x, a, es11.4, a)') 'freq          =', md%freq,          ','
+  write (1, '(4x, a, f0.1, a)')   'f_damp        =', 0.0_rp,           ','
+  write (1, '(4x, a, f0.1, a)')   'theta_t0      =', 0.0_rp,           ','
+  write (1, '(4x, a, f0.4, a)')   'phi_0         =', md%phi_0,         ','
+  write (1, '(4x, a, f0.6, a)')   'dz            =', md%dz,            ','
+  write (1, '(4x, a, f0.1, a)')   'stored_energy =', 0.0_rp,           ','
+  write (1, '(4x, a, f0.5, a)')   'sample_radius =', md%sample_radius, ','
+
+  
+  n = size(md%term)
+
+  write (1, '(4x, a)') 'e_re = ('
+  do i = 1, (n - 1) / 10
+    write (1, '(6x, 10(es12.4, a))') (real(md%term(j)%e), ',', j = (i-1)*10+1, i*10)
+  enddo
+  write (1, '(6x, 10(es12.4, a))') (real(md%term(j)%e), ',', j = (i-1)*10+1, n-1), real(md%term(n)%e), '),'
+
+  write (1, '(4x, a)') 'e_im = ('
+  do i = 1, (n - 1) / 10
+    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, i*10)
+  enddo
+
+  if (m == 0) then
+    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, n-1), real(md%term(n)%e), ')}'
+    cycle  ! Assume accelerating mode for now
+  else
+    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, n-1), real(md%term(n)%e), '),'
+  endif
+
+  write (1, '(4x, a)') 'b_re = ('
+  do i = 1, (n - 1) / 10
+    write (1, '(6x, 10(es12.4, a))') (real(md%term(j)%b), ',', j = (i-1)*10+1, i*10)
+  enddo
+  write (1, '(6x, 10(es12.4, a))') (real(md%term(j)%b), ',', j = (i-1)*10+1, n-1), real(md%term(n)%b), '),'
+
+  write (1, '(4x, a)') 'b_im = ('
+  do i = 1, (n - 1) / 10
+    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%b), ',', j = (i-1)*10+1, i*10)
+  enddo
+  write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%b), ',', j = (i-1)*10+1, n-1), real(md%term(n)%b), ')}'
+
+enddo
 
 close(1)
 
 !--------------------------------------------------------------------
-! Check at full radius with full FFT
+! Write field files as a check.
 
 Ez_fft = 0
 Erho_fft = 0
@@ -291,7 +349,7 @@ open (1, file = 'check30_fft', recl = 200)
 
 do i = 1, n2_z / 4
   z_here = 4 * (i-1) * dz
-  E_here = e_field_calc (0.03_rp, 0.0_rp, z_here, mode, significant_mode)
+  E_here = e_field_calc (radius, 0.0_rp, z_here, mode, significant_mode)
   Ez_fft(i)   = E_here%z
   Erho_fft(i) = E_here%rho
   Ephi_fft(i) = E_here%phi
@@ -307,12 +365,12 @@ close (1)
 do i = 1, n2_z
   k_z = twopi * (i - 1) / (n2_z * dz)  
   if (2 * i > n2_z) k_z = k_z - twopi / dz
-  kappa2_l = k_z**2 - k_l**2
-  kappa_l = sqrt(abs(kappa2_l))
-  kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+  kappa2_t = k_z**2 - k_t**2
+  kappa_t = sqrt(abs(kappa2_t))
+  kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
 
   Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kap_rho)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_t) * mode(0)%term(i)%e * R(1, kap_rho)
   Ephi_fft(i) = mode(0)%term(i)%b * R(1, kap_rho) 
 enddo
 
@@ -344,12 +402,12 @@ close (2)
 do i = 1, n2_z
   k_z = twopi * (i - 1) / (n2_z * dz)  
   if (2 * i > n2_z) k_z = k_z - twopi / dz
-  kappa2_l = k_z**2 - k_l**2
-  kappa_l = sqrt(abs(kappa2_l))
-  kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+  kappa2_t = k_z**2 - k_t**2
+  kappa_t = sqrt(abs(kappa2_t))
+  kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
 
   Ez_fft(i) = mode(0)%term(i)%e * R(0, kap_rho/2)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, kap_rho/2)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_t) * mode(0)%term(i)%e * R(1, kap_rho/2)
   Ephi_fft(i) = mode(0)%term(i)%b * R(1, kap_rho/2) 
 enddo
 
@@ -381,12 +439,12 @@ close (2)
 do i = 1, n2_z
   k_z = twopi * (i - 1) / (n2_z * dz)  
   if (2 * i > n2_z) k_z = k_z - twopi / dz
-  kappa2_l = k_z**2 - k_l**2
-  kappa_l = sqrt(abs(kappa2_l))
-  kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+  kappa2_t = k_z**2 - k_t**2
+  kappa_t = sqrt(abs(kappa2_t))
+  kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
 
   Ez_fft(i) = mode(0)%term(i)%e * R(0, 0.0_rp)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_l) * mode(0)%term(i)%e * R(1, 0.0_rp)
+  Erho_fft(i) = (-i_imaginary * k_z / kappa_t) * mode(0)%term(i)%e * R(1, 0.0_rp)
   Ephi_fft(i) = mode(0)%term(i)%b * R(1, 0.0_rp) 
 enddo
 
@@ -477,13 +535,13 @@ end function
 
 function e_field_calc (rho, phi, z, modes, use_mode) result (E)
 
-type (rf_mode_struct), target :: modes(:)
-type (rf_mode_struct), pointer :: mode
+type (rf_field_mode_struct), target :: modes(:)
+type (rf_field_mode_struct), pointer :: mode
 type (field_cylinder_values) E
 
 complex(rp) ikkl, expi
 
-real(rp) rho, phi, z, k_l, kappa2_l, kap_rho, c, s
+real(rp) rho, phi, z, k_t, kappa2_t, kap_rho, c, s
 real(rp) Rm_minus, Rm, Rm_plus, Rm_norm
 
 integer i, im
@@ -499,20 +557,20 @@ do im = 1, size(modes)
   if (.not. use_mode(im)) cycle
   mode => modes(im)
 
-  k_l = twopi * mode%freq / c_light
+  k_t = twopi * mode%freq / c_light
 
   do i = 1, size(mode%term)
     k_z = twopi * (i - 1) / (size(mode%term) * mode%dz)
     if (2 * i > n2_z) k_z = k_z - twopi / dz
-    kappa2_l = k_z**2 - k_l**2
-    kappa_l = sqrt(abs(kappa2_l))
-    kap_rho = sign(1.0_rp, kappa2_l) * kappa_l * radius
+    kappa2_t = k_z**2 - k_t**2
+    kappa_t = sqrt(abs(kappa2_t))
+    kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * rho
     expi = cmplx(cos(k_z * z), sin(k_z * z))
 
     if (mode%m == 0) then
       Rm      = R(0, kap_rho)
       Rm_plus = R(1, kap_rho)
-      E%rho = E%rho + (-i_imaginary * k_z / kappa_l) * mode%term(i)%e * Rm_plus * expi
+      E%rho = E%rho + (-i_imaginary * k_z / kappa_t) * mode%term(i)%e * Rm_plus * expi
       E%phi = E%phi + mode%term(i)%b * Rm_plus * expi
       E%z   = E%z   + mode%term(i)%e * Rm * expi
 
@@ -521,10 +579,10 @@ do im = 1, size(modes)
       s = sin(mode%m * phi - mode%phi_0)
       Rm_plus  = R(mode%m+1, kap_rho)
       Rm_minus = R(mode%m-1, kap_rho) 
-      Rm_norm  = (Rm_minus + sign(1.0_rp, kappa2_l) * Rm_minus) / (2 * mode%m) ! R_norm(mode%m, kap_rho)
-      Rm       = kappa_l * radius * Rm_norm                                    ! R(mode%m, kap_rho) 
+      Rm_norm  = (Rm_minus + sign(1.0_rp, kappa2_t) * Rm_minus) / (2 * mode%m) ! R_norm(mode%m, kap_rho)
+      Rm       = kappa_t * rho * Rm_norm                                    ! R(mode%m, kap_rho) 
 
-      ikkl = -i_imaginary * k_z / kappa_l
+      ikkl = -i_imaginary * k_z / kappa_t
       E%rho = E%rho + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi
       E%phi = E%phi + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * (Rm_norm - Rm_minus / mode%m)) * s * expi
       E%z   = E%z   + mode%term(i)%e * Rm * c * expi
