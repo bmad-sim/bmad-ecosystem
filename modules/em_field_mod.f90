@@ -138,7 +138,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, local_orbit)
+! Subroutine em_field_calc (ele, param, ds_pos, orbit, local_ref_frame, field, calc_dfield, local_orbit)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -151,7 +151,7 @@ end subroutine save_a_step
 ! Input:
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct: Lattice parameters.
-!   s_pos  -- Real(rp): Longitudinal position relative to the start of the element.
+!   ds_pos -- Real(rp): Longitudinal position relative to the start of the element.
 !   orbit  -- Coord_struct: Transverse coordinates.
 !   local_ref_frame 
 !          -- Logical, If True then take the input coordinates and output fields 
@@ -165,7 +165,7 @@ end subroutine save_a_step
 !   local_orbit -- Coord_struct, optional: Local coordinates. Same as orbit if local_ref_frame = T.
 !-
 
-subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, local_orbit)
+subroutine em_field_calc (ele, param, ds_pos, orbit, local_ref_frame, field, calc_dfield, local_orbit)
 
 implicit none
 
@@ -177,16 +177,17 @@ type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
 type (rf_field_mode_struct), pointer :: mode
 
-real(rp) :: x, y, xx, yy, c, s, s_pos, f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, xx, yy, c, s, ds_pos, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, s_rel, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
-real(rp) k_t, k_z, kappa2_t, kappa_t, kap_rho, Rm, Rm_plus, Rm_minus, Rm_norm
+real(rp) k_t, k_zn, kappa2_n, kap_rho
 real(rp) radius, phi
 
-complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, ikkl, expt
+complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
+complex(rp) Im0, Im_plus, Im_minus, Im_norm, kappa_n, Im_plus2
 
-integer i, j, sign_charge
+integer i, j, m, n, sign_charge
 
 logical :: local_ref_frame
 logical, optional :: calc_dfield
@@ -212,7 +213,7 @@ if (.not. ele%is_on) return
 
 select case (ele%field_calc)
 case (custom$) 
-  call em_field_custom (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield)
+  call em_field_custom (ele, param, ds_pos, orbit, local_ref_frame, field, calc_dfield)
   return
 case (bmad_standard$)
 case default
@@ -235,7 +236,7 @@ endif
 if (present(local_orbit)) local_orbit = local_orb
 x = local_orb%vec(1)
 y = local_orb%vec(3)
-s = s_pos
+s = ds_pos
 
 f_p0c = sign_charge * ele%value(p0c$) / c_light
 
@@ -261,7 +262,9 @@ case(rfcavity$, lcavity$)
 
   do i = 1, size(ele%rf%field%mode)
     mode => ele%rf%field%mode(i)
-    if (mode%m /= 0) then
+    m = mode%m
+
+    if (m /= 0) then
       print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M /= 0 NOT YET IMPLEMENTED FOR: ' // ele%name
       call err_exit
     endif
@@ -273,43 +276,61 @@ case(rfcavity$, lcavity$)
 
     k_t = twopi * mode%freq / c_light
 
-    do j = 1, size(mode%term)
+    do n = 1, size(mode%term)
 
       Er = 0; Ep = 0; Ez = 0
       Br = 0; Bp = 0; Bz = 0
 
-      k_z = twopi * (i - 1) / (size(mode%term) * mode%dz)
-      if (2 * i > size(mode%term)) k_z = k_z - twopi / mode%dz
-      kappa2_t = k_z**2 - k_t**2
-      kappa_t = sqrt(abs(kappa2_t))
-      kap_rho = sign(1.0_rp, kappa2_t) * kappa_t * radius
-      expi = cmplx(cos(k_z * s_pos), sin(k_z * s_pos))
+      k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
+      if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
 
-      if (mode%m == 0) then
-        Rm      = R_bessel(0, kap_rho)
-        Rm_plus = R_bessel(1, kap_rho)
+      expi = cmplx(cos(k_zn * ds_pos), sin(k_zn * ds_pos))
 
-        Er = Er + mode%term(i)%e * (-i_imaginary * k_z / kappa_t) * Rm_plus * expi
-        Ep = Ep + mode%term(i)%b * Rm_plus * expi
-        Ez = Ez + mode%term(i)%e * Rm * expi
+      kappa2_n = k_zn**2 - k_t**2
+      kappa_n = sqrt(abs(kappa2_n))
+      kap_rho = kappa_n * radius
+      if (kappa2_n < 0) then
+        kappa_n = -i_imaginary * kappa_n
+        kap_rho = -kap_rho
+      endif
 
-        Br = Br + mode%term(i)%b * Rm_plus * expi
-        Bp = Bp + mode%term(i)%e * Rm_plus * expi * ((k_z**2 / kappa_t) - k_z) 
-        Bz = Bz + mode%term(i)%b * Rm_plus * expi
+      if (m == 0) then
+        Im0     = I_bessel(0, kap_rho)
+        Im_plus = I_bessel(1, kap_rho) / kappa_n
+
+        Er = Er - mode%term(i)%e * Im_plus * expi * I_imaginary * k_zn
+        Ep = Ep + mode%term(i)%b * Im_plus * expi
+        Ez = Ez + mode%term(i)%e * Im0     * expi
+
+        Br = Br - mode%term(i)%b * Im_plus * expi * I_imaginary * k_zn
+        Bp = Bp + mode%term(i)%e * Im_plus * expi * k_t**2
+        Bz = Bz + mode%term(i)%b * Im0     * expi
 
       else
-        c = cos(mode%m * phi - mode%phi_0)
-        s = sin(mode%m * phi - mode%phi_0)
-        Rm_plus  = R_bessel(mode%m+1, kap_rho)
-        Rm_minus = R_bessel(mode%m-1, kap_rho)
-        Rm_norm  = (Rm_minus + sign(1.0_rp, kappa2_t) * Rm_minus) / (2 * mode%m) ! R_norm(mode%m, kap_rho)
-        Rm       = kappa_t * radius * Rm_norm                                    ! R_bessel(mode%m, kap_rho)
+        c = cos(m * phi - mode%phi_0)
+        s = sin(m * phi - mode%phi_0)
+        Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
+        Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
 
-        ikkl = -i_imaginary * k_z / kappa_t
-        Er = Er + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * Rm_norm) * c * expi
-        Ep = Ep + (ikkl * mode%term(i)%e * Rm_plus + mode%term(i)%b * (Rm_norm - Rm_minus / mode%m)) * s * expi
-        Ez = Ez + mode%term(i)%e * Rm * c * expi
-      endif
+        Im_plus2 = I_bessel(m+2, kap_rho) / kappa_n**(m+2)
+
+        Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im / radius
+        Im0      = radius * Im_norm       
+
+        dEr = -i_imaginary * (k_zn * mode%term(i)%e * Im_plus + mode%term(i)%b * Im_norm) * c * expi
+        dEp = -i_imaginary * (k_zn * mode%term(i)%e * Im_plus + mode%term(i)%b * (Im_norm - Im_minus / m)) * expi
+
+        Er = Er + dEr
+        Ep = Ep + dEp * s
+        Ez = Ez + mode%term(i)%e * Im0 * c * expi
+ 
+        Br = Br - m * mode%term(i)%e * Im_norm * s * expi - i_imaginary * k_zn * dEp * s
+        Bp = Bp + i_imaginary * k_zn * dEr - &
+                      mode%term(i)%e * c * expi * (Im_minus - m * Im_norm)
+        Bz = Bz - i_imaginary * s * expi * (k_zn * mode%term(i)%e * (Im0 - Im_plus2 * kappa_n**2) / 2 + &
+                    mode%term(i)%b * (Im_norm - Im_minus / m)) * expi
+
+     endif
       
     enddo
 
