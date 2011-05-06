@@ -247,7 +247,7 @@ if (significant_mode(0)) then
     endif
   
     mode(0)%term(i)%e = Ez_fft(i) / (I_bessel(0, kap_rho) * n2_z)
-    mode(0)%term(i)%b = Ephi_fft(i) / (I_bessel(1, kap_rho) * n2_z)
+    mode(0)%term(i)%b = Ephi_fft(i) * kappa_n / (I_bessel(1, kap_rho) * n2_z)
   enddo
 endif
 
@@ -281,9 +281,10 @@ do m = -m_max, m_max
       kap_rho = -kap_rho
     endif
   
-    mode(m)%term(i)%e = Ez_fft(i) / (I_bessel(m, kap_rho) * n2_z)
-    mode(m)%term(i)%b = (radius / n2_z) * (kappa_n * Erho_fft(i) / I_bessel(m, kap_rho) + &
-                       i_imaginary * k_z * radius * Ez_fft(i) * I_bessel(m+1, kap_rho))
+    mode(m)%term(i)%e = Ez_fft(i) * kappa_n**m / (I_bessel(m, kap_rho) * n2_z)
+    mode(m)%term(i)%b = (radius * kappa_n**m / I_bessel(m, kap_rho)) * &
+          (i_imaginary * Erho_fft(i) / n2_z - &
+           k_z * mode(m)%term(i)%e * I_bessel(m+1, kap_rho)/kappa_n**(m+1))
   enddo
 
 enddo
@@ -382,8 +383,8 @@ do i = 1, n2_z
   endif
 
   Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, kap_rho)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_n) * mode(0)%term(i)%e * I_bessel(1, kap_rho)
-  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, kap_rho) 
+  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * (I_bessel(1, kap_rho) / kappa_n)
+  Ephi_fft(i) = mode(0)%term(i)%b * (I_bessel(1, kap_rho) / kappa_n)
 enddo
 
 call four1(Ez_fft, 1)
@@ -434,8 +435,8 @@ do i = 1, n2_z
   endif
 
   Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, kap_rho/2)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_n) * mode(0)%term(i)%e * I_bessel(1, kap_rho/2)
-  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, kap_rho/2) 
+  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * I_bessel(1, kap_rho/2) / kappa_n
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, kap_rho/2) / kappa_n
 enddo
 
 call four1(Ez_fft, 1)
@@ -476,8 +477,8 @@ do i = 1, n2_z
   endif
 
   Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, 0.0_rp)
-  Erho_fft(i) = (-i_imaginary * k_z / kappa_n) * mode(0)%term(i)%e * I_bessel(1, 0.0_rp)
-  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, 0.0_rp) 
+  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * I_bessel(1, 0.0_rp) / kappa_n
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, 0.0_rp) / kappa_n
 enddo
 
 call four1(Ez_fft, 1)
@@ -553,7 +554,7 @@ type (rf_field_mode_struct), target :: modes(:)
 type (rf_field_mode_struct), pointer :: mode
 type (field_cylinder_values) E
 
-complex(rp) ikkl, expi
+complex(rp) ikz, expi
 complex(rp) Im_minus, Im0, Im_plus, Im_norm, kappa_n
 
 real(rp) rho, phi, z, k_t, kappa2_n, kap_rho, c, s
@@ -586,9 +587,9 @@ do imode = 1, size(modes)
     expi = cmplx(cos(k_z * z), sin(k_z * z))
 
     if (mode%m == 0) then
-      Im0      = I_bessel(0, kap_rho)
-      Im_plus = I_bessel(1, kap_rho)
-      E%rho = E%rho + (-i_imaginary * k_z / kappa_n) * mode%term(i)%e * Im_plus * expi
+      Im0     = I_bessel(0, kap_rho)
+      Im_plus = I_bessel(1, kap_rho) / kappa_n
+      E%rho = E%rho + -i_imaginary * k_z * mode%term(i)%e * Im_plus * expi
       E%phi = E%phi + mode%term(i)%b * Im_plus * expi
       E%z   = E%z   + mode%term(i)%e * Im0 * expi
 
@@ -597,12 +598,16 @@ do imode = 1, size(modes)
       s = sin(mode%m * phi - mode%phi_0)
       Im_plus  = I_bessel(mode%m+1, kap_rho)
       Im_minus = I_bessel(mode%m-1, kap_rho) 
-      Im_norm  = (Im_minus - Im_plus) / (2 * mode%m) ! I_norm(mode%m, kap_rho)
-      Im0       = kappa_n * rho * Im_norm            ! I_bessel(mode%m, kap_rho) 
 
-      ikkl = -i_imaginary * k_z / kappa_n
-      E%rho = E%rho + (ikkl * mode%term(i)%e * Im_plus + mode%term(i)%b * Im_norm) * c * expi
-      E%phi = E%phi + (ikkl * mode%term(i)%e * Im_plus + mode%term(i)%b * (Im_norm - Im_minus / mode%m)) * s * expi
+      Im_norm  = kappa_n * (Im_minus - Im_plus) / (2 * mode%m) / kappa_n**m ! I_m(kap_rho) / rho
+      Im0      = rho * Im_norm
+
+      Im_plus = Im_plus / kappa_n**(m+1)
+      Im_minus = Im_minus / kappa_n**(m-1)
+
+      E%rho = E%rho - i_imaginary * (k_z * mode%term(i)%e * Im_plus + mode%term(i)%b * Im_norm) * c * expi
+      E%phi = E%phi - i_imaginary * (k_z * mode%term(i)%e * Im_plus + &
+                                             mode%term(i)%b * (Im_norm - Im_minus / mode%m)) * s * expi
       E%z   = E%z   + mode%term(i)%e * Im0 * c * expi
 
     endif
