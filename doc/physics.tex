@@ -1398,10 +1398,10 @@ form
 where $M$ is the number of modes. Each mode satisfies the vector Helmohltz
 equation
 \Begineq
-  \nabla^2 \bfE_j + k_j^2 \, \bfE_j = 0
+  \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
   \label{bke}
 \Endeq
-where $k_j = \omega_j/c$ with $\omega_j$ being the mode frequency.
+where $k_{tj} = \omega_j/c$ with $\omega_j$ being the mode frequency.
 
 For a given mode, the electric field can be characterized by the values on 
 a cyclindrical surface of some radius $R$. The field will be of the form
@@ -1420,23 +1420,21 @@ the other with $\phi_{0j} = -\pi/2$. The $\phi_{0j} = 0$ mode is an
 accelerating mode with the electric field is in the form
 \begin{align}
   E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, k_{zn} \, z} \, 
-    e_0(n) \, \frac{i \, k_{zn} \, I_1(\kappa_n \, \rho)}{\kappa_n} \CRNO
+    i \, k_{zn} \, e_0(n) \, \wt I_1(\kappa_n, \rho) \CRNO
   E_\phi(\bfr) &= 0 \\
   E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
-    e_0(n) \, I_0(\kappa_n \, \rho) \nonumber
+    e_0(n) \, \wt I_0(\kappa_n, \rho) \nonumber
 \end{align}
-The $e_0$ coefficients are obtained from the equation
-\begin{align}
-  e_0(n) &= \frac{1}{I_0(\kappa_n \, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
-    e^{-2 \, \pi \, i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
-  &\equiv \frac{\wt E_{zc}(R, n)}{I_0(\kappa_n \, R)} 
-\end{align}
-where $I_m$ is a modified Bessel function and $\kappa_n$ is given by
+where $\wt I_m$ is
 \Begineq
-  \kappa_n = \sqrt{k_{zn}^2 - k_j^2} = 
+  \wt I_m (\kappa_n, \rho) \equiv \frac{I_m(\kappa_n \, \rho)}{\kappa_n^m}
+\Endeq
+with $I_m$ being a modified Bessel function and $\kappa_n$ is given by
+\Begineq
+  \kappa_n = \sqrt{k_{zn}^2 - k_t^2} = 
   \begin{cases}
-    \sqrt{k_{zn}^2 - k_j^2} & |k_{zn}| > k_j \\
-    -i \, \sqrt{k_j^2 - k_{zn}^2} & k_j > |k_{zn}|
+    \sqrt{k_{zn}^2 - k_t^2} & |k_{zn}| > k_t \\
+    -i \, \sqrt{k_t^2 - k_{zn}^2} & k_t > |k_{zn}|
   \end{cases}
 \Endeq
 with
@@ -1444,53 +1442,59 @@ with
   k_{zn} = \frac{2 \pi \, n}{N \, dz}
 \Endeq
 $N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
-the distance between points. When $\kappa_n$ is imaginary, $I_n(\kappa_n \, \rho)$
+the distance between points. When $\kappa_n$ is imaginary, $I_m(\kappa_n \, \rho)$
 can be evaluated through the relation
 \Begineq
-  I_n(-i \, x) = i^{-n} \, J_n(x)
+  I_m(-i \, x) = i^{-m} \, J_m(x)
 \Endeq
-where $J_n$ is a Bessel function of the first kind.
+where $J_m$ is a Bessel function of the first kind.
+The $e_0$ coefficients are obtained from the equation
+\begin{align}
+  e_0(n) &= \frac{1}{\wt I_0(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
+    e^{-2 \, \pi \, i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
+  &\equiv \frac{\wt E_{zc}(R, n)}{\wt I_0(\kappa_n, R)} 
+\end{align}
 
 The non-accelerating $m = 0$ mode with $\phi_0 = -\pi/2$ has an
 electric field in the form
 \begin{align}
   E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
   E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
-    b_0(n) \, I_1(\kappa_n \, \rho)
+    b_0(n) \, \wt I_1(\kappa_n, \rho)
 \end{align}
 where
 \Begineq
-  b_0(n) = \frac{\wt E_{\phi s}(R, n)}{I_1(\kappa_n \, R)} 
+  b_0(n) = \frac{\wt E_{\phi s}(R, n)}{\wt I_1(\kappa_n, R)} 
 \Endeq
 
 For positive $m$, the electric field is in the form
 \begin{align}
-  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}
+    -i \, e^{i \, k_{zn} \, z} \, 
     \left[ 
-    -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} +
-    b_m(n) \, \frac{I_m(\kappa_n \, \rho)}{\kappa_n \, \rho}
+    k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) +
+    b_m(n) \, \frac{\wt I_m(\kappa_n, \rho)}{\rho}
     \right]
     \cos(m \, (\phi - \phi_0)) \CRNO
-  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2} 
+    -i \, e^{i \, k_{zn} \, z} \, 
     \left[
-    -e_m(n) \, \frac{i \, k_{zn} \, I_{m+1}(\kappa_n \, \rho)}{\kappa_n} \, + \right. \\
+    k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) \, + \right. \\
   & \left. \qquad \qquad \qquad \qquad \qquad \qquad
-    b_m(n) \, \left( \frac{I_m(\kappa_n \, \rho)}{\kappa_n \, \rho} - 
-    \frac{1}{m} \, I_{m-1}(\kappa_n \, \rho) \right)
+    b_m(n) \, \left( \frac{\wt I_m(\kappa_n, \rho)}{\rho} - 
+    \frac{1}{m} \, \wt I_{m-1}(\kappa_n, \rho) \right)
     \right] 
     \sin(m \, (\phi - \phi_0)) \CRNO
   E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
-    e_m(n) \, I_m(\kappa_n \, \rho) \cos(m \, (\phi - \phi_0)) \nonumber
+    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, (\phi - \phi_0)) \nonumber
 \end{align}
 with
 \begin{align}
-  e_m(n) &= \frac{\wt E_{zc}(R, n)}{I_m(\kappa_n \, R)} \CRNO
-  b_m(n) &= \frac{1}{I_m(\kappa_n \, R)} \left[
-    \kappa_n \, R \, \wt E_{\rho c} + i \, k_{nz} \, R \, e_m(n) \, I_{m+1}(\kappa_n \, R)
+  e_m(n) &= \frac{\wt E_{zc}(R, n)}{\wt I_m(\kappa_n, R)} \CRNO
+  b_m(n) &= \frac{R}{\wt I_m(\kappa_n, R)} \left[
+    i \, \wt E_{\rho c} - k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, R)
     \right]
 \end{align}
-Notice that the definitions of $e_m$ and $b_m$ here differ by a factor
-of $i^m$ from the definition used by Abell when $\kappa_n$ is imaginary.
 
 The above mode decomposition was done in the gauge where the scaler
 potential $\psi$ is zero. The electric and magnetic fields are thus

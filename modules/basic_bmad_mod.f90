@@ -12,11 +12,11 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Function R_bessel(m, arg) result (r_out)
+! Function I_bessel(m, arg) result (i_bes)
 !
-! Function to return the bessel function:
-!   J_bessel(m, arg)   arg > 0
-!   I_bessel(m, -arg)  arg < 0
+! Function to evaluate the modified bessel function I:
+!   I_bes = I_m(arg)                         For arg > 0
+!   I_bes = I_m(-i*arg) = i^{-m} * J(arg)    For arg < 0
 !
 ! Modules needed:
 !   use basic_bmad_mod
@@ -26,42 +26,42 @@ contains
 !   arg  -- Real(rp): Bessel argument.
 !
 ! Output:
-!   r_out -- Real(rp): Bessel value.
+!   i_bes -- Real(rp): Bessel value.
 !-
 
-function R_bessel(m, arg) result (r_out)
+function I_bessel(m, arg) result (i_bes)
 
 use nr
 
 integer m
-real(rp) arg, r_out
+real(rp) arg, i_bes
 
 !
 
 select case(m)
 case (0)
   if (arg > 0) then
-    r_out = bessi0(arg)
+    i_bes = bessi0(arg)
   else
-    r_out = bessj0(-arg)
+    i_bes = bessj0(-arg)
   endif
 
 case (1)
   if (arg > 0) then
-    r_out = bessi1(arg)
+    i_bes = bessi1(arg)
   else
-    r_out = bessj1(-arg)
+    i_bes = -i_imaginary * bessj1(-arg)
   endif
 
 case default
   if (arg > 0) then
-    r_out = bessi(m, arg)
+    i_bes = bessi(m, arg)
   else
-    r_out = bessj(m, -arg)
+    i_bes = (-i_imaginary)**m * bessj(m, -arg)
   endif
 end select
 
-end function r_bessel
+end function I_bessel
 
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
