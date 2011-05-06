@@ -554,9 +554,9 @@ type (rf_field_mode_struct), pointer :: mode
 type (field_cylinder_values) E
 
 complex(rp) ikkl, expi
+complex(rp) Im_minus, Im0, Im_plus, Im_norm, kappa_n
 
 real(rp) rho, phi, z, k_t, kappa2_n, kap_rho, c, s
-real(rp) Im_minus, Im, Im_plus, Im_norm
 
 integer i, imode
 
@@ -586,24 +586,24 @@ do imode = 1, size(modes)
     expi = cmplx(cos(k_z * z), sin(k_z * z))
 
     if (mode%m == 0) then
-      Im      = I_bessel(0, kap_rho)
+      Im0      = I_bessel(0, kap_rho)
       Im_plus = I_bessel(1, kap_rho)
       E%rho = E%rho + (-i_imaginary * k_z / kappa_n) * mode%term(i)%e * Im_plus * expi
       E%phi = E%phi + mode%term(i)%b * Im_plus * expi
-      E%z   = E%z   + mode%term(i)%e * Im * expi
+      E%z   = E%z   + mode%term(i)%e * Im0 * expi
 
     else
       c = cos(mode%m * phi - mode%phi_0)
       s = sin(mode%m * phi - mode%phi_0)
       Im_plus  = I_bessel(mode%m+1, kap_rho)
       Im_minus = I_bessel(mode%m-1, kap_rho) 
-      Im_norm  = (Im_minus + sign(1.0_rp, kappa2_n) * Im_minus) / (2 * mode%m) ! I_norm(mode%m, kap_rho)
-      Im       = kappa_n * rho * Im_norm                                       ! I_bessel(mode%m, kap_rho) 
+      Im_norm  = (Im_minus - Im_plus) / (2 * mode%m) ! I_norm(mode%m, kap_rho)
+      Im0       = kappa_n * rho * Im_norm            ! I_bessel(mode%m, kap_rho) 
 
       ikkl = -i_imaginary * k_z / kappa_n
       E%rho = E%rho + (ikkl * mode%term(i)%e * Im_plus + mode%term(i)%b * Im_norm) * c * expi
       E%phi = E%phi + (ikkl * mode%term(i)%e * Im_plus + mode%term(i)%b * (Im_norm - Im_minus / mode%m)) * s * expi
-      E%z   = E%z   + mode%term(i)%e * Im * c * expi
+      E%z   = E%z   + mode%term(i)%e * Im0 * c * expi
 
     endif
 
