@@ -448,7 +448,7 @@ by iterating over the equilibrium equations.
 
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
-\item[em_field_calc (ele, param, s_pos, here, local_ref_frame, field, calc_dfield, local_orbit)] \Newline 
+\item[em_field_calc (ele, param, ds_pos, orbit, local_ref_frame, field, calc_dfield, local_orbit)] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -1096,7 +1096,7 @@ lat structure.
 \index[routine]{create_element_slice}
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
-    create_element_slice (sliced_ele, ele, l_slice, offset, \\
+    create_element_slice (sliced_ele, ele_in, l_slice, offset, \\
     \hspace*{1in} param, at_entrance_end, at_exit_end)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
@@ -2226,8 +2226,8 @@ Routine to plot a section of an ellipse.
 
 \index[routine]{qp_draw_curve_legend}
 \label{r:qp.draw.curve.legend}
-\item[\protect\parbox{6in}{qp_draw_curve_legend (origin, text_offset, line_length, \\ 
-\hspace*{1in}  line, symbol, text, draw_line, draw_symbol, draw_text) }] \Newline
+\item[\protect\parbox{6in}{qp_draw_curve_legend (x_origin, y_origin, units, line, line_length, \\ 
+\hspace*{1in}  symbol, text, text_offset, draw_line, draw_symbol, draw_text) }] \Newline
 Routine to draw a legend with each line in the legend having
   a line, a symbol, some text.
 
@@ -2771,7 +2771,7 @@ Subroutine to track the spin with the Euler four-vector quaternion a.
 
 \index[routine]{track1_spin}
 \label{r:track1.spin}
-\item[track1_spin (start, ele, param, end)] \Newline
+\item[track1_spin (start_orb, ele, param, end_orb)] \Newline
 Routine to track the particle spin through one element.
 
 \end{description}

@@ -285,11 +285,11 @@ g2 = 0; g3 = 0
 
 n0 = lbound(track%orb, 1)
 n1 = track%n_pt
-s0 = ele%s - ele%value(l$)
+s0 = ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 do j = n0, n1
 
-  call em_field_g_bend (ele, param, track%orb(j)%s - s0, track%orb(j)%vec, g)
+  call em_field_g_bend (ele, param, track%orb(j)%s - s0, 0.0_rp, track%orb(j), g)
 
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3

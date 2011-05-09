@@ -1,12 +1,23 @@
 !+
 ! Subroutine offset_particle (ele, param, coord, set, set_canonical, 
 !                               set_tilt, set_multipoles, set_hvkicks, ds_pos)
-! Subroutine to effectively offset an element by instead offsetting
-! the particle position to correspond to the local element coordinates.
-! 
-! set = set$ assumes the particle is at the entrance end of the element.
-! set = unset$ assumes the particle is at the exit end of the element.
-! However: This can be overridden by using the ds_pos argument.
+!
+! Subroutine to transform a particles's coordinates between laboratory and element coordinates
+! at the entrance or exit ends of the element. Additionally, this routine will:
+!   a) Apply the half kicks due to multipole and kick attributes.
+!   b) Add drift transform to the coordinates due to nonzero %value(s_offset_tot$).
+!   c) Transform from canonical (p_x, p_y) to angle (x', y') coordinates at the entrance end
+!      and transform back at the exit end.
+!
+! set = set$:
+!    Transforms from lab to element coords. 
+!    Assumes the particle is at the entrance end of the element.
+! set = unset$:
+!    Transforms from element to lab  coords.
+!    Assumes the particle is at the exit end of the element.
+!
+! Note: the assumption of where the particle is can be overridden by using the ds_pos argument.
+! Also see the offset_lab_element_coords routine
 !
 ! Options:
 !   Using the element tilt in the offset.
@@ -27,14 +38,12 @@
 !     %value(x_pitch$)  -- Horizontal roll of element.
 !     %value(tilt$)     -- tilt of element.
 !   coord          -- Coord_struct: Coordinates of the particle.
-!     %vec(6)           -- Energy deviation dE/E. 
-!                          Used to modify %vec(2) and %vec(4)
 !   param          -- lat_param_struct:
 !     %particle    -- What kind of particle (for elseparator elements).
 !   set            -- Logical: 
 !                    T (= set$)   -> Translate from lab coords to the local 
 !                                      element coords.
-!                    F (= unset$) -> Translate back to lab coords.
+!                    F (= unset$) -> Translate back from element to lab coords.
 !   set_canonical  -- Logical, optional: Default is True.
 !                    T -> Convert between (p_x, p_y) and angle coords also.
 !                    F -> No conversion between (p_x, p_y) and angle coords.

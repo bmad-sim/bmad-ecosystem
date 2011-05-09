@@ -68,7 +68,7 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
-real(rp) :: dr_ds(6), r_scal(6)
+real(rp) :: dr_ds(6), r_scal(6), t
 
 integer, parameter :: max_step = 10000
 integer :: n_step
@@ -78,6 +78,7 @@ logical local_ref_frame
 ! init
 
 s = s1
+t = 0
 h = sign(h1, s2-s1)
 end = start
 end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
@@ -93,7 +94,7 @@ bmad_status%ok = .true.
 
 do n_step = 1, max_step
 
-  call em_field_kick_vector (ele, param, s, end%vec, local_ref_frame, dr_ds)
+  call em_field_kick_vector (ele, param, s, t, end, local_ref_frame, dr_ds)
 
   sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
   rel_tol_eff = rel_tol / sqrt_N
@@ -106,7 +107,7 @@ do n_step = 1, max_step
 
   if ((s+h-s2)*(s+h-s1) > 0.0) h = s2-s
 
-  call rkqs_bmad (ele, param, end, dr_ds, s, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame)
+  call rkqs_bmad (ele, param, end, dr_ds, s, t, h, rel_tol_eff, abs_tol_eff, r_scal, h_did, h_next, local_ref_frame)
   if (.not. bmad_status%ok) return
 
   if (present(track)) then
@@ -143,17 +144,17 @@ end subroutine odeint_bmad
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 
-subroutine rkqs_bmad (ele, param, orb, dr_ds, s, h_try, rel_tol, abs_tol, &
+subroutine rkqs_bmad (ele, param, orb, dr_ds, s, t, h_try, rel_tol, abs_tol, &
                                        r_scal, h_did, h_next, local_ref_frame)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb
+type (coord_struct) orb, orb_new
 
 real(rp), intent(in)    :: dr_ds(6), r_scal(6)
-real(rp), intent(inout) :: s
+real(rp), intent(inout) :: s, t
 real(rp), intent(in)    :: h_try, rel_tol, abs_tol
 real(rp), intent(out)   :: h_did, h_next
 
@@ -171,7 +172,7 @@ h = h_try
 
 do
 
-  call rkck_bmad (ele, param, orb, dr_ds, s, h, r_temp, r_err, local_ref_frame)
+  call rkck_bmad (ele, param, orb, dr_ds, s, t, h, orb_new, r_err, local_ref_frame)
   err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
   if (err_max <=  1.0) exit
   h_temp = safety * h * (err_max**p_shrink)
@@ -203,10 +204,10 @@ rel_pc = 1 + orb%vec(6)
 call convert_pc_to(ele%value(p0c$) * rel_pc, param%particle, beta = beta)
 
 orb%s = orb%s + h
-p2 = (orb%vec(2)**2 + r_temp(2)**2 + orb%vec(2)*r_temp(2) + &
-      orb%vec(4)**2 + r_temp(4)**2 + orb%vec(4)*r_temp(4)) / 3
+p2 = (orb%vec(2)**2 + orb_new%vec(2)**2 + orb%vec(2)*orb_new%vec(2) + &
+      orb%vec(4)**2 + orb_new%vec(4)**2 + orb%vec(4)*orb_new%vec(4)) / 3
 orb%t = orb%t + h * (1 + p2 / (2 * rel_pc**2)) / (beta * c_light)
-orb%vec = r_temp
+orb%vec = orb_new%vec
 
 ! Add coordinate rotation if needed
 
@@ -220,17 +221,17 @@ end subroutine rkqs_bmad
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rkck_bmad (ele, param, orb, dr_ds, s, h, r_out, r_err, local_ref_frame)
+subroutine rkck_bmad (ele, param, orb, dr_ds, s, t, h, orb_new, r_err, local_ref_frame)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
-type (coord_struct) orb
+type (coord_struct) orb, orb_new, orb_temp
 
 real(rp), intent(in) :: dr_ds(6)
-real(rp), intent(in) :: s, h
-real(rp), intent(out) :: r_out(6), r_err(6)
+real(rp), intent(in) :: s, t, h
+real(rp), intent(out) :: r_err(6)
 real(rp) :: ak2(6), ak3(6), ak4(6), ak5(6), ak6(6), r_temp(6)
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
@@ -249,17 +250,17 @@ logical local_ref_frame
 
 !
 
-r_temp = orb%vec +b21*h*dr_ds
-call em_field_kick_vector(ele, param, s+a2*h, r_temp, local_ref_frame, ak2)
-r_temp = orb%vec +h*(b31*dr_ds+b32*ak2)
-call em_field_kick_vector(ele, param, s+a3*h, r_temp, local_ref_frame, ak3) 
-r_temp = orb%vec +h*(b41*dr_ds+b42*ak2+b43*ak3)
-call em_field_kick_vector(ele, param, s+a4*h, r_temp, local_ref_frame, ak4)
-r_temp = orb%vec +h*(b51*dr_ds+b52*ak2+b53*ak3+b54*ak4)
-call em_field_kick_vector(ele, param, s+a5*h, r_temp, local_ref_frame, ak5)
-r_temp = orb%vec +h*(b61*dr_ds+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
-call em_field_kick_vector(ele, param, s+a6*h, r_temp, local_ref_frame, ak6)
-r_out = orb%vec +h*(c1*dr_ds+c3*ak3+c4*ak4+c6*ak6)
+orb_temp%vec = orb%vec +b21*h*dr_ds
+call em_field_kick_vector(ele, param, s+a2*h, t, orb_temp, local_ref_frame, ak2)
+orb_temp%vec = orb%vec +h*(b31*dr_ds+b32*ak2)
+call em_field_kick_vector(ele, param, s+a3*h, t, orb_temp, local_ref_frame, ak3) 
+orb_temp%vec = orb%vec +h*(b41*dr_ds+b42*ak2+b43*ak3)
+call em_field_kick_vector(ele, param, s+a4*h, t, orb_temp, local_ref_frame, ak4)
+orb_temp%vec = orb%vec +h*(b51*dr_ds+b52*ak2+b53*ak3+b54*ak4)
+call em_field_kick_vector(ele, param, s+a5*h, t, orb_temp, local_ref_frame, ak5)
+orb_temp%vec = orb%vec +h*(b61*dr_ds+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
+call em_field_kick_vector(ele, param, s+a6*h, t, orb_temp, local_ref_frame, ak6)
+orb_new%vec = orb%vec +h*(c1*dr_ds+c3*ak3+c4*ak4+c6*ak6)
 r_err=h*(dc1*dr_ds+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)
 
 end subroutine rkck_bmad

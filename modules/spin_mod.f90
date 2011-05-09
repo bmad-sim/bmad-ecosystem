@@ -372,7 +372,7 @@ end function angle_between_polars
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine quaternion_track (a, start, end)
+! Subroutine quaternion_track (a, start_orb, end_orb)
 !
 ! Transports a spinor through the quaternion a
 !
@@ -381,19 +381,19 @@ end function angle_between_polars
 !
 ! Input:
 !   a           -- Real(rp): Euler four-vector (Quaternion)
-!   start       -- Coord_struct: Incoming spinor
+!   start_orb       -- Coord_struct: Incoming spinor
 !
 ! Output:
-!   end      -- Coord_struct
+!   end_orb      -- Coord_struct
 !      %spin    -- complex(rp): Resultant spinor
 !-
 
-subroutine quaternion_track (a, start, end_)
+subroutine quaternion_track (a, start_orb, end_orb)
 
 implicit none
 
-type (coord_struct) start
-type (coord_struct) end_
+type (coord_struct) start_orb
+type (coord_struct) end_orb
 
 real(rp) a(4)
 
@@ -411,7 +411,7 @@ a_quat = a(4) * a_quat
 a_quat = a_quat - i_imaginary * &
           (a(1) * pauli(1)%sigma + a(2) * pauli(2)%sigma + a(3) * pauli(3)%sigma)
 
- end_%spin =  matmul (a_quat, start%spin)
+ end_orb%spin =  matmul (a_quat, start_orb%spin)
 
 end subroutine quaternion_track
 
@@ -419,7 +419,7 @@ end subroutine quaternion_track
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine track1_spin (start, ele, param, end)
+! subroutine track1_spin (start_orb, ele, param, end_orb)
 !
 ! Particle spin tracking through a single element.
 !
@@ -432,24 +432,24 @@ end subroutine quaternion_track
 !   use spin_mod
 !
 ! Input :
-!   start      -- Coord_struct: Starting coords.
+!   start_orb      -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
 !
 ! Output:
-!   end        -- Coord_struct: Ending coords. (contains already ending %vec,
+!   end_orb        -- Coord_struct: Ending coords. (contains already ending %vec,
 !                                               %vec may not be changed)
 !      %spin      -- complex(rp): Ending spinor
 !-
 
-subroutine track1_spin (start, ele, param, end_)
+subroutine track1_spin (start_orb, ele, param, end_orb)
 
 implicit none
 
-type (coord_struct), intent(in) :: start
+type (coord_struct), intent(in) :: start_orb
 type (coord_struct) :: temp, temp2
-type (coord_struct) :: end_
+type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct), intent(in) :: param
 type (spin_map_struct), pointer :: map
@@ -471,12 +471,12 @@ if (ele%tracking_method .eq. boris$ .or. &
 m_particle = mass_of(param%particle)
 g_factor = g_factor_of(param%particle)
 
-end_%spin = start%spin     ! transfer start to end
+end_orb%spin = start_orb%spin     ! transfer start to end
 
 key = ele%key
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-temp = start
+temp = start_orb
 
 select case (key)
 case (quadrupole$, sbend$, solenoid$, lcavity$)
@@ -628,8 +628,8 @@ if(doesAffectSpin) then
     endif
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
-                        end_%vec(5) * ele%value(rf_frequency$) / c_light)
-    ! end_%vec(5) does not take offsets into account!
+                        end_orb%vec(5) * ele%value(rf_frequency$) / c_light)
+    ! end_orb%vec(5) does not take offsets into account!
     cos_phi = cos(phase)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
     if (.not. ele%is_on) gradient = 0
@@ -727,7 +727,7 @@ call offset_spin (ele, param, temp, unset$, (doesAffectSpin .or. isKicker))
 !                         set_hvkicks = .false.)
 ! no offset_particle (..., temp, unset$, ...) necessary, since temp%vec is not used any longer
 
-end_%spin = temp%spin
+end_orb%spin = temp%spin
 
 contains
 
