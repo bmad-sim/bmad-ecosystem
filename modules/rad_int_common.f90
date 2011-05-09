@@ -415,7 +415,7 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine calc_wiggler_g_params (ele, z, orb, pt, info)
+subroutine calc_wiggler_g_params (ele, s_rel, orb, pt, info)
 
 implicit none
 
@@ -424,11 +424,11 @@ type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
 type (ele_struct) ele
 
-real(rp) z, g(3), dg(3,3)
+real(rp) s_rel, g(3), dg(3,3)
 
 ! Note: em_field_g_bend assumes orb is lab (not element) coords.
 
-call em_field_g_bend (ele, info%lat%param, z, orb%vec, g, dg)
+call em_field_g_bend (ele, info%lat%param, s_rel, 0.0_rp, orb, g, dg)
 
 pt%g_x0 = g(1)
 pt%g_y0 = g(2)

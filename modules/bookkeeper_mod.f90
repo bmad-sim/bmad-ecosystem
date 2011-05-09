@@ -2239,7 +2239,7 @@ case (wiggler$)
     val(b_max$) = 0
     n = nint(ele%value(num_steps$))
     do i = 0, n
-      call em_field_calc (ele, param, i * val(l$) / n, start, .true., field)
+      call em_field_calc (ele, param, i * val(l$) / n, 0.0_rp, start, .true., field)
       val(b_max$) = max(val(b_max$), sqrt(sum(field%b**2)))
     enddo
     ele%is_on = is_on

@@ -394,7 +394,7 @@ end%t = end%t + ds2 * (1 + (end%vec(2)**2 + end%vec(4)**2) / (2 * p_tot**2)) / (
 
 ! 2) Evaluate the fields.
 
-call em_field_calc (ele, param, s+ds2, end, .true., field)
+call em_field_calc (ele, param, s+ds2, 0.0_rp, end, .true., field)
 
 ! 2.5) Push the spin 1/2 step
 ! This uses the momentum at the beginning and the fields at (ds2)

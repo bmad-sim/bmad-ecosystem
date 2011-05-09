@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 !+
 ! Subroutine mat6_add_offsets (ele)
 !
@@ -44,11 +42,9 @@ type (lat_param_struct) param
 ! the new vec0 is obtained by just tracking through the element
 
 orb%vec = 0
-call offset_particle (ele, param, orb, set$, &
-                              set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, orb, set$, set_canonical = .false., set_hvkicks = .false.)
 orb%vec = ele%vec0 + matmul (ele%mat6, orb%vec)
-call offset_particle (ele, param, orb, unset$, &
-                              set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, orb, unset$, set_canonical = .false., set_hvkicks = .false.)
 ele%vec0 = orb%vec
 
 ! transform the ref_orb
