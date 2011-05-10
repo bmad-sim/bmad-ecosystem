@@ -507,47 +507,6 @@ close (2)
 !------------------------------------------------------------------
 contains
 
-!+
-! Function I_bessel(m, arg) result (I_bes)
-!
-! Function to evaluate the modified bessel function I:
-!   I_bes = I_m(arg)                         for arg > 0
-!   I_bes = I_m(-i*arg) = i^{-m} * J(arg)    for arg < 0
-!-
-
-function I_bessel(m, arg) result (I_bes)
-
-integer m
-real(rp) arg
-complex(rp) I_bes
-
-!
-
-if (m == 0) then
-  if (arg > 0) then
-    I_bes = bessi0(arg)
-  else
-    I_bes = bessj0(-arg)
-  endif
-elseif (m == 1) then
-  if (arg > 0) then
-    I_bes = bessi1(arg)
-  else
-    I_bes = -I_imaginary * bessj1(-arg)
-  endif
-else
-  if (arg > 0) then
-    I_bes = bessi(m, arg)
-  else
-    I_bes = (-i_imaginary)**m * bessj(m, -arg)
-  endif
-endif
-
-end function
-
-!------------------------------------------------------------------
-!contains
-
 function e_field_calc (rho, phi, z, modes, use_mode) result (E)
 
 type (rf_field_mode_struct), target :: modes(:)
