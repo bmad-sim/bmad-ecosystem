@@ -185,19 +185,18 @@ implicit none
 
 type (coord_struct) orb
 type (lat_param_struct) param
-real(rp) length, rel_pc, p0c, dz, beta
+real(rp) length, rel_pc, p0c, dz, beta, gamma
 
 !
 
 rel_pc = 1 + orb%vec(6)
+call convert_pc_to (p0c * rel_pc, param%particle, beta = beta, gamma = gamma)
 
 orb%vec(1) = orb%vec(1) + length * orb%vec(2) / rel_pc
 orb%vec(3) = orb%vec(3) + length * orb%vec(4) / rel_pc
-dz = - length * ((orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2) - &
-          orb%vec(6) * (1 + orb%vec(6)/2) * (mass_of(param%particle)/(p0c * rel_pc))**2)
+dz = length * (orb%vec(6) / gamma**2 - (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2))
 orb%vec(5) = orb%vec(5) + dz
 
-call convert_pc_to (p0c * rel_pc, param%particle, beta = beta)
 orb%s = orb%s + length
 orb%t = orb%t + length * (1 + (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)) / (c_light * beta)
 

@@ -156,7 +156,7 @@ do j = 1, jmax
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call propagate_part_way (start, end, pt, info, z_pos, j, n)
+    call propagate_part_way (start, pt, info, z_pos, j, n)
     i_sum(1) = i_sum(1) + info%g_x * (info%eta_a(1) + info%eta_b(1)) + &
                   info%g_y * (info%eta_a(3) + info%eta_b(3))
     i_sum(2) = i_sum(2) + info%g2
@@ -247,13 +247,13 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (start, end, pt, info, z_here, j_loop, n_pt)
+subroutine propagate_part_way (start, pt, info, z_here, j_loop, n_pt)
 
 implicit none
 
-type (coord_struct) orb, start, end, orb0, orb1
+type (coord_struct) orb, start, orb0, orb1
 type (ele_struct), pointer :: ele0, ele
-type (ele_struct), save ::runt
+type (ele_struct), save :: runt
 type (twiss_struct) a0, b0, a1, b1
 type (rad_int_info_struct) info
 type (rad_int_track_point_struct) pt, pt0, pt1

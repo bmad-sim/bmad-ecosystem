@@ -384,8 +384,7 @@ character(20) :: r_name = 'convert_total_energy_to'
 
 mc2 = mass_of(particle)
 if (E_tot < mc2) then
-  call out_io (s_abort$, r_name, &
-            'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
+  call out_io (s_abort$, r_name, 'ERROR: TOTAL ENERGY IS LESS THAN REST MASS:\f10.0\ ', E_tot)
   call err_exit
 endif
 
@@ -444,28 +443,34 @@ implicit none
 
 real(rp), intent(in) :: pc
 real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
-real(rp) E_tot_new, mc2, g2
+real(rp) g2
+real(rp), save :: particle_old = 0, pc_old = -1, mc2, E_tot_this 
+
 
 integer, intent(in) :: particle
 character(20) :: r_name = 'convert_pc_to'
 
 !
 
-mc2 = mass_of(particle)
-E_tot_new = sqrt(pc**2 + mc2**2)
+if (particle_old /= particle .or. pc_old /= pc) then
+  mc2 = mass_of(particle)
+  E_tot_this = sqrt(pc**2 + mc2**2)
+  particle_old = particle
+  pc_old = pc
+endif
 
-if (present(E_tot))   E_tot   = E_tot_new
-if (present(beta))    beta    = pc / E_tot_new
-if (present(kinetic)) kinetic = E_tot_new - mc2
+if (present(E_tot))   E_tot   = E_tot_this
+if (present(beta))    beta    = pc / E_tot_this
+if (present(kinetic)) kinetic = E_tot_this - mc2
 if (present(brho))    brho    = pc / c_light
-if (present(gamma))   gamma   = E_tot_new / mc2
+if (present(gamma))   gamma   = E_tot_this / mc2
 
 if (present(dbeta)) then
   if (E_tot/mc2 > 100) then
-    g2 = (E_tot_new / mc2)**2
+    g2 = (E_tot_this / mc2)**2
     dbeta = 1/(2*g2) + 1/(8*g2**2)
   else
-    dbeta = 1 - pc / E_tot_new
+    dbeta = 1 - pc / E_tot_this
   endif
 endif
 

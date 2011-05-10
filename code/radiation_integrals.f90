@@ -29,7 +29,7 @@
 !
 ! Note: Caching allows interpolation which improves the computation time through
 ! a wiggler even if radiation_integrals is only called once. To take advantage
-! of this, a temperary cache is used for a wiggler if ix_cache is not present.
+! of this, a temporary cache is used for a wiggler if ix_cache is not present.
 !
 ! Modules needed:
 !   use bmad
@@ -39,10 +39,11 @@
 !                    the Twiss parameters have been calculated.
 !   orbit(0:)  -- Coord_struct: Closed orbit.
 !   ix_cache   -- Integer, optional: Cache pointer.
-!                              = -1 --> No temperary wiggler cache.
-!                              =  0 --> Create a new cache.
-!                              >  0 --> Use the corresponding cache. 
-!                 If not present, a temperary cache for wigglers will be used.
+!                      < -1 --> No temporary wiggler cache. This is slow so only use as a check.
+!                      = -1 --> Use temporary cache for wiggler elements only.
+!                      =  0 --> Create a new cache for all elements.
+!                      >  0 --> Use the corresponding cache. 
+!                 If not present, a temporary cache for wigglers will be used.
 !
 ! Output:
 !   mode     -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
@@ -216,6 +217,9 @@ cache_only_wig = .false.
 if (.not. present(ix_cache)) then
   cache => rad_int_cache_common(0)
   cache_only_wig = .true.
+elseif (ix_cache == -1) then
+  cache => rad_int_cache_common(0)
+  cache_only_wig = .true.
 elseif (ix_cache == 0) then
   do i = 1, ubound(rad_int_cache_common, 1)
     if (rad_int_cache_common(i)%set) cycle
@@ -235,7 +239,7 @@ elseif (ix_cache > 0) then
   endif
   cache => rad_int_cache_common(ix_cache)
   init_cache = .false.
-else
+else  ! ix_cache < -1
   use_cache = .false.
   init_cache = .false.
 endif
@@ -450,10 +454,10 @@ do ir = 1, lat%n_ele_track
     pt%dgx_dy = pt%dgy_dx
     pt%dgy_dy = -pt%dgx_dx
     ! Edge effects for a bend. In this case we ignore any rolls.
-    call propagate_part_way (orbit(ir-1), orbit(ir), pt, ri_info, 0.0_rp, 1, 1)
+    call propagate_part_way (orbit(ir-1), pt, ri_info, 0.0_rp, 1, 1)
     rad_int%i4a(ir) = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
     rad_int%i4b(ir) = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
-    call propagate_part_way (orbit(ir-1), orbit(ir), pt, ri_info, ll, 1, 2)
+    call propagate_part_way (orbit(ir-1), pt, ri_info, ll, 1, 2)
     rad_int%i4a(ir) = rad_int%i4a(ir) - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
     rad_int%i4b(ir) = rad_int%i4a(ir) - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif
