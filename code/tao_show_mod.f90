@@ -174,6 +174,7 @@ type show_lat_column_struct
   character(16) format
   integer field_width
   character(32) label
+  logical remove_line_if_zero
 end type
 
 type (show_lat_column_struct) column(50)
@@ -212,7 +213,7 @@ character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat
-integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni
+integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
 logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section
@@ -1223,59 +1224,46 @@ case ('lattice')
   undef_str = '---'
   show_lords = .false.
   show_custom = .false.
+  print_rad_int = .false.
+  ix_remove = -1
+
   column(:)%name = ""
   column(:)%label = ""
-  print_rad_int = .false.
-
+  column(:)%remove_line_if_zero = .false.
   ! get command line switches
 
   do
     call tao_next_switch (stuff2, [ &
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
         '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
-        '-custom             ', '-s                  ', '-radiation_integrals'], switch, err, ix)
+        '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero'], &
+              switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
 
-    case ('-branch')
-      read (stuff2(1:ix), *, iostat = ios) ix_branch
-      if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
-        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
-        return
-      endif
-      call string_trim(stuff2(ix+1:), stuff2, ix)
-
-    case ('-radiation_integrals')
-      print_rad_int = .true.
-
-    case ('-blank_replacement')
-      replacement_for_blank = stuff2(1:ix)
-      call string_trim(stuff2(ix+1:), stuff2, ix)
-
-    case ('-lords')
-      show_lords = .true.
-
-    case ('-middle')
-      at_ends = .false.
+    case ('-0undef')
+      undef_str = '  0'
 
     case ('-all_tracking')
       all_lat = .true. 
 
-    case ('-0undef')
-      undef_str = '  0'
+    case ('-blank_replacement')
+      replacement_for_blank = stuff2(1:ix_s2)
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
-    case ('-no_label_lines')
-      print_header_lines = .false.
-      print_tail_lines = .false.
-
-    case ('-no_tail_lines')
-      print_tail_lines = .false.
+    case ('-branch')
+      read (stuff2(1:ix_s2), *, iostat = ios) ix_branch
+      if (ios /= 0 .or. ix_branch < 0 .or. ix_branch > ubound(u%model%lat%branch, 1)) then
+        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-custom')
       show_custom = .true.
-      file_name = stuff2(1:ix)
-      call string_trim(stuff2(ix+1:), stuff2, ix)
+      file_name = stuff2(1:ix_s2)
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
       iu = lunget()
       open (iu, file = file_name, status = 'old', iostat = ios)
       if (ios /= 0) then
@@ -1291,6 +1279,30 @@ case ('lattice')
         return
       endif
 
+    case ('-lords')
+      show_lords = .true.
+
+    case ('-middle')
+      at_ends = .false.
+
+    case ('-no_label_lines')
+      print_header_lines = .false.
+      print_tail_lines = .false.
+
+    case ('-no_tail_lines')
+      print_tail_lines = .false.
+
+    case ('-radiation_integrals')
+      print_rad_int = .true.
+
+    case ('-remove_line_if_zero')
+      read (stuff2(1:ix_s2), *, iostat = ios) ix_remove
+      if (ios /= 0 .or. ix_remove < 1 .or. ix_remove > size(column)) then
+        nl=1; lines(1) = 'CANNOT READ OR OUT-OF RANGE "-remove_line_if_zero" argument'
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
     case ('-s')
       by_s = .true.
     end select
@@ -1303,50 +1315,68 @@ case ('lattice')
 
   if (.not. show_custom) then
     if (show_lords) then
-      column(1)  = show_lat_column_struct('#',                   'i6',        6, '')
-      column(2)  = show_lat_column_struct('x',                   'x',         2, '')
-      column(3)  = show_lat_column_struct('ele::#[name]',        'a',         0, '')
-      column(4)  = show_lat_column_struct('ele::#[key]',         'a16',      16, '')
-      column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',    10, '')
-      column(6)  = show_lat_column_struct('x',                   'x',         2, '')
-      column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '') 
+      column(1)  = show_lat_column_struct('#',                   'i6',        6, '', .false.)
+      column(2)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
+      column(3)  = show_lat_column_struct('ele::#[name]',        'a',         0, '', .false.)
+      column(4)  = show_lat_column_struct('ele::#[key]',         'a16',      16, '', .false.)
+      column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',    10, '', .false.)
+      column(6)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
+      column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
     elseif (print_rad_int) then
-      column(1)  = show_lat_column_struct('#',                     'i6',        6, '')
-      column(2)  = show_lat_column_struct('x',                     'x',         2, '')
-      column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '')
-      column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '')
-      column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '')
+      column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false.)
+      column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false.)
+      column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false.)
+      column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '', .false.)
+      column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false.)
       if (branch%param%lattice_type == linear_lattice$) then
-        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '')
-        column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '')
-        column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '')
-        column(9)  = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '')
-        column(10) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '')
+        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
+        column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false.)
+        column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false.)
+        column(9)  = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '', .false.)
+        column(10) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '', .false.)
       else
-        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '')
-        column(7)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '')
-        column(8)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '')
-        column(9)  = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '')
-        column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '')
-        column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '')
-        column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '')
+        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
+        column(7)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '', .false.)
+        column(8)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '', .false.)
+        column(9)  = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '', .false.)
+        column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false.)
+        column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false.)
+        column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false.)
       endif
     else
-      column(1)  = show_lat_column_struct('#',                 'i6',        6, '')
-      column(2)  = show_lat_column_struct('x',                 'x',         2, '')
-      column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '')
-      column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '')
-      column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '')
-      column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '')
-      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a')
-      column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '')
-      column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '')
-      column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '')
-      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '')
-      column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '')
-      column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '')
-      column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '')
+      column(1)  = show_lat_column_struct('#',                 'i6',        6, '', .false.)
+      column(2)  = show_lat_column_struct('x',                 'x',         2, '', .false.)
+      column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '', .false.)
+      column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '', .false.)
+      column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '', .false.)
+      column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '', .false.)
+      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f7.2',      7, 'beta|  a', .false.)
+      column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '', .false.)
+      column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '', .false.)
+      column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '', .false.)
+      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f7.2',      7, '', .false.)
+      column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '', .false.)
+      column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '', .false.)
+      column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '', .false.)
     endif
+  endif
+
+  ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')
+
+  if (ix_remove > 0) then
+    j = 0
+    do i = 1, size(column)
+      if (column(i)%name == 'x') cycle
+      j = j + 1
+      if (j == ix_remove) then
+        column(i)%remove_line_if_zero = .true.
+        exit
+      endif
+      if (i == size(column)) then
+        nl=1; lines(1) = 'ARGUMENT FOR "-remove_line_if_zero" OUT OF RANGE!'
+        return
+      endif
+    enddo
   endif
 
   ! Need to compute radiation integrals?
@@ -1372,13 +1402,13 @@ case ('lattice')
   endif
 
   if (by_s) then
-    ix = index(stuff2, ':')
-    if (ix == 0) then
+    ix_s2 = index(stuff2, ':')
+    if (ix_s2 == 0) then
       nl=1; lines(1) = 'NO ":" FOUND FOR RANGE SELECTION'
       return
     endif
-    read (stuff2(1:ix-1), *, iostat = ios1) s1
-    read (stuff2(ix+1:), *, iostat = ios2) s2
+    read (stuff2(1:ix_s2-1), *, iostat = ios1) s1
+    read (stuff2(ix_s2+1:), *, iostat = ios2) s2
     if (ios1 /= 0 .or. ios2 /= 0) then
       nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
       return
@@ -1394,10 +1424,10 @@ case ('lattice')
       if (s_ele >= s1 .and. s_ele <= s2) picked_ele(ie) = .true.
     enddo
 
-  elseif (stuff2(1:ix) == '*' .or. all_lat) then
+  elseif (stuff2(1:ix_s2) == '*' .or. all_lat) then
     ! picked_ele already set
 
-  elseif (ix /= 0) then
+  elseif (ix_s2 /= 0) then
     call tao_locate_elements (stuff2, u%ix_uni, eles, err, .true.)
     if (err) return
     picked_ele = .false.
@@ -1515,13 +1545,14 @@ case ('lattice')
     endif
   endif
 
-  do ie = 0, branch%n_ele_max
+  line_loop: do ie = 0, branch%n_ele_max
     if (.not. picked_ele(ie)) cycle
     if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
     line = ''
     nc = 1
     ele => branch%ele(ie)
     do i = 1, size(column)
+        
       name = column(i)%name
       if (name == '') cycle
 
@@ -1559,6 +1590,7 @@ case ('lattice')
         endif
         call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
+          if (column(i)%remove_line_if_zero) cycle line_loop
           n = len(undef_str)
           k = min(n, column(i)%field_width - 1)
           j = nc + column(i)%field_width - k
@@ -1572,8 +1604,10 @@ case ('lattice')
             endif
           elseif (index(column(i)%format, 'i') /= 0 .or. index(column(i)%format, 'I') /= 0) then
             write (line(nc:), column(i)%format, iostat = ios) nint(value(1))
+            if (column(i)%remove_line_if_zero .and. nint(value(1)) == 0) cycle line_loop
           else
             write (line(nc:), column(i)%format, iostat = ios) value(1)
+            if (column(i)%remove_line_if_zero .and. value(1) == 0) cycle line_loop
           endif
         endif
       endif
@@ -1591,7 +1625,7 @@ case ('lattice')
 
     nl=nl+1; lines(nl) = line
 
-  enddo
+  enddo line_loop
 
   if (print_tail_lines) then
     nl=nl+1; lines(nl) = line2

@@ -1058,7 +1058,7 @@ Format:
    lattice \{-0undef\} \{-all_tracking\} \{-blank_replacement <string>\} 
          \{-branch <branch>\} \{-custom <file_name>\} \{-lords\} \{-middle\} 
          \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
-         \{-s <s1>:<s2>\} \{<elements>\} 
+         \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
    optimizer
    particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
    particle -lost \{<bunch_index>\}
@@ -1280,7 +1280,7 @@ Shows all key bindings.
   show lattice \{-0undef\} \{-all\_tracking\} \{-blank_replacement <string>\}  \\
   \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\}\{-lords\} \{-middle\}  \\
   \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-radiation_integrals\} \\
-  \hspace*{0.35in} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
+  \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
 Show a table of Twiss and orbit data, etc. for the \vn{model} lattice at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
@@ -1339,8 +1339,9 @@ To customize the output use the command \vn{show lattice -custom
     column(3) = "ele::#[name]",          "a",      0
     column(4) = "ele::#[key]",           "a16",   16
     column(5) = "ele::#[s]",             "f10.3", 10
-    column(6) = "ele::#[beta_a]",        "f7.2",   7
-    column(7) = "1e3 * ele::#[orbit_x]", "f8.3",   8, "Orbit_x| (mm)" 
+    column(6) = "ele::#[l]",             "f10.3", 10
+    column(7) = "ele::#[beta_a]",        "f7.2",   7
+    column(8) = "1e3 * ele::#[orbit_x]", "f8.3",   8, "Orbit_x| (mm)" 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what
@@ -1397,7 +1398,23 @@ The last component is column title name. This component is optional
 and if not present then \tao will choose something appropriate. The
 column title can be split into two lines using \vn{"|"} as a separator.
 In the example above, The column title corresponding to \vn{"Orbit_x| (mm)"} 
-is:
+will have ``Orbit_x'' printed in one row of the title and ``(mm)'' in the next row.
+
+If present, the \vn{-remove_line_if_zero <column \#>} switch will
+suppress any lines where the value in the column given by \vn{<column
+\#>} is zero or not defined. Notice that when specifying custom columns using the
+\vn{-custom} switch, columns that only insert blank space
+are not counted. For example:
+\begin{example}
+  show lat -custom cust.table -remove 5
+\end{example}
+Assuming that the file \vn{cust.table} contains the example
+custimization given above, the fifth visible column corresponds to
+\vn{column(6)} which prints the element length. The \vn{-remove 5}
+will then remove all lines associated with elements whose length is
+zero.
+
+Example:
 \begin{example}
   show lattice 50:100         ! Show lattice elements with index 50 through 100
 \end{example}
