@@ -161,7 +161,7 @@ end subroutine check_aperture_limit
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift (orb, length, p0c, param)
+! Subroutine track_a_drift (orb, length)
 !
 ! Subroutine to track a particle as through a drift.
 !
@@ -169,36 +169,27 @@ end subroutine check_aperture_limit
 !   use precision_def
 !
 ! Input:
-!   orb(6) -- coord_struct: Orbit at start of the drift
+!   orb    -- coord_struct: Orbit at start of the drift
 !   length -- Real(rp): Length of drift.
-!   p0c    -- Real(rp): Reference momentom. Needed for orb(5) calc.
-!   param  -- lat_param_struct: lattice parameters.
-!     %particle -- Needed for orb(5) calc.
 !
 ! Output:
-!   orb(6) -- coord_struct: Orbit at end of the drift
+!   orb%vec(:) -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift (orb, length, p0c, param)
+subroutine track_a_drift (orb, length)
 
 implicit none
 
 type (coord_struct) orb
 type (lat_param_struct) param
-real(rp) length, rel_pc, p0c, dz, beta, gamma
+real(rp) length, rel_pc
 
 !
-
 rel_pc = 1 + orb%vec(6)
-call convert_pc_to (p0c * rel_pc, param%particle, beta = beta, gamma = gamma)
 
 orb%vec(1) = orb%vec(1) + length * orb%vec(2) / rel_pc
 orb%vec(3) = orb%vec(3) + length * orb%vec(4) / rel_pc
-dz = length * (orb%vec(6) / gamma**2 - (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2))
-orb%vec(5) = orb%vec(5) + dz
-
-orb%s = orb%s + length
-orb%t = orb%t + length * (1 + (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)) / (c_light * beta)
+orb%vec(5) = orb%vec(5) - length * (orb%vec(2)**2 + orb%vec(4)**2) / (2 * rel_pc**2)
 
 end subroutine track_a_drift
 
@@ -250,7 +241,7 @@ if (ele%value(g$) == 0) then
   length = ele%value(l$)
   end = start
   end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
-  call track_a_drift (end, length, ele%value(p0c$), param)
+  call track_a_drift (end, length)
   end%vec(2) = end%vec(2) - length * ele%value(g_err$) / 2
   return
 endif
