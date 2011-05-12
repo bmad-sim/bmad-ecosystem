@@ -37,7 +37,7 @@ logical :: do_print = .true.
 
 type (spin_map_struct), save, target :: maps(n_key)
 
-private initialize_pauli_vector, rotate_vector
+private initialize_pauli_vector
 
 real(rp), parameter :: g_factor_of(-2:2) = [g_factor_proton, g_factor_electron, 0.0_rp, &
                                             g_factor_electron, g_factor_proton]
@@ -185,10 +185,8 @@ type (coord_struct) coord
 
 !
 
- coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
- coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
-!  coord%spin(2) = Exp(i_imaginary * polar%xi) * sin(polar%theta / 2.0d0) * &
-!                               Exp(i_imaginary * polar%phi)
+coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
+coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
 end subroutine polar_to_spinor
 
@@ -264,21 +262,7 @@ type (coord_struct) coord
 
 real(rp) vec(3)
 
-! complex(rp) complex(3), complex2(2)
-
-! integer i
-
 !
-
-! call initialize_pauli_vector
-
-! complex2 = conjg(coord%spin)
-!
-! forall (i=1:3)
-!   complex(i) = dot_product(conjg(coord%spin), matmul(pauli(i)%sigma, coord%spin))
-! endforall
-
-! vec = real(complex)
 
 ! call spinor_to_polar (coord, polar)
 ! call polar_to_vec (polar, vec)
@@ -372,7 +356,7 @@ end function angle_between_polars
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine quaternion_track (a, start_orb, end_orb)
+! Subroutine quaternion_track (a, spin)
 !
 ! Transports a spinor through the quaternion a
 !
@@ -380,22 +364,20 @@ end function angle_between_polars
 !   use spin_mod
 !
 ! Input:
-!   a           -- Real(rp): Euler four-vector (Quaternion)
-!   start_orb       -- Coord_struct: Incoming spinor
+!   a(4)       -- Real(rp): Euler four-vector (Quaternion)
+!   spin(2)    -- complex(rp): Incoming spinor
 !
 ! Output:
-!   end_orb      -- Coord_struct
-!      %spin    -- complex(rp): Resultant spinor
+!   spin(2)    -- complex(rp): Resultant spinor
 !-
 
-subroutine quaternion_track (a, start_orb, end_orb)
+subroutine quaternion_track (a, spin)
 
 implicit none
 
-type (coord_struct) start_orb
-type (coord_struct) end_orb
+complex(rp), intent(inout) :: spin(2)
 
-real(rp) a(4)
+real(rp), intent(in) :: a(4)
 
 complex(rp) a_quat(2,2) ! The quaternion from the Euler parameters
 
@@ -411,9 +393,43 @@ a_quat = a(4) * a_quat
 a_quat = a_quat - i_imaginary * &
           (a(1) * pauli(1)%sigma + a(2) * pauli(2)%sigma + a(3) * pauli(3)%sigma)
 
- end_orb%spin =  matmul (a_quat, start_orb%spin)
+spin = matmul (a_quat, spin)
 
 end subroutine quaternion_track
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine calc_rotation_quaternion (x, y, z, angle, a)
+!
+! Calculates the quaternion for a rotation of the spin vector by angle about (x,y,z)
+! (x,y,z) has to be a unit vector, i.e. x*x+y*y+z*z=1
+!
+! Modules needed:
+!   use spin_mod
+!
+! Input:
+!   x, y, z    -- Real(rp): Rotation axis (unit vector)
+!   angle      -- Real(rp): Rotation angle
+!
+! Output:
+!   a(4)       -- Real(rp): Resultant quaternion
+!-
+
+subroutine calc_rotation_quaternion (x, y, z, angle, a)
+
+real(rp) , intent(in) :: x, y, z, angle
+real(rp) , intent(out) :: a(4)
+
+real(rp) half_angle, s
+
+half_angle = angle/2.
+s = -sin(half_angle)
+
+a = [x*s, y*s, z*s, cos(half_angle)]
+
+end subroutine calc_rotation_quaternion
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -425,22 +441,22 @@ end subroutine quaternion_track
 !
 ! Uses Nonlinear Spin Transfer Maps from C. Weissbaecker and G. H. Hoffstaetter
 !
-! For now just does first order transport. The kappa term is determined fom the
+! For now just does first order transport. The kappa term is determined from the
 ! unitarity condition.
 !
 ! Modules needed:
 !   use spin_mod
 !
 ! Input :
-!   start_orb      -- Coord_struct: Starting coords.
+!   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
 !     %particle     -- Type of particle used
 !
 ! Output:
-!   end_orb        -- Coord_struct: Ending coords. (contains already ending %vec,
+!   end_orb    -- Coord_struct: Ending coords. (contains already ending %vec,
 !                                               %vec may not be changed)
-!      %spin      -- complex(rp): Ending spinor
+!      %spin(2)   -- complex(rp): Ending spinor
 !-
 
 subroutine track1_spin (start_orb, ele, param, end_orb)
@@ -448,9 +464,8 @@ subroutine track1_spin (start_orb, ele, param, end_orb)
 implicit none
 
 type (coord_struct), intent(in) :: start_orb
-type (coord_struct) :: temp, temp2
-type (coord_struct) :: end_orb
-type (ele_struct) :: ele
+type (coord_struct) :: temp_start, temp_middle, temp_end, end_orb
+type (ele_struct), intent(in) :: ele
 type (lat_param_struct), intent(in) :: param
 type (spin_map_struct), pointer :: map
 
@@ -462,7 +477,7 @@ real(rp) g_factor, m_particle
 
 integer key
 
-logical doesAffectSpin, isKicker
+logical isTreatedHere, isKicker
 
 ! Boris tracking does it's own spin tracking
 if (ele%tracking_method .eq. boris$ .or. &
@@ -473,27 +488,38 @@ g_factor = g_factor_of(param%particle)
 
 end_orb%spin = start_orb%spin     ! transfer start to end
 
+temp_start = start_orb
+temp_end   = end_orb
+
 key = ele%key
 if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 
-temp = start_orb
-
 select case (key)
 case (quadrupole$, sbend$, solenoid$, lcavity$)
-  doesAffectSpin = .true.
+  isTreatedHere = .true.
   isKicker = .false.
 case (kicker$, hkicker$, vkicker$) !elseparator$
-  doesAffectSpin = .false.
+  isTreatedHere = .false.
   isKicker = .true.
 case default
-  doesAffectSpin = .false.
+  isTreatedHere = .false.
   isKicker = .false.
 end select
 
-call offset_particle (ele, param, temp, set$, set_canonical = .false.)
-call offset_spin (ele, param, temp, set$, (doesAffectSpin .or. isKicker))
+! offset particle coordinates at entrance of element
+call offset_particle (ele, param, temp_start, set$, .false., .true., .false., .false.)
+! offset particle coordinates at exit of element
+call offset_particle (ele, param, temp_end,   set$, .false., .true., .false., .false.)
 
-if(doesAffectSpin) then
+call offset_spin (ele, param, temp_start, set$, (isTreatedHere .or. isKicker))
+
+temp_middle%spin = temp_start%spin
+
+if(isTreatedHere) then
+
+  ! rough estimate of particle coordinates in the element
+  temp_middle%vec = (temp_start%vec + temp_end%vec)/2.
+
   select case (key)
 
   !-----------------------------------------------
@@ -512,6 +538,15 @@ if(doesAffectSpin) then
 !     return
 
   !-----------------------------------------------
+  ! sextupole, octupole, multipole
+  ! note: these are taken into account in multipole_spin_precession,
+  !       which is called in offset_spin
+
+!     case (sextupole$, octupole$, multipole$)
+!
+!     return
+
+  !-----------------------------------------------
   ! quadrupole
 
   case (quadrupole$)
@@ -521,7 +556,7 @@ if(doesAffectSpin) then
     u = omega1*ele%value(l$)
 
     xi = 1 + g_factor * &
-          ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
+          ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
 
     map => maps(quadrupole$)
 
@@ -548,12 +583,13 @@ if(doesAffectSpin) then
 
   !-----------------------------------------------
   ! sbend
+  ! does not take k1, k2 (quadrupole and sextupole terms) into account
 
   case (sbend$)
 
-    gamma0 = ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
+    gamma0 = ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
     xi = 1 + g_factor * &
-          ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
+          ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
     v = ele%value(g$)*ele%value(l$)
     x = g_factor*gamma0*v
 
@@ -620,7 +656,7 @@ if(doesAffectSpin) then
     ! For now, just set to one
     g_ratio = 1
 
-    gamma0 = ((1+temp%vec(6)) * ele%value(E_TOT$)) / m_particle
+    gamma0 = ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
 
     if (ele%value(E_TOT_START$) == 0) then
       print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
@@ -628,8 +664,7 @@ if(doesAffectSpin) then
     endif
 
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
-                        end_orb%vec(5) * ele%value(rf_frequency$) / c_light)
-    ! end_orb%vec(5) does not take offsets into account!
+                        temp_end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
     if (.not. ele%is_on) gradient = 0
@@ -649,7 +684,7 @@ if(doesAffectSpin) then
 !     endif
 
     if (gradient /= 0) then
-      pc_start = ele%value(p0c_start$) * (1+temp%vec(6))
+      pc_start = ele%value(p0c_start$) * (1+temp_middle%vec(6))
       call convert_pc_to (pc_start, param%particle, &
                                       E_tot = e_start, beta = beta_start)
       e_end = e_start + gradient * ele%value(l$)
@@ -717,19 +752,17 @@ if(doesAffectSpin) then
 
     a(4) = sqrt(1.0 - (a(1)**2 + a(2)**2 + a(3)**2))
 
-    call quaternion_track (a, temp, temp2)
-    temp%spin = temp2%spin
+    call quaternion_track (a, temp_middle%spin)
   endif
 endif
 
-call offset_spin (ele, param, temp, unset$, (doesAffectSpin .or. isKicker))
-! call offset_particle (ele, param, temp, unset$, set_canonical = .false., & 
-!                         set_hvkicks = .false.)
-! no offset_particle (..., temp, unset$, ...) necessary, since temp%vec is not used any longer
+temp_end%spin = temp_middle%spin
 
-end_orb%spin = temp%spin
+call offset_spin (ele, param, temp_end, unset$, (isTreatedHere .or. isKicker))
 
-contains
+end_orb%spin = temp_end%spin
+
+ contains
 
 !-------------------------------------------------------------------------
 subroutine allocate_map (map, n_gamma1, n_gamma2, n_gamma3, n_kappa)
@@ -739,8 +772,8 @@ implicit none
 type (spin_map_struct) map
 integer n_gamma1, n_gamma2, n_gamma3, n_kappa
 
-!    
-  
+!
+
 if (n_gamma1 .eq. 0) then
   if (associated (map%gamma1)) deallocate (map%gamma1)
 else
@@ -805,7 +838,7 @@ if (.not. associated(map)) return
 do i = 1, size(map)
   a_part = 1.0
   do j = 1, 6
-    a_part = a_part * temp%vec(j)**map(i)%expn(j)
+    a_part = a_part * temp_middle%vec(j)**map(i)%expn(j)
   enddo
   a_part = map(i)%coef * a_part
   a = a + a_part
@@ -901,7 +934,7 @@ omega = omega - (1/m_particle) * (g_factor + 1/(1+gamma0))*&
                    cross_product(p_vec,field%E)
 
 omega = (charge/p_z)*omega
-                    
+
 end function spin_omega_at
 
 !--------------------------------------------------------------------------
@@ -986,35 +1019,31 @@ end function normalized_quaternion
 !                   T -> Rotate using ele%value(tilt$) and 
 !                            ele%value(roll$) for sbends.
 !                   F -> Do not rotate
-!   [set_multipoles -- Logical, optional: Default is True.
-!                   T -> 1/2 of the multipole is applied.]
+!   set_multipoles -- Logical, optional: Default is True.
+!                   T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                   T -> Apply 1/2 any hkick or vkick.
 !
 ! Output:
 !     coord -- Coord_struct: Coordinates of particle.
 !
-! Currently not implemented: multipoles and elseparators
+! Currently not implemented: elseparators
 !-
 
 subroutine offset_spin (ele, param, coord, set, set_tilt, &
                               set_multipoles, set_hvkicks)
 
-use bmad_interface  ! , except_dummy => offset_particle
-use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
+use bmad_interface
 
 implicit none
 
-type (ele_struct) :: ele
+type (ele_struct), intent(in) :: ele
 type (lat_param_struct), intent(in) :: param
 type (coord_struct), intent(inout) :: coord
 
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp), save :: old_angle = 0, old_roll = 0
 real(rp), save :: del_x_vel = 0, del_y_vel = 0
-real(rp) angle, spinvec(3), a_gamma_plus
-
-integer n
+real(rp) angle, a_gamma_plus, a(4)
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_tilt, set_multipoles
@@ -1023,10 +1052,11 @@ logical set_multi, set_hv, set_t, set_hv1, set_hv2
 
 !---------------------------------------------------------------
 
-set_multi = logic_option (.true., set_multipoles)
+set_multi = logic_option (.true., set_multipoles) .and. associated(ele%a_pole)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele%key)
+
 
 ! return if there is nothing to do
 if ( (x_pitch_tot$==0.) .and. (y_pitch_tot$==0.) .and. (.not. set_multi) &
@@ -1066,7 +1096,6 @@ if (set_t .and. ele%key == sbend$) then
   endif
 endif
 
-call spinor_to_vec (coord, spinvec)
 a_gamma_plus = g_factor_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(param%particle) + 1
 
 !----------------------------------------------------------------
@@ -1077,29 +1106,29 @@ if (set) then
   ! Setting s_offset done already in offset_particle
 
   ! Set: (Offset and) pitch
-  ! MB: contrary to coord%vec(2,4) no E_rel, since p_x=P_X/P_0 depends on E_rel but not spinvec
-  call rotate_vector (spinvec(1), spinvec(3), ele%value(x_pitch_tot$))
-  call rotate_vector (spinvec(2), spinvec(3), ele%value(y_pitch_tot$))
+  ! contrary to offset_particle no dependence on E_rel
+  call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, ele%value(x_pitch_tot$), a)
+  call quaternion_track (a, coord%spin)
+  call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, ele%value(y_pitch_tot$), a)
+  call quaternion_track (a, coord%spin)
 
   ! Set: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
   ! HV kicks must come after s_offset but before any tilts are applied.
-  ! Note: Change in %vel is NOT dependent upon energy since we are using
-  ! canonical momentum.
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
-      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
+      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
+      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
   endif
 
   ! Set: Multipoles
 
-! MB: multipole kicks not implemented yet
-! ! !   if (set_multi .and. associated(ele%a_pole)) then
-! ! !     call multipole_ele_to_kt(ele, param%particle, knl, tilt, .true.)
-! ! !     knl = knl / 2
-! ! !     call multipole_kicks (knl, tilt, coord)
-! ! !   endif
+  if (set_multi) then
+    call multipole_spin_precession (ele, param%particle, coord%vec, coord%spin, .true., &
+                               .true., (ele%key==multipole$ .or. ele%key==ab_multipole$))
+  endif
 
   ! Set: Tilt
   ! A non-zero roll has a zeroth order effect that must be included
@@ -1108,12 +1137,16 @@ if (set) then
 
     if (ele%key == sbend$) then
       if (ele%value(roll$) /= 0) then
-        call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * del_x_vel)
-        call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * del_y_vel)
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -a_gamma_plus * del_x_vel, a)
+        call quaternion_track (a, coord%spin)
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -a_gamma_plus * del_y_vel, a)
+        call quaternion_track (a, coord%spin)
       endif
-      call rotate_vector (spinvec(1), spinvec(2), ele%value(tilt_tot$)+ele%value(roll$))
+      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, ele%value(tilt_tot$)+ele%value(roll$), a)
+      call quaternion_track (a, coord%spin)
     else
-      call rotate_vector (spinvec(1), spinvec(2), ele%value(tilt_tot$))
+      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, ele%value(tilt_tot$), a)
+      call quaternion_track (a, coord%spin)
     endif
 
   endif
@@ -1123,16 +1156,21 @@ if (set) then
 
   if (set_hv2) then
     if (ele%key == elseparator$) then
+!     NOT IMPLEMENTED YET
 !       if (param%particle < 0) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
+      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+      call quaternion_track (a, coord%spin)
     elseif (ele%key == vkicker$) then
-      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
+      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+      call quaternion_track (a, coord%spin)
     else ! i.e. elseif (ele%key == kicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
+      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
+      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
     endif
   endif
 
@@ -1145,16 +1183,21 @@ else
 
   if (set_hv2) then
     if (ele%key == elseparator$) then
+!     NOT IMPLEMENTED YET
 !       if (param%particle < 0) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
+      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+      call quaternion_track (a, coord%spin)
     elseif (ele%key == vkicker$) then
-      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(kick$) / 2)
+      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(kick$) / 2, a)
+      call quaternion_track (a, coord%spin)
     else ! i.e. elseif (ele%key == kicker$) then
-      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
+      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
+      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
     endif
   endif
 
@@ -1164,64 +1207,223 @@ else
   if (set_t) then
 
     if (ele%key == sbend$) then
-      call rotate_vector (spinvec(1), spinvec(2), -(ele%value(tilt_tot$)+ele%value(roll$)))
+      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -(ele%value(tilt_tot$)+ele%value(roll$)), a)
+      call quaternion_track (a, coord%spin)
       if (ele%value(roll$) /= 0) then
-        call rotate_vector (spinvec(1), spinvec(3), -a_gamma_plus * del_x_vel)
-        call rotate_vector (spinvec(2), spinvec(3), -a_gamma_plus * del_y_vel)
+        call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -a_gamma_plus * del_y_vel, a)
+        call quaternion_track (a, coord%spin)
+        call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -a_gamma_plus * del_x_vel, a)
+        call quaternion_track (a, coord%spin)
       endif
     else
-      call rotate_vector (spinvec(1), spinvec(2), -ele%value(tilt_tot$))
+      call calc_rotation_quaternion (0._rp, 0._rp, 1._rp, -ele%value(tilt_tot$), a)
+      call quaternion_track (a, coord%spin)
     endif
 
   endif
 
   ! Unset: Multipoles
-
-! MB: multipole kicks not implemented yet
-! ! !   ! MB: why no initialization of knl, tilt needed?
-! ! !   if (set_multi .and. associated(ele%a_pole)) then
-! ! !     call multipole_kicks (knl, tilt, coord)
-! ! !   endif
+  if (set_multi) then
+    call multipole_spin_precession (ele, param%particle, coord%vec, coord%spin, .true., &
+                               .true., (ele%key==multipole$ .or. ele%key==ab_multipole$))
+  endif
 
   ! UnSet: HV kicks for quads, etc. but not hkicker, vkicker, elsep and kicker elements.
   ! HV kicks must come after s_offset but before any tilts are applied.
-  ! Note: Change in %vel is NOT dependent upon energy since we are using
-  ! canonical momentum.
 
   if (set_hv1) then
-      call rotate_vector (spinvec(1), spinvec(3), a_gamma_plus * ele%value(hkick$) / 2)
-      call rotate_vector (spinvec(2), spinvec(3), a_gamma_plus * ele%value(vkick$) / 2)
+      call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, a_gamma_plus * ele%value(vkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
+      call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, a_gamma_plus * ele%value(hkick$) / 2, a)
+      call quaternion_track (a, coord%spin)
   endif
 
   ! Unset: (Offset and) pitch
 
-  call rotate_vector (spinvec(2), spinvec(3), -ele%value(y_pitch_tot$))
-  call rotate_vector (spinvec(1), spinvec(3), -ele%value(x_pitch_tot$))
+  call calc_rotation_quaternion (1._rp, 0._rp, 0._rp, -ele%value(y_pitch_tot$), a)
+  call quaternion_track (a, coord%spin)
+  call calc_rotation_quaternion (0._rp, -1._rp, 0._rp, -ele%value(x_pitch_tot$), a)
+  call quaternion_track (a, coord%spin)
 
 endif
 
-call vec_to_spinor (spinvec, coord)
-
-end subroutine
+end subroutine offset_spin
 
 
-subroutine rotate_vector (v1, v2, rot_angle)
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine multipole_spin_precession (ele, particle, vec, spin, do_half_prec, &
+!                                       include_sextupole_octupole, ref_orb_offset)
+!
+! Subroutine to track the spins in a multipole field
+!
+! Modules Needed:
+!   use multipole_mod, only: multipole_ele_to_ab
+!
+! Input:
+!   ele              -- Ele_struct: Element
+!     %value(x_pitch$)        -- Horizontal roll of element.
+!     %value(y_pitch$)        -- Vertical roll of element.
+!     %value(tilt$)           -- Tilt of element.
+!     %value(roll$)           -- Roll of dipole.
+!   particle         -- Integer: What kind of particle.
+!   vec              -- Real(rp): Coordinates of the particle.
+!   spin(2)          -- Complex(rp): Incoming spinor
+!   do_half_prec     -- Logical, optional: Default is False.
+!                          Apply half multipole effect only (for kick-drift-kick model)
+!   include_sextupole_octupole  -- Logical, optional: Default is False.
+!                          Include the effects of sextupoles and octupoles
+!                          (since there are currently not implemented in track1_spin)
+!   ref_orb_offset   -- Logical, optional: Default is False.
+!                          Rotate the local coordinate system according to the
+!                          the dipole component of the multipole
+!
+! Output:
+!   spin(2)          -- Complex(rp): Resultant spinor
+!-
 
-  implicit none
+subroutine multipole_spin_precession (ele, particle, vec, spin, do_half_prec, &
+                                      include_sextupole_octupole, ref_orb_offset)
 
-  real(rp) v1, v2, rot_angle, c, s, old1
+use multipole_mod, only: multipole_ele_to_ab
 
-  if (rot_angle == 0.) return
+implicit none
 
-  c = cos(rot_angle)
-  s = sin(rot_angle)
+type (ele_struct), intent(in) :: ele
 
-  old1 = v1
+logical, optional, intent(in) :: do_half_prec, include_sextupole_octupole, ref_orb_offset
+logical half_prec_new, sext_oct_new, ref_orb_new, recalc_prec
+logical, save :: half_prec, sext_oct, ref_orb
 
-  v1 =    v1*c + v2*s
-  v2 = -old1*s + v2*c
+complex(rp), intent(inout) :: spin(2)
 
-end subroutine rotate_vector
+real(rp), intent(in) :: vec(6)
+real(rp) an_new(0:n_pole_maxx), bn_new(0:n_pole_maxx)
+real(rp) knl_new, a_field(4)
+real(rp), save :: an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4)
+
+complex(rp) kick, pos
+
+integer, intent(in) :: particle
+integer n, key_new
+integer, save :: key
+
+!
+
+half_prec_new = logic_option (.false., do_half_prec)
+sext_oct_new  = logic_option (.false., include_sextupole_octupole)
+ref_orb_new   = logic_option (.false., ref_orb_offset)
+
+call multipole_ele_to_ab(ele, particle, an_new, bn_new, .true.)
+
+! need to recalculate precession parameters?
+recalc_prec = (half_prec_new/=half_prec .or. sext_oct_new/=sext_oct .or. ref_orb_new/=ref_orb)
+
+key_new = ele%key
+select case (key_new)
+  case (sextupole$)
+    knl_new = ele%value(k2$)*ele%value(l$)
+  case (octupole$)
+    knl_new = ele%value(k3$)*ele%value(l$)
+  case default
+    knl_new = 0.
+    key_new = drift$ ! it does not matter which one of the others
+end select
+
+if (key_new/=key .or. knl_new/=knl) then
+  recalc_prec = .true.
+endif
+
+if (.not. recalc_prec) then
+  do n = 0, n_pole_maxx
+    if (an_new(n)/=an(n) .or. bn_new(n)/=bn(n)) then
+      recalc_prec = .true.
+      exit
+    endif
+  enddo
+endif
+
+
+
+! if need to recalculate precession parameters, then ...
+if ( recalc_prec ) then
+  ! store values for comparison next time
+  half_prec = half_prec_new
+  sext_oct = sext_oct_new
+  ref_orb = ref_orb_new
+  key = key_new
+  knl = knl_new
+  an = an_new
+  bn = bn_new
+
+  ! modify the NON-stored values for calculation
+  if (half_prec) then
+    an_new  = an_new/2.
+    bn_new  = bn_new/2.
+    knl_new = knl_new/2.
+  endif
+  if (sext_oct) then
+    ! add half effect of element to take sextupoles/octupoles into account (kick-drift-kick model)
+    select case (key)
+    case (sextupole$)
+      bn_new(2) = bn_new(2) + knl_new*cos(3.*ele%value(tilt_tot$))/2.
+      an_new(2) = an_new(2) - knl_new*sin(3.*ele%value(tilt_tot$))/2.
+    case (octupole$)
+      bn_new(3) = bn_new(3) + knl_new*cos(4.*ele%value(tilt_tot$))/6.
+      an_new(3) = an_new(3) - knl_new*sin(4.*ele%value(tilt_tot$))/6.
+    end select
+  endif
+
+  ! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
+  ! according to bmad manual, chapter "physics", section "Magnetic Fields"
+  ! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
+  kick = bn_new(0)+i_imaginary*an_new(0)
+
+  if (ref_orb .and. kick/=0.) then
+    ! calculate rotation of local coordinate system
+    kick_angle = abs(kick)
+    call calc_rotation_quaternion(aimag(kick)/kick_angle, real(kick)/kick_angle, 0._rp, &
+                         -kick_angle, a_coord)
+  endif
+
+  pos = vec(1)+i_imaginary*vec(3)
+  kick = kick + (bn_new(1)+i_imaginary*an_new(1))*pos
+
+  if (pos /= 0.) then
+    do n = 2, n_pole_maxx
+      pos = pos * (vec(1)+i_imaginary*vec(3))
+      kick = kick + (bn_new(n)+i_imaginary*an_new(n))*pos
+    enddo
+  endif
+
+  kick_angle = abs(kick)
+  if ( kick_angle == 0. ) then
+    Bx = 0.
+    By = 0.
+  else
+    kick = kick / kick_angle
+    Bx = aimag(kick)
+    By = real(kick)
+  endif
+endif
+
+
+
+! let spins precess
+if ( kick_angle /= 0. ) then
+  ! precession_angle = kick_angle*(a*gamma+1) about n:=(Bx, By, 0)
+  call calc_rotation_quaternion(Bx, By, 0._rp, kick_angle * (g_factor_of(particle) * ele%value(e_tot$) * &
+                        (1 + vec(6)) / mass_of(particle) + 1), a_field)
+  call quaternion_track (a_field, spin)
+endif
+
+if (ref_orb .and. (an(0) /= 0. .or. bn(0) /= 0.)) then
+  call quaternion_track (a_coord, spin)
+endif
+
+end subroutine multipole_spin_precession
 
 end module spin_mod
 
