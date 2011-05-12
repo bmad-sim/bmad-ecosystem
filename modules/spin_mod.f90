@@ -42,7 +42,7 @@ private initialize_pauli_vector
 real(rp), parameter :: g_factor_of(-2:2) = [g_factor_proton, g_factor_electron, 0.0_rp, &
                                             g_factor_electron, g_factor_proton]
 
-contains
+ contains
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -185,8 +185,8 @@ type (coord_struct) coord
 
 !
 
-coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
-coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
+ coord%spin(1) = Exp(i_imaginary * polar%xi) * cos(polar%theta / 2.0d0)
+ coord%spin(2) = Exp(i_imaginary * (polar%xi+polar%phi)) * sin(polar%theta / 2.0d0)
 
 end subroutine polar_to_spinor
 
@@ -1052,7 +1052,7 @@ logical set_multi, set_hv, set_t, set_hv1, set_hv2
 
 !---------------------------------------------------------------
 
-set_multi = logic_option (.true., set_multipoles) .and. associated(ele%a_pole)
+set_multi = logic_option (.true., set_multipoles) .and. (associated(ele%a_pole) .or. ele%key==sextupole$ .or. ele%key==octupole$)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt)  .and. has_orientation_attributes(ele%key)
@@ -1294,136 +1294,97 @@ implicit none
 type (ele_struct), intent(in) :: ele
 
 logical, optional, intent(in) :: do_half_prec, include_sextupole_octupole, ref_orb_offset
-logical half_prec_new, sext_oct_new, ref_orb_new, recalc_prec
-logical, save :: half_prec, sext_oct, ref_orb
+logical half_prec, sext_oct, ref_orb
 
 complex(rp), intent(inout) :: spin(2)
 
 real(rp), intent(in) :: vec(6)
-real(rp) an_new(0:n_pole_maxx), bn_new(0:n_pole_maxx)
-real(rp) knl_new, a_field(4)
-real(rp), save :: an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4)
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4), a_field(4)
 
 complex(rp) kick, pos
 
 integer, intent(in) :: particle
-integer n, key_new
-integer, save :: key
+integer n
 
 !
 
-half_prec_new = logic_option (.false., do_half_prec)
-sext_oct_new  = logic_option (.false., include_sextupole_octupole)
-ref_orb_new   = logic_option (.false., ref_orb_offset)
+half_prec = logic_option (.false., do_half_prec)
+sext_oct  = logic_option (.false., include_sextupole_octupole)
+ref_orb   = logic_option (.false., ref_orb_offset)
 
-call multipole_ele_to_ab(ele, particle, an_new, bn_new, .true.)
+call multipole_ele_to_ab(ele, particle, an, bn, .true.)
 
-! need to recalculate precession parameters?
-recalc_prec = (half_prec_new/=half_prec .or. sext_oct_new/=sext_oct .or. ref_orb_new/=ref_orb)
-
-key_new = ele%key
-select case (key_new)
+select case (ele%key)
   case (sextupole$)
-    knl_new = ele%value(k2$)*ele%value(l$)
+    knl = ele%value(k2$)*ele%value(l$)
   case (octupole$)
-    knl_new = ele%value(k3$)*ele%value(l$)
+    knl = ele%value(k3$)*ele%value(l$)
   case default
-    knl_new = 0.
-    key_new = drift$ ! it does not matter which one of the others
+    knl = 0.
 end select
 
-if (key_new/=key .or. knl_new/=knl) then
-  recalc_prec = .true.
+if (half_prec) then
+  an  = an/2.
+  bn  = bn/2.
+  knl = knl/2.
 endif
 
-if (.not. recalc_prec) then
-  do n = 0, n_pole_maxx
-    if (an_new(n)/=an(n) .or. bn_new(n)/=bn(n)) then
-      recalc_prec = .true.
-      exit
-    endif
+if (sext_oct) then
+  ! add half effect of element to take sextupoles/octupoles into account (kick-drift-kick model)
+  select case (ele%key)
+  case (sextupole$)
+    bn(2) = bn(2) + knl*cos(3.*ele%value(tilt_tot$))/2.
+    an(2) = an(2) - knl*sin(3.*ele%value(tilt_tot$))/2.
+  case (octupole$)
+    bn(3) = bn(3) + knl*cos(4.*ele%value(tilt_tot$))/6.
+    an(3) = an(3) - knl*sin(4.*ele%value(tilt_tot$))/6.
+  end select
+endif
+
+! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
+! according to bmad manual, chapter "physics", section "Magnetic Fields"
+! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
+kick = bn(0)+i_imaginary*an(0)
+
+if (ref_orb) then
+  ! calculate rotation of local coordinate system due to dipole component
+  kick_angle = abs(kick)
+  if ( kick_angle == 0. ) then
+    ref_orb = .false.
+  else
+    Bx = aimag(kick / kick_angle)
+    By = real (kick / kick_angle)
+    call calc_rotation_quaternion(Bx, By, 0._rp, -kick_angle, a_coord)
+  endif
+endif
+
+pos = vec(1)+i_imaginary*vec(3)
+if (pos /= 0.) then
+  kick = kick + (bn(1)+i_imaginary*an(1))*pos
+  do n = 2, n_pole_maxx
+    pos = pos * (vec(1)+i_imaginary*vec(3))
+    kick = kick + (bn(n)+i_imaginary*an(n))*pos
   enddo
 endif
 
-
-
-! if need to recalculate precession parameters, then ...
-if ( recalc_prec ) then
-  ! store values for comparison next time
-  half_prec = half_prec_new
-  sext_oct = sext_oct_new
-  ref_orb = ref_orb_new
-  key = key_new
-  knl = knl_new
-  an = an_new
-  bn = bn_new
-
-  ! modify the NON-stored values for calculation
-  if (half_prec) then
-    an_new  = an_new/2.
-    bn_new  = bn_new/2.
-    knl_new = knl_new/2.
-  endif
-  if (sext_oct) then
-    ! add half effect of element to take sextupoles/octupoles into account (kick-drift-kick model)
-    select case (key)
-    case (sextupole$)
-      bn_new(2) = bn_new(2) + knl_new*cos(3.*ele%value(tilt_tot$))/2.
-      an_new(2) = an_new(2) - knl_new*sin(3.*ele%value(tilt_tot$))/2.
-    case (octupole$)
-      bn_new(3) = bn_new(3) + knl_new*cos(4.*ele%value(tilt_tot$))/6.
-      an_new(3) = an_new(3) - knl_new*sin(4.*ele%value(tilt_tot$))/6.
-    end select
-  endif
-
-  ! calculate kick_angle (for particle) and unit vector (Bx, By) parallel to B-field
-  ! according to bmad manual, chapter "physics", section "Magnetic Fields"
-  ! kick = qL/P_0*(B_y+i*Bx) = \sum_n (b_n+i*a_n)*(x+i*y)^n
-  kick = bn_new(0)+i_imaginary*an_new(0)
-
-  if (ref_orb .and. kick/=0.) then
-    ! calculate rotation of local coordinate system
-    kick_angle = abs(kick)
-    call calc_rotation_quaternion(aimag(kick)/kick_angle, real(kick)/kick_angle, 0._rp, &
-                         -kick_angle, a_coord)
-  endif
-
-  pos = vec(1)+i_imaginary*vec(3)
-  kick = kick + (bn_new(1)+i_imaginary*an_new(1))*pos
-
-  if (pos /= 0.) then
-    do n = 2, n_pole_maxx
-      pos = pos * (vec(1)+i_imaginary*vec(3))
-      kick = kick + (bn_new(n)+i_imaginary*an_new(n))*pos
-    enddo
-  endif
-
-  kick_angle = abs(kick)
-  if ( kick_angle == 0. ) then
-    Bx = 0.
-    By = 0.
-  else
-    kick = kick / kick_angle
-    Bx = aimag(kick)
-    By = real(kick)
-  endif
-endif
-
-
-
-! let spins precess
+kick_angle = abs(kick)
 if ( kick_angle /= 0. ) then
-  ! precession_angle = kick_angle*(a*gamma+1) about n:=(Bx, By, 0)
-  call calc_rotation_quaternion(Bx, By, 0._rp, kick_angle * (g_factor_of(particle) * ele%value(e_tot$) * &
-                        (1 + vec(6)) / mass_of(particle) + 1), a_field)
+  kick = kick / kick_angle
+  Bx = aimag(kick)
+  By = real(kick)
+  ! precession_angle = kick_angle*(a*gamma+1)
+  kick_angle = kick_angle * (g_factor_of(particle) * ele%value(e_tot$) * &
+                        (1 + vec(6)) / mass_of(particle) + 1)
+  call calc_rotation_quaternion(Bx, By, 0._rp, kick_angle, a_field)
   call quaternion_track (a_field, spin)
 endif
 
-if (ref_orb .and. (an(0) /= 0. .or. bn(0) /= 0.)) then
+if (ref_orb) then
   call quaternion_track (a_coord, spin)
 endif
 
 end subroutine multipole_spin_precession
 
 end module spin_mod
+
 
