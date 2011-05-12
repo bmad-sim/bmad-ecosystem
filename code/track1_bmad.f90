@@ -167,8 +167,10 @@ case (bend_sol_quad$)
     end%vec(1:4) = matmul (mat4, end%vec(1:4))
   enddo
 
-
   call offset_particle (ele, param, end, unset$)
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! capillary
@@ -195,8 +197,11 @@ case (crystal$)
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
-  call track_a_drift (end, length, ele%value(p0c$), param)
+  call track_a_drift (end, length)
   if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! kicker, separator
@@ -215,6 +220,9 @@ case (elseparator$, kicker$, hkicker$, vkicker$)
 
   call offset_particle (ele, param, end, unset$)  
   call end_z_calc
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! LCavity: Linac rf cavity
@@ -273,8 +281,10 @@ case (lcavity$)
 
   if (gradient == 0 .and. gradient_ref == 0) then
     if (ele%is_on) call offset_particle (ele, param, end, set$, .false.)
-    call track_a_drift (end, length, ele%value(p0c$), param)
+    call track_a_drift (end, length)
     if (ele%is_on) call offset_particle (ele, param, end, unset$, .false.)
+    ! 1/gamma^2 low E correction
+    end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
     return
   endif
 
@@ -493,7 +503,7 @@ case (octupole$)
 
   do i = 1, n_slice
 
-    call track_a_drift (end, length / n_slice, ele%value(p0c$), param)
+    call track_a_drift (end, length / n_slice)
 
     if (i == n_slice) then
       end%vec(2) = end%vec(2) + k3l *  (3*end%vec(1)*end%vec(3)**2 - end%vec(1)**3) / 12
@@ -506,6 +516,9 @@ case (octupole$)
   enddo
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)  
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! patch
@@ -552,11 +565,10 @@ case (quadrupole$)
 
   end%vec(3:4) = matmul(mat2, end%vec(3:4))
 
-  pz = end%vec(6)
-  end%vec(5) = end%vec(5) + length * &
-          pz * (1 + pz/2) * (mass_of(param%particle)/(ele%value(p0c$) * rel_pc))**2
-
   call offset_particle (ele, param, end, unset$)  
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! rfcavity
@@ -614,12 +626,18 @@ case (rfcavity$)
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
 
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+
 !-----------------------------------------------
 ! sbend
 
 case (sbend$)
 
   call track_a_bend (start, ele, param, end)
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! sextupole
@@ -637,7 +655,7 @@ case (sextupole$)
   end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
 
   do i = 1, n_slice
-    call track_a_drift (end, length/n_slice, ele%value(p0c$), param)
+    call track_a_drift (end, length/n_slice)
     if (i == n_slice) then
       end%vec(2) = end%vec(2) + k2l * (end%vec(3)**2 - end%vec(1)**2)/4
       end%vec(4) = end%vec(4) + k2l * end%vec(1) * end%vec(3) / 2
@@ -648,6 +666,9 @@ case (sextupole$)
   enddo
 
   call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! solenoid
@@ -667,6 +688,9 @@ case (solenoid$)
 
   call offset_particle (ele, param, end, unset$)
 
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
+
 !-----------------------------------------------
 ! sol_quad
 
@@ -682,6 +706,9 @@ case (sol_quad$)
   end%vec(1:4) = matmul (mat6(1:4,1:4), end%vec(1:4))
 
   call offset_particle (ele, param, end, unset$)
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! Taylor
@@ -734,6 +761,9 @@ case (wiggler$)
 
   call offset_particle (ele, param, end, unset$)
   call end_z_calc
+
+  ! 1/gamma^2 low E correction
+  end%vec(5) = end%vec(5) + length * end%vec(6) * (1 - 3 * end%vec(6) / 2) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 !-----------------------------------------------
 ! unknown
