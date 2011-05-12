@@ -438,7 +438,7 @@ p_orb%vec(5) = ele_here%s
 ! Note: phase space coords here are different from the normal beam and photon coords.
 ! Here vec(2)^2 + vec(4)^2 + vec(6)^2 = 1
 
-p_orb%vec(6) = photon_direction * sqrt(1 - orb(2)**2 - orb(4)**2)
+p_orb%vec(6) = photon_direction * sqrt(1 - p_orb%vec(2)**2 - p_orb%vec(4)**2)
 
 end subroutine sr3d_emit_photon
 

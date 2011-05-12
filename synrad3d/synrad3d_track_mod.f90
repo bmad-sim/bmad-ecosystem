@@ -475,8 +475,8 @@ propagation_loop: do
   photon%now%track_len = photon%now%track_len + dl
   dl_left = dl_left - dl
 
-  if (dl_left == 0) return
-  if (stop_at_check_pt .and. check_pt_here) return
+  if (dl_left == 0) exit
+  if (stop_at_check_pt .and. check_pt_here) exit
 
 enddo propagation_loop
 
