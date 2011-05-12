@@ -73,7 +73,7 @@ call mat_make_unit (mat6)
 ele%vec0 = 0
 
 length = ele%value(l$)
-rel_p = 1 + c0%vec(6)  ! E/E_0
+rel_p = 1 + c0%vec(6) 
 key = ele%key
 
 if (.not. logic_option (.false., end_in)) then
@@ -107,7 +107,7 @@ if (.not. ele%is_on .and. key /= lcavity$) key = drift$
 if (any (key == (/ drift$, capillary$, elseparator$, kicker$, rcollimator$, &
         ecollimator$, monitor$, instrument$, hkicker$, vkicker$, pipe$ /) )) then
   call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
   return
 endif
@@ -169,7 +169,7 @@ case (beambeam$)
 
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.false.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -229,7 +229,7 @@ case (lcavity$)
 
   if (gradient == 0) then
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
-    call add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset (.true.)
     return
   endif
 
@@ -317,7 +317,7 @@ case (lcavity$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.false.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -395,7 +395,7 @@ case (octupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -468,7 +468,7 @@ case (quadrupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -539,7 +539,7 @@ case (rfcavity$)
 
   !
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -655,7 +655,7 @@ case (sbend$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$)+ele%value(roll$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -686,7 +686,7 @@ case (sextupole$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -772,7 +772,7 @@ case (solenoid$)
   yp_start = (c0%vec(4) - ks2 * c0%vec(1)) 
   mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p**3
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -789,7 +789,7 @@ case (sol_quad$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -810,7 +810,7 @@ case (wiggler$)
   call mat_make_unit (mat6)     ! make a unit matrix
 
   if (length == 0) then
-    call add_multipoles_and_s_offset
+    call add_multipoles_and_s_offset (.true.)
     return
   endif
 
@@ -859,7 +859,7 @@ case (wiggler$)
     call tilt_mat6 (mat6, ele%value(tilt_tot$))
   endif
 
-  call add_multipoles_and_s_offset
+  call add_multipoles_and_s_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -919,7 +919,9 @@ end select
 
 contains
 
-subroutine add_multipoles_and_s_offset
+subroutine add_multipoles_and_s_offset(add_m56_correction)
+
+logical add_m56_correction
 
 if (associated(ele%a_pole) .and. key /= multipole$ .and. key /= ab_multipole$) then
   call multipole_ele_to_kt (ele, param%particle, knl, tilt, .true.)
@@ -944,6 +946,11 @@ endif
 ! pitch corrections
 
 call mat6_add_pitch (ele, ele%mat6)
+
+! 1/gamma^2 m56 correction
+
+if (add_m56_correction) mat6(5,6) = mat6(5,6) + &
+        length * (1 - 3 * c0%vec(6)) * (mass_of(param%particle) / ele%value(e_tot$))**2
 
 end subroutine
 

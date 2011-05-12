@@ -178,7 +178,7 @@ if (set) then
       x_off = vec(1); y_off = vec(2); s_off = vec(3)
     endif
 
-    if (s_off /= 0) call track_a_drift (coord, s_off, ele%value(p0c$), param)
+    if (s_off /= 0) call track_a_drift (coord, s_off)
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
       coord%vec(1) = coord%vec(1) - x_off - xp * s_here
@@ -348,7 +348,7 @@ else
       coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
 
-    if (s_off /= 0) call track_a_drift (coord, -s_off, ele%value(p0c$), param)
+    if (s_off /= 0) call track_a_drift (coord, -s_off)
   endif
 
 endif

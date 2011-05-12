@@ -774,14 +774,10 @@ tracking and is not used by any \bmad routines.
 \vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
 of these vectors must be present and have the same length. The
 exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be
-omitted and will default to zero. To be complete, the number of terms $N$
-for the $e$ or $b$ vectors is
-\begin{equation}
-  N = \frac{L}{dz} + 1
-\end{equation}
-where $L$ is the length of the RF element. $N$ must be even. The
-$n$\Th element in the $e$ or $b$ arrays, with $n$ running from 0 to
-$N-1$, is associated with a frequency $\omega_n$
+omitted and will default to zero. The number of terms $N$ for the $e$
+or $b$ vectors must be a power of $2$ and all modes must have the same
+number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
+running from 0 to $N-1$, is associated with a frequency $\omega_n$
 \begin{equation}
   \omega_n = \begin{cases}
     \frac{n}{N \, dz} & n < \frac{N}{2} \\
@@ -791,12 +787,23 @@ $N-1$, is associated with a frequency $\omega_n$
 This convention follows the convention used by Numerical
 Recipes\cite{b:nr}.  
 
-%In practice, the terms at the highest frequencies
-%(at $n \sim N/2$) may be small. These terms may be dropped from the
-%$e$ and $b$ arrays. In this case, if there are only $\wt N$ terms
-%specified, $\wt N$ must be even. The first $\wt N/2$ terms are associated
-%with $n = 0, \ldots, \wt N/2$ and the last $\wt N/2$ terms are associated
-%with $n = N - \wt N/2, \ldots, N - 1$.
+The longitudinal length
+of the field is
+\begin{equation}
+  L_{field} = \frac{N - 1}{dz}
+\end{equation}
+this may be different from the length \vn{l} specified for the
+element. If there is a difference, the field is assumed to be centered
+on the element and drifts will be used at the entrance and exit ends
+of the element to make up the difference.
+
+The phase of the fundamental mode is autoscaled by Bmad so that a
+particle with $z = 0$ will go through the cavity on crest for a
+\vn{lcavity} and on the zero-crossing for an
+\vn{rfcavity}. Additionally, the field of the fundamental mode is
+adjusted by an overall factor so that for an \vn{lcavity} the
+maximal acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
+the maximal acceleration is equal to \vn{e * voltage}.
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}

@@ -267,6 +267,7 @@ if (associated(ele%rf%field)) then
       nl=nl+1; write (li(nl), '(a, es12.4)') '    f_scale: ', rfm%f_scale
       nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
       do j = 1, size(rfm%term)
+        if (nl+1 > size(li)) call re_associate(li, 2 * nl)
         nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
                                                        '(', rfm%term(j)%e, ')  (', rfm%term(j)%b, ')'
       enddo
@@ -566,8 +567,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
 
   if (associated(ele%taylor(1)%term)) then
     nl=nl+1; li(nl) = ' '
-    nl=nl+1; write (li(nl), '(a, l1)') &
-                          'map_with_offsets: ', ele%map_with_offsets
+    nl=nl+1; write (li(nl), '(a, l1)') 'map_with_offsets: ', ele%map_with_offsets
     if (logic_option(.false., type_taylor)) then
       call type2_taylors (ele%taylor, li2, nt)
       call re_associate (li, nl+nt+100)
