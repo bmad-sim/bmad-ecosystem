@@ -771,6 +771,7 @@ end subroutine
 ! Subroutine drift_mat6_calc (mat6, length, start, end)
 !
 ! Subroutine to calculate a drift transfer matrix with a possible kick.
+! Note: Does not include 1/gamma^2 M56 term.
 !
 ! Modules needed:
 !   use bmad

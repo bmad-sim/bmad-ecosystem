@@ -138,7 +138,7 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield, local_orbit)
+! Subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
@@ -163,7 +163,7 @@ end subroutine save_a_step
 !                then calculate the field derivatives.
 !
 ! Output:
-!   field       -- em_field_struct: E and B fields
+!   field       -- em_field_struct: E and B fields and derivatives.
 !-
 
 subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
