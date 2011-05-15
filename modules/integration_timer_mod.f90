@@ -176,7 +176,7 @@ subroutine get_taylor (ns, ut, a_fibre, y, orbit)
   call real_8_init (y)
 
   y = orbit
-  call ptc_track (a_fibre, y, default, +1)  ! "track" in PTC
+  call ptc_track (a_fibre, y, default)  ! "track" in PTC
   
   do iz = 1, 6
     if (associated(ut(iz)%c)) ut(iz) = -1
