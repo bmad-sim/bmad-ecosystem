@@ -51,7 +51,7 @@ if (ele%key == wiggler$ .and. ele%value(z_patch$) == 0) then
 endif
 
 call vec_bmad_to_ptc (start%vec, re)  ! convert BMAD coords to PTC coords
-call ptc_track (fibre_ele, re, DEFAULT, +1)  ! "track" in PTC
+call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 call vec_ptc_to_bmad (re, end%vec)
 
 if (ele%key == wiggler$) then

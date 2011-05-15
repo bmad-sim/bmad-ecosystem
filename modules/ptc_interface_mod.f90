@@ -1679,7 +1679,7 @@ y = tlr
 
 call alloc (a_fibre)
 call ele_to_fibre (ele, a_fibre, param, .true.)
-call ptc_track (a_fibre, y, default, +1)  ! "track" in PTC
+call ptc_track (a_fibre, y, default)  ! "track" in PTC
 call kill (a_fibre)
 
 tlr = y
@@ -1790,7 +1790,7 @@ endif
 
 call real_8_init(y)
 y = x   ! y = IdentityMap + x
-call ptc_track (a_fibre, y, default, +1) ! "track" in PTC
+call ptc_track (a_fibre, y, default) ! "track" in PTC
 
 ! take out the offset
 
