@@ -63,8 +63,7 @@ integer i
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 !
 
@@ -85,7 +84,7 @@ call kill (y1)
 call kill (y2)
 call kill (y3)
 
-end function
+end function taylor_plus_taylor
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -117,8 +116,7 @@ integer i
 
 ! set the taylor order in PTC if not already done so
 
-  if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                         call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 !
 
@@ -139,7 +137,7 @@ call kill (y1)
 call kill (y2)
 call kill (y3)
 
-end function
+end function taylor_minus_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -196,7 +194,7 @@ if (.not. logic_option(.true., override_flag) .and. ptc_com%taylor_order_set) re
 bmad_com%taylor_order = order
 ptc_com%taylor_order_set = .true.    
 
-end subroutine
+end subroutine set_taylor_order
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -307,9 +305,9 @@ if (.not. present(iz)) return
 
   n_max = max(n_max, n0)
 
-end subroutine
+end subroutine map_index
 
-end function
+end function map_coef
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -343,7 +341,7 @@ print *, 'Name:         ', lay%name
 print *, 'N:            ', lay%N,        '  ! Number of Elements'
 print *, 'LatPos:       ', lay%lastpos,  '  ! Last position'
 
-end subroutine
+end subroutine type_layout
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -404,7 +402,7 @@ else
   ptc_layout%closed = .false.
 endif
 
-end subroutine
+end subroutine lat_to_layout
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -452,7 +450,7 @@ do i = 1, n_dim
   print '(6f11.5)', (map_coef(y(:), i, j, style=style), j = 1, n_dim)
 enddo
 
-end subroutine
+end subroutine type_map1
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -471,8 +469,7 @@ end subroutine
 
 function kind_name (this_kind)
 
-use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, &
-      kind8, kind9, kind10
+use s_status, only: kind0, kind1, kind2, kind3, kind4, kind5, kind6, kind7, kind8, kind9, kind10
 
 implicit none
 
@@ -496,7 +493,7 @@ case (kind10); kind_name = 'TEAPOT (Sector Bend)'
 case default; write (kind_name, '(a, i5)') 'UNKNOWN KIND!', this_kind 
 end select
 
-end function
+end function kind_name
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -562,16 +559,14 @@ print *, 'Integration Steps: ', fib%mag%p%nst
 
 
 do i = lbound(fib%mag%bn, 1), ubound(fib%mag%bn, 1)
-  if (fib%mag%bn(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', &
-                                ' BN(', i, '):', fib%mag%bn(i)
+  if (fib%mag%bn(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', ' BN(', i, '):', fib%mag%bn(i)
 enddo  
 do i = lbound(fib%mag%an, 1), ubound(fib%mag%an, 1)
-  if (fib%mag%an(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', &
-                                ' AN(', i, '):', fib%mag%an(i)
+  if (fib%mag%an(i) /= 0) print '(a, i2, a, 5x, 1pd12.3)', ' AN(', i, '):', fib%mag%an(i)
 enddo  
 
 
-end subroutine
+end subroutine type_fibre
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -585,8 +580,7 @@ end subroutine
 !   you have to call set_ptc with both e_tot and particle args
 !   present. Always supply both of these args together or not at all. 
 ! Note: If you just want to use FPP without PTC then call init directly.
-! Note: This subroutine cannot be used if you want to have "knobs" 
-!   (in the PTC sense).
+! Note: This subroutine cannot be used if you want to have "knobs" (in the PTC sense).
 ! This subroutine replaces:
 !     make_states
 !     set_mad
@@ -679,15 +673,13 @@ else
 endif
 
 if (params_present) then
-  if (init_needed .or. old_e_tot /= e_tot .or. &
-                      present(integ_order) .or. present(n_step)) then
+  if (init_needed .or. old_e_tot /= e_tot .or. present(integ_order) .or. present(n_step)) then
     this_energy = 1e-9 * e_tot
     if (this_energy == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
       call err_exit
     endif
-    call set_madx (energy = this_energy, method = this_method, &
-                                                     step = this_steps)
+    call set_madx (energy = this_energy, method = this_method, step = this_steps)
     old_e_tot  = e_tot
     init_needed = .false.
   endif
@@ -699,8 +691,7 @@ if (present(taylor_order)) then
   if (init_needed) then                   ! make_states has not been called
     bmad_com%taylor_order = taylor_order  ! store the order for next time
   elseif (ptc_com%taylor_order_ptc /= taylor_order) then
-    call init (default, taylor_order, 0, berz, nd2, &
-                                             ptc_com%real_8_map_init)
+    call init (default, taylor_order, 0, berz, nd2, ptc_com%real_8_map_init)
     ptc_com%taylor_order_ptc = taylor_order
     bmad_com%taylor_order     = taylor_order
   endif
@@ -710,7 +701,7 @@ endif
 
 superkill = .true.
 
-end subroutine  
+end subroutine set_ptc
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -740,7 +731,7 @@ type (taylor_struct), intent(in) :: bmad_taylor(:)
 
 call taylor_to_real_8 (bmad_taylor, y8, .true.)
 
-end subroutine
+end subroutine real_8_equal_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -770,7 +761,7 @@ type (taylor_struct), intent(inout) :: bmad_taylor(:)
 
 call real_8_to_taylor (y8, bmad_taylor, .true.)
 
-end subroutine
+end subroutine taylor_equal_real_8
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -824,7 +815,7 @@ do i = 1, 6
   u_t(i) = -1  ! deallocate
 enddo
 
-end subroutine
+end subroutine real_8_to_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -892,8 +883,7 @@ do i = 1, 6
   do j = 1, n
     if (switch) then
       u_t%j(j,:) = bmad_taylor(i)%term(j)%expn((/1,2,3,4,6,5/))
-      u_t%c(j) = bmad_taylor(i)%term(j)%coef * &
-                                    (-1)**bmad_taylor(i)%term(j)%expn(5)
+      u_t%c(j) = bmad_taylor(i)%term(j)%coef * (-1)**bmad_taylor(i)%term(j)%expn(5)
       if (i == 5) u_t%c(j) = -u_t%c(j)
     else
       u_t%j(j,:) = bmad_taylor(i)%term(j)%expn(:)
@@ -906,7 +896,7 @@ do i = 1, 6
       
 enddo
 
-end subroutine
+end subroutine taylor_to_real_8
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -939,7 +929,7 @@ temp_vec = vec_bmad((/1,2,3,4,6,5/))
 vec_ptc = temp_vec
 vec_ptc(6) = -vec_ptc(6)
 
-end subroutine
+end subroutine vec_bmad_to_ptc
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -972,7 +962,7 @@ temp = vec_ptc((/1,2,3,4,6,5/))
 vec_bmad = temp
 vec_bmad(5) = -vec_bmad(5)
 
-end subroutine
+end subroutine vec_ptc_to_bmad
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1057,7 +1047,7 @@ if (present(set_taylor)) then
   if (set_taylor) y = x   ! converts y to taylor (kind = 2)
 endif
 
-end subroutine
+end subroutine real_8_init
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1121,8 +1111,7 @@ do i = 1, 6
     if (switch) then
       bmad_taylor(i)%term(k)%expn  = u_taylor(ii)%j(j, (/1,2,3,4,6,5/))
       bmad_taylor(i)%term(k)%coef = u_taylor(ii)%c(j)
-      bmad_taylor(i)%term(k)%coef = bmad_taylor(i)%term(k)%coef * &
-                                    (-1)**bmad_taylor(i)%term(k)%expn(5)
+      bmad_taylor(i)%term(k)%coef = bmad_taylor(i)%term(k)%coef * (-1)**bmad_taylor(i)%term(k)%expn(5)
       if (i == 5) bmad_taylor(i)%term(k)%coef = -bmad_taylor(i)%term(k)%coef
     else
       bmad_taylor(i)%term(k)%expn  = u_taylor(ii)%j(j,:)
@@ -1132,7 +1121,7 @@ do i = 1, 6
 
 enddo
 
-end subroutine
+end subroutine universal_to_bmad_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1167,8 +1156,7 @@ type (damap) da1, da2, da3
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
 
@@ -1191,7 +1179,7 @@ call kill (da1)
 call kill (da2)
 call kill (da3)
 
-end subroutine
+end subroutine concat_real_8
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1231,8 +1219,7 @@ real(rp), intent(out) :: c0(6)
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Remove constant terms from the taylor map first. This is probably
 ! not needed but we do it to make sure everything is alright.
@@ -1258,14 +1245,13 @@ call kill (da_map)
 call kill (y)
 call kill_taylor (taylor)
 
-end subroutine
+end subroutine taylor_to_genfield
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine remove_constant_taylor (taylor_in, taylor_out, c0, &
-!                                                 remove_higher_order_terms)
+! Subroutine remove_constant_taylor (taylor_in, taylor_out, c0, remove_higher_order_terms)
 !
 ! Subroutine to remove the constant part of a taylor map.
 ! Optionally terms that are higher order than bmad_com%taylor_order can
@@ -1288,8 +1274,7 @@ end subroutine
 !   c0(6)          -- Real(rp): The constant part of the taylor map
 !-
 
-subroutine remove_constant_taylor (taylor_in, taylor_out, c0, &
-                                               remove_higher_order_terms)
+subroutine remove_constant_taylor (taylor_in, taylor_out, c0, remove_higher_order_terms)
 
 implicit none
 
@@ -1328,15 +1313,14 @@ do i = 1, 6
   nn = 0
   do j = 1, size(taylor_in(i)%term)
     ss = sum(taylor_in(i)%term(j)%expn)
-    if (ss == 0 .or. (remove_higher_order_terms .and. &
-                                          ss > bmad_com%taylor_order)) cycle
+    if (ss == 0 .or. (remove_higher_order_terms .and. ss > bmad_com%taylor_order)) cycle
     nn = nn + 1
     taylor_out(i)%term(nn) = taylor_in(i)%term(j)
   enddo
 
 enddo
 
-end subroutine
+end subroutine remove_constant_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1386,8 +1370,7 @@ character(16) :: r_name = 'taylor_inverse'
 
 ! Set the taylor order in PTC if not already done so.
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 call alloc(da)
 call alloc(y)
@@ -1467,7 +1450,7 @@ call kill_taylor (tlr)
 
 if (present(err)) err = .false.
 
-end subroutine
+end subroutine taylor_inverse
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1504,8 +1487,7 @@ type (real_8) y1(6), y2(6), y3(6)
 
 ! Set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
 
@@ -1529,7 +1511,7 @@ call kill (y1)
 call kill (y2)
 call kill (y3)
 
-end subroutine  
+end subroutine concat_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1586,8 +1568,7 @@ endif
 ! Here when we need to include the misalignment effects.
 ! First set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Init
 
@@ -1627,7 +1608,7 @@ call kill(x_body)
 call kill(x1)
 call kill(x3)
 
-end subroutine
+end subroutine concat_ele_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1668,8 +1649,7 @@ type (fibre), pointer, save :: a_fibre
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) &
-                       call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 !
 
@@ -1693,7 +1673,7 @@ if (ele%key == wiggler$) then
 endif
 
 
-end subroutine
+end subroutine taylor_propagate1
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1823,7 +1803,7 @@ if (ele%key == wiggler$) then
 
 endif
 
-end subroutine
+end subroutine ele_to_taylor
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1857,7 +1837,7 @@ call real_8_to_taylor (y, b_taylor, switch_z)
 call type_taylors (b_taylor)
 call kill_taylor (b_taylor)
 
-end subroutine
+end subroutine type_real_8_taylors
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1908,10 +1888,8 @@ if (nv /= 6) then
   call err_exit
 endif
 
-if (associated(ut_sorted%n)) &
-            deallocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c, ut_sorted%j)
-allocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c(n), ut_sorted%j(n,nv), &
-                                                            ix(n), ord(n))
+if (associated(ut_sorted%n)) deallocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c, ut_sorted%j)
+allocate(ut_sorted%n, ut_sorted%nv, ut_sorted%c(n), ut_sorted%j(n,nv), ix(n), ord(n))
 
 ut_sorted%n = n
 ut_sorted%nv = nv
@@ -1933,7 +1911,7 @@ enddo
 
 deallocate(ord, ix)
 
-end subroutine
+end subroutine sort_universal_terms
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1970,13 +1948,12 @@ do i = 1, size(y)
   print *, '! Term:', i
   print *, 'Order            Coef    Exponents'
   do j = 1, ut%n
-    print '(i6, f18.14, 20i3)', sum(ut%j(j,:)), ut%c(j), &
-                                        (ut%j(j,k), k = 1, ut%nv)
+    print '(i6, f18.14, 20i3)', sum(ut%j(j,:)), ut%c(j), (ut%j(j,k), k = 1, ut%nv)
   enddo
   ut = -1
 enddo
 
-end subroutine
+end subroutine type_map
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -2144,8 +2121,7 @@ case (elseparator$)
   ptc_key%list%volt = 1e-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
   call multipole_ele_to_ab (ele, +1, an0, bn0, .false.) 
   if (any(an0 /= 0) .or. any(bn0 /= 0)) then
-    print *, 'ERROR IN ELE_TO_FIBRE: ', &
-                     'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
+    print *, 'ERROR IN ELE_TO_FIBRE: ', 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.'
     call err_exit
   endif
 
@@ -2161,8 +2137,7 @@ case (wiggler$)
   ptc_key%magnet = 'wiggler'
 
 case default
-  print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', &
-                                               key_name(ele%key)
+  print *, 'ERROR IN ELE_TO_FIBRE: UNKNOWN ELEMENT CLASS: ', key_name(ele%key)
   print *, '      FOR ELEMENT: ', trim(ele%name)
   call err_exit
 
@@ -2191,7 +2166,7 @@ if (ele%key /= elseparator$) then
     cos_t = cos(ele%value(tilt_tot$))
     sin_t = sin(ele%value(tilt_tot$))
     ptc_key%list%k(1)  = ptc_key%list%k(1) - hk * cos_t - vk * sin_t
-    ptc_key%list%ks(1) =         - hk * sin_t + vk * cos_t
+    ptc_key%list%ks(1) =                   - hk * sin_t + vk * cos_t
   endif
 
   call multipole_ele_to_ab (ele, param%particle, an0, bn0, .false.)
@@ -2234,8 +2209,7 @@ if (key == wiggler$) then
   n_term = size(ele%wig_term)
   call init_sagan_pointers (fiber%mag%wi%w, n_term)   
 
-  fiber%mag%wi%w%a(1:n_term) = c_light * &
-          ele%value(polarity$) * ele%wig_term%coef / ele%value(e_tot$)
+  fiber%mag%wi%w%a(1:n_term) = c_light * ele%value(polarity$) * ele%wig_term%coef / ele%value(e_tot$)
   fiber%mag%wi%w%k(1,1:n_term)  = ele%wig_term%kx
   fiber%mag%wi%w%k(2,1:n_term)  = ele%wig_term%ky
   fiber%mag%wi%w%k(3,1:n_term)  = ele%wig_term%kz
@@ -2266,6 +2240,6 @@ if (use_offsets) then
   endif
 endif
 
-end subroutine
+end subroutine ele_to_fibre
 
 end module
