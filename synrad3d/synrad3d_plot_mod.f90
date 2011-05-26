@@ -32,15 +32,14 @@ end type
 type (yplot), allocatable :: ny(:)
 
 real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
-real(rp) x(n_pt), value, y_min, y_max
-real(rp), pointer :: var_ptr
+real(rp) x(n_pt), value, value1, value2, y_min, y_max
 
-integer i, j, ix, ios, n_lines, i_chan
+integer i, j, n, ix, ios, n_lines, i_chan
 
 logical fixed_energy, logic
 
 character(80) ans
-character(16) x_lab, y_lab
+character(16) x_lab, y_lab, param
 
 ! init
 
@@ -112,27 +111,44 @@ do
   ! Get input:
 
   print *
-  print '(a)', 'Syntax: "<parameter> <value>"'
-  print '(a)', 'Possible <Parameter>s: "ev_min", "ev_max", "angle_min", angle_max", "n_lines", "fixed_energy".'
-  print '(a)', '"n_lines" is how many lines to plot.'
-  print '(a)', '"<value> for "fixed_energy" is either "t" or "f". '
-  print '(a)', '"fixed_energy t" means plot lines with fixed energy and horizontal scale is angle.' 
-  print '(a)', '"fixed_energy f" means plot lines with fixed angle and horizontal scale is energy.' 
+  print '(a)', 'Commands:'
+  print '(a)', '   energy   <ev_min> <ev_max>         ! energies to plot at'
+  print '(a)', '   angle    <angle_min> <angle_max>   ! angles to plot at'
+  print '(a)', '   n_lines  <num_lines_to_draw>'
+  print '(a)', '   fixed_energy <t/f>  '
   call read_a_line ('Input: ', ans)
   call string_trim(ans, ans, ix)
   if (ix == 0) cycle
-  select case (ans(1:ix))
-  case ('ev_min')
-    var_ptr => ev_min
-  case ('ev_max')
-    var_ptr => ev_max
-  case ('angle_min')
-    var_ptr => angle_min
-  case ('angle_max')
-    var_ptr => angle_max
-  case ('n_lines')
-    read (ans(ix+1:), *, iostat = ios) n_lines
+  call match_word (ans(1:ix), ['energy      ', 'angle       ', &
+                               'n_lines     ', 'fixed_energy'], n, matched_name = param)
+  if (n < 1) then
+    print *, 'CANNOT PARSE THIS.'
+    cycle
+  endif
+
+  call string_trim(ans(ix+1:), ans, ix)
+
+  select case (param)
+  case ('energy', 'angle')
+    
+    read (ans, *, iostat = ios) value1, value2
+    
     if (ans(ix+1:) == '' .or. ios /= 0) then
+      print *, 'CANNOT READ VALUES'
+      cycle
+    endif
+
+    if (param == 'energy') then
+      ev_min = max(value1, ev_min)
+      ev_max = value2
+    else
+      angle_min = max(0.0_rp, value1)
+      angle_max = min(90.0_rp, value2)
+    endif
+
+  case ('n_lines')
+    read (ans, *, iostat = ios) n_lines
+    if (ans == '' .or. ios /= 0) then
       print *, 'CANNOT READ VALUE'
       cycle
     endif
@@ -141,31 +157,14 @@ do
     allocate (ny(n_lines))
 
   case ('fixed_energy')
-    read (ans(ix+1:), *, iostat = ios) logic
-    if (ans(ix+1:) == '' .or. ios /= 0) then
+    read (ans, *, iostat = ios) logic
+    if (ans == '' .or. ios /= 0) then
       print *, 'CANNOT READ VALUE'
       cycle
     endif
     fixed_energy = logic
 
-  case default
-    print *, 'CANNOT PARSE THIS.'
-    cycle
   end select
-
-  read (ans(ix+1:), *, iostat = ios) value
-  
-  if (ans(ix+1:) == '' .or. ios /= 0) then
-    print *, 'CANNOT READ VALUE'
-    cycle
-  endif
-
-  var_ptr = value
-
-  angle_min = max(0.0_rp, angle_min)
-  angle_max = min(90.0_rp, angle_max)
-  ev_min = max(0.0_rp, ev_min)
-
 enddo
 
 end subroutine sr3d_plot_reflection_probability
