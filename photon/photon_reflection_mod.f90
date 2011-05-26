@@ -9,10 +9,15 @@ use physical_constants
 ! Note: It is assumed that for each table that the energy(:) values are equally spaced.
 !       Also must have angle(1) = 0 and the last angle(n) = 90.
 
+type interval1_coef_struct
+  real(rp) c0, c1, n_exp
+end type
+
 type photon_reflect_table_struct
   real(rp), allocatable :: angle(:)          ! Vector of angle values for %p_reflect
   real(rp), allocatable :: energy(:)         ! Vector of energy values for %p_reflect
-  real(rp), allocatable :: p_reflect(:,:)    ! Logarithm of reflection probability
+  type (interval1_coef_struct), allocatable :: int1(:)
+  real(rp), allocatable :: p_reflect(:,:)    ! (ev, angle) Logarithm of reflection probability
   real(rp) max_energy                        ! maximum energy for this table
   real(rp), allocatable :: reflect_prob(:)   ! Scratch space
 end type
@@ -45,7 +50,7 @@ type (photon_reflect_table_struct), pointer :: prt
 character(100) datafile
 character(100) line
 
-real(rp) f
+real(rp) f, deriv, dprob
 
 integer :: n_energy, n_angles
 integer i, j, k
@@ -60,7 +65,7 @@ photon_reflect_table_init_needed = .false.
 prt => photon_reflect_table(1)
 
 n_energy = 58;  n_angles = 16
-allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles))
+allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
 
 prt%angle = [0, 1, 2, 3, 4, 5, 6, 7, 10, 15, 20, 30, 45, 60, 75, 90]
 
@@ -132,7 +137,7 @@ prt%p_reflect(:, 58) = [1.00, 0.728577, 0.474020, 0.122734, 0.000924, 0.000137, 
 prt => photon_reflect_table(2)
 
 n_energy = 41;  n_angles = 11
-allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles))
+allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
 
 prt%angle = [0.0, 0.4, 0.8, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 90.0]
 
@@ -187,7 +192,7 @@ prt%p_reflect(:, 41) = [1.00,  0.928361, 0.837729, 0.76112,  1.92E-02, 2.06E-03,
 prt => photon_reflect_table(3)
 
 n_energy = 21;  n_angles = 10
-allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles))
+allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
 
 prt%angle = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 90.0]
 
@@ -222,7 +227,7 @@ prt%p_reflect(:, 21) = [1.00,  0.876128, 0.753518, 0.615783, 0.438769, 0.212852,
 prt => photon_reflect_table(4)
 
 n_energy = 69;  n_angles = 11
-allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles))
+allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
 
 prt%angle = [0.0, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0, 1.5, 2.0, 2.5, 90.0]
 
@@ -305,6 +310,7 @@ prt%p_reflect(:, 69) = [1.00,  0.946281, 0.167764, 8.12E-03, 1.10E-03, 7.24E-05,
 do i = 1, size(photon_reflect_table)
   prt => photon_reflect_table(i)
   do j = 1, size(prt%energy)
+
     do k = 1, size(prt%angle)
       if (prt%p_reflect(k, j) == 0) then
         f = (prt%angle(k) - prt%angle(k-2)) / (prt%angle(k-1) - prt%angle(k-2))
@@ -314,6 +320,15 @@ do i = 1, size(photon_reflect_table)
         prt%p_reflect(k, j) = log(prt%p_reflect(k, j))
       endif
     enddo
+
+    ! First interval interpolation: p = c0 + c1 * angle^n
+
+    deriv = (prt%p_reflect(3,j) - prt%p_reflect(1,j)) / prt%angle(3)
+    dprob = prt%p_reflect(2,j) - prt%p_reflect(1,j)
+    prt%int1(j)%c0     = prt%p_reflect(1,j)
+    prt%int1(j)%n_exp  = deriv * prt%angle(2) / dprob
+    prt%int1(j)%c1     = dprob / prt%angle(2)**prt%int1(j)%n_exp
+
   enddo
 enddo
 
@@ -348,6 +363,7 @@ type (photon_reflect_table_struct), pointer :: prt
 type (spline_struct) ang_spline(6)
 
 real(rp) angle, angle_deg, energy, e_tot, reflect_prob, max_e, f
+real(rp) c0, c1, n_exp
 
 integer i, j, ie, ix, n_table, n_energy, ixa, ixa0, ixa1, n_ang, n_a
 
@@ -381,7 +397,7 @@ n_table = size(photon_reflect_table)
 max_e = photon_reflect_table(n_table)%max_energy
  
 if (e_tot > max_e) then
-  angle_deg = angle * e_tot / max_e
+  angle_deg = angle_deg * e_tot / max_e
   e_tot = max_e
   if (angle_deg > pi) then
     reflect_prob = 0
@@ -403,14 +419,31 @@ n_energy = size(prt%energy)
 ie = 1 + int((n_energy - 1) * (e_tot - prt%energy(1)) / (prt%energy(n_energy) - prt%energy(1)))
 if (ie == n_energy) ie = n_energy - 1
 
+! Find which angle interval angle_deg is in.
+
+n_ang = size(prt%angle)
+call bracket_index (prt%angle, 1, n_ang, angle_deg, ixa)
+
 f = (e_tot - prt%energy(ie)) / (prt%energy(ie+1) - prt%energy(ie))
-prt%reflect_prob = (1 - f) * prt%p_reflect(:, ie) + f * prt%p_reflect(:, ie+1)  ! Linear interpolation
+
+! If in the first interval then spline interpolation is not good.
+! In this case we use the fact that the probability is monotonic and fit and use the form:
+!   prob = c0 + c1 * ang^n
+
+if (ixa == 1) then
+  c0    = (1 - f) * prt%int1(ie)%c0 + f * prt%int1(ie)%c0
+  c1    = (1 - f) * prt%int1(ie)%c1 + f * prt%int1(ie)%c1
+  n_exp = (1 - f) * prt%int1(ie)%n_exp + f * prt%int1(ie)%n_exp
+  reflect_prob = c0 + c1 * angle_deg**n_exp
+  reflect_prob = exp(reflect_prob)
+  return
+endif
 
 ! Now use Akima spline interpolation in angle.
 ! Only spline the part of reflect_prob that is needed
 
-n_ang = size(prt%angle)
-call bracket_index (prt%angle, 1, n_ang, angle_deg, ixa)
+prt%reflect_prob = (1 - f) * prt%p_reflect(:, ie) + f * prt%p_reflect(:, ie+1)  ! Linear interpolation
+
 ixa0 = max(1, ixa-2)
 ixa1 = min(n_ang, ixa+3)
 
@@ -421,9 +454,14 @@ call spline_akima(ang_spline(1:n_a), ok)
 if (.not. ok) call err_exit
 
 call spline_evaluate (ang_spline(1:n_a), angle_deg, ok, reflect_prob)
-reflect_prob = exp(reflect_prob)
-
 if (.not. ok) call err_exit
+
+!if (reflect_prob > prt%reflect_prob(ixa) .or. reflect_prob < prt%reflect_prob(min(n_ang, ixa+1))) then
+!  print *, 'PHOTON_REFECTIVITY: BAD SPLINE FIT!'
+!  call err_exit
+!endif
+
+reflect_prob = exp(reflect_prob)
 
 end subroutine
 
