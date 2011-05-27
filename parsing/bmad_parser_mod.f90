@@ -805,7 +805,7 @@ if (attrib_word == 'RF_FIELD') then
       case ('STORED_ENERGY'); r_ptr => mode%stored_energy
       case ('PHI_0');         r_ptr => mode%phi_0
       case ('DZ');            r_ptr => mode%dz
-      case ('F_SCALE');       r_ptr => mode%f_scale
+      case ('FIELD_SCALE');   r_ptr => mode%field_scale
 
       case default
         call parser_warning ('UNKNOWN MODE COMPONENT: ' // word, &

@@ -1392,7 +1392,7 @@ number of modes. This parameterization used by \bmad essentially
 follows Abell\cite{b:rf.abell}. The electric field is written in the
 form
 \Begineq
-  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t - \theta_j)}
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \theta_{0j})}
   \label{eseei}
 \Endeq
 where $M$ is the number of modes. Each mode satisfies the vector Helmohltz
@@ -1852,6 +1852,8 @@ notation, the synchrotron integrals for coupled motion are:
          \nabla g^2 \cdot \bfeta\two \right] \\
     I_{5a} &=& \oint ds \, g^3 \, \calh_a \\
     I_{5b} &=& \oint ds \, g^3 \, \calh_b
+    I_{9a} &=& \oint ds \, g^3 \, \beta_a \\
+    I_{9b} &=& \oint ds \, g^3 \, \beta_b
   \Endeqs
 where $\gamma_0$ is that usual relativistic factor and $\calh_a$ is 
   \Begineq

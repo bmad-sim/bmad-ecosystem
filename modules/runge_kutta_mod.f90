@@ -68,7 +68,7 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, h1, h_min
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: h, h_did, h_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N
-real(rp) :: dr_ds(6), r_scal(6), t
+real(rp) :: dr_ds(7), r_scal(7), t, beta
 
 integer, parameter :: max_step = 10000
 integer :: n_step
@@ -78,10 +78,24 @@ logical local_ref_frame
 ! init
 
 s = s1
-t = 0
 h = sign(h1, s2-s1)
 end = start
 end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
+
+! For elements where the reference energy is changing the reference energy in the body is 
+! taken by convention to be the reference energy at the exit end.
+
+if (ele%key == lcavity$ .or. ele%key == custom$) then
+  end%vec(2:4:2) = end%vec(2:4:2) * ele%value(p0c_start$) / ele%value(p0c$)
+  end%vec(5) = end%vec(5) * (ele%value(p0c$) / ele%value(e_tot$)) / &
+                            (ele%value(p0c_start$) / ele%value(e_tot_start$))
+  end%vec(6) = (1 + start%vec(6)) * ele%value(p0c_start$) / ele%value(p0c$) - 1
+endif
+
+call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
+t = -start%vec(5) / beta
+
+! Save initial point
 
 if (present(track)) then
   s_sav = s - 2.0_rp * track%ds_save
@@ -94,12 +108,14 @@ bmad_status%ok = .true.
 
 do n_step = 1, max_step
 
-  call em_field_kick_vector (ele, param, s, t, end, local_ref_frame, dr_ds)
+  call kick_vector_calc (ele, param, s, t, end, local_ref_frame, dr_ds)
+
+  ! The tolerances are only applied to 
 
   sqrt_N = sqrt(abs((s2-s1)/h))  ! number of steps we would take with this h
   rel_tol_eff = rel_tol / sqrt_N
   abs_tol_eff = abs_tol / sqrt_N
-  r_scal(:) = abs(end%vec(:)) + abs(h*dr_ds(:)) + TINY
+  r_scal(:) = abs([end%vec(:), t]) + abs(h*dr_ds(:)) + TINY
 
   if (present(track)) then
     if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
@@ -153,14 +169,14 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new
 
-real(rp), intent(in)    :: dr_ds(6), r_scal(6)
+real(rp), intent(in)    :: dr_ds(7), r_scal(7)
 real(rp), intent(inout) :: s, t
 real(rp), intent(in)    :: h_try, rel_tol, abs_tol
 real(rp), intent(out)   :: h_did, h_next
 
 real(rp) :: err_max, h, h_temp, s_new, p2
-real(rp) :: r_err(6), r_temp(6)
-real(rp) :: beta, rel_pc
+real(rp) :: r_err(7), r_temp(7)
+real(rp) :: beta, rel_pc, t_new
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
 
@@ -172,7 +188,7 @@ h = h_try
 
 do
 
-  call rkck_bmad (ele, param, orb, dr_ds, s, t, h, orb_new, r_err, local_ref_frame)
+  call rkck_bmad (ele, param, orb, dr_ds, s, t, h, orb_new, t_new, r_err, local_ref_frame)
   err_max = maxval(abs(r_err(:)/(r_scal(:)*rel_tol + abs_tol)))
   if (err_max <=  1.0) exit
   h_temp = safety * h * (err_max**p_shrink)
@@ -197,17 +213,9 @@ end if
 h_did = h
 s = s+h
 
-! The orb%t calc is not accurate if beta is changing. 
-! This should be fixed...
-
-rel_pc = 1 + orb%vec(6)
-call convert_pc_to(ele%value(p0c$) * rel_pc, param%particle, beta = beta)
-
 orb%s = orb%s + h
-p2 = (orb%vec(2)**2 + orb_new%vec(2)**2 + orb%vec(2)*orb_new%vec(2) + &
-      orb%vec(4)**2 + orb_new%vec(4)**2 + orb%vec(4)*orb_new%vec(4)) / 3
-orb%t = orb%t + h * (1 + p2 / (2 * rel_pc**2)) / (beta * c_light)
 orb%vec = orb_new%vec
+t = t_new
 
 ! Add coordinate rotation if needed
 
@@ -221,7 +229,7 @@ end subroutine rkqs_bmad
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rkck_bmad (ele, param, orb, dr_ds, s, t, h, orb_new, r_err, local_ref_frame)
+subroutine rkck_bmad (ele, param, orb, dr_ds, s, t, h, orb_new, t_new, r_err, local_ref_frame)
 
 implicit none
 
@@ -229,10 +237,10 @@ type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp
 
-real(rp), intent(in) :: dr_ds(6)
+real(rp), intent(in) :: dr_ds(7)
 real(rp), intent(in) :: s, t, h
-real(rp), intent(out) :: r_err(6)
-real(rp) :: ak2(6), ak3(6), ak4(6), ak5(6), ak6(6), r_temp(6)
+real(rp), intent(out) :: r_err(7), t_new
+real(rp) :: ak2(7), ak3(7), ak4(7), ak5(7), ak6(7), t_temp
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
     b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
@@ -250,19 +258,148 @@ logical local_ref_frame
 
 !
 
-orb_temp%vec = orb%vec +b21*h*dr_ds
-call em_field_kick_vector(ele, param, s+a2*h, t, orb_temp, local_ref_frame, ak2)
-orb_temp%vec = orb%vec +h*(b31*dr_ds+b32*ak2)
-call em_field_kick_vector(ele, param, s+a3*h, t, orb_temp, local_ref_frame, ak3) 
-orb_temp%vec = orb%vec +h*(b41*dr_ds+b42*ak2+b43*ak3)
-call em_field_kick_vector(ele, param, s+a4*h, t, orb_temp, local_ref_frame, ak4)
-orb_temp%vec = orb%vec +h*(b51*dr_ds+b52*ak2+b53*ak3+b54*ak4)
-call em_field_kick_vector(ele, param, s+a5*h, t, orb_temp, local_ref_frame, ak5)
-orb_temp%vec = orb%vec +h*(b61*dr_ds+b62*ak2+b63*ak3+b64*ak4+b65*ak5)
-call em_field_kick_vector(ele, param, s+a6*h, t, orb_temp, local_ref_frame, ak6)
-orb_new%vec = orb%vec +h*(c1*dr_ds+c3*ak3+c4*ak4+c6*ak6)
-r_err=h*(dc1*dr_ds+dc3*ak3+dc4*ak4+dc5*ak5+dc6*ak6)
+orb_temp%vec = orb%vec + b21*h*dr_ds(1:6)
+t_temp = t + b21*h*dr_ds(7)
+call kick_vector_calc(ele, param, s + a2*h, t_temp, orb_temp, local_ref_frame, ak2)
+
+orb_temp%vec = orb%vec + h*(b31*dr_ds(1:6) + b32*ak2(1:6))
+t_temp = t + h*(b31*dr_ds(7) + b32*ak2(7))
+call kick_vector_calc(ele, param, s + a3*h, t_temp, orb_temp, local_ref_frame, ak3)
+
+orb_temp%vec = orb%vec + h*(b41*dr_ds(1:6) + b42*ak2(1:6) + b43*ak3(1:6))
+t_temp = t + h*(b41*dr_ds(7) + b42*ak2(7) + b43*ak3(7))
+call kick_vector_calc(ele, param, s + a4*h, t_temp, orb_temp, local_ref_frame, ak4)
+
+orb_temp%vec = orb%vec + h*(b51*dr_ds(1:6) + b52*ak2(1:6) + b53*ak3(1:6) + b54*ak4(1:6))
+t_temp = t + h*(b51*dr_ds(7) + b52*ak2(7) + b53*ak3(7) + b54*ak4(7))
+call kick_vector_calc(ele, param, s + a5*h, t_temp, orb_temp, local_ref_frame, ak5)
+
+orb_temp%vec = orb%vec + h*(b61*dr_ds(1:6) + b62*ak2(1:6) + b63*ak3(1:6) + b64*ak4(1:6) + b65*ak5(1:6))
+t_temp = t + h*(b61*dr_ds(7) + b62*ak2(7) + b63*ak3(7) + b64*ak4(7) + b65*ak5(7))
+call kick_vector_calc(ele, param, s + a6*h, t_temp, orb_temp, local_ref_frame, ak6)
+
+orb_new%vec = orb%vec + h*(c1*dr_ds(1:6) + c3*ak3(1:6) + c4*ak4(1:6) + c6*ak6(1:6))
+t_new = t + h*(c1*dr_ds(7) + c3*ak3(7) + c4*ak4(7) + c6*ak6(7))
+r_err=h*(dc1*dr_ds + dc3*ak3 + dc4*ak4 + dc5*ak5 + dc6*ak6)
 
 end subroutine rkck_bmad
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds)
+!
+! Subroutine to calculate the dr/ds "kick vector" where
+!     r = [x, p_x, y, p_y, z, p_z, t] 
+!
+! Remember: In order to simplify the calculation, in the body of any element, P0 is taken to be constant.
+!
+!   dr(1)/ds = dx/dt * dt/ds
+!   dx/dt = v_x 
+!   dt/ds = (1 + g*x) / v_s
+!
+!   dr(2)/ds = dP_x/dt * dt/ds / P0
+!   dP_x/dt = EM_Force_x + gamma * mass * vec * (dtheta/dt)^2
+!   vec * (dtheta/dt)^2 = g * v_s^2 / (1 + g*x)^2   ! Centrifugal term
+!
+!   dr(3)/ds = dy/dt * dt/ds
+!   dy/dt = v_x 
+! 
+!   dr(4)/ds = dP_y/dt * ds/dt / P0
+!   dP_y/dt = EM_Force_y
+!
+!   dr(5)/ds = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * c_light * [t(ref) - t]
+!            = beta * c_light * [dt/ds(ref) - dt/ds] + dbeta/ds * vec(5) / beta
+!   where ds/dt(ref) is taken to be:
+!     dt/ds(ref) = ele%value(delta_ref_time$) / ele%value(l$)
+!   This is inaccurate at low energy in an lcavity but the total integrated dr(5)/ds
+!   accross the lcavity will be correct.
+!
+!   dr(6)/ds = EM_Force dot v * dt/ds / P0
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele   -- Ele_struct: Element being tracked thorugh.
+!   param -- lat_param_struct: Lattice parameters.
+!   s_rel -- Real(rp): Distance from the start of the element to the particle.
+!   t_rel  -- Real(rp): Time relative to the reference particle.
+!   orbit -- coord_struct: Position of particle.
+!   local_ref_frame 
+!         -- Logical, If True then take the input coordinates 
+!               as being with respect to the frame of referene of the element. 
+!
+! Output:
+!   dr_ds(7) -- Real(rp): Kick vector.
+!-
+
+subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) param
+type (em_field_struct) field
+type (coord_struct) orbit
+
+real(rp), intent(in) :: s_rel, t_rel 
+real(rp), intent(out) :: dr_ds(7)
+real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
+real(rp) vel(3), force(3)
+real(rp), save :: pc, e_tot, beta, dt_ds_ref, p0
+real(rp), save :: pc_old = -1, particle_old = 0
+
+logical :: local_ref_frame
+
+character(24), parameter :: r_name = 'kick_vector_calc'
+
+!
+
+pc = ele%value(p0c$) * (1 + orbit%vec(6))
+if (pc /= pc_old .or. param%particle /= particle_old) then
+  call convert_pc_to (pc, param%particle, e_tot = e_tot, beta = beta)
+  pc_old = pc; particle_old = param%particle
+  dt_ds_ref = ele%value(delta_ref_time$) / (c_light * ele%value(l$))
+  p0 = ele%value(p0c$) / c_light
+endif
+
+! calculate the field
+
+call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false.)
+
+! Bend factor
+
+vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
+vel = beta * c_light * [vel(1), vel(2), sqrt(1 - vel(1)**2 - vel(2)**2)]
+force = charge_of(param%particle) * (field%E + cross_product(vel, field%B))
+
+f_bend = 1
+gx_bend = 0; gy_bend = 0
+
+if (ele%key == sbend$) then
+  if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
+    gx_bend = ele%value(g$) * cos(ele%value(tilt_tot$))
+    gy_bend = ele%value(g$) * sin(ele%value(tilt_tot$))
+  else
+    gx_bend = ele%value(g$)
+  endif
+  f_bend = 1 + orbit%vec(1) * gx_bend + orbit%vec(3) * gy_bend
+endif
+
+dt_ds = f_bend / vel(3)
+dp_ds = dot_product(force, vel) * dt_ds 
+dbeta_ds = mass_of(param%particle)**2 * dp_ds / e_tot**3
+
+dr_ds(1) = vel(1) * dt_ds
+dr_ds(2) = (force(1) + e_tot * gx_bend / (dt_ds * c_light)**2) * dt_ds / p0
+dr_ds(3) = vel(2) * dt_ds
+dr_ds(4) = (force(2) + e_tot * gy_bend / (dt_ds * c_light)**2) * dt_ds / p0
+dr_ds(5) = beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / beta
+dr_ds(6) = dp_ds / p0
+dr_ds(7) = dt_ds
+
+end subroutine kick_vector_calc
 
 end module

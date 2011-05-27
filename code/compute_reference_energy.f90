@@ -68,11 +68,8 @@ do ib = 0, ubound(lat%branch, 1)
       E_tot = E_tot - e_loss_sr_wake (ele%value(e_loss$), branch%param)
       call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
-    case (custom$) 
-      E_tot = E_tot + ele%value(gradient$) * ele%value(l$)
-      call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
+    case (custom$, hybrid$)
 
-    case (hybrid$)
       ele%value(E_tot_start$) = E_tot
       ele%value(p0c_start$) = p0c
       E_tot = E_tot + ele%value(delta_e$)

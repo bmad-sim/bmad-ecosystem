@@ -26,7 +26,7 @@ contains
 !   arg  -- Real(rp): Bessel argument.
 !
 ! Output:
-!   i_bes -- Real(rp): Bessel value.
+!   i_bes -- Complex(rp): Bessel value.
 !-
 
 function I_bessel(m, arg) result (i_bes)
@@ -34,7 +34,8 @@ function I_bessel(m, arg) result (i_bes)
 use nr
 
 integer m
-real(rp) arg, i_bes
+real(rp) arg
+complex(rp) i_bes
 
 !
 

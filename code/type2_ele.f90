@@ -258,19 +258,22 @@ if (associated(ele%rf%field)) then
     do i = 1, size(ele%rf%field%mode)
       rfm => ele%rf%field%mode(i)
       nl=nl+1; write (li(nl), '(a, i0)')     'Mode #:', i
-      nl=nl+1; write (li(nl), '(a, i0)')     '    m:       ', rfm%m
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    freq:    ', rfm%freq
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    f_damp:  ', rfm%f_damp
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    theta_t0:', rfm%theta_t0
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    phi_0:   ', rfm%phi_0
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    dz:      ', rfm%dz
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    f_scale: ', rfm%f_scale
+      nl=nl+1; write (li(nl), '(a, i0)')     '    m:           ', rfm%m
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    freq:        ', rfm%freq
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    f_damp:      ', rfm%f_damp
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    theta_t0:    ', rfm%theta_t0
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    phi_0:       ', rfm%phi_0
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    dz:          ', rfm%dz
+      nl=nl+1; write (li(nl), '(a, es12.4)') '    field_scale: ', rfm%field_scale
       nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
-      do j = 1, size(rfm%term)
+      do j = 1, min(10, size(rfm%term))
         if (nl+1 > size(li)) call re_associate(li, 2 * nl)
         nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
                                                        '(', rfm%term(j)%e, ')  (', rfm%term(j)%b, ')'
       enddo
+      if (size(rfm%term) > 10) then
+        nl=nl+1; li(nl) = '     .... etc ...'
+      endif
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Field modes:', size(ele%rf%field%mode)

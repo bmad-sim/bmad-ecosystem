@@ -447,7 +447,7 @@ if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%rf%field%mode(i)
     read (d_unit, err = 9140) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
-                                 mode%m, mode%phi_0, mode%dz, mode%f_scale 
+                                 mode%m, mode%phi_0, mode%dz, mode%field_scale 
 
     if (allocated(mode%term)) then
       if (size(mode%term) /= n) deallocate(mode%term)

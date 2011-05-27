@@ -216,7 +216,7 @@ logical is_eq
 
 is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%theta_t0 == f2%theta_t0) .and. &
         (f1%stored_energy == f2%stored_energy) .and. (f1%m == f2%m) .and. (f1%phi_0 == f2%phi_0) .and. &
-        (f1%dz == f2%dz) .and. (f1%f_scale == f2%f_scale)
+        (f1%dz == f2%dz) .and. (f1%field_scale == f2%field_scale)
 if (.not. is_eq) return
 
 is_eq  = (allocated(f1%term) .eqv. allocated(f2%term))

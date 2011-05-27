@@ -278,7 +278,7 @@ if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%rf%field%mode(i)
     write (d_unit) size(mode%term), mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
-                                    mode%m, mode%phi_0, mode%dz, mode%f_scale
+                                    mode%m, mode%phi_0, mode%dz, mode%field_scale
     write (d_unit) mode%term
   enddo 
 endif
