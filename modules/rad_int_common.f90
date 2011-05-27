@@ -8,7 +8,7 @@
 module rad_int_common               
 
 use ptc_interface_mod
-use runge_kutta_mod
+use em_field_mod
 
 ! The "cache" is for saving values for g, etc through an element to speed
 ! up the calculation.
@@ -474,5 +474,90 @@ call re_allocate2 (rad_int_out%lin_i5b_e6, 0, n)
 rad_int_out = rad_int_in
 
 end subroutine
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine em_field_g_bend (ele, param, s_, orbit, g, dg)
+!
+! Subroutine to calculate the g bending kick felt by a particle in a element. 
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele    -- Ele_struct: Element being tracked thorugh.
+!   param  -- lat_param_struct: Lattice parameters.
+!   s_rel  -- Real(rp): Distance from the start of the element to the particle.
+!   t_rel  -- Real(rp): Time relative to the reference particle.
+!   orbit  -- Coord_struct: Particle position in lab (not element) frame.
+!
+! Output:
+!   g(3)    -- Real(rp): (g_x, g_y, g_s) bending radiuses
+!   dg(3,3) -- Real(rp), optional: dg(:)/dr gradient. 
+!-
+
+subroutine em_field_g_bend (ele, param, s_rel, t_rel, orbit, g, dg)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) param
+type (em_field_struct) field
+type (coord_struct) orbit
+
+real(rp), intent(in) :: s_rel, t_rel
+real(rp), intent(out) :: g(3)
+real(rp), optional :: dg(3,3)
+real(rp) vel_unit(3), fact
+real(rp), save :: pc, gamma, beta
+real(rp), save :: pc_old = -1, particle_old = 0
+real(rp) f
+
+! calculate the field
+
+call em_field_calc (ele, param, s_rel, t_rel, orbit, .false., field, present(dg))
+
+!
+
+pc = ele%value(p0c$) * (1 + orbit%vec(6))
+if (pc /= pc_old .or. param%particle /= particle_old) then
+  call convert_pc_to (pc, param%particle, gamma = gamma, beta = beta)
+  pc_old = pc; particle_old = param%particle
+endif
+
+! vel_unit is the velocity normalized to unit length
+
+vel_unit(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
+vel_unit(3) = sqrt(1 - vel_unit(1)**2 - vel_unit(2)**2)
+fact = 1 / (ele%value(p0c$) * (1 + orbit%vec(6)))
+g = g_from_field (field%B, field%E)
+
+! Derivative
+
+if (present(dg)) then
+  dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1))
+  dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2))
+  dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3))
+endif
+
+!---------------------------------------------------------------
+contains
+
+function g_from_field (B, E) result (g_bend)
+
+real(rp) B(3), E(3), g_bend(3)
+real(rp) force(3), force_perp(3)
+
+! force_perp is the perpendicular component of the force.
+
+force = E * charge_of(param%particle) + cross_product(vel_unit, B) * beta * c_light
+force_perp = force - vel_unit * (dot_product(force, vel_unit))
+g_bend = -force_perp * fact
+
+end function
+
+end subroutine em_field_g_bend
 
 end module

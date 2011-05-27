@@ -282,20 +282,20 @@ do i = 1, n_key
   attrib_array(i, p0c$)                   = 'P0C'
   attrib_array(i, delta_ref_time$)        = 'DELTA_REF_TIME'
 
-  if (i /= match$) then
-    attrib_array(i, tilt$)     = 'TILT' 
-    attrib_array(i, x_offset$) = 'X_OFFSET'
-    attrib_array(i, y_offset$) = 'Y_OFFSET'
-    attrib_array(i, s_offset$) = 'S_OFFSET'
-    attrib_array(i, x_pitch$)  = 'X_PITCH'
-    attrib_array(i, y_pitch$)  = 'Y_PITCH'
-    attrib_array(i, tilt_tot$)     = 'TILT_TOT'
-    attrib_array(i, x_offset_tot$) = 'X_OFFSET_TOT'
-    attrib_array(i, y_offset_tot$) = 'Y_OFFSET_TOT'
-    attrib_array(i, s_offset_tot$) = 'S_OFFSET_TOT'
-    attrib_array(i, x_pitch_tot$)  = 'X_PITCH_TOT'
-    attrib_array(i, y_pitch_tot$)  = 'Y_PITCH_TOT'
-  endif
+  if (i == match$) cycle
+
+  attrib_array(i, tilt$)         = 'TILT' 
+  attrib_array(i, x_offset$)     = 'X_OFFSET'
+  attrib_array(i, y_offset$)     = 'Y_OFFSET'
+  attrib_array(i, s_offset$)     = 'S_OFFSET'
+  attrib_array(i, x_pitch$)      = 'X_PITCH'
+  attrib_array(i, y_pitch$)      = 'Y_PITCH'
+  attrib_array(i, tilt_tot$)     = 'TILT_TOT'
+  attrib_array(i, x_offset_tot$) = 'X_OFFSET_TOT'
+  attrib_array(i, y_offset_tot$) = 'Y_OFFSET_TOT'
+  attrib_array(i, s_offset_tot$) = 'S_OFFSET_TOT'
+  attrib_array(i, x_pitch_tot$)  = 'X_PITCH_TOT'
+  attrib_array(i, y_pitch_tot$)  = 'Y_PITCH_TOT'
 
   if (i == mirror$)     cycle
   if (i == crystal$)    cycle
@@ -304,10 +304,8 @@ do i = 1, n_key
 
   if (i == photon_branch$) cycle
   if (i == branch$) cycle
-
   if (i == capillary$)    cycle
   if (i == marker$)       cycle
-  if (i == match$)        cycle
   if (i == patch$)        cycle
   if (i == beambeam$)     cycle
   if (i == hom$)          cycle
@@ -345,16 +343,16 @@ do i = 1, n_key
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$, &
          hkicker$, vkicker$)
-    attrib_array(i, a0$:a20$) = (/ 'A0 ', &
+    attrib_array(i, a0$:a20$) = [ 'A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
                                    'A11', 'A12', 'A13', 'A14', 'A15', &
-                                   'A16', 'A17', 'A18', 'A19', 'A20' /)
-    attrib_array(i, b0$:b20$) = (/ 'B0 ', &
+                                   'A16', 'A17', 'A18', 'A19', 'A20' ]
+    attrib_array(i, b0$:b20$) = [ 'B0 ', &
                                    'B1 ', 'B2 ', 'B3 ', 'B4 ', 'B5 ', & 
                                    'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                    'B11', 'B12', 'B13', 'B14', 'B15', &
-                                   'B16', 'B17', 'B18', 'B19', 'B20' /)
+                                   'B16', 'B17', 'B18', 'B19', 'B20' ]
     if (i == ab_multipole$) cycle
     attrib_array(i, scale_multipoles$) = 'SCALE_MULTIPOLES'
   end select
@@ -458,6 +456,8 @@ attrib_array(match$, py1$)             = 'PY1'
 attrib_array(match$, z1$)              = 'Z1'
 attrib_array(match$, pz1$)             = 'PZ1'
 attrib_array(match$, match_end_orbit$) = 'MATCH_END_ORBIT'
+attrib_array(match$, is_on$)           = 'IS_ON'
+
 
 attrib_array(girder$, x_offset$)     = 'X_OFFSET'
 attrib_array(girder$, y_offset$)     = 'Y_OFFSET'
@@ -681,18 +681,16 @@ attrib_array(sol_quad$, field_master$)  = 'FIELD_MASTER'
 attrib_array(sol_quad$, b1_gradient$)   = 'B1_GRADIENT'
 attrib_array(sol_quad$, bs_field$)      = 'BS_FIELD'
 
-attrib_array(multipole$, l$)         = 'L'
-attrib_array(multipole$, tilt$)      = 'TILT'
-attrib_array(multipole$, k0l$:k20l$) = (/ 'K0L ', &
-                               'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', & 
-                               'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
-                               'K11L', 'K12L', 'K13L', 'K14L', 'K15L', &
-                               'K16L', 'K17L', 'K18L', 'K19L', 'K20L' /)
-attrib_array(multipole$, t0$:t20$) = (/ 'T0 ', &
+attrib_array(multipole$, l$)            = 'L'
+attrib_array(multipole$, tilt$)         = 'TILT'
+attrib_array(multipole$, k0l$:k20l$)    = &
+             ['K0L ', 'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', 'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
+                      'K11L', 'K12L', 'K13L', 'K14L', 'K15L', 'K16L', 'K17L', 'K18L', 'K19L', 'K20L']
+attrib_array(multipole$, t0$:t20$) = ['T0 ', &
                                'T1 ', 'T2 ', 'T3 ', 'T4 ', 'T5 ', & 
                                'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
                                'T11', 'T12', 'T13', 'T14', 'T15', &
-                               'T16', 'T17', 'T18', 'T19', 'T20' /)
+                               'T16', 'T17', 'T18', 'T19', 'T20' ]
 attrib_array(multipole$, x_offset$) = 'X_OFFSET'
 attrib_array(multipole$, y_offset$) = 'Y_OFFSET'
 attrib_array(multipole$, s_offset$) = 'S_OFFSET'
@@ -703,26 +701,30 @@ attrib_array(ab_multipole$, x_offset$) = 'X_OFFSET'
 attrib_array(ab_multipole$, y_offset$) = 'Y_OFFSET'
 attrib_array(ab_multipole$, s_offset$) = 'S_OFFSET'
 
-attrib_array(custom$, val1$)         = 'VAL1'
-attrib_array(custom$, val2$)         = 'VAL2'
-attrib_array(custom$, val3$)         = 'VAL3'
-attrib_array(custom$, val4$)         = 'VAL4'
-attrib_array(custom$, val5$)         = 'VAL5'
-attrib_array(custom$, val6$)         = 'VAL6'
-attrib_array(custom$, val7$)         = 'VAL7'
-attrib_array(custom$, val8$)         = 'VAL8'
-attrib_array(custom$, val9$)         = 'VAL9'
-attrib_array(custom$, val10$)        = 'VAL10'
-attrib_array(custom$, val11$)        = 'VAL11'
-attrib_array(custom$, val12$)        = 'VAL12'
-attrib_array(custom$, field_calc$)   = 'FIELD_CALC'
-attrib_array(custom$, field_master$) = 'FIELD_MASTER'
-attrib_array(custom$, delta_e$)      = 'DELTA_E'
+attrib_array(custom$, val1$)             = 'VAL1'
+attrib_array(custom$, val2$)             = 'VAL2'
+attrib_array(custom$, val3$)             = 'VAL3'
+attrib_array(custom$, val4$)             = 'VAL4'
+attrib_array(custom$, val5$)             = 'VAL5'
+attrib_array(custom$, val6$)             = 'VAL6'
+attrib_array(custom$, val7$)             = 'VAL7'
+attrib_array(custom$, val8$)             = 'VAL8'
+attrib_array(custom$, val9$)             = 'VAL9'
+attrib_array(custom$, val10$)            = 'VAL10'
+attrib_array(custom$, val11$)            = 'VAL11'
+attrib_array(custom$, val12$)            = 'VAL12'
+attrib_array(custom$, field_calc$)       = 'FIELD_CALC'
+attrib_array(custom$, field_master$)     = 'FIELD_MASTER'
+attrib_array(custom$, delta_e$)          = 'DELTA_E'
+attrib_array(custom$, delta_ref_time$)   = 'DELTA_REF_TIME'
+attrib_array(custom$, e_tot_start$)      = 'E_TOT_START'
+attrib_array(custom$, p0c_start$)        = 'P0C_START'
 
 attrib_array(hybrid$, l$)                = 'L'
 attrib_array(hybrid$, delta_e$)          = 'DELTA_E'
 attrib_array(hybrid$, delta_ref_time$)   = 'DELTA_REF_TIME'
 attrib_array(hybrid$, e_tot_start$)      = 'E_TOT_START'
+attrib_array(hybrid$, p0c_start$)        = 'P0C_START'
 
 attrib_array(mirror$, graze_angle$)      = 'GRAZE_ANGLE'
 attrib_array(mirror$, graze_angle_err$)  = 'GRAZE_ANGLE_ERR'

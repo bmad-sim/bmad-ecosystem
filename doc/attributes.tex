@@ -752,23 +752,22 @@ RF fields is
 \begin{example}
   rf_field = {
     mode = {
-      m             = <Integer>,
-      freq          = <Real>,  ! frequency of oscillations.
-      theta_t0      = <Real>,  ! Phase of oscillations. Default = 0.
-      f_damp        = <Real>,  ! Oscillation damping factor. Default = 0.
-      stored_energy = <Real>,  ! Default = 0.
-      dz            = <Real>,  ! Distance between sampled field points.
-      sample_radius = <Real>,  ! Default = 0.
-      phi_0         = <Real>,  ! Azimuthal orientation.
+      m             = <Integer>, ! Mode number
+      freq          = <Real>,    ! frequency of oscillations.
+      theta_t0      = <Real>,    ! Phase of oscillations.
+      f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
+      field_scale   = <Real>,    ! Scale factor for the E & B fields
+      stored_energy = <Real>,    
+      dz            = <Real>,    ! Distance between sampled field points.
+      phi_0         = <Real>,    ! Azimuthal orientation.
       e_re = (<Real>, <Real>, ....),  ! Real part of e.
       e_im = (<Real>, <Real>, ....),  ! Imaginary part of e.
       b_re = (<Real>, <Real>, ....),  ! Real part of b.
       b_im = (<Real>, <Real>, ....)}, ! Imaginary part of b.
     mode = {...}}
 \end{example}
-The \vn{sample_radius} of a mode gives the radius $R$ where the field
-data was calculated (cf.~\Eq{erpze}). This quantity is not needed for
-tracking and is not used by any \bmad routines.
+The ``fundamental'' mode is taken to be the first mode of the
+\vn{rf_field} structure.
 
 \vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and
 \vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
@@ -797,12 +796,38 @@ element. If there is a difference, the field is assumed to be centered
 on the element and drifts will be used at the entrance and exit ends
 of the element to make up the difference.
 
-The phase of the fundamental mode is autoscaled by Bmad so that a
-particle with $z = 0$ will go through the cavity on crest for a
-\vn{lcavity} and on the zero-crossing for an
+The field of a given mode oscillates as given by Eq.~\ref{eseei}  
+\Begineq
+  e^{-i \, (\omega \, t + \theta_0)}
+\endeq
+The phase of the oscillation, $\theta_0$ comes from two
+sources: the phase \vn{theta_t0} set for the mode and an overall phase
+\vn{phi_ref} given by
+\begin{example}
+ phi_ref = phi0 + dphi0
+\end{example}
+\index{lcavity|reference phase}\index{rfcavity|reference phase}
+Unfortunately, to be consistent with \mad, the definition of
+\vn{phi_ref} for an \vn{lcavity} (\sref{s:lcavity}) differs in sign to
+that for an \vn{rfcavity} (\sref{s:rfcavity}). This being the case,
+$\theta_0$ is
+\Begineq
+  \theta_0 = 
+  \begin{cases}
+    \mbox{theta_t0} + \frac{\omega}{\omega_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
+    \mbox{lcavity element}
+    \mbox{theta_t0} - \frac{\omega}{\omega_0} \, \mbox{phi_ref} & 
+    \mbox{rfcavity element}
+  \end{cases}
+\Endeq
+where $\omega$ is the mode frequency and $\omega_0$ is the frequency of the fundamental.
+
+The phase \vn{theta_t0} of the fundamental mode is autoscaled by Bmad
+so that a particle with $z = 0$ will go through the cavity on crest
+for a \vn{lcavity} and on the zero-crossing for an
 \vn{rfcavity}. Additionally, the field of the fundamental mode is
-adjusted by an overall factor so that for an \vn{lcavity} the
-maximal acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
+adjusted by an overall factor so that for an \vn{lcavity} the maximal
+acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
 the maximal acceleration is equal to \vn{e * voltage}.
 
 %-----------------------------------------------------------------

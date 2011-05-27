@@ -1365,16 +1365,15 @@ dependent attribute and is defined to be
 
 The energy kick felt by a particle is 
 \begin{example}
-  dE = gradient_tot * L * cos(twopi * (phi_ref + phi_err + phi(z)) - 
+  dE = gradient_tot * L * cos(twopi * (phi(z) + phi_ref + phi0_err) - 
                                                      e_loss * n_part * e_charge 
 \end{example}
 \index{multipass}
 where
 \begin{example}
   gradient_tot = gradient + gradient_err
-  phi_ref = phi0 + dphi0
-  phi_err = phi0_err
   phi(z) = -z * rf_frequency / c_light
+  phi_ref = phi0 + dphi0
 \end{example}
 \vn{dphi0} is only to be used to shift the phase with respect to a \vn{multipass}
 lord. See \sref{s:multipass}.
@@ -1871,13 +1870,13 @@ Attributes specific to an \vn{rfcavity} are:
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \mad. The energy kick felt by a particle is 
 \begin{example}
-  dE = e_charge * voltage * sin(twopi * (phi_ref - phi(z)))
+  dE = -e_charge * voltage * sin(twopi * (phi(z) - phi_ref))
 \end{example}
 \index{multipass}
 where
 \begin{example}
-  phi_ref = phi0 + dphi0
   phi(z) = -z * rf_frequency / c_light
+  phi_ref = phi0 + dphi0
 \end{example}
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the

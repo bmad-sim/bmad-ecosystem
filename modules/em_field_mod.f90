@@ -182,7 +182,7 @@ real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
 real(rp) k_t, k_zn, kappa2_n, kap_rho
-real(rp) radius, phi
+real(rp) radius, phi, t_ref
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im0, Im_plus, Im_minus, Im_norm, kappa_n, Im_plus2
@@ -258,6 +258,14 @@ case(rfcavity$, lcavity$)
   radius = sqrt(x**2 + y**2)
   phi = atan2(y, x)
 
+  ! 
+  if (ele%key == rfcavity$) then
+    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
+  else
+    t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
+  endif
+  t_ref = t_ref / ele%rf%field%mode(1)%freq
+
   do i = 1, size(ele%rf%field%mode)
     mode => ele%rf%field%mode(i)
     m = mode%m
@@ -274,10 +282,10 @@ case(rfcavity$, lcavity$)
 
     k_t = twopi * mode%freq / c_light
 
-    do n = 1, size(mode%term)
+    Er = 0; Ep = 0; Ez = 0
+    Br = 0; Bp = 0; Bz = 0
 
-      Er = 0; Ep = 0; Ez = 0
-      Br = 0; Bp = 0; Bz = 0
+    do n = 1, size(mode%term)
 
       k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
       if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
@@ -296,13 +304,13 @@ case(rfcavity$, lcavity$)
         Im0     = I_bessel(0, kap_rho)
         Im_plus = I_bessel(1, kap_rho) / kappa_n
 
-        Er = Er - mode%term(i)%e * Im_plus * expi * I_imaginary * k_zn
-        Ep = Ep + mode%term(i)%b * Im_plus * expi
-        Ez = Ez + mode%term(i)%e * Im0     * expi
+        Er = Er - mode%term(n)%e * Im_plus * expi * I_imaginary * k_zn
+        Ep = Ep + mode%term(n)%b * Im_plus * expi
+        Ez = Ez + mode%term(n)%e * Im0     * expi
 
-        Br = Br - mode%term(i)%b * Im_plus * expi * I_imaginary * k_zn
-        Bp = Bp + mode%term(i)%e * Im_plus * expi * k_t**2
-        Bz = Bz + mode%term(i)%b * Im0     * expi
+        Br = Br - mode%term(n)%b * Im_plus * expi * I_imaginary * k_zn
+        Bp = Bp + mode%term(n)%e * Im_plus * expi * k_t**2
+        Bz = Bz + mode%term(n)%b * Im0     * expi
 
       else
         cm = cos(m * phi - mode%phi_0)
@@ -315,24 +323,24 @@ case(rfcavity$, lcavity$)
         Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im / radius
         Im0      = radius * Im_norm       
 
-        dEr = -i_imaginary * (k_zn * mode%term(i)%e * Im_plus + mode%term(i)%b * Im_norm) * cm * expi
-        dEp = -i_imaginary * (k_zn * mode%term(i)%e * Im_plus + mode%term(i)%b * (Im_norm - Im_minus / m)) * expi
+        dEr = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * Im_norm) * cm * expi
+        dEp = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
 
         Er = Er + dEr
         Ep = Ep + dEp * sm
-        Ez = Ez + mode%term(i)%e * Im0 * cm * expi
+        Ez = Ez + mode%term(n)%e * Im0 * cm * expi
  
-        Br = Br - m * mode%term(i)%e * Im_norm * sm * expi - i_imaginary * k_zn * dEp * sm
+        Br = Br - m * mode%term(n)%e * Im_norm * sm * expi - i_imaginary * k_zn * dEp * sm
         Bp = Bp + i_imaginary * k_zn * dEr - &
-                      mode%term(i)%e * cm * expi * (Im_minus - m * Im_norm)
-        Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(i)%e * (Im0 - Im_plus2 * kappa_n**2) / 2 + &
-                    mode%term(i)%b * (Im_norm - Im_minus / m)) * expi
+                      mode%term(n)%e * cm * expi * (Im_minus - m * Im_norm)
+        Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(n)%e * (Im0 - Im_plus2 * kappa_n**2) / 2 + &
+                    mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
 
      endif
       
     enddo
 
-    expt = exp(-I_imaginary * twopi * (mode%freq * t_rel + mode%theta_t0))
+    expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
     E_rho = E_rho + Er * expt
     E_phi = E_phi + Ep * expt
     E_z   = E_z   + Ez * expt
@@ -614,198 +622,5 @@ if (.not. local_ref_frame) then
 endif
 
 end subroutine em_field_calc 
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine em_field_kick_vector (ele, param, s_rel, t_rel, orbit, local_ref_frame, dvec_ds)
-!
-! Subroutine to calculate the dr/ds kick vector
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele   -- Ele_struct: Element being tracked thorugh.
-!   param -- lat_param_struct: Lattice parameters.
-!   s_rel -- Real(rp): Distance from the start of the element to the particle.
-!   t_rel  -- Real(rp): Time relative to the reference particle.
-!   orbit -- coord_struct: Position of particle.
-!   local_ref_frame 
-!         -- Logical, If True then take the input coordinates 
-!               as being with respect to the frame of referene of the element. 
-!
-! Output:
-!   dvec_ds(6) -- Real(rp): dorbit%vec(:)/ds Kick vector. 
-!-
-
-subroutine em_field_kick_vector (ele, param, s_rel, t_rel, orbit, local_ref_frame, dvec_ds)
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (em_field_struct) field
-type (coord_struct) orbit
-
-real(rp), intent(in) :: s_rel, t_rel 
-real(rp), intent(out) :: dvec_ds(6)
-real(rp) f_bend, gx_bend, gy_bend, ds_dt
-real(rp) vel(3), force(3)
-real(rp), save :: pc, e_tot, beta, ds_dt_ref, p0
-real(rp), save :: pc_old = -1, particle_old = 0
-
-logical :: local_ref_frame
-
-character(24), parameter :: r_name = 'em_field_kick_vector'
-
-!
-
-pc = ele%value(p0c$) * (1 + orbit%vec(6))
-if (pc /= pc_old .or. param%particle /= particle_old) then
-  call convert_pc_to (pc, param%particle, e_tot = e_tot, beta = beta)
-  pc_old = pc; particle_old = param%particle
-  ds_dt_ref = c_light * ele%value(p0c$) / ele%value(e_tot$) 
-  p0 = ele%value(p0c$) / c_light
-endif
-
-! calculate the field
-
-call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false.)
-
-! Computation for dvec/ds where vec = [x, p_x, y, p_y, z, p_z], g = 1/R_bend
-!
-!   dvec(1)/ds = dx/dt / ds/dt
-!   dx/dt = v_x 
-!   ds/dt = v_s / (1 + g*x)
-!
-!   dvec(2)/ds = dP_x/dt / (ds/dt * P0)
-!   dP_x/dt = EM_Force_x + gamma * mass * vec * (dtheta/dt)^2
-!   vec * (dtheta/dt)^2 = g * v_s^2 / (1 + g*x)^2   ! Centrifugal term
-!
-!   dvec(3)/ds = dy/dt * dt/ds
-!   dy/dt = v_x 
-! 
-!   dvec(4)/ds = dP_y/dt / (ds/dt * P0)
-!   dP_y/dt = EM_Force_y
-!
-!   dvec(5)/ds = -beta * c_light * [1 / ds/dt - 1 / ds/dt(ref)]
-!
-!   dvec(6)/ds = EM_Force dot v / (ds/dt * P0)
-
-! Bend factor
-
-vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
-vel = beta * c_light * [vel(1), vel(2), sqrt(1 - vel(1)**2 - vel(2)**2)]
-force = charge_of(param%particle) * (field%E + cross_product(vel, field%B))
-
-f_bend = 1
-gx_bend = 0; gy_bend = 0
-ds_dt = vel(3)
-if (ele%key == sbend$) then
-  if (ele%value(tilt_tot$) /= 0 .and. .not. local_ref_frame) then
-    gx_bend = ele%value(g$) * cos(ele%value(tilt_tot$))
-    gy_bend = ele%value(g$) * sin(ele%value(tilt_tot$))
-  else
-    gx_bend = ele%value(g$)
-  endif
-  f_bend = 1 + orbit%vec(1) * gx_bend + orbit%vec(3) * gy_bend
-  ds_dt = vel(3) / f_bend
-endif
-
-dvec_ds(1) = vel(1) / ds_dt
-dvec_ds(2) = (force(1) + e_tot * gx_bend * (ds_dt/c_light)**2) / (ds_dt * p0)
-dvec_ds(3) = vel(2) / ds_dt
-dvec_ds(4) = (force(2) + e_tot * gy_bend * (ds_dt/c_light)**2) / (ds_dt * p0)
-dvec_ds(5) = -beta * c_light * (1 / ds_dt - 1 / ds_dt_ref)
-dvec_ds(6) = dot_product(force, vel) / (ds_dt * p0)
-
-end subroutine em_field_kick_vector
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine em_field_g_bend (ele, param, s_, orbit, g, dg)
-!
-! Subroutine to calculate the g bending kick felt by a particle in a element. 
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele    -- Ele_struct: Element being tracked thorugh.
-!   param  -- lat_param_struct: Lattice parameters.
-!   s_rel  -- Real(rp): Distance from the start of the element to the particle.
-!   t_rel  -- Real(rp): Time relative to the reference particle.
-!   orbit  -- Coord_struct: Particle position in lab (not element) frame.
-!
-! Output:
-!   g(3)    -- Real(rp): (g_x, g_y, g_s) bending radiuses
-!   dg(3,3) -- Real(rp), optional: dg(:)/dr gradient. 
-!-
-
-subroutine em_field_g_bend (ele, param, s_rel, t_rel, orbit, g, dg)
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (em_field_struct) field
-type (coord_struct) orbit
-
-real(rp), intent(in) :: s_rel, t_rel
-real(rp), intent(out) :: g(3)
-real(rp), optional :: dg(3,3)
-real(rp) vel_unit(3), fact
-real(rp), save :: pc, gamma, beta
-real(rp), save :: pc_old = -1, particle_old = 0
-real(rp) f
-
-! calculate the field
-
-call em_field_calc (ele, param, s_rel, t_rel, orbit, .false., field, present(dg))
-
-!
-
-pc = ele%value(p0c$) * (1 + orbit%vec(6))
-if (pc /= pc_old .or. param%particle /= particle_old) then
-  call convert_pc_to (pc, param%particle, gamma = gamma, beta = beta)
-  pc_old = pc; particle_old = param%particle
-endif
-
-! vel_unit is the velocity normalized to unit length
-
-vel_unit(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
-vel_unit(3) = sqrt(1 - vel_unit(1)**2 - vel_unit(2)**2)
-fact = 1 / (ele%value(p0c$) * (1 + orbit%vec(6)))
-g = g_from_field (field%B, field%E)
-
-! Derivative
-
-if (present(dg)) then
-  dg(:,1) = g_from_field (field%dB(:,1), field%dE(:,1))
-  dg(:,2) = g_from_field (field%dB(:,2), field%dE(:,2))
-  dg(:,3) = g_from_field (field%dB(:,3), field%dE(:,3))
-endif
-
-!---------------------------------------------------------------
-contains
-
-function g_from_field (B, E) result (g_bend)
-
-real(rp) B(3), E(3), g_bend(3)
-real(rp) force(3), force_perp(3)
-
-! force_perp is the perpendicular component of the force.
-
-force = E * charge_of(param%particle) + cross_product(vel_unit, B) * beta * c_light
-force_perp = force - vel_unit * (dot_product(force, vel_unit))
-g_bend = -force_perp * fact
-
-end function
-
-end subroutine em_field_g_bend
 
 end module
