@@ -676,7 +676,7 @@ character(20), parameter :: ref_orbit_name(0:6) = ['GARBAGE!           ', &
 
 type anormal_mode_struct
   real(rp) emittance        ! Beam emittance
-  real(rp) synch_int(4:5)   ! Synchrotron integrals
+  real(rp) synch_int(4:6)   ! Synchrotron integrals
   real(rp) j_damp           ! damping partition number
   real(rp) alpha_damp       ! damping per turn
   real(rp) chrom            ! Chromaticity
@@ -858,6 +858,7 @@ type rad_int_common_struct
   real(rp), allocatable :: i4b(:)
   real(rp), allocatable :: i5a(:) 
   real(rp), allocatable :: i5b(:) 
+  real(rp), allocatable :: i6b(:) 
   real(rp), allocatable :: lin_i2_E4(:) 
   real(rp), allocatable :: lin_i3_E7(:) 
   real(rp), allocatable :: lin_i5a_E6(:) 

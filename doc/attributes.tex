@@ -799,7 +799,7 @@ of the element to make up the difference.
 The field of a given mode oscillates as given by Eq.~\ref{eseei}  
 \Begineq
   e^{-i \, (\omega \, t + \theta_0)}
-\endeq
+\Endeq
 The phase of the oscillation, $\theta_0$ comes from two
 sources: the phase \vn{theta_t0} set for the mode and an overall phase
 \vn{phi_ref} given by
@@ -808,14 +808,14 @@ sources: the phase \vn{theta_t0} set for the mode and an overall phase
 \end{example}
 \index{lcavity|reference phase}\index{rfcavity|reference phase}
 Unfortunately, to be consistent with \mad, the definition of
-\vn{phi_ref} for an \vn{lcavity} (\sref{s:lcavity}) differs in sign to
-that for an \vn{rfcavity} (\sref{s:rfcavity}). This being the case,
+\vn{phi_ref} for an \vn{lcavity} (\sref{s:lcav}) differs in sign to
+that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
 $\theta_0$ is
 \Begineq
   \theta_0 = 
   \begin{cases}
     \mbox{theta_t0} + \frac{\omega}{\omega_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
-    \mbox{lcavity element}
+    \mbox{lcavity element} \\
     \mbox{theta_t0} - \frac{\omega}{\omega_0} \, \mbox{phi_ref} & 
     \mbox{rfcavity element}
   \end{cases}

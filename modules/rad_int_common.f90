@@ -67,8 +67,8 @@ contains
 ! This routine is only meant to be called by radiation_integrals and
 ! is not meant for general use.
 !
-! There are up to 7 integrals that are calculated:
-!          I1, I2, I3, I4a, I4b, I5a, I5b
+! There are up to 9 integrals that are calculated:
+!          I1, I2, I3, I4a, I4b, I5a, I5b, i0, i6b
 ! If do_int(1:7) is False for an integral that means that the integral has
 ! been calculated by the calling routine using a formula and therefore does
 ! not have to be done by this routine.
@@ -88,7 +88,7 @@ type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
 type (rad_int_common_struct) rad_int
 
-integer, parameter :: num_int = 8
+integer, parameter :: num_int = 9
 integer, parameter :: jmax = 14
 integer j, j0, n, n_pts, ix_ele
 
@@ -176,6 +176,7 @@ do j = 1, jmax
                   2 * info%b%alpha * info%b%eta * info%b%etap + &
                   info%b%beta * info%b%etap**2)
     i_sum(8) = i_sum(8) + gamma * info%g
+    i_sum(9) = i_sum(9) + info%g2 * info%g * info%b%beta
   enddo
 
   ri(:)%sum(j) = (ri(:)%sum(j-1) + del_z * i_sum(:)) / 2
@@ -220,6 +221,7 @@ do j = 1, jmax
     rad_int%i5a(ix_ele) = rad_int%i5a(ix_ele) + rad_int_vec(6)
     rad_int%i5b(ix_ele) = rad_int%i5b(ix_ele) + rad_int_vec(7)
     rad_int%i0(ix_ele)  = rad_int%i0(ix_ele)  + rad_int_vec(8)
+    rad_int%i6b(ix_ele) = rad_int%i6b(ix_ele) + rad_int_vec(9)
 
     int_tot(1) = int_tot(1) + rad_int%i1(ix_ele)
     int_tot(2) = int_tot(2) + rad_int%i2(ix_ele)
@@ -229,6 +231,7 @@ do j = 1, jmax
     int_tot(6) = int_tot(6) + rad_int%i5a(ix_ele)
     int_tot(7) = int_tot(7) + rad_int%i5b(ix_ele)
     int_tot(8) = int_tot(8) + rad_int%i0(ix_ele)
+    int_tot(9) = int_tot(9) + rad_int%i6b(ix_ele)
 
   endif
 

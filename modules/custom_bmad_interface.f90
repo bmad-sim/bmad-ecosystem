@@ -1,15 +1,4 @@
-#include "CESR_platform.inc"
-
 module custom_bmad_interface
-
-interface
-  subroutine emit_calc_custom (lat, ir, i2, i3, i5a, i5b)
-    use bmad_struct, only: lat_struct, rp
-    type (lat_struct) lat
-    integer ir
-    real(rp) i2, i3, i5a, i5b
-  end subroutine
-end interface
 
 interface
   subroutine radiation_integrals_custom (lat, ir, orb)
