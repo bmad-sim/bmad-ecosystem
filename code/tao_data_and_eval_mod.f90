@@ -1569,6 +1569,13 @@ case ('rad_int.')
       datum_value = tao_lat%modes%lin%i5b_e6
     endif
 
+  case ('i6b')
+    if (ix_ele > -1) then
+      datum_value = sum(tao_lat%rad_int%i6b(ix_ref:ix_ele))
+    else
+      datum_value = tao_lat%modes%b%synch_int(6)
+    endif
+
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
     return
@@ -1630,6 +1637,10 @@ case ('rad_int1.')
   case ('i5b_e6')
     datum_value = tao_lat%rad_int%lin_i5b_e6(ix_ele)
     if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%lin_i5b_e6(ix_ref)
+
+  case ('i6b')
+    datum_value = tao_lat%rad_int%i6b(ix_ele)
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i6b(ix_ref)
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)

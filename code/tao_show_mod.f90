@@ -179,7 +179,7 @@ end type
 
 type (show_lat_column_struct) column(50)
 
-real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
@@ -1342,6 +1342,7 @@ case ('lattice')
         column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false.)
         column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false.)
         column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false.)
+        column(13) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false.)
       endif
     else
       column(1)  = show_lat_column_struct('#',                 'i6',        6, '', .false.)
@@ -2170,11 +2171,12 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(17x, a)') '       X          |            Y'
   nl=nl+1; write (lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
-  fmt = '(1x, a10, 1p 2e11.3, 2x, 2e11.3, 2x, a)'
+  fmt  = '(1x, a10, 2es11.3, 2x, 2es11.3, 2x, a)'
   fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
-  fmt3 = '(1x, a10, 2f11.4, 2x, 2f11.4, 2x, a)'
+  fmt3 = '(1x, a10,        24x, 2es11.3, 2x, a)'
   f_phi = 1 / twopi
   l_lat = lat%param%total_length
+  gamma2 = (lat%ele(0)%value(e_tot$) / mass_of(lat%param%particle))**2
   n = lat%n_ele_track
   if (lat%param%lattice_type == circular_lattice$) then
     nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*lat%ele(n)%a%phi, &
@@ -2198,6 +2200,8 @@ case ('universe')
   nl=nl+1; write (lines(nl), fmt) 'I5', u%model%modes%a%synch_int(5), &
         u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
         u%design%modes%b%synch_int(5), '! Radiation Integral'
+  nl=nl+1; write (lines(nl), fmt3) 'I6/gamma^2', u%model%modes%b%synch_int(6) / gamma2, &
+        u%design%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
 
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
