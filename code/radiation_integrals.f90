@@ -54,7 +54,7 @@
 !     %e_loss         -- Energy loss in eV per turn
 !     %a, %b, %z      -- Anormal_mode_struct: Substructure
 !       %emittance      -- Emittance
-!       %synch_int(4:5) -- Synchrotron integrals
+!       %synch_int(4:6) -- Synchrotron integrals
 !       %j_damp         -- Damping partition factor
 !       %alpha_damp     -- Exponential damping coefficient per turn
 !     %lin            -- Linac version of the integrals.
@@ -120,10 +120,10 @@ type (rad_int_track_point_struct), pointer :: c_pt
 type (rad_int_track_point_struct) pt
 type (rad_int_common_struct), target, save :: rad_int
 
-integer, parameter :: num_int = 8
+integer, parameter :: num_int = 9
 
 real(rp) :: int_tot(num_int)
-real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, m65, G_max, g3_ave
+real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, mc2, gamma, gamma4, gamma6
 real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q
@@ -158,6 +158,7 @@ if (allocated(rad_int%i1)) then
     deallocate (rad_int%i4b)
     deallocate (rad_int%i5a)
     deallocate (rad_int%i5b)
+    deallocate (rad_int%i6b)
     deallocate (rad_int%n_steps)
     deallocate (rad_int%lin_i2_E4)
     deallocate (rad_int%lin_i3_E7)
@@ -182,6 +183,7 @@ if (do_alloc) then
   allocate (rad_int%i4b(0:lat%n_ele_max))
   allocate (rad_int%i5a(0:lat%n_ele_max))
   allocate (rad_int%i5b(0:lat%n_ele_max))
+  allocate (rad_int%i6b(0:lat%n_ele_max))
   allocate (rad_int%n_steps(0:lat%n_ele_max))
   allocate (rad_int%lin_i2_E4(0:lat%n_ele_max))
   allocate (rad_int%lin_i3_E7(0:lat%n_ele_max))
@@ -197,6 +199,7 @@ ri_info%orbit => orbit
 rad_int%i0 = 0;  rad_int%i1 = 0;   rad_int%i2 = 0;  rad_int%i3 = 0
 rad_int%i4a = 0;  rad_int%i4b = 0
 rad_int%i5a = 0;  rad_int%i5b = 0
+rad_int%i6b = 0
 rad_int%n_steps = 0
 rad_int%lin_i2_E4 = 0;  rad_int%lin_i3_E7 = 0;
 rad_int%lin_i5a_E6 = 0;  rad_int%lin_i5b_E6 = 0;
@@ -432,7 +435,7 @@ do ir = 1, lat%n_ele_track
 
     pt%g_x0 = g3_ave**(1.0/3)
 
-    call qromb_rad_int ((/ F, F, F, F, F, T, T, F /), pt, ri_info, int_tot, rad_int)
+    call qromb_rad_int ([F, F, F, F, F, T, T, F, T], pt, ri_info, int_tot, rad_int)
     cycle
 
   endif
@@ -472,7 +475,7 @@ do ir = 1, lat%n_ele_track
 
   ! Integrate for quads, bends and nonzero kicks
 
-  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot, rad_int)
+  call qromb_rad_int ([T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int)
 
 enddo
 
@@ -497,7 +500,7 @@ do ir = 1, lat%n_ele_track
   if (ll == 0) cycle
 
   ri_info%ix_ele = ir
-  call qromb_rad_int ((/ T, T, T, T, T, T, T, T /), pt, ri_info, int_tot, rad_int)
+  call qromb_rad_int ([T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int)
 
 enddo
 
@@ -546,6 +549,7 @@ i4a  = int_tot(4)
 i4b  = int_tot(5)
 i5a  = int_tot(6)
 i5b  = int_tot(7)
+i6b  = int_tot(9)
 
 i4z = i4a + i4b
 
@@ -565,10 +569,13 @@ mode%z%synch_int(4) = i4z
 mode%a%synch_int(5) = i5a
 mode%b%synch_int(5) = i5b
 
+mode%a%synch_int(6) = 0
+mode%b%synch_int(6) = i6b
+
 if (i2 /= 0) then
 
   mode%a%emittance = const_q * gamma2_factor * i5a / (i2 - i4a)
-  mode%b%emittance = const_q * gamma2_factor * i5b / (i2 - i4b)
+  mode%b%emittance = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
 
   mode%a%j_damp = 1 - i4a / i2
   mode%b%j_damp = 1 - i4b / i2

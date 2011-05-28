@@ -1851,9 +1851,8 @@ notation, the synchrotron integrals for coupled motion are:
     I_{4z} &=& \oint ds \, \left[ g^2 \, \bfg \cdot \bfeta\two + 
          \nabla g^2 \cdot \bfeta\two \right] \\
     I_{5a} &=& \oint ds \, g^3 \, \calh_a \\
-    I_{5b} &=& \oint ds \, g^3 \, \calh_b
-    I_{9a} &=& \oint ds \, g^3 \, \beta_a \\
-    I_{9b} &=& \oint ds \, g^3 \, \beta_b
+    I_{5b} &=& \oint ds \, g^3 \, \calh_b \\
+    I_{6b} &=& \oint ds \, g^3 \, \beta_b
   \Endeqs
 where $\gamma_0$ is that usual relativistic factor and $\calh_a$ is 
   \Begineq
@@ -1950,9 +1949,14 @@ If the synchrotron frequency is not too large the bunch length is given by
 where $M(6,5)$ is the $(6,5)$ element for the 1--turn transfer matrix
 of the storage ring. Finally the emittances are given by
   \Begineqs
-    \epsilon_a \AND= C_q \, \gamma_0^2 \frac{I_{5a}}{I_2 - I_{4a}} \CRNO
-    \epsilon_b \AND= C_q \, \gamma_0^2 \frac{I_{5b}}{I_2 - I_{4b}}
+    \epsilon_a \AND= \frac{C_q}{I_2 - I_{4a}} 
+      \, \gamma_0^2 \, I_{5a} \CRNO
+    \epsilon_b \AND= \frac{C_q}{I_2 - I_{4b}} 
+      \, \left( \gamma_0^2 \, I_{5b} + \frac{13}{55} \, I_{6b} \right) \CRNO
   \Endeqs
+The $I_{6b}$ term come from the finite vertical opening angle of the
+radiation\cite{b:tol}. Normally this term is very small compaired to
+the emittance due to coupling or vertical kicks due to magnet misalignment.
 
 For a non-circular machine, radiation integrals are still of interest
 if there are bends or steering elements. However, in this case, the

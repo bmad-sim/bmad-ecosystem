@@ -4,7 +4,7 @@
 ! Subroutine to calculate the emittance, energy spread, and synchrotron
 ! integrals. This subroutine assumes that bends are in the horizontal plane.
 !
-! For a better, more complete calculation see the subroutine: 
+! For a better, more complete calculation, see the subroutine: 
 !               RADIATION_INTEGRALS
 ! The only possible saving grace of this subroutine is that it is faster
 ! than RADIATION_INTEGRALS.
@@ -313,7 +313,9 @@ subroutine emit_calc (lat, what, mode)
 ! custom contribution
 
     elseif (do_wigs .and. lat%ele(ir)%key == custom$) then
-       call emit_calc_custom (lat, ir, i2, i3, i5a, i5b)
+      ! depracated. use radiation_integrals instead.
+      ! call emit_calc_custom (lat, ir, i2, i3, i5a, i5b)
+      call err_exit
 
     elseif (lat%ele(ir)%key == rfcavity$) then
       m65 = m65 + lat%ele(ir)%mat6(6,5)   ! add up the m65s

@@ -993,21 +993,20 @@ type (anormal_mode_struct), pointer :: f
 type (c_dummy_struct) c_amode
 
 f => f_amode
-call amode_to_c2 (c_amode, f%emittance, f%synch_int(4), f%synch_int(5), &
-                                    f%j_damp, f%alpha_damp, f%chrom, f%tune)
+call amode_to_c2 (c_amode, f%emittance, f%synch_int, f%j_damp, f%alpha_damp, f%chrom, f%tune)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine amode_to_f2 (f_amode, emit, i4, i5, j_damp, a_damp, chrom, tune)
+! Subroutine amode_to_f2 (f_amode, emit, synch_int, j_damp, a_damp, chrom, tune)
 !
 ! Subroutine used by amode_to_f to convert a C++ C_amode into
 ! a Bmad anormal_mode_struct. This routine is not for general use.
 !-
 
-subroutine amode_to_f2 (f_amode, emit, i4, i5, j_damp, a_damp, chrom, tune)
+subroutine amode_to_f2 (f_amode, emit, synch_int, j_damp, a_damp, chrom, tune)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1016,9 +1015,9 @@ use bmad_interface
 implicit none
 
 type (anormal_mode_struct) f_amode
-real(rp) emit, i4, i5, j_damp, a_damp, chrom, tune
+real(rp) emit, synch_int(4:6), j_damp, a_damp, chrom, tune
 
-f_amode = anormal_mode_struct(emit, (/i4, i5/), j_damp, a_damp, chrom, tune)
+f_amode = anormal_mode_struct(emit, synch_int, j_damp, a_damp, chrom, tune)
 
 end subroutine
 
@@ -1107,23 +1106,20 @@ type (normal_modes_struct), pointer :: f
 type (c_dummy_struct) c_modes
 
 f => f_modes
-call modes_to_c2 (c_modes, f%synch_int(0), f%synch_int(1), f%synch_int(2), f%synch_int(3), &
-            f%sige_e, f%sig_z, f%e_loss, f%pz_aperture, f%a, f%b, f%z, f%lin)
+call modes_to_c2 (c_modes, f%synch_int, f%sige_e, f%sig_z, f%e_loss, f%pz_aperture, f%a, f%b, f%z, f%lin)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine modes_to_f2 (f_modes, i0, i1, i2, i3, sige, sig_z, e_loss, 
-!                                                  pz_aperture, a, b, z, lin)
+! Subroutine modes_to_f2 (f_modes, synch_int, sige, sig_z, e_loss, pz_aperture, a, b, z, lin)
 !
 ! Subroutine used by modes_to_f to convert a C++ C_modes into
 ! a Bmad normal_modes_struct. This routine is not for general use.
 !-
 
-subroutine modes_to_f2 (f_modes, i0, i1, i2, i3, sige, sig_z, e_loss, &
-                                                          pz, a, b, z, lin)
+subroutine modes_to_f2 (f_modes, synch_int, sige, sig_z, e_loss, pz, a, b, z, lin)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1133,7 +1129,7 @@ implicit none
 
 type (normal_modes_struct) f_modes
 type (c_dummy_struct) a, b, z, lin
-real(rp) i0, i1, i2, i3, sige, sig_z, e_loss, pz
+real(rp) synch_int(0:3), sige, sig_z, e_loss, pz
 
 !
 
@@ -1142,8 +1138,7 @@ call amode_to_f (b, f_modes%b)
 call amode_to_f (z, f_modes%z)
 call linac_mode_to_f (lin, f_modes%lin)
 
-f_modes = normal_modes_struct((/i0, i1, i2, i3/), sige, sig_z, e_loss, pz, &
-                          f_modes%a, f_modes%b, f_modes%z, f_modes%lin)
+f_modes = normal_modes_struct(synch_int, sige, sig_z, e_loss, pz, f_modes%a, f_modes%b, f_modes%z, f_modes%lin)
 
 end subroutine
 
