@@ -173,22 +173,24 @@ end subroutine sr3d_plot_reflection_probability
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine sr3d_plot_wall_vs_s (wall, plane)
+! subroutine sr3d_plot_wall_vs_s (wall, lat, plane)
 !
 ! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
 !   wall    -- sr3d_wall_struct: Wall structure.
+!   lat     -- Lat_struct: lattice
 !   plane   -- Character(*): section. 'x' or. 'y'
 !-
 
-subroutine sr3d_plot_wall_vs_s (wall, plane)
+subroutine sr3d_plot_wall_vs_s (wall, lat, plane)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct), target :: photon
+type (lat_struct) lat
 
 real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
 real(rp) s(200), xy_in(200), xy_out(200)
@@ -252,11 +254,11 @@ do
     photon%now%vec(5) = s(i)
 
     photon_xy = -r_max
-    call sr3d_find_wall_point (wall, photon, x_wall, y_wall)
+    call sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall)
     xy_in(i) = wall_xy
 
     photon_xy = r_max
-    call sr3d_find_wall_point (wall, photon, x_wall, y_wall)
+    call sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall)
     xy_out(i) = wall_xy
 
   enddo
@@ -321,26 +323,28 @@ end subroutine sr3d_plot_wall_vs_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (wall, extra)
+! Subroutine sr3d_plot_wall_cross_sections (wall, lat, extra)
 !
 ! Routine to interactively plot wall cross-sections
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   wall      -- sr3d_wall_struct: Wall structure.
-!   extra     -- Character(*): 
+!   wall    -- sr3d_wall_struct: Wall structure.
+!   lat     -- Lat_struct: lattice
+!   extra   -- Character(*): 
 !                   '-norm' -> Also plot a set of lines normal to the wall.
 !                             This is used as a check to the wall normal calculation.
 !                   '-rcross' -> flip x-axis
 !-
 
-subroutine sr3d_plot_wall_cross_sections (wall, extra)
+subroutine sr3d_plot_wall_cross_sections (wall, lat, extra)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (sr3d_wall_pt_struct), pointer :: pt
 type (sr3d_photon_track_struct) photon
+type (lat_struct) lat
 
 real(rp) s_pos, x(400), y(400), x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100)
@@ -396,9 +400,9 @@ do
 
     if (extra == '-norm' .and. modulo(i, 4) == 0) then
       j = (i / 4)
-      call sr3d_find_wall_point (wall, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
     else
-      call sr3d_find_wall_point (wall, photon, x(i), y(i))
+      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i))
     endif
 
   enddo
@@ -511,12 +515,13 @@ end subroutine sr3d_plot_wall_cross_sections
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine sr3d_find_wall_point (wall, photon, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm)
+subroutine sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct) photon
+type (lat_struct) lat
 
 real(rp) x_wall, y_wall
 real(rp), optional :: x1_norm, x2_norm, y1_norm, y2_norm
@@ -564,7 +569,7 @@ else
 
   if (present(x1_norm)) then
     photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
-    call sr3d_photon_d_radius (photon%now, wall, d_radius, dw_perp)
+    call sr3d_photon_d_radius (photon%now, wall, d_radius, lat, dw_perp)
     x1_norm = x_wall;                  y1_norm = y_wall
     x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
   endif

@@ -303,9 +303,9 @@ call ran_seed_put (random_seed)
 ! The plotting routines never return back to the main program.
 
 if (plotting == '-cross' .or. plotting == '-rcross') then
-  call sr3d_plot_wall_cross_sections (wall, plotting)
+  call sr3d_plot_wall_cross_sections (wall, lat, plotting)
 elseif (plotting /= '') then
-  call sr3d_plot_wall_vs_s (wall, plotting(2:2))
+  call sr3d_plot_wall_vs_s (wall, lat, plotting(2:2))
 endif
 
 ! Find out much radiation is produced
@@ -413,6 +413,8 @@ if (photon_start_input_file /= '') then
       call check_if_photon_init_coords_outside_wall (p, is_inside)
       if (is_inside) exit
     enddo
+
+    call ele_at_s(lat, p%vec(5), p%ix_ele)
 
     n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1

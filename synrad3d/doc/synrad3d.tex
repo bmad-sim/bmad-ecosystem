@@ -84,7 +84,7 @@ simulate scattering from the wall.
 
 Syntax for invoking \srthree:
 \begin{example}
-  synrad3d \{-cross | -rcross | -norm | -xs | -ys\} \{<main_input_file_name>\}
+  synrad3d \{-cross | -rcross | -norm | -reflect | -xs | -ys\} \{<main_input_file_name>\}
 \end{example}
 Examples:
 \begin{example}
@@ -173,6 +173,15 @@ the reference orbit, but if one is included in the lattice, then
 radiation due to the orbit distortion, for example, in a quadrupole,
 is included.  
 
+\begin{figure}[tb]
+\begin{center}
+\includegraphics[width=5in]{reflectivity_4nm.png}
+\caption{Reflectivity vs. energy for several grazing angles. 
+Points shown are a measurement from INFN~\cite{b.mehne}}
+\label{f:reflect}
+\end{center}
+\end{figure}
+
 %------------------------------------------------------------------
 \subsection{Photon scattering} 
 
@@ -196,15 +205,6 @@ layer of Al$_2$O$_3$ having a density of 2.9 gm/cm$^3$ and a surface
 roughness of 4 nm. See Fig.~\ref{f:reflect} for some example
 reflectivity curves, compared with radiation spectra for wigglers and
 dipoles in CesrTA at 2 GeV.
-
-\begin{figure}[tb]
-\begin{center}
-\includegraphics[width=5in]{reflectivity_4nm.png}
-\caption{Reflectivity vs. energy for several grazing angles. 
-Points shown are a measurement from INFN~\cite{b.mehne}}
-\label{f:reflect}
-\end{center}
-\end{figure}
 
 %------------------------------------------------------------------
 \subsection{Main input file} 
@@ -248,6 +248,7 @@ Example main input file:
     sr3d_params%ds_track_step_max = 3    ! Photon propagation step size 
     sr3d_params%dr_track_step_max = 0.1  ! Photon propagation step size 
     sr3d_params%allow_reflections = T    ! For testing purposes.
+    sr3d_params%allow_absorbtion  = T    ! For testing purposes.
     sr3d_params%stop_if_hit_antechamber = F 
   /
 \end{example}
@@ -307,7 +308,10 @@ This string gives the name of the output data file.
 See below for more details.
   \item[\vn{sr3d_params\%allow_reflections}] \Newline
 This parameter, if set False, will cause \srthree to stop tracking a given photon once
-it hits the chamber wall. This can be used to generate data on where the primary photons are stricking.
+it hits the chamber wall. This can be used to generate data on where the primary photons are striking.
+  \item[\vn{sr3d_params\%allow_absorbtion}] \Newline
+This parameter, if set False, will cause \srthree to always reflect photons when they hit the chamber
+wall. This parameter is only used for testing purposes.
   \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
 This parameter, if set True, will cause \srthree to stop tracking a given photon once
 it hits part of an antechamber wall.
@@ -733,6 +737,26 @@ complicated geometries. However, the speed of execution will be dependent
 upon the number of triangles.
 
 %------------------------------------------------------------------
+\subsection{photon\_start\_input\_file}
+
+The \vn{photon_start_input_file} file is used to specify starting positions
+for the photons. This is done typically for debugging purposes.
+
+The \vn{photon_start_input_file} file contains a number of
+\vn{\&start} namelists. One for each photon starting position. The
+format for a \vn{\&start} namelist is:
+\begin{example}
+  &start
+    p%vec = <x>, <vx/c>, <y>, <vy/c>, <z>, <vy/c>  ! Photon position
+    p%energy = <ev>                                ! Photon energy
+    ran_state = <random_state_struct>
+    random_seed = <num>
+  /
+\end{example}
+If needed, The \vn{ran_state} and \vn{random_see} parameters can be
+used to initialize the random number generator.
+
+%------------------------------------------------------------------
 \section{Output files} 
 
 %------------------------------------------------------------------
@@ -747,10 +771,14 @@ below.
  1       2     71.52  6.614E-03  ! index, n_wall_hits, eV, intensity
     0.000542    0.000037   -0.000073    0.000080       9.015    1.000000  ! Start position
     0.015165    0.004010    0.023538    0.017410      18.661    0.999840  ! End position
+    7.906054  ! photon_track_len
+    0.001911  ! photon_track_len - ds_beam
       37   DRIFT             ! Lat ele index and class
        2       1     11.25  6.614E-03  ! index, n_reflect, eV, intensity
    -0.000604   -0.000046    0.000003    0.000826       9.036    1.000000  ! Start position
     0.013187   -0.004171   -0.023902   -0.009377      15.524    0.999947  ! End position
+    9.968419  ! photon_track_len
+    0.001770  ! photon_track_len - ds_beam
       36   SBEND             ! Lat ele index and class
 \end{example}
 The first line gives the photon index number, the number of times the
@@ -779,7 +807,11 @@ lattice, positive in the direction of motion of the beam).
 
 The third line gives the position of the point at which the photon is absorbed.
 
-The fourth line gives the lattice element index and element type for
+The fourth line gives how far the photon traveled.
+
+The fifth line gives how far the photon traveled relative to how far the beam traveled.
+
+The sixth line gives the lattice element index and element type for
 the longitudinal position at which the photon is absorbed. This is
 provided so that the photon hits can be sorted by magnetic environment
 (e.g., drift, sbend, wiggler, etc.)  
