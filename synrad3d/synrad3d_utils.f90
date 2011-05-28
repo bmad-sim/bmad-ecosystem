@@ -315,7 +315,7 @@ case (quadrupole$, sol_quad$, elseparator$)
 
   l_small = 1e-2      ! something small
   ele_here%value(l$) = l_small
-  call make_mat6 (ele_here, lat%param, orb_here, orb_here)
+  call make_mat6 (ele_here, lat%param, orb_here, orb_here, .true.)
   call track1 (orb_here, ele_here, lat%param, orb1)
   orb1%vec = orb1%vec - orb_here%vec
   gx = orb1%vec(2) / l_small
