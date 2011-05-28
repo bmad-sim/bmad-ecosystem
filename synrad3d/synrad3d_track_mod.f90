@@ -57,7 +57,7 @@ wall_hit(0)%after_reflect = photon%start
 
 do
   call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
-  call sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
+  call sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
   if (absorbed .and. sr3d_params%allow_absorbtion) return
 enddo
 
@@ -360,7 +360,7 @@ propagation_loop: do
   else   ! direction = -1
     do
       if (now%vec(5) <= lat%ele(now%ix_ele-1)%s) then
-        if (now%ix_ele <= 0) then
+        if (now%ix_ele <= 1) then
           if (lat%param%lattice_type == linear_lattice$) return
           now%vec(5) = now%vec(5) + lat%param%total_length
           now%ix_ele = lat%n_ele_track
@@ -514,7 +514,7 @@ type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
-real(rp) track_len0, radius, d_rad, r0, r1, track_len
+real(rp) track_len0, track_len1, radius, d_rad, r0, r1, track_len
 
 integer i
 
@@ -539,6 +539,7 @@ photon_com => photon
 wall_com => wall
 lat_com => lat
 photon_com%now%ix_triangle = -1
+track_len1 = photon%now%track_len
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
@@ -551,6 +552,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
       print *, 'photon1_com%now:', i, photon1_com%now%vec, photon1_com%now%track_len
     endif
     if (d_rad < 0) exit
+    track_len1 = track_len0
     track_len0 = (track_len0 + photon%old%track_len) / 2
     if (i == 30) then
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
@@ -567,13 +569,13 @@ endif
 
 ! Find where the photon hits.
 
-track_len = zbrent (sr3d_photon_hit_func, track_len0, photon%now%track_len, 1d-10)
+track_len = zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10)
 
 ! Cleanup
 
 photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
-call sr3d_photon_d_radius (photon%now, wall, in_antechamber = photon%hit_antechamber)
+call sr3d_photon_d_radius (photon%now, wall, d_rad, in_antechamber = photon%hit_antechamber)
 photon_com%now%ix_triangle = photon1_com%now%ix_triangle
 
 end subroutine sr3d_photon_hit_spot_calc 
@@ -713,22 +715,36 @@ end subroutine sr3d_mesh_d_radius
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
+! Subroutine sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
 !
-! Routine to reflect a photon off of the wall.
+! Routine to reflect a photon off of the chamber wall.
+!
+! Additionally: this routine will calculate if the photon is to be absorbed or reflected.
+! The absorbtion calculation involves calculating the reflection probability and then,
+! using a random number generator, deciding if the photon is indeed absorbed.
+!
+! Input:
+!   photon   -- sr3d_photon_track_struct: Photon position.
+!   wall     -- sr3d_wall_struct: Chamber wall.
+!   lat      -- lat_struct: Lattice
+!
+! Output:
+!   wall_hit(:) -- sr3d_photon_wall_hit_struct: Array recording where the photon has hit the wall.
+!   absorbed    -- Logical: Set True if photon is absorbed.
 !-
 
-subroutine sr3d_reflect_photon (photon, wall, wall_hit, absorbed)
+subroutine sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
 
 implicit none
 
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
+type (lat_struct) lat
 type (sr3d_wall_pt_struct), pointer :: wall0, wall1
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (sr3d_photon_wall_hit_struct), allocatable :: hit_temp(:)
 
-real(rp) cos_perp, dw_perp(3), denom, f, r
+real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad
 real(rp) graze_angle, reflectivity, dvec(3)
 
 integer ix, iu
@@ -771,7 +787,7 @@ endif
 
 photon%old = photon%now
 
-call sr3d_photon_d_radius (photon%now, wall, dw_perp = dw_perp)
+call sr3d_photon_d_radius (photon%now, wall, d_rad, lat, dw_perp)
 
 ! cos_perp is the component of the photon velocity perpendicular to the wall.
 ! since the photon is striking the wall from the inside this must be positive.

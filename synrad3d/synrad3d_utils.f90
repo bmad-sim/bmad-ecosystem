@@ -446,10 +446,10 @@ end subroutine sr3d_emit_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, dw_perp, in_antechamber)
+! Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber)
 !
-! Routine to calculate the normalized transverse position of the photon 
-! relative to the wall: 
+! Routine to calculate the (transverse) radius of the photon  relative to the wall.
+! Optionally can also caluclate the outwrd normal vector perpendicular to the wall.
 !
 ! Modules needed:
 !   use photon_utils
@@ -457,6 +457,7 @@ end subroutine sr3d_emit_photon
 ! Input:
 !   wall -- sr3d_wall_struct: Wall
 !   s    -- Real(rp): Longitudinal position.
+!   lat  -- Lat_struct, optional: Lattice. Only needed when dw_perp is calculated.
 !
 ! Output:
 !   d_radius       -- real(rp): r_photon - r_wall
@@ -464,19 +465,22 @@ end subroutine sr3d_emit_photon
 !   in_antechamber -- Logical, optional: At antechamber wall?
 !-
 
-Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, dw_perp, in_antechamber, ix_tri)
+Subroutine sr3d_photon_d_radius (p_orb, wall, d_radius, lat, dw_perp, in_antechamber, ix_tri)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_coord_struct), target :: p_orb
+type (lat_struct), optional, target :: lat
+type (ele_struct), pointer :: ele
 
-real(rp), optional :: d_radius, dw_perp(3)
-real(rp) radius0, radius1, f, cos_ang, sin_ang, r_photon
+real(rp) d_radius
+real(rp), optional :: dw_perp(3)
+real(rp) radius0, radius1, f, cos_ang, sin_ang, r_photon, disp
 real(rp) dr0_dtheta, dr1_dtheta, pt0(3), pt1(3), pt2(3), dp1(3), dp2(3)
 
 integer, optional :: ix_tri
-integer ix
+integer ix, ix_ele
 
 logical, optional :: in_antechamber
 logical in_ante0, in_ante1
@@ -489,42 +493,65 @@ call sr3d_get_wall_index (p_orb, wall, ix)
 ! The wall outward normal is just given by the cross product: (pt1-pt0) x (pt2-pt2)
 
 if (wall%pt(ix+1)%basic_shape == 'gen_shape_mesh') then
+  if (present(in_antechamber)) in_antechamber = .false.
   if (.not. present(dw_perp)) return
   call sr3d_get_mesh_wall_triangle_pts (wall%pt(ix), wall%pt(ix+1), p_orb%ix_triangle, pt0, pt1, pt2)
   dp1 = pt1 - pt0
   dp2 = pt2 - pt0
   dw_perp = [dp1(2)*dp2(3) - dp1(3)*dp2(2), dp1(3)*dp2(1) - dp1(1)*dp2(3), dp1(1)*dp2(2) - dp1(2)*dp2(1)]
-  dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
-  return
-endif
 
-! Get the parameters at the defined cross-sections to either side of the photon position.
+! Not gen_shape_mesh calc.
 
-if (p_orb%vec(1) == 0 .and. p_orb%vec(3) == 0) then
-  r_photon = 0
-  cos_ang = 1
-  sin_ang = 0
 else
-  r_photon = sqrt(p_orb%vec(1)**2 + p_orb%vec(3)**2)
-  cos_ang = p_orb%vec(1) / r_photon
-  sin_ang = p_orb%vec(3) / r_photon
+  ! Get the parameters at the defined cross-sections to either side of the photon position.
+
+  if (p_orb%vec(1) == 0 .and. p_orb%vec(3) == 0) then
+    r_photon = 0
+    cos_ang = 1
+    sin_ang = 0
+  else
+    r_photon = sqrt(p_orb%vec(1)**2 + p_orb%vec(3)**2)
+    cos_ang = p_orb%vec(1) / r_photon
+    sin_ang = p_orb%vec(3) / r_photon
+  endif
+
+  call sr3d_wall_pt_params (wall%pt(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
+  call sr3d_wall_pt_params (wall%pt(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
+
+  f = (p_orb%vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+
+  d_radius = r_photon - ((1 - f) * radius0 + f * radius1)
+
+  if (present (dw_perp)) then
+    dw_perp(1:2) = [cos_ang, sin_ang] - [-sin_ang, cos_ang] * &
+                              ((1 - f) * dr0_dtheta + f * dr1_dtheta) / r_photon
+    dw_perp(3) = (radius0 - radius1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+  endif
+
+  if (present(in_antechamber)) in_antechamber = (in_ante0 .or. in_ante1)
+
 endif
 
-call sr3d_wall_pt_params (wall%pt(ix),   cos_ang, sin_ang, radius0, dr0_dtheta, in_ante0)
-call sr3d_wall_pt_params (wall%pt(ix+1), cos_ang, sin_ang, radius1, dr1_dtheta, in_ante1)
+! In a bend dw_perp must be corrected since the true longitudinal "length" at the particle
+! is, for a horizontal bend, ds * (1 + x/rho) where ds is the length along the reference 
+! trajectory, x is the transverse displacement, and rho is the bend radius.
 
-f = (p_orb%vec(5) - wall%pt(ix)%s) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
+! Also dw_perp needs to be normalized to 1.
 
-if (present(d_radius)) d_radius = r_photon - ((1 - f) * radius0 + f * radius1)
+if (present(dw_perp)) then
+  call ele_at_s (lat, p_orb%vec(5), ix_ele)
+  ele => lat%ele(ix_ele)
+  if (ele%key == sbend$) then
+    if (ele%value(tilt_tot$) == 0) then
+      disp = p_orb%vec(1) 
+    else
+      disp = p_orb%vec(1) * cos(ele%value(tilt_tot$)) + p_orb%vec(3) * sin(ele%value(tilt_tot$))
+    endif
+    dw_perp(3) = dw_perp(3) / (1 + disp * ele%value(g$))
+  endif
 
-if (present (dw_perp)) then
-  dw_perp(1:2) = [cos_ang, sin_ang] - [-sin_ang, cos_ang] * &
-                            ((1 - f) * dr0_dtheta + f * dr1_dtheta) / r_photon
-  dw_perp(3) = (radius0 - radius1) / (wall%pt(ix+1)%s - wall%pt(ix)%s)
   dw_perp = dw_perp / sqrt(sum(dw_perp**2))  ! Normalize
 endif
-
-if (present(in_antechamber)) in_antechamber = (in_ante0 .or. in_ante1)
 
 end subroutine sr3d_photon_d_radius
 
