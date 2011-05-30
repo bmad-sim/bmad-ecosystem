@@ -361,7 +361,7 @@ pc = ele%value(p0c$) * (1 + orbit%vec(6))
 if (pc /= pc_old .or. param%particle /= particle_old) then
   call convert_pc_to (pc, param%particle, e_tot = e_tot, beta = beta)
   pc_old = pc; particle_old = param%particle
-  dt_ds_ref = ele%value(delta_ref_time$) / (c_light * ele%value(l$))
+  dt_ds_ref = ele%value(delta_ref_time$) / ele%value(l$)
   p0 = ele%value(p0c$) / c_light
 endif
 
