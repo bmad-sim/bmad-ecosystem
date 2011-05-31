@@ -142,7 +142,6 @@ end subroutine save_a_step
 !
 ! Subroutine to calculate the E and B fields for an element.
 !
-! Note: B field is appropriate for particle of positive charge.
 ! Note: Zero field will be returned if an element is turned off.
 !
 ! Modules needed:

@@ -555,7 +555,7 @@ real(rp) force(3), force_perp(3)
 
 ! force_perp is the perpendicular component of the force.
 
-force = E * charge_of(param%particle) + cross_product(vel_unit, B) * beta * c_light
+force = (E + cross_product(vel_unit, B) * beta * c_light) * charge_of(param%particle)
 force_perp = force - vel_unit * (dot_product(force, vel_unit))
 g_bend = -force_perp * fact
 
