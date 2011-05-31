@@ -95,12 +95,12 @@ do ib = 0, ubound(lat%branch, 1)
     ele%value(p0c$) = p0c
 
     if (ele%key == lcavity$ .and. branch%ele(i-1)%value(E_tot$) /= E_tot) then
-      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * &
+      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
                 (p0c - branch%ele(i-1)%value(p0c$)) / ((E_tot - branch%ele(i-1)%value(E_tot$)) * c_light)
     elseif (ele%key == hybrid$) then
       ele%ref_time = branch%ele(i-1)%ref_time + ele%value(delta_ref_time$)
     else
-      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * p0c / (E_tot * c_light)
+      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * E_tot / (p0c * c_light)
     endif
 
     ele%value(delta_ref_time$) = ele%ref_time - branch%ele(i-1)%ref_time

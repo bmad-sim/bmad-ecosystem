@@ -316,7 +316,8 @@ end subroutine rkck_bmad
 !   This is inaccurate at low energy in an lcavity but the total integrated dr(5)/ds
 !   accross the lcavity will be correct.
 !
-!   dr(6)/ds = EM_Force dot v * dt/ds / P0
+!   dr(6)/ds = (EM_Force dot v_hat) * dt/ds / P0
+!   where v_hat = velocity normalized to 1. 
 !
 ! Modules needed:
 !   use bmad
@@ -389,7 +390,7 @@ if (ele%key == sbend$) then
 endif
 
 dt_ds = f_bend / vel(3)
-dp_ds = dot_product(force, vel) * dt_ds 
+dp_ds = dot_product(force, vel) * dt_ds / (beta * c_light)
 dbeta_ds = mass_of(param%particle)**2 * dp_ds / e_tot**3
 
 dr_ds(1) = vel(1) * dt_ds
