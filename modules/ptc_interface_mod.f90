@@ -1058,9 +1058,9 @@ end subroutine real_8_init
 ! Subroutine to convert from a universal_taylor map in Etienne's PTC 
 ! to a taylor map in BMAD.
 ! The conversion can also convert from the PTC coordinate convention:
-!         (x, P_x, y, P_y, P_z, c*t = -z)
+!         (x, p_x, y, p_y, p_z, c*t = -z)
 ! to the BMAD coordinate convention:
-!         (x, P_x, y, P_y, z, P_z)
+!         (x, p_x, y, p_y, z, p_z)
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -1636,37 +1636,58 @@ end subroutine concat_ele_taylor
 
 subroutine taylor_propagate1 (tlr, ele, param)
 
-use s_tracking, only: assignment(=), kill, default, alloc
+use s_tracking
 use mad_like, only: ptc_track => track
 
 implicit none
 
 type (taylor_struct) tlr(:)
-type (real_8), save :: y(6)
+type (real_8), save :: ptc_tlr(6)
 type (ele_struct) ele
 type (lat_param_struct) param
 type (fibre), pointer, save :: a_fibre
+
+real(rp) beta0, m2_rel
 
 ! set the taylor order in PTC if not already done so
 
 if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
 
-!
+! Init ptc map with bmad map
 
-call real_8_init (y)
+call real_8_init (ptc_tlr)
+ptc_tlr = tlr
 
-y = tlr
+! Init ptc "element" (fibre)
 
 call alloc (a_fibre)
 call ele_to_fibre (ele, a_fibre, param, .true.)
-call ptc_track (a_fibre, y, default)  ! "track" in PTC
+
+! Track map through the fibre
+
+call ptc_track (a_fibre, ptc_tlr, default)  ! "track" in PTC
+
+! Correct map since in ptc z_ptc (vec(6)) is: 
+!     z_ptc = v * t - v_ref * t_ref 
+! and what is wanted to do a simple conversion to Bmad is to transform:
+!     z_ptc -> v * (t - t_ref) = -z_bmad
+
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
+m2_rel = (mass_of(param%particle) / ele%value(p0c$))**2
+
+ptc_tlr(6) = ptc_tlr(6) - ele%value(l$) * beta0 * m2_rel * (2.0_rp * ptc_tlr(5) + ptc_tlr(5)**2) / &
+      (((1.0_rp + ptc_tlr(5)) / sqrt((1.0_rp + ptc_tlr(5))**2 + m2_rel) + beta0) * ((1.0_rp + ptc_tlr(5))**2 + m2_rel))
+
+! transfer ptc map back to bmad map
+
+tlr = ptc_tlr
+
+! cleanup
+
 call kill (a_fibre)
+call kill (ptc_tlr)
 
-tlr = y
-
-call kill (y)
-
-! Correct wiggler map
+! Correct wiggler z_patch if needed
 
 if (ele%key == wiggler$) then
   call add_taylor_term (tlr(5), -ele%value(z_patch$))
@@ -1706,7 +1727,7 @@ end subroutine taylor_propagate1
 
 subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 
-use s_tracking, only: assignment(=), kill, default, alloc
+use s_tracking
 use mad_like, only: ptc_track => track
 
 implicit none
@@ -1719,7 +1740,7 @@ type (coord_struct) start0, end0, c0
 type (fibre), pointer, save :: a_fibre
 type (real_8) y(6), y2(6)
 
-real(dp) x(6)
+real(dp) x(6), beta0, m2_rel
 
 integer i
 
@@ -1774,9 +1795,23 @@ call ptc_track (a_fibre, y, default) ! "track" in PTC
 
 ! take out the offset
 
-call real_8_init(y2)
-y2 = -x  ! y2 = IdentityMap - x
-call concat_real_8 (y2, y, y)
+if (any(x /= 0)) then
+  call real_8_init(y2)
+  y2 = -x  ! y2 = IdentityMap - x
+  call concat_real_8 (y2, y, y)
+  call kill(y2)
+endif
+
+! Correct map since in ptc z_ptc (vec(6)) is: 
+!     z_ptc = v * t - v_ref * t_ref 
+! and what is wanted to do a simple conversion to Bmad is to transform:
+!     z_ptc -> v * (t - t_ref) = -z_bmad
+
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
+m2_rel = (mass_of(param%particle) / ele%value(p0c$))**2
+
+y(6) = y(6) - ele%value(l$) * beta0 * m2_rel * (2.0_rp * y(5) + y(5)**2) / &
+      (((1.0_rp + y(5)) / sqrt((1.0_rp + y(5))**2 + m2_rel) + beta0) * ((1.0_rp + y(5))**2 + m2_rel))
 
 ! convert to bmad_taylor  
 
@@ -1785,7 +1820,6 @@ ele%taylor_order = ptc_com%taylor_order_ptc
 
 call kill(a_fibre)
 call kill(y)
-call kill(y2)
 
 if (associated (ele%gen_field)) call kill_gen_field (ele%gen_field)
 

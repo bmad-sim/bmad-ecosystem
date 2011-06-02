@@ -33,7 +33,7 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (fibre), pointer :: fibre_ele
 
-real(dp) re(6)
+real(dp) re(6), beta0, m2_rel
 
 character(20) :: r_name = 'track1_symp_lie_ptc'
 
@@ -59,5 +59,16 @@ if (ele%key == wiggler$) then
 endif
 
 call kill(fibre_ele)  ! clean up allocated memory.
+
+! Correct map since in ptc z_ptc (vec(6)) is: 
+!     z_ptc = v * t - v_ref * t_ref 
+! and what is wanted to do a simple conversion to Bmad is to transform:
+!     z_ptc -> v * (t - t_ref) = -z_bmad
+
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
+m2_rel = (mass_of(param%particle) / ele%value(p0c$))**2
+
+end%vec(5) = end%vec(5) + ele%value(l$) * beta0 * m2_rel * (2.0_rp * end%vec(6) + end%vec(6)**2) / &
+      (((1.0_rp + end%vec(6)) / sqrt((1.0_rp + end%vec(6))**2 + m2_rel) + beta0) * ((1.0_rp + end%vec(6))**2 + m2_rel))
 
 end subroutine
