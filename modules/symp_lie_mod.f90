@@ -158,15 +158,18 @@ Case (wiggler$)
     s = s + ds2
 
     ! Drift_1 = P_x^2 / (2 * (1 + dE))
+    ! Note: We are using the gauge where A_x = 0.
 
     call apply_p_x (calculate_mat6)
-
-    ! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
-
     call update_wig_x_s_terms (err); if (err) return
+
+    ! Drift_2 = (P_y - a_y)^2 / (2 * (1 + dE))
+
     call apply_wig_exp_int_ay (-1, calculate_mat6)
+
     call apply_p_y (calculate_mat6)
     call update_wig_y_terms (err); if (err) return
+
     call apply_wig_exp_int_ay (+1, calculate_mat6)
 
     ! Kick = a_z
@@ -186,8 +189,10 @@ Case (wiggler$)
     ! Drift_2
 
     call apply_wig_exp_int_ay (-1, calculate_mat6)
+
     call apply_p_y (calculate_mat6)
     call update_wig_y_terms (err); if (err) return
+
     call apply_wig_exp_int_ay (+1, calculate_mat6)
 
     ! Drift_1
@@ -212,7 +217,35 @@ Case (wiggler$)
   end%vec(5) = end%vec(5) - ele%value(z_patch$)
 
 !----------------------------------------------------------------------------
-! bend_sol_quad
+! rf cavity
+
+case (lcavity$, rfcavity$)
+
+  ! loop over all steps
+
+  do i = 1, n_step
+
+    ! s half step
+
+    s = s + ds2
+!    call rf_drift1 (calculate_mat6)
+!    call rf_drift2 (calculate_mat6)
+!    call rf_kick (calculate_mat6)
+    call radiation_kick()
+!    call rf_drift2 (calculate_mat6)
+!    call rf_drift1 (calculate_mat6)
+
+    s = s + ds2
+
+    if (present(track)) call save_this_track_pt (i, s)
+
+  enddo
+
+  ! z_patch:
+
+
+!----------------------------------------------------------------------------
+! solenoid, quadrupole, sol_quad, or bend_sol_quad
 
 case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
@@ -244,7 +277,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$)
   end select
 
-! loop over all steps
+  ! loop over all steps
 
   do i = 1, n_step
 
@@ -377,6 +410,40 @@ if (do_mat6) then
   mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)           * mat6(4,1:6) - (ds2*end%vec(4)/rel_E2)    * mat6(6,1:6) 
   mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
 endif      
+
+end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine rf_drift1 (do_mat6)
+
+logical do_mat6
+
+! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
+
+end%vec(2) = end%vec(2) 
+end%vec(4) = end%vec(4) 
+
+if (do_mat6) then
+  mat6(2,1:6) = mat6(2,1:6) 
+  mat6(4,1:6) = mat6(4,1:6) 
+endif      
+
+!
+
+call apply_p_x (do_mat6)
+
+!
+
+end%vec(2) = end%vec(2) 
+end%vec(4) = end%vec(4) 
+
+if (do_mat6) then
+  mat6(2,1:6) = mat6(2,1:6)
+  mat6(4,1:6) = mat6(4,1:6)
+endif  
 
 end subroutine
 
@@ -549,6 +616,9 @@ integer j
 logical err
 
 do j = 1, size(ele%wig_term)
+
+  ! Update y-terms
+
   wt => ele%wig_term(j)
   kyy = wt%ky * end%vec(3)
   if (abs(kyy) < 1e-20) then
@@ -586,10 +656,10 @@ real(rp) kxx, kzz
 integer j
 logical err
 
-!
-
 do j = 1, size(ele%wig_term)
   wt => ele%wig_term(j)
+
+  ! Update x-terms
 
   kxx = wt%kx * end%vec(1)
   if (abs(kxx) < 1e-20) then
@@ -609,6 +679,8 @@ do j = 1, size(ele%wig_term)
     tm(j)%s_x = sin(kxx)
     tm(j)%s_x_kx = tm(j)%s_x / wt%kx
   endif
+
+  ! update s-terms
 
   kzz = wt%kz * s + wt%phi_z
   tm(j)%c_z = cos(kzz)
