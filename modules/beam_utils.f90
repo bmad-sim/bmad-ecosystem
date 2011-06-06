@@ -1746,14 +1746,15 @@ end subroutine calc_bunch_params_slice
 !     %a,%b,%c       -- Normal-Mode parameters
 !       %alpha; %beta; %gamma
 !       %eta, %etap, %norm_emit
-!     %sigma         -- Projected Sigma Matrix
-!     %sigma_normal  -- Normal-Mode Sigma Matrix
+!     %sigma(1:21)   -- Projected Sigma Matrix
 !     %centroid
 !     %spin      
 !       %polarization -- Polarization
 !       %theta        -- Polar Angle of polarization vector
 !       %phi          -- Polar Angle of polarization vector
-!     %n_particle ! # particles not lost
+!     %n_particle_tot
+!     %n_particle_live
+!     %charge_live
 !   err   -- Logical: Set True if there is an error in mat_eigen routine.
 !-
 
@@ -1844,7 +1845,7 @@ call projected_twiss_calc ('Y', bunch_params%y, bunch_params%sigma(s33$), bunch_
                       bunch_params%sigma(s34$), bunch_params%sigma(s36$), bunch_params%sigma(s46$))
 
 call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(s55$), bunch_params%sigma(s66$), &
-                      bunch_params%sigma(s56$), bunch_params%sigma(s56$), bunch_params%sigma(s66$))
+                      bunch_params%sigma(s56$), 0.0_rp, 0.0_rp)
      
 ! Normal-Mode Parameters.
 ! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
@@ -1855,6 +1856,10 @@ call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err, print_err)
 if (err) goto 999
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
+
+bunch_params%a%emit = d_i(1)
+bunch_params%b%emit = d_i(3)
+bunch_params%c%emit = d_i(5)
 
 bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(param%particle))
 bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(param%particle))
@@ -1942,6 +1947,7 @@ twiss%gamma      = 0
 twiss%eta        = 0
 twiss%etap       = 0
 twiss%norm_emit  = 0
+twiss%emit       = 0
 
 end subroutine zero_plane
   
@@ -1975,11 +1981,12 @@ if (bunch_params%sigma(s66$) == 0) then
 else
   x2   = exp_x2 - exp_x_d**2 / bunch_params%sigma(s66$)
   x_px = exp_x_px - exp_x_d * exp_px_d / bunch_params%sigma(s66$)
-  px2  = exp_px2  - exp_px2**2 / bunch_params%sigma(s66$)
+  px2  = exp_px2  - exp_px_d**2 / bunch_params%sigma(s66$)
 endif
 
-emit = sqrt(x2*px2 - x_px**2)
+emit = sqrt(max(0.0_rp, x2*px2 - x_px**2)) ! Roundoff may give negative argument.
 
+twiss%emit      = emit
 twiss%norm_emit = (avg_energy/mass_of(param%particle)) * emit
 
 if (emit /= 0) then
