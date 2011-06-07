@@ -205,8 +205,8 @@ rad_int%lin_i2_E4 = 0;  rad_int%lin_i3_E7 = 0;
 rad_int%lin_i5a_E6 = 0;  rad_int%lin_i5b_E6 = 0;
 
 m65 = 0
-
-int_tot = 0; 
+mode%rf_voltage = 0
+int_tot = 0
 
 !---------------------------------------------------------------------
 ! Caching
@@ -403,7 +403,10 @@ do ir = 1, lat%n_ele_track
 
   key = ele%key
 
-  if (key == rfcavity$) m65 = m65 + ele%mat6(6,5)
+  if (key == rfcavity$) then
+    m65 = m65 + ele%mat6(6,5)
+    mode%rf_voltage = mode%rf_voltage + ele%value(voltage$)
+  endif
 
   ll = ele%value(l$)
   if (ll == 0) cycle

@@ -698,6 +698,7 @@ type normal_modes_struct
   real(rp) sigE_E         ! SigmaE/E
   real(rp) sig_z          ! Sigma_Z
   real(rp) e_loss         ! Energy loss / turn (eV)
+  real(rp) rf_voltage     ! Total rfcavity voltage (eV)
   real(rp) pz_aperture    ! pz aperture limit
   type (anormal_mode_struct)  a, b, z
   type (linac_normal_mode_struct) lin
