@@ -1292,6 +1292,20 @@ do ii = 1, size(curve%x_line)
 !
 
   select case (data_type_select)
+  case ('apparent_emit.x', 'norm_apparent_emit.x')
+    if (curve%data_source == 'beam') then
+      value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
+    else
+      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+    endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case ('apparent_emit.y', 'norm_apparent_emit.y')
+    if (curve%data_source == 'beam') then
+      value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
+    else
+      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+    endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('orbit.x')
     value = here%vec(1)
   case ('orbit.y')
@@ -1324,22 +1338,20 @@ do ii = 1, size(curve%x_line)
     value = ele%a%alpha
   case ('alpha.b')
     value = ele%b%alpha
-  case ('emit.x')
+  case ('emit.x', 'norm_emit.x')
     if (curve%data_source == 'beam') then
-      value = bunch_params%x%norm_emit
-      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
-      value = value / gamma
+      value = bunch_params%x%emit
     else
-      value = tao_projected_emit_calc (x_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
     endif
-  case ('emit.y')
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+  case ('emit.y', 'norm_emit.y')
     if (curve%data_source == 'beam') then
-      value = bunch_params%y%norm_emit
-      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
-      value = value / gamma
+      value = bunch_params%y%emit
     else
-      value = tao_projected_emit_calc (y_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
+      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
     endif
+    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
   case ('eta.x')
     value = ele%x%eta
   case ('eta.y')
@@ -1410,32 +1422,12 @@ do ii = 1, size(curve%x_line)
     value = bunch_params%a%norm_emit
   case ('norm_emit.b')
     value = bunch_params%b%norm_emit
-  case ('norm_emit.x')
-    if (curve%data_source == 'beam') then
-      value = bunch_params%x%norm_emit
-    else
-      value = tao_projected_emit_calc (x_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
-      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
-      value = value * gamma
-    endif
-  case ('norm_emit.y')
-    if (curve%data_source == 'beam') then
-      value = bunch_params%y%norm_emit
-    else
-      value = tao_projected_emit_calc (y_plane$, ele, tao_lat%modes%a%emittance, tao_lat%modes%b%emittance)
-      call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
-      value = value * gamma
-    endif
   case ('norm_emit.z')
     value = bunch_params%z%norm_emit
   case ('emit.a')
-    value = bunch_params%a%norm_emit
-    call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
-    value = value / gamma
+    value = bunch_params%a%emit
   case ('emit.b')
-    value = bunch_params%b%norm_emit
-    call convert_total_energy_to (ele%value(E_tot$), branch%param%particle, gamma)
-    value = value / gamma
+    value = bunch_params%b%emit
   case ('r.')
     if (ii == 1) call mat_make_unit (mat6)
     if (s_now < s_last) cycle

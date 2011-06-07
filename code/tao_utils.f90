@@ -12,6 +12,8 @@ use bmad
 use output_mod
 use lat_ele_loc_mod
 
+integer, parameter :: apparent_emit$ = 1, projected_emit$ = 2
+
 contains
 
 !--------------------------------------------------------------------------
@@ -3055,31 +3057,34 @@ end function tao_subin_uni_number
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function tao_projected_emit_calc (plane, ele, emit_a, emit_b) result (projected_emit)
+! Function tao_lat_emit_calc (plane, emit_type, ele, emit_a, emit_b) result (emit)
 !
-! Routine to calculate the "projected" emittance:
+! Routine to calculate the emittance.
+! The "projected" emittance is:
 !   emit = sqrt(sigma_xx * sigma_pp - sigma_xp^2)
-! Where the sigmas are calculated including coupling effects but assuming 
-! that sigma_pz = 0.
+! Where the sigmas are calculated including coupling effects but assuming that sigma_pz = 0.
+! The "apparent" emittance is:
+!   emit = sqrt(sigma_xx - sigma_xp^2 / sigma_pp) / beta
 !
 ! Input:
-!   plane   -- Integer: x_plane$ or y_plane$.
-!   ele     -- ele_struct: Element holding the Twiss and coupling parameters.
-!   emit_a  -- Real(rp): a-mode emittance.
-!   emit_b  -- Real(rp): b-mode emittance.
+!   plane     -- Integer: x_plane$ or y_plane$.
+!   emit_type -- Integer: Either projected_emit$ or apparent_emit$
+!   ele       -- ele_struct: Element holding the Twiss and coupling parameters.
+!   emit_a    -- Real(rp): a-mode emittance.
+!   emit_b    -- Real(rp): b-mode emittance.
 !
 ! Output:
-!   projected_emit -- Real(rp): projected emittance.
+!   emit -- Real(rp): emittance.
 !-
 
-function tao_projected_emit_calc (plane, ele, emit_a, emit_b) result (projected_emit)
+function tao_lat_emit_calc (plane, emit_type, ele, emit_a, emit_b) result (emit)
 
 implicit none
 
 type (ele_struct) ele
-real(rp) emit_a, emit_b, s_mat(4,4), v_mat(4,4), projected_emit
+real(rp) emit_a, emit_b, s_mat(4,4), v_mat(4,4), emit
 real(rp), save :: a_mat(4,4) = 0
-integer plane
+integer plane, emit_type
 
 !
 
@@ -3097,66 +3102,87 @@ call make_v_mats (ele, v_mat)
 s_mat = matmul(matmul(v_mat, a_mat), transpose(v_mat))
 
 if (plane == x_plane$) then
-  projected_emit = sqrt(s_mat(1,1) * s_mat(2,2) - s_mat(1,2)**2)
+  if (emit_type == projected_emit$) then
+    emit = sqrt(s_mat(1,1) * s_mat(2,2) - s_mat(1,2)**2)
+  elseif (emit_type == apparent_emit$) then
+    emit = s_mat(1,1) / ele%a%beta
+  else
+    call err_exit    
+  endif
+
 elseif (plane == y_plane$) then
-  projected_emit = sqrt(s_mat(3,3) * s_mat(4,4) - s_mat(3,4)**2)
+  if (emit_type == projected_emit$) then
+    emit = sqrt(s_mat(3,3) * s_mat(4,4) - s_mat(3,4)**2)
+  elseif (emit_type == apparent_emit$) then
+    emit = s_mat(3,3) / ele%b%beta
+  else
+    call err_exit    
+  endif
+
 else
   call err_exit
 endif
 
-end function tao_projected_emit_calc
+end function tao_lat_emit_calc
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function tao_apparent_emit_calc (plane, ele, emit_a, emit_b) result (apparent_emit)
+! Function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
 !
-! Routine to make the 4x4 transverse sigma matrix in the presence of coupling.
-! Note: This calculation ignores dispersion and finite sigma_pz effects.
+! Routine to calculate the emittance from beam parameters.
+! The "projected" emittance is:
+!   emit = sqrt(sigma_xx * sigma_pp - sigma_xp^2)
+! Where the sigmas are calculated including coupling effects but assuming that sigma_pz = 0.
+! The "apparent" emittance is:
+!   emit = sqrt(sigma_xx - sigma_xp^2 / sigma_pp) / beta
 !
 ! Input:
-!   plane   -- Integer: x_plane$ or y_plane$.
-!   ele     -- ele_struct: Element holding the Twiss and coupling parameters.
-!   emit_a  -- Real(rp): a-mode emittance.
-!   emit_b  -- Real(rp): b-mode emittance.
+!   plane        -- Integer: x_plane$ or y_plane$.
+!   emit_type    -- Integer: Either projected_emit$ or apparent_emit$
+!   ele          -- ele_struct: Element.
+!   bunch_params -- bunch_params_struct: Bunch sigma matrix
 !
 ! Output:
-!   apparent_emit -- Real(rp): Apparent emittance.
+!   emit -- Real(rp): emittance.
 !-
 
-function tao_apparent_emit_calc (plane, ele, emit_a, emit_b) result (apparent_emit)
+function tao_beam_emit_calc (plane, emit_type, ele, bunch_params) result (emit)
+
+use beam_def_struct
 
 implicit none
 
 type (ele_struct) ele
-real(rp) emit_a, emit_b, s_mat(4,4), v_mat(4,4), apparent_emit
-real(rp), save :: a_mat(4,4) = 0
-integer plane
+type (bunch_params_struct) bunch_params
+real(rp) emit
+integer plane, emit_type
 
 !
 
-a_mat(1,1) =  emit_a * ele%a%beta
-a_mat(1,2) = -emit_a * ele%a%alpha
-a_mat(2,2) =  emit_a * ele%a%gamma
-a_mat(2,1) = a_mat(1,2)
-
-a_mat(3,3) =  emit_b * ele%b%beta
-a_mat(3,4) = -emit_b * ele%b%alpha
-a_mat(4,4) =  emit_b * ele%b%gamma
-a_mat(4,3) = a_mat(3,4)
-
-call make_v_mats (ele, v_mat)
-s_mat = matmul(matmul(v_mat, a_mat), transpose(v_mat))
-
 if (plane == x_plane$) then
-  apparent_emit = s_mat(1,1) / ele%a%beta
+  if (emit_type == projected_emit$) then
+    emit = bunch_params%x%emit
+  elseif (emit_type == apparent_emit$) then
+    emit = (bunch_params%sigma(s11$) - bunch_params%sigma(s16$)**2 / bunch_params%sigma(s66$)) / ele%a%beta
+  else
+    call err_exit    
+  endif
+
 elseif (plane == y_plane$) then
-  apparent_emit = s_mat(3,3) / ele%b%beta
+  if (emit_type == projected_emit$) then
+    emit = bunch_params%y%emit
+  elseif (emit_type == apparent_emit$) then
+    emit = (bunch_params%sigma(s33$) - bunch_params%sigma(s36$)**2 / bunch_params%sigma(s66$)) / ele%b%beta
+  else
+    call err_exit    
+  endif
+
 else
   call err_exit
 endif
 
-end function tao_apparent_emit_calc
+end function tao_beam_emit_calc
 
 end module tao_utils

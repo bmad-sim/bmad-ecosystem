@@ -599,7 +599,7 @@ type (tao_d1_data_input) d1_data
 type (tao_data_input) data(n_data_minn:n_data_maxx)
 type (tao_datum_input) datum(n_data_minn:n_data_maxx) 
 
-real(rp) default_weight        ! default merit function weight
+real(rp) default_weight, def_weight        ! default merit function weight
 
 integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat
@@ -610,20 +610,21 @@ integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
 character(200) file_name
-character(40) name,  universe, default_universe, d_typ
-character(40) default_merit_type, default_attribute, data_type, default_data_source
+character(40) name,  universe, d_typ
+character(40) default_merit_type, data_type, default_data_source, def_merit_type, def_data_source
 character(40) use_same_lat_eles_as, source
 character(100) search_for_lat_eles
-character(200) line, default_data_type
+character(200) line, default_data_type, def_data_type
 
 logical err, free, gang
 logical :: good_unis(lbound(s%u, 1) : ubound(s%u, 1))
 logical :: mask(lbound(s%u, 1) : ubound(s%u, 1))
 
-namelist / tao_d2_data / d2_data, n_d1_data, default_merit_type, universe
+namelist / tao_d2_data / d2_data, n_d1_data, universe, &
+                default_merit_type, default_weight, default_data_type, default_data_source
 
 namelist / tao_d1_data / d1_data, data, datum, ix_d1_data, &
-               default_weight, default_data_type, default_data_source, &
+               default_merit_type, default_weight, default_data_type, default_data_source, &
                use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
 
 !-----------------------------------------------------------------------
@@ -685,9 +686,12 @@ enddo
 
 do 
   mask(:) = .true.      ! set defaults
-  d2_data%name       = ''
-  universe           = '*'
-  default_merit_type = 'target'
+  d2_data%name           = ''
+  universe               = '*'
+  default_merit_type     = ''
+  default_weight         = 0      
+  default_data_type      = ''
+  default_data_source    = ''
 
   read (iu, nml = tao_d2_data, iostat = ios)
   if (ios < 0) exit         ! exit on end-of-file
@@ -712,18 +716,24 @@ do
     call tao_d2_data_stuffit (s%u(i), d2_data%name, n_d1_data)
   enddo uni_loop
 
+  def_merit_type  = default_merit_type   ! Save
+  def_weight      = default_weight
+  def_data_type   = default_data_type
+  def_data_source = default_data_source
+
   do k = 1, n_d1_data
     use_same_lat_eles_as   = ''
     search_for_lat_eles    = ''
     d1_data%name           = ''
-    default_weight         = 0      ! set default
-    default_data_type      = ''
-    default_data_source    = 'lat'
+    default_merit_type     = def_merit_type
+    default_weight         = def_weight
+    default_data_type      = def_data_type
+    default_data_source    = def_data_source
     ix_min_data            = int_garbage$
     ix_max_data            = int_garbage$
 
     data(:)%data_type      = ''
-    data(:)%merit_type     = default_merit_type 
+    data(:)%merit_type     = ''
     data(:)%merit_type     = ''
     data(:)%ele_name       = ''
     data(:)%ele0_name      = ''
@@ -735,7 +745,7 @@ do
     data(:)%good_user      = .true.
 
     datum(:)%data_type      = ''
-    datum(:)%merit_type     = default_merit_type 
+    datum(:)%merit_type     = ''
     datum(:)%merit_type     = ''
     datum(:)%ele_name       = ''
     datum(:)%ele_start_name = ''
@@ -900,18 +910,16 @@ if (search_for_lat_eles /= '') then
   enddo
 
   u%data(n1:n2)%good_user      = datum(ix1)%good_user
-  u%data(n1:n2)%weight         = datum(ix1)%weight
   u%data(n1:n2)%invalid_value  = datum(ix1)%invalid_value
   u%data(n1:n2)%ele_start_name = datum(ix1)%ele_start_name
   u%data(n1:n2)%ele_ref_name   = datum(ix1)%ele_ref_name
   u%data(n1:n2)%ix_bunch       = datum(ix1)%ix_bunch
+  u%data(n1:n2)%invalid_value  = datum(ix1)%invalid_value
+  u%data(n1:n2)%data_type      = datum(ix1)%data_type
+  u%data(n1:n2)%merit_type     = datum(ix1)%merit_type
+  u%data(n1:n2)%weight         = datum(ix1)%weight
   u%data(n1:n2)%data_source    = datum(ix1)%data_source
-
-  u%data(n1:n2)%data_type     = datum(ix1)%data_type
-  u%data(n1:n2)%merit_type    = datum(ix1)%merit_type
-  u%data(n1:n2)%weight        = datum(ix1)%weight
-  u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
-  u%data(n1:n2)%meas_value    = 0  
+  u%data(n1:n2)%meas_value     = 0  
 
 !-----------------------------------------
 ! use_same_lat_eles_as
@@ -938,14 +946,22 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%ele_start_name  = d1_array(1)%d1%d%ele_start_name
   u%data(n1:n2)%ix_ele_start    = d1_array(1)%d1%d%ix_ele_start
   u%data(n1:n2)%exists          = d1_array(1)%d1%d%exists
-  u%data(n1:n2)%data_source     = d1_array(1)%d1%d%data_source
   u%data(n1:n2)%invalid_value   = d1_array(1)%d1%d%invalid_value
 
-  u%data(n1:n2)%data_type     = datum(ix1)%data_type
-  u%data(n1:n2)%merit_type    = datum(ix1)%merit_type
-  u%data(n1:n2)%weight        = datum(ix1)%weight
   u%data(n1:n2)%invalid_value = datum(ix1)%invalid_value
-  u%data(n1:n2)%meas_value = 0  
+  u%data(n1:n2)%meas_value    = 0  
+
+  if (default_data_type /= '')    u%data(n1:n2)%data_type = default_data_type
+  if (datum(ix1)%data_type /= '') u%data(n1:n2)%data_type = datum(ix1)%data_type
+
+  if (default_data_source /= '')    u%data(n1:n2)%data_source = default_data_source
+  if (datum(ix1)%data_source /= '') u%data(n1:n2)%data_source = datum(ix1)%data_source
+
+  if (default_merit_type /= '')    u%data(n1:n2)%merit_type = default_merit_type
+  if (datum(ix1)%merit_type /= '') u%data(n1:n2)%merit_type = datum(ix1)%merit_type
+
+  if (default_weight /= 0)    u%data(n1:n2)%weight = default_weight
+  if (datum(ix1)%weight /= 0) u%data(n1:n2)%weight = datum(ix1)%weight
 
 !-----------------------------------------
 ! Not SEARCH or SAME:
@@ -1040,12 +1056,13 @@ else
 
 endif
 
-!--------------------------------------------
+!------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------
 ! use default_data_type if given, if not, auto-generate the data_type
 
 if (default_data_type == '') then
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
-                            trim(d2_data%name) // '.' // d1_data%name
+                                          trim(d2_data%name) // '.' // d1_data%name
 else
   where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
 endif
@@ -1062,9 +1079,14 @@ call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)
 
 do j = n1, n2
   dat => u%data(j)
+
+  ! Use defaults if a component has not been set.
+
   if (dat%weight == 0) dat%weight = default_weight
   if (dat%merit_type == '') dat%merit_type = default_merit_type
+  if (dat%merit_type == '') dat%merit_type = 'target'
   if (dat%data_source == '') dat%data_source = default_data_source
+  if (dat%data_source == '') dat%data_source = 'lat'
 
   ! Convert old style to new style
 
@@ -1270,24 +1292,10 @@ do
   call tao_point_d1_to_data (d1, u%data(j1:j2), u%data(j1)%ix_d1)
 enddo
 
-! set defaults
+! Set %ix_data. See the tao_data_struct for the defaults component values.
 
 do i = n0+1, size(u%data)
-  u%data(i)%exists         = .false.   ! set default
-  u%data(i)%good_meas      = .false.   ! set default
-  u%data(i)%good_ref       = .false.   ! set default
-  u%data(i)%good_base      = .false.   ! set default
-  u%data(i)%good_user      = .true.    ! set default
-  u%data(i)%good_opt       = .true.
-  u%data(i)%merit_type     = 'target'  ! set default
-  u%data(i)%ele_name       = ''
-  u%data(i)%ix_ele         = -1
-  u%data(i)%ele_ref_name   = ''
-  u%data(i)%ix_ele_ref     = -1 
-  u%data(i)%ele_start_name = ''
-  u%data(i)%ix_ele_start   = -1 
   u%data(i)%ix_data        = i
-  u%data(i)%ix_branch      = 0
 enddo
 
 end subroutine tao_allocate_data_array

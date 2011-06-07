@@ -179,7 +179,7 @@ end type
 
 type (show_lat_column_struct) column(50)
 
-real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val
 real(rp) :: delta_e = 0
 real(rp), allocatable, save :: value(:)
 
@@ -191,7 +191,7 @@ character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name
 character(200), pointer :: ptr_lines(:)
 character(100), allocatable :: alloc_lines(:)
-character(100) file_name, name
+character(100) file_name, name, why_invalid
 character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
 character(60) nam
@@ -224,6 +224,7 @@ logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_rad_int
+logical valid_value
 
 namelist / custom_show_list / column
 
@@ -681,6 +682,12 @@ case ('data')
     nl=nl+1; write(lines(nl), lmt)  '%good_plot         = ', d_ptr%good_plot
     nl=nl+1; write(lines(nl), lmt)  '%useit_plot        = ', d_ptr%useit_plot
     nl=nl+1; write(lines(nl), lmt)  '%useit_opt         = ', d_ptr%useit_opt
+
+    if (d_ptr%exists .and. .not. d_ptr%good_model) then
+      u => s%u(d_ptr%d1%d2%ix_uni)
+      call tao_evaluate_a_datum (d_ptr, u, u%model, val, valid_value, why_invalid)
+      nl=nl+1; lines(nl) = 'Model value is invalid since: ' // why_invalid
+    endif
 
   ! Else show the d1_data info.
 

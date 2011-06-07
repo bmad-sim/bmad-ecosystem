@@ -274,43 +274,43 @@ end type
 ! A datum is used in the optimization if both %useit_opt & %good_meas are true.
 
 type tao_data_struct
-  character(40) ele_name        ! Name of the lattice element where datum is evaluated.
-  character(40) ele_start_name  ! Name of starting lattice element when there is a range 
-  character(40) ele_ref_name    ! Name of reference lattice element
-  character(200) data_type   ! Type of data: 'orbit.x', etc.
-  character(40) merit_type   ! Type of constraint: 'target', 'max', 'min', etc.
-  character(20) data_source  ! 'lat', or 'beam'
-  integer ix_bunch           ! Bunch number to get the data from.
-  integer ix_branch          ! Index of the lattice branch of the element
-  integer ix_ele             ! Index of the lattice element corresponding to ele_name
-  integer ix_ele_start       ! Index of lattice elment when there is a range 
-  integer ix_ele_ref         ! Index of lattice elment when there is a reference.
-  integer ix_ele_merit       ! Index of lattice elment where merit is evaluated.
-  integer ix_d1              ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
-  integer ix_data            ! Index of this datum in the u%data(:) array of data_structs.
-  integer ix_dModel          ! Row number in the dModel_dVar derivative matrix.
-  real(rp) meas_value        ! Measured datum value. 
-  real(rp) ref_value         ! Measured datum value from the reference data set.
-  real(rp) model_value       ! Datum value as calculated from the model.
-  real(rp) design_value      ! What the datum value is in the design lattice.
-  real(rp) old_value         ! The model_value at some previous time.
-  real(rp) base_value        ! The value as calculated from the base model.
-  real(rp) delta_merit       ! Diff used to calculate the merit function term 
-  real(rp) weight            ! Weight for the merit function term
-  real(rp) invalid_value     ! Value used in merit calc if good_model = False.
-  real(rp) merit             ! Merit function term value: weight * delta^2
-  real(rp) s                 ! longitudinal position of ele.
-  logical exists             ! See above
-  logical good_model         ! See above
-  logical good_base          ! See above
-  logical good_design        ! See above
-  logical good_meas          ! See above
-  logical good_ref           ! See above
-  logical good_user          ! See above
-  logical good_opt           ! See above
-  logical good_plot          ! See above
-  logical useit_plot         ! See above
-  logical useit_opt          ! See above
+  character(40) :: ele_name = ''        ! Name of the lattice element where datum is evaluated.
+  character(40) :: ele_start_name = ''  ! Name of starting lattice element when there is a range 
+  character(40) :: ele_ref_name = ''    ! Name of reference lattice element
+  character(200) :: data_type = ''      ! Type of data: 'orbit.x', etc.
+  character(40) :: merit_type = ''      ! Type of constraint: 'target', 'max', 'min', etc.
+  character(20) :: data_source = ''     ! 'lat', or 'beam'
+  integer :: ix_bunch = 0               ! Bunch number to get the data from.
+  integer :: ix_branch = 0              ! Index of the lattice branch of the element
+  integer :: ix_ele = -1                ! Index of the lattice element corresponding to ele_name
+  integer :: ix_ele_start = -1          ! Index of lattice elment when there is a range 
+  integer :: ix_ele_ref = -1            ! Index of lattice elment when there is a reference.
+  integer :: ix_ele_merit               ! Index of lattice elment where merit is evaluated.
+  integer :: ix_d1                      ! Index number in u%d2_data(i)%d1_data(j)%d(:) array.
+  integer :: ix_data = -1               ! Index of this datum in the u%data(:) array of data_structs.
+  integer :: ix_dModel                  ! Row number in the dModel_dVar derivative matrix.
+  real(rp) :: meas_value                ! Measured datum value. 
+  real(rp) :: ref_value                 ! Measured datum value from the reference data set.
+  real(rp) :: model_value               ! Datum value as calculated from the model.
+  real(rp) :: design_value              ! What the datum value is in the design lattice.
+  real(rp) :: old_value                 ! The model_value at some previous time.
+  real(rp) :: base_value                ! The value as calculated from the base model.
+  real(rp) :: delta_merit               ! Diff used to calculate the merit function term 
+  real(rp) :: weight = 0                ! Weight for the merit function term
+  real(rp) :: invalid_value             ! Value used in merit calc if good_model = False.
+  real(rp) :: merit                     ! Merit function term value: weight * delta^2
+  real(rp) :: s                         ! longitudinal position of ele.
+  logical :: exists = .false.           ! See above
+  logical :: good_model = .false.       ! See above
+  logical :: good_base = .false.        ! See above
+  logical :: good_design = .false.      ! See above
+  logical :: good_meas = .false.        ! See above
+  logical :: good_ref = .false.         ! See above
+  logical :: good_user = .true.         ! See above
+  logical :: good_opt = .true.          ! See above
+  logical :: good_plot                  ! See above
+  logical :: useit_plot                 ! See above
+  logical :: useit_opt                  ! See above
   type (tao_d1_data_struct), pointer :: d1 => null() 
                              ! Pointer to the parent d1_data_struct 
   type (tao_eval_stack1_struct), allocatable :: stack(:)

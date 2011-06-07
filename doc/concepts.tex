@@ -401,7 +401,7 @@ given. Example:
 %------------------------------------------------------------------------
 \section{Arithmetic Expressions}
 \index{arithmetic Expressions}
-\label{s:arithmetic}
+\label{s:arithmetic.exp}
 
 \tao is able to handle arithmetic expressions within commands
 (\sref{c:command}) and in strings in a \tao initialization file.
@@ -434,6 +434,13 @@ The following intrinsic functions are also recognized: \hfil\break
 \end{tabular} \newline
 Both \vn{ran} and \vn{ran_gauss} use a seeded random number generator. 
 Setting the seed is described in Section~\sref{s:globals}.
+
+See \sref{s:param.syntax} for the syntax for using data, variable, and
+lattice parameter values in an expression.
+
+%------------------------------------------------------------------------
+\section{Syntax for Specifying Data, Variable, and Lattice parameter Values}
+\label{s:param.syntax}
 
 Data (\sref{s:data.org}) and variable values
 (\sref{s:var}), along with lattice parameters can be
@@ -518,9 +525,8 @@ The default is \vn{model}.
 
 When a term has a \vn{lat} or \vn{beam} source, the value of the term
 comes from evaluation of the lattice or beam tracking. The
-\vn{<param_name>} will be a datum type from Table~\ref{t:data.lattice}
-with a \vn{lat} source and Table~\ref{t:data.beam} for a \vn{beam}
-source. Element list format (\sref{s:ele.list.format}) is used for the
+\vn{<param_name>} will be a datum type from Table~\ref{t:data.types}
+table. Element list format (\sref{s:ele.list.format}) is used for the
 \vn{element_list}. In this case, a universe specification is not
 allowed as part of the element list. For example, the following is not
 allowed

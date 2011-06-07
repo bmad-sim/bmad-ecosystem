@@ -25,11 +25,12 @@ type (tao_plot_struct), pointer :: p
 type (tao_data_struct), pointer :: data
 type (beam_struct), pointer :: beam
 
+real(rp) value
 real(rp), pointer :: ptr_attrib
 
 character(80) arg, arg2, startup_file
 character(100) lattice_file, plot_file, data_file, var_file, file_name
-character(100) wall_file, beam_file
+character(100) wall_file, beam_file, why_invalid
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -37,7 +38,7 @@ character(16) init_name
 integer i, j, i2, j2, n_universes, iu, ix, n_arg, ib, ip, ios
 integer iu_log
 
-logical err, calc_ok  
+logical err, calc_ok, valid_value
 logical, optional :: err_flag
 
 namelist / tao_start / lattice_file, startup_file, wall_file, &
@@ -256,18 +257,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   do j = 1, size(s%u(i)%data)
     data => s%u(i)%data(j)
     if (data%exists .and. .not. data%good_model) then
+      call tao_evaluate_a_datum (data, s%u(i), s%u(i)%model, value, valid_value, why_invalid)
       call out_io(s_warn$, r_name, &
-                    'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: ' // tao_datum_name(data))
-      cycle
+                  'DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: ' // tao_datum_name(data), &
+                  '   INVALID SINCE: ' // why_invalid)
     endif
-  enddo
-enddo
-
-do i = lbound(s%u, 1), ubound(s%u, 1)
-  do j = 1, size(s%u(i)%data)
-    data => s%u(i)%data(j)
-    if (data%exists .and. .not. data%good_model) call out_io(s_blank$, r_name, &
-                                              '         ' // tao_datum_name(data))
   enddo
 enddo
 
