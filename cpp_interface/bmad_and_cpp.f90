@@ -1106,7 +1106,8 @@ type (normal_modes_struct), pointer :: f
 type (c_dummy_struct) c_modes
 
 f => f_modes
-call modes_to_c2 (c_modes, f%synch_int, f%sige_e, f%sig_z, f%e_loss, f%pz_aperture, f%a, f%b, f%z, f%lin)
+call modes_to_c2 (c_modes, f%synch_int, f%sige_e, f%sig_z, f%e_loss, f%rf_voltage, &
+                           f%pz_aperture, f%a, f%b, f%z, f%lin)
 
 end subroutine
 
@@ -1119,7 +1120,7 @@ end subroutine
 ! a Bmad normal_modes_struct. This routine is not for general use.
 !-
 
-subroutine modes_to_f2 (f_modes, synch_int, sige, sig_z, e_loss, pz, a, b, z, lin)
+subroutine modes_to_f2 (f_modes, synch_int, sige, sig_z, e_loss, rf_volt, pz, a, b, z, lin)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1129,7 +1130,7 @@ implicit none
 
 type (normal_modes_struct) f_modes
 type (c_dummy_struct) a, b, z, lin
-real(rp) synch_int(0:3), sige, sig_z, e_loss, pz
+real(rp) synch_int(0:3), sige, sig_z, e_loss, rf_volt, pz
 
 !
 
@@ -1138,7 +1139,7 @@ call amode_to_f (b, f_modes%b)
 call amode_to_f (z, f_modes%z)
 call linac_mode_to_f (lin, f_modes%lin)
 
-f_modes = normal_modes_struct(synch_int, sige, sig_z, e_loss, pz, f_modes%a, f_modes%b, f_modes%z, f_modes%lin)
+f_modes = normal_modes_struct(synch_int, sige, sig_z, e_loss, rf_volt, pz, f_modes%a, f_modes%b, f_modes%z, f_modes%lin)
 
 end subroutine
 

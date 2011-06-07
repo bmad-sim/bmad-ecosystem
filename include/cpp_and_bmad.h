@@ -561,19 +561,20 @@ public:
   double sigE_E;        // SigmaE/E
   double sig_z;         // Sigma_Z
   double e_loss;        // Energy loss / turn (eV)
+  double rf_voltage;    // Total rfcavity voltage (eV)
   double pz_aperture;   // Momentem aperture
   C_amode  a, b, z;
   C_linac_mode lin;
 
   C_modes () :
       synch_int1(0), synch_int2(0), synch_int3(0), sigE_E(0), 
-      sig_z(0), e_loss(0), pz_aperture(0), a(), b(), z(), lin() {}
+      sig_z(0), e_loss(0), rf_voltage(0), pz_aperture(0), a(), b(), z(), lin() {}
 
   C_modes (double i1, double i2, double i3, double se, double sz, 
-          double el, double pz,
+          double el, double rf_volt, double pz,
           C_amode aa, C_amode bb, C_amode zz, C_linac_mode l) :
       synch_int1(i1), synch_int2(i2), synch_int3(i3), sigE_E(se), 
-      sig_z(sz), e_loss(el), pz_aperture(pz),
+      sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
       a(aa), b(bb), z(zz), lin(l) {}
 
 };    // End Class
