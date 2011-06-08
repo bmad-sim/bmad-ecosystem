@@ -340,15 +340,22 @@ implicit none
 
 type (spin_polar_struct), intent(in) :: polar1, polar2
 
-real(rp) :: angle
+real(rp) :: angle, arg
 real(rp) :: vec1(3), vec2(3)
 
-!
+! Round-off can make |arg| > 1 so need to check this.
 
 call polar_to_vec (polar1, vec1)
 call polar_to_vec (polar2, vec2)
 
-angle = acos(dot_product(vec1,vec2) / (sqrt(dot_product(vec1, vec1)) * sqrt(dot_product(vec2,vec2))))
+arg = dot_product(vec1,vec2) / (sqrt(dot_product(vec1, vec1) * dot_product(vec2,vec2)))
+if (arg >= 1) then
+  angle = 0
+elseif (arg <= 1) then
+  angle = pi
+else
+  angle = acos(arg)
+endif
 
 end function angle_between_polars
 

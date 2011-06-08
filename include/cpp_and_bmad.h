@@ -17,7 +17,7 @@ class C_control;
 class C_ele;
 class C_wig_term;
 class C_taylor;
-class C_photon_line;
+class C_branch;
 
 typedef const double    Re;
 typedef const int       Int;
@@ -39,7 +39,7 @@ typedef valarray<C_sr_table_wake>       C_sr_table_wake_array;
 typedef valarray<C_sr_mode_wake>        C_sr_mode_wake_array;
 typedef valarray<C_lr_wake>             C_lr_wake_array;
 typedef valarray<C_control>             C_control_array;
-typedef valarray<C_photon_line>         C_photon_line_array;
+typedef valarray<C_branch>              C_branch_array;
 typedef valarray<C_ele>                 C_ele_array;
 typedef valarray<C_taylor>              C_taylor_array;
 typedef valarray<Real_Array>            Real_Matrix;
@@ -76,25 +76,27 @@ extern "C" void init_coord_struct_(coord_struct*&);
 class C_coord {
 public:
   Real_Array vec;      // size = 6
+  double s;
+  double t;
   Complx_Array spin;   // size = 2
   double e_field_x;
   double e_field_y;
   double phase_x;
   double phase_y;
 
-  C_coord(Re v[6], CComplx s[2] = 0, double field_x = 0, double field_y = 0, 
-          double p_x = 0, double p_y = 0) : vec(v, 6), spin(s, 2), 
+  C_coord(Re v[6], double ss = 0, double tt = 0, CComplx spn[2] = 0, double field_x = 0, double field_y = 0, 
+          double p_x = 0, double p_y = 0) : vec(v, 6), s(ss), t(tt), spin(spn, 2), 
           e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y) {}
 
   C_coord(double v0, double v1, double v2, double v3, double v4, double v5) :
-     spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0)
+     s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
 
-  C_coord(Re v = 0) : vec(v, 6), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
+  C_coord(Re v = 0) : vec(v, 6), s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
 
-  C_coord(Int i) : vec(double(i), 6), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
+  C_coord(Int i) : vec(double(i), 6), s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
 
-  C_coord(Real_Array v) : vec(v), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
+  C_coord(Real_Array v) : vec(v), s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
 
 };    // End Class
 
@@ -222,16 +224,16 @@ class taylor_term_struct {};
 class C_taylor_term {
 public:
   double coef;
-  Int_Array exp;  // size = 6
+  Int_Array expn;  // size = 6
 
-  C_taylor_term (double c, int e[6]) : coef(c), exp(e, 6) {}
+  C_taylor_term (double c, int e[6]) : coef(c), expn(e, 6) {}
 
-  C_taylor_term (double c, Int_Array e) : coef(c), exp(e) {}
+  C_taylor_term (double c, Int_Array e) : coef(c), expn(e) {}
 
   C_taylor_term (double c, int e0, int e1, int e2, int e3, int e4, int e5) :
-    coef(c) {int e[] = {e0, e1, e2, e3, e4, e5}; exp = Int_Array(e, 6);}
+    coef(c) {int e[] = {e0, e1, e2, e3, e4, e5}; expn = Int_Array(e, 6);}
 
-  C_taylor_term (double c = 0) : coef(c), exp(0, 6) {}
+  C_taylor_term (double c = 0) : coef(c), expn(0, 6) {}
 
 };    // End Class
 
@@ -418,14 +420,14 @@ public:
   double coef;                // control coefficient
   int ix_lord;                // index to lord element
   int ix_slave;               // index to slave element
-  int ix_photon_line;         // index to a photon line
+  int ix_branch;               // index to a photon line
   int ix_attrib;              // index of attribute controlled
 
-  C_control (double c, int il, int is, int ip, int ia) :
-      coef(c), ix_lord(il), ix_slave(is), ix_photon_line(ip), ix_attrib(ia) {}
+  C_control (double c, int il, int is, int ib, int ia) :
+      coef(c), ix_lord(il), ix_slave(is), ix_branch(ib), ix_attrib(ia) {}
 
   C_control () :
-      coef(0), ix_lord(0), ix_slave(0), ix_photon_line(0), ix_attrib(0) {}
+      coef(0), ix_lord(0), ix_slave(0), ix_branch(0), ix_attrib(0) {}
 };    // End Class
 
 extern "C" void control_to_c_(control_struct*, C_control&);
@@ -709,10 +711,21 @@ public:
   string name;                  // name of element
   string type;                  // type name
   string alias;                 // Another name
-  string attribute_name;        // Used by overlays
-  C_xy_disp x, y;               // Projected dispersion
+  string component_name;        // Used by overlays
+  string descrip;               // For general use
   C_twiss  a, b, z;             // Twiss parameters at end of element
+  C_xy_disp x, y;               // Projected dispersion
   C_floor_position floor;       // Global floor position at end of ele.
+  // C_mode3 mode3;
+  // C_coord map_ref_orb_in;
+  // C_coord map_ref_orb_out;
+  void* gen_field;              // Pointer to a PTC genfield
+  C_taylor_array taylor;        // Taylor terms
+  // C_rf rf;
+  C_wake wake;                  // TO TAKE OUT WHEN RF IS PUT IN! Wakefields
+  C_wig_term_array wig_term;    // Wiggler Coefs
+  // C_space_charge space_charge;
+  // C_wall3d wall3d;
   Real_Array value;             // attribute values. size = N_ATTRIB_MAXX
   Real_Array gen0;              // constant part of the genfield map. size = 6
   Real_Array vec0;              // 0th order transport vector. size = 6
@@ -725,26 +738,21 @@ public:
   Real_Array a_pole;            // multipole
   Real_Array b_pole;            // multipoles
   Real_Array const_arr;         // Working constants.
-  string descrip;               // For general use
-  void* gen_field;              // Pointer to a PTC genfield
-  C_taylor_array taylor;        // Taylor terms
-  C_wig_term_array wig_term;    // Wiggler Coefs
-  C_wake wake;                  // Wakefields
   int key;                      // key value
   int sub_key;                  // For wigglers: map_type$, periodic_type$
-  int lord_status;                // overlay_lord$, etc.
-  int slave_status;               // super_slave$, etc.
+  int ix_ele;                   // Index in ring%ele(:) array
+  int ix_branch;           // Photon line index
   int ix_value;                 // Pointer for attribute to control
+  int slave_status;               // super_slave$, etc.
   int n_slave;                  // Number of slaves
   int ix1_slave;                // Start index for slave elements
   int ix2_slave;                // Stop  index for slave elements
+  int lord_status;                // overlay_lord$, etc.
   int n_lord;                   // Number of lords
   int ic1_lord;                 // Start index for lord elements
   int ic2_lord;                 // Stop  index for lord elements
   int ix_pointer;               // For general use. Not used by Bmad.
   int ixx;                      // Index for Bmad internal use
-  int ix_ele;                   // Index in ring%ele(:) array
-  int ix_photon_line;           // Photon line index
   int mat6_calc_method;         // bmad_standard$, taylor$, etc.
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
@@ -756,6 +764,7 @@ public:
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
+  // bool scale_multipoles;
   bool map_with_offsets;        // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
   bool is_on;                   // For turning element on/off.
@@ -808,28 +817,28 @@ void operator>> (C_mode_info&, mode_info_struct*);
 void operator>> (mode_info_struct*, C_mode_info&);
 
 //--------------------------------------------------------------------
-// photon_line
+// branch
 
-class photon_line_struct {};
+class branch_struct {};
 
-class C_photon_line {
+class C_branch {
 
   string name;
-  int ix_photon_line;
+  int ix_branch;
   int n_ele_track;
   C_ele_array ele;
 
-  C_photon_line () : ix_photon_line(0), n_ele_track(0) {}
+  C_branch () : ix_branch(0), n_ele_track(0) {}
 
 };
 
-extern "C" void photon_line_to_c_(photon_line_struct*, C_photon_line&);
-extern "C" void photon_line_to_f_(C_photon_line&, photon_line_struct*);
+extern "C" void branch_to_c_(branch_struct*, C_branch&);
+extern "C" void branch_to_f_(C_branch&, branch_struct*);
 
-bool operator== (const C_photon_line&, const C_photon_line&);
+bool operator== (const C_branch&, const C_branch&);
 
-void operator>> (C_photon_line&, photon_line_struct*);
-void operator>> (photon_line_struct*, C_photon_line&);
+void operator>> (C_branch&, branch_struct*);
+void operator>> (branch_struct*, C_branch&);
 
 //--------------------------------------------------------------------
 // Ring 
@@ -852,7 +861,7 @@ public:
   int input_taylor_order;    // As set in the input file
   C_ele ele_init;            // For use by any program
   C_ele_array ele;           // Array of elements
-  C_photon_line_array photon_line;
+  C_branch_array branch;
   C_control_array control;   // control list
   Int_Array ic;              // index to %control(:)
 
