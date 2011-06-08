@@ -618,7 +618,7 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%is_on .eqv. f2%is_on) .and. (f1%old_is_on .eqv. f2%old_is_on) .and. &
     (f1%logic .eqv. f2%logic) .and. (f1%on_a_girder .eqv. f2%on_a_girder) .and. &
     (f1%csr_calc_on .eqv. f2%csr_calc_on) .and. (f1%ref_time == f2%ref_time) .and. &
-    (f1%scale_multipoles == f2%scale_multipoles) .and. (f1%wall3d == f2%wall3d)
+    (f1%scale_multipoles .eqv. f2%scale_multipoles) .and. (f1%wall3d == f2%wall3d)
 
 is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .and. &
     (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
