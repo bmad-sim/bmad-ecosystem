@@ -4,11 +4,12 @@ use bmad_struct
 
 interface operator (==)
   module procedure eq_coord, eq_twiss, eq_xy_disp, eq_floor_position
-  module procedure eq_taylor_term, eq_taylor, eq_wig_term
-  module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake
-  module procedure eq_rf_wake, eq_rf_field_mode, eq_rf_field
+  module procedure eq_taylor_term, eq_taylor, eq_wig_term, eq_mode3
+  module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake, eq_branch
+  module procedure eq_rf_wake, eq_rf_field_mode, eq_rf_field, eq_space_charge
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
-  module procedure eq_lat, eq_wall3d, eq_control, eq_param, eq_amode, eq_linac_mode
+  module procedure eq_lat, eq_control, eq_param, eq_amode, eq_linac_mode
+  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
 end interface
 
 contains
@@ -26,6 +27,7 @@ logical is_eq
 !
 
 is_eq = (all(f1%vec == f2%vec) .and. all(f1%spin == f2%spin)) .and. &
+        (f1%s == f2%s) .and. (f1%t == f2%t) .and. &
         (f1%e_field_x == f2%e_field_x) .and. (f1%e_field_y == f2%e_field_y) .and. &
         (f1%phase_x == f2%phase_x) .and. (f1%phase_y == f2%phase_y)
 
@@ -46,8 +48,8 @@ logical is_eq
 is_eq = (f1%beta == f2%beta) .and. (f1%alpha == f2%alpha) .and. &
           (f1%gamma == f2%gamma) .and. (f1%phi == f2%phi) .and. &
           (f1%eta == f2%eta) .and. (f1%etap == f2%etap) .and. &
-          (f1%sigma == f2%sigma) .and. (f1%emit == f2%emit) .and. &
-          (f1%norm_emit == f2%norm_emit)
+          (f1%sigma == f2%sigma) .and. (f1%sigma_p == f2%sigma_p) .and. &
+          (f1%emit == f2%emit) .and. (f1%norm_emit == f2%norm_emit)
 
 end function eq_twiss
 
@@ -321,7 +323,8 @@ logical is_eq
 !
 
 is_eq = (f1%coef == f2%coef) .and. (f1%ix_lord == f2%ix_lord) .and. &
-        (f1%ix_slave == f2%ix_slave) .and. (f1%ix_attrib == f2%ix_attrib)
+        (f1%ix_slave == f2%ix_slave) .and. (f1%ix_attrib == f2%ix_attrib) .and. &
+        (f1%ix_branch == f2%ix_branch) 
 
 end function eq_control
 
@@ -342,7 +345,7 @@ is_eq = (f1%n_part == f2%n_part) .and. (f1%total_length == f2%total_length) .and
      all(f1%t1_with_RF == f2%t1_with_RF) .and. &
      all(f1%t1_no_RF == f2%t1_no_RF) .and. &
      (f1%particle == f2%particle) .and. (f1%ix_lost == f2%ix_lost) .and. &
-     (f1%end_lost_at == f2%end_lost_at) .and. &
+     (f1%end_lost_at == f2%end_lost_at) .and. (f1%plane_lost_at == f2%plane_lost_at) .and. &
      (f1%lattice_type == f2%lattice_type) .and. & 
      (f1%ixx == f2%ixx) .and. (f1%stable .eqv. f2%stable) .and. &
      (f1%aperture_limit_on .eqv. f2%aperture_limit_on) .and. (f1%lost .eqv. f2%lost) 
@@ -424,6 +427,8 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%grad_loss_sr_wake == f2%grad_loss_sr_wake) .and. &
       (f1%rel_tolerance == f2%rel_tolerance) .and. &
       (f1%abs_tolerance == f2%abs_tolerance) .and. &
+      (f1%rel_tol_adaptive_tracking == f2%rel_tol_adaptive_tracking) .and. &
+      (f1%abs_tol_adaptive_tracking == f2%abs_tol_adaptive_tracking) .and. &
       (f1%taylor_order == f2%taylor_order) .and. &
       (f1%default_integ_order == f2%default_integ_order) .and. &
       (f1%default_ds_step == f2%default_ds_step) .and.  &
@@ -433,6 +438,7 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%lr_wakes_on .eqv. f2%lr_wakes_on) .and.  &
       (f1%mat6_track_symmetric .eqv.  f2%mat6_track_symmetric) .and. &
       (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper) .and. &
+      (f1%spin_tracking_on .eqv. f2%spin_tracking_on) .and. &
       (f1%space_charge_on .eqv. f2%space_charge_on) .and. &
       (f1%coherent_synch_rad_on .eqv. f2%coherent_synch_rad_on) .and. &
       (f1%radiation_damping_on .eqv. f2%radiation_damping_on) .and. &
@@ -462,6 +468,118 @@ end function eq_em_field
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
+elemental function eq_mode3 (f1, f2) result (is_eq)
+
+implicit none
+
+type (mode3_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = all(f1%v == f2%v) .and. (f1%a == f2%a) .and. (f1%b == f2%b) .and. &
+        (f1%c == f2%c) .and. (f1%x == f2%x) .and. (f1%y == f2%y) 
+
+end function eq_mode3
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_space_charge (f1, f2) result (is_eq)
+
+implicit none
+
+type (space_charge_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = (f1%closed_orb == f2%closed_orb) .and. (f1%kick_const == f2%kick_const) .and. &
+        (f1%sig_x == f2%sig_x) .and. (f1%sig_y == f2%sig_y) .and. (f1%phi == f2%phi) .and. &
+        (f1%sin_phi == f2%sin_phi) .and. (f1%cos_phi == f2%cos_phi) .and. (f1%sig_z == f2%sig_z)
+
+end function eq_space_charge
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_wall3d (f1, f2) result (is_eq)
+
+implicit none
+
+type (wall3d_struct), intent(in) :: f1, f2
+logical is_eq
+integer i
+
+!
+
+is_eq = (associated(f1%section) .eqv. associated(f2%section))
+if (.not. is_eq) return
+
+is_eq = .false.
+
+if (associated (f1%section)) then
+  if (size(f1%section) /= size(f2%section)) return
+  do i = 1, size(f1%section)
+    if (.not. (f1%section(i) == f2%section(i))) return
+  enddo
+endif
+
+is_eq = .true.
+
+end function eq_wall3d
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_wall3d_section (f1, f2) result (is_eq)
+
+implicit none
+
+type (wall3d_section_struct), intent(in) :: f1, f2
+logical is_eq
+integer i
+
+!
+
+is_eq = (allocated(f1%v) .eqv. allocated(f2%v)) .and. (f1%type == f2%type) .and. &
+        (f1%s == f2%s) .and. all(f1%s_spline == f2%s_spline) .and. (f1%n_slice_spline == f2%n_slice_spline)  
+if (.not. is_eq) return
+
+is_eq = .false.
+
+if (allocated(f1%v)) then
+  if (size(f1%v) /= size(f2%v)) return
+  do i = 1, size(f1%v)
+    if (.not. (f1%v(i) == f2%v(i))) return
+  enddo
+endif
+
+is_eq = .true.
+
+end function eq_wall3d_section
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_wall3d_vertex (f1, f2) result (is_eq)
+
+implicit none
+
+type (wall3d_vertex_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = (f1%x == f2%x) .and. (f1%y == f2%y) .and. (f1%radius_x == f2%radius_x) .and. &
+        (f1%radius_y == f2%radius_y) .and. (f1%tilt == f2%tilt) .and. (f1%angle == f2%angle) .and. &
+        (f1%x0 == f2%x0) .and. (f1%y0 == f2%y0)
+
+end function eq_wall3d_vertex
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
 elemental function eq_ele (f1, f2) result (is_eq)
 
 implicit none
@@ -475,14 +593,16 @@ integer i, j
 is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%alias == f2%alias) .and. &
     (f1%component_name == f2%component_name) .and. (f1%a == f2%a) .and. &
-    (f1%b == f2%b) .and. &
-    (f1%z == f2%z) .and. (f1%floor == f2%floor) .and. all(f1%value == f2%value) .and. &
+    (f1%b == f2%b) .and. (f1%z == f2%z) .and. (f1%x == f2%x) .and. (f1%y == f2%y) .and. &
+    (f1%floor == f2%floor) .and. &
+    (f1%map_ref_orb_in == f2%map_ref_orb_in) .and. (f1%map_ref_orb_out == f2%map_ref_orb_out) .and. &
+    all(f1%value == f2%value) .and. &
     all(f1%gen0 == f2%gen0) .and. all(f1%vec0 == f2%vec0) .and. &
     all(f1%mat6 == f2%mat6) .and. all(f1%c_mat == f2%c_mat) .and. &
     (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
     (f1%key == f2%key) .and. (f1%sub_key == f2%sub_key) .and. &
     (f1%lord_status == f2%lord_status) .and. (f1%slave_status == f2%slave_status) .and. &
-    (f1%ix_value == f2%ix_value) .and. &
+    (f1%ix_value == f2%ix_value) .and. (f1%ix_branch == f2%ix_branch) .and. (f1%field_master .eqv. f2%field_master) .and. &
     (f1%n_slave == f2%n_slave) .and. (f1%ix1_slave == f2%ix1_slave) .and. &
     (f1%ix2_slave == f2%ix2_slave) .and. (f1%n_lord == f2%n_lord) .and. &
     (f1%ic1_lord == f2%ic1_lord) .and. (f1%ic2_lord == f2%ic2_lord) .and. &
@@ -494,11 +614,11 @@ is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
     (f1%attribute_status == f2%attribute_status) .and. &
     (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
     (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
-    (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. &
-    (f1%field_master .eqv. f2%field_master) .and. &
+    (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture) .and. &
     (f1%is_on .eqv. f2%is_on) .and. (f1%old_is_on .eqv. f2%old_is_on) .and. &
     (f1%logic .eqv. f2%logic) .and. (f1%on_a_girder .eqv. f2%on_a_girder) .and. &
-    (f1%csr_calc_on .eqv. f2%csr_calc_on) .and. (f1%ref_time == f2%ref_time)
+    (f1%csr_calc_on .eqv. f2%csr_calc_on) .and. (f1%ref_time == f2%ref_time) .and. &
+    (f1%scale_multipoles == f2%scale_multipoles) .and. (f1%wall3d == f2%wall3d)
 
 is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .and. &
     (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
@@ -506,7 +626,9 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .a
     (associated(f1%r) .eqv. associated(f2%r)) .and. &
     (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
     (associated(f1%wig_term) .eqv. associated(f2%wig_term)) .and. &
-    (associated(f1%rf%wake) .eqv. associated(f2%rf%wake))
+    (associated(f1%rf%wake) .eqv. associated(f2%rf%wake)) .and. &
+    (associated(f1%mode3) .eqv. associated(f2%mode3)) .and. &
+    (associated(f1%space_charge) .eqv. associated(f2%space_charge))
 
 if (.not. is_eq) return
 is_eq = .false.
@@ -541,54 +663,21 @@ if (associated(f1%rf%wake)) then
   if (.not. (f1%rf%wake == f2%rf%wake)) return
 endif
 
+if (associated(f1%mode3)) then
+  if (.not. (f1%mode3 == f2%mode3)) return
+endif
+
+if (associated(f1%space_charge)) then
+  if (.not. (f1%space_charge == f2%space_charge)) return
+endif
+
 if (associated(f1%gen_field)) then
   if (.not. associated(f1%gen_field, f2%gen_field)) return
 endif
 
-if (.not. f1%wall3d == f2%wall3d) return
-
 is_eq = .true.
 
 end function eq_ele
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-
-elemental function eq_wall3d (f1, f2) result (is_eq)
-
-implicit none
-
-type (wall3d_struct), intent(in) :: f1, f2
-logical is_eq
-integer i
-
-!
-
-is_eq = .false.
-
-if (associated(f1%section)) then
-  if (.not. associated(f2%section)) return
-  if (size(f1%section) /= size(f2%section)) return
-  do i = 1, size(f1%section)
-    if (f1%section(i)%s               /= f2%section(i)%s) return
-    if (any(f1%section(i)%s_spline /= f2%section(i)%s_spline)) return
-    if (f1%section(i)%n_slice_spline  /= f2%section(i)%n_slice_spline) return
-    if (f1%section(i)%type            /= f2%section(i)%type) return
-    if (size(f1%section(i)%v) /= size(f2%section(i)%v)) return
-    if (any(f1%section(i)%v%x /= f2%section(i)%v%x)) return
-    if (any(f1%section(i)%v%y /= f2%section(i)%v%y)) return
-    if (any(f1%section(i)%v%radius_x /= f2%section(i)%v%radius_x)) return
-    if (any(f1%section(i)%v%radius_y /= f2%section(i)%v%radius_y)) return
-    if (any(f1%section(i)%v%tilt /= f2%section(i)%v%tilt)) return
-    if (any(f1%section(i)%v%angle /= f2%section(i)%v%angle)) return
-    if (any(f1%section(i)%v%x0 /= f2%section(i)%v%x0)) return
-    if (any(f1%section(i)%v%y0 /= f2%section(i)%v%y0)) return
-  enddo
-endif
-
-is_eq = .true.
-
-end function eq_wall3d
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -704,6 +793,58 @@ end function eq_mode_info
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
+elemental function eq_branch (f1, f2) result (is_eq)
+
+implicit none
+
+type (branch_struct), intent(in) :: f1, f2
+logical is_eq
+integer i
+
+!
+
+is_eq = (f1%name == f2%name) .and. (f1%key == f2%key) .and. (f1%ix_branch == f2%ix_branch) .and. &
+        (f1%ix_from_branch == f2%ix_from_branch) .and. (f1%ix_from_ele == f2%ix_from_ele)
+if (.not. is_eq) return
+
+is_eq = (associated(f1%n_ele_track) .eqv. associated(f2%n_ele_track)) .and. &
+        (associated(f1%n_ele_max) .eqv. associated(f2%n_ele_max)) .and. &
+        (associated(f1%ele) .eqv. associated(f2%ele)) .and. &
+        (associated(f1%param) .eqv. associated(f2%param)) .and. &
+        (associated(f1%wall3d) .eqv. associated(f2%wall3d))
+if (.not. is_eq) return
+
+is_eq = .false.
+
+if (associated(f1%n_ele_track)) then
+  if (f1%n_ele_track /= f2%n_ele_track) return
+endif
+
+if (associated(f1%n_ele_max)) then
+  if (f1%n_ele_max /= f2%n_ele_max) return
+endif
+
+if (associated(f1%param)) then
+  if (.not. (f1%param == f2%param)) return
+endif
+
+if (associated(f1%wall3d)) then
+  if (.not. (f1%wall3d == f2%wall3d)) return
+endif
+
+if (size(f1%ele) /= size(f2%ele)) return
+do i = 0, f1%n_ele_max
+  if (.not. (f1%ele(i) == f2%ele(i))) return
+enddo
+
+is_eq = .true.
+
+
+end function eq_branch
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
 elemental function eq_lat (f1, f2) result (is_eq)
 
 implicit none
@@ -733,6 +874,7 @@ is_eq = is_eq .and. (size(f1%ele) == size(f2%ele))
 is_eq = is_eq .and. (size(f1%control) == size(f2%control)) 
 is_eq = is_eq .and. (size(f1%ic) == size(f2%ic)) 
 is_eq = is_eq .and. (f1%wall3d == f2%wall3d)
+is_eq = is_eq .and. (allocated(f1%branch) .eqv. allocated(f2%branch))
 
 if (.not. is_eq) return
 
@@ -747,6 +889,19 @@ enddo
 do i = 1, size(f1%ic)
   is_eq = is_eq .and. (f1%ic(i) == f2%ic(i))
 enddo
+
+if (.not. is_eq) return
+
+is_eq = .false.
+
+if (allocated(f1%branch)) then
+  if (size(f1%branch) /= size(f2%branch)) return
+  do i = 1, size(f1%branch)
+    if (.not. (f1%branch(i) == f2%branch(i))) return
+  enddo
+endif
+
+is_eq = .true.
 
 end function eq_lat
 

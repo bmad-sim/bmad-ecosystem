@@ -183,11 +183,11 @@ void operator>> (wig_term_struct* f, C_wig_term& c) {
 extern "C" void taylor_term_to_f2_(taylor_term_struct*, Re&, IntArr);
 
 extern "C" void taylor_term_to_f_(C_taylor_term& c, taylor_term_struct* f) {
-  taylor_term_to_f2_(f, c.coef, &c.exp[0]);
+  taylor_term_to_f2_(f, c.coef, &c.expn[0]);
 }
 
-extern "C" void taylor_term_to_c2_(C_taylor_term& c, Re& coef, int exp[]) {
-  c = C_taylor_term(coef, exp);
+extern "C" void taylor_term_to_c2_(C_taylor_term& c, Re& coef, int expn[]) {
+  c = C_taylor_term(coef, expn);
 }
 
 void operator>> (C_taylor_term& c, taylor_term_struct* f) {
@@ -208,7 +208,7 @@ extern "C" void taylor_to_f_(C_taylor& c, taylor_struct* f) {
   int n_term = c.term.size();
   taylor_to_f2_(f, n_term, c.ref);
   for (int i = 0; i < n_term; i++) {
-    taylor_term_in_taylor_to_f2_(f, i+1, c.term[i].coef, &c.term[i].exp[0]);
+    taylor_term_in_taylor_to_f2_(f, i+1, c.term[i].coef, &c.term[i].expn[0]);
   }
 }
 
@@ -217,9 +217,8 @@ extern "C" void taylor_to_c2_(C_taylor& c, Int& n_term, Re& ref) {
   c.ref = ref;
 }
 
-extern "C" void taylor_term_in_taylor_to_c2_(C_taylor& c, Int& it, 
-                                                       Re& coef, int exp[]) {
-  c.term[it-1] = C_taylor_term(coef, exp);
+extern "C" void taylor_term_in_taylor_to_c2_(C_taylor& c, Int& it, Re& coef, int expn[]) {
+  c.term[it-1] = C_taylor_term(coef, expn);
 }
 
 
@@ -405,7 +404,7 @@ C_wake& C_wake::operator= (const C_wake& c) {
 extern "C" void control_to_f2_(control_struct*, Re&, Int&, Int&, Int&, Int&);
 
 extern "C" void control_to_f_(C_control& c, control_struct* f) {
-  control_to_f2_(f, c.coef, c.ix_lord, c.ix_slave, c.ix_photon_line, c.ix_attrib);
+  control_to_f2_(f, c.coef, c.ix_lord, c.ix_slave, c.ix_branch, c.ix_attrib);
 }
 
 extern "C" void control_to_c2_(C_control& c, Re& coef, Int& il, Int& is, Int& pl, Int& ia) {
@@ -601,8 +600,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* typ = c.type.data();       int n_typ = c.type.length();
   const char* ali = c.alias.data();      int n_ali = c.alias.length();
   const char* des = c.descrip.data();    int n_des = c.descrip.length();
-  const char* attrib = c.attribute_name.data(); 
-                                    int n_attrib = c.attribute_name.length();
+  const char* component = c.component_name.data(); 
+                                    int n_component = c.component_name.length();
   int n_ab = c.a_pole.size(), n_const = c.const_arr.size();
   int n_sr_table = c.wake.sr_table.size(), n_sr_mode_long = c.wake.sr_mode_long.size();
   int n_sr_mode_trans = c.wake.sr_mode_trans.size(), n_lr = c.wake.lr.size();
@@ -616,7 +615,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   matrix_to_array (c.mat6, mat6);
   matrix_to_array (c.c_mat, c_mat);
   matrix_to_array (c.r, r_arr);
-  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, n_attrib,
+  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component,
     c.x, c.y, c.a, c.b, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
     c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, 
     &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], 
@@ -626,7 +625,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     n_sr_mode_trans, n_lr, n_wig, c.key, 
     c.sub_key, c.lord_status, c.slave_status, c.ix_value, c.n_slave, c.ix1_slave, 
     c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
-    c.ixx, c.ix_ele, c.ix_photon_line, c.mat6_calc_method, c.tracking_method, 
+    c.ixx, c.ix_ele, c.ix_branch, c.mat6_calc_method, c.tracking_method, 
     c.field_calc, c.ref_orbit, c.taylor_order, 
     c.aperture_at, c.aperture_type, c.attribute_status, c.symplectify, c.mode_flip, c.multipoles_on, 
     c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
@@ -640,7 +639,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
 }
 
 extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
-    char* attrib, xy_disp_struct* x, xy_disp_struct* y, 
+    char* component, xy_disp_struct* x, xy_disp_struct* y, 
     twiss_struct* a, twiss_struct* b, twiss_struct* z,
     floor_position_struct* floor, ReArr val, ReArr gen0, ReArr vec0,
     ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, ReArr r_arr, Int& nr1, 
@@ -650,7 +649,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
     wake_struct* wake, Int& wake_here, Int& n_wig, Int& key, Int& sub_key, 
     Int& lord_status, Int& slave_status, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
-    Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_photon, 
+    Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_branch, 
     Int& mat6_calc, Int& tracking, Int& f_calc, 
     Int& ptc, Int& t_ord, Int& aperture_at, Int& aperture_type, Int& attrib_stat, 
     Int& symp, Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
@@ -659,7 +658,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.name                  = name;
   c.type                  = type;
   c.alias                 = alias; 
-  c.attribute_name        = attrib;
+  c.component_name        = component;
   c.value                 << val;
   c.gen0                  << gen0; 
   c.vec0                  << vec0; 
@@ -681,11 +680,11 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.ix_pointer            = ix_p;
   c.ixx                   = ixx;
   c.ix_ele                = ix_e;
-  c.ix_photon_line        = ix_photon;
+  c.ix_branch             = ix_branch;
   c.mat6_calc_method      = mat6_calc;
   c.tracking_method       = tracking;
   c.field_calc            = f_calc;
-  c.ref_orbit              = ptc;
+  c.ref_orbit             = ptc;
   c.taylor_order          = t_ord;
   c.aperture_at           = aperture_at;
   c.aperture_type         = aperture_type;
@@ -752,7 +751,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   name                  = c.name;
   type                  = c.type;
   alias                 = c.alias;
-  attribute_name        = c.attribute_name;
+  component_name        = c.component_name;
   x                     = c.x;
   y                     = c.y;
   a                     = c.a;
@@ -790,7 +789,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   ix_pointer            = c.ix_pointer;
   ixx                   = c.ixx;
   ix_ele                = c.ix_ele;
-  ix_photon_line        = c.ix_photon_line;
+  ix_branch             = c.ix_branch;
   mat6_calc_method      = c.mat6_calc_method;
   tracking_method       = c.tracking_method;
   field_calc            = c.field_calc;

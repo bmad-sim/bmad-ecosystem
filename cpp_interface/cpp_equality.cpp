@@ -80,9 +80,9 @@ bool operator== (const C_wig_term& x, const C_wig_term& y) {
 };
 
 bool operator== (const C_taylor_term& x, const C_taylor_term& y) {
-  bool is_true = (x.coef == y.coef) && (x.exp.size() == y.exp.size());
+  bool is_true = (x.coef == y.coef) && (x.expn.size() == y.expn.size());
   if (!is_true) return is_true;
-  return is_all_true(x.exp, y.exp);
+  return is_all_true(x.expn, y.expn);
 };
 
 bool operator== (const C_taylor& x, const C_taylor& y) {
@@ -191,7 +191,7 @@ bool operator== (const C_em_field& x, const C_em_field& y) {
 
 bool operator== (const C_ele& x, const C_ele& y) {
   return (x.name == y.name) && (x.type == y.type) && (x.alias == y.alias) && 
-    (x.attribute_name == y.attribute_name) && (x.x == y.x) && (x.y == y.y) && 
+    (x.component_name == y.component_name) && (x.x == y.x) && (x.y == y.y) && 
     (x.a == y.a) && (x.b == y.b) && 
     (x.z == y.z) && (x.floor == y.floor) && is_all_true(x.value, y.value) && 
     is_all_true(x.gen0, y.gen0) && is_all_true(x.vec0, y.vec0) && 
@@ -256,7 +256,7 @@ bool operator== (const C_lat& x, const C_lat& y) {
 void ele_comp (const C_ele& x, const C_ele& y) {
 
   cout << "name: " << ((x.name == y.name) && (x.type == y.type) && 
-      (x.alias == y.alias) && (x.attribute_name == y.attribute_name)) << endl;
+      (x.alias == y.alias) && (x.component_name == y.component_name)) << endl;
   cout << "int:  " << ((x.gamma_c == y.gamma_c) && (x.s == y.s) && (x.ref_time == y.ref_time) &&
       (x.descrip == y.descrip) && (x.wake == y.wake) && 
       (x.key == y.key) && (x.sub_key == y.sub_key) && 
