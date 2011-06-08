@@ -308,15 +308,15 @@ error = .false.
 !-------------------------------------------------------------------------------------
 contains
 
-subroutine mode1_calc (g, tune, twiss)
+subroutine mode1_calc (gg, tune, twiss)
 
 type (twiss_struct) twiss
-real(rp) g(2,2), tune
+real(rp) gg(:,:), tune
 
 !
 
-twiss%beta = g(2,2)**2
-twiss%alpha = g(2,1) * g(2,2)
+twiss%beta = gg(2,2)**2
+twiss%alpha = gg(2,1) * gg(2,2)
 twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
 twiss%phi = 0
 
