@@ -366,9 +366,13 @@ if (iu == 0) then
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
+  s%u(i)%beam_info%beam0_file = tao_com%beam0_file
+  s%u(i)%beam_info%beam_all_file = tao_com%beam_all_file
   do ib = 0, ubound(s%u(i)%uni_branch, 1)
-    s%u(i)%beam_info%beam0_file = tao_com%beam0_file
-    s%u(i)%beam_info%beam_all_file = tao_com%beam_all_file
+    s%u(i)%uni_branch(ib)%track_start    = ''
+    s%u(i)%uni_branch(ib)%track_end      = ''
+    s%u(i)%uni_branch(ib)%ix_track_start = 0
+    s%u(i)%uni_branch(ib)%ix_track_end   = -1
   enddo
 enddo
 
@@ -421,8 +425,7 @@ do
   ! Error checking
 
   if (beam_init%n_bunch < 1) then
-    call out_io (s_fatal$, r_name, &
-      'BEAM_INIT%N_BUNCH NOT PROPERLY SET.')
+    call out_io (s_fatal$, r_name, 'BEAM_INIT%N_BUNCH NOT PROPERLY SET.')
     call err_exit
   endif
 
