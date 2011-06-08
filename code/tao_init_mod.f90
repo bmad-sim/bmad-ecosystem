@@ -195,7 +195,7 @@ do
       read (iu, nml = tao_connected_uni_init)  ! generate an error message
     enddo
   endif
-  if (ios < 0) exit
+  if (ios < 0 .and. to_universe == -1) exit ! Exit on end-of-file and no namelist read
 
   if (to_universe == -1) then
     call out_io (s_abort$, r_name, &
@@ -420,7 +420,7 @@ do
     beam_saved_at = trim(beam_saved_at) // ', ' // trim(save_beam_at(i))
   enddo
 
-  if (ios /= 0) exit
+  if (ios < 0 .and. ix_universe == -1) exit  ! Exit on end-of-file and no namelist read
 
   ! Error checking
 
@@ -652,6 +652,7 @@ n_d2_data = 0
 
 do 
   universe = '*'
+  d2_data%name = ''
   read (iu, nml = tao_d2_data, iostat = ios)
   if (ios > 0) then
     call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR.')
@@ -660,7 +661,7 @@ do
       read (iu, nml = tao_d2_data)  ! force printing of error message
     enddo
   endif
-  if (ios /= 0) exit
+  if (ios < 0 .and. d2_data%name == '') exit  ! Exit on end-of-file and no namelist read
 
   if (universe == '*') then
     good_unis = .true.
@@ -697,7 +698,7 @@ do
   default_data_source    = ''
 
   read (iu, nml = tao_d2_data, iostat = ios)
-  if (ios < 0) exit         ! exit on end-of-file
+  if (ios < 0 .and. d2_data%name == '') exit    ! Exit on end-of-file and no namelist read
   call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // d2_data%name)
 
   if (universe == '*') then
@@ -1499,6 +1500,7 @@ n = 0
 do
   default_key_bound = ''
   default_key_delta = 0
+  v1_var%name = ''
   read (iu, nml = tao_var, iostat = ios)
   if (ios > 0) then
     call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR.')
@@ -1507,7 +1509,7 @@ do
       read (iu, nml = tao_var)  ! force printing of error message
     enddo
   endif
-  if (ios < 0) exit
+  if (ios < 0 .and. v1_var%name == '') exit  ! Exit on end-of-file and no namelist read
   n = n + 1
   if (n >= size(default_key_b)) then
     call re_allocate (default_key_b, 2*size(default_key_b))
@@ -1533,7 +1535,7 @@ do
 
   use_same_lat_eles_as = ''
   search_for_lat_eles  = ''
-  v1_var%name        = " "         ! set default
+  v1_var%name        = ''         ! set default
   default_merit_type = 'limit'
   default_weight     = 0     ! set default
   default_step       = 0       ! set default
@@ -1556,7 +1558,7 @@ do
   var%key_delta      = default_key_d(n_v1)
 
   read (iu, nml = tao_var, iostat = ios)
-  if (ios < 0) exit         ! exit on end-of-file
+  if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
   call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // v1_var%name)
 
   ! Convert old format to new
