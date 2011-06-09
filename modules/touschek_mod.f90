@@ -176,8 +176,7 @@ REAL(rp) sum_Tl_inv, rate, norm_sum_Tl_inv,Tl_inv
 nlocs = SIZE(momentum_aperture)
 sum_Tl_inv = 0.0
 
-DO i=1,nlocs-1  !skip last entry, since that is either the end of a linac,
-                !or is taken into account as the start of the storage ring
+DO i=1,nlocs
   mode%pz_aperture = momentum_aperture(i)%pos
   CALL touschek_rate1(mode, rate, lat, s=momentum_aperture(i)%s)
   pos_rate = rate / 2.0 !divide by two because Piwinski's formula assumes that two particles
@@ -189,8 +188,13 @@ DO i=1,nlocs-1  !skip last entry, since that is either the end of a linac,
 
   Tl_inv = (pos_rate + neg_rate) / lat%param%n_part
 
-  sum_Tl_inv = sum_Tl_inv + Tl_inv &
-    * ( momentum_aperture(i+1)%s - momentum_aperture(i)%s )
+  IF(i .eq. nlocs) THEN
+    sum_Tl_inv = sum_Tl_inv + Tl_inv &
+      * (  lat%param%total_length - momentum_aperture(i)%s )
+  ELSE
+    sum_Tl_inv = sum_Tl_inv + Tl_inv &
+      * ( momentum_aperture(i+1)%s - momentum_aperture(i)%s )
+  ENDIF
 ENDDO
 
 norm_sum_Tl_inv = sum_Tl_inv / momentum_aperture(nlocs)%s
