@@ -1318,7 +1318,8 @@ case ('momentum_compaction')
 
 case ('n_particle_loss')
   if (data_source /= 'beam') return
-  datum_value = sum(bunch_params(ix_ref:ix_ele)%n_particle_lost_in_ele)
+  if (ix_ele < 0) ix_ele = branch%n_ele_track
+  datum_value = sum(bunch_params(ix_ref+1:ix_ele)%n_particle_lost_in_ele)
   valid_value = .true.
 
 !-----------

@@ -42,7 +42,7 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 
-integer iuni, j, k, ix, n_max, iu, it, id 
+integer iuni, j, k, ix, n_max, iu, it, id, ie
 real(rp) :: delta_e = 0
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -95,6 +95,9 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     case ('single') 
       call tao_inject_particle (u, tao_lat, k)
       call tao_single_track (u, tao_lat, this_calc_ok, k)
+      do ie = 0, tao_lat%lat%branch(k)%n_ele_track
+        call tao_load_data_array (u, ie, k, model$)
+      enddo
       if (.not. this_calc_ok) exit
     case ('beam')  ! Even when beam tracking we need to calculate the lattice parameters.
       call tao_inject_particle (u, tao_lat, k)
@@ -279,10 +282,6 @@ if (u%mat6_recalc_on) then
   endif
   call twiss_propagate_all (lat, ix_branch)
 endif
-
-do i = 0, branch%n_ele_track
-  call tao_load_data_array (u, i, ix_branch, model$)
-enddo
 
 end subroutine tao_single_track
 

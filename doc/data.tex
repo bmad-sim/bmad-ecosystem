@@ -524,12 +524,14 @@ This is the global floor position at the exit end of evaluation element. See the
 
   \index{n_particle_loss}
   \item[n\_particle\_loss] \Newline
-If the start element is not specified, \vn{n_particle_loss} gives the
-number of particles lost at the evaluation element. If the reference
-element is specified, \vn{n_particle_loss} gives the cumulative loss
-between the exit end of the reference element and the exit end of the
-evaluation element. That is, this sum does not count any losses at the
-reference element itself.
+If the reference element is not specified, \vn{n_particle_loss} gives
+the number of particles lost at the evaluation element. If the
+reference element is specified, \vn{n_particle_loss} gives the
+cumulative loss between the exit end of the reference element and the
+exit end of the evaluation element. That is, this sum does not count
+any losses at the reference element itself. If neither reference nor
+evaluation element is given then the total number of lost particles is
+given.
 
   \index{norm_apparent_emit.}
   \item[norm_apparent_emit.] \Newline
