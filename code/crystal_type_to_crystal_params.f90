@@ -26,7 +26,8 @@
 !     %value(f0_im$)
 !     %value(fh_re$)
 !     %value(fh_im$)
-!     %value(gamma_factor$)
+!     %value(bragg_angle$)
+!     %value(alpha_angle$)
 !   err_flag -- Logical: Set True if crystal type is unrecognized. False otherwise.
 !-
 

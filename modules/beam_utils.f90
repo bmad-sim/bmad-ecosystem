@@ -1608,31 +1608,28 @@ type (beam_init_struct) beam_init
 type (bunch_struct) bunch
 type (spin_polar_struct) :: polar
 
-real(rp) :: rang, ranl, sigma, vec(3), polarizationvec(3)
+real(rp) pol
+integer i, n_diff
 
-integer i
-
-!
+! This is a crude way to get the desired polarization.
 
 polar%xi = 0.0 ! spinor phase is zero
-
-sigma = acos(beam_init%spin%polarization)
-
-if (beam_init%spin%polarization /= 1.0) then
-  call out_io (s_error$, "init_spin_distribution", &
-                         "Right now, will only set 100% polarization")
-endif
-
-! This isn't working correctly yet, so just do %100 polarization for now.
-! First set up aroun theta = 0
-!   call ran_gauss (rang)
-!   call ran_uniform (ranl)
-!   polar%theta = sigma * rang
-!   polar%phi = 2.0 * pi * ranl
+n_diff = 0
+pol = beam_init%spin%polarization 
 
 do i = 1, size(bunch%particle)
-  polar%theta = beam_init%spin%theta
-  polar%phi = beam_init%spin%phi
+  ! Create spin up if crating one will get us nearer to the desired polarization.
+  if (abs(n_diff + 1 - pol * i) < abs(n_diff - 1 - pol * i)) then
+    polar%theta = beam_init%spin%theta
+    polar%phi = beam_init%spin%phi
+    n_diff = n_diff + 1
+  ! Else create spin down.
+  else
+    polar%theta = beam_init%spin%theta + pi
+    polar%phi = beam_init%spin%phi + pi
+    n_diff = n_diff - 1
+  endif
+
   call polar_to_spinor (polar, bunch%particle(i)%r)
 enddo
 
