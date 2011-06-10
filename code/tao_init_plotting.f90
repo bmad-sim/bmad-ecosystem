@@ -439,6 +439,7 @@ do  ! Loop over plot files
       curve(:)%symbol_every = 1
       curve(:)%ix_universe = -1
       curve(:)%ix_branch = 0
+      curve(:)%ix_bunch = 0
       curve(:)%draw_line = .true.
       if (plt%x_axis_type == 's' .or. plt%x_axis_type == 'lat' .or. plt%x_axis_type == 'var') then
         curve(:)%draw_symbols = .false.
