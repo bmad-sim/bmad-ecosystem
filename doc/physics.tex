@@ -2031,77 +2031,80 @@ $q$ and $m$ are the particle's charge and mass, and $G =
 g-factor which is $1.793$ for protons and $0.00116$ for electrons and
 positrons.
    
-The matrix representation of the observable $S_{\Bf u}$ corresponding to the measurement of   
-spin $\Bf S$ along the unit vector $\Bf u$ in the ${ |+> = \left(\begin{matrix}1 \\ 0   
-\end{matrix} \right), |-> =  \left(\begin{matrix} 0 \\ 1 \end{matrix} \right) }$ 
-basis is   
-  \Begineqs   
-    S_{\Bf u} &=& \mathbf{S \cdot u} \\   
-              &=& \frac{\hbar}{2} \sigma_{x} \sin \theta \cos \phi +   
-                  \frac{\hbar}{2} \sigma_{y} \sin \theta \sin \phi +   
-                  \frac{\hbar}{2} \sigma_{z} \cos \theta \\   
-              &=& \frac{\hbar}{2} \left(   
-                   \begin{matrix}   
-                     \cos \theta            & \sin \theta e^{- i \phi} \\   
-                     \sin \theta e^{i \phi} & - \cos \theta   
-                   \end{matrix} \right)   
-  \Endeqs   
-where $\theta$ and $\phi$ are the polar angles characterizing the
-vector $\Bf u$ and $\sigma_{x,y,z}$ are the three Pauli matrices.  The
-expectation value of this operator representing the spin of a particle
-satisfies the equation of motion of a classical spin vector in the
-particle's instantaneous rest frame.
-
-
-For a distribution of spins, the polarization $P_s$ along the unit
-vector $\Bf u$ is defined as the absolute value of the average
-expectation value of the spin over all N particles times
-$\frac{2}{\hbar}$,
-  \Begineqs   
-    P_s &=& \frac{2}{\hbar} \| \frac{1}{N} \sum_{j=1}^{N}<+|S_{\Bf u}|+> \| \\   
-      &=& \| \frac{1}{N} \sum_{j=1}^{N} \cos \theta \|.   
-  \Endeqs   
-   
 It is more efficient to use the SU(2) representation rather than SO(3) when   
 describing rotations of spin. In the SU(2) representation, a spin $\Bf s$ is   
 written as a spinor $\Psi = \left( \psi_{1}, \psi_{2} \right)^{T}$ where   
-$\psi_{1,2}$ are complex numbers and   
-  \Begineqs   
-                    \Bf S &=& \Psi^{\dagger} \Bf \sigma \Psi \\   
-    \leftrightarrow \Psi  &=& \frac{1}{\sqrt{2 \left(s_{3}+1\right)}}   
-             \left( \begin{matrix} 1+s_{3} \\ s_{1}+i s_{2} \end{matrix}   
-             \right),   
-  \Endeqs   
-or in polar coordinates,   
-  \Begineqs   
-    \Psi &=& \left( \begin{matrix} \psi_{1} \\ \psi_{2} \end{matrix} \right)   
-         = e^{i \xi} \left( \begin{matrix} \cos \frac{\phi}{2}\\   
-                     \sin \frac{\phi}{2} e^{i \phi}   
-                     \end{matrix} \right) \\   
-         \leftrightarrow   
-    \Bf S &=& \left( \begin{matrix} \sin \theta \cos \theta \\   
-                                    \sin \theta \sin \theta \\   
-                                    \cos \theta \end{matrix} \right).   
-  \Endeqs   
+$\psi_{1,2}$ are complex numbers. The conversion between SU(2) and SO(3) is  
+\Begineq  
+  \Bf S = \Psi^{\dagger} \Bf {\bfsig} \, \Psi 
+  \qquad \longleftrightarrow \qquad
+  \Psi  = \frac{1}{\sqrt{2 \left(s_{3}+1\right)}}   
+     \begin{pmatrix} 1+s_{3} \\ s_{1}+i s_{2} \end{pmatrix}   
+  \Endeq  
+where ${\bfsig} = (\sigma_x, \sigma_y, \sigma_z)$ are the
+three Pauli matrices. In polar coordinates
+\Begineq   
+  \Psi = \begin{pmatrix} \psi_{1} \\ \psi_{2} \end{pmatrix}
+       = e^{i \xi} \begin{pmatrix} \cos \frac{\theta}{2}\\   
+                     e^{i \phi} \, \sin \frac{\theta}{2}   
+                     \end{pmatrix}
+  \qquad \longleftrightarrow \qquad
+  \Bf S = \begin{pmatrix} \sin \theta \cos \phi \\   
+                          \sin \theta \sin \phi \\   
+                          \cos \theta \end{pmatrix}
+\Endeq
 The $\xi$ being an extra phase factor. Due to the unitarity of the spin vector,   
 $|\psi_{1}|^{2} + |\psi_{2}|^{2} = 1$.   
-   
-In spinor notation the T-BMT equation can be written   
+The spinor eigenvectors along the $x$, $y$ and $z$ axes are
+\begin{align}
+   \Psi_{x+} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ 1 \end{pmatrix} \, , 
+  &\Psi_{x-} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ -1 \end{pmatrix} \, , \CRNO
+   \Psi_{y+} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ i \end{pmatrix} \, , 
+  &\Psi_{y-} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ -i \end{pmatrix} \, , \\
+   \Psi_{z+} &=                       \begin{pmatrix} 1 \\ 0 \end{pmatrix} \, , 
+  &\Psi_{z-} &=                       \begin{pmatrix} 0 \\ -1 \end{pmatrix} \, .
+\end{align}
+
+In spinor notation, the T-BMT equation can be written as
   \Begineq   
-    \frac{\mathrm{d}}{\mathrm{d} t} \Psi = - \frac{i}{2} \left( \Bf \sigma \cdot   
+    \frac{\mathrm{d}}{\mathrm{d} t} \Psi = - \frac{i}{2} \left( \bfsig \cdot   
     {\pmb\Omega} \right) \Psi.   
   \Endeq   
 The solution leads to a rotation of the spin vector by an angle   
 $\alpha$ around a unit vector $\Bf e$ represented as   
   \Begineqs   
-    \Psi &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \Bf \sigma} \Psi_{i} \\   
-         &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \Bf \sigma \right) \Psi_{i} \\
+    \Psi &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \bfsig} \Psi_{i} \\   
+         &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \bfsig \right) \Psi_{i} \\
          &=& \Bf A \Psi_{i}.   
   \Endeqs   
 The SU(2) matrix $\Bf A$ is called a \textit{quaternion} and has the   
 normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. The three components   
 $\left(a_{1}, a_{2}, a_{3}\right)$, along with the normalization condition,   
 describes the transport of spin between any two points in an accelerator. 
+
+With spinors, the matrix representation of the observable $S_{\Bf u}$
+corresponding to the measurement of the spin along the unit vector
+$\Bf u$ is
+\Begineqs
+  S_{\Bf u} &=& \frac{\hbar}{2} \, \bfsig \cdot \Bf u \\   
+            &=& \frac{\hbar}{2} 
+                   \begin{pmatrix} 
+                     u_z            & u_x - i \, u_y \\
+                     u_x + i \, u_y & u_z
+                   \end{pmatrix}
+\Endeqs
+The expectation value of this operator, $\Psi^\dagger \, \Bf S_u \,
+\Psi$, representing the spin of a particle, satisfies the equation of
+motion of a classical spin vector in the particle's instantaneous rest
+frame.
+
+For a distribution of spins, the polarization $P_s$ along the unit
+vector $\Bf u$ is defined as the absolute value of the average
+expectation value of the spin over all N particles times
+$\frac{2}{\hbar}$,
+  \Begineq
+    P_s = \frac{2}{\hbar} \frac{1}{N} \sum_{j=1}^{N} \Psi_j^\dagger S_{\Bf u} \Psi_j
+  \Endeq  
 
 %-----------------------------------------------------------------   
 \section{Coherent Synchrotron Radiation}
