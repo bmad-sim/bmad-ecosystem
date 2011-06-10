@@ -1618,7 +1618,7 @@ n_diff = 0
 pol = beam_init%spin%polarization 
 
 do i = 1, size(bunch%particle)
-  ! Create spin up if crating one will get us nearer to the desired polarization.
+  ! Create spin up if creating one will get us nearer to the desired polarization.
   if (abs(n_diff + 1 - pol * i) < abs(n_diff - 1 - pol * i)) then
     polar%theta = beam_init%spin%theta
     polar%phi = beam_init%spin%phi
