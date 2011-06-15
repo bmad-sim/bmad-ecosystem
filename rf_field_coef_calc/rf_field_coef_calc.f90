@@ -291,6 +291,7 @@ enddo
 
 !--------------------------------------------------------------------
 ! Write coefs
+! Assume just one m = 0 mode for now.
 
 open (1, file = 'rf_field_coef.dat')
 
@@ -322,25 +323,7 @@ do m = -m_max, m_max
   do i = 1, (n - 1) / 10
     write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, i*10)
   enddo
-
-  if (m == 0) then
-    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, n-1), real(md%term(n)%e), ')}'
-    cycle  ! Assume accelerating mode for now
-  else
-    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, n-1), real(md%term(n)%e), '),'
-  endif
-
-  write (1, '(4x, a)') 'b_re = ('
-  do i = 1, (n - 1) / 10
-    write (1, '(6x, 10(es12.4, a))') (real(md%term(j)%b), ',', j = (i-1)*10+1, i*10)
-  enddo
-  write (1, '(6x, 10(es12.4, a))') (real(md%term(j)%b), ',', j = (i-1)*10+1, n-1), real(md%term(n)%b), '),'
-
-  write (1, '(4x, a)') 'b_im = ('
-  do i = 1, (n - 1) / 10
-    write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%b), ',', j = (i-1)*10+1, i*10)
-  enddo
-  write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%b), ',', j = (i-1)*10+1, n-1), real(md%term(n)%b), ')}'
+  write (1, '(6x, 10(es12.4, a))') (aimag(md%term(j)%e), ',', j = (i-1)*10+1, n-1), aimag(md%term(n)%e), ')}}'
 
 enddo
 
@@ -355,14 +338,14 @@ Ephi_fft = 0
 
 open (1, file = 'check30_fft', recl = 200)
 
-do i = 1, n2_z / 4
-  z_here = 4 * (i-1) * dz
+do i = 1, n2_z
+  z_here = (i-1) * dz
   E_here = e_field_calc (radius, 0.0_rp, z_here, mode, significant_mode)
   Ez_fft(i)   = E_here%z
   Erho_fft(i) = E_here%rho
   Ephi_fft(i) = E_here%phi
 
-  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), real(E_dat(1,i)%z), aimag(Ez_fft(i)), aimag(E_dat(1,i)%z), &
+  write (1, '(f7.4, 6(2es13.3, 2x), i4)') z_here, real(Ez_fft(i)), real(E_dat(1,i)%z), aimag(Ez_fft(i)), aimag(E_dat(1,i)%z), &
                          real(Erho_fft(i)), real(E_dat(1,i)%rho), aimag(Erho_fft(i)), aimag(E_dat(1,i)%rho), &
                          real(Ephi_fft(i)), real(E_dat(1,i)%phi), aimag(Ephi_fft(i)), aimag(E_dat(1,i)%phi), i
 enddo
@@ -406,7 +389,7 @@ do i = 1, n2_z
     read (2, *, iostat = ios) e_mag, e_phase, e_re, e_im, b_mag, b_phase, b_re, b_im, rdummy4, x, y, z 
   endif
   z_here = (i-1) * dz
-  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
+  write (1, '(f7.4, 6(2es13.3, 2x), i4)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
                          real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
   ez_dat_rms = ez_dat_rms + e_re(3)**2
@@ -455,7 +438,7 @@ do i = 1, n2_z
     read (2, *, iostat = ios) e_mag, e_phase, e_re, e_im, b_mag, b_phase, b_re, b_im, rdummy4, x, y, z 
   endif
   z_here = (i-1) * dz
-  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
+  write (1, '(f7.4, 6(2es13.3, 2x), i4)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
                          real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
 enddo
@@ -497,7 +480,7 @@ do i = 1, n2_z
     read (2, *, iostat = ios) e_mag, e_phase, e_re, e_im, b_mag, b_phase, b_re, b_im, rdummy4, x, y, z 
   endif
   z_here = (i-1) * dz
-  write (1, '(f7.4, 6(2es13.3, 2x), i3)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
+  write (1, '(f7.4, 6(2es13.3, 2x), i4)') z_here, real(Ez_fft(i)), e_re(3), aimag(Ez_fft(i)), e_im(3), &
                          real(Erho_fft(i)), e_re(2), aimag(Erho_fft(i)), e_im(2), &
                          real(Ephi_fft(i)), -e_re(1), aimag(Ephi_fft(i)), -e_im(1), i
 enddo
