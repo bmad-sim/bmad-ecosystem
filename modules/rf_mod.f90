@@ -2,6 +2,12 @@ module rf_mod
 
 use runge_kutta_mod
 
+type (rf_field_mode_struct), pointer, private :: mode1
+type (lat_param_struct), pointer, private :: param_com
+type (ele_struct), pointer, private :: ele_com
+
+integer, private :: n_loop
+
 contains
 
 !--------------------------------------------------------------------------------------------
@@ -49,20 +55,21 @@ use nr, only: zbrent
 implicit none
 
 type (ele_struct), target :: ele
-type (rf_field_mode_struct), pointer :: mode1
-type (lat_param_struct) param
+type (lat_param_struct), target :: param
 
 real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, design_dE
 real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c
 real(rp) value_saved(n_attrib_maxx)
 
-integer i, n_loop, tracking_method_saved
+integer i, tracking_method_saved
 
 logical step_up_seen
 
 ! Init
 
 mode1 => ele%rf%field%mode(1)
+ele_com => ele
+param_com => param
 
 if (.not. ele%is_on) return
 select case (ele%key)
@@ -198,25 +205,27 @@ ele%tracking_method = tracking_method_saved
 !print '(i4, f12.0, 3f12.6)', n_loop, mode1%field_scale, mode1%theta_t0, &
 !                              -neg_pz_calc(mode1%theta_t0), pz_max
 
+end subroutine rf_accel_mode_adjust_phase_and_amp
+
 !----------------------------------------------------------------
-contains
 
 function neg_pz_calc (theta) result (neg_pz)
 
+implicit none
+
 type (coord_struct) start, end_orb
-real(rp) theta, neg_pz
+real(rp), intent(in) :: theta
+real(rp) neg_pz
 
 ! brent finds minima so need to flip the final energy
 
 mode1%theta_t0 = theta
-call track1 (start, ele, param, end_orb)
+call track1 (start, ele_com, param_com, end_orb)
 neg_pz = -end_orb%vec(6)
-if (param%lost) neg_pz = 1
+if (param_com%lost) neg_pz = 1
 
 n_loop = n_loop + 1
 
 end function
-
-end subroutine rf_accel_mode_adjust_phase_and_amp
 
 end module
