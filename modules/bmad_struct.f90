@@ -144,7 +144,7 @@ type rf_field_mode_struct
   integer m                   ! Mode varies as cos(m*phi - phi_0)
   real(rp) freq               ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0      ! 1/Q damping factor 
-  real(rp) :: theta_t0 = 0    ! Mode oscillates as: omega * t + theta_t0
+  real(rp) :: theta_t0 = 0    ! Mode oscillates as: twopi * (f * t + theta_t0)
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
   real(rp) dz                 ! Distance between sampled field points.

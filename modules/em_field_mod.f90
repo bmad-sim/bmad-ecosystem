@@ -151,7 +151,7 @@ end subroutine save_a_step
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct: Lattice parameters.
 !   s_rel  -- Real(rp): Longitudinal position relative to the start of the element.
-!   t_rel  -- Real(rp): Time relative to the reference particle.
+!   t_rel  -- Real(rp): Time relative to the time the reference particle passed the element entrance end.
 !   orbit  -- Coord_struct: Transverse coordinates.
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
 !   local_ref_frame 
@@ -246,160 +246,161 @@ select case (ele%key)
 
 case(rfcavity$, lcavity$)
 
-  if (.not. associated(ele%rf%field)) then
-    print *, 'ERROR IN EM_FIELD_CALC: RF FIELD NOT DEFINED FOR: ' // ele%name
-    call err_exit
-  endif
+  if (associated(ele%rf%field)) then
 
-  E_rho = 0; E_phi = 0; E_z = 0
-  B_rho = 0; B_phi = 0; B_z = 0
+    E_rho = 0; E_phi = 0; E_z = 0
+    B_rho = 0; B_phi = 0; B_z = 0
 
-  radius = sqrt(x**2 + y**2)
-  phi = atan2(y, x)
+    radius = sqrt(x**2 + y**2)
+    phi = atan2(y, x)
 
-  ! 
-  if (ele%key == rfcavity$) then
-    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
-  else
-    t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
-  endif
-  t_ref = t_ref / ele%rf%field%mode(1)%freq
-
-  do i = 1, size(ele%rf%field%mode)
-    mode => ele%rf%field%mode(i)
-    m = mode%m
-
-    if (m /= 0) then
-      print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M /= 0 NOT YET IMPLEMENTED FOR: ' // ele%name
-      call err_exit
+    ! 
+    if (ele%key == rfcavity$) then
+      t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
+    else
+      t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
     endif
+    t_ref = t_ref / ele%rf%field%mode(1)%freq
 
-    if (any(mode%term%b /= 0)) then
-      print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M == 0 NON-ACCELERATING NOT YET IMPLEMENTED FOR: ' // ele%name
-      call err_exit
-    endif
+    do i = 1, size(ele%rf%field%mode)
+      mode => ele%rf%field%mode(i)
+      m = mode%m
 
-    k_t = twopi * mode%freq / c_light
-
-    Er = 0; Ep = 0; Ez = 0
-    Br = 0; Bp = 0; Bz = 0
-
-    do n = 1, size(mode%term)
-
-      k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
-      if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
-
-      expi = cmplx(cos(k_zn * s_rel), sin(k_zn * s_rel))
-
-      kappa2_n = k_zn**2 - k_t**2
-      kappa_n = sqrt(abs(kappa2_n))
-      kap_rho = kappa_n * radius
-      if (kappa2_n < 0) then
-        kappa_n = -i_imaginary * kappa_n
-        kap_rho = -kap_rho
+      if (m /= 0) then
+        print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M /= 0 NOT YET IMPLEMENTED FOR: ' // ele%name
+        call err_exit
       endif
 
-      if (m == 0) then
-        Im0     = I_bessel(0, kap_rho)
-        Im_plus = I_bessel(1, kap_rho) / kappa_n
+      if (any(mode%term%b /= 0)) then
+        print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M == 0 NON-ACCELERATING NOT YET IMPLEMENTED FOR: ' // ele%name
+        call err_exit
+      endif
 
-        Er = Er - mode%term(n)%e * Im_plus * expi * I_imaginary * k_zn
-        Ep = Ep + mode%term(n)%b * Im_plus * expi
-        Ez = Ez + mode%term(n)%e * Im0     * expi
+      k_t = twopi * mode%freq / c_light
 
-        Br = Br - mode%term(n)%b * Im_plus * expi * I_imaginary * k_zn
-        Bp = Bp + mode%term(n)%e * Im_plus * expi * k_t**2
-        Bz = Bz + mode%term(n)%b * Im0     * expi
+      Er = 0; Ep = 0; Ez = 0
+      Br = 0; Bp = 0; Bz = 0
 
-      else
-        cm = cos(m * phi - mode%phi_0)
-        sm = sin(m * phi - mode%phi_0)
-        Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
-        Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
+      do n = 1, size(mode%term)
 
-        Im_plus2 = I_bessel(m+2, kap_rho) / kappa_n**(m+2)
+        k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
+        if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
 
-        Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im / radius
-        Im0      = radius * Im_norm       
+        expi = cmplx(cos(k_zn * s_rel), sin(k_zn * s_rel))
 
-        dEr = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * Im_norm) * cm * expi
-        dEp = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
+        kappa2_n = k_zn**2 - k_t**2
+        kappa_n = sqrt(abs(kappa2_n))
+        kap_rho = kappa_n * radius
+        if (kappa2_n < 0) then
+          kappa_n = -i_imaginary * kappa_n
+          kap_rho = -kap_rho
+        endif
 
-        Er = Er + dEr
-        Ep = Ep + dEp * sm
-        Ez = Ez + mode%term(n)%e * Im0 * cm * expi
- 
-        Br = Br - m * mode%term(n)%e * Im_norm * sm * expi - i_imaginary * k_zn * dEp * sm
-        Bp = Bp + i_imaginary * k_zn * dEr - &
-                      mode%term(n)%e * cm * expi * (Im_minus - m * Im_norm)
-        Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(n)%e * (Im0 - Im_plus2 * kappa_n**2) / 2 + &
-                    mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
+        if (m == 0) then
+          Im0     = I_bessel(0, kap_rho)
+          Im_plus = I_bessel(1, kap_rho) / kappa_n
 
-     endif
-      
+          Er = Er - mode%term(n)%e * Im_plus * expi * I_imaginary * k_zn
+          Ep = Ep + mode%term(n)%b * Im_plus * expi
+          Ez = Ez + mode%term(n)%e * Im0     * expi
+
+          Br = Br - mode%term(n)%b * Im_plus * expi * I_imaginary * k_zn
+          Bp = Bp + mode%term(n)%e * Im_plus * expi * k_t**2
+          Bz = Bz + mode%term(n)%b * Im0     * expi
+
+        else
+          cm = cos(m * phi - mode%phi_0)
+          sm = sin(m * phi - mode%phi_0)
+          Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
+          Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
+
+          Im_plus2 = I_bessel(m+2, kap_rho) / kappa_n**(m+2)
+
+          Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im / radius
+          Im0      = radius * Im_norm       
+
+          dEr = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * Im_norm) * cm * expi
+          dEp = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
+
+          Er = Er + dEr
+          Ep = Ep + dEp * sm
+          Ez = Ez + mode%term(n)%e * Im0 * cm * expi
+   
+          Br = Br - m * mode%term(n)%e * Im_norm * sm * expi - i_imaginary * k_zn * dEp * sm
+          Bp = Bp + i_imaginary * k_zn * dEr - &
+                        mode%term(n)%e * cm * expi * (Im_minus - m * Im_norm)
+          Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(n)%e * (Im0 - Im_plus2 * kappa_n**2) / 2 + &
+                      mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
+
+       endif
+        
+      enddo
+
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
+      E_rho = E_rho + Er * expt
+      E_phi = E_phi + Ep * expt
+      E_z   = E_z   + Ez * expt
+
+      expt = -I_imaginary * expt / (twopi * mode%freq)
+      B_rho = B_rho + Br * expt
+      B_phi = B_phi + Bp * expt
+      B_z   = B_z   + Bz * expt
+
     enddo
 
-    expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
-    E_rho = E_rho + Er * expt
-    E_phi = E_phi + Ep * expt
-    E_z   = E_z   + Ez * expt
+    field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
+    field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
 
-    expt = -I_imaginary * expt / (twopi * mode%freq)
-    B_rho = B_rho + Br * expt
-    B_phi = B_phi + Bp * expt
-    B_z   = B_z   + Bz * expt
 
-  enddo
-
-  field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
-  field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
-
-  return
-
-  ! This is taken from the gradient as calculated in
-  !       J. Rosenzweig and L. Serafini
-  !       Phys Rev E, Vol. 49, p. 1599, (1994)
-  !
-  ! Right now only works at relativistic energies
-
-  ! This is taken from track1_bmad
-  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
-                      local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
-  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
-  if (.not. ele%is_on) gradient = 0
-   
-  if (bmad_com%sr_wakes_on) then
-    if (bmad_com%grad_loss_sr_wake /= 0) then  
-      ! use grad_loss_sr_wake and ignore e_loss
-      gradient = gradient - bmad_com%grad_loss_sr_wake
-    elseif (ele%value(e_loss$) /= 0) then
-      gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / ele%value(l$)
-    endif
-  endif
-
-  dEz_dz = gradient * sign(1, charge_of(param%particle))
-
-  if (x .eq. 0.0) then
-    theta = 0.0
+  ! Else no field map
   else
-    theta = atan(y/x)   
-  endif
-  r = sqrt(x**2 + y**2)                                           
-  E_r =  - (r/2.0) * dEz_dz                                       
-  B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
-                                                                   
-                                                                   
-  field%E(1) = E_r * cos (theta)                                  
-  field%E(2) = E_r * sin (theta)
-  field%E(3) = gradient * sin (f + phase)
-  
-  phi = pi - theta
-  field%B(1) =   B_phi * cos (phi)
-  field%B(2) = - B_phi * sin (phi)
 
-  if (df_calc) then
-    print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
-    call err_exit
+    ! This is taken from the gradient as calculated in
+    !       J. Rosenzweig and L. Serafini
+    !       Phys Rev E, Vol. 49, p. 1599, (1994)
+    !
+    ! Right now only works at relativistic energies
+
+    ! This is taken from track1_bmad
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+                        local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
+    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
+    if (.not. ele%is_on) gradient = 0
+     
+    if (bmad_com%sr_wakes_on) then
+      if (bmad_com%grad_loss_sr_wake /= 0) then  
+        ! use grad_loss_sr_wake and ignore e_loss
+        gradient = gradient - bmad_com%grad_loss_sr_wake
+      elseif (ele%value(e_loss$) /= 0) then
+        gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / ele%value(l$)
+      endif
+    endif
+
+    dEz_dz = gradient * sign(1, charge_of(param%particle))
+
+    if (x .eq. 0.0) then
+      theta = 0.0
+    else
+      theta = atan(y/x)   
+    endif
+    r = sqrt(x**2 + y**2)                                           
+    E_r =  - (r/2.0) * dEz_dz                                       
+    B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
+                                                                     
+                                                                     
+    field%E(1) = E_r * cos (theta)                                  
+    field%E(2) = E_r * sin (theta)
+    field%E(3) = gradient * sin (f + phase)
+    
+    phi = pi - theta
+    field%B(1) =   B_phi * cos (phi)
+    field%B(2) = - B_phi * sin (phi)
+
+    if (df_calc) then
+      print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
+      call err_exit
+    endif
+
   endif
 
 !------------------------------------------

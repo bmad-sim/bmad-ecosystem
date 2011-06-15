@@ -26,8 +26,8 @@
 
 subroutine compute_reference_energy (lat, compute)
 
-use bmad_struct
 use lat_ele_loc_mod
+use rf_mod
 
 implicit none
 
@@ -107,6 +107,10 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! %old_value is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
     ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
+
+    ! If there is an RF field map then scale the field to match.
+
+    if (associated(ele%rf%field)) call rf_accel_mode_adjust_phase_and_amp (ele, lat%param)
 
   enddo
 enddo
