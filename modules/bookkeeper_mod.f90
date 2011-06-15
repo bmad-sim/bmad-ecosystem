@@ -105,15 +105,15 @@ end subroutine lattice_bookkeeper
 !   use bmad
 !
 ! Input:
-!   lat       -- lat_struct: lattice to be used
-!   ix_ele    -- Ele_struct, optional: Element whose attribute values 
-!                  have been changed. If not present bookkeeping will be done 
-!                  for all elements.
+!   lat    -- lat_struct: lattice to be used
+!   ele    -- Ele_struct, optional: Element whose attribute values 
+!               have been changed. If not present bookkeeping will be done 
+!               for all elements.
 !   super_and_multipass_only 
-!             -- Logical, optional: If True then only do bookkeeping for 
-!                  superposition and multipass elements only. Default is False. 
-!                  This argument is used by lattice_bookkeeper and should not
-!                  to set unless you know what you are doing.
+!          -- Logical, optional: If True then only do bookkeeping for 
+!               superposition and multipass elements only. Default is False. 
+!               This argument is used by lattice_bookkeeper and should not
+!               to set unless you know what you are doing.
 !-
 
 recursive subroutine control_bookkeeper (lat, ele, super_and_multipass_only)
@@ -1110,6 +1110,13 @@ do j = 1, slave%n_lord
     call err_exit
   endif
 
+  if (associated(lord%rf%field)) then
+    call out_io (s_abort$, r_name, &
+            'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
+            'SUPER_LORD: ' // lord%name)
+    call err_exit
+  endif
+
   ! Transfer wall3d info
 
   if (associated(lord%wall3d%section)) then
@@ -1580,7 +1587,7 @@ end subroutine create_element_slice
 !+
 ! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 !
-! Routine to transfer the %value, %wig_term, and %rf%wake%lr information from a 
+! Routine to transfer the %value, %wig_term, and %rf information from a 
 ! superposition lord to a slave when the slave has only one lord.
 !
 ! Note: attribute_bookkeeper needs to be called after calling this routine.
@@ -1691,6 +1698,26 @@ if (slave%key == wiggler$) then
   else
     if (associated (slave%wig_term)) deallocate (slave%wig_term)
   endif
+
+endif
+
+! If has rf modes then adjust the time.
+
+if (associated(lord%rf%field)) then
+  if (.not. associated (slave%rf%field)) then
+    allocate (slave%rf%field)
+    allocate (slave%rf%field%mode(size(lord%rf%field%mode)))
+    do i = 1, size(lord%rf%field%mode)
+      allocate (slave%rf%field%mode(i)%term(size(lord%rf%field%mode(i)%term)))
+    enddo
+    slave%rf%field = lord%rf%field
+  endif
+
+  do i = 1, size(slave%rf%field%mode)
+    slave%rf%field%mode(i)%field_scale = lord%rf%field%mode(i)%field_scale
+    slave%rf%field%mode(i)%theta_t0    = lord%rf%field%mode(i)%theta_t0 + &
+                            lord%rf%field%mode(i)%freq * (slave%ref_time - lord%ref_time)
+  enddo
 
 endif
 

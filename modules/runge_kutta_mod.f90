@@ -141,19 +141,19 @@ do n_step = 1, max_step
     return
   end if
 
-  if (abs(h_next) < h_min) then
-    bmad_status%ok = .false.
-    if (bmad_status%type_out) print *, 'ERROR IN ODEINT_BMAD: STEPSIZE SMALLER THAN MINIMUM.' 
-    if (bmad_status%exit_on_error) call err_exit
-  endif
+  ! Check for step size smaller than minimum.
+ 
+  if (abs(h_next) < h_min) exit
 
   h = h_next
 
 end do
 
+! Here if step size too small or too many steps
+
+param%lost = .true.
+param%plane_lost_at = z_plane$
 bmad_status%ok = .false.
-if (bmad_status%type_out) print *, 'ERROR IN ODEINT_BMAD: TOO MANY STEPS'
-if (bmad_status%exit_on_error) call err_exit
 
 end subroutine odeint_bmad
 
@@ -197,9 +197,8 @@ do
 
   if (s_new == s) then
     bmad_status%ok = .false.
-    if (bmad_status%type_out) print *, 'ERROR IN RKQS_BMAD: STEPSIZE UNDERFLOW'
-    if (bmad_status%exit_on_error) call err_exit
-    return
+    print *, 'ERROR IN RKQS_BMAD: STEPSIZE UNDERFLOW'
+    call err_exit
   endif
 
 end do
