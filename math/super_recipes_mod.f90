@@ -379,4 +379,128 @@ err = .false.
 
 end subroutine super_ludcmp
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function super_brent (ax, bx, cx, func, rel_tol, abs_tol, xmin)
+!
+! This routine is essentially brent from Numerical Recipes with the added feature
+! there are two tollerances: rel_tol and abs_tol.
+!
+! Modules needed:
+!   use super_recipes_mod
+!
+! Input:
+!
+!
+! Output
+!
+!
+!
+!-
+
+function super_brent(ax, bx, cx, func, rel_tol, abs_tol, xmin) result (f_max)
+
+use nrtype; use nrutil, only : nrerror
+
+implicit none
+
+real(dp), intent(in) :: ax,bx,cx,rel_tol, abs_tol
+real(dp), intent(out) :: xmin
+real(dp) :: f_max
+interface
+function func(x)
+use nrtype
+implicit none
+real(dp), intent(in) :: x
+real(dp) :: func
+end function func
+end interface
+integer(i4b), parameter :: itmax=100
+real(dp), parameter :: cgold=0.3819660_dp
+integer(i4b) :: iter
+real(dp) :: a,b,d,e,etemp,fu,fv,fw,fx,p,q,r,tol1,tol2,u,v,w,x,xm
+a=min(ax,cx)
+b=max(ax,cx)
+v=bx
+w=v
+x=v
+e=0.0
+fx=func(x)
+fv=fx
+fw=fx
+do iter=1,ITMAX
+xm=0.5_dp*(a+b)
+tol1=rel_tol*abs(x)+abs_tol
+tol2=2.0_dp*tol1
+if (abs(x-xm) <= (tol2-0.5_dp*(b-a))) then
+xmin=x
+f_max=fx
+RETURN
+end if
+if (abs(e) > tol1) then
+r=(x-w)*(fx-fv)
+q=(x-v)*(fx-fw)
+p=(x-v)*q-(x-w)*r
+q=2.0_dp*(q-r)
+if (q > 0.0) p=-p
+q=abs(q)
+etemp=e
+e=d
+if (abs(p) >= abs(0.5_dp*q*etemp) .or. &
+p <= q*(a-x) .or. p >= q*(b-x)) then
+e=merge(a-x,b-x, x >= xm )
+d=CGOLD*e
+else
+d=p/q
+u=x+d
+if (u-a < tol2 .or. b-u < tol2) d=sign(tol1,xm-x)
+end if
+else
+e=merge(a-x,b-x, x >= xm )
+d=cgold*e
+end if
+u=merge(x+d,x+sign(tol1,d), abs(d) >= tol1 )
+fu=func(u)
+if (fu <= fx) then
+if (u >= x) then
+a=x
+else
+b=x
+end if
+call shft(v,w,x,u)
+call shft(fv,fw,fx,fu)
+else
+if (u < x) then
+a=u
+else
+b=u
+end if
+if (fu <= fw .or. w == x) then
+v=w
+fv=fw
+w=u
+fw=fu
+else if (fu <= fv .or. v == x .or. v == w) then
+v=u
+fv=fu
+end if
+end if
+end do
+call nrerror('brent: exceed maximum iterations')
+
+!-------------------------------------------------
+contains
+
+subroutine shft(a,b,c,d)
+real(dp), intent(out) :: a
+real(dp), intent(inout) :: b,c
+real(dp), intent(in) :: d
+a=b
+b=c
+c=d
+end subroutine shft
+end function super_brent
+
 end module
