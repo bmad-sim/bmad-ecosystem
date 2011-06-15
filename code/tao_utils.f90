@@ -2942,6 +2942,7 @@ s%u(:)%picked_uni = .false.
 
 do i = 1, size(s%plot_region)
   if (.not. s%plot_region(i)%visible) cycle
+  if (.not. allocated(s%plot_region(i)%plot%graph)) cycle
 
   do j = 1, size(s%plot_region(i)%plot%graph)
     graph => s%plot_region(i)%plot%graph(j)
