@@ -1396,7 +1396,7 @@ form
   \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \theta_{0j})}
   \label{eseei}
 \Endeq
-where $M$ is the number of modes. Each mode satisfies the vector Helmohltz
+where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
 equation
 \Begineq
   \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
@@ -1405,7 +1405,7 @@ equation
 where $k_{tj} = \omega_j/c$ with $\omega_j$ being the mode frequency.
 
 For a given mode, the electric field can be characterized by the values on 
-a cyclindrical surface of some radius $R$. The field will be of the form
+a cylindrical surface of some radius $R$. The field will be of the form
 \begin{align}
   E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, (\phi - \phi_0)) \CRNO
   E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, (\phi - \phi_0)) \\
@@ -1497,7 +1497,7 @@ with
     \right]
 \end{align}
 
-The above mode decomposition was done in the gauge where the scaler
+The above mode decomposition was done in the gauge where the scalar
 potential $\psi$ is zero. The electric and magnetic fields are thus
 related to the vector potential $\bfA$ via
 \Begineq
@@ -1510,7 +1510,13 @@ electric field via
   \label{aiew}
 \Endeq
  
-Symplectic tracking through the RF field is discussed in Section~\sref{s:symp.track}.
+Symplectic tracking through the RF field is discussed in
+Section~\sref{s:symp.track}.  For the fundamental accelerating mode,
+The vector potential can be analytically integrated using the identity
+\Begineq
+  \int dx \,\frac{x \, I_1 (a \, \sqrt{x^2+y^2})}{\sqrt{x^2+y^2}}  = 
+  \frac{1}{a} \, I_0 (a \, \sqrt{x^2+y^2})
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Wake fields}
@@ -1757,7 +1763,7 @@ low-emittance storage rings, Touschek scattering can be the dominant
 mechanism for particle loss.  In the case of linear accelerators,
 these losses generate radiation in the accelerator tunnel.  When the
 scattered particles collide with the beam chamber, x-rays are produced
-which can damage equipment and impose a biohazzard.  Studies of
+which can damage equipment and impose a biohazard.  Studies of
 Touschek scattering typically look at beam lifetime and locations
 where scattering occurs and where particles are lost.
 
@@ -1956,7 +1962,7 @@ of the storage ring. Finally the emittances are given by
       \, \left( \gamma_0^2 \, I_{5b} + \frac{13}{55} \, I_{6b} \right) \CRNO
   \Endeqs
 The $I_{6b}$ term come from the finite vertical opening angle of the
-radiation\cite{b:tol}. Normally this term is very small compaired to
+radiation\cite{b:tol}. Normally this term is very small compared to
 the emittance due to coupling or vertical kicks due to magnet misalignment.
 
 For a non-circular machine, radiation integrals are still of interest
@@ -2005,7 +2011,7 @@ Where $\gamma_f$ is the final gamma.
 \textit{\large [Spin dynamics developed by Jeff Smith]}
 
 The classical spin vector $\Bf S$ is described in the   
-local referece frame (\sref{s:ref}) by a
+local reference frame (\sref{s:ref}) by a
 modified Thomas-Bargmann-Michel-Telegdi (T-BMT) equation\cite{b:spin}
 \Begineq
   \frac{\mathrm{d}}{\mathrm{d}s} \Bf S = 
