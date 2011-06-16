@@ -1680,11 +1680,10 @@ slave%tracking_method  = lord%tracking_method
 ! If a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.
 ! This is for anything which does not try to make a homogeneous approximation.
-! l_start is the starting point with respect to the original wiggler.
+! ds_slave_offset is the starting point with respect to the original wiggler.
 
 if (slave%key == wiggler$) then
   slave%value(n_pole$) = lord%value(n_pole$) * coef
-  slave%value(l_start$) = offset
 
   if (associated(lord%wig_term)) then
     if (.not. associated (slave%wig_term) .or. size(slave%wig_term) /= size(lord%wig_term)) then
@@ -1693,7 +1692,7 @@ if (slave%key == wiggler$) then
     endif
     do i = 1, size(lord%wig_term)
       slave%wig_term(i) = lord%wig_term(i)
-      slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + lord%wig_term(i)%kz * slave%value(l_start$)
+      slave%wig_term(i)%phi_z = lord%wig_term(i)%phi_z + lord%wig_term(i)%kz * offset
     enddo
   else
     if (associated (slave%wig_term)) deallocate (slave%wig_term)
@@ -1721,14 +1720,14 @@ if (associated(lord%rf%field)) then
 
 endif
 
-! If a custom element: 
+! For custom, wiggler, rfcavity, and lcavity elements:
 ! Must keep track of where we are in terms of the unsplit element.
 ! See wiggler above for more details.
 
-if (slave%key == custom$) then
-  slave%value(l_original$) = lord%value(l$)
-  slave%value(l_start$)    = offset
-endif
+select case (slave%key)
+case (custom$, wiggler$, rfcavity$, lcavity$)
+  slave%value(ds_slave_offset$) = offset
+end select
 
 ! If an sbend:
 !     1) renormalize the angles

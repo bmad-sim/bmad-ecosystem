@@ -180,7 +180,7 @@ real(rp) :: x, y, xx, yy, cm, sm, t_rel, s_rel, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
-real(rp) k_t, k_zn, kappa2_n, kap_rho
+real(rp) k_t, k_zn, kappa2_n, kap_rho, s_pos
 real(rp) radius, phi, t_ref
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
@@ -254,6 +254,8 @@ case(rfcavity$, lcavity$)
     radius = sqrt(x**2 + y**2)
     phi = atan2(y, x)
 
+    s_pos = s_rel + ele%value(ds_slave_offset$)
+
     ! 
     if (ele%key == rfcavity$) then
       t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
@@ -286,7 +288,7 @@ case(rfcavity$, lcavity$)
         k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
         if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
 
-        expi = cmplx(cos(k_zn * s_rel), sin(k_zn * s_rel))
+        expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
 
         kappa2_n = k_zn**2 - k_t**2
         kappa_n = sqrt(abs(kappa2_n))

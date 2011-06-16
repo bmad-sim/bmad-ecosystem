@@ -1162,7 +1162,6 @@ case default   ! normal attribute
     if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
     if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
     if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
-    if (ele%key == custom$ .and. ix_attrib == l$) ele%value(l_original$) = value
 
     select case (ix_attrib)
 

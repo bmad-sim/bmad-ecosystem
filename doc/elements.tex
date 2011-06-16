@@ -1420,9 +1420,17 @@ addition, couplers (\sref{s:rf.coupler}) and HOM wakes
 \index{RF field map}
 \index{runge_kutta!and field maps}\index{adaptive_boris!and field maps}
 \index{boris!and field maps}\index{symp_lie_bmad!and field maps}
+\index{symp_lie_bmad}
 If a field map is specified (\sref{s:rf.fields}), tracking using an
 integrator is possible. A field map is only used for \vn{runge_kutta},
-\vn{adaptive_boris}, \vn{boris} and \vn{symp_lie_bmad} tracking (\sref{s:tkm}).
+\vn{adaptive_boris}, \vn{boris} and \vn{symp_lie_bmad} tracking
+(\sref{s:tkm}).  For \vn{symp_lie_bmad} tracking, only the
+accelerating mode(s) are used.  This is done for a practical reason:
+Only the fundamental mode has an analytical formula for the symplectic
+tracking. In the future, the other modes could be used with
+\vn{symp_lie_bmad} tracking using a field expansion about the
+centerline.
+
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -1913,6 +1921,10 @@ be modeled. In addition, if a field map is specified
 If a field map is specified (\sref{s:rf.fields}), tracking using an
 integrator is possible. A field map is only used for \vn{runge_kutta},
 \vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking (\sref{s:tkm}).
+Only the fundamental mode has an analytical formula for the symplectic
+tracking. In the future, the other modes could be used with
+\vn{symp_lie_bmad} tracking using a field expansion about the
+centerline.
 
 Example:
 \begin{example}
