@@ -260,28 +260,43 @@ reflection.}  \label{f:mirror}
 
 \index{crystal}\index{mirror}\index{tilt}
 A \vn{crystal} element (\sref{s:mirror}) diffracts photons and a
-\vn{mirror} element (\sref{s:mirror}) reflects them.  In both coses,
-the reference orbit for such elements are modeled as zero length bends
-with $\bftilde L = (0, 0, 0)$.
-The total bending angle for a \vn{crystal} is 
+\vn{mirror} element (\sref{s:mirror}) reflects them. With a crystal
+setup for Bragg diffraction and for a mirror, the reference orbit is
+modeled as a zero length bend with $\bftilde L = (0, 0, 0)$.  The
+total bending angle is
 \begin{align}
   \alpha_b &= \mbox{graze_angle_in} + \mbox{graze_angle_out} &\mbox{! Crystal} \CRNO
   \alpha_b &= 2 \, \mbox{graze_angle}                        &\mbox{! Mirror}
   \label{agg}
 \end{align}
-The orientation
-of the exit coordinates (the local coordinates after the reflection)
-are only affected by the element's tilt and graze angle parameters and
-is independent of all other parameters such as the radius of
-curvature of the surface, etc. The local $z$-axis of the
+The orientation of the exit coordinates (the local coordinates after
+the reflection) are only affected by the element's tilt and graze
+angle parameters and is independent of all other parameters such as
+the radius of curvature of the surface, etc. The local $z$-axis of the
 entrance coordinates along with the $z$-axis of the exit coordinates
-form a plane which is called the element's \vn{bend plane}.
+form a plane which is called the element's \vn{bend
+plane}. Calculation of the graze angles is given in
+Section~\ref{s:crystal.ref}.
 
 An example is shown in Fig.~\ref{f:mirror}. This example is
 appropriate for a tilt angle of $\theta_t = 0$ (the rotation axis is
 here the $y$-axis). Since the element is modeled to be of zero length,
 the origin points (marked $\cal O$ in the figure) of the entrance and exit
 local coordinates are the same.
+
+For a crystal setup for Laue diffraction the entrance coordinates are
+offset from the exit coordinates due to the thickness of the crystal
+as shown in Fig.~\ref{f:laue.ref}. In this case \vn{graze_angle_in}
+and \vn{graze_angle_out} are defined with respect to the surface
+normal so that Eq.~\ref{agg} will be true for both Bragg and Laue
+diffraction. With Laue diffraction, $\Bf S$ is, like for Bragg
+diffraction, calculated from Eqs.~\ref{r00ls} and \ref{lrca1}. The
+$\Bf L$ vector is determined by the orientation of the $\Bf H$ vector
+and the thickness of the crystal as discussed in
+Section~\ref{s:crystal.ref}. Without any \vn{tilt}, the $x$-$z$ plane
+of the incoming reference coordinates will be parallel to the $x$-$z$
+plane of the outgoing coordinates. However, if the the \vn{psi_angle}
+(\sref{s:crystal}) of the crystal is non-zero, these planes will not coincide.
 
 %-----------------------------------------------------------------------------
 \subsection{Patch Element}

@@ -58,7 +58,7 @@ type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
 
 real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, design_dE
-real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c
+real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c, theta_tol, pz_tol, theta_max_old
 real(rp) value_saved(n_attrib_maxx)
 
 integer i, tracking_method_saved
@@ -95,38 +95,46 @@ ele%value(phi0$) = 0
 ele%value(dphi0$) = 0
 
 tracking_method_saved = ele%tracking_method
-ele%tracking_method = runge_kutta$
+if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
 
-theta_max = mode1%theta_t0
+theta_max = mode1%theta_t0   ! Init guess
 if (ele%key == rfcavity$) theta_max = theta_max - 0.25
-dtheta = 0.1
+
+theta_max_old = 100 ! Number far from unity
+dtheta = 0.05
+theta_tol = 1d-5
+pz_tol = 1d-7
 
 ! See if %theta_t0 and %field_scale are already set correctly
 
-pz_plus  = -neg_pz_calc(theta_max + 0.001)
-pz_minus = -neg_pz_calc(theta_max - 0.001)
+pz_plus  = -neg_pz_calc(theta_max + 2 * theta_tol)
+pz_minus = -neg_pz_calc(theta_max - 2 * theta_tol)
 pz_max = -neg_pz_calc(theta_max)
 
 call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
 f_correct = design_dE / (e_tot - e_tot_start)
 
-if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 1e-5) return
+if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 2 * pz_tol) return
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum accelleration. 
 
-do
+coarse_loop: do
 
   ! Find approximately the phase for maximum acceleration.
   ! First go in +theta direction until pz decreases.
 
   step_up_seen = .false.
-  do
+  do i = 1, 10
     theta = theta_max + dtheta
     pz = -neg_pz_calc(theta)
     if (pz < pz_max) exit
     pz_max = pz
     theta_max = theta
     step_up_seen = .true.
+    if (i == 10) then  ! field too strong and always loosing particles
+      mode1%field_scale = mode1%field_scale / 10
+      cycle coarse_loop
+    endif
   enddo
 
   pz_plus = pz
@@ -156,32 +164,22 @@ do
 
   ! Now scale %field_scale
   ! f_correct = dE(design) / dE (from tracking)
+  ! Can overshoot so if f_correct is too large then scale back by a factor of 10
 
   call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
   f_correct = design_dE / (e_tot - e_tot_start)
+  if (f_correct > 1000) f_correct = max(1000.0_rp, f_correct / 10)
   mode1%field_scale = mode1%field_scale * f_correct
 
-  if (abs(f_correct - 1) < 0.01) exit
+  if (abs(f_correct - 1) < pz_tol .and. abs(theta_max-theta_max_old) < theta_tol) exit
+  theta_max_old = theta_max
 
-  dtheta = 0.1
-  if (abs(f_correct - 1) < 0.1) dtheta = 0.05
+  dtheta = 0.05
+  if (abs(f_correct - 1) < 0.1) dtheta = max(theta_tol, 0.1*sqrt(2*abs(f_correct - 1))/twopi)
 
   pz_max = -neg_pz_calc(theta_max)
 
-enddo
-
-! Now do a fine adjustment
-
-!print '(i4, f12.0, 3f12.6)', n_loop, mode1%field_scale, mode1%theta_t0, &
-!                              -neg_pz_calc(mode1%theta_t0), pz_max
-
-pz_max = -super_brent (theta_max-dtheta, theta_max, theta_max+dtheta, neg_pz_calc, &
-                       0.0_rp, 0.0001_rp, theta_max)
-mode1%theta_t0 = modulo2 (theta_max, 0.5_rp)
-
-call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-f_correct = design_dE / (e_tot - e_tot_start)
-mode1%field_scale = mode1%field_scale * f_correct
+enddo coarse_loop
 
 ! For an rfcavity now find the zero crossing with negative slope which is
 ! about 90deg away from max acceleration.
@@ -213,14 +211,14 @@ function neg_pz_calc (theta) result (neg_pz)
 
 implicit none
 
-type (coord_struct) start, end_orb
+type (coord_struct) start_orb, end_orb
 real(rp), intent(in) :: theta
 real(rp) neg_pz
 
 ! brent finds minima so need to flip the final energy
 
 mode1%theta_t0 = theta
-call track1 (start, ele_com, param_com, end_orb)
+call track1 (start_orb, ele_com, param_com, end_orb)
 neg_pz = -end_orb%vec(6)
 if (param_com%lost) neg_pz = 1
 

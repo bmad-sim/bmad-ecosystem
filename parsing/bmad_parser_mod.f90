@@ -1065,31 +1065,23 @@ case ('IS_ON')
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('MATCH_END')
-  call get_logical ('MATCH_END', logic)
-  if (logic) then; ele%value(match_end$) = 1
-  else;            ele%value(match_end$) = 0
-  endif
+  call get_logical_real ('MATCH_END', ele%value(match_end_orbit$))
+  if (ios /= 0 .or. ix_word == 0) return
+
+case ('FOLLOW_DIFFRACTED_BEAM')
+  call get_logical_real ('FOLLOW_DIFFRACTED_BEAM', ele%value(follow_diffracted_beam$))
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('PATCH_END')
-  call get_logical ('PATCH_END', logic)
-  if (logic) then; ele%value(patch_end$) = 1
-  else;            ele%value(patch_end$) = 0
-  endif
+  call get_logical_real ('PATCH_END', ele%value(patch_end$))
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('TRANSLATE_AFTER')
-  call get_logical ('TRANSLATE_AFTER', logic)
-  if (logic) then; ele%value(translate_after$) = 1
-  else;            ele%value(translate_after$) = 0
-  endif
+  call get_logical_real ('TRANSLATE_AFTER', ele%value(translate_after$))
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('MATCH_END_ORBIT')
-  call get_logical ('MATCH_END_ORBIT', logic)
-  if (logic) then; ele%value(match_end_orbit$) = 1
-  else;            ele%value(match_end_orbit$) = 0
-  endif
+  call get_logical_real ('MATCH_END_ORBIT', ele%value(match_end_orbit$))
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('APERTURE_LIMIT_ON') 
@@ -1258,6 +1250,24 @@ end subroutine get_logical
 !--------------------------------------------------------
 ! contains
 
+subroutine get_logical_real (name, logic_real)
+
+character(*) name
+real(rp) logic_real
+logical this_logical
+
+!
+
+call get_logical (name, this_logical)
+if (this_logical) then; logic_real = 1
+else;                   logic_real = 0
+endif
+
+end subroutine get_logical_real
+
+!--------------------------------------------------------
+! contains
+
 subroutine b_grad_warning (ele)
 
 type (ele_struct) ele
@@ -1290,7 +1300,7 @@ enddo
 bp_com%write_digested = .false.
 bp_com%write_digested2 = .false.
 
-end subroutine
+end subroutine b_grad_warning
 
 end subroutine parser_set_attribute 
 
@@ -2357,7 +2367,7 @@ if (size(ptr) > 1) call parser_warning (&
 
 return
 
-end subroutine
+end subroutine word_to_value
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -2770,7 +2780,7 @@ if (z_max == real_garbage$) call parser_warning ( &
     'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
-end subroutine
+end subroutine read_sr_wake
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -2819,7 +2829,7 @@ n = bp_com%num_lat_files
 inquire (file = full_file_name, name = bp_com%lat_file_names(n+1))
 if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
                                               bp_com%num_lat_files = n + 1
-end subroutine
+end subroutine find_this_file
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -2926,7 +2936,7 @@ pele%coef = coef(1:ixs)
 pele%name = name(1:ixs)
 pele%attrib_name = attrib_name(1:ixs)
 
-end subroutine
+end subroutine get_overlay_group_names
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3017,7 +3027,7 @@ endif
 if ((ix1 == 0 .and. ix_name > 40) .or. (ix1 > 41 .or. ix2 - ix1 > 41)) &
                           call parser_warning ('NAME HAS > 40 CHARACTERS: ' // name)
 
-end subroutine
+end subroutine verify_valid_name
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3049,7 +3059,7 @@ endif
 
 call err_exit
 
-end subroutine
+end subroutine error_exit
 
 
 !-------------------------------------------------------------------------
@@ -3191,7 +3201,7 @@ enddo
 
 call indexx (bp_com%var(1:nt)%name, bp_com%var(1:nt)%indexx)
 
-end subroutine
+end subroutine init_bmad_parser_common
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3277,7 +3287,7 @@ enddo
 
 call control_bookkeeper (lat, lord)
 
-end subroutine
+end subroutine add_this_multipass
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3308,7 +3318,7 @@ n = size(var_temp)
 bp_com%var(1:n) = var_temp
 
 
-end subroutine
+end subroutine reallocate_bp_com_var
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3608,8 +3618,7 @@ if (j /= n_inserted) then
   call err_exit
 endif
 
-
-end subroutine
+end subroutine add_all_superimpose
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3690,7 +3699,7 @@ if (branch%param%lattice_type == circular_lattice$) then
   endif
 endif
 
-end subroutine
+end subroutine compute_super_lord_s
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3736,7 +3745,7 @@ err_flag = .false.
 allocate (arg_list(n_arg))
 arg_list = name(1:n_arg)
 
-end subroutine
+end subroutine get_sequence_args
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3956,7 +3965,7 @@ enddo
 
 deallocate (s_ele)
 
-end subroutine
+end subroutine seq_expand1
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4006,7 +4015,7 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%common_lord = .false.
 enddo
 
-end subroutine
+end subroutine allocate_plat
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4278,7 +4287,7 @@ deallocate (r_indexx)
 deallocate (name_list)
 deallocate (cs)
 
-end subroutine
+end subroutine parser_add_lord
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4298,34 +4307,20 @@ type (ele_struct) ele
 
 select case (ele%key)
 
-case (wiggler$) 
-  ele%sub_key = periodic_type$   ! default
-  ele%value(polarity$) = 1.0     ! default
-
-case (custom$)  ! set defaults
-  ele%mat6_calc_method = custom$
-  ele%tracking_method  = custom$
-  ele%field_calc       = custom$
-
-case (bend_sol_quad$) ! set defaults
+case (bend_sol_quad$) 
   ele%mat6_calc_method = symp_lie_bmad$
   ele%tracking_method  = symp_lie_bmad$
-
-case (taylor$)   ! start with unit matrix
-  ele%tracking_method = taylor$  ! default
-  ele%mat6_calc_method = taylor$ ! default
-  ele%taylor_order = 999         ! make large.
-  call taylor_make_unit (ele%taylor)
-
-case (rbend$, sbend$)
-  ele%value(fintx$) = real_garbage$
-  ele%value(hgapx$) = real_garbage$
 
 case (branch$, photon_branch$)
   ele%value(direction$) = 1
 
-case (rcollimator$)
-  ele%offset_moves_aperture = .true.
+case (crystal$)
+  ele%value(follow_diffracted_beam$) = 1  ! True
+
+case (custom$)  
+  ele%mat6_calc_method = custom$
+  ele%tracking_method  = custom$
+  ele%field_calc       = custom$
 
 case (ecollimator$)
   ele%offset_moves_aperture = .true.
@@ -4334,9 +4329,26 @@ case (ecollimator$)
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
 
+case (rbend$, sbend$)
+  ele%value(fintx$) = real_garbage$
+  ele%value(hgapx$) = real_garbage$
+
+case (rcollimator$)
+  ele%offset_moves_aperture = .true.
+
+case (taylor$)   ! start with unit matrix
+  ele%tracking_method = taylor$  
+  ele%mat6_calc_method = taylor$ 
+  ele%taylor_order = 999         ! make large.
+  call taylor_make_unit (ele%taylor)
+
+case (wiggler$) 
+  ele%sub_key = periodic_type$   
+  ele%value(polarity$) = 1.0     
+
 end select
 
-end subroutine
+end subroutine parser_set_ele_defaults
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4590,7 +4602,7 @@ if (ix /= 0) then
   digested_file = 'U:[cesr.lattice.' // digested_file(ix+8:)
 endif
 
-end subroutine
+end subroutine form_digested_bmad_file_name
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4687,7 +4699,7 @@ enddo
 
 deallocate(ele_array)
 
-end subroutine
+end subroutine reuse_taylor_elements
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4751,7 +4763,7 @@ do j = 1, n_ele_use
   endif
 enddo
 
-end subroutine
+end subroutine parser_add_branch
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -5210,7 +5222,7 @@ if (index(debug_line, 'BEAM_START') /= 0) then
   print '(3x, 6es13.4)', lat%beam_start%vec      
 endif
 
-end subroutine
+end subroutine parser_debug_print_info
 
 end module
 

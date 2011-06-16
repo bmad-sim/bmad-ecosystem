@@ -34,11 +34,13 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave
 type (branch_struct), pointer :: branch
+type (coord_struct) start_orb, end_orb
 
 real(rp) E_tot, p0c, phase
 
 integer i, k, ib, ix, ixs
 logical, optional :: compute
+logical no_mode_adjust_done
 
 ! Init energy
 
@@ -57,19 +59,36 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
+    no_mode_adjust_done = .true.
+
+    ! Calculate the energy
 
     select case (ele%key)
     case (lcavity$) 
       ele%value(E_tot_start$) = E_tot
       ele%value(p0c_start$) = p0c
 
-      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-      E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
-      E_tot = E_tot - e_loss_sr_wake (ele%value(e_loss$), branch%param)
-      call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
+      ! Different tracking methods can give different results so need to track if not bmad_standard tracking.
+      if (ele%tracking_method == bmad_standard$) then
+        phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+        E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
+        E_tot = E_tot - e_loss_sr_wake (ele%value(e_loss$), branch%param)
+        call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
+      else
+        ! A zero e_tot can mess up tracking so put in a temp value if needed.
+        if (ele%value(e_tot$) == 0) then ! Can happen on first pass through this routine
+          ele%value(E_tot$) = E_tot      ! Temp value. Does not affect phase & amp adjustment.
+          ele%value(p0c$) = p0c
+          ele%ref_time = branch%ele(i-1)%ref_time
+        endif
+        if (associated(ele%rf%field)) call rf_accel_mode_adjust_phase_and_amp (ele, lat%param)
+        no_mode_adjust_done = .false.
+        call track1 (start_orb, ele, branch%param, end_orb)
+        p0c = (1 + end_orb%vec(6)) * ele%value(p0c$)
+        call convert_pc_to (p0c, branch%param%particle, e_tot = e_tot)
+      endif
 
     case (custom$, hybrid$)
-
       ele%value(E_tot_start$) = E_tot
       ele%value(p0c_start$) = p0c
       E_tot = E_tot + ele%value(delta_e$)
@@ -82,11 +101,9 @@ do ib = 0, ubound(lat%branch, 1)
       ele%value(E_tot_start$) = E_tot
       ele%value(p0c_start$) = p0c
 
-      if (ele%is_on) then
-        ele%value(e_tot$) = e_tot + ele%value(e_tot_offset$)
-        e_tot = ele%value(e_tot$)
+      if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
+        e_tot = e_tot + ele%value(e_tot_offset$)
         call convert_total_energy_to (e_tot, branch%param%particle, pc = p0c)
-        ele%value(p0c$) = p0c
       endif
 
     end select
@@ -94,9 +111,19 @@ do ib = 0, ubound(lat%branch, 1)
     ele%value(E_tot$) = E_tot
     ele%value(p0c$) = p0c
 
+    ! If there is an RF field map then scale the field to match.
+
+    if (associated(ele%rf%field) .and. no_mode_adjust_done) call rf_accel_mode_adjust_phase_and_amp (ele, lat%param)
+
+    ! Calculate the ref_time
+
     if (ele%key == lcavity$ .and. branch%ele(i-1)%value(E_tot$) /= E_tot) then
-      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
-                (p0c - branch%ele(i-1)%value(p0c$)) / ((E_tot - branch%ele(i-1)%value(E_tot$)) * c_light)
+      if (ele%tracking_method == bmad_standard$) then
+        ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
+                  (p0c - branch%ele(i-1)%value(p0c$)) / ((E_tot - branch%ele(i-1)%value(E_tot$)) * c_light)
+      else
+        ele%ref_time = ele%ref_time - end_orb%vec(5) * E_tot / (p0c * c_light)
+      endif
     elseif (ele%key == hybrid$) then
       ele%ref_time = branch%ele(i-1)%ref_time + ele%value(delta_ref_time$)
     else
@@ -107,10 +134,6 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! %old_value is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
     ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
-
-    ! If there is an RF field map then scale the field to match.
-
-    if (associated(ele%rf%field)) call rf_accel_mode_adjust_phase_and_amp (ele, lat%param)
 
   enddo
 enddo

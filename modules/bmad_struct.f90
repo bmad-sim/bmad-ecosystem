@@ -485,7 +485,7 @@ integer, parameter :: BL_vkick$=24, c2_curve_tot$=24
 integer, parameter :: B_field_err$=25, BL_kick$ = 25, c3_curve_tot$=25
 integer, parameter :: radius$=26, c4_curve_tot$=26
 integer, parameter :: tilt_err$=27    
-integer, parameter :: pole_radius$ = 28, coupler_at$ = 28
+integer, parameter :: pole_radius$ = 28, coupler_at$ = 28, follow_diffracted_beam$ = 28 
 integer, parameter :: Bs_field$=29, ref_wavelength$=29, coupler_strength$ = 29, e_tot_offset$ = 29
 integer, parameter :: B_field$=30, E_field$=30, coupler_phase$ = 30, nx_out$ = 30
 integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, ny_out$ = 31
@@ -505,7 +505,7 @@ integer, parameter :: s_offset_tot$=44
 integer, parameter :: n_ref_pass$=45  ! Assumed unique. Do not overload.
 integer, parameter :: p0c$=46         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=47       ! Assumed unique. Do not overload.
-integer, parameter :: integrator_order$ = 48   ! For Etiennes' PTC: 2, 4, or 6.
+integer, parameter :: thickness$ = 48, integrator_order$ = 48   ! For Etiennes' PTC: 2, 4, or 6.
 integer, parameter :: num_steps$ = 49
 integer, parameter :: ds_step$ = 50
 integer, parameter :: general1$ = 51   ! For general use
