@@ -750,10 +750,10 @@ The basic equations used for the mode decomposition of the rf fields
 are given in Section~\sref{s:rf.fields.phys}. The syntax for specifying the 
 RF fields is
 \begin{example}
-  rf_field = {
-    mode = {
+  rf_field = \{
+    mode = \{
       m             = <Integer>, ! Mode number
-      freq          = <Real>,    ! frequency of oscillations.
+      freq          = <Real>,    ! Frequency of oscillations (Hz).
       theta_t0      = <Real>,    ! Phase of oscillations.
       f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
       field_scale   = <Real>,    ! Scale factor for the E & B fields
@@ -763,8 +763,8 @@ RF fields is
       e_re = (<Real>, <Real>, ....),  ! Real part of e.
       e_im = (<Real>, <Real>, ....),  ! Imaginary part of e.
       b_re = (<Real>, <Real>, ....),  ! Real part of b.
-      b_im = (<Real>, <Real>, ....)}, ! Imaginary part of b.
-    mode = {...}}
+      b_im = (<Real>, <Real>, ....)\}, ! Imaginary part of b.
+    mode = \{...\}\}
 \end{example}
 The ``fundamental'' mode is taken to be the first mode of the
 \vn{rf_field} structure.

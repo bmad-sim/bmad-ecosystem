@@ -80,6 +80,8 @@ logical local_ref_frame
 s = s1
 h = sign(h1, s2-s1)
 end = start
+if (s1 == s2) return
+
 end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
 ! For elements where the reference energy is changing the reference energy in the body is 

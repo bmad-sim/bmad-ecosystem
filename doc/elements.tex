@@ -567,13 +567,13 @@ syntax of the wall structure is:
       s = <longitudinal_position>, 
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
-      ...\}
+      ...\},
     s_spline = \{<coef_1>, <coef_2>\},
-    n_slice_spline = <num> 
+    n_slice_spline = <num>,
     section = \{
       s = <longitudinal_position>, 
       v(1) = \{... \},
-      ... \}
+      ... \},
     ... \}
 \end{example}
 Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
@@ -817,7 +817,7 @@ The geometry shown is appropriate for zero
 $\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bH$ vector with
 respect to the surface normal $\bfhat n$. For $psi$ (\vn{psi_angle})
 zero, the incoming reference orbit, the outgoing reference orbit,
-$\bfhat n$ and $\bH$ are all coplanar. The element reference coordinates
+$\bfhat n$, and $\bH$ are all coplanar. The element reference coordinates
 where $\bfhat x$ is parallel to the surface normal establishes the coordinates
 for specifying a rotation of $\bH$ around the surface normal and specifying
 a curvature of the surface.}
@@ -843,19 +843,22 @@ General \vn{crystal} attributes are:
 \index{tilt_err}\index{g_graze}\index{g_trans}
 \index{d_detec}\index{d_source}
 \index{c2_curve}\index{c3_curve}\index{c4_curve}
+\index{follow_diffracted_beam}\index{thickness}
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
-  b_param          = <Real>    ! b parameter
-  crystal_type     = <String>  ! Crystal material and reflection plane.
-  c2_curve         = <Real>    ! C2 curvature coefficient.
-  c3_curve         = <Real>    ! C3 curvature coefficient.
-  c4_curve         = <Real>    ! C4 curvature coefficient.
-  d_detec          = <Real>    ! Detector distance.
-  d_source         = <Real>    ! Source distance.
-  g_trans          = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
-  graze_angle_err  = <Real>    ! Error in the graze angle.
-  psi_angle        = <Real>    ! Rotation of H-vector about the surface normal.
-  tilt_err         = <Real>    ! Error in the tilt angle.
+  b_param                = <Real>    ! b parameter
+  crystal_type           = <String>  ! Crystal material and reflection plane.
+  c2_curve               = <Real>    ! C2 curvature coefficient.
+  c3_curve               = <Real>    ! C3 curvature coefficient.
+  c4_curve               = <Real>    ! C4 curvature coefficient.
+  d_detec                = <Real>    ! Detector distance.
+  d_source               = <Real>    ! Source distance.
+  g_trans                = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+  graze_angle_err        = <Real>    ! Error in the graze angle.
+  psi_angle              = <Real>    ! Rotation of H-vector about the surface normal.
+  tilt_err               = <Real>    ! Error in the tilt angle.
+  thickness              = <Real>    ! Thickness of crystal for Laue diffraction.
+  follow_diffracted_beam = <Logic>   ! Track the diffracted or undiffracted beam?
 \end{example}
 
 \index{graze_angle_in}\index{graze_angle_out}\index{alpha_angle}
@@ -902,8 +905,14 @@ and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal
 lattice $\bH$ vector with respect to the surface normal as shown in
 Fig.~\ref{f:crystal}.  If \vn{b_param} is set to -1 then there is
 Bragg reflection and \vn{alpha_H} is zero. If \vn{b_param} is set to 1
-then there is Laure diffraction again with \vn{alpha_H} zero. With the
+then there is Laue diffraction again with \vn{alpha_H} zero. With the
 orientation shown in Fig.~\ref{f:crystal}, \vn{alpha_H} is positive.
+
+The \vn{thickness} parameter is used with Laue diffraction only.
+
+The \vn{follow_diffracted_beam} parameter sets whether the diffracted
+beam or the undiffracted beam tracked. This parameter is only relavent
+with Laue diffraction.
 
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bH$ are all coplanar. A non-zero
@@ -1408,8 +1417,12 @@ details.  Note: The transfer matrix for an \vn{lcavity} with finite
 addition, couplers (\sref{s:rf.coupler}) and HOM wakes
 (\sref{s:rf.wakes} can be modeled.
 
-If a field map is specified (\sref{s:rf.fields}), tracking using  
-an integrator is possible.
+\index{RF field map}
+\index{runge_kutta!and field maps}\index{adaptive_boris!and field maps}
+\index{boris!and field maps}\index{symp_lie_bmad!and field maps}
+If a field map is specified (\sref{s:rf.fields}), tracking using an
+integrator is possible. A field map is only used for \vn{runge_kutta},
+\vn{adaptive_boris}, \vn{boris} and \vn{symp_lie_bmad} tracking (\sref{s:tkm}).
 
 %-----------------------------------------------------------------
 \section{Marker}
@@ -1893,6 +1906,13 @@ where \vn{L_lattice} is the total lattice length.
 Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:rf.wakes} can
 be modeled. In addition, if a field map is specified
 (\sref{s:rf.fields}), tracking using an integrator is possible.
+
+\index{RF field map}
+\index{runge_kutta!and field maps}\index{adaptive_runge_kutta!and field maps}
+\index{boris!and field maps}\index{symp_lie_bmad!and field maps}
+If a field map is specified (\sref{s:rf.fields}), tracking using an
+integrator is possible. A field map is only used for \vn{runge_kutta},
+\vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking (\sref{s:tkm}).
 
 Example:
 \begin{example}

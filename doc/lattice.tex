@@ -95,8 +95,27 @@ statements may be placed on the same line by inserting a semicolon
 (``;'') between them. A long statement can occupy multiple lines by
 putting an ampersand (``\&'') at the end of each line of the statement
 except for the last line. Additionally, lines that end with ``,''
-(comma), ``+'', ``-'', ``*'', ``/'', ``('', ``\{'', ``['', or ``='' are automatically
-considered to be continued to the next line.
+(comma), ``+'', ``-'', ``*'', ``/'', ``('', ``\{'', ``['', or ``=''
+are automatically considered to be continued to the next line. Notice
+that this is {\em not} like \vn{C/C++}. Thus the following is bad syntax
+\begin{example}
+  wall = {
+    section = {s = 0.45     ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
+    }                       ! BAD SYNTAX. NO CONTINUATION CHARACTER HERE.
+  }
+\end{example}
+Correct is:
+\begin{example}
+  wall = {
+    section = {s = 0.45} }
+\end{example}
+or even:
+\begin{example}
+  wall = {
+    section = {s = 0.45} \&
+  }
+\end{example}
+
 
 \index{lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 40
