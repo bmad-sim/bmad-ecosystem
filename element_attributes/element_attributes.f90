@@ -16,7 +16,7 @@ type (ele_struct) ele
 integer i, j, n_used(n_attrib_special_maxx)
 character(40) a_name
 
-!
+! indexes used for a given element key
 
 n_used = 0
 
@@ -33,11 +33,27 @@ do i = 1, n_key
   print *
 enddo
 
+! number of elements using an index
+
 print *, '!---------------------------------'
 print *, 'Index usage:'
 print *, '   Ix Count'
 do i = 1, size(n_used)
   print '(2i6)', i, n_used(i)
+enddo
+
+! List of elements using an index
+
+do i = 1, n_attrib_special_maxx
+  print *
+  print *, '!---------------------------------'
+  print '(a, i0)', 'Index: ', i
+  do j = 1, n_key
+    ele%key = j
+    a_name = attribute_name (ele, i) 
+    if (a_name(1:1) == '!') cycle
+    print *, '   ', key_name(ele%key)
+  enddo
 enddo
 
 end program
