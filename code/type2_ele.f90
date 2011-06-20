@@ -1,4 +1,4 @@
-
+!+
 ! Subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, type_taylor, 
 !        twiss_out, type_control, lattice, type_wake, type_floor_coords, 
 !        type_field, type_wall)
@@ -259,11 +259,11 @@ if (associated(ele%rf%field)) then
       rfm => ele%rf%field%mode(i)
       nl=nl+1; write (li(nl), '(a, i0)')     'Mode #:', i
       nl=nl+1; write (li(nl), '(a, i0)')     '    m:           ', rfm%m
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    freq:        ', rfm%freq
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    f_damp:      ', rfm%f_damp
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    theta_t0:    ', rfm%theta_t0
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    phi_0:       ', rfm%phi_0
-      nl=nl+1; write (li(nl), '(a, es12.4)') '    dz:          ', rfm%dz
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    freq:        ', rfm%freq
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    f_damp:      ', rfm%f_damp
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    theta_t0:    ', rfm%theta_t0
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    phi_0:       ', rfm%phi_0
+      nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%dz
       nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale: ', rfm%field_scale
       nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
       do j = 1, min(10, size(rfm%term))
