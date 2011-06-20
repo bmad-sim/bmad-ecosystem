@@ -1060,8 +1060,7 @@ Format:
          \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
          \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
    optimizer
-   particle \{<bunch_index>.\}<particle_index> \{<element_index>\}
-   particle -lost \{<bunch_index>\}
+   particle \{-bunch <bunch\_index>\} \{-particle <particle\_index> \{-element <element\_name\_or\_index>\} \{-lost\} \{-all\}
    plot
    plot \{<template_plot_name>\}
    plot \{<plot_region_name>\}
@@ -1432,27 +1431,26 @@ Bmad standard lattice input format.
 
 %% show particle --------------------------------------------------------------
 
-\item[\protect\parbox{6in}{
-        show particle \{<bunch\_index>.\}<particle\_index> \{<element\_name\_or\_index>\} \\
-        show particle -lost \{bunch\_index\} }] \Newline
-The command \vn{show particle \{<bunch_index>.\}<particle_index>}
-shows information on a particle at a given element. The default for
-the optional \vn{\{bunch_index\}} index is set by the global variable
-\vn{global%bunch_to_plot}. The default \vn{<element_name_or_index>} is 0 (the
-starting position).  Also see \vn{show beam}.
+\item[show particle \{-bunch <bunch\_index>\} \{-particle <particle\_index> \{-element <element\_name\_or\_index>\} \{-lost\} \{-all\}]
+  \Newline 
+Shows individual particle information. The default for the
+optional \vn{-bunch} index is set by the global variable
+\vn{global%bunch_to_plot}. The default \vn{-element} is
+0 (the starting position). Also see \vn{show beam}.
 
-\vn{show particle -lost} shows which particles are lost during beam
-tracking. The default for the optional \vn{\{bunch_index\}} index is
-set by \vn{global%bunch_to_plot}. Note: Using the \vn{-lost} option
+The \vn{-lost} option shows which particles are lost during beam
+tracking. Note: Using the \vn{-lost} option
 results in one line printed for each lost particle. It is thus meant
 for use with bunches with a small number of particles.
 
+The \vn{-all} option shows all particles at the given element.
+
 Examples:
 \begin{example}
-  show part 3.47 8   ! Shows information on particle #47 of bunch #3 at 
-                     !   lattice element #8.
-  show part 47 8     ! Same as above except the default bunch is used.
-  show part -lost 3  ! Show lost particle positions for bunch #3
+  show part -bun 3 -part 47 -ele 8 ! Shows information on particle #47 of bunch #3 at 
+                                   !   lattice element #8.
+  show part -bun 47 -part 8        ! Same as above except the default bunch is used.
+  show part -lost -bun 3           ! Show lost particle positions for bunch #3
 \end{example}
 
 %% show plot --------------------------------------------------------------

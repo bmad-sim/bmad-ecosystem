@@ -89,8 +89,8 @@ if (what1 == '') then
 endif
 
 blank_line_before = .true.
-left_over_eliminate = ''
-left_over_sub = ''
+left_over_eliminate = ''  ! To handle multiline constructs
+left_over_sub = ''        ! To handle multiline constructs
 in_example = .false.
 
 do
@@ -210,35 +210,55 @@ integer n1, n2, ix1, ix2
 
 n1 = len(str1)
 n2 = len(str2)
+ix1 = 0
 
-do
-  ix1 = index (line, str1)
-  if (ix1 == 0) return
-  ix2 = index (line(ix1+1:), str2) + ix1
+main: do
 
-  ! If ending string is not found then must be on a later line.
-  ! If so, mark for future deletion
+  ! Find str1
 
-  if (ix2 == ix1) then
-    left_over_eliminate = str2
-    if (present(sub2)) left_over_sub = sub2 
-    if (present(sub1)) then
-      line = line(1:ix1-1) // sub1 // line(ix1+n1:)
-    else
-      line = line(1:ix1-1) // line(ix1+n1:)
-    endif
-    return
+  ix1 = ix1 + 1
+  if (ix1+n1-1 > len(line)) return
+  if (line(ix1:ix1+n1-1) /= str1) cycle
+  if (ix1 > 1) then
+    if (line(ix1-1:ix1-1) == '\') cycle   ! '
   endif
 
-  !
+  ! Find str2
+
+  ix2 = ix1 + n1 - 1
+  do
+    ix2 = ix2 + 1
+
+    ! If ending string is not found then must be on a later line.
+    ! If so, mark for future deletion
+
+    if (ix2+n2-1 > len(line)) then
+      left_over_eliminate = str2
+      if (present(sub2)) left_over_sub = sub2 
+      if (present(sub1)) then
+        line = line(1:ix1-1) // sub1 // line(ix1+n1:)
+      else
+        line = line(1:ix1-1) // line(ix1+n1:)
+      endif
+      return
+    endif
+
+    if (line(ix2:ix2+n2-1) /= str2) cycle
+    if (line(ix2-1:ix2-1) == '\') cycle   ! '
+    exit
+  enddo
+
+  ! substitute
 
   if (present(sub1)) then
     line = line(1:ix1-1) // sub1 // line(ix1+n1:ix2-1) // sub2 // line(ix2+n2:)    
+    ix1 = ix1 + len(sub1) - 1
   else
     line = line(1:ix1-1) // line(ix1+n1:ix2-1) // line(ix2+n2:)
+    ix1 = ix1 - 1
   endif
 
-enddo
+enddo main
 
 end subroutine
 

@@ -216,7 +216,7 @@ integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
-logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section
+logical bmad_format, good_opt_only, show_lords, show_custom, print_cross_section, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_field_coefs, print_all, print_ran_state
@@ -1704,18 +1704,63 @@ case ('particle')
 
   nb = s%global%bunch_to_plot
   ix_branch = 0
+  show_all = .false.
+  show_lost = .false.
+  ele_name = ''
+  ix_ele = 0
 
-  call tao_next_switch (stuff2, ['-lost'], switch, err, ix)
-  if (err) return
+  do
 
-  if (switch == '-lost') then
-    if (ix /= 0) then
-      read (stuff2(1:ix), *, iostat = ios) nb
+    call tao_next_switch (stuff2, ['-element ', '-particle', '-bunch   ', '-lost    ', '-all     '], switch, err, ix_word)
+    if (err) return
+
+    select case (switch)
+    case ('') 
+      exit
+
+    case ('-lost') 
+      show_lost = .true.
+
+    case ('-all')
+      show_all = .true.
+
+    case ('-element')
+      ele_name = stuff2(:ix_word)
+      call string_trim (stuff2(ix_word+1:), stuff2, ix_word)
+
+      call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+      if (err) return
+      call tao_locate_elements (ele_name, ix_u, eles, err)
+      if (err) return
+      ix_ele = eles(1)%ele%ix_ele
+      ix_branch = eles(1)%ele%ix_branch
+
+    case ('-particle')
+      read (stuff2(:ix_word), *, iostat = ios) ix_p
       if (ios /= 0) then
-        call out_io (s_error$, r_name, 'CANNOT READ BUNCH INDEX.')
+        nl=1; lines(1) = 'CANNOT READ PARTICLE INDEX!'
         return
       endif
-    endif
+      call string_trim (stuff2(ix_word+1:), stuff2, ix_word)
+
+    case ('-bunch')
+      read (stuff2(:ix_word), *, iostat = ios) nb
+      if (ios /= 0) then
+        nl=1; lines(1) = 'CANNOT READ BUNCH INDEX!'
+        return
+      endif
+      call string_trim (stuff2(ix_word+1:), stuff2, ix_word)
+
+    end select
+
+  enddo
+
+  uni_branch => u%uni_branch(ix_branch)
+  branch => u%model%lat%branch(ix_branch)
+
+  ! show lost
+
+  if (show_lost) then
     bunch => u%uni_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
     nl=nl+1; write (lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
@@ -1730,35 +1775,7 @@ case ('particle')
     return
   endif
 
-  ix = index(stuff2, '.')
-  if (ix > 0 .and. ix < ix_word) then
-    read (stuff2(1:ix-1), *, iostat = ios) nb
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'CANNOT READ BUNCH INDEX.')
-      return
-    endif
-    call string_trim (stuff2(ix+1:), stuff2, ix_word)
-  endif
-
-  read (stuff2, *, iostat = ios) ix_p
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'CANNOT READ PARTICLE INDEX')
-    return
-  endif
-
-  ix_ele = 0
-  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
-  ele_name = stuff2(:ix_word)
-  if (ele_name /= '') then
-    call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
-    if (err) return
-    call tao_locate_elements (ele_name, ix_u, eles, err)
-    if (err) return
-    ix_ele = eles(1)%ele%ix_ele
-    ix_branch = eles(1)%ele%ix_branch
-  endif
-
-  uni_branch => u%uni_branch(ix_branch)
+  ! check
 
   if (.not. allocated(uni_branch%ele(ix_ele)%beam%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH NOT ASSOCIATED WITH THIS ELEMENT.')
@@ -1771,6 +1788,21 @@ case ('particle')
   endif
 
   bunch => uni_branch%ele(ix_ele)%beam%bunch(nb)
+
+  ! show all
+
+  if (show_all) then
+    nl=nl+1; write (lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
+    nl=nl+1; write (lines(nl), '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
+    do i = 1, size(bunch%particle)
+      if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
+      nl=nl+1; write (lines(nl), '(i6, 6es15.7)') i, (bunch%particle(i)%r%vec(j), j = 1, 6)
+    enddo
+    result_id = 'particle:lost'
+    return
+  endif
+
+  !
 
   if (ix_p < 1 .or. ix_p > size(bunch%particle)) then
     call out_io (s_error$, r_name, 'PARTICLE INDEX OUT OF RANGE: \i0\ ', i_array = [ ix_p ])
