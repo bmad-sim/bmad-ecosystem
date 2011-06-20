@@ -37,7 +37,7 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
 real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
-real(rp) mat4(4,4), det_factor
+real(rp) mat4(4,4), det_factor, deriv_rel, gamma2_c
 
 logical error
 logical, optional :: err
@@ -70,8 +70,7 @@ if (ele2%key == match$ .and. ele2%value(match_end$) /= 0) then
   ele2%value(eta_y0$)   = ele1%y%eta
   ele2%value(etap_x0$)  = ele1%x%etap
   ele2%value(etap_y0$)  = ele1%y%etap
-  ele2%value(c_11$:c_22$) = &
-              (/ ele1%c_mat(1,1), ele1%c_mat(1,2), ele1%c_mat(2,1), ele1%c_mat(2,2) /)
+  ele2%value(c_11$:c_22$) = [ele1%c_mat(1,1), ele1%c_mat(1,2), ele1%c_mat(2,1), ele1%c_mat(2,2)]
   ele2%value(gamma_c$) = ele1%gamma_c
   call make_mat6 (ele2, param)
 endif
@@ -127,11 +126,12 @@ else
 
   if (det > 0.9 .or. (det > 0.1 .and. .not. ele1%mode_flip)) then
 
-    ele2%gamma_c = sqrt(det)
-    mat2_a = mat2 / ele2%gamma_c
-    mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / ele2%gamma_c
+    gamma2_c = sqrt(det)
+    mat2_a = mat2 / gamma2_c
+    mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / gamma2_c
     call mat_symp_conj (mat2_b, F_inv_mat)
     ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
+    ele2%gamma_c = sqrt(det)
 
   ! else we flip the modes
 
@@ -144,13 +144,13 @@ else
       print *, '       When propagating through: ', trim(ele2%name), ele2%ix_ele
     endif
 
-    ele2%gamma_c = sqrt(abs(det))
-    mat2_a = (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / ele2%gamma_c
-    mat2_b = mat2 / ele2%gamma_c
+    gamma2_c = sqrt(abs(det))
+    mat2_a = (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / gamma2_c
+    mat2_b = mat2 / gamma2_c
 
     call mat_symp_conj (mat2_a, E_inv_mat)
     ele2%c_mat = matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
-
+    ele2%gamma_c = gamma2_c
     ele2%mode_flip = .not. ele1%mode_flip
 
   endif
@@ -192,8 +192,7 @@ orb_out => ele2%map_ref_orb_out%vec
 rel_p1 = 1 + orb(6)               ! reference energy 
 rel_p2 = 1 + orb_out(6)
 
-eta1_vec = (/ ele1%x%eta, ele1%x%etap * rel_p1, &
-              ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp /)
+eta1_vec = [ele1%x%eta, ele1%x%etap * rel_p1, ele1%y%eta, ele1%y%etap * rel_p1, ele1%z%eta, 1.0_rp]
 
 ! For a circular ring, defining the dependence of z on pz is problematical.
 ! With the RF off, z is not periodic so dz/dpz is dependent upon turn number.
@@ -206,16 +205,12 @@ dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec) + (mat6(6,2) * orb(2) + mat6(6,4) *
 
 eta_vec(1:5) = matmul (ele2%mat6(1:5,:), eta1_vec) / dpz2_dpz1
 
-eta_vec(1) = eta_vec(1) + &
-              (mat6(1,2) * orb(2) + mat6(1,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
-eta_vec(2) = eta_vec(2) - orb_out(2) / rel_p2 + &
-              (mat6(2,2) * orb(2) + mat6(2,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
-eta_vec(3) = eta_vec(3) + &
-              (mat6(3,2) * orb(2) + mat6(3,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
-eta_vec(4) = eta_vec(4) - orb_out(4) / rel_p2 + &
-              (mat6(4,2) * orb(2) + mat6(4,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
-eta_vec(5) = eta_vec(5) + &
-              (mat6(5,2) * orb(2) + mat6(5,4) * orb(4)) / (dpz2_dpz1 * rel_p1)
+deriv_rel = dpz2_dpz1 * rel_p1
+eta_vec(1) = eta_vec(1) + (mat6(1,2) * orb(2) + mat6(1,4) * orb(4)) / deriv_rel
+eta_vec(2) = eta_vec(2) + (mat6(2,2) * orb(2) + mat6(2,4) * orb(4)) / deriv_rel - orb_out(2) / rel_p2
+eta_vec(3) = eta_vec(3) + (mat6(3,2) * orb(2) + mat6(3,4) * orb(4)) / deriv_rel
+eta_vec(4) = eta_vec(4) + (mat6(4,2) * orb(2) + mat6(4,4) * orb(4)) / deriv_rel - orb_out(4) / rel_p2
+eta_vec(5) = eta_vec(5) + (mat6(5,2) * orb(2) + mat6(5,4) * orb(4)) / deriv_rel
 
 eta_vec(2) = eta_vec(2) / rel_p2
 eta_vec(4) = eta_vec(4) / rel_p2
