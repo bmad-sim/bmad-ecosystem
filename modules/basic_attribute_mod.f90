@@ -151,11 +151,11 @@ end function attribute_index
 !
 ! Output:
 !   attrib_name -- Character(40): Name of attribute. 
-!              If %key is invalid then                   attribute_name = "!BAD ELE KEY"
-!              If ix_att is invalid then                 attribute_name = "!BAD INDEX"
-!              If ix_att is invalid for an overlay then  attribute_name = "!INVALID INDEX"
-!              If ix_att does not correspond to an attribute for the given key then
-!                                                        attribute_name = "!NULL"
+!      If %key is invalid then                   attribute_name = "!BAD ELE KEY"
+!      If ix_att is invalid then                 attribute_name = "!BAD INDEX"
+!      If ix_att is invalid for an overlay then  attribute_name = "!INVALID INDEX"
+!      If ix_att does not correspond to an attribute for the given key then
+!                                                attribute_name = null_name = "!NULL" 
 !
 ! Example:
 !   ele%key = sbend$

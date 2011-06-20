@@ -95,7 +95,7 @@ if (ele%key == lcavity$ .or. ele%key == custom$) then
 endif
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-t = -start%vec(5) / beta
+t = -start%vec(5) / (beta * c_light)
 
 ! Save initial point
 

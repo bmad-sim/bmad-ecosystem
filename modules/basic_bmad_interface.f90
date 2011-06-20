@@ -863,6 +863,20 @@ interface
 end interface
 
 interface
+  subroutine twiss_and_track_from_s_to_s (lat, s_start, s_end, track_entrance, &
+                              track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+    use bmad_struct, only: coord_struct, lat_struct, ele_struct, rp
+    implicit none
+    type (coord_struct), optional :: orbit_start, orbit_end
+    type (ele_struct), optional ::ele_start, ele_end
+    type (lat_struct) lat
+    real(rp) s_start, s_end
+    logical track_entrance, track_exit
+    logical, optional :: err
+  end subroutine
+end interface
+
+interface
   subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, &
                               track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
     use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp

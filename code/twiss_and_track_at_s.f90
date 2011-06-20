@@ -9,7 +9,7 @@
 ! for the ends of the elements. 
 !
 ! See also:
-!   twiss_and_track_partial
+!   twiss_and_track_from_s_to_s
 !   twiss_and_track_intra_ele
 !
 ! Modules Needed:

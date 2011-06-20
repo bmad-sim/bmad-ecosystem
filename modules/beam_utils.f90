@@ -1875,7 +1875,8 @@ e(6,:) = e_r(6,:) + i_imaginary * e_i(6,:)
 ! Eq. 14
 ! mat_eigen finds row vectors, so switch to column vectors
 
-call normalize_e (e)
+call normalize_e (e, err)
+if (err) return
 e = transpose(e)
 
 q = 0.0
@@ -1998,7 +1999,7 @@ end subroutine projected_twiss_calc
 ! contains
 ! Eq. 14 But using row vectors to conform to BMAD's mat_eigen
 
-subroutine normalize_e (e)
+subroutine normalize_e (e, err)
 
 implicit none
 
@@ -2009,6 +2010,12 @@ complex(rp) :: wronsk, factor
 
 integer i, j, k
 
+logical err
+
+!
+
+err = .true.
+
 s = 0.0
 s(1,2) = ( 1.0,0.0) 
 s(2,1) = (-1.0,0.0)
@@ -2017,20 +2024,22 @@ s(4,3) = (-1.0,0.0)
 s(5,6) = ( 1.0,0.0) 
 s(6,5) = (-1.0,0.0)
 
- do i = 1, 6, 2
-   e(i,:) = conjg(e(i+1,:)) ! Eq. 14b
-   ! set up the normaization factor
-   temp = matmul(s,e(i+1,:))
-   wronsk = 0.0
-   do j = 1, 6
-     wronsk = e(i,j)*temp(j) + wronsk
-   enddo
-   factor = sqrt(i_imaginary) / sqrt(wronsk)
-   ! this next step is the actual normalization (Eq. 14a)
-   e(i+1,:) = e(i+1,:) * factor 
-   e(i,:) = conjg(e(i+1,:))
- enddo
+do i = 1, 6, 2
+  e(i,:) = conjg(e(i+1,:)) ! Eq. 14b
+  ! set up the normaization factor
+  temp = matmul(s,e(i+1,:))
+  wronsk = 0.0
+  do j = 1, 6
+    wronsk = e(i,j)*temp(j) + wronsk
+  enddo
+  if (wronsk == 0) return ! Error   
+  factor = sqrt(i_imaginary) / sqrt(wronsk)
+  ! this next step is the actual normalization (Eq. 14a)
+  e(i+1,:) = e(i+1,:) * factor 
+  e(i,:) = conjg(e(i+1,:))
+enddo
 
+err = .false.
 
 end subroutine
   

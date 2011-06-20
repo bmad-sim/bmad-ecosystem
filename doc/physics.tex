@@ -438,9 +438,9 @@ it can be shown that the linear part of any transport map (the Jacobian)
 must obey the symplectic condition. If a matrix $\Bf M$ is not symplectic,
 Healy\cite{b:healy} has provided an elegant method for finding a symplectic 
 matrix that is ``close'' to $\Bf M$. The procedure is as follows:
-From $\Bf M$ a matrix $\bV$ is formed via
+From $\Bf M$ a matrix $\bfV$ is formed via
 \begin{equation}
-  \bV = \Bf S (\Bf I - \Bf M)(\Bf I + \Bf M)^{-1} 
+  \bfV = \Bf S (\Bf I - \Bf M)(\Bf I + \Bf M)^{-1} 
   \label{e:vsimi}
 \end{equation}
 where $\Bf S$ is the matrix
@@ -456,11 +456,11 @@ where $\Bf S$ is the matrix
   \end{pmatrix}
   \label{s0100}
 \Endeq
-$\bV$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
-a symmetric matrix $\Bf W$ near $\bV$ can be
+$\bfV$ is symmetric if and only if $\Bf M$ is symplectic. In any case,
+a symmetric matrix $\Bf W$ near $\bfV$ can be
 formed via
 \begin{equation}
-  \Bf W = \frac{\bV + \bV^t}{2}
+  \Bf W = \frac{\bfV + \bfV^t}{2}
 \end{equation}
 A symplectic matrix $\Bf F$ is now obtained by inverting \eq{e:vsimi}
 \Begineq
@@ -739,10 +739,10 @@ defined by the equations
 Given the dispersion at a given point, the dispersion at some other
 point is calculated as follows: Let $\Bf r = (x, p_x, y, p_y, z, p_z)$
 be the reference orbit, around which the dispersion is to be
-calculated. Let $\bV$ and $\bf M$ be the zeroth and first order components of 
+calculated. Let $\bfV$ and $\bf M$ be the zeroth and first order components of 
 the transfer map between two points labeled 1 and 2:
 \Begineq
-  \Bf r_2 = \bM \, \Bf r_1 + \bV
+  \Bf r_2 = \bfM \, \Bf r_1 + \bfV
   \label{rmrv}
 \Endeq
 Define the dispersion vector $\bfeta$ by
@@ -755,11 +755,11 @@ Define the dispersion vector $\bfeta$ by
 Differentiating \Eq{rmrv} with respect to energy, 
 the dispersion at point 2 in terms of the dispersion at point 1 is
 \Begineq
-  \bfeta_2 = \frac{dp_{z1}}{dp_{z2}} \left[ \bM \, \bfeta_1 \right] + \bV_\eta 
+  \bfeta_2 = \frac{dp_{z1}}{dp_{z2}} \left[ \bfM \, \bfeta_1 \right] + \bfV_\eta 
 \Endeq
 where
 \Begineq
-  \bV_\eta = \frac{dp_{z1}}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
+  \bfV_\eta = \frac{dp_{z1}}{dp_{z2}} \, \frac{1}{1 + p_{z1}}
   \left(
   \begin{array}{c}
     M_{12} \, p_{x1} + M_{14} \, p_{y1} \\
@@ -821,7 +821,7 @@ $(x, y)_{true}$ is
     r_2
   \end{pmatrix}
   +
-  \bM_m \, 
+  \bfM_m \, 
   \left[
   \begin{pmatrix}
     x \\
@@ -849,7 +849,7 @@ with
 \Endeq
 and 
 \Begineq
-  \bM_m
+  \bfM_m
   =
   \begin{pmatrix}
      g_x \, \cos (d\theta + d\psi) & g_x \, \sin (d\theta + d\psi) \\
@@ -897,7 +897,7 @@ orbit at two different energies. The measured values are then
     r_2
   \end{pmatrix}
   +
-  \bM_m \, 
+  \bfM_m \, 
   \begin{pmatrix}
     \eta_x \\
     \eta_y
@@ -928,11 +928,11 @@ of the $a$-mode which can be written in the form:
   \label{xyapk}
 \Endeq
 $i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
-The coefficients $K_{22a}$ and $K_{12a}$ are related to the coupling $\Cbar$ via
+The coefficients $K_{22a}$ and $K_{12a}$ are related to the coupling $\bfCbar$ via
 David and Rubin\cite{b:coupling} Eq.~54:
 \begin{alignat}{1}
-  K_{22a} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{22} \CRNO
-  K_{12a} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \Cbar_{12}
+  K_{22a} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \bfCbar_{22} \CRNO
+  K_{12a} &= \frac{-\sqrt{\beta_b}}{\gamma \, \sqrt{\beta_a}} \, \bfCbar_{12}
   \label{kabgbc}
 \end{alignat}
 To apply the measurement errors, consider the general case where the
@@ -975,7 +975,7 @@ many turns gives
     q_{a1y}
   \end{pmatrix}_{\! \mss{meas}}
   =  
-  \bM_m \, 
+  \bfM_m \, 
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
@@ -986,7 +986,7 @@ many turns gives
     q_{a2y}
   \end{pmatrix}_{\! \mss{meas}}
   =  
-  \bM_m \, 
+  \bfM_m \, 
   \begin{pmatrix}
     q_{a2x} \\
     q_{a2y}
@@ -1003,7 +1003,7 @@ contribution to the measured $K_{22a}$ and $K_{12a}$ of
 \Endeq
 Using the above equations, the transformation from the true
 coupling to measured coupling is as follows: From a knowledge of the
-true $\Cbar$ and Twiss values, the true $K_{22a}$ and
+true $\bfCbar$ and Twiss values, the true $K_{22a}$ and
 $K_{12a}$ can be calculated via \Eq{kabgbc}. Since the value of $d\phi$
 does not affect the final answer, $d\phi$ in \Eq{xykkap} is chosen to
 be zero.  Comparing this to \Eq{xyapk} gives
@@ -1031,10 +1031,10 @@ be zero.  Comparing this to \Eq{xyapk} gives
 Now \Eq{kkmkk} is used to convert to the measured $q$'s and
 \Eq{kaqqqq} then gives the measured $K_{22a}$ and $K_{12a}$. Finally,
 Applying \Eq{kkrnn} and then \Eq{kabgbc} gives the measured
-$\Cbar_{22}$ and $\Cbar_{12}$. 
+$\bfCbar_{22}$ and $\bfCbar_{12}$. 
 
 A similar procedure can be applied to $b$-mode oscillations to
-calculate values for the measured $\Cbar_{11}$ and $\Cbar_{12}$.
+calculate values for the measured $\bfCbar_{11}$ and $\bfCbar_{12}$.
 $K_{11b}$ and $K_{12b}$ are defined by
 \Begineq
   \begin{pmatrix}
@@ -1051,8 +1051,8 @@ $K_{11b}$ and $K_{12b}$ are defined by
 \Endeq
 Comparing this to David and Rubin\cite{b:coupling} Eq.~55 gives
 \begin{alignat}{1}
-  K_{11b} &= \frac{ \sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{11} \CRNO
-  K_{12b} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \Cbar_{12}
+  K_{11b} &= \frac{ \sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \bfCbar_{11} \CRNO
+  K_{12b} &= \frac{-\sqrt{\beta_a}}{\gamma \, \sqrt{\beta_b}} \, \bfCbar_{12}
   \label{kbbgbc}
 \end{alignat}
 The $q_{x1b}$, $q_{y1b}$, $q_{x2b}$ and $q_{y2b}$ are defined by using
@@ -1302,9 +1302,9 @@ defines the ellipsoid at a distance of $n$--sigma from the centroid is
 where the $t$ superscript denotes the transpose. Given the sigma matrix
 at some point $s = s_1$, the sigma matrix at a different point $s_2$ is
 \Begineq
-  \bfsig_2 = \bM_{12} \, \bfsig_1 \, \bM_{12}^t
+  \bfsig_2 = \bfM_{12} \, \bfsig_1 \, \bfM_{12}^t
 \Endeq
-where $\bM_{12}$ is the Jacobian of the transport map from point
+where $\bfM_{12}$ is the Jacobian of the transport map from point
 $s_1$ to $s_2$.
 
 \index{dispersion}
@@ -1857,16 +1857,16 @@ notation, the synchrotron integrals for coupled motion are:
          \nabla g^2 \cdot \bfeta\two_b \right] \\
     I_{4z} &=& \oint ds \, \left[ g^2 \, \bfg \cdot \bfeta\two + 
          \nabla g^2 \cdot \bfeta\two \right] \\
-    I_{5a} &=& \oint ds \, g^3 \, \calh_a \\
-    I_{5b} &=& \oint ds \, g^3 \, \calh_b \\
+    I_{5a} &=& \oint ds \, g^3 \, \calH_a \\
+    I_{5b} &=& \oint ds \, g^3 \, \calH_b \\
     I_{6b} &=& \oint ds \, g^3 \, \beta_b
   \Endeqs
-where $\gamma_0$ is that usual relativistic factor and $\calh_a$ is 
+where $\gamma_0$ is that usual relativistic factor and $\calH_a$ is 
   \Begineq
-    \calh_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
+    \calH_a = \gamma_a \, \eta_a^2 + 2 \, \alpha_a \, \eta_a \, \eta_a' + 
       \beta_a \eta_a'^2 
   \Endeq
-with a similar equation for $\calh_b$. Here $\bfeta\two_a =
+with a similar equation for $\calH_b$. Here $\bfeta\two_a =
 (\eta_{ax}, \eta_{ay})$, and $\bfeta\two_b = (\eta_{bx}, \eta_{by})$
 are the dispersion vectors for the $a$ and $b$ modes respectively in
 $x$--$y$ space (these 2--vectors are not to be confused with the
@@ -1974,8 +1974,8 @@ integrals are not relevant. The other integrals become
   \Begineqs
     L_2 &=& \int ds \, g^2 \, \gamma_0^4 \\
     L_3 &=& \int ds \, g^3 \, \gamma_0^7 \\
-    L_{5a} &=& \int ds \, g^3 \, \calh_a \, \gamma_0^6 \\
-    L_{5b} &=& \int ds \, g^3 \, \calh_b \, \gamma_0^6
+    L_{5a} &=& \int ds \, g^3 \, \calH_a \, \gamma_0^6 \\
+    L_{5b} &=& \int ds \, g^3 \, \calH_b \, \gamma_0^6
   \Endeqs
 In terms of these integrals, the energy loss through the lattice is
   \Begineq
