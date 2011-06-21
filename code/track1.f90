@@ -51,6 +51,15 @@ real(rp) beta, beta_start
 
 integer tracking_method
 
+! Custom tracking
+
+tracking_method = ele%tracking_method
+
+if (tracking_method == custom$) then
+  call track1_custom (orb, ele, param, end, track)
+  return
+endif
+
 ! Init
 
 param%lost = .false.  ! assume everything will be OK
@@ -77,7 +86,6 @@ endif
 
 ! bmad_standard handles the case when the element is turned off.
 
-tracking_method = ele%tracking_method
 if (.not. ele%is_on) tracking_method = bmad_standard$
 
 select case (tracking_method)
@@ -90,9 +98,6 @@ case (runge_kutta$)
 
 case (linear$) 
   call track1_linear (orb, ele, param, end)
-
-case (custom$) 
-  call track1_custom (orb, ele, param, end, track)
 
 case (taylor$) 
   call track1_taylor (orb, ele, param, end)
