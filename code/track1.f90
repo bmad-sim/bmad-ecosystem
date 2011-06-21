@@ -56,7 +56,7 @@ integer tracking_method
 tracking_method = ele%tracking_method
 
 if (tracking_method == custom$) then
-  call track1_custom (orb, ele, param, end, track)
+  call track1_custom (start, ele, param, end, track)
   return
 endif
 
