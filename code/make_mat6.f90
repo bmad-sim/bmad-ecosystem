@@ -53,12 +53,20 @@ logical, optional :: end_in, err
 logical end_input, rad_fluct_save
 
 !--------------------------------------------------------
+! custom calc
+
+mat6_calc_method = ele%mat6_calc_method
+
+if (mat6_calc_method == custom$) then
+  call make_mat6_custom (ele, param, a_start, a_end)
+  return
+endif
+
 ! init
 
 param%lost = .false.
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
-mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 
 !
@@ -89,9 +97,6 @@ select case (mat6_calc_method)
 case (taylor$)
   call make_mat6_taylor (ele, param, a_start)
   if (.not. end_input) call track1_taylor (a_start, ele, param, a_end)
-
-case (custom$) 
-  call make_mat6_custom (ele, param, a_start, a_end)
 
 case (bmad_standard$)
   call make_mat6_bmad (ele, param, a_start, a_end, end_in, err)
