@@ -36,7 +36,7 @@ integer, parameter :: n_attrib_maxx = 60
 type coord_struct                ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0         ! (x, px, y, py, z, pz)
   real(rp) :: s = 0              ! Longitudinal position 
-  real(rp) :: t = 0              ! Time
+  real(rp) :: t = 0              ! Absolute time (not relative to reference).
   complex(rp) :: spin(2) = 0     ! Spin in spinor notation
   real(rp) :: e_field_x = 0      ! Photon field intensity, x-axis component
   real(rp) :: e_field_y = 0      ! Photon field intensity, y-axis component
@@ -474,7 +474,7 @@ integer, parameter ::       de_eta_meas$=14, f0_im$=14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, fh_re$=15
 integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16
-integer, parameter :: ds_slave_offset$=17, h1$=17, x_quad$=17, g_graze$=17
+integer, parameter :: ds_slave_offset$ = 17, h1$=17, x_quad$=17, g_graze$=17
 integer, parameter :: h2$=18, y_quad$=18, g_trans$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
@@ -489,7 +489,7 @@ integer, parameter :: pole_radius$ = 28, coupler_at$ = 28, follow_diffracted_bea
 integer, parameter :: Bs_field$=29, ref_wavelength$=29, coupler_strength$ = 29, e_tot_offset$ = 29
 integer, parameter :: B_field$=30, E_field$=30, coupler_phase$ = 30, nx_out$ = 30
 integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, ny_out$ = 31
-integer, parameter :: B1_gradient$=32, E1_gradient$=32, nz_out$ = 32 
+integer, parameter :: B1_gradient$=32, E1_gradient$=32, nz_out$ = 32
 integer, parameter :: B2_gradient$=33, E2_gradient$=33, patch_end$ = 33, d_source$=33
 integer, parameter :: B3_gradient$=34, E3_gradient$=34, translate_after$=34, d_detec$=34
 integer, parameter :: delta_ref_time$=35 ! Assumed unique Do not overload.
@@ -506,13 +506,13 @@ integer, parameter :: n_ref_pass$=45  ! Assumed unique. Do not overload.
 integer, parameter :: p0c$=46         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=47       ! Assumed unique. Do not overload.
 integer, parameter :: thickness$ = 48, integrator_order$ = 48   ! For Etiennes' PTC: 2, 4, or 6.
-integer, parameter :: num_steps$ = 49
-integer, parameter :: ds_step$ = 50
-integer, parameter :: general1$ = 51   ! For general use
-integer, parameter :: general2$ = 52   ! For general use
-integer, parameter :: general3$ = 53   ! For general use
-integer, parameter :: general4$ = 54   ! For general use
-integer, parameter :: general5$ = 55   ! For general use
+integer, parameter :: num_steps$ = 49, l_x$ = 49
+integer, parameter :: ds_step$ = 50, l_y$ = 50
+integer, parameter :: l_z$ = 51
+!! 52 is open   integer, parameter :: 
+integer, parameter :: general1$ = 53   ! For general use
+integer, parameter :: general2$ = 54   ! For general use
+integer, parameter :: general3$ = 55   ! For general use
 integer, parameter :: x1_limit$ = 56   ! Assumed unique. Do not overload.
 integer, parameter :: x2_limit$ = 57   ! Assumed unique. Do not overload.
 integer, parameter :: y1_limit$ = 58   ! Assumed unique. Do not overload.
@@ -579,6 +579,7 @@ integer, parameter :: b20$ = 160, t20$ = 160
 integer, parameter :: n_attrib_special_maxx = t20$
 
 character(40), parameter :: null_name$ = '!NULL' 
+character(40), parameter :: reserved_name$ = '!RESERVED' 
 character(40), parameter :: blank_name$ = ' '
 
 ! electron/positron

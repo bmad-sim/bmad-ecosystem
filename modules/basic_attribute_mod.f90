@@ -151,17 +151,17 @@ end function attribute_index
 !
 ! Output:
 !   attrib_name -- Character(40): Name of attribute. 
-!      If %key is invalid then                   attribute_name = "!BAD ELE KEY"
-!      If ix_att is invalid then                 attribute_name = "!BAD INDEX"
-!      If ix_att is invalid for an overlay then  attribute_name = "!INVALID INDEX"
-!      If ix_att does not correspond to an attribute for the given key then
-!                                                attribute_name = null_name = "!NULL" 
+!      = "!BAD ELE KEY"                 %key is invalid
+!      = "!BAD INDEX"                   ix_att is invalid (out of range).
+!      = "!INVALID INDEX"               ix_att is invalid for an overlay 
+!      = "!NULL" (null_name$)           ix_att does not correspond to an attribute.
+!      = "!RESERVED" (reserved_name$)   Slot is for Bmad internal use or reserved for future use.
 !
 ! Example:
 !   ele%key = sbend$
 !   name = attribute_name (ele, k1$)
 ! Result:
-!   name -> 'K1'
+!   name -> "K1"
 !-
 
 function attribute_name (ele, ix_att) result (at_name)
@@ -486,7 +486,7 @@ attrib_array(lcavity$, coupler_at$)              = 'COUPLER_AT'
 attrib_array(lcavity$, gradient_err$)            = 'GRADIENT_ERR'
 attrib_array(lcavity$, phi0_err$)                = 'PHI0_ERR'
 attrib_array(lcavity$, rf_field$)                = 'RF_FIELD'
-attrib_array(lcavity$, ds_slave_offset$)         = 'DS_SLAVE_OFFSET' 
+attrib_array(lcavity$, ds_slave_offset$)         = reserved_name$
 
 attrib_array(group$, command$)                   = 'COMMAND'
 attrib_array(group$, old_command$)               = 'OLD_COMMAND'
@@ -501,6 +501,7 @@ attrib_array(drift$, field_calc$)                = 'FIELD_CALC'
 attrib_array(drift$, field_master$)              = 'FIELD_MASTER'
 
 attrib_array(monitor$, field_master$)            = 'FIELD_MASTER'
+attrib_array(monitor$, ds_slave_offset$)         = reserved_name$
 
 attrib_array(instrument$, :)                     = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                           = attrib_array(monitor$, :)
@@ -511,6 +512,7 @@ attrib_array(hkicker$, field_master$)            = 'FIELD_MASTER'
 attrib_array(hkicker$, bl_kick$)                 = 'BL_KICK'
 attrib_array(hkicker$, s_offset$)                = 'S_OFFSET'
 attrib_array(hkicker$, pole_radius$)             = 'POLE_RADIUS'
+attrib_array(hkicker$, ds_slave_offset$)         = reserved_name$
 
 attrib_array(vkicker$, :)                        = attrib_array(hkicker$, :)
 
@@ -521,6 +523,7 @@ attrib_array(kicker$, field_calc$)               = 'FIELD_CALC'
 attrib_array(kicker$, field_master$)             = 'FIELD_MASTER'
 attrib_array(kicker$, s_offset$)                 = 'S_OFFSET'
 attrib_array(kicker$, pole_radius$)              = 'POLE_RADIUS'
+attrib_array(kicker$, ds_slave_offset$)          = reserved_name$
 
 attrib_array(sbend$, angle$)                     = 'ANGLE'
 attrib_array(sbend$, e1$)                        = 'E1'
@@ -547,6 +550,7 @@ attrib_array(sbend$, radius$)                    = 'RADIUS'
 attrib_array(sbend$, field_calc$)                = 'FIELD_CALC'
 attrib_array(sbend$, field_master$)              = 'FIELD_MASTER'
 attrib_array(sbend$, ref_orbit$)                 = 'REF_ORBIT'
+!! attrib_array(sbend$, ds_slave_offset$)           = reserved_name$
 
 attrib_array(rbend$, :)                          = attrib_array(sbend$, :)
 
@@ -564,6 +568,7 @@ attrib_array(bend_sol_quad$, rho$)               = 'RHO'
 attrib_array(bend_sol_quad$, radius$)            = 'RADIUS'
 attrib_array(bend_sol_quad$, field_calc$)        = 'FIELD_CALC'
 attrib_array(bend_sol_quad$, field_master$)      = 'FIELD_MASTER'
+!! attrib_array(bend_sol_quad$, ds_slave_offset$)   = reserved_name$
 
 attrib_array(patch$, l$)                         = 'L'
 attrib_array(patch$, p0c_start$)                 = 'P0C_START'
@@ -593,6 +598,7 @@ attrib_array(quadrupole$, radius$)               = 'RADIUS'
 attrib_array(quadrupole$, field_calc$)           = 'FIELD_CALC'
 attrib_array(quadrupole$, field_master$)         = 'FIELD_MASTER'
 attrib_array(quadrupole$, pole_radius$)          = 'POLE_RADIUS'
+attrib_array(quadrupole$, ds_slave_offset$)      = reserved_name$
 
 attrib_array(sextupole$, k2$)                    = 'K2'
 attrib_array(sextupole$, B2_gradient$)           = 'B2_GRADIENT'
@@ -600,6 +606,7 @@ attrib_array(sextupole$, radius$)                = 'RADIUS'
 attrib_array(sextupole$, field_calc$)            = 'FIELD_CALC'
 attrib_array(sextupole$, field_master$)          = 'FIELD_MASTER'
 attrib_array(sextupole$, pole_radius$)           = 'POLE_RADIUS'
+attrib_array(sextupole$, ds_slave_offset$)       = reserved_name$
 
 attrib_array(octupole$, k3$)                     = 'K3'
 attrib_array(octupole$, B3_gradient$)            = 'B3_GRADIENT'
@@ -607,6 +614,7 @@ attrib_array(octupole$, radius$)                 = 'RADIUS'
 attrib_array(octupole$, field_calc$)             = 'FIELD_CALC'
 attrib_array(octupole$, field_master$)           = 'FIELD_MASTER'
 attrib_array(octupole$, pole_radius$)            = 'POLE_RADIUS'
+attrib_array(octupole$, ds_slave_offset$)        = reserved_name$
 
 attrib_array(solenoid$, ks$)                     = 'KS'
 attrib_array(solenoid$, bs_field$)               = 'BS_FIELD'
@@ -614,6 +622,7 @@ attrib_array(solenoid$, radius$)                 = 'RADIUS'
 attrib_array(solenoid$, field_calc$)             = 'FIELD_CALC'
 attrib_array(solenoid$, field_master$)           = 'FIELD_MASTER'
 attrib_array(solenoid$, pole_radius$)            = 'POLE_RADIUS'
+attrib_array(solenoid$, ds_slave_offset$)        = reserved_name$
 
 attrib_array(rfcavity$, dphi0$)                  = 'DPHI0'
 attrib_array(rfcavity$, voltage$)                = 'VOLTAGE'
@@ -630,7 +639,7 @@ attrib_array(rfcavity$, coupler_angle$)          = 'COUPLER_ANGLE'
 attrib_array(rfcavity$, coupler_phase$)          = 'COUPLER_PHASE'
 attrib_array(rfcavity$, coupler_at$)             = 'COUPLER_AT'
 attrib_array(rfcavity$, rf_field$)               = 'RF_FIELD'
-attrib_array(rfcavity$, ds_slave_offset$)        = 'DS_SLAVE_OFFSET' 
+attrib_array(rfcavity$, ds_slave_offset$)        = reserved_name$
 
 attrib_array(elseparator$, gap$)                 = 'GAP'
 attrib_array(elseparator$, e_field$)             = 'E_FIELD'
@@ -639,6 +648,7 @@ attrib_array(elseparator$, tilt$)                = 'TILT'
 attrib_array(elseparator$, radius$)              = 'RADIUS'
 attrib_array(elseparator$, field_calc$)          = 'FIELD_CALC'
 attrib_array(elseparator$, field_master$)        = 'FIELD_MASTER'
+attrib_array(elseparator$, ds_slave_offset$)     = reserved_name$
 
 attrib_array(beambeam$, sig_x$)                  = 'SIG_X'
 attrib_array(beambeam$, sig_y$)                  = 'SIG_Y'
@@ -669,7 +679,7 @@ attrib_array(wiggler$, radius$)                  = 'RADIUS'
 attrib_array(wiggler$, field_calc$)              = 'FIELD_CALC'
 attrib_array(wiggler$, field_master$)            = 'FIELD_MASTER'
 attrib_array(wiggler$, x_ray_line_len$)          = 'X_RAY_LINE_LEN'
-attrib_array(wiggler$, ds_slave_offset$)         = 'DS_SLAVE_OFFSET'
+attrib_array(wiggler$, ds_slave_offset$)         = reserved_name$
 
 attrib_array(sol_quad$, k1$)                     = 'K1'
 attrib_array(sol_quad$, ks$)                     = 'KS'
@@ -679,6 +689,7 @@ attrib_array(sol_quad$, field_calc$)             = 'FIELD_CALC'
 attrib_array(sol_quad$, field_master$)           = 'FIELD_MASTER'
 attrib_array(sol_quad$, b1_gradient$)            = 'B1_GRADIENT'
 attrib_array(sol_quad$, bs_field$)               = 'BS_FIELD'
+attrib_array(sol_quad$, ds_slave_offset$)        = reserved_name$
 
 attrib_array(multipole$, l$)                     = 'L'
 attrib_array(multipole$, tilt$)                  = 'TILT'
@@ -718,7 +729,7 @@ attrib_array(custom$, delta_e$)                  = 'DELTA_E'
 attrib_array(custom$, delta_ref_time$)           = 'DELTA_REF_TIME'
 attrib_array(custom$, e_tot_start$)              = 'E_TOT_START'
 attrib_array(custom$, p0c_start$)                = 'P0C_START'
-attrib_array(custom$, ds_slave_offset$)          = 'DS_SLAVE_OFFSET' 
+attrib_array(custom$, ds_slave_offset$)          = reserved_name$
 
 attrib_array(hybrid$, l$)                        = 'L'
 attrib_array(hybrid$, delta_e$)                  = 'DELTA_E'
@@ -763,15 +774,18 @@ attrib_array(crystal$, c3_curve_tot$)            = 'C3_CURVE_TOT'
 attrib_array(crystal$, c4_curve_tot$)            = 'C4_CURVE_TOT'
 attrib_array(crystal$, thickness$)               = 'THICKNESS'
 attrib_array(crystal$, follow_diffracted_beam$)  = 'FOLLOW_DIFFRACTED_BEAM'
-
-!! attrib_array(crystal$, nx_out$)           = 'NX_OUT'   ! Hidden value
-!! attrib_array(crystal$, ny_out$)           = 'NY_OUT'   ! Hidden value
-!! attrib_array(crystal$, nz_out$)           = 'NZ_OUT'   ! Hidden value
+attrib_array(crystal$, nx_out$)                  = reserved_name$
+attrib_array(crystal$, ny_out$)                  = reserved_name$
+attrib_array(crystal$, nz_out$)                  = reserved_name$
+attrib_array(crystal$, l_x$)                     = reserved_name$
+attrib_array(crystal$, l_y$)                     = reserved_name$
+attrib_array(crystal$, l_z$)                     = reserved_name$
 
 attrib_array(capillary$, l$)                     = 'L'
 attrib_array(capillary$, s_spline$)              = 'S_SPLINE'
 attrib_array(capillary$, n_slice_spline$)        = 'N_SLICE_SPLINE'
 attrib_array(capillary$, critical_angle_factor$) = 'CRITICAL_ANGLE_FACTOR'
+attrib_array(capillary$, ds_slave_offset$)       = reserved_name$
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.

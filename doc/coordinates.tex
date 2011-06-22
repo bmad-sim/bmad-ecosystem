@@ -193,6 +193,22 @@ $\Bf L$ and $\Bf S$ are
   \end{pmatrix},
 \Endeq
 
+%-----------------------------------------------------------------------
+
+\begin{figure}
+  \centering \includegraphics{tilt-bend.pdf} 
+\caption[Orientation of the local coordinate system after a bend] {
+Orientation of the local coordinate system after a bend shown for a
+positive bend angle $\alpha_b$ and for tilt angles $\theta_t$ of 0,
+$\pm \pi/2$, and $\pi$. The local coordinates axes before the
+bend are labeled $x_0$ and $y_0$ with the $z_0$ axis being directed
+into the page.
+  }  
+  \label{f:tilt.bend}
+\end{figure}
+
+%-----------------------------------------------------------------------
+
 \index{rbend}\index{sbend}
 \index{rho}\index{tilt}\index{angle}
 Where $L$ is the length of the element. For a \vn{bend}, $\Bf L$ and
@@ -237,12 +253,13 @@ around an axis that is perpendicular to the plane of the bend. This
 rotation axis is invariant under the bend transformation. For example,
 for $\theta_t = 0$ (or $\pi$) the $y$-axis is the rotation axis and
 the $y$-axis of the local coordinates before the bend will be parallel
-to the $y$-axis of the local coordinates after the bend. That is, a
-lattice with only bends with $\theta_t = 0$ or $\pi$ will lie in the
-horizontal plane (this assuming that the $y$-axis starts out pointing
-along the $Y$-axis as it does by default).  For $\theta_t = \pm\pi/2$,
-the bend axis is the $x$-axis. A value of $\theta_t = +\pi/2$
-represents a downward pointing bend.
+to the $y$-axis of the local coordinates after the bend as shown in
+Fig.~\ref{f:tilt.bend}. That is, a lattice with only bends with
+$\theta_t = 0$ or $\pi$ will lie in the horizontal plane (this
+assuming that the $y$-axis starts out pointing along the $Y$-axis as
+it does by default).  For $\theta_t = \pm\pi/2$, the bend axis is the
+$x$-axis. A value of $\theta_t = +\pi/2$ represents a downward
+pointing bend.
 
 \begin{figure}
   \centering \includegraphics{mirror.pdf} 
@@ -307,7 +324,7 @@ define a plane which is called the element's \vn{bendplane}.  For a
 mirror, the graze angle is a parameter supplied by the user. For a
 crystal, the graze angles are calculated so that the reference
 trajectory is in the middle of the Darwin curve. Calculation of the
-graze angles for a crystal is given in Section~\ref{s:crystal.ref}.
+graze angles for a crystal is given in Section~\ref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
 \subsection{Patch Element}

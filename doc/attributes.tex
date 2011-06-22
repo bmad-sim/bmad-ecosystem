@@ -776,11 +776,11 @@ exception is with an $m = 0$ mode either the $e$ or $b$ arrays can be
 omitted and will default to zero. The number of terms $N$ for the $e$
 or $b$ vectors must be a power of $2$ and all modes must have the same
 number of terms. The $n$\Th element in the $e$ or $b$ arrays, with $n$
-running from 0 to $N-1$, is associated with a frequency $\omega_n$
+running from 0 to $N-1$, is associated with a wavelength $k_n$
 \begin{equation}
-  \omega_n = \begin{cases}
-    \frac{n}{N \, dz} & n < \frac{N}{2} \\
-    \frac{n-N}{N \, dz} & \mbox{otherwise}
+  k_n = \begin{cases}
+    \frac{2 \, \pi \, n}{N \, dz} & n < \frac{N}{2} \\
+    \frac{2 \, \pi \, (n-N)}{N \, dz} & \mbox{otherwise}
   \end{cases}
 \end{equation}
 This convention follows the convention used by Numerical
@@ -789,7 +789,7 @@ Recipes\cite{b:nr}.
 The longitudinal length
 of the field is
 \begin{equation}
-  L_{field} = \frac{N - 1}{dz}
+  L_{\mbox{field}} = \frac{N - 1}{dz}
 \end{equation}
 this may be different from the length \vn{l} specified for the
 element. If there is a difference, the field is assumed to be centered
@@ -798,7 +798,7 @@ of the element to make up the difference.
 
 The field of a given mode oscillates as given by Eq.~\ref{eseei}  
 \Begineq
-  e^{-i \, (\omega \, t + \theta_0)}
+  e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
 \Endeq
 The phase of the oscillation, $\theta_0$ comes from two
 sources: the phase \vn{theta_t0} set for the mode and an overall phase
@@ -814,13 +814,13 @@ $\theta_0$ is
 \Begineq
   \theta_0 = 
   \begin{cases}
-    \mbox{theta_t0} + \frac{\omega}{\omega_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
+    \mbox{theta_t0} + \dsfrac{f}{f_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
     \mbox{lcavity element} \\
-    \mbox{theta_t0} - \frac{\omega}{\omega_0} \, \mbox{phi_ref} & 
+    \mbox{theta_t0} - \dsfrac{f}{f_0} \, \mbox{phi_ref} & 
     \mbox{rfcavity element}
   \end{cases}
 \Endeq
-where $\omega$ is the mode frequency and $\omega_0$ is the frequency of the fundamental.
+where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
 
 The phase \vn{theta_t0} of the fundamental mode is autoscaled by Bmad
 so that a particle with $z = 0$ will go through the cavity on crest

@@ -53,9 +53,9 @@ complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
 wavelength = ele%value(ref_wavelength$) / (1 + end%vec(6))
 
-! (px, py, sart(1-px^2+py^2)) coords are with respect to the incoming reference trajectory.
+! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k_in_norm which are coords with respect to crystal surface.
-! k_in_norm is incoming wavevector * wavelength so has unit length.
+! k_in_norm is normalized to 1.
 
 sin_g = sin(ele%value(graze_angle_in$))
 cos_g = cos(ele%value(graze_angle_in$))
