@@ -53,7 +53,7 @@ logical, optional :: end_in, err
 logical end_input, rad_fluct_save
 
 !--------------------------------------------------------
-! custom calc
+! Some Init
 
 mat6_calc_method = ele%mat6_calc_method
 
@@ -63,7 +63,10 @@ else
   call init_coord (a_start_orb)
 endif
 
+end_input = logic_option (.false., end_in)
 if (end_input) a_end_orb = end_orb
+
+! custom calc 
 
 if (mat6_calc_method == custom$) then
   call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
@@ -79,7 +82,6 @@ if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 
 !
 
-end_input = logic_option (.false., end_in)
 if (present(err)) err = .false.
 
 if (end_input .and. .not. present(end_orb)) then

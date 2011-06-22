@@ -409,6 +409,7 @@ do ib = 0, ubound(lat%branch, 1)
       attrib_name = attribute_name(ele, j)
       val = ele%value(j)
       if (val == 0) cycle
+      if (attrib_name == reserved_name$) cycle
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle

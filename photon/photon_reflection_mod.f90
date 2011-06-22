@@ -27,6 +27,17 @@ logical, save :: photon_reflect_table_init_needed = .true.
 
 private photon_reflection_init
 
+!
+
+type photon_reflection_common_struct
+  real(rp) :: surface_roughness_rms = 4d-9
+  real(rp) :: roughness_correlation_len = 200d-9
+end type
+
+type (photon_reflection_common_struct), save :: photon_reflect_com
+
+!
+
 contains
 
 !---------------------------------------------------------------------------------------------

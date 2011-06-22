@@ -30,7 +30,7 @@ entrance coordinates} and \vn{element exit coordinates} are the same
 as the laboratory coordinate system (\sref{s:ref}) at the entrance and
 exit ends of the element respectively. [The one exception is when
 a \vn{crystal} element has a non-zero \vn{psi_angle} value. See
-\sref{s:crystal.ref}.] The \vn{body coordinate system} will be
+\sref{ss:crystal.trans}.] The \vn{body coordinate system} will be
 discussed below. The general procedure for tracking a particle through
 a given element is then a three step process: At the start, the
 particle is at the entrance end of the element and the particle's
@@ -79,7 +79,7 @@ opposite the $\bfhat n$ vector and the $z$-axis is parallel to the
 surface. The \vn{element exit coordinates} will generally have it's
 $y$-axis aligned with the $y$-axes of the other two coordinate
 systems. The exceptional case occurs for a \vn{crystal} element when
-\vn{phi_angle} is nonzero (\sref{s:crystal.ref}).
+\vn{phi_angle} is nonzero (\sref{ss:crystal.trans}).
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
@@ -374,7 +374,7 @@ below, if the equation is true in general, and not just for the
 reference trajectory, the bar diacritic is dropped.
 
 Since $\bfhat n$ is in the $-\bfhat x$ direction, $\bfKbar_0$ is also in
-the $x$-$z$ plane. Thus $\bfkbar_0$ and $bKbar_0$ can be written in the form
+the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written in the form
 \Begineq
   \bfkbar_0 = \frac{1}{\lambda} \, 
     \begin{pmatrix}
@@ -392,7 +392,7 @@ the $x$-$z$ plane. Thus $\bfkbar_0$ and $bKbar_0$ can be written in the form
   \label{k1l1d}
 \Endeq
 Where, as shown in Fig.~\ref{f:crystal.diffraction}, $\theta_{g,in}$,
-and $\theta_0$ are the angles of $Bf kbar_0$ and $\bfKbar_0$ with respect to
+and $\theta_0$ are the angles of $\bfkbar_0$ and $\bfKbar_0$ with respect to
 the $z$ axis, and use has been made of the relations
 \begin{align}
   |\bf k_0| &= |\bf k_H| = \frac{1}{\lambda} 
@@ -473,7 +473,7 @@ and for Laue diffraction
   \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \sin\alpha_H \, \sin\psi_H 
   \qquad \qquad [\mbox{Laue}] 
   \label{k1dapl} \\
-  \kbar_{H,z} &= -\sqrt{\frac{1}{\lambda^2} - \kbar_{H,x}^2 - \kbar_{H,y}^2} \nonumber
+  \kbar_{H,z} &= \sqrt{\frac{1}{\lambda^2} - \kbar_{H,x}^2 - \kbar_{H,y}^2} \nonumber
 \end{align}
 
 The total bending angle of the reference trajectory is then
@@ -491,13 +491,16 @@ the difference between the total bend angle and the entrance graze angle.
 \subsection{Crystal Coordinate Transformations}
 \label{ss:crystal.trans}
 
+For Laue diffraction the coordinate transformations when the
+non-diffracted beam is tracked is \etcetc.
+
 There are four transformations needed between coordinates
 denoted by $\Bf\Sigma_1$, $\Bf\Sigma_2$, $\Bf\Sigma_3$, and $\Bf\Sigma_4$
 \begin{example}
-  $\Bf\Sigma_1$  Transform from laboratory entrance to element entrance coordinates.  
-  $\Bf\Sigma_2$  Transform from element entrance to body coordinates.  
-  $\Bf\Sigma_3$  Transform from body to element exit coordinates.  
-  $\Bf\Sigma_4$  Transform from element exit to laboratory exit coordinates.  
+  \(\Bf\Sigma_1\)  Transform from laboratory entrance to element entrance coordinates.  
+  \(\Bf\Sigma_2\)  Transform from element entrance to body coordinates.  
+  \(\Bf\Sigma_3\)  Transform from body to element exit coordinates.  
+  \(\Bf\Sigma_4\)  Transform from element exit to laboratory exit coordinates.  
 \end{example}
 The total transformation is just the map represented by $\bfS$ and
 $\bfV$ of \Eqs{vwlv} and \eq{wws}
@@ -508,7 +511,7 @@ $\bfV$ of \Eqs{vwlv} and \eq{wws}
 \index{tilt_corr}\index{crystal!tilt correction}
 The transformation $\Bf\Sigma_1$ is given in
 \sref{ss:crystal.trans.le} and the transformation $\Bf\Sigma_4$ is
-given in \label{ss:crystal.trans.el}. The transformation $\Bf\Sigma_1$
+given in \sref{ss:crystal.trans.el}. The transformation $\Bf\Sigma_1$
 needs a ``tilt correction'' (\Eq{tttt}) as explained below when
 $\psi_H$ is nonzero.  Since this tilt correction is independent of any
 misalignments, the tilt correction calculation proceeds assumeing here
@@ -556,7 +559,7 @@ $\theta_{g,in}+\theta_{g,out}$ as explained in section
 When $\psi_H$ is non-zero, the situation is complicated since, if
 $\bfS$ as calculated above is used, the vector $\bfkbar_H$ would be
 bent out of the $x$-$z$ plane even though it has been assumed that the
-tilt $theta_t$ is zero. But $\bfkbar_H$ points in the same direction
+tilt $\theta_t$ is zero. But $\bfkbar_H$ points in the same direction
 as the $z$ axis of the outgoing reference trajectory. Futhermore, by
 {\em definition}, the reference trajectory has the form given by
 \Eq{lrca1} with the $\bfT$ matrix depending only upon the \vn{tilt}
@@ -566,8 +569,8 @@ $x$-$z$ plane of the laboratory entrance coordinates.  The
 reorientation is done by rotating the crystal about the laboratory
 entrance $\Bf z$ axis by an amount $\theta_{corr}$ (\vn{tilt_corr}).
 
-With this ``tilt correction'', the
-transformation $\Bf\Sigma_1$ is a rotation about the $z$ axis
+With this tilt correction the transformation $\Bf\Sigma_1$ is a
+rotation about the $z$ axis
 \Begineq
   \Bf\Sigma_1 = 
   \begin{pmatrix}
@@ -576,7 +579,8 @@ transformation $\Bf\Sigma_1$ is a rotation about the $z$ axis
     0                 &  0                 & 1                
   \end{pmatrix}
 \Endeq
-The transformation $\Bf\Sigma_2$ from element entrance coordinates to element body
+To calculate a value for $\theta_{corr}$, note that
+the transformation $\Bf\Sigma_2$ from element entrance coordinates to element body
 coordinates is not affected by a finite $\psi_H$ and so \Eq{mt0t010}
 is unmodified. The $\bfk_H$ vector, expressed in laboratory entrance
 coordinates, is $\Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H$ where the
@@ -608,10 +612,41 @@ In the above equation, the transformation $\Bf\Sigma_4$ has been
 dropped since it is the unit matrix independent of $\psi_H$.
 
 %-------------------------------------------------------------------------
+
+\begin{figure}
+\centering
+\includegraphics{crystal-energy.pdf}
+  \caption[Energy flow for Laue diffraction]{
+Energy flow for Laue diffraction.
+  }
+\label{f:crystal.energy}
+\end{figure}
+
+%-------------------------------------------------------------------------
 \subsection{Laue Reference Orbit Displacement Vector}
 \label{ss:crystal.dlaue}
 
-For Laue diffraction, the $\bfV$ displacement vector
+For Laue diffraction, the reference orbit displacement vector $\bfL$ (cf.~\Eq{vwlv})
+is nonzero due to the nonzero crystal thickness. The energy flow for
+any tie point is perpendicular to the real part of the dispersion
+curve at the point (\cite{b:batterman} $\S$2.9B). This is illustrated
+in Fig.~\ref{f:crystal.energy}. By symmetry, the energy flow for point
+Q is perpendicular to $\bfH$. The energy flow for the reference curve
+will thus be in the direction
+\Begineq
+  \bfS_{ref} \propto \bfKbar_{0H} \equiv \bfKbar_0 + \bfKbar_H
+\Endeq
+The reference orbit displacement vector is then
+\Begineq
+  \bfL = \frac{\bfKbar_{0H} \, ( \bfKbar_{0H} \cdot \Bf t )}{|\bfKbar_{0H}|^2}
+\Endeq
+where
+\Begineq
+  \Bf t = \begin{pmatrix}
+    0 \\ 0 \\ t
+  \end{pmatrix}
+\Endeq
+and $t$ is the crystal thickness.
 
 %-------------------------------------------------------------------------
 \subsection{Crystal Element Tracking}
@@ -660,7 +695,8 @@ and $P$ is the polarization factor
 $2\theta_g$ is the angle between $\bfK_0$ and $\bfK_H$ which is well
 approximated by $\theta_{g,in} + \theta_{g,out}$.
 
-With this definition, the ratio of the incoming and outgoing fields are given by (\cite{b:batterman} Eq.~(24))
+With this definition, the ratio of the incoming and outgoing fields
+are given by (\cite{b:batterman} Eq.~(24))
 \Begineq
   \frac{E_H}{E_0} = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
      = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H}
@@ -690,6 +726,21 @@ and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
 \Begineq
   a \equiv \frac{H^2 + 2 \, \bfk_0 \cdot \bfH}{k_0^2}
 \Endeq
+
+For Laue diffraction the photon has to be tracked from the entrance
+surface to the exit surface. It is assumed that the two interior wave
+fields do not overlap at the exit surface (\cite{b:batterman}
+$\S$2.11A-B).  The interior wave fields can then be considered
+separately. In order to keep the number of photons tracked constant, a
+random number generator is used to select which branch, $\alpha$ or
+$\beta$ is tracked. The choice is weighted by the intensities
+$|\bfE_{H\alpha}|^2$ and $|\bfE_{H\beta}|^2$ at the exit surface to
+keep the statistics correct. The relative intensity of the outgoing photon is
+\Begineq
+  \frac{|E_{out}|^2}{|E_{in}|^2} = ... 
+\Endeq
+
+
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
