@@ -27,7 +27,7 @@ type wall3d_section_struct
   integer type
   real(rp) :: s = 0                     ! Longitudinal position
   real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
-  real(rp) :: n_slice_spline = 1        ! Number of slices used for the spline.
+  integer :: n_slice_spline = 1         ! Number of slices used for the spline.
   type (wall3d_vertex_struct), allocatable :: v(:) 
                                         ! Array of vertices
   integer n_vertex_input                ! Number of vertices specified by the user.

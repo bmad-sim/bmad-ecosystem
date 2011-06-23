@@ -408,7 +408,7 @@ if (word(1:5) == 'WALL.') then
     return
   endif
 
-  ix_sec = evaluate_array_integer (err_flag, ')', word2, '(=', delim)
+  ix_sec = evaluate_array_index (err_flag, ')', word2, '(=', delim)
   if (err_flag .or. .not. associated(ele%wall3d%section) .or. ix_sec < 0 .or. ix_sec > size(ele%wall3d%section)) then
     call parser_warning('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
     return
@@ -422,7 +422,7 @@ if (word(1:5) == 'WALL.') then
       r_ptr => section%s
 
     elseif (word2 == '.V' .and. delim == '(') then
-      ix_v = evaluate_array_integer (err_flag, ')', word, '=', delim)
+      ix_v = evaluate_array_index (err_flag, ')', word, '=', delim)
       if (err_flag .or. ix_v < 0 .or. ix_v > size(section%v)) then
         call parser_warning('BAD VERTEX INDEX',  'FOR ELEMENT: ' // ele%name)
         return
@@ -449,7 +449,13 @@ if (word(1:5) == 'WALL.') then
       call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
       return
     endif
-    r_ptr => section%n_slice_spline
+
+    call get_next_word (line, ix_word, '},)', delim, delim_found)
+    read (line, *, iostat = ios) section%n_slice_spline
+    if (ix_word == 0 .or. ios /= 0) then
+      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
+      return
+    endif
 
   case ('S_SPLINE')
     if (word2 /= '.COEF' .or. delim /= '(') then
@@ -457,7 +463,7 @@ if (word(1:5) == 'WALL.') then
       return
     endif
 
-    ix_coef = evaluate_array_integer (err_flag, ')', word, '=', delim)
+    ix_coef = evaluate_array_index (err_flag, ')', word, '=', delim)
     if (err_flag .or. ix_coef < 0 .or. ix_coef > size(section%s_spline) )then
       call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
       return
@@ -555,12 +561,12 @@ if (attrib_word == 'WALL') then
       call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
       if (word == 'V' .and. delim == '(') then
-        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
         ix_v = ix_v + 1
         section%n_vertex_input = ix_v
         call re_allocate (section%v, ix_v)
 
+        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
         read (word, *, iostat = ios) j 
         if (ios /= 0 .or. ix_v /= j) then
           call parser_warning ('BAD OR OUT OF ORDER WALL SECTION VERTEX INDEX NUMBER FOR: ' // ele%name)
@@ -1800,27 +1806,29 @@ end subroutine load_parse_line
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function evaluate_array_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
+! Function evaluate_array_index (err_flag, delim_list1, word2, delim_list2, delim2) result (this_index)
 !
-! Function of evaluate an integer and do some additional parsing
+! Function of evaluate the index of an array. Typically the text peing parsed looks like:
+!      "5) = ..."  or
+!      "6).COMP = ..."
 !
 ! Input:
-!   delim_list1 -- Character(1): Delimitor after the integer. Normally ')'
-!   word2       -- Character(*): Word after delim1
-!   delim_list2 -- Character(*): Delimitor list to mark the end of word2.
-!   delim2      -- Character(1): Actual delimitor found after word2.
+!   delim_list1 -- Character(1): Delimitor after the integer. Normally ')'.
+!   delim_list2 -- Character(*): Delimitor list to mark the end of word2. Normally '='.
 !
 ! Output:
-!   err_flag -- Logical: Set True if there is an error. False otherwise.
-!   this_int -- Integer: Integer value
+!   err_flag    -- Logical: Set True if there is an error. False otherwise.
+!   word2       -- Character(*): Word found after delim1. Normally this should be blank.
+!   delim2      -- Character(1): Actual delimitor found after word2.
+!   this_index  -- Integer: Integer value
 !-
 
-function evaluate_array_integer (err_flag, delim_list1, word2, delim_list2, delim2) result (this_int)
+function evaluate_array_index (err_flag, delim_list1, word2, delim_list2, delim2) result (this_index)
 
 implicit none
 
 character(*) delim_list1, word2, delim_list2, delim2
-integer this_int, ix_word
+integer this_index, ix_word
 character(1) delim
 character(20) word
 logical err_flag, delim_found
@@ -1829,7 +1837,7 @@ logical err_flag, delim_found
 ! Init
 
 err_flag = .true.
-this_int = -1
+this_index = -1
 
 ! Get integer
 
@@ -1837,14 +1845,14 @@ call get_next_word (word, ix_word, delim_list1, delim, delim_found)
 if (.not. delim_found) return
 
 if (.not. is_integer(word)) return
-read (word, *) this_int
+read (word, *) this_index
 
 ! Get word after integer
 
 call get_next_word (word2, ix_word, delim_list2, delim2, delim_found)
 if (delim_found) err_flag = .false.
 
-end function evaluate_array_integer
+end function evaluate_array_index
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

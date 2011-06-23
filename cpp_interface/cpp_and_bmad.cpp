@@ -63,20 +63,22 @@ void matrix_to_array (const Real_Matrix& mat, double* arr) {
 //---------------------------------------------------------------------------
 // Coord
 
-extern "C" void coord_to_f2_(coord_struct*, ReArr, const Complx*, Re&, Re&, Re&, Re&);
+extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, const Complx*, Re&, Re&, Re&, Re&);
 
-//extern "C" void coord_to_f_(C_coord& c, coord_struct* f) {
-//  coord_to_f2_(f, &c.vec[0], &c.spin[0], &c.e_field_x, &c.e_field_y, &c.phase_x, &c.phase_y);
-//}
+extern "C" void coord_to_f_(C_coord& c, coord_struct* f) {
+  coord_to_f2_(f, &c.vec[0], c.s, c.t, &c.spin[0], c.e_field_x, c.e_field_y, c.phase_x, c.phase_y);
+}
 
-extern "C" void coord_to_c2_(C_coord& c, double vec[], Complx spin[], 
+extern "C" void coord_to_c2_(C_coord& c, Re& s, Re& t, double vec[], Complx spin[], 
                              Re& field_x, Re& field_y, Re& p_x, Re& p_y) {
-  c.vec << vec;
-  c.spin << spin;
+  c.vec       << vec;
+  c.s         = s;
+  c.t         = t;
+  c.spin      << spin;
   c.e_field_x = field_x;
   c.e_field_y = field_y;
-  c.phase_x = p_x;
-  c.phase_y = p_y;
+  c.phase_x   = p_x;
+  c.phase_y   = p_y;
 }
 
 void operator>> (C_coord& c, coord_struct* f) {
@@ -92,7 +94,7 @@ void operator>> (coord_struct* f, C_coord& c) {
 
 extern "C" void twiss_to_f2_(twiss_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void twiss_to_f_(const C_twiss& c, twiss_struct* f) {
+extern "C" void twiss_to_f_(C_twiss& c, twiss_struct* f) {
   twiss_to_f2_(f, c.beta, c.alpha, c.gamma, c.phi, c.eta, c.etap, 
                   c.sigma, c.sigma_p, c.emit, c.norm_emit);
 }
@@ -116,7 +118,7 @@ void operator>> (twiss_struct* f, C_twiss& c) {
 
 extern "C" void xy_disp_to_f2_(xy_disp_struct*, Re&, Re&);
 
-extern "C" void xy_disp_to_f_(const C_xy_disp& c, xy_disp_struct* f) {
+extern "C" void xy_disp_to_f_(C_xy_disp& c, xy_disp_struct* f) {
   xy_disp_to_f2_(f, c.eta, c.etap);
 }
 
@@ -308,44 +310,44 @@ void operator>> (lr_wake_struct* f, C_lr_wake& c) {
 }
 
 //---------------------------------------------------------------------------
-// wake
+// rf_wake
 
-extern "C" void wake_to_f2_(wake_struct*, Char, Int&, Char, Int&, Re&, Int&, Int&, Int&, Int&);
-extern "C" void sr_table_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&);
-extern "C" void sr_mode_long_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
-extern "C" void sr_mode_trans_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
-extern "C" void lr_wake_in_wake_to_f2_(wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&,
+extern "C" void rf_wake_to_f2_(rf_wake_struct*, Char, Int&, Char, Int&, Re&, Int&, Int&, Int&, Int&);
+extern "C" void sr_table_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&);
+extern "C" void sr_mode_long_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void sr_mode_trans_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void lr_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&,
                                                          Re&, Re&, Re&, Re&, Re&, Int&, Int&);
 
-extern "C" void wake_to_f_(C_wake& c, wake_struct* f) {
+extern "C" void rf_wake_to_f_(C_rf_wake& c, rf_wake_struct* f) {
   int n_lr = c.lr.size();
   int n_sr_table = c.sr_table.size(); 
   int n_sr_mode_long = c.sr_mode_long.size(); 
   int n_sr_mode_trans = c.sr_mode_trans.size(); 
   const char* srf = c.sr_file.data();     int n_srf = c.sr_file.length();
   const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
-  wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr_mode_max, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr);
+  rf_wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr_mode_max, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr);
   for (int i = 0; i < n_sr_table; i++) {
-    sr_table_wake_in_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
+    sr_table_wake_in_rf_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
   }
   for (int i = 0; i < n_sr_mode_long; i++) {
-    sr_mode_long_wake_in_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
+    sr_mode_long_wake_in_rf_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
         c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].b_sin, 
         c.sr_mode_long[i].b_cos, c.sr_mode_long[i].a_sin, c.sr_mode_long[i].a_cos);
   }
   for (int i = 0; i < n_sr_mode_trans; i++) {
-    sr_mode_trans_wake_in_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
+    sr_mode_trans_wake_in_rf_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
         c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].b_sin, 
         c.sr_mode_trans[i].b_cos, c.sr_mode_trans[i].a_sin, c.sr_mode_trans[i].a_cos);
   }
   for (int i = 0; i < n_lr; i++) {
-    lr_wake_in_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
+    lr_wake_in_rf_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
         c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].b_sin, 
         c.lr[i].b_cos, c.lr[i].a_sin, c.lr[i].a_cos, c.lr[i].t_ref, c.lr[i].m, c.lr[i].polarized);
   }
 }
 
-extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_sr_table, Int& n_sr_mode_long,
+extern "C" void rf_wake_to_c2_(C_rf_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_sr_table, Int& n_sr_mode_long,
                             Int& n_sr_mode_trans, Int& n_lr) {
   if (c.sr_table.size() != n_sr_table) c.sr_table.resize(n_sr_table);
   if (c.sr_mode_long.size() != n_sr_mode_long) c.sr_mode_long.resize(n_sr_mode_long);
@@ -356,35 +358,35 @@ extern "C" void wake_to_c2_(C_wake& c, char* srf, char* lrf, Re& z_cut, Int& n_s
   c.z_sr_mode_max = z_cut;
 }
 
-extern "C" void sr_table_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& z, Re& l, Re& t) {
+extern "C" void sr_table_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& z, Re& l, Re& t) {
   c.sr_table[it] = C_sr_table_wake(z, l, t);
 }
 
-extern "C" void sr_mode_long_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
+extern "C" void sr_mode_long_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& a, Re& d, 
                       Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
   c.sr_mode_long[it-1] = C_sr_mode_wake(a, d, f, p, ns, nc, ss, sc);
 }
 
-extern "C" void sr_mode_trans_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& a, Re& d, 
+extern "C" void sr_mode_trans_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& a, Re& d, 
                       Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
   c.sr_mode_trans[it-1] = C_sr_mode_wake(a, d, f, p, ns, nc, ss, sc);
 }
 
-extern "C" void lr_wake_in_wake_to_c2_(C_wake& c, Int& it, Re& f, Re& k, 
+extern "C" void lr_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& f, Re& k, 
            Re& i, Re& q, Re& ang, Re& ns, Re& nc, Re& ss, Re& sc, Re& t_ref, Int& m, Int& pol) {
   c.lr[it-1] = C_lr_wake(f, k, i, q, ang, ns, nc, ss, sc, t_ref, m, pol);
 }
 
 
-void operator>> (C_wake& c, wake_struct* f) {
-  wake_to_f_(c, f);
+void operator>> (C_rf_wake& c, rf_wake_struct* f) {
+  rf_wake_to_f_(c, f);
 }
 
-void operator>> (wake_struct* f, C_wake& c) {
-  wake_to_c_(f, c);
+void operator>> (rf_wake_struct* f, C_rf_wake& c) {
+  rf_wake_to_c_(f, c);
 }
 
-C_wake& C_wake::operator= (const C_wake& c) {
+C_rf_wake& C_rf_wake::operator= (const C_rf_wake& c) {
   if (sr_table.size() != c.sr_table.size()) sr_table.resize(c.sr_table.size());
   sr_table = c.sr_table;
   if (sr_mode_long.size() != c.sr_mode_long.size()) sr_mode_long.resize(c.sr_mode_long.size());
@@ -420,36 +422,36 @@ void operator>> (control_struct* f, C_control& c) {
 }
 
 //---------------------------------------------------------------------------
-// param
+// lat_param
 
-extern "C" void param_to_f2_(lat_param_struct*, Re&, Re&, Re&, ReArr, ReArr, 
+extern "C" void lat_param_to_f2_(lat_param_struct*, Re&, Re&, Re&, ReArr, ReArr, 
                                Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
 
-extern "C" void param_to_f_(C_param& c, lat_param_struct* f) {
+extern "C" void lat_param_to_f_(C_lat_param& c, lat_param_struct* f) {
   double arr1[36], arr2[36];
   matrix_to_array (c.t1_with_RF, arr1);
   matrix_to_array (c.t1_no_RF, arr2);
-  param_to_f2_(f, c.n_part, c.total_length, c.unstable_factor,
+  lat_param_to_f2_(f, c.n_part, c.total_length, c.unstable_factor,
       arr1, arr2, c.particle, c.ix_lost, c.end_lost_at, c.plane_lost_at,
       c.lattice_type, c.ixx, c.stable, c.aperture_limit_on, c.lost);
 }
 
-extern "C" void param_to_c2_(C_param& c, Re& np, Re& total_l, 
+extern "C" void lat_param_to_c2_(C_lat_param& c, Re& np, Re& total_l, 
       Re& growth_r, ReArr t1_with, ReArr t1_no, Int& part, Int& ixl, Int& end_lost,
       Int& plane_lost, Int& lattice_type, Int& ixx, Int& stable, Int& ap_lim, Int& lost) {
   static Real_Matrix m1(M6_mat), m2(M6_mat);
   m1 << t1_with;
   m2 << t1_no;
-  c = C_param(np, total_l, growth_r, m1, m2, part, ixl, 
+  c = C_lat_param(np, total_l, growth_r, m1, m2, part, ixl, 
               end_lost, plane_lost, lattice_type, ixx, stable, ap_lim, lost);
 }
 
-void operator>> (C_param& c, lat_param_struct* f) {
-  param_to_f_(c, f);
+void operator>> (C_lat_param& c, lat_param_struct* f) {
+  lat_param_to_f_(c, f);
 }
 
-void operator>> (lat_param_struct* f, C_param& c) {
-  param_to_c_(f, c);
+void operator>> (lat_param_struct* f, C_lat_param& c) {
+  lat_param_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
@@ -583,15 +585,18 @@ void operator>> (em_field_struct* f, C_em_field& c) {
 //---------------------------------------------------------------------------
 // ele
 
-extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char, 
-  Int&, C_xy_disp, C_xy_disp, C_twiss&, C_twiss&, C_twiss&, C_floor_position&, 
-  ReArr, ReArr, ReArr, 
-  ReArr, ReArr, Re&, Re&, Re&, ReArr, Int&, Int&, ReArr, ReArr, Int&, ReArr, Int&, 
-  Char, Int&, void*, 
-  C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_wake&, 
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&);
+extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char, Int&, Char, Int&, 
+  C_twiss&, C_twiss&, C_twiss&, C_xy_disp, C_xy_disp, 
+  C_floor_position&, C_mode3&, C_coord&, C_coord&, void*, 
+  C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_rf&, 
+  Int&, C_space_charge&, C_wall3d&, 
+  ReArr, ReArr, ReArr, ReArr, ReArr, 
+  Re&, Re&, Re&, ReArr, Int&, Int&, 
+  ReArr, ReArr, Int&, ReArr, Int&, 
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+  Int&, Int&, Int&, Int&, Int&);
 
 extern "C" void wig_term_in_ele_to_f2_(ele_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Int&);
 
@@ -603,8 +608,6 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* component = c.component_name.data(); 
                                     int n_component = c.component_name.length();
   int n_ab = c.a_pole.size(), n_const = c.const_arr.size();
-  int n_sr_table = c.wake.sr_table.size(), n_sr_mode_long = c.wake.sr_mode_long.size();
-  int n_sr_mode_trans = c.wake.sr_mode_trans.size(), n_lr = c.wake.lr.size();
   int n_wig = c.wig_term.size();
   int nr1 = c.r.size(), nr2 = 0;
   if (nr1) {
@@ -615,19 +618,21 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   matrix_to_array (c.mat6, mat6);
   matrix_to_array (c.c_mat, c_mat);
   matrix_to_array (c.r, r_arr);
-  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component,
-    c.x, c.y, c.a, c.b, c.z, c.floor, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
+  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, des, n_des, component, n_component,
+    c.a, c.b, c.z, c.x, c.y, 
+    c.floor, c.mode3, c.map_ref_orb_in, c.map_ref_orb_out, c.gen_field,  
+    c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], c.rf, 
+    n_wig, c.space_charge, c.wall3d,
+    &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
     c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, 
-    &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], 
-    n_const, des, n_des, c.gen_field, 
-    c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], c.wake, 
-    n_sr_table, n_sr_mode_long, 
-    n_sr_mode_trans, n_lr, n_wig, c.key, 
-    c.sub_key, c.lord_status, c.slave_status, c.ix_value, c.n_slave, c.ix1_slave, 
-    c.ix2_slave, c.n_lord, c.ic1_lord, c.ic2_lord, c.ix_pointer, 
-    c.ixx, c.ix_ele, c.ix_branch, c.mat6_calc_method, c.tracking_method, 
+    &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], n_const, 
+    c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
+    c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
+    c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
+    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, 
     c.field_calc, c.ref_orbit, c.taylor_order, 
-    c.aperture_at, c.aperture_type, c.attribute_status, c.symplectify, c.mode_flip, c.multipoles_on, 
+    c.aperture_at, c.aperture_type, c.attribute_status, 
+    c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
     c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
     c.csr_calc_on, c.offset_moves_aperture);
   for (int i = 0; i < n_wig; i++) {
@@ -638,16 +643,16 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   delete[] r_arr;
 }
 
-extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
-    char* component, xy_disp_struct* x, xy_disp_struct* y, 
-    twiss_struct* a, twiss_struct* b, twiss_struct* z,
-    floor_position_struct* floor, ReArr val, ReArr gen0, ReArr vec0,
+extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, char* component, char* descrip, 
+    twiss_struct* a, twiss_struct* b, twiss_struct* z, xy_disp_struct* x, xy_disp_struct* y, 
+    floor_position_struct* floor, coord_struct* ref_orb_in, coord_struct* ref_orb_out, 
+    ReArr val, ReArr gen0, ReArr vec0,
     ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, ReArr r_arr, Int& nr1, 
     Int& nr2, ReArr a_pole, ReArr b_pole, 
-    Int& n_ab, ReArr const_arr, Int& n_const, char* descrip, 
-    void* gen, taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
+    Int& n_ab, ReArr const_arr, Int& n_const, void* gen, 
+    taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
-    wake_struct* wake, Int& wake_here, Int& n_wig, Int& key, Int& sub_key, 
+    rf_struct* rf, Int& n_wig, Int& key, Int& sub_key, 
     Int& lord_status, Int& slave_status, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
     Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_branch, 
     Int& mat6_calc, Int& tracking, Int& f_calc, 
@@ -724,7 +729,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
   c.mat6 << mat6;
   c.c_mat << c_mat;
-  if (wake_here) wake >> c.wake;  
+  rf >> c.rf;
   c.gen_field = gen;
   if (n_ab > 0) {
     c.a_pole.resize(Bmad::N_POLE_MAXX+1);
@@ -752,11 +757,12 @@ C_ele& C_ele::operator= (const C_ele& c) {
   type                  = c.type;
   alias                 = c.alias;
   component_name        = c.component_name;
-  x                     = c.x;
-  y                     = c.y;
+  descrip               = c.descrip;
   a                     = c.a;
   b                     = c.b;
   z                     = c.z;
+  x                     = c.x;
+  y                     = c.y;
   floor                 = c.floor;
   value                 << c.value;
   gen0                  << c.gen0;
@@ -770,11 +776,10 @@ C_ele& C_ele::operator= (const C_ele& c) {
   a_pole                << c.a_pole;
   b_pole                << c.b_pole;
   const_arr             << c.const_arr;
-  descrip               = c.descrip;
   gen_field             = c.gen_field;
   taylor                << c.taylor;
+  rf                    = c.rf;
   wig_term              << c.wig_term;
-  wake                  = c.wake;
   key                   = c.key;
   sub_key               = c.sub_key;
   lord_status           = c.lord_status;
@@ -836,7 +841,7 @@ void operator>> (mode_info_struct* f, C_mode_info& c) {
 // lat
 
 extern "C" void lat_to_f2_(lat_struct*, Char, Int&, Char, Int&, Char, Int&,
-    Char, Int&, C_mode_info&, C_mode_info&, C_mode_info&, C_param&, 
+    Char, Int&, C_mode_info&, C_mode_info&, C_mode_info&, C_lat_param&, 
     Int&, Int&, Int&, Int&, Int&, Int&, Int&,
     C_ele&, Int&, IntArr, Int&);
 
@@ -853,8 +858,8 @@ extern "C" void lat_to_f_(C_lat& c, lat_struct* f) {
   int n_ic  = c.ic.size();
   int n_ele_max = c.ele.size() - 1;
   lat_to_f2_(f, name, n_name, lat, n_lat, file, n_file, title, n_title,
-      c.x, c.y, c.z, c.param, 
-      c.version, c.n_ele_use, c.n_ele_max, n_ele_max, c.n_control_max, 
+      c.a, c.b, c.z, c.param, 
+      c.version, c.n_ele_track, c.n_ele_max, n_ele_max, c.n_control_max, 
       c.n_ic_max, c.input_taylor_order, c.ele_init, n_con, &c.ic[0], n_ic);
   for (int i = 0; i < n_ele_max+1; i++) {
     ele_from_lat_to_f2_(f, i, c.ele[i]);
@@ -865,8 +870,8 @@ extern "C" void lat_to_f_(C_lat& c, lat_struct* f) {
 }
 
 extern "C" void lat_to_c2_(C_lat& c, char* name, char* lat, char* file,
-    char* title, mode_info_struct* x, mode_info_struct* y, mode_info_struct* z,
-    lat_param_struct* param, Int& ver, Int& n_use, Int& n_max, Int& n_maxx, 
+    char* title, mode_info_struct* a, mode_info_struct* b, mode_info_struct* z,
+    lat_param_struct* param, Int& ver, Int& n_track, Int& n_max, Int& n_maxx, 
     Int& n_con_max, Int& n_ic_max, Int& n_taylor, 
     ele_struct* ele_init, Int& n_con_array, IntArr ic, Int& n_ic_array) {
   c.name                = name;
@@ -874,7 +879,7 @@ extern "C" void lat_to_c2_(C_lat& c, char* name, char* lat, char* file,
   c.input_file_name     = file;
   c.title               = title;
   c.version             = ver;
-  c.n_ele_use           = n_use;
+  c.n_ele_track         = n_track;
   c.n_ele_max           = n_max;
   c.n_control_max       = n_con_max;
   c.n_ic_max            = n_ic_max;
@@ -885,7 +890,7 @@ extern "C" void lat_to_c2_(C_lat& c, char* name, char* lat, char* file,
   if (!(c.ic.size() == n_ic_array)) c.ic.resize(n_ic_array);
 
   c.ic << ic;
-  x >> c.x;  y >> c.y;  z >> c.z;
+  a >> c.a;  b >> c.b;  z >> c.z;
   param >> c.param;
   ele_init >> c.ele_init;
 }
@@ -912,12 +917,12 @@ C_lat& C_lat::operator= (const C_lat& c) {
   lattice            = c.lattice;
   input_file_name    = c.input_file_name;
   title              = c.title;
-  x                  = c.x;
-  y                  = c.y;
+  a                  = c.a;
+  b                  = c.b;
   z                  = c.z;
   param              = c.param;
   version            = c.version;
-  n_ele_use          = c.n_ele_use;
+  n_ele_track        = c.n_ele_track;
   n_ele_max          = c.n_ele_max;    
   n_control_max      = c.n_control_max;        
   n_ic_max           = c.n_ic_max;   

@@ -297,7 +297,7 @@ if (associated(ele%wall3d%section)) then
       if (i == size(ele%wall3d%section)) exit
       nl=nl+1; li(nl) = ''
       nl=nl+1; write (li(nl), '(a, 3f8.3)') ' S_Spline       =', section%s_spline
-      nl=nl+1; write (li(nl), '(a, i0)')    ' N_Slice_Spline =', nint(section%n_slice_spline)
+      nl=nl+1; write (li(nl), '(a, i0)')    ' N_Slice_Spline =', section%n_slice_spline
     enddo
   else
     nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
