@@ -144,6 +144,9 @@ end subroutine save_a_step
 !
 ! Note: Zero field will be returned if an element is turned off.
 !
+! Note: The fields due to any kicks will be present. It therefore important in tracking to make sure that 
+! offset_particle does not add in kicks at the beginning and end which would result in double counting the kicks.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -181,7 +184,7 @@ real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_pos
-real(rp) radius, phi, t_ref
+real(rp) radius, phi, t_ref, tilt
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
 complex(rp) Im0, Im_plus, Im_minus, Im_norm, kappa_n, Im_plus2
@@ -462,9 +465,9 @@ case(wiggler$)
   enddo
 
 !------------------------------------------
-! Drift, et. al.
+! Drift, et. al. Note that kicks get added at the end for all elements
 
-case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$)
+case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$)
 
 !------------------------------------------
 ! Quadrupole
@@ -532,6 +535,25 @@ case (sbend$)
     field%dB(2,1) = -x * ele%value(k2$) * f_p0c
     field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
   endif
+
+!------------------------------------------
+! HKicker
+
+case (hkicker$)
+  field%b(2) = -ele%value(kick$) * f_p0c 
+
+!------------------------------------------
+! VKicker
+
+case (vkicker$)
+  field%b(1) =  ele%value(kick$) * f_p0c 
+
+!------------------------------------------
+! Kicker  
+
+case (kicker$)
+  field%b(1) =  ele%value(vkick$) * f_p0c 
+  field%b(2) = -ele%value(hkick$) * f_p0c 
 
 !------------------------------------------
 ! Error
@@ -620,6 +642,24 @@ if (.not. local_ref_frame) then
     field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
     field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
   endif
+
+!-------------------------------
+! Add kicks. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
+
+if (has_kick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
+  select case (ele%key)
+  case (kicker$, hkicker$, vkicker$, elseparator$)
+  case default
+    if (.not. local_ref_frame .or. ele%value(tilt$) == 0) then
+      field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c 
+      field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c 
+    else
+      tilt = -ele%value(tilt$)
+      field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) + ele%value(hkick$) * sin(tilt)) * f_p0c 
+      field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) - ele%value(vkick$) * sin(tilt)) * f_p0c 
+    endif
+  end select
+endif
 
 endif
 

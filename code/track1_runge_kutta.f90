@@ -48,9 +48,9 @@ del_s_step = 1e-3
 del_s_min = 1e-8
 
 start2 = start
-call offset_particle (ele, param, start2, set$, set_canonical = .false.)
+call offset_particle (ele, param, start2, set$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
 call odeint_bmad (start2, ele, param, end, 0.0_rp, ele%value(l$), bmad_com%rel_tol_adaptive_tracking, &
                   bmad_com%abs_tol_adaptive_tracking, del_s_step, del_s_min, .true., track)
-call offset_particle (ele, param, end, unset$, set_canonical = .false.)
+call offset_particle (ele, param, end, unset$, set_canonical = .false., set_hvkicks = .false., set_multipoles = .false.)
 
 end subroutine
