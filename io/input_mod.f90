@@ -140,6 +140,10 @@ end subroutine
 ! Modules needed:
 !   use input_mod
 !
+! System Libraries that need to be linked to:
+!   readline curses
+! [The list of libraries to link to are generally in your Makefile.]
+!
 ! Input:
 !   prompt      -- Character(*): Prompt string to use.
 !   trim_prompt -- Logical, optional: If present and True then trim the 

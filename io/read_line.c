@@ -11,7 +11,14 @@
 #endif
 #endif
 #ifndef CESR_WINCVF
-void read_line_(char* tag, char* str, int tag_len, int str_len) {
+//+
+// Routine read_line_ (char* tag, char* str, int tag_len, int str_len)
+//
+// Routine to interface between the readline routine and the Fortran routine read_line.
+// See read_line for more details.
+//-
+
+void read_line_ (char* tag, char* str, int tag_len, int str_len) {
 #ifndef CESR_VMS
   /* printf ("\n"); */
   char* str2 = readline (tag);
