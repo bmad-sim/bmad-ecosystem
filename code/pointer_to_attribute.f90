@@ -124,8 +124,8 @@ if (a_name(1:19) == 'WALL.N_SLICE_SPLINE') then
   if (.not. associated(ele%wall3d%section)) goto 9210
   n_cc = get_cross_index(a_name, 20, err, 1, size(ele%wall3d%section)-1)
   if (err .or. a_name /= '') goto 9200
-  ptr_attrib => ele%wall3d%section(n_cc)%n_slice_spline
-  err_flag = .false.
+  !!! ptr_attrib => ele%wall3d%section(n_cc)%n_slice_spline
+  !!! err_flag = .false.
   return
 endif
 

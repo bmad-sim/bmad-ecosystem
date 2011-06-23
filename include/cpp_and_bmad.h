@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class C_coord;
+class C_coord;            // Needed for typedef...
 class C_taylor_term;
 class C_sr_table_wake;
 class C_sr_mode_wake;
@@ -18,6 +18,10 @@ class C_ele;
 class C_wig_term;
 class C_taylor;
 class C_branch;
+class C_rf_field_mode;
+class C_rf_field_mode_term;
+class C_wall3d_vertex;
+class C_wall3d_section;
 
 typedef const double    Re;
 typedef const int       Int;
@@ -33,6 +37,10 @@ typedef valarray<double>                Real_Array;
 typedef valarray<Complx>                Complx_Array;
 typedef valarray<bool>                  Bool_Array;
 typedef valarray<int>                   Int_Array;
+
+typedef valarray<Real_Array>            Real_Matrix;
+typedef valarray<Bool_Array>            Bool_Matrix;
+
 typedef valarray<C_taylor_term>         C_taylor_term_array;
 typedef valarray<C_wig_term>            C_wig_term_array;
 typedef valarray<C_sr_table_wake>       C_sr_table_wake_array;
@@ -42,8 +50,10 @@ typedef valarray<C_control>             C_control_array;
 typedef valarray<C_branch>              C_branch_array;
 typedef valarray<C_ele>                 C_ele_array;
 typedef valarray<C_taylor>              C_taylor_array;
-typedef valarray<Real_Array>            Real_Matrix;
-typedef valarray<Bool_Array>            Bool_Matrix;
+typedef valarray<C_rf_field_mode>       C_rf_field_mode_array;
+typedef valarray<C_rf_field_mode_term>  C_rf_field_mode_term_array;
+typedef valarray<C_wall3d_vertex>       C_wall3d_vertex_array;
+typedef valarray<C_wall3d_section>      C_wall3d_section_array;
 
 const Real_Array V2_array(double(0), 2);
 const Real_Array V3_array(double(0), 3);
@@ -130,7 +140,7 @@ public:
 };    // End Class
 
 extern "C" void twiss_to_c_(twiss_struct*, C_twiss&);
-extern "C" void twiss_to_f_(const C_twiss&, twiss_struct*);
+extern "C" void twiss_to_f_(C_twiss&, twiss_struct*);
 
 bool operator== (const C_twiss&, const C_twiss&);
 
@@ -155,7 +165,7 @@ public:
 };    // End Class
 
 extern "C" void xy_disp_to_c_(xy_disp_struct*, C_xy_disp&);
-extern "C" void xy_disp_to_f_(const C_xy_disp&, xy_disp_struct*);
+extern "C" void xy_disp_to_f_(C_xy_disp&, xy_disp_struct*);
 
 bool operator== (const C_xy_disp&, const C_xy_disp&);
 
@@ -372,11 +382,11 @@ void operator>> (C_lr_wake&, lr_wake_struct*);
 void operator>> (lr_wake_struct*, C_lr_wake&);
 
 //--------------------------------------------------------------------
-// Wake 
+// rf_wake 
 
-class wake_struct {};
+class rf_wake_struct {};
 
-class C_wake {
+class C_rf_wake {
 public:
   string sr_file;
   string lr_file;
@@ -386,29 +396,185 @@ public:
   C_lr_wake_array lr;          // size = variable
   double z_sr_mode_max;             // Cutoff between sr_table and sr_mode
 
-  C_wake (const char* srf, const char* lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
+  C_rf_wake (const char* srf, const char* lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
       sr_table(C_sr_table_wake(), n_sr_table), sr_mode_long(C_sr_mode_wake(), n_sr_mode_long), 
       sr_mode_trans(C_sr_mode_wake(), n_sr_mode_trans), lr(C_lr_wake(), n_lr),
       sr_file(string(srf, strlen(srf))),
       lr_file(string(lrf, strlen(lrf))) {}
 
-  C_wake (string srf, string lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
+  C_rf_wake (string srf, string lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
       sr_file(srf), lr_file(lrf), sr_table(C_sr_table_wake(), n_sr_table), sr_mode_long(C_sr_mode_wake(), n_sr_mode_long), 
       sr_mode_trans(C_sr_mode_wake(), n_sr_mode_trans), lr(C_lr_wake(), n_lr) {}
 
-  C_wake () : sr_file(""), lr_file("") {}
+  C_rf_wake () : sr_file(""), lr_file("") {}
 
-  C_wake& operator= (const C_wake&);
+  C_rf_wake& operator= (const C_rf_wake&);
 
 };    // End Class
 
-extern "C" void wake_to_c_(wake_struct*, C_wake&);
-extern "C" void wake_to_f_(C_wake&, wake_struct*);
+extern "C" void rf_wake_to_c_(rf_wake_struct*, C_rf_wake&);
+extern "C" void rf_wake_to_f_(C_rf_wake&, rf_wake_struct*);
 
-bool operator== (const C_wake&, const C_wake&);
+bool operator== (const C_rf_wake&, const C_rf_wake&);
 
-void operator>> (C_wake&, wake_struct*);
-void operator>> (wake_struct*, C_wake&);
+void operator>> (C_rf_wake&, rf_wake_struct*);
+void operator>> (rf_wake_struct*, C_rf_wake&);
+
+//--------------------------------------------------------------------
+// RF field mode
+
+class rf_field_mode_term_struct {};
+
+class C_rf_field_mode_term {
+public:
+  Complx e, b;
+
+  C_rf_field_mode_term (int ee, int bb) : e(ee), b(bb) {}
+
+  C_rf_field_mode_term () : e(0), b(0) {}
+
+};    // End Class
+
+extern "C" void rf_field_mode_term_to_c_(rf_field_mode_term_struct*, C_rf_field_mode_term&);
+extern "C" void rf_field_mode_term_to_f_(C_rf_field_mode_term&, rf_field_mode_term_struct*);
+
+bool operator== (const C_rf_field_mode_term&, const C_rf_field_mode_term&);
+
+void operator>> (C_rf_field_mode_term&, rf_field_mode_term_struct*);
+void operator>> (rf_field_mode_term_struct*, C_rf_field_mode_term&);
+
+//--------------------------------------------------------------------
+// RF field mode
+
+class rf_field_mode_struct {};
+
+class C_rf_field_mode {
+public:
+  int m;
+  double freq;
+  double f_damp;
+  double theta_t0;
+  double stored_energy;
+  double phi_0;
+  double dz;
+  double field_scale;
+  C_rf_field_mode_term_array term;
+
+};    // End Class
+
+extern "C" void rf_field_mode_to_c_(rf_field_mode_struct*, C_rf_field_mode&);
+extern "C" void rf_field_mode_to_f_(C_rf_field_mode&, rf_field_mode_struct*);
+
+bool operator== (const C_rf_field_mode&, const C_rf_field_mode&);
+
+void operator>> (C_rf_field_mode&, rf_field_mode_struct*);
+void operator>> (rf_field_mode_struct*, C_rf_field_mode&);
+
+//--------------------------------------------------------------------
+// RF_field
+
+class rf_field_struct {};
+
+class C_rf_field {
+public:
+  C_rf_field_mode_array mode;
+
+};    // End Class
+
+extern "C" void rf_field_to_c_(rf_field_struct*, C_rf_field&);
+extern "C" void rf_field_to_f_(C_rf_field&, rf_field_struct*);
+
+bool operator== (const C_rf_field&, const C_rf_field&);
+
+void operator>> (C_rf_field&, rf_field_struct*);
+void operator>> (rf_field_struct*, C_rf_field&);
+
+//--------------------------------------------------------------------
+// RF 
+
+class rf_struct {};
+
+class C_rf {
+public:
+  C_rf_wake wake;                 // RF Wakefields
+  C_rf_field field;               // RF fields
+
+};    // End Class
+
+extern "C" void rf_to_c_(rf_struct*, C_rf&);
+extern "C" void rf_to_f_(C_rf&, rf_struct*);
+
+bool operator== (const C_rf&, const C_rf&);
+
+void operator>> (C_rf&, rf_struct*);
+void operator>> (rf_struct*, C_rf&);
+
+//--------------------------------------------------------------------
+// wall3d_vertex
+
+class wall3d_vertex_struct {};
+
+class C_wall3d_vertex {
+public:
+  double x, y;
+  double radius_x;
+  double radius_y;
+  double tilt;
+  double angle;
+  double x0, y0;
+
+};    // End Class
+
+extern "C" void wall3d_vertex_to_c_(wall3d_vertex_struct*, C_wall3d_vertex&);
+extern "C" void wall3d_vertex_to_f_(C_wall3d_vertex&, wall3d_vertex_struct*);
+
+bool operator== (const C_wall3d_vertex&, const C_wall3d_vertex&);
+
+void operator>> (C_wall3d_vertex&, wall3d_vertex_struct*);
+void operator>> (wall3d_vertex_struct*, C_wall3d_vertex&);
+
+//--------------------------------------------------------------------
+// wall3d_section
+
+class wall3d_section_struct {};
+
+class C_wall3d_section {
+public:
+  int type;
+  double s;
+  Real_Array s_spline;
+  int n_slice_spline;
+  C_wall3d_vertex_array v;
+  int n_vertex_input;
+
+};    // End Class
+
+extern "C" void wall3d_section_to_c_(wall3d_section_struct*, C_wall3d_section&);
+extern "C" void wall3d_section_to_f_(C_wall3d_section&, wall3d_section_struct*);
+
+bool operator== (const C_wall3d_section&, const C_wall3d_section&);
+
+void operator>> (C_wall3d_section&, wall3d_section_struct*);
+void operator>> (wall3d_section_struct*, C_wall3d_section&);
+
+//--------------------------------------------------------------------
+// wall3d
+
+class wall3d_struct {};
+
+class C_wall3d {
+public:
+  C_wall3d_section_array section;
+
+};    // End Class
+
+extern "C" void wall3d_to_c_(wall3d_struct*, C_wall3d&);
+extern "C" void wall3d_to_f_(C_wall3d&, wall3d_struct*);
+
+bool operator== (const C_wall3d&, const C_wall3d&);
+
+void operator>> (C_wall3d&, wall3d_struct*);
+void operator>> (wall3d_struct*, C_wall3d&);
 
 //--------------------------------------------------------------------
 // Control 
@@ -443,7 +609,7 @@ void operator>> (control_struct*, C_control&);
 
 class lat_param_struct {};
 
-class C_param {
+class C_lat_param {
 public:
   double n_part;            // Particles/bunch (for BeamBeam elements).
   double total_length;      // total_length of ring
@@ -460,12 +626,12 @@ public:
   bool aperture_limit_on;   // use apertures in tracking?
   bool lost;                // for use in tracking
 
-  C_param () : n_part(0), total_length(0), unstable_factor(0),
+  C_lat_param () : n_part(0), total_length(0), unstable_factor(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
       particle(0), ix_lost(0), end_lost_at(0), plane_lost_at(0), lattice_type(0), ixx(0),
       stable(1), aperture_limit_on(1), lost(0) {}
 
-  C_param (double np, double tl, double gr, Real_Matrix t1w,
+  C_lat_param (double np, double tl, double gr, Real_Matrix t1w,
     Real_Matrix t1n, int pa, int il, int ela, int pla, int lt, int ix, 
     int st, int alo, int lo) :
         n_part(np), total_length(tl), unstable_factor(gr),
@@ -474,13 +640,13 @@ public:
         stable(st), aperture_limit_on(alo), lost(lo) {}
 };    // End Class
 
-extern "C" void param_to_c_(lat_param_struct*, C_param&);
-extern "C" void param_to_f_(C_param&, lat_param_struct*);
+extern "C" void lat_param_to_c_(lat_param_struct*, C_lat_param&);
+extern "C" void lat_param_to_f_(C_lat_param&, lat_param_struct*);
 
-bool operator== (const C_param&, const C_param&);
+bool operator== (const C_lat_param&, const C_lat_param&);
 
-void operator>> (C_param&, lat_param_struct*);
-void operator>> (lat_param_struct*, C_param&);
+void operator>> (C_lat_param&, lat_param_struct*);
+void operator>> (lat_param_struct*, C_lat_param&);
 
 //--------------------------------------------------------------------
 // Amode 
@@ -701,6 +867,53 @@ void operator>> (C_em_field&, em_field_struct*);
 void operator>> (em_field_struct*, C_em_field&);
 
 //--------------------------------------------------------------------
+// mode3 
+
+class mode3_struct {};
+
+class C_mode3 {
+public:
+  Real_Matrix v;
+  C_twiss a, b, c;
+  C_twiss x, y;
+
+};    // End Class
+
+extern "C" void mode3_to_c_(mode3_struct*, C_mode3&);
+extern "C" void mode3_to_f_(C_mode3&, mode3_struct*);
+
+bool operator== (const C_mode3&, const C_mode3&);
+
+void operator>> (C_mode3&, mode3_struct*);
+void operator>> (mode3_struct*, C_mode3&);
+
+//--------------------------------------------------------------------
+// space_charge 
+
+class space_charge_struct {};
+
+class C_space_charge {
+public:
+  C_coord closed_orb;      // beam orbit
+  double kick_const;
+  double sig_x;
+  double sig_y;
+  double phi;
+  double sin_phi;
+  double cos_phi;
+  double sig_z;
+
+};    // End Class
+
+extern "C" void space_charge_to_c_(space_charge_struct*, C_space_charge&);
+extern "C" void space_charge_to_f_(C_space_charge&, space_charge_struct*);
+
+bool operator== (const C_space_charge&, const C_space_charge&);
+
+void operator>> (C_space_charge&, space_charge_struct*);
+void operator>> (space_charge_struct*, C_space_charge&);
+
+//--------------------------------------------------------------------
 // Ele 
 
 class ele_struct {};
@@ -716,16 +929,15 @@ public:
   C_twiss  a, b, z;             // Twiss parameters at end of element
   C_xy_disp x, y;               // Projected dispersion
   C_floor_position floor;       // Global floor position at end of ele.
-  // C_mode3 mode3;
-  // C_coord map_ref_orb_in;
-  // C_coord map_ref_orb_out;
+  C_mode3 mode3;
+  C_coord map_ref_orb_in;
+  C_coord map_ref_orb_out;
   void* gen_field;              // Pointer to a PTC genfield
   C_taylor_array taylor;        // Taylor terms
-  // C_rf rf;
-  C_wake wake;                  // TO TAKE OUT WHEN RF IS PUT IN! Wakefields
+  C_rf rf;                      // Fields and wakes
   C_wig_term_array wig_term;    // Wiggler Coefs
-  // C_space_charge space_charge;
-  // C_wall3d wall3d;
+  C_space_charge space_charge;
+  C_wall3d wall3d;
   Real_Array value;             // attribute values. size = N_ATTRIB_MAXX
   Real_Array gen0;              // constant part of the genfield map. size = 6
   Real_Array vec0;              // 0th order transport vector. size = 6
@@ -741,13 +953,13 @@ public:
   int key;                      // key value
   int sub_key;                  // For wigglers: map_type$, periodic_type$
   int ix_ele;                   // Index in ring%ele(:) array
-  int ix_branch;           // Photon line index
+  int ix_branch;                // Photon line index
   int ix_value;                 // Pointer for attribute to control
-  int slave_status;               // super_slave$, etc.
+  int slave_status;             // super_slave$, etc.
   int n_slave;                  // Number of slaves
   int ix1_slave;                // Start index for slave elements
   int ix2_slave;                // Stop  index for slave elements
-  int lord_status;                // overlay_lord$, etc.
+  int lord_status;              // overlay_lord$, etc.
   int n_lord;                   // Number of lords
   int ic1_lord;                 // Start index for lord elements
   int ic2_lord;                 // Stop  index for lord elements
@@ -756,7 +968,7 @@ public:
   int mat6_calc_method;         // bmad_standard$, taylor$, etc.
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
-  int ref_orbit;                 // For setting the ptc kind type.
+  int ref_orbit;                // For setting the ptc kind type.
   int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
   int aperture_type;            // Where aperture is applied. exit_end$, ...
@@ -764,7 +976,7 @@ public:
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
-  // bool scale_multipoles;
+  bool scale_multipoles;
   bool map_with_offsets;        // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
   bool is_on;                   // For turning element on/off.
@@ -822,13 +1034,19 @@ void operator>> (mode_info_struct*, C_mode_info&);
 class branch_struct {};
 
 class C_branch {
-
+public:
   string name;
+  int key;
   int ix_branch;
+  int ix_from_branch;
+  int ix_from_ele;
   int n_ele_track;
+  int n_ele_max;
   C_ele_array ele;
+  C_wall3d wall3d;
+  C_lat_param param;
 
-  C_branch () : ix_branch(0), n_ele_track(0) {}
+  C_branch () : ix_branch(0), n_ele_track(0), n_ele_max(0) {}
 
 };
 
@@ -841,7 +1059,7 @@ void operator>> (C_branch&, branch_struct*);
 void operator>> (branch_struct*, C_branch&);
 
 //--------------------------------------------------------------------
-// Ring 
+// Lattice
 
 class lat_struct {};
 
@@ -851,10 +1069,10 @@ public:
   string lattice;            // Lattice
   string input_file_name;    // Name of the lattice input file
   string title;              // General title
-  C_mode_info x, y, z;       // Tunes, etc.
-  C_param param;             // Parameters
+  C_mode_info a, b, z;       // Tunes, etc.
+  C_lat_param param;         // Parameters
   int version;               // Version number
-  int n_ele_use;             // Number of regular ring elements
+  int n_ele_track;           // Number of regular ring elements
   int n_ele_max;             // Index of last element used
   int n_control_max;         // Last index used in CONTROL_ array
   int n_ic_max;              // Last index used in IC_ array
@@ -863,6 +1081,7 @@ public:
   C_ele_array ele;           // Array of elements
   C_branch_array branch;
   C_control_array control;   // control list
+  C_wall3d wall3d;
   Int_Array ic;              // index to %control(:)
 
   C_lat () {}

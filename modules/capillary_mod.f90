@@ -474,7 +474,7 @@ call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 
 ! Phantom slices
 
-n_slice = nint(sec0%n_slice_spline)
+n_slice = sec0%n_slice_spline
 if (n_slice > 1) then
   ix = min(int(f * n_slice), n_slice - 1)
 
