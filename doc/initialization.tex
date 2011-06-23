@@ -53,8 +53,8 @@ shows:
     var_array(8:)   = 2*34 2*81      ! Also equivalent
     var_array(1:2) = 1 2 3           ! Error: Too many RHS values.
     string_arr = '1st' "2nd" '3rd'   ! Setting a string array.
-    string_arr(1:3) = 1st 2nd 3rd    ! Same as above? Some compilers will not accept this!
-    string_arr(1:3) = 1st,2nd,3rd    ! Same as above? Some compilers will not accept this!
+    string_arr(1:3) = 1st 2nd 3rd    ! Same as above. [Not accepted by all compilers.]
+    string_arr(1:3) = 1st,2nd,3rd    ! Same as above. [Not accepted by all compilers.]
     string_arr = 'A B' "2/" "&"      ! Quotes needed here.
   /
 \end{example}
@@ -355,7 +355,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \begin{example}
 type tao_global_struct
   real(rp) y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
-  real(rp) lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff. -1 => ignore this.
+  real(rp) lm_opt_deriv_reinit = -1   ! Derivative matrix cutoff. -1 => ignore this.
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   real(rp) de_var_to_population_factor = 5 
   real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
@@ -382,7 +382,7 @@ type tao_global_struct
   logical init_opt_wrapper = T
   logical label_lattice_elements = T    ! For lat_layout plots
   logical label_keys = T                ! For lat_layout plots
-  logical derivative_recalc = T         ! Recalc derivative matrix before each optimizer loop?
+  logical derivative_recalc = T         ! Recalc derivatives before each optimizer loop?
   logical derivative_uses_design = F    ! Derivative matrix uses the design lattice?
   logical init_plot_needed = T          ! reinitialize plotting?
   logical plot_on = T                   ! Do plotting?
@@ -643,8 +643,8 @@ The syntax is as follows:
     beam0_file              = <string>         ! File used in place of beam_init.
     beam_all_file           = <string>         ! File used in place of beam tracking.
     beam_saved_at           = "<ele_list>"     ! Where to save the beam info.
-    track_start             = "<ele_name>"     ! Lattice element start tracking name or index.
-    track_end               = "<ele_name>"     ! Lattice element end tracking name or index.
+    track_start             = "<ele_name>"     ! Element start tracking name or index.
+    track_end               = "<ele_name>"     ! Element end tracking name or index.
     beam_init%a_norm_emit   = <number>         ! A-mode energy normalized emittance
     beam_init%b_norm_emit   = <number>         ! B-mode energy normalized emittance
     beam_init%a_emit        = <number>         ! A-mode emittance
@@ -1542,7 +1542,7 @@ namelists should be placed directly after their respective
     graph%clip             = <logical>        ! Clip curves at boundary? Default = T
     graph%draw_axes        = <logical>        ! Default = T
     graph%component        = "<string>"       ! Eg: "model - design"
-    graph%symbol_size_scale      = <real>     ! Symbol size scale factor for phase_space plots.
+    graph%symbol_size_scale      = <real>     ! Phase_space plots symbol scale factor
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
     graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
     curve(i)%name                = "<string>" ! Default is "c<i>", <i> = curve num.
@@ -1556,7 +1556,7 @@ namelists should be placed directly after their respective
     curve(i)%use_y2              = <logical>  ! Use left-axis scale?
     curve(i)%draw_line           = <logical>  ! Connect data with lines?
     curve(i)%draw_symbols        = <logical>  ! Draw data symbols?
-    curve(i)%draw_symbol_index   = <logical>  ! Print data symbol index next to the data symbol?
+    curve(i)%draw_symbol_index   = <logical>  ! Print index number next to the data symbol?
     curve(i)%ix_universe         = <number>   ! Default = -1 => Use viewed universe
     curve(i)%ix_branch           = <number>   ! Default = 0  => Use main lattice.  
     curve(i)%ix_bunch            = <integer>  ! Bunch index. Default = 0 (all bunches).
