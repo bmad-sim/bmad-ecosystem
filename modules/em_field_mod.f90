@@ -395,11 +395,11 @@ case(rfcavity$, lcavity$)
                                                                      
     field%E(1) = E_r * cos (theta)                                  
     field%E(2) = E_r * sin (theta)
-    field%E(3) = gradient * sin (f + phase)
+    field%E(3) = gradient * sin (phase)
     
     phi = pi - theta
-    field%B(1) =   B_phi * cos (phi)
-    field%B(2) = - B_phi * sin (phi)
+    field%B(1) =  B_phi * cos (phi)
+    field%B(2) = -B_phi * sin (phi)
 
     if (df_calc) then
       print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
