@@ -200,6 +200,18 @@ sub setup_dirs {
     $util_programs_dir = catfile( $ENV{"DIST_BASE_DIR"}, "util_programs" );
   }
 
+  if (-r catfile( $curdir, "examples", "simple_program")) {
+    $examples_dir = catfile( $curdir, "examples" );
+  } elsif (-r catfile( $updir, "examples", "simple_program")) {
+    $examples_dir = catfile( $updir, "examples" );
+  } elsif (-r catfile( $updir, $updir, "examples", "simple_program")) {
+    $examples_dir = catfile( $updir, $updir, "examples" );
+  } elsif (-r catfile( $ENV{"ACC_SRC"}, "examples")) {
+    $examples_dir = catfile( $ENV{"ACC_SRC"}, "examples" );
+  } else {
+    $examples_dir = catfile( $ENV{"DIST_BASE_DIR"}, "examples" );
+  }
+
   # Look for arguments
 
   $extra = 0;
@@ -279,6 +291,7 @@ sub search_it {
     find(\&searchit, $cesr_programs_dir);
     find(\&searchit, $cesrv_dir);
     find(\&searchit, $util_programs_dir);
+    find(\&searchit, $examples_dir);
   }
 
   find(\&searchit, $bmad_dir);
