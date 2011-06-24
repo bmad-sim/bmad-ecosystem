@@ -5,6 +5,11 @@ sub setup_dirs {
   # is in the library.
   # -r is a file test operator which checks if the file is can be read
 
+  my $curdir = curdir();
+  my $updir = updir();
+
+  #
+   
   if (-r catfile( $curdir, "bmad", "modules", "bmad_struct.f90")) {
     $bmad_dir = catfile( $curdir, "bmad" );
   } elsif (-r catfile( $updir, "bmad", "modules", "bmad_struct.f90")) {
@@ -254,11 +259,6 @@ sub setup_dirs {
 
 sub search_it {
 
-  my $curdir = curdir();
-  my $updir = updir();
-
-  #
-   
   $match_str = $field[$i];
   $match_str =~ s/\*/\\w\*/g;   # replace "*" by "\w*" (any word characters)
 
