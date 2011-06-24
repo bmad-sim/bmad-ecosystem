@@ -250,8 +250,7 @@ sub setup_dirs {
 
 }
 
-#-------------------------------
-
+#--------------------------------------------------------------------
 
 sub search_it {
 
@@ -317,6 +316,22 @@ sub search_it {
 
 }
 
+#---------------------------------------------------------
+
+sub routine_here {
+
+  if (/^\s*subroutine /i || /^\s*recursive subroutine /i || 
+      /^\s*elemental subroutine /i || /^\s*program /i || 
+      /^\s*function /i || /^\s*recursive function /i ||
+      /^\s*real\(rp\) *function /i || /^\s*integer *function /i ||
+      /^\s*logical *function /i || /^\s*type /i || /^\s*interface /i) {
+    $routine_name = $';              #' strip off "routine" string
+    return 1;
+  }
+
+  return 0;
+
+}
 #-------------------------------------
 
 $return = 1;   # So perl will not complain about not returning a true value
