@@ -135,7 +135,7 @@ sub searchit {
 
       # match to subroutine, function, etc.
 
-      } elsif (&routine_here) {
+      } elsif (&routine_here(0)) {
         $in_module_header = 0;
         $routine_name =~ /^\s*(\w+)[ |\(\n]/i;
         $_ = $1;     # strip off "subroutine"
@@ -159,7 +159,7 @@ sub searchit {
               $count = $count - 1;
             }
           }
-          elsif (&routine_here) {
+          elsif (&routine_here(0)) {
             $count = $count + 1;
           }
           if ($count == 0) {last;}
@@ -228,7 +228,7 @@ sub searchit {
     $have_printed = 0;
 
     while (<F_IN>) {
-      if (&routine_here) {last;}
+      if (&routine_here(0)) {last;}
       if (/^!/) {
         $have_printed = 1;
         print "$_";

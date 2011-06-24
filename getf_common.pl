@@ -324,7 +324,8 @@ sub routine_here {
       /^\s*elemental subroutine /i || /^\s*program /i || 
       /^\s*function /i || /^\s*recursive function /i ||
       /^\s*real\(rp\) *function /i || /^\s*integer *function /i ||
-      /^\s*logical *function /i || /^\s*type /i || /^\s*interface /i) {
+      /^\s*logical *function /i || /^\s*interface /i ||
+      (/^\s*type /i && $_[0] == 1)) {
     $routine_name = $';              #' strip off "routine" string
     return 1;
   }
@@ -332,6 +333,7 @@ sub routine_here {
   return 0;
 
 }
+
 #-------------------------------------
 
 $return = 1;   # So perl will not complain about not returning a true value

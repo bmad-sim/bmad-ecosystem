@@ -102,7 +102,7 @@ sub searchit {
 
       # if a routine then look for match
 
-      if (&routine_here) {
+      if (&routine_here(1)) {
 
         # If a match then print info
 
@@ -127,7 +127,7 @@ sub searchit {
             if (/^ *subroutine/i || /^ *function/i ||
                 /^ *type/i || /^ *interface/i) {$count = $count - 1;}
           }
-          elsif (&routine_here) {
+          elsif (&routine_here(1)) {
             $count = $count + 1;
           }
           if ($count == 0) {last;}
