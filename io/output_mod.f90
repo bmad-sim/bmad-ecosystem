@@ -442,7 +442,8 @@ logical, optional :: l_array(:)
 
 integer level
 integer nr, ni, nl
-integer ix1, ix2, nn
+integer ix1, ix2, nn, nt
+
 logical found
 
 ! 
@@ -456,25 +457,26 @@ if (any ( (/ present(r_array), present(i_array), present(l_array) /) )) then
     call find_format (this_line, nn, fmt2, ix1, ix2, found, descrip)
     if (.not. found) exit
 
+    nt = len_trim(this_line)
     select case (descrip)
     case ('L')
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
-      write (this_line, fmt2) this_line(:ix1), l_array(nl+1:nl+nn), trim(this_line(ix2:))
+      write (this_line, fmt2) this_line(:ix1), l_array(nl+1:nl+nn), this_line(ix2:nt)
       nl = nl + nn
 
     case ('I', 'O', 'Z')
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
-      write (this_line, fmt2) this_line(:ix1), i_array(ni+1:ni+nn), trim(this_line(ix2:))
+      write (this_line, fmt2) this_line(:ix1), i_array(ni+1:ni+nn), this_line(ix2:nt)
       ni = ni + nn
 
     case ('E', 'G', 'F')
       fmt2 = '(a, ' // trim(fmt2) // ', a)'
-      write (this_line, fmt2) this_line(:ix1), r_array(nr+1:nr+nn), trim(this_line(ix2:))
+      write (this_line, fmt2) this_line(:ix1), r_array(nr+1:nr+nn), this_line(ix2:nt)
       nr = nr + nn
       cycle
 
     case default
-      write (this_line, '(3a)') this_line(:ix1), '######', trim(this_line(ix2:))
+      write (this_line, '(3a)') this_line(:ix1), '######', this_line(ix2:nt)
 
     end select
 
