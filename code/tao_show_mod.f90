@@ -2201,7 +2201,7 @@ case ('universe')
   endif
  
   call radiation_integrals (lat, u%model%lat_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
-  call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%ix_rad_int_cache)
+  call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes)
   if (lat%param%lattice_type == circular_lattice$) then
     call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
     call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)
@@ -2260,6 +2260,8 @@ case ('universe')
         u%design%modes%z%alpha_damp, '! Longitudinal Damping per turn'
   nl=nl+1; write (lines(nl), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
                u%design%modes%synch_int(1)/l_lat, '! Momentum Compaction'
+  nl=nl+1; write (lines(nl), fmt) 'I0:', u%model%modes%synch_int(0), &
+               u%design%modes%synch_int(0), '! Radiation Integral'
   nl=nl+1; write (lines(nl), fmt) 'I1:', u%model%modes%synch_int(1), &
                u%design%modes%synch_int(1), '! Radiation Integral'
   nl=nl+1; write (lines(nl), fmt) 'I2:', u%model%modes%synch_int(2), &

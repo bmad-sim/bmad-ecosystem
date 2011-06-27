@@ -43,7 +43,7 @@ character(20) :: names(19) = [ &
       'pdf              ', 'pdf-l            ', 'opal_lattice     ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer i_chan, ix_beam
+integer i_chan, ix_beam, ix_word
 
 logical is_open, ascii, ok, err, good_opt_only, at_switch
 
@@ -76,26 +76,31 @@ case ('beam')
 
   ascii = .false.
   file_name0 = 'beam_#.dat'
-  loc = -1
   is_open = .false.
   at_switch = .false.
+  ix_word = 0
 
-  do
-    call tao_next_switch (what2, ['-ascii', '-at   '], switch, err, ix)
+  do 
+    ix_word = ix_word + 1
+    if (ix_word == size(word)-1) exit
+
+    call tao_next_switch (word(ix_word), ['-ascii', '-at   '], switch, err, ix)
     if (err) return
-    if (switch == '') exit
-    if (switch == '-ascii') ascii = .true.
-    if (switch == '-at') then
-      call tao_locate_elements (what2(1:ix), s%global%u_view, eles, err)
-      what2 = what2(ix+1:)
+
+    select case (switch)
+    case ('');       exit
+    case ('-ascii'); ascii = .true.
+    case ('-at')
+      ix_word = ix_word + 1
+      call tao_locate_elements (word(ix_word), s%global%u_view, eles, err)
       if (err .or. size(eles) == 0) return
       at_switch = .true.
-    endif
+    end select
   enddo
 
-  if (what2 /= '') then
-    file_name0 = what2(1:ix)
-    if (what2(ix+1:) /= '') then
+  if (word(ix_word) /= '') then
+    file_name0 = word(ix_word)
+    if (word(ix_word+1) /= '' .or. file_name0(1:1) == '-') then
       call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
       return
     endif
@@ -507,24 +512,30 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
   if (action(1:3) == 'pdf') file_name = 'tao.pdf'
   call str_upcase (action, action)
 
+  ix_word = 0
   scale = 0
   do
-    call tao_next_switch (what2, ['-scale'], switch, err, ix)
+    ix_word = ix_word + 1
+    if (ix_word == size(word)-1) exit
+
+    call tao_next_switch (word(ix_word), ['-scale'], switch, err, ix)
     if (err) return
-    if (switch == '') exit
-    if (switch == '-scale') then
-      read (what2(1:ix), *, iostat = ios) scale
-      if (ios /= 0 .or. what2 == '') then
+
+    select case (switch)
+    case ('');  exit
+    case ('-scale')
+      ix_word = ix_word + 1
+      read (word(ix_word), *, iostat = ios) scale
+      if (ios /= 0 .or. word(ix_word) == '') then
         call out_io (s_error$, r_name, 'BAD SCALE NUMBER.')
         return
       endif
-      what2 = what2(ix+1:)
-    endif
+    end select
   enddo
 
-  if (what2 /= '') then
-    file_name = what2(1:ix)
-    if (what2(ix+1:) /= '') then
+  if (word(ix_word) /= '') then
+    file_name = word(ix_word)
+    if (word(ix_word+1) /= '' .or. file_name(1:1) == '-') then
       call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
       return
     endif
@@ -544,17 +555,23 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
 case ('variable')
 
   good_opt_only = .false.
+  ix_word = 0
+
   do 
-    call tao_next_switch (what2, ['-good_opt_only'], switch, err, ix)
+    ix_word = ix_word + 1
+    if (ix_word >= size(word)-1) exit
+    call tao_next_switch (word(ix_word), ['-good_opt_only'], switch, err, ix)
     if (err) return
-    if (switch == '') exit
-    if (switch == '-good_opt_only') good_opt_only = .true.
+    select case (switch)
+    case (''); exit
+    case ('-good_opt_only'); good_opt_only = .true.
+    end select
   enddo  
 
-  if (what2 == ' ') then
+  if (word(ix_word) == ' ') then
     call tao_var_write (s%global%var_out_file, good_opt_only)
   else
-    call tao_var_write (what2, good_opt_only)
+    call tao_var_write (word(ix_word), good_opt_only)
   endif
 
 !---------------------------------------------------
