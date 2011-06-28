@@ -39,11 +39,10 @@
 !                    the Twiss parameters have been calculated.
 !   orbit(0:)  -- Coord_struct: Closed orbit.
 !   ix_cache   -- Integer, optional: Cache pointer.
-!                      < -1 --> No temporary wiggler cache. This is slow so only use as a check.
-!                      = -1 --> Use temporary cache for wiggler elements only.
+!                      = -2 --> No temporary wiggler cache. This is slow so only use as a check.
+!                      = -1 --> Use temporary cache for wiggler elements only (default).
 !                      =  0 --> Create a new cache for all elements.
 !                      >  0 --> Use the corresponding cache. 
-!                 If not present, a temporary cache for wigglers will be used.
 !
 ! Output:
 !   mode     -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
@@ -257,6 +256,7 @@ if (init_cache) then
 
   j = 0  ! number of elements to cache
   do i = 1, lat%n_ele_track
+    cache%ele%n_attribute_modify = -1
     key = lat%ele(i)%key
     if ((key == wiggler$ .and. lat%ele(i)%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
@@ -274,8 +274,13 @@ if (init_cache) then
   endif
   if (.not. allocated(cache%ele)) allocate (cache%ele(j))  ! allocate cache memory
 
-  ! Now cache the information.
-  ! The cache ri_info is computed with all offsets off
+endif
+
+! Now cache the information.
+! The cache ri_info is computed with all offsets off.
+! Only need to update the cache if ele%n_attribute_modify has been altered.
+
+if (use_cache .or. init_cache) then
 
   j = 0 
   do i = 1, lat%n_ele_track
@@ -284,6 +289,9 @@ if (init_cache) then
 
     j = j + 1
     cache_ele => cache%ele(j)
+
+    if (cache_ele%n_attribute_modify == lat%ele(i)%n_attribute_modify) cycle
+    cache_ele%n_attribute_modify = lat%ele(i)%n_attribute_modify
 
     ! Calculation is effectively done in element reference frame with ele2 having
     ! no offsets.
@@ -376,7 +384,7 @@ if (init_cache) then
 
   enddo
   
-endif 
+endif ! (init_cache)
 
 !---------------------------------------------------------------------
 ! Loop over all elements

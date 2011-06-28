@@ -2046,6 +2046,8 @@ z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0
 if (all(val == ele%old_value) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
 if (debug) dval = val - ele%old_value
 
+ele%n_attribute_modify = ele%n_attribute_modify + 1
+
 ! Transfer tilt to tilt_tot, etc.
 
 if (.not. ele%on_a_girder .and. has_orientation_attributes(ele%key)) then

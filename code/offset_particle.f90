@@ -81,7 +81,7 @@ real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp), save :: old_angle = 0, old_roll = 0
 real(rp), save :: del_x_vel = 0, del_y_vel = 0
 real(rp) angle, s_here, xp, yp, x_off, y_off, s_off, vec(3), m_trans(3,3)
-real(rp) cos_a, sin_a, cos_t, sin_t
+real(rp) cos_a, sin_a, cos_t, sin_t, beta
 
 integer n
 
@@ -178,7 +178,11 @@ if (set) then
       x_off = vec(1); y_off = vec(2); s_off = vec(3)
     endif
 
-    if (s_off /= 0) call track_a_drift (coord, s_off)
+    if (s_off /= 0) then
+      call track_a_drift (coord, s_off)
+      call convert_pc_to (ele%value(p0c$) * (1 + coord%vec(6)), param%particle, beta = beta)
+      coord%t = coord%t + s_off / (beta * c_light)
+    endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
       coord%vec(1) = coord%vec(1) - x_off - xp * s_here
@@ -348,7 +352,12 @@ else
       coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
 
-    if (s_off /= 0) call track_a_drift (coord, -s_off)
+    if (s_off /= 0) then
+      call track_a_drift (coord, -s_off)
+      call convert_pc_to (ele%value(p0c$) * (1 + coord%vec(6)), param%particle, beta = beta)
+      coord%t = coord%t - s_off / (beta * c_light)
+    endif
+
   endif
 
 endif

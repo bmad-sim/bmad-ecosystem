@@ -275,6 +275,7 @@ type ele_struct
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer aperture_type      ! rectangular$, elliptical$, or star_shape$
   integer attribute_status   ! Element attributes have been modified?
+  integer n_attribute_modify ! How many times the attributes have been modified.
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
@@ -780,10 +781,12 @@ character(16), parameter :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'El
 ! The idea:
 !   When an element attribute is modified, a program will set ele%attribute_status to 
 !     is_modified$ to trigger the bookkeeping routines.
-!   The bookkeeping routines will set %attribute_status to all_bookkeeping_done$ when
+!   The bookkeeping routines will set ele %attribute_status to all_bookkeeping_done$ when
 !     the bookkeeping is done.
-!   After this, the program can optionally set %attribute_status to unmodified$ if it 
+!   After this, the program can optionally set ele%attribute_status to unmodified$ if it 
 !     has calculations that it only wants to do if element attributes are modified.
+!   Additionally: ele%n_attribute_modify will be increased by 1 each time 
+!     attribute_bookkeper updates an element with modified attributes.
 
 integer, parameter :: unmodified$ = 1, all_bookkeeping_done$ = 2
 integer, parameter :: attribute_bookkeeping_done$ = 3,  is_modified$ = 4
