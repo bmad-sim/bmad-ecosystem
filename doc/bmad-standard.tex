@@ -389,7 +389,7 @@ the $x$-$z$ plane. Thus $\bfkbar_0$ and $\bfKbar_0$ can be written in the form
     0 \\
     \cos\theta_0
     \end{pmatrix}
-  \label{k1l1d}
+  \label{k1lst}
 \Endeq
 Where, as shown in Fig.~\ref{f:crystal.diffraction}, $\theta_{g,in}$,
 and $\theta_0$ are the angles of $\bfkbar_0$ and $\bfKbar_0$ with respect to
@@ -424,7 +424,7 @@ The vectors $\bfKbar_0$ and $\bfH$ must add up to the reciprocal lattice vector 
 \Begineq
   \bfK_H = \bfK_0 + \bfH
 \Endeq
-Using this with \Eqs{k1lld}, \eq{kk1l1}, \eq{kk1l2}, and \eq{h1daa} gives
+Using this with \Eqs{k1lst} and \eq{h1daa} gives
 \Begineq
   \begin{pmatrix} \Kbar_{H,x} \\ \Kbar_{H,y} \\ \Kbar_{H,z} \end{pmatrix}
   = \frac{1}{\lambda \, (1 + \delta)} \, 
@@ -435,7 +435,7 @@ Using this with \Eqs{k1lld}, \eq{kk1l1}, \eq{kk1l2}, and \eq{h1daa} gives
   \end{pmatrix}
   \label{1l1dk}
 \Endeq
-Taking the length of both sides and using \Eq{kk1l2} gives
+Taking the length of both sides with \Eq{kk1l2} gives
 \Begineq
   \frac{\lambda (1 + \delta)}{2 \, d} = \cos\alpha_H \, \sin\theta_0 -
   \sin\alpha_H \, \cos\psi_H \, \cos\theta_0
@@ -491,9 +491,6 @@ the difference between the total bend angle and the entrance graze angle.
 \subsection{Crystal Coordinate Transformations}
 \label{ss:crystal.trans}
 
-For Laue diffraction the coordinate transformations when the
-non-diffracted beam is tracked is \etcetc.
-
 There are four transformations needed between coordinates
 denoted by $\Bf\Sigma_1$, $\Bf\Sigma_2$, $\Bf\Sigma_3$, and $\Bf\Sigma_4$
 \begin{example}
@@ -511,12 +508,14 @@ $\bfV$ of \Eqs{vwlv} and \eq{wws}
 \index{tilt_corr}\index{crystal!tilt correction}
 The transformation $\Bf\Sigma_1$ is given in
 \sref{ss:crystal.trans.le} and the transformation $\Bf\Sigma_4$ is
-given in \sref{ss:crystal.trans.el}. The transformation $\Bf\Sigma_1$
-needs a ``tilt correction'' (\Eq{tttt}) as explained below when
-$\psi_H$ is nonzero.  Since this tilt correction is independent of any
-misalignments, the tilt correction calculation proceeds assumeing here
-that there are no misalignments. The finite $\bfV$ due to the finite
-crystal thickness in Laue diffraction will also be ignored for the moment.
+given in \sref{ss:crystal.trans.el}. Except for the case when the
+non-diffracted beam is tracked in Laue diffraction, The transformation
+$\Bf\Sigma_1$ needs a ``tilt correction'' (\Eq{tttt}) as explained
+below when $\psi_H$ is nonzero.  Since this tilt correction is
+independent of any misalignments, the tilt correction calculation
+proceeds assuming here that there are no misalignments. The finite
+$\bfV$ due to the finite crystal thickness in Laue diffraction will
+also be ignored for the moment.
 
 Without misalignments, and with $\psi_H$ zero, the transformation
 $\Bf\Sigma_1$ is, as it is for every other type of element,
@@ -560,7 +559,7 @@ When $\psi_H$ is non-zero, the situation is complicated since, if
 $\bfS$ as calculated above is used, the vector $\bfkbar_H$ would be
 bent out of the $x$-$z$ plane even though it has been assumed that the
 tilt $\theta_t$ is zero. But $\bfkbar_H$ points in the same direction
-as the $z$ axis of the outgoing reference trajectory. Futhermore, by
+as the $z$ axis of the outgoing reference trajectory. Furthermore, by
 {\em definition}, the reference trajectory has the form given by
 \Eq{lrca1} with the $\bfT$ matrix depending only upon the \vn{tilt}
 parameter (which is here taken to be zero). To satisfy \Eq{lrca1}, the
@@ -610,6 +609,12 @@ be the $\bftilde S$ matrix given in \Eq{lrca1}
 \Endeq
 In the above equation, the transformation $\Bf\Sigma_4$ has been
 dropped since it is the unit matrix independent of $\psi_H$.
+
+For Laue diffraction when the non-diffracted beam is tracked, the exit
+coordinate system corresponds to the entrance coordinate system. That
+is, $\bfV$ is the unit matrix. In this case, there is no tilt
+correction and $\Bf\Sigma_3 = \bfR_y(-\theta{g,in}$ is just the
+inverse of $\Bf\Sigma_2$.
 
 %-------------------------------------------------------------------------
 
@@ -666,7 +671,7 @@ The outgoing wave vector $\bfk_H$ is related to $\bfk_0$ via
 \Begineq
   \bfk_H =  \bfk_0 + \bfH + q_t \, \bfhat n
 \Endeq
-where $q_t$ is determined by using \Eqs{k1l1d} and \eq{h1daa} in \Eq{kk1l1}
+where $q_t$ is determined by using \Eqs{k1lst} and \eq{h1daa} in \Eq{kk1l1}
 \Begineq
   \frac{1}{\lambda} =
   \left| \frac{1}{d}

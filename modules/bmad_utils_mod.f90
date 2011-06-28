@@ -1337,6 +1337,9 @@ ele%ref_time = 0
 ele%ix_branch = 0
 ele%ix_ele = -1
 
+ele%attribute_status = unmodified$
+ele%n_attribute_modify = 0
+
 if (present(ix_branch)) ele%ix_branch = ix_branch
 if (present(ix_ele)) ele%ix_ele = ix_ele
 
