@@ -111,7 +111,7 @@ implicit none
 real(rp) charge_bunch
 integer n_bunch, n_particle, ix_ele, ios
 character(80) line
-character(20) :: r_name = 'read_beam_file_header'
+character(28) :: r_name = 'tao_read_beam_file_header'
 logical err
 
 ! Read numbers
@@ -203,8 +203,8 @@ integer n_bunch, n_particle, n_particle_lines, ix_lost
 real(rp) vec(6), sum_charge
 complex(rp) spin(2)
 
-character(16) :: r_name = 'read_beam'
-character(200) line, line_in
+character(16) :: r_name = 'tao_read_beam'
+character(300) line, line_in
 
 logical err, error
 

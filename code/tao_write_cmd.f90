@@ -149,9 +149,9 @@ case ('beam')
           write (iu, *) bunch%z_center, '  ! z_center'
           write (iu, *) bunch%t_center, '  ! t_center'
           do ip = 1, size(bunch%particle)
-            write (iu, '(6es19.10, es14.5, i6, 4es19.10)') &
-                          bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, &
-                          bunch%particle(ip)%ix_lost, bunch%particle(ip)%r%spin 
+            write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a))') &
+                  bunch%particle(ip)%r%vec, bunch%particle(ip)%charge, bunch%particle(ip)%ix_lost, &
+                  ('  (', real(bunch%particle(ip)%r%spin(j)), ',', aimag(bunch%particle(ip)%r%spin(j)), ')', j = 1, 2)
           enddo
           write (iu, *) 'END_BUNCH'
         enddo

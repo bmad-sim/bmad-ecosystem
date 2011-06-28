@@ -706,7 +706,7 @@ written in ASCII. The ASCII file format is:
     <z_center>     ! z position at center of bunch.
     <t_center>     ! t position at center of bunch.
     [particle loop: Stop when END_BUNCH marker found]
-      <x> <px> <y> <py> <z> <pz> <particle_charge> <ix_lost> <spin1> ... <spin4>
+      <x> <px> <y> <py> <z> <pz> <particle_charge> <ix_lost> <spinor1> <spinor2>
     [end particle loop]
     END_BUNCH      ! Marker to mark the end of the bunch specification block
   [end bunch loop]
@@ -727,8 +727,15 @@ present, or is zero, it defaults to \vn{bunch_charge/n_particle}.
 value of -1 for \vn{<ix_lost>} indicates that the particle is still
 alive.
 
-The particle spin is specified by 4 numbers \vn{<spin1>} through
-\vn{<spin4>} using complex spinor notation.
+The particle spin is specified by 2 complex numbers \vn{<spinor1>} and
+\vn{<spinor2>} using complex spinor notation (See the the section on
+\vn{spin dynamics} in the \bmad manual). The syntax for specifying a
+spinor is:
+\begin{example}
+  <spinor> = (<real_part>, <imaginary_part>)
+\end{example}
+The parentheses and comma are needed for some compilers but may be
+omitted for others.
 
 The number of particles specified may be more then
 \vn{<n_particle>}. In this case, particles will be discarded so that
