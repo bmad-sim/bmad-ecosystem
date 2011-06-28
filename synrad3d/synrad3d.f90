@@ -322,7 +322,7 @@ endif
 ! To generate photons we either need bends or wigglers or a photon init file.
 
 if (i0_tot == 0 .and. photon_start_input_file == '') then
-  call out_io (s_fatal$, r_name, 'No bends in region of interest')
+  call out_io (s_fatal$, r_name, 'NO BENDS OR OTHER ELEMENTS TO GENERATE RADIATION IN REGION OF INTEREST!')
   call err_exit
 endif
 
