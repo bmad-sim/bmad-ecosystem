@@ -36,16 +36,16 @@ template <class T> void operator<< (valarray< valarray<T> >& mat1,
 }
 
 //---------------------------------------------------------------------------
- void operator<< (Real_Array&, const double*);
- void operator<< (Real_Matrix&, const double*);
- void operator<< (Int_Array&, const int*);
+ template void operator<< (Real_Array&, const double*);
+ template void operator<< (Real_Matrix&, const double*);
+ template void operator<< (Int_Array&, const int*);
 
- void operator<< (Real_Array&, const Real_Array&);
- void operator<< (Real_Matrix&, const Real_Matrix&);
- void operator<< (Int_Array&, const Int_Array&);
+ template void operator<< (Real_Array&, const Real_Array&);
+ template void operator<< (Real_Matrix&, const Real_Matrix&);
+ template void operator<< (Int_Array&, const Int_Array&);
 
- void operator<< (C_taylor_array&, const C_taylor_array&);
- void operator<< (C_wig_term_array&, const C_wig_term_array&);
+ template void operator<< (C_taylor_array&, const C_taylor_array&);
+ template void operator<< (C_wig_term_array&, const C_wig_term_array&);
 
 //---------------------------------------------------------------------------
 
@@ -63,22 +63,15 @@ void matrix_to_array (const Real_Matrix& mat, double* arr) {
 //---------------------------------------------------------------------------
 // Coord
 
-extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, const Complx*, Re&, Re&, Re&, Re&);
+extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, const Complx&, const Complx&, Re&, Re&, Re&, Re&);
 
 extern "C" void coord_to_f_(C_coord& c, coord_struct* f) {
-  coord_to_f2_(f, &c.vec[0], c.s, c.t, &c.spin[0], c.e_field_x, c.e_field_y, c.phase_x, c.phase_y);
+  coord_to_f2_(f, &c.vec[0], c.s, c.t, c.spin1, c.spin2, c.e_field_x, c.e_field_y, c.phase_x, c.phase_y);
 }
 
-extern "C" void coord_to_c2_(C_coord& c, Re& s, Re& t, double vec[], Complx spin[], 
+extern "C" void coord_to_c2_(C_coord& c, ReArr vec, Re& s, Re& t, Complx spin1, Complx spin2, 
                              Re& field_x, Re& field_y, Re& p_x, Re& p_y) {
-  c.vec       << vec;
-  c.s         = s;
-  c.t         = t;
-  c.spin      << spin;
-  c.e_field_x = field_x;
-  c.e_field_y = field_y;
-  c.phase_x   = p_x;
-  c.phase_y   = p_y;
+  c = C_coord(vec, s, t, spin1, spin2, field_x, field_y, p_x, p_y);
 }
 
 void operator>> (C_coord& c, coord_struct* f) {
@@ -240,83 +233,83 @@ C_taylor& C_taylor::operator= (const C_taylor& c) {
 }
 
 //---------------------------------------------------------------------------
-// sr_table_wake
+// rf_wake_sr_table
 
-extern "C" void sr_table_wake_to_f2_(sr_table_wake_struct*, Re&, Re&, Re&);
+extern "C" void rf_wake_sr_table_to_f2_(rf_wake_sr_table_struct*, Re&, Re&, Re&);
 
-extern "C" void sr_table_wake_to_f_(C_sr_table_wake& c, sr_table_wake_struct* f) {
-  sr_table_wake_to_f2_(f, c.z, c.longitudinal, c.transverse);
+extern "C" void rf_wake_sr_table_to_f_(C_rf_wake_sr_table& c, rf_wake_sr_table_struct* f) {
+  rf_wake_sr_table_to_f2_(f, c.z, c.longitudinal, c.transverse);
 }
 
-extern "C" void sr_table_wake_to_c2_(C_sr_table_wake& c, Re& z, Re& lw, Re& tw) {
-  c = C_sr_table_wake(z, lw, tw);
+extern "C" void rf_wake_sr_table_to_c2_(C_rf_wake_sr_table& c, Re& z, Re& lw, Re& tw) {
+  c = C_rf_wake_sr_table(z, lw, tw);
 }
 
-void operator>> (C_sr_table_wake& c, sr_table_wake_struct* f) {
-  sr_table_wake_to_f_(c, f);
+void operator>> (C_rf_wake_sr_table& c, rf_wake_sr_table_struct* f) {
+  rf_wake_sr_table_to_f_(c, f);
 }
 
-void operator>> (sr_table_wake_struct* f, C_sr_table_wake& c) {
-  sr_table_wake_to_c_(f, c);
+void operator>> (rf_wake_sr_table_struct* f, C_rf_wake_sr_table& c) {
+  rf_wake_sr_table_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
-// sr_mode_wake
+// rf_wake_sr_mode
 
-extern "C" void sr_mode_wake_to_f2_(sr_mode_wake_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void rf_wake_sr_mode_to_f2_(rf_wake_sr_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void sr_mode_wake_to_f_(C_sr_mode_wake& c, sr_mode_wake_struct* f) {
-  sr_mode_wake_to_f2_(f, c.amp, c.damp, c.k, c.phi,
+extern "C" void rf_wake_sr_mode_to_f_(C_rf_wake_sr_mode& c, rf_wake_sr_mode_struct* f) {
+  rf_wake_sr_mode_to_f2_(f, c.amp, c.damp, c.k, c.phi,
                           c.b_sin, c.b_cos, c.a_sin, c.a_cos);
 }
 
-extern "C" void sr_mode_wake_to_c2_(C_sr_mode_wake& c, Re& amp, Re& damp, Re& k, Re& phi,
+extern "C" void rf_wake_sr_mode_to_c2_(C_rf_wake_sr_mode& c, Re& amp, Re& damp, Re& k, Re& phi,
                           Re& b_sin, Re& b_cos, Re& a_sin, Re& a_cos) {
-  c = C_sr_mode_wake(amp, damp, k, phi, b_sin, b_cos, a_sin, a_cos);
+  c = C_rf_wake_sr_mode(amp, damp, k, phi, b_sin, b_cos, a_sin, a_cos);
 }
 
-void operator>> (C_sr_mode_wake& c, sr_mode_wake_struct* f) {
-  sr_mode_wake_to_f_(c, f);
+void operator>> (C_rf_wake_sr_mode& c, rf_wake_sr_mode_struct* f) {
+  rf_wake_sr_mode_to_f_(c, f);
 }
 
-void operator>> (sr_mode_wake_struct* f, C_sr_mode_wake& c) {
-  sr_mode_wake_to_c_(f, c);
+void operator>> (rf_wake_sr_mode_struct* f, C_rf_wake_sr_mode& c) {
+  rf_wake_sr_mode_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
-// lr_wake
+// rf_wake_lr
 
-extern "C" void lr_wake_to_f2_(lr_wake_struct*, Re&, Re&, Re&, Re&, Re&,
+extern "C" void rf_wake_lr_to_f2_(rf_wake_lr_struct*, Re&, Re&, Re&, Re&, Re&,
                                       Re&, Re&, Re&, Re&, Re&, Int&, Int&);
 
-extern "C" void lr_wake_to_f_(C_lr_wake& c, lr_wake_struct* f) {
-  lr_wake_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.angle, 
+extern "C" void rf_wake_lr_to_f_(C_rf_wake_lr& c, rf_wake_lr_struct* f) {
+  rf_wake_lr_to_f2_(f, c.freq, c.freq_in, c.R_over_Q, c.Q, c.angle, 
           c.b_sin, c.b_cos, c.a_sin, c.a_cos, c.t_ref, c.m, c.polarized);
 }
 
-extern "C" void lr_wake_to_c2_(C_lr_wake& c, Re& freq, Re& freq_in, 
+extern "C" void rf_wake_lr_to_c2_(C_rf_wake_lr& c, Re& freq, Re& freq_in, 
                   Re& R_over_Q, Re& Q, Re& ang, Re& n_sin, Re& n_cos, 
                   Re& s_sin, Re& s_cos, Re& t_ref, Int& m, Int& pol) {
-  c = C_lr_wake(freq, freq_in, R_over_Q, Q, ang, 
+  c = C_rf_wake_lr(freq, freq_in, R_over_Q, Q, ang, 
                     n_sin, n_cos, s_sin, s_cos, t_ref, m, pol);
 }
 
-void operator>> (C_lr_wake& c, lr_wake_struct* f) {
-  lr_wake_to_f_(c, f);
+void operator>> (C_rf_wake_lr& c, rf_wake_lr_struct* f) {
+  rf_wake_lr_to_f_(c, f);
 }
 
-void operator>> (lr_wake_struct* f, C_lr_wake& c) {
-  lr_wake_to_c_(f, c);
+void operator>> (rf_wake_lr_struct* f, C_rf_wake_lr& c) {
+  rf_wake_lr_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
 // rf_wake
 
 extern "C" void rf_wake_to_f2_(rf_wake_struct*, Char, Int&, Char, Int&, Re&, Int&, Int&, Int&, Int&);
-extern "C" void sr_table_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&);
-extern "C" void sr_mode_long_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
-extern "C" void sr_mode_trans_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
-extern "C" void lr_wake_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&,
+extern "C" void rf_wake_sr_table_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&);
+extern "C" void rf_wake_sr_mode_long_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void rf_wake_sr_mode_trans_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void rf_wake_lr_in_rf_wake_to_f2_(rf_wake_struct*, Int&, Re&, Re&, Re&, Re&, Re&,
                                                          Re&, Re&, Re&, Re&, Re&, Int&, Int&);
 
 extern "C" void rf_wake_to_f_(C_rf_wake& c, rf_wake_struct* f) {
@@ -328,20 +321,20 @@ extern "C" void rf_wake_to_f_(C_rf_wake& c, rf_wake_struct* f) {
   const char* lrf = c.lr_file.data();     int n_lrf = c.lr_file.length();
   rf_wake_to_f2_(f, srf, n_srf, lrf, n_lrf, c.z_sr_mode_max, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr);
   for (int i = 0; i < n_sr_table; i++) {
-    sr_table_wake_in_rf_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
+    rf_wake_sr_table_in_rf_wake_to_f2_(f, i, c.sr_table[i].z, c.sr_table[i].longitudinal, c.sr_table[i].transverse);
   }
   for (int i = 0; i < n_sr_mode_long; i++) {
-    sr_mode_long_wake_in_rf_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
+    rf_wake_sr_mode_long_in_rf_wake_to_f2_(f, i+1, c.sr_mode_long[i].amp, c.sr_mode_long[i].damp, 
         c.sr_mode_long[i].k, c.sr_mode_long[i].phi, c.sr_mode_long[i].b_sin, 
         c.sr_mode_long[i].b_cos, c.sr_mode_long[i].a_sin, c.sr_mode_long[i].a_cos);
   }
   for (int i = 0; i < n_sr_mode_trans; i++) {
-    sr_mode_trans_wake_in_rf_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
+    rf_wake_sr_mode_trans_in_rf_wake_to_f2_(f, i+1, c.sr_mode_trans[i].amp, c.sr_mode_trans[i].damp, 
         c.sr_mode_trans[i].k, c.sr_mode_trans[i].phi, c.sr_mode_trans[i].b_sin, 
         c.sr_mode_trans[i].b_cos, c.sr_mode_trans[i].a_sin, c.sr_mode_trans[i].a_cos);
   }
   for (int i = 0; i < n_lr; i++) {
-    lr_wake_in_rf_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
+    rf_wake_lr_in_rf_wake_to_f2_(f, i+1, c.lr[i].freq, c.lr[i].freq_in, 
         c.lr[i].R_over_Q, c.lr[i].Q, c.lr[i].angle, c.lr[i].b_sin, 
         c.lr[i].b_cos, c.lr[i].a_sin, c.lr[i].a_cos, c.lr[i].t_ref, c.lr[i].m, c.lr[i].polarized);
   }
@@ -358,23 +351,23 @@ extern "C" void rf_wake_to_c2_(C_rf_wake& c, char* srf, char* lrf, Re& z_cut, In
   c.z_sr_mode_max = z_cut;
 }
 
-extern "C" void sr_table_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& z, Re& l, Re& t) {
-  c.sr_table[it] = C_sr_table_wake(z, l, t);
+extern "C" void rf_wake_sr_table_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& z, Re& l, Re& t) {
+  c.sr_table[it] = C_rf_wake_sr_table(z, l, t);
 }
 
-extern "C" void sr_mode_long_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& a, Re& d, 
+extern "C" void rf_wake_sr_mode_long_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& a, Re& d, 
                       Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
-  c.sr_mode_long[it-1] = C_sr_mode_wake(a, d, f, p, ns, nc, ss, sc);
+  c.sr_mode_long[it-1] = C_rf_wake_sr_mode(a, d, f, p, ns, nc, ss, sc);
 }
 
-extern "C" void sr_mode_trans_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& a, Re& d, 
+extern "C" void rf_wake_sr_mode_trans_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& a, Re& d, 
                       Re& f, Re& p, Re& ns, Re& nc, Re& ss, Re& sc) {
-  c.sr_mode_trans[it-1] = C_sr_mode_wake(a, d, f, p, ns, nc, ss, sc);
+  c.sr_mode_trans[it-1] = C_rf_wake_sr_mode(a, d, f, p, ns, nc, ss, sc);
 }
 
-extern "C" void lr_wake_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& f, Re& k, 
+extern "C" void rf_wake_lr_in_rf_wake_to_c2_(C_rf_wake& c, Int& it, Re& f, Re& k, 
            Re& i, Re& q, Re& ang, Re& ns, Re& nc, Re& ss, Re& sc, Re& t_ref, Int& m, Int& pol) {
-  c.lr[it-1] = C_lr_wake(f, k, i, q, ang, ns, nc, ss, sc, t_ref, m, pol);
+  c.lr[it-1] = C_rf_wake_lr(f, k, i, q, ang, ns, nc, ss, sc, t_ref, m, pol);
 }
 
 
@@ -455,26 +448,26 @@ void operator>> (lat_param_struct* f, C_lat_param& c) {
 }
 
 //---------------------------------------------------------------------------
-// amode
+// anormal_mode
 
-extern "C" void amode_to_f2_(anormal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void anormal_mode_to_f2_(anormal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void amode_to_f_(C_amode& c, anormal_mode_struct* f) {
-  amode_to_f2_(f, c.emittance, c.synch_int4, c.synch_int5, c.j_damp, 
+extern "C" void anormal_mode_to_f_(C_anormal_mode& c, anormal_mode_struct* f) {
+  anormal_mode_to_f2_(f, c.emittance, c.synch_int4, c.synch_int5, c.j_damp, 
                                                c.alpha_damp, c.chrom, c.tune);
 }
 
-extern "C" void amode_to_c2_(C_amode& c, Re& emit, Re& i4, Re& i5, 
+extern "C" void anormal_mode_to_c2_(C_anormal_mode& c, Re& emit, Re& i4, Re& i5, 
                                         Re& jd, Re& ad, Re& chrom, Re& tune) {
-  c = C_amode(emit, i4, i5, jd, ad, chrom, tune);
+  c = C_anormal_mode(emit, i4, i5, jd, ad, chrom, tune);
 }
 
-void operator>> (C_amode& c, anormal_mode_struct* f) {
-  amode_to_f_(c, f);
+void operator>> (C_anormal_mode& c, anormal_mode_struct* f) {
+  anormal_mode_to_f_(c, f);
 }
 
-void operator>> (anormal_mode_struct* f, C_amode& c) {
-  amode_to_c_(f, c);
+void operator>> (anormal_mode_struct* f, C_anormal_mode& c) {
+  anormal_mode_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
@@ -501,28 +494,28 @@ void operator>> (linac_normal_mode_struct* f, C_linac_mode& c) {
 }
 
 //---------------------------------------------------------------------------
-// modes
+// normal_modes
 
-extern "C" void modes_to_f2_(normal_modes_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&,
-                              C_amode, C_amode, C_amode, C_linac_mode);
+extern "C" void normal_modes_to_f2_(normal_modes_struct*, ReArr, Re&, Re&, Re&, Re&, Re&, 
+                              C_anormal_mode, C_anormal_mode, C_anormal_mode, C_linac_mode);
 
-extern "C" void modes_to_f_(C_modes& c, normal_modes_struct* f) {
-  modes_to_f2_(f, c.synch_int1, c.synch_int2, c.synch_int3,
+extern "C" void normal_modes_to_f_(C_normal_modes& c, normal_modes_struct* f) {
+  normal_modes_to_f2_(f, &c.synch_int[0],
             c.sigE_E, c.sig_z, c.e_loss, c.rf_voltage, c.pz_aperture, c.a, c.b, c.z, c.lin);
 }
 
-extern "C" void modes_to_c2_(C_modes& c, Re& i1, Re& i2, Re& i3, Re& sige, 
+extern "C" void normal_modes_to_c2_(C_normal_modes& c, double synch_int[], Re& sige, 
        Re& sig_z, Re& e_loss, Re& rf_volt, Re& pz, 
-       C_amode a, C_amode b, C_amode z, C_linac_mode lin) {
-  c = C_modes(i1, i2, i3, sige, sig_z, e_loss, rf_volt, pz, a, b, z, lin);
+       C_anormal_mode a, C_anormal_mode b, C_anormal_mode z, C_linac_mode lin) {
+  c = C_normal_modes(synch_int, sige, sig_z, e_loss, rf_volt, pz, a, b, z, lin);
 }
 
-void operator>> (C_modes& c, normal_modes_struct* f) {
-  modes_to_f_(c, f);
+void operator>> (C_normal_modes& c, normal_modes_struct* f) {
+  normal_modes_to_f_(c, f);
 }
 
-void operator>> (normal_modes_struct* f, C_modes& c) {
-  modes_to_c_(f, c);
+void operator>> (normal_modes_struct* f, C_normal_modes& c) {
+  normal_modes_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
@@ -557,21 +550,18 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
 //---------------------------------------------------------------------------
 // em_field
 
-extern "C" void em_field_to_f2_(em_field_struct*, ReArr, ReArr, ReArr, ReArr, 
-                ReArr, ReArr, Int&);
+extern "C" void em_field_to_f2_(em_field_struct*, ReArr, ReArr, ReArr, ReArr);
 
 extern "C" void em_field_to_f_(C_em_field& c, em_field_struct* f) {
-  double de[9], db[9], dk[9];
+  double de[9], db[9];
   matrix_to_array (c.dE, de);
   matrix_to_array (c.dB, db);
-  matrix_to_array (c.dkick, dk);
-  em_field_to_f2_(f, &c.E[0], &c.B[0], &c.kick[0], de, db, dk, c.type);
+  em_field_to_f2_(f, &c.E[0], &c.B[0], de, db);
 }
 
-extern "C" void em_field_to_c2_(C_em_field& c, ReArr e, ReArr b, ReArr k, 
-                                    ReArr de, ReArr db, ReArr dk, Int& tp) {
-  c.E << e; c.B << b; c.kick << k;
-  c.dE << de; c.dB << db; c.dkick << dk; c.type = tp;
+extern "C" void em_field_to_c2_(C_em_field& c, ReArr e, ReArr b, ReArr de, ReArr db) {
+  c.E << e; c.B << b; 
+  c.dE << de; c.dB << db;
 }
 
 void operator>> (C_em_field& c, em_field_struct* f) {
@@ -729,7 +719,6 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, char* 
   tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
   c.mat6 << mat6;
   c.c_mat << c_mat;
-  rf >> c.rf;
   c.gen_field = gen;
   if (n_ab > 0) {
     c.a_pole.resize(Bmad::N_POLE_MAXX+1);

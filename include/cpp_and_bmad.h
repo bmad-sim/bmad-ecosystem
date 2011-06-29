@@ -10,9 +10,9 @@ using namespace std;
 
 class C_coord;            // Needed for typedef...
 class C_taylor_term;
-class C_sr_table_wake;
-class C_sr_mode_wake;
-class C_lr_wake;
+class C_rf_wake_sr_table;
+class C_rf_wake_sr_mode;
+class C_rf_wake_lr;
 class C_control;
 class C_ele;
 class C_wig_term;
@@ -43,9 +43,9 @@ typedef valarray<Bool_Array>            Bool_Matrix;
 
 typedef valarray<C_taylor_term>         C_taylor_term_array;
 typedef valarray<C_wig_term>            C_wig_term_array;
-typedef valarray<C_sr_table_wake>       C_sr_table_wake_array;
-typedef valarray<C_sr_mode_wake>        C_sr_mode_wake_array;
-typedef valarray<C_lr_wake>             C_lr_wake_array;
+typedef valarray<C_rf_wake_sr_table>    C_rf_wake_sr_table_array;
+typedef valarray<C_rf_wake_sr_mode>     C_rf_wake_sr_mode_array;
+typedef valarray<C_rf_wake_lr>          C_rf_wake_lr_array;
 typedef valarray<C_control>             C_control_array;
 typedef valarray<C_branch>              C_branch_array;
 typedef valarray<C_ele>                 C_ele_array;
@@ -88,26 +88,29 @@ public:
   Real_Array vec;      // size = 6
   double s;
   double t;
-  Complx_Array spin;   // size = 2
+  Complx spin1, spin2;   // size = 2
   double e_field_x;
   double e_field_y;
   double phase_x;
   double phase_y;
 
-  C_coord(Re v[6], double ss = 0, double tt = 0, CComplx spn[2] = 0, double field_x = 0, double field_y = 0, 
-          double p_x = 0, double p_y = 0) : vec(v, 6), s(ss), t(tt), spin(spn, 2), 
+  C_coord(ReArr v, double ss = 0, double tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
+          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0) : 
+          vec(v, 6), s(ss), t(tt), spin1(spn1), spin2(spn2),
+          e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y) {}
+
+  C_coord(Real_Array v, double ss = 0, double tt = 0, CComplx spn1 = 0, CComplx spn2 = 0,
+          double field_x = 0, double field_y = 0, double p_x = 0, double p_y = 0) : 
+          vec(v), s(ss), t(tt), spin1(spn1), spin2(spn2),
           e_field_x(field_x), e_field_y(field_y), phase_x(p_x), phase_y(p_y) {}
 
   C_coord(double v0, double v1, double v2, double v3, double v4, double v5) :
-     s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0)
+     s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0)
      {double v[] = {v0, v1, v2, v3, v4, v5}; vec = Real_Array(v, 6);}
 
-  C_coord(Re v = 0) : vec(v, 6), s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
+  C_coord(Re v = 0) : vec(v, 6), s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
 
-  C_coord(Int i) : vec(double(i), 6), s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
-
-  C_coord(Real_Array v) : vec(v), s(0), t(0), spin(2), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
-
+  C_coord(Int i) : vec(double(i), 6), s(0), t(0), spin1(0), spin2(0), e_field_x(0), e_field_y(0), phase_x(0), phase_y(0) {}
 };    // End Class
 
 extern "C" void coord_to_c_(coord_struct*, C_coord&);
@@ -281,37 +284,37 @@ void operator>> (C_taylor&, taylor_struct*);
 void operator>> (taylor_struct*, C_taylor&);
 
 //--------------------------------------------------------------------
-// sr_table_wake 
+// rf_wake_sr_table 
 
-class sr_table_wake_struct {};
+class rf_wake_sr_table_struct {};
 
-class C_sr_table_wake {
+class C_rf_wake_sr_table {
 public:
   double z;                 // Longitudinal distance
   double longitudinal;      // Longitudinal wake in V/C/m
   double transverse;        // Transverse wake in V/C/m^2
 
-  C_sr_table_wake (double zz, double lw, double tw) :
+  C_rf_wake_sr_table (double zz, double lw, double tw) :
       z(zz), longitudinal(lw), transverse(tw) {}
 
-  C_sr_table_wake (double zz = 0) :
+  C_rf_wake_sr_table (double zz = 0) :
       z(zz), longitudinal(0), transverse(0) {}
 };    // End Class
 
-extern "C" void sr_table_wake_to_c_(sr_table_wake_struct*, C_sr_table_wake&);
-extern "C" void sr_table_wake_to_f_(C_sr_table_wake&, sr_table_wake_struct*);
+extern "C" void rf_wake_sr_table_to_c_(rf_wake_sr_table_struct*, C_rf_wake_sr_table&);
+extern "C" void rf_wake_sr_table_to_f_(C_rf_wake_sr_table&, rf_wake_sr_table_struct*);
 
-bool operator== (const C_sr_table_wake&, const C_sr_table_wake&);
+bool operator== (const C_rf_wake_sr_table&, const C_rf_wake_sr_table&);
 
-void operator>> (C_sr_table_wake&, sr_table_wake_struct*);
-void operator>> (sr_table_wake_struct*, C_sr_table_wake&);
+void operator>> (C_rf_wake_sr_table&, rf_wake_sr_table_struct*);
+void operator>> (rf_wake_sr_table_struct*, C_rf_wake_sr_table&);
 
 //--------------------------------------------------------------------
-// sr_mode_wake 
+// rf_wake_sr_mode 
 
-class sr_mode_wake_struct {};
+class rf_wake_sr_mode_struct {};
 
-class C_sr_mode_wake {
+class C_rf_wake_sr_mode {
 public:
   double amp;         // Amplitude
   double damp;        // damping factor
@@ -323,31 +326,31 @@ public:
   double a_cos;       // skew cos-like component of the wake
 
 
-  C_sr_mode_wake (double a, double d, double kk, double p, double n_sin = 0, 
+  C_rf_wake_sr_mode (double a, double d, double kk, double p, double n_sin = 0, 
                   double n_cos = 0, double s_sin = 0, double s_cos = 0) :
       amp(a), damp(d), k(kk), phi(p), b_sin(n_sin), 
       b_cos(n_cos), a_sin(s_sin), a_cos(s_cos) {}
 
-  C_sr_mode_wake (double a = 0) :
+  C_rf_wake_sr_mode (double a = 0) :
       amp(0), damp(0), k(0), phi(0), b_sin(0), b_cos(0), 
       a_sin(0), a_cos(0) {}
 
 };    // End Class
 
-extern "C" void sr_mode_wake_to_c_(sr_mode_wake_struct*, C_sr_mode_wake&);
-extern "C" void sr_mode_wake_to_f_(C_sr_mode_wake&, sr_mode_wake_struct*);
+extern "C" void rf_wake_sr_mode_to_c_(rf_wake_sr_mode_struct*, C_rf_wake_sr_mode&);
+extern "C" void rf_wake_sr_mode_to_f_(C_rf_wake_sr_mode&, rf_wake_sr_mode_struct*);
 
-bool operator== (const C_sr_mode_wake&, const C_sr_mode_wake&);
+bool operator== (const C_rf_wake_sr_mode&, const C_rf_wake_sr_mode&);
 
-void operator>> (C_sr_mode_wake&, sr_mode_wake_struct*);
-void operator>> (sr_mode_wake_struct*, C_sr_mode_wake&);
+void operator>> (C_rf_wake_sr_mode&, rf_wake_sr_mode_struct*);
+void operator>> (rf_wake_sr_mode_struct*, C_rf_wake_sr_mode&);
 
 //--------------------------------------------------------------------
-// LR_wake  
+// rf_wake_lr  
 
-class lr_wake_struct {};
+class rf_wake_lr_struct {};
 
-class C_lr_wake {
+class C_rf_wake_lr {
 public:
   double freq;       // frequency in Hz
   double freq_in;    // freq in input file. strength in V/C/m^2
@@ -362,24 +365,24 @@ public:
   int m;             // Order number (1 = dipole, etc.)
   bool polarized;
 
-  C_lr_wake (double f, double f_in, double rq, double q, double ang,
+  C_rf_wake_lr (double f, double f_in, double rq, double q, double ang,
           double n_sin, double n_cos, double s_sin, double s_cos, double t_ref,
           int mm, bool pol) :
       freq(f), freq_in(f_in), R_over_Q(rq), Q(q), angle(ang), b_sin(n_sin),
       b_cos(n_cos), a_sin(s_sin), a_cos(s_cos), t_ref(t_ref), m(mm), polarized(pol){}
 
-  C_lr_wake (double f = 0) :
+  C_rf_wake_lr (double f = 0) :
       freq(f), freq_in(0), R_over_Q(0), Q(0), angle(0), b_sin(0), b_cos(0),
       a_sin(0), a_cos(0), t_ref(0), m(0), polarized(0){}
 };    // End Class
 
-extern "C" void lr_wake_to_c_(lr_wake_struct*, C_lr_wake&);
-extern "C" void lr_wake_to_f_(C_lr_wake&, lr_wake_struct*);
+extern "C" void rf_wake_lr_to_c_(rf_wake_lr_struct*, C_rf_wake_lr&);
+extern "C" void rf_wake_lr_to_f_(C_rf_wake_lr&, rf_wake_lr_struct*);
 
-bool operator== (const C_lr_wake&, const C_lr_wake&);
+bool operator== (const C_rf_wake_lr&, const C_rf_wake_lr&);
 
-void operator>> (C_lr_wake&, lr_wake_struct*);
-void operator>> (lr_wake_struct*, C_lr_wake&);
+void operator>> (C_rf_wake_lr&, rf_wake_lr_struct*);
+void operator>> (rf_wake_lr_struct*, C_rf_wake_lr&);
 
 //--------------------------------------------------------------------
 // rf_wake 
@@ -390,21 +393,21 @@ class C_rf_wake {
 public:
   string sr_file;
   string lr_file;
-  C_sr_table_wake_array sr_table;        // size = variable
-  C_sr_mode_wake_array sr_mode_long;   // size = variable
-  C_sr_mode_wake_array sr_mode_trans;  // size = variable
-  C_lr_wake_array lr;          // size = variable
+  C_rf_wake_sr_table_array sr_table;        // size = variable
+  C_rf_wake_sr_mode_array sr_mode_long;   // size = variable
+  C_rf_wake_sr_mode_array sr_mode_trans;  // size = variable
+  C_rf_wake_lr_array lr;          // size = variable
   double z_sr_mode_max;             // Cutoff between sr_table and sr_mode
 
   C_rf_wake (const char* srf, const char* lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
-      sr_table(C_sr_table_wake(), n_sr_table), sr_mode_long(C_sr_mode_wake(), n_sr_mode_long), 
-      sr_mode_trans(C_sr_mode_wake(), n_sr_mode_trans), lr(C_lr_wake(), n_lr),
+      sr_table(C_rf_wake_sr_table(), n_sr_table), sr_mode_long(C_rf_wake_sr_mode(), n_sr_mode_long), 
+      sr_mode_trans(C_rf_wake_sr_mode(), n_sr_mode_trans), lr(C_rf_wake_lr(), n_lr),
       sr_file(string(srf, strlen(srf))),
       lr_file(string(lrf, strlen(lrf))) {}
 
   C_rf_wake (string srf, string lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
-      sr_file(srf), lr_file(lrf), sr_table(C_sr_table_wake(), n_sr_table), sr_mode_long(C_sr_mode_wake(), n_sr_mode_long), 
-      sr_mode_trans(C_sr_mode_wake(), n_sr_mode_trans), lr(C_lr_wake(), n_lr) {}
+      sr_file(srf), lr_file(lrf), sr_table(C_rf_wake_sr_table(), n_sr_table), sr_mode_long(C_rf_wake_sr_mode(), n_sr_mode_long), 
+      sr_mode_trans(C_rf_wake_sr_mode(), n_sr_mode_trans), lr(C_rf_wake_lr(), n_lr) {}
 
   C_rf_wake () : sr_file(""), lr_file("") {}
 
@@ -649,11 +652,11 @@ void operator>> (C_lat_param&, lat_param_struct*);
 void operator>> (lat_param_struct*, C_lat_param&);
 
 //--------------------------------------------------------------------
-// Amode 
+// Anormal_Mode 
 
 class anormal_mode_struct {};
 
-class C_amode {
+class C_anormal_mode {
 public:
   double emittance;        // Beam emittance
   double synch_int4;       // I4 Synchrotron integral
@@ -663,24 +666,24 @@ public:
   double chrom;            // Chromaticity
   double tune;             // "Fractional" tune in radians
 
-  C_amode () :
+  C_anormal_mode () :
       emittance(0), synch_int4(0), synch_int5(0), j_damp(0), 
       alpha_damp(0), chrom(0), tune(0) {}
 
-  C_amode (double em, double si4, double si5, double jd, 
+  C_anormal_mode (double em, double si4, double si5, double jd, 
                                   double ad, double ch, double tu) :
       emittance(em), synch_int4(si4), synch_int5(si5), j_damp(jd), 
       alpha_damp(ad), chrom(ch), tune(tu) {}
 
 };    // End Class
 
-extern "C" void amode_to_c_(anormal_mode_struct*, C_amode&);
-extern "C" void amode_to_f_(C_amode&, anormal_mode_struct*);
+extern "C" void anormal_mode_to_c_(anormal_mode_struct*, C_anormal_mode&);
+extern "C" void anormal_mode_to_f_(C_anormal_mode&, anormal_mode_struct*);
 
-bool operator== (const C_amode&, const C_amode&);
+bool operator== (const C_anormal_mode&, const C_anormal_mode&);
 
-void operator>> (C_amode&, anormal_mode_struct*);
-void operator>> (anormal_mode_struct*, C_amode&);
+void operator>> (C_anormal_mode&, anormal_mode_struct*);
+void operator>> (anormal_mode_struct*, C_anormal_mode&);
 
 //--------------------------------------------------------------------
 // linac_mode 
@@ -717,43 +720,46 @@ void operator>> (C_linac_mode&, linac_normal_mode_struct*);
 void operator>> (linac_normal_mode_struct*, C_linac_mode&);
 
 //--------------------------------------------------------------------
-// Modes 
+// Normal_Modes 
 
 class normal_modes_struct {};
 
-class C_modes {
+class C_normal_modes {
 public:
-  double synch_int1;    // Synchrotron integrals I1
-  double synch_int2;    // Synchrotron integrals I2
-  double synch_int3;    // Synchrotron integrals I3
+  Real_Array synch_int; // size = 4
   double sigE_E;        // SigmaE/E
   double sig_z;         // Sigma_Z
   double e_loss;        // Energy loss / turn (eV)
   double rf_voltage;    // Total rfcavity voltage (eV)
   double pz_aperture;   // Momentem aperture
-  C_amode  a, b, z;
+  C_anormal_mode  a, b, z;
   C_linac_mode lin;
 
-  C_modes () :
-      synch_int1(0), synch_int2(0), synch_int3(0), sigE_E(0), 
+  C_normal_modes () :
+      synch_int(0), sigE_E(0), 
       sig_z(0), e_loss(0), rf_voltage(0), pz_aperture(0), a(), b(), z(), lin() {}
 
-  C_modes (double i1, double i2, double i3, double se, double sz, 
-          double el, double rf_volt, double pz,
-          C_amode aa, C_amode bb, C_amode zz, C_linac_mode l) :
-      synch_int1(i1), synch_int2(i2), synch_int3(i3), sigE_E(se), 
+  C_normal_modes (ReArr si, double se, double sz, double el, double rf_volt, double pz,
+          C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_mode l) :
+      synch_int(si, 4), sigE_E(se), 
+      sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
+      a(aa), b(bb), z(zz), lin(l) {}
+
+  C_normal_modes (Real_Array si, double se, double sz, double el, double rf_volt, double pz,
+          C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_mode l) :
+      synch_int(si), sigE_E(se), 
       sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
       a(aa), b(bb), z(zz), lin(l) {}
 
 };    // End Class
 
-extern "C" void modes_to_c_(normal_modes_struct*, C_modes&);
-extern "C" void modes_to_f_(C_modes&, normal_modes_struct*);
+extern "C" void normal_modes_to_c_(normal_modes_struct*, C_normal_modes&);
+extern "C" void normal_modes_to_f_(C_normal_modes&, normal_modes_struct*);
 
-bool operator== (const C_modes&, const C_modes&);
+bool operator== (const C_normal_modes&, const C_normal_modes&);
 
-void operator>> (C_modes&, normal_modes_struct*);
-void operator>> (normal_modes_struct*, C_modes&);
+void operator>> (C_normal_modes&, normal_modes_struct*);
+void operator>> (normal_modes_struct*, C_normal_modes&);
 
 //--------------------------------------------------------------------
 // Bmad_com 
@@ -779,7 +785,7 @@ public:
   int default_integ_order;       // PTC integration order
   bool canonical_coords;         // Use (x, px) [not (x, x')]
   bool sr_wakes_on;              // Short range wakefields?
-  bool lr_wakes_on;              // Long range wakefields
+  bool lr_wakes_on;               // Long range wakefields
   bool mat6_track_symmetric;     // symmetric offsets
   bool auto_bookkeeper;          // Automatic bookkeeping when elements change?
   bool trans_space_charge_on;
@@ -842,19 +848,13 @@ class C_em_field {
 public:
   Real_Array E;       // electric field, size = 3
   Real_Array B;       // magnetic field, size = 3
-  Real_Array kick;    // kick, size = 3
   Real_Matrix dE;     // electric field gradient, size = 3x3
   Real_Matrix dB;     // magnetic field gradient, size = 3x3
-  Real_Matrix dkick;  // kick gradiant, size = 3x3
-  int type;           // kick_field$ or em_field$
 
-  C_em_field () :
-    E(V0, 3), B(V0, 3), kick(V0, 3), dE(V3_array, 3), dB(V3_array, 3),
-    dkick(V3_array, 3), type(0) {}
+  C_em_field () : E(V0, 3), B(V0, 3), dE(V3_array, 3), dB(V3_array, 3) {}
 
-  C_em_field (Real_Array e, Real_Array b, Real_Array k, 
-                              Real_Matrix ee, Real_Matrix bb, Real_Matrix dk, int tp) :
-      E(e), B(b), kick(k), dE(ee), dB(bb), dkick(dk), type(tp) {}
+  C_em_field (Real_Array e, Real_Array b, Real_Matrix ee, Real_Matrix bb) :
+      E(e), B(b), dE(ee), dB(bb) {}
 
 };    // End Class
 

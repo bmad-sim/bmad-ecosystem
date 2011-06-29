@@ -23,9 +23,9 @@ template bool is_all_equal(const Real_Array&, const Real_Array&);
 template bool is_all_equal(const Int_Array&, const Int_Array&);
 template bool is_all_equal(const C_taylor_term_array&, const C_taylor_term_array&);
 template bool is_all_equal(const C_wig_term_array&, const C_wig_term_array&);
-template bool is_all_equal(const C_sr_table_wake_array&, const C_sr_table_wake_array&);
-template bool is_all_equal(const C_sr_mode_wake_array&, const C_sr_mode_wake_array&);
-template bool is_all_equal(const C_lr_wake_array&, const C_lr_wake_array&);
+template bool is_all_equal(const C_rf_wake_sr_table_array&, const C_rf_wake_sr_table_array&);
+template bool is_all_equal(const C_rf_wake_sr_mode_array&, const C_rf_wake_sr_mode_array&);
+template bool is_all_equal(const C_rf_wake_lr_array&, const C_rf_wake_lr_array&);
 template bool is_all_equal(const C_control_array&, const C_control_array&);
 template bool is_all_equal(const C_branch_array&, const C_branch_array&);
 template bool is_all_equal(const C_ele_array&, const C_ele_array&);
@@ -60,7 +60,7 @@ bool is_all_equal (const Real_Matrix& v1, const Real_Matrix& v2) {
 //---------------------------------------------------
 
 bool operator== (const C_coord& x, const C_coord& y) {
-  return is_all_equal(x.vec, y.vec) && (x.s == y.s) && (x.t == y.t) && is_all_equal(x.spin, y.spin) && 
+  return is_all_equal(x.vec, y.vec) && (x.s == y.s) && (x.t == y.t) && (x.spin1 == y.spin1) && (x.spin2 == y.spin2) && 
     (x.e_field_x == y.e_field_x) && (x.e_field_y == y.e_field_y) && (x.phase_x == y.phase_x) && (x.phase_y == y.phase_y);
 };
 
@@ -95,18 +95,18 @@ bool operator== (const C_taylor& x, const C_taylor& y) {
   return (x.ref == y.ref) && is_all_equal(x.term, y.term);
 };
 
-bool operator== (const C_sr_table_wake& x, const C_sr_table_wake& y) {
+bool operator== (const C_rf_wake_sr_table& x, const C_rf_wake_sr_table& y) {
   return (x.z == y.z) && (x.longitudinal == y.longitudinal) && (x.transverse == y.transverse);
 };
 
-bool operator== (const C_sr_mode_wake& x, const C_sr_mode_wake& y) {
+bool operator== (const C_rf_wake_sr_mode& x, const C_rf_wake_sr_mode& y) {
   return (x.amp == y.amp) && (x.damp == y.damp) && 
          (x.k == y.k) && (x.phi == y.phi) && 
          (x.b_sin == y.b_sin) && (x.b_cos == y.b_cos) && 
          (x.a_sin == y.a_sin) && (x.a_cos == y.a_cos);
 };
 
-bool operator== (const C_lr_wake& x, const C_lr_wake& y) {
+bool operator== (const C_rf_wake_lr& x, const C_rf_wake_lr& y) {
   return (x.freq == y.freq) && (x.freq_in == y.freq_in) && 
          (x.R_over_Q == y.R_over_Q) && (x.Q == y.Q) && (x.angle == y.angle) &&
          (x.b_sin == y.b_sin) && (x.b_cos == y.b_cos) && 
@@ -173,7 +173,7 @@ bool operator== (const C_lat_param& x, const C_lat_param& y) {
          (x.aperture_limit_on == y.aperture_limit_on) && (x.lost == y.lost);
 }
 
-bool operator== (const C_amode& x, const C_amode& y) {
+bool operator== (const C_anormal_mode& x, const C_anormal_mode& y) {
   return (x.emittance == y.emittance) && (x.synch_int4 == y.synch_int4) && 
          (x.synch_int5 == y.synch_int5) && (x.j_damp == y.j_damp) && 
          (x.alpha_damp == y.alpha_damp) && (x.chrom == y.chrom) && 
@@ -187,12 +187,18 @@ bool operator== (const C_linac_mode& x, const C_linac_mode& y) {
          (x.b_emittance_end == y.b_emittance_end);
 };
 
-bool operator== (const C_modes& x, const C_modes& y) {
-  return (x.synch_int1 == y.synch_int1) && (x.synch_int2 == y.synch_int2) && 
-         (x.synch_int3 == y.synch_int3) && (x.sigE_E == y.sigE_E) && 
+bool operator== (const C_normal_modes& x, const C_normal_modes& y) {
+  return is_all_equal(x.synch_int == y.synch_int) && (x.sigE_E == y.sigE_E) && 
          (x.sig_z == y.sig_z) && (x.e_loss == y.e_loss) && 
          (x.pz_aperture == y.pz_aperture) && (x.a == y.a) && 
          (x.b == y.b) && (x.z == y.z) && (x.lin == y.lin);
+}
+
+bool operator== (const C_branch& x, const C_branch& y) {
+  return (x.key == y.key) && (x.name == y.name) && (x.ix_branch == y.ix_branch) && 
+          (x.ix_from_branch == y.ix_from_branch) && (x.ix_from_ele == y.ix_from_ele) && 
+          (x.n_ele_track == y.n_ele_track) && (x.n_ele_max == y.n_ele_max) && 
+          is_all_equal(x.ele == y.ele) && (x.wall3d == y.wall3d) && (x.param == y.param);
 }
 
 bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
@@ -222,9 +228,7 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
 
 bool operator== (const C_em_field& x, const C_em_field& y) {
   return is_all_equal(x.E, y.E) && is_all_equal(x.B, y.B) && 
-    is_all_equal(x.kick, y.kick) && is_all_equal(x.dE, y.dE) && 
-    is_all_equal(x.dB, y.dB) && is_all_equal(x.dkick, y.dkick) && 
-    (x.type == y.type);
+    is_all_equal(x.dE, y.dE) && is_all_equal(x.dB, y.dB);
 }
 
 bool operator== (const C_ele& x, const C_ele& y) {
