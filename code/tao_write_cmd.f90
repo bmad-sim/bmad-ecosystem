@@ -139,7 +139,7 @@ case ('beam')
       endif
 
       if (ascii) then
-        write (iu, *) ie, '  ! ix_ele' 
+        write (iu, *) ele%ix_ele, '  ! ix_ele' 
         write (iu, *) size(beam%bunch), '  ! n_bunch'
         write (iu, *) size(beam%bunch(1)%particle), '  ! n_particle'
         do ib = 1, size(beam%bunch)
