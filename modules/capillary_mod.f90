@@ -5,8 +5,8 @@ use bmad_interface
 
 type photon_coord_struct
   type (coord_struct) orb       ! Phase space: orb%vec = (x, vx/c, y, vy/c, s, vs/c)
-  real(rp) energy
-  real(rp) track_len
+  real(rp) energy               ! in eV.
+  real(rp) track_len            ! Total track length from the start of the element.
   integer ix_section            ! Cross section index
 end type
 
@@ -103,7 +103,7 @@ end subroutine track_a_capillary
 !   ele    -- ele_struct: Capillary element
 !
 ! Output:
-!   photon -- Photon_struct: Output coordinates.
+!   photon -- Photon_track_struct: Output coordinates.
 !   at_end -- Integer: Set to entrance_end$, or exit_end$ if at an end.
 !-
 
@@ -184,7 +184,7 @@ end subroutine capillary_track_photon_to_wall
 !               may be less if stop_at_boundary is True.
 !
 ! Output:
-!   photon -- Photon_struct: Output coordinates.
+!   photon           -- Photon_track_struct: Output coordinates.
 !   stop_at_boundary -- Logical: If True then stop at cross-section boundary.
 !-
 
@@ -374,7 +374,7 @@ end function photon_hit_func
 !   ele    -- ele_struct: Capillary element
 !
 ! Output:
-!   photon   -- Photon_struct: Output coordinates.
+!   photon   -- Photon_track_struct: Output coordinates.
 !   absorbed -- Logical: If true the photon has been absorbed.
 !-
 
@@ -416,7 +416,7 @@ end subroutine capillary_reflect_photon
 !+
 ! Function capillary_photon_d_radius (p_orb, ele, perp) result (d_radius)
 !
-! Routine to calculate the normalized radius = photon_radius / wall_radius.
+! Routine to calculate the normalized radius = photon_radius - wall_radius.
 !
 ! Input:
 !   p_orb   -- photon_coord_struct: Input coordinates.
