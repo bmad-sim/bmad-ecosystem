@@ -63,15 +63,16 @@ void matrix_to_array (const Real_Matrix& mat, double* arr) {
 //---------------------------------------------------------------------------
 // Coord
 
-extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, const Complx&, const Complx&, Re&, Re&, Re&, Re&);
+extern "C" void coord_to_f2_(coord_struct*, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void coord_to_f_(C_coord& c, coord_struct* f) {
-  coord_to_f2_(f, &c.vec[0], c.s, c.t, c.spin1, c.spin2, c.e_field_x, c.e_field_y, c.phase_x, c.phase_y);
+  coord_to_f2_(f, &c.vec[0], c.s, c.t, c.spin1.real(), c.spin1.imag(), c.spin2.real(), c.spin2.imag(), 
+                c.e_field_x, c.e_field_y, c.phase_x, c.phase_y);
 }
 
-extern "C" void coord_to_c2_(C_coord& c, ReArr vec, Re& s, Re& t, Complx spin1, Complx spin2, 
+extern "C" void coord_to_c2_(C_coord& c, ReArr vec, Re& s, Re& t, Re& sp1_re, Re& sp1_im, Re& sp2_re, Re& sp2_im, 
                              Re& field_x, Re& field_y, Re& p_x, Re& p_y) {
-  c = C_coord(vec, s, t, spin1, spin2, field_x, field_y, p_x, p_y);
+  c = C_coord(vec, s, t, Complx(sp1_re, sp1_im), Complx(sp2_re, sp2_im), field_x, field_y, p_x, p_y);
 }
 
 void operator>> (C_coord& c, coord_struct* f) {
@@ -450,16 +451,16 @@ void operator>> (lat_param_struct* f, C_lat_param& c) {
 //---------------------------------------------------------------------------
 // anormal_mode
 
-extern "C" void anormal_mode_to_f2_(anormal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void anormal_mode_to_f2_(anormal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
 extern "C" void anormal_mode_to_f_(C_anormal_mode& c, anormal_mode_struct* f) {
-  anormal_mode_to_f2_(f, c.emittance, c.synch_int4, c.synch_int5, c.j_damp, 
+  anormal_mode_to_f2_(f, c.emittance, c.synch_int4, c.synch_int5, c.synch_int6, c.j_damp, 
                                                c.alpha_damp, c.chrom, c.tune);
 }
 
-extern "C" void anormal_mode_to_c2_(C_anormal_mode& c, Re& emit, Re& i4, Re& i5, 
+extern "C" void anormal_mode_to_c2_(C_anormal_mode& c, Re& emit, Re& i4, Re& i5, Re& i6,
                                         Re& jd, Re& ad, Re& chrom, Re& tune) {
-  c = C_anormal_mode(emit, i4, i5, jd, ad, chrom, tune);
+  c = C_anormal_mode(emit, i4, i5, i6, jd, ad, chrom, tune);
 }
 
 void operator>> (C_anormal_mode& c, anormal_mode_struct* f) {
@@ -471,43 +472,44 @@ void operator>> (anormal_mode_struct* f, C_anormal_mode& c) {
 }
 
 //---------------------------------------------------------------------------
-// linac_mode
+// linac_normal_mode
 
-extern "C" void linac_mode_to_f2_(linac_normal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
+extern "C" void linac_normal_mode_to_f2_(linac_normal_mode_struct*, Re&, Re&, Re&, Re&, Re&, Re&, Re&);
 
-extern "C" void linac_mode_to_f_(C_linac_mode& c, linac_normal_mode_struct* f) {
-  linac_mode_to_f2_(f, c.i2_E4, c.i3_E7, c.i5a_E6, c.i5b_E6, c.sig_E1, 
+extern "C" void linac_normal_mode_to_f_(C_linac_normal_mode& c, linac_normal_mode_struct* f) {
+  linac_normal_mode_to_f2_(f, c.i2_E4, c.i3_E7, c.i5a_E6, c.i5b_E6, c.sig_E1, 
                                                c.a_emittance_end, c.b_emittance_end);
 }
 
-extern "C" void linac_mode_to_c2_(C_linac_mode& c, Re& i2, Re& i3, Re& i5a, 
+extern "C" void linac_normal_mode_to_c2_(C_linac_normal_mode& c, Re& i2, Re& i3, Re& i5a, 
                                              Re& i5b, Re& sig_e, Re& ea, Re& eb) {
-  c = C_linac_mode(i2, i3, i5a, i5b, sig_e, ea, eb);
+  c = C_linac_normal_mode(i2, i3, i5a, i5b, sig_e, ea, eb);
 }
 
-void operator>> (C_linac_mode& c, linac_normal_mode_struct* f) {
-  linac_mode_to_f_(c, f);
+void operator>> (C_linac_normal_mode& c, linac_normal_mode_struct* f) {
+  linac_normal_mode_to_f_(c, f);
 }
 
-void operator>> (linac_normal_mode_struct* f, C_linac_mode& c) {
-  linac_mode_to_c_(f, c);
+void operator>> (linac_normal_mode_struct* f, C_linac_normal_mode& c) {
+  linac_normal_mode_to_c_(f, c);
 }
 
 //---------------------------------------------------------------------------
 // normal_modes
 
 extern "C" void normal_modes_to_f2_(normal_modes_struct*, ReArr, Re&, Re&, Re&, Re&, Re&, 
-                              C_anormal_mode, C_anormal_mode, C_anormal_mode, C_linac_mode);
+                              C_anormal_mode&, C_anormal_mode&, C_anormal_mode&, C_linac_normal_mode&);
 
 extern "C" void normal_modes_to_f_(C_normal_modes& c, normal_modes_struct* f) {
   normal_modes_to_f2_(f, &c.synch_int[0],
             c.sigE_E, c.sig_z, c.e_loss, c.rf_voltage, c.pz_aperture, c.a, c.b, c.z, c.lin);
 }
 
-extern "C" void normal_modes_to_c2_(C_normal_modes& c, double synch_int[], Re& sige, 
+extern "C" void normal_modes_to_c2_(C_normal_modes& c, ReArr synch_int, Re& sige, 
        Re& sig_z, Re& e_loss, Re& rf_volt, Re& pz, 
-       C_anormal_mode a, C_anormal_mode b, C_anormal_mode z, C_linac_mode lin) {
-  c = C_normal_modes(synch_int, sige, sig_z, e_loss, rf_volt, pz, a, b, z, lin);
+       anormal_mode_struct* a, anormal_mode_struct* b, anormal_mode_struct* z, linac_normal_mode_struct* lin) {
+  a >> c.a; b >> c.b; z >> c.z; lin >> c.lin;
+  c = C_normal_modes(synch_int, sige, sig_z, e_loss, rf_volt, pz, c.a, c.b, c.z, c.lin);
 }
 
 void operator>> (C_normal_modes& c, normal_modes_struct* f) {
@@ -576,17 +578,20 @@ void operator>> (em_field_struct* f, C_em_field& c) {
 // ele
 
 extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char, Int&, Char, Int&, 
-  C_twiss&, C_twiss&, C_twiss&, C_xy_disp, C_xy_disp, 
-  C_floor_position&, C_mode3&, C_coord&, C_coord&, void*, 
-  C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_rf&, 
-  Int&, C_space_charge&, C_wall3d&, 
-  ReArr, ReArr, ReArr, ReArr, ReArr, 
+  C_twiss&, C_twiss&, C_twiss&, C_xy_disp&, C_xy_disp&, 
+  C_floor_position&, C_coord&, C_coord&, void*, 
+  C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, C_taylor&, 
+  Int&, ReArr, ReArr, ReArr, ReArr, ReArr,
   Re&, Re&, Re&, ReArr, Int&, Int&, 
   ReArr, ReArr, Int&, ReArr, Int&, 
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
-  Int&, Int&, Int&, Int&, Int&);
+  Int&, Int&, Int&, Int&, Int&,                        // key
+  Int&, Int&, Int&, Int&,                              // slave_status
+  Int&, Int&, Int&, Int&,                              // lord_status
+  Int&, Int&, Int&, Int&, Int&, Int&, Int&,            // ix_pointer
+  Int&, Int&, Int&, Int&,                              // aperture_at
+  Int&, Int&, Int&, Int&,                              // symp
+  Int&, Int&, Int&, Int&, Int&, Int&,                  // map_with_off
+  Int&, Int&);
 
 extern "C" void wig_term_in_ele_to_f2_(ele_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Int&);
 
@@ -594,7 +599,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   const char* nam = c.name.data();       int n_nam = c.name.length();
   const char* typ = c.type.data();       int n_typ = c.type.length();
   const char* ali = c.alias.data();      int n_ali = c.alias.length();
-  const char* des = c.descrip.data();    int n_des = c.descrip.length();
+  const char* descrip = c.descrip.data();    int n_descrip = c.descrip.length();
   const char* component = c.component_name.data(); 
                                     int n_component = c.component_name.length();
   int n_ab = c.a_pole.size(), n_const = c.const_arr.size();
@@ -608,20 +613,18 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   matrix_to_array (c.mat6, mat6);
   matrix_to_array (c.c_mat, c_mat);
   matrix_to_array (c.r, r_arr);
-  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, des, n_des, component, n_component,
+  ele_to_f2_(f, nam, n_nam, typ, n_typ, ali, n_ali, component, n_component, descrip, n_descrip, 
     c.a, c.b, c.z, c.x, c.y, 
-    c.floor, c.mode3, c.map_ref_orb_in, c.map_ref_orb_out, c.gen_field,  
-    c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], c.rf, 
-    n_wig, c.space_charge, c.wall3d,
-    &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat, 
+    c.floor, c.map_ref_orb_in, c.map_ref_orb_out, c.gen_field,  
+    c.taylor[0], c.taylor[1], c.taylor[2], c.taylor[3], c.taylor[4], c.taylor[5], 
+    n_wig, &c.value[1], &c.gen0[0], &c.vec0[0], mat6, c_mat,
     c.gamma_c, c.s, c.ref_time, r_arr, nr1, nr2, 
     &c.a_pole[0], &c.b_pole[0], n_ab, &c.const_arr[0], n_const, 
     c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
     c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
-    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, 
-    c.field_calc, c.ref_orbit, c.taylor_order, 
-    c.aperture_at, c.aperture_type, c.attribute_status, 
+    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit, c.taylor_order, 
+    c.aperture_at, c.aperture_type, c.attribute_status, c.n_attribute_modify,
     c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
     c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
     c.csr_calc_on, c.offset_moves_aperture);
@@ -633,73 +636,46 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
   delete[] r_arr;
 }
 
-extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, char* component, char* descrip, 
+extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, 
+    char* component, char* descrip, 
     twiss_struct* a, twiss_struct* b, twiss_struct* z, xy_disp_struct* x, xy_disp_struct* y, 
-    floor_position_struct* floor, coord_struct* ref_orb_in, coord_struct* ref_orb_out, 
-    ReArr val, ReArr gen0, ReArr vec0,
-    ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, ReArr r_arr, Int& nr1, 
-    Int& nr2, ReArr a_pole, ReArr b_pole, 
-    Int& n_ab, ReArr const_arr, Int& n_const, void* gen, 
+    floor_position_struct* floor, coord_struct* ref_orb_in, coord_struct* ref_orb_out, void* gen,
     taylor_struct* tlr0, taylor_struct* tlr1, taylor_struct* tlr2,
     taylor_struct* tlr3, taylor_struct* tlr4, taylor_struct* tlr5, 
-    rf_struct* rf, Int& n_wig, Int& key, Int& sub_key, 
-    Int& lord_status, Int& slave_status, Int& ix_v, Int& n_s, Int& ix1_s, Int& ix2_s, Int& n_l, 
-    Int& ic1_l, Int& ic2_l, Int& ix_p, Int& ixx, Int& ix_e, Int& ix_branch, 
-    Int& mat6_calc, Int& tracking, Int& f_calc, 
-    Int& ptc, Int& t_ord, Int& aperture_at, Int& aperture_type, Int& attrib_stat, 
-    Int& symp, Int& flip, Int& multi, Int& rad, Int& f_master, Int& is_on, 
-    Int& internal, Int& logic, Int& girder, Int& csr_calc, Int& offset_moves_ap) {
+    Int& n_wig, ReArr val, ReArr gen0, ReArr vec0,
+    ReArr mat6, ReArr c_mat, Re& gamma_c, Re& s, Re& ref_t, 
+    ReArr r_arr, Int& nr1, Int& nr2, ReArr a_pole, ReArr b_pole, Int& n_ab, ReArr const_arr, Int& n_const, 
+    Int& key, Int& sub_key, Int& ix_ele, Int& ix_branch, Int& ix_value,  
+    Int& slave_status, Int& n_slave, Int& ix1_s, Int& ix2_s, 
+    Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
+    Int& ix_p, Int& ixx, 
+    Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
+    Int& t_ord, Int& aperture_at, Int& aperture_type, Int& attrib_stat, Int& n_attrib_modify,
+    Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
+    Int& field_master, Int& is_on, Int& old_is_on, Int& logic, Int& on_a_gird, Int& csr_calc, Int& offset_moves_ap) {
 
   c.name                  = name;
   c.type                  = type;
   c.alias                 = alias; 
   c.component_name        = component;
+  c.descrip               = descrip;
+  a >> c.a;  b >> c.b;  z >> c.z;
+  x >> c.x;  y >> c.y;
+  floor >> c.floor;
+  ref_orb_in >> c.map_ref_orb_in;
+  ref_orb_out >> c.map_ref_orb_out;
+  c.gen_field = gen;
+  tlr0 >> c.taylor[0];   tlr1 >> c.taylor[1];   tlr2 >> c.taylor[2]; 
+  tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
+  if (c.wig_term.size() != n_wig) c.wig_term.resize(n_wig);
   c.value                 << val;
   c.gen0                  << gen0; 
   c.vec0                  << vec0; 
+  c.mat6 << mat6;
+  c.c_mat << c_mat;
   c.gamma_c               = gamma_c; 
   c.s                     = s; 
   c.ref_time              = ref_t;
-  c.descrip               = descrip;
-  c.key                   = key;
-  c.sub_key               = sub_key;
-  c.lord_status           = lord_status;
-  c.slave_status          = slave_status;
-  c.ix_value              = ix_v;
-  c.n_slave               = n_s;
-  c.ix1_slave             = ix1_s;
-  c.ix2_slave             = ix2_s;
-  c.n_lord                = n_l;
-  c.ic1_lord              = ic1_l;
-  c.ic2_lord              = ic2_l;
-  c.ix_pointer            = ix_p;
-  c.ixx                   = ixx;
-  c.ix_ele                = ix_e;
-  c.ix_branch             = ix_branch;
-  c.mat6_calc_method      = mat6_calc;
-  c.tracking_method       = tracking;
-  c.field_calc            = f_calc;
-  c.ref_orbit             = ptc;
-  c.taylor_order          = t_ord;
-  c.aperture_at           = aperture_at;
-  c.aperture_type         = aperture_type;
-  c.attribute_status      = attrib_stat;
-  c.symplectify           = symp;
-  c.mode_flip             = flip;
-  c.multipoles_on         = multi;
-  c.map_with_offsets      = rad;
-  c.field_master          = f_master;
-  c.is_on                 = is_on;
-  c.old_is_on             = internal;
-  c.logic                 = logic;
-  c.on_a_girder           = girder;
-  c.csr_calc_on           = csr_calc;
-  c.offset_moves_aperture = offset_moves_ap;
-
-  if (c.const_arr.size() != n_const) c.const_arr.resize(n_const);
-  c.const_arr  << const_arr;
-
-  if (c.wig_term.size() != n_wig) c.wig_term.resize(n_wig);
 
   if (nr1*nr2 == 0) {
     if (!c.r.size()) c.r.resize(0);
@@ -711,21 +687,53 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias, char* 
     c.r << r_arr;
   }
 
-  x >> c.x;  y >> c.y;
-  a >> c.a;  b >> c.b;  z >> c.z;
-  floor >> c.floor;
-
-  tlr0 >> c.taylor[0];   tlr1 >> c.taylor[1];   tlr2 >> c.taylor[2]; 
-  tlr3 >> c.taylor[3];   tlr4 >> c.taylor[4];   tlr5 >> c.taylor[5]; 
-  c.mat6 << mat6;
-  c.c_mat << c_mat;
-  c.gen_field = gen;
   if (n_ab > 0) {
     c.a_pole.resize(Bmad::N_POLE_MAXX+1);
     c.b_pole.resize(Bmad::N_POLE_MAXX+1);
     c.a_pole = Real_Array(a_pole, Bmad::N_POLE_MAXX+1);
     c.b_pole = Real_Array(b_pole, Bmad::N_POLE_MAXX+1);
   }
+
+  if (c.const_arr.size() != n_const) c.const_arr.resize(n_const);
+  c.const_arr  << const_arr;
+
+  c.key                   = key;
+  c.sub_key               = sub_key;
+  c.ix_ele                = ix_ele;
+  c.ix_branch             = ix_branch;
+  c.ix_value              = ix_value;
+  c.slave_status          = slave_status;
+  c.n_slave               = n_slave;
+  c.ix1_slave             = ix1_s;
+  c.ix2_slave             = ix2_s;
+  c.lord_status           = lord_status;
+  c.n_lord                = n_lord;
+  c.ic1_lord              = ic1_l;
+  c.ic2_lord              = ic2_l;
+  c.ix_pointer            = ix_p;
+  c.ixx                   = ixx;
+
+  c.mat6_calc_method      = mat6_calc;
+  c.tracking_method       = tracking;
+  c.field_calc            = field_calc;
+  c.ref_orbit             = ref_orbit;
+  c.taylor_order          = t_ord;
+  c.aperture_at           = aperture_at;
+  c.aperture_type         = aperture_type;
+  c.attribute_status      = attrib_stat;
+  c.n_attribute_modify    = n_attrib_modify;
+  c.symplectify           = symp;
+  c.mode_flip             = mode_flip;
+  c.multipoles_on         = multi_on;
+  c.scale_multipoles      = scale_multi;
+  c.map_with_offsets      = map_with_off;
+  c.field_master          = field_master;
+  c.is_on                 = is_on;
+  c.old_is_on             = old_is_on;
+  c.logic                 = logic;
+  c.on_a_girder           = on_a_gird;
+  c.csr_calc_on           = csr_calc;
+  c.offset_moves_aperture = offset_moves_ap;
 }
 
 extern "C" void wig_term_in_ele_to_c2_(C_ele& c, Int& it, 
@@ -753,6 +761,11 @@ C_ele& C_ele::operator= (const C_ele& c) {
   x                     = c.x;
   y                     = c.y;
   floor                 = c.floor;
+  map_ref_orb_in        = c.map_ref_orb_in;
+  map_ref_orb_out       = c.map_ref_orb_out;
+  gen_field             = c.gen_field;
+  taylor                << c.taylor;
+  wig_term              << c.wig_term;
   value                 << c.value;
   gen0                  << c.gen0;
   vec0                  << c.vec0;
@@ -765,40 +778,42 @@ C_ele& C_ele::operator= (const C_ele& c) {
   a_pole                << c.a_pole;
   b_pole                << c.b_pole;
   const_arr             << c.const_arr;
-  gen_field             = c.gen_field;
-  taylor                << c.taylor;
-  rf                    = c.rf;
-  wig_term              << c.wig_term;
   key                   = c.key;
   sub_key               = c.sub_key;
-  lord_status           = c.lord_status;
-  slave_status          = c.slave_status;
+  ix_ele                = c.ix_ele;
+  ix_branch             = c.ix_branch;
   ix_value              = c.ix_value;
+  slave_status          = c.slave_status;
   n_slave               = c.n_slave;
   ix1_slave             = c.ix1_slave;
   ix2_slave             = c.ix2_slave;
+  lord_status           = c.lord_status;
   n_lord                = c.n_lord;
   ic1_lord              = c.ic1_lord;
   ic2_lord              = c.ic2_lord;
   ix_pointer            = c.ix_pointer;
   ixx                   = c.ixx;
-  ix_ele                = c.ix_ele;
-  ix_branch             = c.ix_branch;
+
   mat6_calc_method      = c.mat6_calc_method;
   tracking_method       = c.tracking_method;
   field_calc            = c.field_calc;
   ref_orbit             = c.ref_orbit;
   taylor_order          = c.taylor_order;
   aperture_at           = c.aperture_at;
+  aperture_type         = c.aperture_type;
+  attribute_status      = c.attribute_status;
+  n_attribute_modify    = c.n_attribute_modify;
   symplectify           = c.symplectify;
   mode_flip             = c.mode_flip;
   multipoles_on         = c.multipoles_on;
+  scale_multipoles      = c.scale_multipoles;
   map_with_offsets      = c.map_with_offsets;
   field_master          = c.field_master;
   is_on                 = c.is_on;
   old_is_on             = c.old_is_on;
   logic                 = c.logic;
   on_a_girder           = c.on_a_girder;
+  csr_calc_on           = c.csr_calc_on;
   offset_moves_aperture = c.offset_moves_aperture;
 
   return *this;
