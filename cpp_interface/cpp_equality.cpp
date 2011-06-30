@@ -180,7 +180,7 @@ bool operator== (const C_anormal_mode& x, const C_anormal_mode& y) {
          (x.tune == y.tune);
 };
 
-bool operator== (const C_linac_mode& x, const C_linac_mode& y) {
+bool operator== (const C_linac_normal_mode& x, const C_linac_normal_mode& y) {
   return (x.i2_E4 == y.i2_E4) && (x.i3_E7 == y.i3_E7) && 
          (x.i5a_E6 == y.i5a_E6) && (x.i5b_E6 == y.i5b_E6) && 
          (x.sig_E1 == y.sig_E1) && (x.a_emittance_end == y.a_emittance_end) && 

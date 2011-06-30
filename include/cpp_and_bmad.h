@@ -244,7 +244,9 @@ public:
   C_taylor_term (double c, Int_Array e) : coef(c), expn(e) {}
 
   C_taylor_term (double c, int e0, int e1, int e2, int e3, int e4, int e5) :
-    coef(c) {int e[] = {e0, e1, e2, e3, e4, e5}; expn = Int_Array(e, 6);}
+    coef(c), expn(0, 6) {
+        expn[0] = e0; expn[1] = e1; expn[2] = e2; expn[3] = e3; expn[4] = e4; expn[5] = e5;
+    }
 
   C_taylor_term (double c = 0) : coef(c), expn(0, 6) {}
 
@@ -661,18 +663,19 @@ public:
   double emittance;        // Beam emittance
   double synch_int4;       // I4 Synchrotron integral
   double synch_int5;       // I5 Synchrotron integral
+  double synch_int6;       // I6 Synchrotron integral
   double j_damp;           // damping partition number
   double alpha_damp;       // damping per turn
   double chrom;            // Chromaticity
   double tune;             // "Fractional" tune in radians
 
   C_anormal_mode () :
-      emittance(0), synch_int4(0), synch_int5(0), j_damp(0), 
+      emittance(0), synch_int4(0), synch_int5(0), synch_int6(0), j_damp(0), 
       alpha_damp(0), chrom(0), tune(0) {}
 
-  C_anormal_mode (double em, double si4, double si5, double jd, 
+  C_anormal_mode (double em, double si4, double si5, double si6, double jd, 
                                   double ad, double ch, double tu) :
-      emittance(em), synch_int4(si4), synch_int5(si5), j_damp(jd), 
+      emittance(em), synch_int4(si4), synch_int5(si5), synch_int6(si6), j_damp(jd), 
       alpha_damp(ad), chrom(ch), tune(tu) {}
 
 };    // End Class
@@ -690,7 +693,7 @@ void operator>> (anormal_mode_struct*, C_anormal_mode&);
 
 class linac_normal_mode_struct {};
 
-class C_linac_mode {
+class C_linac_normal_mode {
 public:
   double i2_E4;        // Integral: g^2*  gamma^4
   double i3_E7;        // Integral: g^3*  gamma^7
@@ -700,24 +703,24 @@ public:
   double a_emittance_end;  // a mode emittance at end of linac
   double b_emittance_end;  // b mode emittance at end of linac
 
-  C_linac_mode () :
+  C_linac_normal_mode () :
       i2_E4(0), i3_E7(0), i5a_E6(0), i5b_E6(0), sig_E1(0),
       a_emittance_end(0), b_emittance_end(0) {}
 
-  C_linac_mode (double i2, double i3, double i5a, double i5b, double sig,
+  C_linac_normal_mode (double i2, double i3, double i5a, double i5b, double sig,
                                                        double a, double b) :
       i2_E4(i2), i3_E7(i3), i5a_E6(i5a), i5b_E6(i5b), sig_E1(sig),
       a_emittance_end(a), b_emittance_end(b) {}
 
 };    // End Class
 
-extern "C" void linac_mode_to_c_(linac_normal_mode_struct*, C_linac_mode&);
-extern "C" void linac_mode_to_f_(C_linac_mode&, linac_normal_mode_struct*);
+extern "C" void linac_normal_mode_to_c_(linac_normal_mode_struct*, C_linac_normal_mode&);
+extern "C" void linac_normal_mode_to_f_(C_linac_normal_mode&, linac_normal_mode_struct*);
 
-bool operator== (const C_linac_mode&, const C_linac_mode&);
+bool operator== (const C_linac_normal_mode&, const C_linac_normal_mode&);
 
-void operator>> (C_linac_mode&, linac_normal_mode_struct*);
-void operator>> (linac_normal_mode_struct*, C_linac_mode&);
+void operator>> (C_linac_normal_mode&, linac_normal_mode_struct*);
+void operator>> (linac_normal_mode_struct*, C_linac_normal_mode&);
 
 //--------------------------------------------------------------------
 // Normal_Modes 
@@ -733,20 +736,20 @@ public:
   double rf_voltage;    // Total rfcavity voltage (eV)
   double pz_aperture;   // Momentem aperture
   C_anormal_mode  a, b, z;
-  C_linac_mode lin;
+  C_linac_normal_mode lin;
 
   C_normal_modes () :
-      synch_int(0), sigE_E(0), 
+      synch_int(0.0, 4), sigE_E(0), 
       sig_z(0), e_loss(0), rf_voltage(0), pz_aperture(0), a(), b(), z(), lin() {}
 
   C_normal_modes (ReArr si, double se, double sz, double el, double rf_volt, double pz,
-          C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_mode l) :
+          C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_normal_mode l) :
       synch_int(si, 4), sigE_E(se), 
       sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
       a(aa), b(bb), z(zz), lin(l) {}
 
   C_normal_modes (Real_Array si, double se, double sz, double el, double rf_volt, double pz,
-          C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_mode l) :
+          C_anormal_mode aa, C_anormal_mode bb, C_anormal_mode zz, C_linac_normal_mode l) :
       synch_int(si), sigE_E(se), 
       sig_z(sz), e_loss(el), rf_voltage(rf_volt), pz_aperture(pz),
       a(aa), b(bb), z(zz), lin(l) {}
@@ -938,7 +941,8 @@ public:
   C_wig_term_array wig_term;    // Wiggler Coefs
   C_space_charge space_charge;
   C_wall3d wall3d;
-  Real_Array value;             // attribute values. size = N_ATTRIB_MAXX
+  Real_Array value;             // attribute values. size = N_ATTRIB_MAXX+1
+  Real_Array old_value;         // old attribute values. size = N_ATTRIB_MAXX+1
   Real_Array gen0;              // constant part of the genfield map. size = 6
   Real_Array vec0;              // 0th order transport vector. size = 6
   Real_Matrix mat6;             // 1st order transport matrix. size = 6x6
@@ -973,6 +977,7 @@ public:
   int aperture_at;              // Where aperture is applied. exit_end$, ...
   int aperture_type;            // Where aperture is applied. exit_end$, ...
   int attribute_status;         // Element attributes have been modified?
+  int n_attribute_modify;       // How many times the attributes have been modified.
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
@@ -982,6 +987,7 @@ public:
   bool is_on;                   // For turning element on/off.
   bool old_is_on;               // For Bmad internal use only.
   bool logic;                   // For general use. Not used by Bmad.
+  bool bmad_logic;              // For Bmad internal use only.
   bool on_a_girder;             // Have an I_Beam overlay_lord?
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.
   bool offset_moves_aperture;   // element offsets affects aperture?
@@ -1043,8 +1049,8 @@ public:
   int n_ele_track;
   int n_ele_max;
   C_ele_array ele;
-  C_wall3d wall3d;
   C_lat_param param;
+  C_wall3d wall3d;
 
   C_branch () : ix_branch(0), n_ele_track(0), n_ele_max(0) {}
 
@@ -1071,17 +1077,18 @@ public:
   string title;              // General title
   C_mode_info a, b, z;       // Tunes, etc.
   C_lat_param param;         // Parameters
+  C_ele ele_init;            // For use by any program
+  C_ele_array ele;           // Array of elements
+  C_wall3d wall3d;
+  C_branch_array branch;
+  C_control_array control;   // control list
+  C_coord beam_start;  
   int version;               // Version number
   int n_ele_track;           // Number of regular ring elements
   int n_ele_max;             // Index of last element used
   int n_control_max;         // Last index used in CONTROL_ array
   int n_ic_max;              // Last index used in IC_ array
   int input_taylor_order;    // As set in the input file
-  C_ele ele_init;            // For use by any program
-  C_ele_array ele;           // Array of elements
-  C_branch_array branch;
-  C_control_array control;   // control list
-  C_wall3d wall3d;
   Int_Array ic;              // index to %control(:)
 
   C_lat () {}

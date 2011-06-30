@@ -35,7 +35,8 @@ implicit none
 type (coord_struct) f_coord
 type (c_dummy_struct) c_coord
 
-call coord_to_c2 (c_coord, f_coord%vec, f_coord%s, f_coord%t, f_coord%spin(1), &
+call coord_to_c2 (c_coord, f_coord%vec, f_coord%s, f_coord%t, &
+          real(f_coord%spin(1)), aimag(f_coord%spin(1)), real(f_coord%spin(2)), aimag(f_coord%spin(2)), &
           f_coord%e_field_x, f_coord%e_field_y, f_coord%phase_x, f_coord%phase_y)
 
 end subroutine
@@ -43,13 +44,13 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine coord_to_f2 (f_coord, vec, s, t, spin, e_field_x, e_field_y, phase_x, phase_y)
+! Subroutine coord_to_f2 (f_coord, vec, s, t, sp1_re, sp1_im, sp2_re, sp2_im, e_field_x, e_field_y, phase_x, phase_y)
 !
 ! Subroutine used by coord_to_f to convert a C++ C_coord into
 ! a Bmad coord_struct. This routine is not for general use.
 !-
 
-subroutine coord_to_f2 (f_coord, vec, spin, e_field_x, e_field_y, phase_x, phase_y, s, t)
+subroutine coord_to_f2 (f_coord, vec, s, t, sp1_re, sp1_im, sp2_re, sp2_im, e_field_x, e_field_y, phase_x, phase_y)
 
 use fortran_and_cpp
 use bmad_struct
@@ -58,10 +59,10 @@ use bmad_interface
 implicit none
 
 type (coord_struct) f_coord
-real(rp) vec(6), e_field_x, e_field_y, phase_x, phase_y, s, t
-complex spin(2)
+real(rp) vec(6), e_field_x, e_field_y, phase_x, phase_y, s, t, sp1_re, sp1_im, sp2_re, sp2_im
 
-f_coord = coord_struct(vec, s, t, spin, e_field_x, e_field_y, phase_x, phase_y)
+f_coord = coord_struct(vec, s, t, [cmplx(sp1_re, sp1_im), cmplx(sp2_re, sp2_im)], &
+                                    e_field_x, e_field_y, phase_x, phase_y)
 
 end subroutine
 
@@ -685,7 +686,7 @@ enddo
 do i = 1, n_lr
   call rf_wake_lr_in_rf_wake_to_c2 (c_rf_wake, i, f%lr(i)%freq, f%lr(i)%freq_in, &
          f%lr(i)%r_over_q, f%lr(i)%Q, f%lr(i)%angle, f%lr(i)%b_sin, &
-         f%lr(i)%b_cos, f%lr(i)%a_sin, f%lr(i)%a_cos, f%lr(i)%m, &
+         f%lr(i)%b_cos, f%lr(i)%a_sin, f%lr(i)%a_cos, f%lr(i)%t_ref, f%lr(i)%m, &
          f%lr(i)%polarized)
 enddo 
 
@@ -993,20 +994,21 @@ type (anormal_mode_struct), pointer :: f
 type (c_dummy_struct) c_anormal_mode
 
 f => f_anormal_mode
-call anormal_mode_to_c2 (c_anormal_mode, f%emittance, f%synch_int, f%j_damp, f%alpha_damp, f%chrom, f%tune)
+call anormal_mode_to_c2 (c_anormal_mode, f%emittance, f%synch_int(4), f%synch_int(5), f%synch_int(6), &
+                            f%j_damp, f%alpha_damp, f%chrom, f%tune)
 
 end subroutine
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine anormal_mode_to_f2 (f_anormal_mode, emit, synch_int, j_damp, a_damp, chrom, tune)
+! Subroutine anormal_mode_to_f2 (f_anormal_mode, emit, s_int4, s_int5, s_int6, j_damp, a_damp, chrom, tune)
 !
 ! Subroutine used by anormal_mode_to_f to convert a C++ C_anormal_mode into
 ! a Bmad anormal_mode_struct. This routine is not for general use.
 !-
 
-subroutine anormal_mode_to_f2 (f_anormal_mode, emit, synch_int, j_damp, a_damp, chrom, tune)
+subroutine anormal_mode_to_f2 (f_anormal_mode, emit, s_int4, s_int5, s_int6, j_damp, a_damp, chrom, tune)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1015,9 +1017,9 @@ use bmad_interface
 implicit none
 
 type (anormal_mode_struct) f_anormal_mode
-real(rp) emit, synch_int(4:6), j_damp, a_damp, chrom, tune
+real(rp) emit, s_int4, s_int5, s_int6, j_damp, a_damp, chrom, tune
 
-f_anormal_mode = anormal_mode_struct(emit, synch_int, j_damp, a_damp, chrom, tune)
+f_anormal_mode = anormal_mode_struct(emit, [s_int4, s_int5, s_int6], j_damp, a_damp, chrom, tune)
 
 end subroutine
 
@@ -1025,18 +1027,18 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine linac_mode_to_c (f_linac_mode, c_linac_mode)
+! Subroutine linac_normal_mode_to_c (f_linac_normal_mode, c_linac_normal_mode)
 !
-! Subroutine to convert a Bmad linac_normal_mode_struct to a C++ C_linac_mode.
+! Subroutine to convert a Bmad linac_normal_mode_struct to a C++ C_linac_normal_mode.
 !
 ! Input:
-!   f_linac_mode -- Linac_normal_mode_struct: Input Bmad linac_normal_mode_struct.
+!   f_linac_normal_mode -- Linac_normal_mode_struct: Input Bmad linac_normal_mode_struct.
 !
 ! Output:
-!   c_linac_mode -- c_dummy_struct: Output C_linac_mode.
+!   c_linac_normal_mode -- c_dummy_struct: Output C_linac_normal_mode.
 !-
 
-subroutine linac_mode_to_c (f_linac_mode, c_linac_mode)
+subroutine linac_normal_mode_to_c (f_linac_normal_mode, c_linac_normal_mode)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1044,12 +1046,12 @@ use bmad_interface
 
 implicit none
 
-type (linac_normal_mode_struct), target :: f_linac_mode
+type (linac_normal_mode_struct), target :: f_linac_normal_mode
 type (linac_normal_mode_struct), pointer :: f
-type (c_dummy_struct) c_linac_mode
+type (c_dummy_struct) c_linac_normal_mode
 
-f => f_linac_mode
-call linac_mode_to_c2 (c_linac_mode, f%i2_E4, f%i3_E7, f%i5a_E6, f%i5b_E6, &
+f => f_linac_normal_mode
+call linac_normal_mode_to_c2 (c_linac_normal_mode, f%i2_E4, f%i3_E7, f%i5a_E6, f%i5b_E6, &
                                 f%sig_E1, f%a_emittance_end, f%b_emittance_end)
 
 end subroutine
@@ -1057,13 +1059,13 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine linac_mode_to_f2 (f_linac_mode, i2, i3, i5a, i5b, sig_e, ea, eb)
+! Subroutine linac_normal_mode_to_f2 (f_linac_normal_mode, i2, i3, i5a, i5b, sig_e, ea, eb)
 !
-! Subroutine used by linac_mode_to_f to convert a C++ C_linac_mode into
+! Subroutine used by linac_normal_mode_to_f to convert a C++ C_linac_normal_mode into
 ! a Bmad linac_normal_mode_struct. This routine is not for general use.
 !-
 
-subroutine linac_mode_to_f2 (f_linac_mode, i2, i3, i5a, i5b, sig_e, ea, eb)
+subroutine linac_normal_mode_to_f2 (f_linac_normal_mode, i2, i3, i5a, i5b, sig_e, ea, eb)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1071,10 +1073,10 @@ use bmad_interface
 
 implicit none
 
-type (linac_normal_mode_struct) f_linac_mode
+type (linac_normal_mode_struct) f_linac_normal_mode
 real(rp) i2, i3, i5a, i5b, sig_e, ea, eb
 
-f_linac_mode = linac_normal_mode_struct(i2, i3, i5a, i5b, sig_e, ea, eb)
+f_linac_normal_mode = linac_normal_mode_struct(i2, i3, i5a, i5b, sig_e, ea, eb)
 
 end subroutine
 
@@ -1137,7 +1139,7 @@ real(rp) synch_int(0:3), sige, sig_z, e_loss, rf_volt, pz
 call anormal_mode_to_f (a, f_normal_modes%a)
 call anormal_mode_to_f (b, f_normal_modes%b)
 call anormal_mode_to_f (z, f_normal_modes%z)
-call linac_mode_to_f (lin, f_normal_modes%lin)
+call linac_normal_mode_to_f (lin, f_normal_modes%lin)
 
 f_normal_modes = normal_modes_struct(synch_int, sige, sig_z, e_loss, rf_volt, pz, &
                               f_normal_modes%a, f_normal_modes%b, f_normal_modes%z, f_normal_modes%lin)
@@ -1198,7 +1200,7 @@ end subroutine
 !-
 
 subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, signif, rel, abs, rel_track, &
-        abs_track, taylor_ord, dflt_integ, cc, liar, sr, lr, sym, &
+        abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym, &
         a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
 
 use fortran_and_cpp
@@ -1208,7 +1210,7 @@ use bmad_interface
 implicit none
 
 real(rp) orb(6), max_ap, grad_loss, rel, abs, rel_track, abs_track, ds_step, signif
-integer taylor_ord, dflt_integ, cc, liar, sr, lr, sym
+integer taylor_ord, dflt_integ, cc, sr, lr, sym
 integer st_on, rad_d, rad_f, ref_e, a_book, tsc_on, csr_on
 integer conserve_t
 
@@ -1333,22 +1335,21 @@ if (associated(f%wig_term)) n_wig = size(f%wig_term)
 value(0) = 0
 value(1:) = f%value
 
-
 call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
-      c_str(f%component_name), f%x, f%y, f%a, f%b, f%z, f%floor, value, f%gen0, &
-      f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
+      c_str(f%component_name), c_str(descrip), f%a, f%b, f%z, f%x, f%y, &
+      f%floor, f%map_ref_orb_in, f%map_ref_orb_out, f%gen_field, &
+      f%taylor(1), f%taylor(2), f%taylor(3), f%taylor(4), f%taylor(5), f%taylor(6), &
+      n_wig, value, f%gen0, f%vec0, mat2arr(f%mat6), mat2arr(f%c_mat), f%gamma_c, f%s, f%ref_time, &
       r_arr, nr1, nr2, f%a_pole, f%b_pole, r_size(f%a_pole), f%const, r_size(f%const), &
-      c_str(descrip), f%gen_field, f%taylor(1), f%taylor(2), f%taylor(3), &
-      f%taylor(4), f%taylor(5), f%taylor(6), f%rf, c_logic(associated(f%rf%field)), &
-      c_logic(associated(f%rf%wake)), n_wig, f%key, &
-      f%sub_key, f%lord_status, f%slave_status, f%ix_value, f%n_slave, f%ix1_slave, &
-      f%ix2_slave, f%n_lord, f%ic1_lord, f%ic2_lord, f%ix_pointer, f%ixx, &
-      f%ix_ele, f%ix_branch, f%mat6_calc_method, f%tracking_method, f%field_calc, &
-      f%ref_orbit, f%taylor_order, &
-      f%aperture_at, f%aperture_type, f%attribute_status, f%symplectify, f%mode_flip, &
-      f%multipoles_on, f%map_with_offsets, &
+      f%key, f%sub_key, f%ix_ele, f%ix_branch, f%ix_value, &
+      f%slave_status, f%n_slave, f%ix1_slave, f%ix2_slave, &
+      f%lord_status, f%n_lord, f%ic1_lord, f%ic2_lord, &
+      f%ix_pointer, f%ixx, &
+      f%mat6_calc_method, f%tracking_method, f%field_calc, f%ref_orbit, &
+      f%taylor_order, f%aperture_at, f%aperture_type, f%attribute_status, f%n_attribute_modify, &
+      f%symplectify, f%mode_flip, f%multipoles_on, f%scale_multipoles, f%map_with_offsets, &
       f%field_master, f%is_on, f%old_is_on, f%logic, f%on_a_girder, &
-      f%csr_calc_on)
+      f%csr_calc_on, f%offset_moves_aperture)
 
 if (associated(f%r)) deallocate(r_arr)
 
@@ -1362,27 +1363,26 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
-!    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, ref_t, r_arr, nr1, nr2, &
-!    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
-!    tlr5, tlr6, rf_wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
-!    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, nlrd, ic1_l, ic2_l, &
-!    ixp, ixx, ixe, ix_branch, m6_meth, tk_meth, f_calc, &
-!    ptc, tlr_ord, aperture_at, aperture_type, attrib_stat, symp, mode, mult, ex_rad,  &
-!    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)
+! Subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, ...)
 !
 ! Subroutine used by ele_to_f to convert a C++ C_ele into
 ! a Bmad ele_struct. This routine is not for general use.
 !-
 
-subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, attrib, &
-    n_attrib, x, y, a, b, z, floor, val, g0, v0, m6, c2, gam, s, ref_t, r_arr, nr1, nr2, &
-    a_pole, b_pole, n_ab, const, n_const, des, n_des, gen, tlr1, tlr2, tlr3, tlr4, &
-    tlr5, tlr6, rf_wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, &
-    n_lr, n_wig, key, sub, lord_status, slave_status, ixv, nsl, ix1s, ix2s, &
-    nlrd, ic1_l, ic2_l, ixp, ixx, ixe, ix_branch, m6_meth, tk_meth, f_calc, &
-    ptc, tlr_ord, aperture_at, aperture_type, attrib_stat, symp, mode, mult, ex_rad, &
-    f_master, on, intern, logic, girder, csr_calc, offset_moves_ap)   
+subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_component_nam, des, n_des, &
+    a, b, z, x, y, &
+    floor, ref_orb_in, ref_orb_out, gen_f, &
+    tlr1, tlr2, tlr3, tlr4, tlr5, tlr6, &
+    n_wig, value, gen0, vec0, mat6, c_mat, &
+    gamma_c, s, ref_t, r_arr, nr1, nr2, &
+    a_pole, b_pole, n_ab, const, n_const, &
+    key, sub_key, ix_ele, ix_branch, ix_value, &
+    slave_status, n_slave, ix1_slave, ix2_slave, &
+    lord_status, n_lord, ic1_lord, ic2_lord, &
+    ix_point, ixx, mat6_meth, tracking_meth, field_calc, ref_orb, tlr_ord, &
+    aperture_at, aperture_type, attrib_stat, n_attrib_modify, &
+    symp, mode_flip, multi_on, scale_multi, &
+    map_with_off, field_master, is_on, old_is_on, logic, girder, csr_calc, offset_moves_ap)   
 
 use fortran_and_cpp
 use multipole_mod
@@ -1392,23 +1392,24 @@ use bmad_interface
 implicit none
 
 type (ele_struct) f
-type (c_dummy_struct) a, b, x, y, z, floor, rf_wake, wig
+type (c_dummy_struct) a, b, x, y, z, floor, ref_orb_in, ref_orb_out
 type (c_dummy_struct) tlr1, tlr2, tlr3, tlr4, tlr5, tlr6
-type (genfield), target :: gen
+type (genfield), target :: gen_f
 
-integer n_nam, nr1, nr2, n_ab, n_const, key, sub, lord_status, slave_status, ixv, nsl, ix1s, &
-    ix2s, nlrd, ic1_l, ic2_l, ixp, ixx, ixe, m6_meth, tk_meth, f_calc, &
-    ptc, tlr_ord, aperture_at, attrib_stat, symp, mode, mult, ex_rad, f_master, &
-    on, intern, logic, girder, csr_calc, n_typ, n_ali, n_attrib, n_des, ix_branch, &
-    n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
+integer n_nam, nr1, nr2, n_ab, n_const, key, sub_key, lord_status, slave_status
+integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, field_calc
+integer ref_orb, tlr_ord, aperture_at, attrib_stat, symp, mode_flip, multi_on, map_with_off, field_master
+integer is_on, old_is_on, logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
+integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
+integer n_attrib_modify, ix_value, n_slave, ix1_slave, scale_multi
 
-real(rp) val(n_attrib_maxx), g0(6), v0(6), m6(36), c2(4), gam, s, ref_t
+real(rp) value(n_attrib_maxx), gen0(6), vec0(6), mat6(36), c_mat(4), gamma_c, s, ref_t
 real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2), const(n_const)
 
 character(n_nam)  nam
 character(n_typ)  typ
 character(n_ali)  ali
-character(n_attrib) attrib
+character(n_component_nam) component_nam
 character(n_des)  des
 
 !
@@ -1416,7 +1417,14 @@ character(n_des)  des
 f%name  = nam
 f%type  = typ
 f%alias = ali
-f%component_name = attrib
+f%component_name = component_nam
+
+if (n_des == 0) then
+  if (associated (f%descrip)) deallocate (f%descrip)
+else
+  if (.not. associated(f%descrip)) allocate (f%descrip)
+  f%descrip = des
+endif
 
 call twiss_to_f (a, f%a)
 call twiss_to_f (b, f%b)
@@ -1424,51 +1432,39 @@ call twiss_to_f (z, f%z)
 call xy_disp_to_f (x, f%x)
 call xy_disp_to_f (y, f%y)
 call floor_position_to_f (floor, f%floor)
+call coord_to_f (ref_orb_in, f%map_ref_orb_in)
+call coord_to_f (ref_orb_out, f%map_ref_orb_out)
 
-f%value                 = val
-f%gen0                  = g0
-f%vec0                  = v0
-f%mat6                  = arr2mat(m6, 6, 6)
-f%c_mat                 = arr2mat(c2, 2, 2) 
-f%gamma_c               = gam
+f%gen_field => gen_f
+
+call taylor_to_f (tlr1, f%taylor(1))
+call taylor_to_f (tlr2, f%taylor(2))
+call taylor_to_f (tlr3, f%taylor(3))
+call taylor_to_f (tlr4, f%taylor(4))
+call taylor_to_f (tlr5, f%taylor(5))
+call taylor_to_f (tlr6, f%taylor(6))
+
+if (n_wig == 0) then
+  if (associated(f%wig_term)) deallocate (f%wig_term)
+else
+  if (associated(f%wig_term)) then
+    if (size(f%wig_term) /= n_wig) then
+      deallocate (f%wig_term)
+      allocate (f%wig_term(n_wig))
+    endif
+  else
+    allocate (f%wig_term(n_wig))
+  endif
+endif
+
+f%value                 = value
+f%gen0                  = gen0
+f%vec0                  = vec0
+f%mat6                  = arr2mat(mat6, 6, 6)
+f%c_mat                 = arr2mat(c_mat, 2, 2) 
+f%gamma_c               = gamma_c
 f%s                     = s
 f%ref_time              = ref_t
-f%key                   = key
-f%sub_key               = sub
-f%lord_status             = lord_status
-f%slave_status            = slave_status
-f%ix_value              = ixv
-f%n_slave               = nsl
-f%ix1_slave             = ix1s
-f%ix2_slave             = ix2s
-f%n_lord                = nlrd
-f%ic1_lord              = ic1_l
-f%ic2_lord              = ic2_l
-f%ix_pointer            = ixp
-f%ixx                   = ixx
-f%ix_ele                = ixe
-f%ix_branch             = ix_branch
-f%mat6_calc_method      = m6_meth
-f%tracking_method       = tk_meth
-f%field_calc            = f_calc
-f%ref_orbit              = ptc
-f%taylor_order          = tlr_ord
-f%aperture_at           = aperture_at
-f%aperture_type         = aperture_type
-f%attribute_status      = attrib_stat
-f%symplectify           = f_logic(symp)
-f%mode_flip             = f_logic(mode)
-f%multipoles_on         = f_logic(mult)
-f%map_with_offsets      = f_logic(ex_rad)
-f%field_master          = f_logic(f_master)
-f%is_on                 = f_logic(on)
-f%old_is_on             = f_logic(intern)
-f%logic                 = f_logic(logic)
-f%on_a_girder           = f_logic(girder)
-f%csr_calc_on           = f_logic(csr_calc)
-f%offset_moves_aperture = f_logic(offset_moves_ap)
-
-! pointer stuff
 
 if (nr1 == 0 .or. nr2 == 0) then
   if (associated(f%r)) deallocate (f%r)
@@ -1504,34 +1500,48 @@ else
   f%const = const
 endif
 
-if (n_des == 0) then
-  if (associated (f%descrip)) deallocate (f%descrip)
-else
-  if (.not. associated(f%descrip)) allocate (f%descrip)
-  f%descrip = des
-endif
+f%key                   = key
+f%sub_key               = sub_key
+f%ix_ele                = ix_ele
+f%ix_branch             = ix_branch
+f%ix_value              = ix_value
 
-f%gen_field => gen
+f%slave_status          = slave_status
+f%n_slave               = n_slave
+f%ix1_slave             = ix1_slave
+f%ix2_slave             = ix2_slave
 
-call taylor_to_f (tlr1, f%taylor(1))
-call taylor_to_f (tlr2, f%taylor(2))
-call taylor_to_f (tlr3, f%taylor(3))
-call taylor_to_f (tlr4, f%taylor(4))
-call taylor_to_f (tlr5, f%taylor(5))
-call taylor_to_f (tlr6, f%taylor(6))
+f%lord_status           = lord_status
+f%n_lord                = n_lord
+f%ic1_lord              = ic1_lord
+f%ic2_lord              = ic2_lord
 
-if (n_wig == 0) then
-  if (associated(f%wig_term)) deallocate (f%wig_term)
-else
-  if (associated(f%wig_term)) then
-    if (size(f%wig_term) /= n_wig) then
-      deallocate (f%wig_term)
-      allocate (f%wig_term(n_wig))
-    endif
-  else
-    allocate (f%wig_term(n_wig))
-  endif
-endif
+f%ix_pointer            = ix_point
+f%ixx                   = ixx
+
+f%mat6_calc_method      = mat6_meth
+f%tracking_method       = tracking_meth
+f%field_calc            = field_calc
+f%ref_orbit             = ref_orb
+f%taylor_order          = tlr_ord
+f%aperture_at           = aperture_at
+f%aperture_type         = aperture_type
+f%attribute_status      = attrib_stat
+f%n_attribute_modify    = n_attrib_modify
+f%symplectify           = f_logic(symp)
+f%mode_flip             = f_logic(mode_flip)
+f%multipoles_on         = f_logic(multi_on)
+f%scale_multipoles      = f_logic(scale_multi)
+f%map_with_offsets      = f_logic(map_with_off)
+f%field_master          = f_logic(field_master)
+f%is_on                 = f_logic(is_on)
+f%old_is_on             = f_logic(old_is_on)
+f%logic                 = f_logic(logic)
+f%on_a_girder           = f_logic(girder)
+f%csr_calc_on           = f_logic(csr_calc)
+f%offset_moves_aperture = f_logic(offset_moves_ap)
+
+! pointer stuff
 
 end subroutine
 
@@ -1602,7 +1612,7 @@ end subroutine
 ! a Bmad mode_info_struct. This routine is not for general use.
 !-
 
-subroutine mode_info_to_f2 (f_mode_info, tune, emit, chrom)
+subroutine mode_info_to_f2 (f_mode_info, tune, emit, chrom, sigma, sigmap)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1644,6 +1654,11 @@ type (lat_struct), target :: f_lat
 type (lat_struct), pointer :: f
 type (c_dummy_struct) C_lat, c_ele
 integer i, n_con, n_ele, n_ic
+
+!
+
+print *, 'LAT_STRUCT CONVERSION BETWEEN C++/FORTRAN NOT YET IMPLEMENTED!'
+call err_exit
 
 !
 
@@ -1705,6 +1720,11 @@ character(n_name) name
 character(n_lat) lat
 character(n_file) file
 character(n_title) title
+
+!
+
+print *, 'LAT_STRUCT CONVERSION BETWEEN C++/FORTRAN NOT YET IMPLEMENTED!'
+call err_exit
 
 !
 
