@@ -115,13 +115,18 @@ bool operator== (const C_rf_wake_lr& x, const C_rf_wake_lr& y) {
 };
 
 bool operator== (const C_rf_wake& x, const C_rf_wake& y) {
-  bool all_true;
-  all_true = (x.sr_file == y.sr_file) && (x.lr_file == y.lr_file) &&
-            (x.sr_table.size() == y.sr_table.size()) && (x.sr_mode_long.size() == y.sr_mode_long.size()) && 
-            (x.sr_mode_trans.size() == y.sr_mode_trans.size()) && (x.lr.size() == y.lr.size()); 
-  if (!all_true) return all_true;
-  return is_all_equal(x.sr_table, y.sr_table) && is_all_equal(x.sr_mode_long, y.sr_mode_long) && 
-         is_all_equal(x.sr_mode_trans, y.sr_mode_trans) && is_all_equal(x.lr, y.lr);
+  bool all_true = true;
+  all_true = all_true && (x.sr_file == y.sr_file);
+  all_true = all_true && (x.lr_file == y.lr_file);
+  all_true = all_true && (x.sr_table.size() == y.sr_table.size());
+  all_true = all_true && (x.sr_mode_long.size() == y.sr_mode_long.size());
+  all_true = all_true && (x.sr_mode_trans.size() == y.sr_mode_trans.size());
+  all_true = all_true && (x.lr.size() == y.lr.size());;
+  all_true = all_true && is_all_equal(x.sr_table, y.sr_table);
+  all_true = all_true && is_all_equal(x.sr_mode_long, y.sr_mode_long);
+  all_true = all_true && is_all_equal(x.sr_mode_trans, y.sr_mode_trans);
+  all_true = all_true && is_all_equal(x.lr, y.lr);
+  return all_true;
 }
 
 bool operator== (const C_rf_field_mode_term& x, const C_rf_field_mode_term& y) {
@@ -232,36 +237,77 @@ bool operator== (const C_em_field& x, const C_em_field& y) {
 }
 
 bool operator== (const C_ele& x, const C_ele& y) {
-  return (x.name == y.name) && (x.type == y.type) && (x.alias == y.alias) && 
-    (x.component_name == y.component_name) && (x.x == y.x) && (x.y == y.y) && 
-    (x.a == y.a) && (x.b == y.b) && 
-    (x.z == y.z) && (x.floor == y.floor) && is_all_equal(x.value, y.value) && 
-    is_all_equal(x.gen0, y.gen0) && is_all_equal(x.vec0, y.vec0) && 
-    is_all_equal(x.mat6, y.mat6) && is_all_equal(x.c_mat, y.c_mat) && 
-    (x.gamma_c == y.gamma_c) && (x.s == y.s) && (x.ref_time == y.ref_time) && 
-    is_all_equal(x.r, y.r) && 
-    is_all_equal(x.a_pole, y.a_pole) && is_all_equal(x.b_pole, y.b_pole) && 
-    is_all_equal(x.const_arr, y.const_arr) && (x.descrip == y.descrip) && 
-    is_all_equal(x.taylor, y.taylor) && 
-    is_all_equal(x.wig_term, y.wig_term) && (x.rf == y.rf) && 
-    (x.key == y.key) && (x.sub_key == y.sub_key) && 
-    (x.lord_status == y.lord_status) && (x.slave_status == y.slave_status) && 
-    (x.ix_value == y.ix_value) && 
-    (x.n_slave == y.n_slave) && (x.ix1_slave == y.ix1_slave) && 
-    (x.ix2_slave == y.ix2_slave) && (x.n_lord == y.n_lord) && 
-    (x.ic1_lord == y.ic1_lord) && (x.ic2_lord == y.ic2_lord) && 
-    (x.ix_pointer == y.ix_pointer) && (x.ixx == y.ixx) && 
-    (x.ix_ele == y.ix_ele) && (x.mat6_calc_method == y.mat6_calc_method) && 
-    (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
-    (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
-    (x.aperture_at == y.aperture_at) && (x.aperture_type == y.aperture_type) && 
-    (x.attribute_status == y.attribute_status) && (x.symplectify == y.symplectify) && 
-    (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
-    (x.map_with_offsets == y.map_with_offsets) && 
-    (x.field_master == y.field_master) && 
-    (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
-    (x.logic == y.logic) && (x.on_a_girder == y.on_a_girder) && 
-    (x.csr_calc_on == y.csr_calc_on) && (x.offset_moves_aperture == y.offset_moves_aperture);
+  bool is_true(true);
+  is_true = is_true && (x.name == y.name);
+  is_true = is_true && (x.type == y.type);
+  is_true = is_true && (x.alias == y.alias);
+  is_true = is_true && (x.component_name == y.component_name);
+  is_true = is_true && (x.descrip == y.descrip);
+  is_true = is_true && (x.a == y.a);
+  is_true = is_true && (x.b == y.b);
+  is_true = is_true && (x.z == y.z);
+  is_true = is_true && (x.x == y.x);
+  is_true = is_true && (x.y == y.y);
+  is_true = is_true && (x.floor == y.floor);
+  // is_true = is_true && (x.mode3 == y.mode3);
+  is_true = is_true && (x.map_ref_orb_in == y.map_ref_orb_in);
+  is_true = is_true && (x.map_ref_orb_out == y.map_ref_orb_out);
+  // is_true = is_true && (x.gen_field == y.gen_field);
+  is_true = is_true && is_all_equal(x.taylor, y.taylor);
+  // is_true = is_true && (x.rf == y.rf);
+  // is_true = is_true && is_all_equal(x.wig_term, y.wig_term);
+  // is_true = is_true && (x.space_charge == y.space_charge);
+  // is_true = is_true && (x.wall3d == y.wall3d);
+  is_true = is_true && is_all_equal(x.value, y.value);
+  is_true = is_true && is_all_equal(x.old_value, y.old_value);
+  is_true = is_true && is_all_equal(x.gen0, y.gen0);
+  is_true = is_true && is_all_equal(x.vec0, y.vec0);
+  is_true = is_true && is_all_equal(x.mat6, y.mat6);
+  is_true = is_true && is_all_equal(x.c_mat, y.c_mat);
+  is_true = is_true && (x.gamma_c == y.gamma_c);
+  is_true = is_true && (x.s == y.s);
+  is_true = is_true && (x.ref_time == y.ref_time);
+  is_true = is_true && is_all_equal(x.r, y.r);
+  is_true = is_true && is_all_equal(x.a_pole, y.a_pole);
+  is_true = is_true && is_all_equal(x.b_pole, y.b_pole);
+  is_true = is_true && is_all_equal(x.const_arr, y.const_arr);
+  is_true = is_true && (x.key == y.key);
+  is_true = is_true && (x.sub_key == y.sub_key);
+  is_true = is_true && (x.ix_ele == y.ix_ele);
+  is_true = is_true && (x.ix_branch == y.ix_branch);
+  is_true = is_true && (x.ix_value == y.ix_value);
+  is_true = is_true && (x.slave_status == y.slave_status);
+  is_true = is_true && (x.n_slave == y.n_slave);
+  is_true = is_true && (x.ix1_slave == y.ix1_slave);
+  is_true = is_true && (x.ix2_slave == y.ix2_slave);
+  is_true = is_true && (x.lord_status == y.lord_status);
+  is_true = is_true && (x.n_lord == y.n_lord);
+  is_true = is_true && (x.ic1_lord == y.ic1_lord);
+  is_true = is_true && (x.ic2_lord == y.ic2_lord);
+  is_true = is_true && (x.ix_pointer == y.ix_pointer);
+  is_true = is_true && (x.ixx == y.ixx);
+  is_true = is_true && (x.mat6_calc_method == y.mat6_calc_method);
+  is_true = is_true && (x.tracking_method == y.tracking_method);
+  is_true = is_true && (x.field_calc == y.field_calc);
+  is_true = is_true && (x.ref_orbit == y.ref_orbit);
+  is_true = is_true && (x.taylor_order == y.taylor_order);
+  is_true = is_true && (x.aperture_at == y.aperture_at);
+  is_true = is_true && (x.aperture_type == y.aperture_type);
+  is_true = is_true && (x.attribute_status == y.attribute_status);
+  is_true = is_true && (x.n_attribute_modify == y.n_attribute_modify);
+  is_true = is_true && (x.symplectify == y.symplectify);
+  is_true = is_true && (x.mode_flip == y.mode_flip);
+  is_true = is_true && (x.multipoles_on == y.multipoles_on);
+  is_true = is_true && (x.scale_multipoles == y.scale_multipoles);
+  is_true = is_true && (x.map_with_offsets == y.map_with_offsets);
+  is_true = is_true && (x.is_on == y.is_on);
+  is_true = is_true && (x.old_is_on == y.old_is_on);
+  is_true = is_true && (x.logic == y.logic);
+  is_true = is_true && (x.bmad_logic == y.bmad_logic);
+  is_true = is_true && (x.on_a_girder == y.on_a_girder);
+  is_true = is_true && (x.csr_calc_on == y.csr_calc_on);
+  is_true = is_true && (x.offset_moves_aperture == y.offset_moves_aperture);
+  return is_true;
 }
 
 bool operator== (const C_mode_info& x, const C_mode_info& y) {
@@ -293,47 +339,4 @@ bool operator== (const C_lat& x, const C_lat& y) {
   return is_true; 
 }
 
-//---------------------------------------------------------------------------
-
-void ele_comp (const C_ele& x, const C_ele& y) {
-
-  cout << "name: " << ((x.name == y.name) && (x.type == y.type) && 
-      (x.alias == y.alias) && (x.component_name == y.component_name)) << endl;
-  cout << "int:  " << ((x.gamma_c == y.gamma_c) && (x.s == y.s) && (x.ref_time == y.ref_time) &&
-      (x.descrip == y.descrip) && (x.rf == y.rf) && 
-      (x.key == y.key) && (x.sub_key == y.sub_key) && 
-      (x.lord_status == y.lord_status) && (x.slave_status == y.slave_status) && 
-      (x.ix_value == y.ix_value) && 
-      (x.n_slave == y.n_slave) && (x.ix1_slave == y.ix1_slave) && 
-      (x.ix2_slave == y.ix2_slave) && (x.n_lord == y.n_lord) && 
-      (x.ic1_lord == y.ic1_lord) && (x.ic2_lord == y.ic2_lord) && 
-      (x.ix_pointer == y.ix_pointer) && (x.ixx == y.ixx) && 
-      (x.ix_ele == y.ix_ele)) << endl;
-  cout << "logic: " << ((x.mat6_calc_method == y.mat6_calc_method) && 
-      (x.tracking_method == y.tracking_method) && (x.field_calc == y.field_calc) && 
-      (x.ref_orbit == y.ref_orbit) && (x.taylor_order == y.taylor_order) && 
-      (x.aperture_at == y.aperture_at) && (x.aperture_type == y.aperture_type) && 
-      (x.symplectify == y.symplectify) && 
-      (x.mode_flip == y.mode_flip) && (x.multipoles_on == y.multipoles_on) && 
-      (x.map_with_offsets == y.map_with_offsets) && 
-      (x.field_master == y.field_master) && 
-      (x.is_on == y.is_on) && (x.old_is_on == y.old_is_on) && 
-      (x.logic == y.logic) && (x.on_a_girder == y.on_a_girder) &&
-      (x.offset_moves_aperture == y.offset_moves_aperture)) << endl;
-
-  cout << "xy:     " << ((x.x == y.x) && (x.y == y.y)) << endl;
-  cout << "abz:    " << ((x.a == y.a) && (x.b == y.b) && (x.z == y.z)) << endl;
-  cout << "floor:  " << ((x.floor == y.floor)) << endl;
-  cout << "value:  " << is_all_equal(x.value, y.value) << endl;
-  cout << "gen0:   " << is_all_equal(x.gen0, y.gen0) << endl;
-  cout << "vec0:   " << is_all_equal(x.vec0, y.vec0) << endl;
-  cout << "mat6:   " << is_all_equal(x.mat6, y.mat6) << endl; 
-  cout << "c_mat:  " << is_all_equal(x.c_mat, y.c_mat) << endl;
-  cout << "a_pole: " << is_all_equal(x.a_pole, y.a_pole) << endl;
-  cout << "b_pole: " << is_all_equal(x.b_pole, y.b_pole) << endl;
-  cout << "const:  " << is_all_equal(x.const_arr, y.const_arr) << endl;
-  cout << "taylor: " << is_all_equal(x.taylor, y.taylor) << endl;
-  cout << "wig:    " << is_all_equal(x.wig_term, y.wig_term)  << endl;
-  cout << "r:      " << is_all_equal(x.r, y.r) << endl;
-}
  

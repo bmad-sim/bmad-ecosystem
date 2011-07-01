@@ -591,7 +591,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   Int&, Int&, Int&, Int&,                              // aperture_at
   Int&, Int&, Int&, Int&,                              // symp
   Int&, Int&, Int&, Int&, Int&, Int&,                  // map_with_off
-  Int&, Int&);
+  Int&, Int&, Int&);
 
 extern "C" void wig_term_in_ele_to_f2_(ele_struct*, Int&, Re&, Re&, Re&, Re&, Re&, Int&);
 
@@ -626,8 +626,8 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit, c.taylor_order, 
     c.aperture_at, c.aperture_type, c.attribute_status, c.n_attribute_modify,
     c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
-    c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.on_a_girder, 
-    c.csr_calc_on, c.offset_moves_aperture);
+    c.map_with_offsets, c.field_master, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
+    c.on_a_girder, c.csr_calc_on, c.offset_moves_aperture);
   for (int i = 0; i < n_wig; i++) {
     wig_term_in_ele_to_f2_(f, i+1, c.wig_term[i].coef, 
             c.wig_term[i].kx, c.wig_term[i].ky, c.wig_term[i].kz, 
@@ -652,7 +652,8 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
     Int& t_ord, Int& aperture_at, Int& aperture_type, Int& attrib_stat, Int& n_attrib_modify,
     Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
-    Int& field_master, Int& is_on, Int& old_is_on, Int& logic, Int& on_a_gird, Int& csr_calc, Int& offset_moves_ap) {
+    Int& field_master, Int& is_on, Int& old_is_on, Int& logic, Int& bmad_logic, Int& on_a_gird, 
+    Int& csr_calc, Int& offset_moves_ap) {
 
   c.name                  = name;
   c.type                  = type;
@@ -731,6 +732,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.is_on                 = is_on;
   c.old_is_on             = old_is_on;
   c.logic                 = logic;
+  c.bmad_logic            = bmad_logic;
   c.on_a_girder           = on_a_gird;
   c.csr_calc_on           = csr_calc;
   c.offset_moves_aperture = offset_moves_ap;
