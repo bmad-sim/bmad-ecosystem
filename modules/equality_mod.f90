@@ -590,92 +590,107 @@ integer i, j
 
 !
 
-is_eq = (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
-    (f1%alias == f2%alias) .and. &
-    (f1%component_name == f2%component_name) .and. (f1%a == f2%a) .and. &
-    (f1%b == f2%b) .and. (f1%z == f2%z) .and. (f1%x == f2%x) .and. (f1%y == f2%y) .and. &
-    (f1%floor == f2%floor) .and. &
-    (f1%map_ref_orb_in == f2%map_ref_orb_in) .and. (f1%map_ref_orb_out == f2%map_ref_orb_out) .and. &
-    all(f1%value == f2%value) .and. &
-    all(f1%gen0 == f2%gen0) .and. all(f1%vec0 == f2%vec0) .and. &
-    all(f1%mat6 == f2%mat6) .and. all(f1%c_mat == f2%c_mat) .and. &
-    (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
-    (f1%key == f2%key) .and. (f1%sub_key == f2%sub_key) .and. &
-    (f1%lord_status == f2%lord_status) .and. (f1%slave_status == f2%slave_status) .and. &
-    (f1%ix_value == f2%ix_value) .and. (f1%ix_branch == f2%ix_branch) .and. (f1%field_master .eqv. f2%field_master) .and. &
-    (f1%n_slave == f2%n_slave) .and. (f1%ix1_slave == f2%ix1_slave) .and. &
-    (f1%ix2_slave == f2%ix2_slave) .and. (f1%n_lord == f2%n_lord) .and. &
-    (f1%ic1_lord == f2%ic1_lord) .and. (f1%ic2_lord == f2%ic2_lord) .and. &
-    (f1%ix_pointer == f2%ix_pointer) .and. (f1%ixx == f2%ixx) .and. &
-    (f1%ix_ele == f2%ix_ele) .and. (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
-    (f1%tracking_method == f2%tracking_method) .and. &
-    (f1%field_calc == f2%field_calc) .and. (f1%aperture_type == f2%aperture_type) .and. &
-    (f1%ref_orbit == f2%ref_orbit) .and. (f1%taylor_order == f2%taylor_order) .and. &
-    (f1%attribute_status == f2%attribute_status) .and. &
-    (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
-    (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
-    (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture) .and. &
-    (f1%is_on .eqv. f2%is_on) .and. (f1%old_is_on .eqv. f2%old_is_on) .and. &
-    (f1%logic .eqv. f2%logic) .and. (f1%on_a_girder .eqv. f2%on_a_girder) .and. &
-    (f1%csr_calc_on .eqv. f2%csr_calc_on) .and. (f1%ref_time == f2%ref_time) .and. &
-    (f1%scale_multipoles .eqv. f2%scale_multipoles) .and. (f1%wall3d == f2%wall3d)
-
-is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field)) .and. &
-    (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
-    (associated(f1%const) .eqv. associated(f2%const)) .and. &
-    (associated(f1%r) .eqv. associated(f2%r)) .and. &
-    (associated(f1%descrip) .eqv. associated(f2%descrip)) .and. &
-    (associated(f1%wig_term) .eqv. associated(f2%wig_term)) .and. &
-    (associated(f1%rf%wake) .eqv. associated(f2%rf%wake)) .and. &
-    (associated(f1%mode3) .eqv. associated(f2%mode3)) .and. &
-    (associated(f1%space_charge) .eqv. associated(f2%space_charge))
-
-if (.not. is_eq) return
-is_eq = .false.
-
-if (associated(f1%a_pole)) then
-  if (any(f1%a_pole /= f2%a_pole) .or. any(f1%b_pole /= f2%b_pole)) return
-endif
-
-if (associated(f1%const)) then
-  if (any(f1%const /= f2%const)) return
-endif
-
-if (associated(f1%r)) then
-  if (any(lbound(f1%r) /= lbound(f2%r)) .or. any(ubound(f1%r) /= ubound(f2%r))) return
-  if (any(f1%r /= f2%r)) return
-endif
-
-if (associated(f1%descrip)) then
-  if (f1%descrip /= f2%descrip) return
-endif
-
-if (associated(f1%wig_term)) then
-  if (size(f1%wig_term) /= size(f2%wig_term)) return
-  if (.not. all(f1%wig_term == f2%wig_term)) return
-endif
-
-do i = 1, size(f1%taylor)
-  if (.not. (f1%taylor(i) == f2%taylor(i))) return
-enddo
-
-if (associated(f1%rf%wake)) then
-  if (.not. (f1%rf%wake == f2%rf%wake)) return
-endif
-
-if (associated(f1%mode3)) then
-  if (.not. (f1%mode3 == f2%mode3)) return
-endif
-
-if (associated(f1%space_charge)) then
-  if (.not. (f1%space_charge == f2%space_charge)) return
-endif
-
-if (associated(f1%gen_field)) then
-  if (.not. associated(f1%gen_field, f2%gen_field)) return
-endif
-
 is_eq = .true.
+is_eq = is_eq .and. (f1%name == f2%name)
+is_eq = is_eq .and. (f1%type == f2%type) 
+is_eq = is_eq .and. (f1%alias == f2%alias) 
+is_eq = is_eq .and. (f1%component_name == f2%component_name)
+is_eq = is_eq .and. (associated(f1%descrip) .eqv. associated(f2%descrip));  if (.not. is_eq) return 
+if (associated(f1%descrip)) then
+  if (f1%descrip /= f2%descrip) then; is_eq = .false.; return; endif
+endif
+is_eq = is_eq .and. (f1%a == f2%a) 
+is_eq = is_eq .and. (f1%b == f2%b)
+is_eq = is_eq .and. (f1%z == f2%z)
+is_eq = is_eq .and. (f1%x == f2%x)
+is_eq = is_eq .and. (f1%y == f2%y) 
+is_eq = is_eq .and. (f1%floor == f2%floor) 
+is_eq = is_eq .and. (associated(f1%mode3) .eqv. associated(f2%mode3));  if (.not. is_eq) return 
+if (associated(f1%mode3)) then
+  if (.not. (f1%mode3 == f2%mode3)) then; is_eq = .false.; return; endif
+endif
+is_eq = is_eq .and. (f1%map_ref_orb_in == f2%map_ref_orb_in)
+is_eq = is_eq .and. (f1%map_ref_orb_out == f2%map_ref_orb_out) 
+is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field));  if (.not. is_eq) return 
+do i = 1, size(f1%taylor)
+  if (.not. (f1%taylor(i) == f2%taylor(i))) then; is_eq = .false.; return; endif
+enddo
+is_eq = is_eq .and. (associated(f1%rf%field) .eqv. associated(f2%rf%field));  if (.not. is_eq) return 
+!! check rf field here...
+!! is_eq = is_eq .and. (associated(f1%rf%wake) .eqv. associated(f2%rf%wake));  if (.not. is_eq) return 
+!! if (associated(f1%rf%wake)) then
+!!   if (.not. (f1%rf%wake == f2%rf%wake)) then; is_eq = .false.; return; endif
+!! endif
+!! is_eq = is_eq .and. (associated(f1%wig_term) .eqv. associated(f2%wig_term));  if (.not. is_eq) return 
+!! if (associated(f1%wig_term)) then
+!!   if (size(f1%wig_term) /= size(f2%wig_term)) then; is_eq = .false.; return; endif
+!!   if (.not. all(f1%wig_term == f2%wig_term)) then; is_eq = .false.; return; endif
+!! endif
+!! is_eq = is_eq .and. (associated(f1%space_charge) .eqv. associated(f2%space_charge));  if (.not. is_eq) return
+!! if (associated(f1%space_charge)) then
+!!   if (.not. (f1%space_charge == f2%space_charge)) then; is_eq = .false.; return; endif
+!! endif
+!! is_eq = is_eq .and. (f1%wall3d == f2%wall3d)
+is_eq = is_eq .and. all(f1%value == f2%value) 
+is_eq = is_eq .and. all(f1%old_value == f2%old_value) 
+is_eq = is_eq .and. all(f1%gen0 == f2%gen0)
+is_eq = is_eq .and. all(f1%vec0 == f2%vec0) 
+is_eq = is_eq .and. all(f1%mat6 == f2%mat6)
+is_eq = is_eq .and. all(f1%c_mat == f2%c_mat) 
+is_eq = is_eq .and. (f1%gamma_c == f2%gamma_c)
+is_eq = is_eq .and. (f1%s == f2%s) 
+is_eq = is_eq .and. (f1%ref_time == f2%ref_time)
+is_eq = is_eq .and. (associated(f1%r) .eqv. associated(f2%r));  if (.not. is_eq) return 
+if (associated(f1%r)) then
+  if (any(lbound(f1%r) /= lbound(f2%r)) .or. any(ubound(f1%r) /= ubound(f2%r))) then; is_eq = .false.; return; endif
+  if (any(f1%r /= f2%r)) then; is_eq = .false.; return; endif
+endif
+is_eq = is_eq .and. (associated(f1%a_pole) .eqv. associated(f2%a_pole));  if (.not. is_eq) return 
+is_eq = is_eq .and. (associated(f1%b_pole) .eqv. associated(f2%b_pole));  if (.not. is_eq) return 
+if (associated(f1%a_pole)) then
+  if (any(f1%a_pole /= f2%a_pole) .or. any(f1%b_pole /= f2%b_pole)) then; is_eq = .false.; return; endif
+endif
+is_eq = is_eq .and. (associated(f1%const) .eqv. associated(f2%const));  if (.not. is_eq) return 
+if (associated(f1%const)) then
+  if (any(f1%const /= f2%const)) then; is_eq = .false.; return; endif
+endif
+is_eq = is_eq .and. (f1%key == f2%key)
+is_eq = is_eq .and. (f1%sub_key == f2%sub_key) 
+is_eq = is_eq .and. (f1%slave_status == f2%slave_status) 
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
+is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
+is_eq = is_eq .and. (f1%ix_value == f2%ix_value)
+is_eq = is_eq .and. (f1%n_slave == f2%n_slave)
+is_eq = is_eq .and. (f1%ix1_slave == f2%ix1_slave) 
+is_eq = is_eq .and. (f1%ix2_slave == f2%ix2_slave)
+is_eq = is_eq .and. (f1%lord_status == f2%lord_status)
+is_eq = is_eq .and. (f1%n_lord == f2%n_lord) 
+is_eq = is_eq .and. (f1%ic1_lord == f2%ic1_lord)
+is_eq = is_eq .and. (f1%ic2_lord == f2%ic2_lord) 
+is_eq = is_eq .and. (f1%ix_pointer == f2%ix_pointer)
+is_eq = is_eq .and. (f1%ixx == f2%ixx) 
+is_eq = is_eq .and. (f1%mat6_calc_method == f2%mat6_calc_method) 
+is_eq = is_eq .and. (f1%tracking_method == f2%tracking_method) 
+is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
+is_eq = is_eq .and. (f1%ref_orbit == f2%ref_orbit)
+is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order) 
+is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
+is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type) 
+is_eq = is_eq .and. (f1%attribute_status == f2%attribute_status) 
+is_eq = is_eq .and. (f1%n_attribute_modify == f2%n_attribute_modify) 
+is_eq = is_eq .and. (f1%symplectify .eqv. f2%symplectify) 
+is_eq = is_eq .and. (f1%mode_flip .eqv. f2%mode_flip)
+is_eq = is_eq .and. (f1%multipoles_on .eqv. f2%multipoles_on) 
+is_eq = is_eq .and. (f1%scale_multipoles .eqv. f2%scale_multipoles) 
+is_eq = is_eq .and. (f1%map_with_offsets .eqv. f2%map_with_offsets)
+is_eq = is_eq .and. (f1%field_master .eqv. f2%field_master) 
+is_eq = is_eq .and. (f1%is_on .eqv. f2%is_on)
+is_eq = is_eq .and. (f1%old_is_on .eqv. f2%old_is_on) 
+is_eq = is_eq .and. (f1%logic .eqv. f2%logic)
+is_eq = is_eq .and. (f1%bmad_logic .eqv. f2%bmad_logic)
+is_eq = is_eq .and. (f1%on_a_girder .eqv. f2%on_a_girder) 
+is_eq = is_eq .and. (f1%csr_calc_on .eqv. f2%csr_calc_on)
+is_eq = is_eq .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture) 
 
 end function eq_ele
 
