@@ -6,7 +6,7 @@ use bmad_interface
 ! This is for passing info to the photon_hit_crystal routine used by zbrent and reflection_point
 
 type (ele_struct), private, pointer, save :: ele_com
-type (coord_struct), private, pointer, save :: start_com
+type (coord_struct), private, pointer, save :: end_orb_com
 real (rp), private, pointer, save :: m_in_com(:,:)
 real (rp), private, pointer, save :: k_in_norm_com(:)
 
@@ -16,25 +16,25 @@ contains
 
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_photon (ele,param,end)
+! Subroutine track1_crystal (ele, param, end_orb)
 !
 ! Routine to track reflection from a crystal.
 !
 ! Input:
 !   ele    -- ele_struct: Element tracking through.
 !   param  -- lat_param_struct: lattice parameters.
-!   end    -- Coord_struct: phase-space coords to be transformed
+!   end_orb    -- Coord_struct: phase-space coords to be transformed
 !
 ! Output:
-!   end    -- Coord_struct: final phase-space coords
+!   end_orb    -- Coord_struct: final phase-space coords
 !-
 
-subroutine track_a_photon (ele, param, end)
+subroutine track1_crystal (ele, param, end_orb)
 
 implicit none
 
 type (ele_struct), target:: ele
-type (coord_struct), target:: end
+type (coord_struct), target:: end_orb
 type (lat_param_struct) :: param
 
 real(rp), target::m_in(3,3)
@@ -45,13 +45,17 @@ real(rp) h_norm(3), k_out_norm(3), e_tot, pc
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 
 real(rp) m_out(3,3), y_out(3), x_out(3), k_out(3)
-real(rp) test, temp_vec(3), direction(3),z_len
+real(rp) temp_vec(3), direction(3),z_len
 
 real(rp) refpoint(3),slope,c2,c3,c4,curveangle,cos_c,sin_c,curverot(3,3)
 
 complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
-wavelength = ele%value(ref_wavelength$) / (1 + end%vec(6))
+logical curved_surface
+
+!
+
+wavelength = ele%value(ref_wavelength$) / (1 + end_orb%vec(6))
 
 ! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k_in_norm which are coords with respect to crystal surface.
@@ -59,93 +63,109 @@ wavelength = ele%value(ref_wavelength$) / (1 + end%vec(6))
 
 sin_g = sin(ele%value(graze_angle_in$))
 cos_g = cos(ele%value(graze_angle_in$))
-f = sqrt (1 - end%vec(2)**2 - end%vec(4)**2)
+f = sqrt (1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
-k_in_norm(1) =  cos_g * end%vec(2) + f * sin_g
-k_in_norm(2) = end%vec(4)
-k_in_norm(3) = -sin_g * end%vec(2) + f * cos_g
+k_in_norm(1) =  cos_g * end_orb%vec(2) + f * sin_g
+k_in_norm(2) = end_orb%vec(4)
+k_in_norm(3) = -sin_g * end_orb%vec(2) + f * cos_g
 
 ! Construct m_in and m_out matrices of basis vectors
-! m_in = [x_in y_in k_in]
-! m_out = [x_out y_out k_out]
+! m_in  = [x_in,  y_in,  k_in]
+! m_out = [x_out, y_out, k_out]
 
-m_in = reshape([cos_g, 0.0_rp, -sin_g, 0.0_rp, 1.0_rp, 0.0_rp, sin_g, 0.0_rp, cos_g], [3,3])
-
-sin_tc = sin(ele%value(tilt_corr$))
-cos_tc = cos(ele%value(tilt_corr$))
+m_in(1, 1:3) = [ cos_g, 0.0_rp, sin_g]
+m_in(2, 1:3) = [0.0_rp, 1.0_rp, 0.0_rp]
+m_in(3, 1:3) = [-sin_g, 0.0_rp, cos_g]
 
 ! y_out = inverse(m_in) . m_tiltcorr . m_in . (0,1,0)
 
-y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
-y_out = matmul(reshape([cos_tc, sin_tc, 0.0_rp, -sin_tc, cos_tc, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]),  y_out)
-y_out = matmul(transpose(m_in), y_out)
+if (ele%value(tilt_corr$) == 0) then
+  y_out = [0, 1, 0]
+else
+  sin_tc = sin(ele%value(tilt_corr$))
+  cos_tc = cos(ele%value(tilt_corr$))
+  y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
+  y_out = matmul(reshape([cos_tc, sin_tc, 0.0_rp, -sin_tc, cos_tc, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]),  y_out)
+  y_out = matmul(transpose(m_in), y_out)
+endif
 
 ! x_out = vector orthogonal to y and z
 
-x_out(1) = y_out(2)*ele%value(nz_out$)-y_out(3)*ele%value(ny_out$)
-x_out(2) = -y_out(1)*ele%value(nz_out$)+y_out(3)*ele%value(nx_out$)
-x_out(3) = y_out(1)*ele%value(ny_out$)-y_out(2)*ele%value(nx_out$)
+x_out(1) =  y_out(2) * ele%value(kh_z_norm$) - y_out(3) * ele%value(kh_y_norm$)
+x_out(2) = -y_out(1) * ele%value(kh_z_norm$) + y_out(3) * ele%value(kh_x_norm$)
+x_out(3) =  y_out(1) * ele%value(kh_y_norm$) - y_out(2) * ele%value(kh_x_norm$)
   
-k_out(1) = ele%value(nx_out$)
-k_out(2) = ele%value(ny_out$)
-k_out(3) = ele%value(nz_out$)
-test = dot_product( k_out, y_out ) ! assert 0
-m_out = reshape( [x_out, y_out, k_out], [3, 3])
+k_out(1) = ele%value(kh_x_norm$)
+k_out(2) = ele%value(kh_y_norm$)
+k_out(3) = ele%value(kh_z_norm$)
 
+m_out = reshape([x_out, y_out, k_out], [3, 3])
 
-! To account for curvature, compute the reflection point
-
-ele_com => ele
-start_com => end
-m_in_com => m_in
-k_in_norm_com => k_in_norm
-call reflection_point(ele,end,refpoint,z_len)
-
-! Compute the slope of the crystal at that point
+! If there is curvature, compute the reflection point which is where 
+! the photon intersects the surface.
 
 c2 = ele%value(c2_curve_tot$)
 c3 = ele%value(c3_curve_tot$)
 c4 = ele%value(c4_curve_tot$)
-slope = -2.0_rp*c2*refpoint(3) - 3.0_rp*c3*refpoint(3)**2 - 4.0_rp*c4*refpoint(3)**4
-curveangle = atan(slope)
-cos_c=cos(curveangle)
-sin_c=sin(curveangle)
 
-! Form a rotation matrix
+if (c2 == 0 .and. c3 == 0 .and. c4 == 0) then
+  curved_surface = .false.
+else
+  curved_surface = .true.
+  ele_com => ele
+  end_orb_com => end_orb
+  m_in_com => m_in
+  k_in_norm_com => k_in_norm
+  call reflection_point (ele, end_orb, refpoint, z_len)
+endif
 
-curverot = reshape([cos_c, 0.0_rp, -sin_c, 0.0_rp, 1.0_rp, 0.0_rp, sin_c, 0.0_rp, cos_c], [3,3])
+! Compute the slope of the crystal at that point and form a rotation matrix
+
+if (curved_surface) then
+  slope = -2.0_rp * c2 * refpoint(3) - 3.0_rp * c3 * refpoint(3)**2 - 4.0_rp * c4 * refpoint(3)**4
+  curveangle = atan(slope)
+  cos_c = cos(curveangle)
+  sin_c = sin(curveangle)
+  curverot = reshape([cos_c, 0.0_rp, -sin_c, 0.0_rp, 1.0_rp, 0.0_rp, sin_c, 0.0_rp, cos_c], [3,3])
+endif
 
 ! Construct h_norm = H vector * wavelength, including a rotation due to curvature
+
 sin_alpha = sin(ele%value(alpha_angle$))
 cos_alpha = cos(ele%value(alpha_angle$))
 sin_psi = sin(ele%value(psi_angle$))
 cos_psi = cos(ele%value(psi_angle$))
 h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wavelength / ele%value(d_spacing$)
-h_norm = matmul(curverot,h_norm)
+
+if (curved_surface) h_norm = matmul(curverot, h_norm)
   
 ! k_out_norm is the outgoing wavevector outside the crystal
+
 k_out_norm = k_in_norm + h_norm
-k_out_norm = matmul(transpose(curverot),k_out_norm)
-k_out_norm(1) = - sqrt( 1 - k_out_norm(2)**2 - k_out_norm(3)**2)
-k_out_norm = matmul(curverot,k_out_norm)
+k_out_norm = matmul(transpose(curverot), k_out_norm)
+k_out_norm(1) = - sqrt(1 - k_out_norm(2)**2 - k_out_norm(3)**2)
+if (curved_surface) k_out_norm = matmul(curverot, k_out_norm)
 
 !======= (x,px,y,py,x,pz) - Phase Space Calculations
 !Translate to outgoing basis
-direction = matmul(transpose(m_out), k_out_norm)
-end%vec(2) = direction(1)
-end%vec(4) = direction(2)
 
-!Compute position in phase space, backpropagating the ray
+direction = matmul(transpose(m_out), k_out_norm)
+end_orb%vec(2) = direction(1)
+end_orb%vec(4) = direction(2)
+
+! Compute position in phase space, backpropagating the ray
+
 temp_vec = matmul(transpose(m_out),refpoint)
 temp_vec = temp_vec - direction *temp_vec(3)
 
-end%vec(1) = temp_vec(1)
-end%vec(3) = temp_vec(2)
+end_orb%vec(1) = temp_vec(1)
+end_orb%vec(3) = temp_vec(2)
 ! %vec(5) doesn't include phase change due to wave nature of radiation
-end%vec(5) = temp_vec(3)+z_len
+end_orb%vec(5) = temp_vec(3)+z_len
 
 
 !======== Calculate phase and intensity
+
 cap_gamma = r_e * wavelength**2 / (pi * ele%value(v_unitcell$)) 
 gamma_0 = k_in_norm(1)
 gamma_h = k_out_norm(1)
@@ -177,8 +197,8 @@ endif
 e_rel = -2.0_rp * xi_0k / (p_factor * cap_gamma * fh)
 ! e_rel2 = sqrt(xi_0k/xi_hk) ! assert = e_rel
 
-end%e_field_x = end%e_field_x * abs(e_rel)
-end%phase_x = atan2(aimag(e_rel),real(e_rel))+end%phase_x
+end_orb%e_field_x = end_orb%e_field_x * abs(e_rel)
+end_orb%phase_x = atan2(aimag(e_rel),real(e_rel))+end_orb%phase_x
 
 ! For the y direction
 ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
@@ -201,14 +221,16 @@ endif
 e_rel = -2.0_rp * xi_0k / (p_factor * cap_gamma * fh)
 ! e_rel2 = sqrt(xi_0k/xi_hk)! assert = e_rel
 
-end%e_field_y = end%e_field_y * abs(e_rel)
-end%phase_y = atan2(aimag(e_rel),real(e_rel))+end%phase_y
+end_orb%e_field_y = end_orb%e_field_y * abs(e_rel)
+end_orb%phase_y = atan2(aimag(e_rel),real(e_rel))+end_orb%phase_y
 
-end subroutine track_a_photon
+end subroutine track1_crystal
 
 !---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 !+
-! Subroutine reflection_point (ele, end,refpoint, z_len)
+! Subroutine reflection_point (ele, end_orb, refpoint, z_len)
 !
 ! Routine to compute position where crystal reflects in crystal coordinates.
 !
@@ -220,22 +242,22 @@ end subroutine track_a_photon
 !   z_len       -- Real(rp): distance for photon to propagate to refpoint
 !-
 
-subroutine reflection_point (ele, end, refpoint, z_len)
+subroutine reflection_point (ele, end_orb, refpoint, z_len)
 
 use nr, only: zbrent
 implicit none
 type (ele_struct), target:: ele
-type (coord_struct), target:: end
+type (coord_struct), target:: end_orb
 real (rp),target ::z_len
 real (rp), target :: m_in(3,3)
 real (rp), target :: refpoint(3)
 real (rp) :: vec(3),cos_g, sin_g,f
 real (rp) :: x1,x2,fa,fb
 
-!Assume flat crystal, compute z required to hit the intersection
-!Choose a Bracket of 1m around this point.
+! Assume flat crystal, compute z required to hit the intersection
+! Choose a Bracket of 1m around this point.
 
-vec = matmul(m_in_com, [start_com%vec(1),0.0_rp,0.0_rp])
+vec = matmul(m_in_com, [end_orb_com%vec(1), 0.0_rp, 0.0_rp])
 x2 = vec(1) / k_in_norm_com(1)
 
 x1 = x2 - 0.5_rp
@@ -244,7 +266,7 @@ x2 = x2 + 0.5_rp
 z_len = zbrent (photon_hit_crystal, x1, x2, 1d-10)
 
 ! Compute the intersection point
-refpoint = z_len * k_in_norm_com + matmul( m_in_com , [start_com%vec(1), start_com%vec(3), 0.0_rp] )
+refpoint = z_len * k_in_norm_com + matmul(m_in_com, [end_orb_com%vec(1), end_orb_com%vec(3), 0.0_rp])
 
 end subroutine reflection_point
 
@@ -276,7 +298,7 @@ c2 = ele_com%value(c2_curve_tot$)
 c3 = ele_com%value(c3_curve_tot$)
 c4 = ele_com%value(c4_curve_tot$)
 
-point = k_in_norm_com * z_len + matmul( m_in_com, [start_com%vec(1), start_com%vec(3), 0.0_rp] )
+point = k_in_norm_com * z_len + matmul( m_in_com, [end_orb_com%vec(1), end_orb_com%vec(3), 0.0_rp] )
 h = point(1)
 r = point(3)
 delta_h = h - c2*r*r - c3*r*r*r - c4*r*r*r*r

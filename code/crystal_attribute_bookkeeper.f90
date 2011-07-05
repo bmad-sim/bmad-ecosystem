@@ -16,9 +16,9 @@
 !     %value(graze_angle_in$)
 !     %value(graze_angle_out$)
 !     %value(tilt_corr$)
-!     %value(nx_out$
-!     %value(ny_out$)
-!     %value(nz_out$)
+!     %value(kh_x_norm$
+!     %value(kh_y_norm$)
+!     %value(kh_z_norm$)
 !-
 
 subroutine crystal_attribute_bookkeeper (ele)
@@ -31,7 +31,7 @@ type (ele_struct) ele
 
 real(rp) lambda, gamma, delta1, lambda_in, d, alpha, psi, theta0
 real(rp) cos_theta0, sin_theta0, graze_angle_in, ang_tot
-real(rp) h_x, h_y, h_z, nx_out, ny_out, nz_out, nxx_out, nyy_out, nzz_out
+real(rp) h_x, h_y, h_z, kh_x_norm, kh_y_norm, kh_z_norm, ent_kh_x_norm, ent_kh_y_norm, ent_kh_z_norm
 real(rp) cos_graze_in, sin_graze_in, s_vec(3)
 real(rp) source_r,detect_r,r_c
 
@@ -71,41 +71,45 @@ endif
 
 ele%value(graze_angle_in$) = graze_angle_in
 
-! (nx, ny, nz)_out is the normalized k_H vector.
-! obtained from: k_H = H + K_0 + q*n_surface
+! kh_norm is the normalized k_H vector.
+! Obtained from: k_H = H + K_0 + q*n_surface
 
 if (ele%value(b_param$) < 0) then ! Bragg
-  ny_out = lambda * h_y
-  nz_out = lambda * h_z + cos_theta0 / delta1
-  nx_out = -sqrt(1 - ny_out**2 - nz_out**2)
+  kh_y_norm = lambda * h_y
+  kh_z_norm = lambda * h_z + cos_theta0 / delta1
+  kh_x_norm = -sqrt(1 - kh_y_norm**2 - kh_z_norm**2)
 else                              ! Laue
-  nx_out = lambda * h_x + sin_theta0 / delta1  
-  ny_out = lambda * h_y
-  nz_out = sqrt(1 - nx_out**2 - ny_out**2)
+  kh_x_norm = lambda * h_x + sin_theta0 / delta1  
+  kh_y_norm = lambda * h_y
+  kh_z_norm = sqrt(1 - kh_x_norm**2 - kh_y_norm**2)
 endif
 
-ele%value(nx_out$) = nx_out
-ele%value(ny_out$) = ny_out
-ele%value(nz_out$) = nz_out
+ele%value(kh_x_norm$) = kh_x_norm
+ele%value(kh_y_norm$) = kh_y_norm
+ele%value(kh_z_norm$) = kh_z_norm
 
-! (nxx, nyy, nzz)_out is (nx, ny, nz)_out in element entrance coordinates
+! ent_kh_norm is kn_norm in element entrance coordinates
 
-nxx_out = nz_out * sin_graze_in - nx_out * cos_graze_in
-nyy_out = ny_out
-nzz_out = nz_out * cos_graze_in + nx_out * sin_graze_in
+ent_kh_x_norm = kh_z_norm * sin_graze_in - kh_x_norm * cos_graze_in
+ent_kh_y_norm = kh_y_norm
+ent_kh_z_norm = kh_z_norm * cos_graze_in + kh_x_norm * sin_graze_in
 
 ! There is no tilt correction if we are following the non-diffracted beam.
 
 if (ele%value(follow_diffracted_beam$) == 0) then
-  ele%value(tilt_corr$) = 0
+  ele%value(tilt_corr$) = atan2(ent_kh_y_norm, ent_kh_x_norm)
 else
-  ele%value(tilt_corr$) = atan2(nyy_out, nxx_out)
+  ele%value(tilt_corr$) = 0
 endif
 
 ! total graze angle
 
-ang_tot = atan2(sqrt(nxx_out**2 + nyy_out**2), nzz_out)
-ele%value(graze_angle_out$) = ang_tot - graze_angle_in
+if (ele%value(follow_diffracted_beam$) == 0) then
+  ang_tot = atan2(sqrt(ent_kh_x_norm**2 + ent_kh_y_norm**2), ent_kh_z_norm)
+  ele%value(graze_angle_out$) = ang_tot - graze_angle_in
+else
+  ele%value(graze_angle_out$) = -graze_angle_in
+endif
 
 ! displacement L due to finite crystal thickness for Laue diffraction.
 

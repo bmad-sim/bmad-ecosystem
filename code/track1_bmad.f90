@@ -187,8 +187,8 @@ case (capillary$)
 case (crystal$) 
 
   call offset_photon (ele, param, end, set$)
-  call track_a_photon (ele, param, end)
-  call offset_particle (ele, param, end, unset$)
+  call track1_crystal (ele, param, end)
+  call offset_photon (ele, param, end, unset$)
 
 
 !-----------------------------------------------

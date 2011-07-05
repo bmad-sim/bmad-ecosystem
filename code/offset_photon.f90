@@ -139,7 +139,7 @@ else
   ct = cos(p(tilt_tot$)) 
   st = sin(p(tilt_tot$))
 
-  ! [project_x,project_y,project_z] is the matrix product of the matrices T.G.T^-1
+  ! [project_x, project_y, project_z] is the matrix product of the matrices T.G.T^-1
   ! T rotates x to y by tilt_tot, G rotates z to x by sum of graze angles
   ! project_x is the projection of the x-basis vector in the original basis onto the new basis
 

@@ -402,10 +402,9 @@ public:
   double z_sr_mode_max;             // Cutoff between sr_table and sr_mode
 
   C_rf_wake (const char* srf, const char* lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
+      sr_file(string(srf, strlen(srf))), lr_file(string(lrf, strlen(lrf))),
       sr_table(C_rf_wake_sr_table(), n_sr_table), sr_mode_long(C_rf_wake_sr_mode(), n_sr_mode_long), 
-      sr_mode_trans(C_rf_wake_sr_mode(), n_sr_mode_trans), lr(C_rf_wake_lr(), n_lr),
-      sr_file(string(srf, strlen(srf))),
-      lr_file(string(lrf, strlen(lrf))) {}
+      sr_mode_trans(C_rf_wake_sr_mode(), n_sr_mode_trans), lr(C_rf_wake_lr(), n_lr) {}
 
   C_rf_wake (string srf, string lrf, int n_sr_table, int n_sr_mode_long, int n_sr_mode_trans, int n_lr) : 
       sr_file(srf), lr_file(lrf), sr_table(C_rf_wake_sr_table(), n_sr_table), sr_mode_long(C_rf_wake_sr_mode(), n_sr_mode_long), 
@@ -800,43 +799,6 @@ public:
   bool conserve_taylor_maps;
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
-
-  C_bmad_com (double max_ap, ReArr orb, double grad_loss, double default_ds, 
-                double significant, double rel_t, double abs_t, double rel_t_adapt, 
-                double abs_t_adapt, int to, int io, int cc,
-                int sr, int lr, int sym, int a_book,
-                int tsc_on, int csr_on, int st_on, int rad_d, int rad_f, int cre,
-                int con_t) :
-      max_aperture_limit(max_ap), d_orb(orb, 6), grad_loss_sr_wake(grad_loss), 
-      significant_longitudinal_length(significant),
-      rel_tolerance(rel_t), abs_tolerance(abs_t), 
-      rel_tol_adaptive_tracking(rel_t_adapt), abs_tol_adaptive_tracking(abs_t_adapt), 
-      taylor_order(to), 
-      default_integ_order(io), default_ds_step(default_ds), canonical_coords(cc), 
-      sr_wakes_on(sr), lr_wakes_on(lr), 
-      mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
-      trans_space_charge_on(tsc_on), coherent_synch_rad_on(csr_on),
-      spin_tracking_on(st_on), radiation_damping_on(rad_d), 
-      radiation_fluctuations_on(rad_f), compute_ref_energy(cre), 
-      conserve_taylor_maps(con_t) {}
-
-  C_bmad_com (double max_ap, Real_Array orb, double grad_loss, double default_ds, 
-                double significant, double rel_t, double abs_t, double rel_t_adapt, 
-                double abs_t_adapt, int to, int io, int cc,
-                int sr, int lr, int sym, int a_book, int tsc_on, 
-                int csr_on, int st_on, int rad_d, int rad_f, int cre, int con_t) :
-      max_aperture_limit(max_ap), d_orb(orb), grad_loss_sr_wake(grad_loss), 
-      significant_longitudinal_length(significant),
-      rel_tolerance(rel_t), abs_tolerance(abs_t), 
-      rel_tol_adaptive_tracking(rel_t_adapt), abs_tol_adaptive_tracking(abs_t_adapt), 
-      taylor_order(to), 
-      default_integ_order(io), default_ds_step(default_ds), canonical_coords(cc), 
-      sr_wakes_on(sr), lr_wakes_on(lr), 
-      mat6_track_symmetric(sym), auto_bookkeeper(a_book), 
-      trans_space_charge_on(tsc_on), coherent_synch_rad_on(csr_on),
-      spin_tracking_on(st_on), radiation_damping_on(rad_d), 
-      radiation_fluctuations_on(rad_f), compute_ref_energy(cre), 
-      conserve_taylor_maps(con_t) {}
 
 };    // End Class
 

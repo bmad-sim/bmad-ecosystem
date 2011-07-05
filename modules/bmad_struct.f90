@@ -398,25 +398,25 @@ integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
-integer, parameter :: pipe$ = 44, capillary$ = 45
+integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 
-integer, parameter :: n_key = 45
+integer, parameter :: n_key = 46
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
 character(16), parameter :: key_name(n_key) = [ &
-    'DRIFT         ', 'SBEND         ', 'QUADRUPOLE    ', 'GROUP         ', &
-    'SEXTUPOLE     ', 'OVERLAY       ', 'CUSTOM        ', 'TAYLOR        ', &
-    'RFCAVITY      ', 'ELSEPARATOR   ', 'BEAMBEAM      ', 'WIGGLER       ', &
-    'SOL_QUAD      ', 'MARKER        ', 'KICKER        ', 'HYBRID        ', &
-    'OCTUPOLE      ', 'RBEND         ', 'MULTIPOLE     ', 'BEND_SOL_     ', &
-    'DEF_BEAM      ', 'AB_MULTIPOLE  ', 'SOLENOID      ', 'PATCH         ', &
-    'LCAVITY       ', 'DEF_PARAMETER ', 'NULL_ELE      ', 'INIT_ELE      ', &
-    'HOM           ', 'MATCH         ', 'MONITOR       ', 'INSTRUMENT    ', &
-    'HKICKER       ', 'VKICKER       ', 'RCOLLIMATOR   ', 'ECOLLIMATOR   ', &
-    'GIRDER        ', 'BEND_SOL_QUAD ', 'DEF_BEAM_START', 'PHOTON_BRANCH ', &
-    'BRANCH        ', 'MIRROR        ', 'CRYSTAL       ', 'PIPE          ', &
-    'CAPILLARY     ']
+    'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
+    'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
+    'RFCAVITY         ', 'ELSEPARATOR      ', 'BEAMBEAM         ', 'WIGGLER          ', &
+    'SOL_QUAD         ', 'MARKER           ', 'KICKER           ', 'HYBRID           ', &
+    'OCTUPOLE         ', 'RBEND            ', 'MULTIPOLE        ', 'BEND_SOL_        ', &
+    'DEF_BEAM         ', 'AB_MULTIPOLE     ', 'SOLENOID         ', 'PATCH            ', &
+    'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'INIT_ELE         ', &
+    'HOM              ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
+    'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
+    'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
+    'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
+    'CAPILLARY        ', 'MULTILAYER_MIRROR']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -488,9 +488,9 @@ integer, parameter :: radius$=26, c4_curve_tot$=26
 integer, parameter :: tilt_err$=27    
 integer, parameter :: pole_radius$ = 28, coupler_at$ = 28, follow_diffracted_beam$ = 28 
 integer, parameter :: Bs_field$=29, ref_wavelength$=29, coupler_strength$ = 29, e_tot_offset$ = 29
-integer, parameter :: B_field$=30, E_field$=30, coupler_phase$ = 30, nx_out$ = 30
-integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, ny_out$ = 31
-integer, parameter :: B1_gradient$=32, E1_gradient$=32, nz_out$ = 32
+integer, parameter :: B_field$=30, E_field$=30, coupler_phase$ = 30, kh_x_norm$ = 30
+integer, parameter :: B_gradient$=31, E_gradient$=31, coupler_angle$ = 31, kh_y_norm$ = 31
+integer, parameter :: B1_gradient$=32, E1_gradient$=32, kh_z_norm$ = 32
 integer, parameter :: B2_gradient$=33, E2_gradient$=33, patch_end$ = 33, d_source$=33
 integer, parameter :: B3_gradient$=34, E3_gradient$=34, translate_after$=34, d_detec$=34
 integer, parameter :: delta_ref_time$=35 ! Assumed unique Do not overload.
