@@ -27,24 +27,25 @@ photon use.
 \centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
-  AB_Multipole   & \ref{s:ab.m}      &  Null_Ele      & \ref{s:null.ele} \HH
-  BeamBeam       & \ref{s:bbi}       &  Octupole      & \ref{s:oct}      \HH
-  Bend_Sol_Quad  & \ref{s:bsq}       &  Patch         & \ref{s:patch}    \HH
-  Branch         & \ref{s:branch}    &  Photon_Branch & \ref{s:branch}   \HH
-  Custom         & \ref{s:custom}    &  Pipe          & \ref{s:monitor}  \HH
-  Drift          & \ref{s:drift}     &  Quadrupole    & \ref{s:quad}     \HH
-  Ecollimator    & \ref{s:col}       &  Rbend         & \ref{s:bend}     \HH
-  ElSeparator    & \ref{s:elsep}     &  Rcollimator   & \ref{s:col}      \HH
-  HKicker        & \ref{s:hvkicker}  &  RFcavity      & \ref{s:rfcav}    \HH
-  Hybrid         & \ref{s:hybrid}    &  Sbend         & \ref{s:bend}     \HH
-  Instrument     & \ref{s:monitor}   &  Sextupole     & \ref{s:sex}      \HH
-  Kicker         & \ref{s:kicker}    &  Solenoid      & \ref{s:sol}      \HH
-  Lcavity        & \ref{s:lcav}      &  Sol_Quad      & \ref{s:sq}       \HH
-  Marker         & \ref{s:mark}      &  Taylor        & \ref{s:tay}      \HH
-  Match          & \ref{s:match}     &  VKicker       & \ref{s:hvkicker} \HH  
-  Monitor        & \ref{s:monitor}   &  Wiggler       & \ref{s:wiggler}  \HH
-  Multipole      & \ref{s:mult}      &                &                  \HH
+  {\it Element}     & {\it Section}       & {\it Element}    & {\it Section}    \HH
+  AB_Multipole      & \ref{s:ab.m}        &  Null_Ele        & \ref{s:null.ele} \HH
+  BeamBeam          & \ref{s:bbi}         &  Octupole        & \ref{s:oct}      \HH
+  Bend_Sol_Quad     & \ref{s:bsq}         &  Patch           & \ref{s:patch}    \HH
+  Branch            & \ref{s:branch}      &  Photon_Branch   & \ref{s:branch}   \HH
+  Custom            & \ref{s:custom}      &  Pipe            & \ref{s:monitor}  \HH
+  Drift             & \ref{s:drift}       &  Quadrupole      & \ref{s:quad}     \HH
+  Ecollimator       & \ref{s:col}         &  Rbend           & \ref{s:bend}     \HH
+  ElSeparator       & \ref{s:elsep}       &  Rcollimator     & \ref{s:col}      \HH
+  HKicker           & \ref{s:hvkicker}    &  RFcavity        & \ref{s:rfcav}    \HH
+  Hybrid            & \ref{s:hybrid}      &  Sbend           & \ref{s:bend}     \HH
+  Instrument        & \ref{s:monitor}     &  Sextupole       & \ref{s:sex}      \HH
+  Kicker            & \ref{s:kicker}      &  Solenoid        & \ref{s:sol}      \HH
+  Lcavity           & \ref{s:lcav}        &  Sol_Quad        & \ref{s:sq}       \HH
+  Marker            & \ref{s:mark}        &  Taylor          & \ref{s:tay}      \HH
+  Match             & \ref{s:match}       &  VKicker         & \ref{s:hvkicker} \HH  
+  Monitor           & \ref{s:monitor}     &  Wiggler         & \ref{s:wiggler}  \HH
+  Multipole         & \ref{s:mult}        &                  &                  \HH
+
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with relativistic particles.}
@@ -55,13 +56,13 @@ photon use.
 \centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\it Element}  & {\it Section}     & {\it Element}  & {\it Section}    \HH
-  Capillary      & \ref{s:capillary} &  Match         & \ref{s:match}    \HH
-  Crystal        & \ref{s:crystal}   &  Monitor       & \ref{s:monitor}  \HH 
-  Custom         & \ref{s:custom}    &  Mirror        & \ref{s:mirror}   \HH
-  Drift          & \ref{s:drift}     &  Patch         & \ref{s:patch}    \HH
-  Instrument     & \ref{s:monitor}   &  Pipe          & \ref{s:monitor}  \HH
-  Marker         & \ref{s:mark}      &                &                  \HH
+  {\it Element}      & {\it Section}         & {\it Element}      & {\it Section}      \HH
+  Capillary          & \ref{s:capillary}     &  Match             & \ref{s:match}      \HH
+  Crystal            & \ref{s:crystal}       &  Monitor           & \ref{s:monitor}    \HH 
+  Custom             & \ref{s:custom}        &  Mirror            & \ref{s:mirror}     \HH
+  Drift              & \ref{s:drift}         &  Multilayer_mirror & \ref{s:multilayer} \HH
+  Instrument         & \ref{s:monitor}       &  Patch             & \ref{s:patch}      \HH
+  Marker             & \ref{s:mark}          &  Pipe              & \ref{s:monitor}    \HH
 \end{tabular}
 }
 \caption{Table of element classes suitable for use with photons.}
@@ -1681,6 +1682,29 @@ Example:
 \begin{example}
   m1: multipole, k1l = 0.034e-2, t1, k3l = 4.5, t3 = 0.31*pi
 \end{example}
+
+%-----------------------------------------------------------------
+\section{Multilayer_mirror}
+\label{s:multilayer}
+\index{multilayer_mirror|hyperbf}
+
+A \vn{multilayer_mirror} is a substrate upon which multiple layers
+of alternating substances have been deposited. The idea is similar to crystal
+diffraction: light reflected at each interface constructively interferes 
+with light reflected from other interfaces. The amplified reflection offsets 
+losses due to absorption. 
+
+General \vn{crystal} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+\end{tabular}
+\end{center}
+\toffset
 
 %-----------------------------------------------------------------
 \section{Null_Ele}

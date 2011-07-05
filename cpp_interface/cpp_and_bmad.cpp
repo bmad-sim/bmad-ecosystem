@@ -544,9 +544,29 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
               Int& to, Int& dflt_ord, Int& cc, 
               Int& sr, Int& lr, Int& sym, Int& a_book, Int& tsc_on, Int& csr_on, 
               Int& st_on, Int& rad_d, Int& rad_f, Int& ref_e, Int& con_t) {
-  c = C_bmad_com (ap, orb, kl, ds, significant, rel, abs, rel_adapt, abs_adapt, 
-             to, dflt_ord, cc, sr, 
-             lr, sym, a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, con_t);
+  c.max_aperture_limit               = ap;
+  c.d_orb                            << orb;
+  c.grad_loss_sr_wake                = kl;
+  c.default_ds_step                  = ds;
+  c.significant_longitudinal_length  = significant;
+  c.rel_tolerance                    = rel;
+  c.abs_tolerance                    = abs;
+  c.rel_tol_adaptive_tracking        = rel_adapt;
+  c.abs_tol_adaptive_tracking        = abs_adapt;
+  c.taylor_order                     = to;
+  c.default_integ_order              = dflt_ord;
+  c.canonical_coords                 = cc;
+  c.sr_wakes_on                      = sr;
+  c.lr_wakes_on                      = lr;
+  c.mat6_track_symmetric             = sym;
+  c.auto_bookkeeper                  = a_book;
+  c.trans_space_charge_on            = tsc_on;
+  c.coherent_synch_rad_on            = csr_on;
+  c.spin_tracking_on                 = st_on;
+  c.radiation_damping_on             = rad_d;
+  c.radiation_fluctuations_on        = rad_f;
+  c.compute_ref_energy               = ref_e;
+  c.conserve_taylor_maps             = con_t;
 }
 
 //---------------------------------------------------------------------------
