@@ -961,7 +961,7 @@ public:
     lord_status(Bmad::NOT_A_LORD), ic2_lord(-1),
     mat6_calc_method(Bmad::BMAD_STANDARD), tracking_method(Bmad::BMAD_STANDARD), 
     field_calc(Bmad::BMAD_STANDARD), 
-    aperture_type(Bmad::RECTANGULAR), aperture_at(Bmad::EXIT_END),
+    aperture_at(Bmad::EXIT_END), aperture_type(Bmad::RECTANGULAR), 
     multipoles_on(true), scale_multipoles(true), map_with_offsets(true), 
     field_master(false), is_on(true), csr_calc_on(true) {}
 
