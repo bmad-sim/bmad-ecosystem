@@ -118,4 +118,9 @@ type (sr3d_params_struct), save :: sr3d_params
 
 integer, parameter :: is_through_wall$ = 0, at_lat_end$ = 1, inside_the_wall$ = 2
 
+type sr3d_plot_param_struct
+  real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp
+  integer :: n_pt = 500
+end type
+
 end module

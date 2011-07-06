@@ -24,6 +24,7 @@ type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_wall_struct), target :: wall
 type (sr3d_wall_pt_input) section
 type (sr3d_photon_coord_struct) p
+type (sr3d_plot_param_struct) plot_param
 type (random_state_struct) ran_state
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (wall3d_vertex_struct) v(100)
@@ -56,7 +57,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
-            e_init_filter_min, e_init_filter_max
+            e_init_filter_min, e_init_filter_max, plot_param
 
 namelist / wall_def / section, name
 namelist / gen_shape_def / ix_gen_shape, v
@@ -99,7 +100,7 @@ endif
 ! Reflection plotting
 
 if (plotting == '-reflect') then
-  call sr3d_plot_reflection_probability()
+  call sr3d_plot_reflection_probability(plot_param)
 endif
 
 ! Get parameters.
@@ -303,9 +304,9 @@ call ran_seed_put (random_seed)
 ! The plotting routines never return back to the main program.
 
 if (plotting == '-cross' .or. plotting == '-rcross') then
-  call sr3d_plot_wall_cross_sections (wall, lat, plotting)
+  call sr3d_plot_wall_cross_sections (plot_param, wall, lat, plotting)
 elseif (plotting /= '') then
-  call sr3d_plot_wall_vs_s (wall, lat, plotting(2:2))
+  call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting(2:2))
 endif
 
 ! Find out much radiation is produced
