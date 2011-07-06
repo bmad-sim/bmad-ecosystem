@@ -954,8 +954,16 @@ public:
   bool csr_calc_on;             // Coherent synchrotron radiation calculation.
   bool offset_moves_aperture;   // element offsets affects aperture?
 
-  C_ele () : value(double(0), Bmad::N_ATTRIB_MAXX+1), old_value(double(0), Bmad::N_ATTRIB_MAXX+1), 
-    taylor(C_taylor(0), 6), mat6(M6_mat), c_mat(M2_mat), vec0(V6_array), gen0(V6_array) {}
+  C_ele () : taylor(C_taylor(0), 6), value(double(0), Bmad::N_ATTRIB_MAXX+1), 
+    old_value(double(0), Bmad::N_ATTRIB_MAXX+1), gen0(V6_array),
+    vec0(V6_array), mat6(M6_mat), c_mat(M2_mat), ix_ele(-1),
+    slave_status(Bmad::FREE), ix2_slave(-1), 
+    lord_status(Bmad::NOT_A_LORD), ic2_lord(-1),
+    mat6_calc_method(Bmad::BMAD_STANDARD), tracking_method(Bmad::BMAD_STANDARD), 
+    field_calc(Bmad::BMAD_STANDARD), 
+    aperture_type(Bmad::RECTANGULAR), aperture_at(Bmad::EXIT_END),
+    multipoles_on(true), scale_multipoles(true), map_with_offsets(true), 
+    field_master(false), is_on(true), csr_calc_on(true) {}
 
   C_ele& operator= (const C_ele&);
 
