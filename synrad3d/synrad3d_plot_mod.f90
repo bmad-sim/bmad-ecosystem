@@ -10,29 +10,32 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_reflection_probability ()
+! Subroutine sr3d_plot_reflection_probability (plot_param)
 !
 ! Routine to plot reflection probabilit curves
+!
+! Input;
+!   plot_param -- sr3d_plot_param_struct: Plot parameters.
 !-
 
-subroutine sr3d_plot_reflection_probability ()
+subroutine sr3d_plot_reflection_probability (plot_param)
 
 use photon_reflection_mod
 
 implicit none
 
-integer, parameter :: n_pt = 200
-
 type yplot
-  real(rp) y(n_pt)
+  real(rp), allocatable :: y(:)
   character(40) label
   type (qp_line_struct) line
 end type
 
+type (sr3d_plot_param_struct) plot_param
 type (yplot), allocatable :: ny(:)
 
 real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
-real(rp) x(n_pt), value, value1, value2, y_min, y_max
+real(rp) value, value1, value2, y_min, y_max
+real(rp), allocatable :: x(:)
 
 integer i, j, n, ix, ios, n_lines, i_chan
 
@@ -55,7 +58,13 @@ y_lab = 'Reflectivity'
 n_lines = 3
 allocate (ny(n_lines))
 
-call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
+do i = 1, n_lines
+  allocate (ny(i)%y(plot_param%n_pt))
+enddo
+
+allocate (x(plot_param%n_pt))
+
+call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 call qp_set_margin (0.07_rp, 0.05_rp, 0.10_rp, 0.05_rp, '%PAGE')
 
@@ -66,15 +75,15 @@ do
   ! Get data
 
   do i = 1, n_lines
-    do j = 1, n_pt
+    do j = 1, plot_param%n_pt
       if (fixed_energy) then
-        angle = angle_min + (j - 1) * (angle_max - angle_min) / (n_pt - 1)
+        angle = angle_min + (j - 1) * (angle_max - angle_min) / (plot_param%n_pt - 1)
         ev = ev_min + (i - 1) * (ev_max - ev_min) / max(1, (n_lines - 1))
         write (ny(i)%label, '(a, f0.1)') 'Energy (eV) = ', ev
         x(j) = angle
         x_lab = 'Angle'
       else
-        ev = ev_min + (j - 1) * (ev_max - ev_min) / (n_pt - 1)
+        ev = ev_min + (j - 1) * (ev_max - ev_min) / (plot_param%n_pt - 1)
         angle = angle_min + (i - 1) * (angle_max - angle_min) / max(1, (n_lines - 1))
         write (ny(i)%label, '(a, f0.1)') 'Angle = ', angle
         x(j) = ev
@@ -94,7 +103,7 @@ do
     y_max = max(y_max, maxval(ny(i)%y))
   enddo
 
-  call qp_calc_and_set_axis ('X', x(1), x(n_pt), 10, 16, 'GENERAL')
+  call qp_calc_and_set_axis ('X', x(1), x(plot_param%n_pt), 10, 16, 'GENERAL')
   call qp_calc_and_set_axis ('Y', y_min, y_max, 6, 10, 'GENERAL')
 
   call qp_clear_page
@@ -173,27 +182,29 @@ end subroutine sr3d_plot_reflection_probability
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine sr3d_plot_wall_vs_s (wall, lat, plane)
+! subroutine sr3d_plot_wall_vs_s (plot_param, wall, lat, plane)
 !
 ! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   wall    -- sr3d_wall_struct: Wall structure.
-!   lat     -- Lat_struct: lattice
-!   plane   -- Character(*): section. 'x' or. 'y'
+!   plot_param -- sr3d_plot_param_struct: Plot parameters.
+!   wall       -- sr3d_wall_struct: Wall structure.
+!   lat        -- Lat_struct: lattice
+!   plane      -- Character(*): section. 'x' or. 'y'
 !-
 
-subroutine sr3d_plot_wall_vs_s (wall, lat, plane)
+subroutine sr3d_plot_wall_vs_s (plot_param, wall, lat, plane)
 
 implicit none
 
+type (sr3d_plot_param_struct) plot_param
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct), target :: photon
 type (lat_struct) lat
 
 real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
-real(rp) s(200), xy_in(200), xy_out(200)
+real(rp), allocatable :: s(:), xy_in(:), xy_out(:)
 real(rp), pointer :: photon_xy, wall_xy
 
 integer i, ix, i_chan, ios
@@ -206,12 +217,13 @@ logical xy_user_good, s_user_good
 
 ! Open plotting window
 
-call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
+call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
 xy_user_good = .false.
 s_user_good = .false.
 r_max = 100
+allocate(s(plot_param%n_pt), xy_in(plot_param%n_pt), xy_out(plot_param%n_pt))
 
 if (plane == 'x') then
   plane_str = 'X (cm)'
@@ -323,7 +335,7 @@ end subroutine sr3d_plot_wall_vs_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (wall, lat, extra)
+! Subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat, extra)
 !
 ! Routine to interactively plot wall cross-sections
 ! Note: This routine never returns to the main program.
@@ -337,16 +349,18 @@ end subroutine sr3d_plot_wall_vs_s
 !                   '-rcross' -> flip x-axis
 !-
 
-subroutine sr3d_plot_wall_cross_sections (wall, lat, extra)
+subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat, extra)
 
 implicit none
 
+type (sr3d_plot_param_struct) plot_param
 type (sr3d_wall_struct), target :: wall
 type (sr3d_wall_pt_struct), pointer :: pt
 type (sr3d_photon_track_struct) photon
 type (lat_struct) lat
 
-real(rp) s_pos, x(400), y(400), x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
+real(rp), allocatable :: x(:), y(:)
+real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100)
 real(rp) minn, maxx
 
@@ -359,11 +373,12 @@ logical at_section
 
 ! Open plotting window
 
-call qp_open_page ('X', i_chan, 800.0_rp, 400.0_rp, 'POINTS')
+call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
 x_max_user = -1
 r_max = 100
+allocate (x(plot_param%n_pt), y(plot_param%n_pt))
 
 ! Print wall info
 
