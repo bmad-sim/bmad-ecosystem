@@ -118,7 +118,7 @@ write (iu, *) 'parameter[lattice_type] = ', lattice_type(lat%param%lattice_type)
 if (lat%input_taylor_order /= 0) write (iu, *) 'parameter[taylor_order] =', lat%input_taylor_order
 
 write (iu, *)
-write (iu, *) 'parameter[e_tot] =', trim(str(lat%ele(0)%value(e_tot$)))
+write (iu, *) 'parameter[p0c] =', trim(str(lat%ele(0)%value(p0c$)))
 write (iu, *) 'parameter[particle] = ', particle_name(lat%param%particle)
 if (.not. lat%param%aperture_limit_on) write (iu, *) 'parameter[aperture_limit_on] = F'
 if (lat%param%n_part /= 0) write (iu, *) 'parameter[n_part] = ', lat%param%n_part
