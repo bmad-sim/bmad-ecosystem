@@ -335,7 +335,7 @@ if (.not. associated(wall3d%section)) return
 
 do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
   sec => wall3d%section(j)
-  write (d_unit) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, size(sec%v)
+  write (d_unit) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, size(sec%v), sec%n_vertex_input
   do k = 1, size(sec%v)
     write (d_unit) sec%v(k)
   enddo
