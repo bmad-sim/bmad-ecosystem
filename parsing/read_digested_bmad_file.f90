@@ -238,7 +238,8 @@ do i = 1, n_branch
     call read_this_ele (branch%ele(j), j, error)
     if (error) return
   enddo
-  call read_this_wall3d (branch%wall3d, n_wall_section)
+  call read_this_wall3d (branch%wall3d, n_wall_section, error)
+  if (error) return
 enddo
 
 ! Random state check
@@ -527,7 +528,8 @@ if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. i
   endif
 endif
 
-call read_this_wall3d (ele%wall3d, n_wall_section)
+call read_this_wall3d (ele%wall3d, n_wall_section, error)
+if (error) return
 
 !
 
@@ -713,28 +715,54 @@ end subroutine
 !-----------------------------------------------------------------------------------
 ! contains
 
-subroutine read_this_wall3d (wall3d, n_wall_section)
+subroutine read_this_wall3d (wall3d, n_wall_section, error)
 
 type (wall3d_struct) wall3d
 type (wall3d_section_struct), pointer :: sec
 type (wall3d_vertex_struct), pointer :: v
 
-integer j, k, nv, n_wall_section
+integer j, k, nv, n_wall_section, ios
+logical error
 
 !
 
+error = .false.
 if (n_wall_section < 1) return
+
+error = .true.
 
 call re_associate (wall3d%section, n_wall_section)
 
 do j = 1, n_wall_section
   sec => wall3d%section(j)
-  read (d_unit) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, nv
+
+  read (d_unit, iostat = ios) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, nv, sec%n_vertex_input
+  if (ios /= 0) then
+    if (bmad_status%type_out) then
+       call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                     'ERROR READING WALL3D SECTION')
+    endif
+    close (d_unit)
+    bmad_status%ok = .false.
+    return
+  endif
+
   allocate(sec%v(nv))
   do k = 1, nv
-    read (d_unit) sec%v(k)
+    read (d_unit, iostat = ios) sec%v(k)
+    if (ios /= 0) then
+      if (bmad_status%type_out) then
+         call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                       'ERROR READING WALL3D VERTEX')
+      endif
+      close (d_unit)
+      bmad_status%ok = .false.
+      return
+    endif
   enddo
 enddo
+
+error = .false.
 
 end subroutine
 
