@@ -78,6 +78,7 @@ program anaylzer
   real(rp) n_part_save
   real(rp) slopes(4)
   real(rp) delta_frf, frf
+  real(rp) betah_tot, betav_tot
      
   character*40 lattice
   character*120 lat_file
@@ -411,7 +412,15 @@ program anaylzer
                                                        ring%ele(ring%n_ele_track)%b%etap
     endif
 
-
+! calculate average beta
+  betah_tot = 0.
+  betav_tot = 0.
+  do i=1,ring%n_ele_track
+   betah_tot = betah_tot + ring%ele(i)%a%beta * ring%ele(i)%value(l$)
+   betav_tot = betav_tot + ring%ele(i)%b%beta * ring%ele(i)%value(l$)
+  end do 
+      print '(a19,2f14.4)',' <Beta_h> = ',betah_tot/ring%ele(ring%n_ele_track)%s
+      print '(a19,2f14.4)',' <Beta_v> = ',betav_tot/ring%ele(ring%n_ele_track)%s
 
 !  calculate off energy beta
 
@@ -434,9 +443,11 @@ program anaylzer
        if(i == -1)forall(j=0:ring%n_ele_track)co_low(j)%vec = co_off(j)%vec
        if(i ==  1)forall(j=0:ring%n_ele_track)co_high(j)%vec = co_off(j)%vec
       end do
+
       call de_dbeta(ring_two(1), ring_two(-1), de, rms_x, rms_y)
 
       print *
+
       print '(a19,2f14.4)',' dBeta*/dE          ',(ring_two(1)%ele(0)%a%beta - ring_two(-1)%ele(0)%a%beta)/2/de, &
                              (ring_two(1)%ele(0)%b%beta - ring_two(-1)%ele(0)%b%beta)/2/de 
 
@@ -1108,7 +1119,7 @@ program anaylzer
 
       print *,' write geometry data to "geometry.dat"'
       open(unit=34, file='geometry.dat')
-      write(34,'(1x,a13,6a12)')'  Ele name  ','     s       ', &
+      write(34,'(1x,a13,7a12)')'  Ele name  ','     s       ', &
                                               '     x       ','     y      ','     z      ',&
                                               '   theta     ','    phi     ','    psi     ' 
 
@@ -1123,15 +1134,25 @@ program anaylzer
 
       print *,' write beta and eta data to "beta_eta.dat"'
       open(unit=34,file="beta_eta.dat")
+      print *,' write beta, alpha, and eta, etap data to "beta_alpha_eta_etap.dat"'
+      open(unit=35,file="beta_alpha_eta_etap.dat")
       write(34,'(a13,5a12)')'Element','s','beta x','beta y','eta x','eta y'
+      write(35,'(a13,9a12)')'Element','s','beta x','alpha x','beta y','alpha y','eta x','etap x','eta y','etap y'
        do i=1,ring%n_ele_track
   write(34,'(1x,a13,5e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
                         ring%ele(i)%a%beta,ring%ele(i)%b%beta,ring%ele(i)%x%eta, &
                         ring%ele(i)%y%eta
+  write(35,'(1x,a13,9e12.4)')ring%ele(i)%name, ring%ele(i)%s, &
+                        ring%ele(i)%a%beta,ring%ele(i)%a%alpha, &
+                        ring%ele(i)%b%beta, ring%ele(i)%b%alpha, &
+                        ring%ele(i)%x%eta, ring%ele(i)%x%etap, &
+                        ring%ele(i)%y%eta, ring%ele(i)%y%etap
 
        end do
 
+       close(unit=35)
        close(unit=34)
+
    
 
 
