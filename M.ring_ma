@@ -1,7 +1,8 @@
 #=============================================================================
-# File:     bsim/M.ring_ma
+# File:     M.analyzer
 #
 # Purpose:  Simple Makefile to build local code and a CESR executable
+#           Uses the standard $(C_GMAKE)/M.tail 
 #
 # Author:   M. Palmer   7/24/00
 #
@@ -59,8 +60,8 @@ MAKEFILE := M.ring_ma
 #           In general, it is recommended to AVOID the use of absolute path 
 #           specifications. 
 #-----------------------------------------------------------------------------
-OBJ_SRC_DIRS  := ring_ma ring_ma/code
-LOCAL_INCS    := include
+OBJ_SRC_DIRS  := .
+LOCAL_INCS    := 
 
 
 #-------------------------------------------------------------
@@ -151,8 +152,8 @@ LOCAL_LFLAGS   :=
 #        5) CERN_LIB area  (CERN libraries)
 #--------------------------------------------------------------
 LOCAL_LIBS :=
-CESR_LIBS  := bsim cesr_utils bmad sim_utils recipes_f-90_LEPP
-PKG_LIBS   := forest xsif
+CESR_LIBS  := bsim bmadz cesr_utils bmad sim_utils recipes_f-90_LEPP
+PKG_LIBS   := forest pgplot xsif
 CERN_LIBS  :=
 
 
@@ -176,6 +177,8 @@ ifeq "$(DIST_BUILD)" "TRUE"
 else
   include $(ACC_GMAKE)/M.tail
 endif
+
+
 
 
 
