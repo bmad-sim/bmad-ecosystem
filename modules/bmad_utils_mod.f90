@@ -1357,6 +1357,7 @@ ele%symplectify       = .false.
 ele%map_with_offsets  = .true.
 ele%on_a_girder       = .false.
 ele%csr_calc_on       = .true.
+ele%logic             = .false.
 
 ele%field_master  = .false.
 ele%aperture_type = rectangular$
