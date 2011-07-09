@@ -99,6 +99,7 @@ PUBLIC TT_update
 PUBLIC dest_dTT
 PUBLIC get_dTT
 PRIVATE modulator
+PRIVATE check_id
 
 CONTAINS
 
@@ -209,6 +210,8 @@ SUBROUTINE dest_dTT(id,coords)
   CHARACTER(10) state_name
   TYPE(coord_struct), OPTIONAL :: coords
 
+  CALL check_id(id)
+
   IF(tt_param(id)%useSaveState) THEN
     IF(PRESENT(coords)) THEN
       WRITE(id_str,'(I1)') id
@@ -261,6 +264,8 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
   REAL(rp) fastPeriod
 
   INTEGER i
+
+  CALL check_id(id)
 
   tt_state(id)%counter = tt_state(id)%counter + 1    !needed for log file
 
@@ -351,6 +356,8 @@ FUNCTION get_dTT(name,id) RESULT(z)
   INTEGER, INTENT(IN) :: id
   REAL(rp) z
 
+  CALL check_id(id)
+
   IF(name == 'dw') THEN
     ! return VCO trim 
     z = tt_state(id)%deltaw
@@ -390,5 +397,26 @@ SUBROUTINE modulator(psi,sinout,sqrout)
   ENDIF
 
 END SUBROUTINE modulator
+
+SUBROUTINE check_id(id)
+  INTEGER, INTENT(IN) :: id
+  
+  IF( (id .LT. 0) .OR. id .GT. max_tt) THEN
+    !Absurd TT id passed to TT module
+    WRITE(*,'(A,I3)') "FATAL IN CALL TO TUNE TRACKER: ID received is ", id
+    WRITE(*,'(A,I3)') "                  ID should be greater than 0 and less than ", max_tt+1
+    WRITE(*,'(A)')    "                  Check that init_dTT has been called."
+    WRITE(*,'(A)')    "                  Check that id is an integer."
+    CALL err_exit
+    IF(id .GT. tt_ids) THEN
+      !Tune tracker not initialized
+      WRITE(*,'(A,I3)') "FATAL IN CALL TO TUNE TRACKER: ID received is ", id
+      WRITE(*,'(A)')    "                A tune tracker with this id has not been instantiated."
+      WRITE(*,'(A)')    "                Check that init_dTT has been called and dest_dTT has not been called."
+      WRITE(*,'(A)')    "                Check that ID is an integer."
+      CALL err_exit
+    ENDIF
+  ENDIF
+END SUBROUTINE check_id
 
 END MODULE tune_tracker_mod
