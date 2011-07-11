@@ -607,7 +607,11 @@ if (v2%radius_y /= 0) then
   c = (x0/rx)**2 + (y0/ry)**2 - 1
   radx = sqrt(b**2 - 4 * a * c)
 
-  r_wall = (-b + radx) / (2 * a)
+  if (rx > 0) then
+    r_wall = (-b + radx) / (2 * a)
+  else
+    r_wall = (-b - radx) / (2 * a)
+  endif
 
   ! dr/dtheta comes from the equations:
   !   /x\  =  /rad_x * cos(tilt)  -rad_y * sin(tilt)\  /cos(phi)\  +  /x0\
@@ -643,7 +647,11 @@ b = -2 * (cos_ang * x0 + sin_ang * y0)
 c = x0**2 + y0**2 - v2%radius_x**2
 radx = sqrt(b**2 - 4 * a * c)
 
-r_wall = (-b + radx) / (2 * a)
+if (v2%radius_x > 0) then
+  r_wall = (-b + radx) / (2 * a)
+else
+  r_wall = (-b - radx) / (2 * a)
+endif
 
 r_x = r_wall * cos_ang; r_y = r_wall * sin_ang
 dr_x = -(r_y - y0);    dr_y = r_x - x0

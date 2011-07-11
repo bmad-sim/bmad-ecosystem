@@ -212,11 +212,23 @@ do i = 1, n
   v(i)%angle = atan2(v(i)%y, v(i)%x)
   if (i == 1) cycle
   if (v(i)%angle <= v(i-1)%angle) v(i)%angle = v(i)%angle + twopi
+
   if (v(i)%angle >= v(i-1)%angle + pi .or. v(i)%angle <= v(i-1)%angle) then
     call out_io (s_error$, r_name, 'WALL SECTION VERTEX NOT IN CLOCKWISE ORDER: (\2F10.5\)', &
                  r_array = [v(i)%x, v(i)%y])
     return
   endif
+
+  if (v(i)%radius_x == 0 .and. v(i)%radius_y /= 0) then
+    call out_io (s_error$, r_name, 'WALL SECTION VERTEX HAS RADIUS_X = 0 BUT RADIUS_Y != 0 (\2F10.5\)', &
+                 r_array = [v(i)%radius_x, v(i)%radius_y])
+  endif
+
+  if (v(i)%radius_x * v(i)%radius_y < 0) then
+    call out_io (s_error$, r_name, 'WALL SECTION VERTEX HAS RADIUS_X OF DIFFERENT SIGN FROM RADIUS_Y (\2F10.5\)', &
+                 r_array = [v(i)%radius_x, v(i)%radius_y])
+  endif
+
 enddo
 
 if (v(n)%angle - v(1)%angle >= twopi) then
@@ -341,6 +353,7 @@ endif
 
 a = sqrt(a2)
 if (x_mid * dy > y_mid * dx) a = -a
+if (v2%radius_x < 0) a = -a
 v2%x0 = x_mid + a * dy
 v2%y0 = y_mid - a * dx
 
