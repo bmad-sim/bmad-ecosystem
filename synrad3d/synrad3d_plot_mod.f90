@@ -361,10 +361,10 @@ type (lat_struct) lat
 
 real(rp), allocatable :: x(:), y(:)
 real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
-real(rp) x1_norm(100), y1_norm(100), x2_norm(100), y2_norm(100)
+real(rp), allocatable :: x1_norm(:), y1_norm(:), x2_norm(:), y2_norm(:)
 real(rp) minn, maxx
 
-integer i, j, ix, ix_section, i_in, ios, i_chan
+integer i, j, ix, ix_section, i_in, ios, i_chan, n
 
 character(100) :: ans, label
 character(*) extra
@@ -378,7 +378,9 @@ call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
 
 x_max_user = -1
 r_max = 100
-allocate (x(plot_param%n_pt), y(plot_param%n_pt))
+n = plot_param%n_pt
+allocate (x(n), y(n))
+allocate (x1_norm(n), y1_norm(n), x2_norm(n), y2_norm(n))
 
 ! Print wall info
 

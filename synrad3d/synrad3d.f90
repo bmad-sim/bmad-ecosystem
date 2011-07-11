@@ -303,7 +303,7 @@ call ran_seed_put (random_seed)
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
 
-if (plotting == '-cross' .or. plotting == '-rcross') then
+if (plotting == '-cross' .or. plotting == '-rcross' .or. plotting == '-norm') then
   call sr3d_plot_wall_cross_sections (plot_param, wall, lat, plotting)
 elseif (plotting /= '') then
   call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting(2:2))
