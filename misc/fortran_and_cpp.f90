@@ -47,7 +47,7 @@ end function
 !+
 ! Function f_logic (logic) result (f_log)
 !
-! Function to convert from a fortran logical to a C logical.
+! Function to convert from a C logical to a Fortran logical.
 !
 ! Modules needed:
 !   use fortran_and_cpp
