@@ -48,7 +48,9 @@ Transform from the element exit coordinates to the laboratory
 coordinates.
 \end{enumerate}
 The \Hyperref{r:offset.particle}{offset_particle} routine is used to
-transform between laboratory and element coordinates.
+transform particle coordinates between laboratory and element
+frames. The \Hyperref{r:offset.photon}{offset_photon} routine does an
+analogous job for photons.
 
 \begin{figure}[tb]
   \centering
@@ -91,7 +93,7 @@ It is assumed that pitches are are small so that second
 order terms can be ignored.
 
 %-------------------------------------------------------------------------
-\subsection{Transformation from Laboratory to Element Coordinates}
+\subsection{Straight Transform from Laboratory to Element Coordinates}
 
 The transformation from the laboratory coordinates to
 element coordinates for an element that has a
@@ -102,9 +104,9 @@ Track as in a drift a distance \vn{s_offset_tot}.
 \item
 Apply offsets and pitches
 \begin{align}
-  x_1    &= x_0 - x_{off} + \frac{L}{2} x'_{pitch} \CRNO
+  x_1    &= x_0 - x_{\mbox{off}} + \frac{L}{2} x'_{pitch} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
-  y_1    &= y_0 - y_{off} + \frac{L}{2} y'_{pitch} \\
+  y_1    &= y_0 - y_{\mbox{off}} + \frac{L}{2} y'_{pitch} \\
   p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
   z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
     \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch}) \nonumber
@@ -121,7 +123,7 @@ Apply any tilt $\theta_t$
 \end{enumerate}
 
 %-------------------------------------------------------------------------
-\subsection{Transformation from Element to Laboratory Coordinates}
+\subsection{Straight Transform from Element to Laboratory Coordinates}
 
 The back transformation from element to laboratory coordinates is
 accomplished by the transformation
@@ -137,9 +139,9 @@ Apply any tilt $\theta_t$
 \item
 Apply offsets and pitches
 \begin{align}
-  x_2    &= x_1 + x_{off} + \frac{L}{2} x'_{pitch}     \CRNO
+  x_2    &= x_1 + x_{\mbox{off}} + \frac{L}{2} x'_{pitch}     \CRNO
   p_{x2} &= p_{x1} + (1 + p_{z1}) \, x'_{pitch}        \CRNO
-  y_2    &= y_1 + y_{off} + \frac{L}{2} y'_{pitch}     \\
+  y_2    &= y_1 + y_{\mbox{off}} + \frac{L}{2} y'_{pitch}     \\
   p_{y2} &= p_{x1} + (1 + p_{z1}) \, y'_{pitch}        \CRNO
   z_2    &= z_1 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
     \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch})      \nonumber
@@ -177,13 +179,13 @@ Apply offsets and pitches: The effective ``length'' of the element is
 zero (\sref{s:mirror.coords}) so the origin of the element coordinates
 is the same point around which the element is pitched so
 \begin{align}
-  x_1    &= x_0 - x_{off} \CRNO
+  x_1    &= x_0 - x_{\mbox{off}} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
-  y_1    &= y_0 - y_{off} \\
+  y_1    &= y_0 - y_{\mbox{off}} \\
   p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
   z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 \nonumber
 \end{align}
-where $x_{off} \equiv \vn{x_offset}$, $x'_{pitch} \equiv \vn{x_pitch}$, etc.
+where $x_{\mbox{off}} \equiv \vn{x_offset}$, $x'_{pitch} \equiv \vn{x_pitch}$, etc.
 \item
 Apply \vn{tilt} and \vn{tilt_err}:
 \begin{align}
@@ -215,7 +217,7 @@ with $\theta_{tot}$ being
   \end{cases}
   \label{tttt}
 \Endeq
-The \vn{tilt_corr} correction is explained below.
+The \vn{tilt_corr} correction is explained in \sref{ss:crystal.trans}.
 \item
 \index{graze_angle_err}
 Apply \vn{graze_angle_err} ($\theta_{gerr}$):
@@ -298,7 +300,7 @@ entrance laboratory coordinates. Like pitches, the translation is
 \Begineq
   \bfO_{out} = \bfS \, \bfO_{in}
 \Endeq
-where $\bfO_{in} = (x_{off}, y_{off}, s_{off})$ is the offset in the
+where $\bfO_{in} = (x_{\mbox{off}}, y_{\mbox{off}}, s_{\mbox{off}})$ is the offset in the
 entrance laboratory frame. The transformation is
 \begin{align}
   x_5 &= x_4 + \bfO_{out,x} - p_{x4} \, \bfO_{out,z} \CRNO
@@ -508,10 +510,11 @@ $\bfV$ of \Eqs{vwlv} and \eq{wws}
 \index{tilt_corr}\index{crystal!tilt correction}
 The transformation $\Bf\Sigma_1$ is given in
 \sref{ss:crystal.trans.le} and the transformation $\Bf\Sigma_4$ is
-given in \sref{ss:crystal.trans.el}. Except for the case when the
-non-diffracted beam is tracked in Laue diffraction, The transformation
-$\Bf\Sigma_1$ needs a ``tilt correction'' (\Eq{tttt}) as explained
-below when $\psi_H$ is nonzero.  Since this tilt correction is
+given in \sref{ss:crystal.trans.el}. In general, the transformation
+$\Bf\Sigma_1$ needs a ``tilt correction'' (\Eq{tttt}), as explained
+below, when $\psi_H$ is nonzero.  The exception is that in the case
+when the non-diffracted beam is tracked in Laue diffraction, no tilt
+correction is needed. Since this tilt correction is
 independent of any misalignments, the tilt correction calculation
 proceeds assuming here that there are no misalignments. The finite
 $\bfV$ due to the finite crystal thickness in Laue diffraction will
@@ -672,21 +675,23 @@ The outgoing wave vector $\bfk_H$ is related to $\bfk_0$ via
   \bfk_H =  \bfk_0 + \bfH + q_t \, \bfhat n
 \Endeq
 where $q_t$ is determined by using \Eqs{k1lst} and \eq{h1daa} in \Eq{kk1l1}
-\Begineq
-  \frac{1}{\lambda} =
-  \left| \frac{1}{d}
-  \begin{pmatrix} -\cos \alpha_H \\ \sin \alpha_H \, \sin \psi_H \\ \sin \alpha_H \, \cos \psi_H \end{pmatrix}
-  +
-  \frac{1}{\lambda \, (1 + \delta)} \, 
-  \begin{pmatrix} \sin\theta_0 \\ 0 \\ \cos\theta_0 \end{pmatrix}
-  -
-  \begin{pmatrix} q_t \\ 0 \\ 0 \end{pmatrix} \right|
-\Endeq  
+\begin{align}
+  k_{H,x} &= -\sqrt{\lambda^2 - k_{H,y}^2 - k_{H,z}^2} \CRNO
+  k_{H,y} &= k_{0,y} + H_y \qquad\qquad \mbox{[Bragg]} \\
+  k_{H,z} &= k_{0,z} + H_z \nonumber
+\end{align}
+and 
+\begin{align}
+  k_{H,x} &= k_{0,x} + H_x \nonumber
+  k_{H,y} &= k_{0,y} + H_y \qquad\qquad \mbox{[Laue]} \\
+  k_{H,z} &= \sqrt{\lambda^2 - k_{H,x}^2 - k_{H,y}^2} \CRNO
+\end{align}
 
 To compute the field amplitude of the outgoing photon, the equation to
 be solved is (\cite{b:batterman} Eq.~(21))
 \Begineq
   \xi_0 \, \xi_H = \frac{1}{4} \, k^2 \, P^2 \, \Lambda^2 \, F_H \, F_{\bar H}
+  \label{xx14}
 \Endeq
 where $\xi_0$ and $\xi_H$ are given by \cite{b:batterman} Eq.~(18)
 and $P$ is the polarization factor
@@ -700,14 +705,7 @@ and $P$ is the polarization factor
 $2\theta_g$ is the angle between $\bfK_0$ and $\bfK_H$ which is well
 approximated by $\theta_{g,in} + \theta_{g,out}$.
 
-With this definition, the ratio of the incoming and outgoing fields
-are given by (\cite{b:batterman} Eq.~(24))
-\Begineq
-  \frac{E_H}{E_0} = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
-     = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H}
-\Endeq
-
-The solution is (\cite{b:batterman} Eq.~(31))
+The solution to \Eq{xx14} is (\cite{b:batterman} Eq.~(31))
 \begin{align}
   \xi_0 &= \frac{1}{2} \, k \, |P| \, \Gamma \, [F_H \, F_{\bar H}]^{1/2} \, 
     |b|^{1/2} \, [\eta \pm (\eta^2 + \sign(b))^{1/2}] \CRNO
@@ -731,6 +729,27 @@ and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
 \Begineq
   a \equiv \frac{H^2 + 2 \, \bfk_0 \cdot \bfH}{k_0^2}
 \Endeq
+Once $\xi_0$ and $\xi_H$ are determined, the ratio of the incoming and outgoing fields
+for the $\alpha$ or $\beta$ branches can be computed via (\cite{b:batterman} Eq.~(24))
+\Begineq
+  r \equiv \frac{E_H}{E_0} 
+  = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
+  = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H} 
+\Endeq
+where the $\alpha$ or $\beta$ subscript has been supressed.  The total
+field which is the sum of the fields on the branches is computed using
+the boundary conditions
+\Begineq
+  \bfE_0 = \bfE_{0\alpha} + \bfE_{0\beta}, \qquad\qquad 
+  0 = \bfE_{H\alpha} + \bfE_{H\beta}
+\Endeq
+Using the above two equations gives
+\begin{align}
+  \bfE_{0\alpha} &= \bfE_0 \, \frac{r_\beta}{r_\beta - r_\alpha} \qquad\qquad
+  \bfE_{H\alpha}  = \bfE_0 \, \frac{r_\alpha \, r_\beta}{r_\beta - r_\alpha} \CRNO
+  \bfE_{0\beta} &= -\bfE_0 \, \frac{r_\alpha}{r_\beta - r_\alpha} \qquad\qquad
+  \bfE_{H\beta}  = -\bfE_0 \, \frac{r_\alpha \, r_\beta}{r_\beta - r_\alpha} 
+\end{align}
 
 For Laue diffraction the photon has to be tracked from the entrance
 surface to the exit surface. It is assumed that the two interior wave

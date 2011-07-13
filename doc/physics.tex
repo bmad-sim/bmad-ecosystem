@@ -1407,10 +1407,10 @@ where $k_{tj} = \omega_j/c$ with $\omega_j$ being the mode frequency.
 For a given mode, the electric field can be characterized by the values on 
 a cylindrical surface of some radius $R$. The field will be of the form
 \begin{align}
-  E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, (\phi - \phi_0)) \CRNO
-  E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, (\phi - \phi_0)) \\
+  E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, \phi - \phi_0) \CRNO
+  E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, \phi - \phi_0) \\
   \label{erpze}
-  E_z(R, \phi, z)    &= E_{z c}(R, z)    \, \cos(m \, (\phi - \phi_0)) \nonumber
+  E_z(R, \phi, z)    &= E_{z c}(R, z)    \, \cos(m \, \phi - \phi_0) \nonumber
 \end{align}
 where in this, and subsequent equations, the mode index $j$ has been
 dropped.
@@ -1476,7 +1476,7 @@ For positive $m$, the electric field is in the form
     k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) +
     b_m(n) \, \frac{\wt I_m(\kappa_n, \rho)}{\rho}
     \right]
-    \cos(m \, (\phi - \phi_0)) \CRNO
+    \cos(m \, \phi - \phi_0) \CRNO
   E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2} 
     -i \, e^{i \, k_{zn} \, z} \, 
     \left[
@@ -1485,9 +1485,9 @@ For positive $m$, the electric field is in the form
     b_m(n) \, \left( \frac{\wt I_m(\kappa_n, \rho)}{\rho} - 
     \frac{1}{m} \, \wt I_{m-1}(\kappa_n, \rho) \right)
     \right] 
-    \sin(m \, (\phi - \phi_0)) \CRNO
+    \sin(m \, \phi - \phi_0) \CRNO
   E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
-    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, (\phi - \phi_0)) \nonumber
+    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, \phi - \phi_0) \nonumber
 \end{align}
 with
 \begin{align}

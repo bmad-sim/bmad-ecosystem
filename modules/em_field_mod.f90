@@ -187,7 +187,7 @@ real(rp) k_t, k_zn, kappa2_n, kap_rho, s_pos
 real(rp) radius, phi, t_ref, tilt
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
-complex(rp) Im0, Im_plus, Im_minus, Im_norm, kappa_n, Im_plus2
+complex(rp) Im_0, Im_plus, Im_minus, Im_norm, kappa_n, Im_plus2
 
 integer i, j, m, n, sign_charge
 
@@ -271,16 +271,6 @@ case(rfcavity$, lcavity$)
       mode => ele%rf%field%mode(i)
       m = mode%m
 
-      if (m /= 0) then
-        print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M /= 0 NOT YET IMPLEMENTED FOR: ' // ele%name
-        call err_exit
-      endif
-
-      if (any(mode%term%b /= 0)) then
-        print *, 'ERROR IN EM_FIELD_CALC: RF FIELD WITH M == 0 NON-ACCELERATING NOT YET IMPLEMENTED FOR: ' // ele%name
-        call err_exit
-      endif
-
       k_t = twopi * mode%freq / c_light
 
       Er = 0; Ep = 0; Ez = 0
@@ -302,16 +292,16 @@ case(rfcavity$, lcavity$)
         endif
 
         if (m == 0) then
-          Im0     = I_bessel(0, kap_rho)
+          Im_0    = I_bessel(0, kap_rho)
           Im_plus = I_bessel(1, kap_rho) / kappa_n
 
           Er = Er - mode%term(n)%e * Im_plus * expi * I_imaginary * k_zn
           Ep = Ep + mode%term(n)%b * Im_plus * expi
-          Ez = Ez + mode%term(n)%e * Im0     * expi
+          Ez = Ez + mode%term(n)%e * Im_0    * expi
 
           Br = Br - mode%term(n)%b * Im_plus * expi * I_imaginary * k_zn
           Bp = Bp + mode%term(n)%e * Im_plus * expi * k_t**2
-          Bz = Bz + mode%term(n)%b * Im0     * expi
+          Bz = Bz + mode%term(n)%b * Im_0    * expi
 
         else
           cm = cos(m * phi - mode%phi_0)
@@ -320,22 +310,25 @@ case(rfcavity$, lcavity$)
           Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
 
           Im_plus2 = I_bessel(m+2, kap_rho) / kappa_n**(m+2)
+          ! Reason for computing Im_norm like this is to avoid divide by zero when radius = 0.
+          Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
+          Im_0     = radius * Im_norm       
 
-          Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im / radius
-          Im0      = radius * Im_norm       
-
-          dEr = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * Im_norm) * cm * expi
+          dEr = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * Im_norm) * expi
           dEp = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
 
-          Er = Er + dEr
+          Er = Er + dEr * cm
           Ep = Ep + dEp * sm
-          Ez = Ez + mode%term(n)%e * Im0 * cm * expi
+          Ez = Ez + mode%term(n)%e * Im_0 * cm * expi
    
           Br = Br - m * mode%term(n)%e * Im_norm * sm * expi - i_imaginary * k_zn * dEp * sm
           Bp = Bp + i_imaginary * k_zn * dEr - &
                         mode%term(n)%e * cm * expi * (Im_minus - m * Im_norm)
-          Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(n)%e * (Im0 - Im_plus2 * kappa_n**2) / 2 + &
+          Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(n)%e * (Im_0 - Im_plus2 * kappa_n**2) / 2 + &
                       mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
+
+
+          !!Bz = Bz ... + m * sm * dEr
 
        endif
         

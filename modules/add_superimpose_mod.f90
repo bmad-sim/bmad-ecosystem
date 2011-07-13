@@ -1,3 +1,16 @@
+module add_superimpose_mod
+
+use bmad_struct
+use bmad_interface
+use lat_ele_loc_mod
+
+private delete_underscore, adjust_super_slave_names, adjust_drift_names
+
+contains
+
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
 !
@@ -24,9 +37,6 @@
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
-
-use bmad_struct
-use bmad_interface, except_dummy => add_superimpose
 
 implicit none
 
@@ -119,6 +129,7 @@ if (super_saved%value(l$) == 0) then
   branch%ele(ix_super)%slave_status = free$
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   call adjust_super_slave_names (lat, ix_lord_max_old+1, branch%n_ele_max)
+  call adjust_drift_names (lat, branch%ele(ix1_split))
   return
 endif
 
@@ -207,7 +218,7 @@ if (all_drift) then
   branch%ele(ix_super)%lord_status  = not_a_lord$
   branch%ele(ix_super)%slave_status = free$
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
-  ! If a single drift was split give the runt drifts on either end 
+  ! If a single drift was split: give the runt drifts on either end 
   ! names by adding "#RUNT" suffix if this suffix is not already present.
   if (split1_done .and. split2_done) then
     if (branch%ele(ix_super-1)%name == branch%ele(ix_super+1)%name .and. &
@@ -220,6 +231,7 @@ if (all_drift) then
       endif
     endif
   endif
+  call adjust_drift_names (lat, branch%ele(ix_super-1))
   return
 endif
 
@@ -397,6 +409,8 @@ lat%n_control_max = n_con
 call s_calc (lat)  ! just in case superimpose extended before beginning of lattice.
 call order_super_lord_slaves (lat, ix_super)
 call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
+call adjust_drift_names (lat, branch%ele(ix1_split))
+call adjust_drift_names (lat, branch%ele(ix2_split+1))
 
 end subroutine
 
@@ -422,7 +436,7 @@ if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
 ix = index(ele%name, '##')
 if (ix /= 0) ele%name = ele%name(1:ix-1) // ele%name(ix+1:)
 
-end subroutine
+end subroutine delete_underscore
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -434,9 +448,6 @@ end subroutine
 !-
 
 recursive subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord, first_time)
-
-use lat_ele_loc_mod, except_dummy => adjust_super_slave_names
-use bmad_struct
 
 implicit none
 
@@ -484,4 +495,68 @@ do i = ix1_lord, ix2_lord
   enddo
 enddo
 
-end subroutine
+end subroutine adjust_super_slave_names
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine adjust_drift_names (lat, drift_ele)
+!
+! If drifts have been split due to superimpose then the split drifts
+! can have some very convoluted names. Also multipass lord drifts. Here we do some cleanup.
+! Collect all free elements with the same name before the '#' and renumber.
+!-
+
+subroutine adjust_drift_names (lat, drift_ele)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct) drift_ele
+type (ele_struct), pointer :: ele, slave
+type (branch_struct), pointer :: branch
+
+integer i, ib, k, ixh, ixh2, ixx
+
+character(40) d_name
+
+!
+
+if (drift_ele%key /= drift$) return
+
+ixh = index(drift_ele%name, '#')
+if (ixh == 0) return
+
+d_name = drift_ele%name(1:ixh)
+
+!
+
+ixx = 0
+do ib = 0, ubound(lat%branch, 1)
+
+  branch => lat%branch(ib)
+  do i = 1, branch%n_ele_max
+
+    ele => branch%ele(i)
+    if (ele%slave_status /= free$ .and. ele%lord_status /= multipass_lord$) cycle
+
+    ixh2 = index(ele%name, '#')
+    if (ixh2 /= ixh) cycle
+    if (ele%name(1:ixh) /= d_name(1:ixh)) cycle
+
+    ixx = ixx + 1
+    write (ele%name, '(a, i0)') d_name(1:ixh), ixx
+
+    if (ele%lord_status == multipass_lord$) then
+      do k = 1, ele%n_slave
+        slave => pointer_to_slave(lat, ele, k)
+        write (slave%name, '(2a, i0)') trim(ele%name), '\', k  ! '
+      enddo
+    endif
+
+  enddo
+enddo 
+
+end subroutine adjust_drift_names
+
+end module
