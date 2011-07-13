@@ -16,8 +16,10 @@ contains
 !+
 ! Subroutine rf_accel_mode_adjust_phase_and_amp (ele, param)
 !
-! Routine to set the reference phase and amplitude of the accelerating rf field mode.
-! 
+! Routine to set the reference phase and amplitude of the accelerating rf field mode if
+! this mode is present. The accelerating mode is defined to be ele%rf%field%mode(1) if
+! mode(1)%m = 0. 
+!
 ! All calculations are done with a particle with the energy of the reference particle and 
 ! with z = 0.
 !
@@ -68,6 +70,14 @@ logical step_up_seen
 ! Init
 
 mode1 => ele%rf%field%mode(1)
+
+! Only do the adjustment if mode1 is an acceleration mode.
+
+if (mode1%m /= 0) return  
+if (all(mode1%term%e == 0)) return
+
+!
+
 ele_com => ele
 param_com => param
 

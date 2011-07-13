@@ -5,8 +5,8 @@ module twiss_mod
   use matrix_mod
 
   type twiss_struct
-    real(rp) beta, alpha, gamma, phi, eta, etap
-    real(rp) sigma, sigma_p, emit, norm_emit
+    real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0
+    real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
   end type
 
 contains

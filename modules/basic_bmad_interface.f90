@@ -5,27 +5,6 @@
 module basic_bmad_interface
 
 interface
-  subroutine add_superimpose (lat, super_ele_in, ix_branch, super_ele_out)
-    use bmad_struct, only: lat_struct, ele_struct
-    implicit none
-    type (lat_struct) lat
-    type (ele_struct) super_ele_in
-    type (ele_struct), pointer, optional :: super_ele_out
-    integer ix_branch
-  end subroutine
-end interface
-
-interface
-  recursive subroutine adjust_super_slave_names (lat, ix1_lord, ix2_lord, first_time)
-    use bmad_struct, only: lat_struct
-    implicit none
-    type (lat_struct), target :: lat
-    integer ix1_lord, ix2_lord
-    logical, optional :: first_time
-  end subroutine
-end interface
-
-interface
   subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line)
     use bmad_struct, only: lat_struct
     implicit none

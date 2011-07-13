@@ -12,6 +12,7 @@ use ptc_interface_mod
 use bookkeeper_mod
 use wake_mod
 use attribute_mod
+use add_superimpose_mod
 
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
