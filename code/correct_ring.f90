@@ -1,8 +1,32 @@
 module correct_ring_mod
+
   use super_recipes_mod
   use bmad
   use nr
+
   implicit none
+
+  private lmfunc, ring_to_y
+
+  type, private :: parameter_ele_struct
+     character*40 name
+     integer loc, param
+     real(rp) orig_val, wt
+  end type parameter_ele_struct
+
+  type, private :: detector_struct
+     character*40 name
+     integer loc, param
+     real(rp) wt, rotation, x_offset, y_offset
+  end type detector_struct
+
+  integer, parameter, private :: n_det_max = 3000
+
+  type (parameter_ele_struct), private, save :: p_ele(n_det_max)
+  type (detector_struct), private, save :: det(n_det_max)
+  real(rp), private, pointer, save :: rms_param_ptr
+  integer, private, save :: n_det, n_p_ele
+
 
 !==========================================================================
 ! Define some logicals and structures to be used here and elsewhere
@@ -33,8 +57,6 @@ module correct_ring_mod
   type(lat_struct) :: cr_model_ring
   type(coord_struct), allocatable :: cr_model_co(:)
 
-
-
 contains
 
 !==========================================================================
@@ -45,28 +67,14 @@ contains
     
     type(lat_struct), intent(inout) :: ring
     type(correct_struct) correct
-    real(rp), optional, intent(out) :: rms_param
-
-    integer, parameter :: n_det_max = 3000
-    type detector_struct
-       character*40 name
-       integer loc, param
-       real(rp) wt, rotation, x_offset, y_offset
-    end type detector_struct
-    type (detector_struct) det(n_det_max)
-    type parameter_ele_struct
-       character*40 name
-       integer loc, param
-       real(rp) orig_val, wt
-    end type parameter_ele_struct
-    type(parameter_ele_struct) :: p_ele(n_det_max)
+    real(rp), target :: rms_param
 
     type measurement_struct
        real(rp) :: orbit_x, orbit_y, eta_x, eta_y, phi_a, phi_b, cbar12
     end type measurement_struct
     type (measurement_struct) meas(n_det_max)
 
-    integer n_p_ele, n_det, loc
+    integer loc
 
     type(lat_struct) :: hybrid_ring
     type(coord_struct), allocatable :: co(:)
@@ -81,6 +89,9 @@ contains
     character(40) attrib_name
 
     ! Locate detectors
+
+    rms_param_ptr => rms_param
+
     n_det  = 0
     do i_det_grp = 1, n_detcor_groups
        if (correct%det(i_det_grp)%param == 0) cycle
@@ -349,120 +360,121 @@ contains
     cbar(2,2) = oldcbar22 + (oldcbar12**2 - oldcbar22**2 - 1) * theta
   end subroutine rotate_cbar
 
+end subroutine correct_ring
+
 !==========================================================================
 ! Routine to provide the values for the chi^2 that MRQMIN will attempt to
 ! minimize. This is essentially just a wrapper for passing values to
 ! RING_TO_Y.
 
-  subroutine lmfunc(a,y,dyda, status)
-    implicit none
-    real(rp), dimension(:), intent(in) :: a
-    real(rp), dimension(:), intent(out) :: y
-    real(rp), dimension(:,:), intent(out) :: dyda
+subroutine lmfunc(a,y,dyda, status)
+  implicit none
+  real(rp), dimension(:), intent(in) :: a
+  real(rp), dimension(:), intent(out) :: y
+  real(rp), dimension(:,:), intent(out) :: dyda
 
-    real(rp), dimension(size(a)) :: a2
-    real(rp), dimension(size(y)) :: y1, y2
-    real(rp), parameter :: delta = 1.e-7
-    integer status
-    integer ia
+  real(rp), dimension(size(a)) :: a2
+  real(rp), dimension(size(y)) :: y1, y2
+  real(rp), parameter :: delta = 1.e-7
+  integer status
+  integer ia
 
-    call ring_to_y(a, y)
-    if (any(y==999)) then
-       dyda = 999
-       return
-    end if
+  call ring_to_y(a, y)
+  if (any(y==999)) then
+     dyda = 999
+     return
+  end if
 
-    a2 = a
-    do ia = 1, size(a)
-       a2(ia) = a(ia) + delta
-       call ring_to_y(a2, y2)
-       ! Central difference
-       ! a2(ia) = a(ia) - delta
-       ! call ring_to_y(a2, y1)
-       ! dyda(:,ia) = (y2-y1)/(2.*delta)
+  a2 = a
+  do ia = 1, size(a)
+     a2(ia) = a(ia) + delta
+     call ring_to_y(a2, y2)
+     ! Central difference
+     ! a2(ia) = a(ia) - delta
+     ! call ring_to_y(a2, y1)
+     ! dyda(:,ia) = (y2-y1)/(2.*delta)
 
-       ! Forward difference
-       dyda(:,ia) = (y2-y)/delta
+     ! Forward difference
+     dyda(:,ia) = (y2-y)/delta
 
-       a2(ia) = a(ia)
-    end do
-  end subroutine lmfunc
+     a2(ia) = a(ia)
+  end do
+end subroutine lmfunc
 
 !==========================================================================
 ! Routine used in minimization for calculating how the relevant output
 ! parameters (Y) change as a function of the input parameters (A).
 
-  subroutine ring_to_y(a, y)
-    implicit none
+subroutine ring_to_y(a, y)
+  implicit none
 
-    real(rp), dimension(:), intent(in) :: a
-    real(rp), dimension(:), intent(out) :: y
+  real(rp), dimension(:), intent(in) :: a
+  real(rp), dimension(:), intent(out) :: y
 
-    integer ia, iy, ip, i_det
-    real(rp) cbar(2,2)
-    logical everything_ok
+  integer ia, iy, ip, i_det
+  real(rp) cbar(2,2)
+  logical everything_ok
 
-    ! Put the values A into the right places in the ring
-    do ia = 1, size(a)
-       select case(p_ele(ia)%param)
-       case(hkick$, vkick$, k1$)
-          cr_model_ring%ele(p_ele(ia)%loc)%value(p_ele(ia)%param) = &
-               p_ele(ia)%orig_val + a(ia)
-       case(-1)
-          cr_model_ring%ele(p_ele(ia)%loc)%a_pole(1) = &
-               p_ele(ia)%orig_val + a(ia)
-       case default
-          write(*,*) "Invalid parameter key"
-          call err_exit
-       end select
-    end do
+  ! Put the values A into the right places in the ring
+  do ia = 1, size(a)
+     select case(p_ele(ia)%param)
+     case(hkick$, vkick$, k1$)
+        cr_model_ring%ele(p_ele(ia)%loc)%value(p_ele(ia)%param) = &
+             p_ele(ia)%orig_val + a(ia)
+     case(-1)
+        cr_model_ring%ele(p_ele(ia)%loc)%a_pole(1) = &
+             p_ele(ia)%orig_val + a(ia)
+     case default
+        write(*,*) "Invalid parameter key"
+        call err_exit
+     end select
+  end do
 
-    ! Recalculate the ring parameters
-    if (allocated(cr_model_co)) cr_model_co(0)%vec = 0.
-    call twiss_and_track(cr_model_ring, cr_model_co, everything_ok)
+  ! Recalculate the ring parameters
+  if (allocated(cr_model_co)) cr_model_co(0)%vec = 0.
+  call twiss_and_track(cr_model_ring, cr_model_co, everything_ok)
 
-    if (.not. everything_ok) then
-       y = 999
-       return
-    end if
+  if (.not. everything_ok) then
+     y = 999
+     return
+  end if
 
-    ! Stick everything back into Y
-    iy = 1
-    ! Load element values
-    do ip = 1, n_p_ele
-       y(iy) = a(ip)
-       iy = iy + 1
-    end do
-    
-    ! Load measurement information
-    do i_det = 1, n_det
-       select case (det(i_det)%param)
-       case(orbit_x$)
-          y(iy) = cr_model_co(det(i_det)%loc)%vec(1)
-       case(orbit_y$)
-          y(iy) = cr_model_co(det(i_det)%loc)%vec(3)
-       case(eta_xx$)
-          y(iy) = cr_model_ring%ele(det(i_det)%loc)%x%eta
-       case(eta_yy$)
-          y(iy) = cr_model_ring%ele(det(i_det)%loc)%y%eta
-       case(phi_aa$)
-          y(iy) = cr_model_ring%ele(det(i_det)%loc)%a%phi
-       case(phi_bb$)
-          y(iy) = cr_model_ring%ele(det(i_det)%loc)%b%phi
-       case(cbar12$)
-          call c_to_cbar(cr_model_ring%ele(det(i_det)%loc), cbar)
-          y(iy) = cbar(1,2)
-       case default
-          write(*,*) "Invalid detector key"
-          call err_exit
-       end select
-       iy = iy + 1
-    end do
+  ! Stick everything back into Y
+  iy = 1
+  ! Load element values
+  do ip = 1, n_p_ele
+     y(iy) = a(ip)
+     iy = iy + 1
+  end do
+  
+  ! Load measurement information
+  do i_det = 1, n_det
+     select case (det(i_det)%param)
+     case(orbit_x$)
+        y(iy) = cr_model_co(det(i_det)%loc)%vec(1)
+     case(orbit_y$)
+        y(iy) = cr_model_co(det(i_det)%loc)%vec(3)
+     case(eta_xx$)
+        y(iy) = cr_model_ring%ele(det(i_det)%loc)%x%eta
+     case(eta_yy$)
+        y(iy) = cr_model_ring%ele(det(i_det)%loc)%y%eta
+     case(phi_aa$)
+        y(iy) = cr_model_ring%ele(det(i_det)%loc)%a%phi
+     case(phi_bb$)
+        y(iy) = cr_model_ring%ele(det(i_det)%loc)%b%phi
+     case(cbar12$)
+        call c_to_cbar(cr_model_ring%ele(det(i_det)%loc), cbar)
+        y(iy) = cbar(1,2)
+     case default
+        write(*,*) "Invalid detector key"
+        call err_exit
+     end select
+     iy = iy + 1
+  end do
 
-    ! Send this back if it's wanted
-    if (present(rms_param)) rms_param = sqrt(dot_product(a, a)/size(a))
-  end subroutine ring_to_y
+  ! Send this back if it's wanted
+  rms_param_ptr = sqrt(dot_product(a, a)/size(a))
 
-end subroutine correct_ring
+end subroutine ring_to_y
 
 end module correct_ring_mod

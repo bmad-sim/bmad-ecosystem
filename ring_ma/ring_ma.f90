@@ -137,7 +137,7 @@ program ring_ma
   bmad_status%exit_on_error = .false.
   open(1,file=out_file, recl=250)
   write(1,'("#",A)') trim(comment)
-  write(1,'("# Random seed:",i)') seed
+  write(1,'("# Random seed: ",i0)') seed
   rad_cache = 0
   do i_iter = 1, n_iterations
      write(*,*) "============================================"
