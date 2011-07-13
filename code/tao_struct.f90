@@ -144,10 +144,10 @@ end type
 ! contain both overlayed horizontal and vertical orbits.
 
 type tao_graph_struct
-  character(40) name                  ! Name identifying the graph
-  character(40) type                  ! 'data', 'lat_layout', 'key_table', 'phase_space'
-  character(100) title
-  character(100) title_suffix 
+  character(40) :: name = ''          ! Name identifying the graph
+  character(40) :: type = ''          ! 'data', 'lat_layout', 'key_table', 'phase_space'
+  character(100) :: title = ''
+  character(100) :: title_suffix = ''
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
   character(60) component             ! Who to plot. Eg: 'meas - design'
   character(80) why_invalid           ! Informative string to print.
@@ -184,7 +184,7 @@ type tao_plot_struct
                                               ! individual graphs of a plot
   type (qp_axis_struct) x                     ! X-axis parameters.
   type (tao_plot_region_struct), pointer :: r ! pointer to parent.
-  character(16) x_axis_type                   ! 'index', 'ele_index', 's', 'none',
+  character(16) :: x_axis_type = ''           ! 'index', 'ele_index', 's', 'none',
                                               !         'floor', or 'phase_space'
   logical :: autoscale_x = .false.            ! Horizontal autoscale.
   logical :: autoscale_y = .false.            ! Vertical autoscale.
@@ -201,7 +201,7 @@ type tao_plot_region_struct
   character(40) :: name = ''     ! Eg: 'top', 'bottom'.
   type (tao_plot_struct) plot    ! Plot associated with this region
   real(rp) location(4)           ! location on page.
-  logical visible                ! To draw or not to draw.
+  logical :: visible = .false.   ! To draw or not to draw.
 end type
 
 ! The plot_page defines the whole plotting window. 
