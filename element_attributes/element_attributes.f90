@@ -21,12 +21,13 @@ character(40) a_name
 n_used = 0
 
 do i = 1, n_key
+  if (i == overlay_lord$) cycle
   print *, '!---------------------------------'
   print *, key_name(i)
   ele%key = i
   do j = 1, n_attrib_special_maxx
     a_name = attribute_name (ele, j) 
-    if (a_name(1:1) == '!') cycle
+    if (a_name == null_name$) cycle
     print '(i10, 2x, a)', j, a_name
     n_used(j) = n_used(j) + 1
   enddo
@@ -49,9 +50,10 @@ do i = 1, n_attrib_special_maxx
   print *, '!---------------------------------'
   print '(a, i0)', 'Index: ', i
   do j = 1, n_key
+    if (j == overlay_lord$) cycle
     ele%key = j
     a_name = attribute_name (ele, i) 
-    if (a_name(1:1) == '!') cycle
+    if (a_name == null_name$) cycle
     print *, '   ', key_name(ele%key)
   enddo
 enddo
