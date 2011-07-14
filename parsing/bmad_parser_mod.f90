@@ -2316,9 +2316,11 @@ implicit none
 type (lat_struct), target ::  lat
 type (ele_struct), pointer :: ele
 type (real_pointer_struct), allocatable, save :: ptr(:)
+type (ele_pointer_struct), allocatable, save :: eles(:)
 
-integer i, ix1, ix2, ix_word, ios, ix
+integer i, ix1, ix2, ix_word, ios, ix, n_loc
 real(rp) value
+real(rp), pointer :: v(:)
 character(*) word
 character(40) attrib_name, ele_name
 logical err_flag
@@ -2361,19 +2363,56 @@ if (attrib_name == 'S' .and. bp_com%parser_name /= 'BMAD_PARSER2') then
   call parser_warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
 endif
 
-call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
-if (err_flag .or. size(ptr) == 0) then
-  call parser_warning('BAD ATTRIBUTE: ' // word)
-else
-  value = ptr(1)%r
-endif
+! Apertures, etc.
 
-! If size(ptr) > 1 then there must be more than one element of the same name.
+select case (attrib_name)
+case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
+  call lat_ele_locator (ele_name, lat, eles, n_loc, err_flag)
+  if (.not. err_flag .and. size(eles) > 0) then
+    v => eles(1)%ele%value
+    if (attrib_name == 'APERTURE') then
+      if (v(x1_limit$) /= v(x2_limit$) .or. v(x1_limit$) /= v(y1_limit$) .or. &
+          v(x1_limit$) /= v(y2_limit$)) then
+        err_flag = .true.
+      else
+        value = v(x1_limit$)
+      endif
+    elseif (attrib_name == 'X_LIMIT') then
+      if (v(x1_limit$) /= v(x2_limit$)) then
+        err_flag = .true.
+      else
+        value = v(x1_limit$)
+      endif
+    elseif (attrib_name == 'Y1_LIMIT') then
+      if (v(y1_limit$) /= v(y2_limit$)) then
+        err_flag = .true.
+      else
+        value = v(y1_limit$)
+      endif
+    endif
+  endif
 
-if (size(ptr) > 1) call parser_warning (&
-            'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word)
+  ! If size(eles) > 1 then there must be more than one element of the same name.
 
-return
+  if (size(eles) > 1) call parser_warning (&
+            'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word, warn_only = .true.)
+
+! Everything else
+
+case default
+  call pointers_to_attribute (lat, ele_name, attrib_name, .false., ptr, err_flag, .false.)
+  if (err_flag .or. size(ptr) == 0) then
+    call parser_warning('BAD ATTRIBUTE: ' // word)
+  else
+    value = ptr(1)%r
+  endif
+
+  ! If size(ptr) > 1 then there must be more than one element of the same name.
+
+  if (size(ptr) > 1) call parser_warning (&
+            'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word, warn_only = .true.)
+
+end select
 
 end subroutine word_to_value
 
@@ -3078,7 +3117,7 @@ end subroutine error_exit
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_warning (what1, what2, what3, seq, pele, stop_here)
+subroutine parser_warning (what1, what2, what3, seq, pele, stop_here, warn_only)
 
 implicit none
 
@@ -3088,9 +3127,9 @@ type (parser_ele_struct), optional :: pele
 character(*) what1
 character(*), optional :: what2, what3
 
-logical, optional :: stop_here
+logical, optional :: stop_here, warn_only
 
-! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
+! bp_com%error_flag is a common logical used so program will stop at end of parsing
 
 if (bmad_status%type_out) then
 
@@ -3125,10 +3164,13 @@ if (bmad_status%type_out) then
 
 endif
 
-bp_com%error_flag = .true.
-bmad_status%ok = .false.
+! Warnings do not result in bp_com%error_flag being set
 
-if (logic_option(.false., stop_here) .and. bmad_status%exit_on_error) stop
+if (logic_option(.true., warn_only)) then
+  bp_com%error_flag = .true.
+  bmad_status%ok = .false.
+  if (logic_option(.false., stop_here) .and. bmad_status%exit_on_error) stop
+endif
 
 end subroutine parser_warning
 
