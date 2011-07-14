@@ -1,6 +1,7 @@
 module runge_kutta_mod
 
 use em_field_mod
+use tracking_integration_mod
 
 contains
 
@@ -87,12 +88,7 @@ end%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken by convention to be the reference energy at the exit end.
 
-if (ele%key == lcavity$ .or. ele%key == custom$) then
-  end%vec(2:4:2) = end%vec(2:4:2) * ele%value(p0c_start$) / ele%value(p0c$)
-  end%vec(5) = end%vec(5) * (ele%value(p0c$) / ele%value(e_tot$)) / &
-                            (ele%value(p0c_start$) / ele%value(e_tot_start$))
-  end%vec(6) = (1 + start%vec(6)) * ele%value(p0c_start$) / ele%value(p0c$) - 1
-endif
+call lcavity_reference_energy_correction (ele, param, end)
 
 call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
 t = -start%vec(5) / (beta * c_light)
