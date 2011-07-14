@@ -762,6 +762,9 @@ do i_bunch = 1, size(beam%bunch)
   bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
   bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
   bunch%ix_bunch = i_bunch
+
+  bunch%particle(:)%r%t = bunch%particle(:)%r%t + bunch%t_center
+
 enddo
   
 ! Reset the random number generator parameters.
@@ -826,7 +829,7 @@ type (particle_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar
-real(rp) v_mat(4,4), v_inv(4,4)
+real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 
 integer i, j, k, n
 integer :: n_kv     ! counts how many phase planes are of KV type
@@ -933,6 +936,14 @@ if (param%particle == photon$) then
   bunch%particle(1:n:2)%r%e_field_x = 1
   bunch%particle(2:n:2)%r%e_field_y = 1
 endif
+
+! Fill in %t and %s
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  p%r%s = ele%s
+  call convert_pc_to (ele%value(p0c$) * (1 + p%r%vec(6)), param%particle, beta = beta_vel)
+  p%r%t = ele%ref_time - p%r%vec(5) / (beta_vel * c_light)
+enddo
 
 end subroutine init_bunch_distribution
 
