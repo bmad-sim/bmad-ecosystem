@@ -178,8 +178,9 @@ type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
 type (rf_field_mode_struct), pointer :: mode
+type (rf_field_mode_term_struct), pointer :: term
 
-real(rp) :: x, y, xx, yy, cm, sm, t_rel, s_rel, f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, xx, yy, t_rel, s_rel, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
@@ -187,7 +188,7 @@ real(rp) k_t, k_zn, kappa2_n, kap_rho, s_pos
 real(rp) radius, phi, t_ref, tilt
 
 complex(rp) E_rho, E_phi, E_z, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
-complex(rp) Im_0, Im_plus, Im_minus, Im_norm, kappa_n, Im_plus2
+complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
 
 integer i, j, m, n, sign_charge
 
@@ -278,6 +279,7 @@ case(rfcavity$, lcavity$)
 
       do n = 1, size(mode%term)
 
+        term => mode%term(n)
         k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
         if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
 
@@ -295,40 +297,34 @@ case(rfcavity$, lcavity$)
           Im_0    = I_bessel(0, kap_rho)
           Im_plus = I_bessel(1, kap_rho) / kappa_n
 
-          Er = Er - mode%term(n)%e * Im_plus * expi * I_imaginary * k_zn
-          Ep = Ep + mode%term(n)%b * Im_plus * expi
-          Ez = Ez + mode%term(n)%e * Im_0    * expi
+          Er = Er - term%e * Im_plus * expi * I_imaginary * k_zn
+          Ep = Ep + term%b * Im_plus * expi
+          Ez = Ez + term%e * Im_0    * expi
 
-          Br = Br - mode%term(n)%b * Im_plus * expi * I_imaginary * k_zn
-          Bp = Bp + mode%term(n)%e * Im_plus * expi * k_t**2
-          Bz = Bz + mode%term(n)%b * Im_0    * expi
+          Br = Br - term%b * Im_plus * expi * I_imaginary * k_zn
+          Bp = Bp + term%e * Im_plus * expi * k_t**2
+          Bz = Bz + term%b * Im_0    * expi
 
         else
-          cm = cos(m * phi - mode%phi_0)
-          sm = sin(m * phi - mode%phi_0)
+          cm = expi * cos(m * phi - mode%phi_0)
+          sm = expi * sin(m * phi - mode%phi_0)
           Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
           Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
 
-          Im_plus2 = I_bessel(m+2, kap_rho) / kappa_n**(m+2)
-          ! Reason for computing Im_norm like this is to avoid divide by zero when radius = 0.
-          Im_norm  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
-          Im_0     = radius * Im_norm       
+          ! Reason for computing Im_0_R like this is to avoid divide by zero when radius = 0.
+          Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
+          Im_0    = radius * Im_0_R       
 
-          dEr = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * Im_norm) * expi
-          dEp = -i_imaginary * (k_zn * mode%term(n)%e * Im_plus + mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
-
-          Er = Er + dEr * cm
-          Ep = Ep + dEp * sm
-          Ez = Ez + mode%term(n)%e * Im_0 * cm * expi
+          Er = Er - i_imaginary * (k_zn * term%e * Im_plus + term%b * Im_0_R) * cm
+          Ep = Ep - i_imaginary * (k_zn * term%e * Im_plus + term%b * (Im_0_R - Im_minus / m)) * sm
+          Ez = Ez + term%e * Im_0 * cm
    
-          Br = Br - m * mode%term(n)%e * Im_norm * sm * expi - i_imaginary * k_zn * dEp * sm
-          Bp = Bp + i_imaginary * k_zn * dEr - &
-                        mode%term(n)%e * cm * expi * (Im_minus - m * Im_norm)
-          Bz = Bz - i_imaginary * sm * expi * (k_zn * mode%term(n)%e * (Im_0 - Im_plus2 * kappa_n**2) / 2 + &
-                      mode%term(n)%b * (Im_norm - Im_minus / m)) * expi
+          Br = Br + i_imaginary * sm * (term%e * (m * Im_0_R + k_zn**2 * Im_plus) + &
+                                        term%b * k_zn * (m * Im_0_R - Im_minus / m))
+          Bp = Bp + i_imaginary * cm * (term%e * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
+                                        term%b * k_zn * Im_0_R)
+          Bz = Bz +               sm * (-term%e * k_zn * Im_0 + term%b * kappa2_n * Im_0 / m)
 
-
-          !!Bz = Bz ... + m * sm * dEr
 
        endif
         
@@ -339,7 +335,7 @@ case(rfcavity$, lcavity$)
       E_phi = E_phi + Ep * expt
       E_z   = E_z   + Ez * expt
 
-      expt = -I_imaginary * expt / (twopi * mode%freq)
+      expt = expt / (twopi * mode%freq)
       B_rho = B_rho + Br * expt
       B_phi = B_phi + Bp * expt
       B_z   = B_z   + Bz * expt
