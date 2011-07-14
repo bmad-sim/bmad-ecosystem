@@ -19,6 +19,7 @@ module boris_mod
 
 use em_field_mod
 use spin_mod
+use tracking_integration_mod
 
 contains
 
@@ -100,7 +101,7 @@ call zero_ele_offsets (loc_ele)
 here = start
 here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
-call boris_energy_correction (ele, param, here, .false.)
+call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
 call track_solenoid_edge (loc_ele, param, set$, here)
 
@@ -126,7 +127,6 @@ enddo
 
 call track_solenoid_edge (loc_ele, param, unset$, here)
 call offset_particle (ele, param, here, unset$, set_canonical = .false.)
-call boris_energy_correction (ele, param, here, .true.)
 
 end = here
 
@@ -231,7 +231,7 @@ call zero_ele_offsets (loc_ele)
 here = start
 here%s = s1 + ele%s + ele%value(s_offset_tot$) - ele%value(l$)
 
-call boris_energy_correction (ele, param, here, .false.)
+call lcavity_reference_energy_correction (ele, param, here)
 call offset_particle (ele, param, here, set$, set_canonical = .false.)
 call track_solenoid_edge (loc_ele, param, set$, here)
 
@@ -308,7 +308,6 @@ do n_step = 1, max_step
     if (present(track)) call save_a_step (track, ele, param, .true., s, here, s_sav)
     call track_solenoid_edge (loc_ele, param, unset$, here)
     call offset_particle (ele, param, here, unset$, set_canonical = .false.)
-    call boris_energy_correction (ele, param, here, .true.)
     end = here
     return
   end if
@@ -485,75 +484,6 @@ if (bmad_com%spin_tracking_on) then
   !   quaternion = normalized_quaternion (quaternion)
   dspin_dz = matmul(quaternion, end%spin)
   end%spin = end%spin + dspin_dz * ds2
-endif
-
-end subroutine
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine boris_energy_correction (ele, param, here, final_correction)
-!
-! Subroutine to correct the orbit due to a change in the reference energy
-! from the start of the element to the end.
-!
-! This will also adjust the final particle energy due to small differences
-! betweent the numerically tracked energy change and the average gradient
-! parameter for each cavity.
-!
-! Input:
-!   ele               -- Ele_struct: Element being tracked through.
-!   param             -- lat_param_struct:
-!   final_correction  -- If True, then will adjust the final vec(6) component to
-!         what it should be for the average gradient in the cavity.
-!
-! Output:
-!   here  -- Coord_struct: Coordinates to correct.
-!-
-
-subroutine boris_energy_correction (ele, param, here, final_correction)
-
-implicit none
-
-type (ele_struct) :: ele
-type (lat_param_struct), intent(in) :: param
-type (coord_struct) :: here
-
-real(rp) p0, p1, e_start
-real(rp), save :: vec6_start
-character(24) :: r_name = 'boris_energy_correction'
-
-logical final_correction
-
-!
-
-if (.not. final_correction) then
-  select case (ele%key)
-  case (lcavity$) 
-    vec6_start = here%vec(6)
-    call convert_total_energy_to (ele%value(E_TOT_START$), param%particle, pc = p0)
-    call convert_total_energy_to (ele%value(E_TOT$), param%particle, pc = p1)
-    here%vec(2) = here%vec(2) * p0 / p1
-    here%vec(4) = here%vec(4) * p0 / p1
-    here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
- 
-  case (custom$)
-    vec6_start = here%vec(6)
-    e_start = ele%value(E_TOT$)-ele%value(gradient$)*ele%value(l$)
-    call convert_total_energy_to (e_start, param%particle, pc = p0)
-    call convert_total_energy_to (ele%value(E_TOT$), param%particle, pc = p1)
-    here%vec(2) = here%vec(2) * p0 / p1
-    here%vec(4) = here%vec(4) * p0 / p1
-    here%vec(6) = ((1 + here%vec(6)) * p0 - p1) / p1
-  end select
-
-else
-  select case (ele%key)
-  ! no longitudinal dynamics in lcavities can be studied!
-  case (lcavity$) 
-  case (custom$)
-  end select
 endif
 
 end subroutine

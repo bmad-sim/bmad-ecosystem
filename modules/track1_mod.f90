@@ -17,7 +17,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine check_aperture_limit (orb, ele, at, param)
+! Subroutine check_aperture_limit (orb, ele, at, param, check_momentum)
 !
 ! Subroutine to check if an orbit is outside the aperture.
 ! Note: A particle will also be considered to have hit an aperture
@@ -40,6 +40,9 @@ contains
 !               The exception is when the orbit is larger than 
 !               bmad_com%max_aperture_limit. In this case param%lost will
 !               be set to True.
+!   check_momentum
+!         -- Logical, optional -- If present and false then checking of p_x and 
+!               p_y will be disabled.
 !
 ! Output:
 !   param -- lat_param_struct: Parameter structure:
@@ -51,7 +54,7 @@ contains
 !     %unstable_factor -- Real(rp): |orbit_amp/limit|
 !-
 
-subroutine check_aperture_limit (orb, ele, at, param)
+subroutine check_aperture_limit (orb, ele, at, param, check_momentum)
 
 implicit none
 
@@ -63,20 +66,23 @@ type (lat_param_struct), intent(inout) :: param
 real(rp) x_lim, y_lim, x_beam, y_beam, s_here, r
 integer at
 logical do_tilt
+logical, optional :: check_momentum
 character(20) :: r_name = 'check_aperture_limit'
 
 ! Check p_x and p_y
 
-if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
-  param%lost = .true.
-  if (abs(orb%vec(2)) > abs(orb%vec(4))) then
-    param%plane_lost_at = x_plane$
-    param%unstable_factor = 100 * abs(orb%vec(2)) 
-  else
-    param%plane_lost_at = y_plane$
-    param%unstable_factor = 100 * abs(orb%vec(4)) 
+if (logic_option(.true., check_momentum)) then
+  if (abs(orb%vec(2)) > 1 .or. abs(orb%vec(4)) > 1) then
+    param%lost = .true.
+    if (abs(orb%vec(2)) > abs(orb%vec(4))) then
+      param%plane_lost_at = x_plane$
+      param%unstable_factor = 100 * abs(orb%vec(2)) 
+    else
+      param%plane_lost_at = y_plane$
+      param%unstable_factor = 100 * abs(orb%vec(4)) 
+    endif
+    return
   endif
-  return
 endif
 
 !

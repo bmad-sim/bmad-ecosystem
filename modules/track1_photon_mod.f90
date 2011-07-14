@@ -100,7 +100,8 @@ else
   call reflection_point (refpoint, s_len)
 endif
 
-! Compute the slope of the crystal at that point and form a rotation matrix
+! Compute the slope of the crystal at that the point of impact.
+! curverot transforms from standard body element coords to body element coords at point of impact.
 
 if (curved_surface) then
   slope = -2.0_rp * c2 * refpoint(3) - 3.0_rp * c3 * refpoint(3)**2 - 4.0_rp * c4 * refpoint(3)**4
@@ -112,7 +113,7 @@ if (curved_surface) then
   curverot(3, 1:3) = [-sin_c, 0.0_rp, cos_c]
 endif
 
-! Construct h_norm = normalized H. Including a rotation due to curvature
+! Construct h_norm = normalized H.
 
 sin_alpha = sin(ele%value(alpha_angle$))
 cos_alpha = cos(ele%value(alpha_angle$))
@@ -120,13 +121,13 @@ sin_psi = sin(ele%value(psi_angle$))
 cos_psi = cos(ele%value(psi_angle$))
 h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wavelength / ele%value(d_spacing$)
 
-if (curved_surface) h_norm = matmul(curverot, h_norm)
+! Goto body element coords at point of photon impact
+
+if (curved_surface) k_in_norm = matmul(curverot, k_in_norm)
 
 ! k_out_norm is the outgoing wavevector outside the crystal
 
 k_out_norm = k_in_norm + h_norm
-
-if (curved_surface) k_out_norm = matmul(transpose(curverot), k_out_norm)
 
 if (ele%value(b_param$) < 0) then ! Bragg
   k_out_norm(1) = -sqrt(1 - k_out_norm(2)**2 - k_out_norm(3)**2)
@@ -134,7 +135,10 @@ else
   k_out_norm(3) = sqrt(1 - k_out_norm(1)**2 - k_out_norm(2)**2)
 endif
 
-if (curved_surface) k_out_norm = matmul(curverot, k_out_norm)
+
+
+
+if (curved_surface) k_out_norm = matmul(transpose(curverot), k_out_norm)
 
 !--------------------------------- 
 !(x, px, y, py, x, pz) - Phase Space Calculations
