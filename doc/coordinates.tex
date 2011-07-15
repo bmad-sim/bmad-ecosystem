@@ -320,7 +320,7 @@ the reflection) are only affected by the element's tilt and graze
 angle parameters and is independent of all other parameters such as
 the radius of curvature of the surface, etc. The local $z$-axis of the
 entrance coordinates along with the $z$-axis of the exit coordinates
-define a plane which is called the element's \vn{bendplane}.  For a
+define a plane which is called the element's \vn{bend plane}.  For a
 mirror, the graze angle is a parameter supplied by the user. For a
 crystal, the graze angles are calculated so that the reference
 trajectory is in the middle of the Darwin curve. Calculation of the
@@ -415,6 +415,7 @@ design) momentum $P_0$
 \end{align}
 where $P_x$ and $P_y$ are respectively the $x$ and $y$ canonical momentums.
 
+\index{lcavity}\index{rfcavity}
 The canonical $z$ coordinate is 
 \begin{align}
   z(s) &= -\beta(s) \, c \, (t(s) - t_0(s)) \CRNO
@@ -424,7 +425,15 @@ The canonical $z$ coordinate is
 $t(s)$ is the time at which the particle is at position $s$, $t_0(s)$
 is the time at which the reference particle is at position $s$, and
 $\beta$ is $v/c$ with $v$ being the particle velocity (and not the
-reference velocity).  If the particle's velocity is constant, and is
+reference velocity). The reference particle is, by definition,
+``synchronized'' with elements whose fields are oscillating so it is
+the canonical $z$ that will determine what the actual field a particle
+will see when traveling through such an element. For example, the
+energy change of a particle traveling through an \vn{lcavity} or \vn{rfcavity} will
+depend upon $z$ (See \Eq{egl2p} and \Eq{eev2p}).
+
+
+If the particle's velocity is constant, and is
 the same as the velocity of the reference particle (for example, at
 high energy where $\beta = 1$ for all particles), then $\beta \, c \,
 t$ is just the path length. In this case, the change in $z$ going
