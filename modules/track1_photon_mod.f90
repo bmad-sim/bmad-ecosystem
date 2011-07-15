@@ -15,7 +15,7 @@ end type
 type (ele_struct), private, pointer, save :: ele_com
 type (coord_struct), private, pointer, save :: end_orb_com
 real (rp), private, save :: vec0_com(3)
-real (rp), private, pointer, save :: k_in_norm_com(:)
+real (rp), private, pointer, save :: k0_outside_norm_com(:)
 
 private reflection_point, photon_depth_in_crystal, e_field_calc
 
@@ -46,14 +46,13 @@ type (lat_param_struct) :: param
 type (crystal_param_struct) c_param
 
 real(rp), target :: m_in(3, 3)
-real(rp), target :: k_in_norm(3)
+real(rp), target :: k0_outside_norm(3)
 real(rp) f, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
-real(rp) cos_g, sin_g, cos_tc, sin_tc
-real(rp) h_norm(3), k_out_norm(3), e_tot, pc
-
+real(rp) cos_g, sin_g, cos_tc, sin_tc, tilt_cor_mat(3,3)
+real(rp) h_norm(3), kh_outside_norm(3), e_tot, pc, p_factor
 real(rp) m_out(3, 3), y_out(3), x_out(3), k_out(3)
 real(rp) temp_vec(3), direction(3), s_len
-real(rp) gamma_0, gamma_h, b_err
+real(rp) gamma_0, gamma_h, b_err, K0_inside_norm(3), Kh_inside_norm(3)
 real(rp) refpoint(3), slope, c2, c3, c4, curveangle, cos_c, sin_c, curverot(3, 3)
 
 logical curved_surface
@@ -63,16 +62,16 @@ logical curved_surface
 wavelength = ele%value(ref_wavelength$) / (1 + end_orb%vec(6))
 
 ! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
-! Convert this vector to k_in_norm which are coords with respect to crystal surface.
-! k_in_norm is normalized to 1.
+! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
+! k0_outside_norm is normalized to 1.
 
 sin_g = sin(ele%value(graze_angle_in$))
 cos_g = cos(ele%value(graze_angle_in$))
 f = sqrt (1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
-k_in_norm(1) =  cos_g * end_orb%vec(2) + f * sin_g
-k_in_norm(2) = end_orb%vec(4)
-k_in_norm(3) = -sin_g * end_orb%vec(2) + f * cos_g
+k0_outside_norm(1) =  cos_g * end_orb%vec(2) + f * sin_g
+k0_outside_norm(2) = end_orb%vec(4)
+k0_outside_norm(3) = -sin_g * end_orb%vec(2) + f * cos_g
 
 ! m_in 
 
@@ -96,7 +95,7 @@ else
   ! vec0_com is the body element coordinates of the photon.
   ! Note: The photon position in element entrance coords is [vec(1), vec(3), 0].
   vec0_com = matmul (m_in, [end_orb_com%vec(1), end_orb_com%vec(3), 0.0_rp])
-  k_in_norm_com => k_in_norm
+  k0_outside_norm_com => k0_outside_norm
   call reflection_point (refpoint, s_len)
 endif
 
@@ -113,7 +112,7 @@ if (curved_surface) then
   curverot(3, 1:3) = [-sin_c, 0.0_rp, cos_c]
 endif
 
-! Construct h_norm = normalized H.
+! Construct h_norm = H * wavelength.
 
 sin_alpha = sin(ele%value(alpha_angle$))
 cos_alpha = cos(ele%value(alpha_angle$))
@@ -123,25 +122,50 @@ h_norm = [-cos_alpha, sin_alpha * sin_psi, sin_alpha * cos_psi] * wavelength / e
 
 ! Goto body element coords at point of photon impact
 
-if (curved_surface) k_in_norm = matmul(curverot, k_in_norm)
+if (curved_surface) k0_outside_norm = matmul(curverot, k0_outside_norm)
 
-! k_out_norm is the outgoing wavevector outside the crystal
+! kh_outside_norm is the normalized outgoing wavevector outside the crystal
 
-k_out_norm = k_in_norm + h_norm
+c_param%cap_gamma         = r_e * wavelength**2 / (pi * ele%value(v_unitcell$)) 
+
+K0_inside_norm  = k0_outside_norm * (1 + c_param%cap_gamma)
+kh_outside_norm = k0_outside_norm + h_norm
 
 if (ele%value(b_param$) < 0) then ! Bragg
-  k_out_norm(1) = -sqrt(1 - k_out_norm(2)**2 - k_out_norm(3)**2)
+  K0_inside_norm(1)  = -sqrt(1 - k0_inside_norm(2)**2  - k0_inside_norm(3)**2)
+  kh_outside_norm(1) = -sqrt(1 - kh_outside_norm(2)**2 - kh_outside_norm(3)**2)
 else
-  k_out_norm(3) = sqrt(1 - k_out_norm(1)**2 - k_out_norm(2)**2)
+  K0_inside_norm(3)  = sqrt(1 - K0_inside_norm(1)**2  - K0_inside_norm(2)**2)
+  kh_outside_norm(3) = sqrt(1 - kh_outside_norm(1)**2 - kh_outside_norm(2)**2)
 endif
 
+Kh_inside_norm = K0_inside_norm + h_norm * (1 + c_param%cap_gamma)
+
+!-------------------------------------
+! Calculate phase and intensity
+
+if (ele%value(b_param$) < 0) then ! Bragg
+  gamma_0 = k0_outside_norm(1)
+  gamma_h = kh_outside_norm(1)
+else
+  gamma_0 = k0_outside_norm(3)
+  gamma_h = kh_outside_norm(3)
+endif
+
+c_param%b_eff             = gamma_0 / gamma_h
+c_param%dtheta_sin_2theta = dot_product(h_norm + 2 * k0_outside_norm, h_norm) / 2
+c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
+c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
+c_param%f0_g              = c_param%cap_gamma * c_param%f0 / 2
+
+p_factor = cos(2.0_rp*ele%value(graze_angle_in$))
+call e_field_calc (c_param, ele, p_factor, end_orb%e_field_x, end_orb%phase_x)
+call e_field_calc (c_param, ele, 1.0_rp,   end_orb%e_field_y, end_orb%phase_y)   ! Sigma polarization
 
 
-
-if (curved_surface) k_out_norm = matmul(transpose(curverot), k_out_norm)
 
 !--------------------------------- 
-!(x, px, y, py, x, pz) - Phase Space Calculations
+! (x, px, y, py, x, pz) - Phase Space Calculations
 ! Translate to outgoing basis
 
 ! y_out = inverse(m_in) . m_tiltcorr . m_in . (0, 1, 0)
@@ -151,8 +175,11 @@ if (ele%value(tilt_corr$) == 0) then
 else
   sin_tc = sin(ele%value(tilt_corr$))
   cos_tc = cos(ele%value(tilt_corr$))
+  tilt_cor_mat(1,1:3) = [cos_tc, -sin_tc, 0.0_rp]  
+  tilt_cor_mat(2,1:3) = [sin_tc, cos_tc, 0.0_rp]
+  tilt_cor_mat(3,1:3) = [0.0_rp, 0.0_rp, 1.0_rp]
   y_out = matmul(m_in, [0.0_rp, 1.0_rp, 0.0_rp])
-  y_out = matmul(reshape([cos_tc, sin_tc, 0.0_rp, -sin_tc, cos_tc, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp], [3, 3]), y_out)
+  y_out = matmul(tilt_cor_mat, y_out)
   y_out = matmul(transpose(m_in), y_out)
 endif
 
@@ -168,7 +195,7 @@ k_out(3) = ele%value(kh_z_norm$)
 
 m_out = reshape([x_out, y_out, k_out], [3, 3])
 
-direction = matmul(transpose(m_out), k_out_norm)
+direction = matmul(transpose(m_out), kh_outside_norm)
 end_orb%vec(2) = direction(1)
 end_orb%vec(4) = direction(2)
 
@@ -182,25 +209,6 @@ end_orb%vec(3) = temp_vec(2)
 ! %vec(5) doesn't include phase change due to wave nature of radiation
 end_orb%vec(5) = temp_vec(3) + s_len
 
-
-!-------------------------------------
-! Calculate phase and intensity
-
-c_param%cap_gamma = r_e * wavelength**2 / (pi * ele%value(v_unitcell$)) 
-gamma_0 = k_in_norm(1)
-gamma_h = k_out_norm(1)
-
-c_param%b_eff = gamma_0 / gamma_h
-c_param%dtheta_sin_2theta = dot_product(h_norm + 2.0_rp * k_in_norm, h_norm) *0.5_rp
-c_param%f0 = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
-c_param%fh = cmplx(ele%value(fh_re$), ele%value(fh_im$))
-c_param%f0_g = c_param%cap_gamma * c_param%f0 / 2
-
-!---------------------------------------
-! construct the field for pi polarization.
-
-call e_field_calc (c_param, ele, cos(2.0_rp*ele%value(graze_angle_in$)), end_orb%e_field_x, end_orb%phase_x)
-call e_field_calc (c_param, ele, 1.0_rp, end_orb%e_field_y, end_orb%phase_y)       ! Sigma polarization
 
 end subroutine track1_crystal
 
@@ -298,9 +306,9 @@ real (rp) :: x1, x2, x_center, fa, fb
 ! Choose a Bracket of 1m around this point.
 
 if (ele_com%value(b_param$) < 0) then ! Bragg
-  x_center = vec0_com(1) / k_in_norm_com(1)
+  x_center = vec0_com(1) / k0_outside_norm_com(1)
 else
-  x_center = vec0_com(3) / k_in_norm_com(3)
+  x_center = vec0_com(3) / k0_outside_norm_com(3)
 endif
 
 x1 = x_center
@@ -320,7 +328,7 @@ endif
 s_len = zbrent (photon_depth_in_crystal, x1, x2, 1d-10)
 
 ! Compute the intersection point
-refpoint = s_len * k_in_norm_com + vec0_com
+refpoint = s_len * k0_outside_norm_com + vec0_com
 
 end subroutine reflection_point
 
@@ -355,7 +363,7 @@ c2 = ele_com%value(c2_curve_tot$)
 c3 = ele_com%value(c3_curve_tot$)
 c4 = ele_com%value(c4_curve_tot$)
 
-point = s_len * k_in_norm_com + vec0_com
+point = s_len * k0_outside_norm_com + vec0_com
 
 if (ele_com%value(b_param$) < 0) then ! Bragg
   r = point(3)
