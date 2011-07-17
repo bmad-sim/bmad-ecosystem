@@ -145,7 +145,6 @@ enddo
 
 bmad_status%ok = .true.
 if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
-
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
