@@ -4641,15 +4641,16 @@ else
 endif
 
 ! This only affects VMS programs.
-! What we want to do is change the directory for lattice files in CESR_MNT:[lattice...].
-! However 'CESR_MNT' is a logical that will get translated by the inquire function so
+! What we want to do is change the directory for lattice files in
+! $CESR_ONLINE/machine_data/lattice...
+! However 'CESR_ONLINE' is a logical that will get translated by the inquire function so
 ! we only check that 'lattice' is the top directory.
 
 ix = max (index_nocase(digested_file, '[lattice.'), &
           index_nocase(digested_file, '[000000.lattice.'))
 if (ix /= 0) then
   ix = index_nocase(digested_file, 'lattice.')
-  digested_file = 'U:[cesr.lattice.' // digested_file(ix+8:)
+  digested_file = 'CESR_ONLINE:[machine_data.lattice.' // digested_file(ix+8:)
 endif
 
 end subroutine form_digested_bmad_file_name

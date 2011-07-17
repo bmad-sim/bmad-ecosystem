@@ -279,7 +279,7 @@ type ele_struct
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
-  logical scale_multipoles   ! Are ab_multipoles within other eleemnts (EG: quads, etc.) 
+  logical scale_multipoles   ! Are ab_multipoles within other elements (EG: quads, etc.) 
                              !   scaled by the strength of the element?
   logical map_with_offsets   ! Taylor map calculated with element offsets?
   logical field_master       ! Calculate strength from the field value?
