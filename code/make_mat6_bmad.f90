@@ -347,6 +347,13 @@ case (mirror$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
+! multilayer_mirror
+
+case (multilayer_mirror$) 
+
+  ! Not yet implemented
+
+!--------------------------------------------------------
 ! Multipole, AB_Multipole
 
 case (multipole$, ab_multipole$)

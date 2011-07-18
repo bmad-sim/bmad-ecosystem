@@ -210,15 +210,6 @@ interface
 end interface
 
 interface
-  subroutine crystal_type_to_crystal_params (ele, err_flag)
-    use bmad_struct, only: ele_struct
-    implicit none
-    type (ele_struct) ele
-    logical err_flag
-  end subroutine
-end interface
-
-interface
   subroutine dispersion_to_orbit (ele, disp_orb)
     use bmad_struct, only: ele_struct, coord_struct
     implicit none

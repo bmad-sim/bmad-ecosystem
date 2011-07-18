@@ -551,7 +551,7 @@ if (attrib_word == 'WALL') then
 
     call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',')
     if (err_flag) return
-    if (ele%key == crystal$) ele%value(l$) = section%s
+    if (ele%key == capillary$) ele%value(l$) = section%s
 
     ! Parse "V() = ..." constructs.
 

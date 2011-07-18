@@ -746,7 +746,27 @@ attrib_array(mirror$, g_graze$)                      = 'G_GRAZE'
 attrib_array(mirror$, g_trans$)                      = 'G_TRANS'
 attrib_array(mirror$, ref_wavelength$)               = 'REF_WAVELENGTH'
 
+attrib_array(multilayer_mirror$, graze_angle$)       = 'GRAZE_ANGLE_IN'
+attrib_array(multilayer_mirror$, tilt_err$)          = 'TILT_ERR'
+attrib_array(multilayer_mirror$, n_layers$)          = 'N_LAYERS'
+attrib_array(multilayer_mirror$, d1_thickness$)      = 'D1_THICKNESS'
+attrib_array(multilayer_mirror$, d2_thickness$)      = 'D2_THICKNESS'
+attrib_array(multilayer_mirror$, v1_unitcell$)       = 'V1_UNITCELL'
+attrib_array(multilayer_mirror$, v2_unitcell$)       = 'V2_UNITCELL'
+attrib_array(multilayer_mirror$, f0_re1$)            = 'F0_RE1'
+attrib_array(multilayer_mirror$, f0_im1$)            = 'F0_IM1'
+attrib_array(multilayer_mirror$, f0_re2$)            = 'F0_RE2'
+attrib_array(multilayer_mirror$, f0_im2$)            = 'F0_IM2'
 attrib_array(multilayer_mirror$, ref_wavelength$)    = 'REF_WAVELENGTH'
+attrib_array(multilayer_mirror$, crystal_type$)      = 'CRYSTAL_TYPE'
+attrib_array(multilayer_mirror$, d_source$)          = 'D_SOURCE'
+attrib_array(multilayer_mirror$, d_detec$)           = 'D_DETEC'
+attrib_array(multilayer_mirror$, c2_curve$)          = 'C2_CURVE'
+attrib_array(multilayer_mirror$, c3_curve$)          = 'C3_CURVE'
+attrib_array(multilayer_mirror$, c4_curve$)          = 'C4_CURVE'
+attrib_array(multilayer_mirror$, c2_curve_tot$)      = 'C2_CURVE_TOT'
+attrib_array(multilayer_mirror$, c3_curve_tot$)      = 'C3_CURVE_TOT'
+attrib_array(multilayer_mirror$, c4_curve_tot$)      = 'C4_CURVE_TOT'
 
 attrib_array(crystal$, graze_angle_in$)              = 'GRAZE_ANGLE_IN'
 attrib_array(crystal$, graze_angle_out$)             = 'GRAZE_ANGLE_OUT'
@@ -765,7 +785,7 @@ attrib_array(crystal$, b_param$)                     = 'B_PARAM'
 attrib_array(crystal$, bragg_angle$)                 = 'BRAGG_ANGLE' 
 attrib_array(crystal$, g_trans$)                     = 'G_TRANS'
 attrib_array(crystal$, ref_wavelength$)              = 'REF_WAVELENGTH'
-attrib_array(crystal$, diffraction_type$)            = 'DIFFRACTION_TYPE'
+attrib_array(crystal$, diffraction_type$)            = 'DIFFRACTION_TYPE'  ! Note: Not currently used.
 attrib_array(crystal$, crystal_type$)                = 'CRYSTAL_TYPE'
 attrib_array(crystal$, d_source$)                    = 'D_SOURCE'
 attrib_array(crystal$, d_detec$)                     = 'D_DETEC'
@@ -794,7 +814,7 @@ attrib_array(capillary$, ds_slave_offset$)           = reserved_name$
 ! We make a short list to compare against to make things go faster.
 ! for has_orientation_attributes check both tilt and x_offset attributes
 ! since, for example, a solenoid does not have a tilt.
-! Also note: A patch element has a z_offset, not an s_offset
+! Also note: A patch element has a z_offset, not an s_offset.
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90
@@ -859,7 +879,7 @@ select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM')
   attrib_type = is_logical$
 case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
-      'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER')
+      'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')
   attrib_type = is_integer$
 case ('COUPLER_AT', 'ATTRIBUTE_TYPE')
   attrib_type = is_name$
