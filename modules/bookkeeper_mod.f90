@@ -6,6 +6,7 @@ use multipole_mod
 use lat_geometry_mod
 use equality_mod
 use em_field_mod
+use crystal_param_mod
 
 integer, parameter :: off$ = 1, on$ = 2
 integer, parameter :: save_state$ = 3, restore_state$ = 4
