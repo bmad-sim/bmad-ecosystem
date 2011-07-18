@@ -479,7 +479,7 @@ case (mirror$)
 case (multilayer_mirror$) 
 
   call offset_photon (ele, param, end, set$)
-  call track1_multilay_mirror (ele, param, end)
+  call track1_multilayer_mirror (ele, param, end)
   call offset_photon (ele, param, end, unset$)
 
 !-----------------------------------------------
