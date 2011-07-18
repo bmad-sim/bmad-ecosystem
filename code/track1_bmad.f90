@@ -190,7 +190,6 @@ case (crystal$)
   call track1_crystal (ele, param, end)
   call offset_photon (ele, param, end, unset$)
 
-
 !-----------------------------------------------
 ! drift
  
@@ -472,6 +471,15 @@ case (mirror$)
          end%vec(3), &
          end%vec(4) - 2 * end%vec(3) * ele%value(g_trans$)]
 
+  call offset_photon (ele, param, end, unset$)
+
+!-----------------------------------------------
+! multilayer_mirror
+
+case (multilayer_mirror$) 
+
+  call offset_photon (ele, param, end, set$)
+  call track1_multilay_mirror (ele, param, end)
   call offset_photon (ele, param, end, unset$)
 
 !-----------------------------------------------

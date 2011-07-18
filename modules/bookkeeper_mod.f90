@@ -2225,10 +2225,14 @@ case (beambeam$)
 
 ! Crystal
 
-case (crystal$)
+case (crystal$, multilayer_mirror$)
 
-  call crystal_type_to_crystal_params (ele, err_flag)
-  call crystal_attribute_bookkeeper (ele)
+  if (ele%key == crystal$) then
+    call crystal_type_to_crystal_params (ele, err_flag)
+    call crystal_attribute_bookkeeper (ele)
+  else
+    call multilayer_type_to_multilayer_params (ele, err_flag)
+  endif
 
   gc = 0
   if (ele%value(d_source$) /= 0) gc = ele%value(graze_angle_in$) / (2 * ele%value(d_source$))
