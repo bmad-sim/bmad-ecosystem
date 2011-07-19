@@ -708,6 +708,7 @@ lat%param%unstable_factor = 0
 lat%param%stable = .true.
 lat%param%particle = positron$
 lat%param%aperture_limit_on = .true.
+lat%param%lattice_type = circular_lattice$
 
 call init_coord(lat%beam_start)
 

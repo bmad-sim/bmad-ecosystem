@@ -746,7 +746,8 @@ attrib_array(mirror$, g_graze$)                      = 'G_GRAZE'
 attrib_array(mirror$, g_trans$)                      = 'G_TRANS'
 attrib_array(mirror$, ref_wavelength$)               = 'REF_WAVELENGTH'
 
-attrib_array(multilayer_mirror$, graze_angle$)       = 'GRAZE_ANGLE_IN'
+attrib_array(multilayer_mirror$, graze_angle$)       = 'GRAZE_ANGLE'
+attrib_array(multilayer_mirror$, graze_angle_err$)   = 'GRAZE_ANGLE_ERR'
 attrib_array(multilayer_mirror$, tilt_err$)          = 'TILT_ERR'
 attrib_array(multilayer_mirror$, n_layers$)          = 'N_LAYERS'
 attrib_array(multilayer_mirror$, d1_thickness$)      = 'D1_THICKNESS'
@@ -767,6 +768,7 @@ attrib_array(multilayer_mirror$, c4_curve$)          = 'C4_CURVE'
 attrib_array(multilayer_mirror$, c2_curve_tot$)      = 'C2_CURVE_TOT'
 attrib_array(multilayer_mirror$, c3_curve_tot$)      = 'C3_CURVE_TOT'
 attrib_array(multilayer_mirror$, c4_curve_tot$)      = 'C4_CURVE_TOT'
+attrib_array(multilayer_mirror$, ref_polarization$)  = 'REF_POLARIZATION'
 
 attrib_array(crystal$, graze_angle_in$)              = 'GRAZE_ANGLE_IN'
 attrib_array(crystal$, graze_angle_out$)             = 'GRAZE_ANGLE_OUT'
@@ -803,6 +805,7 @@ attrib_array(crystal$, kh_z_norm$)                   = reserved_name$
 attrib_array(crystal$, l_x$)                         = reserved_name$
 attrib_array(crystal$, l_y$)                         = reserved_name$
 attrib_array(crystal$, l_z$)                         = reserved_name$
+attrib_array(crystal$, ref_polarization$)            = 'REF_POLARIZATION'
 
 attrib_array(capillary$, l$)                         = 'L'
 attrib_array(capillary$, s_spline$)                  = 'S_SPLINE'
@@ -881,7 +884,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER', 'FOLLOW_DI
 case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
       'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')
   attrib_type = is_integer$
-case ('COUPLER_AT', 'ATTRIBUTE_TYPE')
+case ('COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION')
   attrib_type = is_name$
 case default
   attrib_type = is_real$
@@ -1048,11 +1051,18 @@ case ('APERTURE_TYPE')
   attrib_val_name = shape_name(nint(attrib_value))
   if (present(is_default)) then
     if (ele%key == ecollimator$) then
-      is_default = (nint(attrib_value) == rectangular$)
+      is_default = (nint(attrib_value) == elliptical$)
     else
       is_default = (nint(attrib_value) == rectangular$)
     endif
   endif
+
+case ('REF_POLARIZATION')
+  attrib_val_name = polarization_name(nint(attrib_value))
+  if (present(is_default)) then
+    is_default = (nint(attrib_value) == sigma_polarization$)
+  endif
+
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)
