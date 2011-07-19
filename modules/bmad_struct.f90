@@ -404,7 +404,7 @@ integer, parameter :: n_key = 46
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-character(16), parameter :: key_name(n_key) = [ &
+character(40), parameter :: key_name(n_key) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
     'RFCAVITY         ', 'ELSEPARATOR      ', 'BEAMBEAM         ', 'WIGGLER          ', &
@@ -476,7 +476,7 @@ integer, parameter ::       de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_len$=15
 integer, parameter :: n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16, f0_im2$=16
-integer, parameter :: ds_slave_offset$ = 17, h1$=17, x_quad$=17, g_graze$=17
+integer, parameter :: ds_slave_offset$ = 17, h1$=17, x_quad$=17, g_graze$=17, ref_polarization$=17
 integer, parameter :: h2$=18, y_quad$=18, g_trans$=18
 integer, parameter :: x_pitch$=19  
 integer, parameter :: y_pitch$=20  
@@ -777,6 +777,9 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ =
 
 integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
 character(16), parameter :: shape_name(0:3) = ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ']
+
+integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
+character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'pi_polarization   ']
 
 ! ele%attribute_status values.
 ! The idea:

@@ -632,7 +632,8 @@ public:
 
   C_lat_param () : n_part(0), total_length(0), unstable_factor(0),
       t1_with_RF(V6_array, 6), t1_no_RF(V6_array, 6), 
-      particle(0), ix_lost(0), end_lost_at(0), plane_lost_at(0), lattice_type(0), ixx(0),
+      particle(Bmad::POSITRON), ix_lost(0), end_lost_at(0), plane_lost_at(0), 
+      lattice_type(Bmad::CIRCULAR_LATTICE), ixx(0),
       stable(1), aperture_limit_on(1), lost(0) {}
 
   C_lat_param (double np, double tl, double gr, Real_Matrix t1w,

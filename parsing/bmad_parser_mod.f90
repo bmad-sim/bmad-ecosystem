@@ -3195,7 +3195,7 @@ if (allocated(bp_com%var)) deallocate (bp_com%var)
 nn = 17  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
            ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(shape_name, 1) + &
-           size(particle_name)
+           size(particle_name) + ubound(polarization_name, 1)
 bp_com%ivar_tot = bp_com%ivar_init
 
 nt = bp_com%ivar_tot
@@ -4366,6 +4366,7 @@ case (branch$, photon_branch$)
 
 case (crystal$)
   ele%value(follow_diffracted_beam$) = 1  ! True
+  ele%value(ref_polarization$) = sigma_polarization$ 
 
 case (custom$)  
   ele%mat6_calc_method = custom$
@@ -4378,6 +4379,9 @@ case (ecollimator$)
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
+
+case (multilayer_mirror$)
+  ele%value(ref_polarization$) = sigma_polarization$  
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
