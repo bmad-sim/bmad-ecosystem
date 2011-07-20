@@ -70,8 +70,8 @@ TYPE tt_param_struct
   ! For examples, see the tune tracker driver program.
   INTEGER :: bpm_loc = -1        ! Location of BPM
   INTEGER :: kck_loc = -1        ! Location of kicker
-  CHARACTER(40) bpm_name  ! Name of BPM
-  CHARACTER(40) kck_name  ! Name of Kicker
+  CHARACTER(40) :: bpm_name = ''    ! Name of BPM
+  CHARACTER(40) :: kck_name = ''    ! Name of Kicker
   REAL(rp) modTfrac0      ! initial fractional tune of kicker modulator
   REAL(rp) kickAmplitude  ! amplitude of kicks
   CHARACTER orientation   ! 'h', 'v', or 'l'
