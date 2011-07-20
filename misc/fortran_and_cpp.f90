@@ -140,6 +140,44 @@ end function
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+! Subroutine remove_null_in_string (str_in, str_out)
+! 
+! Routine to convert a null character in a string to a blank.
+! All characters thereafter are similarly converted.
+! This is useful for converting a C style string to Fortran.
+! If there is no null character then str_out = str_in.
+!
+! Modules needed:
+!  use fortran_and_cpp
+!
+! Input:
+!   str_in -- Character(*): Input string with null character.
+!
+! Output:
+!   str_out -- Character(*): String with null character converted.
+!-
+
+subroutine remove_null_in_string (str_in, str_out)
+
+implicit none
+
+character(*) str_in, str_out
+integer ix
+
+!
+
+ix = index(str_in, char(0))
+if (ix == 0) then
+  str_out = str_in
+else
+  str_out = str_in(1:ix-1)
+endif
+
+end subroutine remove_null_in_string
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
 ! Function c_str (str) result (c_string)
 !
 ! Function to append a null (0) character at the end of a string (trimmed
