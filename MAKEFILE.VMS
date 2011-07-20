@@ -71,7 +71,7 @@ MAKE_SRC := CESR_PORTING:[cesr_libs.$(CESRLIB).Gmake]
 #       example: place [--.lib] instead of real path [-.lib].
 #-----------------------------------------------------------------------------
 
-OLB_SRC_DIRS  := [.file] [.io] [.matrix] [.plot] [.string] [.conversion] [.interfaces] [.math] [.misc] [.old_utils]
+OLB_SRC_DIRS  := [.file] [.io] [.matrix] [.plot] [.string] [.interfaces] [.math] [.misc] [.old_utils]
 MOD_SRC_DIRS  := 
 OBJ_SRC_DIRS  :=
 CFG_SRC_DIRS  :=
