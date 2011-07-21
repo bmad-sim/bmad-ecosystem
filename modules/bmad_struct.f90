@@ -662,7 +662,7 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4
+integer, parameter :: no_end$ = 4, lost$ = 5
 character(16), parameter :: element_end_name(0:4) = ['GARBAGE!    ', &
      'Entrance_End', 'Exit_End    ', 'Both_Ends   ', 'No_End      ']
 
@@ -718,7 +718,6 @@ type bmad_status_struct
   integer :: status         = ok$      ! Computation status 
   logical :: ok             = .true.   ! Error flag
   logical :: type_out       = .true.   ! Print error messages?
-  logical :: sub_type_out   = .true.   ! 
   logical :: exit_on_error  = .true.   ! Exit program on error?
 end type
 
