@@ -67,7 +67,7 @@ endif
 ! Find where to split.
 
 do ix_split = 0, branch%n_ele_track   
-  if (abs(branch%ele(ix_split)%s - s_split) < 1.0e-6) then
+  if (abs(branch%ele(ix_split)%s - s_split) < 10*ds_fudge) then
     split_done = .false.
     return
   endif

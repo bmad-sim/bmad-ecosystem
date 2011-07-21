@@ -52,41 +52,30 @@ real(rp) s, s_use
 integer, optional :: ix_branch
 integer i, i_branch
 
+logical err_flag
 logical, optional :: err
 
-! For negative s use lat%param%total_length - s
-! Actually take into account that the lattice may start from some non-zero s.
+character(20), parameter :: r_name = 'twiss_and_track_at_s'
+
+! If close enough to edge of element just use element info.
 
 i_branch = integer_option(0, ix_branch)
 branch => lat%branch(i_branch)
 
-s_use = s
-if (i_branch == 0 .and. lat%param%lattice_type == circular_lattice$) then
-  if (s < branch%ele(0)%s) s_use = s + lat%param%total_length
+call ele_at_s (lat, s, i, ix_branch, err_flag, s_use)
+if (err_flag) then
+  if (present(err)) err = .true. 
+  return
 endif
 
-! error_check
-
-i = branch%n_ele_track
-if (s_use < branch%ele(0)%s .or. s_use > branch%ele(i)%s) then
-  print *, 'ERROR IN TWISS_AND_TRACK_AT_S: S POSITION OUT OF BOUNDS.', s
-  call err_exit
-endif
-
-! Propagate to position
-! Test if we have the correct element. The %significant_longitudinal_length is for roundoff.
-! If close enough to edge of element just use element info.
-
-call ele_at_s (lat, s_use, i, ix_branch)
-
-if (s_use - branch%ele(i)%s > bmad_com%significant_longitudinal_length) then
+if (abs(s_use - branch%ele(i)%s) > bmad_com%significant_longitudinal_length) then
   if (present(ele)) ele = branch%ele(i)
   if (present(orb_at_s)) orb_at_s = orb(i)
   if (present(err)) err = .false.
   return
 endif
 
-! Normal case where we need to partially track through
+! Normal case where we need to partially track through an element.
 
 if (present(orb)) then
   call twiss_and_track_partial (branch%ele(i-1), branch%ele(i), &

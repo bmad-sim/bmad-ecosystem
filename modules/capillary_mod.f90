@@ -51,7 +51,7 @@ type (photon_track_struct) photon
 
 real(rp) pz
 
-integer at_end
+integer status
 
 logical lost
 
@@ -69,12 +69,12 @@ photon%now%ix_section = 1
 ! Loop over all bounces
 
 lost = .true.
-at_end = 0
+status = not_lost$
 
 do
-  call capillary_track_photon_to_wall (photon, ele, at_end)
-  if (at_end == entrance_end$) return  ! Reflected backwards
-  if (at_end == exit_end$) exit      ! And done
+  call capillary_track_photon_to_wall (photon, ele, status)
+  if (status == entrance_end$ .or. status == lost$) return  ! Reflected backwards or lost
+  if (status == exit_end$) exit      ! And done
   call capillary_reflect_photon (photon, ele, lost)
   if (lost) return
 enddo
@@ -94,7 +94,7 @@ end subroutine track_a_capillary
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine capillary_track_photon_to_wall (photon, ele, at_end)
+! Subroutine capillary_track_photon_to_wall (photon, ele, status)
 !
 ! Routine to track through a capillary.
 !
@@ -104,10 +104,11 @@ end subroutine track_a_capillary
 !
 ! Output:
 !   photon -- Photon_track_struct: Output coordinates.
-!   at_end -- Integer: Set to entrance_end$, or exit_end$ if at an end.
+!   status -- Integer: Set to entrance_end$, exit_end$ if at an end, 
+!               or lost$ if absorbed.
 !-
 
-subroutine capillary_track_photon_to_wall (photon, ele, at_end)
+subroutine capillary_track_photon_to_wall (photon, ele, status)
 
 implicit none
 
@@ -118,11 +119,18 @@ type (wall3d_section_struct), pointer :: section
 real(rp) dr_max, ds_max, p_max, dlen
 real(rp), pointer :: vec(:)
 
-integer at_end
+integer status
 
 character(40) :: r_name = 'capillary_track_photon_to_wall'
 
-! 
+! Check if outside wall
+
+if (capillary_photon_d_radius (photon%now, ele) >= 0) then
+  status = lost$
+  return
+endif
+
+! propagate
 
 do
 
@@ -156,12 +164,12 @@ do
   endif
 
   if (vec(5) == 0) then
-    at_end = entrance_end$
+    status = entrance_end$
     return
   endif
 
   if (vec(5) == ele%s) then
-    at_end = exit_end$
+    status = exit_end$
     return
   endif
 
@@ -449,7 +457,7 @@ vec => p_orb%orb%vec
 
 call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix)
 if (ix == size(ele%wall3d%section)) ix = size(ele%wall3d%section) - 1
-if (vec(5) == ele%wall3d%section(ix)%s .and. vec(6) > 0 .and. ix /= 0) ix = ix - 1
+if (vec(5) == ele%wall3d%section(ix)%s .and. vec(6) > 0 .and. ix /= lbound(ele%wall3d%section, 1)) ix = ix - 1
 p_orb%ix_section = ix
 
 ! sec0 and sec1 are the cross-sections to either side of the photon.
