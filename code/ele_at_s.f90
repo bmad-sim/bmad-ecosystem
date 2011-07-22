@@ -68,7 +68,7 @@ do
 
   if (n3 == n1 + 1) then
     ix_ele = n3
-    return
+    exit
   endif
 
   n2 = (n1 + n3) / 2

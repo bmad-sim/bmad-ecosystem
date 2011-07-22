@@ -105,6 +105,8 @@ one = cmplx(1.0_rp, 0.0_rp)
 call multilayer_track (eps_1, eps_2, end_orb%e_field_x, end_orb%phase_x) ! pi polarization
 call multilayer_track (one, one, end_orb%e_field_y, end_orb%phase_y) ! sigma polarization
 
+!! s_len not being used !!!!!!!!!!!!!!!!!!!
+
 !-----------------------------------------------------------------------------------------------
 contains
 
@@ -287,7 +289,8 @@ temp_vec = temp_vec - direction * temp_vec(3)
 end_orb%vec(1) = temp_vec(1)
 end_orb%vec(3) = temp_vec(2)
 ! %vec(5) doesn't include phase change due to wave nature of radiation
-end_orb%vec(5) = temp_vec(3) + s_len
+end_orb%vec(5) = temp_vec(3) 
+if (curved_surface) end_orb%vec(5) = end_orb%vec(5) + s_len  ! IS this correct !!!!!!!!!!!!!1
 
 
 end subroutine track1_crystal
