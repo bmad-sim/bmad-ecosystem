@@ -624,14 +624,14 @@ do k = 1, size(graph%curve)
   ! Calculate where the symbols are to be drawn on the graph.
 
   data_source = curve%data_source
-  if (plot%x_axis_type == "lat" .or. plot%x_axis_type == "var") data_source = "variation"
+  if (plot%x_axis_type == 'lat' .or. plot%x_axis_type == 'var') data_source = 'plot_x_axis_var'
 
   select case (data_source)
 
   !----------------------------------------------------------------------------
   ! Case: x-axis uses a variable.
 
-  case ('variation')
+  case ('plot_x_axis_var')
 
     call re_allocate (curve%ix_symb, s%plot_page%n_curve_pts)
     call re_allocate (curve%x_symb, s%plot_page%n_curve_pts)

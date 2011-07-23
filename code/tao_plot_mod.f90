@@ -145,6 +145,15 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine tao_plot_wave (plot, graph)
+!
+! Routine to draw one graph for the wave analysis plot.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
 
 subroutine tao_plot_wave (plot, graph)
 
@@ -154,9 +163,11 @@ type (qp_axis_struct), pointer :: y
 
 real(rp) y0, y1
 
-!
+! Draw the data
 
 call tao_plot_data (plot, graph)
+
+! Now draw the rectangles of the fit regions.
 
 y => graph%y
 y0 = y%min + 0.1 * (y%max - y%min)
@@ -175,6 +186,16 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine tao_plot_key_table (plot, graph)
+!
+! Routine to draw a key table graph.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
+
 
 subroutine tao_plot_key_table (plot, graph)
 
@@ -235,6 +256,15 @@ end subroutine tao_plot_key_table
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine tao_plot_floor_plan (plot, graph)
+!
+! Routine to draw a floor plan graph.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
 
 subroutine tao_plot_floor_plan (plot, graph)
 
@@ -387,12 +417,18 @@ end subroutine
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ix_shape, is_data)
+!
+! Routine to draw one lattice element or one datum location for the floor plan graph. 
+!
 ! Input:
-!   plot
-!   graph
-!   lat
-!   ele
-!   ix_shape
+!   plot     -- Tao_plot_struct: Plot containing the graph.
+!   graph    -- Tao_graph_struct: Graph to plot.
+!   lat      -- lat_struct: Lattice containing the element.
+!   ele      -- ele_struct: Element to draw.
+!   name_in  -- Character(*): If not blank then name to print beside the element.
+!   ix_shape -- Integer: Index in tao_com%ele_shape_floor_plan(:) array of shape to draw.
+!   is_data  -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
 !-
 
 recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, lat, ele, name_in, ix_shape, is_data)
@@ -724,6 +760,15 @@ end subroutine tao_draw_ele_for_floor_plan
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine tao_plot_lat_layout (plot, graph)
+!
+! Routine to draw a lattice layout graph.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
 
 subroutine tao_plot_lat_layout (plot, graph)
 
@@ -1076,6 +1121,15 @@ end subroutine tao_plot_lat_layout
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine tao_plot_data (plot, graph)
+!
+! Routine to draw a graph containing data. This covers everything but lat_layout, 
+! key_table, wave, and floor_plan graphs.
+!
+! Input:
+!   plot  -- Tao_plot_struct: Plot containing the graph.
+!   graph -- Tao_graph_struct: Graph to plot.
+!-
 
 subroutine tao_plot_data (plot, graph)
 
@@ -1110,10 +1164,13 @@ call qp_draw_axes
 ! Draw the default x-axis label if there is none. 
 
 if (graph%x%draw_label .and. graph%x%label == '') then
-  call qp_to_inch_rel (1.0_rp, 0.0_rp, x1, y, '%GRAPH')
-  x = x1 * (graph%x%major_div - 0.5) / graph%x%major_div
-  y = -graph%x%number_offset
-  call qp_draw_text (plot%x_axis_type, x, y, 'INCH', justify = 'CT')
+  select case (plot%x_axis_type) 
+  case ('index', 'ele_index', 's')
+    call qp_to_inch_rel (1.0_rp, 0.0_rp, x1, y, '%GRAPH')
+    x = x1 * (graph%x%major_div - 0.5) / graph%x%major_div
+    y = -graph%x%number_offset
+    call qp_draw_text (plot%x_axis_type, x, y, 'INCH', justify = 'CT')
+  end select
 endif
 
 !

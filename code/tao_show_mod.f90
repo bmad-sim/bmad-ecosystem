@@ -1135,6 +1135,7 @@ case ('graph')
 
     nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
     nl=nl+1; write (lines(nl), rmt) 'symbol_size_scale     = ', g%symbol_size_scale
+    nl=nl+1; write (lines(nl), amt) 'x%label               = ', g%x%label
     nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
     nl=nl+1; write (lines(nl), imt) 'x%major_div           = ', g%x%major_div
@@ -1144,6 +1145,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers        = ', g%x%draw_numbers
 
     nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
+    nl=nl+1; write (lines(nl), amt) 'y%label               = ', g%y%label
     nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
     nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
     nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
@@ -1152,6 +1154,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
     nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
 
+    nl=nl+1; write (lines(nl), amt) 'y2%label              = ', g%y2%label
     nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
     nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
     nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
@@ -1941,6 +1944,7 @@ case ('plot')
     endif
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
     nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
+    nl=nl+1; write (lines(nl), amt) 'x%label              = ', p%x%label
     nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
     nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
