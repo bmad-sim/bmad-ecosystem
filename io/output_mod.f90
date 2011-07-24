@@ -26,6 +26,7 @@ integer, parameter :: s_abort$   = 9  ! A severe error has occurred and
 type output_mod_com_struct
   logical :: do_print(-1:9) = .true.
   integer :: file_unit(-1:9) = 0
+  logical :: to_routine(-1:9) = .false.
 #if defined (CESR_VMS)
   integer :: indent_num(-1:9) = (/ 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 /)
 #else
@@ -36,7 +37,7 @@ end type
 type (output_mod_com_struct), save, private :: output_com
 
 private output_line4, output_int, output_real, output_logical
-private header_io, find_format, output_lines, insert_numbers
+private header_io, find_format, output_lines, insert_numbers, out_io_line_out
 
 !+
 ! Subroutine out_io
@@ -64,8 +65,8 @@ private header_io, find_format, output_lines, insert_numbers
 ! Anything that does not look like a valid format construct is ignored.
 ! Thus a literal "\" is allowed if it doesn't look like a valid format.
 !
-! To direct output to a file use the routine:
-!   output_direct (do_print, file_unit)
+! Output can be directed to the terminal and/or a file and/or a routine.
+! The routine do this is: output_direct
 !
 ! Modules needed:
 !   use output_mod
@@ -113,45 +114,56 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine output_direct (file_unit, do_print, min_level, max_level)
+! Subroutine output_direct (file_unit, do_print, to_routine, min_level, max_level)
 !
 ! Subroutine to set where the output goes when out_io is called.
 ! Output may be sent to the terminal screen, written to a file, or both.
-! Once set, the settings remain until the next call to output_direct.
-! 
+!
 ! Settings can be made on a message status level by level basis.
 ! "getf out_io" will show a list of the message status levels.
+!
+! Once set for a given status level, the settings remain until the next call to 
+! output_direct that cover the same status level.
+! 
+! The output can be sent to a routine for processing. This is useful, for example,
+! when there is a GUI so that the output can be displayed in a window.
+! There are actually three routines involved here:
+!   out_io_called(level, routine_name)  ! Called at the start of a message.
+!   out_io_line(line)                   ! Called for each line of a message.
+!   out_io_end()                        ! Called at end of a message.
 !
 ! Modules needed:
 !   use output_mod
 !
 ! Input:
-!   file_unit -- Integer, optional: Unit number for writing to a file. 
-!                  0 => No writing (initial setting).
-!   do_print  -- Logical, optional: If True (initial setting) then 
-!                  print output at the TTY.
-!   min_level -- Integer, optional: Minimum message status level to apply to. 
-!                  Default is s_blank$
-!   max_level -- Integer, optional: Maximum message status level to apply to. 
-!                  Default is s_abort$
+!   file_unit   -- Integer, optional: Unit number for writing to a file. 
+!                    0 => No writing (initial default setting).
+!   do_print    -- Logical, optional: If True (initial default setting) then 
+!                    print output at the TTY.
+!   to_routine -- Logical, optional: Send info to designated function.
+!   min_level   -- Integer, optional: Minimum message status level to apply to. 
+!                    Default is s_blank$
+!   max_level   -- Integer, optional: Maximum message status level to apply to. 
+!                    Default is s_abort$
 !-
 
-subroutine output_direct (file_unit, do_print, min_level, max_level)
+subroutine output_direct (file_unit, do_print, to_routine, min_level, max_level)
 
 implicit none
 
-logical, optional :: do_print
+logical, optional :: do_print, to_routine
 integer, optional :: file_unit, min_level, max_level
 integer i
 
 !
 
 do i = integer_option(s_blank$, min_level), integer_option(s_abort$, max_level)
-  if (present(do_print)) output_com%do_print(i) = do_print
-  if (present(file_unit)) output_com%file_unit(i) = file_unit
+  if (present(to_routine)) output_com%to_routine(i) = to_routine
+  if (present(do_print))    output_com%do_print(i)    = do_print
+  if (present(file_unit))   output_com%file_unit(i)   = file_unit
 enddo
 
-end subroutine
+end subroutine output_direct
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -160,12 +172,13 @@ end subroutine
 ! Subroutine out_io_line_out (line, level, indent)
 ! 
 ! Subroutine to print and/or write a line to a file.
+! This is an internal routine not meant for general use
 !
 ! Input:
-!   line       -- Character(*): Line to be outputted.
-!   level      -- Integer: Message level.
-!   indent     -- Logical, optional: If True then indent the line. Default is True.
-!                   The number of spaces is set by the output_direct routine.
+!   line        -- Character(*): Line to be outputted.
+!   level       -- Integer: Message level.
+!   indent      -- Logical, optional: If True then indent the line. Default is True.
+!                    The number of spaces is set by the output_direct routine.
 !-
 
 subroutine out_io_line_out (line, level, indent)
@@ -175,26 +188,28 @@ implicit none
 character(*) line
 integer level, ix
 logical, optional :: indent
-character(80) :: blank = ''
+character(16) fmt_p, fmt_w
+character(40) :: blank = ''
+character(200) line_out
 
-!
+! compose string
 
-if (logic_option(.true., indent)) then
-  ix = output_com%indent_num(level)
-  if (output_com%do_print(level)) &
-            write (*, '(2a)') blank(1:ix), trim(line)
-  if (output_com%file_unit(level) /= 0) &
-            write (output_com%file_unit(level), '(2a)') blank(1:ix), trim(line)
-else
+line_out = line
+if (logic_option(.true., indent)) line_out = blank(1:output_com%indent_num(level)) // trim(line_out)
+
+! output
+
+if (output_com%file_unit(level) /= 0) write (output_com%file_unit(level), '(a)') trim(line_out)
+
+if (output_com%to_routine(level)) call out_io_line(trim(line_out) // char(0))
+
 #if defined (CESR_VMS)
-  if (output_com%do_print(level)) write (*, '(1x, a)') trim(line)
+  if (output_com%do_print(level)) write (*, '(1x, a)') trim(line_out)
 #else
-  if (output_com%do_print(level)) write (*, '(a)') trim(line)
+  if (output_com%do_print(level)) write (*, '(a)') trim(line_out)
 #endif
-  if (output_com%file_unit(level) /= 0) write (output_com%file_unit(level), '(a)') trim(line)
-endif
 
-end subroutine
+end subroutine out_io_line_out
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -221,7 +236,7 @@ logical found
 
 !
 
-if (global_rank /= 0) return
+if (global_rank /= 0) return  ! For running under MPI
 call header_io (level, routine_name)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -233,7 +248,9 @@ else
   call out_io_line_out (line, level)
 endif
 
-end subroutine
+if (output_com%to_routine(level)) call out_io_end()
+
+end subroutine output_real
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -260,7 +277,7 @@ logical found
 
 !
 
-if (global_rank /= 0) return
+if (global_rank /= 0) return  ! For running under MPI
 call header_io (level, routine_name)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -272,8 +289,9 @@ else
   call out_io_line_out(line, level)
 endif
 
+if (output_com%to_routine(level)) call out_io_end()
 
-end subroutine
+end subroutine output_int
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -300,7 +318,7 @@ logical found
 
 !
 
-if (global_rank /= 0) return
+if (global_rank /= 0) return  ! For running under MPI
 call header_io (level, routine_name)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -312,7 +330,9 @@ else
   call out_io_line_out(line, level)
 endif
 
-end subroutine
+if (output_com%to_routine(level)) call out_io_end()
+
+end subroutine output_logical
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -342,18 +362,17 @@ integer level, nr, ni, nl
 
 !
 
-if (global_rank /= 0) return
+if (global_rank /= 0) return  ! For running under MPI
 call header_io (level, routine_name)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
 
 call insert_numbers (level, fmt, nr, ni, nl, line1, r_array, i_array, l_array)
-if (.not. present(line2)) return
-call insert_numbers (level, fmt, nr, ni, nl, line2, r_array, i_array, l_array)
-if (.not. present(line3)) return
-call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array)
-if (.not. present(line4)) return
-call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array)
+if (present(line2)) call insert_numbers (level, fmt, nr, ni, nl, line2, r_array, i_array, l_array)
+if (present(line3)) call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array)
+if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array)
+
+if (output_com%to_routine(level)) call out_io_end()
 
 end subroutine
 
@@ -382,7 +401,7 @@ integer level, i, nr, ni, nl
 
 !
 
-if (global_rank /= 0) return
+if (global_rank /= 0) return  ! For running under MPI
 call header_io (level, routine_name)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
@@ -391,8 +410,9 @@ do i = 1, size(lines)
   call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array)
 enddo
 
-end subroutine
+if (output_com%to_routine(level)) call out_io_end()
 
+end subroutine output_lines
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -486,7 +506,7 @@ endif
 
 call out_io_line_out (this_line, level)
 
-end subroutine
+end subroutine insert_numbers
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -500,7 +520,7 @@ end subroutine
 ! Input:
 !   line -- Character(*): Input string containing the format sub-string.
 !   ix0  -- Integer: Index of line to start from. 
-!             That is, only line(ix0+1: is searched for a format specifer.
+!             That is, only line(ix0+1:) is searched for a format specifer.
 !
 ! Output:
 !   n_prefix -- Integer: Format repeat count
@@ -575,7 +595,7 @@ main_loop: do
 
 enddo main_loop
 
-end subroutine
+end subroutine find_format
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -585,7 +605,6 @@ end subroutine
 !
 ! Internal routine for output_line4, etc.
 !-
-
 
 Subroutine header_io (level, routine_name)
 
@@ -629,6 +648,8 @@ case (s_abort$)
 
 end select
 
-end subroutine
+if (output_com%to_routine(level)) call out_io_called(level, routine_name)
+
+end subroutine header_io
 
 end module
