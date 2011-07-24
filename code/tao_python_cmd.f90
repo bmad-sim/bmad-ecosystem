@@ -37,12 +37,12 @@ call string_trim(line(ix+1:), line, ix)
 
 call match_word (cmd, cmd_names, ix, matched_name = command)
 if (ix == 0) then
-  print *, '***PYTHON WHAT? WORD NOT RECOGNIZED: ' // command
+  call out_io (s_error$, r_name, '***PYTHON WHAT? WORD NOT RECOGNIZED: ' // command)
   return
 endif
 
 if (ix < 0) then
-  print *, '***PYTHON COMMAND? AMBIGUOUS: ' // command
+  call out_io (s_error$, r_name, '***PYTHON COMMAND? AMBIGUOUS: ' // command)
   return
 endif
 
@@ -87,7 +87,7 @@ case ('template_plots')
 
 case default
 
-  print *, "***INTERNAL ERROR, SHOULDN'T BE HERE!"
+  call out_io (s_error$, r_name, "***INTERNAL ERROR, SHOULDN'T BE HERE!")
 
 end select
 

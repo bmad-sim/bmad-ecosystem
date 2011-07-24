@@ -275,7 +275,7 @@ if (allocated(tao_com%ele_shape_lat_layout)) then
     select case (tao_com%ele_shape_lat_layout(i)%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
     case default
-      print *, 'ERROR: UNKNOWN ELE_SHAPE: ', tao_com%ele_shape_lat_layout(i)%shape
+      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%ele_shape_lat_layout(i)%shape)
       call err_exit
     end select
   enddo
@@ -286,7 +286,7 @@ if (allocated(tao_com%ele_shape_floor_plan)) then
     select case (tao_com%ele_shape_floor_plan(i)%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X')
     case default
-      print *, 'ERROR: UNKNOWN ELE_SHAPE: ', tao_com%ele_shape_floor_plan(i)%shape
+      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // tao_com%ele_shape_floor_plan(i)%shape)
       call err_exit
     end select
   enddo

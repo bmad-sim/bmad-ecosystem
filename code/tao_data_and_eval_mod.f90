@@ -2054,7 +2054,7 @@ case ('unstable.')
 
 case ('wall')
   if (data_source == 'beam') return
-  print *, 'NOT YET IMPLEMENTED...'
+  call out_io (s_error$, r_name, 'WALL NOT YET IMPLEMENTED...')
   return
 
 !-----------
