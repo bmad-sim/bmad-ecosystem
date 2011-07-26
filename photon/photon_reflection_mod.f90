@@ -380,6 +380,8 @@ integer i, j, ie, ix, n_table, n_energy, ixa, ixa0, ixa1, n_ang, n_a
 
 logical ok
 
+character(20), parameter :: r_name = 'photon_reflectivity'
+
 ! Init
 
 if (photon_reflect_table_init_needed) call photon_reflection_init
@@ -392,7 +394,7 @@ if (angle < 1d-10) then
 endif
 
 if (angle > 1.000001 * pi/2 .or. angle < 0) then
-  print *, 'PHOTON_REFLECTIVITY: ANGLE OUT OF RANGE!', angle
+  call out_io (s_fatal$, r_name, 'PHOTON_REFLECTIVITY: ANGLE OUT OF RANGE! \f12.7\ ', angle)
   call err_exit
 endif
 
@@ -468,7 +470,7 @@ call spline_evaluate (ang_spline(1:n_a), angle_deg, ok, reflect_prob)
 if (.not. ok) call err_exit
 
 !if (reflect_prob > prt%reflect_prob(ixa) .or. reflect_prob < prt%reflect_prob(min(n_ang, ixa+1))) then
-!  print *, 'PHOTON_REFECTIVITY: BAD SPLINE FIT!'
+!  call out_io (s_fatal$, r_name, 'PHOTON_REFECTIVITY: BAD SPLINE FIT!')
 !  call err_exit
 !endif
 

@@ -806,6 +806,7 @@ attrib_array(crystal$, l_x$)                         = reserved_name$
 attrib_array(crystal$, l_y$)                         = reserved_name$
 attrib_array(crystal$, l_z$)                         = reserved_name$
 attrib_array(crystal$, ref_polarization$)            = 'REF_POLARIZATION'
+attrib_array(crystal$, ref_cap_gamma$)               = 'REF_CAP_GAMMA'
 
 attrib_array(capillary$, l$)                         = 'L'
 attrib_array(capillary$, s_spline$)                  = 'S_SPLINE'

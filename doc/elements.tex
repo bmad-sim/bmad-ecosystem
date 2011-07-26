@@ -816,7 +816,7 @@ details. Example:
 The geometry shown is appropriate for zero
 \vn{tilt} (reference trajectory in the $x$-$z$ plane). The angle
 $\alpha_H$ (\vn{alpha_angle}) is the angle of the $\bfH$ vector with
-respect to the surface normal $\bfhat n$. For $psi$ (\vn{psi_angle})
+respect to the surface normal $\bfhat n$. For $\psi$ (\vn{psi_angle})
 zero, the incoming reference orbit, the outgoing reference orbit,
 $\bfhat n$, and $\bfH$ are all coplanar. The element reference coordinates
 where $\bfhat x$ is parallel to the surface normal establishes the coordinates
@@ -880,7 +880,8 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
   fh_im            ! Imaginary part of fh
   graze_angle_in   ! Angle between incoming beam and mirror surface.
   graze_angle_out  ! Angle between incoming beam and mirror surface.
-  ref_wave_length  ! Reference wavelength
+  ref_wavelength   ! Reference wavelength
+  ref_cap_gamma    ! \(\Gamma\) at the reference wavelength.
   tilt_corr        ! Tilt correction due to a finite psi_angle.
   v_unitcell       ! Unit cell volume. 
 \end{example}
@@ -1921,7 +1922,7 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \mad. The energy kick felt by a particle is 
 \begin{example}
   dE = -e_charge * voltage * sin(twopi * (phi(z) - phi_ref))
-  \lavel{eev2p}
+  \label{eev2p}
 \end{example}
 \index{multipass}
 where

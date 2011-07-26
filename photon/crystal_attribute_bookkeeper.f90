@@ -42,6 +42,7 @@ if (ele%value(bragg_angle$) == 0) return
 
 lambda = ele%value(ref_wavelength$)
 gamma = lambda**2 * r_e / (pi * ele%value(v_unitcell$))
+ele%value(ref_cap_gamma$) = gamma
 delta1 = 1 / sqrt( 1 - gamma * ele%value(f0_re$) )
 lambda_in = lambda * delta1
 d = ele%value(d_spacing$)
@@ -104,7 +105,7 @@ endif
 
 ! total graze angle
 
-if (ele%value(follow_diffracted_beam$) == 0) then
+if (ele%value(follow_diffracted_beam$) /= 0) then  ! If true
   ang_tot = atan2(sqrt(ent_kh_x_norm**2 + ent_kh_y_norm**2), ent_kh_z_norm)
   ele%value(graze_angle_out$) = ang_tot - graze_angle_in
 else
