@@ -23,6 +23,10 @@ contains
 ! Modules needed:
 !   use input_mod
 !
+! System Libraries that need to be linked to:
+!   SYS_LIBS := readline curses
+! [The list of libraries to link to are generally in your Makefile.]
+!
 ! Input:
 !   wait      -- Logical: If True then routine will wait until a keystroke
 !                  has occured. If False and no keystroke is in the buffer then
@@ -81,6 +85,10 @@ end subroutine
 !
 ! Modules needed:
 !   use input_mod
+!
+! System Libraries that need to be linked to:
+!   SYS_LIBS := readline curses
+! [The list of libraries to link to are generally in your Makefile.]
 !
 ! Input:
 !   wait        -- Logical: If True then routine will wait until a keystroke
@@ -141,7 +149,7 @@ end subroutine
 !   use input_mod
 !
 ! System Libraries that need to be linked to:
-!   readline curses
+!   SYS_LIBS := readline curses
 ! [The list of libraries to link to are generally in your Makefile.]
 !
 ! Input:
