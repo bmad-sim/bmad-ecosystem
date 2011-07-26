@@ -165,9 +165,13 @@ else
     ix_tot = corresponding_tot_attribute_index (ele, i)
     if (ix_tot > 0) then
       if (ele%value(i) == 0 .and. ele%value(ix_tot) == 0 .and. .not. type_zero) cycle
-      nl=nl+1; write (li(nl), '(i6, 3x, a, a, es15.7, a, i7, 3x, a16, a, es15.7)') &
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, i7, 3x, a16, a, es15.7)') &
                                   i, a_name(1:n_att), '=', ele%value(i), ',', &
                                   ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
+    elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
+      if (ele%value(i) == 0) cycle
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
+                   i, a_name(1:n_att), '=', ele%value(i), '[', ele%value(i) * 180 / pi, ' deg]'
     else
       attrib_type = attribute_type(a_name)
       if (is_a_tot_attribute(ele, i)) cycle

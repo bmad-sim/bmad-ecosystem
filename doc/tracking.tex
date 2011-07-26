@@ -41,8 +41,8 @@ longitudinal position in the lattice. The definition of the
   type coord_struct
     real(rp) vec(6)       ! (x, px, y, py, z, pz)
     complex(rp) spin(2)   ! particle spin in spinor notation
-    real(rp) e_field_x    ! Photon field intensity, x-axis component
-    real(rp) e_field_y    ! Photon field intensity, y-axis component
+    real(rp) e_field_x    ! Photon field/sqrt(area), x-axis component
+    real(rp) e_field_y    ! Photon field/sqrt(area), y-axis component
     real(rp) phase_x      ! Photon phase, x-axis component
     real(rp) phase_y      ! Photon phase, y-axis component
     real(rp) s            ! Longitudinal position 
@@ -51,7 +51,14 @@ longitudinal position in the lattice. The definition of the
 \end{example}
 The \vn{%vec(6)} array defines the phase space coordinants
 (\sref{s:phase.space}) and spin (\sref{s:spin.dyn}). The \vn{%s}
-component gives the s-position of the particle and \vn{%t} gives the time.
+component gives the absolute s-position of the particle and \vn{%t}
+gives the absolute time.
+
+The \vn{%e_field_x} and \vn{%e_field_y} components are for photon
+tracking and are in units of field/sqrt(cross-section-area). That is,
+the square of these units is an intensity. It is up to individual
+programs to define an overall scaling factor for the intensity if
+desired.
 
 When associated with a lattice element, a \vn{coord_struct} variable
 gives a particle's position at the exit end of the element.  To get an

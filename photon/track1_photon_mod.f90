@@ -236,7 +236,7 @@ else
 endif
 
 c_param%b_eff             = gamma_0 / gamma_h
-c_param%dtheta_sin_2theta = dot_product(h_norm + 2 * k0_outside_norm, h_norm) / 2
+c_param%dtheta_sin_2theta = -dot_product(h_norm + 2 * k0_outside_norm, h_norm) / 2
 c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
 c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
 
@@ -318,16 +318,18 @@ subroutine e_field_calc (cp, ele, p_factor, e_field, e_phase)
 type (crystal_param_struct) cp
 type (ele_struct) ele
 
-real(rp) p_factor, e_field, e_phase
+real(rp) p_factor, e_field, e_phase, sqrt_b
 
 complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
 
 ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
 
-eta = (-cp%b_eff * cp%dtheta_sin_2theta + cp%f0 * cp%cap_gamma * (1.0_rp - cp%b_eff)/2) / &
-          (cp%cap_gamma * abs(p_factor) * sqrt(abs(cp%b_eff)) * cp%fh) 
+sqrt_b = sqrt(abs(cp%b_eff))
+
+eta = (cp%b_eff * cp%dtheta_sin_2theta + cp%f0 * cp%cap_gamma * (1.0_rp - cp%b_eff)/2) / &
+                                              (cp%cap_gamma * abs(p_factor) * sqrt_b * cp%fh) 
 eta1 = sqrt(eta**2 + sign(1.0_rp, cp%b_eff))
-f_cmp = abs(p_factor) * sqrt(abs(cp%b_eff)) * cp%cap_gamma * cp%fh / 2
+f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * cp%fh / 2
 
 xi_0k_b = f_cmp * (eta - eta1)
 xi_hk_b = f_cmp / (abs(cp%b_eff) * (eta - eta1))
@@ -344,7 +346,9 @@ if (ele%value(b_param$) < 0) then
     e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%fh)
   endif
 
-  e_field = e_field * abs(e_rel)
+  ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
+
+  e_field = e_field * abs(e_rel) / sqrt_b
   e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
 
 !---------------

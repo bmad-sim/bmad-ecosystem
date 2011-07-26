@@ -504,7 +504,7 @@ integer, parameter :: y_pitch_tot$=41
 integer, parameter :: x_offset_tot$=42
 integer, parameter :: y_offset_tot$=43
 integer, parameter :: s_offset_tot$=44
-integer, parameter :: n_ref_pass$=45  ! Assumed unique. Do not overload.
+integer, parameter :: n_ref_pass$=45, ref_cap_gamma$=45  
 integer, parameter :: p0c$=46         ! Assumed unique. Do not overload.
 integer, parameter :: e_tot$=47       ! Assumed unique. Do not overload.
 integer, parameter :: thickness$ = 48, integrator_order$ = 48   ! For Etiennes' PTC: 2, 4, or 6.

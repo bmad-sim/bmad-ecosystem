@@ -67,7 +67,7 @@ character(*), optional :: use_line
 
 character(1) delim
 character(40) word_2, name
-character(16) :: r_name = 'bmad_parser'
+character(16), parameter :: r_name = 'bmad_parser'
 character(40) this_name, word_1
 character(200) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save
@@ -324,17 +324,18 @@ parsing_loop: do
       if (delim == ':' .and. bp_com%parse_line(1:1) == '=') &
                     bp_com%parse_line = bp_com%parse_line(2:)  ! trim off '='
       call get_next_word (lat%lattice, ix_word, ',', delim, delim_found, .true.)
-      do i = 1, 10
-        print *, '*********************************************************'
-      enddo
-      print *, 'BMAD_PARSER NOTE:'
-      print *, '    DEPRECATED USE OF SYNTAX: "LATTICE = ...".'
-      print *, '    USE "PARAMETER[LATTICE] = ..." SYNTAX INSTEAD.'
-      do i = 1, 10
-        print *, '*********************************************************'
-      enddo
+      call out_io (s_error$, r_name, [ &
+        '*********************************************************    ', &
+        '*********************************************************    ', &
+        '*********************************************************    ', &
+        'BMAD_PARSER NOTE:                                            ', &
+        '    DEPRECATED USE OF SYNTAX: "LATTICE = ...".               ', &
+        '    USE "PARAMETER[LATTICE] = ..." SYNTAX INSTEAD.           ', &
+        '*********************************************************    ', &
+        '*********************************************************    ', &
+        '*********************************************************    '])
     endif
-    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+    call out_io (s_error$, r_name, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!')
     bp_com%write_digested = .false.
     cycle parsing_loop
   endif
@@ -527,7 +528,7 @@ parsing_loop: do
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
     iseq_tot = iseq_tot + 1
     if (iseq_tot > size(sequence)-1) then
-      print *, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY SIZE!'
+      call out_io (s_fatal$, r_name, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY SIZE!')
       call err_exit
     endif
 
@@ -811,31 +812,33 @@ enddo
 do i = 1, bp_com%ivar_tot
 
   if (bp_com%var(i)%name == 'LATTICE_TYPE') then
-    do j = 1, 10
-      print *, '*********************************************************'
-    enddo
-    print *, 'BMAD_PARSER NOTE:'
-    print *, '   DEPRECATED USE OF SYNTAX: "LATTICE_TYPE = ...".'
-    print *, '   USE "PARAMETER[LATTICE_TYPE] = ..." SYNTAX INSTEAD.'
-    do j = 1, 10
-      print *, '*********************************************************'
-    enddo
-    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+    call out_io (s_error$, r_name, [ &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      'BMAD_PARSER NOTE:                                            ', &
+      '   DEPRECATED USE OF SYNTAX: "LATTICE_TYPE = ...".           ', &
+      '   USE "PARAMETER[LATTICE_TYPE] = ..." SYNTAX INSTEAD.       ', &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!               '])
     bp_com%write_digested = .false.
     lat%param%lattice_type = nint(bp_com%var(i)%value)
   endif
 
   if (bp_com%var(i)%name == 'TAYLOR_ORDER') then
-    do j = 1, 10
-      print *, '*********************************************************'
-    enddo
-    print *, 'BMAD_PARSER NOTE:'
-    print *, '   DEPRECATED USE OF SYNTAX: "TAYLOR_ORDER = ...".'
-    print *, '   USE "PARAMETER[TAYLOR_ORDER] = ..." SYNTAX INSTEAD.'
-    do j = 1, 10
-      print *, '*********************************************************'
-    enddo
-    print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
+    call out_io (s_error$, r_name, [ &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      'BMAD_PARSER NOTE:                                            ', &
+      '   DEPRECATED USE OF SYNTAX: "TAYLOR_ORDER = ...".           ', &
+      '   USE "PARAMETER[TAYLOR_ORDER] = ..." SYNTAX INSTEAD.       ', &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      '*********************************************************    ', &
+      'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!               '])
     bp_com%write_digested = .false.
     lat%input_taylor_order = nint(bp_com%var(i)%value)
   endif
@@ -850,8 +853,8 @@ if (ix > 0) then  ! lattice_type has been set.
 else              ! else use default
   lat%param%lattice_type = circular_lattice$      ! default 
   if (any(in_lat%ele(:)%key == lcavity$)) then    !   except...
-    print *, 'BMAD_PARSER NOTE: THIS LATTICE HAS A LCAVITY.'
-    print *, '     SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.'
+    call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
+                                  'SETTING THE LATTICE_TYPE TO LINEAR_LATTICE.')
     lat%param%lattice_type = linear_lattice$
   endif
 endif

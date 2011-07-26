@@ -251,7 +251,7 @@ not rotate the output laboratory coordinates.  There is the further
 complication in that \vn{tilt_err} is a rotation about the {\em
 entrance} laboratory coordinates. The first step is to express
 \vn{tilt_err} with respect to the exit coordinates. This is done with
-the help of the $\bfS$ matrix of \Eq{r00ls} with $\alpha$ given by
+the help of the $\bfS$ matrix of \Eq{ltl} with $\alpha$ given by
 \Eq{agg}. The effect of the \vn{tilt_err} can be modeled as a rotation
 vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
 along the $z$-axis
@@ -351,7 +351,7 @@ is the actual tracking of the photon and this is covered in
 \sref{ss:crystal.track}.
 
 %-------------------------------------------------------------------------
-\subsection{Calculation of $\theta_{g,in}$ and $\theta_{g,out}$}
+\subsection{Calculation of Entrance and Exit Graze Angles}
 \label{ss:crystal.ref}
 
 Fig.~\ref{f:crystal.diffraction} shows the geometry of the
@@ -586,7 +586,7 @@ the transformation $\Bf\Sigma_2$ from element entrance coordinates to element bo
 coordinates is not affected by a finite $\psi_H$ and so \Eq{mt0t010}
 is unmodified. The $\bfk_H$ vector, expressed in laboratory entrance
 coordinates, is $\Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H$ where the
-components of $\bfk_H$ are given by \Eqs{k1dapb} \eq{k1dapl} and \eq{k1lkk}. To
+components of $\bfk_H$ are given by \Eq{k1dapb} or Eq\eq{k1dapl}. To
 satisfy \Eq{lrca1}, this vector must have zero $y$ component
 \Begineq
   \left( \Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H \right) \cdot
@@ -682,9 +682,9 @@ where $q_t$ is determined by using \Eqs{k1lst} and \eq{h1daa} in \Eq{kk1l1}
 \end{align}
 and 
 \begin{align}
-  k_{H,x} &= k_{0,x} + H_x \nonumber
+  k_{H,x} &= k_{0,x} + H_x \nonumber \CRNO
   k_{H,y} &= k_{0,y} + H_y \qquad\qquad \mbox{[Laue]} \\
-  k_{H,z} &= \sqrt{\lambda^2 - k_{H,x}^2 - k_{H,y}^2} \CRNO
+  k_{H,z} &= \sqrt{\lambda^2 - k_{H,x}^2 - k_{H,y}^2} \nonumber
 \end{align}
 
 To compute the field amplitude of the outgoing photon, the equation to
