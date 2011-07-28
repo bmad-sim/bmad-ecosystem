@@ -7,6 +7,7 @@ print F_OUT "namespace Bmad {\n";
 
 &searchit ("../modules/bmad_struct.f90");
 &searchit ("../modules/basic_bmad_mod.f90");
+&searchit ("../../sim_utils/io/output_mod.f90");
 
 print F_OUT "}\n\n";
 print F_OUT "#define BMAD_PARAMETERS\n";
