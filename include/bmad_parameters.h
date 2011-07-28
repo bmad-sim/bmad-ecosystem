@@ -159,7 +159,6 @@ namespace Bmad {
   const int PHOTON     =  0;
   const int ELECTRON   = -1;
   const int ANTIPROTON = -2;
-  const int CHARGE_OF(-2:2) = [-1, -1, 0, 1, 1];
   const int LINEAR_LATTICE = 10;
   const int CIRCULAR_LATTICE = 12;
   const int FREE = 1, SUPER_SLAVE = 2, OVERLAY_SLAVE = 3;

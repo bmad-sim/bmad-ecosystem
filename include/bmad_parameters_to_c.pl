@@ -22,21 +22,21 @@ sub searchit {
 my($file_in) = @_;
 open (F_IN, $file_in) || die ("Cannot Open File: $file_in\n");
 
-$params_here = 0;
+$params_here = 0;    # Flag indicates if fortran line is being continued.
 
 
 while (<F_IN>) {
   chomp;
 
-  if (/\!/) {s/\!\Q$'\E//;}
-  if (!/integer, *parameter/ && !$params_here) {next;}
-  if (m@\(/@) {next;}
+  if (/\!/) {s/\!\Q$'\E//;}                            #   '
+  if (!/integer, *parameter/ && !$params_here) {next;} # Skip if not continued and not a param line.
+  if (/\[/ || m@\(/@) {next;}                          # Skip parameter arrays
 
   $_ = uc;  # upper case
   s/INTEGER, *PARAMETER *::/  const int/;
   s/\$//g;
 
-  if (/\&/) {
+  if (/\&/) {      # Check for continuation character.
     s/\&//;
     $params_here = 1;
     s/\s*$/\n/;
