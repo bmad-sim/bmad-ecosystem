@@ -154,8 +154,8 @@ subroutine output_direct (file_unit, do_print, to_routine, min_level, max_level)
 
 implicit none
 
-logical, optional :: do_print, to_routine
-integer, optional :: file_unit, min_level, max_level
+logical, optional :: do_print
+integer, optional :: file_unit, to_routine, min_level, max_level
 integer i
 
 !
