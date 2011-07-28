@@ -26,7 +26,7 @@ integer, parameter :: s_abort$   = 9  ! A severe error has occurred and
 type output_mod_com_struct
   logical :: do_print(-1:9) = .true.
   integer :: file_unit(-1:9) = 0
-  logical :: to_routine(-1:9) = .false.
+  integer :: to_routine(-1:9) = 0
 #if defined (CESR_VMS)
   integer :: indent_num(-1:9) = (/ 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 /)
 #else
@@ -140,7 +140,10 @@ contains
 !                    0 => No writing (initial default setting).
 !   do_print    -- Logical, optional: If True (initial default setting) then 
 !                    print output at the TTY.
-!   to_routine -- Logical, optional: Send info to out_io_called/line/end.
+!   to_routine -- Integer, optional: Send info to out_io_called/line/end.
+!                     0 => Do not send. [Initial default setting.]
+!                     1 => Do send.
+!                    -1 => Send with char(0) string ending (For sending to C routines.)
 !   min_level   -- Integer, optional: Minimum message status level to apply to. 
 !                    Default is s_blank$
 !   max_level   -- Integer, optional: Maximum message status level to apply to. 
@@ -157,10 +160,17 @@ integer i
 
 !
 
+if (present(to_routine)) then
+  if (to_routine > 1 .or. to_routine < -1) then
+    print *, 'OUTPUT_DIRECT: SHOULD NOT BE HERE!'
+    call err_exit
+  endif
+endif
+
 do i = integer_option(s_blank$, min_level), integer_option(s_abort$, max_level)
   if (present(to_routine)) output_com%to_routine(i) = to_routine
-  if (present(do_print))    output_com%do_print(i)    = do_print
-  if (present(file_unit))   output_com%file_unit(i)   = file_unit
+  if (present(do_print))   output_com%do_print(i)   = do_print
+  if (present(file_unit))  output_com%file_unit(i)  = file_unit
 enddo
 
 end subroutine output_direct
@@ -201,7 +211,11 @@ if (logic_option(.true., indent)) line_out = blank(1:output_com%indent_num(level
 
 if (output_com%file_unit(level) /= 0) write (output_com%file_unit(level), '(a)') trim(line_out)
 
-if (output_com%to_routine(level)) call out_io_line(trim(line_out) // char(0))
+if (output_com%to_routine(level) == 1) then
+  call out_io_line(trim(line_out))
+elseif (output_com%to_routine(level) == -1) then
+  call out_io_line(trim(line_out) // char(0))
+endif
 
 #if defined (CESR_VMS)
   if (output_com%do_print(level)) write (*, '(1x, a)') trim(line_out)
@@ -248,7 +262,7 @@ else
   call out_io_line_out (line, level)
 endif
 
-if (output_com%to_routine(level)) call out_io_end()
+if (output_com%to_routine(level) /= 0) call out_io_end()
 
 end subroutine output_real
 
@@ -289,7 +303,7 @@ else
   call out_io_line_out(line, level)
 endif
 
-if (output_com%to_routine(level)) call out_io_end()
+if (output_com%to_routine(level) /= 0) call out_io_end()
 
 end subroutine output_int
 
@@ -330,7 +344,7 @@ else
   call out_io_line_out(line, level)
 endif
 
-if (output_com%to_routine(level)) call out_io_end()
+if (output_com%to_routine(level) /= 0) call out_io_end()
 
 end subroutine output_logical
 
@@ -372,7 +386,7 @@ if (present(line2)) call insert_numbers (level, fmt, nr, ni, nl, line2, r_array,
 if (present(line3)) call insert_numbers (level, fmt, nr, ni, nl, line3, r_array, i_array, l_array)
 if (present(line4)) call insert_numbers (level, fmt, nr, ni, nl, line4, r_array, i_array, l_array)
 
-if (output_com%to_routine(level)) call out_io_end()
+if (output_com%to_routine(level) /= 0) call out_io_end()
 
 end subroutine
 
@@ -410,7 +424,7 @@ do i = 1, size(lines)
   call insert_numbers (level, fmt, nr, ni, nl, lines(i), r_array, i_array, l_array)
 enddo
 
-if (output_com%to_routine(level)) call out_io_end()
+if (output_com%to_routine(level) /= 0) call out_io_end()
 
 end subroutine output_lines
 
@@ -648,7 +662,11 @@ case (s_abort$)
 
 end select
 
-if (output_com%to_routine(level)) call out_io_called(level, trim(routine_name) // char(0))
+if (output_com%to_routine(level) == 1) then
+  call out_io_called(level, trim(routine_name))
+elseif (output_com%to_routine(level) == -1) then
+  call out_io_called(level, trim(routine_name) // char(0))
+endif
 
 end subroutine header_io
 
