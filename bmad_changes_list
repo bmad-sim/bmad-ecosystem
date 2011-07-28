@@ -1,8 +1,9 @@
-ADD NONLINEAR CONTROLLER:
+ADD NONLINEAR CONTROLLER WITH MULTIPLE INPUT VARIABLES:
 
-	cc: control = {q[k1]=2.7*#, ...}, attrib = k1, absolute = T
+cc: controller = {q[k1]:2.7 * #1, ...}, names = {k1, tilt}, absolute = T
 
  Or just add nonlinearities to overlay/group ????!!!
+
 
 Steps:
 
@@ -18,6 +19,8 @@ type control_struct
 	... etc ...
 end type
 
+make #1 => ele%value(1), etc. and store the attributes names in ele%attribute_name(:). This is very versitile.
+Plus it can be used for custom parameters.
 
 2) lat_equal_lat needs to be modified
 3) read/write_bmad_digested_file
@@ -25,11 +28,13 @@ end type
 5) type2_ele
 6) bmad_parser
 7) a) Split off stack evaluation from evaluate_value
-	 b) Pass value of "#"
+	 b) Pass values of "#n"
 8) controller bookkeeper
 9) controller_lord
-10) overlay_slave$ -> controller_slave$ (but retain overlay_slave$ for back compatability?)
-11) Save defined variables in lat_struct? Yes!
+10) overlay_slave$ -> controller_slave$, overlay_lord$ -> controller_lord$, etc.
+11) use ele%sub_key for relative/absolute switch.
+12) On input group/overlays are converted to controllers 
+
 
 ----------------------------------
 
@@ -38,10 +43,6 @@ Rename: mat6 -> xfer_mat
 		etc...
 
 ----------------------------------
-
-Python(x,y) / Qt front end for gui/graphics
-
-http://www.pythonxy.com/foreword.php
 
 Rapid GUI Programming with Python and Qt, Mark Summerfield, Ed.: Prentice Hall, ISBN-13: 978-0-13-235418-9.
 
@@ -54,30 +55,10 @@ Get Etienne implement lcav and patch !?
 
 implement bmad_standard bend_sol_quad
 
-finish bmad_standard doc.
-
 In subroutines that use it: 
 	Take out setting of bmad_struct%ok and replace this with added "err" subroutine argument.
 
 Convert all print statements to out_io
-
-Put RF on warning in 
-  b) twiss_propagate1  ?!
-  c) twiss_at_start    ?!
-
-Structure name changes:
-	bmad_com  --> bmad_parameters
-	etc...
-
-Enable overlay to control:
-	aperture
-	x_limit
-	y_limit
-
-enable reading in sigmas in bmad_parser & xsif_parser
-
-emittance, emitt -> emit
-[Remember bmadz, etc.]
 
 In ele_struct, lat_struct, etc.:
 	pointers -> allocatable arrays

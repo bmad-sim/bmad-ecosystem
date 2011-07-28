@@ -362,9 +362,9 @@ type (ele_struct), target :: ele
 type (rf_field_mode_struct), pointer :: mode
 type (old_coord_struct) map_in, map_out
 
-integer i, j, ix_ele, n_wall_section, idum1, idum2
-integer n_rf_field_mode
-integer ix_wig, ix_const, ix_r(4), ix_d, ix_m, ix_t(6), ios, k_max
+integer i, j, ix_ele, n_wall_section
+integer n_rf_field_mode, i_min(3), i_max(3)
+integer ix_wig, ix_const, ix_r, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
 
 logical error
@@ -374,7 +374,7 @@ logical error
 error = .true.
 
 if (v95 .or. v96) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -395,8 +395,8 @@ if (v95 .or. v96) then
   call transfer_coord_old_to_new (map_out, ele%map_ref_orb_out)
 
 elseif (v97) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum2
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
   read (d_unit, err = 9100) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -415,8 +415,8 @@ elseif (v97) then
   call transfer_coord_old_to_new (map_out, ele%map_ref_orb_out)
 
 else ! v98++
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum2
+  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
+          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
   read (d_unit, err = 9100) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
           ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -485,9 +485,12 @@ if (ix_const /= 0) then
   read (d_unit, err = 9300) ele%const
 endif
 
-if (any (ix_r /= 0)) then
-  allocate (ele%r(ix_r(1):ix_r(3), ix_r(2):ix_r(4)))
-  read (d_unit, err = 9400) ele%r
+if (ix_r /= 0) then
+  read (d_unit) i_min, i_max
+  allocate (ele%r(i_min(1):i_max(1), i_min(2):i_max(2), i_min(3):i_max(3)))
+  do i = i_min(3), i_max(3)
+    read (d_unit, err = 9400) ele%r(:,:,i)
+  enddo
 endif
 
 if (ix_d /= 0) then
