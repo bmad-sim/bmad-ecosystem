@@ -1317,14 +1317,14 @@ character(200) descrip
 f => f_ele
 
 nr1 = 0; nr2 = 0
-if (associated(f%r)) then
-  nr1 = size(f%r, 1)
-  nr2 = size(f%r, 2)
-  allocate (r_arr(nr1*nr2))
-  r_arr = mat2arr (f%r)
-else
+!if (associated(f%r)) then
+!  nr1 = size(f%r, 1)
+!  nr2 = size(f%r, 2)
+!  allocate (r_arr(nr1*nr2))
+!  r_arr = mat2arr (f%r)
+!else
   allocate (r_arr(0))
-endif
+!endif
 
 descrip =  ' '
 if (associated(f%descrip)) descrip = f%descrip
@@ -1467,17 +1467,17 @@ f%gamma_c               = gamma_c
 f%s                     = s
 f%ref_time              = ref_t
 
-if (nr1 == 0 .or. nr2 == 0) then
+!if (nr1 == 0 .or. nr2 == 0) then
   if (associated(f%r)) deallocate (f%r)
-else
-  if (.not. associated(f%r)) then
-    allocate (f%r(nr1, nr2))
-  elseif ((size(f%r, 1) /= nr1) .or. (size(f%r, 2) /= nr2)) then
-    deallocate (f%r)
-    allocate (f%r(nr1, nr2))
-  endif
-  f%r =  arr2mat(r_arr, nr1, nr2)
-endif
+!else
+!  if (.not. associated(f%r)) then
+!    allocate (f%r(nr1, nr2))
+!  elseif ((size(f%r, 1) /= nr1) .or. (size(f%r, 2) /= nr2)) then
+!    deallocate (f%r)
+!    allocate (f%r(nr1, nr2))
+!  endif
+!  f%r =  arr2mat(r_arr, nr1, nr2)
+!endif
 
 if (n_ab == 0) then
   if (associated (f%a_pole)) deallocate (f%a_pole, f%b_pole)

@@ -106,11 +106,13 @@ if (associated(ele2%r)) then
     else
       deallocate (ele_save%r)
       allocate (ele1%r(lbound(ele2%r,1):ubound(ele2%r,1), &
-                       lbound(ele2%r,2):ubound(ele2%r,2)))
+                       lbound(ele2%r,2):ubound(ele2%r,2), &
+                       lbound(ele2%r,3):ubound(ele2%r,3)))
     endif
   else
     allocate (ele1%r(lbound(ele2%r,1):ubound(ele2%r,1), &
-                     lbound(ele2%r,2):ubound(ele2%r,2)))
+                     lbound(ele2%r,2):ubound(ele2%r,2), &
+                     lbound(ele2%r,3):ubound(ele2%r,3)))
   endif
   ele1%r = ele2%r
 else

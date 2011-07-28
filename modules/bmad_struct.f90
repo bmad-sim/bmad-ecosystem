@@ -247,7 +247,7 @@ type ele_struct
   real(rp) gamma_c                           ! gamma associated with C matrix
   real(rp) s                                 ! longitudinal ref position at the exit end.
   real(rp) ref_time                          ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:) => null()      ! For general use. Not used by Bmad.
+  real(rp), pointer :: r(:,:,:) => null()    ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()   ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()   ! tilt for multipole elements.
   real(rp), pointer :: const(:) => null()    ! Working constants.
