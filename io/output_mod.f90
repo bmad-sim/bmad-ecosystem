@@ -140,7 +140,7 @@ contains
 !                    0 => No writing (initial default setting).
 !   do_print    -- Logical, optional: If True (initial default setting) then 
 !                    print output at the TTY.
-!   to_routine -- Logical, optional: Send info to designated function.
+!   to_routine -- Logical, optional: Send info to out_io_called/line/end.
 !   min_level   -- Integer, optional: Minimum message status level to apply to. 
 !                    Default is s_blank$
 !   max_level   -- Integer, optional: Maximum message status level to apply to. 
@@ -648,7 +648,7 @@ case (s_abort$)
 
 end select
 
-if (output_com%to_routine(level)) call out_io_called(level, routine_name)
+if (output_com%to_routine(level)) call out_io_called(level, trim(routine_name) // char(0))
 
 end subroutine header_io
 
