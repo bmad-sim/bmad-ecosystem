@@ -1992,10 +1992,8 @@ endif
 
 ! n_mode > 0 case.
 
-if (.not. associated (rf_field)) then
-  allocate(rf_field)
-  allocate(rf_field%mode(n_mode))
-endif
+if (.not. associated (rf_field)) allocate(rf_field)
+if (.not. allocated(rf_field%mode))  allocate(rf_field%mode(n_mode))
 
 if (size(rf_field%mode) /= n_mode) then
   deallocate(rf_field%mode)

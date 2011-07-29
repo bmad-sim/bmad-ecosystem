@@ -133,6 +133,11 @@ type rf_field_mode_term_struct
   complex(rp) :: e = 0, b = 0
 end type
 
+type rf_field_mode_grid_struct
+  complex E(3)
+  complex B(3)
+end type
+
 ! RF mode structure
 ! See: 
 !    Dan Abell, PRST-AB 9, 052001 (2006)
@@ -150,6 +155,9 @@ type rf_field_mode_struct
   real(rp) dz                 ! Distance between sampled field points.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
   type (rf_field_mode_term_struct), allocatable :: term(:) 
+  type (rf_field_mode_grid_struct), pointer :: grid(:,:,:)  ! Pointer so can point to common memory
+  real(rp) dr_grid(3)         ! Grid spacing.
+  real(rp) r0_grid(3)         ! Grid origin.
 end type
 
 ! The RF field may be characterized by a collection of modes.
