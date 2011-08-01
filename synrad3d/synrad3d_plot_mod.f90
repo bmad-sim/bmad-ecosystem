@@ -12,7 +12,7 @@ contains
 !+
 ! Subroutine sr3d_plot_reflection_probability (plot_param)
 !
-! Routine to plot reflection probabilit curves
+! Routine to plot reflection probability curves
 !
 ! Input;
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
@@ -337,7 +337,7 @@ end subroutine sr3d_plot_wall_vs_s
 !+
 ! Subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat, extra)
 !
-! Routine to interactively plot wall cross-sections
+! Routine to interactively plot wall (x,y) cross-sections at constant s.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
@@ -364,7 +364,7 @@ real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp), allocatable :: x1_norm(:), y1_norm(:), x2_norm(:), y2_norm(:)
 real(rp) minn, maxx
 
-integer i, j, ix, ix_section, i_in, ios, i_chan, n
+integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu
 
 character(100) :: ans, label
 character(*) extra
@@ -469,8 +469,16 @@ do
   endif
 
   ! Query
-
-  call read_a_line ('Input: "<Section #>", "<CR>" (Next sec), "b" (Back sec), "s <s_value>", "x <x_max>" ("x auto" -> autoscale)', ans)
+  print *
+  print '(a)', 'Commands:'
+  print '(a)', '   <CR>             ! Next section (increment viewed section index by 1).'
+  print '(a)', '   b                ! Back section (decrement viewed section index by 1).'
+  print '(a)', '   <Section #>      ! Index of section to view'
+  print '(a)', '   s <s-value>      ! Plot section at <s-value>.'
+  print '(a)', '   x <x-max>        ! Set horizontal plot scale. Vertical will be scaled to match.'
+  print '(a)', '   x auto           ! Auto scale plot.'
+  print '(a)', '   write            ! Write (x,y) points to a file.'
+  call read_a_line ('Input: ', ans)
 
   call string_trim (ans, ans, ix)
 
@@ -500,6 +508,17 @@ do
     s_pos_old = s_pos
     s_pos = wall%pt(ix_section)%s
     at_section = .true.
+
+  elseif (index('write', ans(1:ix)) == 1) then
+    iu = lunget()
+    open (iu, file = 'cross_section.dat')
+    write (iu, *) '  s = ', s_pos
+    write (iu, *) '        x           y'
+    do j = 1, size(x)
+      write (iu, '(2f12.6)') x(j), y(j)
+    enddo
+    close (iu)
+    print *, 'Writen: cross_section.dat'
 
   elseif (ans == 'b') then
     ix_section = modulo(ix_section - 1, wall%n_pt_max + 1)
