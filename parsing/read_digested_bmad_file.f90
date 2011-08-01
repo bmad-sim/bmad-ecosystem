@@ -486,7 +486,7 @@ if (ix_const /= 0) then
 endif
 
 if (ix_r /= 0) then
-  read (d_unit) i_min, i_max
+  read (d_unit, err = 9350) i_min, i_max
   allocate (ele%r(i_min(1):i_max(1), i_min(2):i_max(2), i_min(3):i_max(3)))
   do i = i_min(3), i_max(3)
     read (d_unit, err = 9400) ele%r(:,:,i)
@@ -608,6 +608,15 @@ return
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING IX_CONST TERM FOR ELEMENT: ' // ele%name)
+endif
+close (d_unit)
+bmad_status%ok = .false.
+return
+
+9350  continue
+if (bmad_status%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %R ARRAY SIZE: ' // ele%name)
 endif
 close (d_unit)
 bmad_status%ok = .false.
