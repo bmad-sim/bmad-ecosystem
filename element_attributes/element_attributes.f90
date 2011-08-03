@@ -8,7 +8,7 @@
 
 program element_attributes
 
-use bmad
+use basic_attribute_mod
 
 implicit none
 
