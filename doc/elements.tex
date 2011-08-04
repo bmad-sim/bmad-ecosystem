@@ -1353,12 +1353,9 @@ General \vn{lcavity} attributes are:
 \toffset
 
 The attributes specific to an \vn{lcavity} are 
-\index{gradient}
-\index{phi0}
-\index{dphi0}
-\index{e_loss}
-\index{rf_frequency}
-\index{delta_e}
+\index{gradient}\index{phi0}
+\index{dphi0}\index{e_loss}
+\index{rf_frequency}\index{delta_e}
 \begin{example}
   gradient         = <Real>   ! Accelerating gradient (V/m).
   gradient_err     = <Real>   ! Accelerating gradient error (V/m).
@@ -1711,6 +1708,37 @@ General \vn{crystal} attributes are:
 \end{tabular}
 \end{center}
 \toffset
+
+The attributes specific to a \vn{multilayer_mirror} are 
+\index{
+\begin{example}
+  crystal_type        = <String>  ! Crystal material and reflection plane.
+  graze_angle_err     = <Real>    ! Error in the graze angle.
+  d1_thickness        = <Real>    ! Thickness of layer 1
+  d2_thickness        = <Real>    ! Thickness of layer 2
+  n_cells             = <Integer> ! Number of cells (= Number of layers / 2)
+  tilt_err            = <Real>    ! Error in the tilt angle.
+  c2_curve            = <Real>    ! C2 curvature coefficient.
+  c3_curve            = <Real>    ! C3 curvature coefficient.
+  c4_curve            = <Real>    ! C4 curvature coefficient.
+  d_detec             = <Real>    ! Detector distance.
+  d_source            = <Real>    ! Source distance.
+  g_trans             = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+  tilt_err            = <Real>    ! Error in the tilt angle.
+\end{example}
+
+\begin{example}
+  graze_angle      ! Angle between incoming beam and mirror surface.
+  c2_curve_tot     ! Total C2 curvature coefficient.
+  c3_curve_tot     ! Total C3 curvature coefficient.
+  c4_curve_tot     ! Total C4 curvature coefficient.
+  f0_re1           ! Real part of f0 for layer 1
+  f0_im1           ! Imaginary part of f0 for layer 1
+  f0_re2           ! Real part of f0 for layer 2
+  f0_im2           ! Imaginary part of f0 for layer 2
+  v1_unitcell      ! Unit cell volume for layer 1
+  v2_unitcell      ! Unit cell volume for layer 2 
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Null_Ele}

@@ -52,7 +52,7 @@ do n = 1, size(ele%rf%wake%lr)
   if (present(set_done)) set_done = .true.
 enddo
 
-end subroutine
+end subroutine randomize_lr_wake_frequencies
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -188,7 +188,7 @@ do i = 1, size(ele%rf%wake%lr)
 
 enddo
 
-end subroutine
+end subroutine lr_wake_add_to
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -265,7 +265,7 @@ do i = 1, size(ele%rf%wake%lr)
 
 enddo
 
-end subroutine
+end subroutine lr_wake_apply_kick
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -368,7 +368,7 @@ fact = (ele%rf%wake%sr_table(iw)%trans*f1 + ele%rf%wake%sr_table(iw+1)%trans*f2)
 follower%vec(2) = follower%vec(2) - fact * leader%vec(1)
 follower%vec(4) = follower%vec(4) - fact * leader%vec(3)
 
-end subroutine
+end subroutine sr_table_apply_trans_kick
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -424,13 +424,13 @@ do i = 1, size(ele%rf%wake%sr_mode_long)
 
 enddo
 
-end subroutine
+end subroutine sr_mode_long_wake_add_to
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_mode_long_wake_apply_kick (ele, orbit)
+! Subroutine sr_mode_long_wake_apply_kick (ele, charge, orbit)
 !
 ! Subroutine to put in the kick for the short-range wakes.
 !
@@ -439,13 +439,14 @@ end subroutine
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes
+!   charge  -- Real(rp): Charge of passing (macro)particle.
 !   orbit   -- Coord_struct: Starting coords.
 !
 ! Output:
 !   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr_mode_long_wake_apply_kick (ele, orbit)
+subroutine sr_mode_long_wake_apply_kick (ele, charge, orbit)
 
 implicit none
 
@@ -454,7 +455,7 @@ type (coord_struct) orbit
 type (rf_wake_sr_mode_struct), pointer :: sr_mode_long
 
 integer i
-real(rp) arg, ff, c, s, w_norm
+real(rp) arg, ff, c, s, w_norm, charge
 
 ! Check if we have to do any calculations
 
@@ -476,55 +477,13 @@ do i = 1, size(ele%rf%wake%sr_mode_long)
   w_norm = sr_mode_long%b_sin * ff * s + sr_mode_long%b_cos * ff * c
   orbit%vec(6) = orbit%vec(6) - w_norm
 
-enddo
+  ! Self kick
 
-end subroutine
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine sr_mode_long_self_wake_apply_kick (ele, charge, orbit)
-!
-! Subroutine to put in the kick for the short-range wakes
-!
-! Modules needed:
-!   use wake_mod
-!
-! Input:
-!   ele     -- Ele_struct: Element with wakes
-!   charge  -- Real(rp): Charge of passing (macro)particle.
-!   orbit   -- Coord_struct: Starting coords.
-!
-! Output:
-!   orbit   -- Coord_struct: coords after the kick.
-!+
-
-subroutine sr_mode_long_self_wake_apply_kick (ele, charge, orbit)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (coord_struct) orbit
-type (rf_wake_sr_mode_struct), pointer :: sr_mode_long
-
-integer i
-real(rp) k, c, s, w_norm, charge
-
-! Check if we have to do any calculations
-
-if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%rf%wake)) return
-
-! Loop over all modes
-
-do i = 1, size(ele%rf%wake%sr_mode_long)
-  sr_mode_long => ele%rf%wake%sr_mode_long(i)
   orbit%vec(6) = orbit%vec(6) - abs(charge) * sin(sr_mode_long%phi) * &
                          sr_mode_long%amp * ele%value(l$) / (2 * ele%value(p0c$))
 enddo
 
-end subroutine
+end subroutine sr_mode_long_wake_apply_kick
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -582,7 +541,7 @@ do i = 1, size(ele%rf%wake%sr_mode_trans)
 
 enddo
 
-end subroutine
+end subroutine sr_mode_trans_wake_add_to
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -639,6 +598,6 @@ do i = 1, size(ele%rf%wake%sr_mode_trans)
 
 enddo
 
-end subroutine
+end subroutine sr_mode_trans_wake_apply_kick
 
 end module

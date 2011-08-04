@@ -10,9 +10,9 @@ integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
 integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
 
 type beam_spin_struct
-  real(rp) :: polarization = 1.0 ! i.e. 80% polarized
-  real(rp) :: theta = 0.0  ! polar coordinates
-  real(rp) :: phi = 0.0    ! polar coordinates
+  real(rp) :: polarization = 1.0 ! 100% polarized is default.
+  real(rp) :: theta = 0.0        ! polar coordinates
+  real(rp) :: phi = 0.0          ! polar coordinates
 end type
 
 type particle_struct

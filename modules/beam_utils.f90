@@ -352,11 +352,6 @@ i_sr_mode = 1  ! index of next particle to be added to the sr_mode wake sums.
 
 do j = 1, size(p)
   particle => p(p(j)%ix_z)
-  ! apply longitudinal self wake
-
-  if (z_sr_table_max .ge. 0) then
-    call sr_mode_long_self_wake_apply_kick (ele, particle%charge, particle%r)
-  endif
 
   ! Particle_j is kicked by particles k = 1, ..., j-1.
   ! The particles 1, ... i_sr_mode-1 have already had their wakes added to the 
@@ -372,12 +367,15 @@ do j = 1, size(p)
       ! add contribution of particle(k) to wake sums
       i_sr_mode = k  ! update i_sr_mode
       call sr_mode_long_wake_add_to (ele, leader%r, leader%charge)
-      call sr_mode_trans_wake_add_to(ele, leader%r, leader%charge)
+      call sr_mode_trans_wake_add_to (ele, leader%r, leader%charge)
     endif
   enddo
 
   ! apply wake to particle(j)
-  call sr_mode_long_wake_apply_kick (ele, particle%r)
+
+  ! apply longitudinal self wake
+
+  call sr_mode_long_wake_apply_kick (ele, particle%charge, particle%r)
   call sr_mode_trans_wake_apply_kick(ele, particle%r)
 
 enddo
@@ -1833,6 +1831,7 @@ if (charge_live == 0) then
   call zero_plane (bunch_params%a)
   call zero_plane (bunch_params%b)
   call zero_plane (bunch_params%c)
+  err = .false.
   return
 endif
   

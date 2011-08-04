@@ -219,22 +219,26 @@ attrib_array = null_name$
 
 do i = 1, n_key
 
+  call init_attrib (i, general1$, reserved_name$)
+  call init_attrib (i, general2$, reserved_name$)
+  call init_attrib (i, general3$, reserved_name$)
+  call init_attrib (i, check_sum$, reserved_name$)
+
   select case(i)
   case (monitor$, instrument$, marker$, pipe$)
-    attrib_array(i, x_gain_err$)     = 'X_GAIN_ERR'
-    attrib_array(i, y_gain_err$)     = 'Y_GAIN_ERR'
-    attrib_array(i, crunch$)         = 'CRUNCH'
-    attrib_array(i, noise$)          = 'NOISE'
-    attrib_array(i, tilt_calib$)     = 'TILT_CALIB'
-    attrib_array(i, x_gain_calib$)   = 'X_GAIN_CALIB'
-    attrib_array(i, y_gain_calib$)   = 'Y_GAIN_CALIB'
-    attrib_array(i, crunch_calib$)   = 'CRUNCH_CALIB'
-    attrib_array(i, x_offset_calib$) = 'X_OFFSET_CALIB'
-    attrib_array(i, y_offset_calib$) = 'Y_OFFSET_CALIB'
-    attrib_array(i, y_offset_calib$) = 'Y_OFFSET_CALIB'
-    attrib_array(i, n_sample$)       = 'N_SAMPLE'
-    attrib_array(i, de_eta_meas$)    = 'DE_ETA_MEAS'
-    attrib_array(i, osc_amplitude$)  = 'OSC_AMPLITUDE'
+    call init_attrib (i, x_gain_err$,      'X_GAIN_ERR')
+    call init_attrib (i, y_gain_err$,      'Y_GAIN_ERR')
+    call init_attrib (i, crunch$,          'CRUNCH')
+    call init_attrib (i, noise$,           'NOISE')
+    call init_attrib (i, tilt_calib$,      'TILT_CALIB')
+    call init_attrib (i, x_gain_calib$,    'X_GAIN_CALIB')
+    call init_attrib (i, y_gain_calib$,    'Y_GAIN_CALIB')
+    call init_attrib (i, crunch_calib$,    'CRUNCH_CALIB')
+    call init_attrib (i, x_offset_calib$,  'X_OFFSET_CALIB')
+    call init_attrib (i, y_offset_calib$,  'Y_OFFSET_CALIB')
+    call init_attrib (i, n_sample$,        'N_SAMPLE')
+    call init_attrib (i, de_eta_meas$,     'DE_ETA_MEAS')
+    call init_attrib (i, osc_amplitude$,   'OSC_AMPLITUDE')
   end select
 
   if (i == hybrid$)         cycle
@@ -243,65 +247,65 @@ do i = 1, n_key
   if (i == def_beam_start$) cycle
   if (i == init_ele$) cycle
 
-  attrib_array(i, type$)     = 'TYPE'
-  attrib_array(i, alias$)    = 'ALIAS'
-  attrib_array(i, descrip$)  = 'DESCRIP'
+  call init_attrib (i, type$,      'TYPE')
+  call init_attrib (i, alias$,     'ALIAS')
+  call init_attrib (i, descrip$,   'DESCRIP')
 
   if (i == group$)    cycle
   if (i == overlay$)  cycle
   if (i == girder$)   cycle
 
-  attrib_array(i, superimpose$)       = 'SUPERIMPOSE'
-  attrib_array(i, offset$)            = 'OFFSET'
-  attrib_array(i, reference$)         = 'REFERENCE'
-  attrib_array(i, ele_beginning$)     = 'ELE_BEGINNING'
-  attrib_array(i, ele_center$)        = 'ELE_CENTER'
-  attrib_array(i, ele_end$)           = 'ELE_END'
-  attrib_array(i, ref_beginning$)     = 'REF_BEGINNING'
-  attrib_array(i, ref_center$)        = 'REF_CENTER'
-  attrib_array(i, ref_end$)           = 'REF_END'
-  attrib_array(i, common_lord$)       = 'COMMON_LORD'
+  call init_attrib (i, superimpose$,        'SUPERIMPOSE')
+  call init_attrib (i, offset$,             'OFFSET')
+  call init_attrib (i, reference$,          'REFERENCE')
+  call init_attrib (i, ele_beginning$,      'ELE_BEGINNING')
+  call init_attrib (i, ele_center$,         'ELE_CENTER')
+  call init_attrib (i, ele_end$,            'ELE_END')
+  call init_attrib (i, ref_beginning$,      'REF_BEGINNING')
+  call init_attrib (i, ref_center$,         'REF_CENTER')
+  call init_attrib (i, ref_end$,            'REF_END')
+  call init_attrib (i, common_lord$,        'COMMON_LORD')
 
   if (i == null_ele$) cycle
 
-  attrib_array(i, wall$)                  = 'WALL'
-  attrib_array(i, x_limit$)               = 'X_LIMIT'
-  attrib_array(i, x1_limit$)              = 'X1_LIMIT'
-  attrib_array(i, x2_limit$)              = 'X2_LIMIT'
-  attrib_array(i, y_limit$)               = 'Y_LIMIT'
-  attrib_array(i, y1_limit$)              = 'Y1_LIMIT'
-  attrib_array(i, y2_limit$)              = 'Y2_LIMIT'
-  attrib_array(i, aperture$)              = 'APERTURE'
-  attrib_array(i, aperture_at$)           = 'APERTURE_AT'
-  attrib_array(i, aperture_type$)         = 'APERTURE_TYPE'
-  attrib_array(i, offset_moves_aperture$) = 'OFFSET_MOVES_APERTURE'
-  attrib_array(i, mat6_calc_method$)      = 'MAT6_CALC_METHOD'
-  attrib_array(i, tracking_method$)       = 'TRACKING_METHOD'
+  call init_attrib (i, wall$,                   'WALL')
+  call init_attrib (i, x_limit$,                'X_LIMIT')
+  call init_attrib (i, x1_limit$,               'X1_LIMIT')
+  call init_attrib (i, x2_limit$,               'X2_LIMIT')
+  call init_attrib (i, y_limit$,                'Y_LIMIT')
+  call init_attrib (i, y1_limit$,               'Y1_LIMIT')
+  call init_attrib (i, y2_limit$,               'Y2_LIMIT')
+  call init_attrib (i, aperture$,               'APERTURE')
+  call init_attrib (i, aperture_at$,            'APERTURE_AT')
+  call init_attrib (i, aperture_type$,          'APERTURE_TYPE')
+  call init_attrib (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
+  call init_attrib (i, mat6_calc_method$,       'MAT6_CALC_METHOD')
+  call init_attrib (i, tracking_method$,        'TRACKING_METHOD')
 
-  attrib_array(i, E_tot$)                 = 'E_TOT'
-  attrib_array(i, p0c$)                   = 'P0C'
-  attrib_array(i, delta_ref_time$)        = 'DELTA_REF_TIME'
+  call init_attrib (i, E_tot$,                  'E_TOT')
+  call init_attrib (i, p0c$,                    'P0C')
+  call init_attrib (i, delta_ref_time$,         'DELTA_REF_TIME')
 
   if (i == match$) cycle
 
-  attrib_array(i, tilt$)         = 'TILT' 
-  attrib_array(i, x_offset$)     = 'X_OFFSET'
-  attrib_array(i, y_offset$)     = 'Y_OFFSET'
-  attrib_array(i, s_offset$)     = 'S_OFFSET'
-  attrib_array(i, x_pitch$)      = 'X_PITCH'
-  attrib_array(i, y_pitch$)      = 'Y_PITCH'
-  attrib_array(i, tilt_tot$)     = 'TILT_TOT'
-  attrib_array(i, x_offset_tot$) = 'X_OFFSET_TOT'
-  attrib_array(i, y_offset_tot$) = 'Y_OFFSET_TOT'
-  attrib_array(i, s_offset_tot$) = 'S_OFFSET_TOT'
-  attrib_array(i, x_pitch_tot$)  = 'X_PITCH_TOT'
-  attrib_array(i, y_pitch_tot$)  = 'Y_PITCH_TOT'
+  call init_attrib (i, tilt$,          'TILT' )
+  call init_attrib (i, x_offset$,      'X_OFFSET')
+  call init_attrib (i, y_offset$,      'Y_OFFSET')
+  call init_attrib (i, s_offset$,      'S_OFFSET')
+  call init_attrib (i, x_pitch$,       'X_PITCH')
+  call init_attrib (i, y_pitch$,       'Y_PITCH')
+  call init_attrib (i, tilt_tot$,      'TILT_TOT')
+  call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT')
+  call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT')
+  call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT')
+  call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT')
+  call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT')
 
   if (i == mirror$)     cycle
   if (i == crystal$)    cycle
   if (i == multilayer_mirror$) cycle
 
-  attrib_array(i, is_on$)       = 'IS_ON'
+  if (i /= drift$) call init_attrib (i, is_on$,        'IS_ON')
 
   if (i == photon_branch$) cycle
   if (i == branch$) cycle
@@ -313,27 +317,27 @@ do i = 1, n_key
   if (i == multipole$)    cycle 
   if (i == ab_multipole$) cycle
 
-  attrib_array(i, symplectify$)        = 'SYMPLECTIFY'
-  attrib_array(i, map_with_offsets$)   = 'MAP_WITH_OFFSETS'
+  call init_attrib (i, symplectify$,         'SYMPLECTIFY')
+  call init_attrib (i, map_with_offsets$,    'MAP_WITH_OFFSETS')
 
   if (i == taylor$)       cycle
 
-  attrib_array(i, l$) = 'L'
+  call init_attrib (i, l$,  'L')
 
-  attrib_array(i, integrator_order$)  = 'INTEGRATOR_ORDER'
-  attrib_array(i, num_steps$)         = 'NUM_STEPS'
-  attrib_array(i, ds_step$)           = 'DS_STEP'
-  attrib_array(i, csr_calc_on$)       = 'CSR_CALC_ON'
-  attrib_array(i, n_ref_pass$)        = 'N_REF_PASS'
+  call init_attrib (i, integrator_order$,   'INTEGRATOR_ORDER')
+  call init_attrib (i, num_steps$,          'NUM_STEPS')
+  call init_attrib (i, ds_step$,            'DS_STEP')
+  call init_attrib (i, csr_calc_on$,        'CSR_CALC_ON')
+  call init_attrib (i, n_ref_pass$,         'N_REF_PASS')
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
   if (i == custom$)       cycle
 
-  attrib_array(i, hkick$)    = 'HKICK'
-  attrib_array(i, vkick$)    = 'VKICK'
-  attrib_array(i, bl_hkick$) = 'BL_HKICK'
-  attrib_array(i, bl_vkick$) = 'BL_VKICK'
+  call init_attrib (i, hkick$,     'HKICK')
+  call init_attrib (i, vkick$,     'VKICK')
+  call init_attrib (i, bl_hkick$,  'BL_HKICK')
+  call init_attrib (i, bl_vkick$,  'BL_VKICK')
 
 enddo
 
@@ -344,356 +348,329 @@ do i = 1, n_key
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, bend_sol_quad$, &
          hkicker$, vkicker$)
-    attrib_array(i, a0$:a20$) = [ 'A0 ', &
+     attrib_array(i, a0$:a20$) = [ 'A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
                                    'A11', 'A12', 'A13', 'A14', 'A15', &
                                    'A16', 'A17', 'A18', 'A19', 'A20' ]
-    attrib_array(i, b0$:b20$) = [ 'B0 ', &
+     attrib_array(i, b0$:b20$) = [ 'B0 ', &
                                    'B1 ', 'B2 ', 'B3 ', 'B4 ', 'B5 ', & 
                                    'B6 ', 'B7 ', 'B8 ', 'B9 ', 'B10', &
                                    'B11', 'B12', 'B13', 'B14', 'B15', &
                                    'B16', 'B17', 'B18', 'B19', 'B20' ]
     if (i == ab_multipole$) cycle
-    attrib_array(i, scale_multipoles$) = 'SCALE_MULTIPOLES'
+    call init_attrib (i, scale_multipoles$,  'SCALE_MULTIPOLES')
   end select
 enddo
 
 !
 
-attrib_array(photon_branch$, direction$) = 'DIRECTION'
-attrib_array(photon_branch$, to$)        = 'TO'
+call init_attrib (photon_branch$, direction$,  'DIRECTION')
+call init_attrib (photon_branch$, to$,         'TO')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
-attrib_array(init_ele$, e_tot$)                      = 'E_TOT'
-attrib_array(init_ele$, p0c$)                        = 'P0C'
-attrib_array(init_ele$, x_position$)                 = 'X_POSITION'
-attrib_array(init_ele$, y_position$)                 = 'Y_POSITION'
-attrib_array(init_ele$, z_position$)                 = 'Z_POSITION'
-attrib_array(init_ele$, theta_position$)             = 'THETA_POSITION'
-attrib_array(init_ele$, phi_position$)               = 'PHI_POSITION'
-attrib_array(init_ele$, psi_position$)               = 'PSI_POSITION'
-attrib_array(init_ele$, beta_a$)                     = 'BETA_A'
-attrib_array(init_ele$, beta_b$)                     = 'BETA_B'
-attrib_array(init_ele$, alpha_a$)                    = 'ALPHA_A'
-attrib_array(init_ele$, alpha_b$)                    = 'ALPHA_B'
-attrib_array(init_ele$, eta_x$)                      = 'ETA_X'
-attrib_array(init_ele$, eta_y$)                      = 'ETA_Y'
-attrib_array(init_ele$, etap_x$)                     = 'ETAP_X'
-attrib_array(init_ele$, etap_y$)                     = 'ETAP_Y'
-attrib_array(init_ele$, phi_a$)                      = 'PHI_A'
-attrib_array(init_ele$, phi_b$)                      = 'PHI_B'
-attrib_array(init_ele$, cmat_11$)                    = 'CMAT_11'
-attrib_array(init_ele$, cmat_12$)                    = 'CMAT_12'
-attrib_array(init_ele$, cmat_21$)                    = 'CMAT_21'
-attrib_array(init_ele$, cmat_22$)                    = 'CMAT_22'
-attrib_array(init_ele$, s_long$)                     = 'S'
-attrib_array(init_ele$, ref_time$)                   = 'REF_TIME'
-attrib_array(init_ele$, e_field_x$)                  = 'E_FIELD_X'
-attrib_array(init_ele$, e_field_y$)                  = 'E_FIELD_Y'
-attrib_array(init_ele$, phase_x$)                    = 'PHASE_X'
-attrib_array(init_ele$, phase_y$)                    = 'PHASE_Y'
-attrib_array(init_ele$, wall$)                       = 'WALL'
+call init_attrib (init_ele$, e_tot$,                       'E_TOT')
+call init_attrib (init_ele$, p0c$,                         'P0C')
+call init_attrib (init_ele$, x_position$,                  'X_POSITION')
+call init_attrib (init_ele$, y_position$,                  'Y_POSITION')
+call init_attrib (init_ele$, z_position$,                  'Z_POSITION')
+call init_attrib (init_ele$, theta_position$,              'THETA_POSITION')
+call init_attrib (init_ele$, phi_position$,                'PHI_POSITION')
+call init_attrib (init_ele$, psi_position$,                'PSI_POSITION')
+call init_attrib (init_ele$, beta_a$,                      'BETA_A')
+call init_attrib (init_ele$, beta_b$,                      'BETA_B')
+call init_attrib (init_ele$, alpha_a$,                     'ALPHA_A')
+call init_attrib (init_ele$, alpha_b$,                     'ALPHA_B')
+call init_attrib (init_ele$, eta_x$,                       'ETA_X')
+call init_attrib (init_ele$, eta_y$,                       'ETA_Y')
+call init_attrib (init_ele$, etap_x$,                      'ETAP_X')
+call init_attrib (init_ele$, etap_y$,                      'ETAP_Y')
+call init_attrib (init_ele$, phi_a$,                       'PHI_A')
+call init_attrib (init_ele$, phi_b$,                       'PHI_B')
+call init_attrib (init_ele$, cmat_11$,                     'CMAT_11')
+call init_attrib (init_ele$, cmat_12$,                     'CMAT_12')
+call init_attrib (init_ele$, cmat_21$,                     'CMAT_21')
+call init_attrib (init_ele$, cmat_22$,                     'CMAT_22')
+call init_attrib (init_ele$, s_long$,                      'S')
+call init_attrib (init_ele$, ref_time$,                    'REF_TIME')
+call init_attrib (init_ele$, e_field_x$,                   'E_FIELD_X')
+call init_attrib (init_ele$, e_field_y$,                   'E_FIELD_Y')
+call init_attrib (init_ele$, phase_x$,                     'PHASE_X')
+call init_attrib (init_ele$, phase_y$,                     'PHASE_Y')
+call init_attrib (init_ele$, wall$,                        'WALL')
 
-attrib_array(def_parameter$, e_tot$)                 = 'E_TOT'
-attrib_array(def_parameter$, p0c$)                   = 'P0C'
-attrib_array(def_parameter$, lattice_type$)          = 'LATTICE_TYPE'
-attrib_array(def_parameter$, lattice$)               = 'LATTICE'
-attrib_array(def_parameter$, taylor_order$)          = 'TAYLOR_ORDER'
-attrib_array(def_parameter$, ran_seed$)              = 'RAN_SEED'
-attrib_array(def_parameter$, n_part$)                = 'N_PART'
-attrib_array(def_parameter$, particle$)              = 'PARTICLE'
-attrib_array(def_parameter$, aperture_limit_on$)     = 'APERTURE_LIMIT_ON'
+call init_attrib (def_parameter$, e_tot$,                  'E_TOT')
+call init_attrib (def_parameter$, p0c$,                    'P0C')
+call init_attrib (def_parameter$, lattice_type$,           'LATTICE_TYPE')
+call init_attrib (def_parameter$, lattice$,                'LATTICE')
+call init_attrib (def_parameter$, taylor_order$,           'TAYLOR_ORDER')
+call init_attrib (def_parameter$, ran_seed$,               'RAN_SEED')
+call init_attrib (def_parameter$, n_part$,                 'N_PART')
+call init_attrib (def_parameter$, particle$,               'PARTICLE')
+call init_attrib (def_parameter$, aperture_limit_on$,      'APERTURE_LIMIT_ON')
 
-attrib_array(def_beam$, particle$)                   = 'PARTICLE'
-attrib_array(def_beam$, e_tot$)                      = 'ENERGY'
-attrib_array(def_beam$, p0c$)                        = 'PC'
-attrib_array(def_beam$, n_part$)                     = 'N_PART'
+call init_attrib (def_beam$, particle$,                    'PARTICLE')
+call init_attrib (def_beam$, e_tot$,                       'ENERGY')
+call init_attrib (def_beam$, p0c$,                         'PC')
+call init_attrib (def_beam$, n_part$,                      'N_PART')
 
-attrib_array(def_beam_start$, x$)                    = 'X'
-attrib_array(def_beam_start$, px$)                   = 'PX'
-attrib_array(def_beam_start$, y$)                    = 'Y'
-attrib_array(def_beam_start$, py$)                   = 'PY'
-attrib_array(def_beam_start$, z$)                    = 'Z'
-attrib_array(def_beam_start$, pz$)                   = 'PZ'
-attrib_array(def_beam_start$, e_field_x$)            = 'E_FIELD_X'
-attrib_array(def_beam_start$, e_field_y$)            = 'E_FIELD_Y'
-attrib_array(def_beam_start$, phase_x$)              = 'PHASE_X'
-attrib_array(def_beam_start$, phase_y$)              = 'PHASE_Y'
+call init_attrib (def_beam_start$, x$,                     'X')
+call init_attrib (def_beam_start$, px$,                    'PX')
+call init_attrib (def_beam_start$, y$,                     'Y')
+call init_attrib (def_beam_start$, py$,                    'PY')
+call init_attrib (def_beam_start$, z$,                     'Z')
+call init_attrib (def_beam_start$, pz$,                    'PZ')
+call init_attrib (def_beam_start$, e_field_x$,             'E_FIELD_X')
+call init_attrib (def_beam_start$, e_field_y$,             'E_FIELD_Y')
+call init_attrib (def_beam_start$, phase_x$,               'PHASE_X')
+call init_attrib (def_beam_start$, phase_y$,               'PHASE_Y')
 
-attrib_array(taylor$, l$)                            = 'L'
+call init_attrib (taylor$, l$,                             'L')
 
-attrib_array(match$, l$)                             = 'L'
-attrib_array(match$, beta_a0$)                       = 'BETA_A0'
-attrib_array(match$, alpha_a0$)                      = 'ALPHA_A0'
-attrib_array(match$, beta_b0$)                       = 'BETA_B0'
-attrib_array(match$, alpha_b0$)                      = 'ALPHA_B0'
-attrib_array(match$, beta_a1$)                       = 'BETA_A1'
-attrib_array(match$, alpha_a1$)                      = 'ALPHA_A1'
-attrib_array(match$, beta_b1$)                       = 'BETA_B1'
-attrib_array(match$, alpha_b1$)                      = 'ALPHA_B1'
-attrib_array(match$, dphi_a$)                        = 'DPHI_A'
-attrib_array(match$, dphi_b$)                        = 'DPHI_B'
-attrib_array(match$, eta_x0$)                        = 'ETA_X0'
-attrib_array(match$, etap_x0$)                       = 'ETAP_X0'
-attrib_array(match$, eta_y0$)                        = 'ETA_Y0'
-attrib_array(match$, etap_y0$)                       = 'ETAP_Y0'
-attrib_array(match$, eta_x1$)                        = 'ETA_X1'
-attrib_array(match$, etap_x1$)                       = 'ETAP_X1'
-attrib_array(match$, eta_y1$)                        = 'ETA_Y1'
-attrib_array(match$, etap_y1$)                       = 'ETAP_Y1'
-attrib_array(match$, match_end$)                     = 'MATCH_END'
-attrib_array(match$, x0$)                            = 'X0'
-attrib_array(match$, px0$)                           = 'PX0'
-attrib_array(match$, y0$)                            = 'Y0'
-attrib_array(match$, py0$)                           = 'PY0'
-attrib_array(match$, z0$)                            = 'Z0'
-attrib_array(match$, pz0$)                           = 'PZ0'
-attrib_array(match$, x1$)                            = 'X1'
-attrib_array(match$, px1$)                           = 'PX1'
-attrib_array(match$, y1$)                            = 'Y1'
-attrib_array(match$, py1$)                           = 'PY1'
-attrib_array(match$, z1$)                            = 'Z1'
-attrib_array(match$, pz1$)                           = 'PZ1'
-attrib_array(match$, match_end_orbit$)               = 'MATCH_END_ORBIT'
-attrib_array(match$, is_on$)                         = 'IS_ON'
+call init_attrib (match$, l$,                              'L')
+call init_attrib (match$, beta_a0$,                        'BETA_A0')
+call init_attrib (match$, alpha_a0$,                       'ALPHA_A0')
+call init_attrib (match$, beta_b0$,                        'BETA_B0')
+call init_attrib (match$, alpha_b0$,                       'ALPHA_B0')
+call init_attrib (match$, beta_a1$,                        'BETA_A1')
+call init_attrib (match$, alpha_a1$,                       'ALPHA_A1')
+call init_attrib (match$, beta_b1$,                        'BETA_B1')
+call init_attrib (match$, alpha_b1$,                       'ALPHA_B1')
+call init_attrib (match$, dphi_a$,                         'DPHI_A')
+call init_attrib (match$, dphi_b$,                         'DPHI_B')
+call init_attrib (match$, eta_x0$,                         'ETA_X0')
+call init_attrib (match$, etap_x0$,                        'ETAP_X0')
+call init_attrib (match$, eta_y0$,                         'ETA_Y0')
+call init_attrib (match$, etap_y0$,                        'ETAP_Y0')
+call init_attrib (match$, eta_x1$,                         'ETA_X1')
+call init_attrib (match$, etap_x1$,                        'ETAP_X1')
+call init_attrib (match$, eta_y1$,                         'ETA_Y1')
+call init_attrib (match$, etap_y1$,                        'ETAP_Y1')
+call init_attrib (match$, match_end$,                      'MATCH_END')
+call init_attrib (match$, x0$,                             'X0')
+call init_attrib (match$, px0$,                            'PX0')
+call init_attrib (match$, y0$,                             'Y0')
+call init_attrib (match$, py0$,                            'PY0')
+call init_attrib (match$, z0$,                             'Z0')
+call init_attrib (match$, pz0$,                            'PZ0')
+call init_attrib (match$, x1$,                             'X1')
+call init_attrib (match$, px1$,                            'PX1')
+call init_attrib (match$, y1$,                             'Y1')
+call init_attrib (match$, py1$,                            'PY1')
+call init_attrib (match$, z1$,                             'Z1')
+call init_attrib (match$, pz1$,                            'PZ1')
+call init_attrib (match$, match_end_orbit$,                'MATCH_END_ORBIT')
+call init_attrib (match$, is_on$,                          'IS_ON')
 
-attrib_array(girder$, x_offset$)                     = 'X_OFFSET'
-attrib_array(girder$, y_offset$)                     = 'Y_OFFSET'
-attrib_array(girder$, s_offset$)                     = 'S_OFFSET'
-attrib_array(girder$, x_pitch$)                      = 'X_PITCH'
-attrib_array(girder$, y_pitch$)                      = 'Y_PITCH'
-attrib_array(girder$, s_center$)                     = 'S_CENTER'
-attrib_array(girder$, tilt$)                         = 'TILT'
+call init_attrib (girder$, x_offset$,                      'X_OFFSET')
+call init_attrib (girder$, y_offset$,                      'Y_OFFSET')
+call init_attrib (girder$, s_offset$,                      'S_OFFSET')
+call init_attrib (girder$, x_pitch$,                       'X_PITCH')
+call init_attrib (girder$, y_pitch$,                       'Y_PITCH')
+call init_attrib (girder$, s_center$,                      'S_CENTER')
+call init_attrib (girder$, tilt$,                          'TILT')
 
-attrib_array(lcavity$, p0c_start$)                   = 'P0C_START'
-attrib_array(lcavity$, e_tot_start$)                 = 'E_TOT_START'
-attrib_array(lcavity$, dphi0$)                       = 'DPHI0'
-attrib_array(lcavity$, phi0$)                        = 'PHI0'
-attrib_array(lcavity$, gradient$)                    = 'GRADIENT'
-attrib_array(lcavity$, rf_frequency$)                = 'RF_FREQUENCY'
-attrib_array(lcavity$, e_loss$)                      = 'E_LOSS'
-attrib_array(lcavity$, delta_e$)                     = 'DELTA_E'
-attrib_array(lcavity$, sr_wake_file$)                = 'SR_WAKE_FILE'
-attrib_array(lcavity$, lr_wake_file$)                = 'LR_WAKE_FILE'
-attrib_array(lcavity$, field_calc$)                  = 'FIELD_CALC'
-attrib_array(lcavity$, field_master$)                = 'FIELD_MASTER'
-attrib_array(lcavity$, lr_freq_spread$)              = 'LR_FREQ_SPREAD'
-attrib_array(lcavity$, coupler_strength$)            = 'COUPLER_STRENGTH'
-attrib_array(lcavity$, coupler_angle$)               = 'COUPLER_ANGLE'
-attrib_array(lcavity$, coupler_phase$)               = 'COUPLER_PHASE'
-attrib_array(lcavity$, coupler_at$)                  = 'COUPLER_AT'
-attrib_array(lcavity$, gradient_err$)                = 'GRADIENT_ERR'
-attrib_array(lcavity$, phi0_err$)                    = 'PHI0_ERR'
-attrib_array(lcavity$, rf_field$)                    = 'RF_FIELD'
-attrib_array(lcavity$, ds_slave_offset$)             = reserved_name$
+call init_attrib (lcavity$, p0c_start$,                    'P0C_START')
+call init_attrib (lcavity$, e_tot_start$,                  'E_TOT_START')
+call init_attrib (lcavity$, dphi0$,                        'DPHI0')
+call init_attrib (lcavity$, phi0$,                         'PHI0')
+call init_attrib (lcavity$, gradient$,                     'GRADIENT')
+call init_attrib (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
+call init_attrib (lcavity$, e_loss$,                       'E_LOSS')
+call init_attrib (lcavity$, delta_e$,                      'DELTA_E')
+call init_attrib (lcavity$, sr_wake_file$,                 'SR_WAKE_FILE')
+call init_attrib (lcavity$, lr_wake_file$,                 'LR_WAKE_FILE')
+call init_attrib (lcavity$, field_calc$,                   'FIELD_CALC')
+call init_attrib (lcavity$, field_master$,                 'FIELD_MASTER')
+call init_attrib (lcavity$, lr_freq_spread$,               'LR_FREQ_SPREAD')
+call init_attrib (lcavity$, coupler_strength$,             'COUPLER_STRENGTH')
+call init_attrib (lcavity$, coupler_angle$,                'COUPLER_ANGLE')
+call init_attrib (lcavity$, coupler_phase$,                'COUPLER_PHASE')
+call init_attrib (lcavity$, coupler_at$,                   'COUPLER_AT')
+call init_attrib (lcavity$, gradient_err$,                 'GRADIENT_ERR')
+call init_attrib (lcavity$, phi0_err$,                     'PHI0_ERR')
+call init_attrib (lcavity$, rf_field$,                     'RF_FIELD')
+call init_attrib (lcavity$, ds_slave_offset$,              reserved_name$)
 
-attrib_array(group$, command$)                       = 'COMMAND'
-attrib_array(group$, old_command$)                   = 'OLD_COMMAND'
-attrib_array(group$, coef$)                          = 'COEF'
-attrib_array(group$, start_edge$)                    = 'START_EDGE'
-attrib_array(group$, end_edge$)                      = 'END_EDGE'
-attrib_array(group$, accordion_edge$)                = 'ACCORDION_EDGE'
-attrib_array(group$, symmetric_edge$)                = 'SYMMETRIC_EDGE'
+call init_attrib (group$, command$,                        'COMMAND')
+call init_attrib (group$, old_command$,                    'OLD_COMMAND')
+call init_attrib (group$, coef$,                           'COEF')
+call init_attrib (group$, start_edge$,                     'START_EDGE')
+call init_attrib (group$, end_edge$,                       'END_EDGE')
+call init_attrib (group$, accordion_edge$,                 'ACCORDION_EDGE')
+call init_attrib (group$, symmetric_edge$,                 'SYMMETRIC_EDGE')
 
-attrib_array(drift$, is_on$)                         =  null_name$    
-attrib_array(drift$, field_calc$)                    = 'FIELD_CALC'
-attrib_array(drift$, field_master$)                  = 'FIELD_MASTER'
+call init_attrib (drift$, field_calc$,                     'FIELD_CALC')
+call init_attrib (drift$, field_master$,                   'FIELD_MASTER')
 
-attrib_array(monitor$, field_master$)                = 'FIELD_MASTER'
-attrib_array(monitor$, ds_slave_offset$)             = reserved_name$
+call init_attrib (monitor$, field_master$,                 'FIELD_MASTER')
+call init_attrib (monitor$, ds_slave_offset$,              reserved_name$)
 
 attrib_array(instrument$, :)                         = attrib_array(monitor$, :)
 attrib_array(pipe$, :)                               = attrib_array(monitor$, :)
 
-attrib_array(hkicker$, kick$)                        = 'KICK'
-attrib_array(hkicker$, field_calc$)                  = 'FIELD_CALC'
-attrib_array(hkicker$, field_master$)                = 'FIELD_MASTER'
-attrib_array(hkicker$, bl_kick$)                     = 'BL_KICK'
-attrib_array(hkicker$, s_offset$)                    = 'S_OFFSET'
-attrib_array(hkicker$, pole_radius$)                 = 'POLE_RADIUS'
-attrib_array(hkicker$, ds_slave_offset$)             = reserved_name$
+call init_attrib (hkicker$, kick$,                         'KICK')
+call init_attrib (hkicker$, field_calc$,                   'FIELD_CALC')
+call init_attrib (hkicker$, field_master$,                 'FIELD_MASTER')
+call init_attrib (hkicker$, bl_kick$,                      'BL_KICK')
+call init_attrib (hkicker$, pole_radius$,                  'POLE_RADIUS')
+call init_attrib (hkicker$, ds_slave_offset$,              reserved_name$)
 
-attrib_array(vkicker$, :)                            = attrib_array(hkicker$, :)
+attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
 
-attrib_array(kicker$, h_displace$)                   = 'H_DISPLACE'
-attrib_array(kicker$, v_displace$)                   = 'V_DISPLACE'
-attrib_array(kicker$, radius$)                       = 'RADIUS'
-attrib_array(kicker$, field_calc$)                   = 'FIELD_CALC'
-attrib_array(kicker$, field_master$)                 = 'FIELD_MASTER'
-attrib_array(kicker$, s_offset$)                     = 'S_OFFSET'
-attrib_array(kicker$, pole_radius$)                  = 'POLE_RADIUS'
-attrib_array(kicker$, ds_slave_offset$)              = reserved_name$
+call init_attrib (kicker$, h_displace$,                    'H_DISPLACE')
+call init_attrib (kicker$, v_displace$,                    'V_DISPLACE')
+call init_attrib (kicker$, radius$,                        'RADIUS')
+call init_attrib (kicker$, field_calc$,                    'FIELD_CALC')
+call init_attrib (kicker$, field_master$,                  'FIELD_MASTER')
+call init_attrib (kicker$, pole_radius$,                   'POLE_RADIUS')
+call init_attrib (kicker$, ds_slave_offset$,               reserved_name$)
 
-attrib_array(sbend$, angle$)                         = 'ANGLE'
-attrib_array(sbend$, e1$)                            = 'E1'
-attrib_array(sbend$, e2$)                            = 'E2'
-attrib_array(sbend$, h1$)                            = 'H1'
-attrib_array(sbend$, h2$)                            = 'H2'
-attrib_array(sbend$, k1$)                            = 'K1'
-attrib_array(sbend$, k2$)                            = 'K2'
-attrib_array(sbend$, g$)                             = 'G'
-attrib_array(sbend$, g_err$)                         = 'G_ERR'
-attrib_array(sbend$, tilt$)                          = 'TILT'
-attrib_array(sbend$, roll$)                          = 'ROLL'
-attrib_array(sbend$, hgap$)                          = 'HGAP'
-attrib_array(sbend$, hgapx$)                         = 'HGAPX'
-attrib_array(sbend$, fint$)                          = 'FINT'
-attrib_array(sbend$, fintx$)                         = 'FINTX'
-attrib_array(sbend$, rho$)                           = 'RHO'
-attrib_array(sbend$, l_chord$)                       = 'L_CHORD'
-attrib_array(sbend$, b_field$)                       = 'B_FIELD'
-attrib_array(sbend$, b_field_err$)                   = 'B_FIELD_ERR'
-attrib_array(sbend$, b1_gradient$)                   = 'B1_GRADIENT'
-attrib_array(sbend$, b2_gradient$)                   = 'B2_GRADIENT'
-attrib_array(sbend$, radius$)                        = 'RADIUS'
-attrib_array(sbend$, field_calc$)                    = 'FIELD_CALC'
-attrib_array(sbend$, field_master$)                  = 'FIELD_MASTER'
-attrib_array(sbend$, ref_orbit$)                     = 'REF_ORBIT'
-!! attrib_array(sbend$, ds_slave_offset$)            = reserved_name$
+call init_attrib (sbend$, angle$,                          'ANGLE')
+call init_attrib (sbend$, e1$,                             'E1')
+call init_attrib (sbend$, e2$,                             'E2')
+call init_attrib (sbend$, h1$,                             'H1')
+call init_attrib (sbend$, h2$,                             'H2')
+call init_attrib (sbend$, k1$,                             'K1')
+call init_attrib (sbend$, k2$,                             'K2')
+call init_attrib (sbend$, g$,                              'G')
+call init_attrib (sbend$, g_err$,                          'G_ERR')
+call init_attrib (sbend$, roll$,                           'ROLL')
+call init_attrib (sbend$, hgap$,                           'HGAP')
+call init_attrib (sbend$, hgapx$,                          'HGAPX')
+call init_attrib (sbend$, fint$,                           'FINT')
+call init_attrib (sbend$, fintx$,                          'FINTX')
+call init_attrib (sbend$, rho$,                            'RHO')
+call init_attrib (sbend$, l_chord$,                        'L_CHORD')
+call init_attrib (sbend$, b_field$,                        'B_FIELD')
+call init_attrib (sbend$, b_field_err$,                    'B_FIELD_ERR')
+call init_attrib (sbend$, b1_gradient$,                    'B1_GRADIENT')
+call init_attrib (sbend$, b2_gradient$,                    'B2_GRADIENT')
+call init_attrib (sbend$, radius$,                         'RADIUS')
+call init_attrib (sbend$, field_calc$,                     'FIELD_CALC')
+call init_attrib (sbend$, field_master$,                   'FIELD_MASTER')
+call init_attrib (sbend$, ref_orbit$,                      'REF_ORBIT')
+call init_attrib (sbend$, ds_slave_offset$,                 reserved_name$)
 
-attrib_array(rbend$, :)                              = attrib_array(sbend$, :)
+attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
-attrib_array(bend_sol_quad$, angle$)                 = 'ANGLE'
-attrib_array(bend_sol_quad$, k1$)                    = 'K1'
-attrib_array(bend_sol_quad$, g$)                     = 'G'
-attrib_array(bend_sol_quad$, ks$)                    = 'KS'
-attrib_array(bend_sol_quad$, dks_ds$)                = 'DKS_DS'
-attrib_array(bend_sol_quad$, quad_tilt$)             = 'QUAD_TILT'
-attrib_array(bend_sol_quad$, bend_tilt$)             = 'BEND_TILT'
-attrib_array(bend_sol_quad$, x_quad$)                = 'X_QUAD'
-attrib_array(bend_sol_quad$, y_quad$)                = 'Y_QUAD'
-attrib_array(bend_sol_quad$, tilt$)                  = 'TILT'
-attrib_array(bend_sol_quad$, rho$)                   = 'RHO'
-attrib_array(bend_sol_quad$, radius$)                = 'RADIUS'
-attrib_array(bend_sol_quad$, field_calc$)            = 'FIELD_CALC'
-attrib_array(bend_sol_quad$, field_master$)          = 'FIELD_MASTER'
-!! attrib_array(bend_sol_quad$, ds_slave_offset$)       = reserved_name$
+call init_attrib (bend_sol_quad$, angle$,                  'ANGLE')
+call init_attrib (bend_sol_quad$, k1$,                     'K1')
+call init_attrib (bend_sol_quad$, g$,                      'G')
+call init_attrib (bend_sol_quad$, ks$,                     'KS')
+call init_attrib (bend_sol_quad$, dks_ds$,                 'DKS_DS')
+call init_attrib (bend_sol_quad$, quad_tilt$,              'QUAD_TILT')
+call init_attrib (bend_sol_quad$, bend_tilt$,              'BEND_TILT')
+call init_attrib (bend_sol_quad$, x_quad$,                 'X_QUAD')
+call init_attrib (bend_sol_quad$, y_quad$,                 'Y_QUAD')
+call init_attrib (bend_sol_quad$, rho$,                    'RHO')
+call init_attrib (bend_sol_quad$, radius$,                 'RADIUS')
+call init_attrib (bend_sol_quad$, field_calc$,             'FIELD_CALC')
+call init_attrib (bend_sol_quad$, field_master$,           'FIELD_MASTER')
+call init_attrib (bend_sol_quad$, ds_slave_offset$,        reserved_name$)
 
-attrib_array(patch$, l$)                             = 'L'
-attrib_array(patch$, p0c_start$)                     = 'P0C_START'
-attrib_array(patch$, e_tot_start$)                   = 'E_TOT_START'
-attrib_array(patch$, x_pitch$)                       = 'X_PITCH'
-attrib_array(patch$, y_pitch$)                       = 'Y_PITCH'
-attrib_array(patch$, x_offset$)                      = 'X_OFFSET'
-attrib_array(patch$, y_offset$)                      = 'Y_OFFSET'
-attrib_array(patch$, z_offset$)                      = 'Z_OFFSET'
-attrib_array(patch$, e_tot_offset$)                  = 'E_TOT_OFFSET'     
-attrib_array(patch$, tilt$)                          = 'TILT'
-attrib_array(patch$, ref_orbit$)                     = 'REF_ORBIT'
-attrib_array(patch$, ref_patch$)                     = 'REF_PATCH'
-attrib_array(patch$, n_ref_pass$)                    = 'N_REF_PASS'
-attrib_array(patch$, patch_end$)                     = 'PATCH_END'
-attrib_array(patch$, translate_after$)               = 'TRANSLATE_AFTER'
-attrib_array(patch$, x_position$)                    = 'X_POSITION'
-attrib_array(patch$, y_position$)                    = 'Y_POSITION'
-attrib_array(patch$, z_position$)                    = 'Z_POSITION'
-attrib_array(patch$, theta_position$)                = 'THETA_POSITION'
-attrib_array(patch$, phi_position$)                  = 'PHI_POSITION'
-attrib_array(patch$, psi_position$)                  = 'PSI_POSITION'
+call init_attrib (patch$, l$,                              'L')
+call init_attrib (patch$, p0c_start$,                      'P0C_START')
+call init_attrib (patch$, e_tot_start$,                    'E_TOT_START')
+call init_attrib (patch$, e_tot_offset$,                   'E_TOT_OFFSET'     )
+call init_attrib (patch$, ref_orbit$,                      'REF_ORBIT')
+call init_attrib (patch$, ref_patch$,                      'REF_PATCH')
+call init_attrib (patch$, n_ref_pass$,                     'N_REF_PASS')
+call init_attrib (patch$, patch_end$,                      'PATCH_END')
+call init_attrib (patch$, translate_after$,                'TRANSLATE_AFTER')
 
-attrib_array(quadrupole$, k1$)                       = 'K1'
-attrib_array(quadrupole$, B1_gradient$)              = 'B1_GRADIENT'
-attrib_array(quadrupole$, radius$)                   = 'RADIUS'
-attrib_array(quadrupole$, field_calc$)               = 'FIELD_CALC'
-attrib_array(quadrupole$, field_master$)             = 'FIELD_MASTER'
-attrib_array(quadrupole$, pole_radius$)              = 'POLE_RADIUS'
-attrib_array(quadrupole$, ds_slave_offset$)          = reserved_name$
+call init_attrib (quadrupole$, k1$,                        'K1')
+call init_attrib (quadrupole$, B1_gradient$,               'B1_GRADIENT')
+call init_attrib (quadrupole$, radius$,                    'RADIUS')
+call init_attrib (quadrupole$, field_calc$,                'FIELD_CALC')
+call init_attrib (quadrupole$, field_master$,              'FIELD_MASTER')
+call init_attrib (quadrupole$, pole_radius$,               'POLE_RADIUS')
+call init_attrib (quadrupole$, ds_slave_offset$,           reserved_name$)
 
-attrib_array(sextupole$, k2$)                        = 'K2'
-attrib_array(sextupole$, B2_gradient$)               = 'B2_GRADIENT'
-attrib_array(sextupole$, radius$)                    = 'RADIUS'
-attrib_array(sextupole$, field_calc$)                = 'FIELD_CALC'
-attrib_array(sextupole$, field_master$)              = 'FIELD_MASTER'
-attrib_array(sextupole$, pole_radius$)               = 'POLE_RADIUS'
-attrib_array(sextupole$, ds_slave_offset$)           = reserved_name$
+call init_attrib (sextupole$, k2$,                         'K2')
+call init_attrib (sextupole$, B2_gradient$,                'B2_GRADIENT')
+call init_attrib (sextupole$, radius$,                     'RADIUS')
+call init_attrib (sextupole$, field_calc$,                 'FIELD_CALC')
+call init_attrib (sextupole$, field_master$,               'FIELD_MASTER')
+call init_attrib (sextupole$, pole_radius$,                'POLE_RADIUS')
+call init_attrib (sextupole$, ds_slave_offset$,            reserved_name$)
 
-attrib_array(octupole$, k3$)                         = 'K3'
-attrib_array(octupole$, B3_gradient$)                = 'B3_GRADIENT'
-attrib_array(octupole$, radius$)                     = 'RADIUS'
-attrib_array(octupole$, field_calc$)                 = 'FIELD_CALC'
-attrib_array(octupole$, field_master$)               = 'FIELD_MASTER'
-attrib_array(octupole$, pole_radius$)                = 'POLE_RADIUS'
-attrib_array(octupole$, ds_slave_offset$)            = reserved_name$
+call init_attrib (octupole$, k3$,                          'K3')
+call init_attrib (octupole$, B3_gradient$,                 'B3_GRADIENT')
+call init_attrib (octupole$, radius$,                      'RADIUS')
+call init_attrib (octupole$, field_calc$,                  'FIELD_CALC')
+call init_attrib (octupole$, field_master$,                'FIELD_MASTER')
+call init_attrib (octupole$, pole_radius$,                 'POLE_RADIUS')
+call init_attrib (octupole$, ds_slave_offset$,             reserved_name$)
 
-attrib_array(solenoid$, ks$)                         = 'KS'
-attrib_array(solenoid$, bs_field$)                   = 'BS_FIELD'
-attrib_array(solenoid$, radius$)                     = 'RADIUS'
-attrib_array(solenoid$, field_calc$)                 = 'FIELD_CALC'
-attrib_array(solenoid$, field_master$)               = 'FIELD_MASTER'
-attrib_array(solenoid$, pole_radius$)                = 'POLE_RADIUS'
-attrib_array(solenoid$, ds_slave_offset$)            = reserved_name$
+call init_attrib (solenoid$, ks$,                          'KS')
+call init_attrib (solenoid$, bs_field$,                    'BS_FIELD')
+call init_attrib (solenoid$, radius$,                      'RADIUS')
+call init_attrib (solenoid$, field_calc$,                  'FIELD_CALC')
+call init_attrib (solenoid$, field_master$,                'FIELD_MASTER')
+call init_attrib (solenoid$, pole_radius$,                 'POLE_RADIUS')
+call init_attrib (solenoid$, ds_slave_offset$,             reserved_name$)
 
-attrib_array(rfcavity$, dphi0$)                      = 'DPHI0'
-attrib_array(rfcavity$, voltage$)                    = 'VOLTAGE'
-attrib_array(rfcavity$, rf_frequency$)               = 'RF_FREQUENCY'
-attrib_array(rfcavity$, phi0$)                       = 'PHI0'
-attrib_array(rfcavity$, harmon$)                     = 'HARMON'
-attrib_array(rfcavity$, field_calc$)                 = 'FIELD_CALC'
-attrib_array(rfcavity$, field_master$)               = 'FIELD_MASTER'
-attrib_array(rfcavity$, sr_wake_file$)               = 'SR_WAKE_FILE'
-attrib_array(rfcavity$, lr_wake_file$)               = 'LR_WAKE_FILE'
-attrib_array(rfcavity$, lr_freq_spread$)             = 'LR_FREQ_SPREAD'
-attrib_array(rfcavity$, coupler_strength$)           = 'COUPLER_STRENGTH'
-attrib_array(rfcavity$, coupler_angle$)              = 'COUPLER_ANGLE'
-attrib_array(rfcavity$, coupler_phase$)              = 'COUPLER_PHASE'
-attrib_array(rfcavity$, coupler_at$)                 = 'COUPLER_AT'
-attrib_array(rfcavity$, rf_field$)                   = 'RF_FIELD'
-attrib_array(rfcavity$, ds_slave_offset$)            = reserved_name$
+call init_attrib (rfcavity$, dphi0$,                       'DPHI0')
+call init_attrib (rfcavity$, voltage$,                     'VOLTAGE')
+call init_attrib (rfcavity$, rf_frequency$,                'RF_FREQUENCY')
+call init_attrib (rfcavity$, phi0$,                        'PHI0')
+call init_attrib (rfcavity$, harmon$,                      'HARMON')
+call init_attrib (rfcavity$, field_calc$,                  'FIELD_CALC')
+call init_attrib (rfcavity$, field_master$,                'FIELD_MASTER')
+call init_attrib (rfcavity$, sr_wake_file$,                'SR_WAKE_FILE')
+call init_attrib (rfcavity$, lr_wake_file$,                'LR_WAKE_FILE')
+call init_attrib (rfcavity$, lr_freq_spread$,              'LR_FREQ_SPREAD')
+call init_attrib (rfcavity$, coupler_strength$,            'COUPLER_STRENGTH')
+call init_attrib (rfcavity$, coupler_angle$,               'COUPLER_ANGLE')
+call init_attrib (rfcavity$, coupler_phase$,               'COUPLER_PHASE')
+call init_attrib (rfcavity$, coupler_at$,                  'COUPLER_AT')
+call init_attrib (rfcavity$, rf_field$,                    'RF_FIELD')
+call init_attrib (rfcavity$, ds_slave_offset$,             reserved_name$)
 
-attrib_array(elseparator$, gap$)                     = 'GAP'
-attrib_array(elseparator$, e_field$)                 = 'E_FIELD'
-attrib_array(elseparator$, voltage$)                 = 'VOLTAGE'
-attrib_array(elseparator$, tilt$)                    = 'TILT'
-attrib_array(elseparator$, radius$)                  = 'RADIUS'
-attrib_array(elseparator$, field_calc$)              = 'FIELD_CALC'
-attrib_array(elseparator$, field_master$)            = 'FIELD_MASTER'
-attrib_array(elseparator$, ds_slave_offset$)         = reserved_name$
+call init_attrib (elseparator$, gap$,                      'GAP')
+call init_attrib (elseparator$, e_field$,                  'E_FIELD')
+call init_attrib (elseparator$, voltage$,                  'VOLTAGE')
+call init_attrib (elseparator$, radius$,                   'RADIUS')
+call init_attrib (elseparator$, field_calc$,               'FIELD_CALC')
+call init_attrib (elseparator$, field_master$,             'FIELD_MASTER')
+call init_attrib (elseparator$, ds_slave_offset$,          reserved_name$)
 
-attrib_array(beambeam$, sig_x$)                      = 'SIG_X'
-attrib_array(beambeam$, sig_y$)                      = 'SIG_Y'
-attrib_array(beambeam$, sig_z$)                      = 'SIG_Z'
-attrib_array(beambeam$, bbi_const$)                  = 'BBI_CONSTANT'
-attrib_array(beambeam$, charge$)                     = 'CHARGE'
-attrib_array(beambeam$, n_slice$)                    = 'N_SLICE'
-attrib_array(beambeam$, symplectify$)                = 'N_SLICE'
-attrib_array(beambeam$, x_offset$)                   = 'X_OFFSET'
-attrib_array(beambeam$, y_offset$)                   = 'Y_OFFSET'
-attrib_array(beambeam$, s_offset$)                   = 'S_OFFSET'
-attrib_array(beambeam$, x_pitch$)                    = 'X_PITCH'
-attrib_array(beambeam$, y_pitch$)                    = 'Y_PITCH'
-attrib_array(beambeam$, tilt$)                       = 'TILT'
-attrib_array(beambeam$, field_calc$)                 = 'FIELD_CALC'
-attrib_array(beambeam$, field_master$)               = 'FIELD_MASTER'
+call init_attrib (beambeam$, sig_x$,                       'SIG_X')
+call init_attrib (beambeam$, sig_y$,                       'SIG_Y')
+call init_attrib (beambeam$, sig_z$,                       'SIG_Z')
+call init_attrib (beambeam$, bbi_const$,                   'BBI_CONSTANT')
+call init_attrib (beambeam$, charge$,                      'CHARGE')
+call init_attrib (beambeam$, n_slice$,                     'N_SLICE')
+call init_attrib (beambeam$, symplectify$,                 'N_SLICE')
+call init_attrib (beambeam$, field_calc$,                  'FIELD_CALC')
+call init_attrib (beambeam$, field_master$,                'FIELD_MASTER')
 
-attrib_array(wiggler$, k1$)                          = 'K1'
-attrib_array(wiggler$, l_pole$)                      = 'L_POLE'
-attrib_array(wiggler$, b_max$)                       = 'B_MAX'
-attrib_array(wiggler$, rho$)                         = 'RHO'
-attrib_array(wiggler$, n_pole$)                      = 'N_POLE'
-attrib_array(wiggler$, tilt$)                        = 'TILT'
-attrib_array(wiggler$, term$)                        = 'TERM'
-attrib_array(wiggler$, polarity$)                    = 'POLARITY'
-attrib_array(wiggler$, z_patch$)                     = 'Z_PATCH'
-attrib_array(wiggler$, radius$)                      = 'RADIUS'
-attrib_array(wiggler$, field_calc$)                  = 'FIELD_CALC'
-attrib_array(wiggler$, field_master$)                = 'FIELD_MASTER'
-attrib_array(wiggler$, x_ray_line_len$)              = 'X_RAY_LINE_LEN'
-attrib_array(wiggler$, ds_slave_offset$)             = reserved_name$
+call init_attrib (wiggler$, k1$,                           'K1')
+call init_attrib (wiggler$, l_pole$,                       'L_POLE')
+call init_attrib (wiggler$, b_max$,                        'B_MAX')
+call init_attrib (wiggler$, rho$,                          'RHO')
+call init_attrib (wiggler$, n_pole$,                       'N_POLE')
+call init_attrib (wiggler$, term$,                         'TERM')
+call init_attrib (wiggler$, polarity$,                     'POLARITY')
+call init_attrib (wiggler$, z_patch$,                      'Z_PATCH')
+call init_attrib (wiggler$, radius$,                       'RADIUS')
+call init_attrib (wiggler$, field_calc$,                   'FIELD_CALC')
+call init_attrib (wiggler$, field_master$,                 'FIELD_MASTER')
+call init_attrib (wiggler$, x_ray_line_len$,               'X_RAY_LINE_LEN')
+call init_attrib (wiggler$, ds_slave_offset$,              reserved_name$)
 
-attrib_array(sol_quad$, k1$)                         = 'K1'
-attrib_array(sol_quad$, ks$)                         = 'KS'
-attrib_array(sol_quad$, tilt$)                       = 'TILT'
-attrib_array(sol_quad$, radius$)                     = 'RADIUS'
-attrib_array(sol_quad$, field_calc$)                 = 'FIELD_CALC'
-attrib_array(sol_quad$, field_master$)               = 'FIELD_MASTER'
-attrib_array(sol_quad$, b1_gradient$)                = 'B1_GRADIENT'
-attrib_array(sol_quad$, bs_field$)                   = 'BS_FIELD'
-attrib_array(sol_quad$, ds_slave_offset$)            = reserved_name$
+call init_attrib (sol_quad$, k1$,                          'K1')
+call init_attrib (sol_quad$, ks$,                          'KS')
+call init_attrib (sol_quad$, radius$,                      'RADIUS')
+call init_attrib (sol_quad$, field_calc$,                  'FIELD_CALC')
+call init_attrib (sol_quad$, field_master$,                'FIELD_MASTER')
+call init_attrib (sol_quad$, b1_gradient$,                 'B1_GRADIENT')
+call init_attrib (sol_quad$, bs_field$,                    'BS_FIELD')
+call init_attrib (sol_quad$, ds_slave_offset$,             reserved_name$)
 
-attrib_array(multipole$, l$)                         = 'L'
-attrib_array(multipole$, tilt$)                      = 'TILT'
+call init_attrib (multipole$, l$,                          'L')
 attrib_array(multipole$, k0l$:k20l$)    = &
              ['K0L ', 'K1L ', 'K2L ', 'K3L ', 'K4L ', 'K5L ', 'K6L ', 'K7L ', 'K8L ', 'K9L ', 'K10L', &
                       'K11L', 'K12L', 'K13L', 'K14L', 'K15L', 'K16L', 'K17L', 'K18L', 'K19L', 'K20L']
@@ -702,117 +679,108 @@ attrib_array(multipole$, t0$:t20$) = ['T0 ', &
                                'T6 ', 'T7 ', 'T8 ', 'T9 ', 'T10', &
                                'T11', 'T12', 'T13', 'T14', 'T15', &
                                'T16', 'T17', 'T18', 'T19', 'T20' ]
-attrib_array(multipole$, x_offset$)                  = 'X_OFFSET'
-attrib_array(multipole$, y_offset$)                  = 'Y_OFFSET'
-attrib_array(multipole$, s_offset$)                  = 'S_OFFSET'
 
-attrib_array(ab_multipole$, l$)                      = 'L'
-attrib_array(ab_multipole$, tilt$)                   = 'TILT'
-attrib_array(ab_multipole$, x_offset$)               = 'X_OFFSET'
-attrib_array(ab_multipole$, y_offset$)               = 'Y_OFFSET'
-attrib_array(ab_multipole$, s_offset$)               = 'S_OFFSET'
+call init_attrib (ab_multipole$, l$,                       'L')
 
-attrib_array(custom$, val1$)                         = 'VAL1'
-attrib_array(custom$, val2$)                         = 'VAL2'
-attrib_array(custom$, val3$)                         = 'VAL3'
-attrib_array(custom$, val4$)                         = 'VAL4'
-attrib_array(custom$, val5$)                         = 'VAL5'
-attrib_array(custom$, val6$)                         = 'VAL6'
-attrib_array(custom$, val7$)                         = 'VAL7'
-attrib_array(custom$, val8$)                         = 'VAL8'
-attrib_array(custom$, val9$)                         = 'VAL9'
-attrib_array(custom$, val10$)                        = 'VAL10'
-attrib_array(custom$, val11$)                        = 'VAL11'
-attrib_array(custom$, val12$)                        = 'VAL12'
-attrib_array(custom$, field_calc$)                   = 'FIELD_CALC'
-attrib_array(custom$, field_master$)                 = 'FIELD_MASTER'
-attrib_array(custom$, delta_e$)                      = 'DELTA_E'
-attrib_array(custom$, delta_ref_time$)               = 'DELTA_REF_TIME'
-attrib_array(custom$, e_tot_start$)                  = 'E_TOT_START'
-attrib_array(custom$, p0c_start$)                    = 'P0C_START'
-attrib_array(custom$, ds_slave_offset$)              = reserved_name$
+call init_attrib (custom$, val1$,                          'VAL1')
+call init_attrib (custom$, val2$,                          'VAL2')
+call init_attrib (custom$, val3$,                          'VAL3')
+call init_attrib (custom$, val4$,                          'VAL4')
+call init_attrib (custom$, val5$,                          'VAL5')
+call init_attrib (custom$, val6$,                          'VAL6')
+call init_attrib (custom$, val7$,                          'VAL7')
+call init_attrib (custom$, val8$,                          'VAL8')
+call init_attrib (custom$, val9$,                          'VAL9')
+call init_attrib (custom$, val10$,                         'VAL10')
+call init_attrib (custom$, val11$,                         'VAL11')
+call init_attrib (custom$, val12$,                         'VAL12')
+call init_attrib (custom$, field_calc$,                    'FIELD_CALC')
+call init_attrib (custom$, field_master$,                  'FIELD_MASTER')
+call init_attrib (custom$, delta_e$,                       'DELTA_E')
+call init_attrib (custom$, e_tot_start$,                   'E_TOT_START')
+call init_attrib (custom$, p0c_start$,                     'P0C_START')
+call init_attrib (custom$, ds_slave_offset$,               reserved_name$)
 
-attrib_array(hybrid$, l$)                            = 'L'
-attrib_array(hybrid$, delta_e$)                      = 'DELTA_E'
-attrib_array(hybrid$, delta_ref_time$)               = 'DELTA_REF_TIME'
-attrib_array(hybrid$, e_tot_start$)                  = 'E_TOT_START'
-attrib_array(hybrid$, p0c_start$)                    = 'P0C_START'
+call init_attrib (hybrid$, l$,                             'L')
+call init_attrib (hybrid$, delta_e$,                       'DELTA_E')
+call init_attrib (hybrid$, delta_ref_time$,                'DELTA_REF_TIME')
+call init_attrib (hybrid$, e_tot_start$,                   'E_TOT_START')
+call init_attrib (hybrid$, p0c_start$,                     'P0C_START')
 
-attrib_array(mirror$, graze_angle$)                  = 'GRAZE_ANGLE'
-attrib_array(mirror$, graze_angle_err$)              = 'GRAZE_ANGLE_ERR'
-attrib_array(mirror$, critical_angle$)               = 'CRITICAL_ANGLE'
-attrib_array(mirror$, tilt_err$)                     = 'TILT_ERR'
-attrib_array(mirror$, g_graze$)                      = 'G_GRAZE'
-attrib_array(mirror$, g_trans$)                      = 'G_TRANS'
-attrib_array(mirror$, ref_wavelength$)               = 'REF_WAVELENGTH'
+call init_attrib (mirror$, graze_angle$,                   'GRAZE_ANGLE')
+call init_attrib (mirror$, graze_angle_err$,               'GRAZE_ANGLE_ERR')
+call init_attrib (mirror$, critical_angle$,                'CRITICAL_ANGLE')
+call init_attrib (mirror$, tilt_err$,                      'TILT_ERR')
+call init_attrib (mirror$, g_graze$,                       'G_GRAZE')
+call init_attrib (mirror$, g_trans$,                       'G_TRANS')
+call init_attrib (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
-attrib_array(multilayer_mirror$, graze_angle$)       = 'GRAZE_ANGLE'
-attrib_array(multilayer_mirror$, graze_angle_err$)   = 'GRAZE_ANGLE_ERR'
-attrib_array(multilayer_mirror$, tilt_err$)          = 'TILT_ERR'
-attrib_array(multilayer_mirror$, n_layers$)          = 'N_LAYERS'
-attrib_array(multilayer_mirror$, d1_thickness$)      = 'D1_THICKNESS'
-attrib_array(multilayer_mirror$, d2_thickness$)      = 'D2_THICKNESS'
-attrib_array(multilayer_mirror$, v1_unitcell$)       = 'V1_UNITCELL'
-attrib_array(multilayer_mirror$, v2_unitcell$)       = 'V2_UNITCELL'
-attrib_array(multilayer_mirror$, f0_re1$)            = 'F0_RE1'
-attrib_array(multilayer_mirror$, f0_im1$)            = 'F0_IM1'
-attrib_array(multilayer_mirror$, f0_re2$)            = 'F0_RE2'
-attrib_array(multilayer_mirror$, f0_im2$)            = 'F0_IM2'
-attrib_array(multilayer_mirror$, ref_wavelength$)    = 'REF_WAVELENGTH'
-attrib_array(multilayer_mirror$, crystal_type$)      = 'CRYSTAL_TYPE'
-attrib_array(multilayer_mirror$, d_source$)          = 'D_SOURCE'
-attrib_array(multilayer_mirror$, d_detec$)           = 'D_DETEC'
-attrib_array(multilayer_mirror$, c2_curve$)          = 'C2_CURVE'
-attrib_array(multilayer_mirror$, c3_curve$)          = 'C3_CURVE'
-attrib_array(multilayer_mirror$, c4_curve$)          = 'C4_CURVE'
-attrib_array(multilayer_mirror$, c2_curve_tot$)      = 'C2_CURVE_TOT'
-attrib_array(multilayer_mirror$, c3_curve_tot$)      = 'C3_CURVE_TOT'
-attrib_array(multilayer_mirror$, c4_curve_tot$)      = 'C4_CURVE_TOT'
-attrib_array(multilayer_mirror$, ref_polarization$)  = 'REF_POLARIZATION'
+call init_attrib (multilayer_mirror$, graze_angle$,        'GRAZE_ANGLE')
+call init_attrib (multilayer_mirror$, graze_angle_err$,    'GRAZE_ANGLE_ERR')
+call init_attrib (multilayer_mirror$, tilt_err$,           'TILT_ERR')
+call init_attrib (multilayer_mirror$, n_cells$,            'N_CELLS')
+call init_attrib (multilayer_mirror$, d1_thickness$,       'D1_THICKNESS')
+call init_attrib (multilayer_mirror$, d2_thickness$,       'D2_THICKNESS')
+call init_attrib (multilayer_mirror$, v1_unitcell$,        'V1_UNITCELL')
+call init_attrib (multilayer_mirror$, v2_unitcell$,        'V2_UNITCELL')
+call init_attrib (multilayer_mirror$, f0_re1$,             'F0_RE1')
+call init_attrib (multilayer_mirror$, f0_im1$,             'F0_IM1')
+call init_attrib (multilayer_mirror$, f0_re2$,             'F0_RE2')
+call init_attrib (multilayer_mirror$, f0_im2$,             'F0_IM2')
+call init_attrib (multilayer_mirror$, ref_wavelength$,     'REF_WAVELENGTH')
+call init_attrib (multilayer_mirror$, crystal_type$,       'CRYSTAL_TYPE')
+call init_attrib (multilayer_mirror$, d_source$,           'D_SOURCE')
+call init_attrib (multilayer_mirror$, d_detec$,            'D_DETEC')
+call init_attrib (multilayer_mirror$, c2_curve$,           'C2_CURVE')
+call init_attrib (multilayer_mirror$, c3_curve$,           'C3_CURVE')
+call init_attrib (multilayer_mirror$, c4_curve$,           'C4_CURVE')
+call init_attrib (multilayer_mirror$, c2_curve_tot$,       'C2_CURVE_TOT')
+call init_attrib (multilayer_mirror$, c3_curve_tot$,       'C3_CURVE_TOT')
+call init_attrib (multilayer_mirror$, c4_curve_tot$,       'C4_CURVE_TOT')
+call init_attrib (multilayer_mirror$, ref_polarization$,   'REF_POLARIZATION')
 
-attrib_array(crystal$, graze_angle_in$)              = 'GRAZE_ANGLE_IN'
-attrib_array(crystal$, graze_angle_out$)             = 'GRAZE_ANGLE_OUT'
-attrib_array(crystal$, graze_angle_err$)             = 'GRAZE_ANGLE_ERR'
-attrib_array(crystal$, psi_angle$)                   = 'PSI_ANGLE'
-attrib_array(crystal$, alpha_angle$)                 = 'ALPHA_ANGLE'
-attrib_array(crystal$, tilt_err$)                    = 'TILT_ERR'
-attrib_array(crystal$, tilt_corr$)                   = 'TILT_CORR'
-attrib_array(crystal$, d_spacing$)                   = 'D_SPACING'
-attrib_array(crystal$, v_unitcell$)                  = 'V_UNITCELL'
-attrib_array(crystal$, f0_re$)                       = 'F0_RE'
-attrib_array(crystal$, f0_im$)                       = 'F0_IM'
-attrib_array(crystal$, fh_re$)                       = 'FH_RE'
-attrib_array(crystal$, fh_im$)                       = 'FH_IM'
-attrib_array(crystal$, b_param$)                     = 'B_PARAM'
-attrib_array(crystal$, bragg_angle$)                 = 'BRAGG_ANGLE' 
-attrib_array(crystal$, g_trans$)                     = 'G_TRANS'
-attrib_array(crystal$, ref_wavelength$)              = 'REF_WAVELENGTH'
-attrib_array(crystal$, diffraction_type$)            = 'DIFFRACTION_TYPE'  ! Note: Not currently used.
-attrib_array(crystal$, crystal_type$)                = 'CRYSTAL_TYPE'
-attrib_array(crystal$, d_source$)                    = 'D_SOURCE'
-attrib_array(crystal$, d_detec$)                     = 'D_DETEC'
-attrib_array(crystal$, c2_curve$)                    = 'C2_CURVE'
-attrib_array(crystal$, c3_curve$)                    = 'C3_CURVE'
-attrib_array(crystal$, c4_curve$)                    = 'C4_CURVE'
-attrib_array(crystal$, c2_curve_tot$)                = 'C2_CURVE_TOT'
-attrib_array(crystal$, c3_curve_tot$)                = 'C3_CURVE_TOT'
-attrib_array(crystal$, c4_curve_tot$)                = 'C4_CURVE_TOT'
-attrib_array(crystal$, thickness$)                   = 'THICKNESS'
-attrib_array(crystal$, follow_diffracted_beam$)      = 'FOLLOW_DIFFRACTED_BEAM'
-attrib_array(crystal$, kh_x_norm$)                   = reserved_name$
-attrib_array(crystal$, kh_y_norm$)                   = reserved_name$
-attrib_array(crystal$, kh_z_norm$)                   = reserved_name$
-attrib_array(crystal$, l_x$)                         = reserved_name$
-attrib_array(crystal$, l_y$)                         = reserved_name$
-attrib_array(crystal$, l_z$)                         = reserved_name$
-attrib_array(crystal$, ref_polarization$)            = 'REF_POLARIZATION'
-attrib_array(crystal$, ref_cap_gamma$)               = 'REF_CAP_GAMMA'
+call init_attrib (crystal$, graze_angle_in$,               'GRAZE_ANGLE_IN')
+call init_attrib (crystal$, graze_angle_out$,              'GRAZE_ANGLE_OUT')
+call init_attrib (crystal$, graze_angle_err$,              'GRAZE_ANGLE_ERR')
+call init_attrib (crystal$, psi_angle$,                    'PSI_ANGLE')
+call init_attrib (crystal$, alpha_angle$,                  'ALPHA_ANGLE')
+call init_attrib (crystal$, tilt_err$,                     'TILT_ERR')
+call init_attrib (crystal$, tilt_corr$,                    'TILT_CORR')
+call init_attrib (crystal$, d_spacing$,                    'D_SPACING')
+call init_attrib (crystal$, v_unitcell$,                   'V_UNITCELL')
+call init_attrib (crystal$, f0_re$,                        'F0_RE')
+call init_attrib (crystal$, f0_im$,                        'F0_IM')
+call init_attrib (crystal$, fh_re$,                        'FH_RE')
+call init_attrib (crystal$, fh_im$,                        'FH_IM')
+call init_attrib (crystal$, b_param$,                      'B_PARAM')
+call init_attrib (crystal$, bragg_angle$,                  'BRAGG_ANGLE' )
+call init_attrib (crystal$, g_trans$,                      'G_TRANS')
+call init_attrib (crystal$, ref_wavelength$,               'REF_WAVELENGTH')
+call init_attrib (crystal$, diffraction_type$,             'DIFFRACTION_TYPE')  ! Note: Not currently used.
+call init_attrib (crystal$, crystal_type$,                 'CRYSTAL_TYPE')
+call init_attrib (crystal$, d_source$,                     'D_SOURCE')
+call init_attrib (crystal$, d_detec$,                      'D_DETEC')
+call init_attrib (crystal$, c2_curve$,                     'C2_CURVE')
+call init_attrib (crystal$, c3_curve$,                     'C3_CURVE')
+call init_attrib (crystal$, c4_curve$,                     'C4_CURVE')
+call init_attrib (crystal$, c2_curve_tot$,                 'C2_CURVE_TOT')
+call init_attrib (crystal$, c3_curve_tot$,                 'C3_CURVE_TOT')
+call init_attrib (crystal$, c4_curve_tot$,                 'C4_CURVE_TOT')
+call init_attrib (crystal$, thickness$,                    'THICKNESS')
+call init_attrib (crystal$, follow_diffracted_beam$,       'FOLLOW_DIFFRACTED_BEAM')
+call init_attrib (crystal$, kh_x_norm$,                    reserved_name$)
+call init_attrib (crystal$, kh_y_norm$,                    reserved_name$)
+call init_attrib (crystal$, kh_z_norm$,                    reserved_name$)
+call init_attrib (crystal$, l_x$,                          reserved_name$)
+call init_attrib (crystal$, l_y$,                          reserved_name$)
+call init_attrib (crystal$, l_z$,                          reserved_name$)
+call init_attrib (crystal$, ref_polarization$,             'REF_POLARIZATION')
+call init_attrib (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA')
 
-attrib_array(capillary$, l$)                         = 'L'
-attrib_array(capillary$, s_spline$)                  = 'S_SPLINE'
-attrib_array(capillary$, n_slice_spline$)            = 'N_SLICE_SPLINE'
-attrib_array(capillary$, critical_angle_factor$)     = 'CRITICAL_ANGLE_FACTOR'
-attrib_array(capillary$, ds_slave_offset$)           = reserved_name$
+call init_attrib (capillary$, s_spline$,                   'S_SPLINE')
+call init_attrib (capillary$, n_slice_spline$,             'N_SLICE_SPLINE')
+call init_attrib (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
+call init_attrib (capillary$, ds_slave_offset$,            reserved_name$)
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -842,6 +810,28 @@ do i = 1, n_key
 enddo
 
 init_needed = .false.
+
+!-------------------------------------------------------------------------
+contains
+
+subroutine init_attrib (ix_key, ix_attrib, name)
+
+integer ix_key, ix_attrib
+character(*) name
+
+! Check that attrib_array(ix_key, ix_attrib) has not already been set.
+! If so bomb program.
+
+if (attrib_array(ix_key, ix_attrib) /= null_name$) then
+  call out_io (s_fatal$, 'init_attrib', 'ERROR IN INITIALIZING ATTRIB_ARRAY FOR: ' // key_name(ix_key), &
+                  'IX_ATTRIB \i0\ ALREADY SET!', &
+                  'OLD/NEW NAMES: ' // trim(attrib_array(ix_key, ix_attrib)) // ' : ' // name, &
+                  i_array = [ix_attrib])
+  call err_exit
+endif
+attrib_array(ix_key, ix_attrib) = name
+
+end subroutine init_attrib 
 
 end subroutine init_attribute_name_array
 
