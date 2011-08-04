@@ -303,8 +303,12 @@ if (use_cache .or. init_cache) then
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
-      n_step = 10
-      del_z = 2 * ele2%value(l_pole$) / n_step
+      n_step = nint(10 * ele2%value(l$) / ele2%value(l_pole$))
+      del_z = ele2%value(l$) / n_step
+      ! bmad_standard will not properly do partial track through a periodic_type wiggler so
+      ! switch to symp_lie_bmad type tracking.
+      ele2%tracking_method = symp_lie_bmad$  
+      ele2%mat6_calc_method = symp_lie_bmad$  
     else
       call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), &
                                     bmad_com%default_ds_step, del_z, n_step)
@@ -441,12 +445,10 @@ do ir = 1, lat%n_ele_track
     rad_int%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
     rad_int%i2(ir) = ll * G_max**2 / 2
     rad_int%i3(ir) = ll * g3_ave
-    rad_int%i4a(ir) = 0   ! Too complicated to calculate. Probably small
-    rad_int%i4b(ir) = 0   ! Too complicated to calculate. Probably small
 
     pt%g_x0 = g3_ave**(1.0/3)
 
-    call qromb_rad_int ([F, F, F, F, F, T, T, F, T], pt, ri_info, int_tot, rad_int)
+    call qromb_rad_int ([F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int)
     cycle
 
   endif

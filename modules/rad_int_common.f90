@@ -267,7 +267,7 @@ real(rp) f0, f1, del_z, c, s, x, y
 real(rp) eta_a0(4), eta_a1(4), eta_b0(4), eta_b1(4)
 real(rp) dz, z1
 
-integer i0, i1
+integer i0, i1, tm_saved, m6cm_saved
 integer i, ix, j_loop, n_pt, n, n1, n2
 integer, save :: ix_ele = -1
 
@@ -293,7 +293,6 @@ if (associated(info%cache_ele)) then
   i0 = int(z_here/del_z)
   f1 = (z_here - del_z*i0) / del_z 
   f0 = 1 - f1
-  if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) i0 = modulo (i0, 10)
   i1 = i0 + 1
   if (i1 > ubound(info%cache_ele%pt, 1)) i1 = i0  ! can happen with roundoff
   pt0 = info%cache_ele%pt(i0)
@@ -388,10 +387,25 @@ dz = 1e-3
 z1 = z_here + dz
 if (z1 > ele%value(l$)) z1 = max(0.0_rp, z_here - dz)
 
+! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
+! switch to symp_lie_bmad type tracking.
+
+if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+  tm_saved = ele%tracking_method  
+  m6cm_saved = ele%mat6_calc_method  
+  ele%tracking_method = symp_lie_bmad$
+  ele%mat6_calc_method = symp_lie_bmad$
+endif
+
 call twiss_and_track_partial (ele0, ele, info%lat%param, z_here, runt, start, orb0)
 call twiss_and_track_partial (ele0, ele, info%lat%param, z1, orb_start = start, orb_end = orb1)
 info%a = runt%a
 info%b = runt%b
+
+if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
+  ele%tracking_method  = tm_saved 
+  ele%mat6_calc_method = m6cm_saved 
+endif
 
 !
 
