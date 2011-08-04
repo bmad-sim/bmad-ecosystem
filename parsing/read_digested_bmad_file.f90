@@ -345,7 +345,7 @@ logical error
 
 error = .true.
 
-if (version >= v99) then
+if (version >= 99) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
   read (d_unit, err = 9100) &
