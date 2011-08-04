@@ -61,7 +61,7 @@ type (lat_param_struct), target :: param
 
 real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, design_dE
 real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c, theta_tol, pz_tol, theta_max_old
-real(rp) value_saved(n_attrib_maxx)
+real(rp) phi0_saved, dphi0_saved
 
 integer i, tracking_method_saved
 
@@ -100,7 +100,8 @@ if (design_dE == 0) then
   return
 endif
 
-value_saved = ele%value
+phi0_saved  = ele%value(phi0$) 
+dphi0_saved = ele%value(dphi0$)
 ele%value(phi0$) = 0
 ele%value(dphi0$) = 0
 
@@ -207,7 +208,8 @@ endif
 
 ! Cleanup
 
-ele%value = value_saved
+ele%value(phi0$) = phi0_saved
+ele%value(dphi0$) = dphi0_saved
 ele%tracking_method = tracking_method_saved
 
 !print '(i4, f12.0, 3f12.6)', n_loop, mode1%field_scale, mode1%theta_t0, &
