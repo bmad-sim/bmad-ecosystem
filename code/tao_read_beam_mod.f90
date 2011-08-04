@@ -18,7 +18,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_open_beam_file (file_name)
+! Subroutine tao_open_beam_file (file_name, err_flag)
 !
 ! Routine to open a beam file for reading.
 ! Call tao_close_beam_file when done.
@@ -28,20 +28,29 @@ contains
 !
 ! Input:
 !   file_name -- Character(*): Name of the beam file.
+!   err_flag  -- Logical :: Set true if cannot open the file
 !-
 
-subroutine tao_open_beam_file (file_name)
+subroutine tao_open_beam_file (file_name, err_flag)
 
 implicit none
+
+logical err_flag
 
 character(*) file_name
 character(100) :: full_file_name
 character(80) line
+character(20), parameter :: r_name = 'tao_open_beam_file'
 
 ! Open file and determine whether the file is binary or ascii
 
+err_flag = .true.
+
 call tao_open_file ('TAO_INIT_DIR', file_name, rb_com%iu, full_file_name)
-if (rb_com%iu == 0) stop
+if (rb_com%iu == 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN BEAM FILE!')
+  return
+endif
 
 rb_com%ascii_file = .true.
 read (rb_com%iu, '(a80)') line
@@ -55,6 +64,7 @@ else
 endif
 
 rb_com%file_name = full_file_name
+err_flag = .false.
 
 end subroutine
 

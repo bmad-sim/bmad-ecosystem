@@ -1868,6 +1868,11 @@ case ('sigma.')
 
 case ('spin.')
 
+  if (.not. bmad_com%spin_tracking_on) then
+    why_invalid = 'NO SPIN TRACKING WHEN BMAD_COM%SPIN_TRACKING_ON = FALSE!'
+    return
+  endif
+
   select case (datum%data_type)
 
   case ('spin.theta')

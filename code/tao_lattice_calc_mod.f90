@@ -666,7 +666,7 @@ type (tao_universe_branch_struct), pointer :: uni_branch
 type (branch_struct), pointer :: branch
 
 real(rp) v(6)
-integer i, j, iu, ios, n_in_file, n_in, ix_branch, ib, ie
+integer i, j, n, iu, ios, n_in_file, n_in, ix_branch, ib, ie
 
 character(20) :: r_name = "tao_inject_beam"
 character(100) line
@@ -706,12 +706,15 @@ model%lat%beam_start%vec = beam_init%center
 
 if (u%beam_info%beam0_file /= "") then
   if (u%beam_info%init_beam0 .or. .not. allocated(uni_branch%ele(0)%beam%bunch)) then
-    call tao_open_beam_file (u%beam_info%beam0_file)
+    call tao_open_beam_file (u%beam_info%beam0_file, err)
+    if (err) call err_exit
     call tao_set_beam_params (beam_init%n_bunch, beam_init%n_particle, beam_init%bunch_charge)
     call tao_read_beam (uni_branch%ele(0)%beam, err)
     if (err) call err_exit
     call tao_close_beam_file()
+    n = 0
     do i = 1, size(uni_branch%ele(0)%beam%bunch)
+      n = n + size(uni_branch%ele(0)%beam%bunch(i)%particle)
       do j = 1, size(uni_branch%ele(0)%beam%bunch(i)%particle)
         uni_branch%ele(0)%beam%bunch(i)%particle(j)%r%vec = &
                   uni_branch%ele(0)%beam%bunch(i)%particle(j)%r%vec + model%lat%beam_start%vec
@@ -719,7 +722,9 @@ if (u%beam_info%beam0_file /= "") then
     enddo
     call out_io (s_info$, r_name, &
                   'Read initial beam distribution from: ' // u%beam_info%beam0_file, &
-                  'Centroid Offset: \6es12.3\ ', r_array = model%lat%beam_start%vec)
+                  'Centroid Offset: \6es12.3\ ', &
+                  'Number of particles: \i0\ ', &
+                  r_array = model%lat%beam_start%vec, i_array = [n])
   endif
 
   if (tao_no_beam_left (uni_branch%ele(0)%beam, branch%param%particle)) then

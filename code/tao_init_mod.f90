@@ -550,7 +550,8 @@ u%beam_saved_at = beam_saved_at
 
 if (u%beam_info%beam_all_file /= '') then
   tao_com%use_saved_beam_in_tracking = .true.
-  call tao_open_beam_file (beam_all_file)
+  call tao_open_beam_file (beam_all_file, err)
+  if (err) call err_exit
   call tao_read_beam_file_header (j, u%beam_info%beam_init%n_bunch, &
                                              u%beam_info%beam_init%n_particle, err)  
   if (err) call err_exit
