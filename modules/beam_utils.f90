@@ -1835,6 +1835,8 @@ if (charge_live == 0) then
   return
 endif
   
+if (bmad_com%spin_tracking_on) call calc_spin_params ()
+  
 ! average the energy
 
 avg_energy = sum((1+bunch%particle%r%vec(6)) * charge, mask = (bunch%particle%ix_lost == not_lost$))
@@ -1860,7 +1862,7 @@ call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(s55$), bunch_
 
 sigma_s_save = sigma_s
 call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err, print_err)
-if (err) goto 999
+if (err) return
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
 
@@ -1934,12 +1936,6 @@ bunch_params%b%etap = n_real(4,5)*n_real(6,5) + n_real(4,6)*n_real(6,6)
 
 bunch_params%c%eta  = n_real(5,5)*n_real(6,5) + n_real(5,6)*n_real(6,6)
 bunch_params%c%etap = n_real(6,5)*n_real(6,5) + n_real(6,6)*n_real(6,6)
-
-999 continue
-
-if (bmad_com%spin_tracking_on) call calc_spin_params ()
-  
-! convert back to cannonical coords
 
 !----------------------------------------------------------------------
 contains

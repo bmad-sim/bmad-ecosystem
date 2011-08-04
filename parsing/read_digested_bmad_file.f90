@@ -84,7 +84,7 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 read (d_unit, err = 9010) n_files, version
 
 v99 = (version == 99)
-v_old = .not. v99
+v_old = .false.
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
