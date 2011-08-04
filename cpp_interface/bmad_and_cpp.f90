@@ -1348,7 +1348,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%mat6_calc_method, f%tracking_method, f%field_calc, f%ref_orbit, &
       f%taylor_order, f%aperture_at, f%aperture_type, f%attribute_status, f%n_attribute_modify, &
       f%symplectify, f%mode_flip, f%multipoles_on, f%scale_multipoles, f%map_with_offsets, &
-      f%field_master, f%is_on, f%old_is_on, f%logic, f%bmad_logic, f%on_a_girder, &
+      f%field_master, f%reversed, f%is_on, f%old_is_on, f%logic, f%bmad_logic, f%on_a_girder, &
       f%csr_calc_on, f%offset_moves_aperture)
 
 if (associated(f%r)) deallocate(r_arr)
@@ -1382,7 +1382,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_co
     ix_point, ixx, mat6_meth, tracking_meth, field_calc, ref_orb, tlr_ord, &
     aperture_at, aperture_type, attrib_stat, n_attrib_modify, &
     symp, mode_flip, multi_on, scale_multi, &
-    map_with_off, field_master, is_on, old_is_on, logic, bmad_logic, &
+    map_with_off, field_master, reversed, is_on, old_is_on, logic, bmad_logic, &
     girder, csr_calc, offset_moves_ap)   
 
 use fortran_and_cpp
@@ -1400,7 +1400,7 @@ type (genfield), target :: gen_f
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub_key, lord_status, slave_status
 integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, field_calc
 integer ref_orb, tlr_ord, aperture_at, attrib_stat, symp, mode_flip, multi_on, map_with_off, field_master
-integer is_on, old_is_on, logic, bmad_logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
+integer reversed, is_on, old_is_on, logic, bmad_logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
 integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 integer n_attrib_modify, ix_value, n_slave, ix1_slave, scale_multi
 
@@ -1535,6 +1535,7 @@ f%multipoles_on         = f_logic(multi_on)
 f%scale_multipoles      = f_logic(scale_multi)
 f%map_with_offsets      = f_logic(map_with_off)
 f%field_master          = f_logic(field_master)
+f%reversed              = f_logic(reversed)
 f%is_on                 = f_logic(is_on)
 f%old_is_on             = f_logic(old_is_on)
 f%logic                 = f_logic(logic)

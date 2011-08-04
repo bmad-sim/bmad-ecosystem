@@ -94,7 +94,7 @@ do ib = 0, ubound(lat%branch, 1)
       E_tot = E_tot + ele%value(delta_e$)
       call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
 
-    case (crystal$, mirror$)
+    case (crystal$, mirror$, multilayer_mirror$)
       ele%value(ref_wavelength$) = c_light * h_planck / E_tot
 
     case (patch$) 

@@ -56,7 +56,12 @@ subroutine multilayer_type_to_multilayer_params (ele, err_flag)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+
+real(rp) D, sin_theta0, del
+real(rp), pointer :: v(:)
+
+complex(rp) xi1, xi2
 
 integer ix
 
@@ -66,15 +71,34 @@ character(40) :: r_name = 'multilayer_type_to_multilayer_params'
 
 ! get types
 
-err_flag = .true.
+err_flag = .false.
 
 ix = index(ele%component_name, ':')
 if (ix == 0) return
+v => ele%value
 
-call load_layer_params (ele%component_name(1:ix-1), ele%value(f0_re1$), ele%value(f0_im1$), ele%value(v1_unitcell$))
+call load_layer_params (ele%component_name(1:ix-1), v(f0_re1$), v(f0_im1$), v(v1_unitcell$))
 if (err_flag) return
 
-call load_layer_params (ele%component_name(ix+1:),  ele%value(f0_re2$), ele%value(f0_im2$), ele%value(v2_unitcell$))
+call load_layer_params (ele%component_name(ix+1:),  v(f0_re2$), v(f0_im2$), v(v2_unitcell$))
+if (err_flag) return
+
+! Calc graze angle. See Kohn Eq 36.
+
+D = v(d1_thickness$) + v(d2_thickness$)
+if (D == 0) then
+  call out_io (s_error$, r_name, 'MULTILAYER_MIRROR HAS ZERO THICKNESS: ' // ele%name)
+  err_flag = .true.
+  return
+endif
+
+xi1 = cmplx(-v(f0_re1$), v(f0_im1$)) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v1_unitcell$))
+xi2 = cmplx(-v(f0_re2$), v(f0_im2$)) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v2_unitcell$)) 
+
+sin_theta0 = v(ref_wavelength$) / (2 * D)
+del = (v(d1_thickness$) * real(sqrt(cmplx(sin_theta0**2 + xi1)) - sin_theta0) + &
+       v(d2_thickness$) * real(sqrt(cmplx(sin_theta0**2 + xi2)) - sin_theta0)) / D
+v(graze_angle$) = asin(sin_theta0 - del)
 
 !-----------------------------------------------------------------------------------------
 contains
@@ -117,6 +141,7 @@ case default
 
   call out_io (s_fatal$, r_name, 'BAD CRYSTAL TYPE: ' // ele%component_name)
   err_flag = .true.
+  return
 
 end select
 
@@ -127,8 +152,6 @@ f0_re = n_atom * real(f0)
 f0_im = n_atom * aimag(f0)
 
 v_unitcell = cp%a0**3
-
-err_flag = .false.
 
 end subroutine load_layer_params 
 
@@ -560,7 +583,7 @@ if (init_needed) then
   f0_c(82) = atomic_f_struct(23583.0, 6.00115, 0.787230E-03)
   f0_c(83) = atomic_f_struct(25966.2, 6.00063, 0.624439E-03)
   f0_c(84) = atomic_f_struct(28590.2, 6.00020, 0.496161E-03)
-! Tungsta
+! Tungston
   f0_w(01) = atomic_f_struct(10.0000, -9999., 1.92551)
   f0_w(02) = atomic_f_struct(11.0105, -9999., 2.44381)
   f0_w(03) = atomic_f_struct(12.1232, -9999., 2.99166)
@@ -659,9 +682,9 @@ endif
 
 select case (atom)
 case ('B')
-  f0_ptr => f0_w
+  f0_ptr => f0_b
 case ('C')
-  f0_ptr => f0_w
+  f0_ptr => f0_c
 case ('SI')
   f0_ptr => f0_si
 case ('W')
@@ -678,7 +701,7 @@ elseif (ix == n) then
 else
   r = (f0_ptr(ix+1)%energy - e_tot) / (f0_ptr(ix+1)%energy - f0_ptr(ix)%energy)
   f0 = cmplx( f0_ptr(ix)%f0_re * r + f0_ptr(ix+1)%f0_re * (1 - r), &
-                f0_ptr(ix)%f0_im * r + f0_ptr(ix+1)%f0_im * (1 - r))
+              f0_ptr(ix)%f0_im * r + f0_ptr(ix+1)%f0_im * (1 - r) )
 endif
 
 end function atomic_f0_calc 
@@ -729,6 +752,15 @@ if (init_needed) then
   cp%r_atom(6)%vec = [0.25, 0.75, 0.75]
   cp%r_atom(7)%vec = [0.75, 0.25, 0.75]
   cp%r_atom(8)%vec = [0.75, 0.75, 0.25]
+
+  cp => params_b4c
+  allocate (cp%r_atom(3))
+  cp%a0 = (109.5e-30)**(1.0/3)
+
+  cp => params_w
+  allocate (cp%r_atom(2))
+  cp%a0 = 3.1652e-10
+
 end if
 
 !

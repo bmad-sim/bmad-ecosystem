@@ -947,6 +947,7 @@ public:
   bool scale_multipoles;
   bool map_with_offsets;        // Exact radiation integral calculation?
   bool field_master;            // Calculate strength from the field value?
+  bool reversed;                // Element is longitudinally reversed from it's lord element?
   bool is_on;                   // For turning element on/off.
   bool old_is_on;               // For Bmad internal use only.
   bool logic;                   // For general use. Not used by Bmad.

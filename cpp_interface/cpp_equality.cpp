@@ -300,6 +300,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.multipoles_on == y.multipoles_on);
   is_true = is_true && (x.scale_multipoles == y.scale_multipoles);
   is_true = is_true && (x.map_with_offsets == y.map_with_offsets);
+  is_true = is_true && (x.reversed == y.reversed);
   is_true = is_true && (x.is_on == y.is_on);
   is_true = is_true && (x.old_is_on == y.old_is_on);
   is_true = is_true && (x.logic == y.logic);

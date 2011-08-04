@@ -28,6 +28,7 @@ contains
 ! Subroutine track1_multilayer_mirror (ele, param, end_orb)
 !
 ! Routine to track reflection from a multilayer_mirror.
+! Basic equations are from Kohn, "On the Theory of Reflectivity of an X-Ray Multilayer Mirror".
 !
 ! Input:
 !   ele    -- ele_struct: Element tracking through.
@@ -47,12 +48,14 @@ type (coord_struct), target:: end_orb
 type (lat_param_struct) :: param
 
 real(rp) k0_outside_norm(3), hit_point(3), wavelength, sin_g, cos_g, f, m_in(3,3)
-real(rp) vec0(3), s_len
+real(rp) vec0(3), s_len, kz_air
 real(rp), pointer :: v(:)
 
-complex(rp) one, eps_1, eps_2, kz1, kz2, c1, c2
+complex(rp) zero, xi_1, xi_2, kz1, kz2, c1, c2
 
 logical curved_surface
+
+character(32), parameter :: r_name = 'track1_multilayer_mirror'
 
 !
 
@@ -89,44 +92,96 @@ if (curved_surface) then
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
 endif
 
-!
+! Note: Koln z-axis = Bmad x-axis.
+! Note: f0_re and f0_im are both positive.
 
-eps_1 = 1 + r_e * wavelength**2 / (pi * ele%value(v1_unitcell$)) * cmplx(v(f0_re1$), v(f0_im1$))
-eps_2 = 1 + r_e * wavelength**2 / (pi * ele%value(v2_unitcell$)) * cmplx(v(f0_re2$), v(f0_im2$))
+xi_1 = cmplx(-v(f0_re1$), v(f0_im1$)) * r_e * wavelength**2 / (pi * ele%value(v1_unitcell$)) 
+xi_2 = cmplx(-v(f0_re2$), v(f0_im2$)) * r_e * wavelength**2 / (pi * ele%value(v2_unitcell$)) 
 
-kz1 = twopi * sqrt(k0_outside_norm(3)**2 + (eps_1)**2) / wavelength
-kz2 = twopi * sqrt(k0_outside_norm(3)**2 + (eps_2)**2) / wavelength
+kz1 = twopi * sqrt(k0_outside_norm(1)**2 + xi_1) / wavelength
+kz2 = twopi * sqrt(k0_outside_norm(1)**2 + xi_2) / wavelength
+kz_air = twopi * k0_outside_norm(1) / wavelength
 
 c1 = exp(I_imaginary * kz1 * ele%value(d1_thickness$) / 2)
-c2 = exp(I_imaginary * kz1 * ele%value(d2_thickness$) / 2)
+c2 = exp(I_imaginary * kz2 * ele%value(d2_thickness$) / 2)
 
-one = cmplx(1.0_rp, 0.0_rp)
+zero = cmplx(0.0_rp, 0.0_rp)
 
-call multilayer_track (eps_1, eps_2, end_orb%e_field_x, end_orb%phase_x) ! pi polarization
-call multilayer_track (one, one, end_orb%e_field_y, end_orb%phase_y) ! sigma polarization
+call multilayer_track (xi_1, xi_2, end_orb%e_field_x, end_orb%phase_x)     ! pi polarization
+call multilayer_track (zero, zero, end_orb%e_field_y, end_orb%phase_y)     ! sigma polarization
 
 !! s_len not being used !!!!!!!!!!!!!!!!!!!
 
 !-----------------------------------------------------------------------------------------------
 contains
 
-subroutine multilayer_track (e1_coef, e2_coef, e_field, e_phase)
+subroutine multilayer_track (xi1_coef, xi2_coef, e_field, e_phase)
 
 real(rp) e_field, e_phase
-complex(rp) e1_coef, e2_coef, r11, r22, t12, t21, denom, k1, k2
-complex(rp) a, v, f_minus, f_plus, r_ratio
 
-!
+complex(rp) xi1_coef, xi2_coef, r_11, r_22, tt, denom, k1, k2
+complex(rp) a, v, f_minus, f_plus, r_ratio, f, r, ttbar, nu, exp_half, exp_n
+complex(rp) R_n, R_tot, k_a, r_aa
 
-k1 = e2_coef * kz1
-k2 = e1_coef * kz2
+integer i
+
+! Single layer numbers. See Kohn Eq 6
+
+k1 = (1 + xi2_coef) * kz1
+k2 = (1 + xi1_coef) * kz2
 denom = k1 + k2
 
-r11 = c1**2 * (kz1 - kz2) / denom
-r22 = c2**2 * (kz2 - kz1) / denom
+r_11 = c1**2 * (k1 - k2) / denom
+r_22 = c2**2 * (k2 - k1) / denom
 
-t12 = 2 * c1 * c2 * kz2 / denom
-t21 = 2 * c1 * c2 * kz1 / denom
+tt = 4 * k1 * k2 * (c1 * c2 / denom)**2    ! = t_12 * t_21
+
+! r and ttbar for a single cell (one double layer). See Kohn Eq. 12.
+! Layer 2 on top of layer 1. Reference point is center of layer 2.
+! Note: If you go through the math you will find r = r_bar.
+
+f = tt / (1 - r_11**2)
+r = r_22 + r_11 * f
+ttbar = f**2
+
+! Calc R_n assuming R_0 = 0. See Kohn Eq. 21.
+
+a = (1 - ttbar + r**2) / 2
+nu = (1 + ttbar - r**2) / (2 * sqrt(ttbar))
+
+exp_half = nu + I_imaginary * sqrt(1 - nu**2)
+exp_n = exp_half ** nint(2 * ele%value(n_cells$))
+f_plus  = a - I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
+f_minus = a + I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
+R_n = r * (1 - exp_n) / (f_plus - f_minus * exp_n)
+
+!if (abs(R_n) > 1) then
+!  exp_half = nu - I_imaginary * sqrt(1 - nu**2)
+!  exp_n = exp_half ** nint(2 * ele%value(n_cells$))
+!  f_plus  = a + I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
+!  f_minus = a - I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
+!  R_n = r * (1 - exp_n) / (f_plus - f_minus * exp_n)
+!endif
+
+!R_n = 0
+!do i = 1, nint(ele%value(n_cells$))
+!  R_n = r + ttbar * R_n / (1 - r * R_n)
+!enddo
+
+! Now factor in air interface
+
+k_a = kz_air
+denom = k_a + k2
+
+tt = 4 * k_a * k2 * (c2 / denom)**2
+r_aa = (k_a - k2) / denom
+r_22 = c2**2 * (k2 - k_a) / denom
+
+R_tot = r_aa + tt * R_n / (1 - r_22 * R_n)
+!R_tot = R_n
+
+e_field = e_field * abs(R_tot)
+e_phase = e_phase + atan2(aimag(R_tot), real(R_tot))
 
 end subroutine multilayer_track 
 

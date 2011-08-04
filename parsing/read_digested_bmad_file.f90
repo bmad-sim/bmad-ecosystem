@@ -61,7 +61,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, v95, v96, v97, v98, v_old, mode3, error, is_open
+logical found_it, v99, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -83,11 +83,8 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 
 read (d_unit, err = 9010) n_files, version
 
-v95 = (version == 95)
-v96 = (version == 96)
-v97 = (version == 97)
-v98 = (version == 98)
-v_old = .not. v98
+v99 = (version == 99)
+v_old = .not. v99
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -206,15 +203,7 @@ do i = 1, lat%n_ic_max
   read (d_unit, err = 9050) lat%ic(i)
 enddo
 
-if (v95 .or. v96) then
-  read (d_unit, iostat = ios) old_beam_start
-  call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
-else if (v97) then
-  read (d_unit, err = 9060) old_beam_start
-  call transfer_coord_old_to_new (old_beam_start, lat%beam_start)
-else
-  read (d_unit, err = 9060) lat%beam_start
-endif
+read (d_unit, err = 9060) lat%beam_start
 
 ! read branch lines
 
@@ -225,14 +214,8 @@ do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit) branch%param
-  if (v95 .or. v96) then
-    read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
-                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
-    n_wall_section = 0
-  else  ! > 96
-    read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+  read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
                   branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, idum1
-  endif
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
     call read_this_ele (branch%ele(j), j, error)
@@ -241,17 +224,6 @@ do i = 1, n_branch
   call read_this_wall3d (branch%wall3d, n_wall_section, error)
   if (error) return
 enddo
-
-! Random state check
-
-if (v96) then
-  read (d_unit, err = 9080) digested_ran_state
-  call ran_seed_get (state = ran_state) ! Get initial random state.
-  if (deterministic_ran_function_used .and. (ran_state%ix /= digested_ran_state%ix .or. &
-                                             ran_state%engine /= digested_ran_state%engine)) then
-    bmad_status%ok = .false.
-  endif
-endif
 
 ! And finish
 
@@ -373,28 +345,7 @@ logical error
 
 error = .true.
 
-if (v95 .or. v96) then
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
-          map_in, map_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
-  n_wall_section = 0
-  n_rf_field_mode = 0
-  call transfer_coord_old_to_new (map_in, ele%map_ref_orb_in)
-  call transfer_coord_old_to_new (map_out, ele%map_ref_orb_out)
-
-elseif (v97) then
+if (version >= v99) then
   read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
           ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
   read (d_unit, err = 9100) &
@@ -408,27 +359,7 @@ elseif (v97) then
           ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
-          map_in, map_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
-  call transfer_coord_old_to_new (map_in, ele%map_ref_orb_in)
-  call transfer_coord_old_to_new (map_out, ele%map_ref_orb_out)
-
-else ! v98++
-  read (d_unit, err = 9100) mode3, ix_wig, ix_const, ix_r, idum1, idum2, idum3, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, n_wall_section, n_rf_field_mode, idum4
-  read (d_unit, err = 9100) &
-          ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-          ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
-          ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-          ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
-          ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
-          ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
-          ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
-          ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
-          ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
 endif
