@@ -1599,14 +1599,20 @@ end subroutine recenter_bunch
 !+
 ! Subroutine init_spin_distribution (beam_init, bunch)
 !
-! Initializes a spin distribution according to beam_init%spin
+! Initializes a spin distribution according to beam_init%spin.
+! Note: For non 100% polarizations this routine uses a crude model where
+! (1+p)/2 of the spins are pointing in the (theta, phi) direction and the rest
+! are pointing in the opposite direction.
 !
 ! Input:
-!  beam_init -- (beam_init_struct): 
-!           %spin  -- (spin_init_struct): spin parameters
+!   beam_init -- beam_init_struct: Initialization parameters 
+!     %spin%theta         -- Theta orientation angle.
+!     %spin%phi           -- Phi orientation angle.
+!     %spin%polarization  -- Polarization percentage in (theta, phi) direction.
 !
 ! Output:
-!  bunch          -- (bunch_struct)
+!  bunch    -- bunch_struct: Bunch of particles.
+!   %particle(:)%r%spin
 !-
 
 subroutine init_spin_distribution (beam_init, bunch)
