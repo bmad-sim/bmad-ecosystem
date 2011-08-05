@@ -1635,7 +1635,7 @@ do i = 1, size(bunch%particle)
   ! Else create spin down.
   else
     polar%theta = beam_init%spin%theta + pi
-    polar%phi = beam_init%spin%phi + pi
+    polar%phi = beam_init%spin%phi
     n_diff = n_diff - 1
   endif
 
