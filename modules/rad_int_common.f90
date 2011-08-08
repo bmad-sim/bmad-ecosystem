@@ -18,7 +18,7 @@ type rad_int_track_point_struct
   real(rp) vec0(6)
   type (coord_struct) map_ref_orb_in
   type (coord_struct) map_ref_orb_out
-  real(rp) g_x0, g_y0     ! Additional g factors for wiggler/bends.
+  real(rp) g_x0, g_y0     ! Additional g factors for bends.
   real(rp) dgx_dx, dgx_dy   ! bending strength gradiant
   real(rp) dgy_dx, dgy_dy   ! bending strength gradiant
   real(rp) l_pole              
