@@ -339,12 +339,6 @@ if (use_cache .or. init_cache) then
 
     else  
 
-      if (ele2%key == wiggler$) then   ! must be periodic_type
-        G_max = sqrt(2*abs(ele2%value(k1$)))       ! 1/rho at max B
-        g3_ave = 4 * G_max**3 / (3 * pi)
-        g_x0 = g3_ave**(1.0/3)
-      endif
-
       do k = 0, n_step
 
         z_here = k * cache_ele%del_z
@@ -376,10 +370,6 @@ if (use_cache .or. init_cache) then
           c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)
           c_pt%dgx_dx =  ele2%value(k1$)
           c_pt%dgy_dy = -ele2%value(k1$)
-
-        ! Twiss_and_track_partial does not put in the horizontal wiggler wiggles...
-        elseif (ele2%key == wiggler$) then   ! must be periodic_type
-          c_pt%g_x0 = c_pt%g_x0 + g_x0
 
         endif
 
