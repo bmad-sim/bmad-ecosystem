@@ -222,15 +222,7 @@ real(rp), optional :: phase
 !
 
 polar%xi = real_option (0.0d0, phase)
-
-if (vec(3) .eq. 0.0) then
-  polar%theta = pi/2.0
-else
-  polar%theta = atan(sqrt(vec(1)**2 + vec(2)**2) / abs(vec(3)))
-  ! get hemisphere correct
-  if (vec(3) .lt. 0.0) polar%theta = pi - polar%theta
-endif
-
+polar%theta = atan2 (sqrt(vec(1)**2 + vec(2)**2), vec(3))
 polar%phi = atan2(vec(2), vec(1))
 
 end subroutine vec_to_polar
@@ -321,7 +313,8 @@ end subroutine vec_to_spinor
 !+
 ! function angle_between_polars (polar1, polar2) result (angle)
 !
-! Finds the angle between two polar vectors
+! Finds the angle between two polar vectors.
+! Note: This function is currently not being used by anything.
 !
 ! Modules needed:
 !   use spin_mod
@@ -351,7 +344,7 @@ call polar_to_vec (polar2, vec2)
 arg = dot_product(vec1,vec2) / (sqrt(dot_product(vec1, vec1) * dot_product(vec2,vec2)))
 if (arg >= 1) then
   angle = 0
-elseif (arg <= 1) then
+elseif (arg <= -1) then
   angle = pi
 else
   angle = acos(arg)
