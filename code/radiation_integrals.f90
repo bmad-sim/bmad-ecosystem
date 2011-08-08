@@ -432,11 +432,9 @@ do ir = 1, lat%n_ele_track
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)
     rad_int%i0(ir) = (ele%value(e_tot$) / mass_of(lat%param%particle)) * 2 * G_max / 3
-    rad_int%i1(ir) = - ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+    rad_int%i1(ir) = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
     rad_int%i2(ir) = ll * G_max**2 / 2
     rad_int%i3(ir) = ll * g3_ave
-
-    pt%g_x0 = g3_ave**(1.0/3)
 
     call qromb_rad_int ([F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int)
     cycle
