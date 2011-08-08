@@ -10,26 +10,79 @@
 subroutine tao_python_cmd (input_str)
 
 use tao_mod
+use location_encode_mod
 
 implicit none
 
 character(n_char_show), allocatable, save :: lines(:)
-type (tao_plot_struct), pointer :: p
+type (tao_universe_struct), pointer :: u
+type (tao_d2_data_struct), pointer :: d2_ptr
+type (tao_d1_data_struct), pointer :: d1_ptr
+type (tao_data_struct), pointer :: d_ptr
+type (tao_v1_var_array_struct), allocatable, save, target :: v1_array(:)
+type (tao_v1_var_struct), pointer :: v1_ptr
+type (tao_var_struct), pointer :: v_ptr
+type (tao_var_array_struct), allocatable, save, target :: v_array(:)
 type (tao_plot_array_struct), allocatable, save :: plot(:)
+type (tao_graph_array_struct), allocatable, save :: graph(:)
+type (tao_curve_array_struct), allocatable, save :: curve(:)
+type (tao_plot_struct), pointer :: p
+type (tao_graph_struct), pointer :: g
+type (tao_curve_struct), pointer :: c1
+type (tao_plot_region_struct), pointer :: region
+type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
+type (tao_data_array_struct), allocatable, save :: d_array(:)
+type (tao_ele_shape_struct), pointer :: shape
+type (beam_struct), pointer :: beam
+type (beam_init_struct), pointer :: beam_init
+type (lat_struct), pointer :: lat
+type (bunch_struct), pointer :: bunch
+type (rf_wake_lr_struct), pointer :: lr
+type (ele_struct), pointer :: ele
+type (coord_struct), target :: orb
+type (ele_struct), target :: ele3
+type (bunch_params_struct) bunch_params
+type (bunch_params_struct), pointer :: bunch_p
+type (ele_pointer_struct), allocatable, save :: eles(:)
+type (branch_struct), pointer :: branch
+type (tao_universe_branch_struct), pointer :: uni_branch
+type (random_state_struct) ran_state
+
 
 character(*) input_str
+character(24) imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
+character(40) max_loc, loc_ele
 character(200) line
 character(20) cmd, command
 character(20) :: r_name = 'tao_python_cmd'
-character(20) :: cmd_names(5) = &
-          ['visible_plots ', 'template_plots', 'graph         ', 'curve         ', &
-           'plot          ']
+character(20) :: cmd_names(32)= &
+          ['plot_visible   ', 'plot_template  ', 'graph          ', 'curve          ', &
+           'plot1          ', 'var_all        ', 'var_v1         ', 'var1           ', &
+           'graph1         ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
+           'data_all       ', 'data_d2        ', 'data_d1        ', 'data1          ', &
+           'ele_all        ', 'ele1_all       ', 'beam_all       ', 'ele1_attrib    ', &
+           'constraint_data', 'constraint_var ', 'global         ', 'lat_ele_list   ', &
+           'lat_global     ', '               ', '               ', '               ', &
+           '               ', '               ', '               ', '               ' ]
 
-integer i, j, ix, ix_cmd, nl
+real(rp) target_value
+
+integer i, j, ie, ix, md, nl, ct
+integer ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
 
 logical err, print_flag
 
 !
+
+rmt  = '(a, 9es16.8)'
+f3mt = '(a, 9f0.3)'
+irmt = '(a, i0, a, es16.8)'
+imt  = '(a, 9i8)'
+iimt = '(a, i0, a, i8)'
+lmt  = '(a, 9(l1, 2x))'
+amt  = '(9a)'
+iamt = '(a, i0, 2x, 9a)'
+ramt = '(a, f0.3, 2x, 9a)'
 
 call string_trim(input_str, line, ix)
 cmd = line(1:ix)
@@ -52,37 +105,180 @@ allocate (lines(200))
 select case (command)
 
 !----------------------------------------------------------------------
-! Print info on a given plot
+! datums used in optimizations (%useit_opt = T). 
+! Syntax:  constrint_data
 
-case ('plot')
+case ('constraint_data')
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+  do j = 1, size(s%u(i)%data)
+    d_ptr => s%u(i)%data(j)
+    if (.not. d_ptr%useit_opt) cycle
+    
+    branch => s%u(i)%model%lat%branch(d_ptr%ix_branch)
+    ie = d_ptr%ix_ele_merit
+
+    if (ie < 0) then
+      max_loc = ''
+    else
+      max_loc = branch%ele(ie)%name
+    endif
+
+    if (nl == size(lines)) call re_allocate(lines, 2*nl)
+    nl=nl+1; write (lines(nl), '(10a, 3(es12.4, a), a)') &
+        trim(tao_datum_name(d_ptr)), ';', trim(tao_datum_type_name(d_ptr)), ';', &
+        trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
+        d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%merit, ';', max_loc
+
+  enddo
+enddo
+
+!----------------------------------------------------------------------
+! variables used in optimizations (%useit_opt = T). 
+! Syntax:  constrint_data
+
+case ('constraint_vars')
+
+do i = 1, s%n_var_used
+  v_ptr => s%var(i)
+  if (.not. v_ptr%useit_opt) cycle
+
+  u => s%u(v_ptr%this(1)%ix_uni)
+  branch => u%model%lat%branch(v_ptr%this(1)%ix_branch)
+  ct = branch%ele(v_ptr%this(1)%ix_ele)%lord_status
+
+  loc_ele = ''
+  if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
+    write (loc_ele, '(f8.2)') branch%ele(v_ptr%this(1)%ix_ele)%s
+    call string_trim (loc_ele, loc_ele, ix)
+  endif
+
+  if (v_ptr%merit_type == 'target') then
+    target_value = v_ptr%meas_value
+  elseif (v_ptr%merit_type == 'limit') then
+    if (abs(v_ptr%model_value - v_ptr%high_lim) < abs(v_ptr%model_value - v_ptr%low_lim)) then
+      target_value = v_ptr%high_lim
+    else
+      target_value = v_ptr%low_lim
+    endif
+  endif
+
+  if (nl == size(lines)) call re_allocate(lines, 2*nl)
+  nl=nl+1; write (lines(nl), '(6a, 3(es12.4, a))') &
+        trim(tao_var1_name(v_ptr)), ';', trim(tao_var_attrib_name(v_ptr)), ';', &
+        trim(loc_ele), ';', target_value, ';', v_ptr%model_value, ';', v_ptr%merit
+
+enddo
+
+!----------------------------------------------------------------------
+! All parameters associated with given element. 
+! Synrax: ele1_all <ix_ele> <ix_branch> <ix_universe>
+
+case ('ele1_all')
+
+
+!----------------------------------------------------------------------
+! Attribute list. Shows which attributes are adjustable.
+! Synrax: ele1_all <ix_ele> <ix_branch> <ix_universe>
+
+case ('ele1_attrib')
+
+
+!----------------------------------------------------------------------
+! global parameters
+! Syntax: global
+
+case ('global')
+
+!----------------------------------------------------------------------
+! Lattice element list.
+! lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
+
+case ('lat_ele_list')
+
+
+
+!----------------------------------------------------------------------
+! Lattice globals.
+! Syntax: lat_global <ix_universe>
+
+case ('lat_global')
+
+!----------------------------------------------------------------------
+! Output info on a given plot.
+! Syntax: plot1 <plot_name>
+
+case ('plot1')
 
   call tao_find_plots (err, line, 'BOTH', plot, print_flag = .false.)
   if (err) return
 
   if (allocated(plot)) then
+    nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
+    nl=nl+1; write (lines(nl), amt) 'x%label              = ', p%x%label
+    nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
+    nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
+    nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
+    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
+    nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
+    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
+    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
+    do i = 1, size(p%graph)
+      nl=nl+1; write (lines(nl), amt) 'graph = ', p%graph(i)%name
+    enddo
   endif
 
 !----------------------------------------------------------------------
-! print list of visible plot names
+! output list of visible plot names.
+! Syntax: plot_visible
 
-case ('visible_plots')
+case ('plot_visible')
+
+  do i = 1, size(s%plot_region)
+    region => s%plot_region(i)
+    if (region%name == '') cycle
+    if (.not. region%visible) cycle
+    nl=nl+1; write (lines(nl), '(a)') region%plot%name
+  enddo
 
 !----------------------------------------------------------------------
-! print list of plot templates
+! output list of plot templates.
+! Syntax:  plot_template
 
-case ('template_plots')
+case ('plot_template')
   do i = 1, size(s%template_plot)
     p => s%template_plot(i)
     if (p%name == '') cycle
     if (p%name == 'scratch') cycle
     if (allocated(p%graph)) then
         nl=nl+1; write (lines(nl), '(100a)') &
-                          trim(p%name(1:20)), (':.', trim(p%graph(j)%name), j = 1, size(p%graph))
+                          trim(p%name), (';.', trim(p%graph(j)%name), j = 1, size(p%graph))
     else
       nl=nl+1; write (lines(nl), '(3x, a)') p%name 
     endif
   enddo
 
+!----------------------------------------------------------------------
+! Output list of variable v1 arrays
+! Syntax: var_all
+
+case ('var_all')
+
+    do i = 1, s%n_v1_var_used
+      v1_ptr => s%v1_var(i)
+      if (v1_ptr%name == '') cycle
+      call re_allocate (lines, nl+200, .false.)
+      call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
+      nl=nl+1; write(lines(nl), '(i5, 2x, 2a, i0, a, i0, a, t50, a)') v1_ptr%ix_v1, &
+                      trim(v1_ptr%name), '[', lbound(v1_ptr%v, 1), ':', &
+                      ubound(v1_ptr%v, 1), ']', trim(line)
+      
+    enddo
+  
 !----------------------------------------------------------------------
 
 case default

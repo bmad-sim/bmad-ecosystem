@@ -364,7 +364,7 @@ do i = 1, s%n_var_used
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
   u => s%u(var%this(1)%ix_uni)
-  branch => u%model%lat%branch(data%ix_branch)
+  branch => u%model%lat%branch(var%this(1)%ix_branch)
   ct = branch%ele(var%this(1)%ix_ele)%lord_status
   con(nc)%loc_ref = ''
   con(nc)%loc_start = ''
@@ -376,15 +376,13 @@ do i = 1, s%n_var_used
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value
   elseif (var%merit_type == 'limit') then
-    if (abs(var%model_value - var%high_lim) < &
-                  abs(var%model_value - var%low_lim)) then
+    if (abs(var%model_value - var%high_lim) < abs(var%model_value - var%low_lim)) then
       con(nc)%target_value = var%high_lim
     else
       con(nc)%target_value = var%low_lim
     endif
   else
-    call out_io (s_abort$, r_name, 'UNKNOWN VARIABLE MERIT_TYPE: ' // &
-                                                            var%merit_type)
+    call out_io (s_abort$, r_name, 'UNKNOWN VARIABLE MERIT_TYPE: ' // var%merit_type)
   endif
   con(nc)%actual_value = var%model_value
   con(nc)%merit = var%merit
@@ -405,8 +403,7 @@ elseif (form == '*' .or. form == 'ALL') then
   forall (i = 1:n_max) ixm(i) = i
   nl = 0
 else
-  call out_io (s_abort$, r_name, &
-              'ERROR IN SHOW_CONSTRAINTS: UNKNOWN FORM: ' // form)
+  call out_io (s_abort$, r_name, 'ERROR IN SHOW_CONSTRAINTS: UNKNOWN FORM: ' // form)
   call err_exit
 endif
 
