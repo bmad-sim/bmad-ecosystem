@@ -1841,7 +1841,7 @@ if (charge_live == 0) then
   return
 endif
   
-if (bmad_com%spin_tracking_on) call calc_spin_params ()
+if (bmad_com%spin_tracking_on) call calc_spin_params (bunch, bunch_params)
   
 ! average the energy
 
@@ -2055,27 +2055,51 @@ err = .false.
 
 end subroutine
   
+end subroutine calc_bunch_params
+  
 !----------------------------------------------------------------------
-! contains
-
-subroutine calc_spin_params ()
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine calc_spin_params (bunch, bunch_params)
+!
+! Rotine to calculate spin averages
+!
+! Module needed:
+!   use beam_utils
+!
+! Input:
+!   bunch -- bunch_struct: Bunch of spins
+!
+! Output:
+!   bunch_params -- bunch_param_struct: Structure holding average
+!     %spin%polarization  -- Polarization (0.0 - 1.0)
+!     %spin%theta         -- Theta polar angle of average polarization. 
+!     %spin%phi           -- Phi polar angle of average polarization.
+subroutine calc_spin_params (bunch, bunch_params)
 
 implicit none
 
+type (bunch_params_struct) bunch_params
+type (bunch_struct) bunch
 type (spin_polar_struct) polar, ave_polar
 
-real(rp) vec(3), ave_vec(3)
+real(rp) vec(3), ave_vec(3), charge_live
+
+integer i
 
 ! polarization vector
 
 bunch_params%spin%theta = 0.0
 bunch_params%spin%phi   = 0.0
+charge_live = 0
 
 ave_vec = 0.0
 do i = 1, size(bunch%particle)
   if (bunch%particle(i)%ix_lost /= not_lost$) cycle
   call spinor_to_vec (bunch%particle(i)%r, vec)
-  ave_vec = ave_vec + vec * charge
+  ave_vec = ave_vec + vec * bunch%particle(i)%charge
+  charge_live = charge_live + bunch%particle(i)%charge
 enddo
 
 ave_vec = ave_vec / charge_live
@@ -2085,22 +2109,10 @@ bunch_params%spin%phi   = ave_polar%phi
 
 ! polarization
 
-bunch_params%spin%polarization = 0.0
+bunch_params%spin%polarization = sqrt(dot_product(ave_vec, ave_vec))
 
-  
-do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%ix_lost /= not_lost$) cycle
-  call spinor_to_polar (bunch%particle(i)%r, polar)
-  bunch_params%spin%polarization = bunch_params%spin%polarization + &
-           cos(angle_between_polars (polar, ave_polar)) * charge(i)
-enddo
-
-bunch_params%spin%polarization = bunch_params%spin%polarization / charge_live
-    
 end subroutine calc_spin_params
 
-end subroutine calc_bunch_params
-  
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
