@@ -37,7 +37,7 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), y_inv(2,2), det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
 real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), dpz2_dpz1, rel_p1, rel_p2
-real(rp) mat4(4,4), det_factor, deriv_rel, gamma2_c
+real(rp) det_factor, deriv_rel, gamma2_c
 
 logical error
 logical, optional :: err
@@ -88,6 +88,7 @@ endif
 ! if transfer matrix is not coupled...
 ! propagate c_mat coupling matrix and setup temporary element for propagation
 
+mat6 => ele2%mat6
 
 if (all(ele2%mat6(1:2,3:4) == 0)) then
 
@@ -107,15 +108,13 @@ else
 
   det_factor = 1
   if (key2 == lcavity$) then
-    det_factor = sqrt(determinant (mat4))
+    det_factor = sqrt(determinant (mat6(1:4,1:4)))
   endif
 
-  mat4 = ele2%mat6(1:4,1:4)
-
-  big_M = mat4(1:2,1:2)
-  small_m = mat4(1:2,3:4)
-  big_N = mat4(3:4,3:4)
-  small_n = mat4(3:4,1:2)
+  big_M = mat6(1:2,1:2)
+  small_m = mat6(1:2,3:4)
+  big_N = mat6(3:4,3:4)
+  small_n = mat6(3:4,1:2)
 
   call mat_symp_conj (ele1%c_mat, c_conj_mat)
   mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
@@ -186,7 +185,6 @@ endif
 ! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
 ! This is just 1.0 (except for RF cavities).
 
-mat6 => ele2%mat6
 orb  => ele2%map_ref_orb_in%vec
 orb_out => ele2%map_ref_orb_out%vec
 rel_p1 = 1 + orb(6)               ! reference energy 
