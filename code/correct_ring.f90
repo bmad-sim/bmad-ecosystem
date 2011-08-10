@@ -52,10 +52,11 @@ module correct_ring_mod
           eta_delta_e_e, sigma_cutoff
      logical :: write_elements, skip_dup_ele
   end type correct_ring_params_struct
-  type(correct_ring_params_struct) :: correct_ring_params
 
-  type(lat_struct) :: cr_model_ring
-  type(coord_struct), allocatable :: cr_model_co(:)
+  type(correct_ring_params_struct), save :: correct_ring_params
+
+  type(lat_struct), save :: cr_model_ring
+  type(coord_struct), allocatable, save :: cr_model_co(:)
 
 contains
 
