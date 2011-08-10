@@ -301,9 +301,9 @@ case(rfcavity$, lcavity$)
           Ep = Ep + term%b * Im_plus * expi
           Ez = Ez + term%e * Im_0    * expi
 
-          Br = Br - term%b * Im_plus * expi * I_imaginary * k_zn
-          Bp = Bp + term%e * Im_plus * expi * k_t**2
-          Bz = Bz + term%b * Im_0    * expi
+          Br = Br - term%b * Im_plus * expi * k_zn
+          Bp = Bp - term%e * Im_plus * expi * k_t**2 * I_imaginary
+          Bz = Bz - term%b * Im_0    * expi * I_imaginary
 
         else
           cm = expi * cos(m * phi - mode%phi_0)
