@@ -42,7 +42,7 @@ integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios, ix_gen
 integer n_photons_per_pass, num_ignore_generated_outside_wall
 
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
-character(200) photon_start_input_file, photon_start_output_file
+character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
 
 character(100) dat_file, dat2_file, wall_file, param_file, arg
 character(40) name, plotting
@@ -57,7 +57,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
-            e_init_filter_min, e_init_filter_max, plot_param
+            e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file
 
 namelist / wall_def / section, name
 namelist / gen_shape_def / ix_gen_shape, v
@@ -69,6 +69,7 @@ namelist / start / p, ran_state, random_seed
 ok = .true.
 plotting = ''
 param_file = ''
+surface_reflection_file = ''
 
 do i = 1, cesr_iargc()
   call cesr_getarg(i, arg)
@@ -299,6 +300,10 @@ if (.not. ok) stop
 if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
 
 call ran_seed_put (random_seed)
+
+! Load different surface reflection parameters if wanted
+
+if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file)
 
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
