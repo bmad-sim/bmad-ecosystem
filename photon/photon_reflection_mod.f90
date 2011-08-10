@@ -22,19 +22,21 @@ type photon_reflect_table_struct
   real(rp), allocatable :: reflect_prob(:)   ! Scratch space
 end type
 
-type (photon_reflect_table_struct), allocatable, target, save :: photon_reflect_table(:)
 logical, save :: photon_reflect_table_init_needed = .true.
 
-private photon_reflection_init
+! Each photon_reflect_reflect_table_array(:) represents a different surface type.
+! photon_reflect_reflect_table_array(1) is initialized by the photon_reflection_init routine
+! All others can be set by an outside programmer. 
 
-!
-
-type photon_reflection_common_struct
-  real(rp) :: surface_roughness_rms = 4d-9
-  real(rp) :: roughness_correlation_len = 200d-9
+type photon_reflect_surface_struct
+  type (photon_reflect_table_struct), allocatable :: table(:)
+  real(rp) :: surface_roughness_rms = 0
+  real(rp) :: roughness_correlation_len = 0
 end type
 
-type (photon_reflection_common_struct), save :: photon_reflect_com
+type (photon_reflect_surface_struct), save, target :: reflect_surface_array(10)
+type (photon_reflect_surface_struct), save, pointer :: reflect_surface => null()
+
 
 !
 
@@ -58,22 +60,26 @@ implicit none
 
 type (photon_reflect_table_struct), pointer :: prt
 
-character(100) datafile
-character(100) line
-
-real(rp) f, deriv, dprob
-
 integer :: n_energy, n_angles
 integer i, j, k
 
+! Pointer to first reflection
+
+reflect_surface => reflect_surface_array(1)
+
+! Parameters used in generating the reflection values
+
+reflect_surface%surface_roughness_rms = 4d-9
+reflect_surface%roughness_correlation_len = 200d-9
+
 ! There are four tables.
 
-allocate(photon_reflect_table(4))
+allocate(reflect_surface%table(4))
 photon_reflect_table_init_needed = .false.
 
 ! Table 1: 0 - 500 eV, 10eV steps.
 
-prt => photon_reflect_table(1)
+prt => reflect_surface%table(1)
 
 n_energy = 58;  n_angles = 16
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
@@ -145,7 +151,7 @@ prt%p_reflect(:, 58) = [1.00, 0.728577, 0.474020, 0.122734, 0.000924, 0.000137, 
 
 ! Table 2: 500 - 1500 eV, 20 eV steps.
 
-prt => photon_reflect_table(2)
+prt => reflect_surface%table(2)
 
 n_energy = 41;  n_angles = 11
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
@@ -200,7 +206,7 @@ prt%p_reflect(:, 41) = [1.00,  0.928361, 0.837729, 0.76112,  1.92E-02, 2.06E-03,
 
 ! Table 3: 1500 - 1600 eV, 10 eV steps. There is a resonance here
 
-prt => photon_reflect_table(3)
+prt => reflect_surface%table(3)
 
 n_energy = 21;  n_angles = 10
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
@@ -235,7 +241,7 @@ prt%p_reflect(:, 21) = [1.00,  0.876128, 0.753518, 0.615783, 0.438769, 0.212852,
 
 ! Table 4: 1600 - 5000 eV, 50 eV steps
 
-prt => photon_reflect_table(4)
+prt => reflect_surface%table(4)
 
 n_energy = 69;  n_angles = 11
 allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
@@ -316,10 +322,37 @@ prt%p_reflect(:, 67) = [1.00,  0.945832, 0.252554, 1.03E-02, 1.37E-03, 8.62E-05,
 prt%p_reflect(:, 68) = [1.00,  0.946088, 0.206173, 9.16E-03, 1.22E-03, 7.77E-05, 1.57E-05, 2.37E-06, 7.05E-07, 2.80E-07, 0.00]  ! 4950 eV
 prt%p_reflect(:, 69) = [1.00,  0.946281, 0.167764, 8.12E-03, 1.10E-03, 7.24E-05, 1.51E-05, 2.32E-06, 6.90E-07, 2.75E-07, 0.00]  ! 5000 eV
 
+call finalize_reflectivity_tables (reflect_surface)
+
+end subroutine photon_reflection_init 
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Subroutine finalize_reflectivity_tables (surface)
+!
+! Routine to finalize the construction of the reflectivity tables for a surface.
+!
+! Input:
+!   surface -- photon_reflect_surface_struct: Surface tables to be finalized.
+!-
+
+Subroutine finalize_reflectivity_tables (surface)
+
+implicit none
+
+type (photon_reflect_surface_struct), target :: surface
+type (photon_reflect_table_struct), pointer :: prt
+
+real(rp) f, deriv, dprob
+
+integer i, j, k
+
 ! Take the logiarithm of p_reflect. Where zero, just use an extrapolation of the previous two points.
 
-do i = 1, size(photon_reflect_table)
-  prt => photon_reflect_table(i)
+do i = 1, size(surface%table)
+  prt => surface%table(i)
   do j = 1, size(prt%energy)
 
     do k = 1, size(prt%angle)
@@ -343,7 +376,7 @@ do i = 1, size(photon_reflect_table)
   enddo
 enddo
 
-end subroutine
+end subroutine finalize_reflectivity_tables
 
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
@@ -402,12 +435,12 @@ angle_deg = angle * 180 / pi
 
 ! If the energy is less than the minimum of the table then just use the minimum.
 
-e_tot = max(photon_reflect_table(1)%energy(1), energy)
+e_tot = max(reflect_surface%table(1)%energy(1), energy)
 
 ! If the energy is greater than what the tables covers assume that things scale as energy*angle
 
-n_table = size(photon_reflect_table)
-max_e = photon_reflect_table(n_table)%max_energy
+n_table = size(reflect_surface%table)
+max_e = reflect_surface%table(n_table)%max_energy
  
 if (e_tot > max_e) then
   angle_deg = angle_deg * e_tot / max_e
@@ -421,7 +454,7 @@ endif
 ! Find which table to use
 
 do i = 1, n_table 
-  prt => photon_reflect_table(i)
+  prt => reflect_surface%table(i)
   if (e_tot <= prt%max_energy) exit
 enddo
 
@@ -476,6 +509,6 @@ if (.not. ok) call err_exit
 
 reflect_prob = exp(reflect_prob)
 
-end subroutine
+end subroutine photon_reflectivity
 
 end module
