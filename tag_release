@@ -48,11 +48,10 @@ tmpfile=tmp_svn_tag_operation_list
 hostname=`hostname`
 
 
-if ( [ $hostname != "lnx209.lns.cornell.edu" ] ) then
+if ( [ $hostname != "acc101.lns.cornell.edu" ] ) then
     echo "This script must be run on the same machine that serves the"
     echo "ACC Subversion repository, ie. "
-    echo "                               lnx209.lepp.cornell.edu"
-    echo "a.k.a.                        accserv.lepp.cornell.edu"
+    echo "                             acc101.lepp.cornell.edu"
     exit 1
 fi
 
