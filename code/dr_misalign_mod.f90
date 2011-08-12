@@ -11,8 +11,10 @@ module dr_misalign_mod
 
   type ma_struct
      integer key
-     character*40 mask
+     character(40) :: key_name = ''
+     character(40) :: mask = ''
      integer param
+     character(40) :: param_name = ''
      real amp
 !    logical detector
   end type ma_struct
@@ -53,12 +55,18 @@ contains
 
     integer, parameter :: allowed_params(9) = (/ x_offset$, y_offset$, tilt$, k1$, k2$, roll$, &
                                                s_offset$, x_pitch$, y_pitch$/)
+    character(40), parameter :: allowed_param_names(9) = (/ 'x_offset', 'y_offset', 'tilt', 'k1', 'k2', 'roll', &
+                                               's_offset', 'x_pitch', 'y_pitch' /)
+
     integer, parameter :: allowed_keys(5) = (/ sbend$, quadrupole$, sextupole$, wiggler$, &
                                              marker$ /)
+    character(40), parameter :: allowed_key_names(5) = (/ 'sbend', 'quadrupole', 'sextupole', 'wiggler', &
+                                             'marker' /)
+
 
     type(ele_struct), pointer :: ele
     type(ma_struct), pointer :: ma
-    integer i_param, i_ele
+    integer i_param, i_ele, ix
     real(rp) harvest, multiplier
 
     ! Check that the parameters make sense
@@ -77,20 +85,40 @@ contains
        ma => ma_params(i_param)
 
        ! Check a few things
-       if (.not. any(allowed_keys==ma%key)) then
-          write(*,*) "dr_misalign: Key ", ma%key, " not allowed."
+       if ((ma%key .ne. 0) .and. (len(trim(ma%key_name)) .eq. 0 )) then
+          write(*,*) "ma_struct%key provided instead of ma_struct%key_name! Providing key_name is more robust. Stopping here..."
           call err_exit
-       else if (ma%key == marker$ .and. ma%param > 0) then
+       endif
+       if ((ma%param .ne. 0) .and. (len(trim(ma%param_name)) .eq. 0 )) then
+          write(*,*) "ma_struct%param provided instead of ma_struct%param_name! Providing param_name is more robust. Stopping here..."
+          call err_exit
+       endif
+
+       call match_word(trim(ma%key_name), allowed_key_names, ix)
+       if (ix .eq. 0) then ! no match from match_word
+          write(*,*) "dr_misalign: key_name ", ma%key_name, " not allowed. Stopping here..."
+          call err_exit
+       endif
+       ma%key = allowed_keys(ix)
+
+       call match_word(trim(ma%param_name), allowed_param_names, ix)
+       if (ix .eq. 0) then ! no match from match_word
+          write(*,*) "dr_misalign: param_name ", ma%param_name, " not allowed. Stopping here..."
+          call err_exit
+       endif
+       ma%param = allowed_params(ix)
+
+       write(*,'(3a,i0,a,i0)') 'ma%key_name = ', trim(ma%key_name), '  ma%key = ', ma%key, '  ma%param = ', ma%param
+
+       if (ma%key == marker$ .and. ma%param > 0) then
           ! Technically, someone might want to do this. Maybe it should just be a warning.
           write(*,*) "dr_misalign: You are misaligning a marker with a positive parameter."
-          call err_exit
-       else if (.not. any(allowed_params==ma%param)) then
-          write(*,*) "dr_misalign: Parameter ", ma%param, " not allowed."
           call err_exit
        else if (ma%key==sbend$ .and. ma%param==tilt$) then
           write(*,*) "dr_misalign: sbends should use roll, not tilt."
           call err_exit
        end if
+
 
        ! Loop over elements
        do i_ele = 1, ring%n_ele_track
