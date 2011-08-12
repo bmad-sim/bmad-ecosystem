@@ -155,7 +155,7 @@ type rf_field_mode_struct
   real(rp) :: dz = 0          ! Distance between sampled field points.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
   type (rf_field_mode_term_struct), allocatable :: term(:) 
-  type (rf_field_mode_grid_struct), pointer :: grid(:,:,:)  ! Pointer so can point to common memory
+  type (rf_field_mode_grid_struct), pointer :: grid(:,:,:) => null()  ! Pointer so can point to common memory
   real(rp) :: dr_grid(3) = 0  ! Grid spacing.
   real(rp) ::r0_grid(3) = 0   ! Grid origin.
 end type
