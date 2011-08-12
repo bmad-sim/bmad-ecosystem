@@ -121,11 +121,19 @@ real(rp) e_field, e_phase
 
 complex(rp) xi1_coef, xi2_coef, r_11, r_22, tt, denom, k1, k2
 complex(rp) a, v, f_minus, f_plus, r_ratio, f, r, ttbar, nu, exp_half, exp_n
-complex(rp) R_n, R_tot, k_a, r_aa
+complex(rp) Rc_n_top, R_tot, k_a, r_aa, Rc_1_bot, Rc_1_top
 
-integer i
+integer i, n1
 
-! Single layer numbers. See Kohn Eq 6
+! Rc_n_top is the field ratio for the top layer of cell n.
+! Rc_n_bot is the field ratio for the bottom layer of cell n.
+! Rc_1_bot for the bottom layer just above the substrate is assumed to be zero.
+! Upgrade: If we knew the substrate material we would not have to make this assumption.
+
+Rc_1_bot = 0
+
+! Compute Rc_1_top.
+! The top layer of a cell is labeled "2" and the bottom "1". See Kohn Eq 6.
 
 k1 = (1 + xi2_coef) * kz1
 k2 = (1 + xi1_coef) * kz2
@@ -136,39 +144,29 @@ r_22 = c2**2 * (k2 - k1) / denom
 
 tt = 4 * k1 * k2 * (c1 * c2 / denom)**2    ! = t_12 * t_21
 
-! r and ttbar for a single cell (one double layer). See Kohn Eq. 12.
-! Layer 2 on top of layer 1. Reference point is center of layer 2.
+Rc_1_top = r_22 + tt * Rc_1_bot / (1 - r_11 * Rc_1_bot)
+
+! Now compute the single cell factors. See Kohn Eq. 12.
 ! Note: If you go through the math you will find r = r_bar.
 
 f = tt / (1 - r_11**2)
 r = r_22 + r_11 * f
 ttbar = f**2
 
-! Calc R_n assuming R_0 = 0. See Kohn Eq. 21.
+! Calc Rc_n_top. See Kohn Eq. 21. Note that there are n-1 cells in between. 
 
 a = (1 - ttbar + r**2) / 2
 nu = (1 + ttbar - r**2) / (2 * sqrt(ttbar))
+n1 = nint(ele%value(n_cells$)) - 1
 
 exp_half = nu + I_imaginary * sqrt(1 - nu**2)
-exp_n = exp_half ** nint(2 * ele%value(n_cells$))
+exp_n = exp_half ** (2 * n1)
 f_plus  = a - I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
 f_minus = a + I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
-R_n = r * (1 - exp_n) / (f_plus - f_minus * exp_n)
+Rc_n_top = r * (r - Rc_1_top * f_minus - (r - Rc_1_top * f_plus) * exp_n) / &
+               (f_plus * (r - Rc_1_top * f_minus) - f_minus * (r - Rc_1_top * f_plus) * exp_n)
 
-!if (abs(R_n) > 1) then
-!  exp_half = nu - I_imaginary * sqrt(1 - nu**2)
-!  exp_n = exp_half ** nint(2 * ele%value(n_cells$))
-!  f_plus  = a + I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
-!  f_minus = a - I_imaginary * sqrt(ttbar) * sqrt(1 - nu**2)
-!  R_n = r * (1 - exp_n) / (f_plus - f_minus * exp_n)
-!endif
-
-!R_n = 0
-!do i = 1, nint(ele%value(n_cells$))
-!  R_n = r + ttbar * R_n / (1 - r * R_n)
-!enddo
-
-! Now factor in air interface
+! Now factor in the air interface
 
 k_a = kz_air
 denom = k_a + k2
@@ -177,8 +175,7 @@ tt = 4 * k_a * k2 * (c2 / denom)**2
 r_aa = (k_a - k2) / denom
 r_22 = c2**2 * (k2 - k_a) / denom
 
-R_tot = r_aa + tt * R_n / (1 - r_22 * R_n)
-!R_tot = R_n
+R_tot = r_aa + tt * Rc_n_top / (1 - r_22 * Rc_n_top)
 
 e_field = e_field * abs(R_tot)
 e_phase = e_phase + atan2(aimag(R_tot), real(R_tot))

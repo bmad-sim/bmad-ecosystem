@@ -1197,6 +1197,7 @@ implicit none
 
 type (ele_struct) ele
 logical, optional, intent(in) :: nullify_only
+integer i
 
 ! nullify only
 
@@ -1233,6 +1234,16 @@ if (associated (ele%rf%wake)) then
   if (associated (ele%rf%wake%sr_mode_trans)) deallocate (ele%rf%wake%sr_mode_trans)
   if (associated (ele%rf%wake%lr))            deallocate (ele%rf%wake%lr)
   deallocate (ele%rf%wake)
+endif
+
+if (associated (ele%rf%field)) then
+  if (allocated (ele%rf%field%mode)) then
+    do i = 1, size(ele%rf%field%mode)
+      if (associated (ele%rf%field%mode(i)%grid)) deallocate (ele%rf%field%mode(i)%grid)
+    enddo
+    deallocate (ele%rf%field%mode)
+  endif
+  deallocate (ele%rf%field)
 endif
 
 if (associated (ele%taylor(1)%term)) deallocate &
@@ -1930,21 +1941,40 @@ implicit none
 
 type (rf_field_struct), pointer :: field_in, field_out
 integer i, n
-integer, allocatable, save :: n_terms(:)
+integer :: n_terms, ng(3)
 
 ! Rule: If field_in or field_out is associated then %mode must be allocated
 
 if (associated (field_in)) then
 
-  call re_allocate(n_terms, size(field_in%mode), .false.)
-  do i = 1, size(field_in%mode)
-    n_terms(i) = size(Field_in%mode(i)%term)
-  enddo
-
-  call init_rf_field (field_out, size(field_in%mode), n_terms)
+  call init_rf_field (field_out, size(field_in%mode))
 
   do i = 1, size(field_in%mode)
+
+    if (allocated (field_in%mode(i)%term)) then
+      n_terms = size(field_in%mode(i)%term)
+      if (.not. allocated(field_out%mode(i)%term)) allocate(field_out%mode(i)%term(n_terms))
+      if (size(field_out%mode(i)%term) /= n_terms) then
+        deallocate (field_out%mode(i)%term)
+        allocate (field_out%mode(i)%term(n_terms))
+      endif
+    else
+      if (allocated (field_out%mode(i)%term)) deallocate(field_out%mode(i)%term)
+    endif
+    
+    if (associated (field_in%mode(i)%grid)) then
+      ng = ubound(field_in%mode(i)%grid)
+      if (.not. associated(field_out%mode(i)%grid)) allocate(field_out%mode(i)%grid(ng(1), ng(2), ng(3)))
+      if (any(ubound(field_out%mode(i)%grid) /= ng)) then
+        deallocate (field_out%mode(i)%grid)
+        allocate (field_out%mode(i)%grid(ng(1), ng(2), ng(3)))
+      endif
+    else
+      if (associated (field_out%mode(i)%grid)) deallocate(field_out%mode(i)%grid)
+    endif
+
     field_out%mode(i) = field_in%mode(i)
+
   enddo
 
 elseif (associated(field_out)) then
@@ -1958,7 +1988,7 @@ end subroutine transfer_rf_field
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_rf_field (rf_field, n_mode, n_terms)
+! Subroutine init_rf_field (rf_field, n_mode)
 !
 ! Subroutine to initialize a rf_field_struct pointer.
 !
@@ -1967,19 +1997,16 @@ end subroutine transfer_rf_field
 !
 ! Input:
 !   n_mode     -- Integer: Number of modes. If 0, nullify rf_field
-!   n_terms(:) -- Integer, optional: Array of sizes for rf_field%mode%term(:)
-!                   If not present then %term(:) arrays will not be allocated or deallocated.
 !
 ! Output:
 !   rf_field -- rf_field_struct, pointer: Initialized structure.
 !-
 
-subroutine init_rf_field (rf_field, n_mode, n_terms)
+subroutine init_rf_field (rf_field, n_mode)
 
 type (rf_field_struct), pointer :: rf_field
 
 integer n_mode
-integer, optional :: n_terms(:)
 
 integer i
 
@@ -2000,16 +2027,6 @@ if (size(rf_field%mode) /= n_mode) then
   deallocate(rf_field%mode)
   allocate(rf_field%mode(n_mode))
 endif
-
-if (.not. present(n_terms)) return
-
-do i = 1, n_mode
-  if (.not. allocated(rf_field%mode(i)%term)) allocate(rf_field%mode(i)%term(n_terms(i)))
-  if (size(rf_field%mode(i)%term) /= n_terms(i)) then
-    deallocate (rf_field%mode(i)%term)
-    allocate (rf_field%mode(i)%term(n_terms(i)))
-  endif
-enddo
 
 end subroutine init_rf_field
 
