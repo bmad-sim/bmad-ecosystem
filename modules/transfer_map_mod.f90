@@ -9,7 +9,7 @@ contains
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)
+! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, one_turn, unit_start)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -37,6 +37,7 @@ contains
 !                   Default is 0.
 !   s2         -- Real(rp), optional: Element end position for the calculation.
 !                   Default is lat%param%total_length.
+!   ix_branch  -- Integer, optional: Lattice branch index. Default is 0 (main branch).
 !   integrate  -- Logical, optional: If present and True then do symplectic
 !                   integration instead of concatenation. 
 !                   Default = False.
@@ -52,40 +53,49 @@ contains
 !   t_map(6) -- Taylor_struct: Transfer map.
 !-
 
-subroutine transfer_map_calc_at_s (lat, t_map, s1, s2, integrate, one_turn, unit_start)
+subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, one_turn, unit_start)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
 use bookkeeper_mod, only: create_element_slice, attribute_bookkeeper
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (taylor_struct) :: t_map(:)
 type (taylor_struct) a_map(6)
+type (branch_struct), pointer :: branch
 
 real(rp), intent(in), optional :: s1, s2
 real(rp) ss1, ss2
 
-logical, optional :: integrate, one_turn, unit_start
-logical integrate_this, one_turn_this, unit_start_this
+integer, optional :: ix_branch
+integer ix_br
 
-character(40) :: r_name = 'transfer_map_calc_at_s'
+logical, optional :: integrate, one_turn, unit_start
+logical integrate_this, one_turn_this, unit_start_this, err_flag
+
+character(40) :: r_name = 'transfer_map_from_s_to_s'
 
 !
+
+ix_br = integer_option(0, ix_branch)
+branch => lat%branch(ix_br)
 
 integrate_this  = logic_option (.false., integrate)
 one_turn_this   = logic_option (.false., one_turn)
 unit_start_this = logic_option(.true., unit_start)
 
-ss1 = 0;                       if (present(s1)) ss1 = s1
-ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
- 
+call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), err_flag, ss1)
+if (err_flag) return
+
+call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), err_flag, ss2)
+if (err_flag) return
+
 if (unit_start_this) call taylor_make_unit (t_map)
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. &
-                lat%param%lattice_type == linear_lattice$)) return
+if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) return
 
 ! Normal case
 
@@ -94,8 +104,8 @@ if (ss1 < ss2) then
 
 ! For a circular lattice push through the origin.
 
-elseif (lat%param%lattice_type == circular_lattice$) then
-  call transfer_this (t_map, ss1, lat%param%total_length)
+elseif (branch%param%lattice_type == circular_lattice$) then
+  call transfer_this (t_map, ss1, branch%param%total_length)
   call transfer_this (t_map, 0.0_rp, ss2)
 
 ! For a linear lattice compute the backwards matrix
@@ -104,7 +114,7 @@ else
   if (unit_start_this) then
     call transfer_this (t_map, ss2, ss1)
     call taylor_inverse (t_map, t_map)
-  else
+  else  
     call taylor_make_unit (a_map)
     call transfer_this (a_map, ss2, ss1)
     call taylor_inverse (a_map, a_map)
@@ -135,17 +145,17 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call ele_at_s (lat, s_1, ix_ele)
+call ele_at_s (lat, s_1, ix_ele, ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
 
 do
 
-  ele => lat%ele(ix_ele)
+  ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_entrance   = (s_now == lat%ele(ix_ele-1)%s) 
+  track_entrance   = (s_now == branch%ele(ix_ele-1)%s) 
   track_exit       = (s_end == ele%s)
   track_entire_ele = (track_entrance .and. track_exit)
 
@@ -186,8 +196,8 @@ do
 
     if (kill_it) then
       call kill_taylor (runt%taylor)
-      call create_element_slice (runt, ele, ds, s_now-lat%ele(ix_ele-1)%s, &
-                                              lat%param, track_entrance, track_exit)
+      call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+                                              branch%param, track_entrance, track_exit)
     endif
 
   endif
@@ -195,10 +205,10 @@ do
   ! Now for the integration step
 
   if (integrate_this) then
-    call taylor_propagate1 (map, runt, lat%param)
+    call taylor_propagate1 (map, runt, branch%param)
   else
     if (.not. associated(runt%taylor(1)%term)) then
-      call ele_to_taylor (runt, lat%param)
+      call ele_to_taylor (runt, branch%param)
     endif
     call concat_taylor (map, runt%taylor, map)
   endif
@@ -221,15 +231,15 @@ do
 
 enddo
 
-end subroutine
+end subroutine transfer_this
 
-end subroutine
+end subroutine transfer_map_from_s_to_s
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Subroutine mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)
+! Subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions
 ! s1 to s2.
@@ -255,6 +265,7 @@ end subroutine
 !                   Default is 0.
 !   s2         -- Real(rp), optional: Element end index for the calculation.
 !                   Default is lat%param%total_length.
+!   ix_branch  -- Integer, optional: Lattice branch index. Default is 0 (main branch).
 !   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
 !                   is circular: Construct the one-turn matrix from s1 back to s1.
 !                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
@@ -268,28 +279,36 @@ end subroutine
 !   vec0(6)   -- Real(rp): 0th order part of the map.
 !-
 
-subroutine mat6_calc_at_s (lat, mat6, vec0, s1, s2, one_turn, unit_start)
+subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start)
 
 use bookkeeper_mod, only: create_element_slice, attribute_bookkeeper
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 
 real(rp) mat6(:,:), vec0(:)
 real(rp), intent(in), optional :: s1, s2
 real(rp) ss1, ss2
 
+integer, optional :: ix_branch
+
 logical, optional :: one_turn, unit_start
-logical one_turn_this
+logical one_turn_this, err_flag
 
 !
 
+branch => lat%branch(integer_option(0, ix_branch))
+
 one_turn_this = logic_option (.false., one_turn)
 
-ss1 = 0;                       if (present(s1)) ss1 = s1
-ss2 = lat%param%total_length;  if (present(s2)) ss2 = s2
- 
+call check_if_s_in_bounds (branch, real_option(0.0_rp, s1), err_flag, ss1)
+if (err_flag) return
+
+call check_if_s_in_bounds (branch, real_option(branch%param%total_length, s2), err_flag, ss2)
+if (err_flag) return
+
 if (logic_option(.true., unit_start)) then
   call mat_make_unit (mat6)
   vec0 = 0
@@ -297,8 +316,7 @@ endif
 
 ! One turn or not calc?
 
-if (ss1 == ss2 .and. (.not. one_turn_this .or. &
-                lat%param%lattice_type == linear_lattice$)) return
+if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == linear_lattice$)) return
 
 ! Normal case
 
@@ -307,8 +325,8 @@ if (ss1 < ss2) then
 
 ! For a circular lattice push through the origin.
 
-elseif (lat%param%lattice_type == circular_lattice$) then
-  call transfer_this (ss1, lat%param%total_length)
+elseif (branch%param%lattice_type == circular_lattice$) then
+  call transfer_this (ss1, branch%param%total_length)
   call transfer_this (0.0_rp, ss2)
 
 ! For a linear lattice compute the backwards matrix
@@ -342,17 +360,17 @@ logical, save :: old_track_end = .false.
 
 ! Init
 
-call ele_at_s (lat, s_1, ix_ele)
+call ele_at_s (lat, s_1, ix_ele, ix_branch)
 s_now = s_1
 
 ! Loop over all the element to track through.
 
 do
 
-  ele => lat%ele(ix_ele)
+  ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_entrance   = (s_now == lat%ele(ix_ele-1)%s) 
+  track_entrance   = (s_now == branch%ele(ix_ele-1)%s) 
   track_exit       = (s_end == ele%s)
   track_entire_ele = (track_entrance .and. track_exit)
 
@@ -391,9 +409,9 @@ do
     endif
 
     if (kill_it) then
-      call create_element_slice (runt, ele, ds, s_now-lat%ele(ix_ele-1)%s, &
-                                            lat%param, track_entrance, track_exit)
-      call make_mat6 (runt, lat%param)
+      call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
+                                            branch%param, track_entrance, track_exit)
+      call make_mat6 (runt, branch%param)
     endif
 
   endif
@@ -421,8 +439,8 @@ do
 
 enddo
 
-end subroutine
+end subroutine transfer_this
 
-end subroutine
+end subroutine mat6_from_s_to_s
 
 end module

@@ -20,6 +20,78 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
+!
+! Routine to check if a given longitudinal position s is within the bounds of a given branch of a lattice.
+! For linear branches the bounds are normally [0, branch_length].
+! For circular branches negative s values do make sense so the bounds 
+!   are normally [-branch_length, branch_length].
+!
+! "Normally" means that starting s-position in the branch is zero. This routine does
+! adjust for non-zero starting s-positions.
+!
+! This routine will bomb the program if bmad_status%exit_on_error is True.
+!
+! Optionally: translated_s is a translated longitudinal position which is normally
+! in the range [0, branch_length].
+!
+! Moduels needed:
+!   use bmad
+!
+! Input:
+!   branch        -- branch_struct: Branch
+!   s             -- Real(rp): longitudinal position in the given branch.
+!   
+! Output:
+!   err_flag      -- Logical: Set True if s position is out-of-bounds. False otherwise.
+!   translated_s  -- Real(rp), optional: position translated to the range [0, branch_length]
+!-
+
+subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
+
+implicit none
+
+type (branch_struct) branch
+
+real(rp) s, ss, s_min, s_max, ds_fudge
+real(rp), optional :: translated_s
+
+logical err_flag
+
+character(24), parameter :: r_name = 'check_if_s_in_bounds'
+
+! Setup
+
+s_min = branch%ele(0)%s
+s_max = branch%ele(branch%n_ele_track)%s 
+ds_fudge = bmad_com%significant_longitudinal_length
+err_flag = .false.
+ss = s
+
+! Check
+
+if (branch%param%lattice_type == circular_lattice$) then
+  if (s < s_min - (s_max - s_min) - ds_fudge .or. s > s_max + ds_fudge) err_flag = .true.
+  if (s < s_min) ss = s + (s_max - s_min)
+else
+  if (s < s_min - ds_fudge .or. s > s_max + ds_fudge) err_flag = .true.
+endif
+
+! Finish
+
+if (err_flag) then
+  if (bmad_status%type_out) call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
+  if (bmad_status%exit_on_error) call err_exit
+endif
+
+if (present(translated_s)) translated_s = ss
+
+end subroutine check_if_s_in_bounds 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine transfer_twiss (ele_in, ele_out)
 !
 ! Routine to transfer the twiss parameters from one element to another.

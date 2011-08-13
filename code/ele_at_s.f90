@@ -33,7 +33,7 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
-real(rp) s, ss, ll, ds_fudge
+real(rp) s, ss
 real(rp), optional :: s_eff
 
 integer ix_ele, n1, n2, n3
@@ -41,25 +41,16 @@ integer, optional :: ix_branch
 
 character(16), parameter :: r_name = 'ele_at_s'
 logical, optional :: err_flag
+logical err
+
+! Get translated position and check for position out-of-bounds.
+
+branch => lat%branch(integer_option(0, ix_branch))
+call check_if_s_in_bounds (branch, s, err, ss)
+if (present(err_flag)) err_flag = err
+if (err) return
 
 !
-
-if (present(err_flag)) err_flag = .true.
-
-ds_fudge = bmad_com%significant_longitudinal_length
-branch => lat%branch(integer_option(0, ix_branch))
-ll = branch%param%total_length
-
-if (branch%param%lattice_type == circular_lattice$) then
-  ss = s - ll * floor((s-branch%ele(0)%s)/ll)
-else
-  ss = s
-  if (s < branch%ele(0)%s - ds_fudge .or. s > branch%ele(branch%n_ele_track)%s + ds_fudge) then
-    call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
-    if (bmad_status%exit_on_error) call err_exit
-    return
-  endif
-endif
 
 n1 = 0
 n3 = branch%n_ele_track
@@ -82,6 +73,5 @@ do
 enddo
 
 if (present(s_eff)) s_eff = ss
-if (present(err_flag)) err_flag = .false.
 
 end subroutine
