@@ -56,7 +56,7 @@ subroutine file_directorizer (in_file, out_file, directory, add_switch)
   character(2) :: dir_str = ']:'
 #endif
 
-#if defined(CESR_UNIX) || defined(CESR_WINCVF) || defined(CESR_LINUX)
+#if defined(CESR_UNIX) || defined(CESR_WINCVF)
   character(1) :: dir_str = '/'
 #endif
 

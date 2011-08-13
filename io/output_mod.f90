@@ -628,7 +628,15 @@ character(*) routine_name
 character(20) date_time
 integer level
 
-!
+! call out_io_called if wanted
+
+if (output_com%to_routine(level) == 1) then
+  call out_io_called(level, trim(routine_name))
+elseif (output_com%to_routine(level) == -1) then
+  call out_io_called(level, trim(routine_name) // char(0))
+endif
+
+! Output header line
 
 call date_and_time_stamp (date_time)
 
@@ -661,12 +669,6 @@ case (s_abort$)
   call out_io_line_out('[ABORT | ' // trim(date_time) // '] ' // trim(routine_name) // ':', level, .false.)
 
 end select
-
-if (output_com%to_routine(level) == 1) then
-  call out_io_called(level, trim(routine_name))
-elseif (output_com%to_routine(level) == -1) then
-  call out_io_called(level, trim(routine_name) // char(0))
-endif
 
 end subroutine header_io
 
