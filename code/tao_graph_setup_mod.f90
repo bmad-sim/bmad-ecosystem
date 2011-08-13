@@ -1433,7 +1433,7 @@ do ii = 1, size(curve%x_line)
     if (s_now < s_last) cycle
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
-    call mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
+    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, ix_branch, unit_start = .false.)
     value = mat6(i, j)
   case ('t.')
     if (ii == 1) call taylor_make_unit (t_map)
@@ -1441,7 +1441,7 @@ do ii = 1, size(curve%x_line)
     i = tao_read_this_index (data_type, 3); if (i == 0) return
     j = tao_read_this_index (data_type, 4); if (j == 0) return
     k = tao_read_this_index (data_type, 5); if (k == 0) return
-    call transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
+    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), j, k)
   case ('tt.')
     if (ii == 1) call taylor_make_unit (t_map)
@@ -1453,11 +1453,11 @@ do ii = 1, size(curve%x_line)
       k = tao_read_this_index (data_type, j); if (k == 0) return
       expnt(k) = expnt(k) + 1
     enddo
-    call transfer_map_calc_at_s (lat, t_map, s_last, s_now, unit_start = .false.)
+    call transfer_map_from_s_to_s (lat, t_map, s_last, s_now, ix_branch, unit_start = .false.)
     value = taylor_coef (t_map(i), expnt)
   case ('momentum_compaction')
     if (ii == 1) call mat_make_unit (mat6)
-    call mat6_calc_at_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
+    call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
     call make_v_mats (ele_ref, v_mat, v_inv_mat)
     eta_vec = (/ ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap /)
     eta_vec = matmul (v_mat, eta_vec)

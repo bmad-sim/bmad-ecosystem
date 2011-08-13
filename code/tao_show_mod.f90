@@ -2051,7 +2051,7 @@ case ('taylor_map')
       endif
     endif
 
-    call transfer_map_calc_at_s (lat, taylor, s1, s2, one_turn = .true.)
+    call transfer_map_from_s_to_s (lat, taylor, s1, s2, one_turn = .true.)
 
   ! By element
 
