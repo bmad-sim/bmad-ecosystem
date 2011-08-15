@@ -29,8 +29,20 @@ type bbu_beam_struct
   real(rp) one_turn_time
 end type
 
+! For now the current variation is a simple ramp
+
+type bbu_current_variation_struct
+  logical :: variation_on = .false.
+  real(rp) :: t_ramp_start = 0
+  real(rp) :: dt_ramp = 0
+  real(rp) :: dt_plateau = 0
+  real(rp) :: d_charge = 0
+end type
+
+
 type bbu_param_struct
   character(80) lat_file_name
+  type (bbu_current_variation_struct) current_vary
   logical hybridize
   logical write_hom_info
   logical keep_overlays_and_groups  ! Keep when hybridizing?
@@ -437,7 +449,7 @@ type (bunch_struct), pointer :: bunch
 type (bbu_param_struct) bbu_param
 
 integer i, ixb, ix0
-real(rp) r(2)
+real(rp) r(2), t_rel, d_charge
 
 character(20) :: r_name = 'bbu_add_a_bunch'
 
@@ -455,6 +467,42 @@ endif
 
 bunch => bbu_beam%bunch(ixb)
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
+
+! Vary the bunch current if desired
+
+if (bbu_param%current_vary%variation_on) then
+  t_rel = bunch%t_center - bbu_param%current_vary%t_ramp_start
+  d_charge = 0
+
+  if (t_rel > 0) then
+    if (t_rel < bbu_param%current_vary%dt_ramp) then
+      d_charge = bbu_param%current_vary%d_charge * t_rel / bbu_param%current_vary%dt_ramp
+      t_rel = -1
+    else
+      t_rel = t_rel - bbu_param%current_vary%dt_ramp
+    endif 
+  endif
+
+  if (t_rel > 0) then
+    if (t_rel < bbu_param%current_vary%dt_plateau) then
+      d_charge = bbu_param%current_vary%d_charge 
+      t_rel = -1
+    else
+      t_rel = t_rel - bbu_param%current_vary%dt_plateau
+    endif 
+  endif
+
+  if (t_rel > 0) then
+    if (t_rel < bbu_param%current_vary%dt_ramp) then
+      d_charge = bbu_param%current_vary%d_charge * (1 - t_rel / bbu_param%current_vary%dt_ramp)
+    endif 
+  endif
+
+  if (d_charge /= 0) then
+    bunch%charge = bunch%charge * d_charge
+    bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
+  endif
+endif
 
 ! If this is not the first bunch need to correct some of the bunch information
 
