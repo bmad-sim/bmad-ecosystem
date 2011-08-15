@@ -860,6 +860,7 @@ Attributes specific to a \vn{crystal} element are:
   tilt_err               = <Real>    ! Error in the tilt angle.
   thickness              = <Real>    ! Thickness of crystal for Laue diffraction.
   follow_diffracted_beam = <Logic>   ! Track the diffracted or undiffracted beam?
+  negative_graze_angle  = <Logic>    ! Use negative graze angle? Default is False.
 \end{example}
 
 \index{graze_angle_in}\index{graze_angle_out}\index{alpha_angle}
@@ -930,7 +931,10 @@ outgoing graze angle \vn{graze_angle_out} ($\theta_{g,out}$) as shown
 in Fig.~\ref{f:crystal}. These angles are computed from the photon
 reference energy and the other crystal parameters such that a photon
 with the reference energy traveling along the reference trajectory
-will be in the center of the Darwin curve (\sref{s:crystal.tracking}). 
+will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
+If \vn{negative_graze_angle} is set to \vn{True}, 
+\vn{graze_angle_in} and \vn{graze_angle_out} will be negative. This is
+equivalent to setting \vn{tilt} to \vn{pi}.
 
 The reference trajectory in the global coordinate system
 (\sref{s:global}) is determined by the value of the \vn{tilt}
@@ -1385,11 +1389,13 @@ The energy kick felt by a particle is
 where
 \begin{example}
   gradient_tot = gradient + gradient_err
-  phi(z) = -z * rf_frequency / c_light
+  phi(z) = -z * rf_frequency / velocity
   phi_ref = phi0 + dphi0
 \end{example}
-\vn{dphi0} is only to be used to shift the phase with respect to a \vn{multipass}
-lord. See \sref{s:multipass}.
+Where z is the particles's $z$ phase space coordinate (\sref{s:phase.space}).
+See \sref{s:rf.time} for a discussion on timing issues.
+\vn{dphi0} is only to be used to shift the phase with respect to a
+\vn{multipass} lord. See \sref{s:multipass}.
 
 The \vn{e_loss} attribute in the formula for \vn{dE} represents the
 energy loss due to short--range wake fields. \vn{n_part} is set using
@@ -1419,7 +1425,7 @@ ultra-relativistic energies.  See Section \sref{s:lcav.phys} for more
 details.  Note: The transfer matrix for an \vn{lcavity} with finite
 \vn{gradient} is never symplectic. See \sref{s:phase.space}. In
 addition, couplers (\sref{s:rf.coupler}) and HOM wakes
-(\sref{s:rf.wakes} can be modeled.
+(\sref{s:rf.wakes}) can be modeled.
 
 \index{RF field map}
 \index{runge_kutta!and field maps}\index{adaptive_boris!and field maps}
@@ -1497,10 +1503,10 @@ Attributes specific to a \vn{match} element are:
   etap_x0   = <Real>,  etap_y0  = <Real>   ! Beginning eta' 
   etap_x1   = <Real>,  etap_y1  = <Real>   ! Ending eta'
   dphi_a    = <Real>,  dphi_b   = <Real>   ! Phase advances
-  match_end = <Logical>                    ! See below. Default is False.
+  match_end = <Logic>                      ! See below. Default is False.
   x0, px0, y0, py0, z0, pz0 = <Real>       ! Beginning coordinates
   x1, px1, y1, py1, z1, pz1 = <Real>       ! Ending coordinates
-  match_end_orbit = <Logical>              ! See below. Default is False.
+  match_end_orbit = <Logic>                ! See below. Default is False.
 \end{example}
 
 \index{beta_a0}\index{beta_b0}
@@ -1712,21 +1718,23 @@ General \vn{crystal} attributes are:
 The attributes specific to a \vn{multilayer_mirror} are 
 \index{
 \begin{example}
-  crystal_type        = <String>  ! Crystal material and reflection plane.
-  graze_angle_err     = <Real>    ! Error in the graze angle.
-  d1_thickness        = <Real>    ! Thickness of layer 1
-  d2_thickness        = <Real>    ! Thickness of layer 2
-  n_cells             = <Integer> ! Number of cells (= Number of layers / 2)
-  tilt_err            = <Real>    ! Error in the tilt angle.
-  c2_curve            = <Real>    ! C2 curvature coefficient.
-  c3_curve            = <Real>    ! C3 curvature coefficient.
-  c4_curve            = <Real>    ! C4 curvature coefficient.
-  d_detec             = <Real>    ! Detector distance.
-  d_source            = <Real>    ! Source distance.
-  g_trans             = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
-  tilt_err            = <Real>    ! Error in the tilt angle.
+  crystal_type         = <String>  ! Materials in each layer.
+  graze_angle_err      = <Real>    ! Error in the graze angle.
+  d1_thickness         = <Real>    ! Thickness of layer 1
+  d2_thickness         = <Real>    ! Thickness of layer 2
+  n_cells              = <Integer> ! Number of cells (= Number of layers / 2)
+  tilt_err             = <Real>    ! Error in the tilt angle.
+  c2_curve             = <Real>    ! C2 curvature coefficient.
+  c3_curve             = <Real>    ! C3 curvature coefficient.
+  c4_curve             = <Real>    ! C4 curvature coefficient.
+  d_detec              = <Real>    ! Detector distance.
+  d_source             = <Real>    ! Source distance.
+  g_trans              = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+  tilt_err             = <Real>    ! Error in the tilt angle.
+  negative_graze_angle = <Logic>   ! Use negative graze angle? Default is False.
 \end{example}
 
+Dependent attributes (\sref{s:depend}) are
 \begin{example}
   graze_angle      ! Angle between incoming beam and mirror surface.
   c2_curve_tot     ! Total C2 curvature coefficient.
@@ -1738,6 +1746,28 @@ The attributes specific to a \vn{multilayer_mirror} are
   f0_im2           ! Imaginary part of f0 for layer 2
   v1_unitcell      ! Unit cell volume for layer 1
   v2_unitcell      ! Unit cell volume for layer 2 
+\end{example}
+
+A \vn{multilayer_mirror} is constructed of a number of ``cells''. The
+number of cells is set by \vn{n_cells}. Each cell consists of two
+layers of differening material. The materials used is given by
+the \vn{crystal_type} attribute. The format for this is
+\begin{example}
+  crystal_type = "<material_1>:<material_2>"
+\end{example}
+where \vn{<material_1>} and \vn{<material_2>} are the material names
+for the first and second layers of the cell respectively. The first
+layer is the bottom layer and the second layer is the top layer of the cell.
+
+
+
+If \vn{negative_graze_angle} is set to \vn{True}, \vn{graze_angle}
+will be negative. This is equivalent to setting \vn{tilt} to \vn{pi}.
+
+Example:
+\begin{example}
+  mm: multilayer_mirror, crystal_type = 'W:B4C', n_cells = 100, &
+            d1_thickness = 1e-9, d2_thickness = 1.5e-9
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1824,9 +1854,9 @@ Attributes specific to a \vn{patch} elements are:
   y_pitch         = <Real>  
   tilt            = <Real>        
   e_tot_offset    = <Real>
-  translate_after = <Logical>  ! Default: False.
+  translate_after = <Logic>  ! Default: False.
 
-  patch_end       = <Logical>  ! Default: False.
+  patch_end       = <Logic>  ! Default: False.
   x_position      = <Real>
   y_position      = <Real>
   z_position      = <Real>
@@ -1955,9 +1985,11 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \index{multipass}
 where
 \begin{example}
-  phi(z) = -z * rf_frequency / c_light
+  phi(z) = -z * rf_frequency / velocity
   phi_ref = phi0 + dphi0
 \end{example}
+Where z is the particles's $z$ phase space coordinate (\sref{s:phase.space}).
+See \sref{s:rf.time} for a discussion on timing issues.
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
 charge on an electron (Table~\ref{t:constants}). Notice that the

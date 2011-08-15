@@ -1071,24 +1071,9 @@ case ('IS_ON')
   call get_logical ('IS_ON', ele%is_on)
   if (ios /= 0 .or. ix_word == 0) return
 
-case ('MATCH_END')
-  call get_logical_real ('MATCH_END', ele%value(match_end_orbit$))
-  if (ios /= 0 .or. ix_word == 0) return
-
-case ('FOLLOW_DIFFRACTED_BEAM')
-  call get_logical_real ('FOLLOW_DIFFRACTED_BEAM', ele%value(follow_diffracted_beam$))
-  if (ios /= 0 .or. ix_word == 0) return
-
-case ('PATCH_END')
-  call get_logical_real ('PATCH_END', ele%value(patch_end$))
-  if (ios /= 0 .or. ix_word == 0) return
-
-case ('TRANSLATE_AFTER')
-  call get_logical_real ('TRANSLATE_AFTER', ele%value(translate_after$))
-  if (ios /= 0 .or. ix_word == 0) return
-
-case ('MATCH_END_ORBIT')
-  call get_logical_real ('MATCH_END_ORBIT', ele%value(match_end_orbit$))
+case ('MATCH_END', 'FOLLOW_DIFFRACTED_BEAM', 'PATCH_END', 'TRANSLATE_AFTER', 'MATCH_END_ORBIT', &
+      'NEGATIVE_GRAZE_ANGLE')
+  call get_logical_real (attrib_word, ele%value(ix_attrib))
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('APERTURE_LIMIT_ON') 
@@ -4805,8 +4790,6 @@ branch%name           = branch_ele%name
 !! if (branch_ele%alias /= '') branch%name = branch_ele%alias
 call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
-branch%ele(0)%key     = init_ele$
-branch%ele(0)%name    = 'BEGINNING'
 branch%n_ele_track = n_ele_use
 branch%n_ele_max   = n_ele_use
 

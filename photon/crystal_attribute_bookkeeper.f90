@@ -61,13 +61,13 @@ sin_theta0 = sin(theta0)
 ! Compute graze_angle_in
 
 if (ele%value(b_param$) < 0) then ! Bragg
-  cos_graze_in = cos_theta0/delta1
+  cos_graze_in   = cos_theta0/delta1
   graze_angle_in = acos(cos_graze_in)
-  sin_graze_in = sin(graze_angle_in)
+  sin_graze_in   = sin(graze_angle_in)
 else                              ! Laue
-  sin_graze_in = sin_theta0/delta1
+  sin_graze_in   = sin_theta0/delta1
   graze_angle_in = asin(sin_graze_in)
-  cos_graze_in = cos(graze_angle_in)
+  cos_graze_in   = cos(graze_angle_in)
 endif
 
 ele%value(graze_angle_in$) = graze_angle_in

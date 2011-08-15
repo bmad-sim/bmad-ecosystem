@@ -427,7 +427,7 @@ if (.not. associated(ele%rf%wake)) return
 
 if (.not. associated(ele%rf%wake)) return
 n_mode = size(ele%rf%wake%lr)
-if (n_mode == 0 .or. .not. bmad_com%lr_wakes_on) return  
+if (n_mode == 0) return  
 
 call order_particles_in_z (bunch)  ! needed for wakefield calc.
 
@@ -437,7 +437,7 @@ do k = 1, size(bunch%particle)
   j = bunch%particle(k)%ix_z
   particle => bunch%particle(j)
   if (particle%ix_lost /= not_lost$) cycle
-  call lr_wake_apply_kick (ele, bunch%t_center, particle%r)
+  call lr_wake_apply_kick (ele, bunch%t_center, particle%r, particle%charge)
 enddo
 
 ! Add the wakes left by this bunch to the existing wakes.

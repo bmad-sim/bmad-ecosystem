@@ -167,20 +167,15 @@ bp_com%ran%deterministic_ran_function_was_called = .false.
 bp_com%e_tot_set = .false.
 bp_com%p0c_set   = .false.
 
-call init_ele (in_lat%ele(0))
-in_lat%ele(0)%name = 'BEGINNING'     ! Beginning element
-in_lat%ele(0)%key = init_ele$
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 bp_com%beam_ele => in_lat%ele(1)
-call init_ele (bp_com%beam_ele)
 bp_com%beam_ele%name = 'BEAM'                 ! fake beam element
 bp_com%beam_ele%key = def_beam$               ! "definition of beam"
 bp_com%beam_ele%value(particle$) = positron$  ! default
 call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
 
 bp_com%param_ele => in_lat%ele(2)
-call init_ele (bp_com%param_ele)
 bp_com%param_ele%name = 'PARAMETER'           ! For parameters 
 bp_com%param_ele%key = def_parameter$
 bp_com%param_ele%value(lattice_type$) = -1
@@ -188,7 +183,6 @@ bp_com%param_ele%value(particle$)     = positron$  ! default
 call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 
 bp_com%beam_start_ele => in_lat%ele(3)
-call init_ele (bp_com%beam_start_ele)
 bp_com%beam_start_ele%name = 'BEAM_START'           ! For parameters 
 bp_com%beam_start_ele%key = def_beam_start$
 call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)

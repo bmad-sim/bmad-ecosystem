@@ -165,9 +165,6 @@ enddo
 
 lat%param%particle = positron$
 lat%ele(0)%value(e_tot$) = 0
-
-lat%ele(0)%name = 'BEGINNING'     ! Beginning element
-lat%ele(0)%key = init_ele$
 call mat_make_unit (lat%ele(0)%mat6)
 
 ! Transfer elements to the lat_struct

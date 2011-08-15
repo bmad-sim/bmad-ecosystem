@@ -241,7 +241,18 @@ case (lcavity$)
     call err_exit
   endif
 
-  dphase = twopi * (ele%value(phi0_err$) - end%vec(5) * ele%value(rf_frequency$) / c_light)
+  E_start_ref  = ele%value(E_tot_start$)
+  E_end_ref    = ele%value(E_tot$)
+  gradient_ref = (E_end_ref - E_start_ref) / length
+  pc_start_ref = ele%value(p0c_start$)
+  pc_end_ref   = ele%value(p0c$)
+  beta_start_ref = pc_start_ref / E_start_ref
+  beta_end_ref   = pc_end_ref / E_end_ref
+
+  pc_start = pc_start_ref * rel_pc
+  call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
+
+  dphase = twopi * (ele%value(phi0_err$) - end%vec(5) * ele%value(rf_frequency$) / (beta_start_ref * c_light))
   phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
   phase = phase0 + dphase
 
@@ -266,15 +277,6 @@ case (lcavity$)
     endif
   endif
 
-  E_start_ref  = ele%value(E_tot_start$)
-  E_end_ref    = ele%value(E_tot$)
-  gradient_ref = (E_end_ref - E_start_ref) / length
-  pc_start_ref = ele%value(p0c_start$)
-  pc_end_ref   = ele%value(p0c$)
-  beta_start_ref = pc_start_ref / E_start_ref
-  beta_end_ref   = pc_end_ref / E_end_ref
-
-
   ! If the cavity is off and the reference energy does not change then
   ! the tracking is simple.
 
@@ -287,8 +289,6 @@ case (lcavity$)
     return
   endif
 
-  pc_start = pc_start_ref * rel_pc
-  call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
   E_end = E_start + gradient * length
   if (E_end <= mass_of(param%particle)) then
     param%lost = .true.

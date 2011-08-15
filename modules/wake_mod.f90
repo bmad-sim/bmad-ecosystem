@@ -142,31 +142,41 @@ if (.not. associated(ele%rf%wake)) return
 ! We use the following trick: The spatial variation of the normal and skew
 ! components is the same as the spatial variation of a multipole kick.
 
-! To prevent overflow, the exponential factor (but not the sin and cos factors) 
-! is evaluated with respect to lr%t_ref.
+! To prevent floating point overflow, the %a and %b factors are shifted 
+! to be with respect to lr%t_ref.
 
 do i = 1, size(ele%rf%wake%lr)
 
   lr => ele%rf%wake%lr(i)
 
   omega = twopi * lr%freq
+  if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
+
   f_exp = omega / (2 * lr%Q)
 
   if (t_ref /= lr%t_ref) then
     dt = t_ref - lr%t_ref 
     exp_shift = exp(-dt * f_exp) 
     lr%t_ref = t_ref
-    c = cos (dt * omega)
-    s = sin (dt * omega)
-    b_sin = lr%b_sin
-    lr%b_sin = exp_shift * ( c * b_sin + s * lr%b_cos)
-    lr%b_cos = exp_shift * (-s * b_sin + c * lr%b_cos)
-    a_sin = lr%a_sin
-    lr%a_sin = exp_shift * ( c * a_sin + s * lr%a_cos)
-    lr%a_cos = exp_shift * (-s * a_sin + c * lr%a_cos)
+    lr%b_sin = exp_shift
+    lr%b_cos = exp_shift
+    lr%a_sin = exp_shift
+    lr%a_cos = exp_shift
+    if (lr%freq /= 0) then  ! If not fundamental mode
+      c = cos (dt * omega)
+      s = sin (dt * omega)
+      b_sin = lr%b_sin
+      lr%b_sin =  c * b_sin + s * lr%b_cos
+      lr%b_cos = -s * b_sin + c * lr%b_cos
+      a_sin = lr%a_sin
+      lr%a_sin =  c * a_sin + s * lr%a_cos
+      lr%a_cos = -s * a_sin + c * lr%a_cos
+    endif
   endif
 
-  dt = - orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  dt = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
+  if (lr%freq == 0) dt = dt + ele%value(dphi0$) / omega
+
   ff = abs(charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
 
   call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
@@ -194,7 +204,7 @@ end subroutine lr_wake_add_to
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_apply_kick (ele, t_ref, orbit)
+! Subroutine lr_wake_apply_kick (ele, t_ref, orbit, charge)
 !
 ! Subroutine to apply the long-range wake kick to a particle.
 !
@@ -203,14 +213,15 @@ end subroutine lr_wake_add_to
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes
-!   t_ref   -- Real(rp): S position of the reference particle.
+!   t_ref   -- Real(rp): Time of the reference particle.
 !   orbit   -- Coord_struct: Starting coords of the particle.
+!   charge  -- Real(rp): Charge of passing (macro)particle. Needed for self wake.
 !
 ! Output:
 !   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine lr_wake_apply_kick (ele, t_ref, orbit)
+subroutine lr_wake_apply_kick (ele, t_ref, orbit, charge)
 
 implicit none
 
@@ -219,7 +230,8 @@ type (coord_struct) orbit
 type (rf_wake_lr_struct), pointer :: lr
 
 integer i
-real(rp) t_ref, dt, dt_part, omega, f_exp, ff, c, s, w_norm, w_skew, kx, ky, k_dum
+real(rp) t_ref, charge, dt, dt_part, omega, f_exp, ff, c, s
+real(rp) w_norm, w_skew, kx, ky, k_dum, ff_self, kx_self, ky_self, c_a, s_a
 
 ! Check if we have to do any calculations
 
@@ -235,16 +247,35 @@ do i = 1, size(ele%rf%wake%lr)
   dt = t_ref + dt_part - lr%t_ref
 
   omega = twopi * lr%freq
+  if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
+
   f_exp = omega / (2 * lr%Q)
   ff = exp(-dt * f_exp) / ele%value(p0c$) 
+
+  if (lr%freq == 0) dt = dt_part + ele%value(dphi0$) / omega
 
   c = cos (-dt * omega)
   s = sin (-dt * omega)
 
+  ! Self wake component
+
+  ff_self = abs(charge) * lr%r_over_q * omega / (2 * ele%value(p0c$))
+
+  call ab_multipole_kick (0.0_rp, ff_self, lr%m, orbit, kx_self, ky_self)
+
+  if (lr%polarized) then
+    c_a = cos(twopi*lr%angle); s_a = sin(twopi*lr%angle)
+    w_norm = -(kx_self * c_a * c_a + ky_self * s_a * c_a)
+    w_skew = -(kx_self * c_a * s_a + ky_self * s_a * s_a)
+  else
+    w_norm = -kx_self
+    w_skew = -ky_self
+  endif
+
   ! longitudinal kick
 
-  w_norm = (lr%b_sin * ff * (f_exp * s + omega * c) + lr%b_cos * ff * (f_exp * c - omega * s)) / c_light
-  w_skew = (lr%a_sin * ff * (f_exp * s + omega * c) + lr%a_cos * ff * (f_exp * c - omega * s)) / c_light
+  w_norm = w_norm + (lr%b_sin * ff * (f_exp * s + omega * c) + lr%b_cos * ff * (f_exp * c - omega * s)) / c_light
+  w_skew = w_skew + (lr%a_sin * ff * (f_exp * s + omega * c) + lr%a_cos * ff * (f_exp * c - omega * s)) / c_light
 
   call ab_multipole_kick (0.0_rp, w_norm, lr%m, orbit, kx, k_dum)
   call ab_multipole_kick (0.0_rp, w_skew, lr%m, orbit, k_dum, ky)
