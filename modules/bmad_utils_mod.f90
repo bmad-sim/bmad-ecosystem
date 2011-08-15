@@ -53,7 +53,7 @@ implicit none
 
 type (branch_struct) branch
 
-real(rp) s, ss, s_min, s_max, ds_fudge
+real(rp) s, ss, s_min, s_max, ds_fudge, s_bound
 real(rp), optional :: translated_s
 
 logical err_flag
@@ -70,17 +70,26 @@ ss = s
 
 ! Check
 
-if (branch%param%lattice_type == circular_lattice$) then
-  if (s < s_min - (s_max - s_min) - ds_fudge .or. s > s_max + ds_fudge) err_flag = .true.
+if (s > s_max + ds_fudge) then
+  err_flag = .true.
+  s_bound = s_max
+elseif (branch%param%lattice_type == circular_lattice$) then
+  if (s < s_min - (s_max - s_min) - ds_fudge) then
+    err_flag = .true.
+    s_bound = s_min - (s_max - s_min)
+  endif
   if (s < s_min) ss = s + (s_max - s_min)
-else
-  if (s < s_min - ds_fudge .or. s > s_max + ds_fudge) err_flag = .true.
+elseif (s < s_min - ds_fudge) then
+  err_flag = .true.
+  s_bound = s_min
 endif
 
 ! Finish
 
 if (err_flag) then
-  if (bmad_status%type_out) call out_io (s_fatal$, r_name, 'S POSITION OUT OF BOUNDS \f10.2\ ' , s)
+  if (bmad_status%type_out) call out_io (s_fatal$, r_name, &
+        'S-POSITION \f14.8\ PAST EDGE OF LATTICE. ' , &
+        'PAST LATTICE EDGE AT: \f14.8\ ', r_array = [s, s_bound])
   if (bmad_status%exit_on_error) call err_exit
 endif
 
