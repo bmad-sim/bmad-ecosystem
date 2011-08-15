@@ -29,7 +29,7 @@ type bunch_struct
   real(rp) charge   ! Total charge in a bunch (Coul).
   real(rp) z_center ! Longitudinal center of bunch (m). Note: Generally, z_center of 
                     !   bunch #1 is 0 and z_center of the other bunches is negative.
-  real(rp) t_center ! Longitudinal center of bunch (sec).
+  real(rp) t_center ! Center of bunch creation time relative to head bunch.
   integer ix_ele    ! Element this bunch is at.
   integer ix_bunch  ! Bunch index. Head bunch = 1, etc.
 end type

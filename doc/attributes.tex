@@ -45,8 +45,7 @@ lattice is read in.
 \end{tabular}
 }
 \caption[Table of dependent variables.]{Table of dependent variables and 
-  the independent variables 
-they are calculated from.}
+  the independent variables they are calculated from for some selected element types.}
 \label{t:dependent}
 \end{table}
 
@@ -591,6 +590,7 @@ Example:
 \section{RF Couplers}
 \label{s:rf.coupler}
 
+\index{lcavity}\index{rfcavity}
 \index{coupler_at}\index{coupler_strength}
 \index{coupler_angle}\index{coupler_phase}
 For \vn{lcavity} and \vn{rfcavity} elements, the attributes that
@@ -710,10 +710,15 @@ index. An example input file is:
   &long_range_modes
     lr(1) = 1.650e9    0.76    7.0e4  1    unpol
     lr(2) = 1.699e9   11.21    5.0e4  1    0.15
+    lr(3) =    0       0.57    1.1e6  0    unpol
   /
 \end{example}
-If ``\vn{unpolarized}'' is used for the polarization angle, the mode
-is taken to be unpolarized.
+A frequency of zero is used to designate wakes that are part of the
+fundamental accelerating mode. \bmad needs to know if a wake is part
+of the fundamental mode due to timing issues as discussed in \sref{s:rf.time}.
+
+If the polarization angle is set to ``\vn{unpolarized}''
+the mode is taken to be unpolarized.
 
 \vn{lr_freq_spread} is used to randomly spread out the long range mode
 frequencies among different cavities. The spread is Gaussian in shape

@@ -491,7 +491,7 @@ integer, parameter :: roll$=15, quad_tilt$=15, lr_freq_spread$=15, x_ray_line_le
 integer, parameter :: n_sample$=15, fh_re$=15, f0_re2$=15
 integer, parameter :: l_chord$=16, bend_tilt$=16, fh_im$=16, f0_im2$=16
 integer, parameter :: h1$=17, x_quad$=17, g_graze$=17, ref_polarization$=17
-integer, parameter :: h2$=18, y_quad$=18
+integer, parameter :: h2$=18, y_quad$=18, negative_graze_angle$ = 18
 integer, parameter :: b_param$ = 19
 integer, parameter :: d_spacing$ = 20
 integer, parameter :: x_pitch$ = 23

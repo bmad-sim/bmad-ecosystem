@@ -551,3 +551,38 @@ intensity and phase of the field along the $x$ and $y$ axes.
 \Endeqs
 The normalization between field and intensity is determined by the
 individual simulation programs and is not part of the \bmad standard.
+
+%-----------------------------------------------------------------
+\section{RF timing issues}
+\label{s:rf.time}
+
+\index{lcavity}\index{rfcavity}
+When a particle passes through an \vn{lcavity} or \vn{rfcavity}
+element, the kick that it gets is the sum of kicks due to the
+fundamental mode, HOM couplers, short-range wakes, and long-range
+wakes. For this discussion only the fundamental mode and long-range
+wakes need be considered. The fundamental mode and long-range wake
+kicks are time dependent but how this time dependence is handled 
+differently as explained below.
+
+The kick due to the fundamental mode is based on the particle's $z$
+phase space coordinate as shown in \Eq{egl2p} and \Eq{eev2p}. In a
+storage ring or recirculating linac a particle goes through the same
+cavity multiple times. In such a situation, if the distance from a
+cavity back to itself is not a multiple of the fundamental mode
+wavelength the simulation will not be self consistent. This can be
+seen by a simple example: In a storage ring, a particle simulated by
+\bmad traveling on the reference orbit with zero $z$ will never see a
+kick from the fundamental mode of a cavity with zero phase
+offsets. But, in reality, if the length of the ring is not a multiple
+of the fundamental mode wavelength, there will be kicks. The choice to
+have \bmad behave unphysically was made since it can be very confusing
+otherwise. For example, it is potentially very confusing to see
+non-zero closed orbits when one is not expecting it.
+
+On the other hand, the long-range wakes cannot be synchronized to the
+$z$ coordinate since, in general, their frequencies are not
+commensurate with the fundamental mode frequency. For simulating the
+long-range wakes, the kick is thus, by necessity, tied to the absolute
+time. The exception is that a wake associated with the fundamental
+mode will also use $z$ to determine timing.

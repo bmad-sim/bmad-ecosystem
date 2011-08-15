@@ -235,7 +235,7 @@ if (associated(ele%rf%wake)) then
     if (associated(ele%rf%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%rf%wake%sr_mode_trans)
     if (associated(ele%rf%wake%lr))            ix_lr            = size(ele%rf%wake%lr)
     n_wake = n_wake + 1
-    ix_wake(n_wake) = i
+    ix_wake(n_wake) = ele%ix_ele
   endif
 endif
 

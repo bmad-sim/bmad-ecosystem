@@ -1564,13 +1564,12 @@ integer ix_br
 ix_br = integer_option (0, ix_branch)
 
 if (ix_br == 0) then
-  call allocate_element_array (lat%ele, upper_bound)
+  call allocate_element_array (lat%ele, upper_bound, .true.)
   if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
 else
-  call allocate_element_array (lat%branch(ix_br)%ele, upper_bound)
+  call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
   lat%branch(ix_br)%ele%ix_branch = ix_br
 endif
-
 
 end subroutine allocate_lat_ele_array
 
@@ -1578,7 +1577,7 @@ end subroutine allocate_lat_ele_array
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine allocate_element_array (ele, upper_bound)
+! Subroutine allocate_element_array (ele, upper_bound, init_ele0)
 !
 ! Subroutine to allocate or re-allocate an element array.
 ! The old information is saved.
@@ -1595,12 +1594,16 @@ end subroutine allocate_lat_ele_array
 !   ele(:)      -- Ele_struct, pointer: Element array.
 !   upper_bound -- Integer, Optional: Optional desired upper bound.
 !                    Default: 1.3*ubound(ele(:)) or 100 if ele is not allocated.
+!   init_ele0   -- Logical, optional: If present and True and ele(:) array has not been allocated then set:
+!                     ele(0)%name = 'BEGINNING'
+!                     ele(0)%key = init_ele$
+!                     ele(0)%mat6 = unit matrix
 !
 ! Output:
-!   ele(:)      -- Ele_struct, pointer: Element array.
+!   ele(:)      -- Ele_struct, pointer: Allocated element array.
 !-
 
-subroutine allocate_element_array (ele, upper_bound)
+subroutine allocate_element_array (ele, upper_bound, init_ele0)
 
 implicit none
 
@@ -1609,6 +1612,8 @@ type (ele_struct), pointer :: temp_ele(:)
 
 integer, optional :: upper_bound
 integer curr_ub, ub, i
+
+logical, optional :: init_ele0
 
 ! get new size
 
@@ -1641,6 +1646,12 @@ do i = curr_ub+1, ub
   call init_ele (ele(i))
   ele(i)%ix_ele = i
 end do
+
+if (logic_option(.false., init_ele0) .and. curr_ub == -1) then
+  ele(0)%name = 'BEGINNING'
+  ele(0)%key = init_ele$
+  call mat_make_unit (ele(0)%mat6)
+endif
 
 end subroutine allocate_element_array
 
