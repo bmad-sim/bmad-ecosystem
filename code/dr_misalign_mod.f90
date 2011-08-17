@@ -108,7 +108,7 @@ contains
        endif
        ma%param = allowed_params(ix)
 
-       write(*,'(3a,i0,a,i0)') 'ma%key_name = ', trim(ma%key_name), '  ma%key = ', ma%key, '  ma%param = ', ma%param
+       !write(*,'(3a,i0,a,i0)') 'ma%key_name = ', trim(ma%key_name), '  ma%key = ', ma%key, '  ma%param = ', ma%param
 
        if (ma%key == marker$ .and. ma%param > 0) then
           ! Technically, someone might want to do this. Maybe it should just be a warning.
@@ -131,9 +131,10 @@ contains
           ! the first element, and it's the same as last element, then reuse the old numbers.
           if ((.not. dr_misalign_params%tie_dup_ele) .or. &
               (i_ele == 1) .or. (ring%ele(i_ele)%name .ne. ring%ele(i_ele-1)%name)) then
-             harvest = 1000
+             harvest = 1000  ! why is this set to 1000? -JSh
              do while (abs(harvest) >= dr_misalign_params%sigma_cutoff)
-                call gasdev(harvest)
+                ! call gasdev(harvest)  ! does not return random numbers!
+                call ran_gauss(harvest) ! returns random numbers, but is unaffected by fixed seed
              end do
           end if
 
