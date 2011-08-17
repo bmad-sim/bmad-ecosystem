@@ -12,6 +12,7 @@ contains
 
 subroutine write_opal
 
+!test
 
 end subroutine write_opal
 
