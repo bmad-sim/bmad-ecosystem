@@ -1715,8 +1715,14 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
+\index{crystal_type}\index{graze_angle_err}
+\index{d1_thickness}\index{d2_thickness}
+\index{n_cells}\index{tilt_err}
+\index{c2_curve}\index{c3_curve}
+\index{c4_curve}\index{d_detec}
+\index{d_source}\index{g_trans}
+\index{tilt_err}\index{negative_graze_angle}
 The attributes specific to a \vn{multilayer_mirror} are 
-\index{
 \begin{example}
   crystal_type         = <String>  ! Materials in each layer.
   graze_angle_err      = <Real>    ! Error in the graze angle.
@@ -1734,6 +1740,11 @@ The attributes specific to a \vn{multilayer_mirror} are
   negative_graze_angle = <Logic>   ! Use negative graze angle? Default is False.
 \end{example}
 
+\index{graze_angle}\index{c2_curve_tot}
+\index{c3_curve_tot}\index{c4_curve_tot}
+\index{f0_re1}\index{f0_im1}
+\index{f0_re2}\index{f0_im2}
+\index{v1_unitcell}\index{v2_unitcell}
 Dependent attributes (\sref{s:depend}) are
 \begin{example}
   graze_angle      ! Angle between incoming beam and mirror surface.
