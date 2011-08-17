@@ -63,8 +63,9 @@ TYPE tt_param_struct
   ! The following parameters are overwritten by the init_dTT
   REAL(rp) LPalpha        ! low-pass filter constant. Calculated from LPinertia
   INTEGER wls_id          ! Instance ID for window LS module for D channel
+  LOGICAL :: allocated = .FALSE.   ! Keeps track of whic tt_ids have been instantiated by user.
 
-  ! The following parameters are likely to be needed by any program
+  ! The following are parameters that are likely to be needed by any program
   ! that makes use of the tune tracker module.
   ! This module does not actually use these parameters.
   ! For examples, see the tune tracker driver program.
@@ -91,7 +92,7 @@ TYPE tt_state_struct
 END TYPE tt_state_struct
 
 ! Variables related to multiple TT instances
-INTEGER, PRIVATE, SAVE :: tt_ids = 0  !number of tune trackers instantiated
+INTEGER, PRIVATE, SAVE :: tts_instantiated = 0  !number of tune trackers instantiated
 TYPE(tt_param_struct), PRIVATE, SAVE :: tt_param(max_tt)
 TYPE(tt_state_struct), PRIVATE, SAVE :: tt_state(max_tt)
 INTEGER, PRIVATE, SAVE :: log_luns(max_tt)
@@ -126,6 +127,7 @@ CONTAINS
 FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   TYPE(tt_param_struct) :: incoming_tt_param
   TYPE(coord_struct), OPTIONAL :: saved_coords
+  INTEGER i
   INTEGER id
   INTEGER ios
   CHARACTER id_str
@@ -133,14 +135,21 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
   CHARACTER(10) state_name
   LOGICAL state_read
 
-  tt_ids = tt_ids + 1
-  IF(tt_ids .gt. max_tt) THEN
+  IF(tts_instantiated + 1 .gt. max_tt) THEN
     WRITE(*,*) "Maximum number of tune trackers hard-coded to max_tt = ", max_tt
     STOP
   ENDIF
-  id = tt_ids
 
-  tt_param(id) = incoming_tt_param
+  tts_instantiated = tts_instantiated + 1
+
+  DO i=1,max_tt
+    IF( .not. tt_param(i)%allocated ) THEN
+      id = i 
+      tt_param(id) = incoming_tt_param
+      tt_param(i)%allocated = .true.
+      EXIT
+    ENDIF
+  ENDDO
 
   WRITE(id_str,'(I1)') id
 
@@ -194,6 +203,57 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
 END FUNCTION init_dTT
 
 !+
+! Subroutine reset_dTT(id,tt_param)
+!
+! Reset a tune tracker and optionally change its parameters.
+!
+! Modules Needed:
+!   use tune_tracker_mod
+!
+! Input:
+!   id        -- INTEGER, INTENT(IN): Tune tracker instance ID obtained from constructor.
+!   tt_param  -- 
+! Output:
+!   none
+!-
+SUBROUTINE reset_dTT(id,tt_param_update)
+  INTEGER, INTENT(IN) :: id
+  TYPE(tt_param_struct), OPTIONAL :: tt_param_update
+
+  CALL check_id(id)
+
+  ! Reset state variables
+  tt_state(id)%deltaw = 0.0_rp
+  tt_state(id)%intDphi = 0.0_rp
+  tt_state(id)%bpm_msmt_last = 0.0_rp
+  tt_state(id)%psi = 0.0_rp
+  tt_state(id)%Dphi = 0.0_rp
+  tt_state(id)%gain = 0.001_rp
+  tt_state(id)%counter = 0
+
+  ! Update tt_param if tt_param_update is present.  Only certain fields can be updated.
+  IF(PRESENT(tt_param_update)) THEN
+    tt_param(id)%phi_to_kicker = tt_param_update%phi_to_kicker
+    tt_param(id)%Dt = tt_param_update%Dt
+    tt_param(id)%LPinertia = tt_param_update%LPinertia
+    tt_param(id)%Ki = tt_param_update%Ki
+    tt_param(id)%Kp = tt_param_update%Kp
+    tt_param(id)%Kvco = tt_param_update%Kvco
+    tt_param(id)%modw0 = tt_param_update%modw0
+    tt_param(id)%offset = tt_param_update%offset
+    tt_param(id)%mixmode = tt_param_update%mixmode
+    tt_param(id)%cyc_per_turn = tt_param_update%cyc_per_turn
+
+    tt_param(id)%LPalpha = 1.0_rp / ( 1.0_rp + (tt_param(id)%LPinertia/2.0_rp/pi) )
+  ENDIF
+
+  ! Write two blank lines to the log file to indicate that a reset has occurred
+  WRITE(log_luns(id),*)
+  WRITE(log_luns(id),*)
+
+END SUBROUTINE reset_dTT
+
+!+
 ! Subroutine dest_dTT(id)
 !
 ! Destructor for tune tracker.  Should be called end of program to ensure all files are properly closed.
@@ -213,6 +273,10 @@ SUBROUTINE dest_dTT(id,coords)
   TYPE(coord_struct), OPTIONAL :: coords
 
   CALL check_id(id)
+
+  tts_instantiated = tts_instantiated - 1
+
+  tt_param(id)%allocated = .false.
 
   IF(tt_param(id)%useSaveState) THEN
     IF(PRESENT(coords)) THEN
@@ -335,7 +399,7 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
   ENDIF
 
   CALL modulator(tt_state(id)%psi + tt_param(id)%phi_to_kicker, sinout, sqrout)
-  z = sinout
+  z = sinout ! z is result, the value returned by this function
 
 END FUNCTION TT_update
 
@@ -403,21 +467,22 @@ END SUBROUTINE modulator
 SUBROUTINE check_id(id)
   INTEGER, INTENT(IN) :: id
   
-  IF( (id .LT. 0) .OR. id .GT. max_tt) THEN
+  IF( (id .LT. 1) .OR. id .GT. max_tt) THEN
     !Absurd TT id passed to TT module
     WRITE(*,'(A,I3)') "FATAL IN CALL TO TUNE TRACKER: ID received is ", id
-    WRITE(*,'(A,I3)') "                  ID should be greater than 0 and less than ", max_tt+1
+    WRITE(*,'(A,I3)') "                  ID should be between 1 and ", max_tt
     WRITE(*,'(A)')    "                  Check that init_dTT has been called."
-    WRITE(*,'(A)')    "                  Check that id is an integer."
+    WRITE(*,'(A)')    "                  Check that ID is an integer."
     CALL err_exit
-    IF(id .GT. tt_ids) THEN
-      !Tune tracker not initialized
-      WRITE(*,'(A,I3)') "FATAL IN CALL TO TUNE TRACKER: ID received is ", id
-      WRITE(*,'(A)')    "                A tune tracker with this id has not been instantiated."
-      WRITE(*,'(A)')    "                Check that init_dTT has been called and dest_dTT has not been called."
-      WRITE(*,'(A)')    "                Check that ID is an integer."
-      CALL err_exit
-    ENDIF
+  ENDIF
+
+  IF( .not. tt_param(id)%allocated ) THEN
+    !Tune tracker not initialized
+    WRITE(*,'(A,I3)') "FATAL IN CALL TO TUNE TRACKER: ID received is ", id
+    WRITE(*,'(A)')    "                A tune tracker with this ID has not been instantiated."
+    WRITE(*,'(A)')    "                Check that init_dTT has been called and dest_dTT has not been called."
+    WRITE(*,'(A)')    "                Check that ID is an integer."
+    CALL err_exit
   ENDIF
 END SUBROUTINE check_id
 
