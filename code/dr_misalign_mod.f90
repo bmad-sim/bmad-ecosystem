@@ -55,13 +55,12 @@ contains
 
     integer, parameter :: allowed_params(9) = (/ x_offset$, y_offset$, tilt$, k1$, k2$, roll$, &
                                                s_offset$, x_pitch$, y_pitch$/)
-    character(40), parameter :: allowed_param_names(9) = (/ 'x_offset', 'y_offset', 'tilt', 'k1', 'k2', 'roll', &
-                                               's_offset', 'x_pitch', 'y_pitch' /)
+    character(40), parameter :: allowed_param_names(9) = (/ 'x_offset', 'y_offset', 'tilt    ', 'k1      ', &
+                                                'k2      ', 'roll    ', 's_offset', 'x_pitch ', 'y_pitch ' /)
 
-    integer, parameter :: allowed_keys(5) = (/ sbend$, quadrupole$, sextupole$, wiggler$, &
-                                             marker$ /)
-    character(40), parameter :: allowed_key_names(5) = (/ 'sbend', 'quadrupole', 'sextupole', 'wiggler', &
-                                             'marker' /)
+    integer, parameter :: allowed_keys(5) = (/ sbend$, quadrupole$, sextupole$, wiggler$, marker$ /)
+    character(40), parameter :: allowed_key_names(5) = (/ 'sbend     ', 'quadrupole', 'sextupole ', &
+                                                          'wiggler   ', 'marker    ' /)
 
 
     type(ele_struct), pointer :: ele
