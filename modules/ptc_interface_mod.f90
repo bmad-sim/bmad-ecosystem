@@ -5,9 +5,6 @@ use bmad_interface
 use multipole_mod
 use bookkeeper_mod
 
-use definition, only: real_8, universal_taylor
-use s_def_all_kinds, only: fibre, layout
-
 interface assignment (=)
   module procedure real_8_equal_taylor
   module procedure taylor_equal_real_8
@@ -51,7 +48,7 @@ contains
 
 function taylor_plus_taylor (taylor1, taylor2) result (taylor3)
 
-use polymorphic_taylor, only: kill, operator(+)
+use polymorphic_taylor, only: kill, operator(+), real_8
 
 implicit none
 
@@ -104,7 +101,7 @@ end function taylor_plus_taylor
 
 function taylor_minus_taylor (taylor1, taylor2) result (taylor3)
 
-use polymorphic_taylor, only: kill, operator(-)
+use polymorphic_taylor, only: kill, operator(-), real_8
 
 implicit none
 
@@ -233,7 +230,7 @@ end subroutine set_taylor_order
 
 function map_coef (y, i, j, k, l, style) result (m_coef)
 
-use polymorphic_taylor, only: operator (.sub.), operator(*)
+use polymorphic_taylor, only: operator (.sub.), operator(*), real_8
 
 implicit none
 
@@ -326,6 +323,8 @@ end function map_coef
 
 subroutine type_layout (lay)
 
+use s_def_all_kinds, only: layout
+
 implicit none
 
 type (layout) lay
@@ -369,7 +368,7 @@ end subroutine type_layout
 
 subroutine lat_to_layout (lat, ptc_layout)
 
-use s_fibre_bundle, only: ring_l, append, lp
+use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill
 
 implicit none
@@ -426,6 +425,8 @@ end subroutine lat_to_layout
 !-
 
 subroutine type_map1 (y, type0, n_dim, style)
+
+use definition, only: real_8
 
 implicit none
 
@@ -512,7 +513,7 @@ end function kind_name
 
 subroutine type_fibre (fib)
 
-use s_status, only: kind4, kind5, kind2
+use s_status, only: kind4, kind5, kind2, fibre
 
 implicit none
 
@@ -724,6 +725,8 @@ end subroutine set_ptc
 
 subroutine real_8_equal_taylor (y8, bmad_taylor)
 
+use definition, only: real_8
+
 implicit none
 
 type (real_8), intent(inout) :: y8(:)
@@ -753,6 +756,8 @@ end subroutine real_8_equal_taylor
 !-
 
 subroutine taylor_equal_real_8 (bmad_taylor, y8)
+
+use definition, only: real_8
 
 implicit none
 
@@ -791,6 +796,8 @@ end subroutine taylor_equal_real_8
 subroutine real_8_to_taylor (y8, bmad_taylor, switch_z)
 
 use polymorphic_taylor, only: assignment (=), universal_taylor, real_8
+
+use definition, only: real_8
 
 implicit none
 
@@ -844,7 +851,7 @@ end subroutine real_8_to_taylor
 
 subroutine taylor_to_real_8 (bmad_taylor, y8, switch_z)
 
-use polymorphic_taylor, only: kill, assignment(=)
+use polymorphic_taylor, only: kill, assignment(=), real_8, universal_taylor
 
 implicit none
 
@@ -985,6 +992,8 @@ end subroutine vec_ptc_to_bmad
 
 elemental subroutine universal_equal_universal (ut1, ut2)
 
+use definition, only: universal_taylor
+
 implicit none
 
 type (universal_taylor), intent(inout) :: ut1
@@ -1029,7 +1038,7 @@ end subroutine
 
 subroutine real_8_init (y, set_taylor)
 
-use s_fibre_bundle, only: assignment(=), alloc
+use s_fibre_bundle, only: assignment(=), alloc, real_8
 
 implicit none
 
@@ -1075,6 +1084,8 @@ end subroutine real_8_init
 !-
 
 Subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor, switch_z)
+
+use definition, only: universal_taylor
 
 implicit none
 
@@ -1146,7 +1157,7 @@ end subroutine universal_to_bmad_taylor
 
 subroutine concat_real_8 (y1, y2, y3)
 
-use s_fitting, only: alloc, assignment(=), kill, damap, operator(.o.)
+use s_fitting, only: alloc, assignment(=), kill, damap, operator(.o.), real_8
 
 implicit none
 
@@ -1205,7 +1216,7 @@ end subroutine concat_real_8
 
 subroutine taylor_to_genfield (bmad_taylor, gen_field, c0)
 
-use s_fitting, only: alloc, kill, assignment(=), damap
+use s_fitting, only: alloc, kill, assignment(=), damap, real_8
 
 implicit none
 
@@ -1347,7 +1358,7 @@ end subroutine remove_constant_taylor
 
 subroutine taylor_inverse (taylor_in, taylor_inv, err, ref_pt)
 
-use s_fitting, only: assignment(=), alloc, kill, operator(**), damap
+use s_fitting, only: assignment(=), alloc, kill, operator(**), damap, real_8
 
 implicit none
 
@@ -1477,7 +1488,7 @@ end subroutine taylor_inverse
 
 subroutine concat_taylor (taylor1, taylor2, taylor3)
 
-use s_fitting, only: assignment(=), kill
+use s_fitting, only: assignment(=), kill, real_8
 
 implicit none
 
@@ -1537,7 +1548,7 @@ end subroutine concat_taylor
 
 Subroutine concat_ele_taylor (taylor1, ele, taylor3)
 
-use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), default
+use s_tracking, only: mis_fib, alloc, kill, dtiltd, assignment(=), default, real_8, fibre
 
 implicit none
 
@@ -1637,7 +1648,7 @@ end subroutine concat_ele_taylor
 subroutine taylor_propagate1 (tlr, ele, param)
 
 use s_tracking
-use mad_like, only: ptc_track => track
+use mad_like, only: real_8, fibre, ptc_track => track
 
 implicit none
 
@@ -1728,7 +1739,7 @@ end subroutine taylor_propagate1
 subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
 
 use s_tracking
-use mad_like, only: ptc_track => track
+use mad_like, only: real_8, fibre, ptc_track => track
 
 implicit none
 
@@ -1858,6 +1869,8 @@ end subroutine ele_to_taylor
 
 subroutine type_real_8_taylors (y, switch_z)
 
+use definition, only: real_8
+
 implicit none
 
 type (real_8) y(:)
@@ -1903,6 +1916,7 @@ end subroutine type_real_8_taylors
 subroutine sort_universal_terms (ut_in, ut_sorted)
 
 use nr
+use definition, only: universal_taylor
 
 implicit none
 
@@ -1964,7 +1978,7 @@ end subroutine sort_universal_terms
 
 subroutine type_map (y)
 
-use s_fitting, only: assignment(=)
+use s_fitting, only: assignment(=), real_8, universal_taylor
 
 implicit none
 
@@ -2027,7 +2041,7 @@ subroutine ele_to_fibre (ele, fiber, param, use_offsets, integ_order, steps)
 
 use sagan_wiggler, only: hyperbolic_xdollar, hyperbolic_ydollar, hyperbolic_xydollar
 use madx_keywords, only: keywords, zero_key, create_fibre, geo_rot
-use mad_like, only: nmax, init_sagan_pointers, misalign_fibre, copy, c_
+use mad_like, only: nmax, init_sagan_pointers, misalign_fibre, copy, c_, fibre
 
 implicit none
  
