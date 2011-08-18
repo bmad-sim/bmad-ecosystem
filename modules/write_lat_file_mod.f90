@@ -884,9 +884,9 @@ end function
 !-------------------------------------------------------
 ! Input:
 !   end_is_neigh -- Logical: If true then write out everything.
-!                     Otherwise wait for a full line of 76 characters or so.
+!                     Otherwise wait for a full line of max_char characters or so.
 
-subroutine write_out (line, iu, end_is_neigh)
+subroutine write_out (line, iu, end_is_neigh, continue_char)
 
 implicit none
 
@@ -894,12 +894,18 @@ character(*) line
 integer i, iu
 logical end_is_neigh
 logical, save :: init = .true.
+integer, save :: max_char = 90
+character(*), optional :: continue_char
+character(len(continue_char)) c_char
 
 !
 
+c_char = '&'
+if (present(continue_char)) c_char = continue_char
+
 outer_loop: do 
 
-  if (len_trim(line) < 76) then
+  if (len_trim(line) < max_char-4) then
     if (end_is_neigh) then
       call write_this (line)
       init = .true.
@@ -907,17 +913,17 @@ outer_loop: do
     return
   endif
       
-  do i = 74, 1, -1
+  do i = max_char-6, 1, -1
     if (line(i:i) == ',') then
-      call write_this (line(:i) // ' &')
+      call write_this (line(:i) // ' ' // c_char)
       line = line(i+1:)
       cycle outer_loop
     endif
   enddo
 
-  do i = 75, len_trim(line)
+  do i = max_char-5, len_trim(line)
     if (line(i:i) == ',') then
-      call write_this (line(:i) // ' &')
+      call write_this (line(:i) // ' ' // c_char)
       line = line(i+1:)
       cycle outer_loop
     endif
@@ -930,7 +936,6 @@ outer_loop: do
   endif
 
 enddo outer_loop
-
 
 contains
 
@@ -1653,7 +1658,7 @@ call deallocate_lat_pointers (lat_model)
 !------------------------------------------------------------------------
 contains
 
-subroutine element_out
+subroutine element_out 
 
 do
   if (len_trim(line_out) < 76) exit
