@@ -130,10 +130,9 @@ contains
           ! the first element, and it's the same as last element, then reuse the old numbers.
           if ((.not. dr_misalign_params%tie_dup_ele) .or. &
               (i_ele == 1) .or. (ring%ele(i_ele)%name .ne. ring%ele(i_ele-1)%name)) then
-             harvest = 1000  ! why is this set to 1000? -JSh
+             harvest = 1000  
              do while (abs(harvest) >= dr_misalign_params%sigma_cutoff)
-                ! call gasdev(harvest)  ! does not return random numbers!
-                call ran_gauss(harvest) ! returns random numbers, but is unaffected by fixed seed
+                call ran_gauss(harvest) 
              end do
           end if
 
