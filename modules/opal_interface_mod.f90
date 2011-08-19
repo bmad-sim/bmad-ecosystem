@@ -150,7 +150,7 @@ ele_loop: do ie = ix_start, ix_end
 
 
 	!Finally write out line
-	call write_out (line, iu, .true.)  
+	call write_lat_line (line, iu, .true.)  
 
 enddo ele_loop
 
