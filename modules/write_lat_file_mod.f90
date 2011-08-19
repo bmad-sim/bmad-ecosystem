@@ -7,7 +7,7 @@ use multipass_mod
 use element_modeling_mod
 use lat_ele_loc_mod
 
-private str, rchomp, write_out
+private str, rchomp
 
 contains
 
@@ -242,7 +242,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
       if (associated(ele%descrip)) line = trim(line) // &
                               ', descrip = "' // trim(ele%descrip) // '"'
-      call write_out (line, iu, .true.)
+      call write_lat_line (line, iu, .true.)
       cycle
     endif
 
@@ -490,7 +490,7 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
 
-    call write_out (line, iu, .false.)  
+    call write_lat_line (line, iu, .false.)  
 
     ! Encode taylor
 
@@ -527,7 +527,7 @@ do ib = 0, ubound(lat%branch, 1)
     
     if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then
       line = trim(line) // ', &'
-      call write_out (line, iu, .true.)  
+      call write_lat_line (line, iu, .true.)  
       do j = 1, size(ele%wig_term)
         wt = ele%wig_term(j)
         last = '}, &'
@@ -537,7 +537,7 @@ do ib = 0, ubound(lat%branch, 1)
           ', ', trim(str(wt%phi_z)), trim(last)  
       enddo
     else
-      call write_out (line, iu, .true.)  
+      call write_lat_line (line, iu, .true.)  
     endif
 
   enddo ele_loop
@@ -633,7 +633,7 @@ if (size(m_info%top) /= 0) then
     if (multipass(ie)%region_start_pt) then
       if (ix_r > 0) then
         line = line(:len_trim(line)-1) // ')'
-        call write_out (line, iu, .true.)
+        call write_lat_line (line, iu, .true.)
       endif
       ix_r = ix_r + 1
       write (iu, *)
@@ -645,7 +645,7 @@ if (size(m_info%top) /= 0) then
   enddo
 
   line = line(:len_trim(line)-1) // ')'
-  call write_out (line, iu, .true.)
+  call write_lat_line (line, iu, .true.)
 
 end if
 
@@ -689,7 +689,7 @@ do ie = 1, lat%n_ele_track
 enddo
 
 line = line(:len_trim(line)-1) // ')'
-call write_out (line, iu, .true.)
+call write_lat_line (line, iu, .true.)
 
 write (iu, *)
 write (iu, *) 'use, main_line'
@@ -710,7 +710,7 @@ do ib = 1, ubound(lat%branch, 1)
   enddo
 
   line = line(:len_trim(line)-1) // ')'
-  call write_out (line, iu, .true.)
+  call write_lat_line (line, iu, .true.)
 
 enddo
 
@@ -808,7 +808,7 @@ else
   write (line, '(4a)') trim(line), ' ', trim(ele%name), ','
 endif
 
-if (len_trim(line) > 80) call write_out(line, iu, .false.)
+if (len_trim(line) > 80) call write_lat_line(line, iu, .false.)
 
 end subroutine
 
@@ -886,7 +886,7 @@ end function
 !   end_is_neigh -- Logical: If true then write out everything.
 !                     Otherwise wait for a full line of max_char characters or so.
 
-subroutine write_out (line, iu, end_is_neigh, continue_char)
+subroutine write_lat_line (line, iu, end_is_neigh, continue_char)
 
 implicit none
 
