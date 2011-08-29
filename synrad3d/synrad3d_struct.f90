@@ -106,9 +106,10 @@ type sr3d_params_struct
   real(rp) :: dr_track_step_max = 0.1   ! Maximum tranverse distance in one photon "step".
   logical :: allow_reflections = .true. ! If False, terminate tracking when photon hits the wall.
   logical :: stop_if_hit_antechamber = .false. 
-  logical :: allow_absorbtion = .true.  ! If False, do not allow photon to be adsorbed at wall. 
-                                        !   Used for debugging.
-  logical :: debug_on
+  logical :: always_specularly_reflect = .true.  ! If True, do not allow photon to be adsorbed 
+                                                 !   or scattered. Used for debugging.
+  logical :: diffuse_scattering_on = .true.
+  logical :: debug_on = .false.
   integer ix_generated_warn             ! For debug use
 end type
 
