@@ -2519,6 +2519,10 @@ do
     call get_next_arg (tao_com%init_tao_file)
     tao_com%init_tao_file_set_on_command_line = .true.
 
+  case ('-noinit')
+    tao_com%init_tao_file = 'NO INIT FILE'
+    tao_com%init_tao_file_set_on_command_line = .true.    
+
   case ('-beam_all')
     call get_next_arg (tao_com%beam_all_file)
 
@@ -2549,7 +2553,7 @@ do
   case ('-startup')
     call get_next_arg (tao_com%startup_file)
 
-  case ('help', '-help')
+  case ('help', '-help', '?', '-?')
     call help_out
     stop
 

@@ -57,7 +57,7 @@ if (tao_com%init_read_lat_info) then
     call tao_open_file ('TAO_INIT_DIR', input_file_name, iu, full_input_name)
     call out_io (s_blank$, r_name, '*Init: Opening File: ' // full_input_name)
     if (iu == 0) then
-      call out_io (s_fatal$, r_name, 'ERROR OPENING PLOTTING FILE. WILL EXIT HERE...')
+      call out_io (s_fatal$, r_name, 'ERROR OPENING TAO LATTICE INFO FILE. WILL EXIT HERE...')
       call err_exit
     endif
   endif

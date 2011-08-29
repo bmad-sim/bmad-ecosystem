@@ -1113,14 +1113,24 @@ do j = n1, n2
 
   if (data_type(1:6) == 'chrom.') u%do_chrom_calc = .true.
 
-  if (data_type == 'unstable.orbit' .or. &
-              (u%design%lat%param%lattice_type == circular_lattice$ .and. &
-              (data_type(1:6)  == 'chrom.' .or. data_type(1:17) == 'multi_turn_orbit.' .or. &
-               data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0))) then
+  ! Some data types are global and are not associated with a particular element. Check for this.
+
+  if (data_type == 'unstable.orbit') then
     dat%exists = .true.
     if (dat%ele_name /= '') then
       call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
                         'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // dat%ele_name)
+      call err_exit
+    endif
+  endif
+
+  if (u%design%lat%param%lattice_type == circular_lattice$ .and. &
+              (data_type(1:6)  == 'chrom.' .or. data_type(1:17) == 'multi_turn_orbit.' .or. &
+               data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0)) then
+    dat%exists = .true.
+    if (dat%ele_name /= '') then
+      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
+                        'CANNOT HAVE AN ASSOCIATED ELEMENT IN A CIRCULAR LATTICE: ' // dat%ele_name)
       call err_exit
     endif
   endif

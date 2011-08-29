@@ -111,8 +111,9 @@ Overrides the \vn{beam0_file} (\sref{s:beam.init}) specified in the
 Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
   \item[\vn{-init <tao_init_file>}] \Newline
-replaces the default initialization file name (\vn{tao.init}).
-A \tao initialization file is actually not needed. In this case, a
+replaces the default \tao initialization file name
+(\vn{tao.init}). Note: A \tao initialization file is actually not
+needed. If no \tao initialization file is used, the use of the
 \vn{-lat} switch is mandatory and \tao will use a set of default plot
 templates for plotting.
   \item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
@@ -131,6 +132,10 @@ Do not put any spaces in between. Example:
   \item[\vn{-lattice <lattice_namelist_file>}] \Newline
 Overrides the \vn{lattice_file} (\sref{s:init.global}) specified in the
 \tao initialization file.
+  \item[\vn{-noinit}] \Newline
+Supresses use of a \tao initialization file. In this case the use of
+the \vn{-lat} switch is mandatory and \tao will use a set of default
+plot templates for plotting.
   \item[\vn{-noplot}] \Newline
 Suppresses the opening of the plot window.
   \item[\vn{-plot <plot_file>}] \Newline
