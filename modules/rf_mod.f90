@@ -74,7 +74,7 @@ mode1 => ele%rf%field%mode(1)
 ! Only do the adjustment if mode1 is an acceleration mode.
 
 if (mode1%m /= 0) return  
-if (all(mode1%term%e == 0)) return
+if (all(mode1%fit%term%e == 0) .and. .not. associated(mode1%grid)) return
 
 !
 

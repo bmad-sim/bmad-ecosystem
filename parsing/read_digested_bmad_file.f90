@@ -380,12 +380,11 @@ if (n_rf_field_mode > 0) then
     mode => ele%rf%field%mode(i)
     read (d_unit, err = 9140) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
                                  mode%m, mode%phi_0, mode%dz, mode%field_scale 
-
-    if (allocated(mode%term)) then
-      if (size(mode%term) /= n) deallocate(mode%term)
+    if (n > 0) then
+      allocate (mode%fit)
+      allocate (mode%fit%term(n))
+      read (d_unit, err = 9140) mode%fit%term
     endif
-    if (size(mode%term) /= n) allocate (mode%term(n))
-    read (d_unit, err = 9140) mode%term
   enddo
 endif
 

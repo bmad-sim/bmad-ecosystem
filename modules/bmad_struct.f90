@@ -129,21 +129,36 @@ type rf_wake_struct
   real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
 end type
 
-type rf_field_mode_term_struct
+type rf_field_fit_term_struct
   complex(rp) :: e = 0, b = 0
 end type
 
-type rf_field_mode_grid_struct
+type rf_field_mode_fit_struct
+  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  type (rf_field_fit_term_struct), allocatable :: term(:)
+end type
+
+type em_field_point_struct
   complex :: E(3) = 0
   complex :: B(3) = 0
+end type
+
+type em_field_grid_struct
+  integer :: type = 0           ! Type of grid structure
+  character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  type (em_field_point_struct), allocatable :: pt(:,:,:)
+  real(rp) :: dr(3) = 0   ! Grid spacing.
+  real(rp) :: r0(3) = 0   ! Grid origin.
 end type
 
 ! RF mode structure
 ! See: 
 !    Dan Abell, PRST-AB 9, 052001 (2006)
 !   "Numerical computation of high-order transfer maps for rf cavities."
-!
-! Each %term(n) in this structure has a wavelength k = (n-1) * twopi / %dz
+
+! Note: Unlike most everything else, to save on space, different ele%field%mode%grid
+! and ele%field%mode%fit pointers may point to the same memeory location. 
+! This being the case, these components are never deallocated.
 
 type rf_field_mode_struct
   integer m                   ! Mode varies as cos(m*phi - phi_0)
@@ -154,10 +169,8 @@ type rf_field_mode_struct
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
   real(rp) :: dz = 0          ! Distance between sampled field points.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
-  type (rf_field_mode_term_struct), allocatable :: term(:) 
-  type (rf_field_mode_grid_struct), pointer :: grid(:,:,:) => null()  ! Pointer so can point to common memory
-  real(rp) :: dr_grid(3) = 0  ! Grid spacing.
-  real(rp) ::r0_grid(3) = 0   ! Grid origin.
+  type (rf_field_mode_fit_struct), pointer :: fit => null()
+  type (em_field_grid_struct), pointer :: grid => null()
 end type
 
 ! The RF field may be characterized by a collection of modes.
@@ -246,6 +259,7 @@ type ele_struct
   type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
   type (wall3d_struct) :: wall3d             ! Chamber or capillary wall
+  type (em_field_grid_struct), pointer :: em_grid => null()
   real(rp) value(n_attrib_maxx)              ! attribute values.
   real(rp) old_value(n_attrib_maxx)          ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                           ! constant part of the genfield map.
@@ -353,8 +367,14 @@ type branch_struct
   type (wall3d_struct), pointer :: wall3d => null()
 end type
 
-type dummy_parameter_struct
-  integer dummy(250)
+integer, parameter :: opal$ = 1, impactt$ = 2
+character(16) :: pre_tracker_name(0:2) = ['NONE   ', 'OPAL   ', 'IMPACTT']
+
+type pre_tracker_struct
+  integer :: who = 0   ! Can be opal$, or impactt$
+  integer :: ix_ele_start = 0
+  integer :: ix_ele_end = 0
+  character(200) :: input_file = ''
 end type
 
 ! lat_struct
@@ -366,25 +386,26 @@ end type
 !     lat_equal_lat
 
 type lat_struct
-  character(40) name                  ! Name of lat given by USE statement
-  character(40) lattice               ! Lattice
-  character(200) input_file_name      ! Name of the lattice input file
-  character(80) title                 ! General title
-  type (mode_info_struct) a, b, z     ! Tunes, etc.
-  type (lat_param_struct) param       ! Parameters
-  type (ele_struct)  ele_init         ! For use by any program
+  character(40) name                      ! Name of lat given by USE statement
+  character(40) lattice                   ! Lattice
+  character(200) input_file_name          ! Name of the lattice input file
+  character(80) title                     ! General title
+  type (mode_info_struct) a, b, z         ! Tunes, etc.
+  type (lat_param_struct) param           ! Parameters
+  type (ele_struct)  ele_init             ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (wall3d_struct) wall3d
   type (branch_struct), allocatable :: branch(:)   ! Branch arrays
   type (control_struct), allocatable :: control(:) ! Control list
-  type (coord_struct) beam_start      ! Starting coords
-  integer version                     ! Version number
-  integer n_ele_track                 ! Number of lat elements to track through.
-  integer n_ele_max                   ! Index of last valid element in %ele(:) array
-  integer n_control_max               ! Last index used in control_array
-  integer n_ic_max                    ! Last index used in ic_array
-  integer input_taylor_order          ! As set in the input file
-  integer, allocatable :: ic(:)       ! Index to %control(:)
+  type (coord_struct) beam_start          ! Starting coords
+  type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACTT
+  integer version                         ! Version number
+  integer n_ele_track                     ! Number of lat elements to track through.
+  integer n_ele_max                       ! Index of last valid element in %ele(:) array
+  integer n_control_max                   ! Last index used in control_array
+  integer n_ic_max                        ! Last index used in ic_array
+  integer input_taylor_order              ! As set in the input file
+  integer, allocatable :: ic(:)           ! Index to %control(:)
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']

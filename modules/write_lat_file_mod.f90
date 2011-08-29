@@ -50,7 +50,6 @@ type (multipass_info_struct), allocatable :: multipass(:)
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2
-type (ele_struct), save :: ele_init
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
@@ -84,7 +83,6 @@ logical is_multi_sup, x_lim_good, y_lim_good, is_default, need_new_region
 ! Count the number of foreign wake files
 
 if (present(err)) err = .true.
-call init_ele (ele_init)
 
 n_sr = 0
 n_lr = 0

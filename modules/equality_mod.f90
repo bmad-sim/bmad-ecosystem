@@ -221,17 +221,26 @@ is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%theta_t0 =
         (f1%dz == f2%dz) .and. (f1%field_scale == f2%field_scale)
 if (.not. is_eq) return
 
-is_eq  = (allocated(f1%term) .eqv. allocated(f2%term))
+is_eq  = (associated(f1%fit) .eqv. associated(f2%fit))
+is_eq  = (associated(f1%grid) .eqv. associated(f2%grid))
 if (.not. is_eq) return
 
-if (allocated(f1%term)) is_eq = is_eq .and. (size(f1%term) == size(f2%term))
+if (associated(f1%fit)) is_eq = is_eq .and. (size(f1%fit%term) == size(f2%fit%term))
+if (associated(f1%grid)) is_eq = is_eq .and. (size(f1%grid%pt) == size(f2%grid%pt))
 if (.not. is_eq) return
 
-if (allocated(f1%term)) then
-  do i = 1, size(f1%term)
-    is_eq = (f1%term(i)%e == f2%term(i)%e) .and. (f1%term(i)%b == f2%term(i)%b) 
-    if (.not. is_eq) return
-  enddo
+if (associated(f1%fit)) then
+  is_eq = all(f1%fit%term%e == f2%fit%term%e) .and. all(f1%fit%term%b == f2%fit%term%b) 
+endif
+
+if (associated(f1%grid)) then
+  is_eq = is_eq .and. (f1%grid%type == f2%grid%type) .and. all(f1%grid%dr == f2%grid%dr)
+  is_eq = is_eq .and. all(f1%grid%r0 == f2%grid%r0)
+  if (.not. is_eq) return
+  is_eq = is_eq .and. all(f1%grid%pt%e(1) == f2%grid%pt%e(1)) .and. all(f1%grid%pt%b(1) == f2%grid%pt%b(1)) 
+  is_eq = is_eq .and. all(f1%grid%pt%e(2) == f2%grid%pt%e(2)) .and. all(f1%grid%pt%b(2) == f2%grid%pt%b(2)) 
+  is_eq = is_eq .and. all(f1%grid%pt%e(3) == f2%grid%pt%e(3)) .and. all(f1%grid%pt%b(3) == f2%grid%pt%b(3)) 
+  if (.not. is_eq) return
 endif
 
 end function eq_rf_field_mode
