@@ -746,6 +746,7 @@ type (sr3d_photon_wall_hit_struct), allocatable :: hit_temp(:)
 
 real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad, theta_diffuse, phi_diffuse
 real(rp) graze_angle, reflectivity_smooth, reflectivity_rough, dvec(3)
+real(rp) vec_in_plane(3), vec_out_plane(3)
 
 integer ix, iu
 integer n_old, n_wall_hit
@@ -824,6 +825,12 @@ if (r < reflectivity_rough .or. sr3d_params%always_specularly_reflect) then
 elseif (r < reflectivity_smooth .and. sr3d_params%diffuse_scattering_on) then
   absorbed = .false.
   call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
+  ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
+  vec_in_plane = photon%now%vec(2:6:2) - dw_perp * cos_perp  
+  vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
+  vec_out_plane = cross_product(dw_perp, vec_out_plane)
+  photon%now%vec(2:6:2) = -cos(theta_diffuse) * dw_perp + sin(theta_diffuse) * &
+                          (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
 else
   absorbed = .true.
 endif
