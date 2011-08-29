@@ -58,7 +58,7 @@ wall_hit(0)%after_reflect = photon%start
 do
   call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
   call sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
-  if (absorbed .and. sr3d_params%allow_absorbtion) return
+  if (absorbed) return
 enddo
 
 end subroutine sr3d_track_photon
@@ -744,8 +744,8 @@ type (sr3d_wall_pt_struct), pointer :: wall0, wall1
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (sr3d_photon_wall_hit_struct), allocatable :: hit_temp(:)
 
-real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad
-real(rp) graze_angle, reflectivity, dvec(3)
+real(rp) cos_perp, dw_perp(3), denom, f, r, d_rad, theta_diffuse, phi_diffuse
+real(rp) graze_angle, reflectivity_smooth, reflectivity_rough, dvec(3)
 
 integer ix, iu
 integer n_old, n_wall_hit
@@ -796,7 +796,7 @@ cos_perp = dot_product (photon%now%vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
-call photon_reflectivity (graze_angle, photon%now%energy, reflectivity)
+call photon_reflectivity (graze_angle, photon%now%energy, reflectivity_rough, reflectivity_smooth)
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
@@ -810,20 +810,24 @@ endif
 
 wall_hit(n_wall_hit)%dw_perp = dw_perp
 wall_hit(n_wall_hit)%cos_perp = cos_perp
-wall_hit(n_wall_hit)%reflectivity = reflectivity
+wall_hit(n_wall_hit)%reflectivity = reflectivity_rough
 wall_hit(n_wall_hit)%after_reflect = photon%now
 wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
-! absorbtion
+! absorbtion or reflection...
+! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 
 call ran_uniform(r)
-absorbed = (r > reflectivity)
-if (absorbed .and. sr3d_params%allow_absorbtion) return  ! Do not reflect if absorbed
+if (r < reflectivity_rough .or. sr3d_params%always_specularly_reflect) then
+  absorbed = .false.
+  photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
+elseif (r < reflectivity_smooth .and. sr3d_params%diffuse_scattering_on) then
+  absorbed = .false.
+  call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
+else
+  absorbed = .true.
+endif
 
-! Reflect the ray.
-! The perpendicular component gets reflected and the parallel component is invarient.
-
-photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 end subroutine sr3d_reflect_photon
 

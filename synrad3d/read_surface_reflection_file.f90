@@ -57,7 +57,9 @@ do it = 1, n_table
   enddo
 
   n_energy = 1 + (energy_max - energy_min) / energy_delta
-  allocate(prt%angle(n_angles), prt%energy(n_energy), prt%p_reflect(n_angles,n_energy), prt%reflect_prob(n_angles), prt%int1(n_energy))
+  allocate(prt%angle(n_angles), prt%energy(n_energy))
+  allocate(prt%p_reflect_smooth(n_angles,n_energy), prt%p_reflect_rough(n_angles,n_energy))
+  allocate(prt%int1_rough(n_energy), prt%int1_smooth(n_energy))
 
   prt%angle = angles(1:n_angles)
   prt%energy = [(energy_min + (i-1) * energy_delta, i = 1, n_energy)]
@@ -69,7 +71,16 @@ do it = 1, n_table
       print *, 'ERROR READING SURFACE FILE: ROW MISMATCH:', i, nint(row(1))
       call err_exit
     endif
-    prt%p_reflect(:, i) = row(2:n_angles+1)
+    prt%p_reflect_rough(:, i) = row(2:n_angles+1)
+  enddo
+
+  do i = 1, n_energy
+    read (iu, nml = table_row)
+    if (nint(row(1)) /= i) then
+      print *, 'ERROR READING SURFACE FILE: ROW MISMATCH:', i, nint(row(1))
+      call err_exit
+    endif
+    prt%p_reflect_smooth(:, i) = row(2:n_angles+1)
   enddo
 
 enddo
