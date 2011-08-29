@@ -243,7 +243,7 @@ def print_help():
   print "   REL=<release_name>    Specify a custom release name"
   print "   PKG=<packages_name>   Specify a custom packages release name"
   print "   F90=<f90_compiler>    Specify a 3rd-party fortran compiler"
-  print "   GMAKE=<gmake_dir>     Specify a custom CESR_GMAKE directory"
+  print "   GMAKE=<gmake_dir>     Specify a custom ACC_GMAKE directory"
   print "   UTIL=<util_dir>       Specify a custom CESR_UTIL  directory"
   print "   BIN=<bin_dir>         Specify a custom CESR_BIN   directory"
   print "   FIX=<fixes_init_file> Specify the name of the fixes build init file."
@@ -391,10 +391,10 @@ if rquant > 1:
 else:
   plural = ""
 
-if os.environ['CESR_GMAKE']:
-  makefile_area = os.environ['CESR_GMAKE']
+if os.environ['ACC_GMAKE']:
+  makefile_area = os.environ['ACC_GMAKE']
 else:
-  print "Environment variable \'CESR_GMAKE\' not set, testing for default"
+  print "Environment variable \'ACC_GMAKE\' not set, testing for default"
   
 
 #===============================================================================================
@@ -598,8 +598,10 @@ class builder:
     # Define these assignments in the config file?
     if self.platform == "OSF1_alpha_hp":
       self.build_script = osf_py_dir + '/python ' + build_serf
+      self.pypath_env   = "export PYTHONPATH=/home/cesrulib/EXT/Python-2.5.1-osf/build/lib.osf1-V4.0-alpha-2.5/; "
     else:
       self.build_script = lin_py_dir + '/python ' + build_serf
+      self.pypath_env   = "export PYTHONPATH=/home/cesrulib/EXT/Python-2.5.1-lin/build/lib.linux-i686-2.5; "
 
     # Set up special paths for building on a Windows machine.
     if self.platform == "Cygwin_i686_intel":
@@ -668,8 +670,12 @@ class builder:
         for line in __lines:
           sys.stdout.write(line, 4)  # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []       
-      
-      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
+
+      # Setting PYTHONPATH here is necessary to get SL5 machines to allow importing of
+      # standard modules like 'time' without errors.
+      # No reason found yet why this should suddenly be necessary.
+      #cmd = "rsh -x "+self.build_host+" \". .bash_profile; export PYTHONPATH=/home/cesrulib/EXT/Python-2.5.1-lin/build/lib.linux-i686-2.5; "+self.build_script+" "+ self.full_logfile +"\""
+      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+ self.pypath_env + self.build_script+" "+ self.full_logfile +"\""
       self.PID = sub.Popen(cmd , shell=True).pid
       cmd = ""
       time.sleep(3)
@@ -701,7 +707,13 @@ class builder:
           sys.stdout.write(line, 4)    # Message priority 4 here to send checkout list ONLY to logfile and not clutter screen
       self.lines = []
       ## REMOTE EXECUTION of build process
-      cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
+      # Setting PYTHONPATH here is necessary to get SL5 machines to allow importing of
+      # standard modules like 'time' without errors.
+      # No reason found yet why this should suddenly be necessary.
+      #cmd = "rsh -x "+self.build_host+" \". .bash_profile; export PYTHONPATH=/home/cesrulib/EXT/Python-2.5.1-lin/build/lib.linux-i686-2.5; "+self.build_script+" "+ self.full_logfile +"\""
+      cmd = "rsh -x "+self.build_host+" \". .bash_profile; " + self.pypath_env + self.build_script+" "+ self.full_logfile +"\""
+      #cmd = "rsh -x "+self.build_host+" \". .bash_profile; "+self.build_script+" "+ self.full_logfile +"\""
+      print cmd
       self.PID = sub.Popen(cmd , shell=True).pid
       cmd = ""
       time.sleep(3)
@@ -1093,9 +1105,11 @@ if build_type == "RELEASE" and run_tests == "YES":
   print "=========================  Test Suite Summary  ==========================="
   for platform in plat_combos:
     if plat_combos[platform]['act'] == "FULL":
-      print "Testing summary for " + platform
-      logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
-      lines = os.popen(util_dir + "/extract_test_summary " + logfile + " " + platform ).readlines()
+      ##print "Testing summary for " + platform
+      ##logfile = libs_dir + '/log/'+ platform + '/' + rel_name + '.log'
+      ##summary_cmd = lin_py_dir + '/python ' + util_dir + '/extract_test_summary ' + logfile + " " + platform
+      ##lines = os.popen( summary_cmd ).readlines()
+
       for line in lines:
         print line.strip()
         if line.find("FAILED!") != -1 :
@@ -1144,7 +1158,7 @@ if devel:
       print "sched. time:", def_hourstr, min_str
       tmpname = "/tmp/tmp_atfile_01"
       atfile  = open(tmpname, 'w')
-      atfile.write(rotator + " -devel -tag -mail " + rel_name)
+      atfile.write(rotator + " -devel -mail " + rel_name)
       atfile.close()
       at = sub.Popen( ["at", def_hourstr + ':' + min_str, "-f", tmpname], stdout=sub.PIPE, stderr=sub.STDOUT )
       (outstream, errstream) = at.communicate()
@@ -1266,7 +1280,7 @@ print "\n================== Build process finished completely. =================
 if recommendation == 0 and not defer:             
   print "Starting sequential rotation and build processes"
   print "as per rotation recommendation."
-  os.execv( rotator, ["-devel", "-tag", "-mail", rel_name] )
+  os.execv( rotator, ["-devel", "-mail", rel_name] )
   os.execv( master, ["-bmad_build"] )
 
 

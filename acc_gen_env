@@ -7,17 +7,41 @@
 # Generates a list of environment variables that are to be 
 # sourced to allow use of the ACC build system and utilities.
 # 
-# To be used as a component of the environment setup procedure.  
+# To be used as a component of the environment setup procedure.
 # This script is not intended to be run directly by the user.
 #
 #
 #  Depends upon system tools:
+#     sh / bash
 #     grep
 #     sed
 #--------------------------------------------------------------
 
-ACC_ARCHIVE_BASE_DIR=/nfs/acc/libs
+print() {
+  VERBOSE="${1}"
+  if ( [ "${VERBOSE}" = "Y" -o "${VERBOSE}" = "y" ] )
+  then
+    echo "echo ${2}"
+  fi
+}
 
+#--------------------------------------------------------------
+# Get VERBOSITY flag for printout control.
+#--------------------------------------------------------------
+if ( [ "${ACC_SETUP_VERBOSE}" = "" ] ) # For sh-compatible
+then 
+    SETUP_VERBOSE="${#}"
+else # For  CSH-compatible
+    SETUP_VERBOSE=${ACC_SETUP_VERBOSE}
+fi
+echo "echo ${SETUP_VERBOSE}"
+print ${SETUP_VERBOSE} "SETUP_VERBOSE=${SETUP_VERBOSE}"
+
+
+
+#--------------------------------------------------------------
+# Set environment snapshot temporary file names.
+#--------------------------------------------------------------
 ENV_SNAP_1="${HOME}/.acc_env_snapshot_1.tmp"
 ENV_SNAP_2="${HOME}/.acc_env_snapshot_2.tmp"
 printenv > ${ENV_SNAP_1}
@@ -25,10 +49,57 @@ printenv > ${ENV_SNAP_1}
 
 
 #--------------------------------------------------------------
+# Central area where all releases are kept.
+#--------------------------------------------------------------
+RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
+
+
+
+#--------------------------------------------------------------
+# ACC_RELEASE_REQUEST is passed in as an argument if the 
+# initiating "source_me" script is called from a Bourne shell
+# equivalent.  It is just set as an child-available shell
+# variable if coming from an invocation via a csh-type shell.
+#  I.e. if it's set, we came from csh-type, if not, load the
+# value from the argument to this script, since we came from
+# a bourne shell compatible environment.
+# Several release selections can be honored, to support
+# legacy syntax.  
+#--------------------------------------------------------------
+if ( [ "${ACC_RELEASE_REQUEST}" = "" -a "${ACCLIB}" = "" -a "${CESRLIB}" = "" ] )
+then
+    RELEASE_REQUEST="${1}"
+else
+    if ( [ "${CESRLIB}" != "" ] )
+    then
+        RELEASE_REQUEST="${CESRLIB}"
+    fi
+    if ( [ "${ACCLIB}" != "" ] )
+    then
+        RELEASE_REQUEST=${ACCLIB}
+    fi
+    if ( [ "${ACC_RELEASE_REQUEST}" != "" ] )
+    then
+        RELEASE_REQUEST=${ACC_RELEASE_REQUEST}
+    fi
+fi
+
+
+
+#--------------------------------------------------------------
+# Accelerator library release tier to take default value here 
+# unless overridden before execution of this script.
+#--------------------------------------------------------------
+RELEASE_REQUEST=${RELEASE_REQUEST:-current}
+print ${SETUP_VERBOSE} "RELEASE_REQUEST=${RELEASE_REQUEST}"
+
+
+
+#--------------------------------------------------------------
 # Set the location of the directory containing all the 
 # necessary environment setup scripts.
 #--------------------------------------------------------------
-ACC_SCRIPTS=/home/cesrulib/bin/util
+SETUP_SCRIPTS_DIR=/home/cesrulib/bin/util
 
 
 
@@ -37,7 +108,7 @@ ACC_SCRIPTS=/home/cesrulib/bin/util
 #   This is used for ACC build system setup as well as 
 #   offsite distribution build system setup.
 #--------------------------------------------------------------
-source /home/cesrulib/bin/util/common_env_setup
+source ${SETUP_SCRIPTS_DIR}/common_env_setup
 
 
 
@@ -50,18 +121,10 @@ CERN_LEVEL=${CERN_LEVEL:-pro}
 
 
 #--------------------------------------------------------------
-# Accelerator library version to take default value here 
-# unless overridden above.
-#--------------------------------------------------------------
-ACC_RELTYPE=${ACC_RELTYPE:-current}
-
-
-
-#--------------------------------------------------------------
 # Source the main ACC environment variable list into this
 # script's environment.
 #--------------------------------------------------------------
-ACCENV=${ACCENV:-${ACC_SCRIPTS}/acc_env_vars}
+ACCENV=${ACCENV:-${SETUP_SCRIPTS_DIR}/acc_env_vars}
 source ${ACCENV}
 
 
@@ -92,7 +155,7 @@ fi
 
 
 #--------------------------------------------------------------
-# Log the user's running of this script so that notifications 
+# Log the user's running of this script so that notifications
 # of changes can be sent to all active users.
 #--------------------------------------------------------------
 lock_count=0
@@ -106,7 +169,7 @@ while ( [ ${users_done} -eq 0 ] && [ ${lock_count} -lt ${max_count} ] ) do
       lock_count=`expr ${lock_count} + 1`
     else
       touch ${lock_file}
-      echo "`date` - `whoami` `hostname -s` `basename ${SHELL}` ${ACC_PLATFORM}_${ACC_F90} ${ACC_RELTYPE}" >> ${users_file}
+      echo "`date` - `whoami` `hostname -s` `basename ${SHELL}` ${ACC_PLATFORM}_${ACC_F90} ${RELEASE_REQUEST}" >> ${users_file}
       users_done=1
       rm ${lock_file} &> /dev/null
     fi
@@ -122,10 +185,10 @@ unset max_count
 #--------------------------------------------------------------
 # Clean up variables used only within this script.
 #--------------------------------------------------------------
-unset ACC_SCRIPTS
+unset SETUP_SCRIPTS_DIR
 unset ACCENV
 unset TEMP_SETUP_F90
-unset ACC_RELTYPE
+unset RELEASE_REQUEST
 
 
 
@@ -148,12 +211,13 @@ export MPI
 
 
 #--------------------------------------------------------------
-# Run vendor-supplied compiler setup scripts for all platforms
-# and compilers that require it.
+# Run vendor-supplied compiler setup scripts for the 
+# appropriate compiler versions depending on what all 
+# platforms and compilers that require it.
 #--------------------------------------------------------------
 if ( [ "${ACC_PLATFORM}" = "Linux_i686" ] ) then
-    . /nfs/opt/ifc/bin/ifortvars.sh
-    . /nfs/opt/lf9562/bash_setup
+    source /nfs/opt/ifc/bin/ifortvars.sh
+    source /nfs/opt/lf9562/bash_setup
 fi
 
 
@@ -178,15 +242,30 @@ printenv > ${ENV_SNAP_2}
 # each variable's contents to safeguard against whitespace.
 #
 #    For Bourne-type shells:
-#  1st 'sed' - replace  (=)   with  (=")
-#  2nd 'sed' - replace  (> )  with  (export )
-#  3rd 'sed' - replace   LF   with  (")LF
+#  1st 'sed' in pipe - replace  (=)   with  (=")
+#  2nd 'sed' in pipe - replace  (> )  with  (export )
+#  3rd 'sed' in pipe - replace   LF   with  (")LF
 #
 #    For C-type shells:
-#  1st 'sed' - replace  (=)   with  ( ")
-#  2nd 'sed' - replace  (> )  with  (setenv )
-#  3rd 'sed' - replace   LF   with  (")LF
+#  1st 'sed' in pipe - replace  (=)   with  ( ")
+#  2nd 'sed' in pipe - replace  (> )  with  (setenv )
+#  3rd 'sed' in pipe - replace   LF   with  (")LF
 #------------------------------------------------------------
+#SHELL_PROCESS_NAME=`ps -ef | grep $$ | head -1 | awk '{print $8}'`
+#case "${SHELL_PROCESS_NAME}" in
+#    *bash* ) echo "echo BASH";;
+#    *csh* ) echo "echo CSH";;
+#    * ) echo "echo SHELL NAME NOT FOUND";;
+#esac
+
+#if ( [ "${SHELL_PROCESS_NAME}" = "-csh" ] )
+#then
+#  diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g'
+#else
+#  diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/=\"/g' | sed 's/> /export /g' | sed 's/$/\"/g'
+#fi
+
+
 if `echo ${SHELL} | grep "csh" 1>/dev/null 2>&1`
 then
   diff ${ENV_SNAP_1} ${ENV_SNAP_2} | grep \> | sed 's/=/ \"/g' | sed 's/> /setenv /g' | sed 's/$/\"/g'

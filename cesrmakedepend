@@ -50,8 +50,6 @@ sub run_command {
         @dependencies=`$command`;
     }
     elsif($fortran) {
-#        system "$command;pwd"; exit(0);
-#        system "$command";exit(0);
         system "$command";cesr_make_depend($cesrdep_args);exit(0);
     }
     elsif($c){
@@ -74,7 +72,6 @@ sub setup_commands {
     }
 
     if($os[0]=~/Darwin/i) {
-        #print "Setting makedepend path correctly for Darwin.\n";
         $command="/usr/X11R6/bin/makedepend @includes $cpp -o'$suffix' -p'$prefix' -f$out_file $src_file";
     }
 
@@ -91,9 +88,7 @@ sub setup_commands {
 
     }
     elsif($fortran) {
-#        $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file $local_mods -MP'$mod_out_dir' -cpfile'$cpp_file' -cpt'$cpp_ftail' -fort_cpp'$fort_cpp' $cpp $src_file";
         $cesrdep_args="@includes -PRE'$prefix' -SUF'$suffix' -f$out_file -MP'$mod_out_dir' -cpt'$cpp_ftail' $src_file";
-#        $command=$command."; \$CESR_UTIL/cesrdepend ".$cesrdep_args;
     }
 }
 

@@ -9,7 +9,7 @@
 #--------------------------------------------------------------
 #  Turn OFF any BMAD distribution identifier
 #--------------------------------------------------------------
-export BMAD_DIST     FALSE
+#export BMAD_DIST     FALSE
 
 
 
@@ -40,8 +40,9 @@ export ACC_F90=$TEMP_SETUP_F90
 #--------------------------------------------------------------
 #  ACC releases-related paths
 #--------------------------------------------------------------
-export ACC_PLATFORM=$PLATFORM_TAG
-export ACC_BASE=${ACC_ARCHIVE_BASE_DIR}/${ACC_PLATFORM}_${ACC_F90}
+export ACC_PLATFORM=$PLATFORM_ID
+export ACC_OS=$OS_ID
+export ACC_BASE=${RELEASE_ARCHIVE_BASE_DIR}/${ACC_PLATFORM}_${ACC_F90}
 
 
 
@@ -76,7 +77,7 @@ export ACCR=https://accserv.lepp.cornell.edu/svn/
 #--------------------------------------------------------------
 #  ACC_REL : release directory tree
 #--------------------------------------------------------------
-export ACC_REL=$ACC_BASE/$ACC_RELTYPE
+export ACC_REL=$ACC_BASE/$RELEASE_REQUEST
 export ACC_CONFIG=$ACC_REL/config
 export ACC_SRC=$ACC_REL/src
 export ACC_EXE=$ACC_REL/bin
@@ -92,7 +93,7 @@ export ACC_PKG=$ACC_REL/packages
 #--------------------------------------------------------------
 #  "Fixes" Mechanism Area
 #--------------------------------------------------------------
-export ACC_FIX=${ACC_ARCHIVE_BASE_DIR}/fixes
+export ACC_FIX=${RELEASE_ARCHIVE_BASE_DIR}/fixes
 export ACC_FIX_EXE=$ACC_FIX/${ACC_PLATFORM}_${ACC_F90}/bin
 
 
@@ -100,9 +101,6 @@ export ACC_FIX_EXE=$ACC_FIX/${ACC_PLATFORM}_${ACC_F90}/bin
 #--------------------------------------------------------------
 #  3rd-Party Packages
 #--------------------------------------------------------------
-export PKG_LIB=$ACC_PKG/lib
-export PKG_MOD=$ACC_PKG/modules
-export PKG_INC=$ACC_PKG/include
 export PGPLOT_DIR=$ACC_PKG/PGPLOT
 export PGPLOT_FONTS=$ACC_PKG/PGPLOT
 

@@ -168,11 +168,11 @@ sub rm_include_cxx {
 
 
 #this subroutine removes absolute path /home..../packages/modules/
-#and chenges it to $(PKG_MOD)
+#and chenges it to $(ACC_PKG)/modules
 sub rm_home_packages_modules {
     local($varP,$smlist);
     foreach $varP (@prereqs){
-        $varP =~ s/\/home.*\/packages\/modules\//\$\(PKG_MOD\)/g;
+        $varP =~ s/\/home.*\/packages\/modules\//\$\(ACC_PKG\)\/modules/g;
     }
     $smlist = join " ",@prereqs;
     @prereqs =  split " " ,$smlist;
@@ -211,17 +211,16 @@ sub rm_home_packages {
 
 
 #this subroutine does the following:
-#NA 1. It changes $(CESR_INC)/            to [--.include]
-#NA 2.    -||-    $(CESR_MOD)/            to $(MOD_OUT_DIR)
-#3.    -||-    $(CESR_PKG)/modules/    to $(PBASE).modules]
-#4.    -||-    $(CESR_PKG)/cfortran/include/   $(PBASE).cfortran.include]
+#NA 1. It changes $(ACC_INC)/            to [--.include]
+#NA 2.    -||-    $(ACC_MOD)/            to $(MOD_OUT_DIR)
+#3.    -||-    $(ACC_PKG)/modules/    to $(PBASE).modules]
+#4.    -||-    $(ACC_PKG)/cfortran/include/   $(PBASE).cfortran.include]
 sub take_care_of_some_variables {
     local($varP,$smlist);
     foreach $varP (@prereqs){
-        $varP =~ s/\$\(CESR_INC\)\//\[--\.include\]/g;       # Reverted from comment
-#        $varP =~ s/\$\(CESR_MOD\)\//\$\(MOD_OUT_DIR\)/g;
-        $varP =~ s/\$\(CESR_PKG\)\/modules\//\$\(PBASE\)\.Modules\]/g;
-        $varP =~ s/\$\(CESR_PKG\)\/cfortran\/include\//\$\(PBASE\)\.cfortran\.include\]/g;
+        $varP =~ s/\$\(ACC_INC\)\//\[--\.include\]/g;       # Reverted from comment
+        $varP =~ s/\$\(ACC_PKG\)\/modules\//\$\(PBASE\)\.Modules\]/g;
+        $varP =~ s/\$\(ACC_PKG\)\/cfortran\/include\//\$\(PBASE\)\.cfortran\.include\]/g;
         $varP =~ s/\.\.\/c_utils\/include\//\$\(CLBASE\)\.src\.c_utils\.include\]/g;
     }
     $smlist = join " ",@prereqs;

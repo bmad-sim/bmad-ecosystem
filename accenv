@@ -1,6 +1,6 @@
 #########################################################
 #
-# Set CESR library environment variables for the new Unix 
+# Set ACC library environment variables for the new Unix 
 # code port library scheme.  Closely follows the cleoenv 
 # and cleo3_env examples from CLEO.
 #
@@ -8,9 +8,9 @@
 #
 #########################################################
 #
-# Turn OFF BMAD distribution hooks
+# Make sure distribution building request is OFF.
 #
-setenv BMAD_DIST  FALSE
+setenv DIST_BUILD  FALSE
 
 #
 #-----  CERN Libraries  -----
@@ -23,78 +23,68 @@ setenv BMAD_DIST  FALSE
 #        to handle any ${CERN} platform dependence.
 #
 setenv CERN_ROOT    $CERN/$CERN_LEVEL
-
 setenv CERNLIB      $CERN_ROOT/lib
 setenv CERNSRC      $CERN_ROOT/src
 
 #
-#------  CESR libraries  ------
+#------  ACC libraries  ------
 #
-setenv CESR_PLATFORM $PLATFORM_TAG
-setenv CESR_BASE     $CESR_/${PLATFORM_TAG}_${CESRF90}
-setenv CESR_CURRENT  $CESR_BASE/current
-setenv CESR_DEVEL    $CESR_BASE/devel
+setenv ACC_PLATFORM $PLATFORM_TAG
+setenv ACC_BASE     $ACC_/${PLATFORM_TAG}_${ACCF90}
 
 #
-#-- CESR Unix documentation --
+#-- ACC Unix documentation --
 #
-setenv CESR_DOC     $CESR_/doc
+setenv ACC_DOC     $ACC_/doc
 
 #
-#-- CESR fortran compiler --
+#-- ACC fortran compiler --
 #
-setenv CESR_F90 $CESRF90
+setenv ACC_F90 $ACCF90
 
 #
-#---  CESR Repository (formerly CESR CVS Repository) ---
-#setenv CESR_REPO $CESR_/webdb/svn/acc_libs/trunk/
-setenv CESR_REPO https://accserv.lepp.cornell.edu/svn/
+#---  ACC Repository (formerly ACC CVS Repository) ---
+setenv ACC_REPO https://accserv.lepp.cornell.edu/svn/
 setenv ACCR https://accserv.lepp.cornell.edu/svn/
 
 #
-#----  CESR_REL subtrees  ----
+#----  ACC_REL subtrees  ----
 #
-setenv CESR_REL     $CESR_BASE/$CESRLIB
-#
-setenv CESR_CONFIG  $CESR_REL/config
-setenv CESR_SRC     $CESR_REL/src
-setenv CESR_EXE     $CESR_REL/bin
-#setenv CESR_GMAKE   $CESR_REL/Gmake
-setenv CESR_GMAKE   /home/cesrulib/bin/Gmake
-setenv CESR_LIB     $CESR_REL/lib
-setenv CESR_MOD     $CESR_REL/modules
-setenv CESR_RUN     $CESR_REL/run
-#setenv CESR_UTIL    $CESR_REL/util
-setenv CESR_UTIL    /home/cesrulib/bin/util
-setenv CESR_INC     $CESR_SRC/include
-setenv CESR_PKG     $CESR_REL/packages
+setenv ACC_REL     $ACC_BASE/$ACCLIB
+
+setenv ACC_CONFIG  $ACC_REL/config
+setenv ACC_SRC     $ACC_REL/src
+setenv ACC_EXE     $ACC_REL/bin
+setenv ACC_GMAKE   /home/cesrulib/bin/Gmake
+setenv ACC_LIB     $ACC_REL/lib
+setenv ACC_MOD     $ACC_REL/modules
+setenv ACC_RUN     $ACC_REL/run
+setenv ACC_UTIL    $ACC_REL/util
+setenv ACC_INC     $ACC_SRC/include
+setenv ACC_PKG     $ACC_REL/packages
 
 #-----  Fixes Area        -----
-setenv CESR_FIX     $CESR_/fixes
-setenv CESR_FIX_EXE $CESR_FIX/${CESR_PLATFORM}_${CESR_F90}/bin
+setenv ACC_FIX     $ACC_/fixes
+setenv ACC_FIX_EXE $ACC_FIX/${ACC_PLATFORM}_${ACC_F90}/bin
 
 #
 #-----  Outside packages  -----
 #
-setenv PKG_LIB      $CESR_PKG/lib
-setenv PKG_MOD      $CESR_PKG/modules
-setenv PKG_INC      $CESR_PKG/include
+setenv PKG_LIB      $ACC_PKG/lib
+setenv PKG_MOD      $ACC_PKG/modules
+setenv PKG_INC      $ACC_PKG/include
 
-setenv PGPLOT_DIR   $CESR_PKG/PGPLOT
-setenv PGPLOT_FONTS $CESR_PKG/PGPLOT
+setenv PGPLOT_DIR   $ACC_PKG/PGPLOT
+setenv PGPLOT_FONTS $ACC_PKG/PGPLOT
 
-#
-#------  CESR constants  ------
-#
-###setenv CESR_CONST   $CONST
 
 #
 #-- LATTICE and configuration files --
 #
-setenv CESR_LAT     $CESR_CONFIG/lattice/cesr
-setenv CTA_LAT      $CESR_CONFIG/lattice/cta
-setenv ERL_LAT      $CESR_CONFIG/lattice/erl
-setenv ILC_LAT      $CESR_CONFIG/lattice/ilc
+setenv CESR_LAT     $ACC_CONFIG/cesr
+setenv CTA_LAT      $ACC_CONFIG/cta
+setenv ERL_LAT      $ACC_CONFIG/erl
+setenv ILC_LAT      $ACC_CONFIG/ilc
 
 setenv BMAD_LAT     $CESR_LAT/bmad
 
@@ -103,27 +93,4 @@ setenv BMAD_LAYOUT  $CESR_LAT/bmad
 #
 #-- TOAD help file search path --
 #
-setenv TOAD_DIR     $CESR_SRC/toad
-
-
-#
-#-- TAO help file search path --
-#
-setenv TAO_DIR     $CESR_SRC/tao
-
-
-#
-#-- CESR_MNT variable used by cesrv, synradv, etc. on Linux
-#   Points NFS mount area shared by the Linux filesystem
-#   and the VMS cluster.
-#   Linux: /nfs/cesr/mnt
-#     is the same filesystem space as
-#   VMS:   CESR_MOUNT:[]
-#
-setenv CESR_MNT     /nfs/cesr/mnt
-
-
-setenv USE_PGPLOT "Y"
-setenv USE_PLPLOT "N"
-
-
+setenv TOAD_DIR     $ACC_SRC/toad

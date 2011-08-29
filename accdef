@@ -22,23 +22,9 @@
 set PLATFORM_TAG="`uname -s | cut -d- -f1`_`uname -p`"
 
 
-#================================================
-# For parallel CESR / ACC variable definitions
-# This will be deprecated after the next CURRENT
-# rotation.
-#================================================
+# Backwards compatibility with CESRLIB control variable.
 if ( $?CESRLIB ) then
   setenv ACCLIB $CESRLIB
-endif
-if ( $?ACCLIB ) then
-  setenv CESRLIB $ACCLIB
-endif
-
-if ( $?CESRF90 ) then
-  setenv ACCF90 $CESRF90
-endif
-if ( $?ACCF90 ) then
-  setenv CESRF90 $ACCF90
 endif
 
 
@@ -52,81 +38,34 @@ endif
 # absoft  -- f95            default on Darwin_powerpc
 # gnu     -- g77/g95
 #=======================================================================
-#if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
-#  if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
-#  if ( $?ACCF90    == 0  ) then setenv ACCF90 intel
-#endif
-
-#if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
-#  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
-#  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
-#endif
-
-#if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
-#  if ( $?CESRF90    == 0 ) setenv CESRF90 hp
-#  if ( $?ACCF90    == 0 ) setenv ACCF90 hp
-#endif
-
-#if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
-#  if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
-#  if ( $?ACCF90    == 0 ) setenv ACCF90 absoft
-#endif
-
-#=======================================================================
-# Only here for temporary fix of stalled login scripts
-# for users sourcing this script on x86_64 architecture
-# machines.  This provides no other functionality.
-#=======================================================================
-#if ( "${PLATFORM_TAG}" == "Linux_x86_64" ) then
-#  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
-#  if ( $?ACCF90    == 0 ) setenv ACCF90 intel
-#endif
-
-
 if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
-  if ( $?CESRF90    == 0  ) then setenv CESRF90 intel
   if ( $?ACCF90    == 0  ) then setenv ACCF90 intel
 else if ( "${PLATFORM_TAG}" == "Linux_i686" ) then
-  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
   if ( $?ACCF90    == 0 ) setenv ACCF90 intel
 else if ( "${PLATFORM_TAG}" == "OSF1_alpha" ) then
-  if ( $?CESRF90    == 0 ) setenv CESRF90 hp
   if ( $?ACCF90    == 0 ) setenv ACCF90 hp
 else if ( "${PLATFORM_TAG}" == "Darwin_powerpc" ) then
-  if ( $?CESRF90    == 0 ) setenv CESRF90 absoft
   if ( $?ACCF90    == 0 ) setenv ACCF90 absoft
 else 
-  if ( $?CESRF90    == 0 ) setenv CESRF90 intel
+  setenv PLATFORM_TAG Linux_i686_intel
   if ( $?ACCF90    == 0 ) setenv ACCF90 intel 
 endif
 
-
-
-
-
+setenv PLATFORM_TAG Linux_i686_intel
 
 #=======================================================================
 # Specify CESR Librarian base areas
 # Presently have Unix/Linux and Cygwin versions
 #=======================================================================
-###set BASE_DIR_DEF=/home/cesrulib
 set BASE_DIR_DEF=/nfs/acc
 
-
-if ( "${PLATFORM_TAG}" == "CYGWIN_NT_i686" ) then 
-  set BASE_DIR_DEF=//lns101/cesrulib
-endif
-
-if ( $?CESRLIB_BASE == 0 ) set CESRLIB_BASE=${BASE_DIR_DEF}
 if ( $?ACCLIB_BASE == 0 ) set ACCLIB_BASE=${BASE_DIR_DEF}
 
-if ( $?CESRLIB_BIN  == 0 ) set CESRLIB_BIN=/home/cesrulib/bin
 if ( $?ACCLIB_BIN  == 0 ) set ACCLIB_BIN=/home/cesrulib/bin
 
 #=======================================================================
 #	Switchable version
 #=======================================================================
-if ( $?CESRLIB    == 0 ) setenv CESRLIB     current
 if ( $?ACCLIB    == 0 ) setenv ACCLIB     current
 
 if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
@@ -134,9 +73,6 @@ if ( $?CERN_LEVEL == 0 ) setenv CERN_LEVEL  pro
 #=======================================================================
 #	Root names
 #=======================================================================
-###if ( $?CONST    == 0 ) setenv CONST     ${CESRLIB_BASE}/constants
-
-if ( $?CESR_    == 0 ) setenv CESR_     ${CESRLIB_BASE}/libs
 if ( $?ACC_    == 0 ) setenv ACC_     ${ACCLIB_BASE}/libs
 
 if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
@@ -147,14 +83,9 @@ if ( $?CERN     == 0 ) setenv CERN      /nfs/cern
 # derivative path from $CESRLIB_BASE.  This does NOT need 
 # to be done for the "version" variables
 #=======================================================================
-if ( $?CESRENV  == 0 ) setenv CESRENV ${CESRLIB_BIN}/accenv
-if ( -f "$CESRENV" )  then
-	source $CESRENV
-else
-	echo File $CESRENV not found.
-endif
+setenv PLATFORM_TAG Linux_i686_intel
 
-if ( $?ACCENV  == 0 ) setenv ACCENV ${ACCLIB_BIN}/accenv-converted
+if ( $?ACCENV  == 0 ) setenv ACCENV ${ACCLIB_BIN}/accenv
 if ( -f "$ACCENV" )  then
 	source $ACCENV
 else
@@ -168,24 +99,10 @@ endif
 set PATH_LIST=`echo ${PATH} | sed s/:/\ /g`
 set found=0
 foreach dir (${PATH_LIST})
-  if ( "${dir}" == "${CESRLIB_BIN}" ) set found=1
-end
-if ( $found == 0 ) setenv PATH ${PATH}:${CESRLIB_BIN}
-
-set found=0
-foreach dir (${PATH_LIST})
   if ( "${dir}" == "${ACC_EXE}" ) set found=1
 end
 if ( $found == 0 ) setenv PATH ${PATH}:${ACC_EXE}
 
-
-#==============================================================================
-# Add hook to support OLD style of environment variables
-# Clear variable when done
-#==============================================================================
-if ( $?CESR_ENV_OLD == 1 ) setenv CESR_LIB ${CESR_REL}
-unset    CESR_ENV_OLD
-unsetenv CESR_ENV_OLD
 
 
 #=============================================================================
@@ -256,20 +173,6 @@ unsetenv ACCENV
 unsetenv ACCF90
 
 
-
-# Relic from repository migration period when two release types existed,
-# those with 'cvssrc' paths in them and the newer 'src' paths.
-
-#if ( "${CESR_REL}" == "${CESR_BASE}/current" ) then
-#  setenv CESR_SRC ${CESR_REL}/cvssrc
-#else
-
-##setenv CESR_SRC ${CESR_REL}/src
-
-#endif
-
-##setenv CESR_INC ${CESR_SRC}/include
-
 if ( "${ACC_REL}" == "${ACC_BASE}/current" ) then
   setenv BMAD_LAT "${ACC_REL}/config/bmad/lat"
   setenv BMAD_LAYOUT "${ACC_REL}/config/bmad/layout"
@@ -299,3 +202,5 @@ endif
 alias getf '/home/cesrulib/bin/util/getf.pl "\!*"'
 alias listf '/home/cesrulib/bin/util/listf.pl "\!*"'
 
+
+setenv CESR_ONLINE /nfs/cesr/online

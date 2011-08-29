@@ -121,6 +121,58 @@ variable before the build begins.
 
 
 *****************************************************************************
+Initial Setup for Distribution Users within LEPP
+(From Bmad documentation)
+-------------------------------------------------
+
+The following instructions are for using the "devel" release. 
+To use the "current" release substitute the word "current" for "devel".
+Recommendation: use the "devel" release.
+
+ 1. Go to your home directory. If you are using tcsh put the following lines
+    in your .cshrc file:
+
+        setenv CESRLIB devel
+        source /home/cesrulib/bin/accdef
+        source /home/cesrulib/bin/cesr_ctl_def
+        source /nfs/opt/ifc/bin/ifortvars.csh
+
+     If you are using bash, put in your .bashrc file:
+
+        export CESRLIB=devel
+        . /home/cesrulib/bin/accdefs
+        . /home/cesrulib/bin/cesr_ctl_defs
+        . /nfs/opt/ifc/bin/ifortvars.sh
+
+ 2. Additionally, the following stuff should be put in your .cshrc file
+
+        limit core 0
+        limit stack unlimited
+        limit datasize unlimited
+
+      or .bashrc file:
+
+        ulimit -c 0
+        ulimit -s unlimited
+        ulimit -d unlimited
+
+  The first line prevents core dump files from being generated (takes up
+  space and no one ever looks at them anyway). The next two lines helps
+  prevent programs from bombing due to software limits on internal stack
+  and heap sizes.
+
+   3. Run your initialization file. For tcsh:
+
+        source ~/.cshrc 
+
+      For bash:
+
+        . ~/.bashrc 
+
+
+
+
+*****************************************************************************
 PLOTTING ISSUES
 
 Some programs (listed below) in the distribution use plotting software for 
