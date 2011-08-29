@@ -473,7 +473,7 @@ real(rp) a(4) ! quaternion four-vector
 real(rp) omega1, omega_el, xi, gamma0, gammaf, v, x, u
 real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, k_el, k_el_tilde
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) g_factor, m_particle
+real(rp) g_factor, m_particle, sign_k
 
 integer key
 
@@ -561,25 +561,22 @@ if(isTreatedHere) then
     map => maps(quadrupole$)
 
     call allocate_map (map, 2, 2, 0, 0)
+    ! take into account sign of quadrupole (focusing or defocusing)
+    sign_k = sign(1.0_rp, ele%value(k1$))
 
     map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-    map%gamma1(1)%coef   = -(1.0/2.0) * xi * omega1 * sinh(u)
-    ! take into account sign of quadrupole (focusing or defocusing)
-    map%gamma1(1)%coef   = sign(1.0_rp, ele%value(k1$)) * map%gamma1(1)%coef
+    map%gamma1(1)%coef   = -sign_k * xi * omega1 * sinh(u) / 2
+
     map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-    map%gamma1(2)%coef   = -xi * (sinh (u / 2.0))**2
+    map%gamma1(2)%coef   = -xi * (sinh(u / 2.0))**2
 
     map%gamma2(1)%expn(:) = [1, 0, 0, 0, 0, 0]
-    map%gamma2(1)%coef   = -(1.0/2.0) * xi * omega1 * sin(u)
-    ! take into account sign of quadrupole (focusing or defocusing)
-    map%gamma2(1)%coef   = sign(1.0_rp, ele%value(k1$)) * map%gamma2(1)%coef
+    map%gamma2(1)%coef   = -sign_k * xi * omega1 * sin(u) / 2
+
     map%gamma2(2)%expn(:) = [0, 1, 0, 0, 0, 0]
-    map%gamma2(2)%coef   = -xi * (sin (u / 2.0))**2
+    map%gamma2(2)%coef   = -xi * (sin(u / 2.0))**2
 
     ! no gamma3 terms
-
-  !   map%kappa(1)%expn(:)  = [0, 0, 0, 0, 0, 0]
-  !   map%kappa(1)%coef    = 1.0
 
   !-----------------------------------------------
   ! sbend
@@ -612,17 +609,6 @@ if(isTreatedHere) then
     map%gamma3(1)%expn(:) = [0, 0, 0, 1, 0, 0]
     map%gamma3(1)%coef   = (gamma0-1)/gamma0 * sin(x / 2.0d0)
 
-  !   map%kappa(1)%expn(:) = [0, 0, 0, 0, 0, 0]
-  !   map%kappa(1)%coef   = cos(x / 2.0d0)
-  !   map%kappa(2)%expn(:) = [1, 0, 0, 0, 0, 0]
-  !   map%kappa(2)%coef   = -(1.0/2.0) * xi * ele%value(g$) * sin(v) *  sin(x / 2.0d0)
-  !   map%kappa(3)%expn(:) = [0, 1, 0, 0, 0, 0]
-  !   map%kappa(3)%coef   =  -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0)
-  !   map%kappa(4)%expn(:) = [0, 0, 0, 0, 0, 1]
-  !   map%kappa(4)%coef   = ((xi * gamma0 * sin(v) - g_factor * (1+gamma0) * (gamma0-1) * v) / &
-  !        (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
-
-
   !-----------------------------------------------
   ! solenoid
 
@@ -639,9 +625,6 @@ if(isTreatedHere) then
 
     map%gamma3(1)%expn(:) = [0, 0, 0, 0, 0, 0]
     map%gamma3(1)%coef   = sin(alpha/2.0)
-
-  !   map%kappa(1)%expn(:)  = [0, 0, 0, 0, 0, 0]
-  !   map%kappa(1)%coef    = cos(alpha/2.0)
 
   !-----------------------------------------------
   ! LCavity
@@ -679,25 +662,16 @@ if(isTreatedHere) then
       endif
     endif
 
-!     if (gradient == 0) then
-!       return
-!     endif
-
     if (gradient /= 0) then
+
       pc_start = ele%value(p0c_start$) * (1+temp_middle%vec(6))
-      call convert_pc_to (pc_start, param%particle, &
-                                      E_tot = e_start, beta = beta_start)
+      call convert_pc_to (pc_start, param%particle, E_tot = e_start, beta = beta_start)
       e_end = e_start + gradient * ele%value(l$)
       gammaf = gamma0 * (e_end / e_start)
+      call convert_total_energy_to (e_end, param%particle, pc = pc_end, beta = beta_end)
 
-      ! entrance kick is a focusing kick
-
-      k_el = gradient / (2 * pc_start)
-      omega_el = sqrt(k_el)
-
-      k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gamma0))) / &
-                    (omega_el * e_mass * c_light**2 * (1 + gamma0))
       ! The edge field length of a cavity is about 1 quarter wavelength
+
       edge_length = (c_light * beta_start / ele%value(rf_frequency$)) / 4.0
 
       map => maps(lcavity$)
@@ -705,35 +679,15 @@ if(isTreatedHere) then
       call allocate_map (map, 2, 2, 0, 0)
 
       map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-      map%gamma1(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
       map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-      map%gamma1(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
-
       map%gamma2(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-      map%gamma2(1)%coef   = - (k_el_tilde/2.0) * sin (omega_el * edge_length)
       map%gamma2(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-      map%gamma2(2)%coef   = - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
 
-      ! exit kick is a defocusing kick (just add to the entrance kick)
+      map%gamma1%coef = 0
+      map%gamma2%coef = 0
+      call lcav_edge_track (pc_start,  gradient, gamma0, map)
+      call lcav_edge_track (pc_end,   -gradient, gammaf, map)
 
-      call convert_total_energy_to (e_end, param%particle, &
-                                            pc = pc_end, beta = beta_end)
-      k_el = gradient / (2 * pc_end)
-      omega_el = sqrt(k_el)
-      k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gammaf))) / &
-                  (omega_el * e_mass * c_light**2 * (1 + gammaf))
-
-      ! map%gamma1(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-      map%gamma1(1)%coef   = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-      ! map%gamma1(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-      map%gamma1(2)%coef   = map%gamma1(2)%coef + &
-                                  (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
-
-      ! map%gamma2(1)%expn(:) = [0, 0, 1, 0, 0, 0]
-      map%gamma2(1)%coef   = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-      ! map%gamma2(2)%expn(:) = [0, 0, 0, 1, 0, 0]
-      map%gamma2(2)%coef   = map%gamma2(2)%coef + &
-                                  (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
     endif
 
   !-----------------------------------------------
@@ -762,9 +716,48 @@ call offset_spin (ele, param, temp_end, unset$, (isTreatedHere .or. isKicker))
 
 end_orb%spin = temp_end%spin
 
- contains
+!-------------------------------------------------------------------------
+contains
+
+subroutine lcav_edge_track (pc, grad, gam, map)
+
+real(rp) pc, grad, gam
+type (spin_map_struct) map
+
+! 
+
+k_el = abs(grad / (2 * pc))
+omega_el = sqrt(k_el)
+k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gam))) / &
+                (omega_el * e_mass * c_light**2 * (1 + gam))
+
+! Focusing kick
+
+if (grad > 0) then
+
+  map%gamma1(1)%coef = map%gamma1(1)%coef - (k_el_tilde/2.0) * sin (omega_el * edge_length)
+  map%gamma1(2)%coef = map%gamma1(2)%coef - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
+
+  map%gamma2(1)%coef = map%gamma2(1)%coef - (k_el_tilde/2.0) * sin (omega_el * edge_length)
+  map%gamma2(2)%coef = map%gamma2(2)%coef - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
+
+! Defocus kick
+
+else
+
+  map%gamma1(1)%coef = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+  map%gamma1(2)%coef = map%gamma1(2)%coef + (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+
+  map%gamma2(1)%coef = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+  map%gamma2(2)%coef = map%gamma2(2)%coef + (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+
+endif
+
+end subroutine lcav_edge_track
 
 !-------------------------------------------------------------------------
+! contains
+
 subroutine allocate_map (map, n_gamma1, n_gamma2, n_gamma3, n_kappa)
 
 implicit none
@@ -821,6 +814,8 @@ endif
 end subroutine allocate_map
 
 !-------------------------------------------------------------------------
+! contains
+
 subroutine compute_quaternion (map, a)
 
 implicit none
