@@ -1707,9 +1707,6 @@ if (associated(lord%rf%field)) then
   if (.not. associated (slave%rf%field)) then
     allocate (slave%rf%field)
     allocate (slave%rf%field%mode(size(lord%rf%field%mode)))
-    do i = 1, size(lord%rf%field%mode)
-      allocate (slave%rf%field%mode(i)%term(size(lord%rf%field%mode(i)%term)))
-    enddo
     slave%rf%field = lord%rf%field
   endif
 

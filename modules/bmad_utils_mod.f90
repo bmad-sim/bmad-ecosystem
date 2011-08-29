@@ -2042,35 +2042,10 @@ if (associated (field_in)) then
   call init_rf_field (field_out, size(field_in%mode))
 
   do i = 1, size(field_in%mode)
-
-    if (allocated (field_in%mode(i)%term)) then
-      n_terms = size(field_in%mode(i)%term)
-      if (.not. allocated(field_out%mode(i)%term)) allocate(field_out%mode(i)%term(n_terms))
-      if (size(field_out%mode(i)%term) /= n_terms) then
-        deallocate (field_out%mode(i)%term)
-        allocate (field_out%mode(i)%term(n_terms))
-      endif
-    else
-      if (allocated (field_out%mode(i)%term)) deallocate(field_out%mode(i)%term)
-    endif
-    
-    if (associated (field_in%mode(i)%grid)) then
-      ng = ubound(field_in%mode(i)%grid)
-      if (.not. associated(field_out%mode(i)%grid)) allocate(field_out%mode(i)%grid(ng(1), ng(2), ng(3)))
-      if (any(ubound(field_out%mode(i)%grid) /= ng)) then
-        deallocate (field_out%mode(i)%grid)
-        allocate (field_out%mode(i)%grid(ng(1), ng(2), ng(3)))
-      endif
-    else
-      if (associated (field_out%mode(i)%grid)) deallocate(field_out%mode(i)%grid)
-    endif
-
     field_out%mode(i) = field_in%mode(i)
-
   enddo
 
 elseif (associated(field_out)) then
-  if (allocated(field_out%mode)) deallocate(field_out%mode)
   deallocate(field_out)
 endif
 

@@ -178,7 +178,7 @@ type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
 type (rf_field_mode_struct), pointer :: mode
-type (rf_field_mode_term_struct), pointer :: term
+type (rf_field_fit_term_struct), pointer :: term
 
 real(rp) :: x, y, xx, yy, t_rel, s_rel, f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
@@ -277,11 +277,11 @@ case(rfcavity$, lcavity$)
       Er = 0; Ep = 0; Ez = 0
       Br = 0; Bp = 0; Bz = 0
 
-      do n = 1, size(mode%term)
+      do n = 1, size(mode%fit%term)
 
-        term => mode%term(n)
-        k_zn = twopi * (n - 1) / (size(mode%term) * mode%dz)
-        if (2 * n > size(mode%term)) k_zn = k_zn - twopi / mode%dz
+        term => mode%fit%term(n)
+        k_zn = twopi * (n - 1) / (size(mode%fit%term) * mode%dz)
+        if (2 * n > size(mode%fit%term)) k_zn = k_zn - twopi / mode%dz
 
         expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
 

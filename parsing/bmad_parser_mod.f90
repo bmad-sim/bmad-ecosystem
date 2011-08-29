@@ -702,7 +702,7 @@ if (attrib_word == 'RF_FIELD') then
   do i_mode = 1, size(rf_mode)
 
     mode => rf_mode(i_mode)
-    if (allocated(mode%term)) deallocate(mode%term)
+    allocate (mode%fit)
 
     ! Expect "MODE = {"
 
@@ -764,19 +764,19 @@ if (attrib_word == 'RF_FIELD') then
           if (delim == ')') exit
         enddo
 
-        if (allocated(mode%term)) then
-          if (size(mode%term) /= i_term) then
+        if (allocated(mode%fit%term)) then
+          if (size(mode%fit%term) /= i_term) then
             call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
         else
-          allocate(mode%term(i_term))
+          allocate(mode%fit%term(i_term))
         endif
 
         select case (word2)
-        case ('E_RE', 'E_IM'); c_ptr => mode%term%e 
-        case ('B_RE', 'B_IM'); c_ptr => mode%term%b
+        case ('E_RE', 'E_IM'); c_ptr => mode%fit%term%e 
+        case ('B_RE', 'B_IM'); c_ptr => mode%fit%term%b
         end select
 
         if (word2(3:4) == 'RE') then

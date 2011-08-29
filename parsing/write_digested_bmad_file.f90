@@ -195,7 +195,7 @@ type (rf_field_mode_struct), pointer :: mode
 
 integer ix_wig, n_wall_section, ix_const, ix_r, ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
-integer i, j, k, n_rf_field_mode
+integer i, j, k, n, n_rf_field_mode
 
 logical write_wake, mode3
 
@@ -277,9 +277,13 @@ write (d_unit) ix_value(1:k), value(1:k)
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%rf%field%mode(i)
-    write (d_unit) size(mode%term), mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+    n = 0
+    if (associated(mode%fit)) n = size(mode%fit%term)
+    write (d_unit) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
                                     mode%m, mode%phi_0, mode%dz, mode%field_scale
-    write (d_unit) mode%term
+    if (n > 0) then
+      write (d_unit) mode%fit%term
+    endif
   enddo 
 endif
 
