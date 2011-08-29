@@ -785,13 +785,12 @@ subroutine photon_diffuse_scattering (angle_in, energy, theta_out, phi_out)
 
 use spline_mod
 use nr
+use random_mod
 
 implicit none
 
 real(rp) angle_in, energy, theta_out,  phi_out
-real(rp) sigma, t, ctheta2
-
-real(rp), external :: randy
+real(rp) sigma, t, ctheta2, sign_phi
 
 !
 
@@ -812,7 +811,7 @@ cheb_com%chx_norm = chebev(0.0D0, 1.0D0, cheb_com%cch_int, 1.0D0)
 
 !  pick a random number
 
-cheb_com%ran = randy()
+call ran_uniform(cheb_com%ran)
 
 ! find the value of x for which the cumulative probability equals the random number
 
@@ -827,9 +826,17 @@ cheb_com%cnorm = cos_phi(sigma, T, cheb_com%lambda, cheb_com%y, cheb_com%x, twop
 ! Pick a random number and
 ! find the value of phi for which the cumulative probability equals the random number
 
-cheb_com%ran = randy()
-phi_out = rtsafe(cumulr,0.0D0, twopi/2, 1.0D-5)
-if (randy() < 0.5) phi_out = -phi_out
+call ran_uniform(cheb_com%ran)
+if (cheb_com%ran > 0.5) then
+  sign_phi = 1
+  cheb_com%ran = 2 * cheb_com%ran - 1
+else
+  sign_phi = -1
+  cheb_com%ran = 2 * cheb_com%ran 
+endif
+
+phi_out = sign_phi * rtsafe(cumulr,0.0D0, twopi/2, 1.0D-5)
+
 
 
 end subroutine photon_diffuse_scattering
@@ -848,7 +855,8 @@ subroutine cumulr (phi, fn, df)
 
 implicit none
 
-real(rp) phi, fn, df
+real(rp), intent(in) :: phi 
+real(rp), intent(out) :: fn, df
 real(rp) sigma, T
 
 !
@@ -990,7 +998,8 @@ use nr, only: chebev
 
 implicit none
 
-real(rp) x, fn, df
+real(rp), intent(in) :: x
+real(rp), intent(out) :: fn, df
 
 !
 
