@@ -34,6 +34,7 @@ real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max
+real(rp) surface_roughness_rms, roughness_correlation_len
 
 integer i, j, n, iu, n_wall_pt_max, random_seed, iu_start, n_shape_max
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
@@ -57,7 +58,8 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             e_filter_min, e_filter_max, s_filter_min, s_filter_max, wall_hit_file, &
             photon_start_input_file, photon_start_output_file, reflect_file, lat_ele_file, &
             num_ignore_generated_outside_wall, turn_off_kickers_in_lattice, &
-            e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file
+            e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
+            surface_roughness_rms, roughness_correlation_len
 
 namelist / wall_def / section, name
 namelist / gen_shape_def / ix_gen_shape, v
@@ -134,6 +136,7 @@ num_photons = -1
 num_photons_per_pass = -1
 num_ignore_generated_outside_wall = 0
 turn_off_kickers_in_lattice = .false.
+surface_roughness_rms = -1; roughness_correlation_len = -1
 
 sr3d_params%debug_on = .false.
 sr3d_params%ix_generated_warn = -1
@@ -304,6 +307,7 @@ call ran_seed_put (random_seed)
 ! Load different surface reflection parameters if wanted
 
 if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file)
+call set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
 
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
@@ -593,9 +597,12 @@ write (1, *) 'e_filter_min            =', e_filter_min
 write (1, *) 'e_filter_max            =', e_filter_max
 write (1, *) 's_filter_min            =', s_filter_min
 write (1, *) 's_filter_max            =', s_filter_max
-write (1, *) 'sr3d_params%allow_reflections  =', sr3d_params%allow_reflections
-write (1, *) 'sr3d_params%ds_track_step_max  =', sr3d_params%ds_track_step_max
-write (1, *) 'sr3d_params%dr_track_step_max  =', sr3d_params%dr_track_step_max
+write (1, *) 'sr3d_params%allow_reflections     =', sr3d_params%allow_reflections
+write (1, *) 'sr3d_params%ds_track_step_max     =', sr3d_params%ds_track_step_max
+write (1, *) 'sr3d_params%dr_track_step_max     =', sr3d_params%dr_track_step_max
+write (1, *) 'sr3d_params%diffuse_scattering_on =', sr3d_params%diffuse_scattering_on
+write (1, *) 'surface_roughness_rms             =', surface_roughness_rms
+write (1, *) 'roughness_correlation_len         =', roughness_correlation_len
 write (1, *)
 
 do i = 1, n_photon_array   

@@ -35,7 +35,8 @@ call photon_reflection_init()
 iu = lunget()
 open (iu, file = file_name, status = 'old')
 
-! Allocate the tables
+! Allocate the reflection tables global variables.
+! See photon_reflection_mod.f90
 
 read (iu, nml = surface_general)
 
