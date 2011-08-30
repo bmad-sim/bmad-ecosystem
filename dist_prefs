@@ -19,12 +19,8 @@
 #  Common options are:
 #   "intel"
 #   "gfortran"
-# 
-# If commented out, the defaults defined for a given 
-# platform will be used as found in the file 
-# common_env_setup.
 #-----------------------------------------------------------
-export DIST_F90_REQUEST="gfortran"
+export DIST_F90_REQUEST="intel"
 
 
 #-----------------------------------------------------------
