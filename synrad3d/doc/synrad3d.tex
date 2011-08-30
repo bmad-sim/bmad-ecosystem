@@ -244,6 +244,8 @@ Example main input file:
     photon_start_output_file = ''    ! File recording photon start positions
     num_ignore_generated_outside_wall = 0    !
     turn_off_kickers_in_lattice = F          ! Zero the closed orbit?
+    surface_roughness_rms = -1               ! Surface roughness for diffuse scattering.
+    roughness_correlation_len = -1           ! Surface roughness correlation length.
     sr3d_params%diffuse_scattering_on = T    ! For testing the effect of diffuse scattering.
     sr3d_params%ds_track_step_max = 3        ! Photon propagation step size 
     sr3d_params%dr_track_step_max = 0.1      ! Photon propagation step size 
@@ -306,6 +308,12 @@ more details.
   \item[\vn{dat_file}] \Newline
 This string gives the name of the output data file.
 See below for more details.
+  \item[\vn{surface_roughness_rms}] \Newline
+This parameter sets the surface roughness RMS value in meters. This is used for diffuse scattering.
+If negative (the default), the default value will be used.
+  \item[\vn{roughness_correlation_len}] \Newline
+This parameter sets the surface roughness correlation length in meters. This is used for diffuse scattering.
+If negative (the default), the default value will be used.
   \item[\vn{sr3d_params\%allow_reflections}] \Newline
 This parameter, if set False, will cause \srthree to stop tracking a given photon once
 it hits the chamber wall. This can be used to generate data on where the primary photons are striking.
