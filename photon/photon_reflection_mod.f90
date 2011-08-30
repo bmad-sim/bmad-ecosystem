@@ -606,6 +606,38 @@ end subroutine finalize_reflectivity_tables
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
+! Subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
+!
+! Routine to set the surface roughness values.
+! If a value is less then zero it is ignored.
+!
+! Modules needed:
+!   use photon_reflection_mod
+!
+! Input:
+!   surface_roughness_rms     -- Real(rp): Surface roughness in meters.
+!   roughness_correlation_len -- Real(rp): Roughness correlation length in meters.
+!- 
+
+subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
+
+implicit none
+
+real(rp) surface_roughness_rms, roughness_correlation_len
+
+!
+
+if (photon_reflect_table_init_needed) call photon_reflection_init
+
+if (surface_roughness_rms >= 0)     reflect_surface%surface_roughness_rms     = surface_roughness_rms
+if (roughness_correlation_len >= 0) reflect_surface%roughness_correlation_len = roughness_correlation_len
+
+end subroutine
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
 ! Subroutine photon_reflectivity (angle, energy, reflect_prob_rough, reflect_prob_smooth)
 !
 ! Routine to evaluate the photon reflectivity using a spline interpolation.
@@ -620,7 +652,7 @@ end subroutine finalize_reflectivity_tables
 !  use photon_reflection_mod
 !
 ! Input:
-!  angle  -- Real(rp): Incident grazing angle in radians
+!  angle  -- Real(rp): Incident grazing angle in radians.
 !  energy -- Real(rp): Photon energy in eV.
 !
 ! Output:
@@ -770,15 +802,15 @@ end subroutine photon_reflectivity
 !  use photon_reflection_mod
 !
 ! Input:
-!   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians
+!   angle_in  -- Real(rp): Incident grazing (not polar) angle in radians.
 !   energy    -- Real(rp): Photon energy in eV.
 !   reflect_surface -- Photon_reflect_surface_struct: Surface reflection structure
 !       %surface_roughness_rms
 !       %roughness_correlation_len
 !
 ! Output:
-!   theta_out -- Real(rp): Polar angle. 0 -> perpendicular to surface.
-!   phi_out   -- Real(rp): Azimuthal angle.
+!   theta_out -- Real(rp): Polar angle in radians. 0 -> perpendicular to surface.
+!   phi_out   -- Real(rp): Azimuthal angle in radians.
 !-
 
 subroutine photon_diffuse_scattering (angle_in, energy, theta_out, phi_out)
