@@ -472,8 +472,8 @@ do ib = 0, ubound(lat%branch, 1)
 
     default_val = rectangular$
     if (ele%key == ecollimator$) default_val = elliptical$
-    if (ele%aperture_type /= default_val) line = trim(line) // &
-                                ', aperture_type = ' // shape_name(ele%aperture_type)
+    if (ele%aperture_shape /= default_val) line = trim(line) // &
+                                ', aperture_type = ' // aperture_shape_name(ele%aperture_shape)
 
     if (ele%ref_orbit /= 0) line = trim(line) // ', ref_orbit = ' // ref_orbit_name(ele%ref_orbit)
 
@@ -1109,7 +1109,7 @@ do
 
     if (ele%key /= ecollimator$ .and. ele%key /= rcollimator$) then
       if (out_type == 'MAD-8' .or. out_type == 'XSIF' .or. ele%key == drift$) then
-        if (ele%aperture_type == rectangular$) then
+        if (ele%aperture_shape == rectangular$) then
           col_ele%key = rcollimator$
         else
           col_ele%key = ecollimator$
@@ -1541,7 +1541,7 @@ do ix_ele = ie1, ie2
     if (val(x1_limit$) /= 0 .or. val(y1_limit$) /= 0) then
       limit = [val(x1_limit$), val(y1_limit$)]
       where (limit == 0) limit = 1
-      if (ele%aperture_type == rectangular$) then
+      if (ele%aperture_shape == rectangular$) then
         line_out = trim(line_out) // ', apertype = rectangle'
       else
         line_out = trim(line_out) // ', apertype = ellipse'

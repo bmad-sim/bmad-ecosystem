@@ -1042,7 +1042,7 @@ case ('COUPLER_AT')
   endif
 
 case ('APERTURE_TYPE')
-  attrib_val_name = shape_name(nint(attrib_value))
+  attrib_val_name = aperture_shape_name(nint(attrib_value))
   if (present(is_default)) then
     if (ele%key == ecollimator$) then
       is_default = (nint(attrib_value) == elliptical$)

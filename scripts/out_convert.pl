@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\.eps\}/\.pdf\}/g;
+    s/shape_name/aperture_shape_name/g;
 
     print (F_OUT);
   }
