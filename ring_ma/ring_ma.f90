@@ -16,18 +16,11 @@ program ring_ma
   real(rp) :: det_abs_res, det_diff_res, det_rot_res
   real(rp) :: alignment_multiplier=1.
   real(rp) :: sigma_cutoff=3.
-  integer :: seed, n_iterations, n_lm_iterations, n_bad_seeds
+  integer :: seed = 0, n_iterations, n_lm_iterations, n_bad_seeds
   logical :: write_orbits=.false.
   real(rp) :: key_value1, key_value2
   type(ma_struct) :: ma(n_ma_max)
   type(correct_struct) :: correct(n_corrections_max)
-
-  namelist /ring_ma_init/ lattice_file, seed, n_iterations, output_file, &
-       comment, n_lm_iterations, correct, &
-       write_orbits, key_value1, key_value2, ma, &
-       alignment_multiplier, sigma_cutoff, &
-       det_abs_res, det_diff_res, det_rot_res
-
 
   type data_struct
      real(rp) emit_x, emit_y, rms_x, rms_y, rms_eta_y, rms_cbar12, &
@@ -47,6 +40,12 @@ program ring_ma
   character*200 init_file, base_name, out_file, opt_file
   logical everything_ok
 
+  namelist /ring_ma_init/ lattice_file, seed, n_iterations, output_file, &
+       comment, n_lm_iterations, correct, &
+       write_orbits, key_value1, key_value2, ma, &
+       alignment_multiplier, sigma_cutoff, &
+       det_abs_res, det_diff_res, det_rot_res
+
 !==========================================================================
 ! Get init file from command line
 
@@ -60,6 +59,14 @@ program ring_ma
   open(1, file=init_file)
   read(1, nml=ring_ma_init)
   close(1)
+
+!==========================================================================
+! Initialize random-number generator from time or with specific value
+
+  if (seed < 1) then
+     seed = 0 ! seed randomizer with CPU time
+  end if
+  call ran_seed_put(seed)
 
 !==========================================================================
 ! Transfer the parameters from the input file to the appropriate structures
@@ -122,14 +129,7 @@ program ring_ma
   allocate(datablock(n_iterations, 0:n_corrections_max))
   call reallocate_coord(cr_model_co, design_ring%n_ele_track)
 
-!==========================================================================
-! Initialize random-number generator from time or with specific value
 
-  if (seed < 1) then
-     call date_and_time(values=time)
-     seed = time(8)
-  end if
-  call ran_seed(seed)
 
 !==========================================================================
 ! Start iterations
@@ -179,7 +179,7 @@ program ring_ma
      ! Apply correction(s)
      do i_correction = 1, n_corrections_max
         rms_param = 0.
-        if (all(correct(i_correction)%cor(:)%param == 0)) cycle
+        if (len(trim(correct(i_correction)%cor(1)%param_name)) == 0) cycle
         cr_model_ring = design_ring
         call correct_ring(ma_ring, correct(i_correction), rms_param)
         call twiss_and_track(ma_ring, co)

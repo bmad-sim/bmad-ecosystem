@@ -9,13 +9,13 @@ module correct_ring_mod
   private lmfunc, ring_to_y
 
   type, private :: parameter_ele_struct
-     character*40 name
+     character*40 name, param_name
      integer loc, param
      real(rp) orig_val, wt
   end type parameter_ele_struct
 
   type, private :: detector_struct
-     character*40 name
+     character*40 name, param_name
      integer loc, param
      real(rp) wt, rotation, x_offset, y_offset
   end type detector_struct
@@ -34,9 +34,10 @@ module correct_ring_mod
   ! Measurement parameters
   integer, parameter :: orbit_x$ = 1, orbit_y$ = 2, eta_xx$ = 3, eta_yy$ = 4
   integer, parameter :: phi_aa$ = 5, phi_bb$ = 6, cbar12$ = 7
+  character(40), parameter :: allowed_meas_names(7) = (/'orbit_x', 'orbit_y', 'eta_xx ', 'eta_yy ', 'phi_aa ', 'phi_bb ', 'cbar12 ' /)
 
   type detcor_grp
-     character*40 mask
+     character*40 :: mask = "", param_name = ""
      integer param
      real(rp) wt
   end type detcor_grp
@@ -75,7 +76,7 @@ contains
     end type measurement_struct
     type (measurement_struct) meas(n_det_max)
 
-    integer loc
+    integer loc, ix
 
     type(lat_struct) :: hybrid_ring
     type(coord_struct), allocatable :: co(:)
@@ -95,12 +96,24 @@ contains
 
     n_det  = 0
     do i_det_grp = 1, n_detcor_groups
-       if (correct%det(i_det_grp)%param == 0) cycle
+       if (len(trim(correct%det(i_det_grp)%param_name)) == 0) then ! no name provided
+          write(*,'(a,i0,a)') "No parameter name provided for detector group ", i_det_grp,". Cycling."
+          cycle
+       endif
+
        ele_loop: do i_ele = 1, ring%n_ele_track
           ele => ring%ele(i_ele)
           if (match_reg(ele%name, correct%det(i_det_grp)%mask)) then
 
-
+             ! look up index of desired parameter
+             call match_word(trim(correct%det(i_det_grp)%param_name), allowed_meas_names, ix)
+             correct%det(i_det_grp)%param = ix
+             if (correct%det(i_det_grp)%param .eq. 0) then
+                write(*,*) "Parameter ", trim(correct%det(i_det_grp)%param_name), &
+                     " not found for detectors. Cycling." 
+                cycle ele_loop
+             endif
+             
              ! If skipping duplicates, then loop backward around the ring, find the first
              ! element with nonzero length, and if it has the same name as our current
              ! element, move on.
@@ -121,41 +134,53 @@ contains
              det(n_det)%name = ele%name
              det(n_det)%loc = i_ele
              det(n_det)%param = correct%det(i_det_grp)%param
+             det(n_det)%param_name = correct%det(i_det_grp)%param_name
              det(n_det)%wt  = correct%det(i_det_grp)%wt
           end if
        end do ele_loop
     end do
 
+
     ! Locate elements to be varied for a particular correction
     n_p_ele = 0
     do i_cor_grp = 1, n_detcor_groups
-       if (correct%cor(i_cor_grp)%param == 0) cycle
-       ele_loop2: do i_ele = 1, ring%n_ele_max
-          if (match_reg(ring%ele(i_ele)%name, correct%cor(i_cor_grp)%mask)) then
-             if (correct%cor(i_cor_grp)%param > 0) then
-                attrib_name = attribute_name(ring%ele(i_ele), correct%cor(i_cor_grp)%param)
-                if (.not. attribute_free(i_ele, attrib_name, ring, .false.)) cycle
-             end if
+       
+       if (len(trim(correct%cor(i_cor_grp)%param_name)) == 0) then
+          write(*,'(a,i0,a)') "No parameter name provided for corrector group ", i_cor_grp,". Cycling."
+          cycle
+       endif
 
-             ! Check for duplicates. We don't skip zero-length elements, so you can never
-             ! have two adjacent, same-name detectors.
-             if (correct_ring_params%skip_dup_ele .and. i_ele <= ring%n_ele_track) then
-                do i = 1, ring%n_ele_track
-                   i_ele2 = mod(ring%n_ele_track + i_ele - i, ring%n_ele_track)
-                   if (ring%ele(i_ele)%name == ring%ele(i_ele2)%name) then
-                      cycle ele_loop2
-                   else
-                      exit
-                   end if
-                end do
-             end if
+       ele_loop2: do i_ele = 1, ring%n_ele_max ! steerings are overlays, not tracked elements
+          
+          ele => ring%ele(i_ele)
 
+          if (match_reg(trim(ele%name), trim(correct%cor(i_cor_grp)%mask))) then             
+             
+             correct%cor(i_cor_grp)%param = attribute_index(ele, trim(correct%cor(i_cor_grp)%param_name))
+             
+             if (correct%cor(i_cor_grp)%param .eq. 0) then
+                !write(*,*) "Parameter ", trim(correct%cor(i_cor_grp)%param_name), &
+                !     " not found for element ", trim(ele%name), ". Cycling." 
+                cycle ele_loop2
+             endif
+             
+             ! By checking if attribute is free, we get around having to do a second loop
+             ! to make sure the element is unique. -JSh
+             
+             if (.not. attribute_free(i_ele, correct%cor(i_cor_grp)%param_name, ring, .false.)) then
+                !write(*,*) "WARNING: Attribute ", trim(attrib_name), " not free for element ", trim(ele%name), &
+                !     " - skipping"
+                cycle
+             endif
+             
+             
              n_p_ele = n_p_ele + 1
-             p_ele(n_p_ele)%name  = ring%ele(i_ele)%name
+             p_ele(n_p_ele)%name  = ele%name
              p_ele(n_p_ele)%loc   = i_ele
              p_ele(n_p_ele)%param = correct%cor(i_cor_grp)%param
+             p_ele(n_p_ele)%param_name = correct%cor(i_cor_grp)%param_name
              p_ele(n_p_ele)%wt    = correct%cor(i_cor_grp)%wt
-
+             
              if (correct%cor(i_cor_grp)%param == -1) then
                 call multipole_init(ring%ele(i_ele))
                 call multipole_init(cr_model_ring%ele(i_ele))
@@ -165,9 +190,9 @@ contains
              else
                 p_ele(n_p_ele)%orig_val = cr_model_ring%ele(i_ele)%a_pole(1)
              end if
-          end if
+          endif
        end do ele_loop2
-
+       
        ! Check for too many parameter elements
        if (n_p_ele == size(p_ele)) then
           write(*,*) "Too many parameter elements.  Increase size(p_ele)."
@@ -181,9 +206,9 @@ contains
     if (correct_ring_params%write_elements) then
        write(*,*) "Found ", n_det, " detectors."
        do i_ele = 1, n_det
-          write(*,'(a10,i4,g10.2)', advance='no') &
-               trim(det(i_ele)%name), &
-               det(i_ele)%param, det(i_ele)%wt
+          write(*,'(a10,a,a10,g10.2)', advance='no') &
+               trim(det(i_ele)%name), '  ',&
+               det(i_ele)%param_name, det(i_ele)%wt
           if (mod(i_ele,3) == 0) then
              write(*,*)
           else
@@ -194,8 +219,8 @@ contains
 
        write(*,*) "Found ", n_p_ele, " parameter elements."
        do i_ele = 1, n_p_ele
-          write(*,'(a10,i4,g10.2)', advance='no') trim(p_ele(i_ele)%name), &
-               p_ele(i_ele)%param, p_ele(i_ele)%wt
+          write(*,'(a10,a,a10,g10.2)', advance='no') trim(p_ele(i_ele)%name), '  ',&
+               trim(p_ele(i_ele)%param_name), p_ele(i_ele)%wt
           if (mod(i_ele,3) == 0) then
              write(*,*)
           else
