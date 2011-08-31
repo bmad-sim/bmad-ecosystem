@@ -147,7 +147,7 @@ do
   call read_a_line ('Input: ', ans)
   call string_trim(ans, ans, ix)
   if (ix == 0) cycle
-  call match_word (ans(1:ix), ['energy      ', 'angle       ', 'type     ', &
+  call match_word (ans(1:ix), ['energy      ', 'angle       ', 'type        ', &
                                'n_lines     ', 'fixed_energy'], n, matched_name = param)
   if (n < 1) then
     print *, 'CANNOT PARSE THIS.'
