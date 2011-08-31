@@ -12,8 +12,7 @@
 export DIST_BUILD="TRUE"
 
 export DIST_OS=${OS_ID}
-export DIST_PLATFORM=$PLATFORM_ID
-
+export DIST_PLATFORM="Linux_i686"  # Temporary
 
 
 #--------------------------------------------------------------
