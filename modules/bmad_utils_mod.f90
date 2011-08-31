@@ -1454,7 +1454,7 @@ ele%logic             = .false.
 ele%reversed          = .false.
 
 ele%field_master  = .false.
-ele%aperture_type = rectangular$
+ele%aperture_shape = rectangular$
 ele%aperture_at   = exit_end$
 ele%offset_moves_aperture = .false.
 

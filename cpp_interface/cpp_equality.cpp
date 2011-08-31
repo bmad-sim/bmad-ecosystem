@@ -292,7 +292,7 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.ref_orbit == y.ref_orbit);
   is_true = is_true && (x.taylor_order == y.taylor_order);
   is_true = is_true && (x.aperture_at == y.aperture_at);
-  is_true = is_true && (x.aperture_type == y.aperture_type);
+  is_true = is_true && (x.aperture_shape == y.aperture_shape);
   is_true = is_true && (x.attribute_status == y.attribute_status);
   is_true = is_true && (x.n_attribute_modify == y.n_attribute_modify);
   is_true = is_true && (x.symplectify == y.symplectify);

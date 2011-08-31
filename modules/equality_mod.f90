@@ -684,7 +684,7 @@ is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
 is_eq = is_eq .and. (f1%ref_orbit == f2%ref_orbit)
 is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order) 
 is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
-is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type) 
+is_eq = is_eq .and. (f1%aperture_shape == f2%aperture_shape) 
 is_eq = is_eq .and. (f1%attribute_status == f2%attribute_status) 
 is_eq = is_eq .and. (f1%n_attribute_modify == f2%n_attribute_modify) 
 is_eq = is_eq .and. (f1%symplectify .eqv. f2%symplectify) 
@@ -729,7 +729,7 @@ print *, 'ints:       ', (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
     (f1%ix_ele == f2%ix_ele) .and. (f1%ref_time == f2%ref_time)
 print *, 'logic:      ', (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
     (f1%tracking_method == f2%tracking_method) .and. &
-    (f1%field_calc == f2%field_calc) .and. (f1%aperture_type == f2%aperture_type) .and. &
+    (f1%field_calc == f2%field_calc) .and. (f1%aperture_shape == f2%aperture_shape) .and. &
     (f1%ref_orbit == f2%ref_orbit) .and. (f1%taylor_order == f2%taylor_order) .and. &
     (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
     (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &

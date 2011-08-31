@@ -1346,7 +1346,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%lord_status, f%n_lord, f%ic1_lord, f%ic2_lord, &
       f%ix_pointer, f%ixx, &
       f%mat6_calc_method, f%tracking_method, f%field_calc, f%ref_orbit, &
-      f%taylor_order, f%aperture_at, f%aperture_type, f%attribute_status, f%n_attribute_modify, &
+      f%taylor_order, f%aperture_at, f%aperture_shape, f%attribute_status, f%n_attribute_modify, &
       f%symplectify, f%mode_flip, f%multipoles_on, f%scale_multipoles, f%map_with_offsets, &
       f%field_master, f%reversed, f%is_on, f%old_is_on, f%logic, f%bmad_logic, f%on_a_girder, &
       f%csr_calc_on, f%offset_moves_aperture)
@@ -1526,7 +1526,7 @@ f%field_calc            = field_calc
 f%ref_orbit             = ref_orb
 f%taylor_order          = tlr_ord
 f%aperture_at           = aperture_at
-f%aperture_type         = aperture_type
+f%aperture_shape         = aperture_type
 f%attribute_status      = attrib_stat
 f%n_attribute_modify    = n_attrib_modify
 f%symplectify           = f_logic(symp)
