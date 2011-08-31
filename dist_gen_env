@@ -33,7 +33,7 @@ ENV_SNAP_2="${HOME}/.dist_env_snapshot_2.tmp"
 #-----------------------------------------------------------
 is_dir_toplevel() {
 
-  DIST_TOPLEVEL_CHECKLIST="bin bmad Gmake include util"
+  DIST_TOPLEVEL_CHECKLIST="bmad Gmake include util"
 
   TESTDIR=$1
   RETVAL="Y"
@@ -175,7 +175,6 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   #--------------------------------------------------------------
   "echo" "Sourcing common parts..." >> $DIST_SETUP_LOG
   source ${DIST_BASE_DIR}/util/common_env_setup
-
 
 
   #--------------------------------------------------------------
