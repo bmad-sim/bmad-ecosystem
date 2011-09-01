@@ -973,7 +973,7 @@ else
       term = exp(xlogg)/i
     end if
     pxs = pxs+term
-    if(term/pxs < converge) exit
+    if(term < pxs * converge) exit
   enddo
   if (i > maxsum) then
     call out_io (s_error$, r_name, 'Convergence failed.')
@@ -1011,6 +1011,8 @@ zm_max = 0.0
 do ik = 1, 3
   zm_max = zm_max + fk1(ik)*x**(ik-1) + fk2(ik)*x**(ik-1)*sqrt(g) + fk3(ik)*x**(ik-1)*g + fk4(ik)*x**(ik-1)*g**2
 enddo
+
+if (zm_max < 1) zm_max = 1
 
 end function zmmax
 
@@ -1122,7 +1124,7 @@ else
     end if
     term = term*fzi
     cphis = cphis+term
-    if (term/cphis < converge) exit
+    if (term < converge * cphis) exit
   enddo
 
   if (i == maxsum + 1) then
@@ -1231,7 +1233,7 @@ main_loop: do itt = 1, size(x)
     term = term*fzi
     pxs = pxs+term
 
-    if (term/pxs < converge) then
+    if (term < converge * pxs) then
       pxs = pxs*g0
       prob_x(itt) = pxs
       cycle main_loop
@@ -1504,7 +1506,7 @@ do k = 3, maxsum
          spk*((2+a**2)*(k**2-4.0)+a**2*k**2*cp2)/2/k/(k**2-4.0)
  zterm = 2*rk*zbessi(k,b)
  zexp = zexp+zterm
- if (abs(zterm/zexp) < converge) exit
+ if (abs(zterm) < converge * abs(zexp)) exit
 enddo
 
 if (k == maxsum+1) then
