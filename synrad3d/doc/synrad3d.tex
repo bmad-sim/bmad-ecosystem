@@ -144,9 +144,10 @@ incidence relative to the local normal to the vacuum chamber is
 computed. A scattering probability is computed, based on this angle
 and the photon's energy. Depending on the value of this probability,
 the photon is either absorbed at this location, or scattered. If it is
-scattered, the scattering is taken to be specular (angle of reflection
-equals angle of incidence) and elastic (photon energy does not
-change).
+scattered, the scattering is taken to be elastic. That is, photon
+energy does not change. This ignores any floresence. Surface
+roughness, on the other hand is taken into account so there is a
+diffuse component to the scattering.
 
 The photon is then tracked to the next encounter with the vacuum
 chamber wall, and the probability of scattering is again
@@ -185,26 +186,27 @@ Points shown are a measurement from INFN~\cite{b.mehne}}
 %------------------------------------------------------------------
 \subsection{Photon scattering} 
 
-Photon scattering from the vacuum chamber wall is treated as purely
-specular, with a scattering probability which depends on the photon
-energy and polar angle with respect to the chamber normal at the point
-of incidence.
+Photon scattering from the vacuum chamber wall is treated with a diffuse
+model where the photon energy is invariant but the angle of scatter is not purely
+specular. T
 
-The scattering probabilities are taken from an X-ray scattering
-database at LBNL~\cite{b.henke}. The scattering probabilities depend on
-the material of which the vacuum chamber is composed, and on the
-surface condition (oxide coating, roughness, etc.) In principle, the
-scattering probability also depends on the photon polarization
-relative to the incident normal to the surface, but this dependence is
-ignored in the simulation.
+he probability of a photon being absorbed instead of scattered depends
+on the photon energy and polar angle with respect to the chamber
+normal at the point of incidence.  The scattering probabilities are
+taken from an X-ray scattering database at LBNL~\cite{b.henke}. The
+scattering probabilities depend on the material of which the vacuum
+chamber is composed, and on the surface condition (oxide coating) but
+is independent of the surface roughness. In principle, the scattering
+probability also depends on the photon polarization relative to the
+incident normal to the surface, but this dependence is ignored in the
+simulation.
 
 The scattering probabilities in the table currently used by the
 simulation were computed for a photon p-polarization (electric field
 in the plane of incidence), for an aluminum substrate with a 4 nm
-layer of Al$_2$O$_3$ having a density of 2.9 gm/cm$^3$ and a surface
-roughness of 4 nm. See Fig.~\ref{f:reflect} for some example
-reflectivity curves, compared with radiation spectra for wigglers and
-dipoles in CesrTA at 2 GeV.
+layer of Al$_2$O$_3$ having a density of 2.9 gm/cm$^3$ . See
+Fig.~\ref{f:reflect} for some example reflectivity curves, compared
+with radiation spectra for wigglers and dipoles in CesrTA at 2 GeV.
 
 %------------------------------------------------------------------
 \subsection{Main input file} 
@@ -250,7 +252,7 @@ Example main input file:
     sr3d_params%ds_track_step_max = 3        ! Photon propagation step size 
     sr3d_params%dr_track_step_max = 0.1      ! Photon propagation step size 
     sr3d_params%allow_reflections = T        ! For testing purposes.
-    sr3d_params%always_specularly_reflect  = F ! For testing purposes.
+    sr3d_params%allow_absorbtion = T         ! For testing purposes.
     sr3d_params%stop_if_hit_antechamber = F 
   /
 \end{example}
@@ -319,12 +321,11 @@ This parameter, if set False, will cause \srthree to stop tracking a given photo
 it hits the chamber wall. This can be used to generate data on where the primary photons are striking.
   \item[\vn{sr3d_params\%diffuse_scattering_on}] \Newline
 This parameter can be used to test whether diffuse scattering is important. If set to \vn{False},
-photons that would be diffusely scattered are instead absorbed.
-  \item[\vn{sr3d_params\%always_specularly_reflect}] \Newline
-This parameter, if set True, will cause \srthree suppress absorption or
-diffuse scattering and to always specularly reflect photons when they
-hit the chamber wall. This parameter is only used for testing
-purposes.
+photons will always be specularly reflected.
+  \item[\vn{sr3d_params\%allow_absorbtion}] \Newline
+This parameter, if set False, will cause \srthree suppress absorption
+and to always reflect photons when they hit the chamber wall. This
+parameter is only used for testing purposes.
   \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
 This parameter, if set True, will cause \srthree to stop tracking a given photon once
 it hits part of an antechamber wall.
