@@ -514,7 +514,7 @@ type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
-real(rp) track_len0, track_len1, radius, d_rad, r0, r1, track_len
+real(rp) track_len0, track_len1, radius, d_rad0, d_rad1, r0, r1, track_len
 
 integer i
 
@@ -545,14 +545,14 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
 
   track_len0 = (photon%now%track_len + photon%old%track_len) / 2
   do i = 1, 30
-    d_rad = sr3d_photon_hit_func(track_len0)
+    d_rad0 = sr3d_photon_hit_func(track_len0)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
       print *
-      print *, 'track_len, d_rad:', track_len0, d_rad
+      print *, 'track_len, d_rad0:', track_len0, d_rad0
       print *, 'photon1_com%now:', i, photon1_com%now%vec, photon1_com%now%track_len
     endif
-    if (d_rad < 0) exit
-    track_len1 = track_len0
+    if (d_rad0 < 0) exit
+    track_len1 = track_len0; d_rad1 = d_rad0
     track_len0 = (track_len0 + photon%old%track_len) / 2
     if (i == 30) then
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
@@ -575,7 +575,7 @@ track_len = zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10)
 
 photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
-call sr3d_photon_d_radius (photon%now, wall, d_rad, in_antechamber = photon%hit_antechamber)
+call sr3d_photon_d_radius (photon%now, wall, d_rad0, in_antechamber = photon%hit_antechamber)
 photon_com%now%ix_triangle = photon1_com%now%ix_triangle
 
 end subroutine sr3d_photon_hit_spot_calc 
@@ -816,23 +816,29 @@ wall_hit(n_wall_hit)%after_reflect = photon%now
 wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
 ! absorbtion or reflection...
-! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 
 call ran_uniform(r)
-if (r < reflectivity_rough .or. sr3d_params%always_specularly_reflect) then
-  absorbed = .false.
-  photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
-elseif (r < reflectivity_smooth .and. sr3d_params%diffuse_scattering_on) then
-  absorbed = .false.
-  call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
-  ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
-  vec_in_plane = photon%now%vec(2:6:2) - dw_perp * cos_perp  
-  vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
-  vec_out_plane = cross_product(dw_perp, vec_out_plane)
-  photon%now%vec(2:6:2) = -cos(theta_diffuse) * dw_perp + sin(theta_diffuse) * &
-                          (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
+
+absorbed = .true.
+
+if (sr3d_params%diffuse_scattering_on) then
+  if (r < reflectivity_smooth .or. .not. sr3d_params%allow_absorbtion) then
+    absorbed = .false.
+    call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
+    ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
+    vec_in_plane = photon%now%vec(2:6:2) - dw_perp * cos_perp  
+    vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
+    vec_out_plane = cross_product(dw_perp, vec_out_plane)
+    photon%now%vec(2:6:2) = -cos(theta_diffuse) * dw_perp + sin(theta_diffuse) * &
+                            (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
+  endif
+
+! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 else
-  absorbed = .true.
+  if (r < reflectivity_rough .or. .not. sr3d_params%allow_absorbtion) then
+    absorbed = .false.
+    photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
+  endif
 endif
 
 
