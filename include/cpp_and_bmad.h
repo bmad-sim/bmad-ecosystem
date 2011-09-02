@@ -938,7 +938,7 @@ public:
   int ref_orbit;                // For setting the ptc kind type.
   int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
-  int aperture_shape;           // Where aperture is applied. exit_end$, ...
+  int aperture_type;           // Where aperture is applied. exit_end$, ...
   int attribute_status;         // Element attributes have been modified?
   int n_attribute_modify;       // How many times the attributes have been modified.
   bool symplectify;             // Symplectify mat6 matrices.
@@ -989,7 +989,7 @@ public:
     ref_orbit(0),
     taylor_order(0),
     aperture_at(Bmad::EXIT_END), 
-    aperture_shape(Bmad::RECTANGULAR),
+    aperture_type(Bmad::RECTANGULAR),
     attribute_status(0),
     n_attribute_modify(0),
     symplectify(false),

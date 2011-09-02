@@ -295,7 +295,7 @@ type ele_struct
                              !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
-  integer aperture_shape     ! rectangular$, elliptical$, star_shape$, or custom$
+  integer aperture_type     ! rectangular$, elliptical$, star_shape$, or custom$
   integer attribute_status   ! Element attributes have been modified?
   integer n_attribute_modify ! How many times the attributes have been modified.
   logical symplectify        ! Symplectify mat6 matrices.
@@ -819,7 +819,7 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_name$ =
 ! Note: custom$ = 7 is taken from element key names.
 
 integer, parameter :: rectangular$ = 1, elliptical$ = 2, star_shape$ = 3
-character(16), parameter :: aperture_shape_name(0:7) = &
+character(16), parameter :: aperture_type_name(0:7) = &
                                     ['garbage!   ', 'Rectangular', 'Elliptical ', 'Star_Shape ', &
                                      'garbage!   ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 

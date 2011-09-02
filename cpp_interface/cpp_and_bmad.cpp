@@ -644,7 +644,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
     c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
     c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit, c.taylor_order, 
-    c.aperture_at, c.aperture_shape, c.attribute_status, c.n_attribute_modify,
+    c.aperture_at, c.aperture_type, c.attribute_status, c.n_attribute_modify,
     c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
     c.map_with_offsets, c.field_master, c.reversed, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
     c.on_a_girder, c.csr_calc_on, c.offset_moves_aperture);
@@ -670,7 +670,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
     Int& ix_p, Int& ixx, 
     Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
-    Int& t_ord, Int& aperture_at, Int& aperture_shape, Int& attrib_stat, Int& n_attrib_modify,
+    Int& t_ord, Int& aperture_at, Int& aperture_type, Int& attrib_stat, Int& n_attrib_modify,
     Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
     Int& field_master, Int& reversed, Int& is_on, Int& old_is_on, Int& logic, Int& bmad_logic, Int& on_a_gird, 
     Int& csr_calc, Int& offset_moves_ap) {
@@ -740,7 +740,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.ref_orbit             = ref_orbit;
   c.taylor_order          = t_ord;
   c.aperture_at           = aperture_at;
-  c.aperture_shape         = aperture_shape;
+  c.aperture_type         = aperture_type;
   c.attribute_status      = attrib_stat;
   c.n_attribute_modify    = n_attrib_modify;
   c.symplectify           = symp;
@@ -823,7 +823,7 @@ C_ele& C_ele::operator= (const C_ele& c) {
   ref_orbit             = c.ref_orbit;
   taylor_order          = c.taylor_order;
   aperture_at           = c.aperture_at;
-  aperture_shape        = c.aperture_shape;
+  aperture_type        = c.aperture_type;
   attribute_status      = c.attribute_status;
   n_attribute_modify    = c.n_attribute_modify;
   symplectify           = c.symplectify;

@@ -739,7 +739,7 @@ slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
 slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
-slave%aperture_shape    = lord%aperture_shape
+slave%aperture_type    = lord%aperture_type
 
 ! patch element.
 ! The reference energy may be zero while parsing in a lattice file so only do

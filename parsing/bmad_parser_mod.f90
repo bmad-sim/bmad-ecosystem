@@ -1127,7 +1127,7 @@ case default   ! normal attribute
   elseif (ix_attrib == aperture_at$) then
     ele%aperture_at = nint(value)
   elseif (ix_attrib == aperture_type$) then
-    ele%aperture_shape = nint(value)
+    ele%aperture_type = nint(value)
   elseif (ix_attrib == ran_seed$) then
     call ran_seed_put (nint(value))  ! init random number generator
     if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
@@ -3179,7 +3179,7 @@ if (allocated(bp_com%var)) deallocate (bp_com%var)
 
 nn = 17  ! number of "constant" variables
 bp_com%ivar_init = nn + ubound(calc_method_name, 1) + &
-           ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(aperture_shape_name, 1) + &
+           ubound(ref_orbit_name, 1) + ubound(element_end_name, 1) + ubound(aperture_type_name, 1) + &
            size(particle_name) + ubound(polarization_name, 1)
 bp_com%ivar_tot = bp_com%ivar_init
 
@@ -3228,9 +3228,9 @@ do i = 1, ubound(ref_orbit_name, 1)
   bp_com%var(nn)%value = i
 enddo
 
-do i = 1, ubound(aperture_shape_name, 1)
+do i = 1, ubound(aperture_type_name, 1)
   nn = nn + 1
-  call str_upcase (bp_com%var(nn)%name, aperture_shape_name(i))
+  call str_upcase (bp_com%var(nn)%name, aperture_type_name(i))
   bp_com%var(nn)%value = i
 enddo
 
@@ -4360,7 +4360,7 @@ case (custom$)
 
 case (ecollimator$)
   ele%offset_moves_aperture = .true.
-  ele%aperture_shape = elliptical$
+  ele%aperture_type = elliptical$
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
