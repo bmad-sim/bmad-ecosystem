@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/shape_name/aperture_shape_name/g;
+    s/aperture_shape/aperture_type/g;
 
     print (F_OUT);
   }

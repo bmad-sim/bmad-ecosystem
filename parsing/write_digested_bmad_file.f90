@@ -256,7 +256,7 @@ write (d_unit) &
           ele%taylor_order, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
-          ele%aperture_shape, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
+          ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
 

@@ -71,7 +71,7 @@ character(20) :: r_name = 'check_aperture_limit'
 
 ! Custom
 
-if (ele%aperture_shape == custom$) then
+if (ele%aperture_type == custom$) then
   call check_aperture_limit_custom (orb, ele, at, param)
   return
 endif
@@ -131,7 +131,7 @@ if (y_lim <= 0 .or. .not. param%aperture_limit_on) &
 
 if (x_lim == 0 .and. y_lim == 0) return
 
-select case (ele%aperture_shape)
+select case (ele%aperture_type)
 
 case (elliptical$)
   if (x_lim == 0 .or. y_lim == 0) then
