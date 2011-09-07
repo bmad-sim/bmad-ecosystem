@@ -14,6 +14,8 @@ use wake_mod
 use attribute_mod
 use add_superimpose_mod
 
+private parse_grid
+
 ! A "sequence" is a line or a list.
 ! The information about a sequence is stored in a seq_struct.
 
@@ -813,6 +815,12 @@ if (attrib_word == 'RF_FIELD') then
       case ('PHI_0');         r_ptr => mode%phi_0
       case ('DZ');            r_ptr => mode%dz
       case ('FIELD_SCALE');   r_ptr => mode%field_scale
+
+
+
+	  case ('GRID') 
+	    call parse_grid(mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
+		do_evaluate = .false.
 
       case default
         call parser_warning ('UNKNOWN MODE COMPONENT: ' // word, &
@@ -5262,6 +5270,128 @@ endif
 
 end subroutine parser_debug_print_info
 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! parse_grid(grid, ele, lat, delim, delim_found, err_flag, print_err)
+!
+! Subroutine to parse a GRID = () construct
+!
+! ??? This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is private to bmad_parser_mod.
+! This must read in:
+! 	type = ,
+!	dr = , 
+!	r0 = , 
+!	pt(i,j,k) = ( (ex_re, ex_im), .... (bz_re, bz_im) ) 
+!	.
+!	.
+!	.
+!-
+
+subroutine parse_grid(grid, ele, lat, delim, delim_found, err_flag, print_err)
+
+
+type grid_pt_struct
+	integer ix1, ix2, ix3
+end type
+
+
+type (em_field_grid_struct), pointer ::  grid
+type (ele_struct) ele
+type (lat_struct)  lat
+character(1) delim
+logical delim_found, err_flag, print_err
+integer ix_word
+integer pt_counter, n
+character(40) :: word, word2
+
+
+type(grid_pt_struct), allocatable :: array(:), array2(:)
+
+
+
+
+! Read list of values.
+allocate(array(1024))
+pt_counter = 0
+
+!Read attriubutes
+call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+
+do
+	! Expect "<component> = "
+	
+	if (delim /= '=') then
+    	call parser_warning (	'NO "=" SIGN FOUND IN MODE DEFINITION',  &
+        						'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+    	return
+    endif
+    
+    select case (word)
+
+      case ('TYPE')
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        if (is_integer(word)) read (word, *) grid%type
+        if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
+          call parser_warning ('BAD "TYPE = <INTEGER>" CONSTRUCT', &
+                               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+          return
+        endif
+
+      case ('PT')
+      	pt_counter = pt_counter +1
+      	!Reallocate temporary structure
+	    if (pt_counter > size(array)) then
+	    	n = size(array)
+	    	allocate( array2(n) )
+	    	array2 = array
+	    	deallocate(array)
+	    	allocate(array(2*n))
+	    	array(1:n) = array2
+	    	deallocate(array2)
+	    end if
+      
+      	!Expect "("
+      	if (delim /= '(' ) then
+      		call parser_warning ('BAD GRID PT CONSTRUCT', &
+                               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        	return
+        end if
+        
+        !Expect integer followed by "," or ")"
+        call get_next_word (word, ix_word, ',)', delim, delim_found)
+       	if (.not. is_integer(word) ) then
+      		call parser_warning ('BAD GRID PT INDEX, NOT AN INTEGER', &
+                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        	return
+        end if       
+        read (word, *) array(pt_counter)%ix1
+         
+		                         
+                         
+                         
+                               
+        call get_next_word (word, ix_word, ',}', delim, delim_found)
+        
+
+	 end select 
+	 
+	 call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+	 
+	if (delim == '}') exit
+enddo
+
+deallocate(array)
+
+contains
+
+subroutine parse_pt_indices()
+
+end subroutine parse_pt_indices
+
+end subroutine parse_grid
+
 end module
-
-
