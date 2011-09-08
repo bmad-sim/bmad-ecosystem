@@ -19,7 +19,7 @@ contains
 !+
 ! Subroutine check_aperture_limit (orb, ele, at, param, check_momentum)
 !
-! Subroutine to check if an orbit is outside the aperture.
+! Subroutine to check if an orbit is outside an element's aperture.
 ! Note: A particle will also be considered to have hit an aperture
 ! if |p_x| or |p_y| > 1.
 !

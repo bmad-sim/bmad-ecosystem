@@ -42,16 +42,18 @@ type (photon_reflect_surface_struct), save, pointer :: reflect_surface => null()
 
 !
 
+private output_specular_reflection_input_params
+
 integer, parameter, private :: n_cheb_term$ = 30
 
 type, private :: cheb_reflect_com
   real(rp) x, y
   real(rp) lambda
-  real(rp) ran
+  real(rp) ran1, ran2
   real(rp) cch_int(n_cheb_term$), cch(n_cheb_term$), chx_norm, cnorm
 end type
 
-type (cheb_reflect_com), private :: cheb_com
+type (cheb_reflect_com), private, target :: cheb_com
 
 real(rp), private, parameter :: converge = 1d-9, gmin = 0.001, gmax = 100
 integer(rp), private, parameter :: maxsum = 1000, ismax = 20, bmax = 100
@@ -823,13 +825,16 @@ implicit none
 
 real(rp) angle_in, energy, theta_out,  phi_out
 real(rp) sigma, t, ctheta2, sign_phi
+real(rp) fl, fh, df
 
-!
+character(28), parameter :: r_name = 'photon_diffuse_scattering'
+
+! If the photon energy is lower than 1eV then use 1eV in the calculation.
 
 sigma = reflect_surface%surface_roughness_rms
 T = reflect_surface%roughness_correlation_len
 cheb_com%y = sin(angle_in)
-cheb_com%lambda = h_planck * c_light / energy 
+cheb_com%lambda = h_planck * c_light / max(1.0_rp, energy)
 
 ! Fit the probability distribution in x = cos(theta_out) to Chebyshev polynomials.
 ! Also compute the coefficients fo the cumulative distribution in x
@@ -843,7 +848,7 @@ cheb_com%chx_norm = chebev(0.0D0, 1.0D0, cheb_com%cch_int, 1.0D0)
 
 !  pick a random number
 
-call ran_uniform(cheb_com%ran)
+call ran_uniform(cheb_com%ran1)
 
 ! find the value of x for which the cumulative probability equals the random number
 
@@ -858,18 +863,23 @@ cheb_com%cnorm = cos_phi(sigma, T, cheb_com%lambda, cheb_com%y, cheb_com%x, twop
 ! Pick a random number and
 ! find the value of phi for which the cumulative probability equals the random number
 
-call ran_uniform(cheb_com%ran)
-if (cheb_com%ran > 0.5) then
+call ran_uniform(cheb_com%ran2)
+if (cheb_com%ran2 > 0.5) then
   sign_phi = 1
-  cheb_com%ran = 2 * cheb_com%ran - 1
+  cheb_com%ran2 = 2 * cheb_com%ran2 - 1
 else
   sign_phi = -1
-  cheb_com%ran = 2 * cheb_com%ran 
+  cheb_com%ran2 = 2 * cheb_com%ran2 
 endif
 
-phi_out = sign_phi * rtsafe(cumulr,0.0D0, twopi/2, 1.0D-5)
+call cumulr(0.0_rp, fl, df)
+call cumulr(pi, fh, df)
+if ((fl > 0 .and. fh > 0) .or. (fl < 0 .and. fh < 0)) then 
+  call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED FOR PHI CALC!', 'fl, fh: \2es14.5\ ', r_array = [fl, fh])
+  call output_specular_reflection_input_params()
+endif
 
-
+phi_out = sign_phi * rtsafe(cumulr, 0.0D0, pi, 1.0D-5)
 
 end subroutine photon_diffuse_scattering
 
@@ -896,7 +906,7 @@ real(rp) sigma, T
 sigma = reflect_surface%surface_roughness_rms
 T = reflect_surface%roughness_correlation_len
 
-fn = cos_phi(sigma, T,  cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm - cheb_com%ran
+fn = cos_phi(sigma, T,  cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm - cheb_com%ran2
 df = ptwo(sigma, T, cheb_com%lambda, cheb_com%y, cheb_com%x, phi) / cheb_com%cnorm
 
 end subroutine cumulr
@@ -961,6 +971,7 @@ else
   factor = 1.0
   pxs = 0.0
   i = 0
+
   do i = 1,maxsum
     fexp = -g*(1.0+qexp/i)
     if (i < ismax) then
@@ -975,11 +986,15 @@ else
     pxs = pxs+term
     if(term < pxs * converge) exit
   enddo
+
+  p_two = pxs*g0
+
   if (i > maxsum) then
-    call out_io (s_error$, r_name, 'Convergence failed.')
+    call out_io (s_error$, r_name, 'Convergence failed!', &
+            'phi, pxs, g0: \3es14.5\ ', r_array = [phi, pxs, g0])
+    call output_specular_reflection_input_params()
   endif
-  pxs = pxs*g0
-  p_two = pxs
+
 end if
 
 end function ptwo
@@ -1037,7 +1052,7 @@ real(rp), intent(out) :: fn, df
 
 !
 
-fn = chebev(0.0D0, 1.0D0, cheb_com%cch_int, x) / cheb_com%chx_norm - cheb_com%ran
+fn = chebev(0.0D0, 1.0D0, cheb_com%cch_int, x) / cheb_com%chx_norm - cheb_com%ran1
 df = chebev(0.0D0, 1.0D0, cheb_com%cch, x) / cheb_com%chx_norm
 
 end subroutine cumulx
@@ -1086,7 +1101,7 @@ h = sqrt(1-x**2)*sqrt(1-y**2)
 a = h/(1+x*y)
 xyzero = .false.
 
-if(x == 1.0.or.y == 1.0)xyzero = .true.
+if (x == 1.0 .or. y == 1.0) xyzero = .true.
 
 if (g < gmin) then
   qexp = (2-xysq-2*h)*s**2/4
@@ -1109,6 +1124,7 @@ else
   g0 = tau**2*g/2/twopi/xpy**4*(1+x*y)**2
   factor = 1.0
   cphis = 0.0
+
   do i = 1,maxsum
     bi = b*g/i
     fexpi = -g-(2-xysq-2*h)*tau**2*g/4/i/xpy**2
@@ -1127,12 +1143,13 @@ else
     if (term < converge * cphis) exit
   enddo
 
-  if (i == maxsum + 1) then
-    call out_io (s_error$, r_name, 'Convergence failed.')
-  endif
+  cphi = cphis*g0
 
-  cphis = cphis*g0
-  cphi = cphis
+  if (i > maxsum) then
+    call out_io (s_error$, r_name, 'Convergence failed.', &
+              'phi, cphis, g0: \3es14.5\ ', r_array = [phi, cphis, g0])
+    call output_specular_reflection_input_params()
+  endif
 
 end if
 
@@ -1233,15 +1250,17 @@ main_loop: do itt = 1, size(x)
     term = term*fzi
     pxs = pxs+term
 
-    if (term < converge * pxs) then
-      pxs = pxs*g0
-      prob_x(itt) = pxs
-      cycle main_loop
-    endif
+    if (term < converge * pxs) exit
 
   enddo
 
-  call out_io (s_error$, r_name, 'Convergence after maxsum terms at level g failed in zzexp')
+  prob_x(itt) = pxs*g0
+
+  if (i > maxsum) then
+    call out_io (s_error$, r_name, 'Convergence failed!', &
+          'pxs, g0: \2es14.5\ ', r_array = [pxs, g0])
+    call output_specular_reflection_input_params()
+  endif
 
 enddo main_loop
 
@@ -1509,11 +1528,13 @@ do k = 3, maxsum
  if (abs(zterm) < converge * abs(zexp)) exit
 enddo
 
-if (k == maxsum+1) then
-  call out_io (s_error$, r_name, 'Convergence after maxsum terms at level converge failed in zzexp')
-endif
-
 zexp = zexp/sqrt(twopi*b)
+
+if (k > maxsum) then
+  call out_io (s_error$, r_name, 'Convergence failed!', &
+          'a, b, phi, zzexp: \4es14.4\ ', r_array = [a, b, phi, zexp])
+  call output_specular_reflection_input_params()
+endif
 
 end function zzexp
 
@@ -1522,10 +1543,29 @@ end function zzexp
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Function prob_x_diffuse (x) result (prob)
+! Subroutine output_specular_reflection_input_params()
 !
 ! Private function used in calculating diffuse scattering distribution.
 !-
+
+subroutine output_specular_reflection_input_params()
+
+implicit none
+
+type (cheb_reflect_com), pointer :: cc
+
+character(40), parameter :: r_name = 'output_specular_reflection_input_params'
+
+!
+
+cc => cheb_com
+
+call out_io (s_blank$, r_name, 'sigma, T, lambda, x, y: \4es14.5\ ', 'ran1, ran2 \2es14.5\ ', &
+          r_array = [reflect_surface%surface_roughness_rms, &
+          reflect_surface%roughness_correlation_len, cc%lambda, cc%x, cc%y, cc%ran1, cc%ran2])
+
+
+end subroutine output_specular_reflection_input_params
 
 end module
 

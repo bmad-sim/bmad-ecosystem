@@ -89,8 +89,8 @@ The complete structure is shown in this and the following figure.}
   integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, etc.
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
-  integer aperture_type      ! Type of aperture: rectanular$, or elliptical$.
-  integer coupler_at         ! Lcavity coupler location: exit_end$, ...
+  integer aperture_type      ! Type of aperture: rectanular$, elliptical$, or custom$. 
+  integer coupler_at         ! Lcavity coupler location: exit_end$, entrance_end$
   integer attribute_status   ! Element attributes have been modified?
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
