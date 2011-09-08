@@ -5306,14 +5306,29 @@ type (lat_struct)  lat
 character(1) delim, delim2
 logical delim_found, delim_found2, err_flag, print_err
 integer ix_word, ix_word2
-integer pt_counter, n, i
+integer pt_counter, n, i, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
+integer grid_dim, grid_type, num_dr, num_r0
 character(40) :: word, word2
+real(rp), allocatable :: dr(:), r0(:)
 
 
 type(grid_pt_struct), allocatable :: array(:), array2(:)
 
 
+!Expect {
+call get_next_word (word, ix_word, '{', delim, delim_found)
+	if ((word /= '') .or. (delim /= '{')) then
+    	call parser_warning (	'NO { SIGN FOUND IN GRID DEFINITION',  &
+        						'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+    	return
+    endif
 
+
+!Set file to be the last called file with 
+write(grid%file, '(2a, i0)' ) trim(bp_com%current_file%full_name),  ':', bp_com%current_file%i_line
+
+!Check if file has already been read
+!TODO 
 
 ! Read list of values.
 allocate(array(1024))
@@ -5326,7 +5341,7 @@ do
 	! Expect "<component> = "
 	
 	if (delim /= '=') then
-    	call parser_warning (	'NO "=" SIGN FOUND IN MODE DEFINITION',  &
+    	call parser_warning (	'NO "=" SIGN FOUND IN GRID DEFINITION',  &
         						'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
     	return
     endif
@@ -5335,16 +5350,41 @@ do
 
       case ('TYPE')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
-        if (is_integer(word)) read (word, *) grid%type
-        if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
-          call parser_warning ('BAD "TYPE = <INTEGER>" CONSTRUCT', &
-                               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-          return
-        endif
+        !Check to see if this is a valid type by checking against em_grid_type_name(:)
+        call match_word(word, em_grid_type_name, grid_type, can_abbreviate = .false. )
+        if (grid_type == 0) then
+        	call parser_warning ('UNKNKOWN GRID TYPE: ' // word, &
+                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+          return        
+        endif      
+        
+      case ('R0')       
+      	! expect ( 1. ) or (1. , 2.) or (1., 2., 3. )
+		call parse_real_list(r0, num_r0, num_expected = 3)
+		grid%r0 = r0
+		call get_next_word (word, ix_word, ',}', delim, delim_found) 		
+      	if (word /= '' ) then
+      		call parser_warning ('BAD INPUT AFTER R0 DEFINITION: ' // word , &
+                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        	return
+        end if
+		
+
+      case ('DR')      
+        ! expect ( 1. ) or (1. , 2.) or (1., 2., 3. )
+		call parse_real_list(dr, num_dr, num_expected = 3)
+		grid%dr = dr
+		call get_next_word (word, ix_word, ',}', delim, delim_found) 		
+      	if (word /= '' ) then
+      		call parser_warning ('BAD INPUT AFTER DR DEFINITION: ' // word , &
+                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        	return
+        end if
 
       case ('PT')
+      	!Increment 
       	pt_counter = pt_counter +1
-      	!Reallocate temporary structure
+      	!Reallocate temporary structure if needed
 	    if (pt_counter > size(array)) then
 	    	n = size(array)
 	    	allocate( array2(n) )
@@ -5389,21 +5429,69 @@ do
 			if (delim /= ',') then
 			call parser_warning ('BAD GRID PT CONSTRUCT, NO COMMA BETWEEN FIELD COMPONENTS', &
 				'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-				return
+			return
 			end if		
 		end do
+	
+	case default
+        call parser_warning ('UNKNOWN GRID ATTRIBUTE: ' // word, &
+                               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        return 
+        
+	end select 
 
-	 end select 
+	if (delim == '}') exit	 
+	 !Check separator
+	if (delim /= ',' ) then
+        call parser_warning ('MISSING ,  IN GRID DEFINITION', &
+                               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        return        
+    endif 
 	 
 	 call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 	 
-	if (delim == '}') exit
+
 enddo
 
-!Find maximum indices
-!print *, maxval( array(:)%ix1)
 
+!Clear pts
+if (allocated(grid%pt) ) deallocate(grid%pt)
 
+!Allocate grid for different dimensions
+
+grid_dim = em_grid_dimension(grid%type)
+select case(grid_dim)
+	case ( 1 )
+		max_ix1 = maxval( array(:)%ix1)
+		ix2 = 1
+		ix3 = 1
+		allocate( grid%pt(0:max_ix1, 1:1, 1:1) )
+	case ( 2 )
+		max_ix1 = maxval( array(:)%ix1)
+		max_ix2 = maxval( array(:)%ix2)
+		ix3 = 1
+		allocate( grid%pt(0:max_ix1, 0:max_ix2, 1:1) )
+	case ( 3 )
+		max_ix1 = maxval( array(:)%ix1)
+		max_ix2 = maxval( array(:)%ix2)
+		max_ix3 = maxval( array(:)%ix3)
+		allocate( grid%pt(0:max_ix1, 0:max_ix2, 0:max_ix3) )
+	case default
+		call parser_warning ('BAD GRID DIMENSION', &
+							 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+		return
+end select
+
+!Assign grid values
+do i = 1, pt_counter
+	ix1 = array(i)%ix1
+	if (grid_dim >1)   ix2 = array(i)%ix2
+	if (grid_dim == 3) ix3 = array(i)%ix3
+	grid%pt(ix1, ix2, ix3)%E(1:3) = array(i)%field(1:3)
+	grid%pt(ix1, ix2, ix3)%B(1:3) = array(i)%field(4:6)
+end do
+
+!Clear temporary array
 deallocate(array)
 
 contains
@@ -5588,12 +5676,12 @@ end subroutine parse_integer_list
 ! parse_real_list(real_array, num_found, 
 !					 num_expected = 1, open_delim = '(', 
 !					 separator = ',', close_delim = ')', 
-!					 do_resize = .false. )
+!					 do_resize = .false., default_value = 0.0_rp )
 !
-! subroutine to parse a list of integers of the form
-!		open_delim integer_1 separator integer_2 . . . close_delim
+! subroutine to parse a list of reals of the form
+!		open_delim real_1 separator real_2 . . . close_delim
 !
-!       example:   ( 1, 2, 4, 8 ) 
+!       example:   ( 1.2, 2.3, 4.4, 8.5 ) 
 !
 ! Note: nearly identical to subroutine parse_integer_list
 !
@@ -5607,6 +5695,8 @@ end subroutine parse_integer_list
 !   separator    = ','   -- character(1) : separating character
 !   close_delim  = ')'   -- character(1) : closing delimeter
 !   do_resize    = .false.  -- logical : resize integer_array to num_found
+!   default_value = 0.0_rp  -- real(rp) : inital assignment of real_array elements
+!									useful when do_resize = .false. 
 !
 ! Output:
 !   real_array(1:num_found) -- real(rp) : Array of values
@@ -5615,7 +5705,7 @@ end subroutine parse_integer_list
 
 subroutine parse_real_list( real_array, num_found, &
 					num_expected, open_delim, separator, close_delim, &
-					do_resize)
+					do_resize, default_value)
 
 !Arguments
 real(rp), allocatable :: real_array(:)
@@ -5623,6 +5713,8 @@ integer :: num_found
 integer, optional :: num_expected
 character(1), optional ::  open_delim, close_delim, separator
 logical, optional :: do_resize
+real(rp), optional :: default_value
+
 
 !Local
 integer num_expect
@@ -5630,6 +5722,7 @@ character(1) delim, op_delim, cl_delim, sep
 character(40) :: word
 integer  ix_word
 logical delim_found, resize
+real(rp) :: default_val
 
 character(20), parameter :: r_name =  'parse_real_list'
 
@@ -5639,11 +5732,13 @@ op_delim = '('
 cl_delim = ')'
 sep      = ','
 resize = .false. 
+default_val = 0.0_rp
 if (present(num_expected)) num_expect = num_expected
 if (present(open_delim)) op_delim = open_delim
 if (present(close_delim)) cl_delim = close_delim
 if (present(separator)) sep = separator
 if (present(do_resize)) resize = do_resize
+if (present(default_value)) default_val = default_value
 
 
 !Expect op_delim
@@ -5656,6 +5751,7 @@ end if
 
 !Initial allocation
 call re_allocate(real_array, num_expected, .false.)
+real_array = default_val
 
 !counter
 num_found = 0
