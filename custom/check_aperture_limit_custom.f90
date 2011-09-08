@@ -2,7 +2,8 @@
 ! Subroutine check_aperture_limit_custom (orb, ele, at, param)
 !
 ! Dummy routine. Will generate an error if called.
-! A valid check_aperture_limit_custom is needed only if the check_aperture_limit routine is being used.
+! A valid check_aperture_limit_custom is needed only if ele%aperture_type is set to
+! custom$.
 !
 ! Modules needed:
 !   use bmad

@@ -2968,8 +2968,14 @@ The following routines perform tracking and closed orbit calculations.
 
 \index[routine]{check_aperture_limit}
 \label{r:check.aperture.limit}
+\item[check_aperture_limit (orb, ele, at, param, check_momentum)] \Newline
+Routine to check if an orbit is outside an element's aperture. 
+
+\index[routine]{check_aperture_limit_custom}
+\label{r:check.aperture.limit}
 \item[check_aperture_limit (orb, ele, at, param)] \Newline
-Routine to check if an orbit is outside the aperture. 
+Routine to check if an orbit is outside an element's aperture.
+Used when \vn{ele%aperture_type} is set to \vn{custom\$} 
 
 \index[routine]{closed_orbit_calc}
 \label{r:closed.orbit.calc}
