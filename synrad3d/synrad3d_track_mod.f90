@@ -549,7 +549,7 @@ in_zbrent = .false.
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
-  track_len0 = (photon%now%track_len + photon%old%track_len) / 2
+  track_len0 = (photon%now%track_len + 3*photon%old%track_len) / 4
   do i = 1, 30
     d_rad0 = sr3d_photon_hit_func(track_len0)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
@@ -559,7 +559,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
     endif
     if (d_rad0 < 0) exit
     track_len1 = track_len0; d_rad1 = d_rad0
-    track_len0 = (track_len0 + photon%old%track_len) / 2
+    track_len0 = (track_len0 + 3*photon%old%track_len) / 4
     if (i == 30) then
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
       print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
