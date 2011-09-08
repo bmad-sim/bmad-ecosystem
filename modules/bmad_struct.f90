@@ -780,6 +780,13 @@ type em_field_struct
   real(rp) dB(3,3)      ! magnetic field gradient
 end type
 
+
+! Grid of em_grid information
+integer, parameter :: rotationally_symmetric_2d_z$ = 1
+character(30), parameter :: em_grid_type_name(1) = [ 'rotationally_symmetric_2d_z   ' ]
+integer, parameter :: em_grid_dimension(1) = [ 2 ] 
+
+
 ! Structures for saving the track through an element.
 ! track%pt(0:n)  goes from 0 to n = track%n_pt
 
