@@ -5,16 +5,18 @@ use utilities_mod
 contains
 
 !+
-! Subroutine match_word (string, names, ix, exact_case, matched_name)
+! Subroutine match_word (string, names, ix, exact_case, can_abbreviate, matched_name)
 !
 ! Subroutine to match the first word in a string against a list of names.
-! Abbreviations are accepted.  
 !
 ! Input:
 !   string     -- Character(*): String whose first word is to be matched
 !   names(:)   -- Character(*): Array of names. 
 !   exact_case -- Logical, optional: If present and True then the match must
 !                  be exact. Default: Match is case insensitive.
+!   can_abbreviate 
+!              -- Logical, optional: If present and False then abbreviations
+!                  are not permitted. Default is True.
 ! Output:
 !   ix -- Integer: Index in names that matched.
 !            = 0 if no match.
@@ -25,7 +27,7 @@ contains
 ! Note: If an exact match is found then it superceeds all abreviated matches
 !-
 
-subroutine match_word (string, names, ix, exact_case, matched_name)
+subroutine match_word (string, names, ix, exact_case, can_abbreviate, matched_name)
 
   use sim_utils_interface
   use precision_def
@@ -37,12 +39,14 @@ subroutine match_word (string, names, ix, exact_case, matched_name)
   character(60) str, name
   integer ix, i, ixs, ixm
   integer :: match, exact$ = 1, no_match$ = 2, abrev$ = 3, mult_abrev$ = 4
-  logical, optional :: exact_case
-  logical exact
+  logical, optional :: exact_case, can_abbreviate
+  logical exact, can_abbrev
 
 ! Init
 
   exact = logic_option (.false., exact_case)
+  can_abbrev = logic_option (.true., can_abbreviate)
+
   ix = 0                         ! if no match found
   call string_trim (string, str, ixs)
   if (.not. exact) call str_upcase(str, str)
@@ -58,6 +62,9 @@ subroutine match_word (string, names, ix, exact_case, matched_name)
     if (names(i) == ' ') cycle
 
     call string_trim (names(i), name, ixm)
+
+    if (.not. can_abbrev .and. len_trim(name) /= ixs) cycle
+
     if (.not. exact) call str_upcase(name, name)
 
     if (str(:ixs) == name(:ixs)) then
