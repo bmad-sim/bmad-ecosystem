@@ -5468,4 +5468,116 @@ end subroutine parse_complex_component
 
 end subroutine parse_grid
 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! parse_integer_list(integer_array, num_found, 
+!					 num_expected = 1, open_delim = '(', 
+!					 separator = ',', close_delim = ')', 
+!					 do_resize = .false. )
+!
+! subroutine to parse a list of integers of the form
+!		open_delim integer_1 separator integer_2 . . . close_delim
+!
+!       example:   ( 1, 2, 4, 8 ) 
+!
+! Input:
+!  integer_array -- Integer, allocatable: the array to be read in 
+!
+!   Optional: 
+!   num_expected = 1     -- integer : number of expected arguments
+!							Used to initialize integer_array
+!   open_delim   = '('   -- character(1) : opening delimeter
+!   separator    = ','   -- character(1) : separating character
+!   close_delim  = ')'   -- character(1) : closing delimeter
+!   do_resize    = .false.  -- logical : resize integer_array to num_found
+!
+! Output:
+!   integer_array -- integer(1:num_found)
+!   num_found	  -- integer : number of elements
+
+
+subroutine parse_integer_list( integer_array, num_found, &
+					num_expected, open_delim, separator, close_delim, &
+					do_resize)
+
+!Arguments
+integer, allocatable :: integer_array(:)
+integer :: num_found
+integer, optional :: num_expected
+character(1), optional ::  open_delim, close_delim, separator
+logical, optional :: do_resize
+
+!Local
+integer num_expect
+character(1) delim, op_delim, cl_delim, sep
+character(40) :: word
+integer  ix_word
+logical delim_found, resize
+
+character(20), parameter :: r_name =  'parse_integer_list'
+
+!Optional arguments
+num_expect = 1
+op_delim = '('
+cl_delim = ')'
+sep      = ','
+resize = .false. 
+if (present(num_expected)) num_expect = num_expected
+if (present(open_delim)) op_delim = open_delim
+if (present(close_delim)) cl_delim = close_delim
+if (present(separator)) sep = separator
+if (present(do_resize)) resize = do_resize
+
+
+!Expect op_delim
+call get_next_word (word, ix_word, op_delim, delim, delim_found)
+if ((word /= '') .or. (delim /= op_delim) ) then
+	call parser_warning ('BAD OPENING DELIMITER', &
+                         'IN: ' // r_name)
+    return
+end if
+
+!Initial allocation
+call re_allocate(integer_array, num_expected, .false.)
+
+!counter
+num_found = 0
+
+!Get integers
+do 
+	call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
+	if (.not. is_integer(word)  ) then 
+		call parser_warning ('BAD ELEMENT: ' // word, &
+                         'IN : ' // r_name)
+		return
+	 end if		
+	!integer is found
+	num_found = num_found + 1
+	!reallocate if needed	
+	if (size(integer_array) < num_found ) call re_allocate (integer_array, 2*num_found, .false.)
+	
+	!Read value
+	 read (word, *)  integer_array(num_found) 
+	
+	!Exit if cl_delim is found
+	if (delim == cl_delim) exit
+	
+	!Check separator
+	if (delim /= sep) then
+		call parser_warning ('BAD SEPARATOR', &
+                         'IN: ' // r_name)
+		return	
+	end if
+	
+end do
+
+!Resize if asked
+if (resize) call re_allocate(integer_array, num_found, .true.)
+
+end subroutine parse_integer_list
+
+
 end module
