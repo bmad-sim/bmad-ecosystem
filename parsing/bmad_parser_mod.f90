@@ -5295,17 +5295,18 @@ subroutine parse_grid(grid, ele, lat, delim, delim_found, err_flag, print_err)
 
 
 type grid_pt_struct
-	integer ix1, ix2, ix3
+	integer :: ix1 , ix2, ix3
+	complex(rp) :: field(6) = 0
 end type
 
 
 type (em_field_grid_struct), pointer ::  grid
 type (ele_struct) ele
 type (lat_struct)  lat
-character(1) delim
-logical delim_found, err_flag, print_err
-integer ix_word
-integer pt_counter, n
+character(1) delim, delim2
+logical delim_found, delim_found2, err_flag, print_err
+integer ix_word, ix_word2
+integer pt_counter, n, i
 character(40) :: word, word2
 
 
@@ -5360,22 +5361,37 @@ do
                                'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
         	return
         end if
+       
+	   !Get indices
+        call parse_pt_indices(array(pt_counter)%ix1, delim)
+		if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix2, delim)    
+		if ( delim == ',') call parse_pt_indices(array(pt_counter)%ix3, delim)    
+
+		!Expect last delim was ")"
+		if (delim /= ')' ) then
+			call parser_warning ('BAD GRID PT CONSTRUCT, NO CLOSING ) FOR INDICES', &
+			'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+			return
+		end if
         
-        !Expect integer followed by "," or ")"
-        call get_next_word (word, ix_word, ',)', delim, delim_found)
-       	if (.not. is_integer(word) ) then
-      		call parser_warning ('BAD GRID PT INDEX, NOT AN INTEGER', &
-                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-        	return
-        end if       
-        read (word, *) array(pt_counter)%ix1
-         
-		                         
-                         
-                         
-                               
-        call get_next_word (word, ix_word, ',}', delim, delim_found)
-        
+        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+        call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
+		if ( (word /= '') .or. (word2 /= '') &
+			 .or. (delim /= '=') .or. (delim2 /= '(') ) then
+			call parser_warning ('BAD GRID PT CONSTRUCT, NO  = ( ', &
+								 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+			return
+		end if
+		!Get as many field components as listed
+		do i = 1, 6
+        	call parse_complex_component(array(pt_counter)%field(i), delim)
+		 	if (delim == ')') exit
+			if (delim /= ',') then
+			call parser_warning ('BAD GRID PT CONSTRUCT, NO COMMA BETWEEN FIELD COMPONENTS', &
+				'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+				return
+			end if		
+		end do
 
 	 end select 
 	 
@@ -5384,13 +5400,71 @@ do
 	if (delim == '}') exit
 enddo
 
+!Find maximum indices
+!print *, maxval( array(:)%ix1)
+
+
 deallocate(array)
 
 contains
 
-subroutine parse_pt_indices()
+subroutine parse_pt_indices( ix, delim)
+
+character(1) delim
+character(40) :: word
+integer ix, ix_word
+logical delim_found
+
+!Expect integer followed by "," or ")"
+call get_next_word (word, ix_word, ',)', delim, delim_found)
+if (.not. is_integer(word) ) then
+	call parser_warning ('BAD GRID PT INDEX, NOT AN INTEGER', &
+                         'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+	return
+end if       
+read (word, *) ix
 
 end subroutine parse_pt_indices
+
+
+ 
+! subroutine parse_complex_component( complex_component, delim)
+! looks for (x, y) or x followed by , or ) 
+! returns complex field_component and next delim, which should be , or )
+subroutine parse_complex_component( complex_component, delim)
+
+character(1) delim, delim2
+character(40) :: word, word2
+integer  ix_word, ix_word2
+logical delim_found, delim_found2
+real(rp) x, y
+complex(rp) complex_component
+
+!Expect ( or real
+call get_next_word (word, ix_word, ',)', delim, delim_found)
+if (is_real(word) ) then
+	read (word, *) x
+	complex_component = cmplx(x, 0.0_rp)
+else if ( delim == '(') then
+	call get_next_word (word, ix_word, ',', delim, delim_found)
+	call get_next_word (word2, ix_word2, ')', delim2, delim_found2)
+	!Expect: real, real ) 
+	if ( (.not. is_real(word)) .or. (.not. is_real(word2) ) &
+		.or. (delim /= ',') .or. (delim2 /= ')') &
+		.or. (.not. delim_found) .or. (.not. delim_found2)) then
+		call parser_warning ('BAD COMPLEX COMPONENT CONSTRUCT', &
+                         'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+		return
+	 end if
+	 !
+	 read (word, *) x
+   	 read (word2, *) y
+   	 complex_component = cmplx(x,y)
+end if
+call get_next_word (word, ix_word, ',)', delim, delim_found)
+
+end subroutine parse_complex_component
+
 
 end subroutine parse_grid
 
