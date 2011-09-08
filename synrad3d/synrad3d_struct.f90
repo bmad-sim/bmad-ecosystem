@@ -24,7 +24,8 @@ type sr3d_photon_wall_hit_struct
   type (sr3d_photon_coord_struct) before_reflect   ! Coords before reflection.
   type (sr3d_photon_coord_struct) after_reflect    ! Coords after reflection.
   real(rp) dw_perp(3)                   ! Wall perpendicular vector
-  real(rp) cos_perp                     ! Cosine of hit angle
+  real(rp) cos_perp_in                  ! Cosine of incoming ray and hit angle
+  real(rp) cos_perp_out                 ! Cosine of hit angle
   real(rp) reflectivity                 ! Reflectivity probability
 end type
 

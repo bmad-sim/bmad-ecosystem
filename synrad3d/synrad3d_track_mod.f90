@@ -11,6 +11,8 @@ type (sr3d_photon_track_struct), pointer, private, save :: photon_com
 type (sr3d_photon_track_struct), private, save :: photon1_com
 type (sr3d_wall_struct), pointer, private, save :: wall_com
 type (lat_struct), pointer, private, save :: lat_com
+real(rp), private, save :: track_len0, track_len1, d_rad0, d_rad1
+logical, private, save :: in_zbrent
 
 contains
 
@@ -421,7 +423,7 @@ propagation_loop: do
     if (stop_at_check_pt .and. now%vec(2) * g < 0) then 
       dl2 = -now%vec(2) * (radius + now%vec(1)) / (now%vec(2)**2 + now%vec(6)**2)
       if (dl2 < dl) then
-        dl = 1.00000001 * dl2 ! Add extra to make sure we are not short due to roundoff.
+        dl = dl2 * (1 + 1d-10) ! Add extra to make sure we are not short due to roundoff.
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
         s_stop = now%vec(5) + radius * theta
@@ -514,7 +516,8 @@ type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
-real(rp) track_len0, track_len1, radius, d_rad0, d_rad1, r0, r1, track_len
+real(rp) r0, r1, track_len
+! track_len0, track_len1, d_rad0, d_rad1 are in common
 
 integer i
 
@@ -540,6 +543,9 @@ wall_com => wall
 lat_com => lat
 photon_com%now%ix_triangle = -1
 track_len1 = photon%now%track_len
+d_rad0 = real_garbage$
+d_rad1 = real_garbage$
+in_zbrent = .false.
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
 
@@ -558,6 +564,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
       print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
       print *, '       Start: ', photon%start%vec
+      print *, '       Now:   ', photon%now%vec
       call print_hit_points (10, photon, wall_hit, '(6es25.15)')
       call err_exit
     endif
@@ -569,6 +576,7 @@ endif
 
 ! Find where the photon hits.
 
+in_zbrent = .true.
 track_len = zbrent (sr3d_photon_hit_func, track_len0, track_len1, 1d-10)
 
 ! Cleanup
@@ -602,18 +610,22 @@ implicit none
 real(rp), intent(in) :: track_len
 real(rp) d_radius, radius, d_track
 
-! Easy case at the end of the track
+! Easy case at the ends of the track.
+! The reason why we are carful about reusing d_rad0 and d_rad1 is that 
+! roundoff can cause calculated radius at the end points to shift from positive 
+! to negative which will case zbrent to crash.
 
-if (track_len == photon_com%now%track_len) then
-  if (wall_com%pt(photon_com%now%ix_wall+1)%basic_shape == 'gen_shape_mesh') then
-    call sr3d_mesh_d_radius (photon_com, wall_com, d_radius)
-  else
-    call sr3d_photon_d_radius (photon_com%now, wall_com, d_radius)
+if (in_zbrent) then
+  if (track_len == track_len0 .and. d_rad0 /= real_garbage$) then
+    d_radius = d_rad0
+    return
+  elseif (track_len == track_len1 .and. d_rad1 /= real_garbage$) then
+    d_radius = d_rad1
+    return
   endif
-  return
 endif
 
-! At the beginning of the track the mesh calc has porblems with zero length steps.
+! At the beginning of the track the mesh calc has problems with zero length steps.
 ! So just interpolate from the end
 
 if (track_len == photon_com%old%track_len .and. &
@@ -769,20 +781,17 @@ endif
 photon%n_wall_hit = n_wall_hit
 wall_hit(n_wall_hit)%before_reflect = photon%now
 wall_hit(n_wall_hit)%dw_perp = 0
-wall_hit(n_wall_hit)%cos_perp = 0
-wall_hit(n_wall_hit)%reflectivity = -1
+wall_hit(n_wall_hit)%cos_perp_in = 0
+wall_hit(n_wall_hit)%cos_perp_out = 0
+wall_hit(n_wall_hit)%reflectivity = 0
+wall_hit(n_wall_hit)%after_reflect%vec = 0
+
+absorbed = .true.
 
 ! Check if reflections allowed or hit antechamber
 
 if (.not. sr3d_params%allow_reflections .or. photon%status == at_lat_end$ .or. &
-    (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber)) then
-  wall_hit(n_wall_hit)%dw_perp = 0
-  wall_hit(n_wall_hit)%cos_perp = 0
-  wall_hit(n_wall_hit)%reflectivity = 0
-  wall_hit(n_wall_hit)%after_reflect%vec = 0
-  absorbed = .true.
-  return
-endif
+    (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber)) return
 
 ! get the perpendicular outward normal to the wall
 
@@ -807,21 +816,12 @@ if (cos_perp < 0) then
   call err_exit
 endif
 
-! Record
-
-wall_hit(n_wall_hit)%dw_perp = dw_perp
-wall_hit(n_wall_hit)%cos_perp = cos_perp
-wall_hit(n_wall_hit)%reflectivity = reflectivity_rough
-wall_hit(n_wall_hit)%after_reflect = photon%now
-wall_hit(n_wall_hit)%after_reflect%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
-
 ! absorbtion or reflection...
 
 call ran_uniform(r)
 
-absorbed = .true.
-
 if (sr3d_params%diffuse_scattering_on) then
+  wall_hit(n_wall_hit)%reflectivity = reflectivity_smooth
   if (r < reflectivity_smooth .or. .not. sr3d_params%allow_absorbtion) then
     absorbed = .false.
     call photon_diffuse_scattering (graze_angle, photon%now%energy, theta_diffuse, phi_diffuse)
@@ -835,12 +835,19 @@ if (sr3d_params%diffuse_scattering_on) then
 
 ! For specular reflection the perpendicular component gets reflected and the parallel component is invarient.
 else
+  wall_hit(n_wall_hit)%reflectivity = reflectivity_rough
   if (r < reflectivity_rough .or. .not. sr3d_params%allow_absorbtion) then
     absorbed = .false.
     photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
   endif
 endif
 
+! Record
+
+wall_hit(n_wall_hit)%dw_perp = dw_perp
+wall_hit(n_wall_hit)%cos_perp_in = cos_perp
+wall_hit(n_wall_hit)%after_reflect = photon%now
+wall_hit(n_wall_hit)%cos_perp_out = dot_product (photon%now%vec(2:6:2), dw_perp)
 
 end subroutine sr3d_reflect_photon
 
