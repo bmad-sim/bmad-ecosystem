@@ -343,7 +343,7 @@ if (attribute_index(ele, 'MAT6_CALC_METHOD') /= 0) then
 endif
 
 if (attribute_index(ele, 'FIELD_CALC') /= 0) then
-  nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', calc_method_name(ele%field_calc)
+  nl=nl+1; write (li(nl), fmt_a) 'FIELD_CALC', '=', field_calc_name(ele%field_calc)
 endif
 
 ! Write aparture stuff if appropriate

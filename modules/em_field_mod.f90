@@ -218,7 +218,7 @@ select case (ele%field_calc)
 case (custom$) 
   call em_field_custom (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
   return
-case (bmad_standard$)
+case (bmad_standard$, map$, grid$)
 case default
   call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
   call err_exit

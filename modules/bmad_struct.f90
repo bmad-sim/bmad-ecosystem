@@ -696,6 +696,13 @@ character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!  ', &
         'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', &
         'GARBAGE!  ', 'GARBAGE!  ', 'RBend     ']
 
+! field_calc names
+
+integer, parameter :: grid$ = 2, map$ = 3
+character(16), parameter :: field_calc_name(0:7) = &
+    ['GARBAGE!     ', 'Bmad_Standard', 'Grid         ', 'Map          ', &
+     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'Custom       ']
+
 ! Crystal sub_key values.
 
 integer, parameter :: bragg$ = 1, laue$ = 2
