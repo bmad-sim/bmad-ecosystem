@@ -1109,8 +1109,12 @@ case ('SCALE_MULTIPOLES')
   if (ios /= 0 .or. ix_word == 0) return
 
 case ('DIFFRACTION_TYPE')
-  call match_word (attrib_word, diffraction_type_name(1:), ele%sub_key)
+  call match_word (attrib_word, diffraction_type_name(1:), ele%sub_key, can_abbreviate = .false.)
   if (ele%sub_key < 1) call parser_warning ('BAD DIFFRACTION_TYPE ATTRIBUTE.')
+
+case ('FIELD_CALC')
+  call match_word (attrib_word, field_calc_name(1:), ele%field_calc, can_abbreviate = .false.)
+  if (ele%field_calc < 1) call parser_warning ('BAD FIELD_CALC ATTRIBUTE.')
 
 case default   ! normal attribute
 
@@ -1126,8 +1130,6 @@ case default   ! normal attribute
       endif
   elseif (ix_attrib == mat6_calc_method$) then
     ele%mat6_calc_method = nint(value)
-  elseif (ix_attrib == field_calc$) then
-    ele%field_calc = nint(value)
   elseif (ix_attrib == tracking_method$) then
     ele%tracking_method = nint(value)
   elseif (ix_attrib == ref_orbit$) then
