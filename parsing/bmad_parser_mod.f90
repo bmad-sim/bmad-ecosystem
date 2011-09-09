@@ -5311,7 +5311,7 @@ character(1) delim, delim2
 logical delim_found, delim_found2, err_flag, print_err
 integer ix_word, ix_word2
 integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
-integer grid_dim, grid_type, num_dr, num_r0
+integer grid_dim,  num_dr, num_r0
 character(40) :: word, word2
 real(rp), allocatable :: dr(:), r0(:)
 
@@ -5328,6 +5328,9 @@ call get_next_word (word, ix_word, '{', delim, delim_found)
     endif
 
 
+!Associate grid
+if (.not. associated (grid) ) allocate(grid)
+
 !Set file to be the last called file with 
 write(grid%file, '(2a, i0)' ) trim(bp_com%current_file%full_name),  ':', bp_com%current_file%i_line
 
@@ -5338,31 +5341,36 @@ pt_counter = 0
 !Read attriubutes
 call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
-do
-	! Expect "<component> = "
-	
-	if (delim /= '=') then
-    	call parser_warning (	'NO "=" SIGN FOUND IN GRID DEFINITION',  &
-        						'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-    	return
-    endif
-    
+do    
     select case (word)
 
       case ('TYPE')
+      	! Expect "<component> = "
+		if (delim /= '=') then
+    		call parser_warning (	'NO "=" SIGN FOUND AFTER GRID TYPE',  &
+        							'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
+    		return
+   		endif
         call get_next_word (word, ix_word, ',}', delim, delim_found)
         !Check to see if this is a valid type by checking against em_grid_type_name(:)
-        call match_word(word, em_grid_type_name, grid_type, can_abbreviate = .false. )
-        if (grid_type == 0) then
+        call match_word(word, em_grid_type_name, grid%type, can_abbreviate = .false. )
+        if (grid%type == 0) then
         	call parser_warning ('UNKNKOWN GRID TYPE: ' // word, &
                                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
           return        
         endif      
         
       case ('R0')       
+      	! Expect "<component> = "
+		if (delim /= '=') then
+    		call parser_warning (	'NO "=" SIGN FOUND AFTER GRID R0',  &
+        							'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
+    		return
+   		endif
       	! expect ( 1. ) or (1. , 2.) or (1., 2., 3. )
 		call parse_real_list(r0, num_r0, num_expected = 3)
 		grid%r0 = r0
+		!Expect , or }
 		call get_next_word (word, ix_word, ',}', delim, delim_found) 		
       	if (word /= '' ) then
       		call parser_warning ('BAD INPUT AFTER R0 DEFINITION: ' // word , &
@@ -5372,6 +5380,12 @@ do
 		
 
       case ('DR')      
+      	! Expect "<component> = "
+		if (delim /= '=') then
+    		call parser_warning (	'NO "=" SIGN FOUND AFTER GRID DR',  &
+        							'IN GRID STRUCTURE IN ELEMENT: ' // ele%name)
+    		return
+   		endif      
         ! expect ( 1. ) or (1. , 2.) or (1., 2., 3. )
 		call parse_real_list(dr, num_dr, num_expected = 3)
 		grid%dr = dr
@@ -5410,7 +5424,7 @@ do
 
 		!Expect last delim was ")"
 		if (delim /= ')' ) then
-			call parser_warning ('BAD GRID PT CONSTRUCT, NO CLOSING ) FOR INDICES', &
+			call parser_warning ('BAD GRID PT CONSTRUCT, NO CLOSING ")" FOR INDICES', &
 			'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
 			return
 		end if
@@ -5419,7 +5433,7 @@ do
         call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
 		if ( (word /= '') .or. (word2 /= '') &
 			 .or. (delim /= '=') .or. (delim2 /= '(') ) then
-			call parser_warning ('BAD GRID PT CONSTRUCT, NO  = ( ', &
+			call parser_warning ('BAD GRID PT CONSTRUCT, NO  = "(" ', &
 								 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
 			return
 		end if
@@ -5428,11 +5442,18 @@ do
         	call parse_complex_component(array(pt_counter)%field(i), delim)
 		 	if (delim == ')') exit
 			if (delim /= ',') then
-			call parser_warning ('BAD GRID PT CONSTRUCT, NO COMMA BETWEEN FIELD COMPONENTS', &
+			call parser_warning ('BAD GRID PT CONSTRUCT, NO "," BETWEEN FIELD COMPONENTS', &
 				'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
 			return
 			end if		
 		end do
+		!Expect , or }
+		call get_next_word (word, ix_word, ',}', delim, delim_found) 
+      	if (word /= '' ) then
+      		call parser_warning ('BAD INPUT AFTER PT DEFINITION: ' // word , &
+                                 'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+        	return
+        end if
 	
 	case default
         call parser_warning ('UNKNOWN GRID ATTRIBUTE: ' // word, &
@@ -5443,11 +5464,6 @@ do
 
 	if (delim == '}') exit	 
 	 !Check separator
-	if (delim /= ',' ) then
-        call parser_warning ('MISSING ,  IN GRID DEFINITION', &
-                               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-        return        
-    endif 
 	 
 	 call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 	 
