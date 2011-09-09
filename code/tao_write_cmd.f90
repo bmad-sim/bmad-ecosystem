@@ -451,7 +451,7 @@ case ('orbit')
     i = i + 1
     if (word(i) == '') exit
     call match_word (word(i), &
-                      ['-beam_index', '-design    ', '-base      '], n, .true., name)
+        ['-beam_index', '-design    ', '-base      '], n, .true., .true., name)
     if (n < 0 .or. (n == 0 .and. word(i)(1:1) == '-')) then
       call out_io (s_error$, r_name, 'AMBIGUOUS SWITCH: ' // word(i))
       return

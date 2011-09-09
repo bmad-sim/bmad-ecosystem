@@ -62,7 +62,7 @@ if (cmd_line(1:1) == '') return
 ! match first word to a command name
 ! If not found then found = .false.
 
-call match_word (cmd_line(:ix_line), cmd_names, ix_cmd, .true., cmd_name)
+call match_word (cmd_line(:ix_line), cmd_names, ix_cmd, .true., .true., cmd_name)
 if (ix_cmd == 0) return
 if (ix_cmd < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS HOOK COMMAND')

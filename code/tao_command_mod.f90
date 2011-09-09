@@ -343,7 +343,7 @@ call string_trim(line, line, ix_word)
 if (ix_word == 0) return
 if (line(1:1) /= '-') return
 
-call match_word (line(:ix_word), switch_list, n, .true., switch)
+call match_word (line(:ix_word), switch_list, n, .true., matched_name=switch)
 if (n < 1) then
   err = .true.
   if (n == 0) then 

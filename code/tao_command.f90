@@ -360,7 +360,7 @@ case ('reinitialize')
   call tao_cmd_split(cmd_line, 10, cmd_word, .false., err)
   if (err) return
 
-  call match_word (cmd_word(1), ['data', 'tao ', 'beam'], ix, .true., word)
+  call match_word (cmd_word(1), ['data', 'tao ', 'beam'], ix, .true., matched_name=word)
 
   select case (word)
 
@@ -426,7 +426,7 @@ case ('scale')
     word = cmd_word(1)
     if (word(1:1) /= '-') exit
     call match_word (word, (/ '-y     ', '-y2    ', &
-                              '-nogang', '-gang  ' /), ix, .true., switch)
+                              '-nogang', '-gang  ' /), ix, .true., matched_name=switch)
 
     select case (switch)
     case ('-y', '-y2') 
@@ -460,7 +460,7 @@ case ('set')
 
   call tao_cmd_split (cmd_line, 2, cmd_word, .false., err, '=')
 
-  call match_word (cmd_word(1), set_names, ix, .true., set_word)
+  call match_word (cmd_word(1), set_names, ix, .true., matched_name=set_word)
   if (ix == 0) then
     call out_io (s_error$, r_name, 'NOT RECOGNIZED: ' // cmd_word(1))
     return
@@ -616,7 +616,7 @@ case ('x-scale')
   gang_str = ''
   do 
     if (cmd_word(1) /= '-') exit
-    call match_word (cmd_word(1), (/ '-nogang', '-gang  ' /), ix, .true., switch)
+    call match_word (cmd_word(1), (/ '-nogang', '-gang  ' /), ix, .true., matched_name=switch)
 
     select case (switch)
     case ('-gang', '-nogang')
