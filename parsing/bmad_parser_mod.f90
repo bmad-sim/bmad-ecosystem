@@ -5303,12 +5303,14 @@ end type
 
 
 type (em_field_grid_struct), pointer ::  grid
-type (ele_struct) ele
-type (lat_struct)  lat
+type (ele_struct) ::  ele
+type (ele_struct), pointer ::  bele
+type (lat_struct),  target ::  lat
+type (branch_struct), pointer :: branch
 character(1) delim, delim2
 logical delim_found, delim_found2, err_flag, print_err
 integer ix_word, ix_word2
-integer pt_counter, n, i, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
+integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
 integer grid_dim, grid_type, num_dr, num_r0
 character(40) :: word, word2
 real(rp), allocatable :: dr(:), r0(:)
@@ -5328,9 +5330,6 @@ call get_next_word (word, ix_word, '{', delim, delim_found)
 
 !Set file to be the last called file with 
 write(grid%file, '(2a, i0)' ) trim(bp_com%current_file%full_name),  ':', bp_com%current_file%i_line
-
-!Check if file has already been read
-!TODO 
 
 ! Read list of values.
 allocate(array(1024))
@@ -5495,6 +5494,26 @@ end do
 
 !Clear temporary array
 deallocate(array)
+
+!Check if file has already been read
+!Loop over lat
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  ele_loop: do ie = 1, branch%n_ele_max
+    bele => branch%ele(ie)
+    if (.not. associated(bele%rf%field)) cycle    
+	do im = 1, size(bele%rf%field%mode)
+		if (associated(bele%rf%field%mode(im)%grid)) then
+			if (bele%rf%field%mode(im)%grid%file == grid%file ) then
+				deallocate(grid)
+				grid => bele%rf%field%mode(im)%grid				
+			end if
+		end if
+	end do
+  enddo ele_loop
+enddo 
+
+
 
 contains
 
