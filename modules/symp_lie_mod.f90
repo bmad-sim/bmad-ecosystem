@@ -84,6 +84,8 @@ rel_E2 = rel_E**2
 rel_E3 = rel_E**3
 
 end = start
+end%s = ele%s - ele%value(l$)
+
 err = .false.
 
 x_pitch = ele%value(x_pitch_tot$)

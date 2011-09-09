@@ -182,6 +182,7 @@ if (set) then
       call track_a_drift (coord, s_off)
       call convert_pc_to (ele%value(p0c$) * (1 + coord%vec(6)), param%particle, beta = beta)
       coord%t = coord%t + s_off / (beta * c_light)
+      coord%s = coord%s + s_off
     endif
 
     if (x_off /= 0 .or. y_off /= 0 .or. xp /= 0 .or. yp /= 0) then
@@ -356,6 +357,7 @@ else
       call track_a_drift (coord, -s_off)
       call convert_pc_to (ele%value(p0c$) * (1 + coord%vec(6)), param%particle, beta = beta)
       coord%t = coord%t - s_off / (beta * c_light)
+      coord%s = coord%s - s_off
     endif
 
   endif
