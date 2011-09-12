@@ -284,11 +284,12 @@ contains
 
     if (present(iter)) then
        if (iter==1 .and. cor==0) then
-          write(1,'("#",2a6,9a14)') "iter", "cor", "emit_y", "rms_y", &
+          write(1,'("#",2a6,10a14)') "iter", "cor", "emit_x", "emit_y", "rms_y", &
                "rms_eta_y", "rms_cbar12", "rms_phi_x", "rms_phi_y", &
                "param_rms", "key_val1", "key_val2"
        end if
-       write(1,'("D",2i6,9es14.5)') iter, cor, &
+       write(1,'("D",2i6,10es14.5)') iter, cor, &
+            data(iter, cor)%emit_x, &
             data(iter, cor)%emit_y, &
             data(iter, cor)%rms_y, &
             data(iter, cor)%rms_eta_y, &
@@ -305,6 +306,7 @@ contains
           if (i_cor > 0) then
              if (all(correct(i_cor)%cor(:)%param == 0)) cycle
           end if
+          write(1, '(" ",i6,a10,6es14.5)') i_cor, "emit_x",  key_value1, key_value2, data_line(data(:,i_cor)%emit_x)
           write(1, '(" ",i6,a10,6es14.5)') i_cor, "emit_y",  key_value1, key_value2, data_line(data(:,i_cor)%emit_y)
           write(1, '(" ",i6,a10,6es14.5)') i_cor, "orbit_y", key_value1, key_value2, data_line(data(:,i_cor)%rms_y)
           write(1, '(" ",i6,a10,6es14.5)') i_cor, "eta_y",   key_value1, key_value2, data_line(data(:,i_cor)%rms_eta_y)
