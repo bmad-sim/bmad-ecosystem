@@ -39,18 +39,20 @@ INTEGER, PARAMETER :: max_tt = 3 !number of tune trackers to allocate memory for
 TYPE tt_param_struct
   LOGICAL :: useSaveState = .false. ! If true then save TT state vars to file on exit,
                                     ! and load TT state vars on initialization.
-  REAL(rp) phi_to_kicker  ! phase advance from x phase at bpm to xdot phase at kicker
-  REAL(rp) Dt             ! time between data points (usually set to ring period)
-  REAL(rp) LPinertia      ! inertia of lowpass filter that follows mixer. Try 2^15
-  REAL(rp) Ki             ! Integrator gain
-  REAL(rp) Kp             ! Proportional gain
-  REAL(rp) Kvco           ! VCO gain
-  REAL(rp) modw0          ! VCO base frequency (initial guess of beam frac tune)
-  REAL(rp) offset         ! Closed orbit at bpm.
-  CHARACTER(3) mixmode    ! To mix BPM data with square wave or sine wave
-  INTEGER cyc_per_turn    ! Number of times tune tracker cycles per turn.
-                          ! Usually an integer fraction of the harmonic number.
-                          ! Try 183
+  REAL(rp) phi_to_kicker     ! phase advance from x phase at bpm to xdot phase at kicker
+  REAL(rp) Dt                ! time between data points (usually set to ring period)
+  REAL(rp) LPinertia         ! inertia of lowpass filter that follows mixer. Try 2^15
+  REAL(rp) Ki                ! Integrator gain
+  REAL(rp) Kp                ! Proportional gain
+  REAL(rp) Kvco              ! VCO gain
+  REAL(rp) modw0             ! VCO base frequency (initial guess of beam frac tune)
+  REAL(rp) offset            ! Closed orbit at bpm.
+  CHARACTER(3) mixmode       ! To mix BPM data with square wave or sine wave
+  INTEGER cyc_per_turn       ! Number of times tune tracker cycles per turn.
+                             ! Usually an integer fraction of the harmonic number.
+                             ! Try 183
+  INTEGER :: log_period = 1  ! How often to write to tt_log files.  Zero means do not log, one
+                             ! means log every call to TT_update, three means every third call, etc.
 
   !Parameters specific to D channel
   !Note:  The D channel is not compatible with save states.
@@ -184,7 +186,7 @@ FUNCTION init_dTT(incoming_tt_param,saved_coords) RESULT(id)
     tt_state(id)%counter = 0
   ENDIF
 
-  !calculate lp filter parameter
+  !calculate low-pass filter parameter
   tt_param(id)%LPalpha = 1.0_rp / ( 1.0_rp + (tt_param(id)%LPinertia/2.0_rp/pi) )
 
   tt_log_name = "tt_log_"//id_str//".out"
@@ -388,14 +390,18 @@ FUNCTION TT_update(bpm_msmt,id) RESULT(z)
   tt_state(id)%deltaw = tt_param(id)%Kvco * PIDout
 
   !Write to log file
-  IF( tt_param(id)%use_D_chan ) THEN
-    !This statement writes the state of each PID channel to the tt_log_n.out file.
-    WRITE(log_luns(id),'(I8,3ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
-                                                             tt_param(id)%Kp*proDphi, &
-                                                             -tt_param(id)%Kd*dirDphi
-  ELSE
-    WRITE(log_luns(id),'(I8,2ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
-                                                             tt_param(id)%Kp*proDphi
+  IF( tt_param(id)%log_period .gt. 0 ) THEN
+    IF( MOD( (tt_state(id)%counter+tt_param(id)%log_period-1), tt_param(id)%log_period) .eq. 0 ) THEN
+      IF( tt_param(id)%use_D_chan ) THEN
+        !This statement writes the state of each PID channel to the tt_log_n.out file.
+        WRITE(log_luns(id),'(I8,3ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                                                 tt_param(id)%Kp*proDphi, &
+                                                                 -tt_param(id)%Kd*dirDphi
+      ELSE
+        WRITE(log_luns(id),'(I8,2ES14.4)') tt_state(id)%counter, tt_param(id)%Ki*tt_state(id)%intDphi, &
+                                                                 tt_param(id)%Kp*proDphi
+      ENDIF
+    ENDIF
   ENDIF
 
   CALL modulator(tt_state(id)%psi + tt_param(id)%phi_to_kicker, sinout, sqrout)
