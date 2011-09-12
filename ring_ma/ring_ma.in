@@ -1,6 +1,6 @@
 &ring_ma_init
    !lattice_file = "/nfs/cesr/mnt/lattice/cesr/bmad/cta_2085mev_20090516.lat"
-   lattice_file = "/home/shanksj/CesrTA/lattice/cesr/bmad/cta_2085mev_20090516.lat"
+   lattice_file = "/home/shanksj/CesrTA/lat/cta_2085mev_20090516.lat"
    comment = ""
    write_orbits = .false.
 
@@ -71,6 +71,9 @@
    det_abs_res   = 0.
    det_diff_res  = 0.
    det_rot_res   = 0.
+   det_gain_res  = 0.
+   bpm_x_offset  = 0.
+   bpm_y_offset  = 0.
 
    seed          = -1
 
