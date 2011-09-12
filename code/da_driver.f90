@@ -34,43 +34,12 @@
 ! Note: The radial lines are spaced equally in angle using coordinates
 !       normalized by %X_INIT and %Y_INIT
 !-
-!........................................................................
-! Mod/Commons:
-!
-! Calls      :
-!
-! Author     :
-!
-! Modified   :
-!
-!........................................................................
-!
-! $Id$
-!
-! $Log$
-! Revision 1.2  2007/01/30 16:14:31  dcs
-! merged with branch_bmad_1.
-!
-! Revision 1.1.1.1.2.1  2006/12/22 20:30:42  dcs
-! conversion compiles.
-!
-! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
-! Beam Simulation Code
-!
-!
-!........................................................................
-!
-#include "CESR_platform.h"
-
 
 subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
                                energy, n_energy_pts, in_file, Qx,Qy,Qz, particle, Qp_x, Qp_y, &
                                delta_fRF, fRF, qp_tune1, qp_tune2, qtune_match)
-!  use bmad_struct
-!  use bmad_interface
   use bmad
   use bmadz_interface
-!  use bsim_interface
   use dynamic_aperture_mod                                      
 
 
@@ -107,8 +76,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   logical qtune_match
 
   character*60 da_file, in_file
-  character date_str*20
-  character * 9 particle_type(-1:1)/'electrons',' ','positrons'/
+  character(20) date_str
+  character*9 particle_type(-1:1)/'electrons',' ','positrons'/
   character*200 file_name
   character*16 qp_tune1, qp_tune2
 
