@@ -1319,9 +1319,10 @@ endif
 
 if (associated (ele%rf%field)) then
   if (allocated (ele%rf%field%mode)) then
-    do i = 1, size(ele%rf%field%mode)
-      if (associated (ele%rf%field%mode(i)%grid)) deallocate (ele%rf%field%mode(i)%grid)
-    enddo
+    !removed to allow grids to point to the same memory
+	!do i = 1, size(ele%rf%field%mode)
+    !  if (associated (ele%rf%field%mode(i)%grid)) deallocate (ele%rf%field%mode(i)%grid)
+    !enddo
     deallocate (ele%rf%field%mode)
   endif
   deallocate (ele%rf%field)
