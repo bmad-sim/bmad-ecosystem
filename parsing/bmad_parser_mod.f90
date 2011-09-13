@@ -1468,7 +1468,7 @@ if (logic_option(.false., call_check)) then
   call str_upcase (str, bp_com%parse_line(1:6))
   if (str == 'CALL::') then
     bp_com%parse_line = bp_com%parse_line(7:)
-    call word_read (bp_com%parse_line, ', ',  line, ix_word, delim, delim_found, bp_com%parse_line)
+    call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)
     bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.
     call parser_file_stack ('push_inline', line)
   endif
@@ -1479,8 +1479,10 @@ endif
 ! If the input is not from a file then skip this.
 
 if (bp_com%input_from_file) then 
-  n = len_trim(bp_com%parse_line)
-  if (n > 0 .and. n < 60) then
+  do
+    n = len_trim(bp_com%parse_line)
+    if (n == 0 .or. n > 60) exit
+
     select case (bp_com%parse_line(n:n))
     case (',', '+', '-', '*', '/', '(', '{', '[', '=')
       call load_parse_line('continue', n+2, end_of_file)
@@ -1501,10 +1503,13 @@ if (bp_com%input_from_file) then
         endif
         bp_com%parse_line(n+1:) = ''
         call parser_file_stack ('pop')
+      else
+        exit
       endif
 
     end select
-  endif
+
+  enddo
 endif
 
 ! Get the first word in bp_com%parse_line
