@@ -771,7 +771,8 @@ RF fields is
       e_re = (<Real>, <Real>, ....),  ! Real part of e.
       e_im = (<Real>, <Real>, ....),  ! Imaginary part of e.
       b_re = (<Real>, <Real>, ....),  ! Real part of b.
-      b_im = (<Real>, <Real>, ....)\}, ! Imaginary part of b.
+      b_im = (<Real>, <Real>, ....), ! Imaginary part of b.
+      grid = <EM_field_grid> \},    !EM field grid data
     mode = \{...\}\}
 \end{example}
 The ``fundamental'' mode is taken to be the first mode of the
@@ -803,6 +804,17 @@ this may be different from the length \vn{l} specified for the
 element. If there is a difference, the field is assumed to be centered
 on the element and drifts will be used at the entrance and exit ends
 of the element to make up the difference.
+
+Alternatively, a grid of field points may be specified as
+\begin{example}
+  grid = \{ 
+    type = <String>,
+    r0   = (<Real>, <Real>, <Real>),  !Grid origin 
+    dr   = (<Real>, <Real>, <Real>),  !Grid spacing
+    pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  !Grid field points
+    \ldots \}
+\end{example}
+Currently the only available type is \vn{rotationally_symmetric_2d_z}.
 
 The field of a given mode oscillates as given by Eq.~\ref{eseei}  
 \Begineq
