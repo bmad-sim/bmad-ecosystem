@@ -212,17 +212,20 @@ endif
 
 if (.not. ele%is_on) return
 
-! custom field_calc
 
-select case (ele%field_calc)
-case (custom$) 
+
+!----------------------------------------------------------------------------
+! Custom field calc 
+!----------------------------------------------------------------------------
+if (ele%field_calc == custom$) then 
   call em_field_custom (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
   return
-case (bmad_standard$, map$, grid$)
-case default
-  call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
-  call err_exit
-end select
+end if
+
+
+
+!----------------------------------------------------------------------------
+!Set up common variables for all (non-custom) methods
 
 charge = charge_of(param%particle)
 sign_charge = sign(1.0_rp, charge)
@@ -243,111 +246,25 @@ f_p0c = sign_charge * ele%value(p0c$) / c_light
 
 !------------------------------------------
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! field_calc methods
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+select case (ele%field_calc)
+  
+!----------------------------------------------------------------------------
+! Bmad_standard field calc 
+!----------------------------------------------------------------------------
+case (bmad_standard$)
+
 select case (ele%key)
 
 !------------------------------------------
 ! RFcavity and Lcavity
 
 case(rfcavity$, lcavity$)
-
-  if (associated(ele%rf%field)) then
-
-    E_rho = 0; E_phi = 0; E_z = 0
-    B_rho = 0; B_phi = 0; B_z = 0
-
-    radius = sqrt(x**2 + y**2)
-    phi = atan2(y, x)
-
-    s_pos = s_rel + ele%value(ds_slave_offset$)
-
-    ! 
-    if (ele%key == rfcavity$) then
-      t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
-    else
-      t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
-    endif
-    t_ref = t_ref / ele%rf%field%mode(1)%freq
-
-    do i = 1, size(ele%rf%field%mode)
-      mode => ele%rf%field%mode(i)
-      m = mode%m
-
-      k_t = twopi * mode%freq / c_light
-
-      Er = 0; Ep = 0; Ez = 0
-      Br = 0; Bp = 0; Bz = 0
-
-      do n = 1, size(mode%fit%term)
-
-        term => mode%fit%term(n)
-        k_zn = twopi * (n - 1) / (size(mode%fit%term) * mode%dz)
-        if (2 * n > size(mode%fit%term)) k_zn = k_zn - twopi / mode%dz
-
-        expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
-
-        kappa2_n = k_zn**2 - k_t**2
-        kappa_n = sqrt(abs(kappa2_n))
-        kap_rho = kappa_n * radius
-        if (kappa2_n < 0) then
-          kappa_n = -i_imaginary * kappa_n
-          kap_rho = -kap_rho
-        endif
-
-        if (m == 0) then
-          Im_0    = I_bessel(0, kap_rho)
-          Im_plus = I_bessel(1, kap_rho) / kappa_n
-
-          Er = Er - term%e * Im_plus * expi * I_imaginary * k_zn
-          Ep = Ep + term%b * Im_plus * expi
-          Ez = Ez + term%e * Im_0    * expi
-
-          Br = Br - term%b * Im_plus * expi * k_zn
-          Bp = Bp - term%e * Im_plus * expi * k_t**2 * I_imaginary
-          Bz = Bz - term%b * Im_0    * expi * I_imaginary
-
-        else
-          cm = expi * cos(m * phi - mode%phi_0)
-          sm = expi * sin(m * phi - mode%phi_0)
-          Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
-          Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
-
-          ! Reason for computing Im_0_R like this is to avoid divide by zero when radius = 0.
-          Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
-          Im_0    = radius * Im_0_R       
-
-          Er = Er - i_imaginary * (k_zn * term%e * Im_plus + term%b * Im_0_R) * cm
-          Ep = Ep - i_imaginary * (k_zn * term%e * Im_plus + term%b * (Im_0_R - Im_minus / m)) * sm
-          Ez = Ez + term%e * Im_0 * cm
-   
-          Br = Br + i_imaginary * sm * (term%e * (m * Im_0_R + k_zn**2 * Im_plus) + &
-                                        term%b * k_zn * (m * Im_0_R - Im_minus / m))
-          Bp = Bp + i_imaginary * cm * (term%e * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
-                                        term%b * k_zn * Im_0_R)
-          Bz = Bz +               sm * (-term%e * k_zn * Im_0 + term%b * kappa2_n * Im_0 / m)
-
-
-       endif
-        
-      enddo
-
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
-      E_rho = E_rho + Er * expt
-      E_phi = E_phi + Ep * expt
-      E_z   = E_z   + Ez * expt
-
-      expt = expt / (twopi * mode%freq)
-      B_rho = B_rho + Br * expt
-      B_phi = B_phi + Bp * expt
-      B_z   = B_z   + Bz * expt
-
-    enddo
-
-    field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
-    field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
-
-
-  ! Else no field map
-  else
 
     ! This is taken from the gradient as calculated in
     !       J. Rosenzweig and L. Serafini
@@ -395,7 +312,6 @@ case(rfcavity$, lcavity$)
       call err_exit
     endif
 
-  endif
 
 !------------------------------------------
 ! Wiggler
@@ -651,6 +567,146 @@ if (has_kick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vk
 endif
 
 endif
+
+!----------------------------------------------------------------------------
+! Map field calc 
+!----------------------------------------------------------------------------
+case(map$)
+
+
+!------------------------------------------
+
+select case (ele%key)
+
+!------------------------------------------
+! RFcavity and Lcavity
+
+case(rfcavity$, lcavity$)
+  if (.not. associated(ele%rf%field)) then
+      print *, 'ERROR IN EM_FIELD_CALC: No accociated rf%field for field calc = Map'
+      call err_exit
+  endif
+
+    E_rho = 0; E_phi = 0; E_z = 0
+    B_rho = 0; B_phi = 0; B_z = 0
+
+    radius = sqrt(x**2 + y**2)
+    phi = atan2(y, x)
+
+    s_pos = s_rel + ele%value(ds_slave_offset$)
+
+    ! 
+    if (ele%key == rfcavity$) then
+      t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
+    else
+      t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
+    endif
+    t_ref = t_ref / ele%rf%field%mode(1)%freq
+
+    do i = 1, size(ele%rf%field%mode)
+      mode => ele%rf%field%mode(i)
+      m = mode%m
+
+      k_t = twopi * mode%freq / c_light
+
+      Er = 0; Ep = 0; Ez = 0
+      Br = 0; Bp = 0; Bz = 0
+
+      do n = 1, size(mode%fit%term)
+
+        term => mode%fit%term(n)
+        k_zn = twopi * (n - 1) / (size(mode%fit%term) * mode%dz)
+        if (2 * n > size(mode%fit%term)) k_zn = k_zn - twopi / mode%dz
+
+        expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
+
+        kappa2_n = k_zn**2 - k_t**2
+        kappa_n = sqrt(abs(kappa2_n))
+        kap_rho = kappa_n * radius
+        if (kappa2_n < 0) then
+          kappa_n = -i_imaginary * kappa_n
+          kap_rho = -kap_rho
+        endif
+
+        if (m == 0) then
+          Im_0    = I_bessel(0, kap_rho)
+          Im_plus = I_bessel(1, kap_rho) / kappa_n
+
+          Er = Er - term%e * Im_plus * expi * I_imaginary * k_zn
+          Ep = Ep + term%b * Im_plus * expi
+          Ez = Ez + term%e * Im_0    * expi
+
+          Br = Br - term%b * Im_plus * expi * k_zn
+          Bp = Bp - term%e * Im_plus * expi * k_t**2 * I_imaginary
+          Bz = Bz - term%b * Im_0    * expi * I_imaginary
+
+        else
+          cm = expi * cos(m * phi - mode%phi_0)
+          sm = expi * sin(m * phi - mode%phi_0)
+          Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
+          Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
+
+          ! Reason for computing Im_0_R like this is to avoid divide by zero when radius = 0.
+          Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
+          Im_0    = radius * Im_0_R       
+
+          Er = Er - i_imaginary * (k_zn * term%e * Im_plus + term%b * Im_0_R) * cm
+          Ep = Ep - i_imaginary * (k_zn * term%e * Im_plus + term%b * (Im_0_R - Im_minus / m)) * sm
+          Ez = Ez + term%e * Im_0 * cm
+   
+          Br = Br + i_imaginary * sm * (term%e * (m * Im_0_R + k_zn**2 * Im_plus) + &
+                                        term%b * k_zn * (m * Im_0_R - Im_minus / m))
+          Bp = Bp + i_imaginary * cm * (term%e * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
+                                        term%b * k_zn * Im_0_R)
+          Bz = Bz +               sm * (-term%e * k_zn * Im_0 + term%b * kappa2_n * Im_0 / m)
+
+
+       endif
+        
+      enddo
+
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (mode%freq * (t_rel + t_ref) + mode%theta_t0))
+      E_rho = E_rho + Er * expt
+      E_phi = E_phi + Ep * expt
+      E_z   = E_z   + Ez * expt
+
+      expt = expt / (twopi * mode%freq)
+      B_rho = B_rho + Br * expt
+      B_phi = B_phi + Bp * expt
+      B_z   = B_z   + Bz * expt
+
+    enddo
+
+    field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
+    field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
+
+!------------------------------------------
+! Error
+
+case default
+  print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED FOR MAP METHOD: ', key_name(ele%key)
+  print *, '      FOR: ', ele%name
+  call err_exit
+end select
+
+!----------------------------------------------------------------------------
+! Grid field calc 
+!----------------------------------------------------------------------------
+case(grid$)
+
+
+
+
+!----------------------------------------------------------------------------
+! Unknown field calc
+!----------------------------------------------------------------------------
+case default
+  call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
+  call err_exit
+end select
+
+
+
 
 end subroutine em_field_calc 
 
