@@ -5565,8 +5565,8 @@ logical delim_found, delim_found2
 real(rp) x, y
 complex(rp) complex_component
 
-!Expect ( or real
-call get_next_word (word, ix_word, ',)', delim, delim_found)
+!Expect "(" for complex, "," for real in the middle of the list, and ")" at the end of the list
+call get_next_word (word, ix_word, ',()', delim, delim_found)
 if (is_real(word) ) then
 	read (word, *) x
 	complex_component = cmplx(x, 0.0_rp)
@@ -5585,8 +5585,10 @@ else if ( delim == '(') then
 	 read (word, *) x
    	 read (word2, *) y
    	 complex_component = cmplx(x,y)
+   	 !Look for "," or end of list ")"
+	 call get_next_word (word, ix_word, ',)', delim, delim_found)
 end if
-call get_next_word (word, ix_word, ',)', delim, delim_found)
+
 
 end subroutine parse_complex_component
 
