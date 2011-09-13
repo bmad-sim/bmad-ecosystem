@@ -3,6 +3,8 @@ module correct_ring_mod
   use super_recipes_mod
   use bmad
   use nr
+  !use sim_meas_mod
+  use sim_bpm_mod
 
   implicit none
 
@@ -14,16 +16,16 @@ module correct_ring_mod
      real(rp) orig_val, wt
   end type parameter_ele_struct
 
-  type, private :: detector_struct
+  type meas_struct
      character*40 name, param_name
      integer loc, param
-     real(rp) wt, rotation, x_offset, y_offset
-  end type detector_struct
+     real(rp) wt !, rotation, x_offset, y_offset
+  end type meas_struct
 
   integer, parameter, private :: n_det_max = 3000
 
   type (parameter_ele_struct), private, save :: p_ele(n_det_max)
-  type (detector_struct), private, save :: det(n_det_max)
+  type (meas_struct) :: det(n_det_max)
   real(rp), private, pointer, save :: rms_param_ptr
   integer, private, save :: n_det, n_p_ele
 
@@ -37,13 +39,15 @@ module correct_ring_mod
   character(40), parameter :: allowed_meas_names(7) = (/'orbit_x', 'orbit_y', 'eta_xx ', 'eta_yy ', 'phi_aa ', 'phi_bb ', 'cbar12 ' /)
 
   type detcor_grp
-     character*40 :: mask = "", param_name = ""
+     character*40 :: mask = "" ! note: 'mask' for detectors is superceded by correct(:)%bpm_mask.
+     character(40) :: param_name = ""
      integer param
      real(rp) wt
   end type detcor_grp
 
   integer, parameter :: n_detcor_groups = 4
   type correct_struct
+     character(40) :: bpm_mask = "^DET\_[0-9]{2}[ewEW]$" ! default to using CESR naming convention
      type(detcor_grp) :: det(n_detcor_groups)
      type(detcor_grp) :: cor(n_detcor_groups)
   end type correct_struct
@@ -64,22 +68,24 @@ contains
 !==========================================================================
 ! Routine to correct a misaligned ring
 
-  subroutine correct_ring(ring, correct, rms_param)
+  subroutine correct_ring(ring, bpm, correct, rms_param)
     implicit none
     
     type(lat_struct), intent(inout) :: ring
     type(correct_struct) correct
     real(rp), target :: rms_param
+    type(det_struct) :: bpm(:)
+    real(rp) :: current = 750000
 
     type measurement_struct
        real(rp) :: orbit_x, orbit_y, eta_x, eta_y, phi_a, phi_b, cbar12
     end type measurement_struct
     type (measurement_struct) meas(n_det_max)
 
-    integer loc, ix
+    integer loc, ix, jx, n_bpms, bpm_ix
 
     type(lat_struct) :: hybrid_ring
-    type(coord_struct), allocatable :: co(:)
+    type(coord_struct), allocatable :: co(:), eta1(:), eta2(:), eta(:)
     type(ele_struct), pointer :: ele, ma_ele
     integer i_ele, i_det_grp, i_cor_grp, i_det, i, i_ele2
     integer size_y, iy, iter, ip
@@ -90,71 +96,66 @@ contains
     logical, allocatable, dimension(:) :: maska
     character(40) attrib_name
 
+    logical :: verbose = .true.
+
+
+    if (.not. allocated(eta1)) allocate(eta1(0:ring%n_ele_max), eta2(0:ring%n_ele_max), eta(0:ring%n_ele_max))
+
+    n_bpms = size(bpm)
+
     ! Locate detectors
 
     rms_param_ptr => rms_param
-
     n_det  = 0
     do i_det_grp = 1, n_detcor_groups
+
        if (len(trim(correct%det(i_det_grp)%param_name)) == 0) then ! no name provided
-          write(*,'(a,i0,a)') "No parameter name provided for detector group ", i_det_grp,". Cycling."
+          !write(*,'(a,i0,a)') "No parameter name provided for detector group ", i_det_grp,". Cycling."
           cycle
        endif
 
-       ele_loop: do i_ele = 1, ring%n_ele_track
-          ele => ring%ele(i_ele)
-          if (match_reg(ele%name, correct%det(i_det_grp)%mask)) then
+       ele_loop: do i_det = 1, size(bpm)
 
-             ! look up index of desired parameter
-             call match_word(trim(correct%det(i_det_grp)%param_name), allowed_meas_names, ix)
-             correct%det(i_det_grp)%param = ix
-             if (correct%det(i_det_grp)%param .eq. 0) then
-                write(*,*) "Parameter ", trim(correct%det(i_det_grp)%param_name), &
-                     " not found for detectors. Cycling." 
-                cycle ele_loop
-             endif
-             
-             ! If skipping duplicates, then loop backward around the ring, find the first
-             ! element with nonzero length, and if it has the same name as our current
-             ! element, move on.
-             if (correct_ring_params%skip_dup_ele) then
-                do i = 1, ring%n_ele_track
-                   i_ele2 = mod(ring%n_ele_track + i_ele - i, ring%n_ele_track)
-                   if (ring%ele(i_ele2)%value(l$) == 0) then
-                      cycle
-                   else if (ring%ele(i_ele)%name == ring%ele(i_ele2)%name) then
-                      cycle ele_loop
-                   else
-                      exit
-                   end if
-                end do
-             end if
+          ele => ring%ele(bpm(i_det)%ix_lat)
 
-             n_det = n_det + 1
-             det(n_det)%name = ele%name
-             det(n_det)%loc = i_ele
-             det(n_det)%param = correct%det(i_det_grp)%param
-             det(n_det)%param_name = correct%det(i_det_grp)%param_name
-             det(n_det)%wt  = correct%det(i_det_grp)%wt
-          end if
+          n_det = n_det + 1
+
+          ! look up index of desired parameter
+          call match_word(trim(correct%det(i_det_grp)%param_name), allowed_meas_names, ix)
+          correct%det(i_det_grp)%param = ix
+          if (correct%det(i_det_grp)%param .eq. 0) then
+             write(*,*) "Parameter ", trim(correct%det(i_det_grp)%param_name), &
+                  " not found for detectors. Cycling." 
+             cycle ele_loop
+          endif
+
+          ! can't say det(i_det)%blah because n_det > size(bpm)
+          det(n_det)%name = ele%name
+          det(n_det)%loc = bpm(i_det)%ix_lat
+          det(n_det)%param = correct%det(i_det_grp)%param
+          det(n_det)%param_name = correct%det(i_det_grp)%param_name
+          det(n_det)%wt  = correct%det(i_det_grp)%wt
+
        end do ele_loop
-    end do
 
+    end do
 
     ! Locate elements to be varied for a particular correction
     n_p_ele = 0
     do i_cor_grp = 1, n_detcor_groups
        
-       if (len(trim(correct%cor(i_cor_grp)%param_name)) == 0) then
-          write(*,'(a,i0,a)') "No parameter name provided for corrector group ", i_cor_grp,". Cycling."
-          cycle
-       endif
-
+       if (len(trim(correct%cor(i_cor_grp)%param_name)) == 0) cycle
+       
        ele_loop2: do i_ele = 1, ring%n_ele_max ! steerings are overlays, not tracked elements
           
           ele => ring%ele(i_ele)
-
-          if (match_reg(trim(ele%name), trim(correct%cor(i_cor_grp)%mask))) then             
+          
+          if (match_reg(trim(ele%name), trim(correct%cor(i_cor_grp)%mask))) then
+             
+             if (len(trim(correct%cor(i_cor_grp)%param_name)) == 0) then
+                write(*,'(a,i0,a)') "No parameter name provided for corrector group ", i_cor_grp,". Cycling."
+                cycle
+             endif
              
              correct%cor(i_cor_grp)%param = attribute_index(ele, trim(correct%cor(i_cor_grp)%param_name))
              
@@ -171,8 +172,7 @@ contains
                 !write(*,*) "WARNING: Attribute ", trim(attrib_name), " not free for element ", trim(ele%name), &
                 !     " - skipping"
                 cycle
-             endif
-             
+             endif             
              
              n_p_ele = n_p_ele + 1
              p_ele(n_p_ele)%name  = ele%name
@@ -199,60 +199,110 @@ contains
           call err_exit
        end if
     end do
-
+    
 !==========================================================================
 ! Write out list of detectors and parameter elements
 
     if (correct_ring_params%write_elements) then
-       write(*,*) "Found ", n_det, " detectors."
-       do i_ele = 1, n_det
-          write(*,'(a10,a,a10,g10.2)', advance='no') &
-               trim(det(i_ele)%name), '  ',&
-               det(i_ele)%param_name, det(i_ele)%wt
-          if (mod(i_ele,3) == 0) then
-             write(*,*)
-          else
-             write(*,'(a3)', advance='no') " | "
-          end if
-       end do
-       write(*,*)
-
-       write(*,*) "Found ", n_p_ele, " parameter elements."
-       do i_ele = 1, n_p_ele
-          write(*,'(a10,a,a10,g10.2)', advance='no') trim(p_ele(i_ele)%name), '  ',&
-               trim(p_ele(i_ele)%param_name), p_ele(i_ele)%wt
-          if (mod(i_ele,3) == 0) then
-             write(*,*)
-          else
-             write(*,'(a3)', advance='no') " | "
-          end if
-       end do
-       write(*,*)
+       write(*,*) " "
+       write(*,'(a,i0,a)') "Found ", n_det, " detectors."
+       if (verbose .eqv. .true.) then
+          do i_ele = 1, n_det
+             write(*,'(a10,a,a10,g10.2)', advance='no') &
+                  trim(det(i_ele)%name), '  ', &
+                  det(i_ele)%param_name, det(i_ele)%wt
+             if (mod(i_ele,3) == 0) then
+                write(*,*)
+             else
+                write(*,'(a3)', advance='no') " | "
+             end if
+          end do
+          write(*,*)
+       endif ! if verbose
+          
+       write(*,'(a,i0,a)') "Found ", n_p_ele, " parameter elements."
+       if (verbose .eqv. .true.) then
+          do i_ele = 1, n_p_ele
+             write(*,'(a10,a,a10,g10.2)', advance='no') trim(p_ele(i_ele)%name), '  ',&
+                  p_ele(i_ele)%param_name, p_ele(i_ele)%wt
+             if (mod(i_ele,3) == 0) then
+                write(*,*)
+             else
+                write(*,'(a3)', advance='no') " | "
+             end if
+          end do
+          write(*,*)
+       else ! if NOT verbose
+          write(*,*) "*************Verbose mode disabled!*****************"
+          write(*,*) "To see full list of correctors, set verbose = .true."
+       endif
+       write(*,*) " " 
     end if
        
 !==========================================================================
 ! Store simulated measurements with BPM errors
 
     call twiss_and_track(ring, co)
+
+    ! dispersion (orbit 1):
+    bpm(:)%vec(1) = co(bpm(:)%ix_lat)%vec(1) + (ring%ele(bpm(:)%ix_lat)%x%eta * correct_ring_params%eta_delta_e_e)/2.
+    bpm(:)%vec(3) = co(bpm(:)%ix_lat)%vec(3) + (ring%ele(bpm(:)%ix_lat)%y%eta * correct_ring_params%eta_delta_e_e)/2.
+    do jx = 1, n_bpms
+       call rotate_meas(bpm(jx)%vec(1),bpm(jx)%vec(3),bpm(jx)%tilt)
+       call apply_bpm_errors(bpm(jx), current)  ! note: also transfers vec(6)-->amp(4) button signals
+       
+       eta1(bpm(jx)%ix_lat)%vec = bpm(jx)%vec
+
+    enddo
+
+
+    ! dispersion (orbit 2):
+    bpm(:)%vec(1) = co(bpm(:)%ix_lat)%vec(1) - (ring%ele(bpm(:)%ix_lat)%x%eta * correct_ring_params%eta_delta_e_e)/2.
+    bpm(:)%vec(3) = co(bpm(:)%ix_lat)%vec(3) - (ring%ele(bpm(:)%ix_lat)%y%eta * correct_ring_params%eta_delta_e_e)/2.
+    do jx = 1, n_bpms
+       call rotate_meas(bpm(jx)%vec(1),bpm(jx)%vec(3),bpm(jx)%tilt)
+       call apply_bpm_errors(bpm(jx), current)  ! note: also transfers vec(6)-->amp(4) button signals
+
+       eta2(bpm(jx)%ix_lat)%vec = bpm(jx)%vec
+       eta(jx)%vec = (eta1(jx)%vec - eta2(jx)%vec) / correct_ring_params%eta_delta_e_e
+
+    enddo
+
+
+    ! orbit:
+    bpm(:)%vec(1) = co(bpm(:)%ix_lat)%vec(1)
+    bpm(:)%vec(3) = co(bpm(:)%ix_lat)%vec(3)
+    do jx = 1, n_bpms
+       call rotate_meas(bpm(jx)%vec(1),bpm(jx)%vec(3),bpm(jx)%tilt)
+       call apply_bpm_errors(bpm(jx), current)  ! note: also transfers vec(6)-->amp(4) button signals
+
+       ! transfer back to co for now:
+       co(bpm(jx)%ix_lat)%vec(:) = bpm(jx)%vec
+    enddo
+
+
+    ! load relevent values into meas structure:
     do i_det = 1, n_det
+
        loc = det(i_det)%loc
        ele => ring%ele(loc)
-       ! Get random numbers within the cutoff
-       call gasdev(harvest)
-       do while (any(abs(harvest) .ge. correct_ring_params%sigma_cutoff))
-          call gasdev(harvest)
-       end do
 
-       meas(i_det)%orbit_x = co(loc)%vec(1) + correct_ring_params%det_abs_res * harvest(1)
-       meas(i_det)%orbit_y = co(loc)%vec(3) + correct_ring_params%det_abs_res * harvest(2)
-       call rotate_meas(meas(i_det)%orbit_x, meas(i_det)%orbit_y, correct_ring_params%det_rot_res * harvest(3))
-       meas(i_det)%eta_x = ele%x%eta + (correct_ring_params%det_diff_res * harvest(4) / correct_ring_params%eta_delta_e_e)
-       meas(i_det)%eta_y = ele%y%eta + (correct_ring_params%det_diff_res * harvest(5) / correct_ring_params%eta_delta_e_e)
-       call rotate_meas(meas(i_det)%eta_x, meas(i_det)%eta_y, correct_ring_params%det_rot_res * harvest(3))
+       ! there might be an easier way to align bpm(:) and det(:)...
+       do ix = 1, size(bpm)
+          if (bpm(ix)%ix_lat .eq. loc) then
+             bpm_ix = ix
+             exit
+          endif
+       enddo
+
+       meas(i_det)%orbit_x = co(loc)%vec(1)
+       meas(i_det)%orbit_y = co(loc)%vec(3)
+       meas(i_det)%eta_x   = eta(loc)%vec(1)
+       meas(i_det)%eta_y   = eta(loc)%vec(3)
        meas(i_det)%phi_a = ele%a%phi
        meas(i_det)%phi_b = ele%b%phi
        call c_to_cbar(ele, cbar)
-       call rotate_cbar(cbar, correct_ring_params%det_rot_res * harvest(3))
+       call rotate_cbar(cbar, bpm(bpm_ix)%tilt)
        meas(i_det)%cbar12 = cbar(1,2)
     end do
 
