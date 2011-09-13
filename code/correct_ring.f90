@@ -153,7 +153,7 @@ contains
           if (match_reg(trim(ele%name), trim(correct%cor(i_cor_grp)%mask))) then
              
              if (len(trim(correct%cor(i_cor_grp)%param_name)) == 0) then
-                write(*,'(a,i0,a)') "No parameter name provided for corrector group ", i_cor_grp,". Cycling."
+                !write(*,'(a,i0,a)') "No parameter name provided for corrector group ", i_cor_grp,". Cycling."
                 cycle
              endif
              
