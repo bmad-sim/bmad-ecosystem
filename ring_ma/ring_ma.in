@@ -68,12 +68,11 @@
    ma(10)%param_name = "roll"
    ma(10)%amp        = 0 !100.e-6
 
-   det_abs_res   = 0.
-   det_diff_res  = 0.
-   det_rot_res   = 0.
-   !det_gain_res  = 0.
-   !bpm_x_offset  = 0.
-   !bpm_y_offset  = 0.
+  bpm_error_sigmas%bpm_rotation = 10.e-3 ! typically 10.e-3 radians
+  bpm_noise                     = 10.e-6 ! typically 10.e-6 meters
+  !bpm_error_sigmas%gain_sigma   = 5.e-2 ! typically 5% = 0.05
+  !bpm_error_sigmas%timing_sigma = 10.e-12 ! typically 10.e-12 seconds
+  bpm_error_sigmas%bpm_offset   = 200.e-6 ! typically 100.e-6 meters
 
    seed          = -1
 
