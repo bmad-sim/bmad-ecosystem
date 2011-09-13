@@ -5320,7 +5320,7 @@ type(grid_pt_struct), allocatable :: array(:), array2(:)
 
 
 !Expect {
-call get_next_word (word, ix_word, '{', delim, delim_found)
+call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
 	if ((word /= '') .or. (delim /= '{')) then
     	call parser_warning (	'NO { SIGN FOUND IN GRID DEFINITION',  &
         						'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
