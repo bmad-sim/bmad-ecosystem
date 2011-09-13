@@ -86,36 +86,62 @@
 !    Detector spec: {mask}, {quantity to correct}, {weight}
 !   Corrector spec: {mask}, {parameter to adjust}, {weight}
 
-    correct(1)%det(1)%mask       = "^DET\_[0-9]{2}[ewEW]$"
-    correct(1)%det(1)%param_name = "orbit_y"
+	! only correct(1)%bpm_mask needs to be populated; the rest 
+	! are ignored. ALL corrections use the same BPMs now.
+
+    correct(1)%bpm_mask          = "^DET\_[0-9]{2}[ewEW]$"
+
+    correct(1)%det(1)%param_name = "orbit_x"
     correct(1)%det(1)%wt         = 1.
 
-    correct(1)%cor(1)%mask       = "^V(KICK|[0-9])"
-    correct(1)%cor(1)%param_name = "VKICK"
-    correct(1)%cor(1)%wt         = 1.
-
-    correct(1)%det(2)%mask       = "^DET\_[0-9]{2}[ewEW]$"
-    correct(1)%det(2)%param_name = "eta_y"
+    correct(1)%det(2)%param_name = "orbit_y"
     correct(1)%det(2)%wt         = 1.
 
-    correct(1)%cor(2)%mask       = "^Q"
-    correct(1)%cor(2)%param_name = "K1"
+    correct(1)%cor(1)%mask       = "^H(KICK|[0-9])"
+    correct(1)%cor(1)%param_name = "HKICK"
+    correct(1)%cor(1)%wt         = 1.
+
+    correct(1)%cor(2)%mask       = "^V(KICK|[0-9])"
+    correct(1)%cor(2)%param_name = "VKICK"
     correct(1)%cor(2)%wt         = 1.
 
-    correct(2)%det(1)%mask       = "^DET\_[0-9]{2}[ewEW]$"
-    correct(2)%det(1)%param_name = "orbit_y"
+    !-----
+
+    correct(2)%det(1)%param_name = "phi_a"
     correct(2)%det(1)%wt         = 1.
 
-    correct(2)%cor(1)%mask       = "^V(KICK|[0-9])"
-    correct(2)%cor(1)%param_name = "VKICK"
-    correct(2)%cor(1)%wt         = 1.
+    correct(2)%det(2)%param_name = "phi_b"
+    correct(2)%det(2)%wt         = 1.
 
-    correct(2)%det(2)%mask       = "^DET\_[0-9]{2}[ewEW]$"
-    correct(2)%det(2)%param_name = "cbar12"
-    correct(2)%det(2)%wt         = 100.
+    correct(2)%det(3)%param_name = "cbar12"
+    correct(2)%det(3)%wt         = 1.
+
+    correct(2)%cor(1)%mask       = "^Q"
+    correct(2)%cor(1)%param_name = "K1"
+    correct(2)%cor(1)%wt         = 1.
 
     correct(2)%cor(2)%mask       = "^SK_Q"
     correct(2)%cor(2)%param_name = "K1"
     correct(2)%cor(2)%wt         = 1.
+
+    !-----
+
+    correct(3)%det(1)%param_name = "orbit_y"
+    correct(3)%det(1)%wt         = 1.
+
+    correct(3)%cor(1)%mask       = "^V(KICK|[0-9])"
+    correct(3)%cor(1)%param_name = "VKICK"
+    correct(3)%cor(1)%wt         = 1.
+
+    correct(3)%det(2)%param_name = "cbar12"
+    correct(3)%det(2)%wt         = 1.
+
+    correct(3)%det(3)%param_name = "eta_y"
+    correct(3)%det(3)%wt         = 10.
+
+    correct(3)%cor(2)%mask       = "^SK_Q"
+    correct(3)%cor(2)%param_name = "K1"
+    correct(3)%cor(2)%wt         = 1.
+
 
 /

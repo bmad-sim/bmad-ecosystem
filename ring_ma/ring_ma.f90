@@ -3,6 +3,7 @@ program ring_ma
   use correct_ring_mod
   use dr_misalign_mod
   use ran_state, only: ran_seed
+  use sim_bpm_mod ! from bsim_cesr
   implicit none
 
 
@@ -40,11 +41,18 @@ program ring_ma
   character*200 init_file, base_name, out_file, opt_file
   logical everything_ok
 
+  ! for sim_bpm_mod:
+  type(det_error_struct) :: bpm_error_sigmas
+  type(det_struct), allocatable :: bpm(:)
+  integer :: n_bpms = 0, i
+  real(rp) :: bpm_noise = 0., current = 750000
+
+
   namelist /ring_ma_init/ lattice_file, seed, n_iterations, output_file, &
        comment, n_lm_iterations, correct, &
        write_orbits, key_value1, key_value2, ma, &
        alignment_multiplier, sigma_cutoff, &
-       det_abs_res, det_diff_res, det_rot_res
+       bpm_error_sigmas, bpm_noise
 
 !==========================================================================
 ! Get init file from command line
@@ -75,9 +83,6 @@ program ring_ma
   dr_misalign_params%sigma_cutoff         = sigma_cutoff
   correct_ring_params%sigma_cutoff        = sigma_cutoff
   correct_ring_params%n_lm_iterations     = n_lm_iterations
-  correct_ring_params%det_abs_res         = det_abs_res 
-  correct_ring_params%det_diff_res        = det_diff_res
-  correct_ring_params%det_rot_res         = det_rot_res
 
   dr_misalign_params%accumulate_errors    = .false.
   dr_misalign_params%tie_dup_ele          = .true.
@@ -129,7 +134,12 @@ program ring_ma
   allocate(datablock(n_iterations, 0:n_corrections_max))
   call reallocate_coord(cr_model_co, design_ring%n_ele_track)
 
+  call find_bpms(design_ring, correct(1)%bpm_mask, bpm)
+  n_bpms = size(bpm)
 
+  ! Find resolution in terms of button signal error:
+  call resolution_to_button_error(bpm(1), current, bpm_noise)
+  bpm(:)%butn_res_sigma = bpm(1)%butn_res_sigma
 
 !==========================================================================
 ! Start iterations
@@ -159,6 +169,19 @@ program ring_ma
         end if
      end do
 
+     open(unit=47, file='bpms.ma', status='replace')
+     write(47, '(a7,7a14)') "!index", "x-offset", "y-offset", "tilt", "g1", "g2", "g3", "g4"
+     write(47, '(a7, 7a14)') ""
+
+     ! generate persistent BPM errors-- these are fixed for each correction, but 
+     ! vary between random magnet misalignment seeds.
+     do i=1,n_bpms
+        call bpm_errors(bpm(i), bpm_error_sigmas)
+        write(47, '(i7,7e14.4)') bpm(i)%ix_db, bpm(i)%x_offset, &
+             bpm(i)%y_offset, bpm(i)%tilt, bpm(i)%gain(:)
+     enddo
+     close(47)
+
      call radiation_integrals(ma_ring, co, modes, rad_cache)
      call release_rad_int_cache(rad_cache)
 
@@ -181,7 +204,7 @@ program ring_ma
         rms_param = 0.
         if (len(trim(correct(i_correction)%cor(1)%param_name)) == 0) cycle
         cr_model_ring = design_ring
-        call correct_ring(ma_ring, correct(i_correction), rms_param)
+        call correct_ring(ma_ring, bpm, correct(i_correction), rms_param)
         call twiss_and_track(ma_ring, co)
 
         if (write_orbits) call write_opt(ma_ring, co)
