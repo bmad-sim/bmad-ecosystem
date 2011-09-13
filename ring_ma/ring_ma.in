@@ -71,9 +71,9 @@
    det_abs_res   = 0.
    det_diff_res  = 0.
    det_rot_res   = 0.
-   det_gain_res  = 0.
-   bpm_x_offset  = 0.
-   bpm_y_offset  = 0.
+   !det_gain_res  = 0.
+   !bpm_x_offset  = 0.
+   !bpm_y_offset  = 0.
 
    seed          = -1
 
