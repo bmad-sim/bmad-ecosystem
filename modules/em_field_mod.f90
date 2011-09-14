@@ -177,10 +177,11 @@ type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
+type (em_field_struct) :: local_field
 type (rf_field_mode_struct), pointer :: mode
 type (rf_field_fit_term_struct), pointer :: term
 
-real(rp) :: x, y, xx, yy, t_rel, s_rel, f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
@@ -198,9 +199,9 @@ logical, optional :: calc_dfield
 logical df_calc
 character(20) :: r_name = 'em_field_calc'
 
+! Initialize field
 ! If element is turned off then return zero
-
-field%e = 0
+field%E = 0
 field%B = 0
 
 df_calc = logic_option (.false., calc_dfield)
@@ -211,8 +212,6 @@ if (df_calc) then
 endif
 
 if (.not. ele%is_on) return
-
-
 
 !----------------------------------------------------------------------------
 ! Custom field calc 
@@ -694,6 +693,94 @@ end select
 !----------------------------------------------------------------------------
 case(grid$)
 
+!------------------------------------------
+!------------------------------------------
+select case (ele%key)
+
+!------------------------------------------
+! RFcavity and Lcavity
+
+case(rfcavity$, lcavity$)
+
+  if (.not. associated(ele%rf%field)) then
+    print *, 'ERROR IN EM_FIELD_CALC: No accociated rf%field for field calc = Grid'
+    call err_exit
+  endif
+  
+  !radial coordinate
+  r = sqrt(x**2 + y**2)
+
+  !???
+  s_pos = s_rel + ele%value(ds_slave_offset$)
+
+  !reference time
+  if (ele%key == rfcavity$) then
+    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
+  else
+    t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
+  endif
+  t_ref = t_ref / ele%rf%field%mode(1)%freq
+
+
+  !Loop over modes
+  do i = 1, size(ele%rf%field%mode)
+    mode => ele%rf%field%mode(i)
+    m = mode%m
+    
+    expt = mode%field_scale * exp(-I_imaginary * twopi * &
+					(mode%freq * (t_rel + t_ref) + mode%theta_t0))
+
+    !Check for grid
+    if (.not. associated(mode%grid)) then
+        call out_io (s_fatal$, r_name, 'ERROR IN EM_FIELD_CALC: Missing grid for ele: ' // ele%name)
+      call err_exit
+    endif
+
+    !calculate field based on grid type
+    select case(mode%grid%type)
+    
+      case(rotationally_symmetric_2d_z$)
+        
+        !Interpolate 2D (r, z) grid
+        call em_grid_linear_interpolate(mode%grid, local_field, r, s_pos)
+        !Transverse field is zero on axis. Otherwise:
+	    if (r /= 0) then
+		  !Get non-rotated field
+		  E_rho = real(expt*local_field%E(1))
+ 		  E_phi = 0.0 
+ 		  B_rho = 0.0 
+	 	  B_phi = real(expt*local_field%B(2))
+
+		 !rotate field and output Ex, Ey, Bx, By
+		 field%e(1) = field%e(1) +  (x*E_rho - y*E_phi)/r
+	 	 field%e(2) = field%e(2) +  (y*E_rho + x*E_phi)/r
+		 field%b(1) = field%b(1) +  (x*B_rho - y*B_phi)/r
+		 field%b(2) = field%b(2) +  (y*B_rho + x*B_phi)/r
+	   endif
+	
+	   !Ez, Bz 
+	     field%e(3) = field%e(3) + real(expt*local_field%E(3))
+	     ! field%b(3) = field%b(3) +  0.0 
+  
+      case default
+        call out_io (s_fatal$, r_name, 'UNKOWN GRID TYPE FOR ELEMENT: ' // ele%name)
+        call err_exit
+    end select
+  enddo
+
+!------------------------------------------
+! Error
+
+case default
+  print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED FOR GRID METHOD: ', key_name(ele%key)
+  print *, '      FOR: ', ele%name
+  call err_exit
+end select
+!------------------------------------------
+!------------------------------------------
+
+
+
 
 
 
@@ -709,5 +796,156 @@ end select
 
 
 end subroutine em_field_calc 
+
+!-----------------------------------------------------------
+!-----------------------------------------------------------
+!-----------------------------------------------------------
+!+
+! Subroutine em_grid_linear_interpolate (grid, field, x1, x2, x3 )
+!
+! Subroutine to interpolate the E and B fields on a rectilinear grid
+!
+! Note: No error checking is done for providing x2 or x3 for 2D and 3D calculations!
+!
+! Modules needed:
+!   use bmad_struct
+!
+! Input:
+!   grid    --em_field_grid_struct
+!   x1      -- real(rp) : dimension 1 interpolation point
+!   x2      -- real(rp), optional : dimension 2 interpolation point
+!   x3      -- real(rp), optional : dimension 3 interpolation point
+!
+! Output:
+!   field  -- em_field_struct: Interpolated field (complex)
+!-
+
+subroutine em_grid_linear_interpolate (grid, field, x1, x2, x3)
+
+type (em_field_grid_struct), intent(in) :: grid
+type (em_field_struct), intent(out)     :: field
+real(rp) :: x1
+real(rp), optional :: x2, x3
+real(rp) rel_x1, rel_x2, rel_x3, approx_i1, approx_i2, approx_i3
+integer i1, i2, i3
+
+
+!Pick appropriate dimension 
+select case(em_grid_dimension(grid%type))
+	
+  case (1)
+
+	approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
+    rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
+
+  	!Check for bad indices
+	if (    (i1 < lbound(grid%pt, 1)) .or. &
+			(i1 > (ubound(grid%pt, 1) - 1)) ) then
+	  	print *, 'Warning in  1D GRID interpolation: indicies out of bounds:'
+	  	print *, '            i1 =', i1
+	  	print *, 'Setting field to zero'
+  		field%E = 0
+  		field%B = 0
+  		return
+	end if			
+  
+
+
+    ! Do linear interpolation
+    field%E(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%E(:) &
+               + (rel_x1)   * grid%pt(i1+1, 1, 1)%E(:) 
+    field%B(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%B(:) &
+               + (rel_x1)   * grid%pt(i1+1, 1, 1)%B(:) 
+
+  case (2)
+  
+
+	approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
+	approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
+
+    rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
+    rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
+  
+  	!Check for bad indices
+	if (    (i1 < lbound(grid%pt, 1)) .or. &
+			(i1 > (ubound(grid%pt, 1) - 1)) .or. &
+			(i2 < lbound(grid%pt, 2)) .or. &
+			(i2 > (ubound(grid%pt, 2) - 1)) ) then
+	  	print *, 'Warning in 2D GRID interpolation: indicies out of bounds:'
+	  	print *, '            i1 =', i1
+	  	print *, '            i2 =', i2
+	  	print *, 'Setting field to zero'
+  		field%E = 0
+  		field%B = 0
+  		return
+	end if			
+  
+
+    
+    ! Do bilinear interpolation
+    field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%E(:) &
+               + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%E(:) &
+               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%E(:) &
+               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%E(:) 
+    field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%B(:) &
+               + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%B(:) &
+               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%B(:) &
+               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%B(:)	
+						
+  case (3)
+
+	approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
+	approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
+	approx_i3 = (x3 - grid%r0(3)) / grid%dr(3); i3 = floor(approx_i3) ! index of lower x3 data point
+
+    rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
+    rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
+    rel_x3 = approx_i3 - i3 !Relative distance from lower x3 grid point
+
+  	!Check for bad indices
+	if (    (i1 < lbound(grid%pt, 1)) .or. &
+			(i1 > (ubound(grid%pt, 1) - 1)) .or. &
+			(i2 < lbound(grid%pt, 2)) .or. &
+			(i2 > (ubound(grid%pt, 2) - 1)) .or. &
+			(i3 < lbound(grid%pt, 3)) .or. &
+			(i3 > (ubound(grid%pt, 3) - 1)) ) then
+	  	print *, 'Warning in 3D GRID interpolation: indicies out of bounds:'
+	  	print *, '            i1 =', i1
+	  	print *, '            i2 =', i2
+	  	print *, '            i3 =', i3
+	  	print *, 'Setting field to zero'
+  		field%E = 0
+  		field%B = 0
+  		return
+	end if			
+
+    
+    ! Do trilinear interpolation
+    field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%E(:) &
+               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%E(:) &
+               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%E(:) &
+               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%E(:) &
+               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%E(:) &
+               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%E(:) &
+               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%E(:) &
+               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%E(:)               
+               
+    ! Do bilinear interpolation
+    field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%B(:) &
+               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%B(:) &
+               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%B(:) &
+               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%B(:) &
+               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%B(:) &
+               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%B(:) &
+               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%B(:) &
+               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%B(:) 
+
+
+  case default
+    print *, 'ERROR IN EM_GRID_INTERPOLATE, BAD DIMENSION:', em_grid_dimension(grid%type)
+    call err_exit   
+end select
+
+end subroutine em_grid_linear_interpolate	
 
 end module
