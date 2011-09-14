@@ -1071,50 +1071,39 @@ case ('SYMPLECTIFY')
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
     ele%symplectify = .true.
   else
-    call get_logical ('SYMPLECTIFY', ele%symplectify)
-    if (ios /= 0 .or. ix_word == 0) return
+    call get_logical (attrib_word, ele%symplectify, err_flag)
   endif
   
 case ('IS_ON')
-  call get_logical ('IS_ON', ele%is_on)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, ele%is_on, err_flag)
 
 case ('MATCH_END', 'FOLLOW_DIFFRACTED_BEAM', 'PATCH_END', 'TRANSLATE_AFTER', 'MATCH_END_ORBIT', &
       'NEGATIVE_GRAZE_ANGLE')
-  call get_logical_real (attrib_word, ele%value(ix_attrib))
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical_real (attrib_word, ele%value(ix_attrib), err_flag)
 
 case ('APERTURE_LIMIT_ON') 
-  call get_logical ('APERTURE_LIMIT_ON', lat%param%aperture_limit_on)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, lat%param%aperture_limit_on, err_flag)
 
 case ('CSR_CALC_ON')
-  call get_logical ('CSR_CALC_ON', ele%csr_calc_on)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, ele%csr_calc_on, err_flag)
 
 case ('MAP_WITH_OFFSETS')
-  call get_logical ('MAP_WITH_OFFSETS', ele%map_with_offsets)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, ele%map_with_offsets, err_flag)
 
 case ('OFFSET_MOVES_APERTURE')
-  call get_logical ('OFFSET_MOVES_APERTURE', ele%offset_moves_aperture)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, ele%offset_moves_aperture, err_flag)
 
 case ('FIELD_MASTER')
-  call get_logical ('FIELD_MASTER', ele%field_master)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, ele%field_master, err_flag)
 
 case ('SCALE_MULTIPOLES')
-  call get_logical ('SCALE_MULTIPOLES', ele%scale_multipoles)
-  if (ios /= 0 .or. ix_word == 0) return
+  call get_logical (attrib_word, ele%scale_multipoles, err_flag)
 
 case ('DIFFRACTION_TYPE')
-  call match_word (attrib_word, diffraction_type_name(1:), ele%sub_key, can_abbreviate = .false.)
-  if (ele%sub_key < 1) call parser_warning ('BAD DIFFRACTION_TYPE ATTRIBUTE.')
+  call get_switch (attrib_word, diffraction_type_name(1:), ele%sub_key, err_flag)
 
 case ('FIELD_CALC')
-  call match_word (attrib_word, field_calc_name(1:), ele%field_calc, can_abbreviate = .false.)
-  if (ele%field_calc < 1) call parser_warning ('BAD FIELD_CALC ATTRIBUTE.')
+  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag)
 
 case default   ! normal attribute
 
@@ -1233,17 +1222,20 @@ end function attrib_free_problem
 !--------------------------------------------------------
 ! contains
 
-subroutine get_logical (name, this_logic)
+subroutine get_logical (attrib_name, this_logic, err)
 
-character(*) name
-logical this_logic
+character(*) attrib_name
+logical this_logic, err
 
 !
 
 call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
 this_logic = evaluate_logical (word, ios)
 if (ios /= 0 .or. ix_word == 0) then
-  call parser_warning ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name)
+  call parser_warning ('BAD "' // trim(attrib_name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+  err = .true.
+else
+  err = .false.
 endif
 
 end subroutine get_logical
@@ -1251,18 +1243,46 @@ end subroutine get_logical
 !--------------------------------------------------------
 ! contains
 
-subroutine get_logical_real (name, logic_real)
+subroutine get_switch (name, name_list, this_switch, err)
 
-character(*) name
-real(rp) logic_real
-logical this_logical
+character(*) name, name_list(:)
+integer this_switch
+logical err
 
 !
 
-call get_logical (name, this_logical)
-if (this_logical) then; logic_real = 1
-else;                   logic_real = 0
+call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
+call match_word (word, name_list, this_switch, can_abbreviate = .false.)
+if (this_switch < 1) then
+  call parser_warning ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
+  err = .true.
+else
+  err = .false.
 endif
+
+end subroutine get_switch
+
+!--------------------------------------------------------
+! contains
+
+subroutine get_logical_real (name, logic_real, err)
+
+character(*) name
+real(rp) logic_real
+logical this_logical, err
+
+!
+
+call get_logical (name, this_logical, err)
+if (err) return
+
+if (this_logical) then
+  logic_real = 1
+else
+  logic_real = 0
+endif
+
+err = .false.
 
 end subroutine get_logical_real
 
