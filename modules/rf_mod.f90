@@ -75,7 +75,7 @@ mode1 => ele%rf%field%mode(1)
 
 if (mode1%m /= 0) return  
 if (all(mode1%fit%term%e == 0) .and. .not. associated(mode1%grid)) return
-if (ele%field_calc /= grid$ .and. ele%field_calc /= map$) return
+if (ele%field_calc /= grid$ .and. ele%field_calc /= map$ .and. ele%field_calc /= custom$ ) return
 
 !
 
