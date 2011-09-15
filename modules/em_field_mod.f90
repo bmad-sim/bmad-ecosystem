@@ -740,6 +740,8 @@ case(rfcavity$, lcavity$)
     select case(mode%grid%type)
     
       case(rotationally_symmetric_2d_z$)
+      
+      !Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
         
         !Interpolate 2D (r, z) grid
         call em_grid_linear_interpolate(mode%grid, local_field, r, s_pos)
