@@ -95,11 +95,14 @@ contains
 !   bpm(1:n_bpms) -- det_struct(:); Holds information about BPMs of interest.
 !--------------------------------------------------------------------------
  subroutine find_bpms(ring, bpm_mask, bpm)
+
+  use cesr_basic_mod
    
    implicit none
+   type(cesr_struct) cesr
    type(lat_struct) :: ring
    type(det_struct), allocatable :: bpm(:)
-   integer :: i, bpm_index, n_bpms = 0
+   integer :: i, ix, jx, bpm_index, n_bpms = 0
    character(40) bpm_mask
    
    do i=1, ring%n_ele_max
@@ -119,7 +122,24 @@ contains
          bpm_index = bpm_index + 1
       endif
    enddo
-   
+  
+
+  ! if CESR-type lattice, assign bpm(:)%ix_db indices
+  if (match_reg(ring%name, "CESR")) then
+     call bmad_to_cesr(ring, cesr)
+     jx = 1
+     do i = 1, ubound(cesr%det,1)
+        if (match_reg(cesr%det(i)%name, 'DUMMY')  .or. match_reg(cesr%det(i)%name,'[aA]')) cycle
+        if (cesr%det(i)%ix_db .gt. 100) cycle
+        bpm(jx)%ix_db = cesr%det(i)%ix_db
+        jx = jx + 1
+     enddo
+  else ! non-CESR-type lattice
+     do ix = 1, n_bpms
+        bpm(ix)%ix_db = ix
+     enddo
+  endif
+ 
  end subroutine find_bpms
  
 
