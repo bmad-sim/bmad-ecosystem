@@ -177,7 +177,7 @@ type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
-type (em_field_struct) :: local_field
+type (em_field_point_struct) :: local_field
 type (rf_field_mode_struct), pointer :: mode
 type (rf_field_fit_term_struct), pointer :: term
 
@@ -744,6 +744,7 @@ case(rfcavity$, lcavity$)
       !Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
         
         !Interpolate 2D (r, z) grid
+        !local_field is a em_field_pt_struct, which has complex E and B
         call em_grid_linear_interpolate(mode%grid, local_field, r, s_pos)
         !Transverse field is zero on axis. Otherwise:
 	    if (r /= 0) then
@@ -819,13 +820,13 @@ end subroutine em_field_calc
 !   x3      -- real(rp), optional : dimension 3 interpolation point
 !
 ! Output:
-!   field  -- em_field_struct: Interpolated field (complex)
+!   field  -- em_field_pt_struct: Interpolated field (complex)
 !-
 
 subroutine em_grid_linear_interpolate (grid, field, x1, x2, x3)
 
 type (em_field_grid_struct), intent(in) :: grid
-type (em_field_struct), intent(out)     :: field
+type (em_field_point_struct), intent(out)     :: field
 real(rp) :: x1
 real(rp), optional :: x2, x3
 real(rp) rel_x1, rel_x2, rel_x3, approx_i1, approx_i2, approx_i3
