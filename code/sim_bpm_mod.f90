@@ -211,24 +211,30 @@ contains
 
     ! apply tilt first
     call ran_gauss(harvest)
-    this_bpm%tilt = this_bpm%tilt + harvest *  bpm_error_sigmas%bpm_rotation
+    !this_bpm%tilt = this_bpm%tilt + harvest *  bpm_error_sigmas%bpm_rotation
+    this_bpm%tilt = harvest *  bpm_error_sigmas%bpm_rotation
 
 
     call ran_gauss(harvest)
-    this_bpm%x_offset = this_bpm%x_offset + harvest * bpm_error_sigmas%bpm_offset
+    !this_bpm%x_offset = this_bpm%x_offset + harvest * bpm_error_sigmas%bpm_offset
+    this_bpm%x_offset = harvest * bpm_error_sigmas%bpm_offset
     call ran_gauss(harvest)
-    this_bpm%y_offset = this_bpm%y_offset + harvest *  bpm_error_sigmas%bpm_offset
+    !this_bpm%y_offset = this_bpm%y_offset + harvest *  bpm_error_sigmas%bpm_offset
+    this_bpm%y_offset = harvest *  bpm_error_sigmas%bpm_offset
 
     
     ! shear is in the rotated coordinate system, so this is ok
     call ran_gauss(harvest)
-    this_bpm%shear_x = this_bpm%shear_x + harvest *  bpm_error_sigmas%shear_x  
+    !this_bpm%shear_x = this_bpm%shear_x + harvest *  bpm_error_sigmas%shear_x  
+    this_bpm%shear_x = harvest *  bpm_error_sigmas%shear_x  
  
     do jx = 1,4 ! loop over buttons at one BPM
        call ran_gauss(harvest)
-       this_bpm%gain(jx) = this_bpm%gain(jx) + harvest * bpm_error_sigmas%gain_sigma
+       !this_bpm%gain(jx) = this_bpm%gain(jx) + harvest * bpm_error_sigmas%gain_sigma
+       this_bpm%gain(jx) = 1. + harvest * bpm_error_sigmas%gain_sigma
        call ran_gauss(harvest)  
-       this_bpm%timing(jx) = this_bpm%timing(jx) + harvest * bpm_error_sigmas%timing_sigma
+       !this_bpm%timing(jx) = this_bpm%timing(jx) + harvest * bpm_error_sigmas%timing_sigma
+       this_bpm%timing(jx) = harvest * bpm_error_sigmas%timing_sigma
     enddo
     
     
