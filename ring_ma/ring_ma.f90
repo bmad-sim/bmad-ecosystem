@@ -40,11 +40,12 @@ program ring_ma
 
   character*200 init_file, base_name, out_file, opt_file
   logical everything_ok
+  type(cesr_struct) cesr
 
   ! for sim_bpm_mod:
   type(det_error_struct) :: bpm_error_sigmas
   type(det_struct), allocatable :: bpm(:)
-  integer :: n_bpms = 0, i
+  integer :: n_bpms = 0, i, ix, jx
   real(rp) :: bpm_noise = 0., current = 750000
 
 
@@ -136,6 +137,23 @@ program ring_ma
 
   call find_bpms(design_ring, correct(1)%bpm_mask, bpm)
   n_bpms = size(bpm)
+
+  ! if CESR-type lattice, assign bpm(:)%ix_db indices
+  if (match_reg(design_ring%name, "CESR")) then
+     call bmad_to_cesr(design_ring, cesr)
+     jx = 1
+     do i = 1, ubound(cesr%det,1)
+        if (match_reg(cesr%det(i)%name, 'DUMMY')  .or. match_reg(cesr%det(i)%name,'[aA]')) cycle
+        if (cesr%det(i)%ix_db .gt. 100) cycle
+        bpm(jx)%ix_db = cesr%det(i)%ix_db
+        jx = jx + 1
+     enddo
+  else ! non-CESR-type lattice
+     do ix = 1, n_bpms
+        bpm(ix)%ix_db = ix
+     enddo
+  endif
+
 
   ! Find resolution in terms of button signal error:
   call resolution_to_button_error(bpm(1), current, bpm_noise)
