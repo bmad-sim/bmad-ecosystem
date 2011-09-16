@@ -739,7 +739,7 @@ case(rfcavity$, lcavity$)
     !calculate field based on grid type
     select case(mode%grid%type)
     
-      case(rotationally_symmetric_2d_z$)
+      case(rotationally_symmetric_rz$)
       
       !Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
         
