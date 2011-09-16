@@ -135,6 +135,7 @@ end type
 
 type rf_field_mode_fit_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
+  real(rp) :: dz = 0            ! Distance between sampled field points.
   type (rf_field_fit_term_struct), allocatable :: term(:)
 end type
 
@@ -167,7 +168,6 @@ type rf_field_mode_struct
   real(rp) :: theta_t0 = 0    ! Mode oscillates as: twopi * (f * t + theta_t0)
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
-  real(rp) :: dz = 0          ! Distance between sampled field points.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
   type (rf_field_mode_fit_struct), pointer :: fit => null()
   type (em_field_grid_struct), pointer :: grid => null()

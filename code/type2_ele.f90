@@ -268,10 +268,10 @@ if (associated(ele%rf%field)) then
       nl=nl+1; write (li(nl), '(a, es16.8)') '    f_damp:      ', rfm%f_damp
       nl=nl+1; write (li(nl), '(a, es16.8)') '    theta_t0:    ', rfm%theta_t0
       nl=nl+1; write (li(nl), '(a, es16.8)') '    phi_0:       ', rfm%phi_0
-      nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%dz
       nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale: ', rfm%field_scale
-      nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
       if (associated(rfm%fit)) then
+        nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%fit%dz
+        nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
         do j = 1, min(10, size(rfm%fit%term))
           if (nl+1 > size(li)) call re_associate(li, 2 * nl)
           nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
