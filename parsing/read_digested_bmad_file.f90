@@ -334,7 +334,7 @@ type (ele_struct), target :: ele
 type (rf_field_mode_struct), pointer :: mode
 type (old_coord_struct) map_in, map_out
 
-integer i, j, ix_ele, n_wall_section
+integer i, j, n1, n2, n3, nf, ng, ix_ele, n_wall_section
 integer n_rf_field_mode, i_min(3), i_max(3)
 integer ix_wig, ix_const, ix_r, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
@@ -378,13 +378,24 @@ call init_rf_field (ele%rf%field, n_rf_field_mode)
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%rf%field%mode(i)
-    read (d_unit, err = 9140) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
-                                 mode%m, mode%phi_0, mode%dz, mode%field_scale 
-    if (n > 0) then
+    read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+                                 mode%m, mode%phi_0, mode%field_scale 
+    if (nf > 0) then
       allocate (mode%fit)
-      allocate (mode%fit%term(n))
+      allocate (mode%fit%term(nf))
+      read (d_unit, err = 9140) mode%fit%file, mode%fit%dz
       read (d_unit, err = 9140) mode%fit%term
     endif
+
+    if (ng > 0) then
+      allocate (mode%grid)
+      read (d_unit, err = 9140) n1, n2, n3, mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
+      allocate (mode%grid%pt(n1, n2, n3))
+      do j = 1, n3
+        write (d_unit, err = 9140) mode%grid%pt(:,:,j)
+      enddo
+    endif
+
   enddo
 endif
 

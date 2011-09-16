@@ -813,14 +813,14 @@ if (attrib_word == 'RF_FIELD') then
       case ('THETA_T0');      r_ptr => mode%theta_t0
       case ('STORED_ENERGY'); r_ptr => mode%stored_energy
       case ('PHI_0');         r_ptr => mode%phi_0
-      case ('DZ');            r_ptr => mode%dz
+      case ('DZ');            r_ptr => mode%fit%dz
       case ('FIELD_SCALE');   r_ptr => mode%field_scale
 
 
 
-    case ('GRID') 
-      call parse_grid(mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
-    do_evaluate = .false.
+      case ('GRID') 
+        call parse_grid(mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
+        do_evaluate = .false.
 
       case default
         call parser_warning ('UNKNOWN MODE COMPONENT: ' // word, &

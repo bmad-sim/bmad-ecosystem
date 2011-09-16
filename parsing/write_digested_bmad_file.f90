@@ -195,7 +195,7 @@ type (rf_field_mode_struct), pointer :: mode
 
 integer ix_wig, n_wall_section, ix_const, ix_r, ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
-integer i, j, k, n, n_rf_field_mode
+integer i, j, k, n, ng, nf, n_rf_field_mode
 
 logical write_wake, mode3
 
@@ -277,13 +277,24 @@ write (d_unit) ix_value(1:k), value(1:k)
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%rf%field%mode(i)
-    n = 0
-    if (associated(mode%fit)) n = size(mode%fit%term)
-    write (d_unit) n, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
-                                    mode%m, mode%phi_0, mode%dz, mode%field_scale
-    if (n > 0) then
+    nf = 0
+    if (associated(mode%fit)) nf = size(mode%fit%term)
+    ng = 0
+    if (associated(mode%grid)) ng = size(mode%grid%pt)
+    write (d_unit) nf, ng, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
+                                    mode%m, mode%phi_0, mode%field_scale
+    if (nf > 0) then
+      write (d_unit) mode%fit%file, mode%fit%dz
       write (d_unit) mode%fit%term
     endif
+
+    if (ng > 0) then
+      write (d_unit) (size(mode%grid%pt, j), j = 1, 3), mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
+      do j = 1, size(mode%grid%pt, 3)
+        write (d_unit) mode%grid%pt(:,:,j)
+      enddo
+    endif
+
   enddo 
 endif
 

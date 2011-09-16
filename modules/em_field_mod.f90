@@ -614,8 +614,8 @@ case(rfcavity$, lcavity$)
       do n = 1, size(mode%fit%term)
 
         term => mode%fit%term(n)
-        k_zn = twopi * (n - 1) / (size(mode%fit%term) * mode%dz)
-        if (2 * n > size(mode%fit%term)) k_zn = k_zn - twopi / mode%dz
+        k_zn = twopi * (n - 1) / (size(mode%fit%term) * mode%fit%dz)
+        if (2 * n > size(mode%fit%term)) k_zn = k_zn - twopi / mode%fit%dz
 
         expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
 
