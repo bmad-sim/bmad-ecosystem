@@ -704,7 +704,7 @@ if (attrib_word == 'RF_FIELD') then
   do i_mode = 1, size(rf_mode)
 
     mode => rf_mode(i_mode)
-    allocate (mode%fit)
+    allocate (mode%map)
 
     ! Expect "MODE = {"
 
@@ -743,7 +743,7 @@ if (attrib_word == 'RF_FIELD') then
         endif
         do_evaluate = .false.
 
-      case ('E_RE', 'E_IM', 'B_RE', 'B_IM')
+      case ('E_COEF_RE', 'E_COEF_IM', 'B_COEF_RE', 'B_COEF_IM')
         ! Expect "("
         call get_next_word (word, ix_word, ',({', delim, delim_found)
         if (word /= '' .or. delim /= '(') then
@@ -766,19 +766,19 @@ if (attrib_word == 'RF_FIELD') then
           if (delim == ')') exit
         enddo
 
-        if (allocated(mode%fit%term)) then
-          if (size(mode%fit%term) /= i_term) then
+        if (allocated(mode%map%term)) then
+          if (size(mode%map%term) /= i_term) then
             call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
         else
-          allocate(mode%fit%term(i_term))
+          allocate(mode%map%term(i_term))
         endif
 
         select case (word2)
-        case ('E_RE', 'E_IM'); c_ptr => mode%fit%term%e 
-        case ('B_RE', 'B_IM'); c_ptr => mode%fit%term%b
+        case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => mode%map%term%e_coef 
+        case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => mode%map%term%b_coef
         end select
 
         if (word2(3:4) == 'RE') then
@@ -813,7 +813,7 @@ if (attrib_word == 'RF_FIELD') then
       case ('THETA_T0');      r_ptr => mode%theta_t0
       case ('STORED_ENERGY'); r_ptr => mode%stored_energy
       case ('PHI_0');         r_ptr => mode%phi_0
-      case ('DZ');            r_ptr => mode%fit%dz
+      case ('DZ');            r_ptr => mode%map%dz
       case ('FIELD_SCALE');   r_ptr => mode%field_scale
 
 

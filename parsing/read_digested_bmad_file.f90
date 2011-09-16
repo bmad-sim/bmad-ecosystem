@@ -381,10 +381,10 @@ if (n_rf_field_mode > 0) then
     read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
                                  mode%m, mode%phi_0, mode%field_scale 
     if (nf > 0) then
-      allocate (mode%fit)
-      allocate (mode%fit%term(nf))
-      read (d_unit, err = 9140) mode%fit%file, mode%fit%dz
-      read (d_unit, err = 9140) mode%fit%term
+      allocate (mode%map)
+      allocate (mode%map%term(nf))
+      read (d_unit, err = 9140) mode%map%file, mode%map%dz
+      read (d_unit, err = 9140) mode%map%term
     endif
 
     if (ng > 0) then

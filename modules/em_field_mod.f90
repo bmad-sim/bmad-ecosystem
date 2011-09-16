@@ -179,7 +179,7 @@ type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
 type (em_field_point_struct) :: local_field
 type (rf_field_mode_struct), pointer :: mode
-type (rf_field_fit_term_struct), pointer :: term
+type (rf_field_map_term_struct), pointer :: term
 
 real(rp) :: x, y, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
@@ -611,11 +611,11 @@ case(rfcavity$, lcavity$)
       Er = 0; Ep = 0; Ez = 0
       Br = 0; Bp = 0; Bz = 0
 
-      do n = 1, size(mode%fit%term)
+      do n = 1, size(mode%map%term)
 
-        term => mode%fit%term(n)
-        k_zn = twopi * (n - 1) / (size(mode%fit%term) * mode%fit%dz)
-        if (2 * n > size(mode%fit%term)) k_zn = k_zn - twopi / mode%fit%dz
+        term => mode%map%term(n)
+        k_zn = twopi * (n - 1) / (size(mode%map%term) * mode%map%dz)
+        if (2 * n > size(mode%map%term)) k_zn = k_zn - twopi / mode%map%dz
 
         expi = cmplx(cos(k_zn * s_pos), sin(k_zn * s_pos))
 
@@ -631,13 +631,13 @@ case(rfcavity$, lcavity$)
           Im_0    = I_bessel(0, kap_rho)
           Im_plus = I_bessel(1, kap_rho) / kappa_n
 
-          Er = Er - term%e * Im_plus * expi * I_imaginary * k_zn
-          Ep = Ep + term%b * Im_plus * expi
-          Ez = Ez + term%e * Im_0    * expi
+          Er = Er - term%e_coef * Im_plus * expi * I_imaginary * k_zn
+          Ep = Ep + term%b_coef * Im_plus * expi
+          Ez = Ez + term%e_coef * Im_0    * expi
 
-          Br = Br - term%b * Im_plus * expi * k_zn
-          Bp = Bp - term%e * Im_plus * expi * k_t**2 * I_imaginary
-          Bz = Bz - term%b * Im_0    * expi * I_imaginary
+          Br = Br - term%b_coef * Im_plus * expi * k_zn
+          Bp = Bp - term%e_coef * Im_plus * expi * k_t**2 * I_imaginary
+          Bz = Bz - term%b_coef * Im_0    * expi * I_imaginary
 
         else
           cm = expi * cos(m * phi - mode%phi_0)
@@ -649,15 +649,15 @@ case(rfcavity$, lcavity$)
           Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
           Im_0    = radius * Im_0_R       
 
-          Er = Er - i_imaginary * (k_zn * term%e * Im_plus + term%b * Im_0_R) * cm
-          Ep = Ep - i_imaginary * (k_zn * term%e * Im_plus + term%b * (Im_0_R - Im_minus / m)) * sm
-          Ez = Ez + term%e * Im_0 * cm
+          Er = Er - i_imaginary * (k_zn * term%e_coef * Im_plus + term%b_coef * Im_0_R) * cm
+          Ep = Ep - i_imaginary * (k_zn * term%e_coef * Im_plus + term%b_coef * (Im_0_R - Im_minus / m)) * sm
+          Ez = Ez + term%e_coef * Im_0 * cm
    
-          Br = Br + i_imaginary * sm * (term%e * (m * Im_0_R + k_zn**2 * Im_plus) + &
-                                        term%b * k_zn * (m * Im_0_R - Im_minus / m))
-          Bp = Bp + i_imaginary * cm * (term%e * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
-                                        term%b * k_zn * Im_0_R)
-          Bz = Bz +               sm * (-term%e * k_zn * Im_0 + term%b * kappa2_n * Im_0 / m)
+          Br = Br + i_imaginary * sm * (term%e_coef * (m * Im_0_R + k_zn**2 * Im_plus) + &
+                                        term%b_coef * k_zn * (m * Im_0_R - Im_minus / m))
+          Bp = Bp + i_imaginary * cm * (term%e_coef * (Im_minus - (k_zn**2 + k_t**2) * Im_plus) / 2 - &
+                                        term%b_coef * k_zn * Im_0_R)
+          Bz = Bz +               sm * (-term%e_coef * k_zn * Im_0 + term%b_coef * kappa2_n * Im_0 / m)
 
 
        endif

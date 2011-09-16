@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/aperture_shape/aperture_type/g;
+    s/\%fit/\%map/g;
 
     print (F_OUT);
   }
