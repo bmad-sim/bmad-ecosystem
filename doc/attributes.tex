@@ -805,7 +805,7 @@ element. If there is a difference, the field is assumed to be centered
 on the element and drifts will be used at the entrance and exit ends
 of the element to make up the difference.
 
-Alternatively, a grid of field points may be specified as
+Alternatively, a grid of field points may be specified. The general format is:
 \begin{example}
   grid = \{ 
     type = <String>,
@@ -814,7 +814,16 @@ Alternatively, a grid of field points may be specified as
     pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  !Grid field points
     \ldots \}
 \end{example}
-Currently the only available type is \vn{rotationally_symmetric_2d_z}.
+Currently the only available type is \vn{rotationally_symmetric_rz}. The format for this type of grid is 
+\begin{example}
+  grid = \{ 
+    type = rotationally_symmetric_rz,
+    r0   = ( <r(0,0)>,  <z(0,0)>),     !Grid origin 
+    dr   = ( <delta_r>, <delta_z>),  !Grid spacing
+    pt(i_r, i_z) = ( (<Re(E_r)>, <Im(E_r) ), \ldots ),  !Grid field points
+    \ldots \}
+\end{example}
+
 
 The field of a given mode oscillates as given by Eq.~\ref{eseei}  
 \Begineq
