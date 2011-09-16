@@ -269,15 +269,15 @@ if (associated(ele%rf%field)) then
       nl=nl+1; write (li(nl), '(a, es16.8)') '    theta_t0:    ', rfm%theta_t0
       nl=nl+1; write (li(nl), '(a, es16.8)') '    phi_0:       ', rfm%phi_0
       nl=nl+1; write (li(nl), '(a, es16.8)') '    field_scale: ', rfm%field_scale
-      if (associated(rfm%fit)) then
-        nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%fit%dz
+      if (associated(rfm%map)) then
+        nl=nl+1; write (li(nl), '(a, es16.8)') '    dz:          ', rfm%map%dz
         nl=nl+1; write (li(nl), '(a)')         '  Term                e                           b'
-        do j = 1, min(10, size(rfm%fit%term))
+        do j = 1, min(10, size(rfm%map%term))
           if (nl+1 > size(li)) call re_associate(li, 2 * nl)
           nl=nl+1; write (li(nl), '(i5, 3x, 2(a, 2es12.4), a)') j, &
-                                             '(', rfm%fit%term(j)%e, ')  (', rfm%fit%term(j)%b, ')'
+                                             '(', rfm%map%term(j)%e_coef, ')  (', rfm%map%term(j)%b_coef, ')'
         enddo
-        if (size(rfm%fit%term) > 10) then
+        if (size(rfm%map%term) > 10) then
           nl=nl+1; li(nl) = '     .... etc ...'
         endif
       endif

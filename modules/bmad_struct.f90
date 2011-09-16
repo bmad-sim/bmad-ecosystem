@@ -129,14 +129,14 @@ type rf_wake_struct
   real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
 end type
 
-type rf_field_fit_term_struct
-  complex(rp) :: e = 0, b = 0
+type rf_field_map_term_struct
+  complex(rp) :: e_coef = 0, b_coef = 0
 end type
 
-type rf_field_mode_fit_struct
+type rf_field_mode_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   real(rp) :: dz = 0            ! Distance between sampled field points.
-  type (rf_field_fit_term_struct), allocatable :: term(:)
+  type (rf_field_map_term_struct), allocatable :: term(:)
 end type
 
 type em_field_point_struct
@@ -158,7 +158,7 @@ end type
 !   "Numerical computation of high-order transfer maps for rf cavities."
 
 ! Note: Unlike most everything else, to save on space, different ele%field%mode%grid
-! and ele%field%mode%fit pointers may point to the same memeory location. 
+! and ele%field%mode%map pointers may point to the same memeory location. 
 ! This being the case, these components are never deallocated.
 
 type rf_field_mode_struct
@@ -169,7 +169,7 @@ type rf_field_mode_struct
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
-  type (rf_field_mode_fit_struct), pointer :: fit => null()
+  type (rf_field_mode_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
 

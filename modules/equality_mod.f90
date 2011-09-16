@@ -221,18 +221,18 @@ is_eq = (f1%freq == f2%freq) .and. (f1%f_damp == f2%f_damp) .and. (f1%theta_t0 =
         (f1%field_scale == f2%field_scale)
 if (.not. is_eq) return
 
-is_eq  = (associated(f1%fit) .eqv. associated(f2%fit))
+is_eq  = (associated(f1%map) .eqv. associated(f2%map))
 is_eq  = (associated(f1%grid) .eqv. associated(f2%grid))
 if (.not. is_eq) return
 
-if (associated(f1%fit)) is_eq = is_eq .and. (size(f1%fit%term) == size(f2%fit%term))
+if (associated(f1%map)) is_eq = is_eq .and. (size(f1%map%term) == size(f2%map%term))
 if (associated(f1%grid)) is_eq = is_eq .and. (size(f1%grid%pt) == size(f2%grid%pt))
 if (.not. is_eq) return
 
 ! Notice that file names do not have to be the same
 
-if (associated(f1%fit)) then
-  is_eq = (f1%fit%dz == f2%fit%dz) .and. all(f1%fit%term%e == f2%fit%term%e) .and. all(f1%fit%term%b == f2%fit%term%b) 
+if (associated(f1%map)) then
+  is_eq = (f1%map%dz == f2%map%dz) .and. all(f1%map%term%e_coef == f2%map%term%e_coef) .and. all(f1%map%term%b_coef == f2%map%term%b_coef) 
 endif
 
 if (associated(f1%grid)) then

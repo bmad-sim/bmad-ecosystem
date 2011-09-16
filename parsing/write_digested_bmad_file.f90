@@ -278,14 +278,14 @@ if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
     mode => ele%rf%field%mode(i)
     nf = 0
-    if (associated(mode%fit)) nf = size(mode%fit%term)
+    if (associated(mode%map)) nf = size(mode%map%term)
     ng = 0
     if (associated(mode%grid)) ng = size(mode%grid%pt)
     write (d_unit) nf, ng, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
                                     mode%m, mode%phi_0, mode%field_scale
     if (nf > 0) then
-      write (d_unit) mode%fit%file, mode%fit%dz
-      write (d_unit) mode%fit%term
+      write (d_unit) mode%map%file, mode%map%dz
+      write (d_unit) mode%map%term
     endif
 
     if (ng > 0) then
