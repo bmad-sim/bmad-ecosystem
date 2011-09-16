@@ -392,7 +392,7 @@ if (n_rf_field_mode > 0) then
       read (d_unit, err = 9140) n1, n2, n3, mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
       allocate (mode%grid%pt(n1, n2, n3))
       do j = 1, n3
-        write (d_unit, err = 9140) mode%grid%pt(:,:,j)
+        read (d_unit, err = 9140) mode%grid%pt(:,:,j)
       enddo
     endif
 
