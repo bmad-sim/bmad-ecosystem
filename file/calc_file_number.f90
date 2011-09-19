@@ -52,7 +52,8 @@ subroutine calc_file_number (file_name, num_in, num_out, err_flag)
   open (unit = lun, file = f_name, status = 'old',  &
                                        action = 'read', iostat = ios)
   if (ios /= 0) then
-    print *, 'ERROR IN CALC_FILE_NUMBER: FILE DOES NOT EXIST: ', f_name
+    print *, 'ERROR IN CALC_FILE_NUMBER: FILE DOES NOT EXIST: '
+    print *, '      ', trim(f_name)
     call err_exit
   endif
 
@@ -60,7 +61,7 @@ subroutine calc_file_number (file_name, num_in, num_out, err_flag)
   close (unit = lun)
   if (ios /= 0) then
     print *, 'ERROR IN CALC_FILE_NUM_OUT: CANNOT READ NUM_OUT IN FILE: '
-    print *, '     ', f_name
+    print *, '     ', trim(f_name)
     call err_exit
   endif
 
