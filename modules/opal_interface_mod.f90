@@ -11,7 +11,6 @@ contains
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
 
-!test
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -152,31 +151,55 @@ ele_loop: do ie = ix_start, ix_end
 	!Element attributes
 	select case (ele%key)
 
+	!----------------------------------------------------------
 	!Marker -----------------------------------
+	!----------------------------------------------------------
     case (marker$)
         write (line, '(a)' ) trim(ele%name) // ': marker'
 
+	!----------------------------------------------------------
 	!Drift -----------------------------------   
+	!----------------------------------------------------------
      case (drift$, instrument$)
         write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
 
+	!----------------------------------------------------------
 	!Sbend -----------------------------------       
+	!----------------------------------------------------------
      case (sbend$)
-        write (line, '(a, es13.5)') trim(ele%name) // ': sbend, l =', val(l$)
+        write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
         call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
         call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
         call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
         call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
 		call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
-
+	!----------------------------------------------------------
 	!Quadrupole -----------------------------------   
+	!----------------------------------------------------------
      case (quadrupole$)
         write (line, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
         !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
         call value_to_line (line, q_sign*val(b1_gradient$), 'k1', rfmt, 'R')
 		call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+		
+	!----------------------------------------------------------
+	!Lcavity -----------------------------------
+	!----------------------------------------------------------
+    case (lcavity$)
+      !Check that there is a map or grid associated to make a decent field grid for OPAL
+	  if (.not. associated(ele%rf%field) ) then
+	    call out_io (s_error$, r_name, 'MISSING OPAL FIELD GRID CODE FOR: ' // key_name(ele%key), &
+                                     '----')
+      endif
+      
+      write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "standing", l =', val(l$)
+      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+        
 
+        
+	!----------------------------------------------------------
 	!Default -----------------------------------
+	!----------------------------------------------------------
      case default
         call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
@@ -220,6 +243,138 @@ if (present(err)) err = .false.
 
 end subroutine write_opal_lattice_file
 
+
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine write_opal_field_grid_file (opal_file_unit, ele, param, err)
+!
+! Subroutine to write an OPAL lattice file using the information in
+! a lat_struct. Optionally only part of the lattice can be generated.
+!
+! Modules needed:
+!   ?? use write_lat_file_mod
+!
+! Input:
+!   opal_file_unit -- Integer: unit number to write to
+!   ele            -- ele_struct: element to make map
+!   param          -- lat_param_struct: Contains lattice information
+!
+! Output:
+!   err    -- Logical, optional: Set True if, say a file could not be opened.
+!-
+
+
+
+subroutine write_opal_field_grid_file (opal_file_unit, ele, param, err)
+
+implicit none
+
+
+integer			:: opal_file_unit
+integer         :: dimensions
+type (ele_struct) :: ele
+type (lat_param_struct) :: param
+logical, optional :: err
+character(40)	:: r_name = 'write_opal_field_grid_file'
+character(10)   ::  rfmt 
+
+
+type (coord_struct) :: orb
+type(em_field_struct) :: field_re, field_im
+real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max
+real(rp) :: freq, x, z, Ez, Ex, By
+
+integer :: nx, nz, iz, ix
+
+real(rp) :: Ex_factor, Ez_factor, By_factor
+
+logical loc_ref_frame
+
+!
+
+if (present(err)) err = .true.
+
+
+loc_ref_frame = .true. 
+
+!Format for numbers
+  rfmt = 'es13.5'
+  
+select case (ele%key)
+
+  case (lcavity$) 
+                                         
+    freq = ele%value(rf_frequency$)
+
+    !TODO: pass these parameters in somehow
+    x_step = 0.001_rp
+    z_step = 0.001_rp
+
+    x_min = 0.0_rp
+    x_max = 0.04_rp
+
+    z_min = 0.0_rp
+    z_max = ele%value(L$)
+
+    nx = ceiling(x_max/x_step)  
+    nz = ceiling(z_max/z_step)
+
+  !Example
+  !2DDynamic XZ
+  !0.	100.955	743   #zmin(cm),  zmax(cm).   nz - 1
+  !1300.              #freq (MHz)
+  !-0.10158700000000001	4.793651666666666	11    # rmin(cm),  rmax(cm),   nr-1
+  !
+  !-547.601	-9.64135	0	-20287.798905810083   ! Ez(t0), Er(t0), dummy->0.0, -10^6 / mu_0 * B_phi (t + 1/4 1/f) 
+
+  !Scaling for T7 format
+  Ex_factor = 1
+  Ez_factor = 1
+  By_factor = -1e6_rp / (fourpi * 1e-7)
+
+  !Write header
+  write (opal_file_unit, '(3a)') ' 2DDynamic XZ', '# Created from ele: ', trim(ele%name)
+  write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '# z_min (cm), z_max (cm), n_z_points -1'
+  write (opal_file_unit, '('//rfmt//', a)') 1e-6 * freq, ' # frequency (MHz)'
+  write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '# x_min (cm), x_max (cm), n_x_points -1'
+
+  !Write data points
+  do ix = 0, nx
+    do iz = 0, nz
+      x = x_step * ix
+      z = z_step * iz 
+      orb%vec(1) = x
+      
+      !Calculate field at \omegat*t=0 and \omega*t = \pi/2 to get real and imaginary parts
+      call em_field_calc (ele, param, z, 0.0_rp   , orb, loc_ref_frame, field_re)
+      call em_field_calc (ele, param, z, 0.25/freq, orb, loc_ref_frame, field_im)
+      
+      !Get maximum field amplitudes
+      Ex =  sqrt(  field_re%E(1)**2 + field_im%E(1)**2 )
+      Ez =  sqrt(  field_re%E(3)**2 + field_im%E(3)**2 )
+      By =  sqrt(  field_re%E(2)**2 + field_im%E(2)**2 )
+      
+      !Output maximum fields
+      write (opal_file_unit, '(4'//rfmt//')') Ez_factor*sign(Ez,field_re%E(3)),  Ex_factor*sign(Ex, field_re%E(1)), &
+                                             0.0, By_factor*sign(By, field_im%B(2))
+    
+    end do
+  end do
+  
+
+  case default
+  call out_io (s_error$, r_name, 'MISSING OPAL FIELD GRID CODE FOR: ' // key_name(ele%key), &
+             '----')
+  call err_exit
+  
+end select 
+
+
+
+end subroutine write_opal_field_grid_file
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
