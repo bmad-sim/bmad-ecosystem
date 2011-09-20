@@ -281,7 +281,7 @@ logical, optional :: err
 character(40)	:: r_name = 'write_opal_field_grid_file'
 character(10)   ::  rfmt 
 
-
+!XXXXX
 type (coord_struct) :: orb
 type(em_field_struct) :: field_re, field_im
 real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max
