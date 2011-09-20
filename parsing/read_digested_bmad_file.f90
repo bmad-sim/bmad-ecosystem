@@ -334,7 +334,7 @@ type (ele_struct), target :: ele
 type (rf_field_mode_struct), pointer :: mode
 type (old_coord_struct) map_in, map_out
 
-integer i, j, n1, n2, n3, nf, ng, ix_ele, n_wall_section
+integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, n_wall_section
 integer n_rf_field_mode, i_min(3), i_max(3)
 integer ix_wig, ix_const, ix_r, idum1, idum2, idum3, idum4, ix_d, ix_m, ix_t(6), ios, k_max
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
@@ -389,9 +389,10 @@ if (n_rf_field_mode > 0) then
 
     if (ng > 0) then
       allocate (mode%grid)
-      read (d_unit, err = 9140) n1, n2, n3, mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
-      allocate (mode%grid%pt(n1, n2, n3))
-      do j = 1, n3
+      read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, &
+                                mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
+      allocate (mode%grid%pt(lb1:ub1, lb2:ub2, lb3:ub3))
+      do j = lb3, ub3
         read (d_unit, err = 9140) mode%grid%pt(:,:,j)
       enddo
     endif
