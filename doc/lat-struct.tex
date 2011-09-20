@@ -111,11 +111,15 @@ branch index of the branch that the $i$\Th branch branched off from.
 \vn{%branch(j)%ele(:)} array of the \vn{branch} or \vn{photon_branch}
 element that marks the beginning of the $i$\Th branch. Example:
 \begin{example}
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: ele
   ...
   ib = lat%branch(3)%ix_from_branch
   ie = lat%branch(3)%ix_from_ele
-  !! lat%branch(ib)%ele(ie) is the branch or photon_branch element for lat%branch(3)
+  ! ele is the branch or photon_branch element for lat%branch(3)
+  ele => lat%branch(ib)%ele(ie)
+  ! This is the same as the above.
+  ele => pointer_to_ele(lat%branch(3)%ix_from_branch, lat%branch(3)%ix_from_ele)
 \end{example}
 
 \index{lat_struct!\%ele(:)}

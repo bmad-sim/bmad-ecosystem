@@ -289,8 +289,9 @@ if (n_rf_field_mode > 0) then
     endif
 
     if (ng > 0) then
-      write (d_unit) (size(mode%grid%pt, j), j = 1, 3), mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
-      do j = 1, size(mode%grid%pt, 3)
+      write (d_unit) (lbound(mode%grid%pt, j), ubound(mode%grid%pt, j), j = 1, 3), &
+                      mode%grid%type, mode%grid%file, mode%grid%dr, mode%grid%r0
+      do j = lbound(mode%grid%pt, 3), ubound(mode%grid%pt, 3)
         write (d_unit) mode%grid%pt(:,:,j)
       enddo
     endif
