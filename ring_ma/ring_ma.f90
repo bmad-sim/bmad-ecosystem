@@ -139,7 +139,7 @@ program ring_ma
   n_bpms = size(bpm)
 
   ! if CESR-type lattice, assign bpm(:)%ix_db indices
-  if (match_reg(design_ring%name, "CESR")) then
+  if (match_reg(design_ring%use_name, "CESR")) then
      call bmad_to_cesr(design_ring, cesr)
      jx = 1
      do i = 1, ubound(cesr%det,1)
