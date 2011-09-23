@@ -24,7 +24,7 @@ contains
 ! All longitudial quantities (for example, the value of ks for a solenoid) 
 ! are flipped in sign for the reversed lat. 
 ! This means that the appropriate transformation from particle coordinates
-! in one lat the corrisponding coordinates in the other is:
+! in one lat to the corrisponding coordinates in the other is:
 !     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
 !
 ! Note: The Twiss parameters will not be correct for the reversed lat.

@@ -64,7 +64,8 @@ lattice will be:
   (d, a, c, e)
 \end{example}
 
-A member that is a Line or List can be reflected 
+\index{reflection of elements}
+A member that is a Line or List can be ``reflected''
 (elements taken in reverse order) if
 a negative sign is put in front of it. For example:
 \begin{example}
@@ -86,6 +87,14 @@ example:
 \begin{example}
   (d, c, b, z, y, e)
 \end{example}
+\index{sbend}\index{rbend}
+Notice that reflection only reverses the order of the elements in the
+expanded list and does {\em not} indicate that elements are physically
+``flipped'' so that the entrance end becomes the exit end and vice
+versa. This only matters with elements that are not symmetric back to
+front. For example, to physically traverse an \vn{sbend} or \vn{rbend}
+element backwards, the sign of the bending angle must be flipped and
+the face angles \vn{e1} and \vn{e2} must be interchanged, etc.
 
 A repetition count, which is an integer followed by an asterisk, 
 means that the member is
@@ -280,7 +289,7 @@ define the source point for X-ray beams.  Example:
 \begin{example}
   erl: line = (..., dump, ...)               ! Define the root lattice with a branch 
   use, erl
-  dump: branch, to = d_line, direction = -1  ! Define the branch point
+  dump: branch, to = d_line                  ! Define the branch point
 
   d_line: line = (..., q3d, ...)             ! Define the branch line
 \end{example}
