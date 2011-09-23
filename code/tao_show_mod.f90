@@ -465,14 +465,20 @@ case ('branches')
     return
   endif
 
-  nl=nl+1; lines(nl) = '                        N_ele  N_ele    From  From  From Ele'
-  nl=nl+1; lines(nl) = 'Ix  Name                Track    Max  Branch   Ele  Name'
+  nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele   From                Branch'
+  nl=nl+1; lines(nl) = ' Index  Name                  Track    Max   Branch           Ele Index'
+
+
+  branch => lat%branch(0)
+  nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7)') &
+                0, branch%name, branch%n_ele_track, branch%n_ele_max
+
   do i = 1, ubound(lat%branch, 1)
     branch => lat%branch(i)
-    nl=nl+1; write (lines(nl), '(i2, 2x, a21, 1x, i3, i7, i8, i6, 2x, a)') &
-                i, branch%name, branch%n_ele_track, &
-                branch%n_ele_max, branch%ix_from_branch, branch%ix_from_ele, &
-                lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)%name
+    ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+    nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7, 3x, a20, i6)') &
+                i, branch%name, branch%n_ele_track, branch%n_ele_max, &
+                lat%branch(ele%ix_branch)%name, branch%ix_from_ele
   enddo
 
   result_id = show_what

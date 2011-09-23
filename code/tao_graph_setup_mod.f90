@@ -164,7 +164,7 @@ curve_loop: do k = 1, size(graph%curve)
   ! Calc symbol index
 
   if (curve%data_index == '') then
-    curve%ix_symb = (/ (i, i = 1, n_symb) /)
+    curve%ix_symb = [(i, i = 1, n_symb)]
   else
     call tao_data_type_substitute (curve%data_index, name, curve%ele_ref_name, graph%component)
     call tao_evaluate_expression (name, 0, .true., x, gix, err, dflt_component = graph%component)
@@ -771,6 +771,8 @@ do k = 1, size(graph%curve)
           l_tot = branch%param%total_length
           where (d1_ptr%d%s-l_tot > graph%x%min-eps .and. &
                  d1_ptr%d%s-l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
+          where (d1_ptr%d%s+l_tot > graph%x%min-eps .and. &
+                 d1_ptr%d%s+l_tot < graph%x%max+eps) d1_ptr%d%good_plot = .true.
         endif
 
       endif
@@ -798,6 +800,7 @@ do k = 1, size(graph%curve)
     ! 
 
     curve%ix_symb = pack(d1_ptr%d%ix_d1, mask = d1_ptr%d%useit_plot)
+    curve%y_symb  = pack(value_arr, mask = d1_ptr%d%useit_plot)
 
     if (plot%x_axis_type == 'index') then
       curve%x_symb = curve%ix_symb
@@ -808,11 +811,8 @@ do k = 1, size(graph%curve)
       ! If there is a wrap-around then reorder data
       if (branch%param%lattice_type == circular_lattice$) then
         do i = 1, n_dat
-          if (curve%x_symb(i) > graph%x%max+eps .and. curve%x_symb(i)-l_tot > graph%x%min-eps) then
-            curve%ix_symb = (/ curve%ix_symb(i:), curve%ix_symb(:i-1) /)
-            curve%x_symb = (/ curve%x_symb(i:)-l_tot, curve%x_symb(:i-1) /)
-            exit
-          endif
+          if (curve%x_symb(i) > graph%x%max+eps) curve%x_symb(i) = curve%x_symb(i)-l_tot
+          if (curve%x_symb(i) < graph%x%min-eps) curve%x_symb(i) = curve%x_symb(i)+l_tot
         enddo
       endif
       ! Super lords will be out of order so reorder in increasing s.
@@ -820,6 +820,7 @@ do k = 1, size(graph%curve)
         do j = i, 2, -1
           if (curve%x_symb(j-1) > curve%x_symb(j)) then
             call swap(curve%x_symb(j-1), curve%x_symb(j))
+            call swap(curve%y_symb(j-1), curve%y_symb(j))
             call swap(curve%ix_symb(j-1), curve%ix_symb(j))
           else
             exit
@@ -832,9 +833,6 @@ do k = 1, size(graph%curve)
       return
     endif
 
-    ! calculate the y-axis data point values.
-
-    curve%y_symb = pack(value_arr, mask = d1_ptr%d%useit_plot)
 
   !----------------------------------------------------------------------------
   ! Case: data_source is a var_array
@@ -1125,7 +1123,7 @@ do k = 1, size(graph%curve)
       ! If there is a wrap-around then reorder the data
       do i = 1, n_dat
         if (branch%ele(eles(i)%ele%ix_ele)%s - l_tot > graph%x%min) then
-          eles = (/ eles(i:), eles(:i-1) /)
+          eles = [eles(i:), eles(:i-1)]
           exit
         endif
       enddo
@@ -1459,7 +1457,7 @@ do ii = 1, size(curve%x_line)
     if (ii == 1) call mat_make_unit (mat6)
     call mat6_from_s_to_s (lat, mat6, vec0, s_last, s_now, unit_start = .false.)
     call make_v_mats (ele_ref, v_mat, v_inv_mat)
-    eta_vec = (/ ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap /)
+    eta_vec = [ele_ref%a%eta, ele_ref%a%etap, ele_ref%b%eta, ele_ref%b%etap]
     eta_vec = matmul (v_mat, eta_vec)
     one_pz = 1 + orb_ref%vec(6)
     eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
