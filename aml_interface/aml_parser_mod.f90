@@ -230,7 +230,7 @@ call read_digested_bmad_file (digested_file, lat, digested_version)
 
 if (present(use_line)) then
   call str_upcase (name, use_line)
-  if (name /= lat%name) bmad_status%ok = .false.
+  if (name /= lat%use_name) bmad_status%ok = .false.
 endif
 
 if (bmad_status%ok) then

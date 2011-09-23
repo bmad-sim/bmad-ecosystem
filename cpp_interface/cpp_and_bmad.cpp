@@ -607,7 +607,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   Int&, Int&, Int&, Int&, Int&,                        // key
   Int&, Int&, Int&, Int&,                              // slave_status
   Int&, Int&, Int&, Int&,                              // lord_status
-  Int&, Int&, Int&, Int&, Int&, Int&, Int&,            // ix_pointer
+  Int&, Int&, Int&, Int&, Int&, Int&,            // ix_pointer
   Int&, Int&, Int&, Int&,                              // aperture_at
   Int&, Int&, Int&, Int&,                              // symp
   Int&, Int&, Int&, Int&, Int&, Int&,                  // map_with_off
@@ -643,7 +643,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.key, c.sub_key, c.ix_ele, c.ix_branch, c.ix_value, 
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
     c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
-    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit, c.taylor_order, 
+    c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit,
     c.aperture_at, c.aperture_type, c.attribute_status, c.n_attribute_modify,
     c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
     c.map_with_offsets, c.field_master, c.reversed, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
@@ -670,7 +670,7 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
     Int& ix_p, Int& ixx, 
     Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
-    Int& t_ord, Int& aperture_at, Int& aperture_type, Int& attrib_stat, Int& n_attrib_modify,
+    Int& aperture_at, Int& aperture_type, Int& attrib_stat, Int& n_attrib_modify,
     Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
     Int& field_master, Int& reversed, Int& is_on, Int& old_is_on, Int& logic, Int& bmad_logic, Int& on_a_gird, 
     Int& csr_calc, Int& offset_moves_ap) {
@@ -738,7 +738,6 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.tracking_method       = tracking;
   c.field_calc            = field_calc;
   c.ref_orbit             = ref_orbit;
-  c.taylor_order          = t_ord;
   c.aperture_at           = aperture_at;
   c.aperture_type         = aperture_type;
   c.attribute_status      = attrib_stat;
@@ -821,7 +820,6 @@ C_ele& C_ele::operator= (const C_ele& c) {
   tracking_method       = c.tracking_method;
   field_calc            = c.field_calc;
   ref_orbit             = c.ref_orbit;
-  taylor_order          = c.taylor_order;
   aperture_at           = c.aperture_at;
   aperture_type        = c.aperture_type;
   attribute_status      = c.attribute_status;
@@ -878,14 +876,14 @@ extern "C" void control_from_lat_to_f2_(lat_struct*, Int&, C_control&);
 
 
 extern "C" void lat_to_f_(C_lat& c, lat_struct* f) {
-  const char* name  = c.name.data();            int n_name = c.name.size();
+  const char* use_name  = c.use_name.data();    int n_name = c.use_name.size();
   const char* lat   = c.lattice.data();         int n_lat = c.lattice.size();
   const char* file  = c.input_file_name.data(); int n_file = c.input_file_name.size();
   const char* title = c.title.data();           int n_title = c.title.size();
   int n_con = c.control.size();
   int n_ic  = c.ic.size();
   int n_ele_max = c.ele.size() - 1;
-  lat_to_f2_(f, name, n_name, lat, n_lat, file, n_file, title, n_title,
+  lat_to_f2_(f, use_name, n_name, lat, n_lat, file, n_file, title, n_title,
       c.a, c.b, c.z, c.param, 
       c.version, c.n_ele_track, c.n_ele_max, n_ele_max, c.n_control_max, 
       c.n_ic_max, c.input_taylor_order, c.ele_init, n_con, &c.ic[0], n_ic);
@@ -897,12 +895,12 @@ extern "C" void lat_to_f_(C_lat& c, lat_struct* f) {
   }
 }
 
-extern "C" void lat_to_c2_(C_lat& c, char* name, char* lat, char* file,
+extern "C" void lat_to_c2_(C_lat& c, char* use_name, char* lat, char* file,
     char* title, mode_info_struct* a, mode_info_struct* b, mode_info_struct* z,
     lat_param_struct* param, Int& ver, Int& n_track, Int& n_max, Int& n_maxx, 
     Int& n_con_max, Int& n_ic_max, Int& n_taylor, 
     ele_struct* ele_init, Int& n_con_array, IntArr ic, Int& n_ic_array) {
-  c.name                = name;
+  c.use_name            = use_name;
   c.lattice             = lat;
   c.input_file_name     = file;
   c.title               = title;
@@ -941,7 +939,7 @@ void operator>> (lat_struct* f, C_lat& c) {
 }
 
 C_lat& C_lat::operator= (const C_lat& c) {
-  name               = c.name;
+  use_name           = c.use_name;
   lattice            = c.lattice;
   input_file_name    = c.input_file_name;
   title              = c.title;

@@ -123,12 +123,15 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), optional :: ele
-type (ele_struct), pointer :: slave, lord
+type (ele_struct), pointer :: slave, lord, branch_ele
+type (branch_struct), pointer :: branch
 
 integer ie, ib, j, n1, n2
 
 logical, optional :: super_and_multipass_only
-logical sm_only, did_bookkeeping
+logical sm_only, did_bookkeeping, did_set
+
+character(20), parameter :: r_name = 'control_bookkeeper'
 
 ! Check that super_slave lengths add up to the super_lord_length.
 ! With super_only (used by lattice_bookkeeper) this check has already been
@@ -178,6 +181,41 @@ do
     lat%ele(ie)%bmad_logic = .true.  ! Done this element
   enddo ie_loop
   if (did_bookkeeping) exit  ! And we are done
+enddo
+
+! branch elements store parameters like the lattice_type for the branch
+
+do ib = 1, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+  branch%param%particle = nint(branch_ele%value(particle$))
+  branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
+
+  did_set = .false.
+
+  if (branch_ele%value(E_tot_start$) == 0) then
+    branch%ele(0)%value(E_tot$) = branch_ele%value(E_tot$)
+  else
+    branch%ele(0)%value(E_tot$) = branch_ele%value(E_tot_start$)
+    did_set = .true.
+  endif
+
+  if (branch_ele%value(p0c_start$) == 0) then
+    branch%ele(0)%value(p0c$) = branch_ele%value(p0c$)
+  else
+    branch%ele(0)%value(p0c$) = branch_ele%value(p0c_start$)
+    did_set = .true.
+  endif
+
+  if (.not. did_set .and. mass_of(branch%param%particle) /= &
+                          mass_of(lat%branch(branch_ele%ix_branch)%param%particle)) then
+    call out_io (s_fatal$, r_name, &
+      'E_TOT_START OR P0C_START MUST BE SET IN A BRANCHING ELEMENT IF THE PARTICLE IN ', &
+      'THE "FROM" BRANCH IS DIFFERENT FROM THE PARTICLE IN THE "TO" BRANCH.', &
+      'PROBLEM OCCURS WITH BRANCH ELEMENT: ' // branch_ele%name) 
+    call err_exit
+  endif
+
 enddo
 
 ! and now the slaves in the tracking lattice
@@ -2533,6 +2571,8 @@ end subroutine changed_attribute_bookkeeper
 !+
 ! Subroutine transfer_lat_taylors (lat_in, lat_out, type_out, transfered_all)
 !
+! Note: This routine is depracated.  DO NOT USE.
+!
 ! Subroutine to transfer the taylor maps from the elements of one lattice to
 ! the elements of another. The elements are matched between the lattices so 
 ! that the appropriate element in lattice_out will get the correct Taylor map
@@ -2591,7 +2631,7 @@ endif
 n_in = 0
 do i = 1, lat_in%n_ele_max
   if (associated(lat_in%ele(i)%taylor(1)%term)) then
-    if (bmad_com%taylor_order > lat_in%ele(i)%taylor_order) cycle
+    if (bmad_com%taylor_order > lat_in%input_taylor_order) cycle
     n_in = n_in + 1
     ix_in(n_in) = i
   endif

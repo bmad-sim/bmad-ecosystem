@@ -365,8 +365,12 @@ enddo
 
 !
 
-call init_attrib (photon_branch$, direction$,  'DIRECTION')
-call init_attrib (photon_branch$, to$,         'TO')
+call init_attrib (photon_branch$, direction$,            'DIRECTION')
+call init_attrib (photon_branch$, to$,                   'TO')
+call init_attrib (photon_branch$, particle$,             'PARTICLE')
+call init_attrib (photon_branch$, lattice_type$,         'LATTICE_TYPE')
+call init_attrib (photon_branch$, E_tot_start$,          'E_TOT_START')
+call init_attrib (photon_branch$, p0c_start$,            'P0C_START')
 
 attrib_array(branch$, :) = attrib_array(photon_branch$, :)
 
@@ -409,6 +413,7 @@ call init_attrib (def_parameter$, ran_seed$,               'RAN_SEED')
 call init_attrib (def_parameter$, n_part$,                 'N_PART')
 call init_attrib (def_parameter$, particle$,               'PARTICLE')
 call init_attrib (def_parameter$, aperture_limit_on$,      'APERTURE_LIMIT_ON')
+call init_attrib (def_parameter$, root_branch_name$,       'ROOT_BRANCH_NAME') 
 
 call init_attrib (def_beam$, particle$,                    'PARTICLE')
 call init_attrib (def_beam$, e_tot$,                       'ENERGY')
@@ -875,10 +880,10 @@ select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM', &
       'NEGATIVE_GRAZE_ANGLE')
   attrib_type = is_logical$
-case ('PARTICLE', 'TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
       'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')
   attrib_type = is_integer$
-case ('COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION')
+case ('PARTICLE', 'COUPLER_AT', 'ATTRIBUTE_TYPE', 'REF_POLARAIZATION', 'LATTICE_TYPE')
   attrib_type = is_name$
 case default
   attrib_type = is_real$
@@ -1034,6 +1039,22 @@ logical, optional :: is_default
 !
 
 select case (attrib_name)
+
+case ('PARTICLE')
+  attrib_val_name = particle_name(nint(attrib_value))
+  if (present(is_default)) then
+    if (ele%key == photon_branch$) then
+      is_default = (nint(attrib_value) == photon$)
+    else
+      is_default = .false. ! Cannot tell so assume the worst.
+    endif
+  endif
+
+case ('LATTICE_TYPE')
+  attrib_val_name = lattice_type(nint(attrib_value))
+  if (present(is_default)) then
+    is_default = (nint(attrib_value) == linear_lattice$)
+  endif
 
 case ('COUPLER_AT')
   attrib_val_name = element_end_name(nint(attrib_value))

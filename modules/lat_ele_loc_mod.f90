@@ -46,35 +46,32 @@ contains
 ! If there are multiple elements of the same name, pointers to all such elements
 ! are returned.
 !
-! loc_str is a list of element names, element indexes, or element ranges.
+! loc_str is a list of element names.
 ! A space or a comma delimits the elements.
 !
 ! An element name can be of the form
-!   {<key>::}<name> 
+!   {key::}{branch>>}ele_id
 ! Where
-!   <key>     = Optional key name ("quadrupole", "sbend", etc.)
-!   <name>    = Name of element. May contain the wild cards "*" and "%".
+!   key     = Optional key name ("quadrupole", "sbend", etc.)
+!   branch  = Name or index of branch. May contain the wild cards "*" and "%".
+!   ele_id  = Name or index of element. May contain the wild cards "*" and "%".
 !
-! An element index is of the form:
-!     {ix_branch>>}<ix_ele>
-! Where
-!   ix_branch = Optional branch name or branch index number.
 !
 ! An element range is of the form:
-!   {<key>::}<ele1>:<ele2>{:<step>}
+!   {key::}ele1:ele2{:step}
 ! Where:
-!   <key>      = Optional key name ("quadrupole", "sbend", etc.)
-!   <ele1>     = Starting element of the range. May be element name or index.
-!   <ele2>     = Ending element of the range. May be element name or index.
-!   <step>     = Optional step increment Default is 1. 
-! Note: <ele1> and <ele2> must be in the same branch.
+!   key      = Optional key name ("quadrupole", "sbend", etc.)
+!   ele1     = Starting element of the range.
+!   ele2     = Ending element of the range. 
+!   step     = Optional step increment Default is 1. 
+! Note: ele1 and ele2 must be in the same branch.
 !
 ! Examples:
-!   "quad::q*"   All quadrupoles whose name begins with "q"
-!   "*:*"        All elements.
-!   "3,5:7"      Elements with index 3, 5, 6, and 7 in branch 0.
-!   "2>>45:51"   Elements 45 through 51 of branch 2.
-!   "q1:q5"      Eleements between "q1" and "q5"
+!   "quad::x_br>>q*"   All quadrupoles of branch "x_br" whose name begins with "q"
+!   "*:*"              All elements.
+!   "3,5:7"            Elements with index 3, 5, 6, and 7 in branch 0.
+!   "2>>45:51"         Elements 45 through 51 of branch 2.
+!   "q1:q5"            Eleements between "q1" and "q5"
 ! 
 ! Modules Needed:
 !   use lat_ele_loc_mod
@@ -104,7 +101,7 @@ type (ele_struct), pointer :: ele_start, ele_end
 
 character(*) loc_str
 character(200) str
-character(50) name, name2
+character(60) name, name2
 character(1) delim
 character(20) :: r_name = 'lat_ele_locator'
 
@@ -118,6 +115,7 @@ logical err, err2, delim_found
 err = .true.
 n_loc = 0
 str = loc_str
+call str_upcase (str, str)
 in_range = 0   ! 0 -> not in range construct, 1 -> read start, 2 -> read stop
 step = 1
 key = 0
@@ -268,9 +266,27 @@ integer key
 
 logical err, do_match_wild
 
-! Read branch name or index which is everything before an '>>'.
+! init
 
 err = .true.
+
+! key::name construct
+
+ix = index(name, '::')
+if (ix == 0) then
+  key = 0
+else
+  if (name(:ix-1) == "*") then
+    key = 0
+  else
+    key = key_name_to_key_index (name(:ix-1), .true.)
+    if (key < 1) return
+  endif
+  name = name(ix+2:)
+endif
+
+! Read branch name or index which is everything before an '>>'.
+
 ix_branch = -1
 
 ixp = index(name, '>>')
@@ -283,7 +299,7 @@ if (ixp > 0) then
     endif
   else
     ix_branch = -1
-    do i = 1, ubound(lat%branch, 1)
+    do i = lbound(lat%branch, 1), ubound(lat%branch, 1)
       if (lat%branch(i)%name == name(1:ixp-1)) then
         ix_branch = i
         exit
@@ -322,22 +338,6 @@ endif
 
 do_match_wild = .false.  
 if (index(name, "*") /= 0 .or. index(name, "%") /= 0) do_match_wild = .true.
-
-! key:name construct
-
-ix = index(name, '::')
-if (ix == 0) then
-  key = 0
-  call str_upcase (name, name)
-else
-  if (name(:ix-1) == "*") then
-    key = 0
-  else
-    key = key_name_to_key_index (name(:ix-1), .true.)
-    if (key < 1) return
-  endif
-  call str_upcase (name, name(ix+2:))
-endif
 
 ! search for matches
 

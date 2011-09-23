@@ -177,7 +177,7 @@ last tracked element within a loop:
     orbit(0) = orbit(lat%branch(1)%n_ele_track)
   end do
 \end{example}
-Often times it is only the main branch, \vn{branch(0)}, that is to be tracked.
+Often times it is only the root branch, \vn{branch(0)}, that is to be tracked.
 In this case, the above reduces to
 \begin{example}
   type (lat_struct) lat             ! lattice to track through

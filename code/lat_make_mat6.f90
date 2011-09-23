@@ -124,8 +124,7 @@ if (i_ele < 0) then
           if (present(ref_orb)) then
             if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
           endif
-          call transfer_ele_taylor (branch%ele(ie), ele, &
-                                               branch%ele(ie)%taylor_order)
+          call transfer_ele_taylor (branch%ele(ie), ele)
           transferred = .true.
           exit
         enddo

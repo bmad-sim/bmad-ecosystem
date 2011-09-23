@@ -101,7 +101,7 @@ call read_digested_bmad_file (digested_file, lat, digested_version)
 if (present(use_line)) then
   if (use_line /= '') then
     call str_upcase (name, use_line)
-    if (name /= lat%name) bmad_status%ok = .false.
+    if (name /= lat%use_name) bmad_status%ok = .false.
   endif
 endif
 
@@ -187,8 +187,13 @@ bp_com%beam_start_ele%name = 'BEAM_START'           ! For parameters
 bp_com%beam_start_ele%key = def_beam_start$
 call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
 
+bp_com%root_branch_ele => in_lat%ele(4)
+bp_com%root_branch_ele%name = 'ROOT_BRANCH'           ! For parameters 
+bp_com%root_branch_ele%key = branch$
+call find_indexx2 (in_lat%ele(4)%name, in_name, in_indexx, 0, 3, ix, add_to_list = .true.)
+
 n_max => in_lat%n_ele_max
-n_max = 3                              ! Number of elements encountered
+n_max = 4                              ! Number of elements encountered
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -254,7 +259,7 @@ parsing_loop: do
       return
     endif
     call verify_valid_name(word_2, ix_word)
-    lat%name = word_2
+    lat%use_name = word_2
     cycle parsing_loop
   endif
 
@@ -684,10 +689,10 @@ enddo
 ! find line corresponding to the "use" statement and expand the used line.
 
 if (present (use_line)) then
-  if (use_line /= '') call str_upcase (lat%name, use_line)
+  if (use_line /= '') call str_upcase (lat%use_name, use_line)
 endif
 
-if (lat%name == blank_name$) then
+if (lat%use_name == blank_name$) then
   call parser_warning ('NO "USE" STATEMENT FOUND.', 'I DO NOT KNOW WHAT LINE TO USE!')
   call parser_end_stuff ()
   return
@@ -695,7 +700,7 @@ endif
 
 allocate (bp_com%used_line(n_max))
 
-call parser_expand_line (0, lat, lat%name, sequence, in_name, in_indexx, &
+call parser_expand_line (0, lat, lat%use_name, sequence, in_name, in_indexx, &
                                       seq_name, seq_indexx, in_lat, n_ele_use)
 
 if (bp_com%error_flag) then
@@ -857,8 +862,7 @@ endif
 
 lat%input_taylor_order = nint(bp_com%param_ele%value(taylor_order$))
 
-if (lat%input_taylor_order /= 0) &
-     call set_taylor_order (lat%input_taylor_order, .false.)
+if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, .false.)
 
 !-------------------------------------------------------------------------
 ! energy bookkeeping.
@@ -889,8 +893,7 @@ call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 do i = 1, lat%n_ele_max
   if (lat%ele(i)%key /= photon_branch$ .and. lat%ele(i)%key /= branch$) cycle
   if (lat%ele(i)%slave_status == multipass_slave$) cycle
-  call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, &
-                                                            seq_name, seq_indexx, in_lat)
+  call parser_add_branch (lat%ele(i), lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat)
 enddo
 
 ! Go through the IN_LAT elements and put in the superpositions.

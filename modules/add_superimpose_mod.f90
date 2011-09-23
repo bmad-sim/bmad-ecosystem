@@ -67,7 +67,7 @@ if (super_ele_in%value(l$) < 0) then
   call out_io (s_abort$, r_name, &
                   'Superposition of element with negative length not allowed!', &
                   'Element: ' // super_ele_in%name, &
-                  'Length: \es10.2\ ', r_array = (/ super_ele_in%value(l$) /) )
+                  'Length: \es10.2\ ', r_array = [super_ele_in%value(l$)] )
   call err_exit
 endif
 
@@ -113,7 +113,7 @@ if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2
   call out_io (s_abort$, r_name, &
     'SUPERIMPOSE POSITION BEYOUND END OF LATTICE FOR ELEMENT: ' // super_saved%name, &
     'LEFT EDGE: \F10.1\ ', &
-    'RIGHT EDGE:\F10.1\ ', r_array = (/ s1, s2 /))
+    'RIGHT EDGE:\F10.1\ ', r_array = [s1, s2])
   call err_exit
 endif
  
@@ -361,12 +361,12 @@ do
 
   call calc_superimpose_key(slave_saved, super_saved, slave)
   if (slave%key <= 0) then
-    call out_io (s_abort$, r_name, (/ &
+    call out_io (s_abort$, r_name, [ &
             'ELEMENT: ' // trim(super_saved%name), &
             'OF TYPE: ' // key_name(super_saved%key), &
             'IS TO BE SUPERIMPOSED UPON: ' // trim(slave_saved%name), &
             'OF TYPE: ' // key_name(slave_saved%key), &
-            'I DO NOT KNOW HOW TO DO THIS!' /) )
+            'I DO NOT KNOW HOW TO DO THIS!'] )
     call err_exit                    
   endif
 

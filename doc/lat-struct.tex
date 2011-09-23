@@ -74,16 +74,16 @@ memory. Typically using the save attribute will be the best choice.
 \label {s:lat.struct}
 
 \index{lat_struct!\%branch(:)}
-\index{branch}\index{photon_branch}\index{branch!main}
-The lattice is divided up into the ``main branch'' 
-(also called the ``main lattice'') and, if there are
+\index{branch}\index{photon_branch}\index{branch!root}
+The lattice is divided up into the ``root branch'' 
+(also called the ``root lattice'') and, if there are
 \vn{branch} or \vn{photon_branch} elements, a number of other branches. 
-To simpllify the bookkeeping, the main lattice is itself considered a branch.
+To simpllify the bookkeeping, the root lattice is itself considered a branch.
 
 \index{branch_struct}
 The branch information is contained in the \vn{%branch(0:)} array. The
 \vn{%branch} array is always indexed from 0 with the $0$ branch
-being the main lattice.  The upper bound of this array will be equal to
+being the root branch.  The upper bound of this array will be equal to
 the number of \vn{branch} plus \vn{photon_branch} elements present. The
 definition of the \vn{branch_struct} structure is
 \begin{example}
@@ -91,7 +91,7 @@ definition of the \vn{branch_struct} structure is
     character(40) name
     integer key                          ! photon_branch$, branch$, etc.
     integer ix_branch                    ! Index in lat%branch(:) array.
-    integer ix_from_branch               ! 0 => Main lattice 
+    integer ix_from_branch               ! 0 => root branch 
     integer ix_from_ele                  ! Index of branching element
     integer, pointer :: n_ele_track      ! Number of tracking elements
     integer, pointer :: n_ele_max
@@ -143,7 +143,7 @@ The \vn{%branch%ele(:)} array is always allocated with zero as the
 lower bound.  \vn{%ele(0)} is a marker element with its \vn{%name} component
 set to ``\vn{BEGINNING}''. 
 \vn{%ele(0)%mat6} is always the unit matrix. For the
-main branch, the \vn{%branch(0)%ele(0:)} array is divided up into
+root branch, the \vn{%branch(0)%ele(0:)} array is divided up into
 two parts: The ``tracking'' part and a ``control'' part (also called
 the ``lord'' part). The tracking part of this array holds the elements
 that are tracked through. The control part holds elements that
@@ -158,15 +158,15 @@ of these two parts is given in Table~\ref{t:part.extent}.
 tracking      & 0                  & \vn{%n_ele_track}    \\ 
 control       & \vn{%n_ele_track}+1 & \vn{%n_ele_max}     \\ \bottomrule
 \end{tabular} 
-\caption[Bounds of the main lattice array.]
+\caption[Bounds of the root branch array.]
 {Bounds of the tracking and control parts 
-of the main lattice (\vn{lat\%branch(0)\%ele(:)}) array.}
+of the root branch (\vn{lat\%branch(0)\%ele(:)}) array.}
 \end{center}
 \label{t:part.extent}
 \end{table}
-Only the main branch has a lord section so 
+Only the root branch has a lord section so 
 \vn{%branch%n_ele_track} and \vn{%branch%n_ele_max} are the same for 
-all other branches. Since the main branch can also be accessed via the \vn{lat%ele(:)}
+all other branches. Since the root branch can also be accessed via the \vn{lat%ele(:)}
 array, code that deals with the lord section of the lattice may use \vn{lat%ele(:)}
 in place of \vn{lat%branch(0)%ele(:)}.
 
@@ -594,7 +594,7 @@ Each element of this array is a \vn{control_struct} structure
 \index{lat_struct!\%control}
 Each element in the \vn{lat%control(:)} array holds the information on
 one lord/slave pair. The \vn{%ix_lord} component gives the index of the
-lord element which is always in the main branch --- branch 0. The
+lord element which is always in the root branch --- branch 0. The
 \vn{%ix_slave}  and \vn{%ix_branch} components give the element index
 and branch index of the slave element. The \vn{%coef} and \vn{%ix_attrib}
 components are used to store the coefficient and

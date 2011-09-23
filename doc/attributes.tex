@@ -489,6 +489,250 @@ Examples:
 \end{example}
 
 %-----------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{chamber-wall.pdf}
+  \caption[cross-sectional slices of a capillary.]
+{A) The inside wall of a capillary or the vacuum chamber wall of a
+non-capillary element is defined by a number of cross-sectional
+slices.  B) Each cross-section is made up of a number of vertices. The
+segments between the vertices can be either a line segment, the arc of
+a circle, or a section of an ellipse. The red line segment with one
+end at the center of the arc and the other end traversing the arc
+from, in this case $V(2)$ to $V(3)$, rotates in counter clockwise
+manner. There are two solutions for constructing an arc between two
+vertices. The solution with the center point furthest from the origin,
+the dashed line between $V(2)$ and $V(3)$ in the figure, is used if
+the radius (or radii for an ellipse section) is negative.}
+  \label{f:chamber-wall}
+\end{figure}
+
+%-----------------------------------------------------------------
+\section{Chamber and Capillary Wall}
+\label{s:wall}
+
+The vacuum chamber wall shape may be defined for an element using the
+\vn{wall} attribute as detailed below. For X-ray capillay elements
+(\sref{s:capillary}), this construct is used to define the inside wall
+of the capillary.
+
+NOTE: This construct is currently under development. Unless a program
+is specifically enabled, the presence of a chamber wall for a
+non-capillay element will not affect particle tracking.
+
+The wall is defined by a number of cross-sectional slices as shown in
+Fig.~\ref{f:chamber-wall}A. Each cross-section is defined by a number of
+vertices. The arc between each vertex may be either a straight line,
+an arc of a circle, or a section of an ellipse. For a capillary it is
+mandatory that a cross-section be convex. That is, given any two
+points within the cross-section, all points on the line segment
+connecting them must be within the cross-section.
+
+\index{wall}\vn{section}\index{s (capillary attribute)}\index{v (capillary attribute)}
+\index{s_spline}\index{n_slice_spline}
+The \vn{wall} structure defines the capillary wall. The
+syntax of the wall structure is:
+\begin{example}
+  wall = \{
+    section = \{ 
+      s = <longitudinal_position>, 
+      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+      v(2) = \{ ... \},
+      ...\},
+    s_spline = \{<coef_1>, <coef_2>\},
+    n_slice_spline = <num>,
+    section = \{
+      s = <longitudinal_position>, 
+      v(1) = \{... \},
+      ... \},
+    ... \}
+\end{example}
+Note: Specifying \vn{s_spline} and \vn{n_cut_spline} is optional.
+Example:
+\begin{example}
+  this_cap: capillary, 
+    wall = \{   
+      section = \{ ! cross-section with top/bottom symmetry
+        s = 0, v(1) =  \{0.02, 0.00\}, 
+        v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\} \}, 
+      s_spline = \{0.1, 0.7\}, 
+      n_slice_spline = 4,
+      section = \{  ! Cross-section that is a tilted ellipse.
+        s = 0.34, 
+        v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\} \} \}
+\end{example}
+
+The wall structure begins with ``\vn{wall = \{}'' and ends with a
+``\vn{\}}''. In between are a number of individual cross-section
+structures.  Each individual cross-section begins with ``\vn{section =
+\{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
+cross-section gives the longitudinal position of the cross-section.
+For a capillary, \vn{s} must be zero for the first cross-section and
+the length of the capillary is given by the value of \vn{s} of the
+last cross-section.
+
+The \vn{v(<j>)} within a cross-section define the vertices
+for each cross-section. Each \vn{v(<j>)} in turn has five
+parameters. It is mandatory to specify the first two parameters
+\vn{<x>} and \vn{<y>}. Specifying the rest, \vn{<radius_x>},
+\vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if
+not specified, is zero. The point (\vn{<x>}, \vn{<y>}) defines the
+position of the vertex. The parameters \vn{<radius_x>},
+\vn{<radius_y>}, and \vn{<tilt>} define the shape of the segment of
+the cross-section between the given vertex and the preceding one.
+\begin{example}
+  <radius_x>  = 0, <radius_y>  = 0   --> Straight line segment.
+  <radius_x> != 0, <radius_y>  = 0   --> Circular arc with radius = radius_x
+  <radius_x>  = 0, <radius_y> != 0   --> Illegal!
+  <radius_x> != 0, <radius_y> != 0   --> Ellipse section.
+\end{example}
+When an ellipse is specified, \vn{<radius_x>}, and \vn{<radius_y>} are
+the half width and half height of the semi-major axes and the
+\vn{<tilt>} parameter gives the tilt of the ellipse. \vn{<radius_x>}
+and \vn{<radius_y>} must not be negative.
+
+In the example above, for the first cross-section, \vn{v(2)}
+specifies a non-zero \vn{<radius_x>} and, by default, \vn{<radius_y>}
+is zero. Thus the segment of the cross-section between \vn{v(1)} and
+\vn{v(2)} is circular in nature with a radius of 0.02. Since \vn{v(3)}
+does not specify \vn{<radius_x>} nor \vn{<radius_y>}, the
+cross-section between \vn{v(2)} and \vn{v(3)} is a straight line
+segment.
+
+The vertex points must be arranged in a ``counter clockwise manner''. 
+For vertices \vn{<v(i)>} and \vn{<v(i+1)>} connected by a line segment
+this translates to
+\Begineq
+  0 < \theta_{i+1} - \theta_{i} \pmod{2\pi} < \pi
+\Endeq
+where $(r_n, \theta_n)$ are the polar coordinates of the $n^{th}$
+vertex. For vertices connected by an arc, ``counter clockwise manner''
+means that the line segment with one end at the center of the arc and
+the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
+rotates in counter clockwise as shown in
+Fig.~\ref{f:chamber-wall}B. In general, there are two solutions for
+constructing such an arc. For positive radii, the solution chosen is
+the one whose center is closest to the origin.  
+
+A restriction on cross-sections is that the origin $(0,0)$ must be in the
+interior of any cross-section and that for any cross-section a line
+drawn from the origin at any given angle $\theta$ will intersect the
+cross-section at exactly one point as shown in
+Fig.~\ref{f:chamber-wall}B. This is an important point in the
+construction of the wall between cross-sections as explained
+below.
+
+The last vertex specified, call it \vn{<v(n)>}, should not have the
+same \vn{<x>}, \vn{<y>} values as the first vertex \vn{<v(1)>}. That
+is, there will be a segment of the cross-section connecting
+\vn{<v(n)>} to \vn{<v(1)>}. The geometry of this segment is determined
+by the parameters of \vn{<v(1)>}.
+
+If there is mirror symmetry about the $x$ or $y$ axis for a
+cross-section, the ``mirrored'' vertices, on the ``negative'' side of
+the mirror plane, do not have to be specified. Thus if all the vertex
+points of a cross-section are in the first quadrant, that is, all
+\vn{<x>} and \vn{<y>} are zero or positive, mirror symmetry about both the
+$x$ and $y$ axes is assumed. If all the \vn{<y>} values are zero or
+positive and some \vn{<x>} values are positive and some are negative,
+mirror symmetry about the $x$ axis is assumed. Finally, if all the
+\vn{<x>} values are zero or positive but some \vn{<y>} values are
+positive and some are negative, symmetry about the $y$ axis is
+assumed. For example, for the first in the above example, since
+all the \vn{<y>} values are non-negative and there are positive and
+negative \vn{<x>} values, symmetry about the $x$ axis is assumed.
+
+The one exception to the above rule that (\vn{<x>}, \vn{<y>}) is the
+vertex center is when a single vertex \vn{v(1)} is specified for a
+cross-section with a non-zero \vn{<radius_x>}. In this case,
+(\vn{<x>}, \vn{<y>}) are taken to be the center of the circle or
+ellipse. In the example above, the second cross-section is a
+tilted ellipse with center at $(0.003, -0.001)$. If a cross-section
+has a single vertex and \vn{<radius_x>} is
+not specified, the cross-section is a rectangle. For example
+\begin{example}
+    section = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
+\end{example}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=4in]{concave-capillary.pdf}
+  \caption[Convex cross-sections do not guarantee a convex volume.]
+{Example where convex cross-sections do not produce a convex volume.
+Cross-sections (A) and (C) are ellipses with a 5 to 1 aspect ratio.
+Half way in between, linear interpolation produces a convex cross-section
+as shown in (B).} 
+  \label{f:concave-capillary}
+\end{figure}
+
+Between cross-sections, the wall is defined by
+interpolation. The default is a linear interpolation scheme.  let
+$r_{c1}(\theta)$ be the radius of the wall as a function of
+$\theta$ for a given cross-section defined at $s = s_1$. Let
+$r_{c2}(\theta)$ be the radius function at the next defined
+cross-section at $s = s_2$. The wall $r_c(\theta, s)$ at any
+point $s$ between $s_1$ and $s_2$ is defined by the equation
+\Begineq
+  r_c(\theta, s) \equiv (1 - \stilde) \, r_{c1}(\theta) + \stilde \, r_{c2}(\theta)
+\Endeq
+where
+\Begineq
+  \stilde \equiv \frac{s - s_1}{s_2 - s_1}
+\Endeq
+
+In order for \bmad to quickly track photons through a capillary,
+\bmad assumes that the volume between the cross-sections is
+convex. The volume will be convex if each cross-section $r_c(\theta,
+s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
+for $r_c(\theta, s)$ to be convex at the specified cross-sections as
+shown in Fig.~\ref{f:concave-capillary}. Also note that it is perfectly
+fine for the total capillary volume to not be convex.
+
+To help reduce the complexity of specifying a wall, ``virtual''
+cross-sections may be defined by specifying a cubic interpolating
+spline between two consecutive cross-sections and by specifying a
+value for \vn{n_slice_spline}. The region between the two
+cross-sections will then be divided into \vn{n_slice_spline} equal
+longitudinal length regions. Between each region virtual
+cross-sections are constructed defined by
+\Begineq
+  r_c(\theta, s) = (1 - P(\stilde)) \, r_{c1}(\theta) + P(\stilde) \, r_{c2}(\theta)
+  \label{r1prp}
+\Endeq
+where $s$ is the longitudinal position of the phantom cross-section and
+$P(s)$ is a cubic polynomial spline
+\Begineq
+  P(\stilde) = c_1 \, \stilde + c_2 \, \stilde^2 + c_3 \, \stilde^3
+\Endeq
+where $c_1$, $c_2$, and $c_3$ are constants. The $c_0$ constant has
+been set to zero by the requirement that $P(0) = 0$. The requirement
+that $P(1) = 1$ constrains $c_3$:
+\Begineq
+  c_3 = 1 - (c_1 + c_2)
+\Endeq
+ $c_1$ and $c_2$ are given by the \vn{s_spline} parameter between 
+cross-sections. If not defined, the default is linear interpolation
+with $c_1 = 1$ and $c_2 = 0$. Linear interpolation, is used to define
+the wall between virtual cross-sections just as it is used for regular
+cross-sections.
+
+A non-linear interpolation scheme is used if \vn{n_splice_spline} is
+set to 0.  In this case, the wall between the cross-sections is
+constructed using \Eq{r1prp}. The volume between the cross-sections so
+constructed must be convex.
+
+To refer to a cross-section parameters after an element has been
+defined, the following syntax is used:
+\begin{example}
+  ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
+  ele_name[wall.n_slice_spline(n)]   ! n_slice_spline value set between n^th and 
+                                     !     n+1^th cross-sections.
+  ele_name[wall.s_spline(n).coef(k)] ! k^th coefficient (k = 1, 2, or 3) of s_spline 
+                                     !     set between n^th and n+1^th cross-sections.
+\end{example}
+
+%-----------------------------------------------------------------
 \section{Length Attributes}
 \label{s:l}
 

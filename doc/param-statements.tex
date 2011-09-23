@@ -1,6 +1,8 @@
-\chapter{Miscellaneous Statements}
+\chapter{Lattice Parameter Statements}
 
-This chapter deals with the statements not covered in the previous chapters.
+This chapter deals with statements that can be used to set ``global''
+parameter values. That is, parameter values that are associated with
+the lattice as a whole and not simply associated with a single element.
 
 %-----------------------------------------------------------------------------
 \section{Parameter Statement}
@@ -16,7 +18,9 @@ This chapter deals with the statements not covered in the previous chapters.
 \index{ran_seed}
 \index{n_part}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
-other variables.  The variables that can be set by \vn{parameter} is
+other variables. If branching is present (\sref{s:branching}), these
+variables pertain to the \vn{root} branch. The variables that can be
+set by \vn{parameter} is
 \begin{example}
   parameter[lattice]      = <String>        ! Lattice name 
   parameter[lattice_type] = <Switch>        ! 
@@ -28,6 +32,7 @@ other variables.  The variables that can be set by \vn{parameter} is
   parameter[ran_seed]     = <Integer>       ! Random number generator init.
   parameter[particle]     = <particle_type> ! Eg: positron, antiproton, etc.
   parameter[aperture_limit_on] = <Logical>  ! Use aperture limits in tracking.
+  parameter[root_branch_name]  = "<name>"   ! Name of the root branch.
 \end{example}
 
 \noindent
@@ -36,12 +41,12 @@ Examples
   parameter[lattice]      = "L9A19C501.FD93S_4S_15KG"
   parameter[lattice_type] = circular_lattice
   parameter[taylor_order] = 5
-  parameter[E_tot]  = 5.6e9    ! eV
+  parameter[E_tot]        = 5.6e9    ! eV
 \end{example}
 
 For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
 
-Valid \vn{particle} switches are:
+Valid \vn{parameter[particle]} switches are:
 \index{positron}\index{electron}\index{proton}\index{antiproton}
 \begin{example}
   positron  ! default
@@ -114,6 +119,13 @@ Historically it is possible to set the Taylor order using the syntax
 \end{example}
 This syntax is obsolete since a typographical error is not easily caught.
 
+\index{root_branch_name}
+The name of the root branch (\sref{s:branching}) can be changed from its 
+default value of ``ROOT'' using the \vn{parameter[root_branch_name]} parmeter. Example:
+\begin{example}
+  parameter[root_branch_name] = "ring"
+\end{example}
+
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement}
 \label{s:beam.start}
@@ -123,7 +135,8 @@ This syntax is obsolete since a typographical error is not easily caught.
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
 \index{e_field_x}\index{e_field_y}\index{phase_x}\index{phase_y}
 The \vn{beam_start} statement is used to set the starting coordinates
-for particle tracking
+for particle tracking. If branching is present (\sref{s:branching}), these variables
+pertain to the \vn{root} branch.
 \begin{example}
   beam_start[x]           = <Real>   ! Horizontal position.
   beam_start[px]          = <Real>   ! Horizontal momentum.
@@ -187,9 +200,10 @@ are the same as \vn{parameter[particle]}.
 \index{cmat_ij}
 \index{e_tot}
 \index{p0c}
-For non--circular lattices the \vn{beginning} statement can be used to
-set the Twiss parameters and beam energy at the beginning of the lat
-\begin{example}
+For non--circular lattices, the \vn{beginning} statement can be used to
+set the Twiss parameters and beam energy at the beginning of the lattice.
+If branching is present (\sref{s:branching}), these variables
+pertain to the \vn{root} branch. \begin{example}
   beginning[beta_a]  = <Real>  ! "a" mode beta
   beginning[alpha_a] = <Real>  ! "a" mode alpha
   beginning[phi_a]   = <Real>  ! "a" mode phase
@@ -229,168 +243,4 @@ For any lattice the \vn{beginning} statement can be used to set the starting flo
   beginning[phi_position]   = <Real>  ! Angle of attack
   beginning[psi_position]   = <Real>  ! Roll angle
 \end{example}
-
-%-----------------------------------------------------------------------------
-\section{Title Statement}
-\index{title statement|hyperbf}
-
-The \vn{title} statement sets a title string which can be used by a program. 
-For consistency with \mad there are two possible syntaxes
-\begin{example}
-  title, <String>
-\end{example}
-or the statement can be split into two lines
-\begin{example}
-  title
-  <String>
-\end{example}
-For example
-\begin{example}
-  title
-  "This is a title"
-\end{example}
-
-%--------------------------------------------------------------------------
-\section{Call Statement}
-\label{s:call}
-\index{call statement|hyperbf}
-
-It is frequently convenient to separate the lattice definition into
-several files.  Typically there might be a file (or files) that define
-the layout of the lattice (something that doesn't change often) and a
-file (or files) that define magnet strengths (something that changes
-more often).  The \vn{call} is used to read in separated lattice
-files. The syntax is
-\begin{example}
-  call, filename = <String>
-\end{example}
-Example:
-\begin{example}
-  call, filename = "../layout/my_layout.bmad"      ! Relative pathname
-  call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname
-\end{example}
-\bmad will read the called file until a \vn{return} or \vn{end_file}
-statement is encountered or the end of the file is reached.
-
-For filenames that are relative, the called file will be searched for in
-two different locations:
-\begin{example}
-  1) Relative to the directory of the calling file.
-  2) Relative to the current directory.
-\end{example}
-The first instance where a file is found is used.
-Thus, in the above example, the first call will search for:
-\begin{example}
-  2) ../layout/my_layout.bmad  (relative to the calling file directory)
-  1) ../layout/my_layout.bmad  (relative to the current directory)
-\end{example}
-
-\index{no_digested statement}
-\index{no_superimpose statement}
-\index{parser_debug statement}
-An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
-from within an \bmad lattice file by prepending \vn{"xsif::"} to the
-file name. Example:
-\begin{example}
-  call, filename = "xsif::my_lattice.xsif"
-\end{example}
-This statement must be the first statement in the \bmad lattice file
-except for any \vn{no_digested}, \vn{parser_debug}, or
-\vn{no_superimpose} statements. The XSIF lattice file must define a
-complete lattice and cannot contain any \bmad specific statements. The
-call to the XSIF file automatically expands the lattice
-(\sref{s:expand}) and any additional statements in the \bmad lattice
-file operate on the expanded lattice.
-
-%--------------------------------------------------------------------------
-\section{Return and End_File statements}
-\index{return statement|hyperbf}
-\index{end_file statement|hyperbf}
-
-\vn{Return} and \vn{end_file} have identical effect and tell \bmad to
-ignore anything beyond the \vn{return} or \vn{end_file} statement in
-the file.
-
-%----------------------------------------------------------------------------
-\section{Expand_lattice Statement}
-\label{s:expand}
-\index{lattice!expansion|hyperbf}
-\index{expand_lattice}
-
-At some point in parsing a lattice file, the ordered sequence of
-elements that form a lattice must be constructed. This process is called
-\vn{lattice expansion} since the element sequence can be built up from
-sub--sequences (\sref{c:sequence}). Normally lattice expansion happens
-automatically at the end of the parsing of the lattice file but an
-explicit \vn{expand_lattice} statement in a lattice file will cause
-immediate expansion. The reason why this can be important is that there
-are restrictions, on some types of operations which must come either
-before or after lattice expansion:
-\begin{Itemize}
-\item 
-\index{ran}
-\index{ran_gauss}
-The \vn{ran} and \rn{ran_gauss} functions, when used with elements
-that show up multiple times in a lattice, generally need to be used
-after lattice expansion. See \sref{s:functions}.
-\item 
-Some dependent variables may be set as if they are independent
-variables but only if done before lattice expansion. See \sref{s:depend}.
-\index{multipass}
-\item 
-Setting the \vn{dphi0} attribute for an 
-\vn{Lcavity} or \vn{RFcavity} multipass
-slave may only be done after lattice expansion (\sref{s:multipass}).
-\item
-\index{tags for Lines and Lists}
-Setting individual element attributes for tagged elements can only be done
-after lattice expansion (\sref{s:tag}).
-\end{Itemize}
-
-%--------------------------------------------------------------------------
-\section{No_superimpose Statement}
-\index{no_superimpose statement}
-\label{s:no.superimpose}
-
-The \vn{no_superimpose} statement is used to supress superpositions
-(\sref{s:super}). This is useful for debugging purposes.
-
-%--------------------------------------------------------------------------
-\section{Debugging Statements}
-\index{parser_debug statement}
-\index{no_digested statement}
-\index{lattice files!parser debugging}
-
-There are two statements, \vn{parser_debug} and \vn{no_digested},
-which can help in debugging the \bmad lattice parser
-itself.  That is, these statements are generally only used by programmers.
-
-The \vn{no_digested} statement if present, will prevent \bmad from 
-creating a digested file. 
-
-The \vn{parser_debug} statement will cause information about the
-lattice to be printed out at the terminal. It is recommended that this
-statement be used with small test lattices since it can generate a lot
-of output. The syntax is
-\begin{example}
-  parser_debug <switches>
-\end{example}
-Valid \vn{<switches>} are
-\begin{example}
-  beam_start          ! Print the beam_start information.
-  ele <n1> <n2> ...   ! Print full info on selected elements.
-  lattice             ! Print a list of lattice element information.
-  lord                ! Print full information on all lord elements.
-  seq                 ! Print sequence information.
-  slave               ! Print full information on all slave elements.
-  var                 ! Print variable information.
-\end{example}
-Here $<n1>$, $<n2>$, etc. are the index of the selected elements in
-the lattice.  Example
-\begin{example}
-  parser_debug var lat ele 34 78
-\end{example}
-
-
-
 

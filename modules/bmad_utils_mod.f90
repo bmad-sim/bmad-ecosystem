@@ -673,7 +673,7 @@ type (lat_struct) :: lat_out
 
 !
 
-lat_out%name =                 lat_in%name
+lat_out%use_name =             lat_in%use_name
 lat_out%lattice =              lat_in%lattice
 lat_out%input_file_name =      lat_in%input_file_name
 lat_out%title =                lat_in%title
@@ -704,7 +704,7 @@ end subroutine transfer_lat_parameters
 !
 ! Input:
 !   ele_in       -- Ele_struct: Element with the Taylor map.
-!   taylor_order -- Integer: Order to truncate the Taylor map at.
+!   taylor_order -- Integer, optional: Order to truncate the Taylor map at.
 !
 ! Output:
 !   ele_out      -- Ele_struct: Element receiving the Taylor map truncated to
@@ -716,30 +716,36 @@ subroutine transfer_ele_taylor (ele_in, ele_out, taylor_order)
 implicit none
 
 type (ele_struct) ele_in, ele_out
-integer, intent(in) :: taylor_order
+integer, optional :: taylor_order
 integer it, ix, k 
 
 !
 
 do it = 1, 6
+
+  if (present(taylor_order)) then
+    ix = 0
+    do k = 1, size(ele_in%taylor(it)%term)
+      if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) ix = ix + 1
+    enddo
+  else
+    ix = size(ele_in%taylor(it)%term)
+  endif
+
+  if (.not. associated(ele_out%taylor(it)%term)) allocate (ele_out%taylor(it)%term(ix))
+  if (size(ele_out%taylor(it)%term) /= ix) allocate (ele_out%taylor(it)%term(ix))
+
   ix = 0
   do k = 1, size(ele_in%taylor(it)%term)
-   if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) ix = ix + 1
+    if (present(taylor_order)) then
+      if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) cycle
+    endif
+    ix = ix + 1
+    ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
   enddo
-  if (.not. associated(ele_out%taylor(it)%term)) &
-                          allocate (ele_out%taylor(it)%term(ix))
-  if (size(ele_out%taylor(it)%term) /= ix) &
-                          allocate (ele_out%taylor(it)%term(ix))
-  ix = 0
-  do k = 1, size(ele_in%taylor(it)%term)
-   if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) then
-      ix = ix + 1
-      ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
-    endif      
-  enddo
+
 enddo
 
-ele_out%taylor_order = taylor_order
 ele_out%taylor(:)%ref = ele_in%taylor(:)%ref
 
 if (ele_in%key == wiggler$) ele_out%value(z_patch$) = ele_in%value(z_patch$)
@@ -781,7 +787,7 @@ call init_ele (lat%ele_init)
 call reallocate_control (lat, 100)
 
 lat%title = ' '
-lat%name = ' '
+lat%use_name = ' '
 lat%lattice = ' '
 lat%input_file_name = ' '
 
@@ -805,7 +811,7 @@ lat%input_taylor_order = 0
 lat%version = -1
 
 call allocate_branch_array (lat, 0)
-lat%branch(0)%name = 'MAIN'
+lat%branch(0)%name = 'ROOT'
 
 !----------------------------------------
 contains

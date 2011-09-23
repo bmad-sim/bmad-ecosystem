@@ -51,7 +51,7 @@ real(rp) value(n_attrib_maxx)
 
 integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, n_wall_section
+integer ierr, stat, ios, n_wall_section, garbage
 
 character(*) digested_name
 character(200) fname_read, fname_versionless, fname_full
@@ -178,7 +178,7 @@ enddo
 ! too big to write in one piece
 
 read (d_unit, err = 9030)  &   
-            lat%name, lat%lattice, lat%input_file_name, lat%title, &
+            lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
             lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
             lat%n_ele_track, lat%n_ele_max, &
             lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
@@ -214,7 +214,7 @@ do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit) branch%param
-  read (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+  read (d_unit) branch%name, garbage, branch%ix_from_branch, &
                   branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, idum1
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
@@ -356,7 +356,7 @@ if (version >= 99) then
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
-          ele%ref_orbit, ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          ele%ref_orbit, idum1, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
