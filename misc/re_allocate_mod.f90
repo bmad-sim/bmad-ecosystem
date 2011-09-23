@@ -558,7 +558,7 @@ subroutine re_allocate2_string (str, n1, n2, exact)
   if (allocated(str)) then
     n1_old = lbound(str, 1); n2_old = ubound(str, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
-    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     allocate (temp_str(n1_save:n2_save))
     temp_str = str(n1_save:n2_save)
@@ -612,7 +612,7 @@ subroutine re_allocate2_integer (inte, n1, n2, exact)
   if (allocated(inte)) then
     n1_old = lbound(inte, 1); n2_old = ubound(inte, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
-    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     allocate (temp_inte(n1_save:n2_save))
     temp_inte = inte(n1_save:n2_save)
@@ -666,7 +666,7 @@ subroutine re_allocate2_complex (cmpl, n1, n2, exact)
   if (allocated(cmpl)) then
     n1_old = lbound(cmpl, 1); n2_old = ubound(cmpl, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
-    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     allocate (temp_cmpl(n1_save:n2_save))
     temp_cmpl = cmpl(n1_save:n2_save)
@@ -720,7 +720,7 @@ subroutine re_allocate2_real (re, n1, n2, exact)
   if (allocated(re)) then
     n1_old = lbound(re, 1); n2_old = ubound(re, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
-    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     allocate (temp_re(n1_save:n2_save))
     temp_re = re(n1_save:n2_save)
@@ -774,7 +774,7 @@ subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
   if (allocated(re_ptr)) then
     n1_old = lbound(re_ptr, 1); n2_old = ubound(re_ptr, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
-    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     allocate (temp_re_ptr(n1_save:n2_save))
     temp_re_ptr = re_ptr(n1_save:n2_save)
@@ -828,7 +828,7 @@ subroutine re_allocate2_logical (logic, n1, n2, exact)
   if (allocated(logic)) then
     n1_old = lbound(logic, 1); n2_old = ubound(logic, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
-    if (.not. logic_option(.true., exact) .and. n1_old < n1 .and. n2 < n2_old) return
+    if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     allocate (temp_logic(n1_save:n2_save))
     temp_logic = logic(n1_save:n2_save)
