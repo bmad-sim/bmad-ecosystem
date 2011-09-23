@@ -144,7 +144,7 @@ type bp_var_struct
 end type
 
 type bp_common_struct
-  type (ele_struct), pointer :: param_ele, beam_ele, beam_start_ele
+  type (ele_struct), pointer :: param_ele, beam_ele, beam_start_ele, root_branch_ele
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
@@ -1104,6 +1104,9 @@ case ('DIFFRACTION_TYPE')
 
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag)
+
+case ('ROOT_BRANCH_NAME')
+  call get_next_word(bp_com%root_branch_ele%name, ix_word,  ':=,', delim, delim_found, .true.)
 
 case default   ! normal attribute
 
@@ -4383,6 +4386,8 @@ case (bend_sol_quad$)
 
 case (branch$, photon_branch$)
   ele%value(direction$) = 1
+  ele%value(particle$) = real_garbage$
+  ele%value(lattice_type$) = linear_lattice$
 
 case (crystal$)
   ele%value(follow_diffracted_beam$) = 1  ! True
@@ -4413,7 +4418,6 @@ case (rcollimator$)
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
   ele%mat6_calc_method = taylor$ 
-  ele%taylor_order = 999         ! make large.
   call taylor_make_unit (ele%taylor)
 
 case (wiggler$) 
@@ -4743,14 +4747,26 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct), allocatable :: ele_array(:) 
 
-integer i, j
+integer i, j, k, m
+integer order(size(ele_array))
+
+! find the taylor order for each taylor map
+
+if (.not. allocated(ele_array)) return
+
+do j = 1, size(ele_array)
+  order(j) = 0
+  do k = 1, 6
+    do m = 1, size(ele_array(j)%taylor(k)%term)
+      order(j) = max(order(j), maxval(ele_array(j)%taylor(k)%term(m)%expn(:)))
+    enddo
+  enddo
+enddo
 
 ! Reuse the old taylor series for an element if: 
 !   1) The old map exists and 
 !   2) The new element has need of the map and
 !   3) The old element and new element have the same attributes.
-
-if (.not. allocated(ele_array)) return
 
 do i = 1, lat%n_ele_max
 
@@ -4762,7 +4778,7 @@ do i = 1, lat%n_ele_max
 
   do j = 1, size(ele_array)
     if (any(ele_array(j)%taylor(:)%ref /= 0)) cycle
-    if (bmad_com%taylor_order > ele_array(j)%taylor_order) cycle
+    if (bmad_com%taylor_order > order(j)) cycle
     if (.not. equivalent_taylor_attributes (ele_array(j), ele)) cycle
     exit
   enddo
@@ -4796,12 +4812,12 @@ implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (ele_struct) branch_ele
-type (ele_struct), pointer :: ele2
+type (ele_struct), pointer :: b_ele, ele2
 type (seq_struct), target :: sequence(:)
 type (branch_struct), pointer :: branch
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer j, nb, n_ele_use
+integer j, nb, n_ele_use, n
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 
@@ -4811,18 +4827,26 @@ nb = ubound(lat%branch, 1) + 1
 call allocate_branch_array (lat, nb)
 branch_ele%value(ix_branch_to$) = nb
 branch => lat%branch(nb)
-if (branch_ele%key == branch$) then
-  branch%param%particle = lat%branch(branch_ele%ix_branch)%param%particle
-else
-  branch%param%particle = photon$
+
+! If branch_ele%value(particle$) has not been set then use default.
+! Default for branch$ is just the same particle as the current branch.
+
+if (branch_ele%value(particle$) == real_garbage$) then 
+  if (branch_ele%key == branch$) then
+    branch_ele%value(particle$) = lat%branch(branch_ele%ix_branch)%param%particle
+  else
+    branch_ele%value(particle$) = photon$
+  endif
 endif
-branch%param%lattice_type = linear_lattice$
-branch%key            = branch_ele%key
+
+!
+
+branch%param%particle = nint(branch_ele%value(particle$))
+branch%param%lattice_type = nint(branch_ele%value(lattice_type$))
 branch%ix_branch      = nb
 branch%ix_from_branch = branch_ele%ix_branch
 branch%ix_from_ele    = branch_ele%ix_ele
 branch%name           = branch_ele%name
-!! if (branch_ele%alias /= '') branch%name = branch_ele%alias
 call parser_expand_line (nb, lat, branch_ele%component_name, sequence, in_name, &
                               in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 branch%n_ele_track = n_ele_use
@@ -4830,6 +4854,18 @@ branch%n_ele_max   = n_ele_use
 
 do j = 1, n_ele_use
   ele2 => lat%branch(nb)%ele(j)
+  ! Make sure we don't have an endless loop
+  n = nb
+  do
+    if (n == 0) exit
+    b_ele => pointer_to_ele(lat, lat%branch(n)%ix_from_ele, lat%branch(n)%ix_from_branch)
+    if (b_ele%name == ele2%name) then
+      call parser_warning ('ENDLESS BRANCHING LOOP DETECTED. BRANCHING ON BRANCHING ELEMENT: ' // ele2%name)
+      call err_exit
+    endif
+    n = b_ele%ix_branch
+  enddo
+  ! Now add the branch
   if (ele2%key == photon_branch$ .or. ele2%key == branch$) then
     call parser_add_branch (ele2, lat, sequence, in_name, in_indexx, &
                                                     seq_name, seq_indexx, in_lat)
@@ -5258,7 +5294,7 @@ endif
 if (index(debug_line, 'LATTICE') /= 0) then  
   print *
   print *, '----------------------------------------'
-  print *, 'Lattice Used: ', lat%name
+  print *, 'Lattice Used: ', lat%use_name
   print *, 'Number of lattice elements:', lat%n_ele_track
   print *, 'List:                                 Key                 Length         S'
   do i = 1, lat%n_ele_track

@@ -684,7 +684,6 @@ is_eq = is_eq .and. (f1%mat6_calc_method == f2%mat6_calc_method)
 is_eq = is_eq .and. (f1%tracking_method == f2%tracking_method) 
 is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
 is_eq = is_eq .and. (f1%ref_orbit == f2%ref_orbit)
-is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order) 
 is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
 is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type) 
 is_eq = is_eq .and. (f1%attribute_status == f2%attribute_status) 
@@ -704,101 +703,6 @@ is_eq = is_eq .and. (f1%csr_calc_on .eqv. f2%csr_calc_on)
 is_eq = is_eq .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture) 
 
 end function eq_ele
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-subroutine print_eq_ele (f1, f2)
-
-implicit none
-
-type (ele_struct), intent(in) :: f1, f2
-integer i, j
-character(40) :: fmt = '(2x, a, 100f6.0)'
-!
-
-print *
-print *, 'Fortran side:'
-print *, 'names:      ', (f1%name == f2%name) .and. (f1%type == f2%type) .and. &
-    (f1%alias == f2%alias) .and. (f1%component_name == f2%component_name)
-print *, 'ints:       ', (f1%gamma_c == f2%gamma_c) .and. (f1%s == f2%s) .and. &
-    (f1%key == f2%key) .and. (f1%sub_key == f2%sub_key) .and. &
-    (f1%lord_status == f2%lord_status) .and. (f1%slave_status == f2%slave_status) .and. &
-    (f1%ix_value == f2%ix_value) .and. &
-    (f1%n_slave == f2%n_slave) .and. (f1%ix1_slave == f2%ix1_slave) .and. &
-    (f1%ix2_slave == f2%ix2_slave) .and. (f1%n_lord == f2%n_lord) .and. &
-    (f1%ic1_lord == f2%ic1_lord) .and. (f1%ic2_lord == f2%ic2_lord) .and. &
-    (f1%ix_pointer == f2%ix_pointer) .and. (f1%ixx == f2%ixx) .and. &
-    (f1%ix_ele == f2%ix_ele) .and. (f1%ref_time == f2%ref_time)
-print *, 'logic:      ', (f1%mat6_calc_method == f2%mat6_calc_method) .and. &
-    (f1%tracking_method == f2%tracking_method) .and. &
-    (f1%field_calc == f2%field_calc) .and. (f1%aperture_type == f2%aperture_type) .and. &
-    (f1%ref_orbit == f2%ref_orbit) .and. (f1%taylor_order == f2%taylor_order) .and. &
-    (f1%aperture_at == f2%aperture_at) .and. (f1%symplectify .eqv. f2%symplectify) .and. &
-    (f1%mode_flip .eqv. f2%mode_flip) .and. (f1%multipoles_on .eqv. f2%multipoles_on) .and. &
-    (f1%map_with_offsets .eqv. f2%map_with_offsets) .and. &
-    (f1%field_master .eqv. f2%field_master) .and. &
-    (f1%is_on .eqv. f2%is_on) .and. (f1%old_is_on .eqv. f2%old_is_on) .and. &
-    (f1%logic .eqv. f2%logic) .and. (f1%on_a_girder .eqv. f2%on_a_girder)
-
-print *, 'xyz:        ', (f1%a == f2%a) .and. (f1%b == f2%b) .and. (f1%z == f2%z) 
-print *, 'floor:      ', (f1%floor == f2%floor)
-!print fmt, ' floor1:', f1%floor
-!print fmt, ' floor2:', f2%floor
-print *, 'value:      ', all(f1%value == f2%value) 
-!print fmt, ' value1:', f1%value
-!print fmt, ' value2:', f2%value
-print *, 'gen0:       ', all(f1%gen0 == f2%gen0)
-print *, 'vec0:       ', all(f1%vec0 == f2%vec0) 
-print *, 'mat6:       ', all(f1%mat6 == f2%mat6)
-print *, 'c_mat:      ', all(f1%c_mat == f2%c_mat)
-print *, 'Associated: ', (associated(f1%a_pole) .eqv. associated(f2%a_pole)) .and. &
-    (associated(f1%const) .eqv. associated(f2%const)) .and. &
-    (associated(f1%descrip) .eqv. associated(f2%descrip))
-print *, 'A wig:      ', (associated(f1%wig_term) .eqv. associated(f2%wig_term))
-print *, 'A wake:     ', (associated(f1%rf%wake) .eqv. associated(f2%rf%wake))
-print *, 'A gen_field:', (associated(f1%gen_field) .eqv. associated(f2%gen_field))
-print *, 'A r:        ', (associated(f1%r) .eqv. associated(f2%r))
-
-if (associated(f1%a_pole) .and. associated(f2%a_pole)) then
-  print *, 'ab:       ', all(f1%a_pole == f2%a_pole) .and. all(f1%b_pole == f2%b_pole)
-endif
-
-if (associated(f1%const) .and. associated(f2%const)) then
-  print *, 'const:    ', all(f1%const == f2%const)
-  !print fmt, ' const1:', f1%const
-  !print fmt, ' const2:', f2%const
-endif
-
-if (associated(f1%r) .and. associated(f2%r)) then
-  print *, 'r bounds: ', &
-            (all(lbound(f1%r) == lbound(f2%r)) .or. all(ubound(f1%r) == ubound(f2%r))) 
-  print *, 'r:        ', all(f1%r == f2%r)
-endif
-
-if (associated(f1%descrip) .and. associated(f2%descrip)) then
-  print *, 'descrip:  ', f1%descrip == f2%descrip
-  !print *, ' descrip1: ', trim(f1%descrip), '#'
-  !print *, ' descrip2: ', trim(f2%descrip), '#'
-endif
-
-if (associated(f1%wig_term) .and. associated(f2%wig_term)) then
-  print *, 'wig size: ', size(f1%wig_term) == size(f2%wig_term)
-  print *, 'wig:      ', all(f1%wig_term == f2%wig_term)
-endif
-
-if (associated(f1%gen_field)) then
-  print *, 'gen_field:', associated(f1%gen_field, f2%gen_field)
-endif
-
-do i = 1, size(f1%taylor)
-  print *, 'taylor:   ', i, (f1%taylor(i) == f2%taylor(i))
-enddo
-
-if (associated(f1%rf%wake) .and. associated(f2%rf%wake)) then
-  print *, 'wake:     ', (f1%rf%wake == f2%rf%wake)
-endif
-
-end subroutine
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -829,7 +733,7 @@ integer i
 
 !
 
-is_eq = (f1%name == f2%name) .and. (f1%key == f2%key) .and. (f1%ix_branch == f2%ix_branch) .and. &
+is_eq = (f1%name == f2%name) .and. (f1%ix_branch == f2%ix_branch) .and. &
         (f1%ix_from_branch == f2%ix_from_branch) .and. (f1%ix_from_ele == f2%ix_from_ele)
 if (.not. is_eq) return
 
@@ -881,7 +785,7 @@ integer i
 
 !
 
-is_eq = (f1%name == f2%name) 
+is_eq = .true.
 is_eq = is_eq .and. (f1%lattice == f2%lattice) 
 is_eq = is_eq .and. (f1%input_file_name == f2%input_file_name) 
 is_eq = is_eq .and. (f1%title == f2%title) 

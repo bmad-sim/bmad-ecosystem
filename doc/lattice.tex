@@ -24,8 +24,8 @@ documentation which can be found at:
 \index{XSIF!lcavity and lattice_type}
 Since XSIF does not have a \vn{lattice_type} statement
 (\sref{s:param}), the type of the lattice (whether circular or linear)
-is determined by the presence or absence of any \vn{LCavity} elements
-in the XSIF file. This is independent of whether \vn{LCavity} elements
+is determined by the presence or absence of any \vn{lcavity} elements
+in the XSIF file. This is independent of whether \vn{lcavity} elements
 are actually used in the lattice.
 
 An XSIF lattice file may be called from within a \bmad lattice
@@ -115,7 +115,6 @@ or even:
     section = {s = 0.45} \&
   }
 \end{example}
-
 
 \index{lattice files!name syntax}
 Names of constants, elements, lines, etc. are limited to 40
@@ -223,17 +222,22 @@ details.
 %---------------------------------------------------------------------------
 \section{Lattice Elements}
 
-The syntax for defining a lattice element roughly follows \mad:
+The syntax for defining a lattice element roughly follows the
+\mad\cite{b:maduser} program:
 \begin{example}
-  label: keyword [, attributes]
+  ele_name: keyword [, attributes]
 \end{example}
-\vn{Overlay} and \vn{Group} elements have a slightly different syntax
+where \vn{ele_name} is the element name, \vn{keyword} is the type of
+element, and \vn{attributes} is a list of the elements
+attributes. \cref{c:elements} gives a list of elements types with
+their attributes.
+\vn{Overlay} and \vn{group} type elements have a slightly different syntax:
 \begin{example}
-  label: keyword = \{ list \}, master-attribute [= value] [, attributes]
+  ele_name: keyword = \{ list \}, master-attribute [= value] [, attributes]
 \end{example}
 and \vn{Girder} elements have the syntax
 \begin{example}
-  label: keyword = \{ list \} [, attributes]
+  ele_name: keyword = \{ list \} [, attributes]
 \end{example}  
 For example:
 \begin{example}
@@ -241,10 +245,35 @@ For example:
   h10e: overlay = \{ b08e, b10e \}, hkick
 \end{example}
 
-\cref{c:elements} gives a list of elements with their attributes.
 
 %---------------------------------------------------------------------------
-\section{Element Attributes}
+\section{Lattice Element Names}
+\label{s:ele.names}
+\index{element!names}
+
+\index{element!name}\index{superimpose}\index{multipass}
+A valid element name may be up to 40 characters in length. The first
+character of the name must be a letter [A-Z]. After that, the rest of
+the name can contain only letters, digits [0-9], underscore ``_'',
+period ``.'', backslash ``\B'', or a hash mark ``\#''. It is best to
+avoid these last three symbols since \bmad uses them to denote
+``relationships''.  Periods are used for tagging (\sref{s:tag}), and
+backslash and hash marks are used for to compose names for
+superposition (\sref{s:super}) and multipass (\sref{s:multipass})
+slave elements.
+
+There is a short list of names that cannot be used as an element name. 
+These reserved names are:
+\begin{example}
+  BEAM
+  BEAM_START
+  BEGINNING
+  PARAMETER
+  ROOT
+\end{example}
+
+%---------------------------------------------------------------------------
+\section{Lattice Element Attributes}
 \index{element attribute|hyperbf}
 
 Any lattice element has various attributes like its name, its length,
@@ -253,9 +282,6 @@ when the element is defined. For example:
 \begin{example}
   b01w: sbend, l = 6.0, rho = 89.0 ! Define an element with attributes.
 \end{example}
-Some attributes have complicated
-
-
 After an element's definition, an individual attribute may be referred
 to using the syntax
 \begin{example}
@@ -280,7 +306,7 @@ of element, all elements of that type will be set. For example
   rfcavity[voltage] = 3.7                ! Set all RFcavity elements.
 \end{example}
 
-Additionally with element attribute sets, The wildcards \vn{``*''},
+Additionally with element attribute sets, The wild cards \vn{``*''},
 and \vn{``\%''} can be used to can be used where \vn{``*''} denotes
 any number of characters and \vn{``%''} denotes a single character. Examples:
 \begin{example}
@@ -288,9 +314,23 @@ any number of characters and \vn{``%''} denotes a single character. Examples:
   Q*[k1] = 0.234                      ! Matches all elements with names beginning with Q.
   Q%1[k1] = 0.234                     ! Matches to "Q01" but not "Q10".
 \end{example}
-Note: A name with wildcards will never match to the \vn{BEGINNING} element (\sref{s:use}).
+Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
 
 \cref{c:elements} gives a list of elements with their attributes.
+
+Multiple elements in a lattice may share the same name.  When
+branching (\sref{s:branching}) is used, to differentiate elements that
+appear in different branches, the ``branch qualified'' element name may be
+used. The branch qualified element name is of the form
+\begin{example}
+  branch_name>>element_name
+\end{example}
+where \vn{branch_name} is the name of the branch and \vn{element_name}
+is the ``regular'' name of the element. Example:
+\begin{example}
+  root>>q10w
+  x_branch>>crystal3
+\end{example}
 
 %---------------------------------------------------------------------------
 \section{Variable Types}
@@ -481,3 +521,199 @@ On the other hand if the attribute is set after lattice expansion:
 \end{example}
 Here the two \vn{a} elements in the lattice get different values for
 \vn{x_offset}.
+
+%-----------------------------------------------------------------------------
+\section{Title Statement}
+\index{title statement|hyperbf}
+
+The \vn{title} statement sets a title string which can be used by a program. 
+For consistency with \mad there are two possible syntaxes
+\begin{example}
+  title, <String>
+\end{example}
+or the statement can be split into two lines
+\begin{example}
+  title
+  <String>
+\end{example}
+For example
+\begin{example}
+  title
+  "This is a title"
+\end{example}
+
+%--------------------------------------------------------------------------
+\section{Call Statement}
+\label{s:call}
+\index{call statement|hyperbf}
+
+It is frequently convenient to separate the lattice definition into
+several files.  Typically there might be a file (or files) that define
+the layout of the lattice (something that doesn't change often) and a
+file (or files) that define magnet strengths (something that changes
+more often).  The \vn{call} is used to read in separated lattice
+files. The syntax is
+\begin{example}
+  call, filename = <String>
+\end{example}
+Example:
+\begin{example}
+  call, filename = "../layout/my_layout.bmad"      ! Relative pathname
+  call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname
+\end{example}
+\bmad will read the called file until a \vn{return} or \vn{end_file}
+statement is encountered or the end of the file is reached.
+
+For filenames that are relative, the called file will be searched for in
+two different locations:
+\begin{example}
+  1) Relative to the directory of the calling file.
+  2) Relative to the current directory.
+\end{example}
+The first instance where a file is found is used.
+Thus, in the above example, the first call will search for:
+\begin{example}
+  2) ../layout/my_layout.bmad  (relative to the calling file directory)
+  1) ../layout/my_layout.bmad  (relative to the current directory)
+\end{example}
+
+\index{no_digested statement}
+\index{no_superimpose statement}
+\index{parser_debug statement}
+An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
+from within an \bmad lattice file by prepending \vn{"xsif::"} to the
+file name. Example:
+\begin{example}
+  call, filename = "xsif::my_lattice.xsif"
+\end{example}
+This statement must be the first statement in the \bmad lattice file
+except for any \vn{no_digested}, \vn{parser_debug}, or
+\vn{no_superimpose} statements. The XSIF lattice file must define a
+complete lattice and cannot contain any \bmad specific statements. The
+call to the XSIF file automatically expands the lattice
+(\sref{s:expand}) and any additional statements in the \bmad lattice
+file operate on the expanded lattice.
+
+%--------------------------------------------------------------------------
+\section{Inline Call}
+\label{s:call.inline}
+\index{call!inline}
+
+Any lattice elements will have a set of attributes that need to be defined.
+As a convenience, it is possible to segragate an element attribute or attributes
+into a separate file and then ``call'' this file using an
+``inline call''. The inline call has three forms. In an element definition,
+the inline call has the form
+\begin{example}
+  <ele_name>: <ele_type>, ..., call::<file_name>, ...
+\end{example}
+or
+\begin{example}
+  <ele_name>: <ele_type>, ..., <attribute_name> = call::<file_name>, ...
+\end{example}
+where \vn{<attribute_name>} is the name of the attribute and
+\vn{<file_name>} is the name of the where the attribute structure is
+given.  The third form of the inline call occures when an element
+attribute is redefined and has the form
+\begin{example}
+  <ele_name>[<attribute_name>] = call::<file_name>
+\end{example}
+
+
+%Most element attributes are associated with a single real number. Some
+%attributes are more complicated and are defined by a ``structure''
+%which contain multiple numbers. The \vn{wall} attribute
+%(\sref{s:wall}) is an example of an attribute that has a complicated
+%structure. 
+
+%--------------------------------------------------------------------------
+\section{Return and End_File statements}
+\index{return statement|hyperbf}
+\index{end_file statement|hyperbf}
+
+\vn{Return} and \vn{end_file} have identical effect and tell \bmad to
+ignore anything beyond the \vn{return} or \vn{end_file} statement in
+the file.
+
+%----------------------------------------------------------------------------
+\section{Expand_lattice Statement}
+\label{s:expand}
+\index{lattice!expansion|hyperbf}
+\index{expand_lattice}
+
+At some point in parsing a lattice file, the ordered sequence of
+elements that form a lattice must be constructed. This process is called
+\vn{lattice expansion} since the element sequence can be built up from
+sub--sequences (\sref{c:sequence}). Normally lattice expansion happens
+automatically at the end of the parsing of the lattice file but an
+explicit \vn{expand_lattice} statement in a lattice file will cause
+immediate expansion. The reason why this can be important is that there
+are restrictions, on some types of operations which must come either
+before or after lattice expansion:
+\begin{Itemize}
+\item 
+\index{ran}
+\index{ran_gauss}
+The \vn{ran} and \rn{ran_gauss} functions, when used with elements
+that show up multiple times in a lattice, generally need to be used
+after lattice expansion. See \sref{s:functions}.
+\item 
+Some dependent variables may be set as if they are independent
+variables but only if done before lattice expansion. See \sref{s:depend}.
+\index{multipass}
+\item 
+Setting the \vn{dphi0} attribute for an 
+\vn{Lcavity} or \vn{RFcavity} multipass
+slave may only be done after lattice expansion (\sref{s:multipass}).
+\item
+\index{tags for Lines and Lists}
+Setting individual element attributes for tagged elements can only be done
+after lattice expansion (\sref{s:tag}).
+\item
+\index{branching}
+Using the full branch-qualified name of an element (\sref{s:branching}).
+\end{Itemize}
+
+%--------------------------------------------------------------------------
+\section{No_superimpose Statement}
+\index{no_superimpose statement}
+\label{s:no.superimpose}
+
+The \vn{no_superimpose} statement is used to supress superpositions
+(\sref{s:super}). This is useful for debugging purposes.
+
+%--------------------------------------------------------------------------
+\section{Debugging Statements}
+\index{parser_debug statement}
+\index{no_digested statement}
+\index{lattice files!parser debugging}
+
+There are two statements, \vn{parser_debug} and \vn{no_digested},
+which can help in debugging the \bmad lattice parser
+itself.  That is, these statements are generally only used by programmers.
+
+The \vn{no_digested} statement if present, will prevent \bmad from 
+creating a digested file. 
+
+The \vn{parser_debug} statement will cause information about the
+lattice to be printed out at the terminal. It is recommended that this
+statement be used with small test lattices since it can generate a lot
+of output. The syntax is
+\begin{example}
+  parser_debug <switches>
+\end{example}
+Valid \vn{<switches>} are
+\begin{example}
+  beam_start          ! Print the beam_start information.
+  ele <n1> <n2> ...   ! Print full info on selected elements.
+  lattice             ! Print a list of lattice element information.
+  lord                ! Print full information on all lord elements.
+  seq                 ! Print sequence information.
+  slave               ! Print full information on all slave elements.
+  var                 ! Print variable information.
+\end{example}
+Here $<n1>$, $<n2>$, etc. are the index of the selected elements in
+the lattice.  Example
+\begin{example}
+  parser_debug var lat ele 34 78
+\end{example}

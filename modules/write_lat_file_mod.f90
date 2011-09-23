@@ -652,7 +652,7 @@ end if
 ! But only write this once.
 
 write (iu, *)
-line = 'main_line: line = ('
+line = trim(lat%branch(0)%name) // '_line: line = ('
 
 in_multi_region = .false.
 do ie = 1, lat%n_ele_track
@@ -690,7 +690,7 @@ line = line(:len_trim(line)-1) // ')'
 call write_lat_line (line, iu, .true.)
 
 write (iu, *)
-write (iu, *) 'use, main_line'
+write (iu, *) 'use, ' // trim(lat%branch(0)%name) // '_line'
 
 ! Branch lines
 

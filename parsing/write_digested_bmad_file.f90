@@ -117,7 +117,7 @@ enddo
 ! since the whole structure is too big to write in 1 statement.
 
 write (d_unit) &
-        lat%name, lat%lattice, lat%input_file_name, lat%title, &
+        lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order
@@ -148,7 +148,7 @@ do i = 1, ubound(lat%branch, 1)
   n_wall_section = 0
   if (associated(branch%wall3d%section)) n_wall_section = size(branch%wall3d%section)
   write (d_unit) branch%param
-  write (d_unit) branch%name, branch%key, branch%ix_from_branch, &
+  write (d_unit) branch%name, -1, branch%ix_from_branch, &
                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, 0
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
@@ -253,7 +253,7 @@ write (d_unit) &
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, ele%ref_orbit, &
-          ele%taylor_order, ele%symplectify, ele%mode_flip, &
+          0, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &

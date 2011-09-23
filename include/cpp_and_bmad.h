@@ -936,7 +936,6 @@ public:
   int tracking_method;          // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
   int ref_orbit;                // For setting the ptc kind type.
-  int taylor_order;             // Order of the taylor series.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
   int aperture_type;           // Where aperture is applied. exit_end$, ...
   int attribute_status;         // Element attributes have been modified?
@@ -987,7 +986,6 @@ public:
     tracking_method(Bmad::BMAD_STANDARD),
     field_calc(Bmad::BMAD_STANDARD),
     ref_orbit(0),
-    taylor_order(0),
     aperture_at(Bmad::EXIT_END), 
     aperture_type(Bmad::RECTANGULAR),
     attribute_status(0),
@@ -1054,7 +1052,6 @@ class branch_struct {};
 class C_branch {
 public:
   string name;
-  int key;
   int ix_branch;
   int ix_from_branch;
   int ix_from_ele;
@@ -1083,7 +1080,7 @@ class lat_struct {};
 
 class C_lat {
 public:
-  string name;               // Name of ring given by USE statement
+  string use_name;           // Name of ring given by USE statement
   string lattice;            // Lattice
   string input_file_name;    // Name of the lattice input file
   string title;              // General title

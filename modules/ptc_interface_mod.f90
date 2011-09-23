@@ -1827,7 +1827,6 @@ y(6) = y(6) - ele%value(l$) * beta0 * m2_rel * (2.0_rp * y(5) + y(5)**2) / &
 ! convert to bmad_taylor  
 
 ele%taylor = y
-ele%taylor_order = ptc_com%taylor_order_ptc
 
 call kill(a_fibre)
 call kill(y)

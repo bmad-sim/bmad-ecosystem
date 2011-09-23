@@ -1346,7 +1346,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%lord_status, f%n_lord, f%ic1_lord, f%ic2_lord, &
       f%ix_pointer, f%ixx, &
       f%mat6_calc_method, f%tracking_method, f%field_calc, f%ref_orbit, &
-      f%taylor_order, f%aperture_at, f%aperture_type, f%attribute_status, f%n_attribute_modify, &
+      f%aperture_at, f%aperture_type, f%attribute_status, f%n_attribute_modify, &
       f%symplectify, f%mode_flip, f%multipoles_on, f%scale_multipoles, f%map_with_offsets, &
       f%field_master, f%reversed, f%is_on, f%old_is_on, f%logic, f%bmad_logic, f%on_a_girder, &
       f%csr_calc_on, f%offset_moves_aperture)
@@ -1379,7 +1379,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_co
     key, sub_key, ix_ele, ix_branch, ix_value, &
     slave_status, n_slave, ix1_slave, ix2_slave, &
     lord_status, n_lord, ic1_lord, ic2_lord, &
-    ix_point, ixx, mat6_meth, tracking_meth, field_calc, ref_orb, tlr_ord, &
+    ix_point, ixx, mat6_meth, tracking_meth, field_calc, ref_orb, &
     aperture_at, aperture_type, attrib_stat, n_attrib_modify, &
     symp, mode_flip, multi_on, scale_multi, &
     map_with_off, field_master, reversed, is_on, old_is_on, logic, bmad_logic, &
@@ -1399,7 +1399,7 @@ type (genfield), target :: gen_f
 
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub_key, lord_status, slave_status
 integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, field_calc
-integer ref_orb, tlr_ord, aperture_at, attrib_stat, symp, mode_flip, multi_on, map_with_off, field_master
+integer ref_orb, aperture_at, attrib_stat, symp, mode_flip, multi_on, map_with_off, field_master
 integer reversed, is_on, old_is_on, logic, bmad_logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
 integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
 integer n_attrib_modify, ix_value, n_slave, ix1_slave, scale_multi
@@ -1524,7 +1524,6 @@ f%mat6_calc_method      = mat6_meth
 f%tracking_method       = tracking_meth
 f%field_calc            = field_calc
 f%ref_orbit             = ref_orb
-f%taylor_order          = tlr_ord
 f%aperture_at           = aperture_at
 f%aperture_type         = aperture_type
 f%attribute_status      = attrib_stat
@@ -1676,7 +1675,7 @@ if (associated(f%ele)) n_ele = size(f%ele)
 n_ic = 0
 if (allocated(f%ic)) n_ic = size(f%ic)
 
-call lat_to_c2 (C_lat, c_str(f%name), c_str(f%lattice), &
+call lat_to_c2 (C_lat, c_str(f%use_name), c_str(f%lattice), &
       c_str(f%input_file_name), c_str(f%title), f%a, f%b, f%z, f%param, &
       f%version, f%n_ele_track, f%n_ele_max, n_ele, &
       f%n_control_max, f%n_ic_max, f%input_taylor_order, &
@@ -1696,7 +1695,7 @@ end subroutine
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lat_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
+! Subroutine lat_to_f2 (f, use_name, n_name, lat, n_lat, file, n_file, title, &
 !    n_title, x, y, z, param, ver, n_use, n_max, nc_max, n_ic_max, &
 !    tlr_ord, ele_init, n_con, ic, n_ic)
 !
@@ -1704,7 +1703,7 @@ end subroutine
 ! a Bmad lat_struct. This routine is not for general use.
 !-
 
-subroutine lat_to_f2 (f, name, n_name, lat, n_lat, file, n_file, title, &
+subroutine lat_to_f2 (f, use_name, n_name, lat, n_lat, file, n_file, title, &
     n_title, x, y, z, param, ver, n_use, n_max, n_maxx, nc_max, n_ic_max, &
     tlr_ord, ele_init, n_con, ic, n_ic)
 
@@ -1719,7 +1718,7 @@ type (c_dummy_struct) x, y, z, param, ele_init
 integer n_ic_max, n_ic, n_name, n_lat, n_file, n_title, ic(n_ic)
 integer ver, n_use, n_max, nc_max, tlr_ord, n_con, n_maxx
 
-character(n_name) name
+character(n_name) use_name
 character(n_lat) lat
 character(n_file) file
 character(n_title) title
@@ -1731,7 +1730,7 @@ print *, 'LAT_STRUCT CONVERSION BETWEEN C++/FORTRAN NOT YET IMPLEMENTED!'
 
 !
 
-f%name             = name
+f%use_name         = use_name
 f%lattice          = lat
 f%input_file_name  = file
 f%title            = title

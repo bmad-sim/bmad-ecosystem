@@ -321,10 +321,13 @@ endif
 
 lat_out%wall3d = lat_in%wall3d
 
-! branch lines (except main branch which was handled above)
+! branch lines 
 
 n = ubound(lat_in%branch, 1)
 call allocate_branch_array (lat_out, n)
+
+lat_out%branch(0) = lat_in%branch(0)
+
 do i = 1, n
   call allocate_lat_ele_array (lat_out, ubound(lat_in%branch(i)%ele, 1), i)
   lat_out%branch(i) = lat_in%branch(i)
@@ -416,7 +419,6 @@ type (branch_struct), intent(in) :: branch2
 !
 
 branch1%name           = branch2%name
-branch1%key            = branch2%key 
 branch1%ix_branch      = branch2%ix_branch
 branch1%ix_from_branch = branch2%ix_from_branch
 branch1%ix_from_ele    = branch2%ix_from_ele

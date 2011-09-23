@@ -90,7 +90,8 @@ end subroutine twiss_and_track_main
 ! Subroutine twiss_and_track_all (lat, orb_array, ok)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
-!
+! Note: photon branches are currently ignored.
+! 
 ! This routine is overloaded by twiss_and_track.
 ! See twiss_and_track for more details.
 !-
@@ -113,7 +114,7 @@ call reallocate_coord_array (orb_array, lat)
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  if (branch%key == photon_branch$) cycle
+  if (branch%param%particle == photon$) cycle
   if (i /= 0 .and. branch%param%lattice_type == linear_lattice$) then
     orb_array(i)%orb(0) = orb_array(branch%ix_from_branch)%orb(branch%ix_from_ele) 
     call transfer_twiss (lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele), branch%ele(0))

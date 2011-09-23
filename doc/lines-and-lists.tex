@@ -265,31 +265,72 @@ is modified do not have any effect on the lattice elements.
 
 %-----------------------------------------------------------------------------
 \section{Branching}
-\index{branch}\index{photon_branch}
+\index{branching}\index{photon_branch}\index{branch}
 \label{s:branching}
 
-Lines that branch off from the main lattice can be defined in
-\bmad. There are two types of branch elements. \vn{Branch} elements define
-where the particle beam can branch off, say to a beam dump.
-\vn{Photon_Branch} elements define the source point for X-ray beams.
-Example:
+The ``root'' lattice (also called the ``root branch'') is defined by
+the \vn{use} (\sref{s:use}) statement. To defined such things as dump
+lines, x-ray beam lines, transfer lines, etc., that branch off from
+the root lattice can be defined in \bmad. The place in the lattice
+where a branch line starts is defined by using a \vn{branch} or
+\vn{photon_branch} element (collectively they can be called branching elements).
+\vn{Branch} elements can define where the particle beam
+can branch off, say to a beam dump. \vn{photon_branch} elements can
+define the source point for X-ray beams.  Example:
 \begin{example}
-  erl: line = (..., dump, ...)               ! Define the main lattice with a branch 
+  erl: line = (..., dump, ...)               ! Define the root lattice with a branch 
   use, erl
   dump: branch, to = d_line, direction = -1  ! Define the branch point
 
   d_line: line = (..., q3d, ...)             ! Define the branch line
 \end{example}
+The difference between a \vn{branch} element and a \vn{photon_branch}
+element is that for a \vn{branch} element the default particle for the
+branch is the same as the line that the branch branches off from. The
+default particle of the branch from a \vn{photon_branch} element is a
+\vn{photon}. The actual particle associated with a branch can be set
+by setting the \vn{particle} attribute of the branching element
+(\sref{s:branch}).
 
-Branch lines can themselves have branch elements. A branch line always
+\index{patch}
+Branch lines can themselves have branching elements. A branch line always
 starts out tangential to the line it is branching from. The
 \vn{direction} attribute of the branch element indicates whether the
 branch line is outgoing in the forward direction (direction = +1) or
-incoming (direction = -1).
+incoming (direction = -1). A \vn{patch} element (\sref{s:patch}) can
+be used at the beginning of a branch line to reorient the reference
+orbit as needed.
 
-Branches are named after the branch element name. In the above
-example, the branch line would be named \vn{DUMP}. Like the main
-lattice, \bmad always automatically creates a zeroth element at the
-beginning of the branch called \vn{BEGINNING}. The longitudinal \vn{s}
-position of an element in a branch is determined by the distance from
-the beginning of the branch.
+Like the root lattice, \bmad always automatically creates a zeroth
+element at the beginning of each branch called \vn{BEGINNING}. The
+longitudinal \vn{s} position of an element in a branch is determined
+by the distance from the beginning of the branch.
+
+\index{root_branch_name}
+Branches are named after the branching element name. In the above
+example, the branch line would be named \vn{DUMP}. The root lattice,
+by default, is called \vn{ROOT}. This default name for the root branch
+can be changed using the \vn{parameter[root_branch_name]} parameter
+(\sref{s:param}).
+
+For branch lines (\sref{s:branching}), the full ``branch
+qualified'' name of an element is of the form
+\begin{example}
+  branch_name>>element_name
+\end{example}
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the
+``regular'' name of the element. Example:
+\begin{example}
+  root>>q10w
+  xline>>cryst3
+\end{example}
+Using the full name is only needed to distinguish elements that have
+the same regular name in separate branches.  When parsing a lattice
+file, branches are not formed until the lattice is expanded
+(\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
+required before full names can be used in statements.
+
+Branch parameters, like whether the branch is open
+(``linear_lattice'') or closed (``circular_lattice''), can be set
+by setting the appropriate attribute of the branching element
+see \sref{s:branch} for more details.

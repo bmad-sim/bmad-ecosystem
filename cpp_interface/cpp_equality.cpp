@@ -200,10 +200,10 @@ bool operator== (const C_normal_modes& x, const C_normal_modes& y) {
 }
 
 bool operator== (const C_branch& x, const C_branch& y) {
-  return (x.key == y.key) && (x.name == y.name) && (x.ix_branch == y.ix_branch) && 
-          (x.ix_from_branch == y.ix_from_branch) && (x.ix_from_ele == y.ix_from_ele) && 
-          (x.n_ele_track == y.n_ele_track) && (x.n_ele_max == y.n_ele_max) && 
-          is_all_equal(x.ele == y.ele) && (x.wall3d == y.wall3d) && (x.param == y.param);
+  return (x.name == y.name) && (x.ix_branch == y.ix_branch) && 
+         (x.ix_from_branch == y.ix_from_branch) && (x.ix_from_ele == y.ix_from_ele) && 
+         (x.n_ele_track == y.n_ele_track) && (x.n_ele_max == y.n_ele_max) && 
+         is_all_equal(x.ele == y.ele) && (x.wall3d == y.wall3d) && (x.param == y.param);
 }
 
 bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
@@ -290,7 +290,6 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.tracking_method == y.tracking_method);
   is_true = is_true && (x.field_calc == y.field_calc);
   is_true = is_true && (x.ref_orbit == y.ref_orbit);
-  is_true = is_true && (x.taylor_order == y.taylor_order);
   is_true = is_true && (x.aperture_at == y.aperture_at);
   is_true = is_true && (x.aperture_type == y.aperture_type);
   is_true = is_true && (x.attribute_status == y.attribute_status);
@@ -317,7 +316,7 @@ bool operator== (const C_mode_info& x, const C_mode_info& y) {
 
 bool operator== (const C_lat& x, const C_lat& y) {
   bool is_true = true;
-  is_true = is_true && (x.name == y.name); 
+  is_true = is_true && (x.use_name == y.use_name); 
   is_true = is_true && (x.lattice == y.lattice);
   is_true = is_true && (x.input_file_name == y.input_file_name);
   is_true = is_true && (x.title == y.title);

@@ -71,7 +71,7 @@ call read_digested_bmad_file (digested_file, lat, digested_version)
 if (present(use_line)) then
   if (use_line /= '') then
     call str_upcase (name, use_line)
-    if (name /= lat%name) bmad_status%ok = .false.
+    if (name /= lat%use_name) bmad_status%ok = .false.
   endif
 endif
 
@@ -559,7 +559,7 @@ endif
 inquire (file = xsif_file, name = full_name) 
 lat%input_file_name = full_name    
 
-lat%name = ' '
+lat%use_name = ' '
 lat%lattice = ' '
 
 lat%n_ele_track  = i_ele
@@ -570,7 +570,7 @@ lat%version            = bmad_inc_version$
 lat%param%aperture_limit_on  = .true.
 lat%n_ic_max           = 0                     
 lat%n_control_max      = 0    
-lat%name = ktext  ! ktext is global xsif variable
+lat%use_name = ktext  ! ktext is global xsif variable
 
 if (lat%ele(0)%value(e_tot$) == 0) then
   call xsif_warning ('REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')

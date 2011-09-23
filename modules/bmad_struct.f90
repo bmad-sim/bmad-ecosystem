@@ -293,7 +293,6 @@ type ele_struct
   integer field_calc         ! Used with Boris, Runge-Kutta integrators.
   integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, 
                              !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
-  integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer aperture_type     ! rectangular$, elliptical$, star_shape$, or custom$
   integer attribute_status   ! Element attributes have been modified?
@@ -356,7 +355,6 @@ end type
 
 type branch_struct
   character(40) name
-  integer key               ! photon_branch$, branch$, etc.
   integer ix_branch
   integer ix_from_branch    ! 0 => main lattice line
   integer ix_from_ele
@@ -386,7 +384,7 @@ end type
 !     lat_equal_lat
 
 type lat_struct
-  character(40) name                      ! Name of lat given by USE statement
+  character(40) use_name                  ! Name of lat given by USE statement
   character(40) lattice                   ! Lattice
   character(200) input_file_name          ! Name of the lattice input file
   character(80) title                     ! General title
@@ -462,7 +460,7 @@ logical has_orientation_attributes(n_key)
 
 ! Element attribute name logical definitions
 
-integer, parameter :: particle$ = 1, n_part$   = 2, taylor_order$ = 3
+integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 4
 integer, parameter :: lattice_type$ = 5, symmetry$ = 6
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
@@ -579,7 +577,7 @@ integer, parameter :: ref_time$ = 83
 integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86
 integer, parameter :: y_limit$ = 87
-integer, parameter :: offset_moves_aperture$ = 88
+integer, parameter :: offset_moves_aperture$ = 88, root_branch_name$ = 88
 integer, parameter :: aperture_limit_on$ = 89
 
 integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90, ref_patch$ = 90
@@ -887,10 +885,10 @@ type bmad_common_struct
   real(rp) :: grad_loss_sr_wake  = 0         ! Internal var for LCavities.
   real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
   real(rp) :: significant_longitudinal_length = 1e-10 ! meter 
-  real(rp) :: rel_tolerance = 1e-5
+  real(rp) :: rel_tolerance = 1e-6
   real(rp) :: abs_tolerance = 1e-8
-  real(rp) :: rel_tol_adaptive_tracking = 1e-6    ! Adaptive tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1e-7    ! Adaptive tracking absolute tolerance.
+  real(rp) :: rel_tol_adaptive_tracking = 1e-8    ! Adaptive tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1e-10   ! Adaptive tracking absolute tolerance.
   integer :: taylor_order = 3                     ! 3rd order is default
   integer :: default_integ_order = 2              ! PTC integration order
   logical :: canonical_coords = .true.            ! NOT USED.
