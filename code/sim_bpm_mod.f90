@@ -125,7 +125,7 @@ contains
   
 
   ! if CESR-type lattice, assign bpm(:)%ix_db indices
-  if (match_reg(ring%name, "CESR")) then
+  if (match_reg(ring%use_name, "CESR")) then
      call bmad_to_cesr(ring, cesr)
      jx = 1
      do i = 1, ubound(cesr%det,1)
