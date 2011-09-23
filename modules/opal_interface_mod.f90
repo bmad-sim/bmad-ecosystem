@@ -214,7 +214,7 @@ ele_loop: do ie = ix_start, ix_end
         call err_exit
       endif
       
-      write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "standing", l =', val(l$)
+      write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
 
       !Check field map file. If file has not been written, create a new file. 
       call find_indexx (ele%rf%field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match)
@@ -375,7 +375,7 @@ select case (ele%key)
     z_step = 0.001_rp
 
     x_min = 0.0_rp
-    x_max = 0.04_rp
+    x_max = 0.02_rp
 
     z_min = 0.0_rp
     z_max = ele%value(L$)
@@ -390,17 +390,6 @@ select case (ele%key)
   !-0.10158700000000001	4.793651666666666	11    # rmin(cm),  rmax(cm),   nr-1
   !
   !-547.601	-9.64135	0	-20287.798905810083   ! Ez(t0), Er(t0), dummy->0.0, -10^6 / mu_0 * B_phi (t + 1/4 1/f) 
-
-  !Scaling for T7 format
-  Ex_factor = 1
-  Ez_factor = 1
-  By_factor = -1e6_rp / (fourpi * 1e-7)
-
-  !Write header
-  write (opal_file_unit, '(3a)') ' 2DDynamic XZ', '  # Created from ele: ', trim(ele%name)
-  write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
-  write (opal_file_unit, '('//rfmt//', a)') 1e-6 * freq, '  # frequency (MHz)'
-  write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
 
   !Allocate temporary pt array
   allocate ( pt(0:nx, 0:nz, 1:1) )
@@ -424,6 +413,7 @@ select case (ele%key)
       pt(ix, iz, 1)%B(:) = cmplx(field_re%B(:), field_im%B(:))
       
       !Update ref_field if larger Ez is found
+      !TODO: Opal may use Ex as well for scaling. Check this. 
       if(abs(pt(ix, iz, 1)%E(3)) > maxfield) then
          ref_field = pt(ix, iz, 1)
          maxfield = abs(ref_field%E(3))
@@ -431,25 +421,34 @@ select case (ele%key)
     end do
   end do
   
-  !Output maximum fields
-  maxfield = maxval(abs(pt(:,:,:)%E(3)))
-  
   ! Write to file
   if (opal_file_unit > 0 )  then
+
+    !Write header
+    write (opal_file_unit, '(3a)') ' 2DDynamic XZ', '  # Created from ele: ', trim(ele%name)
+    write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
+    write (opal_file_unit, '('//rfmt//', a)') 1e-6 * freq, '  # frequency (MHz)'
+    write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
+
+    !Scaling for T7 format
+    Ex_factor = (1/maxfield)
+    Ez_factor = (1/maxfield)
+   By_factor = -(1/maxfield)*1e6_rp / ( fourpi * 1e-7)
+
   
-  !Calculate complex rotation number to rotate Ez onto the real axis
-  phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
-  phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref))
+    !Calculate complex rotation number to rotate Ez onto the real axis
+    phase_ref = atan2( aimag(ref_field%E(3) ), real(ref_field%E(3) ) )
+    phasor_rotation = cmplx(cos(phase_ref), -sin(phase_ref))
   
-  do ix = 0, nx
-    do iz = 0, nz
+    do ix = 0, nx
+      do iz = 0, nz
       
-      write (opal_file_unit, '(4'//rfmt//')') Ez_factor * real ( pt(ix, iz, 1)%E(3) * phasor_rotation ), &
-                                              Ex_factor * real ( pt(ix, iz, 1)%E(1) * phasor_rotation ), &
-                                              0.0_rp, &
-                                              By_factor * aimag (  pt(ix, iz, 1)%B(2)*phasor_rotation )
+        write (opal_file_unit, '(4'//rfmt//')') Ez_factor * real ( pt(ix, iz, 1)%E(3) * phasor_rotation ), &
+                                                Ex_factor * real ( pt(ix, iz, 1)%E(1) * phasor_rotation ), &
+                                                0.0_rp, &
+                                                By_factor * aimag (  pt(ix, iz, 1)%B(2)*phasor_rotation )
+      enddo
     enddo
-  enddo
   
   end if
    
