@@ -57,11 +57,10 @@ do n = 1, ubound(lat%branch, 1)
   ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
   branch%ele(0)%floor = ele%floor
 
-  if (ele%key == photon_branch$ .or. ele%key == photon_branch$) then
-    if (nint(ele%value(direction$)) == -1) then
-      branch%ele(0)%floor%theta = -branch%ele(0)%floor%theta
-      branch%ele(0)%floor%phi   = -branch%ele(0)%floor%phi
-    endif
+  if (nint(ele%value(direction$)) == -1) then
+    branch%ele(0)%floor%theta = modulo2(branch%ele(0)%floor%theta + pi, pi)
+    branch%ele(0)%floor%phi   = -branch%ele(0)%floor%phi
+    branch%ele(0)%floor%psi   = -branch%ele(0)%floor%psi
   endif
 
   do i = 1, branch%n_ele_track

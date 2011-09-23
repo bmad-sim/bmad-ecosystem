@@ -527,11 +527,31 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 
 Attributes specific to a \vn{branch} and \vn{photon_branch} elements are:
 \begin{example}
+  direction    = <+/- 1>    ! Direction of branch.
   E_tot_start  = <Real>     ! Starting reference energy for a branch (eV).
   p0c_start    = <Real>     ! Starting reference momentum for a branch (eV).
   lattice_type = <Switch>   ! Define linear or circular branch
   particle     = <type>     ! Eg: positron, photon, etc.
 \end{example}
+
+Branch lines can themselves have branching elements. A branch line
+always starts out tangential to the line it is branching from. The
+\vn{direction} attribute of the branch element indicates whether the
+branch line is outgoing in the forward direction (\vn{direction} = +1)
+or incoming (\vn{direction} = -1). A \vn{patch} element
+(\sref{s:patch}) can be used at the beginning of a branch line to
+reorient the reference orbit as needed.  For \vn{direction} = -1, the
+local coordinate system orientation is ``reversed''
+using the transformation (cf.~Figure~\ref{f:global.coords})
+\begin{equation}
+  \theta \longrightarrow \theta + \pi \comma\qquad
+  \phi   \longrightarrow -\phi \comma\qquad
+  \psi   \longrightarrow -\psi 
+\end{equation}
+and the particle phase space coordinates are transformed using
+\Begineq
+  (x, p_x, y, p_y, z, p_z) \longrightarrow (-x, p_x, y, -p_y, -z, p_z)
+\Endeq
 
 The \vn{E_tot_start} and \vn{p0c_start} attributes set the starting
 reference energy of the branch. This is analogous to the
@@ -1408,7 +1428,7 @@ affects the calculated Twiss parameters through the \vn{match}
 element will not affect the \vn{match} element's transfer matrix.
 
   \index{match_end_orbit}
-  \item[match_end_orbitn]
+  \item[match_end_orbit]
 The \vn{match_end_orbit} attribute is similar to the \vn{match_end}
 attribute.  When running a program, if \vn{match_end_orbit} is set to
 True, when any particle is tracked through the \vn{match} element, the
