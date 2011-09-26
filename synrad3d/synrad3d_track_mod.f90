@@ -20,7 +20,7 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon (photon, lat, wall, wall_hit)
+! Subroutine sr3d_track_photon (photon, lat, wall, wall_hit, err)
 !
 ! Routine to propagate a synch radiation photon until it gets absorbed by a wall.
 !
@@ -36,9 +36,10 @@ contains
 ! Output:
 !   photon      -- sr3d_photon_coord_struct: synch radiation photon propagated until absorbtion.
 !   wall_hit(:) -- sr3d_photon_wall_hit_struct: Array of wall hit data.
+!   err         -- Tracking calculation failed.
 !-
 
-subroutine sr3d_track_photon (photon, lat, wall, wall_hit)
+subroutine sr3d_track_photon (photon, lat, wall, wall_hit, err)
 
 implicit none
 
@@ -47,7 +48,7 @@ type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
-logical absorbed
+logical absorbed, err
 
 !
 
@@ -57,8 +58,11 @@ wall_hit(0)%after_reflect = photon%start
 
 !
 
+err = .false.
+
 do
-  call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
+  call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit, err)
+  if (err) return
   call sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
   if (absorbed) return
 enddo
@@ -69,7 +73,7 @@ end subroutine sr3d_track_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
+! Subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit, err)
 !
 ! Routine to propagate a synch radiation photon until it hits a wall.
 !
@@ -79,13 +83,14 @@ end subroutine sr3d_track_photon
 ! Input:
 !   photon    -- sr3d_photon_coord_struct: photon with starting parameters set
 !   lat       -- lat_struct: with twiss propagated and mat6s made
-!   wall      -- sr3d_wall_struct: Beam chamber walls
+!   wall      -- sr3d_wall_struct: Beam chamber walls.
 !
 ! Output:
 !   photon    -- sr3d_photon_coord_struct: synch radiation photon propagated to wall
+!   err       -- Tracking calculation failed.
 !-
 
-subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit)
+subroutine sr3d_track_photon_to_wall (photon, lat, wall, wall_hit, err)
 
 implicit none
 
@@ -96,6 +101,8 @@ type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) v_rad_max, dlen, radius
 real(rp), pointer :: vec(:)
+
+logical err
 
 ! The photon is tracked in a series of steps.
 
@@ -120,7 +127,7 @@ do
   call sr3d_photon_status_calc (photon, wall)
   if (photon%status == at_lat_end$) return
   if (photon%status == is_through_wall$) then
-    call sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
+    call sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit, err)
     return
   endif
 
@@ -488,7 +495,7 @@ end subroutine sr3d_propagate_photon_a_step
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
+! Subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit, err)
 !
 ! Routine to calculate where the photon has hit the wall.
 !
@@ -496,16 +503,17 @@ end subroutine sr3d_propagate_photon_a_step
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon  -- sr3d_photon_coord_struct:
-!   wall    -- sr3d_wall_struct: 
-!   lat     -- lat_struct: Lattice
+!   photon    -- sr3d_photon_coord_struct:
+!   wall      -- sr3d_wall_struct: 
+!   lat       -- lat_struct: Lattice
 !
 ! Output:
-!   photon  -- sr3d_photon_coord_struct: 
+!   photon    -- sr3d_photon_coord_struct: 
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
+!   err       -- Tracking calculation failed.
 !-
 
-subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit)
+subroutine sr3d_photon_hit_spot_calc (photon, wall, lat, wall_hit, err)
 
 use nr, only: zbrent
 
@@ -520,6 +528,8 @@ real(rp) r0, r1, track_len
 ! track_len0, track_len1, d_rad0, d_rad1 are in common
 
 integer i
+
+logical err
 
 ! For debugging
 
@@ -565,8 +575,10 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
       print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
       print *, '       Start: ', photon%start%vec
       print *, '       Now:   ', photon%now%vec
+      print *, '       WILL IGNORE THIS PHOTON.'
       call print_hit_points (10, photon, wall_hit, '(6es25.15)')
-      call err_exit
+      err = .true.
+      return
     endif
   enddo
 
