@@ -33,7 +33,7 @@ type (wall3d_section_struct), pointer :: poly
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
-real(rp) e_init_filter_min, e_init_filter_max
+real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len
 
 integer i, j, n, iu, n_wall_pt_max, random_seed, iu_start, n_shape_max
@@ -393,6 +393,7 @@ n_photon_generated = 0
 n_photon_array = 0
 
 allocate (wall_hit(0:10))
+call run_timer ('START')
 
 !--------------------------------------------------------------------------
 ! If the photon_start input file exists then use that
@@ -479,7 +480,13 @@ else
     endif
 
     ix_ele = ix_ele + 1
-    if (ix_ele > lat%n_ele_track) ix_ele = 0
+    if (ix_ele > lat%n_ele_track) then
+      ix_ele = 0
+      call run_timer ('READ', timer_time)
+      print *, 'Time from start (min):', nint(timer_time/60)
+      print *, '    Num photons generated:          ', n_photon_generated
+      print *, '    Num photons passed filter tests:', n_photon_array
+    endif
 
     ele => lat%ele(ix_ele)
 
