@@ -436,7 +436,11 @@ if (photon_start_input_file /= '') then
     if (random_seed > -1) call ran_seed_put (seed = random_seed)
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
-    call sr3d_track_photon (photon, lat, wall, wall_hit)
+    call sr3d_track_photon (photon, lat, wall, wall_hit, err)
+    if (err) then
+      n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+      cycle
+    endif
     call check_filter_restrictions(ok, .false.)
     if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
   enddo photon_loop
@@ -544,7 +548,13 @@ else
 
         call check_filter_restrictions(ok, .true.)
         if (.not. ok) cycle
-        call sr3d_track_photon (photon, lat, wall, wall_hit)
+
+        call sr3d_track_photon (photon, lat, wall, wall_hit, err)
+        if (err) then
+          n_photon_array = n_photon_array - 1  ! Delete photon from the array.
+          cycle
+        endif
+
         call check_filter_restrictions (ok, .false.)
         if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
 
@@ -635,6 +645,10 @@ contains
 !
 ! Routine to check if a photon has passed the filter requirements.
 !
+! Input:
+!   init_filter -- logical: If true then photon coordinates represent the photon
+!                    at generation time. This involves different filter cuts.
+!   
 ! Output:
 !   ok -- logical: Set True if passed. False otherwise.
 !-
