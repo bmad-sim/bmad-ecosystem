@@ -726,7 +726,8 @@ do it = 1, 6
   if (present(taylor_order)) then
     ix = 0
     do k = 1, size(ele_in%taylor(it)%term)
-      if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) ix = ix + 1
+      if (sum(ele_in%taylor(it)%term(k)%expn(:)) > taylor_order) cycle
+      ix = ix + 1
     enddo
   else
     ix = size(ele_in%taylor(it)%term)
@@ -738,7 +739,7 @@ do it = 1, 6
   ix = 0
   do k = 1, size(ele_in%taylor(it)%term)
     if (present(taylor_order)) then
-      if (sum(ele_in%taylor(it)%term(k)%expn(:)) <= taylor_order) cycle
+      if (sum(ele_in%taylor(it)%term(k)%expn(:)) > taylor_order) cycle
     endif
     ix = ix + 1
     ele_out%taylor(it)%term(ix) = ele_in%taylor(it)%term(k)
@@ -860,7 +861,7 @@ type (ele_struct) :: ele1, ele2
 integer it
 
 logical equiv
-logical vmask(n_attrib_maxx)
+logical vmask(n_attrib_maxx), vnot(n_attrib_maxx)
 
 !
 
@@ -874,15 +875,17 @@ if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
 
 vmask = .true.
 if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) then
-  vmask( (/ k1$, rho$, b_max$, z_patch$, p0c$ /) ) = .false.
+  vmask( [k1$, rho$, b_max$, z_patch$, p0c$] ) = .false.
 endif
 if (.not. ele1%map_with_offsets) then
-  vmask( (/ x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
+  vmask( [x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
             y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
-            tilt_tot$, x_pitch_tot$, y_pitch_tot$/) ) = .false.
+            tilt_tot$, x_pitch_tot$, y_pitch_tot$, delta_ref_time$] ) = .false.
 endif
 
-if (any(ele1%value /= ele2%value .and. vmask)) return
+vnot = (ele1%value /= ele2%value)
+vnot = vnot .and. vmask
+if (any(vnot)) return
 
 if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
 if (associated(ele1%wig_term)) then
@@ -1911,8 +1914,8 @@ endif
 
 ! Add in dispersion.
 
-m(1:4,6) = (/ ele2%x%eta, ele2%x%etap, ele2%y%eta, ele2%y%etap /) - &
-        matmul (m(1:4,1:4), (/ ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap /)) 
+m(1:4,6) = [ele2%x%eta, ele2%x%etap, ele2%y%eta, ele2%y%etap] - &
+        matmul (m(1:4,1:4), [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap]) 
 
 ! The m(5,x) terms follow from the symplectic condition.
 
@@ -1997,8 +2000,8 @@ ele1%b%phi    = v(dphi_b$)
 ele1%y%eta    = v(eta_y1$)
 ele1%y%etap   = v(etap_y1$)
 
-ele0%c_mat(1,:) = (/ v(c_11$), v(c_12$) /)
-ele0%c_mat(2,:) = (/ v(c_21$), v(c_22$) /)
+ele0%c_mat(1,:) = [v(c_11$), v(c_12$)]
+ele0%c_mat(2,:) = [v(c_21$), v(c_22$)]
 ele0%gamma_c    = v(gamma_c$)
 
 ele1%c_mat = 0 
@@ -2011,8 +2014,8 @@ call transfer_mat_from_twiss (ele0, ele1, mat6)
 
 ! Kick part
 
-vec0 = (/ v(x1$), v(px1$), v(y1$), v(py1$), v(z1$), v(pz1$) /) - &
-       matmul (mat6, (/ v(x0$), v(px0$), v(y0$), v(py0$), v(z0$), v(pz0$) /))
+vec0 = [v(x1$), v(px1$), v(y1$), v(py1$), v(z1$), v(pz1$)] - &
+       matmul (mat6, [v(x0$), v(px0$), v(y0$), v(py0$), v(z0$), v(pz0$)])
 
 end subroutine match_ele_to_mat6
 
@@ -2290,32 +2293,32 @@ endif
 
 ! If one element is a pipe then key3 = key of other element.
 
-if (any(key1 == (/ pipe$ /))) then
+if (any(key1 == [pipe$])) then
   key3 = key2
   return
 endif
 
-if (any(key2 == (/ pipe$ /))) then
+if (any(key2 == [pipe$])) then
   key3 = key1
   return
 endif
 
 ! If one element is a rcollimator, monitor, or instrument then key3 = key of other element.
 
-if (any(key1 == (/ rcollimator$, monitor$, instrument$ /))) then
+if (any(key1 == [rcollimator$, monitor$, instrument$])) then
   key3 = key2
   return
 endif
 
-if (any(key2 == (/ rcollimator$, monitor$, instrument$ /))) then
+if (any(key2 == [rcollimator$, monitor$, instrument$])) then
   key3 = key1
   return
 endif
 
 ! If one element is a kicker then key3 = key of other element.
 
-if (any(key1 == (/ kicker$, hkicker$, vkicker$ /))) then
-  if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
+if (any(key1 == [kicker$, hkicker$, vkicker$])) then
+  if (any(key2 == [kicker$, hkicker$, vkicker$])) then
     key3 = kicker$
   else
     key3 = key2
@@ -2323,7 +2326,7 @@ if (any(key1 == (/ kicker$, hkicker$, vkicker$ /))) then
   return
 endif
 
-if (any(key2 == (/ kicker$, hkicker$, vkicker$ /))) then
+if (any(key2 == [kicker$, hkicker$, vkicker$])) then
   key3 = key1
   return
 endif
