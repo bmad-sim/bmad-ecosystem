@@ -74,7 +74,12 @@ mode1 => ele%rf%field%mode(1)
 ! Only do the adjustment if mode1 is an acceleration mode.
 
 if (mode1%m /= 0) return  
-if (all(mode1%map%term%e_coef == 0) .and. .not. associated(mode1%grid)) return
+!Check for a valid map or the existence of a grid
+if(associated(mode1%map) ) then
+  if (all(mode1%map%term%e_coef == 0) .and. .not. associated(mode1%grid)) return
+else 
+  if (.not. associated(mode1%grid)) return
+endif
 if (ele%field_calc /= grid$ .and. ele%field_calc /= map$ .and. ele%field_calc /= custom$ ) return
 
 !

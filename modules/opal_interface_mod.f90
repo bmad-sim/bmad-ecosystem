@@ -172,12 +172,16 @@ ele_loop: do ie = ix_start, ix_end
 	!----------------------------------------------------------
     case (marker$)
         write (line, '(a)' ) trim(ele%name) // ': marker'
+      !Write ELEMEDGE
+      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 
 	!----------------------------------------------------------
 	!Drift -----------------------------------   
 	!----------------------------------------------------------
      case (drift$, instrument$)
         write (line, '(a, ' // rfmt //')' ) trim(ele%name) // ': drift, l =', val(l$)
+      !Write ELEMEDGE
+      call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 
 	!----------------------------------------------------------
 	!Sbend -----------------------------------       
@@ -189,6 +193,9 @@ ele_loop: do ie = ix_start, ix_end
         call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
         call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
 		call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+		!TODO: Field map must be specified!
+		
+		
 	!----------------------------------------------------------
 	!Quadrupole -----------------------------------   
 	!----------------------------------------------------------
@@ -261,6 +268,8 @@ ele_loop: do ie = ix_start, ix_end
         call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
         write (line, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+        !Write ELEMEDGE
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
 	end select
 	
 	!type (general attribute)
