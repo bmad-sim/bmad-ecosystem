@@ -1,19 +1,28 @@
 !+
 ! Subroutine run_timer (command, time)
 !
-! Subroutine to time a program.
+! Subroutine to time a program or return the absolute time in seconds
+! from some reference date (default is January 1, 1970).
 ! Note: Deprecated command = 'STOP' is the same as command = 'READ'.
 !
 ! Modules needed:
 !   use sim_utils_interface
 !
 ! Input:
-!   command -- Character(*): 'START', 'READ'
-!   time    -- Real(rp), optional: Elapsed time from last 'START' in seconds.
+!   command -- Character(*): 'START', 'READ', 'ABS', 'REF'
+!   time    -- Real(rp), optional: Set reference year. Used with command = 'REF'.
+!                 Month and day are always January 1. Default is 1970.0_rp. 
+!
+! Output:
+!   time    -- Real(rp), optional: 
+!                 If command = 'READ': Elapsed time from last 'START' in seconds.
+!                 If command = 'ABS':  Time in seconds from January 1, 1970.
 !
 ! Example:
-!     call run_timer ('START')       ! Start (reset) the timer.
-!     call run_timer ('READ', time)  ! time = Elapsed time from last 'START'
+!     call run_timer ('START')          ! Start (reset) the timer.
+!     call run_timer ('READ', time)     ! time = Elapsed time from last 'START'
+!     call run_timer ('REF', 2000.0_rp) ! Reference date is January 1, 2000.
+!     call run_timer ('ABS', time)      ! Time from reference date
 !-
 
 subroutine run_timer(command, time)
@@ -22,7 +31,7 @@ use precision_def
 
 implicit none
 
-integer, save :: t0(8), t1(8), dt(8), days_in_year0, days_in_year1
+integer, save :: t0(8), t1(8), dt(8), ref_year = 1970
 logical, save :: timer_running = .false.
 real(rp) time
 character(*) command
@@ -32,7 +41,7 @@ character(*) command
 select case (command)
 case ('START') 
   call date_and_time (values = t0)
-  t0(3) = julian_day(t0(1), t0(2), t0(3), days_in_year0)
+  t0(3) = julian_day(t0(1), t0(2), t0(3))
   timer_running = .true.
 
 case ('READ', 'STOP')
@@ -42,10 +51,17 @@ case ('READ', 'STOP')
   endif
 
   call date_and_time (values = t1)
-  t1(3) = julian_day(t1(1), t1(2), t1(3), days_in_year1)
+  t1(3) = julian_day(t1(1), t1(2), t1(3))
   dt = t1 - t0
-  dt(3) = dt(3) + dt(1) * days_in_year0
   time = 60*(60*(24*dt(3) + dt(5)) + dt(6)) + dt(7) + dt(8) / 1000.0
+
+case ('ABS')
+  call date_and_time (values = t1)
+  t1(3) = julian_day(t1(1), t1(2), t1(3)) - julian_day(ref_year, 0, 0)
+  time = 60*(60*(24*t1(3) + t1(5)) + t1(6)) + t1(7) + t1(8) / 1000.0
+
+case ('REF')
+  ref_year = nint(time)
 
 case default
   print *, 'ERROR IN RUN_TIMER SUBROUTINE: INVALID COMMAND: ', command
@@ -56,22 +72,53 @@ end select
 !------------------------------------------------------------------------
 contains
 
-function julian_day (year, month, day, days_in_year) result (jday)
+! Computes the Julian date given a Gregorian calendar date (year, month, day).
+! Algorithm by Fliegel and van Flandern (1968)
 
-integer year, month, day, jday, days_in_year
-integer :: month_len(12) = (/ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 /)
+function julian_day (year, month, day) result (jday)
+
+implicit none
+
+integer year, month, day, jday
+
+! 
+
+jday = Day - 32075 + 1461*(YEAR+4800+(MONTH-14)/12)/4 + &
+             367*(MONTH-2-(MONTH-14)/12*12)/12 - 3*((YEAR+4900+(MONTH-14)/12)/100)/4
+
+
+end function
+
+!------------------------------------------------------------------------
+! contains
+
+! Computes the Gregorian calendar date (year, month, day) given the Julian date.
+! Algorithm by Fliegel and van Flandern (1968)
+
+subroutine gregorian (jday, year, month, day) 
+
+implicit none
+
+integer year, month, day, jday
+integer pl, n
 
 !
 
-month_len(2) = 28
-if (mod(year,   4) == 0) month_len(2) = 29 ! leap year
-if (mod(year, 100) == 0) month_len(2) = 28 ! but not if century
-if (mod(year, 400) == 0) month_len(2) = 29 ! but but yes it is a leap year
+pl = jday + 68569
+n = 4*pl/146097
+pl = pl - (146097*n+3)/4
+year = 4000*(pl+1)/1461001
+pl = pl - 1461*year/4+31
+month = 80*pl/2447
+day = pl - 2447*month/80
+pl = month/11
+month = month + 2 - 12*pl
+year = 100*(n-49) + year + pl
 
-jday = day + sum(month_len(1:month-1))
-days_in_year = 365 + month_len(2) - 28
+end subroutine
 
-end function
+
+
 
 end subroutine
 
