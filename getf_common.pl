@@ -16,8 +16,8 @@ sub setup_dirs {
     $bmad_dir = catfile( $updir, "bmad" );
   } elsif (-r catfile( $updir, $updir, "bmad", "modules", "bmad_struct.f90")) {
     $bmad_dir = catfile( $updir, $updir, "bmad" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "bmad", "modules", "bmad_struct.f90")) {
-    $bmad_dir = catfile( $ENV{"ACC_SRC"}, "bmad" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bmad", "modules", "bmad_struct.f90")) {
+    $bmad_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bmad" );
   } else {
     $bmad_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmad" );
   }
@@ -28,8 +28,8 @@ sub setup_dirs {
     $cesr_utils_dir = catfile( $updir, "cesr_utils" );
   } elsif (-r catfile( $updir, $updir, "cesr_utils", "modules", "cesr_utils.f90")) {
     $cesr_utils_dir = catfile( $updir, $updir, "cesr_utils" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "cesr_utils")) {
-    $cesr_utils_dir = catfile( $ENV{"ACC_SRC"}, "cesr_utils" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "cesr_utils")) {
+    $cesr_utils_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "cesr_utils" );
   } else {
     $cesr_utils_dir = catfile( $ENV{"DIST_BASE_DIR"}, "cesr_utils" );
   }
@@ -41,8 +41,8 @@ sub setup_dirs {
     $sim_utils_dir = catfile( $updir, "sim_utils" );
   } elsif (-r catfile( $updir, $updir, "sim_utils", "interfaces", "sim_utils.f90")) {
     $sim_utils_dir = catfile( $updir, $updir, "sim_utils" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "sim_utils")) {
-    $sim_utils_dir = catfile( $ENV{"ACC_SRC"}, "sim_utils" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "sim_utils")) {
+    $sim_utils_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "sim_utils" );
   } else {
     $sim_utils_dir = catfile( $ENV{"DIST_BASE_DIR"}, "sim_utils" );
   }
@@ -53,8 +53,8 @@ sub setup_dirs {
     $mpm_utils_dir = catfile( $updir, "mpm_utils" );
   } elsif (-r catfile( $updir, $updir, "mpm_utils", "code", "butout.f90")) {
     $mpm_utils_dir = catfile( $updir, $updir, "mpm_utils" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "mpm_utils")) {
-    $mpm_utils_dir = catfile( $ENV{"ACC_SRC"}, "mpm_utils" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "mpm_utils")) {
+    $mpm_utils_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "mpm_utils" );
   } else {
     $mpm_utils_dir = catfile( $ENV{"DIST_BASE_DIR"}, "mpm_utils" );
   }
@@ -66,8 +66,8 @@ sub setup_dirs {
     $recipes_dir = catfile( $updir, "recipes_f-90_LEPP" );
   } elsif (-r catfile( $updir, $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
     $recipes_dir = catfile( $updir, $updir, "recipes_f-90_LEPP" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "recipes_f-90_LEPP")) {
-    $recipes_dir = catfile( $ENV{"ACC_SRC"}, "recipes_f-90_LEPP" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP")) {
+    $recipes_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP" );
   } else {
     $recipes_dir = catfile( $ENV{"DIST_BASE_DIR"}, "recipes_f-90_LEPP" );
   }
@@ -79,8 +79,8 @@ sub setup_dirs {
     $forest_dir = catfile( $updir, "forest" );
   } elsif (-r catfile( $updir, $updir, "forest", "code", "i_tpsa.f90")) {
     $forest_dir = catfile( $updir, $updir, "forest" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "forest")) {
-    $forest_dir = catfile( $ENV{"ACC_SRC"}, "forest" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "forest")) {
+    $forest_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "forest" );
   } else {
     $forest_dir = catfile( $ENV{"DIST_BASE_DIR"}, "forest" );
   }
@@ -91,8 +91,8 @@ sub setup_dirs {
     $tao_dir = catfile( $updir, "tao" );
   } elsif (-r catfile( $updir, $updir, "tao", "code", "tao_struct.f90")) {
     $tao_dir = catfile( $updir, $updir, "tao" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "tao")) {
-    $tao_dir = catfile( $ENV{"ACC_SRC"}, "tao" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "tao")) {
+    $tao_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "tao" );
   } else {
     $tao_dir = catfile( $ENV{"DIST_BASE_DIR"}, "tao" );
   }
@@ -103,8 +103,8 @@ sub setup_dirs {
     $bmadz_dir = catfile( $updir, "bmadz" );
   } elsif (-r catfile( $updir, $updir, "bmadz", "modules", "bmadz_struct.f90")) {
     $bmadz_dir = catfile( $updir, $updir, "bmadz" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "bmadz")) {
-    $bmadz_dir = catfile( $ENV{"ACC_SRC"}, "bmadz" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bmadz")) {
+    $bmadz_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bmadz" );
   } else {
     $bmadz_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bmadz" );
   }
@@ -115,8 +115,8 @@ sub setup_dirs {
     $nonlin_bpm_dir = catfile( $updir, "nonlin_bpm" );
   } elsif (-r catfile( $updir, $updir, "nonlin_bpm", "code", "nonlin_bpm_init.f90")) {
     $nonlin_bpm_dir = catfile( $updir, $updir, "nonlin_bpm" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "nonlin_bpm")) {
-    $nonlin_bpm_dir = catfile( $ENV{"ACC_SRC"}, "nonlin_bpm" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "nonlin_bpm")) {
+    $nonlin_bpm_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "nonlin_bpm" );
   } else {
     $nonlin_bpm_dir = catfile( $ENV{"DIST_BASE_DIR"}, "nonlin_bpm" );
   }
@@ -127,8 +127,8 @@ sub setup_dirs {
     $recipes_dir = catfile( $updir, "recipes_f-90_LEPP" );
   } elsif (-r catfile( $updir, $updir, "recipes_f-90_LEPP", "lib_src", "nr.f90")) {
     $recipes_dir = catfile( $updir, $updir, "recipes_f-90_LEPP" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "recipes_f-90_LEPP")) {
-    $recipes_dir = catfile( $ENV{"ACC_SRC"}, "recipes_f-90_LEPP" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP")) {
+    $recipes_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "recipes_f-90_LEPP" );
   } else {
     $recipes_dir = catfile( $ENV{"DIST_BASE_DIR"}, "recipes_f-90_LEPP" );
   }
@@ -139,8 +139,8 @@ sub setup_dirs {
     $forest_dir = catfile( $updir, "forest" );
   } elsif (-r catfile( $updir, $updir, "forest", "code", "a_scratch_size.f90")) {
     $forest_dir = catfile( $updir, $updir, "forest" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "forest")) {
-    $forest_dir = catfile( $ENV{"ACC_SRC"}, "forest" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "forest")) {
+    $forest_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "forest" );
   } else {
     $forest_dir = catfile( $ENV{"DIST_BASE_DIR"}, "forest" );
   }
@@ -151,8 +151,8 @@ sub setup_dirs {
     $bsim_dir = catfile( $updir, "bsim" );
   } elsif (-r catfile( $updir, $updir, "bsim", "code")) {
     $bsim_dir = catfile( $updir, $updir, "bsim" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "bsim")) {
-    $bsim_dir = catfile( $ENV{"ACC_SRC"}, "bsim" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim")) {
+    $bsim_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim" );
   } else {
     $bsim_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bsim" );
   }
@@ -163,8 +163,8 @@ sub setup_dirs {
     $bsim_cesr_dir = catfile( $updir, "bsim_cesr" );
   } elsif (-r catfile( $updir, $updir, "bsim_cesr", "code")) {
     $bsim_cesr_dir = catfile( $updir, $updir, "bsim_cesr" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "bsim_cesr")) {
-    $bsim_cesr_dir = catfile( $ENV{"ACC_SRC"}, "bsim_cesr" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim_cesr")) {
+    $bsim_cesr_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "bsim_cesr" );
   } else {
     $bsim_cesr_dir = catfile( $ENV{"DIST_BASE_DIR"}, "bsim_cesr" );
   }
@@ -175,8 +175,8 @@ sub setup_dirs {
     $cesr_programs_dir = catfile( $updir, "cesr_programs" );
   } elsif (-r catfile( $updir, $updir, "cesr_programs", "code")) {
     $cesr_programs_dir = catfile( $updir, $updir, "cesr_programs" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "cesr_programs")) {
-    $cesr_programs_dir = catfile( $ENV{"ACC_SRC"}, "cesr_programs" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "cesr_programs")) {
+    $cesr_programs_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "cesr_programs" );
   } else {
     $cesr_programs_dir = catfile( $ENV{"DIST_BASE_DIR"}, "cesr_programs" );
   }
@@ -187,8 +187,8 @@ sub setup_dirs {
     $cesrv_dir = catfile( $updir, "cesrv" );
   } elsif (-r catfile( $updir, $updir, "cesrv", "code")) {
     $cesrv_dir = catfile( $updir, $updir, "cesrv" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "cesrv")) {
-    $cesrv_dir = catfile( $ENV{"ACC_SRC"}, "cesrv" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "cesrv")) {
+    $cesrv_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "cesrv" );
   } else {
     $cesrv_dir = catfile( $ENV{"DIST_BASE_DIR"}, "cesrv" );
   }
@@ -199,8 +199,8 @@ sub setup_dirs {
     $util_programs_dir = catfile( $updir, "util_programs" );
   } elsif (-r catfile( $updir, $updir, "util_programs", "code")) {
     $util_programs_dir = catfile( $updir, $updir, "util_programs" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "util_programs")) {
-    $util_programs_dir = catfile( $ENV{"ACC_SRC"}, "util_programs" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "util_programs")) {
+    $util_programs_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "util_programs" );
   } else {
     $util_programs_dir = catfile( $ENV{"DIST_BASE_DIR"}, "util_programs" );
   }
@@ -211,8 +211,8 @@ sub setup_dirs {
     $examples_dir = catfile( $updir, "examples" );
   } elsif (-r catfile( $updir, $updir, "examples", "simple_program")) {
     $examples_dir = catfile( $updir, $updir, "examples" );
-  } elsif (-r catfile( $ENV{"ACC_SRC"}, "examples")) {
-    $examples_dir = catfile( $ENV{"ACC_SRC"}, "examples" );
+  } elsif (-r catfile( $ENV{"ACC_RELEASE_DIR"}, "examples")) {
+    $examples_dir = catfile( $ENV{"ACC_RELEASE_DIR"}, "examples" );
   } else {
     $examples_dir = catfile( $ENV{"DIST_BASE_DIR"}, "examples" );
   }
