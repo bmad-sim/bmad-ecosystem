@@ -1,3 +1,5 @@
+#include "CESR_platform.inc"
+
 module photon_reflection_mod
 
 use precision_def
@@ -1341,6 +1343,10 @@ implicit none
 
 real(rp) a, b, phi, h
 real(rp) arg, hzz1, h2zz
+
+#if defined (CESR_VMS)
+  real erf
+#endif
 
 ! This routine computes the phi integral used in the cumulative distribution function. 
 ! Good for all b, but makes a small phi approximation. Use for b>100.
