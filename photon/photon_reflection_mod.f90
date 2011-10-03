@@ -1344,7 +1344,7 @@ implicit none
 real(rp) a, b, phi, h
 real(rp) arg, hzz1, h2zz
 
-#if defined (CESR_VMS)
+#if defined (CESR_VMS) || defined (CESR_TRU64) 
   real erf
 #endif
 
