@@ -477,16 +477,13 @@ else
       ix_ele = ix_ele_track_start
       if (iu_lat_file > 0) close (iu_lat_file)
       iu_lat_file = 0 ! To stop further output
-    endif
-
-    ix_ele = ix_ele + 1
-    if (ix_ele > lat%n_ele_track) then
-      ix_ele = 0
       call run_timer ('READ', timer_time)
       print *, 'Time from start (min):', nint(timer_time/60)
       print *, '    Num photons generated:          ', n_photon_generated
       print *, '    Num photons passed filter tests:', n_photon_array
     endif
+
+    ix_ele = ix_ele + 1
 
     ele => lat%ele(ix_ele)
 
