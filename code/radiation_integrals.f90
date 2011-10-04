@@ -98,17 +98,17 @@
 
 subroutine radiation_integrals (lat, orbit, mode, ix_cache, rad_int_by_ele)
 
-use rad_int_common, except_dummy => radiation_integrals
-use radiation_mod, except_dummy2 => radiation_integrals
+use radiation_mod, except_dummy => radiation_integrals
 use symp_lie_mod, only: symp_lie_bmad
+use transfer_map_mod
 
 implicit none
 
 type (lat_struct), target :: lat
 type (rad_int_common_struct), optional :: rad_int_by_ele
 type (ele_struct), pointer :: ele
-type (ele_struct), save :: ele2, runt
-type (coord_struct), target :: orbit(0:), start, end, end1
+type (ele_struct), save :: ele2, ele_start, ele_end, ele_end1
+type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
 type (rad_int_cache_struct), pointer :: cache
@@ -124,8 +124,8 @@ integer, parameter :: num_int = 9
 real(rp) :: int_tot(num_int)
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
-real(rp) v(4,4), v_inv(4,4), del_z, z_here, mc2, gamma, gamma4, gamma6
-real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q
+real(rp) v(4,4), v_inv(4,4), del_z, z_here, z_start, mc2, gamma, gamma4, gamma6
+real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
 ! Cf: Sands Eq 5.46 pg 124.
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
@@ -298,8 +298,8 @@ if (use_cache .or. init_cache) then
 
     ele2 = lat%ele(i)
     call zero_ele_offsets (ele2)
-    start = orbit(i-1)
-    call offset_particle (lat%ele(i), lat%param, start, set$, &
+    orb_start = orbit(i-1)
+    call offset_particle (lat%ele(i), lat%param, orb_start, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
@@ -323,39 +323,52 @@ if (use_cache .or. init_cache) then
     ! map_type wiggler
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
-      call symp_lie_bmad (ele2, lat%param, start, end, calc_mat6 = .true., track = track)
+      call symp_lie_bmad (ele2, lat%param, orb_start, orb_end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
         z_here = track%orb(k)%s - (ele2%s - ele2%value(l$)) 
-        end = track%orb(k)
-        call calc_wiggler_g_params (ele2, z_here, end, c_pt, ri_info)
+        orb_end = track%orb(k)
+        call calc_wiggler_g_params (ele2, z_here, orb_end, c_pt, ri_info)
         c_pt%mat6 = track%map(k)%mat6
         c_pt%vec0 = track%map(k)%vec0
-        c_pt%map_ref_orb_in  = start
-        c_pt%map_ref_orb_out = end
+        c_pt%map_ref_orb_in  = orb_start
+        c_pt%map_ref_orb_out = orb_end
       enddo
 
     ! non-wiggler element
 
     else  
 
+      z_start = 0
+      ele_start = lat%ele(i-1)
+      dz = min (1e-3_rp, cache_ele%del_z/3)
+      cache_ele%pt(:)%map_ref_orb_in  = orb_start
+      call mat_make_unit (mat6)
+      vec0 = 0
+      if (ele2%key == wiggler$) orb_start%vec = 0  ! keep things simple.
+
       do k = 0, n_step
 
         z_here = k * cache_ele%del_z
-        dz = 1e-3
         z1 = z_here + dz
         if (z1 > ele2%value(l$)) z1 = max(0.0_rp, z_here - dz)
 
         c_pt => cache_ele%pt(k)
-        if (ele2%key == wiggler$) start%vec = 0  ! keep things simple.
-        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, z_here, runt, start, end)
-        call twiss_and_track_partial (lat%ele(i-1), ele2, lat%param, z1, orb_start = start, orb_end = end1)
-        c_pt%mat6 = runt%mat6
-        c_pt%vec0 = runt%vec0
-        c_pt%map_ref_orb_in  = start
-        c_pt%map_ref_orb_out = end
-        c_pt%g_x0 = -(end1%vec(2) - end%vec(2)) / (z1 - z_here)
-        c_pt%g_y0 = -(end1%vec(4) - end%vec(4)) / (z1 - z_here)
+
+        call twiss_and_track_intra_ele (ele2, lat%param, z_start, z_here, .true., .true., orb_start, orb_end,  ele_start, ele_end)
+        call twiss_and_track_intra_ele (ele2, lat%param, z_start, z1,     .true., .true., orb_start, orb_end1, ele_start, ele_end1)
+
+        z_start = z1
+        orb_start = orb_end
+        ele_start = ele_end
+
+        call concat_transfer_mat (ele_end%mat6, ele_end%vec0, mat6, vec0, mat6, vec0)
+        c_pt%mat6 = mat6
+        c_pt%vec0 = vec0
+
+        c_pt%map_ref_orb_out = orb_end
+        c_pt%g_x0 = -(orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
+        c_pt%g_y0 = -(orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
         c_pt%dgx_dx = 0
         c_pt%dgx_dy = 0
         c_pt%dgy_dx = 0
@@ -364,7 +377,6 @@ if (use_cache .or. init_cache) then
         if (ele2%key == quadrupole$ .or. ele2%key == sol_quad$) then
           c_pt%dgx_dx =  ele2%value(k1$)
           c_pt%dgy_dy = -ele2%value(k1$)
-
 
         elseif (ele2%key == sbend$) then
           c_pt%g_x0   =  c_pt%g_x0 + ele2%value(g$)

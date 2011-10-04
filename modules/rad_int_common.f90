@@ -251,13 +251,13 @@ end subroutine
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (start, pt, info, z_here, j_loop, n_pt)
+subroutine propagate_part_way (orb_start, pt, info, z_here, j_loop, n_pt)
 
 implicit none
 
-type (coord_struct) orb, start, orb0, orb1
+type (coord_struct) orb, orb_start, orb0, orb1, orb_end, orb_end1
 type (ele_struct), pointer :: ele0, ele
-type (ele_struct), save :: runt
+type (ele_struct), save :: runt, ele_end
 type (twiss_struct) a0, b0, a1, b1
 type (rad_int_info_struct) info
 type (rad_int_track_point_struct) pt, pt0, pt1
@@ -298,8 +298,8 @@ if (associated(info%cache_ele)) then
   pt0 = info%cache_ele%pt(i0)
   pt1 = info%cache_ele%pt(i1)
 
-  orb0%vec = matmul(pt0%mat6, start%vec) + pt0%vec0
-  orb1%vec = matmul(pt1%mat6, start%vec) + pt1%vec0
+  orb0%vec = matmul(pt0%mat6, orb_start%vec) + pt0%vec0
+  orb1%vec = matmul(pt1%mat6, orb_start%vec) + pt1%vec0
 
   ! Interpolate information
 
@@ -385,7 +385,10 @@ endif
 
 dz = 1e-3
 z1 = z_here + dz
-if (z1 > ele%value(l$)) z1 = max(0.0_rp, z_here - dz)
+if (z1 > ele%value(l$)) then
+  z_here = max(0.0_rp, z_here - dz)
+  z1 = min(ele%value(l$), z_here + dz)
+endif
 
 ! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
 ! switch to symp_lie_bmad type tracking.
@@ -397,10 +400,11 @@ if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
   ele%mat6_calc_method = symp_lie_bmad$
 endif
 
-call twiss_and_track_partial (ele0, ele, info%lat%param, z_here, runt, start, orb0)
-call twiss_and_track_partial (ele0, ele, info%lat%param, z1, orb_start = start, orb_end = orb1)
-info%a = runt%a
-info%b = runt%b
+call twiss_and_track_intra_ele (ele, info%lat%param, 0.0_rp, z_here, .true., .true., orb_start, orb_end, ele0, ele_end)
+call twiss_and_track_intra_ele (ele, info%lat%param, z_here, z1,     .true., .true., orb_end, orb_end1)
+
+info%a = ele_end%a
+info%b = ele_end%b
 
 if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
   ele%tracking_method  = tm_saved 
@@ -409,7 +413,7 @@ endif
 
 !
 
-call make_v_mats (runt, v, v_inv)
+call make_v_mats (ele_end, v, v_inv)
 
 info%eta_a = matmul(v, (/ info%a%eta, info%a%etap, 0.0_rp,   0.0_rp /))
 info%eta_b = matmul(v, (/ 0.0_rp,   0.0_rp,    info%b%eta, info%b%etap /))
@@ -417,8 +421,8 @@ info%eta_b = matmul(v, (/ 0.0_rp,   0.0_rp,    info%b%eta, info%b%etap /))
 if (ele%key == wiggler$ .and. ele%sub_key == map_type$) then 
   call calc_wiggler_g_params (ele, z_here, orb, pt, info)
 else
-  info%g_x   = pt%g_x0 - (orb1%vec(2) - orb0%vec(2)) / (z1 - z_here)
-  info%g_y   = pt%g_y0 - (orb1%vec(4) - orb0%vec(4)) / (z1 - z_here)
+  info%g_x   = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
+  info%g_y   = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
 endif
 
 info%dg2_x = 2 * (info%g_x * pt%dgx_dx + info%g_y * pt%dgy_dx)
