@@ -1242,6 +1242,8 @@ if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 !
 
+call twiss_and_track_nullify_saved_data
+
 do ii = 1, size(curve%x_line)
 
   if (.not. good(ii)) cycle
@@ -1253,7 +1255,7 @@ do ii = 1, size(curve%x_line)
 
   select case (curve%data_source)
   case ('lat')   
-    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err)
+    call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, .true.)
     if (err) then
       good(ii:) = .false.
       return
