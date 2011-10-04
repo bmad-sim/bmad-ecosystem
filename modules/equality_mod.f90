@@ -554,7 +554,11 @@ integer i
 !
 
 is_eq = (allocated(f1%v) .eqv. allocated(f2%v)) .and. (f1%type == f2%type) .and. &
-        (f1%s == f2%s) .and. all(f1%s_spline == f2%s_spline) .and. (f1%n_slice_spline == f2%n_slice_spline)  
+        (f1%s == f2%s) .and. (f1%x0 == f2%x0) .and. (f1%dx0_ds == f2%dx0_ds) .and. &
+        (f1%dr_ds == f2%dr_ds) .and. &
+        all(f1%p1_coef == f2%p1_coef) .and. all(f1%p2_coef == f2%p2_coef) .and. &
+        all(f1%x0_coef == f2%x0_coef) .and. all(f1%y0_coef== f2%y0_coef) 
+
 if (.not. is_eq) return
 
 is_eq = .false.

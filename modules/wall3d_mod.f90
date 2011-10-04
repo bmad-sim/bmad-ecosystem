@@ -26,11 +26,20 @@ end type
 type wall3d_section_struct
   integer type
   real(rp) :: s = 0                     ! Longitudinal position
-  real(rp) :: s_spline(3) = [1, 0, 0]   ! Longitudinal spline coefs. 
-  integer :: n_slice_spline = 1         ! Number of slices used for the spline.
+  integer n_vertex_input                ! Number of vertices specified by the user.
   type (wall3d_vertex_struct), allocatable :: v(:) 
                                         ! Array of vertices
-  integer n_vertex_input                ! Number of vertices specified by the user.
+  ! Center of wall spline
+  real(rp) :: x0 = 0, y0 = 0            ! Center of wall
+  real(rp) :: dx0_ds = 0                ! Center of wall derivative
+  real(rp) :: dy0_ds = 0                ! Center of wall derivative
+  real(rp) :: x0_coef(0:3) = 0          ! Spline coefs for x-center
+  real(rp) :: y0_coef(0:3) = 0          ! Spline coefs for y-center
+  ! Wall radius spline
+  real(rp) :: dr_ds = real_garbage$  ! derivative of wall radius 
+  real(rp) :: p1_coef(3) = 0            ! Spline coefs for p0 function
+  real(rp) :: p2_coef(3) = 0            ! Spline coefs for p1 function
+
 end type
 
 type wall3d_struct
@@ -153,6 +162,85 @@ endif
 
 end subroutine re_associate_section_array
 
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! Subroutine wall3d_initializer (wall3d, err)
+!
+! Routine to initialize a wall3d_struct
+!   1) Add vertex points if there is symmetry.
+!   2) Compute circular and elliptical centers.
+!   3) Compute spline coefficients, etc.
+!
+! Modules needed:
+!   use wall3d_mod
+!
+! Input:
+!   wall3d -- wall3d_struct: Wall.
+!   
+! Output:
+!   wall3d -- wall3d_struct: Initialized wall.
+!   err    -- Logical: Set true if there is a problem.
+!-
+
+subroutine wall3d_initializer (wall3d, err)
+
+implicit none
+
+type (wall3d_struct), target :: wall3d
+type (wall3d_section_struct), pointer :: s1, s2
+
+real(rp) r1_ave, r2_ave, cos_ang, sin_ang, r, ds, dr_dtheta, a1, a2
+
+integer i, j, n_ave
+
+logical err
+
+! initialize the cross-sections
+
+do i = 1, size(wall3d%section)
+  call wall3d_section_initializer(wall3d%section(i), err)
+  if (err) return
+enddo
+
+! Calculate p0 and p1 spline coefs 
+
+do i = 1, size(wall3d%section) - 1
+  s1 => wall3d%section(i)
+  s2 => wall3d%section(i+1)
+
+  ! Only do the calc if dr_ds has been set on both sections.
+  if (s1%dr_ds == real_garbage$ .or. s2%dr_ds == real_garbage$) cycle
+
+  ! calc average radius
+  
+  r1_ave = 0; r2_ave = 0
+  n_ave = 100
+  do j = 1, n_ave
+    cos_ang = cos(j * twopi / n_ave)
+    sin_ang = sin(j * twopi / n_ave)
+    call calc_wall_radius(s1%v, cos_ang, sin_ang, r, dr_dtheta)
+    r1_ave = r1_ave + r / n_ave
+    call calc_wall_radius(s2%v, cos_ang, sin_ang, r, dr_dtheta)
+    r2_ave = r2_ave + r / n_ave
+  enddo
+
+  ! Calc coefficients
+
+  ds = s2%s - s1%s
+  a1 = s1%dr_ds * ds - (r2_ave - r1_ave)  
+  a2 = s2%dr_ds * ds - (r2_ave - r1_ave)  
+
+  s1%p1_coef = [a1, -2*a1-a2, a1+a2] / (2 * r1_ave)
+  s1%p2_coef = [a1, -2*a1-a2, a1+a2] / (2 * r2_ave)
+
+enddo
+
+
+end subroutine wall3d_initializer
+
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
@@ -162,17 +250,16 @@ end subroutine re_associate_section_array
 ! Routine to initialize a wall3d_section_struct:
 !   1) Add vertex points if there is symmetry.
 !   2) Compute circular and elliptical centers.
-!   3) Calc s_spline(3)
 !
 ! Modules needed:
-!   use wall3d_section_mod
+!   use wall3d_mod
 !
 ! Input:
 !   section  -- Wall3d_section_struct: Wall3d section.
 !   
 ! Output:
 !   section  -- Wall3d_section_struct: Initialized section-section.
-!   err    -- Logical: Set true if there is a problem. EG: Convex section, etc.
+!   err    -- Logical: Set true if there is a problem.
 !-
 
 subroutine wall3d_section_initializer (section, err)
@@ -193,10 +280,6 @@ character(40) :: r_name = 'wall3d_section_initializer'
 err = .true.
 v => section%v
 n = section%n_vertex_input
-
-! Calculate s_spline(3)
-
-section%s_spline(3) = 1 - section%s_spline(1) - section%s_spline(2)
 
 ! Single vertex is special.
 
@@ -374,5 +457,147 @@ endif
 end subroutine calc_vertex_center
 
 end subroutine wall3d_section_initializer
+
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------
+!+
+! Subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
+!
+! Routine to calculate the wall radius at a given angle for a given cross-section
+! Additionally, the transverse directional derivative is calculated.
+!
+! Module needed:
+!   use capillary_mod
+!
+! Input:
+!   v(:)         -- wall3d_vertex_struct: Array of vertices that make up the cross-section.
+!   cos_ang      -- Real(rp): cosine of the transverse photon position.
+!   sin_ang      -- Real(rp): sine of the transverse photon position.
+!
+! Output:
+!   r_wall      -- Real(rp): Wall radius at given angle.
+!   dr_dtheta   -- Real(rp): derivative of r_wall.
+!-
+
+subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
+
+implicit none
+
+type (wall3d_vertex_struct), target :: v(:)
+type (wall3d_vertex_struct), pointer :: v1, v2
+
+
+real(rp) r_wall, dr_dtheta, rx, ry, da, db, angle
+real(rp) numer, denom, ct, st, x0, y0, a, b, c
+real(rp) cos_ang, sin_ang, radx, cos_a, sin_a, det
+real(rp) r_x, r_y, dr_x, dr_y, cos_phi, sin_phi
+
+integer ix
+
+! Bracket index if there is more than one vertex
+! If there is only one vertex then must be an ellipse or circle
+
+angle = atan2(sin_ang, cos_ang)
+
+if (size(v) == 1) then
+  v2 => v(1)
+else
+  if (angle < v(1)%angle) angle = ceiling((v(1)%angle-angle)/twopi) * twopi + angle
+  call bracket_index (v%angle, 1, size(v), angle, ix)
+
+  v1 => v(ix)
+  if (ix == size(v)) then
+    v2 => v(1)
+  else
+    v2 => v(ix+1)
+  endif
+endif
+
+! Straight line case
+
+if (v2%radius_x == 0) then
+  numer = (v1%x * v2%y - v1%y * v2%x)
+  denom = (cos_ang * (v2%y - v1%y) - sin_ang * (v2%x - v1%x))
+  r_wall = numer / denom
+  dr_dtheta = numer * (sin_ang * (v2%y - v1%y) + cos_ang * (v2%x - v1%x)) / denom**2
+  return
+endif
+
+! If ellipse...
+
+if (v2%radius_y /= 0) then
+
+  ! Convert into unrotated frame if tilted ellipse
+  if (v2%tilt /= 0) then
+    ct = cos(v2%tilt); st = sin(v2%tilt)
+    x0 =  ct * v2%x0 + st * v2%y0
+    y0 = -st * v2%x0 + ct * v2%y0
+    cos_a = cos_ang * ct + sin_ang * st
+    sin_a = sin_ang * ct - cos_ang * st
+  else
+    ct = 1; st = 0
+    x0 = v2%x0; y0 = v2%y0
+    cos_a = cos_ang; sin_a = sin_ang
+  endif
+
+  rx = v2%radius_x; ry = v2%radius_y
+  a = (cos_a/rx)**2 + (sin_a/ry)**2
+  b = -2 * (cos_a * x0 / rx**2 + sin_a * y0 / ry**2)
+  c = (x0/rx)**2 + (y0/ry)**2 - 1
+  radx = sqrt(b**2 - 4 * a * c)
+
+  if (rx > 0) then
+    r_wall = (-b + radx) / (2 * a)
+  else
+    r_wall = (-b - radx) / (2 * a)
+  endif
+
+  ! dr/dtheta comes from the equations:
+  !   /x\  =  /rad_x * cos(tilt)  -rad_y * sin(tilt)\  /cos(phi)\  +  /x0\
+  !   \y/     \rad_x * sin(tilt)   rad_y * cos(tilt)/  \sin(phi)/     \y0/
+  !   r = sqrt(x^2 + y^2)
+  !   Tan(theta) = y/x
+ 
+  r_x = r_wall * cos_ang; r_y = r_wall * sin_ang
+  cos_phi = ( ct * (r_x - x0) + st * (r_y - y0)) / v2%radius_x
+  sin_phi = (-st * (r_x - x0) + ct * (r_y - y0)) / v2%radius_y
+  dr_x = -v2%radius_x * ct * sin_phi - v2%radius_y * st * cos_phi
+  dr_y = -v2%radius_x * st * sin_phi + v2%radius_y * ct * cos_phi
+  dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
+
+  return
+endif
+
+! Else must be a circle.
+! Solve for r_wall: (r_wall * cos_a - x0)^2 + (r_wall * sin_a - y0)^2 = radius^2
+! dr/dtheta comes from the equations:
+!   x = x0 + radius * cos(phi)
+!   y = y0 + radius * sin(phi)
+!   r = sqrt(x^2 + y^2)
+!   Tan(theta) = y/x
+! Then
+!   dr_vec = (dx, dy) = (-radius * sin(phi), radius * cos(phi)) * dphi
+!   dr/dtheta = r * (r_vec dot dr_vec) / (r_vec cross dr_vec)
+
+x0 = v2%x0; y0 = v2%y0
+
+a = 1
+b = -2 * (cos_ang * x0 + sin_ang * y0)
+c = x0**2 + y0**2 - v2%radius_x**2
+radx = sqrt(b**2 - 4 * a * c)
+
+if (v2%radius_x > 0) then
+  r_wall = (-b + radx) / (2 * a)
+else
+  r_wall = (-b - radx) / (2 * a)
+endif
+
+r_x = r_wall * cos_ang; r_y = r_wall * sin_ang
+dr_x = -(r_y - y0);    dr_y = r_x - x0
+
+dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
+
+end subroutine calc_wall_radius
 
 end module

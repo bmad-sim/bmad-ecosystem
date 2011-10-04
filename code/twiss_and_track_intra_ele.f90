@@ -1,6 +1,6 @@
 !+
 ! Subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, 
-!                               track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+!                   track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
 !
 ! Routine to track a particle within an element.
 !
@@ -37,7 +37,8 @@
 !     %end_lost_at   -- entrance_end$ or exit_end$.
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 
 !             If present then the orbit_start argument must also be present.
-!   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters and the transfer matrix.
+!   ele_end   -- Ele_struct, optional: Holds the ending Twiss parameters at l_end.
+!                  The map (ele_end%mat6, ele_end%vec0) is map from l_start to l_end.
 !             If present then the ele_start argument must also be present.
 !   err       -- Logical, optional: Set True if there is a problem like 
 !                  the particle gets lost in tracking
@@ -51,12 +52,12 @@ use bookkeeper_mod
 implicit none
 
 type (coord_struct), optional :: orbit_start, orbit_end
-type (ele_struct), optional ::ele_start, ele_end
+type (ele_struct), optional :: ele_start, ele_end
 type (ele_struct) ele
 type (lat_param_struct) param
 type (ele_struct), save :: runt
 
-real(rp) l_start, l_end
+real(rp) l_start, l_end, mat6(6,6), vec0(6)
 
 logical track_entrance, track_exit, do_entrance, do_exit
 logical, optional :: err
@@ -95,7 +96,7 @@ if (present(orbit_end)) then
 endif
 
 if (present(ele_end)) then
-  call make_mat6 (runt, param)
+  call make_mat6 (runt, param, orbit_start, orbit_end, .true.)
   call twiss_propagate1 (ele_start, runt, err)
   ele_end = runt
   return

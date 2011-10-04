@@ -107,27 +107,7 @@ endif
 
 out_of_bounds = .false.
 
-if (a_name(1:13) == 'WALL.S_SPLINE') then
-  if (.not. associated(ele%wall3d%section)) goto 9210
-  n_cc = get_cross_index(a_name, 14, err, 1, size(ele%wall3d%section)-1)
-  if (err .or. a_name(1:5) /= '.COEF') goto 9200
-  n_coef = get_cross_index(a_name, 6, err, 1, 3)
-  if (err .or. a_name /= '') goto 9200
-  ptr_attrib => ele%wall3d%section(n_cc)%s_spline(n_coef)
-  err_flag = .false.
-  return
-endif
-
-! Wall3d section: n_slice_spline
-
-if (a_name(1:19) == 'WALL.N_SLICE_SPLINE') then
-  if (.not. associated(ele%wall3d%section)) goto 9210
-  n_cc = get_cross_index(a_name, 20, err, 1, size(ele%wall3d%section)-1)
-  if (err .or. a_name /= '') goto 9200
-  !!! ptr_attrib => ele%wall3d%section(n_cc)%n_slice_spline
-  !!! err_flag = .false.
-  return
-endif
+! Wall3d section: dr_ds1
 
 ! Wall3d section
 
@@ -139,6 +119,12 @@ if (a_name(1:10) == 'WALL.SECTION') then
   if (a_name == 'S') then
     if (n_cc == 1) goto 9210  ! must have s = 0
     ptr_attrib => ele%wall3d%section(n_cc)%s
+    err_flag = .false.
+    return
+  endif
+
+  if (a_name(1:11) == 'WALL.DR_DS') then
+    ptr_attrib => ele%wall3d%section(n_cc)%dr_ds
     err_flag = .false.
     return
   endif

@@ -2097,11 +2097,7 @@ endif
 
 ! Wall3d
 
-if (associated(ele%wall3d%section)) then
-  do i = 1, size(ele%wall3d%section)
-    call wall3d_section_initializer(ele%wall3d%section(i), err_flag)
-  enddo
-endif
+if (associated(ele%wall3d%section)) call wall3d_initializer (ele%wall3d, err_flag)
 
 ! Field_master...
 

@@ -530,18 +530,17 @@ points within the cross-section, all points on the line segment
 connecting them must be within the cross-section.
 
 \index{wall}\vn{section}\index{s (capillary attribute)}\index{v (capillary attribute)}
-\index{s_spline}\index{n_slice_spline}
+\index{dr_ds1}\index{dr_ds1}\index{n_slice_spline}
 The \vn{wall} structure defines the capillary wall. The
 syntax of the wall structure is:
 \begin{example}
   wall = \{
     section = \{ 
       s = <longitudinal_position>, 
+      dr_ds = <value>,
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
       ...\},
-    s_spline = \{<coef_1>, <coef_2>\},
-    n_slice_spline = <num>,
     section = \{
       s = <longitudinal_position>, 
       v(1) = \{... \},
@@ -556,8 +555,6 @@ Example:
       section = \{ ! cross-section with top/bottom symmetry
         s = 0, v(1) =  \{0.02, 0.00\}, 
         v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\} \}, 
-      s_spline = \{0.1, 0.7\}, 
-      n_slice_spline = 4,
       section = \{  ! Cross-section that is a tilted ellipse.
         s = 0.34, 
         v(1) = \{0.003, -0.001, 0.015, 0.008, 0.2*pi\} \} \}
@@ -666,22 +663,45 @@ as shown in (B).}
   \label{f:concave-capillary}
 \end{figure}
 
-Between cross-sections, the wall is defined by
-interpolation. The default is a linear interpolation scheme.  let
-$r_{c1}(\theta)$ be the radius of the wall as a function of
-$\theta$ for a given cross-section defined at $s = s_1$. Let
-$r_{c2}(\theta)$ be the radius function at the next defined
-cross-section at $s = s_2$. The wall $r_c(\theta, s)$ at any
-point $s$ between $s_1$ and $s_2$ is defined by the equation
+Between cross-sections, the wall is defined by interpolation. Let
+$r_{c1}(\theta)$ be the radius of the wall as a function of $\theta$
+for a given cross-section defined at $s = s_1$. Let $r_{c2}(\theta)$
+be the radius function at the next defined cross-section at $s =
+s_2$. The wall $r_c(\theta, s)$ at any point $s$ between $s_1$ and
+$s_2$ is defined by the equation
 \Begineq
-  r_c(\theta, s) \equiv (1 - \stilde) \, r_{c1}(\theta) + \stilde \, r_{c2}(\theta)
+  r_c(\theta, s) p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
 \Endeq
-where
+where 
 \Begineq
   \stilde \equiv \frac{s - s_1}{s_2 - s_1}
 \Endeq
+and $p_1$ and $p_2$ are cubic polynomials parameterized by
+\begin{align}
+  p_1 &= 1 - \stilde + a_1 \, \stilde + a_2 \, \stilde^2 + a_3 \, \stilde^3 \CRNO
+  p_2 &= \stilde + b_1 \, \stilde + b_2 \, \stilde^2 + b_3 \, \stilde^3 
+\end{align}
+If $a_i = b_i = 0$ for all $i = 1, 2, 3$, the interpolation is linear
+and this is the default if the parameters \vn{dr_ds1} and \vn{dr_ds2}
+are not given in the wall definition. These parameters are the
+slopes of the wall with respect to $s$ at the end points
+\begin{equation}
+  \mbox{dr_ds1} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_1} \comma \qquad
+  \mbox{dr_ds2} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_2} 
+\end{equation}
+where $\overline{r}$ is the average $r$ averaged over all
+$\theta$. When \vn{dr_ds1} and \vn{dr_ds2} are specified, the $a_i$
+and $b_i$ are calculated so that the slopes of the wall match 
+the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
+\begin{align}
+  p_1(0) &= 1 \comma \qquad p_1(1) = 0 \CRNO
+  p_2(0) &= 0 \comma \qquad p_2(1) = 1 \\
+  M \equiv a_1^2 + a_2^2 + a_3^2 + b_1^2 + b_2^2 + b_3^2 \mbox{ is a minimum}
+  \nonumber
+\end{align}
+The last constraint ensures a ``smooth'' transition between the two cross-sections.
 
-In order for \bmad to quickly track photons through a capillary,
+For a capillary, in order for \bmad to quickly track photons,
 \bmad assumes that the volume between the cross-sections is
 convex. The volume will be convex if each cross-section $r_c(\theta,
 s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
@@ -689,47 +709,10 @@ for $r_c(\theta, s)$ to be convex at the specified cross-sections as
 shown in Fig.~\ref{f:concave-capillary}. Also note that it is perfectly
 fine for the total capillary volume to not be convex.
 
-To help reduce the complexity of specifying a wall, ``virtual''
-cross-sections may be defined by specifying a cubic interpolating
-spline between two consecutive cross-sections and by specifying a
-value for \vn{n_slice_spline}. The region between the two
-cross-sections will then be divided into \vn{n_slice_spline} equal
-longitudinal length regions. Between each region virtual
-cross-sections are constructed defined by
-\Begineq
-  r_c(\theta, s) = (1 - P(\stilde)) \, r_{c1}(\theta) + P(\stilde) \, r_{c2}(\theta)
-  \label{r1prp}
-\Endeq
-where $s$ is the longitudinal position of the phantom cross-section and
-$P(s)$ is a cubic polynomial spline
-\Begineq
-  P(\stilde) = c_1 \, \stilde + c_2 \, \stilde^2 + c_3 \, \stilde^3
-\Endeq
-where $c_1$, $c_2$, and $c_3$ are constants. The $c_0$ constant has
-been set to zero by the requirement that $P(0) = 0$. The requirement
-that $P(1) = 1$ constrains $c_3$:
-\Begineq
-  c_3 = 1 - (c_1 + c_2)
-\Endeq
- $c_1$ and $c_2$ are given by the \vn{s_spline} parameter between 
-cross-sections. If not defined, the default is linear interpolation
-with $c_1 = 1$ and $c_2 = 0$. Linear interpolation, is used to define
-the wall between virtual cross-sections just as it is used for regular
-cross-sections.
-
-A non-linear interpolation scheme is used if \vn{n_splice_spline} is
-set to 0.  In this case, the wall between the cross-sections is
-constructed using \Eq{r1prp}. The volume between the cross-sections so
-constructed must be convex.
-
 To refer to a cross-section parameters after an element has been
 defined, the following syntax is used:
 \begin{example}
   ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
-  ele_name[wall.n_slice_spline(n)]   ! n_slice_spline value set between n^th and 
-                                     !     n+1^th cross-sections.
-  ele_name[wall.s_spline(n).coef(k)] ! k^th coefficient (k = 1, 2, or 3) of s_spline 
-                                     !     set between n^th and n+1^th cross-sections.
 \end{example}
 
 %-----------------------------------------------------------------

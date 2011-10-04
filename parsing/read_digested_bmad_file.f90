@@ -690,7 +690,8 @@ call re_associate (wall3d%section, n_wall_section)
 do j = 1, n_wall_section
   sec => wall3d%section(j)
 
-  read (d_unit, iostat = ios) sec%type, sec%s, sec%s_spline, sec%n_slice_spline, nv, sec%n_vertex_input
+  read (d_unit, iostat = ios) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
+                 sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input
   if (ios /= 0) then
     if (bmad_status%type_out) then
        call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &

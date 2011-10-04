@@ -17,7 +17,8 @@
 !   end_orb -- Coord_struct, optional: Coordinates at the end of element.
 !                end is an input only if end_in is set to True.
 !   end_in  -- Logical, optional: If present and True then the end coords
-!                will be taken as input. not output as normal.
+!                will be taken as input. not output as normal. 
+!                If end_orb is not present then end_in will be ignored.
 !
 !
 ! Output:
@@ -63,7 +64,7 @@ else
   call init_coord (a_start_orb)
 endif
 
-end_input = logic_option (.false., end_in)
+end_input = (logic_option (.false., end_in) .and. present(end_orb))
 if (end_input) a_end_orb = end_orb
 
 ! custom calc 
@@ -83,11 +84,6 @@ if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 !
 
 if (present(err)) err = .false.
-
-if (end_input .and. .not. present(end_orb)) then
-  print *, 'ERROR IN MAKE_MAT6: CONFUSED END_IN WITHOUT AN END!'
-  call err_exit
-endif
 
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.

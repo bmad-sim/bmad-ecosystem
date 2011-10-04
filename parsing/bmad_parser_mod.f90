@@ -424,6 +424,9 @@ if (word(1:5) == 'WALL.') then
     if (word2 == '.S' .and. delim == '=') then
       r_ptr => section%s
 
+    elseif (word2 == '.DR_DS' .and. delim == '=') then
+      r_ptr => section%dr_ds
+
     elseif (word2 == '.V' .and. delim == '(') then
       ix_v = evaluate_array_index (err_flag, ')', word, '=', delim)
       if (err_flag .or. ix_v < 0 .or. ix_v > size(section%v)) then
@@ -446,33 +449,6 @@ if (word(1:5) == 'WALL.') then
       call parser_warning('BAD WALL SECTION COMPONENT: ' // word2, 'FOR ELEMENT: ' // ele%name)
       return
     endif
-
-  case ('N_SLICE_SPLINE')
-    if (word2 /= '' .or. delim /= '=') then
-      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-    call get_next_word (line, ix_word, '},)', delim, delim_found)
-    read (line, *, iostat = ios) section%n_slice_spline
-    if (ix_word == 0 .or. ios /= 0) then
-      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-  case ('S_SPLINE')
-    if (word2 /= '.COEF' .or. delim /= '(') then
-      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-    ix_coef = evaluate_array_index (err_flag, ')', word, '=', delim)
-    if (err_flag .or. ix_coef < 0 .or. ix_coef > size(section%s_spline) )then
-      call parser_warning ('MALFORMED WALL COMPONENT REDEF IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-    r_ptr => section%s_spline(ix_coef)
 
   case default
     call parser_warning ('BAD WALL COMPONENT REDEF: ' // word, 'IN ELEMENT: ' // ele%name)
@@ -560,10 +536,20 @@ if (attrib_word == 'WALL') then
     ix_v = 0
 
     do
-      ! Expect "V ("
+      ! Expect "V (" or "dr_ds ="
       call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
-      if (word == 'V' .and. delim == '(') then
+      if (word == 'DR_DS') then
+        if (delim /= '=') then
+          call parser_warning ('NO "=" AFTER "DR_DS" IN WALL SECTION FOR:' // ele%name)
+          return
+        endif
+        call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
+        if (err_flag) return
+
+      !
+
+      elseif (word == 'V' .and. delim == '(') then
 
         ix_v = ix_v + 1
         section%n_vertex_input = ix_v
@@ -608,13 +594,14 @@ if (attrib_word == 'WALL') then
           call parser_warning ('BAD SYNTAX IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
           return
         endif
-        if (delim == '}') exit
 
       else
         call parser_warning ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
                              'IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
         return
       endif
+
+      if (delim == '}') exit
 
     enddo
 
@@ -629,53 +616,19 @@ if (attrib_word == 'WALL') then
     endif
 
 
-    ! Expect "s_spline" or "n_slice_spline" or "section" 
+    ! Expect "section"
 
-    do
+    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
 
-      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+    if (delim /= '=') then
+      call parser_warning ('NO "=" SIGN FOUND AFTER: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+      return
+    endif
 
-      if (delim /= '=') then
-        call parser_warning ('NO "=" SIGN FOUND AFTER: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
-        return
-      endif
-
-      if (word == 'SECTION') exit
-
-      if (word == 'S_SPLINE') then
-
-        ! Expect "{"
-        call get_next_word (word, ix_word, '{,()', delim, delim_found)
-        if (delim /= '{') then
-          call parser_warning ('NO "{" SIGN FOUND AFTER "SECTION ="', 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
-          return
-        endif
-
-        call evaluate_value (trim(ele%name), section%s_spline(1), lat, delim, delim_found, err_flag, ',}')
-        if (err_flag) return
-
-        if (delim == ',') then
-          call evaluate_value (trim(ele%name), section%s_spline(2), lat, delim, delim_found, err_flag, '}')
-          if (err_flag) return
-        endif
-
-        ! Expect ","
-        call get_next_word (word, ix_word, '{},()', delim, delim_found)
-        if (word /= '' .or. delim /= ',') then
-          call parser_warning ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
-        endif
-
-      elseif (word == 'N_SLICE_SPLINE') then
-        ! Expect value
-        call evaluate_value (trim(ele%name), section%s_spline(2), lat, delim, delim_found, err_flag, ',')
-        if (err_flag) return
-
-      else
-        call parser_warning('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
-        return
-      endif
-
-    enddo
+    if (word /= 'SECTION') then
+      call parser_warning('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
+      return
+    endif
 
   enddo
 
