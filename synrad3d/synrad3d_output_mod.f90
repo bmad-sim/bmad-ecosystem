@@ -38,8 +38,8 @@ do n = 1, photon%n_wall_hit
   write (iu, *) '*********************************************'
   write (iu, '(2i8, f10.1)') photon%ix_photon, n, hit%before_reflect%energy
   write (iu, fm) hit%before_reflect%vec
-  write (iu, '(3(12x, f12.6))') hit%after_reflect%vec(2:6:2)
-  write (iu, '(3f10.4, 10x, 3f16.10)') hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity
+  write (iu, '(3(24x, f24.16))') hit%after_reflect%vec(2:6:2)
+  write (iu, '(3f18.12, 10x, 3f16.10)') hit%dw_perp, hit%cos_perp_in, hit%cos_perp_out, hit%reflectivity
 enddo
 
 end subroutine
