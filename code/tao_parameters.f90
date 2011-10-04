@@ -27,9 +27,9 @@ module tao_parameters
   integer, parameter :: use$ = 1, veto$ = 2, restore$ = 3
   
   type  name_struct
-    character(16) :: xy_plane(5) = (/ "X", "Y", "Z", "A", "B" /)
-    character(16) :: data_or_var(2) = (/ "data    ", "variable"/)
-    character(16) :: use_veto_restore(3) = (/ "use    ", "veto   ", "restore"/)
+    character(16) :: xy_plane(5) = ["X", "Y", "Z", "A", "B"]
+    character(16) :: data_or_var(2) = ["data    ", "variable"]
+    character(16) :: use_veto_restore(3) = ["use    ", "veto   ", "restore"]
   end type
 
   type (name_struct), save :: name$
