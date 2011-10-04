@@ -8,6 +8,7 @@ subroutine set_wall_eles (wall, lat)
 
 use synrad_struct
 use synrad_interface
+use twiss_and_track_mod
 
 implicit none
 
