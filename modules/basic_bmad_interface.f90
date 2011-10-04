@@ -890,20 +890,6 @@ interface
 end interface
 
 interface
-  subroutine twiss_and_track_at_s (lat, s, ele, orb, here, ix_branch, err)
-    use bmad_struct, only: lat_struct, ele_struct, rp, coord_struct
-    implicit none
-    type (lat_struct) :: lat
-    type (ele_struct), optional :: ele
-    real(rp) s
-    type (coord_struct), optional :: orb(0:)
-    type (coord_struct), optional :: here
-    integer, optional :: ix_branch
-    logical, optional :: err
-  end subroutine
-end interface
-
-interface
   subroutine twiss_at_start (lat, ix_branch)
     use bmad_struct, only: lat_struct
     implicit none
