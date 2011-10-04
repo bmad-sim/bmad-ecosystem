@@ -854,7 +854,7 @@ interface
     use bmad_struct, only: coord_struct, ele_struct, lat_param_struct, rp
     implicit none
     type (coord_struct), optional :: orbit_start, orbit_end
-    type (ele_struct), optional ::ele_start, ele_end
+    type (ele_struct), optional :: ele_start, ele_end
     type (ele_struct) ele
     type (lat_param_struct) param
     real(rp) l_start, l_end

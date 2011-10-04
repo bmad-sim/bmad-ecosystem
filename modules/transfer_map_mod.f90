@@ -443,4 +443,39 @@ end subroutine transfer_this
 
 end subroutine mat6_from_s_to_s
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+         
+! Subroutine concat_transfer_mat (mat_1, vec_1, mat_0, vec_0, mat_out, vec_out)
+!
+! Routine to concatinate two linear maps:
+!   mat_out = matmul(mat_1, mat_0)
+!   vec_out = matmul(mat_1, vec_0) + vec_1
+!
+! Input:
+!   mat_1(6,6), vec_1(6) -- Real(rp): Map from s1 to s2
+!   mat_0(6,6), vec_0(6) -- Real(rp): Map from s0 to s1
+!
+! Output:
+!   mat_out(6,6), vec_out(6) -- Real(rp): Map from s0 to s2
+!-
+
+subroutine concat_transfer_mat (mat_1, vec_1, mat_0, vec_0, mat_out, vec_out)
+
+implicit none
+
+real(rp) mat_1(6,6), vec_1(6), mat_0(6,6), vec_0(6), mat_out(6,6), vec_out(6)
+real(rp) mat6(6,6), vec0(6)
+
+!
+
+mat6 = matmul(mat_1, mat_0)
+mat_out = mat6
+
+vec0 = matmul(mat_1, vec_0) + vec_1
+vec_out = vec0
+
+end subroutine concat_transfer_mat 
+
 end module

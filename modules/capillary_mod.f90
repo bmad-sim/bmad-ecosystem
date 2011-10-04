@@ -233,19 +233,9 @@ section => ele%wall3d%section
 call bracket_index(section%s, 1, size(section), vec(5), ixc)
 
 if (vec(6) > 0) then   ! Forward going photon
-  if (section(ixc)%n_slice_spline > 1) then
-    ix = int(section(ixc)%n_slice_spline * (vec(5) - section(ixc)%s) / (section(ixc+1)%s - section(ixc)%s))
-    s_stop = section(ixc)%s + (ix+1) * (section(ixc+1)%s - section(ixc)%s)
-  else
-    s_stop = section(ixc+1)%s
-  endif
+  s_stop = section(ixc+1)%s
 else   ! Backward going photon
-  if (section(ixc)%n_slice_spline > 1) then
-    ix = int(section(ixc)%n_slice_spline * (vec(5) - section(ixc)%s) / (section(ixc+1)%s - section(ixc)%s))
-    s_stop = section(ixc)%s + ix * (section(ixc+1)%s - section(ixc)%s)
-  else
-    s_stop = section(ixc)%s
-  endif
+  s_stop = section(ixc)%s
 endif
 
 ! Now calculate the distance to track
@@ -441,10 +431,11 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_coord_struct), target :: p_orb
-type (wall3d_section_struct), pointer :: sec0, sec1
+type (wall3d_section_struct), pointer :: sec1, sec2
 
-real(rp) d_radius, s00, s11, r_photon, f, spline, r00_wall, r11_wall, cos_theta, sin_theta
-real(rp) r0_wall, r1_wall, dr0_dtheta, dr1_dtheta, f_eff, ds_spline
+real(rp) d_radius, r_photon, s_rel, spline, cos_theta, sin_theta
+real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
+real(rp) p1, p2, dp1, dp2
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:)
 
@@ -460,10 +451,10 @@ if (ix == size(ele%wall3d%section)) ix = size(ele%wall3d%section) - 1
 if (vec(5) == ele%wall3d%section(ix)%s .and. vec(6) > 0 .and. ix /= lbound(ele%wall3d%section, 1)) ix = ix - 1
 p_orb%ix_section = ix
 
-! sec0 and sec1 are the cross-sections to either side of the photon.
+! sec1 and sec2 are the cross-sections to either side of the photon.
 
-sec0 => ele%wall3d%section(ix)
-sec1 => ele%wall3d%section(ix+1)
+sec1 => ele%wall3d%section(ix)
+sec2 => ele%wall3d%section(ix+1)
 
 if (vec(1) == 0 .and. vec(3) == 0) then
   r_photon = 0
@@ -477,195 +468,29 @@ endif
 
 ! Calculate the radius values at the cross-sections.
 
-call calc_wall_radius (sec0%v, cos_theta, sin_theta, r0_wall, dr0_dtheta)
 call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-
-! Phantom slices
-
-n_slice = sec0%n_slice_spline
-if (n_slice > 1) then
-  ix = min(int(f * n_slice), n_slice - 1)
-
-  s00 = float(ix) / n_slice
-  spline = sec0%s_spline(1) * s00 + sec0%s_spline(2) * s00**2 + sec0%s_spline(3) * s00**3
-  r00_wall = (1 - spline) * r0_wall + spline * r1_wall
-
-  s11 = float(ix+1) / n_slice
-  spline = sec0%s_spline(1) * s11 + sec0%s_spline(2) * s11**2 + sec0%s_spline(3) * s11**3
-  r11_wall = (1 - spline) * r0_wall + spline * r1_wall
-
-else
-  s00 = sec0%s
-  s11 = sec1%s
-  r00_wall = r0_wall
-  r11_wall = r1_wall
-endif
+call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
 
 ! Interpolate to get d_radius
 
-f = (vec(5) - s00) / (s11 - s00)
+ds = sec2%s - sec1%s
+s_rel = (vec(5) - sec1%s) / ds
+p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
+p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
-if (n_slice == 0) then
-  f_eff = sec0%s_spline(1) * f + sec0%s_spline(2) * f**2 + sec0%s_spline(3) * f**3
-else
-  f_eff = f
-  ds_spline = s11 - s00
-endif
-
-d_radius = r_photon - ((1 - f_eff) * r00_wall + f_eff * r11_wall)
+d_radius = r_photon - (p1 * r1_wall + p2 * r2_wall)
 
 ! Calculate the surface normal vector
 
 if (present (perp)) then
   perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
-                        ((1 - f_eff) * dr0_dtheta + f_eff * dr1_dtheta) / r_photon
-  perp(3)   = -(r11_wall - r00_wall) / ds_spline
+                        (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_photon
+  dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
+  dp2 =      sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
+  perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
   perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
 endif
 
 end function capillary_photon_d_radius
-
-!---------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------------
-!+
-! Subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
-!
-! Routine to calculate the wall radius at a given angle for a given cross-section
-! Additionally, the transverse directional derivative is calculated.
-!
-! Module needed:
-!   use capillary_mod
-!
-! Input:
-!   v(:)         -- wall3d_vertex_struct: Array of vertices that make up the cross-section.
-!   cos_ang      -- Real(rp): cosine of the transverse photon position.
-!   sin_ang      -- Real(rp): sine of the transverse photon position.
-!
-! Output:
-!   r_wall      -- Real(rp): Wall radius at given angle.
-!   dr_dtheta   -- Real(rp): derivative of r_wall.
-!-
-
-subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta)
-
-implicit none
-
-type (wall3d_vertex_struct), target :: v(:)
-type (wall3d_vertex_struct), pointer :: v1, v2
-
-
-real(rp) r_wall, dr_dtheta, rx, ry, da, db, angle
-real(rp) numer, denom, ct, st, x0, y0, a, b, c
-real(rp) cos_ang, sin_ang, radx, cos_a, sin_a, det
-real(rp) r_x, r_y, dr_x, dr_y, cos_phi, sin_phi
-
-integer ix
-
-! Bracket index if there is more than one vertex
-! If there is only one vertex then must be an ellipse or circle
-
-angle = atan2(sin_ang, cos_ang)
-
-if (size(v) == 1) then
-  v2 => v(1)
-else
-  if (angle < v(1)%angle) angle = ceiling((v(1)%angle-angle)/twopi) * twopi + angle
-  call bracket_index (v%angle, 1, size(v), angle, ix)
-
-  v1 => v(ix)
-  if (ix == size(v)) then
-    v2 => v(1)
-  else
-    v2 => v(ix+1)
-  endif
-endif
-
-! Straight line case
-
-if (v2%radius_x == 0) then
-  numer = (v1%x * v2%y - v1%y * v2%x)
-  denom = (cos_ang * (v2%y - v1%y) - sin_ang * (v2%x - v1%x))
-  r_wall = numer / denom
-  dr_dtheta = numer * (sin_ang * (v2%y - v1%y) + cos_ang * (v2%x - v1%x)) / denom**2
-  return
-endif
-
-
-! If ellipse...
-
-if (v2%radius_y /= 0) then
-
-  ! Convert into unrotated frame if tilted ellipse
-  if (v2%tilt /= 0) then
-    ct = cos(v2%tilt); st = sin(v2%tilt)
-    x0 =  ct * v2%x0 + st * v2%y0
-    y0 = -st * v2%x0 + ct * v2%y0
-    cos_a = cos_ang * ct + sin_ang * st
-    sin_a = sin_ang * ct - cos_ang * st
-  else
-    ct = 1; st = 0
-    x0 = v2%x0; y0 = v2%y0
-    cos_a = cos_ang; sin_a = sin_ang
-  endif
-
-  rx = v2%radius_x; ry = v2%radius_y
-  a = (cos_a/rx)**2 + (sin_a/ry)**2
-  b = -2 * (cos_a * x0 / rx**2 + sin_a * y0 / ry**2)
-  c = (x0/rx)**2 + (y0/ry)**2 - 1
-  radx = sqrt(b**2 - 4 * a * c)
-
-  if (rx > 0) then
-    r_wall = (-b + radx) / (2 * a)
-  else
-    r_wall = (-b - radx) / (2 * a)
-  endif
-
-  ! dr/dtheta comes from the equations:
-  !   /x\  =  /rad_x * cos(tilt)  -rad_y * sin(tilt)\  /cos(phi)\  +  /x0\
-  !   \y/     \rad_x * sin(tilt)   rad_y * cos(tilt)/  \sin(phi)/     \y0/
-  !   r = sqrt(x^2 + y^2)
-  !   Tan(theta) = y/x
- 
-  r_x = r_wall * cos_ang; r_y = r_wall * sin_ang
-  cos_phi = ( ct * (r_x - x0) + st * (r_y - y0)) / v2%radius_x
-  sin_phi = (-st * (r_x - x0) + ct * (r_y - y0)) / v2%radius_y
-  dr_x = -v2%radius_x * ct * sin_phi - v2%radius_y * st * cos_phi
-  dr_y = -v2%radius_x * st * sin_phi + v2%radius_y * ct * cos_phi
-  dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
-
-  return
-endif
-
-! Else must be a circle.
-! Solve for r_wall: (r_wall * cos_a - x0)^2 + (r_wall * sin_a - y0)^2 = radius^2
-! dr/dtheta comes from the equations:
-!   x = x0 + radius * cos(phi)
-!   y = y0 + radius * sin(phi)
-!   r = sqrt(x^2 + y^2)
-!   Tan(theta) = y/x
-! Then
-!   dr_vec = (dx, dy) = (-radius * sin(phi), radius * cos(phi)) * dphi
-!   dr/dtheta = r * (r_vec dot dr_vec) / (r_vec cross dr_vec)
-
-x0 = v2%x0; y0 = v2%y0
-
-a = 1
-b = -2 * (cos_ang * x0 + sin_ang * y0)
-c = x0**2 + y0**2 - v2%radius_x**2
-radx = sqrt(b**2 - 4 * a * c)
-
-if (v2%radius_x > 0) then
-  r_wall = (-b + radx) / (2 * a)
-else
-  r_wall = (-b - radx) / (2 * a)
-endif
-
-r_x = r_wall * cos_ang; r_y = r_wall * sin_ang
-dr_x = -(r_y - y0);    dr_y = r_x - x0
-
-dr_dtheta = r_wall * (r_x * dr_x + r_y * dr_y) / (r_x * dr_y - r_y * dr_x)
-
-end subroutine calc_wall_radius
 
 end module
