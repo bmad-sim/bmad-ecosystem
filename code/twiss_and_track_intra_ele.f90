@@ -52,6 +52,7 @@ use bookkeeper_mod
 implicit none
 
 type (coord_struct), optional :: orbit_start, orbit_end
+type (coord_struct) orb_at_end
 type (ele_struct), optional :: ele_start, ele_end
 type (ele_struct) ele
 type (lat_param_struct) param
@@ -59,7 +60,7 @@ type (ele_struct), save :: runt
 
 real(rp) l_start, l_end, mat6(6,6), vec0(6)
 
-logical track_entrance, track_exit, do_entrance, do_exit
+logical track_entrance, track_exit, do_entrance, do_exit, err_flag
 logical, optional :: err
 
 ! Easy case when l_end = l_start
@@ -83,24 +84,32 @@ endif
 
 ! Construct a "runt" element to track through.
 
+if (present(err)) err = .true.
 runt = ele
 do_entrance = (track_entrance .and. l_start == 0)
 do_exit = (track_exit .and. abs(l_end - ele%value(l$)) < bmad_com%significant_longitudinal_length)
 call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_entrance, do_exit)
 
-! Now track
+! Now track. 
+! Must take care if orbit_start and orbit_end are the same actual argument so use temporary orb_at_end.
 
-if (present(orbit_end)) then
-  call track1 (orbit_start, runt, param, orbit_end)
+if (present(orbit_start)) then
+  call track1 (orbit_start, runt, param, orb_at_end)
   if (param%lost) return
 endif
 
 if (present(ele_end)) then
-  call make_mat6 (runt, param, orbit_start, orbit_end, .true.)
-  call twiss_propagate1 (ele_start, runt, err)
+  if (present(orbit_start)) then
+    call make_mat6 (runt, param, orbit_start, orb_at_end, .true.)
+  else
+    call make_mat6 (runt, param)
+  endif
+  call twiss_propagate1 (ele_start, runt, err_flag)
   ele_end = runt
-  return
+  if (err_flag) return
 endif
+
+if (present(orbit_end)) orbit_end = orb_at_end
 
 if (present(err)) err = .false.
 

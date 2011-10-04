@@ -111,8 +111,9 @@ enddo
 
 ! Track to s_end
 
-call twiss_and_track_partial (branch%ele(ix_end-1), branch%ele(ix_end), branch%param, &
-          s_end-branch%ele(ix_end-1)%s, orb_start = orbit_end, orb_end = orbit_end) 
+call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end-1)%s, &
+                                                                      .true., .true., orbit_end, orbit_end)
+
 if (branch%param%lost) branch%param%ix_lost = ix_end
 
 end subroutine
