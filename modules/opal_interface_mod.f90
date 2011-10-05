@@ -614,7 +614,7 @@ logical, optional   :: err
 
 type (coord_struct) :: orb
 real(rp)        :: dt, pc, gmc
-character(40)	:: r_name = 'write_opal_bunch'
+character(40)	:: r_name = 'write_opal_particle_distribution'
 character(10)   ::  rfmt 
 integer n_particle, i
 
