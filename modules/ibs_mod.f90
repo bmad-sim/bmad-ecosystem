@@ -329,11 +329,6 @@ SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
   ka_one = 1. / (1.+ka) !Used in determining de_dt
   ka_small = ka / (1.+ka) !Used in determining de_dt
 
-  !FOO for vertical beam size
-  x = lat%param%n_part * 1.0E3
-  vbs = 0.057*x**3 + 0.025*x**2 - 0.552*x + 21.833
-  !FOO
-
   counter = 0
   ibsmode = naturalmode
   DO WHILE(.not.converged)
