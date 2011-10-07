@@ -256,7 +256,6 @@ if (init_cache) then
 
   j = 0  ! number of elements to cache
   do i = 1, lat%n_ele_track
-    cache%ele%n_attribute_modify = -1
     key = lat%ele(i)%key
     if ((key == wiggler$ .and. lat%ele(i)%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
@@ -273,6 +272,7 @@ if (init_cache) then
     if (size(cache%ele) < j) deallocate (cache%ele)
   endif
   if (.not. allocated(cache%ele)) allocate (cache%ele(j))  ! allocate cache memory
+  cache%ele%n_attribute_modify = -1
 
 endif
 
