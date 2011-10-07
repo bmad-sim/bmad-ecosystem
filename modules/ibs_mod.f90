@@ -3,7 +3,6 @@ MODULE ibs_mod
 USE bmad_struct
 USE bmad_interface
 USE nr
-!USE bunch_lengthening_mod
 
 TYPE ibs_struct
   REAL(rp) inv_Tx
@@ -32,11 +31,6 @@ END TYPE
 !bjmt_struct is a bjmt common struct for passing matrices
 !to the integrand functions of the bjmt subroutine
 TYPE(bjmt_struct) :: bjmt_com
-
-TYPE piwi_struct
-  REAL(rp) a, b, c
-END TYPE
-TYPE(piwi_struct) :: piwi_com
 
 !Elpha is a variable common between the bane subroutine and
 !the integrand function.
@@ -89,7 +83,6 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   TYPE(lat_struct), INTENT(INOUT), target :: lat
   TYPE(normal_modes_struct), INTENT(IN) :: inmode
   TYPE(normal_modes_struct), INTENT(OUT) :: ibsmode
-  !bl ! TYPE(bl_param_struct) :: bl_params
   CHARACTER*4, INTENT(IN) :: formula
   REAL(rp), INTENT(IN) :: ratio
   REAL(rp), INTENT(IN) :: initial_blow_up
@@ -105,23 +98,24 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   REAL(rp) sigE_E, sigE_E0, sigma_z0, L_ratio
   REAL(rp) fpw, Rz, Re
   REAL(rp) running_emit_x(1:10), running_emit_y(1:10), running_sigE_E(1:10)
-  !REAL(rp) running_emit_x(1:3), running_emit_y(1:3), running_sigE_E(1:3)
   INTEGER half
   REAL(rp) runavg_emit_x_A, runavg_emit_y_A, runavg_sigE_E_A
   REAL(rp) runavg_emit_x_B, runavg_emit_y_B, runavg_sigE_E_B
-  REAL(rp) E_tot, gamma, KE, beta
+  REAL(rp) E_tot, gamma, KE, rbeta
   LOGICAL converged
   INTEGER counter, i
+  REAL(rp) cur, vbs, v_emit_data !FOO
 
   CHARACTER(20) :: r_name = 'ibsequilibrium2'
 
-  ! bl ! bl_params%Rav = 122.23
-  ! bl ! bl_params%R = 88.0
-  ! bl ! E_tot = lat%ele(1)%value(E_TOT$)
-  ! bl ! CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
-  ! bl ! bl_params%gamma = gamma
-  ! bl ! bl_params%Kz0 = 4.0
-  ! bl ! bl_params%zeta = 1.21
+  !FOO for vertical beam size
+  cur = lat%param%n_part*e_charge/(2.56E-6) * 1.0E3
+  !(2.1 GeV Run 16) vbs = ( 0.057*cur**3 + 0.025*cur**2 - 0.552*cur + 21.833 ) * 1.0E-6
+  !(1.8 GeV Run k) vbs = ( 0.130*cur**3 - 0.370*cur**2 + 0.997*cur + 22.655 ) * 1.0E-6
+  vbs = ( 0.363*cur**3 - 2.571*cur**2 + 5.668*cur + 30.854 ) * 1.0E-6
+  v_emit_data = vbs**2/40.0
+  ibsmode%b%emittance = v_emit_data
+  !FOO
 
   !compute the SR betatron damping times
   time_for_one_turn = lat%param%total_length / c_light
@@ -132,8 +126,9 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   !fpw is a simple way of modeling potential well bunch lengthing.
   !This factor is multiplied by the zero current L_ratio when 
   !determining bunch length from energy spread.
-  !fpw = 1.0
-  fpw = 1.0 + .0062/(12.0E9) * lat%param%n_part
+  !fpw = 1.0  !fpw off
+  !fpw = 1.0 + .0062/(12.0E9) * lat%param%n_part  !2.1 GeV
+  fpw = 1.0 + .0200/(12.0E9) * lat%param%n_part  !2.1 GeV
   sigma_z0 = inmode%sig_z
   sigE_E0 = inmode%sigE_E 
   L_ratio = sigma_z0 / sigE_E0
@@ -141,7 +136,7 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
   emit_y0 = inmode%b%emittance 
 
   ibsmode%a%emittance = emit_x0 * initial_blow_up
-  ibsmode%b%emittance = emit_y0 * initial_blow_up
+  !FOO ibsmode%b%emittance = emit_y0 * initial_blow_up !FOO
   ibsmode%sig_z = sigma_z0      * sqrt(initial_blow_up)
   ibsmode%sigE_E = sigE_E0      * sqrt(initial_blow_up)
 
@@ -210,9 +205,10 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
       STOP
     ENDIF
 
-    emit_y = ibsmode%b%emittance + advance*( &
-             ((1.0-ratio)*yfactor+ratio*xfactor)*emit_y0 - ibsmode%b%emittance )
-    emit_x = ibsmode%a%emittance + advance*( xfactor*emit_x0 - ibsmode%a%emittance )
+    emit_x = ibsmode%a%emittance + advance*( xfactor*emit_x0 - ibsmode%a%emittance ) 
+    !FOO emit_y = ibsmode%b%emittance + advance*( &
+    !FOO         ((1.0-ratio)*yfactor+ratio*xfactor)*emit_y0 - ibsmode%b%emittance )
+    emit_y = ibsmode%b%emittance !FOO
     sigE_E = ibsmode%sigE_E      + advance*( zfactor*sigE_E0 - ibsmode%sigE_E )
 
     running_emit_x = CSHIFT(running_emit_x, -1)
@@ -240,19 +236,12 @@ SUBROUTINE ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up)
 
     IF(.not.converged) THEN
       ibsmode%a%emittance = emit_x
-      ibsmode%b%emittance = emit_y
+      !FOO ibsmode%b%emittance = emit_y !FOO
       ibsmode%sigE_E = sigE_E 
       ibsmode%sig_z = L_ratio * sigE_E * fpw
-      ! bl ! ibsmode%sig_z = L_ratio * sigE_E
-
-      ! bl ! bl_params%Ib = lat%param%n_part * e_charge * c_light / lat%param%total_length
-      ! bl ! CALL gao_formula(bl_params, Rz, Re)
-      ! bl ! ibsmode%sig_z = ibsmode%sig_z * Rz
-      ! bl ! ibsmode%sigE_E = ibsmode%sigE_E * Re
     ENDIF
 
   ENDDO
-  ! BL ! WRITE(*,*) "FOO resulting Rz, Re: ", Rz, Re
 
 END SUBROUTINE ibsequilibrium2
 
@@ -298,6 +287,7 @@ SUBROUTINE ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
   REAL(rp) threshold
   REAL(rp) sigE_E0, sigma_z0, L_ratio
   REAL(rp) ka, ka_one, ka_small
+
   LOGICAL converged
   INTEGER counter, i
 
@@ -616,7 +606,7 @@ SUBROUTINE bjmt1(lat, i, rates)
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_a, beta_b
+  REAL(rp) gamma, KE, rbeta, beta_a, beta_b
   REAL(rp) sigma_y
   REAL(rp) Dx, Dy, Dxp, Dyp
   REAL(rp) alpha_a, alpha_b, coulomb_log
@@ -634,14 +624,14 @@ SUBROUTINE bjmt1(lat, i, rates)
   ele => lat%ele(i)
 
   E_tot = lat%ele(i)%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_x = ele%a%emit
   emit_y = ele%b%emit
 
-  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
+  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -821,102 +811,6 @@ FUNCTION bjmt_int_v(u)
     bjmt_int_v(i)=(u(i)**.5)/(det**.5)*(TrLi*TrInv-3.0*TrMult)
   ENDDO
 END FUNCTION bjmt_int_v
-
-!+
-!  subroutine piwi(lat, i, mode, rates)
-!
-!  This is a private subroutine. To access this subroutine, call
-!  ibs_rates.
-!
-!  This is an implementation of equations 10-15 from "Intrabeam
-!  scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
-!  It is a high energy approximation of the Bjorken-Mtingwa IBS
-!  formulation.
-!-
-!________________THIS SUBROUTINE HAS NOT YET BEEN COMPLETED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-SUBROUTINE piwi(lat, i, rates)
-
-  IMPLICIT NONE
-
-  TYPE(lat_struct), INTENT(IN), target :: lat
-  INTEGER, INTENT(IN) :: i
-  TYPE(ibs_struct), INTENT(OUT) :: rates
-  TYPE(ele_struct), pointer :: ele
-
-  REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_a, beta_b
-  REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
-  REAL(rp) Dx, Dy, Dxp, Dyp
-  REAL(rp) alpha_a, alpha_b, coulomb_log
-  REAL(rp) a, b, g_bane
-  REAL(rp) NB, big_A
-  REAL(rp) sigma_H, Hx, Hy
-  REAL(rp) inv_Tz, inv_Tx, inv_Ty
-
-  NB = lat%param%n_part
-
-  ele => lat%ele(i)
-
-  E_tot = ele%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
-
-  sigma_p = ele%z%sigma_p
-  sigma_z = ele%z%sigma
-  emit_x = ele%a%emit
-  emit_y = ele%b%emit
-
-  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
-
-  beta_a = ele%a%beta
-  beta_b = ele%b%beta
-  alpha_a = ele%a%alpha
-  alpha_b = ele%b%alpha
-  Dxp = ele%a%etap
-  Dyp = ele%b%etap
-  Dx = ele%a%eta
-  Dy = ele%b%eta
-  sigma_x_beta = SQRT(beta_a * emit_x)
-  sigma_y_beta = SQRT(beta_b * emit_y)
-  sigma_x = SQRT(sigma_x_beta**2 + (Dx**2)*(sigma_p**2))
-  sigma_y = SQRT(sigma_y_beta**2 + (Dy**2)*(sigma_p**2))
-                                                                                                     
-  coulomb_log = LOG( (gamma**2)*sigma_y*emit_x/r_e/beta_a )
-                                                                                                   
-  Hx = ( (Dx**2) + (beta_a*Dxp + alpha_a*Dx)**2 ) / beta_a
-  Hy = ( (Dy**2) + (beta_b*Dyp + alpha_b*Dy)**2 ) / beta_b
-  !-for atf-! Hy = 5.13E-7
-  sigma_H = 1.0/SQRT(1.0/(sigma_p**2) + Hx/emit_x + Hy/emit_y)
-
-  a = sigma_H/gamma*SQRT(beta_a/emit_x)
-  b = sigma_H/gamma*SQRT(beta_b/emit_y)
-                                                                                                   
-  Elpha = a/b
-  g_bane = 2.*SQRT(Elpha)/pi*qromo(integrand, 0._rp, 9999._rp, midexp)
-                                                                                               
-  inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_a*beta_b)**(-1./4.))
-  inv_Tx = (sigma_p**2)*Hx/emit_x*inv_Tz
-  inv_Ty = (sigma_p**2)*Hy/emit_y*inv_Tz
-                                                                                               
-  rates%inv_Tz = inv_Tz
-  rates%inv_Tx = inv_Tx
-  rates%inv_Ty = inv_Ty
-
-END SUBROUTINE piwi
-
-FUNCTION piwi_integrand(u)
-  REAL(rp), DIMENSION(:), INTENT(IN) :: u
-  REAL(rp), DIMENSION(SIZE(u)) :: piwi_integrand
-
-  REAL(rp) p, q 
-  INTEGER i
-
-  p(x) = (piwi_com%a**2) + ((x**2)*(1-(piwi_com%a**2)))
-  q(x) = (piwi_com%b**2) + ((x**2)*(1-(piwi_com%b**2)))
-
-  DO i=1, size(u)
-    piwi_integrand(i) = p(u(i)) + q(u(i))
-  ENDDO
-END FUNCTION piwi_integrand
  
 !+
 !  subroutine bane1(lat, i, mode, rates)
@@ -939,7 +833,7 @@ SUBROUTINE bane1(lat, i, rates)
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_a, beta_b
+  REAL(rp) gamma, KE, rbeta, beta_a, beta_b
   REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   REAL(rp) Dx, Dy, Dxp, Dyp
   REAL(rp) alpha_a, alpha_b, coulomb_log
@@ -953,7 +847,7 @@ SUBROUTINE bane1(lat, i, rates)
   ele => lat%ele(i)
 
   E_tot = ele%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
@@ -1034,7 +928,7 @@ SUBROUTINE cimp1(lat, i, rates)
   TYPE(ele_struct), pointer :: ele
 
   REAL(rp) sigma_p, emit_x, emit_y, sigma_z, E_tot
-  REAL(rp) gamma, KE, beta, beta_a, beta_b
+  REAL(rp) gamma, KE, rbeta, beta_a, beta_b
   REAL(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   REAL(rp) Dx, Dy, Dxp, Dyp
   REAL(rp) alpha_a, alpha_b, coulomb_log
@@ -1049,14 +943,14 @@ SUBROUTINE cimp1(lat, i, rates)
   ele => lat%ele(i)
 
   E_tot = ele%value(E_TOT$)
-  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, beta)
+  CALL convert_total_energy_to(E_tot, lat%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
   sigma_z = ele%z%sigma
   emit_x = ele%a%emit
   emit_y = ele%b%emit
 
-  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(beta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
+  big_A=(r_e**2)*c_light*NB/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_x/emit_y/sigma_z/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
