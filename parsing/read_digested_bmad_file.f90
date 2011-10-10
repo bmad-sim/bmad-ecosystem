@@ -61,7 +61,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, v99, v_old, mode3, error, is_open
+logical found_it, v99, v100, v_old, mode3, error, is_open
 
 ! init all elements in lat
 
@@ -84,7 +84,10 @@ open (unit = d_unit, file = full_digested_name, status = 'old',  &
 read (d_unit, err = 9010) n_files, version
 
 v99 = (version == 99)
+v100 = (version == 100)
 v_old = .false.
+
+! Version is old but recent enough to read.
 
 if (version < bmad_inc_version$) then
   if (bmad_status%type_out) call out_io (s_warn$, r_name, &
@@ -213,8 +216,8 @@ call allocate_branch_array (lat, n_branch)  ! Initial allocation
 do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
-  read (d_unit) branch%param
-  read (d_unit) branch%name, garbage, branch%ix_from_branch, &
+  read (d_unit, err = 9070) branch%param
+  read (d_unit, err = 9070) branch%name, garbage, branch%ix_from_branch, &
                   branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, n_wall_section, idum1
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max
@@ -308,7 +311,7 @@ return
 
 9070  continue
 if (bmad_status%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE N_BRANCH.')
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE BRANCH DATA.')
 endif
 close (d_unit)
 bmad_status%ok = .false.
@@ -361,7 +364,7 @@ if (version >= 99) then
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1
 endif
 
 ! Decompress value array
