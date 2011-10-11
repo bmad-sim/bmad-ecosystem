@@ -28,6 +28,18 @@ contains
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
 !
+! Convention: Start and end p_y and p_x coordinates are the field free momentum.
+! That is, at the start the coordinates are transformed by:
+!   (p_x, p_y) -> (p_x + A_x, p_y + A_y)
+! and at the end there is a transformation:
+!   (p_x, p_y) -> (p_x - A_x, p_y - A_y)
+! Where (A_x, A_y) components of the magnetic vector potential.
+! If the start and end coordinates are in field free regions then (A_x, A_y) will be zero
+! and the transformations will not affect the result. 
+! The reason for this convention is to be able to compute the local bending radius via 
+! tracking. Also this convention gives more "intuative" results when, say, using
+! a single wiggler term as a "toy" model for a wiggler.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -150,6 +162,15 @@ Case (wiggler$)
 
   call update_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
+  call update_wig_x_s_terms (err); if (err) return
+
+  ! Start correction for finite vector potential
+
+  end%vec(4) = end%vec(4) + a_y()
+
+  if (calculate_mat6) then
+    mat6(4,:) = mat6(4,:) + da_y_dx() * mat6(1,:) + da_y_dy() * mat6(3,:)
+  endif
 
   ! loop over all steps
 
@@ -208,6 +229,18 @@ Case (wiggler$)
     if (present(track)) call save_this_track_pt (i, s)
 
   enddo
+
+  ! End correction for finite vector potential
+
+  call update_wig_coefs (calculate_mat6)
+  call update_wig_y_terms (err); if (err) return
+  call update_wig_x_s_terms (err); if (err) return
+
+  end%vec(4) = end%vec(4) - a_y()
+
+  if (calculate_mat6) then
+    mat6(4,:) = mat6(4,:) - da_y_dx() * mat6(1,:) - da_y_dy() * mat6(3,:)
+  endif
 
   ! z_patch: This should have been computed if doing tracking with an offset.
 
@@ -351,7 +384,7 @@ end%vec(1) = 2 * bmad_com%max_aperture_limit
 end%vec(3) = 2 * bmad_com%max_aperture_limit
 err = .true.
 
-end subroutine
+end subroutine err_set
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -377,8 +410,9 @@ if (calculate_mat6) then
   track%map(ix)%vec0(6) = 0
 endif
  
-end subroutine  
+end subroutine save_this_track_pt
 
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
@@ -395,7 +429,7 @@ if (do_mat6) then
   mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end%vec(2)**2/rel_E3) * mat6(6,1:6)
 endif
 
-end subroutine
+end subroutine apply_p_x 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -413,7 +447,7 @@ if (do_mat6) then
   mat6(5,1:6) = mat6(5,1:6) - (ds2*end%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end%vec(4)**2/rel_E3) * mat6(6,1:6)
 endif      
 
-end subroutine
+end subroutine apply_p_y
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -447,7 +481,7 @@ if (do_mat6) then
   mat6(4,1:6) = mat6(4,1:6)
 endif  
 
-end subroutine
+end subroutine rf_drift1
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -481,7 +515,7 @@ if (do_mat6) then
   mat6(4,1:6) = mat6(4,1:6) - ks_tot_2 * mat6(1,1:6)
 endif  
 
-end subroutine
+end subroutine bsq_drift1
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -515,7 +549,7 @@ if (do_mat6) then
   mat6(4,1:6) = mat6(4,1:6) + ks_tot_2 * mat6(1,1:6)
 endif  
 
-end subroutine
+end subroutine bsq_drift2
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -536,7 +570,7 @@ if (do_mat6) then
   mat6(4,1:6) = mat6(4,1:6) - ds * k1_skew * mat6(1,1:6) + ds * k1_norm * mat6(3,1:6)
 endif 
 
-end subroutine
+end subroutine bsq_kick
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -555,7 +589,7 @@ if (do_mat6) then
   mat6(4,1:6) = mat6(4,1:6) + sgn * (a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6))
 endif      
 
-end subroutine
+end subroutine apply_wig_exp_int_ay
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -605,7 +639,7 @@ do j = 1, size(ele%wig_term)
 enddo
 
 
-end subroutine
+end subroutine update_wig_coefs
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -646,7 +680,7 @@ do j = 1, size(ele%wig_term)
   endif
 enddo
 
-end subroutine
+end subroutine update_wig_y_terms
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -690,7 +724,7 @@ do j = 1, size(ele%wig_term)
 
 enddo
 
-end subroutine
+end subroutine update_wig_x_s_terms
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -708,7 +742,43 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
-end function
+end function a_y
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function da_y_dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(ele%wig_term)
+  value = value + tm(j)%a_y%coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
+enddo
+
+end function da_y_dx
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function da_y_dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(ele%wig_term)
+  value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
+enddo
+
+end function da_y_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -726,7 +796,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%dint_a_y_dx%coef * tm(j)%c_x * tm(j)%c1_ky2 * tm(j)%s_z
 enddo
 
-end function
+end function dint_a_y_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -744,7 +814,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%da_z_dx%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
 enddo
 
-end function
+end function da_z_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -762,7 +832,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%da_z_dy%coef * tm(j)%s_x_kx * tm(j)%s_y * tm(j)%c_z
 enddo
 
-end function
+end function da_z_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -780,7 +850,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%dint_a_y_dx%dx_coef * tm(j)%s_x * tm(j)%c1_ky2 * tm(j)%s_z
 enddo
 
-end function
+end function dint_a_y_dx__dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -798,7 +868,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%dint_a_y_dx%dy_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
-end function
+end function dint_a_y_dx__dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -816,7 +886,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%a_y%dx_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
 enddo
 
-end function
+end function a_y__dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -834,7 +904,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%a_y%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
 enddo
 
-end function
+end function a_y__dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -852,7 +922,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%da_z_dx%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
 enddo
 
-end function
+end function da_z_dx__dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -870,7 +940,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%da_z_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
 enddo
 
-end function
+end function da_z_dx__dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -888,7 +958,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%da_z_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
 enddo
 
-end function
+end function da_z_dy__dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -906,7 +976,7 @@ do j = 1, size(ele%wig_term)
   value = value + tm(j)%da_z_dy%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%c_z
 enddo
 
-end function
+end function da_z_dy__dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
