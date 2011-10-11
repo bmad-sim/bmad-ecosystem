@@ -15,6 +15,9 @@
 # 
 #   3) Run python program in util_programs/scripts (must be in this directory)
 #         python beam_lib_routine_check
+#
+# Note: to get a merged list of symbols, use the -dump argument on the command line:
+#         python beam_lib_routine_check -dump
 #-
 
 import subprocess
