@@ -71,6 +71,7 @@ if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
                 call check_aperture_limit (start, ele, entrance_end$, param)
 if (param%lost) then
   param%end_lost_at = entrance_end$
+  param%ix_lost = ele%ix_ele
   call init_coord (end)      ! it never got to the end so zero this.
   return
 endif
@@ -162,6 +163,7 @@ if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
                   call check_aperture_limit (end, ele, exit_end$, param)
 if (param%lost) then
   param%end_lost_at = exit_end$
+  param%ix_lost = ele%ix_ele
   return
 endif
 
