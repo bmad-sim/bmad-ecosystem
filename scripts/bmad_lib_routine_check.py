@@ -63,7 +63,7 @@ def get_linux_symbols (lib_file, lib_name):
   for sym in mpm_list:
     if symbols.has_key(sym):
       print 'Duplicate symbol: ' + sym 
-      print '   In: mpm_utils, ' + symbols[sym]
+      print '   In: ' + lib_name + ', ' + symbols[sym]
       duplicate = True
     else:
       symbols[sym] = lib_name
