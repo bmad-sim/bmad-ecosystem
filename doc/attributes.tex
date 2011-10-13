@@ -472,11 +472,20 @@ Possible settings for \vn{aperture_at} are:
   entrance_end
   exit_end  ! default
   both_ends
+  continuous
 \end{example}
 Note that the entrance and exit ends of an element are independent of
 which direction particles are tracked through an element. Thus if a
 particle is tracked backwards it enters an element at the ``exit end''
-and exits at the ``entrance end''.
+and exits at the ``entrance end''. The \vn{continuous} setting
+indicates that the aperture is continuous along the length of the
+element. This only matters when particle tracking involves stepping
+through an element a little bit at a time. For example, as in
+Runge-Kutta tracking (\sref{s:tkm}). For tracking where a formula is
+used to transform the particle coordinates at the entrance of an
+element to the coordinates at the exit end, the aperture is only
+checked at the end points so, in this situation, a \vn{continuous}
+aperture is equivalent to the \vn{both_ends} setting.
 
 Examples:
 \begin{example}

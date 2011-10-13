@@ -1692,7 +1692,6 @@ endif
 
 if (slave%key == rfcavity$) value(voltage$) = lord%value(voltage$) * coef
 
-slave%aperture_at = no_end$
 call compute_slave_aperture (value, slave, lord, at_entrance_end, at_exit_end)
 
 if (slave%key == lcavity$) then
@@ -1828,6 +1827,8 @@ logical at_entrance_end, at_exit_end
 
 !
 
+slave%aperture_at = no_end$
+
 select case (lord%aperture_at)
 case (exit_end$) 
   if (at_exit_end) slave%aperture_at = exit_end$
@@ -1841,6 +1842,8 @@ case (both_ends$)
   elseif (at_exit_end) then 
     slave%aperture_at = exit_end$
   endif
+case (continuous$)
+  slave%aperture_at = continuous$
 end select
 
 if (slave%aperture_at == no_end$) then

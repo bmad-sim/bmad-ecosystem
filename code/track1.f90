@@ -67,7 +67,7 @@ if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 ! check for particles outside aperture
 
-if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$) &
+if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                 call check_aperture_limit (start, ele, entrance_end$, param)
 if (param%lost) then
   param%end_lost_at = entrance_end$
@@ -159,7 +159,7 @@ if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end)
 
 ! check for particles outside aperture
 
-if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$) &
+if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
                   call check_aperture_limit (end, ele, exit_end$, param)
 if (param%lost) then
   param%end_lost_at = exit_end$

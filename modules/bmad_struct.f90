@@ -709,9 +709,9 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, lost$ = 5
-character(16), parameter :: element_end_name(0:4) = ['GARBAGE!    ', &
-     'Entrance_End', 'Exit_End    ', 'Both_Ends   ', 'No_End      ']
+integer, parameter :: no_end$ = 4, continuous$ = 5, lost$ = 10
+character(16), parameter :: element_end_name(0:5) = [ 'GARBAGE!    ', &
+      'Entrance_End', 'Exit_End    ', 'Both_Ends   ', 'No_End      ', 'Continuous  ']
 
 ! ref_orbit values.
 
