@@ -63,8 +63,8 @@ err = .false.
 do
   call sr3d_track_photon_to_wall (photon, lat, wall, wall_hit, err)
   if (err) return
-  call sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
-  if (absorbed) return
+  call sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed, err)
+  if (absorbed .or. err) return
 enddo
 
 end subroutine sr3d_track_photon
@@ -739,7 +739,7 @@ end subroutine sr3d_mesh_d_radius
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
+! Subroutine sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed, err_flag)
 !
 ! Routine to reflect a photon off of the chamber wall.
 !
@@ -755,9 +755,10 @@ end subroutine sr3d_mesh_d_radius
 ! Output:
 !   wall_hit(:) -- sr3d_photon_wall_hit_struct: Array recording where the photon has hit the wall.
 !   absorbed    -- Logical: Set True if photon is absorbed.
+!   err_flag    -- Logical: Set True if an error found. Not touched otherwise.
 !-
 
-subroutine sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed)
+subroutine sr3d_reflect_photon (photon, wall, lat, wall_hit, absorbed, err_flag)
 
 implicit none
 
@@ -775,7 +776,7 @@ real(rp) vec_in_plane(3), vec_out_plane(3)
 integer ix, iu
 integer n_old, n_wall_hit
 
-logical absorbed
+logical absorbed, err_flag
 
 !
 
@@ -824,8 +825,8 @@ if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
   print *, '       START COORDS: ', photon%start%vec
   print *, '       ENERGY: ', photon%start%energy, photon%ix_photon
-  print *, '       WILL EXIT HERE...'
-  call err_exit
+  print *, '       WILL IGNORE THIS PHOTON...'
+  err_flag = .true.
 endif
 
 ! absorbtion or reflection...
