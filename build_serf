@@ -90,7 +90,7 @@ print "\nSuccessfully launched remote build process.\n"
 
 
 
-accdefs  = ". " + bin_dir + "/accdefs; "      # command to source the accdefs:accenv environment setup scripts
+accdefs  = ". " + bin_dir + "/util/accdefs; "      # command to source the accdefs:accenv environment setup scripts
 
 
 ####print "\n\n------RUNNING: . " + bin_dir + "/util/accdefs-ifort12.0; \n\n"
@@ -121,7 +121,7 @@ if build_type == "PACKAGES":  # make gets slightly different args depending on t
         print "ENV SETUP1= "+ " ACCLIB=" + pkg_name + "; ACCF90=" + f90 +'; '
         env_setup1 = " ACCLIB=" + pkg_name + "; ACCF90=" + f90 +'; '
         env_setup2 = "ACC_GMAKE=" + bin_dir + "/Gmake; CESR_GMAKE=$ACC_GMAKE; ACC_UTIL=" + bin_dir + "/util; CESR_UTIL=$ACC_UTIL; "
-        env_setup3 = bin_dir + "/util/config_enable; "
+        #env_setup3 = bin_dir + "/util/config_enable; "
         build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
             build_cmd = build_cmd + arg   # compose build command by appending the options determined above
@@ -187,8 +187,8 @@ if build_type == "RELEASE":
         #name_chunk_list = full_rel_name.split('/')
         #rel_name        = name_chunk_list[-1]
         env_setup1 = " ACCLIB=" + rel_name + "; ACCF90=" + f90 +'; '
-        env_setup2 = "source " + bin_dir + "/util/config_enable; "
-        build_cmd = env_setup1 + accdefs + env_setup2 + "gmake -f" + build_sys_dir + "/M.release "
+        #env_setup2 = "source " + bin_dir + "/util/config_enable; "
+        build_cmd = env_setup1 + accdefs + "gmake -f" + build_sys_dir + "/M.release "
         for arg in build_args:
             build_cmd = build_cmd + arg                  # compose build command by appending the options determined above
 
@@ -205,27 +205,11 @@ if build_type == "RELEASE":
             print "--> BUILD STATUS: ERROR(S) DETECTED [release:full]"
             sys.exit(90)
         else:
-##             if run_tests == "YES":
-##                 print "About to execute test suite."
-##                 if platform == "Linux_i686_intel" or platform == "Linux_i686_lahey":
-##                     Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/Linux/python"
-##                 else:
-##                     Py_interpreter = "/home/cesrulib/EXT/Python-2.5.1/OSF1/python"
-##                 #test_cmd = [Py_interpreter, test_script, rel_name, platform]
-##                 test_cmd = env_setup1 + accdefs + env_setup2 + Py_interpreter +' '+ test_script +" "+ rel_name
-##                 print test_cmd
-##                 #o test_process = popen2.Popen4(test_cmd)
-##                 #o2 test_process = sub.Popen(test_cmd)
-##                 test_process = sub.Popen(test_cmd, shell=True, stdout=sub.PIPE, stderr=sub.STDOUT)
-##                 lines = test_process.stdout.readlines()
-##                 for line in lines:
-##                     print line.strip()
-##                 pid = test_process.pid
-##                 returncode = test_process.wait()
-##                 print "\n Test Suite Return code: " + str(returncode) + '\n'
-##                 time.sleep(2)
             if build_type == "BMAD DISTRIBUTION":                # if build completes successfully
                 shutil.copy(full_rel_name+".tar.gz", dist_web_dir) # copy tarball to dist web page
+        #if platform == "OSF1_alpha_hp":
+        #    # Compatibilty adjustment to keep OSF1 building correctly as it is phased out.
+            
 
     if activity[:4] == "PREP":
         OSF_reldir = full_rel_name.replace("VMS_alpha_hp", "OSF1_alpha_hp")

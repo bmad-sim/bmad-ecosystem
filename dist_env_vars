@@ -1,8 +1,8 @@
 #--------------------------------------------------------------
-#  distenv
-#  -------
+#  dist_env_vars
+#  -------------
 #
-# Set BMAD distribution build system environment variables
+# Set CLASSE distribution build system environment variables.
 #--------------------------------------------------------------
 
 
@@ -27,6 +27,11 @@ export DIST_UTIL=$DIST_BASE_DIR/util
 export DIST_INC=$DIST_BASE_DIR/include
 
 
+#--------------------------------------------------------------
+# Fortran compiler to use for building the distribution
+#--------------------------------------------------------------
+export DIST_F90=$TEMP_FC
+
 
 #--------------------------------------------------------------
 # PGPLOT server/font directory specification
@@ -48,13 +53,6 @@ export BMAD_LAYOUT=$DIST_CONFIG/bmad/layout
 # TAO help file search path
 #--------------------------------------------------------------
 export TAO_DIR=$DIST_BASE_DIR/tao
-
-
-
-#--------------------------------------------------------------
-# Fortran compiler to use for building the distribution
-#--------------------------------------------------------------
-export DIST_F90=$TEMP_SETUP_F90
 
 
 

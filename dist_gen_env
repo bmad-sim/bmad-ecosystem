@@ -150,13 +150,14 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
 
   "echo" "\$DIST_BASE_DIR = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
 
+
   #--------------------------------------------------------------
   # Incorporate the distribution build user preference
   # variables that dictate how the build should be carried
   # out.
   #--------------------------------------------------------------
   "echo" "Sourcing build preferences..." >> $DIST_SETUP_LOG
-  unset DIST_F90_REQUEST
+  unset DIST_FC_REQUEST
   source ${DIST_BASE_DIR}/util/dist_prefs
 
 
@@ -173,21 +174,27 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   #   This is used for ACC build system setup as well as 
   #   offsite distribution build system setup.
   #--------------------------------------------------------------
-  "echo" "Sourcing common parts..." >> $DIST_SETUP_LOG
-  source ${DIST_BASE_DIR}/util/common_env_setup
+  #"echo" "Sourcing common parts..." >> $DIST_SETUP_LOG
+  #source ${DIST_BASE_DIR}/util/common_env_setup
 
+  DIST_OS="`uname`"
+  DIST_ARCH="`uname -m`"
+  DIST_OS_ARCH="${TEMP_OS}_${TEMP_ARCH}"
 
   #--------------------------------------------------------------
   # Source the main DISTRIBUTION environment variable list into 
   # this script's environment.
   #--------------------------------------------------------------
+  "echo" "Sourcing build variable set..." >> $DIST_SETUP_LOG
   source ${DIST_BASE_DIR}/util/dist_env_vars
+
 
 
   #--------------------------------------------------------------
   # Allow for override of the Fortran compiler to use.
   #--------------------------------------------------------------
   export DIST_F90=${DIST_F90_REQUEST}
+
 
 
   #--------------------------------------------------------------
@@ -204,9 +211,6 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
     PATH=${PATH}:${BMAD_BIN}
     export PATH
   fi
-
-  unset BMADF90
-  unset BMADENV
 
 
 
@@ -225,6 +229,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
     MPI="FALSE"
   fi
   export MPI
+
 
 
   #------------------------------------------------------------
@@ -246,14 +251,14 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   # recent environment snapshot, add quotes to the value of
   # each variable's contents to safeguard against whitespace.
   #
-  #    For Bourne-type shells:
-  #  1st 'sed' - replace  (=)   with  (=")
-  #  2nd 'sed' - replace  (> )  with  (export )
-  #  3rd 'sed' - replace   LF   with  (")LF
-  #
   #    For C-type shells:
   #  1st 'sed' - replace  (=)   with  ( ")
   #  2nd 'sed' - replace  (> )  with  (setenv )
+  #  3rd 'sed' - replace   LF   with  (")LF
+  #
+  #    For Bourne-type shells:
+  #  1st 'sed' - replace  (=)   with  (=")
+  #  2nd 'sed' - replace  (> )  with  (export )
   #  3rd 'sed' - replace   LF   with  (")LF
   #------------------------------------------------------------
   if `"echo" ${SHELL} | grep "csh" 1>/dev/null 2>&1`

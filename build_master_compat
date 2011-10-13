@@ -1,0 +1,6 @@
+PYTHONPATH=/home/cesrulib/EXT/Python-2.5.1-lin/build/lib.linux-i686-2.5
+
+echo -e "\n\nSetting PYTHONPATH to:"
+echo $PYTHONPATH
+
+/home/cesrulib/EXT/Python-2.5.1-lin/python /home/cesrulib/bin/util/build_master $@

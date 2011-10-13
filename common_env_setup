@@ -7,51 +7,41 @@
 # script.
 #
 # Provides variable definitions:
-#    PLATFORM_ID
+#
+#    TEMP_OS_ID
+#    TEMP_ARCH_ID
+#    TEMP_OS_ARCH_ID
 #    TEMP_SETUP_F90
 #--------------------------------------------------------------
 
 #--------------------------------------------------------------
-# Compose the "Platform" tag.
-#   This is a unique string comprised of:
-#     - the simple OS name
-#     - the processor architecture
+# Obtain information about OS and machine architecture.
 #--------------------------------------------------------------
-PLATFORM_ID="`uname -s | cut -d- -f1`_`uname -m`"
-OS_ID="`uname`"
+TEMP_OS="`uname`"
+TEMP_ARCH="`uname -m`"
+TEMP_OS_ARCH="${TEMP_OS}_${TEMP_ARCH}"
+
 
 #--------------------------------------------------------------
-# Determine the fortran compiler name and set accelerator 
-# Physics Code Libraries archive directory by platform type
-# recognized.
+# Set the default fortran compiler.
 #
-# intel   -- ifort        default on  Linux_i686 
-# hp      -- f77/f90/f95  default on OSF1_alpha
-# absoft  -- f95          default on Darwin_powerpc
-# gnu     -- g77/g95
+# ifort     default on  Linux_i686 
+# gfortran
 #--------------------------------------------------------------
-if ( [ "${PLATFORM_ID}" = "CYGWIN_NT_i686" ] ) then
-  TEMP_SETUP_F90="intel"
+case ${TEMP_OS_ARCH} in
 
-elif ( [ "${PLATFORM_ID}" = "Linux_i686" ] ) then
-  TEMP_SETUP_F90="intel"
+    "Linux_i686" )
+	#TEMP_FC="intel";;
+	TEMP_FC="ifort";;
 
-elif ( [ "${PLATFORM_ID}" = "Linux_x86_64" ] ) then
-  #PLATFORM_ID="Linux_i686"
-  TEMP_SETUP_F90="intel"
+    "Linux_x86_64" )
+	#TEMP_FC="intel";;
+	TEMP_FC="ifort";;
 
-elif ( [ "${PLATFORM_ID}" = "OSF1_alpha" ] ) then
-  TEMP_SETUP_F90="hp" 
+    "Darwin_i386" )
+	TEMP_FC="gfortran";;
 
-elif ( [ "${PLATFORM_ID}" = "Darwin_powerpc" ] ) then
-  TEMP_SETUP_F90="absoft"
-
-elif ( [ "${PLATFORM_ID}" = "Darwin_i386" ] ) then
-  TEMP_SETUP_F90="gfortran"
-
-# Fall through to default if platform is unrecognizable.
-else
-  TEMP_SETUP_F90=gfortran
-fi
-
+    * )
+	TEMP_FC="gfortran";;
+esac
 

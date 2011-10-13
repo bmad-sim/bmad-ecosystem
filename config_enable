@@ -1,3 +1,0 @@
-#!/bin/sh
-
-export ACC_CREATE_CONFIG_DIRS=Y

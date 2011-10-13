@@ -33,39 +33,34 @@ export CERNSRC=$CERN_ROOT/src
 #--------------------------------------------------------------
 #  ACC fortran compiler
 #--------------------------------------------------------------
-export ACC_F90=$TEMP_SETUP_F90
+export ACC_FC=${TEMP_SETUP_FC}
 
 
 
 #--------------------------------------------------------------
 #  ACC releases-related paths
 #--------------------------------------------------------------
-export ACC_PLATFORM=$PLATFORM_ID
-export ACC_OS=$OS_ID
-export ACC_BASE=${RELEASE_ARCHIVE_BASE_DIR}/${ACC_PLATFORM}_${ACC_F90}
+export ACC_OS=${TEMP_OS_ID}
+export ACC_ARCH=${TEMP_ARCH_ID}
+export ACC_PLATFORM=${TEMP_PLATFORM}
 
-
-
-#--------------------------------------------------------------
-#  ACC documentation
-#--------------------------------------------------------------
-export ACC_DOC=${ACC_BASE}/doc
+export ACC_BASE=${RELEASE_ARCHIVE_BASE_DIR}/${ACC_PLATFORM}_${ACC_FC}
 
 
 
 #--------------------------------------------------------------
 #  Build system-specific variables
-# Define a holdover variable with a different name but the 
+# Define a holdover variable with a different name but the
 # same value to preserve compatibiltiy with all the older
-# makefiles still out there that use $CESR_GMAKE.
+# makefiles still out there that might use $CESR_GMAKE.
 #--------------------------------------------------------------
 export ACC_GMAKE=/home/cesrulib/bin/Gmake
-export CESR_GMAKE=/home/cesrulib/bin/Gmake
+export CESR_GMAKE=${ACC_GMAKE}
 
 
 
 #--------------------------------------------------------------
-#  ACC Subversion repository URL
+#  ACC Subversion (SVN) repository URL
 # A variable conforming to the convention established here as
 # well as a shortened form for convenience.
 #--------------------------------------------------------------
@@ -83,7 +78,6 @@ export ACC_SRC=$ACC_REL/src
 export ACC_EXE=$ACC_REL/bin
 export ACC_LIB=$ACC_REL/lib
 export ACC_MOD=$ACC_REL/modules
-export ACC_RUN=$ACC_REL/run
 export ACC_UTIL=$ACC_REL/util
 export ACC_INC=$ACC_SRC/include
 export ACC_PKG=$ACC_REL/packages
