@@ -133,6 +133,10 @@ case (both_ends$)
   ele1%aperture_at = entrance_end$
   ele2%aperture_at = exit_end$
 
+case (continuous$)
+  ele1%aperture_at = continuous$
+  ele2%aperture_at = continuous$
+
 case (no_end$)
 
 case default

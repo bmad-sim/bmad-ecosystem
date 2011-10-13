@@ -991,6 +991,8 @@ end subroutine
 subroutine bmad_to_mad_or_xsif (out_type, out_file_name, lat, &
                           use_matrix_model, ix_start, ix_end, converted_lat, err)
 
+implicit none
+
 type (lat_struct), target :: lat, lat_out, lat_model
 type (lat_struct), optional :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord
@@ -1120,11 +1122,11 @@ do
         col_ele%value(l$) = 0
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
         aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
-        if (aperture_at == both_ends$ .or. aperture_at == exit_end$) then
+        if (aperture_at == both_ends$ .or. aperture_at == exit_end$ .or. aperture_at == continuous$) then
           call insert_element (lat_out, col_ele, ix_ele+1)
           ie2 = ie2 + 1
         endif
-        if (aperture_at == both_ends$ .or. aperture_at == entrance_end$) then
+        if (aperture_at == both_ends$ .or. aperture_at == entrance_end$ .or. aperture_at == continuous$) then
           call insert_element (lat_out, col_ele, ix_ele)
           ie2 = ie2 + 1
         endif
