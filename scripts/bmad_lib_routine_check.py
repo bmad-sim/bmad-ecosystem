@@ -28,10 +28,48 @@
 import subprocess
 import sys
 
-#
+#----------------------------------------------------------------------
+# get_vms_symbols function
 
-vms_sym = dict()
-vms_deb_sym = dict()
+def get_vms_symbols (file_name):
+
+  sym_dict = dict()
+  vms_file = open(file_name, 'r')
+  for line in vms_file:
+    line = line.rstrip() 
+
+    # '!!!' marks the start of a library listing
+    if line[0:3] == '!!!': 
+      lib_name = line[4:]
+      # skip the next 7 lines
+      for i in range(7):
+        vms_file.next()
+      continue
+
+    if line == '': continue      # Ignore blank lines
+    sym_dict[line.lower()] = lib_name
+
+  vms_file.close()
+  return sym_dict
+
+#----------------------------------------------------------------------
+# get_linux_symbols function
+
+def get_linux_symbols (lib_file, lib_name):
+  global duplicate, symbols
+  process = subprocess.Popen(['ar t ' + lib_file], shell = True, stdout = subprocess.PIPE)
+  mpm_list = process.communicate()[0].replace('_DBL.o', '').split()
+
+  for sym in mpm_list:
+    if symbols.has_key(sym):
+      print 'Duplicate symbol: ' + sym 
+      print '   In: mpm_utils, ' + symbols[sym]
+      duplicate = True
+    else:
+      symbols[sym] = lib_name
+
+#----------------------------------------------------------------------
+# main program
 
 duplicate = False
 dump = False
@@ -44,83 +82,16 @@ if len(sys.argv) > 1:
 
 # vms libraries
 
-vms_file = open('vms_lib.symbols', 'r')
-for line in vms_file:
-  line = line.rstrip() 
-
-  # '!!!' marks the start of a library listing
-  if line[0:3] == '!!!': 
-    lib_name = line[4:]
-    # skip the next 7 lines
-    for i in range(7):
-      vms_file.next()
-    continue
-
-  if line == '': continue      # Ignore blank lines
-  vms_sym[line.lower()] = lib_name
-
-vms_file.close()
-
-# vms deb libraries
-
-vms_file = open('vms_lib_deb.symbols', 'r')
-for line in vms_file:
-  line = line.rstrip() 
-
-  # '!!!' marks the start of a library listing
-  if line[0:3] == '!!!': 
-    lib_name = line[4:]
-    # skip the next 7 lines
-    for i in range(7):
-      vms_file.next()
-    continue
-
-  if line == '': continue      # Ignore blank lines
-  vms_deb_sym[line.lower()] = lib_name
-
-vms_file.close()
+vms_sym = get_vms_symbols ('vms_lib.symbols')
+vms_deb_sym = get_vms_symbols ('vms_lib_deb.symbols')
 
 # mpm_utils
 
 symbols = vms_sym.copy()
+get_linux_symbols('$ACC_RELEASE_DIR/lib/libmpm_utils.a', 'mpm_utils') 
+get_linux_symbols('$ACC_RELEASE_DIR/lib/libcesr_utils.a', 'cesr_utils') 
+get_linux_symbols('$ACC_RELEASE_DIR/lib/libsim_utils.a', 'sim_utils') 
 
-process = subprocess.Popen(['ar t $ACC_RELEASE_DIR/lib/libmpm_utils.a'], shell = True, stdout = subprocess.PIPE)
-mpm_list = process.communicate()[0].replace('_DBL.o', '').split()
-
-for sym in mpm_list:
-  if symbols.has_key(sym):
-    print 'Duplicate symbol: ' + sym 
-    print '   In: mpm_utils, ' + symbols[sym]
-    duplicate = True
-  else:
-    symbols[sym] = 'mpm_utils'
-  
-# cesr_utils
-
-process = subprocess.Popen(['ar t $ACC_RELEASE_DIR/lib/libcesr_utils.a'], shell = True, stdout = subprocess.PIPE)
-cesr_list = process.communicate()[0].replace('_DBL.o', '').split()
-
-for sym in cesr_list:
-  if symbols.has_key(sym):
-    print 'Duplicate symbol: ' + sym 
-    print '   In: cesr_utils, ' + symbols[sym]
-    duplicate = True
-  else:
-    symbols[sym] = 'cesr_utils'
-  
-# sim_utils
-
-process = subprocess.Popen(['ar t $ACC_RELEASE_DIR/lib/libsim_utils.a'], shell = True, stdout = subprocess.PIPE)
-sim_list = process.communicate()[0].replace('_DBL.o', '').split()
-
-for sym in sim_list:
-  if symbols.has_key(sym):
-    print 'Duplicate symbol: ' + sym 
-    print '   In: sim_utils, ' + symbols[sym]
-    duplicate = True
-  else:
-    symbols[sym] = 'sim_utils'
-  
 #
 
 if not duplicate: 
