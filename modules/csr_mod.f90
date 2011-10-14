@@ -689,7 +689,7 @@ implicit none
 type (csr_bin_struct), target :: bin
 type (csr_bin1_struct), pointer :: bin1
 
-real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave
+real(rp) sx, sy, a, b, c, dz, factor, sig_x_ave, sig_y_ave, charge_tot
 
 integer i, j
 
@@ -700,8 +700,11 @@ character(16) :: r_name = 'lsc_bin_kicks'
 ! Therefore  ignore any bins with a very small sigma. 
 ! To know what is "small" is, compute the average sigma
 
-sig_x_ave = dot_product(bin%bin1(:)%sig_x, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
-sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / sum(bin%bin1(:)%charge)
+charge_tot = sum(bin%bin1(:)%charge)
+if (charge_tot == 0) return
+
+sig_x_ave = dot_product(bin%bin1(:)%sig_x, bin%bin1(:)%charge) / charge_tot
+sig_y_ave = dot_product(bin%bin1(:)%sig_y, bin%bin1(:)%charge) / charge_tot
 
 if (sig_y_ave == 0 .or. sig_x_ave == 0) return  ! Symptom of not enough particles.
 
@@ -925,7 +928,7 @@ type (csr_bin_struct) bin
 
 real(rp) dz_particles, z1, z2, dz_dd, dz1_dd, dz2_dd
 real(rp) eps_z, eps_d, d_this, delta_d_old, delta_d, dz_calc, d_old
-real(rp) d1, d2, a, b, c
+real(rp) d1, d2, a, b, c, d_plus_v1
 
 integer j
 
@@ -938,7 +941,7 @@ character(8) :: r_name = 'd_calc_csr'
 if (k_factor%g == 0) then
   a = 1 / bin%gamma2
   b = 2 * (k_factor%v3 - dz_particles)
-  c = dz_particles**2 - (k_factor%w2**2 + bin%y2**2)
+  c = - (k_factor%w2**2 + bin%y2**2)
   d_this = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a) - k_factor%v1
   k_factor%l_vec(1) = d_this + k_factor%v
   k_factor%l_vec(2) = k_factor%w2
