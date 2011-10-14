@@ -47,7 +47,6 @@ file = open(logfile, 'a', 1) # unbuffered, needed?
 sys.stdout = file
 
 hostname = socket.gethostname()
-#sub.Popen('kinit -k -t /etc/cesrulib-keytab cesrulib/'+hostname, bufsize=-1, shell=True)
 p = sub.Popen('kinit -k -t /etc/cesrulib-keytab cesrulib/'+hostname,
               bufsize=1,
               shell=True,
@@ -114,7 +113,7 @@ def link_to_packages( packages_name ):
 def build_directory( dir ):
     print '\n\n\n-------- Building: ' + dir
     os.chdir( dir )
-    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source /home/cesrulib/bin/util/acc_vars.sh; ifort -v; printenv | grep ACC; gmake PRECISION="_DBL" DO_EXTRA_MAKES=Y'
+    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source ' +invars.util_dir+'/acc_vars.sh; ifort -v; printenv | grep ACC; gmake PRECISION="_DBL" DO_EXTRA_MAKES=Y'
     p = sub.Popen(build_command,
                   bufsize=1,
                   shell=True,
@@ -124,8 +123,6 @@ def build_directory( dir ):
         nextline = p.stdout.readline()
         if nextline == '' and p.poll() != None:
             break
-        #if nextline.find('relax') > 0:
-        #    print 'FOUND A PATTERN -- whoo eee ooo!\n\n'
         sys.stdout.write(nextline)
         sys.stdout.flush()
 

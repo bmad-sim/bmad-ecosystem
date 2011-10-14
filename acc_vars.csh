@@ -12,7 +12,7 @@
 source ~cesrulib/bin/clean_env.csh
 
 
-setenv SETUP_SCRIPTS_DIR /home/cesrulib/bin/util
+setenv SETUP_SCRIPTS_DIR /nfs/acc/libs/util
 
 #---------------------------------------------------------------
 # Filename constants for obtaining environment differences.

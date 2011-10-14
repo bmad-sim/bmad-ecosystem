@@ -274,7 +274,7 @@ class BuildController(threading.Thread):
         """Execute the build process."""
         self.write_log_stub()
         self.checkout_files()
-        build_command = 'rsh -x '+self.hostname+' ~/usr/bin/python ~/bin/util/builder ' + self.full_logname
+        build_command = 'rsh -x '+self.hostname+' ~/usr/bin/python ' + self.util_dir+'/builder '+ self.full_logname
         p = sub.Popen(build_command, bufsize=-1, shell=True)
         p_out = p.communicate()[0]
 

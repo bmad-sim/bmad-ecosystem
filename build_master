@@ -82,7 +82,7 @@ import subprocess as sub  # Use this instead, try to avoid possible buffer freez
 #============================================================================
 # Set up Configuration Parser
 #============================================================================
-cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+cfg_file = "/nfs/acc/libs/util/BUILD_SYSTEM.conf"
 config   = ConfigParser.ConfigParser()
 config.optionxform = lambda x: x   # Obtain all values without changing case;
 config.read(cfg_file)              # overrides default ConfigParser behavior

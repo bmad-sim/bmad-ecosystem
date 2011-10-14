@@ -93,7 +93,7 @@ fi
 # Set the location of the directory containing all the 
 # necessary environment setup scripts.
 #--------------------------------------------------------------
-SETUP_SCRIPTS_DIR=/home/cesrulib/bin/util
+SETUP_SCRIPTS_DIR=/nfs/acc/libs/util
 
 
 

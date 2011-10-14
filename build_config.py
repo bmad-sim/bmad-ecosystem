@@ -29,7 +29,7 @@ build_requests['DIST'] = dist_build_request
 #-----------------------------------------------------
 #-----------------------------------------------------
 libs_basedir = '/nfs/acc/libs'
-util_dir = '/home/cesrulib/bin/util'
+util_dir = '/nfs/acc/libs/util'
 makefile_dir = '/home/cesrulib/bin/Gmake-testing'
 
 
