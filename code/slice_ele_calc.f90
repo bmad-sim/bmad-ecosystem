@@ -57,7 +57,7 @@ if (i_slice == 1) then
   bookit = .true.
 endif
 
-if (ele%key == sbend$) then
+if (ele%key == sbend$ .and. n_slice_tot /= 1) then
   if (i_slice == 1) then
     sliced_ele%value(e1$) = ele%value(e1$)
     sliced_ele%value(e2$) = 0
@@ -65,7 +65,7 @@ if (ele%key == sbend$) then
     sliced_ele%value(e1$) = 0
     sliced_ele%value(e2$) = ele%value(e2$)
     bookit = .true.
-  else 
+  else
     if (i_slice == 2) bookit = .true.
     sliced_ele%value(e1$) = 0
     sliced_ele%value(e2$) = 0
