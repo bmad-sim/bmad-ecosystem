@@ -274,7 +274,7 @@ subroutine control_bookkeeper1 (lat, ele, sm_only)
 type (lat_struct), target :: lat
 type (ele_struct) ele
 
-logical sm_only, called_a_bookkeeper
+logical sm_only, call_a_bookkeeper
 
 ! Init
 
@@ -290,32 +290,31 @@ if (ele%key /= overlay$ .and. ele%key /= group$) call attribute_bookkeeper (ele,
 
 ! Slave bookkeeping
 
-called_a_bookkeeper = .false.
+call_a_bookkeeper = .false.
 
 if (ele%slave_status == super_slave$) then
+  ! Attrubute bookkeeping is done in the makeup_super_slave
   call makeup_super_slave (lat, ele)
-  called_a_bookkeeper = .true.
 
 elseif (ele%slave_status == overlay_slave$) then
   call makeup_overlay_and_girder_slave (lat, ele)
-  called_a_bookkeeper = .true.
+  call_a_bookkeeper = .true.
 
 elseif (ele%slave_status == multipass_slave$) then
   call makeup_multipass_slave (lat, ele)
   if (ele%n_lord > 1) call makeup_overlay_and_girder_slave (lat, ele)
-  called_a_bookkeeper = .true.
+  call_a_bookkeeper = .true.
 endif
 
 ! Lord bookkeeping
 
 if (ele%lord_status == group_lord$) then
   call makeup_group_lord (lat, ele)
-  called_a_bookkeeper = .true.
+  call_a_bookkeeper = .true.
 
 elseif (ele%lord_status == super_lord$) then
   call adjust_super_lord_s_position (lat, ele)
-  called_a_bookkeeper = .true.
-
+  call_a_bookkeeper = .true.
 endif
 
 ! If bookkeeping has been done by a makeup_*_salve routine then
@@ -325,7 +324,7 @@ endif
 ! Example: super_slave will, at this point, have its lord's num_steps value but 
 ! num_steps in the slave is different from the lord due to differences in length.
 
-if (called_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
 
 end subroutine control_bookkeeper1
 
@@ -1132,7 +1131,7 @@ if (slave%n_lord == 1) then
 
   if (is_last) slave%value(l$) = lord%value(l$) - offset
 
-  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, is_first, is_last)
+  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, is_first, is_last, .false.)
 
   if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
 
@@ -1417,7 +1416,7 @@ select case (slave%key)
 
 case (sextupole$) 
 
-  if (k_x == 0 .and. k_y == 0) return
+  if (k_x == 0 .and. k_y == 0) goto 8000
 
   k2 = sqrt(k_x**2 + k_y**2)
   tilt = atan2(k_y, k_x) / 3
@@ -1437,7 +1436,7 @@ case (sextupole$)
 
 case (octupole$)
 
-  if (k_x == 0 .and. k_y == 0 .and. ks == 0) return
+  if (k_x == 0 .and. k_y == 0 .and. ks == 0) goto 8000
 
   k3 = sqrt(k_x**2 + k_y**2)
   tilt = atan2(k_y, k_x) / 4
@@ -1460,7 +1459,7 @@ case (solenoid$, sol_quad$, quadrupole$)
   ks = ks_sum
   slave%value(ks$) = ks
 
-  if (k_x == 0 .and. k_y == 0 .and. ks == 0) return
+  if (k_x == 0 .and. k_y == 0 .and. ks == 0) goto 8000
 
   if (ks /= 0) then
     x_o_sol = ks_xo_sum / ks
@@ -1512,7 +1511,7 @@ case (solenoid$, sol_quad$, quadrupole$)
     x_p = slave%value(x_pitch$) - x_p_sol; x_o = slave%value(x_offset$) - x_o_sol
     y_p = slave%value(y_pitch$) - y_p_sol; y_o = slave%value(y_offset$) - y_o_sol
 
-    if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) return
+    if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) goto 8000
 
     t_2 = (/ x_o, x_p, y_o, y_p /)
     call tilt_coords (tilt, t_2)
@@ -1565,10 +1564,14 @@ end select
 
 ! If the slave has %field_master = T then we need to convert k1, etc values to field quantities.
 
+8000 continue
+
 if (slave%field_master) then
   slave%field_master = .false.   ! So attribute_bookkeeper will do the right thing.
   call attribute_bookkeeper (slave, branch%param)
   slave%field_master = .true.
+else
+  call attribute_bookkeeper (slave, branch%param)
 endif
 
 end subroutine makeup_super_slave
@@ -1639,7 +1642,7 @@ endif
 !
 
 sliced_ele%value(l$) = l_slice
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end, .true.)
 sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 
 ! Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
@@ -1673,12 +1676,10 @@ end subroutine create_element_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
+! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end, do_energy_bookkeeping)
 !
 ! Routine to transfer the %value, %wig_term, and %rf information from a 
 ! superposition lord to a slave when the slave has only one lord.
-!
-! Note: attribute_bookkeeper needs to be called after calling this routine.
 !
 ! Modules needed:
 !   use bmad
@@ -1691,12 +1692,16 @@ end subroutine create_element_slice
 !   param  -- Lat_param_struct: lattice paramters.
 !   at_entrance_end -- Logical: Slave contains the lord's entrance end?
 !   at_exit_end     -- Logical: Slave contains the lord's exit end?
+!   do_energy_bookkeeping
+!                   -- Logical: Do the reference energy bookkeeping for an lcavity?
+!                       Normally this is done by compute_reference_energy but if the super_slave does
+!                       not exist inside a lat_struct this may be needed.
 !
 ! Output:
 !   slave -- Ele_struct: Slave element with appropriate values set.
 !-
 
-subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
+subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end, do_energy_bookkeeping)
 
 implicit none
 
@@ -1706,7 +1711,7 @@ type (lat_param_struct) param
 real(rp) offset, s_del, coef, r
 real(rp) value(n_attrib_maxx)
 integer i
-logical at_entrance_end, at_exit_end
+logical at_entrance_end, at_exit_end, do_energy_bookkeeping
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1844,16 +1849,22 @@ if (associated (slave%rf%wake)) then
   slave%rf%wake%lr%r_over_q  = lord%rf%wake%lr%r_over_q * coef
 endif
 
-! lcavity energy bookkeeping
+! lcavity energy bookkeeping.
+! Only want to do this when the super_slave is outside of a lattice otherwise
+! there is a conflict with compute_reference_energy in that round-off variations between the
+! calc here and the calc in compute_reference_energy could drive the bookkeeping routines nuts.
 
-if (slave%key == lcavity$) then
+if (do_energy_bookkeeping .and. slave%key == lcavity$) then
   slave%value(e_loss$) = lord%value(e_loss$) * coef
-  if (any(slave%value /= slave%old_value)) then ! Only do this if necessary
-    r = offset / lord%value(l$)
-    slave%value(e_tot_start$) = (1-r) * lord%value(e_tot_start$) + r * lord%value(e_tot$) 
-    call attribute_bookkeeper (slave, param)
-  endif
+  r = offset / lord%value(l$)
+  slave%value(e_tot_start$) = (1-r) * lord%value(e_tot_start$) + r * lord%value(e_tot$)
+  call convert_total_energy_to (slave%value(E_tot_start$), param%particle, pc = slave%value(p0c_start$))
+  r = r + slave%value(l$) / lord%value(l$)
+  slave%value(e_tot$) = (1-r) * lord%value(e_tot_start$) + r * lord%value(e_tot$)
+  call convert_total_energy_to (slave%value(E_tot$), param%particle, pc = slave%value(p0c$))
 endif
+
+call attribute_bookkeeper (slave, param)
 
 end subroutine makeup_super_slave1
 
@@ -2578,7 +2589,7 @@ end subroutine z_patch_calc
 !   ele    -- ele_struct, optional: Element being modified.
 !               If not present, mark the entire lattice as being modified.
 !   attrib -- Real(rp), optional: Attribute that has been changed.
-!
+!               If not present then attribute is "unknown".
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
 !-
@@ -2594,6 +2605,7 @@ type (branch_struct), pointer :: branch
 real(rp), optional, target :: attrib
 real(rp), pointer :: a_ptr
 real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), eta_xy_vec(4)
+real(rp), target :: unknown_attrib
 
 integer i, j, ib
 
@@ -2616,21 +2628,28 @@ endif
 
 branch => lat%branch(ele%ix_branch)
 
-! If attrib is not present then assume the worst.
+! Use a_ptr with the associated function to see which attribute has been changed.
+! If attrib is not present then point to a dummy location which will not match when 
+! the associated() function is used below.
 
-if (.not. present(attrib)) then
-  call set_ele_status_stale (ele, branch%param, all_status$)
-  return
+if (present(attrib)) then
+  a_ptr => attrib
+else
+  a_ptr => unknown_attrib
 endif
 
-!
+! If a lord then set the control flag stale
 
 if (ele%lord_status /= not_a_lord$) call set_ele_status_stale (ele, branch%param, control_status$)
-call set_ele_status_stale (ele, branch%param, attributes_status$)
 
-! Use a_ptr with the associated function to see which attribute has been changed.
+! Groups and overlays do not have any dependent attributes. 
+! For all others set the attributes flag stale.
 
-a_ptr => attrib
+if (ele%key /= group$ .and. ele%key /= overlay$) then
+  call set_ele_status_stale (ele, branch%param, attributes_status$)
+endif
+
+! A length change involves changes in the floor position.
 
 if (associated(a_ptr, ele%value(l$))) then
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$) then
