@@ -150,9 +150,11 @@ do istep = 1, nstep
     deldr = 0.0
     if(nstep > 1) deldr = (bbu_param%enddr - bbu_param%begdr)/(nstep-1)
     dr = bbu_param%begdr + (istep-1) * deldr
-    lat_in%ele(bbu_param%elindex)%value(l$) = dr * c_light / bbu_param%bunch_freq
+    ie = bbu_param%elindex
+    lat_in%ele(ie)%value(l$) = dr * c_light / bbu_param%bunch_freq
     write(6,'(a,2f8.3)')' DRSCAN analysis step: dr, scan element length = ', &
                  dr, lat_in%ele(bbu_param%elindex)%value(l$)
+    call set_flags_for_changed_attribute (lat_in, lat_in%ele(ie), lat_in%ele(ie)%value(l$))
     call lattice_bookkeeper(lat_in)
   endif
 
