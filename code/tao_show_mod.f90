@@ -2179,6 +2179,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%do_rad_int_calc_data .or. u%do_rad_int_calc_plotting
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%do_chrom_calc
   nl=nl+1; write (lines(nl), lmt) '%mat6_recalc_on        = ', u%mat6_recalc_on
+  nl=nl+1; write (lines(nl), lmt) '%track_recalc_on       = ', u%track_recalc_on
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam_info%beam0_file)
   nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam_info%beam_all_file)

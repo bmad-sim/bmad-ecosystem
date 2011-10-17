@@ -129,9 +129,9 @@ Do not put any spaces in between. Example:
 \begin{example}
   \$ACC_EXE/tao -lat xsif::slac.xsif|cesr.bmad
 \end{example}
-  \item[\vn{-lattice <lattice_namelist_file>}] \Newline
-Overrides the \vn{lattice_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
+  \item[\vn{-log_startup}
+If there is a problem with \tao is started, \vn{-log_startup} can be used
+to create a log file of the initialization process.
   \item[\vn{-noinit}] \Newline
 Supresses use of a \tao initialization file. In this case the use of
 the \vn{-lat} switch is mandatory and \tao will use a set of default
@@ -166,7 +166,6 @@ The first namelist block read in from this initialization file is a
 are used).  This namelist contains the variables:
 \begin{example}
   &tao_start
-    lattice_file      = "<file_name>"  ! Default = Tao initialization file.
     beam_file         = "<file_name>"  ! Default = Tao initialization file.
     data_file         = "<file_name>"  ! Default = Tao initialization file.
     var_file          = "<file_name>"  ! Default = Tao initialization file.
@@ -202,7 +201,7 @@ however, can contain \vn{tao_template_plot} and
   {\it Namelist} & {\it File Name} & {\it Initialized here}  & {\it Section} \\ \hline
   \vn{tao_params}                & "tao.init"  & Global Variables     & \sref{s:globals}       \\ \hline
   \vn{tao_connected_uni_init}    & "tao.init"  & Connected Universes  & \sref{s:connected.uni} \\ \hline
-  \vn{tao_design_lattice}        & \vn{lattice_file}  & lattice files & \sref{s:init.lat}      \\ \hline
+  \vn{tao_design_lattice}        & "tao.init"  & lattice files        & \sref{s:init.lat}      \\ \hline
   \vn{tao_beam_init}             & \vn{beam_file}     & Particle beam & \sref{s:beam.init}     \\ \hline
   \vn{tao_var}                   & \vn{var_file}      & Variables     & \sref{s:init.var}      \\ \hline
   \vn{tao_d2_data}               & \vn{data_file}     & Data          & \sref{s:init.data}     \\ \hline

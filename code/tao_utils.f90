@@ -2044,7 +2044,7 @@ do i = 1, size(var%this)
   t => var%this(i)
   t%model_value = value
   ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
-  call changed_attribute_bookkeeper (s%u(t%ix_uni)%model%lat, ele, t%model_value)
+  call set_flags_for_changed_attribute (s%u(t%ix_uni)%model%lat, ele, t%model_value)
   if (tao_com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
     s%u(:)%lattice_recalc = .true.
   else
@@ -2517,11 +2517,14 @@ do
   select case (arg0)
   case ('-init')
     call get_next_arg (tao_com%init_tao_file)
-    tao_com%init_tao_file_set_on_command_line = .true.
+    tao_com%init_tao_file_arg_set = .true.
+    if (tao_com%init_tao_file == '') then
+      call out_io (s_fatal$, r_name, 'NO TAO INIT FILE NAME ON COMMAND LINE.')
+      call err_exit
+    endif
 
   case ('-noinit')
-    tao_com%init_tao_file = 'NO INIT FILE'
-    tao_com%init_tao_file_set_on_command_line = .true.    
+    tao_com%init_tao_file = ''
 
   case ('-beam_all')
     call get_next_arg (tao_com%beam_all_file)
@@ -2530,13 +2533,13 @@ do
     call get_next_arg (tao_com%beam0_file)
 
   case ('-noplot')
-    tao_com%noplot_arg_found = .true.
+    tao_com%noplot_arg_set = .true.
 
   case ('-lat')
     call get_next_arg (tao_com%lat_file)
 
-  case ('-lattice')
-    call get_next_arg (tao_com%lattice_file)
+  case ('-log_startup')
+    tao_com%log_startup = .true.
 
   case ('-beam')
     call get_next_arg (tao_com%beam_file)
@@ -2554,7 +2557,7 @@ do
     call get_next_arg (tao_com%startup_file)
 
   case ('help', '-help', '?', '-?')
-    call help_out
+    call tao_print_command_line_info
     stop
 
   case ('')
@@ -2562,7 +2565,7 @@ do
 
   case default
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
-    call help_out
+    call tao_print_command_line_info
     error = .true.
     return
   end select
@@ -2594,30 +2597,44 @@ endif
 
 end subroutine get_next_arg
 
-!-----------------------------
-! contains
-
-subroutine help_out
-
-call out_io (s_blank$, r_name, &
-   ['Switches:                          ', &
-    '  -beam <beam_init_file>           ', &
-    '  -beam_all <beam_all_file>        ', &
-    '  -beam0 <particle_position_file>  ', &
-    '  -data <data_init_file>           ', &
-    '  -help                            ', &
-    '  -init <tao_init_file>            ', &
-    '  -lat <bmad/xsif_lattice_file>    ', &
-    '  -lattice <lattice_namelist_file> ', &
-    '  -noplot                          ', &
-    '  -plot <plot_init_file>           ', &
-    '  -startup <startup_file>          ', &
-    '  -var <var_init_file>             '] )
-
-end subroutine help_out
-
 end subroutine tao_parse_command_args
 
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Subroutine tao_print_command_line_info
+!
+! Routine to print a list of the command line options.
+!-
+
+subroutine tao_print_command_line_info
+
+implicit none
+
+character(40), parameter :: r_name = 'tao_print_command_line_info'
+
+!
+
+call out_io (s_info$, r_name, [ &
+        'Syntax:                            ', &
+        '  tao {OPTIONS}                    ', &
+        'Options are:                       ', &
+        '  -beam <beam_file>                ', &
+        '  -beam_all <all_beam_file>        ', &
+        '  -beam0 <beam0_file>              ', &
+        '  -data <data_file>                ', &
+        '  -init <tao_init_file>            ', &
+        '  -lat <bmad_lattice_file>         ', &
+        '  -lat XSIF::<xsif_lattice_file>   ', &
+        '  -log_startup                     ', &
+        '  -noinit                          ', &
+        '  -noplot                          ', &
+        '  -plot <plot_file>                ', &
+        '  -startup <starup_command_file>   ', &
+        '  -var <var_file>                  '])
+
+end subroutine tao_print_command_line_info
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------

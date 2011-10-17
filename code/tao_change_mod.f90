@@ -281,7 +281,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
     if (size(eles) > 0) then
-      call changed_attribute_bookkeeper (u%model%lat, eles(i)%ele, m_ptr(i)%r)
+      call set_flags_for_changed_attribute (u%model%lat, eles(i)%ele, m_ptr(i)%r)
     endif
 
     max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 

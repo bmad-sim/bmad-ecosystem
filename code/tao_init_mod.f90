@@ -88,7 +88,7 @@ endif
 ! transfer global to s%global
 
 s%global = global
-if (tao_com%noplot_arg_found) s%global%plot_on = .false.
+if (tao_com%noplot_arg_set) s%global%plot_on = .false.
 
 ! This for backwards compatibility.
 
@@ -1466,9 +1466,9 @@ character(40) :: r_name = 'tao_init_variables'
 character(40) name, universe, default_universe
 character(40) default_merit_type, default_attribute
 character(40) use_same_lat_eles_as
-character(8) default_key_bound
+logical default_key_bound
 character(200) file_name
-character(8), allocatable, save :: default_key_b(:)
+logical, allocatable, save :: default_key_b(:)
 character(100) line, search_for_lat_eles
 
 logical err, free, gang
@@ -1509,7 +1509,7 @@ endif
 allocate (default_key_b(100), default_key_d(100))
 n = 0
 do
-  default_key_bound = ''
+  call set_logical_to_garbage(default_key_bound)
   default_key_delta = 0
   v1_var%name = ''
   read (iu, nml = tao_var, iostat = ios)
@@ -1526,7 +1526,7 @@ do
     call re_allocate (default_key_b, 2*size(default_key_b))
     call re_allocate (default_key_d, 2*size(default_key_d))
   endif
-  default_key_b(n) = default_key_bound
+  call transfer_logical (default_key_bound, default_key_b(n))
   default_key_d(n) = default_key_delta
 enddo
 
@@ -1564,8 +1564,8 @@ do
   var%universe       = ''
   var%low_lim        = default_low_lim
   var%high_lim       = default_high_lim
-  var%good_user      = ''
-  var%key_bound      = default_key_b(n_v1)
+  call set_logical_to_garbage (var%good_user)
+  call transfer_logical (default_key_b(n_v1), var%key_bound)
   var%key_delta      = default_key_d(n_v1)
 
   read (iu, nml = tao_var, iostat = ios)
@@ -1725,7 +1725,7 @@ integer, allocatable, save :: an_indexx(:)
 integer ix_min_var, ix_max_var
 
 logical :: dflt_good_unis(lbound(s%u,1):)
-logical searching, grouping, found_one, bound, err
+logical searching, grouping, found_one, err, logical_is_garbage
 
 ! count number of v1 entries
 
@@ -1761,19 +1761,12 @@ if (use_same_lat_eles_as /= '') then
 
     
     s%var(n)%good_user = v1_ptr%v(ip)%good_user
-    if (var(ix)%good_user /= '') read (var(ix)%good_user, *, iostat = ios) s%var(n)%good_user
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, 'BAD "GOOD_USER" COMPONENT FOR VAR: ' // v1_var%name)
-      call err_exit
-    endif
+    if (.not. logical_is_garbage(var(ix)%good_user)) s%var(n)%good_user = var(ix)%good_user
 
     s%var(n)%ix_key_table = v1_ptr%v(ip)%ix_key_table
-    if (var(ix)%key_bound /= '') read (var(ix)%key_bound, *, iostat = ios) bound
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, 'BAD "KEY_BOUND" COMPONENT FOR VAR: ' // v1_var%name)
-      call err_exit
+    if (.not. logical_is_garbage(var(ix)%key_bound)) then
+      if (var(ix)%key_bound) s%var(n)%ix_key_table = 1
     endif
-    if (bound) s%var(n)%ix_key_table = 1
 
     s%var(n)%key_delta = v1_ptr%v(ip)%key_delta
     if (var(ix)%key_delta /= 0) s%var(n)%key_delta = var(ix)%key_delta
@@ -1951,23 +1944,14 @@ do n = n1, n2
   i = ix1 + n - n1
 
   s%var(n)%ix_key_table = -1
-  if (var(i)%key_bound /= '') then
-    read (var(i)%key_bound, *, iostat = ios) bound
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, 'BAD "KEY_BOUND" COMPONENT FOR VAR: ' // v1_var%name)
-      call err_exit
-    endif
-    if (bound) s%var(n)%ix_key_table = 1
+  if (.not. logical_is_garbage(var(i)%key_bound)) then
+    if (var(i)%key_bound) s%var(n)%ix_key_table = 1
   endif
 
-  if (var(i)%good_user == '') then
+  if (logical_is_garbage(var(i)%good_user)) then
     s%var(n)%good_user = .true.
   else
-    read (var(i)%good_user, *, iostat = ios) s%var(n)%good_user
-    if (ios /= 0) then
-      call out_io (s_abort$, r_name, 'BAD "GOOD_USER" COMPONENT FOR VAR: ' // v1_var%name)
-      call err_exit
-    endif
+    s%var(n)%good_user = var(i)%good_user
   endif
 
   s%var(n)%ix_v1 = ix_min_var + n - n1

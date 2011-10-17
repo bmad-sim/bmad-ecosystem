@@ -60,6 +60,7 @@ type (ele_struct), pointer :: ele => null()
 type (ele_struct), pointer :: ele2 => null()
 type (ele_struct), pointer :: ref_ele => null()
 type (coord_struct), allocatable, save :: orb(:)
+type (lat_struct), pointer :: lat
 
 character(*) :: ele_type, ele_attrib, misalign_value, where, wrt
 character(20) :: r_name = 'tao_misalign'
@@ -112,8 +113,7 @@ logical, allocatable, save :: action_logic(:)
     enddo
   enddo
   if (.not. associated(ele)) then
-    call out_io (s_error$, r_name, &
-                 "Could not find such an element in the specified lattices")
+    call out_io (s_error$, r_name, "Could not find such an element in the specified lattices")
     return
   endif
   
@@ -152,14 +152,15 @@ logical, allocatable, save :: action_logic(:)
   ! set misalignment
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. which_univ(i)) cycle
-    do j = 1, s%u(i)%model%lat%n_ele_max
+    lat => s%u(i)%model%lat
+    do j = 1, lat%n_ele_max
       if (found_double) then
         found_double = .false.
         cycle
       endif
-      if (s%u(i)%model%lat%ele(j)%key .eq. ix_key(1) .and. action_logic(j)) then
+      if (lat%ele(j)%key .eq. ix_key(1) .and. action_logic(j)) then
         call find_ele_and_ref_ele (wrt_what, i, j, ref_ele, ele)
-        if (.not. attribute_free (j, 0, ele_attrib, s%u(i)%model%lat)) cycle
+        if (.not. attribute_free (j, 0, ele_attrib, lat)) cycle
         if (rel_error) then
           if (rel_sbend_error_flag) then
             ele%value(ix_attrib) = ref_ele%value(g$) * gauss_err() * misalign_value_num
@@ -169,13 +170,18 @@ logical, allocatable, save :: action_logic(:)
         else
           ele%value(ix_attrib) = ref_ele%value(ix_attrib) + gauss_err() * misalign_value_num
         endif
-        if (j .eq. s%u(i)%model%lat%n_ele_max) exit
-        if (s%u(i)%model%lat%ele(j+1)%key .eq. ix_key(1) .and. action_logic(j)) then
+        call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib))
+
+        if (j .eq. lat%n_ele_max) exit
+
+        if (lat%ele(j+1)%key .eq. ix_key(1) .and. action_logic(j)) then
           call find_ele_and_ref_ele (wrt_what, i, j+1, ref_ele, ele2)
           ! Found Woodley double
           ele2%value(ix_attrib) = ele%value(ix_attrib)
           found_double = .true.
+          call set_flags_for_changed_attribute (lat, ele2, ele2%value(ix_attrib))
         endif
+        
       end if
     end do
 

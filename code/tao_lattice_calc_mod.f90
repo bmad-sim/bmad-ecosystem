@@ -232,40 +232,45 @@ branch%param%lost = .false.
 ! Track.
 ! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
 
-radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
-bmad_com%radiation_fluctuations_on = .false.
+if (u%track_recalc_on) then
 
-if (branch%param%lattice_type == circular_lattice$) then
-  if (ix_branch /= 0) call err_exit  ! Needs to be fixed...
-  call closed_orbit_calc (lat, lat_branch%orbit, 4, exit_on_error = .false.)
-  if (.not. bmad_status%ok) then
-    calc_ok = .false.
-    do i = 0, ubound(orbit, 1)
-      orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
-    enddo
-  endif
-  u%model_orb0 = orbit(0)   ! Save beginning orbit
+  radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
+  bmad_com%radiation_fluctuations_on = .false.
 
-else
-  call track_all (lat, lat_branch%orbit, ix_branch)
-  if (branch%param%lost) then
-    calc_ok = .false.
-    ix_lost = branch%param%ix_lost
-    do ii = ix_lost+1, branch%n_ele_track
-      orbit(ii)%vec = 0
-    enddo
-    call out_io (s_blank$, r_name, &
-            "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
-            trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
-            r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_branch, ix_lost /))
+  if (branch%param%lattice_type == circular_lattice$) then
+    if (ix_branch /= 0) call err_exit  ! Needs to be fixed...
+    call closed_orbit_calc (lat, lat_branch%orbit, 4, exit_on_error = .false.)
+    if (.not. bmad_status%ok) then
+      calc_ok = .false.
+      do i = 0, ubound(orbit, 1)
+        orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
+      enddo
+    endif
+    u%model_orb0 = orbit(0)   ! Save beginning orbit
+
+  else
+    call track_all (lat, lat_branch%orbit, ix_branch)
+    if (branch%param%lost) then
+      calc_ok = .false.
+      ix_lost = branch%param%ix_lost
+      do ii = ix_lost+1, branch%n_ele_track
+        orbit(ii)%vec = 0
+      enddo
+      call out_io (s_blank$, r_name, &
+              "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
+              trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
+              r_array = (/ branch%ele(ix_lost)%s /), i_array = (/ ix_branch, ix_lost /))
+    endif
   endif
+
+  bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+
 endif
-
-bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 
 ! Twiss
 
 if (u%mat6_recalc_on) then
+
   do i = 1, branch%n_ele_track
     if (branch%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i, ix_branch = ix_branch)
@@ -273,6 +278,7 @@ if (u%mat6_recalc_on) then
       call lat_make_mat6 (lat, i, orbit, ix_branch)
     endif
   enddo
+
   if (branch%param%lattice_type == circular_lattice$) then
     call twiss_at_start (lat)
     if (.not. bmad_status%ok) then
@@ -280,7 +286,9 @@ if (u%mat6_recalc_on) then
       return
     endif
   endif
+
   call twiss_propagate_all (lat, ix_branch)
+
 endif
 
 end subroutine tao_single_track

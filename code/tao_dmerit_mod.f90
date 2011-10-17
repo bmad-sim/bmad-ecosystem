@@ -131,6 +131,8 @@ s%var%old_value = s%var%delta_merit
 if (s%global%orm_analysis) then 
   s%u(:)%mat6_recalc_on = .false.
   s%u(ix_common_uni$)%mat6_recalc_on = .true.
+  s%u(:)%track_recalc_on = .false.
+  s%u(ix_common_uni$)%track_recalc_on = .true.
 endif
 
 ! Save old data

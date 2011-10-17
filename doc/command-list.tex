@@ -690,6 +690,7 @@ variables, etc. Format:
   set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
+  set universe <what_universe> track_recalc <on/off>
   set var <var_name>|<component> = <value>
   set wave <component> = <value>
 \end{example}
@@ -957,6 +958,7 @@ Example:
 \item[\protect\parbox{6in}{
         set universe <what\_universe> <on/off> \\ 
         set universe <what\_universe> recalculate \\
+        set universe <what\_universe> mat6\_recalc <on/off> \\
         set universe <what\_universe> mat6\_recalc <on/off>}] \Newline
 The \vn{set universe <what_universe> <on/off>} command will turn the
 specified universe(s) on or off. Turning a universe off is useful to
@@ -975,12 +977,14 @@ still vary in the turned off universe.
 The \vn{set universe <what_universe> recalculate} command will recalculate the
 lattice parameters for that universe.
 
-The \vn{set universe <what_universe> mat6_recalc} command will set whether
-the 6x6 transfer matrices are calculated for a given universe. Turning
-this off is useful in speeding up calculations in the case where the
-transfer matrices are not being used (Warning: The transfer matrices
-are needed to compute the Twiss parameters). Use the \vn{show
-universe} command to see the state of the \vn{mat6_recalc_on} switch.
+The \vn{set universe <what_universe> mat6_recalc} and \vn{set universe
+<what_universe> mat6_recalc} commands will set whether the 6x6
+transfer matrices and the central orbit (closed orbit for circular
+rings) is calculated for a given universe. Turning this off is useful
+in speeding up calculations in the case where the transfer matrices and/or orbit
+is not being used (Warning: The transfer matrices are needed to
+compute the Twiss parameters). Use the \vn{show universe} command to
+see the state of these switches are.
 
 Example:
 \begin{example}
@@ -1615,6 +1619,7 @@ Examples:
                                 ! (and return to the TAO prompt)
   spawn tcsh                    ! launch a new tcsh shell 
                                 ! (type 'exit' to return to TAO)
+  spawn ls                      ! Get a directory listing.
 \end{example}
 
 %% timer --------------------------------------------------------------

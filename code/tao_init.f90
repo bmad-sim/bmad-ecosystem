@@ -29,7 +29,7 @@ real(rp) value
 real(rp), pointer :: ptr_attrib
 
 character(80) arg, arg2, startup_file
-character(100) lattice_file, plot_file, data_file, var_file, file_name
+character(100) plot_file, data_file, var_file, file_name
 character(100) wall_file, beam_file, why_invalid, init_tao_file
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
@@ -41,7 +41,7 @@ integer iu_log
 logical err, calc_ok, valid_value
 logical, optional :: err_flag
 
-namelist / tao_start / lattice_file, startup_file, wall_file, &
+namelist / tao_start / startup_file, wall_file, &
                data_file, var_file, plot_file, n_universes, init_name, beam_file
 
 ! global inits
@@ -54,15 +54,20 @@ if (.not. allocated(tao_com%cmd_file)) allocate (tao_com%cmd_file(0:0))
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
 
-iu_log = lunget()
-open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
-if (ios == 0) then
-  call out_io (s_dinfo$, r_name, 'Opening initialization logging file: tao_init.log')
-  call output_direct (iu_log, .true., 0, s_blank$, s_abort$)
-  call output_direct (iu_log, .false., 0, s_blank$, s_success$) ! Do not print 
+iu_log = 0
+if (tao_com%log_startup) then
+  iu_log = lunget()
+  open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
+  if (ios == 0) then
+    call out_io (s_dinfo$, r_name, 'Opening initialization logging file: tao_init.log')
+    call output_direct (iu_log, .true., 0, s_blank$, s_abort$)
+    call output_direct (iu_log, .false., 0, s_blank$, s_success$) ! Do not print 
+  else
+    iu_log = 0
+    call out_io (s_error$, r_name, 'NOTE: Cannot open a file for logging initialization messages')
+  endif
 else
- call out_io (s_error$, r_name, &
-                'NOTE: Cannot open a file for logging initialization information')
+  call output_direct (0, .false., 0, s_blank$, s_success$) ! Do not print 
 endif
 
 ! Open the init file.
@@ -73,33 +78,17 @@ endif
 
 if (present(err_flag)) err_flag = .true.
 
-if (tao_com%init_tao_file /= 'NO INIT FILE') then
+if (tao_com%init_tao_file /= '') then
   call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
   if (iu == 0) then ! If open failure
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
-    if (tao_com%init_tao_file_set_on_command_line .or. tao_com%lat_file == '') then
+    if (tao_com%lat_file == '' .or. tao_com%init_tao_file_arg_set) then
       call output_direct (0, .true.)
       call out_io (s_info$, r_name, &
               'Note: To run Tao, you either need a Tao initialization file or', &
               '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
               '  See the Tao manual for more details...')
-      call out_io (s_info$, r_name, [ &
-              'Syntax:                            ', &
-              '  tao {OPTIONS}                    ', &
-              'Options are:                       ', &
-              '  -beam <beam_file>                ', &
-              '  -beam_all <all_beam_file>        ', &
-              '  -beam0 <beam0_file>              ', &
-              '  -data <data_file>                ', &
-              '  -init <tao_init_file>            ', &
-              '  -lat <bmad_lattice_file>         ', &
-              '  -lat XSIF::<xsif_lattice_file>   ', &
-              '  -lattice <lattice_namelist_file> ', &
-              '  -noinit                          ', &
-              '  -noplot                          ', &
-              '  -plot <plot_file>                ', &
-              '  -startup <starup_command_file>   ', &
-              '  -var <var_file>                  '])
+      call tao_print_command_line_info
       stop
     endif
     tao_com%init_tao_file = ''
@@ -110,9 +99,7 @@ endif
 ! n_universes is present to accomodate files with the old syntax.
 
 init_tao_file = tao_com%init_tao_file
-if (init_tao_file == 'NO INIT FILE') init_tao_file = ''
 
-lattice_file       = init_tao_file      ! set default
 plot_file          = init_tao_file      ! set default
 data_file          = init_tao_file      ! set default
 var_file           = init_tao_file      ! set default
@@ -149,7 +136,6 @@ if (tao_com%data_file /= '')    data_file    = tao_com%data_file
 if (tao_com%plot_file /= '')    plot_file    = tao_com%plot_file
 if (tao_com%startup_file /= '') startup_file = tao_com%startup_file
 if (tao_com%var_file /= '')     var_file     = tao_com%var_file
-if (tao_com%lattice_file /= '') lattice_file = tao_com%lattice_file
 
 ! Tao inits.
 ! Data can have variable info so init vars first.
@@ -159,7 +145,7 @@ if (allocated(s%u)) call deallocate_everything ()
 bmad_status%exit_on_error = .false.
 
 call tao_init_global(init_tao_file)
-call tao_init_lattice (lattice_file) 
+call tao_init_lattice (init_tao_file)
 call tao_init_connected_universes (init_tao_file)
 call tao_init_beams (beam_file)
 call tao_init_variables (var_file)
@@ -221,9 +207,9 @@ enddo
 call tao_init_plotting (plot_file)
   
 ! Close the log file and route all messages back to the terminal.
-! Need to do this before calling tao_lattice_calc since we don't want to supress messages.
+! Need to do this before calling tao_lattice_calc since we don't want to supress these messages.
 
-close (iu_log)
+if (iu_log /= 0) close (iu_log)
 call output_direct (0, .true.)
 
 ! Set up model and base lattices.

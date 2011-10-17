@@ -389,7 +389,7 @@ case ('reinitialize')
     call tao_destroy_plot_window
     s%global%init_plot_needed = .true.
     
-    call out_io (s_info$, r_name, 'Reinitializing with ' // tao_com%init_tao_file)
+    if (tao_com%init_tao_file /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // tao_com%init_tao_file)
     call tao_init ()
     return
 

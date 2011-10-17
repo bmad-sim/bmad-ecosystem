@@ -1340,7 +1340,7 @@ end subroutine tao_set_data_cmd
 !+
 ! Subroutine tao_set_universe_cmd (uni, who, what)
 !
-! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals
+! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals, etc.
 !
 ! Input:
 !   uni     -- Character(*): which universe; 0 => current viewed universe
@@ -1393,6 +1393,25 @@ if (index('mat6_recalc', trim(who)) == 1) then
   return
 endif
   
+if (index('track_recalc', trim(who)) == 1) then
+  if (what == 'on') then
+    is_on = .true.
+  elseif (what == 'off') then
+    is_on = .false.
+  else
+    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> track_recalc on/off"')
+    return
+  endif
+  if (uni == '*') then
+    s%u(:)%track_recalc_on = is_on
+    if (is_on) s%u(:)%lattice_recalc = .true.
+  else
+    s%u(n_uni)%track_recalc_on = is_on
+    if (is_on) s%u(n_uni)%lattice_recalc = .true.
+  endif
+  return
+endif
+  
 !
 
 if (what /= '') then
@@ -1414,7 +1433,7 @@ if (who == 'on') then
 elseif (who == 'off') then
   is_on = .false.
 else
-  call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', or 'mat6_recalc")
+  call out_io (s_error$, r_name, "Choices are: 'on', 'off', 'recalculate', 'track_recalc', or 'mat6_recalc")
   return
 endif
 

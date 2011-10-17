@@ -557,27 +557,27 @@ type tao_common_struct
   logical :: single_mode = .false.
   logical :: combine_consecutive_elements_of_like_name
   logical :: common_lattice = .false.      
-  logical :: init_connected_uni  = .true.   ! Used by custom programs to control Tao init
-  logical :: init_beam           = .true.   ! Used by custom programs to control Tao init
-  logical :: init_var            = .true.   ! Used by custom programs to control Tao init
-  logical :: init_read_lat_info  = .true.   ! Used by custom programs to control Tao init
-  logical :: init_data           = .true.   ! Used by custom programs to control Tao init
-  logical :: parse_cmd_args      = .true.   ! Used by custom programs to control Tao init
-  logical :: optimizer_running   = .false. 
-  logical :: noplot_arg_found    = .false.
-  logical :: init_tao_file_set_on_command_line = .false.
+  logical :: init_connected_uni    = .true.   ! Used by custom programs to control Tao init
+  logical :: init_beam             = .true.   ! Used by custom programs to control Tao init
+  logical :: init_var              = .true.   ! Used by custom programs to control Tao init
+  logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
+  logical :: init_data             = .true.   ! Used by custom programs to control Tao init
+  logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
+  logical :: optimizer_running     = .false. 
+  logical :: noplot_arg_set        = .false.
+  logical :: init_tao_file_arg_set = .false.
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization          
-  character(200) :: lattice_file = ''          ! '-lattice'  command line argument.
-  character(200) :: lat_file = ''              ! '-lat'      command line argument.
-  character(100) :: init_tao_file = 'tao.init' ! '-init'     command line argument.
-  character(100) :: beam_file = ''             ! '-beam'     command line argument.
-  character(100) :: beam_all_file = ''         ! '-beam_all' command line argument.
-  character(100) :: beam0_file    = ''         ! '-beam0'    command line argument.
-  character(100) :: data_file = ''             ! '-data'     command line argument.
-  character(100) :: plot_file = ''             ! '-plot'     command line argument.
-  character(100) :: startup_file = ''          ! '-startup'  command line argument.
-  character(100) :: var_file = ''              ! '-var'      command line argument.
+  integer :: log_startup = .false.             ! '-log_startup' command line argument.
+  character(200) :: lat_file = ''              ! '-lat'         command line argument.
+  character(100) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
+  character(100) :: beam_file = ''             ! '-beam'        command line argument.
+  character(100) :: beam_all_file = ''         ! '-beam_all'    command line argument.
+  character(100) :: beam0_file    = ''         ! '-beam0'       command line argument.
+  character(100) :: data_file = ''             ! '-data'        command line argument.
+  character(100) :: plot_file = ''             ! '-plot'        command line argument.
+  character(100) :: startup_file = ''          ! '-startup'     command line argument.
+  character(100) :: var_file = ''              ! '-var'         command line argument.
   character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
@@ -681,6 +681,7 @@ type tao_universe_struct
   logical is_on                          ! universe turned on
   logical lattice_recalc                 ! Used to indicate which lattices need tracking done.
   logical :: mat6_recalc_on = .true.     ! calc linear transfer matrix
+  logical :: track_recalc_on = .true.     ! calc linear transfer matrix
   logical picked_uni                     ! Scratch logical.
 end type
 
