@@ -57,7 +57,7 @@ subroutine twiss_and_track_partial (ele0, ele_track, param, del_s, ele_end, &
 
 use bmad_struct
 use bmad_interface, except_dummy => twiss_and_track_partial
-use bookkeeper_mod, only: attribute_bookkeeper, create_element_slice
+use bookkeeper_mod, only: create_element_slice
 
 implicit none
 

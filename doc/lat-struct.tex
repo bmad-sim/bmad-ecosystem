@@ -122,6 +122,14 @@ element that marks the beginning of the $i$\Th branch. Example:
   ele => pointer_to_ele(lat%branch(3)%ix_from_branch, lat%branch(3)%ix_from_ele)
 \end{example}
 
+Future plans include the simulation of multiple intersecting
+machines. For example, a double ring collider. In this case,
+individual branches could represent machines that are not connected.
+To lessen the work needed to implement this plan, a branch that is not
+connected to a prior branch has \vn{branch%ix_from_branch} set to
+-1. Currently, only the root branch has \vn{branch%ix_from_branch} set
+to -1.
+
 \index{lat_struct!\%ele(:)}
 \index{lat_struct!\%n_ele_track}
 \index{lat_struct!\%n_ele_max}
@@ -690,38 +698,49 @@ some error checking) is:
 \section{Lattice Bookkeeping}
 \label{s:lat.bookkeeping}
 
-When an attribute of an element is changed, the entire lattice can be
-affected. For example, changing the length of an element will affect the
-global position of all subsequent elements in the lattice. To do the
-necessary bookkeeping, the
-\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} routine may be used.
+Historically, when the concept of dependent element attributes
+(\sref{s:depend}) was developed in \bmad, the
+\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine was implemented to take care of the
+bookkeeping. To be back compatable with existing programs, the
+\vn{attirubte_bookkeeper} routine was included in calculational
+routines such as \Hyperref{r:make.mat6}{make_mat6} which is the routine to calculate the
+linear transfer map for an element. The addition of lord elements
+needed for superposition, multipass, etc., further complicated the
+picture since the attribute values of the slave elements had to be
+adjusted when the attribute values of the lord elements changed.
+Again, ``automatic'' bookkeeping was added to be maintain back
+compatability with existing programs. This automatic bookkeeping
+system is inefficient since there is no good way to keep track of what
+element attributes have been modified which leads to redundant
+bookkeeping calculations.
+
+Eventually, as bmad developed and became more complicated, it was
+found that in certain instances the bookkeeping load was causing
+enormous slowdowns in program execution time. To avoid this, an
+``intelligent'' bookkeeping system has been developed. In order to be
+back compatable with existing programs, the automatic bookkeeping is
+the default. However, all new programs should use the intelligent
+bookkeeping system.
+
+To use intelligent bookkeeping, a program has to set the global
+\vn{bmad_com%auto_bookkeepper} to false. Then, each time an element
+attribute is set, the
+\Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
+routine must be called. After a set of element attributes have been
+modified, \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is
+called to do the bookkeeping.
 \begin{example}
   type (lat_struct) lat
   ...
-  lat%ele(i)%value(gradient$) = 1.05e6  ! Change the gradient of an RFCavity
-  call lattice_bookkeeper (lat)         ! And update everything.
+  bmad_com%auto_bookkeeper = .false.    ! Only needs to be done once.
+  ...
+  lat%ele(i)%value(gradient$) = 1.05e6  ! Change, say, the gradient of an RFCavity
+  call set_flags_for_changed_attribute (lat, lat%ele(i), lat%ele(i)%value(gradient$))
+  ...
+  call lattice_bookkeeper (lat)         ! Final bookkeeping
 \end{example}
 
-The advantage of using \vn{lattice_bookkeeper} is that a complete 
-job is done in one call.
-The disadvantage is that, since
-\vn{lattice_bookkeeper} does not know exactly what has changed, it generally
-does more calculations than is necessary. This can be a problem if
-\vn{lattice_bookkeeper} is being called many times. Additionally, routines
-like \Hyperref{r:lat.make.mat6}{lat_make_mat6} will also 
-call bookkeeping routines and this will add to the execution time of a program. 
-
-\index{bmad_common_struct!\%auto_bookkeeper}
-If program execution time is a problem, it may be necessary to fine tune
-the bookkeeping process. The first step is to turn off automatic
-bookkeeping in routines like \vn{lat_make_mat6} by setting the global
-variable \vn{bmad_com%auto_bookkeeper} (\sref{s:bmad.params}) to False
-\begin{example}
-  bmad_com%auto_bookkeeper = .false.
-\end{example}
-The bookkeeping routines that can be used are in place of \vn{lattice_bookkeeper} 
-are:
-
+For reference, the routines used by \vn{lattice_bookkeeper} are:
 \begin{example}
   \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}   ! Bookkeeping of attributes in a given element
   \Hyperref{r:control.bookkeeper}{control_bookkeeper}     ! Lord/slave control bookkeeping
@@ -729,7 +748,7 @@ are:
   \Hyperref{r:lat.geometry}{lat_geometry}           ! Element global (floor) positions.
   \Hyperref{r:compute.reference.energy}{compute_reference_energy}  
 \end{example}
-See the individual routines for more details.
+In general, these routines should not be called directly.
 
 %---------------------------------------------------------------------------
 \section{Finding Elements and Changing Attribute Values}

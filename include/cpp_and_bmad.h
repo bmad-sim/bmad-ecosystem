@@ -796,7 +796,6 @@ public:
   bool spin_tracking_on;
   bool radiation_damping_on;
   bool radiation_fluctuations_on;
-  bool compute_ref_energy;
   bool conserve_taylor_maps;
 
   C_bmad_com () : d_orb(double(0), 6) {bmad_com_to_c_(*this);}
@@ -880,6 +879,21 @@ void operator>> (C_space_charge&, space_charge_struct*);
 void operator>> (space_charge_struct*, C_space_charge&);
 
 //--------------------------------------------------------------------
+// bookkeeper_status
+
+class bookkeeper_status_struct {};
+
+class C_bookkeeper_status {
+
+public:
+  int overall;           // Overall status: super_ok$, ok$ or stale$ 
+  int floor;             // Global (floor) geometry: super_ok$, ok$ or stale$
+  int ref_energy;        // Reference energy: super_ok$, ok$ or stale$
+  int attributes;        // Element dependent attributes: super_ok$, ok$ or stale$
+  int n_modify;          // How many times the dependent attributes or ref energy have been modified?.
+};  // End Class
+
+//--------------------------------------------------------------------
 // Ele 
 
 class ele_struct {};
@@ -904,6 +918,8 @@ public:
   C_wig_term_array wig_term;    // Wiggler Coefs
   C_space_charge space_charge;
   C_wall3d wall3d;
+  // Need: em_grid --------------------------
+  C_bookkeeper_status status;
   Real_Array value;             // attribute values. size = N_ATTRIB_MAXX+1
   Real_Array old_value;         // old attribute values. size = N_ATTRIB_MAXX+1
   Real_Array gen0;              // constant part of the genfield map. size = 6
@@ -938,8 +954,6 @@ public:
   int ref_orbit;                // For setting the ptc kind type.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
   int aperture_type;           // Where aperture is applied. exit_end$, ...
-  int attribute_status;         // Element attributes have been modified?
-  int n_attribute_modify;       // How many times the attributes have been modified.
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
@@ -988,8 +1002,6 @@ public:
     ref_orbit(0),
     aperture_at(Bmad::EXIT_END), 
     aperture_type(Bmad::RECTANGULAR),
-    attribute_status(0),
-    n_attribute_modify(0),
     symplectify(false),
     mode_flip(false),
     multipoles_on(true), 

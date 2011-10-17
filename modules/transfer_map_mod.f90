@@ -56,7 +56,7 @@ contains
 subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ix_branch, integrate, one_turn, unit_start)
 
 use ptc_interface_mod, only: concat_taylor, ele_to_taylor, taylor_propagate1, taylor_inverse
-use bookkeeper_mod, only: create_element_slice, attribute_bookkeeper
+use bookkeeper_mod, only: create_element_slice
 
 implicit none
 
@@ -281,7 +281,7 @@ end subroutine transfer_map_from_s_to_s
 
 subroutine mat6_from_s_to_s (lat, mat6, vec0, s1, s2, ix_branch, one_turn, unit_start)
 
-use bookkeeper_mod, only: create_element_slice, attribute_bookkeeper
+use bookkeeper_mod, only: create_element_slice
 
 implicit none
 

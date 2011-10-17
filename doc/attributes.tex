@@ -514,7 +514,7 @@ manner. There are two solutions for constructing an arc between two
 vertices. The solution with the center point furthest from the origin,
 the dashed line between $V(2)$ and $V(3)$ in the figure, is used if
 the radius (or radii for an ellipse section) is negative.}
-  \label{f:chamber-wall}
+  \label{f:chamber.wall}
 \end{figure}
 
 %-----------------------------------------------------------------
@@ -531,7 +531,7 @@ is specifically enabled, the presence of a chamber wall for a
 non-capillay element will not affect particle tracking.
 
 The wall is defined by a number of cross-sectional slices as shown in
-Fig.~\ref{f:chamber-wall}A. Each cross-section is defined by a number of
+Fig.~\ref{f:chamber.wall}A. Each cross-section is defined by a number of
 vertices. The arc between each vertex may be either a straight line,
 an arc of a circle, or a section of an ellipse. For a capillary it is
 mandatory that a cross-section be convex. That is, given any two
@@ -617,7 +617,7 @@ vertex. For vertices connected by an arc, ``counter clockwise manner''
 means that the line segment with one end at the center of the arc and
 the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
 rotates in counter clockwise as shown in
-Fig.~\ref{f:chamber-wall}B. In general, there are two solutions for
+Fig.~\ref{f:chamber.wall}B. In general, there are two solutions for
 constructing such an arc. For positive radii, the solution chosen is
 the one whose center is closest to the origin.  
 
@@ -625,7 +625,7 @@ A restriction on cross-sections is that the origin $(0,0)$ must be in the
 interior of any cross-section and that for any cross-section a line
 drawn from the origin at any given angle $\theta$ will intersect the
 cross-section at exactly one point as shown in
-Fig.~\ref{f:chamber-wall}B. This is an important point in the
+Fig.~\ref{f:chamber.wall}B. This is an important point in the
 construction of the wall between cross-sections as explained
 below.
 
@@ -669,7 +669,7 @@ not specified, the cross-section is a rectangle. For example
 Cross-sections (A) and (C) are ellipses with a 5 to 1 aspect ratio.
 Half way in between, linear interpolation produces a convex cross-section
 as shown in (B).} 
-  \label{f:concave-capillary}
+  \label{f:concave.capillary}
 \end{figure}
 
 Between cross-sections, the wall is defined by interpolation. Let
@@ -715,7 +715,7 @@ For a capillary, in order for \bmad to quickly track photons,
 convex. The volume will be convex if each cross-section $r_c(\theta,
 s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
 for $r_c(\theta, s)$ to be convex at the specified cross-sections as
-shown in Fig.~\ref{f:concave-capillary}. Also note that it is perfectly
+shown in Fig.~\ref{f:concave.capillary}. Also note that it is perfectly
 fine for the total capillary volume to not be convex.
 
 To refer to a cross-section parameters after an element has been

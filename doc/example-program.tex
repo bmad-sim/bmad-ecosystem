@@ -30,39 +30,41 @@ page\cite{b:bmad.web}. On the \bmad web page, click on the ``Run Programs''
 \begin{listing}{1}
 program test
 
-  use bmad                 ! Define the structures we need to know about.
-  implicit none
-  type (lat_struct), target :: lat   ! This structure holds the lattice info
-  type (ele_struct), pointer :: ele
-  type (ele_pointer_struct), allocatable :: eles(:)
-  integer i, ix, n_loc
-  logical err
+use bmad                 ! Define the structures we need to know about.
+implicit none
+type (lat_struct), target :: lat   ! This structure holds the lattice info
+type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
+integer i, ix, n_loc
+logical err
 
-  ! Read in a lattice and calculate the twiss parameters.
+! Read in a lattice and calculate the twiss parameters.
 
-  call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
-  if (lat%param%lattice_type == circular_lattice$) &
-           call twiss_at_start (lat)  ! Calculate starting Twiss params.
-  call twiss_propagate_all (lat)      ! Propagate Twiss parameters
+! Programs should always implement intelligent bookkeeping.
+bmad_com%auto_bookkeeper = .false.
+call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
+! Calculate starting Twiss params if the lattice is closed.
+if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
+call twiss_propagate_all (lat)      ! Propagate Twiss parameters
 
-  ! Print info on the first 11 elements
+! Print info on the first 11 elements
 
-  print *, ' Ix  Name              Ele_type                   S      Beta_a'
-  do i = 0, 10
-    ele => lat%ele(i)
-    print '(i4,2x,a16,2x,a,2f12.4)', i, ele%name, key_name(ele%key), ele%s, ele%a%beta
-  enddo
+print *, ' Ix  Name              Ele_type                   S      Beta_a'
+do i = 0, 10
+  ele => lat%ele(i)
+  print '(i4,2x,a16,2x,a,2f12.4)', i, ele%name, key_name(ele%key), ele%s, ele%a%beta
+enddo
 
-  ! Find the CLEO_SOL element and print information on it.
+! Find the CLEO_SOL element and print information on it.
 
-  call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
-  print *
-  print *, '!---------------------------------------------------------'
-  print *, '! Information on element: CLEO_SOL'
-  print *
-  call type_ele (eles(1)%ele, .false., 0, .false., 0, .true., lat)
+call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
+print *
+print *, '!---------------------------------------------------------'
+print *, '! Information on element: CLEO_SOL'
+print *
+call type_ele (eles(1)%ele, .false., 0, .false., 0, .true., lat)
 
-  deallocate (eles)
+deallocate (eles)
 
 end program
 \end{listing}
@@ -78,15 +80,19 @@ A line by line explanation of the example program follows. The \vn{use
 bmad} statement at line 3 defines the \bmad structures and defines the
 interfaces (argument lists) for the \bmad subroutines. In particular,
 the \vn{lat_struct} (\sref{s:lat.struct}) structure (line 5) holds all
-of the lattice information: The list of elements, their attributes, etc.
-\Hyperref{r:bmad.parser}{bmad_parser} (line 13) is the routine which parses a lattice file
-and transfers the information to a \vn{lat_struct} variable. To get a
-listing of the \vn{lat_struct} components or to find out more about
-\vn{bmad_parser} use the \vn{getf} command as discussed in \sref{s:getf}.
+of the lattice information: The list of elements, their attributes,
+etc.  The setting of \vn{bmad_com%auto_bookkeeper} to \vn{False} in
+line 14 enables the ``intelligent'' bookkeeping of lattice attributes as
+discussed in \sref{s:lat.bookkeeping}).
+\Hyperref{r:bmad.parser}{bmad_parser} (line 15) is the routine which
+parses a lattice file and transfers the information to a
+\vn{lat_struct} variable. To get a listing of the \vn{lat_struct}
+components or to find out more about \vn{bmad_parser} use the
+\vn{getf} command as discussed in \sref{s:getf}.
 
 After \Hyperref{r:bmad.parser}{bmad_parser} is called, the program checks if the lattice 
 is circular (\sref{s:param}) and, if so, uses the
-routine \Hyperref{r:twiss.at.start}{twiss_at_start} (line 15) to multiply the transfer
+routine \Hyperref{r:twiss.at.start}{twiss_at_start} (line 17) to multiply the transfer
 matrices of the individual elements together to form the 1--turn
 matrix from the start of the lat back to the start. From this matrix
 \vn{twiss_at_start} calculates the Twiss parameters at the start of
@@ -102,27 +108,25 @@ to have been defined in the lattice file.
 \index{ele_struct!\%s}
 \index{lat_struct!\%ele(:)}
 The program is now ready to print out some information on the first 11
-elements in the lattice which it does on lines 20 through 24 of the
-program. The do-loop is over the array \vn{lat%ele(:)}.  Each element of
-the array holds the information about an individual lattice element as
-explained in Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)} element is
-basically a marker element to denote the beginning of the array
-(\sref{c:sequence}). Using the pointer \vn{ele} to point to the
-individual elements (line 22) makes for a cleaner syntax and reduces
-typing. The table that is produced is shown in
-lines 1 through 12 of Figure~\ref{f:output}.
-The first column is the element index $i$. The second column,
-\vn{ele%name}, is the name of the element. The third column,
-key_name(ele%key), is the name of the element class. \vn{ele%key} is an
-integer denoting what type of element (quadrupole, wiggler, etc.) it is.
-\vn{key_name} is an array that translates the integer key of an element
-to a printable string. The fourth column, \vn{ele%s}, is the longitudinal 
-position at the
-exit end of the element. Finally, the last column, \vn{ele%x%beta},
-is the $a$--mode (nearly
-horizontal mode) beta function.
+elements in the lattice which it does on lines 22 through 26 of the
+program. The do-loop is over the array \vn{lat%ele(:)}.  Each element
+of the array holds the information about an individual lattice element
+as explained in Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)}
+element is basically a marker element to denote the beginning of the
+array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the
+individual elements (line 24) makes for a cleaner syntax and reduces
+typing. The table that is produced is shown in lines 1 through 12 of
+Figure~\ref{f:output}.  The first column is the element index $i$. The
+second column, \vn{ele%name}, is the name of the element. The third
+column, key_name(ele%key), is the name of the element
+class. \vn{ele%key} is an integer denoting what type of element
+(quadrupole, wiggler, etc.) it is.  \vn{key_name} is an array that
+translates the integer key of an element to a printable string. The
+fourth column, \vn{ele%s}, is the longitudinal position at the exit
+end of the element. Finally, the last column, \vn{ele%x%beta}, is the
+$a$--mode (nearly horizontal mode) beta function.
 
-The final section of the program, lines 28 through 33, uses the routine
+The final section of the program, lines 30 through 35, uses the routine
 \Hyperref{r:lat.ele.locator}{lat_ele_locator} 
 (\sref{s:lat.ele.change}) to find the element 
 in the lattice with the name \vn{CLEO_SOL}.

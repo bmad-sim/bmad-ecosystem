@@ -53,6 +53,8 @@ integer, save, allocatable :: ix_taylor(:)
 
 logical transferred, want_taylor, zero_orbit
 
+character(16), parameter :: r_name = 'lat_make_mat6'
+
 ! Error check
 
 if (.not. allocated(ix_taylor)) allocate(ix_taylor(200))
@@ -63,14 +65,14 @@ i_branch = integer_option (0, ix_branch)
 branch => lat%branch(i_branch)
 
 if (i_ele == 0 .or. i_ele > branch%n_ele_max) then
-  print *, 'ERROR IN lat_make_mat6: ELEMENT INDEX OUT OF BOUNDS:', i_ele
+  call out_io (s_fatal$, r_name, 'ELEMENT INDEX OUT OF BOUNDS: \i0\ ', i_ele)
   if (bmad_status%exit_on_error) call err_exit
   return
 endif
 
 if (present(ref_orb)) then
   if (ubound(ref_orb, 1) < branch%n_ele_track) then
-    print *, 'ERROR IN lat_make_mat6: ref_orb(:) ARGUMENT SIZE IS TOO SMALL!'
+    call out_io (s_fatal$, r_name, 'REF_ORB(:) ARRAY SIZE IS TOO SMALL!')
     call err_exit
   endif
 endif
@@ -131,17 +133,25 @@ if (i_ele < 0) then
       endif
     endif
 
+    if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
+      if (present(ref_orb)) then
+        if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
+      else
+        if (all(ref_orb(i-1)%vec == 0)) cycle
+      endif
+    endif
+
     if (zero_orbit) then 
       if (ele%slave_status == super_slave$) then
         orb_start = orb_end
-        call make_mat6(ele, lat%param, orb_start, orb_end)
+        call make_mat6(ele, branch%param, orb_start, orb_end)
       else
-        call make_mat6(ele, lat%param)
+        call make_mat6(ele, branch%param)
         ! Reset orb_end if not in a superposition block.
         if (ele%value(l$) /= 0) orb_end%vec = 0  
       endif
     else  ! else ref_orb must be present
-      call make_mat6(ele, lat%param, ref_orb(i-1), ref_orb(i), .true.)
+      call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true.)
     endif
 
     ! save this taylor in the list if it is a new one. 
@@ -152,7 +162,12 @@ if (i_ele < 0) then
       ix_taylor(n_taylor) = i
     endif
 
+    call set_lords_status_stale (ele, lat, mat6_status$)
+    ele%status%mat6 = ok$
+
   enddo
+
+  if (branch%param%status%mat6 == stale$) branch%param%status%mat6 = ok$
 
   ! calc super_lord matrices
 
@@ -179,15 +194,24 @@ endif
 ! otherwise make a single element
 
 ele => branch%ele(i_ele)
+
+if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
+  if (present(ref_orb)) then
+    if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) return
+  else
+    if (all(ref_orb(i-1)%vec == 0)) return
+  endif
+endif
+
 call control_bookkeeper (lat, ele)
 
 ! For an element in the tracking part of the lattice
 
 if (i_ele <= branch%n_ele_track) then
    if (present(ref_orb)) then
-      call make_mat6(ele, lat%param, ref_orb(i_ele-1), ref_orb(i_ele), .true.)
+      call make_mat6(ele, branch%param, ref_orb(i_ele-1), ref_orb(i_ele), .true.)
    else
-      call make_mat6(ele, lat%param)
+      call make_mat6(ele, branch%param)
    endif
 
   return

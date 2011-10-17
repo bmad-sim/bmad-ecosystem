@@ -2,7 +2,6 @@ module csr_mod
 
 use make_mat6_mod
 use beam_utils
-use bookkeeper_mod, only: attribute_bookkeeper
 
 !+
 ! See the paper:

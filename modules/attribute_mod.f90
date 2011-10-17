@@ -363,6 +363,7 @@ recursive subroutine check_this_attribute_free (ele, attrib_name, lat, &
 type (ele_struct), target :: ele
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_p, lord
+type (branch_struct), pointer :: branch
 
 integer ix_branch, ix_recursion, i, ir, ix_attrib, ix, ic
 integer, optional :: ix_lord
@@ -374,8 +375,10 @@ logical free, do_print, do_except_overlay
 
 ! If this is first time then set pointers used in error message printing.
 
+branch => lat%branch(ele%ix_branch)
+
 if (ix_recursion == 0) then
-  ele0 => lat%branch(ele%ix_branch)%ele(ele%ix_ele)
+  ele0 => branch%ele(ele%ix_ele)
   attrib_name0 = attrib_name
 endif
 
@@ -496,8 +499,17 @@ if (has_orientation_attributes(ele%key)) then
   if (ix_attrib == s_offset_tot$) free = .false.
 endif
 
-if (ix_attrib == e_tot$) free = .false.
-if (ix_attrib == p0c$) free = .false.
+if (ix_attrib == e_tot$ .or. ix_attrib == p0c$) then
+  if (ele%key == init_ele$) then
+    if (branch%ix_from_branch > -1) then
+      free = .false.
+    else
+      free = .true.
+    endif
+  elseif (ele%key /= group$ .and. ele%key /= overlay .and. ele%key /= girder$) then
+    free = .false.
+  endif
+endif
 
 if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
     ele%value(n_ref_pass$) == 0 .and. ix_attrib == p0c$) free = .true.

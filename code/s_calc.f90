@@ -26,22 +26,25 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave
 type (branch_struct), pointer :: branch
 
-integer i, j, n, ic, icon, ix2, nt
+integer i, j, n, ic, icon, ix2
 real(8) ss, s_end
 
 ! Just go through all the elements and add up the lengths.
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  if (i > 0) branch%ele(0)%s = 0  ! Branches start from zero
+  if (.not. bmad_com%auto_bookkeeper .and. branch%param%status%length /= stale$) cycle
+  ! Branches that branch from another branch start from zero
+  if (branch%ix_from_branch > -1) branch%ele(0)%s = 0  
   ss = branch%ele(0)%s
-  nt = branch%n_ele_track
-  do n = 1, nt
+  do n = 1, branch%n_ele_track
     ele => branch%ele(n)
     ss = ss + ele%value(l$)
-    branch%ele(n)%s = ss
+    ele%s = ss
+    if (ele%status%length == stale$) ele%status%length = ok$
   enddo
   branch%param%total_length = ss - branch%ele(0)%s
+  branch%param%status%length = ok$
 enddo
 
 
@@ -51,6 +54,7 @@ enddo
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
+  if (.not. bmad_com%auto_bookkeeper .and. lord%status%length /= stale$) cycle
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
   if (lord%lord_status == super_lord$) then
@@ -59,6 +63,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   else
     lord%s = 0
   endif
+  lord%status%length = ok$
 enddo
 
 end subroutine

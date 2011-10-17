@@ -959,10 +959,12 @@ real(rp) m1(36), m2(36)
 integer particle, ix_lost, end_lost_at, lat_type, ixx, stable, &
         ap_limit_on, lost, plane_lost_at
 
-f_lat_param = lat_param_struct(n_part, total_length, growth_rate, &
-      arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
-      plane_lost_at, lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
-      f_logic(lost))
+! Added status component
+
+!f_lat_param = lat_param_struct(n_part, total_length, growth_rate, &
+!      arr2mat(m1, 6, 6), arr2mat(m2, 6, 6), particle, ix_lost, end_lost_at, &
+!      plane_lost_at, lat_type, ixx, f_logic(stable), f_logic(ap_limit_on), &
+!      f_logic(lost))
 
 end subroutine
 
@@ -1183,7 +1185,7 @@ call bmad_com_to_c2 (c_bmad_com, &
       c_logic(f%space_charge_on), c_logic(f%coherent_synch_rad_on), &
       c_logic(f%spin_tracking_on), &
       c_logic(f%radiation_damping_on), c_logic(f%radiation_fluctuations_on), &
-      c_logic(f%compute_ref_energy), c_logic(f%conserve_taylor_maps))
+      c_logic(f%conserve_taylor_maps))
 
 end subroutine
 
@@ -1201,7 +1203,7 @@ end subroutine
 
 subroutine bmad_com_to_f2 (max_ap, orb, grad_loss, ds_step, signif, rel, abs, rel_track, &
         abs_track, taylor_ord, dflt_integ, cc, sr, lr, sym, &
-        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, ref_e, conserve_t)
+        a_book, tsc_on, csr_on, st_on, rad_d, rad_f, conserve_t)
 
 use fortran_and_cpp
 use bmad_struct
@@ -1211,14 +1213,14 @@ implicit none
 
 real(rp) orb(6), max_ap, grad_loss, rel, abs, rel_track, abs_track, ds_step, signif
 integer taylor_ord, dflt_integ, cc, sr, lr, sym
-integer st_on, rad_d, rad_f, ref_e, a_book, tsc_on, csr_on
+integer st_on, rad_d, rad_f, a_book, tsc_on, csr_on
 integer conserve_t
 
 bmad_com = bmad_common_struct(max_ap, orb, grad_loss, ds_step, signif, &
     rel, abs, rel_track, abs_track, taylor_ord, dflt_integ, &
     f_logic(cc), f_logic(sr), f_logic(lr), f_logic(sym), &
     f_logic(a_book), f_logic(tsc_on), f_logic(csr_on), f_logic(st_on), &
-    f_logic(rad_d), f_logic(rad_f), f_logic(ref_e), f_logic(conserve_t))
+    f_logic(rad_d), f_logic(rad_f), f_logic(conserve_t))
 
 end subroutine
 
@@ -1346,7 +1348,7 @@ call ele_to_c2 (c_ele, c_str(f%name), c_str(f%type), c_str(f%alias), &
       f%lord_status, f%n_lord, f%ic1_lord, f%ic2_lord, &
       f%ix_pointer, f%ixx, &
       f%mat6_calc_method, f%tracking_method, f%field_calc, f%ref_orbit, &
-      f%aperture_at, f%aperture_type, f%attribute_status, f%n_attribute_modify, &
+      f%aperture_at, f%aperture_type, &
       f%symplectify, f%mode_flip, f%multipoles_on, f%scale_multipoles, f%map_with_offsets, &
       f%field_master, f%reversed, f%is_on, f%old_is_on, f%logic, f%bmad_logic, f%on_a_girder, &
       f%csr_calc_on, f%offset_moves_aperture)
@@ -1380,8 +1382,7 @@ subroutine ele_to_f2 (f, nam, n_nam, typ, n_typ, ali, n_ali, component_nam, n_co
     slave_status, n_slave, ix1_slave, ix2_slave, &
     lord_status, n_lord, ic1_lord, ic2_lord, &
     ix_point, ixx, mat6_meth, tracking_meth, field_calc, ref_orb, &
-    aperture_at, aperture_type, attrib_stat, n_attrib_modify, &
-    symp, mode_flip, multi_on, scale_multi, &
+    aperture_at, aperture_type, symp, mode_flip, multi_on, scale_multi, &
     map_with_off, field_master, reversed, is_on, old_is_on, logic, bmad_logic, &
     girder, csr_calc, offset_moves_ap)   
 
@@ -1399,10 +1400,10 @@ type (genfield), target :: gen_f
 
 integer n_nam, nr1, nr2, n_ab, n_const, key, sub_key, lord_status, slave_status
 integer ix2_slave, n_lord, ic1_lord, ic2_lord, ix_point, ixx, ix_ele, mat6_meth, tracking_meth, field_calc
-integer ref_orb, aperture_at, attrib_stat, symp, mode_flip, multi_on, map_with_off, field_master
+integer ref_orb, aperture_at, symp, mode_flip, multi_on, map_with_off, field_master
 integer reversed, is_on, old_is_on, logic, bmad_logic, girder, csr_calc, n_typ, n_ali, n_component_nam, n_des, ix_branch
 integer n_wig, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr, aperture_type, offset_moves_ap
-integer n_attrib_modify, ix_value, n_slave, ix1_slave, scale_multi
+integer ix_value, n_slave, ix1_slave, scale_multi
 
 real(rp) value(n_attrib_maxx), gen0(6), vec0(6), mat6(36), c_mat(4), gamma_c, s, ref_t
 real(rp) a_pole(n_ab), b_pole(n_ab), r_arr(nr1*nr2), const(n_const)
@@ -1520,14 +1521,14 @@ f%ic2_lord              = ic2_lord
 f%ix_pointer            = ix_point
 f%ixx                   = ixx
 
+! f%status !
+
 f%mat6_calc_method      = mat6_meth
 f%tracking_method       = tracking_meth
 f%field_calc            = field_calc
 f%ref_orbit             = ref_orb
 f%aperture_at           = aperture_at
 f%aperture_type         = aperture_type
-f%attribute_status      = attrib_stat
-f%n_attribute_modify    = n_attrib_modify
 f%symplectify           = f_logic(symp)
 f%mode_flip             = f_logic(mode_flip)
 f%multipoles_on         = f_logic(multi_on)

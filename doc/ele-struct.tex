@@ -41,15 +41,18 @@ type ele_struct
   type (rf_struct) rf                             ! RF field and wake structure.
   type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  real(rp) value(n_attrib_maxx)      ! attribute values.
-  real(rp) old_value(n_attrib_maxx)  ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                   ! constant part of the genfield map.
-  real(rp) vec0(6)                   ! 0th order transport vector.
-  real(rp) mat6(6,6)                 ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                ! 2x2 C coupling matrix
-  real(rp) gamma_c                   ! gamma associated with C matrix
-  real(rp) s                         ! longitudinal position at the exit end.
-  real(rp) ref_time                  ! Time ref particle passes exit end.
+  type (wall3d_struct) :: wall3d             ! Chamber or capillary wall
+  type (em_field_grid_struct), pointer :: em_grid => null()
+  type (bookkeeper_status_struct) status  ! For keeping track of what bookkeeping has been done.
+  real(rp) value(n_attrib_maxx)           ! attribute values.
+  real(rp) old_value(n_attrib_maxx)       ! Used to see if %value(:) array has changed.
+  real(rp) gen0(6)                        ! constant part of the genfield map.
+  real(rp) vec0(6)                        ! 0th order transport vector.
+  real(rp) mat6(6,6)                      ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                     ! 2x2 C coupling matrix
+  real(rp) gamma_c                        ! gamma associated with C matrix
+  real(rp) s                              ! longitudinal position at the exit end.
+  real(rp) ref_time                       ! Time ref particle passes exit end.
   real(rp), pointer :: r(:,:) => null()           ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()        ! multipole
   real(rp), pointer :: b_pole(:) => null()        ! multipoles
@@ -90,14 +93,13 @@ The complete structure is shown in this and the following figure.}
   integer taylor_order       ! Order of the taylor series.
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer aperture_type      ! Type of aperture: rectanular$, elliptical$, or custom$. 
-  integer coupler_at         ! Lcavity coupler location: exit_end$, entrance_end$
-  integer attribute_status   ! Element attributes have been modified?
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
   logical scale_multipoles   ! multipole components scaled by the strength of element?
   logical map_with_offsets   ! Taylor map calculated with element offsets?
   logical field_master       ! Calculate strength from the field value?
+  logical reversed           ! Element is longitudinally reversed form the lord element?
   logical is_on              ! For turning element on/off.
   logical old_is_on          ! For saving the element on/off state.
   logical logic              ! For general use. Not used by Bmad.
@@ -108,7 +110,7 @@ The complete structure is shown in this and the following figure.}
 end type
 \end{verbatim}
 \caption[The \vn{ele_struct} (part 2).]{The \vn{ele_struct}. 
-The complete structure is shown in this and the preceeding figure.}
+The complete structure is shown in this and the preceding figure.}
 \label{f:ele.struct2}
 \end{figure}
 
@@ -151,6 +153,27 @@ of any other \vn{ele_struct} variable. To make sure of this,
 the equal sign in the assignment \vn{ele1 = ele2}
 is overloaded by the routine \Hyperref{r:ele.equal.ele}{ele_equal_ele}
 and this routine will allocate as necessary.
+
+%--------------------------------------------------------------------------
+\section{Element Attribute Bookkeeping}
+\label{s:ele.book}
+\index{Element attribute bookkeeping}
+
+When a value of an attribute in an element changes, the values of
+other attributes may need to be changed (\sref{s:depend}). Furthermore,
+in a lattice, changes to one element may necessitate changes to
+attribute values in other elements. For example, changing the
+accelerating gradient in an \vn{lcavity} will change the reference
+energy throughout the lattice. 
+
+The attribute bookkeeping for a lattice can be complicated and, if not
+done intelligently, can cause programs to be slow if attributes are
+continually being changed. In order to keep track what bookkeeping has
+been done, the \vn{ele%status} component is used by the appropriate
+bookkeeping routines for making sure the bookkeeping overhead is keep
+to a minimum. However, ``intelligent'' bookkeeping is only done if
+explicitly enabled in a program. See \sref{s:lat.bookkeeping} for more
+details.
 
 %--------------------------------------------------------------------------
 \section{String Components}
@@ -323,14 +346,14 @@ This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struc
 
 %--------------------------------------------------------------------------
 \section{Coordinates, Offsets, etc.}
-\label{s:ele-offset}
+\label{s:ele.offset}
 \index{global coordinates!in ele_struct}
 
 The ``entrance'' and ``exit'' ends of an element are, by definition,
 where the physical ends of the element would be if there were no
 offsets. In particular, if an element has a finite \vn{s_offset}, the
 physical ends will be displaced from entrance and exit ends. See
-\sref{s:ele-track} for more details.
+\sref{s:ele.track} for more details.
 
 \index{ele_struct!\%floor}
 \index{floor_position_struct}
@@ -709,4 +732,4 @@ Example:
   sliced_ele%value(l$) = l_slice ! Set the sliced element's length
   call create_element_slice (sliced_ele, ele, l_start, param, include_entrance, include_exit)
 \end{example}
-See the documentation on \vn{create_element_slice} for more details (sref{s:getf}).
+See the documentation on \vn{create_element_slice} for more details (\sref{s:getf}).

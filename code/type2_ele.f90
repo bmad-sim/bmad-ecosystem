@@ -406,7 +406,7 @@ if (ele%key == branch$ .or. ele%key == photon_branch$) then
 
   n = nint(ele%value(ix_branch_to$))
   if (present(lattice)) then
-    nl=nl+1; write (li(nl), *) 'Branch to:', n, ' (', trim(lattice%branch(n)%name), ')'
+    nl=nl+1; write (li(nl), '(3a, i0, a)') 'Branch to:', trim(lattice%branch(n)%name), '  [', n, ']'
   else
     nl=nl+1; write (li(nl), *) 'Branch to:', n
   endif

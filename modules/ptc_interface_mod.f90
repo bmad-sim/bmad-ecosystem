@@ -1767,6 +1767,7 @@ if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
   call set_ptc (taylor_order = bmad_com%taylor_order)
 endif
 
+ele%status%attributes = stale$
 call attribute_bookkeeper (ele, param)
 
 ! LCavity, Patch and Match elements are not implemented in PTC so just use the matrix.
@@ -1846,6 +1847,8 @@ if (ele%key == wiggler$) then
   call add_taylor_term (ele%taylor(5), -ele%value(z_patch$))
 
 endif
+
+ele%status%mat6 = stale$
 
 end subroutine ele_to_taylor
 

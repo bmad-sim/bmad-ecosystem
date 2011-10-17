@@ -1,5 +1,5 @@
 !+
-! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, ran_p)
+! Subroutine write_digested_bmad_file (digested_name, lat, n_files, file_names, ran_p, err_flag)
 !
 ! Subroutine to write a digested file. The names of the original files used
 ! to create the LAT structure are also put in the digested file and are used
@@ -21,11 +21,15 @@
 !     %ran_function_was_called
 !     %deterministic_ran_function_was_called
 !     %initial_state
+!
+! Output:
+!   err_flag -- Logical, optional: Set True if there is a problem. EG: No write permission.
+!                 Set False if everything is OK.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran_p)
+subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran_p, err_flag)
 
 use bmad_struct
 use equality_mod, only: operator(==)
@@ -50,6 +54,9 @@ character(200) fname, full_digested_name
 character(32) :: r_name = 'write_digested_bmad_file'
 character(30) time_stamp
 
+logical, optional :: err_flag
+logical is_open
+
 !! external stat ! Removed because it caused a mac link problem. DCS.
 
 ! Write input file names to the digested file
@@ -57,6 +64,7 @@ character(30) time_stamp
 ! if a file has been modified since the digested file has been created.
 ! Additionally record if one of the random number functions was called.
 
+if (present(err_flag)) err_flag = .true.
 n_file = 0
 if (present(n_files)) n_file = n_files
 
@@ -71,18 +79,18 @@ open (unit = d_unit, file = full_digested_name, form = 'unformatted', err = 9000
 
 if (present(ran_p)) then
   if (ran_p%ran_function_was_called) then
-    write (d_unit, err = 9010) n_file+2, bmad_inc_version$
+    write (d_unit, err = 9000) n_file+2, bmad_inc_version$
     fname = '!RAN FUNCTION WAS CALLED'
     write (d_unit) fname, 0
   elseif (ran_p%deterministic_ran_function_was_called) then
-    write (d_unit, err = 9010) n_file+2, bmad_inc_version$
+    write (d_unit, err = 9000) n_file+2, bmad_inc_version$
     fname = '!DETERMINISTIC RAN FUNCTION WAS CALLED'
     write (d_unit) fname, 0
   else
-    write (d_unit, err = 9010) n_file+1, bmad_inc_version$
+    write (d_unit, err = 9000) n_file+1, bmad_inc_version$
   endif
 else
-  write (d_unit, err = 9010) n_file+1, bmad_inc_version$
+  write (d_unit, err = 9000) n_file+1, bmad_inc_version$
 endif
 
 ! Write digested file name
@@ -166,21 +174,19 @@ endif
 
 close (d_unit)
 
+if (present(err_flag)) err_flag = .false.
+
 return
 
 ! Errors
 
-9000  print *
-print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT OPEN FILE FOR OUTPUT:'
-print *, '    ', trim(digested_name)
-print *, '     [This does not affect program operation]'
-return
-
-9010  print *
-print *, 'WRITE_DIGESTED_BMAD_FILE: NOTE: CANNOT WRITE TO FILE FOR OUTPUT:'
-print *, '    ', trim(digested_name)
-print *, '     [This does not affect program operation]'
-close (d_unit)
+9000  continue
+call out_io (s_warn$, r_name, &
+               'NOTE: CANNOT OPEN FILE FOR OUTPUT:', &
+               '    ' // trim(digested_name), &
+               '     [This does not affect program operation]')
+inquire (d_unit, opened = is_open)
+if (is_open) close (d_unit)
 return
 
 !-------------------------------------------------------------------------------------
@@ -258,7 +264,7 @@ write (d_unit) &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &
           ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &
-          ele%ix_branch, ele%ref_time, ele%scale_multipoles, ele%attribute_status
+          ele%ix_branch, ele%ref_time, ele%scale_multipoles, 0
 
 ! This compresses the ele%value array
 

@@ -524,7 +524,7 @@ void operator>> (normal_modes_struct* f, C_normal_modes& c) {
 // bmad_com
 
 extern "C" void bmad_com_to_f2_(Re&, ReArr, Re&, Re&, Re&, Re&, Re&, Re&, Re&, 
-     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, 
+     Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&, Int&,
      Int&, Int&, Int&, Int&);
 
 extern "C" void bmad_com_to_f_(C_bmad_com& c) {
@@ -535,7 +535,7 @@ extern "C" void bmad_com_to_f_(C_bmad_com& c) {
     c.sr_wakes_on, c.lr_wakes_on, c.mat6_track_symmetric,
     c.auto_bookkeeper, c.trans_space_charge_on, c.coherent_synch_rad_on, 
     c.spin_tracking_on, c.radiation_damping_on, c.radiation_fluctuations_on, 
-    c.compute_ref_energy, c.conserve_taylor_maps);
+    c.conserve_taylor_maps);
 }
 
 extern "C" void bmad_com_to_c2_(C_bmad_com& c, 
@@ -543,7 +543,7 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
               Re& rel_adapt, Re& abs_adapt, 
               Int& to, Int& dflt_ord, Int& cc, 
               Int& sr, Int& lr, Int& sym, Int& a_book, Int& tsc_on, Int& csr_on, 
-              Int& st_on, Int& rad_d, Int& rad_f, Int& ref_e, Int& con_t) {
+              Int& st_on, Int& rad_d, Int& rad_f, Int& con_t) {
   c.max_aperture_limit               = ap;
   c.d_orb                            << orb;
   c.grad_loss_sr_wake                = kl;
@@ -565,7 +565,6 @@ extern "C" void bmad_com_to_c2_(C_bmad_com& c,
   c.spin_tracking_on                 = st_on;
   c.radiation_damping_on             = rad_d;
   c.radiation_fluctuations_on        = rad_f;
-  c.compute_ref_energy               = ref_e;
   c.conserve_taylor_maps             = con_t;
 }
 
@@ -608,8 +607,7 @@ extern "C" void ele_to_f2_(ele_struct*, Char, Int&, Char, Int&, Char, Int&, Char
   Int&, Int&, Int&, Int&,                              // slave_status
   Int&, Int&, Int&, Int&,                              // lord_status
   Int&, Int&, Int&, Int&, Int&, Int&,            // ix_pointer
-  Int&, Int&, Int&, Int&,                              // aperture_at
-  Int&, Int&, Int&, Int&,                              // symp
+  Int&, Int&, Int&, Int&, Int&, Int&,                              // symp
   Int&, Int&, Int&, Int&, Int&, Int&,                  // map_with_off
   Int&, Int&, Int&, Int&);
 
@@ -644,8 +642,7 @@ extern "C" void ele_to_f_(C_ele& c, ele_struct* f) {
     c.slave_status, c.n_slave, c.ix1_slave, c.ix2_slave, 
     c.lord_status, c.n_lord, c.ic1_lord, c.ic2_lord, 
     c.ix_pointer, c.ixx, c.mat6_calc_method, c.tracking_method, c.field_calc, c.ref_orbit,
-    c.aperture_at, c.aperture_type, c.attribute_status, c.n_attribute_modify,
-    c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
+    c.aperture_at, c.aperture_type, c.symplectify, c.mode_flip, c.multipoles_on, c.scale_multipoles,
     c.map_with_offsets, c.field_master, c.reversed, c.is_on, c.old_is_on, c.logic, c.bmad_logic,
     c.on_a_girder, c.csr_calc_on, c.offset_moves_aperture);
   for (int i = 0; i < n_wig; i++) {
@@ -668,9 +665,8 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
     Int& key, Int& sub_key, Int& ix_ele, Int& ix_branch, Int& ix_value,  
     Int& slave_status, Int& n_slave, Int& ix1_s, Int& ix2_s, 
     Int& lord_status, Int& n_lord, Int& ic1_l, Int& ic2_l, 
-    Int& ix_p, Int& ixx, 
-    Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
-    Int& aperture_at, Int& aperture_type, Int& attrib_stat, Int& n_attrib_modify,
+    Int& ix_p, Int& ixx, Int& mat6_calc, Int& tracking, Int& field_calc, Int& ref_orbit,
+    Int& aperture_at, Int& aperture_type, 
     Int& symp, Int& mode_flip, Int& multi_on, Int& scale_multi, Int& map_with_off, 
     Int& field_master, Int& reversed, Int& is_on, Int& old_is_on, Int& logic, Int& bmad_logic, Int& on_a_gird, 
     Int& csr_calc, Int& offset_moves_ap) {
@@ -740,8 +736,6 @@ extern "C" void ele_to_c2_(C_ele& c, char* name, char* type, char* alias,
   c.ref_orbit             = ref_orbit;
   c.aperture_at           = aperture_at;
   c.aperture_type         = aperture_type;
-  c.attribute_status      = attrib_stat;
-  c.n_attribute_modify    = n_attrib_modify;
   c.symplectify           = symp;
   c.mode_flip             = mode_flip;
   c.multipoles_on         = multi_on;
@@ -822,8 +816,6 @@ C_ele& C_ele::operator= (const C_ele& c) {
   ref_orbit             = c.ref_orbit;
   aperture_at           = c.aperture_at;
   aperture_type        = c.aperture_type;
-  attribute_status      = c.attribute_status;
-  n_attribute_modify    = c.n_attribute_modify;
   symplectify           = c.symplectify;
   mode_flip             = c.mode_flip;
   multipoles_on         = c.multipoles_on;

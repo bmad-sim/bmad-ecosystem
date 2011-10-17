@@ -29,9 +29,10 @@
 !   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !
 ! Output:
-!   param      -- lat_param_struct: 
+!   param      -- lat_param_struct: Structure holding the info if the particle is lost.
 !     %lost          -- Set True If the particle cannot make it through an element.
 !                         Set False otherwise.
+!     %ix_lost       -- Integer: Set to index of element where particle is lost.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
 !     %end_lost_at   -- entrance_end$ or exit_end$.

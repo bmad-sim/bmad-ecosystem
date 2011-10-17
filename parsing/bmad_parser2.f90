@@ -15,8 +15,7 @@
 ! lat using lat_file. If the digested file doesn't
 ! exist or is not up-to-date then a new digested file will be created. If this 
 ! argument is '*' then the new digested file name is:
-!               'digested_' // lat_file   ! for single precision BMAD version
-!               'digested8_' // lat_file  ! for double precision BMAD version
+!               'digested_' // lat_file   
 !
 ! Note: If you use the superimpose feature to insert an element into the latttice
 !       then the index of a given element already in the lattice may change.

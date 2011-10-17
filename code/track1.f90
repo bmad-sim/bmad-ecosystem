@@ -63,6 +63,8 @@ endif
 ! Init
 
 param%lost = .false.  ! assume everything will be OK
+param%ix_lost = not_lost$
+
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
 ! check for particles outside aperture
