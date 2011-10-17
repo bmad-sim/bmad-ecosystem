@@ -147,8 +147,7 @@ end module
 !
 ! Because of the time it takes to parse a file, AML_PARSER will save 
 ! LAT in a "digested" file with the name:
-!               'digested_' // lat_file   ! for single precision AML version
-!               'digested8_' // lat_file  ! for double precision AML version
+!               'digested_' // lat_file   ! For single precision AML version
 ! For subsequent calls to the same lat_file, AML_PARSER will just read in the
 ! digested file. AML_PARSER will always check to see that the digested file
 ! is up-to-date and if not the digested file will not be used.

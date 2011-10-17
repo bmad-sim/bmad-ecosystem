@@ -40,48 +40,81 @@ subroutine lat_geometry (lat)
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, slave
+type (ele_struct), pointer :: ele, lord, slave, b_ele
 type (branch_struct), pointer :: branch
 
-integer i, n, ix2, ie
+integer i, n, ix2, ie, ib
+logical stale
 
 !
 
-do i = 1, lat%n_ele_track
-  call ele_geometry (lat%ele(i-1)%floor, lat%ele(i), lat%ele(i)%floor)
-enddo
-
-do n = 1, ubound(lat%branch, 1)
+do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
 
-  ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-  branch%ele(0)%floor = ele%floor
-
-  if (nint(ele%value(direction$)) == -1) then
-    branch%ele(0)%floor%theta = modulo2(branch%ele(0)%floor%theta + pi, pi)
-    branch%ele(0)%floor%phi   = -branch%ele(0)%floor%phi
-    branch%ele(0)%floor%psi   = -branch%ele(0)%floor%psi
+  if (bmad_com%auto_bookkeeper) then
+    stale = .true.
+  else
+    if (branch%param%status%floor_position /= stale$) cycle
+    stale = .false.
   endif
 
+  branch%param%status%floor_position = ok$
+
+  ! Transfer info from branch element if that element exists.
+
+  if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%status%floor_position == stale$)) then
+    b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+    branch%ele(0)%floor = b_ele%floor
+
+    if (nint(b_ele%value(direction$)) == -1) then
+      branch%ele(0)%floor%theta = modulo2(branch%ele(0)%floor%theta + pi, pi)
+      branch%ele(0)%floor%phi   = -branch%ele(0)%floor%phi
+      branch%ele(0)%floor%psi   = -branch%ele(0)%floor%psi
+    endif
+    stale = .true.
+  endif
+
+  if (branch%ele(0)%status%floor_position == stale$) branch%ele(0)%status%floor_position = ok$
+
   do i = 1, branch%n_ele_track
-    call ele_geometry (branch%ele(i-1)%floor, branch%ele(i), branch%ele(i)%floor)
+    ele => branch%ele(i)
+    if (.not. stale .and. ele%status%floor_position /= stale$) cycle
+    call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
+    stale = .true.
+    if (ele%key == branch$ .or. ele%key == photon_branch$) then
+      ib = nint(ele%value(ele%value(ix_branch_to$)))
+      lat%branch(ib)%ele(0)%status%floor_position = stale$
+    endif
+    call set_lords_status_stale (ele, lat, floor_position_status$)
+    ele%status%floor_position = ok$
   enddo
 
 enddo
 
 ! put info in super_lords and multipass_lords
 
-do i = lat%n_ele_track+1, lat%n_ele_max  
-  lord => lat%ele(i)
-  select case (lord%lord_status)
-  case (super_lord$)
-    slave => pointer_to_slave(lat, lord, lord%n_slave) ! Last slave is at exit end.
-    lord%floor = slave%floor
-  case (multipass_lord$)
-    slave => pointer_to_slave(lat, lord, 1)
-    lord%floor = slave%floor
-  end select
-enddo
+if (bmad_com%auto_bookkeeper .or. lat%param%status%floor_position == stale$) then
+
+  lat%param%status%floor_position = ok$
+
+  do i = lat%n_ele_track+1, lat%n_ele_max  
+    lord => lat%ele(i)
+    if (.not. bmad_com%auto_bookkeeper .and. lord%status%floor_position /= stale$) cycle
+    if (lord%n_slave == 0) cycle
+
+    select case (lord%lord_status)
+    case (super_lord$)
+      slave => pointer_to_slave(lat, lord, lord%n_slave) ! Last slave is at exit end.
+      lord%floor = slave%floor
+    case (multipass_lord$)
+      slave => pointer_to_slave(lat, lord, 1)
+      lord%floor = slave%floor
+    end select
+
+    lord%status%floor_position = ok$
+  enddo
+
+endif
 
 end subroutine
 

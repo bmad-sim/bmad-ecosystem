@@ -84,7 +84,7 @@ do n = 1, branch%n_ele_track
     write (iu, *) '!------------------------------------', n
     call type2_ele (ele, lines, n_lines, .false., 0, .false., 0)
     do i = 1, n_lines
-      write (iu, '(a)') lines(i)
+      write (iu, '(a)') trim(lines(i))
     enddo
     deallocate (lines)
     write (iu, *) 'Symplectic Check:', mat_symp_error(t0_4)

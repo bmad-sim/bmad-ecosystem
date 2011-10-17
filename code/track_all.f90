@@ -20,8 +20,7 @@
 !   ix_branch -- Integer, optional: Branch to track. Default is 0 (main lattice).
 !
 ! Output:
-!   lat
-!     %param -- Param_struct.
+!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
 !       %lost          -- Logical: Set True when a particle cannot make it 
 !                           through an element.
 !       %ix_lost       -- Integer: Set to index of element where particle is lost.
@@ -56,8 +55,6 @@ branch => lat%branch(ix_br)
 
 if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
-branch%param%ix_lost = not_lost$
-
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 ! track through elements.
@@ -69,7 +66,6 @@ do n = 1, branch%n_ele_track
   ! check for lost particles
 
   if (branch%param%lost) then
-    branch%param%ix_lost = n
     do nn = n+1, branch%n_ele_track
       orbit(nn)%vec = 0
     enddo

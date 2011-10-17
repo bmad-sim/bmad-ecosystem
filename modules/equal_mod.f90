@@ -198,12 +198,7 @@ call transfer_rf_field (ele2%rf%field, ele1%rf%field)
 if (associated(ele_save%gen_field)) call kill_gen_field (ele_save%gen_field)
 if (associated(ele1%gen_field)) nullify (ele1%gen_field)
 
-! In case the program cares, change %attribute_status from unmodified$ to all_bookkeeping_done$.
-! This will not affect how any routine in the bmad library treats the element.
-
-if (ele2%attribute_status == unmodified$) ele1%attribute_status = all_bookkeeping_done$
-
-end subroutine
+end subroutine ele_equal_ele
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -246,7 +241,7 @@ do i = 1, size(ele1)
   call ele_equal_ele (ele1(i), ele2(i))
 enddo
 
-end subroutine
+end subroutine ele_vec_equal_ele_vec
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -346,7 +341,7 @@ enddo
 
 call transfer_lat_parameters (lat_in, lat_out)
 
-end subroutine
+end subroutine lat_equal_lat
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -389,7 +384,7 @@ do i = 1, size(lat1)
   call lat_equal_lat (lat1(i), lat2(i))
 enddo
 
-end subroutine
+end subroutine lat_vec_equal_lat_vec 
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -430,7 +425,7 @@ branch1%param          = branch2%param
 branch1%ele%ix_branch  = branch2%ix_branch
 branch1%wall3d         = branch2%wall3d   
 
-end subroutine
+end subroutine branch_equal_branch
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -462,7 +457,7 @@ type (coord_struct), intent(in) :: coord2
 coord1%vec = coord2%vec
 coord1%spin = coord2%spin
  
-end subroutine
+end subroutine coord_equal_coord
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -517,7 +512,7 @@ else
   if (associated(wall3d_out%section)) deallocate(wall3d_out%section)
 endif
  
-end subroutine
+end subroutine wall3d_equal_wall3d
 
 end module
 

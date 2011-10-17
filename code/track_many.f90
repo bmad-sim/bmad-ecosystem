@@ -38,11 +38,13 @@
 !   ix_branch        -- Integer, optional: Branch to track. Default is 0 (main lattice).
 !
 ! Output:
-!   lat          -- lat_struct:
-!     %param%lost    -- Logical: Set when a particle is lost with the 
+!   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
+!     %lost          -- Logical: Set when a particle is lost with the 
 !                         aperture limit on.
-!     %param%ix_lost -- Integer: Index of element where particle is lost.
-!     %param%end_lost_at -- Either entrance_end$ or exit_end$.
+!     %ix_lost       -- Integer: Index of element where particle is lost.
+!     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
+!                           z_plane$ (turned around in an lcavity).
+!     %end_lost_at    -- Either entrance_end$ or exit_end$.
 !   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
 !                       the coordinates at the end of tracking. 
 !-
@@ -58,6 +60,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (coord_struct) orbit(0:)
+type (branch_struct), pointer :: branch
 
 integer ix_start, ix_end, direction, ix_br, n_ele_track
 integer, optional :: ix_branch
@@ -71,9 +74,9 @@ character(16) :: r_name = 'track_many'
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 ix_br = integer_option (0, ix_branch)
-lat%param%lost = .false.
-lat%param%ix_lost = not_lost$
-n_ele_track = lat%branch(ix_br)%n_ele_track
+branch => lat%branch(ix_br)
+
+n_ele_track = branch%n_ele_track
 
 ! track through elements.
 
@@ -83,7 +86,7 @@ if (direction == +1) then
     return
   else
     call track_fwd (ix_start+1, n_ele_track)
-    if (lat%param%lost) then
+    if (branch%param%lost) then
       call zero_this_track (0, ix_end)
       return
     endif
@@ -97,7 +100,7 @@ elseif (direction == -1) then
     return
   else
     call track_back (ix_start, 1)
-    if (lat%param%lost) then
+    if (branch%param%lost) then
       call zero_this_track (ix_end, n_ele_track)
       return
     endif
@@ -121,15 +124,14 @@ integer i, n, ix1, ix2
 
 do n = ix1, ix2
 
-  call track1 (orbit(n-1), lat%branch(ix_br)%ele(n), lat%param, orbit(n))
+  call track1 (orbit(n-1), branch%ele(n), branch%param, orbit(n))
 
   ! check for lost particles
 
-  if (lat%param%lost) then
-    lat%param%ix_lost = n
-    if (lat%param%end_lost_at == exit_end$) then
+  if (branch%param%lost) then
+    if (branch%param%end_lost_at == exit_end$) then
       call zero_this_track (n+1, ix2)
-    elseif (lat%param%end_lost_at == entrance_end$) then
+    elseif (branch%param%end_lost_at == entrance_end$) then
       call zero_this_track (n, ix2)
     else
       call out_io (s_abort$, r_name, 'INTERNAL ERROR')
@@ -139,7 +141,7 @@ do n = ix1, ix2
   endif
 
   if (debug) then
-    print *, lat%branch(ix_br)%ele(n)%name
+    print *, branch%ele(n)%name
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
 
@@ -173,30 +175,29 @@ ix_last = ix2-1  ! last index we expect to track.
 
 do n = ix1, ix2, -1
 
-  ele = lat%branch(ix_br)%ele(n)
-  call reverse_ele (ele, lat%param)
-  call track1 (orbit(n), ele, lat%param, orbit(n-1))
+  ele = branch%ele(n)
+  call reverse_ele (ele, branch%param)
+  call track1 (orbit(n), ele, branch%param, orbit(n-1))
 
   ! check for lost particles
 
-  if (lat%param%lost) then
-    if (lat%param%end_lost_at == exit_end$) then
-      lat%param%end_lost_at = entrance_end$
+  if (branch%param%lost) then
+    if (branch%param%end_lost_at == exit_end$) then
+      branch%param%end_lost_at = entrance_end$
       call zero_this_track (ix2-1, n-2)
-    elseif (lat%param%end_lost_at == entrance_end$) then
-      lat%param%end_lost_at = exit_end$
+    elseif (branch%param%end_lost_at == entrance_end$) then
+      branch%param%end_lost_at = exit_end$
       call zero_this_track (ix2-1, n-1)
     else
       call out_io (s_abort$, r_name, 'INTERNAL ERROR')
       call err_exit
     endif
-    lat%param%ix_lost = n 
     ix_last = n-1
     exit
   endif
 
   if (debug) then
-    print *, lat%branch(ix_br)%ele(n)%name
+    print *, branch%ele(n)%name
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
 

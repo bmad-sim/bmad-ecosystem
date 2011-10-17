@@ -14,6 +14,37 @@ use bmad_struct
 use make_mat6_mod
 use basic_attribute_mod
 
+private pointer_to_ele1, pointer_to_ele2
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele (...)
+!
+! Routine to return a pointer to an element.
+! pointer_to_ele is an overloaded name for:
+!     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+!     Function pointer_to_ele2 (lat, ele_loc_id) result (ele_ptr)
+!
+! Module needed:
+!   use lat_ele_loc_mod
+!
+! Input:
+!   lat       -- lat_struct: Lattice.
+!   ix_ele    -- Integer: Index of element in lat%branch(ix_branch)
+!   ix_branch -- Integer: Index of the lat%branch(:) containing the element.
+!   ele_loc   -- Lat_ele_loc_struct: Location identification.
+!
+! Output:
+!   ele_ptr  -- Ele_struct, pointer: Pointer to the element. 
+!-
+
+interface pointer_to_ele
+  module procedure pointer_to_ele1
+  module procedure pointer_to_ele2
+end interface
+
 contains
 
 !---------------------------------------------------------------------------
@@ -797,6 +828,7 @@ lat%param%stable = .true.
 lat%param%particle = positron$
 lat%param%aperture_limit_on = .true.
 lat%param%lattice_type = circular_lattice$
+call set_status_flags (lat%param%status, ok$)
 
 call init_coord(lat%beam_start)
 
@@ -1440,8 +1472,7 @@ ele%ref_time = 0
 ele%ix_branch = 0
 ele%ix_ele = -1
 
-ele%attribute_status = unmodified$
-ele%n_attribute_modify = 0
+call set_status_flags (ele%status, ok$, 0)
 
 if (present(ix_branch)) ele%ix_branch = ix_branch
 if (present(ix_ele)) ele%ix_ele = ix_ele
@@ -1740,12 +1771,15 @@ endif
 
 do i = curr_ub+1, ub
   lat%branch(i)%ix_branch = i
+  lat%branch(i)%ix_from_branch = -1
+  lat%branch(i)%ix_from_ele = -1
   if (i == 0) cycle
   allocate(lat%branch(i)%n_ele_track)
   allocate(lat%branch(i)%n_ele_max)
   allocate(lat%branch(i)%param)
   allocate(lat%branch(i)%wall3d)
   lat%branch(i)%param = lat%param
+  call set_status_flags (lat%branch(i)%param%status, ok$, 0)
 end do
 
 end subroutine allocate_branch_array
@@ -2388,5 +2422,405 @@ real(rp) e_loss_factor, energy_lost
 energy_lost = e_loss_factor * param%n_part * abs(charge_of(param%particle)) * e_charge
 
 end function e_loss_sr_wake
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine set_ele_status_stale (ele, param, which)
+!
+! Routine to set a status flags to stale in an element and the corresponding 
+! ones for the branch%param structure of the branch the element is in.
+! 
+! Output:
+!   ele    -- ele_struct: Element.
+!     %status -- Status block to set.
+!   param  -- lat_param_struct: branch%param component of branch element is in.
+!     %status -- status block to set.
+!   which  -- Integer: Which flag groups to set. Possibilities are:
+!               attributes_status$, control_status$, floor_position_status$,
+!               length_status$, ref_energy_status$, or mat6_status$, all_status$
+!-
+
+subroutine set_ele_status_stale (ele, param, which)
+
+implicit none
+
+type (lat_param_struct) param
+type (ele_struct) ele
+integer which
+
+!
+
+select case (which)
+
+case (attributes_status$)
+  call set_attributes
+
+case (control_status$)
+  call set_control
+
+case (floor_position_status$)
+  call set_floor_position
+  call set_mat6
+
+case (length_status$)
+  call set_length
+  call set_floor_position
+  call set_mat6
+
+case (ref_energy_status$)
+  call set_ref_energy
+  call set_mat6
+
+case (mat6_status$)
+  call set_mat6
+
+case (all_status$)
+  call set_attributes
+  call set_control
+  call set_floor_position
+  call set_length
+  call set_mat6
+
+case default
+   call err_exit   ! Should not be here
+
+end select
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine set_attributes
+  ele%status%attributes = stale$
+  param%status%attributes = stale$
+end subroutine set_attributes
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine set_control
+  if (ele%lord_status == not_a_lord$ .and. ele%slave_status == free$) return
+  ele%status%control = stale$
+  param%status%control = stale$
+end subroutine set_control
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine set_floor_position
+  if (ele%key == overlay$ .or. ele%key == group$) return
+  ele%status%floor_position = stale$
+  param%status%floor_position = stale$
+end subroutine set_floor_position
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine set_length
+  if (ele%key == overlay$ .or. ele%key == group$) return
+  ele%status%length = stale$
+  param%status%length = stale$
+end subroutine set_length
+
+!----------------------------------------------------------------------------
+! contains
+
+subroutine set_ref_energy
+  ele%status%ref_energy = stale$
+  param%status%ref_energy = stale$
+end subroutine set_ref_energy
+
+!----------------------------------------------------------------------------
+! contains
+
+! Ignore if the element does not have an associated linear transfer map
+! Also the branch status does not get set since the transfer map calc
+! must always check a branch due to possible reference orbit shifts.
+
+subroutine set_mat6
+  if (ele%lord_status == overlay_lord$) return
+  if (ele%lord_status == group_lord$) return
+  if (ele%lord_status == multipass_lord$) return
+  ele%status%mat6 = stale$
+end subroutine set_mat6
+
+end subroutine set_ele_status_stale 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_status_flags (status_block, stat, n_modify, keep_super_ok)
+!
+! Routine to set the bookkeeping status block.
+!
+! Input:
+!   stat          -- Integer: bookkeeping status. ok$, stale$, etc.
+!   n_modify      -- Integer: Number to set stat%n_modify to
+!   keep_super_ok -- Logical, optional: If present and True then flags with 
+!                       a super_ok$ value are not set. Default is False.
+!
+! Output:
+!   status_block -- bookkeeper_status_struct: 
+!-
+
+subroutine set_status_flags (status_block, stat, n_modify, keep_super_ok)
+
+implicit none
+
+type (bookkeeper_status_struct) status_block
+integer stat
+integer, optional :: n_modify
+logical, optional :: keep_super_ok
+logical no_keep
+
+!
+
+no_keep = .not. logic_option (.false., keep_super_ok)
+
+if (no_keep .or. status_block%control /= super_ok$)        status_block%control        = stat
+if (no_keep .or. status_block%length /= super_ok$)         status_block%length         = stat
+if (no_keep .or. status_block%floor_position /= super_ok$) status_block%floor_position = stat
+if (no_keep .or. status_block%ref_energy /= super_ok$)     status_block%ref_energy     = stat
+if (no_keep .or. status_block%attributes /= super_ok$)     status_block%attributes     = stat
+if (no_keep .or. status_block%mat6 /= super_ok$)           status_block%mat6           = stat
+
+if (present(n_modify)) status_block%n_modify = n_modify
+
+end subroutine set_status_flags
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine set_slaves_status_stale (ele, lat, who, flag)
+!
+! Routine to recursively set the status flag of all slaves of an element.
+!
+! Input:
+!   ele   -- ele_struct: Element
+!   who   -- Integer: which flag to set. floor_position_status$, etc.
+!   flag  -- Logical, optional: Do not use. For determining recursion depth.
+!
+!   lat   -- Lat_struct: Lattice with status flags of slaves of ele set.
+!-
+
+recursive subroutine set_slaves_status_stale (ele, lat, who, flag)
+
+implicit none
+
+type (lat_struct) lat
+type (ele_struct) ele
+type (ele_struct), pointer :: slave
+integer who, i
+logical, optional :: flag
+
+! First time through the flag argument will not be present.
+! Do not set status first time through since this is the original element.
+! That is, only want to set the flags of the slaves.
+
+if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, who)
+
+do i = 1, ele%n_slave
+  slave => pointer_to_slave(lat, ele, i)
+  call set_slaves_status_stale (slave, lat, who, .true.)
+enddo
+
+end subroutine set_slaves_status_stale
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine set_lords_status_stale (ele, lat, who, flag)
+!
+! Routine to recursively set the status flag of all slaves of an element.
+!
+! Input:
+!   ele   -- ele_struct: Element
+!   who   -- Integer: which flag to set. floor_position_status$, etc.
+!   flag  -- Logical, optional: Do not use. For determining recursion depth.
+!
+!   lat   -- Lat_struct: Lattice with status flags of lords of ele set.
+!-
+
+recursive subroutine set_lords_status_stale (ele, lat, who, flag)
+
+implicit none
+
+type (lat_struct) lat
+type (ele_struct) ele
+type (ele_struct), pointer :: lord
+integer who, i
+logical, optional :: flag
+
+! First time through the flag argument will not be present.
+! Do not set status first time through since this is the original element.
+! That is, only want to set the flags of the lords.
+
+if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, who)
+
+do i = 1, ele%n_lord
+  lord => pointer_to_lord(lat, ele, i)
+  call set_lords_status_stale (lord, lat, who, flag)
+enddo
+
+end subroutine set_lords_status_stale
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_slave (lat, lord, ix_slave, ix_contrl) result (slave_ptr)
+!
+! Function to point to a slave of a lord.
+!
+! Modules Needed:
+!   use lat_ele_loc_mod
+!
+! Input:
+!   lat      -- lat_struct: Lattice containing the lord
+!   lord     -- Ele_struct: Pointer to the lord element
+!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave
+!
+! Output:
+!   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
+!                   Nullified if there is an error.
+!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
+!                   Set to -1 is there is an error.
+!-
+
+function pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct) lord
+type (ele_struct), pointer :: slave_ptr
+type (control_struct), pointer :: con
+
+integer, optional :: ix_control
+integer ix_slave, icon
+
+!
+
+if (ix_slave > lord%n_slave .or. ix_slave < 1) then
+  nullify(slave_ptr)
+  if (present(ix_control)) ix_control = -1
+  return
+endif
+
+icon = lord%ix1_slave + ix_slave - 1
+con => lat%control(icon)
+slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
+if (present(ix_control)) ix_control = icon
+
+end function pointer_to_slave
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
+!
+! Function to point to a lord of a slave.
+!
+! Modules Needed:
+!   use lat_ele_loc_mod
+!
+! Input:
+!   lat        -- lat_struct: Lattice containing the lord
+!   slave      -- Ele_struct: Slave element.
+!   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord
+!
+! Output:
+!   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
+!                   Nullified if there is an error.
+!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
+!                   Set to -1 is there is an error.
+!-
+
+function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct) slave
+type (ele_struct), pointer :: lord_ptr
+
+integer, optional :: ix_control
+integer ix_lord, icon
+
+!
+
+if (ix_lord > slave%n_lord .or. ix_lord < 1) then
+  nullify(lord_ptr)
+  if (present(ix_control)) ix_control = -1
+  return
+endif
+
+icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+if (present(ix_control)) ix_control = icon
+
+end function pointer_to_lord
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_ptr
+
+integer ix_branch, ix_ele
+
+!
+
+ele_ptr => null()
+
+if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) return
+if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) return
+
+ele_ptr => lat%branch(ix_branch)%ele(ix_ele)
+
+end function pointer_to_ele1
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
+!
+! Function to return a pointer to an element in a lattice.
+! This routine is overloaded by pointer_to_ele.
+! See pointer_to_ele for more details.
+!-
+
+function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
+
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele_ptr
+type (lat_ele_loc_struct) ele_loc
+
+!
+
+ele_ptr => null()
+
+if (ele_loc%ix_branch < 0 .or. ele_loc%ix_branch > ubound(lat%branch, 1)) return
+if (ele_loc%ix_ele < 0 .or. ele_loc%ix_ele > lat%branch(ele_loc%ix_branch)%n_ele_max) return
+
+ele_ptr => lat%branch(ele_loc%ix_branch)%ele(ele_loc%ix_ele)
+
+end function pointer_to_ele2
 
 end module

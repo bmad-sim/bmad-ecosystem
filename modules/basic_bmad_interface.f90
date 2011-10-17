@@ -1025,7 +1025,7 @@ interface
 end interface
  
 interface
-  subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran)
+  subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, ran, err_flag)
     use bmad_struct, only: lat_struct, ran_parsing_struct
     implicit none
     type (lat_struct), target, intent(in) :: lat
@@ -1033,6 +1033,7 @@ interface
     character(*) digested_name
     character(*), optional :: file_names(:)
     type (ran_parsing_struct), optional :: ran
+    logical, optional :: err_flag
   end subroutine
 end interface
 

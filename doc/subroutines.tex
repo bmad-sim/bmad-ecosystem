@@ -19,14 +19,18 @@ solely meant for \bmad internal use.
   Coherent Synchrotron Radiation (CSR)        & \ref{r:csr}            \\ \hline
   Collective Effects                          & \ref{r:collective}     \\ \hline
   Electro-Magnetic Fields                     & \ref{r:em.fields}      \\ \hline
-  General Helper Routines                     & \ref{r:sim.utils}      \\ \hline
+  Helper Routines: File, System, and IO       & \ref{r:helper.file}    \\ \hline
+  Helper Routines: Math (Except Matrix)       & \ref{r:helper.math}    \\ \hline
+  Helper Routines: Matrix                     & \ref{r:helper.matrix}  \\ \hline
+  Helper Routines: Miscellaneous              & \ref{r:helper.misc}    \\ \hline
+  Helper Routines: String Manipulation        & \ref{r:helper.string}  \\ \hline
   Inter-Beam Scattering (IBS)                 & \ref{r:ibs}            \\ \hline
-  Lattice: Element Informational              & \ref{r:info}           \\ \hline
+  Lattice: Informational                      & \ref{r:info}           \\ \hline
   Lattice: Element Manipulation               & \ref{r:elem}           \\ \hline
   Lattice: Geometry                           & \ref{r:geom}           \\ \hline
   Lattice: Low Level Stuff                    & \ref{r:lat.low}        \\ \hline
   Lattice: Manipulation                       & \ref{r:trans}          \\ \hline
-  Lattice: Miscellaneous                      & \ref{r:misc.help}      \\ \hline
+  Lattice: Miscellaneous                      & \ref{r:lat.misc}      \\ \hline
   Lattice: Reading and Writing Files          & \ref{r:read}           \\ \hline
   Matrices                                    & \ref{r:mat}            \\ \hline
   Matrix: Low Level Routines                  & \ref{r:low.mat}        \\ \hline
@@ -465,11 +469,8 @@ element.
 \end{description}
 
 %------------------------------------------------------------------------
-\section{General Helper Routines}
-\label{r:sim.utils}      
-
-%------------------------------------------------------------------------
-\subsection{General Helper: File, System, and IO Routines}
+\section{Helper Routines: File, System, and IO}
+\label{r:helper.file}
 
 \begin{description}
 
@@ -584,7 +585,8 @@ Routine to type out a file to the screen.
 \end{description}
 
 %------------------------------------------------------------------------
-\subsection{General Helper: Math (Except Matrix) Routines}
+\section{Helper Routines: Math (Except Matrix)}
+\label{r:helper.math}
 
 \begin{description}
 
@@ -598,6 +600,11 @@ Routine to type out a file to the screen.
 \item[complex_error_function (wr, wi, zr, zi)] \Newline 
 This routine evaluates the function w(z) in the first quadrant of
 the complex plane. 
+
+\index[routine]{cross_product}
+\label{r:cross.product}
+\item[cross_product (a, b)] \Newline 
+Returns the cross product of a x b
 
 \index[routine]{linear_fit}
 \label{r:linear.fit}
@@ -663,7 +670,8 @@ that an error flag is set instead of bombing the program when there is a problem
 \end{description}
 
 %------------------------------------------------------------------------
-\subsection{General Helper: Matrix Routines}
+\section{Helper Routines: Matrix}
+\label{r:helper.matrix}
 
 \begin{description}
 
@@ -717,7 +725,8 @@ transfer matrix T0.
 \end{description}
 
 %------------------------------------------------------------------------
-\subsection{General Helper: Misc Routines}
+\section{Helper Routines: Miscellaneous}
+\label{r:helper.misc}
 
 \begin{description}
 
@@ -769,7 +778,8 @@ optional string.
 \end{description}
 
 %------------------------------------------------------------------------
-\subsection{General Helper: String Manipulation Routines}
+\section{Helper Routines: String Manipulation}
+\label{r:helper.string}
 
 \begin{description}
 
@@ -886,146 +896,6 @@ Routine to convert a string to uppercase:
 \item[ibs_lifetime(lat,mode,maxratio,lifetime,formula)] \Newline 
  This module computes the beam lifetime due to
  the diffusion process according to equation 12
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{Lattice: Informational}
-\label{r:info}     
-
-\begin{description}
-
-\index[routine]{attribute_free}
-\label{r:attribute.free}
-\item[\protect\parbox{6in}{
-  attribute_free (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free) \\
-  attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay) result (free) \\
-  attribute_free (ix_ele, ix_branch, attrib_name, lat, err_print_flag, except_overlay) result (free)
-  }] \Newline
-Overloaded function to check if an attribute is free to vary.
-
-\index[routine]{attribute_index}
-\label{r:attribute.index}
-\item[attribute_index (ele, name)] \Newline
-Function to return the index of an attribute for a given element 
-type and the name of the attribute 
-
-\index[routine]{attribute_name}
-\label{r:attribute.name}
-\item[attribute_name (ele, ix_att)] \Newline
-Function to return the name of an attribute for a particular type of element. 
-
-\index[routine]{attribute_type}
-\label{r:attribute.type}
-\item[attribute_type (attrib_name) result (attrib_type)] \Newline 
-Routine to return the type (logical, integer, real, or named) of an attribute.
-
-\index[routine]{attribute_value_name}
-\label{r:attribute.value.name}
-\item[attribute_value_name (attrib_name, attrib_value, ele, 
-                                    is_default) result (val_name)] \Newline 
-Routine to return the name corresponding to the value of a given attribute.
-
-\index[routine]{check_lat_controls}
-\label{r:check.lat.controls}
-\item[check_lat_controls (lat, exit_on_error)] \Newline
-Routine to check if the control links in a lat structure are valid. 
-
-\index[routine]{ele_at_s}
-\label{r:ele.at.s}
-\item[ele_at_s (lat, s, ix_ele, ix_branch)] \Newline 
-Routine to return the index of the element at position s.
-
-\index[routine]{ele_loc_to_string}
-\label{r:ele.loc.to.string}
-\item[ele_loc_to_string (ele, show_branch0) result (str)] \Newline 
-Routine to encode an element's location into a string.
-
-\index[routine]{ele_to_lat_loc}
-\label{r:ele.to.lat.loc}
-\item[ele_to_lat_loc (ele) result (ele_loc)] \Newline 
-Function to return an lat_ele_loc_struct identifying where an element is in the lattice.
-
-\index[routine]{equivalent_taylor_attributes}
-\item[equivalent_taylor_attributes (ele1, ele2) result (equiv)] \Newline 
-Routine to see if two elements are equivalent in terms of their attributes so
-that their Taylor Maps, if they existed, would be the same.
-
-\index[routine]{find_element_ends}
-\label{r:find.element.ends}
-\item[find_element_ends (lat, ele, ele1, ele2)] \Newline
-Routine to find the end points of an element. 
-
-\index[routine]{get_element_slave_list}
-\label{r:get.element.slave.list}
-\item[get_element_slave_list (lat, lord, slaves, n_slave)] \Newline 
-Routine to get the list of slaves for an element.
-
-\index[routine]{key_name}
-\label{r:key.name}
-\item[{key_name (key_index)}] \Newline
-Translate an element key index (EG: quadrupole\$, etc.) to a character string.
-
-\index[routine]{key_name_to_key_index}
-\label{r:key.name.to.key.index}
-\item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
-Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
-
-\index[routine]{lat_ele_locator}
-\label{r:lat.ele.locator}
-\item[lat_ele_locator (loc_str, lat, eles, n_loc, err)] \Newline 
-Routine to locate all the elements in a lattice that corresponds to loc_str. 
-
-\index[routine]{n_attrib_string_max_len}
-\label{r:n.attrib.string.max.len}
-\item[n_attrib_string_max_len () result (max_len)] \Newline 
-Routine to return the the maximum number of characters in any attribute
-name known to bmad.
-
-\index[routine]{pointer_to_indexed_attribute}
-\label{r:pointer.to.indexed.attribute}
-\item[\protect\parbox{6in}{
-  pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, \\
-  \hspace*{1in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
-Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
-
-\index[routine]{pointer_to_lord}
-\label{r:pointer.to.lord}
-\item[pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)] \Newline 
-Function to point to a lord of a slave.
-
-\item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
-Routine to find the multipass lord of a lattice element.
-A multi_lord will be found for:
-
-\index[routine]{pointer_to_slave}
-\label{r:pointer.to.slave}
-\item[pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)] \Newline 
-Function to point to a slave of a lord.
-
-\index[routine]{type_ele}
-\label{r:type.ele}
-\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, \\ 
-\hspace*{1in} type_control, lattice, type_wake, type_floor_coords, type_wig_terms, \\
-\hspace*{1in} type_cross_section, type_cross_section, nunit)}] \Newline
-Routine to print the contents of an element at the terminal. 
-
-\index[routine]{type2_ele}
-\label{r:type2.ele}
-\item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
-\hspace*{1in} type_taylor, twiss_out, type_control, lattice, type_wake, \\
-\hspace*{1in} type_floor_coords, type_wig_terms, type_cross_section)}] \Newline
-Like \vn{type_ele} but the output is stored in a string array. 
-
-\index[routine]{type_twiss}
-\label{r:type.twiss}
-\item[type_twiss (ele, frequency_units)] \Newline
-Routine to type out the Twiss parameters from an element. 
-
-\index[routine]{type2_twiss}
-\label{r:type2.twiss}
-\item[type2_twiss (ele, lines, n_lines, frequency_units, compact_format)] \Newline
-Like \vn{type_twiss} but the output is stored in a string array. 
 
 \end{description}
 
@@ -1192,6 +1062,152 @@ Routine to calculate the longitudinal distance S for the elements in a lat.
 \item[theta_floor (s, lat, theta_base) result (theta_fl)] \Newline 
 Returns the angle of the reference coordinate system in the
 global reference system.
+
+\end{description}
+
+%------------------------------------------------------------------------
+\section{Lattice: Informational}
+\label{r:info}     
+
+\begin{description}
+
+\index[routine]{attribute_free}
+\label{r:attribute.free}
+\item[\protect\parbox{6in}{
+  attribute_free (ix_ele, attrib_name, lat, err_print_flag, except_overlay) result (free) \\
+  attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay) result (free) \\
+  attribute_free (ix_ele, ix_branch, attrib_name, lat, err_print_flag, except_overlay) result (free)
+  }] \Newline
+Overloaded function to check if an attribute is free to vary.
+
+\index[routine]{attribute_index}
+\label{r:attribute.index}
+\item[attribute_index (ele, name)] \Newline
+Function to return the index of an attribute for a given element 
+type and the name of the attribute 
+
+\index[routine]{attribute_name}
+\label{r:attribute.name}
+\item[attribute_name (ele, ix_att)] \Newline
+Function to return the name of an attribute for a particular type of element. 
+
+\index[routine]{attribute_type}
+\label{r:attribute.type}
+\item[attribute_type (attrib_name) result (attrib_type)] \Newline 
+Routine to return the type (logical, integer, real, or named) of an attribute.
+
+\index[routine]{attribute_value_name}
+\label{r:attribute.value.name}
+\item[attribute_value_name (attrib_name, attrib_value, ele, 
+                                    is_default) result (val_name)] \Newline 
+Routine to return the name corresponding to the value of a given attribute.
+
+\index[routine]{check_lat_controls}
+\label{r:check.lat.controls}
+\item[check_lat_controls (lat, exit_on_error)] \Newline
+Routine to check if the control links in a lat structure are valid. 
+
+\index[routine]{ele_at_s}
+\label{r:ele.at.s}
+\item[ele_at_s (lat, s, ix_ele, ix_branch)] \Newline 
+Routine to return the index of the element at position s.
+
+\index[routine]{ele_loc_to_string}
+\label{r:ele.loc.to.string}
+\item[ele_loc_to_string (ele, show_branch0) result (str)] \Newline 
+Routine to encode an element's location into a string.
+
+\index[routine]{ele_to_lat_loc}
+\label{r:ele.to.lat.loc}
+\item[ele_to_lat_loc (ele) result (ele_loc)] \Newline 
+Function to return an lat_ele_loc_struct identifying where an element is in the lattice.
+
+\index[routine]{equivalent_taylor_attributes}
+\item[equivalent_taylor_attributes (ele1, ele2) result (equiv)] \Newline 
+Routine to see if two elements are equivalent in terms of their attributes so
+that their Taylor Maps, if they existed, would be the same.
+
+\index[routine]{find_element_ends}
+\label{r:find.element.ends}
+\item[find_element_ends (lat, ele, ele1, ele2)] \Newline
+Routine to find the end points of an element. 
+
+\index[routine]{get_element_slave_list}
+\label{r:get.element.slave.list}
+\item[get_element_slave_list (lat, lord, slaves, n_slave)] \Newline 
+Routine to get the list of slaves for an element.
+
+\index[routine]{key_name}
+\label{r:key.name}
+\item[{key_name (key_index)}] \Newline
+Translate an element key index (EG: quadrupole\$, etc.) to a character string.
+
+\index[routine]{key_name_to_key_index}
+\label{r:key.name.to.key.index}
+\item[key_name_to_key_index (key_str, abbrev_allowed) result (key_index)] \Newline 
+Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
+
+\index[routine]{lat_ele_locator}
+\label{r:lat.ele.locator}
+\item[lat_ele_locator (loc_str, lat, eles, n_loc, err)] \Newline 
+Routine to locate all the elements in a lattice that corresponds to loc_str. 
+
+\index[routine]{n_attrib_string_max_len}
+\label{r:n.attrib.string.max.len}
+\item[n_attrib_string_max_len () result (max_len)] \Newline 
+Routine to return the the maximum number of characters in any attribute
+name known to bmad.
+
+\index[routine]{name_to_list}
+\label{r:name.to.list}
+\item[name_to_list (lat, ele_names, use_ele)] \Newline
+Routine to make a list of the elements in a lat 
+whose name matches the names in the ele_names list. 
+
+\index[routine]{pointer_to_indexed_attribute}
+\label{r:pointer.to.indexed.attribute}
+\item[\protect\parbox{6in}{
+  pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, \\
+  \hspace*{1in} ptr_attrib, err_flag, err_print_flag)} ] \Newline 
+Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
+
+\index[routine]{pointer_to_lord}
+\label{r:pointer.to.lord}
+\item[pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)] \Newline 
+Function to point to a lord of a slave.
+
+\item[pointer_to_multipass_lord (ele, lat, ix_pass, super_lord) result (multi_lord)] \Newline 
+Routine to find the multipass lord of a lattice element.
+A multi_lord will be found for:
+
+\index[routine]{pointer_to_slave}
+\label{r:pointer.to.slave}
+\item[pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)] \Newline 
+Function to point to a slave of a lord.
+
+\index[routine]{type_ele}
+\label{r:type.ele}
+\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, \\ 
+\hspace*{1in} type_control, lattice, type_wake, type_floor_coords, type_wig_terms, \\
+\hspace*{1in} type_cross_section, type_cross_section, nunit)}] \Newline
+Routine to print the contents of an element at the terminal. 
+
+\index[routine]{type2_ele}
+\label{r:type2.ele}
+\item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
+\hspace*{1in} type_taylor, twiss_out, type_control, lattice, type_wake, \\
+\hspace*{1in} type_floor_coords, type_wig_terms, type_cross_section)}] \Newline
+Like \vn{type_ele} but the output is stored in a string array. 
+
+\index[routine]{type_twiss}
+\label{r:type.twiss}
+\item[type_twiss (ele, frequency_units)] \Newline
+Routine to type out the Twiss parameters from an element. 
+
+\index[routine]{type2_twiss}
+\label{r:type2.twiss}
+\item[type2_twiss (ele, lines, n_lines, frequency_units, compact_format)] \Newline
+Like \vn{type_twiss} but the output is stored in a string array. 
 
 \end{description}
 
@@ -1376,14 +1392,9 @@ Routine to zero the offsets, pitches and tilt of an element.
 
 %------------------------------------------------------------------------
 \section{Lattice: Miscellaneous}
-\label{r:misc.help}
+\label{r:lat.misc}
 
 \begin{description}
-
-\index[routine]{cross_product}
-\label{r:cross.product}
-\item[cross_product (a, b)] \Newline 
-Returns the cross product of a x b
 
 \index[routine]{c_multi}
 \label{r:c.multi}
@@ -1393,19 +1404,13 @@ c_multi(n, m) = +/- ("n choose m")/n!
 
 \index[routine]{compute_reference_energy}
 \label{r:compute.reference.energy}
-\item[compute_reference_energy (lat, compute)] \Newline
+\item[compute_reference_energy (lat)] \Newline
 Routine to compute the reference energy for each element in a lattice. 
 
 \index[routine]{field_interpolate_3d}
 \label{r:field.interpolate.3d}
 \item[field_interpolate_3d (position, field_mesh, deltas, position0)] \Newline
 Function to interpolate a 3d field. 
-
-\index[routine]{name_to_list}
-\label{r:name.to.list}
-\item[name_to_list (lat, ele_names, use_ele)] \Newline
-Routine to make a list of the elements in a lat 
-whose name matches the names in the ele_names list. 
 
 \index[routine]{order_super_lord_slaves}
 \label{r:order.super.lord.slaves}
@@ -1416,6 +1421,11 @@ Routine to make the slave elements of a super_lord in order.
 \label{r:release.rad.int.cache}
 \item[release_rad_int_cache (ix_cache)] \Newline 
      Routine to release the memory associated with caching wiggler values.
+
+\index[routine]{set_flags_for_changed_attribute}
+\label{r:set.flags.for.changed.attribute}
+\item[set_flags_for_changed_attribute (lat, ele, attrib)] \Newline 
+Routine to mark an element as modified for use with "intelligent" bookkeeping.
 
 \index[routine]{wiggler_vec_potential}
 \label{r:wiggler.vec.potential}

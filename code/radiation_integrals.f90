@@ -272,13 +272,13 @@ if (init_cache) then
     if (size(cache%ele) < j) deallocate (cache%ele)
   endif
   if (.not. allocated(cache%ele)) allocate (cache%ele(j))  ! allocate cache memory
-  cache%ele%n_attribute_modify = -1
+  cache%ele%n_modify = -1
 
 endif
 
 ! Now cache the information.
 ! The cache ri_info is computed with all offsets off.
-! Only need to update the cache if ele%n_attribute_modify has been altered.
+! Only need to update the cache if ele%status%n_modify has been altered.
 
 if (use_cache .or. init_cache) then
 
@@ -290,8 +290,8 @@ if (use_cache .or. init_cache) then
     j = j + 1
     cache_ele => cache%ele(j)
 
-    if (cache_ele%n_attribute_modify == lat%ele(i)%n_attribute_modify) cycle
-    cache_ele%n_attribute_modify = lat%ele(i)%n_attribute_modify
+    if (cache_ele%n_modify == lat%ele(i)%status%n_modify) cycle
+    cache_ele%n_modify = lat%ele(i)%status%n_modify
 
     ! Calculation is effectively done in element reference frame with ele2 having
     ! no offsets.

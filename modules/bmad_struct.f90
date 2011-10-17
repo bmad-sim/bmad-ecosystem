@@ -21,7 +21,7 @@ use tpsalie_analysis, only: genfield
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 99
+integer, parameter :: bmad_inc_version$ = 100
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -233,6 +233,25 @@ type mode3_struct
   type (twiss_struct) x, y
 end type
 
+integer, parameter :: super_ok$ = 0, stale$ = 2
+integer, parameter :: attributes_status$ = 1, control_status$ = 2, floor_position_status$ = 3
+integer, parameter :: length_status$ = 4, ref_energy_status$ = 5, mat6_status$ = 6, all_status$ = 7
+
+! The bookkeeper_status_struct is used for keeping track of what bookkeeping has
+! been done on an element. NOTE: The information in this structure is ignored if 
+! bmad_com%auto_bookkeeper = True which is the default.
+! See the Bmad manual for more details.
+
+type bookkeeper_status_struct
+  integer :: attributes = ok$      ! Element dependent attributes: super_ok$, ok$ or stale$
+  integer :: control = ok$         ! Lord/slave bookkeeping status: super_ok$, ok$ or stale$ 
+  integer :: floor_position = ok$  ! Global (floor) geometry: super_ok$, ok$ or stale$
+  integer :: length = ok$          ! Length: super_ok$, ok$ or stale$
+  integer :: ref_energy = ok$      ! Reference energy: super_ok$, ok$ or stale$
+  integer :: mat6 = ok$            ! Linear transfer map status: super_ok$, ok$ or stale$
+  integer :: n_modify = 0          ! How many times the dependent attributes or ref energy have been modified?.
+end type
+
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
 !     Increase bmad_inc_version by 1.
@@ -260,6 +279,7 @@ type ele_struct
   type (space_charge_struct), pointer :: space_charge => null()
   type (wall3d_struct) :: wall3d             ! Chamber or capillary wall
   type (em_field_grid_struct), pointer :: em_grid => null()
+  type (bookkeeper_status_struct) status     ! For keeping track of what bookkeeping has been done.
   real(rp) value(n_attrib_maxx)              ! attribute values.
   real(rp) old_value(n_attrib_maxx)          ! Used to see if %value(:) array has changed.
   real(rp) gen0(6)                           ! constant part of the genfield map.
@@ -295,8 +315,6 @@ type ele_struct
                              !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
   integer aperture_at        ! Aperture location: exit_end$, ...
   integer aperture_type     ! rectangular$, elliptical$, star_shape$, or custom$
-  integer attribute_status   ! Element attributes have been modified?
-  integer n_attribute_modify ! How many times the attributes have been modified.
   logical symplectify        ! Symplectify mat6 matrices.
   logical mode_flip          ! Have the normal modes traded places?
   logical multipoles_on      ! For turning multipoles on/off
@@ -341,6 +359,7 @@ type lat_param_struct
   logical stable              ! is closed lat stable?
   logical aperture_limit_on   ! use apertures in tracking?
   logical lost                ! for use in tracking
+  type (bookkeeper_status_struct) status     ! Overall status for the branch.
 end type
 
 !
@@ -355,8 +374,8 @@ end type
 
 type branch_struct
   character(40) name
-  integer ix_branch
-  integer ix_from_branch    ! 0 => main lattice line
+  integer ix_branch         !  0 => main lattice line
+  integer ix_from_branch    ! -1 => Not connected
   integer ix_from_ele
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
@@ -481,7 +500,7 @@ integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: e_field_x$ = 10,  e_field_y$ = 11, phase_x$ = 12, phase_y$ = 13
 
 integer, parameter :: l$=1    ! Assumed unique. Do not overload.
-integer, parameter :: tilt$=2, command$=2, ix_branch_to$=2
+integer, parameter :: tilt$=2, command$=2
 integer, parameter :: tilt_err$ = 3 
 integer, parameter :: direction$=3
 integer, parameter :: old_command$=3, angle$=3, kick$=3, gradient_err$=3, x_gain_err$=3
@@ -495,7 +514,7 @@ integer, parameter :: graze_angle_in$ = 6
 integer, parameter :: dks_ds$=6
 integer, parameter :: g$=7, voltage$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: critical_angle$ = 7, n_cells$=7
-integer, parameter :: graze_angle_out$ = 7
+integer, parameter :: graze_angle_out$ = 7, ix_branch_to$=7
 integer, parameter :: graze_angle_err$ = 8
 integer, parameter :: ks$=8, e1$=8, charge$=8, gap$=8, dphi0$=8, x_gain_calib$=8
 integer, parameter :: d1_thickness$ = 9
@@ -836,21 +855,7 @@ character(16), parameter :: aperture_type_name(0:7) = &
                                      'garbage!   ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
-character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'pi_polarization   ']
-
-! ele%attribute_status values.
-! The idea:
-!   When an element attribute is modified, a program will set ele%attribute_status to 
-!     is_modified$ to trigger the bookkeeping routines.
-!   The bookkeeping routines will set ele %attribute_status to all_bookkeeping_done$ when
-!     the bookkeeping is done.
-!   After this, the program can optionally set ele%attribute_status to unmodified$ if it 
-!     has calculations that it only wants to do if element attributes are modified.
-!   Additionally: ele%n_attribute_modify will be increased by 1 each time 
-!     attribute_bookkeper updates an element with modified attributes.
-
-integer, parameter :: unmodified$ = 1, all_bookkeeping_done$ = 2
-integer, parameter :: attribute_bookkeeping_done$ = 3,  is_modified$ = 4
+character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']
 
 ! ran_parsing_struct is used by parsing routines.
 ! %deterministic:
@@ -901,7 +906,6 @@ type bmad_common_struct
   logical :: spin_tracking_on = .false.           ! spin tracking?
   logical :: radiation_damping_on = .false.       ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
-  logical :: compute_ref_energy = .true.          ! Enable recomputation?
   logical :: conserve_taylor_maps = .true.        ! Enable bookkeeper to set
                                                   ! ele%map_with_offsets = F?
 end type

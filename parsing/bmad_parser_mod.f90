@@ -380,7 +380,6 @@ if (ele%key == init_ele$ .or. ele%key == def_beam_start$) then
   endif
 
   r_ptrs(1)%r = value
-  call changed_attribute_bookkeeper (lat, ele, r_ptrs(1)%r)
   return
 endif
 
@@ -4582,8 +4581,7 @@ end subroutine settable_dep_var_bookkeeping
 ! Subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
 !
 ! Subroutine to form the standard name of the Bmad digested file. 
-! The standard digested file name has 'digested_' (single precision Bmad) or 
-! 'digested8_' (standard double precision Bmad) prepended to the file name.
+! The standard digested file name has 'digested_' prepended to the file name.
 !
 ! Modules needed:
 !   use bmad_parser_mod
@@ -4615,11 +4613,7 @@ if (ix /= 0) full_name = full_name(:ix-1)
 if (present (full_lat_file)) full_lat_file = full_name
 
 ix = SplitFileName(full_name, path, basename)
-if (rp == 8) then
-  digested_file = trim(path) // 'digested8_' // basename
-else
-  digested_file = trim(path) // 'digested_' // basename
-endif
+digested_file = trim(path) // 'digested_' // basename
 
 ! This only affects VMS programs.
 ! What we want to do is change the directory for lattice files in

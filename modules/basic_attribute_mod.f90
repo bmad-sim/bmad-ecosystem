@@ -365,6 +365,7 @@ enddo
 
 !
 
+call init_attrib (photon_branch$, ix_branch_to$,         reserved_name$)
 call init_attrib (photon_branch$, direction$,            'DIRECTION')
 call init_attrib (photon_branch$, to$,                   'TO')
 call init_attrib (photon_branch$, particle$,             'PARTICLE')

@@ -5,8 +5,7 @@
 !
 ! Because of the time it takes to parse a file BMAD_PARSER will save 
 ! LAT in a "digested" file with the name:
-!               'digested_' // lat_file   ! for single precision BMAD version
-!               'digested8_' // lat_file  ! for double precision BMAD version
+!               'digested_' // lat_file   
 ! For subsequent calls to the same lat_file, BMAD_PARSER will just read in the
 ! digested file. BMAD_PARSER will always check to see that the digested file
 ! is up-to-date and if not the digested file will not be used.
@@ -991,12 +990,6 @@ do i = 0, ubound(lat%branch, 1)
 
 enddo
 
-! Mark elements as unmodified
-
-do i = 0, ubound(lat%branch, 1)
-  lat%branch(i)%ele(:)%attribute_status = unmodified$
-enddo
-
 !-------------------------------------------------------------------------
 ! write out if debug is on
 
@@ -1007,8 +1000,9 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 if (.not. bp_com%error_flag) then            
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) then
-    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names, bp_com%ran)
-    if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, &
+                                                            bp_com%lat_file_names, bp_com%ran, err_flag)
+    if (.not. err_flag .and. bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif
 
@@ -1028,9 +1022,13 @@ subroutine parser_end_stuff (do_dealloc)
 logical, optional :: do_dealloc
 integer i, j
 
-! Restore auto_bookkeeper flag
+! Restore auto_bookkeeper flag and zero n_modify status
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
+do i = 0, ubound(lat%branch, 1)
+  lat%branch(i)%param%status%n_modify = 0
+  lat%branch(i)%ele%status%n_modify = 0
+enddo
 
 ! deallocate pointers
 

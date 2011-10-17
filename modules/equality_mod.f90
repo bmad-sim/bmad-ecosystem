@@ -454,7 +454,6 @@ is_eq = all(f1%d_orb == f2%d_orb) .and. &
       (f1%coherent_synch_rad_on .eqv. f2%coherent_synch_rad_on) .and. &
       (f1%radiation_damping_on .eqv. f2%radiation_damping_on) .and. &
       (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on) .and. &
-      (f1%compute_ref_energy .eqv. f2%compute_ref_energy) .and. &
       (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 
 end function eq_bmad_com
@@ -690,8 +689,7 @@ is_eq = is_eq .and. (f1%field_calc == f2%field_calc)
 is_eq = is_eq .and. (f1%ref_orbit == f2%ref_orbit)
 is_eq = is_eq .and. (f1%aperture_at == f2%aperture_at)
 is_eq = is_eq .and. (f1%aperture_type == f2%aperture_type) 
-is_eq = is_eq .and. (f1%attribute_status == f2%attribute_status) 
-is_eq = is_eq .and. (f1%n_attribute_modify == f2%n_attribute_modify) 
+is_eq = is_eq .and. eq_bookkeeper_status(f1%status, f2%status) 
 is_eq = is_eq .and. (f1%symplectify .eqv. f2%symplectify) 
 is_eq = is_eq .and. (f1%mode_flip .eqv. f2%mode_flip)
 is_eq = is_eq .and. (f1%multipoles_on .eqv. f2%multipoles_on) 
@@ -707,6 +705,28 @@ is_eq = is_eq .and. (f1%csr_calc_on .eqv. f2%csr_calc_on)
 is_eq = is_eq .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture) 
 
 end function eq_ele
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+elemental function eq_bookkeeper_status (f1, f2) result (is_eq)
+
+implicit none
+
+type (bookkeeper_status_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+is_eq = is_eq .and. (f1%mat6 == f2%mat6) 
+is_eq = is_eq .and. (f1%control == f2%control) 
+is_eq = is_eq .and. (f1%floor_position == f2%floor_position) 
+is_eq = is_eq .and. (f1%ref_energy == f2%ref_energy) 
+is_eq = is_eq .and. (f1%attributes == f2%attributes) 
+is_eq = is_eq .and. (f1%n_modify == f2%n_modify) 
+
+end function eq_bookkeeper_status
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------

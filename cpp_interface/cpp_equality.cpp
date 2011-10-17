@@ -227,7 +227,6 @@ bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
       (x.spin_tracking_on == y.spin_tracking_on) &&
       (x.radiation_damping_on == y.radiation_damping_on) &&
       (x.radiation_fluctuations_on == y.radiation_fluctuations_on) &&
-      (x.compute_ref_energy == y.compute_ref_energy) &&
       (x.conserve_taylor_maps == y.conserve_taylor_maps);
 }
 
@@ -292,8 +291,6 @@ bool operator== (const C_ele& x, const C_ele& y) {
   is_true = is_true && (x.ref_orbit == y.ref_orbit);
   is_true = is_true && (x.aperture_at == y.aperture_at);
   is_true = is_true && (x.aperture_type == y.aperture_type);
-  is_true = is_true && (x.attribute_status == y.attribute_status);
-  is_true = is_true && (x.n_attribute_modify == y.n_attribute_modify);
   is_true = is_true && (x.symplectify == y.symplectify);
   is_true = is_true && (x.mode_flip == y.mode_flip);
   is_true = is_true && (x.multipoles_on == y.multipoles_on);

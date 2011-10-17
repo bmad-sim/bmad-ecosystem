@@ -5,33 +5,6 @@ use basic_bmad_interface
 use bmad_utils_mod
 
 private lat_ele1_locator
-private pointer_to_ele1, pointer_to_ele2
-
-!+
-! Function pointer_to_ele (...)
-!
-! Routine to return a pointer to an element.
-! pointer_to_ele is an overloaded name for:
-!     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
-!     Function pointer_to_ele2 (lat, ele_loc_id) result (ele_ptr)
-!
-! Module needed:
-!   use lat_ele_loc_mod
-!
-! Input:
-!   lat       -- lat_struct: Lattice.
-!   ix_ele    -- Integer: Index of element in lat%branch(ix_branch)
-!   ix_branch -- Integer: Index of the lat%branch(:) containing the element.
-!   ele_loc   -- Lat_ele_loc_struct: Location identification.
-!
-! Output:
-!   ele_ptr  -- Ele_struct, pointer: Pointer to the element. 
-!-
-
-interface pointer_to_ele
-  module procedure pointer_to_ele1
-  module procedure pointer_to_ele2
-end interface
 
 contains
 
@@ -416,64 +389,7 @@ if (logic_option (.false., save)) then
   deallocate (l_temp)
 endif
 
-end subroutine
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
-!
-! Function to return a pointer to an element in a lattice.
-! This routine is overloaded by pointer_to_ele.
-! See pointer_to_ele for more details.
-!-
-
-function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
-
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele_ptr
-
-integer ix_branch, ix_ele
-
-!
-
-ele_ptr => null()
-
-if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) return
-if (ix_ele < 0 .or. ix_ele > lat%branch(ix_branch)%n_ele_max) return
-
-ele_ptr => lat%branch(ix_branch)%ele(ix_ele)
-
-end function
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
-!
-! Function to return a pointer to an element in a lattice.
-! This routine is overloaded by pointer_to_ele.
-! See pointer_to_ele for more details.
-!-
-
-function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
-
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele_ptr
-type (lat_ele_loc_struct) ele_loc
-
-!
-
-ele_ptr => null()
-
-if (ele_loc%ix_branch < 0 .or. ele_loc%ix_branch > ubound(lat%branch, 1)) return
-if (ele_loc%ix_ele < 0 .or. ele_loc%ix_ele > lat%branch(ele_loc%ix_branch)%n_ele_max) return
-
-ele_ptr => lat%branch(ele_loc%ix_branch)%ele(ele_loc%ix_ele)
-
-end function
+end subroutine re_allocate_eles
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -500,105 +416,7 @@ type (lat_ele_loc_struct) ele_loc
 ele_loc%ix_ele = ele%ix_ele
 ele_loc%ix_branch = ele%ix_branch
 
-end function
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_slave (lat, lord, ix_slave, ix_contrl) result (slave_ptr)
-!
-! Function to point to a slave of a lord.
-!
-! Modules Needed:
-!   use lat_ele_loc_mod
-!
-! Input:
-!   lat      -- lat_struct: Lattice containing the lord
-!   lord     -- Ele_struct: Pointer to the lord element
-!   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave
-!
-! Output:
-!   slave_ptr  -- Ele_struct, pointer: Pointer to the slave.
-!                   Nullified if there is an error.
-!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
-!                   Set to -1 is there is an error.
-!-
-
-function pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct) lord
-type (ele_struct), pointer :: slave_ptr
-type (control_struct), pointer :: con
-
-integer, optional :: ix_control
-integer ix_slave, icon
-
-!
-
-if (ix_slave > lord%n_slave .or. ix_slave < 1) then
-  nullify(slave_ptr)
-  if (present(ix_control)) ix_control = -1
-  return
-endif
-
-icon = lord%ix1_slave + ix_slave - 1
-con => lat%control(icon)
-slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
-if (present(ix_control)) ix_control = icon
-
-end function
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
-!
-! Function to point to a lord of a slave.
-!
-! Modules Needed:
-!   use lat_ele_loc_mod
-!
-! Input:
-!   lat        -- lat_struct: Lattice containing the lord
-!   slave      -- Ele_struct: Slave element.
-!   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord
-!
-! Output:
-!   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
-!                   Nullified if there is an error.
-!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
-!                   Set to -1 is there is an error.
-!-
-
-function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct) slave
-type (ele_struct), pointer :: lord_ptr
-
-integer, optional :: ix_control
-integer ix_lord, icon
-
-!
-
-if (ix_lord > slave%n_lord .or. ix_lord < 1) then
-  nullify(lord_ptr)
-  if (present(ix_control)) ix_control = -1
-  return
-endif
-
-icon = lat%ic(slave%ic1_lord + ix_lord - 1)
-lord_ptr => lat%ele(lat%control(icon)%ix_lord)
-if (present(ix_control)) ix_control = icon
-
-end function
+end function ele_to_lat_loc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -670,8 +488,8 @@ do i = 1, lord%n_slave
   endif
 enddo
 
-end subroutine
+end subroutine get_slaves
 
-end subroutine
+end subroutine get_element_slave_list
 
 end module

@@ -19,6 +19,7 @@
 !   lat%branch(ix_branch)%param -- Structure holding the info if the particle is lost.
 !     %lost          -- Set True If the particle cannot make it through an element.
 !                         Set False otherwise.
+!     %ix_lost       -- Integer: Set to index of element where particle is lost.
 !     %plane_lost_at -- x_plane$, y_plane$ (for apertures), or 
 !                         z_plane$ (turned around in an lcavity).
 !     %end_lost_at   -- entrance_end$ or exit_end$.
@@ -87,6 +88,8 @@ endif
 call twiss_and_track_intra_ele (branch%ele(ix_start), branch%param,  &
             s_start-s0, branch%ele(ix_start)%value(l$), .true., .true., orbit_start, orbit_end)
 
+if (branch%param%lost) return
+
 if (present(all_orb)) then
   call reallocate_coord(all_orb, branch%n_ele_max)
   all_orb(ix_start) = orbit_end
@@ -99,13 +102,9 @@ do
   if (ix_ele == ix_end) exit
 
   call track1 (orbit_end, branch%ele(ix_ele), branch%param, orbit_end)
+
   if (present(all_orb)) all_orb(ix_ele) = orbit_end
-
-  if (branch%param%lost) then
-    branch%param%ix_lost = ix_ele
-    return
-  endif
-
+  if (branch%param%lost) return
   ix_ele = modulo(ix_ele, branch%n_ele_track) + 1
 enddo
 
@@ -113,7 +112,5 @@ enddo
 
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, 0.0_rp, s_end-branch%ele(ix_end-1)%s, &
                                                                       .true., .true., orbit_end, orbit_end)
-
-if (branch%param%lost) branch%param%ix_lost = ix_end
 
 end subroutine

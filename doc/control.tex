@@ -390,12 +390,12 @@ results. For example:
   o: overlay = {q1}, l = 12
   m: marker, superimpose, offset = 15
 \end{example} 
-In this example, the marker is initially positioned at 15~meters.
-The application of the overlay will increase the length of \vn{q1} by
-2~meters which will push the marker \vn{m} to 17~meters which is probably 
-not what was intended. To avoid this problem, an \vn{expand_lattice} statement
-(\sref{s:expand}) can be placed after the overlay, but before the
-superimpose, statement
+In this example, the marker is initially positioned at 15~meters from
+the beginning of the lattice.  The application of the overlay will
+increase the length of \vn{q1} by 2~meters which will push the marker
+\vn{m} to 17~meters which might not be what was intended. To avoid
+this problem, an \vn{expand_lattice} statement (\sref{s:expand}) can
+be placed after the overlay, but before the superimpose, statement
 \begin{example}
   ...
   o: overlay = {q1}, l = 12
@@ -409,11 +409,12 @@ sum of the lengths of its slave elements. For example, the element
 6~meters which is equal to the sum of the length of \vn{Q{\B}S}
 (3~meters) plus the length of \vn{S{\#1}} (also 3~meters).
 
-If a program varies the length of a superimposed element after the
-lattice has been parsed, the length of the slaves will be adjusted
-accordingly. For example, if element \vn{S} in the first example
-of Section~\sref{s:super} is increased from 6~meters to 9~meters, the
-lattice would look like
+If the length of a superimposed element is varied after the lattice
+has been expanded, the length of the slaves will be adjusted
+accordingly. For example, if, after lattice expansion, the length of
+element \vn{S} in the first example of Section~\sref{s:super} is
+increased by 50\% from 6~meters to 9~meters, the lattice would look
+like
 \begin{example}
         Element   Key         Length  Total
   1)    Q{\#}1       Quadrupole   4        4
@@ -421,23 +422,40 @@ lattice would look like
   3)    S{\#}1       Solenoid     3       13
   4)    D{\#}2       Drift        8       21
 \end{example}
-The length of \vn{Q{\B}S} has been increased from 4~meters to 6~meters
-and the length of \vn{S{\#}1} has been increased from 2~meters to
-3~meters to give the proper length for \vn{S}. Additionally, to keep
-the length of \vn{Q} at 10~meters, the length of \vn{Q{\#}1} has been
-decreased to 4~meters. Notice that the overall length of the lattice
-has increased by 1~meter. 
+The length of \vn{Q{\B}S} has been increased by 50\% from 4~meters to
+6~meters and the length of \vn{S{\#}1} has been increased by 50\% from
+2~meters to 3~meters to give the proper length for \vn{S}.
+Additionally, to keep the length of \vn{Q} at 10~meters, the
+length of \vn{Q{\#}1} has been decreased to 4~meters. The overall
+length of the lattice has increased by 1~meter.
 
 Notice that this result is {\em not} what would be obtained if the
 length of the element \vn{S} is increased to 9~meters in the lattice
-file. The reason for this incompatibility stems from the fact that, in
-general, it is a complex problem to have length changes after parsing
-mirror what would happen if the lengths were changed in the lattice
-file itself. As a result, \bmad chooses to use a relatively simple
-algorithm. In practice, lattice layouts can be designed without
-superimpose, using the \vn{no_superimpose} command (\sref{s:no.superimpose}), and when the
-element lengths are fixed, superposition can be used.
-
+file. The reason for this incompatibility stems from the fact that the
+effect of varying an element's length in the lattice file depends upon
+what reference points are used for specifying any superpositions. For
+example, if the reference point of \vn{S} in the first example of
+Section~\sref{s:super} is changed to
+\begin{example}
+  S: solenoid, l = 6, superimpose, ele_beginning, offset = 6
+\end{example}
+The expanded lattice is unaltered. But with this shifted reference
+point, the effect of changing the length of \vn{S} is different. That is
+\begin{example}
+  S: solenoid, l = 7, superimpose, ref = q, ref_end, offset = -1
+\end{example}
+will not produce the same expanded lattice as
+\begin{example}
+  S: solenoid, l = 7, superimpose, ele_beginning, offset = 6
+\end{example}
+Thus if someone using a simulation program is only considering the
+expanded lattice, there is the potential for confusion if length
+changes mirrored the effect of changing the lengths in the lattice
+file.  To avoid this, and to simplify the computational overhead,
+\bmad chooses to use a relatively simple algorithm for adjusting
+lengths after lattice expansion. Notice that for layout design, the
+\vn{no_superimpose} command (\sref{s:no.superimpose}) can be used to
+supress superposition.
 
 %-----------------------------------------------------------------------------
 \section{Multipass}
