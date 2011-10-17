@@ -341,7 +341,7 @@ type (bbu_stage_struct), pointer :: this_stage
 
 real(rp) min_time_at_wake_ele, time_at_wake_ele
 
-integer i, i_stage_min, ix_bunch, ix_ele, ie
+integer i, i_stage_min, ix_bunch, ix_ele, ie, ip
 integer ix_ele_start, ix_ele_end, j, ib, ib2
 
 character(20) :: r_name = 'bbu_track_a_stage'
@@ -376,11 +376,13 @@ do j = ix_ele_start+1, ix_ele_end
 
   ! Collect orbit stats at element with wake
   if (j == this_stage%ix_ele_lr_wake) then
-    this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(1)%r%vec
-    this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(1)%r%vec**2
-    this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
-    this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(1)%r%vec)
-    this_stage%n_orb   = this_stage%n_orb + 1
+    do ip = 1, size(bbu_beam%bunch(ib)%particle)
+      this_stage%ave_orb = this_stage%ave_orb + bbu_beam%bunch(ib)%particle(ip)%r%vec
+      this_stage%rms_orb = this_stage%rms_orb + bbu_beam%bunch(ib)%particle(ip)%r%vec**2
+      this_stage%max_orb = max(this_stage%max_orb, bbu_beam%bunch(ib)%particle(ip)%r%vec)
+      this_stage%min_orb = min(this_stage%min_orb, bbu_beam%bunch(ib)%particle(ip)%r%vec)
+      this_stage%n_orb   = this_stage%n_orb + 1
+    enddo
   endif
 
 enddo
