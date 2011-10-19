@@ -823,10 +823,14 @@ call photon_reflectivity (graze_angle, photon%now%energy, reflectivity_rough, re
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
-  print *, '       START COORDS: ', photon%start%vec
-  print *, '       ENERGY: ', photon%start%energy, photon%ix_photon
+  print *, '       dw_perp:', dw_perp
+  print *, '       Photon: ', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+  print *, '       Start:  ', photon%start%vec
+  print *, '       Now:    ', photon%now%vec
   print *, '       WILL IGNORE THIS PHOTON...'
+  call print_hit_points (10, photon, wall_hit, '(6es25.15)')
   err_flag = .true.
+  return
 endif
 
 ! absorbtion or reflection...
