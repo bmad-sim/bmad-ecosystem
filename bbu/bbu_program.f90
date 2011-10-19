@@ -14,7 +14,7 @@ type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele, ele2
 
-integer i, ix, j, n_hom, n, n_ele, ix_pass, i_lr
+integer i, ix, j, n_hom, n, n_ele, ix_pass, i_lr, ie
 
 integer istep
 integer :: nstep = 100
