@@ -263,19 +263,7 @@ case (lcavity$)
     gradient = 0
   endif
 
-  ! bp_com%grad_loss_sr_wake is an internal variable used with macroparticles.
-  ! It accounts for the longitudinal short-range wakefields between macroparticles.
-  ! Without macroparticles it should be zero.
-  ! Since the reference energy is shifted by e_loss, dgradient is not affected here.
-
-  if (bmad_com%sr_wakes_on) then
-    if (bmad_com%grad_loss_sr_wake /= 0) then  
-      ! use grad_loss_sr_wake and ignore e_loss
-      gradient = gradient - bmad_com%grad_loss_sr_wake
-    else if (ele%value(e_loss$) /= 0) then
-      gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / length
-    endif
-  endif
+  gradient = gradient + gradient_shift_sr_wake(ele, param) 
 
   ! If the cavity is off and the reference energy does not change then
   ! the tracking is simple.

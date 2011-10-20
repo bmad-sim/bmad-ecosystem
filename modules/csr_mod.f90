@@ -178,7 +178,7 @@ do i = 0, n_step
   ! track through the runt
 
   if (i /= 0) then
-    call slice_ele_calc (ele, lat%param, i, n_step, runt)
+    call create_uniform_element_slice (ele, lat%param, i, n_step, runt)
     runt%csr_calc_on = .false.
     call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
   endif
@@ -1306,7 +1306,7 @@ do i = 0, n_step
   ! track through the runt
 
   if (i /= 0) then
-    call slice_ele_calc (ele, lat%param, i, n_step, runt)
+    call create_uniform_element_slice (ele, lat%param, i, n_step, runt)
     runt%csr_calc_on = .false.
     call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
   endif

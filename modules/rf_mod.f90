@@ -59,7 +59,7 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct), target :: param
 
-real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, design_dE
+real(rp) pz, theta, pz_max, theta0, theta_max, e_tot, f_correct, wanted_de
 real(rp) dtheta, e_tot_start, pz_plus, pz_minus, b, c, theta_tol, pz_tol, theta_max_old
 real(rp) phi0_saved, dphi0_saved
 
@@ -90,10 +90,12 @@ param_com => param
 if (.not. ele%is_on) return
 select case (ele%key)
 case (rfcavity$)
-  design_dE = ele%value(voltage$)
+  wanted_de = ele%value(voltage$)
   e_tot_start = ele%value(e_tot$)
 case (lcavity$)
-  design_dE = ele%value(gradient$) * ele%value(l$)
+  wanted_de = (ele%value(gradient$) + ele%value(gradient_err$) + &
+                            gradient_shift_sr_wake (ele, param)) * ele%value(l$)
+                                        
   e_tot_start = ele%value(e_tot_start$)
 case default
   call err_exit ! exit on error.
@@ -101,7 +103,7 @@ end select
 
 n_loop = 0  ! For debug purposes.
 
-if (design_dE == 0) then
+if (wanted_de == 0) then
   mode1%field_scale = 0
   return
 endif
@@ -129,7 +131,7 @@ pz_minus = -neg_pz_calc(theta_max - 2 * theta_tol)
 pz_max = -neg_pz_calc(theta_max)
 
 call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-f_correct = design_dE / (e_tot - e_tot_start)
+f_correct = wanted_de / (e_tot - e_tot_start)
 
 if (pz_max > pz_plus .and. pz_max > pz_minus .and. abs(f_correct - 1) < 2 * pz_tol) return
 
@@ -184,7 +186,7 @@ coarse_loop: do
   ! Can overshoot so if f_correct is too large then scale back by a factor of 10
 
   call convert_pc_to ((1 + pz_max) * ele%value(p0c$), param%particle, e_tot = e_tot)
-  f_correct = design_dE / (e_tot - e_tot_start)
+  f_correct = wanted_de / (e_tot - e_tot_start)
   if (f_correct > 1000) f_correct = max(1000.0_rp, f_correct / 10)
   mode1%field_scale = mode1%field_scale * f_correct
 

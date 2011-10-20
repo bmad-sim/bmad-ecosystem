@@ -2393,35 +2393,47 @@ end subroutine calc_superimpose_key
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function e_loss_sr_wake (e_loss_factor, param) result (energy_lost)
+! Function gradient_shift_sr_wake (ele, param) result (grad_shift)
 ! 
-! Function to return the energy losst due to the short range wake.
+! Function to return the shift in the accelerating gradient due to:
+!   1) Short range longitudinal wake forces.
+!   2) Adjustment in the external applied RF power attempting to compensate for the SR wake loss.
+!
+! Note: This routine will only return a non-zero value when bmad_com%sr_wakes_on = True
 !
 ! Module needed:
 !   use bmad
 !
 ! Input:
-!   e_loss_factor -- Real(rp): Energy loss factor in (V/Coul).
-!   param         -- lat_param_struct: 
-!     %n_part        -- Number of particles
+!   ele           -- ele_struct: Lcavity element.
+!   param         -- lat_param_struct: Lattice parameters
+!     %n_part        -- Number of particles in a bunch
 !     %particle      -- Type of particle
 !
 ! Output:
-!   energy_lost -- Real(rp): Magnitude of Energy lost due to SR wakes.
+!   grad_shift -- Real(rp): Shift in gradient
 !-
 
-function e_loss_sr_wake (e_loss_factor, param) result (energy_lost)
+function gradient_shift_sr_wake (ele, param) result (grad_shift)
 
 implicit none
 
+type (ele_struct) ele
 type (lat_param_struct) param
-real(rp) e_loss_factor, energy_lost
+real(rp) grad_shift
 
-!
+! ele%value(grad_loss_sr_wake$) is an internal variable used with macroparticles.
+! It accounts for the longitudinal short-range wakefields between macroparticles.
+! It is continually being modified for each macroparticle
 
-energy_lost = e_loss_factor * param%n_part * abs(charge_of(param%particle)) * e_charge
+if (bmad_com%sr_wakes_on .and. ele%value(l$) /= 0) then
+  grad_shift = ele%value(e_loss$) * param%n_part * abs(charge_of(param%particle)) * &
+                                      e_charge / ele%value(l$) - ele%value(grad_loss_sr_wake$) 
+else
+  grad_shift = 0
+endif
 
-end function e_loss_sr_wake
+end function gradient_shift_sr_wake
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

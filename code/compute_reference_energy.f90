@@ -21,20 +21,16 @@
 subroutine compute_reference_energy (lat)
 
 use lat_ele_loc_mod
-use rf_mod
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, branch_ele, ele0
 type (branch_struct), pointer :: branch
-type (coord_struct) start_orb, end_orb
-
-real(rp) E_tot, p0c, phase
 
 integer i, k, ib, ix, ixs, ibb
 
-logical no_mode_adjust_done, did_set, stale
+logical did_set, stale
 
 character(24), parameter :: r_name = 'compute_reference_energy'
 
@@ -102,19 +98,11 @@ do ib = 0, ubound(lat%branch, 1)
 
   ! Loop over all elements in the branch
 
-  E_tot = ele0%value(E_tot$)
-  p0c   = ele0%value(p0c$)
-
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
 
-    if (.not. stale .and. ele%status%ref_energy /= stale$) then
-      E_tot = ele%value(E_tot$)
-      p0c = ele%value(p0c$) 
-      cycle
-    endif
+    if (.not. stale .and. ele%status%ref_energy /= stale$) cycle
 
-    no_mode_adjust_done = .true.
     stale = .true.
     ele%status%ref_energy = ok$
 
@@ -125,78 +113,8 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Calculate the energy
 
-    select case (ele%key)
-    case (lcavity$) 
-      ele%value(E_tot_start$) = E_tot
-      ele%value(p0c_start$) = p0c
-
-      ! Different tracking methods can give different results so need to track if not bmad_standard tracking.
-      if (ele%tracking_method == bmad_standard$) then
-        phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-        E_tot = E_tot + ele%value(gradient$) * ele%value(l$) * cos(phase)
-        E_tot = E_tot - e_loss_sr_wake (ele%value(e_loss$), branch%param)
-        call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
-      else
-        ! A zero e_tot can mess up tracking so put in a temp value if needed.
-        if (ele%value(e_tot$) == 0) then ! Can happen on first pass through this routine
-          ele%value(E_tot$) = E_tot      ! Temp value. Does not affect phase & amp adjustment.
-          ele%value(p0c$) = p0c
-          ele%ref_time = branch%ele(i-1)%ref_time
-        endif
-        if (associated(ele%rf%field)) call rf_accel_mode_adjust_phase_and_amp (ele, lat%param)
-        no_mode_adjust_done = .false.
-        call track1 (start_orb, ele, branch%param, end_orb)
-        p0c = (1 + end_orb%vec(6)) * ele%value(p0c$)
-        call convert_pc_to (p0c, branch%param%particle, e_tot = e_tot)
-      endif
-
-    case (custom$, hybrid$)
-      ele%value(E_tot_start$) = E_tot
-      ele%value(p0c_start$) = p0c
-      E_tot = E_tot + ele%value(delta_e$)
-      call convert_total_energy_to (E_tot, branch%param%particle, pc = p0c)
-
-    case (crystal$, mirror$, multilayer_mirror$)
-      ele%value(ref_wavelength$) = c_light * h_planck / E_tot
-
-    case (patch$) 
-      ele%value(E_tot_start$) = E_tot
-      ele%value(p0c_start$) = p0c
-
-      if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
-        e_tot = e_tot + ele%value(e_tot_offset$)
-        call convert_total_energy_to (e_tot, branch%param%particle, pc = p0c)
-      endif
-
-    end select
-
-    ele%value(E_tot$) = E_tot
-    ele%value(p0c$) = p0c
-
-    ! If there is an RF field map then scale the field to match.
-
-    if (associated(ele%rf%field) .and. no_mode_adjust_done) call rf_accel_mode_adjust_phase_and_amp (ele, lat%param)
-
-    ! Calculate the ref_time
-
-    if (ele%key == lcavity$ .and. branch%ele(i-1)%value(E_tot$) /= E_tot) then
-      if (ele%tracking_method == bmad_standard$) then
-        ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
-                  (p0c - branch%ele(i-1)%value(p0c$)) / ((E_tot - branch%ele(i-1)%value(E_tot$)) * c_light)
-      else
-        ele%ref_time = ele%ref_time - end_orb%vec(5) * E_tot / (p0c * c_light)
-      endif
-    elseif (ele%key == hybrid$) then
-      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(delta_ref_time$)
-    else
-      ele%ref_time = branch%ele(i-1)%ref_time + ele%value(l$) * E_tot / (p0c * c_light)
-    endif
-
-    ele%value(delta_ref_time$) = ele%ref_time - branch%ele(i-1)%ref_time
-
-    ! %old_value is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
-    ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
-
+    ele0 => branch%ele(i-1)
+    call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
     call set_lords_status_stale (ele, lat, ref_energy_status$)
 
   enddo
@@ -258,4 +176,113 @@ if (bmad_com%auto_bookkeeper .or. lat%param%status%ref_energy == stale$) then
 
 endif
 
-end subroutine
+end subroutine compute_reference_energy
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start)
+!
+! Routine to compute the reference energy and reference time at the end of an element 
+! given the reference enegy and reference time at the start of the element.
+!
+! Input:
+!   ele            -- Ele_struct: Lattice element
+!   param          -- lat_Param_struct: Lattice parameters.
+!   e_tot_start    -- Real(rp): Entrance end energy.
+!   p0c_start      -- Real(rp): Entrance end momentum
+!   ref_time_start -- Real(rp): Entrance end reference time
+!
+! Output:
+!   ele         -- Ele_struct: Lattice element with reference energy and time.
+!-
+
+subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start)
+
+use lat_ele_loc_mod
+use rf_mod
+
+implicit none
+
+type (ele_struct) ele
+type (lat_param_struct) :: param
+type (coord_struct) start_orb, end_orb
+
+real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
+
+!
+
+select case (ele%key)
+case (lcavity$) 
+  ele%value(E_tot_start$) = E_tot_start
+  ele%value(p0c_start$) = p0c_start
+
+  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+  E_tot = E_tot_start + ele%value(gradient$) * ele%value(l$) * cos(phase)
+  call convert_total_energy_to (E_tot, param%particle, pc = p0c)
+
+  ! A zero e_tot can mess up tracking so put in a temp value if needed.
+  if (ele%value(e_tot$) == 0) then ! Can happen on first pass through this routine
+    ele%value(E_tot$) = E_tot      ! Temp value. Does not affect phase & amp adjustment.
+    ele%value(p0c$) = p0c
+    ele%ref_time = ref_time_start
+  endif
+  if (associated(ele%rf%field)) call rf_accel_mode_adjust_phase_and_amp (ele, param)
+
+  ele%value(E_tot$) = E_tot
+  ele%value(p0c$) = p0c
+
+  if (E_tot_start == E_tot) then
+    ele%ref_time = ref_time_start + ele%value(l$) * E_tot / (p0c * c_light)
+  elseif (ele%tracking_method == bmad_standard$) then
+    ele%ref_time = ref_time_start + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
+              (p0c - p0c_start) / ((E_tot - E_tot_start) * c_light)
+  else
+    call track1 (start_orb, ele, param, end_orb)
+    ele%ref_time = ele%ref_time - end_orb%vec(5) * E_tot / (p0c * c_light)
+  endif
+
+case (custom$, hybrid$)
+  ele%value(E_tot_start$) = E_tot_start
+  ele%value(p0c_start$) = p0c_start
+  E_tot = E_tot_start + ele%value(delta_e$)
+  call convert_total_energy_to (E_tot, param%particle, pc = p0c)
+
+  ele%value(E_tot$) = E_tot
+  ele%value(p0c$) = p0c
+  ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
+
+case (crystal$, mirror$, multilayer_mirror$)
+  ele%value(ref_wavelength$) = c_light * h_planck / E_tot_start
+  ele%value(E_tot$) = E_tot_start
+  ele%value(p0c$) = p0c_start
+  ele%ref_time = ref_time_start
+
+case (patch$) 
+  ele%value(E_tot_start$) = E_tot_start
+  ele%value(p0c_start$) = p0c_start
+
+  if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
+    e_tot = e_tot_start + ele%value(e_tot_offset$)
+    call convert_total_energy_to (e_tot, param%particle, pc = p0c)
+  endif
+
+  ele%value(E_tot$) = E_tot
+  ele%value(p0c$) = p0c
+  ele%ref_time = ref_time_start
+
+case default
+  ele%value(E_tot$) = E_tot_start
+  ele%value(p0c$) = p0c_start
+  ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)
+
+end select
+
+
+! %old_value is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
+
+ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
+ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
+
+end subroutine compute_ele_reference_energy

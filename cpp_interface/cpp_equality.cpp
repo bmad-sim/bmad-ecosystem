@@ -209,7 +209,6 @@ bool operator== (const C_branch& x, const C_branch& y) {
 bool operator== (const C_bmad_com& x, const C_bmad_com& y) {
   return is_all_equal(x.d_orb, y.d_orb) && 
       (x.max_aperture_limit == y.max_aperture_limit) && 
-      (x.grad_loss_sr_wake == y.grad_loss_sr_wake) && 
       (x.rel_tolerance == y.rel_tolerance) && 
       (x.abs_tolerance == y.abs_tolerance) && 
       (x.rel_tol_adaptive_tracking == y.rel_tol_adaptive_tracking) && 

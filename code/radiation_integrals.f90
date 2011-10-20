@@ -345,7 +345,6 @@ if (use_cache .or. init_cache) then
       cache_ele%pt(:)%map_ref_orb_in  = orb_start
       call mat_make_unit (mat6)
       vec0 = 0
-      if (ele2%key == wiggler$) orb_start%vec = 0  ! keep things simple.
 
       do k = 0, n_step
 

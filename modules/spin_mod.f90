@@ -652,15 +652,9 @@ if(isTreatedHere) then
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
     if (.not. ele%is_on) gradient = 0
 
-    if (bmad_com%sr_wakes_on) then
-      if (bmad_com%grad_loss_sr_wake /= 0) then  
-        ! use grad_loss_sr_wake and ignore e_loss
-        gradient = gradient - bmad_com%grad_loss_sr_wake
-      else
-        gradient = gradient - ele%value(e_loss$) * param%n_part * &
-                                                    e_charge / ele%value(l$)
-      endif
-    endif
+    gradient = gradient + gradient_shift_sr_wake(ele, param) 
+
+    !
 
     if (gradient /= 0) then
 
@@ -893,15 +887,7 @@ if (ele%key .eq. lcavity$) then
   cos_phi = cos(phase)
   gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
   if (.not. ele%is_on) gradient = 0
-  if (bmad_com%sr_wakes_on) then
-    if (bmad_com%grad_loss_sr_wake /= 0) then  
-      ! use grad_loss_sr_wake and ignore e_loss
-      gradient = gradient - bmad_com%grad_loss_sr_wake
-    else
-      gradient = gradient - ele%value(e_loss$) * param%n_part * &
-                                                  e_charge / ele%value(l$)
-    endif
-  endif
+  gradient = gradient + gradient_shift_sr_wake(ele, param) 
   pc = ele%value(p0c_start$) * (1 + coord%vec(6))
   call convert_pc_to (pc, param%particle, E_tot = e_particle)
   e_particle = e_particle + gradient*s
