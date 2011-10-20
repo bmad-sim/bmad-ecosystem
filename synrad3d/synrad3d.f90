@@ -483,8 +483,8 @@ else
       print *, '    Num photons passed filter tests:', n_photon_array
     endif
 
-    if (ix_ele == lat%n_ele_track) ix_ele = ix_ele_track_start
     ix_ele = ix_ele + 1
+    if (ix_ele == lat%n_ele_track+1) ix_ele = 0
 
     ele => lat%ele(ix_ele)
 
