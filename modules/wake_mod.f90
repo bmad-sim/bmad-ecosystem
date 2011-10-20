@@ -317,8 +317,8 @@ end subroutine lr_wake_apply_kick
 !   follower -- Coord_struct: Starting coords of particle to kick.
 !
 ! Output:
-!   bmad_com%grad_loss_sr_wake -- Read(rp): adds the effects of the 
-!                                  specified leader
+!   ele      -- Ele_struct: Element with wakes.
+!     %value(grad_loss_sr_wake$) -- Adds the effects of the specified leader.
 !-
 
 subroutine sr_table_add_long_kick (ele, leader, charge, follower)
@@ -345,8 +345,8 @@ f1 = 1 - f2
 
 if (iw .lt. 0 .or. iw .gt. ubound(ele%rf%wake%sr_table,1)) return
 
-bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake &
-      + (ele%rf%wake%sr_table(iw)%long*f1 + ele%rf%wake%sr_table(iw+1)%long*f2) * abs(charge) 
+ele%value(grad_loss_sr_wake$) = ele%value(grad_loss_sr_wake$) + &
+      (ele%rf%wake%sr_table(iw)%long*f1 + ele%rf%wake%sr_table(iw+1)%long*f2) * abs(charge) 
 
 end subroutine sr_table_add_long_kick
 

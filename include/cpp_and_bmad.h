@@ -777,7 +777,6 @@ class C_bmad_com {
 public:
   double max_aperture_limit;   
   Real_Array d_orb;              // for the make_mat6_tracking routine
-  double grad_loss_sr_wake;      // Internal var for LCavities.
   double default_ds_step;        // Number integration steps
   double significant_longitudinal_length;
   double rel_tolerance; 

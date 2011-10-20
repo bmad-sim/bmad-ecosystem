@@ -1131,7 +1131,7 @@ if (slave%n_lord == 1) then
 
   if (is_last) slave%value(l$) = lord%value(l$) - offset
 
-  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, is_first, is_last, .false.)
+  call makeup_super_slave1 (slave, lord, offset, lat%branch(slave%ix_branch)%param, is_first, is_last)
 
   if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
 
@@ -1639,19 +1639,6 @@ if (e_len == 0) then
   return
 endif
 
-!
-
-sliced_ele%value(l$) = l_slice
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end, .true.)
-sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
-
-! Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
-! periodic wiggler phi_z values.
-
-sliced_ele%slave_status = super_slave$
-sliced_ele%status%attributes = stale$
-call attribute_bookkeeper (sliced_ele, param)
-
 ! Use a speedier tracking method.
 
 select case (sliced_ele%tracking_method)
@@ -1670,13 +1657,32 @@ case (taylor$, symp_map$, symp_lie_ptc$)
   end select
 end select
 
+! Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
+! periodic wiggler phi_z values.
+
+sliced_ele%slave_status = super_slave$
+
+! Lcavity reference energy can be nonlinear so use a slice from the beginning of ele_in
+! to get the starting ref energy of the slice
+
+if (sliced_ele%key == lcavity$) then
+  sliced_ele%value(l$) = offset
+  call compute_ele_reference_energy (sliced_ele, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), 0.0_rp)
+  sliced_ele%value(e_tot_start$) = sliced_ele%value(e_tot$)
+  sliced_ele%value(p0c_start$)   = sliced_ele%value(p0c$)
+endif
+
+sliced_ele%value(l$) = l_slice
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
+sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
+
 end subroutine create_element_slice
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end, do_energy_bookkeeping)
+! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 !
 ! Routine to transfer the %value, %wig_term, and %rf information from a 
 ! superposition lord to a slave when the slave has only one lord.
@@ -1692,26 +1698,22 @@ end subroutine create_element_slice
 !   param  -- Lat_param_struct: lattice paramters.
 !   at_entrance_end -- Logical: Slave contains the lord's entrance end?
 !   at_exit_end     -- Logical: Slave contains the lord's exit end?
-!   do_energy_bookkeeping
-!                   -- Logical: Do the reference energy bookkeeping for an lcavity?
-!                       Normally this is done by compute_reference_energy but if the super_slave does
-!                       not exist inside a lat_struct this may be needed.
 !
 ! Output:
 !   slave -- Ele_struct: Slave element with appropriate values set.
 !-
 
-subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end, do_energy_bookkeeping)
+subroutine makeup_super_slave1 (slave, lord, offset, param, at_entrance_end, at_exit_end)
 
 implicit none
 
 type (ele_struct), target :: slave, lord
 type (lat_param_struct) param
 
-real(rp) offset, s_del, coef, r
+real(rp) offset, s_del, coef
 real(rp) value(n_attrib_maxx)
 integer i
-logical at_entrance_end, at_exit_end, do_energy_bookkeeping
+logical at_entrance_end, at_exit_end
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1849,21 +1851,13 @@ if (associated (slave%rf%wake)) then
   slave%rf%wake%lr%r_over_q  = lord%rf%wake%lr%r_over_q * coef
 endif
 
-! lcavity energy bookkeeping.
-! Only want to do this when the super_slave is outside of a lattice otherwise
-! there is a conflict with compute_reference_energy in that round-off variations between the
-! calc here and the calc in compute_reference_energy could drive the bookkeeping routines nuts.
+!
 
-if (do_energy_bookkeeping .and. slave%key == lcavity$) then
+if (slave%key == lcavity$) then
   slave%value(e_loss$) = lord%value(e_loss$) * coef
-  r = offset / lord%value(l$)
-  slave%value(e_tot_start$) = (1-r) * lord%value(e_tot_start$) + r * lord%value(e_tot$)
-  call convert_total_energy_to (slave%value(E_tot_start$), param%particle, pc = slave%value(p0c_start$))
-  r = r + slave%value(l$) / lord%value(l$)
-  slave%value(e_tot$) = (1-r) * lord%value(e_tot_start$) + r * lord%value(e_tot$)
-  call convert_total_energy_to (slave%value(E_tot$), param%particle, pc = slave%value(p0c$))
 endif
 
+slave%status%attributes = stale$
 call attribute_bookkeeper (slave, param)
 
 end subroutine makeup_super_slave1

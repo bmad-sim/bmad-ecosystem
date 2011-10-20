@@ -167,10 +167,6 @@ end subroutine track1_beam_simple
 !
 ! Subroutine to track a bunch of particles through an element.
 !
-! Each particle experiences a different longitudinal short-range wakefield.
-! bmad_com%grad_loss_sr_wake is used to tell track1_bmad the appropriate loss
-! for each particle.
-!
 ! Modules needed:
 !   use beam_mod
 !

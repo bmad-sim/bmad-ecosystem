@@ -202,9 +202,6 @@ case (custom$)
 ! This means that the resulting matrix will NOT be symplectic.
 ! Since things are very complicated we simplify things by ignoring the
 !   off-axis corrections to mat6.
-!
-! bmad_com%grad_loss_sr_wake is an internal variable used with macroparticles.
-!   It should be zero otherwise.
 
 case (lcavity$)
 
@@ -217,15 +214,7 @@ case (lcavity$)
   cos_phi = cos(phase)
   gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi 
   if (.not. ele%is_on) gradient = 0
-
-  if (bmad_com%sr_wakes_on) then
-    if (bmad_com%grad_loss_sr_wake /= 0) then  
-      ! use grad_loss_sr_wake and ignore e_loss
-      gradient = gradient - bmad_com%grad_loss_sr_wake
-    else if (ele%value(e_loss$) /= 0) then
-      gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / length
-    endif
-  endif
+  gradient = gradient + gradient_shift_sr_wake(ele, param) 
 
   if (gradient == 0) then
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)

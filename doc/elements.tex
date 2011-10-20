@@ -1228,9 +1228,7 @@ dependent attribute and is defined to be
 
 The energy kick felt by a particle is 
 \begin{example}
-  dE = gradient_tot * L * cos(twopi * (phi(z) + phi_ref + phi0_err) - 
-                                                     e_loss * n_part * e_charge 
-  \label{egl2p}
+  dE = gradient_tot * L * cos(twopi * (phi(z) + phi_ref + phi0_err)
 \end{example}
 \index{multipass}
 where
@@ -1244,17 +1242,10 @@ See \sref{s:rf.time} for a discussion on timing issues.
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
 
-The \vn{e_loss} attribute in the formula for \vn{dE} represents the
-energy loss due to short--range wake fields. \vn{n_part} is set using
-the \vn{parameter} statement (\sref{s:param}) and represents the
-number of particles in a bunch. \vn{e_charge} is the charge on an
-electron (Table~\ref{t:constants}). Notice that the energy kick is
-independent of the sign of the charge of the particle
-
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
 \begin{example}
-  dE(reference) = gradient * L * cos(twopi * phi_ref) - e_loss * n_part * e_charge
+  dE(reference) = gradient * L * cos(twopi * phi_ref)
 \end{example}
 
 The energy kick for a \bmad \vn{lcavity} is consistent with MAD. 
@@ -1264,6 +1255,21 @@ sign. Essentially the MAD8 documentation gives
   dE = gradient * L * cos(twopi * (phi_ref - phi(z))) ! WRONG
 \end{example}
 This is incorrect. 
+
+When short-range wake fields are being simulated, with
+\vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.params}), the
+\vn{e_loss} attribute can be used to modify the gradient in order to
+maintain a constant average energy gain. That is, \vn{e_loss} can be
+used to simulate the effect of a feedback circuit that attempts to
+maintain the average energy of the bunch after the element constant.
+The energy kick is then
+\begin{example}
+  dE(with wake) = dE + e_loss * n_part * e_charge 
+\end{example}
+\vn{n_part} is set using the \vn{parameter} statement (\sref{s:param})
+and represents the number of particles in a bunch. \vn{e_charge} is
+the charge on an electron (Table~\ref{t:constants}). Notice that the
+\vn{e_loss} term is independent of the sign of the charge of the particle.
 
 The transverse trajectory through an \vn{lcavity} is modeled using
 equations developed by Rosenzweig and Serafini\cite{b:rosenzweig}

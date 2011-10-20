@@ -145,6 +145,15 @@ interface
 end interface
 
 interface
+  subroutine compute_ele_reference_energy (ele, param, e_tot_start, p0c_start, ref_time_start)
+    use bmad_struct, only: rp, ele_struct, lat_param_struct
+    type (ele_struct) ele
+    type (lat_param_struct) param
+    real(rp) e_tot_start, p0c_start, ref_time_start
+  end subroutine
+end interface
+
+interface
   subroutine compute_reference_energy (lat, compute)
     use bmad_struct, only: lat_struct
     type (lat_struct) lat
@@ -689,7 +698,7 @@ interface
 end interface
 
 interface
-  subroutine slice_ele_calc (ele, param, i_slice, n_slice_tot, sliced_ele)
+  subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)
     use bmad_struct, only: ele_struct, lat_param_struct
     implicit none
     type (ele_struct) ele, sliced_ele

@@ -276,16 +276,8 @@ case(rfcavity$, lcavity$)
                         local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
     if (.not. ele%is_on) gradient = 0
-     
-    if (bmad_com%sr_wakes_on) then
-      if (bmad_com%grad_loss_sr_wake /= 0) then  
-        ! use grad_loss_sr_wake and ignore e_loss
-        gradient = gradient - bmad_com%grad_loss_sr_wake
-      elseif (ele%value(e_loss$) /= 0) then
-        gradient = gradient - e_loss_sr_wake(ele%value(e_loss$), param) / ele%value(l$)
-      endif
-    endif
-
+    gradient = gradient + gradient_shift_sr_wake(ele, param)
+    
     dEz_dz = gradient * sign(1, charge_of(param%particle))
 
     if (x .eq. 0.0) then

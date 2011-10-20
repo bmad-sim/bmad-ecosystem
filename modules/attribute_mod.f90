@@ -360,6 +360,8 @@ end function attribute_free3
 recursive subroutine check_this_attribute_free (ele, attrib_name, lat, &
                             do_print, do_except_overlay, free, ix_recursion, ix_lord)
 
+implicit none
+
 type (ele_struct), target :: ele
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_p, lord
@@ -506,7 +508,7 @@ if (ix_attrib == e_tot$ .or. ix_attrib == p0c$) then
     else
       free = .true.
     endif
-  elseif (ele%key /= group$ .and. ele%key /= overlay .and. ele%key /= girder$) then
+  elseif (ele%key /= group$ .and. ele%key /= overlay$ .and. ele%key /= girder$) then
     free = .false.
   endif
 endif

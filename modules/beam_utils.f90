@@ -70,7 +70,7 @@ end subroutine
 ! routine for more details.
 !
 ! Each particle experiences a different longitudinal short-range wakefield.
-! bmad_com%grad_loss_sr_wake is used to tell track1_bmad the appropriate loss
+! ele%value(grad_loss_sr_wake$) is used to tell track1_bmad the appropriate loss
 ! for each particle.
 !
 ! Modules needed:
@@ -138,7 +138,7 @@ value_save = ele%value
 ele%value(l$)      = ele%value(l$) / 2
 ele%value(e_tot$)  = (ele%value(e_tot_start$) + ele%value(e_tot$)) / 2
 call convert_total_energy_to (ele%value(e_tot$), param%particle, pc = ele%value(p0c$))
-ele%value(e_loss$) = 0
+ele%value(e_loss$) = ele%value(e_loss$) / 2
 
 ! zero all offsets and kicks (offsetting already performed above)
 
@@ -162,7 +162,7 @@ do j = 1, size(bunch_end%particle)
   call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
-bmad_com%grad_loss_sr_wake = 0.0
+ele%value(grad_loss_sr_wake$) = 0.0
 
 ! Put in the transverse wakefields
 
@@ -186,7 +186,7 @@ do j = 1, size(bunch_end%particle)
   call track1_particle (bunch_end%particle(ix_z), ele, param, bunch_end%particle(ix_z))
 enddo
 
-bmad_com%grad_loss_sr_wake = 0.0
+ele%value(grad_loss_sr_wake$) = 0.0
 
 bunch_end%charge = sum (bunch_end%particle(:)%charge, &
                          mask = (bunch_end%particle(:)%ix_lost == not_lost$))
@@ -224,7 +224,7 @@ end subroutine track1_bunch_hom
 !  follower -- Integer: index of particle wakes being applied to.
 !
 ! Output:
-!  bmad_com%grad_loss_sr_wake -- Real(rp): net gradient loss due to the leaders.
+!  ele%value(grad_loss_sr_wake$) -- Real(rp): net gradient loss due to the leaders.
 !-
 
 subroutine add_sr_long_wake (ele, param, bunch, num_in_front, ix_follower)
@@ -243,7 +243,7 @@ integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
 ! If there is no wake for this element, or the sr wakes are turned off, then just 
 ! use the e_loss attribute (as set in track1_bmad).
 
-bmad_com%grad_loss_sr_wake = 0.0
+ele%value(grad_loss_sr_wake$) = 0.0
 
 n_sr_table = size(ele%rf%wake%sr_table) 
 n_sr_mode_long = size(ele%rf%wake%sr_mode_long)
@@ -251,7 +251,7 @@ n_sr_mode_trans = size(ele%rf%wake%sr_mode_trans)
 
 if ((n_sr_table == 0 .and. n_sr_mode_long == 0 .and. n_sr_mode_trans == 0) .or. &
                                           .not. bmad_com%sr_wakes_on) then 
-  bmad_com%grad_loss_sr_wake = 0.0
+  ele%value(grad_loss_sr_wake$) = 0.0
   return 
 endif
 
@@ -260,7 +260,7 @@ endif
 
 if (n_sr_table > 0) then
 
-  bmad_com%grad_loss_sr_wake = bmad_com%grad_loss_sr_wake + &
+  ele%value(grad_loss_sr_wake$) = ele%value(grad_loss_sr_wake$) + &
                    ele%rf%wake%sr_table(0)%long * e_charge * abs(charge_of(param%particle)) / 2.0
 
   !-----------------------------------
