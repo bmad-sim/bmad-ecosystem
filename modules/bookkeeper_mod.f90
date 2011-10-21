@@ -14,7 +14,41 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4
 private control_bookkeeper1, makeup_overlay_and_girder_slave, super_lord_length_bookkeeper 
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 private compute_slave_aperture 
-        
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_flags_for_changed_attribute (lat, ele, attrib)
+!
+! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+! Also will do some dependent variable bookkeeping when a particular attribute has 
+! been altered. Look at this routine's code for more details.
+!
+! set_flages_for_changed_attribute is an overloaded name for:
+!   set_flages_for_changed_real_attribute 
+!   set_flages_for_changed_inteter_attribute 
+!   set_flages_for_changed_logical_attribute 
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   lat    -- lat_struct: Lattice with the changed attribute.
+!   ele    -- ele_struct, optional: Element being modified.
+!               If not present, mark the entire lattice as being modified.
+!   attrib -- Real(rp), integer, or logical; optional: Attribute that has been changed.
+!
+! Output:
+!   lat  -- lat_struct: Lattice with appropriate changes.
+!-
+
+interface set_flags_for_changed_attribute
+  module procedure set_flags_for_changed_real_attribute 
+  module procedure set_flags_for_changed_integer_attribute 
+  module procedure set_flags_for_changed_logical_attribute 
+end interface
+
 contains
 
 !--------------------------------------------------------------------------
@@ -2566,29 +2600,69 @@ end subroutine z_patch_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_attribute (lat, ele, attrib)
+! Subroutine set_flags_for_changed_integer_attribute (lat, ele, attrib)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
-! Also will do some dependent variable bookkeeping when a particular attribute has 
-! been altered. Look at this routine's code for more details.
 !
-! If what has been changed is something like ele%tracking_method then call this routine
-! without the attrib argument.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   lat    -- lat_struct: Lattice with the changed attribute.
-!   ele    -- ele_struct, optional: Element being modified.
-!               If not present, mark the entire lattice as being modified.
-!   attrib -- Real(rp), optional: Attribute that has been changed.
-!               If not present then attribute is "unknown".
-! Output:
-!   lat  -- lat_struct: Lattice with appropriate changes.
+! This routine is overloaded by set_flags_for_changed_attribute. 
+! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_attribute (lat, ele, attrib)
+subroutine set_flags_for_changed_integer_attribute (lat, ele, attrib)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), target :: ele
+
+integer attrib
+
+!
+
+call set_flags_for_changed_real_attribute (lat, ele)
+
+end subroutine set_flags_for_changed_integer_attribute
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_flags_for_changed_logical_attribute (lat, ele, attrib)
+!
+! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+!
+! This routine is overloaded by set_flags_for_changed_attribute. 
+! See set_flags_for_changed_attribute for more details.
+!-
+
+subroutine set_flags_for_changed_logical_attribute (lat, ele, attrib)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (ele_struct), target :: ele
+
+logical attrib
+
+!
+
+call set_flags_for_changed_real_attribute (lat, ele)
+
+end subroutine set_flags_for_changed_logical_attribute
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_flags_for_changed_real_attribute (lat, ele, attrib)
+!
+! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+!
+! This routine is overloaded by set_flags_for_changed_attribute. 
+! See set_flags_for_changed_attribute for more details.
+!-
+
+subroutine set_flags_for_changed_real_attribute (lat, ele, attrib)
 
 implicit none
 
@@ -2732,10 +2806,9 @@ case (lcavity$)
     call set_ele_status_stale (ele, branch%param, ref_energy_status$)
   endif
 
-
 end select
 
-end subroutine set_flags_for_changed_attribute
+end subroutine set_flags_for_changed_real_attribute
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
