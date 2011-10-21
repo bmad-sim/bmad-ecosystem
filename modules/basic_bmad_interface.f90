@@ -899,11 +899,12 @@ interface
 end interface
 
 interface
-  subroutine twiss_at_start (lat, ix_branch)
+  subroutine twiss_at_start (lat, ix_branch, status)
     use bmad_struct, only: lat_struct
     implicit none
     type (lat_struct) lat
     integer, optional :: ix_branch
+    integer, optional :: status
   end subroutine
 end interface
 
@@ -918,13 +919,14 @@ interface
 end interface
 
 interface
-  subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
+  subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
     use bmad_struct, only: ele_struct, rp
     implicit none
     type (ele_struct) :: ele
-    real(rp), intent(in) :: mat6(:,:), map0(:)
-    real(rp), intent(out) :: growth_rate
-    logical, intent(out) :: stable
+    real(rp) :: mat6(:,:), map0(:)
+    real(rp) :: growth_rate
+    logical :: stable, type_out
+    integer :: status
   end subroutine
 end interface
 

@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_at_start (lat, ix_branch)
+! Subroutine twiss_at_start (lat, ix_branch, status)
 !
 ! Subroutine to calculate, for a circular machine, the closed 1-turn 
 ! solution for the Twiss parameters at the start of the lat.
@@ -15,7 +15,7 @@
 !                       non ok$ STATUS
 !
 ! Output:
-!   lat
+!   lat         -- Lat_struct: Lattice with twiss parameters computed.
 !     %param%t1_no_RF --  Note: Only the linear part is computed.
 !     %ele(0)%a      -- "a" mode Twiss parameters at the start of the lat.
 !     %ele(0)%b      -- "b" mode Twiss parameters at the start of the lat.
@@ -24,14 +24,14 @@
 !     %b%tune         -- Fractional part of the tune in radians
 !     %param%stable   -- Set true or false.
 !     %param%unstable_factor -- unstable growth rate (= 0 if stable)
+!   status      -- Integer, optional: Calculation status:
+!                       ok$, in_stop_band$, unstable$, or non_symplectic$
 ! 
 !   bmad_status  -- BMAD Common block status structure
 !     %ok            -- Logical: .True. if everything is OK, False otherwise.
-!     %status        -- Integer: Calculation status.
-!                        See MAT_SYMP_DECOUPLE for for more info
 !-
 
-subroutine twiss_at_start (lat, ix_branch)
+subroutine twiss_at_start (lat, ix_branch, status)
 
 use bmad_struct
 use bookkeeper_mod, except_dummy => twiss_at_start
@@ -44,8 +44,8 @@ type (branch_struct), pointer :: branch
 
 real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4)
 
-integer, optional :: ix_branch
-integer i, j, n, iu, n_lines
+integer, optional :: ix_branch, status
+integer i, j, n, iu, n_lines, stat
 
 logical :: debug = .false. 
 logical saved_state
@@ -110,9 +110,12 @@ mat6(1:4,1:4) = t0_4
 call mat6_dispersion (eta_vec, mat6) ! dispersion to %mat6
 branch%param%t1_no_RF = mat6
 
-! compute twiss parameters
+! Compute twiss parameters
 
-call twiss_from_mat6 (mat6, map0, branch%ele(0), branch%param%stable, branch%param%unstable_factor)
+call twiss_from_mat6 (mat6, map0, branch%ele(0), branch%param%stable, &
+              branch%param%unstable_factor, stat, bmad_status%type_out)
+if (present(status)) status = stat
+bmad_status%ok = (stat == ok$)
 
 if (integer_option(0, ix_branch) == 0) then
   lat%a%tune = lat%ele(0)%a%phi
