@@ -149,10 +149,10 @@ endif
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
-  if (bmad_status%status == ok$) then
+  if (bmad_status%ok) then
     call out_io (s_blank$, r_name, stars, line, stars)
   else
-    write (line2, *) 'Bmad_status%status is ', status_name(bmad_status%status)
+    write (line2, *) 'Computation had problems...'
     call out_io (s_blank$, r_name, stars, line, line2, stars)
   endif
 
@@ -162,8 +162,7 @@ if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
 endif
 
 if (this_merit < 1e-10) then
-  call out_io (s_blank$, r_name, stars, &
-                ' MERIT < 1E-10 ==> AT MINIMUM. QUITING HERE.', stars)
+  call out_io (s_blank$, r_name, stars, ' MERIT < 1E-10 ==> AT MINIMUM. QUITING HERE.', stars)
   status = 1
 endif
 
