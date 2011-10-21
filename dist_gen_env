@@ -157,7 +157,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   # out.
   #--------------------------------------------------------------
   "echo" "Sourcing build preferences..." >> $DIST_SETUP_LOG
-  unset DIST_FC_REQUEST
+  unset DIST_F90_REQUEST
   source ${DIST_BASE_DIR}/util/dist_prefs
 
 
