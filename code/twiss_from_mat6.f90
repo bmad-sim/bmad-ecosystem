@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
+! Subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
 !
 ! Subroutine to calculate the Twiss parameters from a 1-turn matrix.
 ! Note: The 1-turn matrix needs to be formed with the RF turned off.
@@ -10,6 +10,7 @@
 ! Input:
 !   mat6(6,6)   -- Real(rp): 6x6 matrix (linear part) of the 1-turn map.
 !   map0(6)     -- Real(rp): 0th order part of the 1-turn map.
+!   type_out    -- Logical: If True then print a message when calculation fails.
 !
 ! Output:
 !   ele         -- Ele_struct: Structure holding the Twiss parameters.
@@ -20,14 +21,11 @@
 !     %c_mat       -- Coupling matrix.
 !   stable      -- Logical: Set true or false.
 !   growth_rate -- Real(rp): Unstable growth rate (= 0 if stable)
-! 
-!   bmad_status -- Bmad_status_struct: Bmad Common block status structure.
-!     %ok          -- Logical: True if everything is OK,
-!     %status      -- Integer: Calculation status.
-!                        See MAT_SYMP_DECOUPLE for for more info
+!   status      -- Integer, optional: Calculation status:
+!                       ok$, in_stop_band$, unstable$, or non_symplectic$
 !-
 
-subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
+subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
 
   use bmad_struct
   use bmad_interface, except_dummy => twiss_from_mat6
@@ -35,16 +33,18 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   implicit none
 
   type (ele_struct) :: ele
-  real(rp), intent(in) :: mat6(:,:), map0(:)
-  real(rp), intent(out) :: growth_rate
-  logical, intent(out) :: stable
 
+  real(rp) :: mat6(:,:), map0(:)
+  real(rp) :: growth_rate
   real(rp) mat4(4,4), eta_vec(4), vec(4), orb(4)
   real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
   real(rp) rate1, rate2
   real(rp) :: tol = 1.0e-3
 
+  integer :: status
   integer i
+
+  logical :: stable, type_out
 
   character(20) :: r_name = 'twiss_from_mat6'
 
@@ -54,15 +54,15 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
 
   !
 
-  call mat_symp_decouple (mat4, tol, bmad_status%status, u, v, ubar, &
+  call mat_symp_decouple (mat4, tol, status, u, v, ubar, &
                                              vbar, g, ele%a, ele%b, ele%gamma_c, .false.)
 
-  if (bmad_status%status /= ok$) then
-    if (bmad_status%type_out) then
-       call out_io (s_error$, r_name, 'ERROR IN TWISS_FROM_MAT6: BAD 1-TURN MATRIX: ' // &
-            status_name(bmad_status%status),'TWISS PARAMETERS NOT COMPUTED')
+  if (status /= ok$) then
+    if (type_out) then
+       call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: ' // &
+                        status_name(status), 'TWISS PARAMETERS NOT COMPUTED')
     endif
-    if (bmad_status%status == non_symplectic$) then
+    if (status == non_symplectic$) then
       rate1 = 10.0
       rate2 = 10.0
       rate1 = max(rate1, maxval(abs(mat4)))
@@ -112,7 +112,5 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate)
   ele%a%etap = eta_vec(2)
   ele%b%eta  = eta_vec(3)
   ele%b%etap = eta_vec(4)
-
-  bmad_status%ok = .true.
 
 end subroutine

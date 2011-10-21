@@ -781,7 +781,6 @@ integer, parameter :: all$ = 203
 ! status structure
 
 type bmad_status_struct
-  integer :: status         = ok$      ! Computation status 
   logical :: ok             = .true.   ! Error flag
   logical :: type_out       = .true.   ! Print error messages?
   logical :: exit_on_error  = .true.   ! Exit program on error?

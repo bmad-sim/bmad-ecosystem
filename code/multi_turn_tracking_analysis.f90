@@ -33,10 +33,7 @@
 !              See mat_symp_check for more details.
 !-
 
-#include "CESR_platform.inc"
-                       
-subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
-                                                 stable, growth_rate, chi)
+subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, stable, growth_rate, chi)
 
   use bmad_struct
   use bmad_interface, except_dummy => multi_turn_tracking_analysis
@@ -83,7 +80,10 @@ subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele, &
 
   elseif (i_dim == 4) then
 
-    call twiss_from_mat6 (ele%mat6, map0, ele, stable, growth_rate)
+    call twiss_from_mat6 (ele%mat6, map0, ele, stable, growth_rate, stat, bmad_status%type_out)
+    bmad_status%ok = (stat == ok$)
+    if (stat /= ok$) return
+
     call make_v_mats (ele, v_mat, v_inv_mat)
 
     ele%a%sigma = 0

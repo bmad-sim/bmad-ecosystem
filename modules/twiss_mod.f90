@@ -1,5 +1,3 @@
-#include "CESR_platform.inc" 
-
 module twiss_mod
 
   use matrix_mod
@@ -15,8 +13,7 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, 
-!                                                      twiss1, twiss2, gamma, type_out)
+! Subroutine mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, gamma, type_out)
 !
 ! Subroutine to find the symplectic eigen modes of the
 ! one turn 4x4 coupled transfer matrix T0.
@@ -32,7 +29,7 @@ contains
 !
 ! Output:
 !   stat    -- Integer: status of results:
-!                       OK$, IN_STOP_BAND$, UNSTABLE$, NON_SYMPLECTIC$
+!                       ok$, in_stop_band$, unstable$, or non_symplectic$
 !   twiss1  -- Twiss_struct: Twiss params for the "upper left" mode.
 !      %phi   -- Rotation angle in radians, 0 < %PHI < twopi
 !   twiss2  -- Twiss_struct: Twiss params for the "lower right" mode.
