@@ -25,12 +25,11 @@
 !      the longitudinal tune is negative above transition.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine set_z_tune (lat, z_tune)
 
 use bmad_struct
 use bmad_interface, except_dummy => set_z_tune
+use bookkeeper_mod
 
 implicit none
 
@@ -45,13 +44,15 @@ integer i, j, k, ix, n_rf, ix_rf(100), ix_attrib(100)
 
 logical found_control, rf_is_on
 
+character(16), parameter :: r_name = 'set_z_tune'
+
 ! Error detec and init.
 
 if (present (z_tune)) lat%z%tune = z_tune
 
 if (lat%z%tune > 0) then
-  print *, 'WARNING FROM SET_Z_TUNE: LAT%Z%TUNE IS POSITIVE!'
-  print *, '     I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.'
+  call out_io (s_warn$, r_name, 'LAT%Z%TUNE IS POSITIVE!', &
+                  'I AM ASSUMING THIS IS INCORRECT AND AM SWITCHING THE SIGN.')
   lat%z%tune = -lat%z%tune
 endif
 
@@ -62,7 +63,6 @@ z_tune_wanted = lat%z%tune
 !   1) RFcavities that are not super_slaves and do not have their voltage
 !      controlled by an overlay.
 !   2) overlays that control the voltage of an RFcavity
-
 
 E0 = lat%ele(0)%value(E_TOT$)
 
@@ -90,8 +90,7 @@ do i = 1, lat%n_ele_max
     n_rf = n_rf + 1
     ix_rf(n_rf) = i
     phase = twopi * (ele%value(phi0$) + ele%value(dphi0$))
-    coef_tot = coef_tot + twopi * cos(phase) * &
-                              ele%value(rf_frequency$) / (c_light * E0)
+    coef_tot = coef_tot + twopi * cos(phase) * ele%value(rf_frequency$) / (c_light * E0)
     ix_attrib(n_rf) = voltage$
 
   endif
@@ -106,8 +105,8 @@ do i = 1, lat%n_ele_max
 
       if (found_control .and. &
             (ele2%key /= rfcavity$ .or. lat%control(j)%ix_attrib /= voltage$)) then
-        print *, 'WARNING FROM SET_Z_TUNE: FOUND OVERLAY THAT DOES NOT'
-        print *, '        PURELY CONTROL RF VOLTAGE: ', ele%name
+        call out_io (s_error$, r_name, 'FOUND OVERLAY THAT DOES NOT', &
+                                       'PURELY CONTROL RF VOLTAGE: ' // ele%name)
         cycle
       endif
 
@@ -129,10 +128,10 @@ enddo
 !
 
 if (coef_tot == 0) then
-  print *, 'ERROR IN SET_Z_TUNE: CANNOT FIND ANY RFCAVITY ELEMENTS WHICH ARE:'
-  print *, '      1) ON,  AND' 
-  print *, '      2) HAVE A FINETE RF_FREQUENCY!'
-  print *, '      THE Z TUNE WILL NOT BE SET.'
+  call out_io (s_error$, r_name, 'CANNOT FIND ANY RFCAVITY ELEMENTS WHICH ARE:', &
+                                 '      1) ON,  AND', &
+                                 '      2) HAVE A FINETE RF_FREQUENCY!', &
+                                 '      THE Z TUNE WILL NOT BE SET.')
   return
 endif
 
@@ -144,7 +143,9 @@ call calc_z_tune (lat)
 if (abs(lat%z%tune) < 0.001 .or. z_tune_wanted == 0) then
   volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
   do i = 1, n_rf
-    lat%ele(ix_rf(i))%value(ix_attrib(i)) = volt
+    ele => lat%ele(ix_rf(i))
+    ele%value(ix_attrib(i)) = volt
+    call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib(i)))
     call lat_make_mat6 (lat, ix_rf(i))
   enddo
 endif
@@ -159,8 +160,9 @@ do k = 1, 10
   r_volt = (z_tune_wanted / lat%z%tune)**2 
 
   do i = 1, n_rf
-    lat%ele(ix_rf(i))%value(ix_attrib(i)) = &
-                    lat%ele(ix_rf(i))%value(ix_attrib(i)) * r_volt
+    ele => lat%ele(ix_rf(i))
+    ele%value(ix_attrib(i)) = ele%value(ix_attrib(i)) * r_volt
+    call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib(i)))
     call lat_make_mat6 (lat, ix_rf(i))
   enddo
 
@@ -170,9 +172,9 @@ enddo
 
 ! 
 
-print *, 'ERROR IN SET_Z_TUNE: I CANNOT SET THE TUNE TO THE CORRECT VALUE.'
-print *, '      VALUE WANTED:   ', z_tune_wanted
-print *, '      VALUE OBTAINED: ', lat%z%tune
+call out_io (s_error$, r_name, 'I CANNOT SET THE TUNE TO THE CORRECT VALUE.', &
+                               '      VALUE WANTED:   \f12.3\ ', '      VALUE OBTAINED: \f12.3\ ', &
+                               r_array = [z_tune_wanted, lat%z%tune])
 call err_exit
 
 end subroutine

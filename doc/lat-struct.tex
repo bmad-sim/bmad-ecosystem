@@ -739,6 +739,11 @@ called to do the bookkeeping.
   ...
   call lattice_bookkeeper (lat)         ! Final bookkeeping
 \end{example}
+The argument list for \vn{set_flags_for_changed_attribute} is 
+\begin{example}
+  set_flags_for_changed_attribute (lat, ele, attribute)
+\end{example}
+The \vn{attribute} argument may be either real, integer, or logical.
 
 For reference, the routines used by \vn{lattice_bookkeeper} are:
 \begin{example}

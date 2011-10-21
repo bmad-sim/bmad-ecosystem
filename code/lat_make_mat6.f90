@@ -9,9 +9,6 @@
 ! If the element lat%ele(ix_ele) is a lord element then the martices of 
 ! all the slave elements will be recomputed.
 !
-! The routine will also call control_bookkeeper to make sure that all
-! lord/slave dependencies are correct.
-!
 ! Moudules Needed:
 !   use bmad
 !
@@ -133,6 +130,8 @@ if (i_ele < 0) then
       endif
     endif
 
+    ! Check if transfer matrix needs to be recomputed
+
     if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
       if (present(ref_orb)) then
         if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
@@ -140,6 +139,8 @@ if (i_ele < 0) then
         if (all(ref_orb(i-1)%vec == 0)) cycle
       endif
     endif
+
+    ! call make_mat6 for this element
 
     if (zero_orbit) then 
       if (ele%slave_status == super_slave$) then
@@ -195,6 +196,8 @@ endif
 
 ele => branch%ele(i_ele)
 
+! Check if transfer matrix needs to be recomputed
+
 if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
   if (present(ref_orb)) then
     if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) return
@@ -202,6 +205,8 @@ if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
     if (all(ref_orb(i-1)%vec == 0)) return
   endif
 endif
+
+! Bookkeeping
 
 call control_bookkeeper (lat, ele)
 
