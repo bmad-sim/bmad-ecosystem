@@ -53,6 +53,8 @@ integer mat6_calc_method
 logical, optional :: end_in, err
 logical end_input, rad_fluct_save
 
+character(16), parameter :: r_name = 'make_mat6'
+
 !--------------------------------------------------------
 ! Some Init
 
@@ -116,8 +118,7 @@ case (no_method$)
   return
 
 case default
-  print *, 'ERROR IN MAKE_MAT6: UNKNOWN MAT6_CALC_METHOD: ', &
-                                  calc_method_name(ele%mat6_calc_method)
+  call out_io (s_fatal$, r_name, 'UNKNOWN MAT6_CALC_METHOD: ' // calc_method_name(ele%mat6_calc_method))
   call err_exit
 end select
 

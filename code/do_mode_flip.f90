@@ -10,16 +10,14 @@
 !
 ! Input:
 !   ele          -- Ele_struct: Starting Element
-!   bmad_status  -- Status_struct:
+!   bmad_status  -- Status_struct: Status common block.
 !      %type_out   -- If true then type out when an error occurs.
 !
 ! Output:
 !     ele         -- Ele_struct: Flipped element
-!     bmad_status -- Status_struct: Status (in common block)
-!            %ok      -- Set true if flip was done.
+!     bmad_status -- Status_struct: Status common block
+!            %ok      -- Set false if there is a problem.
 !-
-
-#include "CESR_platform.inc"
 
 subroutine do_mode_flip (ele)
 
@@ -34,14 +32,15 @@ type (twiss_struct) a
 real(rp) cg_mat(2,2), cg_conj(2,2), gamma_flip
 logical err
 
+character(12), parameter :: r_name = 'do_mode_flip'
+
 ! Check that a flip can be done.
 
 if (ele%gamma_c >= 1.0) then
-bmad_status%ok = .false.
-if (bmad_status%type_out)  &
-            print *, 'ERROR IN DO_MODE_FLIP: CANNOT MODE FLIP ELEMENT'
-if (bmad_status%exit_on_error) call err_exit
-return
+  bmad_status%ok = .false.
+  if (bmad_status%type_out) call out_io (s_fatal$, r_name, 'CANNOT MODE FLIP ELEMENT')
+  if (bmad_status%exit_on_error) call err_exit
+  return
 endif
 
 ! Do the flip

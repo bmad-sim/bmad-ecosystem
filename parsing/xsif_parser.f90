@@ -823,9 +823,7 @@ character(*), optional :: line2
 !
 
 if (.not. bmad_status%type_out) return
-print *, 'ERROR IN XSIF_PARSER: ', trim(line1)
-if (present(line2)) print *, '      ', trim(line2)
-print *, '      FOR XSIF FILE: ', trim(xsif_file)
+call out_io (s_error$, r_name, 'FOR XSIF FILE: ' // xsif_file, line1, line2)
 bp_com%write_digested = .false.
 
 end subroutine
@@ -841,9 +839,7 @@ character(*), optional :: line2
 !
 
 if (.not. bmad_status%type_out) return
-print *, 'WARNING FROM XSIF_PARSER: ', trim(line1)
-if (present(line2)) print *, '      ', trim(line2)
-print *, '      FOR XSIF FILE: ', trim(xsif_file)
+call out_io (s_warn$, r_name, 'FOR XSIF FILE: ' // xsif_file, line1, line2)
 bp_com%write_digested = .false.
 
 end subroutine

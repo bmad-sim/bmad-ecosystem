@@ -60,7 +60,7 @@ integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(*) attrib_name
 character(40) at_name
-
+character(16), parameter :: r_name = 'create_overlay'
 logical err, free
 logical, optional :: err_print_flag
 
@@ -73,12 +73,12 @@ do j = 1, n_slave
   ix_branch = contl(j)%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-    print *, 'ERROR IN CREATE_OVERLAY: BRANCH INDEX OUT OF BOUNDS.', ix_branch
+    call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
     call err_exit
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
-    print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
+    call out_io (s_fatal$, r_name,  'INDEX OUT OF BOUNDS. \i0\ ', ix_slave)
     call err_exit
   endif
 enddo
@@ -95,8 +95,8 @@ lord%key = overlay$
 call str_upcase (at_name, attrib_name)
 ix_attrib =  attribute_index (lord, at_name)
 if (ix_attrib == 0) then
-  print *, 'ERROR IN CREATE_OVERLAY: BAD ATTRIBUTE_NAME: ', attrib_name
-  print *, '      TRYING TO CREATE OVERLAY: ', lord%name
+  call out_io (s_fatal$, r_name,  'BAD ATTRIBUTE_NAME: ' // attrib_name, &
+                                  'TRYING TO CREATE OVERLAY: ' // lord%name)
   call err_exit
 endif
 lord%component_name = at_name
@@ -165,8 +165,8 @@ do i = 1, lord%n_slave
   ! You cannot overlay super_slaves 
 
   if (slave%slave_status == super_slave$) then
-    print *, 'ERROR IN CREATE_OVERLAY: ILLEGAL OVERLAY ON ', slave%name
-    print *, '      BY: ', lord%name
+    call out_io (s_fatal$, r_name,  'ILLEGAL OVERLAY ON ' // slave%name, &
+                                    ' BY: ' // lord%name)
     call err_exit
   endif
 

@@ -16,8 +16,6 @@
 ! NOTE: This subroutine is only valid if there is no local coupling
 !-
 
-#include "CESR_platform.inc"
-
 subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   use bmad_struct
@@ -32,6 +30,8 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   real(rp) beta_a_ave, beta_b_ave, k_quad
 
+  character(16), parameter :: r_name = 'quad_beta_ave'
+
 ! Since the beta stored in the ELE is at the end we need
 ! to invert alpha for BEAVE routine
 
@@ -39,8 +39,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 
   if (ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. &
         ele%key /= wiggler$) then
-    print *, 'ERROR IN QUAD_BETA_AVE: ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER'
-    print *, '      ', ele%name, '  ', key_name(ele%key)
+    call out_io (s_fatal$, r_name, 'ELEMENT NOT A QUAD, SOL_QUAD OR WIGGLER: [\i0\] ' // ele%name, key_name(ele%key))
     call err_exit
   endif
 
@@ -57,9 +56,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 ! otherwise proceed as normal
 
   if (ele%a%beta == 0 .or. ele%b%beta == 0) then
-    print *, 'ERROR IN QUAD_BETA_AVE: BETA IS ZERO AT END:',  &
-                                             ele%a%beta, ele%b%beta
-    print *, ele%name, '  ', key_name(ele%key)
+    call out_io (s_fatal$, r_name, 'BETA IS ZERO AT END:' // ele%name)
     call err_exit
   endif
 
@@ -94,10 +91,12 @@ function b_ave (beta, alpha, kk, l) result (this_ave)
 
   real(rp) beta,alpha,k,l,kk,a,x,g,gamma, this_ave
   
+  !
+
   k=sqrt(abs(kk))
 
   if (beta==0.0) then
-    print *, 'ERROR IN B_AVE: INITIAL BETA IS ZERO'
+    call out_io (s_error$, r_name, 'INITIAL BETA IS ZERO')
     this_ave = -1
   endif
   

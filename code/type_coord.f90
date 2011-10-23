@@ -10,21 +10,20 @@
 !   coord -- Coord_struct: Coordinate
 !-
 
-#include "CESR_platform.inc"
-
 subroutine type_coord (coord)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => type_coord
+use bmad_struct
+use bmad_interface, except_dummy => type_coord
 
-  implicit none
-  type (coord_struct)  coord
+implicit none
+type (coord_struct)  coord
+
+character(16), parameter :: r_name = 'type_coord'
 
 !
 
-  print *, '(X, X''):', coord%vec(1), coord%vec(2)
-  print *, '(Y, Y''):', coord%vec(3), coord%vec(4)
-  print *, '(Z, Z''):', coord%vec(5), coord%vec(6)
+call out_io (s_blank$, r_name, '(X, X''): \2es16.6\ ', '(Y, Y''): \2es16.6\ ', '(Z, Z''): \2es16.6\ ', &
+                        r_array = coord%vec)
 
 end subroutine
 

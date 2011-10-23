@@ -48,6 +48,8 @@ integer, optional :: ix_branch
 
 logical :: debug = .false.
 
+character(12), parameter :: r_name = 'track_all'
+
 ! init
 
 ix_br = integer_option (0, ix_branch)
@@ -73,8 +75,7 @@ do n = 1, branch%n_ele_track
   endif
 
   if (debug) then
-    print *, branch%ele(n)%name
-    print *, (orbit(n)%vec(i), i = 1, 6)
+    call out_io (s_blank$, r_name, branch%ele(n)%name, '\6es16.6\ ', r_array = orbit(n)%vec)
   endif
 
 enddo

@@ -26,32 +26,32 @@
 !     %b%etap -- "b" mode etap.
 !-
 
-#include "CESR_platform.inc"
-
 Subroutine orbit_to_dispersion (orb_diff, ele)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => orbit_to_dispersion
+use bmad_struct
+use bmad_interface, except_dummy => orbit_to_dispersion
 
-  implicit none
+implicit none
 
-  type (coord_struct), intent(in) :: orb_diff
-  type (ele_struct) :: ele
+type (coord_struct), intent(in) :: orb_diff
+type (ele_struct) :: ele
 
-  real(rp) v_mat(4,4), v_inv_mat(4,4), disp_vec(4)
-  
+real(rp) v_mat(4,4), v_inv_mat(4,4), disp_vec(4)
+
+character(20), parameter :: r_name = 'orbit_to_dispersion'
+
 !
 
-  if (orb_diff%vec(6) == 0) then
-    print *, 'ERROR IN ORBIT_TO_DISPERSION: ORB_DIFF%VEC(6) = 0 !'
-    call err_exit
-  endif
+if (orb_diff%vec(6) == 0) then
+  call out_io (s_fatal$, r_name, 'ORB_DIFF%VEC(6) = 0 !')
+  call err_exit
+endif
 
-  call ele_to_v_mats (ele, v_mat, v_inv_mat)
-  disp_vec = matmul (v_inv_mat, orb_diff%vec(1:4)) / orb_diff%vec(6)
-  ele%a%eta  = disp_vec(1)
-  ele%a%etap = disp_vec(2)
-  ele%b%eta  = disp_vec(3)
-  ele%b%etap = disp_vec(4)
+call ele_to_v_mats (ele, v_mat, v_inv_mat)
+disp_vec = matmul (v_inv_mat, orb_diff%vec(1:4)) / orb_diff%vec(6)
+ele%a%eta  = disp_vec(1)
+ele%a%etap = disp_vec(2)
+ele%b%eta  = disp_vec(3)
+ele%b%etap = disp_vec(4)
 
 end subroutine

@@ -66,17 +66,6 @@ if (ilen < 3) ilen = 3  ! Need at least three characters.
 n_abbrev = 0            ! number of abbreviation matches.
 
 !-----------------------------------------------------------------------
-! Support old "B_GRADIENT" notation
-
-if (name == 'B_GRADIENT') then
-  select case (key)
-  case (quadrupole$, sextupole$, octupole$, sol_quad$, overlay$, group$)
-    attrib_index = b_gradient$
-  end select
-  return
-endif
-
-!-----------------------------------------------------------------------
 ! search for name
 
 ! Overlays search all types of elements
