@@ -33,13 +33,15 @@ subroutine add_lattice_control_structs (lat, ele)
 
   integer n_add, n_con, i2, n_con2, n_ic, n_ic2, ib
 
+  character(40), parameter :: r_name = 'add_lattice_control_structs'
+
   ! fix slave problems
 
   n_add = ele%n_slave - (ele%ix2_slave - ele%ix1_slave + 1) 
 
   if (n_add < 0) then
-    print *, 'ERROR IN ADD_LATTICE_CONTROL_STRUCTS: N_SLAVE < CURRENT ALLOCATION'
-    print *, '      FOR: ', ele%name, ele%n_slave, ele%ix2_slave, ele%ix1_slave
+    call out_io (s_fatal$, r_name, 'N_SLAVE < CURRENT ALLOCATION FOR: [\3i8\] ' // ele%name, &
+                                    i_array = [ele%n_slave, ele%ix2_slave, ele%ix1_slave])
     call err_exit
   endif
 
@@ -86,8 +88,8 @@ subroutine add_lattice_control_structs (lat, ele)
   n_add = ele%n_lord - (ele%ic2_lord - ele%ic1_lord + 1) 
 
   if (n_add < 0) then
-    print *, 'ERROR IN ADD_LATTICE_CONTROL_STRUCTS: N_LORD < CURRENT ALLOCATION'
-    print *, '      FOR: ', ele%name, ele%n_lord, ele%ic2_lord, ele%ic1_lord
+    call out_io (s_fatal$, r_name, 'N_LORD < CURRENT ALLOCATION FOR: [\3i8\] ' // ele%name, &
+                                    i_array = [ele%n_lord, ele%ic2_lord, ele%ic1_lord])
     call err_exit
   endif
 

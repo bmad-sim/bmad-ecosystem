@@ -42,14 +42,16 @@ real(rp) det_factor, deriv_rel, gamma2_c
 logical error
 logical, optional :: err
 
+character(20), parameter :: r_name = 'twiss_propagate1'
+
 !---------------------------------------------------------------------
 ! init
 
 if (present(err)) err = .true.
 
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
-  print *, 'ERROR IN TWISS_PROPAGATE1: ZERO BETA DETECTED AT: ', trim(ele1%name)
-  print *, '      ELEMENT #', ele1%ix_ele
+  call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT: ' // trim(ele1%name), &
+                                 'ELEMENT # \i0\ ',  i_array = [ele1%ix_ele])
   if (bmad_status%exit_on_error) call err_exit
   bmad_status%ok = .false.
   return
@@ -139,8 +141,9 @@ else
     mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
     det = determinant(mat2) / det_factor
     if (det < 0) then
-      print *, 'TWISS_PROPAGATE1: ||mat2|| < 0! (Due to roundoff?) ', det
-      print *, '       When propagating through: ', trim(ele2%name), ele2%ix_ele
+      call out_io (s_error$, r_name,  '||mat2|| < 0! (Due to roundoff?) \f10.2\ ', &
+                                      'When propagating through: [\i0\]  ' // trim(ele2%name), &
+                                      r_array = [det], i_array = [ele2%ix_ele])
     endif
 
     gamma2_c = sqrt(abs(det))

@@ -286,7 +286,7 @@ if (debug) then
   open (iu, file = 'expand_node.dat')
   call uap_print_tree (expand_node, iu)
   close (iu)
-  print *, 'Written: expand_node.dat'
+  call out_io (s_info, r_name, 'Written: expand_node.dat')
 endif
 
 ! Transfer the information in the node tree to lat...

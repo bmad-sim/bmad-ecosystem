@@ -544,7 +544,7 @@ integer, parameter :: BL_vkick$ = 31, c4_curve$ = 31
 integer, parameter :: BL_kick$ = 32, c2_curve_tot$ = 32
 integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33, c3_curve_tot$ = 33
 integer, parameter :: B_field_err$ = 34, c4_curve_tot$ = 34
-integer, parameter :: B_gradient$ = 35, E_gradient$ = 35, coupler_angle$ = 35, d_source$ = 35
+integer, parameter :: coupler_angle$ = 35, d_source$ = 35
 integer, parameter :: B1_gradient$ = 36, E1_gradient$ = 36, d_detec$ = 36
 integer, parameter :: B2_gradient$ = 37, E2_gradient$ = 37, patch_end$ = 37, kh_x_norm$ = 37
 integer, parameter :: B3_gradient$ = 38, E3_gradient$ = 38, translate_after$ = 38, kh_y_norm$ = 38

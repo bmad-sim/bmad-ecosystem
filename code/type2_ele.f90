@@ -88,6 +88,7 @@ character(40) a_name, name, fmt_a, fmt_i, fmt_l
 character(12) val_str
 character(8) angle
 character(2) str_i
+character(12), parameter :: r_name = 'type2_ele'
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
@@ -421,7 +422,7 @@ endif
 if (logic_option(present(lattice), type_control)) then
 
   if (.not. present (lattice)) then
-    print *, 'ERROR IN TYPE2_ELE: TYPE_CONTROL IS TRUE BUT NO LATTICE PRESENT.'
+    call out_io (s_fatal$, r_name, 'TYPE_CONTROL IS TRUE BUT NO LATTICE PRESENT.')
     call err_exit
   endif
 

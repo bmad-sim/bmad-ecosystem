@@ -51,6 +51,8 @@ real(rp) beta, beta_start
 
 integer tracking_method
 
+character(8), parameter :: r_name = 'track1'
+
 ! Custom tracking
 
 tracking_method = ele%tracking_method
@@ -124,7 +126,7 @@ case (mad$)
   call track1_mad (orb, ele, param, end)
 
 case default
-  print *, 'ERROR IN TRACK1: UNKNOWN TRACKING_METHOD: ', ele%tracking_method
+  call out_io (s_fatal$, r_name, 'UNKNOWN TRACKING_METHOD: \i0\ ', ele%tracking_method)
   call err_exit
 
 end select

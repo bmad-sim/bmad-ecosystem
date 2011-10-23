@@ -1,6 +1,5 @@
 !+
-! Subroutine make_hybrid_lat (lat_in, keep_ele,
-!                    remove_markers, lat_out, ix_out, use_taylor, orb0)
+! Subroutine make_hybrid_lat (lat_in, keep_ele, remove_markers, lat_out, ix_out, use_taylor, orb0)
 !
 ! Subroutine to concatinate together the elements in a lat to make
 ! a lat with fewer elements. This is used to speed up computation times.
@@ -56,10 +55,7 @@
 !                  ix_out(i) set to 0 if lat_in%ele(i) is concatenated.
 !-
 
-#include "CESR_platform.inc"
-
-subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, &
-                                       r_out, ix_out, use_taylor, orb0)
+subroutine make_hybrid_lat (r_in, keep_ele, remove_markers, r_out, ix_out, use_taylor, orb0)
 
 use ptc_interface_mod, except_dummy => make_hybrid_lat
 use bmad_utils_mod
@@ -82,6 +78,8 @@ logical init_hybrid_needed, remove_markers, keep_ele(:)
 logical do_taylor
 logical, optional :: use_taylor
 
+character(16), parameter :: r_name = 'make_hybrid_lat'
+
 ! Init
 
 n = count(keep_ele(1:r_in%n_ele_max))
@@ -98,7 +96,7 @@ r_out%ele(0) = r_in%ele(0)     !
 init_hybrid_needed = .true.         ! we need to init out lat element
 
 if (r_in%n_ele_track == 0) then
-  print *, 'ERROR IN make_hybrid_lat: LAT_IN%n_ele_track = 0!'
+  call out_io (s_fatal$, r_name, 'LAT_IN%n_ele_track = 0!')
   call err_exit
 endif
 
@@ -304,8 +302,7 @@ do i_out = 1, r_out%n_ele_max
     ic = r_out%ic(n_ic)
     ix = r_in%control(ic)%ix_lord
     if (ix == 0) then
-      print *, 'WARNING IN make_hybrid_lat: LORD ELEMENT ',  &
-                  'LIST NOT COMPLETE FOR: ', ele_out%name
+      call out_io (s_warn$, r_name, 'LORD ELEMENT LIST NOT COMPLETE FOR: ' // ele_out%name)
     endif
   enddo
 
@@ -322,7 +319,7 @@ deallocate (ica)
 ! end
 
 if (r_out%n_ele_track == 0) then
-  print *, 'ERROR IN make_hybrid_lat: OUTPUT LAT HAS 0 ELEMENTS!'
+  call out_io (s_fatal$, r_name, 'OUTPUT LAT HAS 0 ELEMENTS!')
   call err_exit
 endif
 

@@ -174,7 +174,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    print *, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON'
+    call out_io (s_info$, r_name, 'FOUND IN FILE: "PARSER_DEBUG". DEBUG IS NOW ON')
     cycle parsing_loop
   endif
 
@@ -183,7 +183,7 @@ parsing_loop: do
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested  = .false.
     bp_com%write_digested2 = .false.
-    print *, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED'
+    call out_io (s_info$, r_name, 'FOUND IN FILE: "NO_DIGESTED". NO DIGESTED FILE WILL BE CREATED')
     cycle parsing_loop
   endif
 
@@ -379,7 +379,8 @@ parsing_loop: do
 
   call get_next_word(word_2, ix_word, ':=,', delim, delim_found, .true.)
   if (ix_word == 0) then
-    call error_exit ('NO NAME FOUND AFTER: ' // word_1, ' ')
+    call parser_warning ('NO NAME FOUND AFTER: ' // word_1, ' ')
+    call err_exit
   endif
 
   call verify_valid_name(word_2, ix_word)
@@ -595,7 +596,7 @@ if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1, orbit)
 if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
 if (.not. bmad_status%ok .and. bmad_status%exit_on_error) then
-  print *, 'BMAD_PARSER2 FINISHED. EXITING ON ERRORS'
+  call out_io (s_info$, r_name, 'FINISHED. EXITING ON ERRORS')
   stop
 endif
 

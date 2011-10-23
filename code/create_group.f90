@@ -112,12 +112,12 @@ do i = 1, n_control
   ix_branch = contrl(i)%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-    print *, 'ERROR IN CREATE_OVERLAY: BRANCH INDEX OUT OF BOUNDS.', ix_branch
+    call out_io (s_fatal$, r_name, 'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
     call err_exit
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
-    print *, 'ERROR IN CREATE_OVERLAY: INDEX OUT OF BOUNDS.', ix_slave
+    call out_io (s_fatal$, r_name, 'INDEX OUT OF BOUNDS. \i0\ ', ix_slave)
     call err_exit
   endif
 enddo

@@ -32,12 +32,14 @@ integer, allocatable :: ixx(:), iyy(:)
 real(rp) ds
 real(rp), allocatable :: s_rel(:)
 
+character(32), parameter :: r_name = 'order_super_lord_slaves'
+
 ! Init setup.
 
 lord => lat%ele(ix_lord)
 
 if (lord%lord_status /= super_lord$) then
-  print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: ELEMENT NOT A SUPER_LORD'
+  call out_io (s_fatal$, r_name, 'ELEMENT NOT A SUPER_LORD')
   call err_exit
 endif
 
@@ -54,8 +56,7 @@ do i = 1, lord%n_slave
   ds = slave%s - lord%s
   if (ds > bmad_com%significant_longitudinal_length) ds = ds - lat%branch(slave%ix_branch)%param%total_length
   if (-ds > lord%value(l$)) then
-    print *, 'ERROR IN ORDER_SUPER_LORD_SLAVES: INTERNAL ERROR! ', trim(slave%name)
-    print *, slave%s, lord%s, ds, lord%value(l$)
+    call out_io (s_fatal$, r_name, 'INTERNAL ERROR! ' // trim(slave%name))
     call err_exit
   endif
   s_rel(i) = ds

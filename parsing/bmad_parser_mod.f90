@@ -284,7 +284,6 @@ endif
 
 if (ele%key == overlay$) then
   i = attribute_index(ele, word)       ! general attribute search
-  if (word == 'B_GRADIENT') call b_grad_warning(ele)
 
   if (i == type$ .or. i == alias$) then
     call bmad_parser_type_get (ele, word, delim, delim_found)
@@ -331,10 +330,8 @@ if (ele%key == group$) then
   if (how == def$) then
     ele0%key = overlay$
     i = attribute_index(ele0, word)       ! general attribute search
-    if (word == 'B_GRADIENT') call b_grad_warning(ele0)
   else   ! how == redef$
     i = attribute_index(ele, word)
-    if (word == 'B_GRADIENT') call b_grad_warning(ele)
   endif
 
   if (i < 1) then
@@ -462,7 +459,6 @@ endif
 ! if not an ordinary attribute then might be a superimpose switch
 
 if (word(:ix_word) == 'REF') word = 'REFERENCE' ! allowed abbrev
-if (word == 'B_GRADIENT') call b_grad_warning (ele)
 
 ix_attrib = attribute_index(ele, word)
 attrib_word = word
@@ -1241,43 +1237,6 @@ err = .false.
 
 end subroutine get_logical_real
 
-!--------------------------------------------------------
-! contains
-
-subroutine b_grad_warning (ele)
-
-type (ele_struct) ele
-integer kk
-
-!
-
-do kk = 1, 20
-  print *, trim(bp_com%parser_name), ' WARNING!'
-enddo
-
-if (ele%key == group$ .or. ele%key == overlay$) then
-  print *, '      B_GRADIENT NEEDS TO BE REPLACED BY B1_GRADIENT, B2_GRADIENT, OR B3_GRAIENT.'
-else
-  print *, '      B_GRADIENT NEEDS TO BE REPLACED BY: ', trim(attribute_name(ele, b_gradient$))
-endif
-
-if (bp_com%current_file%full_name /= ' ') then
-  if (bp_com%input_line_meaningful) then
-    print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
-    print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
-  else
-    print *, '      ROOT FILE: ', trim(bp_com%current_file%full_name)
-  endif
-endif
-
-do kk = 1, 10
-  print *, 'NO DIGESTED FILE WILL BE MADE BECAUSE OF THIS!'
-enddo
-bp_com%write_digested = .false.
-bp_com%write_digested2 = .false.
-
-end subroutine b_grad_warning
-
 end subroutine parser_set_attribute 
 
 !-------------------------------------------------------------------------
@@ -1564,7 +1523,7 @@ case ('push', 'push_inline')
 
   i_level = i_level + 1    ! number of files currently open
   if (i_level > f_maxx) then
-    print *, 'ERROR: CALL NESTING GREATER THAN 20 LEVELS'
+    call parser_warning ('CALL NESTING GREATER THAN 20 LEVELS')
     call err_exit
   endif
 
@@ -1657,7 +1616,7 @@ case ('pop')
 ! Programming error
 
 case default
-  print *, 'BMAD_PARSER: INTERNAL ERROR IN PARSER_FILE_STACK SUBROUTINE'
+  call parser_warning ('INTERNAL ERROR IN PARSER_FILE_STACK SUBROUTINE!')
   call err_exit
 end select
 
@@ -1726,7 +1685,8 @@ do
     bp_com%input_line1 = ' '
     bp_com%input_line2 = line
   else
-    call error_exit ('INTERNAL ERROR #4: CALL HELP')    
+    call parser_warning ('INTERNAL ERROR #4: CALL HELP')
+    call err_exit
   endif
 
   ! strip off comments
@@ -2226,11 +2186,15 @@ do i = 1, i_lev
     i2 = i2 + 1
     call ran_gauss(stk(i2)%value)
   else
-    call error_exit ('INTERNAL ERROR #02: GET HELP')
+    call parser_warning ('INTERNAL ERROR #02: GET HELP')
+    call err_exit
   endif
 enddo
 
-if (i2 /= 1) call error_exit ('INTERNAL ERROR #03: GET HELP')
+if (i2 /= 1) then
+  call parser_warning ('INTERNAL ERROR #03: GET HELP')
+  call err_exit
+endif
 
 value = stk(1)%value
 err_flag = .false.
@@ -2266,8 +2230,7 @@ integer stack(:), i_lev, value
 i_lev = i_lev + 1
 
 if (i_lev > size(stack)) then
-  print *, 'ERROR IN ', trim(bp_com%parser_name), ': STACK OVERFLOW.'
-  print *, '      EXPERT HELP IS NEEDED!'
+  call parser_warning ('STACK OVERFLOW.', 'EXPERT HELP IS NEEDED!')
   call err_exit
 endif
 
@@ -2503,7 +2466,7 @@ case ('CRYSTAL_TYPE')
   ele%component_name = type_name
   call upcase_string (ele%component_name)
 case default
-  print *, 'INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!'
+  call parser_warning ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
   call err_exit
 end select
 
@@ -3059,39 +3022,6 @@ end subroutine verify_valid_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine error_exit (what1, what2)
-
-implicit none
-
-character(*) what1
-character(*), optional :: what2
-
-!
-
-print *, 'FATAL ERROR IN ', trim(bp_com%parser_name) 
-print '(5x, a)', trim(what1)
-if (present(what2)) then
-  if (what2 /= ' ') print '(5x, a)', trim(what2)
-endif
-
-if (bp_com%input_line_meaningful) then
-  print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
-  print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
-endif
-
-call err_exit
-
-end subroutine error_exit
-
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
 subroutine parser_warning (what1, what2, what3, seq, pele, stop_here, warn_only)
 
 implicit none
@@ -3101,41 +3031,56 @@ type (parser_ele_struct), optional :: pele
 
 character(*) what1
 character(*), optional :: what2, what3
-
+character(160) lines(12)
+character(16), parameter :: r_name = 'parser_warning'
+integer nl
 logical, optional :: stop_here, warn_only
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
 
 if (bmad_status%type_out) then
 
-  print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', trim(what1)
+  nl = 0
 
-  if (present(what2)) print '(22x, a)', trim(what2)
-  if (present(what3)) print '(22x, a)', trim(what3)
+  nl=nl+1; lines(nl) = 'ERROR IN ' // trim(bp_com%parser_name) // ': ' // trim(what1)
+
+  if (present(what2)) then
+    nl=nl+1; lines(nl) = '     ' // trim(what2)
+  endif
+
+  if (present(what3)) then
+    nl=nl+1; lines(nl) = '     ' // trim(what3)
+  endif
 
   if (present(seq)) then
-    print *, '      IN FILE: ', trim(seq%file_name)
-    print *, '      AT LINE:', seq%ix_line
+    nl=nl+1; lines(nl) = '      IN FILE: ' // trim(seq%file_name)
+    nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', seq%ix_line
   elseif (bp_com%current_file%full_name /= ' ') then
     if (bp_com%input_line_meaningful) then
-      print *, '      IN FILE: ', trim(bp_com%current_file%full_name)
-      print *, '      AT OR BEFORE LINE:', bp_com%current_file%i_line
+      nl=nl+1; lines(nl) = '      IN FILE: ' // trim(bp_com%current_file%full_name)
+      nl=nl+1; write (lines(nl), '(a, i0)') '      AT OR BEFORE LINE: ', bp_com%current_file%i_line
     else
-      print *, '      ROOT FILE: ', trim(bp_com%current_file%full_name)
+      nl=nl+1; lines(nl) = '      ROOT FILE: ' // trim(bp_com%current_file%full_name)
     endif
   endif
 
   if (bp_com%input_line_meaningful) then
-     if (len_trim(bp_com%input_line1) /= 0) print '(5x, a)', trim(bp_com%input_line1)
-     if (len_trim(bp_com%input_line2) /= 0) print '(5x, a)', trim(bp_com%input_line2)
+    if (len_trim(bp_com%input_line1) /= 0) then
+      nl=nl+1; lines(nl) = '     ' // trim(bp_com%input_line1)
+    endif
+    if (len_trim(bp_com%input_line2) /= 0) then
+      nl=nl+1; lines(nl) = '     ' // trim(bp_com%input_line2)
+    endif
   endif
 
   if (present(pele)) then
-    print *, '      ELEMENT DEFINED IN FILE: ', trim(pele%lat_file)
-    print *, '      AT LINE: ', pele%ix_line_in_file
+    nl=nl+1; lines(nl) = '      ELEMENT DEFINED IN FILE: ' // trim(pele%lat_file)
+    nl=nl+1; write (lines(nl), '(a, i0)') '      AT LINE: ', pele%ix_line_in_file
   endif
 
-  print *
+  nl=nl+1; lines(nl) = ''
+
+  call out_io (s_error$, r_name, lines(1:nl))
 
 endif
 
@@ -3676,7 +3621,7 @@ if (pele%ele_pt == begin$) then
 elseif (pele%ele_pt == center$) then
   super_ele%s = super_ele%s + super_ele%value(l$) / 2
 elseif (pele%ele_pt /= end$) then
-  print *, 'ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!'
+  call parser_warning ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #1 INTERNAL ERROR!')
   call err_exit
 endif
 
@@ -3708,7 +3653,7 @@ elseif (pele%ref_pt == center$) then
 elseif (pele%ref_pt == end$) then
   super_ele%s = super_ele%s + s_ref_end
 else
-  print *, 'ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!'
+  call parser_warning ('ERROR IN COMPUTE_SUPER_LORD_S: CONTROL #2 INTERNAL ERROR!')
   call err_exit
 endif
 
@@ -4201,7 +4146,7 @@ main_loop: do n = 1, n2
 
     do ii = 1, n_list-1
       if (name_list(r_indexx(ii)) > name_list(r_indexx(ii+1))) then
-        print *, n, ii, r_indexx(ii)
+        call parser_warning ('PARER_ADD_LORD INTERNAL ERROR!')
         call err_exit
       endif
     enddo
