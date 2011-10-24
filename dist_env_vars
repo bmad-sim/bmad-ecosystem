@@ -24,11 +24,6 @@ export DIST_UTIL=$DIST_BASE_DIR/util
 export DIST_INC=$DIST_BASE_DIR/include
 
 
-#--------------------------------------------------------------
-# Fortran compiler to use for building the distribution
-#--------------------------------------------------------------
-export DIST_F90=$TEMP_FC
-
 
 #--------------------------------------------------------------
 # PGPLOT server/font directory specification

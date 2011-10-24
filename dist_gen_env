@@ -195,7 +195,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   # Allow for override of the Fortran compiler to use.
   #--------------------------------------------------------------
   export DIST_F90=${DIST_F90_REQUEST}
-
+  export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
 
 
   #--------------------------------------------------------------
