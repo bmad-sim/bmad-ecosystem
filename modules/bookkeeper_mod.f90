@@ -154,7 +154,7 @@ if (.not. bmad_com%auto_bookkeeper) then
                                     'Please contact DCS!', 'Status: \5i6\ ', &
               i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%length, stat%ref_energy])
     endif
-    call set_status_flags(stat, ok$, keep_super_ok = .true.)
+    call reset_status_flags(stat)
 
     do j = 0, ubound(branch%ele, 1)
       stat => branch%ele(j)%status
@@ -164,11 +164,25 @@ if (.not. bmad_com%auto_bookkeeper) then
                                       'Please contact DCS!', 'Status: \5i6\ ', &
               i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%length, stat%ref_energy])
       endif
-      call set_status_flags(stat, ok$, keep_super_ok = .true.)
+      call reset_status_flags(stat)
     enddo
 
   enddo
 endif
+
+!----------------------------------------------------------
+contains
+
+subroutine reset_status_flags (stat)
+  type (bookkeeper_status_struct) stat
+
+  if (stat%control /= ok$        .and. stat%control /= super_ok$)        stat%control = ok$
+  if (stat%attributes /= ok$     .and. stat%attributes /= super_ok$)     stat%attributes = ok$
+  if (stat%floor_position /= ok$ .and. stat%floor_position /= super_ok$) stat%floor_position = ok$
+  if (stat%length /= ok$         .and. stat%length /= super_ok$)         stat%length = ok$
+  if (stat%ref_energy /= ok$     .and. stat%ref_energy /= super_ok$)     stat%ref_energy = ok$
+
+end subroutine reset_status_flags
 
 end subroutine lattice_bookkeeper
 
