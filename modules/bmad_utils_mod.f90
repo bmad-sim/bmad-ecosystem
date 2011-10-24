@@ -2563,40 +2563,35 @@ end subroutine set_ele_status_stale
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_status_flags (status_block, stat, n_modify, keep_super_ok)
+! Subroutine set_status_flags (status_block, stat, n_modify)
 !
 ! Routine to set the bookkeeping status block.
 !
 ! Input:
 !   stat          -- Integer: bookkeeping status. ok$, stale$, etc.
 !   n_modify      -- Integer: Number to set stat%n_modify to
-!   keep_super_ok -- Logical, optional: If present and True then flags with 
-!                       a super_ok$ value are not set. Default is False.
 !
 ! Output:
 !   status_block -- bookkeeper_status_struct: 
 !-
 
-subroutine set_status_flags (status_block, stat, n_modify, keep_super_ok)
+subroutine set_status_flags (status_block, stat, n_modify)
 
 implicit none
 
 type (bookkeeper_status_struct) status_block
 integer stat
 integer, optional :: n_modify
-logical, optional :: keep_super_ok
 logical no_keep
 
 !
 
-no_keep = .not. logic_option (.false., keep_super_ok)
-
-if (no_keep .or. status_block%control /= super_ok$)        status_block%control        = stat
-if (no_keep .or. status_block%length /= super_ok$)         status_block%length         = stat
-if (no_keep .or. status_block%floor_position /= super_ok$) status_block%floor_position = stat
-if (no_keep .or. status_block%ref_energy /= super_ok$)     status_block%ref_energy     = stat
-if (no_keep .or. status_block%attributes /= super_ok$)     status_block%attributes     = stat
-if (no_keep .or. status_block%mat6 /= super_ok$)           status_block%mat6           = stat
+status_block%control        = stat
+status_block%length         = stat
+status_block%floor_position = stat
+status_block%ref_energy     = stat
+status_block%attributes     = stat
+status_block%mat6           = stat
 
 if (present(n_modify)) status_block%n_modify = n_modify
 
