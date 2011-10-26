@@ -681,27 +681,19 @@ General \vn{crystal} attributes are:
   Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
-  Chamber Wall           & \ref{s:wall}    &                            &                 \HH
+  Chamber Wall           & \ref{s:wall}    & Surface Curvature          & \ref{s:s.curve} \HH
 \end{tabular}
 \end{center}
 \toffset
 
 \index{graze_angle_err}\index{psi_angle}
 \index{b_param}\index{bragg_angle}\index{crystal_type}
-\index{tilt_err}\index{g_graze}\index{g_trans}
-\index{d_detec}\index{d_source}
-\index{c2_curve}\index{c3_curve}\index{c4_curve}
+\index{tilt_err}\index{g_graze}
 \index{follow_diffracted_beam}\index{thickness}
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
   b_param                = <Real>    ! b parameter
   crystal_type           = <String>  ! Crystal material and reflection plane.
-  c2_curve               = <Real>    ! C2 curvature coefficient.
-  c3_curve               = <Real>    ! C3 curvature coefficient.
-  c4_curve               = <Real>    ! C4 curvature coefficient.
-  d_detec                = <Real>    ! Detector distance.
-  d_source               = <Real>    ! Source distance.
-  g_trans                = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
   graze_angle_err        = <Real>    ! Error in the graze angle.
   psi_angle              = <Real>    ! Rotation of H-vector about the surface normal.
   tilt_err               = <Real>    ! Error in the tilt angle.
@@ -718,9 +710,6 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
   alpha_angle      ! Angle of H-vector with respect to the surface normal.
   bragg_angle      ! Nominal Bragg angle at the reference wave length. 
-  c2_curve_tot     ! Total C2 curvature coefficient.
-  c3_curve_tot     ! Total C3 curvature coefficient.
-  c4_curve_tot     ! Total C4 curvature coefficient.
   d_spacing        ! Lattice plane spacing. 
   f0_re            ! Real part of f0
   f0_im            ! Imaginary part of f0
@@ -735,13 +724,15 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \end{example}
 
 The \vn{crystal_type} attribute defines the crystal material and
-diffraction lattice plane. The syntax is \vn{"ZZijk"} where \vn{ZZ} is
-the atomic symbol for the material and \vn{ijk} are the Miller indices
-for the diffraction plane. For example, \vn{"si111"}. From this, and
-the reference photon energy (\sref{s:energy}), the spacing between
-lattice planes (\vn{d_spacing}), the unit cell volume
-(\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
-\vn{f0_re}, \vn{f0_im}, \vn{fh_re}, \vn{fh_im} can be computed.
+diffraction lattice plane. The syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ}
+is the atomic formula for the material and \vn{ijk} are the Miller
+indices for the diffraction plane. For example, \vn{"Si(111)"}. The
+atomic formula is case sensitive so, for example, \vn{SI} is not
+acceptible.  Given the \vn{crystal_type} along with the reference
+photon energy (\sref{s:energy}), the spacing between lattice planes
+(\vn{d_spacing}), the unit cell volume (\vn{v_unitcell}), and the
+structure factor\cite{b:batterman} values \vn{f0_re}, \vn{f0_im},
+\vn{fh_re}, \vn{fh_im} can be computed.
 
 The \vn{b_param} is the standard asymmetry factor
 \Begineq
@@ -802,59 +793,13 @@ zero \vn{tilt}, a positive \vn{x_pitch} is equivalent to a negative
 \vn{y_pitch} is equivalent to a negative \vn{tilt_err} of the same
 magnitude.
 
-The curvature of the surface in the plane of the $x$-$z$ plane of the
-Element Reference Frame (see Fig.~\ref{f:crystal}) is determined by
-the \vn{d_source}, \vn{d_detec}, \vn{c2_curve}, \vn{c2_curve}, and
-\vn{c2_curve} parameters. The curvature is surface is parameterized by
-a fourth order polynomial
-\Begineq
-  -x = c_{2,tot} \, z^2 + c_{3,tot} \, z^3 + c_{4,tot} \, z^4
-\Endeq
-The coefficients of the polynomial are determined by
-\begin{align}
-  c_{2,tot} &= \mbox{c2_curve} + \frac{1}{2 \, R_c} \CRNO
-  c_{3,tot} &= \mbox{c3_curve} \\
-  c_{4,tot} &= \mbox{c4_curve} + \frac{1}{4 \, R_c^3} \CRNO
-\end{align}
-where 
-\Begineq
-  \frac{2}{R_c} = \frac{\theta_{g,in}}{d_s} + 
-                  \frac{\theta_{g,out}}{d_d}
-\Endeq
-and
-\begin{align}
-  d_s &= \begin{cases} 
-    \infty & \mbox{d_source} = 0 \\
-    \mbox{d_source} & \mbox{otherwise}
-  \end{cases} \CRNO
-  d_d &= \begin{cases} 
-    \infty & \mbox{d_detec} = 0 \\
-    \mbox{d_detec} & \mbox{otherwise}
-  \end{cases}
-\end{align}
-\vn{d_source} and \vn{d_detec} can be thought of as distances from the
-crystal to the photon source and detector of photons.  With the above
-definitions, and with \vn{c2_curve}, \vn{c3_curve}, and \vn{c4_curve}
-equal to zero, photons from the source will be focused on the
-detector.
-
-When a crystal is bent, The $\bfH$ vector is assumed follow the
-surface curvature. That is, it is assumed that the lattice planes are
-curved by the bending.
-
-The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
-\vn{R_graze} is the radius of curvature of the crystal surface in the
-bend plane as shown in Fig.~\ref{f:mirror}. A positive \vn{g_graze}
-indicates that the crystal is concave from the point of view of the
-photons. Similarly, the \vn{g_trans} parameter is equal to
-1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
-crystal surface in the plane transverse to the bend plane. Again, a
-positive \vn{g_trans} indicates that the crystal is concave from the
-point of view of the photons.
+When a crystal is bent (\sref{s:s.curve}), the $\bfH$ vector is
+assumed follow the surface curvature. That is, it is assumed that the
+lattice planes are curved by the bending.
 
 Example:
 \begin{example}
-  crystal_ele: crystal, crystal_type = 'si111', b_param = -1
+  crystal_ele: crystal, crystal_type = 'Si(111)', b_param = -1
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1466,6 +1411,7 @@ General \vn{mirror} attributes are:
   Description strings    & \ref{s:string}  & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Chamber wall               & \ref{s:wall}    \HH
+  Surface Curvature      & \ref{s:s.curve} &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1476,8 +1422,6 @@ Attributes specific to a \vn{mirror} element are:
   graze_angle_err = <Real>    ! Error in the graze angle.
   critical_angle  = <Real>    ! Critical angle.
   tilt_err        = <Real>    ! Error in the tilt angle.
-  g_graze         = <Real>    ! 1/Radius-of-curvature in the bend plane.
-  g_trans         = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
 \end{example}
 
 The reference trajectory for a
@@ -1489,16 +1433,6 @@ bends the reference trajectory in the same direction as a positive
 \vn{g} for a bend element. The \vn{graze_angle_err} and \vn{tilt_err}
 parameters affect the orientation of the \vn{mirror} in the global
 reference system but do not affect the reference trajectory.
-
-The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
-\vn{R_graze} is the radius of curvature of the mirror surface in the
-bend plane as shown in Fig.~\ref{f:mirror}. A positive \vn{g_graze}
-indicates that the mirror is concave from the point of view of the
-photons. Similarly, the \vn{g_trans} parameter is equal to
-1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
-mirror surface in the plane transverse to the bend plane. Again, a
-positive \vn{g_trans} indicates that the mirror is concave from the
-point of view of the photons.
 
 A \vn{mirror} may be offset and pitched (\ref{s:offset}). The incoming
 local reference coordinates are used for these misalignments. The
@@ -1564,7 +1498,7 @@ General \vn{crystal} attributes are:
   Description strings    & \ref{s:string}  & Offsets                    & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
-  Chamber Wall           & \ref{s:wall}    &                            &                 \HH
+  Chamber Wall           & \ref{s:wall}    & Surface Curvature          & \ref{s:s.curve} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1584,12 +1518,6 @@ The attributes specific to a \vn{multilayer_mirror} are
   d2_thickness         = <Real>    ! Thickness of layer 2
   n_cells              = <Integer> ! Number of cells (= Number of layers / 2)
   tilt_err             = <Real>    ! Error in the tilt angle.
-  c2_curve             = <Real>    ! C2 curvature coefficient.
-  c3_curve             = <Real>    ! C3 curvature coefficient.
-  c4_curve             = <Real>    ! C4 curvature coefficient.
-  d_detec              = <Real>    ! Detector distance.
-  d_source             = <Real>    ! Source distance.
-  g_trans              = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
   tilt_err             = <Real>    ! Error in the tilt angle.
   negative_graze_angle = <Logic>   ! Use negative graze angle? Default is False.
 \end{example}
@@ -1602,9 +1530,6 @@ The attributes specific to a \vn{multilayer_mirror} are
 Dependent attributes (\sref{s:depend}) are
 \begin{example}
   graze_angle      ! Angle between incoming beam and mirror surface.
-  c2_curve_tot     ! Total C2 curvature coefficient.
-  c3_curve_tot     ! Total C3 curvature coefficient.
-  c4_curve_tot     ! Total C4 curvature coefficient.
   f0_re1           ! Real part of f0 for layer 1
   f0_im1           ! Imaginary part of f0 for layer 1
   f0_re2           ! Real part of f0 for layer 2

@@ -518,6 +518,77 @@ the radius (or radii for an ellipse section) is negative.}
 \end{figure}
 
 %-----------------------------------------------------------------
+\section{Surface Curvature for X-Ray elements}
+\label{s:s.curve}
+
+Various X-Ray elements, for example a \vn{crystal} (\sref{s:crystal})
+element, can have a curved surface. The attributes for specifying the surface curvature are:
+\index{d_detec}\index{d_source}\index{g_trans}
+\index{c2_curve}\index{c3_curve}\index{c4_curve}
+\begin{example}
+  c2_curve               = <Real>    ! C2 curvature coefficient.
+  c3_curve               = <Real>    ! C3 curvature coefficient.
+  c4_curve               = <Real>    ! C4 curvature coefficient.
+  d_detec                = <Real>    ! Detector distance.
+  d_source               = <Real>    ! Source distance.
+  g_trans                = <Real>    ! 1/Radius-of-curvature transverse to the bend plane.
+\end{example}
+
+From the input attributes, the following attributes are derived:
+\index{c2_curve_tot}\index{c3_curve_tot}\index{c4_curve_tot}
+\begin{example}
+  c2_curve_tot     ! Total C2 curvature coefficient.
+  c3_curve_tot     ! Total C3 curvature coefficient.
+  c4_curve_tot     ! Total C4 curvature coefficient.
+\end{example}
+
+The curvature of the surface in the plane of the $x$-$z$ plane of the
+Element Reference Frame (see Fig.~\ref{f:crystal}) is determined by
+the \vn{d_source}, \vn{d_detec}, \vn{c2_curve}, \vn{c2_curve}, and
+\vn{c2_curve} parameters. The curvature is surface is parameterized by
+a fourth order polynomial
+\Begineq
+  -x = c_{2,tot} \, z^2 + c_{3,tot} \, z^3 + c_{4,tot} \, z^4
+\Endeq
+The coefficients of the polynomial are determined by
+\begin{align}
+  c_{2,tot} &= \mbox{c2_curve} + \frac{1}{2 \, R_c} \CRNO
+  c_{3,tot} &= \mbox{c3_curve} \\
+  c_{4,tot} &= \mbox{c4_curve} + \frac{1}{4 \, R_c^3} \CRNO
+\end{align}
+where 
+\Begineq
+  \frac{2}{R_c} = \frac{\theta_{g,in}}{d_s} + 
+                  \frac{\theta_{g,out}}{d_d}
+\Endeq
+and
+\begin{align}
+  d_s &= \begin{cases} 
+    \infty & \mbox{d_source} = 0 \\
+    \mbox{d_source} & \mbox{otherwise}
+  \end{cases} \CRNO
+  d_d &= \begin{cases} 
+    \infty & \mbox{d_detec} = 0 \\
+    \mbox{d_detec} & \mbox{otherwise}
+  \end{cases}
+\end{align}
+\vn{d_source} and \vn{d_detec} can be thought of as distances from the
+element to the photon source and detector of photons.  With the above
+definitions, and with \vn{c2_curve}, \vn{c3_curve}, and \vn{c4_curve}
+equal to zero, photons from the source will be focused on the
+detector.
+
+The \vn{g_graze} parameter is equal to 1/\vn{R_graze} where
+\vn{R_graze} is the radius of curvature of the element surface in the
+bend plane as shown in Fig.~\ref{f:mirror}. A positive \vn{g_graze}
+indicates that the element is concave from the point of view of the
+photons. Similarly, the \vn{g_trans} parameter is equal to
+1/\vn{R_trans} where \vn{R_trans} is the radius of curvature of the
+element surface in the plane transverse to the bend plane. Again, a
+positive \vn{g_trans} indicates that the element is concave from the
+point of view of the photons.
+
+%-----------------------------------------------------------------
 \section{Chamber and Capillary Wall}
 \label{s:wall}
 
