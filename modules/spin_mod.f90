@@ -479,7 +479,10 @@ integer key
 
 logical isTreatedHere, isKicker
 
+character(16), parameter :: r_name = 'track1_spin'
+
 ! Boris tracking does it's own spin tracking
+
 if (ele%tracking_method .eq. boris$ .or. &
     ele%tracking_method .eq. adaptive_boris$) return
 
@@ -642,7 +645,7 @@ if(isTreatedHere) then
     gamma0 = ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
 
     if (ele%value(E_TOT_START$) == 0) then
-      print *, 'ERROR IN TRACK1_BMAD: E_TOT_START IS 0 FOR A LCAVITY!'
+      call out_io (s_fatal$, r_name, 'E_TOT_START IS 0 FOR A LCAVITY!')
       call err_exit
     endif
 

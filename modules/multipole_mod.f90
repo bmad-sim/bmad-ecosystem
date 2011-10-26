@@ -258,6 +258,8 @@ integer ref_exp, n, particle
 
 logical use_ele_tilt
 
+character(24), parameter :: r_name = 'multipole_ele_to_ab'
+
 !
 
 if (.not. ele%multipoles_on .or. .not. ele%is_on .or. .not. associated(ele%a_pole)) then
@@ -347,9 +349,8 @@ case (octupole$)
 case (ab_multipole$, multipole$) ! multipoles do not scale
   return
 
-case default                                  
-  print *, 'ERROR IN MULTIPOLE_ELE_TO_AB: ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC.'
-  print *, '      ', ele%name
+case default
+  call out_io (s_fatal$, r_name, 'ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC. ' // ele%name)
   call err_exit
 
 end select
