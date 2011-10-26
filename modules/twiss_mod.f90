@@ -54,13 +54,14 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
   real(rp) gamma, det_H, det,  trace_t0_diff, denom
   real(rp) scaler, tol
   logical type_out
+  character(20), parameter :: r_name = 'mat_symp_decouple'
 
 ! check input matrix
 
   if (mat_symp_error (t0) > tol) then
     stat = non_symplectic$
     if (type_out) then
-      print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC INPUT MATRIX'
+      call out_io (s_warn$, r_name, 'NON-SYMPLECTIC INPUT MATRIX')
     endif
     return
   endif
@@ -122,7 +123,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
   if (mat_symp_error(U) > tol) then
     stat = non_symplectic$
     if (type_out) then
-      print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC U MATRIX'
+      call out_io (s_warn$, r_name, 'NON-SYMPLECTIC U MATRIX')
     endif
     return
   endif
@@ -138,13 +139,13 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
 
   call twiss_from_mat2 (U(1:2,1:2), det, twiss1, stat, tol, .false.)
   if (stat /= ok$) then
-    if (type_out) print *, 'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "A" mode TWISS'
+    if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "A" mode TWISS')
     return
   endif
 
   call twiss_from_mat2 (U(3:4,3:4), det, twiss2, stat, tol, .false.)
   if (stat /= ok$) then
-    if (type_out) print *, 'ERROR IN MAT_SYMP_DECOUPLE: UNABLE TO COMPUTE "B" mode TWISS'
+    if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "B" mode TWISS')
     return
   endif
 
@@ -184,7 +185,7 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
   if (mat_symp_error (Ubar) > tol) then
     stat = non_symplectic$
     if (type_out) then
-      print *, 'ERROR IN MAT_SYMP_DECOUPLE: NON-SYMPLECTIC UBAR MATRIX'
+      call out_io (s_warn$, r_name, 'NON-SYMPLECTIC UBAR MATRIX')
     endif
     return
   endif
@@ -226,6 +227,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
   integer stat
   real(rp) mat(:, :), t_cos, t_sin, det, tol, radical
   logical type_out
+  character(16), parameter :: r_name = 'twiss_from_mat2'
 
 !
 
@@ -235,13 +237,13 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
   det = mat(1,1) * mat(2,2) - mat(1,2) * mat(2,1)
 
   if (abs(t_cos) >= 1.0) then
-    if (type_out) print *, 'ERROR IN TWISS_FROM_MAT: UNSTABLE MATRIX'
+    if (type_out) call out_io (s_warn$, r_name, 'UNSTABLE MATRIX')
     stat = unstable$
     return
   endif
 
   if (abs(det - 1) > tol) then
-    if (type_out) print *, 'WARNING IN TWISS_FROM_MAT: MATRIX DETERMINANT >< 1:', det
+    if (type_out) call out_io (s_warn$, r_name, 'MATRIX DETERMINANT >< 1: \f12.4\ ', det)
     stat = non_symplectic$
   endif
 
@@ -257,7 +259,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
     twiss%alpha = (mat(1,1) - mat(2,2)) / (2.0 * t_sin)
     radical = -(1 + twiss%alpha**2) * mat(1,2) / mat(2,1)
     if (radical <= 0) then
-      if (type_out) print *, 'ERROR IN TWISS_FROM_MAT: NON-SYMPLECTIC MATRIX'
+      if (type_out) call out_io (s_warn$, r_name, 'NON-SYMPLECTIC MATRIX')
       stat = non_symplectic$
       return
     endif
