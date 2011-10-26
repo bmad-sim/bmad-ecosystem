@@ -455,7 +455,7 @@ case (mirror$)
 
   end%vec(1:4) = [ &
         -end%vec(1), &
-        -end%vec(2) + 2 * end%vec(1) * ele%value(g_graze$) / sin(ele%value(graze_angle$)), &
+        -end%vec(2), &
          end%vec(3), &
          end%vec(4) - 2 * end%vec(3) * ele%value(g_trans$)]
 

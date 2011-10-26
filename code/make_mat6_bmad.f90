@@ -327,7 +327,7 @@ case (match$)
 case (mirror$)
 
   mat6(1, 1) = -1
-  mat6(2, 1) =  2 * ele%value(g_graze$) / sin(ele%value(graze_angle$))
+  mat6(2, 1) =  0   ! 
   mat6(2, 2) = -1
   mat6(4, 3) = -2 * ele%value(g_trans$)  
 

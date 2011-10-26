@@ -2464,7 +2464,6 @@ case ('TO', 'REF_PATCH')
   call upcase_string (ele%component_name)
 case ('CRYSTAL_TYPE')
   ele%component_name = type_name
-  call upcase_string (ele%component_name)
 case default
   call parser_warning ('INTERNAL ERROR IN BMAD_PARSER_TYPE_GET: I NEED HELP!')
   call err_exit

@@ -28,10 +28,8 @@ contains
 !
 ! Multilayer types are of the form:
 !   "AAA:BBB"
-! Where "AAA" is the top layer crystal and "BBB" is the second layer crystal.
+! Where "AAA" is the atomic formula for the top layer crystal and "BBB" is the second layer atomic formula.
 ! the diffraction plans.
-! Known elements are:
-!   SI,  B4C,  W
 !
 ! Modules needed:
 !   use crystal_param_mod
@@ -118,9 +116,9 @@ complex f0
 ! Silicon
 
 select case (material_name)
-case ('SI') 
+case ('Si') 
 
-  f0 = atomic_f0_calc('SI', ele%value(e_tot$))
+  f0 = atomic_f0_calc('Si', ele%value(e_tot$))
   cp => pointer_to_crystal_params('SI')
 
 ! Boron Carbide
@@ -166,11 +164,9 @@ end subroutine multilayer_type_to_multilayer_params
 ! Routine to set the crystal parameters based upon the crystal type.
 !
 ! Crystal types are of the form:
-!   "ZZijk"
-! Where "ZZ" is the crystal name and "ijk" is the reciprical lattice vetor specifying
-! the diffraction plans.
-! Known elements are:
-!   SI
+!   "ZZZ(ijk)"
+! Where "ZZZ" is the atomic formula of the crystal material and "ijk" is the reciprical lattice 
+! vetor specifying the diffraction plans.
 !
 ! Modules needed:
 !   use crystal_param_mod
@@ -204,12 +200,12 @@ type (crystal_params_struct), pointer :: cp
 real(rp) f_e, f_h, d, hkl(3), bp, r, test(3)
 complex(rp) arg, atomsum, f0
 
-integer i, ix, ios, n_coef, n_atom
+integer i, ix, ios, n_coef, n_atom, ix1, ix2
 
 logical err_flag
 
 character(40) :: r_name = 'crystal_type_to_crystal_params'
-character(10) hkl_str
+character(16) hkl_str, atomic_formula
 
 ! Check if component_name and e_tot are set.
 
@@ -220,17 +216,29 @@ if (ele%value(e_tot$) == 0) return
 
 err_flag = .true.
 
+! Separate Miller indices
+
+ix1 = index(ele%component_name, '(')
+ix2 = len_trim(ele%component_name)
+if (ix1 == 0 .or. ele%component_name(ix2:ix2) /= ')') then
+  call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+  call err_exit
+endif
+
+atomic_formula = ele%component_name(1:ix1-1)
+hkl_str = ele%component_name(ix1+1:ix2-1)
+
 ! Load constants for the particular crystal...
 ! Silicon
 
-if (ele%component_name(1:2) == 'SI') then
-  hkl_str = ele%component_name(3:)
-  f0 = atomic_f0_calc('SI', ele%value(e_tot$))
-  cp => pointer_to_crystal_params('SI')
+if (atomic_formula == 'Si') then
+  f0 = atomic_f0_calc('Si', ele%value(e_tot$))
+  cp => pointer_to_crystal_params('Si')
 
 else
 
-  call out_io (s_fatal$, r_name, 'BAD CRYSTAL TYPE: ' // ele%component_name)
+  call out_io (s_fatal$, r_name, 'BAD CRYSTAL TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+  call err_exit
 
 endif
 
@@ -245,14 +253,14 @@ ele%value(v_unitcell$) = cp%a0**3
 
 ! Calculate HKL
 
+if (.not. is_integer(hkl_str) .or. len_trim(hkl_str) /= 3) then
+  call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+  call err_exit
+endif
+
 read (hkl_str(1:1), *, iostat = ios) hkl(1)
-if (hkl_str(1:1) == '' .or. ios /= 0) return
-
 read (hkl_str(2:2), *, iostat = ios) hkl(2)
-if (hkl_str(2:2) == '' .or. ios /= 0) return
-
 read (hkl_str(3:3), *, iostat = ios) hkl(3)
-if (hkl_str(3:3) == '' .or. ios /= 0) return
 
 ! Calculate values for the given energy
 
@@ -306,8 +314,7 @@ end subroutine crystal_type_to_crystal_params
 ! Function atomic_f0_calc (atom, e_tot) result (f0)
 !
 ! Function to calculate the F0 structure factor for a particular element at a particular energy.
-! Known elements at this point are:
-!     B,  C,  SI,  W
+!
 ! Input:
 !   atom    -- Character(*): Type of element.
 !   e_tot   -- Real(rp): total energy in eV.
@@ -338,6 +345,7 @@ integer n, ix
 logical :: init_needed = .true.
 
 character(*) atom
+character(16), parameter :: r_name = 'atomic_f0_calc'
 
 ! Init
 
@@ -685,10 +693,13 @@ case ('B')
   f0_ptr => f0_b
 case ('C')
   f0_ptr => f0_c
-case ('SI')
+case ('Si')
   f0_ptr => f0_si
 case ('W')
   f0_ptr => f0_w
+case default
+  call out_io (s_fatal$, r_name, 'UNKNOWN ATOM TYPE: ' // atom)
+  call err_exit
 end select
 
 n = size(f0_ptr)
@@ -711,18 +722,18 @@ end function atomic_f0_calc
 !----------------------------------------------------------------------------------------------------
 !+
 ! 
-! Function pointer_to_crystal_params (crystal_type) result (param_ptr)
+! Function pointer_to_crystal_params (atomic_formula) result (param_ptr)
 ! 
 ! Routine to return a pointer to the crystal structure parameters.
 !
 ! Input:
-!   crystal_type -- Character(*): Crystal type.
+!   atomic_formula -- Character(*): Atomic formula. EG: "Si".
 !
 ! Output:
 !   param_ptr -- crystal_params_struct, pointer: Pointer to the parameters
 !-
 
-function pointer_to_crystal_params (crystal_type) result (param_ptr)
+function pointer_to_crystal_params (atomic_formula) result (param_ptr)
 
 implicit none
 
@@ -730,7 +741,7 @@ type (crystal_params_struct), pointer :: param_ptr, cp
 
 logical :: init_needed = .true.
 
-character(*) crystal_type
+character(*) atomic_formula
 
 !
 
@@ -765,8 +776,8 @@ end if
 
 !
 
-select case (crystal_type)
-case ('SI');   param_ptr => params_si
+select case (atomic_formula)
+case ('Si');   param_ptr => params_si
 case ('B4C');  param_ptr => params_b4c
 case ('W');    param_ptr => params_w
 case default; call err_exit
