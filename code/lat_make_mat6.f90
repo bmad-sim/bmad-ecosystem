@@ -135,8 +135,6 @@ if (i_ele < 0) then
     if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
       if (present(ref_orb)) then
         if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
-      else
-        if (all(ref_orb(i-1)%vec == 0)) cycle
       endif
     endif
 
@@ -201,8 +199,6 @@ ele => branch%ele(i_ele)
 if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
   if (present(ref_orb)) then
     if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) return
-  else
-    if (all(ref_orb(i-1)%vec == 0)) return
   endif
 endif
 
