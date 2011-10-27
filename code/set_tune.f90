@@ -24,102 +24,105 @@
 !   ok       -- Logical: Set True if everything is ok. False otherwise.
 !-
 
-#include "CESR_platform.inc"
-
 subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)
 
-  use bmad_struct
-  use bmad_interface, except_dummy => set_tune
+use bmad_struct
+use bmad_interface, except_dummy => set_tune
+use bookkeeper_mod
 
-  implicit none
+implicit none
 
-  type (lat_struct) lat
-  type (ele_struct), save :: ave
-  type (coord_struct), allocatable :: orb(:)
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+type (ele_struct), save :: ave
+type (coord_struct), allocatable :: orb(:)
 
-  real(rp) phi_a_set, phi_b_set, dphi_a, dphi_b
-  real(rp) phi_a, phi_b, d_xx, d_xy, d_yx, d_yy, det
-  real(rp) l_beta_a, l_beta_b, dk_x, dk_y, dk1(:)
+real(rp) phi_a_set, phi_b_set, dphi_a, dphi_b, dQ_max
+real(rp) phi_a, phi_b, d_xx, d_xy, d_yx, d_yy, det
+real(rp) l_beta_a, l_beta_b, dk_x, dk_y, dk1(:)
 
-  integer i, j
+integer i, j
 
-  logical ok
+logical ok
 
-  character(20) :: r_name = 'set_tune'
-  real(rp), dimension(2) :: phi_array
+character(20) :: r_name = 'set_tune'
+real(rp), dimension(2) :: phi_array
 
 ! q_tune
+
+dQ_max = 0.001
+
+do i = 1, 10
+
+  if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper(lat)
 
   call closed_orbit_calc (lat, orb, 4)
   ok = bmad_status%ok
   if (.not. ok) return
 
-  do i = 1, 10
+  call lat_make_mat6 (lat, -1, orb)
 
-    call lat_make_mat6 (lat, -1, orb)
+  call twiss_at_start(lat)
+  ok = bmad_status%ok
+  if (.not. ok) return
 
-    call twiss_at_start(lat)
-    ok = bmad_status%ok
-    if (.not. ok) return
+  call twiss_propagate_all (lat)
+  ok = bmad_status%ok
+  if (.not. ok) return
 
-    call twiss_propagate_all(lat)
-    call closed_orbit_calc (lat, orb, 4)
-    ok = bmad_status%ok
-    if (.not. ok) return
+  phi_a = lat%ele(lat%n_ele_track)%a%phi
+  phi_b = lat%ele(lat%n_ele_track)%b%phi
+  dphi_a = phi_a_set - phi_a 
+  dphi_b = phi_b_set - phi_b 
+  if (abs(dphi_a) < dQ_max .and. abs(dphi_b) < dQ_max) return
 
-    phi_a = lat%ele(lat%n_ele_track)%a%phi
-    phi_b = lat%ele(lat%n_ele_track)%b%phi
-    dphi_a = phi_a_set - phi_a 
-    dphi_b = phi_b_set - phi_b 
-    if (abs(dphi_a) < 0.001 .and. abs(dphi_b) < 0.001) return
+  d_xx = 0
+  d_xy = 0
+  d_yx = 0
+  d_yy = 0
 
-    d_xx = 0
-    d_xy = 0
-    d_yx = 0
-    d_yy = 0
+  do j = 1, lat%n_ele_max
+    if (dk1(j) == 0) cycle
+    call twiss_at_element (lat, j, average = ave)
+    l_beta_a =  abs(dk1(j)) * ave%a%beta * ave%value(l$) / 2
+    l_beta_b = -abs(dk1(j)) * ave%b%beta * ave%value(l$) / 2
 
-    do j = 1, lat%n_ele_max
-      if (dk1(j) == 0) cycle
-      call twiss_at_element (lat, j, average = ave)
-      l_beta_a =  abs(dk1(j)) * ave%a%beta * ave%value(l$) / 2
-      l_beta_b = -abs(dk1(j)) * ave%b%beta * ave%value(l$) / 2
-
-      if (dk1(j) > 0) then
-        d_xx = d_xx + l_beta_a
-        d_yx = d_yx + l_beta_b
-      else
-        d_xy = d_xy + l_beta_a
-        d_yy = d_yy + l_beta_b
-      endif
-    enddo
-
-    det = d_xx * d_yy - d_xy * d_yx
-    dk_x = (d_yy * dphi_a - d_xy * dphi_b) / det
-    dk_y = (d_xx * dphi_b - d_yx * dphi_a) / det
-
-! put in the changes
-
-    do j = 1, lat%n_ele_max
-      if (dk1(j) == 0) cycle
-      if (dk1(j) > 0) then
-        lat%ele(j)%value(k1$) = lat%ele(j)%value(k1$) + abs(dk1(j)) * dk_x
-      else
-        lat%ele(j)%value(k1$) = lat%ele(j)%value(k1$) + abs(dk1(j)) * dk_y
-      endif
-      if (associated(lat%ele(j)%taylor(1)%term)) &
-                                        call kill_taylor (lat%ele(j)%taylor)
-    enddo
-
+    if (dk1(j) > 0) then
+      d_xx = d_xx + l_beta_a
+      d_yx = d_yx + l_beta_b
+    else
+      d_xy = d_xy + l_beta_a
+      d_yy = d_yy + l_beta_b
+    endif
   enddo
 
-  phi_array(1) = phi_a/twopi
-  phi_array(2) = phi_b/twopi
-  phi_array(1) = phi_a_set/twopi
-  phi_array(2) = phi_b_set/twopi
-  call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
-        'CURRENT TUNE: \2f\ ', &
-        'SET TUNE:     \2f\ ', &
-        r_array = (/ phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi /))
-  ok = .false.
+  det = d_xx * d_yy - d_xy * d_yx
+  dk_x = (d_yy * dphi_a - d_xy * dphi_b) / det
+  dk_y = (d_xx * dphi_b - d_yx * dphi_a) / det
+
+  ! put in the changes
+
+  do j = 1, lat%n_ele_max
+    if (dk1(j) == 0) cycle
+    ele => lat%ele(j)
+    if (dk1(j) > 0) then
+      ele%value(k1$) = ele%value(k1$) + abs(dk1(j)) * dk_x
+    else
+      ele%value(k1$) = ele%value(k1$) + abs(dk1(j)) * dk_y
+    endif
+    call set_flags_for_changed_attribute (lat, ele, ele%value(k1$))
+  enddo
+
+enddo
+
+phi_array(1) = phi_a/twopi
+phi_array(2) = phi_b/twopi
+phi_array(1) = phi_a_set/twopi
+phi_array(2) = phi_b_set/twopi
+call out_io (s_error$, r_name, 'CANNOT GET TUNE RIGHT.', &
+      'CURRENT TUNE: \2f\ ', &
+      'SET TUNE:     \2f\ ', &
+      r_array = (/ phi_a/twopi, phi_b/twopi, phi_a_set/twopi, phi_b_set/twopi /))
+ok = .false.
 
 end subroutine

@@ -36,7 +36,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, ele2
 
-real(rp) z_tune_wanted, r_volt
+real(rp) z_tune_wanted, r_volt, dQz_max
 real(rp) coef_tot, volt, E0, phase
 real(rp), optional :: z_tune
 
@@ -47,6 +47,8 @@ logical found_control, rf_is_on
 character(16), parameter :: r_name = 'set_z_tune'
 
 ! Error detec and init.
+
+dQz_max = 0.001
 
 if (present (z_tune)) lat%z%tune = z_tune
 
@@ -140,7 +142,7 @@ endif
 ! This is only approximate.
 
 call calc_z_tune (lat)
-if (abs(lat%z%tune) < 0.001 .or. z_tune_wanted == 0) then
+if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
   volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
   do i = 1, n_rf
     ele => lat%ele(ix_rf(i))
@@ -155,7 +157,7 @@ endif
 do k = 1, 10
 
   call calc_z_tune (lat)
-  if (abs(lat%z%tune - z_tune_wanted) < 0.001) return
+  if (abs(lat%z%tune - z_tune_wanted) < dQz_max) return
 
   r_volt = (z_tune_wanted / lat%z%tune)**2 
 
