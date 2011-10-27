@@ -101,7 +101,6 @@ SETUP_SCRIPTS_DIR=/nfs/acc/libs/util
 # Central area where all releases are kept.
 #--------------------------------------------------------------
 RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
-export ACC_BASE=${RELEASE_ARCHIVE_BASE_DIR}
 
 
 
@@ -151,6 +150,9 @@ fi
 
 export ACC_PLATFORM="${ACC_OS_ARCH}_${ACC_FC}"
 PLATFORM_DIR=${RELEASE_ARCHIVE_BASE_DIR}/${ACC_PLATFORM}
+
+export ACC_BASE=${PLATFORM_DIR}
+
 
 
 #--------------------------------------------------------------
@@ -203,7 +205,7 @@ export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 
-export ACC_GMAKE=/home/cesrulib/bin/Gmake2
+export ACC_GMAKE=/home/cesrulib/bin/Gmake
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 
@@ -270,10 +272,12 @@ export CERNSRC=${CERN_ROOT}/src
 # Useful aliases
 #--------------------------------------------------------------
 # Information about build system setup for the current shell session.
-alias acc?=' echo -e "ACC release      : \"${ACC_RELEASE}\" [${ACC_TRUE_RELEASE}]
+alias accinfo=' echo -e "ACC release      : \"${ACC_RELEASE}\" [${ACC_TRUE_RELEASE}]
 Architecture     : ${ACC_ARCH}
 Fortran compiler : ${ACC_FC}" '
-alias ACC?='acc?'
+alias ACCINFO='accinfo'
+alias acc_info='accinfo'
+alias ACC_INFO='accinfo'
 
 
 
