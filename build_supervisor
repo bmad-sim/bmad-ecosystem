@@ -7,11 +7,13 @@ import os
 import sys
 import time
 import socket
+import argparse
 import ConfigParser
 import subprocess as sub
 import logging
 import threading
 import datetime
+
 
 # Get 'repositories' and 'source_trees' dictionaries.
 import build_config
@@ -55,7 +57,7 @@ makefile_dir_default = build_config.makefile_dir
 # Support Scripts
 ## cfg_file = "/home/cesrulib/bin/util/builder.conf"
 ## config   = ConfigParser.ConfigParser()
-## # Obtain all values without changing case; by overriding default 
+## # Obtain all values without changing case; by overriding default
 ## # ConfigParser behavior
 ## config.optionxform = lambda x: x
 ## config.read(cfg_file)
@@ -78,6 +80,7 @@ for build_type in build_config.build_specs:
 all_platforms = list(set(all_platforms))
 
 
+
 class BuildController(threading.Thread):
 
     # Defaults
@@ -87,7 +90,7 @@ class BuildController(threading.Thread):
     full_release_dir = ''
 
     svn_revision = 'HEAD'
-    packages_name = ''
+    packages_name = 'packages'
     test_suite_run = 'False'
     util_dir = util_dir_default
     makefile_dir = makefile_dir_default
@@ -213,6 +216,7 @@ class BuildController(threading.Thread):
         self.log.write('makefile_dir      ' + self.makefile_dir +'\n')
         self.log.write('build_name        ' + self.name  +'\n')
         self.log.write('full_release_dir  ' + self.full_release_dir +'\n')
+        self.log.write('packages_name     ' + self.packages_name +'\n')
         self.write_checkout_manifest()
         self.log.write('[builder] - STARTING SUBSCRIPT\n')
         self.log.flush()
@@ -252,7 +256,13 @@ class BuildController(threading.Thread):
                 lines = proc.stdout.readlines()
                 for line in lines:
                     self.log.write(line)
-                
+
+
+    def get_packages_name(self):
+        """Obtain the default packages name to use for the build."""
+        pass
+        
+
 
     def set_packages_name(self, name):
         self.packages_name = name
@@ -282,6 +292,14 @@ class BuildController(threading.Thread):
 #----------------------
 build_type = 'RELEASE'
 
+argparser = argparse.ArgumentParser(description='Library build tool')
+
+argparser.add_argument('--pkgname', action='store', dest='pkg_name')
+argresults = argparser.parse_args()
+
+
+
+
 
 #---------------------------------------
 # Create and set up a build controller
@@ -301,6 +319,8 @@ def head_svn_revision(repository_name):
     revnum = proc.stdout.readline().strip()
     return int(revnum)
 
+
+
 for platform in build_config.build_requests[build_type]:
     print 'Setting up build on platform ' + platform
     custom_name = ''
@@ -312,9 +332,14 @@ for platform in build_config.build_requests[build_type]:
     builds.append(build)
 
 
-
 # Override parameters of some or all of the builds here, if necessary.
 #  makefile directory, svn_revision, packages directory to use, etc...
+if not isinstance(None, type(argresults.pkg_name)):
+    print '\nA custom packages name was provided.'
+    print '  Using "' + argresults.pkg_name + '" instead of the default.\n'
+    for build in builds:
+        build.set_packages_name(argresults.pkg_name)
+
 
 
 #---------------------------------------

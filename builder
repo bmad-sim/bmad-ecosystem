@@ -35,7 +35,6 @@ for line in inlines:
     else:
         var = line.split()[0]
         val = line.split()[1].strip()
-        #vars()[var] = val
         setattr(invars, var, val)
 
 
@@ -113,7 +112,7 @@ def link_to_packages( packages_name ):
 def build_directory( dir ):
     print '\n\n\n-------- Building: ' + dir
     os.chdir( dir )
-    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source ' +invars.util_dir+'/acc_vars.sh; ifort -v; printenv | grep ACC; gmake PRECISION="_DBL" DO_EXTRA_MAKES=Y'
+    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source ' +invars.util_dir+'/acc_vars.sh; ifort -v; printenv | grep ACC; gmake PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
     p = sub.Popen(build_command,
                   bufsize=1,
                   shell=True,
@@ -129,7 +128,7 @@ def build_directory( dir ):
 
 #---------------------------
         
-link_to_packages( 'packages' )
+link_to_packages( invars.packages_name )
 
 
 blist = manifest_to_build_list( checkout_manifest )
