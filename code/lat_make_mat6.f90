@@ -122,6 +122,8 @@ if (i_ele < 0) then
           if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle
           if (present(ref_orb)) then
             if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
+          else
+            if (any(ref_orb(ie-1)%vec /= 0)) cycle
           endif
           call transfer_ele_taylor (branch%ele(ie), ele)
           transferred = .true.
@@ -135,6 +137,8 @@ if (i_ele < 0) then
     if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
       if (present(ref_orb)) then
         if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
+      else
+        if (all(ele%map_ref_orb_in%vec == 0)) cycle
       endif
     endif
 
@@ -199,6 +203,8 @@ ele => branch%ele(i_ele)
 if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
   if (present(ref_orb)) then
     if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) return
+  else
+    if (all(ele%map_ref_orb_in%vec == 0)) return
   endif
 endif
 
