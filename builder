@@ -99,9 +99,16 @@ def check_out_files( manifest ):
 def link_to_packages( packages_name ):
     """Create a symbolic link in the release directory
        called 'packages' to the packages area named in
-       the argument."""
-    packages_dir = invars.libs_basedir+'/'+invars.platform+'/'+packages_name
-    os.symlink( packages_dir, invars.full_release_dir+'/packages' )
+       the build setup."""
+    full_packages_dir = invars.libs_basedir+'/'+invars.platform+'/'+packages_name
+    if os.path.islink( full_packages_dir ):
+        true_packages_name = '../'+os.readlink(full_packages_dir)
+        sys.stdout.write( '\nREADLINK on packages_dir = ' + full_packages_dir +'\n')
+    else:
+        true_packages_name = '../'+packages_name
+    sys.stdout.write('Setting link to packages: ' + true_packages_name+'\n')
+    sys.stdout.flush()
+    os.symlink( true_packages_name, invars.full_release_dir+'/packages' )
 
 
 #def determine_build_order( ):
