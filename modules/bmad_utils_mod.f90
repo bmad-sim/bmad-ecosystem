@@ -2729,7 +2729,7 @@ end function pointer_to_slave
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
+! Function pointer_to_lord (lat, slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
 !
 ! Function to point to a lord of a slave.
 !
@@ -2744,22 +2744,24 @@ end function pointer_to_slave
 ! Output:
 !   lord_ptr   -- Ele_struct, pointer: Pointer to the lord.
 !                   Nullified if there is an error.
-!   ix_control -- Integer, optional :: index of appropriate lat%control(:) element.
+!   ix_control -- Integer, optional: Index of appropriate lat%control(:) element.
 !                   Set to -1 is there is an error.
+!   ix_slave   -- Integer, optional: Index of back to the slave. That is, 
+!                   pointer_to_slave(lat, lord_ptr, ix_slave) will point back to slave. 
 !-
 
-function pointer_to_lord (lat, slave, ix_lord, ix_control) result (lord_ptr)
+function pointer_to_lord (lat, slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct) slave
+type (ele_struct), target :: slave
 type (ele_struct), pointer :: lord_ptr
 
-integer, optional :: ix_control
-integer ix_lord, icon
+integer, optional :: ix_control, ix_slave
+integer i, ix_lord, icon
 
-!
+! Case where there is no lord
 
 if (ix_lord > slave%n_lord .or. ix_lord < 1) then
   nullify(lord_ptr)
@@ -2767,9 +2769,29 @@ if (ix_lord > slave%n_lord .or. ix_lord < 1) then
   return
 endif
 
+! Point to the lord
+
 icon = lat%ic(slave%ic1_lord + ix_lord - 1)
 lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+
 if (present(ix_control)) ix_control = icon
+
+! There must be a corresponding ix_slave value such that
+!   pointer_to_slave(lat, lord_ptr, ix_slave) => slave 
+
+if (present(ix_slave)) then
+
+  do i = 1, lord_ptr%n_slave
+    if (associated (pointer_to_slave(lat, lord_ptr, i), slave)) then
+      ix_slave = i
+      return
+    endif
+  enddo
+
+  ! If ix_slave not found then this is an error
+  call err_exit   
+
+endif
 
 end function pointer_to_lord
 

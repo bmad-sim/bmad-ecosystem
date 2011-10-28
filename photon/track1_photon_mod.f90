@@ -47,9 +47,9 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: end_orb
 type (lat_param_struct) :: param
 
-real(rp) k0_outside_norm(3), hit_point(3), wavelength, sin_g, cos_g, f, m_in(3,3)
-real(rp) vec0(3), s_len, kz_air
-real(rp), pointer :: v(:)
+real(rp) k0_outside_norm(3), hit_point(3), wavelength, sin_g, cos_g, f
+real(rp) s_len, kz_air, temp_vec(3)
+real(rp), pointer :: val(:)
 
 complex(rp) zero, xi_1, xi_2, kz1, kz2, c1, c2
 
@@ -59,58 +59,78 @@ character(32), parameter :: r_name = 'track1_multilayer_mirror'
 
 !
 
-wavelength = ele%value(ref_wavelength$) / (1 + end_orb%vec(6))
-v => ele%value
+val => ele%value
+wavelength = val(ref_wavelength$) / (1 + end_orb%vec(6))
 
 ! (px, py, sqrt(1-px^2+py^2)) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
-sin_g = sin(ele%value(graze_angle$))
-cos_g = cos(ele%value(graze_angle$))
+sin_g = sin(val(graze_angle$))
+cos_g = cos(val(graze_angle$))
 f = sqrt (1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)
 
 k0_outside_norm(1) =  cos_g * end_orb%vec(2) + f * sin_g
-k0_outside_norm(2) = end_orb%vec(4)
+k0_outside_norm(2) =          end_orb%vec(4)
 k0_outside_norm(3) = -sin_g * end_orb%vec(2) + f * cos_g
-
-! m_in 
-
-m_in(1, 1:3) = [ cos_g, 0.0_rp, sin_g]
-m_in(2, 1:3) = [0.0_rp, 1.0_rp, 0.0_rp]
-m_in(3, 1:3) = [-sin_g, 0.0_rp, cos_g]
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
 
 curved_surface = has_curved_surface(ele)
 if (curved_surface) then
-  ! vec0 is the body element coordinates of the photon.
-  ! Note: The photon position in element entrance coords is [vec(1), vec(3), 0].
-  vec0 = matmul (m_in, [end_orb_com%vec(1), end_orb_com%vec(3), 0.0_rp])
-  call reflection_point (ele, end_orb, k0_outside_norm, vec0, hit_point, s_len)
+  call reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
+else
+  hit_point = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
 endif
 
 ! Note: Koln z-axis = Bmad x-axis.
 ! Note: f0_re and f0_im are both positive.
 
-xi_1 = cmplx(-v(f0_re1$), v(f0_im1$)) * r_e * wavelength**2 / (pi * ele%value(v1_unitcell$)) 
-xi_2 = cmplx(-v(f0_re2$), v(f0_im2$)) * r_e * wavelength**2 / (pi * ele%value(v2_unitcell$)) 
+xi_1 = cmplx(-val(f0_re1$), val(f0_im1$)) * r_e * wavelength**2 / (pi * val(v1_unitcell$)) 
+xi_2 = cmplx(-val(f0_re2$), val(f0_im2$)) * r_e * wavelength**2 / (pi * val(v2_unitcell$)) 
 
 kz1 = twopi * sqrt(k0_outside_norm(1)**2 + xi_1) / wavelength
 kz2 = twopi * sqrt(k0_outside_norm(1)**2 + xi_2) / wavelength
 kz_air = twopi * k0_outside_norm(1) / wavelength
 
-c1 = exp(I_imaginary * kz1 * ele%value(d1_thickness$) / 2)
-c2 = exp(I_imaginary * kz2 * ele%value(d2_thickness$) / 2)
+c1 = exp(I_imaginary * kz1 * val(d1_thickness$) / 2)
+c2 = exp(I_imaginary * kz2 * val(d2_thickness$) / 2)
 
 zero = cmplx(0.0_rp, 0.0_rp)
 
 call multilayer_track (xi_1, xi_2, end_orb%e_field_x, end_orb%phase_x)     ! pi polarization
 call multilayer_track (zero, zero, end_orb%e_field_y, end_orb%phase_y)     ! sigma polarization
 
-!! s_len not being used !!!!!!!!!!!!!!!!!!!
+! Reflect momentum vector
+
+k0_outside_norm(1) = -k0_outside_norm(1)
+
+! Rotate back to uncurved element coords
+
+if (curved_surface) then
+  call to_curved_body_coords (ele, hit_point, k0_outside_norm, unset$)
+endif
+
+! Translate momentum to laboratory exit coords
+
+end_orb%vec(2) = k0_outside_norm(1) * cos_g + k0_outside_norm(3) * sin_g
+end_orb%vec(4) = k0_outside_norm(2)
+
+! Compute position, backpropagating the ray
+!! end_orb%vec(5) not computed properly
+
+temp_vec(1) = cos_g * hit_point(1) - sin_g * hit_point(3)
+temp_vec(2) = hit_point(2)
+temp_vec(3) = sin_g * hit_point(1) + cos_g * hit_point(3)
+
+temp_vec = temp_vec - [end_orb%vec(2), end_orb%vec(4), sqrt(1 - end_orb%vec(2)**2 - end_orb%vec(4)**2)] * temp_vec(3)
+
+end_orb%vec(1) = temp_vec(1)
+end_orb%vec(3) = temp_vec(2)
+end_orb%vec(5) = temp_vec(3) 
+
 
 !-----------------------------------------------------------------------------------------------
 contains
@@ -157,7 +177,7 @@ ttbar = f**2
 
 a = (1 - ttbar + r**2) / 2
 nu = (1 + ttbar - r**2) / (2 * sqrt(ttbar))
-n1 = nint(ele%value(n_cells$)) - 1
+n1 = nint(val(n_cells$)) - 1
 
 exp_half = nu + I_imaginary * sqrt(1 - nu**2)
 exp_n = exp_half ** (2 * n1)
@@ -215,9 +235,9 @@ real(rp), target :: k0_outside_norm(3)
 real(rp) f, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc, tilt_cor_mat(3,3)
 real(rp) h_norm(3), kh_outside_norm(3), e_tot, pc, p_factor
-real(rp) m_out(3, 3), y_out(3), x_out(3), k_out(3)
+real(rp) m_out(3, 3), y_out(3)
 real(rp) temp_vec(3), direction(3), s_len
-real(rp) gamma_0, gamma_h, b_err, vec0(3)
+real(rp) gamma_0, gamma_h, b_err
 real(rp) hit_point(3)
 
 logical curved_surface
@@ -249,11 +269,10 @@ m_in(3, 1:3) = [-sin_g, 0.0_rp, cos_g]
 
 curved_surface = has_curved_surface(ele)
 if (curved_surface) then
-  ! vec0 is the body element coordinates of the photon.
-  ! Note: The photon position in element entrance coords is [vec(1), vec(3), 0].
-  vec0 = matmul (m_in, [end_orb_com%vec(1), end_orb_com%vec(3), 0.0_rp])
-  call reflection_point (ele, end_orb, k0_outside_norm, vec0, hit_point, s_len)
+  call reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
   call to_curved_body_coords (ele, hit_point, k0_outside_norm, set$)
+else
+  hit_point = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
 endif
 
 ! Construct h_norm = H * wavelength.
@@ -296,10 +315,14 @@ p_factor = cos(2.0_rp*ele%value(graze_angle_in$))
 call e_field_calc (c_param, ele, p_factor, end_orb%e_field_x, end_orb%phase_x)
 call e_field_calc (c_param, ele, 1.0_rp,   end_orb%e_field_y, end_orb%phase_y)   ! Sigma polarization
 
+! Rotate back from curved body coords to element coords
 
+if (curved_surface) then
+  call to_curved_body_coords (ele, hit_point, kh_outside_norm, unset$)
+  end_orb%vec(5) = end_orb%vec(5) + s_len  ! IS this correct ?!!!!!!!!!!!!!
+endif
 
 !--------------------------------- 
-! (x, px, y, py, x, pz) - Phase Space Calculations
 ! Translate to outgoing basis
 
 ! y_out = inverse(m_in) . m_tiltcorr . m_in . (0, 1, 0)
@@ -317,33 +340,29 @@ else
   y_out = matmul(transpose(m_in), y_out)
 endif
 
-! x_out = vector orthogonal to y and z
+! m_out(:,1) = x_out = vector orthogonal to y and z
 
-x_out(1) =  y_out(2) * ele%value(kh_z_norm$) - y_out(3) * ele%value(kh_y_norm$)
-x_out(2) = -y_out(1) * ele%value(kh_z_norm$) + y_out(3) * ele%value(kh_x_norm$)
-x_out(3) =  y_out(1) * ele%value(kh_y_norm$) - y_out(2) * ele%value(kh_x_norm$)
-  
-k_out(1) = ele%value(kh_x_norm$)
-k_out(2) = ele%value(kh_y_norm$)
-k_out(3) = ele%value(kh_z_norm$)
+m_out(1,:) = [y_out(2) * ele%value(kh_z_norm$) - y_out(3) * ele%value(kh_y_norm$), &
+             -y_out(1) * ele%value(kh_z_norm$) + y_out(3) * ele%value(kh_x_norm$), &
+              y_out(1) * ele%value(kh_y_norm$) - y_out(2) * ele%value(kh_x_norm$)]
+m_out(2,:) = y_out
+m_out(3,:) = [ele%value(kh_x_norm$), ele%value(kh_y_norm$), ele%value(kh_z_norm$)]   ! k_out
 
-m_out = reshape([x_out, y_out, k_out], [3, 3])
+!
 
-direction = matmul(transpose(m_out), kh_outside_norm)
+direction = matmul(m_out, kh_outside_norm)
 end_orb%vec(2) = direction(1)
 end_orb%vec(4) = direction(2)
 
-! Compute position in phase space, backpropagating the ray
+! Compute position, backpropagating the ray
 
-temp_vec = matmul(transpose(m_out), hit_point)
+temp_vec = matmul(m_out, hit_point)
 temp_vec = temp_vec - direction * temp_vec(3)
 
 end_orb%vec(1) = temp_vec(1)
 end_orb%vec(3) = temp_vec(2)
 ! %vec(5) doesn't include phase change due to wave nature of radiation
 end_orb%vec(5) = temp_vec(3) 
-if (curved_surface) end_orb%vec(5) = end_orb%vec(5) + s_len  ! IS this correct !!!!!!!!!!!!!1
-
 
 end subroutine track1_crystal
 
@@ -422,16 +441,23 @@ end subroutine e_field_calc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine reflection_point (ele, end_orb, k0_outside_norm, vec0, hit_point, s_len)
+! Subroutine reflection_point (ele, sin_g, cos_g, end_orb, k0_outside_norm, hit_point, s_len)
 !
 ! Private routine to compute position where crystal reflects in crystal coordinates.
 !
+! Input:
+!   ele                -- ele_struct: Element
+!   cos_g              -- Real(rp): cosine of grazing angle.
+!   sin_g              -- Real(rp): sine of grazing angle.
+!   end_orb            -- coord_struct: Input coordinates
+!   k0_outside_norm(3) -- Real(rp): Direction vector. 
+!
 ! Output:
 !   hit_point(3) -- Real(rp): point of reflection in crystal coordinates
-!   s_len       -- Real(rp): distance for photon to propagate to hit_point
+!   s_len        -- Real(rp): distance for photon to propagate to hit_point
 !-
 
-subroutine reflection_point (ele, end_orb, k0_outside_norm, vec0, hit_point, s_len)
+subroutine reflection_point (ele, cos_g, sin_g, end_orb, k0_outside_norm, hit_point, s_len)
 
 use nr, only: zbrent
 
@@ -440,9 +466,9 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct), target :: end_orb
 
-real(rp), target :: vec0(3), k0_outside_norm(3)
+real(rp), target :: vec0(3), k0_outside_norm(3), cos_g, sin_g
 real(rp) :: s_len, hit_point(3)
-real(rp) :: x1, x2, x_center, fa, fb
+real(rp) :: s1, s2, s_center, fa, fb
 
 ! init
 
@@ -451,30 +477,35 @@ end_orb_com => end_orb
 vec0_com => vec0
 k0_outside_norm_com => k0_outside_norm
 
+! vec0 is the body element coordinates of the photon.
+! Note: The photon position in element entrance coords is [vec(1), vec(3), 0].
+
+vec0 = [end_orb%vec(1) * cos_g, end_orb%vec(3), -end_orb%vec(1) * sin_g]
+
 ! Assume flat crystal, compute s required to hit the intersection
 ! Choose a Bracket of 1m around this point.
 
 if (ele_com%value(b_param$) < 0) then ! Bragg
-  x_center = vec0_com(1) / k0_outside_norm_com(1)
+  s_center = vec0_com(1) / k0_outside_norm_com(1)
 else
-  x_center = vec0_com(3) / k0_outside_norm_com(3)
+  s_center = vec0_com(3) / k0_outside_norm_com(3)
 endif
 
-x1 = x_center
-x2 = x_center
-if (photon_depth_in_crystal(x_center) > 0) then
+s1 = s_center
+s2 = s_center
+if (photon_depth_in_crystal(s_center) > 0) then
   do
-    x1 = x_center - 0.1
-    if (photon_depth_in_crystal(x1) < 0) exit
+    s1 = s_center - 0.1
+    if (photon_depth_in_crystal(s1) < 0) exit
   enddo
 else
   do
-    x2 = x_center + 0.1
-    if (photon_depth_in_crystal(x2) > 0) exit
+    s2 = s_center + 0.1
+    if (photon_depth_in_crystal(s2) > 0) exit
   enddo
 endif
 
-s_len = zbrent (photon_depth_in_crystal, x1, x2, 1d-10)
+s_len = zbrent (photon_depth_in_crystal, s1, s2, 1d-10)
 
 ! Compute the intersection point
 hit_point = s_len * k0_outside_norm_com + vec0_com
@@ -505,22 +536,20 @@ implicit none
 
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
-real(rp) :: c2, c3, c4
 real(rp) :: point(3), r
-
-c2 = ele_com%value(c2_curve_tot$)
-c3 = ele_com%value(c3_curve_tot$)
-c4 = ele_com%value(c4_curve_tot$)
 
 point = s_len * k0_outside_norm_com + vec0_com
 
 if (ele_com%value(b_param$) < 0) then ! Bragg
   r = point(3)
-  delta_h = point(1) + c2*r*r + c3*r*r*r + c4*r*r*r*r
+  delta_h = point(1) 
 else
   r = point(1)
-  delta_h = point(3) + c2*r*r + c3*r*r*r + c4*r*r*r*r
+  delta_h = point(3) 
 endif
+
+delta_h = delta_h + ele_com%value(c2_curve_tot$) * r**2 + &
+                    ele_com%value(c3_curve_tot$) * r**3 + ele_com%value(c4_curve_tot$) * r**4
 
 end function photon_depth_in_crystal
 
@@ -566,13 +595,20 @@ c3 = ele%value(c3_curve_tot$)
 c4 = ele%value(c4_curve_tot$)
 
 if (c2 /= c2_old .or. c3 /= c3_old .or. c4 /= c4_old) then
-  slope = -2.0_rp * c2 * hit_point(3) - 3.0_rp * c3 * hit_point(3)**2 - 4.0_rp * c4 * hit_point(3)**4
+  slope = -2.0_rp * c2 * hit_point(3) - 3.0_rp * c3 * hit_point(3)**2 - 4.0_rp * c4 * hit_point(3)**3
   curveangle = atan(slope)
   cos_c = cos(curveangle)
   sin_c = sin(curveangle)
-  curverot(1, 1:3) = [ cos_c, 0.0_rp, sin_c]
+endif
+
+if (set) then
+  curverot(1, 1:3) = [ cos_c, 0.0_rp, -sin_c]
+  curverot(2, 1:3) = [0.0_rp, 1.0_rp,  0.0_rp]
+  curverot(3, 1:3) = [ sin_c, 0.0_rp,  cos_c]
+else
+  curverot(1, 1:3) = [ cos_c, 0.0_rp,  sin_c]
   curverot(2, 1:3) = [0.0_rp, 1.0_rp, 0.0_rp]
-  curverot(3, 1:3) = [-sin_c, 0.0_rp, cos_c]
+  curverot(3, 1:3) = [-sin_c, 0.0_rp,  cos_c]
 endif
 
 vector = matmul(curverot, vector) ! Goto body element coords at point of photon impact

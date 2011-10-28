@@ -701,12 +701,18 @@ lattices that lie horizontally in the global $X-Z$ plane. Also, the
 restriction to \vn{n_ref_pass = 1} is necessary since the calculation
 becomes nondeterministic otherwise. 
 
-Additionally, for a bend, with \vn{ref_orbit} set to
-\vn{match_at_entrance}, \vn{match_at_exit} or
-\vn{match_global_coords}, the bend must be a pure dipole. That is, no
-quadrupole or higher order components. This assumption is
-necessary since the reference orbit calculation assumes that the
-orbit within the bend is circular for all reference orbits.
+\index{match_at_entrance}\index{match_at_exit}\index{match_global_cocords}
+\index{sbend}\index{rbend}
+Additionally, for a bend, with \vn{ref_orbit} set to either
+\begin{example}
+  match_at_entrance,
+  match_at_exit, or
+  match_global_coords
+\end{example}
+the bend must be a pure dipole. That is, no quadrupole or higher order
+components. This assumption is necessary since the reference orbit
+calculation assumes that the orbit within the bend is circular for all
+reference orbits.
 
 %-----------------------------------------------------------------------------
 \subsection{Using Patch elements to Vary the Reference Orbit in a Multipass Line}

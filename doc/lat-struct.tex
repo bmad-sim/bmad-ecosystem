@@ -700,35 +700,38 @@ some error checking) is:
 
 Historically, when the concept of dependent element attributes
 (\sref{s:depend}) was developed in \bmad, the
-\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine was implemented to take care of the
-bookkeeping. To be back compatable with existing programs, the
-\vn{attirubte_bookkeeper} routine was included in calculational
-routines such as \Hyperref{r:make.mat6}{make_mat6} which is the routine to calculate the
-linear transfer map for an element. The addition of lord elements
+\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine was
+implemented to take care of the bookkeeping. To be back compatable
+with existing programs, the \vn{attirubte_bookkeeper} routine was
+included in calculational routines such as the tracking routine
+\Hyperref{r:track1}{track1} and the routine for calculating the linear transfer map
+\Hyperref{r:make.mat6}{make_mat6}. The addition of lord elements
 needed for superposition, multipass, etc., further complicated the
 picture since the attribute values of the slave elements had to be
 adjusted when the attribute values of the lord elements changed.
-Again, ``automatic'' bookkeeping was added to be maintain back
+Again, ``automatic'' bookkeeping was added to maintain back
 compatability with existing programs. This automatic bookkeeping
 system is inefficient since there is no good way to keep track of what
 element attributes have been modified which leads to redundant
 bookkeeping calculations.
 
 Eventually, as bmad developed and became more complicated, it was
-found that in certain instances the bookkeeping load was causing
-enormous slowdowns in program execution time. To avoid this, an
-``intelligent'' bookkeeping system has been developed. In order to be
-back compatable with existing programs, the automatic bookkeeping is
-the default. However, all new programs should use the intelligent
-bookkeeping system.
+found that the unnecessary bookkeeping load was causing a significant
+slowdown in program execution time. Even in programs where no element
+attributes were changed. To avoid this, an ``intelligent'' bookkeeping
+system was developed. In order to be back compatable with
+existing programs, the automatic bookkeeping is the default. However,
+all new programs should use the intelligent bookkeeping system.
 
 To use intelligent bookkeeping, a program has to set the global
 \vn{bmad_com%auto_bookkeepper} to false. This should be done once at
-the start of the program. Each time an element attribute is set, the
+the start of the program. When a set of attributes needs to be
+modified, the
 \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
-routine must be called. After a set of element attributes have been
-modified, \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is
-called to do the bookkeeping.
+routine must be called for each element attribute that is set. After
+all the attributes have been set,
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do
+the bookkeeping. Example
 \begin{example}
   type (lat_struct) lat
   ...
@@ -736,8 +739,10 @@ called to do the bookkeeping.
   ...
   lat%ele(i)%value(gradient$) = 1.05e6  ! Change, say, the gradient of an RFCavity
   call set_flags_for_changed_attribute (lat, lat%ele(i), lat%ele(i)%value(gradient$))
-  ...
-  call lattice_bookkeeper (lat)         ! Final bookkeeping
+
+  ... Set attributes of other elements ...
+
+  call lattice_bookkeeper (lat)         ! Do once after all attribute sets done.
 \end{example}
 The argument list for \vn{set_flags_for_changed_attribute} is 
 \begin{example}

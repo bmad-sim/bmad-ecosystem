@@ -38,14 +38,14 @@ implicit none
                                        
 type (lat_struct), target :: lat
 type (coord_struct), optional, volatile :: ref_orb(0:)
-type (coord_struct) orb_start, orb_end
-type (ele_struct), pointer :: ele, slave
+type (coord_struct) orb_start
+type (ele_struct), pointer :: ele, slave, lord, slave0
 type (branch_struct), pointer :: branch
 
 real(rp), pointer :: mat6(:,:), vec0(:)
 
 integer, optional :: ix_ele, ix_branch
-integer i, j, ie, i1, n_taylor, i_ele, i_branch
+integer i, j, ie, i1, ild, n_taylor, i_ele, i_branch, ix_slave
 integer, save, allocatable :: ix_taylor(:)
 
 logical transferred, want_taylor, zero_orbit
@@ -100,11 +100,8 @@ if (i_ele < 0) then
   ! For speed if a element needs a taylor series then check if we can use
   ! one from a previous element.
 
-  ! For consistancy, if no orbit is given, the starting coords in a super_slave
-  ! will be taken as the ending coords of the previous super_slave.
-
   n_taylor = 0  ! number of taylor series found
-  call init_coord (orb_end)
+  call init_coord (orb_start)
 
   do i = 1, branch%n_ele_track
 
@@ -143,15 +140,22 @@ if (i_ele < 0) then
     endif
 
     ! call make_mat6 for this element
+    ! For consistancy, if no orbit is given, the starting coords in a super_slave
+    ! will be taken as the ending coords of the previous super_slave.
 
     if (zero_orbit) then 
       if (ele%slave_status == super_slave$) then
-        orb_start = orb_end
-        call make_mat6(ele, branch%param, orb_start, orb_end)
+        orb_start%vec = 0  ! Default if no previous slave found.
+        do ild = 1, ele%n_lord
+          lord => pointer_to_lord(lat, ele, ild, ix_slave = ix_slave)
+          if (ix_slave == 1) cycle  ! If first one then no preceeding slave
+          slave0 => pointer_to_slave(lat, lord, ix_slave-1) ! slave before this element.
+          orb_start = slave0%map_ref_orb_out
+          exit
+        enddo
+        call make_mat6(ele, branch%param, orb_start)
       else
         call make_mat6(ele, branch%param)
-        ! Reset orb_end if not in a superposition block.
-        if (ele%value(l$) /= 0) orb_end%vec = 0  
       endif
     else  ! else ref_orb must be present
       call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true.)
