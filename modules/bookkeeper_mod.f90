@@ -2731,6 +2731,13 @@ if (ele%key /= group$ .and. ele%key /= overlay$) then
   call set_ele_status_stale (ele, branch%param, attributes_status$)
 endif
 
+! Transfer matrix calc needs to be flagged
+
+if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
+    ele%lord_status /= multipass_lord$) then
+  call set_ele_status_stale (ele, branch%param, mat6_status$)
+endif
+
 ! A length change involves changes in the floor position.
 
 if (associated(a_ptr, ele%value(l$))) then
