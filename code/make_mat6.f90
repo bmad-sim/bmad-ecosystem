@@ -4,6 +4,9 @@
 ! Subroutine to make the 6x6 1st order transfer matrix for an element 
 ! along with the 0th order transfer vector.
 !
+! Note: end_orb is used as input (when end_in = True) when the orbit through the element is known.
+! This makes the calculation faster. The default is to treat end_orb as output.
+!
 ! Note: Radiation fluctuations (but not damping) is turned off for the calculation.
 !
 ! Modules needed:
@@ -15,7 +18,7 @@
 !   start   -- Coord_struct, optional: Coordinates at the beginning of element. 
 !                If not present then default is start = 0.
 !   end_orb -- Coord_struct, optional: Coordinates at the end of element.
-!                end is an input only if end_in is set to True.
+!                end_orb is an input only if end_in is set to True.
 !   end_in  -- Logical, optional: If present and True then the end coords
 !                will be taken as input. not output as normal. 
 !                If end_orb is not present then end_in will be ignored.
@@ -113,6 +116,8 @@ case (tracking$)
 
 case (mad$)
   call make_mat6_mad (ele, param, a_start_orb, a_end_orb)
+
+! No_method is used with hybrid elements since the transfer map in this case is not recomputable.
 
 case (no_method$)
   return
