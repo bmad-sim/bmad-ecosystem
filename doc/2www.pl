@@ -21,10 +21,11 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 `pdflatex bmad`; 
 `cp bmad.pdf bmad-manual-$rev.pdf`; 
 
-`cp ~/public_html/bmad/manual.html .`;
+`cp ~/public_html/bmad/manual_template.html .`;
+open (F_IN, "manual_template.html") || die ("Cannot open File: manual_template.html\n");
+
 open (F_OUT, ">manual.html") || die ("Cannot open manual.html file\n");
-$file = "manual_template.html";
-open (F_IN, $file) || die ("Cannot open File: $file\n");
+
 while (<F_IN>) {
   s/RRR/$rev/g;
   s/DDD/$date/g;
@@ -34,8 +35,7 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`cp ~/public_html/bmad/manual.html ~/public_html/bmad/manual.html.$rev`;
-`mv manual.html  ~/public_html/bmad`;
+`cp manual.html  ~/public_html/bmad/manual.html`;
 
 `cp bmad-manual-*.pdf ~/public_html/bmad`;
 `cp bmad.pdf          ~/public_html/bmad/bmad-manual.pdf`;   # For Chris

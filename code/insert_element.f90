@@ -80,6 +80,7 @@ do ix = 1, ubound(lat%branch, 1)
                                         branch2%ix_from_ele = branch2%ix_from_ele + 1
 enddo
 
+call set_flags_for_changed_attribute (lat, branch%ele(insert_index))
 if (insert_ele%value(l$) /= 0) call s_calc(lat)
 
 end subroutine
