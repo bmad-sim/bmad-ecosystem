@@ -119,8 +119,6 @@ if (i_ele < 0) then
           if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle
           if (present(ref_orb)) then
             if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
-          else
-            if (any(ref_orb(ie-1)%vec /= 0)) cycle
           endif
           call transfer_ele_taylor (branch%ele(ie), ele)
           transferred = .true.
