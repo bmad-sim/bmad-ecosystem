@@ -67,22 +67,12 @@ character(20) :: cmd_names(32)= &
 
 real(rp) target_value
 
-integer i, j, ie, ix, md, nl, ct
+integer i, j, ie, iu, ix, md, nl, ct
 integer ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
 
 logical err, print_flag
 
 !
-
-rmt  = '(a, 9es16.8)'
-f3mt = '(a, 9f0.3)'
-irmt = '(a, i0, a, es16.8)'
-imt  = '(a, 9i8)'
-iimt = '(a, i0, a, i8)'
-lmt  = '(a, 9(l1, 2x))'
-amt  = '(9a)'
-iamt = '(a, i0, 2x, 9a)'
-ramt = '(a, f0.3, 2x, 9a)'
 
 call string_trim(input_str, line, ix)
 cmd = line(1:ix)
@@ -100,7 +90,7 @@ if (ix < 0) then
 endif
 
 nl = 0
-allocate (lines(200))
+if (.not. allocated(lines)) allocate (lines(200))
 
 select case (command)
 
@@ -125,10 +115,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
     if (nl == size(lines)) call re_allocate(lines, 2*nl)
-    nl=nl+1; write (lines(nl), '(10a, 3(es12.4, a), a)') &
+    nl=nl+1; write (lines(nl), '(10a, 3(es12.4, a), 2a)') &
         trim(tao_datum_name(d_ptr)), ';', trim(tao_datum_type_name(d_ptr)), ';', &
         trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
-        d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%merit, ';', max_loc
+        d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%merit, ';', trim(max_loc), ';'
 
   enddo
 enddo
@@ -166,9 +156,128 @@ do i = 1, s%n_var_used
   if (nl == size(lines)) call re_allocate(lines, 2*nl)
   nl=nl+1; write (lines(nl), '(6a, 3(es12.4, a))') &
         trim(tao_var1_name(v_ptr)), ';', trim(tao_var_attrib_name(v_ptr)), ';', &
-        trim(loc_ele), ';', target_value, ';', v_ptr%model_value, ';', v_ptr%merit
+        trim(loc_ele), ';', target_value, ';', v_ptr%model_value, ';', v_ptr%merit, ';'
 
 enddo
+
+!----------------------------------------------------------------------
+! D1 level data. 
+! Syntax: 
+!   <index>;<data_type>;<merit_type>;<ele_ref_name>;<ele_start_name>;<ele_name>;<meas_value>;<model_value>;<design_value>;<good_user>;<useit_opt>;<useit_plot>;
+
+case ('data_d1')
+
+  call tao_find_data (err, line, d1_array = d1_array)
+
+  if (.not. allocated(d1_array) .or. size(d1_array) /= 1) then
+    nl=nl+1; lines(nl) = '0;INVALID;;;;0;0;0;F;F;'
+  else
+    d1_ptr => d1_array(1)%d1
+    do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
+      d_ptr => d1_ptr%d(i)
+      if (.not. d_ptr%exists) cycle
+      if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
+      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es16.8, a), 3(l1, a))') &
+                       d_ptr%ix_d1, ';', trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
+                       trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
+                       trim(d_ptr%ele_name), ';', d_ptr%meas_value, ';', d_ptr%model_value, ';', &
+                       d_ptr%design_value, ';', d_ptr%good_user, ';', d_ptr%useit_opt, ';', d_ptr%useit_plot, ';'
+    enddo
+  endif
+
+!----------------------------------------------------------------------
+! D2 level data. 
+! Syntax: 
+!   <ix_universe>;<d2_name>;<d1_name>;<lbound_d_array>;<ubound_d_array>;<useit_list>;
+
+case ('data_d2')
+
+  do iu = lbound(s%u, 1), ubound(s%u, 1)
+
+    u => s%u(iu)
+
+    do i = 1, u%n_d2_data_used
+      d2_ptr => u%d2_data(i)
+      if (d2_ptr%name == ' ') cycle
+
+      do j = 1, size(d2_ptr%d1)
+        d1_ptr => d2_ptr%d1(j)
+
+        call location_encode (line, d1_ptr%d%useit_opt, d1_ptr%d%exists, lbound(d1_ptr%d, 1))
+
+        nl=nl+1; write (lines(nl), '(i0, 5a, i0, a, i0, 3a)') iu, ';', trim(d2_ptr%name), ';', &
+              trim(d1_ptr%name), ';', lbound(d1_ptr%d, 1), ';', ubound(d1_ptr%d, 1), ';', trim(line), ';'
+
+      enddo
+
+    enddo
+
+  enddo
+
+!----------------------------------------------------------------------
+! Individual datum
+! Syntax:
+!   <component_name>;<type>;<variable>;<component_value>;
+! <type> is one of:
+!   STRING
+!   INTEGER
+!   REAL
+!   LOGICAL
+! <variable> indicates if the component can be varied. It is one of:
+!   T
+!   F
+
+case ('data1')
+
+  call tao_find_data (err, line, d_array = d_array)
+
+  if (.not. allocated(d_array) .or. size(d_array) /= 1) then
+    nl=nl+1; lines(nl) = 'INVALID;STRING;F;0;'
+  else
+    d_ptr => d_array(1)%d
+    amt = '(3a)'
+    imt = '(a,i0,a)'
+    rmt = '(a,es16.8,a)'
+    lmt = '(a,l1,a)'
+    nl=nl+1; write(lines(nl), amt)  'ele_name;STRING;F;',           trim(d_ptr%ele_name), ';'
+    nl=nl+1; write(lines(nl), amt)  'ele_start_name;STRING;F;',     trim(d_ptr%ele_start_name), ';'
+    nl=nl+1; write(lines(nl), amt)  'ele_ref_name;STRING;F;',       trim(d_ptr%ele_ref_name), ';'
+    nl=nl+1; write(lines(nl), amt)  'data_type;STRING;F;',          trim(d_ptr%data_type), ';'
+    nl=nl+1; write(lines(nl), amt)  'data_source;STRING;F;',        trim(d_ptr%data_source), ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_branch;INTEGER;F;',         d_ptr%ix_branch, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_ele;INTEGER;F;',            d_ptr%ix_ele, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_ele_start;INTEGER;F;',      d_ptr%ix_ele_start, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_ele_ref;INTEGER;F;',        d_ptr%ix_ele_ref, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_ele_merit;INTEGER;F;',      d_ptr%ix_ele_merit, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_dmodel;INTEGER;F;',         d_ptr%ix_dModel, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_d1;INTEGER;F;',             d_ptr%ix_d1, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_data;INTEGER;F;',           d_ptr%ix_data, ';'
+    nl=nl+1; write(lines(nl), imt)  'ix_bunch;INTEGER;F;',          d_ptr%ix_bunch, ';'
+    nl=nl+1; write(lines(nl), rmt)  'model;REAL;F;',                d_ptr%model_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'design;REAL;F;',               d_ptr%design_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'meas;REAL;T;',                 d_ptr%meas_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'ref;REAL;T;',                  d_ptr%ref_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'base;REAL;F;',                 d_ptr%base_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  'old;REAL;F;',                  d_ptr%old_value   , ';'
+    nl=nl+1; write(lines(nl), rmt)  'invalid;REAL;F;',              d_ptr%invalid_value, ';'
+    nl=nl+1; write(lines(nl), rmt)  's;REAL;F;',                    d_ptr%s, ';'
+    nl=nl+1; write(lines(nl), amt)  'merit_type;STRING;F;',         trim(d_ptr%merit_type), ';'
+    nl=nl+1; write(lines(nl), rmt)  'merit;REAL;F;',                d_ptr%merit, ';'
+    nl=nl+1; write(lines(nl), rmt)  'delta_merit;REAL;F;',          d_ptr%delta_merit, ';'
+    nl=nl+1; write(lines(nl), rmt)  'weight;REAL;F;',               d_ptr%weight, ';'
+    nl=nl+1; write(lines(nl), lmt)  'exists;LOGICAL;F;',            d_ptr%exists, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_model;LOGICAL;F;',        d_ptr%good_model, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_design;LOGICAL;F;',       d_ptr%good_design, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_base;LOGICAL;F;',         d_ptr%good_base , ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_meas;LOGICAL;F;',         d_ptr%good_meas, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_ref;LOGICAL;F;',          d_ptr%good_ref, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_user;LOGICAL;T;',         d_ptr%good_user, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_opt;LOGICAL;F;',          d_ptr%good_opt, ';'
+    nl=nl+1; write(lines(nl), lmt)  'good_plot;LOGICAL;F;',         d_ptr%good_plot, ';'
+    nl=nl+1; write(lines(nl), lmt)  'useit_plot;LOGICAL;F;',        d_ptr%useit_plot, ';'
+    nl=nl+1; write(lines(nl), lmt)  'useit_opt;LOGICAL;F;',         d_ptr%useit_opt, ';'
+  endif
+
 
 !----------------------------------------------------------------------
 ! All parameters associated with given element. 
@@ -271,7 +380,7 @@ case ('var_all')
     do i = 1, s%n_v1_var_used
       v1_ptr => s%v1_var(i)
       if (v1_ptr%name == '') cycle
-      call re_allocate (lines, nl+200, .false.)
+      if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
       call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
       nl=nl+1; write(lines(nl), '(i5, 2x, 2a, i0, a, i0, a, t50, a)') v1_ptr%ix_v1, &
                       trim(v1_ptr%name), '[', lbound(v1_ptr%v, 1), ':', &

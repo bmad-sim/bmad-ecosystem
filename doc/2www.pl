@@ -20,10 +20,12 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
 `pdflatex tao`;
 
-`cp /home/dcs/public_html/bmad/tao.html .`;
-open (F_OUT, ">tao.html") || die ("Cannot open tao.html file\n");
+`cp /home/dcs/public_html/bmad/tao_template.html .`;
 $file = "tao_template.html";
 open (F_IN, $file) || die ("Cannot open File: $file\n");
+
+open (F_OUT, ">tao.html") || die ("Cannot open tao.html file\n");
+
 while (<F_IN>) {
   s/RRR/$rev/g;
   s/DDD/$date/g;
@@ -33,7 +35,6 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`cp /home/dcs/public_html/bmad/tao.html /home/dcs/public_html/bmad/tao.html.$rev`;
 `mv tao.html  /home/dcs/public_html/bmad`;
 `cp tao.pdf   /home/dcs/public_html/bmad/tao-manual-$rev.pdf`;
 
