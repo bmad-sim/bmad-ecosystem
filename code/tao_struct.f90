@@ -568,7 +568,7 @@ type tao_common_struct
   logical :: init_tao_file_arg_set = .false.
   character(100) :: cmd                                ! Used for the cmd history
   character(16) :: init_name = 'Tao'                   ! label for initialization          
-  integer :: log_startup = .false.             ! '-log_startup' command line argument.
+  logical :: log_startup = .false.             ! '-log_startup' command line argument.
   character(200) :: lat_file = ''              ! '-lat'         command line argument.
   character(100) :: init_tao_file = 'tao.init' ! '-init'        command line argument.
   character(100) :: beam_file = ''             ! '-beam'        command line argument.
