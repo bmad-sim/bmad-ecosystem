@@ -121,12 +121,15 @@ endif
 ! If element has zero length then just insert it in the tracking part 
 ! of the lattice list.
 
+! Note: Important to set super_saved%lord_status before calling insert_element since
+! this affects the status flag setting.
+
 if (super_saved%value(l$) == 0) then
+  super_saved%lord_status  = not_a_lord$ 
+  super_saved%slave_status = free$
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, check_controls = .false.)
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
-  branch%ele(ix_super)%lord_status  = not_a_lord$
-  branch%ele(ix_super)%slave_status = free$
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   call adjust_super_slave_names (lat, ix_lord_max_old+1, branch%n_ele_max)
   call adjust_drift_names (lat, branch%ele(ix1_split))
