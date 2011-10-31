@@ -638,7 +638,7 @@ if (length_adjustment_made) then
               'INCONSISTANT SUPER_LORD/SUPER_SLAVE LENGTHS!', &
               'LORD: ' // lord0%name, &
               'LENGTH: \es16.9\ ', &
-              'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = (/ lord0%value(l$), sum_len_slaves /) )
+              'SUM OF SLAVE LENGTHS: \es16.9\ ', r_array = [lord0%value(l$), sum_len_slaves] )
       call err_exit
     endif
   enddo
@@ -908,7 +908,7 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     slave%value(y_pitch$) = phi
     slave%value(tilt$) = psi
 
-    offset = (/ f0%x-f1%x, f0%y-f1%y, f0%z-f1%z /)
+    offset = [f0%x-f1%x, f0%y-f1%y, f0%z-f1%z]
     if (slave%value(translate_after$) == 0) then
       offset = matmul(w1_inv_mat, offset)
     else
@@ -1078,7 +1078,7 @@ if (lord%key == sbend$ .and. slave%value(p0c$) /= 0 .and. lord%value(g$) /= 0) t
 
   case default
     call out_io (s_fatal$, r_name, 'BAD REF_ORBIT VALUE: \i0\ ', &
-                           'FOR: ' // lord%name, i_array = (/ lord%ref_orbit /) )
+                           'FOR: ' // lord%name, i_array = [lord%ref_orbit] )
     call err_exit
 
   end select
@@ -1233,7 +1233,7 @@ do j = 1, slave%n_lord
     call out_io (s_abort$, r_name, &
           "SUPER_SLAVE HAS A CONTROL ELEMENT THAT IS NOT A SUPER_LORD", &
           'SLAVE: ' //  slave%name // '  \i\ ', &
-          'LORD:  ' //  lord%name  // '  \i\ ', i_array = (/ ix_slave, lord%ix_ele /) )
+          'LORD:  ' //  lord%name  // '  \i\ ', i_array = [ix_slave, lord%ix_ele] )
     call err_exit
   endif
 
@@ -1561,12 +1561,12 @@ case (solenoid$, sol_quad$, quadrupole$)
 
     if (x_p == 0 .and. x_o == 0 .and. y_p == 0 .and. y_o == 0) goto 8000
 
-    t_2 = (/ x_o, x_p, y_o, y_p /)
+    t_2 = [x_o, x_p, y_o, y_p]
     call tilt_coords (tilt, t_2)
 
     l_slave = slave%value(l$)
 
-    t_1 = (/ t_2(2), 0.0_rp, t_2(4), 0.0_rp /)
+    t_1 = [t_2(2), 0.0_rp, t_2(4), 0.0_rp]
     t_2(1) = t_2(1) + ks * t_2(4) / k1 
     t_2(3) = t_2(3) + ks * t_2(2) / k1
              
@@ -2178,7 +2178,7 @@ logical err_flag
 logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed, is_on
 logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
-logical :: debug = .false.  ! For debugging purposes
+logical :: debug = .true.  ! For debugging purposes
 
 ! Some init
 
@@ -2222,8 +2222,9 @@ if (bmad_com%auto_bookkeeper) then
   val(check_sum$) = 0
   if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
 
-  if (all(val == ele%old_value) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
-  if (debug) dval = val - ele%old_value
+  dval = val - ele%old_value
+  dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
+  if (all(dval == 0) .and. .not. z_patch_calc_needed .and. ele%key /= capillary$) return
 endif
 
 ! Transfer tilt to tilt_tot, etc.
@@ -2511,16 +2512,17 @@ if (init_needed) then
             tilt_tot$, x_pitch_tot$, y_pitch_tot$, z_patch$]) = .false.
   offset_mask = .not. v_mask
   offset_mask(z_patch$) = .false.
-  v_mask( (/ x1_limit$, x2_limit$, y1_limit$, y2_limit$ /) ) = .false.
+  v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
   init_needed = .false.
 endif
 
+dval = val - ele%old_value
 if (has_orientation_attributes(ele%key)) then
-  non_offset_changed = (any(val /= ele%old_value .and. v_mask))
-  offset_changed =  (any(val /= ele%old_value .and. offset_mask))
+  non_offset_changed = (any(dval /= 0 .and. v_mask))
+  offset_changed =  (any(dval /= 0 .and. offset_mask))
   offset_nonzero = (any(val /= 0 .and. offset_mask))
 else
-  non_offset_changed = (any(val /= ele%old_value))
+  non_offset_changed = (any(dval /= 0))
   offset_changed = .false.
   offset_nonzero = .false.
 endif
@@ -2706,19 +2708,10 @@ if (.not. present(ele)) then
   return
 endif
 
-! Mark element as stale
+!-------------------
+! For a particular elemement...
 
 branch => lat%branch(ele%ix_branch)
-
-! Use a_ptr with the associated function to see which attribute has been changed.
-! If attrib is not present then point to a dummy location which will not match when 
-! the associated() function is used below.
-
-if (present(attrib)) then
-  a_ptr => attrib
-else
-  a_ptr => unknown_attrib
-endif
 
 ! If a lord then set the control flag stale
 
@@ -2737,6 +2730,21 @@ if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. 
     ele%lord_status /= multipass_lord$) then
   call set_ele_status_stale (ele, branch%param, mat6_status$)
 endif
+
+! Use a_ptr with the associated function to see which attribute has been changed.
+! If attrib is not present then point to a dummy location which will not match when 
+! the associated() function is used below.
+
+if (present(attrib)) then
+  a_ptr => attrib
+else
+  a_ptr => unknown_attrib
+endif
+
+! A limit change does not need any bookkeeping
+
+if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_limit$)) .or. &
+    associated(a_ptr, ele%value(y1_limit$)) .or. associated(a_ptr, ele%value(y2_limit$))) return
 
 ! A length change involves changes in the floor position.
 
@@ -2774,7 +2782,7 @@ case (init_ele$)
       associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
       coupling_change) then 
     call make_v_mats (ele, v_mat, v_inv_mat)
-    eta_xy_vec = (/ ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap /)
+    eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
     eta_vec = matmul (v_inv_mat, eta_xy_vec)
     ele%a%eta  = eta_vec(1)
     ele%a%etap = eta_vec(2)
@@ -2786,7 +2794,7 @@ case (init_ele$)
   if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
       associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
     call make_v_mats (ele, v_mat, v_inv_mat)
-    eta_vec = (/ ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap /)
+    eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
     eta_xy_vec = matmul (v_mat, eta_vec)
     ele%x%eta  = eta_xy_vec(1)
     ele%x%etap = eta_xy_vec(2)
@@ -2823,7 +2831,8 @@ case (branch$, photon_branch$)
 
 case (lcavity$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
-      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
+      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$)) .or. &
+      .not. present(attrib)) then
     call set_ele_status_stale (ele, branch%param, ref_energy_status$)
   endif
 
