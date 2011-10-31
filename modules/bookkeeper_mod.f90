@@ -118,6 +118,7 @@ call s_calc (lat)
 call lat_geometry (lat)
 
 ! multipass slaves with ref_orbit set may may depend upon the geometry so recalc.
+! Also free elements may have had their control status set but this is bogus so just reset to ok$
 
 found = .false.
 
@@ -125,6 +126,7 @@ do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   do j = 1, branch%n_ele_track
     ele => branch%ele(j)
+    if (ele%slave_status == free$ .and. ele%status%control == stale$) ele%status%control = ok$
     if (.not. bmad_com%auto_bookkeeper .and. ele%status%control /= stale$) cycle
     if (ele%slave_status == multipass_slave$ .and. ele%ref_orbit /= 0) then
       call makeup_multipass_slave (lat, ele)
@@ -2534,6 +2536,7 @@ if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
         offset_nonzero .and. bmad_com%conserve_taylor_maps .and. &
         .not. non_offset_changed .and. ele%key /= patch$) then
   ele%map_with_offsets = .false.
+  if (offset_nonzero) non_offset_changed = .true.  ! To trigger kill_taylor below
   call out_io (s_info$, r_name, &
       'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &
       'But: Element has just been offset: ' // ele%name, &
