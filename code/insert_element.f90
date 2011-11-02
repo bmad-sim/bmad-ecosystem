@@ -31,6 +31,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct)  insert_ele
+type (ele_struct), pointer :: inserted_ele, ele0
 type (branch_struct), pointer :: branch, branch2
 type (control_struct), pointer :: con
 
@@ -55,10 +56,11 @@ enddo
 ! branch%ele(insert_index) pointers need to be nullified since they now point to
 ! the same memory as branch%ele(insert_index+1)
 
-call deallocate_ele_pointers (branch%ele(insert_index), nullify_only = .true.)
-branch%ele(insert_index) = insert_ele
-branch%ele(insert_index)%ix_ele    = insert_index
-branch%ele(insert_index)%ix_branch = ix_br
+inserted_ele => branch%ele(insert_index)
+call deallocate_ele_pointers (inserted_ele, nullify_only = .true.)
+inserted_ele = insert_ele
+inserted_ele%ix_ele    = insert_index
+inserted_ele%ix_branch = ix_br
 
 ! Correct the control info
 
@@ -83,6 +85,14 @@ do ix = 1, ubound(lat%branch, 1)
                                         branch2%ix_from_ele = branch2%ix_from_ele + 1
 enddo
 
-call set_flags_for_changed_attribute (lat, branch%ele(insert_index))
+call set_flags_for_changed_attribute (lat, inserted_ele)
+
+! The reference energy bookkeeping will not be flagged for elements that are not lcavities so
+! do the bookkeeping locally.
+
+if (inserted_ele%key /= lcavity$ .and. insert_index > 0) then
+  ele0 => branch%ele(insert_index-1)
+  call compute_ele_reference_energy (inserted_ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
+endif
 
 end subroutine

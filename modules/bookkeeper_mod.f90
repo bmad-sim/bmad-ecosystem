@@ -2634,12 +2634,27 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: ele
+type (branch_struct), pointer :: branch
 
-integer attrib
+integer, target :: attrib
+integer, pointer :: a_ptr
+real(rp) dummy
 
 !
 
-call set_flags_for_changed_real_attribute (lat, ele)
+call set_flags_for_changed_real_attribute (lat, ele, dummy)
+
+!
+
+branch => lat%branch(ele%ix_branch)
+a_ptr => attrib
+
+select case (ele%key)
+case (lcavity$)
+  if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
+    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+  endif
+end select
 
 end subroutine set_flags_for_changed_integer_attribute
 
@@ -2661,12 +2676,15 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: ele
+type (branch_struct), pointer :: branch
 
-logical attrib
+logical, target :: attrib
+logical, pointer :: a_ptr
+real(rp) dummy
 
 !
 
-call set_flags_for_changed_real_attribute (lat, ele)
+call set_flags_for_changed_real_attribute (lat, ele, dummy)
 
 end subroutine set_flags_for_changed_logical_attribute
 
@@ -2754,7 +2772,7 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 
 ! A length change involves changes in the floor position.
 
-if (associated(a_ptr, ele%value(l$))) then
+if (associated(a_ptr, ele%value(l$)) .or. (no_attrib .and. ele%value(l$) /= 0)) then
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$) then
     call set_ele_status_stale (ele, branch%param, length_status$)
     call set_ele_status_stale (ele, branch%param, floor_position_status$)
@@ -2827,6 +2845,12 @@ case (init_ele$)
     call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
     call set_ele_status_stale (ele, branch%param, ref_energy_status$)
     return
+  endif
+
+case (sbend$)
+  if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
+      associated(a_ptr, ele%value(rho$)) .or. no_attrib) then
+    call set_ele_status_stale (ele, branch%param, floor_position_status$)
   endif
 
 case (branch$, photon_branch$)
