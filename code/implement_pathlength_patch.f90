@@ -66,6 +66,7 @@
     call element_locator(rf_ele(j), ring, ix)
 
     call insert_element(ring,patch(j),ix)
+    if (.not. bmad_com%auto_bookkeeper) call lattice_bookkeeper(ring)
     call lat_make_mat6(ring,-1)
   end do
  endif
