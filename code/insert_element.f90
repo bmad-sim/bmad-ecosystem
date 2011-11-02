@@ -5,8 +5,8 @@
 ! The existing elements from insert_index to n_ele_max get shoved up 1
 ! in the element array.
 !
-! Note: If the insert element has nonzero length then the S positions
-! of all the elements will be recalculated.
+! Note: Bookkeeping like recalculating s-positions, reference energy, etc. is not done by this routine.
+! Note: set_flags_for_changed_attribute is called for the inserted element.
 !
 ! Modules Needed:
 !   use bmad
@@ -36,6 +36,8 @@ type (control_struct), pointer :: con
 
 integer insert_index, ix, ix_br
 integer, optional :: ix_branch
+
+character(16), parameter :: r_name = 'insert_element'
 
 ! transfer_ele is fast since it re reuse storage.
 
@@ -70,9 +72,9 @@ if (insert_index <= branch%n_ele_track + 1) then
   branch%n_ele_track = branch%n_ele_track + 1
   branch%n_ele_track = branch%n_ele_track
 else
-  print *, 'WARNING FROM INSERT_ELEMENT: YOU ARE INSERTING AN ELEMENT'
-  print *, '        *NOT* INTO THE TRACKING PART OF THE LATTICE!'
-  print *, '        ELEMENT: ', insert_ele%name
+  call out_io (s_warn$, r_name, &
+                  'YOU ARE INSERTING AN ELEMENT *NOT* INTO THE TRACKING PART OF THE LATTICE!', &
+                  'ELEMENT: ' // insert_ele%name)
 endif
 
 do ix = 1, ubound(lat%branch, 1)
@@ -82,6 +84,5 @@ do ix = 1, ubound(lat%branch, 1)
 enddo
 
 call set_flags_for_changed_attribute (lat, branch%ele(insert_index))
-if (insert_ele%value(l$) /= 0) call s_calc(lat)
 
 end subroutine
