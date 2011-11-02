@@ -1,14 +1,13 @@
 !+
 ! Subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_controls)
 !
-! Subroutine to split a lat at a point. Subroutine will not split the lat
-! if the split would create a "runt" element with length less than 1 um.
+! Subroutine to split a lat at a point. Subroutine will not split the lat if the split
+! would create a "runt" element with length less than bmad_com%significant_longitudinal_length.
 !
 ! split_lat will create a super_lord element if needed and will redo the 
 ! appropriate bookkeeping for lords and slaves. 
 !
-! Note: split_lat does NOT call make_mat6. The Twiss parameters are also
-!       not recomputed.
+! Note: split_lat does NOT call make_mat6. The Twiss parameters are also not recomputed.
 !
 ! Modules Needed:
 !   use bmad
@@ -92,8 +91,8 @@ endif
 ! Note: Any lat%control()%ix_ele pointing to ix_split will now 
 !  point to ix_split+1.
 
-ele%value(l$) = 0       ! so no s recalc with insert_element
 call insert_element (lat, ele, ix_split, ix_branch)
+
 ele1 => branch%ele(ix_split)
 ele2 => branch%ele(ix_split+1)
 

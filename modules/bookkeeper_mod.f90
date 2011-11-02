@@ -2180,7 +2180,6 @@ logical err_flag
 logical non_offset_changed, offset_changed, offset_nonzero, z_patch_calc_needed, is_on
 logical, save :: v_mask(n_attrib_maxx), offset_mask(n_attrib_maxx)
 logical :: init_needed = .true.
-logical :: debug = .true.  ! For debugging purposes
 
 ! Some init
 
@@ -2503,7 +2502,9 @@ end select
 
 ! So stop here if nothing has truely changed.
 
-if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
+if (bmad_com%auto_bookkeeper) then
+  if (all(val == ele%old_value) .and. .not. z_patch_calc_needed) return
+endif
 
 ! Since things have changed we need to kill the Taylor Map and gen_field.
 
@@ -2536,7 +2537,7 @@ if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
         offset_nonzero .and. bmad_com%conserve_taylor_maps .and. &
         .not. non_offset_changed .and. ele%key /= patch$) then
   ele%map_with_offsets = .false.
-  if (offset_nonzero) non_offset_changed = .true.  ! To trigger kill_taylor below
+  if (any(ele%old_value /= 0 .and. offset_mask)) non_offset_changed = .true.  ! To trigger kill_taylor below
   call out_io (s_info$, r_name, &
       'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &
       'But: Element has just been offset: ' // ele%name, &
@@ -2696,7 +2697,7 @@ real(rp), target :: unknown_attrib
 
 integer i, j, ib
 
-logical coupling_change
+logical coupling_change, no_attrib
 
 ! If ele is not present then must reinit everything.
 
@@ -2740,8 +2741,10 @@ endif
 
 if (present(attrib)) then
   a_ptr => attrib
+  no_attrib = .false.
 else
   a_ptr => unknown_attrib
+  no_attrib = .true.
 endif
 
 ! A limit change does not need any bookkeeping
@@ -2808,7 +2811,7 @@ case (init_ele$)
 
   if (associated(a_ptr, ele%floor%x) .or. associated(a_ptr, ele%floor%y) .or. &
       associated(a_ptr, ele%floor%z) .or. associated(a_ptr, ele%floor%theta) .or. &
-      associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi)) then
+      associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi) .or. no_attrib) then
     call set_ele_status_stale (ele, branch%param, floor_position_status$)
     return
   endif
@@ -2835,7 +2838,12 @@ case (branch$, photon_branch$)
 case (lcavity$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$)) .or. &
-      .not. present(attrib)) then
+      no_attrib) then
+    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+  endif
+
+case (patch$)
+  if (associated(a_ptr, ele%value(e_tot_offset$)) .or. no_attrib) then
     call set_ele_status_stale (ele, branch%param, ref_energy_status$)
   endif
 
