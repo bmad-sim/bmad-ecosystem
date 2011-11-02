@@ -64,17 +64,17 @@ USER_BIN_DIR=/home/cesrulib/bin
 #--------------------------------------------------------------
 # Support functions
 #--------------------------------------------------------------
-# is $1 missing from $2 (or PATH) ?
+# Is argument $1 missing from argument $2 (or PATH)?
 function no_path() {
         eval "case :\$${2-PATH}: in *:$1:*) return 1;; *) return 0;; esac"
 }
 
-# if $1 exists and is not in path, append it
+# If argument path ($1) exists and is not in path, append it.
 function add_path () {
   [ -d ${1:-.} ] && no_path $* && eval ${2:-PATH}="\$${2:-PATH}:$1"
 }
 
-# if $1 is in path, remove it
+# If argument ($1) is in path, remove it.
 function del_path () {
   no_path $* || eval ${2:-PATH}=`eval echo :'$'${2:-PATH}: |
     /bin/sed -e "s;:$1:;:;g" -e "s;^:;;" -e "s;:\$;;"`
@@ -240,12 +240,17 @@ case ${ACC_OS_ARCH} in
 
     "Linux_i686" )
         # 32-bit Intel Fortran (ifort)
-        source /nfs/opt/ifc/bin/ifortvars.sh;;
+        source /nfs/opt/ifc/bin/ifortvars.sh
+	;;
 
     "Linux_x86_64" )
-        # 64-bit Intel Fortran (ifort)
-        #source /nfs/opt/intel/composerxe-2011.4.191/bin/compilervars.sh intel64;;
-	source /nfs/opt/intel/composerxe/bin/compilervars.sh intel64;; # ifort v12.1.0.233
+	# Add ifort-9-specific path information to user's environment
+	# to allow running 32-bit fortran programs on a 64-bit machine.
+	# Then source the final 64-bit path information on top.
+        source /nfs/opt/ifc/bin/ifortvars.sh
+        # 64-bit Intel Fortran (ifort) v12.1.0.233
+	source /nfs/opt/intel/composerxe/bin/compilervars.sh intel64
+	;;
 
 esac
 
@@ -257,7 +262,10 @@ esac
 #--------------------------------------------------------------
 add_path ${USER_BIN_DIR}
 del_path ${OLD_ACC_BIN}
+
+add_path ${ACC_PKG}/bin
 add_path ${ACC_BIN}
+
 
 
 #--------------------------------------------------------------
@@ -266,6 +274,7 @@ add_path ${ACC_BIN}
 export CERN_ROOT=/nfs/cern/pro
 export CERNLIB=${CERN_ROOT}/lib
 export CERNSRC=${CERN_ROOT}/src
+
 
 
 #--------------------------------------------------------------
