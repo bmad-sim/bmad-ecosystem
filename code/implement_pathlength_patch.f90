@@ -15,8 +15,7 @@
 
   subroutine implement_pathlength_patch(path_length_patch,ring, delta_frf, frf) 
 
-  use bmad_struct
-  use bmad_interface
+  use bookkeeper_mod
 
  implicit none
 
