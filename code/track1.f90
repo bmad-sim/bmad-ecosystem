@@ -166,10 +166,27 @@ if (bmad_com%spin_tracking_on) call track1_spin (orb, ele, param, end)
 
 ! check for particles outside aperture
 
-if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
-                  call check_aperture_limit (end, ele, exit_end$, param)
+if (.not. param%lost) then
+  if (ele%aperture_at == exit_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) then
+    call check_aperture_limit (end, ele, exit_end$, param)
+    if (param%lost) param%end_lost_at = exit_end$
+  endif
+endif
+
+if (param%lost .and. param%end_lost_at == entrance_reversed$) then
+  param%lost = .false. ! Temp
+  if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele%aperture_at == continuous$) &
+                  call check_aperture_limit (start, ele, entrance_end$, param)
+  if (param%lost) then
+    param%end_lost_at = entrance_end$
+    param%ix_lost = ele%ix_ele
+    call init_coord (end)      ! it never got to the end so zero this.
+    return
+  endif
+  param%lost = .true.
+endif
+
 if (param%lost) then
-  param%end_lost_at = exit_end$
   param%ix_lost = ele%ix_ele
   return
 endif
