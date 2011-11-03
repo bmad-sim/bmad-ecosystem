@@ -697,12 +697,13 @@ integer, parameter :: runge_kutta$ = 3
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
 integer, parameter :: symp_lie_bmad$ = 10, no_method$ = 11
 integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
+integer, parameter :: time_runge_kutta$ = 15
 
-character(16), parameter :: calc_method_name(0:14) = [ &
-      'GARBAGE!      ', 'Bmad_Standard ', 'Symp_Lie_PTC  ', 'Runge_Kutta   ', &
-      'Linear        ', 'Tracking      ', 'Symp_Map      ', 'Custom        ', &
-      'Taylor        ', 'GARBAGE!      ', 'Symp_Lie_Bmad ', 'No_Method     ', &
-      'Boris         ', 'Adaptive_Boris', 'MAD           ']
+character(16), parameter :: calc_method_name(0:15) = [ &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
+      'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
+      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'No_Method       ', &
+      'Boris           ', 'Adaptive_Boris  ', 'MAD             ', 'Time_Runge_kutta']
 
 ! sbend$ and rbend$ are from key definitions.
 

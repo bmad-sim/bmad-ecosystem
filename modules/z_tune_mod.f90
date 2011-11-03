@@ -134,8 +134,7 @@ do i = 1, lat%n_ele_max
       phase = twopi * (ele2%value(phi0$) + ele2%value(dphi0$))
       coef_tot = coef_tot + lat%control(j)%coef * twopi * &
                cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
-      k = ele%ix_value
-      ix_attrib(n_rf) = k
+      ix_attrib(n_rf) = ele%ix_value
     enddo
   endif
 
