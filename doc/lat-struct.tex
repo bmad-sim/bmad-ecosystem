@@ -758,13 +758,15 @@ The argument list for \vn{set_flags_for_changed_attribute} is
 \end{example}
 The \vn{attribute} argument may be either real, integer, or logical.
 
+
+
 For reference, the routines used by \vn{lattice_bookkeeper} are:
 \begin{example}
-  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}   ! Bookkeeping of attributes in a given element
-  \Hyperref{r:control.bookkeeper}{control_bookkeeper}     ! Lord/slave control bookkeeping
-  \Hyperref{r:s.calc}{s_calc}                 ! Longitudinal element position calc.
-  \Hyperref{r:lat.geometry}{lat_geometry}           ! Element global (floor) positions.
-  \Hyperref{r:compute.reference.energy}{compute_reference_energy}  
+  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Bookkeeping of attributes in a given element
+  \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control bookkeeping
+  \Hyperref{r:s.calc}{s_calc}                    ! Longitudinal element position calc.
+  \Hyperref{r:lat.geometry}{lat_geometry}              ! Element global (floor) positions.
+  \Hyperref{r:compute.reference.energy}{compute_reference_energy}  !Reference energy 
 \end{example}
 In general, these routines should not be called directly.
 
