@@ -689,15 +689,6 @@ interface
 end interface
 
 interface
-  subroutine set_z_tune (lat, z_tune)
-    use bmad_struct, only: lat_struct, rp
-    implicit none
-    type (lat_struct), target :: lat
-    real(rp), optional :: z_tune
-  end subroutine
-end interface
-
-interface
   subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)
     use bmad_struct, only: ele_struct, lat_param_struct
     implicit none

@@ -1,3 +1,18 @@
+module z_tune_mod
+
+use bookkeeper_mod
+use bmad_struct
+use bmad_interface
+
+type (lat_struct), private, pointer :: lat_com
+real(rp), private :: volt0(100), z_tune_wanted
+integer, private :: ix_rf(100), ix_attrib(100), n_rf
+
+contains
+
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 !+
 ! Subroutine set_z_tune (lat, z_tune)
 !
@@ -27,20 +42,19 @@
 
 subroutine set_z_tune (lat, z_tune)
 
-use bmad_struct
-use bmad_interface, except_dummy => set_z_tune
-use bookkeeper_mod
+use nr, only: zbrent
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, ele2
 
-real(rp) z_tune_wanted, r_volt, dQz_max
-real(rp) coef_tot, volt, E0, phase
+real(rp) dQz_max
+real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, coef, dz_tune
 real(rp), optional :: z_tune
 
-integer i, j, k, ix, n_rf, ix_rf(100), ix_attrib(100)
+integer i, j, k, ix
+integer :: loop_max = 10
 
 logical found_control, rf_is_on
 
@@ -48,7 +62,7 @@ character(16), parameter :: r_name = 'set_z_tune'
 
 ! Error detec and init.
 
-dQz_max = 0.001
+dQz_max = 0.0001
 
 if (present (z_tune)) lat%z%tune = z_tune
 
@@ -142,6 +156,7 @@ endif
 ! This is only approximate.
 
 call calc_z_tune (lat)
+
 if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
   volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
   do i = 1, n_rf
@@ -150,34 +165,70 @@ if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
     call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib(i)))
     call lat_make_mat6 (lat, ix_rf(i))
   enddo
+  call calc_z_tune (lat)
 endif
+
+! record
+
+do i = 1, n_rf
+  ele => lat%ele(ix_rf(i))
+  volt0(i) = ele%value(ix_attrib(i))
+enddo
+
+dz_tune = lat%z%tune - z_tune_wanted
+dz_tune0 = dz_tune
+lat_com => lat
+coef = 1
 
 ! now set cavity voltage to get the correct tune
 
-do k = 1, 10
+do k = 1, loop_max
 
-  call calc_z_tune (lat)
-  if (abs(lat%z%tune - z_tune_wanted) < dQz_max) return
+  if (abs(dz_tune) < dQz_max) return
 
-  r_volt = (z_tune_wanted / lat%z%tune)**2 
+  if (dz_tune * dz_tune0 < 0) exit  ! Have bracketed solution
 
-  do i = 1, n_rf
-    ele => lat%ele(ix_rf(i))
-    ele%value(ix_attrib(i)) = ele%value(ix_attrib(i)) * r_volt
-    call set_flags_for_changed_attribute (lat, ele, ele%value(ix_attrib(i)))
-    call lat_make_mat6 (lat, ix_rf(i))
-  enddo
+  coef0 = coef
+  coef = coef * (z_tune_wanted / (dz_tune + z_tune_wanted))**2 
 
-  call calc_z_tune (lat)
+  dz_tune = dz_tune_func(coef)
 
+  if (k == loop_max) then
+    call out_io (s_error$, r_name, 'I CANNOT SET THE TUNE TO THE CORRECT VALUE.', &
+                                   '      VALUE WANTED:   \f12.3\ ', '      VALUE OBTAINED: \f12.3\ ', &
+                                   r_array = [z_tune_wanted, lat%z%tune])
+    call err_exit
+  endif
 enddo
 
-! 
+!  Have bracketed index
 
-call out_io (s_error$, r_name, 'I CANNOT SET THE TUNE TO THE CORRECT VALUE.', &
-                               '      VALUE WANTED:   \f12.3\ ', '      VALUE OBTAINED: \f12.3\ ', &
-                               r_array = [z_tune_wanted, lat%z%tune])
-call err_exit
+coef = zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), dQz_max)
 
-end subroutine
+end subroutine set_z_tune
+
+!-------------------------------------------------------------------------------------
+
+function dz_tune_func (coef) result (dz_tune)
+
+type (ele_struct), pointer :: ele
+real(rp) coef, dz_tune
+integer i
+
+!
+
+do i = 1, n_rf
+  ele => lat_com%ele(ix_rf(i))
+  ele%value(ix_attrib(i)) = volt0(i) * coef
+  call set_flags_for_changed_attribute (lat_com, ele, ele%value(ix_attrib(i)))
+  call lat_make_mat6 (lat_com, ix_rf(i))
+enddo
+
+call calc_z_tune (lat_com)
+dz_tune = lat_com%z%tune - z_tune_wanted
+
+
+end function
+
+end module
 
