@@ -703,7 +703,7 @@ character(16), parameter :: calc_method_name(0:15) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
       'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'No_Method       ', &
-      'Boris           ', 'Adaptive_Boris  ', 'MAD             ', 'Time_Runge_kutta']
+      'Boris           ', 'Adaptive_Boris  ', 'MAD             ', 'Time_Runge_Kutta']
 
 ! sbend$ and rbend$ are from key definitions.
 
