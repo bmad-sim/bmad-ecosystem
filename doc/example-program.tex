@@ -33,17 +33,28 @@ program test
 use bmad                 ! Define the structures we need to know about.
 implicit none
 type (lat_struct), target :: lat   ! This structure holds the lattice info
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, cleo
 type (ele_pointer_struct), allocatable :: eles(:)
 integer i, ix, n_loc
 logical err
 
-! Read in a lattice and calculate the twiss parameters.
-
-! Programs should always implement intelligent bookkeeping.
+! Programs should always implement "intelligent bookkeeping".
 bmad_com%auto_bookkeeper = .false.
+
+! Read in a lattice, and modify the ks solenoid strength of the 
+! element named "cleo_sol".
+
 call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
-! Calculate starting Twiss params if the lattice is closed.
+
+call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)  ! Find element
+cleo => eles(1)%ele                        ! Point to cleo_sol element.
+cleo%value(ks$) = cleo%value(ks$) + 0.001  ! Modify ks component.
+call set_flags_for_changed_attribute (lat, cleo, cleo%value(ks$))
+call lat_make_mat6 (lat, cleo%ix_ele)      ! Remake transfer matrix
+
+! Calculate starting Twiss params if the lattice is closed, 
+! and then propagate the Twiss parameters through the lattice.
+
 if (lat%param%lattice_type == circular_lattice$) call twiss_at_start (lat)
 call twiss_propagate_all (lat)      ! Propagate Twiss parameters
 
@@ -55,9 +66,8 @@ do i = 0, 10
   print '(i4,2x,a16,2x,a,2f12.4)', i, ele%name, key_name(ele%key), ele%s, ele%a%beta
 enddo
 
-! Find the CLEO_SOL element and print information on it.
+! print information on the CLEO_SOL element.
 
-call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)
 print *
 print *, '!---------------------------------------------------------'
 print *, '! Information on element: CLEO_SOL'

@@ -44,9 +44,11 @@ type (ele_struct), pointer :: ele, lord, slave, b_ele
 type (branch_struct), pointer :: branch
 
 integer i, n, ix2, ie, ib
-logical stale
+logical stale, stale_lord
 
 !
+
+stale_lord = .false.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
@@ -85,7 +87,10 @@ do n = 0, ubound(lat%branch, 1)
       ib = nint(ele%value(ele%value(ix_branch_to$)))
       lat%branch(ib)%ele(0)%status%floor_position = stale$
     endif
-    call set_lords_status_stale (ele, lat, floor_position_status$)
+    if (ele%n_lord > 0) then
+      call set_lords_status_stale (ele, lat, floor_position_status$)
+      stale_lord = .true.
+    endif
     ele%status%floor_position = ok$
   enddo
 
@@ -93,28 +98,26 @@ enddo
 
 ! put info in super_lords and multipass_lords
 
-if (bmad_com%auto_bookkeeper .or. lat%param%status%floor_position == stale$) then
+if (.not. stale_lord) return
 
-  lat%param%status%floor_position = ok$
+lat%param%status%floor_position = ok$
 
-  do i = lat%n_ele_track+1, lat%n_ele_max  
-    lord => lat%ele(i)
-    if (.not. bmad_com%auto_bookkeeper .and. lord%status%floor_position /= stale$) cycle
-    if (lord%n_slave == 0) cycle
+do i = lat%n_ele_track+1, lat%n_ele_max  
+  lord => lat%ele(i)
+  if (.not. bmad_com%auto_bookkeeper .and. lord%status%floor_position /= stale$) cycle
+  if (lord%n_slave == 0) cycle
 
-    select case (lord%lord_status)
-    case (super_lord$)
-      slave => pointer_to_slave(lat, lord, lord%n_slave) ! Last slave is at exit end.
-      lord%floor = slave%floor
-    case (multipass_lord$)
-      slave => pointer_to_slave(lat, lord, 1)
-      lord%floor = slave%floor
-    end select
+  select case (lord%lord_status)
+  case (super_lord$)
+    slave => pointer_to_slave(lat, lord, lord%n_slave) ! Last slave is at exit end.
+    lord%floor = slave%floor
+  case (multipass_lord$)
+    slave => pointer_to_slave(lat, lord, 1)
+    lord%floor = slave%floor
+  end select
 
-    lord%status%floor_position = ok$
-  enddo
-
-endif
+  lord%status%floor_position = ok$
+enddo
 
 end subroutine
 
