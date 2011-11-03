@@ -212,7 +212,8 @@ end subroutine set_z_tune
 function dz_tune_func (coef) result (dz_tune)
 
 type (ele_struct), pointer :: ele
-real(rp) coef, dz_tune
+real(rp), intent(in) :: coef
+real(rp) dz_tune
 integer i
 
 !
