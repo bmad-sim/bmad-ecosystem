@@ -41,7 +41,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   use bmad
   use bmadz_interface
   use dynamic_aperture_mod                                      
-
+  use z_tune_mod
 
   implicit none
 
