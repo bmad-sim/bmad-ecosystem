@@ -352,7 +352,7 @@ type lat_param_struct
   real(rp) t1_no_RF(6,6)      ! Full 1-turn matrix with RF off.
   integer particle            ! positron$, electron$, etc.
   integer ix_lost             ! Index of element particle was lost at.
-  integer end_lost_at         ! between_ends$, entrance_reversed$, entrance_end$, or exit_end$
+  integer end_lost_at         ! between_ends$, live_reversed$, entrance_end$, or exit_end$
   integer plane_lost_at       ! x_plane$, y_plane$, z_plane$ (reversed direction).
   integer lattice_type        ! linear_lattice$, etc...
   integer ixx                 ! Integer for general use
@@ -729,11 +729,11 @@ character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ',
 ! ele%aperture_at logical definitions.
 
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3
-integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, entrance_reversed$ = 7
+integer, parameter :: no_end$ = 4, continuous$ = 5, between_ends$ = 6, live_reversed$ = 7
 integer, parameter :: lost$ = 10
-character(20), parameter :: element_end_name(0:7) = [ &
-      'GARBAGE!         ', 'Entrance_End     ', 'Exit_End         ', 'Both_Ends        ', &
-      'No_End           ', 'Continuous       ', 'Between_Ends     ', 'Entrance_Reversed']
+character(16), parameter :: element_end_name(0:7) = [ &
+      'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
+      'No_End       ', 'Continuous   ', 'Between_Ends ', 'Live_Reversed']
 
 ! ref_orbit values.
 
