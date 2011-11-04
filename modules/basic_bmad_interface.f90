@@ -437,15 +437,15 @@ end interface
 
 interface
   subroutine offset_particle (ele, param, coord, set, &
-           set_canonical, set_tilt, set_multipoles, set_hvkicks, s_pos)
+           set_canonical, set_tilt, set_multipoles, set_hvkicks, reversed, set_s_offset, s_pos)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, rp
     implicit none
     type (ele_struct) :: ele
     type (lat_param_struct), intent(in) :: param
     type (coord_struct), intent(inout) :: coord
     logical, intent(in) :: set
-    logical, optional, intent(in) :: set_canonical, set_multipoles, &
-                                                      set_tilt, set_hvkicks
+    logical, optional, intent(in) :: set_canonical, set_multipoles
+    logical, optional, intent(in) :: set_tilt, set_hvkicks, reversed, set_s_offset
     real(rp), optional, intent(in) :: s_pos
   end subroutine
 end interface

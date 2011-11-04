@@ -125,8 +125,11 @@ if (n_pt > ubound(track%orb, 1)) then
   deallocate(track2%orb, track2%map)
 end if
 
+! Notice that a translation due to a finite ele%value(s_offset$) is not wanted here.
+
 orb2 = orb
-if (local_ref_frame) call offset_particle (ele, param, orb2, unset$, set_canonical = .false., s_pos = s)
+if (local_ref_frame) call offset_particle (ele, param, orb2, unset$, &
+                                    set_canonical = .false., set_s_offset = .false., s_pos = s)
 
 track%orb(n_pt) = orb2
 track%map(n_pt)%mat6 = 0
