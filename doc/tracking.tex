@@ -324,26 +324,28 @@ enough energy going into the cavity to make it to the exit.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\textwidth]{tracking-apertures}
-\caption[]{Example trajectories in the element coordinate system.}
+\caption[]{Example trajectories in the element coordinate system. Note that the wall and apertures are aligned at $s_{\rm ele} =0$, but offset at $s_{\rm ele} = L.$}
 \label{fg:tracking-apertures}
 \end{figure}
 %===========================================================
 
 %======================TABLE=============================
 \begin{table}[tb]
-\caption[]{Possible aperture flags set when tracking an individual element.}
+\caption[]{Possible aperture flags set when tracking an individual element. Trajectories are labeled as in Fig.~\ref{fg:tracking-apertures}}
 \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr}
 \toprule
  Example particle trajectory & \vn{lost} & \vn{plane_lost_at} & \vn{end_lost_at}\\ 
  \midrule
-1: Forward  			& F &  \vn{x_plane\$}	& \vn{exit_end\$}  \\
-2: Element kicks backwards & T &  \vn{z_plane\$} &\vn{live_reversed\$} \\
-3: Hits interior wall & T &  \vn{x_plane\$} &\vn{between_ends\$} \\
-4: Backwards & T &  \vn{z_plane\$} &\vn{live_reversed\$} \\
-5: Backwards kicked forward & F &  \vn{z_plane\$} &\vn{exit_end\$} \\
+1: Forward  					& F &  \vn{z_plane\$} & \vn{exit_end\$}  \\
+2: Forward kicked backwards	& T &  \vn{z_plane\$} & \vn{live_reversed\$} \\
+3: Hits exit aperture 		& T &  \vn{x_plane\$} & \vn{exit_end\$} \\
+4: Hits interior wall 		& T &  \vn{x_plane\$} & \vn{between_ends\$} \\
+5: Enters outside aperture 	& T &  \vn{x_plane\$} & \vn{entrance_end\$} \\
+6: Backwards 				& T &  \vn{z_plane\$} & \vn{live_reversed\$} \\
+7: Backwards kicked forward & F &  \vn{z_plane\$} & \vn{exit_end\$} \\
 \bottomrule
 \end{tabular*}
-\label{tab:}
+\label{tb:tracking-apertures}
 \end{table}
 %=====================TABLE===============================
 
