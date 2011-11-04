@@ -1,8 +1,8 @@
 !+
 ! Subroutine offset_particle (ele, param, coord, set, set_canonical, 
-!                               set_tilt, set_multipoles, set_hvkicks, ds_pos)
+!                               set_tilt, set_multipoles, set_hvkicks, reversed, set_s_offset, ds_pos)
 !
-! Subroutine to transform a particles's coordinates between laboratory and element coordinates
+! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the entrance or exit ends of the element. Additionally, this routine will:
 !   a) Apply the half kicks due to multipole and kick attributes.
 !   b) Add drift transform to the coordinates due to nonzero %value(s_offset_tot$).
@@ -11,13 +11,15 @@
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
-!    Assumes the particle is at the entrance end of the element.
+!    Assumes the particle is at the entrance end of the element if reversed = False (default).
+!    Assumes the particle is at the exit end of the elment if reversed = True.
+!
 ! set = unset$:
-!    Transforms from element to lab  coords.
-!    Assumes the particle is at the exit end of the element.
+!    Transforms from element to lab coords.
+!    Assumes the particle is at the exit end of the element if reversed = False (default).
+!    Assumes the particle is at the entrance end of the elment if reversed = True.
 !
 ! Note: the assumption of where the particle is can be overridden by using the ds_pos argument.
-! Also see the offset_lab_element_coords routine
 !
 ! Options:
 !   Using the element tilt in the offset.
@@ -55,6 +57,12 @@
 !                    T -> 1/2 of the multipole is applied.
 !   set_hvkicks    -- Logical, optional: Default is True.
 !                    T -> Apply 1/2 any hkick or vkick.
+!   reversed       -- Logical, optional: Default is False.
+!                    T -> Particle is treated as travelling backwards from the exit end towards the entrance end.
+!   set_s_offset   -- Logical, optional: Default is True.
+!                    T -> Particle will be translated by ele%value(s_offset$) to propagate between the nominal
+!                           edge of the element and the true physical edge of the element.
+!                    F -> Do no translate. Used by save_a_step routine.
 !   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to entrance end. 
 !                    If not present then ds_pos = 0 is assumed when set = T and 
 !                    ds_pos = ele%value(l$) when set = F.
@@ -64,7 +72,7 @@
 !-
 
 subroutine offset_particle (ele, param, coord, set, set_canonical, &
-                              set_tilt, set_multipoles, set_hvkicks, ds_pos)
+                              set_tilt, set_multipoles, set_hvkicks, reversed, set_s_offset, ds_pos)
 
 use bmad_interface, except_dummy => offset_particle
 use multipole_mod, only: multipole_ele_to_kt, multipole_kicks
@@ -87,8 +95,8 @@ integer n
 
 logical, intent(in) :: set
 logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
-logical, optional, intent(in) :: set_hvkicks
-logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2
+logical, optional, intent(in) :: set_hvkicks, reversed, set_s_offset
+logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2, is_reversed, set_s
 
 !---------------------------------------------------------------         
 ! E_rel               
@@ -109,6 +117,8 @@ set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
 set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele%key)
+set_s     = logic_option (.true., set_s_offset) .and. has_orientation_attributes(ele%key)
+is_reversed = logic_option (.false., reversed)
 
 if (set_hv) then
   select case (ele%key)
@@ -151,12 +161,9 @@ if (set) then
 
   if (has_orientation_attributes(ele%key)) then
 
-    ! If a bend then must rotate the offsets from the coordinates at the center of the bend
-    ! to the entrance coordinates. This rotation is just the coordinate transformation for the
-    ! whole bend except with half the bending angle.
-
     if (present(ds_pos)) then
       s_here = ds_pos - ele%value(l$) / 2  ! position relative to center.
+      if (is_reversed) s_here = -s_here  ! Effective position relative to center is reversed.
     else
       s_here = -ele%value(l$) / 2
     endif
@@ -166,6 +173,16 @@ if (set) then
     s_off = ele%value(s_offset_tot$)
     xp = ele%value(x_pitch_tot$)
     yp = ele%value(y_pitch_tot$)
+
+    if (is_reversed) then
+      s_off = -s_off
+      xp = -xp
+      yp = -yp
+    endif
+
+    ! If a bend then must rotate the offsets from the coordinates at the center of the bend
+    ! to the entrance coordinates. This rotation is just the coordinate transformation for the
+    ! whole bend except with half the bending angle.
 
     if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. s_off /= 0)) then
       angle = ele%value(g$) * s_here  ! Notice that this is generally negative
@@ -178,7 +195,7 @@ if (set) then
       x_off = vec(1); y_off = vec(2); s_off = vec(3)
     endif
 
-    if (s_off /= 0) then
+    if (s_off /= 0 .and. set_s) then
       call track_a_drift (coord, s_off)
       call convert_pc_to (ele%value(p0c$) * (1 + coord%vec(6)), param%particle, beta = beta)
       coord%t = coord%t + s_off / (beta * c_light)
@@ -324,6 +341,7 @@ else
 
     if (present(ds_pos)) then
       s_here = ds_pos - ele%value(l$) / 2  ! position relative to center.
+      if (is_reversed) s_here = -s_here  ! Effective position relative to center is reversed.
     else
       s_here = ele%value(l$) / 2
     endif
@@ -333,6 +351,12 @@ else
     s_off = ele%value(s_offset_tot$)
     xp = ele%value(x_pitch_tot$)
     yp = ele%value(y_pitch_tot$)
+
+    if (is_reversed) then
+      s_off = -s_off
+      xp = -xp
+      yp = -yp
+    endif
 
     if (ele%key == sbend$ .and. (x_off /= 0 .or. y_off /= 0 .or. s_off /= 0)) then
       angle = ele%value(g$) * s_here
@@ -353,7 +377,7 @@ else
       coord%vec(4) = coord%vec(4) + yp * E_rel
     endif
 
-    if (s_off /= 0) then
+    if (s_off /= 0 .and. set_s) then
       call track_a_drift (coord, -s_off)
       call convert_pc_to (ele%value(p0c$) * (1 + coord%vec(6)), param%particle, beta = beta)
       coord%t = coord%t - s_off / (beta * c_light)
