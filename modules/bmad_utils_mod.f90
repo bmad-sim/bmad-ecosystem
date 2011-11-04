@@ -2439,56 +2439,66 @@ end function gradient_shift_sr_wake
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_ele_status_stale (ele, param, which)
+! Subroutine set_ele_status_stale (ele, param, status_group)
 !
 ! Routine to set a status flags to stale in an element and the corresponding 
 ! ones for the branch%param structure of the branch the element is in.
+!
+! For example: status_group = ref_energy_group$ sets stale:
+!   ele%status%ref_energy 
+!   ele%status%floor_position
+!   ele%status%mat6
+! See the code for more details.
 ! 
 ! Output:
 !   ele    -- ele_struct: Element.
 !     %status -- Status block to set.
 !   param  -- lat_param_struct: branch%param component of branch element is in.
 !     %status -- status block to set.
-!   which  -- Integer: Which flag groups to set. Possibilities are:
-!               attributes_status$, control_status$, floor_position_status$,
-!               length_status$, ref_energy_status$, or mat6_status$, all_status$
+!   status_group  -- Integer: Which flag groups to set. Possibilities are:
+!               attribute_group$, control_group$, floor_position_group$,
+!               length_group$, ref_energy_group$, or mat6_group$, all_groups$
 !-
 
-subroutine set_ele_status_stale (ele, param, which)
+subroutine set_ele_status_stale (ele, param, status_group)
 
 implicit none
 
 type (lat_param_struct) param
 type (ele_struct) ele
-integer which
+integer status_group
 
 !
 
-select case (which)
+select case (status_group)
 
-case (attributes_status$)
+case (attribute_group$)
   call set_attributes
+  call set_mat6
 
-case (control_status$)
+case (control_group$)
   call set_control
 
-case (floor_position_status$)
+case (floor_position_group$)
   call set_floor_position
   call set_mat6
 
-case (length_status$)
+case (length_group$)
   call set_length
   call set_floor_position
   call set_mat6
 
-case (ref_energy_status$)
+case (ref_energy_group$)
   call set_ref_energy
   call set_mat6
 
-case (mat6_status$)
+case (mat6_group$)
   call set_mat6
 
-case (all_status$)
+case (rad_int_group$)
+  call set_rad_int
+
+case (all_groups$)
   call set_attributes
   call set_control
   call set_floor_position
@@ -2546,6 +2556,14 @@ end subroutine set_ref_energy
 !----------------------------------------------------------------------------
 ! contains
 
+subroutine set_rad_int
+  ele%status%rad_int = stale$
+  param%status%rad_int = stale$
+end subroutine set_rad_int
+
+!----------------------------------------------------------------------------
+! contains
+
 ! Ignore if the element does not have an associated linear transfer map
 ! Also the branch status does not get set since the transfer map calc
 ! must always check a branch due to possible reference orbit shifts.
@@ -2592,8 +2610,9 @@ status_block%floor_position = stat
 status_block%ref_energy     = stat
 status_block%attributes     = stat
 status_block%mat6           = stat
+status_block%rad_int        = stat
 
-if (present(n_modify)) status_block%n_modify = n_modify
+!! if (present(n_modify)) status_block%n_modify = n_modify
 
 end subroutine set_status_flags
 
@@ -2601,37 +2620,39 @@ end subroutine set_status_flags
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_slaves_status_stale (ele, lat, who, flag)
+! Subroutine set_slaves_status_stale (ele, lat, stat_group, flag)
 !
 ! Routine to recursively set the status flag of all slaves of an element.
 !
 ! Input:
-!   ele   -- ele_struct: Element
-!   who   -- Integer: which flag to set. floor_position_status$, etc.
-!   flag  -- Logical, optional: Do not use. For determining recursion depth.
+!   ele        -- ele_struct: Element
+!   stat_group -- Integer: which status group to set. floor_position_group$, etc.
+!                   See set_ele_status_stale for more details.
+!   flag       -- Logical, optional: Do not use. For determining recursion depth.
 !
-!   lat   -- Lat_struct: Lattice with status flags of slaves of ele set.
+! Output:
+!   lat        -- Lat_struct: Lattice with status flags of slaves of ele set.
 !-
 
-recursive subroutine set_slaves_status_stale (ele, lat, who, flag)
+recursive subroutine set_slaves_status_stale (ele, lat, stat_group, flag)
 
 implicit none
 
 type (lat_struct) lat
 type (ele_struct) ele
 type (ele_struct), pointer :: slave
-integer who, i
+integer stat_group, i
 logical, optional :: flag
 
 ! First time through the flag argument will not be present.
 ! Do not set status first time through since this is the original element.
 ! That is, only want to set the flags of the slaves.
 
-if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, who)
+if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, stat_group)
 
 do i = 1, ele%n_slave
   slave => pointer_to_slave(lat, ele, i)
-  call set_slaves_status_stale (slave, lat, who, .true.)
+  call set_slaves_status_stale (slave, lat, stat_group, .true.)
 enddo
 
 end subroutine set_slaves_status_stale
@@ -2640,37 +2661,39 @@ end subroutine set_slaves_status_stale
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_lords_status_stale (ele, lat, who, flag)
+! Subroutine set_lords_status_stale (ele, lat, stat_group, flag)
 !
 ! Routine to recursively set the status flag of all slaves of an element.
 !
 ! Input:
-!   ele   -- ele_struct: Element
-!   who   -- Integer: which flag to set. floor_position_status$, etc.
-!   flag  -- Logical, optional: Do not use. For determining recursion depth.
+!   ele        -- ele_struct: Element
+!   stat_group -- Integer: which status group to set. floor_position_group$, etc.
+!                   See set_ele_status_stale for more details.
+!   flag       -- Logical, optional: Do not use. For determining recursion depth.
 !
-!   lat   -- Lat_struct: Lattice with status flags of lords of ele set.
+! Output:
+!   lat        -- Lat_struct: Lattice with status flags of lords of ele set.
 !-
 
-recursive subroutine set_lords_status_stale (ele, lat, who, flag)
+recursive subroutine set_lords_status_stale (ele, lat, stat_group, flag)
 
 implicit none
 
 type (lat_struct) lat
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
-integer who, i
+integer stat_group, i
 logical, optional :: flag
 
 ! First time through the flag argument will not be present.
 ! Do not set status first time through since this is the original element.
 ! That is, only want to set the flags of the lords.
 
-if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, who)
+if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, stat_group)
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord(lat, ele, i)
-  call set_lords_status_stale (lord, lat, who, flag)
+  call set_lords_status_stale (lord, lat, stat_group, flag)
 enddo
 
 end subroutine set_lords_status_stale

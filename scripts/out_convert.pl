@@ -7,7 +7,7 @@ foreach $file (@ARGV) {
 
   while (<F_IN>) {
 
-    s/\%fit/\%map/g;
+    s/compute_reference_energy/lat_compute_reference_energy/g;
 
     print (F_OUT);
   }

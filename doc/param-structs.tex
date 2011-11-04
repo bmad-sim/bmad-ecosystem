@@ -39,7 +39,7 @@ Section~\sref{s:bmad.params} the syntax is
 \index{mat6_track_symmetric}\index{auto_bookkeeper}
 \index{space_charge_on}\index{coherent_synch_rad_on}
 \index{spin_tracking_on}\index{radiation_damping_on}
-\index{radiation_fluctuations_on}\index{compute_ref_energy}
+\index{radiation_fluctuations_on}
 Some overall parameters are stored in the \vn{bmad_common_struct}
 structure. The instance name here is \vn{bmad_com}. The parameters of
 this structure are:
@@ -64,7 +64,6 @@ this structure are:
     logical :: spin_tracking_on = .false.      ! spin tracking?
     logical :: radiation_damping_on = .false.       ! Damping toggle.
     logical :: radiation_fluctuations_on = .false.  ! Fluctuations toggle.
-    logical :: compute_ref_energy = .true.          ! Enable recomputation?
     logical :: conserve_taylor_maps = .true.        ! Enable bookkeeper to set
                                                     ! ele%map_with_offsets = F?
   end type

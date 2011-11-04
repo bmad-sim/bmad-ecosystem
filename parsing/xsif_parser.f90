@@ -582,7 +582,7 @@ call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
 
 ! Element cleanup
 
-call compute_reference_energy (lat)
+call lat_compute_reference_energy (lat)
 do i = 1, lat%n_ele_max
   if (ele%key == elseparator$) then
     if (ele%value(e_tot$) == 0) cycle

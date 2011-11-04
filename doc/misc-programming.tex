@@ -111,7 +111,6 @@ The following constants are defined
 
 \index{global coordinates}
 \index{s-positions}
-
 The routine \Hyperref{r:lat.geometry}{lat_geometry} will compute the
 global floor coordinates at the end of every element in a lattice.
 \vn{lat_geometry} works by repeated calls to \Hyperref{r:ele.geometry}{ele_geometry} which
@@ -123,6 +122,54 @@ and \Hyperref{r:floor.w.mat.to.angles}{floor_w_mat_to_angles} can be used.
 
 The routine \Hyperref{r:s.calc}{s_calc} calculates the longitudinal $s$ positions for
 the elements in a lattice.
+
+%-----------------------------------------------------------------------------
+\section{Reference Energy}
+\label{s:ref.energy}
+
+\index {reference energy}
+The reference energy for the elements in a lattice is calculated by
+\Hyperref{r:lat.compute.reference.energy}{lat_compute_reference_energy}.
+The reference energy associated with a lattice element is gnerally stored in
+\begin{example}
+  ele%value(E_tot\$)      ! Total energy (eV)
+  ele%value(p0c\$)        ! Momentum * c_light (eV)
+\end{example}
+
+\index{multipass!reference energy}
+\vn{multipass} lord (\sref{s:multipass}) elements have a
+reference energy but only if the \vn{n_ref_pass} attribute is set. In
+this case, the \vn{multipass} lord inherits the reference energy of
+the referenced slave.
+
+\index{group!reference energy}\index{overlay!reference energy}
+\index{superposition!reference energy}
+\vn{group} (\sref{s:group}), \vn{overlay} (\sref{s:overlay}), and
+\vn{super_lord} elements inherit the reference from the last slave in
+their slave list (\sref{s:lat.control}). For \vn{super_lord} elements
+this corresponds to inheriting the reference energy of the slave at
+the exit end of the \vn{super_lord}. For \vn{group} and \vn{overlay}
+elements a reference energy only makes sense if all the elements under
+control have the same reference energy.
+
+\index{lcavity!referece energy}\index{cutom!referece energy}\index{hybrid!referece energy}
+Generally, the reference energy is constant throughout an
+element. Exceptions are \vn{lcavity}, \vn{custom} and \vn{hybrid}
+elements. For these types of elements, the above reference energy
+components refer to the exit end of the element and there are two
+additional attributes that give the reference energy at the start of
+the element
+\begin{example}
+  ele%value(E_tot_start\$)      ! Total energy at entrance end of element (eV)
+  ele%value(p0c_start\$)        ! Momentum * c_light at entrance end of element (eV)
+\end{example}
+These starting energies are the same as the exit end energies of the upstream element in the lattice.
+
+Additionally, photonic elements like \vn{crystal}, \vn{capillay},
+\vn{mirror} and \vn{multilayer_mirror} elements have an associated photon reference wavelength
+\begin{example}
+  ele%value(ref_wavelength\$)      ! Meters.
+\end{example}
 
 %-----------------------------------------------------------------------------
 \section{Common Structures}

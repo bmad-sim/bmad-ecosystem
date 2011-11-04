@@ -74,7 +74,7 @@ if (present(ref_orb)) then
   endif
 endif
 
-if (bmad_com%auto_bookkeeper) call compute_reference_energy (lat)
+if (bmad_com%auto_bookkeeper) call lat_compute_reference_energy (lat)
 
 ! Is the reference orbit zero?
 
@@ -167,7 +167,7 @@ if (i_ele < 0) then
       ix_taylor(n_taylor) = i
     endif
 
-    call set_lords_status_stale (ele, lat, mat6_status$)
+    call set_lords_status_stale (ele, lat, mat6_group$)
     ele%status%mat6 = ok$
 
   enddo

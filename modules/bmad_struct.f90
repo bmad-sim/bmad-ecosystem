@@ -234,8 +234,9 @@ type mode3_struct
 end type
 
 integer, parameter :: super_ok$ = 0, stale$ = 2
-integer, parameter :: attributes_status$ = 1, control_status$ = 2, floor_position_status$ = 3
-integer, parameter :: length_status$ = 4, ref_energy_status$ = 5, mat6_status$ = 6, all_status$ = 7
+integer, parameter :: attribute_group$ = 1, control_group$ = 2, floor_position_group$ = 3
+integer, parameter :: length_group$ = 4, ref_energy_group$ = 5, mat6_group$ = 6
+integer, parameter :: rad_int_group$ = 7, all_groups$ = 8
 
 ! The bookkeeper_status_struct is used for keeping track of what bookkeeping has
 ! been done on an element. NOTE: The information in this structure is ignored if 
@@ -249,7 +250,7 @@ type bookkeeper_status_struct
   integer :: length = ok$          ! Length: super_ok$, ok$ or stale$
   integer :: ref_energy = ok$      ! Reference energy: super_ok$, ok$ or stale$
   integer :: mat6 = ok$            ! Linear transfer map status: super_ok$, ok$ or stale$
-  integer :: n_modify = 0          ! How many times the dependent attributes or ref energy have been modified?.
+  integer :: rad_int = ok$         ! Radiation integrals cache status
 end type
 
 ! Ele_struct:

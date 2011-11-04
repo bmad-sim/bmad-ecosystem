@@ -78,7 +78,7 @@ memory. Typically using the save attribute will be the best choice.
 The lattice is divided up into the ``root branch'' 
 (also called the ``root lattice'') and, if there are
 \vn{branch} or \vn{photon_branch} elements, a number of other branches. 
-To simpllify the bookkeeping, the root lattice is itself considered a branch.
+To simplify the bookkeeping, the root lattice is itself considered a branch.
 
 \index{branch_struct}
 The branch information is contained in the \vn{%branch(0:)} array. The
@@ -317,7 +317,7 @@ values) of other \vn{%branch(:)%ele(:)} elements.  Elements so controlled are
 called \vn{slave} elements.  The situation is complicated by the fact
 that a given element may simultaneously be a \vn{lord} and a
 \vn{slave}. For example, an \vn{overlay} element (\sref{c:control}) is
-a lord since it controlls attributes of other elements but an
+a lord since it controls attributes of other elements but an
 \vn{overlay} can itself be controlled by other \vn{overlay} and
 \vn{group} elements. In all cases, circular lord/slave chains are not permitted.
 
@@ -353,7 +353,7 @@ An \vn{overlay_lord} is an \vn{overlay} element (\sref{s:overlay}).
 That is, such an element will have \vn{ele%key} = \vn{overlay\$}.
   \item[group_lord\$]\Newline 
 A \vn{group_lord} is a \vn{group} element (\sref{s:group}). That is,
-such an element willp have \vn{ele%key} = \vn{group\$}.
+such an element will have \vn{ele%key} = \vn{group\$}.
   \item[not_a_lord\$]\Newline
 This element does not control anything.
   \end{description}
@@ -397,7 +397,7 @@ will not have any other types of lords.
 Free elements do not have any lord elements controlling them.
 \end{description}
 Any element whose \vn{%slave_status} is something other than
-\vn{feee\$} is called a \vn{slave} element. \vn{super_slave} elements
+\vn{free\$} is called a \vn{slave} element. \vn{super_slave} elements
 always appear in the tracking part of the lattice. The other types can
 be in either the tracking or control parts of the lattice.
 
@@ -500,7 +500,7 @@ of the lord's \vn{%n_slave} component. Additionally, the number of lord
 elements that the slave has is given by the value of the slave's.
 \vn{%n_lord} component. To find the slaves and lords of a given element,
 use the routines \Hyperref{r:pointer.to.slave}{pointer_to_slave} and
-\Hyperref{r:pointer.to.lord}{pointer_to_lord}. Eample:
+\Hyperref{r:pointer.to.lord}{pointer_to_lord}. Example:
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: this_ele, lord_ele, slave_ele
@@ -556,7 +556,7 @@ The following ordering of slaves and lords is observed:
   \item[Slaves of a super_lord:] \Newline
 The associated \vn{super_slave} elements of a given \vn{super_lord}
 element are ordered from the entrance end of the \vn{super_lord}
-to the exit end. That is, in the code snipit above,
+to the exit end. That is, in the code snippet above,
 \vn{pointer_to_slave (lat, this_ele, 1)} will point to the slave at
 the start of the \vn{super_lord} and 
 \vn{ pointer_to_slave (lat, this_ele, this_ele%n_lord)}
@@ -564,7 +564,7 @@ will point to the slave at the exit end of the \vn{super_lord}.
   \item[Slaves of a multipass_lord:] \Newline
 The associated \vn{multipass_slave} elements of a 
 \vn{multipass_lord} element are ordered by pass number. That is, 
-in the code snipit above, \vn{pointer_to_slave (lat, this_ele, i)}
+in the code snippet above, \vn{pointer_to_slave (lat, this_ele, i)}
 will point to the slave of the $i$\Th pass.
   \item[Lord of a multipass_slave:] \Newline
 A \vn{multipass_slave} will have exactly one associated \vn{multipass_lord}
@@ -582,7 +582,7 @@ to the element specified by the \vn{ref_patch} attribute of the
 the \vn{multipass_lord} corresponding to the \vn{p1} \vn{patch} element
 will have a lord that is the corresponding element to the \vn{p2}
 \vn{patch} element. The reason for this exception is so that the
-slaves pointed to by \vn{pointer_to_slave} of a \vn{mulitpass_lord} 
+slaves pointed to by \vn{pointer_to_slave} of a \vn{multipass_lord} 
 will always be \vn{multipass_slave}s.
   \end{description}
 
@@ -673,7 +673,7 @@ taking advantage of the fact that the pass number
 \index{lat_struct!\%ic}
 The \vn{%ic1_lord} and \vn{%ic2_lord} components of a given slave element,
 along with the \vn{lat%ic(:)} array, can be
-used to find the lords of the slave. In vitually all practical cases, it is
+used to find the lords of the slave. In virtually all practical cases, it is
 simpler to use the \vn{pointer_to_lord} function to find the lords and so
 it is recommended that the use of \vn{%ic1_lord} and \vn{%ic2_lord} be
 avoided. For the interested reader, the entire
@@ -698,37 +698,56 @@ some error checking) is:
 \section{Lattice Bookkeeping}
 \label{s:lat.bookkeeping}
 
-\index{bookkeeping!automatic}
-Historically, when the concept of dependent element attributes
-(\sref{s:depend}) was developed in \bmad, the
-\Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper} routine was
-implemented to take care of the bookkeeping. To be back compatable
-with existing programs, the \vn{attirubte_bookkeeper} routine was
-included in calculational routines such as the tracking routine
-\Hyperref{r:track1}{track1} and the routine for calculating the linear
-transfer map \Hyperref{r:make.mat6}{make_mat6}. The addition of lord
-elements needed for superposition, multipass, etc., further
-complicated the picture since the attribute values of the slave
-elements had to be adjusted when the attribute values of the lord
-elements changed.  Again, ``automatic'' bookkeeping was added to
-maintain back compatability with existing programs. This automatic
-bookkeeping system is inefficient since there is no good way to keep
-track of what element attributes have been modified which leads to
-redundant bookkeeping calculations.
+\index{reference energy}
+The term ``lattice bookkeeping'' refers to the updating of
+the appropriate parameter values when a given parameter in the lattice is
+changed. For example, if the accelerating gradient of an \vn{lcavity}
+element is modified, the reference energy parameter of all elements
+downstream of the \vn{lcavity} will need to be changed and this can
+also alter the transfer maps of the \vn{lcavity} and downstream
+elements. \bmad divides the lattice bookkeeping into ``core'' part
+and everything else. The core part itself is divided into five parts:
+  \begin{description}
+  \item[Attribute bookkeeping] \Newline
+This refers to intra-element dependent attribute bookkeeping (\sref{s:depend}).
+  \item[Control bookkeeping] \Newline
+This refers to Lord/Slave bookkeeping for \vn{overlay}
+(\sref{s:overlay}) and \vn{group} (\sref{s:group})elements, and for
+\vn{superposition} (\sref{s:super}) and \vn{multipass}
+(\sref{s:multipass}) lords.
+  \item[Floor Position bookkeeping]
+This refers to bookkeeping to keep track of an elements global ``floor'' position
+stored in the \vn{ele%floor} structure.
+  \item[Length bookkeeping]
+This refers to bookkeeping to keep track of the longitudinal s-position of an element
+stored in the \vn{ele%s} component.
+  \item[Reference Energy bookkeeping]
+This refers to the reference energy assigned to each element (\sref{s:ref.energy}).
+\vn{ele%value(E_tot\$)} and \vn{ele%value(p0c\$)}
+  \end{description}
 
+\index{bookkeeping!automatic}
 \index{bookkeeping!intelligent}
-Eventually, as bmad developed and became more complicated, it was
-found that the unnecessary bookkeeping load was generally causing a
-significant slowdown in program execution time --- even in programs
-where no element attributes were changed. To avoid this, an
-``intelligent'' bookkeeping system was developed. In order to be back
-compatable with existing programs, the automatic bookkeeping is the
-default. However, given tha fact that the automatic bookkeeping system
+Historically, as the concept of lattice bookkeeping was being
+developed, to be back compatible with existing programs, calls to
+bookkeeping routines were added to calculational routines such as the
+tracking routine \Hyperref{r:track1}{track1} and the routine for
+calculating the linear transfer map \Hyperref{r:make.mat6}{make_mat6}.
+This ``automatic'' bookkeeping system is inefficient since there is no
+good way to keep track of what element attributes have been modified
+which leads to redundant bookkeeping calculations. Eventually, as
+\bmad developed and became more complicated, it was found that the
+unnecessary bookkeeping load was generally causing a significant
+slowdown in program execution time --- even in programs where no
+element attributes were changed. To avoid this, an ``intelligent''
+bookkeeping system was developed. In order to be back compatible with
+existing programs, the automatic bookkeeping system is the
+default. However, given the fact that the automatic bookkeeping system
 has known deficiencies, and given the overhead with maintaining two
 bookkeeping systems, the current plan is to start phasing out the
-automatic bookkeeping system sometime in the future. Thus old programs
-should be converted to the new system and all new programs should use
-the new bookkeeping system.
+automatic bookkeeping system sometime in the not-so-far future. Thus
+old programs should be converted to the new system and all new
+programs should use the new bookkeeping system.
 
 \index{bmad_common_struct!auto_bookkeeper}
 To use intelligent bookkeeping, a program must set the global
@@ -739,7 +758,7 @@ the
 routine must be called for each element attribute that is set. After
 all the attributes have been set,
 \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} is called to do
-the bookkeeping. Example
+the core bookkeeping. Example
 \begin{example}
   type (lat_struct) lat
   ...
@@ -758,17 +777,75 @@ The argument list for \vn{set_flags_for_changed_attribute} is
 \end{example}
 The \vn{attribute} argument may be either real, integer, or logical.
 
-
-
-For reference, the routines used by \vn{lattice_bookkeeper} are:
+\index{ele!\%status}
+\index{bookkeeper_status_struct}
+The \vn{set_flags_for_changed_attribute} routine sets flags in the
+\vn{ele%status} structure. This structure is of type
+\vn{bookkeeper_status_struct} and looks like
 \begin{example}
-  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Bookkeeping of attributes in a given element
-  \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control bookkeeping
-  \Hyperref{r:s.calc}{s_calc}                    ! Longitudinal element position calc.
-  \Hyperref{r:lat.geometry}{lat_geometry}              ! Element global (floor) positions.
-  \Hyperref{r:compute.reference.energy}{compute_reference_energy}  !Reference energy 
+  type bookkeeper_status_struct
+    integer attributes      ! Intra element dependent attribute status
+    integer control         ! Lord/slave bookkeeping status
+    integer floor_position  ! Global (floor) geometry status
+    integer length          ! Longitudinal position status
+    integer ref_energy      ! Reference energy status
+    integer mat6            ! Linear transfer map status
+    integer rad_int         ! Radiation integrals cache status
+  end type
 \end{example}
-In general, these routines should not be called directly.
+All components of this structure give the status of some lattice
+bookkeeping aspect. The first five components of this structure
+correspond to the five core bookkeeping parts discussed above. The
+other two components are discussed below.
+
+Possible values for the status components are
+\begin{example}
+  super_ok\$
+  ok\$
+  stale\$
+\end{example}
+The \vn{set_flags_for_changed_attribute} routine sets the appropriate
+status components of an element to \vn{stale\$} which marks that
+element for the appropriate bookkeeping. When the bookkeeping is done
+by \vn{lattice_bookkeeper}, the \vn{stale\$} status components are set
+to \vn{ok\$}. The \vn{super_ok\$} value is reserved for use by any
+program that needs to do its own custom bookkeeping. How this works is
+as follows: The \bmad bookkeeping routines will never convert a status
+component with value \vn{super_ok\$} to \vn{ok\$} without first doing
+some needed bookkeeping. Thus if a program sets a status component to
+\vn{super_ok\$} and then later on finds that the status component is
+set to \vn{ok\$}, the program knows that bookkeeping has been done. An
+example will make this clear. Suppose a program needs to keep track of
+a collection of high order transfer maps between various points in a
+lattice. Suppose that the constant calculation of these maps would
+slow the program done so it is desired to recalculate a given map only
+when necessary. To implement this, the program could set the
+\vn{ele%status%mat6} attribute of all the element to \vn{super_ok\$}
+when the maps are calculated. If the program subsequently finds a
+\vn{ele%status%mat6} attribute of an element set to \vn{ok\$} it knows
+that it should recalculate any transfer maps that span that element.
+
+It is guaranteed that when \vn{lattice_bookkeeper} is run,
+all five core status components will not be \vn{stale\$}.
+The routines used by \vn{lattice_bookkeeper} are:
+\begin{example}
+  \Hyperref{r:attribute.bookkeeper}{attribute_bookkeeper}      ! Intra-element attributes
+  \Hyperref{r:control.bookkeeper}{control_bookkeeper}        ! Lord/slave control
+  \Hyperref{r:s.calc}{s_calc}                    ! Longitudinal element s-position
+  \Hyperref{r:lat.geometry}{lat_geometry}              ! Global (floor) positions.
+  \Hyperref{r:lat.compute.reference.energy}{lat_compute_reference_energy}  ! Reference energy 
+\end{example}
+In general, these routines should not be called directly since the
+correct way to do things is not always straight forward. See the code
+for \vn{lattice_bookkeeper} for more details.
+
+After the core bookkeeping is done, a program can call
+\Hyperref{r:lat.make.mat6}{lat_make_mat6} to remake the transfer matrices.
+\vn{lat_make_mat6} will remake the transfer matrices if either the
+\vn{ele%status%mat6} flag is \vn{stale\$} or the reference orbit
+around which the existing transfer matrix was computed has shifted.
+\vn{lat_make_mat6} will set the \vn{ele%status%mat6} flag to \vn{ok\$}
+for all elements whose transfer matrices are recomputed.
 
 %---------------------------------------------------------------------------
 \section{Finding Elements and Changing Attribute Values}

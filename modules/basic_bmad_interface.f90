@@ -154,7 +154,7 @@ interface
 end interface
 
 interface
-  subroutine compute_reference_energy (lat, compute)
+  subroutine lat_compute_reference_energy (lat, compute)
     use bmad_struct, only: lat_struct
     type (lat_struct) lat
     logical, optional :: compute

@@ -1022,13 +1022,13 @@ subroutine parser_end_stuff (do_dealloc)
 logical, optional :: do_dealloc
 integer i, j
 
-! Restore auto_bookkeeper flag and zero n_modify status
+! Restore auto_bookkeeper flag
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
-do i = 0, ubound(lat%branch, 1)
-  lat%branch(i)%param%status%n_modify = 0
-  lat%branch(i)%ele%status%n_modify = 0
-enddo
+!!do i = 0, ubound(lat%branch, 1)
+!!  lat%branch(i)%param%status%n_modify = 0
+!!  lat%branch(i)%ele%status%n_modify = 0
+!!enddo
 
 ! deallocate pointers
 
