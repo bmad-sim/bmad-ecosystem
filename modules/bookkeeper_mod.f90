@@ -96,7 +96,7 @@ character(20), parameter :: r_name = 'lattice_bookkeeper'
 ! wiggler super_lord is computed. Other reasons include multipass bends.
 
 call control_bookkeeper (lat)
-call compute_reference_energy (lat)
+call lat_compute_reference_energy (lat)
 call control_bookkeeper (lat, super_and_multipass_only = .true.)
 
 ! Make sure attributes are updated for all elements in the tracking part of the lattice.
@@ -267,7 +267,7 @@ else
   do ie = n1, n2
     ele2 => lat%ele(ie)
     if (ele2%status%control /= stale$ .and. ele2%status%attributes /= stale$) cycle
-    call set_slaves_status_stale (ele2, lat, control_status$)
+    call set_slaves_status_stale (ele2, lat, control_group$)
   enddo
 endif
 
@@ -584,7 +584,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     slave => pointer_to_slave(lat, lord0, j)
     if (.not. slave%bmad_logic) cycle
     slave%value(l$) = slave%value(l$) * (1 + coef)
-    call set_ele_status_stale (slave, branch%param, attributes_status$)
+    call set_ele_status_stale (slave, branch%param, attribute_group$)
   enddo
 
   ! Now to make the adjustments to either side of lord0.
@@ -619,8 +619,8 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
             branch%ele(ixa)%value(l$) = branch%ele(ixa)%value(l$) - d_length_neg
   endif
 
-  call set_ele_status_stale (branch%ele(ixa), branch%param, attributes_status$)
-  call set_ele_status_stale (branch%ele(ixb), branch%param, attributes_status$)
+  call set_ele_status_stale (branch%ele(ixa), branch%param, attribute_group$)
+  call set_ele_status_stale (branch%ele(ixb), branch%param, attribute_group$)
 
 enddo
 
@@ -790,7 +790,7 @@ character(40) :: r_name = 'makeup_multipass_slave'
 !
 
 branch => lat%branch(slave%ix_branch)
-call set_ele_status_stale (slave, branch%param, attributes_status$)
+call set_ele_status_stale (slave, branch%param, attribute_group$)
 slave%status%control = ok$
 
 ix_slave = slave%ix_ele
@@ -1139,7 +1139,7 @@ branch => lat%branch(slave%ix_branch)
 ix_slave = slave%ix_ele
 
 slave%status%control = ok$
-call set_ele_status_stale (slave, branch%param, attributes_status$)
+call set_ele_status_stale (slave, branch%param, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
    call out_io(s_abort$, r_name, "ELEMENT IS NOT AN SUPER SLAVE: " // slave%name)
@@ -2029,7 +2029,7 @@ character(40) :: r_name = 'makeup_overlay_and_girder_slave'
 branch => lat%branch(slave%ix_branch)
 
 slave%status%control = ok$
-call set_ele_status_stale (slave, branch%param, attributes_status$)
+call set_ele_status_stale (slave, branch%param, attribute_group$)
 
 l_stat = slave%lord_status
 ix_slave = slave%ix_ele
@@ -2120,8 +2120,6 @@ end subroutine makeup_overlay_and_girder_slave
 !
 ! LCAVITY:    
 !     delta_e$ = gradient$ * L$ 
-!     E_tot$   = E_tot_start$ + gradient$ * l$ * cos(phase)
-!     p0c$     = sqrt(E_tot$**2 - mc2^2)
 ! 
 ! RFCAVITY:   
 !     rf_frequency$ = harmon$ * c_light / param%total_length (only if harmon$ /= 0)
@@ -2192,28 +2190,22 @@ if (.not. bmad_com%auto_bookkeeper) then
   if (ele%status%attributes /= stale$) return
 
   if (ele%lord_status /= not_a_lord$) then
-    call set_ele_status_stale (ele, param, control_status$)
+    call set_ele_status_stale (ele, param, control_group$)
   endif
 
   if (ele%old_value(l$) /= val(l$)) then
-    call set_ele_status_stale (ele, param, length_status$)
+    call set_ele_status_stale (ele, param, length_group$)
   endif
 
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
       ele%lord_status /= multipass_lord$) then
-    call set_ele_status_stale (ele, param, mat6_status$)
+    call set_ele_status_stale (ele, param, mat6_group$)
   endif
-
-  if (ele%key == init_ele$) then
-    if (ele%old_value(E_tot$) /= val(E_tot$) .or. ele%old_value(p0c$) /= val(p0c$)) then
-      call set_ele_status_stale (ele, param, ref_energy_status$)
-    endif
-  endif    
 
 endif
 
-ele%status%n_modify = ele%status%n_modify + 1
 ele%status%attributes = ok$
+ele%status%rad_int = stale$
 
 ! For auto bookkeeping if no change then we don't need to do anything
 
@@ -2356,7 +2348,7 @@ case (sbend$)
   endif
 
   if (ele%old_value(g$) /= val(g$)) then
-    call set_ele_status_stale (ele, param, floor_position_status$)
+    call set_ele_status_stale (ele, param, floor_position_group$)
   endif
 
 ! Lcavity
@@ -2366,7 +2358,7 @@ case (lcavity$)
     if (val(phi0$) /= ele%old_value(phi0$) .or. val(dphi0$) /= ele%old_value(dphi0$) .or. &
         val(gradient$) /= ele%old_value(gradient$) .or. val(e_loss$) /= ele%old_value(e_loss$) .or. &
         val(l$) /= ele%old_value(l$)) then
-      call set_ele_status_stale (ele, param, ref_energy_status$)
+      call set_ele_status_stale (ele, param, ref_energy_group$)
     endif
   endif
 
@@ -2652,7 +2644,7 @@ a_ptr => attrib
 select case (ele%key)
 case (lcavity$)
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
-    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 end select
 
@@ -2737,20 +2729,20 @@ branch => lat%branch(ele%ix_branch)
 
 ! If a lord then set the control flag stale
 
-if (ele%lord_status /= not_a_lord$) call set_ele_status_stale (ele, branch%param, control_status$)
+if (ele%lord_status /= not_a_lord$) call set_ele_status_stale (ele, branch%param, control_group$)
 
 ! Groups and overlays do not have any dependent attributes. 
 ! For all others set the attributes flag stale.
 
 if (ele%key /= group$ .and. ele%key /= overlay$) then
-  call set_ele_status_stale (ele, branch%param, attributes_status$)
+  call set_ele_status_stale (ele, branch%param, attribute_group$)
 endif
 
 ! Transfer matrix calc needs to be flagged
 
 if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
     ele%lord_status /= multipass_lord$) then
-  call set_ele_status_stale (ele, branch%param, mat6_status$)
+  call set_ele_status_stale (ele, branch%param, mat6_group$)
 endif
 
 ! Use a_ptr with the associated function to see which attribute has been changed.
@@ -2774,10 +2766,10 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 
 if (associated(a_ptr, ele%value(l$)) .or. (no_attrib .and. ele%value(l$) /= 0)) then
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$) then
-    call set_ele_status_stale (ele, branch%param, length_status$)
-    call set_ele_status_stale (ele, branch%param, floor_position_status$)
+    call set_ele_status_stale (ele, branch%param, length_group$)
+    call set_ele_status_stale (ele, branch%param, floor_position_group$)
   endif
-  if (ele%key == lcavity$) call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+  if (ele%key == lcavity$) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
 endif
 
 !
@@ -2830,27 +2822,27 @@ case (init_ele$)
   if (associated(a_ptr, ele%floor%x) .or. associated(a_ptr, ele%floor%y) .or. &
       associated(a_ptr, ele%floor%z) .or. associated(a_ptr, ele%floor%theta) .or. &
       associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi) .or. no_attrib) then
-    call set_ele_status_stale (ele, branch%param, floor_position_status$)
+    call set_ele_status_stale (ele, branch%param, floor_position_group$)
     return
   endif
 
   if (associated(a_ptr, ele%value(e_tot$))) then
     call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
     return
   endif
 
 
   if (associated(a_ptr, ele%value(p0c$))) then
     call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
-    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
     return
   endif
 
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
       associated(a_ptr, ele%value(rho$)) .or. no_attrib) then
-    call set_ele_status_stale (ele, branch%param, floor_position_status$)
+    call set_ele_status_stale (ele, branch%param, floor_position_group$)
   endif
 
 case (branch$, photon_branch$)
@@ -2863,12 +2855,12 @@ case (lcavity$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
       associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$)) .or. &
       no_attrib) then
-    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 
 case (patch$)
   if (associated(a_ptr, ele%value(e_tot_offset$)) .or. no_attrib) then
-    call set_ele_status_stale (ele, branch%param, ref_energy_status$)
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 
 end select
@@ -3059,7 +3051,7 @@ do ib = 0, ubound(lat%branch, 1)
         ref_orb = branch%ele(i)%map_ref_orb_in
         call make_mat6(branch%ele(i), branch%param, ref_orb)
       else
-        call set_ele_status_stale (branch%ele(i), branch%param, mat6_status$)
+        call set_ele_status_stale (branch%ele(i), branch%param, mat6_group$)
         call lat_make_mat6(lat, i, orb, ib)
       endif
     endif

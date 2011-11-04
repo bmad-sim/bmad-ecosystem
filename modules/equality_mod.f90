@@ -723,7 +723,7 @@ is_eq = is_eq .and. (f1%control == f2%control)
 is_eq = is_eq .and. (f1%floor_position == f2%floor_position) 
 is_eq = is_eq .and. (f1%ref_energy == f2%ref_energy) 
 is_eq = is_eq .and. (f1%attributes == f2%attributes) 
-is_eq = is_eq .and. (f1%n_modify == f2%n_modify) 
+is_eq = is_eq .and. (f1%rad_int == f2%rad_int) 
 
 end function eq_bookkeeper_status
 

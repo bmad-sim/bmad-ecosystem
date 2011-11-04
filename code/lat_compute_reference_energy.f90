@@ -1,5 +1,5 @@
 !+
-! Subroutine compute_reference_energy (lat)
+! Subroutine lat_compute_reference_energy (lat)
 !
 ! Subroutine to compute the energy, momentum and time of the reference particle for 
 ! each element in a lat structure.
@@ -18,9 +18,10 @@
 !     %ele(:)%ref_time      -- Reference time from the beginning at the exit end.
 !-
 
-subroutine compute_reference_energy (lat)
+subroutine lat_compute_reference_energy (lat)
 
 use lat_ele_loc_mod
+use bookkeeper_mod
 
 implicit none
 
@@ -32,7 +33,7 @@ integer i, k, ib, ix, ixs, ibb
 
 logical did_set, stale
 
-character(24), parameter :: r_name = 'compute_reference_energy'
+character(24), parameter :: r_name = 'lat_compute_reference_energy'
 
 ! propagate the energy through the tracking part of the lattice
 
@@ -86,15 +87,9 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     stale = .true.
+    ele0%status%ref_energy = ok$
 
   endif
-
-  if (ele0%status%ref_energy == stale$) ele0%status%ref_energy = ok$
-
-  ! This is for attribute_bookkeeper to prevent it from flagging the ref energy in ele(0) as stale
-
-  ele0%old_value(e_tot$) = ele0%value(e_tot$)
-  ele0%old_value(p0c$)   = ele0%value(p0c$)
 
   ! Loop over all elements in the branch
 
@@ -108,14 +103,16 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
       ibb = nint(ele%value(ix_branch_to$))
-      lat%branch(ibb)%ele(0)%status%ref_energy = stale$
+      call set_ele_status_stale (lat%branch(ibb)%ele(0), lat%branch(ibb)%param, ref_energy_group$)
     endif
 
     ! Calculate the energy
 
     ele0 => branch%ele(i-1)
     call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
-    call set_lords_status_stale (ele, lat, ref_energy_status$)
+
+    call set_ele_status_stale (ele, branch%param, attribute_group$)
+    call set_lords_status_stale (ele, lat, ref_energy_group$)
 
   enddo
 
@@ -132,6 +129,8 @@ if (bmad_com%auto_bookkeeper .or. lat%param%status%ref_energy == stale$) then
     lord => lat%ele(i)
 
     if (.not. bmad_com%auto_bookkeeper .and. lord%status%ref_energy /= stale$) cycle
+
+    call set_ele_status_stale (lord, lat%param, attribute_group$)
 
     ! Multipass lords have their own reference energy if n_ref_pass /= 0.
 
@@ -176,7 +175,7 @@ if (bmad_com%auto_bookkeeper .or. lat%param%status%ref_energy == stale$) then
 
 endif
 
-end subroutine compute_reference_energy
+end subroutine lat_compute_reference_energy
 
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------

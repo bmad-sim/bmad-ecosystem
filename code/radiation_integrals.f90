@@ -256,29 +256,30 @@ if (init_cache) then
 
   j = 0  ! number of elements to cache
   do i = 1, lat%n_ele_track
-    key = lat%ele(i)%key
-    if ((key == wiggler$ .and. lat%ele(i)%sub_key == map_type$) .or. &
+    ele => lat%ele(i)
+    key = ele%key
+    if ((key == wiggler$ .and. ele%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
-        key == sbend$ .or. key == wiggler$ .or. lat%ele(i)%value(hkick$) /= 0 .or. &
-        lat%ele(i)%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
+        key == sbend$ .or. key == wiggler$ .or. ele%value(hkick$) /= 0 .or. &
+        ele%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
       j = j + 1
       cache%ix_ele(i) = j  ! mark element for caching
     else
       cache%ix_ele(i) = -1 ! do not cache this element
     endif          
+    ele%status%rad_int = stale$
   enddo
 
   if (allocated(cache%ele)) then
     if (size(cache%ele) < j) deallocate (cache%ele)
   endif
   if (.not. allocated(cache%ele)) allocate (cache%ele(j))  ! allocate cache memory
-  cache%ele%n_modify = -1
 
 endif
 
 ! Now cache the information.
 ! The cache ri_info is computed with all offsets off.
-! Only need to update the cache if ele%status%n_modify has been altered.
+! Only need to update the cache if ele%status%rad_int has been altered.
 
 if (use_cache .or. init_cache) then
 
@@ -290,8 +291,8 @@ if (use_cache .or. init_cache) then
     j = j + 1
     cache_ele => cache%ele(j)
 
-    if (cache_ele%n_modify == lat%ele(i)%status%n_modify) cycle
-    cache_ele%n_modify = lat%ele(i)%status%n_modify
+    if (lat%ele(i)%status%rad_int /= stale$) cycle
+    lat%ele(i)%status%rad_int = ok$
 
     ! Calculation is effectively done in element reference frame with ele2 having
     ! no offsets.

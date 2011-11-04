@@ -27,7 +27,6 @@ end type
 type ele_cache_struct
   type (rad_int_track_point_struct), allocatable :: pt(:)
   real(rp) del_z
-  integer :: n_modify = -1
 end type
 
 type rad_int_cache_struct

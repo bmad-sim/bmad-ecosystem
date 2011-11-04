@@ -8,7 +8,7 @@ simulate machine hardware. This chapter provides documentation.
 
 \textit{\large [Tune tracker simulation developed by Michael Ehrlichman]}
 
-The CESR digital tune tracker is device for determining the fractional
+The digital tune tracker is device for determining the fractional
 tune of a storage ring and exciting resonant beam oscillations.  In
 short, it consists of a BPM, a modulated kicker, and phase-lock loop
 circuit.  The tune tracker is capable of exciting both betatron and
@@ -44,7 +44,7 @@ stable and can efficiently lock onto the reference signal from some
 incorrect initial frequency.  A real-world PLL also needs to track
 perturbations to the reference frequency.
 
-A diagram of the CESR digital tune tracker is shown in
+A diagram of the digital tune tracker is shown in
 Fig.~[\ref{f:CdTT}].  This function takes in one new BPM measurement
 per call, and returns a sinusoidal signal that has the same frequency
 as the BPM signal.  The phase of the returned signal differs from the
@@ -61,7 +61,7 @@ loop consists of the update to $\omega$ that follows {\it Gain Kvco}.
 \begin{sidewaysfigure}[h!]
 \includegraphics[width=\columnwidth]{TT-Flow.png}
 \caption{
-Flow chart of tune tracker module cesr\_dTT function.  See text for description of each box.}
+Flow chart of tune tracker module \vn{???_dTT} function.  See text for description of each box.}
 \label{f:CdTT}
 \end{sidewaysfigure}
 
@@ -108,8 +108,7 @@ rms beam size after about 10 periods.
 Fast electronics contains the components of the tune tracer that cycle
 every few RF periods.  Whereas the rest of the tune tracker cycles
 once per storage ring period, the fast electronics cycle every few RF
-buckets.  In CESR, the fast electronics cycle 183 times per CESR
-period.
+buckets.
 
 \item[Prev Turn BPM Msmt]  Stores the previous turn's BPM measurement.
 
@@ -166,7 +165,7 @@ between the beam frequency and the VCO base frequency.
 \begin{equation}
 \psi_{n+1}=\psi_n+\frac{T_{ring}}{N_{loops}}\omega_{vco}\textrm{.}
 \end{equation}
-In order to more accurately model the actual CESR digital tune tracker, 
+In order to more accurately model things,
 $\omega_{vco}$ is not updated within the fast electronics loop.
 
 \item[Increment Loop\# by 1]  
@@ -175,7 +174,7 @@ through.
 
 \item[If Loop\# $>$ $N_{loops}$, exit, else, loop]  
 $N_{loops}$ is the number of times the fast electronics cycle per ring
-period.  In CESR, $N_{loops}$ is commonly 183.
+period.
 
 \item[Gain $\boldsymbol K_P$] 
 This is the (P)roportional channel of the PID controller.  Is provides
@@ -294,7 +293,9 @@ an example of how the VCO frequency should respond with time in a
 successful implementation.  Guidelines for setting the gain parameters
 are also located in the Physics chapter.
 
-\section{Tune Tracker Module}
+%-------------------------------------------------------------------------
+\subsection{Tune Tracker Module}
+
 The tune tracker module has four public functions.  They are,
 \begin{alltt}
 Function id = init_dTT(tt_param_struct)     !Constructor, creates new tune tracker 
