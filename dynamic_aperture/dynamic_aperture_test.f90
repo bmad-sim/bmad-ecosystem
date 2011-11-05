@@ -69,6 +69,7 @@ interface
   real(rdef) delta_fRF, fRF
 
 
+
   character*60 in_file
   character*16 qp_tune1, qp_tune2 ! if these elements exist use them to adjust chromaticity. This works if there are jsut two families and two names
   logical qtune_match  !if true insert match element when setting tune in custom set tune
@@ -112,13 +113,14 @@ end interface
   logical rec_taylor
   logical path_length_patch/.false./
   logical qtune_match !if true insert match element in custom_set_tune to qtune
+  logical :: auto_bookkeeper = .true. ! set to 'false' for intelligent bookkeeping
 
   namelist / input / lat_file,n_turn, n_xy_pts, point_range, n_energy_pts,  &
                      x_init, y_init, e_max, energy, accuracy, &
                      aperture_multiplier, Qx, Qy, Qz, particle, &
                      i_train, j_car, n_trains_tot, n_cars, current, lat_file, &
                      Qx_ini, Qy_ini, Qp_x, Qp_y, rec_taylor, delta_fRF, fRF, &
-                     qp_tune1, qp_tune2, qtune_match
+                     qp_tune1, qp_tune2, qtune_match, auto_bookkeeper
 
 ! init
 
@@ -155,6 +157,9 @@ end interface
 
 
   read (1, nml = input)
+
+  bmad_com%auto_bookkeeper = auto_bookkeeper
+
   track_input%n_turn = n_turn
   track_input%x_init = x_init
   track_input%y_init = y_init
@@ -164,11 +169,11 @@ end interface
   close (unit = 1)
 
   call bmad_and_xsif_parser (lat_file, ring)
-  if(delta_fRF /= 0.)then
-     path_length_patch = .false.
-     call implement_pathlength_patch(path_length_patch,ring, delta_fRF, fRF)
-     i_dim = 6
-  endif
+!  if(delta_fRF /= 0.)then
+!     path_length_patch = .false.
+!     call implement_pathlength_patch(path_length_patch,ring, delta_fRF, fRF) ! problematic? 2011.11.05 JSh
+!     i_dim = 6
+!  endif
   call reallocate_coord (co, ring%n_ele_track)
   allocate(dk1(ring%n_ele_max))
 
