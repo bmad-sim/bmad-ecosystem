@@ -4,6 +4,7 @@ use bmad_struct
 use beam_def_struct
 use bmad_interface
 use write_lat_file_mod
+use time_tracker_mod
 
 
 contains
@@ -478,102 +479,6 @@ end select
 
 end subroutine write_opal_field_grid_file
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine convert_particle_coordinates_t_to_s (particle, p0c, mc2, tref)
-!
-! Subroutine to convert particle coordinates from t-based to s-based system. 
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   particle   -- coord_struct: input particle
-!   p0c        -- real: Reference momentum. The sign indicates direction of p_s. 
-!   mc2        -- real: particle rest mass in eV
-!   tref       -- real: reference time for z coordinate
-! Output:
-!    particle   -- coord_struct: output particle 
-!-
-
-subroutine convert_particle_coordinates_t_to_s (particle, p0c, mc2, tref)
-
-!use bmad_struct
-
-implicit none
-
-type (coord_struct), intent(inout), target ::particle
-real(rp), intent(in) :: p0c
-real(rp), intent(in) :: mc2
-real(rp), intent(in) :: tref
-
-real(rp) :: pctot
-
-real(rp), pointer :: vec(:)
-vec => particle%vec
-
-      !Convert t to s
-      pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
-      !vec(1) = vec(1)   !this is unchanged
-      vec(2) = vec(2)/abs(p0c)
-      !vec(3) = vec(3)   !this is unchanged
-      vec(4) = vec(4)/abs(p0c)
-      vec(5) = -c_light * (pctot/sqrt(pctot**2 +mc2**2)) *  (particle%t - tref) !z \equiv -c \beta(s)  (t(s) -t_0(s)) 
-      vec(6) = pctot/abs(p0c) - 1.0_rp
-
-end subroutine convert_particle_coordinates_t_to_s
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine convert_particle_coordinates_s_to_t (particle, p0c)
-!
-! Subroutine to convert particle coordinates from s-based to t-based system. 
-!     The sign of p0c indicates the direction of p_s
-!
-! Note: t coordinates are:            
-!     vec(1) = x                              [m]
-!     vec(2) = c*p_x = m c^2 \gamma \beta_x   [eV]
-!     vec(3) = y                              [m]
-!     vec(4) = c*p_y = m c^2 \gamma beta_y    [eV]
-!     vec(5) = s                              [m]
-!     vec(6) = c*p_s = m c^2 \gamma \beta_s   [eV]
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   particle   -- coord_struct: input particle
-!   p0c        -- real: Reference momentum. The sign indicates direction of p_s 
-! Output:
-!    particle   -- coord_struct: output particle 
-!-
-
-subroutine convert_particle_coordinates_s_to_t (particle, p0c)
-
-!use bmad_struct
-
-implicit none
-
-type (coord_struct), intent(inout), target :: particle
-real(rp), intent(in) :: p0c
-real(rp), pointer :: vec(:)
-
-vec => particle%vec
-
-      !Convert s to t
-      vec(6) = p0c * sqrt( ((1+vec(6)))**2 - vec(2)**2 -vec(4)**2 )
-      !vec(1) = vec(1) !this is unchanged
-      vec(2) = vec(2)*abs(p0c)
-      !vec(3) = vec(3) !this is unchanged
-      vec(4) = vec(4)*abs(p0c)
-      vec(5) = particle%s
-      
-
-end subroutine convert_particle_coordinates_s_to_t
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
