@@ -245,11 +245,10 @@ case (lcavity$)
 case (custom$, hybrid$)
   ele%value(E_tot_start$) = E_tot_start
   ele%value(p0c_start$) = p0c_start
-  E_tot = E_tot_start + ele%value(delta_e$)
-  call convert_total_energy_to (E_tot, param%particle, pc = p0c)
 
-  ele%value(E_tot$) = E_tot
-  ele%value(p0c$) = p0c
+  ele%value(E_tot$) = E_tot_start + ele%value(delta_e$)
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
+
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (crystal$, mirror$, multilayer_mirror$)
@@ -263,12 +262,13 @@ case (patch$)
   ele%value(p0c_start$) = p0c_start
 
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
-    e_tot = e_tot_start + ele%value(e_tot_offset$)
-    call convert_total_energy_to (e_tot, param%particle, pc = p0c)
+    ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
+    call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$))
+  else
+    ele%value(E_tot$) = E_tot_start
+    ele%value(p0c$) = p0c_start
   endif
 
-  ele%value(E_tot$) = E_tot
-  ele%value(p0c$) = p0c
   ele%ref_time = ref_time_start
 
 case default
