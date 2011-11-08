@@ -226,22 +226,22 @@ bunch_end%ix_ele = ele%ix_ele
 
 ! If there are wakes...
 
-if (associated(ele%rf%wake)) then
+if (associated(ele%rf_wake)) then
 
   ! If a super_slave, the lr wake in the lord is the sum of the slaves.
 
   if (ele%slave_status == super_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord (lat, ele, i)
-      lord%rf%wake%lr%b_sin = 0;  lord%rf%wake%lr%b_cos = 0
-      lord%rf%wake%lr%a_sin = 0;  lord%rf%wake%lr%a_cos = 0
-      lord%rf%wake%lr%t_ref = 0
+      lord%rf_wake%lr%b_sin = 0;  lord%rf_wake%lr%b_cos = 0
+      lord%rf_wake%lr%a_sin = 0;  lord%rf_wake%lr%a_cos = 0
+      lord%rf_wake%lr%t_ref = 0
       do j = 1, lord%n_slave
         slave => pointer_to_slave (lat, lord, 1)
-        lord%rf%wake%lr%b_sin = lord%rf%wake%lr%b_sin + slave%rf%wake%lr%b_sin
-        lord%rf%wake%lr%b_cos = lord%rf%wake%lr%b_cos + slave%rf%wake%lr%b_cos
-        lord%rf%wake%lr%a_sin = lord%rf%wake%lr%a_sin + slave%rf%wake%lr%a_sin
-        lord%rf%wake%lr%a_cos = lord%rf%wake%lr%a_cos + slave%rf%wake%lr%a_cos
+        lord%rf_wake%lr%b_sin = lord%rf_wake%lr%b_sin + slave%rf_wake%lr%b_sin
+        lord%rf_wake%lr%b_cos = lord%rf_wake%lr%b_cos + slave%rf_wake%lr%b_cos
+        lord%rf_wake%lr%a_sin = lord%rf_wake%lr%a_sin + slave%rf_wake%lr%a_sin
+        lord%rf_wake%lr%a_cos = lord%rf_wake%lr%a_cos + slave%rf_wake%lr%a_cos
       enddo
     enddo
   endif
@@ -253,9 +253,9 @@ if (associated(ele%rf%wake)) then
   call multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
   do i = 1, n_links
     if (i == ix_pass) cycle
-    do j = 1, size(ele%rf%wake%lr)
-      lr       => ele%rf%wake%lr(j)
-      lr_chain => chain_ele(i)%ele%rf%wake%lr(j)
+    do j = 1, size(ele%rf_wake%lr)
+      lr       => ele%rf_wake%lr(j)
+      lr_chain => chain_ele(i)%ele%rf_wake%lr(j)
       lr_chain%b_sin = lr%b_sin
       lr_chain%b_cos = lr%b_cos
       lr_chain%a_sin = lr%a_sin
@@ -266,9 +266,9 @@ if (associated(ele%rf%wake)) then
 
   lord => pointer_to_multipass_lord (ele, lat)
   if (associated(lord)) then 
-    do j = 1, size(ele%rf%wake%lr)
-      lr       => ele%rf%wake%lr(j)
-      lr_chain => lord%rf%wake%lr(j)
+    do j = 1, size(ele%rf_wake%lr)
+      lr       => ele%rf_wake%lr(j)
+      lr_chain => lord%rf_wake%lr(j)
       lr_chain%b_sin = lr%b_sin
       lr_chain%b_cos = lr%b_cos
       lr_chain%a_sin = lr%a_sin

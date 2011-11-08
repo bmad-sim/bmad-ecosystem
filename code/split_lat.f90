@@ -59,7 +59,7 @@ ds_fudge = bmad_com%significant_longitudinal_length
 nr = branch%n_ele_track
 if (s_split < branch%ele(0)%s - ds_fudge .or. s_split > branch%ele(nr)%s + ds_fudge) then
   call out_io (s_fatal$, r_name, 'POSITION OF SPLIT NOT WITHIN LAT: \es12.3\ ',  &
-                                  r_array = (/ s_split /) )
+                                  r_array = [s_split] )
   call err_exit
 endif
 

@@ -855,13 +855,13 @@ endif
 
 ! RF wakes and fields
 
-call transfer_rf_field (lord%rf%field, slave%rf%field)
+call transfer_em_field (lord%em_field, slave%em_field)
 
-call transfer_rf_wake (lord%rf%wake, slave%rf%wake)
+call transfer_rf_wake (lord%rf_wake, slave%rf_wake)
 
-if (associated (slave%rf%wake)) then
-  do i = 1, size(lord%rf%wake%lr)
-    slave%rf%wake%lr(i)%t_ref = lord%rf%wake%lr(i)%t_ref - slave%ref_time
+if (associated (slave%rf_wake)) then
+  do i = 1, size(lord%rf_wake%lr)
+    slave%rf_wake%lr(i)%t_ref = lord%rf_wake%lr(i)%t_ref - slave%ref_time
   enddo
 endif
 
@@ -1239,14 +1239,14 @@ do j = 1, slave%n_lord
     call err_exit
   endif
 
-  if (associated(lord%rf%wake)) then
+  if (associated(lord%rf_wake)) then
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
     call err_exit
   endif
 
-  if (associated(lord%rf%field)) then
+  if (associated(lord%em_field)) then
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF MULTIPLE ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
@@ -1846,17 +1846,17 @@ endif
 
 ! If has rf modes then adjust the time.
 
-if (associated(lord%rf%field)) then
-  if (.not. associated (slave%rf%field)) then
-    allocate (slave%rf%field)
-    allocate (slave%rf%field%mode(size(lord%rf%field%mode)))
-    slave%rf%field = lord%rf%field
+if (associated(lord%em_field)) then
+  if (.not. associated (slave%em_field)) then
+    allocate (slave%em_field)
+    allocate (slave%em_field%mode(size(lord%em_field%mode)))
+    slave%em_field = lord%em_field
   endif
 
-  do i = 1, size(slave%rf%field%mode)
-    slave%rf%field%mode(i)%field_scale = lord%rf%field%mode(i)%field_scale
-    slave%rf%field%mode(i)%theta_t0    = lord%rf%field%mode(i)%theta_t0 + &
-                            lord%rf%field%mode(i)%freq * (slave%ref_time - lord%ref_time)
+  do i = 1, size(slave%em_field%mode)
+    slave%em_field%mode(i)%field_scale = lord%em_field%mode(i)%field_scale
+    slave%em_field%mode(i)%theta_t0    = lord%em_field%mode(i)%theta_t0 + &
+                            lord%em_field%mode(i)%freq * (slave%ref_time - lord%ref_time)
   enddo
 
 endif
@@ -1891,14 +1891,14 @@ endif
 
 ! If there are long range wakes they must be scaled.
 
-if (associated (slave%rf%wake)) then
-  slave%rf%wake%lr%freq_in   = lord%rf%wake%lr%freq_in
-  slave%rf%wake%lr%freq      = lord%rf%wake%lr%freq
-  slave%rf%wake%lr%Q         = lord%rf%wake%lr%Q
-  slave%rf%wake%lr%angle     = lord%rf%wake%lr%angle
-  slave%rf%wake%lr%m         = lord%rf%wake%lr%m
-  slave%rf%wake%lr%polarized = lord%rf%wake%lr%polarized
-  slave%rf%wake%lr%r_over_q  = lord%rf%wake%lr%r_over_q * coef
+if (associated (slave%rf_wake)) then
+  slave%rf_wake%lr%freq_in   = lord%rf_wake%lr%freq_in
+  slave%rf_wake%lr%freq      = lord%rf_wake%lr%freq
+  slave%rf_wake%lr%Q         = lord%rf_wake%lr%Q
+  slave%rf_wake%lr%angle     = lord%rf_wake%lr%angle
+  slave%rf_wake%lr%m         = lord%rf_wake%lr%m
+  slave%rf_wake%lr%polarized = lord%rf_wake%lr%polarized
+  slave%rf_wake%lr%r_over_q  = lord%rf_wake%lr%r_over_q * coef
 endif
 
 !
@@ -2707,7 +2707,7 @@ real(rp), target :: unknown_attrib
 
 integer i, j, ib
 
-logical coupling_change, no_attrib
+logical coupling_change
 
 ! If ele is not present then must reinit everything.
 
@@ -2745,17 +2745,16 @@ if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. 
   call set_ele_status_stale (ele, branch%param, mat6_group$)
 endif
 
-! Use a_ptr with the associated function to see which attribute has been changed.
 ! If attrib is not present then point to a dummy location which will not match when 
 ! the associated() function is used below.
 
-if (present(attrib)) then
-  a_ptr => attrib
-  no_attrib = .false.
-else
-  a_ptr => unknown_attrib
-  no_attrib = .true.
+if (.not. present(attrib)) then
+  call set_ele_status_stale (ele, branch%param, all_groups$)
 endif
+
+! Use a_ptr with the associated function to see which attribute has been changed.
+
+a_ptr => attrib
 
 ! A limit change does not need any bookkeeping
 
@@ -2764,7 +2763,7 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 
 ! A length change involves changes in the floor position.
 
-if (associated(a_ptr, ele%value(l$)) .or. (no_attrib .and. ele%value(l$) /= 0)) then
+if (associated(a_ptr, ele%value(l$))) then
   if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$) then
     call set_ele_status_stale (ele, branch%param, length_group$)
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
@@ -2821,7 +2820,7 @@ case (init_ele$)
 
   if (associated(a_ptr, ele%floor%x) .or. associated(a_ptr, ele%floor%y) .or. &
       associated(a_ptr, ele%floor%z) .or. associated(a_ptr, ele%floor%theta) .or. &
-      associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi) .or. no_attrib) then
+      associated(a_ptr, ele%floor%phi) .or. associated(a_ptr, ele%floor%psi)) then
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
     return
   endif
@@ -2841,7 +2840,7 @@ case (init_ele$)
 
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
-      associated(a_ptr, ele%value(rho$)) .or. no_attrib) then
+      associated(a_ptr, ele%value(rho$))) then
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
   endif
 
@@ -2853,13 +2852,12 @@ case (branch$, photon_branch$)
 
 case (lcavity$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
-      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$)) .or. &
-      no_attrib) then
+      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 
 case (patch$)
-  if (associated(a_ptr, ele%value(e_tot_offset$)) .or. no_attrib) then
+  if (associated(a_ptr, ele%value(e_tot_offset$))) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 

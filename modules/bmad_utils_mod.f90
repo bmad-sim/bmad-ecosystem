@@ -814,7 +814,7 @@ integer, optional :: n
 call init_attribute_name_array
 call deallocate_lat_pointers (lat)
 if (present(n)) call allocate_lat_ele_array(lat, n)
-call init_ele (lat%ele_init)
+call init_ele (lat%ele_init, lat = lat)
 
 call reallocate_control (lat, 100)
 
@@ -1330,7 +1330,7 @@ if (present (nullify_only)) then
     nullify (ele%r)
     nullify (ele%descrip)
     nullify (ele%a_pole, ele%b_pole)
-    nullify (ele%rf%wake)
+    nullify (ele%rf_wake)
     nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
               ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
     nullify (ele%gen_field)
@@ -1350,23 +1350,23 @@ if (associated (ele%a_pole))         deallocate (ele%a_pole, ele%b_pole)
 if (associated (ele%mode3))          deallocate (ele%mode3)
 if (associated (ele%wall3d%section)) deallocate (ele%wall3d%section)
 
-if (associated (ele%rf%wake)) then
-  if (associated (ele%rf%wake%sr_table))      deallocate (ele%rf%wake%sr_table)
-  if (associated (ele%rf%wake%sr_mode_long))  deallocate (ele%rf%wake%sr_mode_long)
-  if (associated (ele%rf%wake%sr_mode_trans)) deallocate (ele%rf%wake%sr_mode_trans)
-  if (associated (ele%rf%wake%lr))            deallocate (ele%rf%wake%lr)
-  deallocate (ele%rf%wake)
+if (associated (ele%rf_wake)) then
+  if (associated (ele%rf_wake%sr_table))      deallocate (ele%rf_wake%sr_table)
+  if (associated (ele%rf_wake%sr_mode_long))  deallocate (ele%rf_wake%sr_mode_long)
+  if (associated (ele%rf_wake%sr_mode_trans)) deallocate (ele%rf_wake%sr_mode_trans)
+  if (associated (ele%rf_wake%lr))            deallocate (ele%rf_wake%lr)
+  deallocate (ele%rf_wake)
 endif
 
-if (associated (ele%rf%field)) then
-  if (allocated (ele%rf%field%mode)) then
+if (associated (ele%em_field)) then
+  if (allocated (ele%em_field%mode)) then
     !removed to allow grids to point to the same memory
-	!do i = 1, size(ele%rf%field%mode)
-    !  if (associated (ele%rf%field%mode(i)%grid)) deallocate (ele%rf%field%mode(i)%grid)
+	!do i = 1, size(ele%em_field%mode)
+    !  if (associated (ele%em_field%mode(i)%grid)) deallocate (ele%em_field%mode(i)%grid)
     !enddo
-    deallocate (ele%rf%field%mode)
+    deallocate (ele%em_field%mode)
   endif
-  deallocate (ele%rf%field)
+  deallocate (ele%em_field)
 endif
 
 if (associated (ele%taylor(1)%term)) deallocate &
@@ -1416,7 +1416,7 @@ end subroutine kill_gen_field
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch)
+! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, lat)
 !
 ! Subroutine to initialize a Bmad element. Element is initialized to be free
 ! (not a lord or slave) and all %values set to zero.
@@ -1425,24 +1425,32 @@ end subroutine kill_gen_field
 !   use bmad
 !
 ! Input:
-!   key     -- Integer, optional: Key to initialize to. EG: quadrupole$, etc.
-!   sub_key -- Integer, optional: Sub-key to initialize to.
-!   ix_ele     -- Integer, optional: ix_ele index to initalize to. Default = -1.
-!   ix_branch  -- Integer, optional: Branch index to initalize to. Default = 0.
+!   key       -- Integer, optional: Key to initialize to. EG: quadrupole$, etc.
+!   sub_key   -- Integer, optional: Sub-key to initialize to.
+!   ix_ele    -- Integer, optional: ix_ele index to initalize to. Default = -1.
+!   ix_branch -- Integer, optional: Branch index to initalize to. Default = 0.
+!   lat       -- Lat_struct: Lattice to point ele%lat to. Otherwise ele%lat is nullified.
 !
 ! Output:
 !   ele -- Ele_struct: Initialized element.
 !-
 
-subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch)
+subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, lat)
 
 implicit none
 
 type (ele_struct)  ele
+type (lat_struct), optional, target :: lat
 integer, optional :: key, sub_key
 integer, optional :: ix_branch, ix_ele
 
 !
+
+if (present(lat)) then
+  ele%lat => lat
+else
+  nullify(ele%lat)
+endif
 
 ele%type = ' '
 ele%alias = ' '
@@ -1607,7 +1615,7 @@ implicit none
 type (lat_struct), target :: lat
 integer, optional :: upper_bound
 integer, optional :: ix_branch
-integer ix_br
+integer ix_br, i
 
 !
 
@@ -1615,11 +1623,19 @@ ix_br = integer_option (0, ix_branch)
 
 if (ix_br == 0) then
   call allocate_element_array (lat%ele, upper_bound, .true.)
+  do i = 0, ubound(lat%ele, 1)
+    lat%ele(i)%lat => lat
+  enddo
   if (allocated(lat%branch)) lat%branch(0)%ele => lat%ele
+
 else
   call allocate_element_array (lat%branch(ix_br)%ele, upper_bound, .true.)
+  do i = 0, ubound(lat%branch(ix_br)%ele, 1)
+    lat%branch(ix_br)%ele(i)%lat => lat
+  enddo
   lat%branch(ix_br)%ele%ix_branch = ix_br
 endif
+
 
 end subroutine allocate_lat_ele_array
 
@@ -2057,7 +2073,7 @@ end subroutine match_ele_to_mat6
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_rf_field (field_in, field_out)
+! Subroutine transfer_em_field (field_in, field_out)
 !
 ! Subroutine to transfer the field info from one struct to another.
 !
@@ -2071,11 +2087,11 @@ end subroutine match_ele_to_mat6
 !   field_out -- Field_struct, pointer: Output RF field.
 !-
 
-subroutine transfer_rf_field (field_in, field_out)
+subroutine transfer_em_field (field_in, field_out)
 
 implicit none
 
-type (rf_field_struct), pointer :: field_in, field_out
+type (em_fields_struct), pointer :: field_in, field_out
 integer i, n
 integer :: n_terms, ng(3)
 
@@ -2083,7 +2099,7 @@ integer :: n_terms, ng(3)
 
 if (associated (field_in)) then
 
-  call init_rf_field (field_out, size(field_in%mode))
+  call init_em_field (field_out, size(field_in%mode))
 
   do i = 1, size(field_in%mode)
     field_out%mode(i) = field_in%mode(i)
@@ -2093,29 +2109,29 @@ elseif (associated(field_out)) then
   deallocate(field_out)
 endif
 
-end subroutine transfer_rf_field
+end subroutine transfer_em_field
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_rf_field (rf_field, n_mode)
+! Subroutine init_em_field (em_field, n_mode)
 !
-! Subroutine to initialize a rf_field_struct pointer.
+! Subroutine to initialize a em_field_struct pointer.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   n_mode     -- Integer: Number of modes. If 0, nullify rf_field
+!   n_mode     -- Integer: Number of modes. If 0, nullify em_field
 !
 ! Output:
-!   rf_field -- rf_field_struct, pointer: Initialized structure.
+!   em_field -- em_field_struct, pointer: Initialized structure.
 !-
 
-subroutine init_rf_field (rf_field, n_mode)
+subroutine init_em_field (em_field, n_mode)
 
-type (rf_field_struct), pointer :: rf_field
+type (em_fields_struct), pointer :: em_field
 
 integer n_mode
 
@@ -2125,21 +2141,21 @@ integer i
 ! Case for n_mode not positive.
 
 if (n_mode < 1) then
-  if (associated(rf_field)) deallocate(rf_field)
+  if (associated(em_field)) deallocate(em_field)
   return
 endif
 
 ! n_mode > 0 case.
 
-if (.not. associated (rf_field)) allocate(rf_field)
-if (.not. allocated(rf_field%mode))  allocate(rf_field%mode(n_mode))
+if (.not. associated (em_field)) allocate(em_field)
+if (.not. allocated(em_field%mode))  allocate(em_field%mode(n_mode))
 
-if (size(rf_field%mode) /= n_mode) then
-  deallocate(rf_field%mode)
-  allocate(rf_field%mode(n_mode))
+if (size(em_field%mode) /= n_mode) then
+  deallocate(em_field%mode)
+  allocate(em_field%mode(n_mode))
 endif
 
-end subroutine init_rf_field
+end subroutine init_em_field
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2387,6 +2403,14 @@ case (bend_sol_quad$)
   end select
 end select
 
+if (key3 /= -1) return  ! Have found something
+
+! Only thing left is to use em_field type element.
+! sbend is not allowed here.
+
+if (key1 == sbend$ .or. key2 == sbend$) return  
+key3 = em_field$
+
 end subroutine calc_superimpose_key
 
 !--------------------------------------------------------------------------
@@ -2501,9 +2525,11 @@ case (rad_int_group$)
 case (all_groups$)
   call set_attributes
   call set_control
+  call set_ref_energy
   call set_floor_position
   call set_length
   call set_mat6
+  call set_rad_int
 
 case default
    call err_exit   ! Should not be here
@@ -2514,6 +2540,8 @@ end select
 contains
 
 subroutine set_attributes
+  if (ele%lord_status == overlay_lord$) return
+  if (ele%lord_status == group_lord$) return
   ele%status%attributes = stale$
   param%status%attributes = stale$
 end subroutine set_attributes

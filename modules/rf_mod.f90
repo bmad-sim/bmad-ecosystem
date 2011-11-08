@@ -2,7 +2,7 @@ module rf_mod
 
 use runge_kutta_mod
 
-type (rf_field_mode_struct), pointer, private :: mode1
+type (em_field_mode_struct), pointer, private :: mode1
 type (lat_param_struct), pointer, private :: param_com
 type (ele_struct), pointer, private :: ele_com
 
@@ -17,7 +17,7 @@ contains
 ! Subroutine rf_accel_mode_adjust_phase_and_amp (ele, param)
 !
 ! Routine to set the reference phase and amplitude of the accelerating rf field mode if
-! this mode is present. The accelerating mode is defined to be ele%rf%field%mode(1) if
+! this mode is present. The accelerating mode is defined to be ele%em_field%mode(1) if
 ! mode(1)%m = 0. 
 !
 ! All calculations are done with a particle with the energy of the reference particle and 
@@ -38,15 +38,15 @@ contains
 !
 ! Input:
 !   ele   -- ele_struct: RF element. Either lcavity or rfcavity.
-!     %rf%field(1) -- Accelerating mode.
+!     %em_field(1) -- Accelerating mode.
 !     %value(gradient$) -- Accelerating gradient to match to if an lcavity.
 !     %value(voltage$)  -- Accelerating voltage to match to if an rfcavity.
 !   param -- lat_param_struct: lattice parameters
 !
 ! Output:
 !   ele -- ele_struct: RF element.
-!     %rf%field%mode(1)%theta_t0    -- RF phase
-!     %rf%field%mode(1)%field_scale -- RF amplitude.
+!     %em_field%mode(1)%theta_t0    -- RF phase
+!     %em_field%mode(1)%field_scale -- RF amplitude.
 !-
 
 subroutine rf_accel_mode_adjust_phase_and_amp (ele, param)
@@ -69,7 +69,7 @@ logical step_up_seen
 
 ! Init
 
-mode1 => ele%rf%field%mode(1)
+mode1 => ele%em_field%mode(1)
 
 ! Only do the adjustment if mode1 is an acceleration mode.
 

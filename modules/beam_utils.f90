@@ -107,7 +107,7 @@ bunch_end = bunch_start
 !------------------------------------------------
 ! Without wakefields just track through.
 
-if (ele%key /= lcavity$ .or. .not. associated(ele%rf%wake) .or. &
+if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
@@ -245,9 +245,9 @@ integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
 
 ele%value(grad_loss_sr_wake$) = 0.0
 
-n_sr_table = size(ele%rf%wake%sr_table) 
-n_sr_mode_long = size(ele%rf%wake%sr_mode_long)
-n_sr_mode_trans = size(ele%rf%wake%sr_mode_trans)
+n_sr_table = size(ele%rf_wake%sr_table) 
+n_sr_mode_long = size(ele%rf_wake%sr_mode_long)
+n_sr_mode_trans = size(ele%rf_wake%sr_mode_trans)
 
 if ((n_sr_table == 0 .and. n_sr_mode_long == 0 .and. n_sr_mode_trans == 0) .or. &
                                           .not. bmad_com%sr_wakes_on) then 
@@ -261,7 +261,7 @@ endif
 if (n_sr_table > 0) then
 
   ele%value(grad_loss_sr_wake$) = ele%value(grad_loss_sr_wake$) + &
-                   ele%rf%wake%sr_table(0)%long * e_charge * abs(charge_of(param%particle)) / 2.0
+                   ele%rf_wake%sr_table(0)%long * e_charge * abs(charge_of(param%particle)) / 2.0
 
   !-----------------------------------
   ! add up all wakes from front of bunch to follower
@@ -313,36 +313,36 @@ character(16) :: r_name = 'track1_sr_wake'
 
 !-----------------------------------
 
-if (.not. associated(ele%rf%wake)) return
+if (.not. associated(ele%rf_wake)) return
   
 p => bunch%particle
   
 ! error check and zero wake sums and order particles in z
 
 call order_particles_in_z (bunch)  
-if (size(ele%rf%wake%sr_mode_long) /= 0) then
+if (size(ele%rf_wake%sr_mode_long) /= 0) then
   i1 = p(1)%ix_z 
   i2 = p(size(p))%ix_z
-  if (p(i1)%r%vec(5) - p(i2)%r%vec(5) > ele%rf%wake%z_sr_mode_max) then
+  if (p(i1)%r%vec(5) - p(i2)%r%vec(5) > ele%rf_wake%z_sr_mode_max) then
     call out_io (s_abort$, r_name, &
         'Bunch longer than sr_mode wake can handle for element: ' // ele%name)
     call err_exit
   endif
 endif
 
-do i = 1, size(ele%rf%wake%sr_mode_long)
-  ele%rf%wake%sr_mode_long%b_sin = 0
-  ele%rf%wake%sr_mode_long%b_cos = 0
-  ele%rf%wake%sr_mode_long%a_sin = 0
-  ele%rf%wake%sr_mode_long%a_cos = 0
+do i = 1, size(ele%rf_wake%sr_mode_long)
+  ele%rf_wake%sr_mode_long%b_sin = 0
+  ele%rf_wake%sr_mode_long%b_cos = 0
+  ele%rf_wake%sr_mode_long%a_sin = 0
+  ele%rf_wake%sr_mode_long%a_cos = 0
 enddo
 
 !
 
-n_sr_table = size(ele%rf%wake%sr_table) 
+n_sr_table = size(ele%rf_wake%sr_table) 
 z_sr_table_max = 0
 if (n_sr_table > 0) then
-  z_sr_table_max = ele%rf%wake%sr_table(n_sr_table-1)%z
+  z_sr_table_max = ele%rf_wake%sr_table(n_sr_table-1)%z
   dz_sr_table = z_sr_table_max / (n_sr_table - 1)
 endif
 
@@ -393,10 +393,10 @@ end subroutine
 ! Note: It is the responsibility of the calling routine to zero the wakefield
 ! components before the first bunch is sent through. The wakefield components 
 ! are:
-!     ele%rf%wake%lr%b_sin
-!     ele%rf%wake%lr%b_cos
-!     ele%rf%wake%lr%a_sin
-!     ele%rf%wake%lr%a_cos
+!     ele%rf_wake%lr%b_sin
+!     ele%rf_wake%lr%b_cos
+!     ele%rf_wake%lr%a_sin
+!     ele%rf_wake%lr%a_cos
 !
 ! Modules needed:
 !   use beam_mod
@@ -421,12 +421,12 @@ type (particle_struct), pointer :: particle
 integer n_mode, j, k
 
 if (.not. bmad_com%lr_wakes_on) return
-if (.not. associated(ele%rf%wake)) return
+if (.not. associated(ele%rf_wake)) return
   
 ! Check to see if we need to do any calc
 
-if (.not. associated(ele%rf%wake)) return
-n_mode = size(ele%rf%wake%lr)
+if (.not. associated(ele%rf_wake)) return
+n_mode = size(ele%rf_wake%lr)
 if (n_mode == 0) return  
 
 call order_particles_in_z (bunch)  ! needed for wakefield calc.

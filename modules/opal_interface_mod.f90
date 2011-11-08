@@ -212,12 +212,12 @@ ele_loop: do ie = ix_start, ix_end
 	!----------------------------------------------------------
     case (lcavity$)
       !Check that there is a map or grid associated to make a decent field grid for OPAL
-	  if (.not. associated(ele%rf%field)  )then
+	  if (.not. associated(ele%em_field)  )then
 	    call out_io (s_error$, r_name, 'No rf_field_struct for: ' // key_name(ele%key), &
                                      '----')
         call err_exit
       endif
-	  if (.not. associated(ele%rf%field%mode(1)%grid)  )then
+	  if (.not. associated(ele%em_field%mode(1)%grid)  )then
 	    call out_io (s_error$, r_name, 'No grid for: ' // key_name(ele%key), &
                                      '----')
         call err_exit
@@ -226,7 +226,7 @@ ele_loop: do ie = ix_start, ix_end
       write (line, '(a, es13.5)') trim(ele%name) // ': rfcavity, type = "STANDING", l =', val(l$)
 
       !Check field map file. If file has not been written, create a new file. 
-      call find_indexx (ele%rf%field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match)
+      call find_indexx (ele%em_field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match)
       !Check for match with existing grid
       if (ix_match > 0) then
         !File exists. 
@@ -239,7 +239,7 @@ ele_loop: do ie = ix_start, ix_end
         !File does not exist.
         
         !Add name to list  
-        call find_indexx (ele%rf%field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match, add_to_list = .true.)
+        call find_indexx (ele%em_field%mode(1)%grid%file, fieldgrid_names, fieldgrid_an_indexx, fieldgrid_n_names, ix_match, add_to_list = .true.)
         fieldgrid_n_names = fieldgrid_n_names + 1
         
         ! Write new fieldgrid file
@@ -257,7 +257,7 @@ ele_loop: do ie = ix_start, ix_end
       call value_to_line (line, 1e-6*absmax_ez, 'volt', rfmt, 'R')
       
       !Write frequency in MHz
-      call value_to_line (line, 1e-6*ele%rf%field%mode(1)%freq, 'freq', rfmt, 'R')
+      call value_to_line (line, 1e-6*ele%em_field%mode(1)%freq, 'freq', rfmt, 'R')
       
       !Write ELEMEDGE
       call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
@@ -379,7 +379,7 @@ select case (ele%key)
 
   case (lcavity$) 
                                          
-    freq = ele%rf%field%mode(1)%freq
+    freq = ele%em_field%mode(1)%freq
 
     !TODO: pass these parameters in somehow
     x_step = 0.001_rp

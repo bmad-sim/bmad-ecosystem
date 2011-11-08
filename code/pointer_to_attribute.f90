@@ -72,29 +72,29 @@ if (a_name(1:3) == 'LR(') then
   if (ios /= 0) goto 9000
   if (n < 0) goto 9000
 
-  if (.not. associated (ele%rf%wake)) then
+  if (.not. associated (ele%rf_wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%rf%wake, 0, 0, 0, n)
+    call init_wake (ele%rf_wake, 0, 0, 0, n)
   endif
 
-  n_lr = size(ele%rf%wake%lr)
+  n_lr = size(ele%rf_wake%lr)
   if (n_lr < n) then
     if (.not. do_allocation) goto 9100
     allocate (lr(n_lr))
-    lr = ele%rf%wake%lr
-    deallocate (ele%rf%wake%lr)
-    allocate (ele%rf%wake%lr(n))
-    ele%rf%wake%lr = rf_wake_lr_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
+    lr = ele%rf_wake%lr
+    deallocate (ele%rf_wake%lr)
+    allocate (ele%rf_wake%lr(n))
+    ele%rf_wake%lr = rf_wake_lr_struct (0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, &
                                         0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0, .false.)
-    ele%rf%wake%lr(1:n_lr) = lr
+    ele%rf_wake%lr(1:n_lr) = lr
     deallocate (lr)
   endif
 
   select case (a_name(ix_d+2:))
-  case ('FREQ');      ptr_attrib => ele%rf%wake%lr(n)%freq
-  case ('R_OVER_Q');  ptr_attrib => ele%rf%wake%lr(n)%r_over_q
-  case ('Q');         ptr_attrib => ele%rf%wake%lr(n)%q
-  case ('ANGLE');     ptr_attrib => ele%rf%wake%lr(n)%angle
+  case ('FREQ');      ptr_attrib => ele%rf_wake%lr(n)%freq
+  case ('R_OVER_Q');  ptr_attrib => ele%rf_wake%lr(n)%r_over_q
+  case ('Q');         ptr_attrib => ele%rf_wake%lr(n)%q
+  case ('ANGLE');     ptr_attrib => ele%rf_wake%lr(n)%angle
   case default;       goto 9000
   end select    
 

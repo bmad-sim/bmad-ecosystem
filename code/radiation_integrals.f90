@@ -106,7 +106,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (rad_int_common_struct), optional :: rad_int_by_ele
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, slave
 type (ele_struct), save :: ele2, ele_start, ele_end, ele_end1
 type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
@@ -547,6 +547,29 @@ do i = 0, lat%n_ele_track
   mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int%lin_i5b_E6(i)
   rad_int%lin_norm_emit_a(i) = lat%a%emit * gamma + factor * mode%lin%i5a_E6
   rad_int%lin_norm_emit_b(i) = lat%b%emit * gamma + factor * mode%lin%i5b_E6
+enddo
+
+do i = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(i)
+  if (ele%lord_status /= super_lord$) cycle
+  do j = 1, ele%n_slave
+    slave => pointer_to_slave (lat, ele, j)
+    k = slave%ix_ele
+    rad_int%i0(i) = rad_int%i0(i) + rad_int%i0(k)
+    rad_int%i1(i) = rad_int%i1(i) + rad_int%i1(k)
+    rad_int%i2(i) = rad_int%i2(i) + rad_int%i2(k)
+    rad_int%i3(i) = rad_int%i3(i) + rad_int%i3(k)
+    rad_int%i4a(i) = rad_int%i4a(i) + rad_int%i4a(k)
+    rad_int%i4b(i) = rad_int%i4b(i) + rad_int%i4b(k)
+    rad_int%i5a(i) = rad_int%i5a(i) + rad_int%i5a(k)
+    rad_int%i5b(i) = rad_int%i5b(i) + rad_int%i5b(k)
+    rad_int%i6b(i) = rad_int%i6b(i) + rad_int%i6b(k)
+    rad_int%n_steps(i) = rad_int%n_steps(i) + rad_int%n_steps(k)
+    rad_int%lin_i2_E4(i) = rad_int%lin_i2_E4(i) + rad_int%lin_i2_E4(k)
+    rad_int%lin_i3_E7(i) = rad_int%lin_i3_E7(i) + rad_int%lin_i3_E7(k)
+    rad_int%lin_i5a_E6(i) = rad_int%lin_i5a_E6(i) + rad_int%lin_i5a_E6(k)
+    rad_int%lin_i5b_E6(i) = rad_int%lin_i5b_E6(i) + rad_int%lin_i5b_E6(k)
+  enddo
 enddo
 
 mode%lin%sig_E1 = mc2 * sqrt (2 * factor * mode%lin%i3_E7)

@@ -1,5 +1,3 @@
-#include "CESR_platform.inc"
-
 module equal_mod
 
 use bmad_utils_mod
@@ -53,8 +51,9 @@ integer i
 call transfer_ele (ele1, ele_save)
 call transfer_ele (ele2, ele1)
 
-ele1%ix_ele    = ele_save%ix_ele    ! this should not change.
-ele1%ix_branch = ele_save%ix_branch ! this should not change.
+ele1%ix_ele    = ele_save%ix_ele    ! This should not change.
+ele1%ix_branch = ele_save%ix_branch ! This should not change.
+ele1%lat      => ele_save%lat       ! This should not change.
 
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
@@ -182,15 +181,15 @@ else
   if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
 endif
 
-! %rf%wake
+! %rf_wake
 
-ele1%rf%wake => ele_save%rf%wake  ! reinstate
-call transfer_rf_wake (ele2%rf%wake, ele1%rf%wake)
+ele1%rf_wake => ele_save%rf_wake  ! reinstate
+call transfer_rf_wake (ele2%rf_wake, ele1%rf_wake)
 
-! %rf%field
+! %em_field
 
-ele1%rf%field => ele_save%rf%field  ! reinstate
-call transfer_rf_field (ele2%rf%field, ele1%rf%field)
+ele1%em_field => ele_save%em_field  ! reinstate
+call transfer_em_field (ele2%em_field, ele1%em_field)
 
 ! %gen_fields are hard because it involves pointers in PTC.
 ! just kill the gen_field in ele1 for now.
@@ -266,7 +265,7 @@ subroutine lat_equal_lat (lat_out, lat_in)
 
 implicit none
 
-type (lat_struct), intent(inout) :: lat_out
+type (lat_struct), intent(inout), target :: lat_out
 type (lat_struct), intent(in) :: lat_in
 
 integer i, n, n_out, n_in
@@ -328,14 +327,17 @@ do i = 1, n
   lat_out%branch(i) = lat_in%branch(i)
 enddo
 
-! Make sure ele%ix_ele is set correctly
+! Make sure ele%ix_ele and ele%lat are set correctly
 
 do i = 0, ubound(lat_out%branch, 1)
   do n = 0, ubound(lat_out%branch(i)%ele, 1)
     lat_out%branch(i)%ele(n)%ix_ele = n
     lat_out%branch(i)%ele(n)%ix_branch = i
+    lat_out%branch(i)%ele(n)%lat => lat_out
   enddo
 enddo
+
+lat_out%ele_init%lat => lat_out
 
 ! non-pointer transfer
 
