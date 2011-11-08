@@ -120,61 +120,57 @@ enddo
 
 ! Put the appropriate energy values in the lord elements...
 
-if (bmad_com%auto_bookkeeper .or. lat%param%status%ref_energy == stale$) then
+lat%param%status%ref_energy = ok$
 
-  lat%param%status%ref_energy = ok$
+do i = lat%n_ele_track+1, lat%n_ele_max
 
-  do i = lat%n_ele_track+1, lat%n_ele_max
+  lord => lat%ele(i)
 
-    lord => lat%ele(i)
+  if (.not. bmad_com%auto_bookkeeper .and. lord%status%ref_energy /= stale$) cycle
 
-    if (.not. bmad_com%auto_bookkeeper .and. lord%status%ref_energy /= stale$) cycle
+  call set_ele_status_stale (lord, lat%param, attribute_group$)
+  lord%status%ref_energy = ok$
 
-    call set_ele_status_stale (lord, lat%param, attribute_group$)
-    lord%status%ref_energy = ok$
+  ! Multipass lords have their own reference energy if n_ref_pass /= 0.
 
-    ! Multipass lords have their own reference energy if n_ref_pass /= 0.
-
-    if (lord%lord_status == multipass_lord$) then
-      ix = nint(lord%value(n_ref_pass$))
-      if (ix /= 0) then  
-        slave => pointer_to_slave(lat, lord, ix)
-        lord%value(e_tot$) = slave%value(e_tot$)
-        lord%value(p0c$)   = slave%value(p0c$)
-      elseif (lord%value(e_tot$) == 0 .and. lord%value(p0c$) /= 0) then
-        call convert_pc_to (lord%value(p0c$), lat%param%particle, e_tot = lord%value(e_tot$))
-      elseif (lord%value(p0c$) == 0 .and. lord%value(e_tot$) /= 0) then
-        call convert_total_energy_to (lord%value(e_tot$), lat%param%particle, pc = lord%value(p0c$))
-      endif
-      cycle
+  if (lord%lord_status == multipass_lord$) then
+    ix = nint(lord%value(n_ref_pass$))
+    if (ix /= 0) then  
+      slave => pointer_to_slave(lat, lord, ix)
+      lord%value(e_tot$) = slave%value(e_tot$)
+      lord%value(p0c$)   = slave%value(p0c$)
+    elseif (lord%value(e_tot$) == 0 .and. lord%value(p0c$) /= 0) then
+      call convert_pc_to (lord%value(p0c$), lat%param%particle, e_tot = lord%value(e_tot$))
+    elseif (lord%value(p0c$) == 0 .and. lord%value(e_tot$) /= 0) then
+      call convert_total_energy_to (lord%value(e_tot$), lat%param%particle, pc = lord%value(p0c$))
     endif
+    cycle
+  endif
 
-    ! Now for everything but multipass_lord elements...
-    ! The lord inherits the energy from the last slave.
-    ! First find this slave.
+  ! Now for everything but multipass_lord elements...
+  ! The lord inherits the energy from the last slave.
+  ! First find this slave.
 
-    slave => lord
-    do
-      if (slave%n_slave == 0) exit
-      slave => pointer_to_slave (lat, slave, slave%n_slave)
-    enddo
-
-    ! Now transfer the information to the lord.
-
-    lord%value(p0c$) = slave%value(p0c$)
-    lord%value(E_tot$) = slave%value(E_tot$)
-
-    ! Transfer the starting energy if needed.
-
-    if (lord%key == lcavity$ .or. lord%key == custom$) then
-      slave => pointer_to_slave (lat, lord, 1)
-      lord%value(E_tot_start$) = slave%value(E_tot_start$)
-      lord%value(p0c_start$)   = slave%value(p0c_start$)
-    endif
-
+  slave => lord
+  do
+    if (slave%n_slave == 0) exit
+    slave => pointer_to_slave (lat, slave, slave%n_slave)
   enddo
 
-endif
+  ! Now transfer the information to the lord.
+
+  lord%value(p0c$) = slave%value(p0c$)
+  lord%value(E_tot$) = slave%value(E_tot$)
+
+  ! Transfer the starting energy if needed.
+
+  if (lord%key == lcavity$ .or. lord%key == custom$) then
+    slave => pointer_to_slave (lat, lord, 1)
+    lord%value(E_tot_start$) = slave%value(E_tot_start$)
+    lord%value(p0c_start$)   = slave%value(p0c_start$)
+  endif
+
+enddo
 
 end subroutine lat_compute_reference_energy
 
