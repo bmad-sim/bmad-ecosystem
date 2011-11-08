@@ -1200,8 +1200,8 @@ case ('hom')
     if (ele%key /= lcavity$) cycle
     if (ele%slave_status == multipass_slave$) cycle
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
-    do j = 1, size(ele%rf%wake%lr)
-      lr => ele%rf%wake%lr(j)
+    do j = 1, size(ele%rf_wake%lr)
+      lr => ele%rf_wake%lr(j)
       angle = '-'
       if (lr%polarized) write (angle, '(f9.4)') lr%angle
       nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
