@@ -64,6 +64,7 @@ subroutine track1_time_runge_kutta (start, ele, param, end, track)
 
 use time_tracker_mod
 use bmad_struct
+use bmad_interface
 
 implicit none
 
@@ -116,9 +117,13 @@ dt_step_min = 0
 
 !Define p0c and ref_time at start of tracking
 if (param%end_lost_at == live_reversed$) then
-   p0c = ele%value(p0c$)
+   !Particle must be moving backwards
+   !The sign of p0c is used in s->t conversion
+   p0c = -1*ele%value(p0c$)
    ref_time = ele%ref_time
+   call offset_particle(ele, param, start, set$, set_canonical = .false.,  reversed = .true. ) 
 else
+   !Forward moving particle
    if (ele%key == lcavity$ .or. ele%key == custom$ .or. &
         ele%key == patch$ .or. ele%key == hybrid$) then
       p0c = ele%value(p0c_start$)
@@ -126,21 +131,9 @@ else
       p0c = ele%value(p0c$)
    end if
    ref_time = ele%ref_time - ele%value(delta_ref_time$)
+   call offset_particle(ele, param, start, set$, set_canonical = .false., &
+     reversed = .false. )    
 end if
-
-! lab(t-based) -> lab(s-based)
-! Use vec6 to keep track of the sign of start%vec(6) because it gets
-! lost during conversion
-
-!!!vec6 = start%vec(6)
-!!!call convert_particle_coordinates_t_to_s(start, p0c, mass_of(param%particle), ref_time)
-
-! lab(s-based) -> ele(s-based)
-call offset_particle(ele, param, start, set$, .false., .true., .false., .false., start%s)
-
-!Would be nice if we could have a t_rel and s_rel rather than changing
-!start%t and start%s. Problem with this is that rkck_bmad_T changes
-!end%t and end%s based on orb%t (=t_rel) and orb%s (=s_rel))
 
 start%t = start%t - (ele%ref_time - ele%value(delta_ref_time$))
 start%s = start%s - (ele%s - ele%value(l$))
@@ -148,7 +141,6 @@ start%vec(5) = start%s
 
 ! ele(s-based) -> ele(t-based)
 call convert_particle_coordinates_s_to_t(start, p0c)
-start%vec(6) = sign (start%vec(6), vec6)
 
 !------
 !Check wall or aperture at beginning of element
@@ -198,22 +190,31 @@ else
    p0c = ele%value(p0c$)
    ref_time = ele%ref_time
 end if
+call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
+end%s = end%s + (ele%s - ele%value(l$))
+
+!ele(t-based) -> ele(s-based)
+call offset_particle(ele, param, start, unset$, set_canonical = .false., &
+     reversed = .true. ) 
+
+
 
 ! ele(t-based) -> ele(s-based)
 ! Use vec6 to keep track of the sign of start%vec(6) because it gets
 ! lost during conversion
-vec6 = end%vec(6)
-call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+!vec6 = end%vec(6)
+!call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
 
 ! ele(s-based) -> lab(s-based)
-end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
-end%s = end%s + (ele%s - ele%value(l$))
-end%vec(5) = end%s
-call offset_particle(ele, param, end, unset$, .false., .true., .false., .false., end%s)
+!end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
+!end%s = end%s + (ele%s - ele%value(l$))
+!end%vec(5) = end%s
+!call offset_particle(ele, param, end, unset$, .false., .true., .false., .false., end%s)
 
 ! lab(s-based) -> lab(t-based)
-call convert_particle_coordinates_s_to_t(end, p0c)
-end%vec(6) = sign (end%vec(6), vec6)
+!call convert_particle_coordinates_s_to_t(end, p0c)
+!end%vec(6) = sign (end%vec(6), vec6)
 
 !------
 
