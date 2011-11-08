@@ -227,7 +227,7 @@ case (lcavity$)
     ele%value(p0c$) = p0c
     ele%ref_time = ref_time_start
   endif
-  if (associated(ele%rf%field)) call rf_accel_mode_adjust_phase_and_amp (ele, param)
+  if (associated(ele%em_field)) call rf_accel_mode_adjust_phase_and_amp (ele, param)
 
   ele%value(E_tot$) = E_tot
   ele%value(p0c$) = p0c

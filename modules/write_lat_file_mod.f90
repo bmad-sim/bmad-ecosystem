@@ -88,9 +88,9 @@ n_sr = 0
 n_lr = 0
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
-  if (.not. associated(ele%rf%wake)) cycle
-  if (ele%rf%wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
-  if (ele%rf%wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
+  if (.not. associated(ele%rf_wake)) cycle
+  if (ele%rf_wake%sr_file(1:6) == 'xsif::') n_sr = n_sr + 1 
+  if (ele%rf_wake%lr_file(1:6) == 'xsif::') n_lr = n_lr + 1  
 enddo
 call re_allocate(sr_wake_name, n_sr)
 call re_allocate(lr_wake_name, n_lr)
@@ -298,13 +298,13 @@ do ib = 0, ubound(lat%branch, 1)
     ! If the wake file is not BMAD Format (Eg: XSIF format) then create a new wake file.
     ! If first three characters of the file name are '...' then it is a foreign file.
 
-    if (associated(ele%rf%wake)) then
+    if (associated(ele%rf_wake)) then
 
       ! Short-range
 
-      if (ele%rf%wake%sr_file /= ' ') then
+      if (ele%rf_wake%sr_file /= ' ') then
 
-        wake_name = ele%rf%wake%sr_file
+        wake_name = ele%rf_wake%sr_file
 
         if (wake_name(1:3) == '...') then
           found = .false.
@@ -326,9 +326,9 @@ do ib = 0, ubound(lat%branch, 1)
             open (iuw, file = wake_name)
             write (iuw, *) '!      z           Wz             Wt'
             write (iuw, *) '!     [m]       [V/C/m]       [V/C/m^2]'
-            do n = lbound(ele%rf%wake%sr_table, 1), ubound(ele%rf%wake%sr_table, 1)
-              write (iuw, '(3es14.5)') ele%rf%wake%sr_table(n)%z, &
-                                    ele%rf%wake%sr_table(n)%long, ele%rf%wake%sr_table(n)%trans
+            do n = lbound(ele%rf_wake%sr_table, 1), ubound(ele%rf_wake%sr_table, 1)
+              write (iuw, '(3es14.5)') ele%rf_wake%sr_table(n)%z, &
+                                    ele%rf_wake%sr_table(n)%long, ele%rf_wake%sr_table(n)%trans
             enddo
             close(iuw)
           endif
@@ -340,9 +340,9 @@ do ib = 0, ubound(lat%branch, 1)
 
       ! Long-range
 
-      if (ele%rf%wake%lr_file /= ' ') then
+      if (ele%rf_wake%lr_file /= ' ') then
 
-        wake_name = ele%rf%wake%lr_file
+        wake_name = ele%rf_wake%lr_file
 
         if (wake_name(1:3) == '...') then
           found = .false.
@@ -366,8 +366,8 @@ do ib = 0, ubound(lat%branch, 1)
    'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
             write (iuw, '(14x, a)') &
               '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
-            do n = lbound(ele%rf%wake%lr, 1), ubound(ele%rf%wake%lr, 1)
-              lr => ele%rf%wake%lr(n)
+            do n = lbound(ele%rf_wake%lr, 1), ubound(ele%rf_wake%lr, 1)
+              lr => ele%rf_wake%lr(n)
               if (lr%polarized) then
                 write (angle, '(f10.6)') lr%angle
               else

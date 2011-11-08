@@ -3,6 +3,7 @@ module add_superimpose_mod
 use bmad_struct
 use bmad_interface
 use lat_ele_loc_mod
+use bookkeeper_mod
 
 private delete_underscore, adjust_super_slave_names, adjust_drift_names
 
@@ -220,6 +221,7 @@ if (all_drift) then
   branch%ele(ix_super) = super_saved
   branch%ele(ix_super)%lord_status  = not_a_lord$
   branch%ele(ix_super)%slave_status = free$
+  call set_flags_for_changed_attribute (lat, branch%ele(ix_super))
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
   ! If a single drift was split: give the runt drifts on either end 
   ! names by adding "#" suffix to signify the split
@@ -280,6 +282,7 @@ lat%n_ele_max = ix_super
 if (lat%n_ele_max > ubound(lat%ele, 1)) call allocate_lat_ele_array(lat)
 lat%ele(ix_super) = super_saved
 lat%ele(ix_super)%lord_status = super_lord$
+call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
 if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 ix_super_con = 0
@@ -372,6 +375,8 @@ do
             'I DO NOT KNOW HOW TO DO THIS!'] )
     call err_exit                    
   endif
+
+  call set_flags_for_changed_attribute (lat, lat%ele(ix_super))
 
 enddo
 

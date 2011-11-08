@@ -129,14 +129,14 @@ type rf_wake_struct
   real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
 end type
 
-type rf_field_map_term_struct
+type em_field_map_term_struct
   complex(rp) :: e_coef = 0, b_coef = 0
 end type
 
-type rf_field_mode_map_struct
+type em_field_mode_map_struct
   character(200) :: file = ''   ! Input file name. Used also as ID for instances. 
   real(rp) :: dz = 0            ! Distance between sampled field points.
-  type (rf_field_map_term_struct), allocatable :: term(:)
+  type (em_field_map_term_struct), allocatable :: term(:)
 end type
 
 type em_field_point_struct
@@ -152,7 +152,7 @@ type em_field_grid_struct
   real(rp) :: r0(3) = 0   ! Grid origin.
 end type
 
-! RF mode structure
+! Mode structure
 ! See: 
 !    Dan Abell, PRST-AB 9, 052001 (2006)
 !   "Numerical computation of high-order transfer maps for rf cavities."
@@ -161,7 +161,7 @@ end type
 ! and ele%field%mode%map pointers may point to the same memeory location. 
 ! This being the case, these components are never deallocated.
 
-type rf_field_mode_struct
+type em_field_mode_struct
   integer m                   ! Mode varies as cos(m*phi - phi_0)
   real(rp) freq               ! Oscillation frequency (Hz)
   real(rp) :: f_damp = 0      ! 1/Q damping factor 
@@ -169,19 +169,14 @@ type rf_field_mode_struct
   real(rp) stored_energy      ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi_0 = 0       ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1 ! Factor to scale the fields by
-  type (rf_field_mode_map_struct), pointer :: map => null()
+  type (em_field_mode_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
 
 ! The RF field may be characterized by a collection of modes.
 
-type rf_field_struct
-  type (rf_field_mode_struct), allocatable :: mode(:)
-end type
-
-type rf_struct
-  type (rf_field_struct), pointer :: field => null()
-  type (rf_wake_struct), pointer :: wake => null()
+type em_fields_struct
+  type (em_field_mode_struct), allocatable :: mode(:)
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -271,30 +266,31 @@ type ele_struct
   type (xy_disp_struct) x, y           ! Projected dispersions.
   type (floor_position_struct) floor   ! Global floor position at end of ele.
   type (mode3_struct), pointer :: mode3 => null()
-  type (coord_struct) map_ref_orb_in              ! Ref orbit at entrance of element.
-  type (coord_struct) map_ref_orb_out             ! Ref orbit at exit of element.
-  type (genfield), pointer :: gen_field => null() ! For symp_map$
-  type (taylor_struct) :: taylor(6)               ! Taylor terms
-  type (rf_struct) :: rf                     ! Rf fields
-  type (wig_term_struct), pointer :: wig_term(:) => null()            ! Wiggler Coefs
+  type (coord_struct) map_ref_orb_in                        ! Ref orbit at entrance of element.
+  type (coord_struct) map_ref_orb_out                       ! Ref orbit at exit of element.
+  type (genfield), pointer :: gen_field => null()           ! For symp_map$
+  type (taylor_struct) :: taylor(6)                         ! Taylor terms
+  type (em_fields_struct), pointer :: em_field => null()    ! DC and AC E/M fields
+  type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
+  type (wig_term_struct), pointer :: wig_term(:) => null()  ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  type (wall3d_struct) :: wall3d             ! Chamber or capillary wall
-  type (em_field_grid_struct), pointer :: em_grid => null()
-  type (bookkeeper_status_struct) status     ! For keeping track of what bookkeeping has been done.
-  real(rp) value(n_attrib_maxx)              ! attribute values.
-  real(rp) old_value(n_attrib_maxx)          ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                           ! constant part of the genfield map.
-  real(rp) vec0(6)                           ! 0th order transport vector.
-  real(rp) mat6(6,6)                         ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                        ! 2x2 C coupling matrix
-  real(rp) gamma_c                           ! gamma associated with C matrix
-  real(rp) s                                 ! longitudinal ref position at the exit end.
-  real(rp) ref_time                          ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:,:) => null()    ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()   ! knl for multipole elements.
-  real(rp), pointer :: b_pole(:) => null()   ! tilt for multipole elements.
-  real(rp), pointer :: const(:) => null()    ! Working constants.
-  integer key                ! key value
+  type (wall3d_struct) :: wall3d              ! Chamber or capillary wall
+  type (lat_struct), pointer :: lat => null() ! Pointer to lattice containing this element.
+  type (bookkeeper_status_struct) status      ! For keeping track of what bookkeeping has been done.
+  real(rp) value(n_attrib_maxx)               ! attribute values.
+  real(rp) old_value(n_attrib_maxx)           ! Used to see if %value(:) array has changed.
+  real(rp) gen0(6)                            ! constant part of the genfield map.
+  real(rp) vec0(6)                            ! 0th order transport vector.
+  real(rp) mat6(6,6)                          ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                         ! 2x2 C coupling matrix
+  real(rp) gamma_c                            ! gamma associated with C matrix
+  real(rp) s                                  ! longitudinal ref position at the exit end.
+  real(rp) ref_time                           ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:,:) => null()     ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()    ! knl for multipole elements.
+  real(rp), pointer :: b_pole(:) => null()    ! tilt for multipole elements.
+  real(rp), pointer :: const(:) => null()     ! Working constants.
+  integer key                ! key value 
   integer sub_key            ! For wigglers: map_type$, periodic_type$
   integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
@@ -447,8 +443,9 @@ integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
 integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
+integer, parameter :: e_gun$ = 47, em_field$ = 48
 
-integer, parameter :: n_key = 46
+integer, parameter :: n_key = 48
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -464,7 +461,7 @@ character(40), parameter :: key_name(n_key) = [ &
     'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
-    'CAPILLARY        ', 'MULTILAYER_MIRROR']
+    'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -618,7 +615,7 @@ integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall$ = 104
-integer, parameter :: rf_field$ = 105
+integer, parameter :: rf_field$ = 105, dc_field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
 
 integer, parameter :: superimpose$    = 110   

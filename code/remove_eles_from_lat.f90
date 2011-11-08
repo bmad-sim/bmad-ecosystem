@@ -11,7 +11,7 @@
 ! Input:
 !   lat            -- lat_struct: Lattice to compress.
 !   check_controls -- Logical, optional: If True (default) then call check_lat_controls
-!                       after the split to make sure everything is ok.
+!                       after the remove to make sure everything is ok.
 !
 ! Output:
 !   lat -- lat_struct: Compressed lattice.
@@ -87,7 +87,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   do i = i2+1, branch%n_ele_max
-    call init_ele(branch%ele(i), ix_ele = i)
+    call init_ele(branch%ele(i), ix_ele = i, lat = lat)
   enddo
 
   branch%n_ele_max = i2

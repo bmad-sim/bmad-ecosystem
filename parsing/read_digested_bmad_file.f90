@@ -334,7 +334,7 @@ contains
 subroutine read_this_ele (ele, ix_ele, error)
 
 type (ele_struct), target :: ele
-type (rf_field_mode_struct), pointer :: mode
+type (em_field_mode_struct), pointer :: mode
 type (old_coord_struct) map_in, map_out
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, n_wall_section
@@ -377,10 +377,10 @@ enddo
 
 ! RF field def
 
-call init_rf_field (ele%rf%field, n_rf_field_mode)
+call init_em_field (ele%em_field, n_rf_field_mode)
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
-    mode => ele%rf%field%mode(i)
+    mode => ele%em_field%mode(i)
     read (d_unit, err = 9140) nf, ng, mode%freq, mode%f_damp, mode%theta_t0, mode%stored_energy, &
                                  mode%m, mode%phi_0, mode%field_scale 
     if (nf > 0) then
@@ -462,17 +462,17 @@ enddo
 
 if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
-    call transfer_rf_wake (lat%ele(abs(ix_lr))%rf%wake, ele%rf%wake)
+    call transfer_rf_wake (lat%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
 
   else
-    call init_wake (ele%rf%wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
-    read (d_unit, err = 9800) ele%rf%wake%sr_file
-    read (d_unit, err = 9810) ele%rf%wake%sr_table
-    read (d_unit, err = 9840) ele%rf%wake%sr_mode_long
-    read (d_unit, err = 9850) ele%rf%wake%sr_mode_trans
-    read (d_unit, err = 9820) ele%rf%wake%lr_file
-    read (d_unit, err = 9830) ele%rf%wake%lr
-    read (d_unit, err = 9860) ele%rf%wake%z_sr_mode_max
+    call init_wake (ele%rf_wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
+    read (d_unit, err = 9800) ele%rf_wake%sr_file
+    read (d_unit, err = 9810) ele%rf_wake%sr_table
+    read (d_unit, err = 9840) ele%rf_wake%sr_mode_long
+    read (d_unit, err = 9850) ele%rf_wake%sr_mode_trans
+    read (d_unit, err = 9820) ele%rf_wake%lr_file
+    read (d_unit, err = 9830) ele%rf_wake%lr
+    read (d_unit, err = 9860) ele%rf_wake%z_sr_mode_max
   endif
 endif
 
@@ -525,7 +525,7 @@ return
 9140  continue
 if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-        'ERROR READING RF%FIELD COMPONENT FOR ELEMENT: ' // ele%name)
+        'ERROR READING EM_FIELD COMPONENT FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 bmad_status%ok = .false.

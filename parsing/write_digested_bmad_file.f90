@@ -197,7 +197,7 @@ subroutine write_this_ele (ele)
 type (ele_struct), target :: ele
 type (taylor_struct), pointer :: tt(:)
 type (rf_wake_struct), pointer :: wake
-type (rf_field_mode_struct), pointer :: mode
+type (em_field_mode_struct), pointer :: mode
 
 integer ix_wig, n_wall_section, ix_const, ix_r, ix_d, ix_m, ix_t(6)
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr
@@ -221,25 +221,25 @@ if (associated(ele%descrip))        ix_d = 1
 if (associated(ele%a_pole))         ix_m = 1
 if (associated(tt(1)%term))         ix_t = [(size(tt(j)%term), j = 1, 6)]
 if (associated(ele%wall3d%section)) n_wall_section = size(ele%wall3d%section)
-if (associated(ele%rf%field))       n_rf_field_mode = size(ele%rf%field%mode)
+if (associated(ele%em_field))       n_rf_field_mode = size(ele%em_field%mode)
 
 ! Since some large lattices with a large number of wakes can take a lot of time writing 
 ! the wake info we only write a wake when needed.
 ! The idea is that ix_lr serves as a pointer to a previously written wake.
 
 write_wake = .true.
-if (associated(ele%rf%wake)) then
+if (associated(ele%rf_wake)) then
   do j = 1, n_wake
-    if (.not. lat%ele(ix_wake(j))%rf%wake == ele%rf%wake) cycle
+    if (.not. lat%ele(ix_wake(j))%rf_wake == ele%rf_wake) cycle
     write_wake = .false.
     ix_lr = -ix_wake(j)        
   enddo
 
   if (write_wake) then
-    if (associated(ele%rf%wake%sr_table))      ix_sr_table      = size(ele%rf%wake%sr_table)
-    if (associated(ele%rf%wake%sr_mode_long))  ix_sr_mode_long  = size(ele%rf%wake%sr_mode_long)
-    if (associated(ele%rf%wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%rf%wake%sr_mode_trans)
-    if (associated(ele%rf%wake%lr))            ix_lr            = size(ele%rf%wake%lr)
+    if (associated(ele%rf_wake%sr_table))      ix_sr_table      = size(ele%rf_wake%sr_table)
+    if (associated(ele%rf_wake%sr_mode_long))  ix_sr_mode_long  = size(ele%rf_wake%sr_mode_long)
+    if (associated(ele%rf_wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%rf_wake%sr_mode_trans)
+    if (associated(ele%rf_wake%lr))            ix_lr            = size(ele%rf_wake%lr)
     n_wake = n_wake + 1
     ix_wake(n_wake) = ele%ix_ele
   endif
@@ -282,7 +282,7 @@ write (d_unit) ix_value(1:k), value(1:k)
 
 if (n_rf_field_mode > 0) then
   do i = 1, n_rf_field_mode
-    mode => ele%rf%field%mode(i)
+    mode => ele%em_field%mode(i)
     nf = 0
     if (associated(mode%map)) nf = size(mode%map%term)
     ng = 0
@@ -333,14 +333,14 @@ do j = 1, 6
   enddo
 enddo
 
-if (associated(ele%rf%wake) .and. write_wake) then
-  write (d_unit) ele%rf%wake%sr_file
-  write (d_unit) ele%rf%wake%sr_table
-  write (d_unit) ele%rf%wake%sr_mode_long
-  write (d_unit) ele%rf%wake%sr_mode_trans
-  write (d_unit) ele%rf%wake%lr_file
-  write (d_unit) ele%rf%wake%lr
-  write (d_unit) ele%rf%wake%z_sr_mode_max
+if (associated(ele%rf_wake) .and. write_wake) then
+  write (d_unit) ele%rf_wake%sr_file
+  write (d_unit) ele%rf_wake%sr_table
+  write (d_unit) ele%rf_wake%sr_mode_long
+  write (d_unit) ele%rf_wake%sr_mode_trans
+  write (d_unit) ele%rf_wake%lr_file
+  write (d_unit) ele%rf_wake%lr
+  write (d_unit) ele%rf_wake%z_sr_mode_max
 endif
 
 call write_this_wall3d (ele%wall3d)

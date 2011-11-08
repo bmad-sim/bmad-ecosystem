@@ -446,14 +446,14 @@ do ie = npos1, npos2-1
       endif
 
       if ((ix1 /= 0) .and. (ix2 /= 0)) then
-        allocate (ele%rf%wake)
-        allocate (ele%rf%wake%sr_mode_long(0), ele%rf%wake%sr_mode_trans(0), ele%rf%wake%lr(0))
+        allocate (ele%rf_wake)
+        allocate (ele%rf_wake%sr_mode_long(0), ele%rf_wake%sr_mode_trans(0), ele%rf_wake%lr(0))
         name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
         name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
-        ele%rf%wake%sr_file = 'xsif:: ' // trim(name1) // ' | ' // trim(name2)
-        call read_xsif_wake (ele%rf%wake%sr_table, name1, 'LONG')
-        call read_xsif_wake (ele%rf%wake%sr_table, name2, 'TRANS')
-        ele%rf%wake%z_sr_mode_max = 0
+        ele%rf_wake%sr_file = 'xsif:: ' // trim(name1) // ' | ' // trim(name2)
+        call read_xsif_wake (ele%rf_wake%sr_table, name1, 'LONG')
+        call read_xsif_wake (ele%rf_wake%sr_table, name2, 'TRANS')
+        ele%rf_wake%z_sr_mode_max = 0
       endif
 
       lat%param%lattice_type = linear_lattice$

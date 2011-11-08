@@ -32,7 +32,7 @@
 !   type_wake          -- Logical, optional: If True then print the long-range and 
 !                           short-range wakes information. If False then just print
 !                           how many terms the wake has. Default is True.
-!                           If ele%rf%wake is not allocated then this is ignored.
+!                           If ele%rf_wake is not allocated then this is ignored.
 !   type_floor_coords  -- Logical, optional: If True then print the global ("floor")
 !                           coordinates at the exit end of the element.
 !                           Default is False.

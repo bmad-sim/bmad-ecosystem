@@ -120,6 +120,15 @@ do i_b = 0, ubound(lat%branch, 1)
       found_err = .true.
     endif
 
+    ! ele%lat check
+
+    if (.not. associated(ele%lat, lat)) then
+      call out_io (s_fatal$, r_name, &
+                'ELEMENT: ' // trim(ele%name) // '   (\i0\)', &
+                'HAS BAD ELE%LAT POINTER.')
+      found_err = .true.
+    endif
+
     ! branch check
 
     if (ele%key == branch$ .or. ele%key == photon_branch$) then

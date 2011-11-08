@@ -6,7 +6,7 @@ interface operator (==)
   module procedure eq_coord, eq_twiss, eq_xy_disp, eq_floor_position
   module procedure eq_taylor_term, eq_taylor, eq_wig_term, eq_mode3
   module procedure eq_sr_table_wake, eq_sr_mode_wake, eq_lr_wake, eq_branch
-  module procedure eq_rf_wake, eq_rf_field_mode, eq_rf_field, eq_space_charge
+  module procedure eq_rf_wake, eq_em_field_mode, eq_em_fields, eq_space_charge
   module procedure eq_modes, eq_bmad_com, eq_em_field, eq_ele, eq_mode_info
   module procedure eq_lat, eq_control, eq_param, eq_amode, eq_linac_mode
   module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
@@ -206,11 +206,11 @@ end function eq_lr_wake
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_rf_field_mode (f1, f2) result (is_eq)
+elemental function eq_em_field_mode (f1, f2) result (is_eq)
 
 implicit none
 
-type (rf_field_mode_struct), intent(in) :: f1, f2
+type (em_field_mode_struct), intent(in) :: f1, f2
 integer i
 logical is_eq
 
@@ -245,16 +245,16 @@ if (associated(f1%grid)) then
   if (.not. is_eq) return
 endif
 
-end function eq_rf_field_mode
+end function eq_em_field_mode
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-elemental function eq_rf_field (f1, f2) result (is_eq)
+elemental function eq_em_fields (f1, f2) result (is_eq)
 
 implicit none
 
-type (rf_field_struct), intent(in) :: f1, f2
+type (em_fields_struct), intent(in) :: f1, f2
 integer i
 logical is_eq
 
@@ -282,7 +282,7 @@ endif
 ! if (allocated(f1%t_ref)) is_eq = is_eq .and. all(f1%t_ref == f2%t_ref)
 ! if (allocated(f1%e_tot_ref)) is_eq = is_eq .and. all(f1%e_tot_ref == f2%e_tot_ref)
 
-end function eq_rf_field
+end function eq_em_fields
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -628,7 +628,7 @@ is_eq = is_eq .and. (associated(f1%gen_field) .eqv. associated(f2%gen_field));  
 do i = 1, size(f1%taylor)
   if (.not. (f1%taylor(i) == f2%taylor(i))) then; is_eq = .false.; return; endif
 enddo
-is_eq = is_eq .and. (associated(f1%rf%field) .eqv. associated(f2%rf%field));  if (.not. is_eq) return 
+is_eq = is_eq .and. (associated(f1%em_field) .eqv. associated(f2%em_field));  if (.not. is_eq) return 
 !! check rf field here...
 !! is_eq = is_eq .and. (associated(f1%rf%wake) .eqv. associated(f2%rf%wake));  if (.not. is_eq) return 
 !! if (associated(f1%rf%wake)) then

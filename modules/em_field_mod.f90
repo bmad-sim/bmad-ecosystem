@@ -181,8 +181,8 @@ type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: t
 type (em_field_struct), intent(out) :: field
 type (em_field_point_struct) :: local_field
-type (rf_field_mode_struct), pointer :: mode
-type (rf_field_map_term_struct), pointer :: term
+type (em_field_mode_struct), pointer :: mode
+type (em_field_map_term_struct), pointer :: term
 
 real(rp) :: x, y, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
@@ -576,8 +576,8 @@ select case (ele%key)
 ! RFcavity and Lcavity
 
 case(rfcavity$, lcavity$)
-  if (.not. associated(ele%rf%field)) then
-      print *, 'ERROR IN EM_FIELD_CALC: No accociated rf%field for field calc = Map'
+  if (.not. associated(ele%em_field)) then
+      print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Map'
       call err_exit
   endif
 
@@ -595,10 +595,10 @@ case(rfcavity$, lcavity$)
     else
       t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
     endif
-    t_ref = t_ref / ele%rf%field%mode(1)%freq
+    t_ref = t_ref / ele%em_field%mode(1)%freq
 
-    do i = 1, size(ele%rf%field%mode)
-      mode => ele%rf%field%mode(i)
+    do i = 1, size(ele%em_field%mode)
+      mode => ele%em_field%mode(i)
       m = mode%m
 
       k_t = twopi * mode%freq / c_light
@@ -697,8 +697,8 @@ select case (ele%key)
 
 case(rfcavity$, lcavity$)
 
-  if (.not. associated(ele%rf%field)) then
-    print *, 'ERROR IN EM_FIELD_CALC: No accociated rf%field for field calc = Grid'
+  if (.not. associated(ele%em_field)) then
+    print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Grid'
     call err_exit
   endif
   
@@ -714,12 +714,12 @@ case(rfcavity$, lcavity$)
   else
     t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
   endif
-  t_ref = t_ref / ele%rf%field%mode(1)%freq
+  t_ref = t_ref / ele%em_field%mode(1)%freq
 
 
   !Loop over modes
-  do i = 1, size(ele%rf%field%mode)
-    mode => ele%rf%field%mode(i)
+  do i = 1, size(ele%em_field%mode)
+    mode => ele%em_field%mode(i)
     m = mode%m
     
     expt = mode%field_scale * exp(-I_imaginary * twopi * &
