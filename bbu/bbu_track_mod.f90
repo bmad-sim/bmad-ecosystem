@@ -112,8 +112,8 @@ call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
 j = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
-  if (.not. associated(ele%rf%wake)) cycle
-  if (size(ele%rf%wake%lr) == 0) cycle
+  if (.not. associated(ele%rf_wake)) cycle
+  if (size(ele%rf_wake%lr) == 0) cycle
   j = j + 1
 enddo
 
@@ -144,8 +144,8 @@ bbu_beam%stage(1)%ix_head_bunch = 1
 j = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
-  if (.not. associated(ele%rf%wake)) cycle
-  if (size(ele%rf%wake%lr) == 0) cycle
+  if (.not. associated(ele%rf_wake)) cycle
+  if (size(ele%rf_wake%lr) == 0) cycle
   j = j + 1
   bbu_beam%stage(j)%ix_ele_lr_wake = i
   call multipass_chain (ele, lat, ix_pass, n_links, chain_ele)
@@ -579,8 +579,8 @@ hom_voltage_max = -1
 i = bbu_beam%ix_last_stage_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1
 ix = bbu_beam%stage(i1)%ix_ele_lr_wake
-do j = 1, size(lat%ele(ix)%rf%wake%lr)
-  lr => lat%ele(ix)%rf%wake%lr(j)
+do j = 1, size(lat%ele(ix)%rf_wake%lr)
+  lr => lat%ele(ix)%rf_wake%lr(j)
   hom_voltage2 = max(lr%b_sin**2 + lr%b_cos**2, lr%a_sin**2 + lr%a_cos**2)
   if (hom_voltage_max < hom_voltage2) then
     hom_voltage_max = hom_voltage2
@@ -663,9 +663,9 @@ do i = 1, lat%n_ele_track
   if (lat%ele(i)%key == LCAVITY$ ) then
     time=time+(lat%ele(i)%value(l$))/c_light*(1+0.5/(gamma*lat%ele(i-1)%value(E_TOT$)/m_electron))
     judge=.false.  ! True if the rf cavity has wake fields
-    if (associated(lat%ele(i)%rf%wake)) then
-      do j=1, size(lat%ele(i)%rf%wake%lr)
-        if (lat%ele(i)%rf%wake%lr(j)%R_over_Q > 1E-10) judge=.true.
+    if (associated(lat%ele(i)%rf_wake)) then
+      do j=1, size(lat%ele(i)%rf_wake%lr)
+        if (lat%ele(i)%rf_wake%lr(j)%R_over_Q > 1E-10) judge=.true.
       enddo
     endif
     if (judge) then
@@ -702,9 +702,9 @@ do i=0, lat%n_ele_track
    mat=matmul(lat%ele(i)%mat6, oldmat) 
   
    if (lat%ele(i)%key == LCAVITY$ ) then
-     if(associated(lat%ele(i)%rf%wake)) then
-       do j=1, size(lat%ele(i)%rf%wake%lr)
-          if(lat%ele(i)%rf%wake%lr(j)%R_over_Q >1E-10) then            
+     if(associated(lat%ele(i)%rf_wake)) then
+       do j=1, size(lat%ele(i)%rf_wake%lr)
+          if(lat%ele(i)%rf_wake%lr(j)%R_over_Q >1E-10) then            
             judge =.true.
           endif
        enddo
@@ -739,7 +739,7 @@ do i=0, lat%n_ele_track
 
       if(erltime(k).gt.0.)then
 
-        do j=1, size(lat%ele(i)%rf%wake%lr)
+        do j=1, size(lat%ele(i)%rf_wake%lr)
 
 ! Analytic approximation is not valid if any cavity has more than one HOM
            if (j.gt.1)anavalid=.false.
@@ -747,18 +747,18 @@ do i=0, lat%n_ele_track
            ! This code uses the "linac definition" of R/Q, which is
            ! a factor of two larger than the "circuit definition." 
            ! The HOM files are in the "circuit definition" and
-           ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%rf%wake%lr(j)%R_over_Q is in Ohms.
-           rovq = 2*lat%ele(i)%rf%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%rf%wake%lr(j)%freq))**2
+           ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%rf_wake%lr(j)%R_over_Q is in Ohms.
+           rovq = 2*lat%ele(i)%rf_wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%rf_wake%lr(j)%freq))**2
 !           print *,' RovQ in Ohms',rovq
 
           ! Follow PRSTAB 7, 054401 (2004) (some bug here)
- !          kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%rf%wake%lr(j)%freq)**2 )
+ !          kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%rf_wake%lr(j)%freq)**2 )
 
-           cnumerator = 2  * c_light / ( rovq * lat%ele(i)%rf%wake%lr(j)%Q * 2*pi*lat%ele(i)%rf%wake%lr(j)%freq )
+           cnumerator = 2  * c_light / ( rovq * lat%ele(i)%rf_wake%lr(j)%Q * 2*pi*lat%ele(i)%rf_wake%lr(j)%freq )
 
-           stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq*erltime(k) ) 
+           stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq*erltime(k) ) 
 
-           epsilon =  2*pi*lat%ele(i)%rf%wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%rf%wake%lr(j)%Q )
+           epsilon =  2*pi*lat%ele(i)%rf_wake%lr(j)%freq / ( bunch_freq * 2*lat%ele(i)%rf_wake%lr(j)%Q )
            nr = int(erltime(k)*bunch_freq) + 1
            trtb = erltime(k)*bunch_freq
 
@@ -770,32 +770,32 @@ do i=0, lat%n_ele_track
             else
 ! Threshold current for case epsilon * nr <<1 and T12*sin omega_lambda*tr > 0
               currth = cnumerator / ( epsilon * abs(mat(1,2)) )
-              if ( mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k), pi ) .le. pi/2 )then
-               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k), pi ) / nr )**2 )
-!               print *,' First half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k), pi )
+              if ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k), pi ) .le. pi/2 )then
+               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k), pi ) / nr )**2 )
+!               print *,' First half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k), pi )
               else
-               currth = currth * sqrt ( epsilon**2 + ( (pi - mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k), pi )) / nr )**2 )
-!               print *,' Second half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k), pi )
+               currth = currth * sqrt ( epsilon**2 + ( (pi - mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k), pi )) / nr )**2 )
+!               print *,' Second half. Currth, Mod =',currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k), pi )
               endif
             endif
            elseif (nr*epsilon.gt.2.)then
 ! Threshold current for case epsilon * nr >> 1
               currth = cnumerator / ( epsilon * abs(mat(1,2)) )
 !
-!              if ( mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )  .le. pi )then
-!               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi ) / nr )**2 )
-!               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
+!              if ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )  .le. pi )then
+!               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi ) / nr )**2 )
+!               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
 !              else
-!               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )) / nr )**2 )
-!               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
+!               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )) / nr )**2 )
+!               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
 !              endif
 !
-              if ( mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
-               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi ) / nr )**2 )
-               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+              if ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
+               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi ) / nr )**2 )
+               print *,' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
               else
-               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )) / nr )**2 )
-               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )) / nr )**2 )
+               print *,' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%rf_wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
               endif
 !!!!!!!!             currth = abs ( cnumerator / mat(1,2) )
            else
@@ -804,14 +804,14 @@ do i=0, lat%n_ele_track
 
 
           ! Threshold current for coupling
-          poltheta = 2*pi*lat%ele(i)%rf%wake%lr(j)%angle
+          poltheta = 2*pi*lat%ele(i)%rf_wake%lr(j)%angle
           matc = mat(1,2)*cos(poltheta)**2 + ( mat(1,4) + mat(3,2) )*sin(poltheta)*cos(poltheta) + mat(3,4)*sin(poltheta)**2
           currthc = currth * abs ( mat(1,2) / matc )
 
           print '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', k, j, currth, currthc, erltime(k), &
-                           lat%ele(i)%rf%wake%lr(j)%freq, lat%ele(i)%rf%wake%lr(j)%R_over_Q,lat%ele(i)%rf%wake%lr(j)%Q,lat%ele(i)%rf%wake%lr(j)%angle, &
+                           lat%ele(i)%rf_wake%lr(j)%freq, lat%ele(i)%rf_wake%lr(j)%R_over_Q,lat%ele(i)%rf_wake%lr(j)%Q,lat%ele(i)%rf_wake%lr(j)%angle, &
                            mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
-                           sin (2*pi*lat%ele(i)%rf%wake%lr(j)%freq*erltime(k)),trtb
+                           sin (2*pi*lat%ele(i)%rf_wake%lr(j)%freq*erltime(k)),trtb
 
           print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, ' Ohms  epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
 

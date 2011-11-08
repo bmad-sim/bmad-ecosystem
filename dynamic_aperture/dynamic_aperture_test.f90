@@ -124,24 +124,14 @@ end interface
 
 ! init
 
-  do 
-
-    print '(a, $)', ' Input command file <CR = DA_TEST.IN>: '
-    read(*, '(a)') in_file
-    call string_trim (in_file, in_file, ix)
-    if (ix == 0)in_file = 'da_test.in'
-    call file_suffixer (in_file, in_file, '.in', .false.)
-
+    in_file = 'da_test.in'
     open (unit = 1, file = in_file, status = 'old', iostat = ios)
 
-    if (ios == 0) then
-      exit
-    else
+    if (ios /= 0) then
       print *
       print *, 'ERROR: CANNOT OPEN FILE: ', trim(in_file)
+      call err_exit
     endif
-
-  enddo
 
   Qx=0
   Qy=0
@@ -169,11 +159,11 @@ end interface
   close (unit = 1)
 
   call bmad_and_xsif_parser (lat_file, ring)
-!  if(delta_fRF /= 0.)then
-!     path_length_patch = .false.
-!     call implement_pathlength_patch(path_length_patch,ring, delta_fRF, fRF) ! problematic? 2011.11.05 JSh
-!     i_dim = 6
-!  endif
+  if(delta_fRF /= 0.)then
+     path_length_patch = .false.
+     call implement_pathlength_patch(path_length_patch,ring, delta_fRF, fRF) ! problematic? 2011.11.05 JSh
+     i_dim = 6
+  endif
   call reallocate_coord (co, ring%n_ele_track)
   allocate(dk1(ring%n_ele_max))
 
