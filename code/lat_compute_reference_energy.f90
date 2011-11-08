@@ -131,6 +131,7 @@ if (bmad_com%auto_bookkeeper .or. lat%param%status%ref_energy == stale$) then
     if (.not. bmad_com%auto_bookkeeper .and. lord%status%ref_energy /= stale$) cycle
 
     call set_ele_status_stale (lord, lat%param, attribute_group$)
+    lord%status%ref_energy = ok$
 
     ! Multipass lords have their own reference energy if n_ref_pass /= 0.
 
