@@ -120,7 +120,7 @@ endif
 if (err_flag) then
   if (bmad_status%type_out) call out_io (s_fatal$, r_name, &
         'S-POSITION \f14.8\ PAST EDGE OF LATTICE. ' , &
-        'PAST LATTICE EDGE AT: \f14.8\ ', r_array = [s, s_bound])
+        'PAST LATTICE EDGE AT: \es14.6\ ', r_array = [s, s_bound])
   if (bmad_status%exit_on_error) call err_exit
 endif
 

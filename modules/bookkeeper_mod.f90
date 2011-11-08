@@ -279,7 +279,7 @@ do
   all_bookkeeping_done = .true.
   ie_loop: do ie = n1, n2
     ele2 => lat%ele(ie)
-    if (ele2%status%control /= stale$) cycle
+    if (ele2%status%control /= stale$ .and. ele2%status%attributes /= stale$) cycle
     do j = 1, ele2%n_lord
       lord => pointer_to_lord (lat, ele2, j)
       if (lord%status%control /= stale$ .and. lord%status%attributes /= stale$) cycle
