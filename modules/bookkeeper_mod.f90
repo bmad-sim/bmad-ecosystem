@@ -282,7 +282,7 @@ do
     if (ele2%status%control /= stale$) cycle
     do j = 1, ele2%n_lord
       lord => pointer_to_lord (lat, ele2, j)
-      if (lord%status%control /= stale$) cycle
+      if (lord%status%control /= stale$ .and. lord%status%attributes /= stale$) cycle
       all_bookkeeping_done = .false.  ! This element remains to be done.
       cycle ie_loop ! Do not do bookkeeping yet if lord not done yet.
     enddo
