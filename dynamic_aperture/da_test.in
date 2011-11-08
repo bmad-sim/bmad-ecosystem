@@ -1,5 +1,5 @@
  &input
-    auto_bookkeeper = .true. ! set to 'false' to use intelligent bookkeeping
+    auto_bookkeeper = .false. ! set to 'false' to use intelligent bookkeeping
     lat_file = '/nfs/cesr/online/machine_data/lattice/cesr/bmad/cta_2085mev_20081107.lat'
     n_turn   = 20
     n_xy_pts = 37
