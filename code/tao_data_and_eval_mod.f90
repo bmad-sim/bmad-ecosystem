@@ -1676,7 +1676,7 @@ case ('rad_int1.')
   select case (datum%data_type(10:))
   case ('i1')
     datum_value = tao_lat%rad_int%i1(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i1(ix_ele)
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i1(ix_ref)
 
   case ('i2')
     datum_value = tao_lat%rad_int%i2(ix_ele)
@@ -2560,6 +2560,7 @@ if (datum%data_type(1:14) == 'element_param.') return
 if (ix_ele <= n_track) return
 
 if (ele%lord_status == super_lord$) then
+  if (datum%data_type(1:8) == 'rad_int1') return  ! Since rad_int1 is integraged radiation integral over the element.
   ele => pointer_to_slave (lat, ele, ele%n_slave)
   return
 endif
