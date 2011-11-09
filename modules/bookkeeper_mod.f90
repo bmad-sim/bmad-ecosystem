@@ -2362,6 +2362,17 @@ case (lcavity$)
     endif
   endif
 
+! E_Gun
+
+case (e_gun$)
+  if (ele%lord_status /= multipass_lord$) then
+    if (val(gradient$) /= ele%old_value(gradient$) .or. val(l$) /= ele%old_value(l$)) then
+      call set_ele_status_stale (ele, param, ref_energy_group$)
+      val(voltage$) = val(gradient$) * val(l$)
+    endif
+  endif
+
+
 ! RFcavity
 
 case (rfcavity$)
@@ -2840,7 +2851,7 @@ case (init_ele$)
 
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
-      associated(a_ptr, ele%value(rho$))) then
+      associated(a_ptr, ele%value(rho$)) .or. associated(a_ptr, ele%value(b_field$))) then
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
   endif
 

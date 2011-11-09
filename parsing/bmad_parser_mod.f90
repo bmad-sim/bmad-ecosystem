@@ -4480,6 +4480,9 @@ case (hkicker$, vkicker$)
       ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
        'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
 
+case (e_gun$)
+  if (ele%value(gradient$) == 0 .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+
 end select
 
 ! set ds_step if not already set.
@@ -4940,7 +4943,8 @@ line_expansion: do
       if (j == 0) then  ! if not a sequence then I don't know what it is
         call parser_warning ('CANNOT FIND DEFINITION FOR: ' // name, &
                           'IN LINE: ' // seq%name, seq = seq)
-        call err_exit
+        if (bmad_status%exit_on_error) call err_exit
+        return
       endif
       s_ele%ix_ele = j
       s_ele%type = sequence(j)%type
