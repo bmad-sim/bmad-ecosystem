@@ -688,14 +688,8 @@ end select
 !----------------------------------------------------------------------------
 case(grid$)
 
-!------------------------------------------
-!------------------------------------------
-select case (ele%key)
-
-!------------------------------------------
-! RFcavity and Lcavity
-
-case(rfcavity$, lcavity$)
+  !-----------------------------------------
+  ! 
 
   if (.not. associated(ele%em_field)) then
     print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Grid'
@@ -708,20 +702,24 @@ case(rfcavity$, lcavity$)
   !???
   s_pos = s_rel + ele%value(ds_slave_offset$)
 
-  !reference time
-  if (ele%key == rfcavity$) then
-    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) 
-  else
-    t_ref = -(ele%value(phi0$) + ele%value(dphi0$))
-  endif
-  t_ref = t_ref / ele%em_field%mode(1)%freq
+  !reference time for oscillating elements
+  select case (ele%key)
+    case(rfcavity$) 
+      t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
+  
+    case(lcavity$)
+      t_ref = -(ele%value(phi0$) + ele%value(dphi0$))  / ele%em_field%mode(1)%freq
 
+    case default
+      t_ref = 0
+  end select
 
   !Loop over modes
   do i = 1, size(ele%em_field%mode)
     mode => ele%em_field%mode(i)
     m = mode%m
     
+    !DC modes should have mode%freq = 0
     expt = mode%field_scale * exp(-I_imaginary * twopi * &
 					(mode%freq * (t_rel + t_ref) + mode%theta_t0))
 
@@ -745,8 +743,8 @@ case(rfcavity$, lcavity$)
 	    if (r /= 0) then
 		  !Get non-rotated field
 		  E_rho = real(expt*local_field%E(1))
- 		  E_phi = 0.0 
- 		  B_rho = 0.0 
+ 		  E_phi = real(expt*local_field%E(2))
+ 		  B_rho = real(expt*local_field%B(1)) 
 	 	  B_phi = real(expt*local_field%B(2))
 
 		 !rotate field and output Ex, Ey, Bx, By
@@ -758,28 +756,13 @@ case(rfcavity$, lcavity$)
 	
 	   !Ez, Bz 
 	     field%e(3) = field%e(3) + real(expt*local_field%E(3))
-	     ! field%b(3) = field%b(3) +  0.0 
+	     field%b(3) = field%b(3) + real(expt*local_field%B(3)) 
   
       case default
         call out_io (s_fatal$, r_name, 'UNKOWN GRID TYPE FOR ELEMENT: ' // ele%name)
         call err_exit
     end select
   enddo
-
-!------------------------------------------
-! Error
-
-case default
-  print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED FOR GRID METHOD: ', key_name(ele%key)
-  print *, '      FOR: ', ele%name
-  call err_exit
-end select
-!------------------------------------------
-!------------------------------------------
-
-
-
-
 
 
 !----------------------------------------------------------------------------

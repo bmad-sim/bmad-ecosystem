@@ -637,7 +637,7 @@ endif
 
 ! rf field
 
-if (attrib_word == 'RF_FIELD') then
+if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
   ! Expect "= {"
   call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
