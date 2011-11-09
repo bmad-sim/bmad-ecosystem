@@ -120,7 +120,7 @@ if (param%end_lost_at == live_reversed$) then
    !Particle must be moving backwards
    !The sign of p0c is used in s->t conversion
    p0c = -1*ele%value(p0c$)
-   ref_time = ele%ref_time
+   !ref_time = ele%ref_time
    call offset_particle(ele, param, start, set$, set_canonical = .false.,  reversed = .true. ) 
 else
    !Forward moving particle
@@ -130,17 +130,18 @@ else
    else
       p0c = ele%value(p0c$)
    end if
-   ref_time = ele%ref_time - ele%value(delta_ref_time$)
+   !ref_time = ele%ref_time - ele%value(delta_ref_time$)
    call offset_particle(ele, param, start, set$, set_canonical = .false., &
      reversed = .false. )    
 end if
+
+! ele(s-based) -> ele(t-based)
+call convert_particle_coordinates_s_to_t(start, p0c)
 
 start%t = start%t - (ele%ref_time - ele%value(delta_ref_time$))
 start%s = start%s - (ele%s - ele%value(l$))
 start%vec(5) = start%s
 
-! ele(s-based) -> ele(t-based)
-call convert_particle_coordinates_s_to_t(start, p0c)
 
 !------
 !Check wall or aperture at beginning of element
@@ -179,24 +180,33 @@ end if
 
 !Define p0c and ref_time at end of tracking
 if (param%end_lost_at == entrance_end$) then
-   if (ele%key == lcavity$ .or. ele%key == custom$ .or. &
-        ele%key == patch$ .or. ele%key == hybrid$) then
-      p0c = ele%value(p0c_start$)
-   else
-      p0c = ele%value(p0c$)
-   end if
-   ref_time = ele%ref_time - ele%value(delta_ref_time$)
+  if (ele%key == lcavity$ .or. ele%key == custom$ .or. &
+       ele%key == patch$ .or. ele%key == hybrid$) then
+     p0c = ele%value(p0c_start$)
+  else
+     p0c = ele%value(p0c$)
+  end if
+  ref_time = ele%ref_time - ele%value(delta_ref_time$)
+
+  !ele(t-based) -> ele(s-based)
+  call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+  !unset
+  call offset_particle(ele, param, end, unset$, set_canonical = .false., &
+     reversed = .true. ) 
 else
-   p0c = ele%value(p0c$)
-   ref_time = ele%ref_time
+  p0c = ele%value(p0c$)
+  ref_time = ele%ref_time
+  
+  !ele(t-based) -> ele(s-based)
+  call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+  !unset
+  call offset_particle(ele, param, end, unset$, set_canonical = .false., &
+     reversed = .false. ) 
 end if
-call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
+
 end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
 end%s = end%s + (ele%s - ele%value(l$))
 
-!ele(t-based) -> ele(s-based)
-call offset_particle(ele, param, start, unset$, set_canonical = .false., &
-     reversed = .true. ) 
 
 
 
