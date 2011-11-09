@@ -58,7 +58,7 @@ type (ele_struct), allocatable, save :: old_ele(:)
 
 real(rp) v1, v2
 
-integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num
+integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
 integer key, n_max_old, digested_version
 integer, pointer :: n_max
 integer, allocatable :: lat_indexx(:)
@@ -77,7 +77,7 @@ character(80) debug_line
 
 logical, optional :: make_mats6, digested_read_ok
 logical parsing, delim_found, found, xsif_called, err, wild_here, key_here
-logical end_of_file, err_flag, finished, good_attrib, wildcards_permitted
+logical end_of_file, err_flag, finished, good_attrib, wildcards_permitted, integer_permitted
 logical print_err, check
 
 ! Init...
@@ -167,7 +167,8 @@ parsing_loop: do
     ix_word = 8
   else
     wildcards_permitted = (delim == '[')  ! For 'q*[x_offset] = ...' constructs
-    call verify_valid_name(word_1, ix_word, wildcards_permitted)
+    integer_permitted = (delim == '[')    ! For '78[x_offset] = ...' constructs
+    call verify_valid_name(word_1, ix_word, wildcards_permitted, integer_permitted)
   endif
 
   ! PARSER_DEBUG
@@ -286,6 +287,12 @@ parsing_loop: do
     found = .false.
     good_attrib = .false.
 
+    if (is_integer(word_1)) then
+      read (word_1, *) ix_word_1
+    else
+      ix_word_1 = -1
+    endif
+
     do i = 0, n_max
 
       ele => lat%ele(i)
@@ -315,6 +322,8 @@ parsing_loop: do
       elseif (word_1  == 'BEAM_START') then
         ele => beam_start_ele
         check = .false.
+      elseif (ix_word_1 > -1) then
+        if (i /= ix_word_1) cycle
       elseif (ele%name /= word_1) then
         cycle
       endif
@@ -390,6 +399,7 @@ parsing_loop: do
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
     call parser_warning ('LINES OR LISTS NOT PERMITTED: ' // word_1, ' ')
 
+  !-------------------------------------------------------
   ! if not line or list then must be an element
 
   else

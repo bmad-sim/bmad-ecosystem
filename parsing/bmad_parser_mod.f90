@@ -2931,7 +2931,7 @@ end subroutine get_overlay_group_names
 !-
 
 
-subroutine verify_valid_name (name, ix_name, wildcards_permitted)
+subroutine verify_valid_name (name, ix_name, wildcards_permitted, integer_permitted)
 
 implicit none
 
@@ -2942,7 +2942,7 @@ character(27), parameter :: letters = '\ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 character(44), parameter :: valid_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ\0123456789_[]().#'
 character(1), parameter :: tab = achar(9)
 
-logical, optional :: wildcards_permitted
+logical, optional :: wildcards_permitted, integer_permitted
 logical OK, wild_permit
 
 ! init
@@ -2966,6 +2966,12 @@ endif
 ! check for name too short
 
 if (ix_name == 0) call parser_warning ('BLANK NAME')
+
+! Check if integer
+
+if (logic_option(.false., integer_permitted)) then
+  if (is_integer(name)) return
+endif
 
 ! check for invalid characters in name
 
