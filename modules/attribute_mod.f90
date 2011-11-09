@@ -477,6 +477,10 @@ endif
 
 free = .true.
 
+if (ix_attrib == delta_ref_time$) then
+  if (ele%key /= custom$ .and. ele%key /= hybrid$) free = .false.
+endif
+
 select case (ele%key)
 case (sbend$)
   if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .false.
