@@ -180,6 +180,7 @@ do istep = 1, nstep
     enddo
     call make_hybrid_lat (lat_in, keep_ele, .false., lat, ix_out, bbu_param%use_taylor_for_hybrids)
     deallocate (keep_ele)
+    deallocate (ix_out)
   else
     lat = lat_in
   endif
