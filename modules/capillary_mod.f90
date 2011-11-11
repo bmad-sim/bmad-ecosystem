@@ -486,7 +486,7 @@ if (present (perp)) then
   perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
                         (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_photon
   dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
-  dp2 =      sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
+  dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
   perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
   perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
 endif
