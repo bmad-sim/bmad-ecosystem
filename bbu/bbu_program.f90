@@ -15,6 +15,7 @@ type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele, ele2
 
 integer i, ix, j, n_hom, n, n_ele, ix_pass, i_lr, ie
+integer, allocatable :: ix_out(:)
 
 integer istep
 integer :: nstep = 100
@@ -42,6 +43,7 @@ bbu_param%limit_factor = 2           ! Init_hom_amp * limit_factor = simulation 
 bbu_param%hybridize = .true.         ! Combine non-hom elements to speed up simulation?
 bbu_param%keep_overlays_and_groups = .false. ! keep when hybridizing?
 bbu_param%keep_all_lcavities       = .false. ! keep when hybridizing?
+bbu_param%use_taylor_for_hybrids   = .false. ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
 bbu_param%current = 20e-3            ! Starting current (amps)
 bbu_param%rel_tol = 1e-2             ! Final threshold current accuracy.
 bbu_param%write_hom_info = .true.  
@@ -161,6 +163,7 @@ do istep = 1, nstep
   if (bbu_param%hybridize) then
     print *, 'Note: Hybridizing lattice...'
     allocate (keep_ele(lat_in%n_ele_max))
+    allocate (ix_out(lat_in%n_ele_max))
     keep_ele = .false.
     do i = 1, lat_in%n_ele_max
 ! Keep element if defined as end of tracking
@@ -175,7 +178,7 @@ do istep = 1, nstep
       endif
       call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
     enddo
-    call make_hybrid_lat (lat_in, keep_ele, .false., lat)
+    call make_hybrid_lat (lat_in, keep_ele, .false., lat, ix_out, bbu_param%use_taylor_for_hybrids)
     deallocate (keep_ele)
   else
     lat = lat_in
