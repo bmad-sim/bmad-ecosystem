@@ -1,0 +1,96 @@
+Documentation for Regression Testing of Bmad
+
+------------------------------------------------- 
+Overview:
+
+The testing here works by running programs and comparing 
+the output to a file which has the "correct" output. 
+
+Except for any "helper" subdirectories like the "scripts"
+subdirectory, each subdirectory contains the code for one testing
+program and the input files needed for running the program.
+
+The list of subdirectories/programs can be found in the "Makefile"
+file in the regression_testing directory. Look for the M_FILE_LIST
+list.
+
+------------------------------------------------- 
+Running the Tests:
+
+0) Do everything in the the regression_testing directory.
+
+1) Compile and link the programs:
+      make DO_EXTRA_MAKES=Y
+The executables are created in:
+			../bin/
+
+2) Run the testing script:
+      scripts/run_tests.py
+The results will be saved in a file "test.results"
+
+------------------------------------------------- 
+Constructing a new test:
+
+1) Create a new subdirectory of regression_testing. 
+For this documentation call this subdirectory "zzz".
+
+2) In this subdirectory put your testing program code and any input
+files needed for running the program. Additionally, a file
+"output.correct" needs to be present containing the expected output of
+the program. Generation of this file is detailed below.
+
+3) When the program is run, it must generate a file called "output.now"
+that will be compared to "output.correct".
+
+4) The format of the "output.now" is as follows: 
+Lines that are blank or that begin with a "!" exclamation character are ignored.
+All other "specification" lines in the file are composed of a number of fields
+separated by colons ":". The syntax is:
+  "<variable_name>" : <REL_or_ABS> : <tolerance> : <value_1> : <value_2> : ...
+where:
+  <variable_name>  = Name of variable or variables being outputted.
+  <REL_or_ABS>     = Type of tolerance: REL (relative) or ABS (absolute). 
+  <tolerance>      = Allowable tolerance to pass test.
+  <value_1>, etc.  = List of values.
+Double quote marks must be used to surround the <variable_name> field.
+Use of colons withinin this field is permitted.  
+The format of the "output.correct" file is the same as the "output.now" 
+file except the <REL_or_ABS> and <tolerance> fields are absent.
+
+The specification lines of "output.correct" and "output.now" must
+match up.  That is, the N^th specification line of "output.correct"
+and the N^th specification line in "output.now" must have the same
+<variable_name> and the same number of values. Also the
+<variable_name> used for different lines should be unique.
+
+Example specification line for "output.now":
+  "Orbit at s = 34.5" : REL : 1e-4 : 0.023 : -0.0079 : 0.0060 
+
+In this example the "Orbit at s = 34.5" variable has values (0.023, -0.0079, 0.0060). 
+The tolerance is relative so to pass testing the
+corresponding values in "output.correct" must not differ by more than 0.01% 
+
+5) Makefile setup for compiling/linking the program:
+  A) Add a "M.zzz" makefile in the regression_testing directory. 
+Use, say, the existing "M.twiss_track_test" file as a template.
+In the M.zzz makefile substitute "zzz" for "twiss_track_test".
+  B) Edit the "Makefile" in regression_testing and add "M.zzz" 
+to the M_FILE_LIST list.
+
+6) To generate the "output.correct" file: 
+  A) first run the program to generate the "output.now" file.  
+  B) In the directory that contains the "output.now" file, run the script
+          ../scripts/convert_now_to_correct.py
+This script will strip the <variable_name> and <REL_or_ABS> fields in
+a "output.now" file to create a new file named "new.correct" which has
+the correct format for "output.correct". 
+  C) Rename "new.correct" to "output.correct".
+
+6) You are now done. The scripts/run_tests.py script will parse the
+Makefile in order to determine the list of programs to be run.
+
+------------------------------------------------- 
+Future:
+
+At present this is a bare bones system that will be developed as needed so
+for feature requests please please contact David Sagan.
