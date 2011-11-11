@@ -308,15 +308,27 @@ of element, all elements of that type will be set. For example
   rfcavity[voltage] = 3.7                ! Set all RFcavity elements.
 \end{example}
 
-Additionally with element attribute sets, The wild cards \vn{``*''},
+With element attribute sets, The wild cards \vn{``*''},
 and \vn{``\%''} can be used to can be used where \vn{``*''} denotes
 any number of characters and \vn{``%''} denotes a single character. Examples:
 \begin{example}
   *[tracking_method] = bmad_standard  ! Matches all elements.
   Q*[k1] = 0.234                      ! Matches all elements with names beginning with Q.
-  Q%1[k1] = 0.234                     ! Matches to "Q01" but not "Q10".
+  Q%1[k1] = 0.234                     ! Matches to "Q01" but not "Q001".
 \end{example}
 Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
+
+After lattice expansion (\sref{s:expand}), The element index can be
+used to in element attribute sets. The element index is 1 for the
+first element in the lattice, etc. Example:
+\begin{example}
+  expand_lattice          ! Expand the lattice.
+  97[x_offset] = 0.0023   ! Set x_offset attribute of 97th element
+  ... etc ...
+\end{example}
+Generally using the element index should be avoided but it can be
+useful when dealing with a lattice where multiple elements share the
+same name.
 
 \cref{c:elements} gives a list of elements with their attributes.
 
@@ -641,7 +653,7 @@ the file.
 \section{Expand_lattice Statement}
 \label{s:expand}
 \index{lattice!expansion|hyperbf}
-\index{expand_lattice}
+\index{expand_lattice|hyperbf}
 
 At some point in parsing a lattice file, the ordered sequence of
 elements that form a lattice must be constructed. This process is called
