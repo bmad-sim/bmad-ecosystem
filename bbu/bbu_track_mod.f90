@@ -47,6 +47,7 @@ type bbu_param_struct
   logical write_hom_info
   logical keep_overlays_and_groups  ! Keep when hybridizing?
   logical keep_all_lcavities        ! Keep when hybridizing?
+  logical use_taylor_for_hybrids    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
   logical stable_orbit_anal
   real(rp) limit_factor
   real(rp) simulation_turns_max, bunch_freq
