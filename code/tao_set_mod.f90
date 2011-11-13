@@ -778,7 +778,7 @@ select case (component)
 
 case ('ele_ref_name')
   this_curve%ele_ref_name = set_value
-  call tao_locate_elements (this_curve%ele_ref_name, i_uni, eles, error, .true.)
+  call tao_locate_elements (this_curve%ele_ref_name, i_uni, eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
   this_curve%ix_branch  = eles(1)%ele%ix_branch
@@ -795,7 +795,7 @@ case ('ix_universe')
   call tao_integer_set_value (this_curve%ix_universe, component, &
                                             set_value, error, 0, ubound(s%u, 1))
   if (error) return
-  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, eles, error, .true.)
+  call tao_locate_elements (this_curve%ele_ref_name, this_curve%ix_universe, eles, error, ignore_blank = .true.)
   if (size(eles) == 0) return
   this_curve%ix_ele_ref = eles(1)%ele%ix_ele
   this_curve%ix_branch  = eles(1)%ele%ix_branch

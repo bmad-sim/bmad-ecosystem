@@ -19,6 +19,8 @@ use rad_int_common, only: rad_int_common_struct
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
 
+character(8), parameter :: lat_type_name(3) = ['model ', 'base  ', 'design']
+
 logical, save, target :: forever_true$ = .true.
 
 interface assignment (=)
@@ -622,6 +624,7 @@ type tao_lattice_struct
   type (normal_modes_struct) modes                ! Synchrotron integrals stuff
   type (rad_int_common_struct) rad_int
   type (tao_lat_mode_struct) a, b
+  integer ix_rad_int_cache               ! Radiation integrals cache index.
   integer n_bunch_params2                          ! bunch_params2 array size.
 end type
 
@@ -674,7 +677,6 @@ type tao_universe_struct
   integer ix_uni                         ! Universe index.
   integer n_d2_data_used                 ! Number of used %d2_data(:) components.
   integer n_data_used                    ! Number of used %data(:) components.
-  integer ix_rad_int_cache               ! Radiation integrals cache index.
   logical do_rad_int_calc_data           ! Do the radiation integrals need to be computed due 
   logical do_rad_int_calc_plotting       !   to data or a plot depending upon the calc?
   logical do_chrom_calc                  ! Does the chromaticity need to be computed?

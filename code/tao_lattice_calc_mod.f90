@@ -125,7 +125,7 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   if (u%do_rad_int_calc_data .or. u%do_rad_int_calc_plotting) then
     call radiation_integrals (tao_lat%lat, tao_lat%lat_branch(0)%orbit, tao_lat%modes, &
-                                                             u%ix_rad_int_cache, tao_lat%rad_int)
+                                                             tao_lat%ix_rad_int_cache, tao_lat%rad_int)
   endif
 
   if (u%do_chrom_calc) call chrom_calc (tao_lat%lat, delta_e, &

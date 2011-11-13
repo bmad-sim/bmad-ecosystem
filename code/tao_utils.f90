@@ -247,12 +247,9 @@ end subroutine tao_pick_universe
 !+
 ! Subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank) 
 !
-! Subroutine to find the lattice elements in the lattice
-! corresponding to the ele_list argument. 
+! Subroutine to find the lattice elements in the lattice corresponding to the ele_list argument. 
 !
-! Note: If ele_list can contain elements from different universes, use
-! the routine:
-!   tao_locate_all_elements 
+! See also tao_locate_elements for a routine that only searches one given universe.
 !
 ! Input:
 !   ele_list     -- Character(*): String with element names using element list format.
@@ -331,7 +328,7 @@ end subroutine tao_locate_all_elements
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_locate_elements (ele_list, ix_universe, eles, err, ignore_blank, print_err) 
+! Subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, print_err) 
 !
 ! Subroutine to find the lattice elements in the lattice
 ! corresponding to the ele_list argument. 
@@ -343,6 +340,7 @@ end subroutine tao_locate_all_elements
 ! Input:
 !   ele_list     -- Character(*): String with element names using element list format.
 !   ix_universe  -- Integer: Universe to search. 0 => search s%global%u_view.
+!   lat_type     -- Integer, optional: model$ (default), design$, or base$.
 !   ignore_blank -- Logical, optional: If present and true then do nothing if
 !     ele_list is blank. otherwise treated as an error.
 !   print_err    -- Logical, optional: If present and False then do not print error messages.
@@ -352,13 +350,15 @@ end subroutine tao_locate_all_elements
 !   err   -- Logical: Set true on error.
 !-
 
-subroutine tao_locate_elements (ele_list, ix_universe, eles, err, ignore_blank, print_err)
+subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, print_err)
 
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (tao_lattice_struct), pointer :: tao_lat
 type (ele_pointer_struct), allocatable :: eles(:)
 
+integer, optional :: lat_type
 integer ios, ix, ix_universe, num, i, i_ix_ele, n_loc
 
 character(*) ele_list
@@ -388,7 +388,9 @@ endif
 u => tao_pointer_to_universe (ix_universe)
 if (.not. associated(u)) return
 
-call lat_ele_locator (ele_name, u%model%lat, eles, n_loc, err)
+tao_lat => tao_pointer_to_tao_lat (u, lat_type)
+
+call lat_ele_locator (ele_name, tao_lat%lat, eles, n_loc, err)
 if (err) return
 
 if (n_loc == 0) then
@@ -400,6 +402,55 @@ endif
 call re_allocate_eles (eles, n_loc, .true., .true.)
 
 end subroutine tao_locate_elements
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function tao_pointer_to_tao_lat (u, lat_type) result (tao_lat)
+!
+! Routine to set a pointer to a tao_lat.
+!
+! Also see:
+!   tao_pointer_to_universe
+!
+! Input:
+!   u         -- Tao_universe_struct: Universe to work with
+!   lat_type  -- Integer, optional: model$ (default), design$, or base$.
+!
+! Output:
+!   tao_lat   -- tao_lattice_struct, pointer: Tao_lat pointer. 
+!                   Points to u%model, u%design, or u%base
+!-
+
+function tao_pointer_to_tao_lat (u, lat_type) result (tao_lat)
+
+implicit none
+
+type (tao_universe_struct), target :: u
+type (tao_lattice_struct), pointer :: tao_lat
+integer, optional :: lat_type
+character(28) :: r_name = 'tao_pointer_to_tao_lat'
+
+!
+
+if (.not. present(lat_type)) then
+  tao_lat => u%model
+  return
+endif
+
+select case (lat_type)
+case (design$)
+  tao_lat => u%design
+case (model$)
+  tao_lat => u%model
+case (base$)
+  tao_lat => u%base
+case default
+  call err_exit
+end select
+
+end function tao_pointer_to_tao_lat
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -732,7 +783,7 @@ end subroutine tao_var_useit_plot_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, default_source)
+! Subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component)
 !
 ! Routine to evaluate a lattice element parameter of the form 
 !     <universe>@ele::{<class>}::<ele_name_or_num>[<parameter>]{|<component>}
@@ -741,15 +792,17 @@ end subroutine tao_var_useit_plot_calc
 ! Note: size(values) can be zero without an error
 ! 
 ! Input:
-!   param_name -- Character(*): parameter name.
-!   print_err -- Logical: Print error message? 
+!   param_name      -- Character(*): parameter name.
+!   print_err       -- Logical: Print error message? 
+!   dflt_source     -- Character(*): Default source
+!   dflt_component  -- Character(*): Default component
 !
 ! Output:
 !   err       -- Logical: True if there is an error in syntax. False otherwise
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, default_source)
+subroutine tao_evaluate_element_parameters (err, param_name, values, print_err, dflt_source, dflt_component)
 
 implicit none
 
@@ -762,7 +815,8 @@ type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 
 character(*) param_name
-character(*) default_source
+character(*) dflt_source
+character(*), optional :: dflt_component
 character(60) name, class_ele, parameter, component
 character(40) :: r_name = 'tao_evaluate_element_parameters'
 
@@ -788,7 +842,7 @@ if (name(1:5) == 'ele::') then
 elseif (name(1:9) == 'ele_mid::') then   
   name = name(10:)  ! Strip off 'ele_mid::'
   middle = .true.
-elseif (default_source /= 'element') then
+elseif (dflt_source /= 'element') then
   return
 endif
 
@@ -797,6 +851,9 @@ endif
 ix = index(name, '|')
 if (ix == 0) then
   component = 'model'
+  if (present(dflt_component)) then
+    if (dflt_component /= '') component = dflt_component
+  endif
 else
   component = name(ix+1:)
   name = name(1:ix-1)

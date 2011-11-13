@@ -533,7 +533,7 @@ do i = 0, ubound(u%model%lat%branch, 1)
 enddo
 
 if (beam_saved_at /= '') then
-  call tao_locate_elements (beam_saved_at, u%ix_uni, eles, err, .false.)
+  call tao_locate_elements (beam_saved_at, u%ix_uni, eles, err, ignore_blank = .false.)
   if (err) then
     call out_io (s_error$, r_name, 'BAD BEAM_SAVED_AT ELEMENT: ' // beam_saved_at)
   else
@@ -1369,7 +1369,9 @@ integer j, n_d2_data
 allocate (u%data(0))
 u%n_d2_data_used = 0      ! size of s%u(i)%d2_data(:) array
 u%n_data_used = 0         ! size of s%u(i)%data(:) array
-u%ix_rad_int_cache = 0
+u%model%ix_rad_int_cache = 0
+u%design%ix_rad_int_cache = 0
+u%base%ix_rad_int_cache = 0
 
 if (n_d2_data == 0) return
 if (allocated(u%d2_data)) deallocate (u%d2_data)

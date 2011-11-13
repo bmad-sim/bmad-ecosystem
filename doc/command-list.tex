@@ -1053,14 +1053,14 @@ Format:
    curve \{-symbol\} \{-line\} <curve_name> 
    data \{<data_name>\} 
    derivative <data_name(s)> <var_name(s)>
-   element \{-all_attributes\} \{-cross_section\} \{-data\} \{-no_slaves\} 
-         \{-taylor\} \{-field_coefs\} <ele_name>
+   element \{-all_attributes\} \{-cross_section\} \{-base\} \{-design\}
+         \{-data\} \{-no_slaves\} \{-taylor\} \{-field_coefs\} <ele_name>
    global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
    graph <graph_name>
    hom
    key_bindings
-   lattice \{-0undef\} \{-all_tracking\} \{-blank_replacement <string>\} 
-         \{-branch <branch>\} \{-custom <file_name>\} \{-lords\} \{-middle\} 
+   lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
+         \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-lords\} \{-middle\} 
          \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
          \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
    optimizer
@@ -1190,7 +1190,7 @@ Example:
 %% show element --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show element \{-all\_attributes\} \{-cross_section\} \\
+  show element \{-all\_attributes\} \{-cross_section\} \{-base\} \{-design\} \\
   \hspace*{0.35in} \{-data\} \{-no_slaves\} \{-taylor\} \{-field\_coefs\} <ele\_name> }] \Newline
 This shows information on lattice elements. The syntax for \vn{<ele_name>} 
 is explained in section \sref{s:ele.list.format}. If
@@ -1204,6 +1204,11 @@ If the \vn{-all_attributes} switch is present, then all of the element attribute
 will be displayed. The default is is to display only those attributes
 with non-zero values. ``Attributes'' here does not include the cross-section,
 Taylor map and wiggler element parameters.
+
+By default, the appropriate element(s) within the \vn{model} lattice
+(\sref{s:universe}) are used. This can be overridden by using the
+\vn{-base} or the \vn{-design} switches which switch the lattice to
+the \vn{base} or \vn{design} lattices respectively.
 
 If the \vn{-cross_section} switch is present, the cross-section
 information for a \vn{capillary} element is displayed.
@@ -1280,14 +1285,19 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-all\_tracking\} \{-blank_replacement <string>\}  \\
-  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\}\{-lords\} \{-middle\}  \\
+  show lattice \{-0undef\} \{-all\_tracking\} \{-base\} \{-blank_replacement <string>\}  \\
+  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\} \{-design\} \{-lords\} \{-middle\}  \\
   \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-radiation_integrals\} \\
   \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
-Show a table of Twiss and orbit data, etc. for the \vn{model} lattice at the specified
+Show a table of Twiss and orbit data, etc. at the specified
 element locations. The default is to show the parameters at the exit
 end of the elements. To show the parameters in the middle use the
 \vn{-middle} switch.
+
+By default, the appropriate element(s) within the \vn{model} lattice
+(\sref{s:universe}) are used. This can be overridden by using the
+\vn{-base} or the \vn{-design} switches which switch the lattice to
+the \vn{base} or \vn{design} lattices respectively.
 
 The \vn{-radiation_integrals} switch, if present, will cause the
 radiation integrals for each lattice element to be displayed instead
@@ -1412,7 +1422,7 @@ are not counted. For example:
   show lat -custom cust.table -remove 5
 \end{example}
 Assuming that the file \vn{cust.table} contains the example
-custimization given above, the fifth visible column corresponds to
+customization given above, the fifth visible column corresponds to
 \vn{column(6)} which prints the element length. The \vn{-remove 5}
 will then remove all lines associated with elements whose length is
 zero.

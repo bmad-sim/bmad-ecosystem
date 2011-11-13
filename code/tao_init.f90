@@ -334,7 +334,9 @@ if (allocated (s%u)) then
 
     u => s%u(i)
     ! radiation integrals cache
-    if (u%ix_rad_int_cache /= 0) call release_rad_int_cache(u%ix_rad_int_cache)
+    if (u%model%ix_rad_int_cache /= 0) call release_rad_int_cache(u%model%ix_rad_int_cache)
+    if (u%design%ix_rad_int_cache /= 0) call release_rad_int_cache(u%design%ix_rad_int_cache)
+    if (u%base%ix_rad_int_cache /= 0) call release_rad_int_cache(u%base%ix_rad_int_cache)
 
     ! Orbits
 

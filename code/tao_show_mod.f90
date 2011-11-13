@@ -136,6 +136,7 @@ use opti_de_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (tao_lattice_struct), pointer :: tao_lat
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
@@ -212,7 +213,7 @@ character(n_char_show) stuff2
 character(9) angle
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
-integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat
+integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 
@@ -864,14 +865,17 @@ case ('element')
   print_data = .false.
   print_cross_section = .false.
   print_slaves = .true.
+  lat_type = model$
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-field_coefs   ', &
-                                   '-all_attributes', '-data          ', &
-                                   '-no_slaves     ', '-cross_section '], switch, err, ix)
+                '-all_attributes', '-data          ', '-design        ', &
+                '-no_slaves     ', '-cross_section ', '-base          '], switch, err, ix)
     if (err) return
     if (switch == '') exit
     if (switch == '-taylor') print_taylor = .true.
+    if (switch == '-design') lat_type = design$
+    if (switch == '-base') lat_type = base$
     if (switch == '-field_coefs') print_field_coefs = .true.
     if (switch == '-all_attributes') print_all = .true.
     if (switch == '-data') print_data = .true.
@@ -882,6 +886,7 @@ case ('element')
   call str_upcase (ele_name, stuff2)
   call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
   if (err) return
+  u => s%u(ix_u)
 
   ! Wildcard: show all elements.
 
@@ -892,7 +897,7 @@ case ('element')
     n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
-      call tao_locate_elements (ele_name, i_uni,eles, err, .true.)
+      call tao_locate_elements (ele_name, i_uni, eles, err, ignore_blank = .true.)
       if (err) return
       lat => s%u(i_uni)%model%lat
       do i = 1, size(eles)
@@ -926,7 +931,7 @@ case ('element')
   ! No wildcard case...
   ! Normal: Show the element info
 
-  call tao_locate_elements (ele_name, ix_u, eles, err)
+  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
   if (err) return
   ele => eles(1)%ele
 
@@ -939,11 +944,14 @@ case ('element')
   endif
 
   if (tao_com%common_lattice) then
-    s%u(ix_u)%lattice_recalc = .true.
+    u%lattice_recalc = .true.
     call tao_lattice_calc (ok)
   endif
+
+  tao_lat => tao_pointer_to_tao_lat (u, lat_type)
+
   call type2_ele (ele, ptr_lines, n, print_all, 6, print_taylor, s%global%phase_units, &
-            .true., s%u(ix_u)%model%lat, .true., .true., print_field_coefs, print_cross_section)
+            .true., tao_lat%lat, .true., .true., print_field_coefs, print_cross_section)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = ptr_lines(1:n)
@@ -954,11 +962,10 @@ case ('element')
     nl=nl+1; lines(nl) = '[Conversion from Global to Screen: (Z, X) -> (-X, -Y)]'
   endif
 
-
   ele => eles(1)%ele
   stat = ele%lord_status
   if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$) then
-    orb = u%model%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
+    orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
     fmt = '(2x, a, 3p2f15.8, 0pf15.6, f11.6)'
     nl=nl+1; lines(nl) = ' '
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then
@@ -1246,17 +1253,20 @@ case ('lattice')
   show_custom = .false.
   print_rad_int = .false.
   ix_remove = -1
+  lat_type = model$
 
   column(:)%name = ""
   column(:)%label = ""
   column(:)%remove_line_if_zero = .false.
+
   ! get command line switches
 
   do
     call tao_next_switch (stuff2, [ &
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
         '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
-        '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero'], &
+        '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
+        '-base               ', '-design             '], &
               switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1267,6 +1277,9 @@ case ('lattice')
 
     case ('-all_tracking')
       all_lat = .true. 
+
+    case ('-base')
+      lat_type = base$
 
     case ('-blank_replacement')
       replacement_for_blank = stuff2(1:ix_s2)
@@ -1299,6 +1312,9 @@ case ('lattice')
         return
       endif
 
+    case ('-design')
+      lat_type = design$
+
     case ('-lords')
       show_lords = .true.
 
@@ -1328,7 +1344,11 @@ case ('lattice')
     end select
 
   enddo
-  
+
+  !
+
+  tao_lat => tao_pointer_to_tao_lat(u, lat_type)
+  lat => tao_lat%lat
   branch => lat%branch(ix_branch)
 
   ! Construct columns if needed.
@@ -1404,8 +1424,8 @@ case ('lattice')
 
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
-      call radiation_integrals (lat, u%model%lat_branch(0)%orbit, &
-                                             u%model%modes, u%ix_rad_int_cache, u%model%rad_int)
+      call radiation_integrals (lat, tao_lat%lat_branch(0)%orbit, &
+                                             tao_lat%modes, tao_lat%ix_rad_int_cache, tao_lat%rad_int)
       exit
     endif
   enddo
@@ -1449,7 +1469,7 @@ case ('lattice')
     ! picked_ele already set
 
   elseif (ix_s2 /= 0) then
-    call tao_locate_elements (stuff2, u%ix_uni, eles, err, .true.)
+    call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, ignore_blank = .true.)
     if (err) return
     picked_ele = .false.
     do i = 1, size(eles)
@@ -1467,9 +1487,9 @@ case ('lattice')
   !
 
   if (at_ends) then
-    write (line1, '(6x, a)') 'Model values at End of Element:'
+    write (line1, '(6x, a)') 'Values at End of Element:'
   else
-    write (line1, '(6x, a)') 'Model values at Center of Element:'
+    write (line1, '(6x, a)') 'Values at Center of Element:'
   endif
 
   ! Setup columns
@@ -1609,7 +1629,8 @@ case ('lattice')
         if (.not. at_ends .and. ix /= 0) then
           name = name(:ix+2) // '_mid' // trim(name(ix+3:))
         endif
-        call tao_evaluate_expression (name, 1, .false., value, good, err, .false.)
+        call tao_evaluate_expression (name, 1, .false., value, good, err, .false., &
+                                                  dflt_component = lat_type_name(lat_type))
         if (err .or. .not. allocated(value) .or. size(value) /= 1) then
           if (column(i)%remove_line_if_zero) cycle line_loop
           n = len(undef_str)
@@ -2215,8 +2236,8 @@ case ('universe')
     return
   endif
  
-  call radiation_integrals (lat, u%model%lat_branch(0)%orbit, u%model%modes, u%ix_rad_int_cache)
-  call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes)
+  call radiation_integrals (lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
+  call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache)
   if (lat%param%lattice_type == circular_lattice$) then
     call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
     call chrom_calc (u%design%lat, delta_e, u%design%a%chrom, u%design%b%chrom, exit_on_error = .false.)

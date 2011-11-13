@@ -38,7 +38,7 @@ contains
 !----------------------------------------------------------------------------
 !+
 ! Subroutine tao_evaluate_lat_data (err, data_name, values, print_err,
-!                          default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+!                          default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
 !
 ! Routine to evaluate data "on-the-fly" of the form 
 !     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
@@ -46,7 +46,11 @@ contains
 ! Input:
 !   data_name      -- Character(*): data name.
 !   print_err      -- Logical: Print error message?
-!   default_source -- Character(*): If not blank: Default source ('model', 'design', 'base').
+!   dflt_source    -- Character(*): If not blank: Default source: 'lat' or 'beam'.
+!   dflt_ele_ref   -- ele_struct, pointer, optional: Default reference element.
+!   dflt_ele_start -- ele_struct, pointer, optional: Default start element.
+!   dflt_ele       -- ele_struct, pointer, optional: Default element to evaluate at.
+!   dflt_component -- Character(*), optional: Default component: 'model', 'base', or 'design'.
 !
 ! Output:
 !   err       -- Logical: True if there is an error. False otherwise
@@ -54,7 +58,7 @@ contains
 !-
 
 subroutine tao_evaluate_lat_data (err, data_name, values, print_err, &
-                         default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+                         default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
 
 implicit none
 
@@ -65,6 +69,7 @@ type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
 character(*) data_name
 character(*) default_source
+character(*), optional :: dflt_component
 character(60) name, ele_name, component
 character(40) :: r_name = 'tao_evaluate_lat_data'
 
@@ -105,6 +110,9 @@ endif
 ix = index(name, '|')
 if (ix == 0) then
   component = 'model'
+  if (present(dflt_component)) then
+    if (dflt_component /= '') component = dflt_component
+  endif
 else
   component = name(ix+1:)
   name = name(1:ix-1)
@@ -2631,7 +2639,7 @@ end subroutine
 !   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
-!   dflt_component -- Character(*): Default component to use if not specified in the expression.
+!   dflt_component -- Character(*), optional: Default component to use if not specified in the expression.
 !   dflt_source    -- Character(*), optional: Default source ('lat', 'dat', etc.). Default is ''.
 !   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.
@@ -2918,8 +2926,8 @@ parsing_loop: do
       endif
     else
       call pushit (stk%type, i_lev, numeric$)
-      call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-             err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
+      call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
+             default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -2971,7 +2979,7 @@ parsing_loop: do
     endif
     call pushit (stk%type, i_lev, numeric$)
     call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-            err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
+            err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -3118,8 +3126,8 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 
-subroutine tao_param_value_routine (str, saved_prefix, stack, &
-      err_flag, print_err, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
+subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, &
+      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component)
 
 implicit none
 
@@ -3132,7 +3140,7 @@ type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 integer ios, i, n, ix, ix2
 
 character(*) str, saved_prefix
-character(*), optional :: default_source
+character(*), optional :: dflt_source, dflt_component
 character(*), optional :: dflt_dat_index
 
 character(16) s, source
@@ -3197,7 +3205,7 @@ if (.not. allocated(re_array)) allocate (re_array(0))
 
 ! Decide data source
 
-source = default_source
+source = dflt_source
 ix = index(name, '::')
 if (ix /= 0) then
   s = name(max(1,ix-3):ix-1)
@@ -3215,7 +3223,7 @@ endif
 
 if (source == 'lat' .or. source == 'beam') then
   call tao_evaluate_lat_data (err_flag, name, stack%value, print_err, &
-                                default_source, dflt_ele_ref, dflt_ele_start, dflt_ele)
+                                dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
   stack%type = lat_num$
@@ -3224,7 +3232,7 @@ if (source == 'lat' .or. source == 'beam') then
 ! Look for a lattice element parameter 
 
 elseif (source == 'ele') then
-  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, default_source)
+  call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_source, dflt_component)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
   stack%type = ele_num$

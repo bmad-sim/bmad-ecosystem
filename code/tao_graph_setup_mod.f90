@@ -609,7 +609,7 @@ do k = 1, size(graph%curve)
     zero_average_phase = .true.
   else
     zero_average_phase = .false.
-    call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, eles, err, .true.)
+    call tao_locate_elements (curve%ele_ref_name, curve%ix_universe, eles, err, ignore_blank = .true.)
     if (err) then
       graph%why_invalid = 'CANNOT LOCATE ELEMENT: ' // trim(curve%ele_ref_name)
       return
