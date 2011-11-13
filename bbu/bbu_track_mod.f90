@@ -258,14 +258,27 @@ do
     enddo
 
     if (n_period_old == 3) then
-    ! The baseline/reference hom voltage is computed over the 2nd period after the offset bunches 
-    ! have passed through the lattice.
+      ! The baseline/reference hom voltage is computed over the 2nd period after the offset bunches 
+      ! have passed through the lattice.
       hom_voltage0 = hom_voltage_sum / n_count
       r_period0 = r_period
+    endif
 
-    elseif (n_period_old > 3) then
+    if (n_period_old > 3) then
       hom_voltage_gain = (hom_voltage_sum / n_count) / hom_voltage0
       growth_rate = log(hom_voltage_gain) / (r_period - r_period0)
+    else
+      hom_voltage_gain = -1   ! Dummy value for output
+    endif
+
+    write(*,'(a,i3,a,es15.6,5x,a,es15.6/,a,es13.6,a,i9,a/,a,es13.6)')&
+         ' Period ', n_period_old,'   Time: ',bbu_beam%time_now, &
+         ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
+         ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
+         '   over ', n_count, ' bunch passages', &
+         ' HOM voltage gain factor: ', hom_voltage_gain
+
+    if (n_period_old > 3) then
       if (.not. bbu_param%stable_orbit_anal) then
         if (hom_voltage_gain < 1/bbu_param%limit_factor) exit
         if (hom_voltage_gain > bbu_param%limit_factor) exit      
@@ -273,13 +286,6 @@ do
         write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period_old,hom_voltage_sum,n_count,hom_voltage_gain
       endif
     endif
-
-    write(*,'(a,i3,a,e15.6,5x,a,e15.6/,a,e13.6,a,i9,a/,a,e13.6)')&
-         ' Period ', n_period_old,'   Time: ',bbu_beam%time_now, &
-         ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
-         ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
-         '   over ', n_count, ' bunch passages', &
-         ' HOM voltage gain factor: ', hom_voltage_gain
 
     call track_all (lat, orbit)
     n = lat%n_ele_track
