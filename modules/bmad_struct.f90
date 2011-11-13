@@ -606,7 +606,7 @@ integer, parameter :: is_on$ = 95, theta_position$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
 integer, parameter :: type$ = 97, psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98
-integer, parameter :: ran_seed$ = 99, beta_b$ = 99
+integer, parameter :: ran_seed$ = 99, beta_b$ = 99, rf_field$ = 99 
 
 ! superimpose$ through common_lord$ assumed unique (or need to modify bmad_parser_mod.f90).
 
@@ -615,7 +615,7 @@ integer, parameter :: field_master$ = 101
 integer, parameter :: star_aperture$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall$ = 104
-integer, parameter :: rf_field$ = 105, dc_field$ = 105
+integer, parameter :: dc_field$ = 105
 integer, parameter :: phi_b$ = 106, crystal_type$ = 106
 
 integer, parameter :: superimpose$    = 110   

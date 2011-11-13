@@ -719,6 +719,7 @@ lat_out%n_control_max =        lat_in%n_control_max
 lat_out%n_ic_max =             lat_in%n_ic_max
 lat_out%input_taylor_order =   lat_in%input_taylor_order
 lat_out%beam_start =           lat_in%beam_start
+lat_out%pre_tracker =          lat_in%pre_tracker
 
 end subroutine transfer_lat_parameters
 
@@ -2408,7 +2409,7 @@ if (key3 /= -1) return  ! Have found something
 ! Only thing left is to use em_field type element.
 ! sbend is not allowed here.
 
-if (key1 == sbend$ .or. key2 == sbend$) return  
+if (key1 == sbend$ .or. key2 == sbend$) return
 key3 = em_field$
 
 end subroutine calc_superimpose_key

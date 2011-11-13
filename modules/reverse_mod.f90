@@ -1,8 +1,8 @@
 module reverse_mod
 
 use bookkeeper_mod
-use bmad_struct
-use bmad_interface
+
+!! private ele_reverse
 
 contains
 
@@ -16,10 +16,8 @@ contains
 ! This may be used for backward tracking through the lat. 
 !
 ! The correspondence between elements in the two lattices is as follows:
-!     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  
-!                                                for 0 < i <= lat%n_ele_track
-!     lat_rev%ele(i)                   = lat_in%ele(i)   
-!                                                for lat%n_ele_track < i 
+!     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  For 0 < i <= lat%n_ele_track
+!     lat_rev%ele(i)                   = lat_in%ele(i)  For lat%n_ele_track < i 
 !
 ! All longitudial quantities (for example, the value of ks for a solenoid) 
 ! are flipped in sign for the reversed lat. 
@@ -38,56 +36,40 @@ contains
 !
 ! Output:
 !   lat_rev -- lat_struct: Lat with the elements in reversed order.
+!               The lat_rev actual argument may not be the same as the lat_in actual argument.
 !-
 
 subroutine lat_reverse (lat_in, lat_rev)
 
 implicit none
 
-type (lat_struct), intent(in) :: lat_in
-type (lat_struct), intent(out), target :: lat_rev
-type (lat_struct), save :: lat
+type (lat_struct) :: lat_in
+type (lat_struct), target :: lat_rev
 type (ele_struct), pointer :: lord, ele
 type (control_struct), pointer :: con
+type (branch_struct), pointer :: branch
 
-integer i, n, i1, i2, nr, n_con
+integer i, n, i1, i2, nr, n_con, ib
 integer :: ix_con(size(lat_in%control))
-
-! Transfer info from lat_in to lat_rev.
-! the lat lattice is used since the actual arguments of lat_in and lat_rev
-! may be the same
-
-n_con = size(lat_in%control)
-
-lat = lat_in 
-lat_rev = lat
-
-nr = lat_rev%n_ele_track
-lat_rev%ele(1:nr) = lat%ele(nr:1:-1)
-
-! Flip longitudinal stuff, maps
-
-do i = 1, lat_rev%n_ele_max
-  ele => lat_rev%ele(i)
-  call reverse_ele (ele, lat%param)
-  if (i <= nr) ele%s = lat_rev%param%total_length - (ele%s - ele%value(l$))
-enddo
 
 ! Correct control information
 
+lat_rev = lat_in
+
 do i = 1, lat_rev%n_control_max
   con => lat_rev%control(i)
-  if (con%ix_slave <= nr) con%ix_slave = nr+1-con%ix_slave
-  if (con%ix_lord <= nr)  con%ix_lord  = nr+1-con%ix_lord
+  if (con%ix_slave <= lat_rev%n_ele_track) con%ix_slave = lat_rev%n_ele_track+1-con%ix_slave
+  if (con%ix_lord <= lat_rev%n_ele_track)  con%ix_lord  = lat_rev%n_ele_track+1-con%ix_lord
 enddo
 
 ! Slaves of a super lord must be in assending sequence.
 ! ix_con keeps track of the switching.
 ! Also: adjust s-position of lords.
 
+n_con = size(lat_in%control)
 forall (i = 1:n_con) ix_con(i) = i 
 
-do i = nr+1, lat_rev%n_ele_max
+do i = lat_rev%n_ele_track+1, lat_rev%n_ele_max
   lord => lat_rev%ele(i)
   if (lord%lord_status /= super_lord$) cycle
   i1 = lord%ix1_slave
@@ -104,21 +86,44 @@ enddo
 n = lat_rev%n_ic_max
 lat_rev%ic(1:n) = ix_con(lat_rev%ic(1:n))
 
-! Cleanup
+! Transfer info from lat_in to lat_rev.
+! the lat lattice is used since the actual arguments of lat_in and lat_rev
+! may be the same
 
-lat_rev%param%t1_with_RF = 0  ! Init
-lat_rev%param%t1_no_RF = 0    ! Init
+do ib = 0, ubound(lat_in%branch, 1)
+
+  branch => lat_rev%branch(ib)
+
+  nr = branch%n_ele_track
+  branch%ele(1:nr) = lat_in%branch(ib)%ele(nr:1:-1)
+
+  ! Flip longitudinal stuff, maps
+
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    call ele_reverse (ele, branch%param)
+    if (i <= nr) ele%s = branch%param%total_length - (ele%s - ele%value(l$))
+  enddo
+
+  ! Cleanup
+
+  branch%param%t1_with_RF = 0  ! Init
+  branch%param%t1_no_RF = 0    ! Init
+
+enddo
+
+! Finish
 
 call check_lat_controls (lat_rev, .true.)
 call lattice_bookkeeper (lat_rev)
 
-end subroutine
+end subroutine lat_reverse
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine reverse_ele (ele, param)
+! Subroutine ele_reverse (ele, param)
 !
 ! Subroutine to "reverse" an element for backward tracking.
 !
@@ -127,6 +132,10 @@ end subroutine
 ! This means that the appropriate transformation that corresponds to the 
 ! reverse transformation is:
 !     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
+!
+! Note: Due to complications occuring when you have, for example, super_slave 
+! em_field elements, this routine is private and cannot be called directly.
+! Use lat_reverse instead.
 !
 ! Modules needed:
 !   use bmad
@@ -139,7 +148,7 @@ end subroutine
 !   ele -- Ele_struct: Reversed element.
 !-
 
-subroutine reverse_ele (ele, param)
+subroutine ele_reverse (ele, param)
 
 use ptc_interface_mod, only: taylor_inverse
 
@@ -221,8 +230,7 @@ case (sbend$)
 ! This transforms:
 !       (B_x, B_y, B_z) @ (s) -> (B_x, B_y, -B_z) @ (L-s)
 ! Also: Since the wiggler trajectory starting on the origin may not end
-!   on the origin, z_patch may shift. Zero z_patch so that there are
-!   no shifts in tracking when remaking the element.
+!   on the origin, z_patch may shift and needs to be recalculated.
 
 case (wiggler$)
   if (associated(ele%wig_term)) then
@@ -285,7 +293,7 @@ ele%mat6(:,2) = -ele%mat6(:,2)
 ele%mat6(:,4) = -ele%mat6(:,4)
 ele%mat6(:,5) = -ele%mat6(:,5)
 
-end subroutine
+end subroutine ele_reverse
 
 end module
 

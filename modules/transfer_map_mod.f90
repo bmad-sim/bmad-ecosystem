@@ -16,11 +16,11 @@ contains
 !
 ! If s2 < s1 and lat%param%lattice_type is circular_lattice$ then the
 ! calculation will 'wrap around' the lattice end.
-! For example, if s1 = 900 and s2 = 10 then the xfer_mat is the matrix from
+! For example, if s1 = 900 and s2 = 10 then the t_map is the map from
 ! element 900 to the lattice end plus from 0 through 10.
 !
 ! If s2 < s1 and lat%param%lattice_type is linear_lattice$ then the backwards
-! transfer matrix is computed.
+! transfer map is computed.
 !
 ! If s2 = s1 then you get the unit map except if one_turn = True and the lattice is circular.
 !
@@ -108,7 +108,7 @@ elseif (branch%param%lattice_type == circular_lattice$) then
   call transfer_this (t_map, ss1, branch%param%total_length)
   call transfer_this (t_map, 0.0_rp, ss2)
 
-! For a linear lattice compute the backwards matrix
+! For a linear (not closed) lattice compute the backwards map
 
 else
   if (unit_start_this) then
