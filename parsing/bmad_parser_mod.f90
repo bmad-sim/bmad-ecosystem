@@ -3436,10 +3436,10 @@ do
         j = 0
 
         do i = 1, branch%n_ele_track
-          if (lat%ele(i)%name == 'temp_name!') then
-            lat%ele(i)%name = super_ele_saved%name
+          if (branch%ele(i)%name == 'temp_name!') then
+            branch%ele(i)%name = super_ele_saved%name
             j = j + 1
-            m_slaves(j) = ele_to_lat_loc (lat%ele(i))
+            m_slaves(j) = ele_to_lat_loc (branch%ele(i))
           endif
         enddo
 
@@ -3668,7 +3668,7 @@ endif
 branch => lat%branch(ref_ele%ix_branch)
 if (branch%param%lattice_type == circular_lattice$) then
   if (super_ele%s > branch%ele(branch%n_ele_track)%s) then
-    super_ele%s = super_ele%s - lat%param%total_length
+    super_ele%s = super_ele%s - branch%param%total_length
   elseif (super_ele%s < 0) then
     super_ele%s = super_ele%s + branch%param%total_length
   endif
@@ -4599,29 +4599,36 @@ subroutine save_taylor_elements (lat, ele_array)
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (ele_struct), allocatable :: ele_array(:) 
+type (branch_struct), pointer :: branch
 
-integer i, ix
+integer i, ib, ix
 
 !
 
 if (.not. associated(lat%ele)) return
 
 ix = 0
-do i = 1, lat%n_ele_max
-  if (associated(lat%ele(i)%taylor(1)%term)) ix = ix + 1
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  do i = 1, branch%n_ele_max
+    if (associated(branch%ele(i)%taylor(1)%term)) ix = ix + 1
+  enddo
 enddo
 
 if (ix /= 0) then
   if (allocated(ele_array)) deallocate(ele_array)
   allocate(ele_array(ix))
   ix = 0
-  do i = 1, lat%n_ele_max
-    if (associated(lat%ele(i)%taylor(1)%term)) then
-      ix = ix + 1
-      ele_array(ix) = lat%ele(i)
-    endif
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    do i = 1, branch%n_ele_max
+      if (associated(branch%ele(i)%taylor(1)%term)) then
+        ix = ix + 1
+        ele_array(ix) = branch%ele(i)
+      endif
+    enddo
   enddo
 endif  
 
@@ -4646,8 +4653,9 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (ele_struct), allocatable :: ele_array(:) 
+type (branch_struct), pointer :: branch
 
-integer i, j, k, m
+integer i, j, k, m, ib
 integer order(size(ele_array))
 
 ! find the taylor order for each taylor map
@@ -4668,24 +4676,29 @@ enddo
 !   2) The new element has need of the map and
 !   3) The old element and new element have the same attributes.
 
-do i = 1, lat%n_ele_max
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
 
-  ele => lat%ele(i)
-  if (ele%tracking_method /= taylor$ .and. ele%tracking_method /= symp_map$ .and. &
-      ele%mat6_calc_method /= taylor$ .and. ele%mat6_calc_method /= symp_map$) cycle
+  do i = 1, lat%n_ele_max
 
-  call attribute_bookkeeper (ele, lat%param) ! for equivalent_taylor_attributes test
+    ele => branch%ele(i)
+    if (ele%tracking_method /= taylor$ .and. ele%tracking_method /= symp_map$ .and. &
+        ele%mat6_calc_method /= taylor$ .and. ele%mat6_calc_method /= symp_map$) cycle
 
-  do j = 1, size(ele_array)
-    if (any(ele_array(j)%taylor(:)%ref /= 0)) cycle
-    if (bmad_com%taylor_order > order(j)) cycle
-    if (.not. equivalent_taylor_attributes (ele_array(j), ele)) cycle
-    exit
+    call attribute_bookkeeper (ele, branch%param) ! for equivalent_taylor_attributes test
+
+    do j = 1, size(ele_array)
+      if (any(ele_array(j)%taylor(:)%ref /= 0)) cycle
+      if (bmad_com%taylor_order > order(j)) cycle
+      if (.not. equivalent_taylor_attributes (ele_array(j), ele)) cycle
+      exit
+    enddo
+
+    if (j == size(ele_array) + 1) cycle
+    call out_io (s_info$, bp_com%parser_name, 'Reusing Taylor for: ' // ele_array(j)%name)
+    call transfer_ele_taylor (ele_array(j), ele, bmad_com%taylor_order)
   enddo
 
-  if (j == size(ele_array) + 1) cycle
-  call out_io (s_info$, bp_com%parser_name, 'Reusing Taylor for: ' // ele_array(j)%name)
-  call transfer_ele_taylor (ele_array(j), ele, bmad_com%taylor_order)
 enddo
 
 deallocate(ele_array)
