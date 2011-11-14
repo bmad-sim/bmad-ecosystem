@@ -656,8 +656,8 @@ allocate(erltime(800))
 ! Initialize the identity matrix
 call mat_make_unit(imat)
 
-! Find the time between each cavity in the low energy lattice
-! The time between two cavities is stored in erltime(k)
+! Find the time between each HOM elements in the low energy lattice
+! The time between two HOM elements is stored in erltime(k)
 
 time=0
 k=1     
@@ -676,8 +676,10 @@ do i = 1, lat%n_ele_track
       enddo
     endif
     if (judge) then
-      print *, ' Storing time for HOM cavity',k,time
       erltime(k)=time
+! Reference the time to the time of the first HOM element
+      erltime(k)=erltime(k)-erltime(1)
+      print *, ' Storing time for HOM cavity',k,time
       time=0
       k=k+1       
     endif
