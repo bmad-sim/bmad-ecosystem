@@ -343,7 +343,7 @@ do n = 1, n_step
 
     Dy  = sqrt(rel_p2 - py**2)
     px_t = px*ct + f*st
-    dpx_t = -px*st/rho + f*ct/rho
+    dpx_t = -px*st*g + f*ct*g
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
       param%lost = .true.
