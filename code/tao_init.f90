@@ -78,6 +78,7 @@ endif
 
 if (present(err_flag)) err_flag = .true.
 
+iu = 0
 if (tao_com%init_tao_file /= '') then
   call tao_open_file ('TAO_INIT_DIR', tao_com%init_tao_file, iu, file_name)
   if (iu == 0) then ! If open failure
