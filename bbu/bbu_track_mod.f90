@@ -656,8 +656,8 @@ allocate(erltime(800))
 ! Initialize the identity matrix
 call mat_make_unit(imat)
 
-! Find the time between each HOM elements in the low energy lattice
-! The time between two HOM elements is stored in erltime(k)
+! Find the time between each cavity in the low energy lattice
+! The time between two cavities is stored in erltime(k)
 
 time=0
 k=1     
@@ -676,10 +676,8 @@ do i = 1, lat%n_ele_track
       enddo
     endif
     if (judge) then
-      erltime(k)=time
-! Reference the time to the time of the first HOM element
-      erltime(k)=erltime(k)-erltime(1)
       print *, ' Storing time for HOM cavity',k,time
+      erltime(k)=time
       time=0
       k=k+1       
     endif
@@ -698,8 +696,6 @@ enddo
 oldmat=imat
 testmat = imat
 P0i=lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
-k=1
-kk=1
 judge =.false.
 anavalid = .true.
 
@@ -742,9 +738,15 @@ do i=0, lat%n_ele_track
       enddo
 
 
-      ! k=1 is just the interval from the beginning
-      ! of the lattice to the first cavity with a HOM
-      ! so some HOM calculations are not initialized
+! Index of the HOM for which an analytic approximation
+! to the threshold current is to be calculated.
+! Skip the first one, since it will not contribute,
+! owing to lack of beam offset there. 
+k=2
+
+! Counter for the number of cavities for which analytic approximations
+! to the threshold current are calculated
+kk=1
 
       if(erltime(k).gt.0.)then
 
