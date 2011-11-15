@@ -1253,6 +1253,16 @@ do ii = 1, size(curve%x_line)
   curve%x_line(ii) = s_now
   value = 0
 
+  ! Check if in a hybrid or taylor element within which interpolation cannot be done.
+
+  call ele_at_s (lat, s_now, ix_ele, ix_branch, err)
+  if (branch%ele(ix_ele)%key == hybrid$ .or. branch%ele(ix_ele)%key == taylor$ .or. err) then
+    good(ii) = .false.
+    cycle
+  endif
+
+  !
+
   select case (curve%data_source)
   case ('lat')   
     call twiss_and_track_at_s (lat, s_now, ele, orb, here, ix_branch, err, .true.)

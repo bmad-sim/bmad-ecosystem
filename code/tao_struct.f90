@@ -226,10 +226,11 @@ type tao_plot_page_struct
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: curve_legend_line_len  = 50   ! Points
   real(rp) :: curve_legend_text_offset = 10 ! Points
-  integer :: n_curve_pts = 401       ! Number of points for plotting a smooth curve
-  integer id_window                  ! X window id number.
-  type (tao_title_struct) title(2)   ! Titles at top of page.
-  type (qp_rect_struct) border       ! Border around plots edge of page.
+  real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  integer id_window                      ! X window id number.
+  type (tao_title_struct) title(2)       ! Titles at top of page.
+  type (qp_rect_struct) border           ! Border around plots edge of page.
 end type
 
 ! Arrays of structures
@@ -483,7 +484,6 @@ type tao_global_struct
   real(rp) :: svd_cutoff = 1e-5          ! SVD singular value cutoff.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
-  real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   real(rp) :: random_sigma_cutoff = -1   ! cut-off in sigmas.
   integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles

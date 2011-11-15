@@ -363,7 +363,6 @@ type tao_global_struct
   real(rp) de_lm_step_ratio = 1       ! Step sizes between DE and LM optimizers.
   real(rp) de_var_to_population_factor = 5 
   real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
-  real(rp) floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
   real(rp) random_sigma_cutoff = -1   ! Cut-off in sigmas.
   real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.
   integer u_view = 1                  ! Which universe we are viewing.
@@ -1283,7 +1282,7 @@ plots go. The syntax of this block is:
 \index{tao_plot_page}    
 \index{plot_page!n_curve_pts}
 \index{plot_page!size}
-\index{plot_page!border}
+\index{plot_page!border}\index{plot_page%floor_plan_rotation}
 \index{plot_page!text_height}
 \index{plot_page!title}
 \index{region!name}
@@ -1300,6 +1299,7 @@ plots go. The syntax of this block is:
     plot_page%axis_number_text_scale = <num> ! Relative to text_height. Def = 0.9
     plot_page%axis_label_text_scale  = <num> ! Relative to text_height. Def = 1.0
     plot_page%legend_text_scale      = <num> ! Relative to text_height. Def = 0.8
+    plot_page%floor_plan_rotation    = <num> ! Rotation of floor plan plot: 1.0 -> 360^deg 
     plot_page%key_table_text_scale   = <num> ! Relative to text_height. Def = 0.9
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
     plot_page%shape_height_max       = <num> ! Max half height for drawing elements. 
@@ -2010,17 +2010,21 @@ element's coordinates in \vn{global reference system}.  See the Bmad
 manual for more information on the \vn{global reference system}.  In
 the \vn{global reference system}, the $(X, Z)$ plane is horizontal
 plane.  The conversion between the $(X, Z)$ coordinates of the
-\vn{global reference system} and the $(x, y)$ coordinates of the Floor
-Plan plot are:
+\vn{global reference system} and the $(x, y)$ coordinates of the floor
+plan plot are:
 \begin{example}
 Global        Plot
   Z    <--->   -x
   X    <--->   -y
 \end{example}
-The \vn{show ele} command (\sref{s:show}) can be used to view an element's
-global coordinates. Additionally, the global coordinates at the start of
-the lattice can be defined in the lattice file. See the Bmad manual for
-more details.
+An overall rotation of the floor plan can be controlled by setting
+(\sref{s:init.plot})
+\begin{example}
+  plot_page%floor_plan_rotation
+\end{example}
+Alternatively, the global coordinates at the start of the lattice can
+be defined in the lattice file and this can rotate the floor plan. See
+the Bmad manual for more details.
 
 Example Floor Plan template:
 \begin{example}
@@ -2052,6 +2056,9 @@ If \vn{graph%correct_xy_distortion} is set to \vn{True} (default is
 \vn{False}), then the horizontal or vertical margins of the graph will be
 increased so that the horizontal scale (meters per plotting inch) is equal
 to the vertical scale.
+
+Note: The \vn{show ele} command (\sref{s:show}) can be used to view an
+element's global coordinates.
 
 %-----------------------------------------------------------------
 \subsection{Element Shapes}

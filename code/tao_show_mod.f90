@@ -306,7 +306,7 @@ case ('beam')
 
     ix_branch = 0
     uni_branch => u%uni_branch(ix_branch)
-    nl=nl+1; write(lines(nl), '(a, i3)') 'Universe: ', u%ix_uni
+    nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', size(s%u)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam_info%beam0_file
@@ -579,7 +579,7 @@ case ('curve')
     if (show_line) then
       nl=nl+1; lines(nl) = ''
       nl=nl+1; lines(nl) = 'Smooth line points:'
-      nl=nl+1; lines(nl) = '             x             y'
+      nl=nl+1; lines(nl) = ' Index             x             y'
       do j = 2, size(curve)
         if (size(curve(j)%c%y_line) /= size(c1%y_line)) then
           nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
@@ -590,7 +590,7 @@ case ('curve')
       if (.not. err) then
         call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
         do i = 1, size(c1%x_line)
-          nl=nl+1; write (lines(nl), '(10es14.6)') c1%x_line(i), &
+          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') i, c1%x_line(i), &
                                         [ (curve(j)%c%y_line(i), j = 1, size(curve)) ]
         enddo
       endif
@@ -1928,6 +1928,7 @@ case ('plot')
     nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plot_page%key_table_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plot_page%legend_text_scale 
     nl=nl+1; write (lines(nl), f3mt) '%shape_height_max           = ', s%plot_page%shape_height_max  
+    nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plot_page%floor_plan_rotation
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'

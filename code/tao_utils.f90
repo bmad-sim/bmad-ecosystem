@@ -2873,7 +2873,7 @@ type (floor_position_struct) floor, screen
 !
 
 call floor_to_screen (floor%x, floor%y, floor%z, screen%x, screen%y)
-screen%theta = pi + floor%theta + twopi * s%global%floor_plan_rotation
+screen%theta = pi + floor%theta - twopi * s%plot_page%floor_plan_rotation
 
 end subroutine floor_to_screen_coords
 
@@ -2894,7 +2894,7 @@ real(rp), save :: cc, ss
 !    z   ->  -x
 !    x   ->  -y
 
-t = s%global%floor_plan_rotation
+t = s%plot_page%floor_plan_rotation
 
 if (t == 0) then
   x_screen = -z_floor
