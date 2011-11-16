@@ -1779,6 +1779,9 @@ else
   allocate(lat%branch(0:ub))
   lat%branch(0)%ele            => lat%ele
   lat%branch(0)%param          => lat%param
+  lat%branch(0)%a              => lat%a
+  lat%branch(0)%b              => lat%b
+  lat%branch(0)%z              => lat%z
   lat%branch(0)%wall3d         => lat%wall3d
   lat%branch(0)%n_ele_track    => lat%n_ele_track
   lat%branch(0)%n_ele_max      => lat%n_ele_max
@@ -1794,6 +1797,7 @@ do i = curr_ub+1, ub
   allocate(lat%branch(i)%n_ele_track)
   allocate(lat%branch(i)%n_ele_max)
   allocate(lat%branch(i)%param)
+  allocate(lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
   allocate(lat%branch(i)%wall3d)
   lat%branch(i)%param = lat%param
   call set_status_flags (lat%branch(i)%param%status, ok$, 0)
@@ -1843,7 +1847,7 @@ if (associated(lat%wall3d%section)) deallocate(lat%wall3d%section)
 if (allocated (lat%branch)) then
   do i = 1, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers (lat%branch(i)%ele)
-    deallocate (lat%branch(i)%param)
+    deallocate (lat%branch(i)%param, lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
     if (associated(lat%branch(i)%wall3d%section)) deallocate(lat%branch(i)%wall3d%section)
   enddo
   deallocate (lat%branch)

@@ -594,14 +594,14 @@ interface
 end interface
 
 interface
-  subroutine radiation_integrals (lat, orb, mode, ix_cache, rad_int_by_ele)
-    use bmad_struct, only: lat_struct, coord_struct, normal_modes_struct, rad_int_common_struct
+  subroutine radiation_integrals (lat, orb, mode, ix_cache, ix_branch, rad_int_by_ele)
+    use bmad_struct, only: lat_struct, coord_struct, normal_modes_struct, rad_int_all_ele_struct
     implicit none
     type (lat_struct), target :: lat
-    type (rad_int_common_struct), optional :: rad_int_by_ele
+    type (rad_int_all_ele_struct), optional :: rad_int_by_ele
     type (coord_struct), target :: orb(0:)
     type (normal_modes_struct) mode
-    integer, optional :: ix_cache
+    integer, optional :: ix_cache, ix_branch
   end subroutine
 end interface
 
