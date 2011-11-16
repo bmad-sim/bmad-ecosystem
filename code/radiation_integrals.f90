@@ -1,5 +1,5 @@
 !+
-! Subroutine radiation_integrals (lat, orbit, mode, ix_cache, rad_int_by_ele)
+! Subroutine radiation_integrals (lat, orbit, mode, ix_cache, ix_branch, rad_int_by_ele)
 !
 ! Subroutine to calculate the synchrotron radiation integrals along with the
 ! emittance, and energy spread.
@@ -37,12 +37,13 @@
 ! Input:
 !   lat        -- lat_struct: Lattice to use. The calculation assumes that 
 !                    the Twiss parameters have been calculated.
-!   orbit(0:)  -- Coord_struct: Closed orbit.
+!   orbit(0:)  -- Coord_struct: Closed orbit. for the branch.
 !   ix_cache   -- Integer, optional: Cache pointer.
 !                      = -2 --> No temporary wiggler cache. This is slow so only use as a check.
 !                      = -1 --> Use temporary cache for wiggler elements only (default).
 !                      =  0 --> Create a new cache for all elements.
 !                      >  0 --> Use the corresponding cache. 
+!   ix_branch  -- Integer, optional: Lattice branch index. Default is 0.
 !
 ! Output:
 !   mode     -- normal_modes_struct: Parameters for the ("horizontal like") a-mode,
@@ -67,22 +68,22 @@
 !   ix_cache -- Integer, optional: Cache pointer. If ix_cache = 0 at input then
 !                   ix_cache is set to a unique number. Otherwise ix_cache 
 !                   is not changed.
-!   rad_int_by_ele
-!            -- Rad_int_common_struct, optional: Radiation integrals element by element. 
-!       %i0(0:)              -- I0 integral for each element. See the Bmad manual.
-!       %i1(0:)              -- I1 integral for each element.
-!       %i2(0:)              -- I2 integral for each element.
-!       %i3(0:)              -- I3 integral for each element.
-!       %i4a(0:)             -- "A" mode I4 integral for each element.
-!       %i4b(0:)             -- "B" mode I4 integral for each element.
-!       %i5a(0:)             -- "A" mode I5 integral for each element.
-!       %i5b(0:)             -- "B" mode I5 integral for each element.
-!       %lin_i2_E4(0:)       -- I2 * gamma^4 integral for each element.
-!       %lin_i3_E7(0:)       -- I3 * gamma^7 integral for each element.
-!       %lin_i5a_E6(0:)      -- I5a * gamma^6 integral for each element.
-!       %lin_i5b_E6(0:)      -- I5b * gamma^6 integral for each element.
-!       %lin_norm_emit_a(0:) -- "A" mode emittance. Running sum
-!       %lin_norm_emit_b(0:) -- "B" mode emittance. Running sum
+!   rad_int_by_ele  -- Rad_int_all_ele_struct, optional: Radiation integrals element by element. 
+!     %ele(:)          -- Array of rad_int1_struct structures, one for each element in the branch.
+!       %i0              -- I0 integral for the element. See the Bmad manual.
+!       %i1              -- I1 integral for the element.
+!       %i2              -- I2 integral for the element.
+!       %i3              -- I3 integral for the element.
+!       %i4a             -- "A" mode I4 integral for the element.
+!       %i4b             -- "B" mode I4 integral for the element.
+!       %i5a             -- "A" mode I5 integral for the element.
+!       %i5b             -- "B" mode I5 integral for the element.
+!       %lin_i2_E4       -- I2 * gamma^4 integral for the element.
+!       %lin_i3_E7       -- I3 * gamma^7 integral for the element.
+!       %lin_i5a_E6      -- I5a * gamma^6 integral for the element.
+!       %lin_i5b_E6      -- I5b * gamma^6 integral for the element.
+!       %lin_norm_emit_a -- "A" mode emittance. Running sum from the beginning of the branch.
+!       %lin_norm_emit_b -- "B" mode emittance. Running sum from the beginning of the branch.
 !
 !
 ! Notes:
@@ -92,11 +93,11 @@
 ! 2) The lin_norm_emit values are running sums from the beginning of the 
 !    lattice and include the beginning emittance stored in lat%a%emit and lat%b%emit.
 !
-! 3) To transfer the data from one rad_int_common_struct block to another 
+! 3) To transfer the data from one rad_int_all_ele_struct block to another 
 !    use the routine: transfer_rad_int_struct
 !-       
 
-subroutine radiation_integrals (lat, orbit, mode, ix_cache, rad_int_by_ele)
+subroutine radiation_integrals (lat, orbit, mode, ix_cache, ix_branch, rad_int_by_ele)
 
 use radiation_mod, except_dummy => radiation_integrals
 use symp_lie_mod, only: symp_lie_bmad
@@ -105,23 +106,24 @@ use transfer_map_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (rad_int_common_struct), optional :: rad_int_by_ele
+type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, slave
 type (ele_struct), save :: ele2, ele_start, ele_end, ele_end1
 type (coord_struct), target :: orbit(0:), orb_start, orb_end, orb_end1
 type (normal_modes_struct) mode
 type (bmad_common_struct) bmad_com_save
-type (rad_int_cache_struct), pointer :: cache
 type (track_struct), save :: track
+type (rad_int_all_ele_struct), optional :: rad_int_by_ele
+type (rad_int_all_ele_struct), target, save :: rad_int_all
 type (rad_int_info_struct), save :: ri_info
-type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
+type (rad_int_cache_struct), pointer :: cache
+type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
 type (rad_int_track_point_struct), pointer :: c_pt
 type (rad_int_track_point_struct) pt
-type (rad_int_common_struct), target, save :: rad_int
+type (rad_int1_struct) int_tot
+type (rad_int1_struct), save :: rad_int1_zero  ! All components zero by construction.
+type (rad_int1_struct), pointer :: rad_int1
 
-integer, parameter :: num_int = 9
-
-real(rp) :: int_tot(num_int)
 real(rp), save :: i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
 real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, z_start, mc2, gamma, gamma4, gamma6
@@ -130,7 +132,7 @@ real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
 
-integer, optional :: ix_cache
+integer, optional :: ix_cache, ix_branch
 integer i, j, k, ir, key, n_step
 
 character(20) :: r_name = 'radiation_integrals'
@@ -142,29 +144,20 @@ logical, parameter :: t = .true., f = .false.
 ! Init
 ! To make the calculation go faster turn off radiation fluctuations and damping
 
+if (present(ix_branch)) then
+  branch => lat%branch(ix_branch)
+else
+  branch => lat%branch(0)
+endif
+
 bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
 bmad_com%space_charge_on = .false.
 
-if (allocated(rad_int%i1)) then
-  if (ubound(rad_int%i1, 1) < lat%n_ele_max) then 
-    deallocate (rad_int%i0)
-    deallocate (rad_int%i1)
-    deallocate (rad_int%i2)
-    deallocate (rad_int%i3)
-    deallocate (rad_int%i4a)
-    deallocate (rad_int%i4b)
-    deallocate (rad_int%i5a)
-    deallocate (rad_int%i5b)
-    deallocate (rad_int%i6b)
-    deallocate (rad_int%n_steps)
-    deallocate (rad_int%lin_i2_E4)
-    deallocate (rad_int%lin_i3_E7)
-    deallocate (rad_int%lin_i5a_E6)
-    deallocate (rad_int%lin_i5b_E6)
-    deallocate (rad_int%lin_norm_emit_a)
-    deallocate (rad_int%lin_norm_emit_b)
+if (allocated(rad_int_all%ele)) then
+  if (ubound(rad_int_all%ele, 1) < branch%n_ele_max) then 
+    deallocate (rad_int_all%ele)
     do_alloc = .true.
   else
     do_alloc = .false.
@@ -174,38 +167,17 @@ else
 endif
 
 if (do_alloc) then
-  allocate (rad_int%i0(0:lat%n_ele_max))
-  allocate (rad_int%i1(0:lat%n_ele_max))
-  allocate (rad_int%i2(0:lat%n_ele_max))
-  allocate (rad_int%i3(0:lat%n_ele_max))
-  allocate (rad_int%i4a(0:lat%n_ele_max))
-  allocate (rad_int%i4b(0:lat%n_ele_max))
-  allocate (rad_int%i5a(0:lat%n_ele_max))
-  allocate (rad_int%i5b(0:lat%n_ele_max))
-  allocate (rad_int%i6b(0:lat%n_ele_max))
-  allocate (rad_int%n_steps(0:lat%n_ele_max))
-  allocate (rad_int%lin_i2_E4(0:lat%n_ele_max))
-  allocate (rad_int%lin_i3_E7(0:lat%n_ele_max))
-  allocate (rad_int%lin_i5a_E6(0:lat%n_ele_max))
-  allocate (rad_int%lin_i5b_E6(0:lat%n_ele_max))
-  allocate (rad_int%lin_norm_emit_a(0:lat%n_ele_max))
-  allocate (rad_int%lin_norm_emit_b(0:lat%n_ele_max))
+  allocate (rad_int_all%ele(0:branch%n_ele_max))
 endif
 
-ri_info%lat => lat
+ri_info%branch => branch
 ri_info%orbit => orbit
 
-rad_int%i0 = 0;  rad_int%i1 = 0;   rad_int%i2 = 0;  rad_int%i3 = 0
-rad_int%i4a = 0;  rad_int%i4b = 0
-rad_int%i5a = 0;  rad_int%i5b = 0
-rad_int%i6b = 0
-rad_int%n_steps = 0
-rad_int%lin_i2_E4 = 0;  rad_int%lin_i3_E7 = 0;
-rad_int%lin_i5a_E6 = 0;  rad_int%lin_i5b_E6 = 0;
+rad_int_all%ele(:) = rad_int1_zero
 
 m65 = 0
 mode%rf_voltage = 0
-int_tot = 0
+int_tot = rad_int1_zero
 
 !---------------------------------------------------------------------
 ! Caching
@@ -252,28 +224,28 @@ if (init_cache) then
 
   ! Count number of elements to cache & allocate memory.
 
-  call re_allocate (cache%ix_ele, lat%n_ele_max, .false.)
+  call re_allocate (cache%ix_c_ele, branch%n_ele_max, .false.)
 
   j = 0  ! number of elements to cache
-  do i = 1, lat%n_ele_track
-    ele => lat%ele(i)
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
     key = ele%key
     if ((key == wiggler$ .and. ele%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
         key == sbend$ .or. key == wiggler$ .or. ele%value(hkick$) /= 0 .or. &
         ele%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
       j = j + 1
-      cache%ix_ele(i) = j  ! mark element for caching
+      cache%ix_c_ele(i) = j  ! mark element for caching
     else
-      cache%ix_ele(i) = -1 ! do not cache this element
+      cache%ix_c_ele(i) = -1 ! do not cache this element
     endif          
     ele%status%rad_int = stale$
   enddo
 
-  if (allocated(cache%ele)) then
-    if (size(cache%ele) < j) deallocate (cache%ele)
+  if (allocated(cache%c_ele)) then
+    if (size(cache%c_ele) < j) deallocate (cache%c_ele)
   endif
-  if (.not. allocated(cache%ele)) allocate (cache%ele(j))  ! allocate cache memory
+  if (.not. allocated(cache%c_ele)) allocate (cache%c_ele(j))  ! allocate cache memory
 
 endif
 
@@ -284,23 +256,23 @@ endif
 if (use_cache .or. init_cache) then
 
   j = 0 
-  do i = 1, lat%n_ele_track
+  do i = 1, branch%n_ele_track
 
-    if (cache%ix_ele(i) == -1) cycle
+    if (cache%ix_c_ele(i) == -1) cycle
 
     j = j + 1
-    cache_ele => cache%ele(j)
+    cache_ele => cache%c_ele(j)
 
-    if (lat%ele(i)%status%rad_int /= stale$) cycle
-    lat%ele(i)%status%rad_int = ok$
+    if (branch%ele(i)%status%rad_int /= stale$) cycle
+    branch%ele(i)%status%rad_int = ok$
 
     ! Calculation is effectively done in element reference frame with ele2 having
     ! no offsets.
 
-    ele2 = lat%ele(i)
+    ele2 = branch%ele(i)
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
-    call offset_particle (lat%ele(i), lat%param, orb_start, set$, &
+    call offset_particle (branch%ele(i), branch%param, orb_start, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == periodic_type$) then
@@ -324,7 +296,7 @@ if (use_cache .or. init_cache) then
     ! map_type wiggler
 
     if (ele2%key == wiggler$ .and. ele2%sub_key == map_type$) then
-      call symp_lie_bmad (ele2, lat%param, orb_start, orb_end, calc_mat6 = .true., track = track)
+      call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
         c_pt => cache_ele%pt(k)
         z_here = track%orb(k)%s - (ele2%s - ele2%value(l$)) 
@@ -341,7 +313,7 @@ if (use_cache .or. init_cache) then
     else  
 
       z_start = 0
-      ele_start = lat%ele(i-1)
+      ele_start = branch%ele(i-1)
       dz = min (1e-3_rp, cache_ele%del_z/3)
       cache_ele%pt(:)%map_ref_orb_in  = orb_start
       call mat_make_unit (mat6)
@@ -355,8 +327,8 @@ if (use_cache .or. init_cache) then
 
         c_pt => cache_ele%pt(k)
 
-        call twiss_and_track_intra_ele (ele2, lat%param, z_start, z_here, .true., .true., orb_start, orb_end,  ele_start, ele_end)
-        call twiss_and_track_intra_ele (ele2, lat%param, z_start, z1,     .true., .true., orb_start, orb_end1, ele_start, ele_end1)
+        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .true., orb_start, orb_end,  ele_start, ele_end)
+        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .true., orb_start, orb_end1, ele_start, ele_end1)
 
         z_start = z1
         orb_start = orb_end
@@ -396,14 +368,17 @@ endif ! (init_cache)
 ! Loop over all elements
 ! We do the non-wiggler elements first since we can do this quickly.
 
-do ir = 1, lat%n_ele_track
+do ir = 1, branch%n_ele_track
 
-  ele => lat%ele(ir)
+  ele => branch%ele(ir)
   if (.not. ele%is_on) cycle
+
+  ri_info%ele => ele
+  rad_int1 => rad_int_all%ele(ir)
 
   nullify (ri_info%cache_ele)
   if (use_cache) then
-    if (cache%ix_ele(ir) > 0) ri_info%cache_ele => cache%ele(cache%ix_ele(ir))
+    if (cache%ix_c_ele(ir) > 0) ri_info%cache_ele => cache%c_ele(cache%ix_c_ele(ir))
   endif
 
   pt%g_x0 = 0
@@ -412,8 +387,6 @@ do ir = 1, lat%n_ele_track
   pt%dgx_dy = 0
   pt%dgy_dx = 0
   pt%dgy_dy = 0
-
-  ri_info%ix_ele = ir
 
   key = ele%key
 
@@ -443,12 +416,12 @@ do ir = 1, lat%n_ele_track
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)
-    rad_int%i0(ir) = (ele%value(e_tot$) / mass_of(lat%param%particle)) * 2 * G_max / 3
-    rad_int%i1(ir) = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
-    rad_int%i2(ir) = ll * G_max**2 / 2
-    rad_int%i3(ir) = ll * g3_ave
+    rad_int1%i0 = (ele%value(e_tot$) / mass_of(branch%param%particle)) * 2 * G_max / 3
+    rad_int1%i1 = -ele%value(k1$) * (ele%value(l_pole$) / pi)**2
+    rad_int1%i2 = ll * G_max**2 / 2
+    rad_int1%i3 = ll * g3_ave
 
-    call qromb_rad_int ([F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int)
+    call qromb_rad_int ([F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
     cycle
 
   endif
@@ -471,11 +444,11 @@ do ir = 1, lat%n_ele_track
     pt%dgy_dy = -pt%dgx_dx
     ! Edge effects for a bend. In this case we ignore any rolls.
     call propagate_part_way (orbit(ir-1), pt, ri_info, 0.0_rp, 1, 1)
-    rad_int%i4a(ir) = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
-    rad_int%i4b(ir) = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
+    rad_int1%i4a = -ri_info%eta_a(1) * g2 * tan(ele%value(e1$))
+    rad_int1%i4b = -ri_info%eta_b(1) * g2 * tan(ele%value(e1$))
     call propagate_part_way (orbit(ir-1), pt, ri_info, ll, 1, 2)
-    rad_int%i4a(ir) = rad_int%i4a(ir) - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
-    rad_int%i4b(ir) = rad_int%i4a(ir) - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
+    rad_int1%i4a = rad_int1%i4a - ri_info%eta_a(1) * g2 * tan(ele%value(e2$))
+    rad_int1%i4b = rad_int1%i4a - ri_info%eta_b(1) * g2 * tan(ele%value(e2$))
   endif
 
   if (key == quadrupole$ .or. key == sol_quad$) then
@@ -488,32 +461,33 @@ do ir = 1, lat%n_ele_track
 
   ! Integrate for quads, bends and nonzero kicks
 
-  call qromb_rad_int ([T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int)
+  call qromb_rad_int ([T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int1)
 
 enddo
 
 !----------------------------------------------------------
 ! For map type wigglers
 
-do ir = 1, lat%n_ele_track
+do ir = 1, branch%n_ele_track
 
-  ri_info%ix_ele = ir
-  ele => lat%ele(ir)
+  ele => branch%ele(ir)
 
   if (ele%key /= wiggler$) cycle
   if (ele%sub_key /= map_type$) cycle
   if (.not. ele%is_on) cycle
 
+  ri_info%ele => ele
+  rad_int1 => rad_int_all%ele(ir)
+
   nullify (ri_info%cache_ele)
   if (use_cache) then
-    if (cache%ix_ele(ir) > 0) ri_info%cache_ele => cache%ele(cache%ix_ele(ir))
+    if (cache%ix_c_ele(ir) > 0) ri_info%cache_ele => cache%c_ele(cache%ix_c_ele(ir))
   endif
 
   ll = ele%value(l$)
   if (ll == 0) cycle
 
-  ri_info%ix_ele = ir
-  call qromb_rad_int ([T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int)
+  call qromb_rad_int ([T, T, T, T, T, T, T, T, T], pt, ri_info, int_tot, rad_int1)
 
 enddo
 
@@ -521,8 +495,8 @@ enddo
 ! Now put everything together...
 ! Linac radiation integrals:
 
-mc2 = mass_of (lat%param%particle)
-gamma_f = lat%ele(lat%n_ele_track)%value(e_tot$) / mc2
+mc2 = mass_of (branch%param%particle)
+gamma_f = branch%ele(branch%n_ele_track)%value(e_tot$) / mc2
 const_q = const_q_factor / mc2
 
 mode%lin%sig_E1 = 0
@@ -533,42 +507,42 @@ mode%lin%i5b_E6 = 0
 
 factor = 2 * const_q * classical_radius_factor / (3 * mc2)
 
-do i = 0, lat%n_ele_track
-  gamma = lat%ele(i)%value(e_tot$) / mc2
+do i = 0, branch%n_ele_track
+  gamma = branch%ele(i)%value(e_tot$) / mc2
   gamma4 = gamma**4
   gamma6 = gamma4 * gamma**2
-  rad_int%lin_i2_E4(i)  = rad_int%i2(i) * gamma4
-  rad_int%lin_i3_E7(i)  = rad_int%i3(i) * gamma6 * gamma
-  rad_int%lin_i5a_E6(i) = rad_int%i5a(i) * gamma6
-  rad_int%lin_i5b_E6(i) = rad_int%i5b(i) * gamma6
-  mode%lin%i2_E4  = mode%lin%i2_E4  + rad_int%lin_i2_E4(i)
-  mode%lin%i3_E7  = mode%lin%i3_E7  + rad_int%lin_i3_E7(i)
-  mode%lin%i5a_E6 = mode%lin%i5a_E6 + rad_int%lin_i5a_E6(i)
-  mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int%lin_i5b_E6(i)
-  rad_int%lin_norm_emit_a(i) = lat%a%emit * gamma + factor * mode%lin%i5a_E6
-  rad_int%lin_norm_emit_b(i) = lat%b%emit * gamma + factor * mode%lin%i5b_E6
+  rad_int_all%ele(i)%lin_i2_E4  = rad_int_all%ele(i)%i2 * gamma4
+  rad_int_all%ele(i)%lin_i3_E7  = rad_int_all%ele(i)%i3 * gamma6 * gamma
+  rad_int_all%ele(i)%lin_i5a_E6 = rad_int_all%ele(i)%i5a * gamma6
+  rad_int_all%ele(i)%lin_i5b_E6 = rad_int_all%ele(i)%i5b * gamma6
+  mode%lin%i2_E4  = mode%lin%i2_E4  + rad_int_all%ele(i)%lin_i2_E4
+  mode%lin%i3_E7  = mode%lin%i3_E7  + rad_int_all%ele(i)%lin_i3_E7
+  mode%lin%i5a_E6 = mode%lin%i5a_E6 + rad_int_all%ele(i)%lin_i5a_E6
+  mode%lin%i5b_E6 = mode%lin%i5b_E6 + rad_int_all%ele(i)%lin_i5b_E6
+  rad_int_all%ele(i)%lin_norm_emit_a = branch%a%emit * gamma + factor * mode%lin%i5a_E6
+  rad_int_all%ele(i)%lin_norm_emit_b = branch%b%emit * gamma + factor * mode%lin%i5b_E6
 enddo
 
-do i = lat%n_ele_track+1, lat%n_ele_max
-  ele => lat%ele(i)
+do i = branch%n_ele_track+1, branch%n_ele_max
+  ele => branch%ele(i)
   if (ele%lord_status /= super_lord$) cycle
   do j = 1, ele%n_slave
     slave => pointer_to_slave (lat, ele, j)
     k = slave%ix_ele
-    rad_int%i0(i) = rad_int%i0(i) + rad_int%i0(k)
-    rad_int%i1(i) = rad_int%i1(i) + rad_int%i1(k)
-    rad_int%i2(i) = rad_int%i2(i) + rad_int%i2(k)
-    rad_int%i3(i) = rad_int%i3(i) + rad_int%i3(k)
-    rad_int%i4a(i) = rad_int%i4a(i) + rad_int%i4a(k)
-    rad_int%i4b(i) = rad_int%i4b(i) + rad_int%i4b(k)
-    rad_int%i5a(i) = rad_int%i5a(i) + rad_int%i5a(k)
-    rad_int%i5b(i) = rad_int%i5b(i) + rad_int%i5b(k)
-    rad_int%i6b(i) = rad_int%i6b(i) + rad_int%i6b(k)
-    rad_int%n_steps(i) = rad_int%n_steps(i) + rad_int%n_steps(k)
-    rad_int%lin_i2_E4(i) = rad_int%lin_i2_E4(i) + rad_int%lin_i2_E4(k)
-    rad_int%lin_i3_E7(i) = rad_int%lin_i3_E7(i) + rad_int%lin_i3_E7(k)
-    rad_int%lin_i5a_E6(i) = rad_int%lin_i5a_E6(i) + rad_int%lin_i5a_E6(k)
-    rad_int%lin_i5b_E6(i) = rad_int%lin_i5b_E6(i) + rad_int%lin_i5b_E6(k)
+    rad_int_all%ele(i)%i0 = rad_int_all%ele(i)%i0 + rad_int_all%ele(k)%i0
+    rad_int_all%ele(i)%i1 = rad_int_all%ele(i)%i1 + rad_int_all%ele(k)%i1
+    rad_int_all%ele(i)%i2 = rad_int_all%ele(i)%i2 + rad_int_all%ele(k)%i2
+    rad_int_all%ele(i)%i3 = rad_int_all%ele(i)%i3 + rad_int_all%ele(k)%i3
+    rad_int_all%ele(i)%i4a = rad_int_all%ele(i)%i4a + rad_int_all%ele(k)%i4a
+    rad_int_all%ele(i)%i4b = rad_int_all%ele(i)%i4b + rad_int_all%ele(k)%i4b
+    rad_int_all%ele(i)%i5a = rad_int_all%ele(i)%i5a + rad_int_all%ele(k)%i5a
+    rad_int_all%ele(i)%i5b = rad_int_all%ele(i)%i5b + rad_int_all%ele(k)%i5b
+    rad_int_all%ele(i)%i6b = rad_int_all%ele(i)%i6b + rad_int_all%ele(k)%i6b
+    rad_int_all%ele(i)%n_steps = rad_int_all%ele(i)%n_steps + rad_int_all%ele(k)%n_steps
+    rad_int_all%ele(i)%lin_i2_E4 = rad_int_all%ele(i)%lin_i2_E4 + rad_int_all%ele(k)%lin_i2_E4
+    rad_int_all%ele(i)%lin_i3_E7 = rad_int_all%ele(i)%lin_i3_E7 + rad_int_all%ele(k)%lin_i3_E7
+    rad_int_all%ele(i)%lin_i5a_E6 = rad_int_all%ele(i)%lin_i5a_E6 + rad_int_all%ele(k)%lin_i5a_E6
+    rad_int_all%ele(i)%lin_i5b_E6 = rad_int_all%ele(i)%lin_i5b_E6 + rad_int_all%ele(k)%lin_i5b_E6
   enddo
 enddo
 
@@ -578,22 +552,22 @@ mode%lin%b_emittance_end = factor * mode%lin%i5b_e6 / gamma_f
 
 ! Normal integrals
 
-i1   = int_tot(1)
-i2   = int_tot(2)
-i3   = int_tot(3)
-i4a  = int_tot(4)
-i4b  = int_tot(5)
-i5a  = int_tot(6)
-i5b  = int_tot(7)
-i6b  = int_tot(9)
+i1   = int_tot%i1
+i2   = int_tot%i2
+i3   = int_tot%i3
+i4a  = int_tot%i4a
+i4b  = int_tot%i4b
+i5a  = int_tot%i5a
+i5b  = int_tot%i5b
+i6b  = int_tot%i6b
 
 i4z = i4a + i4b
 
-energy = lat%ele(0)%value(e_tot$)
+energy = branch%ele(0)%value(e_tot$)
 gamma2_factor = (energy / mc2)**2
 energy_loss = 2 * classical_radius_factor * mode%lin%i2_e4 / 3
 
-mode%synch_int(0) = int_tot(8)
+mode%synch_int(0) = int_tot%i0
 mode%synch_int(1) = i1
 mode%synch_int(2) = i2
 mode%synch_int(3) = i3
@@ -638,6 +612,6 @@ mode%z%emittance = mode%sig_z * mode%sigE_E
 
 bmad_com = bmad_com_save
 
-if (present(rad_int_by_ele)) call transfer_rad_int_struct (rad_int, rad_int_by_ele)
+if (present(rad_int_by_ele)) call transfer_rad_int_struct (rad_int_all, rad_int_by_ele)
 
 end subroutine

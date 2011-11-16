@@ -1674,6 +1674,13 @@ character(24) :: r_name = 'create_element_slice'
 
 ! Err check. Remember: the element length may be negative
 
+if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
+  call out_io (s_fatal$, r_name, &
+        'CANNOT SLICE ELEMENT OF TYPE: ' // key_name(ele_in%key), &
+        'CANNOT SLICE: ' // ele_in%name)
+  call err_exit
+endif
+
 e_len = ele_in%value(l$)
 if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_longitudinal_length) then
   call out_io (s_fatal$, r_name, &
@@ -2321,8 +2328,15 @@ endif
 
 ! num_steps
 
-if (val(ds_step$) /= 0) val(num_steps$) = nint(abs(val(l$) / val(ds_step$)))
-if (val(ds_step$) == 0 .or. val(num_steps$) <= 0) val(num_steps$) = 1
+if (val(ds_step$) <= 0) then
+  if (val(num_steps$) <= 0 .or. abs(val(l$)) == 0) then
+    val(ds_step$) = bmad_com%default_ds_step
+  else
+    val(ds_step$) = val(num_steps$) * abs(val(l$))
+  endif
+endif
+ 
+val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
 
 !----------------------------------
 ! General bookkeeping...

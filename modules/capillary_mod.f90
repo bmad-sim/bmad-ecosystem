@@ -412,7 +412,7 @@ end subroutine capillary_reflect_photon
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function capillary_photon_d_radius (p_orb, ele, perp) result (d_radius)
+! Function capillary_photon_d_radius (p_orb, ele, perp, err_flag) result (d_radius)
 !
 ! Routine to calculate the normalized radius = photon_radius - wall_radius.
 !
@@ -421,11 +421,12 @@ end subroutine capillary_reflect_photon
 !   ele     -- ele_struct: Capillary element
 !
 ! Output:
-!   d_radius -- Real(rp), Normalized radius: r_photon - r_wall
-!   perp(3) -- Real(rp), optional: Perpendicular normal to the wall.
+!   d_radius  -- Real(rp), Normalized radius: r_photon - r_wall
+!   perp(3)   -- Real(rp), optional: Perpendicular normal to the wall.
+!   err_flag  -- Logical, optional: Set True if error, false otherwise.
 !-
 
-function capillary_photon_d_radius (p_orb, ele, perp) result (d_radius)
+function capillary_photon_d_radius (p_orb, ele, perp, err_flag) result (d_radius)
 
 implicit none
 
@@ -439,15 +440,26 @@ real(rp) p1, p2, dp1, dp2
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:)
 
-integer ix, n_slice
+integer ix, n_slice, n_sec
+logical, optional :: err_flag
+
+character(32), parameter :: r_name = 'capillary_photon_d_radius' 
 
 ! The outward normal vector is discontinuous at the wall points.
 ! If at a wall point, use the correct part of the wall.
 
+if (present(err_flag)) err_flag = .true.
+
+n_sec = size(ele%wall3d%section)
+if (vec(5) < ele%wall3d%section(1)%s .or. vec(5) > ele%wall3d%section(n_sec)%s) then
+  call out_io (s_error$, r_name, 'PHOTON S-POSITION BEYOUND WALL: \ES14.3\ ', vec(5))
+  return
+endif
+
 vec => p_orb%orb%vec
 
 call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix)
-if (ix == size(ele%wall3d%section)) ix = size(ele%wall3d%section) - 1
+if (ix == n_sec) ix = n_sec - 1
 if (vec(5) == ele%wall3d%section(ix)%s .and. vec(6) > 0 .and. ix /= lbound(ele%wall3d%section, 1)) ix = ix - 1
 p_orb%ix_section = ix
 
@@ -490,6 +502,8 @@ if (present (perp)) then
   perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
   perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
 endif
+
+if (present(err_flag)) err_flag = .false.
 
 end function capillary_photon_d_radius
 

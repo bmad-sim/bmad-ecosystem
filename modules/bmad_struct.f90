@@ -376,6 +376,7 @@ type branch_struct
   integer ix_from_ele
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
+  type (mode_info_struct), pointer :: a, b, z         ! Tunes, etc.
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
   type (wall3d_struct), pointer :: wall3d => null()
@@ -915,26 +916,33 @@ type (bmad_common_struct), save :: bmad_com
 
 type (coord_struct), pointer :: multi_turn_func_common(:) => null()
 
-! This structure stores the radiation integrals for the individual elements except
-! lin_norm_emit_a and lin_norm_emit_b are running sums.
+! This structure stores the radiation integrals for an individual element except
+! lin_norm_emit_a and lin_norm_emit_b are running sums from the beginning of the branch.
+! See also rad_int_all_ele_struct.
 
-type rad_int_common_struct
-  real(rp), allocatable :: i0(:)          ! Noe: All arrays are indexed from 0
-  real(rp), allocatable :: i1(:)          ! Noe: All arrays are indexed from 0
-  real(rp), allocatable :: i2(:) 
-  real(rp), allocatable :: i3(:) 
-  real(rp), allocatable :: i4a(:)
-  real(rp), allocatable :: i4b(:)
-  real(rp), allocatable :: i5a(:) 
-  real(rp), allocatable :: i5b(:) 
-  real(rp), allocatable :: i6b(:) 
-  real(rp), allocatable :: lin_i2_E4(:) 
-  real(rp), allocatable :: lin_i3_E7(:) 
-  real(rp), allocatable :: lin_i5a_E6(:) 
-  real(rp), allocatable :: lin_i5b_E6(:) 
-  real(rp), allocatable :: lin_norm_emit_a(:)  ! Running sum
-  real(rp), allocatable :: lin_norm_emit_b(:)  ! Running sum
-  real(rp), allocatable :: n_steps(:)      ! number of qromb steps needed
+type rad_int1_struct
+  real(rp) :: i0   = 0
+  real(rp) :: i1   = 0
+  real(rp) :: i2   = 0
+  real(rp) :: i3   = 0
+  real(rp) :: i4a  = 0
+  real(rp) :: i4b  = 0
+  real(rp) :: i5a  = 0
+  real(rp) :: i5b  = 0
+  real(rp) :: i6b  = 0
+  real(rp) :: lin_i2_E4   = 0 
+  real(rp) :: lin_i3_E7   = 0
+  real(rp) :: lin_i5a_E6  = 0
+  real(rp) :: lin_i5b_E6  = 0
+  real(rp) :: lin_norm_emit_a = 0 ! Running sum
+  real(rp) :: lin_norm_emit_b = 0 ! Running sum
+  real(rp) :: n_steps         = 0 ! number of qromb steps needed
+end type
+
+! Structure for an array of rad_int1_structs for a single branch
+
+type rad_int_all_ele_struct
+  type (rad_int1_struct), allocatable :: ele(:) ! Array is indexed from 0
 end type
 
 end module

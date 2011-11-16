@@ -24,15 +24,16 @@ type rad_int_track_point_struct
   real(rp) l_pole              
 end type
 
-type ele_cache_struct
+type rad_int_cache1_struct
   type (rad_int_track_point_struct), allocatable :: pt(:)
+  type (ele_struct), pointer :: ele
   real(rp) del_z
 end type
 
 type rad_int_cache_struct
-  type (ele_cache_struct), allocatable :: ele(:)
-  integer, allocatable :: ix_ele(:)
-  logical :: set = .false.   ! is being used?
+  type (rad_int_cache1_struct), allocatable :: c_ele(:)
+  integer, allocatable :: ix_c_ele(:)
+  logical set
 end type
 
 type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
@@ -40,15 +41,15 @@ type (rad_int_cache_struct), target, save :: rad_int_cache_common(0:10)
 !
 
 type rad_int_info_struct
-  type (lat_struct), pointer :: lat
+  type (branch_struct), pointer :: branch
+  type (ele_struct), pointer :: ele
   type (coord_struct), pointer :: orbit(:)
   type (twiss_struct)  a, b
-  type (ele_cache_struct), pointer :: cache_ele ! pointer to cache in use
+  type (rad_int_cache1_struct), pointer :: cache_ele ! pointer to cache in use
   real(rp) eta_a(4), eta_b(4)
   real(rp) g, g2          ! bending strength (1/bending_radius)
   real(rp) g_x, g_y       ! components in x-y plane
   real(rp) dg2_x, dg2_y
-  integer ix_ele
 end type
 
 contains
@@ -74,7 +75,7 @@ contains
 ! not have to be done by this routine.
 !-
 
-subroutine qromb_rad_int (do_int, pt, info, int_tot, rad_int)
+subroutine qromb_rad_int (do_int, pt, info, int_tot, rad_int1)
 
 use precision_def
 use nrtype
@@ -86,58 +87,57 @@ type (ele_struct), pointer :: ele
 type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
 type (rad_int_info_struct) info
-type (rad_int_common_struct) rad_int
+type (rad_int1_struct) rad_int1, int_tot
+type (rad_int1_struct), save :: rad_int1_zero  ! Is initialized to zero
 
 integer, parameter :: num_int = 9
-integer, parameter :: jmax = 14
-integer j, j0, n, n_pts, ix_ele
+integer j, j0, n, n_pts
 
-real(rp) :: int_tot(num_int)
 real(rp) :: eps_int, eps_sum, gamma
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
-real(rp) i_sum(num_int), rad_int_vec(num_int)
+real(rp) i_sum(num_int), rad_int_vec(num_int), int_tot_vec(num_int)
 
 logical do_int(num_int), complete
 
-type ri_struct
-  real(rp) h(0:jmax)
-  real(rp) sum(0:jmax)
+integer, parameter :: jmax = 14
+type ri_array_struct
+  real(rp) h(num_int)
+  real(rp) sum(num_int)
 end type
 
-type (ri_struct) ri(num_int)
+type (ri_array_struct) ri_array(0:jmax)
 
 !
 
-ele => info%lat%ele(info%ix_ele)
+ele => info%ele
 
 eps_int = 1e-4
 eps_sum = 1e-6
 
-ri(:)%h(0) = 4.0
-ri(:)%sum(0) = 0
+ri_array(0)%h = 4
+ri_array(0)%sum = 0
 rad_int_vec = 0
+int_tot_vec = [int_tot%i1, int_tot%i2, int_tot%i3, int_tot%i4a, &
+               int_tot%i4b, int_tot%i5a, int_tot%i5b, int_tot%i0,int_tot%i6b]
 
 ll = ele%value(l$)
 
-ix_ele = info%ix_ele
-start = info%orbit(ix_ele-1)
-end   = info%orbit(ix_ele)
-gamma = ele%value(e_tot$) / mass_of(info%lat%param%particle)
+start = info%orbit(ele%ix_ele-1)
+end   = info%orbit(ele%ix_ele)
+gamma = ele%value(e_tot$) / mass_of(info%branch%param%particle)
 
 ! Go to the local element frame if there has been caching.
 if (associated(info%cache_ele)) then
-  call offset_particle (ele, info%lat%param, start, set$, &
+  call offset_particle (ele, info%branch%param, start, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
-  call offset_particle (ele, info%lat%param, end, set$, &
+  call offset_particle (ele, info%branch%param, end, set$, &
        set_canonical = .false., set_multipoles = .false., set_hvkicks = .false., s_pos = ll)
 endif
 
 ! Loop until integrals converge.
-! ri(k) holds the info for the k^th integral.
+! ri_array(j) holds the info for the integrals on the j^th step.
 
 do j = 1, jmax
-
-  ri(:)%h(j) = ri(:)%h(j-1) / 4
 
   !---------------
   ! This is trapzd from Numerical Recipes
@@ -179,7 +179,8 @@ do j = 1, jmax
     i_sum(9) = i_sum(9) + info%g2 * info%g * info%b%beta
   enddo
 
-  ri(:)%sum(j) = (ri(:)%sum(j-1) + del_z * i_sum(:)) / 2
+  ri_array(j)%h = ri_array(j-1)%h / 4
+  ri_array(j)%sum = (ri_array(j-1)%sum + del_z * i_sum) / 2
 
   !--------------
   ! Back to qromb.
@@ -197,8 +198,8 @@ do j = 1, jmax
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
-    call polint (ri(n)%h(j0:j), ri(n)%sum(j0:j), 0.0_rp, rad_int_vec(n), dint)
-    d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot(n))
+    call polint (ri_array(j0:j)%h(n), ri_array(j0:j)%sum(n), 0.0_rp, rad_int_vec(n), dint)
+    d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
     if (abs(dint) > d0)  complete = .false.
     if (d0 /= 0) d_max = abs(dint) / d0
   enddo
@@ -208,30 +209,30 @@ do j = 1, jmax
 
   if (complete .or. j == jmax) then
 
-    rad_int%n_steps(ix_ele) = j
+    rad_int1%n_steps = j
 
     ! Note that rad_int%i... may already contain a contribution from edge
     ! affects (Eg bend face angles) so add it on to rad_int_vec(i)
 
-    rad_int%i1(ix_ele)  = rad_int%i1(ix_ele)  + rad_int_vec(1)
-    rad_int%i2(ix_ele)  = rad_int%i2(ix_ele)  + rad_int_vec(2)
-    rad_int%i3(ix_ele)  = rad_int%i3(ix_ele)  + rad_int_vec(3)
-    rad_int%i4a(ix_ele) = rad_int%i4a(ix_ele) + rad_int_vec(4)
-    rad_int%i4b(ix_ele) = rad_int%i4b(ix_ele) + rad_int_vec(5)
-    rad_int%i5a(ix_ele) = rad_int%i5a(ix_ele) + rad_int_vec(6)
-    rad_int%i5b(ix_ele) = rad_int%i5b(ix_ele) + rad_int_vec(7)
-    rad_int%i0(ix_ele)  = rad_int%i0(ix_ele)  + rad_int_vec(8)
-    rad_int%i6b(ix_ele) = rad_int%i6b(ix_ele) + rad_int_vec(9)
+    rad_int1%i1  = rad_int1%i1  + rad_int_vec(1)
+    rad_int1%i2  = rad_int1%i2  + rad_int_vec(2)
+    rad_int1%i3  = rad_int1%i3  + rad_int_vec(3)
+    rad_int1%i4a = rad_int1%i4a + rad_int_vec(4)
+    rad_int1%i4b = rad_int1%i4b + rad_int_vec(5)
+    rad_int1%i5a = rad_int1%i5a + rad_int_vec(6)
+    rad_int1%i5b = rad_int1%i5b + rad_int_vec(7)
+    rad_int1%i0  = rad_int1%i0  + rad_int_vec(8)
+    rad_int1%i6b = rad_int1%i6b + rad_int_vec(9)
 
-    int_tot(1) = int_tot(1) + rad_int%i1(ix_ele)
-    int_tot(2) = int_tot(2) + rad_int%i2(ix_ele)
-    int_tot(3) = int_tot(3) + rad_int%i3(ix_ele)
-    int_tot(4) = int_tot(4) + rad_int%i4a(ix_ele)
-    int_tot(5) = int_tot(5) + rad_int%i4b(ix_ele)
-    int_tot(6) = int_tot(6) + rad_int%i5a(ix_ele)
-    int_tot(7) = int_tot(7) + rad_int%i5b(ix_ele)
-    int_tot(8) = int_tot(8) + rad_int%i0(ix_ele)
-    int_tot(9) = int_tot(9) + rad_int%i6b(ix_ele)
+    int_tot%i1  = int_tot_vec(1) + rad_int1%i1
+    int_tot%i2  = int_tot_vec(2) + rad_int1%i2
+    int_tot%i3  = int_tot_vec(3) + rad_int1%i3
+    int_tot%i4a = int_tot_vec(4) + rad_int1%i4a
+    int_tot%i4b = int_tot_vec(5) + rad_int1%i4b
+    int_tot%i5a = int_tot_vec(6) + rad_int1%i5a
+    int_tot%i5b = int_tot_vec(7) + rad_int1%i5b
+    int_tot%i0  = int_tot_vec(8) + rad_int1%i0
+    int_tot%i6b = int_tot_vec(9) + rad_int1%i6b
 
   endif
 
@@ -272,12 +273,12 @@ integer, save :: ix_ele = -1
 
 ! Init
 
-ele0 => info%lat%ele(info%ix_ele-1)
-ele  => info%lat%ele(info%ix_ele)
+ele0 => info%branch%ele(info%ele%ix_ele-1)
+ele  => info%ele
 
-if (ix_ele /= info%ix_ele) then
+if (ix_ele /= info%ele%ix_ele) then
   runt = ele
-  ix_ele = info%ix_ele
+  ix_ele = info%ele%ix_ele
 endif
 
 !--------------------------------------
@@ -399,8 +400,8 @@ if (ele%key == wiggler$ .and. ele%sub_key == periodic_type$) then
   ele%mat6_calc_method = symp_lie_bmad$
 endif
 
-call twiss_and_track_intra_ele (ele, info%lat%param, 0.0_rp, z_here, .true., .true., orb_start, orb_end, ele0, ele_end)
-call twiss_and_track_intra_ele (ele, info%lat%param, z_here, z1,     .true., .true., orb_end, orb_end1)
+call twiss_and_track_intra_ele (ele, info%branch%param, 0.0_rp, z_here, .true., .true., orb_start, orb_end, ele0, ele_end)
+call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .true., .true., orb_end, orb_end1)
 
 info%a = ele_end%a
 info%b = ele_end%b
@@ -449,7 +450,7 @@ real(rp) s_rel, g(3), dg(3,3)
 
 ! Note: em_field_g_bend assumes orb is lab (not element) coords.
 
-call em_field_g_bend (ele, info%lat%param, s_rel, 0.0_rp, orb, g, dg)
+call em_field_g_bend (ele, info%branch%param, s_rel, 0.0_rp, orb, g, dg)
 
 pt%g_x0 = g(1)
 pt%g_y0 = g(2)
@@ -471,26 +472,19 @@ subroutine transfer_rad_int_struct (rad_int_in, rad_int_out)
 
 implicit none
 
-type (rad_int_common_struct) rad_int_in, rad_int_out
+type (rad_int_all_ele_struct) rad_int_in, rad_int_out
 integer n
 
 !
 
-n = ubound(rad_int_in%i1, 1)
+n = ubound(rad_int_in%ele, 1)
 
-call re_allocate2 (rad_int_out%i0, 0, n)
-call re_allocate2 (rad_int_out%i1, 0, n)
-call re_allocate2 (rad_int_out%i2, 0, n)
-call re_allocate2 (rad_int_out%i3, 0, n)
-call re_allocate2 (rad_int_out%i4a, 0, n)
-call re_allocate2 (rad_int_out%i4b, 0, n)
-call re_allocate2 (rad_int_out%i5a, 0, n)
-call re_allocate2 (rad_int_out%i5b, 0, n)
-call re_allocate2 (rad_int_out%n_steps, 0, n)
-call re_allocate2 (rad_int_out%lin_i2_e4, 0, n)
-call re_allocate2 (rad_int_out%lin_i3_e7, 0, n)
-call re_allocate2 (rad_int_out%lin_i5a_e6, 0, n)
-call re_allocate2 (rad_int_out%lin_i5b_e6, 0, n)
+if (.not. allocated(rad_int_out%ele)) allocate (rad_int_out%ele(0:n))
+
+if (ubound(rad_int_out%ele, 1) /= n) then
+  deallocate (rad_int_out%ele)
+  allocate (rad_int_out%ele(0:n))
+endif
 
 rad_int_out = rad_int_in
 
