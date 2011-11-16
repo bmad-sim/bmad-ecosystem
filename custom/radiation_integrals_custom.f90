@@ -14,7 +14,7 @@
 !   orb(:) -- Coord_struct: Orbit around which integrals are to be evaluated.
 !
 ! Output:
-!   ric  -- Rad_int_common_struct: Common block for storing the results.
+!   ric  -- Rad_int_all_ele_struct: Common block for storing the results.
 !     %i1(ir)  -- I1 integral.
 !     %i2(ir)  -- I2 integral.
 !     %i3(ir)  -- I3 integral.

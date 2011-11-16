@@ -729,7 +729,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
         case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => mode%map%term%b_coef
         end select
 
-        if (word2(3:4) == 'RE') then
+        if (word2(8:9) == 'RE') then
           if (any(real(c_ptr) /= 0)) then
             call parser_warning ('DUPLICATE ARRAY FOR: ' // word2, &
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
