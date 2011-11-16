@@ -21,7 +21,7 @@ program anaylzer
     end subroutine
   end interface
 
-  type (rad_int_common_struct) rad_int
+  type (rad_int_all_ele_struct) rad_int
   type (lat_struct) ring_1, ring_2
   type (lat_struct), save :: ring, ring_two(-1:1)
   type (coord_struct), allocatable, save :: co(:), cot(:), co_high(:), co_low(:)
@@ -502,7 +502,7 @@ program anaylzer
 
       ix_cache = 0
       if(radiation)then
-       call radiation_integrals (ring, co, mode, ix_cache, rad_int)
+       call radiation_integrals (ring, co, mode, ix_cache, 0, rad_int)
        print '(a24,e12.4,a25,e12.4)',' horizontal emittance = ', mode%a%emittance, &
                                     '    vertical emittance = ',mode%b%emittance
        print '(a17,e12.4,a18,e12.4, a, e12.4)',' Energy spread = ',mode%sige_e,'   Bunch length = ',mode%sig_z ,&
@@ -718,8 +718,8 @@ program anaylzer
 
       if(plot_flag == rad_int$)then
        do i=0,n_all
-         x(i) = rad_int%i5a(i)
-         y(i) = rad_int%i5b(i)
+         x(i) = rad_int%ele(i)%i5a
+         y(i) = rad_int%ele(i)%i5b
        end do
       endif
 

@@ -17,7 +17,7 @@ type (ele_struct), pointer :: ele
 type (lat_struct), target :: lat
 type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orbit_here
-type (rad_int_common_struct) rad_int_ele
+type (rad_int_all_ele_struct) rad_int_ele
 type (normal_modes_struct) modes
 type (sr3d_photon_track_struct), allocatable, target :: photons(:)
 type (sr3d_photon_track_struct), pointer :: photon
@@ -323,10 +323,10 @@ endif
 call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele)
 
 if (ix_ele_track_end > ix_ele_track_start) then
-  i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:ix_ele_track_end))
+  i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:ix_ele_track_end)%i0)
 else
-  i0_tot = sum(rad_int_ele%i0(ix_ele_track_start+1:lat%n_ele_track)) + &
-           sum(rad_int_ele%i0(1:ix_ele_track_end))
+  i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:lat%n_ele_track)%i0) + &
+           sum(rad_int_ele%ele(1:ix_ele_track_end)%i0)
 endif
 
 ! To generate photons we either need bends or wigglers or a photon init file.
@@ -488,7 +488,7 @@ else
 
     ele => lat%ele(ix_ele)
 
-    n_phot = nint(rad_int_ele%i0(ix_ele) / d_i0)
+    n_phot = nint(rad_int_ele%ele(ix_ele)%i0 / d_i0)
     if (n_phot == 0) cycle
 
     ds = ele%value(l$) / n_phot
@@ -498,7 +498,7 @@ else
 
     if (iu_lat_file > 0) then
       write (iu_lat_file, '(i6, 2x, a20, a16, f10.3, f8.3, f10.1, i9, f8.3)') ix_ele, ele%name, &
-              key_name(ele%key), ele%s, ele%value(l$), rad_int_ele%i0(ix_ele), n_phot, ds
+              key_name(ele%key), ele%s, ele%value(l$), rad_int_ele%ele(ix_ele)%i0, n_phot, ds
     endif
 
     ! Loop over all photon generating points.
