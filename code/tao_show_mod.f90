@@ -1425,7 +1425,7 @@ case ('lattice')
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
       call radiation_integrals (lat, tao_lat%lat_branch(0)%orbit, &
-                                             tao_lat%modes, tao_lat%ix_rad_int_cache, tao_lat%rad_int)
+                                      tao_lat%modes, tao_lat%ix_rad_int_cache, 0, tao_lat%rad_int)
       exit
     endif
   enddo

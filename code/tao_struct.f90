@@ -9,12 +9,11 @@
 
 module tao_struct
 
-use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct
+use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct, rad_int_all_ele_struct
 use equal_mod
 use quick_plot_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
-use rad_int_common, only: rad_int_common_struct
 
 integer, parameter :: model$ = 1, base$ = 2, design$ = 3
 integer, parameter :: ix_common_uni$ = 0
@@ -622,7 +621,7 @@ type tao_lattice_struct
   type (tao_lattice_branch_struct), allocatable :: lat_branch(:)
   type (bunch_params_struct), allocatable :: bunch_params2(:)
   type (normal_modes_struct) modes                ! Synchrotron integrals stuff
-  type (rad_int_common_struct) rad_int
+  type (rad_int_all_ele_struct) rad_int
   type (tao_lat_mode_struct) a, b
   integer ix_rad_int_cache               ! Radiation integrals cache index.
   integer n_bunch_params2                          ! bunch_params2 array size.

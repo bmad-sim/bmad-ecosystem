@@ -548,7 +548,7 @@ endif
 
 if (data_type  == 'rad_int.' .or. data_type == 'rad_int1.') then
   if (index(data_type, '_e') /= 0 .and. (ix_ref > -1 .or. ix_ele > -1)) then
-    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) then
+    if (.not. allocated(tao_lat%rad_int%ele)) then
       call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
       return
     endif
@@ -1008,11 +1008,11 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%a%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     elseif (data_source == 'lat') then
       if (lat%param%lattice_type == linear_lattice$) then
-        if (.not. allocated(tao_lat%rad_int%lin_norm_emit_a)) then
+        if (.not. allocated(tao_lat%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
           return
         endif
-        call tao_load_this_datum (tao_lat%rad_int%lin_norm_emit_a, &
+        call tao_load_this_datum (tao_lat%rad_int%ele%lin_norm_emit_a, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
       else
         datum_value = gamma * tao_lat%modes%a%emittance
@@ -1027,12 +1027,12 @@ case ('emit.', 'norm_emit.')
       call tao_load_this_datum (bunch_params(:)%b%norm_emit, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
     elseif (data_source == 'lat') then
       if (lat%param%lattice_type == linear_lattice$) then
-        if (.not. allocated(tao_lat%rad_int%lin_norm_emit_b)) then
+        if (.not. allocated(tao_lat%rad_int%ele)) then
           call out_io (s_error$, r_name, 'tao_lat%rad_int not allocated')
           valid_value = .false.
           return
         endif
-        call tao_load_this_datum (tao_lat%rad_int%lin_norm_emit_b, &
+        call tao_load_this_datum (tao_lat%rad_int%ele%lin_norm_emit_b, &
                                 ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
       else
         datum_value = gamma * tao_lat%modes%b%emittance
@@ -1573,92 +1573,89 @@ case ('rad_int.')
   endif
 
   if (data_source == 'beam') return
+  if (.not. allocated(tao_lat%rad_int%ele)) return
 
   select case (datum%data_type(9:))
   case ('i1')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i1(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i1)
     else
       datum_value = tao_lat%modes%synch_int(1)
     endif
 
   case ('i2')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i2(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i2)
     else
       datum_value = tao_lat%modes%synch_int(2)
     endif
 
   case ('i2_e4')
-    if (.not. allocated(tao_lat%rad_int%lin_i2_e4)) return
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%lin_i2_e4(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%lin_i2_e4)
     else
       datum_value = tao_lat%modes%lin%i2_e4
     endif
 
   case ('i3')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i3(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i3)
     else
       datum_value = tao_lat%modes%synch_int(3)
     endif
 
   case ('i3_e7')
-    if (.not. allocated(tao_lat%rad_int%lin_i3_e7)) return
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%lin_i3_e7(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%lin_i3_e7)
     else
       datum_value = tao_lat%modes%lin%i3_e7
     endif
 
   case ('i4a')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i4a(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i4a)
     else
       datum_value = tao_lat%modes%a%synch_int(4)
     endif
 
   case ('i5a')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i5a(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i5a)
     else
       datum_value = tao_lat%modes%a%synch_int(5)
     endif
 
   case ('i5a_e6')
-    if (.not. allocated(tao_lat%rad_int%lin_i5a_e6)) return
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%lin_i5a_e6(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%lin_i5a_e6)
     else
       datum_value = tao_lat%modes%lin%i5a_e6
     endif
 
   case ('i4b')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i4b(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i4b)
     else
       datum_value = tao_lat%modes%b%synch_int(4)
     endif
 
   case ('i5b')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i5b(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i5b)
     else
       datum_value = tao_lat%modes%b%synch_int(5)
     endif
 
   case ('i5b_e6')
-    if (.not. allocated(tao_lat%rad_int%lin_i5b_e6)) return
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%lin_i5b_e6(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%lin_i5b_e6)
     else
       datum_value = tao_lat%modes%lin%i5b_e6
     endif
 
   case ('i6b')
     if (ix_ele > -1) then
-      datum_value = sum(tao_lat%rad_int%i6b(ix_ref:ix_ele))
+      datum_value = sum(tao_lat%rad_int%ele(ix_ref:ix_ele)%i6b)
     else
       datum_value = tao_lat%modes%b%synch_int(6)
     endif
@@ -1678,57 +1675,56 @@ case ('rad_int1.')
 
   if (data_source == 'beam') return
   if (ix_ele < 0) return
-  if (.not. allocated(tao_lat%rad_int%i1)) return
-
+  if (.not. allocated(tao_lat%rad_int%ele)) return
 
   select case (datum%data_type(10:))
   case ('i1')
-    datum_value = tao_lat%rad_int%i1(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i1(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i1
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i1
 
   case ('i2')
-    datum_value = tao_lat%rad_int%i2(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i2(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i2
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i2
 
   case ('i2_e4')
-    datum_value = tao_lat%rad_int%lin_i2_e4(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%lin_i2_e4(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%lin_i2_e4
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%lin_i2_e4
 
   case ('i3')
-    datum_value = tao_lat%rad_int%i3(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i3(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i3
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i3
 
   case ('i3_e7')
-    datum_value = tao_lat%rad_int%lin_i3_e7(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%lin_i3_e7(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%lin_i3_e7
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%lin_i3_e7
 
   case ('i4a')
-    datum_value = tao_lat%rad_int%i4a(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i4a(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i4a
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i4a
 
   case ('i5a')
-    datum_value = tao_lat%rad_int%i5a(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i5a(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i5a
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i5a
 
   case ('i5a_e6')
-    datum_value = tao_lat%rad_int%lin_i5a_e6(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%lin_i5a_e6(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%lin_i5a_e6
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%lin_i5a_e6
 
   case ('i4b')
-    datum_value = tao_lat%rad_int%i4b(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i4b(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i4b
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i4b
 
   case ('i5b')
-    datum_value = tao_lat%rad_int%i5b(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i5b(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i5b
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i5b
 
   case ('i5b_e6')
-    datum_value = tao_lat%rad_int%lin_i5b_e6(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%lin_i5b_e6(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%lin_i5b_e6
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%lin_i5b_e6
 
   case ('i6b')
-    datum_value = tao_lat%rad_int%i6b(ix_ele)
-    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%i6b(ix_ref)
+    datum_value = tao_lat%rad_int%ele(ix_ele)%i6b
+    if (ix_ref > -1) datum_value = datum_value - tao_lat%rad_int%ele(ix_ref)%i6b
 
   case default
     call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
@@ -1852,7 +1848,7 @@ case ('sigma.')
       if (lat%param%lattice_type == circular_lattice$) return
       if (ix_ele == -1) ix_ele = branch%n_ele_track
       datum_value = sqrt(4 * const_q_factor * classical_radius_factor * &
-                               sum(tao_lat%rad_int%lin_i3_e7(ix_ref+1:ix_ele)) / 3) / mass_of(lat%param%particle)
+                               sum(tao_lat%rad_int%ele(ix_ref+1:ix_ele)%lin_i3_e7) / 3) / mass_of(lat%param%particle)
       valid_value = .true.
       return
     endif
