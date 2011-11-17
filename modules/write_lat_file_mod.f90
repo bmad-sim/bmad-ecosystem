@@ -1001,14 +1001,14 @@ type (taylor_term_struct) :: term
 
 real(rp) field, hk, vk, tilt, limit(2)
 real(rp), pointer :: val(:)
-real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer, optional :: ix_start, ix_end
 integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
 integer ie1, ie2, ios, t_count, a_count, ix_lord, ix1, ix2, n_lord, aperture_at
 
 character(*) out_type, out_file_name
-character(300) line
+character(300) line, knl_str, ksl_str
 character(40), allocatable :: name_list(:)
 character(1000) line_out
 character(8) str
@@ -1520,12 +1520,28 @@ do ix_ele = ie1, ie2
 
     call multipole_ele_to_kt (ele, lat_out%param%particle, knl, tilts, .true.)
     write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
-    do i = 0, 9
-      write (str, '(a, i1, a)') 'K', i, 'L'
-      call value_to_line (line_out, knl(i), str, 'es13.5', 'R')
-      write (str, '(a, i1)') 'T', i
-      call value_to_line (line_out, tilts(i), str, 'es13.5', 'R')
-    enddo
+
+    if (out_type == 'MAD-X') then
+      knl_str = ''; ksl_str = ''
+      call multipole_ele_to_ab (ele, lat_out%param%particle, a_pole, b_pole, .true.)
+      do i = 0, 9
+        if (all(knl(i:) == 0)) exit
+        if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value
+        if (abs(b_pole(i)) < 1d-12 * abs(a_pole(i))) b_pole(i) = 0  ! Round to zero insignificant value
+        call value_to_line (knl_str,  b_pole(i) * factorial(i), '', 'es13.5', 'R', .false.)
+        call value_to_line (ksl_str, -a_pole(i) * factorial(i), '', 'es13.5', 'R', .false.)
+      enddo
+      if (any(b_pole /= 0)) line_out = trim(line_out) // ', knl = {' // trim(knl_str(3:)) // '}'
+      if (any(a_pole /= 0)) line_out = trim(line_out) // ', ksl = {' // trim(ksl_str(3:)) // '}'
+
+    else
+      do i = 0, 9
+        write (str, '(a, i1, a)') 'K', i, 'L'
+        call value_to_line (line_out, knl(i), str, 'es13.5', 'R')
+        write (str, '(a, i1)') 'T', i
+        call value_to_line (line_out, tilts(i), str, 'es13.5', 'R')
+      enddo
+    endif
 
   ! unknown
 
@@ -1684,7 +1700,8 @@ use precision_def
 implicit none
 
 character(*) line, str, fmt
-character fmt2*40, typ*1
+character(40) fmt2
+character(*) typ
 
 real(rp) value
 
@@ -1693,15 +1710,28 @@ logical, optional :: ignore_if_zero
 !
 
 if (value == 0 .and. logic_option(.true., ignore_if_zero)) return
-fmt2 = '(4a,' // trim(fmt) // ')'
+
+if (str == '') then
+  line = trim(line) // ','
+else
+  line = trim(line) // ', ' // trim(str) // ' ='
+endif
+
+if (value == 0) then
+  line = trim(line) // ' 0'
+  return
+endif
+
+fmt2 = '(a,' // trim(fmt) // ')'
 if (typ == 'R') then
-  write (line, fmt2) trim(line), ', ', trim(str), ' =', value
+  write (line, fmt2) trim(line), value
 elseif (typ == 'I') then
-  write (line, fmt2) trim(line), ', ', trim(str), ' =', nint(value)
+  write (line, fmt2) trim(line), nint(value)
 else
   print *, 'ERROR IN VALUE_TO_LINE. BAD "TYP": ', typ 
   call err_exit
 endif
+
 end subroutine value_to_line
 
 end module
