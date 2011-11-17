@@ -30,7 +30,8 @@ implicit none
 type (lat_struct) lat
 
 integer i, n_arg, ix
-character(80) file_name, out_name, dir, bpm_ans
+character(120) file_name, out_name, dir
+character(16) bpm_ans
 logical is_rel, nobpm
 
 !
