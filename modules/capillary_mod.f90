@@ -448,6 +448,8 @@ character(32), parameter :: r_name = 'capillary_photon_d_radius'
 ! The outward normal vector is discontinuous at the wall points.
 ! If at a wall point, use the correct part of the wall.
 
+vec => p_orb%orb%vec
+
 if (present(err_flag)) err_flag = .true.
 
 n_sec = size(ele%wall3d%section)
@@ -455,8 +457,6 @@ if (vec(5) < ele%wall3d%section(1)%s .or. vec(5) > ele%wall3d%section(n_sec)%s) 
   call out_io (s_error$, r_name, 'PHOTON S-POSITION BEYOUND WALL: \ES14.3\ ', vec(5))
   return
 endif
-
-vec => p_orb%orb%vec
 
 call bracket_index (ele%wall3d%section%s, 1, size(ele%wall3d%section), vec(5), ix)
 if (ix == n_sec) ix = n_sec - 1
