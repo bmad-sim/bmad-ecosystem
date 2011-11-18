@@ -2376,6 +2376,8 @@ case (lcavity$)
     endif
   endif
 
+  val(delta_e$) = val(gradient$) * val(l$)
+
 ! E_Gun
 
 case (e_gun$)
