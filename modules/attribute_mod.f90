@@ -238,7 +238,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   ! multipole attribute
 elseif (ix_attrib < 1 .or. ix_attrib > n_attrib_maxx) then
   if (do_print) call out_io (s_error$, r_name, &
           'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
-          i_array = (/ ix_attrib /))
+          i_array = [ix_attrib])
   return
 
 ! otherwise must be in ele%value(:) array
@@ -483,7 +483,7 @@ endif
 
 select case (ele%key)
 case (sbend$)
-  if (any(ix_attrib == (/ angle$, l_chord$, rho$ /))) free = .false.
+  if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
 case (rfcavity$)
   if (ix_attrib == rf_frequency$ .and. ele%value(harmon$) /= 0) free = .false.
 case (beambeam$)
@@ -491,7 +491,7 @@ case (beambeam$)
 case (wiggler$)
   if (ix_attrib == k1$ .or. ix_attrib == rho$) free = .false. 
 case (lcavity$)
-  if (any(ix_attrib == (/ delta_e$, p0c_start$, e_tot_start$ /))) free = .false.
+  if (any(ix_attrib == [delta_e$, p0c_start$, e_tot_start$])) free = .false.
 case (elseparator$)
   if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
 end select
