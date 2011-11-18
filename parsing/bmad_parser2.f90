@@ -340,6 +340,7 @@ parsing_loop: do
       if (.not. err_flag .and. delim_found) call parser_warning ('BAD DELIMITER: ' // delim, ' ')
       found = .true.
       if (.not. err_flag) good_attrib = .true.
+      call set_flags_for_changed_attribute (lat, ele)
 
       if (word_1  == 'PARAMETER' .or. word_1  == 'BEAM_START') cycle parsing_loop
 
@@ -489,6 +490,7 @@ parsing_loop: do
         cycle parsing_loop
       else
         call parser_set_attribute (def$, ele, lat, delim, delim_found, err_flag, .true., pele)
+        call set_flags_for_changed_attribute (lat, ele)
         if (err_flag) then
           n_max = n_max - 1
           cycle parsing_loop
