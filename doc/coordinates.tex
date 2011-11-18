@@ -1,3 +1,6 @@
+%\input{simple_header}
+
+
 \chapter{Coordinates}
 \index{coordinates|hyperbf}
 
@@ -552,6 +555,19 @@ intensity and phase of the field along the $x$ and $y$ axes.
 The normalization between field and intensity is determined by the
 individual simulation programs and is not part of the \bmad standard.
 
+%-----------------------------------------------------------------------------
+\section{Time-based Phase Space Coordinate System}
+\label{s:time.phase.space}
+\index{time!phase space coordinates|hyperbf}
+
+Some specialized routines use $(x, c p_x, y, c p_y, s, c p_s)_t$ phase space coordinates with time $t$ as the independent variable. The positions $x$, $y$, and $s$ are the same as in Fig.~\ref{f:local.coords}. The momenta are defined as  
+\begin{align}
+c p_x &\equiv m c^2 \gamma \beta_x \\
+c p_y &\equiv m c^2 \gamma \beta_y \\
+c p_s &\equiv m c^2 \gamma \beta_s,
+\end{align}
+and internally are stored in units of eV.
+
 %-----------------------------------------------------------------
 \section{RF timing issues}
 \label{s:rf.time}
@@ -586,3 +602,5 @@ commensurate with the fundamental mode frequency. For simulating the
 long-range wakes, the kick is thus, by necessity, tied to the absolute
 time. The exception is that a wake associated with the fundamental
 mode will also use $z$ to determine timing.
+
+%\end{document}
