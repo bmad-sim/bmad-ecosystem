@@ -204,7 +204,7 @@ ele => branch%ele(i_ele)
 
 if (.not. bmad_com%auto_bookkeeper .and. ele%status%mat6 /= stale$) then
   if (present(ref_orb)) then
-    if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) return
+    if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in%vec)) return
   else
     if (all(ele%map_ref_orb_in%vec == 0)) return
   endif
