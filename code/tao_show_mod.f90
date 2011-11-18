@@ -1424,8 +1424,9 @@ case ('lattice')
 
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
-      call radiation_integrals (lat, tao_lat%lat_branch(0)%orbit, &
-                                      tao_lat%modes, tao_lat%ix_rad_int_cache, 0, tao_lat%rad_int)
+      call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache, 0, u%model%rad_int)
+      call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache, 0, u%design%rad_int)
+      call radiation_integrals (u%base%lat, u%base%lat_branch(0)%orbit, u%base%modes, u%base%ix_rad_int_cache, 0, u%base%rad_int)
       exit
     endif
   enddo
@@ -2237,7 +2238,7 @@ case ('universe')
     return
   endif
  
-  call radiation_integrals (lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
+  call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
   call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache)
   if (lat%param%lattice_type == circular_lattice$) then
     call chrom_calc (lat, delta_e, u%model%a%chrom, u%model%b%chrom, exit_on_error = .false.)
