@@ -586,15 +586,16 @@ call lat_compute_reference_energy (lat)
 do i = 1, lat%n_ele_max
   if (ele%key == elseparator$) then
     if (ele%value(e_tot$) == 0) cycle
-    ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / &
-                                                    ele%value(e_tot$)
+    ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / ele%value(e_tot$)
   endif
 enddo
 
 ! last
 
+call set_flags_for_changed_attribute (lat)
 call s_calc (lat)
 call lat_geometry (lat)
+
 if (logic_option (.true., make_mats6)) then
   call lattice_bookkeeper (lat)
   call lat_make_mat6 (lat, -1)

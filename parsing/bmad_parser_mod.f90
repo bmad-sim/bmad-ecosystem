@@ -2297,7 +2297,7 @@ ele_name = word(:ix1-1)    ! name of attribute
 ix2 = index(word, ']')
 attrib_name = word(ix1+1:ix2-1)
 
-if (attrib_name == 'S' .and. bp_com%parser_name /= 'BMAD_PARSER2') then
+if (attrib_name == 'S' .and. bp_com%parser_name /= 'bmad_parser2') then
   call parser_warning ('"S" ATTRIBUTE CAN ONLY BE USED WITH BMAD_PARSER2')
 endif
 

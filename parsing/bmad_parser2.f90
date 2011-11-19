@@ -84,7 +84,7 @@ logical print_err, check
 
 bmad_status%ok = .true.
 bp_com%write_digested2 = .false.
-bp_com%parser_name = 'BMAD_PARSER2'
+bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
 bp_com%e_tot_set = .false.
 bp_com%p0c_set   = .false.
