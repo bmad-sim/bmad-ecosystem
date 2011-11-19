@@ -3,11 +3,11 @@
 !
 ! Subroutine to parse a BMAD input file and put the information in lat.
 !
-! Because of the time it takes to parse a file BMAD_PARSER will save 
+! Because of the time it takes to parse a file bmad_parser will save 
 ! LAT in a "digested" file with the name:
 !               'digested_' // lat_file   
 ! For subsequent calls to the same lat_file, BMAD_PARSER will just read in the
-! digested file. BMAD_PARSER will always check to see that the digested file
+! digested file. bmad_parser will always check to see that the digested file
 ! is up-to-date and if not the digested file will not be used.
 !
 ! Modules needed:
@@ -85,7 +85,7 @@ auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 
 bp_com%error_flag = .false.              ! set to true on an error
-bp_com%parser_name = 'BMAD_PARSER'       ! Used for error messages.
+bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
 bp_com%write_digested = .true.
 bp_com%do_superimpose = .true.
 bp_com%input_from_file = .true.
@@ -143,7 +143,7 @@ do i = 0, ubound(in_lat%ele, 1)
 enddo
 
 bmad_status%ok = .true.
-if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
+if (bmad_status%type_out) call out_io (s_warn$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
