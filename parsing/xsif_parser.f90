@@ -42,7 +42,7 @@ use lat_geometry_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele0
 
 integer xsif_unit, err_unit, std_out_unit, internal_unit
 integer i, ie, ierr, dat_indx, err_lcl, i_ele, indx, key
@@ -572,18 +572,28 @@ lat%n_ic_max           = 0
 lat%n_control_max      = 0    
 lat%use_name = ktext  ! ktext is global xsif variable
 
-if (lat%ele(0)%value(e_tot$) == 0) then
+!
+
+ele0 => lat%ele(0)
+
+if (ele0%value(e_tot$) == 0) then
   call xsif_warning ('REFERENCE ENERGY IS NOT SET IN LATTICE FILE! WILL USE 1000 * MC^2!')
-  lat%ele(0)%value(e_tot$) = 1000 * mass_of(lat%param%particle)
+  ele0%value(e_tot$) = 1000 * mass_of(lat%param%particle)
 endif
 
+call convert_total_energy_to (ele0%value(e_tot$), lat%param%particle, pc = ele0%value(p0c$))
+
 call set_taylor_order (lat%input_taylor_order, .false.)
-call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
+call set_ptc (ele0%value(e_tot$), lat%param%particle)
 
 ! Element cleanup
 
+call set_flags_for_changed_attribute (lat)
+
 call lat_compute_reference_energy (lat)
+
 do i = 1, lat%n_ele_max
+  ele => lat%ele(i)
   if (ele%key == elseparator$) then
     if (ele%value(e_tot$) == 0) cycle
     ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / ele%value(e_tot$)
@@ -592,7 +602,6 @@ enddo
 
 ! last
 
-call set_flags_for_changed_attribute (lat)
 call s_calc (lat)
 call lat_geometry (lat)
 
