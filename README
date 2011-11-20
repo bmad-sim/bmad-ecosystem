@@ -1,93 +1,126 @@
 Documentation for Regression Testing of Bmad
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+NOTE: THE PYTHON SCRIPTS NEED VERSION 2.4+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ------------------------------------------------- 
 Overview:
 
-The testing here works by running programs and comparing 
-the output to a file which has the "correct" output. 
+The regression testing works by running programs and comparing 
+the program output to a file which has the "correct" output.
 
-Except for any "helper" subdirectories like the "scripts"
-subdirectory, each subdirectory contains the code for one testing
-program and the input files needed for running the program.
+The main "regression_tests" directory contains a file called
+"tests.list".  In this file is a list of subdirectories of
+"regression_tests". These subdirectories are called the "regression"
+subdirectories. In the "tests.list" file there is also listed the
+program associated with each regression subdirectory.
 
-The list of subdirectories/programs can be found in the "Makefile"
-file in the regression_testing directory. Look for the M_FILE_LIST
-list.
+When the regression test script is run, each regression subdirectory
+is visited in turn. In each regression subdirectory, the appropriate
+program is run. The program will create an output file called
+"output.now".  The regression script will compare this file to an
+existing file in the subdirectory named "output.correct". The
+regression test is sucessful if the numbers in two files are the same
+within the tollerances given in the "output.now" file. See the
+"Constructing a new test" section for details on the syntax of these
+files.
+
+The results of the regression test is stored in a file named
+"regression.results".
 
 ------------------------------------------------- 
 Running the Tests:
 
-0) Do everything in the the regression_testing directory.
+0) Do everything in the the regression_tests directory.
 
-1) Compile and link the programs:
+1) If needed, compile and link the programs:
       make DO_EXTRA_MAKES=Y
 The executables are created in:
 			../bin/
 
 2) Run the testing script:
-      scripts/run_tests.py
-The results will be saved in a file "test.results"
+      scripts/run_tests.py <program_dir>
+<program_dir> is the directory where all the programs are.
+If <program_dir> is a relative path name it must be relative
+to any subdirectory of regression_tests.
+<program_dir> is optional and, if not present, will
+default to "../../bin"
+
+3) The results will be saved in a file "test.results"
 
 ------------------------------------------------- 
 Constructing a new test:
 
-1) Create a new subdirectory of regression_testing. 
+1) Create a new subdirectory of regression_tests. 
 For this documentation call this subdirectory "zzz".
 
-2) In this subdirectory put your testing program code and any input
+2) Add a line to the "regression_tests/tests.list" file. Each line in
+this file is of the format:
+	<subdir_name> <program_name>
+The <program_name> is optional if it is the same as <subdir_name>.
+
+3) If needed: In this subdirectory put your testing program code and any input
 files needed for running the program. Additionally, a file
 "output.correct" needs to be present containing the expected output of
 the program. Generation of this file is detailed below.
 
-3) When the program is run, it must generate a file called "output.now"
-that will be compared to "output.correct".
+3) When the program is run, it must generate a file called "output.now".
+This file will be compared to "output.correct".
 
 4) The format of the "output.now" is as follows: 
 Lines that are blank or that begin with a "!" exclamation character are ignored.
-All other "specification" lines in the file are composed of a number of fields
-separated by colons ":". The syntax is:
-  "<variable_name>" : <REL_or_ABS> : <tolerance> : <value_1> : <value_2> : ...
+All other "specification" lines have the syntax:
+  "<tag_string>"  <data_id>  <tolerance>  <value_1>  <value_2>  ...
 where:
-  <variable_name>  = Name of variable or variables being outputted.
-  <REL_or_ABS>     = Type of tolerance: REL (relative) or ABS (absolute). 
-  <tolerance>      = Allowable tolerance to pass test.
-  <value_1>, etc.  = List of values.
-Double quote marks must be used to surround the <variable_name> field.
-Use of colons withinin this field is permitted.  
+  <tag_string>     = Identification string associated with the line.
+  <data_id>        = How to interprit the data. 
+  <tolerance>      = Allowable tolerance to pass test. Absent for STR data.
+  <value_1>, etc.  = List of values. Must use double quotes for STR data.
+Double quote marks must be used to surround the <tag_string> field.
+The <data_id> field can be one of:
+	STR            String data.
+  REL            Real data with relative tolerance.
+	ABS            Real data with absolute tolerance.
 The format of the "output.correct" file is the same as the "output.now" 
 file except the <REL_or_ABS> and <tolerance> fields are absent.
 
 The specification lines of "output.correct" and "output.now" must
 match up.  That is, the N^th specification line of "output.correct"
 and the N^th specification line in "output.now" must have the same
-<variable_name> and the same number of values. Also the
-<variable_name> used for different lines should be unique.
+<tag_string> and the same number of values. Also the
+<tag_string> used for different lines should be unique.
 
-Example specification line for "output.now":
-  "Orbit at s = 34.5" : REL : 1e-4 : 0.023 : -0.0079 : 0.0060 
+Example specification lines for "output.now":
+  "Orbit at s = 34.5"  REL  1e-4  0.023  -0.0079  0.0060 
+	"Element Names"      STR  "ABC cat"  "XYZ dog"
 
-In this example the "Orbit at s = 34.5" variable has values (0.023, -0.0079, 0.0060). 
-The tolerance is relative so to pass testing the
-corresponding values in "output.correct" must not differ by more than 0.01% 
+In this example the "Orbit at s = 34.5" data has values 0.023,
+-0.0079, and 0.0060.  The tolerance is relative so to pass testing the
+corresponding values in "output.correct" must not differ by more than
+0.01%
 
 5) Makefile setup for compiling/linking the program:
-  A) Add a "M.zzz" makefile in the regression_testing directory. 
+  A) Add a "M.zzz" makefile in the regression_tests directory. 
 Use, say, the existing "M.twiss_track_test" file as a template.
 In the M.zzz makefile substitute "zzz" for "twiss_track_test".
-  B) Edit the "Makefile" in regression_testing and add "M.zzz" 
+  B) Edit the "Makefile" in regression_tests and add "M.zzz" 
 to the M_FILE_LIST list.
 
 6) To generate the "output.correct" file: 
   A) first run the program to generate the "output.now" file.  
   B) In the directory that contains the "output.now" file, run the script
           ../scripts/convert_now_to_correct.py
-This script will strip the <variable_name> and <REL_or_ABS> fields in
-a "output.now" file to create a new file named "new.correct" which has
+This script will strip the <data_id> and <tolerance> fields in
+a "output.now" file to create a new file named "output.temp" which has
 the correct format for "output.correct". 
-  C) Rename "new.correct" to "output.correct".
+  C) mv output.temp output.correct
 
 6) You are now done. The scripts/run_tests.py script will parse the
 Makefile in order to determine the list of programs to be run.
+
+Guideline:
+	Make the running time for programs short (few minutes max).
 
 ------------------------------------------------- 
 Future:
