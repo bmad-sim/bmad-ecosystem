@@ -198,6 +198,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
 
 
+
   #--------------------------------------------------------------
   #  Add the distribution's bin area to user's PATH
   #--------------------------------------------------------------
