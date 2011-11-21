@@ -996,7 +996,7 @@ implicit none
 type (lat_struct), target :: lat, lat_out, lat_model
 type (lat_struct), optional :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord
-type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele
 type (taylor_term_struct) :: term
 
 real(rp) field, hk, vk, tilt, limit(2)
@@ -1004,12 +1004,13 @@ real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer, optional :: ix_start, ix_end
-integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_list, j_count, ix_ele
-integer ie1, ie2, ios, t_count, a_count, ix_lord, ix1, ix2, n_lord, aperture_at
+integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
+integer ie1, ie2, ios, t_count, a_count, ix_lord, ix_match, ix1, ix2, n_lord, aperture_at
+integer, allocatable :: n_repeat(:), an_indexx(:)
 
 character(*) out_type, out_file_name
 character(300) line, knl_str, ksl_str
-character(40), allocatable :: name_list(:)
+character(40), allocatable :: names(:)
 character(1000) line_out
 character(8) str
 character(20) :: r_name = "bmad_to_mad_or_xsif"
@@ -1049,12 +1050,18 @@ call init_ele (col_ele)
 call init_ele (drift_ele, drift$)
 call init_ele (taylor_ele, taylor$)
 call init_ele (ab_ele, ab_multipole$)
+call init_ele (kicker_ele, kicker$) 
 call multipole_init (ab_ele)
 
 ie1 = integer_option(1, ix_start)
 ie2 = integer_option(lat%n_ele_track, ix_end)
 
-allocate (name_list(100)) ! list of element names
+allocate (names(lat%n_ele_max), an_indexx(lat%n_ele_max)) ! list of element names
+
+call out_io (s_info$, r_name, &
+      'Note: Bmad lattice elements have attributes that cannot be translated. ', &
+      '      For example, higher order terms in a Taylor element.', &
+      '      Please use caution when using a translated lattice.')
 
 !----------------------------------
 ! Transfer info to lat_out and make substitutions for sol_quad and wiggler elements, etc.
@@ -1136,6 +1143,20 @@ do
       cycle ! cycle since ele pointer is invalid
     endif
 
+  endif
+
+  ! If the bend has a roll then put kicker elements just before and just after
+
+  if (ele%key == sbend$ .and. val(roll$) /= 0) then
+    j_count = j_count + 1
+    write (kicker_ele%name,   '(a, i3.3)') 'ROLL_Z', j_count
+    kicker_ele%value(hkick$) =  ele%value(angle$) * (1 - cos(ele%value(roll$))) / 2
+    kicker_ele%value(vkick$) = -ele%value(angle$) * sin(ele%value(roll$)) / 2
+    ele%value(roll$) = 0   ! So on next iteration will not create extra kickers.
+    call insert_element (lat_out, kicker_ele, ix_ele)
+    call insert_element (lat_out, kicker_ele, ix_ele+2)
+    ie2 = ie2 + 2
+    cycle
   endif
 
   ! If there is a multipole component then put half at the beginning and half at the end
@@ -1244,7 +1265,7 @@ endif
 
 ! write element parameters
 
-n_list = 0                          ! number of names stored in the list
+n_names = 0                          ! number of names stored in the list
 
 do ix_ele = ie1, ie2
 
@@ -1257,13 +1278,18 @@ do ix_ele = ie1, ie2
 
   ! do not make duplicate specs
 
-  if (any (ele%name == name_list(1:n_list))) cycle
+  call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+  if (ix_match > 0) cycle
 
   ! Add to the list of elements
 
-  n_list = n_list + 1
-  if (n_list > size(name_list)) call re_allocate(name_list, 2*size(name_list))
-  name_list(n_list) = ele%name
+  if (size(names) < n_names + 1) then
+    call re_allocate(names, 2*size(names))
+    call re_allocate(an_indexx, 2*size(names))
+  endif
+
+  call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
+  n_names = n_names + 1
 
   ! OPAL case
   
@@ -1298,7 +1324,7 @@ do ix_ele = ie1, ie2
 
      end select
 
-     call element_out
+     call element_out(line_out)
      cycle
   endif
 
@@ -1571,10 +1597,11 @@ do ix_ele = ie1, ie2
 
   ! write element spec to file
 
-  call element_out
+  call element_out(line_out)
 
 enddo
 
+!---------------------------------------------------------------------------------------
 ! Write the lattice line
 ! bmad has a limit of 4000 characters so we may need to break the lat into pieces.
 
@@ -1620,6 +1647,9 @@ do n = ie1, ie2
 
 enddo
 
+!------------------------------------------
+! Use statement
+
 write (iu, *)
 write (iu, *) comment_char, '---------------------------------', trim(eol_char)
 write (iu, *)
@@ -1633,6 +1663,47 @@ if (out_type == 'MAD-X') then
   write (iu, *) 'use, period=lat;'
 elseif (out_type /= 'OPAL-T') then
   write (iu, *) 'use, lat'
+endif
+
+!---------------------------------------------------
+! Element offsets
+
+write (iu, *)
+write (iu, *) comment_char, '---------------------------------', trim(eol_char)
+write (iu, *)
+
+if (out_type(1:3) == 'MAD') then
+
+  allocate (n_repeat(n_names))
+  n_repeat = 0
+
+  do ix_ele = ie1, ie2
+
+    ele => lat_out%ele(ix_ele)
+    val => ele%value
+    
+    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+    n_repeat(ix_match) = n_repeat(ix_match) + 1
+    
+    if (val(x_pitch$) == 0 .and. val(y_pitch$) == 0 .and. &
+        val(x_offset_tot$) == 0 .and. val(y_offset_tot$) == 0 .and. val(s_offset_tot$) == 0) cycle
+
+    write (iu, *) 'select, flag = error, clear', trim(eol_char)
+    write (iu, '(3a, i0, 2a)') 'select, flag = error, range = ', trim(ele%name), &
+                                    '[', n_repeat(ix_match), ']', trim(eol_char)
+
+    line_out = 'ealign'
+    call value_to_line (line_out,  val(x_pitch$), 'dtheta', 'es12.4', 'R')
+    call value_to_line (line_out, -val(y_pitch$), 'dphi', 'es12.4', 'R')
+    call value_to_line (line_out, val(x_offset$) - val(x_pitch$) * val(l$) / 2, 'dx', 'es12.4', 'R')
+    call value_to_line (line_out, val(y_offset$) - val(y_pitch$) * val(l$) / 2, 'dy', 'es12.4', 'R')
+    call value_to_line (line_out, val(s_offset$), 'ds', 'es12.4', 'R')
+    call element_out (line_out)
+
+  enddo
+
+  deallocate (n_repeat)
+
 endif
 
 ! Write twiss parameters for a linear lattice.
@@ -1653,7 +1724,7 @@ endif
 call out_io (s_info$, r_name, 'Written ' // trim(out_type) // &
                                 ' lattice file: ' // trim(out_file_name))
 
-deallocate (name_list)
+deallocate (names)
 if (present(err)) err = .false.
 
 if (present(converted_lat)) then
@@ -1671,10 +1742,18 @@ endif
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)
 
+
 !------------------------------------------------------------------------
 contains
 
-subroutine element_out 
+subroutine element_out(line_out)
+
+implicit none
+
+character(*) line_out
+integer ix
+
+!
 
 do
   if (len_trim(line_out) < 76) exit
