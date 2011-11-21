@@ -79,7 +79,7 @@ end subroutine
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine create_wiggler_model (wiggler, lat)
+! Subroutine create_wiggler_model (wiggler_in, lat)
 !
 ! Routine to create series of bend and drift elements to serve as a replacement 
 ! model for a wiggler.
@@ -112,14 +112,14 @@ end subroutine
 !     %n_ele_track -- Number of elements in the model.
 !-
 
-subroutine create_wiggler_model (wiggler, lat)
+subroutine create_wiggler_model (wiggler_in, lat)
 
 use super_recipes_mod
 
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), target :: wiggler
+type (ele_struct), target :: wiggler_in, wiggler
 type (ele_struct), pointer :: ele 
 type (lat_param_struct) param
 type (coord_struct) here
@@ -138,6 +138,7 @@ character(40) :: r_name = 'create_wiggler_model'
 
 ! Check
 
+wiggler = wiggler_in
 wig_com => wiggler  ! For yfit_calc
 lat_com => lat      ! For yfit_calc
 
@@ -264,6 +265,7 @@ lat%n_ele_track = n_ele
 lat%n_ele_max   = n_ele
 lat%ele(0)%value(p0c$) = wiggler%value(p0c$)
 lat%ele(0)%value(e_tot$) = wiggler%value(e_tot$)
+call set_flags_for_changed_attribute (lat, lat%ele(0))
 lat%param%particle = positron$
 
 ! Simple model if there is no field
@@ -272,8 +274,9 @@ if (g_max == 0) then
   lat%ele(1)%key = drift$
   lat%ele(1)%value(l$) = wiggler%value(l$)
   lat%ele(1)%name = wiggler%name
-  call lattice_bookkeeper (lat_com)
-  call lat_make_mat6 (lat_com)
+  call set_flags_for_changed_attribute (lat, lat%ele(1))
+  call lattice_bookkeeper (lat)
+  call lat_make_mat6 (lat)
   return
 endif
 
@@ -373,6 +376,8 @@ if (even_pole_num) a(5) = len_bend/4
 
 a_step = (/ c%g_step, c%k_step, c%len_step, c%len_step, c%len_step /)
 
+if (wiggler%mat6_calc_method == taylor$) wiggler%mat6_calc_method = symp_lie_bmad$
+if (wiggler%tracking_method == taylor$) wiggler%tracking_method = symp_lie_bmad$
 call make_mat6 (wiggler, lat%param)
 
 weight(1:3)  = (/ c%integral_g2_wgt, c%integral_g3_wgt, c%x_wgt /)
@@ -534,6 +539,7 @@ len_d_end = (wig_com%value(l$) - sum(lat_com%ele(2:n_ele-1)%value(l$))) / 2
 lat_com%ele(1)%value(l$) = len_d_end
 lat_com%ele(n_ele)%value(l$) = len_d_end
 
+call set_flags_for_changed_attribute (lat_com)
 call lattice_bookkeeper (lat_com)
 
 call lat_make_mat6 (lat_com)
