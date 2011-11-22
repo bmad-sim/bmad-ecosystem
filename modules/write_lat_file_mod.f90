@@ -1746,23 +1746,30 @@ call deallocate_lat_pointers (lat_model)
 !------------------------------------------------------------------------
 contains
 
-subroutine element_out(line_out)
+subroutine element_out (line_out)
 
 implicit none
 
 character(*) line_out
-integer ix
+integer ix, ix1, ix2
+integer, save :: ix_min = 65, ix_max = 85
 
 !
 
 do
-  if (len_trim(line_out) < 76) exit
-  ix = index(line_out(61:), ' ')
-  write (iu, '(2a)') line_out(:60+ix), trim(continue_char)
-  line_out = '    ' // line_out(60+ix:)
+  if (len_trim(line_out) < ix_max) exit
+  ix1 = index(line_out(ix_min+1:), ',') + ix_min
+  ix2 = index(line_out(ix_min+1:), ' ') + ix_min
+  if (ix1 < ix2 .or. ix1 < ix_max) then
+    ix = ix1
+  else
+    ix = ix2
+  endif
+  write (iu, '(2a)') line_out(:ix), trim(continue_char)
+  line_out = '    ' // line_out(ix+1:)
 enddo
 
-write (iu, '(2a)') trim(line_out(:75)), trim(eol_char)
+write (iu, '(2a)') trim(line_out), trim(eol_char)
 
 end subroutine element_out
 
@@ -1779,10 +1786,12 @@ use precision_def
 implicit none
 
 character(*) line, str, fmt
-character(40) fmt2
+character(40) fmt2, val_str
 character(*) typ
 
 real(rp) value
+
+integer ix
 
 logical, optional :: ignore_if_zero
 
@@ -1801,15 +1810,18 @@ if (value == 0) then
   return
 endif
 
-fmt2 = '(a,' // trim(fmt) // ')'
+fmt2 = '(' // trim(fmt) // ')'
 if (typ == 'R') then
-  write (line, fmt2) trim(line), value
+  write (val_str, fmt2) value
 elseif (typ == 'I') then
-  write (line, fmt2) trim(line), nint(value)
+  write (val_str, fmt2) nint(value)
 else
   print *, 'ERROR IN VALUE_TO_LINE. BAD "TYP": ', typ 
   call err_exit
 endif
+
+call string_trim(val_str, val_str, ix)
+line = trim(line) // ' ' // trim(val_str)
 
 end subroutine value_to_line
 
