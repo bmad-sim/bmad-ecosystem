@@ -100,23 +100,23 @@ if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == line
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this (t_map, ss1, ss2)
+  call transfer_this_map (t_map, ss1, ss2)
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this (t_map, ss1, branch%param%total_length)
-  call transfer_this (t_map, 0.0_rp, ss2)
+  call transfer_this_map (t_map, ss1, branch%param%total_length)
+  call transfer_this_map (t_map, 0.0_rp, ss2)
 
 ! For a linear (not closed) lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this (t_map, ss2, ss1)
+    call transfer_this_map (t_map, ss2, ss1)
     call taylor_inverse (t_map, t_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this (a_map, ss2, ss1)
+    call transfer_this_map (a_map, ss2, ss1)
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
     call kill_taylor (a_map)
@@ -127,20 +127,20 @@ endif
 !------------------------------------------------------------------------
 contains
 
-subroutine transfer_this (map, s_1, s_2)
+subroutine transfer_this_map (map, s_1, s_2)
 
 type (taylor_struct) :: map(:)
 type (ele_struct), pointer, save :: ele
-type (ele_struct), pointer, save :: runt
+type (ele_struct), pointer, save :: runt => null()
 type (ele_struct), target, save :: runt_save
 
 real(rp) s_1, s_2, s_now, s_end, ds
 real(rp), save :: ds_old = -1
 
 integer i, ix_ele
-integer, save :: ix_ele_old = -1
 
 logical kill_it, track_entrance, track_exit, track_entire_ele
+logical runt_points_to_new
 logical, save :: old_track_end = .false.
 
 ! Init
@@ -165,7 +165,8 @@ do
   ! at runt_save if only a partial track. We do this since we will mangle
   ! the element with a partial track.
 
-  if (ix_ele /= ix_ele_old) then
+  runt_points_to_new = .false.
+  if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then
     if (track_entire_ele) then
       runt => ele
     else  ! partial track
@@ -173,6 +174,7 @@ do
       runt => runt_save
       old_track_end = .false.
     endif
+    runt_points_to_new = .true.
   endif
 
   ! We only need to do the "split" bookkeeping if we are only partially tracking
@@ -184,7 +186,7 @@ do
 
     kill_it = .false.
 
-    if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
+    if (ds /= ds_old .or. runt_points_to_new) then
       kill_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
@@ -217,7 +219,6 @@ do
   ! is called in the future we can tell if the saved taylor map is still valid.
 
   ds_old = ds
-  ix_ele_old = ix_ele
   old_track_end = track_entrance .or. track_exit
 
   ! Are we done?
@@ -231,7 +232,7 @@ do
 
 enddo
 
-end subroutine transfer_this
+end subroutine transfer_this_map
 
 end subroutine transfer_map_from_s_to_s
 
@@ -321,18 +322,18 @@ if (ss1 == ss2 .and. (.not. one_turn_this .or. branch%param%lattice_type == line
 ! Normal case
 
 if (ss1 < ss2) then
-  call transfer_this (ss1, ss2)
+  call transfer_this_mat (ss1, ss2)
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%lattice_type == circular_lattice$) then
-  call transfer_this (ss1, branch%param%total_length)
-  call transfer_this (0.0_rp, ss2)
+  call transfer_this_mat (ss1, branch%param%total_length)
+  call transfer_this_mat (0.0_rp, ss2)
 
 ! For a linear lattice compute the backwards matrix
 
 else
-  call transfer_this (ss2, ss1)
+  call transfer_this_mat (ss2, ss1)
   call mat_inverse (mat6, mat6)
   vec0 = -matmul(mat6, vec0)
 
@@ -343,7 +344,7 @@ endif
 
 contains
 
-subroutine transfer_this (s_1, s_2)
+subroutine transfer_this_mat (s_1, s_2)
 
 type (ele_struct), pointer, save :: ele
 type (ele_struct), pointer, save :: runt
@@ -353,9 +354,9 @@ real(rp) s_1, s_2, s_end, s_now, ds
 real(rp), save :: ds_old = -1
 
 integer ix_ele
-integer, save :: ix_ele_old = -1
 
 logical track_entrance, track_exit, track_entire_ele, kill_it
+logical runt_points_to_new
 logical, save :: old_track_end = .false.
 
 ! Init
@@ -380,7 +381,8 @@ do
   ! at runt_save if only a partial track. We do this since we will mangle
   ! the element with a partial track.
 
-  if (ix_ele /= ix_ele_old) then
+  runt_points_to_new = .false.
+  if (.not. associated(runt, ele) .and. .not. associated(runt, runt_save)) then
     if (track_entire_ele) then
       runt => ele
     else  ! partial track
@@ -388,6 +390,7 @@ do
       runt => runt_save
       old_track_end = .false.
     endif
+    runt_points_to_new = .true.
   endif
 
   ! We only need to do the "split" bookkeeping if we are only partially tracking
@@ -398,7 +401,7 @@ do
     ! Kill the saved matrix if it does not apply to the present integration step.
 
     kill_it = .false.
-    if (ds /= ds_old .or. ix_ele /= ix_ele_old) then
+    if (ds /= ds_old .or. runt_points_to_new) then
       kill_it = .true.
     elseif (ele%key == sbend$) then
       if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
@@ -425,7 +428,6 @@ do
   ! is called in the future we can tell if the saved taylor map is still valid.
 
   ds_old = ds
-  ix_ele_old = ix_ele
   old_track_end = track_entrance .or. track_exit
 
   ! Are we done?
@@ -439,7 +441,7 @@ do
 
 enddo
 
-end subroutine transfer_this
+end subroutine transfer_this_mat
 
 end subroutine mat6_from_s_to_s
 
