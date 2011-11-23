@@ -1063,7 +1063,9 @@ call out_io (s_info$, r_name, &
       '      For example, higher order terms in a Taylor element.', &
       '      Please use caution when using a translated lattice.')
 
-!----------------------------------
+!-----------------------------------------------------------------------------
+! Translation is a two step process. First we create a new lattice called lat_out.
+! Then the information in lat_out is used to create the lattice file.
 ! Transfer info to lat_out and make substitutions for sol_quad and wiggler elements, etc.
 
 lat_out = lat
@@ -1150,16 +1152,17 @@ do
   if (ele%key == sbend$ .and. val(roll$) /= 0) then
     j_count = j_count + 1
     write (kicker_ele%name,   '(a, i3.3)') 'ROLL_Z', j_count
-    kicker_ele%value(hkick$) =  ele%value(angle$) * (1 - cos(ele%value(roll$))) / 2
-    kicker_ele%value(vkick$) = -ele%value(angle$) * sin(ele%value(roll$)) / 2
-    ele%value(roll$) = 0   ! So on next iteration will not create extra kickers.
+    kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
+    kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
+    val(roll$) = 0   ! So on next iteration will not create extra kickers.
     call insert_element (lat_out, kicker_ele, ix_ele)
     call insert_element (lat_out, kicker_ele, ix_ele+2)
     ie2 = ie2 + 2
     cycle
   endif
 
-  ! If there is a multipole component then put half at the beginning and half at the end
+  ! If there is a multipole component then put multipole elements at half strength 
+  ! just before and just after the element.
 
   if (associated(ele%a_pole) .and. ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
     call multipole_ele_to_ab (ele, lat%param%particle, ab_ele%a_pole, ab_ele%b_pole, .true.)
@@ -1172,6 +1175,23 @@ do
     call insert_element (lat_out, ab_ele, ix_ele+2)
     ie2 = ie2 + 2
     cycle
+  endif
+
+  ! If there are nonzero kick values and this is not a kick type element then put
+  ! kicker elements at half strength just before and just after the element
+
+  if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$) then
+    if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
+      j_count = j_count + 1
+      write (kicker_ele%name,   '(a, i3.3)') 'KICKER_Z', j_count
+      kicker_ele%value(hkick$) = val(hkick$)
+      kicker_ele%value(vkick$) = val(vkick$)
+      val(hkick$) = 0; val(vkick$) = 0
+      call insert_element (lat_out, kicker_ele, ix_ele)
+      call insert_element (lat_out, kicker_ele, ix_ele+2)
+      ie2 = ie2 + 2
+      cycle
+    endif
   endif
 
   ! Convert sol_quad_and wiggler elements.
