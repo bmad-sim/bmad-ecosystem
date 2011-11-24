@@ -1184,8 +1184,8 @@ do
     if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
       j_count = j_count + 1
       write (kicker_ele%name,   '(a, i3.3)') 'KICKER_Z', j_count
-      kicker_ele%value(hkick$) = val(hkick$)
-      kicker_ele%value(vkick$) = val(vkick$)
+      kicker_ele%value(hkick$) = val(hkick$) / 2
+      kicker_ele%value(vkick$) = val(vkick$) / 2
       val(hkick$) = 0; val(vkick$) = 0
       call insert_element (lat_out, kicker_ele, ix_ele)
       call insert_element (lat_out, kicker_ele, ix_ele+2)
