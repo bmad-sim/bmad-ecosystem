@@ -75,7 +75,7 @@ where:
   <value_1>, etc.  = List of values. Must use double quotes for STR data.
 Double quote marks must be used to surround the <tag_string> field.
 The <data_id> field can be one of:
-	STR            String data.
+	STR            String or logical data.
   REL            Real data with relative tolerance.
 	ABS            Real data with absolute tolerance.
 The format of the "output.correct" file is the same as the "output.now" 

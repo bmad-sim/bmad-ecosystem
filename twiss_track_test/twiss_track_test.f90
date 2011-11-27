@@ -5,9 +5,9 @@ use z_tune_mod
 
 implicit none
 
-type (lat_struct)  lat, lat2
+type (lat_struct), target :: lat, lat2
 type (ele_struct) ele, ele0, ele1
-type (coord_struct), allocatable :: orb(:)   
+type (coord_struct), allocatable :: orb(:), orb2(:)
 type (coord_struct) orb0, orb1
 type (normal_modes_struct) mode
 type (rad_int_all_ele_struct) rad_int, rad_int2
@@ -15,13 +15,13 @@ type (rad_int_all_ele_struct) rad_int, rad_int2
 real(rp) chrom_x, chrom_y, delta_e
 real(rp) m6(6,6)
 
-integer i, j, n, n_lines, version, ix_cache
+integer i, j, n, n_lines, version, ix_cache, n_track
 
 character(40) lattice
 character(200) lat_file
 character(100), pointer :: lines(:)
 
-!
+!---------------------------------------------------------
 
 open (2, file = 'output.now', recl = 200)
 
@@ -39,7 +39,6 @@ bmad_com%rel_tolerance = 1e-7
 bmad_com%abs_tolerance = 1e-10
 
 orb(0)%vec = 0
-!! call set_on_off (rfcavity$, lat, off$)  
 call twiss_at_start (lat)
 call closed_orbit_calc (lat, orb, 6)
 call lat_make_mat6 (lat, -1, orb)
@@ -93,20 +92,20 @@ ele1 = lat%ele(lat%n_ele_track)
 orb0 = orb(0)
 orb1 = orb(lat%n_ele_track)
 
-call check (orb1%vec(1) - orb0%vec(1), 1.0d-7, 'Dif:Orb(1)')
-call check (orb1%vec(2) - orb0%vec(2), 1.0d-7, 'Dif:Orb(2)')
-call check (orb1%vec(3) - orb0%vec(3), 1.0d-7, 'Dif:Orb(3)')
-call check (orb1%vec(4) - orb0%vec(4), 1.0d-7, 'Dif:Orb(4)')
-call check (orb1%vec(5) - orb0%vec(5), 1.0d-7, 'Dif:Orb(5)')
-call check (orb1%vec(6) - orb0%vec(6), 1.0d-7, 'Dif:Orb(6)')
-call check (ele1%a%beta - ele0%a%beta, 1.0d-7, 'Dif:Beta_X')
-call check (ele1%b%beta - ele0%b%beta, 1.0d-7, 'Dif:Beta_Y')
-call check (ele1%a%alpha - ele0%a%alpha, 1.0d-7, 'Dif:Alpha_X')
-call check (ele1%b%alpha - ele0%b%alpha, 1.0d-7, 'Dif:Alpha_Y')
-call check (ele1%a%eta - ele0%a%eta, 1.0d-7, 'Dif:Eta_X ')
-call check (ele1%b%eta - ele0%b%eta, 1.0d-7, 'Dif:Eta_Y ')
-call check (ele1%a%etap - ele0%a%etap, 1.0d-6, 'Dif:Etap_X')
-call check (ele1%b%etap - ele0%b%etap, 1.0d-6, 'Dif:Etap_Y')
+call data_out (orb1%vec(1) - orb0%vec(1), 1.0d-7, 'Dif:Orb(1)')
+call data_out (orb1%vec(2) - orb0%vec(2), 1.0d-7, 'Dif:Orb(2)')
+call data_out (orb1%vec(3) - orb0%vec(3), 1.0d-7, 'Dif:Orb(3)')
+call data_out (orb1%vec(4) - orb0%vec(4), 1.0d-7, 'Dif:Orb(4)')
+call data_out (orb1%vec(5) - orb0%vec(5), 1.0d-7, 'Dif:Orb(5)')
+call data_out (orb1%vec(6) - orb0%vec(6), 1.0d-7, 'Dif:Orb(6)')
+call data_out (ele1%a%beta - ele0%a%beta, 1.0d-7, 'Dif:Beta_X')
+call data_out (ele1%b%beta - ele0%b%beta, 1.0d-7, 'Dif:Beta_Y')
+call data_out (ele1%a%alpha - ele0%a%alpha, 1.0d-7, 'Dif:Alpha_X')
+call data_out (ele1%b%alpha - ele0%b%alpha, 1.0d-7, 'Dif:Alpha_Y')
+call data_out (ele1%a%eta - ele0%a%eta, 1.0d-7, 'Dif:Eta_X ')
+call data_out (ele1%b%eta - ele0%b%eta, 1.0d-7, 'Dif:Eta_Y ')
+call data_out (ele1%a%etap - ele0%a%etap, 1.0d-6, 'Dif:Etap_X')
+call data_out (ele1%b%etap - ele0%b%etap, 1.0d-6, 'Dif:Etap_Y')
 
 !----------------------------------------------------
 ! Error check.
@@ -116,54 +115,51 @@ call check (ele1%b%etap - ele0%b%etap, 1.0d-6, 'Dif:Etap_Y')
 
 ele = lat%ele(96)
 
-call check (ele%a%beta,           1.0D-06, 'Lat1:Beta_a')
-call check (ele%a%alpha,          1.0D-06, 'Lat1:Alpha_a')
-call check (ele%a%eta,            1.0D-06, 'Lat1:Eta_a')
-call check (ele%a%etap,           1.0D-06, 'Lat1:Etap_a')
-call check (ele%x%eta,            1.0D-06, 'Lat1:Eta_x')
-call check (ele%x%etap,           1.0D-06, 'Lat1:Etap_x')
-call check (ele%a%phi,            1.0D-06, 'Lat1:Phi_a')
-call check (ele%b%beta,           1.0D-06, 'Lat1:Beta_b')
-call check (ele%b%alpha,          1.0D-06, 'Lat1:Alpha_y')
-call check (ele%b%eta,            1.0D-06, 'Lat1:Eta_b')
-call check (ele%b%etap,           1.0D-06, 'Lat1:Etap_y')
-call check (ele%y%eta,            1.0D-06, 'Lat1:Eta_y')
-call check (ele%y%etap,           1.0D-06, 'Lat1:Etap_y')
-call check (ele%b%phi,            1.0D-06, 'Lat1:Phi_y')
-call check (orb(96)%vec(1),       1.0D-10, 'Lat1:Orb X')
-call check (orb(96)%vec(2),       1.0D-10, 'Lat1:Orb P_X')
-call check (orb(96)%vec(3),       1.0D-10, 'Lat1:Orb Y')
-call check (orb(96)%vec(4),       1.0D-10, 'Lat1:Orb P_Y')
-call check (orb(96)%vec(5),       1.0D-10, 'Lat1:Orb Z')
-call check (orb(96)%vec(6),       1.0D-10, 'Lat1:Orb P_Z')
-call check (chrom_x,              1.0D-05, 'Lat1:Chrom_x')
-call check (chrom_y,              1.0D-05, 'Lat1:Chrom_y')
-call check (mode%synch_int(1),    1.0D-06, 'Lat1:Synch_int(1)')
-call check (mode%synch_int(2),    1.0D-06, 'Lat1:Synch_int(2)')
-call check (mode%synch_int(3),    1.0D-06, 'Lat1:Synch_int(3)')
-call check (mode%sige_e,          1.0D-10, 'Lat1:Sige_e')
-call check (mode%sig_z,           1.0D-08, 'Lat1:Sig_z')
-call check (mode%e_loss,          1.0D-01, 'Lat1:E_loss')
-call check (mode%a%emittance,     1.0D-12, 'Lat1:A%Emittance')
-call check (mode%b%emittance,     1.0D-14, 'Lat1:B%Emittance')
-call check (mode%z%emittance,     1.0D-11, 'Lat1:Z%Emittance')
-call check (mode%a%synch_int(4),  1.0D-07, 'Lat1:A%Synch_int(4)')
-call check (mode%a%synch_int(5),  1.0D-07, 'Lat1:A%Synch_int(5)')
-call check (mode%b%synch_int(4),  1.0D-07, 'Lat1:B%Synch_int(4)')
-call check (mode%b%synch_int(5),  1.0D-11, 'Lat1:B%Synch_int(5)')
-call check (mode%z%synch_int(4),  1.0D-08, 'Lat1:Z%Synch_int(4)')
+call data_out (ele%a%beta,           1.0D-06, 'Lat1:Beta_a')
+call data_out (ele%a%alpha,          1.0D-06, 'Lat1:Alpha_a')
+call data_out (ele%a%eta,            1.0D-06, 'Lat1:Eta_a')
+call data_out (ele%a%etap,           1.0D-06, 'Lat1:Etap_a')
+call data_out (ele%x%eta,            1.0D-06, 'Lat1:Eta_x')
+call data_out (ele%x%etap,           1.0D-06, 'Lat1:Etap_x')
+call data_out (ele%a%phi,            1.0D-06, 'Lat1:Phi_a')
+call data_out (ele%b%beta,           1.0D-06, 'Lat1:Beta_b')
+call data_out (ele%b%alpha,          1.0D-06, 'Lat1:Alpha_y')
+call data_out (ele%b%eta,            1.0D-06, 'Lat1:Eta_b')
+call data_out (ele%b%etap,           1.0D-06, 'Lat1:Etap_y')
+call data_out (ele%y%eta,            1.0D-06, 'Lat1:Eta_y')
+call data_out (ele%y%etap,           1.0D-06, 'Lat1:Etap_y')
+call data_out (ele%b%phi,            1.0D-06, 'Lat1:Phi_y')
+call data_out (orb(96)%vec(1),       1.0D-10, 'Lat1:Orb X')
+call data_out (orb(96)%vec(2),       1.0D-10, 'Lat1:Orb P_X')
+call data_out (orb(96)%vec(3),       1.0D-10, 'Lat1:Orb Y')
+call data_out (orb(96)%vec(4),       1.0D-10, 'Lat1:Orb P_Y')
+call data_out (orb(96)%vec(5),       1.0D-10, 'Lat1:Orb Z')
+call data_out (orb(96)%vec(6),       1.0D-10, 'Lat1:Orb P_Z')
+call data_out (chrom_x,              1.0D-05, 'Lat1:Chrom_x')
+call data_out (chrom_y,              1.0D-05, 'Lat1:Chrom_y')
+call data_out (mode%synch_int(1),    1.0D-06, 'Lat1:Synch_int(1)')
+call data_out (mode%synch_int(2),    1.0D-06, 'Lat1:Synch_int(2)')
+call data_out (mode%synch_int(3),    1.0D-06, 'Lat1:Synch_int(3)')
+call data_out (mode%sige_e,          1.0D-10, 'Lat1:Sige_e')
+call data_out (mode%sig_z,           1.0D-08, 'Lat1:Sig_z')
+call data_out (mode%e_loss,          1.0D-01, 'Lat1:E_loss')
+call data_out (mode%a%emittance,     1.0D-12, 'Lat1:A%Emittance')
+call data_out (mode%b%emittance,     1.0D-14, 'Lat1:B%Emittance')
+call data_out (mode%z%emittance,     1.0D-11, 'Lat1:Z%Emittance')
+call data_out (mode%a%synch_int(4),  1.0D-07, 'Lat1:A%Synch_int(4)')
+call data_out (mode%a%synch_int(5),  1.0D-07, 'Lat1:A%Synch_int(5)')
+call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat1:B%Synch_int(4)')
+call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat1:B%Synch_int(5)')
+call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat1:Z%Synch_int(4)')
  
 call set_z_tune (lat, -0.05 * twopi)
 
 !--------------------------------
 
 write (2, *)
-write (2, *)
-
-print *
-print *, 'Wiggler lattice check...'
 
 call bmad_parser ('bmad_12wig_20050626.lat', lat)
+call set_on_off (rfcavity$, lat, off$)
 
 orb(0)%vec = 0
 call twiss_at_start (lat)
@@ -174,6 +170,7 @@ call twiss_at_start (lat)
 call twiss_propagate_all (lat)
 
 ix_cache = 0
+call set_on_off (rfcavity$, lat, on$)
 call radiation_integrals (lat, orb, mode, ix_cache, 0, rad_int2)
 call ri_out('rad_int_wig_cache.dat', rad_int2)
 
@@ -186,47 +183,89 @@ call chrom_calc (lat, delta_e, chrom_x, chrom_y)
 
 ele = lat%ele(96)
  
-call check (ele%a%beta,           1.0D-05, 'Lat2:Beta_a')
-call check (ele%a%alpha,          1.0D-05, 'Lat2:Alpha_a')
-call check (ele%a%eta,            1.0D-05, 'Lat2:Eta_a')
-call check (ele%a%etap,           1.0D-05, 'Lat2:Etap_a')
-call check (ele%x%eta,            1.0D-05, 'Lat2:Eta_x')
-call check (ele%x%etap,           1.0D-05, 'Lat2:Etap_x')
-call check (ele%a%phi,            1.0D-05, 'Lat2:Phi_a')
-call check (ele%b%beta,           1.0D-05, 'Lat2:Beta_b')
-call check (ele%b%alpha,          1.0D-05, 'Lat2:Alpha_b')
-call check (ele%b%eta,            1.0D-05, 'Lat2:Eta_b')
-call check (ele%b%etap,           1.0D-05, 'Lat2:Etap_b')
-call check (ele%y%eta,            1.0D-05, 'Lat2:Eta_y')
-call check (ele%y%etap,           1.0D-05, 'Lat2:Etap_y')
-call check (ele%b%phi,            1.0D-05, 'Lat2:Phi_b')
-call check (orb(96)%vec(1),       1.0D-07, 'Lat2:Orb X')
-call check (orb(96)%vec(2),       1.0D-07, 'Lat2:Orb P_X')
-call check (orb(96)%vec(3),       1.0D-07, 'Lat2:Orb Y')
-call check (orb(96)%vec(4),       1.0D-07, 'Lat2:Orb P_Y')
-call check (orb(96)%vec(5),       1.0D-07, 'Lat2:Orb Z')
-call check (orb(96)%vec(6),       1.0D-07, 'Lat2:Orb P_Z')
-call check (chrom_x,              1.0D-04, 'Lat2:Chrom_x')
-call check (chrom_y,              1.0D-04, 'Lat2:Chrom_y')
-call check (mode%synch_int(1),    1.0D-06, 'Lat2:Synch_int(1)')
-call check (mode%synch_int(2),    1.0D-06, 'Lat2:Synch_int(2)')
-call check (mode%synch_int(3),    1.0D-06, 'Lat2:Synch_int(3)')
-call check (mode%sige_e,          1.0D-10, 'Lat2:Sige_e')
-call check (mode%sig_z,           1.0D-08, 'Lat2:Sig_z')
-call check (mode%e_loss,          1.0D-01, 'Lat2:E_loss')
-call check (mode%a%emittance,     1.0D-12, 'Lat2:A%Emittance')
-call check (mode%b%emittance,     1.0D-14, 'Lat2:B%Emittance')
-call check (mode%z%emittance,     1.0D-11, 'Lat2:Z%Emittance')
-call check (mode%a%synch_int(4),  1.0D-07, 'Lat2:A%Synch_int(4)')
-call check (mode%a%synch_int(5),  1.0D-07, 'Lat2:A%Synch_int(5)')
-call check (mode%b%synch_int(4),  1.0D-07, 'Lat2:B%Synch_int(4)')
-call check (mode%b%synch_int(5),  1.0D-11, 'Lat2:B%Synch_int(5)')
-call check (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
+call data_out (ele%a%beta,           1.0D-05, 'Lat2:Beta_a')
+call data_out (ele%a%alpha,          1.0D-05, 'Lat2:Alpha_a')
+call data_out (ele%a%eta,            1.0D-05, 'Lat2:Eta_a')
+call data_out (ele%a%etap,           1.0D-05, 'Lat2:Etap_a')
+call data_out (ele%x%eta,            1.0D-05, 'Lat2:Eta_x')
+call data_out (ele%x%etap,           1.0D-05, 'Lat2:Etap_x')
+call data_out (ele%a%phi,            1.0D-05, 'Lat2:Phi_a')
+call data_out (ele%b%beta,           1.0D-05, 'Lat2:Beta_b')
+call data_out (ele%b%alpha,          1.0D-05, 'Lat2:Alpha_b')
+call data_out (ele%b%eta,            1.0D-05, 'Lat2:Eta_b')
+call data_out (ele%b%etap,           1.0D-05, 'Lat2:Etap_b')
+call data_out (ele%y%eta,            1.0D-05, 'Lat2:Eta_y')
+call data_out (ele%y%etap,           1.0D-05, 'Lat2:Etap_y')
+call data_out (ele%b%phi,            1.0D-05, 'Lat2:Phi_b')
+call data_out (orb(96)%vec(1),       1.0D-07, 'Lat2:Orb X')
+call data_out (orb(96)%vec(2),       1.0D-07, 'Lat2:Orb P_X')
+call data_out (orb(96)%vec(3),       1.0D-07, 'Lat2:Orb Y')
+call data_out (orb(96)%vec(4),       1.0D-07, 'Lat2:Orb P_Y')
+call data_out (orb(96)%vec(5),       1.0D-07, 'Lat2:Orb Z')
+call data_out (orb(96)%vec(6),       1.0D-07, 'Lat2:Orb P_Z')
+call data_out (chrom_x,              1.0D-04, 'Lat2:Chrom_x')
+call data_out (chrom_y,              1.0D-04, 'Lat2:Chrom_y')
+call data_out (mode%synch_int(1),    1.0D-06, 'Lat2:Synch_int(1)')
+call data_out (mode%synch_int(2),    1.0D-06, 'Lat2:Synch_int(2)')
+call data_out (mode%synch_int(3),    1.0D-06, 'Lat2:Synch_int(3)')
+call data_out (mode%sige_e,          1.0D-10, 'Lat2:Sige_e')
+call data_out (mode%sig_z,           1.0D-08, 'Lat2:Sig_z')
+call data_out (mode%e_loss,          1.0D-01, 'Lat2:E_loss')
+call data_out (mode%a%emittance,     1.0D-12, 'Lat2:A%Emittance')
+call data_out (mode%b%emittance,     1.0D-14, 'Lat2:B%Emittance')
+call data_out (mode%z%emittance,     1.0D-11, 'Lat2:Z%Emittance')
+call data_out (mode%a%synch_int(4),  1.0D-07, 'Lat2:A%Synch_int(4)')
+call data_out (mode%a%synch_int(5),  1.0D-07, 'Lat2:A%Synch_int(5)')
+call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat2:B%Synch_int(4)')
+call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat2:B%Synch_int(5)')
+call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
+
+write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%lat, lat2), '"'
+
+!--------------------------------------------------------------------
+! Reverse
+
+call set_on_off (rfcavity$, lat, off$)
+call lat_reverse (lat, lat2)
+call closed_orbit_calc (lat2, orb2, 4)
+call lat_make_mat6(lat2, -1, orb2)
+call twiss_at_start (lat2)
+call twiss_propagate_all (lat2)
+
+n_track = lat%n_ele_track
+write (2, *)
+call data_out (orb2(0)%vec(1)-orb(0)%vec(1), 1d-8, 'Reverse:dvec(1)')
+call data_out (orb2(0)%vec(2)+orb(0)%vec(2), 1d-8, 'Reverse:dvec(2)')
+call data_out (orb2(0)%vec(3)-orb(0)%vec(3), 1d-8, 'Reverse:dvec(3)')
+call data_out (orb2(0)%vec(4)+orb(0)%vec(4), 1d-8, 'Reverse:dvec(4)')
+
+write (2, *)
+call data_out (lat2%ele(0)%a%beta - lat%ele(0)%a%beta, 2d-5, 'Reverse:dbeta_a')
+call data_out (lat2%ele(0)%a%alpha + lat%ele(0)%a%alpha, 1d-4, 'Reverse:dalpha_a')
+call data_out (lat2%ele(n_track)%a%phi - lat%ele(n_track)%a%phi, 2d-5, 'Reverse:dphi_a')
+call data_out (lat2%ele(0)%a%eta - lat%ele(0)%a%eta, 1d-5, 'Reverse:deta_a')
+call data_out (lat2%ele(0)%a%etap + lat%ele(0)%a%etap, 1d-5, 'Reverse:detap_a')
+
+write (2, *)
+call data_out (lat2%ele(0)%b%beta - lat%ele(0)%b%beta, 1d-6, 'Reverse:dbeta_b')
+call data_out (lat2%ele(0)%b%alpha + lat%ele(0)%b%alpha, 1d-6, 'Reverse:dalpha_b')
+call data_out (lat2%ele(n_track)%b%phi - lat%ele(n_track)%b%phi, 1d-5, 'Reverse:dphi_b')
+call data_out (lat2%ele(0)%b%eta - lat%ele(0)%b%eta, 1d-8, 'Reverse:deta_b')
+call data_out (lat2%ele(0)%b%etap + lat%ele(0)%b%etap, 1d-6, 'Reverse:detap_b')
+
+write (2, *)
+call data_out (lat2%ele(n_track)%floor%x, 1d-8, 'Reverse:floor%x')
+call data_out (lat2%ele(n_track)%floor%z, 1d-8, 'Reverse:floor%z')
+call data_out (lat2%ele(n_track)%floor%theta, 1d-8, 'Reverse:floor%theta')
+call data_out (lat2%ele(n_track)%s -lat%ele(n_track)%s, 1d-6, 'Reverse:s')
+call data_out (lat2%ele(n_track)%ref_time-lat%ele(n_track)%ref_time, 1d-14, 'Reverse:ref_time')
+write (2, '(a, l1, a)') '"Reverse:Lat"      STR  "', associated(lat2%ele(100)%lat, lat2), '"'
+
 
 !--------------------------------------------------------------------
 contains
 
-subroutine check (now, err_tol, what)
+subroutine data_out (now, err_tol, what)
 
 implicit none
 

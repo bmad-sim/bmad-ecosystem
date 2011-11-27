@@ -50,41 +50,64 @@
 "Lat1:B%Synch_int(4)"   -6.14971169890611E-04
 "Lat1:B%Synch_int(5)"   4.55761741483132E-08
 "Lat1:Z%Synch_int(4)"   -1.79617653529366E-03
+
+"Lat2:Beta_a"   1.54682782393998E+01
+"Lat2:Alpha_a"   -1.19060780795739E+00
+"Lat2:Eta_a"   2.28571454825796E+00
+"Lat2:Etap_a"   1.82183789383370E-01
+"Lat2:Eta_x"   2.28570189998572E+00
+"Lat2:Etap_x"   1.82181217671108E-01
+"Lat2:Phi_a"   5.56374329394643E+00
+"Lat2:Beta_b"   3.18252549857614E+01
+"Lat2:Alpha_b"   2.09489450473706E+00
+"Lat2:Eta_b"   -1.72401020302311E-02
+"Lat2:Etap_b"   1.41095260812618E-03
+"Lat2:Eta_y"   -1.96559585530257E-02
+"Lat2:Etap_y"   1.81597045622983E-03
+"Lat2:Phi_b"   4.50391472463687E+00
+"Lat2:Orb X"   1.16904340192800E-02
+"Lat2:Orb P_X"   5.85824483591448E-04
+"Lat2:Orb Y"   -2.29074971422491E-05
+"Lat2:Orb P_Y"   4.78981223010706E-06
+"Lat2:Orb Z"   -1.39128801273529E-03
+"Lat2:Orb P_Z"   0.00000000000000E+00
+"Lat2:Chrom_x"   1.63894017180489E+00
+"Lat2:Chrom_y"   1.73846201194332E+00
+"Lat2:Synch_int(1)"   8.69594124333480E+00
+"Lat2:Synch_int(2)"   1.06231396003874E+00
+"Lat2:Synch_int(3)"   2.87454068945624E-01
+"Lat2:Sige_e"   8.44033488562279E-04
+"Lat2:Sig_z"   2.28636414323571E-02
+"Lat2:E_loss"   1.88833123820845E+05
+"Lat2:A%Emittance"   1.32756792958454E-07
+"Lat2:B%Emittance"   3.79559297375969E-11
+"Lat2:Z%Emittance"   1.92976790393895E-05
+"Lat2:A%Synch_int(4)"   -2.03285281788482E-02
+"Lat2:A%Synch_int(5)"   2.75639147603013E-02
+"Lat2:B%Synch_int(4)"   -2.78610850462618E-04
+"Lat2:B%Synch_int(5)"   7.66255359204564E-06
+"Lat2:Z%Synch_int(4)"   -2.06071390293109E-02
+"Lat2:Lat"   "T"
  
- 
-"Lat2:Beta_a"   1.54422196171681E+01
-"Lat2:Alpha_a"   -1.18735003962237E+00
-"Lat2:Eta_a"   2.28596033758416E+00
-"Lat2:Etap_a"   1.82223738529035E-01
-"Lat2:Eta_x"   2.28594634461686E+00
-"Lat2:Etap_x"   1.82221069962325E-01
-"Lat2:Phi_a"   5.56236570846306E+00
-"Lat2:Beta_b"   3.18254445929139E+01
-"Lat2:Alpha_b"   2.09560166523151E+00
-"Lat2:Eta_b"   -1.72441228541042E-02
-"Lat2:Etap_b"   1.41385877838099E-03
-"Lat2:Eta_y"   -1.96560300189906E-02
-"Lat2:Etap_y"   1.81750256002356E-03
-"Lat2:Phi_b"   4.50325191847550E+00
-"Lat2:Orb X"   1.16903916676887E-02
-"Lat2:Orb P_X"   5.85819811965093E-04
-"Lat2:Orb Y"   -2.29073565317050E-05
-"Lat2:Orb P_Y"   4.78979774627892E-06
-"Lat2:Orb Z"   -1.39128804573300E-03
-"Lat2:Orb P_Z"   -8.23336192760053E-06
-"Lat2:Chrom_x"   1.63894018065115E+00
-"Lat2:Chrom_y"   1.73846197647835E+00
-"Lat2:Synch_int(1)"   8.69615425947727E+00
-"Lat2:Synch_int(2)"   1.06233084543965E+00
-"Lat2:Synch_int(3)"   2.87460793579602E-01
-"Lat2:Sige_e"   8.44048687535310E-04
-"Lat2:Sig_z"   2.28653251669199E-02
-"Lat2:E_loss"   1.88836125309220E+05
-"Lat2:A%Emittance"   1.32837495413505E-07
-"Lat2:B%Emittance"   3.79045488792458E-11
-"Lat2:Z%Emittance"   1.92994476972069E-05
-"Lat2:A%Synch_int(4)"   -2.03892207143844E-02
-"Lat2:A%Synch_int(5)"   2.75826471044143E-02
-"Lat2:B%Synch_int(4)"   -2.78244375090389E-04
-"Lat2:B%Synch_int(5)"   7.65218135818146E-06
-"Lat2:Z%Synch_int(4)"   -2.06674650894748E-02
+"Reverse:dvec(1)"        0
+"Reverse:dvec(2)"        0
+"Reverse:dvec(3)"        0
+"Reverse:dvec(4)"        0
+
+"Reverse:dbeta_a"        0
+"Reverse:dalpha_a"       0
+"Reverse:dphi_a"         0
+"Reverse:deta_a"         0
+"Reverse:detap_a"        0
+"Reverse:dbeta_b"        0
+"Reverse:dalpha_b"       0
+"Reverse:dphi_b"         0
+"Reverse:deta_b"         0
+"Reverse:detap_b"        0
+"Reverse:floor%x"        0
+"Reverse:floor%z"        0
+"Reverse:floor%theta"    0
+"Reverse:s"   0.0
+"Reverse:ref_time"   0.00000000000000E+00
+"Reverse:Lat"   "T"
+

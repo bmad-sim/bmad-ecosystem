@@ -191,20 +191,25 @@ for line in dir_list:
       for ix, (now1, correct1) in enumerate(zip(now2_split, correct2_split)):
         now_val = float(now1)
         correct_val = float(correct1)
+        diff_val = now_val - correct_val
+        ave_abs_val = (abs(now_val) + abs(correct_val)) / 2
 
         ok = True
         if tol_type == 'REL':
-          if abs(now_val - correct_val) > (abs(now_val) + abs(correct_val)) * tol_val / 2: ok = False
+          if abs(diff_val) > ave_abs_val * tol_val: ok = False
         else:
-          if abs(now_val - correct_val) > tol_val: ok = False
+          if abs(diff_val) > tol_val: ok = False
 
         if ok == False:
-          if len(now2_split) == 1: 
-            print_all ('     Regression test failed.')
+          if now_end[0] == 'STR':
+            print_all ('     Regression test failed for: "' + now_split[1] + '"')
           else:
+            print_all ('     Regression test failed for: "' + now_split[1] + '"   ' + now_end[0] + '   ' + now_end[1])
+          if len(now2_split) != 1: 
             print_all ('     Regression test failed for datum number: ' + str(ix))
-          print_all ('        Line from "output.now": ' + now_line)
-          print_all ('        Line from "output.correct": ' + correct_line)
+          print_all ('        Data from "output.now":     ' + str(now2_split))
+          print_all ('        Data from "output.correct": ' + str(correct2_split))
+          print_all ('        Diff: ' + str(diff_val) + '  Diff/Val: ' + str(abs(diff_val) / ave_abs_val))
           num_regression_failures += 1
           break
 
