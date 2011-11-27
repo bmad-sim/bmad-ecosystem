@@ -43,11 +43,10 @@ subroutine lat_reverse (lat_in, lat_rev)
 
 implicit none
 
-type (lat_struct) :: lat_in
-type (lat_struct), target :: lat_rev
+type (lat_struct), target :: lat_in, lat_rev
 type (ele_struct), pointer :: lord, ele
 type (control_struct), pointer :: con
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch_in
 
 integer i, n, i1, i2, nr, n_con, ib
 integer :: ix_con(size(lat_in%control))
@@ -93,16 +92,20 @@ lat_rev%ic(1:n) = ix_con(lat_rev%ic(1:n))
 do ib = 0, ubound(lat_in%branch, 1)
 
   branch => lat_rev%branch(ib)
+  branch_in => lat_in%branch(ib)
 
   nr = branch%n_ele_track
-  branch%ele(1:nr) = lat_in%branch(ib)%ele(nr:1:-1)
+  branch%ele(1:nr) = branch_in%ele(nr:1:-1)
 
   ! Flip longitudinal stuff, maps
 
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
     call ele_reverse (ele, branch%param)
-    if (i <= nr) ele%s = branch%param%total_length - (ele%s - ele%value(l$))
+    if (i <= nr) then
+      ele%s = branch%param%total_length - (ele%s - ele%value(l$))
+      ele%ref_time = branch_in%ele(nr)%ref_time - branch_in%ele(nr-i)%ref_time
+    endif
   enddo
 
   ! Cleanup
@@ -115,6 +118,7 @@ enddo
 ! Finish
 
 call check_lat_controls (lat_rev, .true.)
+call set_ele_status_stale (lat_rev%ele(0), lat_rev%param, floor_position_group$)
 call lattice_bookkeeper (lat_rev)
 
 end subroutine lat_reverse
