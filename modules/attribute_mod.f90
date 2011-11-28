@@ -414,7 +414,7 @@ end select
 
 if (.not. do_except_overlay) then
   do i = 1, ele%n_lord
-    lord => pointer_to_lord (lat, ele, i, ix)
+    lord => pointer_to_lord(ele, i, ix)
     if (present(ix_lord)) then
       if (ix_lord == lord%ix_ele) cycle
       if (lat%ele(ix_lord)%lord_status == overlay_lord$) cycle
@@ -445,8 +445,8 @@ if (ele%slave_status == multipass_slave$) then
   case (lcavity$, rfcavity$) 
     if (ix_attrib == dphi0$) return
   case (patch$)
-    lord => pointer_to_lord (lat, ele, 1)
-    if (associated (pointer_to_slave(lat, lord, 1), ele) .and. &
+    lord => pointer_to_lord(ele, 1)
+    if (associated (pointer_to_slave(lord, 1), ele) .and. &
                                     ele%ref_orbit == patch_in$) return
   end select
 
@@ -594,7 +594,7 @@ endif
 
 if (ele%lord_status == group_lord$ .or. ele%lord_status == overlay_lord$) then
   do i = 1, ele%n_slave
-    ele_p => pointer_to_slave(lat, ele, i, ic)
+    ele_p => pointer_to_slave(ele, i, ic)
     call check_this_attribute_free (ele_p, attribute_name(ele_p, lat%control(ic)%ix_attrib), &
                             lat, do_print, do_except_overlay, free, 1, ele%ix_ele)
     if (.not. free) return

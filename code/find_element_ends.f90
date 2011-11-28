@@ -55,9 +55,9 @@ if (ele%n_slave == 0) then
   endif
 
 elseif (ele%lord_status == super_lord$) then
-  ele1 => pointer_to_slave (lat, ele, 1)
+  ele1 => pointer_to_slave(ele, 1)
   ele1 => pointer_to_ele (lat, ele1%ix_ele-1, ele1%ix_branch)
-  ele2 => pointer_to_slave (lat, ele, ele%n_slave)
+  ele2 => pointer_to_slave(ele, ele%n_slave)
 
 ! For overlays and groups: The idea is to look at all the slave elements in the tracking 
 ! part of the lattice and find the minimum and maximum element indexes.

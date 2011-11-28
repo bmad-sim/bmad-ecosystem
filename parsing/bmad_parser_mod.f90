@@ -3244,15 +3244,15 @@ do i = 1, n_multipass
   ! If slave is a super_lord then create the appropriate super_slave names
   i1 = 0
   do j = 1, slave%n_slave
-    slave2 => pointer_to_slave(lat, slave, j)
+    slave2 => pointer_to_slave(slave, j)
     if (slave2%n_lord == 1) then
       i1 = i1 + 1
       write (slave2%name, '(2a, i0, a, i0)') trim(lord%name), '#', i1, '\', i      ! '
     else
       slave2%name = ''
       do k = 1, slave2%n_lord
-        lord2 => pointer_to_lord(lat, slave2, k)
-        lord2 => pointer_to_lord(lat, lord2, 1)
+        lord2 => pointer_to_lord(slave2, k)
+        lord2 => pointer_to_lord(lord2, 1)
         slave2%name = trim(slave2%name) // trim(lord2%name) // '\'     ! '
       enddo
       write (slave2%name, '(a, i0)') trim(slave2%name), i  
@@ -3387,7 +3387,7 @@ do
       if (ref_ele%lord_status == multipass_lord$) then
         allocate (m_slaves(ref_ele%n_slave), multi_name(ref_ele%n_slave))
         do i = 1, ref_ele%n_slave
-          slave => pointer_to_slave (lat, ref_ele, i)
+          slave => pointer_to_slave(ref_ele, i)
           slave%ix_pointer = i  ! tag ref element
         enddo
         ix_branch = slave%ix_branch  ! Branch of slaves
@@ -3417,11 +3417,11 @@ do
         do i = lat%n_ele_track+1, lat%n_ele_max 
           ele => lat%ele(i)
           if (ele%key /= drift$) cycle
-          slave => pointer_to_slave (lat, ele, 1)
+          slave => pointer_to_slave(ele, 1)
           if (slave%slave_status /= super_slave$) cycle
           ele%key = -1 ! mark for deletion
           do j = 1, ele%n_lord
-            lord => pointer_to_lord (lat, ele, j)
+            lord => pointer_to_lord(ele, j)
             lord%key = -1  ! Mark lord for deletion
           enddo
         enddo
@@ -3453,12 +3453,12 @@ do
 
         ele => pointer_to_ele (lat, m_slaves(1))
         if (ele%lord_status == super_lord$ .and. ele%n_slave == 1) then
-          slave => pointer_to_slave (lat, ele, 1)
+          slave => pointer_to_slave(ele, 1)
           if (slave%n_lord == 1) then
             do i = 1, size(m_slaves)
               ele => pointer_to_ele (lat, m_slaves(i))
               ele%key = -1 ! Mark for deletion
-              ele => pointer_to_slave (lat, ele, 1)
+              ele => pointer_to_slave(ele, 1)
               ele%name = super_ele_saved%name
               m_slaves(i) = ele_to_lat_loc (ele)
             enddo
@@ -3637,7 +3637,7 @@ if (ct == overlay_lord$ .or. ct == girder_lord$) then
   s_ref_begin = 1e10
   s_ref_end = 0
   do i = 1, ref_ele%n_slave
-    slave => pointer_to_slave (lat, ref_ele, i)
+    slave => pointer_to_slave(ref_ele, i)
     s_ref_begin = min(s_ref_begin, slave%s - slave%value(l$))
     s_ref_end = max(s_ref_end, slave%s)
   enddo
@@ -4190,7 +4190,7 @@ main_loop: do n = 1, n2
     slave => pointer_to_ele (lat, ix_ele(k_slave), ix_branch(k_slave))
 
     if (slave%lord_status == super_lord$) then 
-      slave => pointer_to_slave (lat, slave, 1)
+      slave => pointer_to_slave(slave, 1)
     endif
 
     branch => lat%branch(slave%ix_branch)
@@ -4210,7 +4210,7 @@ main_loop: do n = 1, n2
         do  ! loop over all lattice elements
           if (slave%slave_status == super_slave$) then
             do ic = 1, slave%n_lord
-              lord2 => pointer_to_lord (lat, slave, ic)
+              lord2 => pointer_to_lord(slave, ic)
               if (match_wild(lord2%name, slave_name)) then
                 cs(ixs)%ix_slave  = lord2%ix_ele
                 cs(ixs)%ix_branch = lord2%ix_branch

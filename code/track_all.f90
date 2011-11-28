@@ -88,7 +88,7 @@ if (ix_br /= 0) return
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n) 
   if (lord%lord_status /= super_lord$) cycle
-  slave => pointer_to_slave (lat, lord, lord%n_slave)
+  slave => pointer_to_slave(lord, lord%n_slave)
   if (slave%ix_branch /= ix_br) cycle
   orbit(lord%ix_ele) = orbit(slave%ix_ele)
 enddo

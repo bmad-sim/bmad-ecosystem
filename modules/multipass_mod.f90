@@ -108,14 +108,14 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   allocate (info%top(nl)%super_lord(n_pass))
 
-  slave1 => pointer_to_slave(lat, m_lord, 1)
+  slave1 => pointer_to_slave(m_lord, 1)
 
   if (slave1%lord_status == super_lord$) then
     n_super_slave = slave1%n_slave
     info%top(nl)%n_super_slave = n_super_slave
     allocate (info%top(nl)%slave(n_pass, n_super_slave))
     do j = 1, m_lord%n_slave
-      super_lord => pointer_to_slave(lat, m_lord, j)
+      super_lord => pointer_to_slave(m_lord, j)
       info%top(nl)%super_lord(j)%ele => super_lord
       info%bottom(super_lord%ix_ele)%multipass = .true.
       n = size(info%bottom(super_lord%ix_ele)%ix_top)
@@ -123,7 +123,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       info%bottom(super_lord%ix_ele)%ix_top(n+1) = nl
       info%bottom(super_lord%ix_ele)%ix_pass = j
       do k = 1, super_lord%n_slave
-        slave => pointer_to_slave(lat, super_lord, k)
+        slave => pointer_to_slave(super_lord, k)
         info%top(nl)%slave(j, k)%ele => slave
         info%bottom(slave%ix_ele)%multipass = .true.
         info%bottom(slave%ix_ele)%ix_pass = j
@@ -139,7 +139,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     info%top(nl)%n_super_slave = 1
     allocate (info%top(nl)%slave(n_pass, 1))
     do j = 1, m_lord%n_slave
-      slave => pointer_to_slave(lat, m_lord, j)
+      slave => pointer_to_slave(m_lord, j)
       info%top(nl)%super_lord(j)%ele => slave
       info%top(nl)%slave(j, 1)%ele => slave
       info%bottom(slave%ix_ele)%multipass = .true.
@@ -234,17 +234,17 @@ if (present(super_lord)) nullify (super_lord)
 if (present(ix_pass)) ix_pass = -1
 
 if (ele%slave_status == multipass_slave$) then
-  multi_lord => pointer_to_lord (lat, ele, 1, ix_con)
+  multi_lord => pointer_to_lord(ele, 1, ix_con)
   if (present(ix_pass)) ix_pass = ix_con + 1 - multi_lord%ix1_slave
   return
 endif
 
 if (ele%slave_status == super_slave$) then
-  sup_lord => pointer_to_lord (lat, ele, 1)
+  sup_lord => pointer_to_lord(ele, 1)
   if (present(super_lord)) super_lord = sup_lord
 
   if (sup_lord%n_lord /= multipass_slave$) return
-  multi_lord => pointer_to_lord (lat, sup_lord, 1, ix_con)
+  multi_lord => pointer_to_lord(sup_lord, 1, ix_con)
   if (present(ix_pass)) ix_pass = ix_con + 1 - multi_lord%ix1_slave
   return
 endif
@@ -294,11 +294,11 @@ n_links = 0
 ! element is a multipass_slave case
 
 if (ele%slave_status == multipass_slave$) then
-  m_lord => pointer_to_lord(lat, ele, 1)
+  m_lord => pointer_to_lord(ele, 1)
   if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
   n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
-    slave => pointer_to_slave(lat, m_lord, j)
+    slave => pointer_to_slave(m_lord, j)
     if (present(chain_ele)) chain_ele(j)%ele => slave
     if (slave%ix_ele  == ele%ix_ele) ix_pass = j
   enddo
@@ -307,24 +307,24 @@ endif
 ! element is a super_slave case
 
 if (ele%slave_status == super_slave$) then
-  s_lord => pointer_to_lord(lat, ele, 1)
+  s_lord => pointer_to_lord(ele, 1)
   if (s_lord%slave_status /= multipass_slave$) return
 
   ! Find offset in super_lord
 
   do j = 1, s_lord%n_slave
-    slave => pointer_to_slave(lat, ele, j)
+    slave => pointer_to_slave(ele, j)
     if (slave%ix_ele == ele%ix_ele) ix_off = j
   enddo
 
   ! Construct chain
 
-  m_lord => pointer_to_lord (lat, ele, 1)
+  m_lord => pointer_to_lord(ele, 1)
   if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
   n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
-    s_lord => pointer_to_slave(lat, m_lord, j)
-    slave => pointer_to_slave(lat, s_lord, ix_off)
+    s_lord => pointer_to_slave(m_lord, j)
+    slave => pointer_to_slave(s_lord, ix_off)
     if (present(chain_ele)) chain_ele(j)%ele => slave
     if (slave%ix_ele == ele%ix_ele) ix_pass = j
   enddo

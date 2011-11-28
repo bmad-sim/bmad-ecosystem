@@ -443,7 +443,7 @@ if (logic_option(present(lattice), type_control)) then
     print_it = .true.
 
     if (ele%slave_status == multipass_slave$) then
-      lord => pointer_to_lord (lattice, ele, 1)
+      lord => pointer_to_lord (ele, 1)
       nl=nl+1; write (li(nl), '(2a, 4x, a, i0, a)') &
                 'Multipass_lord: ', trim(lord%name), '[Lattice index: ', lord%ix_ele, ']'
       if (ele%n_lord == 1) print_it = .false. 
@@ -453,7 +453,7 @@ if (logic_option(present(lattice), type_control)) then
       nl=nl+1; write (li(nl), '(a, i4)') 'Lords:'
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = 1, ele%n_lord
-        lord => pointer_to_lord (lattice, ele, i)
+        lord => pointer_to_lord (ele, i)
         nl=nl+1; write (li(nl), '(5x, a30, i10)') lord%name, lord%ix_ele
       enddo
       print_it = .false.
@@ -475,7 +475,7 @@ if (logic_option(present(lattice), type_control)) then
 '    Name                       Lat_index  Attribute         Coefficient       Value  Lord_Type'
 
       do i = i1, ele%n_lord
-        lord => pointer_to_lord (lattice, ele, i, ic)
+        lord => pointer_to_lord (ele, i, ic)
         coef = lattice%control(ic)%coef
         iv = lattice%control(ic)%ix_attrib
         a_name = attribute_name(ele, iv)
@@ -508,14 +508,14 @@ if (logic_option(present(lattice), type_control)) then
     case (multipass_lord$)
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = 1, ele%n_slave
-        slave => pointer_to_slave (lattice, ele, i)
+        slave => pointer_to_slave (ele, i)
         nl=nl+1; write (li(nl), '(5x, a30, a10)') slave%name, trim(ele_loc_to_string(slave))
       enddo
 
     case (super_lord$, girder_lord$)
       nl=nl+1; write (li(nl), *) '    Name                           Lat_index'
       do i = 1, ele%n_slave
-        slave => pointer_to_slave (lattice, ele, i)
+        slave => pointer_to_slave (ele, i)
         nl=nl+1; write (li(nl), '(5x, a30, a10)') slave%name, trim(ele_loc_to_string(slave))
       enddo
 
@@ -523,12 +523,12 @@ if (logic_option(present(lattice), type_control)) then
       nl=nl+1; write (li(nl), *) &
           '    Name                         Lat_index  Attribute         Coefficient'
       do ix = 1, ele%n_slave
-        slave => pointer_to_slave (lattice, ele, ix, i)
+        slave => pointer_to_slave (ele, ix, i)
         iv = lattice%control(i)%ix_attrib
         coef = lattice%control(i)%coef
         if (slave%lord_status == overlay_lord$) then
           if (iv == slave%ix_value) then
-            a_name = attribute_name(pointer_to_slave(lattice, slave, 1), iv)
+            a_name = attribute_name(pointer_to_slave(slave, 1), iv)
           else
             a_name = '** BAD POINTER! **'
           endif            

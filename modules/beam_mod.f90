@@ -232,12 +232,12 @@ if (associated(ele%rf_wake)) then
 
   if (ele%slave_status == super_slave$) then
     do i = 1, ele%n_lord
-      lord => pointer_to_lord (lat, ele, i)
+      lord => pointer_to_lord(ele, i)
       lord%rf_wake%lr%b_sin = 0;  lord%rf_wake%lr%b_cos = 0
       lord%rf_wake%lr%a_sin = 0;  lord%rf_wake%lr%a_cos = 0
       lord%rf_wake%lr%t_ref = 0
       do j = 1, lord%n_slave
-        slave => pointer_to_slave (lat, lord, 1)
+        slave => pointer_to_slave(lord, 1)
         lord%rf_wake%lr%b_sin = lord%rf_wake%lr%b_sin + slave%rf_wake%lr%b_sin
         lord%rf_wake%lr%b_cos = lord%rf_wake%lr%b_cos + slave%rf_wake%lr%b_cos
         lord%rf_wake%lr%a_sin = lord%rf_wake%lr%a_sin + slave%rf_wake%lr%a_sin

@@ -58,7 +58,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
   if (lord%lord_status == super_lord$) then
-    slave => pointer_to_slave (lat, lord, lord%n_slave)
+    slave => pointer_to_slave(lord, lord%n_slave)
     lord%s = slave%s
   else
     lord%s = 0

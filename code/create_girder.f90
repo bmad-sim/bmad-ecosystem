@@ -84,7 +84,7 @@ subroutine create_girder (lat, ix_girder, contrl, ele_init)
 
   do i = 1, girder%n_slave
 
-    slave => pointer_to_slave (lat, girder, i)
+    slave => pointer_to_slave(girder, i)
 
     if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$
