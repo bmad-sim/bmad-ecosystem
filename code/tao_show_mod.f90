@@ -719,7 +719,7 @@ case ('data')
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
-      name = tao_datum_type_name(d_ptr)
+      name = tao_constraint_type_name(d_ptr)
       if (d_ptr%data_type(1:11) /= 'expression:') then
         n_name  = max(n_name,  len_trim(name))
         n_start = max(n_start, len_trim(d_ptr%ele_start_name))
@@ -751,7 +751,7 @@ case ('data')
     do i = 1, size(d_array)
       d_ptr => d_array(i)%d
       if (.not. d_ptr%exists) cycle
-      name = tao_datum_type_name(d_ptr)
+      name = tao_constraint_type_name(d_ptr)
       if (d_ptr%data_type(1:11) == 'expression:') then
         nl=nl+1; write(lines(nl), fmt) d_ptr%ix_d1, trim(name)
         nl=nl+1; write(lines(nl), fmt2) blank_str(1:n_name), &
@@ -2459,7 +2459,7 @@ case ('variable')
     return
   endif
 
-! If just "show var" then show all names
+  ! If just "show var" then show all names
 
   if (word1 == ' ') then
     if (print_header_lines) then
@@ -2470,7 +2470,7 @@ case ('variable')
       if (v1_ptr%name == ' ') cycle
       call re_allocate (lines, nl+200, .false.)
       call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
-      nl=nl+1; write(lines(nl), '(i5, 2x, 2a, i0, a, i0, a, t50, a)') v1_ptr%ix_v1, &
+      nl=nl+1; write(lines(nl), '(4x, 2a, i0, a, i0, a, t50, a)') &
                       trim(v1_ptr%name), '[', lbound(v1_ptr%v, 1), ':', &
                       ubound(v1_ptr%v, 1), ']', trim(line)
       
@@ -2480,14 +2480,14 @@ case ('variable')
     return
   endif
 
-! are we looking at a range of locations?
+  ! are we looking at a range of locations?
 
   call tao_find_var(err, word1, v1_array, v_array) 
   if (err) return
   n_size = 0
   if (allocated(v_array)) n_size = size(v_array)
 
-! v_ptr is valid then show the variable info.
+  ! v_ptr is valid then show the variable info.
 
   if (n_size == 1) then
 

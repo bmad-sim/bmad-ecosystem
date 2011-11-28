@@ -951,7 +951,7 @@ if (s%global%label_keys) then
       ele => pointer_to_ele(lat, var%this(ixv)%ix_ele, var%this(ixv)%ix_branch)
       if (ele%n_slave /= 0 .and. ele%lord_status /= super_lord$) then
         do j = 1, ele%n_slave
-          ele1 => pointer_to_slave (lat, ele, j)
+          ele1 => pointer_to_slave(ele, j)
           l2 = ele1%value(l$) / 2
           s_pos = ele1%s - l2
           if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len

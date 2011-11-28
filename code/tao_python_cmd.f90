@@ -61,7 +61,7 @@ character(20) :: cmd_names(32)= &
            'graph1         ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
            'data_all       ', 'data_d2        ', 'data_d1        ', 'data1          ', &
            'ele_all        ', 'ele1_all       ', 'beam_all       ', 'ele1_attrib    ', &
-           'constraint_data', 'constraint_var ', 'global         ', 'lat_ele_list   ', &
+           'constraint_data', 'constraint_vars', 'global         ', 'lat_ele_list   ', &
            'lat_global     ', '               ', '               ', '               ', &
            '               ', '               ', '               ', '               ' ]
 
@@ -95,8 +95,14 @@ if (.not. allocated(lines)) allocate (lines(200))
 select case (command)
 
 !----------------------------------------------------------------------
-! datums used in optimizations (%useit_opt = T). 
-! Syntax:  constrint_data
+! data used in optimizations (with datum%useit_opt = T). 
+! Input syntax: 
+!   constrint_data
+! Output syntax:
+!   <datum_name>;<constraint_type>;<ref_ele>;<start_ele>;<ele>;<meas_value>;<model_value>;<merit_value>;<max_merit_location>
+! Example output line:
+!   orbit.x[0];orbit.x <target>;;;DET_00W;  0.0000E+00;  1.4693E-03;  2.1589E+00;;
+
 
 case ('constraint_data')
 
@@ -116,7 +122,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
     if (nl == size(lines)) call re_allocate(lines, 2*nl)
     nl=nl+1; write (lines(nl), '(10a, 3(es12.4, a), 2a)') &
-        trim(tao_datum_name(d_ptr)), ';', trim(tao_datum_type_name(d_ptr)), ';', &
+        trim(tao_datum_name(d_ptr)), ';', trim(tao_constraint_type_name(d_ptr)), ';', &
         trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
         d_ptr%meas_value, ';', d_ptr%model_value, ';', d_ptr%merit, ';', trim(max_loc), ';'
 
@@ -124,8 +130,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 !----------------------------------------------------------------------
-! variables used in optimizations (%useit_opt = T). 
-! Syntax:  constrint_data
+! Variables used in optimizations (with var%useit_opt = T). 
+! Input syntax:  
+!   constrint_vars
+! Output syntax:
+!   <var_name>;<attribute_name>;<lattice_element>;<target_value>;<model_value>;<merit_value>
 
 case ('constraint_vars')
 
@@ -162,7 +171,9 @@ enddo
 
 !----------------------------------------------------------------------
 ! D1 level data. 
-! Syntax: 
+! Input syntax:
+!   data_d1 <d2_datum>
+! Output syntax: 
 !   <index>;<data_type>;<merit_type>;<ele_ref_name>;<ele_start_name>;<ele_name>;<meas_value>;<model_value>;<design_value>;<good_user>;<useit_opt>;<useit_plot>;
 
 case ('data_d1')
@@ -187,7 +198,9 @@ case ('data_d1')
 
 !----------------------------------------------------------------------
 ! D2 level data. 
-! Syntax: 
+! Input syntax:
+!   data_d2
+! Output syntax: 
 !   <ix_universe>;<d2_name>;<d1_name>;<lbound_d_array>;<ubound_d_array>;<useit_list>;
 
 case ('data_d2')
@@ -216,7 +229,9 @@ case ('data_d2')
 
 !----------------------------------------------------------------------
 ! Individual datum
-! Syntax:
+! Input syntax:
+!   data1 <datum_name>
+! Output syntax:
 !   <component_name>;<type>;<variable>;<component_value>;
 ! <type> is one of:
 !   STRING
@@ -281,27 +296,31 @@ case ('data1')
 
 !----------------------------------------------------------------------
 ! All parameters associated with given element. 
-! Synrax: ele1_all <ix_ele> <ix_branch> <ix_universe>
+! Input syntax: 
+!   ele1_all <ix_ele> <ix_branch> <ix_universe>
 
 case ('ele1_all')
 
 
 !----------------------------------------------------------------------
 ! Attribute list. Shows which attributes are adjustable.
-! Synrax: ele1_all <ix_ele> <ix_branch> <ix_universe>
+! Input syntax: 
+!   ele1_all <ix_ele> <ix_branch> <ix_universe>
 
 case ('ele1_attrib')
 
 
 !----------------------------------------------------------------------
-! global parameters
-! Syntax: global
+! Global parameters
+! Input syntax: 
+!   global
 
 case ('global')
 
 !----------------------------------------------------------------------
 ! Lattice element list.
-! lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
+! Input syntax:
+!   lat_ele <ix_ele_start> <ix_ele_end> <ix_branch>
 
 case ('lat_ele_list')
 
@@ -309,13 +328,17 @@ case ('lat_ele_list')
 
 !----------------------------------------------------------------------
 ! Lattice globals.
-! Syntax: lat_global <ix_universe>
+! Input syntax:
+!   lat_global <ix_universe>
 
 case ('lat_global')
 
 !----------------------------------------------------------------------
-! Output info on a given plot.
-! Syntax: plot1 <plot_name>
+! Info on a given plot.
+! Input syntax:
+!   plot1 <plot_name>
+! Output syntax:
+!
 
 case ('plot1')
 
@@ -342,8 +365,9 @@ case ('plot1')
   endif
 
 !----------------------------------------------------------------------
-! output list of visible plot names.
-! Syntax: plot_visible
+! List of visible plot names.
+! Input syntax: 
+!   plot_visible
 
 case ('plot_visible')
 
@@ -355,8 +379,9 @@ case ('plot_visible')
   enddo
 
 !----------------------------------------------------------------------
-! output list of plot templates.
-! Syntax:  plot_template
+! List of plot templates.
+! Input syntax:  
+!   plot_template
 
 case ('plot_template')
   do i = 1, size(s%template_plot)
@@ -372,8 +397,11 @@ case ('plot_template')
   enddo
 
 !----------------------------------------------------------------------
-! Output list of variable v1 arrays
-! Syntax: var_all
+! List of variable v1 arrays
+! Input syntax: 
+!   var_all
+! Output syntax:
+!   <v1_var name>;<v1_var%v lower bound>;<v1_var%v upper bound>;<used in optimization list>
 
 case ('var_all')
 
@@ -382,9 +410,9 @@ case ('var_all')
       if (v1_ptr%name == '') cycle
       if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
       call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
-      nl=nl+1; write(lines(nl), '(i5, 2x, 2a, i0, a, i0, a, t50, a)') v1_ptr%ix_v1, &
-                      trim(v1_ptr%name), '[', lbound(v1_ptr%v, 1), ':', &
-                      ubound(v1_ptr%v, 1), ']', trim(line)
+      nl=nl+1; write(lines(nl), '(2a, i0, a, i0, 2a)') &
+                      trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', &
+                      ubound(v1_ptr%v, 1), ';', trim(line)
       
     enddo
   

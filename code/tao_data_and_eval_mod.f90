@@ -2565,7 +2565,7 @@ if (ix_ele <= n_track) return
 
 if (ele%lord_status == super_lord$) then
   if (datum%data_type(1:8) == 'rad_int1') return  ! Since rad_int1 is integraged radiation integral over the element.
-  ele => pointer_to_slave (lat, ele, ele%n_slave)
+  ele => pointer_to_slave(ele, ele%n_slave)
   return
 endif
 

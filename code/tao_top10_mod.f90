@@ -326,7 +326,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     data => s%u(i)%data(j)
     if (.not. data%useit_opt) cycle
     nc = nc + 1
-    con(nc)%name = tao_datum_type_name(data)
+    con(nc)%name = tao_constraint_type_name(data)
     con(nc)%d2_d1_name = trim(tao_datum_name(data))
     if (data%data_type(1:11) == 'expression:') con(nc)%expression = .true.
 

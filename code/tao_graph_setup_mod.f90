@@ -959,7 +959,7 @@ do k = 1, size(graph%curve)
         if (ix == 0) cycle
         if (ele%lord_status == multipass_lord$) then
           do j = 1, ele%n_slave
-            slave => pointer_to_slave (model_lat, ele, j)
+            slave => pointer_to_slave (ele, j)
             call find_element_ends (model_lat, slave, ele1, ele2)
             ele1%logic = .true.
             ele2%logic = .true.

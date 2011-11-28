@@ -2327,10 +2327,12 @@ end function tao_var_attrib_name
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! Function tao_datum_type_name (datum) result (datum_name)
+! Function tao_constraint_type_name (datum) result (datum_name)
 !
-! Function to return the datum type. For example
-!   eta.x target   
+! Function to return the constraint type in the form:
+!   data_type <merit_type>
+! For example:
+!   eta.x <target>
 !
 ! Input:
 !   datum      -- Tao_data_struct: Datum
@@ -2339,7 +2341,7 @@ end function tao_var_attrib_name
 !   datum_name -- Character(60): Appropriate name.
 !-
 
-function tao_datum_type_name(datum) result (datum_name)
+function tao_constraint_type_name(datum) result (datum_name)
 
 implicit none
 
