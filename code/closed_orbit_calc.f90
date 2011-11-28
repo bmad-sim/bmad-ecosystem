@@ -252,14 +252,13 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, exit_on_error)
 
     if (amp_del < amp_del_old) then
       start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
+      amp_del_old = amp_del
     else  ! not converging so remake mat2 matrix
       call lat_make_mat6 (lat, -1, closed_orb)
       call transfer_matrix_calc (lat, .true., t1)
       call make_mat2 
       amp_del_old = 1e20  ! something large
     endif
-
-    amp_del_old = amp_del
 
   enddo
 
