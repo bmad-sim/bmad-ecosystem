@@ -206,7 +206,7 @@ if (bbu_param%ele_track_end.ne.' ')then
        print '(a)', 'Will use the first instance as the end of the tracking'
       endif
       ele => eles(1)%ele
-      if (eles(1)%ele%lord_status == super_lord$) ele => pointer_to_slave(lat, ele, ele%n_slave)
+      if (eles(1)%ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
       ix = ele%ix_ele
       if (ix > lat%n_ele_track) then
          print *, 'STOPPING ELEMENT IS A LORD! ', bbu_param%ele_track_end
