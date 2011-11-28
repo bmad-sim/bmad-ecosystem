@@ -249,7 +249,7 @@ endif
 if (present(ele)) then
   call control_bookkeeper1 (lat, ele, sm_only)
   do ie = 1, ele%n_slave
-    slave => pointer_to_slave (lat, ele, ie)
+    slave => pointer_to_slave(ele, ie)
     call control_bookkeeper (lat, slave, sm_only)
   enddo
   return
@@ -281,7 +281,7 @@ do
     ele2 => lat%ele(ie)
     if (ele2%status%control /= stale$ .and. ele2%status%attributes /= stale$) cycle
     do j = 1, ele2%n_lord
-      lord => pointer_to_lord (lat, ele2, j)
+      lord => pointer_to_lord(ele2, j)
       if (lord%status%control /= stale$ .and. lord%status%attributes /= stale$) cycle
       all_bookkeeping_done = .false.  ! This element remains to be done.
       cycle ie_loop ! Do not do bookkeeping yet if lord not done yet.
@@ -446,7 +446,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   sum_len_slaves = 0
   do j = 1, lord0%n_slave
-    slave => pointer_to_slave(lat, lord0, j)
+    slave => pointer_to_slave(lord0, j)
     sum_len_slaves = sum_len_slaves + slave%value(l$)
   enddo
 
@@ -468,10 +468,10 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   length_adjustment_made = .true.
 
-  slave => pointer_to_slave(lat, lord0, 1)
+  slave => pointer_to_slave(lord0, 1)
   ixa_lord0 = slave%ix_ele  ! Index at entrance end of lord0
 
-  slave => pointer_to_slave(lat, lord0, lord0%n_slave)
+  slave => pointer_to_slave(lord0, lord0%n_slave)
   ixb_lord0 = slave%ix_ele  ! Index at exit end of lord0
 
   pos_extension_lord_exists = .false.
@@ -484,16 +484,16 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   vary_sublength = 0
   slave_loop: do j = 1, lord0%n_slave
 
-    slave => pointer_to_slave(lat, lord0, j)
+    slave => pointer_to_slave(lord0, j)
     slave%bmad_logic = .true. ! Can be varied.
 
     do k = 1, slave%n_lord
-      lord2 => pointer_to_lord(lat, slave, k)
+      lord2 => pointer_to_lord(slave, k)
       if (lord0%ix_ele == lord2%ix_ele) cycle  ! Ignore self
-      slave2 => pointer_to_slave(lat, lord2, 1)            ! Slave at entrance end
+      slave2 => pointer_to_slave(lord2, 1)            ! Slave at entrance end
       ixa_lord2 = slave2%ix_ele
 
-      slave2 => pointer_to_slave(lat, lord2, lord2%n_slave) ! Slave at exit end
+      slave2 => pointer_to_slave(lord2, lord2%n_slave) ! Slave at exit end
       ixb_lord2 = slave2%ix_ele
 
       overlap_a = .false. ! entrance end of lord2 overlaps lord0?
@@ -559,7 +559,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   if (pos_extension_lord_exists) then
     length_pos = 0
     do j = 1, lord0%n_slave
-      slave => pointer_to_slave(lat, lord0, j)
+      slave => pointer_to_slave(lord0, j)
       if (slave%ix_ele < ix_pos_edge) cycle
       if (.not. slave%bmad_logic) cycle
       length_pos = length_pos + slave%value(l$)
@@ -570,7 +570,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   if (neg_extension_lord_exists) then
     length_neg = 0
     do j = 1, lord0%n_slave
-      slave => pointer_to_slave(lat, lord0, j)
+      slave => pointer_to_slave(lord0, j)
       if (slave%ix_ele > ix_neg_edge) cycle
       if (.not. slave%bmad_logic) cycle
       length_neg = length_neg + slave%value(l$)
@@ -581,7 +581,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   ! Vary the slave lengths
 
   do j = 1, lord0%n_slave
-    slave => pointer_to_slave(lat, lord0, j)
+    slave => pointer_to_slave(lord0, j)
     if (.not. slave%bmad_logic) cycle
     slave%value(l$) = slave%value(l$) * (1 + coef)
     call set_ele_status_stale (slave, branch%param, attribute_group$)
@@ -632,7 +632,7 @@ if (length_adjustment_made) then
     if (lord0%lord_status /= super_lord$) cycle
     sum_len_slaves = 0
     do j = 1, lord0%n_slave
-      slave => pointer_to_slave(lat, lord0, j)
+      slave => pointer_to_slave(lord0, j)
       sum_len_slaves = sum_len_slaves + slave%value(l$)
     enddo
     if (abs(sum_len_slaves - lord0%value(l$)) > dl_tol * abs(lord0%value(l$))) then
@@ -682,7 +682,7 @@ endif
 ! the length if the percentage or absolute change is more than 10^-10
 
 s_end_lord = lord%s + lord%value(s_offset_tot$)
-slave => pointer_to_slave (lat, lord, lord%n_slave)
+slave => pointer_to_slave(lord, lord%n_slave)
 sig_l = bmad_com%significant_longitudinal_length
 
 if (abs(s_end_lord - slave%s) < sig_l * (1 + abs(slave%value(l$)))) return
@@ -692,7 +692,7 @@ slave%s = s_end_lord
 
 ! Adjust start position of the first slave
 
-slave => pointer_to_slave (lat, lord, 1)
+slave => pointer_to_slave(lord, 1)
 tot_len = lat%branch(slave%ix_branch)%param%total_length
 s_start_lord = s_end_lord - lord%value(l$)
 
@@ -737,7 +737,7 @@ lord%value(old_command$) = lord%value(command$) ! save old
 moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
-  slave => pointer_to_slave (lat, lord, i, ix)
+  slave => pointer_to_slave(lord, i, ix)
   iv = lat%control(ix)%ix_attrib
   if (iv == l$) moved = .true.
   coef = lat%control(ix)%coef
@@ -925,8 +925,8 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
     ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
 
-    patch_in_lord => pointer_to_lord(lat, lord, 1)
-    patch_in_slave => pointer_to_slave (lat, patch_in_lord, n_pass)
+    patch_in_lord => pointer_to_lord(lord, 1)
+    patch_in_slave => pointer_to_slave(patch_in_lord, n_pass)
     start%vec = 0
     do i = patch_in_slave%ix_ele, ix_slave - 1
       call track1 (start, branch%ele(i), branch%param, end)
@@ -1155,7 +1155,7 @@ endif
 
 if (slave%n_lord == 1) then
 
-  lord => pointer_to_lord (lat, slave, 1, ix_con)
+  lord => pointer_to_lord(slave, 1, ix_con)
   is_first = (ix_con == lord%ix1_slave)
   is_last  = (ix_con == lord%ix2_slave)
 
@@ -1172,7 +1172,7 @@ if (slave%n_lord == 1) then
 
   offset = 0 ! length of all slaves before this one
   do i = 1, ix_con - lord%ix1_slave
-    slave0 => pointer_to_slave(lat, lord, i)
+    slave0 => pointer_to_slave(lord, i)
     offset = offset + slave0%value(l$)
   enddo
 
@@ -1225,7 +1225,7 @@ wall3d_here = .false.
 
 do j = 1, slave%n_lord
 
-  lord => pointer_to_lord (lat, slave, j, ix_con)
+  lord => pointer_to_lord(slave, j, ix_con)
   is_first = (ix_con == lord%ix1_slave)
   is_last  = (ix_con == lord%ix2_slave)
 
@@ -1301,13 +1301,13 @@ do j = 1, slave%n_lord
     slave%tracking_method  = lord%tracking_method
   else
     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-      lord1 => pointer_to_lord (lat, slave, 1)
+      lord1 => pointer_to_lord(slave, 1)
       call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT', &
            'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
       call err_exit
     endif
     if (slave%tracking_method /= lord%tracking_method) then
-      lord1 => pointer_to_lord (lat, slave, 1)
+      lord1 => pointer_to_lord(slave, 1)
       call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT', &
            'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
       call err_exit
@@ -2047,7 +2047,7 @@ multipole_set = .false.
 slave%on_a_girder = .false.
 
 do i = 1, slave%n_lord
-  lord => pointer_to_lord (lat, slave, i, ix_con)
+  lord => pointer_to_lord(slave, i, ix_con)
 
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%lord_status == group_lord$) cycle
@@ -2189,7 +2189,8 @@ logical :: init_needed = .true.
 ! Some init
 
 val => ele%value
-z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. val(p0c$) /= 0)
+z_patch_calc_needed = (ele%key == wiggler$ .and. val(z_patch$) == 0 .and. &
+                              val(p0c$) /= 0 .and. ele%slave_status /= super_slave$)
 
 ! Intelligent bookkeeping
 
@@ -2568,7 +2569,7 @@ endif
 if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
   if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
   if (associated(ele%gen_field)) call kill_gen_field(ele%gen_field)
-  if (ele%key == wiggler$) then
+  if (ele%key == wiggler$ .and. ele%slave_status /= super_slave$) then
     val(z_patch$) = 0
     z_patch_calc_needed = (ele%key == wiggler$ .and. val(p0c$) /= 0)
   endif
@@ -2606,7 +2607,7 @@ end subroutine attribute_bookkeeper
 !   use bmad
 !
 ! Input:
-!   ele   -- ele_struct: Wiggler element 
+!   ele   -- ele_struct: Wiggler element
 !   param -- lat_param_struct: Lattice parameter values.
 !
 ! Output:
@@ -2614,24 +2615,50 @@ end subroutine attribute_bookkeeper
 !     %value(z_patch$) -- z_patch value.
 !-
 
-subroutine z_patch_calc (ele, param)
+recursive subroutine z_patch_calc (ele, param)
 
 use symp_lie_mod, only: symp_lie_bmad
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: slave
+type (branch_struct), pointer :: branch
 type (lat_param_struct) param
 type (coord_struct) start, end
 
+integer i
+
 !
 
-start = ele%map_ref_orb_in
+!if (ele%slave_status == super_slave$) then
+!  if (ele%n_lord > 1) call err_exit
+!  branch => pointer_to_branch(ele)
+!  call z_patch_calc (pointer_to_lord(ele, 1), branch%param)
+!  return
+!endif
+
+!
+
+start%vec = 0
 call symp_lie_bmad (ele, param, start, end, .false., offset_ele = .false.)
 ele%value(z_patch$) = end%vec(5) - start%vec(5)
 if (ele%value(z_patch$) == 0) ele%value(z_patch$) = 1e-30 ! something non-zero.
-ele%map_ref_orb_out = end             ! save for next super_slave
-ele%map_ref_orb_out%vec(5) = 0
+
+! update slaves as well.
+
+if (ele%lord_status == super_lord$) then
+  do i = 1, ele%n_slave 
+    slave => pointer_to_slave(ele, i)
+    branch => pointer_to_branch(slave)
+    call symp_lie_bmad (slave, branch%param, start, end, .false., offset_ele = .false.)
+    slave%value(z_patch$) = end%vec(5) - start%vec(5)
+    if (slave%value(z_patch$) == 0) slave%value(z_patch$) = 1e-30 ! something non-zero.
+    start = end
+  enddo
+endif
+
+
 
 end subroutine z_patch_calc
 

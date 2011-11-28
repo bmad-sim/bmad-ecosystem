@@ -109,10 +109,10 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   select case (lord%lord_status)
   case (super_lord$)
-    slave => pointer_to_slave(lat, lord, lord%n_slave) ! Last slave is at exit end.
+    slave => pointer_to_slave(lord, lord%n_slave) ! Last slave is at exit end.
     lord%floor = slave%floor
   case (multipass_lord$)
-    slave => pointer_to_slave(lat, lord, 1)
+    slave => pointer_to_slave(lord, 1)
     lord%floor = slave%floor
   end select
 

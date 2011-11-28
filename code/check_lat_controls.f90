@@ -238,7 +238,7 @@ do i_b = 0, ubound(lat%branch, 1)
     ! The first lord of a multipass_slave should be its multipass_lord
 
     if (s_stat == multipass_slave$) then
-      lord2 => pointer_to_lord(lat, ele, 1)
+      lord2 => pointer_to_lord(ele, 1)
       if (lord2%lord_status /= multipass_lord$) then
         call out_io (s_fatal$, r_name, &
               'FOR MULTIPASS SLAVE: ' // ele%name, &
@@ -351,10 +351,10 @@ do i_b = 0, ubound(lat%branch, 1)
 
     if (l_stat == multipass_lord$) then
       do i = 2, ele%n_slave
-        slave1 => pointer_to_slave(lat, ele, i-1)
-        if (slave1%lord_status == super_lord$) slave1 => pointer_to_slave(lat, slave1, 1)
-        slave2 => pointer_to_slave(lat, ele, i)
-        if (slave2%lord_status == super_lord$) slave2 => pointer_to_slave(lat, slave2, 1)
+        slave1 => pointer_to_slave(ele, i-1)
+        if (slave1%lord_status == super_lord$) slave1 => pointer_to_slave(slave1, 1)
+        slave2 => pointer_to_slave(ele, i)
+        if (slave2%lord_status == super_lord$) slave2 => pointer_to_slave(slave2, 1)
 
         if (slave2%ix_ele <= slave1%ix_ele) then
           call out_io (s_fatal$, r_name, &

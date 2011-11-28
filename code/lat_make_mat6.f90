@@ -145,9 +145,9 @@ if (i_ele < 0) then
       if (ele%slave_status == super_slave$) then
         orb_start%vec = 0  ! Default if no previous slave found.
         do ild = 1, ele%n_lord
-          lord => pointer_to_lord(lat, ele, ild, ix_slave = ix_slave)
+          lord => pointer_to_lord(ele, ild, ix_slave = ix_slave)
           if (ix_slave == 1) cycle  ! If first one then no preceeding slave
-          slave0 => pointer_to_slave(lat, lord, ix_slave-1) ! slave before this element.
+          slave0 => pointer_to_slave(lord, ix_slave-1) ! slave before this element.
           orb_start = slave0%map_ref_orb_out
           exit
         enddo
@@ -181,11 +181,11 @@ if (i_ele < 0) then
     if (ele%lord_status /= super_lord$) cycle
     mat6 => ele%mat6
     vec0 => ele%vec0
-    slave => pointer_to_slave (lat, ele, 1)
+    slave => pointer_to_slave(ele, 1)
     mat6 = slave%mat6
     vec0 = slave%vec0
     do j = 2, ele%n_slave
-      slave => pointer_to_slave (lat, ele, j)
+      slave => pointer_to_slave(ele, j)
       mat6 = matmul(slave%mat6, mat6)
       vec0 = matmul(slave%mat6, vec0) + slave%vec0
     enddo
@@ -236,7 +236,7 @@ if (ele%lord_status == super_lord$) then
 endif
 
 do i = 1, ele%n_slave
-  slave => pointer_to_slave (lat, ele, i)
+  slave => pointer_to_slave(ele, i)
 
   if (present(ref_orb)) then
     call lat_make_mat6 (lat, slave%ix_ele, ref_orb, slave%ix_branch)

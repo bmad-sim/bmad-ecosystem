@@ -28,7 +28,7 @@ private pointer_to_ele1, pointer_to_ele2
 !     Function pointer_to_ele2 (lat, ele_loc_id) result (ele_ptr)
 !
 ! Module needed:
-!   use lat_ele_loc_mod
+!   use bmad_utils_mod
 !
 ! Input:
 !   lat       -- lat_struct: Lattice.
@@ -2684,7 +2684,7 @@ logical, optional :: flag
 if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, stat_group)
 
 do i = 1, ele%n_slave
-  slave => pointer_to_slave(lat, ele, i)
+  slave => pointer_to_slave (ele, i)
   call set_slaves_status_stale (slave, lat, stat_group, .true.)
 enddo
 
@@ -2725,7 +2725,7 @@ logical, optional :: flag
 if (present(flag)) call set_ele_status_stale (ele, lat%branch(ele%ix_branch)%param, stat_group)
 
 do i = 1, ele%n_lord
-  lord => pointer_to_lord(lat, ele, i)
+  lord => pointer_to_lord (ele, i)
   call set_lords_status_stale (lord, lat, stat_group, flag)
 enddo
 
@@ -2735,16 +2735,52 @@ end subroutine set_lords_status_stale
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_slave (lat, lord, ix_slave, ix_contrl) result (slave_ptr)
+! Function pointer_to_branch (ele) result (branch_ptr)
+!
+! Function to point to a branch of an element.
+!
+! Modules Needed:
+!   use bmad_utils_mod
+!
+! Input:
+!   ele      -- Ele_struct: Element.
+!
+! Output:
+!   branch_ptr  -- branch_struct, pointer: Pointer to the branch containing the element.
+!                   Nullified if the element is not associated with a lattice.
+!-
+
+function pointer_to_branch (ele) result (branch_ptr)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (branch_struct), pointer :: branch_ptr
+
+!
+
+if (.not. associated(ele%lat)) then
+  nullify(branch_ptr)
+  return
+endif
+
+branch_ptr => ele%lat%branch(ele%ix_branch)
+
+end function pointer_to_branch
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function pointer_to_slave (lord, ix_slave, ix_contrl) result (slave_ptr)
 !
 ! Function to point to a slave of a lord.
 !
 ! Modules Needed:
-!   use lat_ele_loc_mod
+!   use bmad_utils_mod
 !
 ! Input:
-!   lat      -- lat_struct: Lattice containing the lord
-!   lord     -- Ele_struct: Pointer to the lord element
+!   lord     -- Ele_struct: Lord element
 !   ix_slave -- Integer: Index of the slave. ix_slave goes from 1 to lord%n_slave
 !
 ! Output:
@@ -2754,14 +2790,14 @@ end subroutine set_lords_status_stale
 !                   Set to -1 is there is an error.
 !-
 
-function pointer_to_slave (lat, lord, ix_slave, ix_control) result (slave_ptr)
+function pointer_to_slave (lord, ix_slave, ix_control) result (slave_ptr)
 
 implicit none
 
-type (lat_struct), target :: lat
-type (ele_struct) lord
+type (ele_struct), target :: lord
 type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
+type (lat_struct), pointer :: lat
 
 integer, optional :: ix_control
 integer ix_slave, icon
@@ -2774,6 +2810,7 @@ if (ix_slave > lord%n_slave .or. ix_slave < 1) then
   return
 endif
 
+lat => lord%lat
 icon = lord%ix1_slave + ix_slave - 1
 con => lat%control(icon)
 slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
@@ -2785,15 +2822,14 @@ end function pointer_to_slave
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_lord (lat, slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
+! Function pointer_to_lord (slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
 !
 ! Function to point to a lord of a slave.
 !
 ! Modules Needed:
-!   use lat_ele_loc_mod
+!   use bmad_utils_mod
 !
 ! Input:
-!   lat        -- lat_struct: Lattice containing the lord
 !   slave      -- Ele_struct: Slave element.
 !   ix_lord    -- Integer: Index of the lord. ix_lord goes from 1 to slave%n_lord
 !
@@ -2803,16 +2839,16 @@ end function pointer_to_slave
 !   ix_control -- Integer, optional: Index of appropriate lat%control(:) element.
 !                   Set to -1 is there is an error.
 !   ix_slave   -- Integer, optional: Index of back to the slave. That is, 
-!                   pointer_to_slave(lat, lord_ptr, ix_slave) will point back to slave. 
+!                   pointer_to_slave(lord_ptr, ix_slave) will point back to slave. 
 !-
 
-function pointer_to_lord (lat, slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
+function pointer_to_lord (slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
 
 implicit none
 
-type (lat_struct), target :: lat
 type (ele_struct), target :: slave
 type (ele_struct), pointer :: lord_ptr
+type (lat_struct), pointer :: lat
 
 integer, optional :: ix_control, ix_slave
 integer i, ix_lord, icon
@@ -2827,18 +2863,19 @@ endif
 
 ! Point to the lord
 
+lat => slave%lat
 icon = lat%ic(slave%ic1_lord + ix_lord - 1)
 lord_ptr => lat%ele(lat%control(icon)%ix_lord)
 
 if (present(ix_control)) ix_control = icon
 
 ! There must be a corresponding ix_slave value such that
-!   pointer_to_slave(lat, lord_ptr, ix_slave) => slave 
+!   pointer_to_slave(lord_ptr, ix_slave) => slave 
 
 if (present(ix_slave)) then
 
   do i = 1, lord_ptr%n_slave
-    if (associated (pointer_to_slave(lat, lord_ptr, i), slave)) then
+    if (associated (pointer_to_slave(lord_ptr, i), slave)) then
       ix_slave = i
       return
     endif

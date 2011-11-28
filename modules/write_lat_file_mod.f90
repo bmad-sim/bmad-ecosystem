@@ -208,11 +208,11 @@ do ib = 0, ubound(lat%branch, 1)
         write (line, '(2a)') trim(ele%name), ': group = {'
       endif
       j_loop: do j = 1, ele%n_slave
-        slave => pointer_to_slave (lat, ele, j, ic)
+        slave => pointer_to_slave(ele, j, ic)
         ctl = lat%control(ic)
         ! do not use elements w/ duplicate names & attributes
         do k = 1, j-1 
-          slave2 => pointer_to_slave (lat, ele, k, ic2)
+          slave2 => pointer_to_slave(ele, k, ic2)
           if (slave2%name == slave%name .and. lat%control(ic2)%ix_attrib == ctl%ix_attrib) cycle j_loop
         enddo
         ! Now write the slave info
@@ -249,7 +249,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%lord_status == girder_lord$) then
       write (line, '(2a)') trim(ele%name), ': girder = {'
       do j = 1, ele%n_slave
-        slave => pointer_to_slave (lat, ele, j)
+        slave => pointer_to_slave(ele, j)
         if (j == ele%n_slave) then
           write (line, '(3a)') trim(line), trim(slave%name), '}'
         else
@@ -277,7 +277,7 @@ do ib = 0, ubound(lat%branch, 1)
     ! patch_in_slave
 
     if (ele%slave_status == patch_in_slave$) then
-      lord => pointer_to_lord (lat, ele, 1)
+      lord => pointer_to_lord(ele, 1)
       line = trim(line) // ', ref_patch = ' // trim(lord%name)
     endif
 
@@ -787,11 +787,11 @@ if (ele%slave_status == super_slave$) then
   ! If a super_lord element starts at the beginning of this slave element,
   !  put in the null_ele marker 'x__' + lord_name for the superposition.
   do j = 1, ele%n_lord
-    lord => pointer_to_lord (lat, ele, j)
+    lord => pointer_to_lord(ele, j)
     lord_name = lord%name
     m_lord => pointer_to_multipass_lord (lord, lat)
     if (associated(m_lord)) lord_name = m_lord%name
-    slave => pointer_to_slave (lat, lord, 1) 
+    slave => pointer_to_slave(lord, 1) 
     if (slave%ix_ele == ele%ix_ele) then
       write (line, '(4a)') trim(line), ' x__', trim(lord_name), ',' 
     endif
@@ -799,7 +799,7 @@ if (ele%slave_status == super_slave$) then
   write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','
 
 elseif (ele%slave_status == multipass_slave$) then
-  lord => pointer_to_lord (lat, ele, 1)
+  lord => pointer_to_lord(ele, 1)
   write (line, '(4a)') trim(line), ' ', trim(lord%name), ','
 
 else
@@ -1227,7 +1227,7 @@ do
       if (ele%key == wiggler$) then
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
-          lord => pointer_to_lord(lat_out, ele, 1)
+          lord => pointer_to_lord(ele, 1)
           call create_wiggler_model (lord, lat_model)
           ! Remove all the slave elements and markers in between.
           call out_io (s_warn$, r_name, &

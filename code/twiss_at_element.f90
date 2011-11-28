@@ -73,11 +73,11 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   select case (ele%lord_status)
   case (multipass_lord$, super_lord$, girder_lord$)
     if (present(start)) then
-      ele => pointer_to_slave(lat, ele, 1)
+      ele => pointer_to_slave(ele, 1)
       start = ele
     endif
     if (present(end)) then
-      ele => pointer_to_slave(lat, ele, ele%n_slave)
+      ele => pointer_to_slave(ele, ele%n_slave)
       end = ele
     endif
 

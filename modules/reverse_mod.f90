@@ -242,7 +242,7 @@ case (wiggler$)
       ele%wig_term(i)%phi_z = -ele%wig_term(i)%phi_z - &
                                       ele%wig_term(i)%kz * ele%value(l$)
     enddo
-    call z_patch_calc (ele, param)
+    if (ele%slave_status /= super_slave$) call z_patch_calc (ele, param)
   endif
 
 end select

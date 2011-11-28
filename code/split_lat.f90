@@ -192,7 +192,7 @@ if (ele%slave_status == super_slave$) then
 
   do j = 1, ele%n_lord
 
-    lord => pointer_to_lord (lat, ele, j, icon)
+    lord => pointer_to_lord(ele, j, icon)
 
     coef_old = lat%control(icon)%coef
     ix_attrib = lat%control(icon)%ix_attrib
@@ -255,7 +255,7 @@ lat%control(ixc+1)%coef = len2 / len_orig
 ! super lord
 
 do i = 1, ele%n_lord
-  lord => pointer_to_lord (lat, ele, i)
+  lord => pointer_to_lord(ele, i)
   do k = lord%ix1_slave, lord%ix2_slave
     if (lat%control(k)%ix_slave == ix_split+1) then
       lat%control(k)%ix_slave  = ix_super_lord
@@ -296,7 +296,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (ct /= group_lord$ .and. ct /= girder_lord$) cycle
 
   do k = 1, lat%ele(i)%n_slave
-    slave => pointer_to_slave (lat, lat%ele(i), k, j) 
+    slave => pointer_to_slave(lat%ele(i), k, j) 
     if (slave%ix_ele /= ix_split+1 .or. slave%ix_branch /= ix_branch) cycle
     if (lat%control(j)%ix_attrib == l$) then
       call out_io (s_warn$, r_name, 'GROUP: ' // lat%ele(i)%name, &

@@ -136,7 +136,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (lord%lord_status == multipass_lord$) then
     ix = nint(lord%value(n_ref_pass$))
     if (ix /= 0) then  
-      slave => pointer_to_slave(lat, lord, ix)
+      slave => pointer_to_slave(lord, ix)
       lord%value(e_tot$) = slave%value(e_tot$)
       lord%value(p0c$)   = slave%value(p0c$)
     elseif (lord%value(e_tot$) == 0 .and. lord%value(p0c$) /= 0) then
@@ -154,7 +154,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   slave => lord
   do
     if (slave%n_slave == 0) exit
-    slave => pointer_to_slave (lat, slave, slave%n_slave)
+    slave => pointer_to_slave(slave, slave%n_slave)
   enddo
 
   ! Now transfer the information to the lord.
@@ -165,7 +165,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   ! Transfer the starting energy if needed.
 
   if (lord%key == lcavity$ .or. lord%key == custom$) then
-    slave => pointer_to_slave (lat, lord, 1)
+    slave => pointer_to_slave(lord, 1)
     lord%value(E_tot_start$) = slave%value(E_tot_start$)
     lord%value(p0c_start$)   = slave%value(p0c_start$)
   endif

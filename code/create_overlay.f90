@@ -157,7 +157,7 @@ lat%n_control_max = nc2
 
 do i = 1, lord%n_slave
 
-  slave => pointer_to_slave (lat, lord, i, ix_con)
+  slave => pointer_to_slave(lord, i, ix_con)
 
   if (slave%slave_status == free$ .or. slave%slave_status == group_slave$) &
                                                   slave%slave_status = overlay_slave$

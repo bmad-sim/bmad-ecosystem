@@ -483,7 +483,7 @@ do i = ix1_lord, ix2_lord
   lord%bmad_logic = .true.
   ix_1lord = 0
   do j = 1, lord%n_slave
-    slave => pointer_to_slave (lat, lord, j)
+    slave => pointer_to_slave(lord, j)
     if (slave%bmad_logic) cycle
     slave%bmad_logic = .true.
     if (slave%n_lord == 1) then
@@ -492,7 +492,7 @@ do i = ix1_lord, ix2_lord
     else
       name = ''
       do k = 1, slave%n_lord
-        lord2 => pointer_to_lord (lat, slave, k)
+        lord2 => pointer_to_lord(slave, k)
         if (.not. lord2%bmad_logic) call adjust_super_slave_names (lat, lord2%ix_ele, lord2%ix_ele, .false.)
         name = trim(name) //  '\' // lord2%name     !'
       enddo
@@ -555,7 +555,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%lord_status == multipass_lord$) then
       do k = 1, ele%n_slave
-        slave => pointer_to_slave(lat, ele, k)
+        slave => pointer_to_slave(ele, k)
         write (slave%name, '(2a, i0)') trim(ele%name), '\', k  ! '
       enddo
     endif

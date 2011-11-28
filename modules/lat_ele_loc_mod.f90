@@ -478,7 +478,7 @@ integer i, ix
 !
 
 do i = 1, lord%n_slave
-  slave => pointer_to_slave(lat, lord, i)
+  slave => pointer_to_slave(lord, i)
   if (slave%n_slave > 0) then
     call get_slaves (slave)
   else
