@@ -259,7 +259,7 @@ write (d_unit) &
           ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
           ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
           ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, ele%ref_orbit, &
-          0, ele%symplectify, ele%mode_flip, &
+          ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
           ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
           ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
           ele%aperture_type, ele%on_a_girder, ele%csr_calc_on, ele%reversed, &

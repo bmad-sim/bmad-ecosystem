@@ -949,10 +949,11 @@ public:
   int ixx;                      // Index for Bmad internal use
   int mat6_calc_method;         // bmad_standard$, taylor$, etc.
   int tracking_method;          // bmad_standard$, taylor$, etc.
+  int spin_tracking_method;     // bmad_standard$, taylor$, etc.
   int field_calc;               // Used with Boris, Runge-Kutta integrators.
   int ref_orbit;                // For setting the ptc kind type.
   int aperture_at;              // Where aperture is applied. exit_end$, ...
-  int aperture_type;           // Where aperture is applied. exit_end$, ...
+  int aperture_type;            // Where aperture is applied. exit_end$, ...
   bool symplectify;             // Symplectify mat6 matrices.
   bool mode_flip;               // Have the normal modes traded places?
   bool multipoles_on;           // For turning multipoles on/off
@@ -997,6 +998,7 @@ public:
     ixx(0),
     mat6_calc_method(Bmad::BMAD_STANDARD), 
     tracking_method(Bmad::BMAD_STANDARD),
+    spin_tracking_method(Bmad::BMAD_STANDARD),
     field_calc(Bmad::BMAD_STANDARD),
     ref_orbit(0),
     aperture_at(Bmad::EXIT_END), 

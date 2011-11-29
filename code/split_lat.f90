@@ -75,6 +75,7 @@ enddo
 
 split_done = .true.
 ele = branch%ele(ix_split)
+ele%lat => lat   ! So we can use pointer_to_lord
 len_orig = ele%value(l$)
 len2 = branch%ele(ix_split)%s - s_split
 len1 = len_orig - len2

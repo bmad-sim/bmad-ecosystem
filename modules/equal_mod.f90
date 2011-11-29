@@ -51,6 +51,8 @@ integer i
 call transfer_ele (ele1, ele_save)
 call transfer_ele (ele2, ele1)
 
+! ele1%ix_ele, etc. 
+
 ele1%ix_ele    = ele_save%ix_ele    ! This should not change.
 ele1%ix_branch = ele_save%ix_branch ! This should not change.
 ele1%lat      => ele_save%lat       ! This should not change.
