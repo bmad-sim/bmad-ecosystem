@@ -174,7 +174,7 @@ enddo
 a_max = max(1.1, maxval(abs(top_delta(:)%value)))
 n = max(0, 6 - int(log10(a_max)))
 
-write (fmt, '(a, i1, a)') '((a10, i5, 1pe12.3, 3x), (a10, i5, 0pf11.', n, '))'
+write (fmt, '(a, i1, a)') '((a10, i5, es12.3, 3x), (a10, i5, f11.', n, '))'
 
 nl = 0
 nl=nl+1; lines(nl) = ' '
@@ -464,8 +464,7 @@ nl=nl+1; line(nl) = l1
 !
 
 nl=nl+1; line(nl) = ' '
-nl=nl+1; write (line(nl), '(1x, a, 1pe12.6)') &
-                                  'figure of merit: ', this_merit
+nl=nl+1; write (line(nl), '(1x, a, es13.6)') 'figure of merit:', this_merit
 
 call tao_write_out (iunit, line(1:nl))
 
