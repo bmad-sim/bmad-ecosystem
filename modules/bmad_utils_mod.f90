@@ -1488,9 +1488,10 @@ if (present(ix_ele)) ele%ix_ele = ix_ele
 
 call init_floor (ele%floor)
 
-ele%mat6_calc_method = bmad_standard$
-ele%tracking_method  = bmad_standard$
-ele%field_calc       = bmad_standard$
+ele%mat6_calc_method     = bmad_standard$
+ele%tracking_method      = bmad_standard$
+ele%spin_tracking_method = bmad_standard$
+ele%field_calc           = bmad_standard$
 ele%ref_orbit  = 0
 
 ele%is_on             = .true.

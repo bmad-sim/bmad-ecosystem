@@ -458,6 +458,8 @@ do ib = 0, ubound(lat%branch, 1)
                 ', mat6_calc_method = ' // calc_method_name(ele%mat6_calc_method)
     if (ele%tracking_method /= bmad_standard$) line = trim(line) // &
                 ', tracking_method = ' // calc_method_name(ele%tracking_method)
+    if (ele%spin_tracking_method /= bmad_standard$) line = trim(line) // &
+                ', spin_tracking_method = ' // calc_method_name(ele%spin_tracking_method)
     if (ele%field_calc /= bmad_standard$) line = trim(line) // &
                 ', field_calc = ' // calc_method_name(ele%field_calc)
     if (ele%symplectify) line = trim(line) // ', symplectify'

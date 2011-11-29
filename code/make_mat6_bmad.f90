@@ -51,7 +51,7 @@ real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
 real(rp) lcs, lc2s2, k, L
 real(rp) cos_phi, gradient, e_start, e_end, e_ratio
 real(rp) alpha, sin_a, cos_a, f, phase, E, pxy2, dE0
-real(rp) g_tot, b1, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
+real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, p0c_start, p0c_end
 real(rp) dcP2_dz1, dbeta1_dpz1, dbeta2_dpz2, beta_start, beta_end
@@ -546,7 +546,7 @@ case (sbend$)
   g_err = ele%value(g_err$)
   g_tot = g + g_err
 
-  if (g_tot == 0) then
+  if (g == 0 .and. k1 == 0) then
     call drift_mat6_calc (mat6, length, c0%vec, c1%vec)
     return
   endif
@@ -566,6 +566,14 @@ case (sbend$)
 
   elseif (length /= 0) then
 
+    ! If g_tot = 0 then have 0/0 problems.
+    ! In this case just make the approximation that g_tot ~ 1e-5 * g
+
+    if (abs(g_tot) < 1e-5 * abs(g)) then
+      g_tot = sign(1e-5 * g, g_tot)
+      g_err = g_tot - g
+    endif
+
     ! Used: Eqs (12.18) from Etienne Forest: Beam Dynamics.
 
     x  = c00%vec(1)
@@ -575,7 +583,6 @@ case (sbend$)
     z  = c00%vec(5)
     pz = c00%vec(6)
  
-    b1 = g_tot
     angle = g * length
     rel_p  = 1 + pz
     rel_p2 = rel_p**2
@@ -588,42 +595,42 @@ case (sbend$)
     Dy  = sqrt(rel_p2 - py**2)
 
     if (ele%value(g$) == 0) then
-      px_t = px - b1 * length
-      dpx_t = -px*length - b1
+      px_t = px - g_tot * length
+      dpx_t = -px*length - g_tot
     else
       rho = 1 / ele%value(g$)
       if (pxy2 < 1e-5) then
         f = pxy2 / (2 * rel_p)
-        f = pz - f - f*f/2 - g_err*rho - b1*x
+        f = pz - f - f*f/2 - g_err*rho - g_tot*x
       else
-        f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
+        f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - g_tot*x
       endif
       px_t = px*ct + f*st
       dpx_t = -px*st/rho + f*ct/rho
     endif
 
     Dxy_t = sqrt(rel_p2 - px_t**2 - py**2)
-    factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / b1
+    factor = (angle + asin(px/Dy) - asin(px_t/Dy)) / g_tot
     df_dpy = px/(Dxy*Dy**2) - px_t/(Dxy_t*Dy**2) + st/(Dxy*Dxy_t)
     df_dp = rel_p * (-px/(Dxy*Dy**2) - st/(Dxy*Dxy_t) + px_t/(Dxy_t*Dy**2))
 
     mat6(1,1) = px_t * st / Dxy_t + ct
-    mat6(1,2) = -px_t * (ct - px*st/Dxy) / (b1 * Dxy_t) + st/b1 + px*ct/(b1*Dxy)
-    mat6(1,4) = (-py + px_t*py*st/Dxy) / (b1 * Dxy_t) + py*ct/(b1*Dxy)
-    mat6(1,6) = (rel_p - px_t*rel_p*st/Dxy) / (b1 * Dxy_t) - rel_p*ct/(b1*Dxy)
-    mat6(2,1) = -b1 * st
+    mat6(1,2) = -px_t * (ct - px*st/Dxy) / (g_tot * Dxy_t) + st/g_tot + px*ct/(g_tot*Dxy)
+    mat6(1,4) = (-py + px_t*py*st/Dxy) / (g_tot * Dxy_t) + py*ct/(g_tot*Dxy)
+    mat6(1,6) = (rel_p - px_t*rel_p*st/Dxy) / (g_tot * Dxy_t) - rel_p*ct/(g_tot*Dxy)
+    mat6(2,1) = -g_tot * st
     mat6(2,2) = ct - px * st / Dxy
     mat6(2,4) = -py * st / Dxy
     mat6(2,6) = rel_p * st / Dxy
     mat6(3,1) = py * st / Dxy_t
-    mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
+    mat6(3,2) = py * (1/ Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / g_tot
     mat6(3,3) = 1
-    mat6(3,4) = factor + py**2 * df_dpy / b1
-    mat6(3,6) = py * df_dp / b1
+    mat6(3,4) = factor + py**2 * df_dpy / g_tot
+    mat6(3,6) = py * df_dp / g_tot
     mat6(5,1) = -rel_p * st / Dxy_t
-    mat6(5,2) = -rel_p * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / b1
-    mat6(5,4) = -rel_p * py * df_dpy / b1
-    mat6(5,6) = -factor - rel_p * df_dp / b1
+    mat6(5,2) = -rel_p * (1/Dxy - ct/Dxy_t + px*st/(Dxy*Dxy_t)) / g_tot
+    mat6(5,4) = -rel_p * py * df_dpy / g_tot
+    mat6(5,6) = -factor - rel_p * df_dp / g_tot
 
   endif
 

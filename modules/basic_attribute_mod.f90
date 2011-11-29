@@ -281,6 +281,7 @@ do i = 1, n_key
   call init_attrib (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
   call init_attrib (i, mat6_calc_method$,       'MAT6_CALC_METHOD')
   call init_attrib (i, tracking_method$,        'TRACKING_METHOD')
+  call init_attrib (i, spin_tracking_method$,   'SPIN_TRACKING_METHOD')
 
   call init_attrib (i, E_tot$,                  'E_TOT')
   call init_attrib (i, p0c$,                    'P0C')

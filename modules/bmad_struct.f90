@@ -290,42 +290,43 @@ type ele_struct
   real(rp), pointer :: a_pole(:) => null()    ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()    ! tilt for multipole elements.
   real(rp), pointer :: const(:) => null()     ! Working constants.
-  integer key                ! key value 
-  integer sub_key            ! For wigglers: map_type$, periodic_type$
-  integer ix_ele             ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
-  integer ix_branch          ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer ix_value           ! Overlays: Index of control attribute. 
-  integer slave_status       ! super_slave$, etc.
-  integer n_slave            ! Number of slaves
-  integer ix1_slave          ! Start index for slave elements
-  integer ix2_slave          ! Stop  index for slave elements
-  integer lord_status        ! overlay_lord$, etc.
-  integer n_lord             ! Number of lords
-  integer ic1_lord           ! Start index for lord elements
-  integer ic2_lord           ! Stop  index for lord elements
-  integer ix_pointer         ! For general use. Not used by Bmad.
-  integer ixx                ! Index for Bmad internal use
-  integer mat6_calc_method   ! bmad_standard$, taylor$, etc.
-  integer tracking_method    ! bmad_standard$, taylor$, etc.
-  integer field_calc         ! Used with Boris, Runge-Kutta integrators.
-  integer ref_orbit          ! Multipass ref orb: single_ref$, match_global_coords$, 
-                             !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
-  integer aperture_at        ! Aperture location: exit_end$, ...
-  integer aperture_type     ! rectangular$, elliptical$, star_shape$, or custom$
-  logical symplectify        ! Symplectify mat6 matrices.
-  logical mode_flip          ! Have the normal modes traded places?
-  logical multipoles_on      ! For turning multipoles on/off
-  logical scale_multipoles   ! Are ab_multipoles within other elements (EG: quads, etc.) 
-                             !   scaled by the strength of the element?
-  logical map_with_offsets   ! Taylor map calculated with element offsets?
-  logical field_master       ! Calculate strength from the field value?
-  logical reversed           ! Element is longitudinally reversed from the lord element.
-  logical is_on              ! For turning element on/off.
-  logical old_is_on          ! For saving the element on/off state.
-  logical logic              ! For general use. Not used by Bmad.
-  logical bmad_logic         ! For Bmad internal use only.
-  logical on_a_girder        ! Have an Girder overlay_lord?
-  logical csr_calc_on        ! Coherent synchrotron radiation calculation
+  integer key                    ! key value 
+  integer sub_key                ! For wigglers: map_type$, periodic_type$
+  integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer ix_value               ! Overlays: Index of control attribute. 
+  integer slave_status           ! super_slave$, etc.
+  integer n_slave                ! Number of slaves
+  integer ix1_slave              ! Start index for slave elements
+  integer ix2_slave              ! Stop  index for slave elements
+  integer lord_status            ! overlay_lord$, etc.
+  integer n_lord                 ! Number of lords
+  integer ic1_lord               ! Start index for lord elements
+  integer ic2_lord               ! Stop  index for lord elements
+  integer ix_pointer             ! For general use. Not used by Bmad.
+  integer ixx                    ! Index for Bmad internal use
+  integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
+  integer tracking_method        ! bmad_standard$, taylor$, etc.
+  integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
+  integer field_calc             ! Used with Boris, Runge-Kutta integrators.
+  integer ref_orbit              ! Multipass ref orb: single_ref$, match_global_coords$, 
+                                 !    match_at_entrance$, match_at_exit$, patch_in$, patch_out$
+  integer aperture_at            ! Aperture location: exit_end$, ...
+  integer aperture_type          ! rectangular$, elliptical$, star_shape$, or custom$
+  logical symplectify            ! Symplectify mat6 matrices.
+  logical mode_flip              ! Have the normal modes traded places?
+  logical multipoles_on          ! For turning multipoles on/off
+  logical scale_multipoles       ! Are ab_multipoles within other elements (EG: quads, etc.) 
+                                 !   scaled by the strength of the element?
+  logical map_with_offsets       ! Taylor map calculated with element offsets?
+  logical field_master           ! Calculate strength from the field value?
+  logical reversed               ! Element is longitudinally reversed from the lord element.
+  logical is_on                  ! For turning element on/off.
+  logical old_is_on              ! For saving the element on/off state.
+  logical logic                  ! For general use. Not used by Bmad.
+  logical bmad_logic             ! For Bmad internal use only.
+  logical on_a_girder            ! Have an Girder overlay_lord?
+  logical csr_calc_on            ! Coherent synchrotron radiation calculation
   logical offset_moves_aperture  ! element offsets affects aperture?
 end type
 
@@ -592,6 +593,7 @@ integer, parameter :: symmetric_edge$ = 80, cmat_21$ = 80
 integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
 integer, parameter :: tracking_method$  = 82, s_long$ = 82
 integer, parameter :: ref_time$ = 83
+integer, parameter :: spin_tracking_method$ = 84
 integer, parameter :: aperture$ = 85
 integer, parameter :: x_limit$ = 86
 integer, parameter :: y_limit$ = 87

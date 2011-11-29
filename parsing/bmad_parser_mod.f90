@@ -1072,6 +1072,8 @@ case default   ! normal attribute
     ele%mat6_calc_method = nint(value)
   elseif (ix_attrib == tracking_method$) then
     ele%tracking_method = nint(value)
+  elseif (ix_attrib == spin_tracking_method$) then
+    ele%spin_tracking_method = nint(value)
   elseif (ix_attrib == ref_orbit$) then
     ele%ref_orbit = nint(value)
   elseif (ix_attrib == aperture_at$) then

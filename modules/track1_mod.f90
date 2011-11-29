@@ -239,9 +239,9 @@ type (coord_struct), intent(out) :: end
 type (ele_struct),   intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
 
-real(rp) b1, angle, ct, st, x, px, y, py, z, pz, dpx_t
+real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
 real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err
-real(rp) length, g_tot, del_p, eps, pxy2, f, k_2
+real(rp) length, g_tot, del_p, eps, pxy2, f, k_2, alpha, beta
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
@@ -282,7 +282,6 @@ length = ele%value(l$) / n_step
 g = ele%value(g$)
 g_err = ele%value(g_err$)
 g_tot = g + g_err
-b1 = g_tot
 angle = ele%value(g$) * length
 rho = 1 / g
 del_p = start%vec(6)
@@ -331,14 +330,16 @@ do n = 1, n_step
       return
     endif 
 
+    p_long = sqrt(rel_p2 - pxy2)
+
     ! The following is to make sure that a beam entering on-axis remains 
     ! *exactly* on-axis.
 
     if (pxy2 < 1e-5) then  
       f = pxy2 / (2 * rel_p)
-      f = del_p - f - f*f/2 - g_err*rho - b1*x
+      f = del_p - f - f*f/2 - g_err*rho - g_tot*x
     else
-      f = sqrt(rel_p2 - pxy2) - 1 - g_err*rho - b1*x
+      f = p_long - g_tot * (1 + x * g) / g
     endif
 
     Dy  = sqrt(rel_p2 - py**2)
@@ -351,21 +352,35 @@ do n = 1, n_step
       return
     endif    
 
-    factor = (asin(px/Dy) - asin(px_t/Dy)) / b1
-
-    eps = px_t**2 + py**2
-    if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
-      eps = eps / (2 * rel_p)
-      end%vec(1) = (del_p - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / b1
+    if (abs(g_tot) < 1e-5 * abs(g)) then
+      alpha = p_long * ct - px * st
+      end%vec(1) = (p_long * (1 + g * x) - alpha) / (g * alpha) - &
+                   g_tot * (Dy * (1 + g * x) * st)**2 / (2 * alpha**3 * g**2) + &
+                   g_tot**2 * Dy**2 * ((1 + g * x) * st)**3 * (px * ct + p_long * st) / (2 * alpha**5 * g**3)
     else
-      end%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*b1) / b1
+      eps = px_t**2 + py**2
+      if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
+        eps = eps / (2 * rel_p)
+        end%vec(1) = (del_p - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / g_tot
+      else
+        end%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*g_tot) / g_tot
+      endif
     endif
 
     end%vec(2) = px_t
-    end%vec(3) = y + py * (angle/b1 + factor)
     end%vec(4) = py
-    end%vec(5) = end%vec(5) + length * (g_err - g*del_p) / g_tot - rel_p * factor
     end%vec(6) = pz
+
+    if (abs(g_tot) < 1e-5 * abs(g)) then
+      beta = (1 + g * x) * st / (g * alpha) - &
+             g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
+      end%vec(3) = y + py * beta
+      end%vec(5) = z + length  - rel_p * beta 
+    else
+      factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
+      end%vec(3) = y + py * (angle/g_tot + factor)
+      end%vec(5) = z + length * (g_err - g*del_p) / g_tot - rel_p * factor
+    endif
 
   endif
 
