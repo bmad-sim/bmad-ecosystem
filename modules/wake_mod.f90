@@ -100,7 +100,7 @@ end subroutine zero_lr_wakes_in_lat
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_add_to (ele, t_ref, orbit, charge)
+! Subroutine lr_wake_add_to (ele, t0_bunch, orbit, charge)
 !
 ! Subroutine to add to the existing long-range wake the contribution from
 ! a passing (macro)particle.
@@ -109,28 +109,28 @@ end subroutine zero_lr_wakes_in_lat
 !   use wake_mod
 !
 ! Input:
-!   ele     -- Ele_struct: Element with wakes.
-!   t_ref   -- Real(rp): Time of the reference particle.
-!   orbit   -- Coord_struct: Starting coords.
-!   charge  -- Real(rp): Charge of passing (macro)particle.
+!   ele      -- Ele_struct: Element with wakes.
+!   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
+!   orbit    -- Coord_struct: Starting coords.
+!   charge   -- Real(rp): Charge of passing (macro)particle.
 !
 ! Output:
-!   ele     -- Ele_struct: Element with wakes.
+!   ele      -- Ele_struct: Element with wakes.
 !     %rf_wake%lr(:)%b_sin -- Non-skew sin-like wake components.
 !     %rf_wake%lr(:)%b_cos -- Non-skew cos-like wake components.
-!     %rf_wake%lr(:)%a_sin -- Non-skew sin-like wake components.
-!     %rf_wake%lr(:)%a_cos -- Non-skew cos-like wake components.
-!     %rf_wake%lr(:)%t_ref -- Set to t_ref.
+!     %rf_wake%lr(:)%a_sin -- Skew sin-like wake components.
+!     %rf_wake%lr(:)%a_cos -- Skew cos-like wake components.
+!     %rf_wake%lr(:)%t_ref -- Set to t0_bunch.
 !+
 
-subroutine lr_wake_add_to (ele, t_ref, orbit, charge)
+subroutine lr_wake_add_to (ele, t0_bunch, orbit, charge)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (rf_wake_lr_struct), pointer :: lr
 
 integer i
-real(rp) charge, t_ref, dt, omega, f_exp, ff, c, s, kx, ky
+real(rp) charge, t0_bunch, dt, omega, f_exp, ff, c, s, kx, ky
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
 
 ! Check if we have to do any calculations
@@ -154,10 +154,10 @@ do i = 1, size(ele%rf_wake%lr)
 
   f_exp = omega / (2 * lr%Q)
 
-  if (t_ref /= lr%t_ref) then
-    dt = t_ref - lr%t_ref 
+  if (t0_bunch /= lr%t_ref) then
+    dt = t0_bunch - lr%t_ref 
     exp_shift = exp(-dt * f_exp) 
-    lr%t_ref = t_ref
+    lr%t_ref = t0_bunch
     lr%b_sin = exp_shift * lr%b_sin
     lr%b_cos = exp_shift * lr%b_cos
     lr%a_sin = exp_shift * lr%a_sin
@@ -204,7 +204,7 @@ end subroutine lr_wake_add_to
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_apply_kick (ele, t_ref, orbit, charge)
+! Subroutine lr_wake_apply_kick (ele, t0_bunch, orbit, charge)
 !
 ! Subroutine to apply the long-range wake kick to a particle.
 !
@@ -212,16 +212,16 @@ end subroutine lr_wake_add_to
 !   use wake_mod
 !
 ! Input:
-!   ele     -- Ele_struct: Element with wakes
-!   t_ref   -- Real(rp): Time of the reference particle.
-!   orbit   -- Coord_struct: Starting coords of the particle.
-!   charge  -- Real(rp): Charge of passing (macro)particle. Needed for self wake.
+!   ele      -- Ele_struct: Element with wakes
+!   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
+!   orbit    -- Coord_struct: Starting coords of the particle.
+!   charge   -- Real(rp): Charge of passing (macro)particle. Needed for self wake.
 !
 ! Output:
-!   orbit   -- Coord_struct: coords after the kick.
+!   orbit    -- Coord_struct: coords after the kick.
 !+
 
-subroutine lr_wake_apply_kick (ele, t_ref, orbit, charge)
+subroutine lr_wake_apply_kick (ele, t0_bunch, orbit, charge)
 
 implicit none
 
@@ -230,7 +230,7 @@ type (coord_struct) orbit
 type (rf_wake_lr_struct), pointer :: lr
 
 integer i
-real(rp) t_ref, charge, dt, dt_part, omega, f_exp, ff, c, s
+real(rp) t0_bunch, charge, dt, dt_part, omega, f_exp, ff, c, s
 real(rp) w_norm, w_skew, kx, ky, k_dum, ff_self, kx_self, ky_self, c_a, s_a
 
 ! Check if we have to do any calculations
@@ -244,7 +244,7 @@ do i = 1, size(ele%rf_wake%lr)
 
   lr => ele%rf_wake%lr(i)
   dt_part = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$)) 
-  dt = t_ref + dt_part - lr%t_ref
+  dt = t0_bunch + dt_part - lr%t_ref
 
   omega = twopi * lr%freq
   if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
