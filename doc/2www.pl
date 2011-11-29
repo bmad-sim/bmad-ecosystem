@@ -37,5 +37,5 @@ close (F_OUT);
 
 `cp manual.html  ~/public_html/bmad/manual.html`;
 
-`cp bmad-manual-*.pdf ~/public_html/bmad`;
-`cp bmad.pdf          ~/public_html/bmad/bmad-manual.pdf`;   # For Chris
+`cp bmad-manual-$rev.pdf ~/public_html/bmad`;
+`cp bmad.pdf             ~/public_html/bmad/bmad-manual.pdf`;   # For Chris

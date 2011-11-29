@@ -1612,8 +1612,8 @@ do ix_ele = ie1, ie2
       else
         line_out = trim(line_out) // ', apertype = ellipse'
       endif
-      write (line_out, '(2a, es13.5, a, es10.4, a)') trim(line_out), &
-                                  ', aperture = (', limit(1), ', ', limit(2), ')'
+      write (line_out, '(2a, es13.5, a, es13.5, a)') trim(line_out), &
+                                  ', aperture = (', limit(1), ',', limit(2), ')'
     endif
   endif
 
