@@ -1,0 +1,16 @@
+no_digested
+parameter[e_tot] = 1.885e9
+parameter[lattice_type] = linear_lattice
+
+wig: wiggler, l= 1.6, tracking_method = symp_lie_bmad, num_steps = 100, &
+     mat6_calc_method = symp_lie_bmad, polarity = 1.2, y_pitch = .0001, &
+term(001)={0.1261660E+00,0.1514773E+01,0.1541339E+02,0.1533878E+02,-.1275449E+01},&
+term(002)={0.1024368E+00,0.9289314E+00,0.1842122E+02,0.1839779E+02,-.3722654E+01},&
+term(003)={0.4652149E-01,0.8573520E+00,0.1233721E+02,0.1230739E+02,-.5133519E+01},&
+term(004)={-.3746236E-01,0.2471483E+01,0.2479805E+02,0.2467458E+02,-.2460905E+01},&
+term(005)={0.2012877E-01,-.1960137E+01,0.3034402E+02,0.3040727E+02,-.7638679E+00}
+
+l: line = (wig, wig)
+m: marker, superimpose, offset = 2
+
+use, l

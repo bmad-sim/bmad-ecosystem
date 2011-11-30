@@ -8,9 +8,10 @@ import re
 import os
 import sys
 
-num_regression_tests = 0
-num_regression_failures = 0
+num_tests = 0
+num_failures = 0
 num_flow_failures = 0
+num_programs = 0
 
 #----------------------------------------------------------
 
@@ -49,6 +50,9 @@ for line in dir_list:
   # Run the programs
 
   dir_split = line.split()
+  num_programs += 1
+  num_local_tests = 0
+  num_local_failures = 0
 
   if len(dir_split) > 2:
     print_all ('     Extra stuff on line in "tests.list": ' + dir_split, True)
@@ -139,7 +143,7 @@ for line in dir_list:
     #----------------------------------------------
     # String test
 
-    num_regression_tests += 1
+    num_local_tests += 1
 
     if now_end[0] == 'STR':
       now2_split = now_split[2].split('"')
@@ -164,7 +168,7 @@ for line in dir_list:
             print_all ('     Regression test failed for datum number: ' + str(ix))
           print_all ('          Line from "output.now": ' + now_line)
           print_all ('          Line from "output.correct": ' + correct_line)
-          num_regression_failures += 1
+          num_local_failures += 1
           break
 
 
@@ -210,7 +214,7 @@ for line in dir_list:
           print_all ('        Data from "output.now":     ' + str(now2_split))
           print_all ('        Data from "output.correct": ' + str(correct2_split))
           print_all ('        Diff: ' + str(diff_val) + '  Diff/Val: ' + str(abs(diff_val) / ave_abs_val))
-          num_regression_failures += 1
+          num_local_failures += 1
           break
 
     #----------------------------------------------
@@ -223,13 +227,19 @@ for line in dir_list:
 
   #------------------
 
+  print_all ('     Number of tests:        ' + str(num_local_tests))
+  print_all ('     Number of failed tests: ' + str(num_local_failures))
+
+  num_tests += num_local_tests
+  num_failures += num_local_failures
+
   os.chdir('..')
   
 #------------------------------------------------------------
 
 print_all ('\n')
-print_all ('Number of regressions:           ' + str(num_regression_tests))
-print_all ('Number of Failed regressions:    ' + str(num_regression_failures))
+print_all ('Total number of tests:           ' + str(num_tests))
+print_all ('Total number of failed tests:    ' + str(num_failures))
 print_all ('Number of Program flow failures: ' + str(num_flow_failures))
 
 results.close()
