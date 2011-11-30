@@ -271,8 +271,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
     if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
-    if (associated(ele%descrip)) line = trim(line) // &
-                              ', descrip = "' // trim(ele%descrip) // '"'
+    if (associated(ele%descrip)) line = trim(line) // ', descrip = "' // trim(ele%descrip) // '"'
 
     ! patch_in_slave
 
@@ -324,10 +323,10 @@ do ib = 0, ubound(lat%branch, 1)
             call out_io (s_info$, r_name, 'Creating SR Wake file: ' // trim(wake_name))
             iuw = lunget()
             open (iuw, file = wake_name)
-            write (iuw, *) '!      z           Wz             Wt'
-            write (iuw, *) '!     [m]       [V/C/m]       [V/C/m^2]'
+            write (iuw, *) '!        z             Wz               Wt'
+            write (iuw, *) '!       [m]         [V/C/m]         [V/C/m^2]'
             do n = lbound(ele%rf_wake%sr_table, 1), ubound(ele%rf_wake%sr_table, 1)
-              write (iuw, '(3es14.5)') ele%rf_wake%sr_table(n)%z, &
+              write (iuw, '(3es16.7)') ele%rf_wake%sr_table(n)%z, &
                                     ele%rf_wake%sr_table(n)%long, ele%rf_wake%sr_table(n)%trans
             enddo
             close(iuw)
@@ -363,7 +362,7 @@ do ib = 0, ubound(lat%branch, 1)
             iuw = lunget()
             open (iuw, file = wake_name)
             write (iuw, '(14x, a)') &
-   'Freq       R/Q      Q       m  Polarization   b_sin       b_cos       a_sin       a_cos       t_ref'
+   'Freq         R/Q        Q       m    Polarization     b_sin         b_cos         a_sin         a_cos         t_ref'
             write (iuw, '(14x, a)') &
               '[Hz]  [Ohm/m^(2m)]             [Rad/2pi]'
             do n = lbound(ele%rf_wake%lr, 1), ubound(ele%rf_wake%lr, 1)
@@ -374,10 +373,10 @@ do ib = 0, ubound(lat%branch, 1)
                 angle = '     unpol'
               endif
               if (any ( (/ lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref /) /= 0)) then
-                write (iuw, '(a, i0, a, 3es14.5, i6, a, 5es12.2)') 'lr(', n, ') =', lr%freq_in, &
+                write (iuw, '(a, i0, a, 3es16.7, i6, a, 5es12.2)') 'lr(', n, ') =', lr%freq_in, &
                       lr%R_over_Q, lr%Q, lr%m, angle, lr%b_sin, lr%b_cos, lr%a_sin, lr%a_cos, lr%t_ref
               else
-                write (iuw, '(a, i0, a, 3es14.5, i6, a)') 'lr(', n, ') =', &
+                write (iuw, '(a, i0, a, 3es16.7, i6, a)') 'lr(', n, ') =', &
                       lr%freq_in, lr%R_over_Q, lr%Q, lr%m, angle
               endif
             enddo
@@ -822,7 +821,7 @@ implicit none
 
 real(rp) rel
 integer pl
-character(20) str_out
+character(24) str_out
 character(16) fmt
 
 !
@@ -858,15 +857,15 @@ function rchomp (rel, plc) result (out)
 implicit none
 
 real(rp) rel
-character(16) out
-character(8) :: fmt = '(f16.xx)'
+character(24) out
+character(8) :: fmt = '(f24.xx)'
 integer it, plc, ix
 
 !
 
 write (fmt(6:7), '(i2.2)') 10-plc
 write (out, fmt) rel
-do it = 16, 1, -1
+do it = len(out), 1, -1
   if (out(it:it) == ' ') cycle
   if (out(it:it) == '0') then
     out(it:it) = ' '

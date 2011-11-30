@@ -367,6 +367,10 @@ if (version >= 99) then
           ele%ix_branch, ele%ref_time, ele%scale_multipoles, idum1
 endif
 
+
+
+if ((version == 99 .or. version == 100) .and. ele%spin_tracking_method == 0) ele%spin_tracking_method = bmad_standard$
+
 ! Decompress value array
 
 read (d_unit, err = 9110) k_max
