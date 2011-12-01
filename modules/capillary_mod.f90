@@ -455,6 +455,7 @@ if (present(err_flag)) err_flag = .true.
 n_sec = size(ele%wall3d%section)
 if (vec(5) < ele%wall3d%section(1)%s .or. vec(5) > ele%wall3d%section(n_sec)%s) then
   call out_io (s_error$, r_name, 'PHOTON S-POSITION BEYOUND WALL: \ES14.3\ ', vec(5))
+  d_radius = -1
   return
 endif
 
