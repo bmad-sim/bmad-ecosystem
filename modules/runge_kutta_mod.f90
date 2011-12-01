@@ -133,9 +133,16 @@ do n_step = 1, max_step
   endif
 
   ! Check if we are done.
+  ! For elements where the reference energy is not constant (lcavity, etc.), and with particles 
+  ! where the velocity is energy dependent (ie non ultra-relativistic), the calculation of z
+  ! is off since the reference energy was taken to be a constant equal to the reference energy 
+  ! at the exit end. In this case calculate z based on the element's delta_ref_time
 
   if ((s-s2)*(s2-s1) >= 0.0) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
+    if (.not. ele_type_has_constant_reference_energy (ele%key)) then
+      end%vec(5) = (ele%value(delta_ref_time$) - t) * beta * c_light
+    endif
     return
   end if
 

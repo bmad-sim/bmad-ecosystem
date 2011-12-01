@@ -2946,4 +2946,38 @@ ele_ptr => lat%branch(ele_loc%ix_branch)%ele(ele_loc%ix_ele)
 
 end function pointer_to_ele2
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function ele_type_has_constant_reference_energy (key) result (is_const)
+!
+! Function to determine if the type of element has a reference energy through an element is a constant.
+!
+! Module needed:
+!   use bmad
+!
+! Input:
+!   key -- Integer: Element key (quadrupole$, etc.)
+!
+! Output:
+!   is_const -- Logical: True if reference energy must be a constant.
+!-
+
+function ele_type_has_constant_reference_energy (key) result (is_const)
+
+integer key
+logical is_const
+
+!
+
+select case (key)
+case (lcavity$, custom$, hybrid$)
+  is_const = .false.
+case default
+  is_const = .true.
+end select
+
+end function ele_type_has_constant_reference_energy
+
 end module
