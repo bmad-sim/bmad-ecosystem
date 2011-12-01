@@ -50,7 +50,7 @@ character(40), parameter :: r_name = 'lcavity_reference_energy_correction'
 
 !
 
-if (ele%key /= lcavity$ .and. ele%key /= custom$) return
+if (ele_type_has_constant_reference_energy(ele%key)) return
 
 orbit%vec(2:4:2) = orbit%vec(2:4:2) * ele%value(p0c_start$) / ele%value(p0c$)
 orbit%vec(5) = orbit%vec(5) * (ele%value(p0c$) / ele%value(e_tot$)) / &

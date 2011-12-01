@@ -236,7 +236,7 @@ case (lcavity$)
               (p0c - p0c_start) / ((E_tot - E_tot_start) * c_light)
   else
     call track1 (start_orb, ele, param, end_orb)
-    ele%ref_time = ele%ref_time - end_orb%vec(5) * E_tot / (p0c * c_light)
+    ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
   endif
 
 case (custom$, hybrid$)
