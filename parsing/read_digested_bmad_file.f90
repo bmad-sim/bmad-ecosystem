@@ -1,5 +1,5 @@
 !+
-! Subroutine read_digested_bmad_file (digested_name, lat, version)
+! Subroutine read_digested_bmad_file (digested_name, lat, inc_version)
 !
 ! Subroutine to read in a digested file. The subroutine will check that
 ! the version of the digested file is up to date and that the digested file
@@ -16,16 +16,17 @@
 !
 ! Output:
 !   lat         -- lat_struct: Output lattice structure
-!   version     -- Integer: bmad_inc_version number stored in the lattice file.
+!   inc_version -- Integer: bmad_inc_version number stored in the lattice file.
 !                   If the file is current this number should be the same 
-!                   as the global parameter bmad_inc_version$.
+!                   as the global parameter bmad_inc_version$. 
+!                   Set to -1 if there is a read error.
 !   bmad_status -- Bmad_status_struct: Common block status structure.
 !     %ok           -- Set .false. if read failure.
 !-
 
 #include "CESR_platform.inc"
 
-subroutine read_digested_bmad_file (digested_name, lat, version)
+subroutine read_digested_bmad_file (digested_name, lat, inc_version)
 
 use bmad_struct
 use bmad_interface, except_dummy => read_digested_bmad_file
@@ -49,7 +50,7 @@ type (old_coord_struct) old_beam_start
 
 real(rp) value(n_attrib_maxx)
 
-integer d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
+integer inc_version, d_unit, n_files, version, i, j, k, ix, ix_value(n_attrib_maxx)
 integer stat_b(13), idate_old, n_branch, n, control_type, coupler_at, idum1
 integer ierr, stat, ios, n_wall_section, garbage
 
@@ -61,7 +62,7 @@ character(25) :: r_name = 'read_digested_bmad_file'
 character(40) old_time_stamp, new_time_stamp
 
 logical deterministic_ran_function_used
-logical found_it, v99, v100, v_old, mode3, error, is_open
+logical found_it, v99, v100, v_old, mode3, error, is_open, status_ok
 
 ! init all elements in lat
 
@@ -71,7 +72,9 @@ call init_lat (lat)
 ! Some old versions can be read even though they are not the current version.
 
 d_unit = lunget()
-bmad_status%ok = .true.
+bmad_status%ok = .false.
+status_ok = .true.
+inc_version = -1
 lat%n_ele_track = 0
 deterministic_ran_function_used = .false.
 
@@ -95,10 +98,9 @@ if (version < bmad_inc_version$) then
           i_array = (/ bmad_inc_version$, version /) )
   if (v_old) then 
     allocate (file_names(n_files))
-    bmad_status%ok = .false.
+    status_ok = .false.
   else
     close (d_unit)
-    bmad_status%ok = .false.
     return
   endif
 endif
@@ -110,7 +112,6 @@ if (version > bmad_inc_version$) then
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
        i_array = (/ version, bmad_inc_version$ /) )
   close (d_unit)
-  bmad_status%ok = .false.
   return
 endif
 
@@ -137,15 +138,15 @@ do i = 1, n_files
     fname_read = fname_read(11:)
     inquire (file = fname_read, opened = is_open)
     if (.not. is_open) then
-      if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+      if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
                                           r_name, ' NOTE: MOVED DIGESTED FILE.')
-      bmad_status%ok = .false.
+      status_ok = .false.
     endif
     cycle
   endif
 
   if (fname_read == '!RAN FUNCTION WAS CALLED') then ! Not deterministic
-    bmad_status%ok = .false.
+    status_ok = .false.
     cycle
   endif
 
@@ -170,9 +171,9 @@ do i = 1, n_files
   call simplify_path (fname_full, fname_full)
   if (.not. found_it .or. fname_read /= fname_full .or. stat_b(10) /= idate_old .or. &
                                                     old_time_stamp /= new_time_stamp) then
-    if (bmad_status%type_out .and. bmad_status%ok) call out_io(s_warn$, &
+    if (bmad_status%type_out .and. status_ok) call out_io(s_warn$, &
                                       r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
-    bmad_status%ok = .false.
+    status_ok = .false.
   endif
 
 enddo
@@ -233,6 +234,8 @@ enddo
 close (d_unit)
 
 lat%param%stable = .true.  ! Assume this 
+bmad_status%ok = status_ok
+inc_version = version
 
 return
 
@@ -243,8 +246,6 @@ if (bmad_status%type_out) then
    call out_io (s_warn$, r_name, 'DIGESTED FILE DOES NOT EXIST.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
-version = -1
 return
 
 !--------------------------------------------------------------
@@ -254,7 +255,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE VERSION.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -264,7 +264,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -274,7 +273,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE LATTICE GLOBALS.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -284,7 +282,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -294,7 +291,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IC.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -304,7 +300,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED BEAM_INIT.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -314,7 +309,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE BRANCH DATA.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !--------------------------------------------------------------
@@ -324,7 +318,6 @@ if (bmad_status%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED RANDOM NUMBER STATE.')
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 !-----------------------------------------------------------------------------------
@@ -503,7 +496,6 @@ if (bmad_status%type_out) then
                                   i_array = (/ ix_ele /) )
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9110  continue
@@ -513,7 +505,6 @@ if (bmad_status%type_out) then
                                   i_array = (/ ix_ele /) )
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9120  continue
@@ -523,7 +514,6 @@ if (bmad_status%type_out) then
                                   i_array = (/ ix_ele /) )
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9140  continue
@@ -532,7 +522,6 @@ if (bmad_status%type_out) then
         'ERROR READING EM_FIELD COMPONENT FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9150  continue
@@ -541,7 +530,6 @@ if (bmad_status%type_out) then
         'ERROR READING MODE3 COMPONENT FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9200  continue
@@ -550,7 +538,6 @@ if (bmad_status%type_out) then
         'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9300  continue
@@ -559,7 +546,6 @@ if (bmad_status%type_out) then
           'ERROR READING IX_CONST TERM FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9350  continue
@@ -568,7 +554,6 @@ if (bmad_status%type_out) then
           'ERROR READING %R ARRAY SIZE: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9400  continue
@@ -577,7 +562,6 @@ if (bmad_status%type_out) then
           'ERROR READING R TERM FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9500  continue
@@ -586,7 +570,6 @@ if (bmad_status%type_out) then
           'ERROR READING DESCRIP TERM FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9600  continue
@@ -595,7 +578,6 @@ if (bmad_status%type_out) then
           'ERROR READING AN,BN TERMS FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9700  continue
@@ -604,7 +586,6 @@ if (bmad_status%type_out) then
           'ERROR READING TAYLOR TERMS FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9800  continue
@@ -613,7 +594,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%SR_FILE FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9810  continue
@@ -622,7 +602,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%sr_table FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9820  continue
@@ -631,7 +610,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%LR_FILE FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9830  continue
@@ -640,7 +618,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%LR FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9840  continue
@@ -649,7 +626,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%sr_mode_long FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9850  continue
@@ -658,7 +634,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%sr_mode_trans FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 9860  continue
@@ -667,7 +642,6 @@ if (bmad_status%type_out) then
           'ERROR READING WAKE%Z_CUT_SR FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
-bmad_status%ok = .false.
 return
 
 end subroutine
@@ -705,7 +679,6 @@ do j = 1, n_wall_section
                                      'ERROR READING WALL3D SECTION')
     endif
     close (d_unit)
-    bmad_status%ok = .false.
     return
   endif
 
@@ -718,7 +691,6 @@ do j = 1, n_wall_section
                                        'ERROR READING WALL3D VERTEX')
       endif
       close (d_unit)
-      bmad_status%ok = .false.
       return
     endif
   enddo
@@ -728,24 +700,4 @@ error = .false.
 
 end subroutine
 
-!-----------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------
-! contains
-
-subroutine transfer_coord_old_to_new (old, new)
-
-type (old_coord_struct) old
-type (coord_struct) new
-
-!
-
-new%vec  = old%vec
-new%spin = old%spin
-new%e_field_x = old%e_field_x
-new%e_field_y = old%e_field_y
-new%phase_x = old%phase_x
-new%phase_y = old%phase_y
-
-end subroutine
-  
 end subroutine

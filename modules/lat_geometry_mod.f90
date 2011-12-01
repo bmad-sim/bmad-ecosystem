@@ -84,7 +84,7 @@ do n = 0, ubound(lat%branch, 1)
     call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
     stale = .true.
     if (ele%key == branch$ .or. ele%key == photon_branch$) then
-      ib = nint(ele%value(ele%value(ix_branch_to$)))
+      ib = nint(ele%value(ix_branch_to$))
       lat%branch(ib)%ele(0)%status%floor_position = stale$
     endif
     if (ele%n_lord > 0) then
