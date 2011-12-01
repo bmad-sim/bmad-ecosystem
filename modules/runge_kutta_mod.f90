@@ -141,6 +141,7 @@ do n_step = 1, max_step
   if ((s-s2)*(s2-s1) >= 0.0) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, end, s_sav)
     if (.not. ele_type_has_constant_reference_energy (ele%key)) then
+      call convert_pc_to(ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
       end%vec(5) = (ele%value(delta_ref_time$) - t) * beta * c_light
     endif
     return
