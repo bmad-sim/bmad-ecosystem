@@ -241,5 +241,91 @@ vec => particle%vec
 end subroutine convert_particle_coordinates_s_to_t
 
 
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Subroutine write_time_particle_distribution  (time_file_unit, bunch,  mc2, p0c, err)
+!
+! Subroutine to write an time-based bunch from a standard Bmad bunch
+! 
+! Note: The time-based file format is
+!       n_particles
+!       x/m  m*c^2 \beta_x*\gamma/eV  y/m m*c^2\beta_y*\gamma/eV s/m m*c^2\beta_z*\gamma/eV time/s charge/C
+!       . . .
+!       all at the same time. 
+!       This is very similar to subroutine write_opal_particle_distribution
+!
+! Input:
+!   time_file_unit -- Integer: unit number to write to, if > 0
+!   bunch          -- bunch_struct: bunch to be written.
+!                            Particles are drifted to bmad_bunch%t_center for output
+!   mc2            -- real(rp): particle mass in eV
+!   p0c            -- real(rp): reference momentum for particles in bmad_bunch
+!
+! Output:          
+!   err            -- Logical, optional: Set True if, say a file could not be opened.
+!-
+
+
+
+subroutine write_time_particle_distribution (time_file_unit, bunch, mc2, p0c, err)
+
+implicit none
+
+integer			    :: time_file_unit
+type (bunch_struct) :: bunch
+real(rp)            :: mc2, p0c
+logical, optional   :: err
+
+type (coord_struct) :: orb
+real(rp)        :: dt, pc, gmc
+character(40)	:: r_name = 'write_time_particle_distribution'
+character(10)   ::  rfmt 
+integer n_particle, i
+
+
+!
+if (present(err)) err = .true.
+
+n_particle = size(bunch%particle)
+
+!Format for numbers
+  rfmt = 'es13.5'
+
+!Write number of particles to first line
+write(time_file_unit, '(i8)') n_particle
+
+!\gamma m c
+
+!Write out all particles to file
+do i = 1, n_particle
+  orb = bunch%particle(i)%r
+  
+  !Get time to track backwards by
+  dt = orb%t - bunch%t_center
+  
+  !Get pc before conversion
+  pc = (1+orb%vec(6))*p0c 
+  
+  !convert to time coordinates
+  call convert_particle_coordinates_s_to_t (orb, p0c)
+  
+  !get \gamma m c
+  gmc = sqrt(pc**2 + mc2**2) / c_light
+  
+  !'track' particles backwards in time and write to file
+  write(time_file_unit, '(8'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   !x - dt mc2 \beta_x \gamma / \gamma m c
+                                          orb%vec(2), &
+                                          orb%vec(3) - dt*orb%vec(4)/gmc, &   !y - dt mc2 \beta_y \gamma / \gamma m c
+                                          orb%vec(4), &
+                                          orb%vec(5) - dt*orb%vec(6)/gmc, &   !s - dt mc2 \beta_s \gamma / \gamma m c
+                                          orb%vec(6), &
+										  bunch%t_center,  &!time
+										  bunch%particle(i)%charge 
+end do 
+
+end subroutine  write_time_particle_distribution
+
 
 end module

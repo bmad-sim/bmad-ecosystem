@@ -3,7 +3,7 @@
 
 !Fudge module to pass arguments into delta_s_target function
 !consider input arguments of: rkck_bmad_T (ele, param, orb, dvec_dt, orb%s, orb%t, new_dt, orb_new, vec_err, local_ref_frame)
-module delta_s_target_mod
+module track1_time_runge_kutta_mod
 	use bmad
 	type (ele_struct), save, pointer :: ele_com
 	type (lat_param_struct), save, pointer :: param_com
@@ -23,7 +23,7 @@ module delta_s_target_mod
 		delta_s_target = orb_new_com%s - s_target_com
 	end function delta_s_target
 	
-end module delta_s_target_mod
+end module track1_time_runge_kutta_mod
 
 !-----------------------------------------------------------
 !-----------------------------------------------------------
@@ -63,6 +63,7 @@ end module delta_s_target_mod
 subroutine track1_time_runge_kutta (start, ele, param, end, track)
 
 use time_tracker_mod
+use em_field_mod
 use bmad_struct
 use bmad_interface
 
@@ -120,7 +121,6 @@ if (param%end_lost_at == live_reversed$) then
    !Particle must be moving backwards
    !The sign of p0c is used in s->t conversion
    p0c = -1*ele%value(p0c$)
-   !ref_time = ele%ref_time
    call offset_particle(ele, param, start, set$, set_canonical = .false.,  reversed = .true. ) 
 else
    !Forward moving particle
@@ -138,6 +138,7 @@ end if
 ! ele(s-based) -> ele(t-based)
 call convert_particle_coordinates_s_to_t(start, p0c)
 
+!Shift s and t back to global values
 start%t = start%t - (ele%ref_time - ele%value(delta_ref_time$))
 start%s = start%s - (ele%s - ele%value(l$))
 start%vec(5) = start%s
@@ -148,30 +149,30 @@ start%vec(5) = start%s
 end = start
 ele_origin%vec = (/ 0, 0, 0, 0, 0, 0 /)
 ele_origin%s = 0
-call wall_check(ele_origin, end, param, ele)
+call  particle_hit_wall_check(ele_origin, end, param, ele)
 end = start
 
 if (param%lost) then
 
-   param%lost = .True.
-   param%ix_lost = ele%ix_ele  !Update ele index where particle was lost
-   exit_surface = no_end$
+  param%lost = .true.
+  param%ix_lost = ele%ix_ele  !Update ele index where particle was lost
+  exit_surface = no_end$
    
-   !Allocate track array and set value
-   if ( present(track) ) then
-      call init_saved_orbit (track, 0)
-      track%n_pt = 0
-      track%orb(0) = start
-   endif
+  !Allocate track array and set value
+  if ( present(track) ) then
+    call init_saved_orbit (track, 0)
+    track%n_pt = 0
+    track%orb(0) = start
+  endif
 
-   print *, "  Particle entered element region outside of wall- exiting..."
+  print *, "  Particle entered element region outside of wall- exiting..."
 
 else
 
-   !If particle passed wall check, track through element
-   call odeint_bmad_time(start, ele, param, end, 0.0_rp, ele%value(l$), &
-        bmad_com%rel_tol_adaptive_tracking, bmad_com%abs_tol_adaptive_tracking, &
-        dt_step, dt_step_min, .true., exit_surface, track )
+  !If particle passed wall check, track through element
+  call odeint_bmad_time(start, ele, param, end, 0.0_rp, ele%value(l$), &
+    bmad_com%rel_tol_adaptive_tracking, bmad_com%abs_tol_adaptive_tracking, &
+    dt_step, dt_step_min, .true., exit_surface, track )
 
 end if
 
@@ -204,27 +205,9 @@ else
      reversed = .false. ) 
 end if
 
+!Shift s and t back to global values
 end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
 end%s = end%s + (ele%s - ele%value(l$))
-
-
-
-
-! ele(t-based) -> ele(s-based)
-! Use vec6 to keep track of the sign of start%vec(6) because it gets
-! lost during conversion
-!vec6 = end%vec(6)
-!call convert_particle_coordinates_t_to_s(end, p0c, mass_of(param%particle), ref_time)
-
-! ele(s-based) -> lab(s-based)
-!end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
-!end%s = end%s + (ele%s - ele%value(l$))
-!end%vec(5) = end%s
-!call offset_particle(ele, param, end, unset$, .false., .true., .false., .false., end%s)
-
-! lab(s-based) -> lab(t-based)
-!call convert_particle_coordinates_s_to_t(end, p0c)
-!end%vec(6) = sign (end%vec(6), vec6)
 
 !------
 
@@ -295,7 +278,8 @@ end subroutine
 
 subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
                     rel_tol, abs_tol, dt1, dt_min, local_ref_frame, exit_surface, track)
-use delta_s_target_mod
+use track1_time_runge_kutta_mod
+use time_tracker_mod
 use em_field_mod
 
 use nr, only: zbrent
@@ -416,7 +400,7 @@ do n_step = 1, max_step
   endif
   
   !Check wall or aperture at every step
-  call wall_check(orb, orb_new, param, ele)
+  call  particle_hit_wall_check(orb, orb_new, param, ele)
   if (param%lost) then
      param%ix_lost = ele%ix_ele  !Update ele index where particle was lost
      exit_surface = no_end$
@@ -444,7 +428,7 @@ do n_step = 1, max_step
      end = orb_new   !Return last orb_new that zbrent calculated
      return
   elseif (param%lost) then
-     end = orb_new   !Return location of hit that wall_check calculated
+     end = orb_new   !Return location of hit that  particle_hit_wall_check calculated
      return
   endif
 
@@ -475,6 +459,7 @@ subroutine rkck_bmad_time (ele, param, orb, dr_ds, s, t, h, orb_new, r_err, loca
 !  and orb_new%s and %t are updated
 
 use bmad
+use time_tracker_mod
 
 implicit none
 
@@ -526,7 +511,7 @@ end subroutine rkck_bmad_time
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine wall_check
+! Subroutine particle_hit_wall_check
 !
 ! Subroutine to check whether particle has collided with element walls,
 ! and to calculate location of impact if it has
@@ -549,7 +534,7 @@ end subroutine rkck_bmad_time
 !    %phase_x -- real(rp): Used to store hit angle
 !-
 
-subroutine wall_check(orb, orb_new, param, ele)
+subroutine  particle_hit_wall_check(orb, orb_new, param, ele)
  
 use bmad
 use capillary_mod
@@ -656,4 +641,4 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
 endif
 
 
-end subroutine wall_check
+end subroutine  particle_hit_wall_check
