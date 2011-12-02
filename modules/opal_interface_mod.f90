@@ -194,8 +194,19 @@ ele_loop: do ie = ix_start, ix_end
         call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
         call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
         call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
-		call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
-		!TODO: Field map must be specified!
+
+        ! Write new fieldgrid file, based on the element's name
+        fieldgrid_output_name = ''
+        write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
+	iu_fieldgrid = lunget()
+	open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
+	call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
+	close(iu_fieldgrid)
+	!Add FMAPFN to line
+        write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
+	!elemedge
+        call value_to_line (line, ele%s - val(L$), 'elemedge', rfmt, 'R', .false.)
+
 		
 		
 	!----------------------------------------------------------
@@ -358,6 +369,7 @@ type (em_field_point_struct), allocatable :: pt(:,:,:)
 type (em_field_point_struct) :: ref_field
 real(rp) :: x_step, z_step, x_min, x_max, z_min, z_max
 real(rp) :: freq, x, z, phase_ref
+real(rp) :: gap
 complex ::  phasor_rotation
 
 integer :: nx, nz, iz, ix
@@ -377,6 +389,9 @@ loc_ref_frame = .true.
   
 select case (ele%key)
 
+  !-----------
+  !LCavity
+  !-----------
   case (lcavity$) 
                                          
     freq = ele%em_field%mode(1)%freq
@@ -394,7 +409,7 @@ select case (ele%key)
     nx = ceiling(x_max/x_step)  
     nz = ceiling(z_max/z_step)
 
-  !Example
+  !Example:
   !2DDynamic XZ
   !0.	100.955	743   #zmin(cm),  zmax(cm).   nz - 1
   !1300.              #freq (MHz)
@@ -465,7 +480,48 @@ select case (ele%key)
    
    
    deallocate(pt)
-   
+
+  !-----------
+  !SBend
+  !-----------
+  case (sbend$)
+  
+  !Example:
+  !1DProfile1 1 2 3.0   #Enge coefficient type map, entrance order, exit order, full gap (cm)
+  ! -6.0  2.0  2.0 1000 #entrance positions, relative to elemedge: enge start(cm), enge origin (cm), enge end (cm), unused number
+  ! 24.0 28.0 32.0 0    #exit     positions, relative to elemedge: enge start(cm), enge origin (cm), enge end (cm), unused number
+  ! 0.0   #coefficient 1 for entrance
+  ! 1e-6  #coefficient 1 for exit
+  ! 2e-6  #coefficient 2 for exit
+
+  !TODO:
+  !Only a simple order 1 map will be used in this routine. Dummy numbers will be used. 
+  gap = 0.02_rp
+  
+  !maxfield isn't used for this type of map
+  maxfield = 0
+
+
+  ! Write to file
+  if (opal_file_unit > 0 )  then
+    !Write header
+    write (opal_file_unit, '(a,'//rfmt//', 2a )' ) '1DProfile1 1 1 ', 100*gap, '  # Created from ele: ', trim(ele%name)
+    write (opal_file_unit, '(3'//rfmt//', i8, a)') -100*gap, 0, 100*gap, 666,  &
+          ' #entrance: edge start(cm), edge center(cm), edge end(cm), unusued'
+    write (opal_file_unit, '(3'//rfmt//', i8, a)') 100*(ele%value(L$) - gap) , 100*ele%value(L$), 100*(ele%value(L$) + gap), 666,  &
+          ' #exit:     edge start(cm), edge center(cm), edge end(cm), unusued'
+    !Entrance coefficients
+    write (opal_file_unit, '('//rfmt//')') 0     !TODO: The specification for these is unknown!
+    write (opal_file_unit, '('//rfmt//')') 1/gap
+    !Exit coefficients
+    write (opal_file_unit, '('//rfmt//')') 0
+    write (opal_file_unit, '('//rfmt//')') 1/gap
+  end if
+
+
+  !-----------
+  !Default (gives an error)
+  !-----------
   case default
   call out_io (s_error$, r_name, 'MISSING OPAL FIELD GRID CODE FOR: ' // key_name(ele%key), &
              '----')
