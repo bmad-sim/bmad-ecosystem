@@ -177,12 +177,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call out_io (s_blank$, r_name, &
                 "Reading digested BMAD file " // trim(design_lat%file))
     call read_digested_bmad_file (design_lat%file, u%design%lat, version)
+    err = (bmad_inc_version$ /= version)
   case default
     call out_io (s_abort$, r_name, 'PARSER NOT RECOGNIZED: ' // design_lat%parser)
     call err_exit
   end select
 
-  if (.not. bmad_status%ok) then
+  ! When reading digested files there are parser errors associated with, for example, the file
+  ! having been moved. Do not exit for such stuff.
+
+  if (design_lat%parser /= 'digested') err = .not. bmad_status%ok
+  if (err) then
     call out_io (s_fatal$, r_name, &
             'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', & 
