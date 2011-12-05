@@ -4589,58 +4589,7 @@ end subroutine form_digested_bmad_file_name
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine save_taylor_elements (lat, ele_array)
-!
-! Subroutine to save the taylor maps in a lattice.
-!
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine save_taylor_elements (lat, ele_array)
-
-implicit none
-
-type (lat_struct), target :: lat
-type (ele_struct), allocatable :: ele_array(:) 
-type (branch_struct), pointer :: branch
-
-integer i, ib, ix
-
-!
-
-if (.not. associated(lat%ele)) return
-
-ix = 0
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  do i = 1, branch%n_ele_max
-    if (associated(branch%ele(i)%taylor(1)%term)) ix = ix + 1
-  enddo
-enddo
-
-if (ix /= 0) then
-  if (allocated(ele_array)) deallocate(ele_array)
-  allocate(ele_array(ix))
-  ix = 0
-  do ib = 0, ubound(lat%branch, 1)
-    branch => lat%branch(ib)
-    do i = 1, branch%n_ele_max
-      if (associated(branch%ele(i)%taylor(1)%term)) then
-        ix = ix + 1
-        ele_array(ix) = branch%ele(i)
-      endif
-    enddo
-  enddo
-endif  
-
-end subroutine save_taylor_elements
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine reuse_taylor_elements (lat, ele_array)
+! Subroutine reuse_taylor_elements (old_lat, lat)
 !
 ! Subroutine to reuse saved taylor maps in a lattice.
 !
@@ -4648,27 +4597,50 @@ end subroutine save_taylor_elements
 ! This subroutine is not intended for general use.
 !-
 
-subroutine reuse_taylor_elements (lat, ele_array)
+subroutine reuse_taylor_elements (old_lat, lat)
 
 implicit none
 
-type (lat_struct), target :: lat
+type (lat_struct), target :: old_lat, lat
 type (ele_struct), pointer :: ele
-type (ele_struct), allocatable :: ele_array(:) 
 type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: old_ele(:)
 
-integer i, j, k, m, ib
-integer order(size(ele_array))
+integer i, j, k, m, ib, n_old
+integer, allocatable :: order(:)
+
+! old_lat may be uninitalized (For example if the digested file did not exist.)
+! In this case there is nothing to be done
+
+if (.not. allocated (old_lat%branch)) return
 
 ! find the taylor order for each taylor map
 
-if (.not. allocated(ele_array)) return
+if (.not. allocated(old_lat%branch)) return
 
-do j = 1, size(ele_array)
-  order(j) = 0
-  do k = 1, 6
-    do m = 1, size(ele_array(j)%taylor(k)%term)
-      order(j) = max(order(j), maxval(ele_array(j)%taylor(k)%term(m)%expn(:)))
+n_old = 0
+do i = 0, ubound(old_lat%branch, 1)
+  branch => old_lat%branch(i)
+  do j = 1, branch%n_ele_max
+    if (associated(branch%ele(j)%taylor(1)%term)) n_old = n_old + 1
+  enddo
+enddo
+
+allocate (old_ele(n_old), order(n_old))
+
+n_old = 0
+do i = 0, ubound(old_lat%branch, 1)
+  branch => old_lat%branch(i)
+  do j = 1, branch%n_ele_max
+    ele => branch%ele(j)
+    if (.not. associated(ele%taylor(1)%term)) cycle
+    n_old = n_old + 1
+    old_ele(n_old)%ele => ele
+    order(n_old) = 0
+    do k = 1, 6
+      do m = 1, size(ele%taylor(k)%term)
+        order(n_old) = max(order(n_old), maxval(ele%taylor(k)%term(m)%expn(:)))
+      enddo
     enddo
   enddo
 enddo
@@ -4689,21 +4661,18 @@ do ib = 0, ubound(lat%branch, 1)
 
     call attribute_bookkeeper (ele, branch%param) ! for equivalent_taylor_attributes test
 
-    do j = 1, size(ele_array)
-      if (any(ele_array(j)%taylor(:)%ref /= 0)) cycle
+    do j = 1, n_old
       if (bmad_com%taylor_order > order(j)) cycle
-      if (.not. equivalent_taylor_attributes (ele_array(j), ele)) cycle
+      if (.not. equivalent_taylor_attributes (old_ele(j)%ele, ele)) cycle
+      call transfer_ele_taylor (old_ele(j)%ele, ele, bmad_com%taylor_order)
       exit
     enddo
 
-    if (j == size(ele_array) + 1) cycle
-    call out_io (s_info$, bp_com%parser_name, 'Reusing Taylor for: ' // ele_array(j)%name)
-    call transfer_ele_taylor (ele_array(j), ele, bmad_com%taylor_order)
   enddo
 
 enddo
 
-deallocate(ele_array)
+deallocate(old_ele)
 
 end subroutine reuse_taylor_elements
 

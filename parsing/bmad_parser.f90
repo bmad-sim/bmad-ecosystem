@@ -44,13 +44,12 @@ use random_mod
 
 implicit none
 
-type (lat_struct), target :: lat, in_lat
+type (lat_struct), target :: lat, in_lat, old_lat
 type (ele_struct) this_ele
 type (seq_struct), save, target :: sequence(1000)
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct) plat
 type (ele_struct), save, pointer :: ele, slave
-type (ele_struct), allocatable, save :: old_ele(:) 
 type (lat_ele_loc_struct) m_slaves(100)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
@@ -124,9 +123,9 @@ endif
 
 if (present(digested_read_ok)) digested_read_ok = .false.
 
-! save all elements that have a taylor series
+! save lattice for possible Taylor map reuse.
 
-call save_taylor_elements (lat, old_ele)
+old_lat = lat
 
 ! here if not OK bmad_status. So we have to do everything from scratch...
 ! init variables.
@@ -946,7 +945,7 @@ call check_lat_controls (lat, .true.)
 
 call lattice_bookkeeper (lat)
 lat%input_taylor_order = bmad_com%taylor_order
-call reuse_taylor_elements (lat, old_ele)
+call reuse_taylor_elements (old_lat, lat)
 
 ! Do we need to expand the lattice and call bmad_parser2?
 
@@ -1025,10 +1024,6 @@ integer i, j
 ! Restore auto_bookkeeper flag
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
-!!do i = 0, ubound(lat%branch, 1)
-!!  lat%branch(i)%param%status%n_modify = 0
-!!  lat%branch(i)%ele%status%n_modify = 0
-!!enddo
 
 ! deallocate pointers
 
@@ -1054,12 +1049,9 @@ if (logic_option (.true., do_dealloc)) then
     endif
   enddo
 
-  if (associated (in_lat%ele))           call deallocate_lat_pointers (in_lat)
   if (associated (plat%ele))             deallocate (plat%ele)
   if (allocated (seq_indexx))            deallocate (seq_indexx, seq_name)
   if (allocated (in_indexx))             deallocate (in_indexx, in_name)
-  if (allocated (in_lat%control))        deallocate (in_lat%control)
-  if (allocated (in_lat%ic))             deallocate (in_lat%ic)
   if (allocated (bp_com%used_line))      deallocate (bp_com%used_line)
   if (allocated (bp_com%lat_file_names)) deallocate (bp_com%lat_file_names)
 
@@ -1090,6 +1082,9 @@ do i = 1, lat%n_ele_max
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' /) )
   endif
 enddo
+
+call deallocate_lat_pointers(old_lat)
+call deallocate_lat_pointers(in_lat)
 
 end subroutine
 

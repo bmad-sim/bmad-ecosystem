@@ -855,7 +855,7 @@ type (mode_info_struct) t
 t%tune = 0
 t%emit = 0
 t%chrom = 0
-end subroutine 
+end subroutine init_mode_info
 
 end subroutine init_lat
 
@@ -863,33 +863,31 @@ end subroutine init_lat
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+ 
-! Function equivalent_taylor_attributes (ele1, ele2) result (equiv)
+! Function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
 !
 ! Subroutine to see if two elements are equivalent in terms of attributes so
 ! that their Taylor Maps would be the same. 
-! If the reference orbit about which the Taylor map is made is zero then
-! two elements can be equivalent even if the names are different.
 !
 ! This routine is used to see if a taylor map from one element may be 
-! used for another and thus save some computation time. Taylor map elements
-! Are considered *never* to be equivalent since their maps are never computed.
+! used for another and thus save some computation time. elements of type taylor
+! are considered *never* to be equivalent since their maps are never computed.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input: 
-!   ele1 -- Ele_struct: Element with a Taylor map
-!   ele2 -- Ele_struct: Element that might receive the Taylor map from ele1.
+!   ele_taylor -- Ele_struct: Element with a Taylor map
+!   ele2       -- Ele_struct: Element that might receive the Taylor map from ele_taylor.
 !
 ! Output:
 !   equiv -- logical: True if elements are equivalent.
 !-
 
-function equivalent_taylor_attributes (ele1, ele2) result (equiv)
+function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
 
 implicit none
 
-type (ele_struct) :: ele1, ele2
+type (ele_struct) :: ele_taylor, ele2
 
 integer it
 
@@ -900,42 +898,40 @@ logical vmask(n_attrib_maxx), vnot(n_attrib_maxx)
 
 equiv = .false.
 
-if (ele1%key /= ele2%key) return
-if (ele1%sub_key /= ele2%sub_key) return
-if (ele1%map_with_offsets .neqv. ele2%map_with_offsets) return
-if (ele1%value(integrator_order$) /= ele2%value(integrator_order$)) return
-if (ele1%name /= ele2%name .and. any(ele1%taylor%ref /= 0)) return
+if (ele_taylor%key == taylor$) return  
+if (ele_taylor%key /= ele2%key) return
+if (ele_taylor%sub_key /= ele2%sub_key) return
+if (ele_taylor%map_with_offsets .neqv. ele2%map_with_offsets) return
+if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 
 vmask = .true.
-if (ele1%key == wiggler$ .and. ele1%sub_key == map_type$) then
-  vmask( [k1$, rho$, b_max$, z_patch$, p0c$] ) = .false.
+vmask(delta_ref_time$) = .false.
+if (ele_taylor%key == wiggler$) then
+  vmask( [k1$, rho$, b_max$, z_patch$] ) = .false.
 endif
-if (.not. ele1%map_with_offsets) then
+if (.not. ele_taylor%map_with_offsets) then
   vmask( [x_offset$, y_offset$, s_offset$, tilt$, x_pitch$, &
             y_pitch$, x_offset_tot$, y_offset_tot$, s_offset_tot$, &
-            tilt_tot$, x_pitch_tot$, y_pitch_tot$, delta_ref_time$] ) = .false.
+            tilt_tot$, x_pitch_tot$, y_pitch_tot$] ) = .false.
 endif
 
-vnot = (ele1%value /= ele2%value)
+vnot = (ele_taylor%value /= ele2%value)
 vnot = vnot .and. vmask
 if (any(vnot)) return
 
-if (associated(ele1%wig_term) .neqv. associated(ele2%wig_term)) return
-if (associated(ele1%wig_term)) then
-  if (size(ele1%wig_term) /= size(ele2%wig_term)) return
-  do it = 1, size(ele1%wig_term)
-    if (ele1%wig_term(it)%coef  /= ele2%wig_term(it)%coef)  cycle
-    if (ele1%wig_term(it)%kx    /= ele2%wig_term(it)%kx)    cycle
-    if (ele1%wig_term(it)%ky    /= ele2%wig_term(it)%ky)    cycle
-    if (ele1%wig_term(it)%kz    /= ele2%wig_term(it)%kz)    cycle
-    if (ele1%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) cycle
+if (associated(ele_taylor%wig_term) .neqv. associated(ele2%wig_term)) return
+if (associated(ele_taylor%wig_term)) then
+  if (size(ele_taylor%wig_term) /= size(ele2%wig_term)) return
+  do it = 1, size(ele_taylor%wig_term)
+    if (ele_taylor%wig_term(it)%coef  /= ele2%wig_term(it)%coef)  cycle
+    if (ele_taylor%wig_term(it)%kx    /= ele2%wig_term(it)%kx)    cycle
+    if (ele_taylor%wig_term(it)%ky    /= ele2%wig_term(it)%ky)    cycle
+    if (ele_taylor%wig_term(it)%kz    /= ele2%wig_term(it)%kz)    cycle
+    if (ele_taylor%wig_term(it)%phi_z /= ele2%wig_term(it)%phi_z) cycle
   enddo
 endif
 
-if (ele1%key == taylor$) return  
-
 equiv = .true.
-
 
 end function equivalent_taylor_attributes 
 

@@ -54,7 +54,6 @@ type (parser_ele_struct), pointer :: pele
 type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele
 type (coord_struct), optional :: orbit(0:)
 type (parser_lat_struct), target :: plat
-type (ele_struct), allocatable, save :: old_ele(:) 
 
 real(rp) v1, v2
 
@@ -143,8 +142,6 @@ if (present(digested_file_name)) then
     call deallocate_lat_pointers (lat2)
     return
   endif
-  call save_taylor_elements (lat2, old_ele)
-  call deallocate_lat_pointers (lat2)
   if (digested_version <= bmad_inc_version$) bp_com%write_digested2 = .true.
   if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
 endif
@@ -595,7 +592,7 @@ call parser_add_lord (lat2, ele_num, plat, lat)
 ! Reuse the old taylor series if they exist
 ! and the old taylor series has the same attributes.
 
-call reuse_taylor_elements (lat, old_ele)
+call reuse_taylor_elements (lat2, lat)
 
 ! make matrices for entire lat
 
@@ -625,9 +622,7 @@ enddo
 if (associated (plat%ele))      deallocate (plat%ele)
 if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
 
-do i = 1, size(lat2%ele)
-  call deallocate_ele_pointers (lat2%ele(i))
-enddo
+call deallocate_lat_pointers (lat2)
 
 ! write to digested file
 

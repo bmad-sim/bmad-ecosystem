@@ -465,6 +465,8 @@ do ib = 0, ubound(lat%branch, 1)
     if (attribute_index(ele, 'FIELD_MASTER') /= 0 .and. ele%field_master) &
                 line = trim(line) // ', field_master = True'
     if (.not. ele%is_on) line = trim(line) // ', is_on = False'
+    if (.not. ele%scale_multipoles) line = trim(line) // ', scale_multipoles = False'
+
     if (.not. ele%map_with_offsets) line = trim(line) // ', map_with_offsets = False'
     if (.not. ele%csr_calc_on) line = trim(line) // ', csr_calc_on = False'
     if (ele%offset_moves_aperture) line = trim(line) // ', offset_moves_aperture = True'

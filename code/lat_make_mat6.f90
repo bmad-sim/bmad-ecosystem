@@ -48,7 +48,7 @@ integer, optional :: ix_ele, ix_branch
 integer i, j, ie, i1, ild, n_taylor, i_ele, i_branch, ix_slave
 integer, save, allocatable :: ix_taylor(:)
 
-logical transferred, want_taylor, zero_orbit
+logical transferred, zero_orbit
 
 character(16), parameter :: r_name = 'lat_make_mat6'
 
@@ -100,32 +100,12 @@ if (i_ele < 0) then
   ! For speed if a element needs a taylor series then check if we can use
   ! one from a previous element.
 
-  n_taylor = 0  ! number of taylor series found
+  n_taylor = 0  ! number of taylor map found
   call init_coord (orb_start)
 
   do i = 1, branch%n_ele_track
 
     ele => branch%ele(i)
-    want_taylor = (ele%mat6_calc_method == taylor$) .or. &
-                  (ele%mat6_calc_method == symp_map$) .or. &
-                  (ele%tracking_method == taylor$) .or. &
-                  (ele%tracking_method == symp_map$)
-
-    transferred = .false.
-    if (want_taylor) then
-      if (.not. associated(ele%taylor(1)%term)) then
-        do j = 1, n_taylor
-          ie = ix_taylor(j)
-          if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle
-          if (present(ref_orb)) then
-            if (any(ref_orb(i-1)%vec /= ref_orb(ie-1)%vec)) cycle
-          endif
-          call transfer_ele_taylor (branch%ele(ie), ele)
-          transferred = .true.
-          exit
-        enddo
-      endif
-    endif
 
     ! Check if transfer matrix needs to be recomputed
 
@@ -137,13 +117,11 @@ if (i_ele < 0) then
       endif
     endif
 
-    ! call make_mat6 for this element
-    ! For consistancy, if no orbit is given, the starting coords in a super_slave
-    ! will be taken as the ending coords of the previous super_slave.
+    ! Find orbit at start of element.
 
     if (zero_orbit) then 
+      orb_start%vec = 0  ! Default if no previous slave found.
       if (ele%slave_status == super_slave$) then
-        orb_start%vec = 0  ! Default if no previous slave found.
         do ild = 1, ele%n_lord
           lord => pointer_to_lord(ele, ild, ix_slave = ix_slave)
           if (ix_slave == 1) cycle  ! If first one then no preceeding slave
@@ -151,10 +129,36 @@ if (i_ele < 0) then
           orb_start = slave0%map_ref_orb_out
           exit
         enddo
-        call make_mat6(ele, branch%param, orb_start)
-      else
-        call make_mat6(ele, branch%param)
       endif
+    else  ! else ref_orb must be present
+      orb_start%vec = ref_orb(i-1)%vec
+    endif
+
+    ! If a Taylor map is needed then check for an appropriate map from a previous element.
+
+    transferred = .false.
+
+    if (.not. associated(ele%taylor(1)%term) .and. &
+                 ((ele%mat6_calc_method == taylor$) .or. &
+                  (ele%mat6_calc_method == symp_map$) .or. &
+                  (ele%tracking_method == taylor$) .or. &
+                  (ele%tracking_method == symp_map$))) then
+      do j = 1, n_taylor
+        ie = ix_taylor(j)
+        if (.not. equivalent_taylor_attributes (ele, branch%ele(ie))) cycle
+        if (any(orb_start%vec /= branch%ele(ie)%taylor%ref)) cycle
+        call transfer_ele_taylor (branch%ele(ie), ele)
+        transferred = .true.
+        exit
+      enddo
+    endif
+
+    ! call make_mat6 for this element
+    ! For consistancy, if no orbit is given, the starting coords in a super_slave
+    ! will be taken as the ending coords of the previous super_slave.
+
+    if (zero_orbit) then 
+      call make_mat6(ele, branch%param, orb_start)
     else  ! else ref_orb must be present
       call make_mat6(ele, branch%param, ref_orb(i-1), ref_orb(i), .true.)
     endif
