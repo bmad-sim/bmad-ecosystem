@@ -274,7 +274,7 @@ integer i, n, n_out, n_in
 
 ! If the element arrays have not been initialized in lat_in then deallocate lat_out.
 
-if (.not. allocated (lat_in%branch)) then
+if (.not. allocated (lat_in%branch) .or. .not. associated(lat_in%ele)) then
   call deallocate_lat_pointers (lat_out)
   return
 endif

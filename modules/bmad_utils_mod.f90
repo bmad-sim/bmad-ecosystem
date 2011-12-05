@@ -1832,10 +1832,10 @@ integer i
 if (associated (lat%ele)) then
   call deallocate_ele_array_pointers (lat%ele)
   call deallocate_ele_pointers (lat%ele_init)
-  deallocate (lat%control)
-  deallocate (lat%ic)
 endif
 
+if (allocated(lat%control))  deallocate (lat%control)
+if (allocated(lat%ic))       deallocate (lat%ic)
 if (associated(lat%wall3d%section)) deallocate(lat%wall3d%section)
 
 ! Do not need to deallocate stuff in lat%branch(0) since
