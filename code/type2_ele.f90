@@ -546,16 +546,16 @@ endif
 
 ! Encode Twiss info
 
+if (integer_option(radians$, twiss_out) /= 0 .and. ele%a%beta /= 0) then
+  nl=nl+1; li(nl) = ' '
+  nl=nl+1; li(nl) = 'Twiss at end of element:'
+  call type2_twiss (ele, li(nl+1:), nl2, twiss_out)
+  nl = nl + nl2
+endif
+
 l_status = ele%lord_status
 if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
     l_status /= group_lord$ .and. l_status /= girder_lord$) then
-
-  if (integer_option(radians$, twiss_out) /= 0) then
-    nl=nl+1; li(nl) = ' '
-    nl=nl+1; li(nl) = 'Twiss at end of element:'
-    call type2_twiss (ele, li(nl+1:), nl2, twiss_out)
-    nl = nl + nl2
-  endif
 
   ! Encode mat6 info
 

@@ -884,7 +884,7 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'PATCH_END', 'TRANSLATE_AFTER', 'FOLLOW_DIFFRACTED_BEAM', &
-      'NEGATIVE_GRAZE_ANGLE')
+      'NEGATIVE_GRAZE_ANGLE', 'SCALE_MULTIPOLES')
   attrib_type = is_logical$
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', &
       'IX_BRANCH_TO', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS')

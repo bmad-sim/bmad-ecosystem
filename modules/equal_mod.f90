@@ -272,12 +272,11 @@ type (lat_struct), intent(in) :: lat_in
 
 integer i, n, n_out, n_in
 
-! If lat_in has not been properly initialized then assume there is 
-! a problem somewhere
+! If the element arrays have not been initialized in lat_in then deallocate lat_out.
 
-if (.not. associated (lat_in%ele)) then
-  print *, 'ERROR IN lat_EQUAL_LAT: LAT%ELE(:) ON RHS NOT ASSOCIATED!'
-  call err_exit
+if (.not. allocated (lat_in%branch)) then
+  call deallocate_lat_pointers (lat_out)
+  return
 endif
 
 ! resize %ele array if needed

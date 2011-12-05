@@ -64,10 +64,13 @@ endif
 
 do n = lat%n_ele_track + 1, lat%n_ele_max
   lord => lat%ele(n)
-  if (lord%lord_status /= super_lord$) cycle
-  slave => pointer_to_slave(lord, lord%n_slave)
-  if (slave%ix_branch /= branch%ix_branch) cycle
-  call transfer_twiss (slave, lord)
+  select case (lord%lord_status) 
+  case (super_lord$, overlay_lord$, group_lord$)
+    if (lord%n_slave == 0) cycle
+    slave => pointer_to_slave(lord, lord%n_slave)
+    if (slave%ix_branch /= branch%ix_branch) cycle
+    call transfer_twiss (slave, lord)
+  end select
 enddo
 
 end subroutine

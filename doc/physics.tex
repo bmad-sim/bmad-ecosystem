@@ -2070,7 +2070,7 @@ The spinor eigenvectors along the $x$, $y$ and $z$ axes are
    \Psi_{y+} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ i \end{pmatrix} \, , 
   &\Psi_{y-} &= \frac{1}{\sqrt{2}} \, \begin{pmatrix} 1 \\ -i \end{pmatrix} \, , \\
    \Psi_{z+} &=                       \begin{pmatrix} 1 \\ 0 \end{pmatrix} \, , 
-  &\Psi_{z-} &=                       \begin{pmatrix} 0 \\ -1 \end{pmatrix} \, .
+  &\Psi_{z-} &=                       \begin{pmatrix} 0 \\ -1 \end{pmatrix} \, . \nonumber
 \end{align}
 
 In spinor notation, the T-BMT equation can be written as
@@ -2081,20 +2081,22 @@ In spinor notation, the T-BMT equation can be written as
 The solution leads to a rotation of the spin vector by an angle   
 $\alpha$ around a unit vector $\Bf e$ represented as   
   \Begineqs   
-    \Psi &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \bfsig} \Psi_{i} \\   
-         &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \bfsig \right) \Psi_{i} \\
-         &=& \Bf A \Psi_{i}.   
+    \Psi_f &=& e^{-i \frac{\alpha}{2} \Bf e \cdot \bfsig} \Psi_i \CRNO
+         &=& \left( a_{0} \Bf 1_{2} - i \boldsymbol{a} \cdot \bfsig \right) \Psi_i \\
+         &=& \Bf A \Psi_i. \nonumber
   \Endeqs   
-The SU(2) matrix $\Bf A$ is called a \textit{quaternion} and has the   
-normalization condition $a_{0}^{2} + \boldsymbol{a}^{2} = 1$. The three components   
-$\left(a_{1}, a_{2}, a_{3}\right)$, along with the normalization condition,   
-describes the transport of spin between any two points in an accelerator. 
+where $\Psi_i$ is the initial spin state, $\Phi_f$ is the final spin
+state, and the SU(2) matrix $\Bf A$, called a \textit{quaternion},
+describes the spin transport. $\Bf A$ has the normalization condition
+$a_{0}^{2} + \boldsymbol{a}^{2} = 1$. Thus the three components
+$\boldsymbol{a} = \left(a_{1}, a_{2}, a_{3}\right)$ completely
+describe $\Bf A$. 
 
 With spinors, the matrix representation of the observable $S_{\Bf u}$
 corresponding to the measurement of the spin along the unit vector
 $\Bf u$ is
 \Begineqs
-  S_{\Bf u} &=& \frac{\hbar}{2} \, \bfsig \cdot \Bf u \\   
+  S_{\Bf u} &\equiv& \frac{\hbar}{2} \, \bfsig \cdot \Bf u \\   
             &=& \frac{\hbar}{2} 
                    \begin{pmatrix} 
                      u_z            & u_x - i \, u_y \\
