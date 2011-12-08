@@ -33,9 +33,23 @@
 #  the setup script is sourced allows the option of running
 #  both 32-bit and 64-bit code.  Otherwise, on a 32-bit-only
 #  system it is simply ignored.
+#
+#
+# Once this script is sourced, ideally by getting called from
+# the user's login script, shortcut aliases are available to
+# allow easy selection of an active release and architecture.
+#  'current' -- Sets active relase to CURRENT
+#  'devel' -- Sets active release to DEVEL
+#  'setrel <release_name> -- Sets a specific release as active
+#
+# Other useful aliases defined below are:
+#  'accinfo' -- Displays a summary of the active release's
+#      short name ('devel', 'current' etc), it's true (dated)
+#      name, build architecture, and selected Fortran compiler.
 #  
-# For C-shell variant use, all of the above applies, but the
-# user must source the script named 
+# For C-shell variant use, all of the above applies since the
+# C-shell script is a wrapper for this one.  The user must
+# source the script named 
 #   acc_vars.csh  instead.
 #--------------------------------------------------------------
 
@@ -52,13 +66,6 @@
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
-
-# Temporary for cleanliness.
-source /home/cesrulib/bin/clean_env.sh
-
-
-# Change this to /nfs/acc/libs/bin once login scripts get finalized
-USER_BIN_DIR=/home/cesrulib/bin
 
 
 #--------------------------------------------------------------
@@ -93,14 +100,27 @@ fi
 # Set the location of the directory containing all the 
 # necessary environment setup scripts.
 #--------------------------------------------------------------
-SETUP_SCRIPTS_DIR=/nfs/acc/libs/util
+SETUP_SCRIPTS_DIR=/nfs/acc/libs/util    # CHANGE to directory internal to release.
 
 
 
 #--------------------------------------------------------------
 # Central area where all releases are kept.
+#  This location will be one of two places dependin upon
+#  whether the user is logged into a CESR offline or online
+#  machine.
+# Set CESR_ONLINE to the nfs version used for 'CESR offline'
+# hosts if it hasn't already been set upon entering this
+# script.
 #--------------------------------------------------------------
-RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
+CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
+
+if ( [ "${CESR_ONLINE}" == "/nfs/cesr/online" ] ) then
+    RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
+elif ( [ "${CESR_ONLINE}" == "/gfs/cesr/online" ] )then
+      # CHANGE to reflect a CESR ONLINE release directory when it becomes active.
+    RELEASE_ARCHIVE_BASE_DIR=/nfs/acc/libs
+fi 
 
 
 
@@ -205,7 +225,7 @@ export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
 
-export ACC_GMAKE=/home/cesrulib/bin/Gmake
+export ACC_GMAKE=/home/cesrulib/bin/Gmake  # CHANGE to directory internal to release.
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 
@@ -215,7 +235,6 @@ export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 # Named such for historical compatibility.
 # FIXME:  CESR_ONLINE  should be moved to a different script.
 #--------------------------------------------------------------
-export CESR_ONLINE=/nfs/cesr/online
 export BMAD_LAT=${ACC_RELEASE_DIR}/config/bmad
 export CESR_LAT=${ACC_RELEASE_DIR}/config/cesr
 export CTA_LAT=${ACC_RELEASE_DIR}/config/cta
@@ -257,14 +276,48 @@ esac
 
 
 #--------------------------------------------------------------
-# Add the directory where utilities for the user are to be
-# provided.  getf, listf, etc...
+# Append necessary directories to the user's PATH environment
+# variable.
 #--------------------------------------------------------------
-add_path ${USER_BIN_DIR}
 del_path ${OLD_ACC_BIN}
 
+add_path ${ACC_UTIL}
 add_path ${ACC_PKG}/bin
 add_path ${ACC_BIN}
+
+
+#--------------------------------------------------------------
+# Ensure that there is only one reference to the release's
+# solib directory by searching the LD_LIBRARY_PATH variable
+# value for paths that are prefixed with the
+# RELEASE_ARCHIVE_BASE_DIR and removing them.  The last
+# step is appending the presently valid solib path for
+# the active release.
+#--------------------------------------------------------------
+LD_LIBRARY_PATH_TEMP=${LD_LIBRARY_PATH}
+LD_LIBRARY_PATH=""
+DEFAULT_IFS=${IFS}
+IFS=":"
+for part in ${LD_LIBRARY_PATH_TEMP}; do
+  case ${part} in
+
+      "${RELEASE_ARCHIVE_BASE_DIR}"*)
+	  #echo "ACC path found. Will remove from LD_LIBRARY_PATH."
+	  continue
+	  ;;
+
+      *)
+	  if ( [ "${LD_LIBRARY_PATH}" == "" ] ) then
+	      LD_LIBRARY_PATH=${part}
+	  else
+	      LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${part}
+	  fi  
+
+  esac
+done
+IFS=${DEFAULT_IFS}
+
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/solib
 
 
 
@@ -287,6 +340,22 @@ Fortran compiler : ${ACC_FC}" '
 alias ACCINFO='accinfo'
 alias acc_info='accinfo'
 alias ACC_INFO='accinfo'
+
+alias current='ACC_RELEASE_REQUEST=current; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+alias devel='ACC_RELEASE_REQUEST=devel; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh'
+
+alias current64='ACC_FORCE_32_BIT=N; current'
+alias devel64='ACC_FORCE_32_BIT=N; devel'
+
+# These are functions so that they may take arguments from the user.
+
+function setrel() {
+    ACC_RELEASE_REQUEST=${1}; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh
+}
+
+function setrel64() {
+    ACC_FORCE_32_BIT=N; ACC_RELEASE_REQUEST=${1}; source ${SETUP_SCRIPTS_DIR}/acc_vars.sh
+}
 
 
 
