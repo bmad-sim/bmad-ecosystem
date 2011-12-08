@@ -1,8 +1,15 @@
 #!/home/cesrulib/usr/bin/python
 #-*-python-*-
 # 2.7.2
+#
+# The default packages build to use when constructing a new
+# release build is determined by a symlink in the archive
+# area for each platform.
+#
+# If a --pkg <package name> option is specified on the
+# command line, then that packages build will be used
+# when constructing the release build.
 #------------------------------------------------------------------
-
 import os
 import sys
 import time
@@ -19,6 +26,7 @@ import datetime
 import build_config
 
 
+# Get kerberos key for remote execution
 hostname = socket.gethostname()
 p = sub.Popen('kinit -k -t /etc/cesrulib-keytab cesrulib/'+hostname,
               bufsize=1,
@@ -30,6 +38,7 @@ while True:
         break
     sys.stdout.write(nextline)
     sys.stdout.flush()
+    
 
 # Logger
 output_verbosity = logging.WARNING
@@ -44,40 +53,21 @@ formatter = logging.Formatter('%(name)s - %(message)s')
 logger.addHandler( loghandler )
 
 
+
 # Defaults from config file.
-libs_basedir = build_config.libs_basedir
 util_dir_default = build_config.util_dir
 makefile_dir_default = build_config.makefile_dir
-
-
-#prev_blt = libs_basedir + "/log/prev_built"
-#prev_blt_pkg = libs_basedir + "/log/prev_built_pkg"
-
-
-# Support Scripts
-## cfg_file = "/home/cesrulib/bin/util/builder.conf"
-## config   = ConfigParser.ConfigParser()
-## # Obtain all values without changing case; by overriding default
-## # ConfigParser behavior
-## config.optionxform = lambda x: x
-## config.read(cfg_file)
-
-## builder = util_dir_default + '/' + config.get("Scripts", "master")
-## build_serf = util_dir_default + '/' + config.get("Scripts", "serf")
-## rotation_query = util_dir_default + '/' + config.get("Scripts", "rot_querier")
-## rotator = util_dir_default + '/' + config.get("Scripts", "rotator")
-## deleter = util_dir_default + '/' + config.get("Scripts", "deleter")
-## reporter = config.get("Scripts", "reporter")
 
 
 
 # Collect all supported platform names
 all_platforms = []
-for build_type in build_config.build_specs:
-    for platform in build_config.build_specs[build_type]:
-        all_platforms.append( platform )
+for spec in build_config.build_specs:
+    all_platforms.append( build_config.build_specs[spec]['platform'] )
 # Remove any duplicate platforms from list
 all_platforms = list(set(all_platforms))
+print 'Platforms that appear in collection of build specifications:'
+print all_platforms
 
 
 
@@ -85,6 +75,7 @@ class BuildController(threading.Thread):
 
     # Defaults
     type = ''
+    spec = ''
     platform = ''
     name = ''
     full_release_dir = ''
@@ -96,19 +87,23 @@ class BuildController(threading.Thread):
     makefile_dir = makefile_dir_default
 
     prefixes = {
-        'RELEASE' : 'cesr',
-        'PACKAGES' : 'packages',
-        'DIST' : 'CLASSE_accel_dist'
+        'release' : 'cesr',
+        'packages' : 'packages',
+        'dist' : 'CLASSE_accel_dist'
         }
     # Default numerical precision is 'double': IEEE 754-2008 (8 bytes)
     precision = 'double' 
 
 
-    def __init__( self, type, platform, custom_name ):
+    def __init__( self, spec, custom_name ):
         """Initialize the build_controller object."""
         threading.Thread.__init__(self)
-        self.type = type
-        self.platform = platform
+
+        self.spec = spec
+        self.type = build_config.build_specs[spec]['type']
+        self.platform = build_config.build_specs[spec]['platform']
+        self.basedir = build_config.build_specs[spec]['basedir']
+        
         if not self.is_platform_supported():
             print 'Quitting.'
             sys.exit(1)
@@ -117,13 +112,13 @@ class BuildController(threading.Thread):
             self.uniqify_build_name()
         else:
             self.generate_build_name()
-        self.full_release_dir = libs_basedir + '/' + platform + '/' + self.name
-        self.log_dir = libs_basedir + '/' + platform + '/log'
+        self.full_release_dir = self.basedir + '/' + platform + '/' + self.name
+        self.log_dir = self.basedir + '/' + platform + '/log'
         if not os.path.exists( self.log_dir ):
             print 'Log directory  ' + self.log_dir + '  does not exist!  Quitting.'
             sys.exit(1)
         self.full_logname = self.log_dir + '/' + self.name + '.log'
-        self.hostname = build_config.build_specs[self.type][self.platform]['host']
+        self.hostname = build_config.build_specs[spec]['host']
         self.checkout_manifest = []
 
     
@@ -143,7 +138,7 @@ class BuildController(threading.Thread):
         directory."""                
         already_exists = False
         for platform in all_platforms:
-            checkdir = libs_basedir + '/' + platform
+            checkdir = self.basedir + '/' + platform
             checkname = checkdir + '/' + self.name
             message = 'Checking for slot in ' + checkname + '... '
             if os.path.exists( checkname ):
@@ -190,11 +185,12 @@ class BuildController(threading.Thread):
 
     def is_platform_supported(self):
         if self.platform in all_platforms:
-            if os.path.exists( libs_basedir + '/' + self.platform ):
+            if os.path.exists( self.basedir + '/' + self.platform ):
                 return True
             else:
-                print 'Platform  "' + self.platform + '" has specifications defined,'
-                print 'but directory does not exist in ' + libs_basedir + '.'
+                print 'The build specification references the ' + self.platform + \
+                      ' platform, but a corresponding directory does not exist in ' \
+                      + self.basedir + '.'
                 print 'Try creating it and run this again.'
                 return False
         print 'Platform "' + self.platform + '" not mentioned in builder platform specifications.'
@@ -208,7 +204,7 @@ class BuildController(threading.Thread):
         self.log = open(self.full_logname, 'w')
         self.log.write('build_host        ' + self.hostname +'\n')
         self.log.write('build_type        ' + self.type +'\n')
-        self.log.write('libs_basedir      ' + libs_basedir +'\n')
+        self.log.write('libs_basedir      ' + self.basedir +'\n')
         self.log.write('platform          ' + self.platform +'\n')
         self.log.write('svn_revision      ' + str(self.svn_revision) +'\n')
         #self.log.write('fortran_compiler  ' + self.fortran_compiler + '\n')
@@ -223,9 +219,9 @@ class BuildController(threading.Thread):
 
 
     def write_checkout_manifest(self):
-        for reponame in build_config.build_specs[self.type][self.platform]['repositories']:
+        for reponame in build_config.build_specs[self.spec]['repositories']:
             self.log.write('repository  ' + build_config.repository_addresses[reponame] + '  ')
-            for dir in build_config.build_specs[self.type][self.platform]['repositories'][reponame]:
+            for dir in build_config.build_specs[self.spec]['repositories'][reponame]:
                 self.log.write(dir + '   ')
                 self.checkout_manifest.append( dir )
         self.log.write('\n')
@@ -239,13 +235,14 @@ class BuildController(threading.Thread):
            Part of minimal set of methods needed to spawn a build."""
         os.mkdir(self.full_release_dir)
         os.chdir(self.full_release_dir)
-        for reponame in build_config.build_specs[self.type][self.platform]['repositories']:
+        for reponame in build_config.build_specs[self.spec]['repositories']:
             revision = svn_revisions[reponame]
-            for dir in build_config.build_specs[self.type][self.platform]['repositories'][reponame]:
+            for dir in build_config.build_specs[self.spec]['repositories'][reponame]:
                 repo_address = build_config.repository_addresses[reponame]
                 localdir = os.path.split(dir)[1]
                 
-                checkout_command = 'svn -r ' + str(revision) + ' co ' + repo_address + dir + ' ' + self.full_release_dir + '/' + localdir
+                checkout_command = 'svn -r ' + str(revision) + ' co ' + repo_address + \
+                                   dir + ' ' + self.full_release_dir + '/' + localdir
                 self.log.write('Checkout command: [' + checkout_command + ']\n')
                 
                 proc = sub.Popen(checkout_command,
@@ -284,17 +281,27 @@ class BuildController(threading.Thread):
         """Execute the build process."""
         self.write_log_stub()
         self.checkout_files()
-        build_command = 'rsh -x '+self.hostname+' ~/usr/bin/python ' + self.util_dir+'/builder '+ self.full_logname
+        build_command = 'rsh -x '+self.hostname+' ~/usr/bin/python ' + \
+                        self.util_dir+'/builder '+ self.full_logname
         p = sub.Popen(build_command, bufsize=-1, shell=True)
         p_out = p.communicate()[0]
 
 
+
+
+
 #----------------------
-build_type = 'RELEASE'
+# Non-class code begin
+#----------------------
+build_request = 'release'
+
+
 
 argparser = argparse.ArgumentParser(description='Library build tool')
 
 argparser.add_argument('--pkgname', action='store', dest='pkg_name')
+argparser.add_argument('--gmake', action='store', dest='gmake_dir')
+
 argresults = argparser.parse_args()
 
 
@@ -320,25 +327,39 @@ def head_svn_revision(repository_name):
     return int(revnum)
 
 
-
-for platform in build_config.build_requests[build_type]:
-    print 'Setting up build on platform ' + platform
+for spec in build_config.build_requests[build_request]:
+    platform = build_config.build_specs[spec]['platform']
+    print 'Setting up build ' + spec + ' on platform ' + platform
     custom_name = ''
-    build = BuildController( build_type, platform, custom_name )
-    for repo_name in build_config.build_specs[build_type][platform]['repositories']:
+    build = BuildController( spec, custom_name )
+    for repo_name in build_config.build_specs[spec]['repositories']:
         if repo_name not in svn_revisions:
             svn_revisions[repo_name] = head_svn_revision(repo_name)
     build.svn_revisions = svn_revisions
     builds.append(build)
+print 'SVN revisions:'
+print svn_revisions
+    
+    
 
-
-# Override parameters of some or all of the builds here, if necessary.
-#  makefile directory, svn_revision, packages directory to use, etc...
+#---------------------------------------
+# Override parameters of some or all of
+# the builds here, if necessary.
+#  makefile directory, svn_revision,
+#  packages directory to use, etc...
+#---------------------------------------
 if not isinstance(None, type(argresults.pkg_name)):
     print '\nA custom packages name was provided.'
     print '  Using "' + argresults.pkg_name + '" instead of the default.\n'
     for build in builds:
         build.set_packages_name(argresults.pkg_name)
+
+
+if not isinstance(None, type(argresults.gmake_dir)):
+    print '\nA custom Gmake directory was provided.'
+    print '  Using "' + argresults.gmake_dir + '" instead of the default.\n'
+    for build in builds:
+        build.set_packages_name(argresults.gmake_dir)
 
 
 
@@ -350,10 +371,11 @@ if not isinstance(None, type(argresults.pkg_name)):
 #---------------------------------------
 build_name = builds[0].name
 
-for bnum, build in enumerate(builds):    
+for bnum, build in enumerate(builds):
     for repo_name in build.svn_revisions:
         revision = build.svn_revisions[repo_name]
-    build.start()  # Method inherited from Thread class, invokes 'run' method in a separate thread.
+    build.start()  # Method inherited from Thread class;
+                   # invokes 'run' method in a separate thread.
 
 
 time.sleep(10)
@@ -361,3 +383,4 @@ print '\n\nBuild name is: ' + build_name
 print "Waiting..."
 time.sleep(15)
 print '\n\nStill alive...'
+
