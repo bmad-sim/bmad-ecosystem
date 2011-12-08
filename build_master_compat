@@ -1,6 +1,0 @@
-PYTHONPATH=/home/cesrulib/EXT/Python-2.5.1-lin/build/lib.linux-i686-2.5:/nfs/acc/libs/util/3rd-party
-
-echo -e "\n\nSetting PYTHONPATH to:"
-echo $PYTHONPATH
-
-/home/cesrulib/EXT/Python-2.5.1-lin/python ${ACC_UTIL}/build_master $@

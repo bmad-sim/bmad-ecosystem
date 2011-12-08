@@ -24,7 +24,7 @@ import sys, ConfigParser
 #============================================================================
 # Setup config file machinery
 #============================================================================
-cfg_file = "/home/cesrulib/bin/util/BUILD_SYSTEM.conf"
+cfg_file = "/nfs/acc/libs/util/BUILD_SYSTEM.conf"
 config   = ConfigParser.ConfigParser()
 config.optionxform = lambda x: x   # Obtain all values without changing case
 config.read(cfg_file)              # Overrides default ConfigParser behavior
