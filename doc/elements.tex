@@ -27,24 +27,25 @@ photon use.
 \centering
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\it Element}     & {\it Section}       & {\it Element}    & {\it Section}    \HH
-  AB_Multipole      & \ref{s:ab.m}        &  Null_Ele        & \ref{s:null.ele} \HH
-  BeamBeam          & \ref{s:bbi}         &  Octupole        & \ref{s:oct}      \HH
-  Bend_Sol_Quad     & \ref{s:bsq}         &  Patch           & \ref{s:patch}    \HH
-  Branch            & \ref{s:branch}      &  Photon_Branch   & \ref{s:branch}   \HH
-  Custom            & \ref{s:custom}      &  Pipe            & \ref{s:monitor}  \HH
-  Drift             & \ref{s:drift}       &  Quadrupole      & \ref{s:quad}     \HH
-  Ecollimator       & \ref{s:col}         &  Rbend           & \ref{s:bend}     \HH
-  ElSeparator       & \ref{s:elsep}       &  Rcollimator     & \ref{s:col}      \HH
-  HKicker           & \ref{s:hvkicker}    &  RFcavity        & \ref{s:rfcav}    \HH
-  Hybrid            & \ref{s:hybrid}      &  Sbend           & \ref{s:bend}     \HH
-  Instrument        & \ref{s:monitor}     &  Sextupole       & \ref{s:sex}      \HH
-  Kicker            & \ref{s:kicker}      &  Solenoid        & \ref{s:sol}      \HH
-  Lcavity           & \ref{s:lcav}        &  Sol_Quad        & \ref{s:sq}       \HH
-  Marker            & \ref{s:mark}        &  Taylor          & \ref{s:tay}      \HH
-  Match             & \ref{s:match}       &  VKicker         & \ref{s:hvkicker} \HH  
-  Monitor           & \ref{s:monitor}     &  Wiggler         & \ref{s:wiggler}  \HH
-  Multipole         & \ref{s:mult}        &                  &                  \HH
+  {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \HH
+  AB_Multipole      & \ref{s:ab.m}        &  Multipole         & \ref{s:mult}     \HH
+  BeamBeam          & \ref{s:bbi}         &  Null_Ele          & \ref{s:null.ele} \HH
+  Bend_Sol_Quad     & \ref{s:bsq}         &  Octupole          & \ref{s:oct}      \HH
+  Branch            & \ref{s:branch}      &  Patch             & \ref{s:patch}    \HH
+  Custom            & \ref{s:custom}      &  Photon_Branch     & \ref{s:branch}   \HH
+  Drift             & \ref{s:drift}       &  Pipe              & \ref{s:monitor}  \HH
+  E_Gun             & \ref{s:e.gun}       &  Quadrupole        & \ref{s:quad}     \HH
+  Ecollimator       & \ref{s:col}         &  Rbend             & \ref{s:bend}     \HH
+  ElSeparator       & \ref{s:elsep}       &  Rcollimator       & \ref{s:col}      \HH
+  EM_Field          & \ref{s:em.field}    &  RFcavity          & \ref{s:rfcav}    \HH
+  HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
+  Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
+  Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \HH
+  Kicker            & \ref{s:kicker}      &  Sol_Quad          & \ref{s:sq}       \HH
+  Lcavity           & \ref{s:lcav}        &  Taylor            & \ref{s:tay}      \HH
+  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \HH  
+  Match             & \ref{s:match}       &  Wiggler           & \ref{s:wiggler}  \HH
+  Monitor           & \ref{s:monitor}     &                    &                  \HH
 
 \end{tabular}
 }
@@ -623,7 +624,8 @@ The inside wall of a capillary is defined using the same syntax used
 to define the chamber wall for other elements (\sref{s:wall}).
 
 %-----------------------------------------------------------------
-\section{Collimators: Ecollimator and Rcollimator} \label{s:col}
+\section{Collimators: Ecollimator and Rcollimator} 
+\label{s:col}
 \index{ecollimator|hyperbf}
 \index{rcollimator|hyperbf}
 
@@ -875,6 +877,28 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{E_Gun}
+\label{s:e.gun}
+\index{e_gun|hyperbf}
+
+An \vn{e_gun} element is an electron gun.
+General \vn{e_gun} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+\end{tabular}
+\end{center}
+\toffset
+
+
+%-----------------------------------------------------------------
 \section{Elseparator}
 \label{s:elsep}
 \index{elseparator|hyperbf}
@@ -923,47 +947,27 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Hkicker and Vkicker}
-\label{s:hvkicker}
-\index{hkicker|hyperbf}
-\index{vkicker|hyperbf}
+\section{EM_Field}
+\label{s:em.field}
+\index{em_field|hyperbf}
 
-An \vn{hkicker} gives a beam a horizontal kick and a \vn{vkicker} gives a 
-beam a vertical kick.
-
-General \vn{hkicker} \vn{vkicker} attributes are:
+An \vn{em_field} element can contain general electro-magnetic (EM) fields. Both AC and DC
+fields are accomodated.
+General \vn{em_field} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
+  Symplectify            & \ref{s:symp}    & Offsets, pitches, and tilt & \ref{s:offset}  \HH
   Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Kick                   & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
   Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
 \end{tabular}
 \end{center}
 \toffset
 
-\index{kick}
-\index{hkick}
-\index{vkick}
-Note that \vn{hkicker} and \vn{vkicker} elements use the
-\vn{kick} attribute while a \vn{kicker} uses the \vn{hkick} and \vn{vkick} 
-attributes. Example:
-\begin{example}
-  h_kick: hkicker, l = 4.5, kick = 0.003
-\end{example}
-
-%-----------------------------------------------------------------
-\section{Hybrid}
-\label{s:hybrid}
-\index{hybrid|hyperbf}
-
-A \vn{hybrid} element is an element that is formed by concatenating
-other element together. \vn{hybrid} elements are not part of the input
-lattice file but are created by a program, usually for speed purposes.
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -1043,6 +1047,15 @@ stored in the element component \vn{%value(x_offset_tot\$)}. Similarly
 the total tilt is stored in \vn{%value(tilt_tot\$)}, etc.
 
 %-----------------------------------------------------------------
+\section{Hybrid}
+\label{s:hybrid}
+\index{hybrid|hyperbf}
+
+A \vn{hybrid} element is an element that is formed by concatenating
+other element together. \vn{hybrid} elements are not part of the input
+lattice file but are created by a program, usually for speed purposes.
+
+%-----------------------------------------------------------------
 \section{Instrument, Monitor, and Pipe}
 \label{s:monitor}
 \index{instrument|hyperbf}
@@ -1090,6 +1103,40 @@ proper. Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Kickers Horizontal and Vertical: Hkicker and Vkicker}
+\label{s:hvkicker}
+\index{hkicker|hyperbf}
+\index{vkicker|hyperbf}
+
+An \vn{hkicker} gives a beam a horizontal kick and a \vn{vkicker} gives a 
+beam a vertical kick. Also see the \vn{kicker} (\sref{s:kicker}) element.
+
+General \vn{hkicker} \vn{vkicker} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Symplectify            & \ref{s:symp}    & tilt                       & \ref{s:offset}  \HH
+  Description strings    & \ref{s:string}  & Is_on                     & \ref{s:is.on}   \HH 
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Kick                   & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
+\end{tabular}
+\end{center}
+\toffset
+
+\index{kick}
+\index{hkick}
+\index{vkick}
+Note that \vn{hkicker} and \vn{vkicker} elements use the
+\vn{kick} attribute while a \vn{kicker} uses the \vn{hkick} and \vn{vkick} 
+attributes. Example:
+\begin{example}
+  h_kick: hkicker, l = 4.5, kick = 0.003
+\end{example}
+
+%-----------------------------------------------------------------
 \section{Kicker}
 \label{s:kicker}
 \index{kicker|hyperbf}
@@ -1101,7 +1148,7 @@ proper. Example:
 A \vn{kicker} can deflect a beam in both planes. Note that a
 \vn{kicker} uses the \vn{hkick} and \vn{vkick} attributes while
 \vn{hkicker} and \vn{vkicker} elements use the \vn{kick} attribute. 
-In addition a \vn{kicker} can apply a displacement to a particle
+In addition, a \vn{kicker} can apply a displacement to a particle
 using the \vn{h_displace} and \vn{v_displace} attributes.
 
 General \vn{kicker} attributes are:

@@ -1634,7 +1634,7 @@ end subroutine makeup_super_slave
 !                                                 param, at_entrance_end, at_exit_end)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
-! Note: This routine essentially only modified the sliced_ele%value array so 
+! Note: This routine essentially only modifies the sliced_ele%value array so 
 ! before this routine is called, the set:
 !    sliced_ele = ele_in 
 ! needs to be done.

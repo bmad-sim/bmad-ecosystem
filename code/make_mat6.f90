@@ -117,9 +117,9 @@ case (tracking$)
 case (mad$)
   call make_mat6_mad (ele, param, a_start_orb, a_end_orb)
 
-! No_method is used with hybrid elements since the transfer map in this case is not recomputable.
+! Static is used with hybrid elements since the transfer map in this case is not recomputable.
 
-case (no_method$)
+case (static$)
   return
 
 case default

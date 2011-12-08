@@ -178,6 +178,7 @@ rad_int_all%ele(:) = rad_int1_zero
 m65 = 0
 mode%rf_voltage = 0
 int_tot = rad_int1_zero
+call init_ele (ele2)
 
 !---------------------------------------------------------------------
 ! Caching

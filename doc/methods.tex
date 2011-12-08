@@ -96,13 +96,6 @@ This uses the MAD 2nd order transfer map. Note: Thanks must be given
 to CERN and Frank Schmidt for permission to use the MAD tracking code
 within \bmad.
 
-\index{none!tracking method}
-\item[\vn{None}]
-This prevents the transfer matrix from being recomputed.
-Using \vn{None} in the input file is generally not a good idea since
-it prevents the matrix from being computed in the first place.
-Typically \vn{None} is used internally in a program to prevent recomputation.
-
 \index{runge_kutta!tracking method}
 \item[\vn{runge_kutta}]
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive
@@ -178,12 +171,14 @@ and \vn{patch} elements are limited to first order.
   \vn{ab_multipole}            &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{beambeam}                &   & D &   & X & X &   &     &     &     &     &      \\  
   \vn{bend_sol_quad}           &   &   &   & X &   &   &     &  D  &     &     &      \\  
-  \vn{capillary}               &   & D &   &   &   &   &     &     &     &     &      \\  
-  \vn{crystal}                 &   & D &   &   &   &   &     &     &     &     &      \\  
+  \vn{capillary}               &   & D &   & X &   &   &     &     &     &     &      \\  
+  \vn{crystal}                 &   & D &   & X &   &   &     &     &     &     &      \\  
   \vn{custom}                  & X &   & X & D & X &   &  X  &     &     &     &      \\  
   \vn{drift}                   & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\  
+  \vn{e_gun}                   & X &   & X & X &   &   &  D  &     &     &     &      \\  
   \vn{ecollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
   \vn{elseparator}             & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\  
+  \vn{em_field}                & X &   & X & X &   &   &  D  &     &     &     &      \\  
   \vn{hkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
   \vn{instrument}              & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
   \vn{kicker}                  & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
@@ -191,8 +186,9 @@ and \vn{patch} elements are limited to first order.
   \vn{marker}                  &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
   \vn{match}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
   \vn{monitor}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
-  \vn{mirror}                  &   & D &   &   &   &   &     &     &     &     &      \\  
+  \vn{mirror}                  &   & D &   & X &   &   &     &     &     &     &      \\  
   \vn{multipole}               &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
+  \vn{multilayer}              &   & D &   & X &   &   &     &     &     &     &      \\  
   \vn{octupole}                & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
   \vn{patch}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
   \vn{quadrupole}              & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
@@ -259,7 +255,7 @@ integration order does not necessarily imply higher accuracy.
 Uses formulas for the calculation. The formulas generally use the
 paraxial approximation. The emphasis here is on speed
 
-\index{custom}
+\index{custom!transfer map method}
 \item[\vn{Custom}]
 This method will call a routine \vn{make_mat6_custom} which must be
 supplied by the programmer implementing the custom transfer matrix
@@ -267,18 +263,18 @@ calculation. The default \vn{make_mat6_custom} supplied with the
 \bmad release will print an error message and stop the program if it
 is called which probably indicates a program linking problem.
 
-\index{MAD!Mat6_calc_method!transfer map method}
+\index{MAD!transfer map method}
 \item[\vn{MAD}]
 This uses the MAD 2nd transfer map. Thanks must be given
 to CERN and Frank Schmidt for permission to use the MAD tracking code
 within \bmad.
 
-\index{none}
-\item[\vn{None}]
+\index{static!transfer map method}
+\item[\vn{Static}]
 This prevents the transfer matrix from being recomputed.
-Using \vn{None} in the input file is generally not a good idea since
+Using \vn{Static} in the input file is generally not a good idea since
 it prevents the matrix from being computed in the first place.
-Typically \vn{None} is used internally in a program to prevent recomputation.
+Typically \vn{Static} is used internally in a program to prevent recomputation.
 
 \index{symp_lie_bmad!transfer map method}
 \item[\vn{Symp_Lie_Bmad}]
@@ -334,31 +330,34 @@ is that it is directly related to any tracking results.
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
-\begin{sideways}\vn{None}\end{sideways} &
+\begin{sideways}\vn{Static}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_Bmad}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \midrule
-%                               BS   C   M   N   SLB   SLP   Tlr  Trk 
+%                               BS   C   M  Sta  SLB   SLP   Tlr  Trk 
   \vn{ab_multipole}            & D & X &   & X &     &  X  &  X  &   \\  
   \vn{beambeam}                & D & X &   & X &     &     &     & X \\  
   \vn{bend_sol_quad}           &   & X &   & X &  D  &     &     & X \\  
-  \vn{capillary}               &   & D &   &   &     &     &     &   \\  
-  \vn{crystal}                 &   & D &   &   &     &     &     &   \\  
+  \vn{capillary}               & D & X &   & X &     &     &     &   \\  
+  \vn{crystal}                 & D & X &   & X &     &     &     &   \\  
   \vn{custom}                  &   & D &   & X &     &     &     & X \\  
   \vn{drift}                   & D & X & X & X &     &  X  &  X  & X \\  
+  \vn{e_gun}                   &   & X &   & X &     &     &     & D \\  
   \vn{ecollimator}             & D & X &   & X &     &  X  &  X  & X \\  
   \vn{elseparator}             & D & X & X & X &     &  X  &  X  & X \\  
+  \vn{em_field}                &   & X &   & X &     &     &     & D \\  
   \vn{hkicker}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{instrument}              & D & X &   & X &     &  X  &  X  & X \\  
   \vn{kicker}                  & D & X &   & X &     &  X  &  X  & X \\  
   \vn{lcavity}                 & D & X &   & X &  X  &  X  &     & X \\  
   \vn{marker}                  & D & X &   & X &     &  X  &  X  & X \\  
   \vn{match}                   & D & X &   & X &     &     &     &   \\  
-  \vn{mirror}                  &   & D &   &   &     &     &     &   \\  
+  \vn{mirror}                  & D & X &   & X &     &     &     &   \\  
   \vn{monitor}                 & D & X &   & X &     &  X  &  X  & X \\  
   \vn{multipole}               & D & X &   & X &     &  X  &  X  &   \\  
+  \vn{multilayer}              & D & X &   & X &     &     &     &   \\  
   \vn{octupole}                & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{patch}                   & D & X &   & X &     &     &     &   \\ 
   \vn{quadrupole}              & D & X & X & X &  X  &  X  &  X  & X \\ 
