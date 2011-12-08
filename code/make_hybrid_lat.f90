@@ -14,7 +14,7 @@
 !
 !   use_taylor    tracking_method     mat6_calc_method
 !   ----------    ---------------     ----------------  
-!   False         linear$             no_method$
+!   False         linear$             static$
 !   True          taylor$             taylor$
 !
 ! The hybrid elements will have the following parameters defined:
@@ -147,7 +147,7 @@ do j_in = 1, r_in%n_ele_track
       ele_out%ic1_lord = 0
       ele_out%ic2_lord = -1
       ele_out%tracking_method = linear$
-      ele_out%mat6_calc_method = no_method$
+      ele_out%mat6_calc_method = static$
       ele_out%value(e_tot_start$) = r_in%ele(j_in-1)%value(e_tot$)
       ref_time0                   = r_in%ele(j_in-1)%ref_time
       ele_out%value(delta_e$)        = ele_in%value(e_tot$) - ele_out%value(e_tot_start$)

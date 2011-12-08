@@ -51,12 +51,17 @@ integer i
 call transfer_ele (ele1, ele_save)
 call transfer_ele (ele2, ele1)
 
-! ele1%ix_ele, etc. 
+! ele1%ix_ele and ele1%ix_branch should not change.
+! ele1%lat should not change if ele1 is a component of a lat_struct.
+!   Otherwise ele1%lat should point to ele2%lat (For cases where ele1 
+!   represents a sliced piece of ele2)
 
 ele1%ix_ele    = ele_save%ix_ele    ! This should not change.
 ele1%ix_branch = ele_save%ix_branch ! This should not change.
-ele1%lat      => ele_save%lat       ! This should not change.
-
+if (ele1%ix_ele > -1) then          ! If part of a lattice...
+  ele1%lat      => ele_save%lat     !   then ele1%lat should not change.
+endif
+  
 ! Transfer pointer info.
 ! When finished ele1's pointers will be pointing to a different memory
 ! location from ele2's so that the elements are truely separate.

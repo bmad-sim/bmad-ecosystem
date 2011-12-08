@@ -171,20 +171,21 @@ end subroutine save_a_step
 !   field       -- em_field_struct: E and B fields and derivatives.
 !-
 
-subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
+recursive subroutine em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
 
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb
 type (wig_term_struct), pointer :: t
-type (em_field_struct), intent(out) :: field
+type (em_field_struct) :: field, field2
 type (em_field_point_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
-real(rp) :: x, y, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, s, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
@@ -204,6 +205,7 @@ character(20) :: r_name = 'em_field_calc'
 
 ! Initialize field
 ! If element is turned off then return zero
+
 field%E = 0
 field%B = 0
 
@@ -217,22 +219,6 @@ endif
 if (.not. ele%is_on) return
 
 !----------------------------------------------------------------------------
-! Custom field calc 
-!----------------------------------------------------------------------------
-if (ele%field_calc == custom$) then 
-  call em_field_custom (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
-  return
-end if
-
-
-
-!----------------------------------------------------------------------------
-!Set up common variables for all (non-custom) methods
-
-charge = charge_of(param%particle)
-sign_charge = sign(1.0_rp, charge)
-
-!----------------------------------------------------------------------------
 ! convert to local coords
 
 local_orb = orbit
@@ -241,345 +227,325 @@ if (.not. local_ref_frame) then
           set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
 endif
 
+!----------------------------------------------------------------------------
+! All super_slave and multipass_slave elements have their field info stored in the associated lord elements.
+
+if (ele%key == em_field$) then
+  if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      s = s_rel - lord%value(s_offset$) + ele%value(ds_slave_offset$)
+      call em_field_calc (lord, param, s, t_rel, local_orb, .false., field2, calc_dfield)
+      field%E = field%E + field2%E
+      field%B = field%B + field2%B
+      if (df_calc) then
+        field%dE = field%dE + field2%dE
+        field%dB = field%dB + field2%dB
+      endif
+    enddo
+    call convert_fields_to_lab_coords
+    return
+  endif
+endif
+
+!----------------------------------------------------------------------------
+! Custom field calc 
+
+if (ele%field_calc == custom$) then 
+  call em_field_custom (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, calc_dfield)
+  return
+end if
+
+!----------------------------------------------------------------------------
+!Set up common variables for all (non-custom) methods
+
+charge = charge_of(param%particle)
+sign_charge = sign(1.0_rp, charge)
+
 x = local_orb%vec(1)
 y = local_orb%vec(3)
 
 f_p0c = sign_charge * ele%value(p0c$) / c_light
 
-!------------------------------------------
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! field_calc methods
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
 
 select case (ele%field_calc)
   
-!----------------------------------------------------------------------------
-! Bmad_standard field calc 
-!----------------------------------------------------------------------------
-case (bmad_standard$)
+  !----------------------------------------------------------------------------
+  ! Bmad_standard field calc 
 
-select case (ele%key)
+  case (bmad_standard$)
 
-!------------------------------------------
-! RFcavity and Lcavity
+  select case (ele%key)
 
-case(rfcavity$, lcavity$)
+  !------------------------------------------
+  ! RFcavity and Lcavity
 
-    ! This is taken from the gradient as calculated in
-    !       J. Rosenzweig and L. Serafini
-    !       Phys Rev E, Vol. 49, p. 1599, (1994)
-    !
-    ! Right now only works at relativistic energies
+  case(rfcavity$, lcavity$)
 
-    ! This is taken from track1_bmad
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
-                        local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
-    gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
-    if (.not. ele%is_on) gradient = 0
-    gradient = gradient + gradient_shift_sr_wake(ele, param)
-    
-    dEz_dz = gradient * sign(1, charge_of(param%particle))
+      ! This is taken from the gradient as calculated in
+      !       J. Rosenzweig and L. Serafini
+      !       Phys Rev E, Vol. 49, p. 1599, (1994)
+      !
+      ! Right now only works at relativistic energies
 
-    if (x .eq. 0.0) then
-      theta = 0.0
-    else
-      theta = atan(y/x)   
-    endif
-    r = sqrt(x**2 + y**2)                                           
-    E_r =  - (r/2.0) * dEz_dz                                       
-    B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
-                                                                     
-                                                                     
-    field%E(1) = E_r * cos (theta)                                  
-    field%E(2) = E_r * sin (theta)
-    field%E(3) = gradient * sin (phase)
-    
-    phi = pi - theta
-    field%B(1) =  B_phi * cos (phi)
-    field%B(2) = -B_phi * sin (phi)
+      ! This is taken from track1_bmad
+      phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+                          local_orb%vec(5) * ele%value(rf_frequency$) / c_light)
+      gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos(phase)
+      if (.not. ele%is_on) gradient = 0
+      gradient = gradient + gradient_shift_sr_wake(ele, param)
+      
+      dEz_dz = gradient * sign(1, charge_of(param%particle))
+
+      if (x .eq. 0.0) then
+        theta = 0.0
+      else
+        theta = atan(y/x)   
+      endif
+      r = sqrt(x**2 + y**2)                                           
+      E_r =  - (r/2.0) * dEz_dz                                       
+      B_phi = (r/(2.0*(c_light**2))) * dEz_dz                              
+                                                                       
+                                                                       
+      field%E(1) = E_r * cos (theta)                                  
+      field%E(2) = E_r * sin (theta)
+      field%E(3) = gradient * sin (phase)
+      
+      phi = pi - theta
+      field%B(1) =  B_phi * cos (phi)
+      field%B(2) = -B_phi * sin (phi)
+
+      if (df_calc) then
+        print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
+        call err_exit
+      endif
+
+
+  !------------------------------------------
+  ! Wiggler
+
+  case(wiggler$)
+
+    do i = 1, size(ele%wig_term)
+      t => ele%wig_term(i)
+
+      if (t%type == hyper_y$) then
+        c_x = cos(t%kx * x)
+        s_x = sin(t%kx * x)
+        sgn_x = 1
+        dc_x = -1
+      else
+        c_x = cosh(t%kx * x)
+        s_x = sinh(t%kx * x)
+        sgn_x = -1
+        dc_x = 1
+      endif
+
+      if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
+        c_y = cosh (t%ky * y)
+        s_y = sinh (t%ky * y)
+        dc_y = 1
+      else
+        c_y = cos (t%ky * y)
+        s_y = sin (t%ky * y)
+        dc_y = -1
+      endif
+
+      c_z = cos (t%kz * s_rel + t%phi_z)
+      s_z = sin (t%kz * s_rel + t%phi_z)
+
+      coef = sign_charge * t%coef * ele%value(polarity$)
+
+      field%B(1) = field%B(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z * sgn_x
+      field%B(2) = field%B(2) + coef  *                 c_x * c_y * c_z
+      field%B(3) = field%B(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
+
+      if (df_calc) then
+        f = coef * t%kx
+        field%dB(1,1) = field%dB(1,1) - f  * (t%kx / t%ky) * c_x * s_y * c_z * sgn_x
+        field%dB(2,1) = field%dB(2,1) + f  *                 s_x * c_y * c_z * dc_x
+        field%dB(3,1) = field%dB(3,1) - f  * (t%kz / t%ky) * s_x * s_y * s_z * dc_x
+        f = coef * t%ky
+        field%dB(1,2) = field%dB(1,2) - f  * (t%kx / t%ky) * s_x * c_y * c_z * sgn_x
+        field%dB(2,2) = field%dB(2,2) + f  *                 c_x * s_y * c_z * dc_y
+        field%dB(3,2) = field%dB(3,2) - f  * (t%kz / t%ky) * c_x * c_y * s_z 
+        f = coef * t%kz
+        field%dB(1,3) = field%dB(1,3) + f  * (t%kx / t%ky) * s_x * s_y * s_z * sgn_x
+        field%dB(2,3) = field%dB(2,3) - f  *                 c_x * c_y * s_z * dc_y
+        field%dB(3,3) = field%dB(3,3) - f  * (t%kz / t%ky) * c_x * s_y * c_z 
+      endif
+
+    enddo
+
+  !------------------------------------------
+  ! Drift, et. al. Note that kicks get added at the end for all elements
+
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$)
+
+  !------------------------------------------
+  ! Quadrupole
+
+  case (quadrupole$) 
+
+    field%b(1) = y * ele%value(k1$) * f_p0c 
+    field%b(2) = x * ele%value(k1$) * f_p0c 
 
     if (df_calc) then
-      print *, 'ERROR IN EM_FIELD_CALC: dFIELD NOT YET IMPLEMENTED FOR LCAVITY!'
+      field%dB(1,1) =  ele%value(k1$) * f_p0c
+      field%dB(2,2) = -ele%value(k1$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Sextupole 
+
+  case (sextupole$)
+
+    field%b(1) = x * y * ele%value(k2$) * f_p0c
+    field%b(2) = -(x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Sol_quad
+
+  case (sol_quad$)
+
+    field%b(1) = y * ele%value(k1$) * f_p0c 
+    field%b(2) = x * ele%value(k1$) * f_p0c 
+    field%b(3) = ele%value(ks$) * f_p0c
+
+    if (df_calc) then
+      field%dB(1,1) =  ele%value(k1$) * f_p0c
+      field%dB(2,2) = -ele%value(k1$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Solenoid
+
+  case (solenoid$)
+
+    field%b(3) = ele%value(ks$) * f_p0c
+
+    if (df_calc) then
+    endif
+
+  !------------------------------------------
+  ! SBend
+
+  case (sbend$)
+
+    field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
+    field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  ele%value(k1$) * f_p0c + y * ele%value(k2$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+      field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! HKicker
+
+  case (hkicker$)
+    field%b(2) = -ele%value(kick$) * f_p0c 
+
+  !------------------------------------------
+  ! VKicker
+
+  case (vkicker$)
+    field%b(1) =  ele%value(kick$) * f_p0c 
+
+  !------------------------------------------
+  ! Kicker  
+
+  case (kicker$)
+    field%b(1) =  ele%value(vkick$) * f_p0c 
+    field%b(2) = -ele%value(hkick$) * f_p0c 
+
+  !------------------------------------------
+  ! Error
+
+  case default
+    print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED: ', key_name(ele%key)
+    print *, '      FOR: ', ele%name
+    call err_exit
+  end select
+
+  !---------------------------------------------------------------------
+  ! Add multipoles
+
+  if (associated(ele%a_pole)) then
+    if (ele%value(l$) == 0) then
+      print *, 'ERROR IN EM_FILED_CALC: dField NOT YET IMPLEMENTED FOR MULTIPOLES!'
       call err_exit
     endif
 
+    do i = 0, ubound(ele%a_pole, 1)
+      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+      if (df_calc) then
+        call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky, dkm)
+      else
+        call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky)
+      endif
+      field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
+      field%B(2) = field%B(2) -  f_p0c * kx / ele%value(l$)
+      if (df_calc) then
+        field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
+        field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
+        field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
+        field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
+      endif
+    enddo
 
-!------------------------------------------
-! Wiggler
-
-case(wiggler$)
-
-  do i = 1, size(ele%wig_term)
-    t => ele%wig_term(i)
-
-    if (t%type == hyper_y$) then
-      c_x = cos(t%kx * x)
-      s_x = sin(t%kx * x)
-      sgn_x = 1
-      dc_x = -1
-    else
-      c_x = cosh(t%kx * x)
-      s_x = sinh(t%kx * x)
-      sgn_x = -1
-      dc_x = 1
-    endif
-
-    if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
-      c_y = cosh (t%ky * y)
-      s_y = sinh (t%ky * y)
-      dc_y = 1
-    else
-      c_y = cos (t%ky * y)
-      s_y = sin (t%ky * y)
-      dc_y = -1
-    endif
-
-    c_z = cos (t%kz * s_rel + t%phi_z)
-    s_z = sin (t%kz * s_rel + t%phi_z)
-
-    coef = sign_charge * t%coef * ele%value(polarity$)
-
-    field%B(1) = field%B(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z * sgn_x
-    field%B(2) = field%B(2) + coef  *                 c_x * c_y * c_z
-    field%B(3) = field%B(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
-
-    if (df_calc) then
-      f = coef * t%kx
-      field%dB(1,1) = field%dB(1,1) - f  * (t%kx / t%ky) * c_x * s_y * c_z * sgn_x
-      field%dB(2,1) = field%dB(2,1) + f  *                 s_x * c_y * c_z * dc_x
-      field%dB(3,1) = field%dB(3,1) - f  * (t%kz / t%ky) * s_x * s_y * s_z * dc_x
-      f = coef * t%ky
-      field%dB(1,2) = field%dB(1,2) - f  * (t%kx / t%ky) * s_x * c_y * c_z * sgn_x
-      field%dB(2,2) = field%dB(2,2) + f  *                 c_x * s_y * c_z * dc_y
-      field%dB(3,2) = field%dB(3,2) - f  * (t%kz / t%ky) * c_x * c_y * s_z 
-      f = coef * t%kz
-      field%dB(1,3) = field%dB(1,3) + f  * (t%kx / t%ky) * s_x * s_y * s_z * sgn_x
-      field%dB(2,3) = field%dB(2,3) - f  *                 c_x * c_y * s_z * dc_y
-      field%dB(3,3) = field%dB(3,3) - f  * (t%kz / t%ky) * c_x * s_y * c_z 
-    endif
-
-  enddo
-
-!------------------------------------------
-! Drift, et. al. Note that kicks get added at the end for all elements
-
-case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$)
-
-!------------------------------------------
-! Quadrupole
-
-case (quadrupole$) 
-
-  field%b(1) = y * ele%value(k1$) * f_p0c 
-  field%b(2) = x * ele%value(k1$) * f_p0c 
-
-  if (df_calc) then
-    field%dB(1,1) =  ele%value(k1$) * f_p0c
-    field%dB(2,2) = -ele%value(k1$) * f_p0c
   endif
 
-!------------------------------------------
-! Sextupole 
+  !-------------------------------
+  ! Add kicks. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
 
-case (sextupole$)
-
-  field%b(1) = x * y * ele%value(k2$) * f_p0c
-  field%b(2) = -(x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
-
-  if (df_calc) then
-    field%dB(1,1) =  y * ele%value(k2$) * f_p0c
-    field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-    field%dB(2,1) = -x * ele%value(k2$) * f_p0c
-    field%dB(2,2) = -y * ele%value(k2$) * f_p0c
+  if (has_kick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
+    select case (ele%key)
+    ! Handled above
+    case (kicker$, hkicker$, vkicker$, elseparator$)  
+    ! Everything else
+    case default
+      if (.not. local_ref_frame .or. ele%value(tilt$) == 0) then
+        field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c 
+        field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c 
+      else
+        ! Rotate from lab to local
+        tilt = ele%value(tilt$)
+        field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c 
+        field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) - ele%value(vkick$) * sin(tilt)) * f_p0c 
+      endif
+    end select
   endif
-
-!------------------------------------------
-! Sol_quad
-
-case (sol_quad$)
-
-  field%b(1) = y * ele%value(k1$) * f_p0c 
-  field%b(2) = x * ele%value(k1$) * f_p0c 
-  field%b(3) = ele%value(ks$) * f_p0c
-
-  if (df_calc) then
-    field%dB(1,1) =  ele%value(k1$) * f_p0c
-    field%dB(2,2) = -ele%value(k1$) * f_p0c
-  endif
-
-!------------------------------------------
-! Solenoid
-
-case (solenoid$)
-
-  field%b(3) = ele%value(ks$) * f_p0c
-
-  if (df_calc) then
-  endif
-
-!------------------------------------------
-! SBend
-
-case (sbend$)
-
-  field%b(1) = (y * ele%value(k1$) + x * y * ele%value(k2$)) * f_p0c 
-  field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
-
-  if (df_calc) then
-    field%dB(1,1) =  ele%value(k1$) * f_p0c + y * ele%value(k2$) * f_p0c
-    field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-    field%dB(2,1) = -x * ele%value(k2$) * f_p0c
-    field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
-  endif
-
-!------------------------------------------
-! HKicker
-
-case (hkicker$)
-  field%b(2) = -ele%value(kick$) * f_p0c 
-
-!------------------------------------------
-! VKicker
-
-case (vkicker$)
-  field%b(1) =  ele%value(kick$) * f_p0c 
-
-!------------------------------------------
-! Kicker  
-
-case (kicker$)
-  field%b(1) =  ele%value(vkick$) * f_p0c 
-  field%b(2) = -ele%value(hkick$) * f_p0c 
-
-!------------------------------------------
-! Error
-
-case default
-  print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED: ', key_name(ele%key)
-  print *, '      FOR: ', ele%name
-  call err_exit
-end select
-
-!---------------------------------------------------------------------
-! Add multipoles
-
-if (associated(ele%a_pole)) then
-  if (ele%value(l$) == 0) then
-    print *, 'ERROR IN EM_FILED_CALC: dField NOT YET IMPLEMENTED FOR MULTIPOLES!'
-    call err_exit
-  endif
-
-  do i = 0, ubound(ele%a_pole, 1)
-    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
-    if (df_calc) then
-      call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky, dkm)
-    else
-      call ab_multipole_kick(ele%a_pole(i), ele%b_pole(i), i, local_orb, kx, ky)
-    endif
-    field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
-    field%B(2) = field%B(2) -  f_p0c * kx / ele%value(l$)
-    if (df_calc) then
-      field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / ele%value(l$)
-      field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / ele%value(l$)
-      field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / ele%value(l$)
-      field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / ele%value(l$)
-    endif
-  enddo
-
-endif
-
-!----------------------
-! convert fields to lab coords
-
-if (.not. local_ref_frame) then
-
-  if (ele%value(tilt_tot$) /= 0) then
-
-    sin_ang = sin(ele%value(tilt_tot$))
-    cos_ang = cos(ele%value(tilt_tot$))
-
-    fd = field%B
-    field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)
-    field%B(2) = sin_ang * fd(1) + cos_ang * fd(2)
-
-    fd = field%E
-    field%E(1) = cos_ang * fd(1) - sin_ang * fd(2)
-    field%E(2) = sin_ang * fd(1) + cos_ang * fd(2)
-
-    if (df_calc) then
-
-      dk(1,:) = cos_ang * field%dB(1,:) - sin_ang * field%dB(2,:)
-      dk(2,:) = sin_ang * field%dB(1,:) + cos_ang * field%dB(2,:)
-      dk(3,:) = field%dB(3,:)
-
-      field%dB(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-      field%dB(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
-      field%dB(:,3) = dk(:,3) 
-
-      dk(1,:) = cos_ang * field%dE(1,:) - sin_ang * field%dE(2,:)
-      dk(2,:) = sin_ang * field%dE(1,:) + cos_ang * field%dE(2,:)
-      dk(3,:) = field%dE(3,:)
-
-      field%dE(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-      field%dE(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
-      field%dE(:,3) = dk(:,3) 
-
-    endif
-  endif
-
-  !
-
-  if (ele%value(x_pitch_tot$) /= 0) then
-    field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
-    field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
-  endif
-
-  if (ele%value(y_pitch_tot$) /= 0) then
-    field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
-    field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
-  endif
-
-!-------------------------------
-! Add kicks. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
-
-if (has_kick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
-  select case (ele%key)
-  case (kicker$, hkicker$, vkicker$, elseparator$)
-  case default
-    if (.not. local_ref_frame .or. ele%value(tilt$) == 0) then
-      field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c 
-      field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c 
-    else
-      tilt = -ele%value(tilt$)
-      field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) + ele%value(hkick$) * sin(tilt)) * f_p0c 
-      field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) - ele%value(vkick$) * sin(tilt)) * f_p0c 
-    endif
-  end select
-endif
-
-endif
 
 !----------------------------------------------------------------------------
 ! Map field calc 
-!----------------------------------------------------------------------------
+
 case(map$)
 
-
 !------------------------------------------
 
-select case (ele%key)
+  select case (ele%key)
 
-!------------------------------------------
-! RFcavity and Lcavity
+  !------------------------------------------
+  ! RFcavity and Lcavity
 
-case(rfcavity$, lcavity$)
-  if (.not. associated(ele%em_field)) then
-      print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Map'
-      call err_exit
-  endif
+  case(rfcavity$, lcavity$)
+    if (.not. associated(ele%em_field)) then
+        print *, 'ERROR IN EM_FIELD_CALC: No accociated em_field for field calc = Map'
+        call err_exit
+    endif
 
     E_rho = 0; E_phi = 0; E_z = 0
     B_rho = 0; B_phi = 0; B_z = 0
@@ -674,18 +640,17 @@ case(rfcavity$, lcavity$)
     field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
     field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
 
-!------------------------------------------
-! Error
+  !------------------------------------------
+  ! Error
 
-case default
-  print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED FOR MAP METHOD: ', key_name(ele%key)
-  print *, '      FOR: ', ele%name
-  call err_exit
-end select
+  case default
+    print *, 'ERROR IN EM_FIELD_CALC: ELEMENT NOT YET CODED FOR MAP METHOD: ', key_name(ele%key)
+    print *, '      FOR: ', ele%name
+    call err_exit
+  end select
 
 !----------------------------------------------------------------------------
 ! Grid field calc 
-!----------------------------------------------------------------------------
 
 case(grid$)
 
@@ -697,13 +662,13 @@ case(grid$)
     call err_exit
   endif
   
-  !radial coordinate
+  ! radial coordinate
   r = sqrt(x**2 + y**2)
 
-  !???
+  ! ???
   s_pos = s_rel + ele%value(ds_slave_offset$)
 
-  !reference time for oscillating elements
+  ! reference time for oscillating elements
   select case (ele%key)
     case(rfcavity$) 
       t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / ele%em_field%mode(1)%freq
@@ -715,67 +680,126 @@ case(grid$)
       t_ref = 0
   end select
 
-  !Loop over modes
+  ! Loop over modes
   do i = 1, size(ele%em_field%mode)
     mode => ele%em_field%mode(i)
     m = mode%m
     
-    !DC modes should have mode%freq = 0
+    ! DC modes should have mode%freq = 0
     expt = mode%field_scale * exp(-I_imaginary * twopi * &
-					(mode%freq * (t_rel + t_ref) + mode%theta_t0))
+          (mode%freq * (t_rel + t_ref) + mode%theta_t0))
 
-    !Check for grid
+    ! Check for grid
     if (.not. associated(mode%grid)) then
-        call out_io (s_fatal$, r_name, 'ERROR IN EM_FIELD_CALC: Missing grid for ele: ' // ele%name)
+      call out_io (s_fatal$, r_name, 'ERROR IN EM_FIELD_CALC: Missing grid for ele: ' // ele%name)
       call err_exit
     endif
 
-    !calculate field based on grid type
+    ! calculate field based on grid type
     select case(mode%grid%type)
     
-      case(rotationally_symmetric_rz$)
+    case(rotationally_symmetric_rz$)
       
-      !Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
+      ! Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 
         
-        !Interpolate 2D (r, z) grid
-        !local_field is a em_field_pt_struct, which has complex E and B
-        call em_grid_linear_interpolate(mode%grid, local_field, r, s_pos)
-        !Transverse field is zero on axis. Otherwise:
-	    if (r /= 0) then
-		  !Get non-rotated field
-		  E_rho = real(expt*local_field%E(1))
- 		  E_phi = real(expt*local_field%E(2))
- 		  B_rho = real(expt*local_field%B(1)) 
-	 	  B_phi = real(expt*local_field%B(2))
+      ! Interpolate 2D (r, z) grid
+      ! local_field is a em_field_pt_struct, which has complex E and B
+      call em_grid_linear_interpolate(mode%grid, local_field, r, s_pos)
+      ! Transverse field is zero on axis. Otherwise:
 
-		 !rotate field and output Ex, Ey, Bx, By
-		 field%e(1) = field%e(1) +  (x*E_rho - y*E_phi)/r
-	 	 field%e(2) = field%e(2) +  (y*E_rho + x*E_phi)/r
-		 field%b(1) = field%b(1) +  (x*B_rho - y*B_phi)/r
-		 field%b(2) = field%b(2) +  (y*B_rho + x*B_phi)/r
-	   endif
-	
-	   !Ez, Bz 
-	     field%e(3) = field%e(3) + real(expt*local_field%E(3))
-	     field%b(3) = field%b(3) + real(expt*local_field%B(3)) 
+      if (r /= 0) then
+        ! Get non-rotated field
+        E_rho = real(expt*local_field%E(1))
+        E_phi = real(expt*local_field%E(2))
+        B_rho = real(expt*local_field%B(1)) 
+        B_phi = real(expt*local_field%B(2))
+
+        ! rotate field and output Ex, Ey, Bx, By
+        field%e(1) = field%e(1) +  (x*E_rho - y*E_phi)/r
+        field%e(2) = field%e(2) +  (y*E_rho + x*E_phi)/r
+        field%b(1) = field%b(1) +  (x*B_rho - y*B_phi)/r
+        field%b(2) = field%b(2) +  (y*B_rho + x*B_phi)/r
+      endif
   
-      case default
-        call out_io (s_fatal$, r_name, 'UNKOWN GRID TYPE FOR ELEMENT: ' // ele%name)
-        call err_exit
+      ! Ez, Bz 
+      field%e(3) = field%e(3) + real(expt*local_field%E(3))
+      field%b(3) = field%b(3) + real(expt*local_field%B(3)) 
+  
+    case default
+      call out_io (s_fatal$, r_name, 'UNKOWN GRID TYPE FOR ELEMENT: ' // ele%name)
+      call err_exit
     end select
   enddo
 
-
 !----------------------------------------------------------------------------
 ! Unknown field calc
-!----------------------------------------------------------------------------
+
 case default
   call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
   call err_exit
 end select
 
+call convert_fields_to_lab_coords
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! convert fields to lab coords
 
+contains
+
+subroutine convert_fields_to_lab_coords
+
+if (.not. local_ref_frame) then
+
+  if (ele%value(tilt_tot$) /= 0) then
+
+    sin_ang = sin(ele%value(tilt_tot$))
+    cos_ang = cos(ele%value(tilt_tot$))
+
+    fd = field%B
+    field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)
+    field%B(2) = sin_ang * fd(1) + cos_ang * fd(2)
+
+    fd = field%E
+    field%E(1) = cos_ang * fd(1) - sin_ang * fd(2)
+    field%E(2) = sin_ang * fd(1) + cos_ang * fd(2)
+
+    if (df_calc) then
+
+      dk(1,:) = cos_ang * field%dB(1,:) - sin_ang * field%dB(2,:)
+      dk(2,:) = sin_ang * field%dB(1,:) + cos_ang * field%dB(2,:)
+      dk(3,:) = field%dB(3,:)
+
+      field%dB(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
+      field%dB(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
+      field%dB(:,3) = dk(:,3) 
+
+      dk(1,:) = cos_ang * field%dE(1,:) - sin_ang * field%dE(2,:)
+      dk(2,:) = sin_ang * field%dE(1,:) + cos_ang * field%dE(2,:)
+      dk(3,:) = field%dE(3,:)
+
+      field%dE(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
+      field%dE(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
+      field%dE(:,3) = dk(:,3) 
+
+    endif
+  endif
+
+  !
+
+  if (ele%value(x_pitch_tot$) /= 0) then
+    field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
+    field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
+  endif
+
+  if (ele%value(y_pitch_tot$) /= 0) then
+    field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
+    field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
+  endif
+
+endif
+
+end subroutine convert_fields_to_lab_coords
 
 end subroutine em_field_calc 
 
@@ -813,121 +837,111 @@ integer i1, i2, i3
 
 
 !Pick appropriate dimension 
+
 select case(em_grid_dimension(grid%type))
-	
-  case (1)
-
-	approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
-    rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
-
-  	!Check for bad indices
-	if (    (i1 < lbound(grid%pt, 1)) .or. &
-			(i1 > (ubound(grid%pt, 1) - 1)) ) then
-	  	print *, 'Warning in  1D GRID interpolation: indicies out of bounds:'
-	  	print *, '            i1 =', i1
-	  	print *, 'Setting field to zero'
-  		field%E = 0
-  		field%B = 0
-  		return
-	end if			
   
+case (1)
 
+  approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
+  rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
 
-    ! Do linear interpolation
-    field%E(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%E(:) &
+  ! Check for bad indices
+  if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) ) then
+    print *, 'Warning in  1D GRID interpolation: indicies out of bounds:'
+    print *, '            i1 =', i1
+    print *, 'Setting field to zero'
+    field%E = 0
+    field%B = 0
+    return
+  end if      
+
+  ! Do linear interpolation
+  field%E(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%E(:) &
                + (rel_x1)   * grid%pt(i1+1, 1, 1)%E(:) 
-    field%B(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%B(:) &
+  field%B(:) = (1-rel_x1) * grid%pt(i1,   1, 1)%B(:) &
                + (rel_x1)   * grid%pt(i1+1, 1, 1)%B(:) 
 
-  case (2)
-  
+case (2)
 
-	approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
-	approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
+  approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
+  approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
 
-    rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
-    rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
+  rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
+  rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
   
-  	!Check for bad indices
-	if (    (i1 < lbound(grid%pt, 1)) .or. &
-			(i1 > (ubound(grid%pt, 1) - 1)) .or. &
-			(i2 < lbound(grid%pt, 2)) .or. &
-			(i2 > (ubound(grid%pt, 2) - 1)) ) then
-	  	print *, 'Warning in 2D GRID interpolation: indicies out of bounds:'
-	  	print *, '            i1 =', i1
-	  	print *, '            i2 =', i2
-	  	print *, 'Setting field to zero'
-  		field%E = 0
-  		field%B = 0
-  		return
-	end if			
-  
+  ! Check for bad indices
+  if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) .or. &
+      (i2 < lbound(grid%pt, 2)) .or. (i2 > (ubound(grid%pt, 2) - 1)) ) then
+    print *, 'Warning in 2D GRID interpolation: indicies out of bounds:'
+    print *, '            i1 =', i1
+    print *, '            i2 =', i2
+    print *, 'Setting field to zero'
+    field%E = 0
+    field%B = 0
+    return
+  end if      
+
+  ! Do bilinear interpolation
+  field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%E(:) &
+             + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%E(:) &
+             + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%E(:) &
+             + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%E(:) 
+  field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%B(:) &
+             + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%B(:) &
+             + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%B(:) &
+             + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%B(:)  
+            
+case (3)
+
+  approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
+  approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
+  approx_i3 = (x3 - grid%r0(3)) / grid%dr(3); i3 = floor(approx_i3) ! index of lower x3 data point
+
+  rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
+  rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
+  rel_x3 = approx_i3 - i3 !Relative distance from lower x3 grid point
+
+  ! Check for bad indices
+  if ((i1 < lbound(grid%pt, 1)) .or. (i1 > (ubound(grid%pt, 1) - 1)) .or. &
+      (i2 < lbound(grid%pt, 2)) .or. (i2 > (ubound(grid%pt, 2) - 1)) .or. &
+      (i3 < lbound(grid%pt, 3)) .or. (i3 > (ubound(grid%pt, 3) - 1)) ) then
+    print *, 'Warning in 3D GRID interpolation: indicies out of bounds:'
+    print *, '            i1 =', i1
+    print *, '            i2 =', i2
+    print *, '            i3 =', i3
+    print *, 'Setting field to zero'
+    field%E = 0
+    field%B = 0
+    return
+  end if      
 
     
-    ! Do bilinear interpolation
-    field%E(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%E(:) &
-               + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%E(:) &
-               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%E(:) &
-               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%E(:) 
-    field%B(:) = (1-rel_x1)*(1-rel_x2) * grid%pt(i1, i2,    1)%B(:) &
-               + (1-rel_x1)*(rel_x2)   * grid%pt(i1, i2+1,  1)%B(:) &
-               + (rel_x1)*(1-rel_x2)   * grid%pt(i1+1, i2,  1)%B(:) &
-               + (rel_x1)*(rel_x2)     * grid%pt(i1+1, i2+1,1)%B(:)	
-						
-  case (3)
-
-	approx_i1 = (x1 - grid%r0(1)) / grid%dr(1); i1 = floor(approx_i1) ! index of lower x1 data point
-	approx_i2 = (x2 - grid%r0(2)) / grid%dr(2); i2 = floor(approx_i2) ! index of lower x2 data point
-	approx_i3 = (x3 - grid%r0(3)) / grid%dr(3); i3 = floor(approx_i3) ! index of lower x3 data point
-
-    rel_x1 = approx_i1 - i1 !Relative distance from lower x1 grid point
-    rel_x2 = approx_i2 - i2 !Relative distance from lower x2 grid point
-    rel_x3 = approx_i3 - i3 !Relative distance from lower x3 grid point
-
-  	!Check for bad indices
-	if (    (i1 < lbound(grid%pt, 1)) .or. &
-			(i1 > (ubound(grid%pt, 1) - 1)) .or. &
-			(i2 < lbound(grid%pt, 2)) .or. &
-			(i2 > (ubound(grid%pt, 2) - 1)) .or. &
-			(i3 < lbound(grid%pt, 3)) .or. &
-			(i3 > (ubound(grid%pt, 3) - 1)) ) then
-	  	print *, 'Warning in 3D GRID interpolation: indicies out of bounds:'
-	  	print *, '            i1 =', i1
-	  	print *, '            i2 =', i2
-	  	print *, '            i3 =', i3
-	  	print *, 'Setting field to zero'
-  		field%E = 0
-  		field%B = 0
-  		return
-	end if			
-
-    
-    ! Do trilinear interpolation
-    field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%E(:) &
-               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%E(:) &
-               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%E(:) &
-               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%E(:) &
-               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%E(:) &
-               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%E(:) &
-               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%E(:) &
-               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%E(:)               
-               
-    ! Do bilinear interpolation
-    field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%B(:) &
-               + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%B(:) &
-               + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%B(:) &
-               + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%B(:) &
-               + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%B(:) &
-               + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%B(:) &
-               + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%B(:) &
-               + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%B(:) 
+  ! Do trilinear interpolation
+  field%E(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%E(:) &
+             + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%E(:) &
+             + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%E(:) &
+             + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%E(:) &
+             + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%E(:) &
+             + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%E(:) &
+             + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%E(:) &
+             + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%E(:)               
+             
+  ! Do bilinear interpolation
+  field%B(:) = (1-rel_x1)*(1-rel_x2)*(1-rel_x3) * grid%pt(i1, i2,    i3  )%B(:) &
+             + (1-rel_x1)*(rel_x2)  *(1-rel_x3) * grid%pt(i1, i2+1,  i3  )%B(:) &
+             + (rel_x1)  *(1-rel_x2)*(1-rel_x3) * grid%pt(i1+1, i2,  i3  )%B(:) &
+             + (rel_x1)  *(rel_x2)  *(1-rel_x3) * grid%pt(i1+1, i2+1,i3  )%B(:) &
+             + (1-rel_x1)*(1-rel_x2)*(rel_x3)   * grid%pt(i1, i2,    i3+1)%B(:) &
+             + (1-rel_x1)*(rel_x2)  *(rel_x3)   * grid%pt(i1, i2+1,  i3+1)%B(:) &
+             + (rel_x1)  *(1-rel_x2)*(rel_x3)   * grid%pt(i1+1, i2,  i3+1)%B(:) &
+             + (rel_x1)  *(rel_x2)  *(rel_x3)   * grid%pt(i1+1, i2+1,i3+1)%B(:) 
 
 
-  case default
-    print *, 'ERROR IN EM_GRID_INTERPOLATE, BAD DIMENSION:', em_grid_dimension(grid%type)
-    call err_exit   
+case default
+  print *, 'ERROR IN EM_GRID_INTERPOLATE, BAD DIMENSION:', em_grid_dimension(grid%type)
+  call err_exit   
 end select
 
-end subroutine em_grid_linear_interpolate	
+end subroutine em_grid_linear_interpolate
 
 end module

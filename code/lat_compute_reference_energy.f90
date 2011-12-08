@@ -206,10 +206,14 @@ type (lat_param_struct) :: param
 type (coord_struct) start_orb, end_orb
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
+integer key
 
-!
+! Treat an accelerating em_field element like an lcavity
 
-select case (ele%key)
+key = ele%key
+if (ele%key == em_field$ .and. ele%sub_key == nonconst_ref_energy$) key = lcavity$
+
+select case (key)
 case (lcavity$) 
   ele%value(E_tot_start$) = E_tot_start
   ele%value(p0c_start$) = p0c_start
@@ -269,6 +273,10 @@ case (patch$)
   ele%ref_time = ref_time_start
 
 case default
+  if (ele%key == em_field$) then
+    ele%value(E_tot_start$) = E_tot_start
+    ele%value(p0c_start$) = p0c_start
+  endif
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
   ele%ref_time = ref_time_start + ele%value(l$) * E_tot_start / (p0c_start * c_light)

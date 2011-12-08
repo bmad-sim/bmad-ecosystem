@@ -292,7 +292,7 @@ type ele_struct
   real(rp), pointer :: const(:) => null()     ! Working constants.
   integer key                    ! key value 
   integer sub_key                ! For wigglers: map_type$, periodic_type$
-  integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer :: ix_ele = -1         ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer ix_value               ! Overlays: Index of control attribute. 
   integer slave_status           ! super_slave$, etc.
@@ -696,24 +696,25 @@ logical, parameter :: set$ = .true., unset$ = .false.
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
 integer, parameter :: runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-integer, parameter :: symp_lie_bmad$ = 10, no_method$ = 11
+integer, parameter :: symp_lie_bmad$ = 10, static$ = 11
 integer, parameter :: boris$ = 12, adaptive_boris$ = 13, mad$ = 14
 integer, parameter :: time_runge_kutta$ = 15
 
 character(16), parameter :: calc_method_name(0:15) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'No_Method       ', &
+      'Taylor          ', 'GARBAGE!        ', 'Symp_Lie_Bmad   ', 'Static          ', &
       'Boris           ', 'Adaptive_Boris  ', 'MAD             ', 'Time_Runge_Kutta']
 
 ! sbend$ and rbend$ are from key definitions.
 
-integer, parameter :: map_type$ = 1, periodic_type$ = 3
-character(16), parameter :: sub_key_name(0:18) = ['GARBAGE!  ', &
-        'Map       ', 'SBend     ', 'Periodic  ', 'GARBAGE!  ', 'GARBAGE!  ', &
-        'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', &
-        'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', 'GARBAGE!  ', &
-        'GARBAGE!  ', 'GARBAGE!  ', 'RBend     ']
+integer, parameter :: map_type$ = 1, periodic_type$ = 3, const_ref_energy$ = 4, nonconst_ref_energy$ = 5
+character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map                ', &
+    'SBend              ', 'Periodic           ', 'Const_Ref_Energy   ', 'NonConst_Ref_Energy', &
+    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
+    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
+    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
+    'RBend              ']
 
 ! field_calc names
 

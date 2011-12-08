@@ -225,7 +225,6 @@ type (ele_struct), pointer :: multi_lord, sup_lord
 type (ele_struct), pointer, optional :: super_lord
 
 integer, optional :: ix_pass
-integer ix_con
 
 !
 
@@ -234,19 +233,16 @@ if (present(super_lord)) nullify (super_lord)
 if (present(ix_pass)) ix_pass = -1
 
 if (ele%slave_status == multipass_slave$) then
-  multi_lord => pointer_to_lord(ele, 1, ix_con)
-  if (present(ix_pass)) ix_pass = ix_con + 1 - multi_lord%ix1_slave
+  multi_lord => pointer_to_lord(ele, 1, ix_slave = ix_pass)
   return
 endif
 
 if (ele%slave_status == super_slave$) then
   sup_lord => pointer_to_lord(ele, 1)
-  if (present(super_lord)) super_lord = sup_lord
+  if (present(super_lord)) super_lord => sup_lord
 
-  if (sup_lord%n_lord /= multipass_slave$) return
-  multi_lord => pointer_to_lord(sup_lord, 1, ix_con)
-  if (present(ix_pass)) ix_pass = ix_con + 1 - multi_lord%ix1_slave
-  return
+  if (sup_lord%slave_status /= multipass_slave$) return
+  multi_lord => pointer_to_lord(sup_lord, 1, ix_slave = ix_pass)
 endif
 
 end function

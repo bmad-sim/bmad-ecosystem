@@ -486,6 +486,7 @@ do i = ix1_lord, ix2_lord
     slave => pointer_to_slave(lord, j)
     if (slave%bmad_logic) cycle
     slave%bmad_logic = .true.
+
     if (slave%n_lord == 1) then
       ix_1lord = ix_1lord + 1
       write (slave%name, '(2a, i0)') trim(lord%name), '#', ix_1lord
@@ -498,6 +499,18 @@ do i = ix1_lord, ix2_lord
       enddo
       slave%name = name(2:len(slave%name))
     endif
+
+    if (slave%key == em_field$) then
+      slave%sub_key = const_ref_energy$
+      do k = 1, slave%n_lord
+        lord => pointer_to_lord(slave, k)
+        if (lord%key == lcavity$) then
+          slave%sub_key = nonconst_ref_energy$
+          exit
+        endif
+      enddo
+    endif
+
   enddo
 enddo
 

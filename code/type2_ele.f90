@@ -101,6 +101,8 @@ allocate (li(300))
 
 type_zero = logic_option(.false., type_zero_attrib)
 
+if (associated(ele%lat)) call check_lat_controls(ele%lat, bmad_status%exit_on_error)
+
 ! Encode element name and type
 
 nl = 0  
@@ -380,23 +382,6 @@ if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
 endif
   
-! Encode lord info
-
-if (ele%n_slave /= ele%ix2_slave - ele%ix1_slave + 1) then
-  write (li(nl+1), *) ' '
-  write (li(nl+2), *) &
-                   'ERROR: N_SLAVE DOES NOT MATCH IX2_SLAVE-IX1_SLAVE+1 !!'
-  write (li(nl+3), *) ele%n_slave, ele%ix2_slave, ele%ix1_slave
-  nl = nl + 3
-endif          
-
-if (ele%n_lord /= ele%ic2_lord - ele%ic1_lord + 1) then
-  write (li(nl+1), *) ' '
-  write (li(nl+2), *) 'ERROR: N_LORD DOES NOT MATCH Ic1_LORD-Ic2_LORD+1 !!'
-  write (li(nl+3), *) ele%n_lord, ele%ic1_lord, ele%ic2_lord
-  nl = nl + 3
-endif
-
 ! Encode branch info
 
 if (ele%key == branch$ .or. ele%key == photon_branch$) then
