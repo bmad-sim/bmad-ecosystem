@@ -116,10 +116,13 @@ def link_to_packages( packages_name ):
 #   optimum order of directories to visit."""
 
 
-def build_directory( dir ):
+def build_directory( dir, statlist, target ):
     print '\n\n\n-------- Building: ' + dir
     os.chdir( dir )
-    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source ' +invars.util_dir+'/acc_vars.sh; ifort -v; printenv | grep ACC; gmake PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
+    build_command = 'ACCLIB='+invars.build_name+'; ACC_FORCE_32_BIT=N; source ' + \
+                    invars.util_dir + \
+                    '/acc_vars.sh; ifort -v; printenv | grep ACC; gmake ' + \
+                    target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
     p = sub.Popen(build_command,
                   bufsize=1,
                   shell=True,
@@ -128,18 +131,41 @@ def build_directory( dir ):
     while True:
         nextline = p.stdout.readline()
         if nextline == '' and p.poll() != None:
+            print 'RETURN CODE ===> [' + str(p.returncode) + ']'
+            statlist.append( [dir, p.returncode] )
             break
         sys.stdout.write(nextline)
         sys.stdout.flush()
 
+        
 
 #---------------------------
+
+
         
 link_to_packages( invars.packages_name )
 
-
+status_list = []
 blist = manifest_to_build_list( checkout_manifest )
-for dir in blist:
-    build_directory( dir )
 
-    
+
+targets = ['production', 'debug']
+
+buildpass_summaries = {}
+
+for buildpass, target in enumerate(targets):
+    print '\n\n-----------------------------------'
+    print target + ' pass  ('+ str(buildpass+1) +' of ' + str(len(targets)) + ')'
+    print '-----------------------------------'
+    summary = []
+    for dir in blist:
+        build_directory( dir, summary, target )
+    buildpass_summaries[target] = summary
+
+    print '\n'
+    print target + ' build pass status summary:'
+    for entry in summary:
+        print str(entry[0]) + '  :  ' + str(entry[1])
+
+    sys.stdout.flush()
+
