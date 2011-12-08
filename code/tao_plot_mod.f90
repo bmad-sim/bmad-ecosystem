@@ -440,7 +440,7 @@ type (tao_graph_struct) :: graph
 type (lat_struct) :: lat
 type (ele_struct) :: ele
 type (ele_struct) :: drift
-type (ele_struct), pointer :: ele1, ele2
+type (ele_struct), pointer :: ele1, ele2, lord
 type (floor_position_struct) end1, end2, floor, x_ray
 type (tao_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape
@@ -717,9 +717,8 @@ if (ele_shape%label == 'name') then
   if (name_in /= '') then
     name = name_in
   elseif (ele%slave_status == multipass_slave$) then
-    ix = ele%ic1_lord
-    ix = lat%control(lat%ic(ix))%ix_lord
-    name = lat%ele(ix)%name
+    lord => pointer_to_lord(ele, 1)
+    name = lord%name
   else
     name = ele%name
   endif
