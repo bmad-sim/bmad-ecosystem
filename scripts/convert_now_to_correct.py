@@ -35,4 +35,4 @@ for now_line in now_file:
 #
 
 print 'Created file: output.temp'
-print 'Rename this to: output.correct'
+print 'Merge or rename this to: output.correct'
