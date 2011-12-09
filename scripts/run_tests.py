@@ -26,15 +26,19 @@ def print_all(str, terminate = False):
     num_flow_failures += 1
 
 #----------------------------------------------------------
+def print_help():
+  print 'Usage:'
+  print '   run_test.py {-bin <exe_dir>} {-test <test_dir>} {-list <test_list_file>}'
+  print 'Defaults:'
+  print '   <exe_dir>  = "../../bin"       ! Remember: Relative to test directories.' 
+  print '   <test_dir> = ""                ! For running a single test. Overrides using a test list file.'
+  print '   <test_list_file> = "test.list" ! For running multiple tests.'
+
+
+#----------------------------------------------------------
 # List of tests is in "test.list".
 
-if len(sys.argv) > 2: 
-  print 'Usage:'
-  print '   run_test.py {<program_dir>}'
-  exit()
-
 results = open('regression.results', 'w')
-
 
 program_dir = '../../bin/'
 if len(sys.argv) == 2: program_dir = sys.argv[1]
