@@ -289,18 +289,20 @@ do i = 1, n_key
 
   if (i == match$) cycle
 
-  call init_attrib (i, tilt$,          'TILT' )
-  call init_attrib (i, x_offset$,      'X_OFFSET')
-  call init_attrib (i, y_offset$,      'Y_OFFSET')
-  call init_attrib (i, s_offset$,      'S_OFFSET')
-  call init_attrib (i, x_pitch$,       'X_PITCH')
-  call init_attrib (i, y_pitch$,       'Y_PITCH')
-  call init_attrib (i, tilt_tot$,      'TILT_TOT')
-  call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT')
-  call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT')
-  call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT')
-  call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT')
-  call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT')
+  if (i /= em_field$) then
+    call init_attrib (i, tilt$,          'TILT' )
+    call init_attrib (i, x_offset$,      'X_OFFSET')
+    call init_attrib (i, y_offset$,      'Y_OFFSET')
+    call init_attrib (i, s_offset$,      'S_OFFSET')
+    call init_attrib (i, x_pitch$,       'X_PITCH')
+    call init_attrib (i, y_pitch$,       'Y_PITCH')
+    call init_attrib (i, tilt_tot$,      'TILT_TOT')
+    call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT')
+    call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT')
+    call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT')
+    call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT')
+    call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT')
+  endif
 
   if (i == mirror$)     cycle
   if (i == crystal$)    cycle

@@ -1,21 +1,16 @@
 !+
-! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, digested_file_name, digested_read_ok)
+! Subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6)
 !
 ! Subroutine parse (read in) a BMAD input file.
 ! This subrotine assumes that lat already holds an existing lattice.
-! To read in a lattice from scratch use BMAD_PARSER or XSIF_PARSER.
+! To read in a lattice from scratch use bmad_parser or xsif_parser.
 !
-! With BMAD_PARSER2 you may:
+! With bmad_parser2 you may:
 !     a) Modify the attributes of elements.
 !     b) Define new overlays and groups.
 !     c) Superimpose new elements upon the lattice.
 !
-! If the digested_file_name argument is present then bmad_parser2 will, If it exists
-! and is up-to-date, set lat to the lattice in this digested file instead of modifying 
-! lat using lat_file. If the digested file doesn't
-! exist or is not up-to-date then a new digested file will be created. If this 
-! argument is '*' then the new digested file name is:
-!               'digested_' // lat_file   
+! Note: Unlike bmad_parser, no digested file will be created.
 !
 ! Note: If you use the superimpose feature to insert an element into the latttice
 !       then the index of a given element already in the lattice may change.
@@ -30,18 +25,12 @@
 !                           bmad_parser2 calls lat_make_mat6
 !   make_mats6  -- Logical, optional: Make the 6x6 transport matrices for then
 !                   Elements? Default is True.
-!   digested_file_name 
-!               -- Character(*), optional: Name of a Bmad digested file to use.
-!                           
-!   digested_read_ok  
-!               -- Logical, optinal: Set True if digested file was
-!                           successfully read. False otherwise.
 !
 ! Output:
 !   lat    -- lat_struct: lattice with modifications.
 !-
 
-subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6, digested_file_name, digested_read_ok)
+subroutine bmad_parser2 (lat_file, lat, orbit, make_mats6)
 
 use bmad_parser_mod, except_dummy => bmad_parser2
 
@@ -58,24 +47,23 @@ type (parser_lat_struct), target :: plat
 real(rp) v1, v2
 
 integer ix_word, i, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
-integer key, n_max_old, digested_version
+integer key, n_max_old
 integer, pointer :: n_max
 integer, allocatable :: lat_indexx(:)
 
 character(*) lat_file
-character(*), optional :: digested_file_name
 character(1) delim 
 character(40) word_2, name
 character(40), allocatable :: lat_name(:)
 character(16) :: r_name = 'bmad_parser2'
 character(32) word_1
 character(40) this_name
-character(280) parse_line_save, digested_name
+character(280) parse_line_save
 character(200) call_file
 character(80) debug_line
 
-logical, optional :: make_mats6, digested_read_ok
-logical parsing, delim_found, found, xsif_called, err, wild_here, key_here
+logical, optional :: make_mats6
+logical parsing, found, delim_found, xsif_called, err, wild_here, key_here
 logical end_of_file, err_flag, finished, good_attrib, wildcards_permitted, integer_permitted
 logical print_err, check
 
@@ -130,22 +118,6 @@ beam_start_ele%key = def_beam_start$
 beam_start_ele%ixx = 3                    ! Pointer to plat%ele() array
 
 n_plat_ele = 3
-
-! see if a digested bmad file is available
-
-if (present(digested_file_name)) then
-  digested_name = digested_file_name
-  if (digested_file_name == '*') call form_digested_bmad_file_name (lat_file, digested_name)
-  call read_digested_bmad_file (digested_name, lat2, digested_version)
-  if (bmad_status%ok) then
-    lat = lat2
-    call deallocate_lat_pointers (lat2)
-    return
-  endif
-  if (digested_version <= bmad_inc_version$) bp_com%write_digested2 = .true.
-  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s)...')
-endif
-
 bmad_status%ok = .true.
 
 !-----------------------------------------------------------
@@ -589,11 +561,6 @@ call remove_eles_from_lat (lat)  ! remove all null_ele elements.
 
 call parser_add_lord (lat2, ele_num, plat, lat)
 
-! Reuse the old taylor series if they exist
-! and the old taylor series has the same attributes.
-
-call reuse_taylor_elements (lat2, lat)
-
 ! make matrices for entire lat
 
 call lattice_bookkeeper (lat)
@@ -623,12 +590,5 @@ if (associated (plat%ele))      deallocate (plat%ele)
 if (allocated(lat_name))        deallocate (lat_name, lat_indexx)
 
 call deallocate_lat_pointers (lat2)
-
-! write to digested file
-
-if (bp_com%write_digested2) then
-  call write_digested_bmad_file (digested_name, lat, bp_com%num_lat_files, bp_com%lat_file_names, bp_com%ran)
-  if (bmad_status%type_out) call out_io (s_info$, r_name, 'Created new digested file')
-endif
 
 end subroutine

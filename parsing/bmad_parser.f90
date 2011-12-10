@@ -945,7 +945,6 @@ call check_lat_controls (lat, .true.)
 
 call lattice_bookkeeper (lat)
 lat%input_taylor_order = bmad_com%taylor_order
-call reuse_taylor_elements (old_lat, lat)
 
 ! Do we need to expand the lattice and call bmad_parser2?
 
@@ -956,12 +955,15 @@ if (detected_expand_lattice_cmd) then
   bmad_status%exit_on_error = .false.
   bp_com%bmad_parser_calling = .true.
   bp_com%old_lat => in_lat
-  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = make_mats6)
+  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false.)
   bp_com%bmad_parser_calling = .false.
   bmad_status%exit_on_error = exit_on_error
-else
-  if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
 endif
+
+! Make the transfer matrices
+
+call reuse_taylor_elements (old_lat, lat)
+if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
 
 ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
 
