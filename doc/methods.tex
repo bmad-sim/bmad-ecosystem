@@ -125,6 +125,15 @@ search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic. Note: Due to memory limitations
 in PTC, the number of elements using symp_map is limited to be of order 50.
 
+\index{time_runge_kutta!tracking method}
+\item[\vn{Symp_Map}]
+This method uses time as the independent variable instead of
+longitudinal position. The advantage of this method is that it can
+handle particles which reverse direction longitudinally.  One use for
+this method is ``dark current'' tracking where low energy particles
+generatied at the vacuum chamber walls can be found travelling in all
+directions.
+
 \index{taylor!tracking method}
 \item[\vn{Taylor}]
 This uses a Taylor map generated from Etienne's PTC
@@ -166,43 +175,44 @@ and \vn{patch} elements are limited to first order.
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Symp_Map}\end{sideways} &
 \begin{sideways}\vn{Taylor}\end{sideways}
+\begin{sideways}\vn{Time_Runge_Kutta}\end{sideways} &
 \\ \midrule
-%                               AB  BS   B   C   L   M   RK    SLB   SLP   SM     T  
-  \vn{ab_multipole}            &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
-  \vn{beambeam}                &   & D &   & X & X &   &     &     &     &     &      \\  
-  \vn{bend_sol_quad}           &   &   &   & X &   &   &     &  D  &     &     &      \\  
-  \vn{capillary}               &   & D &   & X &   &   &     &     &     &     &      \\  
-  \vn{crystal}                 &   & D &   & X &   &   &     &     &     &     &      \\  
-  \vn{custom}                  & X &   & X & D & X &   &  X  &     &     &     &      \\  
-  \vn{drift}                   & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\  
-  \vn{e_gun}                   & X &   & X & X &   &   &  D  &     &     &     &      \\  
-  \vn{ecollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
-  \vn{elseparator}             & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\  
-  \vn{em_field}                & X &   & X & X &   &   &  D  &     &     &     &      \\  
-  \vn{hkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
-  \vn{instrument}              & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
-  \vn{kicker}                  & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
-  \vn{lcavity}                 & X & D & X & X & X &   &  X  &  X  &     &     &  *   \\  
-  \vn{marker}                  &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
-  \vn{match}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
-  \vn{monitor}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\  
-  \vn{mirror}                  &   & D &   & X &   &   &     &     &     &     &      \\  
-  \vn{multipole}               &   & D &   & X & X &   &     &     &  X  &  X  &  X   \\  
-  \vn{multilayer}              &   & D &   & X &   &   &     &     &     &     &      \\  
-  \vn{octupole}                & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
-  \vn{patch}                   &   & D &   & X &   &   &     &     &     &     &  *   \\ 
-  \vn{quadrupole}              & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
-  \vn{rbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X   \\ 
-  \vn{rcollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
-  \vn{rfcavity}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
-  \vn{sbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X   \\ 
-  \vn{sextupole}               & X & D & X & X & X & X &  X  &     &  X  &  X  &  X   \\ 
-  \vn{solenoid}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
-  \vn{sol_quad}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X   \\ 
-  \vn{taylor}                  &   & D &   & X & X &   &     &     &     &     &      \\ 
-  \vn{vkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X   \\ 
-  \vn{wiggler} (map type)      & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  X   \\ 
-  \vn{wiggler} (periodic type) &   & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$ \\ \bottomrule
+%                               AB  BS   B   C   L   M   RK    SLB   SLP   SM     T   TRK
+  \vn{ab_multipole}            &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{beambeam}                &   & D &   & X & X &   &     &     &     &     &     &    \\  
+  \vn{bend_sol_quad}           &   &   &   & X &   &   &     &  D  &     &     &     &    \\  
+  \vn{capillary}               &   & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{crystal}                 &   & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{custom}                  & X &   & X & D & X &   &  X  &     &     &     &     & X  \\  
+  \vn{drift}                   & X & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{e_gun}                   & X &   & X & X &   &   &  D  &     &     &     &     & X  \\  
+  \vn{ecollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{elseparator}             & X & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{em_field}                & X &   & X & X &   &   &  D  &     &     &     &     & X  \\  
+  \vn{hkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{instrument}              & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{kicker}                  & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{lcavity}                 & X & D & X & X & X &   &  X  &  X  &     &     &  *  & X  \\  
+  \vn{marker}                  &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{match}                   &   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
+  \vn{monitor}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\  
+  \vn{mirror}                  &   & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{multipole}               &   & D &   & X & X &   &     &     &  X  &  X  &  X  &    \\  
+  \vn{multilayer}              &   & D &   & X &   &   &     &     &     &     &     &    \\  
+  \vn{octupole}                & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{patch}                   &   & D &   & X &   &   &     &     &     &     &  *  &    \\ 
+  \vn{quadrupole}              & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{rbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
+  \vn{rcollimator}             & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{rfcavity}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sbend}                   &   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
+  \vn{sextupole}               & X & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{solenoid}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{sol_quad}                & X & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{taylor}                  &   & D &   & X & X &   &     &     &     &     &     &    \\ 
+  \vn{vkicker}                 & X & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{wiggler} (map type)      & X & D & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
+  \vn{wiggler} (periodic type) &   & D &   & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
    \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 

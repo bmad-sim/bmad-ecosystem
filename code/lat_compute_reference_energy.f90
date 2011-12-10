@@ -29,7 +29,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, branch_ele, ele0
 type (branch_struct), pointer :: branch
 
-integer i, k, ib, ix, ixs, ibb
+integer i, k, ib, ix, ixs, ibb, ix_slave
 
 logical did_set, stale
 
@@ -106,9 +106,23 @@ do ib = 0, ubound(lat%branch, 1)
       call set_ele_status_stale (lat%branch(ibb)%ele(0), lat%branch(ibb)%param, ref_energy_group$)
     endif
 
-    ! Calculate the energy
+    ! Calculate the energy at the end of the present element.
+    ! If this element is the first super_slave of an lcavity lord then compute the reference energy
+    ! of the lord in case the RF phase and amplitude need to be adjusted.
 
     ele0 => branch%ele(i-1)
+
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+      if (ele%key == lcavity$ .or. (ele%key == em_field$ .and. ele%sub_key == nonconst_ref_energy$)) then
+        lord => pointer_to_lord (ele, 1, ix_slave = ix_slave)
+        if (lord%key == lcavity$ .and. associated(ele%em_field) .and. ix_slave == 1) then
+          call compute_ele_reference_energy (lord, branch%param, &
+                                                ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
+          call control_bookkeeper (lat, lord)
+        endif
+      endif
+    endif
+
     call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
 
     call set_ele_status_stale (ele, branch%param, attribute_group$)

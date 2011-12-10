@@ -179,13 +179,13 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb
-type (wig_term_struct), pointer :: t
+type (wig_term_struct), pointer :: wig
 type (em_field_struct) :: field, field2
 type (em_field_point_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
-real(rp) :: x, y, s, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, s, t, xx, yy, t_rel, s_rel, z,   f, dk(3,3), charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3)
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, dEz_dz, theta, r, E_r
@@ -235,7 +235,8 @@ if (ele%key == em_field$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       s = s_rel - lord%value(s_offset$) + ele%value(ds_slave_offset$)
-      call em_field_calc (lord, param, s, t_rel, local_orb, .false., field2, calc_dfield)
+      t = t_rel - ((ele%ref_time - ele%value(delta_ref_time$)) - (lord%ref_time - lord%value(delta_ref_time$)))
+      call em_field_calc (lord, param, s, t, local_orb, .false., field2, calc_dfield)
       field%E = field%E + field2%E
       field%B = field%B + field2%B
       if (df_calc) then
@@ -330,52 +331,52 @@ select case (ele%field_calc)
   case(wiggler$)
 
     do i = 1, size(ele%wig_term)
-      t => ele%wig_term(i)
+      wig => ele%wig_term(i)
 
-      if (t%type == hyper_y$) then
-        c_x = cos(t%kx * x)
-        s_x = sin(t%kx * x)
+      if (wig%type == hyper_y$) then
+        c_x = cos(wig%kx * x)
+        s_x = sin(wig%kx * x)
         sgn_x = 1
         dc_x = -1
       else
-        c_x = cosh(t%kx * x)
-        s_x = sinh(t%kx * x)
+        c_x = cosh(wig%kx * x)
+        s_x = sinh(wig%kx * x)
         sgn_x = -1
         dc_x = 1
       endif
 
-      if (t%type == hyper_y$ .or. t%type == hyper_xy$) then
-        c_y = cosh (t%ky * y)
-        s_y = sinh (t%ky * y)
+      if (wig%type == hyper_y$ .or. wig%type == hyper_xy$) then
+        c_y = cosh (wig%ky * y)
+        s_y = sinh (wig%ky * y)
         dc_y = 1
       else
-        c_y = cos (t%ky * y)
-        s_y = sin (t%ky * y)
+        c_y = cos (wig%ky * y)
+        s_y = sin (wig%ky * y)
         dc_y = -1
       endif
 
-      c_z = cos (t%kz * s_rel + t%phi_z)
-      s_z = sin (t%kz * s_rel + t%phi_z)
+      c_z = cos (wig%kz * s_rel + wig%phi_z)
+      s_z = sin (wig%kz * s_rel + wig%phi_z)
 
-      coef = sign_charge * t%coef * ele%value(polarity$)
+      coef = sign_charge * wig%coef * ele%value(polarity$)
 
-      field%B(1) = field%B(1) - coef  * (t%kx / t%ky) * s_x * s_y * c_z * sgn_x
+      field%B(1) = field%B(1) - coef  * (wig%kx / wig%ky) * s_x * s_y * c_z * sgn_x
       field%B(2) = field%B(2) + coef  *                 c_x * c_y * c_z
-      field%B(3) = field%B(3) - coef  * (t%kz / t%ky) * c_x * s_y * s_z
+      field%B(3) = field%B(3) - coef  * (wig%kz / wig%ky) * c_x * s_y * s_z
 
       if (df_calc) then
-        f = coef * t%kx
-        field%dB(1,1) = field%dB(1,1) - f  * (t%kx / t%ky) * c_x * s_y * c_z * sgn_x
+        f = coef * wig%kx
+        field%dB(1,1) = field%dB(1,1) - f  * (wig%kx / wig%ky) * c_x * s_y * c_z * sgn_x
         field%dB(2,1) = field%dB(2,1) + f  *                 s_x * c_y * c_z * dc_x
-        field%dB(3,1) = field%dB(3,1) - f  * (t%kz / t%ky) * s_x * s_y * s_z * dc_x
-        f = coef * t%ky
-        field%dB(1,2) = field%dB(1,2) - f  * (t%kx / t%ky) * s_x * c_y * c_z * sgn_x
+        field%dB(3,1) = field%dB(3,1) - f  * (wig%kz / wig%ky) * s_x * s_y * s_z * dc_x
+        f = coef * wig%ky
+        field%dB(1,2) = field%dB(1,2) - f  * (wig%kx / wig%ky) * s_x * c_y * c_z * sgn_x
         field%dB(2,2) = field%dB(2,2) + f  *                 c_x * s_y * c_z * dc_y
-        field%dB(3,2) = field%dB(3,2) - f  * (t%kz / t%ky) * c_x * c_y * s_z 
-        f = coef * t%kz
-        field%dB(1,3) = field%dB(1,3) + f  * (t%kx / t%ky) * s_x * s_y * s_z * sgn_x
+        field%dB(3,2) = field%dB(3,2) - f  * (wig%kz / wig%ky) * c_x * c_y * s_z 
+        f = coef * wig%kz
+        field%dB(1,3) = field%dB(1,3) + f  * (wig%kx / wig%ky) * s_x * s_y * s_z * sgn_x
         field%dB(2,3) = field%dB(2,3) - f  *                 c_x * c_y * s_z * dc_y
-        field%dB(3,3) = field%dB(3,3) - f  * (t%kz / t%ky) * c_x * s_y * c_z 
+        field%dB(3,3) = field%dB(3,3) - f  * (wig%kz / wig%ky) * c_x * s_y * c_z 
       endif
 
     enddo
@@ -404,7 +405,22 @@ select case (ele%field_calc)
   case (sextupole$)
 
     field%b(1) = x * y * ele%value(k2$) * f_p0c
-    field%b(2) = -(x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
+    field%b(2) = (x**2 - y**2) / 2 * ele%value(k2$) * f_p0c 
+
+    if (df_calc) then
+      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
+      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
+      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
+    endif
+
+  !------------------------------------------
+  ! Sextupole 
+
+  case (octupole$)
+
+    field%b(1) = -(y**3 - 3*y*x**2) / 6 * ele%value(k2$) * f_p0c 
+    field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k2$) * f_p0c 
 
     if (df_calc) then
       field%dB(1,1) =  y * ele%value(k2$) * f_p0c
@@ -417,6 +433,11 @@ select case (ele%field_calc)
   ! Sol_quad
 
   case (sol_quad$)
+
+    if (bmad_status%type_out) &
+      call out_io (s_fatal$, r_name, 'BMAD_STANDARD SOL_QUAD FIELD NOT IMPLEMENTED SINCE EDGE FIELD IS NOT DEFINED.')
+    if (bmad_status%exit_on_error) call err_exit
+    return
 
     field%b(1) = y * ele%value(k1$) * f_p0c 
     field%b(2) = x * ele%value(k1$) * f_p0c 
@@ -431,6 +452,11 @@ select case (ele%field_calc)
   ! Solenoid
 
   case (solenoid$)
+
+    if (bmad_status%type_out) &
+      call out_io (s_fatal$, r_name, 'BMAD_STANDARD SOLENOID FIELD NOT IMPLEMENTED SINCE EDGE FIELD IS NOT DEFINED.')
+    if (bmad_status%exit_on_error) call err_exit
+    return
 
     field%b(3) = ele%value(ks$) * f_p0c
 

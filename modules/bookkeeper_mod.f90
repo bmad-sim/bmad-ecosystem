@@ -869,6 +869,7 @@ endif
 
 slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
+slave%map_with_offsets = lord%map_with_offsets
 slave%is_on            = lord%is_on
 slave%aperture_at      = lord%aperture_at
 slave%aperture_type    = lord%aperture_type
@@ -1299,6 +1300,7 @@ do j = 1, slave%n_lord
   if (j == 1) then
     slave%mat6_calc_method = lord%mat6_calc_method
     slave%tracking_method  = lord%tracking_method
+    slave%map_with_offsets = lord%map_with_offsets
   else
     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
       lord1 => pointer_to_lord(slave, 1)
@@ -1312,12 +1314,21 @@ do j = 1, slave%n_lord
            'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
       call err_exit
     endif
+    if (slave%map_with_offsets /= lord%map_with_offsets) then
+      lord1 => pointer_to_lord(slave, 1)
+      call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
+           'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+      call err_exit
+    endif
   endif
 
+  !----------------------------------------------------
   ! kicks, etc.
 
   if (.not. lord%is_on) cycle
   slave%is_on = .true.  ! Slave is on if at least one lord is on
+
+  if (slave%key == em_field$) cycle  ! Field info is stored in the lord elements.
 
   tilt = lord%value(tilt_tot$)
 
@@ -1422,8 +1433,10 @@ do j = 1, slave%n_lord
 
 enddo
 
-!------------------------------
+!-------------------------------------------------------------------------------
 ! stuff sums into slave element
+
+if (slave%key == em_field$) return  ! Field info is stored in the lord elements.
 
 if (x_kick == 0 .and. y_kick == 0) then
   if (slave%key == hkicker$ .or. slave%key == vkicker$) then
@@ -1827,6 +1840,7 @@ slave%value = value
 slave%is_on = lord%is_on
 slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
+slave%map_with_offsets = lord%map_with_offsets
 
 ! If a wiggler: 
 ! must keep track of where we are in terms of the unsplit wiggler.

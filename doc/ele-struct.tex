@@ -25,24 +25,25 @@ will return an array of strings containing the element information.
 \footnotesize
 \begin{verbatim}
 type ele_struct
-  character(40) name                   ! name of element \sref{c:ele.string}.
-  character(40) type                   ! type name \sref{c:ele.string}.
-  character(40) alias                  ! Another name \sref{c:ele.string}.
-  character(40) component_name         ! Used by overlays, multipass patch, etc.
-  character(200), pointer :: descrip => null() ! Description string.
-  type (twiss_struct)  a, b, z         ! Twiss parameters at end of element \sref{c:twiss}.
-  type (xy_disp_struct) x, y           ! Projected dispersions \sref{c:twiss}.
-  type (floor_position_struct) floor   ! Global floor position at end of ele.
-  type (mode3_struct), pointer :: mode3 => null()
-  type (coord_struct) map_ref_orb_in   ! Ref orbit at entrance of element.
-  type (coord_struct) map_ref_orb_out  ! Ref orbit at exit of element.
-  type (genfield), pointer :: gen_field => null() ! For symp_map
-  type (taylor_struct) :: taylor(6)               ! Taylor terms
-  type (rf_struct) rf                             ! RF field and wake structure.
-  type (wig_term_struct), pointer :: wig_term(:) => null()   ! Wiggler Coefs
+  character(40) name                    ! name of element \sref{c:ele.string}.
+  character(40) type                    ! type name \sref{c:ele.string}.
+  character(40) alias                   ! Another name \sref{c:ele.string}.
+  character(40) component_name          ! Used by overlays, multipass patch, etc.
+  character(200), pointer :: descrip    ! Description string.
+  type (twiss_struct)  a, b, z          ! Twiss parameters at end of element \sref{c:twiss}.
+  type (xy_disp_struct) x, y            ! Projected dispersions \sref{c:twiss}.
+  type (floor_position_struct) floor    ! Global floor position at end of ele.
+  type (mode3_struct), pointer :: mode3 
+  type (coord_struct) map_ref_orb_in    ! Ref orbit at entrance of element.
+  type (coord_struct) map_ref_orb_out   ! Ref orbit at exit of element.
+  type (genfield), pointer :: gen_field ! For symp_map
+  type (taylor_struct) :: taylor(6)     ! Taylor terms
+  type (em_fields_struct) em_field      ! Electric and magnetic fields.
+  type (rf_wake_struct) rf_wake         ! RF wake component.
+  type (wig_term_struct), pointer :: wig_term(:) ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  type (wall3d_struct) :: wall3d             ! Chamber or capillary wall
-  type (em_field_grid_struct), pointer :: em_grid => null()
+  type (wall3d_struct) :: wall3d          ! Chamber or capillary wall
+  type (lat_struct), pointer :: lat       ! Pointer to lattice containing this element.
   type (bookkeeper_status_struct) status  ! For keeping track of what bookkeeping has been done.
   real(rp) value(n_attrib_maxx)           ! attribute values.
   real(rp) old_value(n_attrib_maxx)       ! Used to see if %value(:) array has changed.
@@ -286,6 +287,39 @@ If nothing has been changed, the \vn{attribute_bookkeeper} routine knows
 not to waste time recalculating dependent values. Essentially what
 this means is that the \vn{%old_value(:)} 
 array should not be modified outside of \vn{attribute_bookkeeper}.
+
+%--------------------------------------------------------------------------
+\section{Connection with the Lat_Struct}
+\label{s:ele.lat}
+
+\index{ele_struct!\%ix_ele}
+\index{ele_struct!\%ix_branch}
+\index{ele_struct!\%lat}
+If an element is part of a \vn{lat_struct} (\sref{c:lat.struct}), the
+\vn{%ix_ele} and \vn{\%ix_branch} components of the \vn{ele_struct}
+identify where the element is. Additionally, the \vn{%lat} component
+will point to the encomposing lattice. That is
+\begin{example}
+  type (lat_struct), pointer :: lat
+  type (ele_struct), pointer :: ele2
+  if (ele%ix_ele > -1) then
+    ie = ele%ix_ele
+    ib = ele%ix_branch
+    lat => ele%lat
+    ele2 => lat%branch(ib)%ele(ie)
+    print *, associated(ele2, ele)  ! Will print True.
+  endif
+\end{example}
+In this example the \vn{ele2} pointer is constructed to point to the
+\vn{ele} element. The test (\vn{ele%ix_ele}~>~-1) is needed since
+\vn{ele_struct} elements may exist outside of any \vn{lat_struct}
+instance. Such ``external'' elements always have \vn{%ix_ele} = -1.
+
+An element ``slice'' is an example of an element that exists external
+to any \vn{lat_struct} instance. A slice is an \vn{ele_struct}
+instance that represents some sub-section of a given element. Element
+slices are useful when tracking particles only part way through an
+element (\sref{s:tracking.partial}).
 
 %--------------------------------------------------------------------------
 \section{Limits}

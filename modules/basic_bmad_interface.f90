@@ -41,15 +41,13 @@ interface
 end interface
   
 interface
-  subroutine bmad_parser2 (in_file, lat, orbit, make_mats6, &
-                                      digested_file_name, digested_read_ok)
+  subroutine bmad_parser2 (in_file, lat, orbit, make_mats6)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
     character(*) in_file
     type (lat_struct), target :: lat
     type (coord_struct), optional :: orbit(0:)
-    character(*), optional :: digested_file_name
-    logical, optional :: make_mats6, digested_read_ok
+    logical, optional :: make_mats6
   end subroutine
 end interface
 

@@ -254,6 +254,22 @@ what element the loss occurred.
 \end{figure}
 
 %----------------------------------------------------------------
+\section{Partial Tracking through elements}
+\label{s:tracking.partial}
+\index{tracking!partial}
+
+There are two routines for tracking partially through an element:
+\begin{example}
+  \zzz{twiss_and_track_at_s} (lat, s, ele, orb, orb_at_s, ix_branch, err, use_saved_data)
+  \zzz{twiss_and_track_intra_ele}  (ele, param, l_start, l_end, track_entrance,
+                   track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+
+\end{example}
+Both routines make use of element ``slices'' (\sref{s:ele.lat}) which
+are elements that represent some sub-section of an element. The
+routine \zzz{create_element_slice} can be used to create such slices.
+
+%----------------------------------------------------------------
 \section{Apertures}
 \label{s:tracking.apertures}
 \index{tracking!apertures}
@@ -460,18 +476,19 @@ PTC (\sref{c:etienne}) currently implements integrators of order 2, 4, or 6.
 
 There are two ways to do reverse tracking in which the particle goes
 in the direction of decreasing \vn{s}. The first way is to use the
-\Hyperref{r:track.many}{track_many} routine. See the \vn{track_many} routine for more
-details. The advantage of using \vn{track_many} is that it is
-simple. The disadvantage is that it can slow things down some since
-each element goes through a reversal process every time it is tracked
-through. If a program is doing a lot of tracking the other option
-is to form a reversed lattice with the elements in the reverse order
-and track through that. The routine \Hyperref{r:lat.reverse}{lat_reverse} will do
-this. One must be somewhat careful since the reversed lattice uses a
-reversed coordinate system. The transformation between the reversed
-and unreversed lattices is
+\Hyperref{r:track.many}{track_many} routine. See the \vn{track_many}
+routine for more details. The advantage of using \vn{track_many} is
+that it is simple. The disadvantage is that it can slow things down
+some since each element goes through a reversal process every time it
+is tracked through. If a program is doing a lot of tracking the other
+option is to form a reversed lattice with the elements in the reverse
+order and track through that. The routine
+\Hyperref{r:lat.reverse}{lat_reverse} will do this. One must be
+somewhat careful since the reversed lattice uses a reversed coordinate
+system. The transformation between the reversed and unreversed
+lattices is
 \Begineq
-  (x, p_x, y, p_y, z, p_z) -> (x, -p_x, y, -p_y, -z, p_z)
+  (x, p_x, y, p_y, z, p_z) -> (x, -p_x, -y, p_y, -z, p_z)
 \Endeq
 See the \vn{lat_reverse} routine for more details.
 
