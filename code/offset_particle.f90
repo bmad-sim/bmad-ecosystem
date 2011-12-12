@@ -116,8 +116,8 @@ if (.not. bmad_com%canonical_coords) set_canon = .not. set_canon
 set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
                    (has_kick_attributes(ele%key) .or. has_hkick_attributes(ele%key))
-set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele%key)
-set_s     = logic_option (.true., set_s_offset) .and. has_orientation_attributes(ele%key)
+set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele)
+set_s     = logic_option (.true., set_s_offset) .and. has_orientation_attributes(ele)
 is_reversed = logic_option (.false., reversed)
 
 if (set_hv) then
@@ -159,7 +159,7 @@ if (set) then
 
   ! Set: Offset and pitch
 
-  if (has_orientation_attributes(ele%key)) then
+  if (has_orientation_attributes(ele)) then
 
     if (present(ds_pos)) then
       s_here = ds_pos - ele%value(l$) / 2  ! position relative to center.
@@ -333,7 +333,7 @@ else
 
   ! Unset: Offset and pitch
 
-  if (has_orientation_attributes(ele%key)) then
+  if (has_orientation_attributes(ele)) then
 
     ! If a bend then must rotate the offsets from the coordinates at the center of the bend
     ! to the exit coordinates. This rotation is just the coordinate transformation for the

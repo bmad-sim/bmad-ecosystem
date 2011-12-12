@@ -809,6 +809,10 @@ endif
 
 if (associated(lord%wall3d%section)) slave%wall3d = lord%wall3d
 
+if (slave%key /= wiggler$) then
+  slave%field_calc = refer_to_lords$
+endif
+
 ! A slave's field_master = T irregardless of the lord's setting.
 ! This is to make attribute_bookkeeper compute the correct normalized field strength.
 
@@ -886,7 +890,7 @@ if (lord%key == patch$ .and. slave%value(p0c$) /= 0) then
     ic = lord%ix1_slave + nint(lord%value(n_ref_pass$)) - 1
     ix_s0 = lat%control(ic)%ix_slave  ! Index of slave element on the reference pass
 
-    if (.not. has_orientation_attributes(slave%key)) call err_exit ! This should not be
+    if (.not. has_orientation_attributes(slave)) call err_exit ! This should not be
 
     ! ref pass slave parameters are fixed.
     if (ix_s0 == ix_slave) then
@@ -1147,9 +1151,11 @@ if (slave%slave_status /= super_slave$) then
   call err_exit
 endif
 
-! If this slave is the last slave for some lord (so that then longitudinal 
-! end of the slave matches the end of the lord) then the limits of the lord
-! are transfered to the slave.
+! wigglers are grandfathered for now...
+
+if (slave%key /= wiggler$) then
+  slave%field_calc = refer_to_lords$
+endif
 
 !-----------------------------------------------------------------------
 ! 1 super_lord for this super_slave: just transfer attributes except length
@@ -1709,6 +1715,24 @@ if (e_len == 0) then
   return
 endif
 
+! The sliced element is treated as a super_slave to the original element except
+! if that element is a super_slave in which case the sliced element has the same lords
+! as the original element.
+! Note: Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
+! periodic wiggler phi_z values.
+
+sliced_ele%slave_status = super_slave$
+if (ele_in%slave_status /= super_slave$) then
+  sliced_ele%lord => ele_in
+  sliced_ele%n_lord = 1
+endif
+
+sliced_ele%value(l$) = l_slice
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
+
+sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
+sliced_ele%value(ds_slave_offset$) = offset + ele_in%value(ds_slave_offset$)
+
 ! Use a speedier tracking method.
 
 select case (sliced_ele%tracking_method)
@@ -1727,10 +1751,9 @@ case (taylor$, symp_map$, symp_lie_ptc$)
   end select
 end select
 
-! Setting the slave_status to super_slave prevents attribute_bookkeeper from setting
-! periodic wiggler phi_z values.
-
-sliced_ele%slave_status = super_slave$
+if (sliced_ele%key /= wiggler$) then
+  sliced_ele%field_calc = refer_to_lords$
+endif
 
 ! Lcavity reference energy can be nonlinear so use a slice from the beginning of ele_in
 ! to get the starting ref energy of the slice
@@ -1741,10 +1764,6 @@ if (sliced_ele%key == lcavity$) then
   sliced_ele%value(e_tot_start$) = sliced_ele%value(e_tot$)
   sliced_ele%value(p0c_start$)   = sliced_ele%value(p0c$)
 endif
-
-sliced_ele%value(l$) = l_slice
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_entrance_end, at_exit_end)
-sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 
 end subroutine create_element_slice
 
@@ -1827,7 +1846,7 @@ endif
 
 ! s_del is the distance between lord and slave centers
 
-if (has_orientation_attributes(slave%key)) then
+if (has_orientation_attributes(slave)) then
   s_del = offset + slave%value(l$)/2 - lord%value(l$)/2
   value(x_pitch$)  = value(x_pitch_tot$)
   value(y_pitch$)  = value(y_pitch_tot$)
@@ -1882,14 +1901,10 @@ if (associated(lord%em_field)) then
 
 endif
 
-! For custom, wiggler, rfcavity, and lcavity elements:
 ! Must keep track of where we are in terms of the unsplit element.
 ! See wiggler above for more details.
 
-select case (slave%key)
-case (custom$, wiggler$, rfcavity$, lcavity$)
-  slave%value(ds_slave_offset$) = offset
-end select
+slave%value(ds_slave_offset$) = offset
 
 ! If an sbend:
 !     1) renormalize the angles
@@ -1950,7 +1965,7 @@ type (ele_struct) slave, lord
 real(rp) value(n_attrib_maxx)
 logical at_entrance_end, at_exit_end
 
-!
+! 
 
 slave%aperture_at = no_end$
 
@@ -2066,7 +2081,7 @@ do i = 1, slave%n_lord
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%lord_status == group_lord$) cycle
 
-  if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave%key)) then
+  if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
     ds = (slave%s - slave%value(l$)/2) - lord%value(s_center$) 
     slave%value(x_offset_tot$) = slave%value(x_offset$) + &
                    ds * lord%value(x_pitch$) + lord%value(x_offset$)
@@ -2103,7 +2118,7 @@ endif
 
 ! If no girder then simply transfer tilt to tilt_tot, etc.
 
-if (.not. slave%on_a_girder .and. has_orientation_attributes(slave%key)) then
+if (.not. slave%on_a_girder .and. has_orientation_attributes(slave)) then
   slave%value(tilt_tot$)     = slave%value(tilt$)
   slave%value(x_offset_tot$) = slave%value(x_offset$)
   slave%value(y_offset_tot$) = slave%value(y_offset$)
@@ -2244,7 +2259,7 @@ endif
 
 ! Transfer tilt to tilt_tot, etc.
 
-if (.not. ele%on_a_girder .and. has_orientation_attributes(ele%key)) then
+if (.not. ele%on_a_girder .and. has_orientation_attributes(ele)) then
   val(tilt_tot$)     = val(tilt$)
   val(x_offset_tot$) = val(x_offset$)
   val(y_offset_tot$) = val(y_offset$)
@@ -2554,7 +2569,7 @@ if (init_needed) then
 endif
 
 dval = val - ele%old_value
-if (has_orientation_attributes(ele%key)) then
+if (has_orientation_attributes(ele)) then
   non_offset_changed = (any(dval /= 0 .and. v_mask))
   offset_changed =  (any(dval /= 0 .and. offset_mask))
   offset_nonzero = (any(val /= 0 .and. offset_mask))

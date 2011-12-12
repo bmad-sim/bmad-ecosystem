@@ -274,22 +274,23 @@ type ele_struct
   type (rf_wake_struct), pointer :: rf_wake => null()       ! Wakes
   type (wig_term_struct), pointer :: wig_term(:) => null()  ! Wiggler Coefs
   type (space_charge_struct), pointer :: space_charge => null()
-  type (wall3d_struct) :: wall3d              ! Chamber or capillary wall
-  type (lat_struct), pointer :: lat => null() ! Pointer to lattice containing this element.
-  type (bookkeeper_status_struct) status      ! For keeping track of what bookkeeping has been done.
-  real(rp) value(n_attrib_maxx)               ! attribute values.
-  real(rp) old_value(n_attrib_maxx)           ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                            ! constant part of the genfield map.
-  real(rp) vec0(6)                            ! 0th order transport vector.
-  real(rp) mat6(6,6)                          ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                         ! 2x2 C coupling matrix
-  real(rp) gamma_c                            ! gamma associated with C matrix
-  real(rp) s                                  ! longitudinal ref position at the exit end.
-  real(rp) ref_time                           ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:,:) => null()     ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()    ! knl for multipole elements.
-  real(rp), pointer :: b_pole(:) => null()    ! tilt for multipole elements.
-  real(rp), pointer :: const(:) => null()     ! Working constants.
+  type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
+  type (lat_struct), pointer :: lat => null()  ! Pointer to lattice containing this element.
+  type (ele_struct), pointer :: lord => null() ! Used for element slicing.
+  type (bookkeeper_status_struct) status       ! For keeping track of what bookkeeping has been done.
+  real(rp) value(n_attrib_maxx)                ! attribute values.
+  real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
+  real(rp) gen0(6)                             ! constant part of the genfield map.
+  real(rp) vec0(6)                             ! 0th order transport vector.
+  real(rp) mat6(6,6)                           ! 1st order transport matrix.
+  real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
+  real(rp) gamma_c                             ! gamma associated with C matrix
+  real(rp) s                                   ! longitudinal ref position at the exit end.
+  real(rp) ref_time                            ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:,:) => null()      ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()     ! knl for multipole elements.
+  real(rp), pointer :: b_pole(:) => null()     ! tilt for multipole elements.
+  real(rp), pointer :: const(:) => null()      ! Working constants.
   integer key                    ! key value 
   integer sub_key                ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1         ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
@@ -475,7 +476,6 @@ character(40), parameter :: key_name(n_key) = [ &
 
 logical has_hkick_attributes(n_key)
 logical has_kick_attributes(n_key)
-logical has_orientation_attributes(n_key)
 
 ! Element attribute name logical definitions
 
@@ -716,12 +716,14 @@ character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map   
     'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
     'RBend              ']
 
-! field_calc names
+! field_calc names.
+! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
+!   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
 
-integer, parameter :: grid$ = 2, map$ = 3
+integer, parameter :: grid$ = 2, map$ = 3, Refer_to_lords$ = 4
 character(16), parameter :: field_calc_name(0:7) = &
-    ['GARBAGE!     ', 'Bmad_Standard', 'Grid         ', 'Map          ', &
-     'GARBAGE!     ', 'GARBAGE!     ', 'GARBAGE!     ', 'Custom       ']
+    ['GARBAGE!       ', 'Bmad_Standard  ', 'Grid           ', 'Map            ', &
+     'Refer_to_Lords.', 'GARBAGE!       ', 'GARBAGE!       ', 'Custom         ']
 
 ! Crystal sub_key values.
 
