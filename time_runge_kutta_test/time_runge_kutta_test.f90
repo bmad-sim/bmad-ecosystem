@@ -17,7 +17,7 @@ type (coord_struct) start_orb, end_orb1, end_orb2
 
 integer :: ix_test
 
-call bmad_parser ('lattice/lat.bmad', lat)
+call bmad_parser ('lat.bmad', lat)
 
 !element index to test
 ix_test = 10
