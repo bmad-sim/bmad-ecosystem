@@ -382,7 +382,7 @@ type (ele_struct) ele
 
 !
 
-if (.not. has_orientation_attributes(ele%key)) return
+if (.not. has_orientation_attributes(ele)) return
 
 ele%value(tilt$) = 0
 ele%value(x_pitch$) = 0
@@ -1322,23 +1322,23 @@ type (ele_struct) ele
 logical, optional, intent(in) :: nullify_only
 integer i
 
-! nullify only
+! nullify
 
-if (present (nullify_only)) then
-  if (nullify_only) then
-    nullify (ele%wig_term)
-    nullify (ele%const)
-    nullify (ele%r)
-    nullify (ele%descrip)
-    nullify (ele%a_pole, ele%b_pole)
-    nullify (ele%rf_wake)
-    nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
-              ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
-    nullify (ele%gen_field)
-    nullify (ele%mode3)
-    nullify (ele%wall3d%section)
-    return
-  endif
+nullify (ele%lat, ele%lord)
+
+if (logic_option (.false., nullify_only)) then
+  nullify (ele%wig_term)
+  nullify (ele%const)
+  nullify (ele%r)
+  nullify (ele%descrip)
+  nullify (ele%a_pole, ele%b_pole)
+  nullify (ele%rf_wake)
+  nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
+            ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+  nullify (ele%gen_field)
+  nullify (ele%mode3)
+  nullify (ele%wall3d%section)
+  return
 endif
 
 ! Normal deallocate
@@ -1447,11 +1447,8 @@ integer, optional :: ix_branch, ix_ele
 
 !
 
-if (present(lat)) then
-  ele%lat => lat
-else
-  nullify(ele%lat)
-endif
+call deallocate_ele_pointers (ele)
+if (present(lat)) ele%lat => lat
 
 ele%type = ' '
 ele%alias = ' '
@@ -1508,8 +1505,6 @@ ele%field_master  = .false.
 ele%aperture_type = rectangular$
 ele%aperture_at   = exit_end$
 ele%offset_moves_aperture = .false.
-
-call deallocate_ele_pointers (ele)
 
 ! init Twiss
 
@@ -2867,8 +2862,18 @@ integer i, ix_lord, icon
 if (ix_lord > slave%n_lord .or. ix_lord < 1) then
   nullify(lord_ptr)
   if (present(ix_control)) ix_control = -1
+  if (present(ix_slave)) ix_slave = -1
   return
 endif
+
+! Special case: Element slice
+
+if (slave%ix_ele == -1 .and. associated(slave%lord)) then
+  lord_ptr => slave%lord
+  if (present(ix_control)) ix_control = -1
+  ix_slave = 1
+  return
+endif  
 
 ! Point to the lord
 
@@ -3017,6 +3022,8 @@ end function pointer_to_field_ele
 
 function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 
+implicit none
+
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr
 
@@ -3046,6 +3053,8 @@ end function pointer_to_ele1
 
 function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
 
+implicit none
+
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr
 type (lat_ele_loc_struct) ele_loc
@@ -3065,34 +3074,42 @@ end function pointer_to_ele2
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function ele_type_has_constant_reference_energy (key) result (is_const)
+! Function ele_has_constant_reference_energy (ele) result (is_const)
 !
-! Function to determine if the type of element has a reference energy through an element is a constant.
+! Function to determine if an element has a reference energy through an element is a constant.
 !
 ! Module needed:
 !   use bmad
 !
 ! Input:
-!   key -- Integer: Element key (quadrupole$, etc.)
+!   ele -- ele_struct: Element.
 !
 ! Output:
 !   is_const -- Logical: True if reference energy must be a constant.
 !-
 
-function ele_type_has_constant_reference_energy (key) result (is_const)
+function ele_has_constant_reference_energy (ele) result (is_const)
 
-integer key
+implicit none
+
+type (ele_struct) ele
 logical is_const
 
 !
 
-select case (key)
+select case (ele%key)
 case (lcavity$, custom$, hybrid$)
   is_const = .false.
+case (em_field$)
+  if (ele%sub_key == const_ref_energy$) then
+    is_const = .true.
+  else
+    is_const = .false.
+  endif
 case default
   is_const = .true.
 end select
 
-end function ele_type_has_constant_reference_energy
+end function ele_has_constant_reference_energy
 
 end module

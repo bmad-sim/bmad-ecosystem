@@ -494,14 +494,16 @@ as input the electric and magnetic fields of an element. How the EM fields
 are calculated is determined by the \vn{field_calc} attribute for an element.
 Possible values for \vn{field_calc} are:
 \begin{example}
-  Bmad_Standard     ! This is the default
-  Custom
+  bmad_standard     ! This is the default
+  custom
+  grid
+  map  
 \end{example}
 \index{custom}
 \vn{Custom} means that the field calculations are done outside of the
 \bmad software. A program doing \vn{Custom} field calculations will
-need the appropriate custom routine. See \sref{s:custom.field} for more
-details.
+need the appropriate custom routine (\sref{s:custom.field}).
+\vn{Grid}
 
 \index{boris}\index{adaptive_boris}
 Both \vn{boris} and \vn{adaptive_boris} tracking do not

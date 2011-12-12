@@ -7,6 +7,7 @@ character(40), private, save :: short_attrib_array(n_key, n_attrib_special_maxx)
 integer, private, save :: attrib_num(n_key)
 integer, private, save :: attrib_ix(n_key, n_attrib_special_maxx)
 logical, private, save :: init_needed = .true.
+logical, private, save :: has_orientation_attributes_key(n_key)
 
 contains
 
@@ -289,20 +290,18 @@ do i = 1, n_key
 
   if (i == match$) cycle
 
-  if (i /= em_field$) then
-    call init_attrib (i, tilt$,          'TILT' )
-    call init_attrib (i, x_offset$,      'X_OFFSET')
-    call init_attrib (i, y_offset$,      'Y_OFFSET')
-    call init_attrib (i, s_offset$,      'S_OFFSET')
-    call init_attrib (i, x_pitch$,       'X_PITCH')
-    call init_attrib (i, y_pitch$,       'Y_PITCH')
-    call init_attrib (i, tilt_tot$,      'TILT_TOT')
-    call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT')
-    call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT')
-    call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT')
-    call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT')
-    call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT')
-  endif
+  call init_attrib (i, tilt$,          'TILT' )
+  call init_attrib (i, x_offset$,      'X_OFFSET')
+  call init_attrib (i, y_offset$,      'Y_OFFSET')
+  call init_attrib (i, s_offset$,      'S_OFFSET')
+  call init_attrib (i, x_pitch$,       'X_PITCH')
+  call init_attrib (i, y_pitch$,       'Y_PITCH')
+  call init_attrib (i, tilt_tot$,      'TILT_TOT')
+  call init_attrib (i, x_offset_tot$,  'X_OFFSET_TOT')
+  call init_attrib (i, y_offset_tot$,  'Y_OFFSET_TOT')
+  call init_attrib (i, s_offset_tot$,  'S_OFFSET_TOT')
+  call init_attrib (i, x_pitch_tot$,   'X_PITCH_TOT')
+  call init_attrib (i, y_pitch_tot$,   'Y_PITCH_TOT')
 
   if (i == mirror$)     cycle
   if (i == crystal$)    cycle
@@ -799,17 +798,17 @@ call init_attrib (capillary$, ds_slave_offset$,            reserved_name$)
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
-! for has_orientation_attributes check both tilt and x_offset attributes
+! for has_orientation_attributes_key check both tilt and x_offset attributes
 ! since, for example, a solenoid does not have a tilt.
 ! Also note: A patch element has a z_offset, not an s_offset.
 
 has_hkick_attributes = .false.  ! Defined in bmad_struct.f90
 has_kick_attributes  = .false.  ! Defined in bmad_struct.f90
-has_orientation_attributes = .false.  ! Defined in bmad_struct.f90
+has_orientation_attributes_key = .false.  ! Defined in bmad_struct.f90
 
 do i = 1, n_key
-  if (attrib_array(i, tilt$)     == 'TILT')  has_orientation_attributes(i) = .true.
-  if (attrib_array(i, x_offset$) == 'X_OFFSET') has_orientation_attributes(i) = .true.
+  if (attrib_array(i, tilt$)     == 'TILT')  has_orientation_attributes_key(i) = .true.
+  if (attrib_array(i, x_offset$) == 'X_OFFSET') has_orientation_attributes_key(i) = .true.
   if (attrib_array(i, kick$)     == 'KICK')  has_kick_attributes(i) = .true.
   if (attrib_array(i, hkick$)    == 'HKICK') has_hkick_attributes(i) = .true.
 
@@ -849,6 +848,39 @@ attrib_array(ix_key, ix_attrib) = name
 end subroutine init_attrib 
 
 end subroutine init_attribute_name_array
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function has_orientation_attributes (ele) result (has_attribs)
+!
+! Routine to determine whether an element has orientation attributes like x_offset, etc.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   ele  -- ele_struct: Lattice element.
+!
+! Output:
+!   has_attribs -- Logical: True if ele has orientation attributes. False otherwise.
+!-
+
+function has_orientation_attributes (ele) result (has_attribs)
+
+implicit none
+
+type (ele_struct) ele
+logical has_attribs
+
+!
+
+has_attribs = has_orientation_attributes_key(ele%key)
+if (ele%key == em_field$ .and. (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$)) &
+      has_attribs = .false.
+
+end function has_orientation_attributes
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

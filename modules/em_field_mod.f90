@@ -228,25 +228,23 @@ if (.not. local_ref_frame) then
 endif
 
 !----------------------------------------------------------------------------
-! All super_slave and multipass_slave elements have their field info stored in the associated lord elements.
+! super_slave and multipass_slave elements have their field info stored in the associated lord elements.
 
-if (ele%key == em_field$) then
-  if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
-      s = s_rel - lord%value(s_offset$) + ele%value(ds_slave_offset$)
-      t = t_rel - ((ele%ref_time - ele%value(delta_ref_time$)) - (lord%ref_time - lord%value(delta_ref_time$)))
-      call em_field_calc (lord, param, s, t, local_orb, .false., field2, calc_dfield)
-      field%E = field%E + field2%E
-      field%B = field%B + field2%B
-      if (df_calc) then
-        field%dE = field%dE + field2%dE
-        field%dB = field%dB + field2%dB
-      endif
-    enddo
-    call convert_fields_to_lab_coords
-    return
-  endif
+if (ele%field_calc == refer_to_lords$) then
+  do i = 1, ele%n_lord
+    lord => pointer_to_lord(ele, i)
+    s = s_rel - lord%value(s_offset$) + ele%value(ds_slave_offset$)
+    t = t_rel - ((ele%ref_time - ele%value(delta_ref_time$)) - (lord%ref_time - lord%value(delta_ref_time$)))
+    call em_field_calc (lord, param, s, t, local_orb, .false., field2, calc_dfield)
+    field%E = field%E + field2%E
+    field%B = field%B + field2%B
+    if (df_calc) then
+      field%dE = field%dE + field2%dE
+      field%dB = field%dB + field2%dB
+    endif
+  enddo
+  call convert_fields_to_lab_coords
+  return
 endif
 
 !----------------------------------------------------------------------------
@@ -299,7 +297,7 @@ select case (ele%field_calc)
       if (.not. ele%is_on) gradient = 0
       gradient = gradient + gradient_shift_sr_wake(ele, param)
       
-      dEz_dz = gradient * sign(1, charge_of(param%particle))
+      dEz_dz = gradient
 
       if (x .eq. 0.0) then
         theta = 0.0
@@ -313,7 +311,7 @@ select case (ele%field_calc)
                                                                        
       field%E(1) = E_r * cos (theta)                                  
       field%E(2) = E_r * sin (theta)
-      field%E(3) = gradient * sin (phase)
+      field%E(3) = gradient
       
       phi = pi - theta
       field%B(1) =  B_phi * cos (phi)

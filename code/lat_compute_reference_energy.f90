@@ -29,7 +29,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, branch_ele, ele0
 type (branch_struct), pointer :: branch
 
-integer i, k, ib, ix, ixs, ibb, ix_slave
+integer i, k, ib, ix, ixs, ibb, ix_slave, ixl
 
 logical did_set, stale
 
@@ -106,22 +106,26 @@ do ib = 0, ubound(lat%branch, 1)
       call set_ele_status_stale (lat%branch(ibb)%ele(0), lat%branch(ibb)%param, ref_energy_group$)
     endif
 
-    ! Calculate the energy at the end of the present element.
-    ! If this element is the first super_slave of an lcavity lord then compute the reference energy
-    ! of the lord in case the RF phase and amplitude need to be adjusted.
+    ! If this element is the first super_slave or multipass_slave of a lord with varying reference energy,
+    ! then, if needed, make sure that the lord has its RF phase and amplitude properly adjusted.
 
     ele0 => branch%ele(i-1)
 
-    if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
-      if (ele%key == lcavity$ .or. (ele%key == em_field$ .and. ele%sub_key == nonconst_ref_energy$)) then
-        lord => pointer_to_lord (ele, 1, ix_slave = ix_slave)
-        if (lord%key == lcavity$ .and. associated(ele%em_field) .and. ix_slave == 1) then
-          call compute_ele_reference_energy (lord, branch%param, &
-                                                ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
-          call control_bookkeeper (lat, lord)
-        endif
-      endif
+    if ((ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) .and. &
+                                            .not. ele_has_constant_reference_energy(ele)) then
+      do ixl = 1, ele%n_lord
+        lord => pointer_to_lord (ele, ixl, ix_slave = ix_slave)
+        if (ele_has_constant_reference_energy(lord) .or. ix_slave /= 1) cycle
+        if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+        if (.not. associated(lord%em_field)) cycle
+        ! This adjusts the RF phase and amplitude
+        call compute_ele_reference_energy (lord, branch%param, &
+                                              ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
+        call control_bookkeeper (lat, lord)
+      enddo
     endif
+
+    ! Calculate the energy at the end of the present element.
 
     call compute_ele_reference_energy (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time)
 
@@ -225,36 +229,43 @@ integer key
 ! Treat an accelerating em_field element like an lcavity
 
 key = ele%key
-if (ele%key == em_field$ .and. ele%sub_key == nonconst_ref_energy$) key = lcavity$
+if (ele%key == em_field$ .and. .not. ele_has_constant_reference_energy(ele)) key = lcavity$
 
 select case (key)
 case (lcavity$) 
   ele%value(E_tot_start$) = E_tot_start
   ele%value(p0c_start$) = p0c_start
 
-  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
-  E_tot = E_tot_start + ele%value(gradient$) * ele%value(l$) * cos(phase)
-  call convert_total_energy_to (E_tot, param%particle, pc = p0c)
-
-  ! A zero e_tot can mess up tracking so put in a temp value if needed.
-  if (ele%value(e_tot$) == 0) then ! Can happen on first pass through this routine
-    ele%value(E_tot$) = E_tot      ! Temp value. Does not affect phase & amp adjustment.
+  if (ele%tracking_method == bmad_standard$) then
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+    E_tot = E_tot_start + ele%value(gradient$) * ele%value(l$) * cos(phase)
+    call convert_total_energy_to (E_tot, param%particle, pc = p0c)
+    ele%value(E_tot$) = E_tot
     ele%value(p0c$) = p0c
-    ele%ref_time = ref_time_start
-  endif
-  if (associated(ele%em_field)) call rf_accel_mode_adjust_phase_and_amp (ele, param)
 
-  ele%value(E_tot$) = E_tot
-  ele%value(p0c$) = p0c
+    if (E_tot_start == E_tot) then
+      ele%ref_time = ref_time_start + ele%value(l$) * E_tot / (p0c * c_light)
+    else
+      ele%ref_time = ref_time_start + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
+                (p0c - p0c_start) / ((E_tot - E_tot_start) * c_light)
+    endif
 
-  if (E_tot_start == E_tot) then
-    ele%ref_time = ref_time_start + ele%value(l$) * E_tot / (p0c * c_light)
-  elseif (ele%tracking_method == bmad_standard$) then
-    ele%ref_time = ref_time_start + ele%value(l$) * &        ! lcavity with non-zero acceleration formula
-              (p0c - p0c_start) / ((E_tot - E_tot_start) * c_light)
   else
+    ! A zero e_tot can mess up tracking so put in a temp value if needed.
+    if (ele%value(e_tot$) == 0) then ! Can happen on first pass through this routine
+      ele%value(E_tot$) = ele%value(e_tot_start$)      ! Temp value. Does not affect phase & amp adjustment.
+      ele%value(p0c$) = ele%value(p0c_start$)
+      ele%ref_time = ref_time_start
+    endif
+
+    if (associated(ele%em_field) .and. ele%slave_status /= super_slave$ .and. &
+                    ele%slave_status /= multipass_slave$) call rf_accel_mode_adjust_phase_and_amp (ele, param)
+
     call track1 (start_orb, ele, param, end_orb)
+    E_tot = ele%value(E_tot$)
+    p0c = ele%value(p0c$)
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
+    ele%value(E_tot$) = E_tot + p0c * end_orb%vec(6)
   endif
 
 case (custom$, hybrid$)
