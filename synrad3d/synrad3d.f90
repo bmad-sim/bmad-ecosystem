@@ -34,7 +34,7 @@ real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
 real(rp) emit_a, emit_b, sig_e, g, gamma, r, dtrack
 real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
-real(rp) surface_roughness_rms, roughness_correlation_len
+real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
 integer i, j, n, iu, n_wall_pt_max, random_seed, iu_start, n_shape_max
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
@@ -307,7 +307,7 @@ call ran_seed_put (random_seed)
 ! Load different surface reflection parameters if wanted
 
 if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file)
-call set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
+call set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
 
 ! Plot wall cross-sections. 
 ! The plotting routines never return back to the main program.
@@ -612,12 +612,14 @@ write (1, *) 'e_filter_min            =', e_filter_min
 write (1, *) 'e_filter_max            =', e_filter_max
 write (1, *) 's_filter_min            =', s_filter_min
 write (1, *) 's_filter_max            =', s_filter_max
-write (1, *) 'sr3d_params%allow_reflections     =', sr3d_params%allow_reflections
-write (1, *) 'sr3d_params%ds_track_step_max     =', sr3d_params%ds_track_step_max
-write (1, *) 'sr3d_params%dr_track_step_max     =', sr3d_params%dr_track_step_max
-write (1, *) 'sr3d_params%diffuse_scattering_on =', sr3d_params%diffuse_scattering_on
-write (1, *) 'surface_roughness_rms             =', surface_roughness_rms
-write (1, *) 'roughness_correlation_len         =', roughness_correlation_len
+write (1, *) 'sr3d_params%allow_reflections         =', sr3d_params%allow_reflections
+write (1, *) 'sr3d_params%ds_track_step_max         =', sr3d_params%ds_track_step_max
+write (1, *) 'sr3d_params%dr_track_step_max         =', sr3d_params%dr_track_step_max
+write (1, *) 'sr3d_params%diffuse_scattering_on     =', sr3d_params%diffuse_scattering_on
+write (1, *) 'surface_roughness_rms (input)         =', surface_roughness_rms
+write (1, *) 'surface_roughness_rms (set value)     =', rms_set
+write (1, *) 'roughness_correlation_len (input)     =', roughness_correlation_len
+write (1, *) 'roughness_correlation_len (set value) =', correlation_set
 write (1, *)
 
 do i = 1, n_photon_array   
