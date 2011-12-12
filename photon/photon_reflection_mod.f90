@@ -610,7 +610,7 @@ end subroutine finalize_reflectivity_tables
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
 !+
-! Subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
+! Subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
 !
 ! Routine to set the surface roughness values.
 ! If a value is less then zero it is ignored.
@@ -621,13 +621,18 @@ end subroutine finalize_reflectivity_tables
 ! Input:
 !   surface_roughness_rms     -- Real(rp): Surface roughness in meters.
 !   roughness_correlation_len -- Real(rp): Roughness correlation length in meters.
+!
+! Output:
+!   rms_set                   -- Real(rp), optional: RMS roughness after any set.
+!   correlation_set           -- Real(rp), optional: Correlation length after any set.
 !- 
 
-subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len)
+subroutine set_surface_roughness (surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set)
 
 implicit none
 
 real(rp) surface_roughness_rms, roughness_correlation_len
+real(rp), optional :: rms_set, correlation_set
 
 !
 
@@ -635,6 +640,9 @@ if (photon_reflect_table_init_needed) call photon_reflection_init
 
 if (surface_roughness_rms >= 0)     reflect_surface%surface_roughness_rms     = surface_roughness_rms
 if (roughness_correlation_len >= 0) reflect_surface%roughness_correlation_len = roughness_correlation_len
+
+if (present(rms_set)) rms_set = reflect_surface%surface_roughness_rms
+if (present(correlation_set)) correlation_set = reflect_surface%roughness_correlation_len 
 
 end subroutine
 
