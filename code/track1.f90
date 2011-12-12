@@ -138,14 +138,14 @@ end select
 
 end%s = ele%s
 
-if (ele%key == lcavity$ .or. ele%key == custom$) then
+if (ele_has_constant_reference_energy(ele)) then
+  call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
+  end%t = start%t + ele%value(delta_ref_time$) + (start%vec(5) - end%vec(5)) / (beta * c_light)
+else
   call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
   call convert_pc_to (ele%value(p0c_start$) * (1 + start%vec(6)), param%particle, beta = beta_start)
   end%t = start%t + ele%value(delta_ref_time$) + &
                           start%vec(5) / (beta_start * c_light) - end%vec(5) / (beta * c_light)
-else
-  call convert_pc_to (ele%value(p0c$) * (1 + end%vec(6)), param%particle, beta = beta)
-  end%t = start%t + ele%value(delta_ref_time$) + (start%vec(5) - end%vec(5)) / (beta * c_light)
 endif
 
 ! Radiation damping and/or fluctuations for the last half of the element

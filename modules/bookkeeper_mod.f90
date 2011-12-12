@@ -1755,10 +1755,10 @@ if (sliced_ele%key /= wiggler$) then
   sliced_ele%field_calc = refer_to_lords$
 endif
 
-! Lcavity reference energy can be nonlinear so use a slice from the beginning of ele_in
-! to get the starting ref energy of the slice
+! If the reference energy is changing it can be nonlinear as a function of s so use a slice 
+! from the beginning of ele_in to get the starting ref energy of the slice.
 
-if (sliced_ele%key == lcavity$) then
+if (.not. ele_has_constant_reference_energy(sliced_ele)) then
   sliced_ele%value(l$) = offset
   call compute_ele_reference_energy (sliced_ele, param, ele_in%value(e_tot_start$), ele_in%value(p0c_start$), 0.0_rp)
   sliced_ele%value(e_tot_start$) = sliced_ele%value(e_tot$)
@@ -2724,12 +2724,11 @@ call set_flags_for_changed_real_attribute (lat, ele, dummy)
 branch => lat%branch(ele%ix_branch)
 a_ptr => attrib
 
-select case (ele%key)
-case (lcavity$)
+if (.not. ele_has_constant_reference_energy(ele)) then
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
-end select
+endif
 
 end subroutine set_flags_for_changed_integer_attribute
 
@@ -2851,7 +2850,7 @@ if (associated(a_ptr, ele%value(l$))) then
     call set_ele_status_stale (ele, branch%param, length_group$)
     call set_ele_status_stale (ele, branch%param, floor_position_group$)
   endif
-  if (ele%key == lcavity$) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  if (.not. ele_has_constant_reference_energy(ele)) call set_ele_status_stale (ele, branch%param, ref_energy_group$)
 endif
 
 !
@@ -2933,18 +2932,21 @@ case (branch$, photon_branch$)
     lat%branch(ib)%ele(0)%status%floor_position = stale$
   endif
 
-case (lcavity$)
-  if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
-      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
-    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
-  endif
-
 case (patch$)
   if (associated(a_ptr, ele%value(e_tot_offset$))) then
     call set_ele_status_stale (ele, branch%param, ref_energy_group$)
   endif
 
 end select
+
+!
+
+if (.not. ele_has_constant_reference_energy(ele)) then
+  if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
+      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
+    call set_ele_status_stale (ele, branch%param, ref_energy_group$)
+  endif
+endif
 
 end subroutine set_flags_for_changed_real_attribute
 

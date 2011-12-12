@@ -109,7 +109,7 @@ else
   ! det_factor is a renormalization factor since det_original != 1
 
   det_factor = 1
-  if (key2 == lcavity$) then
+  if (.not. ele_has_constant_reference_energy(ele2)) then
     det_factor = sqrt(determinant (mat6(1:4,1:4)))
   endif
 
