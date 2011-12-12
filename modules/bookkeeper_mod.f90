@@ -1320,7 +1320,7 @@ do j = 1, slave%n_lord
            'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
       call err_exit
     endif
-    if (slave%map_with_offsets /= lord%map_with_offsets) then
+    if (slave%map_with_offsets .neqv. lord%map_with_offsets) then
       lord1 => pointer_to_lord(slave, 1)
       call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
            'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
