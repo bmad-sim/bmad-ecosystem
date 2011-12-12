@@ -1,28 +1,28 @@
-#include "CESR_platform.inc"
 
-
-!Fudge module to pass arguments into delta_s_target function
-!consider input arguments of: rkck_bmad_T (ele, param, orb, dvec_dt, orb%s, orb%t, new_dt, orb_new, vec_err, local_ref_frame)
+! Fudge module to pass arguments into delta_s_target function
+! Consider input arguments of: rkck_bmad_T (ele, param, orb, dvec_dt, orb%s, orb%t, new_dt, orb_new, vec_err, local_ref_frame)
 module track1_time_runge_kutta_mod
-	use bmad
-	type (ele_struct), save, pointer :: ele_com
-	type (lat_param_struct), save, pointer :: param_com
-	type (coord_struct), save, pointer ::  orb_com
-	real(rp), save, pointer :: dvec_dt_com(:)
-	type (coord_struct), save, pointer :: orb_new_com
-	real(rp), save, pointer :: vec_err_com(:)
-	logical, save, pointer :: local_ref_frame_com
-	real(rp), save, pointer :: s_target_com
-	
-	contains
-	!function for zbrent to calculate timestep to exit face surface
-	function delta_s_target (new_dt)
-		real(rp), intent(in)  :: new_dt
-		real(rp) :: delta_s_target
-		call rkck_bmad_time (ele_com, param_com, orb_com, dvec_dt_com, orb_com%s, orb_com%t, new_dt, orb_new_com, vec_err_com, local_ref_frame_com)
-		delta_s_target = orb_new_com%s - s_target_com
-	end function delta_s_target
-	
+
+use bmad
+type (ele_struct), save, pointer :: ele_com
+type (lat_param_struct), save, pointer :: param_com
+type (coord_struct), save, pointer ::  orb_com
+real(rp), save, pointer :: dvec_dt_com(:)
+type (coord_struct), save, pointer :: orb_new_com
+real(rp), save, pointer :: vec_err_com(:)
+logical, save, pointer :: local_ref_frame_com
+real(rp), save, pointer :: s_target_com
+
+contains
+
+! function for zbrent to calculate timestep to exit face surface
+function delta_s_target (new_dt)
+  real(rp), intent(in)  :: new_dt
+  real(rp) :: delta_s_target
+  call rkck_bmad_time (ele_com, param_com, orb_com, dvec_dt_com, orb_com%s, orb_com%t, new_dt, orb_new_com, vec_err_com, local_ref_frame_com)
+  delta_s_target = orb_new_com%s - s_target_com
+end function delta_s_target
+  
 end module track1_time_runge_kutta_mod
 
 !-----------------------------------------------------------
@@ -84,55 +84,53 @@ param%lost = .False.
 
 !If element has no length, skip tracking
 if (ele%value(l$) .eq. 0) then
-   end = start
+  end = start
 
-   !convert to element coordinates for track_struct
-   end%s = 0
-   end%t = 0
+  !convert to element coordinates for track_struct
+  end%s = 0
+  end%t = 0
 
-!TODO: check this
-   !Allocate track array and save one point
-   if ( present(track) ) then
-      call init_saved_orbit (track, 0)
-      track%n_pt = 0
-      track%orb(0) = end
-   endif
+  !TODO: check this
+  !Allocate track array and save one point
+  if ( present(track) ) then
+    call init_saved_orbit (track, 0)
+    track%n_pt = 0
+    track%orb(0) = end
+  endif
 
-   !Restore s and t to continue tracking
-   end = start
+  !Restore s and t to continue tracking
+  end = start
 
-   !Do not need to update param%end_lost_at because it will be
-   !the same as where it was lost in the previous element
+  !Do not need to update param%end_lost_at because it will be
+  !the same as where it was lost in the previous element
 
-   return
+  return
 end if
 
 
 !Specify time step; assumes ele%value(ds_step$) has been set
+
 dt_step = ele%value(ds_step$)/c_light
 dt_step_min = 0
-
 
 !------
 !Convert particle to element coordinates
 
 !Define p0c and ref_time at start of tracking
 if (param%end_lost_at == live_reversed$) then
-   !Particle must be moving backwards
-   !The sign of p0c is used in s->t conversion
-   p0c = -1*ele%value(p0c$)
-   call offset_particle(ele, param, start, set$, set_canonical = .false.,  reversed = .true. ) 
+  !Particle must be moving backwards
+  !The sign of p0c is used in s->t conversion
+  p0c = -1*ele%value(p0c$)
+  call offset_particle(ele, param, start, set$, set_canonical = .false.,  reversed = .true. ) 
 else
-   !Forward moving particle
-   if (ele%key == lcavity$ .or. ele%key == custom$ .or. &
-        ele%key == patch$ .or. ele%key == hybrid$) then
-      p0c = ele%value(p0c_start$)
-   else
-      p0c = ele%value(p0c$)
-   end if
-   !ref_time = ele%ref_time - ele%value(delta_ref_time$)
-   call offset_particle(ele, param, start, set$, set_canonical = .false., &
-     reversed = .false. )    
+  !Forward moving particle
+  if (ele_has_constant_reference_energy(ele)) then
+    p0c = ele%value(p0c$)
+  else  ! lcavity, etc.
+    p0c = ele%value(p0c_start$)
+  end if
+  !ref_time = ele%ref_time - ele%value(delta_ref_time$)
+  call offset_particle(ele, param, start, set$, set_canonical = .false., reversed = .false. )    
 end if
 
 ! ele(s-based) -> ele(t-based)
@@ -181,11 +179,10 @@ end if
 
 !Define p0c and ref_time at end of tracking
 if (param%end_lost_at == entrance_end$) then
-  if (ele%key == lcavity$ .or. ele%key == custom$ .or. &
-       ele%key == patch$ .or. ele%key == hybrid$) then
-     p0c = ele%value(p0c_start$)
-  else
-     p0c = ele%value(p0c$)
+  if (ele_has_constant_reference_energy(ele)) then
+    p0c = ele%value(p0c$)
+  else  ! lcavity, etc.
+    p0c = ele%value(p0c_start$)
   end if
   ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
@@ -211,15 +208,10 @@ end%s = end%s + (ele%s - ele%value(l$))
 
 !------
 
-
 !Return the exit surface information through the lat_param_struct
 param%end_lost_at = exit_surface
 
 end subroutine
-
-
-
-
 
 !-----------------------------------------------------------
 !-----------------------------------------------------------
@@ -347,16 +339,16 @@ do n_step = 1, max_step
      s_target = s2
      exit_surface = exit_end$ 
      !print *, 'Hit exit_end$'
-	 !Set common structures for zbrent's internal functions 
-	 ele_com => ele
-	 param_com => param
-	 orb_com => orb
-	 dvec_dt_com => dvec_dt
-	 orb_new_com => orb_new
-	 vec_err_com => vec_err
-	 local_ref_frame_com => local_ref_frame
-	 s_target_com => s_target
-	 !---
+   !Set common structures for zbrent's internal functions 
+   ele_com => ele
+   param_com => param
+   orb_com => orb
+   dvec_dt_com => dvec_dt
+   orb_new_com => orb_new
+   vec_err_com => vec_err
+   local_ref_frame_com => local_ref_frame
+   s_target_com => s_target
+   !---
      dt = zbrent (delta_s_target, 0.0_rp, dt, 1d-18)
 
      !ensure that particle has actually exited after zbrent
@@ -376,15 +368,15 @@ do n_step = 1, max_step
      exit_surface = entrance_end$
      !print *, 'Hit entrance_end$'
          !Set common structures for zbrent's internal functions 
-	 ele_com => ele
-	 param_com => param
-	 orb_com => orb
-	 dvec_dt_com => dvec_dt
-	 orb_new_com => orb_new
-	 vec_err_com => vec_err
-	 local_ref_frame_com => local_ref_frame
-	 s_target_com => s_target
-	 !---
+   ele_com => ele
+   param_com => param
+   orb_com => orb
+   dvec_dt_com => dvec_dt
+   orb_new_com => orb_new
+   vec_err_com => vec_err
+   local_ref_frame_com => local_ref_frame
+   s_target_com => s_target
+   !---
      dt = zbrent (delta_s_target, dt, 0.0_rp, 1d-18)
 
      !ensure that particle has actually exited after zbrent
@@ -413,11 +405,11 @@ do n_step = 1, max_step
   !Save track
   if ( present(track) ) then
     n_save_count = n_save_count +1
-  	if (n_save_count == dn_save ) then
-    	track%n_pt = track%n_pt + 1
-    	n_pt = track%n_pt
-     	track%orb(n_pt) = orb
-     	n_save_count = 0
+    if (n_save_count == dn_save ) then
+      track%n_pt = track%n_pt + 1
+      n_pt = track%n_pt
+       track%orb(n_pt) = orb
+       n_save_count = 0
     end if
 
     ! track%map(n_pt)%mat6 = 0 !the map is not set
@@ -445,11 +437,6 @@ end if
 if (bmad_status%exit_on_error) call err_exit
 
 end subroutine odeint_bmad_time
-
-
-
-
-
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -639,6 +626,5 @@ if (capillary_photon_d_radius(particle%now, ele) > 0) then
 
    param%lost = .True.
 endif
-
 
 end subroutine  particle_hit_wall_check

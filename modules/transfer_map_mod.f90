@@ -192,7 +192,7 @@ do
       if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
     elseif (ele%key == wiggler$) then
       kill_it = .true.
-    elseif (ele%key == lcavity$) then
+    elseif (.not. ele_has_constant_reference_energy(ele)) then
       kill_it = .true.
     endif
 
@@ -407,7 +407,7 @@ do
       if (track_entrance .or. track_exit .or. old_track_end) kill_it = .true.
     elseif (ele%key == wiggler$) then
       kill_it = .true.
-    elseif (ele%key == lcavity$) then
+    elseif (.not. ele_has_constant_reference_energy(ele)) then
       kill_it = .true.
     endif
 

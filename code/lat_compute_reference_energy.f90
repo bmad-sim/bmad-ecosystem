@@ -265,7 +265,8 @@ case (lcavity$)
     E_tot = ele%value(E_tot$)
     p0c = ele%value(p0c$)
     ele%ref_time = ref_time_start + ele%value(delta_ref_time$) - end_orb%vec(5) * E_tot / (p0c * c_light)
-    ele%value(E_tot$) = E_tot + p0c * end_orb%vec(6)
+    ele%value(p0c$) = p0c * (1 + end_orb%vec(6))
+    call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$))
   endif
 
 case (custom$, hybrid$)

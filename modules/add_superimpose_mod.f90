@@ -504,7 +504,7 @@ do i = ix1_lord, ix2_lord
       slave%sub_key = const_ref_energy$
       do k = 1, slave%n_lord
         lord => pointer_to_lord(slave, k)
-        if (lord%key == lcavity$) then
+        if (.not. ele_has_constant_reference_energy(lord)) then
           slave%sub_key = nonconst_ref_energy$
           exit
         endif
