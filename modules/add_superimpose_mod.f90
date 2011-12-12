@@ -503,8 +503,8 @@ do i = ix1_lord, ix2_lord
     if (slave%key == em_field$) then
       slave%sub_key = const_ref_energy$
       do k = 1, slave%n_lord
-        lord => pointer_to_lord(slave, k)
-        if (.not. ele_has_constant_reference_energy(lord)) then
+        lord2 => pointer_to_lord(slave, k)
+        if (.not. ele_has_constant_reference_energy(lord2)) then
           slave%sub_key = nonconst_ref_energy$
           exit
         endif
