@@ -315,6 +315,17 @@ endif
 i_branch = integer_option(0, ix_branch)
 branch => lat%branch(i_branch)
 
+! Check for particle lost.
+
+if (branch%param%lattice_type == linear_lattice$ .and. branch%param%ix_lost /= not_lost$) then
+  if (s > branch%ele(branch%param%ix_lost-1)%s) then
+    if (present (err)) err = .true.
+    return
+  endif
+endif
+
+!
+
 call ele_at_s (lat, s, i, ix_branch, err_flag, s_use)
 if (err_flag) then
   if (present(err)) err = .true. 
