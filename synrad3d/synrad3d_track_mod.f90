@@ -845,7 +845,7 @@ if (sr3d_params%diffuse_scattering_on) then
     ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
     vec_in_plane = photon%now%vec(2:6:2) - dw_perp * cos_perp  
     vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.
-    vec_out_plane = cross_product(dw_perp, vec_out_plane)
+    vec_out_plane = cross_product(dw_perp, vec_in_plane)
     photon%now%vec(2:6:2) = -cos(theta_diffuse) * dw_perp + sin(theta_diffuse) * &
                             (vec_in_plane * cos(phi_diffuse) + vec_out_plane * sin(phi_diffuse))
   endif
