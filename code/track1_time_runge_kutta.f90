@@ -76,7 +76,9 @@ type (ele_struct), target, intent(inout) :: ele
 type (track_struct), optional :: track
 integer :: exit_surface
 
-real(rp) rel_tol, abs_tol, dt_step, dt_step_min, p0c, ref_time, vec6
+real(rp)  dt_step, p0c, ref_time, vec6
+
+logical :: local_ref_frame = .true.
 
 !---------------------------------
 !Reset particle lost status
@@ -111,7 +113,6 @@ end if
 !Specify time step; assumes ele%value(ds_step$) has been set
 
 dt_step = ele%value(ds_step$)/c_light
-dt_step_min = 0
 
 !------
 !Convert particle to element coordinates
@@ -168,13 +169,18 @@ else
 
   !If particle passed wall check, track through element
   call odeint_bmad_time(start, ele, param, end, 0.0_rp, ele%value(l$), &
-    bmad_com%rel_tol_adaptive_tracking, bmad_com%abs_tol_adaptive_tracking, &
-    dt_step, dt_step_min, .true., exit_surface, track )
+    dt_step, local_ref_frame, exit_surface, track )
 
 end if
 
 !------
 !Convert particle to global curvilinear coordinates
+
+!Shift s and t back to global values
+start%t = start%t + (ele%ref_time - ele%value(delta_ref_time$))
+start%s = start%s + (ele%s - ele%value(l$))
+end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
+end%s = end%s + (ele%s - ele%value(l$))
 
 !Define p0c and ref_time at end of tracking
 if (param%end_lost_at == entrance_end$) then
@@ -201,10 +207,6 @@ else
      reversed = .false. ) 
 end if
 
-!Shift s and t back to global values
-end%t = end%t + (ele%ref_time - ele%value(delta_ref_time$))
-end%s = end%s + (ele%s - ele%value(l$))
-
 !------
 
 !Return the exit surface information through the lat_param_struct
@@ -217,19 +219,11 @@ end subroutine
 !-----------------------------------------------------------
 !+
 ! Subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
-!                            rel_tol, abs_tol, dt1, dt_min, local_ref_frame, track)
+!                             dt1, local_ref_frame, track)
 ! 
 ! Subroutine to do Runge Kutta tracking. This routine is adapted from Numerical
 ! Recipes.  See the NR book for more details.
 !
-! Notice that this routine has an two tolerance arguments rel_tol and abs_tol.
-! Odein only has 1. rel_tol (essentually equivalent to eps in odeint) 
-! is scalled by the step size to to able to relate it to the final accuracy.
-!
-! Essentually (assuming random errors) one of these conditions holds:
-!      %error in tracking < rel_tol
-! or
-!     absolute error in tracking < abs_tol
 !
 ! Modules needed:
 !   use bmad
@@ -246,12 +240,7 @@ end subroutine
 !     %particle    -- Particle type [positron$, or electron$]
 !   s1      -- Real: Starting point.
 !   s2      -- Real: Ending point.
-!   rel_tol -- Real: Same as eps for odeint scalled by sqrt(h/(s2-s1))
-!               where h is the step size for the current step. rel_tol
-!               sets the %error of the result
-!   abs_tol -- Real: Sets the absolute error of the result
 !   dt1      -- Real: Initial guess for a time step size.
-!   dt_min   -- Real: Minimum time step size (can be zero).
 !   local_ref_frame 
 !           -- Logical: If True then take the 
 !                input and output coordinates as being with 
@@ -268,7 +257,7 @@ end subroutine
 !-
 
 subroutine odeint_bmad_time (start, ele, param, end, s1, s2, &
-                    rel_tol, abs_tol, dt1, dt_min, local_ref_frame, exit_surface, track)
+                    dt1, local_ref_frame, exit_surface, track)
 use track1_time_runge_kutta_mod
 use time_tracker_mod
 use em_field_mod
@@ -284,7 +273,7 @@ type (lat_param_struct), target ::  param
 type (track_struct), optional :: track
 integer, intent(out) :: exit_surface
 
-real(rp), intent(in) :: s1, s2, rel_tol, abs_tol, dt1, dt_min
+real(rp), intent(in) :: s1, s2, dt1
 real(rp), parameter :: tiny = 1.0e-30_rp, edge_tol = 1e-10
 real(rp) :: dt, dt_did, dt_next, s
 type (coord_struct), target :: orb
@@ -385,14 +374,16 @@ do n_step = 1, max_step
         orb_new%vec(5) = orb_new%s
      endif
 
+  else
+  !Check wall or aperture at every intermediate step
+    call  particle_hit_wall_check(orb, orb_new, param, ele)
+    !Flag for exit if wall is hit
+    if (param%lost) then
+      exit_surface = no_end$
+      exit_flag = .true.
+    end if
   endif
   
-  !Check wall or aperture at every step
-  call  particle_hit_wall_check(orb, orb_new, param, ele)
-  if (param%lost) then
-    exit_surface = no_end$
-  endif
-
   !Update orb
   orb = orb_new
 
@@ -405,16 +396,11 @@ do n_step = 1, max_step
        track%orb(n_pt) = orb
        n_save_count = 0
     end if
-
-    ! track%map(n_pt)%mat6 = 0 !the map is not set
-   endif
+  endif
 
   !Exit when the particle hits surface s1 or s2, or hits wall
   if (exit_flag) then
      end = orb_new   !Return last orb_new that zbrent calculated
-     return
-  elseif (param%lost) then
-     end = orb_new   !Return location of hit that  particle_hit_wall_check calculated
      return
   endif
 

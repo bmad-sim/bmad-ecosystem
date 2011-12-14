@@ -156,6 +156,8 @@ end subroutine em_field_kick_vector_time
 !
 ! Input:
 !   particle   -- coord_struct: input particle
+!                    %vec(:)
+!                    %t
 !   p0c        -- real: Reference momentum. The sign indicates direction of p_s. 
 !   mc2        -- real: particle rest mass in eV
 !   tref       -- real: reference time for z coordinate
