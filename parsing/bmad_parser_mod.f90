@@ -222,8 +222,8 @@ type (wig_term_struct), pointer :: wig_term(:)
 type (real_pointer_struct), allocatable, save :: r_ptrs(:)
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
-type (em_field_mode_struct), allocatable, target :: rf_mode(:)
-type (em_field_mode_struct), pointer :: mode
+type (em_field_mode_struct), allocatable, target :: em_modes(:)
+type (em_field_mode_struct), pointer :: em_mode
 
 real(rp) kx, ky, kz, tol, value, coef
 real(rp), pointer :: r_ptr
@@ -648,11 +648,12 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
   ! Loop over all modes
 
-  if (.not. allocated(rf_mode)) allocate(rf_mode(20))
-  do i_mode = 1, size(rf_mode)
+  if (.not. allocated(em_modes)) allocate(em_modes(20))
+  do i_mode = 1, size(em_modes)
 
-    mode => rf_mode(i_mode)
-    allocate (mode%map)
+    em_mode => em_modes(i_mode)
+    allocate (em_mode%map)
+    allocate (em_mode%grid)
 
     ! Expect "MODE = {"
 
@@ -683,7 +684,7 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
       case ('M')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
-        if (is_integer(word)) read (word, *) mode%m
+        if (is_integer(word)) read (word, *) em_mode%m
         if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
           call parser_warning ('BAD "M = <INTEGER>" CONSTRUCT', &
                                'FOUND IN MODE DEFINITION IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
@@ -714,19 +715,19 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
           if (delim == ')') exit
         enddo
 
-        if (allocated(mode%map%term)) then
-          if (size(mode%map%term) /= i_term) then
+        if (allocated(em_mode%map%term)) then
+          if (size(em_mode%map%term) /= i_term) then
             call parser_warning ('ARRAY SIZE MISMATCH FOR: ' // word2, &
                                'IN RF_FIELD STRUCTURE IN ELEMENT: ' // ele%name)
             return
           endif
         else
-          allocate(mode%map%term(i_term))
+          allocate(em_mode%map%term(i_term))
         endif
 
         select case (word2)
-        case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => mode%map%term%e_coef 
-        case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => mode%map%term%b_coef
+        case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => em_mode%map%term%e_coef 
+        case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => em_mode%map%term%b_coef
         end select
 
         if (word2(8:9) == 'RE') then
@@ -756,18 +757,18 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
 
         do_evaluate = .false.
 
-      case ('FREQ');          r_ptr => mode%freq
-      case ('F_DAMP');        r_ptr => mode%f_damp
-      case ('THETA_T0');      r_ptr => mode%theta_t0
-      case ('STORED_ENERGY'); r_ptr => mode%stored_energy
-      case ('PHI_0');         r_ptr => mode%phi_0
-      case ('DZ');            r_ptr => mode%map%dz
-      case ('FIELD_SCALE');   r_ptr => mode%field_scale
+      case ('FREQ');          r_ptr => em_mode%freq
+      case ('F_DAMP');        r_ptr => em_mode%f_damp
+      case ('THETA_T0');      r_ptr => em_mode%theta_t0
+      case ('STORED_ENERGY'); r_ptr => em_mode%stored_energy
+      case ('PHI_0');         r_ptr => em_mode%phi_0
+      case ('DZ');            r_ptr => em_mode%map%dz
+      case ('FIELD_SCALE');   r_ptr => em_mode%field_scale
 
 
 
       case ('GRID') 
-        call parse_grid(mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
+        call parse_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag, print_err)
         do_evaluate = .false.
 
       case default
@@ -804,12 +805,13 @@ if (attrib_word == 'RF_FIELD' .or. attrib_word == 'DC_FIELD') then
                          'IN ELEMENT: ' // ele%name)
   else
     allocate (ele%em_field%mode(i_mode))
-    ele%em_field%mode = rf_mode(1:i_mode)
-    deallocate(rf_mode)
+    ele%em_field%mode = em_modes(1:i_mode)
+    deallocate(em_modes)
     if (allocated(array)) deallocate(array)
   endif
 
   call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  err_flag = .false.
   return
 
 endif
@@ -4328,6 +4330,10 @@ case (wiggler$)
   ele%sub_key = periodic_type$   
   ele%value(polarity$) = 1.0     
 
+case (e_gun$)
+  ele%tracking_method = time_runge_kutta$
+  ele%mat6_calc_method = tracking$
+
 end select
 
 end subroutine parser_set_ele_defaults
@@ -5263,7 +5269,8 @@ real(rp), allocatable :: dr(:), r0(:)
 
 type(grid_pt_struct), allocatable :: array(:), array2(:)
 
-!Expect {
+! Expect {
+
 call get_next_word (word, ix_word, '{', delim, delim_found, call_check = .true. )
 if ((word /= '') .or. (delim /= '{')) then
   call parser_warning (  'NO { SIGN FOUND IN GRID DEFINITION',  &
@@ -5271,11 +5278,7 @@ if ((word /= '') .or. (delim /= '{')) then
   return
 endif
 
-
-!Associate grid
-if (.not. associated (grid) ) allocate(grid)
-
-!Set %file to be the last called file with 
+! Set %file to be the last called file with 
 
 write(grid%file, '(2a, i0)' ) trim(bp_com%current_file%full_name),  ':', bp_com%current_file%i_line
 
@@ -5471,14 +5474,14 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_max
     bele => branch%ele(ie)
     if (.not. associated(bele%em_field)) cycle    
-  do im = 1, size(bele%em_field%mode)
-    if (associated(bele%em_field%mode(im)%grid)) then
-      if (bele%em_field%mode(im)%grid%file == grid%file ) then
-        deallocate(grid)
-        grid => bele%em_field%mode(im)%grid        
+    do im = 1, size(bele%em_field%mode)
+      if (associated(bele%em_field%mode(im)%grid)) then
+        if (bele%em_field%mode(im)%grid%file == grid%file) then
+          deallocate(grid)
+          grid => bele%em_field%mode(im)%grid        
+        end if
       end if
-    end if
-  end do
+    end do
   enddo ele_loop
 enddo 
 
