@@ -138,9 +138,9 @@ parameter (redef$ = 2)
 integer, parameter :: n_parse_line = 280
 
 type bp_var_struct
-  character(40) name   ! variable name
-  real(rp) value       ! variable value
-  integer indexx       ! variable sort index
+  character(40) name      ! variable name
+  real(rp) value          ! variable value
+  integer :: indexx = 0   ! variable sort index
 end type
 
 type bp_common_struct
