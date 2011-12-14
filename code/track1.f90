@@ -65,7 +65,6 @@ endif
 ! Init
 
 param%lost = .false.  ! assume everything will be OK
-param%ix_lost = not_lost$
 
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
 
@@ -75,7 +74,6 @@ if (ele%aperture_at == entrance_end$ .or. ele%aperture_at == both_ends$ .or. ele
                 call check_aperture_limit (start, ele, entrance_end$, param)
 if (param%lost) then
   param%end_lost_at = entrance_end$
-  param%ix_lost = ele%ix_ele
   call init_coord (end)      ! it never got to the end so zero this.
   return
 endif
@@ -179,16 +177,10 @@ if (param%lost .and. param%end_lost_at == live_reversed$) then
                   call check_aperture_limit (start, ele, entrance_end$, param)
   if (param%lost) then
     param%end_lost_at = entrance_end$
-    param%ix_lost = ele%ix_ele
     call init_coord (end)      ! it never got to the end so zero this.
     return
   endif
   param%lost = .true.
-endif
-
-if (param%lost) then
-  param%ix_lost = ele%ix_ele
-  return
 endif
 
 end subroutine
