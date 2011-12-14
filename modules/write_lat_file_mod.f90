@@ -1670,32 +1670,14 @@ do n = ie1, ie2
 
 enddo
 
-!------------------------------------------
-! Use statement
-
-write (iu, *)
-write (iu, *) comment_char, '---------------------------------', trim(eol_char)
-write (iu, *)
-line = 'lat: line = (line_1'
-do i = 2, i_line
-  write (line, '(2a, i0)') trim(line), ', line_', i
-enddo
-line = trim(line) // ')'
-write (iu, *) trim(line), trim(eol_char)
-if (out_type == 'MAD-X') then
-  write (iu, *) 'use, period=lat;'
-elseif (out_type /= 'OPAL-T') then
-  write (iu, *) 'use, lat'
-endif
-
 !---------------------------------------------------
 ! Element offsets
 
-write (iu, *)
-write (iu, *) comment_char, '---------------------------------', trim(eol_char)
-write (iu, *)
-
 if (out_type(1:3) == 'MAD') then
+
+  write (iu, *)
+  write (iu, *) comment_char, '---------------------------------', trim(eol_char)
+  write (iu, *)
 
   allocate (n_repeat(n_names))
   n_repeat = 0
@@ -1740,6 +1722,24 @@ if (lat_out%param%lattice_type /= circular_lattice$ .and. out_type /= 'OPAL-T') 
   write (iu, '(5x, 2(a, es13.5), 2a)') 'alfx =', ele%a%alpha, ', alfy =', ele%b%alpha, ',', trim(continue_char)
   write (iu, '(5x, 2(a, es13.5), 2a)') 'dx =', ele%a%eta, ', dpx = ', ele%a%etap, ',', trim(continue_char)
   write (iu, '(5x, 2(a, es13.5), a)') 'dy =', ele%b%eta, ', dpy = ', ele%b%etap, trim(eol_char)
+endif
+
+!------------------------------------------
+! Use statement
+
+write (iu, *)
+write (iu, *) comment_char, '---------------------------------', trim(eol_char)
+write (iu, *)
+line = 'lat: line = (line_1'
+do i = 2, i_line
+  write (line, '(2a, i0)') trim(line), ', line_', i
+enddo
+line = trim(line) // ')'
+write (iu, *) trim(line), trim(eol_char)
+if (out_type == 'MAD-X') then
+  write (iu, *) 'use, period=lat;'
+elseif (out_type /= 'OPAL-T') then
+  write (iu, *) 'use, lat'
 endif
 
 !
